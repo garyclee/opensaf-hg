@@ -468,6 +468,33 @@ static uint32_t dec_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
+static void decode_si(NCS_UBAID *ub,
+	AVD_SI *si,
+	const uint16_t peer_version)
+{
+#ifdef UPGRADE_FROM_4_2_1
+	// special case for 4.2.1, si_dep_state should be check pointed using ver 4
+	uint16_t ver_compare = AVD_MBCSV_SUB_PART_VERSION_4;
+#else
+	// default case, si_dep_stateavd_peer_ver should not be check pointed for peers in ver 4 (or less)
+	uint16_t ver_compare = AVD_MBCSV_SUB_PART_VERSION_5;
+#endif
+	TRACE_ENTER2("my_version: %u, to_version: %u", ver_compare, peer_version);
+
+	osaf_decode_sanamet(ub, &si->name);
+	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSIAdminState);
+	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSIAssignmentState);
+	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSINumCurrActiveAssignments);
+	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSINumCurrStandbyAssignments);
+	osaf_decode_uint32(ub, (uint32_t*)&si->si_switch);
+	osaf_decode_sanamet(ub, &si->saAmfSIProtectedbySG);
+	osaf_decode_bool(ub, &si->alarm_sent);
+
+	if (peer_version >= ver_compare) {
+		osaf_decode_uint32(ub, (uint32_t*)&si->si_dep_state);
+	}
+}
+
 /****************************************************************************\
  * Function: dec_si_config
  *
@@ -484,52 +511,17 @@ static uint32_t dec_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-
+	AVD_SI si;
+	
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
+	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
+	decode_si(&dec->i_uba, &si, dec->i_peer_version);
+	uint32_t status = avd_ckpt_si(cb, &si, dec->i_action);
 
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror,
-			dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 1, 1);
-		break;
-
-	default:
-		osafassert(0);
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	status = avd_ckpt_si(cb, si_ptr_dec, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
+	if (status == NCSCC_RC_SUCCESS)
 		cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE2("status:%u, si_updt:%d", status, cb->async_updt_cnt.si_updt);
 	return status;
 }
 
@@ -1615,34 +1607,20 @@ static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SI *si_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 2);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	si_struct->saAmfSIAdminState = si_ptr_dec->saAmfSIAdminState;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	osafassert(si != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSIAdminState);
 
 	cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSIAdminState=%u, si_updt:%d",
+		name.value, si->saAmfSIAdminState, cb->async_updt_cnt.si_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1661,34 +1639,20 @@ static uint32_t dec_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SI *si_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 3);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	si_struct->saAmfSIAssignmentState = si_ptr_dec->saAmfSIAssignmentState;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	osafassert(si != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSIAssignmentState);
 
 	cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSIAssignmentState=%u, si_updt:%d",
+		name.value, si->saAmfSIAssignmentState, cb->async_updt_cnt.si_updt);
+	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************
  * @brief    decodes si_dep_state during async update
@@ -1700,37 +1664,29 @@ static uint32_t dec_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *****************************************************************/
 static uint32_t dec_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR edu_error = static_cast<EDU_ERR>(0);
-	AVD_SI *si_struct;
+	SaNameT name;
+	uint32_t si_dep_state;
 
 	TRACE_ENTER();
 
-	si_ptr_dec = &dec_si;
-
-
-	/* Action in this case is just to update */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &edu_error, 2, 1, 10);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	si_struct = avd_si_get(&si_ptr_dec->name);
-	if (si_struct == NULL) {
-		si_struct = avd_si_new(&si_ptr_dec->name);
-		osafassert(si_struct != NULL);
-		avd_si_db_add(si_struct);
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	if (si == NULL) {
+		si = avd_si_new(&name);
+		osafassert(si != NULL);
+		avd_si_db_add(si);		
 	}
 
+	osaf_decode_uint32(&dec->i_uba, &si_dep_state);
+
 	/* Update the fields received in this checkpoint message */
-	avd_sidep_si_dep_state_set(si_struct,si_ptr_dec->si_dep_state);
+	avd_sidep_si_dep_state_set(si, (AVD_SI_DEP_STATE)si_dep_state);
 
 	cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', si_dep_state=%u, si_updt:%d",
+		name.value, si->si_dep_state, cb->async_updt_cnt.si_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1749,34 +1705,20 @@ static uint32_t dec_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SI *si;
+	SaNameT name;
+
 	TRACE_ENTER();
 
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 4);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (si = avd_si_get(&si_ptr_dec->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	si->saAmfSINumCurrActiveAssignments = si_ptr_dec->saAmfSINumCurrActiveAssignments;
-	TRACE("%s saAmfSINumCurrActiveAssignments=%u", si->name.value, si->saAmfSINumCurrActiveAssignments);
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	osafassert(si != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSINumCurrActiveAssignments);
 
 	cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSINumCurrActiveAssignments=%u, si_updt:%d",
+		name.value, si->saAmfSINumCurrActiveAssignments, cb->async_updt_cnt.si_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1795,34 +1737,20 @@ static uint32_t dec_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SI *si;
+	SaNameT name;
+
 	TRACE_ENTER();
 
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 5);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (si = avd_si_get(&si_ptr_dec->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	si->saAmfSINumCurrStandbyAssignments = si_ptr_dec->saAmfSINumCurrStandbyAssignments;
-	TRACE("%s saAmfSINumCurrStandbyAssignments=%u", si->name.value, si->saAmfSINumCurrStandbyAssignments);
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	osafassert(si != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSINumCurrStandbyAssignments);
 
 	cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', saAmfSINumCurrStandbyAssignments=%u, si_updt:%d",
+		name.value, si->saAmfSINumCurrStandbyAssignments, cb->async_updt_cnt.si_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1841,34 +1769,20 @@ static uint32_t dec_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SI *si_struct;
+	SaNameT name;
 
 	TRACE_ENTER();
 
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 6);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	si_struct->si_switch = si_ptr_dec->si_switch;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	osafassert(si != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->si_switch);
 
 	cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', si_switch=%u, si_updt:%d",
+		name.value, si->si_switch, cb->async_updt_cnt.si_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1887,34 +1801,20 @@ static uint32_t dec_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_SI *si_struct;
+	SaNameT name;
+
 	TRACE_ENTER();
 
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 8);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
-		osafassert(0);
-
-	/* Update the fields received in this checkpoint message */
-	si_struct->alarm_sent = si_ptr_dec->alarm_sent;
-	TRACE("%s alarm_sent=%d", si_ptr_dec->name.value, si_struct->alarm_sent);
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	osafassert(si != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->alarm_sent);
 
 	cb->async_updt_cnt.si_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s', alarm_sent=%u, si_updt:%d",
+		name.value, si->alarm_sent, cb->async_updt_cnt.si_updt);
+	return NCSCC_RC_SUCCESS;
 }
 /****************************************************************************\
  * Function: dec_comp_proxy_comp_name
@@ -2541,25 +2441,17 @@ static uint32_t dec_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 static uint32_t dec_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	uint32_t count = 0;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_SI si;
 
 	TRACE_ENTER();
-
-	si_ptr_dec = &dec_si;
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror,
-					    dec->i_peer_version);
-
+	for (unsigned i = 0; i < num_of_obj; i++) {
+		decode_si(&dec->i_uba, &si, dec->i_peer_version);
+		status = avd_ckpt_si(cb, &si, dec->i_action);
 		osafassert(status == NCSCC_RC_SUCCESS);
-		status = avd_ckpt_si(cb, si_ptr_dec, dec->i_action);
 	}
 
 	TRACE_LEAVE2("status '%u'", status);

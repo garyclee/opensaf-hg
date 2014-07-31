@@ -299,43 +299,28 @@ uint32_t avd_ckpt_su_oper_list(const SaNameT *name, NCS_MBCSV_ACT_TYPE action)
 \**************************************************************************/
 uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE action)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SI *si, *si_ptr_up;
-	AVD_SI dec_si;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	SaNameT name;
 
 	TRACE_ENTER2("action %u", action);
 
-	si = &dec_si;
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si, uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si, &ederror, 1, 1);
+	osaf_decode_sanamet(uba, &name);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return NCSCC_RC_FAILURE;
-	}
-
-	si_ptr_up = avd_si_get(&si->name);
-	osafassert (si_ptr_up);
+	AVD_SI *si = si_db->find(Amf::to_string(&name));
+	osafassert(si != NULL);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
-		si_ptr_up->sg_of_si->admin_si = si_ptr_up;
+		si->sg_of_si->admin_si = si;
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		si_ptr_up->sg_of_si->admin_si = NULL;
+		si->sg_of_si->admin_si = NULL;
 		break;
 	default:
 		osafassert(0);
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE2("'%s'", name.value);
+	return NCSCC_RC_SUCCESS;
 }
 
 /********************************************************************
