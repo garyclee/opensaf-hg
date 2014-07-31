@@ -45,52 +45,30 @@ typedef struct avd_si_dep_name_list {
 	struct avd_si_dep_name_list *next;
 } AVD_SI_DEP_NAME_LIST;
 
-/*
- * Index data to retrieve a specific SI-SI dep. data record from its
- * database (si_dep: dep_anchor, spons_anchor) defined AvD CB .
- */
-typedef struct avd_si_si_dep_indx_tag {
-	/* primary-key: sponsor SI name */
-	SaNameT si_name_prim;
-
-	/* secondary-key: dependant SI name */
-	SaNameT si_name_sec;
-} AVD_SI_SI_DEP_INDX;
-
-/*
- * Data structure that holds SI-SI dependency data, same record is updated
- * in two SI_SI dep anch tree's. One of the tree hold sponsor SI name as the
- * primary indx & dependent SI name as secondary indx (as per SI_SI dep cfg).
- * The other one has vis-versa.
- */
-typedef struct avd_si_si_dep {
-	NCS_PATRICIA_NODE tree_node_imm;
-	NCS_PATRICIA_NODE tree_node;
-
-	/* Index info to retrieve the record */
-	AVD_SI_SI_DEP_INDX indx_imm;
-	AVD_SI_SI_DEP_INDX indx;
-
-	uint32_t si_dep_hdl;
-	SaTimeT saAmfToleranceTime;
-	AVD_TMR si_dep_timer;	/* SI-SI dep. tol timer */
-	bool unassign_event;
-} AVD_SI_SI_DEP;
+class AVD_SI_DEP {
+public:
+        SaNameT name;
+        AVD_SI *spons_si;
+        SaNameT spons_name;
+        AVD_SI *dep_si;
+        SaNameT dep_name;
+        SaTimeT saAmfToleranceTime;
+        AVD_TMR si_dep_timer;
+};
 
 /* Spons-SI node of the spons-list in SI struct */
 typedef struct avd_spons_si_tag {
 	AVD_SI *si;
-	AVD_SI_SI_DEP *sidep_rec;
+	AVD_SI_DEP *sidep_rec;
 	struct avd_spons_si_tag *next;
 } AVD_SPONS_SI_NODE;
 
-#define AVD_SI_SI_DEP_NULL ((AVD_SI_SI_DEP *)0)
 
-void sidep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec);
-AVD_SI_SI_DEP *sidep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
-AVD_SI_SI_DEP *avd_sidep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx);
-AVD_SI_SI_DEP *avd_sidep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, bool isImmIdx);
-uint32_t sidep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec);
+#define AVD_SI_DEP_NULL ((AVD_SI_DEP *)0)
+
+extern AmfDb<std::pair<std::string, std::string>, AVD_SI_DEP> *sidep_db;
+void sidep_spons_list_del(AVD_CL_CB *cb, AVD_SI_DEP *si_dep_rec);
+AVD_SI_DEP *avd_sidep_find(AVD_SI *spons_si, AVD_SI *dep_si);
 void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_sidep_assign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_sidep_unassign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
