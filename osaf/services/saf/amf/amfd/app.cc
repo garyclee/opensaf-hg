@@ -25,15 +25,35 @@
 
 AmfDb<std::string, AVD_APP> *app_db = 0;
 
-// TODO(hafe) change this to a constructor
-static AVD_APP *avd_app_new(const SaNameT *dn)
+AVD_APP::AVD_APP() :
+	saAmfApplicationAdminState(SA_AMF_ADMIN_UNLOCKED),
+	saAmfApplicationCurrNumSGs(0),
+	list_of_sg(NULL),
+	list_of_si(NULL),
+	app_type_list_app_next(NULL),
+	app_type(NULL)
 {
-	AVD_APP *app = new AVD_APP();
-	memcpy(app->name.value, dn->value, dn->length);
-	app->name.length = dn->length;
-	return app;
+	memset(&name, 0, sizeof(SaNameT));
+	memset(&saAmfAppType, 0, sizeof(SaNameT));
 }
 
+AVD_APP::AVD_APP(const SaNameT* dn) :
+	saAmfApplicationAdminState(SA_AMF_ADMIN_UNLOCKED),
+	saAmfApplicationCurrNumSGs(0),
+	list_of_sg(NULL),
+	list_of_si(NULL),
+	app_type_list_app_next(NULL),
+	app_type(NULL)
+{
+	memcpy(name.value, dn->value, dn->length);
+	name.length = dn->length;
+	memset(&saAmfAppType, 0, sizeof(SaNameT));
+}
+
+AVD_APP::~AVD_APP()
+{
+}
+		
 // TODO(hafe) change this to a destructor
 static void avd_app_delete(AVD_APP *app)
 {
@@ -185,7 +205,6 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
-	int rc = -1;
 	AVD_APP *app;
 	SaAisErrorT error;
 
@@ -197,8 +216,7 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 	*/
 	app = app_db->find(Amf::to_string(dn));
 	if (app == NULL) {
-		if ((app = avd_app_new(dn)) == NULL)
-			goto done;
+		app = new AVD_APP(dn);
 	} else
 		TRACE("already created, refreshing config...");
 
@@ -208,14 +226,6 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfApplicationAdminState"), attributes, 0, &app->saAmfApplicationAdminState) != SA_AIS_OK) {
 		/* Empty, assign default value */
 		app->saAmfApplicationAdminState = SA_AMF_ADMIN_UNLOCKED;
-	}
-
-	rc = 0;
-
-done:
-	if (rc != 0) {
-		avd_app_delete(app);
-		app = NULL;
 	}
 
 	return app;

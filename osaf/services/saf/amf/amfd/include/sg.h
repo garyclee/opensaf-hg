@@ -45,6 +45,7 @@
 
 class AVD_SU;
 class AVD_SI;
+class AVD_APP;
 
 /* The valid SG FSM states. */
 typedef enum {
@@ -192,7 +193,7 @@ public:
 	AVD_SG *sg_list_sg_type_next;
 	struct avd_amf_sg_type_tag *sg_type;
 	AVD_SG *sg_list_app_next;
-	struct avd_app_tag *app;
+	AVD_APP *app;
 	bool equal_ranked_su; /* This flag is set when ranks of all SU is the same.
 				     It is used in equal distribution of SIs on SU 
 				     in Nway, N+M and Nway-Act Red models.*/
@@ -549,7 +550,7 @@ extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);
 extern void avd_sg_add_si(AVD_SG *sg, AVD_SI *si);
 extern void avd_sg_remove_si(AVD_SG *sg, AVD_SI *si);
-extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, struct avd_app_tag *app);
+extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app);
 extern void avd_sg_add_su(AVD_SU *su);
 extern void avd_sg_remove_su(AVD_SU *su);
 extern void avd_sg_constructor(void);

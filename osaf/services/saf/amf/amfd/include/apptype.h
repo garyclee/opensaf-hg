@@ -30,18 +30,18 @@
 #include <si.h>
 #include "db_template.h"
 
-struct avd_app_tag;
+class AVD_APP;
 
 typedef struct avd_app_type_tag {
 	SaNameT name;
 	SaNameT *sgAmfApptSGTypes;
 	uint32_t no_sg_types;
-	struct avd_app_tag *list_of_app;
+	AVD_APP *list_of_app;
 } AVD_APP_TYPE;
 
 extern AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn);
-extern void avd_apptype_add_app(struct avd_app_tag *app);
-extern void avd_apptype_remove_app(struct avd_app_tag *app);
+extern void avd_apptype_add_app(AVD_APP *app);
+extern void avd_apptype_remove_app(AVD_APP *app);
 extern SaAisErrorT avd_apptype_config_get(void);
 extern void avd_apptype_constructor(void);
 

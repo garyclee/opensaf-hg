@@ -32,17 +32,26 @@
 #include <si.h>
 #include "db_template.h"
 
-// TODO (hafe) change to class AmfApp
-typedef struct avd_app_tag {
+class AVD_APP {
+
+public:
 	SaNameT name;
 	SaNameT saAmfAppType;
 	SaAmfAdminStateT saAmfApplicationAdminState;
 	SaUint32T saAmfApplicationCurrNumSGs;
 	AVD_SG *list_of_sg;
 	AVD_SI *list_of_si;
-	struct avd_app_tag *app_type_list_app_next;
+	AVD_APP *app_type_list_app_next;
 	struct avd_app_type_tag *app_type;
-} AVD_APP;
+	
+	AVD_APP();
+	explicit AVD_APP(const SaNameT *dn);
+	~AVD_APP();
+
+private:
+	AVD_APP(const AVD_APP&);
+	AVD_APP& operator=(const AVD_APP&);
+};
 
 extern AmfDb<std::string, AVD_APP> *app_db;
 
