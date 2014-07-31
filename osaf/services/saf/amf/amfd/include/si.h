@@ -133,6 +133,7 @@ public:
 	
 	void delete_assignments(AVD_CL_CB *cb);
 	void delete_csis();
+	void si_add_to_model();
 
 private:
 	AVD_SI(const AVD_SI&);
