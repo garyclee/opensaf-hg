@@ -424,34 +424,34 @@ AVD_SI *avd_si_get(const SaNameT *dn)
 
 
 
-static void si_add_to_model(AVD_SI *si)
+void AVD_SI::si_add_to_model()
 {
 	SaNameT dn;
 
-	TRACE_ENTER2("%s", si->name.value);
+	TRACE_ENTER2("%s", name.value);
 
 	/* Check parent link to see if it has been added already */
-	if (si->svc_type != NULL) {
+	if (svc_type != NULL) {
 		TRACE("already added");
 		goto done;
 	}
 
-	avsv_sanamet_init(&si->name, &dn, "safApp");
-	si->app = app_db->find(Amf::to_string(&dn));
+	avsv_sanamet_init(&name, &dn, "safApp");
+	app = app_db->find(Amf::to_string(&dn));
 
-	avd_si_db_add(si);
+	avd_si_db_add(this);
 
-	si->svc_type = svctype_db->find(Amf::to_string(&si->saAmfSvcType));
+	svc_type = svctype_db->find(Amf::to_string(&saAmfSvcType));
 
-	if (si->saAmfSIProtectedbySG.length > 0)
-		si->sg_of_si = sg_db->find(Amf::to_string(&si->saAmfSIProtectedbySG));
+	if (saAmfSIProtectedbySG.length > 0)
+		sg_of_si = sg_db->find(Amf::to_string(&saAmfSIProtectedbySG));
 
-	avd_svctype_add_si(si);
-	avd_app_add_si(si->app, si);
-	avd_sg_add_si(si->sg_of_si, si);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-	avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
-		SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
+	avd_svctype_add_si(this);
+	avd_app_add_si(app, this);
+	avd_sg_add_si(sg_of_si, this);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, this, AVSV_CKPT_AVD_SI_CONFIG);
+	avd_saImmOiRtObjectUpdate(&name, "saAmfSIAssignmentState",
+		SA_IMM_ATTR_SAUINT32T, &saAmfSIAssignmentState);
 
 done:
 	TRACE_LEAVE();
@@ -684,7 +684,7 @@ SaAisErrorT avd_si_config_get(AVD_APP *app)
 		if ((si = si_create(&si_name, attributes)) == NULL)
 			goto done2;
 
-		si_add_to_model(si);
+		si->si_add_to_model();
 
 		if (avd_sirankedsu_config_get(&si_name, si) != SA_AIS_OK)
 			goto done2;
@@ -1156,7 +1156,7 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_CREATE:
 		si = si_create(&opdata->objectName, opdata->param.create.attrValues);
 		osafassert(si);
-		si_add_to_model(si);
+		si->si_add_to_model();
 		break;
 	case CCBUTIL_DELETE:
 		avd_si_delete(static_cast<AVD_SI*>(opdata->userData));
