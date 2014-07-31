@@ -68,7 +68,7 @@ static void sg_add_to_model(AVD_SG *sg)
 	sg->sg_type = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
 	osafassert(sg->sg_type);
 	avd_sgtype_add_sg(sg);
-	avd_app_add_sg(sg->app, sg);
+	sg->app->add_sg(sg);
 
 	/* SGs belonging to a magic app will be NCS, TODO Better name! */
 	if (!strcmp((char *)dn.value, "safApp=OpenSAF"))
@@ -86,7 +86,7 @@ done:
 static void sg_remove_from_model(AVD_SG *sg)
 {
 	avd_sgtype_remove_sg(sg);
-	avd_app_remove_sg(sg->app, sg);
+	sg->app->remove_sg(sg);
 	sg_db->erase(Amf::to_string(&sg->name));
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);

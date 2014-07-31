@@ -86,21 +86,18 @@ done:
 	TRACE_LEAVE();
 }
 
-void avd_app_add_si(AVD_APP *app, AVD_SI *si)
+void AVD_APP::add_si(AVD_SI *si)
 {
-	si->si_list_app_next = si->app->list_of_si;
-	si->app->list_of_si = si;
+	si->si_list_app_next = list_of_si;
+	list_of_si = si;
 }
 
-void avd_app_remove_si(AVD_APP *app, AVD_SI *si)
+void AVD_APP::remove_si(AVD_SI *si)
 {
 	AVD_SI *i_si;
 	AVD_SI *prev_si = NULL;
 
-	if (!app)
-		return;
-
-	i_si = app->list_of_si;
+	i_si = list_of_si;
 
 	while ((i_si != NULL) && (i_si != si)) {
 		prev_si = i_si;
@@ -112,7 +109,7 @@ void avd_app_remove_si(AVD_APP *app, AVD_SI *si)
 		osafassert(0);
 	} else {
 		if (prev_si == NULL) {
-			app->list_of_si = si->si_list_app_next;
+			list_of_si = si->si_list_app_next;
 		} else {
 			prev_si->si_list_app_next = si->si_list_app_next;
 		}
@@ -122,24 +119,21 @@ void avd_app_remove_si(AVD_APP *app, AVD_SI *si)
 	si->app = NULL;
 }
 
-void avd_app_add_sg(AVD_APP *app, AVD_SG *sg)
+void AVD_APP::add_sg(AVD_SG *sg)
 {
-	sg->sg_list_app_next = app->list_of_sg;
-	app->list_of_sg = sg;
-	app->saAmfApplicationCurrNumSGs++;
+	sg->sg_list_app_next = list_of_sg;
+	list_of_sg = sg;
+	saAmfApplicationCurrNumSGs++;
 	if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4)
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_AVD_APP_CONFIG);
 }
 
-void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
+void AVD_APP::remove_sg(AVD_SG *sg)
 {
 	AVD_SG *i_sg;
 	AVD_SG *prev_sg = NULL;
 
-	if (!app)
-		return;
-
-	i_sg = app->list_of_sg;
+	i_sg = list_of_sg;
 
 	while ((i_sg != NULL) && (i_sg != sg)) {
 		prev_sg = i_sg;
@@ -151,16 +145,16 @@ void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
 		osafassert(0);
 	} else {
 		if (prev_sg == NULL) {
-			app->list_of_sg = sg->sg_list_app_next;
+			list_of_sg = sg->sg_list_app_next;
 		} else {
 			prev_sg->sg_list_app_next = sg->sg_list_app_next;
 		}
 	}
 
-	osafassert(app->saAmfApplicationCurrNumSGs > 0);
-	app->saAmfApplicationCurrNumSGs--;
+	osafassert(saAmfApplicationCurrNumSGs > 0);
+	saAmfApplicationCurrNumSGs--;
 	if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4)
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_AVD_APP_CONFIG);
 	sg->sg_list_app_next = NULL;
 	sg->app = NULL;
 }

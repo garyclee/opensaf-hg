@@ -47,6 +47,11 @@ public:
 	AVD_APP();
 	explicit AVD_APP(const SaNameT *dn);
 	~AVD_APP();
+	
+	void add_si(AVD_SI *si);
+	void remove_si(AVD_SI *si);
+	void add_sg(AVD_SG *sg);
+	void remove_sg(AVD_SG *sg);
 
 private:
 	AVD_APP(const AVD_APP&);
@@ -55,10 +60,6 @@ private:
 
 extern AmfDb<std::string, AVD_APP> *app_db;
 
-extern void avd_app_add_si(AVD_APP *app, AVD_SI *si);
-extern void avd_app_remove_si(AVD_APP *app, AVD_SI *si);
-extern void avd_app_add_sg(AVD_APP *app, AVD_SG *sg);
-extern void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg);
 extern SaAisErrorT avd_app_config_get(void);
 extern void avd_app_constructor(void);
 
