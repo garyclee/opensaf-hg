@@ -127,24 +127,27 @@ public:
 	uint32_t curr_active_assignments() const;
 	uint32_t pref_standby_assignments() const;
 	uint32_t curr_standby_assignments() const;
+	
+	void add_csi(struct avd_csi_tag* csi);
+	void remove_csi(struct avd_csi_tag *csi);
+	
+	void delete_assignments(AVD_CL_CB *cb);
+	void delete_csis();
 
 private:
 	AVD_SI(const AVD_SI&);
 	AVD_SI& operator=(const AVD_SI&);
+
 };
 
 extern AmfDb<std::string, AVD_SI> *si_db;
 #define AVD_SI_NULL ((AVD_SI *)0)
 
-extern void avd_si_add_csi(struct avd_csi_tag* csi);
-extern void avd_si_remove_csi(struct avd_csi_tag *csi);
 extern AVD_SI *avd_si_new(const SaNameT *dn);
 extern void avd_si_delete(AVD_SI *si);
 extern void avd_si_db_add(AVD_SI *si);
 extern AVD_SI *avd_si_get(const SaNameT *si_name);
 extern SaAisErrorT avd_si_config_get(struct avd_app_tag *app);
 extern void avd_si_constructor(void);
-
-extern void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si);
 
 #endif

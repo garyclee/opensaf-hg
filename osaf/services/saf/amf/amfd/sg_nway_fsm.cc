@@ -2364,7 +2364,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 					/* As susi failover is not possible, delete all the assignments corresponding to
 					 * curr_susi->si
 					 */
-					avd_si_assignments_delete(cb, susi->si);
+					susi->si->delete_assignments(cb);
 					
 				}
 			}
@@ -2616,7 +2616,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 			/* As susi failover is not possible, delete all the assignments corresponding to
 			 * curr_susi->si
 			 */
-			avd_si_assignments_delete(cb, susi->si);
+			susi->si->delete_assignments(cb);
 		}
 	} else if (susi && (SA_AMF_HA_ACTIVE == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		/* => single active assignment success */

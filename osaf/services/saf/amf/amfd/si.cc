@@ -98,7 +98,7 @@ static void avd_si_arrange_dep_csi(struct avd_csi_tag* csi)
 					/* Store the SI pointer as avd_si_remove_csi makes it NULL in the end */
 					temp_csi->rank = csi->rank + 1;
 					temp_si = temp_csi->si;
-					avd_si_remove_csi(temp_csi);
+					temp_si->remove_csi(temp_csi);
 					temp_csi->si = temp_si;
 					avd_si_add_csi_db(temp_csi);
 					/* We need to check whether any other CSI is dependent on temp_csi.
@@ -114,7 +114,7 @@ static void avd_si_arrange_dep_csi(struct avd_csi_tag* csi)
 	return;
 }
 
-void avd_si_add_csi(struct avd_csi_tag* avd_csi)
+void AVD_SI::add_csi(struct avd_csi_tag* avd_csi)
 {
 	AVD_CSI *temp_csi = NULL;
         bool found = false;
@@ -260,7 +260,7 @@ void AVD_SI::remove_rankedsu(const SaNameT *suname)
 	TRACE_LEAVE();
 }
 
-void avd_si_remove_csi(AVD_CSI* csi)
+void AVD_SI::remove_csi(AVD_CSI* csi)
 {
 	AVD_CSI *i_csi = NULL;
 	AVD_CSI *prev_csi = NULL;
@@ -340,18 +340,18 @@ AVD_SI *avd_si_new(const SaNameT *dn)
  * 
  * @param si
  */
-static void si_delete_csis(AVD_SI *si)
+void AVD_SI::delete_csis()
 {
 	AVD_CSI *csi, *temp;
 
-	csi = si->list_of_csi; 
+	csi = list_of_csi; 
 	while (csi != NULL) {
 		temp = csi;
 		csi = csi->si_list_of_csi_next;
 		avd_csi_delete(temp);
 	}
 
-	si->list_of_csi = NULL;
+	list_of_csi = NULL;
 }
 
 void avd_si_delete(AVD_SI *si)
@@ -361,7 +361,7 @@ void avd_si_delete(AVD_SI *si)
 	/* All CSI under this should have been deleted by now on the active 
 	   director and on standby all the csi should be deleted because 
 	   csi delete is not checkpointed as and when it happens */
-	si_delete_csis(si);
+	si->delete_csis();
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
 	avd_svctype_remove_si(si);
 	avd_app_remove_si(si->app, si);
@@ -379,18 +379,17 @@ void avd_si_delete(AVD_SI *si)
 	delete si;
 }
 /**
- * @brief    Deletes all assignments on a particular SI
+ * @brief    Deletes all assignments
  *
  * @param[in] cb - the AvD control block
- * @param[in] si - SI for which susi need to be deleted
  *
  * @return    NULL
  *
  */
-void avd_si_assignments_delete(AVD_CL_CB *cb, AVD_SI *si)
+void AVD_SI::delete_assignments(AVD_CL_CB *cb)
 {
-	AVD_SU_SI_REL *sisu = si->list_of_sisu;
-	TRACE_ENTER2(" '%s'", si->name.value);
+	AVD_SU_SI_REL *sisu = list_of_sisu;
+	TRACE_ENTER2(" '%s'", name.value);
 
 	for (; sisu != NULL; sisu = sisu->si_next) {
 		if(sisu->fsm != AVD_SU_SI_STATE_UNASGN)
@@ -548,7 +547,7 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 		/* here delete the whole csi configuration to refresh 
 		   since csi deletes are not checkpointed there may be 
 		   some CSIs that are deleted from previous data sync up */
-		si_delete_csis(si);
+		si->delete_csis();
 
 		/* delete the corresponding compcsi configuration also */
 		sisu = si->list_of_sisu;
