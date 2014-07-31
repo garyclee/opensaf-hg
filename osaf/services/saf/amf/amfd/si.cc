@@ -373,7 +373,7 @@ void avd_si_delete(AVD_SI *si)
 	si->delete_csis();
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
 	avd_svctype_remove_si(si);
-	avd_app_remove_si(si->app, si);
+	si->app->remove_si(si);
 	avd_sg_remove_si(si->sg_of_si, si);
 
 	// clear any pending alarms for this SI
@@ -456,7 +456,7 @@ void AVD_SI::si_add_to_model()
 		sg_of_si = sg_db->find(Amf::to_string(&saAmfSIProtectedbySG));
 
 	avd_svctype_add_si(this);
-	avd_app_add_si(app, this);
+	app->add_si(this);
 	avd_sg_add_si(sg_of_si, this);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, this, AVSV_CKPT_AVD_SI_CONFIG);
 	avd_saImmOiRtObjectUpdate(&name, "saAmfSIAssignmentState",
