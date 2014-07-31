@@ -103,13 +103,6 @@ typedef struct avd_evt_queue_list {
 	AVD_EVT_QUEUE *tail;
 } AVD_EVT_QUEUE_LIST;
 
-/* SI-SI dependency database */
-typedef struct avd_si_dep {
-	NCS_PATRICIA_TREE spons_anchor;	/* Tree of SI-SI dep, sponsor SI acts
-					   as a primary key */
-	NCS_PATRICIA_TREE dep_anchor;	/* Tree of SI-SI dep, dependent SI 
-					   acts as a primary key */
-} AVD_SI_DEP;
 
 /* AVD IMM Admin Operation Callback */
 typedef struct admin_oper_cbk {

@@ -745,10 +745,6 @@ done:
  **/
 bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
 {
-	AVD_SI_SI_DEP *si_dep_rec;
-	AVD_SI *dep_si;
-	AVD_SI_SI_DEP_INDX si_indx;
-	AVD_SU_SI_REL *sisu;
 	bool quiesc_role = true;
 
 	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
@@ -758,25 +754,16 @@ bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
 		return quiesc_role;
 	} else {
 		/* Check if any of its dependents assigned to same SU for which quiesced role is not yet given */
-		memset(&si_indx, '\0', sizeof(si_indx));
-		si_indx.si_name_prim.length = susi->si->name.length;
-		memcpy(si_indx.si_name_prim.value, susi->si->name.value, si_indx.si_name_prim.length);
-		si_dep_rec = avd_sidep_find_next(avd_cb, &si_indx, true);
-
-		while (si_dep_rec != NULL) {
-			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
-				/* Seems no more node exists in spons_anchor tree with
-				 * "si_indx.si_name_prim" as primary key
-				 */
-				break;
-			}
-			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
-			if (dep_si == NULL) {
-				/* No corresponding SI node?? some thing wrong */
-				si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
+		for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
+			it != sidep_db->end(); it++) {
+			const AVD_SI_DEP *sidep = it->second;
+			if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, susi->si->name) != 0) 
 				continue;
-			}
-			for (sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
+
+			AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+			osafassert(dep_si != NULL); 
+
+			for (AVD_SU_SI_REL *sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
 				if (sisu->su == susi->su) {
 					if ((sisu->state == SA_AMF_HA_ACTIVE) ||
 						((sisu->state == SA_AMF_HA_QUIESCED) && (sisu->fsm == AVD_SU_SI_STATE_MODIFY))) {
@@ -786,7 +773,6 @@ bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
 				}       
 
 			}
-			si_dep_rec = avd_sidep_find_next(avd_cb, &si_dep_rec->indx_imm, true);
 		}
 	}
 done:
