@@ -120,11 +120,13 @@ void AVD_SI::add_csi(struct avd_csi_tag* avd_csi)
         bool found = false;
 
 	TRACE_ENTER2("%s", avd_csi->name.value);
+	
+	osafassert(avd_csi->si == this);
 
 	/* Find whether csi (avd_csi->saAmfCSIDependencies) is already in the DB. */
 	if (avd_csi->rank != 1) /* (rank != 1) ==> (rank is 0). i.e. avd_csi is dependent on another CSI. */ {
 		/* Check if the new CSI has any dependency on the CSI's of existing CSI list */
-		for (temp_csi = avd_csi->si->list_of_csi; temp_csi; temp_csi = temp_csi->si_list_of_csi_next) {
+		for (temp_csi = list_of_csi; temp_csi; temp_csi = temp_csi->si_list_of_csi_next) {
 			AVD_CSI_DEPS *csi_dep_ptr;
 
 			/* Go through all the dependencies of new CSI */
@@ -264,31 +266,32 @@ void AVD_SI::remove_csi(AVD_CSI* csi)
 {
 	AVD_CSI *i_csi = NULL;
 	AVD_CSI *prev_csi = NULL;
+	
+	osafassert(csi->si == this);
 
-	if (csi->si != AVD_SI_NULL) {
-		/* remove CSI from the SI */
-		prev_csi = NULL;
-		i_csi = csi->si->list_of_csi;
+	/* remove CSI from the SI */
+	prev_csi = NULL;
+	i_csi = list_of_csi;
 
-		while ((i_csi != NULL) && (i_csi != csi)) {
-			prev_csi = i_csi;
-			i_csi = i_csi->si_list_of_csi_next;
-		}
+	// find 'csi'
+	while ((i_csi != NULL) && (i_csi != csi)) {
+		prev_csi = i_csi;
+		i_csi = i_csi->si_list_of_csi_next;
+	}
 
-		if (i_csi != csi) {
-			/* Log a fatal error */
-			osafassert(0);
+	if (i_csi != csi) {
+		/* Log a fatal error */
+		osafassert(0);
+	} else {
+		if (prev_csi == NULL) {
+			list_of_csi = csi->si_list_of_csi_next;
 		} else {
-			if (prev_csi == NULL) {
-				csi->si->list_of_csi = csi->si_list_of_csi_next;
-			} else {
-				prev_csi->si_list_of_csi_next = csi->si_list_of_csi_next;
-			}
+			prev_csi->si_list_of_csi_next = csi->si_list_of_csi_next;
 		}
+	}
 
-		csi->si_list_of_csi_next = NULL;
-		csi->si = AVD_SI_NULL;
-	}			/* if (csi->si != AVD_SI_NULL) */
+	csi->si_list_of_csi_next = NULL;
+	csi->si = AVD_SI_NULL;
 }
 
 
