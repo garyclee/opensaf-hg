@@ -34,6 +34,8 @@ libimmpbe_dump_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
+libimmpbe_dump_la_CXXFLAGS = $(AM_CXXFLAGS) @SQLITE3_CFLAGS@
+
 libimmpbe_dump_la_LDFLAGS = @SQLITE3_LIBS@
 
 libimmpbe_dump_la_SOURCES = \
