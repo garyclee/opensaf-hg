@@ -38,6 +38,7 @@
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_file.h"
+#include "osaf_utility.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -79,6 +80,12 @@ bool mbox_full[NCS_IPC_PRIORITY_MAX];
 
 /* Lower limit which determines when to leave FULL state */
 uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
+
+/* The mailbox and mailbox handling variables (limits) may be reinitialized
+ * in runtime. This happen in the main thread. The mailbox and variables are
+ * used in the mds thread.
+ */
+pthread_mutex_t lgs_mbox_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static struct pollfd fds[5];
 static nfds_t nfds = 5;
@@ -135,21 +142,29 @@ static void sigusr1_handler(int sig)
 }
 
 /**
- * Configure mailbox properties from environment variables
+ * Configure mailbox properties from configuration variables
  * Low limit is by default configured as a percentage of the
  * high limit (if not configured explicitly).
  * 
  * @return uint32_t
  */
-static uint32_t configure_mailbox(void)
+uint32_t lgs_configure_mailbox(void)
 {
 	uint32_t limit = 0;
 	bool errorflag;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
+	/* Do not initialize if the mailbox is being used in the mds thread. Wait
+	 * until done.
+	 */
+	osaf_mutex_lock_ordie(&lgs_mbox_init_mutex);
+	
 	limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT, &errorflag);
 	if (errorflag != false) {
 		LOG_ER("Illegal value for LOG_STREAM_SYSTEM_HIGH_LIMIT - %s", strerror(errno));
-		return NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	mbox_high[LGS_IPC_PRIO_SYS_STREAM] = limit;
@@ -164,7 +179,8 @@ static uint32_t configure_mailbox(void)
 		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT, &errorflag);
 		if (errorflag != false) {
 			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_LOW_LIMIT - %s", strerror(errno));
-			return NCSCC_RC_FAILURE;
+			rc = NCSCC_RC_FAILURE;
+			goto done;
 		}
 
 		mbox_low[LGS_IPC_PRIO_SYS_STREAM] = limit;
@@ -173,7 +189,8 @@ static uint32_t configure_mailbox(void)
 	limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, &errorflag);
 	if (errorflag != false) {
 		LOG_ER("Illegal value for LOG_STREAM_APP_HIGH_LIMIT - %s", strerror(errno));
-		return NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	mbox_high[LGS_IPC_PRIO_APP_STREAM] = limit;
@@ -188,7 +205,8 @@ static uint32_t configure_mailbox(void)
 		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, &errorflag);
 		if (errorflag != false) {
 			LOG_ER("Illegal value for LOG_STREAM_APP_LOW_LIMIT - %s", strerror(errno));
-			return NCSCC_RC_FAILURE;
+			rc = NCSCC_RC_FAILURE;
+			goto done;
 		}
 
 		mbox_low[LGS_IPC_PRIO_APP_STREAM] = limit;
@@ -197,7 +215,12 @@ static uint32_t configure_mailbox(void)
 	TRACE("sys low:%u, high:%u", mbox_low[LGS_IPC_PRIO_SYS_STREAM], mbox_high[LGS_IPC_PRIO_SYS_STREAM]);
 	TRACE("app low:%u, high:%u", mbox_low[LGS_IPC_PRIO_APP_STREAM], mbox_high[LGS_IPC_PRIO_APP_STREAM]);
 
-	return NCSCC_RC_SUCCESS;
+	osaf_mutex_unlock_ordie(&lgs_mbox_init_mutex);
+	
+	done:
+	
+	TRACE_LEAVE2("rc = %d", rc);
+	return rc;
 }
 
 /**
@@ -274,7 +297,7 @@ static uint32_t log_initialize(void)
 		goto done;
 	}
 
-	if (configure_mailbox() != NCSCC_RC_SUCCESS) {
+	if (lgs_configure_mailbox() != NCSCC_RC_SUCCESS) {
 		LOG_ER("configure_mailbox FAILED");
 		goto done;
 	}

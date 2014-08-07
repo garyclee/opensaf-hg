@@ -149,6 +149,8 @@ static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
 static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		const char *format, ...) __attribute__ ((format(printf, 3, 4)));
 
+static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf);
+
 /**
  * To be used in OI callbacks to report errors by setting an error string
  * Also writes the same error string using TRACE
@@ -618,6 +620,140 @@ static SaAisErrorT config_ccb_completed_create(SaImmOiHandleT immOiHandle,
 	return rc;
 }
 
+/* =================================================
+ * config_ccb_completed_modify() with help functions
+ * =================================================
+ */
+struct vattr_t {
+	/* true if any of the attributes has been changed */
+	bool validate_flag;
+	SaUint32T logStreamSystemHighLimit;
+	/* true if this attribute has been changed */
+	bool logStreamSystemHighLimit_changed;
+	SaUint32T logStreamSystemLowLimit;
+	bool logStreamSystemLowLimit_changed;
+	SaUint32T logStreamAppHighLimit;
+	bool logStreamAppHighLimit_changed;
+	SaUint32T logStreamAppLowLimit;
+	bool logStreamAppLowLimit_changed;
+};
+
+/**
+ * Compare high and low and return true if:
+ *  - high > low
+ *  - high = low = 0
+ * else return false
+ * 
+ * @param low
+ * @param high
+ * @return true if valid
+ */
+static bool valid_limits(SaUint32T low, SaUint32T high)
+{
+	bool rc = true;
+	if ( !((low == 0) && (high == 0)) ) {
+		/* Allow both values to be 0 */
+		if (low >= high) {
+			rc = false;
+		}
+	}
+	
+	return rc;
+}
+
+/**
+ * Validate attributes:
+ * Must be done after all attributes has been read in order to check against
+ * the correct value.
+ * Check that no low limit >= corresponding high limit
+ * Both high and low limit can be 0
+ * If corresponding limit is not changed, check against current setting
+ * 
+ * @param vattr [i] struct with attributes to validate
+ * @param err_str [out] char vector of 256 bytes to return a string.
+ * @return error code
+ */
+static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_t vattr, char *err_str)
+{	
+	SaUint32T value32_high = 0;
+	SaUint32T value32_low = 0;
+	SaAisErrorT rc = SA_AIS_OK;
+	
+	TRACE_ENTER();
+
+	if (vattr.logStreamSystemHighLimit_changed) {
+		value32_high = vattr.logStreamSystemHighLimit;
+		if (vattr.logStreamSystemLowLimit_changed) {
+			value32_low = vattr.logStreamSystemLowLimit;
+		} else {
+			value32_low = *(SaUint32T *) lgs_imm_logconf_get(
+					LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT, NULL);
+		}
+		
+		if (!valid_limits(value32_low, value32_high)) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			snprintf(err_str, 256, "HIGH limit <= LOW limit");
+			TRACE("logStreamSystemHighLimit validation Fail");
+			goto done;
+		}
+	}
+	
+	if (vattr.logStreamSystemLowLimit_changed) {
+		value32_low = vattr.logStreamSystemLowLimit;
+		if (vattr.logStreamSystemHighLimit_changed) {
+			value32_high = vattr.logStreamSystemHighLimit;
+		} else {
+			value32_high = *(SaUint32T *) lgs_imm_logconf_get(
+					LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT, NULL);
+		}
+		
+		if (!valid_limits(value32_low, value32_high)) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			snprintf(err_str, 256, "HIGH limit <= LOW limit");
+			TRACE("logStreamSystemLowLimit validation Fail");
+			goto done;
+		}
+	}
+	
+	if (vattr.logStreamAppHighLimit_changed) {
+		value32_high = vattr.logStreamAppHighLimit;
+		if (vattr.logStreamAppLowLimit_changed) {
+			value32_low = vattr.logStreamAppLowLimit;
+		} else {
+			value32_low = *(SaUint32T *) lgs_imm_logconf_get(
+					LGS_IMM_LOG_STREAM_APP_LOW_LIMIT, NULL);
+		}
+		
+		if (!valid_limits(value32_low, value32_high)) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			snprintf(err_str, 256, "HIGH limit <= LOW limit");
+			TRACE("logStreamAppHighLimit validation Fail");
+			goto done;
+		}
+	}
+	
+	if (vattr.logStreamAppLowLimit_changed) {
+		value32_low = vattr.logStreamAppLowLimit;
+		if (vattr.logStreamAppHighLimit_changed) {
+			value32_high = vattr.logStreamAppHighLimit;
+		} else {
+			value32_high = *(SaUint32T *) lgs_imm_logconf_get(
+					LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, NULL);
+		}
+		
+		if (!valid_limits(value32_low, value32_high)) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			snprintf(err_str, 256, "HIGH limit <= LOW limit");
+			TRACE("logStreamAppLowLimit validation Fail");
+			goto done;
+		}
+	}
+	
+	done:
+	TRACE_LEAVE2("rc = %d", rc);
+	return rc;
+}
+	
 /**
  * Modification of attributes in log service configuration object.
  * Only logRootDirectory can be modified
@@ -632,6 +768,20 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 	const SaImmAttrModificationT_2 *attrMod;
 	SaAisErrorT rc = SA_AIS_OK;
 	int i = 0;
+	
+	struct vattr_t vattr = {
+		.validate_flag = false,
+		.logStreamSystemHighLimit = 0,
+		.logStreamSystemHighLimit_changed = false,
+		.logStreamSystemLowLimit = 0,
+		.logStreamSystemLowLimit_changed = false,
+		.logStreamAppHighLimit = 0,
+		.logStreamAppHighLimit_changed = false,
+		.logStreamAppLowLimit = 0,
+		.logStreamAppLowLimit_changed = false,
+	};
+	
+	char oi_err_str[256];
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -667,25 +817,25 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
-			report_oi_error(immOiHandle, opdata->ccbId,
-					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
-			goto done;
+			vattr.logStreamSystemHighLimit = *((SaUint32T *)value);
+			vattr.logStreamSystemHighLimit_changed = true;
+			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
-			report_oi_error(immOiHandle, opdata->ccbId,
-					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
-			goto done;
+			vattr.logStreamSystemLowLimit = *((SaUint32T *)value);
+			vattr.logStreamSystemLowLimit_changed = true;
+			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
-			report_oi_error(immOiHandle, opdata->ccbId,
-					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
-			goto done;
+			vattr.logStreamAppHighLimit = *((SaUint32T *)value);
+			vattr.logStreamAppHighLimit_changed = true;
+			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
-			report_oi_error(immOiHandle, opdata->ccbId,
-					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
-			goto done;
+			vattr.logStreamAppLowLimit = *((SaUint32T *)value);
+			vattr.logStreamAppLowLimit_changed = true;
+			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
@@ -710,7 +860,13 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
-
+	
+	rc = validate_config_ccb_completed_modify(vattr, oi_err_str);
+	if (rc != SA_AIS_OK) {
+		TRACE("Reporting oi error \"%s\"", oi_err_str);
+		report_oi_error(immOiHandle, opdata->ccbId, "%s", oi_err_str);
+	}
+	
 done:
 	TRACE_LEAVE2("rc=%u", rc);
 	return rc;
@@ -1176,6 +1332,9 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attrMod;
 	int i = 0;
+	bool checkpoint_flag = false;
+	bool mbox_cfg_flag = false;
+	lgs_conf_t *lgs_conf_p = (lgs_conf_t *) lgs_conf;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -1202,16 +1361,34 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			lgs_conf->chkp_file_close_time = cur_time;
 		
 			LOG_NO("Log root directory changed to: %s", lgs_cb->logsv_root_dir);
-		} else {
-			// validation should not allow any other change
-			osafassert(0);
+			checkpoint_flag = true;
+		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
+			mbox_cfg_flag = true;
+		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
+			mbox_cfg_flag = true;			
+		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
+			mbox_cfg_flag = true;			
+		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
+			mbox_cfg_flag = true;			
 		}
-
+		
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
+
+	if (mbox_cfg_flag == true) {
+		/* If any mailbox queue limits has changed the new configuration has to
+		 * be read and the mailbox reconfigured.
+		 * Standby has to be notified.
+		 */
+		TRACE("%s - Update mailbox", __FUNCTION__);
+		(void) read_logsv_config_obj(LGS_IMM_LOG_CONFIGURATION, lgs_conf_p);
+		(void) lgs_configure_mailbox();
+	}
 	
-	/* Check pointing lgs configuration change */
-	ckpt_lgs_cfg(lgs_conf);
+	if (checkpoint_flag == true) {
+		/* Check pointing lgs configuration change */
+		ckpt_lgs_cfg(lgs_conf);
+	}
 
 	TRACE_LEAVE();
 }

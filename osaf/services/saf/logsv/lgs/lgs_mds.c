@@ -18,6 +18,7 @@
 #include <ncsencdec_pub.h>
 #include "lgs.h"
 #include "osaf_time.h"
+#include "osaf_utility.h"
 
 #define LGS_SVC_PVT_SUBPART_VERSION 1
 #define LGS_WRT_LGA_SUBPART_VER_AT_MIN_MSG_FMT 1
@@ -924,9 +925,13 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 	const lgsv_api_info_t *api_info = &evt->info.msg.info.api_info;
 	lgsv_api_msg_type_t type = api_info->type;
 	NCS_IPC_PRIORITY prio = NCS_IPC_PRIORITY_LOW;
-	uint32_t rc;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	static unsigned long silently_discarded[NCS_IPC_PRIORITY_MAX];
-
+	
+	/* Wait if the mailbox is being reinitialized in the main thread.
+	 */
+	osaf_mutex_lock_ordie(&lgs_mbox_init_mutex);
+	
 	evt->evt_type = LGSV_LGS_LGSV_MSG;
 	evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 	evt->fr_node_id = mds_info->info.receive.i_node_id;
@@ -939,7 +944,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 		osaf_clock_gettime(CLOCK_MONOTONIC, &evt->entered_at);
 		rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
 		osafassert(rc == NCSCC_RC_SUCCESS);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	prio = getmboxprio(api_info);
@@ -952,7 +957,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 			rc = m_NCS_IPC_SEND(&lgs_mbx, evt, LGS_IPC_PRIO_CTRL_MSGS);
 			osafassert(rc == NCSCC_RC_SUCCESS);
 		}
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	/* LGSV_WRITE_LOG_ASYNC_REQ
@@ -983,7 +988,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 	osafassert(api_info->type == LGSV_WRITE_LOG_ASYNC_REQ);
 
 	if (m_NCS_IPC_SEND(&lgs_mbx, evt, prio) == NCSCC_RC_SUCCESS) {
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	} else {
 		mbox_full[prio] = true;
 		TRACE("FULL, msgs: %u, low: %u, high: %u", mbox_msgs[prio],
@@ -1002,7 +1007,11 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 donefree:
 	lgs_free_write_log(&api_info->param.write_log_async);
 	free(evt);
-	return NCSCC_RC_SUCCESS;
+	
+done:
+	osaf_mutex_unlock_ordie(&lgs_mbox_init_mutex);
+	
+	return rc;
 }
 
 /****************************************************************************
