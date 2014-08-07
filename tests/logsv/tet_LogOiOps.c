@@ -748,34 +748,6 @@ void saLogOi_47()
 }
 
 /**
- * CCB Object Modify, root directory
- */
-void saLogOi_48()
-{
-    int rc;
-    char command[256];
-	
-    sprintf(command, "mkdir -p %s/xxtest",log_root_path);
-    rc = system(command);
-    sprintf(command, "immcfg -a logRootDirectory=%s/xxtest logConfig=1,safApp=safLogService",log_root_path);
-    rc = system(command);
-    rc_validate(WEXITSTATUS(rc), 0);
-}
-
-/**
- * CCB Object Modify, logStreamSystemHighLimit, not allowed
- */
-void saLogOi_49()
-{
-    int rc;
-    char command[256];
-
-    sprintf(command, "immcfg -a logStreamSystemHighLimit=90 logConfig=1,safApp=safLogService 2> /dev/null");
-    rc = system(command);
-    rc_validate(WEXITSTATUS(rc), 1);
-}
-
-/**
  * saflogtest, writing to appTest
  */
 void saLogOi_50()
@@ -853,9 +825,226 @@ void saLogOi_51(void)
 	rc_validate(WEXITSTATUS(rc), 0);
 }
 
+/* =============================================================================
+ * Test log service configuration object
+ * =============================================================================
+ */
+
+/**
+ * CCB Object Modify, root directory. Path does not exist. Not allowed
+ * Result shall be reject
+ */
+void saLogOi_52(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logRootDirectory=%s/yytest "
+			"logConfig=1,safApp=safLogService 2> /dev/null",log_root_path);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);	
+}
+
+/**
+ * CCB Object Modify, root directory. Path exist. OK
+ * Result shall be OK
+ */
+void saLogOi_48(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "mkdir -p %s/xxtest",log_root_path);
+    rc = system(command);
+    sprintf(command, "immcfg -a logRootDirectory=%s/xxtest logConfig=1,safApp=safLogService",log_root_path);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);
+}
+
+/**
+ * CCB Object Modify, logMaxLogrecsize. Not allowed
+ * Result, Reject
+ */
+void saLogOi_53(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null",1025);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);	
+}
+
+/**
+ * CCB Object Modify, logStreamSystemHighLimit > logStreamSystemLowLimit. OK
+ * Result OK
+ */
+void saLogOi_54(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamSystemHighLimit=%d -a logStreamSystemLowLimit=%d"
+			" logConfig=1,safApp=safLogService",50000,5000);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);	
+}
+
+/**
+ * CCB Object Modify, logStreamSystemHighLimit = logStreamSystemLowLimit, != 0. Ok
+ * Result Ok
+ */
+void saLogOi_55(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamSystemHighLimit=%d -a logStreamSystemLowLimit=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null",5000,5000);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);	
+}
+
+/**
+ * CCB Object Modify, logStreamSystemHighLimit < logStreamSystemLowLimit. Error
+ * Result, Reject
+ */
+void saLogOi_56(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamSystemHighLimit=%d -a logStreamSystemLowLimit=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null",5000,6000);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);	
+}
+
+/**
+ * CCB Object Modify, logStreamSystemHighLimit = logStreamSystemLowLimit = 0. OK
+ * Result OK
+ */
+void saLogOi_57(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamSystemHighLimit=%d -a logStreamSystemLowLimit=%d"
+			" logConfig=1,safApp=safLogService",0,0);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);	
+}
+
+/**
+ * CCB Object Modify, logStreamAppHighLimit > logStreamAppLowLimit. OK
+ * Result OK
+ */
+void saLogOi_58(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamAppHighLimit=%d -a logStreamAppLowLimit=%d"
+			" logConfig=1,safApp=safLogService",50000,5000);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);	
+}
+
+/**
+ * CCB Object Modify, logStreamAppHighLimit = logStreamAppLowLimit, != 0. Ok
+ * Result Ok
+ */
+void saLogOi_59(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamAppHighLimit=%d -a logStreamAppLowLimit=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null",5000,5000);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);	
+}
+
+/**
+ * CCB Object Modify, logStreamAppHighLimit < logStreamAppLowLimit. Error
+ * Result, Reject
+ */
+void saLogOi_60(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamAppHighLimit=%d -a logStreamAppLowLimit=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null",5000,6000);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);	
+}
+
+/**
+ * CCB Object Modify, logStreamAppHighLimit = logStreamAppLowLimit = 0. OK
+ * Result OK
+ */
+void saLogOi_61(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logStreamAppHighLimit=%d -a logStreamAppLowLimit=%d"
+			" logConfig=1,safApp=safLogService",0,0);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);	
+}
+
+/**
+ * CCB Object Modify, logMaxApplicationStreams. Not allowed
+ * Result, Reject
+ */
+void saLogOi_62(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logMaxApplicationStreams=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null",65);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);	
+}
+
+/**
+ * CCB Object Modify, logFileIoTimeout. Not allowed
+ * Result, Reject
+ */
+void saLogOi_63(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logFileIoTimeout=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null",600);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);	
+}
+
+/**
+ * CCB Object Modify, logFileSysConfig. Not allowed
+ * Result, Reject
+ */
+void saLogOi_64(void)
+{
+    int rc;
+    char command[256];
+	
+    sprintf(command, "immcfg -a logFileSysConfig=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null",2);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);	
+}
+
 __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 {
-    test_suite_add(4, "LOG OI tests");
+	/* Stream objects */
+    test_suite_add(4, "LOG OI tests, stream objects");
     test_case_add(4, saLogOi_01, "CCB Object Modify saLogStreamFileName");
     test_case_add(4, saLogOi_02, "CCB Object Modify saLogStreamPathName, ERR not allowed");
     test_case_add(4, saLogOi_03, "CCB Object Modify saLogStreamMaxLogFileSize");
@@ -909,10 +1098,25 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(4, saLogOi_44, "saflogtest, writing to strD");
     test_case_add(4, saLogOi_47, "CCB Object Delete, strD");
     test_case_add(4, saLogOi_23, "CCB Object Create, strA");
-    test_case_add(4, saLogOi_48, "CCB Object Modify, root directory");
-    test_case_add(4, saLogOi_49, "CCB Object Modify, logStreamSystemHighLimit, not allowed");
     test_case_add(4, saLogOi_40, "CCB Object Delete, strA");
     test_case_add(4, saLogOi_50, "saflogtest, writing to appTest");
     test_case_add(4, saLogOi_51, "saflogtest, writing to saLogApplication1, severity filtering check");
+	
+	/* Configuration object */
+    test_suite_add(5, "LOG OI tests, Service configuration object");
+    test_case_add(5, saLogOi_52, "CCB Object Modify, root directory. Path does not exist. Not allowed");
+    test_case_add(5, saLogOi_48, "CCB Object Modify, root directory. Path exist. OK");
+    test_case_add(5, saLogOi_53, "CCB Object Modify, logMaxLogrecsize. Not allowed");
+    test_case_add(5, saLogOi_54, "CCB Object Modify, logStreamSystemHighLimit > logStreamSystemLowLimit. OK");
+    test_case_add(5, saLogOi_55, "CCB Object Modify, logStreamSystemHighLimit = logStreamSystemLowLimit, != 0. Ok");
+    test_case_add(5, saLogOi_56, "CCB Object Modify, logStreamSystemHighLimit < logStreamSystemLowLimit. Error");
+    test_case_add(5, saLogOi_57, "CCB Object Modify, logStreamSystemHighLimit = logStreamSystemLowLimit = 0. OK");
+    test_case_add(5, saLogOi_58, "CCB Object Modify, logStreamAppHighLimit > logStreamAppLowLimit. OK");
+    test_case_add(5, saLogOi_59, "CCB Object Modify, logStreamAppHighLimit = logStreamAppLowLimit, != 0. Ok");
+    test_case_add(5, saLogOi_60, "CCB Object Modify, logStreamAppHighLimit < logStreamAppLowLimit. Error");
+    test_case_add(5, saLogOi_61, "CCB Object Modify, logStreamAppHighLimit = logStreamAppLowLimit = 0. OK");
+    test_case_add(5, saLogOi_62, "CCB Object Modify, logMaxApplicationStreams. Not allowed");
+    test_case_add(5, saLogOi_63, "CCB Object Modify, logFileIoTimeout. Not allowed");
+    test_case_add(5, saLogOi_64, "CCB Object Modify, logFileSysConfig. Not allowed");
 }
 
