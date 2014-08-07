@@ -113,6 +113,9 @@ extern uint32_t mbox_high[NCS_IPC_PRIORITY_MAX];
 extern uint32_t mbox_msgs[NCS_IPC_PRIORITY_MAX];
 extern bool mbox_full[NCS_IPC_PRIORITY_MAX];
 extern uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
+extern pthread_mutex_t lgs_mbox_init_mutex;
+
+extern uint32_t lgs_configure_mailbox(void);
 
 extern uint32_t lgs_amf_init(lgs_cb_t *);
 extern uint32_t lgs_mds_init(lgs_cb_t *cb);
