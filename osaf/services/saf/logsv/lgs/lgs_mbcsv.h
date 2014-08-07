@@ -29,8 +29,17 @@ extern "C" {
  * Version 2: Check-pointing version used in OpenSAF version 4.4 after
  *            enhancement for handling split file system was added. See #112 and
  *            #688. Can handle version 1 on other node.
+ * Version 3: Runtime configuration of mailbox limits in the log service
+ *            configuration object are allowed but shall only be allowed if
+ *            supported on both nodes. For the moment check-pointing is not
+ *            changed from version 2. Instead the configuration object is always
+ *            read when changing from standby to active.
  */	
-#define LGS_MBCSV_VERSION 2
+#define LGS_MBCSV_VERSION_1 1
+#define LGS_MBCSV_VERSION_2 2
+#define LGS_MBCSV_VERSION_3 3
+/* Current version */
+#define LGS_MBCSV_VERSION 3
 #define LGS_MBCSV_VERSION_MIN 1
 	
 /* Checkpoint message types(Used as 'reotype' w.r.t mbcsv)  */
@@ -91,6 +100,7 @@ typedef struct {
 uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb);
 uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
 bool lgs_is_peer_v2(void);
+bool lgs_is_peer_v3(void);
 bool lgs_is_split_file_system(void);
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 void lgs_free_edu_mem(char *ptr);

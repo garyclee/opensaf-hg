@@ -532,6 +532,12 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 			*stream->p_fd = -1; /* Initialize fd */	
 			stream = log_stream_getnext_by_name(stream->name);
 		}
+		
+		/* Read log configuration object and update mailbox limits.
+		 * Mailbox limits may have been changed.
+		 * Note: Also see amf active stat handler in lgs_amf.c
+		 */
+		update_mailbox_limits();
 	}
 
 	TRACE_LEAVE();
