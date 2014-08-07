@@ -145,13 +145,14 @@ Two ways of handling configuration is supported.
 1. Configuration using a configuration object in IMM:
 ----------------------------------------------------
 When the LOG service is started it looks for a configuration object of 
-OpenSafLogConfig class. If an object is found and is correct the parameters in the
-object will be used. The configuration file as described in section 2 will not
-be used except according to 3. below. The parameters in the object corresponds with the parameters described
-in section 2. All parameters has a default value that is defined in the class
-definition. By default an object of this class is created with the object name
-"logConfig=1,safApp=safLogService" and no other attributes are set,
-meaning that all parameters will get their default value.
+OpenSafLogConfig class. If an object is found and is correct the parameters in
+the object will be used. The configuration file as described in section 2 will
+not be used except according to 3. below. The parameters in the object
+corresponds with the parameters described in section 2. All parameters has a
+default value that is defined in the class definition. By default an object of
+this class is created with the object name "logConfig=1,safApp=safLogService"
+and no other attributes are set, meaning that all parameters will get their
+default value.
 
 The class defines the following parameters (logsv_classes.xml):
 
@@ -176,6 +177,20 @@ $pkglogdir. See also LOGSV_ROOT_DIRECTORY in the logd.conf file.
 The configuration file is still used to "enable trace" and
 "enable info level logging". Also the environment variable
 LGSV_ENV_HEALTHCHECK_KEY is used.
+
+The following attributes can be changed in runtime.
+
+ - saLogRootDirectory
+   Can be changed to an existing path.
+
+ - saLogStreamSystemHighLimit
+   saLogStreamSystemLowLimit
+   saLogAppHighLimit
+   saLogAppLowLimit
+   Can be changed in runtime if both SC nodes supports changes. Could not
+   be changed in older versions.
+
+Other attributes cannot be changed in runtime.
 
 logFileIoTimeout
 

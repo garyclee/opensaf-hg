@@ -149,7 +149,7 @@ static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
 static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		const char *format, ...) __attribute__ ((format(printf, 3, 4)));
 
-static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf);
+static SaAisErrorT read_logsv_config_obj(void);
 
 /**
  * To be used in OI callbacks to report errors by setting an error string
@@ -624,7 +624,10 @@ static SaAisErrorT config_ccb_completed_create(SaImmOiHandleT immOiHandle,
  * config_ccb_completed_modify() with help functions
  * =================================================
  */
-struct vattr_t {
+
+/* Attributes that can be modified if both nodes support LGS_MBCSV_VERSION_3
+ */
+struct vattr_v3_t {
 	/* true if any of the attributes has been changed */
 	bool validate_flag;
 	SaUint32T logStreamSystemHighLimit;
@@ -653,7 +656,7 @@ static bool valid_limits(SaUint32T low, SaUint32T high)
 	bool rc = true;
 	if ( !((low == 0) && (high == 0)) ) {
 		/* Allow both values to be 0 */
-		if (low >= high) {
+		if (low > high) {
 			rc = false;
 		}
 	}
@@ -669,22 +672,26 @@ static bool valid_limits(SaUint32T low, SaUint32T high)
  * Both high and low limit can be 0
  * If corresponding limit is not changed, check against current setting
  * 
- * @param vattr [i] struct with attributes to validate
+ * @param vattr_v3 [in] struct with attributes to validate
  * @param err_str [out] char vector of 256 bytes to return a string.
  * @return error code
  */
-static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_t vattr, char *err_str)
+static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_v3, char *err_str)
 {	
 	SaUint32T value32_high = 0;
 	SaUint32T value32_low = 0;
 	SaAisErrorT rc = SA_AIS_OK;
+	bool v3_changed_flag = false; /* True if changes allowed only if V3 supported */
 	
 	TRACE_ENTER();
-
-	if (vattr.logStreamSystemHighLimit_changed) {
-		value32_high = vattr.logStreamSystemHighLimit;
-		if (vattr.logStreamSystemLowLimit_changed) {
-			value32_low = vattr.logStreamSystemLowLimit;
+	
+	/* Validate attributes that can be modified if both nodes support
+	 * LGS_MBCSV_VERSION_3
+	 */
+	if (vattr_v3.logStreamSystemHighLimit_changed) {
+		value32_high = vattr_v3.logStreamSystemHighLimit;
+		if (vattr_v3.logStreamSystemLowLimit_changed) {
+			value32_low = vattr_v3.logStreamSystemLowLimit;
 		} else {
 			value32_low = *(SaUint32T *) lgs_imm_logconf_get(
 					LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT, NULL);
@@ -692,16 +699,17 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_t vattr, ch
 		
 		if (!valid_limits(value32_low, value32_high)) {
 			rc = SA_AIS_ERR_BAD_OPERATION;
-			snprintf(err_str, 256, "HIGH limit <= LOW limit");
-			TRACE("logStreamSystemHighLimit validation Fail");
+			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
+		
+		v3_changed_flag = true;
 	}
 	
-	if (vattr.logStreamSystemLowLimit_changed) {
-		value32_low = vattr.logStreamSystemLowLimit;
-		if (vattr.logStreamSystemHighLimit_changed) {
-			value32_high = vattr.logStreamSystemHighLimit;
+	if (vattr_v3.logStreamSystemLowLimit_changed) {
+		value32_low = vattr_v3.logStreamSystemLowLimit;
+		if (vattr_v3.logStreamSystemHighLimit_changed) {
+			value32_high = vattr_v3.logStreamSystemHighLimit;
 		} else {
 			value32_high = *(SaUint32T *) lgs_imm_logconf_get(
 					LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT, NULL);
@@ -709,16 +717,17 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_t vattr, ch
 		
 		if (!valid_limits(value32_low, value32_high)) {
 			rc = SA_AIS_ERR_BAD_OPERATION;
-			snprintf(err_str, 256, "HIGH limit <= LOW limit");
-			TRACE("logStreamSystemLowLimit validation Fail");
+			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
+		
+		v3_changed_flag = true;
 	}
 	
-	if (vattr.logStreamAppHighLimit_changed) {
-		value32_high = vattr.logStreamAppHighLimit;
-		if (vattr.logStreamAppLowLimit_changed) {
-			value32_low = vattr.logStreamAppLowLimit;
+	if (vattr_v3.logStreamAppHighLimit_changed) {
+		value32_high = vattr_v3.logStreamAppHighLimit;
+		if (vattr_v3.logStreamAppLowLimit_changed) {
+			value32_low = vattr_v3.logStreamAppLowLimit;
 		} else {
 			value32_low = *(SaUint32T *) lgs_imm_logconf_get(
 					LGS_IMM_LOG_STREAM_APP_LOW_LIMIT, NULL);
@@ -726,16 +735,17 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_t vattr, ch
 		
 		if (!valid_limits(value32_low, value32_high)) {
 			rc = SA_AIS_ERR_BAD_OPERATION;
-			snprintf(err_str, 256, "HIGH limit <= LOW limit");
-			TRACE("logStreamAppHighLimit validation Fail");
+			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
+		
+		v3_changed_flag = true;
 	}
 	
-	if (vattr.logStreamAppLowLimit_changed) {
-		value32_low = vattr.logStreamAppLowLimit;
-		if (vattr.logStreamAppHighLimit_changed) {
-			value32_high = vattr.logStreamAppHighLimit;
+	if (vattr_v3.logStreamAppLowLimit_changed) {
+		value32_low = vattr_v3.logStreamAppLowLimit;
+		if (vattr_v3.logStreamAppHighLimit_changed) {
+			value32_high = vattr_v3.logStreamAppHighLimit;
 		} else {
 			value32_high = *(SaUint32T *) lgs_imm_logconf_get(
 					LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, NULL);
@@ -743,12 +753,23 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_t vattr, ch
 		
 		if (!valid_limits(value32_low, value32_high)) {
 			rc = SA_AIS_ERR_BAD_OPERATION;
-			snprintf(err_str, 256, "HIGH limit <= LOW limit");
-			TRACE("logStreamAppLowLimit validation Fail");
+			snprintf(err_str, 256, "HIGH limit < LOW limit");
+			goto done;
+		}
+		
+		v3_changed_flag = true;
+	}
+	
+	/* Check if other node supports v3 if any v3 attribute has changed */
+	if (v3_changed_flag == true) {
+		if (lgs_is_peer_v3() == false) {
+			/* Not supported by standby. Configuration change not allowed */
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			snprintf(err_str, 256, "Not supported by standby node");
 			goto done;
 		}
 	}
-	
+
 	done:
 	TRACE_LEAVE2("rc = %d", rc);
 	return rc;
@@ -769,7 +790,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	int i = 0;
 	
-	struct vattr_t vattr = {
+	struct vattr_v3_t vattr_v3 = {
 		.validate_flag = false,
 		.logStreamSystemHighLimit = 0,
 		.logStreamSystemHighLimit_changed = false,
@@ -817,25 +838,25 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
-			vattr.logStreamSystemHighLimit = *((SaUint32T *)value);
-			vattr.logStreamSystemHighLimit_changed = true;
+			vattr_v3.logStreamSystemHighLimit = *((SaUint32T *)value);
+			vattr_v3.logStreamSystemHighLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr.logStreamSystemHighLimit);
+					vattr_v3.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
-			vattr.logStreamSystemLowLimit = *((SaUint32T *)value);
-			vattr.logStreamSystemLowLimit_changed = true;
+			vattr_v3.logStreamSystemLowLimit = *((SaUint32T *)value);
+			vattr_v3.logStreamSystemLowLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr.logStreamSystemHighLimit);
+					vattr_v3.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
-			vattr.logStreamAppHighLimit = *((SaUint32T *)value);
-			vattr.logStreamAppHighLimit_changed = true;
+			vattr_v3.logStreamAppHighLimit = *((SaUint32T *)value);
+			vattr_v3.logStreamAppHighLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr.logStreamSystemHighLimit);
+					vattr_v3.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
-			vattr.logStreamAppLowLimit = *((SaUint32T *)value);
-			vattr.logStreamAppLowLimit_changed = true;
+			vattr_v3.logStreamAppLowLimit = *((SaUint32T *)value);
+			vattr_v3.logStreamAppLowLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr.logStreamSystemHighLimit);
+					vattr_v3.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
@@ -861,7 +882,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
 	
-	rc = validate_config_ccb_completed_modify(vattr, oi_err_str);
+	rc = validate_config_ccb_completed_modify(vattr_v3, oi_err_str);
 	if (rc != SA_AIS_OK) {
 		TRACE("Reporting oi error \"%s\"", oi_err_str);
 		report_oi_error(immOiHandle, opdata->ccbId, "%s", oi_err_str);
@@ -1285,8 +1306,8 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 
 		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES, 
 				stream, current_logfile, cur_time_in) != 0) {
-			LOG_ER("Old log files could not be renamed and closed, root-dir: %s",
-					lgs_cb->logsv_root_dir);
+			LOG_ER("Old log files could not be renamed and closed for stream: %s",
+					stream->name);
 		}
 		stream = log_stream_getnext_by_name(stream->name);
 	}
@@ -1334,7 +1355,6 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	int i = 0;
 	bool checkpoint_flag = false;
 	bool mbox_cfg_flag = false;
-	lgs_conf_t *lgs_conf_p = (lgs_conf_t *) lgs_conf;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -1360,7 +1380,6 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 
 			lgs_conf->chkp_file_close_time = cur_time;
 		
-			LOG_NO("Log root directory changed to: %s", lgs_cb->logsv_root_dir);
 			checkpoint_flag = true;
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
 			mbox_cfg_flag = true;
@@ -1381,7 +1400,7 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 		 * Standby has to be notified.
 		 */
 		TRACE("%s - Update mailbox", __FUNCTION__);
-		(void) read_logsv_config_obj(LGS_IMM_LOG_CONFIGURATION, lgs_conf_p);
+		(void) read_logsv_config_obj();
 		(void) lgs_configure_mailbox();
 	}
 	
@@ -1903,18 +1922,31 @@ static SaAisErrorT stream_create_and_configure(const char *dn, log_stream_t **in
 }
 
 /**
+ * Read the configuration object and if a configuration object exists
+ * update the mailbox limits
+ */
+void update_mailbox_limits(void) {
+	if (read_logsv_config_obj() == SA_AIS_OK) {
+		TRACE("%s - Mailbox is reconfigured",__FUNCTION__);
+		(void) lgs_configure_mailbox();
+	} else {
+		TRACE("%s - Could not read configuration object %s",
+				__FUNCTION__, LGS_IMM_LOG_CONFIGURATION);
+	}
+}
+
+/**
  * Get Log configuration from IMM. See SaLogConfig class.
  * The configuration will be read from object 'dn' and
- * written to struct lgsConf.
+ * written to struct lgs_conf.
  * Returns SA_AIS_ERR_NOT_EXIST if no object 'dn' exist.
  * 
- * @param dn
- * @param lgsConf
+ * global lgs_conf
  * 
  * @return SaAisErrorT
  * SA_AIS_OK, SA_AIS_ERR_NOT_EXIST
  */
-static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
+static SaAisErrorT read_logsv_config_obj(void) {
 	SaAisErrorT rc = SA_AIS_OK;
 	SaImmHandleT omHandle;
 	SaNameT objectName;
@@ -1928,13 +1960,14 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 	int asetting = immutilWrapperProfile.errorsAreFatal;
 	SaAisErrorT om_rc = SA_AIS_OK;
 	
-	TRACE_ENTER2("(%s)", dn);
+	TRACE_ENTER();
 
 	/* NOTE: immutil init will osaf_assert if error */
 	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	(void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
-	n = snprintf((char *) objectName.value, SA_MAX_NAME_LENGTH, "%s", dn);
+	n = snprintf((char *) objectName.value, SA_MAX_NAME_LENGTH, "%s",
+			LGS_IMM_LOG_CONFIGURATION);
 	if (n >= SA_MAX_NAME_LENGTH) {
 		LOG_ER("Object name > SA_MAX_NAME_LENGTH");
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -1944,12 +1977,12 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 
 	/* Get all attributes of the object */
 	if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
-		lgsConf->OpenSafLogConfig_class_exist = false;
+		lgs_conf->OpenSafLogConfig_class_exist = false;
 		rc = SA_AIS_ERR_NOT_EXIST;
 		goto done;
 	}
 	else {
-		lgsConf->OpenSafLogConfig_class_exist = true;
+		lgs_conf->OpenSafLogConfig_class_exist = true;
 	}
 
 	while ((attribute = attributes[i++]) != NULL) {
@@ -1961,49 +1994,49 @@ static SaAisErrorT read_logsv_config_obj(const char *dn, lgs_conf_t *lgsConf) {
 		value = attribute->attrValues[0];
 
 		if (!strcmp(attribute->attrName, "logRootDirectory")) {
-			n = snprintf(lgsConf->logRootDirectory, PATH_MAX, "%s",
+			n = snprintf(lgs_conf->logRootDirectory, PATH_MAX, "%s",
 					*((char **) value));
 			if (n >= PATH_MAX) {
 				LOG_WA("LOG root dir read from config object is > PATH_MAX");
-				lgsConf->logRootDirectory[0] = '\0';
-				lgsConf->logRootDirectory_noteflag = true;
+				lgs_conf->logRootDirectory[0] = '\0';
+				lgs_conf->logRootDirectory_noteflag = true;
 			}
 			param_cnt++;
-			TRACE("Conf obj; logRootDirectory: %s", lgsConf->logRootDirectory);
+			TRACE("Conf obj; logRootDirectory: %s", lgs_conf->logRootDirectory);
 		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
-			lgsConf->logMaxLogrecsize = *((SaUint32T *) value);
+			lgs_conf->logMaxLogrecsize = *((SaUint32T *) value);
 			param_cnt++;
-			TRACE("Conf obj; logMaxLogrecsize: %u", lgsConf->logMaxLogrecsize);
+			TRACE("Conf obj; logMaxLogrecsize: %u", lgs_conf->logMaxLogrecsize);
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
-			lgsConf->logStreamSystemHighLimit = *((SaUint32T *) value);
+			lgs_conf->logStreamSystemHighLimit = *((SaUint32T *) value);
 			param_cnt++;
-			TRACE("Conf obj; logStreamSystemHighLimit: %u", lgsConf->logStreamSystemHighLimit);
+			TRACE("Conf obj; logStreamSystemHighLimit: %u", lgs_conf->logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
-			lgsConf->logStreamSystemLowLimit = *((SaUint32T *) value);
+			lgs_conf->logStreamSystemLowLimit = *((SaUint32T *) value);
 			param_cnt++;
-			TRACE("Conf obj; logStreamSystemLowLimit: %u", lgsConf->logStreamSystemLowLimit);
+			TRACE("Conf obj; logStreamSystemLowLimit: %u", lgs_conf->logStreamSystemLowLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
-			lgsConf->logStreamAppHighLimit = *((SaUint32T *) value);
+			lgs_conf->logStreamAppHighLimit = *((SaUint32T *) value);
 			param_cnt++;
-			TRACE("Conf obj; logStreamAppHighLimit: %u", lgsConf->logStreamAppHighLimit);
+			TRACE("Conf obj; logStreamAppHighLimit: %u", lgs_conf->logStreamAppHighLimit);
 		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
-			lgsConf->logStreamAppLowLimit = *((SaUint32T *) value);
+			lgs_conf->logStreamAppLowLimit = *((SaUint32T *) value);
 			param_cnt++;
-			TRACE("Conf obj; logStreamAppLowLimit: %u", lgsConf->logStreamAppLowLimit);
+			TRACE("Conf obj; logStreamAppLowLimit: %u", lgs_conf->logStreamAppLowLimit);
 		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
-			lgsConf->logMaxApplicationStreams = *((SaUint32T *) value);
+			lgs_conf->logMaxApplicationStreams = *((SaUint32T *) value);
 			param_cnt++;
-			TRACE("Conf obj; logMaxApplicationStreams: %u", lgsConf->logMaxApplicationStreams);
+			TRACE("Conf obj; logMaxApplicationStreams: %u", lgs_conf->logMaxApplicationStreams);
 		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
-			lgsConf->logFileIoTimeout = *((SaUint32T *) value);
-			lgsConf->logFileIoTimeout_noteflag = false;
+			lgs_conf->logFileIoTimeout = *((SaUint32T *) value);
+			lgs_conf->logFileIoTimeout_noteflag = false;
 			param_cnt++;
-			TRACE("Conf obj; logFileIoTimeout: %u", lgsConf->logFileIoTimeout);
+			TRACE("Conf obj; logFileIoTimeout: %u", lgs_conf->logFileIoTimeout);
 		} else if (!strcmp(attribute->attrName, "logFileSysConfig")) {
-			lgsConf->logFileSysConfig = *((SaUint32T *) value);
-			lgsConf->logFileSysConfig_noteflag = false;
+			lgs_conf->logFileSysConfig = *((SaUint32T *) value);
+			lgs_conf->logFileSysConfig_noteflag = false;
 			param_cnt++;
-			TRACE("Conf obj; logFileSysConfig: %u", lgsConf->logFileSysConfig);
+			TRACE("Conf obj; logFileSysConfig: %u", lgs_conf->logFileSysConfig);
 		} 
 	}
 
@@ -2034,15 +2067,15 @@ done:
 /**
  * Handle logsv configuration environment variables.
  * This function shall be called only if no configuration object is found in IMM.
- * The lgsConf struct contains default values but shall be updated
+ * The lgs_conf struct contains default values but shall be updated
  * according to environment variables if there are any. See file logd.conf
  * If an environment variable is faulty the corresponding value will be set to
  * it's default value and a corresponding error flag will be set.
  * 
- * @param *lgsConf
+ * global lgs_Conf
  * 
  */
-static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
+static void read_logsv_config_environ_var(void) {
 	char *val_str;
 	unsigned long int val_uint;
 	int n;
@@ -2051,19 +2084,19 @@ static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 
 	/* logRootDirectory */
 	if ((val_str = getenv("LOGSV_ROOT_DIRECTORY")) != NULL) {
-		lgsConf->logRootDirectory_noteflag = false;
-		n = snprintf(lgsConf->logRootDirectory, PATH_MAX, "%s", val_str);
+		lgs_conf->logRootDirectory_noteflag = false;
+		n = snprintf(lgs_conf->logRootDirectory, PATH_MAX, "%s", val_str);
 		if (n >= PATH_MAX) {
 			LOG_WA("LOG root dir read from config file is > PATH_MAX");
-			lgsConf->logRootDirectory[0] = '\0';
-			lgsConf->logRootDirectory_noteflag = true;
+			lgs_conf->logRootDirectory[0] = '\0';
+			lgs_conf->logRootDirectory_noteflag = true;
 		}
 	} else {
 		LOG_WA("LOGSV_ROOT_DIRECTORY not found");
-		lgsConf->logRootDirectory_noteflag = true;
+		lgs_conf->logRootDirectory_noteflag = true;
 	}
 	TRACE("logRootDirectory=%s, logRootDirectory_noteflag=%u",
-			lgsConf->logRootDirectory, lgsConf->logRootDirectory_noteflag);
+			lgs_conf->logRootDirectory, lgs_conf->logRootDirectory_noteflag);
 
 	/* logMaxLogrecsize */
 	if ((val_str = getenv("LOGSV_MAX_LOGRECSIZE")) != NULL) {
@@ -2078,17 +2111,17 @@ static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 		val_uint = strtoul(val_str, NULL, 0);
 		if ((errno != 0) || (val_uint > UINT_MAX)) {
 			LOG_ER("Illegal value for LOGSV_MAX_LOGRECSIZE - %s, default %u",
-					strerror(errno), lgsConf->logMaxLogrecsize);
-			lgsConf->logMaxLogrecsize_noteflag = true;
+					strerror(errno), lgs_conf->logMaxLogrecsize);
+			lgs_conf->logMaxLogrecsize_noteflag = true;
 		} else {
-			lgsConf->logMaxLogrecsize = (SaUint32T) val_uint;
-			lgsConf->logMaxLogrecsize_noteflag = false;
+			lgs_conf->logMaxLogrecsize = (SaUint32T) val_uint;
+			lgs_conf->logMaxLogrecsize_noteflag = false;
 		}
 	} else { /* No environment variable use default value */
-		lgsConf->logMaxLogrecsize_noteflag = false;
+		lgs_conf->logMaxLogrecsize_noteflag = false;
 	}
 	TRACE("logMaxLogrecsize=%u, logMaxLogrecsize_noteflag=%u",
-			lgsConf->logMaxLogrecsize, lgsConf->logMaxLogrecsize_noteflag);
+			lgs_conf->logMaxLogrecsize, lgs_conf->logMaxLogrecsize_noteflag);
 
 	/* logStreamSystemHighLimit */
 	if ((val_str = getenv("LOG_STREAM_SYSTEM_HIGH_LIMIT")) != NULL) {
@@ -2096,17 +2129,17 @@ static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 		val_uint = strtoul(val_str, NULL, 0);
 		if ((errno != 0) || (val_uint > UINT_MAX)) {
 			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_HIGH_LIMIT - %s, default %u",
-					strerror(errno), lgsConf->logStreamSystemHighLimit);
-			lgsConf->logStreamSystemHighLimit_noteflag = true;
+					strerror(errno), lgs_conf->logStreamSystemHighLimit);
+			lgs_conf->logStreamSystemHighLimit_noteflag = true;
 		} else {
-			lgsConf->logStreamSystemHighLimit = (SaUint32T) val_uint;
-			lgsConf->logStreamSystemHighLimit_noteflag = false;
+			lgs_conf->logStreamSystemHighLimit = (SaUint32T) val_uint;
+			lgs_conf->logStreamSystemHighLimit_noteflag = false;
 		}
 	} else { /* No environment variable use default value */
-		lgsConf->logStreamSystemHighLimit_noteflag = false;
+		lgs_conf->logStreamSystemHighLimit_noteflag = false;
 	}
 	TRACE("logStreamSystemHighLimit=%u, logStreamSystemHighLimit_noteflag=%u",
-			lgsConf->logStreamSystemHighLimit, lgsConf->logStreamSystemHighLimit_noteflag);
+			lgs_conf->logStreamSystemHighLimit, lgs_conf->logStreamSystemHighLimit_noteflag);
 
 	/* logStreamSystemLowLimit */
 	if ((val_str = getenv("LOG_STREAM_SYSTEM_LOW_LIMIT")) != NULL) {
@@ -2114,17 +2147,17 @@ static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 		val_uint = strtoul(val_str, NULL, 0);
 		if ((errno != 0) || (val_uint > UINT_MAX)) {
 			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_LOW_LIMIT - %s, default %u",
-					strerror(errno), lgsConf->logStreamSystemLowLimit);
-			lgsConf->logStreamSystemLowLimit_noteflag = true;
+					strerror(errno), lgs_conf->logStreamSystemLowLimit);
+			lgs_conf->logStreamSystemLowLimit_noteflag = true;
 		} else {
-			lgsConf->logStreamSystemLowLimit = (SaUint32T) val_uint;
-			lgsConf->logStreamSystemLowLimit_noteflag = false;
+			lgs_conf->logStreamSystemLowLimit = (SaUint32T) val_uint;
+			lgs_conf->logStreamSystemLowLimit_noteflag = false;
 		}
 	} else { /* No environment variable use default value */
-		lgsConf->logStreamSystemLowLimit_noteflag = false;
+		lgs_conf->logStreamSystemLowLimit_noteflag = false;
 	}
 	TRACE("logStreamSystemLowLimit=%u, logStreamSystemLowLimit_noteflag=%u",
-			lgsConf->logStreamSystemLowLimit, lgsConf->logStreamSystemLowLimit_noteflag);
+			lgs_conf->logStreamSystemLowLimit, lgs_conf->logStreamSystemLowLimit_noteflag);
 
 	/* logStreamAppHighLimit */
 	if ((val_str = getenv("LOG_STREAM_APP_HIGH_LIMIT")) != NULL) {
@@ -2132,17 +2165,17 @@ static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 		val_uint = strtoul(val_str, NULL, 0);
 		if ((errno != 0) || (val_uint > UINT_MAX)) {
 			LOG_ER("Illegal value for LOG_STREAM_APP_HIGH_LIMIT - %s, default %u",
-					strerror(errno), lgsConf->logStreamAppHighLimit);
-			lgsConf->logStreamAppHighLimit_noteflag = true;
+					strerror(errno), lgs_conf->logStreamAppHighLimit);
+			lgs_conf->logStreamAppHighLimit_noteflag = true;
 		} else {
-			lgsConf->logStreamAppHighLimit = (SaUint32T) val_uint;
-			lgsConf->logStreamAppHighLimit_noteflag = false;
+			lgs_conf->logStreamAppHighLimit = (SaUint32T) val_uint;
+			lgs_conf->logStreamAppHighLimit_noteflag = false;
 		}
 	} else { /* No environment variable use default value */
-		lgsConf->logStreamAppHighLimit_noteflag = false;
+		lgs_conf->logStreamAppHighLimit_noteflag = false;
 	}
 	TRACE("logStreamAppHighLimit=%u, logStreamAppHighLimit_noteflag=%u",
-			lgsConf->logStreamAppHighLimit, lgsConf->logStreamAppHighLimit_noteflag);
+			lgs_conf->logStreamAppHighLimit, lgs_conf->logStreamAppHighLimit_noteflag);
 
 	/* logStreamAppLowLimit */
 	if ((val_str = getenv("LOG_STREAM_APP_LOW_LIMIT")) != NULL) {
@@ -2150,17 +2183,17 @@ static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 		val_uint = strtoul(val_str, NULL, 0);
 		if ((errno != 0) || (val_uint > UINT_MAX)) {
 			LOG_ER("Illegal value for LOG_STREAM_APP_LOW_LIMIT - %s, default %u",
-					strerror(errno), lgsConf->logStreamAppLowLimit);
-			lgsConf->logStreamAppLowLimit_noteflag = true;
+					strerror(errno), lgs_conf->logStreamAppLowLimit);
+			lgs_conf->logStreamAppLowLimit_noteflag = true;
 		} else {
-			lgsConf->logStreamAppLowLimit = (SaUint32T) val_uint;
-			lgsConf->logStreamAppLowLimit_noteflag = false;
+			lgs_conf->logStreamAppLowLimit = (SaUint32T) val_uint;
+			lgs_conf->logStreamAppLowLimit_noteflag = false;
 		}
 	} else { /* No environment variable use default value */
-		lgsConf->logStreamAppLowLimit_noteflag = false;
+		lgs_conf->logStreamAppLowLimit_noteflag = false;
 	}
 	TRACE("logStreamAppLowLimit=%u, logStreamAppLowLimit_noteflag=%u",
-			lgsConf->logStreamAppLowLimit, lgsConf->logStreamAppLowLimit_noteflag);
+			lgs_conf->logStreamAppLowLimit, lgs_conf->logStreamAppLowLimit_noteflag);
 
 	/* logMaxApplicationStreams */
 	if ((val_str = getenv("LOG_MAX_APPLICATION_STREAMS")) != NULL) {
@@ -2168,17 +2201,17 @@ static void read_logsv_config_environ_var(lgs_conf_t *lgsConf) {
 		val_uint = strtoul(val_str, NULL, 0);
 		if ((errno != 0) || (val_uint > UINT_MAX)) {
 			LOG_ER("Illegal value for LOG_MAX_APPLICATION_STREAMS - %s, default %u",
-					strerror(errno), lgsConf->logMaxApplicationStreams);
-			lgsConf->logMaxApplicationStreams_noteflag = true;
+					strerror(errno), lgs_conf->logMaxApplicationStreams);
+			lgs_conf->logMaxApplicationStreams_noteflag = true;
 		} else {
-			lgsConf->logMaxApplicationStreams = (SaUint32T) val_uint;
-			lgsConf->logMaxApplicationStreams_noteflag = false;
+			lgs_conf->logMaxApplicationStreams = (SaUint32T) val_uint;
+			lgs_conf->logMaxApplicationStreams_noteflag = false;
 		}
 	} else { /* No environment variable use default value */
-		lgsConf->logMaxApplicationStreams_noteflag = false;
+		lgs_conf->logMaxApplicationStreams_noteflag = false;
 	}
 	TRACE("logMaxApplicationStreams=%u, logMaxApplicationStreams_noteflag=%u",
-			lgsConf->logMaxApplicationStreams, lgsConf->logMaxApplicationStreams_noteflag);
+			lgs_conf->logMaxApplicationStreams, lgs_conf->logMaxApplicationStreams_noteflag);
 
 	TRACE_LEAVE();
 }
@@ -2303,9 +2336,9 @@ const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
 	lgs_conf_p = (lgs_conf_t *) lgs_conf;
 	/* Check if parameters has to be fetched from IMM */
 	if (lgs_conf->logInitiated != true) {
-		if (read_logsv_config_obj(LGS_IMM_LOG_CONFIGURATION, lgs_conf_p) != SA_AIS_OK) {
+		if (read_logsv_config_obj()) {
 			LOG_NO("No or invalid log service configuration object");
-			read_logsv_config_environ_var(lgs_conf_p);
+			read_logsv_config_environ_var();
 		} else {
 			/* LGS_IMM_LOG_CONFIGURATION object exists.
 			 * If environment variables exists, then ignore them

@@ -202,7 +202,7 @@ uint32_t lgs_configure_mailbox(void)
 			&mbox_msgs[LGS_IPC_PRIO_APP_STREAM]);
 
 	if (limit != 0) {
-		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, &errorflag);
+		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT, &errorflag);
 		if (errorflag != false) {
 			LOG_ER("Illegal value for LOG_STREAM_APP_LOW_LIMIT - %s", strerror(errno));
 			rc = NCSCC_RC_FAILURE;

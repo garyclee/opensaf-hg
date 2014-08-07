@@ -314,12 +314,26 @@ uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  */
 bool lgs_is_peer_v2(void)
 {
-	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION) {
+	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_2) {
 		return true;
 	} else {
 		return false;
 	}
 }
+
+/**
+ * Check if peer is version 3 (or later)
+ * @return bool
+ */
+bool lgs_is_peer_v3(void)
+{
+	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_3) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 /**
  * Check if configured for split file system.
  * If other node is version 1 split file system mode is not applicable.

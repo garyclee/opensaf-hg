@@ -64,8 +64,6 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 	}
 
 	/* switch over, become implementer
-	 * If a configuration object exists then we are an object applier that has
-	 * to be cleared before we can become an object implementer.
 	 */
 	immutilWrapperProfile.nTries = 250; /* LOG will be blocked until IMM responds */
 	immutilWrapperProfile.errorsAreFatal = 0;
@@ -96,7 +94,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 		*stream->p_fd = -1; /* First Initialize fd */
 		stream = log_stream_getnext_by_name(stream->name);
 	}
-
+	
  done:
 	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 	immutilWrapperProfile.errorsAreFatal = 1;
@@ -331,6 +329,14 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 			error = SA_AIS_ERR_FAILED_OPERATION;
 	}
 
+	if ((role_change == true) && (new_haState == SA_AMF_HA_ACTIVE)) {
+		/* Read log configuration object and update mailbox limits.
+		 * Mailbox limits may have been changed.
+		 * Note: Also see rda callback in lgs_evt.c
+		 */
+		update_mailbox_limits();
+	}
+	
  response:
 	saAmfResponse(lgs_cb->amf_hdl, invocation, error);
  done:
