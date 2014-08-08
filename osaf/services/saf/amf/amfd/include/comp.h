@@ -36,7 +36,6 @@
 
 #include <saAmf.h>
 #include <saImm.h>
-#include <ncspatricia.h>
 #include <amf_d2nmsg.h>
 #include <cb.h>
 #include "db_template.h"
@@ -154,7 +153,6 @@ extern  AmfDb<std::string, AVD_COMP_TYPE> *comptype_db;
 
 /* AMF Class SaAmfCompCsType */
 typedef struct avd_comp_cs_type_tag {
-	NCS_PATRICIA_NODE tree_node;	/* name is key */
 	SaNameT name;
 	SaUint32T saAmfCompNumMaxActiveCSIs;
 	SaUint32T saAmfCompNumMaxStandbyCSIs;

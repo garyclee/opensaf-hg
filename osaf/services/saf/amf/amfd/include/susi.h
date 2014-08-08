@@ -80,8 +80,7 @@ typedef struct avd_sus_per_si_rank_index_tag {
 } AVD_SUS_PER_SI_RANK_INDX;
 
 /* Availability directors SUs organised per RANK in a SI. 
- * This Data structure lives in the AVD and is maintained as a patricia tree 
- * from the AVD Control Block.
+ * This Data structure lives in the AVD.
  */
 typedef struct avd_sus_per_si_rank_tag {
 	AVD_SUS_PER_SI_RANK_INDX indx;	/* Table index */

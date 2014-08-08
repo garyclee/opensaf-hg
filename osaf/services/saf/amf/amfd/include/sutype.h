@@ -19,11 +19,9 @@
 #define AVD_SUTYPE_H
 
 #include <saAis.h>
-#include <ncspatricia.h>
 #include <su.h>
 
 struct avd_sutype {
-	NCS_PATRICIA_NODE tree_node; /* key will be su type name */
 	SaNameT name;
 	SaUint32T saAmfSutIsExternal;
 	SaUint32T saAmfSutDefSUFailover;

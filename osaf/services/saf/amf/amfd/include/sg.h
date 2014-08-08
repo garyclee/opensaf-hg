@@ -35,7 +35,6 @@
 #define AVD_SG_H
 
 #include <saAmf.h>
-#include <ncspatricia.h>
 #include <cb.h>
 #include <def.h>
 #include <sgtype.h>

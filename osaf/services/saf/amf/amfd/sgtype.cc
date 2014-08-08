@@ -16,7 +16,6 @@
  *
  */
 
-#include <ncspatricia.h>
 #include <logtrace.h>
 #include <util.h>
 #include <cluster.h>
