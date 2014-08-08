@@ -27,6 +27,7 @@
 #include "mdstipc.h"
 #include "ncssysf_tmr.h"
 
+#define MSG_SIZE 65479
 static MDS_CLIENT_MSG_FORMAT_VER gl_set_msg_fmt_ver;
 
 MDS_SVC_ID svc_ids[3]={2006,2007,2008};
@@ -3665,7 +3666,7 @@ void tet_just_send_tp_10()
   } 
   else
   {
-    printf("\nTest Case 10: Now send a message( > MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN\n");
+    printf("\nTest Case 10: Now send a message( > MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN\n");
     /*--------------------------------------------------------------------*/
     printf("\nSubscribe\n");
     if(mds_service_subscribe(gl_tet_adest.mds_pwe1_hdl,
@@ -3683,8 +3684,8 @@ void tet_just_send_tp_10()
       FAIL=1; 
     }
 
-    memset(mesg->send_data,'S',2*1400+2 );
-    mesg->send_len=2*1400+2;
+    memset(mesg->send_data,'S',2*MSG_SIZE+2 );
+    mesg->send_len=2*MSG_SIZE+2;
     if(mds_just_send(gl_tet_adest.mds_pwe1_hdl,
                      NCSMDS_SVC_ID_EXTERNAL_MIN,
                      NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -4693,9 +4694,9 @@ void tet_send_ack_tp_11()
     memset(mesg, 0, sizeof(TET_MDS_MSG));
     memcpy(mesg->send_data,tmp,sizeof(tmp));
     mesg->send_len=sizeof(tmp);
-    printf("Test Case 11: Now send a message( > MDTM_NORMAL_MSG_FRAG_SIZE) to 1700\n");
-    memset(mesg->send_data,'S',2*1400+2 );
-    mesg->send_len=2*1400+2;
+    printf("Test Case 11: Now send a message( > MDS_DIRECT_BUF_MAXSIZE) to 1700\n");
+    memset(mesg->send_data,'S',2*MSG_SIZE+2 );
+    mesg->send_len=2*MSG_SIZE+2;
     if(mds_send_get_ack(gl_tet_adest.mds_pwe1_hdl,
                         NCSMDS_SVC_ID_EXTERNAL_MIN,
                         NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -5949,9 +5950,9 @@ void tet_send_response_tp_11()
 
   else
   {    
-    printf("\nTest Case 11: Now send_response a message(> MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest\n");
-    memset(mesg->send_data,'S',2*1400+2 );
-    mesg->send_len=2*1400+2;
+    printf("\nTest Case 11: Now send_response a message(> MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN on Active Vdest\n");
+    memset(mesg->send_data,'S',2*MSG_SIZE+2 );
+    mesg->send_len=2*MSG_SIZE+2;
     /*Receiver thread*/
     if(tet_create_task((NCS_OS_CB)tet_adest_rcvr_thread,
                        gl_tet_adest.svc[2].task.t_handle)
@@ -7515,9 +7516,9 @@ void tet_send_response_ack_tp_8()
     FAIL=1;
   } else {
     /*--------------------------------------------------------------------*/
-    printf("\nTest Case 8: Now send_response a message( > MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest\n");
-    memset(mesg->send_data,'S',2*1400+2 );
-    mesg->send_len=2*1400+2;
+    printf("\nTest Case 8: Now send_response a message( > MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN on Active Vdest\n");
+    memset(mesg->send_data,'S',2*MSG_SIZE+2 );
+    mesg->send_len=2*MSG_SIZE+2;
     /*Receiver thread*/
     if(tet_create_task((NCS_OS_CB)tet_vdest_rcvr_thread,
                        gl_tet_vdest[1].svc[1].task.t_handle)
@@ -7968,9 +7969,9 @@ void tet_broadcast_to_svc_tp_6()
   }
   else
   {
-    printf("\nTest Case 6: Svc INTMIN on VDEST=200 Broadcasting a VERY HIGH Priority message (>MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN\n");
-    memset(mesg->send_data,'S',2*1400+2 );
-    mesg->send_len=2*1400+2;
+    printf("\nTest Case 6: Svc INTMIN on VDEST=200 Broadcasting a VERY HIGH Priority message (>MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN\n");
+    memset(mesg->send_data,'S',2*MSG_SIZE+2 );
+    mesg->send_len=2*MSG_SIZE+2;
     if(mds_service_subscribe(gl_tet_vdest[1].mds_pwe1_hdl,
                              NCSMDS_SVC_ID_INTERNAL_MIN,
                              NCSMDS_SCOPE_NONE,1,
@@ -14202,7 +14203,7 @@ __attribute__ ((constructor)) static void mdsTipcAPI_constructor(void) {
   test_case_add(6, tet_just_send_tp_7, "Send a message to unsubscribed Svc INTMIN on Active Vdest:Implicit/Explicit Combination");
   test_case_add(6, tet_just_send_tp_8, "Not able to send a message to Svc EXTMIN with Improper Priority");
   test_case_add(6, tet_just_send_tp_9, "Not able to send aNULL message to Svc EXTMIN on Active Vdest");
-  test_case_add(6, tet_just_send_tp_10, "Now send a message( > MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN");
+  test_case_add(6, tet_just_send_tp_10, "Now send a message( > MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN");
   test_case_add(6, tet_just_send_tp_11, "Not able to Send a message with Invalid Send type");
   test_case_add(6, tet_just_send_tp_12, "While Await Active timer is On: send a  message to Svc EXTMIN Vdest=200");
   test_case_add(6, tet_just_send_tp_13, "Send a message to Svc EXTMIN on QUIESCED Vdest=200");
@@ -14219,7 +14220,7 @@ __attribute__ ((constructor)) static void mdsTipcAPI_constructor(void) {
   test_case_add(7, tet_send_ack_tp_8, "Send a message with ACK to unsubscribed service 1600");
   test_case_add(7, tet_send_ack_tp_9, "Not able to send_ack a message with Improper Priority to 1700");
   test_case_add(7, tet_send_ack_tp_10, "Not able to send a NULL message with ACK to 1700");
-  test_case_add(7, tet_send_ack_tp_11, "Send a message( > MDTM_NORMAL_MSG_FRAG_SIZE) to 1700");
+  test_case_add(7, tet_send_ack_tp_11, "Send a message( > MDS_DIRECT_BUF_MAXSIZE) to 1700");
   test_case_add(7, tet_send_ack_tp_12, "While Await Active timer is On: send_ack a message to Svc EXTMIN Vdest=200");
   test_case_add(7, tet_send_ack_tp_13, "Send_ack a message to Svc EXTMIN on QUIESCED Vdest=200");
  
@@ -14239,7 +14240,7 @@ __attribute__ ((constructor)) static void mdsTipcAPI_constructor(void) {
   test_case_add(9, tet_send_response_tp_8, "Not able to send a message to a Service which doesn't exist");
   test_case_add(9, tet_send_response_tp_9, "Not able to send_response a message to Svc 2000 with Improper Priority");
   test_case_add(9, tet_send_response_tp_10, "Not able to send_response a NULL message to Svc EXTMIN on Active Vdest");
-  test_case_add(9, tet_send_response_tp_11, "Now send_response a message(> MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest");
+  test_case_add(9, tet_send_response_tp_11, "Now send_response a message(> MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN on Active Vdest");
   //TODO: Check this testcase
   //  test_case_add(9, tet_send_response_tp_12, "Able to send a messages 200 times to Svc  2000 on Active Vdest");
 
@@ -14255,7 +14256,7 @@ __attribute__ ((constructor)) static void mdsTipcAPI_constructor(void) {
   test_case_add(11, tet_send_response_ack_tp_5, "While Await Active Timer ON:SvcEXTMIN of ADEST sends a message to Svc EXTMIN on Active Vdest=200 and Times out");
   test_case_add(11, tet_send_response_ack_tp_6, "SvcEXTMIN of ADEST sends message to SvcEXTMIN on QUIESCED Vdest=200 and Times out");
   test_case_add(11, tet_send_response_ack_tp_7, "Implicit Subscription: Svc EXTL_MIN on ADEST sends a LOWPriority message to Svc EXTMIN on VDEST=200 and expects Response");
-  test_case_add(11, tet_send_response_ack_tp_8, "send_response a message(> MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest");
+  test_case_add(11, tet_send_response_ack_tp_8, "send_response a message(> MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN on Active Vdest");
 
   test_suite_add(12, "Send Broadcast To SVC test cases");
   test_case_add(12, tet_broadcast_to_svc_tp_1, "Svc INTMIN on VDEST=200 Broadcasting a LOW Priority message to Svc EXTMIN");
@@ -14263,7 +14264,7 @@ __attribute__ ((constructor)) static void mdsTipcAPI_constructor(void) {
   test_case_add(12, tet_broadcast_to_svc_tp_3, "Svc INTMIN on VDEST=200 Redundant Broadcasting a HIGH priority message to Svc EXTMIN");
   test_case_add(12, tet_broadcast_to_svc_tp_4, "Svc INTMIN on VDEST=200 Not able to Broadcast a message with Invalid Priority");
   test_case_add(12, tet_broadcast_to_svc_tp_5, "Svc INTMIN on VDEST=200 Not able to Broadcast a NULL message");
-  test_case_add(12, tet_broadcast_to_svc_tp_6, "Svc INTMIN on VDEST=200 Broadcasting a VERY HIGH Priority message (>MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN");
+  test_case_add(12, tet_broadcast_to_svc_tp_6, "Svc INTMIN on VDEST=200 Broadcasting a VERY HIGH Priority message (>MDS_DIRECT_BUF_MAXSIZE) to Svc EXTMIN");
 
   test_suite_add(13, "Direct Just Send test cases");
   test_case_add(13, tet_direct_just_send_tp_1, "Test Case 1: Now Direct send Low,Medium,High and Very High Priority messages to Svc EXTMIN on Active Vdest=200");

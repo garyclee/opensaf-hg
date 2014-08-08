@@ -106,7 +106,7 @@ typedef struct tet_vdest{
 
 typedef struct mds_tet_msg{
 #define TET_MSG_SIZE_MAX  45875200
-#define TET_MSG_SIZE_MIN  3000
+#define TET_MSG_SIZE_MIN  131472 
   uint32_t send_len;
   uint32_t recvd_len;
   /*char *send_data; this is best approach*/
