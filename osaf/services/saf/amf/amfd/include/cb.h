@@ -37,7 +37,6 @@
 #include <saClm.h>
 
 #include <ncssysf_lck.h>
-#include <ncspatricia.h>
 #include <mds_papi.h>
 #include <mbcsv_papi.h>
 #include <ncs_edu_pub.h>
@@ -189,10 +188,6 @@ typedef struct cl_cb_tag {
 					 */
 	SaClmNodeIdT node_avd_failed;	/* node id where AVD is down */
 
-	NCS_PATRICIA_TREE node_list;	/* Tree of AvND nodes indexed by
-					 * node id. used for storing the 
-					 * nodes on f-over.
-					 */
 	AVD_TMR amf_init_tmr;	/* The timer for amf initialisation. */
 	AVD_TMR heartbeat_tmr;	/* The timer for sending heart beats to nd. */
 	SaTimeT heartbeat_tmr_period;

@@ -16,11 +16,9 @@
 #ifndef SVCTYPE_H
 #define SVCTYPE_H
 
-#include <ncspatricia.h>
 
 typedef struct avd_amf_svc_type_tag {
 
-	NCS_PATRICIA_NODE tree_node;	/* key will be svc type name */
 	SaNameT name;
 	char **saAmfSvcDefActiveWeight;
 	char **saAmfSvcDefStandbyWeight;

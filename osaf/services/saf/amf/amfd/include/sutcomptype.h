@@ -26,7 +26,6 @@
 #define AVD_SUCOMPTYPE_H
 
 #include <saAmf.h>
-#include <ncspatricia.h>
 #include "sutype.h"
 
 typedef struct {

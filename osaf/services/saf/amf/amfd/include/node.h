@@ -36,7 +36,6 @@
 
 #include <saAmf.h>
 #include <saImm.h>
-#include <ncspatricia.h>
 #include <ncsdlib.h>
 #include <mds_papi.h>
 #include <su.h>
