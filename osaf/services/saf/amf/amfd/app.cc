@@ -45,6 +45,7 @@ AVD_APP::AVD_APP(const SaNameT* dn) :
 	app_type_list_app_next(NULL),
 	app_type(NULL)
 {
+	memset(&name, 0, sizeof(SaNameT));
 	memcpy(name.value, dn->value, dn->length);
 	name.length = dn->length;
 	memset(&saAmfAppType, 0, sizeof(SaNameT));

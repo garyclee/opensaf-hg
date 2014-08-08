@@ -110,6 +110,7 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 
 	app_type = new AVD_APP_TYPE();
 	
+	memset(&app_type->name, 0, sizeof(SaNameT));
 	memcpy(app_type->name.value, dn->value, dn->length);
 	app_type->name.length = dn->length;
 	
