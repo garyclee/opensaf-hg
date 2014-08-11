@@ -15,7 +15,9 @@
  *            Ericsson
  *
  */
-
+#include <set>
+#include <string.h>
+#include "node.h"
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
@@ -396,6 +398,66 @@ done1:
 	return rc;
 }
 
+static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
+{
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i;
+	const AVD_COMP_TYPE *comp_type;
+	SaNameT comp_type_name;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	// input example: opdata.objectName.value, safVersion=1,safCompType=AmfDemo1
+	comp_type_name = opdata->objectName;
+
+	if ((comp_type = comptype_db->find(Amf::to_string(&comp_type_name))) == 0) {
+		LOG_ER("Internal error: %s not found", comp_type_name.value);
+		return;
+	}
+
+	// Create a set of nodes where components "may" be using the given comp_type attributes.
+	// A msg will be sent to the related node regarding this change. If a component has an 
+	// comp_type attribute that overrides this comp_type attribute it will be handled by the amfnd.
+	std::set<AVD_AVND*, NodeNameCompare> node_set;
+
+	AVD_COMP *comp = comp_type->list_of_comp;
+	while (comp != NULL) {
+		node_set.insert(comp->su->su_on_node);
+		TRACE("comp name %s on node %s", comp->comp_info.name.value,  comp->su->su_on_node->name.value);
+		comp = comp->comp_type_list_comp_next;
+	}			
+		
+	std::set<AVD_AVND*>::iterator it;
+	for (it = node_set.begin(); it != node_set.end(); ++it) {
+		i = 0;
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+			AVSV_PARAM_INFO param;
+			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
+			SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
+
+			memset(&param, 0, sizeof(param));
+			param.class_id = AVSV_SA_AMF_COMP_TYPE;
+			param.act = AVSV_OBJ_OPR_MOD;
+			param.name = opdata->objectName;
+			param.value_len = sizeof(*param_val);
+			memcpy(param.value, param_val, param.value_len);
+
+			if (!strcmp(attribute->attrName, "saAmfCtDefCallbackTimeout")) {
+				TRACE("saAmfCtDefCallbackTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
+					opdata->objectName.value, (*it)->name.value);
+				param.attr_id = saAmfCtDefCallbackTimeout_ID;
+				avd_snd_op_req_msg(avd_cb, *it, &param);
+			} else if (!strcmp(attribute->attrName, "saAmfCtDefClcCliTimeout")) {
+				TRACE("saAmfCtDefClcCliTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
+					opdata->objectName.value, (*it)->name.value);
+				param.attr_id = saAmfCtDefClcCliTimeout_ID;
+				avd_snd_op_req_msg(avd_cb, *it, &param);
+			} else
+				LOG_WA("Unexpected attribute name: %s", attribute->attrName);
+		}
+	}	
+}	
+
 static void comptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_COMP_TYPE *comp_type;
@@ -413,7 +475,7 @@ static void comptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		comptype_delete(static_cast<AVD_COMP_TYPE*>(opdata->userData));
 		break;
 	case CCBUTIL_MODIFY:
-		// values not used, no need to reinitialize type
+		ccb_apply_modify_hdlr(opdata);
 		break;
 	default:
 		osafassert(0);

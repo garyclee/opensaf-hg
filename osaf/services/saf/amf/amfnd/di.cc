@@ -225,6 +225,9 @@ uint32_t avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 	case AVSV_SA_AMF_COMP:
 		rc = avnd_comp_oper_req(cb, param);
 		break;
+	case AVSV_SA_AMF_COMP_TYPE:
+		rc = avnd_comptype_oper_req(cb, param);
+		break;
 	case AVSV_SA_AMF_HEALTH_CHECK:
 		rc = avnd_hc_oper_req(cb, param);
 		break;
