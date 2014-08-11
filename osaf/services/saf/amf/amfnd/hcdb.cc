@@ -368,7 +368,7 @@ static void comp_hctype_update_compdb(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	AVND_COMP_HC_REC *comp_hc_rec;
 	AVND_COMP * comp;
-	char *comp_type_name;
+	const char *comp_type_name;
 	AVSV_HLT_KEY hlt_chk;
 	AVND_COMP_HC_REC tmp_hc_rec;
 		
@@ -385,7 +385,7 @@ static void comp_hctype_update_compdb(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 			// 3. matching compType found, check that component does not have a SaAmfHealthcheck rec (specialization)
 			std::string hlt_chk_key = search_key((const char*) param->name.value, "safHealthcheckKey=");
-			if (hlt_chk_key.size() == 0) {
+			if (hlt_chk_key.empty()) {
 				LOG_ER("%s: failed to get healthcheckKey from %s", __FUNCTION__, param->name.value);
 				return;
 			}

@@ -30,6 +30,8 @@
 #ifndef AVND_COMP_H
 #define AVND_COMP_H
 
+#include <bitset>
+
 struct avnd_cb_tag;
 struct avnd_su_si_rec;
 struct avnd_su_tag;
@@ -279,6 +281,20 @@ typedef struct avnd_pxied_rec {
 
 typedef AVSV_COMP_INFO AVND_COMP_PARAM;
 
+enum UsedComptypeAttrs {
+	PxiedInstCallbackTimeout,
+	PxiedCleanupCallbackTimeout,
+	TerminateCallbackTimeout,
+	CsiSetCallbackTimeout,
+	CsiRemoveCallbackTimeout,
+	CompInstantiateTimeout,
+	CompTerminateTimeout,
+	CompCleanupTimeout,
+	CompAmStartTimeout,
+	CompAmStopTimeout,
+	NumAttrs
+};
+
 typedef struct avnd_comp_tag {
 	NCS_PATRICIA_NODE tree_node;	/* comp tree node (key is comp name) */
 	NCS_DB_LINK_LIST_NODE su_dll_node;	/* su dll node (key is inst-level) */
@@ -363,6 +379,8 @@ typedef struct avnd_comp_tag {
 				instantiated state.*/
 	bool error_report_sent; /* true when error is repoted on component using 
 				   saAmfComponentErrorReport() or saAmfComponentErrorReport_4()*/ 
+
+	std::bitset<NumAttrs> use_comptype_attr;
 
 } AVND_COMP;
 
@@ -876,6 +894,7 @@ extern AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add(struct avnd_cb_tag *cb,
 extern void avnd_mbcsv_comp_hc_rec_del(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
 
 extern uint32_t avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
+extern uint32_t avnd_comptype_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern unsigned int avnd_comp_config_get_su(struct avnd_su_tag *su);
 extern int avnd_comp_config_reinit(AVND_COMP *comp);
 extern void avnd_comp_delete(AVND_COMP *comp);
