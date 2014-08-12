@@ -78,8 +78,7 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 
 		/* if the SU is not null assign active to that SU for the SI. */
 		if (avd_new_assgn_susi(avd_cb, i_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp) == NCSCC_RC_SUCCESS) {
-			/* Add the SU to the operation list */
-			avd_sg_su_oper_list_add(avd_cb, i_su, false);
+			su_oper_list_add(i_su);
 
 			/* since both this SI and SU have a relationship choose the next Si and
 			 * SU.
@@ -139,8 +138,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 		if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 			return NCSCC_RC_FAILURE;
 
-		/* add the SU to the operation list and change the SG FSM to SU operation. */
-		avd_sg_su_oper_list_add(cb, su, false);
+		su_oper_list_add(su);
 		m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_REALIGN:
@@ -158,7 +156,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 				su->list_of_susi->si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			}
 
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 		} else {	/* if (su->list_of_susi->si == su->sg_of_su->admin_si) */
 
@@ -198,7 +196,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 				if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 					return NCSCC_RC_FAILURE;
 
-				avd_sg_su_oper_list_add(cb, su, false);
+				su_oper_list_add(su);
 
 			}	/* else (flag == true) */
 
@@ -236,7 +234,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 				return NCSCC_RC_FAILURE;
 
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 		}		/* else (su->sg_of_su->su_oper_list.su == su) */
 
@@ -254,7 +252,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 					return NCSCC_RC_FAILURE;
 			}
 
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
 		} else {	/* if (su->sg_of_su->admin_si == su->list_of_susi->si) */
@@ -265,7 +263,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS)
 				return NCSCC_RC_FAILURE;
 
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 		}		/* else (su->sg_of_su->admin_si == su->list_of_susi->si) */
 
@@ -378,7 +376,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			if (su->sg_of_su->admin_si == l_si) {
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 			} else {
-				avd_sg_su_oper_list_del(cb, su, false);
+				su_oper_list_del(su);
 			}
 
 			if ((su->sg_of_su->admin_si == AVD_SI_NULL) && (su->sg_of_su->su_oper_list.su == NULL)) {
@@ -408,7 +406,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			if (su->sg_of_su->admin_si == su->list_of_susi->si) {
 				su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-				avd_sg_su_oper_list_add(cb, su, false);
+				su_oper_list_add(su);
 			} else if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -424,7 +422,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			 * Choose and assign unassigned SIs to unassigned in-service SUs.
 			 */
 
-			avd_sg_su_oper_list_del(cb, su, false);
+			su_oper_list_del(su);
 
 			if (su->sg_of_su->su_oper_list.su == NULL) {
 				if (assign_sis_to_sus() == NULL) {
@@ -454,7 +452,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* Unassign the SUSI */
 			m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
-			avd_sg_su_oper_list_del(cb, su, false);
+			su_oper_list_del(su);
 
 			if (su->sg_of_su->su_oper_list.su == NULL) {
 				if (assign_sis_to_sus() != NULL) {
@@ -486,7 +484,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->list_of_susi->si->name.value,
 								 su->list_of_susi->si->name.length);
 
-				avd_sg_su_oper_list_add(cb, su, false);
+				su_oper_list_add(su);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				return NCSCC_RC_SUCCESS;
 			}
@@ -561,13 +559,13 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->list_of_susi->si->name.value,
 								 su->list_of_susi->si->name.length);
 
-				avd_sg_su_oper_list_add(cb, su, false);
+				su_oper_list_add(su);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				return NCSCC_RC_SUCCESS;
 			}
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			su->list_of_susi->si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
@@ -588,7 +586,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* Unassign the SUSI */
 			m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
-			avd_sg_su_oper_list_del(cb, su, false);
+			su_oper_list_del(su);
 
 			if (su->sg_of_su->su_oper_list.su == NULL) {
 				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
@@ -654,7 +652,7 @@ uint32_t SG_NORED::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			if (su->sg_of_su->admin_si == su->list_of_susi->si) {
 				su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-				avd_sg_su_oper_list_add(cb, su, false);
+				su_oper_list_add(su);
 			} else if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -726,13 +724,13 @@ uint32_t SG_NORED::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->list_of_susi->si->name.value,
 								 su->list_of_susi->si->name.length);
 
-				avd_sg_su_oper_list_add(cb, su, false);
+				su_oper_list_add(su);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				return NCSCC_RC_SUCCESS;
 			}
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			su->list_of_susi->si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 
@@ -847,7 +845,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			l_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 		} else {
 
-			avd_sg_su_oper_list_del(cb, su, false);
+			su_oper_list_del(su);
 
 			su_node_ptr = su->get_node_ptr();
 
@@ -889,7 +887,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
 		if (su->sg_of_su->su_oper_list.su == su) {
-			avd_sg_su_oper_list_del(cb, su, false);
+			su_oper_list_del(su);
 
 			su_node_ptr = su->get_node_ptr();
 
@@ -965,7 +963,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		/* Unassign the SUSI */
 		m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
-		avd_sg_su_oper_list_del(cb, su, false);
+		su_oper_list_del(su);
 
 		if (su->sg_of_su->su_oper_list.su == NULL) {
 			avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
@@ -1005,8 +1003,7 @@ uint32_t SG_NORED::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 			if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
 
-			/* add the SU to the operation list and change the SG FSM to SU operation. */
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
 		}		/* if ((su->admin_state == NCS_ADMIN_STATE_LOCK) ||
 				   ((avnd != AVD_AVND_NULL) && (avnd->su_admin_state == NCS_ADMIN_STATE_LOCK))) */
@@ -1016,8 +1013,7 @@ uint32_t SG_NORED::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 			if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCING) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
 
-			/* add the SU to the operation list and change the SG FSM to SU operation. */
-			avd_sg_su_oper_list_add(cb, su, false);
+			su_oper_list_add(su);
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
 		}		/* if ((su->admin_state == NCS_ADMIN_STATE_SHUTDOWN) ||
 				   ((avnd != AVD_AVND_NULL) && (avnd->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN))) */
@@ -1128,9 +1124,7 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			while (i_su != NULL) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					avd_susi_mod_send(i_su->list_of_susi, SA_AMF_HA_QUIESCED);
-
-					/* add the SU to the operation list */
-					avd_sg_su_oper_list_add(cb, i_su, false);
+					su_oper_list_add(i_su);
 				}
 
 				i_su = i_su->sg_list_su_next;
@@ -1148,9 +1142,7 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			while (i_su != NULL) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					avd_susi_mod_send(i_su->list_of_susi, SA_AMF_HA_QUIESCING);
-
-					/* add the SU to the operation list */
-					avd_sg_su_oper_list_add(cb, i_su, false);
+					su_oper_list_add(i_su);
 				}
 
 				i_su = i_su->sg_list_su_next;
