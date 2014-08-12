@@ -2921,34 +2921,47 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			 * SG_realign state. Free all the SI assignments to this SU.
 			 */
 
-			avd_sg_su_oper_list_del(cb, su, false);
-			su->delete_all_susis();
+			if (all_assignments_done(a_susi->su)) {
+				/* Since Act assignment is completely done, so
+				   we don't expect any response from Act su. */
+				avd_sg_su_oper_list_del(cb, su, false);
+				su->delete_all_susis();
+				su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
+				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				/*As sg is stable, screen for si dependencies and take action on whole sg*/
+				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
+				avd_sidep_sg_take_action(su->sg_of_su);
+			} else {
 
-			su_node_ptr = su->get_node_ptr();
+				avd_sg_su_oper_list_del(cb, su, false);
+				su->delete_all_susis();
 
-			/* the admin state of the SU is shutdown change it to lock. */
-			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-				avd_sg_su_oper_list_add(cb, a_susi->su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == true) {
-					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
-				}
-				avd_sg_su_oper_list_add(cb, a_susi->su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
-			} else  {
+				su_node_ptr = su->get_node_ptr();
 
-				/* During si-swap while standby assignment is going on, if Nodefailover 
-				   or SU failover got escalated then toggle SU switch state and make SG 
-				   stable. After SG becomes stable, spare SU will be instantiated, 
-				   if available, or same SU will get standby assignment after repair.
-				 */
-				if (su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
-					su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
-					complete_siswap(a_susi->su, SA_AIS_OK);
+				/* the admin state of the SU is shutdown change it to lock. */
+				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
+					avd_sg_su_oper_list_add(cb, a_susi->su, false);
+					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
+					if (flag == true) {
+						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
+					}
+					avd_sg_su_oper_list_add(cb, a_susi->su, false);
+					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				} else  {
+
+					/* During si-swap while standby assignment is going on, if Nodefailover 
+					   or SU failover got escalated then toggle SU switch state and make SG 
+					   stable. After SG becomes stable, spare SU will be instantiated, 
+					   if available, or same SU will get standby assignment after repair.
+					 */
+					if (su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
+						su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
+						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						complete_siswap(a_susi->su, SA_AIS_OK);
+					}
 				}
 			}
 		} /* if (a_susi->su != su) */
