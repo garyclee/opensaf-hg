@@ -38,9 +38,12 @@ class AmfDb {
    
    typedef std::map<Key, T*> AmfDbMap;
    typedef typename AmfDbMap::const_iterator const_iterator;
+   typedef typename AmfDbMap::const_reverse_iterator const_reverse_iterator;
 
    const_iterator begin() const {return db.begin();}
    const_iterator end() const {return db.end();}
+   const_reverse_iterator rbegin() const {return db.rbegin();}
+   const_reverse_iterator rend() const {return db.rend();}
 
   private:
    AmfDbMap db;
