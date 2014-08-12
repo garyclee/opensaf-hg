@@ -31,6 +31,10 @@
 
 #include <saClm.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Macro to get the component name for the component type */
 #define m_CPND_TASKNAME "CPND"
 
@@ -157,15 +161,9 @@ void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPS
 uint32_t cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 uint32_t cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name);
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id);
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id);
-uint32_t cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id);
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id);
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, SaTimeT exp_time,
 					  uint32_t gen_flag);
-void cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node);
 void cpnd_evt_backup_queue_add(CPND_CKPT_NODE *cp_node, CPND_EVT *evt);
-CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(CPND_CKPT_NODE *cp_node, uint32_t lcl_sec_id);
 uint32_t cpnd_ckpt_node_tree_init(CPND_CB *cb);
 uint32_t cpnd_allrepl_write_evt_node_tree_init(CPND_CB *cb);
 uint32_t cpnd_client_node_tree_init(CPND_CB *cb);
@@ -231,4 +229,9 @@ void cpnd_restart_update_timer(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaTimeT clo
 void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB *cb, SaClmNodeIdT nodeid);
 
 /* End : -- cpnd_init.c */
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

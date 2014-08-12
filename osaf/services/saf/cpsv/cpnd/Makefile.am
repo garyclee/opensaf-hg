@@ -38,7 +38,8 @@ osafckptnd_SOURCES = \
 	cpnd_mds.c \
 	cpnd_proc.c \
 	cpnd_res.c \
-	cpnd_tmr.c
+	cpnd_tmr.c \
+	cpnd_sec.cc
 
 osafckptnd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

@@ -45,6 +45,7 @@
 #include "cpnd_cb.h"
 
 #include "cpnd_init.h"
+#include "cpnd_sec.h"
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <errno.h>

@@ -1097,7 +1097,7 @@ CPSV_CKPT_DATA *cpnd_ckpt_generate_cpsv_ckpt_access_evt(CPND_CKPT_NODE *cp_node)
 	CPND_CKPT_SECTION_INFO *tmp_sec_info = NULL;
 	uint32_t i;
 
-	tmp_sec_info = cp_node->replica_info.section_info;
+	tmp_sec_info = cpnd_ckpt_sec_get_first(&cp_node->replica_info);
 
 	for (i = 0; i < cp_node->replica_info.n_secs; i++) {
 		tmp_sec_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
@@ -1113,7 +1113,7 @@ CPSV_CKPT_DATA *cpnd_ckpt_generate_cpsv_ckpt_access_evt(CPND_CKPT_NODE *cp_node)
 		tmp_sec_data->next = sec_data;
 		sec_data = tmp_sec_data;
 
-		tmp_sec_info = tmp_sec_info->next;
+		tmp_sec_info = cpnd_ckpt_sec_get_next(&cp_node->replica_info, tmp_sec_info);
 	}
 
 	return sec_data;
@@ -1655,7 +1655,7 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
 {
 
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL, *pTmpSecPtr = NULL;
-	pSecPtr = cp_node->replica_info.section_info;
+	pSecPtr = cpnd_ckpt_sec_get_first(&cp_node->replica_info);
 
 	TRACE_ENTER();
 	if (cp_node->replica_info.n_secs == 0 || (cp_node->replica_info.n_secs <= get_next->n_secs_trav)) {
@@ -1681,12 +1681,8 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
 
 		/* search the existing section id */
 		*n_secs_trav = get_next->n_secs_trav;
-		while (pSecPtr != NULL && *n_secs_trav != 0) {
-			if ((pSecPtr->sec_id.idLen == get_next->section_id.idLen) &&
-			    (memcmp(pSecPtr->sec_id.id, get_next->section_id.id, get_next->section_id.idLen) == 0)) {
-				break;
-			}
-			pSecPtr = pSecPtr->next;
+		if (pSecPtr != NULL && *n_secs_trav != 0) {
+			pSecPtr = cpnd_ckpt_sec_get(cp_node, &get_next->section_id);
 		}
 		/* if next is NULL then return no more sections */
 		if (pSecPtr == NULL) {
@@ -1698,7 +1694,7 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
 		if (*n_secs_trav == 0)
 			pTmpSecPtr = pSecPtr;
 		else
-			pTmpSecPtr = pSecPtr->next;
+			pTmpSecPtr = cpnd_ckpt_sec_get_next(&cp_node->replica_info, pSecPtr);
 
 		switch (get_next->filter) {
 		case SA_CKPT_SECTIONS_ANY:
@@ -1716,7 +1712,7 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
 					(*n_secs_trav)++;
 					break;
 				} else
-					pTmpSecPtr = pTmpSecPtr->next;
+					pTmpSecPtr = cpnd_ckpt_sec_get_next(&cp_node->replica_info, pTmpSecPtr);
 			}
 			if (pTmpSecPtr == NULL) {
 				TRACE_4("cpnd replica has no sections ");
@@ -1731,7 +1727,7 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
 					(*n_secs_trav)++;
 					break;
 				} else
-					pTmpSecPtr = pTmpSecPtr->next;
+					pTmpSecPtr = cpnd_ckpt_sec_get_next(&cp_node->replica_info, pTmpSecPtr);
 			}
 			if (pTmpSecPtr == NULL) {
 				TRACE_4("cpnd replica has no sections in lEQ expiration time");
@@ -1746,7 +1742,7 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
 					(*n_secs_trav)++;
 					break;
 				} else
-					pTmpSecPtr = pTmpSecPtr->next;
+					pTmpSecPtr = cpnd_ckpt_sec_get_next(&cp_node->replica_info, pTmpSecPtr);
 			}
 			if (pTmpSecPtr == NULL) {
 				TRACE_4("cpnd replica has no sections in GEQ expiration time");
@@ -2050,10 +2046,10 @@ void cpnd_dump_replica_info(CPND_CKPT_REPLICA_INFO *ckpt_replica_node)
 
 	if (ckpt_replica_node->n_secs) {
 		CPND_CKPT_SECTION_INFO *sec_info = NULL;
-		sec_info = ckpt_replica_node->section_info;
+		sec_info = cpnd_ckpt_sec_get_first(ckpt_replica_node);
 		while (sec_info != NULL) {
 			cpnd_dump_section_info(sec_info);
-			sec_info = sec_info->next;
+			sec_info = cpnd_ckpt_sec_get_next(ckpt_replica_node, sec_info);
 		}
 	}
 }
