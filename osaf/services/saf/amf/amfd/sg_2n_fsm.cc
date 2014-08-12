@@ -2701,14 +2701,14 @@ uint32_t SG_2N::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 	}
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
+		set_adjust_state(AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
 		goto done;
 	}
 
 	if ((l_su = avd_sg_2n_su_chose_asgn(cb, sg)) == NULL) {
 		/* all the assignments have already been done in the SG. */
-		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
+		set_adjust_state(AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
 		goto done;
 	}
@@ -2716,7 +2716,7 @@ uint32_t SG_2N::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 	/* Add the SU to the list and change the FSM state */
 	avd_sg_su_oper_list_add(cb, l_su, false);
 
-	m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
+	set_adjust_state(AVSV_SG_STABLE);
 	m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 
  done:

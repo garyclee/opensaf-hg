@@ -502,13 +502,6 @@ public:
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
-
-#define m_AVD_SET_SG_ADJUST(cb,sg,state) {\
-	TRACE("adjust_state %u => %u", sg->adjust_state, state); \
-	sg->adjust_state = state;\
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_ADJUST_STATE);\
-}
-
 #define m_AVD_SET_SG_FSM(cb,sg,state) {\
 	if (sg->sg_fsm_state != state) { \
 		TRACE("sg_fsm_state %u => %u", sg->sg_fsm_state, state); \
