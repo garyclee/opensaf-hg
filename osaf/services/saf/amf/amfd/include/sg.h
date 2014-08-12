@@ -424,6 +424,8 @@ public:
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+private:
+	AVD_SU *assign_sis_to_sus();
 };
 
 /**
