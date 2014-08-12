@@ -29,29 +29,14 @@
 #include <amfd.h>
 #include <si_dep.h>
 
-/*****************************************************************************
- * Function: avd_sg_nored_su_chose_asgn
- *
- * Purpose:  This function will identify unassigned SIs, search for
- * unassigned in-service SUs and assign this unassigned SIs to them by
- * Sending D2N-INFO_SU_SI_ASSIGN message for the SUs with role active for the 
- * SIs. It then adds the Assigning SUs to the SU operation list. If no
- * unassigned ready SI or unassigned in-service SU exists, it returns NULL.
- *
- * Input: cb - the AVD control block
- *        sg - The pointer to the service group.
- *        
+/**
+ * Identifies unassigned SIs, searches for unassigned in-service SUs and
+ * assigns the unassigned SIs to the SUs.
  *
  * Returns: pointer to the first SU that is undergoing assignment. Null if
  *          no assignments need to happen.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
-{
+ */
+AVD_SU *SG_NORED::assign_sis_to_sus() {
 	AVD_SU *i_su;
 	AVD_SI *i_si;
 	bool l_flag;
@@ -59,11 +44,11 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 	TRACE_ENTER();
 
-	i_si = sg->list_of_si;
-	i_su = sg->list_of_su;
+	i_si = list_of_si;
+	i_su = list_of_su;
 
-	avd_sidep_update_si_dep_state_for_all_sis(sg);
-	while ((i_si != AVD_SI_NULL) && (i_su != NULL)) {
+	avd_sidep_update_si_dep_state_for_all_sis(this);
+	while ((i_si != NULL) && (i_su != NULL)) {
 
 		/* verify that the SI is unassigned and ready */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -71,7 +56,7 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		    (i_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
 		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
 			(i_si->list_of_csi == NULL) ||
-		    (i_si->list_of_sisu != AVD_SU_SI_REL_NULL)) {
+		    (i_si->list_of_sisu != NULL)) {
 			i_si = i_si->sg_list_of_si_next;
 			continue;
 		}
@@ -80,7 +65,7 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		l_flag = true;
 		while ((i_su != NULL) && (l_flag == true)) {
 			if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-			    (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
+			    (i_su->list_of_susi == NULL)) {
 				l_flag = false;
 				continue;
 			}
@@ -92,9 +77,9 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			continue;
 
 		/* if the SU is not null assign active to that SU for the SI. */
-		if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp) == NCSCC_RC_SUCCESS) {
+		if (avd_new_assgn_susi(avd_cb, i_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp) == NCSCC_RC_SUCCESS) {
 			/* Add the SU to the operation list */
-			avd_sg_su_oper_list_add(cb, i_su, false);
+			avd_sg_su_oper_list_add(avd_cb, i_su, false);
 
 			/* since both this SI and SU have a relationship choose the next Si and
 			 * SU.
@@ -102,15 +87,15 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			i_si = i_si->sg_list_of_si_next;
 			i_su = i_su->sg_list_su_next;
 		} else {
-			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
+			LOG_ER("%s:%u: %s", __FILE__, __LINE__, i_si->name.value);
 
 			/* choose the next SU */
 			i_su = i_su->sg_list_su_next;
 		}
+	}
 
-	}			/* while ((i_si != AVD_SI_NULL) && (i_su != AVD_SU_NULL)) */
-
-	return sg->su_oper_list.su;
+	TRACE_LEAVE();
+	return su_oper_list.su;
 }
 
 uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
@@ -126,7 +111,7 @@ uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (avd_sg_nored_su_chose_asgn(cb, si->sg_of_si) == NULL) {
+	if (assign_sis_to_sus() == NULL) {
 		/* all the assignments have already been done in the SG. */
 		return NCSCC_RC_SUCCESS;
 	}
@@ -339,7 +324,7 @@ uint32_t SG_NORED::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) == NULL) {
+	if (assign_sis_to_sus() == NULL) {
 		avd_sg_app_su_inst_func(cb, su->sg_of_su);
 
 		/* all the assignments have already been done in the SG. */
@@ -397,7 +382,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			}
 
 			if ((su->sg_of_su->admin_si == AVD_SI_NULL) && (su->sg_of_su->su_oper_list.su == NULL)) {
-				if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) == NULL) {
+				if (assign_sis_to_sus() == NULL) {
 					/* No New assignments are been done in the SG. change the FSM state */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -442,7 +427,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			avd_sg_su_oper_list_del(cb, su, false);
 
 			if (su->sg_of_su->su_oper_list.su == NULL) {
-				if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) == NULL) {
+				if (assign_sis_to_sus() == NULL) {
 					/* No New assignments are been done in the SG. change the FSM state */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -472,7 +457,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			avd_sg_su_oper_list_del(cb, su, false);
 
 			if (su->sg_of_su->su_oper_list.su == NULL) {
-				if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) != NULL) {
+				if (assign_sis_to_sus() != NULL) {
 					/* New assignments are been done in the SG. */
 					/* change the FSM state */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -546,7 +531,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			}
 
 			if (su->sg_of_su->admin_si == AVD_SI_NULL) {
-				if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) != NULL) {
+				if (assign_sis_to_sus() != NULL) {
 					/* New assignments are been done in the SG. */
 					/* change the FSM state */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -793,7 +778,7 @@ uint32_t SG_NORED::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 		goto done;
 	}
 
-	if (avd_sg_nored_su_chose_asgn(cb, sg) == NULL) {
+	if (assign_sis_to_sus() == NULL) {
 		/* all the assignments have already been done in the SG. */
 		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
@@ -829,7 +814,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		/* Unassign the SUSI */
 		m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
-		if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) != NULL) {
+		if (assign_sis_to_sus() != NULL) {
 			/* new assignments are been done in the SG. change the FSM state */
 			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 		}
@@ -878,7 +863,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		}
 
 		if ((su->sg_of_su->admin_si == AVD_SI_NULL) && (su->sg_of_su->su_oper_list.su == NULL)) {
-			if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) == NULL) {
+			if (assign_sis_to_sus() == NULL) {
 				/* No New assignments are been done in the SG. change the FSM state */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 				avd_sidep_sg_take_action(su->sg_of_su); 
@@ -918,7 +903,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 				}
 			}
 
-			if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) != NULL) {
+			if (assign_sis_to_sus() != NULL) {
 				/* New assignments are been done in the SG, change state to SG realign. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				return;
@@ -954,7 +939,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 			l_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 
-			if (avd_sg_nored_su_chose_asgn(cb, su->sg_of_su) != NULL) {
+			if (assign_sis_to_sus() != NULL) {
 				/* New assignments are been done in the SG, change state to SG realign. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				return;
