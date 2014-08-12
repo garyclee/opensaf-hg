@@ -850,30 +850,13 @@ done:
 	return rc;
 }
 
- /*****************************************************************************
- * Function: avd_sg_2n_su_fault_su_oper
- *
- * Purpose:  This function is a subfunctionality of avd_sg_2n_su_fault_func.
- * It is called if the SG is in AVD_SG_FSM_SU_OPER.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the service unit.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-static uint32_t avd_sg_2n_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
-{
+uint32_t SG_2N::su_fault_su_oper(AVD_SU *su) {
 	AVD_SU *a_su;
 	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	SaAmfHAStateT su_ha_state, a_su_ha_state;
+	AVD_CL_CB *cb = avd_cb;
 
 	/* If the SU is same as the SU in the list and if the SI relationships to
 	 * the SU is quiesced or  quiescing. If this SU admin is shutdown change
@@ -1027,27 +1010,10 @@ done:
 	return rc;
 }
 
- /*****************************************************************************
- * Function: avd_sg_2n_su_fault_si_oper
- *
- * Purpose:  This function is a subfunctionality of avd_sg_2n_su_fault_func.
- * It is called if the SG is in AVD_SG_FSM_SI_OPER.
- *
- * Input: cb - the AVD control block
- *        su - The pointer to the service unit.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-static uint32_t avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
-{
+uint32_t SG_2N::su_fault_si_oper(AVD_SU *su) {
 	AVD_SU_SI_REL *l_susi, *o_susi;
 	uint32_t rc = NCSCC_RC_FAILURE;
+	AVD_CL_CB *cb = avd_cb;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -1289,15 +1255,13 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 
 		break;		/* case AVD_SG_FSM_SG_REALIGN: */
 	case AVD_SG_FSM_SU_OPER:
-		if (avd_sg_2n_su_fault_su_oper(cb, su) == NCSCC_RC_FAILURE)
-			goto done;
-
-		break;		/* case AVD_SG_FSM_SU_OPER: */
+		rc = su_fault_su_oper(su);
+		goto done; // TODO(hafe) remove later
+		break;
 	case AVD_SG_FSM_SI_OPER:
-		if (avd_sg_2n_su_fault_si_oper(cb, su) == NCSCC_RC_FAILURE)
-			goto done;
-
-		break;		/* case AVD_SG_FSM_SI_OPER: */
+		rc = su_fault_si_oper(su);
+		goto done; // TODO(hafe) remove later
+		break;
 	case AVD_SG_FSM_SG_ADMIN:
 		if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
 			/* the SG is lock no action. */
@@ -1427,33 +1391,13 @@ uint32_t SG_2N::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 	return rc;
 }
 
- /*****************************************************************************
- * Function: avd_sg_2n_susi_sucss_sg_reln
- *
- * Purpose:  This function is a subfunctionality of avd_sg_2n_susi_sucss_func.
- * It is called if the SG is in AVD_SG_FSM_SG_REALIGN.
- *
- * Input: cb - the AVD control block
- *        su - In case of entire SU related operation the SU for
- *               which the ack is received.
- *        susi - The pointer to the service unit service instance relationship.
- *        act  - The action received in the ack message.
- *        state - The HA state in the message.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-static uint32_t avd_sg_2n_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
-{
+uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
+                                        AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	AVD_SU_SI_REL *i_susi, *s_susi, *o_susi, *a_susi, *n_susi;
 	AVD_SU *o_su, *l_su;
 	bool flag, as_flag;
 	uint32_t rc = NCSCC_RC_FAILURE;
+	AVD_CL_CB *cb = avd_cb;
 
 	TRACE_ENTER2("'%s' act=%u, state=%u", su->name.value, act, state);
 	m_AVD_CHK_OPLIST(su, flag);
@@ -1824,35 +1768,16 @@ done:
 	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
 }
- /*****************************************************************************
- * Function: avd_sg_2n_susi_sucss_su_oper
- *
- * Purpose:  This function is a subfunctionality of avd_sg_2n_susi_sucss_func.
- * It is called if the SG is in AVD_SG_FSM_SU_OPER.
- *
- * Input: cb - the AVD control block
- *        su - In case of entire SU related operation the SU for
- *               which the ack is received.
- *        susi - The pointer to the service unit service instance relationship.
- *        act  - The action received in the ack message.
- *        state - The HA state in the message.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
 
-static uint32_t avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
-{
+uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
+                                     AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	AVD_SU_SI_REL *s_susi, *a_susi, *l_susi, *n_susi, *s_susi_temp;
 	AVD_SU *l_su;
 	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	SaAmfHAStateT ha_state;
+	AVD_CL_CB *cb = avd_cb;
 
 	TRACE_ENTER2("'%s' act=%u, state=%u", su->name.value, act, state);
 
@@ -2205,30 +2130,10 @@ done:
 	return rc;
 }
 
- /*****************************************************************************
- * Function: avd_sg_2n_susi_sucss_si_oper
- *
- * Purpose:  This function is a subfunctionality of avd_sg_2n_susi_sucss_func.
- * It is called if the SG is in AVD_SG_FSM_SI_OPER.
- *
- * Input: cb - the AVD control block
- *        su - In case of entire SU related operation the SU for
- *               which the ack is received.
- *        susi - The pointer to the service unit service instance relationship.
- *        act  - The action received in the ack message.
- *        state - The HA state in the message.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-static uint32_t avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
-					  AVSV_SUSI_ACT act, SaAmfHAStateT state)
-{
+uint32_t SG_2N::susi_success_si_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
+                                     AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	uint32_t rc = NCSCC_RC_FAILURE;
+	AVD_CL_CB *cb = avd_cb;
 
 	TRACE_ENTER2("'%s', act:%u, state:%u", su->name.value, act, state);
 
@@ -2374,20 +2279,17 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_REALIGN:
-		if (avd_sg_2n_susi_sucss_sg_reln(cb, su, susi, act, state) == NCSCC_RC_FAILURE)
-			goto done;
-
-		break;		/* case AVD_SG_FSM_SG_REALIGN: */
+		rc = susi_success_sg_realign(su, susi, act, state);
+		goto done; // TODO(hafe) remove later
+		break;
 	case AVD_SG_FSM_SU_OPER:
-		if (avd_sg_2n_susi_sucss_su_oper(cb, su, susi, act, state) == NCSCC_RC_FAILURE)
-			goto done;
-
-		break;		/* case AVD_SG_FSM_SU_OPER: */
+		rc = susi_success_su_oper(su, susi, act, state);
+		goto done; // TODO(hafe) remove later
+		break;
 	case AVD_SG_FSM_SI_OPER:
-		if (avd_sg_2n_susi_sucss_si_oper(cb, su, susi, act, state) == NCSCC_RC_FAILURE)
-			goto done;
-
-		break;		/* case AVD_SG_FSM_SI_OPER: */
+		rc = susi_success_si_oper(su, susi, act, state);
+		goto done; // TODO(hafe) remove later
+		break;
 	case AVD_SG_FSM_SG_ADMIN:
 		if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
 			/* SG is admin lock */
@@ -2822,29 +2724,12 @@ uint32_t SG_2N::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************
- * Function: avd_sg_2n_node_fail_su_oper
- *
- * Purpose:  This function is a subfunctionality of avd_sg_2n_node_fail_func.
- * It is called if the SG is in AVD_SG_FSM_SU_OPER.
- *
- * Input: cb - the AVD control block
- *        su - The SU that has faulted because of the node failure.
- *        
- *
- * Returns: None.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
-{
+void SG_2N::node_fail_su_oper(AVD_SU *su) {
 	AVD_SU_SI_REL *a_susi, *s_susi, *s_susi_temp;
 	AVD_SU *o_su;
 	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
+	AVD_CL_CB *cb = avd_cb;
 
 	TRACE_ENTER();
 
@@ -3082,27 +2967,10 @@ static void avd_sg_2n_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_sg_2n_node_fail_si_oper
- *
- * Purpose:  This function is a subfunctionality of avd_sg_2n_node_fail_func.
- * It is called if the SG is in AVD_SG_FSM_SI_OPER.
- *
- * Input: cb - the AVD control block
- *        su - The SU that has faulted because of the node failure.
- *        
- *
- * Returns: None.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-static void avd_sg_2n_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
-{
+void SG_2N::node_fail_si_oper(AVD_SU *su) {
 	AVD_SU_SI_REL *s_susi, *susi_temp;
 	AVD_SU *o_su;
+	AVD_CL_CB *cb = avd_cb;
 
 	TRACE_ENTER();
 
@@ -3456,15 +3324,11 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 
 		break;		/* case AVD_SG_FSM_SG_REALIGN: */
 	case AVD_SG_FSM_SU_OPER:
-
-		avd_sg_2n_node_fail_su_oper(cb, su);
-
-		break;		/* case AVD_SG_FSM_SU_OPER: */
+		node_fail_su_oper(su);
+		break;
 	case AVD_SG_FSM_SI_OPER:
-
-		avd_sg_2n_node_fail_si_oper(cb, su);
-
-		break;		/* case AVD_SG_FSM_SI_OPER: */
+		node_fail_si_oper(su);
+		break;
 	case AVD_SG_FSM_SG_ADMIN:
 
 		if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
