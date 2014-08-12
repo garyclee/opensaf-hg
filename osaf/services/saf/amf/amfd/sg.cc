@@ -132,6 +132,7 @@ AVD_SG::AVD_SG():
 	memset(&saAmfSGSuHostNodeGroup, 0, sizeof(SaNameT));
 	su_oper_list.su = NULL;
 	su_oper_list.next = NULL;
+	adminOp_invocationId = 0;
 }
 
 static AVD_SG *sg_new(const SaNameT *dn, SaAmfRedundancyModelT redundancy_model)
@@ -1204,6 +1205,11 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 	}
 
+	if ((sg->adminOp_invocationId  != 0) || (sg->adminOp != 0))  {
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				"Admin operation is going on (%s)", sg->name.value);
+		goto done;
+	}
         /* Avoid if any single Csi assignment is undergoing on SG. */
         if (csi_assignment_validate(sg) == true) {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
@@ -1240,6 +1246,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 					NULL);
 			goto done;
 		}
+		sg->adminOp = SA_AMF_ADMIN_UNLOCK;
 		break;
 
 	case SA_AMF_ADMIN_LOCK:
@@ -1264,6 +1271,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			goto done;
 		}
 
+		sg->adminOp = SA_AMF_ADMIN_LOCK;
 		break;
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
@@ -1287,6 +1295,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 					NULL);
 			goto done;
 		}
+		sg->adminOp = SA_AMF_ADMIN_SHUTDOWN;
 		break;
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
@@ -1310,6 +1319,8 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			goto done;
 		}
 
+		
+		sg->adminOp = SA_AMF_ADMIN_LOCK_INSTANTIATION;
 		break;
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
@@ -1338,7 +1349,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
+
+		if ((sg->list_of_su != NULL) && (sg->list_of_su->saAmfSUPreInstantiable == false)) {
+			avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+			goto done;
+		}
 		sg_app_sg_admin_unlock_inst(avd_cb, sg);
+		sg->adminOp = SA_AMF_ADMIN_UNLOCK_INSTANTIATION;
 
 		break;
 	case SA_AMF_ADMIN_SG_ADJUST:
@@ -1347,7 +1364,23 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 				"Admin Operation '%llu' not supported", op_id);
 		goto done;
 	}
-	avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+
+	if ((op_id != SA_AMF_ADMIN_UNLOCK_INSTANTIATION) && (op_id != SA_AMF_ADMIN_LOCK_INSTANTIATION) 
+		&& (sg->sg_fsm_state == AVD_SG_FSM_STABLE)) {
+		avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+		sg->adminOp = static_cast<SaAmfAdminOperationIdT>(0);
+		goto done;
+	}
+
+	if ((op_id == SA_AMF_ADMIN_UNLOCK_INSTANTIATION) || (op_id == SA_AMF_ADMIN_LOCK_INSTANTIATION)) {
+		if (sg_stable_after_lock_in_or_unlock_in(sg) == true) {
+			avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+			sg->adminOp = static_cast<SaAmfAdminOperationIdT>(0);
+			goto done;
+		}
+	}
+
+	sg->adminOp_invocationId = invocation;
 done:
 	TRACE_LEAVE();
 }
@@ -1582,6 +1615,11 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 
 	if (state == AVD_SG_FSM_STABLE) {
 		osafassert(su_oper_list.su == NULL);
+		if (adminOp_invocationId != 0) {
+			avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, adminOp_invocationId, SA_AIS_OK);
+			adminOp_invocationId = 0;
+			adminOp = static_cast<SaAmfAdminOperationIdT>(0);
+		}
 	}
 }
 
@@ -1732,3 +1770,77 @@ SaAisErrorT AVD_SG::si_swap(AVD_SI *si, SaInvocationT invocation) {
 	return SA_AIS_ERR_NOT_SUPPORTED;
 }
 
+/**
+ * @brief  Checks if SG is stable with respect to lock-in or unlock-on operation.  
+ *
+ * @param[in]  sg
+ *
+ * @return  true/false
+ **/
+bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg)
+{
+	uint32_t instantiated_sus = 0, to_be_instantiated_sus = 0;
+	SaAmfAdminStateT node_admin_state;
+
+	switch (sg->adminOp) {
+	case SA_AMF_ADMIN_LOCK_INSTANTIATION :
+		for (AVD_SU *su = sg->list_of_su; su; su = su->sg_list_su_next) {
+			if ((su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
+				(su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
+				(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) 
+				return false;
+		}
+		break;
+	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION :
+		/* Unlock-in of SG will not instantiate any component in NPI SU.*/
+		if ((sg->list_of_su != NULL) && (sg->list_of_su->saAmfSUPreInstantiable == false))
+			return true;
+			
+		for (AVD_SU *su = sg->list_of_su; su; su = su->sg_list_su_next) {
+			node_admin_state = su->su_on_node->saAmfNodeAdminState;
+			
+			if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
+					(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED))
+				continue;
+
+			if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED)  {
+				instantiated_sus++;
+				continue;
+			}
+
+			if (node_admin_state == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
+				continue;
+			
+			if ((node_admin_state != SA_AMF_ADMIN_LOCKED_INSTANTIATION) && 
+					(su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+					(su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+					(su->su_on_node->node_state == AVD_AVND_STATE_PRESENT)) { 
+
+				if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING)
+					return false;
+				if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) {
+					to_be_instantiated_sus++;
+					continue;
+				}
+					
+			}
+			
+		}
+
+		if (instantiated_sus >= sg->saAmfSGNumPrefInserviceSUs)
+			return true;
+		else  {
+			if (to_be_instantiated_sus == 0)
+				return true;
+			else
+				return false;
+		}
+
+		break;
+	default:
+		TRACE("Called for wrong admin operation");
+		break;
+	}
+		
+	return true;
+}
