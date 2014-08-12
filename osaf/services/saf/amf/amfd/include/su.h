@@ -119,6 +119,7 @@ class AVD_SU {
 	void set_su_switch(SaToggleState state);
 	avd_avnd_tag *get_node_ptr(void);
 	bool is_in_service(void);
+	bool is_instantiable(void);
 	void reset_all_comps_assign_flag();
 	AVD_COMP *find_unassigned_comp_that_provides_cstype(const SaNameT *cstype);
 	void disable_comps(SaAisErrorT result);

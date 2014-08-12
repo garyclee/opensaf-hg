@@ -852,6 +852,7 @@ void AVD_SU::unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {
 		avd_sg_app_su_inst_func(avd_cb, sg_of_su);
 	} else
 		LOG_IN("SU '%s' is not in service", name.value);
+	avd_sg_app_su_inst_func(avd_cb, sg_of_su);
 
 	if (is_oper_successful == true) {
 		if (sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN ) {
@@ -1957,6 +1958,27 @@ bool AVD_SU::is_in_service(void) {
             		(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
             		(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED);
     }
+}
+
+
+/**
+ * Checks if the SU can be made instantiated. 
+ * @param su
+ * @return true if SU can be made in-service
+ */
+bool AVD_SU::is_instantiable(void) {
+        struct avd_avnd_tag *node = get_node_ptr();
+        const AVD_SG *sg = sg_of_su;
+        const AVD_APP *app = sg->app;
+
+        return (avd_cluster->saAmfClusterAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+                        (app->saAmfApplicationAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+                        (saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+                        (sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+                        (node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+                        (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+                        (saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+			(saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED);
 }
 
 void AVD_SU::set_saAmfSUPreInstantiable(bool value) {
