@@ -188,6 +188,8 @@ public:
 				 * this group in the descending order 
 				 * of the rank.
 				 */
+	SaInvocationT adminOp_invocationId;
+	SaAmfAdminOperationIdT adminOp;
 
 	AVD_SG *sg_list_sg_type_next;
 	struct avd_amf_sg_type_tag *sg_type;
@@ -488,6 +490,11 @@ public:
 	}\
 	if (state == AVD_SG_FSM_STABLE) {\
 		osafassert(sg->su_oper_list.su == NULL); \
+		if (sg->adminOp_invocationId != 0) { \
+			avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, sg->adminOp_invocationId, SA_AIS_OK);\
+			sg->adminOp_invocationId = 0; \
+			sg->adminOp = static_cast<SaAmfAdminOperationIdT>(0); \
+		}\
 	}\
 }
 
@@ -561,6 +568,7 @@ extern void avd_su_role_failover(AVD_SU *su, AVD_SU *stdby_su);
 extern bool sg_is_tolerance_timer_running_for_any_si(AVD_SG *sg);
 extern void avd_sg_adjust_config(AVD_SG *sg);
 extern uint32_t sg_instantiated_su_count(const AVD_SG *sg);
+extern bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg);
 
 
 #endif
