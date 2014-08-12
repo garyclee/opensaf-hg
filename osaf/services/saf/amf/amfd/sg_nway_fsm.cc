@@ -453,7 +453,7 @@ uint32_t SG_NWAY::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 	}
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
+		set_adjust_state(AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
 		goto done;
 	}
