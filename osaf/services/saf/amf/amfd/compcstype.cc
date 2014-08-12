@@ -394,13 +394,14 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 	AVD_COMPCS_TYPE *cst = compcstype_db->find(Amf::to_string(objectName));
 	SaImmAttrNameT attributeName;
 	int i = 0;
+	SaAisErrorT rc = SA_AIS_OK;
 
-	TRACE("%s", objectName->value);
+	TRACE_ENTER2("%s", objectName->value);
 	osafassert(cst != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfCompNumCurrActiveCSIs", attributeName)) {
-			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+			rc = avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrActiveCSIs);
 		} else if (!strcmp("saAmfCompNumCurrStandbyCSIs", attributeName)) {
 			avd_saImmOiRtObjectUpdate(objectName, attributeName,
@@ -412,7 +413,13 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 		}
 	}
 
-	return SA_AIS_OK;
+	if (rc != SA_AIS_OK) {
+		/* For any failures of update, return FAILED_OP. */
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+	}
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 void avd_compcstype_constructor(void)

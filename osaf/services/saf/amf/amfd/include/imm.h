@@ -148,7 +148,7 @@ void avd_class_impl_set(const char *className,
 SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata);
 
 extern unsigned int avd_imm_config_get(void);
-extern void avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn,
+extern SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn,
 	SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value);
 extern void avd_saImmOiRtObjectUpdate(const SaNameT* dn, const char *attributeName,
      SaImmValueTypeT attrValueType, void* value);
