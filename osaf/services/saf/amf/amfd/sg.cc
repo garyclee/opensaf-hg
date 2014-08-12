@@ -1664,6 +1664,16 @@ bool AVD_SG::in_su_oper_list(const AVD_SU *i_su) {
 	return false;
 }
 
+uint32_t AVD_SG::su_oper_list_add(AVD_SU *su) {
+	// TODO(hafe) move implementation here later when all uses this method
+	return avd_sg_su_oper_list_add(avd_cb, su, false);
+}
+
+uint32_t AVD_SG::su_oper_list_del(AVD_SU *su) {
+	// TODO(hafe) move implementation here later when all uses this method
+	return avd_sg_su_oper_list_del(avd_cb, su, false);
+}
+
 /**
  *
  * @brief  This function verifies whether SU ranks are equal or not in an SG.

@@ -250,6 +250,20 @@ public:
 	bool in_su_oper_list(const AVD_SU *su);
 
 	/**
+	 * Add SU to operlist
+	 * @param su
+	 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+	 */
+	uint32_t su_oper_list_add(AVD_SU *su); // TODO(hafe) add const when using container for operlist
+
+	/**
+	 * Remove SU from operlist
+	 * @param su
+	 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+	 */
+	uint32_t su_oper_list_del(AVD_SU *su); // TODO(hafe) add const when using container for operlist
+
+	/**
 	 * Handle node failure and fail over assignments
 	 * Called when the node hosting the SU has already failed and the SIs
 	 * assigned to the specified SU needs to be failed over.
