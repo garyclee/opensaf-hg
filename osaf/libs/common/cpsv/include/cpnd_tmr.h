@@ -20,7 +20,14 @@
 
 #include "ncssysf_tmr.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 uint32_t cpnd_tmr_start(CPND_TMR *tmr, SaTimeT duration);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

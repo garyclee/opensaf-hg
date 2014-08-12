@@ -156,6 +156,8 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	if (cp_node->ret_tmr.is_active)
 		cpnd_tmr_stop(&cp_node->ret_tmr);
 
+	cpnd_ckpt_sec_map_destroy(&cp_node->replica_info);
+
 	m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
 	TRACE_LEAVE();
 
@@ -353,163 +355,6 @@ uint32_t cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
 }
 
 /****************************************************************************
- * Name          : cpnd_ckpt_sec_get
- *
- * Description   : Function to Find the section in a checkpoint.
- *
- * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
- *               : SaCkptSectionIdT id - Section Identifier
- *                 
- * Return Values :  NULL/CPND_CKPT_SECTION_INFO
- *
- * Notes         : None.
- *****************************************************************************/
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
-{
-
-	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-
-	TRACE_ENTER();
-	if (cp_node->replica_info.n_secs == 0) {
-		TRACE_4("cpnd replica has no section for ckpt_id:%llx",cp_node->ckpt_id);
-		TRACE_LEAVE();
-		return NULL;
-	}
-
-	pSecPtr = cp_node->replica_info.section_info;
-	while (pSecPtr != NULL) {
-		if ((pSecPtr->sec_id.idLen == id->idLen) && (memcmp(pSecPtr->sec_id.id, id->id, id->idLen) == 0)) {
-			return pSecPtr;
-		}
-		pSecPtr = pSecPtr->next;
-	}
-	TRACE_LEAVE();
-	return NULL;
-}
-
-/****************************************************************************
- * Name          : cpnd_ckpt_sec_get_create
- *
- * Description   : Function to Find the section in a checkpoint before create.
- *
- * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
- *               : SaCkptSectionIdT id - Section Identifier
- *                 
- * Return Values :  NULL/CPND_CKPT_SECTION_INFO
- *
- * Notes         : None.
- *****************************************************************************/
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
-{
-	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-	TRACE_ENTER();
-	if (cp_node->replica_info.n_secs == 0) {
-		TRACE_2("cpnd replica has no sections for ckpt_id:%llx",cp_node->ckpt_id);
-		TRACE_LEAVE();
-		return NULL;
-	}
-	pSecPtr = cp_node->replica_info.section_info;
-	while (pSecPtr != NULL) {
-		if ((pSecPtr->sec_id.idLen == id->idLen) && (memcmp(pSecPtr->sec_id.id, id->id, id->idLen) == 0)) {
-			TRACE_LEAVE();
-			return pSecPtr;
-		}
-		pSecPtr = pSecPtr->next;
-	}
-	TRACE_LEAVE();
-	return NULL;
-}
-
-/****************************************************************************
- * Name          : cpnd_ckpt_sec_find
- *
- * Description   : Function to Find the section in a checkpoint.
- *
- * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
- *               : SaCkptSectionIdT id - Section Identifier
- *                 
- * Return Values :  NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
- *
- * Notes         : None.
- *****************************************************************************/
-uint32_t cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
-{
-
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-
-	TRACE_ENTER();
-	if (cp_node->replica_info.n_secs == 0) {
-		TRACE_LEAVE();
-		return NCSCC_RC_FAILURE;
-	}
-
-	pSecPtr = cp_node->replica_info.section_info;
-	while (pSecPtr != NULL) {
-		if ((pSecPtr->sec_id.idLen == id->idLen) && (memcmp(pSecPtr->sec_id.id, id->id, id->idLen) == 0)) {
-			TRACE_LEAVE();
-			return rc;
-		}
-		pSecPtr = pSecPtr->next;
-	}
-
-	TRACE_LEAVE();
-	return NCSCC_RC_FAILURE;
-
-}
-
-/****************************************************************************
- * Name          : cpnd_ckpt_sec_del
- *
- * Description   : Function to remove the section from a checkpoint.
- *
- * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
- *               : SaCkptSectionIdT id - Section Identifier
- *                 
- * Return Values :  ptr to CPND_CKPT_SECTION_INFO/NULL;
- *
- * Notes         : None.
- *****************************************************************************/
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
-{
-	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	TRACE_ENTER();
-	pSecPtr = cp_node->replica_info.section_info;
-	while (pSecPtr != NULL) {
-		if ((pSecPtr->sec_id.idLen == id->idLen) && (memcmp(pSecPtr->sec_id.id, id->id, id->idLen) == 0)) {
-			/* delete it from the list and return the pointer */
-			if (cp_node->replica_info.section_info == pSecPtr)
-				cp_node->replica_info.section_info = cp_node->replica_info.section_info->next;
-			if (pSecPtr->prev)
-				pSecPtr->prev->next = pSecPtr->next;
-			if (pSecPtr->next)
-				pSecPtr->next->prev = pSecPtr->prev;
-
-			cp_node->replica_info.n_secs--;
-			cp_node->replica_info.mem_used = cp_node->replica_info.mem_used - (pSecPtr->sec_size);
-
-			/* UPDATE THE SECTION HEADER */
-			rc = cpnd_sec_hdr_update(pSecPtr, cp_node);
-			if (rc == NCSCC_RC_FAILURE) {
-				TRACE_4("cpnd sect hdr update failed");
-			}
-			/* UPDATE THE CHECKPOINT HEADER */
-			rc = cpnd_ckpt_hdr_update(cp_node);
-			if (rc == NCSCC_RC_FAILURE) {
-				TRACE_4("cpnd ckpt hdr update failed");
-			}	
-			TRACE_LEAVE();
-			return pSecPtr;
-		}
-		pSecPtr = pSecPtr->next;
-	}
-	TRACE_LEAVE();
-	return NULL;
-}
-
-/****************************************************************************
  * Name          : cpnd_ckpt_sec_add
  *
  * Description   : Function to add the section to a checkpoint.
@@ -581,13 +426,9 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 	pSecPtr->sec_state = SA_CKPT_SECTION_VALID;
 
 	/* add the structure */
-
-	if (cp_node->replica_info.section_info != NULL) {
-		pSecPtr->next = cp_node->replica_info.section_info;
-		cp_node->replica_info.section_info->prev = pSecPtr;
-		cp_node->replica_info.section_info = pSecPtr;
-	} else {
-		cp_node->replica_info.section_info = pSecPtr;
+	rc = cpnd_ckpt_sec_add_db(&cp_node->replica_info, pSecPtr);
+	if (rc == NCSCC_RC_FAILURE) {
+		LOG_ER("unable to add section to database");
 	}
 
 	cp_node->replica_info.n_secs++;
@@ -604,46 +445,6 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 	TRACE_LEAVE();
 	return pSecPtr;
 
-}
-
-/****************************************************************************
- * Name          : cpnd_ckpt_delete_all_sect
- *
- * Description   : Function to add the section to a checkpoint.
- *
- * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
- *                 
- * Return Values :  NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
- *
- * Notes         : None.
- *****************************************************************************/
-void cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node)
-{
-	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-
-	TRACE_ENTER();
-	/* delete it from the list and return the pointer */
-	do {
-		pSecPtr = cp_node->replica_info.section_info;
-		if (pSecPtr != NULL) {
-			cp_node->replica_info.section_info = cp_node->replica_info.section_info->next;
-			if (pSecPtr->prev)
-				pSecPtr->prev->next = pSecPtr->next;
-			if (pSecPtr->next)
-				pSecPtr->next->prev = pSecPtr->prev;
-
-			cp_node->replica_info.n_secs--;
-			if (pSecPtr->ckpt_sec_exptmr.is_active)
-				cpnd_tmr_stop(&pSecPtr->ckpt_sec_exptmr);
-
-			m_CPND_FREE_CKPT_SECTION(pSecPtr);
-
-		}
-
-	} while (cp_node->replica_info.section_info != NULL);
-
-	TRACE_LEAVE();
-	return;
 }
 
 /****************************************************************************
@@ -684,40 +485,6 @@ void cpnd_evt_backup_queue_add(CPND_CKPT_NODE *cp_node, CPND_EVT *evt)
 		tmp_evt->next = ptr;
 	}
 	return;
-}
-
-/****************************************************************************
- * Name          : cpnd_get_sect_with_id 
- *
- * Description   : Function to Find the section in a checkpoint.
- *
- * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
- *               : lck_sec_id -  lcl Section Identifier
- *                 
- * Return Values :  NULL/ pointer to CPND_CKPT_SECTION_INFO
- *
- * Notes         : None.
- *****************************************************************************/
-CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(CPND_CKPT_NODE *cp_node, uint32_t lcl_sec_id)
-{
-
-	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
-
-	if (cp_node->replica_info.n_secs == 0) {
-		TRACE_4("cpnd replica has no sections for ckpt_id:%llx",cp_node->ckpt_id);
-		return NULL;
-	}
-
-	pSecPtr = cp_node->replica_info.section_info;
-	while (pSecPtr != NULL) {
-		if (pSecPtr->lcl_sec_id == lcl_sec_id) {
-			return pSecPtr;
-		}
-		pSecPtr = pSecPtr->next;
-	}
-
-	return NULL;
-
 }
 
 /****************************************************************************
@@ -805,6 +572,9 @@ void cpnd_ckpt_node_tree_cleanup(CPND_CB *cb)
 		ncs_patricia_tree_del(&cb->ckpt_info_db, (NCS_PATRICIA_NODE *)&cp_node->patnode);
 		if (cp_node->ret_tmr.is_active)
 			cpnd_tmr_stop(&cp_node->ret_tmr);
+
+		cpnd_ckpt_sec_map_destroy(&cp_node->replica_info);
+
 		m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
 	}
 	TRACE_LEAVE();

@@ -22,8 +22,12 @@
 
 #include "ncs_queue.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* global variables */
-uint32_t gl_cpnd_cb_hdl;
+extern uint32_t gl_cpnd_cb_hdl;
 
 /* macros for the CB handle */
 #define m_CPND_TAKE_CPND_CB      ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl)
@@ -131,7 +135,6 @@ typedef struct cpnd_ckpt_section_info {
 	SaSizeT sec_size;
 	SaTimeT exp_tmr;
 	SaTimeT lastUpdate;
-	struct cpnd_ckpt_section_info *prev, *next;
 } CPND_CKPT_SECTION_INFO;
 
 #define CPND_CKPT_SECTION_INFO_NULL ((CPND_CKPT_SECTION_INFO *)0)
@@ -144,7 +147,8 @@ typedef struct cpnd_ckpt_replica_info_tag {
 	SaUint32T mem_used;	/* Used for status */
 	NCS_OS_POSIX_SHM_REQ_INFO open;	/* for shm open */
 	uint32_t *shm_sec_mapping;	/* for validity of sec */
-	CPND_CKPT_SECTION_INFO *section_info;	/* Sections in the shared memory */
+	void *section_db;	/* used for C++ STL map */
+	void *local_section_db;	/* used for C++ STL map */
 } CPND_CKPT_REPLICA_INFO;
 
 /*Structure to store info for ALL_REPL_WRITE EVT processing*/
@@ -350,5 +354,9 @@ void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 #define m_CPSV_CONVERT_EXPTIME_TEN_MILLI_SEC(t) \
      SaTimeT now; \
      t = (( (t) - (m_GET_TIME_STAMP(now)*(1000000000)))/(10000000));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

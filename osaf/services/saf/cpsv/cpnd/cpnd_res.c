@@ -93,14 +93,7 @@ uint32_t cpnd_client_extract_bits(uint32_t bitmap_value, uint32_t *bit_position)
 
 uint32_t cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node)
 {
-	if (cp_node->replica_info.section_info != NULL) {
-		pSecPtr->next = cp_node->replica_info.section_info;
-		cp_node->replica_info.section_info->prev = pSecPtr;
-		cp_node->replica_info.section_info = pSecPtr;
-	} else {
-		cp_node->replica_info.section_info = pSecPtr;
-	}
-	return NCSCC_RC_SUCCESS;
+	return cpnd_ckpt_sec_add_db(&cp_node->replica_info, pSecPtr);
 
 }
 
@@ -118,10 +111,10 @@ uint32_t cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
 {
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL, *nextPtr = NULL;
 
-	pSecPtr = cp_node->replica_info.section_info;
+	pSecPtr = cpnd_ckpt_sec_get_first(&cp_node->replica_info);
 	while (pSecPtr != NULL) {
 		nextPtr = pSecPtr;
-		pSecPtr = pSecPtr->next;
+		pSecPtr = cpnd_ckpt_sec_get_next(&cp_node->replica_info, pSecPtr);
 		if ((nextPtr->sec_id.id != NULL) && (nextPtr->sec_id.idLen != 0)) {
 			m_MMGR_FREE_CPSV_DEFAULT_VAL(nextPtr->sec_id.id, NCS_SERVICE_ID_CPND);
 		}
@@ -466,6 +459,8 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 				cp_node->is_unlink = cp_info.is_unlink;
 				cp_node->close_time = cp_info.close_time;
 				cp_node->cpnd_rep_create = cp_info.cpnd_rep_create;
+				cpnd_ckpt_sec_map_init(&cp_node->replica_info);
+
 				/* Non-collocated Differentiator flag */
 				if (cp_info.cpnd_rep_create) {
 					/* OPEN THE SHARED MEMORY ALREADY CREATED FOR CHECKPOINT REPLICA */

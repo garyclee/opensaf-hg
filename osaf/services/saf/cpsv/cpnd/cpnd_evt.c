@@ -79,7 +79,6 @@ static uint32_t cpnd_evt_proc_ckpt_refcntset(CPND_CB *cb,CPND_EVT *evt);
 static uint32_t cpnd_proc_cpd_new_active(CPND_CB *cb);
 
 static uint32_t cpnd_is_cpd_up(CPND_CB *cb);
-
 static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptCheckpointHandleT ckpt_id,
 				   CPSV_CPND_DEST_INFO *dest_list, CPSV_A2ND_CKPT_SYNC sync);
 static uint32_t cpnd_evt_proc_ckpt_ckpt_list_update(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
@@ -774,6 +773,8 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		cp_node->create_attrib = out_evt->info.cpnd.info.ckpt_info.attributes;
 		cp_node->open_flags = SA_CKPT_CHECKPOINT_CREATE;
 
+		cpnd_ckpt_sec_map_init(&cp_node->replica_info);
+
 		if (evt->info.openReq.ckpt_flags & SA_CKPT_CHECKPOINT_READ)
 			cl_node->open_reader_flags_cnt++;
 		if (evt->info.openReq.ckpt_flags & SA_CKPT_CHECKPOINT_WRITE)
@@ -978,6 +979,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	}
 	if (cp_node->ret_tmr.is_active)
 		cpnd_tmr_stop(&cp_node->ret_tmr);
+	cpnd_ckpt_sec_map_destroy(&cp_node->replica_info);
 	m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
 
  agent_rsp:
@@ -2295,55 +2297,69 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 						    evt->info.sec_creatReq.init_data;
 						send_evt.info.cpnd.info.active_sec_creat.init_size =
 						    evt->info.sec_creatReq.init_size;
-						rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, tmp->dest,
+
+						if (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == true) {
+							rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, tmp->dest,
 									    &send_evt, &out_evt,
 									    CPND_WAIT_TIME(evt->info.
 											   sec_creatReq.init_size));
-						if (rc != NCSCC_RC_SUCCESS) {
-							if (rc == NCSCC_RC_REQ_TIMOUT) {
-								TRACE_4("cpnd active to remote mds send fail for cpnd_mdest_id:%"PRIu64" \
-										  dest:%"PRIu64",ckpt_id:%llx,return val:%d",
-										  cb->cpnd_mdest_id, tmp->dest,
-										  cp_node->ckpt_id, rc);
+							if (rc != NCSCC_RC_SUCCESS) {
+								if (rc == NCSCC_RC_REQ_TIMOUT) {
+									TRACE_4("cpnd active to remote mds send fail for cpnd_mdest_id:%"PRIu64" \
+										  	dest:%"PRIu64",ckpt_id:%llx,return val:%d",
+										  	cb->cpnd_mdest_id, tmp->dest,
+										  	cp_node->ckpt_id, rc);
+								}
+							}
+
+							if (out_evt
+						    	&& out_evt->info.cpnd.info.active_sec_creat_rsp.error !=
+						    	SA_AIS_OK) {
+								CPND_CKPT_SECTION_INFO *tmp_sec_info = NULL;
+								memset(&send_evt, '\0', sizeof(CPSV_EVT));
+								send_evt.type = CPSV_EVT_TYPE_CPA;
+								send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
+								/* TBD: Don't know what to do, revisit this. Ideally send the request to 
+							   	other CPNDs to delete */
+								/*  Section Create fails with SA_AIS_NOT_VALID */
+								send_evt.info.cpa.info.sec_creat_rsp.error =
+							    	out_evt->info.cpnd.info.active_sec_creat_rsp.error;
+								TRACE_4("cpnd ckpt sect creqte failed for ckpt_id:%llx,error value:%d",
+										cp_node->ckpt_id,send_evt.info.cpa.info.sec_creat_rsp.error);
+
+								/* delete the section */
+								if (gen_sec_id)
+									tmp_sec_info =
+								    	cpnd_ckpt_sec_del(cp_node, &sec_info->sec_id);
+								else
+									tmp_sec_info =
+								    	cpnd_ckpt_sec_del(cp_node,
+										      	evt->info.sec_creatReq.
+										      	sec_attri.sectionId);
+
+								if (tmp_sec_info == sec_info) {
+									cp_node->replica_info.
+								    	shm_sec_mapping[sec_info->lcl_sec_id] = 1;
+									m_CPND_FREE_CKPT_SECTION(sec_info);
+								} else {
+									TRACE_4("cpnd ckpt sect del failed ");
+								}
+								cpnd_evt_destroy(out_evt);
+								out_evt = NULL;
+								goto agent_rsp;
 							}
 						}
-
-						if (out_evt
-						    && out_evt->info.cpnd.info.active_sec_creat_rsp.error !=
-						    SA_AIS_OK) {
-							CPND_CKPT_SECTION_INFO *tmp_sec_info = NULL;
-							memset(&send_evt, '\0', sizeof(CPSV_EVT));
-							send_evt.type = CPSV_EVT_TYPE_CPA;
-							send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
-							/* TBD: Don't know what to do, revisit this. Ideally send the request to 
-							   other CPNDs to delete */
-							/*  Section Create fails with SA_AIS_NOT_VALID */
-							send_evt.info.cpa.info.sec_creat_rsp.error =
-							    out_evt->info.cpnd.info.active_sec_creat_rsp.error;
-							TRACE_4("cpnd ckpt sect creqte failed for ckpt_id:%llx,error value:%d",
-									cp_node->ckpt_id,send_evt.info.cpa.info.sec_creat_rsp.error);
-
-							/* delete the section */
-							if (gen_sec_id)
-								tmp_sec_info =
-								    cpnd_ckpt_sec_del(cp_node, &sec_info->sec_id);
-							else
-								tmp_sec_info =
-								    cpnd_ckpt_sec_del(cp_node,
-										      evt->info.sec_creatReq.
-										      sec_attri.sectionId);
-
-							if (tmp_sec_info == sec_info) {
-								cp_node->replica_info.
-								    shm_sec_mapping[sec_info->lcl_sec_id] = 1;
-								m_CPND_FREE_CKPT_SECTION(sec_info);
-							} else {
-								TRACE_4("cpnd ckpt sect del failed ");
-							}
-							cpnd_evt_destroy(out_evt);
-							out_evt = NULL;
-							goto agent_rsp;
+						else if ((m_CPND_IS_ACTIVE_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == true) ||
+							(m_CPND_IS_ACTIVE_REPLICA_WEAK_ATTR_SET(cp_node->create_attrib.creationFlags) == true)) {
+							rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, tmp->dest, &send_evt);
+							if (rc == NCSCC_RC_FAILURE) {
+								if (rc == NCSCC_RC_REQ_TIMOUT) {
+									LOG_ER("CPND - MDS send failed from Active Dest to Remote Dest cpnd_mdest_id:%"PRIu64",\
+										dest:%"PRIu64",ckpt_id:%llx:rc:%d for replica sect create",cb->cpnd_mdest_id, tmp->dest,cp_node->ckpt_id, rc);
+								}
+                                			}
 						}
+
 						tmp = tmp->next;
 						if (out_evt) {
 							cpnd_evt_destroy(out_evt);
@@ -3265,7 +3281,7 @@ static uint32_t cpnd_evt_proc_ckpt_sync(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		goto agent_rsp;
 	}
 
-	if (cp_node->replica_info.section_info == NULL) {
+	if (cpnd_ckpt_sec_empty(&cp_node->replica_info)) {
 		send_evt.info.cpa.info.sync_rsp.error = SA_AIS_ERR_NOT_EXIST;
 		goto agent_rsp;
 	}
@@ -3400,7 +3416,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CP
 	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 	}
 
-	if ((cp_node->replica_info.n_secs > 0) && (cp_node->replica_info.section_info)) {
+	if ((cp_node->replica_info.n_secs > 0) && !cpnd_ckpt_sec_empty(&cp_node->replica_info)) {
 
 		if (evt->info.sync_req.is_ckpt_open) {
 			dest_list.dest = sinfo->dest;
@@ -3978,6 +3994,8 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 		cp_node->create_attrib = evt->info.ckpt_create.ckpt_info.attributes;
 		cp_node->ckpt_id = evt->info.ckpt_create.ckpt_info.ckpt_id;
 
+		cpnd_ckpt_sec_map_init(&cp_node->replica_info);
+
 		if (evt->info.ckpt_create.ckpt_info.is_active_exists == true) {
 			cp_node->active_mds_dest = evt->info.ckpt_create.ckpt_info.active_dest;
 			cp_node->is_active_exist = true;
@@ -3999,6 +4017,7 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 			rc = NCSCC_RC_FAILURE;
 			if (cp_node->ret_tmr.is_active)
 				cpnd_tmr_stop(&cp_node->ret_tmr);
+			cpnd_ckpt_sec_map_destroy(&cp_node->replica_info);
 			m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
 			return rc;
 		}
@@ -4537,7 +4556,7 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 	send_evt.info.cpnd.info.ckpt_nd2nd_sync.ckpt_id = ckpt_id;
 	send_evt.info.cpnd.info.ckpt_nd2nd_sync.ckpt_sync = sync;
 
-	tmp_sec_info = cp_node->replica_info.section_info;
+	tmp_sec_info = cpnd_ckpt_sec_get_first(&cp_node->replica_info);
 	if (tmp_sec_info == NULL) {
 		rc = NCSCC_RC_FAILURE;
 		TRACE_4("cpnd ckpt memory allocation failed");
@@ -4605,7 +4624,7 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 		num++;
 		total_num++;
 
-		tmp_sec_info = tmp_sec_info->next;
+		tmp_sec_info = cpnd_ckpt_sec_get_next(&cp_node->replica_info, tmp_sec_info);
 	}
 
 	TRACE_LEAVE();

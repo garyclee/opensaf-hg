@@ -43,6 +43,7 @@ noinst_HEADERS = \
 	cpnd.h \
 	cpnd_init.h \
 	cpnd_mem.h \
+	cpnd_sec.h \
 	cpnd_tmr.h \
 	cpsv_evt.h \
 	cpsv.h \
