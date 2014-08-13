@@ -1072,6 +1072,63 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 	} else 	if(opId == OPENSAF_IMM_BAD_OP_BOUNCE) {
 		LOG_WA("ERR_BAD_OPERATION: bounced in PBE");
 		rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION);
+	} else if (opId == SA_IMM_PARAM_ADMOP_ID_ESC) {
+		int i=0, param_len=0;
+		SaStringT opName = NULL, res= NULL;	
+		SaImmAdminOperationParamsT_2 * resparams ;
+		SaImmAdminOperationParamsT_2 ** rparams;
+		rparams = (SaImmAdminOperationParamsT_2 **) realloc(NULL, sizeof(SaImmAdminOperationParamsT_2 *));
+		rparams[0]= NULL;
+		while (params[i]) {
+			if ((strcmp(params[i]->paramName, SA_IMM_PARAM_ADMOP_NAME))==0){
+				param_len++;
+				rparams = (SaImmAdminOperationParamsT_2 **) realloc (rparams, 
+						(param_len+1) * sizeof(SaImmAdminOperationParamsT_2 *));
+				resparams = (SaImmAdminOperationParamsT_2 *) malloc(sizeof(SaImmAdminOperationParamsT_2));
+				opName=(*(SaStringT *)params[i]->paramBuffer);
+				resparams->paramName = strdup(SA_IMM_PARAM_ADMOP_NAME);
+        	               	resparams->paramType = SA_IMM_ATTR_SASTRINGT;
+                	      	resparams->paramBuffer = malloc(sizeof(SaStringT));
+                 		*((SaStringT *)(resparams->paramBuffer)) = strdup(opName);
+				rparams[param_len -1]=resparams;
+				rparams[param_len]=NULL;
+				break;
+			}
+			i++;
+		}
+		i=0;
+		while (params[i]) {
+                        if ((strcmp(params[i]->paramName, "resource"))==0){
+				param_len++;
+				rparams = (SaImmAdminOperationParamsT_2 **) realloc (rparams, 
+						(param_len+1) * sizeof(SaImmAdminOperationParamsT_2 *));
+				resparams = (SaImmAdminOperationParamsT_2 *) malloc(sizeof(SaImmAdminOperationParamsT_2));
+                                res=(*(SaStringT *)params[i]->paramBuffer);
+                                resparams->paramName = strdup("resource");
+                                resparams->paramType = SA_IMM_ATTR_SASTRINGT;
+                                resparams->paramBuffer = malloc(sizeof(SaStringT));
+                                *((SaStringT *)(resparams->paramBuffer)) = strdup(res);
+				rparams[param_len -1]=resparams;
+				rparams[param_len]=NULL;
+                                break;
+                        }
+                        i++;
+                }
+		
+		if (opName) {
+			if ((strcmp(opName,"display")==0) || (strcmp(opName,"displayverbose")==0)||
+				(strcmp(opName,"display-help")==0)) {
+		
+				rc = immutil_saImmOiAdminOperationResult_o2(immOiHandle, invocation, 
+						SA_AIS_OK, (const SaImmAdminOperationParamsT_2 **) rparams);
+			} else {
+				LOG_WA("Invalid operation Name %s for operation ID %llu", opName, (SaUint64T) opId);
+				rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+			}
+		} else {
+				LOG_WA("Operation Name is not provided for operation ID %llu", (SaUint64T) opId);
+				rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+		}
 	} else {
 		LOG_WA("Invalid operation ID %llu", (SaUint64T) opId);
 		rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);

@@ -1173,11 +1173,12 @@ immModel_adminOperationInvoke(IMMND_CB *cb,
     SaInvocationT inv,
     SaUint32T* implConn,
     SaClmNodeIdT* implNodeId,
-    SaBoolT pbeExpected)
+    SaBoolT pbeExpected,
+    bool* displayRes)
 {
     return ImmModel::instance(&cb->immModel)->
         adminOperationInvoke(req, reqConn, reply_dest, inv,
-        implConn, implNodeId, pbeExpected);
+        implConn, implNodeId, pbeExpected, displayRes);
 }
 
 SaUint32T  /* Returns admo-id for object if object exists and active admo exists, otherwise zero. */
@@ -1615,6 +1616,7 @@ void immModel_pbeUpdateEpochContinuation(IMMND_CB *cb,
         invocation, nodeId);
 }
 
+
 int immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
         SaUint32T invocation, SaAisErrorT err,
         SaClmNodeIdT nodeId, SaUint32T *reqConn,
@@ -1928,6 +1930,44 @@ immModel_fetchRtUpdate(IMMND_CB *cb,
         fetchRtUpdate(syncReq, rtModReq, syncFevsBase)?SA_TRUE:SA_FALSE;
 }
 
+
+SaAisErrorT 
+immModel_resourceDisplay(IMMND_CB *cb,
+    const struct ImmsvAdminOperationParam *reqparams,
+    struct ImmsvAdminOperationParam **rparams)
+{
+
+    const struct ImmsvAdminOperationParam *params = reqparams;
+    SaStringT opName = NULL;
+    SaUint64T searchcount=0;
+
+    while (params) {
+        if ((strcmp(params->paramName.buf, SA_IMM_PARAM_ADMOP_NAME))==0){
+            opName=params->paramBuffer.val.x.buf;
+            break;
+        }
+        params=params->next;
+    }
+    
+    if ((strcmp(opName,"display")==0)){
+        IMMND_OM_SEARCH_NODE *searchOp;
+        IMMND_IMM_CLIENT_NODE *cl_node =
+                          (IMMND_IMM_CLIENT_NODE *)ncs_patricia_tree_getnext(&cb->client_info_db, NULL);
+        while(cl_node) {
+            searchOp = cl_node->searchOpList;
+            while(searchOp) {
+                searchcount++;
+                searchOp = searchOp->next;
+            }
+            cl_node = (IMMND_IMM_CLIENT_NODE *)ncs_patricia_tree_getnext(
+                                   &cb->client_info_db, cl_node->patnode.key_info);
+        }
+
+    }
+
+    return ImmModel::instance(&cb->immModel)->
+        resourceDisplay(reqparams, rparams, searchcount);
+}
 
 /*====================================================================*/
 
@@ -10361,7 +10401,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                                            SaInvocationT& saInv,
                                            SaUint32T* implConn,
                                            unsigned int* implNodeId,
-                                           bool pbeExpected)
+                                           bool pbeExpected, bool* displayRes)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -10466,6 +10506,14 @@ SaAisErrorT ImmModel::adminOperationInvoke(
  fake_obj:
     // Check for call on object implementer
     if(object->mImplementer && object->mImplementer->mNodeId) {
+
+        if(req->operationId == SA_IMM_PARAM_ADMOP_ID_ESC && objectName == immObjectDn && 
+                                displayRes && !protocol45Allowed()) {
+            err = SA_AIS_ERR_INVALID_PARAM;
+            LOG_NO("ERR_INVALID_PARAM: Display Admin-op rejected. Protocol4.5 not allowed");
+            goto done;
+        }
+
         *implConn = object->mImplementer->mConn;
         *implNodeId = object->mImplementer->mNodeId;
         
@@ -10526,6 +10574,27 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         /* Check for special imm OI support */
         if(!pbeExpected && objectName == immObjectDn) {
             err = updateImmObject2(req);
+            if(req->operationId == SA_IMM_PARAM_ADMOP_ID_ESC && displayRes && 
+                                req->params && protocol45Allowed()) {
+                IMMSV_ADMIN_OPERATION_PARAM* params = req->params;
+                err = SA_AIS_ERR_REPAIR_PENDING;
+       
+                while(params) {
+                    if((strcmp(params->paramName.buf,SA_IMM_PARAM_ADMOP_NAME)==0) && 
+                                (params->paramType==SA_IMM_ATTR_SASTRINGT)) {
+                        if(strncmp(params->paramBuffer.val.x.buf,"display",7)==0) {
+                            *displayRes=true;
+                        } else {
+                            LOG_WA("Invalid OperationName %s for dumping IMM resource" 
+                                        "is not set properly", params->paramBuffer.val.x.buf);
+                            err = SA_AIS_ERR_INVALID_PARAM;
+                        }
+                        break;
+                    }       
+                    params = params->next;
+                }
+            }
+            
             TRACE_7("Admin op on special object %s whith no implementer ret:%u",
                 objectName.c_str(), err);
         } else if(objectName == immManagementDn) {
@@ -10901,7 +10970,7 @@ ImmModel::updateImmObject2(const ImmsvOmAdminOperationInvoke* req)
         LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
     } else {
         LOG_NO("Invalid operation ID %llu, for operation on %s", (SaUint64T) req->operationId,
-            immObjectDn.c_str());
+                                                            immObjectDn.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
     }
 
@@ -10909,6 +10978,207 @@ ImmModel::updateImmObject2(const ImmsvOmAdminOperationInvoke* req)
     TRACE_LEAVE();
     return err;
 }
+
+SaAisErrorT
+ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams, 
+                                struct ImmsvAdminOperationParam **rparams, SaUint64T searchcount)
+{
+    SaAisErrorT err = SA_AIS_OK;
+    const struct ImmsvAdminOperationParam *params = reqparams;
+    SaStringT opName = NULL, resourceName = NULL, errStr = NULL;
+    struct ImmsvAdminOperationParam * resparams = NULL;
+        
+    TRACE_ENTER();
+        
+    while (params) {
+        if ((strcmp(params->paramName.buf, SA_IMM_PARAM_ADMOP_NAME))==0){
+                        opName=params->paramBuffer.val.x.buf;
+            break;
+        }
+        params=params->next;
+    }
+        
+    if (opName){
+        params = reqparams;
+        while(params){
+            if((strcmp(params->paramName.buf, "resource"))==0){
+                resourceName=params->paramBuffer.val.x.buf;
+                TRACE_5("The resource  is %s", resourceName);        
+                break;
+            }
+            params=params->next;
+        }
+        if(!resourceName){  
+            if(strcmp(opName,"display-help")==0){
+                TRACE_5("supported IMM resources to be displyed by using admin operation");        
+            } else {
+                LOG_WA("The resource type is not present in the requested parameters for displaying IMM resources");
+                err = SA_AIS_ERR_INVALID_PARAM;         
+                int len= strlen("resource type is not present in the requested parameters")+1;
+                errStr = (SaStringT)malloc (len);
+                strcpy(errStr, "resource type is not present in the requested parameters");
+                goto done;
+            }
+        }
+    }
+
+    if ((strcmp(opName,"display")==0)) {
+        resparams = (struct ImmsvAdminOperationParam *)calloc (1, sizeof(struct ImmsvAdminOperationParam));
+        resparams->paramType = SA_IMM_ATTR_SAINT64T;
+        resparams->next = NULL;
+        resparams->paramName.size=strlen("count")+1;
+        resparams->paramName.buf=(char *) malloc (resparams->paramName.size);
+        strcpy(resparams->paramName.buf,"count");
+        if((strcmp(resourceName,"implementers")==0)){
+            resparams->paramBuffer.val.saint64=sImplementerVector.size();
+        }else if ((strcmp(resourceName,"adminowners")==0)){
+            resparams->paramBuffer.val.saint64=sOwnerVector.size();        
+        }else if ((strcmp(resourceName,"ccbs")==0)){
+            resparams->paramBuffer.val.saint64=sCcbVector.size();
+        }else if ((strcmp(resourceName,"searches")==0)){
+            resparams->paramBuffer.val.saint64=searchcount;
+        }else {
+            LOG_WA("Display of IMM reources for resourceName %s is unsupported", resourceName);
+            err = SA_AIS_ERR_INVALID_PARAM;         
+            int cnt = strlen("Display of IMM reources for resourceName is unsupported")+1;
+            errStr = (SaStringT)malloc (cnt);
+            strcpy(errStr, "Display of IMM reources for resourceName is unsupported");
+            free(resparams);
+            resparams = NULL;
+            goto done;
+        }
+
+    } else if(strcmp(opName,"displayverbose")==0){
+        struct ImmsvAdminOperationParam * result=NULL;
+        if((strcmp(resourceName,"implementers")==0)){
+            if(sImplementerVector.size() > 0){
+                if(sImplementerVector.size() < 128){
+                    ImplementerVector::iterator i;
+                    for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
+                        ImplementerInfo* info = (*i);
+                        struct ImmsvAdminOperationParam * res = 
+                                              (struct ImmsvAdminOperationParam *)calloc (1,                                                                                                         sizeof(struct ImmsvAdminOperationParam));        
+                        res->paramType = SA_IMM_ATTR_SAINT64T;
+                        res->next = NULL;
+                        res->paramName.size=info->mImplementerName.length()+1;
+                        res->paramName.buf=(char *) malloc (res->paramName.size);
+                        strcpy(res->paramName.buf,info->mImplementerName.c_str());
+                        res->paramBuffer.val.saint64=info->mNodeId;
+                        if(result){
+                            result->next = res;
+                            result=res;
+                        }else {
+                            result = res;
+                            resparams=res;
+                        }
+                    }
+                                        
+                } else {
+                    LOG_NO("The Number of implementers are greater than 128, displaying the implementers informati                                                        on to syslog");                
+                    ImplementerVector::iterator i;
+                    for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
+                        ImplementerInfo* info = (*i);
+                        LOG_IN("Implementer name %s and location of the implementer is %u", 
+                                    info->mImplementerName.c_str(), info->mNodeId);         
+                    }
+                }
+            }
+        } else if((strcmp(resourceName,"adminowners")==0)){
+            if(sOwnerVector.size() > 0){
+                if(sOwnerVector.size() < 128){
+                    AdminOwnerVector::iterator i;
+                    for(i = sOwnerVector.begin(); i != sOwnerVector.end(); ++i) {
+                        AdminOwnerInfo* adminOwner = (*i);
+                        struct ImmsvAdminOperationParam * res =
+                                       (struct ImmsvAdminOperationParam *) 
+                                        calloc (1, sizeof(struct ImmsvAdminOperationParam));
+                        res->paramType = SA_IMM_ATTR_SAINT64T;
+                        res->next = NULL;
+                        res->paramName.size=adminOwner->mAdminOwnerName.length()+1;
+                        res->paramName.buf=(char *) malloc (res->paramName.size);
+                        strcpy(res->paramName.buf,adminOwner->mAdminOwnerName.c_str());
+                        res->paramBuffer.val.saint64=adminOwner->mNodeId;
+                        if(result){
+                            result->next = res;
+                            result=res;
+                        }else { 
+                            result = res;
+                            resparams=res;
+                        }
+                    }
+                }
+                LOG_NO("The Number of AdminOwners are greater than 128, displaying the adminowner information                                                         to syslog");       
+                AdminOwnerVector::iterator i;
+                for(i = sOwnerVector.begin(); i != sOwnerVector.end(); ++i) {
+                    AdminOwnerInfo* adminOwner = (*i);
+                    LOG_IN("Implementer name %s and location of the implementer is %u", 
+                                    adminOwner->mAdminOwnerName.c_str(), adminOwner->mNodeId);    
+                    }
+            }
+        } else {
+            LOG_WA("Verbose display of reourcename %s is unsupported", resourceName);
+            err = SA_AIS_ERR_INVALID_PARAM;         
+            int cnt = strlen("verbose display of requested resourceName is unsupported")+1;
+            errStr = (SaStringT)malloc (cnt);
+            strcpy(errStr, "Verbose display of requested resourceName is unsupported");
+            goto done;
+        }
+    } else if((strcmp(opName,"display-help")==0)) {
+        const char *resources[]  = {"implementers", "adminowners", "ccbs", "searches", NULL};
+        int i=0; 
+                
+        struct ImmsvAdminOperationParam * result=NULL;
+        while(resources[i]){
+            struct ImmsvAdminOperationParam * res = (struct ImmsvAdminOperationParam *)
+                                                calloc (1, sizeof(struct ImmsvAdminOperationParam));
+            res->paramType = SA_IMM_ATTR_SASTRINGT;
+            res->next = NULL;
+            res->paramName.size=strlen("supportedResources")+1;
+            res->paramName.buf=(char *) malloc (res->paramName.size);
+            strcpy(res->paramName.buf,"supportedResources");
+            res->paramBuffer.val.x.size= strlen(resources[i])+1;
+            res->paramBuffer.val.x.buf = (char *) malloc (res->paramBuffer.val.x.size);
+            strcpy(res->paramBuffer.val.x.buf,resources[i]);
+
+            if(result){
+                result->next = res;
+                result=res;
+            }
+            else {
+                result = res;
+                resparams=res;
+            }
+                i++;
+        }
+    }else{
+        LOG_WA("OperationName %s is not supported", opName);
+        err = SA_AIS_ERR_INVALID_PARAM;
+        int cnt = strlen("OperationName is not supported")+1;
+        errStr = (SaStringT)malloc (cnt);
+        strcpy(errStr, "OperationName is not supported");
+    }
+
+
+    done:
+        if(!resparams && errStr){
+        struct ImmsvAdminOperationParam * errparam = (struct ImmsvAdminOperationParam *)
+                                        calloc (1, sizeof(struct ImmsvAdminOperationParam));
+        errparam->paramType = SA_IMM_ATTR_SASTRINGT;
+        errparam->next = NULL;
+        errparam->paramName.size=strlen(SA_IMM_PARAM_ADMOP_ERROR)+1;
+        errparam->paramName.buf=(char *) malloc (errparam->paramName.size);
+        strcpy(errparam->paramName.buf,SA_IMM_PARAM_ADMOP_ERROR);
+        errparam->paramBuffer.val.x.size= strlen(errStr)+1;
+        errparam->paramBuffer.val.x.buf = errStr;
+        resparams=errparam;
+    }
+
+    *rparams = resparams;
+
+    TRACE_LEAVE();
+    return err;
+}
+
 
 SaAisErrorT
 ImmModel::admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req)

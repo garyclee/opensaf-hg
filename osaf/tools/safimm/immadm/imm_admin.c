@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
 		{"admin-owner", required_argument, 0, 'a'},
 		{"help", no_argument, 0, 'h'},
 		{"timeout", required_argument, 0, 't'},
-		{"verbose", required_argument, 0, 'v'},
+		{"verbose", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
@@ -269,6 +269,7 @@ int main(int argc, char *argv[])
 
 	params = realloc(NULL, sizeof(SaImmAdminOperationParamsT_2 *));
 	params[0] = NULL;
+	SaStringT opName = NULL;
 
 	while (1) {
 		c = getopt_long(argc, argv, "dp:o:O:a:t:hv", long_options, NULL);
@@ -306,6 +307,7 @@ int main(int argc, char *argv[])
 			param->paramType = SA_IMM_ATTR_SASTRINGT;
 			param->paramBuffer = malloc(sizeof(SaStringT));
 			*((SaStringT *)(param->paramBuffer)) = strdup(optarg);
+			opName = strdup(optarg);
 			break;
 		case 'p':
 			params_len++;
@@ -347,7 +349,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (operationId == -1) {
-		fprintf(stderr, "error - must specify admin operation ID\n");
+		fprintf(stderr, "error - must specify admin operation ID %llx\n", operationId);
 		exit(EXIT_FAILURE);
 	}
 
@@ -415,7 +417,7 @@ retry:
 			exit(EXIT_FAILURE);
 		}
 
-		if (operationReturnValue != SA_AIS_OK) {
+		if (operationReturnValue != SA_AIS_OK ) {
 			unsigned int ix = 0;
 
 			if ((operationReturnValue == SA_AIS_ERR_TRY_AGAIN) && !disable_tryagain) {
@@ -442,11 +444,13 @@ retry:
 
 				print_params(argv[optind], out_params);
 			}
+			
 
 			exit(EXIT_FAILURE);
 		}
 
-		if (verbose && out_params && out_params[0]) {
+
+		if (((opName && (strncmp(opName,"display",7)==0))||verbose) &&out_params && out_params[0]) {
 			if(!isFirst)
 				printf("\n");
 			else
@@ -454,6 +458,7 @@ retry:
 
 			print_params(argv[optind], out_params);
 		}
+
 
 		error = saImmOmAdminOperationMemoryFree(ownerHandle, out_params);
 		if (error != SA_AIS_OK) {

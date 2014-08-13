@@ -98,7 +98,7 @@ extern "C" {
 					  SaUint32T reqConn,
 					  SaUint64T reply_dest,
 					  SaInvocationT inv, SaUint32T *implConn,
-		                          SaClmNodeIdT *implNodeId, SaBoolT pbeExpected);
+		                          SaClmNodeIdT *implNodeId, SaBoolT pbeExpected, bool* displayRes);
 
 	SaAisErrorT immModel_classCreate(IMMND_CB *cb, 
 		const struct ImmsvOmClassDescr *req,
@@ -348,7 +348,6 @@ extern "C" {
 	void immModel_pbeUpdateEpochContinuation(IMMND_CB *cb,
 		SaUint32T invocation, SaClmNodeIdT nodeId);
 
-
 	void immModel_ccbObjModifyContinuation(IMMND_CB *cb,
 					       SaUint32T ccbId,
 					       SaUint32T invocation, SaAisErrorT error, SaUint32T *reqConn);
@@ -412,6 +411,10 @@ extern "C" {
 
 	SaAisErrorT immModel_implIsFree(IMMND_CB *cb,
 		const SaImmOiImplementerNameT implName);
+
+	SaAisErrorT immModel_resourceDisplay(IMMND_CB *cb, 
+		const struct ImmsvAdminOperationParam *reqparams,
+		struct ImmsvAdminOperationParam **rparams);
 
 #ifdef __cplusplus
 }

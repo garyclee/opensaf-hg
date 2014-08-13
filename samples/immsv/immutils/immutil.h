@@ -446,6 +446,10 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 	extern SaAisErrorT immutil_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 							       SaInvocationT invocation, SaAisErrorT result);
 
+	extern SaAisErrorT immutil_saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle,
+								  SaInvocationT invocation, SaAisErrorT result,
+								   const SaImmAdminOperationParamsT_2 **returnParams);
+
 	extern SaAisErrorT immutil_saImmOmInitialize(SaImmHandleT *immHandle,
 						     const SaImmCallbacksT *immCallbacks, const SaVersionT *version);
 
