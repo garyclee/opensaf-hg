@@ -1394,10 +1394,10 @@ SmfUpgradeStep::calculateStepType()
 
 		if (rebootNeeded) {
 			/* -If rolling upgrade: Check if the step will lock/reboot our own node and if so
-                           move our campaign execution to the other controller using e.g. 
+                           move our campaign execution to the other controller using e.g.
                            admin operation SWAP on the SI we belong to. Then the other
                            controller will continue with this step and do the lock/reboot.
-			   
+
                            -If single step  upgrade: No switchover is needed. A cluster reboot will be
                            ordered within the step */
 
@@ -1443,6 +1443,14 @@ SmfUpgradeStep::calculateStepType()
                                 int noOfAffectedControllers = 0;
                                 std::string matchingController;
 
+                                //If a single node system all controllers are always affected
+                                //don't care about config attr
+                                if (isSingleNode == true) {
+                                        LOG_NO("Single node system, always treat as all controllers included");
+                                        allControllersAffected = true;
+                                        goto selectStepType;
+                                }
+
                                 if (smfd_cb->smfClusterControllers[0] != NULL) {  //Controller is configured
 
                                         //Count the number of controllers configured
@@ -1458,12 +1466,6 @@ SmfUpgradeStep::calculateStepType()
                                         std::list < std::string >::const_iterator nodeit = nodeList.begin();
                                         std::string smfClusterController;
 
-#if 0
-                                        LOG_NO("Size of nodeList = %lu", nodeList.size());
-                                        nodeList.sort();
-                                        nodeList.unique();
-                                        LOG_NO("Unique size of nodeList = %lu", nodeList.size());
-#endif
                                         while ((nodeit != nodeList.end()) && (allControllersAffected == false)) {
                                                 //Convert node given for the bundles to install, to CLM node addresses
                                                 immutil.nodeToClmNode(*nodeit, clmNode);
@@ -1495,6 +1497,7 @@ SmfUpgradeStep::calculateStepType()
                                         LOG_NO("No smfClusterControllers are configured, treat as all controllers included");
                                 }
 
+                        selectStepType:
                                 //Select the type of step
                                 if (allControllersAffected == true ) { //All controlles (dual or single) are within the step list of nodes
                                         LOG_NO("All controllers are included, cluster reboot step type is selected");
@@ -1508,7 +1511,7 @@ SmfUpgradeStep::calculateStepType()
                                         if (activateUsed == false)
                                                 this->setStepType(new SmfStepTypeNodeReboot(this));
                                         else
-                                                this->setStepType(new SmfStepTypeClusterRebootAct(this));
+                                                this->setStepType(new SmfStepTypeNodeRebootAct(this));
 
                                 } else { //One of two configured controllers is within the step list of nodes
                                         LOG_NO("One of two controllers is included, check if included controller is current node");
@@ -1523,7 +1526,7 @@ SmfUpgradeStep::calculateStepType()
                                         if (activateUsed == false)
                                                 this->setStepType(new SmfStepTypeNodeReboot(this));
                                         else
-                                                this->setStepType(new SmfStepTypeClusterRebootAct(this));
+                                                this->setStepType(new SmfStepTypeNodeRebootAct(this));
                                 }
                         }
 		} //End if (rebootNeeded)
