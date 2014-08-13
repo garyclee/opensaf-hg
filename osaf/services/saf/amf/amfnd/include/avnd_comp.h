@@ -292,7 +292,9 @@ enum UsedComptypeAttrs {
 	CompCleanupTimeout,
 	CompAmStartTimeout,
 	CompAmStopTimeout,
-        DefRecoveryOnError,
+	DefRecoveryOnError,
+	DefDisableRestart,
+	DefQuiescingCompleteTimeout,
 	NumAttrs
 };
 
