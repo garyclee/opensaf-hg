@@ -442,7 +442,6 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefCallbackTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
 					opdata->objectName.value, (*it)->name.value);
-				
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefCallbackTimeout_ID;
@@ -451,11 +450,18 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefClcCliTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
 					opdata->objectName.value, (*it)->name.value);
-				
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefClcCliTimeout_ID;
 				avd_snd_op_req_msg(avd_cb, *it, &param);
+			} else if (!strcmp(attribute->attrName, "saAmfCtDefQuiescingCompleteTimeout")) {
+				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
+				TRACE("saAmfCtDefQuiescingCompleteTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
+					opdata->objectName.value, (*it)->name.value);
+				param.value_len = sizeof(*param_val);
+				memcpy(param.value, param_val, param.value_len);
+				param.attr_id = saAmfCtDefQuiescingCompleteTimeout_ID;
+				avd_snd_op_req_msg(avd_cb, *it, &param);	
 			} else if (!strcmp(attribute->attrName, "saAmfCtDefRecoveryOnError")) {
 				SaAmfRecommendedRecoveryT *param_val = (SaAmfRecommendedRecoveryT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefRecoveryOnError to '%u' for compType '%s' on node '%s'", *param_val, 
@@ -463,6 +469,14 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefRecoveryOnError_ID;
+				avd_snd_op_req_msg(avd_cb, *it, &param);
+			} else if (!strcmp(attribute->attrName, "saAmfCtDefDisableRestart")) {
+				SaBoolT *param_val = (SaBoolT *)attribute->attrValues[0];
+				TRACE("saAmfCtDefDisableRestart to '%u' for compType '%s' on node '%s'", *param_val, 
+					opdata->objectName.value, (*it)->name.value);
+				param.value_len = sizeof(*param_val);
+				memcpy(param.value, param_val, param.value_len);
+				param.attr_id = saAmfCtDefDisableRestart_ID;
 				avd_snd_op_req_msg(avd_cb, *it, &param);
 			} else
 				LOG_WA("Unexpected attribute name: %s", attribute->attrName);

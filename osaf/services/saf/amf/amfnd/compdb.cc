@@ -971,12 +971,30 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 					}
 					break;
 				}
+				case saAmfCtDefQuiescingCompleteTimeout_ID: {
+					SaTimeT saAmfCtDefQuiescingCompleteTimeout = *((SaTimeT *) param->value);
+					osafassert(sizeof(SaTimeT) == param->value_len);
+					if (comp->use_comptype_attr.test(DefQuiescingCompleteTimeout)) {
+						comp->quies_complete_cbk_timeout = saAmfCtDefQuiescingCompleteTimeout;
+						TRACE("comp->quies_complete_cbk_timeout modified to '%llu'", comp->quies_complete_cbk_timeout);
+					}
+					break;
+				}
 				case saAmfCtDefRecoveryOnError_ID: {
 					SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError = *((SaAmfRecommendedRecoveryT *) param->value);
 					osafassert(sizeof(SaAmfRecommendedRecoveryT) == param->value_len);
 					if (comp->use_comptype_attr.test(DefRecoveryOnError)) {
 						comp->err_info.def_rec = saAmfCtDefRecoveryOnError;
 						TRACE("comp->err_info.def_rec modified to '%u'", comp->err_info.def_rec);						
+					}
+					break;
+				}
+				case saAmfCtDefDisableRestart_ID: {
+					SaBoolT saAmfCtDefDisableRestart = *((SaBoolT *) param->value);
+					osafassert(sizeof(SaBoolT) == param->value_len);
+					if (comp->use_comptype_attr.test(DefDisableRestart)) {
+						comp->is_restart_en = (saAmfCtDefDisableRestart == true) ? false : true;
+						TRACE("comp->is_restart_en modified to '%u'", comp->is_restart_en);
 					}
 					break;
 				}
@@ -1547,8 +1565,10 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		comp->use_comptype_attr.set(CsiRemoveCallbackTimeout);
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompQuiescingCompleteTimeout"), attributes,
-			    0, &comp->quies_complete_cbk_timeout) != SA_AIS_OK)
+			    0, &comp->quies_complete_cbk_timeout) != SA_AIS_OK) {
 		comp->quies_complete_cbk_timeout = comptype->saAmfCompQuiescingCompleteTimeout;
+		comp->use_comptype_attr.set(DefQuiescingCompleteTimeout);
+	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompRecoveryOnError"), attributes, 0, &comp->err_info.def_rec) != SA_AIS_OK) {
 		comp->err_info.def_rec = comptype->saAmfCtDefRecoveryOnError;
@@ -1561,8 +1581,10 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		}
 	}
 
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompDisableRestart"), attributes, 0, &disable_restart) != SA_AIS_OK)
+	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompDisableRestart"), attributes, 0, &disable_restart) != SA_AIS_OK) {
 		disable_restart = comptype->saAmfCtDefDisableRestart;
+		comp->use_comptype_attr.set(DefDisableRestart);
+	}
 
 	comp->is_restart_en = (disable_restart == true) ? false : true;
 
