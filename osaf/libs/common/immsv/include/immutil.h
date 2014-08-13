@@ -426,10 +426,21 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 							   const SaNameT *parentName,
 							   const SaImmAttrValuesT_2 **attrValues);
 
+	extern SaAisErrorT immutil_saImmOiRtObjectCreate_o2(SaImmOiHandleT immOiHandle,
+							   const SaImmClassNameT className,
+							   const char *parentName,
+							   const SaImmAttrValuesT_2 **attrValues);
+
 	extern SaAisErrorT immutil_saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *objectName);
+
+	extern SaAisErrorT immutil_saImmOiRtObjectDelete_o2(SaImmOiHandleT immOiHandle, const char *objectName);
 
 	extern SaAisErrorT immutil_saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 							   const SaNameT *objectName,
+							   const SaImmAttrModificationT_2 **attrMods);
+
+	extern SaAisErrorT immutil_saImmOiRtObjectUpdate_o2(SaImmOiHandleT immOiHandle,
+							   const char *objectName,
 							   const SaImmAttrModificationT_2 **attrMods);
 
 	extern SaAisErrorT immutil_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
@@ -448,6 +459,11 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 							const SaImmAttrNameT *attributeNames,
 							SaImmAttrValuesT_2 ***attributes);
 
+	extern SaAisErrorT immutil_saImmOmAccessorGet_o2(SaImmAccessorHandleT accessorHandle,
+							const char *objectName,
+							const SaImmAttrNameT *attributeNames,
+							SaImmAttrValuesT_2 ***attributes);
+
 	extern SaAisErrorT immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
 							const SaNameT *objectName,
 							SaImmAttrValuesT_2 ***attributes);
@@ -462,19 +478,23 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 	extern SaAisErrorT immutil_saImmOmClassDelete(SaImmCcbHandleT immCcbHandle,
                                                      const SaImmClassNameT className);
 
-	extern SaAisErrorT immutil_saImmOmCcbObjectCreate_2(SaImmCcbHandleT immCcbHandle,
-	                                             const SaImmClassNameT className,
-	                                             const SaNameT *parent,
-	                                             const SaImmAttrValuesT_2** attrValues);
 
 /**
- * Wrapper for saImmOmSearchInitialize
+ * Wrapper for saImmOmSearchInitialize_2/o2
  * The SA_AIS_ERR_NOT_EXIST error code is not considered an error and
  * is always returned even if "errorsAreFatal" is set.
  */
 	extern SaAisErrorT
 	 immutil_saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 					   const SaNameT *rootName,
+					   SaImmScopeT scope,
+					   SaImmSearchOptionsT searchOptions,
+					   const SaImmSearchParametersT_2 *searchParam,
+					   const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle);
+
+	extern SaAisErrorT
+	 immutil_saImmOmSearchInitialize_o2(SaImmHandleT immHandle,
+					   const char *rootName,
 					   SaImmScopeT scope,
 					   SaImmSearchOptionsT searchOptions,
 					   const SaImmSearchParametersT_2 *searchParam,
@@ -487,7 +507,7 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 	 immutil_saImmOmSearchFinalize(SaImmSearchHandleT searchHandle);
 
 /**
- * Wrapper for saImmOmSearchNext
+ * Wrapper for saImmOmSearchNext_2/o2
  * The SA_AIS_ERR_NOT_EXIST error code is not considered an error and
  * is always returned even if "errorsAreFatal" is set.
  */
@@ -495,11 +515,18 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 	 immutil_saImmOmSearchNext_2(SaImmSearchHandleT searchHandle,
 				     SaNameT *objectName, SaImmAttrValuesT_2 ***attributes);
 
+	extern SaAisErrorT
+	 immutil_saImmOmSearchNext_o2(SaImmSearchHandleT searchHandle,
+				     char **objectName, SaImmAttrValuesT_2 ***attributes);
+
 /**
- * Wrapper for saImmOmAdminOwnerClear
+ * Wrapper for saImmOmAdminOwnerClear/_o2
  */
 	extern SaAisErrorT
          immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objectNames, SaImmScopeT scope);
+
+	extern SaAisErrorT
+         immutil_saImmOmAdminOwnerClear_o2(SaImmHandleT immHandle, const char **objectNames, SaImmScopeT scope);
 
 /**
  * Wrapper for saImmOiFinalize
@@ -537,23 +564,44 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 	extern SaAisErrorT immutil_saImmOmCcbApply(SaImmCcbHandleT  immCcbHandle);
 
 /**
- * Wrapper for saImmOmAdminOwnerSet
+ * Wrapper for saImmOmAdminOwnerSet/_o2
  */
 	extern SaAisErrorT immutil_saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT  ownerHandle,
 							const SaNameT** name,
 							SaImmScopeT scope);
 
+	extern SaAisErrorT immutil_saImmOmAdminOwnerSet_o2(SaImmAdminOwnerHandleT  ownerHandle,
+							const char ** name,
+							SaImmScopeT scope);
+
 /**
- * Wrapper for saImmOmAdminOwnerRelease
+ * Wrapper for saImmOmAdminOwnerRelease/_o2
  */
 	extern SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
    							    const SaNameT** name,
     							    SaImmScopeT scope);
+
+	extern SaAisErrorT immutil_saImmOmAdminOwnerRelease_o2(SaImmAdminOwnerHandleT ownerHandle,
+   							    const char ** name,
+    							    SaImmScopeT scope);
+
 /**
  * Wrapper for saImmOmAdminOperationInvoke_o2
  */
 	extern SaAisErrorT immutil_saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 		const SaNameT *objectName,
+		SaImmContinuationIdT continuationId,
+		SaImmAdminOperationIdT operationId,
+		const SaImmAdminOperationParamsT_2 **params,
+		SaAisErrorT *operationReturnValue,
+		SaTimeT timeout,
+		SaImmAdminOperationParamsT_2 ***returnParams);
+
+/**
+ * Wrapper for saImmOmAdminOperationInvoke_o214
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOperationInvoke_o214(SaImmAdminOwnerHandleT ownerHandle,
+		const char *objectName,
 		SaImmContinuationIdT continuationId,
 		SaImmAdminOperationIdT operationId,
 		const SaImmAdminOperationParamsT_2 **params,
@@ -581,6 +629,14 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
     						            const SaImmAttrValuesT_2** attrValues);
 
 /**
+ * Wrapper for saImmOmCcbObjectCreate_o2
+ */
+	extern SaAisErrorT immutil_saImmOmCcbObjectCreate_o2(SaImmCcbHandleT  immCcbHandle,
+    							    const SaImmClassNameT className,
+    							    const char *parent,
+    						            const SaImmAttrValuesT_2** attrValues);
+
+/**
  * Wrapper for saImmOmCcbObjectModify_2
  */
 	extern SaAisErrorT immutil_saImmOmCcbObjectModify_2(SaImmCcbHandleT  immCcbHandle,
@@ -588,10 +644,23 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
     							    const SaImmAttrModificationT_2** attrMods);
 
 /**
+ * Wrapper for saImmOmCcbObjectModify_o2
+ */
+	extern SaAisErrorT immutil_saImmOmCcbObjectModify_o2(SaImmCcbHandleT  immCcbHandle,
+    						     	    const char *objectName,
+    							    const SaImmAttrModificationT_2** attrMods);
+
+/**
  * Wrapper for saImmOmCcbObjectDelete
  */
 	extern SaAisErrorT immutil_saImmOmCcbObjectDelete(SaImmCcbHandleT  immCcbHandle,
     							  const SaNameT *objectName);
+
+/**
+ * Wrapper for saImmOmCcbObjectDelete_o2
+ */
+	extern SaAisErrorT immutil_saImmOmCcbObjectDelete_o2(SaImmCcbHandleT  immCcbHandle,
+    							  const char *objectName);
 
 /**
  * Wrapper for saImmOmClassDescriptionGet_2
