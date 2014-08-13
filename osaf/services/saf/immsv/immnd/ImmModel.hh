@@ -351,7 +351,8 @@ public:
                                              SaInvocationT& inv,
                                              SaUint32T* implConn,
                                              unsigned int* implNodeId,
-                                             bool pbeExpected);
+                                             bool pbeExpected,
+                                             bool* displayRes);
     
     // Objects
     
@@ -454,6 +455,11 @@ public:
                                        ImplementerInfo* info,
                                        bool& subTreeHasPersistent,
                                        bool& subTreeHasSpecialAppl);
+
+    SaAisErrorT       resourceDisplay(
+                                      const struct ImmsvAdminOperationParam *reqparams, 
+                                      struct ImmsvAdminOperationParam **rparams,
+                                      SaUint64T searchcount);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
     bool              fetchRtUpdate(ImmsvOmObjectSync* syncReq,

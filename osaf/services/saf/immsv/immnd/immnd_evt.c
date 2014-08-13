@@ -4521,12 +4521,42 @@ static uint32_t immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 			return rc;	/*Note: Error is ignored! should cause bad-handle..if local */
 		}
 
+		/*displayRes is used when the adminoperation with operation name display is called.
+		  displayRes will be true, when admin-operation has OperationName as display 
+		  and directed towards opensafImm=opensafImm,safApp=safImmService object. 
+		  Implementer for opensafImm=opensafImm,safApp=safImmService is PBE.
+		*/
+		bool displayRes=false;
+		IMMSV_ADMIN_OPERATION_PARAM *rparams= NULL;
+		struct ImmsvAdminOperationParam *params = evt->info.admOpRsp.parms;
+		SaAisErrorT err = evt->info.admOpRsp.error;
+		SaAisErrorT result = evt->info.admOpRsp.result;
+
+		while(params) {
+			if((strcmp(params->paramName.buf,SA_IMM_PARAM_ADMOP_NAME)==0) && 
+						(params->paramType==SA_IMM_ATTR_SASTRINGT)) {
+				if(strncmp(params->paramBuffer.val.x.buf,"display",7)==0) {
+					displayRes=true;
+				} else {
+					LOG_WA("Invalid OperationName %s for dumping IMM resource" 
+						"is not set properly", params->paramBuffer.val.x.buf);
+					err = SA_AIS_ERR_INVALID_PARAM;
+				}
+				break;
+			}       
+			params = params->next;
+		}
+
+		if(displayRes){
+			result = immModel_resourceDisplay(cb, evt->info.admOpRsp.parms, &rparams);
+		}
+
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.type = (evt->info.admOpRsp.parms)?IMMA_EVT_ND2A_ADMOP_RSP_2:IMMA_EVT_ND2A_ADMOP_RSP;
 		send_evt.info.imma.info.admOpRsp.invocation = evt->info.admOpRsp.invocation;
-		send_evt.info.imma.info.admOpRsp.result = evt->info.admOpRsp.result;
-		send_evt.info.imma.info.admOpRsp.error = evt->info.admOpRsp.error;
-		send_evt.info.imma.info.admOpRsp.parms = evt->info.admOpRsp.parms;
+		send_evt.info.imma.info.admOpRsp.result = result;
+		send_evt.info.imma.info.admOpRsp.error = err;
+		send_evt.info.imma.info.admOpRsp.parms = (displayRes)?rparams:evt->info.admOpRsp.parms;
 
 		if (async) {
 			TRACE_2("NORMAL ASYNCRONOUS reply %llu %u %u to OM",
@@ -4649,6 +4679,11 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 	SaUint32T implConn = 0;
 	NCS_NODE_ID implNodeId = 0;
 	SaBoolT async = SA_FALSE;
+	/*displayRes is used for admin-operation which has OperationName as display 
+	  and directed towards opensafImm=opensafImm,safApp=safImmService object. 
+	  SA_AIS_ERR_REPAIR_PENDING will be returned if there is no PBE and OperationName is display.
+	*/
+	bool displayRes=false;
 	SaBoolT pbeExpected = cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	async = (evt->type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC);
@@ -4668,8 +4703,8 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
 	error = immModel_adminOperationInvoke(cb, &(evt->info.admOpReq),
 					      originatedAtThisNd ? conn : 0,
-					      (SaUint64T)reply_dest, saInv, &implConn,
-		                              &implNodeId, pbeExpected);
+					      (SaUint64T)reply_dest, saInv, &implConn, 
+					      &implNodeId, pbeExpected, &displayRes);
 
 	/*Check if we have an implementer, if so forward the message.
 	   If there is no implementer then implNodeId is zero.
@@ -4808,12 +4843,20 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
 		if(error == SA_AIS_ERR_REPAIR_PENDING) {
 			uint32_t rc = NCSCC_RC_SUCCESS;
+			SaAisErrorT result = SA_AIS_OK;
+			IMMSV_ADMIN_OPERATION_PARAM *rparams= NULL;
 			osafassert(!pbeExpected);
 			TRACE("Ok reply for internally handled adminOp when PBE not configured");
-			send_evt.info.imma.type = IMMA_EVT_ND2A_ADMOP_RSP;
+
+			if(displayRes){
+				result = immModel_resourceDisplay(cb, evt->info.admOpReq.params, &rparams);
+			}
+			
+			send_evt.info.imma.type = rparams?IMMA_EVT_ND2A_ADMOP_RSP_2:IMMA_EVT_ND2A_ADMOP_RSP;
 			send_evt.info.imma.info.admOpRsp.invocation = saInv;
-			send_evt.info.imma.info.admOpRsp.result = SA_AIS_OK;
+			send_evt.info.imma.info.admOpRsp.result = result;
 			send_evt.info.imma.info.admOpRsp.error = SA_AIS_OK;
+			send_evt.info.imma.info.admOpRsp.parms = rparams;
 			if (async) {
 				TRACE_2("ASYNCRONOUS special reply %llu %u %u to OM",
 					send_evt.info.imma.info.admOpRsp.invocation,

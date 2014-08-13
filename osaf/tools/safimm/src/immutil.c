@@ -1173,6 +1173,23 @@ SaAisErrorT immutil_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 	return rc;
 }
 
+SaAisErrorT immutil_saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle,
+                                                SaInvocationT invocation, SaAisErrorT result,
+						const SaImmAdminOperationParamsT_2 **returnParams)
+{
+	SaAisErrorT rc = saImmOiAdminOperationResult_o2(immOiHandle, invocation, result, returnParams);
+	unsigned int nTries = 1;
+	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
+		usleep(immutilWrapperProfile.retryInterval * 1000);
+		rc = saImmOiAdminOperationResult_o2(immOiHandle, invocation, result, returnParams);
+		nTries++;
+	}
+	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+		immutilError("saImmOiAdminOperationResult FAILED, rc = %d", (int)rc);
+	return rc;
+}
+
+
 SaAisErrorT immutil_saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *immCallbacks, const SaVersionT *version)
 {
     /* Version parameter is in/out i.e. must be mutable and should not be
