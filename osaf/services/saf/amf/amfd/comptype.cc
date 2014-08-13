@@ -432,25 +432,37 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 		i = 0;
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 			AVSV_PARAM_INFO param;
-			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
-			SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
-
 			memset(&param, 0, sizeof(param));
 			param.class_id = AVSV_SA_AMF_COMP_TYPE;
 			param.act = AVSV_OBJ_OPR_MOD;
 			param.name = opdata->objectName;
-			param.value_len = sizeof(*param_val);
-			memcpy(param.value, param_val, param.value_len);
+			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
 			if (!strcmp(attribute->attrName, "saAmfCtDefCallbackTimeout")) {
+				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefCallbackTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
 					opdata->objectName.value, (*it)->name.value);
+				
+				param.value_len = sizeof(*param_val);
+				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefCallbackTimeout_ID;
 				avd_snd_op_req_msg(avd_cb, *it, &param);
 			} else if (!strcmp(attribute->attrName, "saAmfCtDefClcCliTimeout")) {
+				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefClcCliTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
 					opdata->objectName.value, (*it)->name.value);
+				
+				param.value_len = sizeof(*param_val);
+				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefClcCliTimeout_ID;
+				avd_snd_op_req_msg(avd_cb, *it, &param);
+			} else if (!strcmp(attribute->attrName, "saAmfCtDefRecoveryOnError")) {
+				SaAmfRecommendedRecoveryT *param_val = (SaAmfRecommendedRecoveryT *)attribute->attrValues[0];
+				TRACE("saAmfCtDefRecoveryOnError to '%u' for compType '%s' on node '%s'", *param_val, 
+					opdata->objectName.value, (*it)->name.value);
+				param.value_len = sizeof(*param_val);
+				memcpy(param.value, param_val, param.value_len);
+				param.attr_id = saAmfCtDefRecoveryOnError_ID;
 				avd_snd_op_req_msg(avd_cb, *it, &param);
 			} else
 				LOG_WA("Unexpected attribute name: %s", attribute->attrName);
