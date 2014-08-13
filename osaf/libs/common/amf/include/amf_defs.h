@@ -251,7 +251,8 @@ typedef enum
 typedef enum
 {
    saAmfCtDefCallbackTimeout_ID = 1,
-   saAmfCtDefClcCliTimeout_ID = 2
+   saAmfCtDefClcCliTimeout_ID = 2,
+   saAmfCtDefRecoveryOnError_ID = 3
 } AVSV_AMF_COMPTYPE_ATTR_ID; 
 
 /* Attribute ID enum for the SaAmfHealthcheck class */

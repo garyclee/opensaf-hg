@@ -894,16 +894,12 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 	AVND_COMP * comp;
 	const char* comp_type_name;
-	SaTimeT saAmfCtDefCallbackTimeout = 0;
-	SaTimeT saAmfCtDefClcCliTimeout = 0;
 
 	TRACE_ENTER2("Op %u, %s", param->act, param->name.value);
 
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD:
 	{
-		osafassert(sizeof(SaTimeT) == param->value_len);
-
 		// 1. find component from componentType, 
 		// input example, param->name.value = safVersion=1,safCompType=AmfDemo1	
 		comp_type_name = (char *) param->name.value;
@@ -919,8 +915,9 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				TRACE("comp name: %s , comp_type: %s", comp->name.value, comp->saAmfCompType.value);
 				
 				switch (param->attr_id) {
-				case saAmfCtDefCallbackTimeout_ID:
-					saAmfCtDefCallbackTimeout = *((SaTimeT *) param->value);
+				case saAmfCtDefCallbackTimeout_ID: {
+					SaTimeT saAmfCtDefCallbackTimeout = *((SaTimeT *) param->value);
+					osafassert(sizeof(SaTimeT) == param->value_len);
 					if (comp->use_comptype_attr.test(PxiedInstCallbackTimeout)) {
 						comp->pxied_inst_cbk_timeout = saAmfCtDefCallbackTimeout;
 						TRACE("comp->pxied_inst_cbk_timeout modified to '%llu'", comp->pxied_inst_cbk_timeout);
@@ -942,9 +939,11 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 						TRACE("comp->csi_rmv_cbk_timeout modified to '%llu'", comp->csi_rmv_cbk_timeout);						
 					}
 					break;
-				case saAmfCtDefClcCliTimeout_ID:
+				}
+				case saAmfCtDefClcCliTimeout_ID: {
 					AVND_COMP_CLC_CMD_PARAM *cmd;
-					saAmfCtDefClcCliTimeout = *((SaTimeT *) param->value);
+					SaTimeT saAmfCtDefClcCliTimeout = *((SaTimeT *) param->value);
+					osafassert(sizeof(SaTimeT) == param->value_len);
 					if (comp->use_comptype_attr.test(CompInstantiateTimeout)) {						
 						cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1];
 						cmd->timeout = saAmfCtDefClcCliTimeout;
@@ -971,6 +970,16 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 						TRACE("cmd->timeout (AM Stop) modified to '%llu'", cmd->timeout);						
 					}
 					break;
+				}
+				case saAmfCtDefRecoveryOnError_ID: {
+					SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError = *((SaAmfRecommendedRecoveryT *) param->value);
+					osafassert(sizeof(SaAmfRecommendedRecoveryT) == param->value_len);
+					if (comp->use_comptype_attr.test(DefRecoveryOnError)) {
+						comp->err_info.def_rec = saAmfCtDefRecoveryOnError;
+						TRACE("comp->err_info.def_rec modified to '%u'", comp->err_info.def_rec);						
+					}
+					break;
+				}
 				default:
 					LOG_WA("Unexpected attribute id: %d", param->attr_id);
 				}
@@ -1541,9 +1550,10 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 			    0, &comp->quies_complete_cbk_timeout) != SA_AIS_OK)
 		comp->quies_complete_cbk_timeout = comptype->saAmfCompQuiescingCompleteTimeout;
 
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompRecoveryOnError"), attributes, 0, &comp->err_info.def_rec) != SA_AIS_OK)
+	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompRecoveryOnError"), attributes, 0, &comp->err_info.def_rec) != SA_AIS_OK) {
 		comp->err_info.def_rec = comptype->saAmfCtDefRecoveryOnError;
-	else {
+		comp->use_comptype_attr.set(DefRecoveryOnError);
+	} else {
 		if ((SaAmfRecommendedRecoveryT)comp->err_info.def_rec == SA_AMF_NO_RECOMMENDATION) {
 			comp->err_info.def_rec = SA_AMF_COMPONENT_FAILOVER;
 			LOG_NO("COMPONENT_FAILOVER(%u) used instead of NO_RECOMMENDATION(%u) for '%s'",
