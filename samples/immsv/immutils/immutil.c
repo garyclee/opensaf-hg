@@ -1069,6 +1069,20 @@ SaAisErrorT immutil_saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	return rc;
 }
 
+SaAisErrorT immutil_saImmOiRtObjectCreate_o2(SaImmOiHandleT immOiHandle,
+                                            const SaImmClassNameT className,
+                                            const char *parentName, const SaImmAttrValuesT_2 **attrValues)
+{
+	SaNameT parent_name;
+        if(parentName)
+		osaf_extended_name_lend(parentName,&parent_name);
+	else
+		osaf_extended_name_clear(&parent_name);
+
+        SaAisErrorT rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, className, &parent_name, attrValues);
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *objectName)
 {
 	SaAisErrorT rc = saImmOiRtObjectDelete(immOiHandle, objectName);
@@ -1080,6 +1094,18 @@ SaAisErrorT immutil_saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNa
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
 		immutilError("saImmOiRtObjectDelete FAILED, rc = %d", (int)rc);
+	return rc;
+}
+
+SaAisErrorT immutil_saImmOiRtObjectDelete_o2(SaImmOiHandleT immOiHandle, const char *objectName)
+{
+	SaNameT obj_name;
+	if(objectName)
+		osaf_extended_name_lend(objectName,&obj_name);
+	else
+		osaf_extended_name_clear(&obj_name);
+
+	SaAisErrorT rc = immutil_saImmOiRtObjectDelete(immOiHandle, &obj_name);
 	return rc;
 }
 
@@ -1095,6 +1121,19 @@ SaAisErrorT immutil_saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
 		immutilError("saImmOiRtObjectUpdate_2 FAILED, rc = %d", (int)rc);
+	return rc;
+}
+
+SaAisErrorT immutil_saImmOiRtObjectUpdate_o2(SaImmOiHandleT immOiHandle,
+                                            const char *objectName, const SaImmAttrModificationT_2 **attrMods)
+{
+	SaNameT obj_name;
+	if(objectName)
+		osaf_extended_name_lend(objectName,&obj_name);
+	else
+		osaf_extended_name_clear(&obj_name);
+
+	SaAisErrorT rc = immutil_saImmOiRtObjectUpdate_2(immOiHandle, &obj_name, attrMods);
 	return rc;
 }
 
@@ -1177,6 +1216,20 @@ SaAisErrorT immutil_saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 	return rc;
 }
 
+SaAisErrorT immutil_saImmOmAccessorGet_o2(SaImmAccessorHandleT accessorHandle,
+                                         const char *objectName,
+                                         const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes)
+{
+	SaNameT obj_name;
+	if(objectName)
+		osaf_extended_name_lend(objectName,&obj_name);
+	else
+		osaf_extended_name_clear(&obj_name);
+
+	SaAisErrorT rc = immutil_saImmOmAccessorGet_2(accessorHandle, &obj_name, attributeNames, attributes);
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOmAccessorGetConfigAttrs(SaImmAccessorHandleT accessorHandle,
 					 const SaNameT *objectName,
 					 SaImmAttrValuesT_2 ***attributes)
@@ -1247,6 +1300,24 @@ SaAisErrorT immutil_saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	return rc;
 }
 
+SaAisErrorT immutil_saImmOmSearchInitialize_o2(SaImmHandleT immHandle,
+                                              const char *rootName,
+                                              SaImmScopeT scope,
+                                              SaImmSearchOptionsT searchOptions,
+                                              const SaImmSearchParametersT_2 *searchParam,
+                                              const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle)
+{
+	SaNameT root_name;
+	if(rootName)
+		osaf_extended_name_lend(rootName,&root_name);
+	else
+		osaf_extended_name_clear(&root_name);
+
+	SaAisErrorT rc = immutil_saImmOmSearchInitialize_2(immHandle, &root_name, scope, searchOptions, searchParam,
+								attributeNames, searchHandle);
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 {
 	SaAisErrorT rc = saImmOmSearchFinalize(searchHandle);
@@ -1278,6 +1349,24 @@ SaAisErrorT immutil_saImmOmSearchNext_2(SaImmSearchHandleT searchHandle,
 	return rc;
 }
 
+SaAisErrorT immutil_saImmOmSearchNext_o2(SaImmSearchHandleT searchHandle,
+                                        char *objectName, SaImmAttrValuesT_2 ***attributes)
+{
+	SaNameT obj_name;
+	const char * obj;
+
+	SaAisErrorT rc = immutil_saImmOmSearchNext_2(searchHandle, &obj_name, attributes);
+	if (rc == SA_AIS_OK){
+		obj= osaf_extended_name_borrow(&obj_name);
+		*objectName = (char *) malloc (strlen(obj) +1);
+		strcpy(*objectName, obj);
+	}
+	else
+		objectName = NULL;
+
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objectNames, SaImmScopeT scope)
 {
 	SaAisErrorT rc = saImmOmAdminOwnerClear(immHandle, objectNames, scope);
@@ -1292,6 +1381,34 @@ SaAisErrorT immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT
 	return rc;
 }
 
+SaAisErrorT immutil_saImmOmAdminOwnerClear_o2(SaImmHandleT immHandle, const char **objectNames, SaImmScopeT scope)
+{
+	int i=0;
+
+	while (objectNames[i]){
+		i++;
+	}
+	SaNameT ** obj_names = (SaNameT **) malloc((i+1)* sizeof(SaNameT *));
+	i=0;
+        
+	while (objectNames[i]){
+		obj_names[i]=(SaNameT *) malloc(sizeof(SaNameT));
+		osaf_extended_name_lend(objectNames[i],obj_names[i]);
+		i++; 
+	}
+	obj_names[i]=NULL;
+                        
+	SaAisErrorT rc = immutil_saImmOmAdminOwnerClear(immHandle, (const SaNameT**)obj_names, scope);
+
+	i=0;
+	while(obj_names[i]){
+		free(obj_names[i]);
+		i++;
+	}
+	free(obj_names);
+
+	return rc;
+}
 
 SaAisErrorT immutil_saImmOmClassCreate_2(SaImmCcbHandleT immCcbHandle,
                                              const SaImmClassNameT className,
@@ -1434,6 +1551,36 @@ SaAisErrorT immutil_saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT ownerHandle,
         return rc;
 }
 
+SaAisErrorT immutil_saImmOmAdminOwnerSet_o2(SaImmAdminOwnerHandleT ownerHandle,
+                                         const char** name,
+                                         SaImmScopeT scope)
+{
+	int i=0;
+
+	while (name[i]){
+		i++;
+	}
+	SaNameT ** obj_names = (SaNameT **) malloc((i+1)* sizeof(SaNameT *));
+
+	i=0;
+	while (name[i]){
+		obj_names[i]=(SaNameT *) malloc(sizeof(SaNameT));
+		osaf_extended_name_lend(name[i],obj_names[i]);
+		i++;
+	}
+	obj_names[i]=NULL;
+	SaAisErrorT rc = immutil_saImmOmAdminOwnerSet(ownerHandle, (const SaNameT**)obj_names, scope);
+
+	i=0;
+	while(obj_names[i]){
+		free(obj_names[i]);
+		i++;
+	}
+	free(obj_names);
+
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
                                              const SaNameT** name,
                                              SaImmScopeT scope)
@@ -1449,6 +1596,57 @@ SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
                 immutilError("saImmOmAdminOwnerRelease FAILED, rc = %d", (int)rc);
         return rc;
 }
+
+SaAisErrorT immutil_saImmOmAdminOwnerRelease_o2(SaImmAdminOwnerHandleT ownerHandle,
+                                             const char** name,
+                                             SaImmScopeT scope)
+{
+	int i=0;
+
+	while (name[i]){
+		i++;
+	}
+	SaNameT ** obj_names = (SaNameT **) malloc((i+1)* sizeof(SaNameT *));
+
+	i=0;
+	while (name[i]){
+		obj_names[i]=(SaNameT *) malloc(sizeof(SaNameT));
+		osaf_extended_name_lend(name[i],obj_names[i]);
+		i++;
+	}
+	obj_names[i]=NULL;
+
+	SaAisErrorT rc = immutil_saImmOmAdminOwnerRelease(ownerHandle, (const SaNameT**) obj_names, scope);
+	i=0;
+	while(obj_names[i]){
+		free(obj_names[i]);
+		i++;
+	}
+	free(obj_names);
+
+	return rc;
+}
+
+SaAisErrorT immutil_saImmOmAdminOperationInvoke_o214(SaImmAdminOwnerHandleT ownerHandle,
+						     const char *objectName,
+						     SaImmContinuationIdT continuationId,
+						     SaImmAdminOperationIdT operationId,
+						     const SaImmAdminOperationParamsT_2 **params,
+						     SaAisErrorT *operationReturnValue,
+						     SaTimeT timeout,
+						     SaImmAdminOperationParamsT_2 ***returnParams)
+{
+	SaNameT obj_name;
+	if(objectName)
+		osaf_extended_name_lend(objectName,&obj_name);
+	else
+		osaf_extended_name_clear(&obj_name);
+
+	SaAisErrorT rc = immutil_saImmOmAdminOperationInvoke_o2(ownerHandle, &obj_name, continuationId,
+	operationId, params, operationReturnValue, timeout, returnParams);
+	return rc;
+}
+
 
 SaAisErrorT immutil_saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
                                                    const SaNameT *objectName,
@@ -1513,6 +1711,21 @@ SaAisErrorT immutil_saImmOmCcbObjectCreate_2(SaImmCcbHandleT immCcbHandle,
         return rc;
 }
 
+SaAisErrorT immutil_saImmOmCcbObjectCreate_o2(SaImmCcbHandleT immCcbHandle,
+                                             const SaImmClassNameT className,
+                                             const char *parent,
+                                             const SaImmAttrValuesT_2** attrValues)
+{
+	SaNameT parent_name;
+	if(parent)
+		osaf_extended_name_lend(parent,&parent_name);
+	else
+		osaf_extended_name_clear(&parent_name);
+
+	SaAisErrorT rc = immutil_saImmOmCcbObjectCreate_2(immCcbHandle, className, &parent_name, attrValues);
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOmCcbObjectModify_2(SaImmCcbHandleT immCcbHandle,
                                              const SaNameT *objectName,
                                              const SaImmAttrModificationT_2** attrMods)
@@ -1529,6 +1742,20 @@ SaAisErrorT immutil_saImmOmCcbObjectModify_2(SaImmCcbHandleT immCcbHandle,
         return rc;
 }
 
+SaAisErrorT immutil_saImmOmCcbObjectModify_o2(SaImmCcbHandleT immCcbHandle,
+                                             const char *objectName,
+                                             const SaImmAttrModificationT_2** attrMods)
+{
+	SaNameT obj_name;
+	if(objectName)
+		osaf_extended_name_lend(objectName,&obj_name);
+	else
+		osaf_extended_name_clear(&obj_name);
+
+	SaAisErrorT rc = immutil_saImmOmCcbObjectModify_2(immCcbHandle, &obj_name, attrMods);
+	return rc;
+}
+
 SaAisErrorT immutil_saImmOmCcbObjectDelete(SaImmCcbHandleT immCcbHandle,
                                            const SaNameT *objectName)
 {
@@ -1542,6 +1769,19 @@ SaAisErrorT immutil_saImmOmCcbObjectDelete(SaImmCcbHandleT immCcbHandle,
         if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
                 immutilError("saImmOmCcbObjectDelete FAILED, rc = %d", (int)rc);
         return rc;
+}
+
+SaAisErrorT immutil_saImmOmCcbObjectDelete_o2(SaImmCcbHandleT immCcbHandle,
+                                           const char *objectName)
+{
+	SaNameT obj_name;
+	if(objectName)
+		osaf_extended_name_lend(objectName,&obj_name);
+	else
+		osaf_extended_name_clear(&obj_name);
+
+	SaAisErrorT rc = immutil_saImmOmCcbObjectDelete(immCcbHandle, &obj_name);
+	return rc;
 }
 
 SaAisErrorT immutil_saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
