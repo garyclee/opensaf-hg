@@ -19,11 +19,10 @@
 #ifndef util_h
 #define util_h
 
-extern SaTimeT getSaTimeT(void);
-extern void create_dn(char *rdn, char *parent, SaNameT *dn);
-extern void sa_namet_init(char *value, SaNameT *namet);
-extern const char *get_saf_error(SaAisErrorT rc);
+#include <saAis.h>
 
+extern SaTimeT getSaTimeT(void);
+extern const char *get_saf_error(SaAisErrorT rc);
 extern void safassert_impl(const char* file, unsigned int line, SaAisErrorT actual, SaAisErrorT expected);
 
 /**
