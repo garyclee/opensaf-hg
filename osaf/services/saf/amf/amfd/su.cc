@@ -32,36 +32,45 @@
 
 AmfDb<std::string, AVD_SU> *su_db = NULL;
 
-AVD_SU::AVD_SU(const SaNameT *dn):
-		saAmfSURank(0),
-		saAmfSUFailover(false),
-		saAmfSUFailover_configured(false),
-		saAmfSUPreInstantiable(static_cast<SaBoolT>(false)),
-		saAmfSUOperState(SA_AMF_OPERATIONAL_DISABLED),
-		saAmfSuReadinessState(SA_AMF_READINESS_OUT_OF_SERVICE),
-		saAmfSUPresenceState(SA_AMF_PRESENCE_UNINSTANTIATED),
-		saAmfSUNumCurrActiveSIs(0),
-		saAmfSUNumCurrStandbySIs(0),
-		saAmfSURestartCount(0),
-		term_state(false),
-		su_switch(AVSV_SI_TOGGLE_STABLE),
-		su_is_external(false),
- 		sg_of_su(NULL),
-		su_on_node(NULL),
-		list_of_susi(NULL),
-		list_of_comp(NULL),
-		sg_list_su_next(NULL),
-		avnd_list_su_next(NULL),
-		su_type(NULL),
-		su_list_su_type_next(NULL) {
-
-	memcpy(name.value, dn->value, sizeof(name.value));
-	name.length = dn->length;
+void AVD_SU::initialize() {
+	
+	saAmfSURank = 0;
+	saAmfSUFailover = false;
+	saAmfSUFailover_configured = false;
+	saAmfSUPreInstantiable = SA_FALSE;
+	saAmfSUOperState = SA_AMF_OPERATIONAL_DISABLED;
+	saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
+	saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
+	saAmfSUNumCurrActiveSIs = 0;
+	saAmfSUNumCurrStandbySIs = 0;
+	saAmfSURestartCount = 0;
+	term_state = false;
+	su_switch = AVSV_SI_TOGGLE_STABLE;
+	su_is_external = false;
+	sg_of_su = NULL;
+	su_on_node = NULL;
+	list_of_susi = NULL;
+	list_of_comp = NULL;
+	sg_list_su_next = NULL;
+	avnd_list_su_next = NULL;
+	su_type = NULL;
+	su_list_su_type_next = NULL; 
+	name.length = 0;
 	saAmfSUType.length = 0;
 	saAmfSUMaintenanceCampaign.length = 0;
 	saAmfSUHostedByNode.length = 0;
 	pend_cbk.invocation = 0;
 	pend_cbk.admin_oper = (SaAmfAdminOperationIdT)0;
+}
+
+AVD_SU::AVD_SU() {
+	initialize();
+}
+
+AVD_SU::AVD_SU(const SaNameT *dn) {
+	initialize();
+	memcpy(name.value, dn->value, sizeof(name.value));
+	name.length = dn->length;
 }
 
 /**
