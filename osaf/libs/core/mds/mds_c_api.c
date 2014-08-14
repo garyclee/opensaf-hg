@@ -2686,7 +2686,7 @@ else (entry exists)
 			status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id,
 							     role, vdest_id, adest,
 							     NCSMDS_DOWN,
-							     svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+							     svc_sub_part_ver, archword_type);
 
 			if (status != NCSCC_RC_SUCCESS) {
 				/* Callback failure */
@@ -2785,7 +2785,7 @@ else (entry exists)
 							{
 								/* No other adest exists for this svc_id, Call user callback DOWN */
 								status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, role, vdest_id, 0, 
-										NCSMDS_DOWN, svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED);
+										NCSMDS_DOWN, svc_sub_part_ver, archword_type);
 							}
 						}
 					} else {	/* vdest_policy == NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN */
@@ -3280,7 +3280,20 @@ uint32_t mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id
 			      svc_id);
 		return NCSCC_RC_FAILURE;
 	}
-
+	/* if previous MDS version subscriptions  increment or decrement count on NCSMDS_UP/DOWN event ,
+	   this is Mcast or Bcast differentiators if conut is ZERO mcast else count is grater than ZERO bcast (multi-unicast) */
+	if ((archword_type & 0x7) < 1) {
+		if (event_type == NCSMDS_UP) {
+			local_svc_info->subtn_info->prev_ver_sub_count++;
+			m_MDS_LOG_DBG("MDTM: NCSMDS_UP for SVC id :%d, archword :%d ,prev_ver_sub_count %u",
+					svc_id, archword_type, local_svc_info->subtn_info->prev_ver_sub_count);
+		} else if (event_type == NCSMDS_DOWN) {
+			if (local_svc_info->subtn_info->prev_ver_sub_count > 0)			
+				local_svc_info->subtn_info->prev_ver_sub_count--;
+			m_MDS_LOG_DBG("MDTM: NCSMDS_DOWN for SVC id :%d, archword :%d ,prev_ver_sub_count %u",
+					svc_id, archword_type, local_svc_info->subtn_info->prev_ver_sub_count);
+		}
+	}
 	/* Get Subtn info */
 	mds_subtn_tbl_get(local_svc_hdl, svc_id, &local_subtn_info);
 	/* If this function returns failure, then its invalid state. Handling required */

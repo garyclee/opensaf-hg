@@ -46,9 +46,10 @@
 #include "ncssysf_mem.h"
 #include "osaf_utility.h"
 #include "osaf_poll.h"
+#include "mds_dt.h"
 
 uint32_t mds_mcm_global_exchange_id = 0;
-
+extern char *tipc_or_tcp;
 #define SUCCESS 0
 #define FAILURE 1
 
@@ -1344,34 +1345,36 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 	MDTM_SEND_REQ msg_send;
 	MDS_BCAST_BUFF_LIST *bcast_ptr = NULL;
 	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
-
 	memset(&msg_send, 0, sizeof(msg_send));
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_msg_encode_full_or_flat_and_send\n");
+	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_msg_encode_full_or_flat_and_send prev_ver_sub_count :%d \n",
+			svc_cb->subtn_info->prev_ver_sub_count);
 
-	/* The following is for the bcast case, where once enc or enc_flat callback is called, those callbacks
-	   shallnot be called again.  */
-	if ((snd_type == MDS_SENDTYPE_BCAST) || (snd_type == MDS_SENDTYPE_RBCAST)) {
-		if (to == DESTINATION_ON_NODE) {
-			if (NCSCC_RC_SUCCESS ==
-			    (mds_mcm_search_bcast_list
-			     (to_msg, BCAST_ENC_FLAT, to_msg->rem_svc_sub_part_ver, to_msg->rem_svc_arch_word,
-			      &bcast_ptr, 1))) {
-				msg_send.msg.encoding = MDS_ENC_TYPE_FLAT;
-				msg_send.msg.data.fullenc_uba.start = m_MMGR_DITTO_BUFR(bcast_ptr->bcast_enc_flat);
-				msg_send.msg_fmt_ver = bcast_ptr->msg_fmt_ver;
-				goto BY_PASS;
-			}
-		} else if (to == DESTINATION_OFF_NODE) {
-			if (NCSCC_RC_SUCCESS ==
-			    (mds_mcm_search_bcast_list
-			     (to_msg, BCAST_ENC, to_msg->rem_svc_sub_part_ver, to_msg->rem_svc_arch_word, &bcast_ptr,
-			      1))) {
-				msg_send.msg.encoding = MDS_ENC_TYPE_FULL;
-				msg_send.msg.data.fullenc_uba.start = m_MMGR_DITTO_BUFR(bcast_ptr->bcast_enc);
-				msg_send.msg_fmt_ver = bcast_ptr->msg_fmt_ver;
-				msg_send.msg_arch_word = bcast_ptr->rem_svc_arch_word;
-				goto BY_PASS;
+	if ((svc_cb->subtn_info->prev_ver_sub_count > 0) || (strcmp(tipc_or_tcp, "TCP") == 0)) {
+		/* The following is for the bcast case, where once enc or enc_flat callback is called, those callbacks
+		   shallnot be called again.  */
+		if ((snd_type == MDS_SENDTYPE_BCAST) || (snd_type == MDS_SENDTYPE_RBCAST)) {
+			if (to == DESTINATION_ON_NODE) {
+				if (NCSCC_RC_SUCCESS ==
+						(mds_mcm_search_bcast_list
+						 (to_msg, BCAST_ENC_FLAT, to_msg->rem_svc_sub_part_ver, to_msg->rem_svc_arch_word,
+						  &bcast_ptr, 1))) {
+					msg_send.msg.encoding = MDS_ENC_TYPE_FLAT;
+					msg_send.msg.data.fullenc_uba.start = m_MMGR_DITTO_BUFR(bcast_ptr->bcast_enc_flat);
+					msg_send.msg_fmt_ver = bcast_ptr->msg_fmt_ver;
+					goto BY_PASS;
+				}
+			} else if (to == DESTINATION_OFF_NODE) {
+				if (NCSCC_RC_SUCCESS ==
+						(mds_mcm_search_bcast_list
+						 (to_msg, BCAST_ENC, to_msg->rem_svc_sub_part_ver, to_msg->rem_svc_arch_word, &bcast_ptr,
+						  1))) {
+					msg_send.msg.encoding = MDS_ENC_TYPE_FULL;
+					msg_send.msg.data.fullenc_uba.start = m_MMGR_DITTO_BUFR(bcast_ptr->bcast_enc);
+					msg_send.msg_fmt_ver = bcast_ptr->msg_fmt_ver;
+					msg_send.msg_arch_word = bcast_ptr->rem_svc_arch_word;
+					goto BY_PASS;
+				}
 			}
 		}
 	}
@@ -1437,12 +1440,14 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 			m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_encode_full_or_flat_and_send\n");
 			return NCSCC_RC_FAILURE;
 		} else if ((snd_type == MDS_SENDTYPE_BCAST) || (snd_type == MDS_SENDTYPE_RBCAST)) {
-			if (NCSCC_RC_FAILURE ==
-			    mds_mcm_add_bcast_list(to_msg, BCAST_ENC, msg_send.msg.data.fullenc_uba.start,
-						   to_msg->rem_svc_sub_part_ver, cbinfo.info.enc.o_msg_fmt_ver,
-						   to_msg->rem_svc_arch_word)) {
-				m_MDS_LOG_ERR("MDS_C_SNDRCV: Addition to bcast list failed in enc case");
-				return NCSCC_RC_FAILURE;
+			if ((svc_cb->subtn_info->prev_ver_sub_count > 0) || (strcmp(tipc_or_tcp, "TCP") == 0)) {
+				if (NCSCC_RC_FAILURE ==
+						mds_mcm_add_bcast_list(to_msg, BCAST_ENC, msg_send.msg.data.fullenc_uba.start,
+							to_msg->rem_svc_sub_part_ver, cbinfo.info.enc.o_msg_fmt_ver,
+							to_msg->rem_svc_arch_word)) {
+					m_MDS_LOG_ERR("MDS_C_SNDRCV: Addition to bcast list failed in enc case");
+					return NCSCC_RC_FAILURE;
+				}
 			}
 		}
 	} else {
@@ -1452,12 +1457,14 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 			m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_encode_full_or_flat_and_send\n");
 			return NCSCC_RC_FAILURE;
 		} else if ((snd_type == MDS_SENDTYPE_BCAST) || (snd_type == MDS_SENDTYPE_RBCAST)) {
-			if (NCSCC_RC_FAILURE ==
-			    mds_mcm_add_bcast_list(to_msg, BCAST_ENC_FLAT, msg_send.msg.data.flat_uba.start,
-						   to_msg->rem_svc_sub_part_ver, cbinfo.info.enc_flat.o_msg_fmt_ver,
-						   to_msg->rem_svc_arch_word)) {
-				m_MDS_LOG_ERR("MDS_C_SNDRCV: Addition to bcast list failed in enc_flat case");
-				return NCSCC_RC_FAILURE;
+			if ((svc_cb->subtn_info->prev_ver_sub_count > 0) || (strcmp(tipc_or_tcp, "TCP") == 0)) {
+				if (NCSCC_RC_FAILURE ==
+						mds_mcm_add_bcast_list(to_msg, BCAST_ENC_FLAT, msg_send.msg.data.flat_uba.start,
+							to_msg->rem_svc_sub_part_ver, cbinfo.info.enc_flat.o_msg_fmt_ver,
+							to_msg->rem_svc_arch_word)) {
+					m_MDS_LOG_ERR("MDS_C_SNDRCV: Addition to bcast list failed in enc_flat case");
+					return NCSCC_RC_FAILURE;
+				}
 			}
 		}
 	}
@@ -1470,6 +1477,8 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 	/* Get the destination sub res table entry and fill the send cnt */
 	mds_get_subtn_res_tbl_by_adest(svc_cb->svc_hdl, to_svc_id,
 			dest_vdest_id, adest, &lcl_subtn_res);
+			
+
 	msg_send.svc_seq_num = lcl_subtn_res->msg_snd_cnt++;
 	msg_send.src_svc_id = svc_cb->svc_id;
 	msg_send.src_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
@@ -1483,7 +1492,16 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 	msg_send.dest_pwe_id = m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl);
 	msg_send.dest_vdest_id = dest_vdest_id;
 	msg_send.src_svc_sub_part_ver = svc_cb->svc_sub_part_ver;
-	msg_send.msg_arch_word = to_msg->rem_svc_arch_word;
+
+	if ((((svc_cb->subtn_info->prev_ver_sub_count > 0)) 
+				&& (snd_type == MDS_SENDTYPE_BCAST || snd_type == MDS_SENDTYPE_RBCAST))
+			&& (strcmp(tipc_or_tcp, "TIPC") == 0)){
+		/* Mark as Previous version arch_word */
+		msg_send.msg_arch_word = ((to_msg->rem_svc_arch_word) & 0x8); 
+	} else {
+		msg_send.msg_arch_word = to_msg->rem_svc_arch_word;
+	}
+
 	if (msg_send.msg.encoding == MDS_ENC_TYPE_FULL) {
 		if (NULL == bcast_ptr) {
 			msg_send.msg_fmt_ver = cbinfo.info.enc.o_msg_fmt_ver;
@@ -3742,6 +3760,8 @@ static uint32_t mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_
 	MDS_SUBSCRIPTION_INFO *sub_info = NULL;	/* Subscription info */
 	MDS_SUBSCRIPTION_RESULTS_INFO *info_result = NULL;
 	uint8_t to;
+	uint32_t status = 0;
+
 
 	if (to_msg.msg_type == MSG_NCSCONTEXT) {
 		if (to_msg.data.msg == NULL) {
@@ -3793,6 +3813,8 @@ static uint32_t mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_
 			return NCSCC_RC_FAILURE;
 		} 
 	} 
+
+
 
 	/* Get each destination and send */
 	while (1) {
@@ -3851,8 +3873,20 @@ static uint32_t mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl, MDS_SVC_ID fr_
 			}
 		}
 
-		mds_mcm_send_msg_enc(to, svc_cb, &to_msg, to_svc_id, info_result->key.vdest_id,
-				     req, 0, info_result->key.adest, pri);
+		status = mds_mcm_send_msg_enc(to, svc_cb, &to_msg, to_svc_id, info_result->key.vdest_id,
+				req, 0, info_result->key.adest, pri);
+		if ((svc_cb->subtn_info->prev_ver_sub_count == 0) && (strcmp(tipc_or_tcp, "TIPC") == 0)
+				&& (to_msg.data.info.len < MDS_DIRECT_BUF_MAXSIZE)) {
+			m_MDS_LOG_DBG("MDTM: Break while(1) prev_ver_sub_count: %d  SVCid =%d  data.len: %d ", 
+					svc_cb->subtn_info->prev_ver_sub_count,
+					m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_cb->svc_hdl), to_msg.data.info.len);	
+			if (status == NCSCC_RC_SUCCESS) {
+				/* Break after one successful Mcast message */
+				break;
+			}
+			else
+				m_MDS_LOG_ERR("MDTM:Continue while(1) status = mds_mcm_send_msg_enc = NCSCC_RC_FAILURE");
+		}
 	}			/* While Loop */
 
 #if 1

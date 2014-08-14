@@ -53,6 +53,7 @@
 
 extern uint32_t mds_socket_domain;
 void mds_init_transport(void);
+char *tipc_or_tcp = NULL;
 
 /* MDS Control Block */
 MDS_MCM_CB *gl_mds_mcm_cb = NULL;
@@ -362,7 +363,6 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 void mds_init_transport(void)
 {
 #ifdef ENABLE_TIPC_TRANSPORT
-	char *tipc_or_tcp = NULL;
 	int rc;
 	struct stat sockStat;
 
