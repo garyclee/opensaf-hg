@@ -25,6 +25,7 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libntfa.la
 
 libntfa_la_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 

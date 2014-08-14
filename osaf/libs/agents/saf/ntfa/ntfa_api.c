@@ -18,7 +18,8 @@
 #include <string.h>
 #include "ntfa.h"
 #include "ntfsv_mem.h"
-
+#include "osaf_extended_name.h"
+#include "saAis.h"
 #define NCS_SAF_MIN_ACCEPT_TIME 10
 #define NTFS_WAIT_TIME 1000
 
@@ -305,8 +306,9 @@ static SaAisErrorT checkHeader(SaNtfNotificationHeaderT *nh)
 {
 	int i =0;
 
-	if (nh->notificationObject->length >= SA_MAX_NAME_LENGTH || nh->notifyingObject->length >= SA_MAX_NAME_LENGTH) {
-		TRACE_1("SaNameT length too big");
+	if (!ntfsv_sanamet_is_valid(nh->notificationObject) ||
+		!ntfsv_sanamet_is_valid(nh->notifyingObject)) {
+		TRACE_1("SaNameT is invaild");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -517,12 +519,13 @@ static SaAisErrorT fillSendStruct(SaNtfNotificationHeaderT *notificationHeader, 
 	/* nodificationId set to zero means that this is a new notification */
 	/* and not an sync message send from the server. */
 	*(notificationHeader->notificationId) = 0;
-
-	if (notificationHeader->notifyingObject->length == 0) {
-		notificationHeader->notifyingObject->length = notificationHeader->notificationObject->length;
-		(void)memcpy(notificationHeader->notifyingObject->value, notificationHeader->notificationObject->value,
-			     notificationHeader->notifyingObject->length);
+	
+	/* If notifyingObject is empty, its default value is notificationObject */
+	if (osaf_is_extended_name_empty(notificationHeader->notifyingObject)) {
+		osaf_extended_name_lend(osaf_extended_name_borrow(notificationHeader->notificationObject)
+								, notificationHeader->notifyingObject);
 	}
+
 	return rc;
 }
 
@@ -1204,7 +1207,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto err_free;
 	}
-	
+	notification_hdl_rec->is_longdn_agent_owner = false;
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 	client_handle = notification_hdl_rec->parent_hdl->local_hdl;
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -1288,6 +1291,32 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		goto done_give_hdls;
 	}
 	send_param->variable_data = notification_hdl_rec->variable_data;
+	SaUint16T i = 0;
+	for(i=0 ; i < ntfHeader->numAdditionalInfo ; i++ ) {
+		if (ntfHeader->additionalInfo[i].infoType == SA_NTF_VALUE_LDAP_NAME) {
+			SaNameT *ptr = send_param->variable_data.p_base +
+							ntfHeader->additionalInfo[i].infoValue.ptrVal.dataOffset;
+			if (!ntfsv_sanamet_is_valid(ptr)) {
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				goto done_give_hdls;
+			}
+			if (osaf_is_an_extended_name(ptr)) {
+				size_t length_to_copy;
+				void *p;
+				if (ntfHeader->additionalInfo[i].infoValue.ptrVal.dataSize
+						< (osaf_extended_name_length(ptr) + 2)) {
+					LOG_ER("The allocated memory is not large enough,"
+							" the object will be truncated (%s)"
+							, osaf_extended_name_borrow(ptr));
+					length_to_copy = ntfHeader->additionalInfo[i].infoValue.ptrVal.dataSize - 2;
+				} else
+					length_to_copy = osaf_extended_name_length(ptr);
+				p = send_param->variable_data.p_base +
+					ntfHeader->additionalInfo[i].infoValue.ptrVal.dataOffset + 2;
+				memcpy(p, osaf_extended_name_borrow(ptr), length_to_copy);
+			}
+		}
+	}
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 	/* Send a sync MDS message to obtain a notification id */
 	mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
@@ -2267,7 +2296,7 @@ SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 		rc = SA_AIS_ERR_LIBRARY;
 	}
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
-	ntfsv_filter_state_ch_free(new_filter);
+	ntfsv_filter_state_ch_free(new_filter, false);
 	TRACE("ERROR, rc = %d!!!", rc);
 	goto done_give_hdl;
 }
@@ -2349,7 +2378,7 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 		rc = SA_AIS_ERR_LIBRARY;
 	}
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
-	ntfsv_filter_alarm_free(new_filter);
+	ntfsv_filter_alarm_free(new_filter, false);
 	TRACE("ERROR, rc = %d!!!", rc);
 	goto done_give_hdl;
 }
@@ -2927,6 +2956,7 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done_give_hdls;
 		}
+		notification_hdl_rec->is_longdn_agent_owner = true;
 		rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &read_not->variable_data);
 		ncshm_give_hdl(notification->notification.alarmNotification.notificationHandle);
 		ntfsv_copy_ntf_alarm(&notification->notification.alarmNotification, &read_not->notification.alarm);
@@ -2960,6 +2990,7 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done_give_hdls;
 		}
+		notification_hdl_rec->is_longdn_agent_owner = true;
 		rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &read_not->variable_data);
 		ncshm_give_hdl(notification->notification.securityAlarmNotification.notificationHandle);
 		ntfsv_copy_ntf_security_alarm(&notification->notification.securityAlarmNotification,
