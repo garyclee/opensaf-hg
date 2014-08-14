@@ -328,8 +328,19 @@ static uint32_t plms_init()
 			goto done;
 		}
 	}
+	else if (cb->ha_state == SA_AMF_HA_STANDBY) {
+		if ((plms_read_hpi_config()) != NCSCC_RC_SUCCESS) {
+			LOG_ER("reading HPI config failed");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 
-	if( cb->hpi_cfg.hpi_support && cb->ha_state == SA_AMF_HA_ACTIVE ) {
+		/* don't need mutex because we haven't started thread */
+		hsm_ha_state.state = SA_AMF_HA_STANDBY;
+		hrb_ha_state.state = SA_AMF_HA_STANDBY;
+	}
+
+	if( cb->hpi_cfg.hpi_support ) {
 		rc = plms_hsm_hrb_init();
 		if(NCSCC_RC_FAILURE == rc)
 			goto done;
