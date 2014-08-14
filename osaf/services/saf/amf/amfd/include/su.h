@@ -42,6 +42,10 @@ class AVD_SG;
 //TODO: all attributes that have a setter should probably have an getter
 class AVD_SU {
  public:
+     	AVD_SU();
+	explicit AVD_SU(const SaNameT *dn);
+	~AVD_SU() {};
+
 	SaNameT name;
 	SaNameT saAmfSUType;
 	uint32_t saAmfSURank;
@@ -93,9 +97,6 @@ class AVD_SU {
 	struct avd_sutype *su_type;
 	AVD_SU *su_list_su_type_next;
 
-	AVD_SU() {};
-	explicit AVD_SU(const SaNameT *dn);
-	~AVD_SU() {};
 	void set_su_failover(bool value);
 	void dec_curr_stdby_si();
 	void inc_curr_stdby_si();
@@ -133,9 +134,8 @@ class AVD_SU {
 	void shutdown(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
 	void lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
 		SaAmfAdminStateT adm_state);
-
-
  private:
+	void initialize();
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
 	void set_saAmfSUPreInstantiable(bool value);
 
