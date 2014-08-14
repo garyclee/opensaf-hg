@@ -36,6 +36,7 @@ static SaUint32T plms_HE_inact_np_to_act(PLMS_EVT *);
 static SaUint32T plms_HE_inact_to_extpending_op(PLMS_EVT *);
 static SaUint32T plms_HE_inact_to_np_op(PLMS_EVT *);
 static SaUint32T plms_HE_inact_to_inact_op(PLMS_EVT *);
+static SaUint32T plms_HE_np_to_inact_op(PLMS_EVT *);
 
 static SaUint32T plms_HE_actving_to_act_op(PLMS_EVT *);
 static SaUint32T plms_HE_actving_to_extpending_op(PLMS_EVT *);
@@ -88,7 +89,7 @@ void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_NOT_PRESENT]
 		[SAHPI_HS_STATE_NOT_PRESENT] = plms_HE_pres_state_invalid;
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_NOT_PRESENT]
-		[SAHPI_HS_STATE_INACTIVE] = plms_HE_pres_state_invalid;
+		[SAHPI_HS_STATE_INACTIVE] = plms_HE_np_to_inact_op;
 		
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_INACTIVE] 
 	[SAHPI_HS_STATE_INSERTION_PENDING] = plms_HE_inact_np_to_inspending;
@@ -440,6 +441,52 @@ static SaUint32T plms_HE_inact_to_inact_op(PLMS_EVT *evt)
 			return NCSCC_RC_FAILURE;
 	}
 	
+	TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
+	return NCSCC_RC_SUCCESS;
+}
+/******************************************************************************
+@brief		: Null->M1 transition. This is the situation when HPI discovers
+		a resource for the first time, and it is INACTIVE.  The HE is
+		first created with NOT_PRESENT state, so the state needs to be
+		changed.
+
+@param[in]	: evt - PLMS_EVT type representing HPI event.
+
+@return		: NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
+******************************************************************************/
+static SaUint32T plms_HE_np_to_inact_op(PLMS_EVT *evt)
+{
+	PLMS_CB *cb = plms_cb;
+	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
+	PLMS_ENTITY *ent;
+
+	TRACE_ENTER2("Entity: %s",evt->req_evt.hpi_evt.entity_path);
+	
+	epath_to_ent = (PLMS_EPATH_TO_ENTITY_MAP_INFO *)ncs_patricia_tree_get
+				(&(cb->epath_to_entity_map_info),
+				(SaUint8T *)&(evt->req_evt.hpi_evt.epath_key));
+	if (NULL == epath_to_ent ) {
+		LOG_ER("Entity corresponding to ent_path %s not found. Possibly\
+			the HE is yet to be verified.",
+			evt->req_evt.hpi_evt.entity_path);
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
+	}
+
+	ent = epath_to_ent->plms_entity;
+
+	if (NULL == ent){
+		LOG_ER("Entity path %s found but epath_to_ent->plms_entity is \
+				NULL", evt->req_evt.hpi_evt.entity_path);
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* Mark the presence state of the HE to inactive.*/
+	plms_presence_state_set(ent, SA_PLM_HE_PRESENCE_INACTIVE, NULL,
+					SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
 	TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
 	return NCSCC_RC_SUCCESS;
 }
