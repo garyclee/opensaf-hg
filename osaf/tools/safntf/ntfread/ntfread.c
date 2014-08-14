@@ -67,8 +67,8 @@ static SaUint16T nNyObj = 0;
 static SaUint16T nCId = 0;
 
 static SaNtfEventTypeT eType = 0;
-static SaNameT nObj = {0};
-static SaNameT nyObj = {0};
+static SaNameT nObj;
+static SaNameT nyObj;
 static SaNtfClassIdT cId;
 
 /* common alarm and security alarm */
@@ -272,6 +272,10 @@ int main(int argc, char *argv[]) {
 	verbose = 0;
 	progname = argv[0];
 
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		LOG_ER("Failed to enable Extended SaNameT");
+		exit(EXIT_FAILURE);
+	}
 	/* Check options */
 	while (1) {
 		c = getopt_long(argc, argv, "b:c:d:hE:e:i:klN:n:op:s:v",
@@ -314,22 +318,19 @@ int main(int argc, char *argv[]) {
 			filterAlarm = false;
 			break;
 		case 'N':
-			nyObj.length = (SaUint16T)strlen(optarg);
-			if (SA_MAX_NAME_LENGTH < nyObj.length) {
+			if (strlen(optarg) > kMaxDnLength) {
 				fprintf(stderr, "notifyingObject too long\n");
 				exit(EXIT_FAILURE);
-			}
-			(void)memcpy(nyObj.value, optarg, nyObj.length);
+			}		
+			saAisNameLend(optarg, &nyObj);
 			nNyObj = 1;
 			break;
 		case 'n':
-			nObj.length = (SaUint16T)strlen(optarg);
-			if (SA_MAX_NAME_LENGTH < nObj.length) {
-				fprintf(stderr,
-					"notificationObject too long\n");
+			if (strlen(optarg) > kMaxDnLength) {
+				fprintf(stderr, "notificationObject too long\n");
 				exit(EXIT_FAILURE);
 			}
-			(void)memcpy(nObj.value, optarg, nObj.length);
+			saAisNameLend(optarg, &nObj);
 			nNnObj = 1;
 			break;
 		case 'o':

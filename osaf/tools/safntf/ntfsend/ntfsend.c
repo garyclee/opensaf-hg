@@ -186,12 +186,8 @@ static void fillInDefaultValues(saNotificationAllocationParamsT *notificationAll
 
 	(void)strncpy(notificationParams->additionalText,
 		      DEFAULT_ADDITIONAL_TEXT, notificationAllocationParams->lengthAdditionalText);
-	notificationParams->notificationObject.length = strlen(DEFAULT_NOTIFICATION_OBJECT);
-	(void)memcpy(notificationParams->notificationObject.value,
-		     DEFAULT_NOTIFICATION_OBJECT, notificationParams->notificationObject.length);
-	notificationParams->notifyingObject.length = strlen(DEFAULT_NOTIFYING_OBJECT);
-	(void)memcpy(notificationParams->notifyingObject.value,
-		     DEFAULT_NOTIFYING_OBJECT, notificationParams->notifyingObject.length);
+	saAisNameLend(DEFAULT_NOTIFICATION_OBJECT, &notificationParams->notificationObject);
+	saAisNameLend(DEFAULT_NOTIFYING_OBJECT, &notificationParams->notifyingObject);
 	notificationParams->notificationClassId.vendorId = ERICSSON_VENDOR_ID;
 	notificationParams->notificationClassId.majorId = 0;
 	notificationParams->notificationClassId.minorId = 0;
@@ -802,6 +798,11 @@ int main(int argc, char *argv[])
 		{0, 0, 0, 0}
 	};
 
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		LOG_ER("Failed to enable Extended SaNameT");
+		exit(EXIT_FAILURE);
+	}
+	
 	fillInDefaultValues(&myNotificationAllocationParams,
 			    &myNotificationFilterAllocationParams, &myNotificationParams);
 
@@ -831,22 +832,18 @@ int main(int argc, char *argv[])
 				getVendorId(&myNotificationParams.notificationClassId);
 				break;
 			case 'n':
-				myNotificationParams.notificationObject.length = (SaUint16T)strlen(optarg);
-				if (SA_MAX_NAME_LENGTH < myNotificationParams.notificationObject.length) {
+				if (strlen(optarg) > kMaxDnLength) {
 					fprintf(stderr, "notificationObject too long\n");
 					exit(EXIT_FAILURE);
-				}
-				(void)memcpy(myNotificationParams.notificationObject.value,
-					     optarg, myNotificationParams.notificationObject.length);
+				}			
+				saAisNameLend(optarg, &myNotificationParams.notificationObject);
 				break;
 			case 'N':
-				myNotificationParams.notifyingObject.length = (SaUint16T)strlen(optarg);
-				if (SA_MAX_NAME_LENGTH < myNotificationParams.notifyingObject.length) {
+				if (strlen(optarg) > kMaxDnLength) {
 					fprintf(stderr, "notifyingObject too long\n");
 					exit(EXIT_FAILURE);
-				}
-				(void)memcpy(myNotificationParams.notifyingObject.value,
-					     optarg, myNotificationParams.notifyingObject.length);
+				}				
+				saAisNameLend(optarg, &myNotificationParams.notifyingObject);
 				break;
 			case 'e':
 				myNotificationParams.eventType = (SaNtfEventTypeT)atoi(optarg);

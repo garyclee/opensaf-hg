@@ -23,6 +23,7 @@ bin_PROGRAMS = ntfsubscribe
 
 ntfsubscribe_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
+	-DSA_EXTENDED_NAME_SOURCE \
 	-I$(top_srcdir)/osaf/tools/safntf/include \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
@@ -34,3 +35,4 @@ ntfsubscribe_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/tools/safntf/src/libntfclient.la
+

@@ -23,6 +23,7 @@ bin_PROGRAMS = ntfsend
 
 ntfsend_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
+	-DSA_EXTENDED_NAME_SOURCE \
 	-I$(top_srcdir)/osaf/tools/safntf/include \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 

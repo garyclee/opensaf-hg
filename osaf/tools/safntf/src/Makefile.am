@@ -22,6 +22,7 @@ noinst_LTLIBRARIES = libntfclient.la
 
 libntfclient_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
+	-DSA_EXTENDED_NAME_SOURCE \
 	-I$(top_srcdir)/osaf/libs/saf/include \
 	-I$(top_srcdir)/osaf/tools/safntf/include \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
