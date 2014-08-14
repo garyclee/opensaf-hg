@@ -85,6 +85,7 @@ SaUint32T plms_hsm_initialize(PLMS_HPI_CONFIG *hpi_cfg)
 	PLMS_HSM_CB        *cb = hsm_cb;
 	SaHpiSessionIdT    session_id = 0;
 	SaUint32T	   rc, retry = 0;
+	SaErrorT	   hpirc = SA_OK;
 	pthread_t 	   thread_id;
 	pthread_attr_t 	   attr;
 	struct sched_param thread_priority;
@@ -96,19 +97,34 @@ SaUint32T plms_hsm_initialize(PLMS_HPI_CONFIG *hpi_cfg)
 	
 	/* Open a session on the SAHPI_UNSPECIFIED_DOMAIN_ID */
 	while(retry++ < PLMS_MAX_HPI_SESSION_OPEN_RETRIES){
-		rc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,
-				      &session_id, NULL);
-		if(SA_OK != rc){
-			LOG_ER("SessionOpen failed with err:%d",rc);
+		hpirc = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,
+						&session_id, NULL);
+		if(SA_OK != hpirc){
+			LOG_ER("SessionOpen failed with err:%d",hpirc);
+			sleep(2);
 			continue;
 		}else
 			break;
 	}
-	if (SA_OK != rc){
+	if (SA_OK != hpirc){
 		LOG_ER("SessionOpen failed with err:%d after retrying%d times",
-							rc,retry);
+							hpirc,retry);
 		return NCSCC_RC_FAILURE;
 	}else{
+		/*
+		 * Some HPI implementations can take a while to build up the
+		 * inventory (e.g. OpenHPI), so wait until HPI is really up.
+		 * This needs to be on the main thread, so PLMs does not finish
+		 * init until we have fully communicated with HPI.
+		 */
+		LOG_NO("Waiting until communication with HPI is established");
+		hpirc = saHpiDiscover(session_id);
+		if (hpirc != SA_OK) {
+			LOG_ER("Discovery failed with err:%d",hpirc);
+			return NCSCC_RC_FAILURE;
+		}
+		LOG_NO("Communication with HPI is established");
+
 		cb->session_id = session_id;
 
 		/* Update the HRB session_id */
@@ -141,17 +157,17 @@ SaUint32T plms_hsm_initialize(PLMS_HPI_CONFIG *hpi_cfg)
 
 	/*Set the auto-insert timeout which is domain specific and applies to
 	 * all the reource which support managed hot swap */
-	rc = saHpiAutoInsertTimeoutSet(session_id, cb->insert_pending_timeout);
-	if (SA_OK != rc){
-		if (SA_ERR_HPI_READ_ONLY == rc){
+	hpirc = saHpiAutoInsertTimeoutSet(session_id, cb->insert_pending_timeout);
+	if (SA_OK != hpirc){
+		if (SA_ERR_HPI_READ_ONLY == hpirc){
 			/* Allow for the case where the insertion timeout is 
 			read-only. */
 			TRACE("Auto insert timeout is readonly ret value is:%d",
-									rc);
+									hpirc);
 		}
 		else{
-			TRACE("Error in setting Auto Ins timeout ret val:%d", 
-									rc);  
+			TRACE("Error in setting Auto Ins timeout ret val:%d",
+									hpirc);
 		}
 	}
 
