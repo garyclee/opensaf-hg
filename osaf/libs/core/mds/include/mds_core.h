@@ -184,6 +184,10 @@ typedef struct mds_subscription_info {
 	bool tmr_flag;	/* Flag = Y/N */
 	tmr_t discovery_tmr;	/* Timer Cb */
 	MDS_AWAIT_DISC_QUEUE *await_disc_queue;	/* Msg + Svc_hdl */
+	/*Previous version subscriptions count
+	  this is Mcast or Bcast differentiators if conut is ZERO mcast else
+	  count is grater than ZERO bcast (multi-unicast) */	
+	uint32_t prev_ver_sub_count; 
 
 } MDS_SUBSCRIPTION_INFO;
 

@@ -38,6 +38,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "mds_dt_tipc.h"
+#include "mds_dt_tcp_disc.h"
 #include "mds_core.h"
 #include "osaf_utility.h"
 
@@ -92,6 +93,7 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 
 /* Tipc actual send, can be made as Macro even*/
 static uint32_t mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_portid tipc_id);
+static uint32_t mdtm_mcast_sendto(void *buffer, size_t size, const MDTM_SEND_REQ *req);
 
 uint32_t mdtm_frag_and_send(MDTM_SEND_REQ *req, uint32_t seq_num, struct tipc_portid id, int frag_size);
 
@@ -2066,11 +2068,28 @@ uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 					    ("MDTM:Sending message with Service Seqno=%d, TO Dest_Tipc_id=<0x%08x:%u> ",
 					     req->svc_seq_num, tipc_id.node, tipc_id.ref);
 
-					if (NCSCC_RC_SUCCESS !=
-					    mdtm_sendto(body, (len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN), tipc_id)) {
-						m_MDS_LOG_ERR("MDTM: Unable to send the msg thru TIPC\n");
-						m_MMGR_FREE_BUFR_LIST(usrbuf);
-						return NCSCC_RC_FAILURE;
+					len += SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN;
+					if (((req->snd_type == MDS_SENDTYPE_RBCAST) || (req->snd_type == MDS_SENDTYPE_BCAST)) && 
+							(version > 0)) {
+						m_MDS_LOG_DBG("MDTM: User Sending Multicast Data lenght=%d Fr_svc=%d to_svc=%d\n", len,
+								req->src_svc_id, req->dest_svc_id);
+						if ( len > MDS_DIRECT_BUF_MAXSIZE) {
+							m_MMGR_FREE_BUFR_LIST(usrbuf);
+							LOG_NO("MDTM: Not possible to send size:%d TIPC multicast to svc_id: %d", len, req->dest_svc_id);
+							return NCSCC_RC_FAILURE;
+						}
+						if (NCSCC_RC_SUCCESS != mdtm_mcast_sendto(body, len, req)) {
+							m_MDS_LOG_ERR("MDTM: Failed to send message Data lenght=%d Fr_svc=%d to_svc=%d err :%s",
+									strerror(errno),len, req->src_svc_id, req->dest_svc_id);
+							m_MMGR_FREE_BUFR_LIST(usrbuf);
+							return NCSCC_RC_FAILURE;
+						}
+					} else {
+						if (NCSCC_RC_SUCCESS !=	mdtm_sendto(body, len, tipc_id)) {
+							m_MDS_LOG_ERR("MDTM: Unable to send the msg thru TIPC\n");
+							m_MMGR_FREE_BUFR_LIST(usrbuf);
+							return NCSCC_RC_FAILURE;
+						}
 					}
 					m_MMGR_FREE_BUFR_LIST(usrbuf);
 					return NCSCC_RC_SUCCESS;
@@ -2347,6 +2366,40 @@ static uint32_t mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_port
 	}
 }
 
+/*********************************************************
+
+  Function NAME: mdtm_mcast_sendto
+
+  DESCRIPTION:
+
+  ARGUMENTS:
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+static uint32_t mdtm_mcast_sendto(void *buffer, size_t size, const MDTM_SEND_REQ *req)
+{
+	struct sockaddr_tipc server_addr;
+	memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.family = AF_TIPC;
+	server_addr.addrtype = TIPC_ADDR_MCAST;
+	server_addr.addr.nameseq.type = MDS_TIPC_PREFIX | MDS_SVC_INST_TYPE |
+		(req->dest_pwe_id << MDS_EVENT_SHIFT_FOR_PWE) | req->dest_svc_id; 
+	/*This can be scope-down to dest_svc_id  server_inst TBD*/
+	server_addr.addr.nameseq.lower = HTONL(MDS_MDTM_LOWER_INSTANCE);
+	/*This can be scope-down to dest_svc_id  server_inst TBD*/ 
+	server_addr.addr.nameseq.upper = HTONL(MDS_MDTM_UPPER_INSTANCE); 
+
+	int send_len = sendto(tipc_cb.BSRsock, buffer, size, 0,
+			(struct sockaddr *)&server_addr, sizeof(server_addr));
+	if (send_len == size) {
+		m_MDS_LOG_INFO("MDTM: Successfully sent message");
+		return NCSCC_RC_SUCCESS;
+	} else {
+		return NCSCC_RC_FAILURE;
+	}
+}
 /****************************************************************************
  *
  * Function Name: mdtm_add_mds_hdr
