@@ -445,10 +445,10 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 
 	extern SaAisErrorT immutil_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 							       SaInvocationT invocation, SaAisErrorT result);
-
+	
 	extern SaAisErrorT immutil_saImmOiAdminOperationResult_o2(SaImmOiHandleT immOiHandle,
 								  SaInvocationT invocation, SaAisErrorT result,
-								   const SaImmAdminOperationParamsT_2 **returnParams);
+								  const SaImmAdminOperationParamsT_2 **returnParams);
 
 	extern SaAisErrorT immutil_saImmOmInitialize(SaImmHandleT *immHandle,
 						     const SaImmCallbacksT *immCallbacks, const SaVersionT *version);
@@ -481,6 +481,7 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 	
 	extern SaAisErrorT immutil_saImmOmClassDelete(SaImmCcbHandleT immCcbHandle,
                                                      const SaImmClassNameT className);
+
 
 /**
  * Wrapper for saImmOmSearchInitialize_2/o2
@@ -520,7 +521,7 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 
 	extern SaAisErrorT
 	 immutil_saImmOmSearchNext_o2(SaImmSearchHandleT searchHandle,
-				     char *objectName, SaImmAttrValuesT_2 ***attributes);
+				     char **objectName, SaImmAttrValuesT_2 ***attributes);
 
 /**
  * Wrapper for saImmOmAdminOwnerClear/_o2
