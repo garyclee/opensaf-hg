@@ -509,7 +509,7 @@ static void print_attribute_value(SaNtfNotificationHandleT notificationHandle,
 	const SaUint16T max_size = 20;
 	SaAisErrorT rc;
 	SaUint8T *bin_ptr;
-	char tmp_str[SA_MAX_NAME_LENGTH+1];
+	char* tmp_str;
 	int i;
 
 	switch ((int)attributeType) {
@@ -538,12 +538,11 @@ static void print_attribute_value(SaNtfNotificationHandleT notificationHandle,
 					(void **)&str_ptr,
 					&data_size);
 		if (rc == SA_AIS_OK) {
-			if (data_size > (SA_MAX_NAME_LENGTH+1)) {
-				data_size = SA_MAX_NAME_LENGTH;
-			}
-			snprintf(tmp_str,data_size+1,"%s",str_ptr);
-			printf(" Attribute Value: \"%s\"\n",
-					tmp_str);
+			tmp_str = (char*) malloc(data_size + 1);
+			memcpy(tmp_str, str_ptr, data_size);
+			tmp_str[data_size] = '\0';
+			printf(" Attribute Value: \"%s\"\n", tmp_str);
+			free(tmp_str);
 		} else
 			fprintf(stderr, "saNtfPtrValGet Error "
 				"%d\n", rc);
@@ -635,8 +634,6 @@ static void print_header(const SaNtfNotificationHeaderT * notificationHeader,
 		  SaNtfSubscriptionIdT subscriptionId,
 		  SaNtfNotificationTypeT notificationType)
 {
-	char tmpObj[SA_MAX_NAME_LENGTH + 1];
-
 	if (verbose) {
 		printf("notificationID = %d\n",
 		       (int)*(notificationHeader->notificationId));
@@ -648,25 +645,18 @@ static void print_header(const SaNtfNotificationHeaderT * notificationHeader,
 	print_event_type(*notificationHeader->eventType, notificationType);
 
 	if (verbose)
-		printf("notificationObject.length = %u\n",
-		       notificationHeader->notificationObject->length);
+		printf("notificationObject.length = %zu\n",
+				strlen(saAisNameBorrow(notificationHeader->notificationObject)));
 
-	strncpy(tmpObj,
-		(char *)notificationHeader->notificationObject->value,
-		notificationHeader->notificationObject->length);
-	tmpObj[notificationHeader->notificationObject->length] = '\0';
-	printf("notificationObject = \"%s\"\n", tmpObj);
-
-	strncpy(tmpObj,
-		(char *)notificationHeader->notifyingObject->value,
-		notificationHeader->notifyingObject->length);
-	tmpObj[notificationHeader->notifyingObject->length] = '\0';
-
+	printf("notificationObject = \"%s\"\n",
+			saAisNameBorrow(notificationHeader->notificationObject));
+	
 	if (verbose)
-		printf("notifyingObject.length = %u\n",
-		       notificationHeader->notifyingObject->length);
+		printf("notifyingObject.length = %zu\n",
+				strlen(saAisNameBorrow(notificationHeader->notifyingObject)));
 
-	printf("notifyingObject = \"%s\"\n", tmpObj);
+	printf("notifyingObject = \"%s\"\n",
+			saAisNameBorrow(notificationHeader->notifyingObject));
 
 	/* Notification Class ID in compact dot notation */
 	if (notificationHeader->notificationClassId->vendorId ==
@@ -697,7 +687,8 @@ void print_additional_info(SaNtfNotificationHandleT notificationHandle,
 			   const SaNtfNotificationHeaderT * notificationHeader)
 {
 	int i;
-	SaNameT *dataPtr;
+	char *dataPtr;
+	SaNameT name;
 	SaStringT info_value_str;
 	SaUint16T dataSize;
 	SaAisErrorT rc;
@@ -716,8 +707,13 @@ void print_additional_info(SaNtfNotificationHandleT notificationHandle,
 							(void **)&dataPtr,
 							&dataSize);
 				if (rc == SA_AIS_OK) {
-					printf(" infoValue = \"%s\"\n",
-						   dataPtr->value);
+					size_t strLength = dataSize - 2;
+					char *newStr = (char*)malloc(strLength + 1);
+					memcpy(newStr, dataPtr + 2, strLength);
+					newStr[strLength] = '\0';
+					saAisNameLend(newStr, &name);
+					printf(" infoValue = \"%s\"\n", saAisNameBorrow(&name));
+					free(newStr);
 				} else
 					fprintf(stderr, "saNtfPtrValGet Error "
 						"%d\n", rc);

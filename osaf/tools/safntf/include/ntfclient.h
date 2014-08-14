@@ -23,7 +23,8 @@
 
 #include <saNtf.h>
 #include "ntfsv_msg.h"
-
+#include "ntfsv_mem.h"
+#include "osaf_extended_name.h"
 /* Defines */
 #define DEFAULT_FLAG 0x0001
 /* #define MAX_NUMBER_OF_STATE_CHANGES 5 */

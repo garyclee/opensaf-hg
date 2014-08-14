@@ -283,6 +283,10 @@ int main(int argc, char *argv[])
 	verbose = 0;
 	progname = argv[0];
 
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		LOG_ER("Failed to enable Extended SaNameT");
+		exit(EXIT_FAILURE);
+	}	
 	/* Check options */
 	while (1) {
 		c = getopt_long(argc, argv, "acosyht:v", long_options, NULL);
