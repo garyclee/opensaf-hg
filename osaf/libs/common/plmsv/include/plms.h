@@ -634,6 +634,7 @@ void plms_proc_quiesced_active_role_change();
 void plms_proc_active_quiesced_role_change();
 SaUint32T plms_proc_quiesced_ack_evt();
 SaUint32T plms_imm_intf_initialize();
+SaUint32T plms_read_hpi_config();
 void plms_clean_agent_db(MDS_DEST agent_mdest_id,SaAmfHAStateT ha_state);
 SaUint32T convert_string_to_epath(SaInt8T *epath_str,
                                       SaHpiEntityPathT *epath_ptr);

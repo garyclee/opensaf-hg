@@ -56,6 +56,7 @@ extern PLMS_CB *plms_cb;
 static void plms_reg_with_imm_as_oi();
 static void plms_reg_with_imm_as_om();
 static void plms_unreg_with_imm_as_om();
+static void plms_get_imm_objects();
 static void plms_handle_oi_init_try_again_err (SaImmOiHandleT *);
 static void plms_handle_oi_sel_obj_get_try_again_err(SaSelectionObjectT *);
 static void plms_handle_oi_impl_set_try_again_err();
@@ -146,9 +147,19 @@ SaUint32T plms_imm_intf_initialize()
 {
 	plms_reg_with_imm_as_oi();
 	plms_reg_with_imm_as_om();
+	plms_get_imm_objects();
 	plms_unreg_with_imm_as_om();
 	return NCSCC_RC_SUCCESS;
 }
+
+SaUint32T plms_read_hpi_config()
+{
+	plms_reg_with_imm_as_om();
+	plms_get_objects_from_imm("safHpiCfg", PLMS_HPI_CFG_OBJ_TYPE);
+	plms_unreg_with_imm_as_om();
+	return NCSCC_RC_SUCCESS;
+}
+
 static void plms_reg_with_imm_as_oi()
 {
 	SaImmOiHandleT imm_oi_hdl;
@@ -236,6 +247,10 @@ static void plms_reg_with_imm_as_om()
 	}
 	plms_cb->imm_hdl = imm_om_hdl;
 	TRACE_2("OmInit successful");
+	TRACE_LEAVE();
+}
+static void plms_get_imm_objects()
+{
 	/* No need to call saImmOmSelectionObjectGet() */
         plms_get_objects_from_imm("safDomain", PLMS_DOMAIN_OBJ_TYPE);
         plms_get_objects_from_imm("safHpiCfg", PLMS_HPI_CFG_OBJ_TYPE);
