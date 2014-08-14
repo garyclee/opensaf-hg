@@ -18,6 +18,8 @@
 #include <ncsencdec_pub.h>
 #include "ntfsv_enc_dec.h"
 #include "ntfsv_mem.h"
+#include "osaf_extended_name.h"
+#include "saAis.h"
 
 typedef union {
 	uint32_t uint32_val;
@@ -334,19 +336,22 @@ static uint32_t decodeSaNtfAttribute(NCS_UBAID *uba, SaNtfAttributeT *ntfAttr)
 static uint32_t encodeSaNameT(NCS_UBAID *uba, uint8_t *p8, SaNameT *name)
 {
 	uint32_t rv;
-	
 	p8 = ncs_enc_reserve_space(uba, 2);
 	if (!p8) {
 		TRACE("ncs_enc_reserve_space failed");
 		return NCSCC_RC_OUT_OF_MEM;
 	}
-	if (name->length > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SaNameT length too long %hd", name->length);
-		osafassert(0);
-	}
-	ncs_encode_16bit(&p8, name->length);
-	ncs_enc_claim_space(uba, 2);
-	rv = ncs_encode_n_octets_in_uba(uba, name->value, (uint32_t)name->length);
+
+	if (!ntfsv_sanamet_is_valid(name)) {
+		LOG_ER("SaNameT is invalid");
+ 		osafassert(0);
+ 	}
+
+	SaConstStringT value = osaf_extended_name_borrow(name);
+	size_t length = ntfs_sanamet_length(name);
+	ncs_encode_16bit(&p8, length);
+ 	ncs_enc_claim_space(uba, 2);
+	rv = ncs_encode_n_octets_in_uba(uba, (uint8_t*) value, (uint32_t) length);
 	return rv;
 }
 
@@ -355,14 +360,22 @@ static uint32_t decodeSaNameT(NCS_UBAID *uba, uint8_t *p8, SaNameT *name)
 	uint8_t local_data[2];
 	uint32_t rv;
 	p8 = ncs_dec_flatten_space(uba, local_data, 2);
-	name->length = ncs_decode_16bit(&p8);
-	if (name->length > SA_MAX_NAME_LENGTH) {
-		LOG_ER("SaNameT length too long: %hd", name->length);
+	size_t length = ncs_decode_16bit(&p8);
+	if (length > kMaxDnLength) {
+		LOG_ER("SaNameT length too long: %zu", length);
 		/* this should not happen */
 		osafassert(0);
 	}
 	ncs_dec_skip_space(uba, 2);
-	rv = ncs_decode_n_octets_from_uba(uba, name->value, (uint32_t)name->length);
+	char* value = (char*) malloc(length + 1);
+	if (value == NULL) {
+		LOG_ER("Out of memory");
+		/* this should not happen */
+		osafassert(0);
+	}
+	rv = ncs_decode_n_octets_from_uba(uba, (uint8_t*) value, (uint32_t) length);
+	value[length] = '\0';
+	ntfs_sanamet_steal(value, length, name);
 	return rv;
 }
 
@@ -1420,13 +1433,15 @@ uint32_t ntfsv_dec_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT 
 	for (i = 0; i < h->numNotificationObjects; i++) {	
 		rv = decodeSaNameT(uba, p8, &h->notificationObjects[i]);
 		if (rv != NCSCC_RC_SUCCESS) {
+			for (i = 0; i < h->numNotifyingObjects; i++)
+				osaf_extended_name_free(&h->notifyingObjects[i]);
 			goto error_done;
 		}
 	} 
 	return NCSCC_RC_SUCCESS;
 	
  error_done:
-	 ntfsv_filter_header_free(h);
+	ntfsv_filter_header_free(h, false);
 	TRACE_2("reserv space failed");
 	return rv;   
 }

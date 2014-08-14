@@ -38,12 +38,12 @@ extern "C" {
 						 SaUint16T numStateChanges);
 	SaAisErrorT ntfsv_alloc_ntf_security_alarm(SaNtfSecurityAlarmNotificationT *securityAlarm);
 
-	void ntfsv_free_header(const SaNtfNotificationHeaderT *notificationHeader);
-	void ntfsv_free_alarm(SaNtfAlarmNotificationT *alarm);
-	void ntfsv_free_state_change(SaNtfStateChangeNotificationT *stateChange);
-	void ntfsv_free_attribute_change(SaNtfAttributeChangeNotificationT *attrChange);
-	void ntfsv_free_obj_create_del(SaNtfObjectCreateDeleteNotificationT *objCrDel);
-	void ntfsv_free_security_alarm(SaNtfSecurityAlarmNotificationT *secAlarm);
+	void ntfsv_free_header(const SaNtfNotificationHeaderT *notificationHeader, bool deallocate_longdn);
+	void ntfsv_free_alarm(SaNtfAlarmNotificationT *alarm, bool deallocate_longdn);
+	void ntfsv_free_state_change(SaNtfStateChangeNotificationT *stateChange, bool deallocate_longdn);
+	void ntfsv_free_attribute_change(SaNtfAttributeChangeNotificationT *attrChange, bool deallocate_longdn);
+	void ntfsv_free_obj_create_del(SaNtfObjectCreateDeleteNotificationT *objCrDel, bool deallocate_longdn);
+	void ntfsv_free_security_alarm(SaNtfSecurityAlarmNotificationT *secAlarm, bool deallocate_longdn);
 	void ntfsv_dealloc_notification(ntfsv_send_not_req_t *param);
 
 	void ntfsv_copy_ntf_header(SaNtfNotificationHeaderT *dest, const SaNtfNotificationHeaderT *src);
@@ -90,13 +90,18 @@ extern "C" {
 														  SaUint32T numServiceUsers,
 														  SaUint32T numServiceProviders);
 
-	void ntfsv_filter_header_free(SaNtfNotificationFilterHeaderT *header);
-	void ntfsv_filter_sec_alarm_free(SaNtfSecurityAlarmNotificationFilterT *s_filter);
-	void ntfsv_filter_alarm_free(SaNtfAlarmNotificationFilterT *a_filter);
-	void ntfsv_filter_state_ch_free(SaNtfStateChangeNotificationFilterT *f);
-	void ntfsv_filter_obj_cr_del_free(SaNtfObjectCreateDeleteNotificationFilterT *f);
-	void ntfsv_filter_attr_ch_free(SaNtfAttributeChangeNotificationFilterT *f);
+	void ntfsv_filter_header_free(SaNtfNotificationFilterHeaderT *header, bool deallocate_longdn);
+	void ntfsv_filter_sec_alarm_free(SaNtfSecurityAlarmNotificationFilterT *s_filter, bool deallocate_longdn);
+	void ntfsv_filter_alarm_free(SaNtfAlarmNotificationFilterT *a_filter, bool deallocate_longdn);
+	void ntfsv_filter_state_ch_free(SaNtfStateChangeNotificationFilterT *f, bool deallocate_longdn);
+	void ntfsv_filter_obj_cr_del_free(SaNtfObjectCreateDeleteNotificationFilterT *f, bool deallocate_longdn);
+	void ntfsv_filter_attr_ch_free(SaNtfAttributeChangeNotificationFilterT *f, bool deallocate_longdn);
 
+	SaAisErrorT ntfsv_sanamet_copy(SaNameT* pDes, SaNameT* pSrc);
+	bool ntfsv_sanamet_is_valid(const SaNameT* pName);
+	size_t ntfs_sanamet_length(const SaNameT* pName);
+	void ntfs_sanamet_steal(SaStringT value, size_t length, SaNameT* pName);
+	void ntfs_sanamet_alloc(SaConstStringT value, size_t length, SaNameT* pName);
 #ifdef  __cplusplus
 }
 #endif

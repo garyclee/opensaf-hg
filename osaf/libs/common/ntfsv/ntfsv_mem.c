@@ -18,19 +18,27 @@
 #include <saNtf.h>
 #include <stdlib.h>
 #include "ntfsv_mem.h"
+#include "osaf_extended_name.h"
+#include "saAis.h"
 #include <logtrace.h>
 
-void ntfsv_free_header(const SaNtfNotificationHeaderT *notificationHeader)
+void ntfsv_free_header(const SaNtfNotificationHeaderT *notificationHeader, bool deallocate_longdn)
 {
 	/* Data */
 	if (notificationHeader->eventType != NULL)
 		free(notificationHeader->eventType);
 	if (notificationHeader->eventTime != NULL)
 		free(notificationHeader->eventTime);
-	if (notificationHeader->notificationObject != NULL)
+	if (notificationHeader->notificationObject != NULL) {
+		if (deallocate_longdn)
+			osaf_extended_name_free(notificationHeader->notificationObject); 
 		free(notificationHeader->notificationObject);
-	if (notificationHeader->notifyingObject != NULL)
+	}
+	if (notificationHeader->notifyingObject != NULL) {
+		if (deallocate_longdn)
+			osaf_extended_name_free(notificationHeader->notifyingObject); 
 		free(notificationHeader->notifyingObject);
+	}
 	if (notificationHeader->notificationClassId != NULL)
 		free(notificationHeader->notificationClassId);
 	if (notificationHeader->notificationId != NULL)
@@ -48,10 +56,10 @@ void ntfsv_free_header(const SaNtfNotificationHeaderT *notificationHeader)
 	}
 }
 
-void ntfsv_free_alarm(SaNtfAlarmNotificationT *alarm)
+void ntfsv_free_alarm(SaNtfAlarmNotificationT *alarm, bool deallocate_longdn)
 {
 	TRACE_ENTER();
-	ntfsv_free_header(&alarm->notificationHeader);
+	ntfsv_free_header(&alarm->notificationHeader, deallocate_longdn);
 	if (alarm->trend != NULL)
 		free(alarm->trend);
 	if (alarm->thresholdInformation != NULL)
@@ -72,9 +80,9 @@ void ntfsv_free_alarm(SaNtfAlarmNotificationT *alarm)
 	TRACE_LEAVE();
 }
 
-void ntfsv_free_state_change(SaNtfStateChangeNotificationT *stateChange)
+void ntfsv_free_state_change(SaNtfStateChangeNotificationT *stateChange, bool deallocate_longdn)
 {
-	ntfsv_free_header(&stateChange->notificationHeader);
+	ntfsv_free_header(&stateChange->notificationHeader, deallocate_longdn);
 	if (stateChange->sourceIndicator != NULL)
 		free(stateChange->sourceIndicator);
 	if (stateChange->changedStates != NULL) {
@@ -82,9 +90,9 @@ void ntfsv_free_state_change(SaNtfStateChangeNotificationT *stateChange)
 	}
 }
 
-void ntfsv_free_attribute_change(SaNtfAttributeChangeNotificationT *attrChange)
+void ntfsv_free_attribute_change(SaNtfAttributeChangeNotificationT *attrChange, bool deallocate_longdn)
 {
-	ntfsv_free_header(&attrChange->notificationHeader);
+	ntfsv_free_header(&attrChange->notificationHeader, deallocate_longdn);
 	if (attrChange->sourceIndicator != NULL)
 		free(attrChange->sourceIndicator);
 	if (attrChange->changedAttributes != NULL) {
@@ -92,9 +100,9 @@ void ntfsv_free_attribute_change(SaNtfAttributeChangeNotificationT *attrChange)
 	}
 }
 
-void ntfsv_free_obj_create_del(SaNtfObjectCreateDeleteNotificationT *objCrDel)
+void ntfsv_free_obj_create_del(SaNtfObjectCreateDeleteNotificationT *objCrDel, bool deallocate_longdn)
 {
-	ntfsv_free_header(&objCrDel->notificationHeader);
+	ntfsv_free_header(&objCrDel->notificationHeader, deallocate_longdn);
 
 	if (objCrDel->sourceIndicator != NULL)
 		free(objCrDel->sourceIndicator);
@@ -103,9 +111,9 @@ void ntfsv_free_obj_create_del(SaNtfObjectCreateDeleteNotificationT *objCrDel)
 	}
 }
 
-void ntfsv_free_security_alarm(SaNtfSecurityAlarmNotificationT *secAlarm)
+void ntfsv_free_security_alarm(SaNtfSecurityAlarmNotificationT *secAlarm, bool deallocate_longdn)
 {
-	ntfsv_free_header(&secAlarm->notificationHeader);
+	ntfsv_free_header(&secAlarm->notificationHeader, deallocate_longdn);
 	if (secAlarm->probableCause != NULL)
 		free(secAlarm->probableCause);
 	if (secAlarm->severity != NULL)
@@ -224,7 +232,7 @@ SaAisErrorT ntfsv_alloc_ntf_header(SaNtfNotificationHeaderT *notificationHeader,
 
  done:
 	if (rc != SA_AIS_OK) {
-		ntfsv_free_header(notificationHeader);
+		ntfsv_free_header(notificationHeader, false);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -312,7 +320,7 @@ SaAisErrorT ntfsv_alloc_ntf_alarm(SaNtfAlarmNotificationT *alarmNotification,
 	}
  done:
 	if (rc != SA_AIS_OK) {
-		ntfsv_free_alarm(alarmNotification);
+		ntfsv_free_alarm(alarmNotification, false);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -349,7 +357,7 @@ SaAisErrorT ntfsv_alloc_ntf_obj_create_del(SaNtfObjectCreateDeleteNotificationT 
 
  done:
 	if (rc != SA_AIS_OK) {
-		ntfsv_free_obj_create_del(objCrDelNotification);
+		ntfsv_free_obj_create_del(objCrDelNotification, false);
 	}
 	return rc;
 }
@@ -384,7 +392,7 @@ SaAisErrorT ntfsv_alloc_ntf_attr_change(SaNtfAttributeChangeNotificationT *attrC
 	}
  done:
 	if (rc != SA_AIS_OK) {
-		ntfsv_free_attribute_change(attrChangeNotification);
+		ntfsv_free_attribute_change(attrChangeNotification, false);
 	}
 	return rc;
 }
@@ -419,7 +427,7 @@ SaAisErrorT ntfsv_alloc_ntf_state_change(SaNtfStateChangeNotificationT *stateCha
 	}
  done:
 	if (rc != SA_AIS_OK) {
-		ntfsv_free_state_change(stateChangeNotification);
+		ntfsv_free_state_change(stateChangeNotification, false);
 	}
 	return rc;
 }
@@ -470,7 +478,7 @@ SaAisErrorT ntfsv_alloc_ntf_security_alarm(SaNtfSecurityAlarmNotificationT *secu
 	}
  done:
 	if (rc != SA_AIS_OK) {
-		ntfsv_free_security_alarm(securityAlarm);
+		ntfsv_free_security_alarm(securityAlarm, false);
 	}
 	return SA_AIS_OK;
 }
@@ -486,10 +494,10 @@ void ntfsv_copy_ntf_header(SaNtfNotificationHeaderT *dest, const SaNtfNotificati
 	*(dest->eventTime) = *(src->eventTime);
 
 	/* Set Notification Object */
-	*(dest->notificationObject) = *(src->notificationObject);
+	ntfsv_sanamet_copy(dest->notificationObject, src->notificationObject);
 
 	/* Set Notifying Object */
-	*(dest->notifyingObject) = *(src->notifyingObject);
+	ntfsv_sanamet_copy(dest->notifyingObject, src->notifyingObject);
 
 	/* set Notification Class Identifier */
 	dest->notificationClassId->vendorId = src->notificationClassId->vendorId;
@@ -637,19 +645,19 @@ void ntfsv_dealloc_notification(ntfsv_send_not_req_t *param)
 	TRACE_ENTER2("ntfsv_send_not_req_t ptr = %p " "notificationType = %#x", param, (int)param->notificationType);
 	switch (param->notificationType) {
 	case SA_NTF_TYPE_ALARM:
-		ntfsv_free_alarm(&param->notification.alarm);
+		ntfsv_free_alarm(&param->notification.alarm, true);
 		break;
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-		ntfsv_free_obj_create_del(&param->notification.objectCreateDelete);
+		ntfsv_free_obj_create_del(&param->notification.objectCreateDelete, true);
 		break;
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-		ntfsv_free_attribute_change(&param->notification.attributeChange);
+		ntfsv_free_attribute_change(&param->notification.attributeChange, true);
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
-		ntfsv_free_state_change(&param->notification.stateChange);
+		ntfsv_free_state_change(&param->notification.stateChange, true);
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
-		ntfsv_free_security_alarm(&param->notification.securityAlarm);
+		ntfsv_free_security_alarm(&param->notification.securityAlarm, true);
 		break;
 	default:
 		TRACE("notificationType not valid");
@@ -954,7 +962,7 @@ SaAisErrorT ntfsv_filter_header_alloc(SaNtfNotificationFilterHeaderT *header,
 	/* Notification objects */
 	if (numNotificationObjects != 0) {
 
-		header->notificationObjects = (SaNameT *)malloc(numNotificationObjects * sizeof(SaNameT));
+		header->notificationObjects = (SaNameT *)calloc(numNotificationObjects, sizeof(SaNameT));
 		if (header->notificationObjects == NULL) {
 			TRACE_1("Out of memory notificationObjects");
 			rc = SA_AIS_ERR_NO_MEMORY;
@@ -964,7 +972,7 @@ SaAisErrorT ntfsv_filter_header_alloc(SaNtfNotificationFilterHeaderT *header,
 
 	/* Notifying objects */
 	if (numNotifyingObjects != 0) {
-		header->notifyingObjects = (SaNameT *)malloc(numNotifyingObjects * sizeof(SaNameT));
+		header->notifyingObjects = (SaNameT *)calloc(numNotifyingObjects, sizeof(SaNameT));
 		if (header->notifyingObjects == NULL) {
 			TRACE_1("Out of memory notifyingObjects");
 			rc = SA_AIS_ERR_NO_MEMORY;
@@ -985,7 +993,7 @@ done:
 	 return rc;
 
 error_free:
-	ntfsv_filter_header_free(header);
+	ntfsv_filter_header_free(header, false);
 	goto done;
 }
 
@@ -1098,7 +1106,7 @@ SaAisErrorT ntfsv_filter_alarm_alloc(SaNtfAlarmNotificationFilterT *filter,
  done:
 	return rc;
  error_free:
-	ntfsv_filter_alarm_free(filter);
+	ntfsv_filter_alarm_free(filter, false);
 	goto done;
 }
 
@@ -1166,21 +1174,28 @@ SaAisErrorT ntfsv_filter_sec_alarm_alloc(SaNtfSecurityAlarmNotificationFilterT *
 done:
 	return rc;  
 error_free:
-	ntfsv_filter_sec_alarm_free(filter);
+	ntfsv_filter_sec_alarm_free(filter, false);
 	goto done;
 }
 
 
 
-void ntfsv_filter_header_free(SaNtfNotificationFilterHeaderT *header)
+void ntfsv_filter_header_free(SaNtfNotificationFilterHeaderT *header, bool deallocate_longdn)
 {
 	free(header->eventTypes);
-	free(header->notificationObjects);
-	free(header->notifyingObjects);
-	free(header->notificationClassIds);
+	if (deallocate_longdn) {
+		size_t i;
+		for (i = 0; i != header->numNotificationObjects; ++i)
+			osaf_extended_name_free(&header->notificationObjects[i]);
+		for (i = 0; i != header->numNotifyingObjects; ++i)
+			osaf_extended_name_free(&header->notifyingObjects[i]);
+	}
+ 	free(header->notificationObjects);
+ 	free(header->notifyingObjects);
+ 	free(header->notificationClassIds);
 }
 
-void ntfsv_filter_sec_alarm_free(SaNtfSecurityAlarmNotificationFilterT *s_filter)
+void ntfsv_filter_sec_alarm_free(SaNtfSecurityAlarmNotificationFilterT *s_filter, bool deallocate_longdn)
 {
 	if (s_filter) {
 		free(s_filter->probableCauses);
@@ -1188,41 +1203,134 @@ void ntfsv_filter_sec_alarm_free(SaNtfSecurityAlarmNotificationFilterT *s_filter
 		free(s_filter->serviceProviders);
 		free(s_filter->serviceUsers);
 		free(s_filter->severities);
-		ntfsv_filter_header_free(&s_filter->notificationFilterHeader);
+		ntfsv_filter_header_free(&s_filter->notificationFilterHeader, deallocate_longdn);
 	}
 }
 
-void ntfsv_filter_alarm_free(SaNtfAlarmNotificationFilterT *a_filter)
+void ntfsv_filter_alarm_free(SaNtfAlarmNotificationFilterT *a_filter, bool deallocate_longdn)
 {
 	if (a_filter) {
 		free(a_filter->probableCauses);
 		free(a_filter->perceivedSeverities);
 		free(a_filter->trends);
-		ntfsv_filter_header_free(&a_filter->notificationFilterHeader);
+		ntfsv_filter_header_free(&a_filter->notificationFilterHeader, deallocate_longdn);
 	}
 }
 
-void ntfsv_filter_state_ch_free(SaNtfStateChangeNotificationFilterT *f)
+void ntfsv_filter_state_ch_free(SaNtfStateChangeNotificationFilterT *f, bool deallocate_longdn)
 {
 	if (f) {
 		free(f->changedStates);
 		free(f->sourceIndicators);
-		ntfsv_filter_header_free(&f->notificationFilterHeader);
+		ntfsv_filter_header_free(&f->notificationFilterHeader, deallocate_longdn);
 	}
 }
-void ntfsv_filter_obj_cr_del_free(SaNtfObjectCreateDeleteNotificationFilterT *f)
+void ntfsv_filter_obj_cr_del_free(SaNtfObjectCreateDeleteNotificationFilterT *f, bool deallocate_longdn)
 {
 	if (f) {
 		free(f->sourceIndicators);
-		ntfsv_filter_header_free(&f->notificationFilterHeader);
+		ntfsv_filter_header_free(&f->notificationFilterHeader, deallocate_longdn);
 	}
 
 }
-void ntfsv_filter_attr_ch_free(SaNtfAttributeChangeNotificationFilterT *f)
+void ntfsv_filter_attr_ch_free(SaNtfAttributeChangeNotificationFilterT *f, bool deallocate_longdn)
 {
 	if (f) {
 		free(f->sourceIndicators);
-		ntfsv_filter_header_free(&f->notificationFilterHeader);
+		ntfsv_filter_header_free(&f->notificationFilterHeader, deallocate_longdn);
 	}
 }
 
+/**
+ *  @Brief: Copy SaNameT pointed by pSrc to pDes
+ *
+ */
+SaAisErrorT ntfsv_sanamet_copy(SaNameT* pDes, SaNameT* pSrc)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	if (osaf_is_an_extended_name(pDes)) {
+		TRACE("Can not modify the existing longDn object");
+		return SA_AIS_ERR_EXIST;
+	}
+	if (osaf_is_an_extended_name(pSrc)) {
+		osaf_extended_name_alloc(osaf_extended_name_borrow(pSrc), pDes);
+	} else {
+		/* pSrc is old SaNameT format, @.length could be counted with or
+		 * without null-termination, we need to preserve the @.length,
+ 		 * just a memcpy here
+		 */
+		 memcpy(pDes, pSrc, sizeof(SaNameT));
+	}
+	return rc;
+}
+
+/**
+ *  @Brief: Check SaNameT is a valid formation
+ *
+ */
+bool ntfsv_sanamet_is_valid(const SaNameT* pName)
+{
+	if (!osaf_is_extended_name_valid(pName)) {
+		LOG_ER("Environment variable SA_ENABLE_EXTENDED_NAMES "
+			"is not set, or not using extended name api");
+		return false;
+	}
+	if (osaf_extended_name_length(pName) > kMaxDnLength) {
+		LOG_ER("Exceeding maximum of extended name length(%u)"
+			,kMaxDnLength);
+		return false;
+	}
+	return true;
+}
+
+/**
+ *  @Brief: Return the length of string specified in SaNameT type.
+ *
+ */
+size_t ntfs_sanamet_length(const SaNameT* pName)
+{
+	if (osaf_is_an_extended_name(pName))
+		return osaf_extended_name_length(pName);
+	
+	/* In case of unextended name, sometimes @.length includes the count on
+	 * null-termination, and osaf_extended_name_length returns the length
+	 * excluding the null-termination which less 1 than the @.length. Here
+	 * we need the length specified in @.length. This case mainly applies
+	 * in encodeSaNameT/decodeSaNameT in order to preserve the original
+	 * @.length value
+	 */
+	size_t length = *((SaUint16T*)pName);
+	osafassert(length < SA_MAX_UNEXTENDED_NAME_LENGTH);
+	return length;
+}
+
+/**
+ *  @Brief: Create SaNameT input by string @value and @length,
+ *			@value is not freed then
+ */
+void ntfs_sanamet_alloc(SaConstStringT value, size_t length, SaNameT* pName)
+{
+	osaf_extended_name_alloc(value, pName);
+	/* Accept the old SaNameT which's @.length counting the null termination */
+	if (!osaf_is_an_extended_name(pName) 
+		&& ((ntfs_sanamet_length(pName)+1) == length)) {
+		*((SaUint16T*)pName) += 1;
+	}	
+}
+
+/**
+ *  @Brief: Create SaNameT input by string @value and @length,
+ *			@value is freed then
+ */
+void ntfs_sanamet_steal(SaStringT value, size_t length, SaNameT* pName)
+{
+	/* create pName by string @value */
+	osaf_extended_name_free(pName);
+	osaf_extended_name_steal(value, pName);
+	
+	/* Accept the old SaNameT which's @.length counting the null termination */
+	if (!osaf_is_an_extended_name(pName) 
+		&& ((ntfs_sanamet_length(pName)+1) == length)) {
+		*((SaUint16T*)pName) += 1;
+	}
+}
