@@ -32,4 +32,9 @@ and IMMSV_PBE_FILE.
 (3) activate pbe, immcfg -a saImmRepositoryInit=1 safRdn=
 immManagement,safApp=safImmService
 
-
+The test suite 35 has been added for the test of create/modify/delete object
+having extended name attribute (#873). This test suite also requires the 
+ntfsv_test_classes.xml loaded, and extended name must be enabled in IMM by
+following steps:
+- Enable SA_ENABLE_EXTENDED_NAMES=1 in immnd.conf
+- immcfg -m -a longDnsAllowed=1 opensafImm=opensafImm,safApp=safImmService

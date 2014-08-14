@@ -21,8 +21,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
-#include <saAis.h>
-
+#include "util.h"
 static const char *saf_error[] =
 {
     "SA_AIS_NOT_VALID",
@@ -64,17 +63,6 @@ SaTimeT getSaTimeT(void)
     return (tp.tv_sec * SA_TIME_ONE_SECOND) +
         (tp.tv_usec * SA_TIME_ONE_MICROSECOND);
 } 
-
-void create_dn(char *rdn, char *parent, SaNameT *dn)
-{
-    dn->length = sprintf((char*)dn->value, "%s,%s", rdn, parent);
-    assert(dn->length < SA_MAX_NAME_LENGTH);
-}
-
-void sa_namet_init(char *value, SaNameT *namet)
-{
-    namet->length = sprintf((char*)namet->value, "%s", value);
-}
 
 const char *get_saf_error(SaAisErrorT rc)
 {

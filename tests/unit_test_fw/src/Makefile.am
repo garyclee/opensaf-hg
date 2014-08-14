@@ -22,6 +22,7 @@ noinst_LTLIBRARIES = libutest.la
 
 libutest_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
+	-DSA_EXTENDED_NAME_SOURCE \
 	-I$(top_srcdir)/tests/unit_test_fw/inc \
 	-I$(top_srcdir)/osaf/libs/saf/include
 

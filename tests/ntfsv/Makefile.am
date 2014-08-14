@@ -64,7 +64,8 @@ ntftest_SOURCES = \
 	tet_saNtfPtrValAllocate.c \
 	tet_saNtfArrayValGet.c \
 	tet_saNtfPtrValGet.c \
-	test_ntfFilterVerification.c
+	test_ntfFilterVerification.c \
+	tet_longDnObject_notification.c
 
 ntftest_LDADD = \
 	$(top_builddir)/tests/unit_test_fw/src/libutest.la

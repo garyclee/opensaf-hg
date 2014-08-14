@@ -39,6 +39,12 @@
 static SaNtfHandleT ntfHandle;
 static NotifData rec_notif_data;
 static SaImmOiHandleT immOiHnd = 0;
+#define DEFAULT_EXT_NAME_LENGTH 300
+static char extended_name_string_01[DEFAULT_EXT_NAME_LENGTH];
+static char extended_name_string_02[DEFAULT_EXT_NAME_LENGTH];
+
+extern void saAisNameLend(SaConstStringT value, SaNameT* name);
+extern SaConstStringT saAisNameBorrow(const SaNameT* name);
 
 /**
  * Callback routine, called when subscribed notification arrives.
@@ -976,6 +982,31 @@ static SaAisErrorT set_attr_buf(NotifData* n_exp, SaUint16T idx,
 	return error;
 }
 
+static SaAisErrorT set_attr_extended_name(NotifData* n_exp, SaUint16T idx,
+		SaNtfElementIdT attrId, SaNtfValueTypeT valType, void* attrValue)
+{
+	safassert(valType == SA_NTF_VALUE_LDAP_NAME, true);
+	SaAisErrorT error = SA_AIS_OK;
+	SaUint16T numAlloc = strlen(saAisNameBorrow((SaNameT*)attrValue));
+	SaUint8T* temp = NULL;
+	SaUint8T* srcPtr = (SaUint8T*)saAisNameBorrow((SaNameT*)attrValue);
+
+	if (n_exp->c_d_notif_ptr != NULL) {
+		error = saNtfPtrValAllocate(n_exp->nHandle,
+				numAlloc,
+				(void**) &temp,
+				&n_exp->c_d_notif_ptr->objectAttributes[idx].attributeValue);
+		if (error == SA_AIS_OK) {
+			memcpy(temp, srcPtr, numAlloc);
+			n_exp->c_d_notif_ptr->objectAttributes[idx].attributeId = attrId;
+			n_exp->c_d_notif_ptr->objectAttributes[idx].attributeType = valType;
+		}
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	return error;
+}
+
 /**
  * Set an expected attribute value, type is string.
  */
@@ -1018,6 +1049,34 @@ static SaAisErrorT set_attr_change_buf(NotifData* n_exp, SaUint16T idx,
 	SaUint8T* srcPtr = (valType == SA_NTF_VALUE_BINARY)
 			? ((SaAnyT*) newValue)->bufferAddr
 			: ((SaNameT*) newValue)->value;
+
+	if (n_exp->a_c_notif_ptr != NULL) {
+		n_exp->a_c_notif_ptr->changedAttributes[idx].oldAttributePresent = SA_FALSE;
+		error = saNtfPtrValAllocate(n_exp->nHandle,
+				numAlloc,
+				(void**) &temp,
+				&n_exp->a_c_notif_ptr->changedAttributes[idx].newAttributeValue);
+		if (error == SA_AIS_OK) {
+			memcpy(temp, srcPtr, numAlloc);
+			n_exp->a_c_notif_ptr->changedAttributes[idx].attributeId = attrId;
+			n_exp->a_c_notif_ptr->changedAttributes[idx].attributeType = valType;
+		} else {
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	return error;
+}
+
+static SaAisErrorT set_attr_change_extended_name(NotifData* n_exp, SaUint16T idx,
+		SaNtfElementIdT attrId, SaNtfValueTypeT valType, const void* newValue)
+{
+	safassert(valType == SA_NTF_VALUE_LDAP_NAME, true);
+	SaAisErrorT error = SA_AIS_OK;
+	SaUint16T numAlloc = strlen(saAisNameBorrow((SaNameT*)newValue));
+	SaUint8T* temp = NULL;
+	SaUint8T* srcPtr = (SaUint8T*)saAisNameBorrow((SaNameT*)newValue);
 
 	if (n_exp->a_c_notif_ptr != NULL) {
 		n_exp->a_c_notif_ptr->changedAttributes[idx].oldAttributePresent = SA_FALSE;
@@ -4256,6 +4315,432 @@ void objectDeleteTest_3404(void)
 	test_validate(error, SA_AIS_OK);
 }
 
+/**
+ * Create a runtime test object with extended name attribute and verify correctness
+ * of generated notification.
+ */
+void objectCreateTest_3501(void)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	safassert(init_ntf(), SA_AIS_OK);
+	safassert(subscribe_notifications(), SA_AIS_OK);
+	rec_notif_data.populated = SA_FALSE;
+
+	/* create the runtime object */
+	SaInt32T int32Var = INT32VAR1;
+	SaUint32T uint32Var = UINT32VAR1;
+	SaInt64T int64Var = INT64VAR1;
+	SaUint64T uint64Var = UINT64VAR1;
+	SaTimeT timeVar = TIMEVAR1;
+	SaNameT nameVar;
+	saAisNameLend((SaConstStringT)&extended_name_string_01, &nameVar);
+	SaFloatT floatVar = FLOATVAR1;
+	SaDoubleT doubleVar = DOUBLEVAR1;
+	SaStringT stringVar = STRINGVAR1;
+	SaAnyT anyVar = {.bufferSize = sizeof (BUF1), .bufferAddr = (SaUint8T*) BUF1};
+
+	/*
+	 * Create the object in IMM.
+	 */
+	create_rt_test_object("OsafNtfCmTestRT", DNTESTRT, int32Var, uint32Var, int64Var, uint64Var,
+			&timeVar, &nameVar, floatVar, doubleVar, &stringVar, &anyVar);
+
+	/*
+	 * Wait for notification reception.
+	 */
+	int dwCnt = 0;
+	while (dwCnt++ < POLLWAIT && !rec_notif_data.populated) {
+		saNtfDispatch(ntfHandle, SA_DISPATCH_ALL);
+		if (!rec_notif_data.populated) usleep(100);
+	}
+
+	if (rec_notif_data.populated) {
+		NotifData n_exp;
+		safassert(set_ntf(&n_exp, SA_NTF_OBJECT_CREATION, DNTESTRT, 12, 12), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 0, 0, "SaImmAttrImplementerName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 1, 1, "SaImmAttrClassName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 2, 2, "testUint32"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 3, 3, "testInt32"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 4, 4, "testUint64"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 5, 5, "testInt64"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 6, 6, "testString"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 7, 7, "testFloat"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 8, 8, "testDouble"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 9, 9, "testName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 10, 10, "testTime"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 11, 11, "testAny"), SA_AIS_OK);
+		safassert(set_attr_str(&n_exp, 0, 0, IMPLEMENTERNAME_RT), SA_AIS_OK);
+		safassert(set_attr_str(&n_exp, 1, 1, "OsafNtfCmTestRT"), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 2, 2, SA_NTF_VALUE_UINT32, &uint32Var), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 3, 3, SA_NTF_VALUE_INT32, &int32Var), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 4, 4, SA_NTF_VALUE_UINT64, &uint64Var), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 5, 5, SA_NTF_VALUE_INT64, &int64Var), SA_AIS_OK);
+		safassert(set_attr_str(&n_exp, 6, 6, stringVar), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 7, 7, SA_NTF_VALUE_FLOAT, &floatVar), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 8, 8, SA_NTF_VALUE_DOUBLE, &doubleVar), SA_AIS_OK);
+		safassert(set_attr_extended_name(&n_exp, 9, 9, SA_NTF_VALUE_LDAP_NAME, &nameVar), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 10, 10, SA_NTF_VALUE_INT64, &timeVar), SA_AIS_OK);
+		safassert(set_attr_buf(&n_exp, 11, 11, SA_NTF_VALUE_BINARY, &anyVar), SA_AIS_OK);
+
+		if (!compare_notifs(&n_exp, &rec_notif_data)) {
+			print_notif(&n_exp);
+			print_notif(&rec_notif_data);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+
+		safassert(saNtfNotificationFree(rec_notif_data.nHandle), SA_AIS_OK);
+		safassert(saNtfNotificationFree(n_exp.nHandle), SA_AIS_OK);
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	safassert(unsub_notifications(), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(error, SA_AIS_OK);
+}
+
+/**
+ * Modify a runtime test object with extended name attribute and verify correctness
+ * of generated notification.
+ */
+void objectModifyTest_3502(void)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	safassert(init_ntf(), SA_AIS_OK);
+	safassert(subscribe_notifications(), SA_AIS_OK);
+	rec_notif_data.populated = SA_FALSE;
+
+	SaNameT var1;
+	saAisNameLend((SaConstStringT)&extended_name_string_02, &var1);
+
+	SaAnyT var2 = {.bufferSize = sizeof (BUF2), .bufferAddr = (SaUint8T*) BUF2};
+	void* v1[] = {&var1};
+	void* v2[] = {&var2};
+	TestAttributeValue att1 = {
+		.attrName = "testName", .attrType = SA_IMM_ATTR_SANAMET, .attrValues = v1
+	};
+	TestAttributeValue att2 = {
+		.attrName = "testAny", .attrType = SA_IMM_ATTR_SAANYT, .attrValues = v2
+	};
+	TestAttributeValue * attrs[] = {&att1, &att2, NULL};
+
+	/*
+	 * Modify (REPLACE) the object in IMM.
+	 */
+	modify_rt_test_object(DNTESTRT, SA_IMM_ATTR_VALUES_REPLACE, attrs);
+
+	/*
+	 * Wait for notification reception.
+	 */
+	int dwCnt = 0;
+	while (dwCnt++ < POLLWAIT && !rec_notif_data.populated) {
+		saNtfDispatch(ntfHandle, SA_DISPATCH_ALL);
+		if (!rec_notif_data.populated) usleep(100);
+	}
+
+	if (rec_notif_data.populated) {
+		NotifData n_exp;
+		safassert(set_ntf(&n_exp, SA_NTF_ATTRIBUTE_CHANGED, DNTESTRT, 4, 4), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 0, 0, "SaImmAttrImplementerName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 1, 1, "SaImmAttrClassName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 2, 2, "testName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 3, 3, "testAny"), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 0, 0, IMPLEMENTERNAME_RT), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 1, 1, "OsafNtfCmTestRT"), SA_AIS_OK);
+		safassert(set_attr_change_extended_name(&n_exp, 2, 2, SA_NTF_VALUE_LDAP_NAME, &var1), SA_AIS_OK);
+		safassert(set_attr_change_buf(&n_exp, 3, 3, SA_NTF_VALUE_BINARY, &var2), SA_AIS_OK);
+
+		if (!compare_notifs(&n_exp, &rec_notif_data)) {
+			print_notif(&n_exp);
+			print_notif(&rec_notif_data);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+		safassert(saNtfNotificationFree(rec_notif_data.nHandle), SA_AIS_OK);
+		safassert(saNtfNotificationFree(n_exp.nHandle), SA_AIS_OK);
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	safassert(unsub_notifications(), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(error, SA_AIS_OK);
+}
+
+
+/**
+ * Modify a runtime test object with extended name attribute and verify correctness
+ * of generated notification.
+ */
+void objectModifyTest_3503(void)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	safassert(init_ntf(), SA_AIS_OK);
+	safassert(subscribe_notifications(), SA_AIS_OK);
+	rec_notif_data.populated = SA_FALSE;
+
+	/* modify the runtime object */
+
+	SaNameT oldvar;
+	saAisNameLend((SaConstStringT)&extended_name_string_02, &oldvar);
+	SaNameT addvar;
+	saAisNameLend((SaConstStringT)&extended_name_string_01, &addvar);
+	void* v[] = {&addvar};
+	TestAttributeValue att = {
+		.attrName = "testName", .attrType = SA_IMM_ATTR_SANAMET, .attrValues = v
+	};
+	TestAttributeValue * attrs[] = {&att, NULL};
+
+	/*
+	 * Modify (ADD) the object in IMM.
+	 */
+	modify_rt_test_object(DNTESTRT, SA_IMM_ATTR_VALUES_ADD, attrs);
+
+	/*
+	 * Wait for notification reception.
+	 */
+	int dwCnt = 0;
+	while (dwCnt++ < POLLWAIT && !rec_notif_data.populated) {
+		saNtfDispatch(ntfHandle, SA_DISPATCH_ALL);
+		if (!rec_notif_data.populated) usleep(100);
+	}
+
+	if (rec_notif_data.populated) {
+		NotifData n_exp;
+		safassert(set_ntf(&n_exp, SA_NTF_ATTRIBUTE_CHANGED, DNTESTRT, 3, 4), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 0, 0, "SaImmAttrImplementerName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 1, 1, "SaImmAttrClassName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 2, 2, "testName"), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 0, 0, IMPLEMENTERNAME_RT), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 1, 1, "OsafNtfCmTestRT"), SA_AIS_OK);
+		safassert(set_attr_change_extended_name(&n_exp, 2, 2, SA_NTF_VALUE_LDAP_NAME, &oldvar), SA_AIS_OK);
+		safassert(set_attr_change_extended_name(&n_exp, 3, 2, SA_NTF_VALUE_LDAP_NAME, &addvar), SA_AIS_OK);
+
+		if (!compare_notifs(&n_exp, &rec_notif_data)) {
+			print_notif(&n_exp);
+			print_notif(&rec_notif_data);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+		safassert(saNtfNotificationFree(rec_notif_data.nHandle), SA_AIS_OK);
+		safassert(saNtfNotificationFree(n_exp.nHandle), SA_AIS_OK);
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	safassert(unsub_notifications(), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(error, SA_AIS_OK);
+}
+
+
+/**
+ * Create a config object with extended name attribute and verify correctness of
+ * generated notification.
+ */
+void objectCreateTest_3505(void)
+{
+	char command[1024];
+	SaAisErrorT error = SA_AIS_OK;
+	safassert(init_ntf(), SA_AIS_OK);
+	safassert(subscribe_notifications(), SA_AIS_OK);
+	rec_notif_data.populated = SA_FALSE;
+
+	/* create an object */
+	sprintf(command, "immcfg -t 20 -c OsafNtfCmTestCFG %s -a testNameCfg=%s -a testStringCfg=%s -a testAnyCfg=%s",
+			DNTESTCFG, extended_name_string_01, STRINGVAR1, BUF1);
+	assert(system(command) != -1);
+
+	/*
+	 * Wait for notification reception.
+	 */
+	int dwCnt = 0;
+	while (dwCnt++ < POLLWAIT && !rec_notif_data.populated) {
+		saNtfDispatch(ntfHandle, SA_DISPATCH_ALL);
+		if (!rec_notif_data.populated) usleep(100);
+	}
+
+	if (rec_notif_data.populated) {
+		NotifData n_exp;
+		SaInt32T int32Var = INT32VAR1;
+		SaUint32T uint32Var = UINT32VAR1;
+		SaInt64T int64Var = INT64VAR1;
+		SaUint64T uint64Var = UINT64VAR1;
+		SaTimeT timeVar = TIMEVAR1;
+		SaNameT nameVar;
+		saAisNameLend((SaConstStringT)&extended_name_string_01, &nameVar);
+		SaFloatT floatVar = FLOATVAR1;
+		SaDoubleT doubleVar = DOUBLEVAR1;
+		SaStringT stringVar = STRINGVAR1;
+		SaAnyT anyVar = {.bufferSize = sizeof (BUF1), .bufferAddr = (SaUint8T*) BUF1};
+
+		safassert(set_ntf(&n_exp, SA_NTF_OBJECT_CREATION, DNTESTCFG, 14, 14), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 0, 0, "SaImmAttrAdminOwnerName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 1, 1, "SaImmAttrClassName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 2, 2, "SaImmOiCcbIdT"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 3, 3, "ccbLast"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 4, 4, "testUint32Cfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 5, 5, "testInt32Cfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 6, 6, "testUint64Cfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 7, 7, "testInt64Cfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 8, 8, "testStringCfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 9, 9, "testFloatCfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 10, 10, "testDoubleCfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 11, 11, "testNameCfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 12, 12, "testTimeCfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 13, 13, "testAnyCfg"), SA_AIS_OK);
+		safassert(set_attr_str(&n_exp, 0, 0, "immcfg_xxx"), SA_AIS_OK);
+		safassert(set_attr_str(&n_exp, 1, 1, "OsafNtfCmTestCFG"), SA_AIS_OK);
+		SaUint64T ccidVar = 2;
+		safassert(set_attr_scalar(&n_exp, 2, 2, SA_NTF_VALUE_UINT64, &ccidVar), SA_AIS_OK);
+		SaUint32T ccbLast = 1;
+		safassert(set_attr_scalar(&n_exp, 3, 3, SA_NTF_VALUE_UINT32, &ccbLast), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 4, 4, SA_NTF_VALUE_UINT32, &uint32Var), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 5, 5, SA_NTF_VALUE_INT32, &int32Var), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 6, 6, SA_NTF_VALUE_UINT64, &uint64Var), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 7, 7, SA_NTF_VALUE_INT64, &int64Var), SA_AIS_OK);
+		safassert(set_attr_str(&n_exp, 8, 8, stringVar), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 9, 9, SA_NTF_VALUE_FLOAT, &floatVar), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 10, 10, SA_NTF_VALUE_DOUBLE, &doubleVar), SA_AIS_OK);
+		safassert(set_attr_extended_name(&n_exp, 11, 11, SA_NTF_VALUE_LDAP_NAME, &nameVar), SA_AIS_OK);
+		safassert(set_attr_scalar(&n_exp, 12, 12, SA_NTF_VALUE_INT64, &timeVar), SA_AIS_OK);
+		safassert(set_attr_buf(&n_exp, 13, 13, SA_NTF_VALUE_BINARY, &anyVar), SA_AIS_OK);
+
+		if (!compare_notifs(&n_exp, &rec_notif_data)) {
+			print_notif(&n_exp);
+			print_notif(&rec_notif_data);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+		safassert(saNtfNotificationFree(rec_notif_data.nHandle), SA_AIS_OK);
+		safassert(saNtfNotificationFree(n_exp.nHandle), SA_AIS_OK);
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	safassert(unsub_notifications(), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(error, SA_AIS_OK);
+}
+
+
+/**
+ * Modify a config object with extended name and verify correctness
+ * of generated notification.
+ */
+void objectModifyTest_3506(void)
+{
+	char command[1024];
+	SaAisErrorT error = SA_AIS_OK;
+	safassert(init_ntf(), SA_AIS_OK);
+	safassert(subscribe_notifications(), SA_AIS_OK);
+	rec_notif_data.populated = SA_FALSE;
+
+	SaNameT var1;
+	saAisNameLend((SaConstStringT)&extended_name_string_02, &var1);
+	
+	SaAnyT var2 = {.bufferSize = sizeof (BUF2), .bufferAddr = (SaUint8T*) BUF2};
+
+	/* modify an object */
+	sprintf(command, "immcfg -t 20 -a testNameCfg=%s -a testAnyCfg=%s %s",
+			extended_name_string_02, BUF2, DNTESTCFG);
+	assert(system(command) != -1);
+
+	/*
+	 * Wait for notification reception.
+	 */
+	int dwCnt = 0;
+	while (dwCnt++ < POLLWAIT && !rec_notif_data.populated) {
+		saNtfDispatch(ntfHandle, SA_DISPATCH_ALL);
+		if (!rec_notif_data.populated) usleep(100);
+	}
+
+	if (rec_notif_data.populated) {
+		NotifData n_exp;
+		safassert(set_ntf(&n_exp, SA_NTF_ATTRIBUTE_CHANGED, DNTESTCFG, 6, 6), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 0, 0, "SaImmAttrAdminOwnerName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 1, 1, "SaImmAttrClassName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 2, 2, "SaImmOiCcbIdT"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 3, 3, "ccbLast"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 4, 4, "testNameCfg"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 5, 5, "testAnyCfg"), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 0, 0, "immcfg_xxx"), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 1, 1, "OsafNtfCmTestCFG"), SA_AIS_OK);
+		SaUint64T ccidVar = 3;
+		safassert(set_attr_change_scalar(&n_exp, 2, 2, SA_NTF_VALUE_UINT64, &ccidVar), SA_AIS_OK);
+		SaUint32T ccbLast = 1;
+		safassert(set_attr_change_scalar(&n_exp, 3, 3, SA_NTF_VALUE_UINT32, &ccbLast), SA_AIS_OK);
+		safassert(set_attr_change_extended_name(&n_exp, 4, 4, SA_NTF_VALUE_LDAP_NAME, &var1), SA_AIS_OK);
+		safassert(set_attr_change_buf(&n_exp, 5, 5, SA_NTF_VALUE_BINARY, &var2), SA_AIS_OK);
+
+		if (!compare_notifs(&n_exp, &rec_notif_data)) {
+			print_notif(&n_exp);
+			print_notif(&rec_notif_data);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+		safassert(saNtfNotificationFree(rec_notif_data.nHandle), SA_AIS_OK);
+		safassert(saNtfNotificationFree(n_exp.nHandle), SA_AIS_OK);
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	safassert(unsub_notifications(), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(error, SA_AIS_OK);
+}
+
+/**
+ * Modify a config object with extended name attribute and verify correctness
+ * of generated notification.
+ */
+void objectModifyTest_3507(void)
+{
+	char command[1024];
+	SaAisErrorT error = SA_AIS_OK;
+	safassert(init_ntf(), SA_AIS_OK);
+	safassert(subscribe_notifications(), SA_AIS_OK);
+	rec_notif_data.populated = SA_FALSE;
+
+	/* modify an object */
+	SaNameT oldvar;
+	saAisNameLend((SaConstStringT)&extended_name_string_02, &oldvar);
+	SaNameT addvar;
+	saAisNameLend((SaConstStringT)&extended_name_string_01, &addvar);
+	sprintf(command, "immcfg -a testNameCfg+=%s %s", extended_name_string_01, DNTESTCFG);
+	assert(system(command) != -1);
+
+	/*
+	 * Wait for notification reception.
+	 */
+	int dwCnt = 0;
+	while (dwCnt++ < POLLWAIT && !rec_notif_data.populated) {
+		saNtfDispatch(ntfHandle, SA_DISPATCH_ALL);
+		if (!rec_notif_data.populated) usleep(100);
+	}
+
+	if (rec_notif_data.populated) {
+		NotifData n_exp;
+		safassert(set_ntf(&n_exp, SA_NTF_ATTRIBUTE_CHANGED, DNTESTCFG, 5, 6), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 0, 0, "SaImmAttrAdminOwnerName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 1, 1, "SaImmAttrClassName"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 2, 2, "SaImmOiCcbIdT"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 3, 3, "ccbLast"), SA_AIS_OK);
+		safassert(set_add_info(&n_exp, 4, 4, "testNameCfg"), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 0, 0, "immcfg_xxx"), SA_AIS_OK);
+		safassert(set_attr_change_str(&n_exp, 1, 1, "OsafNtfCmTestCFG"), SA_AIS_OK);
+		SaUint64T ccidVar = 3;
+		safassert(set_attr_change_scalar(&n_exp, 2, 2, SA_NTF_VALUE_UINT64, &ccidVar), SA_AIS_OK);
+		SaUint32T ccbLast = 1;
+		safassert(set_attr_change_scalar(&n_exp, 3, 3, SA_NTF_VALUE_UINT32, &ccbLast), SA_AIS_OK);
+		safassert(set_attr_change_extended_name(&n_exp, 4, 4, SA_NTF_VALUE_LDAP_NAME, &oldvar), SA_AIS_OK);
+		safassert(set_attr_change_extended_name(&n_exp, 5, 4, SA_NTF_VALUE_LDAP_NAME, &addvar), SA_AIS_OK);
+
+		if (!compare_notifs(&n_exp, &rec_notif_data)) {
+			print_notif(&n_exp);
+			print_notif(&rec_notif_data);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+		safassert(saNtfNotificationFree(rec_notif_data.nHandle), SA_AIS_OK);
+		safassert(saNtfNotificationFree(n_exp.nHandle), SA_AIS_OK);
+	} else {
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	safassert(unsub_notifications(), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(error, SA_AIS_OK);
+}
 
 __attribute__((constructor)) static void ntf_imcn_constructor(void)
 {
@@ -4290,9 +4775,15 @@ __attribute__((constructor)) static void ntf_imcn_constructor(void)
             rc = system("immcfg -f //tmp//ntfsv_test_classes.xml");
         }
         if (rc != 0) {
-	    printf("ntfsv_test_classes.xml file not installed (see README)");
-	    return;
-	}
+			printf("ntfsv_test_classes.xml file not installed (see README)");
+			return;
+		}
+	memset(&extended_name_string_01, 'C', DEFAULT_EXT_NAME_LENGTH - 1);
+	extended_name_string_01[DEFAULT_EXT_NAME_LENGTH - 1] = '\0';
+
+	memset(&extended_name_string_02, 'D', DEFAULT_EXT_NAME_LENGTH - 1);
+	extended_name_string_02[DEFAULT_EXT_NAME_LENGTH - 1] = '\0';
+	
 	test_suite_add(32, "CM notifications test");
 	test_case_add(32, objectCreateTest_01, "CREATE, runtime (OsafNtfCmTestRT) object");
 	test_case_add(32, objectModifyTest_02, "runtime, attr ch, REPLACE (UINT32, FLOAT)");
@@ -4334,10 +4825,21 @@ __attribute__((constructor)) static void ntf_imcn_constructor(void)
 	test_case_add(32, objectMultiCcbTest_38, "config, multiple op in ccb, 2 REPLACE");
 	test_case_add(32, objectMultiCcbTest_39, "config, multiple op in ccb, ADD, REPLACE, DELETE");
 	test_case_add(32, objectDeleteTest_40, "DELETE, config (OsafNtfCmTestCFG) object");
+	
 	test_suite_add(34, "CM notifications test, persistent runtime");
 	test_case_add(34, objectCreateTest_3401, "CREATE, runtime (OsafNtfCmTestRT1) object");
 	test_case_add(34, objectModifyTest_3402, "runtime, attr ch, REPLACE (UINT32, FLOAT)");
 	test_case_add(34, objectModifyTest_3403, "runtime, attr ch, ADD (INT32)");
 	test_case_add(34, objectDeleteTest_3404, "DELETE, runtime (OsafNtfCmTestRT1) object");
+	
+	test_suite_add(35, "CM notification test for extended name attribute");
+	test_case_add(35, objectCreateTest_3501, "CREATE, runtime (OsafNtfCmTestRT) object, extended name attribute");
+	test_case_add(35, objectModifyTest_3502, "runtime, attr ch, REPLACE (EXTENDED NAME, ANY)");
+	test_case_add(35, objectModifyTest_3503, "runtime, attr ch, ADD (EXTENDED NAME)");
+	test_case_add(35, objectDeleteTest_19, "DELETE, runtime (OsafNtfCmTestRT) object");
+	test_case_add(35, objectCreateTest_3505, "CREATE, config (OsafNtfCmTestCFG) object, extended name attribute");
+	test_case_add(35, objectModifyTest_3506, "config, attr ch, REPLACE (EXTENDED NAME, ANY)");
+	test_case_add(35, objectModifyTest_3507, "config, attr ch, ADD (EXTENDED NAME)");
+	test_case_add(35, objectDeleteTest_40, "DELETE, config (OsafNtfCmTestCFG) object");
 }
 
