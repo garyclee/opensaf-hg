@@ -39,6 +39,7 @@ osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafntfd
 
 osafntfd_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include \
 	-I$(top_srcdir)/osaf/tools/saflog/include

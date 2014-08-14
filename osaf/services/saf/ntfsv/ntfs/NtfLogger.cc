@@ -21,12 +21,14 @@
  */
 #include <sys/poll.h>
 
+#include "saAis.h"
 #include "saLog.h"
 #include "NtfAdmin.hh"
 #include "NtfLogger.hh"
 #include "ntfs_com.h"
 #include "logtrace.h"
 #include "ntfsv_mem.h"
+#include "osaf_extended_name.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -250,13 +252,40 @@ SaAisErrorT NtfLogger::logNotification(NtfSmartPtr& notif)
                                        &logRecord);
         if (SA_AIS_OK != errorCode)
         {
-            LOG_ER("Failed to log an alarm or security alarm "
-                   "notification (%d)",
-                   errorCode);
+            LOG_ER("Failed to log an alarm or security alarm notification (%d)", errorCode);
             if (errorCode == SA_AIS_ERR_LIBRARY || errorCode == SA_AIS_ERR_BAD_HANDLE) {
                 LOG_ER("Fatal error SA_AIS_ERR_LIBRARY or SA_AIS_ERR_BAD_HANDLE; exiting (%d)...", errorCode);
                 exit(EXIT_FAILURE);
-             }  
+            } else if (errorCode == SA_AIS_ERR_INVALID_PARAM) {
+				/* Retry to log truncated notificationObject/notifyingObject because
+				 * LOG Service has not supported long dn in Opensaf 4.5
+				 */
+				char short_dn[SA_MAX_UNEXTENDED_NAME_LENGTH];
+				memset(&short_dn, 0, SA_MAX_UNEXTENDED_NAME_LENGTH);
+				SaNameT shortdn_notificationObject, shortdn_notifyingObject;
+				if (osaf_is_an_extended_name(ntfHeader->notificationObject)) {
+					strncpy(short_dn, osaf_extended_name_borrow(ntfHeader->notificationObject)
+									, SA_MAX_UNEXTENDED_NAME_LENGTH - 1);
+					osaf_extended_name_lend(short_dn, &shortdn_notificationObject);
+					logRecord.logHeader.ntfHdr.notificationObject = &shortdn_notificationObject;
+				}
+				if (osaf_is_an_extended_name(ntfHeader->notifyingObject)) {
+					strncpy(short_dn, osaf_extended_name_borrow(ntfHeader->notifyingObject)
+									, SA_MAX_UNEXTENDED_NAME_LENGTH - 1);
+					osaf_extended_name_lend(short_dn, &shortdn_notifyingObject);
+					logRecord.logHeader.ntfHdr.notifyingObject = &shortdn_notifyingObject;
+				}
+				if (short_dn[0] != '\0') {
+					LOG_NO("Retry to log the truncated notificationObject/notifyingObject");
+					if ((errorCode = saLogWriteLogAsync(alarmStreamHandle,
+										notif->getNotificationId(),
+										SA_LOG_RECORD_WRITE_ACK,
+										&logRecord)) != SA_AIS_OK) {
+						LOG_ER("Failed to log the truncated notificationObject/notifyingObject (%d)"
+									, errorCode);
+					}
+				}
+			}
             goto end;
         }
     }
@@ -270,7 +299,8 @@ SaAisErrorT NtfLogger::logNotification(NtfSmartPtr& notif)
 SaAisErrorT NtfLogger::initLog()
 {
     SaAisErrorT result;
-    SaNameT alarmStreamName        = {sizeof(SA_LOG_STREAM_ALARM), SA_LOG_STREAM_ALARM};
+    SaNameT alarmStreamName;
+    osaf_extended_name_lend(SA_LOG_STREAM_ALARM, &alarmStreamName);
     int first_try = 1;
 
     TRACE_ENTER();

@@ -301,6 +301,7 @@ void NtfAdmin::notificationReceivedUpdate(unsigned int clientId,
         // we have got the notification
         TRACE_2("notification %u received"
                 " again, skipped", (unsigned int)notificationId);
+        ntfsv_dealloc_notification(sendNotInfo);
         delete sendNotInfo;
     }
     else
@@ -344,6 +345,8 @@ void NtfAdmin::notificationReceivedColdSync(unsigned int clientId,
         // we have got the notification
         TRACE_2("notification %u received"
                 " again, skipped", (unsigned int)notificationId);
+        ntfsv_dealloc_notification(sendNotInfo);
+        delete sendNotInfo;				
     }
     else
     {

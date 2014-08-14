@@ -24,9 +24,10 @@
  */
 
 #include "NtfFilter.hh"
+#include <string>
 #include "logtrace.h"
 #include "ntfsv_mem.h"
-
+#include "osaf_extended_name.h"
 /**
  * Constructor.
  *
@@ -115,22 +116,23 @@ bool NtfFilter::checkSourceIndicator(SaUint16T numSi,	SaNtfSourceIndicatorT *sis
  */
 bool NtfFilter::cmpSaNameT(SaNameT *n, SaNameT *n2)
 {
-	if (n->length != n2->length) {
-		if (n->length < n2->length) {
-			char *rv, *p = strndup((char*)n->value, n->length);
-			char *p2 = strndup((char*)n2->value, n2->length);
-			rv = strstr(p2,p); 
-			free(p);
-			free(p2);
-			if (rv) 
-				return true;
-		}
-		return false; 
-	}
+	bool rc;
+	SaConstStringT str2, str;
+	size_t length, length2;
 	
-	if(memcmp(n->value, n2->value, n2->length) == 0)
-		return true;
-	return false; 
+	rc = false;
+	str = osaf_extended_name_borrow(n);
+	length = strlen(str);
+	str2 = osaf_extended_name_borrow(n2);
+	length2 = strlen(str2);
+	
+	if (length != length2) {
+		if (length < length2)
+			rc = strstr(str2, str) != NULL; 
+	} else if(memcmp(str, str2, length) == 0)
+		rc = true;
+		
+	return rc; 
 }
 
 /**
@@ -244,7 +246,7 @@ NtfAlarmFilter::NtfAlarmFilter(SaNtfAlarmNotificationFilterT *f):NtfFilter(SA_NT
 NtfAlarmFilter::~NtfAlarmFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
-	ntfsv_filter_alarm_free(filter_);
+	ntfsv_filter_alarm_free(filter_, true);
 	free(filter_);
 }
 
@@ -325,7 +327,7 @@ NtfSecurityAlarmFilter::NtfSecurityAlarmFilter(SaNtfSecurityAlarmNotificationFil
 NtfSecurityAlarmFilter::~NtfSecurityAlarmFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
-	ntfsv_filter_sec_alarm_free(filter_);
+	ntfsv_filter_sec_alarm_free(filter_, true);
 	free(filter_);
 }
 
@@ -442,7 +444,7 @@ NtfFilter(SA_NTF_TYPE_OBJECT_CREATE_DELETE), filter_(f)
 NtfObjectCreateDeleteFilter::~NtfObjectCreateDeleteFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
-	ntfsv_filter_obj_cr_del_free(filter_);
+	ntfsv_filter_obj_cr_del_free(filter_, true);
 	free(filter_);
 }
 
@@ -476,7 +478,7 @@ NtfStateChangeFilter::NtfStateChangeFilter(SaNtfStateChangeNotificationFilterT *
 NtfStateChangeFilter::~NtfStateChangeFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
-	ntfsv_filter_state_ch_free(filter_);
+	ntfsv_filter_state_ch_free(filter_, true);
 	free(filter_);
 }
  
@@ -548,7 +550,7 @@ bool NtfAttributeChangeFilter::checkFilter(NtfSmartPtr& notif)
 NtfAttributeChangeFilter::~NtfAttributeChangeFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
-	ntfsv_filter_attr_ch_free(filter_);
+	ntfsv_filter_attr_ch_free(filter_, true);
 	free(filter_);
 }
 

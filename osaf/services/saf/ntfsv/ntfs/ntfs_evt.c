@@ -20,6 +20,7 @@
 #include <limits.h>
 #include "ntfs.h"
 #include "ntfsv_enc_dec.h"
+#include "osaf_extended_name.h"
 #include "ntfs_imcnutil.h"
 
 
@@ -342,10 +343,12 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
 	TRACE_1("eventType = %d", (int)*notificationHeader->eventType);
 
 	/* Notification Object */
-	TRACE_1("notificationObject.length = %u\n", notificationHeader->notificationObject->length);
+	TRACE_1("notificationObject.length = %zu\n",
+			osaf_extended_name_length(notificationHeader->notificationObject));
 
 	/* Notifying Object */
-	TRACE_1("notifyingObject->length = %u\n", notificationHeader->notifyingObject->length);
+	TRACE_1("notifyingObject->length = %zu\n",
+			osaf_extended_name_length(notificationHeader->notifyingObject));
 
 	/* Notification Class ID */
 	TRACE_1("VendorID = %d\nmajorID = %d\nminorID = %d\n",
