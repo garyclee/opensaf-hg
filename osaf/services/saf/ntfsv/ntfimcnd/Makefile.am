@@ -27,6 +27,7 @@ osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafntfimcnd
 
 osafntfimcnd_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/ntfsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
@@ -39,6 +40,7 @@ osafntfimcnd_SOURCES = \
 osafntfimcnd_LDADD = \
 	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \

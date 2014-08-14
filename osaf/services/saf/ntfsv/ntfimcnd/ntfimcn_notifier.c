@@ -27,11 +27,14 @@
 #include <stdbool.h>
 
 #include "ncsgl_defs.h"
+#include "saAis.h"
 #include "saNtf.h"
 #include "saAmf.h"
 #include "saImm.h"
 #include "logtrace.h"
 #include "saf_error.h"
+#include "ntfsv_mem.h"
+#include "osaf_extended_name.h"
 
 #include "ntfimcn_main.h"
 
@@ -163,13 +166,12 @@ done:
 	TRACE_ENTER();
 
 	/* Allocate string for attribute name */
-	name_len = strlen(info_value) + 1;
-	if (name_len > SA_MAX_NAME_LENGTH) {
-		name_len = SA_MAX_NAME_LENGTH;
-	}
+	name_len = strlen(info_value);
+	if (name_len > kMaxDnLength)
+		name_len = kMaxDnLength;
 	rc = saNtfPtrValAllocate(
 			notificationHandle,
-			name_len,
+			name_len + 1,
 			(void **)&name_ptr,
 			&additionalInfo[add_index].infoValue);
 	if (rc != SA_AIS_OK) {
@@ -182,10 +184,8 @@ done:
 	/* Fill in additional info of Index */
 	additionalInfo[add_index].infoId = add_index;
 	additionalInfo[add_index].infoType = SA_NTF_VALUE_STRING;
-	strncpy((char *)name_ptr, info_value, name_len);
-	if (name_len == SA_MAX_NAME_LENGTH) {
-		name_ptr[SA_MAX_NAME_LENGTH] = '\0';
-	}
+	memcpy(name_ptr, info_value, name_len);
+	name_ptr[name_len] = '\0';
 
 done:
 	TRACE_LEAVE();
@@ -317,8 +317,8 @@ static int fill_attribute_value(
 	case SA_IMM_ATTR_SANAMET:	/* SaNameT */
 		name_value = *(SaNameT *)attrValues_in[attrValues_index_in];
 		internal_rc = fill_value_array(notificationHandle,
-				name_value.value,
-				name_value.length,
+				(SaUint8T*)osaf_extended_name_borrow(&name_value),
+				strlen(osaf_extended_name_borrow(&name_value)),
 				value_out);
 		if (internal_rc != 0) {
 			LOG_ER("%s: fill_value_array failed",__FUNCTION__);
@@ -394,14 +394,13 @@ static void fill_notification_header_common_part(
 
 	/* Notification Object. DN of handled object */
 	sa_name_ptr = notificationHeader->notificationObject;
-	strncpy((char*)sa_name_ptr->value, (char *)dist_name->value,	SA_MAX_NAME_LENGTH);
-	sa_name_ptr->value[SA_MAX_NAME_LENGTH-1] = 0;
-	sa_name_ptr->length = strlen((char *)sa_name_ptr->value) + 1;
-
+	ntfs_sanamet_alloc(osaf_extended_name_borrow(dist_name)
+						, osaf_extended_name_length(dist_name) + 1
+						, sa_name_ptr);
 	/* Notifying Object. A constant string */
 	sa_name_ptr = notificationHeader->notifyingObject;
-	strncpy((char *)sa_name_ptr->value,NTFIMCN_NOTIFYING_OBJECT,SA_MAX_NAME_LENGTH);
-	sa_name_ptr->length = sizeof(NTFIMCN_NOTIFYING_OBJECT);
+	ntfs_sanamet_alloc(NTFIMCN_NOTIFYING_OBJECT, sizeof(NTFIMCN_NOTIFYING_OBJECT)
+						, sa_name_ptr);
 
 	/* Notification Class Identifier. Constant identifier
 	 * except for minor Id that's dependent on event type
@@ -711,7 +710,7 @@ done:
  */
 static int fill_attribute_info_modify(
 			SaImmOiCcbIdT CcbId,
-			SaStringT invoke_name,
+			SaConstStringT invoke_name,
 			const SaImmAttrModificationT_2 **imm_attr_mods_in,
 			SaNtfAttributeChangeNotificationT *SaNtfAttributeChangeNotification,
 			SaBoolT ccbLast)
@@ -724,7 +723,7 @@ static int fill_attribute_info_modify(
 	SaImmAttrModificationT_2 my_imm_attr_mod;
 	SaNtfAttributeChangeT *changedAttributes=NULL;
 	SaImmAttrValueT SaImmAttrValue=NULL;
-	char *string_v[1];
+	SaConstStringT string_v[1];
 
 	TRACE_ENTER();
 
@@ -951,7 +950,7 @@ done:
  * @return (-1) on error
  */
 static int fill_attribute_info_delete(SaImmOiCcbIdT CcbId,
-			SaStringT invoke_name,
+			SaConstStringT invoke_name,
 			SaNtfObjectCreateDeleteNotificationT *SaNtfObjectNotification,
 			SaBoolT ccbLast)
 {
@@ -960,7 +959,7 @@ static int fill_attribute_info_delete(SaImmOiCcbIdT CcbId,
 	SaNtfAttributeT *ntf_attributes;
 	/*SaImmAttrValueT my_imm_attr_value;*/
 	SaImmAttrValueT my_imm_attr_value[1]; /* COV fix */
-	char *string_v[1];
+	SaConstStringT string_v[1];
 
 	TRACE_ENTER();
 
@@ -1261,7 +1260,7 @@ int ntfimcn_send_object_modify_notification(
 	SaAisErrorT rc = SA_AIS_OK;
 	int internal_rc = 0;
 	SaImmOiCcbIdT CcbId;
-	char invoke_name_str[SA_MAX_NAME_LENGTH+1];
+	SaConstStringT invoke_name_str;
 
 	SaNtfAttributeChangeNotificationT SaNtfAttributeChangeNotification;
 	SaUint64T num_attributes = 4;
@@ -1295,7 +1294,7 @@ int ntfimcn_send_object_modify_notification(
 	 * pointer to a SaNameT. This should be changed to a SaStringT.
 	 * Until then a conversion is needed.
 	 */
-	snprintf(invoke_name_str,(invoke_name->length+1),"%s",invoke_name->value);
+	invoke_name_str = osaf_extended_name_borrow(invoke_name);
 #endif
 
 	/* Find out how many attributes we have to handle */
@@ -1416,7 +1415,7 @@ int ntfimcn_send_object_delete_notification(CcbUtilOperationData_t *CcbUtilOpera
 
 	SaNtfObjectCreateDeleteNotificationT SaNtfObjectDeleteNotification;
 	SaUint64T num_attributes = 3;
-	char invoke_name_str[SA_MAX_NAME_LENGTH+1];
+	SaConstStringT invoke_name_str;
 
 	TRACE_ENTER();
 	CcbId = CcbUtilOperationData->ccbId;
@@ -1458,9 +1457,7 @@ int ntfimcn_send_object_delete_notification(CcbUtilOperationData_t *CcbUtilOpera
 	/* Fill in Additional info and corresponding Attribute list
 	 */
 	if (num_attributes > 0) {
-		memcpy(invoke_name_str,invoke_name->value,
-				invoke_name->length);
-		invoke_name_str[invoke_name->length] = '\0';
+		invoke_name_str = osaf_extended_name_borrow(invoke_name);
 		internal_rc = fill_attribute_info_delete(CcbId,
 				invoke_name_str,
 				&SaNtfObjectDeleteNotification,
@@ -1519,7 +1516,8 @@ int ntfimcn_send_lost_cm_notification(void)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	int internal_rc = 0;
-	SaNameT object_name = {12,"osafntfimcnd"};
+	SaNameT object_name;
+	osaf_extended_name_lend("osafntfimcnd", &object_name);
 
 	SaNtfStateChangeNotificationT SaNtfStateChangeNotification;
 	const SaUint64T num_statechanges=0;
