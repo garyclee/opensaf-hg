@@ -2452,7 +2452,13 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle, int maxBa
         do
         {
             if(retries) {
-                usleep(150000);
+			  /* If we receive  TRY_AGAIN while sync  in progress means
+      		      IMMD might have been  reached IMMSV_DEFAULT_FEVS_MAX_PENDING  fevs_replies_pending.
+			    In general  fevs_replies_pending will be hit in the case of  the messages have accumulated in the sender queue
+     			(The most possible reason will be receiver disconnected  but the sender link is in TIPC link tolerance of 1.5 sec)
+   			  	So give enough time to recover as if sync is not a priority messages and possibility of hitting this case because of multicast messaging.
+			  */
+             sleep(2);
             }
 	    /* Synchronous for throttling sync */
 	    err = saImmOmSearchNext_2(searchHandle, &objectName, &attributes);
