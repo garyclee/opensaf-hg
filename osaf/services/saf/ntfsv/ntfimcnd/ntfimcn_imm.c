@@ -25,11 +25,13 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "saAis.h"
 #include "saNtf.h"
 #include "saAmf.h"
 #include "logtrace.h"
 #include "saf_error.h"
 #include "ncsgl_defs.h"
+#include "osaf_extended_name.h"
 
 #include "saImmOm.h"
 #include "saImmOi.h"
@@ -54,9 +56,9 @@ static const SaImmOiImplementerNameT applier_nameB =
 
 /* Used with function get_rdn_attr_name() */
 struct {
-	char attrName[SA_MAX_NAME_LENGTH];
-	char saved_className[SA_MAX_NAME_LENGTH];
-} s_get_rdn_attr_name = {{0},{0}};
+	char* attrName;
+	char* saved_className;
+} s_get_rdn_attr_name = {NULL, NULL};;
 
 /* Used with function get_created_dn() */
 struct s_get_created_dn {
@@ -103,10 +105,17 @@ static char *get_rdn_attr_name(const SaImmClassNameT className)
 	TRACE_ENTER();
 
 	/* Just return the name if already looked up */
-	if (strcmp(className, s_get_rdn_attr_name.saved_className) == 0) {
+	if (s_get_rdn_attr_name.saved_className != NULL &&
+		strcmp(className, s_get_rdn_attr_name.saved_className) == 0) {
 		goto done;
 	}
-	strncpy(s_get_rdn_attr_name.saved_className, className, SA_MAX_NAME_LENGTH-1);
+	s_get_rdn_attr_name.saved_className =
+		realloc(s_get_rdn_attr_name.saved_className, strlen(className) + 1);
+	if (s_get_rdn_attr_name.saved_className == NULL) {
+		LOG_ER("Failed to realloc memory");
+		goto error;
+	}
+	memcpy(s_get_rdn_attr_name.saved_className, className, strlen(className) + 1);
 
 	/* Get class description */
 	msecs_waited = 0;
@@ -128,11 +137,17 @@ static char *get_rdn_attr_name(const SaImmClassNameT className)
 	}
 
 	/* Find the name of the attribute with the RDN flag set */
-	s_get_rdn_attr_name.attrName[0] = '\0';
 	for (i=0; attrDescr[i] != NULL; i++) {
 		if (attrDescr[i]->attrFlags & SA_IMM_ATTR_RDN) {
-			strncpy(s_get_rdn_attr_name.attrName,attrDescr[i]->attrName,SA_MAX_NAME_LENGTH);
-			s_get_rdn_attr_name.attrName[SA_MAX_NAME_LENGTH-1] = '\0';
+			s_get_rdn_attr_name.attrName =
+				realloc(s_get_rdn_attr_name.attrName,
+						strlen(attrDescr[i]->attrName) + 1);
+			if (s_get_rdn_attr_name.attrName == NULL) {
+				LOG_ER("Failed to realloc memory");
+				goto error;
+			}
+			memcpy(s_get_rdn_attr_name.attrName, attrDescr[i]->attrName
+							, strlen(attrDescr[i]->attrName) + 1);
 			break;
 		}
 	}
@@ -178,7 +193,7 @@ static SaNameT *get_created_dn(const SaImmClassNameT className,
 {
 	int i = 0;
 
-	SaNameT object_rdn;
+	const char* object_rdn = "";
 	char *attrName;
 
 	TRACE_ENTER();
@@ -190,27 +205,30 @@ static SaNameT *get_created_dn(const SaImmClassNameT className,
 	for (i=0; attr[i] != NULL; i++) {
 		if( strcmp(attr[i]->attrName, attrName) == 0) {
 			if (attr[i]->attrValueType == SA_IMM_ATTR_SASTRINGT) {
-				strncpy((char*)object_rdn.value, *((char**)attr[i]->attrValues[0]),
-						SA_MAX_NAME_LENGTH);
-				object_rdn.value[SA_MAX_NAME_LENGTH-1] = '\0';
-				object_rdn.length = strlen((char*)object_rdn.value);
+				object_rdn = *((char**) attr[i]->attrValues[0]);
 			} else if (attr[i]->attrValueType == SA_IMM_ATTR_SANAMET) {
-				memcpy(&object_rdn, attr[i]->attrValues[0], sizeof(SaNameT));
+				object_rdn = osaf_extended_name_borrow(
+									(SaNameT*)(attr[i]->attrValues[0]));
 			}
 			break;
 		}
 	}
 
 	/* Create the DN */
-	s_get_created_dn.objectName.value[0] = 0;
-	if (parentName->length > 0) {
-		snprintf((char*)s_get_created_dn.objectName.value,SA_MAX_NAME_LENGTH,"%s,%s",
-				(char*)object_rdn.value, (char*)parentName->value);
+	osaf_extended_name_free(&s_get_created_dn.objectName);
+	char* objectName;
+	if (!osaf_is_extended_name_empty(parentName)) {
+		size_t rdn_len = strlen(object_rdn);
+		size_t parent_len = osaf_extended_name_length(parentName);
+		objectName = malloc(rdn_len + parent_len + 2);
+		memcpy(objectName, object_rdn, rdn_len);
+		objectName[rdn_len] = ',';
+		memcpy(objectName + rdn_len + 1, osaf_extended_name_borrow(parentName)
+										, parent_len + 1);
 	} else {
-		snprintf((char*)s_get_created_dn.objectName.value,SA_MAX_NAME_LENGTH,"%s",
-				(char*)object_rdn.value);
+		objectName = strdup(object_rdn);
 	}
-	s_get_created_dn.objectName.length = strlen((char*)s_get_created_dn.objectName.value);
+	osaf_extended_name_steal(objectName, &s_get_created_dn.objectName);
 
 	TRACE_LEAVE();
 	return &s_get_created_dn.objectName;
@@ -247,15 +265,12 @@ static SaNameT *get_operation_invoke_name_create(
 	}
 	
 	/* Get the value from Admin owner name or Implementer name */
-	s_get_operation_invoke_name_create.iname.length = 0;
-	s_get_operation_invoke_name_create.iname.value[0] = 0;
+	osaf_extended_name_free(&s_get_operation_invoke_name_create.iname);
+	osaf_extended_name_clear(&s_get_operation_invoke_name_create.iname);
 	for (i=0; attr[i] != NULL; i++) {
 		if( strcmp(attr[i]->attrName, attrName) == 0) {
-			strncpy((char*)s_get_operation_invoke_name_create.iname.value,
-					*((char**)attr[i]->attrValues[0]), SA_MAX_NAME_LENGTH);
-			s_get_operation_invoke_name_create.iname.value[SA_MAX_NAME_LENGTH-1] = '\0';
-			s_get_operation_invoke_name_create.iname.length =
-					strlen((char*)s_get_operation_invoke_name_create.iname.value);
+			osaf_extended_name_alloc(*((char**) attr[i]->attrValues[0]),
+				&s_get_operation_invoke_name_create.iname);
 			goto done;
 		}
 	}
@@ -299,16 +314,12 @@ static SaNameT *get_operation_invoke_name_modify(
 	}
 
 	/* Get the value from Admin owner name or Implementer name */
-	s_get_operation_invoke_name_modify.iname.length = 0;
-	s_get_operation_invoke_name_modify.iname.value[0] = 0;
+	osaf_extended_name_free(&s_get_operation_invoke_name_modify.iname);
+	osaf_extended_name_clear(&s_get_operation_invoke_name_modify.iname);
 	for (i=0; attrMods[i] != NULL; i++) {
 		if( strcmp(attrMods[i]->modAttr.attrName, attrName) == 0) {
-			strncpy((char*)s_get_operation_invoke_name_modify.iname.value,
-					*((char**)attrMods[i]->modAttr.attrValues[0]),
-					SA_MAX_NAME_LENGTH);
-			s_get_operation_invoke_name_modify.iname.value[SA_MAX_NAME_LENGTH-1] = '\0';
-			s_get_operation_invoke_name_modify.iname.length =
-					strlen((char*)s_get_operation_invoke_name_modify.iname.value);
+			osaf_extended_name_alloc(*((char**) attrMods[i]->modAttr.attrValues[0]),
+				&s_get_operation_invoke_name_modify.iname);
 			goto done;
 		}
 	}
@@ -335,10 +346,8 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
-	const SaNameT invoke_name = {
-		.length = 0,
-		.value[0]='\0'
-	};
+	SaNameT invoke_name;
+	osaf_extended_name_clear(&invoke_name);
 	int internal_rc = 0;
 
 	TRACE_ENTER();
