@@ -180,6 +180,11 @@ static uint32_t initialize()
 	uint32_t rc = NCSCC_RC_SUCCESS;;
 
 	TRACE_ENTER();
+	/* Set extended SaNameT environment var*/
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		LOG_ER("Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
+		goto done;
+	}
 
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
