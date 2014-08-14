@@ -165,6 +165,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			notification_hdl_rec->is_longdn_agent_owner = true;
 			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.objectCreateDeleteNotification.notificationHandle);
 			ntfsv_copy_ntf_obj_cr_del(&notification->notification.objectCreateDeleteNotification,
@@ -197,6 +198,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			notification_hdl_rec->is_longdn_agent_owner = true;
 			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.attributeChangeNotification.notificationHandle);
 			ntfsv_copy_ntf_attr_change(&notification->notification.attributeChangeNotification,
@@ -229,6 +231,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			notification_hdl_rec->is_longdn_agent_owner = true;
 			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.stateChangeNotification.notificationHandle);
 			ntfsv_copy_ntf_state_change(&notification->notification.stateChangeNotification,
@@ -260,6 +263,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			notification_hdl_rec->is_longdn_agent_owner = true;
 			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.alarmNotification.notificationHandle);
 			ntfsv_copy_ntf_alarm(&notification->notification.alarmNotification,
@@ -290,6 +294,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			notification_hdl_rec->is_longdn_agent_owner = true;
 			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.securityAlarmNotification.notificationHandle);
 			ntfsv_copy_ntf_security_alarm(&notification->notification.securityAlarmNotification,
@@ -1027,24 +1032,29 @@ void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance)
 
 	switch (notificationInstance->ntfNotificationType) {
 	case SA_NTF_TYPE_ALARM:
-		ntfsv_free_alarm(&notificationInstance->ntfNotification.ntfAlarmNotification);
+		ntfsv_free_alarm(&notificationInstance->ntfNotification.ntfAlarmNotification
+							, notificationInstance->is_longdn_agent_owner);
 		break;
 
 	case SA_NTF_TYPE_STATE_CHANGE:
-		ntfsv_free_state_change(&notificationInstance->ntfNotification.ntfStateChangeNotification);
+		ntfsv_free_state_change(&notificationInstance->ntfNotification.ntfStateChangeNotification
+							, notificationInstance->is_longdn_agent_owner);
 		break;
 
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-		ntfsv_free_obj_create_del(&notificationInstance->ntfNotification.ntfObjectCreateDeleteNotification);
+		ntfsv_free_obj_create_del(&notificationInstance->ntfNotification.ntfObjectCreateDeleteNotification
+							, notificationInstance->is_longdn_agent_owner);
 		break;
 
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-		ntfsv_free_attribute_change(&notificationInstance->ntfNotification.ntfAttributeChangeNotification);
+		ntfsv_free_attribute_change(&notificationInstance->ntfNotification.ntfAttributeChangeNotification
+							, notificationInstance->is_longdn_agent_owner);
 
 		break;
 
 	case SA_NTF_TYPE_SECURITY_ALARM:
-		ntfsv_free_security_alarm(&notificationInstance->ntfNotification.ntfSecurityAlarmNotification);
+		ntfsv_free_security_alarm(&notificationInstance->ntfNotification.ntfSecurityAlarmNotification
+							, notificationInstance->is_longdn_agent_owner);
 		break;
 
 	default:
@@ -1068,19 +1078,19 @@ void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t *filter_rec)
 {
 	switch (filter_rec->ntfType) {
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-		ntfsv_filter_obj_cr_del_free(&filter_rec->notificationFilter.objectCreateDeleteNotificationfilter);
+		ntfsv_filter_obj_cr_del_free(&filter_rec->notificationFilter.objectCreateDeleteNotificationfilter, false);
 		break;
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-		ntfsv_filter_attr_ch_free(&filter_rec->notificationFilter.attributeChangeNotificationfilter);
+		ntfsv_filter_attr_ch_free(&filter_rec->notificationFilter.attributeChangeNotificationfilter, false);
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
-		ntfsv_filter_state_ch_free(&filter_rec->notificationFilter.stateChangeNotificationfilter);
+		ntfsv_filter_state_ch_free(&filter_rec->notificationFilter.stateChangeNotificationfilter, false);
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
-		ntfsv_filter_sec_alarm_free(&filter_rec->notificationFilter.securityAlarmNotificationfilter);
+		ntfsv_filter_sec_alarm_free(&filter_rec->notificationFilter.securityAlarmNotificationfilter, false);
 		break;
 	case SA_NTF_TYPE_ALARM:
-		ntfsv_filter_alarm_free(&filter_rec->notificationFilter.alarmNotificationfilter);
+		ntfsv_filter_alarm_free(&filter_rec->notificationFilter.alarmNotificationfilter, false);
 		break;
 	default:
 		osafassert(0);

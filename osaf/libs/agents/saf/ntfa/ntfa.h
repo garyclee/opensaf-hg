@@ -61,6 +61,7 @@ typedef struct ntfa_notification_hdl_rec {
 	struct ntfa_client_hdl_rec *parent_hdl;	/* Back Pointer to the client instantiation */
 	SaNtfNotificationsT *cbk_notification;
 	v_data variable_data;
+	bool is_longdn_agent_owner;
 } ntfa_notification_hdl_rec_t;
 
 /*
