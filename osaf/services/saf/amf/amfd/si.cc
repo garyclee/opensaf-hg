@@ -818,8 +818,12 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 
 		err = si->sg_of_si->si_assign(avd_cb, si);
-		if (si->list_of_sisu == NULL)
+		if (si->list_of_sisu == NULL) {
 			LOG_NO("'%s' could not be assigned to any SU", si->name.value);
+			rc = SA_AIS_OK;
+			avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+			goto done;
+		}
 
 		if (err != NCSCC_RC_SUCCESS) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
