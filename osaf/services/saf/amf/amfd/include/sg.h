@@ -502,74 +502,11 @@ public:
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
-#define m_AVD_SET_SG_FSM(cb,sg,state) {\
-	if (sg->sg_fsm_state != state) { \
-		TRACE("sg_fsm_state %u => %u", sg->sg_fsm_state, state); \
-		sg->sg_fsm_state = state;\
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_FSM_STATE);\
-	}\
-	if (state == AVD_SG_FSM_STABLE) {\
-		osafassert(sg->su_oper_list.su == NULL); \
-		if (sg->adminOp_invocationId != 0) { \
-			avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, sg->adminOp_invocationId, SA_AIS_OK);\
-			sg->adminOp_invocationId = 0; \
-			sg->adminOp = static_cast<SaAmfAdminOperationIdT>(0); \
-		}\
-	}\
-}
-
-#define m_AVD_SET_SG_ADMIN_SI(cb,si) {\
-	TRACE("admin_si set to %s", si->name.value); \
-	si->sg_of_si->admin_si = si;\
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, (si->sg_of_si), AVSV_CKPT_AVD_SG_ADMIN_SI);\
-}
-
-#define m_AVD_CLEAR_SG_ADMIN_SI(cb,sg) {\
-	if (sg->admin_si != AVD_SI_NULL) {\
-		TRACE("admin_si cleared"); \
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, sg, AVSV_CKPT_AVD_SG_ADMIN_SI);\
-		sg->admin_si = AVD_SI_NULL;\
-	}\
-}
-
-/*****************************************************************************
- * Macro: m_AVD_CHK_OPLIST
- *
- * Purpose:  This macro will search the SU operation list in the SG to
- * identify if the given SU is present in the list
- *
- * Input: su - the pointer to the SU to be checked in the list.
- *        flag - the bool field indicating if found or not.
- *        
- *
- * Return: none.
- *
- * NOTES: 
- *
- * 
- **************************************************************************/
-#define m_AVD_CHK_OPLIST(i_su,flag) \
-{\
-   AVD_SG_OPER *l_suopr;\
-   flag = false;\
-   if (i_su->sg_of_su->su_oper_list.su == i_su)\
-   {\
-      flag = true;\
-   }else if (i_su->sg_of_su->su_oper_list.next != NULL)\
-   {\
-      l_suopr = i_su->sg_of_su->su_oper_list.next;\
-      while (l_suopr != NULL)\
-      {\
-         if (l_suopr->su == i_su)\
-         {\
-            flag = true;\
-            l_suopr = NULL;\
-            continue; \
-         }\
-         l_suopr = l_suopr->next;\
-      }\
-   }\
-}
+// TODO(hafe) remove when all code has been changed
+#define m_AVD_SET_SG_FSM(cb,sg,state) (sg)->set_fsm_state(state)
+#define m_AVD_SET_SG_ADMIN_SI(cb,si) (si)->sg_of_si->set_admin_si((si))
+#define m_AVD_CLEAR_SG_ADMIN_SI(cb,sg) (sg)->clear_admin_si()
+#define m_AVD_CHK_OPLIST(i_su,flag) (flag) = (i_su)->sg_of_su->in_su_oper_list(su)
 
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
