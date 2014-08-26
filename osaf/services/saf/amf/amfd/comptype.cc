@@ -461,6 +461,14 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefQuiescingCompleteTimeout_ID;
+				avd_snd_op_req_msg(avd_cb, *it, &param);
+			} else if (!strcmp(attribute->attrName, "saAmfCtDefInstantiationLevel")) {
+				SaUint32T *param_val = (SaUint32T *)attribute->attrValues[0];
+				TRACE("saAmfCtDefInstantiationLevel to '%u' for compType '%s' on node '%s'", *param_val, 
+					opdata->objectName.value, (*it)->name.value);
+				param.value_len = sizeof(*param_val);
+				memcpy(param.value, param_val, param.value_len);
+				param.attr_id = saAmfCtDefInstantiationLevel_ID;
 				avd_snd_op_req_msg(avd_cb, *it, &param);	
 			} else if (!strcmp(attribute->attrName, "saAmfCtDefRecoveryOnError")) {
 				SaAmfRecommendedRecoveryT *param_val = (SaAmfRecommendedRecoveryT *)attribute->attrValues[0];
@@ -573,6 +581,14 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 			if (value < 100 * SA_TIME_ONE_MILLISECOND) {
 				report_ccb_validation_error(opdata,
 					"Invalid saAmfCtDefQuiescingCompleteTimeout for '%s'", dn);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+		} else if (!strcmp(mod->modAttr.attrName, "saAmfCtDefInstantiationLevel")) {
+			uint32_t num_inst = *((SaUint32T *)mod->modAttr.attrValues[0]);
+			if (num_inst == 0) {
+				report_ccb_validation_error(opdata, "Modification of saAmfCtDefInstantiationLevel Fail,"
+						" Zero InstantiationLevel");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}

@@ -913,7 +913,15 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			if (strncmp((const char*) comp->saAmfCompType.value, comp_type_name, comp->saAmfCompType.length) == 0) {
 				// 3. comptype found, check if component uses this comptype attribute value or if 
 				// component has specialized this attribute value.
-				TRACE("comp name: %s , comp_type: %s", comp->name.value, comp->saAmfCompType.value);
+				
+				AVND_SU *su = m_AVND_SUDB_REC_GET(cb->sudb, comp->su->name);
+				if (!su) {
+					LOG_ER("no su in database for the comp %s", comp->name.value);
+					goto done;
+				}
+
+				TRACE("su name: %s , comp name: %s , comp_type: %s", comp->su->name.value, 
+				      comp->name.value, comp->saAmfCompType.value);
 				
 				switch (param->attr_id) {
 				case saAmfCtDefCallbackTimeout_ID: {
@@ -978,6 +986,27 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 					if (comp->use_comptype_attr->test(DefQuiescingCompleteTimeout)) {
 						comp->quies_complete_cbk_timeout = saAmfCtDefQuiescingCompleteTimeout;
 						TRACE("comp->quies_complete_cbk_timeout modified to '%llu'", comp->quies_complete_cbk_timeout);
+					}
+					break;
+				}
+				case saAmfCtDefInstantiationLevel_ID: {			
+					osafassert(sizeof(SaUint32T) == param->value_len);
+				
+					if (comp->use_comptype_attr->test(CompInstantiationLevel)) {
+						comp->inst_level = *(SaUint32T *)(param->value);
+						/* Remove from the comp-list (maintained by su) */
+						rc = m_AVND_SUDB_REC_COMP_REM(*su, *comp);
+						if (NCSCC_RC_SUCCESS != rc) {
+							LOG_ER("%s: %s remove failed", __FUNCTION__, comp->name.value);
+							goto done;
+						}
+				
+						(&comp->su_dll_node)->prev = NULL;
+						(&comp->su_dll_node)->next = NULL;
+				
+						/* Add to the comp-list (maintained by su) */
+						m_AVND_SUDB_REC_COMP_ADD(*su, *comp, rc);
+						TRACE("comp->inst_level modified to '%u'", comp->inst_level);
 					}
 					break;
 				}
@@ -1529,8 +1558,10 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		const_cast<SaImmAttrNameT>("saAmfNodeSwBundlePathPrefix"),
 		&nodeswbundle_name, &path_prefix);
 
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompInstantiationLevel"), attributes, 0, &comp->inst_level) != SA_AIS_OK)
+	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompInstantiationLevel"), attributes, 0, &comp->inst_level) != SA_AIS_OK) {
 		comp->inst_level = comptype->saAmfCtDefInstantiationLevel;
+		comp->use_comptype_attr->set(CompInstantiationLevel);
+	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompNumMaxInstantiateWithoutDelay"), attributes,
 			    0, &comp->clc_info.inst_retry_max) != SA_AIS_OK)

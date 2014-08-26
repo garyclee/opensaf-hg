@@ -254,7 +254,8 @@ typedef enum
    saAmfCtDefClcCliTimeout_ID = 2,
    saAmfCtDefRecoveryOnError_ID = 3,
    saAmfCtDefDisableRestart_ID = 4,
-   saAmfCtDefQuiescingCompleteTimeout_ID = 5           
+   saAmfCtDefQuiescingCompleteTimeout_ID = 5,
+   saAmfCtDefInstantiationLevel_ID = 6           
 } AVSV_AMF_COMPTYPE_ATTR_ID; 
 
 /* Attribute ID enum for the SaAmfHealthcheck class */
