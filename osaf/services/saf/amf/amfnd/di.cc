@@ -209,8 +209,12 @@ uint32_t avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (!m_AVND_CB_IS_AVD_UP(cb))
 		goto done;
 
-	avnd_msgid_assert(info->msg_id);
-	cb->rcv_msg_id = info->msg_id;
+	// TODO() hide the below code in a "set_msg_id()" function
+	// If message was not broadcasted, (msg_id == 0)
+	if (info->msg_id != 0) {
+		avnd_msgid_assert(info->msg_id);
+		cb->rcv_msg_id = info->msg_id;
+	}
 
 	switch (param->class_id) {
 	case AVSV_SA_AMF_NODE:
