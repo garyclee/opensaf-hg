@@ -295,6 +295,7 @@ enum UsedComptypeAttrs {
 	DefRecoveryOnError,
 	DefDisableRestart,
 	DefQuiescingCompleteTimeout,
+        CompInstantiationLevel,
 	NumAttrs
 };
 
