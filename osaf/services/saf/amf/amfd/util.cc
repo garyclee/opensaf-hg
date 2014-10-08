@@ -1346,15 +1346,19 @@ void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
 
 /**
  * Dumps the director state to file
- * This can be done using GDB:
- * $ gdb --pid=`pgrep osafamfd` -ex 'call amfd_file_dump("/tmp/osafamfd.dump")' \
- *		/usr/local/lib/opensaf/osafamfd
+ * This can be done using an admin command:
+ * immadm -o 99 <DN of AMF Cluster>
  * 
- * @param path 
  */
-void amfd_file_dump(const char *path)
+void amfd_file_dump(void)
 {
-	SaNameT dn = {0};
+	const AVD_SU_SI_REL *susi;
+	const AVD_SI *si;
+	const AVD_CSI *csi;
+	char path[128];
+
+	// add unique suffix to state file
+	sprintf(path, "/tmp/amfd.state.%d", getpid());
 	FILE *f = fopen(path, "w");
 
 	if (!f) {
@@ -1362,102 +1366,152 @@ void amfd_file_dump(const char *path)
 		return;
 	}
 
+	LOG_NO("dumping state to file %s", path);
+
+	fprintf(f, "control_block:\n");
+	fprintf(f, "  avail_state_avd: %d\n", avd_cb->avail_state_avd);
+	fprintf(f, "  avd_fover_state: %d\n", avd_cb->avd_fover_state);
+	fprintf(f, "  other_avd_adest: %lx\n", avd_cb->other_avd_adest);
+	fprintf(f, "  local_avnd_adest: %lx\n", avd_cb->local_avnd_adest);
+	fprintf(f, "  stby_sync_state: %d\n", avd_cb->stby_sync_state);
+	fprintf(f, "  synced_reo_type: %d\n", avd_cb->synced_reo_type);
+	fprintf(f, "  cluster_init_time: %llu\n", avd_cb->cluster_init_time);
+	fprintf(f, "  peer_msg_fmt_ver: %d\n", avd_cb->peer_msg_fmt_ver);
+	fprintf(f, "  avd_peer_ver: %d\n", avd_cb->avd_peer_ver);
+
+	fprintf(f, "nodes:\n");
 	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
 			it != node_id_db->end(); it++) {
 		AVD_AVND *node = it->second;
-		fprintf(f, "%s\n", node->name.value);
-		fprintf(f, "\tsaAmfNodeAdminState=%u\n", node->saAmfNodeAdminState);
-		fprintf(f, "\tsaAmfNodeOperState=%u\n", node->saAmfNodeOperState);
-		fprintf(f, "\tnode_state=%u\n", node->node_state);
-		fprintf(f, "\ttype=%u\n", node->type);
-		fprintf(f, "\tadest=%" PRIx64 "\n", node->adest);
-		fprintf(f, "\trcv_msg_id=%u\n", node->rcv_msg_id);
-		fprintf(f, "\tsnd_msg_id=%u\n", node->snd_msg_id);
-		fprintf(f, "\tnodeId=%x\n", node->node_info.nodeId);
+		fprintf(f, "  dn: %s\n", node->name.value);
+		fprintf(f, "    saAmfNodeAdminState: %s\n",
+				avd_adm_state_name[node->saAmfNodeAdminState]);
+		fprintf(f, "    saAmfNodeOperState: %s\n",
+				avd_oper_state_name[node->saAmfNodeOperState]);
+		fprintf(f, "    node_state: %u\n", node->node_state);
+		fprintf(f, "    type: %u\n", node->type);
+		fprintf(f, "    adest:%" PRIx64 "\n", node->adest);
+		fprintf(f, "    rcv_msg_id: %u\n", node->rcv_msg_id);
+		fprintf(f, "    snd_msg_id: %u\n", node->snd_msg_id);
+		fprintf(f, "    nodeId: %x\n", node->node_info.nodeId);
 	}
 
-	// If use std=c++11 in Makefile.common the following syntax can be used instead:
-	// for (auto it = app_db->begin()
+	fprintf(f, "applications:\n");
 	for (std::map<std::string, AVD_APP*>::const_iterator it = app_db->begin();
 			it != app_db->end(); it++) {
 		const AVD_APP *app = it->second;
-		fprintf(f, "%s\n", app->name.value);
-		fprintf(f, "\tsaAmfApplicationAdminState=%u\n", app->saAmfApplicationAdminState);
-		fprintf(f, "\tsaAmfApplicationCurrNumSGs=%u\n", app->saAmfApplicationCurrNumSGs);
+		fprintf(f, "  dn: %s\n", app->name.value);
+		fprintf(f, "    saAmfApplicationAdminState: %s\n",
+				avd_adm_state_name[app->saAmfApplicationAdminState]);
+		fprintf(f, "    saAmfApplicationCurrNumSGs: %u\n",
+				app->saAmfApplicationCurrNumSGs);
 	}
 
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		const AVD_SG *sg = it->second;
-		fprintf(f, "%s\n", sg->name.value);
-		fprintf(f, "\tsaAmfSGAdminState=%u\n", sg->saAmfSGAdminState);
-		fprintf(f, "\tsaAmfSGNumCurrAssignedSUs=%u\n", sg->saAmfSGNumCurrAssignedSUs);
-		fprintf(f, "\tsaAmfSGNumCurrInstantiatedSpareSUs=%u\n", sg->saAmfSGNumCurrInstantiatedSpareSUs);
-		fprintf(f, "\tsaAmfSGNumCurrNonInstantiatedSpareSUs=%u\n", sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
-		fprintf(f, "\tadjust_state=%u\n", sg->adjust_state);
-		fprintf(f, "\tsg_fsm_state=%u\n", sg->sg_fsm_state);
-		dn = sg->name;
-	}
-
-	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-		const AVD_SU *su = it->second;
-		fprintf(f, "%s\n", su->name.value);
-		fprintf(f, "\tsaAmfSUPreInstantiable=%u\n", su->saAmfSUPreInstantiable);
-		fprintf(f, "\tsaAmfSUOperState=%u\n", su->saAmfSUOperState);
-		fprintf(f, "\tsaAmfSUAdminState=%u\n", su->saAmfSUAdminState);
-		fprintf(f, "\tsaAmfSuReadinessState=%u\n", su->saAmfSuReadinessState);
-		fprintf(f, "\tsaAmfSUPresenceState=%u\n", su->saAmfSUPresenceState);
-		fprintf(f, "\tsaAmfSUHostedByNode=%s\n", su->saAmfSUHostedByNode.value);
-		fprintf(f, "\tsaAmfSUNumCurrActiveSIs=%u\n", su->saAmfSUNumCurrActiveSIs);
-		fprintf(f, "\tsaAmfSUNumCurrStandbySIs=%u\n", su->saAmfSUNumCurrStandbySIs);
-		fprintf(f, "\tsaAmfSURestartCount=%u\n", su->saAmfSURestartCount);
-		fprintf(f, "\tterm_state=%u\n", su->term_state);
-		fprintf(f, "\tsu_switch=%u\n", su->su_switch);
-		dn = su->name;
-	}
-
-	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
-			it != comp_db->end(); it++) {
-		const AVD_COMP *comp  = it->second;
-		fprintf(f, "%s\n", comp->comp_info.name.value);
-		fprintf(f, "\tsaAmfCompOperState=%u\n", comp->saAmfCompOperState);
-		fprintf(f, "\tsaAmfCompReadinessState=%u\n", comp->saAmfCompReadinessState);
-		fprintf(f, "\tsaAmfCompPresenceState=%u\n", comp->saAmfCompPresenceState);
-		fprintf(f, "\tsaAmfCompRestartCount=%u\n", comp->saAmfCompRestartCount);
-		fprintf(f, "\tsaAmfCompOperState=%s\n", comp->saAmfCompCurrProxyName.value);
-	}
-
+	fprintf(f, "service_instances:\n");
 	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
 			it != si_db->end(); it++) {
-		const AVD_SI *si = it->second;
-		fprintf(f, "%s\n", si->name.value);
-		fprintf(f, "\tsaAmfSIAdminState=%u\n", si->saAmfSIAdminState);
-		fprintf(f, "\tsaAmfSIAssignmentStatee=%u\n", si->saAmfSIAssignmentState);
-		fprintf(f, "\tsaAmfSINumCurrActiveAssignments=%u\n", si->saAmfSINumCurrActiveAssignments);
-		fprintf(f, "\tsaAmfSINumCurrStandbyAssignments=%u\n", si->saAmfSINumCurrStandbyAssignments);
-		fprintf(f, "\tsi_switch=%u\n", si->si_switch);
-		dn = si->name;
-	}
-
-	AVD_SU_SI_REL *rel;
-	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-		const AVD_SU *su = it->second;
-		for (rel = su->list_of_susi; rel != NULL; rel = rel->su_next) {
-			fprintf(f, "%s,%s\n", rel->su->name.value, rel->si->name.value);
-			fprintf(f, "\thastate=%u\n", rel->state);
-			fprintf(f, "\tfsm=%u\n", rel->fsm);
+		si = it->second;
+		fprintf(f, "  dn: %s\n", si->name.value);
+		fprintf(f, "    saAmfSIProtectedbySG: %s\n",
+				si->saAmfSIProtectedbySG.value);
+		fprintf(f, "    saAmfSIAdminState: %s\n",
+				avd_adm_state_name[si->saAmfSIAdminState]);
+		fprintf(f, "    saAmfSIAssignmentState: %s\n",
+				avd_ass_state[si->saAmfSIAssignmentState]);
+		fprintf(f, "    saAmfSINumCurrActiveAssignments: %u\n",
+				si->saAmfSINumCurrActiveAssignments);
+		fprintf(f, "    saAmfSINumCurrStandbyAssignments: %u\n",
+				si->saAmfSINumCurrStandbyAssignments);
+		fprintf(f, "    si_switch: %u\n", si->si_switch);
+		fprintf(f, "    si_dep_state: %u\n", si->si_dep_state);
+		fprintf(f, "    num_dependents: %u\n", si->num_dependents);
+		fprintf(f, "    alarm_sent: %u\n", si->alarm_sent);
+		fprintf(f, "    assigned_to_sus:\n");
+		for (susi = si->list_of_sisu; susi; susi = susi->si_next) {
+			fprintf(f, "      dn: %s\n", susi->su->name.value);
+			fprintf(f, "        hastate: %s\n", avd_ha_state[susi->state]);
+			fprintf(f, "        fsm: %u\n", susi->fsm);
 		}
 	}
 
-	for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
-			it != compcstype_db->end(); it++) {
-		const AVD_COMPCS_TYPE *compcstype = it->second;
-		fprintf(f, "%s\n", compcstype->name.value);
-		fprintf(f, "\tsaAmfCompNumCurrActiveCSIs=%u\n", compcstype->saAmfCompNumCurrActiveCSIs);
-		fprintf(f, "\tsaAmfCompNumCurrStandbyCSIs=%u\n", compcstype->saAmfCompNumCurrStandbyCSIs);
-		dn = compcstype->name;
+	fprintf(f, "component_service_instances:\n");
+	for (std::map<std::string, AVD_CSI*>::const_iterator it = csi_db->begin();
+			it != csi_db->end(); it++) {
+		csi = it->second;
+		fprintf(f, "  dn: %s\n", csi->name.value);
+		fprintf(f, "    rank: %u\n", csi->rank);
+		fprintf(f, "    depends:\n");
+		AVD_CSI_DEPS *dep;
+		for (dep = csi->saAmfCSIDependencies; dep; dep = dep->csi_dep_next)
+			fprintf(f, "      %s", dep->csi_dep_name_value.value);
+		if (csi->saAmfCSIDependencies)
+			fprintf(f, "\n");
+		fprintf(f, "    assigned_to_components:\n");
+		AVD_COMP_CSI_REL *compcsi;
+		for (compcsi = csi->list_compcsi; compcsi; compcsi = compcsi->csi_csicomp_next) {
+			fprintf(f, "      dn: %s\n", compcsi->comp->comp_info.name.value);
+		}
+	}
+
+	fprintf(f, "service_groups:\n");
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		const AVD_SG *sg = it->second;
+		fprintf(f, "  dn: %s\n", sg->name.value);
+		fprintf(f, "    saAmfSGAdminState: %s\n",
+				avd_adm_state_name[sg->saAmfSGAdminState]);
+		fprintf(f, "    saAmfSGNumCurrAssignedSUs: %u\n",
+				sg->saAmfSGNumCurrAssignedSUs);
+		fprintf(f, "    saAmfSGNumCurrInstantiatedSpareSUs: %u\n",
+				sg->saAmfSGNumCurrInstantiatedSpareSUs);
+		fprintf(f, "    saAmfSGNumCurrNonInstantiatedSpareSUs: %u\n",
+				sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
+		fprintf(f, "    adjust_state: %u\n", sg->adjust_state);
+		fprintf(f, "    sg_fsm_state: %u\n", sg->sg_fsm_state);
+	}
+
+	fprintf(f, "service_units:\n");
+	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+			it != su_db->end(); it++) {
+		const AVD_SU *su = it->second;
+		fprintf(f, "  dn: %s\n", su->name.value);
+		fprintf(f, "    saAmfSUPreInstantiable: %u\n", su->saAmfSUPreInstantiable);
+		fprintf(f, "    saAmfSUOperState: %s\n",
+				avd_oper_state_name[su->saAmfSUOperState]);
+		fprintf(f, "    saAmfSUAdminState: %s\n",
+				avd_adm_state_name[su->saAmfSUAdminState]);
+		fprintf(f, "    saAmfSuReadinessState: %s\n",
+				avd_readiness_state_name[su->saAmfSuReadinessState]);
+		fprintf(f, "    saAmfSUPresenceState: %s\n",
+				avd_pres_state_name[su->saAmfSUPresenceState]);
+		fprintf(f, "    saAmfSUHostedByNode: %s\n", su->saAmfSUHostedByNode.value);
+		fprintf(f, "    saAmfSUNumCurrActiveSIs: %u\n", su->saAmfSUNumCurrActiveSIs);
+		fprintf(f, "    saAmfSUNumCurrStandbySIs: %u\n", su->saAmfSUNumCurrStandbySIs);
+		fprintf(f, "    saAmfSURestartCount: %u\n", su->saAmfSURestartCount);
+		fprintf(f, "    term_state: %u\n", su->term_state);
+		fprintf(f, "    su_switch: %u\n", su->su_switch);
+		fprintf(f, "    assigned_SIs:\n");
+		for (susi = su->list_of_susi; susi != NULL; susi = susi->su_next) {
+			fprintf(f, "      dn: %s\n", susi->si->name.value);
+			fprintf(f, "      hastate: %s\n", avd_ha_state[susi->state]);
+			fprintf(f, "      fsm: %u\n", susi->fsm);
+		}
+	}
+
+	fprintf(f, "components:\n");
+	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
+			it != comp_db->end(); it++) {
+		const AVD_COMP *comp  = it->second;
+		fprintf(f, "  dn: %s\n", comp->comp_info.name.value);
+		fprintf(f, "    saAmfCompOperState: %s\n",
+				avd_oper_state_name[comp->saAmfCompOperState]);
+		fprintf(f, "    saAmfCompReadinessState: %s\n",
+				avd_readiness_state_name[comp->saAmfCompReadinessState]);
+		fprintf(f, "    saAmfCompPresenceState: %s\n",
+				avd_pres_state_name[comp->saAmfCompPresenceState]);
+		fprintf(f, "    saAmfCompRestartCount: %u\n", comp->saAmfCompRestartCount);
+		if (comp->saAmfCompCurrProxyName.length)
+			fprintf(f, "    saAmfCompCurrProxyName: %s\n", comp->saAmfCompCurrProxyName.value);
 	}
 
 	fclose(f);

@@ -133,6 +133,7 @@ std::string to_string(const SaNameT &s);
 
 extern int avd_admin_state_is_valid(SaAmfAdminStateT state);
 extern SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name);
+void amfd_file_dump(void);
 
 extern int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
 	SaAmfAdminOperationIdT opId, struct avd_avnd_tag *node);

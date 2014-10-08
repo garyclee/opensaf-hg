@@ -655,6 +655,17 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 
  	TRACE_ENTER2("'%s', invocation: %llu, op: %llu", object_name->value, invocation, op_id);
 
+ 	if (strcmp((char*)object_name->value, implementerName) == 0) {
+ 		// admin op targeted at the AMF implementer itself
+ 		if (op_id == 99) {
+ 			amfd_file_dump();
+ 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+ 		} else
+ 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,
+ 				"Admin operation not supported for %s (%u)", object_name->value, type);
+ 		goto done;
+	}
+
 	/* ignore admin ops if we are in the middle of a role switch */
 	if (avd_cb->swap_switch == SA_TRUE) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
