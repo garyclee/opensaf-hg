@@ -243,6 +243,33 @@ static bool csi_add_csidep(AVD_CSI *csi,AVD_CSI_DEPS *new_csi_dep)
 
 	return csi_added;
 }
+
+/**
+ * Removes a CSI dep from the saAmfCSIDependencies list and free the memory
+ */
+static void csi_remove_csidep(AVD_CSI *csi, const SaNameT *required_dn)
+{
+	AVD_CSI_DEPS *prev = NULL;
+	AVD_CSI_DEPS *curr;
+
+	for (curr = csi->saAmfCSIDependencies; curr != NULL; curr = curr->csi_dep_next) {
+		if (memcmp(required_dn, &curr->csi_dep_name_value, sizeof(SaNameT)) == 0) {
+			break;
+		}
+		prev = curr;
+	}
+
+	if (curr != NULL) {
+		if (prev == NULL) {
+			csi->saAmfCSIDependencies = curr->csi_dep_next;
+		} else {
+			prev->csi_dep_next = curr->csi_dep_next;
+		}
+	}
+
+	delete curr;
+}
+
 /**
  * @brief	creates new csi and adds csi node to the csi_db 
  *
@@ -594,6 +621,11 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 						"dependency for '%s' to itself", csi->name.value);
 					goto done;
 				}
+			} else if (attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) {
+				if (attr_mod->modAttr.attrValuesNumber > 1) {
+					report_ccb_validation_error(opdata, "only one dep can be removed at a time");
+					goto done;
+				}
 			} else {
 				report_ccb_validation_error(opdata,
 					"'%s' - change of CSI dependency is not supported",
@@ -847,7 +879,15 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				csi->rank = 0; // indicate that there is a dep to another CSI
 				si->add_csi(csi);
 			} else if (attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) {
-				assert(0);
+				assert(attr_mod->modAttr.attrValuesNumber == 1);
+				const SaNameT *required_dn = (SaNameT*) attr_mod->modAttr.attrValues[0];
+				csi_remove_csidep(csi, required_dn);
+				si->remove_csi(csi);
+				if (csi->saAmfCSIDependencies == NULL)
+					csi->rank = 1; // indicate that there is no dep to another CSI
+				else
+					csi->rank = 0; // indicate that add_csi should recalculate rank
+				si->add_csi(csi);
 			} else
 				assert(0);
 		} else {
