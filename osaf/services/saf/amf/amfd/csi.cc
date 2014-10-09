@@ -516,37 +516,98 @@ done:
  **************************************************************************/
 static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
+	AVD_CSI *csi = csi_db->find(Amf::to_string(&opdata->objectName));
 
+	assert(csi);
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
-			AVD_CSI *csi;
 			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
-			csi = csi_db->find(Amf::to_string(&opdata->objectName));
 			if(SA_AMF_ADMIN_LOCKED != csi->si->saAmfSIAdminState) {
 				report_ccb_validation_error(opdata, "Parent SI is not in locked state, SI state '%d'",
 						csi->si->saAmfSIAdminState);
-				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
 			if (cstype_db->find(Amf::to_string(&cstype_name)) == NULL) {
 				report_ccb_validation_error(opdata, "CS Type not found '%s'", cstype_name.value);
-				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSIDependencies")) {
+			const SaNameT *required_dn = (SaNameT*) attr_mod->modAttr.attrValues[0];
+			const AVD_CSI *required_csi = csi_db->find(Amf::to_string(required_dn));
+
+			// Required CSI must exist in current model
+			if (required_csi == NULL) {
+				report_ccb_validation_error(opdata,
+						"CSI '%s' does not exist", required_dn->value);
 				goto done;
 			}
 
+			// Required CSI must be contained in the same SI
+			const char *si_dn = strchr((char*)required_dn->value, ',') + 1;
+			if (strstr((char*)opdata->objectName.value, si_dn) == NULL) {
+				report_ccb_validation_error(opdata,
+						"'%s' is not in the same SI as '%s'",
+						opdata->objectName.value, required_dn->value);
+				goto done;
+			}
+
+			if (attr_mod->modType == SA_IMM_ATTR_VALUES_ADD) {
+				AVD_CSI_DEPS *csi_dep;
+
+				if (attr_mod->modAttr.attrValuesNumber > 1) {
+					report_ccb_validation_error(opdata, "only one dep can be added at a time");
+					goto done;
+				}
+
+				// check cyclic dependencies by scanning the deps of the required CSI
+				for (csi_dep = required_csi->saAmfCSIDependencies; csi_dep; csi_dep = csi_dep->csi_dep_next) {
+					if (strcmp((char*)csi_dep->csi_dep_name_value.value,
+							(char*)opdata->objectName.value) == 0) {
+						// the required CSI requires this CSI
+						report_ccb_validation_error(opdata,
+								"cyclic dependency between '%s' and '%s'",
+								opdata->objectName.value, required_dn->value);
+						goto done;
+					}
+				}
+
+				// don't allow adding the same dep again
+				for (csi_dep = csi->saAmfCSIDependencies; csi_dep; csi_dep = csi_dep->csi_dep_next) {
+					if (strcmp((char*)csi_dep->csi_dep_name_value.value,
+							(char*)required_dn->value) == 0) {
+						// dep already exist, should we return OK instead?
+						report_ccb_validation_error(opdata,
+								"dependency between '%s' and '%s' already exist",
+								opdata->objectName.value, required_dn->value);
+						goto done;
+					}
+				}
+
+				// disallow dep between same CSIs
+				if (strcmp((char*)csi->name.value, (char*)required_dn->value) == 0) {
+					report_ccb_validation_error(opdata,
+						"dependency for '%s' to itself", csi->name.value);
+					goto done;
+				}
+			} else {
+				report_ccb_validation_error(opdata,
+					"'%s' - change of CSI dependency is not supported",
+					opdata->objectName.value);
+				goto done;
+			}
 		} else {
 			report_ccb_validation_error(opdata, "Modification of attribute '%s' not supported",
 					attr_mod->modAttr.attrName);
-			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 	}
 
+	rc = SA_AIS_OK;
 done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -752,13 +813,17 @@ done:
  **************************************************************************/
 static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 {               
-        const SaImmAttrModificationT_2 *attr_mod;
-        int i = 0;
-        AVD_CSI *csi = NULL;
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
+	AVD_CSI *csi = NULL;
 
-        TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
  
 	csi = csi_db->find(Amf::to_string(&opdata->objectName));
+	assert(csi != NULL);
+	AVD_SI *si = csi->si;
+	assert(si != NULL);
+
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
 			struct avd_cstype *csi_type;
@@ -770,13 +835,26 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			csi->saAmfCSType = cstype_name;
 			csi->cstype = csi_type;
 			avd_cstype_add_csi(csi);
-		}
-		else {
+		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSIDependencies")) {
+			if (attr_mod->modType == SA_IMM_ATTR_VALUES_ADD) {
+				assert(attr_mod->modAttr.attrValuesNumber == 1);
+				si->remove_csi(csi);
+				AVD_CSI_DEPS *new_csi_dep = new AVD_CSI_DEPS();
+				new_csi_dep->csi_dep_name_value = *((SaNameT*) attr_mod->modAttr.attrValues[0]);
+				bool already_exist = csi_add_csidep(csi, new_csi_dep);
+				if (already_exist)
+					delete new_csi_dep;
+				csi->rank = 0; // indicate that there is a dep to another CSI
+				si->add_csi(csi);
+			} else if (attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) {
+				assert(0);
+			} else
+				assert(0);
+		} else {
 			osafassert(0);
 		}
 	}
-
-        TRACE_LEAVE();
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

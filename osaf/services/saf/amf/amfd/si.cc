@@ -71,7 +71,6 @@ static void osafassert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag
 void AVD_SI::arrange_dep_csi(struct avd_csi_tag* csi)
 {
 	AVD_CSI *temp_csi = NULL;
-	AVD_SI *temp_si = NULL;
 
 	TRACE_ENTER2("%s", csi->name.value);
 	
@@ -95,17 +94,14 @@ void AVD_SI::arrange_dep_csi(struct avd_csi_tag* csi)
 				 */
 				if(temp_csi->rank <= csi->rank) {
 					/* We need to rearrange Dep CSI rank as per modified. */
-					/* Store the SI pointer as avd_si_remove_csi makes it NULL in the end */
 					temp_csi->rank = csi->rank + 1;
-					temp_si = temp_csi->si;
-					temp_si->remove_csi(temp_csi);
-					temp_csi->si = temp_si;
-					temp_csi->si->add_csi_db(temp_csi);
+					remove_csi(temp_csi);
+					add_csi_db(temp_csi);
 					/* We need to check whether any other CSI is dependent on temp_csi.
 					 * This recursive logic is required to update the ranks of the
 					 * CSIs which are dependant on the temp_csi
 					 */
-					temp_si->arrange_dep_csi(temp_csi);
+					arrange_dep_csi(temp_csi);
 				}
 			}
 		}
@@ -297,7 +293,6 @@ void AVD_SI::remove_csi(AVD_CSI* csi)
 	}
 
 	csi->si_list_of_csi_next = NULL;
-	csi->si = AVD_SI_NULL;
 }
 
 
