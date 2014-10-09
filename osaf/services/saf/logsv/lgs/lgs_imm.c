@@ -2325,25 +2325,17 @@ done:
  * 
  * @return SaAisErrorT
  */
-static SaAisErrorT stream_create_and_configure(const char *dn, log_stream_t **in_stream, int stream_id)
+static SaAisErrorT stream_create_and_configure(const char *dn,
+		log_stream_t **in_stream, int stream_id, SaImmAccessorHandleT accessorHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	SaImmHandleT omHandle;
 	SaNameT objectName;
-	SaVersionT immVersion = { 'A', 2, 1 };
-	SaImmAccessorHandleT accessorHandle;
 	SaImmAttrValuesT_2 *attribute;
 	SaImmAttrValuesT_2 **attributes;
 	int i = 0;
 	log_stream_t *stream;
 	
-	int iu_setting = immutilWrapperProfile.errorsAreFatal;
-	SaAisErrorT om_rc = SA_AIS_OK;
-
 	TRACE_ENTER2("(%s)", dn);
-
-	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	strncpy((char *)objectName.value, dn, SA_MAX_NAME_LENGTH);
 	objectName.length = strlen((char *)objectName.value);
@@ -2421,18 +2413,6 @@ static SaAisErrorT stream_create_and_configure(const char *dn, log_stream_t **in
 		stream->logFileFormat = strdup(log_file_format[stream->streamType]);
 
  done:
-	/* Do not abort if error when finalizing */
-	immutilWrapperProfile.errorsAreFatal = 0;	/* Disable immutil abort */
-	om_rc = immutil_saImmOmAccessorFinalize(accessorHandle);
-	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmAccessorFinalize() Fail %d",__FUNCTION__, om_rc);
-	}
-	om_rc = immutil_saImmOmFinalize(omHandle);
-	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmFinalize() Fail %d",__FUNCTION__, om_rc);
-	}
-	immutilWrapperProfile.errorsAreFatal = iu_setting; /* Enable again */
-
 	TRACE_LEAVE();
 	return rc;
 }
@@ -3027,16 +3007,25 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	log_stream_t *stream;
+	SaImmHandleT omHandle;
+	SaImmAccessorHandleT accessorHandle;
+	SaVersionT immVersion = { 'A', 2, 1 };
 
 	TRACE_ENTER();
-    
-	if ((rc = stream_create_and_configure(SA_LOG_STREAM_ALARM, &cb->alarmStream, 0)) != SA_AIS_OK)
+
+	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
+
+	if ((rc = stream_create_and_configure(SA_LOG_STREAM_ALARM,
+			&cb->alarmStream, 0, accessorHandle)) != SA_AIS_OK)
 		goto done;
 
-	if ((rc = stream_create_and_configure(SA_LOG_STREAM_NOTIFICATION, &cb->notificationStream, 1)) != SA_AIS_OK)
+	if ((rc = stream_create_and_configure(SA_LOG_STREAM_NOTIFICATION,
+			&cb->notificationStream, 1, accessorHandle)) != SA_AIS_OK)
 		goto done;
 
-	if ((rc = stream_create_and_configure(SA_LOG_STREAM_SYSTEM, &cb->systemStream, 2)) != SA_AIS_OK)
+	if ((rc = stream_create_and_configure(SA_LOG_STREAM_SYSTEM,
+			&cb->systemStream, 2, accessorHandle)) != SA_AIS_OK)
 		goto done;
 
 	// Retrieve other configured streams
@@ -3047,10 +3036,24 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 	int i = 0;
 	int streamId = 3;
 	for (i = 0; i < noConfObjects; i++, streamId++) {
-		if ((rc = stream_create_and_configure(configNames[i], &stream, streamId)) != SA_AIS_OK) {
+		if ((rc = stream_create_and_configure(configNames[i], &stream,
+				streamId, accessorHandle)) != SA_AIS_OK) {
 			LOG_ER("stream_create_and_configure failed %d", rc);
 		}
 	}
+
+	/* Do not abort if error when finalizing */
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;	/* Disable immutil abort */
+	SaAisErrorT om_rc = immutil_saImmOmAccessorFinalize(accessorHandle);
+	if (om_rc != SA_AIS_OK) {
+		LOG_NO("%s immutil_saImmOmAccessorFinalize() Fail %d",__FUNCTION__, om_rc);
+	}
+	om_rc = immutil_saImmOmFinalize(omHandle);
+	if (om_rc != SA_AIS_OK) {
+		LOG_NO("%s immutil_saImmOmFinalize() Fail %d",__FUNCTION__, om_rc);
+	}
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal; /* Enable again */
 
 	immutilWrapperProfile.nTries = 250; /* After loading,allow missed sync of large data to complete */
 
