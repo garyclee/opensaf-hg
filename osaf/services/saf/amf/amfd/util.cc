@@ -1348,29 +1348,34 @@ void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
  * Dumps the director state to file
  * This can be done using an admin command:
  * immadm -o 99 <DN of AMF Cluster>
- * 
+ * @param filename path to file or NULL if a filename should be generated
+ * @return 0 at OK, errno otherwise
  */
-void amfd_file_dump(void)
+int amfd_file_dump(const char *filename)
 {
 	const AVD_SU_SI_REL *susi;
 	const AVD_SI *si;
 	const AVD_CSI *csi;
-	char path[128];
+	const char *path = filename;
 
-	// add unique suffix to state file
-	sprintf(path, "/tmp/amfd.state.%d", getpid());
+	if (filename == NULL) {
+		char _path[128];
+		// add unique suffix to state file
+		sprintf(_path, "/tmp/amfd.state.%d", getpid());
+		path = _path;
+	}
+
 	FILE *f = fopen(path, "w");
 
-	if (!f) {
-		fprintf(stderr, "Could not open %s - %s\n", path, strerror(errno));
-		return;
-	}
+	if (!f)
+		return errno;
 
 	LOG_NO("dumping state to file %s", path);
 
 	fprintf(f, "control_block:\n");
 	fprintf(f, "  avail_state_avd: %d\n", avd_cb->avail_state_avd);
 	fprintf(f, "  avd_fover_state: %d\n", avd_cb->avd_fover_state);
+	fprintf(f, "  init_state: %d\n", avd_cb->init_state);
 	fprintf(f, "  other_avd_adest: %lx\n", avd_cb->other_avd_adest);
 	fprintf(f, "  local_avnd_adest: %lx\n", avd_cb->local_avnd_adest);
 	fprintf(f, "  stby_sync_state: %d\n", avd_cb->stby_sync_state);
@@ -1515,6 +1520,7 @@ void amfd_file_dump(void)
 	}
 
 	fclose(f);
+	return 0;
 }
 
 /**

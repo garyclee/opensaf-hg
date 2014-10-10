@@ -337,6 +337,8 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 static const SaImmOiImplementerNameT implementerName =
 	(SaImmOiImplementerNameT)"safAmfService";
+static const SaImmOiImplementerNameT applierNamePrefix =
+	(SaImmOiImplementerNameT)"@safAmfService";
 static SaVersionT immVersion = { 'A', 2, 11 };
 
 /* This string array must match the AVSV_AMF_CLASS_ID enum */
@@ -655,11 +657,23 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 
  	TRACE_ENTER2("'%s', invocation: %llu, op: %llu", object_name->value, invocation, op_id);
 
- 	if (strcmp((char*)object_name->value, implementerName) == 0) {
+ 	if ((strcmp((char*)object_name->value, implementerName) == 0) ||
+ 			(strncmp((char*)object_name->value, applierNamePrefix, strlen(applierNamePrefix)) == 0)) {
  		// admin op targeted at the AMF implementer itself
  		if (op_id == 99) {
- 			amfd_file_dump();
- 			avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+ 	 		char *filename = NULL;
+ 	 		if (params[0] != NULL) {
+ 	 			const SaImmAdminOperationParamsT_2 *param = params[0];
+ 	 			if (param->paramType == SA_IMM_ATTR_SASTRINGT &&
+ 	 					strcmp(param->paramName, "filename") == 0)
+ 	 				filename = *((SaStringT *)param->paramBuffer);
+ 	 		}
+ 			int rc = amfd_file_dump(filename);
+ 			if (rc == 0)
+ 				(void) saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+ 			else
+ 	 			report_admin_op_error(immoi_handle, invocation,
+ 	 				SA_AIS_ERR_INVALID_PARAM, NULL,	"%s", strerror(rc));
  		} else
  			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,
  				"Admin operation not supported for %s (%u)", object_name->value, type);
@@ -1261,7 +1275,7 @@ SaAisErrorT avd_imm_applier_set(void)
 	char applier_name[SA_MAX_NAME_LENGTH] = {0};
 
 	TRACE_ENTER();
-	snprintf(applier_name, SA_MAX_NAME_LENGTH, "@safAmfService%x", avd_cb->node_id_avd);
+	snprintf(applier_name, SA_MAX_NAME_LENGTH, "%s%x", applierNamePrefix, avd_cb->node_id_avd);
 
 	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, applier_name)) != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet failed %u", rc);
