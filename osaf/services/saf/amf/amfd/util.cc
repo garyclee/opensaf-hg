@@ -1376,8 +1376,8 @@ int amfd_file_dump(const char *filename)
 	fprintf(f, "  avail_state_avd: %d\n", avd_cb->avail_state_avd);
 	fprintf(f, "  avd_fover_state: %d\n", avd_cb->avd_fover_state);
 	fprintf(f, "  init_state: %d\n", avd_cb->init_state);
-	fprintf(f, "  other_avd_adest: %lx\n", avd_cb->other_avd_adest);
-	fprintf(f, "  local_avnd_adest: %lx\n", avd_cb->local_avnd_adest);
+	fprintf(f, "  other_avd_adest: %" PRIx64 "\n", avd_cb->other_avd_adest);
+	fprintf(f, "  local_avnd_adest: %" PRIx64 "\n", avd_cb->local_avnd_adest);
 	fprintf(f, "  stby_sync_state: %d\n", avd_cb->stby_sync_state);
 	fprintf(f, "  synced_reo_type: %d\n", avd_cb->synced_reo_type);
 	fprintf(f, "  cluster_init_time: %llu\n", avd_cb->cluster_init_time);
