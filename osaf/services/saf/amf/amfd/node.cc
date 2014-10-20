@@ -1041,12 +1041,6 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, operationId);
 
-	if (avd_cb->init_state != AVD_APP_STATE) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
-				"AVD not in APP_STATE");
-		goto done;
-	}
-
 	node = avd_node_get(objectName);
 	osafassert(node != AVD_AVND_NULL);
 
@@ -1136,6 +1130,17 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
+		if (avd_cb->init_state == AVD_INIT_DONE) {
+			node_admin_state_set(node, SA_AMF_ADMIN_UNLOCKED);
+			for(su = node->list_of_su; su != NULL; su = su->avnd_list_su_next) {
+				if (su->is_in_service() == true) {
+					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+				}
+			}
+			avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+			break;
+		}
+
 		avd_node_admin_lock_unlock_shutdown(node, invocation, static_cast<SaAmfAdminOperationIdT>(operationId));
 		break;
 
@@ -1158,6 +1163,15 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			LOG_NO("%s' LOCK: CLM node is not member", node->name.value);
 			avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 			goto done;
+		}
+
+		if (avd_cb->init_state == AVD_INIT_DONE) {
+			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+			for(su = node->list_of_su; su != NULL; su = su->avnd_list_su_next) {
+				su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+			}
+			avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+			break;
 		}
 
 		avd_node_admin_lock_unlock_shutdown(node, invocation, static_cast<SaAmfAdminOperationIdT>(operationId));

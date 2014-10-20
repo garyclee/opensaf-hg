@@ -97,6 +97,7 @@ struct avd_comp_csi_rel_tag;
 struct avd_csi_tag;
 
 void avd_d2n_reboot_snd(struct avd_avnd_tag *node);
+bool admin_op_is_valid(SaImmAdminOperationIdT opId, AVSV_AMF_CLASS_ID class_id);
 void amflog(int priority, const char *format, ...);
 void d2n_msg_free(AVD_DND_MSG *msg);
 uint32_t avd_d2n_msg_dequeue(struct cl_cb_tag *cb);

@@ -856,6 +856,14 @@ void AVD_SU::unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {
 	TRACE_ENTER2("'%s'", name.value);
 	set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 
+	/* Return as cluster timer haven't expired.*/
+	if (avd_cb->init_state == AVD_INIT_DONE) {
+		if (is_in_service() == true)
+			set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		goto done;
+	}
+
 	if ((is_in_service() == true) || (sg_of_su->sg_ncs_spec == true)) {
 		/* Reason for checking for MW component is that node oper state and
 		 * SU oper state are marked enabled after they gets assignments.
@@ -883,7 +891,7 @@ void AVD_SU::unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_FAILED_OPERATION, NULL,
 				"SG redundancy model specific handler failed");
 	}
-
+done:
 	TRACE_LEAVE();
 }
 
@@ -895,6 +903,13 @@ void AVD_SU::lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
 	bool is_oper_successful = true;
 
 	TRACE_ENTER2("'%s'", name.value);
+	/* Change the admin state to lock and return as cluster timer haven't expired.*/
+	if (avd_cb->init_state == AVD_INIT_DONE) {
+		set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+		set_admin_state(SA_AMF_ADMIN_LOCKED);
+		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
+		goto done;
+	}
 
 	if (list_of_susi == NULL) {
 		set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
@@ -1118,12 +1133,6 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	if ( op_id > SA_AMF_ADMIN_SHUTDOWN && op_id != SA_AMF_ADMIN_REPAIRED) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
 				"Unsupported admin op for SU: %llu", op_id);
-		goto done;
-	}
-
-	if (cb->init_state != AVD_APP_STATE ) {
-		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL, 
-				"AMF (state %u) is not available for admin ops", cb->init_state);
 		goto done;
 	}
 
