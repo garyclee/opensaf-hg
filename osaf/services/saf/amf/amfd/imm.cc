@@ -691,7 +691,14 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 	       admin_op_name(static_cast<SaAmfAdminOperationIdT>(op_id)), object_name->value, invocation);
 
 	if (admin_op_callback[type] != NULL) {
-		admin_op_callback[type](immoi_handle, invocation, object_name, op_id, params);
+		if (admin_op_is_valid(op_id, type) == false) {
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					"AMF (state %u) is not available for admin op'%llu' on '%s'",
+					avd_cb->init_state, op_id, object_name->value);
+			goto done;
+		} else {
+			admin_op_callback[type](immoi_handle, invocation, object_name, op_id, params);
+		}
 	} else {
 		LOG_ER("Admin operation not supported for %s (%u)", object_name->value, type);
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,

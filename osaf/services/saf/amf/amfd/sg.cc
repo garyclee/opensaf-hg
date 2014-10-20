@@ -1242,6 +1242,14 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		adm_state = sg->saAmfSGAdminState;
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_UNLOCKED);
+		if (avd_cb->init_state == AVD_INIT_DONE) {
+			for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
+				if (su->is_in_service() == true) {
+					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+				}
+			}
+			break;
+		}
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
@@ -1266,6 +1274,14 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		adm_state = sg->saAmfSGAdminState;
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
+
+		if (avd_cb->init_state == AVD_INIT_DONE) {
+			for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
+				su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+			}
+			break;
+		}
+
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,

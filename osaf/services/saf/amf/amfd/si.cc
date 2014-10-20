@@ -817,6 +817,13 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 
+		if (avd_cb->init_state == AVD_INIT_DONE) {
+			/* Assignments will be delivered once cluster timer expires.*/
+			rc = SA_AIS_OK;
+			avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+			goto done;
+		}
+
 		err = si->sg_of_si->si_assign(avd_cb, si);
 		if (si->list_of_sisu == NULL) {
 			LOG_NO("'%s' could not be assigned to any SU", si->name.value);
@@ -861,7 +868,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			goto done;
 		}
 
-		if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
+		if ((si->list_of_sisu == AVD_SU_SI_REL_NULL) || (avd_cb->init_state == AVD_INIT_DONE)) {
 			si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			/* This may happen when SUs are locked before SI is locked. */
 			LOG_WA("SI lock of %s, has no assignments", objectName->value);

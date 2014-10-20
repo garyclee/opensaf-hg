@@ -1777,3 +1777,49 @@ void amflog(int priority, const char *format, ...)
 		saflog(priority, amfSvcUsrName, "%s", str);
 	}
 }
+
+/**
+ * Validates whether the amfd state is apt to process the admin command.
+ * @param: admin operation id.
+ * @param: class id related to objects on which admin command has been issued.
+ */
+bool admin_op_is_valid(SaImmAdminOperationIdT opId, AVSV_AMF_CLASS_ID class_id)
+{
+	bool valid = false;
+	TRACE_ENTER2("%llu, %u", opId, class_id);
+
+	if (avd_cb->init_state == AVD_APP_STATE)
+		return true;
+
+	switch (class_id) {
+		case AVSV_SA_AMF_SU:
+			/* Support for admin op on su before cluster timer expires.*/
+			if ((avd_cb->init_state == AVD_INIT_DONE) &&
+					((opId == SA_AMF_ADMIN_LOCK) || (opId == SA_AMF_ADMIN_UNLOCK) ||
+					 (opId == SA_AMF_ADMIN_REPAIRED) ||
+					 (opId == SA_AMF_ADMIN_UNLOCK_INSTANTIATION)))
+				valid = true;
+			break;
+		case AVSV_SA_AMF_NODE:
+		case AVSV_SA_AMF_SG:
+			/* Support for admin op on node/sg before cluster timer expires.*/
+			if ((avd_cb->init_state == AVD_INIT_DONE) &&
+					((opId == SA_AMF_ADMIN_LOCK) || (opId == SA_AMF_ADMIN_UNLOCK) ||
+					 (opId == SA_AMF_ADMIN_UNLOCK_INSTANTIATION)))
+				valid = true;
+			break;
+
+		case AVSV_SA_AMF_SI:
+			/* Support for admin op on si before cluster timer expires. */
+			if ((avd_cb->init_state == AVD_INIT_DONE) &&
+					((opId == SA_AMF_ADMIN_LOCK) || (opId == SA_AMF_ADMIN_UNLOCK)))
+				valid = true;
+			break;
+		case AVSV_SA_AMF_COMP:
+		default:
+			break;
+	}
+
+	return valid;
+}
+
