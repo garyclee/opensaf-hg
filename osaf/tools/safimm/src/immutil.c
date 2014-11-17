@@ -1595,6 +1595,34 @@ SaAisErrorT immutil_saImmOmCcbApply(SaImmCcbHandleT immCcbHandle)
         return rc;
 }
 
+SaAisErrorT immutil_saImmOmCcbAbort(SaImmCcbHandleT immCcbHandle)
+{
+        SaAisErrorT rc = saImmOmCcbAbort(immCcbHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbAbort(immCcbHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbAbort FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmCcbValidate(SaImmCcbHandleT immCcbHandle)
+{
+        SaAisErrorT rc = saImmOmCcbValidate(immCcbHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbValidate(immCcbHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbValidate FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
 SaAisErrorT immutil_saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT ownerHandle,
                                          const SaNameT** name,
                                          SaImmScopeT scope)
