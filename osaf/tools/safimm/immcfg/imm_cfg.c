@@ -69,7 +69,8 @@ typedef enum {
 	ADMINOWNER_CLEAR = 8,
 	TRANSACTION_MODE = 9,
 	CCB_APPLY = 10,
-	CCB_ABORT = 11
+	CCB_ABORT = 11,
+	CCB_VALIDATE = 12
 } op_t;
 
 typedef enum {
@@ -132,6 +133,7 @@ static void usage(const char *progname)
 	printf("\t--admin-owner-clear\n");
 	printf("\t--ccb-apply (only in a transaction mode)\n");
 	printf("\t--ccb-abort (only in a transaction mode)\n");
+	printf("\t--ccb-validate (only in a transaction mode)\n");
 	printf("\t-X, --xsd <path_to_schema.xsd>\n");
 	printf("\t--strict (only valid for -f/--file and -L/--validate options)\n");
 
@@ -893,6 +895,19 @@ static int ccb_apply() {
 				fprintf(stderr, "saImmOmCcbApply returned SA_AIS_ERR_TIMEOUT, result for CCB is unknown\n");
 			else
 				fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+
+			const SaStringT *errStrings = NULL;
+			SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+			if(errStrings) {
+				int ix = 0;
+				while(errStrings[ix]) {
+					fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+					++ix;
+				}
+			} else if(rc2 != SA_AIS_OK) {
+				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+			}
+
 			rc = EXIT_FAILURE;
 			goto done;
 		}
@@ -920,6 +935,32 @@ static int ccb_abort() {
 		}
 
 		ccbHandle = -1;
+	}
+
+	return (transaction_mode) ? rc : 0;
+}
+
+static int ccb_validate() {
+	int rc = 0;
+	SaAisErrorT error;
+
+	if(ccbHandle != -1) {
+		if ((error = immutil_saImmOmCcbValidate(ccbHandle)) != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbValidate FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+
+			const SaStringT *errStrings = NULL;
+			SaAisErrorT rc2 = saImmOmCcbGetErrorStrings(ccbHandle, &errStrings);
+			if(errStrings) {
+				int ix = 0;
+				while(errStrings[ix]) {
+					fprintf(stderr, "OI reports: %s\n", errStrings[ix]);
+					++ix;
+				}
+			} else if(rc2 != SA_AIS_OK) {
+				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+			}
+		}
 	}
 
 	return (transaction_mode) ? rc : 0;
@@ -1127,6 +1168,7 @@ static int imm_operation(int argc, char *argv[])
 		{"admin-owner-clear", no_argument, NULL, 0},
 		{"ccb-apply", no_argument, NULL, 0},
 		{"ccb-abort", no_argument, NULL, 0},
+		{"ccb-validate", no_argument, NULL, 0},
 		{"xsd", required_argument, NULL, 'X'},
 		{"strict", no_argument, NULL, 0},
 		{0, 0, 0, 0}
@@ -1212,6 +1254,15 @@ static int imm_operation(int argc, char *argv[])
 						exit(EXIT_FAILURE);
 				}
 				op = verify_setoption(op, CCB_ABORT);
+			} else if (strcmp("ccb-validate", long_options[option_index].name) == 0) {
+				if(argc != 2) {
+					fprintf(stderr, "error - ccb-validate option does not have any argument\n");
+					if(transaction_mode)
+						return -1;
+					else
+						exit(EXIT_FAILURE);
+				}
+				op = verify_setoption(op, CCB_VALIDATE);
 			} else if (strcmp("strict", long_options[option_index].name) == 0) {
 				strictParse = 1;
 			}
@@ -1355,7 +1406,7 @@ static int imm_operation(int argc, char *argv[])
 	}
 
 	/* Remaining arguments should be object names, class names or attribute names. Need at least one... */
-	if (((argc - optind) < 1) && (op != TRANSACTION_MODE) && (op != CCB_APPLY) && (op != CCB_ABORT)) {
+	if (((argc - optind) < 1) && (op != TRANSACTION_MODE) && (op != CCB_APPLY) && (op != CCB_ABORT) && (op != CCB_VALIDATE)) {
 		fprintf(stderr, "error - specify at least one object or class\n");
 		if(transaction_mode)
 			return -1;
@@ -1393,7 +1444,7 @@ static int imm_operation(int argc, char *argv[])
 			fprintf(stderr, "immcfg is already in transaction mode\n");
 			return -1;
 		}
-	} else if (op == CCB_APPLY || op == CCB_ABORT) {
+	} else if (op == CCB_APPLY || op == CCB_ABORT || op == CCB_VALIDATE) {
 		if(!transaction_mode) {
 			/* printing the error is not necessary. 0 will be returned if it is not in transaction mode.
 			 * 0 is on exit that an immcfg script does not get break if it is not run in transaction mode */
@@ -1455,6 +1506,9 @@ static int imm_operation(int argc, char *argv[])
 		break;
 	case CCB_ABORT :
 		rc = ccb_abort();
+		break;
+	case CCB_VALIDATE :
+		rc = ccb_validate();
 		break;
 	default:
 		fprintf(stderr, "error - no operation specified\n");
