@@ -369,7 +369,7 @@ void avd_si_delete(AVD_SI *si)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
 	avd_svctype_remove_si(si);
 	si->app->remove_si(si);
-	avd_sg_remove_si(si->sg_of_si, si);
+	si->sg_of_si->remove_si(si);
 
 	// clear any pending alarms for this SI
 	if ((si->alarm_sent == true) &&
@@ -452,7 +452,7 @@ void AVD_SI::si_add_to_model()
 
 	avd_svctype_add_si(this);
 	app->add_si(this);
-	avd_sg_add_si(sg_of_si, this);
+	sg_of_si->add_si(this);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, this, AVSV_CKPT_AVD_SI_CONFIG);
 	avd_saImmOiRtObjectUpdate(&name, "saAmfSIAssignmentState",
 		SA_IMM_ATTR_SAUINT32T, &saAmfSIAssignmentState);
@@ -747,6 +747,27 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			if( si->sg_of_si->sg_redundancy_model != SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
 				report_ccb_validation_error(opdata, "Invalid modification,saAmfSIPrefStandbyAssignments"
 						" can be updated only for N_WAY_REDUNDANCY_MODEL");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				break;
+			}
+		} else if (!strcmp(attribute->attrName, "saAmfSIRank")) {
+			SaUint32T sirank = *(SaUint32T*)attribute->attrValues[0];
+
+			if (si->saAmfSIRank == (sirank == 0 ? ~0U : sirank)) {
+				report_ccb_validation_error(opdata, "Changing same value of saAmfSIRank(%u)", sirank);
+				rc = SA_AIS_ERR_EXIST;
+				break;
+			}
+
+			if (!si->is_sirank_valid(sirank)) {
+				report_ccb_validation_error(opdata, "saAmfSIRank(%u) is invalid due to SI Dependency rules", sirank);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				break;
+			}
+
+			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+				report_ccb_validation_error(opdata, "SG'%s' is not stable (%u)", si->sg_of_si->name.value,
+						si->sg_of_si->sg_fsm_state);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				break;
 			}
@@ -1156,6 +1177,9 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 			TRACE("Modified saAmfSINumCurrStandbyAssignments is '%u'", si->saAmfSINumCurrStandbyAssignments);
 			si->update_ass_state();
+		} else if (!strcmp(attribute->attrName, "saAmfSIRank")) {
+			si->update_sirank(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
+			TRACE("Modified saAmfSIRank is '%u'", si->saAmfSIRank);
 		} else {
 			osafassert(0);
 		}
@@ -1397,4 +1421,57 @@ uint32_t AVD_SI::pref_standby_assignments() const
 uint32_t AVD_SI::curr_standby_assignments() const
 {
 	return saAmfSINumCurrStandbyAssignments;
+}
+
+/*
+ * @brief Check whether @newSiRank is a valid value in term of si dependency
+ *        "...The rank of a dependent service instance must not be higher
+ *        than the ranks of the service instances on which it depends..."
+ *        Lower value means higher rank.
+ * @param [in] @newSiRank: rank of si to be checked
+ * @return true if @newSiRank is valid value, otherwise false
+ */
+bool AVD_SI::is_sirank_valid(uint32_t newSiRank) const
+{
+	AVD_SPONS_SI_NODE *node;
+
+	newSiRank = (newSiRank == 0) ? ~0U : newSiRank;
+	/* Check with its sponsors SI */
+	for (node = spons_si_list; node; node = node->next) {
+		if (newSiRank < node->si->saAmfSIRank) {
+			LOG_ER("Invalid saAmfSIRank, ('%s', rank: %u) is higher rank than "
+					"sponsor si ('%s', rank: %u)", name.value, newSiRank, 
+					node->si->name.value, node->si->saAmfSIRank);
+			return false;
+		}
+	}
+
+	/* Check with its dependent SI */
+	std::list<AVD_SI*> depsi_list;
+	get_dependent_si_list(name, depsi_list);
+	for (std::list<AVD_SI*>::const_iterator it = depsi_list.begin();
+			it != depsi_list.end(); it++) {
+		if (newSiRank > (*it)->saAmfSIRank) {
+			LOG_ER("Invalid saAmfSIRank, ('%s', rank: %u) is lower rank than "
+					"dependent si ('%s', rank: %u)", name.value, newSiRank, 
+					(*it)->name.value, (*it)->saAmfSIRank);
+			return false;
+		}
+	}
+	return true;
+}
+
+/*
+ * @brief Update saAmfSIRank by new value of @newSiRank, and update the 
+ *        the si list which is hold by the sg
+ * @param [in] @newSiRank: rank of si to be updated
+ */
+void AVD_SI::update_sirank(uint32_t newSiRank)
+{
+	AVD_SG* sg = sg_of_si;
+	
+	/* Remove and add again to maintain the descending Si rank */
+	sg->remove_si(this);
+	saAmfSIRank = (newSiRank == 0) ? ~0U : newSiRank;
+	sg->add_si(this);
 }

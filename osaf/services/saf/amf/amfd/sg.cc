@@ -169,37 +169,34 @@ void avd_sg_delete(AVD_SG *sg)
 	delete sg;
 }
 
-void avd_sg_add_si(AVD_SG *sg, AVD_SI* si)
+void AVD_SG::add_si(AVD_SI* si)
 {
 	AVD_SI *i_si = AVD_SI_NULL;
 	AVD_SI *prev_si = AVD_SI_NULL;
 
-	i_si = sg->list_of_si;
+	i_si = this->list_of_si;
 
 	while ((i_si != AVD_SI_NULL) && (i_si->saAmfSIRank < si->saAmfSIRank)) {
 		prev_si = i_si;
 		i_si = i_si->sg_list_of_si_next;
 	}
-
+	si->sg_of_si = this;
 	if (prev_si == AVD_SI_NULL) {
 		si->sg_list_of_si_next = si->sg_of_si->list_of_si;
-		sg->list_of_si = si;
+		this->list_of_si = si;
 	} else {
 		prev_si->sg_list_of_si_next = si;
 		si->sg_list_of_si_next = i_si;
 	}
 }
 
-void avd_sg_remove_si(AVD_SG *sg, AVD_SI* si)
+void AVD_SG::remove_si(AVD_SI* si)
 {
 	AVD_SI *i_si = NULL;
 	AVD_SI *prev_si = NULL;
 
-	if (!sg)
-		return;
-
-	if (sg->list_of_si != NULL) {
-		i_si = sg->list_of_si;
+	if (list_of_si != NULL) {
+		i_si = list_of_si;
 
 		while ((i_si != NULL) && (i_si != si)) {
 			prev_si = i_si;
@@ -208,7 +205,7 @@ void avd_sg_remove_si(AVD_SG *sg, AVD_SI* si)
 
 		if (i_si == si) {
 			if (prev_si == NULL) {
-				sg->list_of_si = si->sg_list_of_si_next;
+				list_of_si = si->sg_list_of_si_next;
 			} else {
 				prev_si->sg_list_of_si_next = si->sg_list_of_si_next;
 			}
