@@ -46,6 +46,7 @@
 #include <amf_defs.h>
 #include <ckpt_msg.h>
 #include <vector>
+#include <list>
 
 class AVD_APP;
 
@@ -139,7 +140,8 @@ public:
 	
 	void arrange_dep_csi(struct avd_csi_tag* csi);
 	void add_csi_db(struct avd_csi_tag* csi);
-
+	bool is_sirank_valid(uint32_t newSiRank) const;
+	void update_sirank(uint32_t newSiRank);
 private:
 	AVD_SI(const AVD_SI&);
 	AVD_SI& operator=(const AVD_SI&);

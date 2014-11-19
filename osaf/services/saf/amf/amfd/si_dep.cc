@@ -2497,6 +2497,23 @@ done:
 	TRACE_LEAVE();
 }
 
+/*
+ * @brief Searching in sidep_db for all dependent si which having sponsor si as
+ *        @spons_si_name
+ * @param [in] @spons_si_name: Name of sponsor si
+ * @param [out] @depsi_list: list of dependent si
+ */
+void get_dependent_si_list(SaNameT spons_si_name, std::list<AVD_SI*>& depsi_list)
+{
+	std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it;
+	for (it = sidep_db->begin(); it != sidep_db->end(); it++) {
+		const AVD_SI_DEP *sidep = it->second;
+		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, spons_si_name) != 0)
+			continue;
+		depsi_list.push_back(sidep->dep_si);
+	}
+}
+
 /**
  * @brief       This function performs the unassignment of dependent SI as 
  *              sponsor is unassigned (SI dependency logics).

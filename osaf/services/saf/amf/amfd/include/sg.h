@@ -206,6 +206,9 @@ public:
 				      for all those SUs hosted on a particular
 				      node. It should be reset to zero after
 				      use.*/
+	
+	void add_si(AVD_SI* si);
+	void remove_si(AVD_SI* si);
 
 	/**
 	 * Set SG admin state, logs, checkpoints and sends notification
@@ -511,8 +514,6 @@ public:
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);
-extern void avd_sg_add_si(AVD_SG *sg, AVD_SI *si);
-extern void avd_sg_remove_si(AVD_SG *sg, AVD_SI *si);
 extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app);
 extern void avd_sg_add_su(AVD_SU *su);
 extern void avd_sg_remove_su(AVD_SU *su);
