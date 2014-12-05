@@ -9821,6 +9821,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     ObjectInfo* obj = NULL;
     bool implNotSet = true;
     ImmAttrValueMap::iterator j;
+    ImplementerEvtMap::iterator iem;
     int matchedAttributes=0;
     int soughtAttributes=0;
     SaImmSearchOptionsT notAllowedOptions = 0LL;
@@ -9970,12 +9971,19 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                 checkAttribute = true;
             } else {
                 //There is no implementer
+                iem = sImplDetachTime.find(obj->mImplementer);
                 if((k->second->mFlags & SA_IMM_ATTR_PERSISTENT) &&
                     !(j->second->empty())) {
                     op.addAttrValue(*j->second);
                     checkAttribute = true;
                     //Persistent rt attributes still accessible
                     //If they have been given any value
+                } else if ((k->second->mFlags & SA_IMM_ATTR_CACHED) &&
+                    (iem != sImplDetachTime.end()) &&
+                    !(j->second->empty())) {
+                    //The attribute is cached and the OI is transiently detached
+                    op.addAttrValue(*j->second);
+                    checkAttribute = true;
                 } else {
                     checkAttribute = false;
                 }
@@ -10147,6 +10155,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
     ObjectInfo* obj = NULL;
     ObjectMap::iterator omi;
     ObjectSet::iterator osi;
+    ImplementerEvtMap::iterator iem;
     bool noDanglingSearch = req->searchOptions & SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS;
     ObjectInfo* refObj = NULL;
     ObjectMMap::iterator ommi = sReverseRefsNoDanglingMMap.end();
@@ -10521,6 +10530,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                                     checkAttribute = true;
                                 } else {
                                     //There is no implementer
+                                    iem = sImplDetachTime.find(obj->mImplementer);
                                     if(!(j->second->empty())
                                         && (k->second->mFlags & 
                                             SA_IMM_ATTR_PERSISTENT ||
@@ -10533,6 +10543,12 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                                         //sync'er is to ensure that we still
                                         //sync cached values even when there
                                         //is no implementer currently. 
+                                        op.addAttrValue(*j->second);
+                                        checkAttribute = true;
+                                    } else if ((k->second->mFlags & SA_IMM_ATTR_CACHED) &&
+                                        (iem != sImplDetachTime.end()) &&
+                                        !(j->second->empty())) {
+                                        //The attribute is cached and the OI is transiently detached
                                         op.addAttrValue(*j->second);
                                         checkAttribute = true;
                                     } else {
