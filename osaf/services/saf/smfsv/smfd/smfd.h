@@ -51,6 +51,8 @@ extern "C" {
 #define IMM_LONG_DN_CONFIG_ATTRIBUTE_NAME "longDnsAllowed"
 #define SMF_SAF_APP_DN "safApp=safSmfService"
 #define SMF_CAMP_RESTART_INDICATOR_RDN "smfCampaignRestartIndicator=smf"
+#define SMF_NODE_ID_CONTROLLER_1 0x2010f
+#define SMF_NODE_ID_CONTROLLER_2 0x2020f
 
 /* ========================================================================
  *   TYPE DEFINITIONS
