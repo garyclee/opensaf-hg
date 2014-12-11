@@ -5828,8 +5828,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
-	SaNameT objName;
-	osaf_extended_name_clear(&objName);
+	char *objName = NULL;
 	bool dnOrRdnIsLong=false;
 	TRACE_ENTER();
 
@@ -5945,12 +5944,12 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		}
 	}
 
-	if (!osaf_is_extended_name_empty(&objName) && (err == SA_AIS_OK)) {
+	if (objName && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object create */
 		SaUint32T *applConnArr = NULL;
 		int ix = 0;
 		SaUint32T arrSize =
-			immModel_getLocalAppliersForObj(cb, &objName,
+			immModel_getLocalAppliersForObj(cb, objName,
 				evt->info.objCreate.ccbId, &applConnArr, SA_FALSE);
 
 		if(arrSize) {
@@ -5999,7 +5998,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");
-			osaf_extended_name_free(&objName);
+			if(objName) free(objName);
 			return;
 		}
 
@@ -6020,7 +6019,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		}
 		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
-	osaf_extended_name_free(&objName);
+	if(objName) free(objName);
 	TRACE_LEAVE();
 }
 
@@ -6059,8 +6058,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
-	SaNameT objName;
-	osaf_extended_name_clear(&objName);
+	char *objName = NULL;
 	bool hasLongDns=false;
 	TRACE_ENTER();
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -6181,12 +6179,12 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		}
 	}
 
-	if (!osaf_is_extended_name_empty(&objName) && (err == SA_AIS_OK)) {
+	if (objName && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object modify */
 		SaUint32T *applConnArr = NULL;
 		int ix = 0;
 		SaUint32T arrSize =
-			immModel_getLocalAppliersForObj(cb, &objName,
+			immModel_getLocalAppliersForObj(cb, objName,
 				evt->info.objModify.ccbId, &applConnArr, SA_FALSE);
 
 		if(arrSize) {
@@ -6264,7 +6262,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	evt->info.objModify.objectName.size = 0;
 	immsv_free_attrmods(evt->info.objModify.attrMods);
 	evt->info.objModify.attrMods = NULL;
-	osaf_extended_name_free(&objName);
+	if (objName) free(objName);
 	TRACE_LEAVE();
 }
 
@@ -6913,12 +6911,10 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		int ix = 0;
 		for (; ix < arrSize && err == SA_AIS_OK; ++ix) { /* Iterate over deleted objects */
 			SaUint32T *applConnArr = NULL;
-			SaNameT objName;
-			osaf_extended_name_lend(objNameArr[ix], &objName);
 			send_evt.info.imma.info.objDelete.objectName.size = strlen(objNameArr[ix]) + 1;
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 			
-			SaUint32T arrSize2 = immModel_getLocalAppliersForObj(cb, &objName,
+			SaUint32T arrSize2 = immModel_getLocalAppliersForObj(cb, objNameArr[ix],
 				evt->info.objDelete.ccbId, &applConnArr, SA_TRUE);
 
 			int ix2 = 0;

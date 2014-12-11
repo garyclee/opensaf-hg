@@ -603,7 +603,7 @@ immModel_ccbObjectCreate(IMMND_CB *cb,
     SaUint32T* continuationId,
     SaUint32T* pbeConn,
     SaClmNodeIdT* pbeNodeId,
-    SaNameT* objName,
+    char** objName,
     bool* dnOrRdnIsLong)
 {
     std::string objectName;
@@ -611,8 +611,13 @@ immModel_ccbObjectCreate(IMMND_CB *cb,
         ccbObjectCreate(req, implConn, implNodeId, continuationId, 
             pbeConn, pbeNodeId, objectName, dnOrRdnIsLong);
 
-    if(err == SA_AIS_OK) {
-        osaf_extended_name_alloc(objectName.c_str(), objName);
+    if(err == SA_AIS_OK && !objectName.empty()) {
+        *objName = (char*) malloc((objectName.length() + 1) * sizeof(char));
+        if (*objName) {
+            strcpy(*objName, objectName.c_str());
+        } else {
+            err = SA_AIS_ERR_NO_MEMORY;
+        }
     }
 
     return err;
@@ -667,7 +672,7 @@ immModel_genSpecialModify(IMMND_CB *cb, struct ImmsvOmCcbObjectModify *req)
 
 SaUint32T
 immModel_getLocalAppliersForObj(IMMND_CB *cb,
-    const SaNameT* objName,
+    const char* objName,
     SaUint32T ccbId,
     SaUint32T **aplConnArr,
     SaBoolT externalRep)
@@ -726,7 +731,7 @@ immModel_ccbObjectModify(IMMND_CB *cb,
     SaUint32T* continuationId,
     SaUint32T* pbeConn,
     SaClmNodeIdT* pbeNodeId,
-    SaNameT* objName,
+    char** objName,
     bool* hasLongDns)
 {
     std::string objectName;
@@ -734,8 +739,13 @@ immModel_ccbObjectModify(IMMND_CB *cb,
         ccbObjectModify(req, implConn, implNodeId, continuationId,
         pbeConn, pbeNodeId, objectName, hasLongDns);
 
-    if(err == SA_AIS_OK) {
-        osaf_extended_name_alloc(objectName.c_str(), objName);
+    if(err == SA_AIS_OK && !objectName.empty()) {
+        *objName = (char*) malloc((objectName.length() + 1) * sizeof(char));
+        if (*objName) {
+            strcpy(*objName, objectName.c_str());
+        } else {
+            err = SA_AIS_ERR_NO_MEMORY;
+        }
     }
 
     return err;
@@ -6057,14 +6067,14 @@ void ImmModel::getLocalAppliersForCcb(SaUint32T ccbId, ConnVector& cv, SaUint32T
     *applCtnPtr = ccb->mOpCount;
 }
 
-void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
+void ImmModel::getLocalAppliersForObj(const char* objName, SaUint32T ccbId,
     ConnVector& cv, bool externalRep)
 {
     CcbInfo* ccb = 0;
     CcbVector::iterator i1;
     cv.clear(); 
 
-    std::string objectName(osaf_extended_name_borrow(objName));
+    std::string objectName(objName);
     if(externalRep && !(nameCheck(objectName)||nameToInternal(objectName))) {
         LOG_ER("Not a proper object name");
         abort();

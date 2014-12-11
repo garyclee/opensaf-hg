@@ -163,9 +163,9 @@ extern "C" {
 	    immModel_ccbObjectCreate(IMMND_CB *cb,
 		    struct ImmsvOmCcbObjectCreate *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
 		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, 
-                    SaNameT* objName, bool* dnOrRdnIsLong);
+                    char** objName, bool* dnOrRdnIsLong);
 
-	SaUint32T immModel_getLocalAppliersForObj(IMMND_CB *cb, const SaNameT* objName, SaUint32T ccbId,
+	SaUint32T immModel_getLocalAppliersForObj(IMMND_CB *cb, const char* objName, SaUint32T ccbId,
                 SaUint32T **aplConnArr, SaBoolT externalRep);
 	SaUint32T immModel_getLocalAppliersForCcb(IMMND_CB *cb, SaUint32T ccbId, SaUint32T **aplConnArr,
 		SaUint32T* applCtnPtr);
@@ -174,7 +174,7 @@ extern "C" {
 	    immModel_ccbObjectModify(IMMND_CB *cb,
 		    const struct ImmsvOmCcbObjectModify *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
 		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId,
-                    SaNameT* objName, bool* hasLongDns);
+                    char** objName, bool* hasLongDns);
 
 	void immModel_ccbCompletedContinuation(IMMND_CB *cb,
 					       struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
