@@ -225,7 +225,7 @@ public:
     void                genSpecialModify(ImmsvOmCcbObjectModify* req);
 
     void                getLocalAppliersForObj(
-                                        const SaNameT* objName,
+                                        const char* objName,
 					SaUint32T ccbId,
                                         ConnVector& connVector,
                                         bool externalRep);
