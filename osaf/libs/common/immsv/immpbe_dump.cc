@@ -2396,6 +2396,13 @@ bool objectToPBE(std::string objectNameString,
 bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle)
 {
+	std::list<std::string> emptyList;
+	return dumpClassesToPbe(immHandle, classIdMap, db_handle, emptyList);
+}
+
+bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
+	void* db_handle, std::list<std::string>& selectedClassList)
+{
 	std::list<std::string> classNameList;
 	std::list<std::string>::iterator it;
 	int rc=0;
@@ -2403,7 +2410,11 @@ bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	char *execErr=NULL;	sqlite3* dbHandle = (sqlite3 *) db_handle;
 	TRACE_ENTER();
 
-	classNameList = getClassNames(immHandle);
+	if (selectedClassList.empty()) {
+		classNameList = getClassNames(immHandle);
+	} else {
+		classNameList = selectedClassList;
+	}
 	it = classNameList.begin();
 
 	rc = sqlite3_exec(dbHandle, "BEGIN EXCLUSIVE TRANSACTION", NULL, NULL, &execErr);
@@ -2622,6 +2633,123 @@ int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	return object_id; /* == number of dumped objects */
  bailout:
 	sqlite3_close(dbHandle);
+	return(-1);
+}
+
+int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
+	void* db_handle, std::list<std::string>& selectedClassList)
+{
+	int                      rc=0;
+	SaNameT                  root;
+	SaImmSearchHandleT       searchHandle;
+	SaAisErrorT              errorCode;
+	SaNameT                  objectName;
+	SaImmAttrValuesT_2**     attrs;
+	SaImmSearchParametersT_2 searchParam;
+	unsigned int             retryInterval = 1000000; /* 1 sec */
+	unsigned int             maxTries = 15;          /* 15 times == max 15 secs */
+	char *execErr=NULL;
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	TRACE_ENTER();
+	unsigned int object_id=0;
+	osaf_extended_name_clear(&root);
+	std::list<std::string>::iterator it = selectedClassList.begin();
+
+	rc = sqlite3_exec(dbHandle, "BEGIN EXCLUSIVE TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('BEGIN EXCLUSIVE TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+
+	while (it != selectedClassList.end()) {
+		const char *className = (*it).c_str();
+		searchParam.searchOneAttr.attrName = (SaImmAttrNameT) SA_IMM_ATTR_CLASS_NAME;
+		searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+		searchParam.searchOneAttr.attrValue = &className;
+
+		/* Initialize immOmSearch */
+		TRACE_1("searchInitialize for objects of class '%s'", className);
+		unsigned int tryCount=0;
+		do {
+			if(tryCount) {
+				usleep(retryInterval);
+			}
+			++tryCount;
+
+			errorCode = saImmOmSearchInitialize_2(immHandle,
+				&root,
+				SA_IMM_SUBTREE,
+				(SaImmSearchOptionsT)
+				(SA_IMM_SEARCH_ONE_ATTR |
+					SA_IMM_SEARCH_GET_ALL_ATTR |
+					SA_IMM_SEARCH_PERSISTENT_ATTRS),//Special & nonstandard
+				&searchParam,
+				NULL,
+				&searchHandle);
+		} while ((errorCode == SA_AIS_ERR_TRY_AGAIN || errorCode == SA_AIS_ERR_NO_RESOURCES) &&
+			(tryCount < maxTries)); /* Can happen if imm is syncing. */
+
+		if (SA_AIS_OK != errorCode)
+		{
+			LOG_ER("Failed on saImmOmSearchInitialize:%u - exiting ", errorCode);
+			goto bailout;
+		}
+
+		/* Iterate through the object space */
+		do
+		{
+			errorCode = saImmOmSearchNext_2(searchHandle, &objectName, &attrs);
+
+			if (SA_AIS_OK != errorCode)
+			{
+				break;
+			}
+
+			if (attrs[0] == NULL)
+			{
+				TRACE_2("Skipping object %s because no attributes from searchNext",
+					osaf_extended_name_borrow(&objectName));
+				continue;
+			}
+
+			if(!objectToPBE(std::string(osaf_extended_name_borrow(&objectName)),
+				(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, ++object_id,
+				NULL, 0)) {
+				goto bailout;
+			}
+
+		} while (true);
+
+		if (SA_AIS_ERR_NOT_EXIST != errorCode)
+		{
+			LOG_ER("Failed in saImmOmSearchNext_2:%u - exiting", errorCode);
+			goto bailout;
+		}
+
+		/* End the search */
+		saImmOmSearchFinalize(searchHandle);
+
+		/* Next class */
+		it++;
+	}
+
+	rc = sqlite3_exec(dbHandle, "COMMIT TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('COMMIT TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+		goto bailout;
+	}
+
+	fsyncPbeJournalFile();
+	TRACE_LEAVE();
+	return object_id; /* == number of dumped objects */
+
+ bailout:
+	sqlite3_close(dbHandle);
+	TRACE_LEAVE();
 	return(-1);
 }
 
