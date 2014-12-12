@@ -66,6 +66,8 @@ void pbeAtomicSwitchFile(const char* filePath, std::string localTmpFilename);
 void pbeRepositoryClose(void* dbHandle);
 bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
+bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
+	void* db_handle, std::list<std::string>& selectedClassList);
 
 unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string className, void* db_handle);
 int dumpInstancesOfClassToPBE(SaImmHandleT immHandle, ClassMap *classIdMap,
@@ -82,6 +84,8 @@ int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap,
 
 int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle);
+int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
+	void* db_handle, std::list<std::string>& selectedClassList);
 bool objectToPBE(std::string objectNameString,
 	const SaImmAttrValuesT_2** attrs,
 	ClassMap* classIdMap, void* db_handle, unsigned int object_id,

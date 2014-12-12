@@ -34,7 +34,8 @@
 #define XML_VERSION "1.0"
 
 /* Prototypes */
-static std::map<std::string, std::string> cacheRDNs(SaImmHandleT);
+static std::map<std::string, std::string> cacheRDNs(SaImmHandleT, std::list<std::string>& selectedClassList);
+static int checkClassNames(SaImmHandleT immHandle, std::list<std::string>& inputList);
 
 static void usage(const char *progname)
 {
@@ -57,8 +58,12 @@ static void usage(const char *progname)
     printf("\t-p, --pbe   {<file name>}\n");
     printf("\t\tCreate an IMM database file from the current IMM state\n\n");
 
+    printf("\t-c, --class   {<class name>}\n");
+    printf("\t\tOnly dump objects of this class\n\n");
+
     printf("\nEXAMPLE\n");
     printf("\t%s /tmp/imm.xml\n", progname);
+    printf("\t%s /tmp/imm.xml -c ClassA -c ClassB\n", progname);
 }
 
 
@@ -81,7 +86,8 @@ int main(int argc, char* argv[])
     struct option long_options[] = {
         {"help", no_argument, 0, 'h'},
         {"pbe", required_argument, 0, 'p'},
-        {"xmlwriter", no_argument, 0, 'x'},
+        {"xmlwriter", required_argument, 0, 'x'},
+        {"class", required_argument, 0, 'c'},
         {0, 0, 0, 0}
     };
     SaImmHandleT           immHandle;
@@ -112,6 +118,7 @@ int main(int argc, char* argv[])
     const char* trace_label = dump_trace_label;
     ClassMap classIdMap;
     int objCount=0;
+    std::list<std::string> selectedClassList;
 
 	/* Support for long DN */
 	setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1);
@@ -133,15 +140,8 @@ int main(int argc, char* argv[])
         /* We allow the dump to execute anyway. */
     }
 
-    if (argc > 5)
-    {
-        printf("Usage: %s [ <xmldumpfile> ]\n", basename(argv[0]));
-	usage(basename(argv[0]));
-        exit(1);
-    }
-
     while (1) {
-    if ((c = getopt_long(argc, argv, "hp:x:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hp:x:c:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -158,6 +158,10 @@ int main(int argc, char* argv[])
 
                 case 'x':
                     filename.append(optarg);
+                    break;
+
+                case 'c':
+                    selectedClassList.push_back(std::string(optarg));
                     break;
 
                 default:
@@ -182,12 +186,14 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    if (!selectedClassList.empty() && !checkClassNames(immHandle, selectedClassList)) {
+        /* selectedClassList has no valid class */
+        std::cerr << "No valid class - exiting" << std::endl;
+        exit(1);
+    }
+
     if(pbeDumpCase) {
     	/* Generate PBE database file from current IMM state */
-
-        if(filename.empty()) {
-    	    filename.append(argv[1]);
-        }
 
     	std::cout <<
             "Generating DB file from current IMM state. File: " << filename <<
@@ -205,7 +211,7 @@ int main(int argc, char* argv[])
             exit(1);
         }
 
-        if(dumpClassesToPbe(immHandle, &classIdMap, dbHandle)) {
+        if(dumpClassesToPbe(immHandle, &classIdMap, dbHandle, selectedClassList)) {
             TRACE("Dump classes OK");
 	} else {
             std::cerr << "immdump: dumpClassesToPbe failed - exiting, check syslog for details"
@@ -213,10 +219,14 @@ int main(int argc, char* argv[])
             exit(1);
 	}
 
-        objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
+        if (selectedClassList.empty()) {
+            objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
+        } else {
+            objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle, selectedClassList);
+        }
 	if(objCount > 0) {
             TRACE("Dump %u objects OK", objCount);
-	} else {
+	} else if (selectedClassList.empty()) {
             std::cerr << "immdump: dumpObjectsToPbe failed - exiting, check syslog for details"
                 << std::endl;
             exit(1);
@@ -241,11 +251,13 @@ int main(int argc, char* argv[])
     } else {
         /* Generate IMM XML file from current IMM state */
         /* xmlWriter dump case */
-    	if(filename.empty() && argc == 1) {
+    	if(filename.empty() && argc == optind) {
     		filename.append("/proc/self/fd/1");
     	} else {
     		if(filename.empty())
-    			filename.append(argv[1]);
+                /* getopt rearranges the position of arguments
+                 * argv[1] before getopting is now argv[optind] */
+    			filename.append(argv[optind]);
     		std::cout << "Dumping current IMM state to XML file " << filename <<
     				" using XMLWriter" << std::endl;
     	}
@@ -298,11 +310,15 @@ int main(int argc, char* argv[])
         	exit(1);
         }
 
-        classRDNMap = cacheRDNs(immHandle);
+        classRDNMap = cacheRDNs(immHandle, selectedClassList);
 
-        dumpClassesXMLw(immHandle, writer);
+        dumpClassesXMLw(immHandle, writer, selectedClassList);
 
-        dumpObjectsXMLw(immHandle, classRDNMap, writer);
+        if (selectedClassList.empty()) {
+            dumpObjectsXMLw(immHandle, classRDNMap, writer);
+        } else {
+            dumpObjectsXMLw(immHandle, classRDNMap, writer, selectedClassList);
+        }
 
         /* Close element named imm:IMM-contents */
         if( xmlTextWriterEndElement(writer) < 0) {
@@ -315,18 +331,31 @@ int main(int argc, char* argv[])
         xmlMemoryDump();
 	}
 
+    /* Finalize immOm */
+    errorCode = saImmOmFinalize(immHandle);
+    if (SA_AIS_OK != errorCode)
+    {
+        std::cerr << "Failed to finalize the imm om interface"
+            << errorCode
+            <<  std::endl;
+    }
+
     return 0;
 }
 
 static std::map<std::string, std::string>
-    cacheRDNs(SaImmHandleT immHandle)
+    cacheRDNs(SaImmHandleT immHandle, std::list<std::string>& selectedClassList)
 {
     std::list<std::string>             classNamesList;
     SaImmClassCategoryT                classCategory;
     SaImmAttrDefinitionT_2**           attrs;
     std::map<std::string, std::string> classRDNMap;
 
-    classNamesList = getClassNames(immHandle);
+    if (selectedClassList.empty()) {
+        classNamesList = getClassNames(immHandle);
+    } else {
+        classNamesList = selectedClassList;
+    }
 
     std::list<std::string>::iterator it = classNamesList.begin();
 
@@ -347,9 +376,37 @@ static std::map<std::string, std::string>
             }
         }
 
+        /* Avoid memory leaking */
+        saImmOmClassDescriptionMemoryFree_2(immHandle, attrs);
+
         it++;
     }
 
     return classRDNMap;
 }
 
+int checkClassNames(SaImmHandleT immHandle, std::list<std::string>& inputList)
+{
+    std::list<std::string> classNameList = getClassNames(immHandle);
+    std::list<std::string>::iterator it = inputList.begin();
+    while (it != inputList.end()) {
+        std::list<std::string>::iterator sub_it = classNameList.begin();
+        bool found = false;
+        while (sub_it != classNameList.end()) {
+            if (*it == *sub_it) {
+                found = true;
+                break;
+            }
+            sub_it++;
+        }
+        if (found) {
+            it++;
+        } else {
+            printf("Warning: Class '%s' doesn't exist\n", (*it).c_str());
+            /* Remove invalid class from list */
+            it = inputList.erase(it);
+        }
+    }
+
+    return inputList.size();
+}

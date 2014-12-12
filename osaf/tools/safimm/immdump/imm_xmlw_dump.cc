@@ -23,7 +23,32 @@
 #include "saAis.h"
 #include "osaf_unicode.h"
 #include "osaf_extended_name.h"
+#include <set>
 
+typedef std::pair<std::string, std::list<std::string> > Attribute;
+
+typedef struct {
+    std::string dn;
+    std::string reversedDn;
+    std::string className;
+    /* Attribute name and attribute values */
+    std::list<Attribute> attributes;
+} Object;
+
+/* Comparision object for Object */
+struct ObjectComp {
+    bool operator()(const Object& lhs, const Object& rhs) {
+        return (lhs.reversedDn.compare(rhs.reversedDn) < 0) ? true : false;
+    }
+};
+
+static std::string ReverseDn(std::string& input);
+static void StoreObject(std::string objectName,
+                 SaImmAttrValuesT_2** attrs,
+                 std::set<Object, ObjectComp>& objectSet,
+                 std::map<std::string, std::string>& classRDNMap);
+static void ObjectSetToXMLw(std::set<Object, ObjectComp>& objectSet,
+                        xmlTextWriterPtr writer);
 
 /* Functions */
 
@@ -124,13 +149,125 @@ void dumpObjectsXMLw(SaImmHandleT immHandle,
     TRACE_LEAVE();
 }
 
-void dumpClassesXMLw(SaImmHandleT immHandle, xmlTextWriterPtr writer)
+void dumpObjectsXMLw(SaImmHandleT immHandle,
+                        std::map<std::string, std::string> classRDNMap,
+                        xmlTextWriterPtr writer,
+                        std::list<std::string>& selectedClassList)
+{
+    SaNameT                  root;
+    SaImmSearchHandleT       searchHandle;
+    SaAisErrorT              errorCode;
+    SaNameT                  objectName;
+    SaImmAttrValuesT_2**     attrs;
+    SaImmSearchParametersT_2 searchParam;
+    unsigned int             retryInterval = 1000000; /* 1 sec */
+    unsigned int             maxTries = 15;          /* 15 times == max 15 secs */
+
+    /* A set of objects, sorted by reversed dn */
+    std::set<Object, ObjectComp> objectSet;
+    TRACE_ENTER();
+
+    osaf_extended_name_clear(&root);
+
+    std::list<std::string>::iterator it = selectedClassList.begin();
+    while (it != selectedClassList.end()) {
+        const char *className = (*it).c_str();
+        searchParam.searchOneAttr.attrName = (SaImmAttrNameT) SA_IMM_ATTR_CLASS_NAME;
+        searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+        searchParam.searchOneAttr.attrValue = &className;
+
+        /* Initialize immOmSearch */
+        TRACE_1("searchInitialize for objects of class '%s'", className);
+        unsigned int tryCount=0;
+        do {
+            if(tryCount) {
+                usleep(retryInterval);
+            }
+            ++tryCount;
+
+            errorCode = saImmOmSearchInitialize_2(immHandle,
+                &root,
+                SA_IMM_SUBTREE,
+                (SaImmSearchOptionsT)
+                (SA_IMM_SEARCH_ONE_ATTR |
+                    SA_IMM_SEARCH_GET_ALL_ATTR |
+                    SA_IMM_SEARCH_PERSISTENT_ATTRS),/*only persistent rtattrs*/
+                &searchParam,
+                NULL,
+                &searchHandle);
+
+        } while ((errorCode == SA_AIS_ERR_TRY_AGAIN) &&
+                  (tryCount < maxTries)); /* Can happen if imm is syncing. */
+
+        if (SA_AIS_OK != errorCode)
+        {
+            std::cerr << "Failed on saImmOmSearchInitialize - exiting "
+                << errorCode
+                << std::endl;
+            exit(1);
+        }
+
+        /* Iterate through the object space */
+        do
+        {
+            errorCode = saImmOmSearchNext_2(searchHandle,
+                                            &objectName,
+                                            &attrs);
+
+            if (SA_AIS_OK != errorCode)
+            {
+                break;
+            }
+
+            if (attrs[0] == NULL)
+            {
+                continue;
+            }
+
+            StoreObject(std::string(osaf_extended_name_borrow(&objectName)),
+                        attrs,
+                        objectSet,
+                        classRDNMap);
+        } while (SA_AIS_OK == errorCode);
+
+        if (SA_AIS_ERR_NOT_EXIST != errorCode)
+        {
+            std::cerr << "Failed in saImmOmSearchNext_2 - exiting"
+                << errorCode
+                << std::endl;
+            exit(1);
+        }
+
+        /* End the search */
+        errorCode = saImmOmSearchFinalize(searchHandle);
+        if (SA_AIS_OK != errorCode)
+        {
+            std::cerr << "Failed to finalize the search connection - exiting"
+                << errorCode
+                << std::endl;
+        }
+
+        /* Next class */
+        it++;
+    }
+
+    ObjectSetToXMLw(objectSet, writer);
+
+    TRACE_LEAVE();
+}
+
+void dumpClassesXMLw(SaImmHandleT immHandle, xmlTextWriterPtr writer,
+                     std::list<std::string>& selectedClassList)
 {
     std::list<std::string> classNameList;
     std::list<std::string>::iterator it;
     TRACE_ENTER();
 
-    classNameList = getClassNames(immHandle);
+    if (selectedClassList.empty()) {
+        classNameList = getClassNames(immHandle);
+    } else {
+        classNameList = selectedClassList;
+    }
 
     it = classNameList.begin();
 
@@ -381,6 +518,155 @@ void objectToXMLw(std::string objectNameString,
     }
     TRACE_LEAVE();
 
+}
+
+static std::string ReverseDn(std::string& input)
+{
+    std::string result = "";
+    size_t start_cut = 0;
+    size_t comma_pos = 0;
+
+    do {
+        size_t start_search = start_cut;
+        while ((comma_pos = input.find(",", start_search)) == input.find("\\,", start_search) + 1)
+            start_search = input.find(",", start_search) + 1; /* Skip the "\," by shifting start position*/
+
+        /* Insert RDN to the begin of the result */
+        if (!result.empty())
+            result.insert(0, ",");
+        result.insert(0, input, start_cut, comma_pos - start_cut);
+
+        /* Next RDN */
+        start_cut = comma_pos + 1;
+    } while (comma_pos != std::string::npos);
+
+    return result;
+}
+
+static void StoreObject(std::string objectName,
+                 SaImmAttrValuesT_2** attrs,
+                 std::set<Object, ObjectComp>& objectSet,
+                 std::map<std::string, std::string>& classRDNMap)
+{
+    TRACE_ENTER();
+    Object obj;
+    obj.dn = objectName;
+    obj.reversedDn = ReverseDn(objectName);
+    obj.className = getClassName((const SaImmAttrValuesT_2**) attrs);
+
+    /* Add attributes to list */
+    for (SaImmAttrValuesT_2** p = attrs; *p != NULL; p++) {
+        /* Skip attributes with attrValues = NULL */
+        if ((*p)->attrValues == NULL) {
+            continue;
+        }
+        /* Skip RDN */
+        if (classRDNMap.find(obj.className) != classRDNMap.end() &&
+            classRDNMap[obj.className] == std::string((*p)->attrName)) {
+            continue;
+        }
+
+        /* Skip the attributes that are not allowed
+         * when using immcfg to import the objects */
+        if (std::string((*p)->attrName) == SA_IMM_ATTR_CLASS_NAME ||
+                std::string((*p)->attrName) == SA_IMM_ATTR_ADMIN_OWNER_NAME ||
+                std::string((*p)->attrName) == SA_IMM_ATTR_IMPLEMENTER_NAME) {
+            continue;
+        }
+
+        std::string attributeName = std::string((*p)->attrName);
+        std::list<std::string> values;
+
+        /* Add attribute values to list */
+        for (unsigned int i = 0; i < (*p)->attrValuesNumber; i++) {
+            std::string value = valueToString((*p)->attrValues[i], (*p)->attrValueType);
+            values.push_back(value);
+        }
+
+        obj.attributes.push_back(Attribute(attributeName,values));
+    }
+
+    /* Add object to set */
+    objectSet.insert(obj);
+
+    TRACE_LEAVE();
+}
+
+static void ObjectSetToXMLw(std::set<Object, ObjectComp>& objectSet,
+                        xmlTextWriterPtr writer)
+{
+    TRACE_ENTER();
+
+    for (std::set<Object, ObjectComp>::iterator it = objectSet.begin(); it != objectSet.end(); ++it) {
+        /* Create the object tag */
+        if(xmlTextWriterStartElement(writer, (xmlChar*) "object") < 0) {
+          std::cout << "Error at xmlTextWriterStartElement" << std::endl;
+          exit(1);
+        }
+        if(xmlTextWriterWriteAttribute(writer, (xmlChar*) "class",
+           (xmlChar *) it->className.c_str()) < 0) {
+            std::cout << "Error at xmlTextWriterWriteAttribute" << std::endl;
+            exit(1);
+        }
+        if(xmlTextWriterWriteElement(writer, (xmlChar*) "dn",
+           (xmlChar*) it->dn.c_str()) < 0 )  {
+            std::cout << "Error at xmlTextWriterWriteElement (dn)" << std::endl;
+            exit(1);
+        }
+
+        /* Write attributes */
+        for (std::list<Attribute>::const_iterator attr_it = it->attributes.begin(); attr_it != it->attributes.end(); ++attr_it) {
+            if(xmlTextWriterStartElement(writer,(xmlChar*) "attr")  < 0 )  {
+                std::cout << "Error at xmlTextWriterStartElement (attr-object)" << std::endl;
+                exit(1);
+            }
+
+            if(xmlTextWriterWriteElement(writer, (xmlChar*) "name",
+               (xmlChar*) attr_it->first.c_str()) < 0 ) {
+                std::cout << "Error at xmlTextWriterWriteElement(name)" << std::endl;
+                exit(1);
+            }
+
+            /* Write attribute values */
+            for (std::list<std::string>::const_iterator value_it = attr_it->second.begin(); value_it != attr_it->second.end(); ++value_it) {
+                if(xmlTextWriterStartElement(writer, (xmlChar*) "value") < 0) {
+                    std::cout << "Error at xmlTextWriterStartElement (value)" << std::endl;
+                    exit(1);
+                }
+                if(osaf_is_valid_xml_utf8((*value_it).c_str())) {
+                    if(xmlTextWriterWriteString(writer, (xmlChar *) (*value_it).c_str()) < 0) {
+                        std::cout << "Error at xmlTextWriterWriteString (value)" << std::endl;
+                        exit(1);
+                    }
+                } else {
+                    if(xmlTextWriterWriteAttribute(writer, (xmlChar*)"xsi:type", (xmlChar*)"xs:base64Binary") < 0) {
+                        std::cout << "Error at xmlTextWriterWriteAttribute (value)" << std::endl;
+                        exit(1);
+                    }
+                    if(xmlTextWriterWriteBase64(writer, (*value_it).c_str(), 0, (*value_it).size()) < 0) {
+                        std::cout << "Error at xmlTextWriterWriteBase64 (value)" << std::endl;
+                        exit(1);
+                    }
+                }
+                if(xmlTextWriterEndElement(writer) < 0) {
+                    std::cout << "Error at xmlTextWriterWriteEndElement (value)" << std::endl;
+                    exit(1);
+                }
+            } /* Attribute values loop */
+
+            if(xmlTextWriterEndElement(writer) < 0) {
+                std::cout << "Error at xmlTextWriterEndElement (attr-object)" << std::endl;
+                exit(1);
+            }
+        } /* Attributes loop */
+
+        if(xmlTextWriterEndElement(writer) < 0 ) {
+        std::cout << "Error at xmlTextWriterEndElement (object)" << std::endl;
+          exit(1);
+        }
+    } /* Objects loop */
+
+    TRACE_LEAVE();
 }
 
 void valuesToXMLw(SaImmAttrValuesT_2* p, xmlTextWriterPtr writer)
