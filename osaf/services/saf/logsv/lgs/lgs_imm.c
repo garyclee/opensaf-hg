@@ -40,6 +40,7 @@
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_file.h"
+#include "osaf_time.h"
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
@@ -1878,6 +1879,7 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	int i = 0;
 	bool checkpoint_flag = false;
 	bool mbox_cfg_flag = false;
+	struct timespec curtime_tspec;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -1894,7 +1896,8 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			 */
 			const char *new_logRootDirectory = *((char **)value);
 			
-			time_t cur_time = time(NULL);
+			osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
+			time_t cur_time = curtime_tspec.tv_sec;
 			/* Change root dir in lgs*/
 			/* NOTE: This function is using the old root path still in lgs_cb
 			 * therefore it cannot be changed until filemove is done
@@ -2092,6 +2095,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	char current_logfile_name[NAME_MAX];
 	bool new_cfg_file_needed = false;
 	int n = 0;
+	struct timespec curtime_tspec;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -2157,7 +2161,8 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
 
-	time_t cur_time = time(NULL);
+	osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
+	time_t cur_time = curtime_tspec.tv_sec;
 	if (new_cfg_file_needed) {
 		int rc;
 		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES, stream,
@@ -2178,7 +2183,9 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 static void stream_ccb_apply_delete(const CcbUtilOperationData_t *opdata)
 {
 	log_stream_t *stream;
-	time_t file_closetime = time(NULL);
+	struct timespec closetime_tspec;
+	osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+	time_t file_closetime = closetime_tspec.tv_sec;
 	
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 

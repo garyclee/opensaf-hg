@@ -148,12 +148,14 @@ int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr)
 	uint32_t status = 0;
 	lgs_stream_list_t *cur_rec;
 	time_t closetime = 0;
+	struct timespec closetime_tspec;
 
 	TRACE_ENTER2("client_id %u", client_id);
 	
 	/* Initiate close time value if not provided via closetime_ptr */
 	if (closetime_ptr == NULL) {
-		closetime = time(NULL);
+		osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+		closetime = closetime_tspec.tv_sec;
 	} else {
 		closetime = *closetime_ptr;
 	}
@@ -368,6 +370,7 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 	lgsv_ckpt_msg_v2_t ckpt_v2;
 	void *ckpt_ptr;
 	uint32_t async_rc = NCSCC_RC_SUCCESS;
+	struct timespec closetime_tspec;
 
 	TRACE_ENTER();
 	
@@ -377,7 +380,8 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 	case LGSV_LGS_EVT_LGA_DOWN:
 		if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		/* Remove this LGA entry from our processing lists */
-			time_t closetime = time(NULL);
+			osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+			time_t closetime = closetime_tspec.tv_sec;
 			(void)lgs_client_delete_by_mds_dest(evt->fr_dest, &closetime);
 
 			/*Send an async checkpoint update to STANDBY EDS peer */
@@ -473,10 +477,12 @@ static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 */
 static void lgs_process_lga_down_list(void)
 {
+	struct timespec closetime_tspec;
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 		LGA_DOWN_LIST *lga_down_rec = NULL;
 		LGA_DOWN_LIST *temp_lga_down_rec = NULL;
-		time_t closetime = time(NULL);
+		osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+		time_t closetime = closetime_tspec.tv_sec;
 
 		lga_down_rec = lgs_cb->lga_down_list_head;
 		while (lga_down_rec) {
@@ -683,11 +689,13 @@ static uint32_t proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_ckpt_msg_v1_t ckpt_v1;
 	lgsv_ckpt_msg_v2_t ckpt_v2;
 	void *ckpt_ptr;
+	struct timespec closetime_tspec;
 
 	TRACE_ENTER2("client_id %u", client_id);
 
 	/* Free all resources allocated by this client. */
-	time_t closetime = time(NULL);
+	osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+	time_t closetime = closetime_tspec.tv_sec;
 	if ((rc = lgs_client_delete(client_id, &closetime)) != 0) {
 		TRACE("lgs_client_delete FAILED: %d", rc);
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;

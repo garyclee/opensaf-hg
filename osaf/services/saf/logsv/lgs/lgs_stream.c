@@ -29,6 +29,7 @@
 #include "lgs.h"
 #include "lgs_file.h"
 #include "lgs_filehdl.h"
+#include "osaf_time.h"
 
 #define DEFAULT_NUM_APP_LOG_STREAMS 64
 #define LGS_LOG_FILE_EXT ".log"
@@ -811,8 +812,8 @@ void log_stream_open_fileinit(log_stream_t *stream)
  * the name of the closed log file.
  * 
  * @param stream[in]
- * @param close_time[in/out] Time in sec since Epoch (time()). If the value of
- *                           this pointer is 0 time is fetched using time() and
+ * @param close_time[in/out] Time in sec since Epoch (osaf_clock_gettime()). If the value of
+ *                           this pointer is 0 time is fetched using osaf_clock_gettime() and
  *                           the value is updated (out) with this time.
  *                           If the value contains a time (other than 0) this
  *                           time is used
@@ -828,6 +829,7 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 	const unsigned int max_waiting_time = 8 * 1000;	/* 8 secs */
 	const unsigned int sleep_delay_ms = 500;
 	SaUint32T trace_num_openers;
+	struct timespec closetime_tspec;
 
 	osafassert(stream != NULL);
 	TRACE_ENTER2("%s", stream->name);
@@ -859,7 +861,8 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 
 			/* Handle time for renaming */
 			if (*close_time_ptr == 0) {
-				*close_time_ptr = time(NULL);
+				osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+				*close_time_ptr = closetime_tspec.tv_sec;
 			}
 			timeString = lgs_get_time(close_time_ptr);				
 	
@@ -1112,6 +1115,7 @@ static int log_rotation_act(log_stream_t *stream, size_t count)
 	int rc;
 	int errno_save;
 	int errno_ret;
+	struct timespec closetime_tspec;
 	
 	/* If file size > max file size:
 	 *  - Close the log file and create a new.
@@ -1121,7 +1125,8 @@ static int log_rotation_act(log_stream_t *stream, size_t count)
 	stream->curFileSize += count;
 
 	if ((stream->curFileSize) > stream->maxLogFileSize) {
-		time_t closetime = time(NULL);
+		osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+		time_t closetime = closetime_tspec.tv_sec;
 		char *current_time = lgs_get_time(&closetime);
 
 		/* Close current log file */
