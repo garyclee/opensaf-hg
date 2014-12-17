@@ -19,6 +19,7 @@
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
 #include "lgs_fmt.h"
+#include "osaf_time.h"
 
 #include "lgs_mbcsv_v2.h"
 #include "lgs_mbcsv_v1.h"
@@ -1901,6 +1902,7 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 {
 	log_stream_t *stream;
 	time_t closetime;
+	struct timespec closetime_tspec;
 	
 	char *name;
 	char *fileName;
@@ -1943,7 +1945,8 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 		logFileFormat = data_v1->ckpt_rec.stream_cfg.logFileFormat;
 		severityFilter = data_v1->ckpt_rec.stream_cfg.severityFilter;
 		logFileCurrent = data_v1->ckpt_rec.stream_cfg.logFileCurrent;
-		closetime = time(NULL);
+		osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
+		closetime = closetime_tspec.tv_sec;
 	}
 	
 	if ((stream = log_stream_get_by_name(name)) == NULL) {

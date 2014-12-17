@@ -36,6 +36,7 @@
 #include "lgs_fmt.h"
 #include "lgs_file.h"
 #include "lgs_filehdl.h"
+#include "osaf_time.h"
 
 #define ALARM_STREAM_ENV_PREFIX "ALARM"
 #define NOTIFICATION_STREAM_ENV_PREFIX "NOTIFICATION"
@@ -168,7 +169,7 @@ done:
  * 
  * @param time_in
  *        Time to format.
- *        If NULL time is fetched using time()
+ *        If NULL time is fetched using osaf_clock_gettime()
  * @return char*
  */
 char *lgs_get_time(time_t *time_in)
@@ -178,9 +179,11 @@ char *lgs_get_time(time_t *time_in)
 	char srcString[5];
 	uint32_t stringSize;
 	time_t testTime;
+	struct timespec testime_tspec;
 
 	if (time_in == NULL) {
-		time(&testTime);
+		osaf_clock_gettime(CLOCK_REALTIME, &testime_tspec);
+		testTime = testime_tspec.tv_sec;
 	} else {
 		testTime = *time_in;
 	}
@@ -219,7 +222,12 @@ char *lgs_get_time(time_t *time_in)
 
 SaTimeT lgs_get_SaTime(void)
 {
-	return time(NULL) * SA_TIME_ONE_SECOND;
+	SaTimeT logTime;
+	struct timespec curtime_tspec;
+
+	osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
+	logTime = ((unsigned)curtime_tspec.tv_sec * 1000000000ULL) + (unsigned)curtime_tspec.tv_nsec;
+	return logTime;
 }
 
 /**
