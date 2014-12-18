@@ -5846,7 +5846,7 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
 
     TRACE_ENTER();
     /*Note: objectName is parent-name for the create case! */
-    std::string objectName(osaf_extended_name_borrow(&rsp->name));
+    std::string objectName(rsp->name.buf);
     osafassert(nameCheck(objectName)||nameToInternal(objectName));
 
     i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
@@ -9437,7 +9437,7 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
     SaUint32T* reqConn, bool* augDelete)
 {
     TRACE_ENTER();
-    std::string objectName(osaf_extended_name_borrow(&rsp->name));
+    std::string objectName(rsp->name.buf);
 
     SaUint32T ccbId = rsp->ccbId;
     CcbInfo* ccb = 0;
