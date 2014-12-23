@@ -96,7 +96,7 @@ void saImmOiRtObjectDelete_04(void)
     safassert(saImmOiImplementerClear(immOiHandle), SA_AIS_OK);
 
     rc = saImmOiRtObjectDelete(immOiHandle, &dn);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+    test_validate(rc, SA_AIS_ERR_BAD_OPERATION);
 
     safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
     safassert(saImmOiRtObjectDelete(immOiHandle, &dn), SA_AIS_OK);

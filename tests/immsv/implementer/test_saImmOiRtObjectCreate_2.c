@@ -91,7 +91,7 @@ void saImmOiRtObjectCreate_2_04(void)
     safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
 
     rc = saImmOiRtObjectCreate_2(immOiHandle, className, &rootObj, attrValues);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+    test_validate(rc, SA_AIS_ERR_BAD_OPERATION);
 
     safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
@@ -214,7 +214,7 @@ __attribute__ ((constructor)) static void saImmOiRtObjectCreate_2_constructor(vo
     test_suite_add(3, "Runtime Objects Management");
     test_case_add(3, saImmOiRtObjectCreate_2_01, "saImmOiRtObjectCreate_2 - SA_AIS_OK");
     test_case_add(3, saImmOiRtObjectCreate_2_03, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_BAD_HANDLE - invalid handle");
-    test_case_add(3, saImmOiRtObjectCreate_2_04, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_BAD_HANDLE - immOiHandle not associated with implementer name");
+    test_case_add(3, saImmOiRtObjectCreate_2_04, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_BAD_OPERATION - immOiHandle not associated with implementer name");
     test_case_add(3, saImmOiRtObjectCreate_2_05, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_NOT_EXIST - className non existing");
     test_case_add(3, saImmOiRtObjectCreate_2_06, "saImmOiRtObjectCreate_2 - SA_AIS_ERR_EXIST - object already created");
 
@@ -222,13 +222,13 @@ __attribute__ ((constructor)) static void saImmOiRtObjectCreate_2_constructor(vo
 
     test_case_add(3, saImmOiRtObjectDelete_01, "saImmOiRtObjectDelete - SA_AIS_OK");
     test_case_add(3, saImmOiRtObjectDelete_03, "saImmOiRtObjectDelete - SA_AIS_ERR_BAD_HANDLE - invalid handle");
-    test_case_add(3, saImmOiRtObjectDelete_04, "saImmOiRtObjectDelete - SA_AIS_ERR_BAD_HANDLE - immOiHandle not associated with implementer name");
+    test_case_add(3, saImmOiRtObjectDelete_04, "saImmOiRtObjectDelete - SA_AIS_ERR_BAD_OPERATION - immOiHandle not associated with implementer name");
     test_case_add(3, saImmOiRtObjectDelete_05, "saImmOiRtObjectDelete - SA_AIS_ERR_INVALID_PARAM - non existing object");
     test_case_add(3, saImmOiRtObjectDelete_06, "saImmOiRtObjectDelete - SA_AIS_ERR_BAD_OPERATION - delete configuration object");
 
     test_case_add(3, saImmOiRtObjectUpdate_2_01, "saImmOiRtObjectUpdate_2 - SA_AIS_OK");
     test_case_add(3, saImmOiRtObjectUpdate_2_02, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_BAD_HANDLE - invalid handle");
-    test_case_add(3, saImmOiRtObjectUpdate_2_03, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_BAD_HANDLE - immOiHandle not associated with implementer name");
+    test_case_add(3, saImmOiRtObjectUpdate_2_03, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_BAD_OPERATION - immOiHandle not associated with implementer name");
     test_case_add(3, saImmOiRtObjectUpdate_2_04, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_BAD_OPERATION - update object not owned by implementer");
     test_case_add(3, saImmOiRtObjectUpdate_2_05, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_INVALID_PARAM - new value for the RDN attr");
     test_case_add(3, saImmOiRtObjectUpdate_2_06, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_INVALID_PARAM - update configuration attribute");

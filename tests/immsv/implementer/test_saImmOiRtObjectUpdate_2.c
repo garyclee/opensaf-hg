@@ -108,7 +108,7 @@ void saImmOiRtObjectUpdate_2_03(void)
     safassert(saImmOiImplementerClear(immOiHandle), SA_AIS_OK);
 
     rc = saImmOiRtObjectUpdate_2(immOiHandle, &dn, (const SaImmAttrModificationT_2**) attrMods);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+    test_validate(rc, SA_AIS_ERR_BAD_OPERATION);
 
     safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
     safassert(saImmOiRtObjectDelete(immOiHandle, &dn), SA_AIS_OK);
