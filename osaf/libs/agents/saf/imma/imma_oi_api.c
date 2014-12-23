@@ -2341,14 +2341,14 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	}
 
 	if (cl_node->mImplementerId == 0) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is not associated with any implementer name");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		LOG_ER("ERR_BAD_OPERATION: The SaImmOiHandleT is not associated with any implementer name");
 		goto bad_handle;
 	}
 
 	if (cl_node->isApplier) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		LOG_ER("ERR_BAD_OPERATION: The SaImmOiHandleT is associated with an >>applier<< name");
 		goto bad_handle;
 	}
 
@@ -2636,14 +2636,14 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	}
 
 	if (cl_node->mImplementerId == 0) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is not associated with any implementer name");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		LOG_ER("ERR_BAD_OPERATION: The SaImmOiHandleT is not associated with any implementer name");
 		goto bad_handle;
 	}
 
 	if (cl_node->isApplier) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		LOG_ER("ERR_BAD_OPERATION: The SaImmOiHandleT is associated with an >>applier<< name");
 		goto bad_handle;
 	}
 
@@ -2926,14 +2926,14 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	}
 
 	if (cl_node->mImplementerId == 0) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is not associated with any implementer name");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		LOG_ER("ERR_BAD_OPERATION: The SaImmOiHandleT is not associated with any implementer name");
 		goto bad_handle;
 	}
 
 	if (cl_node->isApplier) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: The SaImmOiHandleT is associated with an >>applier<< name");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		LOG_ER("ERR_BAD_OPERATION: The SaImmOiHandleT is associated with an >>applier<< name");
 		goto bad_handle;
 	}
 
