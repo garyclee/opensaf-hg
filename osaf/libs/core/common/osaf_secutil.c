@@ -325,3 +325,91 @@ done:
 	return len;
 }
 
+int osaf_get_group_list(const uid_t uid, const gid_t gid, gid_t *groups, int *ngroups)
+{
+	int rc = 0;
+	int size = 0;
+	int max_groups = sysconf(_SC_NGROUPS_MAX);
+	if (max_groups == -1){
+		LOG_ER("Could not get NGROUPS_MAX, %s",strerror(errno));
+	}
+
+	if (!ngroups){
+		LOG_ER("ngroups must not be NULL");
+		return -1;
+	}
+
+	if (*ngroups > max_groups){
+		LOG_ER("nGroups greater than NGROUPS_MAX");
+		return -1;
+	}
+
+	if (groups){
+		groups[size] = gid;
+	}
+	/* User always belong to at least one group */
+	size++;
+
+	struct passwd *pwd = getpwuid(uid);
+	if (!pwd){
+		LOG_ER("Could not getpwnam of user %d, %s", uid, strerror(errno));
+		return -1;
+	}
+
+	/* Reset entry to beginning */
+	errno = 0;
+	setgrent();
+	if (errno != 0) {
+		LOG_NO("setgrent failed: %s", strerror(errno));
+		return -1;
+	}
+
+	errno = 0;
+	struct group *gr = getgrent();
+	if (errno != 0) {
+		LOG_NO("setgrent failed: %s", strerror(errno));
+		return -1;
+	}
+
+	while (gr){
+		if (gr->gr_gid == gid){
+			errno = 0;
+			gr = getgrent();
+			if (errno != 0) {
+				LOG_NO("setgrent failed: %s", strerror(errno));
+				return -1;
+			}
+			continue;
+		}
+
+		int i = 0;
+		for (i = 0; gr->gr_mem[i]; i++){
+			if(strcmp(gr->gr_mem[i], pwd->pw_name) == 0){
+				/* Found matched group */
+				if ((groups) && (size < *ngroups)){
+					groups[size] = gr->gr_gid;
+				}
+				size++;
+				break;
+			}
+		}
+		errno = 0;
+		gr = getgrent();
+		if (errno != 0) {
+			LOG_NO("setgrent failed: %s", strerror(errno));
+			return -1;
+		}
+	}
+
+	endgrent();
+
+	if (groups){
+		*ngroups = (size < *ngroups)? size : *ngroups;
+		rc = size;
+	} else {
+		*ngroups = size;
+		rc = 0;
+	}
+
+	return rc;
+}

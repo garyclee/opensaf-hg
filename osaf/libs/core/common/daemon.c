@@ -14,6 +14,7 @@
  * Author(s): Wind River Systems
  *
  */
+#define _GNU_SOURCE
 #include <ctype.h>
 #include <sched.h>
 #include <stdio.h>
@@ -24,6 +25,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <pwd.h>
+#include <grp.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <unistd.h>
@@ -39,6 +41,7 @@
 
 #include <ncsgl_defs.h>
 #include <os_defs.h>
+#include <osaf_secutil.h>
 
 
 #define DEFAULT_RUNAS_USERNAME	"opensaf"
@@ -316,6 +319,22 @@ void daemonize(int argc, char *argv[])
 	if (getuid() == 0 || geteuid() == 0) {
 		struct passwd *pw = getpwnam(__runas_username);
 		if (pw) {
+			/* supplementary groups */
+			int ngroups = 0;
+			if (osaf_get_group_list(pw->pw_uid, pw->pw_gid, NULL, &ngroups) == 0) {
+				gid_t * group_ids = (gid_t*) malloc(ngroups * sizeof(gid_t));
+				if (osaf_get_group_list(pw->pw_uid, pw->pw_gid, group_ids, &ngroups) > 0) {
+					// TODO: setgroups() is non POSIX, fix it later
+					if (setgroups(ngroups, group_ids)) {
+						syslog(LOG_INFO, "setgroups failed, uid=%d (%s). Continuing without supplementary groups.", pw->pw_uid, strerror(errno));
+					}
+				} else {
+					syslog(LOG_INFO, "getgrouplist failed, uid=%d (%s). Continuing without supplementary groups.", pw->pw_uid, strerror(errno));
+				}
+				free(group_ids);
+			} else {
+				syslog(LOG_INFO, "getgrouplist failed, uid=%d (%s). Continuing without supplementary groups.", pw->pw_uid, strerror(errno));
+			}
 			if ((pw->pw_gid > 0) && (setgid(pw->pw_gid) < 0)) {
 				syslog(LOG_ERR, "setgid failed, gid=%d (%s)", pw->pw_gid, strerror(errno));
 				exit(EXIT_FAILURE);
