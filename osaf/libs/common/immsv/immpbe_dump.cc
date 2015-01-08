@@ -3097,6 +3097,12 @@ bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	abort();
 }
 
+bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
+	void* db_handle, std::list<std::string>& selectedClassList)
+{
+	abort();
+}
+
 unsigned int purgeInstancesOfClassToPBE(SaImmHandleT immHandle, std::string className, void* db_handle)
 {
 	abort();
@@ -3135,6 +3141,12 @@ int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 {
 	abort();
 	return 0;
+}
+
+int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
+	void* db_handle, std::list<std::string>& selectedClassList)
+{
+	abort();
 }
 
 SaAisErrorT pbeBeginTrans(void* db_handle)
