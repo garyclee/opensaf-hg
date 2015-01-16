@@ -237,7 +237,7 @@ void saImmOiImplementerSet_07(void)
 	safassert(saImmOmCcbInitialize(ownerHandle, SA_IMM_CCB_REGISTERED_OI, &ccbHandle), SA_AIS_OK);
 
 	SaAisErrorT rc = saImmOmCcbObjectModify_2(ccbHandle, &obj1, (const SaImmAttrModificationT_2 **)attrMods);
-	test_validate(rc, SA_AIS_ERR_TIMEOUT);
+	test_validate(rc, SA_AIS_ERR_FAILED_OPERATION);
 
 	safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
 	safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
@@ -461,7 +461,7 @@ __attribute__ ((constructor)) static void saImmOiImplementerSet_constructor(void
     test_case_add(2, saImmOiObjectImplementerSet_07, "saImmOiObjectImplementerSet - SA_AIS_ERR_INVALID_PARAM - empty object name with wrong size");
 
     test_case_add(2, saImmOiImplementerSet_06, "saImmOiImplementerSet - SA_AIS_OK - OI callback timeout");
-    test_case_add(2, saImmOiImplementerSet_07, "saImmOiImplementerSet - SA_AIS_ERR_TIMEOUT - OI callback timeout");
+    test_case_add(2, saImmOiImplementerSet_07, "saImmOiImplementerSet - SA_AIS_ERR_FAILED_OPERATION - OI callback timeout");
     test_case_add(2, saImmOiImplementerSet_08, "saImmOiImplementerSet - SA_AIS_OK - RTA update callback timeout");
     test_case_add(2, saImmOiImplementerSet_09, "saImmOiImplementerSet - SA_AIS_ERR_TIMEOUT - RTA update callback timeout");
     test_case_add(2, saImmOiImplementerSet_10, "saImmOiImplementerSet - SA_AIS_ERR_NO_RESOURCES - OpenSAF 4.5 features disabled");
