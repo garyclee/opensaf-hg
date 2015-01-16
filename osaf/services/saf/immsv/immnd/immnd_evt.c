@@ -7323,7 +7323,6 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 
 	osafassert(evt);
 	immnd_evt_ccb_abort(cb, evt->info.ccbId, &client, &nodeId);
-	err = immModel_ccbFinalize(cb, evt->info.ccbId);
 
 	if (nodeId && err == SA_AIS_OK) {
 		/* nodeId will be set only when OI ccb timeout happens. An OI timeout on 
@@ -7357,7 +7356,13 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
-		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbId);
+		if(send_evt.info.imma.info.errRsp.errStrings) {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+		} else {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		}
+
 		send_evt.info.imma.info.errRsp.error = err;
 
 		TRACE_2("SENDRSP %u", err);
@@ -7366,6 +7371,7 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 			LOG_WA("Failed to send response to agent/client over MDS");
 		}
 	}
+	err = immModel_ccbFinalize(cb, evt->info.ccbId);
 	TRACE_LEAVE();
 }
 

@@ -9635,7 +9635,7 @@ ImmModel::ccbGrabErrStrings(SaUint32T ccbId)
     CcbVector::iterator i1;
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
+    if(i1 == sCcbVector.end()) {
         LOG_WA("ccb id %u missing or terminated", ccbId);
         return NULL;
     }
@@ -12287,6 +12287,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                     (*i3)->mVeto = SA_AIS_ERR_TIMEOUT;
                     TRACE_5("CCB %u timeout while waiting on implementer reply",
                         (*i3)->mId);
+                    setCcbErrorString(*i3, "Resource Error: CCB timeout while "
+                         "waiting on implementer reply");
                 }
 
                 if((*i3)->mState == IMM_CCB_CRITICAL) {
