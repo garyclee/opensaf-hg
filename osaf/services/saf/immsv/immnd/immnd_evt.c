@@ -217,7 +217,7 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt);
 
 /*static uint32_t immnd_evt_immd_new_active(IMMND_CB *cb);*/
 
-static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client);
+static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client, SaUint32T *nodeId);
 
 static uint32_t immnd_evt_proc_reset(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
@@ -3986,7 +3986,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			TRACE("Abort in immnd_evt_proc_ccb_compl_rsp reqConn: %u", reqConn);
 			/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcall
 				   for all local implementers involved in the Ccb */
-			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, NULL);
+			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, NULL, NULL);
 		}
 		/* Either commit or abort has been decided. Ccb is now done.
 		   If we are at originating request node, then we ALWAYS reply here. 
@@ -6563,12 +6563,12 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 	TRACE_LEAVE();
 }
 
-static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client)
+static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client, SaUint32T *nodeId)
 {
 	IMMSV_EVT send_evt;
 	SaUint32T *implConnArr = NULL;
 	SaUint32T arrSize = 0;
-	SaUint32T dummyClient = 0;
+	SaUint32T dummyClient = 0, dummynodeId = 0;
 	SaImmOiHandleT implHandle = 0LL;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
@@ -6584,7 +6584,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client
 		 */
 	}
 
-	if(!immModel_ccbAbort(cb, ccbId, &arrSize, &implConnArr, &dummyClient, pbeNodeIdPtr)) {
+	if(!immModel_ccbAbort(cb, ccbId, &arrSize, &implConnArr, &dummyClient, &dummynodeId, pbeNodeIdPtr)) {
 		goto done;
 	}
 
@@ -6593,6 +6593,10 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client
 	} else {
 		dummyClient = 0; /* dont reply to client here*/
 	}
+
+        if (nodeId) {
+                *nodeId = dummynodeId;
+        }
 
 	if (arrSize) {
 
@@ -7314,13 +7318,23 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
-	SaUint32T client = 0;
+	SaUint32T client = 0, nodeId = 0;
 	TRACE_ENTER();
 
 	osafassert(evt);
-	immnd_evt_ccb_abort(cb, evt->info.ccbId, &client);
+	immnd_evt_ccb_abort(cb, evt->info.ccbId, &client, &nodeId);
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
-	if(err == SA_AIS_OK) {
+
+	if (nodeId && err == SA_AIS_OK) {
+		/* nodeId will be set only when OI ccb timeout happens. An OI timeout on 
+		   a ccb callback will always abort the CCB. so, any reply forwarded towards 
+		   the OM CCB client should be an ERR_FAILED_OPERATION and not ERR_TIMEOUT.
+		*/
+
+		originatedAtThisNd = SA_TRUE;
+		clnt_hdl = m_IMMSV_PACK_HANDLE(client, nodeId); 
+		err = SA_AIS_ERR_FAILED_OPERATION;
+	} else if(err == SA_AIS_OK) {
 		TRACE_2("ccb aborted and finalized");
 	}
 
@@ -7680,7 +7694,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 			}
 			/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcalls
 			 */
-			immnd_evt_ccb_abort(cb, evt->info.ccbId, &client);
+			immnd_evt_ccb_abort(cb, evt->info.ccbId, &client, NULL);
 			osafassert(!client || originatedAtThisNd);
 		}
 		TRACE_2("CCB APPLY TERMINATING CCB: %u", evt->info.ccbId);
@@ -8778,7 +8792,7 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 		SaUint32T ix;
 		for (ix = 0; ix < arrSize; ++ix) {
 			LOG_WA("Detected crash at node %x, abort ccbId  %u", evt->info.ctrl.nodeId, idArr[ix]);
-			immnd_evt_ccb_abort(cb, idArr[ix], NULL);
+			immnd_evt_ccb_abort(cb, idArr[ix], NULL, NULL);
 			err = immModel_ccbFinalize(cb, idArr[ix]);
 			if (err != SA_AIS_OK) {
 				LOG_WA("Failed to remove Ccb %u - ignoring", idArr[ix]);

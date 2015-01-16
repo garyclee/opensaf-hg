@@ -538,6 +538,7 @@ public:
                                SaUint32T ccbId, 
                                ConnVector& connVector,
                                SaUint32T* client,
+                               SaUint32T* nodeId,
                                unsigned int* pbeNodeIdPtr);
     SaUint32T         cleanTheBasement(
                                        InvocVector& admReqs,
