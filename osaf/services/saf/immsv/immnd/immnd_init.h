@@ -146,7 +146,7 @@ extern "C" {
 
 	bool immModel_ccbAbort(IMMND_CB *cb,
 		SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr, SaUint32T *client,
-		SaClmNodeIdT *pbeNodeId);
+		SaUint32T* nodeId, SaClmNodeIdT *pbeNodeId);
 
 	void immModel_getCcbIdsForOrigCon(IMMND_CB *cb, SaUint32T origConn, SaUint32T *arrSize, SaUint32T **ccbIdArr);
 

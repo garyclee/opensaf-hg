@@ -1101,13 +1101,14 @@ immModel_ccbAbort(IMMND_CB *cb,
     SaUint32T* arrSize,
     SaUint32T** implConnArr,
     SaUint32T* client,
+    SaUint32T* nodeId,
     SaClmNodeIdT* pbeNodeId)
 {
     ConnVector cv;
     ConnVector::iterator cvi;
     unsigned int ix=0;
 
-    bool aborted = ImmModel::instance(&cb->immModel)->ccbAbort(ccbId, cv, client, pbeNodeId);
+    bool aborted = ImmModel::instance(&cb->immModel)->ccbAbort(ccbId, cv, client, nodeId, pbeNodeId);
     
     *arrSize = (SaUint32T) cv.size();
     if(*arrSize) {
@@ -5398,7 +5399,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
 
 bool
 ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
-    unsigned int* pbeNodeIdPtr)
+    SaUint32T* nodeId, unsigned int* pbeNodeIdPtr)
 {
     SaUint32T pbeConn=0;
     TRACE_ENTER();
@@ -5484,8 +5485,15 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
             LOG_NO("Ccb %u ABORTED (%s)", ccb->mId, "<released>");
         }
     }
+
+    if (ccb->mVeto == SA_AIS_ERR_TIMEOUT) {
+        *nodeId = ccb->mOriginatingNode;
+        *client = ccb->mOriginatingConn;
+    }
+
     ccb->mState = IMM_CCB_ABORTED;
     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+
     ccb->mWaitStartTime = 0;
     
     CcbImplementerMap::iterator isi;
@@ -12276,6 +12284,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                         (*i3)->mPbeRestartId, (*i3)->mId);
                 } else if(now - (*i3)->mWaitStartTime >= (int)max_oi_timeout) {
                     oi_timeout = 0;
+                    (*i3)->mVeto = SA_AIS_ERR_TIMEOUT;
                     TRACE_5("CCB %u timeout while waiting on implementer reply",
                         (*i3)->mId);
                 }
