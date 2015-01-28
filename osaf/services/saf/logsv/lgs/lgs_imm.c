@@ -2058,13 +2058,12 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 
 	if ((*stream)->logFileFormat == NULL)
 		(*stream)->logFileFormat = strdup(log_file_format[(*stream)->streamType]);
-#if 0
-	// TODO: fails with NOT_EXIST, post an event to ourselves?
+
 	/* Update creation timestamp */
 	(void) immutil_update_one_rattr(lgs_cb->immOiHandle, (const char*) objectName.value,
 			"saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
 			&(*stream)->creationTimeStamp);
-#endif
+
 	done:
 	TRACE_LEAVE();
 	return rc;
@@ -2333,6 +2332,7 @@ done:
 /**
  * Allocate new stream object. Get configuration from IMM and
  * initialize the stream object.
+ * Must be called before setting OI to avoid deadlock
  * @param dn
  * @param in_stream
  * @param stream_id
@@ -2361,8 +2361,14 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 		goto done;
 	}
 
-	/* Happens to be the same, ugly! FIX */
-	stream->streamType = stream_id;
+	if (strcmp(dn, SA_LOG_STREAM_ALARM) == 0)
+		stream->streamType = STREAM_TYPE_ALARM;
+	else if (strcmp(dn , SA_LOG_STREAM_NOTIFICATION) == 0)
+		stream->streamType = STREAM_TYPE_NOTIFICATION;
+	else if (strcmp(dn , SA_LOG_STREAM_SYSTEM) == 0)
+		stream->streamType = STREAM_TYPE_SYSTEM;
+	else
+		stream->streamType = STREAM_TYPE_APPLICATION;
 
 	/* Get all attributes of the object */
 	if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
@@ -2962,113 +2968,59 @@ static const SaImmOiCallbacksT_2 callbacks = {
 };
 
 /**
- * Get all dynamically added configurable application streams.
- * @param configNames
- * @param noConfObjects
- *
- * @return -
- */
-static void getConfigNames(char configNames[64][128], int *noConfObjects)
-{
-	TRACE_ENTER();
-
-	SaAisErrorT rc = SA_AIS_OK;
-	SaImmHandleT omHandle;
-	SaVersionT immVersion = {'A', 2, 1};
-	SaImmSearchHandleT immSearchHandle;
-	SaImmSearchParametersT_2 objectSearch;
-	SaImmAttrValuesT_2 **attributes;
-
-	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-
-	/* Search for all objects of class "SaLogStreamConfig" */
-	objectSearch.searchOneAttr.attrName = "safLgStrCfg";
-	objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	objectSearch.searchOneAttr.attrValue = NULL;
-
-	if ((rc = immutil_saImmOmSearchInitialize_2(omHandle, NULL,
-			SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
-			&objectSearch, NULL, /* Get no attributes */
-			&immSearchHandle)) == SA_AIS_OK) {
-
-		SaNameT objectName;
-		*noConfObjects = 0;
-		while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
-			if (strcmp((char*) objectName.value, SA_LOG_STREAM_ALARM) &&
-					strcmp((char*) objectName.value, SA_LOG_STREAM_NOTIFICATION) &&
-					strcmp((char*) objectName.value, SA_LOG_STREAM_SYSTEM)) {
-				strcpy(configNames[*noConfObjects], (char*) objectName.value);
-				*noConfObjects += 1;
-			}
-		}
-	}
-	else {
-		LOG_IN("immutil_saImmOmSearchInitialize_2 %d", rc);
-	}
-	(void) immutil_saImmOmSearchFinalize(immSearchHandle);
-	(void) immutil_saImmOmFinalize(omHandle);
-
-	TRACE_LEAVE();
-}
-
-/**
  * Retrieve the LOG stream configuration from IMM using the
  * IMM-OM interface and initialize the corresponding information
  * in the LOG control block. Initialize the LOG IMM-OI
  * interface. Become class implementer.
  */
-SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
+SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT om_rc;
 	log_stream_t *stream;
 	SaImmHandleT omHandle;
 	SaImmAccessorHandleT accessorHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
+	SaImmSearchHandleT immSearchHandle;
+	SaImmSearchParametersT_2 objectSearch;
+	SaImmAttrValuesT_2 **attributes;
+	int streamId = 0;
+	int errorsAreFatal;
+	SaNameT objectName;
+
 
 	TRACE_ENTER();
 
 	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
-	if ((rc = stream_create_and_configure(SA_LOG_STREAM_ALARM,
-			&cb->alarmStream, 0, accessorHandle)) != SA_AIS_OK)
-		goto done;
+	/* Search for all objects of class "SaLogStreamConfig" */
+	objectSearch.searchOneAttr.attrName = "safLgStrCfg";
+	objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	objectSearch.searchOneAttr.attrValue = NULL;
 
-	if ((rc = stream_create_and_configure(SA_LOG_STREAM_NOTIFICATION,
-			&cb->notificationStream, 1, accessorHandle)) != SA_AIS_OK)
-		goto done;
+	if ((om_rc = immutil_saImmOmSearchInitialize_2(omHandle, NULL,
+			SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
+			&objectSearch, NULL, /* Get no attributes */
+			&immSearchHandle)) == SA_AIS_OK) {
 
-	if ((rc = stream_create_and_configure(SA_LOG_STREAM_SYSTEM,
-			&cb->systemStream, 2, accessorHandle)) != SA_AIS_OK)
-		goto done;
-
-	// Retrieve other configured streams
-	int noConfObjects = 0;
-	char configNames[64][128];
-	getConfigNames(configNames, &noConfObjects);
-
-	int i = 0;
-	int streamId = 3;
-	for (i = 0; i < noConfObjects; i++, streamId++) {
-		if ((rc = stream_create_and_configure(configNames[i], &stream,
-				streamId, accessorHandle)) != SA_AIS_OK) {
-			LOG_ER("stream_create_and_configure failed %d", rc);
+		while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
+			if ((rc = stream_create_and_configure((char*) objectName.value,
+					&stream, streamId, accessorHandle)) != SA_AIS_OK) {
+				LOG_ER("stream_create_and_configure failed %d", rc);
+				goto done;
+			}
+			streamId += 1;
 		}
 	}
 
-	/* Do not abort if error when finalizing */
-	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
-	immutilWrapperProfile.errorsAreFatal = 0;	/* Disable immutil abort */
-	SaAisErrorT om_rc = immutil_saImmOmAccessorFinalize(accessorHandle);
-	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmAccessorFinalize() Fail %d",__FUNCTION__, om_rc);
-	}
-	om_rc = immutil_saImmOmFinalize(omHandle);
-	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmFinalize() Fail %d",__FUNCTION__, om_rc);
-	}
-	immutilWrapperProfile.errorsAreFatal = errorsAreFatal; /* Enable again */
-
+	/* 1.Become implementer
+	 * 2.Update creation timestamp for all configure object, must be object implementer first
+	 * 3.Open all streams
+	 *     Config file and log file will be created. If this fails we give up
+	 *     without returning any error. A new attempt to create the files will
+	 *     be done when trying to write a log record to the stream.
+	 */
 	immutilWrapperProfile.nTries = 250; /* After loading,allow missed sync of large data to complete */
 
 	(void)immutil_saImmOiImplementerSet(cb->immOiHandle, implementerName);
@@ -3081,30 +3033,34 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 
 	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 
-
-	/* Update creation timestamp, must be object implementer first */
-	(void)immutil_update_one_rattr(cb->immOiHandle, SA_LOG_STREAM_ALARM,
-				       "saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
-				       &cb->alarmStream->creationTimeStamp);
-	(void)immutil_update_one_rattr(cb->immOiHandle, SA_LOG_STREAM_NOTIFICATION,
-				       "saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
-				       &cb->notificationStream->creationTimeStamp);
-	(void)immutil_update_one_rattr(cb->immOiHandle, SA_LOG_STREAM_SYSTEM,
-				       "saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
-				       &cb->systemStream->creationTimeStamp);
-
-	/* Open all streams
-	 * Config file and log file will be created. If this fails we give up
-	 * without returning any error. A new attempt to create the files will
-	 * be done when trying to write a log record to the stream.
-	 */
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
+		(void)immutil_update_one_rattr(cb->immOiHandle, stream->name,
+					       "saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
+					       &stream->creationTimeStamp);
+
 		log_stream_open_fileinit(stream);
 		stream = log_stream_getnext_by_name(stream->name);
 	}
 
  done:
+	/* Do not abort if error when finalizing */
+	errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;	/* Disable immutil abort */
+	om_rc = immutil_saImmOmAccessorFinalize(accessorHandle);
+	if (om_rc != SA_AIS_OK) {
+		LOG_NO("%s immutil_saImmOmAccessorFinalize() Fail %d",__FUNCTION__, om_rc);
+	}
+	om_rc = immutil_saImmOmSearchFinalize(immSearchHandle);
+	if (om_rc != SA_AIS_OK) {
+		LOG_NO("%s immutil_saImmOmSearchFinalize() Fail %d",__FUNCTION__, om_rc);
+	}
+	om_rc = immutil_saImmOmFinalize(omHandle);
+	if (om_rc != SA_AIS_OK) {
+		LOG_NO("%s immutil_saImmOmFinalize() Fail %d",__FUNCTION__, om_rc);
+	}
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal; /* Enable again */
+
 	TRACE_LEAVE();
 	return rc;
 }
