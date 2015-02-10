@@ -473,6 +473,15 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		free(evt->info.immnd.info.ccbUpcallRsp.errorString.buf);
 		evt->info.immnd.info.ccbUpcallRsp.errorString.buf = NULL;
 		evt->info.immnd.info.ccbUpcallRsp.errorString.size = 0;
+	} else if (evt->info.immnd.type == IMMND_EVT_A2ND_IMM_ADMINIT) {
+		free(evt->info.immnd.info.adminitReq.i.adminOwnerName.octetString.buf);
+		evt->info.immnd.info.adminitReq.i.adminOwnerName.octetString.buf = NULL;
+		evt->info.immnd.info.adminitReq.i.adminOwnerName.octetString.size = 0;
+	} else if ((evt->info.immnd.type == IMMND_EVT_D2ND_ADMINIT) ||
+			(evt->info.immnd.type == IMMND_EVT_D2ND_ADMINIT_2)) {
+		free(evt->info.immnd.info.adminitGlobal.i.adminOwnerName.octetString.buf);
+		evt->info.immnd.info.adminitGlobal.i.adminOwnerName.octetString.buf = NULL;
+		evt->info.immnd.info.adminitGlobal.i.adminOwnerName.octetString.size = 0;
 	}
 
 	if (onheap) {
@@ -2322,10 +2331,16 @@ static uint32_t immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
-	send_evt.info.immd.type = IMMD_EVT_ND2D_ADMINIT_REQ;
+	if (!immModel_protocol47Allowed(cb)) {
+		send_evt.info.immd.type = IMMD_EVT_ND2D_ADMINIT_REQ;
+		osaf_extended_name_lend(evt->info.adminitReq.i.adminOwnerName.octetString.buf,
+			&send_evt.info.immd.info.admown_init.i.adminOwnerName.saName);
+		send_evt.info.immd.info.admown_init.i.releaseOwnershipOnFinalize = evt->info.adminitReq.i.releaseOwnershipOnFinalize;
+	} else {
+		send_evt.info.immd.type = IMMD_EVT_ND2D_ADMINIT_REQ_2;
+		send_evt.info.immd.info.admown_init.i = evt->info.adminitReq.i;
+	}
 	send_evt.info.immd.info.admown_init.client_hdl = evt->info.adminitReq.client_hdl;
-
-	send_evt.info.immd.info.admown_init.i = evt->info.adminitReq.i;
 
 	/* send the request to the IMMD, reply comes back over fevs. */
 
@@ -3273,6 +3288,11 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 
 	case IMMND_EVT_D2ND_ADMINIT:
 		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_ADMINIT can not arrive from client lib");
+		error = SA_AIS_ERR_LIBRARY;
+		break;
+
+	case IMMND_EVT_D2ND_ADMINIT_2:
+		LOG_WA("ERR_LIBRARY: IMMND_EVT_D2ND_ADMINIT_2 can not arrive from client lib");
 		error = SA_AIS_ERR_LIBRARY;
 		break;
 
@@ -7897,6 +7917,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_D2ND_ADMINIT:
+	case IMMND_EVT_D2ND_ADMINIT_2:
 		immnd_evt_proc_adminit_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
@@ -8844,6 +8865,7 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 	SaUint32T conn;
 
 	osafassert(evt);
+	osafassert((evt->type != IMMND_EVT_D2ND_ADMINIT_2) || immModel_protocol47Allowed(cb));
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	err = immModel_adminOwnerCreate(cb, &(evt->info.adminitGlobal.i),

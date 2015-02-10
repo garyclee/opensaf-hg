@@ -134,7 +134,10 @@ extern "C" {
 	} IMMSV_OM_CLASS_DESCR;
 
 	typedef struct ImmsvOmAdminOwnerInitialize {
-		SaNameT adminOwnerName;
+		union {
+			SaNameT saName;
+			IMMSV_OCTET_STRING octetString;
+		} adminOwnerName;
 		SaBoolT releaseOwnershipOnFinalize;
 	} IMMSV_OM_ADMIN_OWNER_INITIALIZE;
 

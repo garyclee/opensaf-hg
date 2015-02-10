@@ -211,6 +211,8 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_OI_IMPL_SET_2 = 96,	/* saImmOiImplementerSet */
 	IMMND_EVT_D2ND_IMPLSET_RSP_2 = 97,	/* Implementer set reply from D with impl id */
 
+	IMMND_EVT_D2ND_ADMINIT_2 = 98,	/* Admin Owner init reply */
+
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
@@ -257,6 +259,8 @@ typedef enum immd_evt_type {
 	IMMD_EVT_ND2D_2PBE_PRELOAD = 26, /* Redundant PBE preload stats to IMMD. */
 
 	IMMD_EVT_ND2D_IMPLSET_REQ_2 = 27, /* OiImplementerSet */
+
+	IMMD_EVT_ND2D_ADMINIT_REQ_2 = 28,	/* AdminOwnerInitialize */
 
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;

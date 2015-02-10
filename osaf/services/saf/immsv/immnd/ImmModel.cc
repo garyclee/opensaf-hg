@@ -4216,13 +4216,17 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
     unsigned int nodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
+    std::string admin_name;
     TRACE_ENTER();
     if(immNotWritable()) {
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
     
-    if (strcmp("IMMLOADER", osaf_extended_name_borrow(&req->adminOwnerName)) == 0) {
+    const IMMSV_OCTET_STRING *octetString = &req->adminOwnerName.octetString;
+    admin_name = std::string(octetString->buf, strnlen((const char*)octetString->buf, (size_t)octetString->size));
+
+    if (strcmp("IMMLOADER", admin_name.c_str()) == 0) {
         if(sImmNodeState != IMM_NODE_LOADING) {
             LOG_NO("ERR_INVALID_PARAM: Admin Owner 'IMMLOADER' only allowed for loading");
             TRACE_LEAVE();
@@ -4234,7 +4238,7 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
     
     info->mId = ownerId;
     
-    info->mAdminOwnerName.append(osaf_extended_name_borrow(&req->adminOwnerName));
+    info->mAdminOwnerName.append(admin_name);
     if(info->mAdminOwnerName.empty() || !nameCheck(info->mAdminOwnerName)) {
         LOG_NO("ERR_INVALID_PARAM: Not a valid Admin Owner Name");
         delete info;
