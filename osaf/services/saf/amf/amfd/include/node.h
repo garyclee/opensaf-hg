@@ -42,6 +42,7 @@
 #include <amf_d2nmsg.h>
 #include <timer.h>
 #include <db_template.h>
+#include <set>
 
 class AVD_SU;
 struct avd_cluster_tag;
@@ -147,16 +148,19 @@ extern AmfDb<std::string, AVD_AVND> *node_name_db;
 extern AmfDb<uint32_t, AVD_AVND> *node_id_db;
 extern AmfDb<uint32_t, AVD_FAIL_OVER_NODE> *node_list_db;
 
-typedef struct avd_ng_tag {
-
+class AVD_AMF_NG {
+public:
 	SaNameT name;
-	uint32_t number_nodes;	/* number of element in saAmfNGNodeList */
-	SaNameT *saAmfNGNodeList;	/* array of node names in group */
+	std::set<std::string> saAmfNGNodeList;
+	
+	/* number of element in saAmfNGNodeList */
+	uint32_t number_nodes() const {
+		return saAmfNGNodeList.size();
+	}
 
 	struct avd_ng_tag *cluster_list_ng_next;
 	struct avd_cluster_tag *ng_on_cluster;
-
-} AVD_AMF_NG;
+};
 
 #define AVD_AVND_NULL     ((AVD_AVND *)0)
 
@@ -190,6 +194,7 @@ extern AVD_AVND *avd_node_new(const SaNameT *dn);
 extern void avd_node_delete(AVD_AVND *avnd);
 extern void avd_node_db_add(AVD_AVND *node);
 extern AVD_AVND *avd_node_get(const SaNameT *node_name);
+extern AVD_AVND *avd_node_get(const std::string& node_name);
 extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);
 extern uint32_t avd_node_add_nodeid(AVD_AVND *avnd);
 extern void avd_node_delete_nodeid(AVD_AVND *node);
@@ -210,7 +215,7 @@ extern void node_reset_su_try_inst_counter(const AVD_AVND *node);
 extern SaAisErrorT avd_ng_config_get(void);
 extern AVD_AMF_NG *avd_ng_get(const SaNameT *dn);
 extern void avd_ng_constructor(void);
-extern bool node_in_nodegroup(const SaNameT *node, const AVD_AMF_NG *ng);
+extern bool node_in_nodegroup(const std::string& node, const AVD_AMF_NG *ng);
 
 /* AMF Node SW Bundle */
 extern void avd_nodeswbundle_constructor(void);

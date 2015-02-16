@@ -29,6 +29,7 @@
 #include <proc.h>
 #include <si_dep.h>
 #include <csi.h>
+#include <algorithm>
 
 AmfDb<std::string, AVD_SG> *sg_db = NULL;
 
@@ -491,19 +492,16 @@ done1:
 static bool ng_is_subset(const SaNameT *ngname, const AVD_AMF_NG *superng)
 {
 	const AVD_AMF_NG *ng = avd_ng_get(ngname);
-	const SaNameT *nodename;
 
-	if (superng->number_nodes < ng->number_nodes)
+	if (superng->number_nodes() < ng->number_nodes())
 		return false;
 
-	for (unsigned i = 0; i < ng->number_nodes; i++) {
-		nodename = &ng->saAmfNGNodeList[i];
-
-		if (node_in_nodegroup(nodename, superng) == false)
-			return false;
+	if (std::includes(superng->saAmfNGNodeList.begin(), superng->saAmfNGNodeList.end(),
+		ng->saAmfNGNodeList.begin(), ng->saAmfNGNodeList.end()) == true) {
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 /**

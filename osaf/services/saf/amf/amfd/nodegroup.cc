@@ -22,6 +22,7 @@
 #include <amfd.h>
 #include <cluster.h>
 #include <imm.h>
+#include <set>
 
 AmfDb<std::string, AVD_AMF_NG> *nodegroup_db = 0;
 
@@ -113,11 +114,10 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 	if ((immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfNGNodeList"), attributes,
 		&values_number) == SA_AIS_OK) && (values_number > 0)) {
 
-		ng->number_nodes = values_number;
-		ng->saAmfNGNodeList = static_cast<SaNameT*>(malloc(values_number * sizeof(SaNameT)));
 		for (i = 0; i < values_number; i++) {
-			if ((node_name = immutil_getNameAttr(attributes, "saAmfNGNodeList", i)) != NULL)
-				ng->saAmfNGNodeList[i] = *node_name;
+			if ((node_name = immutil_getNameAttr(attributes, "saAmfNGNodeList", i)) != NULL) {
+				ng->saAmfNGNodeList.insert(Amf::to_string(node_name));
+			}
 		}
 	}
 	else {
@@ -143,7 +143,6 @@ done:
 static void ng_delete(AVD_AMF_NG *ng)
 {
 	nodegroup_db->erase(Amf::to_string(&ng->name));
-	free(ng->saAmfNGNodeList);
 	delete ng;
 }
 
@@ -234,14 +233,14 @@ static bool su_is_mapped_to_node_via_nodegroup(const AVD_SU *su, const AVD_AMF_N
  * 
  * @return true if found, otherwise false
  */
-bool node_in_nodegroup(const SaNameT *node, const AVD_AMF_NG *ng)
+bool node_in_nodegroup(const std::string& node, const AVD_AMF_NG *ng)
 {
-	for (unsigned int i = 0; i < ng->number_nodes; i++) {
-		if ((ng->saAmfNGNodeList[i].length == node->length) &&
-			memcmp(&ng->saAmfNGNodeList[i].value, node->value, node->length) == 0)
-			return true;
-	}
-	
+	std::set<std::string>::const_iterator iter;
+
+	iter = ng->saAmfNGNodeList.find(node);
+	if (iter != ng->saAmfNGNodeList.end())
+		return true;
+
 	return false;
 }
 
@@ -292,7 +291,8 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				TRACE("DEL %s", ((SaNameT *)mod->modAttr.attrValues[j])->value);
 
-				if (node_in_nodegroup((SaNameT *)mod->modAttr.attrValues[j], ng) == false) {
+				if (node_in_nodegroup(Amf::to_string((SaNameT *)mod->modAttr.attrValues[j]),
+						ng) == false) {
 					report_ccb_validation_error(opdata, "ng modify: node '%s' does not exist in node group",
 						((SaNameT *)mod->modAttr.attrValues[j])->value);
 					goto done;
@@ -390,14 +390,16 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_SU *su;
 	AVD_AVND *node;
 	AVD_AMF_NG *ng = avd_ng_get(&opdata->objectName);
-	unsigned int i;
 
-	TRACE_ENTER2("%u", ng->number_nodes);
+	TRACE_ENTER2("%u", ng->number_nodes());
+	std::set<std::string>::const_iterator iter;
 
-	/* for all nodes in node group */
-	for (i = 0; i < ng->number_nodes; i++) {
-		node = avd_node_get(&ng->saAmfNGNodeList[i]);
+	for (iter = ng->saAmfNGNodeList.begin();
+		iter != ng->saAmfNGNodeList.end();
+		++iter) {
 
+		node = avd_node_get(*iter);
+		
 		TRACE("%s", node->name.value);
 
 		/*
@@ -410,7 +412,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 		for (su = node->list_of_ncs_su; su; su = su->avnd_list_su_next) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
-			    is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
+				is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
 				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
 					ng->name.value, su->name.value);
 				goto done;
@@ -419,7 +421,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 		for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
-			    is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
+				is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
 				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
 					ng->name.value, su->name.value);
 				goto done;
@@ -482,39 +484,18 @@ static void ng_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	while ((mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		switch (mod->modType) {
 		case SA_IMM_ATTR_VALUES_ADD: {
-			ng->saAmfNGNodeList = static_cast<SaNameT*>(realloc(ng->saAmfNGNodeList,
-								    (ng->number_nodes + mod->modAttr.attrValuesNumber) * sizeof(SaNameT)));
-
-			if (ng->saAmfNGNodeList == NULL) {
-				LOG_EM("%s: realloc FAILED", __FUNCTION__);
-				exit(1);
-			}
-
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
-				ng->saAmfNGNodeList[ng->number_nodes + j] = *((SaNameT *)mod->modAttr.attrValues[j]);
-				TRACE("ADD %s", ng->saAmfNGNodeList[ng->number_nodes + j].value);
+				ng->saAmfNGNodeList.insert(Amf::to_string((SaNameT*)mod->modAttr.attrValues[j]));
 			}
 
-			ng->number_nodes += mod->modAttr.attrValuesNumber;
-			TRACE("number_nodes %u", ng->number_nodes);
+			TRACE("number_nodes %u", ng->number_nodes());
 			break;
 		}
 		case SA_IMM_ATTR_VALUES_DELETE: {
 			/* find node to delete */
-			for (j = 0; j < ng->number_nodes; j++) {
-				if (memcmp(&ng->saAmfNGNodeList[j], mod->modAttr.attrValues[0], sizeof(SaNameT)) == 0)
-					break;
-			}
+			ng->saAmfNGNodeList.erase(Amf::to_string((SaNameT*)mod->modAttr.attrValues[j]));
 
-			osafassert(j < ng->number_nodes);
-
-			TRACE("found node %s", ng->saAmfNGNodeList[j].value);
-
-			for (; j < (ng->number_nodes - 1); j++)
-				ng->saAmfNGNodeList[j] = ng->saAmfNGNodeList[j + 1];
-
-			ng->number_nodes -= mod->modAttr.attrValuesNumber;
-			TRACE("number_nodes %u", ng->number_nodes);
+			TRACE("number_nodes %u", ng->number_nodes());
 			break;
 		}
 		default:
