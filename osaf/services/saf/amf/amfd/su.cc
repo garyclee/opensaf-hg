@@ -29,6 +29,7 @@
 #include <proc.h>
 #include <csi.h>
 #include <cluster.h>
+#include <algorithm>
 
 AmfDb<std::string, AVD_SU> *su_db = NULL;
 
@@ -354,10 +355,6 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if ((strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") != NULL) &&
 	    (strstr((char *)saAmfSGSuHostNodeGroup.value, "safAmfNodeGroup=") != NULL)) {
 		AVD_AMF_NG *ng_of_su, *ng_of_sg;
-		SaNameT *ng_node_list_su, *ng_node_list_sg;
-		unsigned int i;
-		unsigned int j;
-		int found;
 
 		ng_of_su = avd_ng_get(&saAmfSUHostNodeOrNodeGroup);
 		if (ng_of_su == NULL) {
@@ -373,35 +370,21 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 			return 0;
 		}
 
-		if (ng_of_su->number_nodes > ng_of_sg->number_nodes) {
+		if (ng_of_su->number_nodes() > ng_of_sg->number_nodes()) {
 			report_ccb_validation_error(opdata, 
 					"SU node group '%s' contains more nodes than the SG node group '%s'",
 					saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
 			return 0;
 		}
 
-		ng_node_list_su = ng_of_su->saAmfNGNodeList;
-
-		for (i = 0; i < ng_of_su->number_nodes; i++) {
-			found = 0;
-			ng_node_list_sg = ng_of_sg->saAmfNGNodeList;
-
-			for (j = 0; j < ng_of_sg->number_nodes; j++) {
-				if (!memcmp(ng_node_list_su, ng_node_list_sg, sizeof(SaNameT)))
-					found = 1;
-
-				ng_node_list_sg++;
-			}
-
-			if (!found) {
-				report_ccb_validation_error(opdata, 
+		if (std::includes(ng_of_sg->saAmfNGNodeList.begin(), ng_of_sg->saAmfNGNodeList.end(),
+			ng_of_su->saAmfNGNodeList.begin(), ng_of_su->saAmfNGNodeList.end()) == false) {
+			report_ccb_validation_error(opdata, 
 						"SU node group '%s' is not a subset of the SG node group '%s'",
 						saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
-				return 0;
-			}
 
-			ng_node_list_su++;
-		}
+			return 0;
+		}		
 	}
 
 	// TODO maintenance campaign
@@ -496,7 +479,7 @@ done:
 
 /**
  * Map SU to a node. A node is selected using a static load balancing scheme. Nodes are selected
- * from a node group in the (unordered) order they appear in the node list in the node group.
+ * from a node group in alphabetical order.
  * @param su
  * 
  * @return AVD_AVND*
@@ -504,9 +487,9 @@ done:
 static AVD_AVND *map_su_to_node(AVD_SU *su)
 {
 	AVD_AMF_NG *ng = NULL;
-	unsigned int i;          
 	AVD_SU *su_temp = NULL;
 	AVD_AVND *node = NULL;
+	std::set<std::string>::const_iterator node_iter;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -527,8 +510,11 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 	osafassert(ng);
 
 	/* Find a node in the group that doesn't have a SU in same SG mapped to it already */
-	for (i = 0; i < ng->number_nodes; i++) {
-		node = avd_node_get(&ng->saAmfNGNodeList[i]);
+	for (node_iter = ng->saAmfNGNodeList.begin();
+		node_iter != ng->saAmfNGNodeList.end();
+		node_iter++) {
+
+		node = avd_node_get(*node_iter);
 		osafassert(node);
 
 		if (su->sg_of_su->sg_ncs_spec == true) {
@@ -550,7 +536,7 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 	}
 
 	/* All nodes already have an SU mapped for the SG. Return a node in the node group. */
-	node = avd_node_get(&ng->saAmfNGNodeList[0]);
+	node = avd_node_get(*ng->saAmfNGNodeList.begin());
 done:
 	memcpy(&su->saAmfSUHostedByNode, &node->name, sizeof(SaNameT));
 	TRACE_LEAVE2("hosted by %s", node->name.value);

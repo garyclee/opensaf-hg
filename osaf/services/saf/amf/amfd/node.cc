@@ -139,6 +139,11 @@ AVD_AVND *avd_node_get(const SaNameT *dn)
 	return node_name_db->find(Amf::to_string(dn));
 }
 
+AVD_AVND *avd_node_get(const std::string& dn)
+{
+	return node_name_db->find(dn);
+}
+
 AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)
 {
 	return node_id_db->find(node_id);
