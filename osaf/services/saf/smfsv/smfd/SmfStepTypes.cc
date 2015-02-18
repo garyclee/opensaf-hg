@@ -396,6 +396,10 @@ SmfStepTypeAuLock::execute()
                 return false;
         }
 
+        /* Copy the initial states of the DUs to AUs, so the activation phase will leave */
+        /* the units in the same state as before locking                                 */
+        m_step->copyDuInitStateToAu();
+
         /* Instantiate activation units */
         LOG_NO("STEP: Instantiate activation units");
         if (m_step->instantiateActivationUnits() == false) {
@@ -668,6 +672,10 @@ SmfStepTypeAuLockAct::execute()
                 LOG_ER("Failed to execute SW activate command");
                 return false;
 	}
+
+        /* Copy the initial states of the DUs to AUs, so the activation phase will leave */
+        /* the units in the same state as before locking                                 */
+        m_step->copyDuInitStateToAu();
 
         /* Instantiate activation units */
         LOG_NO("STEP: Instantiate activation units");
@@ -1360,6 +1368,10 @@ SmfStepTypeNodeReboot::execute()
                 return false;
         }
 
+        /* Copy the initial states of the DUs to AUs, so the activation phase will leave */
+        /* the units in the same state as before locking                                 */
+        m_step->copyDuInitStateToAu();
+
         /* Instantiate activation units */
         LOG_NO("STEP: Instantiate activation units");
         if (m_step->instantiateActivationUnits() == false) {
@@ -1730,6 +1742,10 @@ SmfStepTypeNodeRebootAct::execute()
                 return false;
         }
         // Here the rebooted node is up and running
+
+        /* Copy the initial states of the DUs to AUs, so the activation phase will leave */
+        /* the units in the same state as before locking                                 */
+        m_step->copyDuInitStateToAu();
 
         /* Instantiate activation units */
         LOG_NO("STEP: Instantiate activation units");

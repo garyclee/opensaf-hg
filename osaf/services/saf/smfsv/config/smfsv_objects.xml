@@ -77,6 +77,10 @@
 			<name>smfVerifyTimeout</name>
 			<value>100000000000</value>
 		</attr>
+		<attr>
+			<name>smfKeepDuState</name>
+			<value>0</value>
+		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeSMF</dn>
