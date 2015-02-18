@@ -385,6 +385,13 @@
                         <flag>SA_WRITABLE</flag>
                         <default-value>0</default-value>
 		</attr>
+		<attr>
+			<name>smfKeepDuState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                        <default-value>0</default-value>
+		</attr>
 	</class>
 	<class name="OpenSafSmfCampRestartInfo">
 		<category>SA_RUNTIME</category>

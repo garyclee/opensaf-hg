@@ -372,7 +372,7 @@ SmfUpgradeStep::setImmStateAndSendNotification(SaSmfStepStateT i_state)
 // addActivationUnit()
 //------------------------------------------------------------------------------
 void 
-SmfUpgradeStep::addActivationUnit(const std::string & i_activationUnit)
+SmfUpgradeStep::addActivationUnit(const unitNameAndState & i_activationUnit)
 {
 	m_activationUnit.m_actedOn.push_back(i_activationUnit);
 }
@@ -380,7 +380,7 @@ SmfUpgradeStep::addActivationUnit(const std::string & i_activationUnit)
 //------------------------------------------------------------------------------
 // getActivationUnits()
 //------------------------------------------------------------------------------
-const std::list < std::string > &
+const std::list < unitNameAndState > &
 SmfUpgradeStep::getActivationUnitList()
 {
 	return m_activationUnit.m_actedOn;
@@ -390,7 +390,7 @@ SmfUpgradeStep::getActivationUnitList()
 // addDeactivationUnit()
 //------------------------------------------------------------------------------
 void 
-SmfUpgradeStep::addDeactivationUnit(const std::string & i_deactivationUnit)
+SmfUpgradeStep::addDeactivationUnit(const unitNameAndState & i_deactivationUnit)
 {
 	m_deactivationUnit.m_actedOn.push_back(i_deactivationUnit);
 }
@@ -398,7 +398,7 @@ SmfUpgradeStep::addDeactivationUnit(const std::string & i_deactivationUnit)
 //------------------------------------------------------------------------------
 // getDeactivationUnits()
 //------------------------------------------------------------------------------
-const std::list < std::string > &
+const std::list < unitNameAndState > &
 SmfUpgradeStep::getDeactivationUnitList()
 {
 	return m_deactivationUnit.m_actedOn;
@@ -649,7 +649,7 @@ bool
 SmfUpgradeStep::lockDeactivationUnits()
 {
 	TRACE("lock deactivation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL};
 	return callAdminOperation(SA_AMF_ADMIN_LOCK, params, m_deactivationUnit.m_actedOn);
 }
 
@@ -671,7 +671,7 @@ bool
 SmfUpgradeStep::terminateDeactivationUnits()
 {
 	TRACE("terminate deactivation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL};
 	return callAdminOperation(SA_AMF_ADMIN_LOCK_INSTANTIATION, params, m_deactivationUnit.m_actedOn);
 }
 
@@ -886,14 +886,15 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
 	SmfImmUtils immUtil;
         std::list < std::string > suList;
         std::list < std::string >::iterator it;
+        std::list < unitNameAndState >::iterator unitIt;
 
-        for (it = i_units.m_actedOn.begin(); it != i_units.m_actedOn.end(); ++it) {
-                if ((*it).find("safAmfNode") == 0) { 
+        for (unitIt = i_units.m_actedOn.begin(); unitIt != i_units.m_actedOn.end(); ++unitIt) {
+        	if ((*unitIt).name.find("safAmfNode") == 0) {
                         //If DN is a node, set saAmfSUMaintenanceCampaign for all SUs on the node
-			// Find all SU's on the node
-                        std::list < std::string > objectList;
-                        SaImmAttrValuesT_2 **attributes;
-			(void)immUtil.getChildren("", objectList, SA_IMM_SUBTREE, "SaAmfSU");
+        		// Find all SU's on the node
+        		std::list < std::string > objectList;
+                SaImmAttrValuesT_2 **attributes;
+                (void)immUtil.getChildren("", objectList, SA_IMM_SUBTREE, "SaAmfSU");
 
                         std::list < std::string >::const_iterator suit;
 			for (suit = objectList.begin(); suit != objectList.end(); ++suit) {
@@ -905,28 +906,28 @@ SmfUpgradeStep::setMaintenanceState(SmfActivationUnit& i_units)
                                                                     "saAmfSUHostedByNode",
                                                                     0);
                                         if ((hostedByNode != NULL)
-                                            && (strcmp((*it).c_str(), osaf_extended_name_borrow(hostedByNode)) == 0)) {
+                                            && (strcmp((*unitIt).name.c_str(), osaf_extended_name_borrow(hostedByNode)) == 0)) {
                                                 /* The SU is hosted by the AU node */
                                                 suList.push_back(*suit);
                                         }
 				}
 			}
-                } else if ((*it).find("safSu") == 0) { 
+                } else if ((*unitIt).name.find("safSu") == 0) {
                         //If DN is a SU, set saAmfSUMaintenanceCampaign for this SU only
-                        suList.push_back(*it);
-                } else if ((*it).find("safComp") == 0) {
+                        suList.push_back((*unitIt).name);
+                } else if ((*unitIt).name.find("safComp") == 0) {
                         //IF DN is a component, set saAmfSUMaintenanceCampaign for the hosting SU
                         //Extract the SU name from the DN
-			std::string::size_type pos = (*it).find(",");
+			std::string::size_type pos = (*unitIt).name.find(",");
 			if (pos == std::string::npos) {
-				LOG_NO("SmfUpgradeStep::setMaintenanceState(): Separator \",\" not found in %s", (*it).c_str());
+				LOG_NO("SmfUpgradeStep::setMaintenanceState(): Separator \",\" not found in %s", (*unitIt).name.c_str());
 				TRACE_LEAVE();
 				return false;
 			}
-                        std::string su = ((*it).substr(pos + 1, std::string::npos));
+                        std::string su = ((*unitIt).name.substr(pos + 1, std::string::npos));
                         suList.push_back(su);
                 } else {
-                        LOG_NO("SmfUpgradeStep::setMaintenanceState(): unknown activation unit type %s", (*it).c_str());
+                        LOG_NO("SmfUpgradeStep::setMaintenanceState(): unknown activation unit type %s", (*unitIt).name.c_str());
                         TRACE_LEAVE();
                         return false;
                 }
@@ -1352,9 +1353,9 @@ SmfUpgradeStep::calculateStepType()
 		//Single step
 		//Try the activation unit list, if empty try the deactivation unit list
 		if (!this->getActivationUnitList().empty()) {
-			firstAuDu = this->getActivationUnitList().front();
+			firstAuDu = this->getActivationUnitList().front().name;
 		} else if (!this->getDeactivationUnitList().empty()) {
-			firstAuDu = this->getDeactivationUnitList().front();
+			firstAuDu = this->getDeactivationUnitList().front().name;
 		} else {
 			//No activation/deactivation, just SW installation
 			className = "SaAmfNode";
@@ -1363,7 +1364,7 @@ SmfUpgradeStep::calculateStepType()
 	} else { 
 		//Rolling
 		if (!this->getActivationUnitList().empty()) {
-			firstAuDu = this->getActivationUnitList().front();
+			firstAuDu = this->getActivationUnitList().front().name;
 		} else {
 			//No activation/deactivation, just SW installation
 			className = "SwInstallNode"; //Fake name for SW installation only
@@ -2085,69 +2086,93 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 bool 
 SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
                                    const SaImmAdminOperationParamsT_2 ** i_params,
-                                   const std::list < std::string > &i_dnList)
+                                   std::list <unitNameAndState> &i_dnList)
 {
-	std::list < std::string >::const_iterator dnit;
+        //This routine is only used from the upgrade steps
+	std::list < unitNameAndState >::iterator dnit;
 	SmfImmUtils immUtil;
 	bool result = true;
 
 	TRACE_ENTER();
 
 	for (dnit = i_dnList.begin(); dnit != i_dnList.end(); ++dnit) {
-		SaAisErrorT rc = immUtil.callAdminOperation((*dnit), i_operation, i_params, smfd_cb->adminOpTimeout);
+                //The initial deactivation unit(DU) admin state is saved in the given DU list (i_dnList).
+                //The DU admin state is not read from IMM but is known from the result from adminOp.
+                //The saved DU admin state is used in the unlocking phase to avoid the DU to enter a different admin state than it
+                //originally have.
+                //If the admin state is "empty" the unlocking will proceed regardless of original state.
+
+                //If AU/DU original state was SA_AMF_ADMIN_LOCKED, don't unlock
+                if ((i_operation == SA_AMF_ADMIN_UNLOCK) && ((*dnit).initState == SA_AMF_ADMIN_LOCKED)) {
+                        LOG_NO("AU/DU [%s] shall remain SA_AMF_ADMIN_LOCKED, continue", (*dnit).name.c_str());
+                        continue;
+                }
+
+                //If AU/DU original state was SA_AMF_ADMIN_LOCKED_INSTANTIATION don't instantiate or unlock
+                if (((i_operation == SA_AMF_ADMIN_UNLOCK_INSTANTIATION) || (i_operation == SA_AMF_ADMIN_UNLOCK)) &&
+                    ((*dnit).initState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
+                        LOG_NO("AU/DU [%s] shall remain SA_AMF_ADMIN_LOCKED_INSTANTIATION, continue", (*dnit).name.c_str());
+                        continue;
+                }
+
+		SaAisErrorT rc = immUtil.callAdminOperation((*dnit).name, i_operation, i_params, smfd_cb->adminOpTimeout);
 
 		//In case the upgrade step is re-executed the operation may result in the followng result codes
 		//depending on the state of the entity
 		// SA_AIS_ERR_NO_OP, in case the operation is already performed
-		// SA_AIS_ERR_BAD_OPERATION, in case the entity is already in loacked-instantiation admin state
+		// SA_AIS_ERR_BAD_OPERATION, in case the entity is already in locked-instantiation admin state
 		switch (i_operation) {
 		case SA_AMF_ADMIN_LOCK:
 			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state LOCKED, continue", (*dnit).c_str());
+				TRACE("Entity %s already in state LOCKED, continue", (*dnit).name.c_str());
+                                //Save the state for act/deact pointed out
+                               (*dnit).initState = SA_AMF_ADMIN_LOCKED;
 			} else if (rc == SA_AIS_ERR_BAD_OPERATION) {
-				TRACE("Entity %s already in state LOCKED-INSTANTIATION, continue", (*dnit).c_str());
+				TRACE("Entity %s already in state LOCKED-INSTANTIATION, continue", (*dnit).name.c_str());
 			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
 				result = false;
 				goto done;
 			}
 			break;
 		case SA_AMF_ADMIN_UNLOCK:
 			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state UNLOCKED, continue", (*dnit).c_str());
+				TRACE("Entity %s already in state UNLOCKED, continue", (*dnit).name.c_str());
 			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
 				result = false;
 				goto done;
 			}
 			break;
 		case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state LOCKED-INSTANTIATED, continue", (*dnit).c_str());
+				TRACE("Entity %s already in state LOCKED-INSTANTIATED, continue", (*dnit).name.c_str());
+				//Save the state for act/deact pointed out
+				(*dnit).initState = SA_AMF_ADMIN_LOCKED_INSTANTIATION;
 			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
 				result = false;
 				goto done;
 			}
 			break;
 		case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state UNLOCKED-INSTANTIATED, continue", (*dnit).c_str());
+				TRACE("Entity %s already in state UNLOCKED-INSTANTIATED, continue", (*dnit).name.c_str());
 			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
 				result = false;
 				goto done;
 			}
 			break;
 		case SA_AMF_ADMIN_RESTART:
 			if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).c_str());
+				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
 				result = false;
 				goto done;
 			}
 			break;
 		default:
-			LOG_NO("Unknown admin operation %u on %s", i_operation, (*dnit).c_str());
+			LOG_NO("Unknown admin operation %u on %s", i_operation, (*dnit).name.c_str());
 			result = false;
 			goto done;
 			break;
@@ -2157,6 +2182,33 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 done:
 	TRACE_LEAVE();
 	return result;
+}
+
+//------------------------------------------------------------------------------
+// copyDuInitStateToAu()
+//------------------------------------------------------------------------------
+void
+SmfUpgradeStep::copyDuInitStateToAu()
+{
+		TRACE_ENTER();
+		if (smfd_cb->smfKeepDuState == 0) { //Classic behavior, unlock at deactivation
+			TRACE_LEAVE();
+			return;
+		}
+
+		std::list < unitNameAndState >::iterator i_du;
+		std::list < unitNameAndState >::iterator i_au;
+		// For each DN given in m_activationUnit, check if DN is found in m_deactivationUnit.
+		// If DN is found copy the DU initial state.
+		for (i_au = m_activationUnit.m_actedOn.begin(); i_au != m_activationUnit.m_actedOn.end(); ++i_au) {
+			for (i_du = m_deactivationUnit.m_actedOn.begin(); i_du != m_deactivationUnit.m_actedOn.end(); ++i_du) {
+				if ((*i_au).name == (*i_du).name) {
+						(*i_au).initState = (*i_du).initState;
+						break;
+				}
+			}
+		}
+		TRACE_LEAVE();
 }
 
 //------------------------------------------------------------------------------

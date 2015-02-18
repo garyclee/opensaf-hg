@@ -1155,6 +1155,19 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
                 }
         }
 
+	const SaUint32T *keepDuState = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes,
+			SMF_KEEP_DU_STATE_ATTR, 0);
+	unsigned int tmp_keep_du_state = 0;
+
+	if (keepDuState == NULL) {
+		//Not found, set default value
+		keepDuState = &tmp_keep_du_state;
+		LOG_NO("Attr %s is not available in %s, using default value %d", 
+		       SMF_KEEP_DU_STATE_ATTR, SMF_CONFIG_OBJECT_DN, *keepDuState);
+	} else {
+		LOG_NO("smfKeepDuState = %d", *keepDuState);
+	}
+
 	cb->backupCreateCmd = strdup(backupCreateCmd);
 	cb->bundleCheckCmd = strdup(bundleCheckCmd);
 	cb->nodeCheckCmd = strdup(nodeCheckCmd);
@@ -1172,6 +1185,8 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 	cb->smfInactivatePbeDuringUpgrade = *smfInactivatePbeDuringUpgrade;
 	cb->smfVerifyEnable = *smfVerifyEnable;
 	cb->smfVerifyTimeout = *verifyTimeout;
+	cb->smfKeepDuState = *keepDuState;
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

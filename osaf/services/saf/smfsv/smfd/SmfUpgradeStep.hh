@@ -27,6 +27,7 @@
 #include <vector>
 #include <list>
 
+#include <saAmf.h>
 #include <saSmf.h>
 #include <saImmOi.h>
 #include "SmfStepState.hh"
@@ -54,6 +55,11 @@ typedef enum {
 struct SmfNodeUpInfo {
         std::string node_name;
         unsigned int nd_up_cntr;
+};
+
+struct unitNameAndState{
+	  std::string name;
+	  SaAmfAdminStateT initState;
 };
 
 /* ========================================================================
@@ -85,7 +91,7 @@ class SmfActivationUnit {
       {
       }
 
-      std::list < std::string > m_actedOn;
+      std::list < unitNameAndState > m_actedOn;
 };
 
 ///
@@ -225,28 +231,28 @@ class SmfUpgradeStep {
 /// @param    A DN to an activation unit 
 /// @return   None
 ///
-	void addActivationUnit(const std::string & i_activationUnit);
+	void addActivationUnit(const unitNameAndState & i_activationUnit);
 
 ///
 /// Purpose:  Get the activation unit DN
 /// @param     
 /// @return   A list of DN to activation units
 ///
-	const std::list < std::string > &getActivationUnitList();
+	const std::list < unitNameAndState > &getActivationUnitList();
 
 ///
 /// Purpose:  Add an deactivation unit DN
 /// @param    A DN to an deactivation unit 
 /// @return   None
 ///
-	void addDeactivationUnit(const std::string & i_deactivationUnit);
+	void addDeactivationUnit(const unitNameAndState & i_deactivationUnit);
 
 ///
 /// Purpose:  Get the deactivation unit DN
 /// @param     
 /// @return   A list of DN to deactivation units
 ///
-	const std::list < std::string > &getDeactivationUnitList();
+	const std::list < unitNameAndState > &getDeactivationUnitList();
 
 ///
 /// Purpose:  Add a sw bundle to remove
@@ -625,6 +631,13 @@ class SmfUpgradeStep {
 ///
 	bool nodeReboot();
 
+///
+/// Purpose:  Copy initial admin state of deactivation units to activation units
+/// @param    -
+/// @return   -
+///
+	void copyDuInitStateToAu();
+
 	bool checkAndInvokeCallback (const std::list < SmfCallback * > &callback_list, unsigned int camp_phase);
 
         friend class SmfStepState;
@@ -670,7 +683,7 @@ class SmfUpgradeStep {
 /// @return   -
 ///
 	bool callAdminOperation(unsigned int i_operation, const SaImmAdminOperationParamsT_2 ** params,
-				const std::list < std::string > &i_dnList);
+				std::list < unitNameAndState > &i_dnList);
 
 ///
 /// Purpose:  Set the state in IMM step object and send state change notification

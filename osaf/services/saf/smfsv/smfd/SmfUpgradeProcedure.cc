@@ -543,8 +543,11 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 			SmfUpgradeStep *newStep = new SmfUpgradeStep();
 			newStep->setRdn(rdnStr);
 			newStep->setDn(newStep->getRdn() + "," + getDn());
-			newStep->addActivationUnit(*it);
-			newStep->addDeactivationUnit(*it);
+			unitNameAndState tmp;
+			tmp.name = *it;
+                        tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+			newStep->addActivationUnit(tmp);
+			newStep->addDeactivationUnit(tmp);
 			newStep->setMaxRetry(i_rollingUpgrade->getStepMaxRetryCount());
 			newStep->setRestartOption(i_rollingUpgrade->getStepRestartOption());
 			newStep->addSwRemove(nodeTemplate->getSwRemoveList());
@@ -598,8 +601,11 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
                         osafassert(newStep != NULL);
                         newStep->setRdn(rdnStr);
                         newStep->setDn(newStep->getRdn() + "," + getDn());
-                        newStep->addActivationUnit(*itActDeact);
-                        newStep->addDeactivationUnit(*itActDeact);
+                        unitNameAndState tmp;
+                        tmp.name = *itActDeact;
+                        tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+                        newStep->addActivationUnit(tmp);
+                        newStep->addDeactivationUnit(tmp);
                         newStep->setMaxRetry(i_rollingUpgrade->getStepMaxRetryCount());
                         newStep->setRestartOption(i_rollingUpgrade->getStepRestartOption());
                         newStep->addSwRemove(nodeTemplate->getSwRemoveList());
@@ -805,7 +811,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 				}
 				std::list<std::string>::const_iterator a;
 				for (a = actUnits.begin(); a != actUnits.end(); a++) {
-					newStep->addActivationUnit(*a);
+					unitNameAndState tmp;
+					tmp.name = *a;
+                                        tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+					newStep->addActivationUnit(tmp);
 				}
 			} else {
 				if (e->getName().length() == 0) {
@@ -826,7 +835,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 		entityList.unique();
 		std::list<std::string>::iterator entity;
 		for (entity = entityList.begin(); entity != entityList.end(); entity++) {
-			newStep->addActivationUnit(*entity);
+			unitNameAndState tmp;
+			tmp.name = *entity;
+                        tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+			newStep->addActivationUnit(tmp);
 		}
 		entityList.clear();
 
@@ -870,7 +882,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 				}
 				std::list<std::string>::const_iterator a;
 				for (a = deactUnits.begin(); a != deactUnits.end(); a++) {
-					newStep->addDeactivationUnit(*a);
+					unitNameAndState tmp;
+					tmp.name = *a;
+                                        tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+					newStep->addDeactivationUnit(tmp);
 				}
 			} else {
 				if (e->getName().length() == 0){
@@ -901,7 +916,10 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 		entityList.sort();
 		entityList.unique();
 		for (entity = entityList.begin(); entity != entityList.end(); entity++) {
-			newStep->addDeactivationUnit(*entity);
+			unitNameAndState tmp;
+			tmp.name = *entity;
+                        tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+			newStep->addDeactivationUnit(tmp);
 		}
 		entityList.clear();
 
@@ -997,8 +1015,11 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 
 		std::list<std::string>::const_iterator a;
 		for (a = actDeactUnits.begin(); a != actDeactUnits.end(); a++) {
-			newStep->addDeactivationUnit(*a);
-			newStep->addActivationUnit(*a);
+			unitNameAndState tmp;
+			tmp.name = *a;
+                        tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+			newStep->addDeactivationUnit(tmp);
+			newStep->addActivationUnit(tmp);
 		}
 
 		std::list<std::string>::const_iterator n;
@@ -1372,7 +1393,7 @@ SmfUpgradeProcedure::addStepModificationsNode(SmfUpgradeStep * i_newStep, const 
 	SaImmAttrValuesT_2 **attributes;
 	std::list < std::string > objectList;
 	std::list < std::string >::const_iterator objit;
-	const std::string & auNodeName = i_newStep->getActivationUnitList().front();
+	const std::string & auNodeName = i_newStep->getActivationUnitList().front().name;
 	std::multimap<std::string, objectInst>::iterator iter;
 	std::pair<std::multimap<std::string, objectInst>::iterator, std::multimap<std::string, objectInst>::iterator> nodeName_mm;
 
@@ -1575,10 +1596,10 @@ SmfUpgradeProcedure::addStepModificationsSuOrComp(SmfUpgradeStep * i_newStep, co
 	} else {
 		//No parent type was set, apply the modifications on the entity pointed out by the activation units.
 		//The optional modifyOperation RDN attribute if added when applying the modification
-		std::list < std::string >::const_iterator auEntityIt;
-		const std::list < std::string > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
+		std::list < unitNameAndState >::const_iterator auEntityIt;
+		const std::list < unitNameAndState > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
 		for (auEntityIt = auEntityList.begin(); auEntityIt != auEntityList.end(); ++auEntityIt) {
-			if (!addStepModificationList(i_newStep, *auEntityIt, i_modificationList)) {
+			if (!addStepModificationList(i_newStep, (*auEntityIt).name, i_modificationList)) {
 				LOG_NO("SmfUpgradeProcedure::addStepModificationsSuOrComp: addStepModificationList fails");
 				return false;
 			}
@@ -1640,8 +1661,8 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
         TRACE_ENTER();
 
 	std::list < std::string >::const_iterator strIter;
-        std::list < std::string >::const_iterator auEntityIt;
-        const std::list < std::string > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
+        std::list < unitNameAndState >::const_iterator auEntityIt;
+        const std::list < unitNameAndState > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
 	std::string typeDn   = i_parentType->getTypeDn();
 	std::string parentDn = i_parentType->getParentDn();
 
@@ -1669,23 +1690,23 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
 			for (auEntityIt = auEntityList.begin(); auEntityIt != auEntityList.end(); ++auEntityIt) {
 				//This test is because in single step upgrades the SU/Comp step mod routines are called 
 				//also when the AU/DU is a node.
-				if((*auEntityIt).find("safAmfNode=") == 0) { //Node as AU/DU
-					if((*objit).second.nodeDN == (*auEntityIt)) {
-						TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).c_str());
+				if((*auEntityIt).name.find("safAmfNode=") == 0) { //Node as AU/DU
+					if((*objit).second.nodeDN == (*auEntityIt).name) {
+						TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).name.c_str());
 						matchingSU.push_back((*objit).second.suDN);
 						break;
 					}
 				}
 
-				if((*objit).second.suDN == (*auEntityIt)) {
-					TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).c_str());
+				if((*objit).second.suDN == (*auEntityIt).name) {
+					TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).name.c_str());
 					//The i_objects map contain all instances on component level.
 					//One SU may give multiple matches since one SU may contain several components.
 					//Save the matching enties and remove duplicates when all matching is finished.
 					matchingSU.push_back((*objit).second.suDN);
 					break;
 				} else {
-					TRACE("Instance %s is NOT within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).c_str());
+					TRACE("Instance %s is NOT within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).name.c_str());
 				}
 			}
 			//Remove duplicates
@@ -1717,8 +1738,8 @@ SmfUpgradeProcedure::addStepModificationsComp(SmfUpgradeStep * i_newStep, const 
         TRACE_ENTER();
 
 	std::list < std::string >::const_iterator strIter;
-        std::list < std::string >::const_iterator auEntityIt;
-        const std::list < std::string > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
+        std::list < unitNameAndState >::const_iterator auEntityIt;
+        const std::list < unitNameAndState > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
 	std::string typeDn   = i_parentType->getTypeDn();
 	std::string parentDn = i_parentType->getParentDn();
 
@@ -1744,29 +1765,29 @@ SmfUpgradeProcedure::addStepModificationsComp(SmfUpgradeStep * i_newStep, const 
 			for (auEntityIt = auEntityList.begin(); auEntityIt != auEntityList.end(); ++auEntityIt) {
 				//This test is because in single step upgrades the SU/Comp step mod routines are called 
 				//also when the AU/DU is a node.
-				if((*auEntityIt).find("safAmfNode=") == 0) { //Node as AU/DU
-					if((*objit).second.nodeDN == (*auEntityIt)) {
-						TRACE("Instance %s is within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).c_str());
+				if((*auEntityIt).name.find("safAmfNode=") == 0) { //Node as AU/DU
+					if((*objit).second.nodeDN == (*auEntityIt).name) {
+						TRACE("Instance %s is within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).name.c_str());
 						if (!addStepModificationList(i_newStep, (*objit).second.compDN, i_modificationList)) {
 							LOG_NO("SmfUpgradeProcedure::addStepModificationsComp: addStepModificationList fails");
 							TRACE_LEAVE();
 							return false;
 						}
 					} else {
-						TRACE("Instance %s is NOT within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).c_str());
+						TRACE("Instance %s is NOT within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).name.c_str());
 					}
 				}
 
 				//If the AU/DU DN is found within the Component DN, the component is within the scope
-				if(((*objit).second.compDN).find(*auEntityIt) != std::string::npos) {
-					TRACE("Instance %s is within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).c_str());
+				if(((*objit).second.compDN).find((*auEntityIt).name) != std::string::npos) {
+					TRACE("Instance %s is within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).name.c_str());
 					if (!addStepModificationList(i_newStep, (*objit).second.compDN, i_modificationList)) {
 						LOG_NO("SmfUpgradeProcedure::addStepModificationsComp: addStepModificationList fails");
 						TRACE_LEAVE();
 						return false;
 					}
 				} else {
-					TRACE("Instance %s is NOT within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).c_str());
+					TRACE("Instance %s is NOT within scope of %s", (*objit).second.compDN.c_str(), (*auEntityIt).name.c_str());
 				}
 			}
 		}
@@ -1787,8 +1808,8 @@ SmfUpgradeProcedure::addStepModificationsParentOnly(SmfUpgradeStep * i_newStep, 
         TRACE_ENTER();
 
 	std::list < std::string >::const_iterator strIter;
-        std::list < std::string >::const_iterator auEntityIt;
-        const std::list < std::string > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
+        std::list < unitNameAndState >::const_iterator auEntityIt;
+        const std::list < unitNameAndState > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
 	std::string typeDn   = i_parentType->getTypeDn();
 	std::string parentDn = i_parentType->getParentDn();
 
@@ -1811,9 +1832,9 @@ SmfUpgradeProcedure::addStepModificationsParentOnly(SmfUpgradeStep * i_newStep, 
 		for (auEntityIt = auEntityList.begin(); auEntityIt != auEntityList.end(); ++auEntityIt) {
 			//This test is because in single step upgrades the SU/Comp step mod routines are called 
 			//also when the AU/DU is a node.
-			if((*auEntityIt).find("safAmfNode=") == 0) { //Node as AU/DU
-				if((*objit).second.nodeDN == (*auEntityIt)) {
-					TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).c_str());
+			if((*auEntityIt).name.find("safAmfNode=") == 0) { //Node as AU/DU
+				if((*objit).second.nodeDN == (*auEntityIt).name) {
+					TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).name.c_str());
 					//The i_objects map contain all instances on component level.
 					//One SU may give multiple matches since one SU may contain several components.
 					//Save the matching enties and remove duplicates when all matching is finished.
@@ -1822,15 +1843,15 @@ SmfUpgradeProcedure::addStepModificationsParentOnly(SmfUpgradeStep * i_newStep, 
 				}
 			}
 
-			if((*objit).second.suDN == (*auEntityIt)) {
-				TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).c_str());
+			if((*objit).second.suDN == (*auEntityIt).name) {
+				TRACE("Instance %s is within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).name.c_str());
 				//The i_objects map contain all instances on component level.
 				//One SU may give multiple matches since one SU may contain several components.
 				//Save the matching enties and remove duplicates when all matching is finished.
 				matchingSU.push_back((*objit).second.suDN);
 				break;
 			} else {
-				TRACE("Instance %s is NOT within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).c_str());
+				TRACE("Instance %s is NOT within scope of %s", (*objit).second.suDN.c_str(), (*auEntityIt).name.c_str());
 			}
 		}
 		//Remove duplicates
@@ -1944,11 +1965,11 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
                 return rc;
         }
 
-	std::list < std::string >::const_iterator iter;
-	std::list < std::string >::const_iterator iterE;
+	std::list < unitNameAndState >::const_iterator iter;
+	std::list < unitNameAndState >::const_iterator iterE;
 
 	/* Create the SaSmfDeactivationUnit object if there ia any object to deactivate */
-	const std::list < std::string >& deactList = i_step->getDeactivationUnitList();
+	const std::list < unitNameAndState >& deactList = i_step->getDeactivationUnitList();
 	if (deactList.size() != 0) {
 		SmfImmRTCreateOperation icoSaSmfDeactivationUnit;
 		icoSaSmfDeactivationUnit.setClassName("SaSmfDeactivationUnit");
@@ -1968,7 +1989,7 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 		iter = deactList.begin();
 		iterE = deactList.end();
 		while (iter != iterE) {
-			attrsaSmfDuActedOn.addValue(*iter);
+			attrsaSmfDuActedOn.addValue((*iter).name);
 			iter++;
 		}
 
@@ -2073,7 +2094,7 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 	}
 
 	/* Create the SaSmfActivationUnit object if there is any object to activate */
-	const std::list < std::string >& actList = i_step->getActivationUnitList();
+	const std::list < unitNameAndState >& actList = i_step->getActivationUnitList();
 	if(actList.size() != 0) {
 		SmfImmRTCreateOperation icoSaSmfActivationUnit;
 		icoSaSmfActivationUnit.setClassName("SaSmfActivationUnit");
@@ -2089,11 +2110,11 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 		SmfImmAttribute attrsaSmfAuActedOn;
 		attrsaSmfAuActedOn.setName("saSmfAuActedOn");
 		attrsaSmfAuActedOn.setType("SA_IMM_ATTR_SANAMET");
-		const std::list < std::string > actList = i_step->getActivationUnitList();
+		const std::list < unitNameAndState > actList = i_step->getActivationUnitList();
 		iter = actList.begin();
 		iterE = actList.end();
 		while (iter != iterE) {
-			attrsaSmfAuActedOn.addValue(*iter);
+			attrsaSmfAuActedOn.addValue((*iter).name);
 			iter++;
 		}
 
@@ -2522,9 +2543,11 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
 			for(ix = 0; (au = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 							      "saSmfAuActedOn", ix)) != NULL; ix++) {
 				TRACE("addActivationUnit %s", osaf_extended_name_borrow(au));
-				std::string str = osaf_extended_name_borrow(au);
-				if(str != "") {
-					i_newStep->addActivationUnit(osaf_extended_name_borrow(au));
+				unitNameAndState tmp;
+				tmp.name = osaf_extended_name_borrow(au);
+                                tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+				if(tmp.name != "") {
+					i_newStep->addActivationUnit(tmp);
 				} else {
 					TRACE("No activation unit, must be SW install");
 				}
@@ -2604,9 +2627,11 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
 			for(ix = 0; (du = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, 
 							      "saSmfDuActedOn", ix)) != NULL; ix++) {
 				TRACE("addDeactivationUnit %s", osaf_extended_name_borrow(du));
-				std::string str = osaf_extended_name_borrow(du);
-				if(str != "") {
-					i_newStep->addDeactivationUnit(osaf_extended_name_borrow(du));
+				unitNameAndState tmp;
+				tmp.name = osaf_extended_name_borrow(du);
+                                tmp.initState = SA_AMF_ADMIN_UNLOCKED;
+				if(tmp.name != "") {
+					i_newStep->addDeactivationUnit(tmp);
 				} else {
 					TRACE("No deactivation unit, must be SW remove");
 				}
