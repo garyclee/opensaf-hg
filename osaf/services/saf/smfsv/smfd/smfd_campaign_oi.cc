@@ -466,22 +466,24 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                                                         } else if (mod == SA_IMM_ATTR_VALUES_REPLACE) {
                                                                 LOG_NO("SA_IMM_ATTR_VALUES_REPLACE attribute->attrValuesNumber %d",
                                                                        attribute->attrValuesNumber);
-                                                                if (attribute->attrValuesNumber > 2) {
-                                                                        LOG_NO("Max number of values for attribute [%s] is 2 (try to set %u)",
-                                                                               attribute->attrName,
-                                                                               attribute->attrValuesNumber);
-                                                                        rc = SA_AIS_ERR_BAD_OPERATION;
-                                                                        goto done;
-                                                                }
-
-                                                                //Check if CLM node
-                                                                for(unsigned int ix = 0; ix <= attribute->attrValuesNumber-1; ix++) {
-                                                                        std::string clmNodeDn = *((char **)attribute->attrValues[ix]);
-                                                                        if (clmNodeDn.find("safNode=") != 0) {
-                                                                                LOG_NO("Attribute smfClusterControllers, invalid DN [%s]. Must point to an instance of class SaClmNode",
-                                                                                       clmNodeDn.c_str());
+                                                                if (attribute->attrValuesNumber > 0) { //Only if attr is not set to <empty>
+                                                                        if (attribute->attrValuesNumber > 2) {
+                                                                                LOG_NO("Max number of values for attribute [%s] is 2 (try to set %u)",
+                                                                                       attribute->attrName,
+                                                                                       attribute->attrValuesNumber);
                                                                                 rc = SA_AIS_ERR_BAD_OPERATION;
                                                                                 goto done;
+                                                                        }
+
+                                                                        //Check if CLM node
+                                                                        for(unsigned int ix = 0; ix <= attribute->attrValuesNumber-1; ix++) {
+                                                                                std::string clmNodeDn = *((char **)attribute->attrValues[ix]);
+                                                                                if (clmNodeDn.find("safNode=") != 0) {
+                                                                                        LOG_NO("Attribute smfClusterControllers, invalid DN [%s]. Must point to an instance of class SaClmNode",
+                                                                                               clmNodeDn.c_str());
+                                                                                        rc = SA_AIS_ERR_BAD_OPERATION;
+                                                                                        goto done;
+                                                                                }
                                                                         }
                                                                 }
                                                         } else {
