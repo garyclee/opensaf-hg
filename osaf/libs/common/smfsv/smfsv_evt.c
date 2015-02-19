@@ -595,8 +595,8 @@ err:
 
 uint32_t smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t       *p8;
+    uint64_t length;
 
     p8 = ncs_enc_reserve_space(o_ub, 8);
     if (p8 == NULL)
@@ -622,7 +622,7 @@ uint32_t smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
         LOG_ER("ncs_enc_reserve_space failed");
         goto err;
     }
-    uint64_t length = osaf_extended_name_length(&i_evt->object_name);
+    length = osaf_extended_name_length(&i_evt->object_name);
     if (length > 0xffffffff) {
         LOG_ER("object name too long");
         goto err;
@@ -668,7 +668,7 @@ uint32_t smf_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
 	    ncs_encode_n_octets_in_uba(o_ub, (uint8_t*) i_evt->params, 
 					i_evt->params_len);
     }
-    return rc;
+    return NCSCC_RC_SUCCESS;
 err:
     return NCSCC_RC_FAILURE;
 }

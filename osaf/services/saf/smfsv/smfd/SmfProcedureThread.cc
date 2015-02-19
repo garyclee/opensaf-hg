@@ -762,7 +762,8 @@ SmfProcedureThread::main(void)
 
 		this->handleEvents();	/* runs forever until stopped */
 
-                this->deleteImmHandle();
+		if(this->deleteImmHandle() != SA_AIS_OK)
+			LOG_WA("SmfProcedureThread::main(): deleteImmHandle failed");
 
 		/* Mark the thread terminated */
 		if(m_semaphore != NULL) {

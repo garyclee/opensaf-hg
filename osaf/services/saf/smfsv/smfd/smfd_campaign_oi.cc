@@ -34,14 +34,11 @@
 
 #include "immutil.h"
 #include "smfd.h"
-#include "smfsv_defs.h"
 #include "SmfCampaign.hh"
 #include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
 #include "SmfCampaignThread.hh"
-#include "SmfProcedureThread.hh"
 #include "SmfUtils.hh"
-#include "SmfCampState.hh"
 #include "SmfCbkUtil.hh"
 #include "osaf_extended_name.h"
 

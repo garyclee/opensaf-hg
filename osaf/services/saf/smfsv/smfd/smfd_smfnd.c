@@ -34,7 +34,6 @@
 
 #include "smfd.h"
 #include "smfd_smfnd.h"
-#include "smfsv_defs.h"
 #include "smfsv_evt.h"
 
 /* ========================================================================
@@ -126,13 +125,13 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 	/* Check if the node id does already exists */
         pthread_mutex_lock(&smfnd_list_lock);
 	smfnd = get_smfnd(i_node_id);
-        pthread_mutex_unlock(&smfnd_list_lock);
 
 	if (smfnd == NULL) {
                 TRACE("New node Id, create new SmfndNodeT structure");
                 smfnd = calloc(1, sizeof(SmfndNodeT));
                 if (smfnd == NULL) {
                         LOG_ER("alloc of SmfndNodeT failed");
+                        pthread_mutex_unlock(&smfnd_list_lock);
                         return NCSCC_RC_FAILURE;
                 }
                 newNode = true;
@@ -142,6 +141,8 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 	rc = saClmInitialize(&clmHandle, NULL, &clmVersion);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saClmInitialize failed, rc=%s", saf_error(rc));
+		free(smfnd);
+		pthread_mutex_unlock(&smfnd_list_lock);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -156,6 +157,7 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 		if (rc != SA_AIS_OK) {
 			LOG_ER("saClmFinalize failed, rc=%s", saf_error(rc));
 		}
+		pthread_mutex_unlock(&smfnd_list_lock);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -163,8 +165,6 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saClmFinalize failed, rc=%s", saf_error(rc));
 	}
-
-        pthread_mutex_lock(&smfnd_list_lock);
 
 	/* Store cluster node info */
 	memcpy(&smfnd->clmInfo, &clmInfo, sizeof(clmInfo));

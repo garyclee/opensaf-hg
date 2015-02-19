@@ -34,7 +34,6 @@
 #include "saAis.h"
 #include <saSmf.h>
 #include <logtrace.h>
-#include <immutil.h>
 #include <saf_error.h>
 #include "osaf_extended_name.h"
 

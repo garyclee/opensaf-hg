@@ -20,7 +20,6 @@
  */
 
 #include "smfd.h"
-#include "immutil.h"
 
 /****************************************************************************
  * Name          : amf_active_state_handler

@@ -26,9 +26,6 @@
 #include "SmfUpgradeStep.hh"
 #include "SmfStepState.hh"
 #include "SmfStepTypes.hh"
-#include "SmfUtils.hh"
-#include "immutil.h"
-#include "smfd.h"
 
 /* ========================================================================
  *   DEFINITIONS
