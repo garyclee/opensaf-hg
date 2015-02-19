@@ -704,7 +704,17 @@ uint32_t smfa_cbk_list_cleanup(SaSmfHandleT hdl)
 							prev_cbk = cbk_list;
 						}else {
 							free(cbk_list);
-							cbk_list = prev_cbk->next_cbk;
+							// Since cbk_list was freed, the following mechanism needed to prevent dereferencing prev_cbk.
+							// That case only happens when the previous round of the loop went to "if case",
+							// where prev_cbk = cbk_list.
+							if(prev_cbk != cbk_list)
+								cbk_list = prev_cbk->next_cbk;
+							else {
+								cbk_list = NULL;
+								// since prev_cbk = cbk_list, and cbk_list was freed,
+								// prev_cbk can be set to NULL
+								prev_cbk = NULL;
+							}
 						}
 					}
 				}else{

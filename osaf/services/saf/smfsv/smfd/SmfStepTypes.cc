@@ -1444,7 +1444,6 @@ SmfStepTypeNodeReboot::rollback()
 
 	/* Check if callback is required to be invoked.*/
 	cbkList = m_step->getProcedure()->getCbksBeforeLock();
-	m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK);
 	if (m_step->checkAndInvokeCallback(cbkList, SA_SMF_ROLLBACK) == false) {
                 LOG_ER("checkAndInvokeCallback returned false for list cbksBeforeLock, step=%s",m_step->getRdn().c_str());
                 return false;

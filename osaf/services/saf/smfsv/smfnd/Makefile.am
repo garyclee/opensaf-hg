@@ -25,8 +25,7 @@ osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafsmfnd
 
 noinst_HEADERS = \
-	smfnd.h \
-	smfnd_evt.h
+	smfnd.h
 
 osafsmfnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 -DSA_EXTENDED_NAME_SOURCE \

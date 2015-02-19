@@ -362,7 +362,8 @@ static void main_process(void)
  */
 int main(int argc, char *argv[])
 {
-	setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1);
+	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0)
+		LOG_WA("smfd_main(): failed to setenv SA_ENABLE_EXTENDED_NAMES - %s",strerror(errno));
 	daemonize(argc, argv);
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {

@@ -34,7 +34,6 @@
 #include "SmfProcedureThread.hh"
 #include <immutil.h>
 #include <sstream>
-#include <iostream>
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================

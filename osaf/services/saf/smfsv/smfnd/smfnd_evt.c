@@ -22,7 +22,6 @@
 #include "smfnd.h"
 #include "smfsv_defs.h"
 #include "smfsv_evt.h"
-#include "smfnd_evt.h"
 
 /* This function is called in another threads context so be 
    careful with what you do here */

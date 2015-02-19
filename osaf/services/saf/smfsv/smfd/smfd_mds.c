@@ -192,7 +192,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 
 	/* Send the event to our mailbox */
 	rc = m_NCS_IPC_SEND(&smfd_cb->mbx, smfsv_evt,
-			    mds_info->info.receive.i_priority);
+			    (NCS_IPC_PRIORITY)mds_info->info.receive.i_priority);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IPC send failed %d", rc);
 	}

@@ -47,8 +47,6 @@
 #include "SmfUpgradeProcedure.hh"
 #include "SmfUpgradeMethod.hh"
 #include "SmfTargetTemplate.hh"
-#include "SmfUpgradeStep.hh"
-#include "SmfCbkUtil.hh"
 
 #define OSAF_MAX_RDN_LENGTH 64
 
@@ -2889,6 +2887,8 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                                                                 TRACE("value = %s", s);
                                                                 value = strdup(s);
                                                                 xmlFree(s);
+                                                                // only single value is supported, break out from loop
+                                                                break;
                                                         }
                                                 }
 
@@ -2958,6 +2958,8 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                                                                 TRACE("value = %s", s);
                                                                 value = strdup(s);
                                                                 xmlFree(s);
+                                                                // only single value is supported, break out from loop
+                                                                break;
                                                         }
                                                 }
 

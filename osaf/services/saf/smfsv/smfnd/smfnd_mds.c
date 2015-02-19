@@ -19,7 +19,6 @@
 
 #include "smfnd.h"
 #include "smfsv_evt.h"
-#include "smfnd_evt.h"
 
 uint32_t mds_register(smfnd_cb_t * cb);
 void mds_unregister(smfnd_cb_t * cb);
@@ -195,7 +194,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 	smfsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
 
 	/* Send the event to our mailbox */
-	rc = m_NCS_IPC_SEND(&smfnd_cb->mbx, smfsv_evt, mds_info->info.receive.i_priority);
+	rc = m_NCS_IPC_SEND(&smfnd_cb->mbx, smfsv_evt, (NCS_IPC_PRIORITY)mds_info->info.receive.i_priority);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IPC send failed %d", rc);
 	}
