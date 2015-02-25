@@ -2342,7 +2342,7 @@ static uint32_t immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
-	if (!immModel_protocol47Allowed(cb)) {
+	if (!immModel_protocol46Allowed(cb)) {
 		send_evt.info.immd.type = IMMD_EVT_ND2D_ADMINIT_REQ;
 		osaf_extended_name_lend(evt->info.adminitReq.i.adminOwnerName.octetString.buf,
 			&send_evt.info.immd.info.admown_init.i.adminOwnerName.saName);
@@ -8877,7 +8877,7 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 	SaUint32T conn;
 
 	osafassert(evt);
-	osafassert((evt->type != IMMND_EVT_D2ND_ADMINIT_2) || immModel_protocol47Allowed(cb));
+	osafassert((evt->type != IMMND_EVT_D2ND_ADMINIT_2) || immModel_protocol46Allowed(cb));
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	err = immModel_adminOwnerCreate(cb, &(evt->info.adminitGlobal.i),
