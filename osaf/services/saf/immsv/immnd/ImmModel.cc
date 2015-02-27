@@ -735,9 +735,10 @@ immModel_ccbObjectModify(IMMND_CB *cb,
     bool* hasLongDns)
 {
     std::string objectName;
+    bool pbeFile = (cb->mPbeFile != NULL);
     SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         ccbObjectModify(req, implConn, implNodeId, continuationId,
-        pbeConn, pbeNodeId, objectName, hasLongDns);
+        pbeConn, pbeNodeId, objectName, hasLongDns, pbeFile);
 
     if(err == SA_AIS_OK && !objectName.empty()) {
         *objName = (char*) malloc((objectName.length() + 1) * sizeof(char));
@@ -7707,7 +7708,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     SaUint32T* pbeConnPtr,
     unsigned int* pbeNodeIdPtr,
     std::string& objectName,
-    bool* hasLongDns)
+    bool* hasLongDns,
+    bool pbeFile)
 {
     TRACE_ENTER();
     osafassert(hasLongDns);
@@ -7954,6 +7956,22 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 attrName.c_str(), objectName.c_str());
             err = SA_AIS_ERR_BAD_OPERATION;
             break; //out of for-loop
+        }
+	
+	if(modifiedRim && !ENABLE_PBE) {
+            /* ENABLE_PBE defined in immnd.h */ 
+            LOG_NO("ERR_BAD_OPERATION:  imm has not been built with --enable-imm-pbe");
+            setCcbErrorString(ccb,
+                "ERR_BAD_OPERATION:  imm has not been built with --enable-imm-pbe");
+            err = SA_AIS_ERR_BAD_OPERATION;
+            break; 
+        }
+        
+	if(modifiedRim && !pbeFile) {
+            LOG_NO("ERR_BAD_OPERATION: PBE file is not configured");
+            setCcbErrorString(ccb, "ERR_BAD_OPERATION: PBE file is not configured");
+            err = SA_AIS_ERR_BAD_OPERATION;
+            break; 
         }
         
         i4 = classInfo->mAttrMap.find(attrName);

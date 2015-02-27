@@ -244,7 +244,8 @@ public:
                                         SaUint32T* pbeConn,
                                         unsigned int* pbeNodeId,
                                         std::string& objectName,
-                                        bool* hasLongDns);
+                                        bool* hasLongDns,
+                                        bool pbeFile);
     
     SaAisErrorT         ccbObjectDelete(
                                         const ImmsvOmCcbObjectDelete* req,
