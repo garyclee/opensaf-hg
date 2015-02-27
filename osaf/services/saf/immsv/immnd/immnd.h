@@ -32,4 +32,14 @@
 #include "immnd_cb.h"
 #include "immnd_init.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_IMM_PBE
+#define ENABLE_PBE 1
+#else
+#define ENABLE_PBE 0
+#endif
+
 #endif   /* IMMND_H */
