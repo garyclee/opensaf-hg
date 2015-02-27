@@ -7382,7 +7382,7 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");
-			return;
+			goto done;
 		}
 
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -7403,6 +7403,7 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 			LOG_WA("Failed to send response to agent/client over MDS");
 		}
 	}
+ done:
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
 	TRACE_LEAVE();
 }
