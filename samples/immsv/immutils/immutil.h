@@ -568,6 +568,16 @@ extern SaAisErrorT immutil_getAttr(const char *attrName,
 	extern SaAisErrorT immutil_saImmOmCcbApply(SaImmCcbHandleT  immCcbHandle);
 
 /**
+ * Wrapper for saImmOmCcbAbort
+ */
+	extern SaAisErrorT immutil_saImmOmCcbAbort(SaImmCcbHandleT  immCcbHandle);
+
+/**
+ * Wrapper for saImmOmCcbValidate
+ */
+	extern SaAisErrorT immutil_saImmOmCcbValidate(SaImmCcbHandleT  immCcbHandle);
+
+/**
  * Wrapper for saImmOmAdminOwnerSet/_o2
  */
 	extern SaAisErrorT immutil_saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT  ownerHandle,
