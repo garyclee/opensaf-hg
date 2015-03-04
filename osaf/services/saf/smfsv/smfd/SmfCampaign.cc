@@ -608,6 +608,9 @@ SmfCampaign::adminOpVerify(void)
 SaAisErrorT 
 SmfCampaign::initExecution(void)
 {
+        // reset the object counter of upgrade procedures (used for procedure OI naming)
+        SmfUpgradeProcedure::resetProcCounter();
+
         /* Parse the campaign xml file and start all procedure threads */
         if (getUpgradeCampaign() == NULL) {
 		//Check if campaign file exist

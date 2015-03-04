@@ -53,6 +53,8 @@ extern "C" {
 #define SMF_CAMP_RESTART_INDICATOR_RDN "smfCampaignRestartIndicator=smf"
 #define SMF_NODE_ID_CONTROLLER_1 0x2010f
 #define SMF_NODE_ID_CONTROLLER_2 0x2020f
+#define SMF_CAMPAIGN_OI_NAME "safSmfCampaign"
+#define SMF_PROC_OI_NAME_PREFIX "safSmfProc"
 
 /* ========================================================================
  *   TYPE DEFINITIONS

@@ -149,6 +149,20 @@ class SmfUpgradeProcedure {
 	const std::string & getProcName();
 
 ///
+/// Purpose:  Set the OI name of the procedure.
+/// @param    i_oiName A string specifying the OI name of the procedure.
+/// @return   None.
+///
+	void setProcOiName(const std::string &i_name);
+
+///
+/// Purpose:  Get the OI name of the procedure.
+/// @param    None.
+/// @return   A string specifying the OI name of the procedure.
+///
+	const std::string & getProcOiName();
+
+///
 /// Purpose:  Set the procedure execution level. Procedures executed in order low-->high number.
 /// @param    i_level A string specifying the execution level.
 /// @return   None.
@@ -559,6 +573,12 @@ class SmfUpgradeProcedure {
 ///
         std::list < SmfCallback * >& getCbksAfterUnlock() { return m_afterUnlock; }
 
+///
+/// Purpose:  Reset the object counter of upgrade procedures
+/// @param    -
+/// @return   -
+///
+        static void resetProcCounter();
 
 	friend class SmfProcState;
 	friend class SmfCampStateSuspendingExec;
@@ -594,6 +614,8 @@ class SmfUpgradeProcedure {
 	SaSmfProcStateT m_procState; // The procedure state in IMM
 	SmfProcedureThread *m_procedureThread;	// The thread object we are executing in
         std::string m_name;	// The name of the upgrade procedure
+        std::string m_oiName;	// The OI name of the upgrade procedure
+        static unsigned long s_procCounter;	// This is the object counter for upgrade procedures
         SaTimeT     m_time;     // The expected execution time
 	int         m_execLevel;// The execution level of the upgrade procedure
         std::string m_dn;	// The DN of the upgrade procedure
