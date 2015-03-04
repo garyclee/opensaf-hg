@@ -347,13 +347,33 @@ int SmfCampaignThread::send(CAMPAIGN_EVT * evt)
 SaAisErrorT 
 SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 {
+	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_OK;
 	int existCnt = 0;
-
 	SaVersionT immVersion = { 'A', 2, 1 };
-        const char *campDn = i_campaign->getDn().c_str();
+	SmfImmUtils immutil;
+	SaImmAttrValuesT_2 **attributes;
+	const char* campOiName = NULL;
 
-	TRACE_ENTER();
+	/* Use smfRestartInfo object to find out if there is an existing OI for the campaign.
+	 * Note: This is needed for finding if there is an older version of campaign OI name in use or not,
+	 *       in case of a continuation of an ongoing campaign.
+	 *       Currently smfRestartInfo object is the only runtime object which belongs to the campaign OI and
+	 *       which always created at campaign execution time.
+	 */
+	std::string smfRestartInfoDn = "smfRestartInfo=info," + i_campaign->getDn();
+
+	if (immutil.getObject(smfRestartInfoDn, &attributes))
+		campOiName = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes, SA_IMM_ATTR_IMPLEMENTER_NAME, 0);
+
+	if(campOiName)
+		// If campaign OI exists, then continue using the existing OI name
+		TRACE("SmfCampaignThread::createImmHandle: continue using the existing campaign OI name \"%s\"",campOiName);
+	else {
+		// If campaign OI does not exist, then use the default Campaign OI name
+		campOiName = SMF_CAMPAIGN_OI_NAME;
+		TRACE("SmfCampaignThread::createImmHandle: using the default campaign OI name \"%s\"",campOiName);
+	}
 
 	rc = immutil_saImmOiInitialize_2(&m_campOiHandle, NULL, &immVersion);
 	while (rc == SA_AIS_ERR_TRY_AGAIN) {
@@ -365,11 +385,11 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 		goto done;
 	}
 
-	TRACE("saImmOiImplementerSet DN=%s", campDn);
+	TRACE("saImmOiImplementerSet DN=%s", campOiName);
 
 	//SA_AIS_ERR_TRY_AGAIN can proceed forever
 	//SA_AIS_ERR_EXIST is limited to 20 seconds (for the other side to release the handle)
-	rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);
+	rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campOiName);
 	while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) {
 		if(rc == SA_AIS_ERR_EXIST) 
 			existCnt++;
@@ -380,10 +400,10 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 
 		TRACE("immutil_saImmOiImplementerSet rc=%s, wait 1 sec and retry", saf_error(rc));
 		sleep(1);
-		rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campDn);	
+		rc = immutil_saImmOiImplementerSet(m_campOiHandle, (char *)campOiName);
 	}
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiImplementerSet for DN=%s fails, rc=%s", campDn, saf_error(rc));
+		LOG_ER("saImmOiImplementerSet for DN=%s fails, rc=%s", campOiName, saf_error(rc));
 		goto done;
 	}
 

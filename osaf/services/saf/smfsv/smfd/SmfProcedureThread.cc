@@ -186,13 +186,15 @@ SmfProcedureThread::stop(void)
 SaAisErrorT 
 SmfProcedureThread::createImmHandle(void)
 {
+	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_OK;
 	int existCnt = 0;
-
 	SaVersionT immVersion = { 'A', 2, 1 };
-        const char *procName = m_procedure->getProcName().c_str();
 
-	TRACE_ENTER();
+	// DN of the procedure
+	const char *procName = m_procedure->getProcName().c_str();
+	// OI name of the procedure
+	const char *procOiName = m_procedure->getProcOiName().c_str();
 
 	while ((rc = immutil_saImmOiInitialize_2(&m_procOiHandle, NULL, &immVersion)) == SA_AIS_ERR_TRY_AGAIN) {
 		sleep(1);
@@ -203,11 +205,11 @@ SmfProcedureThread::createImmHandle(void)
 		goto done;
 	}
 
-	TRACE("saImmOiImplementerSet %s", procName);
+	TRACE("saImmOiImplementerSet %s : %s (%llu)", procOiName, procName, m_procOiHandle);
 
 	//SA_AIS_ERR_TRY_AGAIN can proceed forever
 	//SA_AIS_ERR_EXIST is limited to 20 seconds (for the other side to release the handle)
-	while ((rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procName)) != SA_AIS_OK) {
+	while ((rc = immutil_saImmOiImplementerSet(m_procOiHandle, (char *)procOiName)) != SA_AIS_OK) {
 		if(rc == SA_AIS_ERR_EXIST) {
 			existCnt++;
                         if(existCnt > 20) {
@@ -224,7 +226,7 @@ SmfProcedureThread::createImmHandle(void)
 	}
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiImplementerSet for %s fails, rc=%s", procName, saf_error(rc));
+		LOG_ER("saImmOiImplementerSet for %s fails, rc=%s", procOiName, saf_error(rc));
 		goto done;
 	}
 
@@ -306,19 +308,23 @@ SmfProcedureThread::init(void)
 		return -1;
 	}
 
-	/* Create our IMM handle used for all IMM OI communication for this procedure */
-	result = createImmHandle();
-	if (result != SA_AIS_OK) {
-                LOG_ER("SmfProcedureThread::init, createImmHandle FAILED, rc=%s", saf_error(result));
-                m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
-                m_NCS_IPC_RELEASE(&m_mbx, NULL);
-                m_NCS_IPC_DETACH(&m_cbk_mbx, NULL, NULL);
-                m_NCS_IPC_RELEASE(&m_cbk_mbx, NULL);
-                return -1;
-        }
-
 	/* Check if our Imm runtime object already exists (switchover or restart occured) */
 	result = getImmProcedure(m_procedure);
+
+	/* If the procedure object was not created by an old version of SMF */
+	if(!m_useCampaignOiHandle) {
+		/* Create our IMM handle used for all IMM OI communication for this procedure */
+		SaAisErrorT createHandleResult = createImmHandle();
+		if (createHandleResult != SA_AIS_OK) {
+			LOG_ER("SmfProcedureThread::init, createImmHandle FAILED, rc=%s", saf_error(createHandleResult));
+			m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
+			m_NCS_IPC_RELEASE(&m_mbx, NULL);
+			m_NCS_IPC_DETACH(&m_cbk_mbx, NULL, NULL);
+			m_NCS_IPC_RELEASE(&m_cbk_mbx, NULL);
+			return -1;
+		}
+	}
+
 	if (result == SA_AIS_ERR_NOT_EXIST) {
 		/* Create our Imm runtime object */
 		if ((result = createImmProcedure(m_procedure)) != SA_AIS_OK) {
@@ -410,13 +416,11 @@ SmfProcedureThread::getCbkMbx()
 SaAisErrorT 
 SmfProcedureThread::getImmProcedure(SmfUpgradeProcedure * procedure)
 {
+	TRACE_ENTER();
 	SaAisErrorT rc = SA_AIS_OK;
 	SmfImmUtils immutil;
 	SaImmAttrValuesT_2 **attributes;
-	std::list < std::string > stepList;
-        const char *implementorName = NULL;
-
-	TRACE_ENTER();
+	const char *implementorName = NULL;
 
 	TRACE("Get IMM data for %s", procedure->getDn().c_str());
 
@@ -433,28 +437,30 @@ SmfProcedureThread::getImmProcedure(SmfUpgradeProcedure * procedure)
 		goto done;
 	}
 
-        implementorName = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
-                                                SA_IMM_ATTR_IMPLEMENTER_NAME, 0);
+	implementorName = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes, SA_IMM_ATTR_IMPLEMENTER_NAME, 0);
 
-        if ((implementorName != NULL) && 
-            (strcmp(implementorName, procedure->getProcName().c_str()))) {
-                /* The implementor name is not our proc name which means the procedure object 
-                   was created by an old version of SMF. So we have to continue using
-                   this old implementor name (i.e. IMM handle) for this procedure.
-                   This is just to be able to handle the upgrade case where a new opensaf
-                   is upgraded in by an old opensaf version (which used the campaign Dn as
-                   implementor name for everything).
-                */
-		LOG_NO("SmfProcedureThread::getImmProcedure, Using campaign IMM handle %s", 
-                       implementorName);
-                m_useCampaignOiHandle = true;
-        }
-        else {
-		LOG_NO("SmfProcedureThread::getImmProcedure, Using own IMM handle %s", 
-                       implementorName);
-        }
+	if ((implementorName != NULL) &&
+		(strcmp(implementorName, procedure->getProcName().c_str())) &&
+		strncmp(implementorName, SMF_PROC_OI_NAME_PREFIX, strlen(SMF_PROC_OI_NAME_PREFIX))) {
+		/* The implementor name:
+		 *    -is not the procedure name (newer implementation of SMF)
+		 *    -and does not start with the SMF procedure OI name prefix (even newer implementation of SMF)
+		 * which means the procedure object was created by an old version of SMF.
+		 * So we have to continue using this old implementor name (i.e. IMM handle) for this procedure.
+		 * This is just to be able to handle the upgrade case where a new opensaf
+		 * is upgraded by an old opensaf version (which used the campaign Dn as
+		 * implementor name for everything).
+		 */
+		LOG_NO("SmfProcedureThread::getImmProcedure, Using campaign IMM handle %s", implementorName);
+		m_useCampaignOiHandle = true;
+	}
+	else {
+		LOG_NO("SmfProcedureThread::getImmProcedure, Using own IMM handle %s", implementorName);
+		// Overwrite the already existing OI name (that was generated by the constructor)
+		procedure->setProcOiName(implementorName);
+	}
 
- done:
+	done:
 	TRACE_LEAVE();
 	return rc;
 }

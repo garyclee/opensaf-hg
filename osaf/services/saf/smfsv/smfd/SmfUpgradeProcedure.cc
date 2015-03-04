@@ -52,6 +52,9 @@
 #include "SmfUtils.hh"
 #include "smfd.h"
 
+// This static member variable is the object counter for upgrade procedures
+unsigned long SmfUpgradeProcedure::s_procCounter = 1;
+
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
@@ -83,6 +86,7 @@
     m_procState(SA_SMF_PROC_INITIAL), 
     m_procedureThread(NULL), 
     m_name(""),
+    m_oiName(""),
     m_time(0),
     m_execLevel(0), 
     m_dn(""),
@@ -96,7 +100,15 @@
     m_afterInstantiate(0),
     m_afterUnlock(0)
 {
+    // create and set the OI name of the procedure
+    std::stringstream ss;
+    ss << s_procCounter;
+    setProcOiName(SMF_PROC_OI_NAME_PREFIX + ss.str());
 
+    // Increment object counter.
+    // Note: it is not needed to decrement this counter in the destructor
+    //       since the value of this counter is only used for creating OI names.
+    s_procCounter++;
 }
 
 // ------------------------------------------------------------------------------
@@ -293,6 +305,24 @@ const std::string &
 SmfUpgradeProcedure::getProcName()
 {
 	return m_name;
+}
+
+//------------------------------------------------------------------------------
+// setProcOiName()
+//------------------------------------------------------------------------------
+void
+SmfUpgradeProcedure::setProcOiName(const std::string &i_oiName)
+{
+	m_oiName = i_oiName;
+}
+
+//------------------------------------------------------------------------------
+// getProcOiName()
+//------------------------------------------------------------------------------
+const std::string &
+SmfUpgradeProcedure::getProcOiName()
+{
+	return m_oiName;
 }
 
 //------------------------------------------------------------------------------
@@ -3133,6 +3163,16 @@ SmfUpgradeProcedure::commit()
         return procResult;
 }
 
+//------------------------------------------------------------------------------
+// resetProcCounter()
+//------------------------------------------------------------------------------
+void
+SmfUpgradeProcedure::resetProcCounter()
+{
+	TRACE_ENTER();
+	SmfUpgradeProcedure::s_procCounter = 1;
+	TRACE_LEAVE();
+}
 
 /*====================================================================*/
 /*  Class SmfSwapThread                                               */
