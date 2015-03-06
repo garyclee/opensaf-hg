@@ -3424,6 +3424,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	SaVersionT version = {'A', 2, 11};
 	SaUint32T adminOwnerId = 0;
 	SaUint32T ccbId = 0;
+	IMMSV_OCTET_STRING *objectName = NULL;
 
 	TRACE_ENTER();
 
@@ -3548,7 +3549,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	init_evt.info.immnd.info.ccbUpcallRsp.implId = cbi->implId;
 	init_evt.info.immnd.info.ccbUpcallRsp.inv = cbi->inv;
 
-	IMMSV_OCTET_STRING *objectName = &init_evt.info.immnd.info.ccbUpcallRsp.name;
+	objectName = &init_evt.info.immnd.info.ccbUpcallRsp.name;
 	size_t length = osaf_extended_name_length(&cbi->name);
 	objectName->buf = (char*) malloc((length + 1) * sizeof(char));
 	if (!objectName->buf) {
@@ -3683,7 +3684,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		out_evt = NULL;
 	}
 
-	if (objectName->buf) {
+	if (objectName && objectName->buf) {
 		free(objectName->buf);
 		objectName->buf = NULL;
 		objectName->size = 0;
