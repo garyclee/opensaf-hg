@@ -564,6 +564,14 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSIDependencies")) {
+			//Reject replacement of CSI deps, only deletion and addition are supported.	
+			if (attr_mod->modType == SA_IMM_ATTR_VALUES_REPLACE) {
+				report_ccb_validation_error(opdata,
+					"'%s' - replacement of CSI dependency is not supported",
+					opdata->objectName.value);
+				goto done;
+				
+			}
 			const SaNameT *required_dn = (SaNameT*) attr_mod->modAttr.attrValues[0];
 			const AVD_CSI *required_csi = csi_db->find(Amf::to_string(required_dn));
 
@@ -626,12 +634,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 					report_ccb_validation_error(opdata, "only one dep can be removed at a time");
 					goto done;
 				}
-			} else {
-				report_ccb_validation_error(opdata,
-					"'%s' - change of CSI dependency is not supported",
-					opdata->objectName.value);
-				goto done;
-			}
+			} 
 		} else {
 			report_ccb_validation_error(opdata, "Modification of attribute '%s' not supported",
 					attr_mod->modAttr.attrName);
