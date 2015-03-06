@@ -724,6 +724,7 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_SI *si;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
+	bool value_is_deleted;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -733,6 +734,16 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	/* Modifications can only be done for these attributes. */
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
+		//void *value = NULL;
+
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == NULL)) {
+			/* Attribute value is deleted, revert to default value */
+			value_is_deleted = true;
+		} else {
+			/* Attribute value is modified */
+			value_is_deleted = false;
+			//value = attribute->attrValues[0];
+		}
 
 		if (!strcmp(attribute->attrName, "saAmfSIPrefActiveAssignments")) {
 			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
@@ -762,6 +773,9 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				break;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfSIRank")) {
+			if (value_is_deleted == true)
+				continue;
+				
 			SaUint32T sirank = *(SaUint32T*)attribute->attrValues[0];
 
 			if (si->saAmfSIRank == (sirank == 0 ? ~0U : sirank)) {
@@ -1189,7 +1203,10 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			TRACE("Modified saAmfSINumCurrStandbyAssignments is '%u'", si->saAmfSINumCurrStandbyAssignments);
 			si->update_ass_state();
 		} else if (!strcmp(attribute->attrName, "saAmfSIRank")) {
-			si->update_sirank(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
+			if (value_is_deleted == true)
+				si->update_sirank(0);
+			else
+				si->update_sirank(*((SaUint32T *)attr_mod->modAttr.attrValues[0]));
 			TRACE("Modified saAmfSIRank is '%u'", si->saAmfSIRank);
 		} else {
 			osafassert(0);
