@@ -885,12 +885,17 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				assert(attr_mod->modAttr.attrValuesNumber == 1);
 				const SaNameT *required_dn = (SaNameT*) attr_mod->modAttr.attrValues[0];
 				csi_remove_csidep(csi, required_dn);
-				si->remove_csi(csi);
-				if (csi->saAmfCSIDependencies == NULL)
-					csi->rank = 1; // indicate that there is no dep to another CSI
-				else
-					csi->rank = 0; // indicate that add_csi should recalculate rank
-				si->add_csi(csi);
+				
+				//Mark rank of all the CSIs to 0.
+                                for (AVD_CSI *tmp_csi = csi->si->list_of_csi; tmp_csi;
+                                                tmp_csi = tmp_csi->si_list_of_csi_next) {
+					tmp_csi->rank = 0;// indicate that there is a dep to another CSI
+				}
+				//Rearrange Rank of all the CSIs now.
+                                for (AVD_CSI *tmp_csi = csi->si->list_of_csi; tmp_csi;
+                                                tmp_csi = tmp_csi->si_list_of_csi_next) {
+					tmp_csi->si->arrange_dep_csi(tmp_csi);
+				}
 			} else
 				assert(0);
 		} else {
