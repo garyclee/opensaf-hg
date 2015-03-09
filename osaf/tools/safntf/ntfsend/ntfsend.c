@@ -49,8 +49,48 @@ static char *error_output(SaAisErrorT result)
 	return (error_result);
 }
 
-static void fill_header_part(SaNtfNotificationHeaderT *notificationHeader,
-			     saNotificationParamsT *notificationParams, SaUint16T lengthAdditionalText)
+static SaAisErrorT fillInAdditionalInfo(SaNtfNotificationHandleT notificationHandle,
+		SaNtfNotificationHeaderT *notificationHeader,
+		saNotificationAdditionalInfoParamsT *additionalInfo)
+{
+	SaAisErrorT ret = SA_AIS_OK;
+	SaUint16T infoLen = 0;
+	SaStringT dest_ptr = NULL;
+	int i = 0;
+
+	for (; i < notificationHeader->numAdditionalInfo; i++) {
+		notificationHeader->additionalInfo[i].infoId = additionalInfo[i].infoId;
+		notificationHeader->additionalInfo[i].infoType = additionalInfo[i].infoType;
+
+		switch (additionalInfo[i].infoType) {
+		case SA_NTF_VALUE_STRING:
+			infoLen = strlen(additionalInfo[i].strInfo) + 1;
+			ret = saNtfPtrValAllocate(notificationHandle,
+						infoLen,
+						(void**)&dest_ptr,
+						&(notificationHeader->additionalInfo[i].infoValue));
+			if (ret == SA_AIS_OK) {
+				(void)strncpy(dest_ptr, additionalInfo[i].strInfo, infoLen);
+			} else {
+				fprintf(stderr, "saNtfPtrValAllocate Error "
+					"%d\n", ret);
+				return ret;
+			}
+			break;
+
+		default:
+			fprintf(stderr, "additionalInfo TYPE(%d) is not supported\n",
+					additionalInfo[i].infoType);
+			exit(EXIT_FAILURE);
+		}
+	}
+	return SA_AIS_OK;
+}
+
+static SaAisErrorT fill_header_part(SaNtfNotificationHandleT notificationHandle,
+				SaNtfNotificationHeaderT *notificationHeader,
+				saNotificationParamsT *notificationParams,
+				SaUint16T lengthAdditionalText)
 {
 	*notificationHeader->eventType = notificationParams->eventType;
 	*notificationHeader->eventTime = (SaTimeT)notificationParams->eventTime;
@@ -67,8 +107,11 @@ static void fill_header_part(SaNtfNotificationHeaderT *notificationHeader,
 	notificationHeader->notificationClassId->majorId = notificationParams->notificationClassId.majorId;
 	notificationHeader->notificationClassId->minorId = notificationParams->notificationClassId.minorId;
 
-	/* set additional text and additional info */
+	/* set additional text */
 	(void)strncpy(notificationHeader->additionalText, notificationParams->additionalText, lengthAdditionalText);
+
+	/* Fill additional info */
+	return fillInAdditionalInfo(notificationHandle, notificationHeader, notificationParams->additionalInfo);
 }
 
 static void usage(void)
@@ -100,8 +143,57 @@ static void usage(void)
 	printf("  -r or --repeatSends=NUM                   send the same notifification NUM times\n");
 	printf("  -b or --burstTimeout=TIME                 send burst of NUM repeatSends [default: 1] and sleep TIME (usec)\n"
                "                                            between each burst, will continue for ever\n");
+	printf("  -i or --additionalInfo=ID,TYPE,VALUE      additional information\n"
+               "                                            ID: SaNtfElementIdT integer value\n"
+               "                                            TYPE: numeric value SaNtfValueTypeT, only SA_NTF_VALUE_STRING=11 is supported\n"
+               "                                            VALUE: string value\n");
 	printf("  -h or --help                              this help\n");
 	exit(EXIT_FAILURE);
+}
+
+void getAdditionalInfo(saNotificationAdditionalInfoParamsT *ntfAdditionalInfo, char *para)
+{
+	long val;
+	char *infoId = strtok(para, ",");
+	char *infoType = strtok(NULL, ",");
+	char *infoValue = strtok(NULL, "\0");
+	SaUint16T infoLen = 0;
+
+	if (NULL == infoId || NULL == infoType || NULL == infoValue) {
+		fprintf(stderr, "notificationAdditionalInfo wrong format\n");
+		exit(EXIT_FAILURE);
+	}
+	if (get_long_digit(infoId, &val)) {
+		ntfAdditionalInfo->infoId = (SaNtfElementIdT)val;
+	} else {
+		fprintf(stderr, "additionalInfo ID wrong format\n");
+		exit(EXIT_FAILURE);
+	}
+	if (get_long_digit(infoType, &val)) {
+		if ((val > SA_NTF_VALUE_ARRAY) || (val < SA_NTF_VALUE_UINT8)) {
+			fprintf(stderr, "invalid value for additionalInfo TYPE(%u)\n", (SaUint16T)val);
+			usage();
+			exit(EXIT_FAILURE);
+		}
+
+		ntfAdditionalInfo->infoType = (SaNtfValueTypeT)val;
+		switch (ntfAdditionalInfo->infoType) {
+		case SA_NTF_VALUE_STRING:
+			infoLen = strlen(infoValue) + 1;
+			ntfAdditionalInfo->strInfo = (SaStringT)malloc(infoLen);
+			(void)strncpy(ntfAdditionalInfo->strInfo, infoValue, infoLen);
+			break;
+		default:
+			fprintf(stderr, "additionalInfo TYPE(%d) is not supported\n",
+					ntfAdditionalInfo->infoType);
+			usage();
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		fprintf(stderr, "additionalInfo TYPE wrong format\n");
+		usage();
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void fillInDefaultValues(saNotificationAllocationParamsT *notificationAllocationParams,
@@ -238,6 +330,7 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 	SaAisErrorT errorCode;
 	SaNtfHandleT ntfHandle;
 	SaNtfIdentifierT ntfId;
+	SaNtfNotificationHandleT myNotificationHandle;
 
 	/* Instantiate an alarm notification struct */
 	SaNtfAlarmNotificationT myAlarmNotification;
@@ -298,9 +391,15 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 				(void)printf("saNtfAlarmNotificationAllocate %s\n", error_output(errorCode));
 				return errorCode;
 			} else if (SA_AIS_OK == errorCode) {
-				fill_header_part(&myAlarmNotification.notificationHeader,
-						 (saNotificationParamsT *)notificationParams,
-						 notificationAllocationParams->lengthAdditionalText);
+				errorCode = fill_header_part(myAlarmNotification.notificationHandle,
+						&myAlarmNotification.notificationHeader,
+						(saNotificationParamsT *)notificationParams,
+						notificationAllocationParams->lengthAdditionalText);
+
+				if (SA_AIS_OK != errorCode ) {
+					myNotificationHandle = myAlarmNotification.notificationHandle;
+					goto fillHeaderFail;
+				}
 
 				/* determine perceived severity */
 				*(myAlarmNotification.perceivedSeverity) = notificationParams->perceivedSeverity;
@@ -343,9 +442,15 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 				(void)printf("saNtfStateChangeNotificationAllocate %s\n", error_output(errorCode));
 				return errorCode;
 			} else if (SA_AIS_OK == errorCode) {
-				fill_header_part(&myStateChangeNotification.notificationHeader,
-						 (saNotificationParamsT *)notificationParams,
-						 notificationAllocationParams->lengthAdditionalText);
+				errorCode = fill_header_part(myStateChangeNotification.notificationHandle,
+						&myStateChangeNotification.notificationHeader,
+						(saNotificationParamsT *)notificationParams,
+						notificationAllocationParams->lengthAdditionalText);
+
+				if (SA_AIS_OK != errorCode ) {
+					myNotificationHandle = myStateChangeNotification.notificationHandle;
+					goto fillHeaderFail;
+				}
 
 				/* set source indicator */
 				*(myStateChangeNotification.sourceIndicator) =
@@ -400,9 +505,15 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 				return errorCode;
 			} else if (SA_AIS_OK == errorCode) {
 
-				fill_header_part(&myObjectCreateDeleteNotification.notificationHeader,
-						 (saNotificationParamsT *)notificationParams,
-						 notificationAllocationParams->lengthAdditionalText);
+				errorCode = fill_header_part(myObjectCreateDeleteNotification.notificationHandle,
+						&myObjectCreateDeleteNotification.notificationHeader,
+						(saNotificationParamsT *)notificationParams,
+						notificationAllocationParams->lengthAdditionalText);
+
+				if (SA_AIS_OK != errorCode ) {
+					myNotificationHandle = myObjectCreateDeleteNotification.notificationHandle;
+					goto fillHeaderFail;
+				}
 
 				/* Set source indicator */
 				*(myObjectCreateDeleteNotification.sourceIndicator) =
@@ -455,9 +566,15 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 				return errorCode;
 			} else if (SA_AIS_OK == errorCode) {
 
-				fill_header_part(&myAttributeChangeNotification.notificationHeader,
-						 (saNotificationParamsT *)notificationParams,
-						 notificationAllocationParams->lengthAdditionalText);
+				errorCode = fill_header_part(myAttributeChangeNotification.notificationHandle,
+						&myAttributeChangeNotification.notificationHeader,
+						(saNotificationParamsT *)notificationParams,
+						notificationAllocationParams->lengthAdditionalText);
+
+				if (SA_AIS_OK != errorCode ) {
+					myNotificationHandle = myAttributeChangeNotification.notificationHandle;
+					goto fillHeaderFail;
+				}
 
 				/* set source indicator */
 				*(myAttributeChangeNotification.sourceIndicator) =
@@ -516,9 +633,15 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 				return errorCode;
 			} else if (SA_AIS_OK == errorCode) {
 
-				fill_header_part(&mySecurityAlarmNotification.notificationHeader,
-						 (saNotificationParamsT *)notificationParams,
-						 notificationAllocationParams->lengthAdditionalText);
+				errorCode = fill_header_part(mySecurityAlarmNotification.notificationHandle,
+						&mySecurityAlarmNotification.notificationHeader,
+						(saNotificationParamsT *)notificationParams,
+						notificationAllocationParams->lengthAdditionalText);
+
+				if (SA_AIS_OK != errorCode ) {
+					myNotificationHandle = mySecurityAlarmNotification.notificationHandle;
+					goto fillHeaderFail;
+				}
 
 				*(mySecurityAlarmNotification.probableCause) = notificationParams->probableCause;
 
@@ -768,6 +891,12 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 	} while (SA_AIS_ERR_TRY_AGAIN == errorCode);
 
 	return SA_AIS_OK;
+
+
+fillHeaderFail:
+	(void)printf("Fill header failed %s\n", error_output(errorCode));
+	saNtfNotificationFree(myNotificationHandle);
+	return errorCode;
 }
 
 int main(int argc, char *argv[])
@@ -776,6 +905,7 @@ int main(int argc, char *argv[])
 	long long valuell;
 	char *endptr;
 	int current_option;
+	int i;
 	SaBoolT optionFlag = SA_FALSE;
 
 	/* Parameter stuct instances */
@@ -797,6 +927,7 @@ int main(int argc, char *argv[])
 		{"eventType", required_argument, 0, 'e'},
 		{"eventTime", required_argument, 0, 'E'},
 		{"burstTimeout", required_argument, 0, 'b'},
+		{"additionalInfo", required_argument, 0, 'i'},
 		{0, 0, 0, 0}
 	};
 
@@ -812,7 +943,7 @@ int main(int argc, char *argv[])
 
 	if (argc >= 1) {
 		/* Check options */
-		while ((current_option = getopt_long(argc, argv, "a:c:e:E:N:n:p:r:s:b:T:", long_options, NULL)) != -1) {
+		while ((current_option = getopt_long(argc, argv, "a:c:e:E:N:n:p:r:s:b:T:i:", long_options, NULL)) != -1) {
 			optionFlag = SA_TRUE;
 			switch (current_option) {
 			case 'a':
@@ -908,6 +1039,14 @@ int main(int argc, char *argv[])
 				myNotificationParams.notificationType = value;
 				nType = true;
 				break;
+			case 'i':
+				if (myNotificationAllocationParams.numAdditionalInfo >= MAX_NUMBER_OF_ADDITIONAL_INFO) {
+					fprintf(stderr, "Only one additionalInfo is supported\n");
+					exit(EXIT_FAILURE);
+				}
+				getAdditionalInfo(&myNotificationParams.additionalInfo[myNotificationAllocationParams.numAdditionalInfo], optarg);
+				myNotificationAllocationParams.numAdditionalInfo++;
+				break;
 			case ':':
 				(void)printf("Option -%c requires an argument!!!!\n", optopt);
 				usage();
@@ -947,5 +1086,13 @@ int main(int argc, char *argv[])
 		usage();
 	}
 	free(myNotificationParams.additionalText);
+
+	for (i = 0; i < myNotificationAllocationParams.numAdditionalInfo; i++) {
+		if (myNotificationParams.additionalInfo[i].strInfo) {
+			free(myNotificationParams.additionalInfo[i].strInfo);
+			myNotificationParams.additionalInfo[i].strInfo = NULL;
+		}
+	}
+
 	exit(EXIT_SUCCESS);
 }
