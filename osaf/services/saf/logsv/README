@@ -166,8 +166,9 @@ saLogAppLowLimit            0
 saLogMaxApplicationStreams  64
 logFileIoTimeout            500                   File I/O timeout (see file.c)
 logFileSysConfig            1                     Shared file system
+logDataGroupname            <Empty>               Groupname used to share log data.
 
-All the above attributes except saLogRootDirectory has a default value
+All the above attributes except saLogRootDirectory and logDataGroupname has a default value
 set in the class definition (see logsv_classes.xml). The value for parameter
 saLogRootDirectory is instead defined when the imm.xml file is created. In
 the logsv_objects.xml file the parameter value is set to "xxLOGDIRxx/saflog"
@@ -189,6 +190,16 @@ The following attributes can be changed in runtime.
    saLogAppLowLimit
    Can be changed in runtime if both SC nodes supports changes. Could not
    be changed in older versions.
+
+ - logDataGroupname
+   Can be changed to an existing group which is currently a supplementary group
+   of the user as which LOG service is running.
+   This new group then will be used to own all log files. Also the ownership of
+   all current log files will be changed to this group for consistent purpose.
+   Users who are member of this group then can read the log files.
+   After the deletion of the value of this attribute, the ownership of all current
+   log files won't be changed and behaviour will be kept as previous, i.e: new opened
+   log file will be owned by the primary group as which LOG service is running. 
 
 Other attributes cannot be changed in runtime.
 
@@ -262,6 +273,12 @@ a high limit has been defined. Defaults to some percent of the high limit
 LOG_MAX_APPLICATION_STREAMS
 
 The maximum number of application log streams that can be created.
+
+LOGSV_DATA_GROUPNAME
+
+The group used to share log data to users.
+This group must be added as a supplementary group of user as which log service is running.
+Any user wants to read log data must become a member of this group.
 
 Don't forget the "export" keyword before the variable!
 
@@ -468,7 +485,9 @@ open stream:
     creating the file names, creating a config file and creating and opening the
     log file. If this fails the files are created and opened when trying to
     write a log record to the stream. This is done in the event handler when
-    receiving an "stream open" event from the agent. 
+    receiving an "stream open" event from the agent.
+    After created, all these files will be owned by LOGSV_DATA_GROUPNAME if set (in
+    either config 1 or 2).
 
     If config 2:
 
@@ -497,9 +516,11 @@ cfg stream:
 cfg config:
     Attributes in the log service configuration object are changed. Internal
     data is updated. On active node this is handled with an object implementer
-    (lgs_imm) and changes are check pointed to standby. Currently only attribute
-    logRootDirectory can be changed in runtime. When this happen all files are
-    closed and new files are created at the new location for all open streams.
+    (lgs_imm) and changes are check pointed to standby. Currently only two attributes
+    logRootDirectory and logDataGroupname can be changed in runtime. When root
+    directory is changed, all files are closed and new files are created at the
+    new location for all open streams. Similarly, when data group changed, all
+    log files will be reowned by this new group.
 
     If config 2:
 

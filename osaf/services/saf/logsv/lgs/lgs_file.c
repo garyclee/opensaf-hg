@@ -178,6 +178,11 @@ static void *file_hndl_thread(void *noparam)
 			case LGSF_CHECKDIR:
 				hndl_rc = path_is_writeable_dir_hdl(lgs_com_data.indata_ptr,
 						lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+				break;
+			case LGSF_OWN_LOGFILES:
+				hndl_rc = own_log_files_by_group_hdl(lgs_com_data.indata_ptr,
+						lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+				break;
 			default:
 				break;
 			}

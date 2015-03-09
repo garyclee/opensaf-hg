@@ -236,7 +236,13 @@ to ensure that default global values in the implementation are also changed acco
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
-            <default-value>1</default-value>
+			<default-value>1</default-value>
+		</attr>
+		<attr>
+			<name>logDataGroupname</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 	</class>
 </imm:IMM-contents>

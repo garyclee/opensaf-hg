@@ -60,5 +60,7 @@ extern void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
 extern bool lgs_relative_path_check_ts(const char* path);
 extern int lgs_make_reldir_h(const char* path);
 extern int lgs_check_path_exists_h(const char *path_to_check);
+extern int lgs_get_data_gid();
+extern int lgs_own_log_files(log_stream_t *stream);
 
 #endif   /* ifndef __LGS_UTIL_H */

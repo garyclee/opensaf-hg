@@ -276,7 +276,14 @@ static uint32_t log_initialize(void)
 		goto done;
 	}
 	LOG_NO("log root directory is: %s", lgs_cb->logsv_root_dir);
-	
+
+	lgs_cb->logsv_data_groupname = lgs_imm_logconf_get(LGS_IMM_DATA_GROUPNAME, &errorflag);
+	if (errorflag != false) {
+		LOG_ER("Valid LOGSV_LOG_DATA_GROUPNAME not found");
+		goto done;
+	}
+	LOG_NO("LOG data group is: %s", lgs_cb->logsv_data_groupname);
+
 	/* Initialize stream class */
 	if (log_stream_init() != NCSCC_RC_SUCCESS) {
 		LOG_ER("log_stream_init FAILED");
