@@ -359,7 +359,9 @@ int osaf_get_group_list(const uid_t uid, const gid_t gid, gid_t *groups, int *ng
 	/* Reset entry to beginning */
 	errno = 0;
 	setgrent();
-	if (errno != 0) {
+	/* setgrent() sometimes returns ENOENT on UML
+	 * Explicitly treats it as not an error */
+	if (errno != 0 && errno != ENOENT) {
 		LOG_NO("setgrent failed: %s", strerror(errno));
 		return -1;
 	}
