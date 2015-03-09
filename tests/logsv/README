@@ -1,0 +1,12 @@
+This directory tree contains a unit test suite for LOG service. The goal is
+to test the API extensively. Checking all possible error conditions etc.
+
+From the ticket #1181, 3 new TCs have been added to the test suite:
+- CCB Object Modify, data group. Group does not exist. Not allowed
+- CCB Object Modify, data group. Group exists. OK
+- CCB Object Modify, delete data group. OK
+
+The second TC tries to set the data group to "log-data" group.
+In order to help the TC passed, "log-data" group must be existing and be added
+to supplementary group list of the user as which LOGSV is running.
+Otherwise that TC will be skipped.
