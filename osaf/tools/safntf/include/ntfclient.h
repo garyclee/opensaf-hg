@@ -36,6 +36,7 @@
 #define MAX_NUMBER_OF_STATE_CHANGES 1000
 #define MAX_NUMBER_OF_CHANGED_ATTRIBUTES 1000
 #define MAX_NUMBER_OF_OBJECT_ATTRIBUTES  1000
+#define MAX_NUMBER_OF_ADDITIONAL_INFO  1
 
 typedef enum {
 	MY_APP_OPER_STATE = 1,
@@ -78,6 +79,12 @@ typedef struct {
 } saNotificationAllocationParamsT;
 
 typedef struct {
+	SaNtfElementIdT infoId;
+	SaNtfValueTypeT infoType;
+	SaStringT strInfo;
+} saNotificationAdditionalInfoParamsT;
+
+typedef struct {
 	/* SaNtfSeverityTrendT trend; */
 	SaStringT additionalText;
 	SaNtfProbableCauseT probableCause;
@@ -118,6 +125,7 @@ typedef struct {
 	SaInt32T timeout;
 	SaInt32T burstTimeout;
 	unsigned int repeateSends;
+	saNotificationAdditionalInfoParamsT additionalInfo[MAX_NUMBER_OF_ADDITIONAL_INFO];
 } saNotificationParamsT;
 
 typedef SaUint16T saNotificationFlagsT;
