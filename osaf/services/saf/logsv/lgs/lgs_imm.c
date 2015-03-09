@@ -26,12 +26,16 @@
  * Examples can be found in file lgs_stream.c, e.g. function fileopen(...)
  */
 
+#define _GNU_SOURCE
 #include <poll.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <grp.h>
+#include <utmp.h>
 
 #include <saImmOm.h>
 #include <saImmOi.h>
@@ -44,6 +48,8 @@
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
+#include "lgs_mbcsv_v3.h"
+#include "osaf_secutil.h"
 
 /* TYPE DEFINITIONS
  * ----------------
@@ -51,6 +57,7 @@
 typedef struct {
 	/* --- Corresponds to IMM Class SaLogConfig --- */
 	char logRootDirectory[PATH_MAX];
+	char logDataGroupname[UT_NAMESIZE];
 	SaUint32T logMaxLogrecsize;
 	SaUint32T logStreamSystemHighLimit;
 	SaUint32T logStreamSystemLowLimit;
@@ -76,6 +83,7 @@ typedef struct {
 	bool logMaxApplicationStreams_noteflag;
 	bool logFileIoTimeout_noteflag;
 	bool logFileSysConfig_noteflag;
+	bool logDataGroupname_noteflag;
 } lgs_conf_t;
 
 /* DATA DECLARATIONS
@@ -98,6 +106,7 @@ static lgs_conf_t _lgs_conf = {
 	.logMaxApplicationStreams = 64,
 	.logFileIoTimeout = 500,
 	.logFileSysConfig = 1,
+	.logDataGroupname = "",
 
 	/*
 	 * For the following flags, true means that no external configuration
@@ -114,6 +123,7 @@ static lgs_conf_t _lgs_conf = {
 	.logStreamAppHighLimit_noteflag = false,
 	.logStreamAppLowLimit_noteflag = false,
 	.logMaxApplicationStreams_noteflag = false,
+	.logDataGroupname_noteflag = false,
 	/* 
 	 * The following attributes cannot be configured in the config file
 	 * Will be set to false if the attribute exists in the IMM config object
@@ -203,10 +213,12 @@ static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation
  * 
  * @return NCSCC_RC_... error code
  */
-static uint32_t ckpt_lgs_cfg(lgs_conf_t *lgs_conf)
+static uint32_t ckpt_lgs_cfg(lgs_conf_t *lgs_conf, bool is_root_dir_changed)
 {
-	lgsv_ckpt_msg_v2_t ckpt;
-	uint32_t rc;
+	void *ckpt = NULL;
+	lgsv_ckpt_msg_v2_t ckpt_v2;
+	lgsv_ckpt_msg_v3_t ckpt_v3;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	
@@ -216,15 +228,32 @@ static uint32_t ckpt_lgs_cfg(lgs_conf_t *lgs_conf)
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(&ckpt, 0, sizeof(ckpt));
-	ckpt.header.ckpt_rec_type = LGS_CKPT_LGS_CFG;
-	ckpt.header.num_ckpt_records = 1;
-	ckpt.header.data_len = 1;
+	if (lgs_is_peer_v4()) {
+		memset(&ckpt_v3, 0, sizeof(ckpt_v3));
+		ckpt_v3.header.ckpt_rec_type = LGS_CKPT_LGS_CFG_V3;
+		ckpt_v3.header.num_ckpt_records = 1;
+		ckpt_v3.header.data_len = 1;
+		ckpt_v3.ckpt_rec.lgs_cfg.logRootDirectory = lgs_conf->logRootDirectory;
+		ckpt_v3.ckpt_rec.lgs_cfg.logDataGroupname = lgs_conf->logDataGroupname;
+		ckpt_v3.ckpt_rec.lgs_cfg.c_file_close_time_stamp = lgs_conf->chkp_file_close_time;
 
-	ckpt.ckpt_rec.lgs_cfg.logRootDirectory = lgs_conf->logRootDirectory;
-	ckpt.ckpt_rec.lgs_cfg.c_file_close_time_stamp = lgs_conf->chkp_file_close_time;
+		ckpt = &ckpt_v3;
+	} else {
+		if (is_root_dir_changed) {
+			memset(&ckpt_v2, 0, sizeof(ckpt_v2));
+			ckpt_v2.header.ckpt_rec_type = LGS_CKPT_LGS_CFG;
+			ckpt_v2.header.num_ckpt_records = 1;
+			ckpt_v2.header.data_len = 1;
+			ckpt_v2.ckpt_rec.lgs_cfg.logRootDirectory = lgs_conf->logRootDirectory;
+			ckpt_v2.ckpt_rec.lgs_cfg.c_file_close_time_stamp = lgs_conf->chkp_file_close_time;
 
-	rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
+			ckpt = &ckpt_v2;
+		}
+	}
+
+	if (ckpt) {
+		rc = lgs_ckpt_send_async(lgs_cb, ckpt, NCS_MBCSV_ACT_ADD);
+	}
 
 	TRACE_LEAVE();
 	return rc;
@@ -784,6 +813,27 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_
 }
 	
 /**
+ * Check if group is valid or not
+ * A group is valid if:
+ * 	- It exists
+ * 	- It contains the user as which LOGD is running
+ * 	@param groupname
+ * 	@return: true  - group is a valid group
+ * 	         false - group is not a valid group
+ */
+static bool group_is_valid(const char* groupname)
+{
+	if (strlen(groupname) + 1 > UT_NAMESIZE) {
+		LOG_ER("%s data group > UT_NAMESIZE! Ignore.", __FUNCTION__);
+		return false;
+	}
+
+	uid_t uid = getuid();
+	bool rc = osaf_user_is_member_of_group(uid, groupname);
+	return rc;
+}
+
+/**
  * Modification of attributes in log service configuration object.
  * Only logRootDirectory can be modified
  * 
@@ -816,12 +866,13 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 
 	attrMod = opdata->param.modify.attrMods[i++];
 	while (attrMod != NULL) {
-		void *value;
+		void *value = NULL;
 		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
 
 		TRACE("attribute %s", attribute->attrName);
 
-		if (attribute->attrValuesNumber == 0) {
+		/* Ignore deletion of attributes except for logDataGroupname*/
+		if ((strcmp(attribute->attrName, "logDataGroupname") != 0) && (attribute->attrValuesNumber == 0)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"deletion of value is not allowed for attribute %s stream %s",
 					attribute->attrName, opdata->objectName.value);
@@ -829,17 +880,34 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 			goto done;
 		}
 
-		value = attribute->attrValues[0];
+		if (attribute->attrValuesNumber != 0) {
+			value = attribute->attrValues[0];
+		}
 
 		if (!strcmp(attribute->attrName, "logRootDirectory")) {
-			char *pathName = *((char **)value);
-			if (!path_is_writeable_dir_h(pathName)) {
-				report_oi_error(immOiHandle, opdata->ccbId,
-						"pathName: %s is NOT accepted", pathName);
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
+			if (attribute->attrValuesNumber != 0) {
+				char *pathName = *((char **)value);
+				if (!path_is_writeable_dir_h(pathName)) {
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"pathName: %s is NOT accepted", pathName);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+				TRACE("pathName: %s is accepted", pathName);
 			}
-			TRACE("pathName: %s is accepted", pathName);
+		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
+			if (attribute->attrValuesNumber == 0) {
+				TRACE("Deleting log data group");
+			} else {
+				char *groupname = *((char **)value);
+				if (!group_is_valid(groupname)) {
+					report_oi_error(immOiHandle, opdata->ccbId,
+							"groupname: %s is NOT accepted", groupname);
+					rc = SA_AIS_ERR_INVALID_PARAM;
+					goto done;
+				}
+				TRACE("groupname: %s is accepted", groupname);
+			}
 		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
@@ -1869,6 +1937,41 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 }
 
 /**
++ * Set logDataGroupname to new value
++ *   - Update lgs_conf with new group (logDataGroupname).
++ *   - Reown all log files by this new group.
++ *
++ * @param new_logDataGroupname[in]
++ *            String contains new group.
++ */
+void logDataGroupname_fileown(const char *new_logDataGroupname){
+	TRACE_ENTER();
+	log_stream_t *stream;
+
+	if (!new_logDataGroupname) {
+		LOG_ER("Data group is NULL");
+		return;
+	}
+
+
+	/* Update data group configuration in lgs_conf */
+	lgs_imm_groupnameconf_set(new_logDataGroupname);
+
+	/* For each log stream, reown all log files */
+	if (strcmp(new_logDataGroupname, "")) {
+		/* Not attribute values deletion
+		 * Change ownership of log files to this new group
+		 */
+		stream = log_stream_getnext_by_name(NULL);
+		while (stream != NULL) {
+			lgs_own_log_files(stream);
+			stream = log_stream_getnext_by_name(stream->name);
+		}
+	}
+	TRACE_LEAVE();
+}
+
+/**
  * Apply validated changes
  *
  * @param opdata
@@ -1880,13 +1983,16 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	bool checkpoint_flag = false;
 	bool mbox_cfg_flag = false;
 	struct timespec curtime_tspec;
+	bool is_root_dir_changed = false;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	attrMod = opdata->param.modify.attrMods[i++];
 	while (attrMod != NULL) {
 		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
-		void *value = attribute->attrValues[0];
+		void *value = NULL;
+		if (attribute->attrValuesNumber != 0)
+			value = attribute->attrValues[0];
 
 		TRACE("attribute %s", attribute->attrName);
 
@@ -1905,7 +2011,21 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			logRootDirectory_filemove(new_logRootDirectory, &cur_time);
 
 			lgs_conf->chkp_file_close_time = cur_time;
-		
+
+			is_root_dir_changed = true;
+			checkpoint_flag = true;
+		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
+			/* Update saved configuration (on active. See ckpt_proc_lgs_cfg()
+			 * in lgs_mbcsv.c for corresponding update on standby)
+			 */
+			if (attribute->attrValuesNumber == 0) {
+				logDataGroupname_fileown("");
+			} else {
+				const char *new_dataGroupname = *((char **)value);
+
+				/* Re-own all log files by this new group */
+				logDataGroupname_fileown(new_dataGroupname);
+			}
 			checkpoint_flag = true;
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
 			mbox_cfg_flag = true;
@@ -1932,7 +2052,7 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	
 	if (checkpoint_flag == true) {
 		/* Check pointing lgs configuration change */
-		ckpt_lgs_cfg(lgs_conf);
+		ckpt_lgs_cfg(lgs_conf, is_root_dir_changed);
 	}
 
 	TRACE_LEAVE();
@@ -2519,6 +2639,16 @@ static SaAisErrorT read_logsv_config_obj(void) {
 			}
 			param_cnt++;
 			TRACE("Conf obj; logRootDirectory: %s", lgs_conf->logRootDirectory);
+		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
+			n = snprintf(lgs_conf->logDataGroupname, UT_NAMESIZE, "%s",
+					*((char **) value));
+			if (n >= UT_NAMESIZE) {
+				LOG_WA("LOG data group name read from config object is > UT_NAMESIZE");
+				lgs_conf->logDataGroupname[0] = '\0';
+				lgs_conf->logDataGroupname_noteflag = true;
+			}
+			param_cnt++;
+			TRACE("Conf obj; logDataGroupname: %s", lgs_conf->logDataGroupname);
 		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
 			lgs_conf->logMaxLogrecsize = *((SaUint32T *) value);
 			param_cnt++;
@@ -2613,6 +2743,22 @@ static void read_logsv_config_environ_var(void) {
 	}
 	TRACE("logRootDirectory=%s, logRootDirectory_noteflag=%u",
 			lgs_conf->logRootDirectory, lgs_conf->logRootDirectory_noteflag);
+
+	/* logDataGroupname */
+	if ((val_str = getenv("LOGSV_DATA_GROUPNAME")) != NULL) {
+		lgs_conf->logDataGroupname_noteflag = false;
+		n = snprintf(lgs_conf->logDataGroupname, UT_NAMESIZE, "%s", val_str);
+		if (n >= UT_NAMESIZE) {
+			LOG_WA("LOG data group name read from config file is > UT_NAMESIZE");
+			lgs_conf->logDataGroupname[0] = '\0';
+			lgs_conf->logDataGroupname_noteflag = true;
+		}
+	} else {
+		LOG_WA("LOGSV_DATA_GROUPNAME not found");
+		lgs_conf->logDataGroupname_noteflag = true;
+	}
+	TRACE("logDataGroupname=%s, logDataGroupname_noteflag=%u",
+			lgs_conf->logDataGroupname, lgs_conf->logDataGroupname_noteflag);
 
 	/* logMaxLogrecsize */
 	if ((val_str = getenv("LOGSV_MAX_LOGRECSIZE")) != NULL) {
@@ -2881,6 +3027,11 @@ const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
 			*noteflag = lgs_conf->logRootDirectory_noteflag;
 		}
 		return (char *) lgs_conf->logRootDirectory;
+	case LGS_IMM_DATA_GROUPNAME:
+		if (noteflag != NULL) {
+			*noteflag = lgs_conf->logDataGroupname_noteflag;
+		}
+		return (char *) lgs_conf->logDataGroupname;
 	case LGS_IMM_LOG_MAX_LOGRECSIZE:
 		if (noteflag != NULL) {
 			*noteflag = lgs_conf->logMaxLogrecsize_noteflag;
@@ -2954,6 +3105,22 @@ void lgs_imm_rootpathconf_set(const char *root_path_str)
 	strcpy(lgs_conf->logRootDirectory, root_path_str);
 	strcpy((char *) lgs_cb->logsv_root_dir, root_path_str);
 	LOG_NO("lgsv root path is changed to \"%s\"",lgs_conf->logRootDirectory);
+}
+
+/**
+ * Set the logDataGroupname parameter in the lgs_conf struct
+ * Used for holding data from config object
+ *
+ * @param root_path_str
+ */
+void lgs_imm_groupnameconf_set(const char *data_groupname_str)
+{
+	if ((strlen(data_groupname_str)+1) > UT_NAMESIZE)
+		osafassert(0);
+
+	strcpy(lgs_conf->logDataGroupname, data_groupname_str);
+	LOG_NO("LOG service data group is changed to %s", strcmp(lgs_conf->logDataGroupname, "") ?
+				lgs_conf->logDataGroupname : "<Empty>");
 }
 
 static const SaImmOiCallbacksT_2 callbacks = {

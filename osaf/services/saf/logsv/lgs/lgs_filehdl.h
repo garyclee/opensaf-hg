@@ -123,6 +123,11 @@ typedef struct {
 	 * to the indata buffer directly after the ccfh_t
 	 */
 
+/* own_log_files_by_group_hdl(..)
+ * No out parameters
+ */
+typedef gnolfh_in_t olfbgh_t;
+
 /*
  * rename_file_hdl(..)
  * 
@@ -163,6 +168,7 @@ int fileopen_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_
 int fileclose_hdl(void *indata, void *outdata, size_t max_outsize);
 int delete_file_hdl(void *indata, void *outdata, size_t max_outsize);
 int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize);
+int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize);
 
 #ifdef	__cplusplus
 }

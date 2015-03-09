@@ -46,6 +46,7 @@ typedef enum {
 	LGSF_RENAME_FILE,
 	LGSF_CHECKPATH,
 	LGSF_CHECKDIR,
+	LGSF_OWN_LOGFILES,
 	LGSF_NOREQ
 }lgsf_treq_t;
 

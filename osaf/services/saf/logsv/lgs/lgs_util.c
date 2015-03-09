@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <sys/stat.h>
+#include <grp.h>
 #include "immutil.h"
 #include "lgs.h"
 #include "lgs_util.h"
@@ -563,6 +564,91 @@ int lgs_check_path_exists_h(const char *path_to_check)
 	}
 	
 	free(params_in_p);
+	TRACE_LEAVE2("rc = %d",rc);
+	return rc;
+}
+
+/**
+ * Get data group GID
+ * @return: -1 if not set
+ *          gid of data group if set.
+ */
+int lgs_get_data_gid()
+{
+	char * groupname = (char *) lgs_imm_logconf_get(LGS_IMM_DATA_GROUPNAME, NULL);
+	if (strcmp(groupname, "") == 0){
+		return -1;
+	} else {
+		struct group *gr = getgrnam(groupname);
+		if (gr){
+			return gr->gr_gid;
+		} else {
+			LOG_ER("Could not get group struct for %s, %s", groupname, strerror(errno));
+			return -1;
+		}
+	}
+}
+
+/**
+ * Own all log files of given stream by the data group
+ *
+ * @param: stream[in] : stream to own log files
+ * @return: 0 on success
+ *         -1 on error
+ */
+int lgs_own_log_files(log_stream_t *stream)
+{
+	lgsf_apipar_t apipar;
+	lgsf_retcode_t api_rc;
+	olfbgh_t *data_in = (olfbgh_t *) malloc(sizeof(olfbgh_t));
+	int rc = 0, n, path_len;
+
+	TRACE_ENTER2("stream %s",stream->name);
+
+	n = snprintf(data_in->file_name, SA_MAX_NAME_LENGTH, "%s", stream->fileName);
+	if (n >= SA_MAX_NAME_LENGTH) {
+		rc = -1;
+		LOG_WA("file_name > SA_MAX_NAME_LENGTH");
+		goto done;
+	}
+	n = snprintf(data_in->logsv_root_dir, PATH_MAX, "%s", lgs_cb->logsv_root_dir);
+	if (n >= PATH_MAX) {
+		rc = -1;
+		LOG_WA("logsv_root_dir > PATH_MAX");
+		goto done;
+	}
+	n = snprintf(data_in->pathName, PATH_MAX, "%s", stream->pathName);
+	if (n >= PATH_MAX) {
+		rc = -1;
+		LOG_WA("pathName > PATH_MAX");
+		goto done;
+	}
+
+	path_len = strlen(data_in->file_name) +
+				strlen(data_in->logsv_root_dir) +
+				strlen(data_in->pathName);
+	if (path_len > PATH_MAX) {
+		LOG_WA("Path to log files > PATH_MAX");
+		rc = -1;
+		goto done;
+	}
+	/* Fill in API structure */
+	apipar.req_code_in = LGSF_OWN_LOGFILES;
+	apipar.data_in_size = sizeof(olfbgh_t);
+	apipar.data_in = data_in;
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
+
+	api_rc = log_file_api(&apipar);
+	if (api_rc != LGSF_SUCESS) {
+		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+		rc = -1;
+	} else {
+		rc = apipar.hdl_ret_code_out;
+	}
+
+done:
+	free(data_in);
 	TRACE_LEAVE2("rc = %d",rc);
 	return rc;
 }

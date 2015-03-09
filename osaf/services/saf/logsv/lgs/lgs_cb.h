@@ -88,6 +88,7 @@ typedef struct lgs_cb {
 	const char *logsv_root_dir;	/* Root directory for log files */
 	unsigned int max_logrecsize;
 	bool nid_started;	/**< true if started by NID */
+	const char *logsv_data_groupname; /* Group used to share log data */
 } lgs_cb_t;
 
 extern uint32_t lgs_cb_init(lgs_cb_t *);

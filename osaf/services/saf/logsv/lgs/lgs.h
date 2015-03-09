@@ -88,6 +88,7 @@
 /* Used with function lgs_imm_logconf_get(...) */
 typedef enum {
 	LGS_IMM_LOG_ROOT_DIRECTORY,
+	LGS_IMM_DATA_GROUPNAME,
 	LGS_IMM_LOG_MAX_LOGRECSIZE,
 	LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT,
 	LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT,
@@ -132,5 +133,7 @@ extern const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag);
 extern void lgs_imm_rootpathconf_set(const char *root_path_str);
 extern void logRootDirectory_filemove(const char *logRootDirectory, time_t *cur_time_in);
 extern void update_mailbox_limits(void);
+extern void lgs_imm_groupnameconf_set(const char *data_groupname_str);
+extern void logDataGroupname_fileown(const char *new_logDataGroupname);
 
 #endif   /* ifndef __LGS_H */

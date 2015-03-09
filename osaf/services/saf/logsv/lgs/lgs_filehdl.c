@@ -459,7 +459,12 @@ open_retry:
 		/* Do not log with higher severity here to avoid flooding the log.
 		 * Can be called in context of log_stream_write */
 		LOG_IN("Could not open: %s - %s", filepath, strerror(errno));
+	} else {
+		if (fchown(fd, (uid_t)-1, lgs_get_data_gid()) == -1){
+			LOG_WA("Failed to change log file ownership, %s", strerror(errno));
+		}
 	}
+
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
 	*errno_out_p = errno_save;
@@ -584,7 +589,8 @@ static char file_prefix[SA_MAX_NAME_LENGTH];
 static int filter_func(const struct dirent *finfo)
 {
 	int ret;
-	ret = strncmp(file_prefix, finfo->d_name, strlen(file_prefix));
+	int filenameLen = strlen(finfo->d_name) - strlen(".log");
+	ret = strncmp(file_prefix, finfo->d_name, strlen(file_prefix)) || strcmp(finfo->d_name + filenameLen, ".log");
 	return !ret;
 }
 
@@ -677,6 +683,91 @@ done_free:
 	free(namelist);
 
 done_exit:	
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Change the ownership of all log files to a new group.
+ * The input directory will be scanned and any file suffixed by ".log"
+ * and prefixed by input file_name will be marked as log files.
+ * @param indata, see olfbgh_in_t
+ * @param outdata, not used
+ * @param max_outsize, not used
+ *
+ * @return int, 0 on success or -1 if error
+ */
+int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) {
+	struct dirent **namelist;
+	int n, files, i;
+	char path[PATH_MAX];
+	olfbgh_t *params_in;
+	int rc = 0;
+
+	TRACE_ENTER();
+
+	params_in = (olfbgh_t *) indata;
+
+	/* Set file prefix filter */
+	n = snprintf(file_prefix, SA_MAX_NAME_LENGTH, "%s", params_in->file_name);
+	if (n >= SA_MAX_NAME_LENGTH) {
+		rc = -1;
+		LOG_WA("file_prefix > SA_MAX_NAME_LENGTH");
+		goto done_exit;
+	}
+
+	n = snprintf(path, PATH_MAX, "%s/%s",
+			params_in->logsv_root_dir, params_in->pathName);
+	if (n >= PATH_MAX) {
+		LOG_WA("path > PATH_MAX");
+		rc = -1;
+		goto done_exit;
+	}
+
+	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
+	files = n = scandir(path, &namelist, filter_func, alphasort);
+
+	if (n == -1 && errno == ENOENT) {
+		rc = 0;
+		goto done_exit;
+	}
+
+	if (n < 0) {
+		LOG_WA("scandir:%s - %s", strerror(errno), path);
+		rc = -1;
+		goto done_exit;
+	}
+
+	if (n == 0) {
+		rc = files;
+		goto done_exit;
+	}
+
+	gid_t gid = (gid_t) lgs_get_data_gid();
+
+	while (n--) {
+		char file[PATH_MAX];
+		int len = snprintf(file, PATH_MAX, "%s/%s",
+					path, namelist[n]->d_name);
+		if (len >= PATH_MAX) {
+			LOG_WA("path > PATH_MAX");
+			rc = -1;
+			goto done_free;
+		}
+		TRACE_3("%s", file);
+		if (chown(file, (uid_t) -1, gid) != 0) {
+			LOG_WA("Failed to change the ownership of %s - %s", namelist[n]->d_name, strerror(errno));
+		}
+	}
+
+done_free:
+	/* Free scandir allocated memory */
+	for (i = 0; i < files; i++)
+		free(namelist[i]);
+	free(namelist);
+
+done_exit:
+	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 	TRACE_LEAVE();
 	return rc;
 }
