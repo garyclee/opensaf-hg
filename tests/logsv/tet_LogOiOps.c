@@ -24,6 +24,9 @@
 #include <saf_error.h>
 #include "logtest.h"
 
+#define opensaf_user "opensaf"
+#define data_group "log-data"
+
 static SaLogFileCreateAttributesT_2 appStreamLogFileCreateAttributes =
 {
     .logFilePathName = DEFAULT_APP_FILE_PATH_NAME,
@@ -949,6 +952,64 @@ void saLogOi_48(void)
     sprintf(command, "mkdir -p %s/xxtest",log_root_path);
     rc = system(command);
     sprintf(command, "immcfg -a logRootDirectory=%s/xxtest logConfig=1,safApp=safLogService",log_root_path);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);
+}
+
+/**
+ * CCB Object Modify, data group. Group does not exist. Not allowed
+ * Result shall be reject
+ */
+void saLogOi_79(void)
+{
+    int rc;
+    char command[256];
+
+    sprintf(command, "immcfg -a logDataGroupname=dummyGroup logConfig=1,safApp=safLogService > /dev/null 2>&1");
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);
+}
+
+/**
+ * CCB Object Modify, data group. Group exist. OK
+ * Result shall be OK
+ */
+void saLogOi_80(void)
+{
+    int rc;
+    char command[256];
+#ifndef RUNASROOT
+    /**
+     * OpenSAF is running under opensaf user
+     * Check if log-data is a supplementary group of that user
+     */
+    sprintf(command, "groups %s | grep %s > /dev/null", opensaf_user, data_group);
+#else
+    /* OpenSAF is running under root user */
+    sprintf(command, "groups root | grep %s > /dev/null", data_group);
+#endif
+
+    rc = system(command);
+    if (rc != 0) {
+    	fprintf(stderr, "Data group %s is currently not a primary group of LOGSV. Skip this TC.\n", data_group);
+    	rc = 0;
+    } else {
+    	sprintf(command, "immcfg -a logDataGroupname=%s logConfig=1,safApp=safLogService > /dev/null 2>&1", data_group);
+    	rc = system(command);
+    }
+    rc_validate(WEXITSTATUS(rc), 0);
+}
+
+/**
+ * CCB Object Modify, delete data group. OK
+ * Result shall be OK
+ */
+void saLogOi_81(void)
+{
+    int rc;
+    char command[256];
+
+    sprintf(command, "immcfg -a logDataGroupname= logConfig=1,safApp=safLogService > /dev/null 2>&1");
     rc = system(command);
     rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -1956,6 +2017,9 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
     test_suite_add(5, "LOG OI tests, Service configuration object");
     test_case_add(5, saLogOi_52, "CCB Object Modify, root directory. Path does not exist. Not allowed");
     test_case_add(5, saLogOi_48, "CCB Object Modify, root directory. Path exist. OK");
+    test_case_add(5, saLogOi_79, "CCB Object Modify, data group. Group does not exist. Not allowed");
+    test_case_add(5, saLogOi_80, "CCB Object Modify, data group. Group exists. OK");
+    test_case_add(5, saLogOi_81, "CCB Object Modify, delete data group. OK");
     test_case_add(5, saLogOi_53, "CCB Object Modify, logMaxLogrecsize. Not allowed");
     test_case_add(5, saLogOi_54, "CCB Object Modify, logStreamSystemHighLimit > logStreamSystemLowLimit. OK");
     test_case_add(5, saLogOi_55, "CCB Object Modify, logStreamSystemHighLimit = logStreamSystemLowLimit, != 0. Ok");
