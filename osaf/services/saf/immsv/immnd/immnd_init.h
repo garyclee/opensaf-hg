@@ -163,7 +163,7 @@ extern "C" {
 	    immModel_ccbObjectCreate(IMMND_CB *cb,
 		    struct ImmsvOmCcbObjectCreate *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
 		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, 
-                    char** objName, bool* dnOrRdnIsLong);
+                    char** objName, bool* dnOrRdnIsLong, bool isObjectDnUsed);
 
 	SaUint32T immModel_getLocalAppliersForObj(IMMND_CB *cb, const char* objName, SaUint32T ccbId,
                 SaUint32T **aplConnArr, SaBoolT externalRep);
@@ -372,7 +372,8 @@ extern "C" {
 	    immModel_rtObjectCreate(IMMND_CB *cb,
 		    struct ImmsvOmCcbObjectCreate *req,
 		    SaUint32T implConn, SaClmNodeIdT implNodeId, SaUint32T *continuationId,
-		    SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn, SaUint32T *pbe2BConn);
+		    SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn,
+		    SaUint32T *pbe2BConn, SaBoolT isObjectDnUsed);
 
 	SaAisErrorT
 	    immModel_rtObjectDelete(IMMND_CB *cb,

@@ -604,12 +604,61 @@ immModel_ccbObjectCreate(IMMND_CB *cb,
     SaUint32T* pbeConn,
     SaClmNodeIdT* pbeNodeId,
     char** objName,
-    bool* dnOrRdnIsLong)
+    bool* dnOrRdnIsLong,
+    bool isObjectDnUsed)
 {
     std::string objectName;
+
+    if(req->attrValues
+            && (req->attrValues->n.attrName.size == 0
+                || req->attrValues->n.attrValueType == 0)) {
+        LOG_NO("ERR_INVALID_PARAM: Attribute name or attribute type is not properly set");
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
+
+    /* Find RDN and parent DN */
+    if(isObjectDnUsed) {
+        std::string parentName;
+
+        if(req->parentOrObjectDn.size == 0) {
+            LOG_NO("ERR_INVALID_PARAM: Object DN cannot be empty string");
+            return SA_AIS_ERR_INVALID_PARAM;
+        }
+
+        uint32_t n;
+        /* start from second character. The first character cannot be comma */
+        for(n=1; n<req->parentOrObjectDn.size; n++) {
+            if(req->parentOrObjectDn.buf[n] == ',' && req->parentOrObjectDn.buf[n - 1] != '\\') {
+                break;
+            }
+        }
+
+        if(n + 1 < req->parentOrObjectDn.size) {
+            parentName.append(req->parentOrObjectDn.buf + n + 1,
+                    strnlen(req->parentOrObjectDn.buf + n + 1, req->parentOrObjectDn.size - (n + 1)));
+        }
+
+        // Add RDN attribute to req->attrValues
+        IMMSV_ATTR_VALUES_LIST *attr = (IMMSV_ATTR_VALUES_LIST *)calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
+        osafassert(attr);
+        attr->n.attrName.buf = NULL;
+        attr->n.attrName.size = 0;
+        /* Temporary setting type to SA_IMM_ATTR_SASTRINGT, which will be later set to the right type */
+        attr->n.attrValueType = SA_IMM_ATTR_SASTRINGT;
+        attr->n.attrValuesNumber = 1;
+        attr->n.attrValue.val.x.buf = strndup(req->parentOrObjectDn.buf, n);
+        attr->n.attrValue.val.x.size = strlen(attr->n.attrValue.val.x.buf) + 1;
+        attr->next = req->attrValues;
+        req->attrValues = attr;
+
+        // Add parent to req
+        req->parentOrObjectDn.size = parentName.size();
+        memcpy(req->parentOrObjectDn.buf, parentName.c_str(), req->parentOrObjectDn.size);
+    }
+
     SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         ccbObjectCreate(req, implConn, implNodeId, continuationId, 
-            pbeConn, pbeNodeId, objectName, dnOrRdnIsLong);
+            pbeConn, pbeNodeId, objectName, dnOrRdnIsLong, isObjectDnUsed);
 
     if(err == SA_AIS_OK && !objectName.empty()) {
         *objName = (char*) malloc((objectName.length() + 1) * sizeof(char));
@@ -1611,9 +1660,9 @@ immModel_ccbCompletedContinuation(IMMND_CB *cb,
 void
 immModel_ccbObjDelContinuation(IMMND_CB *cb, 
     struct immsv_oi_ccb_upcall_rsp* rsp,
-	SaUint32T* reqConn, bool* augDelete)
+    SaUint32T* reqConn, bool* augDelete)
 {
-	ImmModel::instance(&cb->immModel)->ccbObjDelContinuation(rsp, reqConn, augDelete);
+    ImmModel::instance(&cb->immModel)->ccbObjDelContinuation(rsp, reqConn, augDelete);
 }
 
 void
@@ -1885,12 +1934,60 @@ immModel_rtObjectCreate(IMMND_CB *cb,
     SaUint32T* pbeConn,
     SaClmNodeIdT* pbeNodeId,
     SaUint32T* spApplConn,
-    SaUint32T* pbe2BConn)
+    SaUint32T* pbe2BConn,
+    SaBoolT isObjectDnUsed)
 
 {
+    if(req->attrValues
+            && (req->attrValues->n.attrName.size == 0
+                || req->attrValues->n.attrValueType == 0)) {
+        LOG_NO("ERR_INVALID_PARAM: Attribute name or attribute type is not properly set");
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
+
+    /* Find RDN and parent DN */
+    if(isObjectDnUsed) {
+        std::string parentName;
+
+        if(req->parentOrObjectDn.size == 0) {
+            LOG_NO("ERR_INVALID_PARAM: Object DN cannot be empty string");
+            return SA_AIS_ERR_INVALID_PARAM;
+        }
+
+        uint32_t n;
+        /* start from second character. The first character cannot be comma */
+        for(n=1; n<req->parentOrObjectDn.size; n++) {
+            if(req->parentOrObjectDn.buf[n] == ',' && req->parentOrObjectDn.buf[n - 1] != '\\') {
+                break;
+            }
+        }
+
+        if(n + 1 < req->parentOrObjectDn.size) {
+            parentName.append(req->parentOrObjectDn.buf + n + 1,
+                    strnlen(req->parentOrObjectDn.buf + n + 1, req->parentOrObjectDn.size - (n + 1)));
+        }
+
+        // Add RDN attribute to req->attrValues
+        IMMSV_ATTR_VALUES_LIST *attr = (IMMSV_ATTR_VALUES_LIST *)calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
+        osafassert(attr);
+        attr->n.attrName.buf = NULL;
+        attr->n.attrName.size = 0;
+        /* Temporary setting type to SA_IMM_ATTR_SASTRINGT, which will be later set to the right type */
+        attr->n.attrValueType = SA_IMM_ATTR_SASTRINGT;
+        attr->n.attrValuesNumber = 1;
+        attr->n.attrValue.val.x.buf = strndup(req->parentOrObjectDn.buf, n);
+        attr->n.attrValue.val.x.size = strlen(attr->n.attrValue.val.x.buf) + 1;
+        attr->next = req->attrValues;
+        req->attrValues = attr;
+
+        // Add parent to req
+        req->parentOrObjectDn.size = parentName.size();
+        memcpy(req->parentOrObjectDn.buf, parentName.c_str(), req->parentOrObjectDn.size);
+    }
+
     return ImmModel::instance(&cb->immModel)->
         rtObjectCreate(req, implConn, (unsigned int) implNodeId, continuationId, 
-            pbeConn, pbeNodeId, spApplConn, pbe2BConn);
+            pbeConn, pbeNodeId, spApplConn, pbe2BConn, isObjectDnUsed);
 
 }
 
@@ -3049,8 +3146,10 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                 illegal = 1;
             }
 
-            if(attr->attrValueType != SA_IMM_ATTR_SANAMET) {
-                LOG_NO("ERR_INVALID_PARAM: Attribute '%s' must be of type SaNameT", attNm);
+            if(attr->attrValueType != SA_IMM_ATTR_SANAMET
+                    && !((attr->attrFlags & SA_IMM_ATTR_DN) && (attr->attrValueType == SA_IMM_ATTR_SASTRINGT))) {
+                LOG_NO("ERR_INVALID_PARAM: Attribute '%s' must be of type SaNameT, "
+                		"or of type SaStringT with DN flag", attNm);
                 illegal = 1;
             }
 
@@ -3059,6 +3158,12 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                     "NO_DANGLING flag", attNm);
                 illegal = 1;
             }
+        }
+
+        if((attr->attrFlags & SA_IMM_ATTR_DN) && (attr->attrValueType != SA_IMM_ATTR_SASTRINGT)) {
+            LOG_NO("ERR_INVALID_PARAM: Attribute '%s' has SA_IMM_ATTR_DN flag, "
+                    "but the attribute is not of type SaStringT", attNm);
+            illegal = 1;
         }
 
         if(attr->attrDefaultValue) {
@@ -3795,6 +3900,13 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                 change = true;
                 checkCcb=true;
                 checkNoDanglingRefs=true;
+            }
+
+            if((oldAttr->mFlags & SA_IMM_ATTR_DN) !=
+               (newAttr->mFlags & SA_IMM_ATTR_DN)) {
+                LOG_NO("Impossible upgrade, attribute %s:%s changes flag "
+                    "SA_IMM_ATTR_DN", className.c_str(), attName.c_str());
+                return true;
             }
         }
 
@@ -6600,7 +6712,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     SaUint32T* pbeConnPtr,
     unsigned int* pbeNodeIdPtr,
     std::string& objectName,
-    bool* dnOrRdnIsLong)
+    bool* dnOrRdnIsLong,
+    bool isObjectDnUsed)
 {
     TRACE_ENTER();
     osafassert(dnOrRdnIsLong);
@@ -6614,8 +6727,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         (size_t)req->className.size);
     std::string className((const char*)req->className.buf, sz);
     
-    sz = strnlen((char *) req->parentName.buf, (size_t)req->parentName.size);
-    std::string parentName((const char*)req->parentName.buf, sz);
+    sz = strnlen((char *) req->parentOrObjectDn.buf, (size_t)req->parentOrObjectDn.size);
+    std::string parentName((const char*)req->parentOrObjectDn.buf, sz);
     
     TRACE_2("parentName:%s\n", parentName.c_str());
     objectName.clear();
@@ -6651,7 +6764,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     
     if(sz >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
         if(longDnsPermitted) {
-            /* The catch here of this long parent DN case is actually redundant. 
+            /* The catch here of this long parent DN case is actually redundant.
                This since a long parent + rdn will be even longer than the long
                parent name and that case is also caught below.
             */
@@ -6670,19 +6783,19 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         if(nameToInternal(parentName)) {
             nameCorrected = true;
         } else {
-            LOG_NO("ERR_INVALID_PARAM: Not a proper parent name:%s size:%u", 
+            LOG_NO("ERR_INVALID_PARAM: Not a proper parent name:%s size:%u",
                 parentName.c_str(), (unsigned int) parentName.size());
             err = SA_AIS_ERR_INVALID_PARAM;
             goto ccbObjectCreateExit;
        }
     }
-    
+
     if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name:%s", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectCreateExit;
     }
-    
+
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if (i1 == sCcbVector.end()) {
         LOG_NO("ERR_BAD_HANDLE: ccb id %u does not exist", ccbId);
@@ -6690,14 +6803,14 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         goto ccbObjectCreateExit;
     }
     ccb = *i1;
-    
+
     if(!ccb->isOk()) {
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectCreate operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectCreateExit;
     }
-    
+
     if(ccb->mState > IMM_CCB_READY) {
         LOG_ER("ERR_FAILED_OPERATION: ccb %u is not in an expected state:%u "
             "rejecting ccbObjectCreate operation ", ccbId, ccb->mState);
@@ -6711,19 +6824,19 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         LOG_NO("Augmented ccbCreate uses augmentation AdminOwner %u to get ROF == true",
             adminOwnerId);
     }
-    
-    i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), 
+
+    i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(),
         IdIs(adminOwnerId));
     if (i2 == sOwnerVector.end()) {
-        LOG_NO("ERR_BAD_HANDLE: admin owner id %u does not exist", 
+        LOG_NO("ERR_BAD_HANDLE: admin owner id %u does not exist",
             adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto ccbObjectCreateExit;
     }
     adminOwner = *i2;
-    
+
     osafassert(!adminOwner->mDying);
-    
+
     if(adminOwner->mId != ccb->mAdminOwnerId) {
         if(isAugAdmo) {
             osafassert(adminOwner->mReleaseOnFinalize);
@@ -6734,7 +6847,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             goto ccbObjectCreateExit;
         }
     }
-    
+
     if (i3 == sClassMap.end()) {
         TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
         setCcbErrorString(ccb, "ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
@@ -6746,18 +6859,18 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         err = SA_AIS_ERR_TRY_AGAIN;
         goto ccbObjectCreateExit;
     }
-    
+
     classInfo = i3->second;
-    
+
     if((classInfo->mCategory != SA_IMM_CLASS_CONFIG) && !isLoading) {
-        //If class is not config and isloading==true, then a check that only 
+        //If class is not config and isloading==true, then a check that only
         //accepts persistent RT attributes is enforced below. Se ***.
-        LOG_NO("ERR_INVALID_PARAM: class '%s' is not a configuration class", 
+        LOG_NO("ERR_INVALID_PARAM: class '%s' is not a configuration class",
             className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectCreateExit;
     }
-    
+
     if(parentName.length() > 0) {
         i5 = sObjectMap.find(parentName);
         if (i5 == sObjectMap.end()) {
@@ -6837,6 +6950,13 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     }
 
     attrValues = req->attrValues;
+
+    /* Set attribute name and attribute type for RDN (first element in the list) */
+    if(isObjectDnUsed) {
+        attrValues->n.attrName.buf = strdup(i4->first.c_str());
+        attrValues->n.attrName.size = i4->first.size();
+        attrValues->n.attrValueType = i4->second->mValueType;
+    }
     
     while(attrValues) {
         sz = strnlen((char *) attrValues->n.attrName.buf, 
@@ -6887,11 +7007,12 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     attrValues->n.attrValueType = i4->second->mValueType;
                 }
             }
-            
-            objectName.append((const char*)attrValues->n.attrValue.val.x.buf, 
+
+            objectName.append((const char*)attrValues->n.attrValue.val.x.buf,
                 strnlen((const char*)attrValues->n.attrValue.val.x.buf,
                     (size_t)attrValues->n.attrValue.val.x.size));
-        } else if (attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET) {
+        } else if ((attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET) ||
+                (attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT)) {
             AttrMap::iterator it = classInfo->mAttrMap.find(attrName);
             if(it == classInfo->mAttrMap.end()) {
                 LOG_ER("ERR_INVALID_PARAM: Cannot find attribute '%s'",
@@ -6900,46 +7021,48 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 goto ccbObjectCreateExit;
             }
 
-            if(attrValues->n.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
-                if(longDnsPermitted) {
-                    (*dnOrRdnIsLong) = true;
-                    if(isLoading) {sIsLongDnLoaded = true;}
-                } else {
-                    LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long name. "
-                        "Not allowed by IMM service or extended names are disabled",
-                        attrName.c_str());
-                    err = SA_AIS_ERR_NAME_TOO_LONG;
-                    goto ccbObjectCreateExit;
-                }
-            }
-
-            IMMSV_EDU_ATTR_VAL_LIST *value = attrValues->n.attrMoreValues;
-            while(value) {
-                if(value->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+            if((attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET) || (it->second->mFlags & SA_IMM_ATTR_DN)) {
+                if(attrValues->n.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
                     if(longDnsPermitted) {
                         (*dnOrRdnIsLong) = true;
                         if(isLoading) {sIsLongDnLoaded = true;}
                     } else {
-                        LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
-                            "Not allowed by IMM service or extended names are disabled",
-                            attrName.c_str());
+                        LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long name. "
+                                "Not allowed by IMM service or extended names are disabled",
+                                attrName.c_str());
                         err = SA_AIS_ERR_NAME_TOO_LONG;
                         goto ccbObjectCreateExit;
                     }
                 }
-                value = value->next;
+
+                IMMSV_EDU_ATTR_VAL_LIST *value = attrValues->n.attrMoreValues;
+                while(value) {
+                    if(value->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                        if(longDnsPermitted) {
+                            (*dnOrRdnIsLong) = true;
+                            if(isLoading) {sIsLongDnLoaded = true;}
+                        } else {
+                            LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
+                                    "Not allowed by IMM service or extended names are disabled",
+                                    attrName.c_str());
+                            err = SA_AIS_ERR_NAME_TOO_LONG;
+                            goto ccbObjectCreateExit;
+                        }
+                    }
+                    value = value->next;
+                }
             }
         }
 
         attrValues = attrValues->next;
     }
-    
+
     if (objectName.empty()) {
         LOG_NO("ERR_INVALID_PARAM: no RDN attribute found or value is empty");
-        err = SA_AIS_ERR_INVALID_PARAM;     
+        err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectCreateExit;
     }
-    
+
     if(!nameCheck(objectName)) {
         if(nameToInternal(objectName)) {
             nameCorrected = true;
@@ -7502,6 +7625,36 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             }
         }
 
+        /* Implementer or applier exist, so we need to reorder attributes, and set RDN as the first attribute */
+        if(err == SA_AIS_OK && (pbeNodeIdPtr || *implNodeId)) {
+            IMMSV_ATTR_VALUES_LIST *prev = req->attrValues;
+            IMMSV_ATTR_VALUES_LIST *t = req->attrValues;
+            size_t rdnAttrLen;
+
+            i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
+                    AttrFlagIncludes(SA_IMM_ATTR_RDN));
+            osafassert(i4 != classInfo->mAttrMap.end());    /* This should never happen. It's already checked */
+            rdnAttrLen = strnlen(i4->first.c_str(), i4->first.size());
+
+            if(!(strnlen(t->n.attrName.buf, t->n.attrName.size) == rdnAttrLen)
+                    || strncmp(t->n.attrName.buf, i4->first.c_str(), rdnAttrLen)) {
+                // RDN is not the first element in the list
+                t = t->next;
+                while(t) {
+                    if((strnlen(t->n.attrName.buf, t->n.attrName.size) == rdnAttrLen)
+                            && !strncmp(t->n.attrName.buf, i4->first.c_str(), rdnAttrLen)) {
+                        prev->next = t->next;
+                        t->next = req->attrValues;
+                        req->attrValues = t;
+                        break;
+                    }
+                    prev = t;
+                    t = t->next;
+                }
+            }
+            osafassert(t);  // This should never happen. RDN must exist in attribute list
+        }
+
     bypass_impl:
 
         if(err == SA_AIS_OK) {
@@ -7957,8 +8110,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             err = SA_AIS_ERR_BAD_OPERATION;
             break; //out of for-loop
         }
-	
-	if(modifiedRim && !ENABLE_PBE) {
+
+        if(modifiedRim && !ENABLE_PBE) {
             /* ENABLE_PBE defined in immnd.h */ 
             LOG_NO("ERR_BAD_OPERATION:  imm has not been built with --enable-imm-pbe");
             setCcbErrorString(ccb,
@@ -7967,7 +8120,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             break; 
         }
         
-	if(modifiedRim && !pbeFile) {
+        if(modifiedRim && !pbeFile) {
             LOG_NO("ERR_BAD_OPERATION: PBE file is not configured");
             setCcbErrorString(ccb, "ERR_BAD_OPERATION: PBE file is not configured");
             err = SA_AIS_ERR_BAD_OPERATION;
@@ -8010,7 +8163,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
 
         if(attr->mFlags & SA_IMM_ATTR_NOTIFY) {modifiedNotifyAttr=true;}
 
-        if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
+        if((attr->mValueType == SA_IMM_ATTR_SANAMET) ||
+                (attr->mValueType == SA_IMM_ATTR_SASTRINGT && (attr->mFlags & SA_IMM_ATTR_DN))) {
             if(p->attrValue.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
                 if(longDnsPermitted) {
                     (*hasLongDns) = true;
@@ -8058,7 +8212,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                  err = SA_AIS_ERR_INVALID_PARAM;
                  break; //out of for-loop
             }
-        } else if(attr->mValueType == SA_IMM_ATTR_SASTRINGT) {
+        }
+
+        if(attr->mValueType == SA_IMM_ATTR_SASTRINGT) {
             /* Check that the string at least conforms to UTF-8 */
             if(p->attrValue.attrValue.val.x.size && !(osaf_is_valid_utf8(p->attrValue.attrValue.val.x.buf))) {
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' of type SaStringT has a value "
@@ -9943,7 +10099,8 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         ~(SA_IMM_SEARCH_ONE_ATTR |
           SA_IMM_SEARCH_GET_ALL_ATTR | 
           SA_IMM_SEARCH_GET_SOME_ATTR |
-          SA_IMM_SEARCH_GET_CONFIG_ATTR);
+          SA_IMM_SEARCH_GET_CONFIG_ATTR |
+          SA_IMM_SEARCH_NO_RDN);
 
     if(notAllowedOptions) {
         LOG_ER("ERR_LIBRARY: Invalid search criteria - library problem ?");
@@ -9993,6 +10150,9 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         AttrMap::iterator k =
             obj->mClassInfo->mAttrMap.find(j->first);
         osafassert(k != obj->mClassInfo->mAttrMap.end());
+
+        if((searchOptions & SA_IMM_SEARCH_NO_RDN) &&
+           (k->second->mFlags & SA_IMM_ATTR_RDN)) {continue;}
 
         if((searchOptions & SA_IMM_SEARCH_GET_CONFIG_ATTR) &&
            (k->second->mFlags & SA_IMM_ATTR_RUNTIME)) {continue;}
@@ -10266,7 +10426,8 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
           SA_IMM_SEARCH_GET_CONFIG_ATTR |
           SA_IMM_SEARCH_PERSISTENT_ATTRS |
           SA_IMM_SEARCH_SYNC_CACHED_ATTRS |
-          SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS);
+          SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS |
+          SA_IMM_SEARCH_NO_RDN);
 
     if(unknownOptions) {
         LOG_NO("ERR_INVALID_PARAM: invalid search option 0x%llx",
@@ -10526,6 +10687,11 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                             AttrMap::iterator k =
                                 obj->mClassInfo->mAttrMap.find(j->first);
                             osafassert(k != obj->mClassInfo->mAttrMap.end());
+
+                            if((searchOptions & SA_IMM_SEARCH_NO_RDN) && k->second->mFlags) {
+                                /* NO_RDN flag is set. RDN will be excluded from the result */
+                                continue;
+                            }
 
                             if((searchOptions & SA_IMM_SEARCH_GET_CONFIG_ATTR) &&
                                (k->second->mFlags & SA_IMM_ATTR_RUNTIME)) {
@@ -13775,7 +13941,8 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     SaUint32T* pbeConnPtr,
     unsigned int* pbeNodeIdPtr,
     SaUint32T* spApplConnPtr,
-    SaUint32T* pbe2BConnPtr)
+    SaUint32T* pbe2BConnPtr,
+    bool isObjectDnUsed)
 {
     TRACE_ENTER2("cont:%p connp:%p nodep:%p", continuationId, pbeConnPtr, pbeNodeIdPtr);
     SaAisErrorT err = SA_AIS_OK;
@@ -13792,10 +13959,10 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         (size_t)req->className.size);
     std::string className((const char*)req->className.buf, sz);
     
-    sz = strnlen((char *) req->parentName.buf, 
-        (size_t)req->parentName.size);
-    std::string parentName((const char*)req->parentName.buf, sz);
-    
+    sz = strnlen((char *) req->parentOrObjectDn.buf,
+        (size_t)req->parentOrObjectDn.size);
+    std::string parentName((const char*)req->parentOrObjectDn.buf, sz);
+
     TRACE_2("parentName:%s\n", parentName.c_str());
     std::string objectName;
     
@@ -13836,7 +14003,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
     
     //We rely on FEVS to guarantee that the same handleId is produced at
     //all nodes for the same implementer. 
-    
+
     if(!longDnsPermitted && sz >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
         LOG_NO("ERR_NOT_EXIST: Parent name '%s' has a long DN. "
             "Not allowed by IMM service or extended names are disabled",
@@ -13855,13 +14022,13 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             goto rtObjectCreateExit;
         }
     }
-    
+
     if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name:%s", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectCreateExit;
     }
-    
+
     i3 = sClassMap.find(className);
     if (i3 == sClassMap.end()) {
         TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
@@ -13869,13 +14036,13 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         goto rtObjectCreateExit;
     }
     classInfo = i3->second;
-    
+
     if(classInfo->mCategory != SA_IMM_CLASS_RUNTIME) {
         LOG_NO("ERR_INVALID_PARAM: class '%s' is not a runtime class", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectCreateExit;
     }
-    
+
     if (parentName.length() > 0) {
         ObjectMap::iterator i = sObjectMap.find(parentName);
         if (i == sObjectMap.end()) {
@@ -13907,11 +14074,18 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         AttrFlagIncludes(SA_IMM_ATTR_RDN));
     if (i4 == classInfo->mAttrMap.end()) {
         LOG_ER("No RDN attribute found in class!");
-        abort(); 
+        abort();
     }
-    
+
     attrValues = req->attrValues;
-    
+
+    /* Set attribute name and attribute type for RDN (first element in the list) */
+    if(isObjectDnUsed) {
+       attrValues->n.attrName.buf = strdup(i4->first.c_str());
+       attrValues->n.attrName.size = i4->first.size();
+       attrValues->n.attrValueType = i4->second->mValueType;
+    }
+
     while(attrValues) {
         sz = strnlen((char *) attrValues->n.attrName.buf, 
             (size_t)attrValues->n.attrName.size);
@@ -14423,6 +14597,36 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             }
         }
         
+        /* Reorder attributes for upcall(s), and set RDN as the first attribute */
+        if((isPersistent && pbe) || (*spApplConnPtr)) {
+            IMMSV_ATTR_VALUES_LIST *prev = req->attrValues;
+            IMMSV_ATTR_VALUES_LIST *t = req->attrValues;
+            size_t rdnAttrLen;
+
+            i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
+                    AttrFlagIncludes(SA_IMM_ATTR_RDN));
+            osafassert(i4 != classInfo->mAttrMap.end());    /* This should never happen. It's already checked */
+            rdnAttrLen = strnlen(i4->first.c_str(), i4->first.size());
+
+            if(!(strnlen(t->n.attrName.buf, t->n.attrName.size) == rdnAttrLen)
+                    || strncmp(t->n.attrName.buf, i4->first.c_str(), rdnAttrLen)) {
+                // RDN is not the first element in the list
+                t = t->next;
+                while(t) {
+                    if((strnlen(t->n.attrName.buf, t->n.attrName.size) == rdnAttrLen)
+                            && !strncmp(t->n.attrName.buf, i4->first.c_str(), rdnAttrLen)) {
+                        prev->next = t->next;
+                        t->next = req->attrValues;
+                        req->attrValues = t;
+                        break;
+                    }
+                    prev = t;
+                    t = t->next;
+                }
+            }
+            osafassert(t);  // This should never happen. RDN must exist in attribute list
+        }
+
         sObjectMap[objectName] = object;
         classInfo->mExtent.insert(object);
         
@@ -14509,11 +14713,11 @@ void ImmModel::pbePrtObjCreateContinuation(SaUint32T invocation,
             if(oMut->mAfterImage->mParent) {
                 std::string parentName;
                 getParentDn(/*out*/ parentName, /* in */ i2->first.c_str());
-                req->parentName.size = parentName.size() +1;
-                req->parentName.buf = strdup(parentName.c_str());
+                req->parentOrObjectDn.size = parentName.size() +1;
+                req->parentOrObjectDn.buf = strdup(parentName.c_str());
             } else {
-                req->parentName.size = 0;
-                req->parentName.buf = NULL;
+                req->parentOrObjectDn.size = 0;
+                req->parentOrObjectDn.buf = NULL;
             }
 
             req->attrValues = (immsv_attr_values_list *) oMut->mSavedData;

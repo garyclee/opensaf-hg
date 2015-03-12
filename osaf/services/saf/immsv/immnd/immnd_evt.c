@@ -384,14 +384,16 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 			evt->info.immnd.info.finSync.ccbResults = NULL;
 		}
 	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE) ||
-		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE)) {
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE) ||
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE_2) ||
+		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE_2)) {
 		free(evt->info.immnd.info.objCreate.className.buf);
 		evt->info.immnd.info.objCreate.className.buf = NULL;
 		evt->info.immnd.info.objCreate.className.size = 0;
 
-		free(evt->info.immnd.info.objCreate.parentName.buf);
-		evt->info.immnd.info.objCreate.parentName.buf = NULL;
-		evt->info.immnd.info.objCreate.parentName.size = 0;
+		free(evt->info.immnd.info.objCreate.parentOrObjectDn.buf);
+		evt->info.immnd.info.objCreate.parentOrObjectDn.buf = NULL;
+		evt->info.immnd.info.objCreate.parentOrObjectDn.size = 0;
 
 		immsv_free_attrvalues_list(evt->info.immnd.info.objCreate.attrValues);
 		evt->info.immnd.info.objCreate.attrValues = NULL;
@@ -3223,6 +3225,12 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 		}
 		break;
 
+	case IMMND_EVT_A2ND_OBJ_CREATE_2:
+        if(!immModel_protocol46Allowed(cb) || immModel_pbeNotWritable(cb)) {
+            error = SA_AIS_ERR_TRY_AGAIN;
+        }
+		break;
+
 	case IMMND_EVT_A2ND_CCB_VALIDATE:
 		if(!immModel_protocol45Allowed(cb)) {
 			LOG_NO("saImmOmCcbValidate rejected during upgrade to 4.5 (OPENSAF_IMM_FLAG_PRT45_ALLOW is false)");
@@ -3415,6 +3423,15 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 	case IMMND_EVT_A2ND_OI_OBJ_CREATE:
 		if(fevsReq->sender_count != 0x1) {
 			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_CREATE fevsReq->sender_count != 0x1");
+			error = SA_AIS_ERR_LIBRARY;
+		}
+		break;
+
+	case IMMND_EVT_A2ND_OI_OBJ_CREATE_2:
+        if(!immModel_protocol46Allowed(cb)) {
+            error = SA_AIS_ERR_TRY_AGAIN;
+        } else if(fevsReq->sender_count != 0x1) {
+			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_OI_OBJ_CREATE_2 fevsReq->sender_count != 0x1");
 			error = SA_AIS_ERR_LIBRARY;
 		}
 		break;
@@ -4142,10 +4159,10 @@ static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
 		send_evt.info.imma.info.objCreate.className.buf = NULL;
 		send_evt.info.imma.info.objCreate.className.size = 0;
 
-		if(send_evt.info.imma.info.objCreate.parentName.buf) {
-			free(send_evt.info.imma.info.objCreate.parentName.buf);
-			send_evt.info.imma.info.objCreate.parentName.buf = NULL;
-			send_evt.info.imma.info.objCreate.parentName.size = 0;
+		if(send_evt.info.imma.info.objCreate.parentOrObjectDn.buf) {
+			free(send_evt.info.imma.info.objCreate.parentOrObjectDn.buf);
+			send_evt.info.imma.info.objCreate.parentOrObjectDn.buf = NULL;
+			send_evt.info.imma.info.objCreate.parentOrObjectDn.size = 0;
 		}
 	}
 
@@ -5653,10 +5670,12 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 
 	if (originatedAtThisNd) {
 		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), reqConn, nodeId,
-			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn, &pbe2BConn);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn, &pbe2BConn,
+			evt->type == IMMND_EVT_A2ND_OI_OBJ_CREATE_2);
 	} else {
 		err = immModel_rtObjectCreate(cb, &(evt->info.objCreate), 0, nodeId,
-			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn, &pbe2BConn);
+			&continuationId, &pbeConn, pbeNodeIdPtr, &spApplConn, &pbe2BConn,
+			evt->type == IMMND_EVT_A2ND_OI_OBJ_CREATE_2);
 	}
 
 	if(pbeNodeId && err == SA_AIS_OK) {
@@ -5890,7 +5909,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	}
 
 	err = immModel_ccbObjectCreate(cb, &(evt->info.objCreate), &implConn, &implNodeId, 
-		&continuationId, &pbeConn, pbeNodeIdPtr, &objName, &dnOrRdnIsLong);
+		&continuationId, &pbeConn, pbeNodeIdPtr, &objName, &dnOrRdnIsLong,
+		evt->type == IMMND_EVT_A2ND_OBJ_CREATE_2);
 
 	if(pbeNodeIdPtr && pbeConn && err == SA_AIS_OK) {
 		/*The persistent back-end is present and executing at THIS node. */
@@ -7879,10 +7899,12 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 
 	switch (frwrd_evt.info.immnd.type) {
 	case IMMND_EVT_A2ND_OBJ_CREATE:
+	case IMMND_EVT_A2ND_OBJ_CREATE_2:
 		immnd_evt_proc_object_create(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	case IMMND_EVT_A2ND_OI_OBJ_CREATE:
+	case IMMND_EVT_A2ND_OI_OBJ_CREATE_2:
 		immnd_evt_proc_rt_object_create(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
