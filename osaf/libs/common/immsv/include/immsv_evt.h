@@ -213,6 +213,9 @@ typedef enum immnd_evt_type {
 
 	IMMND_EVT_D2ND_ADMINIT_2 = 98,	/* Admin Owner init reply */
 
+	IMMND_EVT_A2ND_OBJ_CREATE_2 = 99,	/* saImmOmCcbObjectCreate_o3 */
+	IMMND_EVT_A2ND_OI_OBJ_CREATE_2 = 100,	/* saImmOiRtObjectCreate_o3 */
+
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */

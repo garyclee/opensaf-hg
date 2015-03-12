@@ -151,7 +151,7 @@ extern "C" {
 		SaUint32T ccbId;
 		SaUint32T adminOwnerId;
 		IMMSV_OCTET_STRING className;
-		IMMSV_OCTET_STRING parentName;
+		IMMSV_OCTET_STRING parentOrObjectDn;  // used for parent name and object name in _o3
 		IMMSV_ATTR_VALUES_LIST *attrValues;
 		SaUint64T immHandle;	//only used for the ND->A up-call (use seprt msg?)
 	} IMMSV_OM_CCB_OBJECT_CREATE;

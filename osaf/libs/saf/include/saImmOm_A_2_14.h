@@ -46,4 +46,6 @@ extern "C" {
 }
 #endif
 
+#include <saImmOm_A_2_15.h>
+
 #endif   /* _SA_IMM_OM_A_2_14_H */
