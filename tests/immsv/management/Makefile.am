@@ -54,6 +54,7 @@ immomtest_SOURCES = \
 	test_saImmOmAdminOperationContinue.c \
 	test_saImmOmThreadInterference.c \
 	test_saImmOmLongDn.c \
+	test_saImmOmSaStringT.c \
 	test_cleanup.c
 
 immomtest_LDADD = \

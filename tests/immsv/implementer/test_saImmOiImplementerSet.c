@@ -279,7 +279,6 @@ void saImmOiImplementerSet_08(void)
 	assert(setenv("IMMA_OI_CALLBACK_TIMEOUT", "15", 1) == 0);
 
 	safassert(saImmOmInitialize(&immHandle, NULL, &immVersion), SA_AIS_OK);
-	runtime_class_create(immHandle);
 
 	assert(!pthread_create(&threadid, NULL, saImmOiImplementerSet_modify_thread, &ready));
 
@@ -298,8 +297,6 @@ void saImmOiImplementerSet_08(void)
 	while(!ready) {
 		usleep(100000);
 	}
-
-	runtime_class_delete(immHandle);
 
 	safassert(saImmOmFinalize(immHandle), SA_AIS_OK);
 
@@ -323,7 +320,6 @@ void saImmOiImplementerSet_09(void)
 	assert(setenv("IMMA_OI_CALLBACK_TIMEOUT", "15", 1) == 0);
 
 	safassert(saImmOmInitialize(&immHandle, NULL, &immVersion), SA_AIS_OK);
-	runtime_class_create(immHandle);
 
 	assert(!pthread_create(&threadid, NULL, saImmOiImplementerSet_modify_thread, &ready));
 
@@ -342,8 +338,6 @@ void saImmOiImplementerSet_09(void)
 	while(!ready) {
 		usleep(100000);
 	}
-
-	runtime_class_delete(immHandle);
 
 	safassert(saImmOmFinalize(immHandle), SA_AIS_OK);
 
