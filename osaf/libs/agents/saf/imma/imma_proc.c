@@ -1046,7 +1046,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, bool hasLongDn, IMMA_EVT *evt)
 				osafassert(callback->inv == 0);
 			} else if(cl_node->isPbe) { /* PBE. */
 				TRACE("PBe case inv:%u", callback->inv);
-				if((callback->inv != 0) && 
+				if((callback->inv != 0) &&
 					strcmp(osaf_extended_name_borrow(&callback->name), OPENSAF_IMM_OBJECT_DN) != 0) {
 					/* callback->inv must be zero, except for operations on
 					 OPENSAF_IMM_OBJECT_DN  */
@@ -1120,9 +1120,9 @@ static void imma_proc_obj_create(IMMA_CB *cb, bool dnOrRdnIsLong, IMMA_EVT *evt)
 		callback->ccbID = evt->info.objCreate.ccbId;
 		callback->inv = evt->info.objCreate.adminOwnerId;	/*Actually continuationId */
 
-		osaf_extended_name_steal(evt->info.objCreate.parentName.buf, &callback->name);
-		evt->info.objCreate.parentName.buf = NULL;
-		evt->info.objCreate.parentName.size = 0;
+		osaf_extended_name_steal(evt->info.objCreate.parentOrObjectDn.buf, &callback->name);
+		evt->info.objCreate.parentOrObjectDn.buf = NULL;
+		evt->info.objCreate.parentOrObjectDn.size = 0;
 
 		osafassert(strlen(evt->info.objCreate.className.buf) <= evt->info.objCreate.className.size);
 		callback->className = evt->info.objCreate.className.buf;
@@ -1295,9 +1295,9 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 			evt->info.objCreate.className.buf = NULL;
 			evt->info.objCreate.className.size = 0;
 
-			free(evt->info.objCreate.parentName.buf);
-			evt->info.objCreate.parentName.buf = NULL;
-			evt->info.objCreate.parentName.size = 0;
+			free(evt->info.objCreate.parentOrObjectDn.buf);
+			evt->info.objCreate.parentOrObjectDn.buf = NULL;
+			evt->info.objCreate.parentOrObjectDn.size = 0;
 
 			immsv_free_attrvalues_list(evt->info.objCreate.attrValues);
 			evt->info.objCreate.attrValues = NULL;
@@ -1986,12 +1986,21 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 			}
 			if (cl_node->o.iCallbk.saImmOiAdminOperationCallback && isExtendedNameValid && !isAttrExtendedName) {
-				cl_node->o.iCallbk.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
-					callback->invocation,
-					&(callback->name),
-					callback->operationId,
-					(const SaImmAdminOperationParamsT_2 **)
-					callback->params);
+				if(cl_node->isImmA2fCbk) {
+					cl_node->o.iCallbkA2f.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
+							callback->invocation,
+							osaf_extended_name_borrow(&(callback->name)),
+							callback->operationId,
+							(const SaImmAdminOperationParamsT_2 **)
+							callback->params);
+				} else {
+					cl_node->o.iCallbk.saImmOiAdminOperationCallback(callback->lcl_imm_hdl,
+							callback->invocation,
+							&(callback->name),
+							callback->operationId,
+							(const SaImmAdminOperationParamsT_2 **)
+							callback->params);
+				}
 			} else {
 				SaAisErrorT error = IMMSV_IMPOSSIBLE_ERROR;
 				if(!isExtendedNameValid) {
@@ -2032,6 +2041,8 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				IMMSV_EVT ccbCompletedRpl;
 				bool locked = false;
 				SaStringT errorStr = NULL;
+				/* cl_node->o is union, and callback function order is the same for iCallbk and iCallbkA2f.
+				 * So, it's not needed to check if cl_node->o.iCallbkA2f.saImmOiCcbCompletedCallback is NULL or not */
 				if (cl_node->o.iCallbk.saImmOiCcbCompletedCallback)
 				{
 					SaImmOiCcbIdT ccbid = 0LL;
@@ -2069,7 +2080,11 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						}
 					}
 
-					localEr = cl_node->o.iCallbk.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl, ccbid);
+					if(cl_node->isImmA2fCbk) {
+						localEr = cl_node->o.iCallbkA2f.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl, ccbid);
+					} else {
+						localEr = cl_node->o.iCallbk.saImmOiCcbCompletedCallback(callback->lcl_imm_hdl, ccbid);
+					}
 					if (!(localEr == SA_AIS_OK ||
 						    localEr == SA_AIS_ERR_NO_MEMORY ||
 						    localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
@@ -2172,9 +2187,14 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				SaImmOiCcbIdT ccbid = callback->ccbID;
 				SaImmHandleT privateAugOmHandle = 0LL;
 
+				/* cl_node->o is union, and callback function order is the same for iCallbk and iCallbkA2f */
 				if (cl_node->o.iCallbk.saImmOiCcbApplyCallback)
 				{
-					cl_node->o.iCallbk.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
+					if(cl_node->isImmA2fCbk) {
+						cl_node->o.iCallbkA2f.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
+					} else {
+						cl_node->o.iCallbk.saImmOiCcbApplyCallback(callback->lcl_imm_hdl, ccbid);
+					}
 				} else {
 					/* No callback function registered for apply upcall.
 					   There is nothing we can do about this since the CCB is
@@ -2218,8 +2238,12 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				SaImmAttrValuesT_2 **attr = NULL;
 				size_t attrDataSize = 0;
 				int i = 0;
+				/* No need to check for o.iCallbkA2f.saImmOiCcbObjectCreateCallback
+				 * "o" is union and o.iCallbk.saImmOiCcbObjectCreateCallback is same
+				 * as o.iCallbkA2f.saImmOiCcbObjectCreateCallback */
 				if (cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback)
 				{
+					SaStringT objectName = NULL;
 					SaImmOiCcbIdT ccbid = 0LL;
 					if(isPbeOp) {
 						osafassert(callback->ccbID == 0);
@@ -2247,37 +2271,67 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						p = p->next;
 					}
 
-					attrDataSize = sizeof(SaImmAttrValuesT_2 *) * (noOfAttributes + 1);
-					attr = calloc(1, attrDataSize);	/*alloc-1 */
 					p = callback->attrValues;
-					for (; i < noOfAttributes; i++, p = p->next) {
-						IMMSV_ATTR_VALUES *q = &(p->n);
-						attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));	/*alloc-2 */
-						attr[i]->attrName = malloc(q->attrName.size + 1);	/*alloc-3 */
-						strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
-						attr[i]->attrName[q->attrName.size] = 0;	/*redundant. */
-						attr[i]->attrValuesNumber = q->attrValuesNumber;
-						attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
-						if (q->attrValuesNumber) {
-							attr[i]->attrValues =
-								calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
-							/*alloc-5 */
-							attr[i]->attrValues[0] =
-								imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
 
-							if (q->attrValuesNumber > 1) {
-								int ix;
-								IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
-								for (ix = 1; ix < q->attrValuesNumber; ++ix) {
-									osafassert(r);
-									attr[i]->attrValues[ix] = /*alloc-5 */
-										imma_copyAttrValue3(q->attrValueType, &(r->n));
-									r = r->next;
-								}//for
+					if(cl_node->isImmA2fCbk) {
+						if(noOfAttributes) {
+							p = p->next;  // Skip RDN. RDN is the first attribute
+							noOfAttributes--;
+						} else {
+							/* There must be at least one attribute value */
+							localEr = SA_AIS_ERR_BAD_OPERATION;
+							clientCapable = false;
+						}
+					}
+
+					if(localEr == SA_AIS_OK) {
+						attrDataSize = sizeof(SaImmAttrValuesT_2 *) * (noOfAttributes + 1);
+						attr = calloc(1, attrDataSize);	/*alloc-1 */
+						for (; i < noOfAttributes && p; i++, p = p->next) {
+							IMMSV_ATTR_VALUES *q = &(p->n);
+							attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));	/*alloc-2 */
+							attr[i]->attrName = malloc(q->attrName.size + 1);	/*alloc-3 */
+							strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
+							attr[i]->attrName[q->attrName.size] = 0;	/*redundant. */
+							attr[i]->attrValuesNumber = q->attrValuesNumber;
+							attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
+							if (q->attrValuesNumber) {
+								attr[i]->attrValues =
+									calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
+								/*alloc-5 */
+								attr[i]->attrValues[0] =
+									imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
+
+								if (q->attrValuesNumber > 1) {
+									int ix;
+									IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
+									for (ix = 1; ix < q->attrValuesNumber; ++ix) {
+										osafassert(r);
+										attr[i]->attrValues[ix] = /*alloc-5 */
+											imma_copyAttrValue3(q->attrValueType, &(r->n));
+										r = r->next;
+									}//for
+								}//if
 							}//if
-						}//if
-					}//for
-					attr[noOfAttributes] = NULL;	/*redundant */
+						}//for
+						attr[i] = NULL;	/*redundant */
+					}
+
+					if(localEr == SA_AIS_OK && cl_node->isImmA2fCbk) {
+						/* RDN is the first attribute in the list */
+						IMMSV_ATTR_VALUES *q = &(callback->attrValues->n);
+						size_t parentNameLen = osaf_extended_name_length(&callback->name);
+						size_t sz = parentNameLen
+								+ strnlen(q->attrValue.val.x.buf, q->attrValue.val.x.size);
+						objectName = (SaStringT)malloc(sz + 2); /*alloc-6 */
+						osafassert(objectName);
+						strncpy(objectName, q->attrValue.val.x.buf, q->attrValue.val.x.size);
+						objectName[q->attrValue.val.x.size] = 0;
+						if(parentNameLen > 0) {
+							strcat(objectName, ",");
+							strcat(objectName, osaf_extended_name_borrow(&callback->name));
+						}
+					}
 
 					TRACE("ccb-object-create make the callback");
 					/* Save a copy of the attrvals pointer in the callback to allow
@@ -2287,7 +2341,9 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					 */
 					callback->attrValsForCreateUc = (const SaImmAttrValuesT_2 **)attr;
 
-					if (!osaf_is_extended_names_enabled() && (callback->hasLongRdnOrDn)) {
+					if (localEr == SA_AIS_OK
+							&& !osaf_is_extended_names_enabled()
+							&& (callback->hasLongRdnOrDn)) {
 						/* (callback->hasLongRdnOrDn) set above at '@@@@' here means
 						   that the create callback has one or more of the following
 						   properties:
@@ -2314,13 +2370,21 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							clientCapable = false; 
 						}
 
-					} else if (osaf_is_extended_name_valid(&(callback->name))) {  /* Only checks length of parent name. */
-						localEr = cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
-							ccbid,
-							className,
-							&(callback->name),
-							callback->attrValsForCreateUc);
-					}  else {
+					} else if (localEr == SA_AIS_OK && osaf_is_extended_name_valid(&(callback->name))) {  /* Only checks length of parent name. */
+						if(cl_node->isImmA2fCbk) {
+							localEr = cl_node->o.iCallbkA2f.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
+									ccbid,
+									className,
+									objectName,
+									callback->attrValsForCreateUc);
+						} else {
+							localEr = cl_node->o.iCallbk.saImmOiCcbObjectCreateCallback(callback->lcl_imm_hdl,
+									ccbid,
+									className,
+									&(callback->name),
+									callback->attrValsForCreateUc);
+						}
+					}  else if (localEr == SA_AIS_OK) {
 						/* We should never get here. This should be caught already in the MDS thread
 						   for the obj-create case. Search for two times '@@@@' above.
 						 */
@@ -2328,7 +2392,6 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							strlen(osaf_extended_name_borrow(&(callback->name))), callback->ccbID);
 						localEr = SA_AIS_ERR_BAD_OPERATION;
 					}
-
 
 					TRACE("ccb-object-create callback returned RC:%u", localEr);
 					if (!(localEr == SA_AIS_OK ||
@@ -2344,6 +2407,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 
 					free(className);	/*free-0 */
+					free(objectName);	/*free-6 */
 					for (i = 0; attr[i]; ++i) {
 						free(attr[i]->attrName);	/*free-3 */
 						attr[i]->attrName = 0;
@@ -2501,8 +2565,13 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							clientCapable = false; 
 						}
 					} else if (osaf_is_extended_name_valid(&(callback->name))) {
-						localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
-							ccbid, &(callback->name));
+						if(cl_node->isImmA2fCbk) {
+							localEr = cl_node->o.iCallbkA2f.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
+									ccbid, osaf_extended_name_borrow(&(callback->name)));
+						} else {
+							localEr = cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
+									ccbid, &(callback->name));
+						}
 					} else {
 						/* We should never get here. This should be caught already in the MDS thread
 						   for the obj-delete case. Search for two times '$$$$' above.
@@ -2729,8 +2798,13 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							clientCapable = false; 
 						}
 					} else if (osaf_is_extended_name_valid(&(callback->name))) {
-						localEr = cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl,
-								ccbid, &(callback->name), constPtrForStupidCompiler);
+						if(cl_node->isImmA2fCbk) {
+							localEr = cl_node->o.iCallbkA2f.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl,
+									ccbid, osaf_extended_name_borrow(&(callback->name)), constPtrForStupidCompiler);
+						} else {
+							localEr = cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback(callback->lcl_imm_hdl,
+									ccbid, &(callback->name), constPtrForStupidCompiler);
+						}
 					} else {
 						/* We should never get here. This should be caught already in the MDS thread
 						   for the obj-create case. Search for two times '####' above.
@@ -2865,8 +2939,13 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				/* Anoying type diff for ccbid between OM and OI */
 				SaImmOiCcbIdT ccbid = callback->ccbID;
 				SaImmHandleT privateAugOmHandle = 0LL;
+				/* cl_node->o is union, and callback function order is the same for iCallbk and iCallbkA2f */
 				if (cl_node->o.iCallbk.saImmOiCcbAbortCallback)	{
-					cl_node->o.iCallbk.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
+					if(cl_node->isImmA2fCbk) {
+						cl_node->o.iCallbkA2f.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
+					} else {
+						cl_node->o.iCallbk.saImmOiCcbAbortCallback(callback->lcl_imm_hdl, ccbid);
+					}
 				} else {
 					/* No callback function registered for abort upcall.
 					   There is nothing we can do about this since the CCB is
@@ -2918,9 +2997,15 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 					if (osaf_is_extended_name_valid(&(callback->name))) {
 						TRACE("Invoking saImmOiRtAttrUpdateCallback");
-						localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
-							&callback->name,
-							attributeNames);
+						if(cl_node->isImmA2fCbk) {
+							localEr = cl_node->o.iCallbkA2f.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
+									osaf_extended_name_borrow(&callback->name),
+									attributeNames);
+						} else {
+							localEr = cl_node->o.iCallbk.saImmOiRtAttrUpdateCallback(callback->lcl_imm_hdl,
+									&callback->name,
+									attributeNames);
+						}
 					} else {
 						if (osaf_is_extended_names_enabled()) {
 							TRACE_3("Object name is too long: %s", osaf_extended_name_borrow(&(callback->name)));

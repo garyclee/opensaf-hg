@@ -146,7 +146,8 @@ typedef enum {
 } SaImmMngtAdminOperationT;
 
 /* 
- * Special flags only to be used by the imm-dummper or the imm-loader.
+ * Special flags only to be used by the imm-dummper, the imm-loader or
+ * new API functions.
  *
  * The first excludes non persistent runtime attributes from the dump.
  * A normal iteration would want to return these values, but the dump should
@@ -157,6 +158,11 @@ typedef enum {
  * with the cached value provided by its predecessor (i.e. not change it).
  * It is then important that the sync has fetched this value even when there
  * is no implementer. A normal iteration will exclude such values.
+ *
+ * The third excludes RDN attribute in search result for saImmOmAccessorGet_o3
+ * and saImmOmSearchInitialize_o3 when functions require all attributes in
+ * the search result. SA_IMM_SEARCH_NO_RDN flag is used only in a combination
+ * with SA_IMM_SEARCH_GET_ALL_ATTR flag.
  *
  * The use of these flags in search options is NON STANDARD.
  * It is only allowed for imm internal use. 
@@ -170,6 +176,7 @@ typedef enum {
 */
 #define SA_IMM_SEARCH_PERSISTENT_ATTRS         0x0010
 #define SA_IMM_SEARCH_SYNC_CACHED_ATTRS        0x0020
+#define SA_IMM_SEARCH_NO_RDN                   0x0001000000000000ull
 
 /* These functions are private and nonstandard parts of the IMM client
    (agent) API. They are used by the process that drives the immnd sync.

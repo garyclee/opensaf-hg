@@ -68,4 +68,6 @@ extern "C" {
 }
 #endif
 
+#include <saImmOi_A_2_15.h>
+
 #endif   /* _SA_IMM_OI_A_2_11_H */

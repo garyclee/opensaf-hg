@@ -181,6 +181,8 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_A2ND_OI_IMPL_SET_2", /* saImmOiImplementerSet */
 	"IMMND_EVT_D2ND_IMPLSET_RSP_2",	/* Implementer set reply from D with impl id */
 	"IMMND_EVT_D2ND_ADMINIT_2",	/* Admin Owner init reply */
+	"IMMND_EVT_A2ND_OBJ_CREATE_2",  /* saImmOmCcbObjectCreate_o3 */
+	"IMMND_EVT_A2ND_OI_OBJ_CREATE_2",       /* saImmOiRtObjectCreate_o3 */
 	"undefined (high)"
 };
 
@@ -1402,7 +1404,7 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			}
 
 			/*Encode the parentName */
-			os = &(i_evt->info.imma.info.objCreate.parentName);
+			os = &(i_evt->info.imma.info.objCreate.parentOrObjectDn);
 			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1656,7 +1658,9 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				return NCSCC_RC_OUT_OF_MEM;
 			}
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE) ||
-			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE)) {
+			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE) ||
+			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE_2) ||
+			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE_2)) {
 			int depth = 0;
 			/*Encode the className */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.objCreate.className);
@@ -1666,7 +1670,7 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			}
 
 			/*Encode the parentName */
-			os = &(i_evt->info.immnd.info.objCreate.parentName);
+			os = &(i_evt->info.immnd.info.objCreate.parentOrObjectDn);
 			if(!immsv_evt_enc_inline_text(__LINE__, o_ub, os)) {
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -2131,7 +2135,7 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			immsv_evt_dec_inline_string(i_ub, os);
 
 			/*Decode the parentName */
-			os = &(o_evt->info.imma.info.objCreate.parentName);
+			os = &(o_evt->info.imma.info.objCreate.parentOrObjectDn);
 			immsv_evt_dec_inline_string(i_ub, os);
 
 			/*Decode the list of attributes */
@@ -2293,12 +2297,14 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				o_evt->info.immnd.info.classDescr.attrDefinitions = ad;
 			}
 		} else if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE) ||
-			   (o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE)) {
+			   (o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE) ||
+			   (o_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE_2) ||
+			   (o_evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE_2)) {
 			/*Decode the className */
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immnd.info.objCreate.className);
 			immsv_evt_dec_inline_string(i_ub, os);
 
-			os = &(o_evt->info.immnd.info.objCreate.parentName);
+			os = &(o_evt->info.immnd.info.objCreate.parentOrObjectDn);
 			immsv_evt_dec_inline_string(i_ub, os);
 
 			/*Decode the list of attributes */
@@ -2862,7 +2868,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			ncs_enc_claim_space(o_ub, 4);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
-			ncs_encode_32bit(&p8, immaevt->info.objCreate.parentName.size);
+			ncs_encode_32bit(&p8, immaevt->info.objCreate.parentOrObjectDn.size);
 			ncs_enc_claim_space(o_ub, 4);
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
@@ -3441,6 +3447,8 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Fevs call IMMA->IMMD->IMMNDs have to suport non-flat encoding */
 		case IMMND_EVT_A2ND_OBJ_CREATE:	/* saImmOmCcbObjectCreate */
 		case IMMND_EVT_A2ND_OI_OBJ_CREATE:	/* saImmOiRtObjectCreate */
+		case IMMND_EVT_A2ND_OBJ_CREATE_2:	/* saImmOmCcbObjectCreate_o3 */
+		case IMMND_EVT_A2ND_OI_OBJ_CREATE_2:	/* saImmOiRtObjectCreate_o3 */
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.objCreate.ccbId);
@@ -3456,7 +3464,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/* immndevt->info.objCreate.className.buf encoded by sublevel */
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
-			ncs_encode_32bit(&p8, immndevt->info.objCreate.parentName.size);
+			ncs_encode_32bit(&p8, immndevt->info.objCreate.parentOrObjectDn.size);
 			ncs_enc_claim_space(o_ub, 4);
 			/* immndevt->info.objCreate.parentName.buf encoded by sublevel */
 
@@ -4216,7 +4224,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			ncs_dec_skip_space(i_ub, 4);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
-			immaevt->info.objCreate.parentName.size = ncs_decode_32bit(&p8);
+			immaevt->info.objCreate.parentOrObjectDn.size = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
@@ -4815,6 +4823,8 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			/*Fevs call IMMA->IMMD->IMMNDs have to suport non-flat encoding */
 		case IMMND_EVT_A2ND_OBJ_CREATE:	/* saImmOmCcbObjectCreate */
 		case IMMND_EVT_A2ND_OI_OBJ_CREATE:	/* saImmOiRtObjectCreate */
+		case IMMND_EVT_A2ND_OBJ_CREATE_2:	/* saImmOmCcbObjectCreate_o3 */
+		case IMMND_EVT_A2ND_OI_OBJ_CREATE_2:	/* saImmOiRtObjectCreate_o3 */
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
 			immndevt->info.objCreate.ccbId = ncs_decode_32bit(&p8);
@@ -4830,7 +4840,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			/* immndevt->info.objCreate.className.buf decoded by sublevel */
 
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
-			immndevt->info.objCreate.parentName.size = ncs_decode_32bit(&p8);
+			immndevt->info.objCreate.parentOrObjectDn.size = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
 			/* immndevt->info.objCreate.parentName.buf decoded by sublevel */
 

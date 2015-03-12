@@ -47,7 +47,7 @@ static const char *sysaImplName = SA_IMM_ATTR_IMPLEMENTER_NAME;
 static int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked, SaAisErrorT * err_cli_res);
 
 /****************************************************************************
-  Name          :  SaImmOiInitialize
+  Name          :  SaImmOiInitialize_2/_o3
  
   Description   :  This function initializes the IMM OI Service for the
                    invoking process and registers the callback functions.
@@ -69,8 +69,48 @@ static int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locke
  
   Notes         :
 ******************************************************************************/
+static SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
+				SaVersionT *inout_version, IMMA_CLIENT_NODE **client_node);
+
 SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 				const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *inout_version)
+{
+	IMMA_CLIENT_NODE *cl_node;
+	SaAisErrorT rc;
+
+	rc = initialize_common(immOiHandle, inout_version, &cl_node);
+	if(rc == SA_AIS_OK && immOiCallbacks) {
+		cl_node->o.iCallbk = *immOiCallbacks;
+	}
+
+	return rc;
+}
+
+SaAisErrorT saImmOiInitialize_o3(SaImmOiHandleT *immOiHandle,
+				const SaImmOiCallbacksT_o3 *immOiCallbacks, SaVersionT *inout_version)
+{
+	IMMA_CLIENT_NODE *cl_node;
+	SaAisErrorT rc;
+
+	if (inout_version
+			&& (inout_version->releaseCode == 'A')
+			&& (inout_version->majorVersion == 0x02)
+			&& (inout_version->minorVersion < 0x0f)) {
+		TRACE_2("ERR_VERSION: saImmOiInitialize_o3 is available from version A.2.15");
+		return SA_AIS_ERR_VERSION;
+	}
+
+	rc = initialize_common(immOiHandle, inout_version, &cl_node);
+	if(rc == SA_AIS_OK && immOiCallbacks) {
+		cl_node->o.iCallbkA2f = *immOiCallbacks;
+		cl_node->isImmA2fCbk = true;
+	}
+
+	return rc;
+}
+
+SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
+				SaVersionT *inout_version, IMMA_CLIENT_NODE **client_node)
 {
 	IMMA_CB *cb = &imma_cb;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -83,6 +123,8 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	char *timeout_env_value = NULL;
 
 	TRACE_ENTER();
+
+	*client_node = NULL;
 
 	proc_rc = imma_startup(NCSMDS_SVC_ID_IMMA_OI);
 	if (NCSCC_RC_SUCCESS != proc_rc) {
@@ -126,6 +168,9 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 				cl_node->isImmA2d = true;
 				if(requested_version.minorVersion >= 0x0e) {
 					cl_node->isImmA2e = true;
+					if(requested_version.minorVersion >= 0x0f) {
+						cl_node->isImmA2f = true;
+					}
 				}
 			}
 		}
@@ -168,11 +213,6 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 	if (rc != SA_AIS_OK) {
 		TRACE_2("ERR_VERSION");
 		goto version_fail;
-	}
-
-	/* Store the callback functions, if set */
-	if (immOiCallbacks) {
-		cl_node->o.iCallbk = *immOiCallbacks;
 	}
 
 	proc_rc = imma_callback_ipc_init(cl_node);
@@ -337,6 +377,8 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 			TRACE_4("ERR_LIBRARY: Call to imma_shutdown failed, prior error %u", rc);
 			rc = SA_AIS_ERR_LIBRARY;
 		}
+	} else {
+		*client_node = cl_node;
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -1228,6 +1270,9 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 			goto bad_handle;
 		}
 
+		/* Don't need to do extra check for iCallbkA2f.
+		 * It has the same structure as iCallbk,
+		 * and checks for iCallbk applies for iCallbkA2f */
 		if (cl_node->o.iCallbk.saImmOiCcbApplyCallback == NULL) {
 			rc = SA_AIS_ERR_INIT;
 			TRACE_2("ERR_INIT: The SaImmOiCcbApplyCallbackT "
@@ -1906,7 +1951,35 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 
   Return Values :  Refer to SAI-AIS specification for various return values.
 ******************************************************************************/
+static SaAisErrorT object_implementer_set_common(SaImmOiHandleT immOiHandle, SaConstStringT objectName,
+		SaImmScopeT scope, bool isObjectDnUsed);
+
 SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaNameT *objectName, SaImmScopeT scope)
+{
+	SaStringT objectNameStr = NULL;
+	char objName[SA_MAX_UNEXTENDED_NAME_LENGTH];
+
+	if(objectName) {
+		size_t len = osaf_extended_name_length(objectName);
+		if(len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
+			objectNameStr = objName;
+			memcpy(objName, osaf_extended_name_borrow(objectName), len);
+			objName[len] = 0;
+		} else {
+			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
+		}
+	}
+
+	return object_implementer_set_common(immOiHandle, objectNameStr, scope, false);
+}
+
+SaAisErrorT saImmOiObjectImplementerSet_o3(SaImmOiHandleT immOiHandle, SaConstStringT objectName, SaImmScopeT scope)
+{
+	return object_implementer_set_common(immOiHandle, objectName, scope, true);
+}
+
+static SaAisErrorT object_implementer_set_common(SaImmOiHandleT immOiHandle, SaConstStringT objectName,
+		SaImmScopeT scope, bool isObjectDnUsed)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -1921,15 +1994,16 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
-	if ((objectName == NULL) || !osaf_is_extended_name_valid(objectName) ||
-		osaf_is_extended_name_empty(objectName)) {
+	if ((objectName == NULL)
+			|| !(osaf_is_extended_names_enabled() || strlen(objectName) < SA_MAX_UNEXTENDED_NAME_LENGTH)
+			|| !objectName[0]) {
 		TRACE_2("ERR_INVALID_PARAM: Parameter 'objectName' is NULL, "
 			"invalid or zero length");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	nameLen = osaf_extended_name_length(objectName);
-	TRACE_1("value:'%s' len:%u", osaf_extended_name_borrow(objectName), (unsigned) nameLen);
+	nameLen = strlen(objectName);
+	TRACE_1("value:'%s' len:%u", objectName, (unsigned) nameLen);
 	++nameLen;  /* Add 1 for the null */
 
 	switch (scope) {
@@ -1960,6 +2034,13 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto bad_handle;
+	}
+
+	if(isObjectDnUsed && !cl_node->isImmA2f) {
+		/* TODO: ERR_VERSION is not according to SAF spec ??? */
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOiObjectImplementerSet_o3 is supported from A.2.15");
 		goto bad_handle;
 	}
 
@@ -2008,10 +2089,7 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	evt.info.immnd.type = IMMND_EVT_A2ND_OI_OBJ_IMPL_SET;
 	evt.info.immnd.info.implSet.client_hdl = cl_node->handle;
 	evt.info.immnd.info.implSet.impl_name.size = nameLen;
-	evt.info.immnd.info.implSet.impl_name.buf = malloc(nameLen);
-	memcpy(evt.info.immnd.info.implSet.impl_name.buf,
-		osaf_extended_name_borrow(objectName), nameLen - 1);
-	evt.info.immnd.info.implSet.impl_name.buf[nameLen - 1] = 0;
+	evt.info.immnd.info.implSet.impl_name.buf = (char *)objectName;
 	TRACE("Sending size:%u val:'%s'", nameLen - 1, 
 		evt.info.immnd.info.implSet.impl_name.buf);
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
@@ -2020,9 +2098,6 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, true);
 
 	cl_node=NULL;
-	free(evt.info.immnd.info.implSet.impl_name.buf);
-	evt.info.immnd.info.implSet.impl_name.buf = NULL;
-	evt.info.immnd.info.implSet.impl_name.size = 0;
 
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
@@ -2092,7 +2167,35 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 
   Return Values :  Refer to SAI-AIS specification for various return values.
 ******************************************************************************/
+static SaAisErrorT object_implementer_release_common(SaImmOiHandleT immOiHandle, SaConstStringT objectName,
+		SaImmScopeT scope, bool isObjectDnUsed);
+
 SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const SaNameT *objectName, SaImmScopeT scope)
+{
+	SaStringT objectNameStr = NULL;
+	char objName[SA_MAX_UNEXTENDED_NAME_LENGTH];
+
+	if(objectName) {
+		size_t len = osaf_extended_name_length(objectName);
+		if(len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
+			objectNameStr = objName;
+			memcpy(objName, osaf_extended_name_borrow(objectName), len);
+			objName[len] = 0;
+		} else {
+			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
+		}
+	}
+
+	return object_implementer_release_common(immOiHandle, objectNameStr, scope, false);
+}
+
+SaAisErrorT saImmOiObjectImplementerRelease_o3(SaImmOiHandleT immOiHandle, SaConstStringT objectName, SaImmScopeT scope)
+{
+	return object_implementer_release_common(immOiHandle, objectName, scope, true);
+}
+
+static SaAisErrorT object_implementer_release_common(SaImmOiHandleT immOiHandle, SaConstStringT objectName,
+		SaImmScopeT scope, bool isObjectDnUsed)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -2107,13 +2210,14 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
-	if ((objectName == NULL) || osaf_is_extended_name_empty(objectName) ||
-		!osaf_is_extended_name_valid(objectName)) {
+	if ((objectName == NULL)
+			|| (!objectName[0])
+			|| !(osaf_is_extended_names_enabled() || strlen(objectName) < SA_MAX_UNEXTENDED_NAME_LENGTH)) {
 		TRACE_2("ERR_INVALID_PARAM: Parameter 'objectName' is NULL "
 			"or zero length");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
-	nameLen = osaf_extended_name_length(objectName);
+	nameLen = strlen(objectName);
 	++nameLen;		/*Add 1 for the null. */
 
 	switch (scope) {
@@ -2145,6 +2249,12 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	if (!cl_node || cl_node->isOm) {
 		TRACE_2("ERR_BAD_HANDLE: Not a valid SaImmOiHandleT");
 		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto bad_handle;
+	}
+
+	if(isObjectDnUsed && !cl_node->isImmA2f) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOiObjectImplementerRelease_o3 is supported from A.2.15");
 		goto bad_handle;
 	}
 
@@ -2193,18 +2303,13 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	evt.info.immnd.type = IMMND_EVT_A2ND_OI_OBJ_IMPL_REL;
 	evt.info.immnd.info.implSet.client_hdl = cl_node->handle;
 	evt.info.immnd.info.implSet.impl_name.size = nameLen;
-	evt.info.immnd.info.implSet.impl_name.buf = malloc(nameLen);
-	memcpy(evt.info.immnd.info.implSet.impl_name.buf, osaf_extended_name_borrow(objectName), nameLen - 1);
-	evt.info.immnd.info.implSet.impl_name.buf[nameLen - 1] = '\0';
+	evt.info.immnd.info.implSet.impl_name.buf = (char *)objectName;
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 	evt.info.immnd.info.implSet.scope = scope;
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, true);
 
 	cl_node=NULL;
-	free(evt.info.immnd.info.implSet.impl_name.buf);
-	evt.info.immnd.info.implSet.impl_name.buf = NULL;
-	evt.info.immnd.info.implSet.impl_name.size = 0;
 
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
@@ -2259,8 +2364,41 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	return rc;
 }
 
+static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
+				     SaConstStringT objectName,
+				     const SaImmAttrModificationT_2 **attrMods,
+				     bool isObjectDnUsed);
+
 SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 				    const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
+{
+	SaStringT objectNameStr = NULL;
+	char objName[SA_MAX_UNEXTENDED_NAME_LENGTH];
+
+	if(objectName) {
+		size_t len = osaf_extended_name_length(objectName);
+		if(len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
+			objectNameStr = objName;
+			memcpy(objName, osaf_extended_name_borrow(objectName), len);
+			objName[len] = 0;
+		} else {
+			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
+		}
+	}
+
+	return rt_object_update_common(immOiHandle, objectNameStr, attrMods, false);
+}
+
+SaAisErrorT saImmOiRtObjectUpdate_o3(SaImmOiHandleT immOiHandle,
+				     SaConstStringT objectName, const SaImmAttrModificationT_2 **attrMods)
+{
+	return rt_object_update_common(immOiHandle, objectName, attrMods, true);
+}
+
+static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
+				     SaConstStringT objectName,
+				     const SaImmAttrModificationT_2 **attrMods,
+				     bool isObjectDnUsed)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
@@ -2278,8 +2416,9 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 
 	TRACE_ENTER();
 
-	if ((objectName == NULL) || !osaf_is_extended_name_valid(objectName) ||
-		osaf_is_extended_name_empty(objectName)) {
+	if ((objectName == NULL)
+			|| !(osaf_is_extended_names_enabled() || strlen(objectName) < SA_MAX_UNEXTENDED_NAME_LENGTH)
+			|| !objectName[0]) {
 		TRACE_2("ERR_INVALID_PARAM: objectName is NULL, "
 			"invalid or length is 0");
 		TRACE_LEAVE();
@@ -2309,6 +2448,12 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: Non valid SaImmOiHandleT");
+		goto bad_handle;
+	}
+
+	if(isObjectDnUsed && !cl_node->isImmA2f) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOiRtObjectUpdate_o3 is supported from A.2.15");
 		goto bad_handle;
 	}
 
@@ -2364,13 +2509,8 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	/*NOTE: should rename member adminOwnerId !!! */
 	evt.info.immnd.info.objModify.adminOwnerId = cl_node->mImplementerId;
 
-	evt.info.immnd.info.objModify.objectName.size = osaf_extended_name_length(objectName) + 1;
-
-	/*alloc-1 */
-	evt.info.immnd.info.objModify.objectName.buf = malloc(evt.info.immnd.info.objModify.objectName.size);
-	memcpy(evt.info.immnd.info.objModify.objectName.buf,
-		osaf_extended_name_borrow(objectName), evt.info.immnd.info.objModify.objectName.size - 1);
-	evt.info.immnd.info.objModify.objectName.buf[evt.info.immnd.info.objModify.objectName.size - 1] = '\0';
+	evt.info.immnd.info.objModify.objectName.size = strlen(objectName) + 1;
+	evt.info.immnd.info.objModify.objectName.buf = (char *)objectName;
 
 	osafassert(evt.info.immnd.info.objModify.attrMods == NULL);
 
@@ -2510,10 +2650,6 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
  bad_sync:
  bad_handle1:
  free_obj:
-	if (evt.info.immnd.info.objModify.objectName.buf) {	/*free-1 */
-		free(evt.info.immnd.info.objModify.objectName.buf);
-		evt.info.immnd.info.objModify.objectName.buf = NULL;
-	}
 
 	while (evt.info.immnd.info.objModify.attrMods) {
 
@@ -2555,9 +2691,41 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	return rc;
 }
 
-extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
+static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
+		   const SaImmClassNameT className,
+		   const SaNameT *parentName,
+		   SaConstStringT objectName,
+		   const SaImmAttrValuesT_2 **attrValues);
+
+SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 					   const SaImmClassNameT className,
 					   const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
+{
+	if (attrValues == NULL) {
+		TRACE_2("ERR_INVALID_PARAM: attrValues is NULL");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	return rt_object_create_common(immOiHandle, className, parentName, NULL, attrValues);
+}
+
+SaAisErrorT saImmOiRtObjectCreate_o3(SaImmOiHandleT immOiHandle,
+					   const SaImmClassNameT className,
+					   SaConstStringT objectName, const SaImmAttrValuesT_2 **attrValues)
+{
+	if (objectName == NULL) {
+		TRACE_2("ERR_INVALID_PARAM: objectName is NULL");
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	return rt_object_create_common(immOiHandle, className, NULL, objectName, attrValues);
+}
+
+static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
+		   const SaImmClassNameT className,
+		   const SaNameT *parentName,
+		   SaConstStringT objectName,
+		   const SaImmAttrValuesT_2 **attrValues)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -2573,11 +2741,6 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 
 	if (className == NULL) {
 		TRACE_2("ERR_INVALID_PARAM: classname is NULL");
-		return SA_AIS_ERR_INVALID_PARAM;
-	}
-
-	if (attrValues == NULL) {
-		TRACE_2("ERR_INVALID_PARAM: attrValues is NULL");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -2604,6 +2767,12 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: Non valid SaImmOiHandleT");
+		goto bad_handle;
+	}
+
+	if(objectName && !cl_node->isImmA2f) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOiRtObjectCreate_o3 is supported from A.2.15");
 		goto bad_handle;
 	}
 
@@ -2650,7 +2819,6 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	/* Populate the Object-Create event */
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
-	evt.info.immnd.type = IMMND_EVT_A2ND_OI_OBJ_CREATE;
 
 	/* NOTE: should rename member adminOwnerId !!! */
 	evt.info.immnd.info.objCreate.adminOwnerId = cl_node->mImplementerId;
@@ -2660,105 +2828,113 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	evt.info.immnd.info.objCreate.className.buf = malloc(evt.info.immnd.info.objCreate.className.size);
 	strncpy(evt.info.immnd.info.objCreate.className.buf, className, evt.info.immnd.info.objCreate.className.size);
 
-	if (parentName && !osaf_is_extended_name_empty(parentName)) {
-		evt.info.immnd.info.objCreate.parentName.size = osaf_extended_name_length(parentName) + 1;
-
-		/*alloc-2 */
-		evt.info.immnd.info.objCreate.parentName.buf = malloc(evt.info.immnd.info.objCreate.parentName.size);
-		strncpy(evt.info.immnd.info.objCreate.parentName.buf,
-			osaf_extended_name_borrow(parentName), evt.info.immnd.info.objCreate.parentName.size - 1);
-		evt.info.immnd.info.objCreate.parentName.buf[evt.info.immnd.info.objCreate.parentName.size - 1] = '\0';
+	if(objectName) {
+		SaUint32T objectNameLen = strlen(objectName);
+		evt.info.immnd.type = IMMND_EVT_A2ND_OI_OBJ_CREATE_2;
+		if(objectNameLen > 0) {
+			evt.info.immnd.info.objCreate.parentOrObjectDn.size = objectNameLen + 1;
+			evt.info.immnd.info.objCreate.parentOrObjectDn.buf = (char *)objectName;
+		}
 	} else {
-		evt.info.immnd.info.objCreate.parentName.size = 0;
-		evt.info.immnd.info.objCreate.parentName.buf = NULL;
+		size_t parentNameLen = 0;
+		if (parentName && (parentNameLen = osaf_extended_name_length(parentName)) > 0) {
+			evt.info.immnd.info.objCreate.parentOrObjectDn.size = parentNameLen + 1;
+			evt.info.immnd.info.objCreate.parentOrObjectDn.buf = (char *)osaf_extended_name_borrow(parentName);
+		} else {
+			evt.info.immnd.info.objCreate.parentOrObjectDn.size = 0;
+			evt.info.immnd.info.objCreate.parentOrObjectDn.buf = NULL;
+		}
+		evt.info.immnd.type = IMMND_EVT_A2ND_OI_OBJ_CREATE;
 	}
 
 	osafassert(evt.info.immnd.info.objCreate.attrValues == NULL);
 
-	const SaImmAttrValuesT_2 *attr;
-	int i;
-	for (i = 0; attrValues[i]; ++i) {
-		attr = attrValues[i];
-		TRACE("attr:%s \n", attr->attrName);
+	if(attrValues) {
+		const SaImmAttrValuesT_2 *attr;
+		int i;
+		for (i = 0; attrValues[i]; ++i) {
+			attr = attrValues[i];
+			TRACE("attr:%s \n", attr->attrName);
 
-		/* Prevent duplicate attribute assignments */
-		IMMSV_ATTR_VALUES_LIST *p = evt.info.immnd.info.objCreate.attrValues;
-		while(p!= NULL) {
-			if(strcmp(attr->attrName, p->n.attrName.buf) == 0) {
-				rc = SA_AIS_ERR_INVALID_PARAM;
-				TRACE_2("ERR_INVALID_PARAM: Attribute %s occurs multiple times "
-					"in attrValues parameter", attr->attrName);
-				goto mds_send_fail;
-			}
-			p = p->next;
-		}
-
-		/*Check that the user does not set value for System attributes. */
-
-		if (strcmp(attr->attrName, sysaClName) == 0) {
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			TRACE_2("ERR_INVALID_PARAM: Not allowed to set attribute %s ", sysaClName);
-			goto mds_send_fail;
-		} else if (strcmp(attr->attrName, sysaAdmName) == 0) {
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			TRACE_2("ERR_INVALID_PARAM: Not allowed to set attribute %s", sysaAdmName);
-			goto mds_send_fail;
-		} else if (strcmp(attr->attrName, sysaImplName) == 0) {
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			TRACE_2("ERR_INVALID_PARAM: Not allowed to set attribute %s", sysaImplName);
-			goto mds_send_fail;
-		} else if (attr->attrValuesNumber == 0) {
-			TRACE("RtObjectCreate ignoring attribute %s with no values", attr->attrName);
-			continue;
-		} else if(attr->attrValueType == SA_IMM_ATTR_SANAMET) {
-			int n;
-			for(n=0; n<attr->attrValuesNumber; n++) {
-				if(!osaf_is_extended_name_valid(attr->attrValues[n])) {
+			/* Prevent duplicate attribute assignments */
+			IMMSV_ATTR_VALUES_LIST *p = evt.info.immnd.info.objCreate.attrValues;
+			while(p!= NULL) {
+				if(strcmp(attr->attrName, p->n.attrName.buf) == 0) {
 					rc = SA_AIS_ERR_INVALID_PARAM;
-					TRACE_2("ERR_INVALID_PARAM: Attribute '%s' value is not valid", attr->attrName);
+					TRACE_2("ERR_INVALID_PARAM: Attribute %s occurs multiple times "
+						"in attrValues parameter", attr->attrName);
 					goto mds_send_fail;
 				}
+				p = p->next;
 			}
-		}
 
-		/*alloc-3 */
-		p = calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
+			/*Check that the user does not set value for System attributes. */
 
-		p->n.attrName.size = strlen(attr->attrName) + 1;
-		if (p->n.attrName.size >= IMMSV_MAX_ATTR_NAME_LENGTH) {
-			TRACE_2("ERR_INVALID_PARAM: Attribute name too long");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			free(p);
-			goto mds_send_fail;
-		}
-
-		/*alloc-4 */
-		p->n.attrName.buf = malloc(p->n.attrName.size);
-		strncpy(p->n.attrName.buf, attr->attrName, p->n.attrName.size);
-
-		p->n.attrValuesNumber = attr->attrValuesNumber;
-		p->n.attrValueType = attr->attrValueType;
-
-		const SaImmAttrValueT *avarr = attr->attrValues;
-		/*alloc-5 */
-		imma_copyAttrValue(&(p->n.attrValue), attr->attrValueType, avarr[0]);
-
-		if (attr->attrValuesNumber > 1) {
-			unsigned int numAdded = attr->attrValuesNumber - 1;
-			unsigned int i;
-			for (i = 1; i <= numAdded; ++i) {
-				/*alloc-6 */
-				IMMSV_EDU_ATTR_VAL_LIST *al = calloc(1, sizeof(IMMSV_EDU_ATTR_VAL_LIST));
-
-				/*alloc-7 */
-				imma_copyAttrValue(&(al->n), attr->attrValueType, avarr[i]);
-				al->next = p->n.attrMoreValues;
-				p->n.attrMoreValues = al;
+			if (strcmp(attr->attrName, sysaClName) == 0) {
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				TRACE_2("ERR_INVALID_PARAM: Not allowed to set attribute %s ", sysaClName);
+				goto mds_send_fail;
+			} else if (strcmp(attr->attrName, sysaAdmName) == 0) {
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				TRACE_2("ERR_INVALID_PARAM: Not allowed to set attribute %s", sysaAdmName);
+				goto mds_send_fail;
+			} else if (strcmp(attr->attrName, sysaImplName) == 0) {
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				TRACE_2("ERR_INVALID_PARAM: Not allowed to set attribute %s", sysaImplName);
+				goto mds_send_fail;
+			} else if (attr->attrValuesNumber == 0) {
+				TRACE("RtObjectCreate ignoring attribute %s with no values", attr->attrName);
+				continue;
+			} else if(attr->attrValueType == SA_IMM_ATTR_SANAMET) {
+				int n;
+				for(n=0; n<attr->attrValuesNumber; n++) {
+					if(!osaf_is_extended_name_valid(attr->attrValues[n])) {
+						rc = SA_AIS_ERR_INVALID_PARAM;
+						TRACE_2("ERR_INVALID_PARAM: Attribute '%s' value is not valid", attr->attrName);
+						goto mds_send_fail;
+					}
+				}
 			}
-		}
 
-		p->next = evt.info.immnd.info.objCreate.attrValues;	/*NULL initially. */
-		evt.info.immnd.info.objCreate.attrValues = p;
+			/*alloc-3 */
+			p = calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
+
+			p->n.attrName.size = strlen(attr->attrName) + 1;
+			if (p->n.attrName.size >= IMMSV_MAX_ATTR_NAME_LENGTH) {
+				TRACE_2("ERR_INVALID_PARAM: Attribute name too long");
+				rc = SA_AIS_ERR_INVALID_PARAM;
+				free(p);
+				goto mds_send_fail;
+			}
+
+			/*alloc-4 */
+			p->n.attrName.buf = malloc(p->n.attrName.size);
+			strncpy(p->n.attrName.buf, attr->attrName, p->n.attrName.size);
+
+			p->n.attrValuesNumber = attr->attrValuesNumber;
+			p->n.attrValueType = attr->attrValueType;
+
+			const SaImmAttrValueT *avarr = attr->attrValues;
+			/*alloc-5 */
+			imma_copyAttrValue(&(p->n.attrValue), attr->attrValueType, avarr[0]);
+
+			if (attr->attrValuesNumber > 1) {
+				unsigned int numAdded = attr->attrValuesNumber - 1;
+				unsigned int i;
+				for (i = 1; i <= numAdded; ++i) {
+					/*alloc-6 */
+					IMMSV_EDU_ATTR_VAL_LIST *al = calloc(1, sizeof(IMMSV_EDU_ATTR_VAL_LIST));
+
+					/*alloc-7 */
+					imma_copyAttrValue(&(al->n), attr->attrValueType, avarr[i]);
+					al->next = p->n.attrMoreValues;
+					p->n.attrMoreValues = al;
+				}
+			}
+
+			p->next = evt.info.immnd.info.objCreate.attrValues;	/*NULL initially. */
+			evt.info.immnd.info.objCreate.attrValues = p;
+		}
 	}
 
 	if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
@@ -2812,11 +2988,6 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 		evt.info.immnd.info.objCreate.className.buf = NULL;
 	}
 
-	if (evt.info.immnd.info.objCreate.parentName.buf) {	/*free-2 */
-		free(evt.info.immnd.info.objCreate.parentName.buf);
-		evt.info.immnd.info.objCreate.parentName.buf = NULL;
-	}
-
 	while (evt.info.immnd.info.objCreate.attrValues) {
 		IMMSV_ATTR_VALUES_LIST *p = evt.info.immnd.info.objCreate.attrValues;
 		evt.info.immnd.info.objCreate.attrValues = p->next;
@@ -2853,7 +3024,37 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	return rc;
 }
 
+static SaAisErrorT rt_object_delete_common(SaImmOiHandleT immOiHandle,
+		SaConstStringT objectName,
+		bool isObjectDnUsed);
+
 SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *objectName)
+{
+	SaStringT objectNameStr = NULL;
+	char objName[SA_MAX_UNEXTENDED_NAME_LENGTH];
+
+	if(objectName) {
+		size_t len = osaf_extended_name_length(objectName);
+		if(len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
+			objectNameStr = objName;
+			memcpy(objName, osaf_extended_name_borrow(objectName), len);
+			objName[len] = 0;
+		} else {
+			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
+		}
+	}
+
+	return rt_object_delete_common(immOiHandle, objectNameStr, false);
+}
+
+SaAisErrorT saImmOiRtObjectDelete_o3(SaImmOiHandleT immOiHandle, SaConstStringT objectName)
+{
+	return rt_object_delete_common(immOiHandle, objectName, true);
+}
+
+static SaAisErrorT rt_object_delete_common(SaImmOiHandleT immOiHandle,
+		SaConstStringT objectName,
+		bool isObjectDnUsed)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
@@ -2867,12 +3068,12 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
-	if (!objectName || osaf_is_extended_name_empty(objectName)) {
+	if (!objectName || !objectName[0]) {
 		TRACE_2("ERR_INVALID_PARAM: Empty object-name");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if (!osaf_is_extended_name_valid(objectName)) {
+	if (!osaf_is_extended_names_enabled() && strlen(objectName) >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
 		TRACE_2("ERR_INVALID_PARAM: Object name invalid");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
@@ -2894,6 +3095,12 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: Not a valid SaImmOiHandleT");
+		goto bad_handle;
+	}
+
+	if(isObjectDnUsed && !cl_node->isImmA2f) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOiRtObjectDelete_o3 is supported from A.2.15");
 		goto bad_handle;
 	}
 
@@ -2950,13 +3157,8 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	/* NOTE: should rename member adminOwnerId !!! */
 	evt.info.immnd.info.objDelete.adminOwnerId = cl_node->mImplementerId;
 
-	evt.info.immnd.info.objDelete.objectName.size = osaf_extended_name_length(objectName) + 1;
-
-	/*alloc-1 */
-	evt.info.immnd.info.objDelete.objectName.buf = malloc(evt.info.immnd.info.objDelete.objectName.size);
-	memcpy(evt.info.immnd.info.objDelete.objectName.buf,
-		osaf_extended_name_borrow(objectName), evt.info.immnd.info.objDelete.objectName.size - 1);
-	evt.info.immnd.info.objDelete.objectName.buf[evt.info.immnd.info.objDelete.objectName.size - 1] = '\0';
+	evt.info.immnd.info.objDelete.objectName.size = strlen(objectName) + 1;
+	evt.info.immnd.info.objDelete.objectName.buf = (char *)objectName;
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, true);
 
@@ -2967,7 +3169,7 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
 		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_4("ERR_LIBRARY: LOCK failed");
-		goto cleanup;
+		goto fevs_error;
 	}
 	locked = true;
 
@@ -2976,21 +3178,21 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
-		goto cleanup;
+		goto fevs_error;
 	}
 
 	imma_proc_decrement_pending_reply(cl_node, true);
 
 	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
-		goto cleanup;
+		goto fevs_error;
 	}
 
 	if (cl_node->stale) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		cl_node->exposed = true;
 		TRACE_2("ERR_BAD_HANDLE: Handle %llx is stale", immOiHandle);
-		goto cleanup;
+		goto fevs_error;
 	}
 
 	osafassert(out_evt);
@@ -2998,12 +3200,7 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
- cleanup:
-	if (evt.info.immnd.info.objDelete.objectName.buf) {	/*free-1 */
-		free(evt.info.immnd.info.objDelete.objectName.buf);
-		evt.info.immnd.info.objDelete.objectName.buf = NULL;
-	}
-
+ fevs_error:
  bad_handle:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);

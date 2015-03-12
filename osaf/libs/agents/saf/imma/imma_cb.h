@@ -45,6 +45,7 @@ typedef struct imma_client_node {
 		SaImmCallbacksT mCallbk;
 		SaImmCallbacksT_o2 mCallbkA2b;
 		SaImmOiCallbacksT_2 iCallbk;
+		SaImmOiCallbacksT_o3 iCallbkA2f;
 	} o;
 	SaUint32T mImplementerId;	/*Only used for OI.*/
 	SaImmOiImplementerNameT  mImplementerName; /* needed for active resurrect*/
@@ -61,6 +62,8 @@ typedef struct imma_client_node {
 	bool isImmA2bCbk;    /* Version A.02.11 callback*/
 	bool isImmA2d;       /* Version A.02.13 */
 	bool isImmA2e;       /* Version A.02.14 */
+	bool isImmA2f;       /* Version A.02.15 */
+	bool isImmA2fCbk;    /* Version A.02.15 callback*/
 	bool isApplier; /* True => This is an Applier-OI */
 	bool isAug;     /* True => handle internal to OI augmented CCB */
 	bool isBusy;	/* True => handle is locked by a thread until a function execution is done */
