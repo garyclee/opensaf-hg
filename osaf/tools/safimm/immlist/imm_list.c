@@ -42,7 +42,7 @@
 #include <saf_error.h>
 #include "osaf_extended_name.h"
 
-static SaVersionT immVersion = { 'A', 2, 14 };
+static SaVersionT immVersion = { 'A', 2, 15 };
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 /* signal handler for SIGALRM */ 
@@ -327,6 +327,9 @@ static void display_class_definition(const SaImmClassNameT className,
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DANGLING)
 				printf(", NO_DANGLING");
 
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_DN)
+				printf(", DN");
+
 		} else if (attrDefinition->attrFlags & SA_IMM_ATTR_RUNTIME) {
 			if (attrDefinition->attrDefaultValue != NULL) {
 				printf(" = ");
@@ -354,6 +357,9 @@ static void display_class_definition(const SaImmClassNameT className,
 
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_NO_DUPLICATES)
 				printf(", NO_DUPLICATES");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_DN)
+				printf(", DN");
 		}
 
 		printf("}\n");

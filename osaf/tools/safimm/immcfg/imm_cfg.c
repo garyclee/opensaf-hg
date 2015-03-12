@@ -46,7 +46,7 @@
 
 #include "osaf_extended_name.h"
 
-static SaVersionT immVersion = { 'A', 2, 14 };
+static SaVersionT immVersion = { 'A', 2, 15 };
 int verbose = 0;
 int ccb_safe = 1;
 
