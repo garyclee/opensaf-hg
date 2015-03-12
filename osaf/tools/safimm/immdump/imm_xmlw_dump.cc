@@ -807,6 +807,15 @@ void flagsToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)
         }   
     }
 
+    if (flags & SA_IMM_ATTR_DN)
+    {
+        if(xmlTextWriterWriteElement(writer, (xmlChar*) "flag",
+           (xmlChar*) "SA_DN") < 0 ) {
+            std::cout << "Error at xmlTextWriterWriteElement (flag - SA_DN)" << std::endl;
+            exit(1);
+        }
+    }
+
 }
 
 void typeToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)
