@@ -1719,7 +1719,8 @@ static bool loadXsd(const char *xsdFile) {
                     strcmp(value, "SA_MULTI_VALUE") && strcmp(value, "SA_WRITABLE") &&
                     strcmp(value, "SA_INITIALIZED") && strcmp(value, "SA_PERSISTENT") &&
                     strcmp(value, "SA_CACHED") && strcmp(value, "SA_NOTIFY") &&
-                    strcmp(value, "SA_NO_DUPLICATES") && strcmp(value, "SA_NO_DANGLING")) {
+                    strcmp(value, "SA_NO_DUPLICATES") && strcmp(value, "SA_NO_DANGLING") &&
+                    strcmp(value, "SA_DN")) {
                 attrFlagSet.insert(value);
             }
         }
@@ -1787,6 +1788,10 @@ static SaImmAttrFlagsT charsToFlagsHelper(const xmlChar* str, size_t len)
     else if (len == strlen("SA_NO_DANGLING") && strncmp((const char*)str, "SA_NO_DANGLING", len) == 0)
     {
         return SA_IMM_ATTR_NO_DANGLING;
+    }
+    else if (len == strlen("SA_DN") && strncmp((const char*)str, "SA_DN", len) == 0)
+    {
+        return SA_IMM_ATTR_DN;
     }
 
     std::string unflag((char *)str, len);
@@ -2178,7 +2183,7 @@ int loadImmXML(std::string xmldir, std::string file, SaUint32T* preloadEpochPtr)
 
     version.releaseCode   = 'A';
     version.majorVersion  = 2;
-    version.minorVersion  = 13;
+    version.minorVersion  = 15;
 
     TRACE("Loading from %s/%s", xmldir.c_str(), file.c_str());
 
@@ -2629,7 +2634,7 @@ int immsync(int maxBatchSize)
 
     version.releaseCode   = 'A';
     version.majorVersion  = 2;
-    version.minorVersion  = 13;
+    version.minorVersion  = 15;
 
     int retries = 0;
     do

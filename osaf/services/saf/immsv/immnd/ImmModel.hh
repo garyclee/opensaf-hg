@@ -203,7 +203,8 @@ public:
                                         SaUint32T* pbeConn,
                                         unsigned int* pbeNodeId,
                                         std::string& objectName,
-                                        bool* dnOrRdnIsLong);
+                                        bool* dnOrRdnIsLong,
+                                        bool isObjectDnUsed);
 
     immsv_attr_values_list* specialApplierTrimCreate(
 						     SaUint32T clientId,
@@ -428,7 +429,8 @@ public:
 				       SaUint32T* pbeConn,
 				       unsigned int* pbeNodeId,
 				       SaUint32T* spApplConn,
-				       SaUint32T* pbe2BConn);
+				       SaUint32T* pbe2BConn,
+				       bool isObjectDnUsed);
 
     
     SaAisErrorT         rtObjectUpdate(
