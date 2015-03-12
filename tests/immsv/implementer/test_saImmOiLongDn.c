@@ -411,7 +411,6 @@ static void saImmOiLongDn_04(void) {
 	}
 
 	safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
-	runtime_class_create(immOmHandle);
 
 	rc = saImmOiRtObjectCreate_2(immOiHandle, runtimeClassName, NULL, attrValues);
 	rc1 = saImmOiRtObjectDelete(immOiHandle, &dn);
@@ -420,7 +419,6 @@ static void saImmOiLongDn_04(void) {
 		rc = rc1;
 	}
 
-	runtime_class_delete(immOmHandle);
 	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 
 	// Wait for thread to exit
@@ -464,7 +462,6 @@ static void saImmOiLongDn_05(void) {
 	}
 
 	safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
-	runtime_class_create(immOmHandle);
 	safassert(saImmOiRtObjectCreate_2(immOiHandle, runtimeClassName, NULL, attrValues), SA_AIS_OK);
 
 	safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
@@ -494,7 +491,6 @@ static void saImmOiLongDn_05(void) {
 	}
 
 	safassert(saImmOiRtObjectDelete(immOiHandle, &dn), SA_AIS_OK);
-	runtime_class_delete(immOmHandle);
 	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 
 	// Wait for thread to exit

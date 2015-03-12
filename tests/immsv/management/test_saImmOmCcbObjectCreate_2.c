@@ -105,7 +105,6 @@ void saImmOmCcbObjectCreate_03(void)
     safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
     safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
-    safassert(runtime_class_create(immOmHandle), SA_AIS_OK);
 
     /* the className parameter specifies a runtime object class */
     rc = saImmOmCcbObjectCreate_2(ccbHandle, runtimeClassName, NULL, attrValues);
@@ -177,7 +176,6 @@ void saImmOmCcbObjectCreate_03(void)
 done:
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
-    safassert(runtime_class_delete(immOmHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
@@ -809,7 +807,6 @@ void saImmOmCcbObjectCreate_21(void)
     safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
     safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
     safassert(nodangling_class_create(immOmHandle), SA_AIS_OK);
-    safassert(runtime_class_create(immOmHandle), SA_AIS_OK);
 
     safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
@@ -822,7 +819,6 @@ void saImmOmCcbObjectCreate_21(void)
     safassert(saImmOiRtObjectDelete(immOiHandle, &obj1), SA_AIS_OK);
     safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 
-    safassert(runtime_class_delete(immOmHandle), SA_AIS_OK);
     safassert(nodangling_class_delete(immOmHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);

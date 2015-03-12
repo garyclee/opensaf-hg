@@ -28,6 +28,7 @@ static char *objects[] = {
 		"id=1",
 		"id=2",
 		"id=3",
+		"obj=1,rdn=root",
 		"rdn=root",
 		"longdn=012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
 		NULL
@@ -50,6 +51,7 @@ static char *classes[] = {
 		"saImmOmClassDescriptionMemoryFree_2_02",
 		"saImmOmClassCreate_2_14",
 		"saImmOmClassDescriptionGet_2_04",
+		"TestClass",
 		NULL
 };
 
@@ -141,6 +143,7 @@ static void startup() {
 	safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
 	safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
 	safassert(config_class_create(immOmHandle), SA_AIS_OK);
+	safassert(runtime_class_create(immOmHandle), SA_AIS_OK);
 	safassert(object_create(immOmHandle, ownerHandle, configClassName, &rootObj, NULL, NULL), SA_AIS_OK);
 	safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
 	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);

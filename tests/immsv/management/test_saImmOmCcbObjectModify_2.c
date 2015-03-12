@@ -680,7 +680,6 @@ void saImmOmCcbObjectModify_2_17(void)
     safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
     safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
     safassert(nodangling_class_create(immOmHandle), SA_AIS_OK);
-    safassert(runtime_class_create(immOmHandle), SA_AIS_OK);
     safassert(object_create(immOmHandle, ownerHandle, nodanglingClassName, &obj2, NULL, NULL), SA_AIS_OK);
 
     safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
@@ -695,7 +694,6 @@ void saImmOmCcbObjectModify_2_17(void)
     safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 
     safassert(object_delete(ownerHandle, &obj2, 1), SA_AIS_OK);
-    safassert(runtime_class_delete(immOmHandle), SA_AIS_OK);
     safassert(nodangling_class_delete(immOmHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);

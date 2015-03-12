@@ -54,10 +54,8 @@ void saImmOiClassImplementerSet_03(void)
     safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
     safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
-    safassert(runtime_class_create(immOmHandle), SA_AIS_OK);
     test_validate(saImmOiClassImplementerSet(immOiHandle, runtimeClassName), SA_AIS_ERR_BAD_OPERATION);
     safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
-    safassert(runtime_class_delete(immOmHandle), SA_AIS_OK);    
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
