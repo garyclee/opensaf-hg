@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <poll.h>
+#include <time.h>
 
 #include "osaf_extended_name.h"
 #include "immtest.h"
