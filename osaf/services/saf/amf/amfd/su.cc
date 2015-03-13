@@ -724,6 +724,26 @@ SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
 void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
 	if (saAmfSUPresenceState == pres_state)
 		return;
+	else if ((pres_state == SA_AMF_PRESENCE_TERMINATION_FAILED) &&
+			(su_on_node->saAmfNodeFailfastOnTerminationFailure == true) &&
+			(sg_of_su->saAmfSGAutoRepair == true) &&
+			(su_on_node->saAmfNodeAutoRepair == true)) 
+		/* According to AMF B.04.01 Section 4.8 Page 214 if user configures
+		   saAmfNodeFailfastOnTerminationFailure = true, AMF has to perform
+		   node failfast recovery action. So mark SU to SA_AMF_PRESENCE_TERMINATION_FAILED 
+		   only if nodefailfast is not possible.
+		 */
+		return;
+	else if ((pres_state == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
+			(su_on_node->saAmfNodeFailfastOnInstantiationFailure == true) &&
+			(sg_of_su->saAmfSGAutoRepair == true) &&
+			(su_on_node->saAmfNodeAutoRepair == true)) 
+		/* According to AMF B.04.01 Section 4.6 Page 212 if user configures
+		   saAmfNodeFailfastOnInstantiationFailure = true, AMF has to perform
+		   node failfast recovery action. So mark SU to SA_AMF_PRESENCE_INSTANTIATION_FAILED
+		   only if nodefailfast is not possible.
+		 */
+		return;
 
 	osafassert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
 	TRACE_ENTER2("'%s' %s => %s", name.value,

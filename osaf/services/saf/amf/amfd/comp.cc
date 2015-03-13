@@ -108,24 +108,29 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_PRES_STATE);
 
-	if(comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
+	if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
 		avd_send_comp_inst_failed_alarm(&comp->comp_info.name, &node->name);
-	else if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED) {
+	else if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)
 		avd_send_comp_clean_failed_alarm(&comp->comp_info.name, &node->name);
 
-		saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s",
-			comp->comp_info.name.value, avd_pres_state_name[old_state],
-			avd_pres_state_name[pres_state]);
+	if ((comp->su->sg_of_su->saAmfSGAutoRepair == true) &&
+		(node->saAmfNodeAutoRepair == true) &&
+		(((node->saAmfNodeFailfastOnTerminationFailure == true) && 
+		 (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) ||
+		 ((node->saAmfNodeFailfastOnInstantiationFailure == true) && 
+		  (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)))) {
 
-		if ((comp->su->sg_of_su->saAmfSGAutoRepair == true) &&
-			(node->saAmfNodeAutoRepair == true) &&
-				(node->saAmfNodeFailfastOnTerminationFailure == true)) {
-			saflog(LOG_NOTICE, amfSvcUsrName,
-					"Ordering reboot of '%s' as repair action",
-					node->name.value);
-			avd_d2n_reboot_snd(node);
-		}
+		saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s",
+				comp->comp_info.name.value, avd_pres_state_name[old_state],
+				avd_pres_state_name[pres_state]);
+		saflog(LOG_NOTICE, amfSvcUsrName,
+				"Ordering reboot of '%s' as repair action",
+				node->name.value);
+		LOG_NO("Node Failfast for '%s' as '%s' enters Term/Inst Failed state",
+				node->name.value,comp->comp_info.name.value);
+		avd_d2n_reboot_snd(node);
 	}
+		
 }
 
 void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
