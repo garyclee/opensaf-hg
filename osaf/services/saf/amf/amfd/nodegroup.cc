@@ -25,6 +25,7 @@
 #include <set>
 
 AmfDb<std::string, AVD_AMF_NG> *nodegroup_db = 0;
+static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
 
 /**
  * Lookup object in db using dn
@@ -87,6 +88,21 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		}
 	}
 
+	/* Check for duplicate entries in nodelist of this nodegroup at the time of 
+	   creation of nodegroup. This check is applicable:
+	   -when AMFD is reading the configuration from IMM at OpenSAF start or
+	   -nodegroup creation using CCB operation.
+	 */
+	
+	AVD_AMF_NG *tmp_ng = ng_create((SaNameT *)dn, attributes);
+	if (tmp_ng == NULL)
+		return 0;
+	if (attr->attrValuesNumber != tmp_ng->number_nodes()) {
+		LOG_ER("Duplicate nodes in saAmfNGNodeList of '%s'",tmp_ng->name.value);
+		delete tmp_ng;
+		return 0;
+	}
+	delete tmp_ng;
 	return 1;
 }
 
@@ -350,6 +366,16 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				}
 
 				TRACE("ADD %s", ((SaNameT *)mod->modAttr.attrValues[j])->value);
+			}
+
+			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
+				if (node_in_nodegroup(Amf::to_string((SaNameT *)mod->modAttr.attrValues[j])
+							, ng) == true) {
+					report_ccb_validation_error(opdata, "'%s' already exists in"
+							" the nodegroup",
+							((SaNameT *)mod->modAttr.attrValues[j])->value);
+					goto done;
+				}
 			}
 		}
 	}
