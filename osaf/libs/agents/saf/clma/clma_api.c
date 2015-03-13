@@ -1245,13 +1245,14 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 		goto done;
 	}
 
-	/* convert SaTimeT into tens of milli seconds */
-	timeout = m_CLMA_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 	if (timeout < 0) {
 		TRACE("Timeout value is negative");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
+
+	/* convert SaTimeT into tens of milli seconds */
+	timeout = m_CLMA_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 	if (timeout < CLM_API_MIN_TIMEOUT) {
 		TRACE("timeout is LESS THAN 100ms");
 		rc = SA_AIS_ERR_TIMEOUT;
