@@ -498,6 +498,22 @@ static SaAisErrorT node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
+		} else if (!strcmp(attribute->attrName, "saAmfNodeFailfastOnInstantiationFailure")) {
+			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == NULL)) {
+				report_ccb_validation_error(opdata,
+					"Invalid saAmfNodeFailfastOnInstantiationFailure '%s'",
+					opdata->objectName.value);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			uint32_t value = *((SaUint32T *)attribute->attrValues[0]);
+			if (value > SA_TRUE) {
+				report_ccb_validation_error(opdata,
+					"Invalid saAmfNodeFailfastOnInstantiationFailure '%s'",
+					opdata->objectName.value);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
 		} else {
 			report_ccb_validation_error(opdata, "Modification of '%s' failed-attribute '%s' cannot be modified",
 					opdata->objectName.value, attribute->attrName);
@@ -624,6 +640,13 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					*((SaBoolT *)attribute->attrValues[0]);
 			amflog(LOG_NOTICE, "%s saAmfNodeFailfastOnTerminationFailure changed to %u",
 				node->name.value, node->saAmfNodeFailfastOnTerminationFailure);
+		} else if (!strcmp(attribute->attrName, "saAmfNodeFailfastOnInstantiationFailure")) {
+			node->saAmfNodeFailfastOnInstantiationFailure =
+					*((SaBoolT *)attribute->attrValues[0]);
+			amflog(LOG_NOTICE, "%s saAmfNodeFailfastOnInstantiationFailure changed to %u",
+				node->name.value, node->saAmfNodeFailfastOnInstantiationFailure);
+			LOG_NO( "%s saAmfNodeFailfastOnInstantiationFailure changed to %u",
+				node->name.value, node->saAmfNodeFailfastOnInstantiationFailure);
 		} else {
 			osafassert(0);
 		}
