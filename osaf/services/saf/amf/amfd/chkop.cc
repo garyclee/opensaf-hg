@@ -1032,6 +1032,19 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 	case AVSV_CKPT_AVD_COMP_CS_TYPE_CONFIG:
 		cb->async_updt_cnt.compcstype_updt++;
 		break;
+	case AVSV_CKPT_NG_ADMIN_STATE:
+		/* Below check is for the case when new AMFD (AVD_MBCSV_SUB_PART_VERSION_7) is 
+		   active and old AMFD (<AVD_MBCSV_SUB_PART_VERSION_7) is standby.
+		   In this case no need to send the message to standby as this async is newly
+		   added.
+		 */
+		if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_7) {
+			LOG_NO("No ckpt for NG_ADMIN_STATE as peer AMFD has"
+					" lower version:%d", avd_cb->avd_peer_ver);
+			return NCSCC_RC_SUCCESS;
+		}
+		cb->async_updt_cnt.ng_updt++;
+		break;
 
 	default:
 		return NCSCC_RC_SUCCESS;

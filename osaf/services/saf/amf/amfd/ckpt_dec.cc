@@ -82,6 +82,7 @@ static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uint32_t dec_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
 /* Declaration of static cold sync decode functions */
 static uint32_t dec_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
@@ -172,7 +173,8 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[] = {
 	dec_comp_restart_count,
 	NULL,			/* AVSV_SYNC_COMMIT */
 	dec_su_restart_count,
-	dec_si_dep_state
+	dec_si_dep_state,
+	dec_ng_admin_state
 };
 
 /*
@@ -1088,6 +1090,28 @@ static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->saAmfSGAdminState);
 
 	cb->async_updt_cnt.sg_updt++;
+
+	//For 2N model check if this checkpointing being done in the context of nodegroup operation.
+	if ((sg->sg_ncs_spec == false) && (sg->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)) {
+		if (((sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
+			 (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED)) &&
+			 (sg->ng_using_saAmfSGAdminState == false)) { 
+			for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
+					it != nodegroup_db->end(); it++) {
+				AVD_AMF_NG *ng = it->second;
+				if ((sg->is_sg_assigned_only_in_ng(ng) == true) &&
+						((ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
+						 (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED)) &&
+						(sg->sg_fsm_state == AVD_SG_FSM_STABLE)) {
+					sg->ng_using_saAmfSGAdminState = true;
+					break;
+				}
+			}
+		} else if ((sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+			(sg->ng_using_saAmfSGAdminState == true))
+			sg->ng_using_saAmfSGAdminState = false;
+	}
+	TRACE("ng_using_saAmfSGAdminState:%u",sg->ng_using_saAmfSGAdminState);
 
 	TRACE_LEAVE2("'%s', saAmfSGAdminState=%u, sg_updt:%d",
 		sg->name.value, sg->saAmfSGAdminState, cb->async_updt_cnt.sg_updt);
@@ -2201,7 +2225,6 @@ uint32_t avd_dec_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1, "\n\nReceived reotype = %d num obj = %d --------------------\n",
 		 dec->i_reo_type, num_of_obj);
-	TRACE_ENTER();
 
 	if (((dec->i_reo_type >= AVSV_CKPT_AVD_CB_CONFIG) && 
 	     (dec->i_reo_type <= AVSV_CKPT_AVD_SI_CONFIG)) || 
@@ -2214,7 +2237,9 @@ uint32_t avd_dec_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		   there might be some runtime attributes in the cold sync response */
 		dec->i_action = NCS_MBCSV_ACT_UPDATE;
 	}
-	return dec_cs_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
+	uint32_t status = dec_cs_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
+	TRACE_LEAVE2("status:%d",status);
+	return status; 
 }
 
 /****************************************************************************\
@@ -2694,13 +2719,18 @@ static uint32_t dec_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint
 	/* 
 	 * Decode and send async update counts for all the data structures.
 	 */
-	if (dec->i_peer_version >= AVD_MBCSV_SUB_PART_VERSION_3)
+	if (dec->i_peer_version >= AVD_MBCSV_SUB_PART_VERSION_7) {
+		TRACE("Peer AMFD version is >= AVD_MBCSV_SUB_PART_VERSION_7,"
+				"peer ver:%d",avd_cb->avd_peer_ver);
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
 				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
-	else
+	} else {
+		TRACE("Peer AMFD version is <AVD_MBCSV_SUB_PART_VERSION_7,"
+				"peer version:%d", avd_cb->avd_peer_ver);
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
 				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version,
-				12,1,2,3,4,5,6,7,8,9,10,11,12);
+				13,1,2,3,4,5,6,7,8,9,10,11,12,13);
+	}
 
 	if (status != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
@@ -2739,13 +2769,13 @@ uint32_t avd_dec_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Decode latest async update counts. (In the same manner we received
 	 * in the last message of the cold sync response.
 	 */
-	if (dec->i_peer_version >= AVD_MBCSV_SUB_PART_VERSION_3)
+	if (dec->i_peer_version >= AVD_MBCSV_SUB_PART_VERSION_7)
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
 				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version);
 	else
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
 				&dec->i_uba, EDP_OP_TYPE_DEC, &updt_cnt, &ederror, dec->i_peer_version,
-				12,1,2,3,4,5,6,7,8,9,10,11,12);
+				13,1,2,3,4,5,6,7,8,9,10,11,12,13);
 
 	if (status != NCSCC_RC_SUCCESS)
 		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
@@ -2985,5 +3015,51 @@ static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec,
 	}
 	TRACE_LEAVE2("status '%u'", status);
 	return status;
+}
+
+/**
+ * @brief   decodes saAmfNGAdminState and updates it in corresponding ng. 
+ *
+ * @param   ptr to AVD_CL_CB
+ * @param   ptr to decode structure NCS_MBCSV_CB_DEC. 
+ *
+ * @return NCSCC_RC_SUCCESS 
+ */
+static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	SaNameT name;
+	TRACE_ENTER();
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	AVD_AMF_NG *ng = nodegroup_db->find(Amf::to_string(&name));
+	osafassert(ng != NULL);
+	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&ng->saAmfNGAdminState);
+	cb->async_updt_cnt.ng_updt++;
+
+	TRACE("'%s',saAmfNGAdminState:%d",ng->name.value, ng->saAmfNGAdminState);
+	ng->admin_ng_pend_cbk.invocation = 0;
+	ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+			iter != ng->saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		AVD_SU *su = NULL;
+		//If this node has any susi on it.
+		for (su = node->list_of_su; su; su = su->avnd_list_su_next) 
+			if (su->list_of_susi != NULL)
+				break;
+		if ((ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su != NULL))
+			/* Still some assignments are not removed on the node.
+			   if ng in SHUTTING_DOWN state and contoller role changes then
+			   after all nodes of nodegroup transitions to LOCKED state, new active 
+			   controller will will mark ng LOCKED.
+			 */
+			node->admin_ng = ng;
+		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED)
+			/* If controller does not change role during shutdown operation,
+			   then new active controller will have to clear its admin_ng pointer.*/
+			node->admin_ng = NULL;
+	}
+	TRACE_LEAVE2("'%s', saAmfNGAdminState=%u, ng_updt:%d",
+			name.value, ng->saAmfNGAdminState, cb->async_updt_cnt.ng_updt);
+	return NCSCC_RC_SUCCESS;
 }
 
