@@ -20,7 +20,7 @@ usage()
 	echo "usage: `basename $0` [<class name> [state name] [DN]]"
 	echo ""
 	echo "	Without any arguments AMF entities with questionable health is displayed."
-	echo "	class names: app|comp|csiass|node|sg|si|siass|su"
+	echo "	class names: app|comp|csiass|node|sg|si|siass|su|ng"
 	echo "	state names: adm|all|ass|ha|har|oper|pres|readi"
 	echo
 }
@@ -546,6 +546,38 @@ su_state()
 	done
 }
 
+ng_state()
+{
+        ng_dn=""
+        ng_dns=""
+        ng_state=""
+        ng_states=""
+
+	if [ "$1" = "adm" ]; then
+		ng_states="saAmfNGAdminState"
+	elif [ "$1" = "all" ]; then
+                ng_states="saAmfNGAdminState"
+
+	else
+		echo "error - state '$1' not supported for NodeGroup"
+		exit 1
+	fi
+
+        if [ "$2" = "all" ]; then
+                ng_dns=`immfind -c SaAmfNodeGroup`
+        else
+                ng_dns=$2
+        fi
+
+        for ng_dn in $ng_dns; do
+                echo "$ng_dn"
+                for ng_state in $ng_states; do
+                        if [ "$ng_state" = "saAmfNGAdminState" ]; then
+                                adm_state $ng_state $ng_dn
+                        fi
+                done
+        done
+}
 case "$CLASS" in
 	app)
 		app_state $STATE $DN
@@ -570,6 +602,9 @@ case "$CLASS" in
 		;;
 	su)
 		su_state $STATE $DN
+		;;
+	ng)
+		ng_state $STATE $DN
 		;;
 	*)
 		usage
