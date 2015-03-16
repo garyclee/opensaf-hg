@@ -235,7 +235,7 @@ and SaImmOiHandleT) are not thread independent. That is, the developer must
 avoid using the same handle concurrently from several application threads.
 Using different handles from different application threads is of course allowed
 and using one handle in different application threads at *different* times
-is allowed. In the latter case, the threads typically need to syncronize their
+is allowed. In the latter case, the threads typically need to synchronize their
 use of the common handle to avoid overlapped use. And they need to understand
 the meaning of the term 'use' for the handle. An application thread that is
 blocked in a poll that uses a selection object obtained from a handle,
@@ -243,8 +243,8 @@ is using that handle even when that thread is not executing.
 
 Each handle should be seen as a resource, which mutates its state
 when used by a thread. Part of the resource is a communications channel
-to/from the IMMND server. If more than one thread tries to send (syncronously
-or asyncronously) or receive (includes waiting for syncronous reply, poll
+to/from the IMMND server. If more than one thread tries to send (synchronously
+or asynchronously) or receive (includes waiting for synchronous reply, poll
 and dispatch), using the same handle at the same time, the results are
 unpredictable. Messages may get lost and a reply may end up at the "wrong"
 receiver, the process may crash on assertion in the library.
@@ -270,30 +270,30 @@ Such sub-handles will share the *same* communication channel towards the
 IMMND server. Thus sub-handles to one SaImmHandleT should only be used by
 the thread currently using (owning) the root SaImmHandleT.
 
-(iii) Asyncronous admin-operations.
-A special case of (ii) is how to program the use of asyncronous admin-
+(iii) Asynchronous admin-operations.
+A special case of (ii) is how to program the use of asynchronous admin-
 operations. The "vanilla" case is to simply use one thread, both for sending
-the asyncronous request and for receiving the asyncronous reply. Both events
+the asynchronous request and for receiving the asynchronous reply. Both events
 of course use the same handle. This is the recommended use if possible.
 It is possible when the thread is event driven from a poll. External
-requests arrive causing the thread to sometimes send asyncronous admin-
-operation requests to some OI. The asyncronous reply from the OI is picked
+requests arrive causing the thread to sometimes send asynchronous admin-
+operation requests to some OI. The asynchronous reply from the OI is picked
 up by the same poll and typically forwarded out to the external user.
 Some form of continuation record would be kept by the requesting thread
 to identify the reply.
 
 But in some cases the developer wants to receive the replies on
-asyncronous operations in a separate thread from the thread that sent
+asynchronous operations in a separate thread from the thread that sent
 the request. This is possible, provided that the sending thread somehow
 submitts the handle for exclusive use by the receiving thread, immediately
 after the send. Until the receiving thread has has received the reply,
 the original sending thread should not use the same handle, and it must
 not use the same handle for receiving anything (i.e. not poll on a selection
-object obtained from that handle and not invoke any syncronous calls using
+object obtained from that handle and not invoke any synchronous calls using
 that handle).
 
 (iv) Blocking & timeouts.
-Syncronous downcalls will block the client untill there is a reply.
+Synchronous downcalls will block the client untill there is a reply.
 If there is any resource problem detected in the IMMA library or
 in the IMMND server that prevents the request from being processed
 currently, then an immediate reply with SA_AIS_ERR_TRY_AGAIN is generated.
@@ -305,10 +305,10 @@ consider the realtime requirements placed on the client itself.
 When time spent in the retry loop approaches the realtime limit
 placed on the client, then it has to abandon the request.
 
-A syncronous call may also get blocked for a longer time (without getting
+A synchronous call may also get blocked for a longer time (without getting
 TRY_AGAIN) due to resource congestion in the system, or due to slow
 processing by one or more OIs, or due a large request such as the apply
-of a large CCB. There is a timeout placed on each syncronous downcall,
+of a large CCB. There is a timeout placed on each synchronous downcall,
 inside the IMMA library. The default timeout is 10 seconds. This timeout
 can be altererd by setting the IMMA_SYNCR_TIMEOUT environment variable
 (see below).
@@ -661,8 +661,8 @@ attach as applier OIs and register any configuration changes that apply
 to the specific node.
 
 Another way of stating this is that the applier-OI concept allows IMM
-users to leverage the the IMM CCB protocol for more than the primary
-purpose of that protocol.
+users to leverage the IMM CCB protocol for more than the primary purpose of
+that protocol.
 
 The A.02 API is used but the applier concept is only available to an OI
 that registers with version A.02.11 (or higher minor version).
@@ -894,7 +894,7 @@ typedef struct {
               See A.02.01 spec for the 'params' arg of
               saImmOmAdminOperationInvoke_2.
 
-Defines a new OM callback that allows asyncronous admin-ops to
+Defines a new OM callback that allows asynchronous admin-ops to
 receive the added return parameter list. Note that 'returnParams'
 is here a 'const' parameter, indicating that deallocation of the
 parameter list will be done by the library (not the user).
@@ -949,7 +949,7 @@ saImmOmAdminOperationInvoke_o2(
                   not with A.2.11 set for the Om-handle.
 
 
-The syncronous admin-operation downcall. The only difference with
+The synchronous admin-operation downcall. The only difference with
 respect to the original saImmOmAdminOperationInvoke_2 is the new
 added out parameter 'returnParams'. Note that 'returnParams' is
 NOT declared const, indicating that it is the users responsibility
@@ -1068,7 +1068,7 @@ Api
 ---
 
 The API available to the OI for this feature under IMM interface
-version A.2.11 consists of one new syncronous call:
+version A.2.11 consists of one new synchronous call:
 
 	extern SaAisErrorT
 	saImmOiAugmentCcbInitialize(
@@ -1239,7 +1239,7 @@ Support for the environment variable IMMA_SYNCR_TIMEOUT (4.2)
 http://devel.opensaf.org/ticket/1808
 
 The IMMA libraries (both OM and OI) have a hard-wired timeout
-on syncronous downcalls (to the IMMND), of 10 seconds.
+on synchronous downcalls (to the IMMND), of 10 seconds.
 
 This enhancement changes that to a default timeout, with the
 option for the IMMA client to override the default by setting a
@@ -1263,7 +1263,7 @@ during apply (http://devel.opensaf.org/ticket/1786).
 Applications with relatively tight realtime restrictions can set
 IMMA_SYNCR_TIMEOUT to a low value, avoiding the risk of getting
 blocked for 10 seconds, but with an increased risk of getting
-ERR_TIMEOUT on syncronous calls.
+ERR_TIMEOUT on synchronous calls.
 
 Some batch operations, particularly deletes of large subtrees of
 imm data, where one delete downcall is expanded into a cascade of
@@ -1745,7 +1745,7 @@ Support for saImmOmCcbAbort() and saImmOmCcbValidate() (4.5)
 ========================================================================
 http://sourceforge.net/p/opensaf/tickets/798/
 
-Adds adds support for an OM client to explicitly request abort of the current
+Adds support for an OM client to explicitly request abort of the current
 CCB(id) without finalizing the handle.
 Also support for an OM client to explicitly request validation of the current
 CCB state without any immediate and automatic ccb commit if validation succeeds.
@@ -1781,7 +1781,7 @@ ccbAbort is an explicit handshake between the om-user and the immsv
 that any previous ccb-state is cleared and the current ccb-state is
 empty. If SA_AIS_OK is returned then ccb-handle can continue to be
 used and is in the same empty state as if it had just been initialized.                   
-This is a blocking syncronous call.
+This is a blocking synchronous call.
 
 (2)
 extern SaAisErrorT
@@ -1826,7 +1826,7 @@ successfull invocation of saImmOmCcbValidate can still fail/abort,
 but only due to resource problems (such as server crash or filesystem
 unavailability). 
 
-This is a blocking syncronous call.
+This is a blocking synchronous call.
 
 
 Allow admin-operations directly targeting an implementer or applier (4.5)
@@ -2143,6 +2143,241 @@ the class 'OpensafImm'. An imm xml file containing the extended class definition
 for OpensafImm has been added at samples/immsv/OpensafImm_Upgrade_4.5.xml.
 
 
+Immtools support for saImmOmCcbAbort() and saImmOmCcbValidate() (4.6)
+=====================================================================
+http://sourceforge.net/p/opensaf/tickets/1200
+
+Immutils was missing wrapper functions for saImmOmCcbValidate and saImmOmCcbAbort.
+Immcfg needed a new option (--ccb-validate) for validating created/modified/deleted IMM data.
+The option is only available in explicit commit mode.
+
+
+Cached RTAs show latest cached value when OI is transiently detached (4.6)
+==========================================================================
+http://sourceforge.net/p/opensaf/tickets/1156
+
+OM clients performing a read (iteration or accessor-get) that fetches a cached
+runtime attribute, will not immediately see the attribute as empty when/if the
+OI detaches. Instead for a period of grace for 6 seconds, the latest set value is shown.
+This allows for failover or switchover or process restart of OI to occur without OM
+clients seeing the "glitch" in the value of the cached runtime attribute. 
+
+
+immdump: Support for dumping instances of selected classes (4.6)
+================================================================
+http://sourceforge.net/p/opensaf/tickets/927
+
+The immdump tool by default dumps the entire imm database to a file
+(either imm-xml format or imm-sqlite format). There is a need for
+performing more selective dumping. This enhancement adds support
+in immdump for accepting a list of classes in the argument list and to
+selectively dump only the instances that belong to classes in that list.
+
+
+OiRtObject operations with no implementer set should return BAD_OPERATION (4.6)
+================================================================================
+http://sourceforge.net/p/opensaf/tickets/1064
+
+It used to be the case that if a process/OI:
+
+1) Initializes an IMM-OI handle.
+2) Has not set any implementer-name, i.e. has not yet (?) become any identifiable OI.
+3) Tries to use the oi-handle to create/delete/update runtime data.
+
+Then the resulting error code returned was ERR_BAD_HANDLE.
+This is actually according to the SAF spec. But that error code is here both 
+inconvenient and (we claim) a spec error.
+
+It is a spec error because ERR_BAD_HANDLE should at least mean that the handle as
+such is bad, i.e. unusable for whatever reason. That is the literal meaning of the
+error ERR_BAD_HANDLE. The correct handling of this error is to allocate a new handle,
+or abandon whatever task was intending to use the handle.
+
+But in this error case discussed here the handle is actually not invalid and
+can even be used after the above scenario happens to invoke saImmOiImplementerSet
+to associate an implementer-name with the handle. The missing implementerSet is
+an error of handle state, not an error of handle validity. The correct error code
+for this case is instead declared to be ERR_BAD_OPERATION:
+
+ ERR_BAD_OPERATION - The targeted object is not implemented by the invoking process.
+
+The SAF text for this case self contradicting:
+
+  The handle immOiHandle is invalid, since it is corrupted, uninitialized,
+  has already been finalized, or is not associated with an implementer name.
+
+The last clause 'not associated with an implementer-name' is a VALID state
+for an OI handle that has been initialized but not yet associated with an
+implementer-name! That is in fact the state of the handle demanded by
+saImmOiImplementerSet! So it is not the handle that is invalid, but the
+state of the (valid) handle that is not (yet) appropriate for RT operations.
+
+The error code BAD_OPERATION is defined for similar cases for saImOiRtObjectUpdate
+and saImmOiRtObjectDelete. Unfortunately SAF did not specify that error code for
+saImmOiRtObjectCreate. So this will be a new error code for saImmOiRtObjectCreate.
+
+Fortunately there is not any backwards compatibility issue for this change and 
+addition of error code. The error case is an interface-violation, by definition
+a surprise for the user/application. So it is actually acceptable, even desirable
+(fail fast) for the client process to crash when this happens, since the client
+process definitely has a bug.
+
+An addition will be made to the "non compliance" section of the IMMSV_PR to make
+this clear.
+
+This new behavior is benign and better than the old behavior. It will of course
+be an unexpected error code for the application/user. But since this is an interface
+violation (user/programmer error) the error case itself is unexpected.
+
+
+Immnd timeout on CCB-OI upcall resets client handle (4.6)
+========================================================
+http://sourceforge.net/p/opensaf/tickets/57
+
+Any IMM API synchronous downcall uses an imm-handle. For the duration of that downcall
+the imm-handle will be blocked for usage by other threads. The blocking is handled
+by rejecting any such overlapped use with an error. This is to prevent multiple threads
+from overlapping use of an imm-handle, which is not allowed for the OpenSAF IMM.
+If different threads have a concurrent need for imm access, they must allocate separate
+imm-handles.
+
+The blocking of the handle is resolved by either:
+
+    a) an explicit reply from the server for that request (the normal case).
+    b) timeout in the client library for that request (default is 10 seconds).
+    c) timeout in the server on processing delegated to an OI (default is 6 seconds).
+
+If case (b) happens, the handle will get unblocked on the client side. But subsequent
+use by the client could still block on case (c) in the server unless the server side
+has resolved the request, either by normal completion or timeout (c). Note that the
+normal completion result would in that case not have reached the client.
+
+Thus the case of (c) can be resolved in the server either by the OI replying or by the
+immnd-server time-out for continuations. The latter will also clean up continuations
+for crashed or hung OIs.
+
+For admin-operation continuations and for search-request-continuations (pure RTA fetch)
+this cleanup is already working. So if (c) occurred or (b) and (c) then a subsequent
+new request would function normally for these requests (admin-operations and searches).
+
+But for CCB-operation requests, a timeout in the immnd server (case c) will simply abort
+the CCB in the server and not clear the handle on the server side. This leaves the handle
+effectively stale for the client. The next attempt by the client to use that handle will
+result in ERR_BAD_HANDLE. The client then has to initialize a new handle. While that is
+an expected error case, this error is actually not necessary in this case, but results
+from a simplified design in the server. This is the issue that this enhancement resolves.
+
+This enhancement improves the cleanup of CCB-operation continuations at OI timeout.
+The fix should also result in a ccb related error reaching the client, instead of the
+ambiguous ERR_TIMEOUT. An OI timeout on a ccb callback will always abort the CCB in
+the server, so any reply forwarded towards the OM CCB client should be an 
+ERR_FAILED_OPERATION. Such a timeout triggered ccb abort will either be sent all the
+way to the client, if the client-side timeout is longer than the server timeout.
+Or (when the client has already timed out in the library) be discarded by MDS.
+In either case, a subsequent attempt by the client to use the handle should work,
+ï.e. not result in ERR_BAD_HANDLE. 
+
+The main points are (a) that the handle gets cleared in the server when
+the continuation times out in the server; and (b) that the CCB OM client
+receives an error reply when that om client has NOT also timed out.
+
+Remove all use of SaNameT from IMM server side and messages (4.6)
+=================================================================
+http://sourceforge.net/p/opensaf/tickets/969
+
+All usage of SaNameT has been removed from the IMM server side code with these
+exceptions:
+
+	a) When interfacing AMF, since the AMF APIs use SaNameT.
+	b) In message packing/unpacking code that has to be backwards compatible.
+
+One instance of SaNameT occurs as a union member in the message type for
+saImmOmAdminOwnerInitialize. That is a bit unfortunate since it logically keeps
+the SaNameT type dependency also in the new code. This could be fixed by creating 
+a separate new struct for the ADMO_INITIALIZE message type, a minor future enhancement.
+
+For message types we need backwards compatibility. But the current 4.6 versions of all
+server side messaging should now be free from the SaNameT type (except the union 
+mentioned).
+
+The protocol46Allowed bit in noStdFlags is used to toggle on/off support for the old
+server side messages containing SaNameT.
+
+
+Improve error diagnostics when PBE is misconfigured.
+====================================================
+http://sourceforge.net/p/opensaf/tickets/1139
+
+Configuration mistakes such as omitting to change immnd.conf to allow PBE
+tends to cause strange behavior that is not immediately apparent as to
+its cause. Symptoms observed where: 
+
+One could attempt to enable PBE by setting  saImmRepositoryInit to 1:
+
+     sudo immcfg -a saImmRepositoryInit=1 safRdn=immManagement,safApp=safImmService
+
+Yet the PBE process does not start and no clear error message was logged.
+One could attempt to disable PBE by setting saImmRepositoryInit back to 2:
+
+    sudo immcfg -a saImmRepositoryInit=2 safRdn=immManagement,safApp=safImmService
+    error - saImmOmCcbObjectModify_2 FAILED: SA_AIS_ERR_TRY_AGAIN (6)
+    error - immcfg command timed out (alarm)
+
+In the syslog only this was visible:
+
+   Sep 26 09:15:27 NO Precheck of fevs message of type <33> failed with ERROR:18
+
+Error logging been improved and the imm server returns an error string message for the above
+Ccb operation error cases. This should make troubleshooting this issue much faster and easier.
+
+
+IMM API that replaces SaNameT with SaStringT and SA_IMM_ATTR_DN
+===============================================================
+http://sourceforge.net/p/opensaf/tickets/643
+
+See: osaf/services/saf/immsv/README.SASTRINGT_API for details.
+
+
+Notes on upgrading from OpenSAF 4.[1,2,3,4,5] to OpenSAF (4.6)
+==========================================================
+OpenSAF4.6 adds new message types that avoid using the SaNameT type (#969).
+During a rolling upgrade from an earlier OpenSAF release to the 4.6 release there
+will be nodes executing the older release concurrently with nodes executing OpenSAF 4.6.
+Nodes executing the earlier release will not recognize new message types originating
+from nodes executing 4.6 and messages from nodes executing the old release may interfere
+with the new states in new 4.6 nodes.
+
+Because of this upgrade issue, the new message types added in OpenSAF 4.6 are not used
+unless a flag is toggled on in the opensafImmNostdFlags runtime attribute in the object:
+
+   opensafImm=opensafImm,safApp=safImmService.
+
+The following is the shell command:
+
+        immadm -o 1 -p opensafImmNostdFlags:SA_UINT32_T:32 \
+           opensafImm=opensafImm,safApp=safImmService
+
+This will set bit 6 of the 'opensafImmNostdFlags' runtime attribute inside the immsv.
+Operation-id '1' invoked on the object:
+
+ 'opensafImm=opensafImm,safApp=safImmService'
+
+has the meaning of 'flags-ON'. Operation-id '2' has the meaning of 'flags-OFF'.
+This flag (and possibly other relevant flags) needs to be toggled ON when the upgrade
+to OpenSAF 4.6 has been successfully completed. This would be in some final step of
+the upgrade. Any cluster start/restart of an OpenSAF4.6 system will always
+automatically toggle on relevant flags. 
+
+In summary:
+
+Bit 1 controls schema (imm class) changes allowed or not (normally off/0).
+Bit 2 controls OpenSAF4.1 protocols allowed or not (normally on/1).
+Bit 3 controls OpenSAF4.3 protocols allowed or not (normally on/1).
+Bit 4 controls 2PBE oneSafe2PBE, see 2PBE feature in OpenSAF4.4 above (normally off/0).
+Bit 5 controls OpenSAF4.5 protocols allowed or not (normally on/1).
+Bit 6 controls OpenSAF4.6 protocols allowed or not (normally on/1).
+
+
 ----------------------------------------
 DEPENDENCIES
 ============
@@ -2151,7 +2386,7 @@ immsv depends of the following other services:
 - MBCSV
 - MDS
 - BASE
-- AvSv
+- AMF
 - logtrace
 - libxml2
 - sqlite3
