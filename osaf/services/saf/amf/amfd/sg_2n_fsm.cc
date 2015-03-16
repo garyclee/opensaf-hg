@@ -1290,7 +1290,8 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 					}
 					o_susi = AVD_SU_SI_REL_NULL;
 					a_su = su->sg_of_su->list_of_su;
-					while (a_su != NULL) {
+					while ((a_su != NULL) &&
+							(a_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
 						a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						if ((a_su->list_of_susi != AVD_SU_SI_REL_NULL)
 							&& (avd_su_state_determine(a_su) == SA_AMF_HA_STANDBY)){
@@ -1298,9 +1299,26 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 						}
 						a_su = a_su->sg_list_su_next;
 					}
-					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
-					if (o_susi != AVD_SU_SI_REL_NULL)
+					if (su->sg_of_su->ng_using_saAmfSGAdminState == true) {
+						su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_LOCKED;
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su->sg_of_su,
+								AVSV_CKPT_SG_ADMIN_STATE);
+					} else
+						avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
+					if (o_susi != AVD_SU_SI_REL_NULL) {
 						avd_sg_su_si_del_snd(cb, o_susi->su);
+						AVD_AVND *node = o_susi->su->su_on_node;
+						if ((o_susi->su->sg_of_su->ng_using_saAmfSGAdminState == true) &&
+							(node->admin_ng != NULL) &&
+							(node->admin_ng->admin_ng_pend_cbk.invocation != 0)) {
+								o_susi->su->su_on_node->su_cnt_admin_oper++;
+								TRACE("node:%s, su_cnt_admin_oper:%u",
+										o_susi->su->su_on_node->name.value,
+										o_susi->su->su_on_node->su_cnt_admin_oper);
+								node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+								TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
+							}
+					}
 				} else {
 					/* the SI relationships to the SU is standby Send
 					 * D2N-INFO_SU_SI_ASSIGN remove all for the SU.
@@ -1319,7 +1337,8 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 					}
 					o_susi = AVD_SU_SI_REL_NULL;
 					a_su = su->sg_of_su->list_of_su;
-					while (a_su != NULL) {
+					while ((a_su != NULL) &&
+							(a_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
 						a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						if ((a_su->list_of_susi != AVD_SU_SI_REL_NULL)
 								&& (avd_su_state_determine(a_su) == SA_AMF_HA_STANDBY)){
@@ -1327,9 +1346,26 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 						}
 						a_su = a_su->sg_list_su_next;
 					}
-					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
-					if (o_susi != AVD_SU_SI_REL_NULL)
+					if (su->sg_of_su->ng_using_saAmfSGAdminState == true) {
+						su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_LOCKED;
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su->sg_of_su,
+								AVSV_CKPT_SG_ADMIN_STATE);
+					} else
+						avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
+					if (o_susi != AVD_SU_SI_REL_NULL) {
 						avd_sg_su_si_del_snd(cb, o_susi->su);
+						AVD_AVND *node = o_susi->su->su_on_node;
+						if ((o_susi->su->sg_of_su->ng_using_saAmfSGAdminState == true) &&
+							(node->admin_ng != NULL) &&
+							(node->admin_ng->admin_ng_pend_cbk.invocation != 0)) {
+								o_susi->su->su_on_node->su_cnt_admin_oper++;
+								TRACE("node:%s, su_cnt_admin_oper:%u",
+										o_susi->su->su_on_node->name.value,
+										o_susi->su->su_on_node->su_cnt_admin_oper);
+								node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+								TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
+							}
+					}
 				} /* if (avd_su_state_determine(su) == SA_AMF_HA_QUIESCING) */
 				else {
 					/* the SI relationships to the SU is standby Send 
@@ -2425,10 +2461,27 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 				if (s_susi != AVD_SU_SI_REL_NULL) {
 					avd_sg_su_si_del_snd(cb, s_susi->su);
+					AVD_AVND *node = s_susi->su->su_on_node;
+					if ((s_susi->su->sg_of_su->ng_using_saAmfSGAdminState == true) &&
+						(node->admin_ng != NULL) &&
+						(node->admin_ng->admin_ng_pend_cbk.invocation != 0)) {
+							s_susi->su->su_on_node->su_cnt_admin_oper++;
+							TRACE("node:%s, su_cnt_admin_oper:%u",
+									s_susi->su->su_on_node->name.value,
+									s_susi->su->su_on_node->su_cnt_admin_oper);
+							node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+							TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
+						}
 				}
-				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
+				if (su->sg_of_su->ng_using_saAmfSGAdminState == true) {
+					su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_LOCKED;
+					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su->sg_of_su,
+							AVSV_CKPT_SG_ADMIN_STATE);
+				} else
+					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				a_su = su->sg_of_su->list_of_su;
-				while (a_su != NULL) {
+				while ((a_su != NULL) &&
+						(a_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
 					a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 					a_su = a_su->sg_list_su_next;
 				}
@@ -2454,10 +2507,27 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 					if (s_susi != AVD_SU_SI_REL_NULL) {
 						avd_sg_su_si_del_snd(cb, s_susi->su);
+						AVD_AVND *node = s_susi->su->su_on_node;
+						if ((s_susi->su->sg_of_su->ng_using_saAmfSGAdminState == true) &&
+								(node->admin_ng != NULL) &&
+								(node->admin_ng->admin_ng_pend_cbk.invocation != 0)) {
+							s_susi->su->su_on_node->su_cnt_admin_oper++;
+							TRACE("node:%s, su_cnt_admin_oper:%u",
+									s_susi->su->su_on_node->name.value,
+									s_susi->su->su_on_node->su_cnt_admin_oper);
+							node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+							TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
+						}
 					}
-					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
+					if (su->sg_of_su->ng_using_saAmfSGAdminState == true) {
+						su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_LOCKED;
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su->sg_of_su,
+								AVSV_CKPT_SG_ADMIN_STATE);
+					} else
+						avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 					a_su = su->sg_of_su->list_of_su;
-					while (a_su != NULL) {
+					while ((a_su != NULL) &&
+							(a_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
 						a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						a_su = a_su->sg_list_su_next;
 					}
@@ -3429,6 +3499,17 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 				avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
 				if (s_susi != AVD_SU_SI_REL_NULL) {
 					avd_sg_su_si_del_snd(cb, s_susi->su);
+					AVD_AVND *node = s_susi->su->su_on_node;
+					if ((s_susi->su->sg_of_su->ng_using_saAmfSGAdminState == true) &&
+						(node->admin_ng != NULL) &&
+						(node->admin_ng->admin_ng_pend_cbk.invocation != 0)) {
+							s_susi->su->su_on_node->su_cnt_admin_oper++;
+							TRACE("node:%s, su_cnt_admin_oper:%u",
+									s_susi->su->su_on_node->name.value,
+									s_susi->su->su_on_node->su_cnt_admin_oper);
+							node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+							TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
+						}
 				} else {
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 					/*As sg is stable, screen for si dependencies and take action on whole sg*/
@@ -3437,10 +3518,16 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 				}
 
 				su->delete_all_susis();
-				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
+				if (su->sg_of_su->ng_using_saAmfSGAdminState == true) {
+					su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_LOCKED;
+					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su->sg_of_su,
+							AVSV_CKPT_SG_ADMIN_STATE);
+				} else
+					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 
 				i_su = su->sg_of_su->list_of_su;
-				while (i_su != NULL) {
+				while ((i_su != NULL) &&
+						(i_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
 					i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 					i_su = i_su->sg_list_su_next;
 				}
@@ -3891,6 +3978,83 @@ AVD_SU *get_other_su_from_oper_list(AVD_SU *su)
 	return o_su;
 }
 
+/*
+ * @brief      Handles modification of assignments in SU of 2N SG
+ *             because of lock or shutdown operation on Node group.
+ *             If SU does not have any SIs assigned to it, AMF will try
+ *             to instantiate new SUs in the SG. If SU has assignments,
+               then it handles assignment based on following cases:
+               a)If both active SU and standby SU are part of the
+ *               nodegroup, then this case is handled as equivalent
+                 to SG lock or shutdown case. 
+ *             b)If only active or only standby SU is part of the
+ *               nodegroup, then this case is handled as equivalent
+                 to SU lock or shutdown case.
+ *             
+ * @param[in]  ptr to SU
+ * @param[in]  ptr to nodegroup AVD_AMF_NG.
+ */
+
+void SG_2N::ng_admin(AVD_SU *su, AVD_AMF_NG *ng) 
+{
+	AVD_SG *sg = su->sg_of_su;
+	TRACE_ENTER2("'%s', sg_fsm_state:%u",su->name.value, sg->sg_fsm_state);
+
+	if (su->list_of_susi == NULL){
+		avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
+		return;
+	}
+	AVD_SU_SI_REL *s_susi = NULL, *a_susi = NULL;
+	a_susi = avd_sg_2n_act_susi(avd_cb, sg, &s_susi);
+
+	if ((sg->is_sg_assigned_only_in_ng(ng) == true) && (s_susi != NULL)) {
+		AVD_AVND *actv_node = a_susi->su->su_on_node;
+		AVD_AVND *stdby_node = s_susi->su->su_on_node;
+		/*
+		   It means this 2N SG has both active and standby assignments in the this
+		   nodegroup. So this becomes the case equivalent of SG shutdown. 
+		 */
+		if (sg_fsm_state == AVD_SG_FSM_STABLE) {
+			ng_using_saAmfSGAdminState = true;
+			TRACE("ng_using_saAmfSGAdminState:%u",sg->ng_using_saAmfSGAdminState);
+			saAmfSGAdminState = ng->saAmfNGAdminState; 	
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su->sg_of_su, AVSV_CKPT_SG_ADMIN_STATE);
+			sg_admin_down(avd_cb, sg);
+			//Increment node counter for tracking status of ng operation.
+			a_susi->su->su_on_node->su_cnt_admin_oper++;
+			TRACE("node:%s, su_cnt_admin_oper:%u", actv_node->name.value, 
+					actv_node->su_cnt_admin_oper);
+			/* 
+			   In case of sg lock, AMF sends removal of assignment to standby su instantly,
+			   so increment node counter of standby su node for tracking status of ng operation. 
+			 */
+			if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED) {
+				s_susi->su->su_on_node->su_cnt_admin_oper++;
+				TRACE("node:%s, su_cnt_admin_oper:%u", stdby_node->name.value, 
+						stdby_node->su_cnt_admin_oper);
+			}
+		}
+	} else if (su->list_of_susi != NULL){
+		AVD_AVND *node = su->su_on_node;
+		/*
+		   It means this 2N SG has only active assignments.
+		   Since this function is called only when SU has assignments.
+		   This case should be handled as su/node lock case.
+		 */
+		if (sg_fsm_state == AVD_SG_FSM_STABLE) {
+			su_admin_down(avd_cb, su, node);
+			//Increment node counter for tracking status of ng operation.
+			if ((su->any_susi_fsm_in_modify() == true) ||
+					(su->any_susi_fsm_in_unasgn() == true)) {
+				node->su_cnt_admin_oper++;
+				TRACE("node:%s, su_cnt_admin_oper:%u", node->name.value,
+						node->su_cnt_admin_oper);
+			}
+		}
+	}
+	TRACE_LEAVE();
+	return;
+}
 SG_2N::~SG_2N() {
 }
 
