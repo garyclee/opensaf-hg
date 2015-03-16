@@ -11,28 +11,16 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Oracle
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-pkgpyosaf_PYTHON = \
+pkgpyosafutilsimmom_PYTHON = \
 	__init__.py \
-	saAis.py \
-	saAmf.py \
-	saCkpt.py \
-	saClm.py \
-	saEnumConst.py \
-	saEvt.py \
-	saImmOi.py \
-	saImmOm.py \
-	saImm.py \
-	saLck.py \
-	saLog.py \
-	saMsg.py \
-	saNtf.py \
-	saSmf.py
-
-SUBDIRS = utils
+	ccb.py \
+	common.py \
+	iterator.py \
+	object.py
