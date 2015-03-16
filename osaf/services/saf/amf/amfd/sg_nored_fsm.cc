@@ -1178,6 +1178,46 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 
 	return NCSCC_RC_SUCCESS;
 }
+/*
+ * @brief      Handles modification of assignments in SU of NoRed SG
+ *             because of lock or shutdown operation on Node group.
+ *             If SU does not have any SIs assigned to it, AMF will try
+ *             to instantiate new SUs in the SG. If SU has assignments,
+ *             then depending upon lock or shutdown operation, quiesced
+ *             or quiescing state will be sent for the SU.
+ *
+ * @param[in]  ptr to SU
+ * @param[in]  ptr to nodegroup AVD_AMF_NG.
+ */
+void SG_NORED::ng_admin(AVD_SU *su, AVD_AMF_NG *ng) 
+{
+	TRACE_ENTER2("'%s', sg_fsm_state:%u",su->name.value,
+			su->sg_of_su->sg_fsm_state);
+	if (su->list_of_susi == NULL) {
+		avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
+		return;
+	}
+	SaAmfHAStateT ha_state;
+	if (ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN)
+		ha_state = SA_AMF_HA_QUIESCING;
+	else 
+		ha_state = SA_AMF_HA_QUIESCED;
+	//change the state for all assignments to quiescing/quiesced.
+	if (avd_susi_mod_send(su->list_of_susi, ha_state) == NCSCC_RC_FAILURE) {
+		LOG_ER("quiescing state transtion failed for '%s'",su->name.value);
+		return;
+	}
+	avd_sg_su_oper_list_add(avd_cb, su, false);
+	su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
+	//Increment node counter for tracking status of ng operation.
+	if (su->list_of_susi->fsm == AVD_SU_SI_STATE_MODIFY) {
+		su->su_on_node->su_cnt_admin_oper++;
+		TRACE("node:%s, su_cnt_admin_oper:%u", su->su_on_node->name.value,
+				su->su_on_node->su_cnt_admin_oper);
+	}
+	TRACE_LEAVE();
+	return;
+}
 
 SG_NORED::~SG_NORED() {
 }
