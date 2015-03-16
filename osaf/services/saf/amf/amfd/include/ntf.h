@@ -39,6 +39,11 @@
 #define OLD_STATE_NA 0
 #define NEW_STATE_NA 0
 
+/*For nodegroup admin state notification*/
+typedef enum {
+	SA_AMF_NTFID_NG_ADMIN_STATE = 0x072
+} SaAmfExtraNotificationMinorIdT;
+
 /* Alarms */
 void avd_send_comp_inst_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
 void avd_send_comp_clean_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name);
