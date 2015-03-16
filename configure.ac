@@ -677,6 +677,8 @@ AC_CONFIG_FILES([
         java/amf_agent/Makefile
         python/Makefile
         python/pyosaf/Makefile
+        python/pyosaf/utils/Makefile
+        python/pyosaf/utils/immom/Makefile
         osaf/Makefile
         osaf/libs/Makefile
         osaf/libs/agents/Makefile

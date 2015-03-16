@@ -35,3 +35,5 @@ lsbinitdir = $(initscriptdir)
 systemddir = $(systemdsystemunitdir)
 lockdir = $(localstatedir)/lock/subsys
 pkgpyosafdir = $(pythondir)/pyosaf
+pkgpyosafutilsdir = $(pythondir)/pyosaf/utils
+pkgpyosafutilsimmomdir = $(pythondir)/pyosaf/utils/immom

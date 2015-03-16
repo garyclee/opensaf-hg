@@ -1510,6 +1510,12 @@ fi
 %{python_sitelib}/pyosaf/*.py
 %{python_sitelib}/pyosaf/*.pyc
 %{python_sitelib}/pyosaf/*.pyo
+%{python_sitelib}/pyosaf/utils/*.py
+%{python_sitelib}/pyosaf/utils/*.pyc
+%{python_sitelib}/pyosaf/utils/*.pyo
+%{python_sitelib}/pyosaf/utils/immom/*.py
+%{python_sitelib}/pyosaf/utils/immom/*.pyc
+%{python_sitelib}/pyosaf/utils/immom/*.pyo
 %endif
 
 
