@@ -590,6 +590,7 @@ void avd_ng_admin_state_set(AVD_AMF_NG* ng, SaAmfAdminStateT state)
 	avd_saImmOiRtObjectUpdate(&ng->name,
 			const_cast<SaImmAttrNameT>("saAmfNGAdminState"), 
 			SA_IMM_ATTR_SAUINT32T, &ng->saAmfNGAdminState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, ng, AVSV_CKPT_NG_ADMIN_STATE);
 }
 /**
  * @brief  Verify if Node is stable for admin operation on Nodegroup etc.

@@ -82,6 +82,7 @@ static uint32_t enc_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uint32_t enc_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uint32_t entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_sync);
+static uint32_t enc_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 
 /* Declaration of static cold sync encode functions */
 static uint32_t enc_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
@@ -173,7 +174,8 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[] = {
 	enc_comp_restart_count,
 	NULL,			/* AVSV_SYNC_COMMIT */
 	enc_su_restart_count,
-	enc_si_dep_state
+	enc_si_dep_state,
+	enc_ng_admin_state
 };
 
 /*
@@ -2639,4 +2641,24 @@ static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc,
 	TRACE_LEAVE2("status '%u'", status);
 	return status;
 }
+
+/**
+ * @brief   encodes saAmfNGAdminState.
+ *
+ * @param   ptr to AVD_CL_CB
+ * @param   ptr to encode structure NCS_MBCSV_CB_ENC.
+ *
+ * @return NCSCC_RC_SUCCESS
+ */
+static uint32_t enc_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
+{
+        TRACE_ENTER();
+        osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+        const AVD_AMF_NG *ng = (AVD_AMF_NG *)enc->io_reo_hdl;
+        osaf_encode_sanamet(&enc->io_uba, &ng->name);
+        osaf_encode_uint32(&enc->io_uba, ng->saAmfNGAdminState);
+        TRACE_LEAVE();
+        return NCSCC_RC_SUCCESS;
+}
+
 
