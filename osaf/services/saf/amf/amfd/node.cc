@@ -126,6 +126,7 @@ static void node_add_to_model(AVD_AVND *node)
 	}
 
 	node->cluster = avd_cluster;
+	node->admin_ng = NULL;
 
 	avd_node_db_add(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
@@ -1395,6 +1396,22 @@ void node_reset_su_try_inst_counter(const AVD_AVND *node)
 		su->sg_of_su->try_inst_counter = 0;
 		su = su->avnd_list_su_next;
 	}
+}
+/**
+ * @brief  Checks all  nodegroup of nodes are in UNLOCKED state.
+ * @param  ptr to Node (AVD_AVND).
+ * @return true/false
+ */
+bool are_all_ngs_in_unlocked_state(const AVD_AVND *node)
+{
+        for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
+                        it != nodegroup_db->end(); it++) {
+                AVD_AMF_NG *ng = it->second;
+                if ((node_in_nodegroup(Amf::to_string(&node->name), ng) == true) &&
+                                (ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED))
+                        return false;
+        }
+        return true;
 }
 
 void avd_node_constructor(void)

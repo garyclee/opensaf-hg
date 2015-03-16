@@ -140,14 +140,18 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 		LOG_ER("Node groups must contian at least one node");
 		goto done;
 	}
-
+	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNGAdminState"),
+				attributes, 0, &ng->saAmfNGAdminState) != SA_AIS_OK) {
+                ng->saAmfNGAdminState = SA_AMF_ADMIN_UNLOCKED;
+		LOG_NO("Setting saAmfNGAdminState to :'%u'",ng->saAmfNGAdminState);
+	}
+	//TODO_NG: Add protection against shutting down state and lock-in state.
 	rc = 0;
 done:
 	if (rc != 0) {
 		delete ng;
 		ng = NULL;
 	}
-
 	return ng;
 }
 
@@ -419,7 +423,12 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 	TRACE_ENTER2("%u", ng->number_nodes());
 	std::set<std::string>::const_iterator iter;
-
+	if ((ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) &&
+			(ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED)) {
+		report_ccb_validation_error(opdata, "'%s' can be deleted in locked or unlocked admin state",
+					ng->name.value);
+		goto done;
+	}
 	for (iter = ng->saAmfNGNodeList.begin();
 		iter != ng->saAmfNGNodeList.end();
 		++iter) {
@@ -564,12 +573,409 @@ static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 }
 
 /**
+ * @brief  sets admin state of ng. Update in IMM, saflogging and notification for it.
+ * @param  ptr to Nodegroup (AVD_AMF_NG).
+ * @param  state(SaAmfAdminStateT).
+ */
+void avd_ng_admin_state_set(AVD_AMF_NG* ng, SaAmfAdminStateT state)
+{
+	SaAmfAdminStateT old_state = ng->saAmfNGAdminState;
+	
+	osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	TRACE_ENTER2("%s AdmState %s => %s", ng->name.value,
+			avd_adm_state_name[old_state], avd_adm_state_name[state]);
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", ng->name.value,
+                  avd_adm_state_name[old_state], avd_adm_state_name[state]);      
+	ng->saAmfNGAdminState = state;
+	avd_saImmOiRtObjectUpdate(&ng->name,
+			const_cast<SaImmAttrNameT>("saAmfNGAdminState"), 
+			SA_IMM_ATTR_SAUINT32T, &ng->saAmfNGAdminState);
+}
+/**
+ * @brief  Verify if Node is stable for admin operation on Nodegroup etc.
+ * @param  ptr to node(AVD_AVND).
+ * @param  ptr to nodegroup(AVD_AMF_NG).
+ * @Return SA_AIS_OK/SA_AIS_ERR_TRY_AGAIN/SA_AIS_ERR_BAD_OPERATION.
+*/
+static SaAisErrorT check_node_stability(const AVD_AVND *node, const AVD_AMF_NG *ng)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	if (node->admin_node_pend_cbk.admin_oper != 0) {
+		LOG_NO("'%s' undergoing admin operation", node->name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+	if (node->clm_pend_inv != 0) {
+		LOG_NO("'%s' Clm operation going on", node->name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+                goto done;
+        }
+	for (AVD_SU *su = node->list_of_su; su != NULL;  
+			su = su->avnd_list_su_next) {
+		rc = su->sg_of_su->check_sg_stability();	
+		if (rc != SA_AIS_OK)
+			goto done;
+		rc = su->check_su_stability();
+		if (rc != SA_AIS_OK)
+			goto done;
+	}
+done:
+	return rc;
+}
+/**
+ * @brief  Ccheck for unsupported red model and warning for service outage in any SG.
+ * @param  ptr to node(AVD_AVND).
+ * @param  ptr to nodegroup(AVD_AMF_NG).
+ * @Return SA_AIS_OK/SA_AIS_ERR_BAD_OPERATION.
+*/
+static SaAisErrorT check_red_model_service_outage(const AVD_AMF_NG *ng)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	std::set<std::string> tmp_sg_list;
+	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+			iter != ng->saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		for (AVD_SU *su = node->list_of_su; su != NULL;  
+				su = su->avnd_list_su_next) {
+			//Make a temorary list_of_SG for later verification of service outage.
+			tmp_sg_list.insert(Amf::to_string(&su->sg_of_su->name));
+		}
+	}
+	for (std::set<std::string>::const_iterator iter =  tmp_sg_list.begin();
+                                iter != tmp_sg_list.end(); ++iter) {
+		AVD_SG *sg = sg_db->find(*iter);
+		/*
+		   To avoid service outage of complete SG check if there exists atleast
+		   one instantiable or atleast one in service SU outside the nodegroup.
+		 */
+		//As of now, AMF will throw only warning, but operation will continue.	
+		if (sg->is_sg_serviceable_outside_ng(ng) == true)
+			LOG_NO("service outage for '%s' because of shutdown/lock "
+					"on '%s'",sg->name.value,ng->name.value);
+
+		if ((sg->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) ||
+				(sg->sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL)) { 
+			LOG_NO("Admin op on '%s'  hosting SUs of '%s' with redundancy '%u' "
+					"is not supported",ng->name.value, sg->name.value,
+					sg->sg_redundancy_model);
+			rc = SA_AIS_ERR_NOT_SUPPORTED;
+			tmp_sg_list.clear();
+			goto done;
+		}
+	}
+	tmp_sg_list.clear();
+done:
+	return rc;
+}
+/**
+ * @brief  Verify if all the AMF entities are stable in NodeGroup.
+ *         If all the entities are stable then AMF can accept
+ *         admin operation on nodegroup.
+ * @param  ptr to nodegroup(AVD_AMF_NG).
+ * @Return SA_AIS_OK/SA_AIS_ERR_TRY_AGAIN/SA_AIS_ERR_BAD_OPERATION.
+*/
+static SaAisErrorT check_ng_stability(const AVD_AMF_NG *ng)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+		
+	if (ng->admin_ng_pend_cbk.admin_oper != 0) {
+		LOG_NO("'%s' is already undergoing admin operation", ng->name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+	//Check for other AMF entities which are part of nodegroup.	
+	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+                                iter != ng->saAmfNGNodeList.end(); ++iter) {
+                        AVD_AVND *node = avd_node_get(*iter);
+			rc = check_node_stability(node, ng);
+			if (rc != SA_AIS_OK)
+				goto done;
+	}
+done:
+	return rc;
+}
+/**
+ * @brief       This function completes admin operation on Nodegroup.
+ *              It responds IMM with the result of admin operation on Nodegroup.
+ *              It also unsets all the admin op related parameters.
+ * @param       ptr to Nodegroup (AVD_AMF_NG). 
+ */
+void ng_complete_admin_op(AVD_AMF_NG *ng, SaAisErrorT result)
+{
+	if (ng->admin_ng_pend_cbk.invocation != 0) {
+		TRACE("Replying to IMM for admin op on '%s'", ng->name.value);
+		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
+				ng->admin_ng_pend_cbk.invocation, result);
+		ng->admin_ng_pend_cbk.invocation = 0;
+		ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+	}
+	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+			iter != ng->saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		node->admin_ng = NULL;
+	}
+}
+/**
+ * @brief       Handles node level funtionality during nodegroup lock
+ *              or shutdown operation. For each SU hosted on this node, 
+ *              it calls redundancy model specific handler (sg->ng_admin()),
+ *              defined in the sg_*_fsm.cc, to handle assignments at SU level. 
+ *              Also it updates ng->node_oper_list for tracking operation on 
+ *              this node.
+ * @param       ptr to Node (AVD_AVND).
+ */
+void ng_node_lock_and_shutdown(AVD_AVND *node)
+{
+	TRACE_ENTER2("'%s'",node->name.value);
+	if (node->node_info.member == false) {
+		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+		LOG_NO("%s' LOCK: CLM node is not member", node->name.value);
+		return;
+	}
+	if (avd_cb->init_state == AVD_INIT_DONE) {
+		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+		for(AVD_SU *su = node->list_of_su; su != NULL; su = su->avnd_list_su_next) {
+			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+		}
+		return;
+	}
+	if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
+		return;
+	for (AVD_SU *su = node->list_of_su; su != NULL;  su = su->avnd_list_su_next) {
+		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+		su->sg_of_su->ng_admin(su, node->admin_ng);
+	}
+	if (node->su_cnt_admin_oper > 0)
+		node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+	TRACE_LEAVE2("node_oper_list size:%u",node->admin_ng->oper_list_size());
+}
+/*
+ * @brief       Handles unlock of nodegroup. For each SU hosted on this node,
+ *              it calls redundancy model specific assignment handler i.e 
+ *	        (sg->su_insvc()), defined in the sg_*_fsm.cc, to assign SUs 
+ *              based on ranks. Also SG of each SU is looked for instantiation of 
+ *		new SUs. Also it updates ng->node_oper_list for tracking operation
+ * 		on this node.
+ * @param       ptr to Nodegroup (AVD_AMF_NG).
+ */
+void ng_unlock(AVD_AMF_NG *ng)
+{
+	TRACE_ENTER2("'%s'",ng->name.value);
+	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+			iter != ng->saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		node_admin_state_set(node, SA_AMF_ADMIN_UNLOCKED);
+		if (node->node_info.member == false) {
+			LOG_NO("'%s' UNLOCK: CLM node is not member", node->name.value);
+			continue;
+		}
+		node->su_cnt_admin_oper = 0;
+		node->admin_ng = ng;
+	}
+	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+			iter != ng->saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		if ((node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) ||
+				(node->node_info.member == false))
+			continue;
+		for (AVD_SU *su = node->list_of_su; su != NULL;  su = su->avnd_list_su_next) {
+			if (su->is_in_service() == true) {
+				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+			}
+		}
+	}
+	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+			iter != ng->saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		if ((node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) ||
+				(node->node_info.member == false) ||
+				(avd_cb->init_state == AVD_INIT_DONE))
+			continue;
+		/*
+		   By this time Nodes of node group are in unlocked state.Let the
+		   SG semantics decide which su to chose for assignment and instantiation. 
+		 */
+		for (AVD_SU *su = node->list_of_su; su != NULL;  su = su->avnd_list_su_next) {
+			su->sg_of_su->su_insvc(avd_cb, su);
+			avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
+		}
+		if (node->su_cnt_admin_oper > 0)
+			node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+	}
+	TRACE_LEAVE2("node_oper_list size:%u",ng->oper_list_size());
+}
+/**
+ * Handle admin operations on SaAmfNodeGroup objects.
+ *
+ * @param immoi_handle
+ * @param invocation
+ * @param ng_name
+ * @param op_id
+ * @param params
+ */
+static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
+		const SaNameT *ng_name, SaImmAdminOperationIdT op_id,
+		const SaImmAdminOperationParamsT_2 **params)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	AVD_AMF_NG *ng = avd_ng_get(ng_name);	
+	TRACE_ENTER2("'%s', inv:'%llu', op:'%llu'",ng_name->value,invocation,op_id);
+
+	switch(op_id) {
+	case SA_AMF_ADMIN_LOCK:
+		rc = check_ng_stability(ng);	
+		if (rc != SA_AIS_OK) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, 
+					SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Some entity is unstable, Operation cannot "
+					"be performed on '%s'"
+					"Check syslog for entity details", ng_name->value);
+			goto done;
+		}
+		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED) {
+                        report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+                                        "'%s' Already in LOCKED state", ng->name.value);
+                        goto done;
+                }
+		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation LOCK in state %s",
+					ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+			goto done;
+		}
+		rc = check_red_model_service_outage(ng);
+		if (rc != SA_AIS_OK) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, 
+					SA_AIS_ERR_NOT_SUPPORTED, NULL,
+					"SUs of unsupported red models hosted on '%s'"
+					"Check syslog for entity details", ng_name->value);
+			goto done;
+		}
+		ng->admin_ng_pend_cbk.invocation = invocation;
+		ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
+		ng->node_oper_list.clear();
+
+		avd_ng_admin_state_set(ng, SA_AMF_ADMIN_LOCKED);
+		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+				iter != ng->saAmfNGNodeList.end(); ++iter) {
+			AVD_AVND *node = avd_node_get(*iter);
+			node->su_cnt_admin_oper = 0;
+			node->admin_ng = ng;
+			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+		}
+		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+				iter != ng->saAmfNGNodeList.end(); ++iter) {
+			AVD_AVND *node = avd_node_get(*iter);
+			ng_node_lock_and_shutdown(node);
+		}
+		if (ng->node_oper_list.empty())
+			ng_complete_admin_op(ng, SA_AIS_OK);
+		break;
+	case SA_AMF_ADMIN_SHUTDOWN:
+		rc = check_ng_stability(ng);	
+		if (rc != SA_AIS_OK) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, 
+					SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Some entity is unstable, Operation cannot "
+					"be performed on '%s'"
+					"Check syslog for entity details", ng_name->value);
+			goto done;
+		}
+		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"'%s' Already in SHUTTING DOWN state", ng->name.value);
+			goto done;
+		}
+		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation SHUTDOWN in state %s",
+					ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+			goto done;
+		}
+		rc = check_red_model_service_outage(ng);
+		if (rc != SA_AIS_OK) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, 
+					SA_AIS_ERR_NOT_SUPPORTED, NULL,
+					"SUs of unsupported red models hosted on '%s'"
+					"Check syslog for entity details", ng_name->value);
+			goto done;
+		}
+		ng->admin_ng_pend_cbk.invocation = invocation;
+		ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
+		ng->node_oper_list.clear();
+
+		avd_ng_admin_state_set(ng, SA_AMF_ADMIN_SHUTTING_DOWN);
+		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+				iter != ng->saAmfNGNodeList.end(); ++iter) {
+			AVD_AVND *node = avd_node_get(*iter);
+			node->su_cnt_admin_oper = 0;
+			node->admin_ng = ng;
+			node_admin_state_set(node, SA_AMF_ADMIN_SHUTTING_DOWN);
+		}
+		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+				iter != ng->saAmfNGNodeList.end(); ++iter) {
+			AVD_AVND *node = avd_node_get(*iter);
+			ng_node_lock_and_shutdown(node);
+			if (node->su_cnt_admin_oper == 0)
+				node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+		}
+		if (ng->node_oper_list.empty())  {
+			avd_ng_admin_state_set(ng, SA_AMF_ADMIN_LOCKED);
+			for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+					iter != ng->saAmfNGNodeList.end(); ++iter) {
+				AVD_AVND *node = avd_node_get(*iter);
+				node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+			}
+			ng_complete_admin_op(ng, SA_AIS_OK);
+		}
+		break;
+	case SA_AMF_ADMIN_UNLOCK:
+		rc = check_ng_stability(ng);
+		if (rc != SA_AIS_OK) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation,
+					SA_AIS_ERR_TRY_AGAIN, NULL,
+					"Some entity is unstable, Operation cannot "
+					"be performed on '%s'"
+					"Check syslog for entity details", ng_name->value);
+			goto done;
+		}
+		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_UNLOCKED) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+					"'%s' Already in UNLOCKED state", ng->name.value);
+                        goto done;
+		}
+		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) {
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"'%s' Invalid Admin Operation UNLOCK in state %s",
+                                        ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+                        goto done;
+                }
+		ng->admin_ng_pend_cbk.invocation = invocation;
+		ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(op_id);
+		ng->node_oper_list.clear();
+
+		avd_ng_admin_state_set(ng, SA_AMF_ADMIN_UNLOCKED);
+		ng_unlock(ng);
+		if (ng->node_oper_list.empty())
+			ng_complete_admin_op(ng, SA_AIS_OK);
+		break;
+	default:
+		report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+				"Operation is not supported (%llu)", op_id);
+		break;
+	}
+done:
+	TRACE_LEAVE();
+}
+
+/**
  * Constructor for node group class. Should be called first of all.
  */
 void avd_ng_constructor(void)
 {
 	nodegroup_db = new AmfDb<std::string, AVD_AMF_NG>;
-	avd_class_impl_set("SaAmfNodeGroup", NULL, NULL, ng_ccb_completed_cb,
+	avd_class_impl_set("SaAmfNodeGroup", NULL, ng_admin_op_cb, ng_ccb_completed_cb,
 			ng_ccb_apply_cb);
 }
 

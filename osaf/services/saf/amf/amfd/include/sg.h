@@ -41,6 +41,7 @@
 #include <amf_defs.h>
 #include <amf_d2nmsg.h>
 #include "db_template.h"
+#include "node.h"
 
 class AVD_SU;
 class AVD_SI;
@@ -382,7 +383,28 @@ public:
 	virtual uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act,
 		SaAmfHAStateT state) = 0;
-
+	/**
+         * Handle NG admin operation lock and shutdown.
+         * Default implementation in base class (not pure virtual)
+         * @param su
+         * @param ng 
+         * @return
+         */
+	virtual void ng_admin(AVD_SU *su, AVD_AMF_NG *ng);
+	 /**
+         * Checks if SG has assignments only on the nodes of nodegroup. 
+         * @param ng
+         * @return
+         */
+	bool is_sg_assigned_only_in_ng(const AVD_AMF_NG *ng);
+	/**
+         * Does an instantiable or an inservice SU exist outside the nodegroup.
+         * @param ng
+         * @return
+         */
+	bool is_sg_serviceable_outside_ng(const AVD_AMF_NG *ng);
+	SaAisErrorT check_sg_stability();
+	bool ng_using_saAmfSGAdminState;
 private:
 	// disallow copy and assign, TODO(hafe) add common macro for this
 	AVD_SG(const AVD_SG&);

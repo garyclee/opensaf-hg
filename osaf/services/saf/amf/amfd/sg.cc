@@ -136,6 +136,7 @@ AVD_SG::AVD_SG():
 	su_oper_list.su = NULL;
 	su_oper_list.next = NULL;
 	adminOp_invocationId = 0;
+	ng_using_saAmfSGAdminState = false;
 }
 
 static AVD_SG *sg_new(const SaNameT *dn, SaAmfRedundancyModelT redundancy_model)
@@ -1811,6 +1812,10 @@ SaAisErrorT AVD_SG::si_swap(AVD_SI *si, SaInvocationT invocation) {
 	return SA_AIS_ERR_NOT_SUPPORTED;
 }
 
+// default implementation
+void AVD_SG::ng_admin(AVD_SU* su, AVD_AMF_NG* ng) {
+	return;
+}
 /**
  * @brief  Checks if SG is stable with respect to lock-in or unlock-on operation.  
  *
@@ -1884,4 +1889,81 @@ bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg)
 	}
 		
 	return true;
+}
+/*
+ * @brief      Checks if SG has assignments only in the nodes of nodegroup.
+ * @param[in]  ptr to Nodegroup (AVD_AMF_NG).   
+ * @return     true/false.
+ */
+bool AVD_SG::is_sg_assigned_only_in_ng(const AVD_AMF_NG *ng)
+{
+	for (AVD_SU *su = list_of_su; su; su = su->sg_list_su_next) {
+		if (su->list_of_susi == NULL)
+			continue;
+		//Return if this assigned su is not in this ng.
+		if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false)
+			return false;
+	}
+	return true;
+}
+/*
+ * @brief      Checks if there exists atleast one instantiable or inservice
+ *             SU outside the nodegroup. 
+ * @param[in]  ptr to Nodegroup (AVD_AMF_NG).
+ * @return     true/false.
+ */
+bool AVD_SG::is_sg_serviceable_outside_ng(const AVD_AMF_NG *ng)
+{
+	for (AVD_SU *su = list_of_su; su; su = su->sg_list_su_next) {
+		//Check if any su exists outside nodegroup for this sg. 
+		if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false) {
+			/* 
+			   During lock or shutdown operation on Node or SU, AMF
+			   instantiates new SUs or it will switch-over existing 
+			   assignments of locked Node or SU to other SUs.
+			   To avoid service outage of complete SG check if 
+			   there exists atleast one instantiable or atleast one 
+			   in service SU outside the nodegroup.
+			 */
+			//TODO_NG:Evaluate if more parameters can be checked.
+			if ((su->is_instantiable() == true) || 
+					 (su->is_in_service() == true))
+				return false;
+		}
+	}
+	return true;
+}
+/**
+ * @brief  Verify if SG is stable for admin operation on entity 
+           Node, App and Nodegroup etc.
+ * @param  ptr to SG(AVD_SG).
+ * @Return SA_AIS_OK/SA_AIS_ERR_TRY_AGAIN/SA_AIS_ERR_BAD_OPERATION.
+*/
+SaAisErrorT AVD_SG::check_sg_stability()
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	if (sg_fsm_state != AVD_SG_FSM_STABLE) {
+		LOG_NO("'%s' is in unstable/transition state", name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+	if ((adminOp_invocationId != 0) || (adminOp != 0))  {
+		LOG_NO("Admin operation is already going on '%s' ", name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+        }
+	if (sg_is_tolerance_timer_running_for_any_si(this)) {
+		LOG_NO("Tolerance timer is running for some of the SI's in the SG '%s',"
+				" so differing admin opr", name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+                goto done;
+        }
+	if (csi_assignment_validate(this) == true) {
+                LOG_NO("Single Csi assignment undergoing in '%s'", name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+                goto done;
+        }
+done:
+	return rc;
+
 }

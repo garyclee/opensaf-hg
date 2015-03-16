@@ -117,6 +117,14 @@
 			<flag>SA_INITIALIZED</flag>
 			<flag>SA_WRITABLE</flag>
 		</attr>
+		<attr>
+			<name>saAmfNGAdminState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<default-value>1</default-value>
+		</attr>
 	</class>
 	<class name="SaAmfNodeSwBundle">
 		<category>SA_CONFIG</category>

@@ -241,9 +241,16 @@ npisu_done:
 
 	if (false == ckpt) {
 		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN, false, NULL) == NCSCC_RC_SUCCESS) {
-			if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
-				su->su_on_node->su_cnt_admin_oper++;
-				TRACE("su_cnt_admin_oper:%u", su->su_on_node->su_cnt_admin_oper);
+			AVD_AVND *node = su->su_on_node;
+			if ((node->admin_node_pend_cbk.invocation != 0) || ((node->admin_ng != NULL) &&
+						(node->admin_ng->admin_ng_pend_cbk.invocation !=0))) {
+				node->su_cnt_admin_oper++;
+				TRACE("node:'%s', su_cnt_admin_oper:%u", 
+						node->name.value, node->su_cnt_admin_oper);
+				if (node->admin_ng != NULL) {
+					node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+					TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
+				}
 			}
 		} else {
 			/* free all the CSI assignments and end this loop */
@@ -311,7 +318,78 @@ static void node_complete_admin_op(AVD_AVND *node, SaAisErrorT result)
 		node->admin_node_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 	}
 }
-
+/**
+ * @brief       When AMFD gets assignment response message or escalation
+ *              request from AMFND, it runs SG FSM. In the context of admin
+ *              operation on any AMF entity, after running SG FSM, AMFD 
+ *              evaluates if this message or request marks the completion 
+ *              of admin operation or atleast makes some progress in admin 
+ *              operation. This functions evaluates the message or request 
+ *              for nodegroup admin operation.
+ * @param[in]   ptr to SU (AVD_SU). 
+ * @param[in]   res(SaAisErrorT). 
+ */
+static void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
+{
+	TRACE_ENTER2("'%s'",su->name.value);
+	AVD_AMF_NG *ng = su->su_on_node->admin_ng;
+	AVD_AVND *node = su->su_on_node;
+	bool flag = false;
+	/* Node may be in SHUTTING_DOWN state because of shutdown operation
+	   on nodegroup. Check if node can be transitioned to LOCKED sate.*/ 
+	if (node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+		m_AVD_IS_NODE_LOCK(node, flag);
+		if (flag == true)
+			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+	}
+	/*In 2N model, if both active or standby SUs were part of nodegroup then
+	  AMFD internally executes operation as equivalent to SG shutdown/lock.
+	  So after completion of operation, clear SG admin state and give fresh
+	  assignments outside the nodegroup.*/
+	if ((su->sg_of_su->ng_using_saAmfSGAdminState == true) &&
+			(su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) &&
+			(su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)) {
+		su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_UNLOCKED;
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su->sg_of_su, AVSV_CKPT_SG_ADMIN_STATE);
+		su->sg_of_su->ng_using_saAmfSGAdminState = false;
+		TRACE("ng_using_saAmfSGAdminState:%u",su->sg_of_su->ng_using_saAmfSGAdminState);
+		su->sg_of_su->realign(avd_cb, su->sg_of_su);
+		if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE) {
+			/*This means no new assignments in the SG.*/
+			avd_sidep_sg_take_action(su->sg_of_su);
+			avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
+		}
+	}
+	if (ng == NULL)
+		goto done;
+	/* During nodegroup shutdown operation, mark nodegrouoop LOCKED if 
+	   all nodes transtioned to LOCKED state.*/
+	if (ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+		flag = true;		
+		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+				iter != ng->saAmfNGNodeList.end(); ++iter) {
+			AVD_AVND *tmp_node = avd_node_get(*iter);
+			if (tmp_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED)
+				flag = false;
+		}
+		if (flag == true) {
+			TRACE("Move '%s' to locked state as all nodes are locked.", ng->name.value);
+			avd_ng_admin_state_set(ng, SA_AMF_ADMIN_LOCKED);
+		}
+	}
+	/*If no futher SU is undergoing assignment changes, erase node from
+	   nodgroup operation tracking list.*/
+	if (node->su_cnt_admin_oper == 0) {
+		ng->node_oper_list.erase(Amf::to_string(&node->name));
+		TRACE("node_oper_list size:%u",ng->oper_list_size());
+	}
+	/*If assignment changes are done on all the SUs on each node of nodegroup
+	  then reply to IMM for status of admin operation.*/
+	if (ng->node_oper_list.empty())
+		ng_complete_admin_op(ng, res);
+done:
+	TRACE_LEAVE();
+}
 /**
  * @brief	Perform failover of SU as a single entity and free all SUSIs associated with this SU.
  * @param 	su 
@@ -337,8 +415,9 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 	else
 		su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
 	su->disable_comps(SA_AIS_ERR_TIMEOUT);
-	if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
-		/* Node level operation is going on the node hosting the SU for which 
+	if ((su->su_on_node->admin_node_pend_cbk.invocation != 0) ||
+			(su->su_on_node->admin_ng != NULL)) {
+		/* Node or nodegroup level operation is going on the node hosting the SU for which 
 		   sufailover got escalated. Sufailover event will always come after the 
 		   initiation of node level operation on the list of SUs. So if this SU has 
 		   list of SUSIs, AMF would have sent assignment as a part of node level operation.
@@ -358,8 +437,13 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 			su->su_on_node->su_cnt_admin_oper--;
 
 		/* If node level operation is finished on all the SUs, reply to imm.*/
-		if (su->su_on_node->su_cnt_admin_oper == 0)
-			node_complete_admin_op(su->su_on_node, res);
+		if (su->su_on_node->su_cnt_admin_oper == 0) {
+			AVD_AVND *node = su->su_on_node;
+			node_complete_admin_op(node, res);
+		}
+
+		/* If nodegroup level operation is finished on all the nodes, reply to imm.*/
+		process_su_si_response_for_ng(su, res);
 	}
 
 	/*If the AvD is in AVD_APP_STATE then reassign all the SUSI assignments for this SU */
@@ -770,6 +854,7 @@ static void susi_assign_msg_dump(const char *func, unsigned int line,
 	LOG_ER("%s:%d %s", func, line, info->si_name.value);
 	LOG_ER("%s:%d %s", func, line, info->su_name.value);
 }
+
 
 /*****************************************************************************
  * Function: avd_su_si_assign_func
@@ -1243,6 +1328,21 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				su->su_on_node->su_cnt_admin_oper = 0;
 			}
 			/* else admin oper still not complete */
+		} else if ((su->sg_of_su->sg_ncs_spec == false) && ((su->su_on_node->admin_ng != NULL) ||
+					(su->sg_of_su->ng_using_saAmfSGAdminState == true))) {
+			AVD_AMF_NG *ng = su->su_on_node->admin_ng;
+			//Got response from AMFND for assignments decrement su_cnt_admin_oper.
+			if ((ng != NULL) &&
+				(((((ng->admin_ng_pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ||
+				(ng->admin_ng_pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK)) &&
+				(su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) &&
+				(AVSV_SUSI_ACT_DEL == n2d_msg->msg_info.n2d_su_si_assign.msg_act))) ||
+					(ng->admin_ng_pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK))) {
+				su->su_on_node->su_cnt_admin_oper--;
+				TRACE("node:'%s', su_cnt_admin_oper:%u", 
+					su->su_on_node->name.value,su->su_on_node->su_cnt_admin_oper);
+			}
+			process_su_si_response_for_ng(su, SA_AIS_OK);
 		} else {
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				if ((su->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) && 
@@ -1838,6 +1938,12 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	}
 
+	/* If this node-failover/nodereboot occurs dueing nodegroup operation then check 
+	   if this leads to completion of operation and try to reply to imm.*/
+	if ((avnd->list_of_su != NULL) && (avnd->admin_ng != NULL)) {
+		avnd->su_cnt_admin_oper = 0;
+		process_su_si_response_for_ng(avnd->list_of_su, SA_AIS_OK);
+	}
 	TRACE_LEAVE();
 }
 
