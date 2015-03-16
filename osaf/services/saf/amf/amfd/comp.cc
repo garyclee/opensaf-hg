@@ -1602,3 +1602,17 @@ bool is_comp_assigned_any_csi(AVD_COMP *comp)
 	return false;
 
 }
+
+/**
+ * @brief  Verify if component is undergoing any admin operation.
+ * @param  ptr to component(AVD_COMP).
+ * @Return SA_AIS_OK/SA_AIS_ERR_TRY_AGAIN.
+ */
+SaAisErrorT check_comp_stability(const AVD_COMP *comp)
+{
+        if (comp->admin_pend_cbk.invocation != 0) {
+                LOG_NO("Component undergoing admin operation '%s'", comp->comp_info.name.value);
+                return SA_AIS_ERR_TRY_AGAIN;
+        }
+        return SA_AIS_OK;
+}

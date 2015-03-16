@@ -134,6 +134,9 @@ class AVD_SU {
 	void shutdown(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
 	void lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
 		SaAmfAdminStateT adm_state);
+	bool any_susi_fsm_in_unasgn();
+	bool any_susi_fsm_in_modify();
+	SaAisErrorT check_su_stability();
  private:
 	void initialize();
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);

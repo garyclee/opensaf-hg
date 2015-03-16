@@ -64,7 +64,7 @@ typedef struct avd_fail_over_node {
 
 	SaClmNodeIdT node_id;
 } AVD_FAIL_OVER_NODE;
-
+class AVD_AMF_NG;
 /* Availability directors Node Director structure(AVD_AVND): 
  * This data structure lives in the AvD and reflects data points
  * associated with the AvD's remote, distributed AvNDs. In addition
@@ -136,6 +136,7 @@ typedef struct avd_avnd_tag {
 	SaInvocationT clm_pend_inv; /* pending response for any clm track cb */
 	bool clm_change_start_preceded; /* to indicate there was CLM start cbk before CLM completed cb. */
 	bool recvr_fail_sw; /* to indicate there was node reboot because of node failover/switchover.*/
+	AVD_AMF_NG *admin_ng; /* points to the nodegroup on which admin operation is going on.*/	
 } AVD_AVND;
 
 bool operator<(const AVD_AVND& lhs, const AVD_AVND& rhs);
@@ -160,8 +161,16 @@ public:
 
 	struct avd_ng_tag *cluster_list_ng_next;
 	struct avd_cluster_tag *ng_on_cluster;
+	SaAmfAdminStateT  saAmfNGAdminState;
+	AVD_ADMIN_OPER_CBK admin_ng_pend_cbk;   /*to store any pending admin op
+						  callbacks on this node group*/
+	std::set<std::string> node_oper_list; /* list of nodes impacted because of 
+						 node group admin op */
+	uint32_t oper_list_size() const {
+		return node_oper_list.size();
+	}
 };
-
+extern AmfDb<std::string, AVD_AMF_NG> *nodegroup_db;
 #define AVD_AVND_NULL     ((AVD_AVND *)0)
 
 #define m_AVD_SET_AVND_RCV_ID(cb,node,rcvid) {\
@@ -220,4 +229,7 @@ extern bool node_in_nodegroup(const std::string& node, const AVD_AMF_NG *ng);
 /* AMF Node SW Bundle */
 extern void avd_nodeswbundle_constructor(void);
 
+extern void ng_complete_admin_op(AVD_AMF_NG *ng, SaAisErrorT result);
+extern void avd_ng_admin_state_set(AVD_AMF_NG* ng, SaAmfAdminStateT state);
+extern bool are_all_ngs_in_unlocked_state(const AVD_AVND *node);
 #endif

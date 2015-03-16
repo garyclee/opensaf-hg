@@ -1989,7 +1989,8 @@ bool AVD_SU::is_in_service(void) {
     			(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
     			(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
     			((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED ||
-    					saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING));
+    					saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING)) &&
+			(are_all_ngs_in_unlocked_state(node));
     } else {
             return (avd_cluster->saAmfClusterAdminState == SA_AMF_ADMIN_UNLOCKED) &&
             		(app->saAmfApplicationAdminState == SA_AMF_ADMIN_UNLOCKED) &&
@@ -1997,7 +1998,8 @@ bool AVD_SU::is_in_service(void) {
             		(sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) &&
             		(node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
             		(node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
-            		(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED);
+            		(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
+			(are_all_ngs_in_unlocked_state(node));
     }
 }
 
@@ -2019,7 +2021,8 @@ bool AVD_SU::is_instantiable(void) {
                         (node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
                         (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
                         (saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
-			(saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED);
+			(saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
+			(are_all_ngs_in_unlocked_state(node));
 }
 
 void AVD_SU::set_saAmfSUPreInstantiable(bool value) {
@@ -2100,4 +2103,67 @@ void AVD_SU::complete_admin_op(SaAisErrorT result)
 		pend_cbk.invocation = 0;
 		pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 	}
+}
+/**
+ * @brief    Checks if modification of assignment is sent for any SUSI in SU.
+ * @result   true/false  
+ */
+bool AVD_SU::any_susi_fsm_in_modify()
+{
+        for (AVD_SU_SI_REL *susi = list_of_susi; susi; susi = susi->su_next) {
+                if (susi->fsm == AVD_SU_SI_STATE_MODIFY)
+                        return true;
+        }
+        return false;
+}
+/**
+ * @brief    Checks if deletion of assignment is sent for any SUSI in SU.
+ * @result   true/false  
+ */
+bool AVD_SU::any_susi_fsm_in_unasgn()
+{
+        for (AVD_SU_SI_REL *susi = list_of_susi; susi; susi = susi->su_next) {
+                if (susi->fsm == AVD_SU_SI_STATE_UNASGN)
+                        return true;
+        }
+        return false;
+}
+/**
+ * @brief  Verify if SU is stable for admin operation on any higher 
+           level enity like SG, Node and Nodegroup etc.  
+ * @param  ptr to su(AVD_SU).
+ * @Return SA_AIS_OK/SA_AIS_ERR_TRY_AGAIN/SA_AIS_ERR_BAD_OPERATION.
+ *
+ * TODO: Such checks are present in node.cc and sg.cc also.
+   Replace such checks by this function call as a part of refactoring.
+*/
+SaAisErrorT AVD_SU::check_su_stability()
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	if (pend_cbk.admin_oper != 0) {
+		LOG_NO("'%s' undergoing admin operation", name.value);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) ||
+			(saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) ||
+			(saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING)) {
+		LOG_NO("'%s' has presence state '%u'", name.value,saAmfSUPresenceState);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
+			(saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+		LOG_NO("'%s' is in repair pending state", name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+	for (AVD_COMP *comp = list_of_comp; comp; comp = comp->su_comp_next) {
+		rc = check_comp_stability(comp);
+		if (rc != SA_AIS_OK)
+			goto done;
+        }
+done:
+	return rc;
 }

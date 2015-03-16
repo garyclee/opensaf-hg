@@ -599,7 +599,6 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-
 	/* Only accept this event in controller switch-over state, in other
 	 * states it is invalid and indicates severe cluster problems.
 	 */
@@ -664,7 +663,21 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		cb->swap_switch = false;
 		amfd_switch_qsd_actv(cb);
 	}
-
+	/*Since this AMFD has given up implementor role, clear admin operation params  
+	   for admin operation on nodegroup*/
+	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
+			it != nodegroup_db->end(); it++) {
+		AVD_AMF_NG *ng = it->second;
+		if (ng->admin_ng_pend_cbk.invocation != 0) {
+			ng->admin_ng_pend_cbk.invocation = 0;
+			ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+			for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+					iter != ng->saAmfNGNodeList.end(); ++iter) {
+				AVD_AVND *node = avd_node_get(*iter);
+				node->admin_ng = NULL;
+			}
+		}
+	}
 	TRACE_LEAVE();
 }
 
