@@ -241,11 +241,7 @@ int main(int argc, char* argv[])
 
 		if(!dumpClassesToPbe(immHandle, &classIdMap, dbHandle)) {
 			if(!localTmpFilename.empty()) {
-				std::string localTmpJournalFileName(localTmpFilename);
-				localTmpJournalFileName.append("-journal");
-				unlink(localTmpJournalFileName.c_str());
-				unlink(localTmpFilename.c_str());
-				localTmpFilename.clear();
+				pbeCleanTmpFiles(localTmpFilename);
 			}
 			LOG_ER("immpbe.cc: dumpClassesToPbe failed - exiting (line:%u)", __LINE__);
 			exit(1);
@@ -255,11 +251,7 @@ int main(int argc, char* argv[])
 		objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
 		if(objCount <= 0) {
 			if(!localTmpFilename.empty()) {
-				std::string localTmpJournalFileName(localTmpFilename);
-				localTmpJournalFileName.append("-journal");
-				unlink(localTmpJournalFileName.c_str());
-				unlink(localTmpFilename.c_str());
-				localTmpFilename.clear();
+				pbeCleanTmpFiles(localTmpFilename);
 			}
 			LOG_ER("immpbe.cc dumpObjectsToPbe failed - exiting (line:%u)", __LINE__);
 			exit(1);

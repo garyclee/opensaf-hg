@@ -64,6 +64,7 @@ std::string valueToString(SaImmAttrValueT, SaImmValueTypeT);
 void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmpFilename);
 void pbeAtomicSwitchFile(const char* filePath, std::string localTmpFilename);
 void pbeRepositoryClose(void* dbHandle);
+void pbeCleanTmpFiles(std::string localTmpFilename);
 bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
 bool dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,

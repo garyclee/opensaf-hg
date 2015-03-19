@@ -28,6 +28,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #include "saAis.h"
 #include "osaf_extended_name.h"
@@ -43,6 +44,9 @@
    It is relased in either pbeCommitTrans() or pbeAbortTrans().
    PbeCommitTrans() is only accepted after pbeClosePrepareTrans()
 */
+
+#define PBE_TMP_SUBDIR "/ImmPbeTmpSubDir"
+
 static volatile unsigned int sqliteTransLock=0;
 
 bool pbeTransStarted()
@@ -484,11 +488,11 @@ void pbeAtomicSwitchFile(const char* filePath, std::string localTmpFilename)
 					"cause:%s", shellCommand.c_str(), rc,
 					strerror(WEXITSTATUS(rc)));
 			}
-			unlink(localTmpFilename.c_str());
+			pbeCleanTmpFiles(localTmpFilename);
 			unlink(globalTmpFilename.c_str());
 			exit(1);
 		}
-		unlink(localTmpFilename.c_str());
+		pbeCleanTmpFiles(localTmpFilename);
 		LOG_NO("Moved %s to %s", localTmpFilename.c_str(),
 			globalTmpFilename.c_str());
 	}
@@ -545,6 +549,7 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 	sqlite3* dbHandle=NULL;
 	std::string globalTmpFilename;
 	localTmpFilename.clear();
+	char * immsvPbeTmpDir = NULL;
 	char * localTmpDir = NULL;
 	int rc=0;
 	SaImmRepositoryInitModeT rpi = (SaImmRepositoryInitModeT) 0;
@@ -601,7 +606,31 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 
 	globalTmpFilename.append(filePath);
 	globalTmpFilename.append(".tmp"); 
-	localTmpDir = getenv("IMMSV_PBE_TMP_DIR");
+	immsvPbeTmpDir = getenv("IMMSV_PBE_TMP_DIR");
+	if (immsvPbeTmpDir) {
+		localTmpDir = (char*) malloc(sizeof(char) * (strlen(immsvPbeTmpDir) + strlen(PBE_TMP_SUBDIR) + 1));
+		osafassert(localTmpDir);
+		localTmpDir[0] = '\0';
+		strcat(localTmpDir, immsvPbeTmpDir);
+		strcat(localTmpDir, PBE_TMP_SUBDIR);
+
+		/* Remove existing tmp dir */
+		std::string shellCommand("/bin/rm -r ");
+		shellCommand.append(localTmpDir);
+		shellCommand.append(" 2> /dev/null");
+		rc = system(shellCommand.c_str());
+		if (rc == -1) {
+			LOG_ER("Invocation of system(%s) failed, cause:%s",
+				shellCommand.c_str(), strerror(errno));
+		}
+
+		/* Make new empty tmp dir */
+		rc = mkdir(localTmpDir, S_IRWXU);
+		if (rc && errno != EEXIST) {
+			LOG_ER("Failed to create PBE tmp subdir '%s' cause:%s", localTmpDir, strerror(errno));
+			exit(1);
+		}
+	}
 	TRACE("TMP DIR:%s", localTmpDir);
 	if(localTmpDir) {
 		TRACE("IMMSV_PBE_TMP_DIR:%s", localTmpDir);
@@ -623,6 +652,7 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 				LOG_WA("Could not create local tmp file '%s' cause:%s - "
 					"reverting to global tmp file", 
 					buf, strerror(errno));
+				free(localTmpDir);
 				localTmpDir = NULL;
 				localTmpFilename.clear();
 			}
@@ -644,6 +674,7 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 				localTmpFilename.c_str(), sqlite3_errmsg(dbHandle));
 			LOG_WA("Reverting to generate on global tmpFile:%s  ..may take time", 
 				globalTmpFilename.c_str());
+			free(localTmpDir);
 			localTmpDir = NULL;
 			localTmpFilename.clear();
 			rc = 0;
@@ -677,6 +708,7 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 	prepareSqlStatements(dbHandle);
 
 	sPbeFileName = std::string(filePath); 
+	if (localTmpDir) free(localTmpDir);
 	TRACE_LEAVE();
 	return (void *) dbHandle;
 
@@ -782,12 +814,10 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 		discardPbeFile(std::string(filePath));
 	}
 	if(!localTmpFilename.empty()) {
-		std::string localTmpJournalFileName(localTmpFilename);
-		localTmpJournalFileName.append("-journal");
-		unlink(localTmpJournalFileName.c_str());
-		unlink(localTmpFilename.c_str());
+		pbeCleanTmpFiles(localTmpFilename);
 		localTmpFilename.clear();
 	}
+	if (localTmpDir) free(localTmpDir);
 	TRACE_LEAVE();
 	return NULL;
 }
@@ -796,6 +826,33 @@ void pbeRepositoryClose(void* dbHandle)
 {
 	finalizeSqlStatements();
 	sqlite3_close((sqlite3 *) dbHandle);
+}
+
+void pbeCleanTmpFiles(std::string localTmpFilename)
+{
+	TRACE_ENTER();
+
+	int rc = -1;
+	/* dirname() may modify the string pointed to by input filepath
+	 * copy the input filepath */
+	char* localTmpFilenameCopy = strdup(localTmpFilename.c_str());
+	osafassert(localTmpFilenameCopy);
+	char* localTmpDir = dirname(localTmpFilenameCopy);
+
+	TRACE("Removing tmp dir %s", localTmpDir);
+	std::string shellCommand("/bin/rm -r ");
+	shellCommand.append(localTmpDir);
+	rc = system(shellCommand.c_str());
+	if (rc == -1) {
+		LOG_ER("Invocation of system(%s) failed, cause:%s",
+			shellCommand.c_str(), strerror(errno));
+	} else if (rc) {
+		LOG_ER("Exit status for '%s' is %u != 0, cause:%s",
+			shellCommand.c_str(), rc, strerror(WEXITSTATUS(rc)));
+	}
+
+	free(localTmpFilenameCopy);
+	TRACE_LEAVE();
 }
 
 ClassInfo* classToPBE(std::string classNameString,
@@ -3086,6 +3143,11 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 void pbeRepositoryClose(void* dbHandle) 
 {
 	/* Dont abort, can be invoked from sigterm_handler */
+}
+
+void pbeCleanTmpFiles(std::string localTmpFilename)
+{
+	abort();
 }
 
 void pbeAtomicSwitchFile(const char* filePath, std::string localTmpFilename)
