@@ -216,6 +216,9 @@ int main(int argc, char* argv[])
 	} else {
             std::cerr << "immdump: dumpClassesToPbe failed - exiting, check syslog for details"
                 << std::endl;
+            if(!localTmpFilename.empty()) {
+                pbeCleanTmpFiles(localTmpFilename);
+            }
             exit(1);
 	}
 
@@ -229,6 +232,9 @@ int main(int argc, char* argv[])
 	} else if (selectedClassList.empty()) {
             std::cerr << "immdump: dumpObjectsToPbe failed - exiting, check syslog for details"
                 << std::endl;
+            if(!localTmpFilename.empty()) {
+                pbeCleanTmpFiles(localTmpFilename);
+            }
             exit(1);
 	}
 
