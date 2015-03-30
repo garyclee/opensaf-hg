@@ -34,6 +34,8 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 
+#include <dlfcn.h>
+
 #include <configmake.h>
 
 #include "daemon.h"
@@ -43,6 +45,8 @@
 #include <os_defs.h>
 #include <osaf_secutil.h>
 
+#include <sys/types.h>
+#include <time.h>
 
 #define DEFAULT_RUNAS_USERNAME	"opensaf"
 
@@ -56,6 +60,8 @@ static char __runas_username[UT_NAMESIZE];
 static unsigned int __tracemask;
 static unsigned int __nofork = 0;
 static int __logmask;
+
+static void install_fatal_signal_handlers(void);
 
 static void __print_usage(const char* progname, FILE* stream, int exit_code)
 {
@@ -350,6 +356,9 @@ void daemonize(int argc, char *argv[])
 	}
 #endif
 
+	/* install fatal signal handlers for writing backtrace to file */
+	install_fatal_signal_handlers();
+
 	/* Initialize the log/trace interface */
 	if (logtrace_init_daemon(basename(argv[0]), __tracefile, __tracemask, __logmask) != 0)
 		exit(EXIT_FAILURE);
@@ -413,4 +422,114 @@ void daemon_sigterm_install(int *term_fd)
 	}
 
 	*term_fd = term_sel_obj.rmv_obj;
+}
+
+static char *bt_filename = 0;
+
+static int (*plibc_backtrace) (void **buffer, int size) = NULL;
+static int (*plibc_backtrace_symbols_fd) (void *const *buffer, int size, int fd) = NULL;
+
+static int init_backtrace_fptrs(void)
+{
+	plibc_backtrace = dlsym(RTLD_DEFAULT, "backtrace");
+	if (plibc_backtrace == NULL) {
+		syslog(LOG_ERR, "unable to find \"backtrace\" symbol");
+		return -1;
+	}
+	plibc_backtrace_symbols_fd = dlsym(RTLD_DEFAULT, "backtrace_symbols_fd");
+	if (plibc_backtrace_symbols_fd == NULL) {
+		syslog(LOG_ERR, "unable to find \"backtrace_symbols_fd\" symbol");
+		return -1;
+	}
+	return 0;
+}
+
+/**
+ * Signal handler for fatal errors. Writes a backtrace and "re-throws" the signal.
+ */
+static void fatal_signal_handler(int sig, siginfo_t* siginfo, void* ctx)
+{
+	const int BT_ARRAY_SIZE = 20;
+	void *bt_array[BT_ARRAY_SIZE];
+	size_t bt_size;
+	int fd;
+	char bt_header[40];
+
+	if ((fd = open(bt_filename, O_RDWR|O_CREAT, 0644)) < 0) {
+		goto done;
+	}
+
+	snprintf(bt_header, sizeof(bt_header), "signal: %d pid: %u uid: %u\n",
+		sig, siginfo->si_pid, siginfo->si_uid);
+
+	if (write(fd, bt_header, strlen(bt_header)) < 0) {
+		close(fd);
+		goto done;
+	}
+
+	bt_size = plibc_backtrace(bt_array, BT_ARRAY_SIZE);
+	plibc_backtrace_symbols_fd(bt_array, bt_size, fd);
+
+	close(fd);
+done:
+	// re-throw the signal
+	raise(sig);
+}
+
+/**
+ * Install signal handlers for fatal errors to be able to print a backtrace.
+ */
+static void install_fatal_signal_handlers(void)
+{
+	size_t bt_filename_size = 0;
+	time_t current_time;
+	char time_string[20];
+
+	struct sigaction action;
+	int i = 0;
+	const int HANDLED_SIGNALS_MAX = 7;
+	static const int handled_signals[] = {
+		SIGHUP,
+		SIGILL,
+		SIGABRT,
+		SIGFPE,
+		SIGSEGV,
+		SIGPIPE,
+		SIGBUS
+	};
+
+	// to circumvent lsb use dlsym to retrieve backtrace in runtime
+	if (init_backtrace_fptrs() < 0) {
+		syslog(LOG_WARNING, "backtrace symbols not found, no fatal signal handlers will be installed");
+	} else {
+
+		// prepare a filename for backtrace
+		time_string[0] = '\0';
+
+		if (time(&current_time) < 0) {
+			syslog(LOG_WARNING, "time failed: %s", strerror(errno));
+		} else {
+			if (strftime(time_string, sizeof(time_string), "%Y%m%d_%T", localtime(&current_time)) == 0) {
+				syslog(LOG_WARNING, "strftime failed");
+			}
+		}
+
+		// 16 = "/bt__" (5) + sizeof pid_t (10) + \0 (1)
+		bt_filename_size = strlen(PKGLOGDIR) + strlen(time_string) + 16;
+
+		bt_filename = (char *) malloc(bt_filename_size);
+
+		snprintf(bt_filename, bt_filename_size, PKGLOGDIR "/bt_%s_%d", time_string, getpid());
+
+		memset(&action, 0, sizeof(action));
+		action.sa_sigaction = fatal_signal_handler;
+		sigfillset(&action.sa_mask);
+		action.sa_flags = SA_RESETHAND | SA_SIGINFO;
+
+		for (i = 0; i < HANDLED_SIGNALS_MAX; ++i) {
+			if (sigaction(handled_signals[i], &action, NULL) < 0) {
+				syslog(LOG_WARNING, "sigaction %d failed: %s", handled_signals[i], strerror(errno));
+			}
+		}
+	}
 }
