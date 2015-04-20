@@ -56,6 +56,10 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#include <signal.h>
+#include <sys/wait.h>
+#include <stdint.h>
+
 #include <configmake.h>
 #include <rda_papi.h>
 #include <logtrace.h>
@@ -1084,6 +1088,55 @@ uint32_t check_process(NID_SPAWN_INFO *service)
 	TRACE_LEAVE();
 }
 
+
+/****************************************************************************
+ * Name          : get_pid_from_file                                        *
+ *                                                                          *
+ * Description   : Retrieves the given service name pid.                    *
+ *                                                                          *
+ * Arguments     : service name.                                            *
+ *                                                                          *
+ * Return Values : > 0 - process id of given service                        *
+ *                 -1 - error, see syslog                                   *
+ *                                                                          *
+ ***************************************************************************/
+static pid_t get_pid_from_file(const char* service_name)
+{
+	char pid_file[NAME_MAX];
+
+	char prog_name[40];
+	char *service, *tmp;
+	FILE *f;
+	pid_t pid;
+
+	service = (char*) malloc(strlen(service_name) +1);
+	strcpy(service, service_name);
+	tmp = service;
+	for ( ; *tmp; ++tmp) *tmp = tolower(*tmp);
+
+	snprintf(prog_name, sizeof(prog_name), "osaf%s", service);
+	free(service);
+
+	snprintf(pid_file, sizeof(pid_file), PKGPIDDIR "/%s.pid", prog_name);
+
+	if ((f = fopen(pid_file, "r")) == NULL) {
+		LOG_WA("Failed to open %s", pid_file);
+		return -1;
+	}
+
+	if (fscanf(f, "%d", &pid) == 0) {
+		LOG_WA("Could not read PID from file %s", pid_file);
+		return -1;
+	}
+
+	if (fclose(f) != 0) {
+		LOG_WA("Could not close file");
+		return -1;
+	}
+
+	return pid;
+}
+
 /****************************************************************************
  * Name          : cleanup                                                  *
  *                                                                          *
@@ -1108,6 +1161,38 @@ void cleanup(NID_SPAWN_INFO *service)
 	nid_close_ipc();
 	select_fd = -1;
 
+	pid_t w_pid;
+	pid_t pid;
+	int status;
+	uint32_t no_of_retries = 0;
+	const uint32_t MAX_NO_RETRIES = 5;
+
+	// get pid of current service_name instead of the parent pid
+	pid = get_pid_from_file(service->serv_name);
+	if (pid > 0) {
+		if (check_process(service)) {
+			// send abort signal to process to generate a core dump
+			LOG_ER("Sending SIGABRT to %s, pid=%d, (origin parent pid=%d)", service->serv_name, pid, service->pid);
+			if (kill(pid, SIGABRT) >= 0) {
+				// wait a short period for process to exit
+				do {
+					w_pid = waitpid(service->pid, &status, WNOHANG);
+					if (w_pid < 0) {
+						if (errno == EINTR)
+							continue;
+						else
+							break;
+					} else if (w_pid > 0) {
+						if (WIFEXITED(status) || WIFSIGNALED(status)) {
+							break;
+						}
+					}
+					sleep(1);
+				} while (++no_of_retries < MAX_NO_RETRIES);
+			}
+		}
+	}
+	// if sending abort signal did not succeed, fallback to sigkill
 	if (check_process(service)) {
 		LOG_ER("Sending SIGKILL to %s, pid=%d", service->serv_name, service->pid);
 		kill(service->pid, SIGKILL);
