@@ -37,7 +37,7 @@
 #define FD_CLM   2 
 #define FD_MBCSV 3
 
-static const char* internal_version_id_  __attribute__ ((unused)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
+static const char* internal_version_id_  __attribute__ ((used)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
 
 static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
 
