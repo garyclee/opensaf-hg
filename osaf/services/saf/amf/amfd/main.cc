@@ -57,7 +57,7 @@
 #include <sutype.h>
 #include <su.h>
 
-static const char* internal_version_id_  __attribute__ ((unused)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
+static const char* internal_version_id_  __attribute__ ((used)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
 
 enum {
 	FD_TERM = 0,
