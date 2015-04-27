@@ -48,6 +48,8 @@
 #include <sys/types.h>
 #include <time.h>
 
+#include <sys/prctl.h>
+
 #define DEFAULT_RUNAS_USERNAME	"opensaf"
 
 static const char* internal_version_id_; 
@@ -206,6 +208,9 @@ static void __parse_options(int argc, char *argv[])
 
 void daemonize(int argc, char *argv[])
 {
+#ifndef RUNASROOT
+	static int (*plibc_prctl) (int option, ...) = NULL;
+#endif
 	pid_t pid, sid;
 	struct sched_param param;
 	char *thread_prio;
@@ -348,6 +353,13 @@ void daemonize(int argc, char *argv[])
 			if ((pw->pw_uid > 0) && (setuid(pw->pw_uid) < 0)) {
 				syslog(LOG_ERR, "setuid failed, uid=%d (%s)", pw->pw_uid, strerror(errno));
 				exit(EXIT_FAILURE);
+			}
+			// Enable generating core files
+			plibc_prctl = dlsym(RTLD_DEFAULT, "prctl");
+			if (plibc_prctl) {
+				if (plibc_prctl(PR_SET_DUMPABLE, 1) < 0) {
+					syslog(LOG_ERR, "prctl failed: %s", strerror(errno));
+				}
 			}
 		} else {
 			syslog(LOG_ERR, "invalid user name %s", __runas_username);
