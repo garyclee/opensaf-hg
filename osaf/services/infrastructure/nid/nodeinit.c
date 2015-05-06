@@ -106,8 +106,8 @@ static NID_APP_TYPE get_apptype(char *);
 static uint32_t get_spawn_info(char *, NID_SPAWN_INFO *, char *);
 static uint32_t parse_nodeinit_conf(char *strbuf);
 static uint32_t check_process(NID_SPAWN_INFO *service);
-static void cleanup(NID_SPAWN_INFO *service);
-static uint32_t recovery_action(NID_SPAWN_INFO *, char *);
+static void cleanup(NID_SPAWN_INFO *service, int reason);
+static uint32_t recovery_action(NID_SPAWN_INFO *, char *, int);
 static uint32_t spawn_services(char *);
 static void nid_sleep(uint32_t);
 
@@ -913,7 +913,7 @@ void collect_param(char *params, char *s_name, char *args[])
  * Arguments     : service - service details for spawning.                  *
  *                 strbuff - Buffer to return error message if any.         *
  *                                                                          *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE/NCSCC_RC_REQ_TIMOUT.   *
  *                                                                          *
  ***************************************************************************/
 uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
@@ -989,7 +989,7 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 	while ((n = osaf_poll_one_fd(select_fd, service->time_out * 10)) <= 0) {
 		if (n == 0) {
 			LOG_ER("Timed-out for response from %s", service->serv_name);
-			return NCSCC_RC_FAILURE;
+			return NCSCC_RC_REQ_TIMOUT;
 		}
 		break;
 	}
@@ -1151,7 +1151,7 @@ static pid_t get_pid_from_file(const char* service_name)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-void cleanup(NID_SPAWN_INFO *service)
+void cleanup(NID_SPAWN_INFO *service, int reason)
 {
 	char strbuff[256];
 
@@ -1168,27 +1168,29 @@ void cleanup(NID_SPAWN_INFO *service)
 	const uint32_t MAX_NO_RETRIES = 5;
 
 	// get pid of current service_name instead of the parent pid
-	pid = get_pid_from_file(service->serv_name);
-	if (pid > 0) {
-		if (check_process(service)) {
-			// send abort signal to process to generate a core dump
-			LOG_ER("Sending SIGABRT to %s, pid=%d, (origin parent pid=%d)", service->serv_name, pid, service->pid);
-			if (kill(pid, SIGABRT) >= 0) {
-				// wait a short period for process to exit
-				do {
-					w_pid = waitpid(service->pid, &status, WNOHANG);
-					if (w_pid < 0) {
-						if (errno == EINTR)
-							continue;
-						else
-							break;
-					} else if (w_pid > 0) {
-						if (WIFEXITED(status) || WIFSIGNALED(status)) {
-							break;
+	if (reason == NCSCC_RC_REQ_TIMOUT) {
+		pid = get_pid_from_file(service->serv_name);
+		if (pid > 0) {
+			if (check_process(service)) {
+				// send abort signal to process to generate a core dump
+				LOG_ER("Sending SIGABRT to %s, pid=%d, (origin parent pid=%d)", service->serv_name, pid, service->pid);
+				if (kill(pid, SIGABRT) >= 0) {
+					// wait a short period for process to exit
+					do {
+						w_pid = waitpid(service->pid, &status, WNOHANG);
+						if (w_pid < 0) {
+							if (errno == EINTR)
+								continue;
+							else
+								break;
+						} else if (w_pid > 0) {
+							if (WIFEXITED(status) || WIFSIGNALED(status)) {
+								break;
+							}
 						}
-					}
-					sleep(1);
-				} while (++no_of_retries < MAX_NO_RETRIES);
+						sleep(1);
+					} while (++no_of_retries < MAX_NO_RETRIES);
+				}
 			}
 		}
 	}
@@ -1229,7 +1231,7 @@ void cleanup(NID_SPAWN_INFO *service)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff)
+uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff, int reason)
 {
 	uint32_t count = 0;
 	NID_RECOVERY_OPT opt = NID_RESPAWN;
@@ -1244,7 +1246,7 @@ uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 
            		/* Just clean the stuff we created during prev retry */
 			if (service->pid != 0)
-				cleanup(service);
+				cleanup(service, reason);
 
            		/* Done with cleanup so goahead with recovery */
 			if ((service->recovery_matrix[opt].action) (service, strbuff) != NCSCC_RC_SUCCESS) {
@@ -1312,7 +1314,7 @@ uint32_t spawn_services(char *strbuf)
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s", sbuff);
 			LOG_ER("Going for recovery");
-			if (recovery_action(service, sbuff) != NCSCC_RC_SUCCESS) {
+			if (recovery_action(service, sbuff, rc) != NCSCC_RC_SUCCESS) {
 				exit(EXIT_FAILURE);
 			}
 		}
