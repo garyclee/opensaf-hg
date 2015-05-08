@@ -361,7 +361,8 @@ public:
                                              SaUint32T* implConn,
                                              unsigned int* implNodeId,
                                              bool pbeExpected,
-                                             bool* displayRes);
+                                             bool* displayRes,
+                                             bool isAtCoord);
     
     // Objects
     
@@ -653,7 +654,7 @@ private:
                                        std::string newClassName, 
                                        bool remove=false);
     SaAisErrorT        updateImmObject2(const ImmsvOmAdminOperationInvoke* req);
-    SaAisErrorT        admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req);
+    SaAisErrorT        admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req, bool isAtCoord);
     
     void               addNoDanglingRefs(ObjectInfo *obj);
     void               removeNoDanglingRefs(

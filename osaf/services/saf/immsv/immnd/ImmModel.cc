@@ -453,6 +453,7 @@ static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
 
 static SaUint32T ccbIdLongDnGuard  = 0; /* Disallow long DN additions if longDnsAllowed is being changed in ccb*/
 static bool      sIsLongDnLoaded   = false; /* track long DNs before opensafImm=opensafImm,safApp=safImmService is created */
+static bool      sAbortNonCriticalCcbs = false; /* Set to true at coord by the special imm admin-op to abort ccbs #1107 */
 
 struct AttrFlagIncludes
 {
@@ -1252,7 +1253,7 @@ immModel_adminOperationInvoke(IMMND_CB *cb,
 {
     return ImmModel::instance(&cb->immModel)->
         adminOperationInvoke(req, reqConn, reply_dest, inv,
-        implConn, implNodeId, pbeExpected, displayRes);
+        implConn, implNodeId, pbeExpected, displayRes, cb->mIsCoord);
 }
 
 SaUint32T  /* Returns admo-id for object if object exists and active admo exists, otherwise zero. */
@@ -3139,7 +3140,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             if(attr->attrValueType != SA_IMM_ATTR_SANAMET
                     && !((attr->attrFlags & SA_IMM_ATTR_DN) && (attr->attrValueType == SA_IMM_ATTR_SASTRINGT))) {
                 LOG_NO("ERR_INVALID_PARAM: Attribute '%s' must be of type SaNameT, "
-                		"or of type SaStringT with DN flag", attNm);
+                       "or of type SaStringT with DN flag", attNm);
                 illegal = 1;
             }
 
@@ -10982,7 +10983,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                                            SaInvocationT& saInv,
                                            SaUint32T* implConn,
                                            unsigned int* implNodeId,
-                                           bool pbeExpected, bool* displayRes)
+                                           bool pbeExpected, bool* displayRes, bool isAtCoord)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -11179,7 +11180,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
             TRACE_7("Admin op on special object %s whith no implementer ret:%u",
                 objectName.c_str(), err);
         } else if(objectName == immManagementDn) {
-            err = admoImmMngtObject(req);
+            err = admoImmMngtObject(req, isAtCoord);
             TRACE_7("Admin op on special object %s whith no implementer ret:%u",
                 objectName.c_str(), err);
         } else {
@@ -11772,7 +11773,7 @@ ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams,
 
 
 SaAisErrorT
-ImmModel::admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req)
+ImmModel::admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req, bool isAtCoord)
 {
     SaAisErrorT err = SA_AIS_ERR_INTERRUPT;
     /* Function for handling admin-ops directed at the immsv itself.
@@ -11809,6 +11810,13 @@ ImmModel::admoImmMngtObject(const ImmsvOmAdminOperationInvoke* req)
         if(immInitMode != SA_IMM_INIT_FROM_FILE) {
             immInitMode = SA_IMM_INIT_FROM_FILE;
             LOG_NO("SaImmRepositoryInitModeT FORCED to: SA_IMM_INIT_FROM_FILE");
+        }
+    } else if (req->operationId == SA_IMM_ADMIN_ABORT_CCBS) { /* Non standard. */
+        LOG_NO("Received: immadm -o %u safRdn=immManagement,safApp=safImmService",
+            SA_IMM_ADMIN_ABORT_CCBS);
+        if(isAtCoord) {
+            LOG_IN("sAbortNonCriticalCcbs = true;");
+            sAbortNonCriticalCcbs = true;
         }
     } else {
         LOG_NO("Invalid operation ID %llu, for operation on %s", (SaUint64T) req->operationId,
@@ -12476,7 +12484,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
             //AND ccbIds for ccbs in critical and marked with PbeRestartedId.
             //Restarted PBE => try to recover outcome BEFORE timeout, making
             //recovery transparent to user!
-            //TODO the timeout should not be hardwired, but for now it is.
+            //Also handle the case of admin-op requesting abort of all non-critical ccbs.
             TRACE("Checking active ccb %u for deadlock or blocked implementer",
                 (*i3)->mId);
             TRACE("state:%u waitsart:%u PberestartId:%u",(*i3)->mState, 
@@ -12484,9 +12492,14 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
 
             CcbImplementerMap::iterator cim;
             uint32_t max_oi_timeout = DEFAULT_TIMEOUT_SEC;
-            for(cim = (*i3)->mImplementers.begin(); cim != (*i3)->mImplementers.end(); ++cim) {
-                if(cim->second->mImplementer->mTimeout > max_oi_timeout) {
-                    max_oi_timeout = cim->second->mImplementer->mTimeout;
+            if(sAbortNonCriticalCcbs) {
+                LOG_IN("sAbortNonCriticalCcbs is true => set max_oi_timeout to 0");
+                max_oi_timeout = 0;
+            } else {
+                for(cim = (*i3)->mImplementers.begin(); cim != (*i3)->mImplementers.end(); ++cim) {
+                    if(cim->second->mImplementer->mTimeout > max_oi_timeout) {
+                        max_oi_timeout = cim->second->mImplementer->mTimeout;
+                    }
                 }
             }
 
@@ -12502,6 +12515,15 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                     oi_timeout = 0;
                     TRACE_5("CCB %u timeout while waiting on implementer reply",
                         (*i3)->mId);
+                    setCcbErrorString(*i3, "Resource Error: CCB timeout while "
+                         "waiting on implementer reply");
+                } 
+
+                if(sAbortNonCriticalCcbs) {
+                    LOG_NO("CCB %u aborted by: immadm -o %u safRdn=immManagement,safApp=safImmService",
+                        (*i3)->mId, SA_IMM_ADMIN_ABORT_CCBS);
+                    setCcbErrorString(*i3, "Resource Error: CCB aborted by admin-operation"
+                        " '%u' on safRdn=immManagement,safApp=safImmService", SA_IMM_ADMIN_ABORT_CCBS);
                 }
 
                 if((*i3)->mState == IMM_CCB_CRITICAL) {
@@ -12528,6 +12550,11 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
         }
     }
 
+    if(sAbortNonCriticalCcbs) {
+        LOG_IN("sAbortNonCriticalCcbs reset to false");
+        sAbortNonCriticalCcbs = false; /* Reset. */
+    }
+
     while((i3 = ccbsToGc.begin()) != ccbsToGc.end()) {
         CcbInfo* ccb = (*i3);
         ccbsToGc.erase(i3);
@@ -12544,7 +12571,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
         //It needs to be long to allow reply on larger batch jobs such as a
         //schema/class change with instance migration and slow file system.
         //It can not be infinite as that could cause a memory leak.
-	    if(now - ci2->second.mCreateTime >= (DEFAULT_TIMEOUT_SEC * 20)) {
+        if(now - ci2->second.mCreateTime >= (DEFAULT_TIMEOUT_SEC * 20)) {
             TRACE_5("Timeout on PbeRtReqContinuation %llu", ci2->first);
             pbePrtoReqs.push_back(ci2->second.mConn);
             sPbeRtReqContinuationMap.erase(ci2);

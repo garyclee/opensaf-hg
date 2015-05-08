@@ -142,11 +142,12 @@ typedef enum {
 
 typedef enum {
     SA_IMM_ADMIN_EXPORT = 1,  /* Defined in A.02.01 declared in  A.03.01 */
-    SA_IMM_ADMIN_INIT_FROM_FILE = 100 /* Non standard, force PBE disable. */
+    SA_IMM_ADMIN_INIT_FROM_FILE = 100, /* Non standard, force PBE disable. */
+    SA_IMM_ADMIN_ABORT_CCBS = 202 /* Non standard, abort non critical CCBs. */
 } SaImmMngtAdminOperationT;
 
 /* 
- * Special flags only to be used by the imm-dummper, the imm-loader or
+ * Special flags only to be used by the imm-dumper, the imm-loader or
  * new API functions.
  *
  * The first excludes non persistent runtime attributes from the dump.
