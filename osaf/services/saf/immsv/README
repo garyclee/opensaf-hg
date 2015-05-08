@@ -2302,8 +2302,8 @@ the continuation times out in the server; and (b) that the CCB OM client
 receives an error reply when that om client has NOT also timed out.
 
 
-Improve error diagnostics when PBE is misconfigured.
-====================================================
+Improve error diagnostics when PBE is misconfigured (4.6)
+=========================================================
 http://sourceforge.net/p/opensaf/tickets/1139
 
 Configuration mistakes such as omitting to change immnd.conf to allow PBE
@@ -2329,15 +2329,15 @@ Error logging been improved and the imm server returns an error string message f
 Ccb operation error cases. This should make troubleshooting this issue much faster and easier.
 
 
-IMM API that replaces SaNameT with SaStringT and SA_IMM_ATTR_DN
-===============================================================
+IMM API that replaces SaNameT with SaStringT and SA_IMM_ATTR_DN (4.6)
+=====================================================================
 http://sourceforge.net/p/opensaf/tickets/643
 
 See: osaf/services/saf/immsv/README.SASTRINGT_API for details.
 
 
 Notes on upgrading from OpenSAF 4.[1,2,3,4,5] to OpenSAF (4.6)
-==========================================================
+==============================================================
 OpenSAF4.6 adds new message types that avoid using the SaNameT type (#969).
 During a rolling upgrade from an earlier OpenSAF release to the 4.6 release there
 will be nodes executing the older release concurrently with nodes executing OpenSAF 4.6.
@@ -2374,6 +2374,29 @@ Bit 3 controls OpenSAF4.3 protocols allowed or not (normally on/1).
 Bit 4 controls 2PBE oneSafe2PBE, see 2PBE feature in OpenSAF4.4 above (normally off/0).
 Bit 5 controls OpenSAF4.5 protocols allowed or not (normally on/1).
 Bit 6 controls OpenSAF4.6 protocols allowed or not (normally on/1).
+
+
+Provide an admin-operation for aborting all non-critical CCBs (4.7)
+===================================================================
+http://sourceforge.net/p/opensaf/tickets/1107
+
+There may arise situations where an open CCB that is not in critical,
+i.e. has not entered the commit protocol yet, is blocking an involved
+service/OI from performing some other task that is more urgent and more
+important than completing that CCB. The best example is the AMF, where
+an si-swap will fail and cause the standby to reboot if it was involved
+in an open CCB when the si-swap order was issued (see ticket #1105).
+Ticket #1105 can be fixed by the AMF (active or standby) sending an
+admin-operation directed at the IMM service requesting it to abort non
+critical CCBs. The AMF can either use a synchronous admin-op or an 
+asyncronous admin-op. After the admin-operation has been invoked the AMF 
+should allow a few seconds for the CCB to get aborted and the AMF OI to
+get the abort callback for the CCB. That should then clear the path for
+the AMF standby to succeed with the si-swap. 
+The admin-operation for aborting non critical CCBs involves requesting the
+operation id '202' directed at the IMM SF service object:
+
+	immadm -o 202 safRdn=immManagement,safApp=safImmService
 
 
 ----------------------------------------
