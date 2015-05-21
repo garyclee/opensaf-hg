@@ -33,9 +33,13 @@
 
 static void saImmOmAdminOperationInvokeCallback(SaInvocationT invocation,
 	SaAisErrorT operationReturnValue,
-	SaAisErrorT)
+	SaAisErrorT err)
 {
-	LOG_ER("Unexpected async admin-op callback invocation:%llx", invocation);
+	if(invocation == 1) {
+		LOG_IN("Admop for aborting CCBs result: %u, immsv returned %u", operationReturnValue, err);
+	} else {
+		LOG_ER("Unexpected async admin-op callback invocation:%llx", invocation);
+	}
 }
 
 static const SaImmCallbacksT callbacks = {
@@ -118,6 +122,7 @@ int main(int argc, char* argv[])
 	unsigned int		retryInterval = 1000000;	/* 1 sec */
 	unsigned int		maxTries = 70;				/* 70 times == max 70 secs */
 	unsigned int		tryCount=0;
+	const SaImmAdminOperationParamsT_2 *params[] = {NULL};
 
 	if ((logPath = getenv("IMMSV_TRACE_PATHNAME")))
 	{
@@ -318,6 +323,21 @@ int main(int argc, char* argv[])
 			errorCode);
 		pbeRepositoryClose(dbHandle);
 		exit(1);
+	}
+
+	/* Admin-op invoked to abort any non-empty non critical CCBs.
+	   Such CCbs are doomed if the PBE (primary or slave) restarts.
+	   Slave PBE can in fact not attach as long as there are active
+	   non-empty CCBs in the system. 
+	 */
+	errorCode = saImmOmAdminOperationInvokeAsync_o3(ownerHandle, 1,
+		"safRdn=immManagement,safApp=safImmService", 0, 
+		SA_IMM_ADMIN_ABORT_CCBS, params);
+
+	if(SA_AIS_OK != errorCode)
+	{
+		LOG_WA("Failed to invoke admin-op for aborting CCBs: err:%u - ignoring",
+			errorCode);
 	}
 
 	/*
