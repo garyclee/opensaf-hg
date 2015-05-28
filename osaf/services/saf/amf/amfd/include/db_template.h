@@ -19,6 +19,8 @@
 
 #include <map>
 #include <string>
+#include "saAis.h"
+#include "ncsgl_defs.h"
 
 //
 class Amf {
