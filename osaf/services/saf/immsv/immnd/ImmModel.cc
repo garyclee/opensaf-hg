@@ -1374,6 +1374,7 @@ SaAisErrorT
 immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req, 
     void** searchOp, SaBoolT isSync, SaBoolT isAccessor)
 {
+    SaAisErrorT err = SA_AIS_OK;
     ImmSearchOp* op = new ImmSearchOp();
     *searchOp = op;
 
@@ -1386,8 +1387,16 @@ immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req,
         TRACE("Allocating iterator searchOp:%p", op);
     }
 
+    /* Reset search time */
+    op->updateSearchTime();
 
-    return ImmModel::instance(&cb->immModel)->searchInitialize(req, *op);
+    if(isAccessor) {
+        err = ImmModel::instance(&cb->immModel)->accessorGet(req, *op);
+    } else {
+        err = ImmModel::instance(&cb->immModel)->searchInitialize(req, *op);
+    }
+
+    return err;
 }
 
 SaAisErrorT
@@ -10051,6 +10060,10 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     SaImmSearchOptionsT notAllowedOptions = 0LL;
     bool nonExtendedNameCheck = req->searchParam.present > ImmOmSearchParameter_PR_oneAttrParam;
     bool checkAttribute = false;
+
+    if(nonExtendedNameCheck) {
+        op.setNonExtendedName();
+    }
     
     if (objectName.empty()) {
         LOG_NO("ERR_INVALID_PARAM: Empty DN is not allowed");
@@ -10103,10 +10116,6 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         LOG_ER("ERR_LIBRARY: Invalid search criteria - library problem ?");
         err = SA_AIS_ERR_LIBRARY;
         goto accessorExit;
-    }
-
-    if(nonExtendedNameCheck) {
-        op.setNonExtendedName();
     }
 
     //TODO: Reverse the order of matching attribute names.
@@ -10390,21 +10399,8 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
     std::string refObjectName;
     SaUint32T childCount=0;
     
-    /* Reset search time */
-    op.updateSearchTime();
-
     if(nonExtendedNameCheck) {
         op.setNonExtendedName();
-    }
-
-    if(scope == SA_IMM_ONE) {
-        if(noDanglingSearch) {
-             LOG_NO("ERR_INVALID_PARAM: SA_IMM_SEARCH_NO_DANGLING_DEPENDENTS "
-                     "flag cannot be used with SA_IMM_ONE scope");
-             return SA_AIS_ERR_INVALID_PARAM;
-        }
-
-        return this->accessorGet(req, op);
     }
 
     size_t sz = strnlen((char *) req->rootName.buf, 

@@ -1259,7 +1259,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 		reqo.attributeNames = evt->info.rtAttUpdRpl.sr.attributeNames;	/*borrowing. */
 
 		TRACE_2("oi_att_pull_rpl Before searchInit");
-		err = immModel_searchInitialize(cb, &reqo, &searchOp, SA_FALSE, SA_FALSE);
+		err = immModel_searchInitialize(cb, &reqo, &searchOp, SA_FALSE, SA_TRUE);
 		if (err == SA_AIS_OK) {
 			TRACE_2("oi_att_pull_rpl searchInit returned OK, calling searchNext");
 			IMMSV_OM_RSP_SEARCH_NEXT *rsp = 0;
