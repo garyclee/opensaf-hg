@@ -46,6 +46,12 @@
 
 #include "osaf_extended_name.h"
 
+typedef struct ObjectInfo {
+	char *objectName;
+	char *className;
+	struct ObjectInfo *next;
+} ObjectInfoT;
+
 static SaVersionT immVersion = { 'A', 2, 15 };
 int verbose = 0;
 int ccb_safe = 1;
@@ -55,6 +61,8 @@ SaImmHandleT immHandle = 0;
 SaImmAdminOwnerNameT adminOwnerName = NULL;
 SaImmAdminOwnerHandleT ownerHandle = 0;
 SaImmCcbHandleT ccbHandle = -1;
+
+static ObjectInfoT *objectInfo = NULL;
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 typedef enum {
@@ -182,6 +190,76 @@ void sigalarmh(int sig)
         exit(EXIT_FAILURE);
 }
 
+void object_info_add(const char *objectName, const char *className) {
+	ObjectInfoT *oi;
+	ObjectInfoT *prev;
+	int rc;
+
+	prev = NULL;
+	oi = objectInfo;
+	while(oi) {
+		if((rc = strcmp(oi->objectName, objectName)) >= 0) {
+			if(!rc) {
+				// Object is already in the list
+				return;
+			}
+
+			break;
+		}
+
+		prev = oi;
+		oi = oi->next;
+	}
+
+	if(prev) {
+		oi = (ObjectInfoT *)calloc(1, sizeof(ObjectInfoT));
+		oi->objectName = strdup(objectName);
+		oi->className = strdup(className);
+		oi->next = prev->next;
+		prev->next = oi;
+	} else {
+		objectInfo = (ObjectInfoT *)calloc(1, sizeof(ObjectInfoT));
+		objectInfo->objectName = strdup(objectName);
+		objectInfo->className = strdup(className);
+		objectInfo->next = oi;
+	}
+}
+
+void object_info_clear() {
+	ObjectInfoT *oi = objectInfo;
+	ObjectInfoT *next;
+
+	while(oi) {
+		next = oi->next;
+		free(oi->objectName);
+		free(oi->className);
+		free(oi);
+		oi = next;
+	}
+
+	objectInfo = NULL;
+}
+
+char *object_info_get_class(const char *objectName) {
+	ObjectInfoT *oi;
+	int rc;
+
+	oi = objectInfo;
+	while(oi) {
+		if((rc = strcmp(oi->objectName, objectName)) >= 0) {
+			if(!rc) {
+				return strdup(oi->className);
+			}
+
+			break;
+		}
+
+		oi = oi->next;
+	}
+
+	return NULL;
+}
+
 static void free_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT attrValue) {
 	if(attrValue) {
 		if(attrValueType == SA_IMM_ATTR_SASTRINGT)
@@ -233,9 +311,14 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	char *name = strdup(nameval);
 	char *value;
 	SaImmAttrModificationT_2 *attrMod = NULL;
-	SaImmClassNameT className = immutil_get_className(objectName);
+	SaImmClassNameT className;
 	SaAisErrorT error;
 	SaImmAttrModificationTypeT modType = SA_IMM_ATTR_VALUES_REPLACE;
+
+	className = object_info_get_class(osaf_extended_name_borrow(objectName));
+	if(!className) {
+		className = immutil_get_className(objectName);
+	}
 
 	if (className == NULL) {
 		fprintf(stderr, "Object with DN '%s' does not exist\n", osaf_extended_name_borrow(objectName));
@@ -435,10 +518,13 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 			fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
 			goto done;
 		}
+		object_info_clear();
 	}
 
 	i = 0;
 	while (objectNames[i] != NULL) {
+		object_info_add(osaf_extended_name_borrow(objectNames[i]), className);
+
 		str = strdup(osaf_extended_name_borrow(objectNames[i]));
 		if ((delim = strchr(str, ',')) != NULL) {
 			/* a parent exist */
@@ -584,6 +670,7 @@ int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 			fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
 			goto done;
 		}
+		object_info_clear();
 	}
 
 	i = 0;
@@ -657,6 +744,7 @@ int object_delete(const SaNameT **objectNames)
 			fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
 			goto done;
 		}
+		object_info_clear();
 	}
 
 	while (objectNames[i] != NULL) {
@@ -921,6 +1009,8 @@ static int ccb_apply() {
 	}
 
 done:
+	object_info_clear();
+
 	return (transaction_mode) ? rc : 0;
 }
 
@@ -936,6 +1026,8 @@ static int ccb_abort() {
 
 		ccbHandle = -1;
 	}
+
+	object_info_clear();
 
 	return (transaction_mode) ? rc : 0;
 }
