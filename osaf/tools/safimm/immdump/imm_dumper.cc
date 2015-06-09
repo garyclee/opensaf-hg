@@ -61,6 +61,9 @@ static void usage(const char *progname)
     printf("\t-c, --class   {<class name>}\n");
     printf("\t\tOnly dump objects of this class\n\n");
 
+    printf("\t-a, --audit   {<pbe file name>}\n");
+    printf("\t\tAudit PBE database\n\n");
+
     printf("\nEXAMPLE\n");
     printf("\t%s /tmp/imm.xml\n", progname);
     printf("\t%s /tmp/imm.xml -c ClassA -c ClassB\n", progname);
@@ -88,6 +91,7 @@ int main(int argc, char* argv[])
         {"pbe", required_argument, 0, 'p'},
         {"xmlwriter", required_argument, 0, 'x'},
         {"class", required_argument, 0, 'c'},
+        {"audit", required_argument, 0, 'a'},
         {0, 0, 0, 0}
     };
     SaImmHandleT           immHandle;
@@ -113,6 +117,7 @@ int main(int argc, char* argv[])
     const char* logPath;
     unsigned int category_mask = 0;
     bool pbeDumpCase = false;
+    bool auditPbe = false;
     void* dbHandle=NULL;
     const char* dump_trace_label = "immdump";
     const char* trace_label = dump_trace_label;
@@ -141,7 +146,7 @@ int main(int argc, char* argv[])
     }
 
     while (1) {
-    if ((c = getopt_long(argc, argv, "hp:x:c:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hp:x:c:a:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -151,9 +156,8 @@ int main(int argc, char* argv[])
                     break;
 
                 case 'p':
-			    pbeDumpCase = true;
-
-		    filename.append(optarg);
+                    pbeDumpCase = true;
+                    filename.append(optarg);
                     break;
 
                 case 'x':
@@ -164,12 +168,22 @@ int main(int argc, char* argv[])
                     selectedClassList.push_back(std::string(optarg));
                     break;
 
+                case 'a':
+                    auditPbe = true;
+                    filename.append(optarg);
+                    break;
+
                 default:
                     fprintf(stderr, "Try '%s --help' for more information\n", 
                         argv[0]);
                     exit(EXIT_FAILURE);
                     break;
         }
+    }
+
+    if(pbeDumpCase && auditPbe) {
+    	usage(basename(argv[0]));
+    	exit(EXIT_FAILURE);
     }
 
     version.releaseCode = RELEASE_CODE;
@@ -192,7 +206,21 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    if(pbeDumpCase) {
+    if(auditPbe) {
+    	int rc;
+
+    	rc = pbeAuditFile(filename.c_str());
+    	if(!rc) {
+    		std::cout << "Audit successful" << std::endl;
+    	} else if(rc == 2) {
+    		std::cerr << "Option --enable-imm-pbe must be enabled in the build to be able to audit PBE file"
+    				<< std::endl;
+    	} else {
+    		std::cerr << "Audit failed. Check syslog for more details."
+    				<< std::endl;
+    	}
+    	exit(rc);
+    } else if(pbeDumpCase) {
     	/* Generate PBE database file from current IMM state */
 
     	std::cout <<

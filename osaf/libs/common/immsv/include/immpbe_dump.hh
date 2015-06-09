@@ -125,5 +125,8 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T epo
 void discardPbeFile(std::string filename);
 void fsyncPbeJournalFile();
 
+int pbeAudit(void *db_handle);
+int pbeAuditFile(const char *filename);
+
 
 #endif /* IMM_PBE_DUMP_HH_ */
