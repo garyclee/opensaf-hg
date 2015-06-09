@@ -3121,6 +3121,130 @@ void fsyncPbeJournalFile()
 	}
 }
 
+static int pbeAuditNoDangling(sqlite3 *dbHandle) {
+	sqlite3_stmt *stmt = NULL;
+	sqlite3_stmt *tblStmt = NULL;
+	std::string query;
+	int rc;
+	int err = 0;
+	/* SA_IMM_ATTR_NO_DANGLING = 67108864
+	 * SA_IMM_ATTR_MULTI_VALUE = 1
+	 * SA_IMM_ATTR_NO_DANGLING | SA_IMM_ATTR_MULTI_VALUE = 67108865 */
+	const char *sqlMultiVal = "select distinct obj.dn, ad.attr_name, otm.text_val "
+			"from attr_def ad, objects obj, objects_text_multi otm "
+			"where (ad.attr_flags & 67108865) = 67108865 "
+			"and obj.class_id = ad.class_id "
+			"and otm.obj_id = obj.obj_id "
+			"and otm.attr_name = ad.attr_name "
+			"and otm.text_val != '' "
+			"and not exists (select 1 "
+			"from objects "
+			"where dn = otm.text_val)";
+	const char *sqlSelectNoDanglingClasses = "select cls.class_name, ad.attr_name "
+			"from attr_def ad, classes cls "
+			"where (ad.attr_flags & 67108865) = 67108864 "
+			"and cls.class_id = ad.class_id";
+
+	/* Audit NO_DANGLING multi-value attribute */
+	rc = sqlite3_prepare_v2(dbHandle, sqlMultiVal, -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sqlMultiVal);
+		err = 1;
+		goto step2;
+	}
+
+	while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		LOG_ER("Missing reference object '%s' from '%s:%s' (multi value check)",
+				sqlite3_column_text(stmt, 2),
+				sqlite3_column_text(stmt, 0),
+				sqlite3_column_text(stmt, 1));
+		err = 1;
+	}
+
+	if(rc != SQLITE_DONE) {
+		LOG_ER("SQL statement ('%s') failed with error code: %d\n", sqlMultiVal, rc);
+		err = 1;
+	}
+
+step2:
+	if(stmt) {
+		sqlite3_reset(stmt);
+		stmt = NULL;
+	}
+
+	/* Audit non-multi-value NO_DANGLING attributes */
+	rc = sqlite3_prepare_v2(dbHandle, sqlSelectNoDanglingClasses, -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sqlMultiVal);
+		err = 1;
+		goto end;
+	}
+
+	while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		query = "select obj.dn, tbl.";
+		query.append((char *)sqlite3_column_text(stmt, 1));
+		query.append(" from ");
+		query.append((char *)sqlite3_column_text(stmt, 0));
+		query.append(" tbl, objects obj where obj.obj_id = tbl.obj_id and tbl.");
+		query.append((char *)sqlite3_column_text(stmt, 1));
+		query.append(" != '' and not exists (select 1 from objects o where o.dn = tbl.");
+		query.append((char *)sqlite3_column_text(stmt, 1));
+		query.append(")");
+
+		rc = sqlite3_prepare_v2(dbHandle, query.c_str(), -1, &tblStmt, NULL);
+		if(rc != SQLITE_OK) {
+			LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, query.c_str());
+			err = 1;
+			continue;
+		}
+
+		if(sqlite3_step(tblStmt) == SQLITE_ROW) {
+			LOG_ER("Missing reference object '%s' from '%s':'%s'",
+					sqlite3_column_text(tblStmt, 1),
+					sqlite3_column_text(tblStmt, 0),
+					sqlite3_column_text(stmt, 1));
+			err = 1;
+		}
+
+		sqlite3_reset(tblStmt);
+	}
+
+	if(rc != SQLITE_DONE) {
+		LOG_ER("SQL statement ('%s') failed with error code: %d\n",
+				sqlSelectNoDanglingClasses, rc);
+		err = 1;
+	}
+
+end:
+	if(stmt) {
+		sqlite3_reset(stmt);
+	}
+
+	return err;
+}
+
+int pbeAudit(void *db_handle) {
+	return pbeAuditNoDangling((sqlite3 *)db_handle);
+}
+
+int pbeAuditFile(const char *filename) {
+	int rc;
+	sqlite3 *dbHandle = NULL;
+
+	rc = sqlite3_open(filename, &dbHandle);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Can't open PBE file '%s', cause:%s",
+				filename, sqlite3_errmsg(dbHandle));
+		return 1;
+	}
+
+	rc = pbeAudit(dbHandle);
+
+	sqlite3_close(dbHandle);
+
+	return rc;
+}
+
 #else
 
 bool pbeTransStarted()
@@ -3286,6 +3410,18 @@ void purgeCcbCommitsFromPbe(void* sDbHandle, SaUint32T currentEpoch)
 void fsyncPbeJournalFile()
 {
 	abort();
+}
+
+int pbeAudit(void *db_handle) {
+	abort();
+	return 1;
+}
+
+int pbeAuditFile(const char *filename) {
+	/* pbeAuditFile should be used by tools, and should not abort.
+	 * pbeAuditFile returns 2, which means that PBE was not enabled in the build.
+	 */
+	return 2;
 }
 
 #endif
@@ -3520,5 +3656,4 @@ std::list<std::string> getClassNames(SaImmHandleT immHandle)
 	TRACE_LEAVE();
 	return classNamesList;
 }
-
 
