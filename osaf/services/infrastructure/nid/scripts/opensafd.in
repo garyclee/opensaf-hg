@@ -212,7 +212,7 @@ start() {
 	check_env
 	check_transport
 
-	logger -t $prog "Starting OpenSAF Services (Using $MDS_TRANSPORT)"
+	logger -t $prog "Starting OpenSAF Services($osafversion - $osafcshash) (Using $MDS_TRANSPORT)"
 
 	# Comment/Uncomment if you want cores disabled/enabled
 	#enable_coredump
