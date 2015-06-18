@@ -320,6 +320,18 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	
 	const uint32_t previous_esc_rcvr = esc_rcvr;
 
+	/* If Amf was waiting for down event to come regarding term cbq, but
+	   error has occurred, so reset the variable (irrespective of Sa-Aware
+	   PI or Proxied PI)*/
+	if (comp->term_cbq_inv_value != 0) {
+		AVND_COMP_CBK *cbk_rec;
+		/* get the matching entry from the cbk list */
+		m_AVND_COMP_CBQ_INV_GET(comp, comp->term_cbq_inv_value, cbk_rec);
+		comp->term_cbq_inv_value = 0;
+		if (cbk_rec)
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
+	}
+
 	// Handle errors differently when shutdown has started
 	if (AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED == cb->term_state) {
 		LOG_NO("'%s' faulted due to '%s'", comp->name.value, g_comp_err[err_info->src]);
