@@ -381,12 +381,24 @@ uint32_t avnd_evt_mds_ava_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 	}			/* for */
 
 	if (comp) {
+		if (comp->term_cbq_inv_value != 0) {
+			AVND_COMP_CBK *cbk_rec;
+			/* Amf was waiting for this down event. Get the matching
+			   entry from the cbk list and delete the cbq */
+			m_AVND_COMP_CBQ_INV_GET(comp, comp->term_cbq_inv_value, cbk_rec);
+			comp->term_cbq_inv_value = 0;
+			rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC);
+			if (cbk_rec)
+				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
+			goto done;
+		}
 		/* found the matching comp; trigger error processing */
 		err_info.src = AVND_ERR_SRC_AVA_DN;
 		err_info.rec_rcvr.avsv_ext = static_cast<AVSV_ERR_RCVR>(comp->err_info.def_rec);
 		rc = avnd_err_process(cb, comp, &err_info);
 	}
 
+done:
 	/* pg tracking may be started by this ava... delete those traces */
 	avnd_pg_finalize(cb, 0, &mds_evt->mds_dest);
 
@@ -673,7 +685,7 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 	bool su_is_enabled;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("comp: '%s'", comp->name.value);
-	
+
 	if (pxy_comp)
 		TRACE("proxy comp = '%s'", pxy_comp->name.value);
 

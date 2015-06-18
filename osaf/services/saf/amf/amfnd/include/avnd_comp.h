@@ -390,6 +390,7 @@ typedef struct avnd_comp_tag {
 				   saAmfComponentErrorReport() or saAmfComponentErrorReport_4()*/ 
 
 	std::bitset<NumAttrs> *use_comptype_attr;
+	SaInvocationT term_cbq_inv_value; /* invocation value for termination callback. */
 
 } AVND_COMP;
 

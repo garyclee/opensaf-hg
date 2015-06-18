@@ -376,10 +376,22 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			m_AVND_COMP_TERM_FAIL_SET(comp);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 		}
-
-		rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
-					   AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC : AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
-		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
+		/* For successful response from (1.) Sa-Aware PI component, wait
+		   for down event to come, don't run clc here, run clc when down
+		   event comes. (2.) proxied PI, no down event
+		   expected, so run clc here. In case of failure response from
+		   any body, follow the clc. No need to check for PI along with
+		   proxied, because in case of PI only, term response will come
+		   back from component. */
+		if((SA_AIS_OK == resp->err) && (!m_AVND_COMP_TYPE_IS_PROXIED(comp)))  {
+			/* Save invocation value to delete cbq record when
+			   down event comes. */
+			comp->term_cbq_inv_value = resp->inv;
+		} else {
+			rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
+					AVND_COMP_CLC_PRES_FSM_EV_TERM_SUCC : AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
+			avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
+		}
 
 		// if all OK send a response to the client
 		if ((rc == NCSCC_RC_SUCCESS) && (resp->err == SA_AIS_OK)) {
@@ -563,6 +575,17 @@ uint32_t avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	} else if (AVSV_AMF_COMP_TERM == rec->cbk_info->type) {
 		m_AVND_COMP_TERM_FAIL_SET(rec->comp);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec->comp, AVND_CKPT_COMP_FLAG_CHANGE);
+		if (rec->comp->term_cbq_inv_value != 0) {
+			AVND_COMP_CBK *cbk_rec;
+			/* Since, the cbq timer has expired and no down event
+			   came, get the matching entry from the cbk list and
+			   delete the cbq. */
+			m_AVND_COMP_CBQ_INV_GET(rec->comp, rec->comp->term_cbq_inv_value, cbk_rec);
+			rec->comp->term_cbq_inv_value = 0;
+			if (cbk_rec) {
+				avnd_comp_cbq_rec_pop_and_del(cb, rec->comp, cbk_rec, false);
+			}
+		}
 		rc = avnd_comp_clc_fsm_run(cb, rec->comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 	} else {
 		switch (rec->cbk_info->type) {
