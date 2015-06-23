@@ -1383,6 +1383,23 @@ int amfd_file_dump(const char *filename)
 	fprintf(f, "  peer_msg_fmt_ver: %d\n", avd_cb->peer_msg_fmt_ver);
 	fprintf(f, "  avd_peer_ver: %d\n", avd_cb->avd_peer_ver);
 
+	fprintf(f,"CKPT update counts:\n");
+	fprintf(f, "  cb_updt:%d\n",avd_cb->async_updt_cnt.cb_updt);
+	fprintf(f, "  node_updt:%d\n",avd_cb->async_updt_cnt.node_updt);
+	fprintf(f, "  app_updt:%d\n",avd_cb->async_updt_cnt.app_updt);
+	fprintf(f, "  sg_updt:%d\n",avd_cb->async_updt_cnt.sg_updt);
+	fprintf(f, "  su_updt:%d\n",avd_cb->async_updt_cnt.su_updt);
+	fprintf(f, "  si_updt:%d\n",avd_cb->async_updt_cnt.si_updt);
+	fprintf(f, "  sg_su_oprlist_updt:%d\n",avd_cb->async_updt_cnt.sg_su_oprlist_updt);
+	fprintf(f, "  sg_admin_si_updt:%d\n",avd_cb->async_updt_cnt.sg_admin_si_updt);
+	fprintf(f, "  siass_updt:%d\n",avd_cb->async_updt_cnt.siass_updt);
+	fprintf(f, "  comp_updt:%d\n",avd_cb->async_updt_cnt.comp_updt);
+	fprintf(f, "  csi_updt:%d\n",avd_cb->async_updt_cnt.csi_updt);
+	fprintf(f, "  compcstype_updt:%d\n",avd_cb->async_updt_cnt.compcstype_updt);
+	fprintf(f, "  si_trans_updt:%d\n",avd_cb->async_updt_cnt.si_trans_updt);
+	fprintf(f, "  ng_updt:%d\n",avd_cb->async_updt_cnt.ng_updt);
+
+
 	fprintf(f, "nodes:\n");
 	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
 			it != node_id_db->end(); it++) {
@@ -1516,6 +1533,14 @@ int amfd_file_dump(const char *filename)
 		fprintf(f, "    saAmfCompRestartCount: %u\n", comp->saAmfCompRestartCount);
 		if (comp->saAmfCompCurrProxyName.length)
 			fprintf(f, "    saAmfCompCurrProxyName: %s\n", comp->saAmfCompCurrProxyName.value);
+	}
+
+	fprintf(f, "Node Groups:\n");
+	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
+                        it != nodegroup_db->end(); it++) {
+		AVD_AMF_NG *ng = it->second;
+		fprintf(f, "  dn: %s\n", ng->name.value);
+		fprintf(f, "    saAmfNGAdminState: %s\n",avd_adm_state_name[ng->saAmfNGAdminState]);
 	}
 
 	fclose(f);
