@@ -15,7 +15,12 @@
 #
 
 if [ $# -eq 0 ]; then
-	echo "usage: `basename $0` <app|comp|csi|csiass|node|sg|si|siass|su>"
+	echo "usage: `basename $0` <app|comp|csi|csiass|node|sg|si|siass|su|
+		|appbasetype|apptype|csbasetype|csiattr|cstype|cluster|
+		|compbasetype|compcstype|compglobalattr|comptype|ctcstype|
+		|hc|hctype|ng|nodeswbundle|sgbasetype|sgtype|sidep|sirankedsu|
+		|subasetype|sutype|sutcomptype|sibasetype|sitype|sitypecstype>"
+
 	exit 1
 fi
 
@@ -32,9 +37,6 @@ case "$1" in
 	csiass)
 		immfind -c SaAmfCSIAssignment
 		;;
-	comp)
-		immfind -c SaAmfComp
-		;;
 	node)
 		immfind -c SaAmfNode
 		;;
@@ -49,6 +51,81 @@ case "$1" in
 		;;
 	su)
 		immfind -c SaAmfSU
+		;;
+	appbasetype)
+		immfind -c SaAmfAppBaseType
+		;;
+	apptype)
+		immfind -c SaAmfAppType
+		;;
+	csbasetype)
+		immfind -c SaAmfCSBaseType
+		;;
+	csiattr)
+		immfind -c SaAmfCSIAttribute
+		;;
+	cstype)
+		immfind -c SaAmfCSType
+		;;
+	cluster)
+		immfind -c SaAmfCluster
+		;;
+	compbasetype)
+		immfind -c SaAmfCompBaseType
+		;;
+	compcstype)
+		immfind -c SaAmfCompCsType
+		;;
+	compglobalattr)
+		immfind -c SaAmfCompGlobalAttributes
+		;;
+	comptype)
+		immfind -c SaAmfCompType
+		;;
+	ctcstype)
+		immfind -c SaAmfCtCsType
+		;;
+	hc)
+		immfind -c SaAmfHealthcheck
+		;;
+	hctype)
+		immfind -c SaAmfHealthcheckType
+		;;
+	ng)
+		immfind -c SaAmfNodeGroup
+		;;
+	nodeswbundle)
+		immfind -c SaAmfNodeSwBundle
+		;;
+	sgbasetype)
+		immfind -c SaAmfSGBaseType
+		;;
+	sgtype)
+		immfind -c SaAmfSGType
+		;;
+	sidep)
+		immfind -c SaAmfSIDependency
+		;;
+	sirankedsu)
+		 immfind -c SaAmfSIRankedSU
+		;;
+	subasetype)
+		immfind -c SaAmfSUBaseType
+		;;
+	sutype)
+		immfind -c SaAmfSUType
+		;;
+	sutcomptype)
+		immfind -c SaAmfSutCompType
+		;;
+	sibasetype)
+		immfind -c SaAmfSvcBaseType
+		;;
+	sitype)
+		immfind -c SaAmfSvcType
+		;;
+	sitypecstype)
+		immfind -c SaAmfSvcTypeCSTypes
 		;;
 	*)
 		echo "unsupported type, trying anyway..."
