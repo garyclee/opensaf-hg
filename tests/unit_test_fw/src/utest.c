@@ -38,6 +38,11 @@ static unsigned int test_failed;
 
 #define NO_SUITES 64
 #define NR_TESTS 128
+
+/* Colors for test result output  */
+#define COLOR_RED "\033[1;31m"          /* [1 Bold font. [22 if normal font */
+#define COLOR_RESET "\033[0m;"
+
 static struct test testlist[NO_SUITES][NR_TESTS];
 static const char *suite_name[NO_SUITES];
 static int last_test_status;
@@ -69,7 +74,7 @@ void test_validate(SaUint32T rc, SaUint32T expected)
     else
     {
         test_failed++;
-        printf("  %3d  FAILED", current_test);
+        printf("%s  %3d  FAILED", COLOR_RED, current_test);
         last_test_status = -1;
     }
 
@@ -97,7 +102,7 @@ void aisrc_validate(SaAisErrorT rc, SaAisErrorT expected)
     else
     {
         test_failed++;
-        printf("  %3d  FAILED", current_test);
+        printf("%s  %3d  FAILED", COLOR_RED, current_test);
         last_test_status = -1;
     }
 
@@ -129,7 +134,7 @@ void rc_validate(int rc, int expected)
     else
     {
         test_failed++;
-        printf("  %3d  FAILED", current_test);
+        printf("%s  %3d  FAILED", COLOR_RED, current_test);
 		rcstr = (rc < 2) ? exit_str[rc]: other_str;
 		expstr = (expected < 2) ? exit_str[expected]: other_str;
 		printf("\t(expected %s, got %s (%d))",expstr, rcstr, rc);
@@ -169,12 +174,13 @@ static int run_test_case(unsigned int suite, unsigned int tcase)
         current_test = tcase;
         testlist[suite][tcase].testfunc();
         if (last_test_status == 0)
-            printf("\t%s\n", testlist[suite][tcase].slogan);
+            printf("\t%s%s\n", testlist[suite][tcase].slogan, COLOR_RESET);
         else
-            printf("\t%s (expected %s, got %s)\n",
+            printf("\t%s (expected %s, got %s)%s\n",
                 testlist[suite][tcase].slogan, 
                 get_saf_error(expectedStatus),
-                get_saf_error(actualStatus));
+                get_saf_error(actualStatus),
+                COLOR_RESET);
         return 0;
     }
     else
