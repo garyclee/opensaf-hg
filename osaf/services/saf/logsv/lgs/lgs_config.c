@@ -35,6 +35,7 @@
 #include "logtrace.h"
 #include "immutil.h"
 #include "lgs_file.h"
+#include "lgs_fmt.h"
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 static SaVersionT immVersion = { 'A', 2, 11 };
@@ -74,6 +75,7 @@ typedef struct {
 	/* --- Corresponds to IMM Class SaLogConfig --- */
 	char logRootDirectory[PATH_MAX];
 	char logDataGroupname[UT_NAMESIZE];
+	char logStreamFileFormat[MAX_FIELD_SIZE];
 	SaUint32T logMaxLogrecsize;
 	SaUint32T logStreamSystemHighLimit;
 	SaUint32T logStreamSystemLowLimit;
@@ -99,6 +101,7 @@ typedef struct {
 	lgs_conf_flg_t logFileIoTimeout_cnfflag;
 	lgs_conf_flg_t logFileSysConfig_cnfflag;
 	lgs_conf_flg_t logDataGroupname_cnfflag;
+	lgs_conf_flg_t logStreamFileFormat_cnfflag;
 } lgs_conf_t;
 
 /**
@@ -112,6 +115,7 @@ typedef struct {
 static struct {
 	const char *logRootDirectory;
 	const char *logDataGroupname;
+	const char *logStreamFileFormat;
 	SaUint32T logStreamSystemHighLimit;
 	SaUint32T logStreamSystemLowLimit;
 	SaUint32T logStreamAppHighLimit;
@@ -125,6 +129,7 @@ static struct {
 } lgs_conf_def = {
 	PKGLOGDIR,	/*logRootDirectory*/
 	"",		/*logDataGroupname*/
+	DEFAULT_APP_SYS_FORMAT_EXP, /* logStreamFileFormat */
 	1024,		/*logMaxLogrecsize*/
 	0,		/*logStreamSystemHighLimit*/
 	0,		/*logStreamSystemLowLimit*/
@@ -159,6 +164,7 @@ static lgs_conf_t lgs_conf = {
 	.logMaxApplicationStreams_cnfflag = LGS_CNF_DEF,
 	.logFileIoTimeout_cnfflag = LGS_CNF_DEF,
 	.logFileSysConfig_cnfflag = LGS_CNF_DEF,
+	.logStreamFileFormat_cnfflag = LGS_CNF_DEF,
 };
 
 
@@ -180,6 +186,7 @@ static void init_default(void)
 {
 	(void) strcpy(lgs_conf.logRootDirectory, lgs_conf_def.logRootDirectory);
 	(void) strcpy(lgs_conf.logDataGroupname, lgs_conf_def.logDataGroupname);
+	(void) strcpy(lgs_conf.logStreamFileFormat, lgs_conf_def.logStreamFileFormat);
 	lgs_conf.logMaxLogrecsize = lgs_conf_def.logMaxLogrecsize;
 	lgs_conf.logStreamSystemHighLimit = lgs_conf_def.logStreamSystemHighLimit;
 	lgs_conf.logStreamSystemLowLimit = lgs_conf_def.logStreamSystemLowLimit;
@@ -388,6 +395,10 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data)
 			(void) snprintf(lgs_conf.logDataGroupname, UT_NAMESIZE,
 				"%s", value_str);
 			lgs_conf.logDataGroupname_cnfflag = LGS_CNF_OBJ;
+		} else if (strcmp(name_str, LOG_STREAM_FILE_FORMAT) == 0) {
+			(void) snprintf(lgs_conf.logStreamFileFormat, MAX_FIELD_SIZE,
+							"%s", value_str);
+			lgs_conf.logStreamFileFormat_cnfflag = LGS_CNF_OBJ;
 		} else if (strcmp(name_str, LOG_MAX_LOGRECSIZE) == 0) {
 			lgs_conf.logMaxLogrecsize = (SaUint32T)
 				strtoul(value_str, NULL, 0);
@@ -501,6 +512,30 @@ int lgs_cfg_verify_log_data_groupname(char *group_name)
 				__FUNCTION__);
 			rc = -1;
 		}
+	}
+
+	return rc;
+}
+
+/**
+ * Verify logStreamFileFormat attribute value of App stream.
+ * Rule:
+ *   All tokens are in right format
+ *
+ * @param log_file_format [in]
+ * @return -1 on error
+ */
+int lgs_cfg_verify_log_file_format(const char* log_file_format)
+{
+	int rc = 0;
+	SaBoolT dummy;
+
+	if (!lgs_is_valid_format_expression((const SaStringT)log_file_format,
+										STREAM_TYPE_APPLICATION,
+										&dummy)) {
+		LOG_NO("logStreamFileFormat has invalid value = %s",
+			   log_file_format);
+		rc = -1;
 	}
 
 	return rc;
@@ -659,6 +694,12 @@ static int verify_all_init(void)
 		rc = -1;
 	}
 
+	if (lgs_cfg_verify_log_file_format(lgs_conf.logStreamFileFormat) == -1) {
+		strcpy(lgs_conf.logStreamFileFormat, lgs_conf_def.logStreamFileFormat);
+		lgs_conf.logStreamFileFormat_cnfflag = LGS_CNF_DEF;
+		rc = -1;
+	}
+
 	if (lgs_cfg_verify_max_logrecsize(lgs_conf.logMaxLogrecsize) == -1) {
 		lgs_conf.logMaxLogrecsize = lgs_conf_def.logMaxLogrecsize;
 		lgs_conf.logMaxLogrecsize_cnfflag = LGS_CNF_DEF;
@@ -788,6 +829,19 @@ static void read_logsv_config_obj_2(void) {
 				lgs_conf.logDataGroupname_cnfflag = LGS_CNF_OBJ;
 				TRACE("Conf obj; logDataGroupname: %s",
 					lgs_conf.logDataGroupname);
+			}
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT)) {
+			n = snprintf(lgs_conf.logStreamFileFormat, MAX_FIELD_SIZE, "%s",
+						 *((char **) value));
+			if (n >= MAX_FIELD_SIZE) {
+				/* The attribute has invalid value - use default value instead */
+				LOG_NO("Invalid logStreamFileFormat: %s",
+					   lgs_conf.logStreamFileFormat);
+				lgs_conf.logStreamFileFormat[0] = '\0';
+			} else {
+				lgs_conf.logStreamFileFormat_cnfflag = LGS_CNF_OBJ;
+				TRACE("Conf obj; %s: %s", attribute->attrName,
+					  lgs_conf.logStreamFileFormat);
 			}
 		} else if (!strcmp(attribute->attrName, LOG_MAX_LOGRECSIZE)) {
 			lgs_conf.logMaxLogrecsize = *((SaUint32T *) value);
@@ -1192,6 +1246,9 @@ const void *lgs_cfg_get(lgs_logconfGet_t param)
 	case LGS_IMM_DATA_GROUPNAME:
 		value_ptr = lgs_conf.logDataGroupname;
 		break;
+	case LGS_IMM_LOG_STREAM_FILE_FORMAT:
+		value_ptr = lgs_conf.logStreamFileFormat;
+		break;
 	case LGS_IMM_LOG_MAX_LOGRECSIZE:
 		value_ptr = &lgs_conf.logMaxLogrecsize;
 		break;
@@ -1423,6 +1480,13 @@ void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attr
 				LGS_CFG_RUNTIME_OBJECT,
 				attributeName, SA_IMM_ATTR_SASTRINGT,
 				&str_val);
+		} else if (!strcmp(attributeName, LOG_STREAM_FILE_FORMAT)) {
+			str_val = (char *)
+				lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
+			(void)immutil_update_one_rattr(immOiHandle,
+			   LGS_CFG_RUNTIME_OBJECT,
+			   attributeName, SA_IMM_ATTR_SASTRINGT,
+			   &str_val);
 		} else if (!strcmp(attributeName, LOG_MAX_LOGRECSIZE)) {
 			u32_val = *(SaUint32T *)
 				lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE);
@@ -1521,6 +1585,9 @@ void lgs_trace_config(void)
 	TRACE("logDataGroupname\t\t \"%s\",\t %s",
 		lgs_conf.logDataGroupname,
 		cnfflag_str(lgs_conf.logDataGroupname_cnfflag));
+	TRACE("logStreamFileFormat\t\t \"%s\",\t %s",
+		  lgs_conf.logStreamFileFormat,
+		  cnfflag_str(lgs_conf.logStreamFileFormat_cnfflag));
 	TRACE("logMaxLogrecsize\t\t %u,\t %s",
 		lgs_conf.logMaxLogrecsize,
 		cnfflag_str(lgs_conf.logMaxLogrecsize_cnfflag));
@@ -1561,6 +1628,7 @@ void lgs_cfg_read_trace(void)
 	TRACE("##### LOG Configuration parameter read start #####");
 	TRACE("logRootDirectory\t\t \"%s\"", (char *) lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 	TRACE("logDataGroupname\t\t \"%s\"", (char *) lgs_cfg_get(LGS_IMM_DATA_GROUPNAME));
+	TRACE("logStreamFileFormat\t\t \"%s\"", (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
 	TRACE("logMaxLogrecsize\t\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
 	TRACE("logStreamSystemHighLimit\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT));
 	TRACE("logStreamSystemLowLimit\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT));

@@ -32,6 +32,7 @@ extern "C" {
 #define LOG_ROOT_DIRECTORY "logRootDirectory"
 #define LOG_DATA_GROUPNAME "logDataGroupname"
 #define LOG_MAX_LOGRECSIZE "logMaxLogrecsize"
+#define LOG_STREAM_FILE_FORMAT "logStreamFileFormat"
 #define LOG_STREAM_SYSTEM_HIGH_LIMIT "logStreamSystemHighLimit"
 #define LOG_STREAM_SYSTEM_LOW_LIMIT "logStreamSystemLowLimit"
 #define LOG_STREAM_APP_HIGH_LIMIT "logStreamAppHighLimit"
@@ -44,6 +45,7 @@ typedef enum {
 	LGS_IMM_LOG_ROOT_DIRECTORY,
 	LGS_IMM_DATA_GROUPNAME,
 	LGS_IMM_LOG_MAX_LOGRECSIZE,
+	LGS_IMM_LOG_STREAM_FILE_FORMAT,
 	LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT,
 	LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT,
 	LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT,
@@ -91,6 +93,7 @@ void lgs_groupnameconf_set(const char *data_groupname_str);
  */
 int lgs_cfg_verify_root_dir(char *root_str_in);
 int lgs_cfg_verify_log_data_groupname(char *group_name);
+int lgs_cfg_verify_log_file_format(const char* log_file_format);
 int lgs_cfg_verify_max_logrecsize(uint32_t max_logrecsize_in);
 int lgs_cfg_verify_mbox_limit(uint32_t high, uint32_t low);
 int lgs_cfg_verify_max_application_streams(uint32_t max_app_streams);

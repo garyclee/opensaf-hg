@@ -190,6 +190,12 @@ to ensure that default global values in the implementation are also changed acco
             <default-value>1024</default-value>
 		</attr>
 		<attr>
+			<name>logStreamFileFormat</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
 			<name>logStreamSystemHighLimit</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_CONFIG</category>
@@ -261,6 +267,11 @@ to ensure that default global values in the implementation are also changed acco
 		<attr>
 			<name>logMaxLogrecsize</name>
 			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logStreamFileFormat</name>
+			<type>SA_STRING_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
 		<attr>

@@ -760,6 +760,17 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 				}
 				TRACE("groupname: %s is accepted", groupname);
 			}
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT)) {
+			char *logFileFormat = *((char **) value);
+			rc = lgs_cfg_verify_log_file_format(logFileFormat);
+			if (rc == -1) {
+				report_oi_error(immOiHandle, opdata->ccbId,
+								"%s value is NOT accepted", attribute->attrName);
+				ais_rc = SA_AIS_ERR_INVALID_PARAM;
+				goto done;
+			}
+			TRACE("logFileFormat: %s value is accepted", logFileFormat);
+			goto done;
 		} else if (!strcmp(attribute->attrName, LOG_MAX_LOGRECSIZE)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
@@ -1923,6 +1934,14 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			apply_conf_logDataGroupname(value_str);
 			lgs_cfgupd_list_create(LOG_DATA_GROUPNAME,
 				value_str, &config_data);
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT)) {
+			/**
+			 * This attribute value is used for default log file format of
+			 * app stream. Changing this value don't result in cfg/log file creation.
+			*/
+			value_str = *((char **)value);
+			lgs_cfgupd_list_create(LOG_STREAM_FILE_FORMAT,
+				 value_str, &config_data);
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
 			uint32_val = *(uint32_t *) value;
 			snprintf(uint32_str, 20, "%u", uint32_val);
@@ -2082,9 +2101,8 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 				char *logFileFormat = *((char **) value);
 				if (!lgs_is_valid_format_expression(logFileFormat, (*stream)->streamType, &dummy)) {
 					LOG_WA("Invalid logFileFormat for stream %s, using default", (*stream)->name);
-					logFileFormat = DEFAULT_APP_SYS_FORMAT_EXP;
+					logFileFormat = (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
 				}
-
 				(*stream)->logFileFormat = strdup(logFileFormat);
 				TRACE("logFileFormat: %s", (*stream)->logFileFormat);
 			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamSeverityFilter")) {
@@ -2095,8 +2113,11 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 		i++;
 	} // while
 
-	if ((*stream)->logFileFormat == NULL)
-		(*stream)->logFileFormat = strdup(log_file_format[(*stream)->streamType]);
+	if ((*stream)->logFileFormat == NULL) {
+		/* If passing NULL to log file format, use default value */
+		const char* logFileFormat = (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
+		(*stream)->logFileFormat = strdup(logFileFormat);
+	}
 
 	/* Update creation timestamp */
 	(void) immutil_update_one_rattr(lgs_cb->immOiHandle, (const char*) objectName.value,
@@ -2507,15 +2528,12 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 			if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
 				LOG_WA("Invalid logFileFormat for stream %s, using default", stream->name);
 
-				if ((stream->streamType == STREAM_TYPE_SYSTEM) ||
-				    (stream->streamType == STREAM_TYPE_APPLICATION))
-					logFileFormat = DEFAULT_APP_SYS_FORMAT_EXP;
-
-				if ((stream->streamType == STREAM_TYPE_ALARM) ||
-				    (stream->streamType == STREAM_TYPE_NOTIFICATION))
-					logFileFormat = DEFAULT_ALM_NOT_FORMAT_EXP;
+				if (stream->streamType == STREAM_TYPE_APPLICATION) {
+					logFileFormat = (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
+				} else {
+					strcpy(logFileFormat, log_file_format[stream->streamType]);
+				}
 			}
-
 			stream->logFileFormat = strdup(logFileFormat);
 			TRACE("logFileFormat: %s", stream->logFileFormat);
 		} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
@@ -2524,8 +2542,14 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 		}
 	}
 
-	if (stream->logFileFormat == NULL)
-		stream->logFileFormat = strdup(log_file_format[stream->streamType]);
+	if (stream->logFileFormat == NULL) {
+		if (stream->streamType == STREAM_TYPE_APPLICATION) {
+			const char* logFileFormat = (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
+			stream->logFileFormat = strdup(logFileFormat);
+		} else {
+			stream->logFileFormat = strdup(log_file_format[stream->streamType]);
+		}
+	}
 
  done:
 	TRACE_LEAVE();

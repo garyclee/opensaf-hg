@@ -1,3 +1,4 @@
+
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
@@ -63,8 +64,8 @@ void saLogOi_01(void)
 			fprintf(stderr, "Failed to modify filename back to saLogNotification\n");
 		}
 	}
-	
-    rc_validate(WEXITSTATUS(rc), 0);
+
+	rc_validate(WEXITSTATUS(rc), 0);
 }
 
 /**
@@ -1202,11 +1203,11 @@ void saLogOi_62(void)
 {
     int rc;
     char command[256];
-	
+    
     sprintf(command, "immcfg -a logMaxApplicationStreams=%d"
 			" logConfig=1,safApp=safLogService 2> /dev/null",65);
     rc = system(command);
-    rc_validate(WEXITSTATUS(rc), 1);	
+    rc_validate(WEXITSTATUS(rc), 1);    
 }
 
 /**
@@ -2016,6 +2017,458 @@ void saLogOi_115(void)
 	rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/****************************************
+ * These below functions are used to test added new tokens:
+ * @Nz/@Cz: Represents a field of 5 characters with format [+-][hhmm]
+ * The content gives the deviation in hours and minutes btw local time/standard time
+ *
+ * @Nk/@Ck: Represents time in milliseconds of the seconds from logTimeStamp
+ * Format will be 3 digits.
+ *
+ * Each test case will follow the sequences:
+ *
+ * 1. Get the current attribute from IMM
+ * 2. Modify the attribute
+ * 3. Send a log stream
+ * 4. Check content of configuration (*.cfg)/log file (*.log)
+ * 5. Restore the attribute to previous value
+ *
+ ***************************************/
+
+/* Default format expression for alm/not streams */
+#define DEFAULT_ALM_NOT_FORMAT_EXP "@Cr @Ct @Nt @Ne6 @No30 @Ng30 \"@Cb\""
+
+/* Default format expression for sys/app streams */
+#define DEFAULT_APP_SYS_FORMAT_EXP "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\""
+
+/* Commands to search for specific pattern on files having 01 last minute
+ * (?) accessed, but only openning file.
+ * The flow of execution as below:
+ *
+ * 1. Find (linux `find` command) all files in the directory specificed by
+ * %s (e.g: root_log_path) and subfolders which having 01 last minute accessed
+ * (e.g: read/write access) or lesser.
+ *
+ * 2. With `egrep``, it helps to filter just openning log files
+ * in list of files found - which have correct format
+ * <logfilename>_<yyyymmdd>_<hhmmss>.log
+ *
+ * 3. With `egrep`, search content in the list of right-format
+ * found files for a specific pattern
+ * (e.g: timezone format = [+-][0-9]{4}, millisecond format = [0-9]{3})
+ *
+ * 4. Don't show found result (if tester wants to see the search result,
+ * comment final line and its above slash)
+ *
+ * Note: If found pattern, exit status of these pipes will be
+ * EXIT_SUCCESS(0), otherwise EXIT_FAILURE(1)/non-zero(?)
+ */
+#define VERIFY_CMD "find %s -type f -mmin -1" \
+                   " | egrep \".*(%s_[0-9]{8}_[0-9]{6})\\.log$\"" \
+                   " | xargs egrep  \" %s \"" \
+                   " 1> /dev/null"
+
+/* Search pattern for timezone token format (@Cz/@Nz) */
+#define TIMEZ_PATTERN "[+-][0-9]{4}" 	/* format: 5 characters with format [+-][hhmm] */
+/* Search pattern for millisecond token format (@Ck/@Nk) */
+#define MILLI_PATTERN "[0-9]{3}"	/* format: 3 digits */
+
+#define ALM_LOG_FILE "saLogAlarm"
+#define NTF_LOG_FILE "saLogNotification"
+#define SYS_LOG_FILE "saLogSystem"
+#define MAX_DATA 256
+
+/* immcfg command to modify saLogStreamLogFileFormat for a specific DN */
+#define IMMCFG_CMD "immcfg -a saLogStreamLogFileFormat=\"%s\" %s"
+
+/**
+ * CCB Object Modify saLogStreamLogFileFormat of alarm log stream
+ * by adding timezon token and check if configuration/log file
+ * are reflected correctly.
+ */
+void modStrLogFileFmt_01(void)
+{
+    int rc;
+    char command[MAX_DATA];
+    char preLogStrFileFmt[MAX_DATA];
+    /* Enable timezone format - @Nz */
+    const char* modLogStrFileFmt = "@Cr @Ct @Nt @Nz @Ne6 @No30 @Ng30 @Cb";
+
+    /* Get current value of the attribute, use default value if failed */
+    rc = get_attr_value(&alarmStreamName, "saLogStreamLogFileFormat", NULL,
+						preLogStrFileFmt);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		strncpy(preLogStrFileFmt, DEFAULT_ALM_NOT_FORMAT_EXP, MAX_DATA);
+    }
+
+    /* Modify the attribute */
+    sprintf(command, IMMCFG_CMD, modLogStrFileFmt, SA_LOG_STREAM_ALARM);
+    rc = system(command);
+    if (WEXITSTATUS(rc) == 0) {
+		/* Send an alarm to alarm log stream */
+		rc = system("saflogger -l");
+		if (WEXITSTATUS(rc)) {
+			/* Failed to send the alarm to log stream */
+			fprintf(stderr, "Failed to invoke saflogger -a\n");
+			rc_validate(WEXITSTATUS(rc), 0);
+			/* Exit the test case */
+			return;
+		}
+
+		/* Verify the content of log file if it is reflected with right format */
+		sprintf(command, VERIFY_CMD, log_root_path, ALM_LOG_FILE, TIMEZ_PATTERN);
+		rc = system(command);
+		if (rc == -1) {
+			fprintf(stderr, "Failed to execute command (%s) on shell\n",
+					VERIFY_CMD);
+			test_validate(rc, 0);
+			/* Exit the test case */
+			return;
+		}
+		/* Command is executed succesfully on the shell, verify the result */
+		rc_validate(WEXITSTATUS(rc), 0);
+
+		/* Restore the attribute to previous value */
+		sprintf(command, IMMCFG_CMD, preLogStrFileFmt, SA_LOG_STREAM_ALARM);
+		rc = system(command);
+		if (WEXITSTATUS(rc) != 0) {
+			/* Failed to restore to privous value, print message */
+			fprintf(stderr, "Failed to restore the attribute to previous value\n");
+		}
+    } else {
+		rc_validate(WEXITSTATUS(rc), 0);
+    }
+}
+
+/**
+ * CCB Object Modify saLogStreamLogFileFormat of alarm log stream
+ * by adding millisecond token and check if configuration/log file
+ * are reflected correctly.
+ */
+void modStrLogFileFmt_02(void)
+{
+    int rc;
+    char command[MAX_DATA];
+    char preLogStrFileFmt[MAX_DATA];
+    /* Enable millisecond format - @Nk */
+    const char* modLogStrFileFmt = "@Cr @Ct @Nt @Nk @Ne6 @No30 @Ng30 @Cb";
+
+    /* Get current value of the attribute, use default value if failed */
+    rc = get_attr_value(&alarmStreamName, "saLogStreamLogFileFormat", NULL,
+						preLogStrFileFmt);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		strncpy(preLogStrFileFmt, DEFAULT_ALM_NOT_FORMAT_EXP, MAX_DATA);
+    }
+
+    /* Modify the attribute */
+    sprintf(command, IMMCFG_CMD, modLogStrFileFmt, SA_LOG_STREAM_ALARM);
+    rc = system(command);
+    if (WEXITSTATUS(rc) == 0) {
+		/* Send an alarm to alarm log stream */
+		rc = system("saflogger -l");
+		if (WEXITSTATUS(rc)) {
+			/* Failed to send the alarm to alarm log stream. Report error, then exit */
+			fprintf(stderr, "Failed to invoke saflogger -l\n");
+			rc_validate(WEXITSTATUS(rc), 0);
+			return;
+		}
+
+		/* Verify the content of log file if it is reflected with right format */
+		sprintf(command, VERIFY_CMD, log_root_path, ALM_LOG_FILE, MILLI_PATTERN);
+		rc = system(command);
+		if (rc == -1) {
+			/* Failed to execute command on shell. Report error, then exit */
+			fprintf(stderr, "Failed to execute command (%s) on the shell \n",
+					VERIFY_CMD);
+			test_validate(rc, 0);
+			/* Exit the test case */
+			return;
+		}
+		/* Command is executed succesfully on the shell. Verify the result */
+		rc_validate(WEXITSTATUS(rc), 0);
+
+		/* Restore the attribute to previous value */
+		sprintf(command, IMMCFG_CMD, preLogStrFileFmt, SA_LOG_STREAM_ALARM);
+		rc = system(command);
+		if (WEXITSTATUS(rc)) {
+			/* Failed to restore the attribute to previous value */
+			fprintf(stderr, "Failed to restore the attribute to previous value \n");
+		}
+    } else {
+		rc_validate(WEXITSTATUS(rc), 0);
+    }
+}
+
+/**
+ * CCB Object Modify saLogStreamLogFileFormat of system log stream
+ * by adding timezon token and check if configuration/log file
+ * are reflected correctly.
+ */
+void modStrLogFileFmt_03(void)
+{
+    int rc;
+    char command[MAX_DATA];
+    char preLogStrFileFmt[MAX_DATA];
+    /* Enable timezone format - @Cz */
+    const char* modLogStrFileFmt = "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Cz @Sv @Sl \"@Cb\"";
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+    rc = get_attr_value(&systemStreamName, "saLogStreamLogFileFormat", NULL,
+						preLogStrFileFmt);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		strncpy(preLogStrFileFmt, DEFAULT_APP_SYS_FORMAT_EXP, MAX_DATA);
+    }
+
+    /* Modify the attribute */
+    sprintf(command, IMMCFG_CMD, modLogStrFileFmt, SA_LOG_STREAM_SYSTEM);
+    rc = system(command);
+    if (WEXITSTATUS(rc) == 0) {
+		/* Send an system log to system log stream */
+		rc = system("saflogger -y");
+		if (WEXITSTATUS(rc)) {
+			/* Failed to send system log to system log stream */
+			fprintf(stderr, "Failed to invoke saflogger -y");
+			rc_validate(WEXITSTATUS(rc), 0);
+			/* Exit the test case */
+			return;
+		}
+
+		/* Verify the content of log file if it is reflected with right format */
+		sprintf(command, VERIFY_CMD, log_root_path, SYS_LOG_FILE, TIMEZ_PATTERN);
+		rc = system(command);
+		if (rc == -1) {
+			/* Failed to execute command on the shell. Report error, then exit */
+			fprintf(stderr, "Failed to execute the command (%s) on the shell \n",
+					VERIFY_CMD);
+			test_validate(rc, 0);
+			/* Exit the test case */
+			return;
+		}
+		/* The command executed succesfully on the shell. Verify the result */
+		rc_validate(WEXITSTATUS(rc), 0);
+
+		/* Restore the attribute to previous value */
+		sprintf(command, IMMCFG_CMD, preLogStrFileFmt, SA_LOG_STREAM_SYSTEM);
+		rc = system(command);
+		if (WEXITSTATUS(rc)) {
+			/* Failed to restore the attribute to previous value */
+			fprintf(stderr, "Failed to restore the attribute to previous value \n");
+		}
+
+    } else {
+		rc_validate(WEXITSTATUS(rc), 0);
+    }
+}
+
+/**
+ * CCB Object Modify saLogStreamLogFileFormat of system log stream
+ * by adding millisecond token and check if configuration/log file
+ * are reflected correctly.
+ */
+void modStrLogFileFmt_04(void)
+{
+    int rc;
+    char command[MAX_DATA];
+    char preLogStrFileFmt[MAX_DATA];
+    /* Enable timezone format - @Ck */
+    const char* modLogStrFileFmt = "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Ck @Sv @Sl @Cb";
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+    rc = get_attr_value(&systemStreamName, "saLogStreamLogFileFormat", NULL,
+						preLogStrFileFmt);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		strncpy(preLogStrFileFmt, DEFAULT_APP_SYS_FORMAT_EXP, MAX_DATA);
+    }
+
+    /* Modify the attribute */
+    sprintf(command, IMMCFG_CMD, modLogStrFileFmt, SA_LOG_STREAM_SYSTEM);
+    rc = system(command);
+    if (WEXITSTATUS(rc) == 0) {
+		/* Send an system log to system log stream */
+		rc = system("saflogger -y");
+		if (WEXITSTATUS(rc)) {
+			/* Failed to send system log to system log stream */
+			fprintf(stderr, "Failed to invoke saflogger -y\n");
+			rc_validate(WEXITSTATUS(rc), 0);
+			return;
+		}
+
+		/* Verify the content of log file if it is reflected with right format */
+		sprintf(command, VERIFY_CMD, log_root_path, SYS_LOG_FILE, MILLI_PATTERN);
+		rc = system(command);
+		if (rc == -1) {
+			/* Failed to execute the command on the shell. Report error, then exit. */
+			fprintf(stderr, "Failed to execute command (%s) on the shell. \n",
+					VERIFY_CMD);
+			test_validate(rc, 0);
+			/* Exit the test case */
+			return;
+		}
+
+		rc_validate(WEXITSTATUS(rc), 0);
+
+		/* Restore the attribute to previous value */
+		sprintf(command, IMMCFG_CMD, preLogStrFileFmt, SA_LOG_STREAM_SYSTEM);
+		rc = system(command);
+		if (WEXITSTATUS(rc)) {
+			fprintf(stderr, "Failed to restore the attribute to previous value \n");
+		}
+    } else {
+		rc_validate(WEXITSTATUS(rc), 0);
+    }
+}
+
+/**
+ * CCB Object Modify saLogStreamLogFileFormat of system log stream
+ * by adding timezone and millisecond token
+ * then check if configuration/log file are reflected correctly.
+ */
+void modStrLogFileFmt_05(void)
+{
+    int rc;
+    char command[MAX_DATA];
+    char preLogStrFileFmt[MAX_DATA];
+    /* Enable timezone and millisecond token - @Cz @Ck */
+    const char* modLogStrFileFmt = "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Cz @Ck @Sv @Sl @Cb";
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+    rc = get_attr_value(&systemStreamName, "saLogStreamLogFileFormat", NULL,
+						preLogStrFileFmt);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		strncpy(preLogStrFileFmt, DEFAULT_APP_SYS_FORMAT_EXP, MAX_DATA);
+    }
+
+    /* Modify the attribute */
+    sprintf(command, IMMCFG_CMD, modLogStrFileFmt, SA_LOG_STREAM_SYSTEM);
+    rc = system(command);
+    if (WEXITSTATUS(rc) == 0) {
+		/* Send an system log to system log stream */
+		rc = system("saflogger -y");
+		if (WEXITSTATUS(rc)) {
+			/* Failed to send system log to sys log stream */
+			fprintf(stderr, "Failed to invoke saflogger -y\n");
+			rc_validate(WEXITSTATUS(rc), 0);
+			return;
+		}
+
+		char tZoneMillP[MAX_DATA];
+		sprintf(tZoneMillP, "%s %s", TIMEZ_PATTERN, MILLI_PATTERN);
+
+		/* Verify the content of log file if it is reflected with right format */
+		sprintf(command, VERIFY_CMD, log_root_path, SYS_LOG_FILE, tZoneMillP);
+		rc = system(command);
+		if (rc == -1) {
+			/* Failed to execute command on the shell. Report error, then exit */
+			fprintf(stderr, "Failed to execute command (%s) on the shell. \n",
+					VERIFY_CMD);
+			test_validate(rc, 0);
+			return;
+		}
+		rc_validate(WEXITSTATUS(rc), 0);
+
+		/* Restore the attribute to previous value */
+		sprintf(command, IMMCFG_CMD, preLogStrFileFmt, SA_LOG_STREAM_SYSTEM);
+		rc = system(command);
+		if (WEXITSTATUS(rc)) {
+			/* Failed to restore the attribute to previous value */
+			fprintf(stderr, "Failed to restore to previous value \n");
+		}
+    } else {
+		rc_validate(WEXITSTATUS(rc), 0);
+    }
+}
+
+/**
+ * Change logStreamFileFormat attribute, then create application stream
+ * with logFileFmt set to NULL. Write a log record to that stream.
+ *
+ * Check whether written log file format is reflected correctly
+ * with one defined by logStreamFileFormat.
+ *
+ */
+void verDefaultLogFileFmt(void)
+{
+    int rc;
+    char command[MAX_DATA];
+    char preLogStrFileFmt[MAX_DATA];
+	char appLogPath[MAX_DATA];
+
+    /* Enable timezone and millisecond token - @Cz @Ck */
+    const char* modLogStrFileFmt = "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Cz @Ck @Sv @Sl @Cb";
+	/*
+	  The description for this macro is same as one for VERIFY_CMD.
+	  Except, it includes close timestamp.
+	 */
+#define VERIFY_CMD_ "find %s -type f -mmin -1" \
+		" | egrep \"%s_[0-9]{8}_[0-9]{6}_[0-9]{8}_[0-9]{6}\\.log$\"" \
+		" | xargs egrep  \" %s \"" \
+		" 1> /dev/null"
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+	rc = get_attr_value(&configurationObject, "logStreamFileFormat", NULL,
+						preLogStrFileFmt);
+    if (rc == -1) {
+		/* Failed, use default one */
+		strncpy(preLogStrFileFmt, DEFAULT_APP_SYS_FORMAT_EXP, MAX_DATA);
+    }
+
+    /* Modify the attribute */
+    sprintf(command, "immcfg -a logStreamFileFormat=\"%s\" %s",
+			modLogStrFileFmt, SA_LOG_CONFIGURATION_OBJECT);
+
+    rc = system(command);
+    if (WEXITSTATUS(rc) == 0) {
+		/* Send an system log to app stream */
+		rc = system("saflogger -a safLgStrCfg=verDefaultLogFileFmt");
+		if (WEXITSTATUS(rc)) {
+			/* Failed to send log record to app stream */
+			fprintf(stderr, "Failed to invoke saflogger -a\n");
+			rc_validate(WEXITSTATUS(rc), 0);
+			return;
+		}
+
+		char tZoneMillP[MAX_DATA];
+		sprintf(tZoneMillP, "%s %s", TIMEZ_PATTERN, MILLI_PATTERN);
+
+		/* Verify the content of log file if it is reflected with right format */
+		sprintf(appLogPath, "%s/saflogger", log_root_path);
+		sprintf(command, VERIFY_CMD_, appLogPath,
+				"safLgStrCfg=verDefaultLogFileFmt",	tZoneMillP);
+
+		rc = system(command);
+		if (rc == -1) {
+			/* Failed to execute command on the shell. Report error, then exit */
+			fprintf(stderr, "Failed to execute command (%s) on the shell. \n",
+					VERIFY_CMD_);
+			test_validate(rc, 0);
+			return;
+		}
+		rc_validate(WEXITSTATUS(rc), 0);
+
+		/* Restore the attribute to previous value */
+		sprintf(command, "immcfg -a logStreamFileFormat=\"%s\" %s",
+				preLogStrFileFmt, SA_LOG_CONFIGURATION_OBJECT);
+
+		rc = system(command);
+		if (WEXITSTATUS(rc)) {
+			/* Failed to restore the attribute to previous value */
+			fprintf(stderr, "Failed to restore to previous value \n");
+		}
+    } else {
+		rc_validate(WEXITSTATUS(rc), 0);
+    }
+}
+
 #undef MAX_LOGRECSIZE
 
 __attribute__ ((constructor)) static void saOiOperations_constructor(void)
@@ -2079,7 +2532,13 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
     test_case_add(4, saLogOi_40, "CCB Object Delete, strA");
     test_case_add(4, saLogOi_50, "saflogtest, writing to appTest");
     test_case_add(4, saLogOi_51, "saflogtest, writing to saLogApplication1, severity filtering check");
-	
+    test_case_add(4, modStrLogFileFmt_01, "CCB Object Modify, saLogstreamLogFileFormat, timezone token (@Nz)");
+    test_case_add(4, modStrLogFileFmt_02, "CCB Object Modify, saLogstreamLogFileFormat, millisecond token (@Nk)");
+    test_case_add(4, modStrLogFileFmt_03, "CCB Object Modify, saLogstreamLogFileFormat, timezone token (@Cz)");
+    test_case_add(4, modStrLogFileFmt_04, "CCB Object Modify, saLogstreamLogFileFormat, millisecond token (@Ck)");
+    test_case_add(4, modStrLogFileFmt_05, "CCB Object Modify, saLogstreamLogFileFormat, timezone & millisecond token (@Cz @Ck)");
+    test_case_add(4, verDefaultLogFileFmt, "Application stream with default log file format");
+
 	/* Configuration object */
     test_suite_add(5, "LOG OI tests, Service configuration object");
     test_case_add(5, saLogOi_52, "CCB Object Modify, root directory. Path does not exist. Not allowed");

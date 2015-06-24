@@ -798,8 +798,9 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 	}
 
 	if (open_sync_param->logFileFmt == NULL) {
-		TRACE("Assigning default format string for app stream");
-		open_sync_param->logFileFmt = strdup(DEFAULT_APP_SYS_FORMAT_EXP);
+		TRACE("logFileFmt is NULL, use default one");
+		const char* logFileFormat = (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
+		open_sync_param->logFileFmt = strdup(logFileFormat);
 	}
 
 	/* Check the format string */

@@ -25,6 +25,10 @@
 #include <ncsgl_defs.h>
 #include "lgs_fmt.h"
 
+/* Number of seconds per an hour/minute */
+#define SECOND_PER_HOUR  3600L
+#define SECOND_PER_MINUTE 60L
+
 /**
  * 
  * @param inputString
@@ -174,6 +178,24 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
 
 	case C_TIME_STAMP_FULL_YEAR_LETTER:
 		shiftOffset = (int)C_TIME_STAMP_FULL_YEAR_SHIFT_OFFSET;
+		if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
+			tokenOk = SA_FALSE;	/* Same token used two times */
+		} else {
+			*tokenFlags = (*tokenFlags | (1 << shiftOffset));
+		}
+		break;
+
+	case C_TIME_MILLISECOND_LETTER:
+		shiftOffset = (int) C_TIME_MILLISECOND_SHIFT_OFFSET;
+		if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
+			tokenOk = SA_FALSE;	/* Same token used two times */
+		} else {
+			*tokenFlags = (*tokenFlags | (1 << shiftOffset));
+		}
+		break;
+
+	case C_TIME_TIMEZONE_LETTER:
+		shiftOffset = (int) C_TIME_TIMEZONE_SHIFT_OFFSET;
 		if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
 			tokenOk = SA_FALSE;	/* Same token used two times */
 		} else {
@@ -361,6 +383,24 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
 
 	case N_EVENT_TIME_FULL_YEAR_LETTER:
 		shiftOffset = (int)N_EVENT_TIME_FULL_YEAR_SHIFT_OFFSET;
+		if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
+			tokenOk = SA_FALSE;	/* Same token used two times */
+		} else {
+			*tokenFlags = (*tokenFlags | (1 << shiftOffset));
+		}
+		break;
+
+	case N_EVENT_TIME_MILLISECOND_LETTER:
+		shiftOffset = (int) N_EVENT_TIME_MILLISECOND_SHIFT_OFFSET;
+		if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
+			tokenOk = SA_FALSE;	/* Same token used two times */
+		} else {
+			*tokenFlags = (*tokenFlags | (1 << shiftOffset));
+		}
+		break;
+
+	case N_EVENT_TIME_TIMEZONE_LETTER:
+		shiftOffset = (int) N_EVENT_TIME_TIMEZONE_SHIFT_OFFSET;
 		if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE) {
 			tokenOk = SA_FALSE;	/* Same token used two times */
 		} else {
@@ -601,7 +641,7 @@ static int extractCommonField(char *dest, size_t dest_size,
 		}
 
 		break;
-		
+
 	case C_TIME_STAMP_DAY_LETTER:
 		stringSize = 3 * sizeof(char);
 		characters = snprintf(dest, dest_size, "%02d", (timeStampData->tm_mday));
@@ -652,6 +692,21 @@ static int extractCommonField(char *dest, size_t dest_size,
 	case C_TIME_STAMP_FULL_YEAR_LETTER:
 		stringSize = 5 * sizeof(char);
 		characters = strftime(dest, dest_size, "%Y", timeStampData);
+		break;
+
+	case C_TIME_MILLISECOND_LETTER:
+		stringSize = 4 * sizeof(char);
+		/* Extract millisecond from logTimestamp */
+		SaTimeT us = logRecord->logTimeStamp / SA_TIME_ONE_MICROSECOND;
+		characters = snprintf(dest, dest_size, "%03lld", us % SA_TIME_ONE_MICROSECOND);
+		break;
+
+	case C_TIME_TIMEZONE_LETTER:
+		stringSize = 6 * sizeof(char);
+		/* Get timezone offset from localtime to UTC time */
+		long gmtOffset = (timeStampData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
+			(timeStampData->tm_gmtoff % SECOND_PER_HOUR) / SECOND_PER_MINUTE;
+		characters = snprintf(dest, dest_size, "%c%04ld", gmtOffset >= 0 ? '+' : '-', gmtOffset);
 		break;
 
 	case C_NOTIFICATION_CLASS_ID_LETTER:
@@ -915,6 +970,19 @@ static int extractNotificationField(char *dest, size_t dest_size,
 
 	case N_EVENT_TIME_FULL_YEAR_LETTER:
 		characters = snprintf(dest, dest_size, "%d", (eventTimeData->tm_year + START_YEAR));
+		break;
+
+	case N_EVENT_TIME_MILLISECOND_LETTER:
+		/* Extract millisecond from logTimestamp */
+		characters = snprintf(dest, dest_size, "%03lld", totalTime % SA_TIME_ONE_MICROSECOND);
+		break;
+
+	case N_EVENT_TIME_TIMEZONE_LETTER:
+		/* Get time offset from localtime to UTC */
+		characters = 6;	/* to avoid using {} */
+		long gmtOffset = (eventTimeData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
+			(eventTimeData->tm_gmtoff % SECOND_PER_HOUR) / SECOND_PER_MINUTE;
+		characters = snprintf(dest, dest_size, "%c%04ld", gmtOffset >= 0 ? '+' : '-', gmtOffset);
 		break;
 
 	case N_EVENT_TYPE_LETTER:
