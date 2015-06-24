@@ -39,7 +39,10 @@
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
- * Notes         : None.
+ * Notes         : The configuration store on standby must always be updated
+ *                 when there are changes in log service configuration.
+ *                 This is done by calling lgs_cfg_update() function.
+ * 
  ****************************************************************************/
 
 uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data)
@@ -87,6 +90,8 @@ uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data)
 			&cfg_buffer);
 
 	while (next_ptr != NULL) {
+		/* Attribute changes that needs more than to be updated in the
+		 * configuration store are handled here */
 		if ((strcmp(name_str, LOG_ROOT_DIRECTORY) == 0) &&
 		    (lgs_is_split_file_system() == true)){
 			const char *new_root_path = value_str;

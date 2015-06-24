@@ -173,15 +173,16 @@ The class defines the following parameters and default values for the object
 (logsv_classes.xml):
 
 NAME                        DEFAULT VALUE         COMMENT
-saLogRootDirectory          $pkglogdir/saflog     Must be available in the file
+logRootDirectory            $pkglogdir/saflog     Must be available in the file
                                                   system
-saLogMaxLogrecsize          1024                  Max log record size including
+logMaxLogrecsize            1024                  Max log record size including
                                                   header information
-saLogStreamSystemHighLimit  0                     a.
-saLogStreamSystemLowLimit   0                     a.
-saLogAppHighLimit           0                     a.
-saLogAppLowLimit            0                     a.
-saLogMaxApplicationStreams  64                    Max number of application
+logStreamFileFormat         <empty>               c.
+logStreamSystemHighLimit    0                     a.
+logStreamSystemLowLimit     0                     a.
+logAppHighLimit             0                     a.
+logAppLowLimit              0                     a.
+logMaxApplicationStreams    64                    Max number of application
                                                   streams with runtime object
                                                   that can be created
 logFileIoTimeout            500                   File I/O timeout (see file.c)
@@ -192,13 +193,14 @@ a. Message queue thresholds used when queuing log record write requests of
    different types
 b. Log service can be configured to write log records locally on both server
    nodes. This attribute cannot be changed in runtime
+c. The default format for application log records created using the log API.
+   If this attribute has no value <empty> a hard coded format as defined in the
+   log service AIS will be used as default format.
 
-All the above attributes except saLogRootDirectory and logDataGroupname has a
-default value set in the class definition (see logsv_classes.xml). The value for
-parameter saLogRootDirectory is instead defined when the imm.xml file is created.
+A value for parameter saLogRootDirectory is instead defined when the imm.xml file is created.
 In the logsv_objects.xml file the parameter value is set to "xxLOGDIRxx/saflog"
 and when the imm.xml file is created "xxLOGDIRxx" is replaced by the content of
-$pkglogdir. See also LOGSV_ROOT_DIRECTORY in the logd.conf file.
+$pkglogdir.
 
 The configuration file is still used to "enable trace" and
 "enable info level logging". Also the environment variable
@@ -206,15 +208,16 @@ LGSV_ENV_HEALTHCHECK_KEY is used.
 
 The following attributes can be changed in runtime.
 
- - saLogRootDirectory
+ - logRootDirectory
    Can be changed to an existing path.
 
- - saLogStreamSystemHighLimit
-   saLogStreamSystemLowLimit
-   saLogAppHighLimit
-   saLogAppLowLimit
-   Can be changed in runtime if both SC nodes supports changes. Could not
-   be changed in older versions.
+ - logStreamFileFormat
+
+ - logStreamSystemHighLimit
+   logStreamSystemLowLimit
+   logAppHighLimit
+   logAppLowLimit
+   Could not be changed in older versions.
 
  - logDataGroupname
    Can be changed to an existing group which is currently a supplementary group
@@ -420,6 +423,23 @@ See lgs_filehdl.c, lgs_stream.c and lgs_util.c for examples.
 Functions that uses a "handler" has got extention _h in the function name
 e.g. fileopen(..) -> fileopen_h(..). All handlers can be found in file
 lgs_filehdl.c
+
+Note on memory handling for writting log record:
+------------------------------------------------
+In most cases, the main thread is blocked until the log handler
+thread finishes the request (e.g: writing log record to file). Therefore,
+when the main thread is unblocked, it is safe to free the log record
+memory by the main thread as the log handler thread no longer uses it.
+
+But in time-out case, it is unsure when the log handler thread no longer uses
+the log record memory. So, in worse case, if the log record memory is freed
+by the main thread while the log handler is still using it, could cause the
+problem.
+
+To make sure there is no corruption of memory usage in case of time-out,
+leave the log record memory free to log handler thread.
+
+Refer to ticket #1376 for more info on this.
 
 File system configuration:
 When using UML (tools/cluster_sim_uml) the file system can be configured for
@@ -665,3 +685,29 @@ On standby if configuration 2:
      previous record and the Id of the record to be written.
    - Write the check pointed log record.
 
+LOG SERVICE ENHANCEMENTS
+========================
+
+1. New tokens are added (#593)
+------------------------------
+Currently, the log service presents the time in the local time settings.
+For example, if the log service is initiated in Stockholm, the log service
+shows the local Stockholm time.
+
+According to AIS standard, this time should be represented in UTC/GMT format.
+
+To cover this, new optional tokens are added to show "time zone" (@Cz, @Nz).
+- @Cz: for system and application log stream.
+- @Nz: for alarm and notification log stream.
+
+It should represent 04 numbers and an additional `+` or `-` sign in the beginning.
+Preceding and trailing zeros (0) if needed should exist.
+
+Format: [+,-]hhmm
+
+In addition, two more tokens are added to show three digits millisecond
+of second from log timestamp (@Ck, @Nk).
+- @Ck: for system and application log stream.
+- @Nk: for alarm and notification log stream.
+
+Preceding and trailing zeros (0) if needed should exist.
