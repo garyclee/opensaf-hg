@@ -927,7 +927,9 @@ static uint32_t ckpt_decode_log_write(lgs_cb_t *cb, void *ckpt_msg,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	void *write_log;
 	EDU_PROG_HANDLER edp_function;
-	
+	const int sleep_delay_ms = 10;
+	const int max_waiting_time_ms = 100;
+
 	if (lgs_is_peer_v2()) {
 		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = ckpt_msg;
 		write_log = &ckpt_msg_v2->ckpt_rec.write_log;
@@ -939,6 +941,24 @@ static uint32_t ckpt_decode_log_write(lgs_cb_t *cb, void *ckpt_msg,
 	}
 	
 	rc = ckpt_decode_log_struct(cb, cbk_arg, ckpt_msg, write_log, edp_function);
+
+	/*
+	  When getting error return code (NCSCC_RC_REQ_TIMEOUT), means there are
+	  something happens in log handler thread, then we have to re-try it.
+
+	  One note is that, in time-out case,  allocated log record is freed
+	  by the log handler thread. Therefore, it is needed to re-allocate
+	  the log record again.
+	*/
+	int msecs_waited = 0;
+	while (lgs_is_split_file_system() &&
+		   (rc == NCSCC_RC_REQ_TIMOUT) &&
+		   (msecs_waited < max_waiting_time_ms)) {
+		usleep(sleep_delay_ms * 1000);
+		msecs_waited += sleep_delay_ms;
+		rc = ckpt_decode_log_struct(cb, cbk_arg, ckpt_msg, write_log, edp_function);
+	}
+
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("%s - ckpt_decode_log_struct Fail",__FUNCTION__);
 	}
@@ -1547,22 +1567,55 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 		LOG_ER("%s - Could not format internal log record",__FUNCTION__);
 		goto done;
 	}
-		
+
 	/* Write the log record to file */
-	int msecs_waited = 0;		
+	int msecs_waited = 0;
 	rc = log_stream_write_h(stream, logOutputString, n);
 	while ((rc == -2) && (msecs_waited < max_waiting_time_ms)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
+
+		/*
+		  In time-out case, file handler thread frees the log record memory.
+		  Therefore, need to re-allocate memory & retry writing log.
+		*/
+		if (logOutputString == NULL) {
+			logOutputString = calloc(1, buf_size + 1); /* Make room for a '\0' termination */
+			if (logOutputString == NULL) {
+				LOG_ER("%s - Could not allocate %d bytes",__FUNCTION__, stream->fixedLogRecordSize + 1);
+			}
+
+			/* Format the log record */
+			if ((n = lgs_format_log_record(&log_record, stream->logFileFormat, stream->maxLogFileSize,
+						       stream->fixedLogRecordSize, buf_size, logOutputString,
+						       LOG_REC_ID)) == 0) {
+				LOG_ER("%s - Could not format internal log record",__FUNCTION__);
+			}
+		}
+
 		rc = log_stream_write_h(stream, logOutputString, n);
 	}
 	if (rc != 0) {
 		TRACE("Error %d when writing log record",rc);
 	}
+	/*
+	  Since the logOutputString is referred by the log handler thread, in timeout case,
+	  the log API thread might be still using the log record memory.
 
-	done:
-		if (logOutputString != NULL)
-			free(logOutputString);
+	  To make sure there is no corruption of memory usage in case of time-out (rc = -2),
+	  We leave the log record memory freed to the log handler thread..
+
+	  It is never a good idea to allocate and free memory in different places.
+	  But consider it as a trade-off to have a better performance of LOGsv
+	  as time-out occurs very rarely.
+
+	  Other cases, the allocator frees it.
+	 */
+done:
+	if ((rc != -2) && (logOutputString != NULL)) {
+		free(logOutputString);
+		logOutputString = NULL;
+	}
 }
 
 /****************************************************************************
@@ -1584,16 +1637,13 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 {
 	log_stream_t *stream;
-	const int sleep_delay_ms = 10;
-	const int max_waiting_time_ms = 100;
-	
 	uint32_t streamId;
 	uint32_t recordId;
 	uint32_t curFileSize;
 	char *logFileCurrent;
 	char *logRecord = NULL;
 	uint64_t c_file_close_time_stamp = 0;
-	
+	int rc = 0;
 
 	TRACE_ENTER();
 
@@ -1629,7 +1679,7 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 	if (lgs_is_split_file_system()) {
 		size_t rec_len = strlen(logRecord);
 		stream->act_last_close_timestamp = c_file_close_time_stamp;
-		
+
 		/* Check if record id numbering is inconsistent. If so there are
 		 * possible missed log records and a notification shall be inserted
 		 * in log file.
@@ -1637,31 +1687,43 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 		if ((stream->stb_logRecordId + 1) != recordId) {
 			insert_localmsg_in_stream(stream, "Possible loss of log record");
 		}
-		
+
 		/* Make a limited number of attempts to write if file IO timed out when 
 		 * trying to write the log record.
 		 */
-		int msecs_waited = 0;		
-		int rc = log_stream_write_h(stream, logRecord, rec_len);
-		while ((rc == -2) && (msecs_waited < max_waiting_time_ms)) {
-			usleep(sleep_delay_ms * 1000);
-			msecs_waited += sleep_delay_ms;
-			rc = log_stream_write_h(stream, logRecord, rec_len);
-		}
+		rc = log_stream_write_h(stream, logRecord, rec_len);
 		if (rc != 0) {
 			TRACE("\tError %d when writing log record",rc);
 		}
-		
+
 		stream->stb_logRecordId = recordId;
 	} /* END lgs_is_split_file_system */
 	
  done:
-	if (logRecord != NULL) {
+	/*
+	  Since the logRecord is referred by the log handler thread, in time-out case,
+	  the log API thread might be still using the log record memory.
+
+	  To make sure there is no corruption of memory usage in case of time-out (rc = -2),
+	  We leave the log record memory freed to the log handler thread..
+
+	  It is never a good idea to allocate and free memory in different places.
+	  But consider it as a trade-off to have a better performance of LOGsv
+	  as time-out occurs very rarely.
+
+	  Other cases, the allocator frees it.
+	 */
+	if ((rc != -2) && (logRecord != NULL)) {
 		lgs_free_edu_mem(logRecord);
+		logRecord = NULL;
 	}
 	lgs_free_edu_mem(logFileCurrent);
 	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
+	/*
+	  If rc == -2, means something happens in log handler thread
+	  return TIMEOUT error, so that the caller will try again.
+	 */
+	return (rc == -2 ? NCSCC_RC_REQ_TIMOUT : NCSCC_RC_SUCCESS);
 }
 
 /****************************************************************************

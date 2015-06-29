@@ -353,7 +353,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	int rc = 0;
 	struct timespec timeout_time;
 	int fd = 0;
-	
+
 	/* If this flag is true always return LGSF_BUSY */
 	bool busy_close_flag = false;
 	
@@ -389,7 +389,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	}
 	if (lgs_com_data.outdata_ptr != NULL) {
 		free(lgs_com_data.outdata_ptr);
-		lgs_com_data.indata_ptr = NULL;
+		lgs_com_data.outdata_ptr = NULL;
 	}
 
 	/* Allocate memory and enter data for a request */
@@ -405,7 +405,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	} else {
 		lgs_com_data.indata_ptr = NULL;
 	}
-	
+
 	if (apipar_in->data_out_size != 0) {
 		lgs_com_data.outdata_ptr = malloc(apipar_in->data_out_size);
 		if (lgs_com_data.outdata_ptr == NULL) {

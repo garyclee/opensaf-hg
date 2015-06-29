@@ -1127,7 +1127,7 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	SaAisErrorT error = SA_AIS_OK;
 	SaStringT logOutputString = NULL;
 	SaUint32T buf_size;
-	int n, rc;
+	int n, rc = 0;
 	lgsv_ckpt_msg_v1_t ckpt_v1;
 	lgsv_ckpt_msg_v2_t ckpt_v2;
 	void *ckpt_ptr;
@@ -1221,8 +1221,23 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	stream->stb_logRecordId = stream->logRecordId;
 
  done:
-	if (logOutputString != NULL)
+	/*
+	  Since the logOutputString is referred by the log handler thread, in timeout case,
+	  the log API thread might be still using the log record memory.
+
+	  To make sure there is no corruption of memory usage in case of time-out (rc = -2),
+	  We leave the log record memory freed to the log handler thread..
+
+	  It is never a good idea to allocate and free memory in different places.
+	  But consider it as a trade-off to have a better performance of LOGsv
+	  as time-out occurs very rarely.
+
+	  Other cases, the allocator frees it.
+	*/
+	if ((rc != -2) && (logOutputString != NULL)) {
 		free(logOutputString);
+		logOutputString = NULL;
+	}
 
 	if (param->ack_flags == SA_LOG_RECORD_WRITE_ACK)
 		lgs_send_write_log_ack(param->client_id, param->invocation, error, evt->fr_dest);

@@ -247,17 +247,15 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *
 	int rc, bytes_written = 0;
 	off_t file_length = 0;
 	wlrh_t *params_in = (wlrh_t *) indata;
-	/* The logrecord is stored in the indata buffer right after the
-	 * wlrh_t structure
-	 */
-	char *logrecord = (char *) (indata + sizeof(wlrh_t));
+	/* Get log record pointed by lgs_rec pointer */
+	char *logrecord = (char *) params_in->lgs_rec;
 	int *errno_out_p = (int *) outdata;
 	*errno_out_p = 0;
 
 	TRACE_ENTER();
 	
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
-	
+
  retry:
 	rc = write(params_in->fd, &logrecord[bytes_written],
 		 params_in->record_size - bytes_written);
@@ -298,8 +296,32 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *
 					__FUNCTION__,strerror(errno));			
 		}
 	}
- 
+
 done:
+	/*
+	  Log record memory is allocated by the caller and this memory is
+	  used or referred by main thread as well as log handler thread.
+
+	  In most cases, the caller thread is blocked until the log handler thread
+	  finishs the request (e.g: finish writing log record to file).
+	  Therefore, once the caller thread is unblocked, it is safe to free
+	  the log record memory as the log handler thread no longer uses it.
+
+	  But in time-out case, it is unsure when the log handler thread
+	  use the log record memory.
+
+	  To make sure there is no corruption of memory usage in case of time-out,
+	  We leave the log record memory freed at the end of this function.
+
+	  It is never a good idea to allocate and free memory in different places.
+	  But consider it as a trade-off to have a better performance of LOGsv
+	  as time-out occurs very rarely.
+	*/
+	if ((*timeout_f == true) && (logrecord != NULL)) {
+		free(logrecord);
+		logrecord = NULL;
+	}
+
 	TRACE_LEAVE2("rc = %d",rc);
 	return rc;
 }
