@@ -1191,16 +1191,14 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	int rc = 0;
 	int errno_ret;
 	lgsf_apipar_t apipar;
-	void *params_in;
-	wlrh_t *header_in_p;
-	char *logrec_p;
+	wlrh_t params_in;
 	size_t params_in_size;
 	lgsf_retcode_t api_rc;
 	int write_errno=0;
 
 	osafassert(stream != NULL && buf != NULL);
 	TRACE_ENTER2("%s", stream->name);
-	
+
 	/* Open files on demand e.g. on new active after fail/switch-over. This
 	 * enables LOG to cope with temporary file system problems. */
 	if (*stream->p_fd == -1) {
@@ -1218,24 +1216,27 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	}
 	
 	TRACE("%s - *stream->p_fd = %d",__FUNCTION__,*stream->p_fd);
-	/* Write the log record
-	 */
-	/* allocate memory for header + log record */
-	params_in_size = sizeof(wlrh_t) + count;
-	params_in = malloc(params_in_size);
-	
-	header_in_p = (wlrh_t *) params_in;
-	logrec_p = (char *) (params_in + sizeof(wlrh_t));
-	
-	header_in_p->fd = *stream->p_fd;
-	header_in_p->fixedLogRecordSize = stream->fixedLogRecordSize;
-	header_in_p->record_size = count;
-	memcpy(logrec_p, buf, count);
-	
+
+	/* Get size of write log record header */
+	params_in_size = sizeof(wlrh_t);
+
+	params_in.fd = *stream->p_fd;
+	params_in.fixedLogRecordSize = stream->fixedLogRecordSize;
+	params_in.record_size = count;
+
+	/*
+	  Not necessary to allocated memory for log record here.
+	  Instead, point to log buffer allocated by the caller.
+
+	  By this way, LOGsv will be improved performance as
+	  it did not copy a large data (max could be 32 Kb) using memcpy.
+	*/
+	params_in.lgs_rec = buf;
+
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_WRITELOGREC;
 	apipar.data_in_size = params_in_size;
-	apipar.data_in = params_in;
+	apipar.data_in = &params_in;
 	apipar.data_out_size = sizeof(int);
 	apipar.data_out = (void *) &write_errno;
 	
@@ -1250,7 +1251,6 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 		rc = apipar.hdl_ret_code_out;
 	}
 
-	free(params_in);
 	/* End write the log record */	
 	
 	if ((rc == -1) || (rc == -2)) {

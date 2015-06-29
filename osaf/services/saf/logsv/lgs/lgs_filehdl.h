@@ -97,13 +97,10 @@ typedef struct {
 	int fd;	/* File descriptor for current log file */
 	size_t record_size; /* Size of logrecord including '\0' */
 	SaUint32T fixedLogRecordSize;
+	const void *lgs_rec;  /* Pointer to allocated log record */
 }wlrh_t;
-	/* logrecord:
-	 * Is a string of varying length.
-	 * Shall be added to the indata buffer directly after the wlrh_t
-	 */
 
-/* 
+/*
  * create_config_file_hdl(..)
  * No out parameters
  */
