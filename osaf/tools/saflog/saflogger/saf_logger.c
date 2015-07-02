@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 	appLogFileCreateAttributes.logFileFmt = NULL;
 
 	while (1) {
-		c = getopt_long(argc, argv, "hlnya:s:", long_options, NULL);
+		c = getopt_long(argc, argv, "?hlnya:s:", long_options, NULL);
 		if (c == -1) {
 			break;
 		}
@@ -311,13 +311,47 @@ int main(int argc, char *argv[])
 			logRecord.logHeader.genericHdr.logSeverity = get_severity(optarg);
 			break;
 		case 'h':
+			usage();
+			exit(EXIT_SUCCESS);
+			break;
 		case '?':
 		default:
-			usage();
+			fprintf(stderr, "Try saflogger -h for more information.\n");
 			exit(EXIT_FAILURE);
 			break;
 		}
 	}
+
+	if (optind >= argc) {
+		/* No body of log record */
+	}
+	else if (optind == argc - 1) {
+		/* Create body of log record */
+		int sz;
+		char *logBuf = NULL;
+		sz = strlen(argv[optind]);
+		logBuf = malloc(sz + 64);	/* add space for index/id in periodic writes */
+		strcpy(logBuf, argv[optind]);
+		logBuffer.logBufSize = sz;
+		logBuffer.logBuf = (SaUint8T *)logBuf;
+		logRecord.logBuffer = &logBuffer;
+	}
+	else {
+		fprintf(stderr, "Invalid argument.\n");
+		fprintf(stderr, "Enclose message in quotation marks \"\" e.g. \"");
+		while (optind < argc)
+		{
+			fprintf(stderr, "%s", argv[optind++]);
+			if (optind < argc) 
+				fprintf(stderr, " ");
+			else
+				fprintf(stderr, "\"\n");
+		}
+		fprintf(stderr, "Try saflogger -h for more information.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	logStreamName.length = strlen((char *)logStreamName.value);
 
 	if (logRecord.logHdrType == SA_LOG_NTF_HEADER) {
 		/* Setup some valid values */
@@ -329,19 +363,6 @@ int main(int argc, char *argv[])
 		logRecord.logHeader.ntfHdr.eventTime = get_current_SaTime();
 	}
 
-	logStreamName.length = strlen((char *)logStreamName.value);
-
-	/* Create body of log record (if any) */
-	if (optind < argc) {
-		int sz;
-		char *logBuf = NULL;
-		sz = strlen(argv[optind]);
-		logBuf = malloc(sz + 64);	/* add space for index/id in periodic writes */
-		strcpy(logBuf, argv[optind]);
-		logBuffer.logBufSize = sz;
-		logBuffer.logBuf = (SaUint8T *)logBuf;
-		logRecord.logBuffer = &logBuffer;
-	}
 
 	wait_time = 0;
 	error = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
