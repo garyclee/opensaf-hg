@@ -97,8 +97,9 @@ int main(int argc, char* argv[])
 		{0, 0, 0, 0}
 	};
 	SaImmHandleT		immHandle;
-	SaAisErrorT			errorCode;
-	SaVersionT			version;
+	SaAisErrorT		errorCode = SA_AIS_OK;
+	SaAisErrorT		admoRetVal = SA_AIS_OK;
+	SaVersionT		version;
 	SaImmAdminOwnerHandleT ownerHandle;
 
 
@@ -123,6 +124,7 @@ int main(int argc, char* argv[])
 	unsigned int		maxTries = 70;				/* 70 times == max 70 secs */
 	unsigned int		tryCount=0;
 	const SaImmAdminOperationParamsT_2 *params[] = {NULL};
+	SaImmAdminOperationParamsT_2 **retParams=NULL;
 
 	if ((logPath = getenv("IMMSV_TRACE_PATHNAME")))
 	{
@@ -325,19 +327,21 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	/* Admin-op invoked to abort any non-empty non critical CCBs.
+	/* Admin-op invoked to abort any non-empty non critical CCBs (#1261, #1107).
 	   Such CCbs are doomed if the PBE (primary or slave) restarts.
 	   Slave PBE can in fact not attach as long as there are active
-	   non-empty CCBs in the system. 
+	   non-empty CCBs in the system.
 	 */
-	errorCode = saImmOmAdminOperationInvokeAsync_o3(ownerHandle, 1,
+	errorCode = saImmOmAdminOperationInvoke_o3(ownerHandle,
 		"safRdn=immManagement,safApp=safImmService", 0, 
-		SA_IMM_ADMIN_ABORT_CCBS, params);
+		SA_IMM_ADMIN_ABORT_CCBS, params, &admoRetVal, 0, &retParams);
 
-	if(SA_AIS_OK != errorCode)
+	if((errorCode == SA_AIS_OK) && (admoRetVal == SA_AIS_OK))
 	{
-		LOG_WA("Failed to invoke admin-op for aborting CCBs: err:%u - ignoring",
-			errorCode);
+		sleep(1); /* Sleep for 1 second since cleanTheBasement runs once every second. */
+	} else {
+		LOG_WA("PBE: Problem with invoking admin-op for aborting noncritical CCBs "
+			"retvals: %u %u- ignoring", errorCode, admoRetVal);
 	}
 
 	/*
