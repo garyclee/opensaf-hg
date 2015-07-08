@@ -251,7 +251,7 @@ uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sin
 	/* Populate & Send the FEVS Event to IMMND */
 	memset(&send_evt, 0, sizeof(IMMSV_EVT));
 	send_evt.type = IMMSV_EVT_TYPE_IMMND;
-	send_evt.info.immnd.type = (evt->type == IMMD_EVT_ND2D_FEVS_REQ_2)?
+	send_evt.info.immnd.type = ((evt->type == IMMD_EVT_ND2D_FEVS_REQ_2)||(evt->type == 0))?
 		IMMND_EVT_D2ND_GLOB_FEVS_REQ_2: IMMND_EVT_D2ND_GLOB_FEVS_REQ;
 
 	if ((evt->type == 0) && (fevs_req->sender_count > 0)) {
@@ -266,8 +266,8 @@ uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sin
 	send_evt.info.immnd.info.fevsReq.msg.size = fevs_req->msg.size;
 	/*Borrow the buffer from the input message instead of copying */
 	send_evt.info.immnd.info.fevsReq.msg.buf = fevs_req->msg.buf;
-	send_evt.info.immnd.info.fevsReq.isObjSync = (evt->type == IMMD_EVT_ND2D_FEVS_REQ_2)?
-		(fevs_req->isObjSync):0x0;
+	send_evt.info.immnd.info.fevsReq.isObjSync = ((evt->type == IMMD_EVT_ND2D_FEVS_REQ_2) ||
+			(evt->type == 0 ))? (fevs_req->isObjSync):0x0;
 
 	TRACE_5("immd_evt_proc_fevs_req send_count:%llu size:%u",
 		send_evt.info.immnd.info.fevsReq.sender_count, send_evt.info.immnd.info.fevsReq.msg.size);
@@ -280,6 +280,15 @@ uint32_t immd_evt_proc_fevs_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sin
 		mbcp_msg.type = IMMD_A2S_MSG_FEVS;
 		mbcp_msg.info.fevsReq = send_evt.info.immnd.info.fevsReq;
 
+		/* FEVS_REQ_2 messages are object sync messages. since this is mbcsv checkpointing 
+		   to standby, at the time of sync checkpointing complete fevs event is not required.
+		   Checkpointing the header is sufficient to have the standby SC in sync with the fevs count.*/
+
+		if(evt->type == IMMD_EVT_ND2D_FEVS_REQ_2){
+			mbcp_msg.info.fevsReq.msg.size = 0;
+			mbcp_msg.info.fevsReq.msg.buf = NULL;
+			mbcp_msg.info.fevsReq.isObjSync = 0x0;
+		}
 		/*Checkpoint the message to standby director. 
 		   Syncronous call=>wait for ack */
 		proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);

@@ -8702,7 +8702,7 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	SaBoolT originatedAtThisNd = (m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl) == cb->node_id);
 
 	if (originatedAtThisNd) {
-		osafassert(!reply_dest || (reply_dest == cb->immnd_mdest_id));
+		osafassert(!reply_dest || (reply_dest == cb->immnd_mdest_id) || isObjSync );
 		if (cb->fevs_replies_pending) {
 			--(cb->fevs_replies_pending);	/*flow control towards IMMD */
 		}
@@ -8731,6 +8731,12 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		}
 	}
 
+	if ((evt->type == IMMND_EVT_D2ND_GLOB_FEVS_REQ_2) && (msg->size == 0) && (msg->buf == NULL)){
+		// This is  sync message Re-broadcasted by IMMD standby because of failover 
+		TRACE("Re-broadcasted FEVS at the time of sync");
+		goto done;
+	}
+
 	/*NORMAL CASE: Received the expected in-order message. */
 
 	SaAisErrorT err = SA_AIS_OK;
@@ -8749,6 +8755,7 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		}
 	}
 
+ done:
 	cb->highestProcessed++;
 	dequeue_outgoing(cb);
 	TRACE_LEAVE();
