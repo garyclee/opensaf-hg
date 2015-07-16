@@ -152,6 +152,7 @@ class SaImmSearchParametersT_2(Union):
 	_fields_ = [('searchOneAttr', SaImmSearchOneAttrT_2)]
 
 saImm.SA_IMM_CCB_REGISTERED_OI = 0x00000001
+saImm.SA_IMM_CCB_ALLOW_NULL_OI = 0x0000000000000100
 
 SaImmCcbFlagsT = SaUint64T
 

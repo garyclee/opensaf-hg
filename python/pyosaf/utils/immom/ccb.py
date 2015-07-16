@@ -73,7 +73,7 @@ def marshal_c_array(value_type, value_list):
     return c_array
 
 class Ccb(object):
-    def __init__(self):
+    def __init__(self, flags=[saImm.saImm.SA_IMM_CCB_REGISTERED_OI]):
         self.owner_handle = saImmOm.SaImmAdminOwnerHandleT()
 
         owner_name = saImmOm.SaImmAdminOwnerNameT("DummyName")
@@ -94,8 +94,11 @@ class Ccb(object):
 
         self.ccb_handle = saImmOm.SaImmCcbHandleT()
 
-        ccb_flags = saImmOm.SaImmCcbFlagsT(
-            saImm.saImm.SA_IMM_CCB_REGISTERED_OI)
+        if flags:
+            ccb_flags = saImmOm.SaImmCcbFlagsT(reduce(lambda a, b: a|b, flags))
+        else:
+            ccb_flags = saImmOm.SaImmCcbFlagsT(0)
+
         one_sec_sleeps = 0
         err = saImmOm.saImmOmCcbInitialize(self.owner_handle, ccb_flags,
                                            self.ccb_handle)

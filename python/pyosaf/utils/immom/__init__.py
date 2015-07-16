@@ -42,7 +42,7 @@ TRYAGAIN_CNT = 60
 
 def _initialize():
     ''' saImmOmInitialize with TRYAGAIN handling '''
-    version = SaVersionT('A', 2, 1)
+    version = SaVersionT('A', 2, 15)
     one_sec_sleeps = 0
     err = saImmOm.saImmOmInitialize(HANDLE, None, version)
     while err == eSaAisErrorT.SA_AIS_ERR_TRY_AGAIN:
