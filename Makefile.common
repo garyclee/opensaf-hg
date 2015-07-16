@@ -12,8 +12,8 @@ AM_CPPFLAGS = \
 	$(CORE_INCLUDES) \
 	$(all_includes)
 
-AM_CFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC @OSAF_HARDEN_FLAGS@ -DINTERNAL_VERSION_ID='"@INTERNAL_VERSION_ID@"' 
-AM_CXXFLAGS = -Wall -fno-strict-aliasing -Werror -fPIC -D__STDC_FORMAT_MACROS @OSAF_HARDEN_FLAGS@ -DINTERNAL_VERSION_ID='"@INTERNAL_VERSION_ID@"' 
+AM_CFLAGS = -std=gnu11 -Wall -fno-strict-aliasing -Werror -fPIC @OSAF_HARDEN_FLAGS@ -DINTERNAL_VERSION_ID='"@INTERNAL_VERSION_ID@"'
+AM_CXXFLAGS = -std=gnu++11 -Wall -fno-strict-aliasing -Werror -fPIC -D__STDC_FORMAT_MACROS @OSAF_HARDEN_FLAGS@ -DINTERNAL_VERSION_ID='"@INTERNAL_VERSION_ID@"'
 AM_LDFLAGS = -ldl -lrt -lpthread
 
 systemdversion = $(systemdmodversion)
