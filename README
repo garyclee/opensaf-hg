@@ -258,7 +258,7 @@ The following software is required to build OpenSAF:
     * autoconf (2.61 or later)
     * libtool
     * pkg-config
-    * gcc/g++ (4.3 or later)
+    * gcc/g++ (4.8.1 or later)
     * GNU make
     * python-dev(el)
     * Optionally:
