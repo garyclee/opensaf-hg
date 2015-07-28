@@ -26,6 +26,20 @@
 
 AmfDb<std::string, AVD_APP_TYPE> *app_type_db = 0;
 
+AVD_APP_TYPE::AVD_APP_TYPE(const SaNameT* dn)
+{
+	sgAmfApptSGTypes = new std::vector<SaNameT>;
+	memset(&name, 0, sizeof(SaNameT));
+	memcpy(name.value, dn->value, dn->length);
+	name.length = dn->length;
+}
+
+AVD_APP_TYPE::~AVD_APP_TYPE()
+{
+	delete sgAmfApptSGTypes;
+}
+
+
 AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 {
 	return app_type_db->find(Amf::to_string(dn));
@@ -34,8 +48,8 @@ AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 static void apptype_delete(AVD_APP_TYPE **apptype)
 {
 	app_type_db->erase(Amf::to_string(&(*apptype)->name));
-	
-	delete [] (*apptype)->sgAmfApptSGTypes;
+
+	(*apptype)->sgAmfApptSGTypes->clear();
 	delete *apptype;
 	*apptype = NULL;
 }
@@ -45,7 +59,7 @@ static void apptype_add_to_model(AVD_APP_TYPE *app_type)
 	unsigned int rc;
 	osafassert(app_type != NULL);
 	TRACE("'%s'", app_type->name.value);
-	
+
 	rc = app_type_db->insert(Amf::to_string(&app_type->name), app_type);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
@@ -85,7 +99,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
 				return 0;
 			}
-			
+
 			/* SG type does not exist in current model, check CCB */
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
 				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
@@ -108,12 +122,8 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	app_type = new AVD_APP_TYPE();
-	
-	memset(&app_type->name, 0, sizeof(SaNameT));
-	memcpy(app_type->name.value, dn->value, dn->length);
-	app_type->name.length = dn->length;
-	
+	app_type = new AVD_APP_TYPE(dn);
+
 	while ((attr = attributes[i++]) != NULL)
 		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
 			break;
@@ -121,10 +131,8 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 	osafassert(attr);
 	osafassert(attr->attrValuesNumber > 0);
 
-	app_type->no_sg_types = attr->attrValuesNumber;
-	app_type->sgAmfApptSGTypes = new SaNameT[attr->attrValuesNumber];
 	for (j = 0; j < attr->attrValuesNumber; j++) {
-		app_type->sgAmfApptSGTypes[j] = *((SaNameT *)attr->attrValues[j]);
+		app_type->sgAmfApptSGTypes->push_back(*((SaNameT *)attr->attrValues[j]));
 	}
 
 	rc = 0;

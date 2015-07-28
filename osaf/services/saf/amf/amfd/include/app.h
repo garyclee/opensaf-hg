@@ -42,7 +42,7 @@ public:
 	AVD_SG *list_of_sg;
 	AVD_SI *list_of_si;
 	AVD_APP *app_type_list_app_next;
-	struct avd_app_type_tag *app_type;
+	AVD_APP_TYPE *app_type;
 	
 	AVD_APP();
 	explicit AVD_APP(const SaNameT *dn);
