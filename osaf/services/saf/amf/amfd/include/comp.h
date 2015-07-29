@@ -34,6 +34,8 @@
 #ifndef AVD_COMP_H
 #define AVD_COMP_H
 
+#include <vector>
+
 #include <saAmf.h>
 #include <saImm.h>
 #include <amf_d2nmsg.h>
@@ -152,16 +154,25 @@ typedef struct avd_amf_comp_type_tag {
 extern  AmfDb<std::string, AVD_COMP_TYPE> *comptype_db;
 
 /* AMF Class SaAmfCompCsType */
-typedef struct avd_comp_cs_type_tag {
+class AVD_COMPCS_TYPE {
+public:
+	AVD_COMPCS_TYPE();
+	~AVD_COMPCS_TYPE();
+
+	explicit AVD_COMPCS_TYPE(const SaNameT *dn);
+
 	SaNameT name;
 	SaUint32T saAmfCompNumMaxActiveCSIs;
 	SaUint32T saAmfCompNumMaxStandbyCSIs;
 	SaUint32T saAmfCompNumCurrActiveCSIs;
 	SaUint32T saAmfCompNumCurrStandbyCSIs;
-	uint32_t   number_comp;     /* number of element in saAmfCompAssignedCsi */
-	SaNameT *saAmfCompAssignedCsi;
+	std::vector<SaNameT> *saAmfCompAssignedCsi;
 	AVD_COMP *comp;
-} AVD_COMPCS_TYPE;
+private:
+	// disallow copy and assign
+	AVD_COMPCS_TYPE(const AVD_COMPCS_TYPE&);
+	void operator=(const AVD_COMPCS_TYPE&);
+};
 extern  AmfDb<std::string, AVD_COMPCS_TYPE> *compcstype_db;
 
 /* AMF Class SaAmfCtCsType */

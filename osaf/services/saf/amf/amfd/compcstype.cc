@@ -42,6 +42,35 @@ static char *StrDup(const char *s)
 	return c;
 }
 
+//
+AVD_COMPCS_TYPE::AVD_COMPCS_TYPE()
+: saAmfCompNumMaxActiveCSIs(0), saAmfCompNumMaxStandbyCSIs(0),
+  saAmfCompNumCurrActiveCSIs(0), saAmfCompNumCurrStandbyCSIs(0),
+  comp(0)
+{
+  	saAmfCompAssignedCsi = new std::vector<SaNameT>;
+
+        memset(&name, '\0', sizeof(SaNameT));
+}
+
+//
+AVD_COMPCS_TYPE::AVD_COMPCS_TYPE(const SaNameT *dn)
+: saAmfCompNumMaxActiveCSIs(0), saAmfCompNumMaxStandbyCSIs(0),
+  saAmfCompNumCurrActiveCSIs(0), saAmfCompNumCurrStandbyCSIs(0),
+  comp(0)
+{
+  	saAmfCompAssignedCsi = new std::vector<SaNameT>;
+
+	memcpy(name.value, dn->value, dn->length);
+	name.length = dn->length;
+}
+
+//
+AVD_COMPCS_TYPE::~AVD_COMPCS_TYPE()
+{
+  	delete saAmfCompAssignedCsi;
+}
+
 void avd_compcstype_db_add(AVD_COMPCS_TYPE *cst)
 {
 	unsigned int rc;
@@ -56,10 +85,7 @@ AVD_COMPCS_TYPE *avd_compcstype_new(const SaNameT *dn)
 {
 	AVD_COMPCS_TYPE *compcstype;
 
-	compcstype = new AVD_COMPCS_TYPE();
-	
-	memcpy(compcstype->name.value, dn->value, dn->length);
-	compcstype->name.length = dn->length;
+	compcstype = new AVD_COMPCS_TYPE(dn);
 
 	return compcstype;
 }
