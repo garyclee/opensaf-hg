@@ -21,6 +21,7 @@
  * version 2 check-pointing. See also lgs_mbcsv_v2.h
  */
 
+#include "lgs_config.h"
 #include "lgs_mbcsv_v2.h"
 #include "lgs_mbcsv.h"
 
@@ -54,12 +55,15 @@ uint32_t ckpt_proc_lgs_cfg_v2(lgs_cb_t *cb, void *data)
 	
 	/* Handle log files for new directory if configured for split file system */
 	if (lgs_is_split_file_system()) {
-		/* Setting new root directory is done in logRootDirectory_filemove() */
-		logRootDirectory_filemove(param->logRootDirectory,
+		const char *old_root = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+		const char *new_root = param->logRootDirectory;
+		/* Change root path in configuration struct */
+		lgs_rootpathconf_set(param->logRootDirectory);
+		logRootDirectory_filemove(new_root, old_root,
 				(time_t *) &param->c_file_close_time_stamp);
 	} else {
 		/* Save new root path */
-		lgs_imm_rootpathconf_set(param->logRootDirectory);		
+		lgs_rootpathconf_set(param->logRootDirectory);
 	}
 	
 	TRACE("Setting new rootpath on standby \"%s\"",param->logRootDirectory);
@@ -96,7 +100,7 @@ uint32_t edp_ed_write_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgs_ckpt_write_log_v2_t *ckpt_write_msg_ptr = NULL, **ckpt_write_msg_dec_ptr;
-	
+
 	EDU_INST_SET ckpt_write_rec_ed_rules[] = {
 		{EDU_START, edp_ed_write_rec_v2, 0, 0, 0, sizeof(lgs_ckpt_write_log_v2_t), 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_write_log_v2_t *)0)->recordId, 0, NULL},
@@ -124,7 +128,7 @@ uint32_t edp_ed_write_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_write_rec_ed_rules, ckpt_write_msg_ptr, ptr_data_len,
 				 buf_env, op, o_err);
-	
+
 	return rc;
 
 }	/* End edp_ed_write_rec */
@@ -232,6 +236,7 @@ uint32_t edp_ed_finalize_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	}
 	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_final_rec_ed_rules, ckpt_final_msg_ptr, ptr_data_len,
 				 buf_env, op, o_err);
+
 	return rc;
 
 }	/* End edp_ed_finalize_rec() */

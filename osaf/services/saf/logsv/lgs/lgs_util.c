@@ -33,6 +33,7 @@
 #include <grp.h>
 #include "immutil.h"
 #include "lgs.h"
+#include "lgs_config.h"
 #include "lgs_util.h"
 #include "lgs_fmt.h"
 #include "lgs_file.h"
@@ -47,12 +48,12 @@
 
 /**
  * Create config file according to spec.
- * @param abspath
- * @param stream
+ * @param root_path[in]
+ * @param stream[in]
  * 
  * @return -1 on error
  */
-int lgs_create_config_file_h(log_stream_t *stream)
+int lgs_create_config_file_h(const char *root_path, log_stream_t *stream)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
@@ -67,12 +68,13 @@ int lgs_create_config_file_h(log_stream_t *stream)
 	char pathname[PATH_MAX];
 
 	TRACE_ENTER();
-
+	
 	/* check the existence of logsv_root_dir/pathName,
 	 * check that the path is safe.
 	 * If ok, create the path if it doesn't already exits
 	 */
-	path_len = snprintf(pathname, PATH_MAX, "%s/%s", lgs_cb->logsv_root_dir, stream->pathName);
+	path_len = snprintf(pathname, PATH_MAX, "%s/%s",
+		root_path, stream->pathName);
 	if (path_len >= PATH_MAX) {
 		LOG_WA("logsv_root_dir + pathName > PATH_MAX");
 		rc = -1;
@@ -86,14 +88,15 @@ int lgs_create_config_file_h(log_stream_t *stream)
 	}
 	
 	if (lgs_make_reldir_h(stream->pathName) != 0) {
-		LOG_WA("Create directory '%s/%s' failed", lgs_cb->logsv_root_dir, stream->pathName);
+		LOG_WA("Create directory '%s/%s' failed",
+			root_path, stream->pathName);
 		rc = -1;
 		goto done;
 	}
 
 	/* create absolute path for config file */
 	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg",
-			lgs_cb->logsv_root_dir, stream->pathName, stream->fileName);
+			root_path, stream->pathName, stream->fileName);
 	
 	if (n >= PATH_MAX) {
 		LOG_WA("Complete pathname > PATH_MAX");
@@ -233,7 +236,8 @@ SaTimeT lgs_get_SaTime(void)
 
 /**
  * Rename a file to include a timestamp in the name
- * @param path[in]
+ * @param root_path[in]
+ * @param rel_path[in]
  * @param old_name[in]
  * @param time_stamp[in] 
  *        Can be set to NULL but then new_name must be the complete new name
@@ -246,7 +250,8 @@ SaTimeT lgs_get_SaTime(void)
  * @return -1 if error
  */
 int lgs_file_rename_h(
-		const char *path,
+		const char *root_path,
+		const char *rel_path,
 		const char *old_name,
 		const char *time_stamp,
 		const char *suffix,
@@ -268,7 +273,7 @@ int lgs_file_rename_h(
 	TRACE_ENTER();
 
 	n = snprintf(oldpath, PATH_MAX, "%s/%s/%s%s",
-			lgs_cb->logsv_root_dir, path, old_name, suffix);
+			root_path, rel_path, old_name, suffix);
 	if (n >= PATH_MAX) {
 		LOG_ER("Cannot rename file, old path > PATH_MAX");
 		rc = -1;
@@ -281,7 +286,7 @@ int lgs_file_rename_h(
 		snprintf(new_name_loc, NAME_MAX, "%s%s", new_name, suffix);
 	}
 	n = snprintf(newpath, PATH_MAX, "%s/%s/%s",
-			lgs_cb->logsv_root_dir, path, new_name_loc);
+			root_path, rel_path, new_name_loc);
 	if (n >= PATH_MAX) {
 		LOG_ER("Cannot rename file, new path > PATH_MAX");
 		rc = -1;
@@ -455,8 +460,7 @@ bool lgs_relative_path_check_ts(const char* path)
 
 /**
  * Create directory structure, if not already created.
- * The structure is created in the log service root directory pointed to in
- * lgs_cb->logsv_root_dir.
+ * The structure is created in the log service root directory.
  * 
  * TBD: Fix with separate ticket. 
  * Note: If the lgsv root directory does not exist a root directory is
@@ -479,11 +483,14 @@ int lgs_make_reldir_h(const char* path)
 	new_rootstr[0] = '\0'; /* Initiate to empty string */
 	
 	TRACE_ENTER();
+
+	char *logsv_root_dir = (char *)
+		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 	
-	TRACE("lgs_cb->logsv_root_dir \"%s\"",lgs_cb->logsv_root_dir);
+	TRACE("logsv_root_dir \"%s\"",logsv_root_dir);
 	TRACE("path \"%s\"",path);
 	
-	n1 = snprintf(params_in.root_dir, PATH_MAX, "%s", lgs_cb->logsv_root_dir);
+	n1 = snprintf(params_in.root_dir, PATH_MAX, "%s", logsv_root_dir);
 	if (n1 >= PATH_MAX) {
 		LOG_WA("logsv_root_dir > PATH_MAX");
 		goto done;
@@ -517,7 +524,9 @@ int lgs_make_reldir_h(const char* path)
 	
 	/* Handle a possible change of root dir to default */
 	if (new_rootstr[0] != '\0') {
-		lgs_imm_rootpathconf_set(new_rootstr);
+		//lgs_imm_rootpathconf_set(new_rootstr);
+		/* LLDTEST1XXX Replace with new handling
+		 */
 		TRACE("%s - new_rootstr \"%s\"",__FUNCTION__,new_rootstr);
 	}
 
@@ -573,9 +582,10 @@ int lgs_check_path_exists_h(const char *path_to_check)
  * @return: -1 if not set
  *          gid of data group if set.
  */
-int lgs_get_data_gid()
+gid_t lgs_get_data_gid(char *groupname)
 {
-	char * groupname = (char *) lgs_imm_logconf_get(LGS_IMM_DATA_GROUPNAME, NULL);
+	osafassert(groupname != NULL);
+
 	if (strcmp(groupname, "") == 0){
 		return -1;
 	} else {
@@ -596,7 +606,7 @@ int lgs_get_data_gid()
  * @return: 0 on success
  *         -1 on error
  */
-int lgs_own_log_files(log_stream_t *stream)
+int lgs_own_log_files_h(log_stream_t *stream)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
@@ -611,22 +621,18 @@ int lgs_own_log_files(log_stream_t *stream)
 		LOG_WA("file_name > SA_MAX_NAME_LENGTH");
 		goto done;
 	}
-	n = snprintf(data_in->logsv_root_dir, PATH_MAX, "%s", lgs_cb->logsv_root_dir);
+
+	const char *logsv_root_dir = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+
+	n = snprintf(data_in->dir_path, PATH_MAX, "%s/%s",
+		logsv_root_dir, stream->pathName);
 	if (n >= PATH_MAX) {
 		rc = -1;
-		LOG_WA("logsv_root_dir > PATH_MAX");
-		goto done;
-	}
-	n = snprintf(data_in->pathName, PATH_MAX, "%s", stream->pathName);
-	if (n >= PATH_MAX) {
-		rc = -1;
-		LOG_WA("pathName > PATH_MAX");
+		LOG_WA("dir_path > PATH_MAX");
 		goto done;
 	}
 
-	path_len = strlen(data_in->file_name) +
-				strlen(data_in->logsv_root_dir) +
-				strlen(data_in->pathName);
+	path_len = strlen(data_in->file_name) +	strlen(data_in->dir_path);
 	if (path_len > PATH_MAX) {
 		LOG_WA("Path to log files > PATH_MAX");
 		rc = -1;

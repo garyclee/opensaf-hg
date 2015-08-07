@@ -27,6 +27,7 @@
  */
 
 #include "lgs.h"
+#include "lgs_config.h"
 #include "lgs_file.h"
 #include "lgs_filehdl.h"
 #include "osaf_time.h"
@@ -50,7 +51,8 @@ static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
 
 /**
  * Open/create a file for append in non blocking mode.
- * @param filepath[in]
+ *
+ * @param filepath[in] Complete path including file name
  * @param errno_save[out], errno if error
  * @return File descriptor or -1 if error
  */
@@ -58,26 +60,31 @@ static int fileopen_h(char *filepath, int *errno_save)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
-	size_t filepath_len;
 	int fd;
+	fopen_in_t data_in;
+	char *groupname = NULL;
 	
 	TRACE_ENTER();
 	
 	osafassert(filepath != NULL);
-	filepath_len = strlen(filepath)+1; /* Include terminating null character */
 	
-	if (filepath_len > PATH_MAX) {
+	if ((strlen(filepath)+1) > PATH_MAX) {
 		LOG_WA("Cannot open file, File path > PATH_MAX");
 		fd = -1;
 		goto done;
 	}
+
+	groupname = (char *) lgs_cfg_get(LGS_IMM_DATA_GROUPNAME);
+
+	strcpy(data_in.filepath, filepath);
+	strcpy(data_in.groupname, groupname);
 	
 	TRACE("%s - filepath \"%s\"",__FUNCTION__,filepath);
 	
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_FILEOPEN;
-	apipar.data_in_size = filepath_len;
-	apipar.data_in = (void*) filepath;
+	apipar.data_in_size = sizeof(fopen_in_t);
+	apipar.data_in = (void*) &data_in;
 	apipar.data_out_size = sizeof(int);
 	apipar.data_out = (void *) errno_save;
 	
@@ -197,7 +204,11 @@ static int delete_config_file(log_stream_t *stream)
 	TRACE_ENTER();
 
 	/* create absolute path for config file */
-	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg", lgs_cb->logsv_root_dir, stream->pathName, stream->fileName);
+	char *logsv_root_dir = (char *)
+		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+
+	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg",
+		logsv_root_dir, stream->pathName, stream->fileName);
 	if (n >= PATH_MAX) {
 		LOG_WA("Config file could not be deleted, path > PATH_MAX");
 		rc = -1;
@@ -302,6 +313,7 @@ static uint32_t log_stream_remove(const char *key)
 void log_initiate_stream_files(log_stream_t *stream)
 {
 	int errno_save;
+	const char *log_root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 	
 	TRACE_ENTER();
 	
@@ -331,12 +343,13 @@ void log_initiate_stream_files(log_stream_t *stream)
 		goto done;
 	}
 
-	if (lgs_create_config_file_h(stream) != 0) {
+	if (lgs_create_config_file_h(log_root_path, stream) != 0) {
 		TRACE("%s - lgs_create_config_file_h() FAIL",__FUNCTION__);
 		goto done;
 	}
 
-	if ((*stream->p_fd = log_file_open(stream, stream->logFileCurrent,
+	if ((*stream->p_fd = log_file_open(log_root_path, stream,
+			stream->logFileCurrent,
 			&errno_save)) == -1) {
 		TRACE("%s - Could not open '%s' - %s",__FUNCTION__,
 				stream->logFileCurrent, strerror(errno_save));
@@ -736,13 +749,18 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
  *     File name has to be provided separately since it is not always
  *     logFileCurrent!
  * 
- * @param stream
- * @param filename
+ * @param root_path[in]
+ * @param stream[in]
+ * @param filename[in]
  * @param errno_save - errno from open() returned here if supplied
  *
  * @return int - the file descriptor or -1 on errors
  */
-int log_file_open(log_stream_t *stream, const char* filename, int *errno_save)
+int log_file_open(
+		const char *root_path,
+		log_stream_t *stream,
+		const char* filename,
+		int *errno_save)
 {
 	int fd;
 	char pathname[PATH_MAX];
@@ -752,7 +770,7 @@ int log_file_open(log_stream_t *stream, const char* filename, int *errno_save)
 	TRACE_ENTER();
 
 	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.log",
-			lgs_cb->logsv_root_dir, stream->pathName, filename);
+			root_path, stream->pathName, filename);
 	if (n >= PATH_MAX) {
 		LOG_WA("Cannot open log file, path > PATH_MAX");
 		fd = -1;
@@ -830,6 +848,7 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 	const unsigned int sleep_delay_ms = 500;
 	SaUint32T trace_num_openers;
 	struct timespec closetime_tspec;
+	const char *root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 
 	osafassert(stream != NULL);
 	TRACE_ENTER2("%s", stream->name);
@@ -875,13 +894,15 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 			}
 			
 			/* Rename stream log file */
-			rc = lgs_file_rename_h(stream->pathName, file_to_rename,
-					timeString, LGS_LOG_FILE_EXT, NULL);
+			rc = lgs_file_rename_h(root_path, stream->pathName,
+					file_to_rename, timeString,
+					LGS_LOG_FILE_EXT, NULL);
 			while ((rc == -1) && (msecs_waited < max_waiting_time)) {
 				usleep(sleep_delay_ms * 1000);
 				msecs_waited += sleep_delay_ms;
-				rc = lgs_file_rename_h(stream->pathName, file_to_rename,
-						timeString, LGS_LOG_FILE_EXT, NULL);
+				rc = lgs_file_rename_h(root_path, stream->pathName,
+					file_to_rename,	timeString,
+					LGS_LOG_FILE_EXT, NULL);
 			}
 			if (rc == -1) {
 				LOG_ER("Could not rename log file: %s", strerror(errno));
@@ -889,13 +910,15 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 			}
 
 			/* Rename stream config file */
-			rc = lgs_file_rename_h(stream->pathName, stream->fileName,
-					timeString, LGS_LOG_FILE_CONFIG_EXT, NULL);
+			rc = lgs_file_rename_h(root_path, stream->pathName,
+					stream->fileName, timeString,
+					LGS_LOG_FILE_CONFIG_EXT, NULL);
 			while ((rc == -1) && (msecs_waited < max_waiting_time)) {
 				usleep(sleep_delay_ms * 1000);
 				msecs_waited += sleep_delay_ms;
-				rc = lgs_file_rename_h(stream->pathName, stream->fileName,
-						timeString, LGS_LOG_FILE_CONFIG_EXT, NULL);
+				rc = lgs_file_rename_h(root_path, stream->pathName,
+						stream->fileName, timeString,
+						LGS_LOG_FILE_CONFIG_EXT, NULL);
 			}
 			if (rc == -1) {
 				LOG_ER("Could not rename config file: %s", strerror(errno));
@@ -962,7 +985,11 @@ static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
 		LOG_WA("file_name > SA_MAX_NAME_LENGTH");
 		goto done;
 	}
-	n = snprintf(parameters_in.logsv_root_dir, PATH_MAX, "%s", lgs_cb->logsv_root_dir);
+
+	char *logsv_root_dir = (char *)
+		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+
+	n = snprintf(parameters_in.logsv_root_dir, PATH_MAX, "%s", logsv_root_dir);
 	if (n >= PATH_MAX) {
 		rc = -1;
 		LOG_WA("logsv_root_dir > PATH_MAX");
@@ -1020,6 +1047,7 @@ static int log_rotation_stb(log_stream_t *stream, size_t count)
 	char *current_time_str;
 	char new_current_log_filename[NAME_MAX];
 	bool do_rotate = false;
+	const char *root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 	
 	TRACE_ENTER();
 
@@ -1075,8 +1103,9 @@ static int log_rotation_stb(log_stream_t *stream, size_t count)
 		}
 		
 		/* Rename file to give it the "close timestamp" */
-		rc = lgs_file_rename_h(stream->pathName, stream->stb_logFileCurrent,
-				current_time_str, LGS_LOG_FILE_EXT, NULL);
+		rc = lgs_file_rename_h(root_path,
+			stream->pathName, stream->stb_logFileCurrent,
+			current_time_str, LGS_LOG_FILE_EXT, NULL);
 		if (rc == -1)
 			goto done;
 
@@ -1087,8 +1116,8 @@ static int log_rotation_stb(log_stream_t *stream, size_t count)
 		
 		/* Save new name for current log file and open it */
 		snprintf(stream->stb_logFileCurrent, NAME_MAX, "%s", new_current_log_filename);
-		if ((*stream->p_fd = log_file_open(stream, stream->stb_logFileCurrent,
-				&errno_save)) == -1) {
+		if ((*stream->p_fd = log_file_open(root_path, stream,
+			stream->stb_logFileCurrent, &errno_save)) == -1) {
 			LOG_IN("Could not open '%s' - %s", stream->stb_logFileCurrent,
 					strerror(errno_save));
 			rc = -1;
@@ -1116,6 +1145,7 @@ static int log_rotation_act(log_stream_t *stream, size_t count)
 	int errno_save;
 	int errno_ret;
 	struct timespec closetime_tspec;
+	const char *root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 	
 	/* If file size > max file size:
 	 *  - Close the log file and create a new.
@@ -1138,8 +1168,9 @@ static int log_rotation_act(log_stream_t *stream, size_t count)
 		}
 
 		/* Rename file to give it the "close timestamp" */
-		rc = lgs_file_rename_h(stream->pathName, stream->logFileCurrent,
-				current_time, LGS_LOG_FILE_EXT, NULL);
+		rc = lgs_file_rename_h(root_path, stream->pathName,
+			stream->logFileCurrent,	current_time,
+			LGS_LOG_FILE_EXT, NULL);
 		if (rc == -1)
 			goto done;
 
@@ -1160,8 +1191,8 @@ static int log_rotation_act(log_stream_t *stream, size_t count)
 		/* Create a new file name that includes "open time stamp" and open the file */
 		snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName,
 				current_time);
-		if ((*stream->p_fd = log_file_open(stream, stream->logFileCurrent,
-				&errno_save)) == -1) {
+		if ((*stream->p_fd = log_file_open(root_path, stream,
+			stream->logFileCurrent,	&errno_save)) == -1) {
 			LOG_IN("Could not open '%s' - %s", stream->logFileCurrent,
 					strerror(errno_save));
 			rc = -1;
@@ -1417,17 +1448,10 @@ uint32_t log_stream_init(void)
 {
 	NCS_PATRICIA_PARAMS param;
 	SaUint32T value;
-	bool wa_flag = false;
 
 	/* Get configuration of how many application streams we should allow. */
-	value = *(SaUint32T *) lgs_imm_logconf_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS, &wa_flag);
-	/* Check for correct conversion and a reasonable amount */
-	if ( wa_flag == true) {
-		LOG_WA("Env var LOG_MAX_APPLICATION_STREAMS has wrong value, using default");
-		stream_array_size += DEFAULT_NUM_APP_LOG_STREAMS;
-	} else {
-		stream_array_size += value;
-	}
+	value = *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS);
+	stream_array_size += value;
 
 	TRACE("Max %u application log streams", stream_array_size - 3);
 	stream_array = calloc(1, sizeof(log_stream_t *) * stream_array_size);
@@ -1448,18 +1472,21 @@ uint32_t log_stream_init(void)
  * config file. Basically the same logic as described in 3.1.6.4
  * in A.02.01.
  * 
- * @param create_files_f
+ * @param create_files_f[in]
  *     create_files_f = true; New files are created
  *     create_files_f = false; New files are not created
- * @param conf_mode
- * @param stream
- * @param current_logfile_name
- * @param cur_time_in
+ * @param root_path[in]
+ * @param stream[in]
+ * @param current_logfile_name[in]
+ * @param cur_time_in[in]
  * 
- * @return int
+ * @return -1 on error
  */
-int log_stream_config_change(bool create_files_f, log_stream_t *stream,
-		const char *current_logfile_name, time_t *cur_time_in)
+int log_stream_config_change(bool create_files_f,
+			const char *root_path,
+			log_stream_t *stream,
+			const char *current_logfile_name,
+			time_t *cur_time_in)
 {
 	int rc;
 	int errno_ret;
@@ -1483,13 +1510,13 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream,
 		}
 		*stream->p_fd = -1;
 
-		rc = lgs_file_rename_h(stream->pathName, current_logfile_name,
+		rc = lgs_file_rename_h(root_path, stream->pathName, current_logfile_name,
 				current_time, LGS_LOG_FILE_EXT, NULL);
 		if (rc == -1) {
 			goto done;
 		}
 
-		rc = lgs_file_rename_h(stream->pathName, stream->fileName,
+		rc = lgs_file_rename_h(root_path, stream->pathName, stream->fileName,
 				current_time, LGS_LOG_FILE_CONFIG_EXT, NULL);
 		if (rc == -1) {
 			goto done;
@@ -1498,13 +1525,14 @@ int log_stream_config_change(bool create_files_f, log_stream_t *stream,
 
 	/* Creating the new config file */
 	if (create_files_f == LGS_STREAM_CREATE_FILES) {
-		if ((rc = lgs_create_config_file_h(stream)) != 0)
+		if ((rc = lgs_create_config_file_h(root_path, stream)) != 0)
 			goto done;
 
 		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
 
 		/* Create the new log file based on updated configuration */
-		*stream->p_fd = log_file_open(stream, stream->logFileCurrent,NULL);
+		*stream->p_fd = log_file_open(root_path, stream,
+			stream->logFileCurrent,NULL);
 	}
 
 	/* Fix bug - this function makes return (-1) when create_files_f = false */

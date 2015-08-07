@@ -50,17 +50,22 @@
  */
 
 extern char *lgs_get_time(time_t *time_in);
-extern int lgs_create_config_file_h(log_stream_t *stream);
+extern int lgs_create_config_file_h(const char *root_path, log_stream_t *stream);
 extern void lgs_evt_destroy(lgsv_lgs_evt_t *evt);
 extern SaTimeT lgs_get_SaTime(void);
-extern int lgs_file_rename_h(const char *path, const char *old_name,
-		const char *time_stamp, const char *suffix, char *new_name_out);
+extern int lgs_file_rename_h(
+		const char *root_path,
+		const char *rel_path,
+		const char *old_name,
+		const char *time_stamp,
+		const char *suffix,
+		char *new_name);
 //extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb); /* Not used, no code */
 extern void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
 extern bool lgs_relative_path_check_ts(const char* path);
 extern int lgs_make_reldir_h(const char* path);
 extern int lgs_check_path_exists_h(const char *path_to_check);
-extern int lgs_get_data_gid();
-extern int lgs_own_log_files(log_stream_t *stream);
+extern gid_t lgs_get_data_gid(char *groupname);
+extern int lgs_own_log_files_h(log_stream_t *stream);
 
 #endif   /* ifndef __LGS_UTIL_H */

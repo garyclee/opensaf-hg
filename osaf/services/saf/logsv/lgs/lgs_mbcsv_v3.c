@@ -41,6 +41,9 @@
 uint32_t ckpt_proc_lgs_cfg_v3(lgs_cb_t *cb, void *data)
 {
 	TRACE_ENTER();
+	char *logsv_root_dir = (char *) lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	char *logsv_data_groupname = (char *) lgs_cfg_get(LGS_IMM_DATA_GROUPNAME);
+
 	if (!lgs_is_peer_v4()) {
 		/* Should never enter here */
 		LOG_ER("%s: Called when peer is not version 4. We should never enter here",__FUNCTION__);
@@ -50,25 +53,30 @@ uint32_t ckpt_proc_lgs_cfg_v3(lgs_cb_t *cb, void *data)
 	lgsv_ckpt_msg_v3_t *data_v3 = data;
 	lgs_ckpt_lgs_cfg_v3_t *param = &data_v3->ckpt_rec.lgs_cfg;
 
-	if (strcmp(param->logRootDirectory, cb->logsv_root_dir) != 0) {
+	if (strcmp(param->logRootDirectory, logsv_root_dir) != 0) {
 		/* Root directory changed */
 		TRACE("Setting new root directory on standby %s",param->logRootDirectory);
 		if (lgs_is_split_file_system()) {
 			/* Move log files on standby also */
-			logRootDirectory_filemove(param->logRootDirectory, (time_t *) &param->c_file_close_time_stamp);
+			const char *new_root_path = param->logRootDirectory;
+			const char *old_root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+			/* Update configuration with new root path */
+			lgs_rootpathconf_set(param->logRootDirectory);
+			logRootDirectory_filemove(new_root_path, old_root_path,
+				(time_t *) &param->c_file_close_time_stamp);
 		} else {
 			/* Save new directory */
-			lgs_imm_rootpathconf_set(param->logRootDirectory);
+			lgs_rootpathconf_set(param->logRootDirectory);
 		}
 	}
 
 	if (! param->logDataGroupname) {
 		/* Attribute value deletion */
-		if (strcmp(cb->logsv_data_groupname, "") != 0) {
+		if (strcmp(logsv_data_groupname, "") != 0) {
 			TRACE("Deleting data group on standby");
-			lgs_imm_groupnameconf_set("");
+			lgs_groupnameconf_set("");
 		}
-	} else if (strcmp(param->logDataGroupname, cb->logsv_data_groupname) != 0) {
+	} else if (strcmp(param->logDataGroupname, logsv_data_groupname) != 0) {
 		/* Data group changed */
 		TRACE("Setting new data group on standby %s",param->logDataGroupname);
 		if (lgs_is_split_file_system()) {
@@ -76,7 +84,7 @@ uint32_t ckpt_proc_lgs_cfg_v3(lgs_cb_t *cb, void *data)
 			logDataGroupname_fileown(param->logDataGroupname);
 		} else {
 			/* Save new group */
-			lgs_imm_groupnameconf_set(param->logDataGroupname);
+			lgs_groupnameconf_set(param->logDataGroupname);
 		}
 	}
 

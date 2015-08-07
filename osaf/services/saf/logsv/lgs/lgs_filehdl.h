@@ -22,6 +22,7 @@
 #include <stddef.h>
 #include <saAis.h>
 #include <limits.h>
+#include <utmp.h>
 #include "lgs_util.h"
 
 #ifdef	__cplusplus
@@ -43,6 +44,10 @@ extern "C" {
  * Outpar int errno_save
  * No typedef needed
  */
+typedef struct {
+	char filepath[PATH_MAX];	/* Complete path to file */
+	char groupname[UT_NAMESIZE];	/* Name of owner group */
+}fopen_in_t;
 
 /* 
  * fileclose_hdl(..)
@@ -123,7 +128,12 @@ typedef struct {
 /* own_log_files_by_group_hdl(..)
  * No out parameters
  */
-typedef gnolfh_in_t olfbgh_t;
+typedef struct {
+	char dir_path[PATH_MAX]; /* Full path to stream directory */
+	/* File name prefix (name part before time stamps) */
+	char file_name[SA_MAX_NAME_LENGTH];
+	char groupname[UT_NAMESIZE];	/* Name of owner group */
+}olfbgh_t;
 
 /*
  * rename_file_hdl(..)

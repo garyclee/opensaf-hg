@@ -21,6 +21,7 @@
 
 #include <nid_start_util.h>
 #include "lgs.h"
+#include "lgs_config.h"
 #include "immutil.h"
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
@@ -78,7 +79,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 		goto done;
 	}
 	/* Do this only if the class exists */
-	if (*(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
+	if (*(bool*) lgs_cfg_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST)) {
 		if ((error = immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig"))
 				!= SA_AIS_OK) {
 			LOG_ER("saImmOiClassImplementerSet (OpenSafLogConfig) failed: %d", error);
@@ -329,14 +330,6 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 			error = SA_AIS_ERR_FAILED_OPERATION;
 	}
 
-	if ((role_change == true) && (new_haState == SA_AMF_HA_ACTIVE)) {
-		/* Read log configuration object and update mailbox limits.
-		 * Mailbox limits may have been changed.
-		 * Note: Also see rda callback in lgs_evt.c
-		 */
-		update_mailbox_limits();
-	}
-	
  response:
 	saAmfResponse(lgs_cb->amf_hdl, invocation, error);
  done:

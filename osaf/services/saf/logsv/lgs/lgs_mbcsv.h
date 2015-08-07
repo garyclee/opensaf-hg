@@ -39,8 +39,9 @@ extern "C" {
 #define LGS_MBCSV_VERSION_2 2
 #define LGS_MBCSV_VERSION_3 3
 #define LGS_MBCSV_VERSION_4 4
+#define LGS_MBCSV_VERSION_5 5
 /* Current version */
-#define LGS_MBCSV_VERSION 4
+#define LGS_MBCSV_VERSION 5
 #define LGS_MBCSV_VERSION_MIN 1
 	
 /* Checkpoint message types(Used as 'reotype' w.r.t mbcsv)  */
@@ -60,6 +61,7 @@ typedef enum {
 	LGS_CKPT_CFG_STREAM = 6,
 	LGS_CKPT_LGS_CFG = 7,
 	LGS_CKPT_LGS_CFG_V3 = 8,
+	LGS_CKPT_LGS_CFG_V5 = 9,
 	LGS_CKPT_MSG_MAX
 } lgsv_ckpt_msg_type_t;
 
@@ -104,6 +106,7 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
 bool lgs_is_peer_v2(void);
 bool lgs_is_peer_v3(void);
 bool lgs_is_peer_v4(void);
+bool lgs_is_peer_v5(void);
 bool lgs_is_split_file_system(void);
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 void lgs_free_edu_mem(char *ptr);

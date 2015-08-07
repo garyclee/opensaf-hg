@@ -40,101 +40,30 @@
 #include <saImmOm.h>
 #include <saImmOi.h>
 
+#include "osaf_secutil.h"
 #include "immutil.h"
+#include "osaf_time.h"
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_file.h"
-#include "osaf_time.h"
+#include "lgs_config.h"
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
 #include "lgs_mbcsv_v3.h"
-#include "osaf_secutil.h"
+#include "lgs_mbcsv_v5.h"
 
 /* TYPE DEFINITIONS
  * ----------------
  */
-typedef struct {
-	/* --- Corresponds to IMM Class SaLogConfig --- */
-	char logRootDirectory[PATH_MAX];
-	char logDataGroupname[UT_NAMESIZE];
-	SaUint32T logMaxLogrecsize;
-	SaUint32T logStreamSystemHighLimit;
-	SaUint32T logStreamSystemLowLimit;
-	SaUint32T logStreamAppHighLimit;
-	SaUint32T logStreamAppLowLimit;
-	SaUint32T logMaxApplicationStreams;
-	SaUint32T logFileIoTimeout;
-	SaUint32T logFileSysConfig;
-	/* --- end correspond to IMM Class --- */
 
-	/* Used for checkpointing time when files are closed */
-	time_t chkp_file_close_time;
-	
-	bool logInitiated;
-	bool OpenSafLogConfig_class_exist;
+/* Used for checkpointing time when files are closed */
+static time_t chkp_file_close_time = 0;
 
-	bool logRootDirectory_noteflag;
-	bool logMaxLogrecsize_noteflag;
-	bool logStreamSystemHighLimit_noteflag;
-	bool logStreamSystemLowLimit_noteflag;
-	bool logStreamAppHighLimit_noteflag;
-	bool logStreamAppLowLimit_noteflag;
-	bool logMaxApplicationStreams_noteflag;
-	bool logFileIoTimeout_noteflag;
-	bool logFileSysConfig_noteflag;
-	bool logDataGroupname_noteflag;
-} lgs_conf_t;
-
-/* DATA DECLARATIONS
- * -----------------
- */
-
-/* LOG configuration */
-/* Default values are used if no configuration object can be found in IMM */
-/* See function lgs_imm_logconf_get */
-/* Note: These values should be the same as the values defined as "default"
- * values in the logConfig class definition.
- */
-static lgs_conf_t _lgs_conf = {
-	.logRootDirectory = "",
-	.logMaxLogrecsize = 1024,
-	.logStreamSystemHighLimit = 0,
-	.logStreamSystemLowLimit = 0,
-	.logStreamAppHighLimit = 0,
-	.logStreamAppLowLimit = 0,
-	.logMaxApplicationStreams = 64,
-	.logFileIoTimeout = 500,
-	.logFileSysConfig = 1,
-	.logDataGroupname = "",
-
-	/*
-	 * For the following flags, true means that no external configuration
-	 * exists and the corresponding attributes hard-coded default value is used
-	 * See function lgs_imm_logconf_get() for more info.
-	 */
-	.logInitiated = false,
-	.OpenSafLogConfig_class_exist = false,
-			
-	.logRootDirectory_noteflag = false,
-	.logMaxLogrecsize_noteflag = false,
-	.logStreamSystemHighLimit_noteflag = false,
-	.logStreamSystemLowLimit_noteflag = false,
-	.logStreamAppHighLimit_noteflag = false,
-	.logStreamAppLowLimit_noteflag = false,
-	.logMaxApplicationStreams_noteflag = false,
-	.logDataGroupname_noteflag = false,
-	/* 
-	 * The following attributes cannot be configured in the config file
-	 * Will be set to false if the attribute exists in the IMM config object
-	 */
-	.logFileIoTimeout_noteflag = true,
-	.logFileSysConfig_noteflag = true,
-};
-static lgs_conf_t *lgs_conf = &_lgs_conf;
 
 const unsigned int sleep_delay_ms = 500;
 const unsigned int max_waiting_time_60s = 60 * 1000;	/* 60 secs */
+const unsigned int max_waiting_time_10s = 10 * 1000;	/* 10 secs */
 
 /* Must be able to index this array using streamType */
 static char *log_file_format[] = {
@@ -159,8 +88,6 @@ static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
 
 static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		const char *format, ...) __attribute__ ((format(printf, 3, 4)));
-
-static SaAisErrorT read_logsv_config_obj(void);
 
 /**
  * To be used in OI callbacks to report errors by setting an error string
@@ -213,11 +140,12 @@ static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation
  * 
  * @return NCSCC_RC_... error code
  */
-static uint32_t ckpt_lgs_cfg(lgs_conf_t *lgs_conf, bool is_root_dir_changed)
+static uint32_t ckpt_lgs_cfg(bool is_root_dir_changed, lgs_config_chg_t *v5_ckpt)
 {
 	void *ckpt = NULL;
 	lgsv_ckpt_msg_v2_t ckpt_v2;
 	lgsv_ckpt_msg_v3_t ckpt_v3;
+	lgsv_ckpt_msg_v5_t ckpt_v5;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -228,27 +156,44 @@ static uint32_t ckpt_lgs_cfg(lgs_conf_t *lgs_conf, bool is_root_dir_changed)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (lgs_is_peer_v4()) {
+	if (lgs_is_peer_v5()) {
+		/* Checkpoint version 5 */
+		memset(&ckpt_v5, 0, sizeof(ckpt_v5));
+		ckpt_v5.header.ckpt_rec_type = LGS_CKPT_LGS_CFG_V5;
+		ckpt_v5.header.num_ckpt_records = 1;
+		ckpt_v5.header.data_len = 1;
+		ckpt_v5.ckpt_rec.lgs_cfg.c_file_close_time_stamp = chkp_file_close_time;
+		ckpt_v5.ckpt_rec.lgs_cfg.buffer = v5_ckpt->ckpt_buffer_ptr;
+		ckpt_v5.ckpt_rec.lgs_cfg.buffer_size = v5_ckpt->ckpt_buffer_size;
+		ckpt = &ckpt_v5;
+		TRACE("\tCheck-pointing v5");
+	} else if (lgs_is_peer_v4()) {
+		/* Checkpoint version 4 */
 		memset(&ckpt_v3, 0, sizeof(ckpt_v3));
 		ckpt_v3.header.ckpt_rec_type = LGS_CKPT_LGS_CFG_V3;
 		ckpt_v3.header.num_ckpt_records = 1;
 		ckpt_v3.header.data_len = 1;
-		ckpt_v3.ckpt_rec.lgs_cfg.logRootDirectory = lgs_conf->logRootDirectory;
-		ckpt_v3.ckpt_rec.lgs_cfg.logDataGroupname = lgs_conf->logDataGroupname;
-		ckpt_v3.ckpt_rec.lgs_cfg.c_file_close_time_stamp = lgs_conf->chkp_file_close_time;
-
+		ckpt_v3.ckpt_rec.lgs_cfg.logRootDirectory = (char *)
+			lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+		ckpt_v3.ckpt_rec.lgs_cfg.logDataGroupname = (char *)
+			lgs_cfg_get(LGS_IMM_DATA_GROUPNAME);
+		ckpt_v3.ckpt_rec.lgs_cfg.c_file_close_time_stamp = chkp_file_close_time;
 		ckpt = &ckpt_v3;
+		TRACE("\tCheck-pointing v3 peer is v4");
 	} else {
+		/* Checkpoint version 3 or 2 */
 		if (is_root_dir_changed) {
 			memset(&ckpt_v2, 0, sizeof(ckpt_v2));
 			ckpt_v2.header.ckpt_rec_type = LGS_CKPT_LGS_CFG;
 			ckpt_v2.header.num_ckpt_records = 1;
 			ckpt_v2.header.data_len = 1;
-			ckpt_v2.ckpt_rec.lgs_cfg.logRootDirectory = lgs_conf->logRootDirectory;
-			ckpt_v2.ckpt_rec.lgs_cfg.c_file_close_time_stamp = lgs_conf->chkp_file_close_time;
+			ckpt_v2.ckpt_rec.lgs_cfg.logRootDirectory = (char *)
+				lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+			ckpt_v2.ckpt_rec.lgs_cfg.c_file_close_time_stamp = chkp_file_close_time;
 
 			ckpt = &ckpt_v2;
 		}
+		TRACE("\tCheck-pointing v2 peer < v4");
 	}
 
 	if (ckpt) {
@@ -402,63 +347,6 @@ static uint32_t ckpt_stream_close(log_stream_t *stream, time_t closetime)
 
 	TRACE_LEAVE();
 	return rc;
-}
-
-/**
- * Check if path is a writeable directory
- * We must have rwx access.
- * @param pathname
- * return: true  = Path is valid
- *         false = Path is invalid
- */
-static bool path_is_writeable_dir_h(const char *pathname)
-{
-	bool is_writeable_dir = false;
-
-	lgsf_apipar_t apipar;
-	lgsf_retcode_t api_rc;
-	void *params_in_p;
-	
-	TRACE_ENTER();
-	
-	TRACE("%s - pathname \"%s\"",__FUNCTION__,pathname);
-	
-	size_t params_in_size = strlen(pathname)+1;
-	if (params_in_size > PATH_MAX) {
-		is_writeable_dir = false;
-		LOG_WA("Path > PATH_MAX");
-		goto done;
-	}
-	
-	/* Allocate memory for parameter */
-	params_in_p = malloc(params_in_size);
-	
-	/* Fill in path */
-	memcpy(params_in_p, pathname, params_in_size);
-	
-	/* Fill in API structure */
-	apipar.req_code_in = LGSF_CHECKDIR;
-	apipar.data_in_size = params_in_size;
-	apipar.data_in = params_in_p;
-	apipar.data_out_size = 0;
-	apipar.data_out = NULL;
-	
-	api_rc = log_file_api(&apipar);
-	if (api_rc != LGSF_SUCESS) {
-		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
-		is_writeable_dir = false;
-	} else {
-		if (apipar.hdl_ret_code_out == 0)
-			is_writeable_dir = false;
-		else
-			is_writeable_dir = true;
-	}
-	
-	free(params_in_p);
-	
-done:
-	TRACE_LEAVE2("is_writeable_dir = %d",is_writeable_dir);
-	return is_writeable_dir;
 }
 
 /**
@@ -679,45 +567,21 @@ struct vattr_v3_t {
 };
 
 /**
- * Compare high and low and return true if:
- *  - high > low
- *  - high = low = 0
- * else return false
- * 
- * @param low
- * @param high
- * @return true if valid
- */
-static bool valid_limits(SaUint32T low, SaUint32T high)
-{
-	bool rc = true;
-	if ( !((low == 0) && (high == 0)) ) {
-		/* Allow both values to be 0 */
-		if (low > high) {
-			rc = false;
-		}
-	}
-	
-	return rc;
-}
-
-/**
  * Validate attributes:
  * Must be done after all attributes has been read in order to check against
- * the correct value.
- * Check that no low limit >= corresponding high limit
- * Both high and low limit can be 0
- * If corresponding limit is not changed, check against current setting
+ * the correct values.
+ * See lgs_config for validation functions
  * 
  * @param vattr_v3 [in] struct with attributes to validate
  * @param err_str [out] char vector of 256 bytes to return a string.
  * @return error code
  */
-static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_v3, char *err_str)
+static SaAisErrorT validate_mailbox_limits(struct vattr_v3_t vattr_v3, char *err_str)
 {	
 	SaUint32T value32_high = 0;
 	SaUint32T value32_low = 0;
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	int rc = 0;
 	bool v3_changed_flag = false; /* True if changes allowed only if V3 supported */
 	
 	TRACE_ENTER();
@@ -730,12 +594,13 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_
 		if (vattr_v3.logStreamSystemLowLimit_changed) {
 			value32_low = vattr_v3.logStreamSystemLowLimit;
 		} else {
-			value32_low = *(SaUint32T *) lgs_imm_logconf_get(
-					LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT, NULL);
+			value32_low = *(SaUint32T *) lgs_cfg_get(
+					LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT);
 		}
-		
-		if (!valid_limits(value32_low, value32_high)) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
+
+		rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
+		if (rc == -1) {
+			ais_rc = SA_AIS_ERR_BAD_OPERATION;
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
@@ -748,12 +613,13 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_
 		if (vattr_v3.logStreamSystemHighLimit_changed) {
 			value32_high = vattr_v3.logStreamSystemHighLimit;
 		} else {
-			value32_high = *(SaUint32T *) lgs_imm_logconf_get(
-					LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT, NULL);
+			value32_high = *(SaUint32T *) lgs_cfg_get(
+					LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT);
 		}
 		
-		if (!valid_limits(value32_low, value32_high)) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
+		rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
+		if (rc == -1) {
+			ais_rc = SA_AIS_ERR_BAD_OPERATION;
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
@@ -766,12 +632,13 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_
 		if (vattr_v3.logStreamAppLowLimit_changed) {
 			value32_low = vattr_v3.logStreamAppLowLimit;
 		} else {
-			value32_low = *(SaUint32T *) lgs_imm_logconf_get(
-					LGS_IMM_LOG_STREAM_APP_LOW_LIMIT, NULL);
+			value32_low = *(SaUint32T *) lgs_cfg_get(
+					LGS_IMM_LOG_STREAM_APP_LOW_LIMIT);
 		}
 		
-		if (!valid_limits(value32_low, value32_high)) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
+		rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
+		if (rc == -1) {
+			ais_rc = SA_AIS_ERR_BAD_OPERATION;
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
@@ -784,12 +651,13 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_
 		if (vattr_v3.logStreamAppHighLimit_changed) {
 			value32_high = vattr_v3.logStreamAppHighLimit;
 		} else {
-			value32_high = *(SaUint32T *) lgs_imm_logconf_get(
-					LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, NULL);
+			value32_high = *(SaUint32T *) lgs_cfg_get(
+					LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT);
 		}
 		
-		if (!valid_limits(value32_low, value32_high)) {
-			rc = SA_AIS_ERR_BAD_OPERATION;
+		rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
+		if (rc == -1) {
+			ais_rc = SA_AIS_ERR_BAD_OPERATION;
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
@@ -801,41 +669,22 @@ static SaAisErrorT validate_config_ccb_completed_modify(struct vattr_v3_t vattr_
 	if (v3_changed_flag == true) {
 		if (lgs_is_peer_v3() == false) {
 			/* Not supported by standby. Configuration change not allowed */
-			rc = SA_AIS_ERR_FAILED_OPERATION;
+			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			snprintf(err_str, 256, "Not supported by standby node");
 			goto done;
 		}
 	}
 
 	done:
-	TRACE_LEAVE2("rc = %d", rc);
-	return rc;
-}
-	
-/**
- * Check if group is valid or not
- * A group is valid if:
- * 	- It exists
- * 	- It contains the user as which LOGD is running
- * 	@param groupname
- * 	@return: true  - group is a valid group
- * 	         false - group is not a valid group
- */
-static bool group_is_valid(const char* groupname)
-{
-	if (strlen(groupname) + 1 > UT_NAMESIZE) {
-		LOG_ER("%s data group > UT_NAMESIZE! Ignore.", __FUNCTION__);
-		return false;
-	}
-
-	uid_t uid = getuid();
-	bool rc = osaf_user_is_member_of_group(uid, groupname);
-	return rc;
+	TRACE_LEAVE2("rc = %d", ais_rc);
+	return ais_rc;
 }
 
 /**
  * Modification of attributes in log service configuration object.
- * Only logRootDirectory can be modified
+ * Validate given attribute changes and report result to IMM
+ *
+ * LLDTESTXXX Use validation functions in lgs_config.c
  * 
  * @param immOiHandle
  * @param opdata
@@ -845,7 +694,8 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		const CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attrMod;
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	int rc = 0;
 	int i = 0;
 	
 	struct vattr_v3_t vattr_v3 = {
@@ -872,11 +722,12 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		TRACE("attribute %s", attribute->attrName);
 
 		/* Ignore deletion of attributes except for logDataGroupname*/
-		if ((strcmp(attribute->attrName, "logDataGroupname") != 0) && (attribute->attrValuesNumber == 0)) {
+		if ((strcmp(attribute->attrName, "logDataGroupname") != 0) &&
+			(attribute->attrValuesNumber == 0)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"deletion of value is not allowed for attribute %s stream %s",
 					attribute->attrName, opdata->objectName.value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			ais_rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
 
@@ -887,10 +738,11 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		if (!strcmp(attribute->attrName, "logRootDirectory")) {
 			if (attribute->attrValuesNumber != 0) {
 				char *pathName = *((char **)value);
-				if (!path_is_writeable_dir_h(pathName)) {
+				rc = lgs_cfg_verify_root_dir(pathName);
+				if (rc == -1) {
 					report_oi_error(immOiHandle, opdata->ccbId,
 							"pathName: %s is NOT accepted", pathName);
-					rc = SA_AIS_ERR_BAD_OPERATION;
+					ais_rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
 				TRACE("pathName: %s is accepted", pathName);
@@ -900,10 +752,11 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 				TRACE("Deleting log data group");
 			} else {
 				char *groupname = *((char **)value);
-				if (!group_is_valid(groupname)) {
+				rc = lgs_cfg_verify_log_data_groupname(groupname);
+				if (rc == -1) {
 					report_oi_error(immOiHandle, opdata->ccbId,
 							"groupname: %s is NOT accepted", groupname);
-					rc = SA_AIS_ERR_INVALID_PARAM;
+					ais_rc = SA_AIS_ERR_INVALID_PARAM;
 					goto done;
 				}
 				TRACE("groupname: %s is accepted", groupname);
@@ -911,7 +764,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
+			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
 			vattr_v3.logStreamSystemHighLimit = *((SaUint32T *)value);
@@ -936,37 +789,37 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
+			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
+			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "logFileSysConfig")) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
+			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		} else {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"attribute %s not recognized", attribute->attrName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;
+			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		}
 
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
 	
-	rc = validate_config_ccb_completed_modify(vattr_v3, oi_err_str);
-	if (rc != SA_AIS_OK) {
+	ais_rc = validate_mailbox_limits(vattr_v3, oi_err_str);
+	if (ais_rc != SA_AIS_OK) {
 		TRACE("Reporting oi error \"%s\"", oi_err_str);
 		report_oi_error(immOiHandle, opdata->ccbId, "%s", oi_err_str);
 	}
 	
 done:
-	TRACE_LEAVE2("rc=%u", rc);
-	return rc;
+	TRACE_LEAVE2("rc=%u", ais_rc);
+	return ais_rc;
 }
 
 /**
@@ -1239,8 +1092,8 @@ static bool chk_max_filesize_recordsize_compatible(SaImmOiHandleT immOiHandle,
 	/** Get all parameters **/
 	
 	/* Get logMaxLogrecsize from configuration parameters */
-	i_logMaxLogrecsize = *(SaUint32T *) lgs_imm_logconf_get(
-			LGS_IMM_LOG_MAX_LOGRECSIZE, NULL);
+	i_logMaxLogrecsize = *(SaUint32T *) lgs_cfg_get(
+			LGS_IMM_LOG_MAX_LOGRECSIZE);
 	TRACE("\t448 i_logMaxLogrecsize = %d", i_logMaxLogrecsize);
 	/* Get stream default settings */
 	stream_default = get_SaLogStreamConfig_default();
@@ -1862,15 +1715,25 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
  * Set logRootDirectory to new value
  *   - Close all open logfiles
  *   - Rename all log files and .cfg files.
- *   - Update lgs_conf with new path (logRootDirectory).
  *   - Open all logfiles and .cfg files in new directory.
  *
- * @param logRootDirectory[in]
- *            String containg path for new root directory
+ * @param new_logRootDirectory[in]
+ *             String containg path for new root directory
+ * @param old_logRootDirectory[in]
+ *            String containg path for old root directory
  * @param close_time[in]
  *            Time for file close time stamp
  */
-void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_time_in)
+/**
+ *
+ * @param new_logRootDirectory
+ * @param old_logRootDirectory
+ * @param cur_time_in
+ */
+void logRootDirectory_filemove(
+		const char *new_logRootDirectory,
+		const char *old_logRootDirectory,
+		time_t *cur_time_in)
 {
 	TRACE_ENTER();
 	log_stream_t *stream;
@@ -1883,7 +1746,8 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 		osafassert(0);
 	}	
 	
-	/* Close and rename files at current path */
+	/* Close and rename files at current path
+	 */
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
 		TRACE("Handling file %s", stream->logFileCurrent);
@@ -1895,20 +1759,21 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 		}
 
 		TRACE("current_logfile \"%s\"",current_logfile);
-
-		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES, 
-				stream, current_logfile, cur_time_in) != 0) {
+		
+		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES,
+				old_logRootDirectory, stream, current_logfile,
+				cur_time_in) != 0) {
 			LOG_ER("Old log files could not be renamed and closed for stream: %s",
 					stream->name);
 		}
 		stream = log_stream_getnext_by_name(stream->name);
 	}
 
-	/* Create new files at new path */
-	lgs_imm_rootpathconf_set(new_logRootDirectory);
+	/* Create new files at new path
+	 */
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
-		if (lgs_create_config_file_h(stream) != 0) {
+		if (lgs_create_config_file_h(new_logRootDirectory, stream) != 0) {
 			LOG_ER("New config file could not be created for stream: %s",
 					stream->name);
 		}
@@ -1920,8 +1785,8 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 		if (n >= NAME_MAX) {
 			LOG_ER("New log file could not be created for stream: %s",
 					stream->name);
-		} else if ((*stream->p_fd = log_file_open(stream, 
-				stream->logFileCurrent,NULL)) == -1) {
+		} else if ((*stream->p_fd = log_file_open(new_logRootDirectory,
+			stream, stream->logFileCurrent,NULL)) == -1) {
 			LOG_ER("New log file could not be created for stream: %s",
 					stream->name);
 		}
@@ -1937,25 +1802,21 @@ void logRootDirectory_filemove(const char *new_logRootDirectory, time_t *cur_tim
 }
 
 /**
-+ * Set logDataGroupname to new value
-+ *   - Update lgs_conf with new group (logDataGroupname).
-+ *   - Reown all log files by this new group.
-+ *
-+ * @param new_logDataGroupname[in]
-+ *            String contains new group.
-+ */
+ * Apply new group name
+ *   - Update lgs_conf with new group (logDataGroupname).
+ *   - Reown all log files by this new group.
+ *
+ * @param new_logDataGroupname[in]
+ *            String contains new group.
+ */
 void logDataGroupname_fileown(const char *new_logDataGroupname){
 	TRACE_ENTER();
 	log_stream_t *stream;
 
-	if (!new_logDataGroupname) {
+	if (new_logDataGroupname == NULL) {
 		LOG_ER("Data group is NULL");
 		return;
 	}
-
-
-	/* Update data group configuration in lgs_conf */
-	lgs_imm_groupnameconf_set(new_logDataGroupname);
 
 	/* For each log stream, reown all log files */
 	if (strcmp(new_logDataGroupname, "")) {
@@ -1964,98 +1825,159 @@ void logDataGroupname_fileown(const char *new_logDataGroupname){
 		 */
 		stream = log_stream_getnext_by_name(NULL);
 		while (stream != NULL) {
-			lgs_own_log_files(stream);
+			lgs_own_log_files_h(stream);
 			stream = log_stream_getnext_by_name(stream->name);
 		}
 	}
 	TRACE_LEAVE();
 }
 
+
 /**
- * Apply validated changes
+ * Change log root directory
  *
- * @param opdata
+ * @param old_logRootDirectory[in]
+ * @param new_logRootDirectory[in]
+ */
+static void apply_conf_logRootDirectory(
+		const char *old_logRootDirectory,
+		const char *new_logRootDirectory)
+{
+	struct timespec curtime_tspec;
+	osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
+	time_t cur_time = curtime_tspec.tv_sec;
+
+	logRootDirectory_filemove(
+		new_logRootDirectory,
+		old_logRootDirectory,
+		&cur_time);
+
+}
+
+static void apply_conf_logDataGroupname(const char *logDataGroupname)
+{
+	char *value_ptr = NULL;
+	char noGroupname[] = "";
+	
+	if (logDataGroupname == NULL)
+		value_ptr = noGroupname;
+	else
+		value_ptr = (char *) logDataGroupname;
+
+	logDataGroupname_fileown(value_ptr);
+}
+
+/**
+ * Apply changes. Validation is not needed here since all validation is done in
+ * the complete callback
+ *
+ * @param opdata[in] From IMM
  */
 static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attrMod;
 	int i = 0;
-	bool checkpoint_flag = false;
-	bool mbox_cfg_flag = false;
-	struct timespec curtime_tspec;
-	bool is_root_dir_changed = false;
+	char *value_str = NULL;
+	uint32_t uint32_val = 0;
+	char uint32_str[20] = {0};
+	lgs_config_chg_t config_data = {NULL, 0};
+	int rc = 0;
+	bool root_dir_chg_flag = false; /* Needed for v3 ckpt protocol */
+
+	/* Flag set if any of the mailbox limit values have changed */
+	bool mailbox_lim_upd = false;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	attrMod = opdata->param.modify.attrMods[i++];
 	while (attrMod != NULL) {
+		/* Get all changed config data and save in cfg buffer */
 		const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
 		void *value = NULL;
 		if (attribute->attrValuesNumber != 0)
 			value = attribute->attrValues[0];
+		else
+			value = NULL;
 
 		TRACE("attribute %s", attribute->attrName);
 
+		/* For each modified attribute:
+		 * - Get the new value
+		 * - Apply the change
+		 * - Add to update buffer. Used for updating configuration data
+		 *   and check-pointing
+		 */
 		if (!strcmp(attribute->attrName, "logRootDirectory")) {
-			/* Update saved configuration (on active. See ckpt_proc_lgs_cfg()
-			 * in lgs_mbcsv.c for corresponding update on standby)
-			 */
-			const char *new_logRootDirectory = *((char **)value);
-			
-			osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
-			time_t cur_time = curtime_tspec.tv_sec;
-			/* Change root dir in lgs*/
-			/* NOTE: This function is using the old root path still in lgs_cb
-			 * therefore it cannot be changed until filemove is done
-			 */
-			logRootDirectory_filemove(new_logRootDirectory, &cur_time);
-
-			lgs_conf->chkp_file_close_time = cur_time;
-
-			is_root_dir_changed = true;
-			checkpoint_flag = true;
+			value_str = *((char **)value); /* New directory */
+			char *old_dir =
+				(char *) lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+			apply_conf_logRootDirectory(old_dir, value_str);
+			lgs_cfgupd_list_create("logRootDirectory",
+				value_str, &config_data);
+			root_dir_chg_flag = true;
 		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
-			/* Update saved configuration (on active. See ckpt_proc_lgs_cfg()
-			 * in lgs_mbcsv.c for corresponding update on standby)
-			 */
-			if (attribute->attrValuesNumber == 0) {
-				logDataGroupname_fileown("");
+			if (value == NULL) {
+				value_str = "";
 			} else {
-				const char *new_dataGroupname = *((char **)value);
-
-				/* Re-own all log files by this new group */
-				logDataGroupname_fileown(new_dataGroupname);
+				value_str = *((char **)value);
 			}
-			checkpoint_flag = true;
+			apply_conf_logDataGroupname(value_str);
+			lgs_cfgupd_list_create("logDataGroupname",
+				value_str, &config_data);
 		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
-			mbox_cfg_flag = true;
+			uint32_val = *(uint32_t *) value;
+			snprintf(uint32_str, 20, "%u", uint32_val);
+			mailbox_lim_upd = true;
+			lgs_cfgupd_list_create("logStreamSystemHighLimit",
+				uint32_str, &config_data);
 		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
-			mbox_cfg_flag = true;			
+			uint32_val = *(uint32_t *) value;
+			snprintf(uint32_str, 20, "%u", uint32_val);
+			mailbox_lim_upd = true;
+			lgs_cfgupd_list_create("logStreamSystemLowLimit",
+				uint32_str, &config_data);
 		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
-			mbox_cfg_flag = true;			
+			uint32_val = *(uint32_t *) value;
+			snprintf(uint32_str, 20, "%u", uint32_val);
+			mailbox_lim_upd = true;
+			lgs_cfgupd_list_create("logStreamAppHighLimit",
+				uint32_str, &config_data);
 		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
-			mbox_cfg_flag = true;			
+			uint32_val = *(uint32_t *) value;
+			snprintf(uint32_str, 20, "%u", uint32_val);
+			mailbox_lim_upd = true;
+			lgs_cfgupd_list_create("logStreamAppLowLimit",
+				uint32_str, &config_data);
 		}
-		
+
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
 
-	if (mbox_cfg_flag == true) {
-		/* If any mailbox queue limits has changed the new configuration has to
-		 * be read and the mailbox reconfigured.
-		 * Standby has to be notified.
-		 */
-		TRACE("%s - Update mailbox", __FUNCTION__);
-		(void) read_logsv_config_obj();
-		(void) lgs_configure_mailbox();
-	}
-	
-	if (checkpoint_flag == true) {
-		/* Check pointing lgs configuration change */
-		ckpt_lgs_cfg(lgs_conf, is_root_dir_changed);
+	/* Update configuration data store */
+	rc = lgs_cfg_update(&config_data);
+	if (rc == -1) {
+		LOG_ER("%s lgs_cfg_update Fail", __FUNCTION__);
+		osafassert(0);
 	}
 
-	TRACE_LEAVE();
+	/* Update mailbox limits if any of them has changed
+	 * Note: Must be done after configuration data store is updated
+	 */
+	if (mailbox_lim_upd == true) {
+		TRACE("\tUpdating mailbox limits");
+		(void) lgs_configure_mailbox();
+	}
+
+	/* Check-point changes */
+	(void) ckpt_lgs_cfg(root_dir_chg_flag, &config_data);
+
+#if 1 /*LLDTEST1*/
+	lgs_trace_config();
+#endif
+
+	/* Cleanup and free cfg buffer */
+	if (config_data.ckpt_buffer_ptr != NULL)
+		free(config_data.ckpt_buffer_ptr);
 }
 
 static void config_ccb_apply(const CcbUtilOperationData_t *opdata)
@@ -2279,9 +2201,11 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 
 	osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
 	time_t cur_time = curtime_tspec.tv_sec;
+	const char *root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 	if (new_cfg_file_needed) {
 		int rc;
-		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES, stream,
+		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES,
+				root_path, stream,
 				current_logfile_name, &cur_time))
 				!= 0) {
 			LOG_ER("log_stream_config_change failed: %d", rc);
@@ -2291,8 +2215,8 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	/* Fix for ticket #1346 */
 	if (modify) {
 		int rc;
-		if ((rc = log_stream_config_change(!LGS_STREAM_CREATE_FILES, stream,
-						   current_logfile_name, &cur_time))
+		if ((rc = log_stream_config_change(!LGS_STREAM_CREATE_FILES,
+			root_path, stream, current_logfile_name, &cur_time))
 		    != 0) {
 			LOG_ER("log_stream_config_change failed: %d", rc);
 		}
@@ -2302,7 +2226,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			LOG_ER("Error: File name (%zu) > NAME_MAX (%d)", strlen(fileName), (int) NAME_MAX);
 			osafassert(0);
 		}
-		if ((rc = lgs_create_config_file_h(stream)) != 0) {
+		if ((rc = lgs_create_config_file_h(root_path, stream)) != 0) {
 			LOG_ER("lgs_create_config_file_h failed: %d", rc);
 		}
 
@@ -2310,7 +2234,8 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
 
 		// Create the new log file based on updated configuration
-		*stream->p_fd = log_file_open(stream, stream->logFileCurrent, NULL);
+		*stream->p_fd = log_file_open(root_path,
+			stream, stream->logFileCurrent, NULL);
 	}
 
 	/* Checkpoint to standby LOG server */
@@ -2579,572 +2504,6 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 	return rc;
 }
 
-/**
- * Read the configuration object and if a configuration object exists
- * update the mailbox limits
- */
-void update_mailbox_limits(void) {
-	if (read_logsv_config_obj() == SA_AIS_OK) {
-		TRACE("%s - Mailbox is reconfigured",__FUNCTION__);
-		(void) lgs_configure_mailbox();
-	} else {
-		TRACE("%s - Could not read configuration object %s",
-				__FUNCTION__, LGS_IMM_LOG_CONFIGURATION);
-	}
-}
-
-/**
- * Get Log configuration from IMM. See SaLogConfig class.
- * The configuration will be read from object 'dn' and
- * written to struct lgs_conf.
- * Returns SA_AIS_ERR_NOT_EXIST if no object 'dn' exist.
- * 
- * global lgs_conf
- * 
- * @return SaAisErrorT
- * SA_AIS_OK, SA_AIS_ERR_NOT_EXIST
- */
-static SaAisErrorT read_logsv_config_obj(void) {
-	SaAisErrorT rc = SA_AIS_OK;
-	SaImmHandleT omHandle;
-	SaNameT objectName;
-	SaImmAccessorHandleT accessorHandle;
-	SaImmAttrValuesT_2 *attribute;
-	SaImmAttrValuesT_2 **attributes;
-	int i = 0;
-	int param_cnt = 0;
-	int n;
-
-	int asetting = immutilWrapperProfile.errorsAreFatal;
-	SaAisErrorT om_rc = SA_AIS_OK;
-	
-	TRACE_ENTER();
-
-	/* NOTE: immutil init will osaf_assert if error */
-	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-	(void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
-
-	n = snprintf((char *) objectName.value, SA_MAX_NAME_LENGTH, "%s",
-			LGS_IMM_LOG_CONFIGURATION);
-	if (n >= SA_MAX_NAME_LENGTH) {
-		LOG_ER("Object name > SA_MAX_NAME_LENGTH");
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto done;
-	}
-	objectName.length = strlen((char *) objectName.value);
-
-	/* Get all attributes of the object */
-	if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
-		lgs_conf->OpenSafLogConfig_class_exist = false;
-		rc = SA_AIS_ERR_NOT_EXIST;
-		goto done;
-	}
-	else {
-		lgs_conf->OpenSafLogConfig_class_exist = true;
-	}
-
-	while ((attribute = attributes[i++]) != NULL) {
-		void *value;
-
-		if (attribute->attrValuesNumber == 0)
-			continue;
-
-		value = attribute->attrValues[0];
-
-		if (!strcmp(attribute->attrName, "logRootDirectory")) {
-			n = snprintf(lgs_conf->logRootDirectory, PATH_MAX, "%s",
-					*((char **) value));
-			if (n >= PATH_MAX) {
-				LOG_WA("LOG root dir read from config object is > PATH_MAX");
-				lgs_conf->logRootDirectory[0] = '\0';
-				lgs_conf->logRootDirectory_noteflag = true;
-			}
-			param_cnt++;
-			TRACE("Conf obj; logRootDirectory: %s", lgs_conf->logRootDirectory);
-		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
-			n = snprintf(lgs_conf->logDataGroupname, UT_NAMESIZE, "%s",
-					*((char **) value));
-			if (n >= UT_NAMESIZE) {
-				LOG_WA("LOG data group name read from config object is > UT_NAMESIZE");
-				lgs_conf->logDataGroupname[0] = '\0';
-				lgs_conf->logDataGroupname_noteflag = true;
-			}
-			param_cnt++;
-			TRACE("Conf obj; logDataGroupname: %s", lgs_conf->logDataGroupname);
-		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
-			lgs_conf->logMaxLogrecsize = *((SaUint32T *) value);
-			param_cnt++;
-			TRACE("Conf obj; logMaxLogrecsize: %u", lgs_conf->logMaxLogrecsize);
-		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
-			lgs_conf->logStreamSystemHighLimit = *((SaUint32T *) value);
-			param_cnt++;
-			TRACE("Conf obj; logStreamSystemHighLimit: %u", lgs_conf->logStreamSystemHighLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
-			lgs_conf->logStreamSystemLowLimit = *((SaUint32T *) value);
-			param_cnt++;
-			TRACE("Conf obj; logStreamSystemLowLimit: %u", lgs_conf->logStreamSystemLowLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
-			lgs_conf->logStreamAppHighLimit = *((SaUint32T *) value);
-			param_cnt++;
-			TRACE("Conf obj; logStreamAppHighLimit: %u", lgs_conf->logStreamAppHighLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
-			lgs_conf->logStreamAppLowLimit = *((SaUint32T *) value);
-			param_cnt++;
-			TRACE("Conf obj; logStreamAppLowLimit: %u", lgs_conf->logStreamAppLowLimit);
-		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
-			lgs_conf->logMaxApplicationStreams = *((SaUint32T *) value);
-			param_cnt++;
-			TRACE("Conf obj; logMaxApplicationStreams: %u", lgs_conf->logMaxApplicationStreams);
-		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
-			lgs_conf->logFileIoTimeout = *((SaUint32T *) value);
-			lgs_conf->logFileIoTimeout_noteflag = false;
-			param_cnt++;
-			TRACE("Conf obj; logFileIoTimeout: %u", lgs_conf->logFileIoTimeout);
-		} else if (!strcmp(attribute->attrName, "logFileSysConfig")) {
-			lgs_conf->logFileSysConfig = *((SaUint32T *) value);
-			lgs_conf->logFileSysConfig_noteflag = false;
-			param_cnt++;
-			TRACE("Conf obj; logFileSysConfig: %u", lgs_conf->logFileSysConfig);
-		} 
-	}
-
-	/* Check if missing attributes. Default value will be used if attribute is
-	 * missing.
-	 */
-	if (param_cnt != LGS_IMM_LOG_NUMBER_OF_PARAMS) {
-		LOG_WA("read_logsv_configuration(). All attributes could not be read");
-	}
-
-done:
-	/* Do not abort if error when finalizing */
-	immutilWrapperProfile.errorsAreFatal = 0;	/* Disable immutil abort */
-	om_rc = immutil_saImmOmAccessorFinalize(accessorHandle);
-	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmAccessorFinalize() Fail %d",__FUNCTION__, om_rc);
-	}
-	om_rc = immutil_saImmOmFinalize(omHandle);
-	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmFinalize() Fail %d",__FUNCTION__, om_rc);
-	}
-	immutilWrapperProfile.errorsAreFatal = asetting; /* Enable again */
-
-	TRACE_LEAVE();
-	return rc;
-}
-
-/**
- * Handle logsv configuration environment variables.
- * This function shall be called only if no configuration object is found in IMM.
- * The lgs_conf struct contains default values but shall be updated
- * according to environment variables if there are any. See file logd.conf
- * If an environment variable is faulty the corresponding value will be set to
- * it's default value and a corresponding error flag will be set.
- * 
- * global lgs_Conf
- * 
- */
-static void read_logsv_config_environ_var(void) {
-	char *val_str;
-	unsigned long int val_uint;
-	int n;
-
-	TRACE_ENTER2("Configured using default values and environment variables");
-
-	/* logRootDirectory */
-	if ((val_str = getenv("LOGSV_ROOT_DIRECTORY")) != NULL) {
-		lgs_conf->logRootDirectory_noteflag = false;
-		n = snprintf(lgs_conf->logRootDirectory, PATH_MAX, "%s", val_str);
-		if (n >= PATH_MAX) {
-			LOG_WA("LOG root dir read from config file is > PATH_MAX");
-			lgs_conf->logRootDirectory[0] = '\0';
-			lgs_conf->logRootDirectory_noteflag = true;
-		}
-	} else {
-		LOG_WA("LOGSV_ROOT_DIRECTORY not found");
-		lgs_conf->logRootDirectory_noteflag = true;
-	}
-	TRACE("logRootDirectory=%s, logRootDirectory_noteflag=%u",
-			lgs_conf->logRootDirectory, lgs_conf->logRootDirectory_noteflag);
-
-	/* logDataGroupname */
-	if ((val_str = getenv("LOGSV_DATA_GROUPNAME")) != NULL) {
-		lgs_conf->logDataGroupname_noteflag = false;
-		n = snprintf(lgs_conf->logDataGroupname, UT_NAMESIZE, "%s", val_str);
-		if (n >= UT_NAMESIZE) {
-			LOG_WA("LOG data group name read from config file is > UT_NAMESIZE");
-			lgs_conf->logDataGroupname[0] = '\0';
-			lgs_conf->logDataGroupname_noteflag = true;
-		}
-	} else {
-		LOG_WA("LOGSV_DATA_GROUPNAME not found");
-		lgs_conf->logDataGroupname_noteflag = true;
-	}
-	TRACE("logDataGroupname=%s, logDataGroupname_noteflag=%u",
-			lgs_conf->logDataGroupname, lgs_conf->logDataGroupname_noteflag);
-
-	/* logMaxLogrecsize */
-	if ((val_str = getenv("LOGSV_MAX_LOGRECSIZE")) != NULL) {
-/* errno = 0 is necessary as per the manpage of strtoul. Quoting here:
- * NOTES:
- * Since strtoul() can legitimately return 0 or ULONG_MAX (ULLONG_MAX for strtoull())
- * on both success and failure, the calling program should set errno to 0 before the call,
- * and then determine if an error occurred by  checking  whether  errno  has  a
- * nonzero value after the call.
- */
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_ER("Illegal value for LOGSV_MAX_LOGRECSIZE - %s, default %u",
-					strerror(errno), lgs_conf->logMaxLogrecsize);
-			lgs_conf->logMaxLogrecsize_noteflag = true;
-		} else {
-			lgs_conf->logMaxLogrecsize = (SaUint32T) val_uint;
-			lgs_conf->logMaxLogrecsize_noteflag = false;
-		}
-	} else { /* No environment variable use default value */
-		lgs_conf->logMaxLogrecsize_noteflag = false;
-	}
-	TRACE("logMaxLogrecsize=%u, logMaxLogrecsize_noteflag=%u",
-			lgs_conf->logMaxLogrecsize, lgs_conf->logMaxLogrecsize_noteflag);
-
-	/* logStreamSystemHighLimit */
-	if ((val_str = getenv("LOG_STREAM_SYSTEM_HIGH_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_HIGH_LIMIT - %s, default %u",
-					strerror(errno), lgs_conf->logStreamSystemHighLimit);
-			lgs_conf->logStreamSystemHighLimit_noteflag = true;
-		} else {
-			lgs_conf->logStreamSystemHighLimit = (SaUint32T) val_uint;
-			lgs_conf->logStreamSystemHighLimit_noteflag = false;
-		}
-	} else { /* No environment variable use default value */
-		lgs_conf->logStreamSystemHighLimit_noteflag = false;
-	}
-	TRACE("logStreamSystemHighLimit=%u, logStreamSystemHighLimit_noteflag=%u",
-			lgs_conf->logStreamSystemHighLimit, lgs_conf->logStreamSystemHighLimit_noteflag);
-
-	/* logStreamSystemLowLimit */
-	if ((val_str = getenv("LOG_STREAM_SYSTEM_LOW_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_LOW_LIMIT - %s, default %u",
-					strerror(errno), lgs_conf->logStreamSystemLowLimit);
-			lgs_conf->logStreamSystemLowLimit_noteflag = true;
-		} else {
-			lgs_conf->logStreamSystemLowLimit = (SaUint32T) val_uint;
-			lgs_conf->logStreamSystemLowLimit_noteflag = false;
-		}
-	} else { /* No environment variable use default value */
-		lgs_conf->logStreamSystemLowLimit_noteflag = false;
-	}
-	TRACE("logStreamSystemLowLimit=%u, logStreamSystemLowLimit_noteflag=%u",
-			lgs_conf->logStreamSystemLowLimit, lgs_conf->logStreamSystemLowLimit_noteflag);
-
-	/* logStreamAppHighLimit */
-	if ((val_str = getenv("LOG_STREAM_APP_HIGH_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_ER("Illegal value for LOG_STREAM_APP_HIGH_LIMIT - %s, default %u",
-					strerror(errno), lgs_conf->logStreamAppHighLimit);
-			lgs_conf->logStreamAppHighLimit_noteflag = true;
-		} else {
-			lgs_conf->logStreamAppHighLimit = (SaUint32T) val_uint;
-			lgs_conf->logStreamAppHighLimit_noteflag = false;
-		}
-	} else { /* No environment variable use default value */
-		lgs_conf->logStreamAppHighLimit_noteflag = false;
-	}
-	TRACE("logStreamAppHighLimit=%u, logStreamAppHighLimit_noteflag=%u",
-			lgs_conf->logStreamAppHighLimit, lgs_conf->logStreamAppHighLimit_noteflag);
-
-	/* logStreamAppLowLimit */
-	if ((val_str = getenv("LOG_STREAM_APP_LOW_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_ER("Illegal value for LOG_STREAM_APP_LOW_LIMIT - %s, default %u",
-					strerror(errno), lgs_conf->logStreamAppLowLimit);
-			lgs_conf->logStreamAppLowLimit_noteflag = true;
-		} else {
-			lgs_conf->logStreamAppLowLimit = (SaUint32T) val_uint;
-			lgs_conf->logStreamAppLowLimit_noteflag = false;
-		}
-	} else { /* No environment variable use default value */
-		lgs_conf->logStreamAppLowLimit_noteflag = false;
-	}
-	TRACE("logStreamAppLowLimit=%u, logStreamAppLowLimit_noteflag=%u",
-			lgs_conf->logStreamAppLowLimit, lgs_conf->logStreamAppLowLimit_noteflag);
-
-	/* logMaxApplicationStreams */
-	if ((val_str = getenv("LOG_MAX_APPLICATION_STREAMS")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_ER("Illegal value for LOG_MAX_APPLICATION_STREAMS - %s, default %u",
-					strerror(errno), lgs_conf->logMaxApplicationStreams);
-			lgs_conf->logMaxApplicationStreams_noteflag = true;
-		} else {
-			lgs_conf->logMaxApplicationStreams = (SaUint32T) val_uint;
-			lgs_conf->logMaxApplicationStreams_noteflag = false;
-		}
-	} else { /* No environment variable use default value */
-		lgs_conf->logMaxApplicationStreams_noteflag = false;
-	}
-	TRACE("logMaxApplicationStreams=%u, logMaxApplicationStreams_noteflag=%u",
-			lgs_conf->logMaxApplicationStreams, lgs_conf->logMaxApplicationStreams_noteflag);
-
-	TRACE_LEAVE();
-}
-
-/* The function is called when the LOG config object exists,
- * to determine if envrionment variables also are configured.
- * If environment variables are also found, then the function
- * logs a warning message to convey that the environment variables
- * are ignored when the log config object is also configured.
- @ param none
- @ return none
- */
-
-static void check_environs_for_configattribs(lgs_conf_t *lgsConf)
-{
-	char *val_str;
-	unsigned long int val_uint;
-	
-	/* If environment variables are configured then, print a warning
-	 * message to syslog.
-	 */
-	if (getenv("LOGSV_MAX_LOGRECSIZE") != NULL) {
-		LOG_WA("Log Configuration object '%s' exists", LGS_IMM_LOG_CONFIGURATION); 
-		LOG_WA("Ignoring environment variable LOGSV_MAX_LOGRECSIZE");
-	}
-
-	/* Environment variables for limits are used if limits
-     * in configuration object is 0.
-     */
-	if ((val_str = getenv("LOG_STREAM_SYSTEM_HIGH_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_WA("Ignoring environment variable LOG_STREAM_SYSTEM_HIGH_LIMIT");
-			LOG_WA("Illegal value");
-		} else if ((lgsConf->logStreamSystemHighLimit == 0) &&
-				(lgsConf->logStreamSystemLowLimit < val_uint)) {
-			lgsConf->logStreamSystemHighLimit = val_uint;
-		} else {
-			LOG_WA("Log Configuration object '%s' exists", LGS_IMM_LOG_CONFIGURATION); 
-			LOG_WA("Ignoring environment variable LOG_STREAM_SYSTEM_HIGH_LIMIT");
-		}
-	}	
-
-	if ((val_str = getenv("LOG_STREAM_SYSTEM_LOW_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_WA("Ignoring environment variable LOG_STREAM_SYSTEM_LOW_LIMIT");
-			LOG_WA("Illegal value");
-		} else if ((lgsConf->logStreamSystemLowLimit == 0) &&
-				(lgsConf->logStreamSystemHighLimit > val_uint)) {
-				lgsConf->logStreamSystemLowLimit = val_uint;
-		} else {
-			LOG_WA("Log Configuration object '%s' exists", LGS_IMM_LOG_CONFIGURATION); 
-			LOG_WA("Ignoring environment variable LOG_STREAM_SYSTEM_LOW_LIMIT");
-		}
-	}
-	
-	if ((val_str = getenv("LOG_STREAM_APP_HIGH_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_WA("Ignoring environment variable LOG_STREAM_APP_HIGH_LIMIT");
-			LOG_WA("Illegal value");
-		} else if ((lgsConf->logStreamAppHighLimit == 0) &&
-				(lgsConf->logStreamAppLowLimit < val_uint)) {
-			lgsConf->logStreamAppHighLimit = val_uint;
-		} else {
-			LOG_WA("Log Configuration object '%s' exists", LGS_IMM_LOG_CONFIGURATION); 
-			LOG_WA("Ignoring environment variable LOG_STREAM_APP_HIGH_LIMIT");
-		}
-	}
-	
-	if ((val_str = getenv("LOG_STREAM_APP_LOW_LIMIT")) != NULL) {
-		errno = 0;
-		val_uint = strtoul(val_str, NULL, 0);
-		if ((errno != 0) || (val_uint > UINT_MAX)) {
-			LOG_WA("Ignoring environment variable LOG_STREAM_APP_LOW_LIMIT");
-			LOG_WA("Illegal value");
-		} else if ((lgsConf->logStreamAppLowLimit == 0) &&
-				(lgsConf->logStreamAppHighLimit > val_uint)) {
-			lgsConf->logStreamAppLowLimit = val_uint;
-		} else {
-			LOG_WA("Log Configuration object '%s' exists", LGS_IMM_LOG_CONFIGURATION); 
-			LOG_WA("Ignoring environment variable LOG_STREAM_APP_LOW_LIMIT");
-		}
-	}
-
-	if (getenv("LOG_MAX_APPLICATION_STREAMS") != NULL) {
-		LOG_WA("Log Configuration object '%s' exists", LGS_IMM_LOG_CONFIGURATION); 
-		LOG_WA("Ignoring environment variable LOG_MAX_APPLICATION_STREAMS");
-	}
-}
-
-/**
- * Get log service configuration parameter. See SaLogConfig class.
- * The configuration will be read from IMM. If no config object exits
- * a configuration from environment variables and default will be used.
- * 
- * @param lgs_logconfGet_t param
- * Defines what configuration parameter to return
- * 
- * @param bool* noteflag
- * Is set to true if no valid configuration object exists and an invalid
- * environment variable is defined. In this case the parameter value returned
- * is the default value. 
- * It is valid to set this parameter to NULL if no error information is needed.
- * NOTE: A parameter is considered to be invalid if the corresponding environment
- *       variable cannot be converted to a value or if a mandatory environment
- *       variable is missing. This function does not check if the value is within
- *       allowed limits.
- * 
- * @return void *
- * Returns a pointer to the parameter. See struct lgs_conf
- *  
- */
-const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag)
-{
-	lgs_conf_t *lgs_conf_p;
-
-	lgs_conf_p = (lgs_conf_t *) lgs_conf;
-	/* Check if parameters has to be fetched from IMM */
-	if (lgs_conf->logInitiated != true) {
-		if (read_logsv_config_obj() != SA_AIS_OK) {
-			LOG_NO("No or invalid log service configuration object");
-			read_logsv_config_environ_var();
-		} else {
-			/* LGS_IMM_LOG_CONFIGURATION object exists.
-			 * If environment variables exists, then ignore them
-			 * and log a message to syslog.
-			 * For mailbox limits environment variables are used if the
-			 * value in configuration object is 0
-			 */
-			check_environs_for_configattribs(lgs_conf_p);
-		}
-		
-		/* Write configuration to syslog */
-		LOG_NO("Log config system: high %d low %d, application: high %d low %d",
-				lgs_conf->logStreamSystemHighLimit,
-				lgs_conf->logStreamSystemLowLimit,
-				lgs_conf->logStreamAppHighLimit,
-				lgs_conf->logStreamAppLowLimit);
-		
-		lgs_conf_p->logInitiated = true;
-	}
-
-	switch (param) {
-	case LGS_IMM_LOG_ROOT_DIRECTORY:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logRootDirectory_noteflag;
-		}
-		return (char *) lgs_conf->logRootDirectory;
-	case LGS_IMM_DATA_GROUPNAME:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logDataGroupname_noteflag;
-		}
-		return (char *) lgs_conf->logDataGroupname;
-	case LGS_IMM_LOG_MAX_LOGRECSIZE:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logMaxLogrecsize_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logMaxLogrecsize;
-	case LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logStreamSystemHighLimit_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logStreamSystemHighLimit;
-	case LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logStreamSystemLowLimit_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logStreamSystemLowLimit;
-	case LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logStreamAppHighLimit_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logStreamAppHighLimit;
-	case LGS_IMM_LOG_STREAM_APP_LOW_LIMIT:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logStreamAppLowLimit_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logStreamAppLowLimit;
-	case LGS_IMM_LOG_MAX_APPLICATION_STREAMS:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logMaxApplicationStreams_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logMaxApplicationStreams;
-	case LGS_IMM_FILEHDL_TIMEOUT:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logFileIoTimeout_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logFileIoTimeout;
-	case LGS_IMM_LOG_FILESYS_CFG:
-		if (noteflag != NULL) {
-			*noteflag = lgs_conf->logFileSysConfig_noteflag;
-		}
-		return (SaUint32T *) &lgs_conf->logFileSysConfig;
-	case LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST:
-		if (noteflag != NULL) {
-			*noteflag = false;
-		}
-		return (bool *) &lgs_conf->OpenSafLogConfig_class_exist;
-
-	case LGS_IMM_LOG_NUMBER_OF_PARAMS:
-	case LGS_IMM_LOG_NUMEND:
-	default:
-		LOG_ER("Invalid parameter %u",param);
-		osafassert(0); /* Should never happen */
-		break;
-	}
-	return NULL; /* Dummy */
-}
-
-/**
- * Set the logRootDirectory parameter in the lgs_conf struct
- * Used for holding data from config object
- * 
- * Note: This is needed for #3053/#3023 quick fix.
- * See also lgs_stream.c lgs_make_dir(...)
- * 
- * @param root_path_str
- */
-void lgs_imm_rootpathconf_set(const char *root_path_str)
-{
-	if ((strlen(root_path_str)+1) > PATH_MAX)
-		osafassert(0);
-	
-	strcpy(lgs_conf->logRootDirectory, root_path_str);
-	strcpy((char *) lgs_cb->logsv_root_dir, root_path_str);
-	LOG_NO("lgsv root path is changed to \"%s\"",lgs_conf->logRootDirectory);
-}
-
-/**
- * Set the logDataGroupname parameter in the lgs_conf struct
- * Used for holding data from config object
- *
- * @param root_path_str
- */
-void lgs_imm_groupnameconf_set(const char *data_groupname_str)
-{
-	if ((strlen(data_groupname_str)+1) > UT_NAMESIZE)
-		osafassert(0);
-
-	strcpy(lgs_conf->logDataGroupname, data_groupname_str);
-	LOG_NO("LOG service data group is changed to %s", strcmp(lgs_conf->logDataGroupname, "") ?
-				lgs_conf->logDataGroupname : "<Empty>");
-}
-
 static const SaImmOiCallbacksT_2 callbacks = {
 	.saImmOiAdminOperationCallback = adminOperationCallback,
 	.saImmOiCcbAbortCallback = ccbAbortCallback,
@@ -3212,13 +2571,7 @@ SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb)
 	 */
 	immutilWrapperProfile.nTries = 250; /* After loading,allow missed sync of large data to complete */
 
-	(void)immutil_saImmOiImplementerSet(cb->immOiHandle, implementerName);
 	(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
-
-	/* Do this only if the class exists */
-	if ( true == *(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
-		(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
-	}
 
 	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 
@@ -3255,13 +2608,14 @@ SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb)
 }
 
 /**
- * Become object and class implementer/applier. Wait max
+ * Thread
+ * Restore object and class implementer/applier. Wait max
  * 'max_waiting_time_ms'.
  * @param _cb
  * 
  * @return void*
  */
-static void *imm_impl_set(void *_cb)
+static void *imm_impl_restore_thread(void *_cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	int msecs_waited;
@@ -3287,7 +2641,7 @@ static void *imm_impl_set(void *_cb)
 	/* Become class implementer for the SaLogStreamConfig
 	 * Become class implementer for the OpenSafLogConfig class if it exists
 	 */
-	if ( true == *(bool*) lgs_imm_logconf_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST, NULL)) {
+	if ( true == *(bool*) lgs_cfg_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST)) {
 		(void)immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
 		msecs_waited = 0;
 		rc = saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig");
@@ -3321,11 +2675,11 @@ static void *imm_impl_set(void *_cb)
 }
 
 /**
- * Become object and class implementer, non-blocking.
+ * Restore object and class implementer, non-blocking.
  * Remove: Become object and class implementer or applier, non-blocking.
  * @param cb
  */
-void lgs_imm_impl_set(lgs_cb_t *cb)
+void lgs_imm_impl_restore(lgs_cb_t *cb)
 {
 	pthread_t thread;
 	pthread_attr_t attr;
@@ -3342,7 +2696,7 @@ void lgs_imm_impl_set(lgs_cb_t *cb)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-	if (pthread_create(&thread, &attr, imm_impl_set, cb) != 0) {
+	if (pthread_create(&thread, &attr, imm_impl_restore_thread, cb) != 0) {
 		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -3353,19 +2707,22 @@ void lgs_imm_impl_set(lgs_cb_t *cb)
 }
 
 /**
- * Initialize the OI interface and get a selection object. Wait
- * max 'max_waiting_time_ms'.
+ * Initialize the OI interface and get a selection object.
+ * Become OI for safLogService if Active
+ *
+ * Wait max 'max_waiting_time_ms'.
  * @param cb
  * 
  * @return SaAisErrorT
  */
-SaAisErrorT lgs_imm_init(lgs_cb_t *cb)
+SaAisErrorT lgs_imm_init_OI(lgs_cb_t *cb)
 {
 	SaAisErrorT rc;
 	int msecs_waited;
 
 	TRACE_ENTER();
 
+	/* Initialize IMM OI service */
 	msecs_waited = 0;
 	rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion);
 	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
@@ -3374,22 +2731,45 @@ SaAisErrorT lgs_imm_init(lgs_cb_t *cb)
 		rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion);
 	}
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiInitialize_2 failed %u", rc);
+		LOG_ER("saImmOiInitialize_2 Failed %u", rc);
 		return rc;
 	}
+	TRACE("%s: saImmOiInitialize_2() Done",__FUNCTION__);
 
+	/* If started as Active */
+	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+		/* Become Object Implementer for the log service */
+		msecs_waited = 0;
+		rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
+		while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) &&
+				(msecs_waited < max_waiting_time_60s)) {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
+		}
+		if (rc != SA_AIS_OK) {
+			LOG_ER("saImmOiImplementerSet Failed %u", rc);
+			exit(EXIT_FAILURE);
+		}
+		TRACE("%s: saImmOiImplementerSet() for %s Done",
+			__FUNCTION__, implementerName);
+	}
+
+	/* Get selection object for event handling */
 	msecs_waited = 0;
 	rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
+	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_10s)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
 		rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
 	}
-
-	if (rc != SA_AIS_OK)
+	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiSelectionObjectGet failed %u", rc);
+		exit(EXIT_FAILURE);
+	}
 
 	TRACE_LEAVE();
 
 	return rc;
 }
+

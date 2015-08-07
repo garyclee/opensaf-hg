@@ -87,7 +87,9 @@ extern log_stream_t *log_stream_new(SaNameT *name,
 				    SaUint32T maxFilesRotated,
 				    const char *logFileFormat,
 				    logStreamTypeT streamType,
-				    int stream_id, SaBoolT twelveHourModeFlag, uint32_t logRecordId);
+				    int stream_id,
+				    SaBoolT twelveHourModeFlag,
+				    uint32_t logRecordId);
 
 extern log_stream_t *log_stream_new_2(SaNameT *name, int stream_id);
 
@@ -100,9 +102,13 @@ extern int log_stream_write_h(log_stream_t *stream, const char *buf, size_t coun
 extern void log_stream_id_print(void);
 
 #define LGS_STREAM_CREATE_FILES true
-extern int log_stream_config_change(bool create_files_f, log_stream_t *stream,
-		const char *current_file_name, time_t *cur_time_in);
-extern int log_file_open(log_stream_t *stream, const char* filename, int *errno_save);
+int log_stream_config_change(bool create_files_f,
+			const char *root_path,
+			log_stream_t *stream,
+			const char *current_logfile_name,
+			time_t *cur_time_in);
+extern int log_file_open(const char *root_path, log_stream_t *stream,
+			 const char* filename, int *errno_save);
 
 /* Accessor functions */
 extern log_stream_t *log_stream_get_by_name(const char *name);

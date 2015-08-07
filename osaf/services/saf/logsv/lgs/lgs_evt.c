@@ -21,16 +21,19 @@
 
 #include "immutil.h"
 #include "osaf_time.h"
+#include "saf_error.h"
 
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_fmt.h"
+#include "lgs_config.h"
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
-
-/* used when fixed log record size is zero */
-#define LOG_MAX_LOGRECSIZE 1024
+#if 0 /*LLDTEST1*/
+#include "lgs_mbcsv_v3.h"
+#include "lgs_mbcsv_v5.h"
+#endif
 
 /* Macro to validate the version */
 #define m_LOG_VER_IS_VALID(ver)   \
@@ -525,7 +528,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 
 		/* fail over, become implementer
 		 * Declare implementership from a separate thread */
-		lgs_imm_impl_set(lgs_cb);
+		lgs_imm_impl_restore(lgs_cb);
 
 		/* Agent down list has to be processed first */
 		lgs_process_lga_down_list();
@@ -538,12 +541,6 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 			*stream->p_fd = -1; /* Initialize fd */	
 			stream = log_stream_getnext_by_name(stream->name);
 		}
-		
-		/* Read log configuration object and update mailbox limits.
-		 * Mailbox limits may have been changed.
-		 * Note: Also see amf active stat handler in lgs_amf.c
-		 */
-		update_mailbox_limits();
 	}
 
 	TRACE_LEAVE();
@@ -566,7 +563,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 {
 	NCS_PATRICIA_PARAMS reg_param;
-	unsigned int max_logrecsize = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
@@ -583,24 +580,18 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 	lgs_cb->log_version.majorVersion = LOG_MAJOR_VERSION;
 	lgs_cb->log_version.minorVersion = LOG_MINOR_VERSION;
 
-	lgs_cb->max_logrecsize = LOG_MAX_LOGRECSIZE;
-		
-	max_logrecsize = *(unsigned int *) lgs_imm_logconf_get(LGS_IMM_LOG_MAX_LOGRECSIZE, NULL);
-	if (max_logrecsize >= 256) {
-		lgs_cb->max_logrecsize = max_logrecsize;
-	} else {
-		LOG_NO("Too low LOGSV_MAX_LOGRECSIZE (%u), using default (%u)",
-				max_logrecsize, lgs_cb->max_logrecsize);
+	if ((rc = rda_get_role(&lgs_cb->ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_get_role FAILED");
+		goto done;
 	}
-
-	TRACE("max_logrecsize = %u", max_logrecsize);
 
 	/* Initialize patricia tree for reg list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&lgs_cb->client_tree, &reg_param))
 		return NCSCC_RC_FAILURE;
 
+	done:
 	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
+	return rc;
 }
 
 /**
@@ -618,26 +609,16 @@ static uint32_t proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_msg_t msg;
 	log_client_t *client = NULL;
 	lgsv_ckpt_msg_v1_t ckpt_v1;
-	lgsv_ckpt_msg_v2_t ckpt_v2;
 	void *ckpt_ptr;
 	lgsv_ckpt_header_t *header_ptr;
 	lgs_ckpt_initialize_msg_t *ckpt_rec_ptr;
 	
 	TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
-	if (lgs_is_peer_v2()) {
-		memset(&ckpt_v2, 0, sizeof(ckpt_v2));
-		header_ptr = &ckpt_v2.header;
-		ckpt_rec_ptr = &ckpt_v2.ckpt_rec.initialize_client;
-		ckpt_ptr = &ckpt_v2;
-		TRACE("peer_version is V2");
-	} else {
-		memset(&ckpt_v1, 0, sizeof(ckpt_v1));
-		header_ptr = &ckpt_v1.header;
-		ckpt_rec_ptr = &ckpt_v1.ckpt_rec.initialize_client;
-		ckpt_ptr = &ckpt_v1;
-		TRACE("peer_version is V1");
-	}
+	memset(&ckpt_v1, 0, sizeof(ckpt_v1));
+	header_ptr = &ckpt_v1.header;
+	ckpt_rec_ptr = &ckpt_v1.ckpt_rec.initialize_client;
+	ckpt_ptr = &ckpt_v1;
 
 	/* Validate the version */
 	version = &(evt->info.msg.info.api_info.param.init.version);
@@ -1157,7 +1138,10 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	** To avoid truncation we support fixedLogRecordSize==0. We then allocate an
 	** a buffer with an implementation defined size instead. We also do not pad in this mode.
 	*/
-	buf_size = stream->fixedLogRecordSize == 0 ? lgs_cb->max_logrecsize : stream->fixedLogRecordSize;
+	uint32_t max_logrecsize = *(uint32_t *) lgs_cfg_get(
+		LGS_IMM_LOG_MAX_LOGRECSIZE);
+	
+	buf_size = stream->fixedLogRecordSize == 0 ? max_logrecsize : stream->fixedLogRecordSize;
 	logOutputString = calloc(1, buf_size+1); /* Make room for a '\0' termination */
 	if (logOutputString == NULL) {
 		LOG_ER("Could not allocate %d bytes", stream->fixedLogRecordSize + 1);
@@ -1244,7 +1228,7 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 
 	lgs_free_write_log(param);
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("write status %s", saf_error(error));
 	return NCSCC_RC_SUCCESS;
 }
 
