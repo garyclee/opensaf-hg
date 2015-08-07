@@ -38,6 +38,7 @@
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_file.h"
+#include "lgs_config.h"
 #include "osaf_utility.h"
 
 /* ========================================================================
@@ -151,7 +152,6 @@ static void sigusr1_handler(int sig)
 uint32_t lgs_configure_mailbox(void)
 {
 	uint32_t limit = 0;
-	bool errorflag;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -160,12 +160,7 @@ uint32_t lgs_configure_mailbox(void)
 	 */
 	osaf_mutex_lock_ordie(&lgs_mbox_init_mutex);
 	
-	limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT, &errorflag);
-	if (errorflag != false) {
-		LOG_ER("Illegal value for LOG_STREAM_SYSTEM_HIGH_LIMIT - %s", strerror(errno));
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT);
 
 	mbox_high[LGS_IPC_PRIO_SYS_STREAM] = limit;
 	mbox_low[LGS_IPC_PRIO_SYS_STREAM] = LOG_STREAM_LOW_LIMIT_PERCENT * limit;
@@ -176,22 +171,11 @@ uint32_t lgs_configure_mailbox(void)
 			&mbox_msgs[LGS_IPC_PRIO_SYS_STREAM]);
 
 	if (limit != 0) {
-		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT, &errorflag);
-		if (errorflag != false) {
-			LOG_ER("Illegal value for LOG_STREAM_SYSTEM_LOW_LIMIT - %s", strerror(errno));
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-
+		limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT);
 		mbox_low[LGS_IPC_PRIO_SYS_STREAM] = limit;
 	}
 
-	limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT, &errorflag);
-	if (errorflag != false) {
-		LOG_ER("Illegal value for LOG_STREAM_APP_HIGH_LIMIT - %s", strerror(errno));
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
+	limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT);
 
 	mbox_high[LGS_IPC_PRIO_APP_STREAM] = limit;
 	mbox_low[LGS_IPC_PRIO_APP_STREAM] = LOG_STREAM_LOW_LIMIT_PERCENT * limit;
@@ -202,13 +186,7 @@ uint32_t lgs_configure_mailbox(void)
 			&mbox_msgs[LGS_IPC_PRIO_APP_STREAM]);
 
 	if (limit != 0) {
-		limit = *(uint32_t*) lgs_imm_logconf_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT, &errorflag);
-		if (errorflag != false) {
-			LOG_ER("Illegal value for LOG_STREAM_APP_LOW_LIMIT - %s", strerror(errno));
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-
+		limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT);
 		mbox_low[LGS_IPC_PRIO_APP_STREAM] = limit;
 	}
 
@@ -216,8 +194,6 @@ uint32_t lgs_configure_mailbox(void)
 	TRACE("app low:%u, high:%u", mbox_low[LGS_IPC_PRIO_APP_STREAM], mbox_high[LGS_IPC_PRIO_APP_STREAM]);
 
 	osaf_mutex_unlock_ordie(&lgs_mbox_init_mutex);
-	
-	done:
 	
 	TRACE_LEAVE2("rc = %d", rc);
 	return rc;
@@ -234,11 +210,6 @@ static uint32_t log_initialize(void)
 
 	TRACE_ENTER();
 
-	if (lgs_file_init() != NCSCC_RC_SUCCESS) {
-		LOG_ER("lgs_file_init FAILED");
-		goto done;
-	}
-
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
 		lgs_cb->nid_started = true;
@@ -248,43 +219,52 @@ static uint32_t log_initialize(void)
 		goto done;
 	}
 
-	/* Initialize lgs control block */
+	/* Initialize lgs control block
+	 * ha_state is initiated here
+	 */
 	if (lgs_cb_init(lgs_cb) != NCSCC_RC_SUCCESS) {
 		LOG_ER("lgs_cb_init FAILED");
 		goto done;
 	}
 
-	if ((rc = rda_get_role(&lgs_cb->ha_state)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("rda_get_role FAILED");
+	/* Initialize IMM OI and get corresponding OI selection object
+	 * Become OI for safLogService if Active 
+	 * IMM OI handle and IMM selection object is saved in lgs_cb
+	 */
+	if ((rc = lgs_imm_init_OI(lgs_cb)) != SA_AIS_OK) {
+		LOG_ER("lgs_imm_init FAILED");
 		goto done;
 	}
+	TRACE("IMM init done: lgs_cb->immOiHandle = %lld", lgs_cb->immOiHandle);
+
+	/* Initialize log configuration
+	 * Must be done after IMM OI is initialized
+	 */
+	lgs_cfg_init(lgs_cb->immOiHandle, lgs_cb->ha_state);
+	lgs_trace_config(); /* Show all configuration in TRACE */
+	
+	/* Show some configurtion info in sysylog */
+	char *logsv_root_dir = (char *) lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	char *logsv_data_groupname = (char *) lgs_cfg_get(LGS_IMM_DATA_GROUPNAME);
+	LOG_NO("LOG root directory is: \"%s\"", logsv_root_dir);
+	LOG_NO("LOG data group is: \"%s\"", logsv_data_groupname);
 
 	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("rda_register_callback FAILED %u", rc);
 		goto done;
 	}
 
-	/*
-	 * Get LOGSV root directory path. All created log files will be stored
-	 * relative to this directory as described in spec.
+	/* Initialize file handling thread
+	 * Configuration must have been initialized
 	 */
-	bool errorflag;
-	lgs_cb->logsv_root_dir = lgs_imm_logconf_get(LGS_IMM_LOG_ROOT_DIRECTORY, &errorflag);
-
-	if (errorflag != false) {
-		LOG_ER("Valid LOGSV_ROOT_DIRECTORY not found");
+	if (lgs_file_init() != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_file_init FAILED");
 		goto done;
 	}
-	LOG_NO("log root directory is: %s", lgs_cb->logsv_root_dir);
 
-	lgs_cb->logsv_data_groupname = lgs_imm_logconf_get(LGS_IMM_DATA_GROUPNAME, &errorflag);
-	if (errorflag != false) {
-		LOG_ER("Valid LOGSV_LOG_DATA_GROUPNAME not found");
-		goto done;
-	}
-	LOG_NO("LOG data group is: %s", lgs_cb->logsv_data_groupname);
-
-	/* Initialize stream class */
+	/* Initialize configuration stream class
+	 * Configuration must have been initialized
+	 */
 	if (log_stream_init() != NCSCC_RC_SUCCESS) {
 		LOG_ER("log_stream_init FAILED");
 		goto done;
@@ -304,23 +284,25 @@ static uint32_t log_initialize(void)
 		goto done;
 	}
 
+	/* Configuration must have been initialized */
 	if (lgs_configure_mailbox() != NCSCC_RC_SUCCESS) {
 		LOG_ER("configure_mailbox FAILED");
 		goto done;
 	}
 
+	/* Initialize mailbox used for communication mds thread -> main thread
+	 * Update mds_role is in lgs_cb
+	 * Uses ha_state in lgs_cb
+	 *
+	 */
 	if ((rc = lgs_mds_init(lgs_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("lgs_mds_init FAILED %d", rc);
 		goto done;
 	}
 
+	/* Update mbcsv_hdl in lgs_cb */
 	if ((rc = lgs_mbcsv_init(lgs_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("lgs_mbcsv_init FAILED");
-		goto done;
-	}
-
-	if ((rc = lgs_imm_init(lgs_cb)) != SA_AIS_OK) {
-		LOG_ER("lgs_imm_init FAILED");
 		goto done;
 	}
 
@@ -343,6 +325,9 @@ static uint32_t log_initialize(void)
 	}
 
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		/* Create streams that has configuration objects and become
+		 * class implementer for the SaLogStreamConfig class
+		 */
 		if (lgs_imm_create_configStream(lgs_cb) != SA_AIS_OK) {
 			LOG_ER("lgs_imm_create_configStream FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -383,12 +368,12 @@ static void *imm_reinit_thread(void *_cb)
 
 	TRACE_ENTER();
 
-	if ((error = lgs_imm_init(cb)) != SA_AIS_OK) {
+	if ((error = lgs_imm_init_OI(cb)) != SA_AIS_OK) {
 		LOG_ER("lgs_imm_init FAILED: %u", error);
 		exit(EXIT_FAILURE);
 	}
 
-	lgs_imm_impl_set(cb);
+	lgs_imm_impl_restore(cb);
 
 	/* Wake up the main thread so it discovers the new imm descriptor. */
 	lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t));

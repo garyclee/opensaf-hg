@@ -47,6 +47,8 @@
 #include "lgs_util.h"
 #include "lgs_stream.h"
 
+#include "lgs_config.h"
+
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
@@ -81,30 +83,6 @@
                                            each node */
 
 /* ========================================================================
- *   TYPE DEFINITIONS
- * ========================================================================
- */
-
-/* Used with function lgs_imm_logconf_get(...) */
-typedef enum {
-	LGS_IMM_LOG_ROOT_DIRECTORY,
-	LGS_IMM_DATA_GROUPNAME,
-	LGS_IMM_LOG_MAX_LOGRECSIZE,
-	LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT,
-	LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT,
-	LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT,
-	LGS_IMM_LOG_STREAM_APP_LOW_LIMIT,
-	LGS_IMM_LOG_MAX_APPLICATION_STREAMS,
-	LGS_IMM_FILEHDL_TIMEOUT,
-	LGS_IMM_LOG_FILESYS_CFG,
-
-	LGS_IMM_LOG_NUMBER_OF_PARAMS,
-	LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST,
-
-	LGS_IMM_LOG_NUMEND
-} lgs_logconfGet_t;
-
-/* ========================================================================
  *   DATA DECLARATIONS
  * ========================================================================
  */
@@ -127,13 +105,12 @@ extern uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
 			      MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
 
 extern SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb);
-extern void lgs_imm_impl_set(lgs_cb_t *cb);
-extern SaAisErrorT lgs_imm_init(lgs_cb_t *cb);
-extern const void *lgs_imm_logconf_get(lgs_logconfGet_t param, bool *noteflag);
-extern void lgs_imm_rootpathconf_set(const char *root_path_str);
-extern void logRootDirectory_filemove(const char *logRootDirectory, time_t *cur_time_in);
-extern void update_mailbox_limits(void);
-extern void lgs_imm_groupnameconf_set(const char *data_groupname_str);
+extern void lgs_imm_impl_restore(lgs_cb_t *cb);
+extern SaAisErrorT lgs_imm_init_OI(lgs_cb_t *cb);
+extern void logRootDirectory_filemove(
+		const char *new_logRootDirectory,
+		const char *old_logRootDirectory,
+		time_t *cur_time_in);
 extern void logDataGroupname_fileown(const char *new_logDataGroupname);
 
 #endif   /* ifndef __LGS_H */

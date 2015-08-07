@@ -16,6 +16,7 @@
 #
 
 GENERAL
+=======
 
 This directory (logsv) contains an implementation of the SAF LOG service
 version A.02.01.
@@ -36,6 +37,7 @@ IMPORTANT INFORMATION FOR CONTRIBUTORS/MAINTAINERS.
 
 
 DEPENDENCIES
+============
 
 logsv depends of the following other OpenSAF services:
 - MBCSV
@@ -45,6 +47,7 @@ logsv depends of the following other OpenSAF services:
 
 
 DIRECTORY STRUCTURE
+===================
 
 services/logsv/inc	Common header files used by both lga and lgs
 services/logsv/lga	LOG library implementation
@@ -54,12 +57,8 @@ lib/lib_SaLog		LOG library staging
 tests/logsv/src		Test suite
 
 
-FILE STRUCTURE
-
-Not yet ...
-
-
 DATA STRUCTURES
+===============
 
 lgs uses the following data structures:
 
@@ -93,6 +92,7 @@ and handles.
 
 
 OVERLOAD PROTECTION
+===================
 
 LOG uses a single mailbox used to communicate from the MDS thread to the
 main thread. An IPC mailbox has four priority levels. By default a level
@@ -131,47 +131,69 @@ next section. Different app streams share the same limits.
 
 
 CONFIGURATION
+=============
 
+Some implementation defined configurations can be done for the LOG service.
+
+Streams
+-------
 The LOG specification describes the configuration object class 
 SaLogStreamConfig which requires the three streams alarm, notification and 
 system to exist (in IMM). The two LOG classes and objects for the three
-default streams are included in the OpenSAF IMM configuration. There is also a
-configuration object class OpenSafLogConfig used to configure the LOG Service
-itself. This class is not described in the LOG specification.
+default streams are included in the OpenSAF IMM configuration.
 
-Some implementation defined configuration can be done for the LOG service.
-Two ways of handling configuration is supported.
+Service configuration
+---------------------
+There is also a configuration object class OpenSafLogConfig used to configure
+the LOG Service itself. These classes are not described in the LOG AIS
+specification.
 
-1. Configuration using a configuration object in IMM:
-----------------------------------------------------
-When the LOG service is started it looks for a configuration object of 
-OpenSafLogConfig class. If an object is found and is correct the parameters in
-the object will be used. The configuration file as described in section 2 will
-not be used except according to 3. below. The parameters in the object
-corresponds with the parameters described in section 2. All parameters has a
-default value that is defined in the class definition. By default an object of
-this class is created with the object name "logConfig=1,safApp=safLogService"
-and no other attributes are set, meaning that all parameters will get their
-default value.
+There are three sources where the log server may get configuration data; an
+OpenSafLogConfig IMM object, environment variables or hard coded default values.
+The main source for configuration data is the configuration object but if this
+object does not exist attributes are empty or contains incorrect values data
+will be fetched from environment variables if exist. If no valid configuration
+data is available a hard coded default value will be used.
+The reason for not only using a configuration object is that the log service
+must always be able to start.
+Environment variables are supported in order to be backwards compatible. Before
+a configuration object was introduced environment variables were used. In the
+future when new configuration parameters are added no corresponding environment
+will be supported.
 
-The class defines the following parameters (logsv_classes.xml):
+1. IMM configuration object
+---------------------------
+The name of the configuration object is:
+"logConfig=1,safApp=safLogService"
+
+The class defines the following parameters and default values for the object
+(logsv_classes.xml):
 
 NAME                        DEFAULT VALUE         COMMENT
-saLogRootDirectory          $pkglogdir/saflog
-saLogMaxLogrecsize          1024
-saLogStreamSystemHighLimit  0
-saLogStreamSystemLowLimit   0
-saLogAppHighLimit           0
-saLogAppLowLimit            0
-saLogMaxApplicationStreams  64
+saLogRootDirectory          $pkglogdir/saflog     Must be available in the file
+                                                  system
+saLogMaxLogrecsize          1024                  Max log record size including
+                                                  header information
+saLogStreamSystemHighLimit  0                     a.
+saLogStreamSystemLowLimit   0                     a.
+saLogAppHighLimit           0                     a.
+saLogAppLowLimit            0                     a.
+saLogMaxApplicationStreams  64                    Max number of application
+                                                  streams with runtime object
+                                                  that can be created
 logFileIoTimeout            500                   File I/O timeout (see file.c)
-logFileSysConfig            1                     Shared file system
+logFileSysConfig            1                     Shared file system b.
 logDataGroupname            <Empty>               Groupname used to share log data.
 
-All the above attributes except saLogRootDirectory and logDataGroupname has a default value
-set in the class definition (see logsv_classes.xml). The value for parameter
-saLogRootDirectory is instead defined when the imm.xml file is created. In
-the logsv_objects.xml file the parameter value is set to "xxLOGDIRxx/saflog"
+a. Message queue thresholds used when queuing log record write requests of
+   different types
+b. Log service can be configured to write log records locally on both server
+   nodes. This attribute cannot be changed in runtime
+
+All the above attributes except saLogRootDirectory and logDataGroupname has a
+default value set in the class definition (see logsv_classes.xml). The value for
+parameter saLogRootDirectory is instead defined when the imm.xml file is created.
+In the logsv_objects.xml file the parameter value is set to "xxLOGDIRxx/saflog"
 and when the imm.xml file is created "xxLOGDIRxx" is replaced by the content of
 $pkglogdir. See also LOGSV_ROOT_DIRECTORY in the logd.conf file.
 
@@ -234,7 +256,7 @@ server which implies OpenSAF on that node.
 
 The following environment variable is required:
 
-LOGSV_ROOT_DIRECTORY
+LOGSV_ROOT_DIRECTORY:
 
 This variable is needed to configure the "implementation defined root
 directory" as mentioned in the spec. All log files will be stored directly 
@@ -244,7 +266,7 @@ persistent) partition.
 
 The following environment variables are optional:
 
-LOGSV_MAX_LOGRECSIZE
+LOGSV_MAX_LOGRECSIZE:
 
 The maximum size of a log record. The size must be at least 256 byte.
 
@@ -253,28 +275,28 @@ LOG_STREAM_SYSTEM_HIGH_LIMIT
 The high limit for the system/notification streams. Default unlimited. A
 reasonable value would be 300 (messages).
 
-LOG_STREAM_SYSTEM_LOW_LIMIT
+LOG_STREAM_SYSTEM_LOW_LIMIT:
 
 The low limit for the system/notification streams. Only valid and used if
 a high limit has been defined. Defaults to some percent of the high limit
 (if not specified).
 
-LOG_STREAM_APP_HIGH_LIMIT
+LOG_STREAM_APP_HIGH_LIMIT:
 
 The high limit for all application streams. Default unlimited. A
 reasonable value would be 300 (messages).
 
-LOG_STREAM_APP_LOW_LIMIT
+LOG_STREAM_APP_LOW_LIMIT:
 
 The low limit for the all application streams. Only valid and used if
 a high limit has been defined. Defaults to some percent of the high limit
 (if not specified).
 
-LOG_MAX_APPLICATION_STREAMS
+LOG_MAX_APPLICATION_STREAMS:
 
 The maximum number of application log streams that can be created.
 
-LOGSV_DATA_GROUPNAME
+LOGSV_DATA_GROUPNAME:
 
 The group used to share log data to users.
 This group must be added as a supplementary group of user as which log service is running.
@@ -282,32 +304,9 @@ Any user wants to read log data must become a member of this group.
 
 Don't forget the "export" keyword before the variable!
 
-3. Precedence, special case
----------------------------
-If any of the following attributes contains its default value of 0 and a
-corresponding environment variable is defined according to 2. the environment
-variable will be used.
-
-Config object attribute will be replaced by value of environment variable
-saLogStreamSystemHighLimit  0                       LOG_STREAM_SYSTEM_HIGH_LIMIT
-saLogStreamSystemLowLimit   0                       LOG_STREAM_SYSTEM_LOW_LIMIT
-saLogAppHighLimit           0                       LOG_STREAM_APP_HIGH_LIMIT
-saLogAppLowLimit            0                       LOG_STREAM_APP_LOW_LIMIT
-
-The attributes in the configuration object is not changed to reflect this.
-The configuration is logged in the syslog (messages)
-Example:
-...osaflogd[409]: NO Log config sys: hi 50001 lo 5001, app: hi 50002 lo 5002
-
-If an environment variable is defined and the corresponding config object
-attribute is not 0 the environment variable will not be used and a warning is
-logged.
-Example:
-...WA Log Configuration object 'logConfig=1,safApp=safLogService' exists
-...WA Ignoring environment variable LOG_STREAM_SYSTEM_HIGH_LIMIT
-
 
 COMMAND LINE INTERFACE
+======================
 
 The 'saflogger' command can be used to enter log records to any stream. Please
 see the on line help for more information.
@@ -335,6 +334,7 @@ For fatal errors syslog is used.
 
 
 TEST
+====
 
 Currently a simple unit test can be found in 'tests/logsv/src'. The test suite
 is built by the main make system and is either install by 'make install' or by
@@ -342,6 +342,7 @@ installing the tools rpm.
 
 
 TODO
+====
 
 - Implement missing API functions:
 	- saLogStreamOpenAsync_2
@@ -365,8 +366,11 @@ TODO
 
 
 IMPORTANT INFORMATION FOR CONTRIBUTORS/MAINTAINERS
+==================================================
 
-File IO:
+File IO
+-------
+
 File operations are no longer allowed in the log-server main thread. This is in
 order to prevent "hanging" of the log-server if a file operation does not return
 e.g. when a NFS filesystem is not working correctly. It is therfore very
@@ -387,7 +391,62 @@ both shared and split file system. This is done by setting the value of
 logFileSysConfig in logsv_objects.xml before running the ./build_uml script.
 
 
+Log service configuration
+-------------------------
+
+An IMM object is used to set and store the configuration of the log service.
+It is not practical to read configuration data from the IMM object every time
+configuration data is needed; instead an internal store in the server is used.
+When a log server is started the configuration store is updated with
+configuration data read from the IMM object or environment variables. If no
+external configuration data exist hard coded default values are used.
+
+All handling of configuration data can be found in the file lgs_config.c (h).
+The structure used for storing the configuration is local to this file and shall
+never be used directly in other files. To read configuration data the
+lgs_cfg_get(...) function shall be used. Also never store any configuration data
+elsewhere e.g. in the lgs_cb structure.
+
+
+Summary of important functions. For more detailed info see lgs_config.c:
+
+lgs_cfg_init()
+Initiate configuration structure. Used once when a log server is started.
+
+lgs_cfg_get()
+Used to get/read configuration data. Used together with lgs_logconfGet_t;
+see lgs_config.h. Configuration data should not be read in any other way.
+The function is tread safe (see also lgs_cfg_update()).
+
+lgs_cfgupd_list_create()
+Used to create a list for configuration information. Contains attribute names
+and their values. The list may contain one or more attributes. The list is used
+for updating configuration data check-ponting etc. Typically a list is created
+when OI is reading a ccb in the apply callback.
+
+lgs_cfgupd_list_read()
+Read data from a cfgupd list.
+
+lgs_cfg_update()
+Updates the configuration store using a cfgupd list as input.
+The function is tread safe (see also lgs_cfg_get()).
+
+lgs_rootpathconf_set()
+lgs_groupnameconf_set()
+These functions exist in order to support older versions of check-pointing.
+Shall never be used in new code! Instead lgs_cfgupd_list_create() and
+lgs_cfg_update() shall be used.
+
+
+Checkpointing:
+Previously configuration data was check-pointed using a check-point structure
+in the same way as check-pointing is done for other changes. This is changed.
+Configuration changes are now check-pointed using a variable length buffer
+containing a cfgupd list.
+
+
 CONTRIBUTORS/MAINTAINERS
+========================
 
 Arne Eriksson <Arne.R.Eriksson@ericsson.com>
 Hans Feldt <Hans.Feldt@ericsson.com>
@@ -516,14 +575,10 @@ cfg stream:
 cfg config:
     Attributes in the log service configuration object are changed. Internal
     data is updated. On active node this is handled with an object implementer
-    (lgs_imm) and changes are check pointed to standby. Currently only two attributes
-    logRootDirectory and logDataGroupname can be changed in runtime. When root
-    directory is changed, all files are closed and new files are created at the
-    new location for all open streams. Similarly, when data group changed, all
-    log files will be reowned by this new group.
+    (lgs_imm) and changes are check pointed to standby.
 
-    If config 2:
-
+If config 2 log records:
+    Log records are check-pointed and written to file on standby
     Files has to be handled as on active. This is done in the check point
     handler.
 

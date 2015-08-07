@@ -35,6 +35,7 @@
 #include "lgs.h"
 #include "osaf_utility.h"
 #include "osaf_time.h"
+#include "lgs_config.h"
 
 pthread_mutex_t lgs_ftcom_mutex;	/* For locking communication */
 static pthread_cond_t request_cv;	/* File thread waiting for request */
@@ -258,8 +259,8 @@ uint32_t lgs_file_init(void)
 	TRACE_ENTER();
 	
 	/* Initiate timeouts from Log service IMM configuration object */
-	max_waittime_ms = *(SaUint32T*) lgs_imm_logconf_get(
-									LGS_IMM_FILEHDL_TIMEOUT, NULL);
+	max_waittime_ms = *(SaUint32T*) lgs_cfg_get(
+		LGS_IMM_FILEHDL_TIMEOUT);
 	TRACE("max_waittime_ms = %d",max_waittime_ms);
 	
 	if (start_file_thread() != 0) {
@@ -428,7 +429,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	
 	/* Wait for an answer */
 	get_timeout_time(&timeout_time, max_waittime_ms);
-	
+
 	while (lgs_com_data.answer_f == false) {
 		rc = pthread_cond_timedwait(
 				&answer_cv, &lgs_ftcom_mutex, &timeout_time); /* -> UNLOCK -> LOCK */

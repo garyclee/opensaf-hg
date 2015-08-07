@@ -461,16 +461,20 @@ done:
 int fileopen_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_f)
 {
 	int errno_save = 0;
-	char *filepath = (char *) indata;
+	fopen_in_t *param_in = (fopen_in_t *) indata;
 	int *errno_out_p = (int *) outdata;
 	int fd;
+	gid_t gid;
 	
 	TRACE_ENTER();
 	
-	TRACE("%s - filepath \"%s\"",__FUNCTION__,filepath);
+	TRACE("%s - filepath \"%s\"",__FUNCTION__,param_in->filepath);
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section  */
+
+	gid = lgs_get_data_gid(param_in->groupname);
+
 open_retry:
-	fd = open(filepath, O_CREAT | O_RDWR | O_APPEND | O_NONBLOCK,
+	fd = open(param_in->filepath, O_CREAT | O_RDWR | O_APPEND | O_NONBLOCK,
 							S_IRUSR | S_IWUSR | S_IRGRP);
 
 	if (fd == -1) {
@@ -480,9 +484,10 @@ open_retry:
 		errno_save = errno;
 		/* Do not log with higher severity here to avoid flooding the log.
 		 * Can be called in context of log_stream_write */
-		LOG_IN("Could not open: %s - %s", filepath, strerror(errno));
+		LOG_IN("Could not open: %s - %s", param_in->filepath,
+			strerror(errno));
 	} else {
-		if (fchown(fd, (uid_t)-1, lgs_get_data_gid()) == -1){
+		if (fchown(fd, (uid_t)-1, gid) == -1){
 			LOG_WA("Failed to change log file ownership, %s", strerror(errno));
 		}
 	}
@@ -722,7 +727,6 @@ done_exit:
 int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) {
 	struct dirent **namelist;
 	int n, files, i;
-	char path[PATH_MAX];
 	olfbgh_t *params_in;
 	int rc = 0;
 
@@ -738,16 +742,9 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 		goto done_exit;
 	}
 
-	n = snprintf(path, PATH_MAX, "%s/%s",
-			params_in->logsv_root_dir, params_in->pathName);
-	if (n >= PATH_MAX) {
-		LOG_WA("path > PATH_MAX");
-		rc = -1;
-		goto done_exit;
-	}
-
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-	files = n = scandir(path, &namelist, filter_func, alphasort);
+
+	files = n = scandir(params_in->dir_path, &namelist, filter_func, alphasort);
 
 	if (n == -1 && errno == ENOENT) {
 		rc = 0;
@@ -755,7 +752,7 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 	}
 
 	if (n < 0) {
-		LOG_WA("scandir:%s - %s", strerror(errno), path);
+		LOG_WA("scandir:%s - %s", strerror(errno), params_in->dir_path);
 		rc = -1;
 		goto done_exit;
 	}
@@ -765,12 +762,12 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 		goto done_exit;
 	}
 
-	gid_t gid = (gid_t) lgs_get_data_gid();
+	gid_t gid = lgs_get_data_gid(params_in->groupname);
 
 	while (n--) {
 		char file[PATH_MAX];
 		int len = snprintf(file, PATH_MAX, "%s/%s",
-					path, namelist[n]->d_name);
+					params_in->dir_path, namelist[n]->d_name);
 		if (len >= PATH_MAX) {
 			LOG_WA("path > PATH_MAX");
 			rc = -1;
