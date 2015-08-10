@@ -37,9 +37,9 @@ class AVD_APP_TYPE {
  public:
   explicit AVD_APP_TYPE(const SaNameT* dn);
   ~AVD_APP_TYPE();
-  SaNameT name;
-  std::vector<SaNameT> *sgAmfApptSGTypes;
-  AVD_APP *list_of_app;
+  SaNameT name {};
+  std::vector<SaNameT> sgAmfApptSGTypes {};
+  AVD_APP *list_of_app {};
  private:
   AVD_APP_TYPE();
   // disallow copy and assign
