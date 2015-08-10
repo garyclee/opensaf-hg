@@ -31,6 +31,8 @@ from pyosaf.saImm import eSaImmScopeT, unmarshalSaImmValue, SaImmAttrNameT, \
 from pyosaf.saImmOm import SaImmHandleT, SaImmAccessorHandleT,\
     saImmOmAdminOwnerInitialize
 
+from pyosaf.utils import decorate
+
 from pyosaf.utils.immom.common import SafException
 from pyosaf.utils.immom.object import ImmObject
 
@@ -39,6 +41,37 @@ ACCESSOR_HANDLE = SaImmAccessorHandleT()
 
 TRYAGAIN_CNT = 60
 
+# Decorate IMM functions to add retry loops and error handling
+saImmOmInitialize         = decorate(saImmOm.saImmOmInitialize)
+saImmOmSelectionObjectGet = decorate(saImmOm.saImmOmSelectionObjectGet)
+saImmOmDispatch           = decorate(saImmOm.saImmOmDispatch)
+saImmOmFinalize           = decorate(saImmOm.saImmOmFinalize)
+saImmOmClassCreate_2      = decorate(saImmOm.saImmOmClassCreate_2)
+saImmOmClassDescriptionGet_2 = decorate(saImmOm.saImmOmClassDescriptionGet_2)
+saImmOmClassDescriptionMemoryFree_2 = decorate(saImmOm.saImmOmClassDescriptionMemoryFree_2)
+saImmOmClassDelete        = decorate(saImmOm.saImmOmClassDelete)
+saImmOmSearchInitialize_2 = decorate(saImmOm.saImmOmSearchInitialize_2)
+saImmOmSearchNext_2       = decorate(saImmOm.saImmOmSearchNext_2)
+saImmOmSearchFinalize     = decorate(saImmOm.saImmOmSearchFinalize)
+saImmOmAccessorInitialize = decorate(saImmOm.saImmOmAccessorInitialize)
+saImmOmAccessorGet_2      = decorate(saImmOm.saImmOmAccessorGet_2)
+saImmOmAccessorFinalize   = decorate(saImmOm.saImmOmAccessorFinalize)
+saImmOmAdminOwnerInitialize = decorate(saImmOm.saImmOmAdminOwnerInitialize)
+saImmOmAdminOwnerSet      = decorate(saImmOm.saImmOmAdminOwnerSet)
+saImmOmAdminOwnerRelease  = decorate(saImmOm.saImmOmAdminOwnerRelease)
+saImmOmAdminOwnerFinalize = decorate(saImmOm.saImmOmAdminOwnerFinalize)
+saImmOmAdminOwnerClear    = decorate(saImmOm.saImmOmAdminOwnerClear)
+saImmOmCcbInitialize      = decorate(saImmOm.saImmOmCcbInitialize)
+saImmOmCcbObjectCreate_2  = decorate(saImmOm.saImmOmCcbObjectCreate_2)
+saImmOmCcbObjectDelete    = decorate(saImmOm.saImmOmCcbObjectDelete)
+saImmOmCcbObjectModify_2  = decorate(saImmOm.saImmOmCcbObjectModify_2)
+saImmOmCcbApply           = decorate(saImmOm.saImmOmCcbApply)
+saImmOmCcbFinalize        = decorate(saImmOm.saImmOmCcbFinalize)
+saImmOmAdminOperationInvoke_2 = decorate(saImmOm.saImmOmAdminOperationInvoke_2)
+saImmOmAdminOperationInvokeAsync_2 = decorate(saImmOm.saImmOmAdminOperationInvokeAsync_2)
+saImmOmAdminOperationContinue = decorate(saImmOm.saImmOmAdminOperationContinue)
+saImmOmAdminOperationContinueAsync = decorate(saImmOm.saImmOmAdminOperationContinueAsync)
+saImmOmAdminOperationContinuationClear = decorate(saImmOm.saImmOmAdminOperationContinuationClear)
 
 def _initialize():
     ''' saImmOmInitialize with TRYAGAIN handling '''
