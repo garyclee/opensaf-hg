@@ -26,19 +26,15 @@
 
 AmfDb<std::string, AVD_APP_TYPE> *app_type_db = 0;
 
-AVD_APP_TYPE::AVD_APP_TYPE(const SaNameT* dn)
-{
-	sgAmfApptSGTypes = new std::vector<SaNameT>;
-	memset(&name, 0, sizeof(SaNameT));
+//
+AVD_APP_TYPE::AVD_APP_TYPE(const SaNameT* dn) {
 	memcpy(name.value, dn->value, dn->length);
 	name.length = dn->length;
 }
 
-AVD_APP_TYPE::~AVD_APP_TYPE()
-{
-	delete sgAmfApptSGTypes;
+//
+AVD_APP_TYPE::~AVD_APP_TYPE() {
 }
-
 
 AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
 {
@@ -49,7 +45,7 @@ static void apptype_delete(AVD_APP_TYPE **apptype)
 {
 	app_type_db->erase(Amf::to_string(&(*apptype)->name));
 
-	(*apptype)->sgAmfApptSGTypes->clear();
+	(*apptype)->sgAmfApptSGTypes.clear();
 	delete *apptype;
 	*apptype = NULL;
 }
@@ -132,7 +128,7 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
-		app_type->sgAmfApptSGTypes->push_back(*((SaNameT *)attr->attrValues[j]));
+		app_type->sgAmfApptSGTypes.push_back(*((SaNameT *)attr->attrValues[j]));
 	}
 
 	rc = 0;
