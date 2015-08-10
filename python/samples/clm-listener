@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+from subprocess import Popen, PIPE
+
+from pyosaf import saAis, saClm, saImm
+
+from pyosaf.utils import immoi, clm
+
+def dn_to_vm_name(vm_dn):
+    return vm_dn.split(',')[0].split('=')[1]
+
+def membership_change(all, added, removed, changed):
+    print "Info: Received cluster membership update"
+
+    for vm_dn in added:
+        vm_name = dn_to_vm_name(vm_dn)
+
+        print "INFO: % joined the cluster" % vm_name
+
+    for vm_dn in removed:
+        vm_name = dn_to_vm_name(vm_dn):
+
+        print "INFO: %s left the cluster" % vm_name
+
+
+if __name__ == "__main__":
+
+    # Initialize the CLM service
+    clm.initialize(track_fn=membership_change)
+
+    # Start tracking
+    clm.track()
+
+    print "INFO: Initialized CLM and started tracking"
+
+    # Do dispatch forever
+    while True:
+        clm.saClmDispatch(handle, saAis.eSaDispatchFlagsT.SA_DISPATCH_BLOCKING)
