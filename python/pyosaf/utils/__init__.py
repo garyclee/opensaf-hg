@@ -19,7 +19,7 @@ import time
 
 from pyosaf.saAis import eSaAisErrorT
 
-TRY_AGAIN_COUNT = 30
+TRY_AGAIN_COUNT = 60
 
 class SafException(Exception):
     ''' SAF Exception that can be printed '''
