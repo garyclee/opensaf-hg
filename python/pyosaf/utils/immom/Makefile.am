@@ -21,6 +21,5 @@ MAINTAINERCLEANFILES = Makefile.in
 pkgpyosafutilsimmom_PYTHON = \
 	__init__.py \
 	ccb.py \
-	common.py \
 	iterator.py \
 	object.py
