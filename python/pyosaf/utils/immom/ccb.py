@@ -35,8 +35,6 @@ from pyosaf import saAis
 from pyosaf.utils import immom
 from pyosaf.utils import SafException
 
-TRYAGAIN_CNT = 60
-
 def _value_to_ctype_ptr(value_type, value):
     ''' convert a value to a ctypes value ptr '''
     if value_type is eSaImmValueTypeT.SA_IMM_ATTR_SAINT32T:

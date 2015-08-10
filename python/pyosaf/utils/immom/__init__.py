@@ -39,8 +39,6 @@ from pyosaf.utils.immom.object import ImmObject
 HANDLE = saImmOm.SaImmHandleT()
 ACCESSOR_HANDLE = SaImmAccessorHandleT()
 
-TRYAGAIN_CNT = 60
-
 # Decorate IMM functions to add retry loops and error handling
 saImmOmInitialize         = decorate(saImmOm.saImmOmInitialize)
 saImmOmSelectionObjectGet = decorate(saImmOm.saImmOmSelectionObjectGet)
@@ -79,7 +77,6 @@ def _initialize():
 
     err = saImmOmInitialize(HANDLE, None, version)
 
-    # TODO TRYAGAIN handling? Is it needed?
     err = saImmOmAccessorInitialize(HANDLE, ACCESSOR_HANDLE)
 
 

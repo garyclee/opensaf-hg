@@ -35,8 +35,6 @@ from pyosaf.utils import immom
 from pyosaf.utils import SafException
 from pyosaf.utils.immom.object import ImmObject
 
-TRYAGAIN_CNT = 60
-
 
 class SearchIterator(collections.Iterator):
     ''' general search iterator '''
