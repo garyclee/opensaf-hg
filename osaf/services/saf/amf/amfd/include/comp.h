@@ -157,17 +157,16 @@ extern  AmfDb<std::string, AVD_COMP_TYPE> *comptype_db;
 class AVD_COMPCS_TYPE {
 public:
 	AVD_COMPCS_TYPE();
-	~AVD_COMPCS_TYPE();
 
 	explicit AVD_COMPCS_TYPE(const SaNameT *dn);
 
-	SaNameT name;
-	SaUint32T saAmfCompNumMaxActiveCSIs;
-	SaUint32T saAmfCompNumMaxStandbyCSIs;
-	SaUint32T saAmfCompNumCurrActiveCSIs;
-	SaUint32T saAmfCompNumCurrStandbyCSIs;
-	std::vector<SaNameT> *saAmfCompAssignedCsi;
-	AVD_COMP *comp;
+	SaNameT name {};
+	SaUint32T saAmfCompNumMaxActiveCSIs {};
+	SaUint32T saAmfCompNumMaxStandbyCSIs {};
+	SaUint32T saAmfCompNumCurrActiveCSIs {};
+	SaUint32T saAmfCompNumCurrStandbyCSIs {};
+	std::vector<SaNameT> saAmfCompAssignedCsi {};
+	AVD_COMP *comp {};
 private:
 	// disallow copy and assign
 	AVD_COMPCS_TYPE(const AVD_COMPCS_TYPE&);
