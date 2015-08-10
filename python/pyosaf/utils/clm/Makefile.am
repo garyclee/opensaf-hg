@@ -21,6 +21,3 @@ MAINTAINERCLEANFILES = Makefile.in
 pkgpyosafutils_PYTHON = \
 	__init__.py
 
-SUBDIRS = \
-	immom \
-	clm
