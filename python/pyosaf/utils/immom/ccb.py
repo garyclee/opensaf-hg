@@ -32,8 +32,8 @@ from pyosaf import saImm
 from pyosaf import saImmOm
 from pyosaf import saAis
 
-import pyosaf.utils.immom
-from pyosaf.utils.immom.common import SafException
+from pyosaf.utils import immom
+from pyosaf.utils import SafException
 
 TRYAGAIN_CNT = 60
 
@@ -77,20 +77,9 @@ class Ccb(object):
         self.owner_handle = saImmOm.SaImmAdminOwnerHandleT()
 
         owner_name = saImmOm.SaImmAdminOwnerNameT("DummyName")
-        one_sec_sleeps = 0
-        err = saImmOm.saImmOmAdminOwnerInitialize(pyosaf.utils.immom.HANDLE, owner_name,
-                saAis.eSaBoolT.SA_TRUE, self.owner_handle)
-        while err == eSaAisErrorT.SA_AIS_ERR_TRY_AGAIN:
-            if one_sec_sleeps == TRYAGAIN_CNT:
-                break
-            time.sleep(1)
-            one_sec_sleeps += 1
-            err = saImmOm.saImmOmAdminOwnerInitialize(pyosaf.utils.immom.HANDLE, owner_name,
-                saAis.eSaBoolT.SA_TRUE, self.owner_handle)
 
-        if err != eSaAisErrorT.SA_AIS_OK:
-            print "saImmOmAdminOwnerInitialize: %s" % eSaAisErrorT.whatis(err)
-            raise SafException(err)
+        err = immom.saImmOmAdminOwnerInitialize(immom.HANDLE, owner_name,
+                saAis.eSaBoolT.SA_TRUE, self.owner_handle)
 
         self.ccb_handle = saImmOm.SaImmCcbHandleT()
 
@@ -99,46 +88,19 @@ class Ccb(object):
         else:
             ccb_flags = saImmOm.SaImmCcbFlagsT(0)
 
-        one_sec_sleeps = 0
-        err = saImmOm.saImmOmCcbInitialize(self.owner_handle, ccb_flags,
+        err = immom.saImmOmCcbInitialize(self.owner_handle, ccb_flags,
                                            self.ccb_handle)
-        while err == eSaAisErrorT.SA_AIS_ERR_TRY_AGAIN:
-            if one_sec_sleeps == TRYAGAIN_CNT:
-                break
-            time.sleep(1)
-            one_sec_sleeps += 1
-            err = saImmOm.saImmOmCcbInitialize(self.owner_handle, ccb_flags,
-                                               self.ccb_handle)
-
-        if err != eSaAisErrorT.SA_AIS_OK:
-            print "saImmOmCcbInitialize: %s" % eSaAisErrorT.whatis(err)
-            raise SafException(err)
 
     def __del__(self):
-        one_sec_sleeps = 0
-        error = saImmOm.saImmOmAdminOwnerFinalize(self.owner_handle)
-        while error == eSaAisErrorT.SA_AIS_ERR_TRY_AGAIN:
-            if one_sec_sleeps == TRYAGAIN_CNT:
-                break
-            time.sleep(1)
-            one_sec_sleeps += 1
-            error = saImmOm.saImmOmAdminOwnerFinalize(self.owner_handle)
-
-        if error != eSaAisErrorT.SA_AIS_OK:
-            print "saImmOmAdminOwnerFinalize: %s" % eSaAisErrorT.whatis(error)
-            raise SafException(error)
+        error = immom.saImmOmAdminOwnerFinalize(self.owner_handle)
 
     def create(self, obj, _parent_name=None):
         ''' add to the CCB the object 'obj' '''
         if _parent_name is not None:
             parent_name = SaNameT(_parent_name)
             object_names = [parent_name]
-            err = saImmOm.saImmOmAdminOwnerSet(self.owner_handle, object_names,
+            err = immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
                 eSaImmScopeT.SA_IMM_SUBTREE)
-            if err != eSaAisErrorT.SA_AIS_OK:
-                msg = "saImmOmAdminOwnerSet: %s - obj:%s" % \
-                    (_parent_name, eSaAisErrorT.whatis(err))
-                raise SafException(err, msg)
         else:
             parent_name = None
 
@@ -152,14 +114,10 @@ class Ccb(object):
             attr.attrValues = marshal_c_array(attr.attrValueType, values)
             attr_values.append(attr)
 
-        err = saImmOm.saImmOmCcbObjectCreate_2(self.ccb_handle,
+        err = immom.saImmOmCcbObjectCreate_2(self.ccb_handle,
                                                obj.class_name,
                                                parent_name,
                                                attr_values)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            msg = "saImmOmCcbObjectCreate_2: %s, parent:%s, class:%s" % (
-                eSaAisErrorT.whatis(err), _parent_name, obj.class_name)
-            raise SafException(err, msg)
 
     def delete(self, _object_name):
         if _object_name is None:
@@ -168,16 +126,10 @@ class Ccb(object):
         object_name = SaNameT(_object_name)
         object_names = [object_name]
 
-        err = saImmOm.saImmOmAdminOwnerSet(self.owner_handle, object_names,
+        err = immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
             eSaImmScopeT.SA_IMM_SUBTREE)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            raise SafException(err, "saImmOmAdminOwnerSet: %s - %s" % \
-                (_object_name, eSaAisErrorT.whatis(err)))
 
-        err = saImmOm.saImmOmCcbObjectDelete(self.ccb_handle, object_name)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            raise SafException(err, "saImmOmCcbObjectDelete: %s - %s" % \
-                (_object_name, eSaAisErrorT.whatis(err)))
+        err = immom.saImmOmCcbObjectDelete(self.ccb_handle, object_name)
 
     def modify_value_add(self, object_name, attr_name, values):
         ''' add to the CCB an ADD modification of an existing object '''
@@ -186,7 +138,7 @@ class Ccb(object):
 
         # first get class name to read class description to get value type...
         try:
-            obj = pyosaf.utils.immom.get(object_name)
+            obj = immom.get(object_name)
         except SafException as err:
             print "failed: %s" % err
             return
@@ -194,7 +146,7 @@ class Ccb(object):
         object_names = [SaNameT(object_name)]
         class_name = obj.SaImmAttrClassName
         value_type = None
-        attr_def_list = pyosaf.utils.immom.class_description_get(class_name)
+        attr_def_list = immom.class_description_get(class_name)
         for attr_def in attr_def_list:
             if attr_def.attrName == attr_name:
                 value_type = attr_def.attrValueType
@@ -205,11 +157,8 @@ class Ccb(object):
             raise SafException(eSaAisErrorT.SA_AIS_ERR_NOT_EXIST,
                 "attribute '%s' does not exist" % attr_name)
 
-        err = saImmOm.saImmOmAdminOwnerSet(self.owner_handle, object_names,
+        err = immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
             eSaImmScopeT.SA_IMM_ONE)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            raise SafException(err, "saImmOmAdminOwnerSet: %s - %s" % \
-                (object_name, eSaAisErrorT.whatis(err)))
 
         attr_mods = []
 
@@ -224,11 +173,8 @@ class Ccb(object):
 
         attr_mods.append(attr_mod)
 
-        err = saImmOm.saImmOmCcbObjectModify_2(self.ccb_handle,
+        err = immom.saImmOmCcbObjectModify_2(self.ccb_handle,
             object_names[0], attr_mods)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            print "saImmOmCcbObjectModify_2: %s, %s" % (eSaAisErrorT.whatis(err), object_name)
-            raise SafException(err)
 
     def modify_value_replace(self, object_name, attr_name, values):
         ''' add to the CCB an REPLACE modification of an existing object '''
@@ -237,7 +183,7 @@ class Ccb(object):
 
         # first get class name to read class description to get value type...
         try:
-            obj = pyosaf.utils.immom.get(object_name)
+            obj = immom.get(object_name)
         except SafException as err:
             print "failed: %s" % err
             return
@@ -245,7 +191,7 @@ class Ccb(object):
         object_names = [SaNameT(object_name)]
         class_name = obj.SaImmAttrClassName
         value_type = None
-        attr_def_list = pyosaf.utils.immom.class_description_get(class_name)
+        attr_def_list = immom.class_description_get(class_name)
         for attr_def in attr_def_list:
             if attr_def.attrName == attr_name:
                 value_type = attr_def.attrValueType
@@ -256,11 +202,8 @@ class Ccb(object):
             raise SafException(eSaAisErrorT.SA_AIS_ERR_NOT_EXIST,
                 "attribute '%s' does not exist" % attr_name)
 
-        err = saImmOm.saImmOmAdminOwnerSet(self.owner_handle, object_names,
+        err = immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
             eSaImmScopeT.SA_IMM_ONE)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            raise SafException(err, "saImmOmAdminOwnerSet: %s - %s" % \
-                (object_name, eSaAisErrorT.whatis(err)))
 
         attr_mods = []
         attr_mod = saImmOm.SaImmAttrModificationT_2()
@@ -274,11 +217,8 @@ class Ccb(object):
 
         attr_mods.append(attr_mod)
 
-        err = saImmOm.saImmOmCcbObjectModify_2(self.ccb_handle,
+        err = immom.saImmOmCcbObjectModify_2(self.ccb_handle,
             object_names[0], attr_mods)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            print "saImmOmCcbObjectModify_2: %s, %s" % (eSaAisErrorT.whatis(err), object_name)
-            raise SafException(err)
 
     def modify_value_delete(self, object_name, attr_name, values):
         ''' add to the CCB an DELETE modification of an existing object '''
@@ -287,7 +227,7 @@ class Ccb(object):
 
         # first get class name to read class description to get value type...
         try:
-            obj = pyosaf.utils.immom.get(object_name)
+            obj = immom.get(object_name)
         except SafException as err:
             print "failed: %s" % err
             return
@@ -295,7 +235,7 @@ class Ccb(object):
         object_names = [SaNameT(object_name)]
         class_name = obj.SaImmAttrClassName
         value_type = None
-        attr_def_list = pyosaf.utils.immom.class_description_get(class_name)
+        attr_def_list = immom.class_description_get(class_name)
         for attr_def in attr_def_list:
             if attr_def.attrName == attr_name:
                 value_type = attr_def.attrValueType
@@ -306,11 +246,8 @@ class Ccb(object):
             raise SafException(eSaAisErrorT.SA_AIS_ERR_NOT_EXIST,
                 "attribute '%s' does not exist" % attr_name)
 
-        err = saImmOm.saImmOmAdminOwnerSet(self.owner_handle, object_names,
+        err = immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
             eSaImmScopeT.SA_IMM_ONE)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            raise SafException(err, "saImmOmAdminOwnerSet: %s - %s" % \
-                (object_name, eSaAisErrorT.whatis(err)))
 
         attr_mods = []
         attr_mod = saImmOm.SaImmAttrModificationT_2()
@@ -324,26 +261,13 @@ class Ccb(object):
 
         attr_mods.append(attr_mod)
 
-        err = saImmOm.saImmOmCcbObjectModify_2(self.ccb_handle,
+        err = immom.saImmOmCcbObjectModify_2(self.ccb_handle,
             object_names[0], attr_mods)
-        if err != eSaAisErrorT.SA_AIS_OK:
-            print "saImmOmCcbObjectModify_2: %s, %s" % (eSaAisErrorT.whatis(err), object_name)
-            raise SafException(err)
 
     def apply(self):
         ''' Apply the CCB '''
 
-        one_sec_sleeps = 0
-        err = saImmOm.saImmOmCcbApply(self.ccb_handle)
-        while err == eSaAisErrorT.SA_AIS_ERR_TRY_AGAIN:
-            if one_sec_sleeps == TRYAGAIN_CNT:
-                break
-            time.sleep(1)
-            one_sec_sleeps += 1
-            err = saImmOm.saImmOmCcbApply(self.ccb_handle)
-
-        if err != eSaAisErrorT.SA_AIS_OK:
-            raise SafException(err)
+        err = immom.saImmOmCcbApply(self.ccb_handle)
 
 def test():
     ccb = Ccb()

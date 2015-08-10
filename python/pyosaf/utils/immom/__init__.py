@@ -33,7 +33,7 @@ from pyosaf.saImmOm import SaImmHandleT, SaImmAccessorHandleT,\
 
 from pyosaf.utils import decorate
 
-from pyosaf.utils.immom.common import SafException
+from pyosaf.utils import SafException
 from pyosaf.utils.immom.object import ImmObject
 
 HANDLE = saImmOm.SaImmHandleT()

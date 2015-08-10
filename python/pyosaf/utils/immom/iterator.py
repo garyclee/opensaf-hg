@@ -31,8 +31,8 @@ from pyosaf.saImm import saImm, eSaImmScopeT, eSaImmValueTypeT, \
     SaImmAttrValuesT_2
 
 from pyosaf import saImmOm
-import pyosaf.utils.immom
-from pyosaf.utils.immom.common import SafException
+from pyosaf.utils import immom
+from pyosaf.utils import SafException
 from pyosaf.utils.immom.object import ImmObject
 
 TRYAGAIN_CNT = 60
@@ -64,31 +64,22 @@ class SearchIterator(collections.Iterator):
         else:
             search_param = _search_param
 
-        err = saImmOm.saImmOmSearchInitialize_2(pyosaf.utils.immom.HANDLE, self.root_name,
-            self.scope, search_options, search_param, self.attribute_names,
-            self.search_handle)
-        one_sec_sleeps = 0
-        while err == eSaAisErrorT.SA_AIS_ERR_TRY_AGAIN:
-            if one_sec_sleeps == TRYAGAIN_CNT:
-                break
-            time.sleep(1)
-            one_sec_sleeps += 1
-            err = saImmOm.saImmOmSearchInitialize_2(pyosaf.utils.immom.HANDLE,
-                self.root_name, self.scope, search_options, search_param,
-                self.attribute_names, self.search_handle)
-
-        if err != eSaAisErrorT.SA_AIS_OK:
-            if err == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
+        try:
+            err = immom.saImmOmSearchInitialize_2(immom.HANDLE, 
+                                                  self.root_name, self.scope, 
+                                                  search_options, search_param, 
+                                                  self.attribute_names,
+                                                  self.search_handle)
+        except SafException as err:
+            if err.value == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
                 self.search_handle = None
-                raise SafException(err, "%s does not exist" % root_name)
+                raise err
             else:
-                raise SafException(err)
+                raise err
 
     def __del__(self):
         if self.search_handle is not None:
-            error = saImmOm.saImmOmSearchFinalize(self.search_handle)
-            if error != eSaAisErrorT.SA_AIS_OK:
-                raise SafException(error)
+            error = immom.saImmOmSearchFinalize(self.search_handle)
 
     def __iter__(self):
         return self
@@ -96,12 +87,14 @@ class SearchIterator(collections.Iterator):
     def next(self):
         name = SaNameT()
         attributes = pointer(pointer(SaImmAttrValuesT_2()))
-        error = saImmOm.saImmOmSearchNext_2(self.search_handle, name,
-                                            attributes)
-        if error == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
-            raise StopIteration
-        elif error != eSaAisErrorT.SA_AIS_OK:
-            raise SafException(error)
+        try:
+            error = immom.saImmOmSearchNext_2(self.search_handle, name,
+                                              attributes)
+        except SafException as err:
+            if err.value == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
+                raise StopIteration
+            else:
+                raise err
 
         attribs = {}
         attr_list = unmarshalNullArray(attributes)
