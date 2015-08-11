@@ -37,3 +37,4 @@ lockdir = $(localstatedir)/lock/subsys
 pkgpyosafdir = $(pythondir)/pyosaf
 pkgpyosafutilsdir = $(pythondir)/pyosaf/utils
 pkgpyosafutilsimmomdir = $(pythondir)/pyosaf/utils/immom
+pkgpyosafutilsclmdir = $(pythondir)/pyosaf/utils/clm
