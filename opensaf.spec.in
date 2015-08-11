@@ -1516,6 +1516,9 @@ fi
 %{python_sitelib}/pyosaf/utils/immom/*.py
 %{python_sitelib}/pyosaf/utils/immom/*.pyc
 %{python_sitelib}/pyosaf/utils/immom/*.pyo
+%{python_sitelib}/pyosaf/utils/clm/*.py
+%{python_sitelib}/pyosaf/utils/clm/*.pyc
+%{python_sitelib}/pyosaf/utils/clm/*.pyo
 %endif
 
 
