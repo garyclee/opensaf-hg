@@ -81,6 +81,23 @@ def track_callback(c_notification_buffer, c_number_of_members,
 def node_get_callback(*args):
     pass
 
+class ClusterNode:
+
+    def __init__(self, node_id, node_address, node_name, execution_environment,
+                 member,
+                 boot_timestamp,
+                 initial_view_number):
+
+        self.node_id               = node_id
+        self.node_address_value    = node_address.value
+        self.node_address_family   = node_address.family
+        self.node_name             = node_name.value
+        self.execution_environment = execution_environment
+        self.member                = member
+        self.boot_timestamp        = boot_timestamp
+        self.initial_view_number   = initial_view_number
+
+
 def initialize(track_fn=None):
 
     global track_function
@@ -100,4 +117,28 @@ def initialize(track_fn=None):
     saClmInitialize_4(HANDLE, callbacks, version)
 
 def track(flags=saAis.saAis.SA_TRACK_CHANGES_ONLY):
-    saClm.saClmClusterTrackCallbackT_4(HANDLE, flags, None)
+    saClmClusterTrack_4(HANDLE, flags, None)
+
+def get_members():
+    notification_buffer = saClm.SaClmClusterNotificationBufferT_4()
+
+    saClmClusterTrack_4(HANDLE, saAis.saAis.SA_TRACK_CURRENT, 
+                        notification_buffer)
+
+    cluster_nodes = []
+
+    for i in range(notification_buffer.numberOfItems):
+        notification = notification_buffer.notification[i]
+        clusterNode  = notification.clusterNode
+
+        node = ClusterNode(node_id=clusterNode.nodeId,
+                           node_address=clusterNode.nodeAddress,
+                           node_name=clusterNode.nodeName,
+                           execution_environment=clusterNode.executionEnvironment,
+                           member=clusterNode.member,
+                           boot_timestamp=clusterNode.bootTimestamp,
+                           initial_view_number=clusterNode.initialViewNumber)
+
+    cluster_nodes.append(node)
+
+    return cluster_nodes
