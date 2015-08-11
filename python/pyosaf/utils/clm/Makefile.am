@@ -18,6 +18,6 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-pkgpyosafutils_PYTHON = \
+pkgpyosafutilsclm_PYTHON = \
 	__init__.py
 
