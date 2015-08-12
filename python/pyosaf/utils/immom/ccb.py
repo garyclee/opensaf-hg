@@ -89,6 +89,29 @@ class Ccb(object):
         err = immom.saImmOmCcbInitialize(self.owner_handle, ccb_flags,
                                            self.ccb_handle)
 
+    def __enter__(self):
+        ''' Called when Ccb is used in a with statement:
+        
+            with Ccb() as ccb:
+                ...
+
+            The call is invoked before any code within is run
+        '''
+        return self
+
+    def __exit__(self, type, value, traceback):
+        ''' Called when Ccb is used in a with statement, 
+            just before it exits 
+
+            type, value and traceback are only set if the with
+            statement was left via an exception
+        '''
+        if type or value or traceback:
+            self.__del__()
+        else:
+            self.apply()
+            self.__del__()
+
     def __del__(self):
         error = immom.saImmOmAdminOwnerFinalize(self.owner_handle)
 
@@ -266,6 +289,7 @@ class Ccb(object):
         ''' Apply the CCB '''
 
         err = immom.saImmOmCcbApply(self.ccb_handle)
+
 
 def test():
     ccb = Ccb()
