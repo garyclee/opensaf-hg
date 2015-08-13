@@ -17,4 +17,9 @@ immbase.py:
 	Module required by immadm and immlist; contains logging interface and
 	other services.
 
+clm-tool:
+        CLI utility that can be used that demonstrates how to fetch a list of
+        current members of the cluster and how to monitor changes to the 
+        cluster. Run 'clm-tool --help' for specific options and arguments.
+
 Logging for all apps/utils goes to /var/log/opensaf/saflog/saLogSystem*.log
