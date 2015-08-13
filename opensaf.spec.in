@@ -1519,6 +1519,9 @@ fi
 %{python_sitelib}/pyosaf/utils/clm/*.py
 %{python_sitelib}/pyosaf/utils/clm/*.pyc
 %{python_sitelib}/pyosaf/utils/clm/*.pyo
+%{python_sitelib}/pyosaf/utils/log/*.py
+%{python_sitelib}/pyosaf/utils/log/*.pyc
+%{python_sitelib}/pyosaf/utils/log/*.pyo
 %endif
 
 

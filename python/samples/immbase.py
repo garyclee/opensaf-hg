@@ -17,10 +17,8 @@
 
 from pyosaf.saImmOm import *
 from pyosaf.saAmf import *
-from pyosaf.saLog import *
 
 IMM_VERSION = SaVersionT('A', 2, 1)
-LOG_VERSION = SaVersionT('A', 2, 1)
 
 class SafException(Exception):
 	def __init__(self, value):
@@ -90,44 +88,3 @@ class SafObject(object):
 				]
 		if not numeric:
 			SafObject.resolveStates(self.attribs)
-
-class LogIface(object):
-	@staticmethod
-	def writeLogCallback(invocation, error):
-		pass
-
-	def __init__(self, execName):
-		self.invocation = 0
-		self.logHandle = SaLogHandleT()
-		self.callbacks = SaLogCallbacksT()
-		self.streamHandle = SaLogStreamHandleT()
-		self.record = SaLogRecordT()
-		self.callbacks.saLogWriteLogCallback = \
-			SaLogWriteLogCallbackT(self.writeLogCallback)
-		rc = saLogInitialize(self.logHandle, self.callbacks, LOG_VERSION)
-		if rc != eSaAisErrorT.SA_AIS_OK:
-			raise SafException(rc)
-		streamName = SaNameT(saLog.SA_LOG_STREAM_SYSTEM)
-		rc = saLogStreamOpen_2(self.logHandle, streamName, None, 0,
-				saAis.SA_TIME_ONE_SECOND, self.streamHandle)
-		if rc != eSaAisErrorT.SA_AIS_OK:
-			raise SafException(rc)
-		userName = pointer(SaNameT(execName))
-		headerType = eSaLogHeaderTypeT.SA_LOG_GENERIC_HEADER
-		self.record.logTimeStamp = saAis.SA_TIME_UNKNOWN
-		self.record.logHdrType =  headerType
-		self.record.logHeader.genericHdr.logSvcUsrName = userName
-
-	def __del__(self):
-		saLogStreamClose(self.streamHandle)
-		saLogFinalize(self.logHandle)
-
-	def log(self, logstr):
-		buffer = pointer(SaLogBufferT(logstr))
-		notice = saLog.SA_LOG_SEV_NOTICE
-		self.record.logBuffer = buffer
-		self.record.logHeader.genericHdr.logSeverity = notice
-		rc = saLogWriteLogAsync(self.streamHandle, 0,
-			saLog.SA_LOG_RECORD_WRITE_ACK, self.record)
-		if rc != eSaAisErrorT.SA_AIS_OK:
-			raise SafException(rc)
