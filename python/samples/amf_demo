@@ -16,6 +16,8 @@
 #
 ############################################################################
 
+from pyosaf.utils import log
+from pyosaf.utils.log.logger import SafLogger
 from pyosaf.saAmf import *
 from pyosaf.saLog import *
 import select
@@ -28,65 +30,6 @@ def chexit(funcName, rc):
 	if rc != eSaAisErrorT.SA_AIS_OK:
 		errstr = '%s FAILED (%s)!' % (funcName, eSaAisErrorT.whatis(rc))
 		raise ValueError(errstr)
-
-class LogIface(object):
-	@staticmethod
-	def writeLogCallback(invocation, error):
-		pass
-
-	def __init__(self):
-		self.invocation = 0
-		self.logHandle = SaLogHandleT()
-		self.fd = SaSelectionObjectT()
-		self.callbacks = SaLogCallbacksT()
-		self.streamHandle = SaLogStreamHandleT()
-		self.record = SaLogRecordT()
-
-		self.callbacks.saLogWriteLogCallback = \
-			SaLogWriteLogCallbackT(self.writeLogCallback)
-
-		logVersion = SaVersionT('A', 2, 1)
-		chexit('saLogInitialize',
-			saLogInitialize(self.logHandle, self.callbacks,
-			logVersion))
-		chexit('saLogSelectionObjectGet',
-			saLogSelectionObjectGet(self.logHandle,
-			self.fd))
-
-		streamName = SaNameT(saLog.SA_LOG_STREAM_SYSTEM)
-		chexit('saLogStreamOpen_2',
-			saLogStreamOpen_2(self.logHandle, streamName, None, 0,
-				saAis.SA_TIME_ONE_SECOND, self.streamHandle))
-
-		userName = pointer(SaNameT(exec_name))
-		headerType = eSaLogHeaderTypeT.SA_LOG_GENERIC_HEADER
-		self.record.logTimeStamp = saAis.SA_TIME_UNKNOWN
-		self.record.logHdrType =  headerType
-		self.record.logHeader.genericHdr.logSvcUsrName = userName
-
-	def finalize(self):
-		saLogStreamClose(self.streamHandle)
-		saLogFinalize(self.logHandle)
-
-	def get_invocation(self):
-		self.invocation += 1
-		return self.invocation
-
-	def log(self, logstr):
-		buffer = pointer(SaLogBufferT(logstr))
-		notice = saLog.SA_LOG_SEV_NOTICE
-		self.record.logBuffer = buffer
-		self.record.logHeader.genericHdr.logSeverity = notice
-		chexit('saLogWriteLogAsync',
-			saLogWriteLogAsync(self.streamHandle,
-			self.get_invocation(),
-			saLog.SA_LOG_RECORD_WRITE_ACK, self.record))
-
-	def dispatch(self, readfds):
-		if self.fd.value in readfds:
-			chexit('saLogDispatch',
-				saLogDispatch(self.logHandle,
-				eSaDispatchFlagsT.SA_DISPATCH_ALL))
 
 class AmfIface(object):
 	@staticmethod
@@ -213,7 +156,7 @@ class AmfIface(object):
 				eSaDispatchFlagsT.SA_DISPATCH_ALL))
 
 def main():
-	logger = LogIface()
+	logger = SafLogger()
 	AmfIface.initialize(logger)
 
 	readfds = [logger.fd.value, AmfIface.fd.value]
