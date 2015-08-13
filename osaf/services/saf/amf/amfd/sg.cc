@@ -413,6 +413,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 		sg = NULL;
 	}
 
+	TRACE_LEAVE();
 	return sg;
 }
 
@@ -1124,6 +1125,7 @@ static uint32_t avd_sg_su_term_in_reverse(AVD_SU *su)
 		  LOG_WA("Failed Termination '%s'", su->name.value);
 	  }
   }
+  TRACE_LEAVE();
   return rc ;
 }
 /**
@@ -1663,6 +1665,7 @@ void AVD_SG::set_admin_state(SaAmfAdminStateT state) {
 
 	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SG_ADMIN_STATE, old_state,
 		saAmfSGAdminState);
+	TRACE_LEAVE();
 }
 
 void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
@@ -1826,6 +1829,7 @@ uint32_t sg_instantiated_su_count(const AVD_SG *sg)
 	uint32_t inst_su_count;
 	AVD_SU *su;
 
+	TRACE_ENTER();
 	for (su = sg->list_of_su, inst_su_count = 0; su != NULL; su = su->sg_list_su_next) {
 		TRACE_1("su'%s', pres state'%u', in_serv'%u', PrefIn'%u'", su->name.value,
 				su->saAmfSUPresenceState, su->saAmfSuReadinessState, sg->saAmfSGNumPrefInserviceSUs);

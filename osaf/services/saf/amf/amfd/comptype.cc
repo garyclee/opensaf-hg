@@ -141,6 +141,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefDisableRestart"), attributes, 0, &compt->saAmfCtDefDisableRestart);
 
+	TRACE_LEAVE();
 	return compt;
 }
 

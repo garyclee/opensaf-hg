@@ -644,6 +644,7 @@ done:
 		si = NULL;
 	}
 
+	TRACE_LEAVE();
 	return si;
 }
 
@@ -1420,6 +1421,7 @@ void AVD_SI::set_admin_state(SaAmfAdminStateT state)
 		SA_IMM_ATTR_SAUINT32T, &saAmfSIAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ADMIN_STATE);
 	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SI_ADMIN_STATE, old_state, saAmfSIAdminState);
+	TRACE_LEAVE();
 }
 
 void AVD_SI::set_si_switch(AVD_CL_CB *cb, const SaToggleState state)

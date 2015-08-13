@@ -272,9 +272,11 @@ uint32_t avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_ack)
 	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		d2n_msg_free(d2n_msg);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -663,6 +665,7 @@ static uint32_t avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_in
 		attr_ptr = attr_ptr->attr_next;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -719,8 +722,10 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 	/* Need not proceed further if node is not in proper state */
 	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
-			(avnd->node_state == AVD_AVND_STATE_GO_DOWN))
+			(avnd->node_state == AVD_AVND_STATE_GO_DOWN)) {
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
+	}
 
 	/* Initialize the local variables to avoid warnings */
 	l_susi = susi;
@@ -794,6 +799,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 				/* free the SUSI message */
 				d2n_msg_free(susi_msg);
+				TRACE_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -824,6 +830,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
 			/* free the SUSI message */
 			d2n_msg_free(susi_msg);
+			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -850,6 +857,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		/* Log a fatal error that it is an invalid action */
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, actn);
 		d2n_msg_free(susi_msg);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 		break;
 	}			/* switch(actn) */
@@ -906,6 +914,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				    == NCSCC_RC_FAILURE) {
 					LOG_EM("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 					d2n_msg_free(susi_msg);
+					TRACE_LEAVE();
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -957,10 +966,13 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
 		d2n_msg_free(susi_msg);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
+
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1164,6 +1176,7 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 		/* Log a fatal error that AvND record can't be null */
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, 0);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1188,10 +1201,13 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
 		--(avnd->snd_msg_id);
 		d2n_msg_free(d2n_msg);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
+
+	TRACE_LEAVE();
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1812,8 +1828,10 @@ bool admin_op_is_valid(SaImmAdminOperationIdT opId, AVSV_AMF_CLASS_ID class_id)
 	bool valid = false;
 	TRACE_ENTER2("%llu, %u", opId, class_id);
 
-	if (avd_cb->init_state == AVD_APP_STATE)
+	if (avd_cb->init_state == AVD_APP_STATE) {
+		TRACE_LEAVE();
 		return true;
+	}
 
 	switch (class_id) {
 		case AVSV_SA_AMF_SU:
@@ -1844,6 +1862,7 @@ bool admin_op_is_valid(SaImmAdminOperationIdT opId, AVSV_AMF_CLASS_ID class_id)
 			break;
 	}
 
+	TRACE_LEAVE();
 	return valid;
 }
 

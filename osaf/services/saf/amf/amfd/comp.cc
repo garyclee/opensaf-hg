@@ -130,7 +130,7 @@ void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 				node->name.value,comp->comp_info.name.value);
 		avd_d2n_reboot_snd(node);
 	}
-		
+	TRACE_LEAVE();
 }
 
 void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
@@ -143,6 +143,7 @@ void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompOperState",
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_OPER_STATE);
+	TRACE_LEAVE();
 }
 
 void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness_state)
@@ -158,6 +159,7 @@ void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_READINESS_STATE);
+	TRACE_LEAVE();
 }
 
 void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy_status)
@@ -632,6 +634,7 @@ done:
 		comp = NULL;
 	}
 
+	TRACE_LEAVE();
 	return comp;
 }
 

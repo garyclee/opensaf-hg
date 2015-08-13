@@ -501,6 +501,8 @@ static void encode_si(const AVD_CL_CB *cb,
 	if (peer_version >= ver_compare) {
 		osaf_encode_uint32(ub, si->si_dep_state);
 	}
+
+	TRACE_LEAVE();
 }
 
 /****************************************************************************\
@@ -1889,6 +1891,7 @@ static uint32_t enc_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 uint32_t avd_enc_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	TRACE_ENTER();
+	TRACE_LEAVE();
 	return entire_data_update(cb, enc, true);
 }
 

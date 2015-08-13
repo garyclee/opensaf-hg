@@ -98,6 +98,8 @@ static struct avd_sutype *sutype_create(const SaNameT *dn, const SaImmAttrValues
 	if (rc != 0)
 		sutype_delete(&sutype);
 
+	TRACE_LEAVE();
+
 	return sutype;
 }
 

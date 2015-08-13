@@ -767,6 +767,7 @@ void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
 	avd_saImmOiRtObjectUpdate(&name, "saAmfSUPresenceState",
 		SA_IMM_ATTR_SAUINT32T, &saAmfSUPresenceState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_PRES_STATE);
+	TRACE_LEAVE();
 }
 
 void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
@@ -854,6 +855,7 @@ void AVD_SU::set_admin_state(SaAmfAdminStateT admin_state) {
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_ADMIN_STATE);
 	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SU_ADMIN_STATE,
 			old_state, saAmfSUAdminState);
+	TRACE_LEAVE();
 }
 
 void AVD_SU::unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {

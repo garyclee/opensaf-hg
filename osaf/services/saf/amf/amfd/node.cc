@@ -348,6 +348,7 @@ void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state)
 		node_state_name[node_state]);
 	node->node_state = node_state;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_NODE_STATE);
+	TRACE_LEAVE();
 }
 
 /**

@@ -346,6 +346,7 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 
 	if (rcv_msg == NULL) {
 		LOG_ER("%s: no msg", __FUNCTION__);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -366,8 +367,10 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 		avsv_dnd_msg_free(rcv_msg);
 		evt->info.avnd_msg = NULL;
 		delete evt;
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

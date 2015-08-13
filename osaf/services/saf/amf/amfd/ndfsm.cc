@@ -195,6 +195,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 	while (ncs_su != NULL) {
 		if ((ncs_su->list_of_susi == AVD_SU_SI_REL_NULL) ||
 		    (ncs_su->list_of_susi->fsm != AVD_SU_SI_STATE_ASGND)) {
+			TRACE_LEAVE();
 			/* this is an unassigned SU so no need to scan further return here. */
 			return;
 		}
@@ -242,6 +243,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 	/* if (avnd->node_state != AVD_AVND_STATE_PRESENT) */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_AVD_CB_CONFIG);
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

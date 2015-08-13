@@ -770,12 +770,14 @@ uint32_t avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uint32_t role
 		--(node->snd_msg_id);
 		LOG_ER("%s: avd_d2n_msg_snd failed", __FUNCTION__);
 		//TODO(UABHANO)d2n_msg_free(d2n_msg);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_SND_MSG_ID);
 
 done:
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

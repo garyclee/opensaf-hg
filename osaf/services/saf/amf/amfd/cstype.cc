@@ -62,6 +62,7 @@ static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 *
 			cst->saAmfCSAttrName[i] = StrDup(immutil_getStringAttr(attributes, "saAmfCSAttrName", i));
 	}
 
+	TRACE_LEAVE();
 	return cst;
 }
 

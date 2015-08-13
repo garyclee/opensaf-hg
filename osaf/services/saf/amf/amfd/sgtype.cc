@@ -249,6 +249,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 		sgt = NULL;
 	}
 
+	TRACE_LEAVE();
 	return sgt;
 }
 

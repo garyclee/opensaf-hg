@@ -107,6 +107,7 @@ AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *cstype_name, const AV
 	avsv_create_association_class_dn(cstype_name, &comp->comp_info.name, "safSupportedCsType", &dn);
 	TRACE("'%s'", dn.value);
 	cst = compcstype_db->find(Amf::to_string(&dn));
+	TRACE_LEAVE();
 	return cst;
 }
 
@@ -263,6 +264,7 @@ done:
 		compcstype_db->erase(Amf::to_string(&compcstype->name));
 	delete [] cstype_name;
 
+	TRACE_LEAVE();
 	return compcstype;
 }
 
