@@ -64,12 +64,12 @@ class SafLogger(object):
 
 	def log(self, logstr):
 		log_buffer = ctypes.pointer(saLog.SaLogBufferT(logstr))
-		notice     = saLog.SA_LOG_SEV_NOTICE
+		notice     = saLog.saLog.SA_LOG_SEV_NOTICE
 		self.record.logBuffer = log_buffer
 		self.record.logHeader.genericHdr.logSeverity = notice
                 log.saLogWriteLogAsync(self.streamHandle,
                                        self.get_invocation(),
-                                       saLog.SA_LOG_RECORD_WRITE_ACK, self.record)
+                                       saLog.saLog.SA_LOG_RECORD_WRITE_ACK, self.record)
 
 	def dispatch(self, readfds):
 		if self.fd.value in readfds:
