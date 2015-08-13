@@ -52,8 +52,6 @@ def track_callback(c_notification_buffer, c_number_of_members,
     if track_function:
         added   = []
         removed = []
-        changed = []
-        all     = []
 
         step = c_step
 
@@ -68,18 +66,29 @@ def track_callback(c_notification_buffer, c_number_of_members,
                 else:
                     i = i + 1
 
-                node_name = notification.clusterNode.nodeName
+                clm_cluster_node = notification.clusterNode
+                cluster_node = cluster_node_instance_from_clm_cluster_node(clm_cluster_node)
 
                 if notification.clusterChange == saClm.eSaClmClusterChangesT.SA_CLM_NODE_JOINED:
-                    added.append(node_name)
+                    added.append(cluster_node)
 
                 elif notification.clusterChange == saClm.eSaClmClusterChangesT.SA_CLM_NODE_LEFT:
-                    removed.append(node_name)
+                    removed.append(cluster_node)
 
-        track_function(all, added, removed, changed)
+        track_function(added, removed)
 
 def node_get_callback(*args):
     pass
+
+def cluster_node_instance_from_clm_cluster_node(clm_cluster_node):
+    return ClusterNode(node_id=clm_cluster_node.nodeId,
+                       node_address=clm_cluster_node.nodeAddress,
+                       node_name=clm_cluster_node.nodeName,
+                       execution_environment=clm_cluster_node.executionEnvironment,
+                       member=clm_cluster_node.member,
+                       boot_timestamp=clm_cluster_node.bootTimestamp,
+                       initial_view_number=clm_cluster_node.initialViewNumber)
+
 
 class ClusterNode:
 
@@ -131,14 +140,8 @@ def get_members():
         notification = notification_buffer.notification[i]
         clusterNode  = notification.clusterNode
 
-        node = ClusterNode(node_id=clusterNode.nodeId,
-                           node_address=clusterNode.nodeAddress,
-                           node_name=clusterNode.nodeName,
-                           execution_environment=clusterNode.executionEnvironment,
-                           member=clusterNode.member,
-                           boot_timestamp=clusterNode.bootTimestamp,
-                           initial_view_number=clusterNode.initialViewNumber)
+        node = cluster_node_instance_from_clm_cluster_node(clusterNode)
 
-    cluster_nodes.append(node)
+        cluster_nodes.append(node)
 
     return cluster_nodes

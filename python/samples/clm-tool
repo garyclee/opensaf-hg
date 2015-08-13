@@ -5,7 +5,7 @@ import sys
 
 from pyosaf import saAis, saClm, saImm
 
-from pyosaf.utils import immoi, clm
+from pyosaf.utils import clm
 
 def dn_to_vm_name(vm_dn):
     return vm_dn.split(',')[0].split('=')[1]
@@ -19,16 +19,16 @@ def print_members(members):
 
             print "  - %s  %s" % (vm_name, ip_address)
 
-def membership_change(all, added, removed, changed):
+def membership_change(added, removed):
     print "Info: Received cluster membership update"
 
-    for vm_dn in added:
-        vm_name = dn_to_vm_name(vm_dn)
+    for node in added:
+        vm_name = dn_to_vm_name(node.node_name)
 
-        print "INFO: % joined the cluster" % vm_name
+        print "INFO: %s joined the cluster" % vm_name
 
-    for vm_dn in removed:
-        vm_name = dn_to_vm_name(vm_dn)
+    for node in removed:
+        vm_name = dn_to_vm_name(node.node_name)
 
         print "INFO: %s left the cluster" % vm_name
 
