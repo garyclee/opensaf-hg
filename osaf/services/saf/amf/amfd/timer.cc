@@ -69,6 +69,7 @@ uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 
 	if (AVD_TMR_MAX <= tmr->type) {
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -87,9 +88,12 @@ uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 	
 	tmr->is_active = true;
 
-	if (TMR_T_NULL == tmr->tmr_id)
+	if (TMR_T_NULL == tmr->tmr_id) {
+		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
+	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -111,6 +115,7 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 	/* If timer type is invalid just return */
 	if (AVD_TMR_MAX <= tmr->type) {
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
+		TRACE_LEAVE();
 		return;
 	}
 
@@ -125,6 +130,7 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;
 	}
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

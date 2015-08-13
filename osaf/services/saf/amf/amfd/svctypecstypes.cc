@@ -45,6 +45,7 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSvctMaxNumCSIs"), attributes, 0, &svctypecstype->saAmfSvctMaxNumCSIs) != SA_AIS_OK)
 		svctypecstype->saAmfSvctMaxNumCSIs = -1; /* no limit */
 
+	TRACE_LEAVE();
 	return svctypecstype;
 }
 

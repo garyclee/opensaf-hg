@@ -116,6 +116,7 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 		delete ctcstype;
 		ctcstype = NULL;
 	}
+	TRACE_LEAVE();
 	return ctcstype;
 }
 

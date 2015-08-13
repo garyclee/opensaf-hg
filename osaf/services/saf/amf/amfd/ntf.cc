@@ -222,6 +222,7 @@ void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT
 					NULL,
 					false);
 
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -257,6 +258,7 @@ void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_
 					new_state,
 					NULL,
 					false);
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -293,6 +295,7 @@ void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name,
 					NULL,
 					false);
 
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -331,6 +334,8 @@ void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name,
 					new_state,
 					(NCSCONTEXT)si_name,
 					true /* Si_name */);
+
+	TRACE_LEAVE();
 
 }
 
@@ -404,6 +409,7 @@ void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_
 					NULL,
 					false);
 
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -733,7 +739,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 void avd_send_error_report_ntf(const SaNameT *name, SaAmfRecommendedRecoveryT recovery)
 {
 
-        TRACE_ENTER();
+	TRACE_ENTER();
 	char add_text[ADDITION_TEXT_LENGTH];
 	SaAmfNotificationMinorIdT minorid;
 	bool additional_info_is_present;

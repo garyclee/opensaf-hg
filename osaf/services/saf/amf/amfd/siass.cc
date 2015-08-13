@@ -455,7 +455,8 @@ uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 
 	/* alarm & notifications */
 	avd_send_su_ha_state_chg_ntf(&susi->su->name, &susi->si->name, static_cast<SaAmfHAStateT>(SA_FALSE), susi->state); /*old state not known*/
-	
+
+	TRACE_LEAVE();
 	return status;
 }
 /**
@@ -649,7 +650,7 @@ void avd_susi_update_assignment_counters(AVD_SU_SI_REL *susi, AVSV_SUSI_ACT acti
 		break;
 	}
 
-        TRACE_LEAVE();
+	TRACE_LEAVE();
 }
 /**
  * @brief       This routine does the following functionality

@@ -165,6 +165,8 @@ done:
 		delete ng;
 		ng = NULL;
 	}
+
+	TRACE_LEAVE();
 	return ng;
 }
 

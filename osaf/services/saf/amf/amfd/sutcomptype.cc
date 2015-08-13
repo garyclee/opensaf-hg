@@ -49,6 +49,7 @@ static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_
 	    if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutMinNumComponents"), attributes, 0, &sutcomptype->saAmfSutMinNumComponents) != SA_AIS_OK)
 		sutcomptype->saAmfSutMinNumComponents = 1;
 
+	TRACE_LEAVE();
 	return sutcomptype;
 }
 

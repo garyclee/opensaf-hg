@@ -290,6 +290,7 @@ AVD_CSI *csi_create(const SaNameT *csi_name)
 	if (csi_db->insert(Amf::to_string(&csi->name), csi) != NCSCC_RC_SUCCESS)
 		osafassert(0);
 
+	TRACE_LEAVE();
 	return csi;
 }
 /**

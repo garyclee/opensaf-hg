@@ -136,6 +136,8 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 	if (rc != 0)
 		apptype_delete(&app_type);
 
+	TRACE_LEAVE();
+
 	return app_type;
 }
 

@@ -223,6 +223,7 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 		app->saAmfApplicationAdminState = SA_AMF_ADMIN_UNLOCKED;
 	}
 
+	TRACE_LEAVE();
 	return app;
 }
 
