@@ -17,6 +17,7 @@
 ############################################################################
 
 from optparse import OptionParser
+from pyosaf import saImm
 from pyosaf.saImmOm import *
 from socket import gethostname
 from os import getpid
@@ -32,7 +33,7 @@ def getExecName():
 def parseArgs(cmd=sys.argv[1:]):
 	usage = 'usage: %prog [options] OP_ID object_dn'
 	epilog = '\nOP_ID: an integer, dependent on the class of object.\n'\
-			'\nTYPE: one of:\n%s\n' % eSaImmValueTypeT.lookup.keys()
+			'\nTYPE: one of:\n%s\n' % '\n'.join(saImm.eSaImmValueTypeT.lookup.keys())
 	OptionParser.format_epilog = lambda self, formatter: self.epilog
 	parser = OptionParser(usage=usage, epilog=epilog)
 	parser.add_option('-a', '--admin-owner', dest='adminOwner',
@@ -71,7 +72,7 @@ def immadm(options, args):
 			raise SafException(rc)
 
 		rc = saImmOmAdminOwnerSet(ownerHandle,
-				[dn], eSaImmScopeT.SA_IMM_ONE)
+				[dn], saImm.eSaImmScopeT.SA_IMM_ONE)
 		if rc != eSaAisErrorT.SA_AIS_OK:
 			raise SafException(rc)
 
@@ -92,7 +93,7 @@ def immadm(options, args):
 			raise e
 	finally:
 		saImmOmAdminOwnerRelease(ownerHandle,
-				[dn], eSaImmScopeT.SA_IMM_ONE)
+				[dn], saImm.eSaImmScopeT.SA_IMM_ONE)
 		saImmOmAdminOwnerFinalize(ownerHandle)
 		saImmOmFinalize(immHandle)
 

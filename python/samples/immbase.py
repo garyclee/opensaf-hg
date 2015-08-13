@@ -15,6 +15,7 @@
 #
 ############################################################################
 
+from pyosaf import saImm
 from pyosaf.saImmOm import *
 from pyosaf.saAmf import *
 
@@ -81,8 +82,8 @@ class SafObject(object):
 		for attr in attrList:
 			attrRange = range(attr.attrValuesNumber)
 			self.attribs[attr.attrName] = [
-				eSaImmValueTypeT.whatis(attr.attrValueType),
-				[unmarshalSaImmValue(
+				saImm.eSaImmValueTypeT.whatis(attr.attrValueType),
+				[saImm.unmarshalSaImmValue(
 					attr.attrValues[val],
 					attr.attrValueType) for val in attrRange]
 				]
