@@ -3169,7 +3169,7 @@ static int pbeAuditNoDangling(sqlite3 *dbHandle) {
 
 step2:
 	if(stmt) {
-		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
 		stmt = NULL;
 	}
 
@@ -3207,7 +3207,7 @@ step2:
 			err = 1;
 		}
 
-		sqlite3_reset(tblStmt);
+		sqlite3_finalize(tblStmt);
 	}
 
 	if(rc != SQLITE_DONE) {
@@ -3218,14 +3218,430 @@ step2:
 
 end:
 	if(stmt) {
-		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+	}
+
+	return err;
+}
+
+static int pbeAuditAttributeFlags(sqlite3 *dbHandle) {
+	uint64_t allAttributes = SA_IMM_ATTR_MULTI_VALUE
+						| SA_IMM_ATTR_RDN
+						| SA_IMM_ATTR_CONFIG
+						| SA_IMM_ATTR_WRITABLE
+						| SA_IMM_ATTR_INITIALIZED
+						| SA_IMM_ATTR_RUNTIME
+						| SA_IMM_ATTR_PERSISTENT
+						| SA_IMM_ATTR_CACHED
+						| SA_IMM_ATTR_NO_DUPLICATES
+						| SA_IMM_ATTR_NOTIFY
+						| SA_IMM_ATTR_NO_DANGLING
+						| SA_IMM_ATTR_DN;
+	const char *sql = "select class_name, attr_name, attr_flags "
+			"from attr_def, classes "
+			"where (attr_flags & ~%lu) != 0 "
+				"and attr_def.class_id = classes.class_id";
+	char query[1024];
+	sqlite3_stmt *stmt = NULL;
+	int err = 0;
+	int rc;
+
+	sprintf(query, sql, allAttributes);
+
+	rc = sqlite3_prepare_v2(dbHandle, query, -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, query);
+		err = 1;
+		goto done;
+	}
+
+	while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		LOG_ER("Invalid attribute value (%s) in attribute '%s' in class '%s'",
+				sqlite3_column_text(stmt, 2),
+				sqlite3_column_text(stmt, 1),
+				sqlite3_column_text(stmt, 0));
+		err = 1;
+	}
+
+	if(rc != SQLITE_DONE) {
+		LOG_ER("SQL statement ('%s') failed with error code: %d\n", query, rc);
+		err = 1;
+	}
+
+done:
+	if(stmt) {
+		sqlite3_finalize(stmt);
+	}
+
+	return err;
+}
+
+static int pbeAuditObjectRdnFlag(sqlite3 *dbHandle) {
+	const char *sql = "select class_name, count(attr_name) "
+			"from classes cl "
+				"left outer join attr_def ad "
+					"on cl.class_id = ad.class_id "
+						"and (attr_flags & 2) > 0 "
+			"group by class_name "
+			"having count(attr_name) != 1";
+	sqlite3_stmt *stmt = NULL;
+	int err = 0;
+	int rc;
+
+	rc = sqlite3_prepare_v2(dbHandle, sql, -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sql);
+		err = 1;
+		goto done;
+	}
+
+	while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		if(sqlite3_column_int(stmt, 1) == 0) {
+			LOG_ER("Class (%s) definition with no RDN attribute",
+					sqlite3_column_text(stmt, 0));
+		} else {
+			LOG_ER("Class (%s) definition with more RDN attributes",
+					sqlite3_column_text(stmt, 0));
+		}
+		err = 1;
+	}
+
+	if(rc != SQLITE_DONE) {
+		LOG_ER("SQL statement ('%s') failed with error code: %d\n", sql, rc);
+		err = 1;
+	}
+
+done:
+	if(stmt) {
+		sqlite3_finalize(stmt);
+	}
+
+	return err;
+}
+
+static int pbeAuditObjectDn(sqlite3 *dbHandle) {
+	const char *sql = "select obj.obj_id, obj.dn, cl.class_name, ad.attr_name "
+			"from objects obj "
+				"inner join classes cl "
+					"on cl.class_id = obj.class_id "
+				"inner join attr_def ad "
+					"on ad.class_id = obj.class_id "
+						"and (ad.attr_flags & 2) = 2";
+	sqlite3_stmt *stmt = NULL;
+	sqlite3_stmt *stmt2 = NULL;
+	int err = 0;
+	int rc;
+	char *dn;
+	char *rdn;
+	char *parent;
+	char *t;
+	std::string query;
+
+	rc = sqlite3_prepare_v2(dbHandle, sql, -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sql);
+		err = 1;
+		goto done;
+	}
+
+	while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		parent = NULL;
+
+		// Split DN to RDN and parent
+		dn = (char *)sqlite3_column_text(stmt, 1);
+		t = dn;
+		while(*t) {
+			if(t == dn && *t == ',') {
+				LOG_ER("Invalid DN: '%s'", dn);
+				dn = NULL;
+				err =1;
+				break;
+			}
+			if(*t == ',' && *(t - 1) != '\\') {
+				t++;
+				if(*t) {
+					parent = t;
+				}
+				break;
+			}
+			t++;
+		}
+
+		if(!dn) {
+			continue;
+		}
+
+		// Check that RDN attribute has the right RDN from DN
+		query.clear();
+		query.append("select ").append((char *)sqlite3_column_text(stmt, 3))
+				.append(" from ").append((char *)sqlite3_column_text(stmt, 2))
+				.append(" where obj_id = ").append((char *)sqlite3_column_text(stmt, 0));
+
+		stmt2 = NULL;
+		rc = sqlite3_prepare_v2(dbHandle, query.c_str(), -1, &stmt2, NULL);
+		if(rc == SQLITE_OK) {
+			if((rc = sqlite3_step(stmt2)) == SQLITE_ROW) {
+				rdn = (char *)sqlite3_column_text(stmt2, 0);
+				if(strstr(dn, rdn) != dn || (parent && *(dn + strlen(rdn)) != ',')) {
+					LOG_ER("Object RDN ('%s') does not match RDN in object DN ('%s')",
+							rdn, dn);
+					err = 1;
+				}
+			} else {
+				LOG_ER("Failed to get results from '%s'", query.c_str());
+				err = 1;
+			}
+		} else {
+			LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sql);
+			err = 1;
+		}
+
+		if(stmt2) {
+			sqlite3_finalize(stmt2);
+		}
+
+		// Check if parent of selected object exists
+		if(parent) {
+			query.clear();
+			query.append("select 1 from objects where dn = '").append(parent).append("'");
+
+			stmt2 = NULL;
+			rc = sqlite3_prepare_v2(dbHandle, query.c_str(), -1, &stmt2, NULL);
+			if(rc == SQLITE_OK) {
+				if(sqlite3_step(stmt) != SQLITE_ROW) {
+					LOG_ER("Parent is missing for object '%s'", dn);
+					err = 1;
+				}
+			} else {
+				LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sql);
+				err = 1;
+			}
+
+			if(stmt2) {
+				sqlite3_finalize(stmt2);
+			}
+		}
+	}
+
+	if(rc != SQLITE_DONE) {
+		LOG_ER("SQL statement ('%s') failed with error code: %d\n", sql, rc);
+		err = 1;
+	}
+
+done:
+	if(stmt) {
+		sqlite3_finalize(stmt);
+	}
+
+	return err;
+}
+
+static int pbeAuditClasses(sqlite3 *dbHandle) {
+	const char *sql = "select class_id, class_category, class_name from classes;";
+	sqlite3_stmt *stmt = NULL;
+	sqlite3_stmt *stmt2;
+	int err = 0;
+	int rc;
+	int attr_type;
+	sqlite3_int64 attr_flags;
+	std::string query;
+
+	rc = sqlite3_prepare_v2(dbHandle, sql, -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sql);
+		err = 1;
+		goto done;
+	}
+
+	while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		// Config class
+		if(sqlite3_column_int(stmt, 1) == 1) {
+			// Check that table exists for config class
+			query.clear();
+			query.append("select 1 from sqlite_master where type = 'table' and tbl_name = '")
+					.append((char *)sqlite3_column_text(stmt, 2))
+					.append("'");
+
+			rc = sqlite3_prepare_v2(dbHandle, query.c_str(), -1, &stmt2, NULL);
+			if(rc != SQLITE_OK) {
+				LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, query.c_str());
+				err = 1;
+				continue;
+			}
+
+			if(sqlite3_step(stmt2) != SQLITE_ROW) {
+				sqlite3_finalize(stmt2);
+				LOG_ER("Config class '%s' does not have corresponding table in PBE",
+						(char *)sqlite3_column_text(stmt, 2));
+				err = 1;
+				continue;
+			}
+
+			sqlite3_finalize(stmt2);
+
+			// Check that RDN attribute is config attribute
+			query.clear();
+			query.append("select attr_type, attr_flags, attr_name from attr_def where class_id = ")
+					.append((char *)sqlite3_column_text(stmt, 0))
+					.append(" and (attr_flags & 2) = 2");
+
+			rc = sqlite3_prepare_v2(dbHandle, query.c_str(), -1, &stmt2, NULL);
+			if(rc != SQLITE_OK) {
+				LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, query.c_str());
+				err = 1;
+				continue;
+			}
+
+			if(sqlite3_step(stmt2) != SQLITE_ROW) {
+				sqlite3_finalize(stmt2);
+				LOG_ER("Class '%s' does not have RDN attribute",
+						(char *)sqlite3_column_text(stmt, 2));
+				err = 1;
+				continue;
+			}
+
+			attr_type = sqlite3_column_int(stmt2, 0);
+			if(attr_type != SA_IMM_ATTR_SANAMET && attr_type != SA_IMM_ATTR_SASTRINGT) {
+				sqlite3_finalize(stmt2);
+				LOG_ER("RDN attribute '%s' of class '%s' is not type of  SaNameT or SaStringT",
+						(char *)sqlite3_column_text(stmt2, 2),
+						(char *)sqlite3_column_text(stmt, 2));
+				err = 1;
+				continue;
+			}
+
+			attr_flags = sqlite3_column_int64(stmt2, 1);
+			if((attr_flags & SA_IMM_ATTR_CONFIG) != SA_IMM_ATTR_CONFIG) {
+				sqlite3_finalize(stmt2);
+				LOG_ER("RDN attribute '%s' of class '%s' is not a config attribute. Flags: %lld",
+						(char *)sqlite3_column_text(stmt2, 2),
+						(char *)sqlite3_column_text(stmt, 2),
+						attr_flags);
+				err = 1;
+				continue;
+			}
+
+			if((attr_flags & SA_IMM_ATTR_INITIALIZED) != SA_IMM_ATTR_INITIALIZED) {
+				sqlite3_finalize(stmt2);
+				LOG_ER("RDN attribute '%s' of class '%s' does not have SA_IMM_ATTR_INITIALIZED flag. Flags: %lld",
+						(char *)sqlite3_column_text(stmt2, 2),
+						(char *)sqlite3_column_text(stmt, 2),
+						attr_flags);
+				err = 1;
+				continue;
+			}
+
+			sqlite3_finalize(stmt2);
+		} else if(sqlite3_column_int(stmt, 1) == 2) {
+			// Runtime object
+			query.clear();
+			query.append("select attr_type, attr_flags, attr_name from attr_def where class_id = ")
+					.append((char *)sqlite3_column_text(stmt, 0));
+
+			rc = sqlite3_prepare_v2(dbHandle, query.c_str(), -1, &stmt2, NULL);
+			if(rc != SQLITE_OK) {
+				LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, query.c_str());
+				err = 1;
+				continue;
+			}
+
+			bool isPersistent = false;
+			bool rdnExist = false;
+			while((rc = sqlite3_step(stmt2)) == SQLITE_ROW) {
+				attr_flags = sqlite3_column_int64(stmt2, 1);
+				// Check if the attribute has RDN flag
+				if((attr_flags & SA_IMM_ATTR_RDN) == SA_IMM_ATTR_RDN) {
+					if(rdnExist) {
+						LOG_ER("Multiple definition for RDN attribute in class '%s' for attribute '%s'",
+								(char *)sqlite3_column_text(stmt, 2),
+								(char *)sqlite3_column_text(stmt2, 2));
+						err = 1;
+					}
+					rdnExist = true;
+				}
+				if((attr_flags & SA_IMM_ATTR_CONFIG) == SA_IMM_ATTR_CONFIG) {
+					LOG_ER("In runtime class '%s' attribute '%s' is a config attribute",
+							(char *)sqlite3_column_text(stmt, 2),
+							(char *)sqlite3_column_text(stmt2, 2));
+					err = 1;
+				}
+				if((attr_flags & SA_IMM_ATTR_RUNTIME) != SA_IMM_ATTR_RUNTIME) {
+					LOG_ER("In class '%s' attribute '%s' is not a runtime attribute",
+							(char *)sqlite3_column_text(stmt, 2),
+							(char *)sqlite3_column_text(stmt2, 2));
+					err = 1;
+				}
+				if((attr_flags & SA_IMM_ATTR_PERSISTENT) == SA_IMM_ATTR_PERSISTENT) {
+					isPersistent = true;
+				}
+			}
+
+			if(!rdnExist) {
+				LOG_ER("RDN attribute is missing in class '%s'",
+						(char *)sqlite3_column_text(stmt, 2));
+				err = 1;
+			}
+
+			sqlite3_finalize(stmt2);
+
+			query.clear();
+			query.append("select 1 from sqlite_master where type = 'table' and tbl_name = '")
+					.append((char *)sqlite3_column_text(stmt, 2))
+					.append("'");
+
+			rc = sqlite3_prepare_v2(dbHandle, query.c_str(), -1, &stmt2, NULL);
+			if(rc != SQLITE_OK) {
+				LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, query.c_str());
+				err = 1;
+				continue;
+			}
+
+			rc = sqlite3_step(stmt2);
+			if(rc == SQLITE_ROW && !isPersistent) {
+				LOG_ER("Table of non-perisistent runtime class '%s' exists in PBE",
+						(char *)sqlite3_column_text(stmt, 2));
+				err = 1;
+			} else if(rc == SQLITE_DONE && isPersistent) {
+				LOG_ER("Missing table in PBE for persistent runtime class '%s'",
+						(char *)sqlite3_column_text(stmt, 2));
+				err = 1;
+			} else if(rc != SQLITE_ROW && rc != SQLITE_DONE) {
+				LOG_ER("SQL statement ('%s') failed with error code: %d\n", query.c_str(), rc);
+				err = 1;
+			}
+
+			sqlite3_finalize(stmt2);
+		} else {
+			LOG_ER("Unknown class category (%d) for class '%s'",
+					sqlite3_column_int(stmt, 1),
+					(char *)sqlite3_column_text(stmt, 2));
+			err = 1;
+		}
+	}
+
+	if(rc != SQLITE_DONE) {
+		LOG_ER("SQL statement ('%s') failed with error code: %d\n", sql, rc);
+		err = 1;
+	}
+
+done:
+	if(stmt) {
+		sqlite3_finalize(stmt);
 	}
 
 	return err;
 }
 
 int pbeAudit(void *db_handle) {
-	return pbeAuditNoDangling((sqlite3 *)db_handle);
+	int rc;
+
+	rc = pbeAuditNoDangling((sqlite3 *)db_handle);
+	rc |= pbeAuditAttributeFlags((sqlite3 *)db_handle);
+	rc |= pbeAuditObjectRdnFlag((sqlite3 *)db_handle);
+	rc |= pbeAuditObjectDn((sqlite3 *)db_handle);
+	rc |= pbeAuditClasses((sqlite3 *)db_handle);
+
+	return rc;
 }
 
 int pbeAuditFile(const char *filename) {
