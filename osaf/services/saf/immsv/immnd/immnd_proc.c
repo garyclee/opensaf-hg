@@ -2076,9 +2076,13 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			}
 		}
 
-		if((cb->mStep == 0) || (cb->mCleanedHouseAt != jobDuration)) {
+		if((cb->mStep == 0) || (cb->mCleanedHouseAt != jobDuration) || cb->mForceClean) {
 			immnd_cleanTheHouse(cb, coord == 1);
 			cb->mCleanedHouseAt = jobDuration;
+			if(cb->mForceClean) {
+				LOG_IN("ABT Cleaned the house: cb->mForceClean reset to false;");
+				cb->mForceClean = false;
+			}
 		}
 
 		if ((coord == 1) && (cb->mStep > 1)) {

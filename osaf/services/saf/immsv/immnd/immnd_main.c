@@ -346,10 +346,13 @@ int main(int argc, char *argv[])
 			if (fds[FD_MBX].revents & POLLIN) {
 				uint8_t wasCoord = immnd_cb->mIsCoord;
 				immnd_process_evt();
-				if (!wasCoord && immnd_cb->mIsCoord) {
-					TRACE("We just became Coord => Force a server job!");
+				if ((!wasCoord && immnd_cb->mIsCoord) || immnd_cb->mForceClean) {
+					TRACE("Just became Coord or special imm admop => Force a server job!");
 					/* This is particularly urgent in a failover situation. */
 					eventCount = maxEvt;
+					if(immnd_cb->mForceClean) {
+						LOG_IN("ABT immnd-main caught mForceClean");
+					}
 				}
 			}
 

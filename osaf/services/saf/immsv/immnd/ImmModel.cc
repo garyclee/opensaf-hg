@@ -1263,9 +1263,16 @@ immModel_adminOperationInvoke(IMMND_CB *cb,
     SaBoolT pbeExpected,
     bool* displayRes)
 {
-    return ImmModel::instance(&cb->immModel)->
-        adminOperationInvoke(req, reqConn, reply_dest, inv,
-        implConn, implNodeId, pbeExpected, displayRes, cb->mIsCoord);
+    bool wasAbortNonCritical = sAbortNonCriticalCcbs;
+    SaAisErrorT err = ImmModel::instance(&cb->immModel)->
+        adminOperationInvoke(req, reqConn, reply_dest, inv, implConn,
+        implNodeId, pbeExpected, displayRes, cb->mIsCoord);
+
+    if(sAbortNonCriticalCcbs && !wasAbortNonCritical) {
+        LOG_IN("ABT cb->mForceClean set to true");
+        cb->mForceClean = true;
+    }
+    return err;
 }
 
 SaUint32T  /* Returns admo-id for object if object exists and active admo exists, otherwise zero. */
@@ -11032,7 +11039,9 @@ SaAisErrorT ImmModel::adminOperationInvoke(
                                            SaInvocationT& saInv,
                                            SaUint32T* implConn,
                                            unsigned int* implNodeId,
-                                           bool pbeExpected, bool* displayRes, bool isAtCoord)
+                                           bool pbeExpected,
+                                           bool* displayRes,
+                                           bool isAtCoord)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -12581,8 +12590,9 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
 
             CcbImplementerMap::iterator cim;
             uint32_t max_oi_timeout = DEFAULT_TIMEOUT_SEC;
-            if(sAbortNonCriticalCcbs) {
-                LOG_IN("sAbortNonCriticalCcbs is true => set max_oi_timeout to 0");
+            bool abortCcb = sAbortNonCriticalCcbs && !((*i3)->mMutations.empty());
+            if(abortCcb) {
+                LOG_IN("abortCcb is true => set max_oi_timeout to 0");
                 max_oi_timeout = 0;
             } else {
                 for(cim = (*i3)->mImplementers.begin(); cim != (*i3)->mImplementers.end(); ++cim) {
@@ -12595,20 +12605,20 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
             uint32_t oi_timeout = ((*i3)->mState == IMM_CCB_CRITICAL) ? DEFAULT_TIMEOUT_SEC : max_oi_timeout;
             if(((*i3)->mWaitStartTime && (now - (*i3)->mWaitStartTime >= (int)oi_timeout)) || /* normal timeout */
                ((*i3)->mPbeRestartId) ||  /* CCB was critical when PBE restarted => Must ask new PBE for outcome */
-               sAbortNonCriticalCcbs)  /* Request to abort ALL non critical CCBs */
+               abortCcb)  /* Request to abort ALL non critical CCBs */
             {
                 if((*i3)->mPbeRestartId)
                 {
                     oi_timeout = 0;
                     TRACE_5("PBE restarted id:%u with ccb:%u in critical",
                         (*i3)->mPbeRestartId, (*i3)->mId);
-                } else if(now - (*i3)->mWaitStartTime >= (int)max_oi_timeout) {
+                } else if((*i3)->mWaitStartTime && (now - (*i3)->mWaitStartTime >= (int)max_oi_timeout)) {
                     oi_timeout = 0;
                     TRACE_5("CCB %u timeout while waiting on implementer reply",
                         (*i3)->mId);
                 } 
 
-                if(sAbortNonCriticalCcbs) {
+                if(abortCcb) {
                     LOG_NO("CCB %u aborted by: immadm -o %u safRdn=immManagement,safApp=safImmService",
                         (*i3)->mId, SA_IMM_ADMIN_ABORT_CCBS);
                 }
