@@ -186,6 +186,22 @@ int main(int argc, char* argv[])
     	exit(EXIT_FAILURE);
     }
 
+    if(auditPbe) {
+        int rc;
+
+        rc = pbeAuditFile(filename.c_str());
+        if(!rc) {
+            std::cout << "Audit successful" << std::endl;
+        } else if(rc == 2) {
+            std::cerr << "Option --enable-imm-pbe must be enabled in the build to be able to audit PBE file"
+                    << std::endl;
+        } else {
+            std::cerr << "Audit failed. Check syslog for more details."
+                    << std::endl;
+        }
+        exit(rc);
+    }
+
     version.releaseCode = RELEASE_CODE;
     version.majorVersion = MAJOR_VERSION;
     version.minorVersion = MINOR_VERSION;
@@ -206,21 +222,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    if(auditPbe) {
-    	int rc;
-
-    	rc = pbeAuditFile(filename.c_str());
-    	if(!rc) {
-    		std::cout << "Audit successful" << std::endl;
-    	} else if(rc == 2) {
-    		std::cerr << "Option --enable-imm-pbe must be enabled in the build to be able to audit PBE file"
-    				<< std::endl;
-    	} else {
-    		std::cerr << "Audit failed. Check syslog for more details."
-    				<< std::endl;
-    	}
-    	exit(rc);
-    } else if(pbeDumpCase) {
+    if(pbeDumpCase) {
     	/* Generate PBE database file from current IMM state */
 
     	std::cout <<
