@@ -278,7 +278,8 @@ int main(int argc, char *argv[])
 	appLogFileCreateAttributes.haProperty = SA_TRUE;
 	appLogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE;
 	appLogFileCreateAttributes.maxFilesRotated = DEFAULT_MAX_FILES_ROTATED;
-	appLogFileCreateAttributes.logFileFmt = DEFAULT_FORMAT_EXPRESSION;
+	/* Use built-in log file format in log server for app stream */
+	appLogFileCreateAttributes.logFileFmt = NULL;
 
 	while (1) {
 		c = getopt_long(argc, argv, "hlnya:s:", long_options, NULL);
