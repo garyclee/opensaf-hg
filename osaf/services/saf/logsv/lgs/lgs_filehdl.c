@@ -432,7 +432,7 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 		mpath[path_len] = '\0';
 		rc = mkdir(mpath, S_IRWXU | S_IRWXG | S_IRWXO);
 		if ((rc != 0) && (errno != EEXIST)) {
-			LOG_ER("Making directory error %s",strerror(errno));
+			LOG_ER("mkdir \"%s\" Fail %s", mpath, strerror(errno));
 			mldh_rc = -1;
 			goto done;
 		}

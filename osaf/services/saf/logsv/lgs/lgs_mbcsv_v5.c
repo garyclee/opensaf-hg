@@ -87,22 +87,22 @@ uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data)
 			&cfg_buffer);
 
 	while (next_ptr != NULL) {
-		if ((strcmp(name_str, "logRootDirectory") == 0) &&
+		if ((strcmp(name_str, LOG_ROOT_DIRECTORY) == 0) &&
 		    (lgs_is_split_file_system() == true)){
 			const char *new_root_path = value_str;
 			const char *old_root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 			logRootDirectory_filemove(new_root_path, old_root_path,
 				(time_t *) &param->c_file_close_time_stamp);
-		} else if ((strcmp(name_str, "logDataGroupname") == 0) &&
+		} else if ((strcmp(name_str, LOG_DATA_GROUPNAME) == 0) &&
 		    (lgs_is_split_file_system() == true)) {
 			logDataGroupname_fileown(value_str);
-		} else if (!strcmp(name_str, "logStreamSystemHighLimit")) {
+		} else if (!strcmp(name_str, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
 			mailbox_lim_upd = true;
-		} else if (!strcmp(name_str, "logStreamSystemLowLimit")) {
+		} else if (!strcmp(name_str, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
 			mailbox_lim_upd = true;
-		} else if (!strcmp(name_str, "logStreamAppHighLimit")) {
+		} else if (!strcmp(name_str, LOG_STREAM_APP_HIGH_LIMIT)) {
 			mailbox_lim_upd = true;
-		} else if (!strcmp(name_str, "logStreamAppLowLimit")) {
+		} else if (!strcmp(name_str, LOG_STREAM_APP_LOW_LIMIT)) {
 			mailbox_lim_upd = true;
 		}
 
@@ -117,7 +117,7 @@ uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data)
 	cfg_buffer.ckpt_buffer_ptr = saved_buf;
 	rc = lgs_cfg_update(&cfg_buffer);
 	if (rc == -1) {
-		/* LLDTEST1XXX For now */
+		/* Shall not happen */
 		LOG_ER("%s lgs_cfg_update Fail", __FUNCTION__);
 		osafassert(0);
 	}
@@ -137,8 +137,7 @@ uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data)
 	}
 	lgs_free_edu_mem(param->buffer);
 
-	TRACE("LLDTEST1 %s: Configuration is check-pointed",__FUNCTION__);
-	lgs_trace_config(); /*LLDTEST1*/
+	lgs_trace_config();
 
 	return NCSCC_RC_SUCCESS;
 }

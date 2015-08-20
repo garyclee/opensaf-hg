@@ -22,7 +22,7 @@ This directory (logsv) contains an implementation of the SAF LOG service
 version A.02.01.
 
 The LOG service is implemented as a server process executing on the controllers
-using a 2N redundancy model. Message based check pointing is
+using a 2N redundancy model. Message based checkpointing is
 used to synchronize the two server instances.
 
 The Log file property "High Availability flag" is not supported by LOG itself
@@ -32,7 +32,7 @@ such a file system and must be configured to use it, see below.
 
 Important!
 ----------
-Contibutors/Maintainers see section
+Contributors/Maintainers see section
 IMPORTANT INFORMATION FOR CONTRIBUTORS/MAINTAINERS.
 
 
@@ -97,7 +97,7 @@ OVERLOAD PROTECTION
 LOG uses a single mailbox used to communicate from the MDS thread to the
 main thread. An IPC mailbox has four priority levels. By default a level
 is unbounded in size, as many messages as the main memory allows can be
-queued. The mailbox provides a mechanism to put a a limit on how many
+queued. The mailbox provides a mechanism to put a limit on how many
 messages that can be stored at the same time in it. LOG overload uses
 that feature.
 
@@ -145,8 +145,9 @@ default streams are included in the OpenSAF IMM configuration.
 Service configuration
 ---------------------
 There is also a configuration object class OpenSafLogConfig used to configure
-the LOG Service itself. These classes are not described in the LOG AIS
-specification.
+the LOG Service itself and a runtime object class OpenSafLogConfigRuntime making
+it possible to read the configuration.
+These classes are not described in the LOG AIS specification.
 
 There are three sources where the log server may get configuration data; an
 OpenSafLogConfig IMM object, environment variables or hard coded default values.
@@ -163,6 +164,8 @@ will be supported.
 
 1. IMM configuration object
 ---------------------------
+The name of the class is:
+"OpenSafLogConfig"
 The name of the configuration object is:
 "logConfig=1,safApp=safLogService"
 
@@ -220,7 +223,7 @@ The following attributes can be changed in runtime.
    all current log files will be changed to this group for consistent purpose.
    Users who are member of this group then can read the log files.
    After the deletion of the value of this attribute, the ownership of all current
-   log files won't be changed and behaviour will be kept as previous, i.e: new opened
+   log files won't be changed and behavior will be kept as previous, i.e: new opened
    log file will be owned by the primary group as which LOG service is running. 
 
 Other attributes cannot be changed in runtime.
@@ -260,7 +263,7 @@ LOGSV_ROOT_DIRECTORY:
 
 This variable is needed to configure the "implementation defined root
 directory" as mentioned in the spec. All log files will be stored directly 
-in this directory or in a subdirectory. If HA characterisitcs are needed for 
+in this directory or in a subdirectory. If HA characteristics are needed for
 LOG streams, configure this directory to point to replicated (shared & 
 persistent) partition.
 
@@ -303,6 +306,39 @@ This group must be added as a supplementary group of user as which log service i
 Any user wants to read log data must become a member of this group.
 
 Don't forget the "export" keyword before the variable!
+
+IMM configuration runtime object
+--------------------------------
+The name of the class is:
+"OpenSafLogConfigRuntime"
+The name of the configuration object is:
+"logConfig=currentConfig,safApp=safLogService"
+
+Since the log service can use three sources for setting the configuration
+parameters there is a possibility that there is a mismatch between the
+configuration object and the actual configuration. All attributes in this object
+is pure runtime attributes and shows the actual content of each configuration
+parameter.
+Normally the log service shall be configured using an IMM class matching the
+sw version (all attributes exist) and all attributes have a valid value. If this
+is the case the configuration object and the actual configuration will match.
+
+Some examples of when there will be a mismatch:
+A.
+The configuration classes are updated but new parameters has not been given a
+value (attributes exist but has empty values)
+
+B.
+The configuration object exist and has all attributes but one or more attribute
+has an invalid value. This could be the case if a configuration object is
+predefined with incorrect values. In this case the log service will use default
+values instead of the invalid values.
+
+NOTE: When upgrading to a sw version that has new configuration parameters both
+      configuration object classes has to be upgraded to contain the new
+      attributes. If the new parameters are not added to the runtime class it
+      will not be possible to see the complete configuration. The OpenSAF
+      logsv_classes.xml file shall always be updated.
 
 
 COMMAND LINE INTERFACE
@@ -373,7 +409,7 @@ File IO
 
 File operations are no longer allowed in the log-server main thread. This is in
 order to prevent "hanging" of the log-server if a file operation does not return
-e.g. when a NFS filesystem is not working correctly. It is therfore very
+e.g. when a NFS filesystem is not working correctly. It is therefore very
 important that no future code do any file-system operations in the main thread.
 
 All file system operations are handled in a separate thread.
@@ -421,7 +457,7 @@ The function is tread safe (see also lgs_cfg_update()).
 lgs_cfgupd_list_create()
 Used to create a list for configuration information. Contains attribute names
 and their values. The list may contain one or more attributes. The list is used
-for updating configuration data check-ponting etc. Typically a list is created
+for updating configuration data checkpointing etc. Typically a list is created
 when OI is reading a ccb in the apply callback.
 
 lgs_cfgupd_list_read()
@@ -433,15 +469,15 @@ The function is tread safe (see also lgs_cfg_get()).
 
 lgs_rootpathconf_set()
 lgs_groupnameconf_set()
-These functions exist in order to support older versions of check-pointing.
+These functions exist in order to support older versions of checkpointing.
 Shall never be used in new code! Instead lgs_cfgupd_list_create() and
 lgs_cfg_update() shall be used.
 
 
 Checkpointing:
-Previously configuration data was check-pointed using a check-point structure
-in the same way as check-pointing is done for other changes. This is changed.
-Configuration changes are now check-pointed using a variable length buffer
+Previously configuration data was checkpointed using a checkpoint structure
+in the same way as checkpointing is done for other changes. This is changed.
+Configuration changes are now checkpointed using a variable length buffer
 containing a cfgupd list.
 
 
@@ -482,7 +518,7 @@ An attribute in the log service configuration object is used to select
 configuration. Default configuration is shared file system (configuration 1).
 
 
-CHECK-POINTING
+CHECKPOINTING
 
 Only the active node will receive requests from the agent. The request are
 handled in the event handler (lgs_evt). The standby node will get information
@@ -501,7 +537,7 @@ using IMM applier. This is changed so that mbcsv is used for all
 synchronization.
 
 
-The following is check-pointed and done on standby:
+The following is checkpointed and done on standby:
 ===================================================
 
 If something goes wrong the general behavior is to restart the component using
@@ -509,7 +545,7 @@ saAmfComponentErrorReport(...,SA_AMF_COMPONENT_RESTART,...) in order to avoid
 being out of sync (will trig a mbcs cold sync).
 
 Checkpointed
-------------
+-------------
 
 initialize client:
     Adds a new client.
@@ -525,7 +561,7 @@ agent down:
     Client corresponding to MDS destination is removed. See also finalize.
 
 log write:
-    The following is check-pointed and internal data is updated:
+    The following is checkpointed and internal data is updated:
     logRecordId
     curFileSize
     logFileCurrent
@@ -578,7 +614,7 @@ cfg config:
     (lgs_imm) and changes are check pointed to standby.
 
 If config 2 log records:
-    Log records are check-pointed and written to file on standby
+    Log records are checkpointed and written to file on standby
     Files has to be handled as on active. This is done in the check point
     handler.
 
@@ -615,7 +651,7 @@ On standby if configuration 2:
    created a file rotation is done and "logFileCurrent" is used as new file
    name.
 
- - For log records, time stamp and log-record-id check-pointed from active is
+ - For log records, time stamp and log-record-id checkpointed from active is
    always used on standby.
  - In some situations log records can be out of sync e.g. if standby is
    restarted when active is writing log records. The log server detects this by

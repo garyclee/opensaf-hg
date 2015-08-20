@@ -205,7 +205,7 @@ static void init_default(void)
  * configuration.
  *
  * NOTE1: Parameter name and value is not validated
- * NOTE2: This function allocates memory pointed to chkpt_buffer_ptr in the
+ * NOTE2: This function allocates memory pointed to by config_data in the
  *        lgs_config_chg_t structure. This memory has to bee freed after usage
  *
  * @param name_str[in]  String containing the parameter name
@@ -380,36 +380,36 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data)
 		}
 
 		/* Update config data */
-		if (strcmp(name_str, "logRootDirectory") == 0) {
+		if (strcmp(name_str, LOG_ROOT_DIRECTORY) == 0) {
 			(void) snprintf(lgs_conf.logRootDirectory, PATH_MAX,
 				"%s", value_str);
 			lgs_conf.logRootDirectory_cnfflag = LGS_CNF_OBJ;
-		} else if (strcmp(name_str, "logDataGroupname") == 0) {
+		} else if (strcmp(name_str, LOG_DATA_GROUPNAME) == 0) {
 			(void) snprintf(lgs_conf.logDataGroupname, UT_NAMESIZE,
 				"%s", value_str);
 			lgs_conf.logDataGroupname_cnfflag = LGS_CNF_OBJ;
-		} else if (strcmp(name_str, "logMaxLogrecsize") == 0) {
+		} else if (strcmp(name_str, LOG_MAX_LOGRECSIZE) == 0) {
 			lgs_conf.logMaxLogrecsize = (SaUint32T)
 				strtoul(value_str, NULL, 0);
-		} else if (strcmp(name_str, "logStreamSystemHighLimit") == 0) {
+		} else if (strcmp(name_str, LOG_STREAM_SYSTEM_HIGH_LIMIT) == 0) {
 			lgs_conf.logStreamSystemHighLimit = (SaUint32T)
 				strtoul(value_str, NULL, 0);
-		} else if (strcmp(name_str, "logStreamSystemLowLimit") == 0) {
+		} else if (strcmp(name_str, LOG_STREAM_SYSTEM_LOW_LIMIT) == 0) {
 			lgs_conf.logStreamSystemLowLimit = (SaUint32T)
 				strtoul(value_str, NULL, 0);
-		} else if (strcmp(name_str, "logStreamAppHighLimit") == 0) {
+		} else if (strcmp(name_str, LOG_STREAM_APP_HIGH_LIMIT) == 0) {
 			lgs_conf.logStreamAppHighLimit = (SaUint32T)
 				strtoul(value_str, NULL, 0);
-		} else if (strcmp(name_str, "logStreamAppLowLimit") == 0) {
+		} else if (strcmp(name_str, LOG_STREAM_APP_LOW_LIMIT) == 0) {
 			lgs_conf.logStreamAppLowLimit = (SaUint32T)
 				strtoul(value_str, NULL, 0);
-		} else if (strcmp(name_str, "logMaxApplicationStreams") == 0) {
+		} else if (strcmp(name_str, LOG_MAX_APPLICATION_STREAMS) == 0) {
 			lgs_conf.logMaxApplicationStreams = (SaUint32T)
 				strtoul(value_str, NULL, 0);
-		} else if (strcmp(name_str, "logFileIoTimeout") == 0) {
+		} else if (strcmp(name_str, LOG_FILE_IO_TIMEOUT) == 0) {
 			lgs_conf.logFileIoTimeout = (SaUint32T)
 				strtoul(value_str, NULL, 0);
-		} else if (strcmp(name_str, "logFileSysConfig") == 0) {
+		} else if (strcmp(name_str, LOG_FILE_SYS_CONFIG) == 0) {
 			lgs_conf.logFileSysConfig = (SaUint32T)
 				strtoul(value_str, NULL, 0);
 		}
@@ -767,7 +767,7 @@ static void read_logsv_config_obj_2(void) {
 
 		value = attribute->attrValues[0];
 
-		if (!strcmp(attribute->attrName, "logRootDirectory")) {
+		if (!strcmp(attribute->attrName, LOG_ROOT_DIRECTORY)) {
 			n = snprintf(lgs_conf.logRootDirectory, PATH_MAX, "%s",
 					*((char **) value));
 			if (n >= PATH_MAX) {
@@ -778,7 +778,7 @@ static void read_logsv_config_obj_2(void) {
 				TRACE("Conf obj; logRootDirectory: %s",
 					lgs_conf.logRootDirectory);
 			}
-		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
+		} else if (!strcmp(attribute->attrName, LOG_DATA_GROUPNAME)) {
 			n = snprintf(lgs_conf.logDataGroupname, UT_NAMESIZE, "%s",
 					*((char **) value));
 			if (n >= UT_NAMESIZE) {
@@ -789,40 +789,40 @@ static void read_logsv_config_obj_2(void) {
 				TRACE("Conf obj; logDataGroupname: %s",
 					lgs_conf.logDataGroupname);
 			}
-		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
+		} else if (!strcmp(attribute->attrName, LOG_MAX_LOGRECSIZE)) {
 			lgs_conf.logMaxLogrecsize = *((SaUint32T *) value);
 			lgs_conf.logMaxLogrecsize_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logMaxLogrecsize: %u", lgs_conf.logMaxLogrecsize);
-		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
 			lgs_conf.logStreamSystemHighLimit = *((SaUint32T *) value);
 			lgs_conf.logStreamSystemHighLimit_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logStreamSystemHighLimit: %u",
 				lgs_conf.logStreamSystemHighLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
 			lgs_conf.logStreamSystemLowLimit = *((SaUint32T *) value);
 			lgs_conf.logStreamSystemLowLimit_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logStreamSystemLowLimit: %u",
 				lgs_conf.logStreamSystemLowLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_HIGH_LIMIT)) {
 			lgs_conf.logStreamAppHighLimit = *((SaUint32T *) value);
 			lgs_conf.logStreamAppHighLimit_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logStreamAppHighLimit: %u",
 				lgs_conf.logStreamAppHighLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_LOW_LIMIT)) {
 			lgs_conf.logStreamAppLowLimit = *((SaUint32T *) value);
 			lgs_conf.logStreamAppLowLimit_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logStreamAppLowLimit: %u",
 				lgs_conf.logStreamAppLowLimit);
-		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
+		} else if (!strcmp(attribute->attrName, LOG_MAX_APPLICATION_STREAMS)) {
 			lgs_conf.logMaxApplicationStreams = *((SaUint32T *) value);
 			lgs_conf.logMaxApplicationStreams_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logMaxApplicationStreams: %u",
 				lgs_conf.logMaxApplicationStreams);
-		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
+		} else if (!strcmp(attribute->attrName, LOG_FILE_IO_TIMEOUT)) {
 			lgs_conf.logFileIoTimeout = *((SaUint32T *) value);
 			lgs_conf.logFileIoTimeout_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logFileIoTimeout: %u", lgs_conf.logFileIoTimeout);
-		} else if (!strcmp(attribute->attrName, "logFileSysConfig")) {
+		} else if (!strcmp(attribute->attrName, LOG_FILE_SYS_CONFIG)) {
 			lgs_conf.logFileSysConfig = *((SaUint32T *) value);
 			lgs_conf.logFileSysConfig_cnfflag = LGS_CNF_OBJ;
 			TRACE("Conf obj; logFileSysConfig: %u", lgs_conf.logFileSysConfig);
@@ -851,10 +851,6 @@ done:
  * the rule is that the configuration object has precedence but there are
  * some deviations. The rules are applied here.
  *
- * LLDTESTXXX Shall config obj be updated if a parameter is configured from
- *            other source than the config obj itself??
- *            Remove makeshift solution where actual mailbox limits are written
- *            to syslog?
  */
 static void read_log_config_environ_var_2(void) {
 	char *val_str;
@@ -1338,6 +1334,158 @@ void lgs_groupnameconf_set(const char *data_groupname_str)
 		lgs_conf.logDataGroupname);
 
 	osaf_mutex_unlock_ordie(&lgs_config_data_mutex);
+}
+
+/******************************************************************************
+ * Handle Log service configuration runtime object
+ * Used to display log service actual configuration
+ ******************************************************************************/
+
+/**
+ * Create runtime object to show log service configuration
+ *
+ * @param immOiHandle[in]
+ */
+void conf_runtime_obj_create(SaImmOiHandleT immOiHandle)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	/* Construct object with dn:
+	 * logConfig=currentConfig,safApp=safLogService
+	 */
+	char namestr[128];
+	strcpy(namestr, "logConfig=currentConfig");
+	char *nameptr = namestr;
+	void *valarr[] = { &nameptr };
+	const SaImmAttrValuesT_2 attr_logConfig = {
+		.attrName = "logConfig",
+		.attrValueType = SA_IMM_ATTR_SASTRINGT,
+		.attrValuesNumber = 1,
+		.attrValues = valarr
+	};
+
+	const SaImmAttrValuesT_2 *attrValues[] = {
+		&attr_logConfig,
+		NULL
+	};
+
+	SaNameT parent_name, *parent_name_p;
+	strcpy((char *) parent_name.value, "safApp=safLogService");
+	parent_name.length = strlen((char *) parent_name.value);
+	parent_name_p = &parent_name;
+
+	rc = saImmOiRtObjectCreate_2(immOiHandle,
+			"OpenSafLogCurrentConfig",
+			parent_name_p,
+			attrValues);
+
+	if (rc == SA_AIS_ERR_EXIST) {
+		TRACE("Server runtime configuration object already exist");
+	} else if (rc != SA_AIS_OK) {
+		LOG_NO("%s: Cannot create config runtime object %s",
+			__FUNCTION__, saf_error(rc));
+	}
+
+	TRACE_LEAVE();
+}
+
+/**
+ * Handler for updating runtime configuration object attributes
+ * Called from the SaImmOiRtAttrUpdateCallbackT type function
+ *
+ * @param immOiHandle[in]
+ * @param attributeNames[in]
+ */
+void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attributeNames)
+{
+	SaImmAttrNameT attributeName;
+	int i = 0;
+	char *str_val = NULL;
+	SaUint32T u32_val = 0;
+
+	TRACE_ENTER();
+
+	while ((attributeName = attributeNames[i++]) != NULL) {
+		TRACE("Attribute %s", attributeName);
+		if (!strcmp(attributeName, LOG_ROOT_DIRECTORY)) {
+			str_val = (char *)
+				lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+			(void)immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SASTRINGT,
+				&str_val);
+		} else if (!strcmp(attributeName, LOG_DATA_GROUPNAME)) {
+			str_val = (char *)
+				lgs_cfg_get(LGS_IMM_DATA_GROUPNAME);
+			(void)immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SASTRINGT,
+				&str_val);
+		} else if (!strcmp(attributeName, LOG_MAX_LOGRECSIZE)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else if (!strcmp(attributeName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else if (!strcmp(attributeName, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else if (!strcmp(attributeName, LOG_STREAM_APP_HIGH_LIMIT)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else if (!strcmp(attributeName, LOG_STREAM_APP_LOW_LIMIT)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else if (!strcmp(attributeName, LOG_MAX_APPLICATION_STREAMS)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else if (!strcmp(attributeName, LOG_FILE_IO_TIMEOUT)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else if (!strcmp(attributeName, LOG_FILE_SYS_CONFIG)) {
+			u32_val = *(SaUint32T *)
+				lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG);
+			(void) immutil_update_one_rattr(immOiHandle,
+				LGS_CFG_RUNTIME_OBJECT,
+				attributeName, SA_IMM_ATTR_SAUINT32T,
+				&u32_val);
+		} else {
+			TRACE("%s: unknown attribute %s",
+				__FUNCTION__, attributeName);
+		}
+	}
+
+	TRACE_LEAVE();
 }
 
 /******************************************************************************

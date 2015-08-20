@@ -43,6 +43,9 @@
 #define DEFAULT_APP_FILE_NAME "saLogApplication1"
 #define DEFAULT_MAX_FILE_ROTATED 4
 
+#define LOGTST_IMM_LOG_CONFIGURATION "logConfig=1,safApp=safLogService"
+#define LOGTST_IMM_LOG_RUNTIME       "logConfig=currentConfig,safApp=safLogService"
+
 extern SaNameT systemStreamName;
 extern SaNameT alarmStreamName;
 extern SaNameT notificationStreamName;

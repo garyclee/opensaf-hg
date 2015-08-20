@@ -265,7 +265,6 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 		return NCSCC_RC_FAILURE;
 	}
 	
-#if 1
 	/* If configured for split file system and becoming active some
 	 * stb stream parameters has to be copied to corresponding active. The
 	 * reason is that standby may have for example another current file in a
@@ -290,7 +289,7 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 			stream = log_stream_getnext_by_name(stream->name);
 		}
 	}
-#endif
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
