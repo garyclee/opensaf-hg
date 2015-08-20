@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+
+import select
+import datetime
+
+from pyosaf.utils import immom, immoi
+from pyosaf.utils.immoi.implementer import Implementer
+from pyosaf.utils.immom.object import ImmObject
+
+class_name = "TimeSample"
+dn         = "timeId=1"
+timeout    = 1
+
+class TimeReporter(Implementer):
+    ''' This implementer creates a runtime object and updates it with
+        the current time according to the configured timeout (in seconds)'''
+
+    def __init__(self, timeout=1, time_id=1):
+        ''' Initializes this time reporter instance '''
+
+        Implementer.__init__(self, name="TimeReporter")
+
+        self.timeout = timeout
+        self.time_id = time_id
+
+    def create_time_instance(self):
+
+        # Create the time instance if it doesn't exist
+        dn = "timeId=%s" % self.time_id
+
+        if not immoi.get_object_no_runtime(dn):
+
+            now = datetime.datetime.now()
+
+            obj = ImmObject(class_name=class_name, dn=dn)
+
+            obj.hours   = now.hour
+            obj.minutes = now.minute
+            obj.seconds = now.second
+            obj.timeId  = "timeId=%" % self.time_id
+
+            time_implementer.create(obj)
+
+    def enter_dispatch_loop(self):
+        ''' 
+            Loops continuously and dispatches callbacks or updates the 
+            current time
+        '''
+
+        # Get selection object for the implementer
+        selection_object = self.get_selection_object()
+
+        # Wait for next OI event or one second timeout
+        inputs  = [selection_object]
+        outputs = []
+
+        while inputs:
+
+            readable, writable, exceptional = \
+            select.select(inputs, outputs, inputs, self.timeout)
+
+            if selection_object in readable:
+                self.dispatch()
+            else:
+
+                # Update the time
+                now = datetime.datetime.now()
+
+                attributes = {'hours'   : now.hour,
+                              'minutes' : now.minute,
+                              'seconds' : now.second}
+
+                self.update_runtime_attributes(dn, attributes)
+
+if __name__ == '__main__':
+
+    # Create the implementer instance
+    time_implementer = TimeReporter(time_id=1)
+
+
+    # Start dispatch and time update loop
+    time_implementer.enter_dispatch_loop()

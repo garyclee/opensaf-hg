@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import itertools
+
+from pyosaf.saAis import eSaAisErrorT
+
+from pyosaf.utils import SafException
+
+from pyosaf.utils.immoi.implementer import Implementer
+
+caps_class_name = "CapsSample"
+
+class Caps(Implementer):
+    ''' The Caps implementer implements CapsSample and makes sure that
+        the upperCaps and lowerCaps consist only of uppercase characters
+        and lowercase characters respectively.'''
+
+    def __init__(self):
+        ''' Constructs the Caps instance '''
+        Implementer.__init__(self, class_names=[caps_class_name],
+                             name="CapsImplementer")
+
+    def on_validate(self, all_instances, to_update, to_create, to_delete):
+        ''' Validates that the rules for upperCaps and lowerCaps are kept '''
+
+        # Verify that upper and lower caps are correct in created objects
+        # and updated objects
+        for mo in itertools.chain(to_create, to_update):
+
+            # Verify upper caps
+            if mo.upperCaps and not mo.upperCaps.isupper():
+                err_str = "ERROR: %s.upperCaps must be upper case (was %s)" % \
+                    (mo.dn, mo.upperCaps)
+                raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM, err_str)
+
+            # Verify lower caps
+            if mo.lowerCaps and not mo.lowerCaps.islower():
+                err_str = "ERROR: %s.lowerCaps must be lower case (was %s)" % \
+                          (mo.dn, mo.lowerCaps)
+                raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM, err_str)
+
+
+if __name__ == "__main__":
+
+    # Create the implementer
+    caps_implementer = Caps()
+
+    # Start the infinite dispatch loop
+    caps_implementer.enter_dispatch_loop()

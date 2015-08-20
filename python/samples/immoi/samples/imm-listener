@@ -1,0 +1,111 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+from pyosaf.saImm import eSaImmClassCategoryT
+
+from pyosaf.utils.immoi import get_available_classes_in_imm, get_class_category
+from pyosaf.utils.immoi.implementer import Applier
+
+
+def is_config_class(class_name):
+
+    category = get_class_category(class_name)
+
+    return category == eSaImmClassCategoryT.SA_IMM_CLASS_CONFIG
+
+
+def parse_class_names():
+
+    return args.classes
+
+def print_mo(mo):
+    ''' Prints an MO instance '''
+
+    print "    %s" % mo.dn
+
+    # Print attributes
+    for name, type_value_pair in mo.attrs.iteritems():
+        value = type_value_pair[1]
+
+        if len(value) == 1:
+            value = value[0]
+
+        print "        - %s: %s" % (name, value)
+
+def handle_apply(all_instances, updated, created, to_delete):
+
+    print
+    print '-' * 10 + " Configuration changed " + '-' * 10
+
+    # Handle creates
+    print "  Created objects"
+    for mo in created:
+        print_mo(mo)
+
+    # Handle deletes
+    print "  Deleted objects"
+    for mo in to_delete:
+        print "    %s" % mo
+
+    # Handle updates
+    print "  Updated objects"
+    for mo in updated:
+        print_mo(mo)
+        
+if __name__ == "__main__":
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Listens to changes to objects of the given classes')
+    parser.add_argument('classes', type=str, nargs='*', 
+                        help='space-separated list of class names')
+    parser.add_argument('--all', help='listens to changes to all classes',
+                        dest='all', action='store_const', const=all, 
+                        default=False)
+
+    args = parser.parse_args()
+
+    classes = args.classes
+
+    listen_to_all = args.all
+
+    # Exit if no classes are passed
+    if not listen_to_all and (not classes or classes == []):
+        print "ERROR: Must specify classes to listen to or '--all'"
+        sys.exit(1)
+
+    # Sort out which classes to listen to
+    all_available_classes = get_available_classes_in_imm()
+    classes_to_listen_to = []
+
+    if listen_to_all:
+        print "INFO: Listening to changes to all configuration classes"
+
+        classes_to_listen_to = [c for c in all_available_classes if is_config_class(c)]
+
+    else:
+
+        # Validate classes
+        for class_name in classes:
+
+            if not class_name in all_available_classes:
+                print "WARNING: Ignoring %s. It does not exist in IMM" % class_name
+
+                continue
+
+            elif not is_config_class(class_name):
+                print "WARNING: Ignoring runtime class %s" % class_name
+
+                continue
+
+            classes_to_listen_to.append(class_name)
+
+    print "INFO: Listening for changes in %s" % ", ".join(classes_to_listen_to)
+
+    echo_applier = Applier(on_apply=handle_apply, 
+                           class_names=classes_to_listen_to,
+                           name="ImmListener")
+
+    echo_applier.enter_dispatch_loop()
