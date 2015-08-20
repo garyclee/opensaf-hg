@@ -27,6 +27,19 @@
 extern "C" {
 #endif
 
+#define LGS_CFG_RUNTIME_OBJECT "logConfig=currentConfig,safApp=safLogService"
+
+#define LOG_ROOT_DIRECTORY "logRootDirectory"
+#define LOG_DATA_GROUPNAME "logDataGroupname"
+#define LOG_MAX_LOGRECSIZE "logMaxLogrecsize"
+#define LOG_STREAM_SYSTEM_HIGH_LIMIT "logStreamSystemHighLimit"
+#define LOG_STREAM_SYSTEM_LOW_LIMIT "logStreamSystemLowLimit"
+#define LOG_STREAM_APP_HIGH_LIMIT "logStreamAppHighLimit"
+#define LOG_STREAM_APP_LOW_LIMIT "logStreamAppLowLimit"
+#define LOG_MAX_APPLICATION_STREAMS "logMaxApplicationStreams"
+#define LOG_FILE_IO_TIMEOUT "logFileIoTimeout"
+#define LOG_FILE_SYS_CONFIG "logFileSysConfig"
+
 typedef enum {
 	LGS_IMM_LOG_ROOT_DIRECTORY,
 	LGS_IMM_DATA_GROUPNAME,
@@ -81,6 +94,12 @@ int lgs_cfg_verify_log_data_groupname(char *group_name);
 int lgs_cfg_verify_max_logrecsize(uint32_t max_logrecsize_in);
 int lgs_cfg_verify_mbox_limit(uint32_t high, uint32_t low);
 int lgs_cfg_verify_max_application_streams(uint32_t max_app_streams);
+
+/*
+ * Handle runtime object for showing actual configuration
+ */
+void conf_runtime_obj_create(SaImmOiHandleT immOiHandle);
+void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attributeNames);
 
 /*
  *  Trace functions

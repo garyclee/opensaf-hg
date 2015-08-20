@@ -44,7 +44,8 @@ logtest_SOURCES = \
 	tet_saLogStreamClose.c \
 	tet_saLogLimitGet.c \
 	tet_LogOiOps.c \
-	tet_Log_misc.c
+	tet_Log_misc.c \
+	tet_log_runtime_cfgobj.c
 
 logtest_LDADD = \
 	$(top_builddir)/tests/unit_test_fw/src/libutest.la \

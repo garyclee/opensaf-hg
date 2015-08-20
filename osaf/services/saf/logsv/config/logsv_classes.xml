@@ -245,4 +245,63 @@ to ensure that default global values in the implementation are also changed acco
 			<flag>SA_WRITABLE</flag>
 		</attr>
 	</class>
+	<class name="OpenSafLogCurrentConfig">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>logConfig</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>logRootDirectory</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logMaxLogrecsize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logStreamSystemHighLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logStreamSystemLowLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logStreamAppHighLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logStreamAppLowLimit</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logMaxApplicationStreams</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logFileIoTimeout</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logFileSysConfig</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logDataGroupname</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+	</class>
 </imm:IMM-contents>

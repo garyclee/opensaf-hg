@@ -47,6 +47,7 @@
 #include "lgs_util.h"
 #include "lgs_file.h"
 #include "lgs_config.h"
+#include "saf_error.h"
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
@@ -684,8 +685,6 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_v3_t vattr_v3, char *err
  * Modification of attributes in log service configuration object.
  * Validate given attribute changes and report result to IMM
  *
- * LLDTESTXXX Use validation functions in lgs_config.c
- * 
  * @param immOiHandle
  * @param opdata
  * @return 
@@ -722,7 +721,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		TRACE("attribute %s", attribute->attrName);
 
 		/* Ignore deletion of attributes except for logDataGroupname*/
-		if ((strcmp(attribute->attrName, "logDataGroupname") != 0) &&
+		if ((strcmp(attribute->attrName, LOG_DATA_GROUPNAME) != 0) &&
 			(attribute->attrValuesNumber == 0)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"deletion of value is not allowed for attribute %s stream %s",
@@ -735,7 +734,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 			value = attribute->attrValues[0];
 		}
 
-		if (!strcmp(attribute->attrName, "logRootDirectory")) {
+		if (!strcmp(attribute->attrName, LOG_ROOT_DIRECTORY)) {
 			if (attribute->attrValuesNumber != 0) {
 				char *pathName = *((char **)value);
 				rc = lgs_cfg_verify_root_dir(pathName);
@@ -747,7 +746,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 				}
 				TRACE("pathName: %s is accepted", pathName);
 			}
-		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
+		} else if (!strcmp(attribute->attrName, LOG_DATA_GROUPNAME)) {
 			if (attribute->attrValuesNumber == 0) {
 				TRACE("Deleting log data group");
 			} else {
@@ -761,42 +760,42 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 				}
 				TRACE("groupname: %s is accepted", groupname);
 			}
-		} else if (!strcmp(attribute->attrName, "logMaxLogrecsize")) {
+		} else if (!strcmp(attribute->attrName, LOG_MAX_LOGRECSIZE)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
 			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
-		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
 			vattr_v3.logStreamSystemHighLimit = *((SaUint32T *)value);
 			vattr_v3.logStreamSystemHighLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
 					vattr_v3.logStreamSystemHighLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
 			vattr_v3.logStreamSystemLowLimit = *((SaUint32T *)value);
 			vattr_v3.logStreamSystemLowLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
 					vattr_v3.logStreamSystemHighLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_HIGH_LIMIT)) {
 			vattr_v3.logStreamAppHighLimit = *((SaUint32T *)value);
 			vattr_v3.logStreamAppHighLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
 					vattr_v3.logStreamSystemHighLimit);
-		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_LOW_LIMIT)) {
 			vattr_v3.logStreamAppLowLimit = *((SaUint32T *)value);
 			vattr_v3.logStreamAppLowLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
 					vattr_v3.logStreamSystemHighLimit);
-		} else if (!strcmp(attribute->attrName, "logMaxApplicationStreams")) {
+		} else if (!strcmp(attribute->attrName, LOG_MAX_APPLICATION_STREAMS)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
 			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
-		} else if (!strcmp(attribute->attrName, "logFileIoTimeout")) {
+		} else if (!strcmp(attribute->attrName, LOG_FILE_IO_TIMEOUT)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
 			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
-		} else if (!strcmp(attribute->attrName, "logFileSysConfig")) {
+		} else if (!strcmp(attribute->attrName, LOG_FILE_SYS_CONFIG)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
 			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -1907,46 +1906,46 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 		 * - Add to update buffer. Used for updating configuration data
 		 *   and check-pointing
 		 */
-		if (!strcmp(attribute->attrName, "logRootDirectory")) {
+		if (!strcmp(attribute->attrName, LOG_ROOT_DIRECTORY)) {
 			value_str = *((char **)value); /* New directory */
 			char *old_dir =
 				(char *) lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 			apply_conf_logRootDirectory(old_dir, value_str);
-			lgs_cfgupd_list_create("logRootDirectory",
+			lgs_cfgupd_list_create(LOG_ROOT_DIRECTORY,
 				value_str, &config_data);
 			root_dir_chg_flag = true;
-		} else if (!strcmp(attribute->attrName, "logDataGroupname")) {
+		} else if (!strcmp(attribute->attrName, LOG_DATA_GROUPNAME)) {
 			if (value == NULL) {
 				value_str = "";
 			} else {
 				value_str = *((char **)value);
 			}
 			apply_conf_logDataGroupname(value_str);
-			lgs_cfgupd_list_create("logDataGroupname",
+			lgs_cfgupd_list_create(LOG_DATA_GROUPNAME,
 				value_str, &config_data);
-		} else if (!strcmp(attribute->attrName, "logStreamSystemHighLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
 			uint32_val = *(uint32_t *) value;
 			snprintf(uint32_str, 20, "%u", uint32_val);
 			mailbox_lim_upd = true;
-			lgs_cfgupd_list_create("logStreamSystemHighLimit",
+			lgs_cfgupd_list_create(LOG_STREAM_SYSTEM_HIGH_LIMIT,
 				uint32_str, &config_data);
-		} else if (!strcmp(attribute->attrName, "logStreamSystemLowLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
 			uint32_val = *(uint32_t *) value;
 			snprintf(uint32_str, 20, "%u", uint32_val);
 			mailbox_lim_upd = true;
-			lgs_cfgupd_list_create("logStreamSystemLowLimit",
+			lgs_cfgupd_list_create(LOG_STREAM_SYSTEM_LOW_LIMIT,
 				uint32_str, &config_data);
-		} else if (!strcmp(attribute->attrName, "logStreamAppHighLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_HIGH_LIMIT)) {
 			uint32_val = *(uint32_t *) value;
 			snprintf(uint32_str, 20, "%u", uint32_val);
 			mailbox_lim_upd = true;
-			lgs_cfgupd_list_create("logStreamAppHighLimit",
+			lgs_cfgupd_list_create(LOG_STREAM_APP_HIGH_LIMIT,
 				uint32_str, &config_data);
-		} else if (!strcmp(attribute->attrName, "logStreamAppLowLimit")) {
+		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_LOW_LIMIT)) {
 			uint32_val = *(uint32_t *) value;
 			snprintf(uint32_str, 20, "%u", uint32_val);
 			mailbox_lim_upd = true;
-			lgs_cfgupd_list_create("logStreamAppLowLimit",
+			lgs_cfgupd_list_create(LOG_STREAM_APP_LOW_LIMIT,
 				uint32_str, &config_data);
 		}
 
@@ -1971,9 +1970,7 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	/* Check-point changes */
 	(void) ckpt_lgs_cfg(root_dir_chg_flag, &config_data);
 
-#if 1 /*LLDTEST1*/
 	lgs_trace_config();
-#endif
 
 	/* Cleanup and free cfg buffer */
 	if (config_data.ckpt_buffer_ptr != NULL)
@@ -2347,11 +2344,13 @@ static void ccbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 }
 
 /**
- * IMM requests us to update a non cached runtime attribute. The only
- * available attributes are saLogStreamNumOpeners and logStreamDiscardedCounter.
- * @param immOiHandle
- * @param objectName
- * @param attributeNames
+ * IMM requests us to update a non cached runtime attribute.
+ * Can be non cached attribute in stream runtime object or
+ * runtime configuration object
+ *
+ * @param immOiHandle[in]
+ * @param objectName[in]
+ * @param attributeNames[in]
  * 
  * @return SaAisErrorT
  */
@@ -2361,7 +2360,6 @@ static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmAttrNameT attributeName;
 	int i = 0;
-	log_stream_t *stream = log_stream_get_by_name((char *)objectName->value);
 
 	TRACE_ENTER2("%s", objectName->value);
 
@@ -2370,22 +2368,38 @@ static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		goto done;
 	}
 
-	if (stream == NULL) {
-		LOG_ER("%s: stream %s not found", __FUNCTION__, objectName->value);
-		goto done;
-	}
+	/* Handle configuration runtime object */
+	if (strncmp((char *) objectName->value, LGS_CFG_RUNTIME_OBJECT,
+			objectName->length) == 0) {
+		/* Handle Runtome configuration object */
+		conf_runtime_obj_hdl(immOiHandle, attributeNames);
+	} else {
 
-	while ((attributeName = attributeNames[i++]) != NULL) {
-		TRACE("Attribute %s", attributeName);
-		if (!strcmp(attributeName, "saLogStreamNumOpeners")) {
-			(void)immutil_update_one_rattr(immOiHandle, (char *)objectName->value,
-						       attributeName, SA_IMM_ATTR_SAUINT32T, &stream->numOpeners);
-		} else if (!strcmp(attributeName, "logStreamDiscardedCounter")) {
-			(void) immutil_update_one_rattr(immOiHandle, (char *) objectName->value,
-					attributeName, SA_IMM_ATTR_SAUINT64T, &stream->filtered);
-		} else {
-			LOG_ER("%s: unknown attribute %s", __FUNCTION__, attributeName);
+		/* Handle stream object if valid
+		 */
+		log_stream_t *stream = log_stream_get_by_name((char *)objectName->value);
+		if (stream == NULL) {
+			LOG_ER("%s: stream %s not found", __FUNCTION__, objectName->value);
 			goto done;
+		}
+
+		while ((attributeName = attributeNames[i++]) != NULL) {
+			TRACE("Attribute %s", attributeName);
+			if (!strcmp(attributeName, "saLogStreamNumOpeners")) {
+				(void)immutil_update_one_rattr(immOiHandle,
+					(char *)objectName->value,
+					attributeName, SA_IMM_ATTR_SAUINT32T,
+					&stream->numOpeners);
+			} else if (!strcmp(attributeName, "logStreamDiscardedCounter")) {
+				(void) immutil_update_one_rattr(immOiHandle,
+					(char *) objectName->value,
+					attributeName, SA_IMM_ATTR_SAUINT64T,
+					&stream->filtered);
+			} else {
+				LOG_ER("%s: unknown attribute %s",
+					__FUNCTION__, attributeName);
+				goto done;
+			}
 		}
 	}
 
@@ -2790,4 +2804,3 @@ SaAisErrorT lgs_imm_init_OI(lgs_cb_t *cb)
 
 	return rc;
 }
-

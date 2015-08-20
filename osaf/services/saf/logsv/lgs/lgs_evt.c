@@ -30,10 +30,6 @@
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
-#if 0 /*LLDTEST1*/
-#include "lgs_mbcsv_v3.h"
-#include "lgs_mbcsv_v5.h"
-#endif
 
 /* Macro to validate the version */
 #define m_LOG_VER_IS_VALID(ver)   \

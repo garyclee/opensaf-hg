@@ -333,6 +333,11 @@ static uint32_t log_initialize(void)
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
+
+		/* Create the runtime object for showing the actual
+		 * log server configuration
+		 */
+		conf_runtime_obj_create(lgs_cb->immOiHandle);
 	}
 
 	/* If AMF started register immediately */
