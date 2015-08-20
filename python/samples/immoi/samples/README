@@ -1,0 +1,82 @@
+Samples
+=======
+
+The samples use the classes defined in the classes.xml file. Before running them, load it:
+
+$ immcfg -f classes.xml
+
+Each sample OI is implemented in two versions, one using straight callbacks and one using a class that subclasses Implementer or Applier. The latter is named <oi-name>-inheritance-impl
+
+Imm Listener
+------------
+
+The Imm Lister OI demonstrates how to build an applier. It listens to changes to SampleClass1 and simply prints them on stdout. It's an applier which means that it does not validate any of the changes and it can be run in parallel with a proper OI.
+
+Use like this:
+
+$ imm-listener SampleClass1
+
+or, to listen for changes to all configuration classes:
+
+$ imm-listener --all
+
+
+Tones
+-----
+
+The Tones OI demonstrates validation of containment relations. It implements classes for the tones Do, Re, Mi, Fa, So, La, Ti and only allows creation of each tone under the lower tone, except for Do which can be created without a parent.
+
+Use like this:
+
+$ tones &
+
+$ immcfg -c Do doId=1                 (allowed)
+
+$ immcfg -c Re reId=1,doId=1          (allowed)
+
+$ immcfg -c Do doId=1,reId=1,doId=1   (not allowed)
+
+$ immcfg -c Mi miId=1                 (not allowed)
+
+
+Caps
+----
+
+The Caps OI demonstrates validation. It validates that any new CapsSample objects and any updated CapsSample objects follow these rules:
+
+  - The upperCaps attribute consists only of uppercase characters
+  - The lowerCaps attribute consists only of lowercase characters
+
+Use like this:
+
+$ caps &
+
+$ immcfg -c CapsSample capsId=<RDN>
+
+$ immcfg -a upperCaps=ABC capsId=<RDN>  (allowed)
+
+$ immcfg -a lowerCaps=Abc capsId=<RDN>  (not allowed)
+
+
+Time Reporter
+-------------
+
+The Time Reporter OI demonstrates update of runtime attributes from an OI and inclusion of the OI logic into a select loop owned by the application. It creates a runtime object timeId=1 of the class TimeSample and updates its hours, minutes and seconds attributes once every second.
+
+Use like this:
+
+$ time-reporter
+
+
+Ping Pong
+---------
+
+The Ping Pong OI demonstrates administrative operations. It creates an object pingPongId=1 and responds on admin operations 0 and 1.
+
+Use like this:
+
+$ ping-pong &
+
+$ immadm -o [0|1] pingPongId=1 <parameters..>
+
+

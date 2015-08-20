@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<imm:IMM-contents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.02.13.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:imm="http://www.saforum.org/IMMSchema">
+  <class name="SampleClass1">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>sampleClassId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+    <attr>
+      <name>attribute1</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_WRITABLE</flag>
+      <flag>SA_NOTIFY</flag>
+    </attr>
+    <attr>
+      <name>attribute2</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_WRITABLE</flag>
+      <flag>SA_NOTIFY</flag>
+    </attr>
+  </class>
+
+  <!-- Tones OI -->
+  <class name="Do">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>doId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+  <class name="Re">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>reId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+  <class name="Mi">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>miId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+  <class name="Fa">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>faId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+  <class name="So">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>soId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+  <class name="La">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>laId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+  <class name="Ti">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>tiId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+
+  <!-- Ping-pong OI -->
+  <class name="PingPong">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>pingPongId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+  </class>
+
+  <!-- Caps OI -->
+  <class name="CapsSample">
+    <category>SA_CONFIG</category>
+    <rdn>
+      <name>capsId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_INITIALIZED</flag>
+      <flag>SA_NOTIFY</flag>
+    </rdn>
+    <attr>
+      <name>lowerCaps</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_WRITABLE</flag>
+      <flag>SA_NOTIFY</flag>
+    </attr>
+    <attr>
+      <name>upperCaps</name>
+      <type>SA_STRING_T</type>
+      <category>SA_CONFIG</category>
+      <flag>SA_WRITABLE</flag>
+      <flag>SA_NOTIFY</flag>
+    </attr>
+  </class>
+  <class name="InterfaceRO01">
+    <category>SA_RUNTIME</category>
+    <rdn>
+      <name>interfaceId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+    </rdn>
+    <attr>
+      <name>ipv4Addresses</name>
+      <type>SA_STRING_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+      <flag>SA_MULTI_VALUE</flag>
+    </attr>
+    <attr>
+      <name>ipv6Addresses</name>
+      <type>SA_STRING_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+      <flag>SA_MULTI_VALUE</flag>
+    </attr>
+  </class>
+  <class name="TimeSample">
+    <category>SA_RUNTIME</category>
+    <rdn>
+      <name>timeId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+    </rdn>
+    <attr>
+      <name>hours</name>
+      <type>SA_UINT32_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+    </attr>
+    <attr>
+      <name>minutes</name>
+      <type>SA_UINT32_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+    </attr>
+    <attr>
+      <name>seconds</name>
+      <type>SA_UINT32_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+    </attr>
+  </class>
+</imm:IMM-contents>

@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+from pyosaf.utils.immoi import implementer
+
+tone_class_names = ["Do", "Re", "Mi", "Fa", "So", "La", "Ti"]
+
+        
+if __name__ == "__main__":
+
+    # Set up containment constraints
+    constraints = implementer.Constraints()
+
+    constraints.add_allowed_containment('Do', 'Re', upper=1)
+    constraints.add_allowed_containment('Re', 'Mi', upper=1)
+    constraints.add_allowed_containment('Mi', 'Fa', upper=1)
+    constraints.add_allowed_containment('Fa', 'So', upper=1)
+    constraints.add_allowed_containment('So', 'La', upper=1)
+    constraints.add_allowed_containment('La', 'Ti', upper=1)
+
+    # Create the implementer
+    tones_implementer = implementer.Implementer(class_names=tone_class_names,
+                                                name="TonesImplementer")
+
+    tones_implementer.set_constraints(constraints)
+
+    # Start the infinite dispatch loop
+    tones_implementer.enter_dispatch_loop()
