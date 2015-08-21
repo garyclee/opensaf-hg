@@ -150,7 +150,8 @@ extern "C" {
 
 	void immModel_getCcbIdsForOrigCon(IMMND_CB *cb, SaUint32T origConn, SaUint32T *arrSize, SaUint32T **ccbIdArr);
 
-	void immModel_discardNode(IMMND_CB *cb, SaUint32T nodeId, SaUint32T *arrSize, SaUint32T **ccbIdArr);
+	void immModel_discardNode(IMMND_CB *cb, SaUint32T nodeId, SaUint32T *arrSize, SaUint32T **ccbIdArr, 
+		SaUint32T* globArrSize, SaUint32T** globccbIdArr);
 
 	SaAisErrorT
 	    immModel_ccbObjectDelete(IMMND_CB *cb,
@@ -254,7 +255,8 @@ extern "C" {
 					      SaUint32T implConn, SaUint32T implNodeId);
 	SaUint32T immModel_getImplementerId(IMMND_CB *cb, SaUint32T implConn);
 
-	void immModel_discardImplementer(IMMND_CB *cb, SaUint32T implId, SaBoolT reallyDiscard);
+	void immModel_discardImplementer(IMMND_CB *cb, SaUint32T implId, SaBoolT reallyDiscard,
+						SaUint32T* globArrSize, SaUint32T** globccbIdArr);
 
 	void immModel_fetchAdmOpContinuations(IMMND_CB *cb, SaInvocationT inv,
 					      SaBoolT local, SaUint32T *implConn,

@@ -8781,10 +8781,24 @@ static void immnd_evt_proc_discard_impl(IMMND_CB *cb,
 					IMMND_EVT *evt,
 					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
+        SaUint32T *globIdArr = NULL;
+        SaUint32T globArrSize = 0;
 	TRACE_ENTER();
 	osafassert(evt);
 	TRACE_2("Global discard implementer for id:%u", evt->info.implSet.impl_id);
-	immModel_discardImplementer(cb, evt->info.implSet.impl_id, SA_TRUE);
+	immModel_discardImplementer(cb, evt->info.implSet.impl_id, SA_TRUE, &globArrSize, &globIdArr);
+        if(globArrSize) {
+                SaUint32T ix;
+                for (ix = 0; ix < globArrSize; ++ix) {
+			LOG_WA("Discard implementer for id  %u, abort Non-critical ccbId %u which has " 
+					"discarded implementer", evt->info.implSet.impl_id, globIdArr[ix]);
+                        immnd_proc_global_abort_ccb(cb, globIdArr[ix]);
+                }
+                free(globIdArr);
+                globIdArr = NULL;
+                globArrSize = 0;
+        }
+
 	TRACE_LEAVE();
 }
 
@@ -8809,6 +8823,9 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 {
 	SaUint32T *idArr = NULL;
 	SaUint32T arrSize = 0;
+	SaUint32T *globIdArr = NULL;
+	SaUint32T globArrSize = 0;
+	
 	TRACE_ENTER();
 	osafassert(evt);
 	if(evt->info.ctrl.nodeId == cb->node_id) {
@@ -8822,7 +8839,19 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 	   causing a newly reattached node being discarded. 
 	 */
 	cb->mLostNodes++;
-	immModel_discardNode(cb, evt->info.ctrl.nodeId, &arrSize, &idArr);
+	immModel_discardNode(cb, evt->info.ctrl.nodeId, &arrSize, &idArr, &globArrSize, &globIdArr);
+	if(globArrSize) {
+		SaUint32T ix;
+                for (ix = 0; ix < globArrSize; ++ix) {
+			LOG_WA("Detected crash at node %x, abort Non-critical ccbId %u which has implementer "
+				"on the crashed node ", evt->info.ctrl.nodeId, globIdArr[ix]);
+			immnd_proc_global_abort_ccb(cb, globIdArr[ix]);
+		}
+		free(globIdArr);
+		globIdArr = NULL;
+		globArrSize = 0;
+	}
+
 	if (arrSize) {
 		SaAisErrorT err = SA_AIS_OK;
 		SaUint32T ix;
@@ -9361,7 +9390,7 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 			}
 			/* Mark the implementer as dying to make sure no upcall is sent to the client.
 			   The implementer will be really discarded when global-discard message comes */
-			immModel_discardImplementer(cb, implId, SA_FALSE);
+			immModel_discardImplementer(cb, implId, SA_FALSE, NULL, NULL);
 			return;
 		} else if (cl_node->mIsStale) {
 			LOG_WA("IMMND - Client went down so no response");

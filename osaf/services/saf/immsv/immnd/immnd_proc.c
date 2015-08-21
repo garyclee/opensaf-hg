@@ -142,7 +142,7 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 		/*Discard the local implementer directly and redundantly to avoid 
 		   race conditions using this implementer (ccb's causing abort upcalls).
 		 */
-		immModel_discardImplementer(cb, implId, SA_FALSE);
+		immModel_discardImplementer(cb, implId, SA_FALSE, NULL, NULL);
 	}
 
 	if (cl_node->mIsStale) {
