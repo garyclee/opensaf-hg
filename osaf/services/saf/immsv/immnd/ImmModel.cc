@@ -1204,12 +1204,14 @@ void
 immModel_discardNode(IMMND_CB *cb, 
     SaUint32T nodeId,
     SaUint32T* arrSize,
-    SaUint32T** ccbIdArr)
+    SaUint32T** ccbIdArr,
+    SaUint32T* globArrSize,
+    SaUint32T** globccbIdArr)
 {
-    ConnVector cv;
-    ConnVector::iterator cvi;
+    ConnVector cv, gv;
+    ConnVector::iterator cvi, gvi;
     unsigned int ix=0;
-    ImmModel::instance(&cb->immModel)->discardNode(nodeId, cv);
+    ImmModel::instance(&cb->immModel)->discardNode(nodeId, cv, gv, cb->mIsCoord);
     *arrSize = (SaUint32T) cv.size();
     if(*arrSize) {
         *ccbIdArr = (SaUint32T *) malloc((*arrSize)* sizeof(SaUint32T));
@@ -1218,6 +1220,16 @@ immModel_discardNode(IMMND_CB *cb,
         }
     }
     osafassert(ix==(*arrSize));
+    
+    *globArrSize = (SaUint32T) gv.size();
+    ix=0;
+    if(*globArrSize) {
+        *globccbIdArr = (SaUint32T *) malloc((*globArrSize)* sizeof(SaUint32T));
+        for(gvi = gv.begin(); gvi!=gv.end(); ++gvi, ++ix) {
+            (*globccbIdArr)[ix] = (*gvi);
+        }
+    }
+    osafassert(ix==(*globArrSize));
 }
 
 void
@@ -1599,9 +1611,26 @@ immModel_getImplementerId(IMMND_CB* cb, SaUint32T deadConn)
 
 void
 immModel_discardImplementer(IMMND_CB* cb, SaUint32T implId, 
-    SaBoolT reallyDiscard)
+    SaBoolT reallyDiscard, SaUint32T* globArrSize, SaUint32T** globccbIdArr)
 {
-    ImmModel::instance(&cb->immModel)->discardImplementer(implId, reallyDiscard);
+    ConnVector gv;
+    ConnVector::iterator gvi;
+    unsigned int ix=0;
+    ImmModel::instance(&cb->immModel)->discardImplementer(implId, reallyDiscard, 
+        gv, cb->mIsCoord);
+
+    if (globArrSize && globccbIdArr) {
+        *globArrSize = (SaUint32T) gv.size();
+        ix=0;
+        if(*globArrSize) {
+            *globccbIdArr = (SaUint32T *) malloc((*globArrSize)* sizeof(SaUint32T));
+            for(gvi = gv.begin(); gvi!=gv.end(); ++gvi, ++ix) {
+               (*globccbIdArr)[ix] = (*gvi);
+           }
+        }
+        osafassert(ix==(*globArrSize));
+    }
+
 }
 
 SaAisErrorT
@@ -11915,11 +11944,13 @@ ImmModel::getImplementerId(SaUint32T localConn)
 }
 
 void
-ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
+ImmModel::discardNode(unsigned int deadNode, IdVector& cv, IdVector& gv, bool isAtCoord )
 {
     ImplementerVector::iterator i;
     AdminOwnerVector::iterator i2;
     CcbVector::iterator i3;
+    ConnVector implv;
+    ConnVector::iterator i4;
     TRACE_ENTER();
 
     if(sImmNodeState == IMM_NODE_W_AVAILABLE) {
@@ -11960,6 +11991,12 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
                     ci2->second.mTimeout = 1; /* one second is minimum timeout. */
                 }
             }
+     
+            if(isAtCoord){
+                // pushing to implv to find the ccbIds with implemeter id which are going to be disconnected. 
+                // Later abort the CcbId. This is done only at co-ordinator.
+                implv.push_back(info->mId);
+            }
             //discardImplementer(info->mId); 
             //Doing it directly here for efficiency.
             //But watch out for changes in discardImplementer
@@ -11988,6 +12025,23 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
             //implementer.
         }
     }
+    /*
+        Fethes CcbIds which are non-critcal and Ccbs has implementer which are
+        going to be disconnected, because of node down. This is done only at co-ordinator.
+
+    */
+    if(isAtCoord && (implv.size()>0)){
+        CcbImplementerMap::iterator isi;
+        for(i4 = implv.begin(); i4!=implv.end(); ++i4) {
+            for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
+                isi = ((*i3)->mImplementers.find(*i4));
+                if(isi != ((*i3)->mImplementers.end()) && ((*i3)->mState < IMM_CCB_CRITICAL)) {
+                    gv.push_back((*i3)->mId);
+                }
+            }
+        }
+    }
+
     
     //Discard AdminOwners
     i2 = sOwnerVector.begin();
@@ -12016,11 +12070,14 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
 }
 
 void
-ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
+ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard, IdVector& gv, bool isAtCoord)
 {
     //Note: If this function is altered, then you may need to make
     //changes in ImmModel::discardNode, since that function also deletes
     //implementers.
+    CcbVector::iterator i1;
+    SaUint32T mid;
+
     TRACE_ENTER();
     ImplementerInfo* info = findImplementer(implHandle);
     if(info) {
@@ -12032,6 +12089,18 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
 
             //Note the time of death and id of the demised implementer.
             sImplDetachTime[info] = ContinuationInfo2(info->mId, DEFAULT_TIMEOUT_SEC);
+            if(isAtCoord){
+                // Find the Non-critical ccbs with implemeter id which are going to be Disconnected. 
+                // Later abort the CCBId. This is done only at co-ordinator.
+                mid = info->mId;
+                CcbImplementerMap::iterator isi;
+                for(i1=sCcbVector.begin(); i1!=sCcbVector.end(); ++i1) {
+                    isi = (*i1)->mImplementers.find(mid);
+                    if(isi != ((*i1)->mImplementers.end()) && ((*i1)->mState < IMM_CCB_CRITICAL)) {
+                       gv.push_back((*i1)->mId);
+                    }
+                }
+            }
 
             info->mId = 0;
             info->mConn = 0;
@@ -13933,6 +14002,7 @@ ImmModel::implementerClear(const struct ImmsvOiImplSetReq* req,
     unsigned int nodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
+    ConnVector gv;
     TRACE_ENTER();
     
     ImplementerInfo* info = findImplementer(req->impl_id);
@@ -13941,7 +14011,7 @@ ImmModel::implementerClear(const struct ImmsvOiImplSetReq* req,
             /* Sync is ongoing and we are a sync client.
                Remember the death of the implementer. 
             */
-            discardImplementer(req->impl_id, true);
+            discardImplementer(req->impl_id, true, gv, false);
             goto done;
         }
         LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle? %llu id:%u", 
@@ -13954,7 +14024,7 @@ ImmModel::implementerClear(const struct ImmsvOiImplSetReq* req,
                 conn, nodeId);
             err = SA_AIS_ERR_BAD_HANDLE;
         } else {
-            discardImplementer(req->impl_id, true);
+            discardImplementer(req->impl_id, true, gv, false);
         }
     }
     
@@ -17303,9 +17373,9 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             if(!sNodesDeadDuringSync.empty()) {
                 IdVector::iterator ivi = sNodesDeadDuringSync.begin();
                 for(;ivi != sNodesDeadDuringSync.end(); ++ivi) {
-                    ConnVector cv;
+                    ConnVector cv, gv;
                     LOG_NO("Sync client re-executing discardNode for node %x", (*ivi));
-                    this->discardNode((*ivi), cv);
+                    this->discardNode((*ivi), cv, gv, false);
                     if(!(cv.empty())) {
                         LOG_ER("Sync can not discard node with active ccbs");
                         err = SA_AIS_ERR_FAILED_OPERATION;
