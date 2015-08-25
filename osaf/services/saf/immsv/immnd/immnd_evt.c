@@ -2669,13 +2669,6 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		goto agent_rsp;
 	}
 
-	if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
-		TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting rt_update request",
-			IMMSV_DEFAULT_FEVS_MAX_PENDING);
-		err = SA_AIS_ERR_TRY_AGAIN;
-		goto agent_rsp;
-	}
-
 	err = immnd_mds_client_not_busy(&(cl_node->tmpSinfo));
 	if(err != SA_AIS_OK) {
 		if(err == SA_AIS_ERR_BAD_HANDLE) {
@@ -2704,7 +2697,14 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		/*This message is allowed even when imm not writable. But isPureLocal should
 		   never be false if we are not writable, thus we should never get to this
 		   code branch if imm is not writbale.
-		 */
+		 */	
+
+		if (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) {
+			TRACE_2("ERR_TRY_AGAIN: Too many pending incoming fevs messages (> %u) rejecting rt_update request",
+				IMMSV_DEFAULT_FEVS_MAX_PENDING);
+			err = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
+		}
 
 		cb->fevs_replies_pending++;	/*flow control */
 		if (cb->fevs_replies_pending > 1) {
