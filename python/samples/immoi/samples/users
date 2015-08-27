@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+from pyosaf import saAis
+from pyosaf.utils import immom, immoi, SafException
+from pyosaf.utils.immom.object import ImmObject
+from pyosaf.utils.immoi.implementer import Implementer
+
+import psutil
+
+class_name='UsersSampleClass'
+
+def on_attribute_update(*args):
+    return list(set(map(lambda x: x.name, psutil.get_users())))
+
+if __name__ == '__main__':
+    
+    users_implementer = Implementer(on_runtime_values_get=on_attribute_update,
+                                    name='UsersImplementer')
+
+    try:
+        obj = ImmObject(class_name=class_name, dn='usersId=1')
+
+        obj.usersId = 'usersId=1'
+
+        users_implementer.create(obj)
+    except SafException as err:
+        if not err.value == saAis.eSaAisErrorT.SA_AIS_ERR_EXIST:
+            raise err
+        
+    users_implementer.enter_dispatch_loop()

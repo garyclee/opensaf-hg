@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+from pyosaf import saAis
+from pyosaf.utils import immom, immoi, SafException
+from pyosaf.utils.immom.object import ImmObject
+from pyosaf.utils.immoi.implementer import Implementer
+
+import psutil
+
+class_name='UsersSampleClass'
+
+class UsersImplementer(Implementer):
+
+    def __init__(self):
+        Implementer.__init__(self, name='UsersImplementer')
+
+    def on_runtime_values_get(self, name, class_name, attribute):
+        return list(set(map(lambda x: x.name, psutil.get_users())))
+
+if __name__ == '__main__':
+    
+    users_implementer = UsersImplementer()
+
+    try:
+        obj = ImmObject(class_name=class_name, dn='usersId=2')
+
+        obj.usersId = 'usersId=2'
+
+        users_implementer.create(obj)
+    except SafException as err:
+        if not err.value == saAis.eSaAisErrorT.SA_AIS_ERR_EXIST:
+            raise err
+        
+    users_implementer.enter_dispatch_loop()

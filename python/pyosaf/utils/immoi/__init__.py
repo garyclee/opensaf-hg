@@ -281,9 +281,6 @@ def get_object_no_runtime(dn, class_name=None):
     if not class_name:
         class_name = get_class_name_for_dn(dn)
 
-    if not class_name:
-        return None
-
     class_desc = get_class_description(class_name)
 
     config_attrs = []

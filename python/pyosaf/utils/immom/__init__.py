@@ -80,8 +80,13 @@ def _initialize():
     err = saImmOmAccessorInitialize(HANDLE, ACCESSOR_HANDLE)
 
 
-def get(object_name, attr_name_list=None):
+def get(object_name, attr_name_list=None, class_name=None):
     ''' obtain values of some attributes of the specified object '''
+
+    # Always request the SaImmAttrClassName attribute if needed
+    if attr_name_list and not class_name and \
+       not 'SaImmAttrClassName' in attr_name_list:
+        attr_name_list.append('SaImmAttrClassName')
 
     attrib_names = [SaImmAttrNameT(a) for a in attr_name_list]\
         if attr_name_list else None
@@ -108,6 +113,9 @@ def get(object_name, attr_name_list=None):
                 attr.attrValues[val],
                 attr.attrValueType) for val in attr_range]
             ]
+
+    if not 'SaImmAttrClassName' in attribs and class_name:
+        attribs['SaImmAttrClassName'] = class_name
 
     return ImmObject(object_name, attribs)
 

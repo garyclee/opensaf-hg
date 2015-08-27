@@ -182,7 +182,7 @@ def admin_operation(oi_handle, c_invocation_id, c_name, c_operation_id, c_params
 def abort_ccb(oi_handle, ccb_id):
     ''' Callback for aborted CCBs. 
 
-        Removes the given CCB from the cache 
+        Removes the given CCB from the cache.
     '''
 
     del ccbs[ccb_id]
@@ -223,40 +223,26 @@ def attr_update(oi_handle, c_name, c_attr_names):
     class_name = immoi.get_class_name_for_dn(name)
 
     # Get the values from the user and report back
-    if implementer_instance.on_runtime_values_get:
+    attributes = {}
 
-        attr_mods = []
+    for attr_name in attr_names:
+        values = implementer_instance.on_runtime_values_get(name, class_name, 
+                                                            attr_name)
 
-        for attr_name in attr_names:
-            values = implementer_instance.on_runtime_values_get(name, 
-                                                                class_name, 
-                                                                attr_name)
+        if values is None:
+            return eSaAisErrorT.SA_AIS_ERR_UNAVAILABLE
 
-            if values is None:
-                return eSaAisErrorT.SA_AIS_ERR_UNAVAILABLE
+        if not isinstance(values, list):
+            values = [values]
 
-            if not isinstance(values, list):
-                values = [values]
+        attributes[attr_name] = values
 
-            attribute_type = immoi.get_attribute_type(attr_name, class_name)
-
-            attr_mod = saImm.SaImmAttrModificationT_2()
-            attr_mod.modType = eSaImmAttrModificationTypeT.SA_IMM_ATTR_VALUES_REPLACE
-            attr_mod.modAttr = saImm.SaImmAttrValuesT_2()
-            attr_mod.modAttr.attrName = saImm.SaImmAttrNameT(attr_name)
-            attr_mod.modAttr.attrValueType = attribute_type
-            attr_mod.modAttr.attrValuesNumber = len(values)
-            attr_mod.modAttr.attrValues = marshal_c_array(attribute_type, values)
-            attr_mods = [attr_mod]
-
-        # Report the updated values for the attributes
-        try:
-            immoi.update_rt_object(name, attr_mods)
-        except SafException as err:
-            return eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION
-
-    else:
-        return eSaAisErrorT.SA_AIS_ERR_NOT_SUPPORTED
+    # Report the updated values for the attributes
+    try:
+        immoi.update_rt_object(name, attributes)
+        return eSaAisErrorT.SA_AIS_OK
+    except SafException as err:
+        return eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION
 
 def delete_added(oi_handle, ccb_id, c_name):
     ''' Callback for object delete '''
@@ -353,12 +339,9 @@ def create_added(oi_handle, c_ccb_id, c_class_name, c_parent, c_attr_values):
     description = immom.class_description_get(class_name)
 
     for attribute in description:
-        print attribute.attrName
-        if not attribute.attrName in attributes:
-            print "Not in attributes, adding"
-            attributes[attribute.attrName] = None
 
-    print attributes
+        if not attribute.attrName in attributes:
+            attributes[attribute.attrName] = None
 
     # Create a new CCB in the cache if needed
     if not ccb_id in ccbs.keys():
@@ -618,6 +601,19 @@ class Implementer:
     def set_admin_operations(self, admin_operations):
         ''' Sets the admin operations to be executed by the OI '''
         self.admin_operations = admin_operations
+
+    def on_runtime_values_get(self, name, class_name, attribute_name):
+        ''' Retrieves values for the requested attribute in the given 
+            instance
+        '''
+
+        if self.on_runtime_values_get_cb:
+            try:
+                return self.on_runtime_values_get_cb(name, class_name, attribute_name)
+            except SafException as err:
+                return err.value
+        else:
+            return None
 
     def on_modify_added(self, attribute_name, modification_type, values):
         ''' Called when an object modify operation has been added to an
