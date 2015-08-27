@@ -25,6 +25,21 @@
     </attr>
   </class>
 
+  <class name="UsersSampleClass">
+    <category>SA_RUNTIME</category>
+    <rdn>
+      <name>usersId</name>
+      <type>SA_STRING_T</type>
+      <category>SA_RUNTIME</category>
+      <flag>SA_CACHED</flag>
+    </rdn>
+    <attr>
+      <name>users</name>
+      <type>SA_STRING_T</type>
+      <category>SA_RUNTIME</category>
+    </attr>
+  </class>
+
   <!-- Tones OI -->
   <class name="Do">
     <category>SA_CONFIG</category>
