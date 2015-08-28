@@ -76,6 +76,13 @@ def _collect_full_transaction(ccb_id):
             parent     = operation['parent']
             class_name = operation['className']
             attributes = operation['attributes']
+            rdn_attr   = immoi.get_rdn_attribute_for_class(class_name)
+            rdn_value  = attributes[rdn_attr][0]
+
+            if parent:
+                dn = '%s,%s' % (rdn_value, parent)
+            else:
+                dn = rdn_value
 
             instance = immoi.create_non_existing_imm_object(class_name, 
                                                             parent, attributes)
