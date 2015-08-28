@@ -37,6 +37,7 @@
       <name>users</name>
       <type>SA_STRING_T</type>
       <category>SA_RUNTIME</category>
+      <flag>SA_MULTI_VALUE</flag>
     </attr>
   </class>
 
