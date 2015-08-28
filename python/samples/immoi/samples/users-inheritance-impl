@@ -22,9 +22,9 @@ if __name__ == '__main__':
     users_implementer = UsersImplementer()
 
     try:
-        obj = ImmObject(class_name=class_name, dn='usersId=2')
+        obj = ImmObject(class_name=class_name, dn='usersId=1')
 
-        obj.usersId = 'usersId=2'
+        obj.usersId = 'usersId=1'
 
         users_implementer.create(obj)
     except SafException as err:
