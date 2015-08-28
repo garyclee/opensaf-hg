@@ -80,3 +80,14 @@ $ ping-pong &
 $ immadm -o [0|1] pingPongId=1 <parameters..>
 
 
+Users
+-----
+
+The Users OI demonstrates an OI that returns values of runtime attributes when it's queried by IMM. It uses the Python package psutil to fill in the list of logged in users.
+
+Use like this:
+
+$ users &
+
+$ immlist usersId=1
+
