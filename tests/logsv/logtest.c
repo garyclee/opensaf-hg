@@ -190,7 +190,7 @@ void init_logrootpath(void)
 
 
 /**
- * Get attribute value in string from IMM
+ * Get attribute value from IMM
  * @param inObjname Distinguished Name
  * @param inAttr Attribute to search for value
  * @param outNume The holder for the output for number data type attribute
