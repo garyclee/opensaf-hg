@@ -41,9 +41,6 @@ pthread_mutex_t lgs_ftcom_mutex;	/* For locking communication */
 static pthread_cond_t request_cv;	/* File thread waiting for request */
 static pthread_cond_t answer_cv;	/* API waiting for answer (timed) */
 
-/* Max time to wait for file thread to finish */
-static uint32_t max_waittime_ms = 500;
-
 struct file_communicate {
 	bool request_f;	/* True if pending request */
 	bool answer_f;	/* True if pending answer */
@@ -258,11 +255,6 @@ uint32_t lgs_file_init(void)
 	
 	TRACE_ENTER();
 	
-	/* Initiate timeouts from Log service IMM configuration object */
-	max_waittime_ms = *(SaUint32T*) lgs_cfg_get(
-		LGS_IMM_FILEHDL_TIMEOUT);
-	TRACE("max_waittime_ms = %d",max_waittime_ms);
-	
 	if (start_file_thread() != 0) {
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -428,6 +420,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	if (rc != 0) osaf_abort(rc);
 	
 	/* Wait for an answer */
+	uint32_t max_waittime_ms = *(SaUint32T *) lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT);
 	get_timeout_time(&timeout_time, max_waittime_ms);
 
 	while (lgs_com_data.answer_f == false) {

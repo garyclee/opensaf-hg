@@ -120,24 +120,22 @@ static struct {
 	SaUint32T logStreamSystemLowLimit;
 	SaUint32T logStreamAppHighLimit;
 	SaUint32T logStreamAppLowLimit;
-
-	/* Not runtime configurable */
 	SaUint32T logMaxLogrecsize;
 	SaUint32T logMaxApplicationStreams;
 	SaUint32T logFileIoTimeout;
 	SaUint32T logFileSysConfig;
 } lgs_conf_def = {
-	PKGLOGDIR,	/*logRootDirectory*/
-	"",		/*logDataGroupname*/
-	DEFAULT_APP_SYS_FORMAT_EXP, /* logStreamFileFormat */
-	1024,		/*logMaxLogrecsize*/
-	0,		/*logStreamSystemHighLimit*/
-	0,		/*logStreamSystemLowLimit*/
-	0,		/*logStreamAppHighLimit*/
-	0,		/*logStreamAppLowLimit*/
-	64,		/*logMaxApplicationStreams*/
-	500,		/*logFileIoTimeout*/
-	1,		/*logFileSysConfig*/
+	.logRootDirectory = PKGLOGDIR,
+	.logDataGroupname = "",
+	.logStreamFileFormat = DEFAULT_APP_SYS_FORMAT_EXP,
+	.logStreamSystemHighLimit = 0,
+	.logStreamSystemLowLimit = 0,
+	.logStreamAppHighLimit = 0,
+	.logStreamAppLowLimit = 0,
+	.logMaxLogrecsize = 1024,
+	.logMaxApplicationStreams = 64,
+	.logFileIoTimeout = 500,
+	.logFileSysConfig = 1,
 };
 
 static lgs_conf_t lgs_conf = {
@@ -146,7 +144,7 @@ static lgs_conf_t lgs_conf = {
 	 * configuration exists and the corresponding attributes hard-coded
 	 * default value is used.Is set to false if configuration is found in
 	 * IMM object or environment variable.
-	 * See function lgs_imm_logconf_get() for more info.
+	 * See function lgs_logconf_get() for more info.
 	 */
 	.OpenSafLogConfig_object_exist = false,
 
@@ -544,9 +542,8 @@ int lgs_cfg_verify_log_file_format(const char* log_file_format)
 /**
  * Verify logMaxLogrecsize; Max size of a log record including header
  * Rules:
- * - Because of an incorrect declaration in the server (uint16_t) that shall be
- *   uint32_t the max value cannot be set > 2^15-1 (32767)
- * - Must be > 256
+ * - Must be >= 150
+ * - Must not larger than 65535 (UINT16_MAX)
  *
  * @param max_logrecsize_in[in]
  * @return -1 on error
@@ -554,8 +551,7 @@ int lgs_cfg_verify_log_file_format(const char* log_file_format)
 int lgs_cfg_verify_max_logrecsize(uint32_t max_logrecsize_in)
 {
 	int rc = 0;
-
-	if ((max_logrecsize_in > 32767) || (max_logrecsize_in < 256)) {
+	if ((max_logrecsize_in > 65535) || (max_logrecsize_in < 150)) {
 		LOG_NO("verify_max_logrecsize Fail");
 		rc = -1;
 	}
@@ -609,14 +605,24 @@ int lgs_cfg_verify_max_application_streams(uint32_t max_app_streams)
 
 /**
  * Verify logFileIoTimeout
- * Rules: No rules defined will always return 0 (ok)
- *
+ * Rules: timeout must not be larger than 15s as it will impact on amf healthcheck.
+ *        - Maximum value is less than 5s
+ *        - Minimum timeout is not less than 500ms
+ * NOTE: This range has not been measured in real system yet.
  * @param log_file_io_timeout[in]
  * @return -1 on error
  */
-static int lgs_cfg_verify_file_io_timeout(uint32_t log_file_io_timeout)
+int lgs_cfg_verify_file_io_timeout(uint32_t log_file_io_timeout)
 {
-	return 0;
+	int rc = 0;
+
+	if ((log_file_io_timeout < 500) || (log_file_io_timeout > 5000)) {
+		LOG_NO("logFileIoTimeout has invalid value = %u",
+			   log_file_io_timeout);
+		rc = -1;
+	}
+
+	return rc;
 }
 
 /**

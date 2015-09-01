@@ -28,6 +28,24 @@
 #define opensaf_user "opensaf"
 #define data_group "log-data"
 
+/**
+ * Due to the ticket #1443, if creating/deleting conf obj class continuously,
+ * logsv will be crashed or deleting action gets failed.
+ *
+ * For now, until the ticket is fixed, adding some delay b/w creating/deleting
+ * as a workaround to avoid impact on testing that frequently encounter
+ * when running whole test suite in one go.
+ *
+ */
+
+/* Add delay 10ms. Once the #1443 is done, undefine following macro */
+#define __ADD_SLEEP__
+#ifdef __ADD_SLEEP__
+static void delay_ms(void) { usleep (10*1000); }
+#else
+static void delay_ms(void) {};
+#endif // __ADD_SLEEP__
+
 static SaLogFileCreateAttributesT_2 appStreamLogFileCreateAttributes =
 {
     .logFilePathName = DEFAULT_APP_FILE_PATH_NAME,
@@ -522,6 +540,7 @@ void saLogOi_26()
     char command[256];
 
     sprintf(command, "immcfg -d safLgStrCfg=strB,safApp=safLogService");
+	delay_ms();
     rc = system(command);
     rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -535,6 +554,7 @@ void saLogOi_27()
     char command[256];
 
     sprintf(command, "immcfg -d safLgStrCfg=strC,safApp=safLogService");
+	delay_ms();
     rc = system(command);
     rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -731,6 +751,7 @@ void saLogOi_40()
     char command[256];
 
     sprintf(command, "immcfg -d safLgStrCfg=strA,safApp=safLogService");
+	delay_ms();
     rc = system(command);
     rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -839,6 +860,7 @@ void saLogOi_47()
     char command[256];
 
     sprintf(command, "immcfg -d safLgStrCfg=strD,safApp=safLogService");
+	delay_ms();
     rc = system(command);
     rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -1061,21 +1083,6 @@ void saLogOi_81(void)
 }
 
 /**
- * CCB Object Modify, logMaxLogrecsize. Not allowed
- * Result, Reject
- */
-void saLogOi_53(void)
-{
-    int rc;
-    char command[256];
-	
-    sprintf(command, "immcfg -a logMaxLogrecsize=%d "
-			"logConfig=1,safApp=safLogService 2> /dev/null",1025);
-    rc = system(command);
-    rc_validate(WEXITSTATUS(rc), 1);	
-}
-
-/**
  * CCB Object Modify, logStreamSystemHighLimit > logStreamSystemLowLimit. OK
  * Result OK
  */
@@ -1211,21 +1218,6 @@ void saLogOi_62(void)
 }
 
 /**
- * CCB Object Modify, logFileIoTimeout. Not allowed
- * Result, Reject
- */
-void saLogOi_63(void)
-{
-    int rc;
-    char command[256];
-	
-    sprintf(command, "immcfg -a logFileIoTimeout=%d"
-			" logConfig=1,safApp=safLogService 2> /dev/null",600);
-    rc = system(command);
-    rc_validate(WEXITSTATUS(rc), 1);	
-}
-
-/**
  * CCB Object Modify, logFileSysConfig. Not allowed
  * Result, Reject
  */
@@ -1281,6 +1273,7 @@ void saLogOi_65(void)
 	rc = system(command);
 	
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 	rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -1335,6 +1328,7 @@ void saLogOi_68(void)
 	rc = system(command);
 	/* Delete the test object */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -1356,6 +1350,7 @@ void saLogOi_69(void)
 	rc = system(command);
 	/* Delete the test object */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1411,6 +1406,7 @@ void saLogOi_72(void)
 	rc = system(command);
 	/* Delete the test object */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 	rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -1437,6 +1433,7 @@ void saLogOi_73(void)
 
 	/* Delete the test object */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	rc = tet_system(command);
 	if (rc != 0) {
 		fprintf(stderr, "%s Fail rc=%d\n", command, rc);
@@ -1468,6 +1465,7 @@ void saLogOi_74(void)
 	}
 	/* Delete the test object */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	rc = tet_system(command);
 	if (rc != 0) {
 		fprintf(stderr, "'%s' Fail rc=%d\n", command, rc);
@@ -1510,6 +1508,7 @@ void saLogOi_76(void)
 	rc = system(command);
 	/* Delete the test object */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 	rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -1587,6 +1586,7 @@ void saLogOi_100(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1615,6 +1615,7 @@ void saLogOi_101(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -1643,6 +1644,7 @@ void saLogOi_102(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -1671,6 +1673,7 @@ void saLogOi_103(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -1705,8 +1708,10 @@ void saLogOi_104(void)
 	
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 	sprintf(command,"immcfg -d safLgStrCfg=str6a,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 	rc_validate(WEXITSTATUS(rc), 0);
 }
@@ -1733,6 +1738,7 @@ void saLogOi_105(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6a,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1760,6 +1766,7 @@ void saLogOi_106(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1788,6 +1795,7 @@ void saLogOi_107(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -1816,6 +1824,7 @@ void saLogOi_108(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -1844,6 +1853,7 @@ void saLogOi_109(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1872,6 +1882,7 @@ void saLogOi_110(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1900,6 +1911,7 @@ void saLogOi_111(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1928,6 +1940,7 @@ void saLogOi_112(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -1956,6 +1969,7 @@ void saLogOi_113(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 0);
@@ -1984,6 +1998,7 @@ void saLogOi_114(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -2012,6 +2027,7 @@ void saLogOi_115(void)
 	rc = system(command);
 	/* Delete */
 	sprintf(command,"immcfg -d safLgStrCfg=str6,safApp=safLogService");
+	delay_ms();
 	safassert(system(command),0);
 
 	rc_validate(WEXITSTATUS(rc), 1);
@@ -2471,6 +2487,627 @@ void verDefaultLogFileFmt(void)
 
 #undef MAX_LOGRECSIZE
 
+/**
+ * Add test cases for ticket #1288
+ * - logFileIoTimeout is changeable in runtime
+ * - logMaxLogrecsize is changeable in runtime
+ * - Max log record is up to 65535
+ */
+
+#define MAX_LOGRECSIZE (65535)
+
+/**
+ * CCB Object Modify, logFileIoTimeout.
+ * Verify it is possible to change the value
+ */
+void verLogFileIoTimeout(void)
+{
+    int rc;
+    char command[256];
+	uint32_t val = 0;
+	uint32_t *tmp = &val;
+
+	/* Get current value of logMaxApplicationStreams */
+	rc = get_attr_value(&configurationObject, "logFileIoTimeout",
+						(void **)&tmp, NULL);
+	if (rc == -1) {
+		/* if failed, use default value */
+		fprintf(stderr, "Failed to get attribute value from IMM \n");
+		val = 500;
+	} else {
+		val = *tmp;
+	}
+
+    sprintf(command, "immcfg -a logFileIoTimeout=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null", 600);
+    rc = system(command);
+	rc_validate(WEXITSTATUS(rc), 0);
+
+	/* If perform the command succesfully, restore to previous value. */
+	if (WEXITSTATUS(rc) == 0) {
+		sprintf(command, "immcfg -a logFileIoTimeout=%u"
+				" logConfig=1,safApp=safLogService 2> /dev/null", val);
+		rc = system(command);
+	}
+}
+
+/**
+ * CCB Object Modify, logFileIoTimeout < 500. Not allowed
+ * Result, Reject
+ */
+void verLogFileIoTimeout_Err_01(void)
+{
+    int rc;
+    char command[256];
+
+    sprintf(command, "immcfg -a logFileIoTimeout=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null", 400);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);
+}
+
+/**
+ * CCB Object Modify, logFileIoTimeout > 5000. Not allowed
+ * Result, Reject
+ */
+void verLogFileIoTimeout_Err_02(void)
+{
+    int rc;
+    char command[256];
+
+    sprintf(command, "immcfg -a logFileIoTimeout=%d"
+			" logConfig=1,safApp=safLogService 2> /dev/null", 6000);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);
+}
+
+/**
+ * CCB Object Modify, valid logMaxLogrecsize value is in range [150 - 65535].
+ */
+void verLogMaxLogrecsize(void)
+{
+    int rc;
+    char command[256];
+	uint32_t logMaxRec = 0;
+	uint32_t *tmp = &logMaxRec;
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+    rc = get_attr_value(&configurationObject, "logMaxLogrecsize", (void **)&tmp,
+						NULL);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		logMaxRec = 1024;
+    } else {
+		logMaxRec = *tmp;
+	}
+
+    sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", MAX_LOGRECSIZE);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);
+
+	/* Restore logMaxLogrecsize to previous value */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", logMaxRec);
+    rc = system(command);
+}
+
+/**
+ * CCB Object Modify, verify the rule:
+ * saLogStreamMaxLogFileSize > logMaxLogrecsize >= saLogStreamFixedLogRecordSize
+ */
+void verLogMaxLogrecsize_dep(void)
+{
+    int rc;
+    char command[256];
+	uint32_t logMaxRec = 0;
+	uint32_t *tmp = &logMaxRec;
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+    rc = get_attr_value(&configurationObject, "logMaxLogrecsize", (void **)&tmp,
+						NULL);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		logMaxRec = 1024;
+    } else {
+		logMaxRec = *tmp;
+	}
+
+	/* Change the logMaxLogrecsize */
+    sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", 1000);
+    rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Failed to perform command. Report test failed */
+		fprintf(stderr, "Failed to perfom command - %s \n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		return;
+	}
+
+	/* Create an stream with valid values */
+	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=Test,safApp=safLogService"
+			" -a saLogStreamFileName=Test -a saLogStreamPathName=Test"
+			" -a saLogStreamFixedLogRecordSize=1000 "
+			" -a saLogStreamMaxLogFileSize=5000");
+    rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Failed to perform command. Report test failed */
+		fprintf(stderr, "Failed to perfom command - %s \n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto done;
+	}
+
+	/* Change the logMaxLogrecsize to value less than above fixedLogRecordSize */
+    sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", 500);
+    rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Failed to perform command. Report test failed */
+		fprintf(stderr, "Failed to perfom command - %s \n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto free_class;
+	}
+
+	/*
+	 * Change the saLogStreamMaxLogFileSize to valid value.
+	 * Verify that the command performs succesfully.
+	 */
+    sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=%d "
+			"safLgStrCfg=Test,safApp=safLogService 2> /dev/null", 6000);
+    rc = system(command);
+	rc_validate(WEXITSTATUS(rc), 0);
+
+free_class:
+	/* Delete created obj class */
+	sprintf(command, "immcfg -d safLgStrCfg=Test,safApp=safLogService "
+			"2> /dev/null");
+    rc = system(command);
+
+done:
+	/* Restore logMaxLogrecsize to previous value */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", logMaxRec);
+    rc = system(command);
+}
+
+/**
+ * CCB Object Modify, logMaxLogrecsize < 150. Not allowed.
+ */
+void verLogMaxLogrecsize_Err_01(void)
+{
+    int rc;
+    char command[256];
+
+    sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", 149);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);
+}
+
+/**
+ * CCB Object Modify, logMaxLogrecsize > 65535. Not allowed.
+ */
+void verLogMaxLogrecsize_Err_02(void)
+{
+    int rc;
+    char command[256];
+
+    sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", MAX_LOGRECSIZE + 1);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);
+}
+
+/**
+ * Also add test cases to verify the rules:
+ * ---------------------------------------
+ * 1 - saLogStreamFixedLogRecordSize must be less than saLogStreamMaxLogFileSize
+ * 2 - saLogStreamFixedLogRecordSize must be less than or equal to logMaxLogrecsize
+ * 3 - saLogStreamFixedLogRecordSize can be 0. Means variable record size
+ * 4 - saLogStreamMaxLogFileSize must be bigger than 0. No limit is not supported
+ * 5 - saLogStreamMaxLogFileSize must be bigger than logMaxLogrecsize
+ * 6 - saLogStreamMaxLogFileSize must be bigger than saLogStreamFixedLogRecordSize
+ * ----------------------------------------
+ *
+ * For rules #2, #3, #5, test cases are already added above.
+ */
+
+/**
+ * CCB Object modify, verify rule #1/#6
+ * saLogStreamFixedLogRecordSize < saLogStreamMaxLogFileSize. Allowed.
+ */
+void verFixLogRec_MaxFileSize(void)
+{
+    int rc;
+    char command[256];
+	uint32_t fixLogRec = 0;
+	uint32_t *tmpFix = &fixLogRec;
+	uint32_t maxFileSize = 0;
+	uint32_t *tmpMax = &maxFileSize;
+	uint32_t logMaxRec = 0;
+	uint32_t *tmp = &logMaxRec;
+
+    /* Get current value of logMaxLogrecsize attribute, use default value if failed (-1) */
+    rc = get_attr_value(&configurationObject, "logMaxLogrecsize", (void **)&tmp,
+						NULL);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		logMaxRec = 1024;
+    } else {
+		logMaxRec = *tmp;
+	}
+
+	/* Get current value of saLogStreamFixedLogRecordSize */
+	rc = get_attr_value(&alarmStreamName, "saLogStreamFixedLogRecordSize",
+						(void **)&tmpFix, NULL);
+	if (rc == -1) {
+		/* Report test failed and exit if getting value failed */
+		fprintf(stderr, "Failed to get attribute value from IMM \n");
+		test_validate(rc, 0);
+		return;
+	}
+
+	/* Backup the current saLogStreamFixedLogRecordSize value */
+	fixLogRec = *tmpFix;
+
+	/* Get current value of saLogStreamMaxLogFileSize */
+	rc = get_attr_value(&alarmStreamName, "saLogStreamMaxLogFileSize",
+						(void **)&tmpMax, NULL);
+	if (rc == -1) {
+		/* Report test failed and exit if getting value failed */
+		fprintf(stderr, "Failed to get attribute value from IMM \n");
+		test_validate(rc, 0);
+		return;
+	}
+
+	/* Backup the current saLogStreamMaxLogFileSize value */
+	maxFileSize = *tmpMax;
+
+	/* Allow to set saLogStreamMaxLogFileSize > saLogStreamFixedLogRecordSize */
+	sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=%d "
+			"-a saLogStreamFixedLogRecordSize=%d %s 2> /dev/null",
+			logMaxRec + 1, logMaxRec, SA_LOG_STREAM_ALARM);
+    rc = system(command);
+	rc_validate(WEXITSTATUS(rc), 0);
+
+	/* Restore the changed value */
+	if (WEXITSTATUS(rc) == 0) {
+		sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=%d "
+				" -a saLogStreamFixedLogRecordSize=%d %s 2> /dev/null",
+				maxFileSize, fixLogRec, SA_LOG_STREAM_ALARM);
+		rc = system(command);
+	}
+}
+
+/**
+ * CCB Object modify, verify rule #1/#6
+ * saLogStreamFixedLogRecordSize > saLogStreamMaxLogFileSize. Not allowed.
+ */
+void verFixLogRec_MaxFileSize_Err(void)
+{
+    int rc;
+    char command[256];
+	uint32_t fixLogRec = 0;
+	uint32_t *tmpFix = &fixLogRec;
+	uint32_t maxFileSize = 0;
+	uint32_t *tmpMax = &maxFileSize;
+
+	/* Get current value of saLogStreamFixedLogRecordSize */
+	rc = get_attr_value(&alarmStreamName, "saLogStreamFixedLogRecordSize",
+						(void **)&tmpFix, NULL);
+	if (rc == -1) {
+		/* Report test failed and exit if getting value failed */
+		fprintf(stderr, "Failed to get attribute value from IMM \n");
+		test_validate(rc, 0);
+		return;
+	}
+
+	/* Backup the current saLogStreamFixedLogRecordSize value */
+	fixLogRec = *tmpFix;
+
+	/* Get current value of saLogStreamMaxLogFileSize */
+	rc = get_attr_value(&alarmStreamName, "saLogStreamMaxLogFileSize",
+						(void **)&tmpMax, NULL);
+	if (rc == -1) {
+		/* Report test failed and exit if getting value failed */
+		fprintf(stderr, "Failed to get attribute value from IMM \n");
+		test_validate(rc, 0);
+		return;
+	}
+
+	/* Backup the current saLogStreamMaxLogFileSize value */
+	maxFileSize = *tmpMax;
+
+	/* Not allow to set saLogStreamMaxLogFileSize < saLogStreamFixedLogRecordSize */
+	sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=%d %s 2> /dev/null",
+			fixLogRec - 1, SA_LOG_STREAM_ALARM);
+    rc = system(command);
+	rc_validate(WEXITSTATUS(rc), 1);
+
+	/* Restore the changed value */
+	if (WEXITSTATUS(rc) == 0) {
+		sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=%d %s 2> /dev/null",
+				maxFileSize, SA_LOG_STREAM_ALARM);
+		rc = system(command);
+	}
+}
+
+/**
+ * CCB Object modify, verify rule #4
+ * saLogStreamMaxLogFileSize = 0. Not allowed.
+ */
+void verMaxLogFileSize_Err(void)
+{
+    int rc;
+    char command[256];
+	uint32_t val = 0;
+	uint32_t *tmp = &val;
+
+	/* Get current value of logMaxApplicationStreams */
+	rc = get_attr_value(&alarmStreamName, "saLogStreamMaxLogFileSize",
+						(void **)&tmp, NULL);
+	if (rc == -1) {
+		/* Report test failed and exit if getting value failed */
+		fprintf(stderr, "Failed to get attribute value from IMM \n");
+		test_validate(rc, 0);
+		return;
+	}
+
+	/* Backup the current value */
+	val = *tmp;
+
+	/* Allow to set saLogStreamMaxLogFileSize=0 */
+	sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=0 %s 2> /dev/null",
+			SA_LOG_STREAM_ALARM);
+    rc = system(command);
+	rc_validate(WEXITSTATUS(rc), 1);
+
+	/* Restore the changed value */
+	if (WEXITSTATUS(rc) == 0) {
+		sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=%d %s 2> /dev/null",
+				val, SA_LOG_STREAM_ALARM);
+		rc = system(command);
+	}
+}
+
+/**
+ * Write a maximum log record to app stream.
+ * Then, verify if it is done succesfully or not.
+ *
+ * Steps:
+ *
+ * 1. Change the logMaxLogrecsize value to maximum one.
+ * 2. Create application stream with saLogStreamFixedLogRecordSize
+ *    equal to logMaxLogrecsize (maximum value).
+ * 3. Create a log record buffer with 65535 bytes.
+ * 4. Using saflogger tool, writing that buffer to the created app stream.
+ * 5. Get file size of the app stream log file
+ * 6. Verify if the size of file is larger than 65535 bytes or not
+ * 7. Delete created app class
+ */
+
+void verMaxLogRecord_01(void)
+{
+    int rc;
+    char command[66000];
+	char logRecord[MAX_LOGRECSIZE];
+	uint32_t logMaxRec = 0;
+	uint32_t *tmp = &logMaxRec;
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+    rc = get_attr_value(&configurationObject, "logMaxLogrecsize", (void **)&tmp,
+						NULL);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		logMaxRec = 1024;
+    } else {
+		logMaxRec = *tmp;
+	}
+
+	/* Change the attribute value to maximum one */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%u"
+			" logConfig=1,safApp=safLogService 2> /dev/null", MAX_LOGRECSIZE);
+
+	rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Failed to set logMaxLogrecsize. Report test failed */
+		fprintf(stderr, "Failed to perform command = %s\n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		return;
+	}
+
+	/* Set saLogStreamFixedLogRecordSize = 0, fix log record = maxLogRecordSize */
+	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=maxrecsize,safApp=safLogService"
+			" -a saLogStreamFileName=verMaxLogrecsize -a saLogStreamPathName=vermaxsize"
+			" -a saLogStreamFixedLogRecordSize=0");
+
+	rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Fail to perform the command. Report TC failed */
+		fprintf(stderr, "Failed to perform command = %s", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto done;
+	}
+
+	/* Prepare log record data */
+	memset(logRecord, 'A', MAX_LOGRECSIZE - 2);
+	logRecord[MAX_LOGRECSIZE - 1] = '\0';
+
+	sprintf(command, "saflogger -a safLgStrCfg=maxrecsize,safApp=safLogService \"%s\"",
+			logRecord);
+
+    rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Fail to perform command. Report test failed. */
+		fprintf(stderr, "Failed to perform command = %s\n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto free_class;
+	}
+	/* Write log record succesfully. Then, measure the log file size. */
+	FILE *fp = NULL;
+	char fileSize_c[10];
+	uint32_t fileSize = 0;
+
+	/* Command to get exact app stream log file, and measure that file size. */
+	sprintf(command, "find %s/vermaxsize -type f -mmin -1 "
+			"| egrep \"%s_([0-9]{8}_[0-9]{6}\\.log$)\" "
+			"| xargs wc -c | awk '{printf $1}'",
+			log_root_path, "verMaxLogrecsize");
+
+	fp = popen(command, "r");
+
+	if (fp == NULL) {
+		/* Fail to read size of log file. Report test failed. */
+		fprintf(stderr, "Failed to run command = %s\n", command);
+		test_validate(1, 0);
+		goto free_class;
+	}
+	/* Get output of the command - actually the file size in chars */
+	while (fgets(fileSize_c, sizeof(fileSize_c) - 1, fp) != NULL) {};
+	pclose(fp);
+
+	/* Convert chars to number */
+	fileSize = atoi(fileSize_c);
+
+	if (fileSize < MAX_LOGRECSIZE) {
+		fprintf(stderr, "Log file size (%u) is less than %d \n",
+				fileSize, MAX_LOGRECSIZE);
+		test_validate(fileSize, MAX_LOGRECSIZE);
+		goto free_class;
+	} else {
+		rc_validate(WEXITSTATUS(rc), 0);
+	}
+
+free_class:
+	/* Delete class created */
+	(void)strcpy(command, "immcfg -d safLgStrCfg=maxrecsize,safApp=safLogService");
+	rc = system(command);
+
+done:
+	/* Restore logMaxLogrecsize to previous value */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", logMaxRec);
+    rc = system(command);
+}
+
+/**
+ * Write a log record containing special characters.
+ * Make sure the logsv functions normally.
+ */
+void verMaxLogRecord_02(void)
+{
+    int rc;
+    char command[66000];
+	char logRecord[MAX_LOGRECSIZE];
+	uint32_t logMaxRec = 0;
+	uint32_t *tmp = &logMaxRec;
+
+    /* Get current value of the attribute, use default value if failed (-1) */
+    rc = get_attr_value(&configurationObject, "logMaxLogrecsize", (void **)&tmp,
+						NULL);
+    if (rc == -1) {
+		/* Failed, use default one */
+		fprintf(stderr, "Failed to get attribute value from IMM\n");
+		logMaxRec = 1024;
+    } else {
+		logMaxRec = *tmp;
+	}
+
+	/* Change the attribute value to maximum one */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%u"
+			" logConfig=1,safApp=safLogService 2> /dev/null", MAX_LOGRECSIZE);
+
+	rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Failed to set logMaxLogrecsize. Report test failed */
+		fprintf(stderr, "Failed to perform command = %s\n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		return;
+	}
+	/* Set saLogStreamFixedLogRecordSize = max */
+	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=specialCharactor,safApp=safLogService"
+			" -a saLogStreamFileName=specialCharactor -a saLogStreamPathName=vermaxsize"
+			" -a saLogStreamFixedLogRecordSize=%d", MAX_LOGRECSIZE);
+
+	rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Fail to perform the command. Report TC failed */
+		fprintf(stderr, "Failed to perform command = %s", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto done;
+	}
+
+	/* Prepare log record data with special characters */
+	memset(logRecord, 'A', MAX_LOGRECSIZE - 2);
+	logRecord[1] = '\t';
+	logRecord[2] = 't';
+	logRecord[3] = '\n';
+	logRecord[4] = 'n';
+	logRecord[5] = ' ';
+	logRecord[6] = 'S';
+	logRecord[MAX_LOGRECSIZE - 1] = '\0';
+
+	sprintf(command, "saflogger -a safLgStrCfg=specialCharactor,safApp=safLogService \"%s\"",
+			logRecord);
+
+    rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Fail to perform command. Report test failed. */
+		fprintf(stderr, "Failed to perform command = %s\n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto free_class;
+	}
+	/* Write log record succesfully. Then, measure the log file size. */
+	FILE *fp = NULL;
+	char fileSize_c[10];
+	uint32_t fileSize = 0;
+
+	/* Command to get exact app stream log file, and measure that file size. */
+	sprintf(command, "find %s/vermaxsize -type f -mmin -1 "
+			"| egrep \"%s_([0-9]{8}_[0-9]{6}\\.log$)\" "
+			"| xargs wc -c | awk '{printf $1}'",
+			log_root_path, "specialCharactor");
+
+	fp = popen(command, "r");
+
+	if (fp == NULL) {
+		/* Fail to read size of log file. Report test failed. */
+		fprintf(stderr, "Failed to run command = %s\n", command);
+		test_validate(1, 0);
+		goto free_class;
+	}
+	/* Get output of the command - actually the file size in chars */
+	while (fgets(fileSize_c, sizeof(fileSize_c) - 1, fp) != NULL) {};
+	pclose(fp);
+
+	/* Convert chars to number */
+	fileSize = atoi(fileSize_c);
+
+	if (fileSize < MAX_LOGRECSIZE) {
+		fprintf(stderr, "Log file size (%u) is less than %d \n",
+				fileSize, MAX_LOGRECSIZE);
+		test_validate(fileSize, MAX_LOGRECSIZE);
+		goto free_class;
+	} else {
+		rc_validate(WEXITSTATUS(rc), 0);
+	}
+
+free_class:
+	/* Delete class created */
+	(void)strcpy(command, "immcfg -d safLgStrCfg=specialCharactor,safApp=safLogService");
+	rc = system(command);
+
+done:
+	/* Restore logMaxLogrecsize to previous value */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%d "
+			"logConfig=1,safApp=safLogService 2> /dev/null", logMaxRec);
+    rc = system(command);
+}
+
 __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 {
 	/* Stream objects */
@@ -2546,7 +3183,6 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
     test_case_add(5, saLogOi_79, "CCB Object Modify, data group. Group does not exist. Not allowed");
     test_case_add(5, saLogOi_80, "CCB Object Modify, data group. Group exists. OK");
     test_case_add(5, saLogOi_81, "CCB Object Modify, delete data group. OK");
-    test_case_add(5, saLogOi_53, "CCB Object Modify, logMaxLogrecsize. Not allowed");
     test_case_add(5, saLogOi_54, "CCB Object Modify, logStreamSystemHighLimit > logStreamSystemLowLimit. OK");
     test_case_add(5, saLogOi_55, "CCB Object Modify, logStreamSystemHighLimit = logStreamSystemLowLimit, != 0. Ok");
     test_case_add(5, saLogOi_56, "CCB Object Modify, logStreamSystemHighLimit < logStreamSystemLowLimit. Error");
@@ -2556,9 +3192,17 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
     test_case_add(5, saLogOi_60, "CCB Object Modify, logStreamAppHighLimit < logStreamAppLowLimit. Error");
     test_case_add(5, saLogOi_61, "CCB Object Modify, logStreamAppHighLimit = logStreamAppLowLimit = 0. OK");
     test_case_add(5, saLogOi_62, "CCB Object Modify, logMaxApplicationStreams. Not allowed");
-    test_case_add(5, saLogOi_63, "CCB Object Modify, logFileIoTimeout. Not allowed");
     test_case_add(5, saLogOi_64, "CCB Object Modify, logFileSysConfig. Not allowed");
-	
+
+	/* Add test cases to test #1288 */
+	test_case_add(5, verLogFileIoTimeout, "CCB Object Modify: logFileIoTimeout is in range [500 - 5000], OK");
+	test_case_add(5, verLogFileIoTimeout_Err_01, "CCB Object Modify: logFileIoTimeout < 500, ERR");
+	test_case_add(5, verLogFileIoTimeout_Err_02, "CCB Object Modify: logFileIoTimeout > 5000, ERR");
+	test_case_add(5, verLogMaxLogrecsize, "CCB Object Modify: logMaxLogrecsize is in range [150 - 65535], OK");
+	test_case_add(5, verLogMaxLogrecsize_dep, "CCB Object Modify: logMaxLogrecsize dependencies, OK");
+	test_case_add(5, verLogMaxLogrecsize_Err_01, "CCB Object Modify: logMaxLogrecsize < 150, ERR");
+	test_case_add(5, verLogMaxLogrecsize_Err_02, "CCB Object Modify: logMaxLogrecsize > 65535, ERR");
+
 	/* Stream configuration object */
 	/* Tests for create */
 	test_suite_add(6, "LOG OI tests, Stream configuration object attribute validation");
@@ -2586,6 +3230,9 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(6, saLogOi_106, "Modify: saLogStreamMaxLogFileSize > logMaxLogrecsize, Ok");
 	test_case_add(6, saLogOi_107, "Modify: saLogStreamMaxLogFileSize == logMaxLogrecsize, ERR");
 	test_case_add(6, saLogOi_108, "Modify: saLogStreamMaxLogFileSize < logMaxLogrecsize, ERR");
+	test_case_add(6, verFixLogRec_MaxFileSize, "Modify: saLogStreamMaxLogFileSize > saLogStreamFixedLogRecordSize, OK");
+	test_case_add(6, verFixLogRec_MaxFileSize_Err, "Modify: saLogStreamMaxLogFileSize <= saLogStreamFixedLogRecordSize, ERR");
+	test_case_add(6, verMaxLogFileSize_Err, "Modify: saLogStreamMaxLogFileSize == 0, ERR");
 	test_case_add(6, saLogOi_109, "Modify: saLogStreamFixedLogRecordSize < logMaxLogrecsize, Ok");
 	test_case_add(6, saLogOi_110, "Modify: saLogStreamFixedLogRecordSize == 0, Ok");
 	test_case_add(6, saLogOi_111, "Modify: saLogStreamFixedLogRecordSize == logMaxLogrecsize, Ok");
@@ -2593,4 +3240,9 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(6, saLogOi_113, "Modify: saLogStreamMaxFilesRotated < 128, Ok");
 	test_case_add(6, saLogOi_114, "Modify: saLogStreamMaxFilesRotated > 128, ERR");
 	test_case_add(6, saLogOi_115, "Modify: saLogStreamMaxFilesRotated == 128, ERR");
+
+	/* Add test cases to test #1288 */
+	test_case_add(6, verMaxLogRecord_01, "Modify: saLogStreamFixedLogRecordSize == 0, write a record = 65535 bytes, OK");
+	test_case_add(6, verMaxLogRecord_02, "Modify: saLogStreamFixedLogRecordSize == 65535, Write a record = 65535 bytes with special characters, OK");
+
 }

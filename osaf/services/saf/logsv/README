@@ -145,7 +145,7 @@ default streams are included in the OpenSAF IMM configuration.
 Service configuration
 ---------------------
 There is also a configuration object class OpenSafLogConfig used to configure
-the LOG Service itself and a runtime object class OpenSafLogConfigRuntime making
+the LOG Service itself and a runtime object class OpenSafLogCurrentConfig making
 it possible to read the configuration.
 These classes are not described in the LOG AIS specification.
 
@@ -160,7 +160,7 @@ must always be able to start.
 Environment variables are supported in order to be backwards compatible. Before
 a configuration object was introduced environment variables were used. In the
 future when new configuration parameters are added no corresponding environment
-will be supported.
+variables will be supported.
 
 1. IMM configuration object
 ---------------------------
@@ -212,6 +212,8 @@ The following attributes can be changed in runtime.
    Can be changed to an existing path.
 
  - logStreamFileFormat
+ - logMaxLogrecsize
+ - logFileIoTimeout
 
  - logStreamSystemHighLimit
    logStreamSystemLowLimit
@@ -500,6 +502,8 @@ in the same way as checkpointing is done for other changes. This is changed.
 Configuration changes are now checkpointed using a variable length buffer
 containing a cfgupd list.
 
+With this change, when attributes are check pointed,
+the list is always updated with all check pointed values.
 
 CONTRIBUTORS/MAINTAINERS
 ========================
@@ -711,3 +715,20 @@ of second from log timestamp (@Ck, @Nk).
 - @Nk: for alarm and notification log stream.
 
 Preceding and trailing zeros (0) if needed should exist.
+
+
+2. Log record size could be up to 65535 bytes (#1288)
+----------------------------------------------
+With this ticket, logMaxLogrecsize and logFileIoTimeout attributes
+could be possible to change in runtime.
+
+logMaxLogrecsize attribute value could be up to 65535 bytes.
+
+logFileIoTimeout, this attribute defines the time period for
+which the main thread has to wait for the file IO operation to complete.
+The value is in milliseconds. In default, the main thread waits up to 500ms
+for file handling thread complete file IO operation.
+
+If user suffers the timeout when sending a big record size (e.g: 65535 bytes),
+the user can adjust the waiting time by updating logFileIoTimeout attribute value up to 5000ms.
+

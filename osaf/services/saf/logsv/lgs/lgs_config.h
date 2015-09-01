@@ -97,6 +97,7 @@ int lgs_cfg_verify_log_file_format(const char* log_file_format);
 int lgs_cfg_verify_max_logrecsize(uint32_t max_logrecsize_in);
 int lgs_cfg_verify_mbox_limit(uint32_t high, uint32_t low);
 int lgs_cfg_verify_max_application_streams(uint32_t max_app_streams);
+int lgs_cfg_verify_file_io_timeout(uint32_t log_file_io_timeout);
 
 /*
  * Handle runtime object for showing actual configuration
