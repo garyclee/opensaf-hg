@@ -19,6 +19,7 @@
 '''
 
 import select
+import itertools
 
 from pyosaf import saImm, saImmOm, saImmOi, saAis
 
@@ -30,8 +31,6 @@ from pyosaf.saImm import eSaImmValueTypeT, eSaImmAttrModificationTypeT, \
 from pyosaf.utils import immom, immoi, SafException
 
 from pyosaf.utils.immom.object import ImmObject
-
-from pyosaf.utils.immom.ccb import marshal_c_array
 
 implementer_instance = None
 
@@ -89,13 +88,15 @@ def _collect_full_transaction(ccb_id):
 
             created.append(instance)
 
-            deleted = filter(lambda i: i != dn, deleted)
+            deleted = filter(lambda i: i.dn != dn, deleted)
 
         # Handle deletes
         elif operation_type == 'DELETE':
             dn = operation['dn']
 
-            deleted.append(dn)
+            obj = immom.get(dn)
+
+            deleted.append(obj)
 
             created = filter(lambda i: i.dn != dn, created)
             updated = filter(lambda i: i.dn != dn, updated)
@@ -145,8 +146,17 @@ def _collect_full_transaction(ccb_id):
                     affected_instance.__setattr__(attribute, values)
 
     # Return the summary
-    instances_after = all_objects_now + created
-    instances_after = filter(lambda i: not i.dn in deleted, instances_after)
+    instances_after = []
+
+    for mo in itertools.chain(all_objects_now, created):
+        is_deleted = False
+
+        for deleted_mo in deleted:
+            if deleted_mo.dn == mo.dn:
+                is_deleted = True
+
+        if not deleted:
+            instances_after.append(mo)
 
     out = {'instances_after' : instances_after,
            'created'         : created,
@@ -208,15 +218,15 @@ def apply_ccb(oi_handle, ccb_id):
             all_instances.append(obj)
 
     updated = completed_ccbs[ccb_id]['updated']
-    added   = completed_ccbs[ccb_id]['added']
-    removed = completed_ccbs[ccb_id]['removed']
+    created = completed_ccbs[ccb_id]['added']
+    deleted = completed_ccbs[ccb_id]['removed']
 
     # Remove the CCB from the caches
     del ccbs[ccb_id]
     del completed_ccbs[ccb_id]
 
     # Tell the implementer to apply the changes
-    return implementer_instance.on_apply(all_instances, updated, added, removed)
+    return implementer_instance.on_apply(all_instances, updated, created, deleted)
 
 def attr_update(oi_handle, c_name, c_attr_names):
     ''' Callback for attribute update calls from IMM '''
@@ -388,8 +398,8 @@ def completed_ccb(oi_handle, ccb_id):
                               'updated' : updated}
 
     # Perform validation on the full transaction
-    return implementer_instance._validate(ccb_id, instances, updated, 
-                                          created, deleted)
+    return implementer_instance._validate(ccb_id, instances, updated, created, 
+                                          deleted)
 
 
 # OI callbacks
@@ -482,7 +492,7 @@ class Constraints:
         if not parent_class in self.containments:
             self.containments[parent_class] = []
 
-        self.containments[parent_class] = [child_class]
+        self.containments[parent_class].append(child_class)
 
         # Store the cardinality
         pair = (parent_class, child_class)
@@ -514,8 +524,8 @@ class Constraints:
                 child_classes = self.containments[parent_class]
 
                 if not mo.SaImmAttrClassName in child_classes:
-                    error_string = "ERROR: Cannot create %s as a child under %s" % \
-                                   (mo.dn, parent_class)
+                    error_string = "ERROR: Cannot create %s as a child under %s. Possible children are %s" % \
+                                   (mo.dn, parent_class, child_classes)
                     raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM,
                                        error_string)
 
