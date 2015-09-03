@@ -39,3 +39,4 @@ pkgpyosafutilsdir = $(pythondir)/pyosaf/utils
 pkgpyosafutilsimmomdir = $(pythondir)/pyosaf/utils/immom
 pkgpyosafutilsclmdir = $(pythondir)/pyosaf/utils/clm
 pkgpyosafutilslogdir = $(pythondir)/pyosaf/utils/log
+pkgpyosafutilsimmoidir = $(pythondir)/pyosaf/utils/immoi
