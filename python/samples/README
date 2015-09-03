@@ -22,4 +22,51 @@ clm-tool:
         current members of the cluster and how to monitor changes to the 
         cluster. Run 'clm-tool --help' for specific options and arguments.
 
+imm-listener: 
+        The Imm Lister OI demonstrates how to build an
+        applier. It listens to changes to SampleClass1 and simply
+        prints them on stdout. It's an applier which means that it
+        does not validate any of the changes and it can be run in
+        parallel with a proper OI. Run 'imm-listener --help' for
+        specific options and arguments.
+
+tones:
+        The Tones OI demonstrates validation of containment
+        relations. It implements classes for the tones Do, Re, Mi, Fa,
+        So, La, Ti and only allows creation of each tone under the
+        lower tone, except for Do which can be created without a
+        parent. Run 'tones --help' for specific options and arguments.
+
+caps:
+        The Caps OI demonstrates validation. It validates that any new
+        CapsSample objects and any updated CapsSample objects follow
+        the rules that the upperCaps attribute consists only of
+        uppercase characters and the lowerCaps attribute consists only
+        of lowercase characters. Run 'caps --help' for specific
+        options and arguments.
+
+time-reporter:
+        The Time Reporter OI demonstrates update of runtime attributes
+        from an OI and inclusion of the OI logic into a select loop
+        owned by the application. It creates a runtime object timeId=1
+        of the class TimeSample and updates its hours, minutes and
+        seconds attributes once every second. 
+        Run 'time-reporter --help' for specific options and arguments
+
+ping-pong:
+        The Ping Pong OI demonstrates administrative operations. It
+        creates an object pingPongId=1 and responds on admin
+        operations 0 and 1. Run 'ping-pong --help' for specific
+        options and arguments.
+
+users:
+        The Users OI demonstrates an OI that returns values of runtime
+        attributes when it's queried by IMM. It uses the Python
+        package psutil to fill in the list of logged in users. Run
+        'users --help' for specific options and arguments.
+
 Logging for all apps/utils goes to /var/log/opensaf/saflog/saLogSystem*.log
+
+The IMM OI samples use the classes defined in the classes.xml file. Load it with immcfg -f classes.xml before trying them. 
+
+Each sample OI is implemented in two versions, one using straight callbacks and one using a class that subclasses Implementer or Applier. The latter is named <oi-name>-inheritance-impl
