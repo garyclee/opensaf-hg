@@ -314,7 +314,6 @@ AVD_SI::AVD_SI() :
 	num_dependents(0),
 	tol_timer_count(0),
 	svc_type(NULL),
-	si_list_svc_type_next(NULL),
 	app(NULL),
 	si_list_app_next(NULL),
 	list_of_sus_per_si_rank(NULL),
