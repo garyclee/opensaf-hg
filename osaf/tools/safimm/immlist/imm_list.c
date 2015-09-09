@@ -42,7 +42,7 @@
 #include <saf_error.h>
 #include "osaf_extended_name.h"
 
-static SaVersionT immVersion = { 'A', 2, 15 };
+static SaVersionT immVersion = { 'A', 2, 16 };
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 /* signal handler for SIGALRM */ 
@@ -330,6 +330,9 @@ static void display_class_definition(const SaImmClassNameT className,
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_DN)
 				printf(", DN");
 
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED)
+				printf(", DEFAULT_REMOVED");
+
 		} else if (attrDefinition->attrFlags & SA_IMM_ATTR_RUNTIME) {
 			if (attrDefinition->attrDefaultValue != NULL) {
 				printf(" = ");
@@ -360,6 +363,9 @@ static void display_class_definition(const SaImmClassNameT className,
 
 			if (attrDefinition->attrFlags & SA_IMM_ATTR_DN)
 				printf(", DN");
+
+			if (attrDefinition->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED)
+				printf(", DEFAULT_REMOVED");
 		}
 
 		printf("}\n");

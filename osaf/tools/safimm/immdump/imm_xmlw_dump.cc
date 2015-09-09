@@ -816,6 +816,15 @@ void flagsToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)
         }
     }
 
+    if (flags & SA_IMM_ATTR_DEFAULT_REMOVED)
+    {
+        if(xmlTextWriterWriteElement(writer, (xmlChar*) "flag",
+           (xmlChar*) "SA_DEFAULT_REMOVED") < 0 ) {
+            std::cout << "Error at xmlTextWriterWriteElement (flag - SA_DEFAULT_REMOVED)" << std::endl;
+            exit(1);
+        }
+    }
+
 }
 
 void typeToXMLw(SaImmAttrDefinitionT_2* p, xmlTextWriterPtr writer)
