@@ -99,8 +99,7 @@ public:
 	struct avd_spons_si_tag *spons_si_list;
 	uint32_t num_dependents; /* number of dependent SIs */
 	uint32_t tol_timer_count;
-	struct avd_amf_svc_type_tag *svc_type;
-	AVD_SI *si_list_svc_type_next;
+	AVD_SVC_TYPE *svc_type;
 	AVD_APP *app;
 	AVD_SI *si_list_app_next;
 	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;

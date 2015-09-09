@@ -27,6 +27,7 @@
 #include <susi.h>
 #include <csi.h>
 #include <proc.h>
+#include <algorithm>
 
 AmfDb<std::string, AVD_SVC_TYPE> *svctype_db = NULL;
 
@@ -72,6 +73,12 @@ static void svctype_delete(AVD_SVC_TYPE *svc_type)
 	delete svc_type;
 }
 
+//
+AVD_SVC_TYPE::AVD_SVC_TYPE(const SaNameT *dn) {
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+}
+
 static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	unsigned int i;
@@ -80,10 +87,8 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	svct = new AVD_SVC_TYPE();
+	svct = new AVD_SVC_TYPE(dn);
 
-	memcpy(svct->name.value, dn->value, dn->length);
-	svct->name.length = dn->length;
 	svct->saAmfSvcDefActiveWeight = NULL;
 	svct->saAmfSvcDefStandbyWeight = NULL;
 
@@ -133,7 +138,7 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SVC_TYPE *svc_type;
-	AVD_SI *si;
+
 	bool si_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
@@ -149,23 +154,21 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		svc_type = svctype_db->find(Amf::to_string(&opdata->objectName));
-		if (NULL != svc_type->list_of_si) {
-			/* check whether there exists a delete operation for
-			 * each of the SI in the svc_type list in the current CCB
-			 */
-			si = svc_type->list_of_si;
-			while (si != NULL) {
-				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
-				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					si_exist = true;
-					break;
-				}
-				si = si->si_list_svc_type_next;
+
+		/* check whether there exists a delete operation for
+		 * each of the SI in the svc_type list in the current CCB
+		 */
+		for (const auto& si : svc_type->list_of_si) {
+			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
+			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+				si_exist = true;
+				break;
 			}
-			if (si_exist == true) {
-				report_ccb_validation_error(opdata, "SaAmfSvcType '%s' is in use",svc_type->name.value);
-				goto done;
-			}
+		}
+
+		if (si_exist == true) {
+			report_ccb_validation_error(opdata, "SaAmfSvcType '%s' is in use",svc_type->name.value);
+			goto done;
 		}
 		opdata->userData = svc_type;
 		rc = SA_AIS_OK;
@@ -260,39 +263,25 @@ SaAisErrorT avd_svctype_config_get(void)
 
 void avd_svctype_add_si(AVD_SI *si)
 {
-	si->si_list_svc_type_next = si->svc_type->list_of_si;
-	si->svc_type->list_of_si = si;
+	si->svc_type->list_of_si.push_back(si);
 }
 
 void avd_svctype_remove_si(AVD_SI *si)
 {
-	AVD_SI *i_si = NULL;
-	AVD_SI *prev_si = NULL;
+  if (!si)
+    return;
 
-	if (!si)
-		return;
+  AVD_SVC_TYPE *svc_type = si->svc_type;
 
-	if (si->svc_type != NULL) {
-		i_si = si->svc_type->list_of_si;
-
-		while ((i_si != NULL) && (i_si != si)) {
-			prev_si = i_si;
-			i_si = i_si->si_list_svc_type_next;
-		}
-
-		if (i_si != si) {
-			osafassert(0);
-		} else {
-			if (prev_si == NULL) {
-				si->svc_type->list_of_si = si->si_list_svc_type_next;
-			} else {
-				prev_si->si_list_svc_type_next = si->si_list_svc_type_next;
-			}
-		}
-
-		si->si_list_svc_type_next = NULL;
-		si->svc_type = NULL;
-	}
+  if (svc_type != nullptr) {
+    auto pos = std::find(svc_type->list_of_si.begin(), svc_type->list_of_si.end(), si);
+    if(pos != svc_type->list_of_si.end()) {
+      svc_type->list_of_si.erase(pos);
+    } else {
+      /* Log a fatal error */
+      osafassert(0);
+    }
+  }
 }
 
 void avd_svctype_constructor(void)
