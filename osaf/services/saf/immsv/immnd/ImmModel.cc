@@ -3202,6 +3202,11 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                     attNm);
                 illegal = 1;
             }
+
+            if(attr->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED) {
+                LOG_NO("ERR_INVALID_PARAM: RDN '%s' cannot have SA_IMM_ATTR_DEFAULT_REMOVED flag", attNm);
+                illegal = 1;
+            }
         }
 
         if(attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) {
@@ -3228,6 +3233,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         if((attr->attrFlags & SA_IMM_ATTR_DN) && (attr->attrValueType != SA_IMM_ATTR_SASTRINGT)) {
             LOG_NO("ERR_INVALID_PARAM: Attribute '%s' has SA_IMM_ATTR_DN flag, "
                     "but the attribute is not of type SaStringT", attNm);
+            illegal = 1;
+        }
+
+        if ((attr->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED) &&
+            !isLoading && !schemaChange) {
+            LOG_NO("ERR_INVALID_PARAM: Attribute '%s' has SA_IMM_ATTR_DEFAULT_REMOVED flag, "
+                    "but this flag is only available for schema changes", attNm);
             illegal = 1;
         }
 
@@ -3259,6 +3271,11 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
                 LOG_NO("ERR_INVALID_PARAM: Attribute %s declared as SA_IMM_ATTR_INITIALIZED "
                     "inconsistent with having default", attNm);
+                illegal = 1;
+            }
+
+            if (attr->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED) {
+                LOG_NO("ERR_INVALID_PARAM: Attribute '%s' can not have a default with SA_IMM_ATTR_DEFAULT_REMOVED", attNm);
                 illegal = 1;
             }
 
@@ -4005,6 +4022,32 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                     "SA_IMM_ATTR_DN", className.c_str(), attName.c_str());
                 return true;
             }
+
+            if (!(oldAttr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED) &&
+                (newAttr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED)) {
+                if (oldAttr->mDefaultValue.empty()) {
+                    LOG_NO("Impossible upgrade, attribute %s:%s doesn't have default, "
+                       "can not add SA_IMM_ATTR_DEFAULT_REMOVED", className.c_str(), attName.c_str());
+                    return true;
+                } else {
+                    LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
+                       "SA_IMM_ATTR_DEFAULT_REMOVED", className.c_str(), attName.c_str());
+                    change = true;
+                }
+            }
+
+            if ((oldAttr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED) &&
+                !(newAttr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED)) {
+                if (newAttr->mDefaultValue.empty()) {
+                    LOG_NO("Impossible upgrade, can not remove SA_IMM_ATTR_DEFAULT_REMOVED "
+                            "without adding new default for attribute %s:%s", className.c_str(), attName.c_str());
+                    return true;
+                } else {
+                    LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
+                       "SA_IMM_ATTR_DEFAULT_REMOVED", className.c_str(), attName.c_str());
+                    change = true;
+                }
+            }
         }
 
         osafassert(!checkNoDup || checkCcb); //Duplicate-check implies ccb-check
@@ -4145,9 +4188,15 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
         }
 
         if(!oldAttr->mDefaultValue.empty() && newAttr->mDefaultValue.empty()) {
-            LOG_NO("Impossible upgrade, attribute %s:%s removes default value",
-                className.c_str(), attName.c_str());
-            return true;
+            if (newAttr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED) {
+                LOG_NO("Allowed upgrade, attribute %s:%s removes default value",
+                    className.c_str(), attName.c_str());
+                change = true;
+            } else {
+                LOG_NO("Impossible upgrade, attribute %s:%s removes default value",
+                    className.c_str(), attName.c_str());
+                return true;
+            }
         }
 
         /* Default value may change, this will only affect new instances. */
@@ -4184,6 +4233,12 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
             LOG_NO("Impossible upgrade, runtime class has new attribute %s:%s with"
                 " SA_IMM_ATTR_CACHED flag set, but no default value", 
                 className.c_str(), attName.c_str());
+            return true;
+        }
+
+        if (newAttr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED) {
+            LOG_NO("Impossible upgrade, new attribute %s:%s has SA_IMM_ATTR_DEFAULT_REMOVED "
+                "flag set", className.c_str(), attName.c_str());
             return true;
         }
     }
@@ -4317,7 +4372,8 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr,
             SA_IMM_ATTR_NO_DUPLICATES |
             SA_IMM_ATTR_NOTIFY |
             SA_IMM_ATTR_NO_DANGLING |
-            SA_IMM_ATTR_DN);
+            SA_IMM_ATTR_DN |
+            SA_IMM_ATTR_DEFAULT_REMOVED);
 
         if(unknownFlags) {
             /* This error means that at least one attribute flag is not supported by this
@@ -7457,6 +7513,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         //But dont append non persistent runtime attributes.
         //
         //Also: write notice message for attributes that have default no-dangling reference
+        //
+        //Also: Write notice message for default removed attributes which are empty
         isSpecialApplForClass = specialApplyForClass(classInfo);
 
         for(i6=object->mAttrValueMap.begin(); 
@@ -7474,6 +7532,12 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 osafassert(isLoading);
                 LOG_NO("Attribute '%s' of object '%s' is NULL and has a default no-dangling reference, "
                     "default is not assigned when loading", attrName.c_str(), objectName.c_str());
+            }
+
+            if ((attr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED) &&
+                attrValue->empty()) {
+                LOG_NO("Attribute %s has a removed default, the value will be empty",
+                   attrName.c_str());
             }
 
             if((attr->mFlags & SA_IMM_ATTR_INITIALIZED) && 
@@ -14659,6 +14723,8 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         //Also: append missing cached RTAs with default values to immsv_attr_values_list
         //if there is a special-applier locally attached. This so the special applier will
         //get informed of the initial value of all cached RTAs and system attributes. See #2873.
+        //
+        //Also: Write notice message for default removed attributes which are empty
          
         isSpecialApplForClass = specialApplyForClass(classInfo);
 
@@ -14717,6 +14783,11 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             osafassert(i4!=classInfo->mAttrMap.end());
             AttrInfo* attr = i4->second;
             
+            if ((attr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED) &&  attrValue->empty()) {
+                LOG_NO("Attribute %s has a removed default, the value will be empty",
+                   attrName.c_str());
+            }
+
             if((attr->mFlags & SA_IMM_ATTR_CACHED) && attrValue->empty()) {
                 /* #1531 Check that the attribute was at least in the input list.
                    This is a questionable rule from the standard (still in A.03.01),

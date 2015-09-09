@@ -745,7 +745,7 @@ bool loadObjectsFromPbe(void* pbeHandle, SaImmHandleT immHandle,
 
 int loadImmFromPbe(void* pbeHandle, bool preload)
 {
-	SaVersionT             version = {'A', 2, 15};
+	SaVersionT             version = {'A', 2, 16};
 	SaImmHandleT           immHandle=0LL;
 	SaImmAdminOwnerHandleT ownerHandle=0LL;
 	SaImmCcbHandleT        ccbHandle=0LL;

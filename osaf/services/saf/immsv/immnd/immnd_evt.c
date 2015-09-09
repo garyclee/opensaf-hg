@@ -3259,6 +3259,22 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 			/* Regular class create attempted during sync. */
 			error = SA_AIS_ERR_TRY_AGAIN;
 		}
+		if (!immModel_protocol47Allowed(cb)) {
+			/* IMM supports creating classes with unknown flags.
+			 * When the upgrade process is not completed, a class-create request (with DEFAULT_REMOVED flag)
+			 * may be accepted on nodes with old version and rejected on nodes with new version.
+			 * That will cause an inconsistency between nodes. */
+			IMMSV_ATTR_DEF_LIST* list = frwrd_evt.info.immnd.info.classDescr.attrDefinitions;
+			while(list) {
+				if (list->d.attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED) {
+					LOG_WA("ERR_TRY_AGAIN: Can not create class with SA_IMM_ATTR_DEFAULT_REMOVED "
+							"when proto47 is not enabled");
+					error = SA_AIS_ERR_TRY_AGAIN;
+					break; /* while */
+				}
+				list = list->next;
+			}
+		}
 
 		break;
 
