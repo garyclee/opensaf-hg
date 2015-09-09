@@ -31,7 +31,6 @@ AVD_COMP_GLOBALATTR avd_comp_global_attrs;
 
 AmfDb<std::string, AVD_COMP_TYPE> *comptype_db = NULL;
 
-
 static void comptype_db_add(AVD_COMP_TYPE *compt)
 {
 	unsigned int rc = comptype_db->insert(Amf::to_string(&compt->name),compt);
@@ -77,6 +76,12 @@ void avd_comptype_remove_comp(AVD_COMP *comp)
 	}
 }
 
+//
+AVD_COMP_TYPE::AVD_COMP_TYPE(const SaNameT *dn) {
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+}
+
 static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_COMP_TYPE *compt;
@@ -85,10 +90,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	compt = new AVD_COMP_TYPE();
-
-	memcpy(compt->name.value, dn->value, dn->length);
-	compt->name.length = dn->length;
+	compt = new AVD_COMP_TYPE(dn);
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtCompCategory"), attributes, 0, &compt->saAmfCtCompCategory);
 	osafassert(error == SA_AIS_OK);

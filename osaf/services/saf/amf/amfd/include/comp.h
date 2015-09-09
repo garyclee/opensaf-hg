@@ -43,6 +43,7 @@
 #include "db_template.h"
 
 class AVD_SU;
+class AVD_COMP_TYPE;
 
 /* AMF Class SaAmfCompGlobalAttributes */
 typedef struct {
@@ -117,7 +118,7 @@ class AVD_COMP {
                          * comp has been assigned a CSI from
                          * current SI being assigned
                          */
-  struct avd_amf_comp_type_tag *comp_type;
+  AVD_COMP_TYPE *comp_type;
   AVD_COMP *comp_type_list_comp_next;
   AVD_SU *su;		/* SU to which this component belongs */
   AVD_COMP *su_comp_next;	/* the next component in list of  components
@@ -135,32 +136,37 @@ class AVD_COMP {
 extern AmfDb<std::string, AVD_COMP> *comp_db;
 
 /* AMF Class SaAmfCompType */
-typedef struct avd_amf_comp_type_tag {
+class AVD_COMP_TYPE {
+ public:
+  explicit AVD_COMP_TYPE(const SaNameT *dn);
+  SaNameT name {};
+  SaUint32T saAmfCtCompCategory {};
+  SaNameT saAmfCtSwBundle {};
+  char saAmfCtDefCmdEnv[AVSV_MISC_STR_MAX_SIZE] {};
+  SaTimeT saAmfCtDefClcCliTimeout {};
+  SaTimeT saAmfCtDefCallbackTimeout {};
+  char saAmfCtRelPathInstantiateCmd[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtDefInstantiateCmdArgv[AVSV_MISC_STR_MAX_SIZE] {};
+  SaUint32T saAmfCtDefInstantiationLevel {};
+  char saAmfCtRelPathTerminateCmd[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtDefTerminateCmdArgv[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtRelPathCleanupCmd[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtDefCleanupCmdArgv[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtRelPathAmStartCmd[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtDefAmStartCmdArgv[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtRelPathAmStopCmd[AVSV_MISC_STR_MAX_SIZE] {};
+  char saAmfCtDefAmStopCmdArgv[AVSV_MISC_STR_MAX_SIZE] {};
+  SaTimeT saAmfCtDefQuiescingCompleteTimeout {};
+  SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError {};
+  SaBoolT saAmfCtDefDisableRestart {};
 
-	SaNameT name;
-	SaUint32T saAmfCtCompCategory;
-	SaNameT saAmfCtSwBundle;
-	char saAmfCtDefCmdEnv[AVSV_MISC_STR_MAX_SIZE];
-	SaTimeT saAmfCtDefClcCliTimeout;
-	SaTimeT saAmfCtDefCallbackTimeout;
-	char saAmfCtRelPathInstantiateCmd[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtDefInstantiateCmdArgv[AVSV_MISC_STR_MAX_SIZE];
-	SaUint32T saAmfCtDefInstantiationLevel;
-	char saAmfCtRelPathTerminateCmd[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtDefTerminateCmdArgv[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtRelPathCleanupCmd[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtDefCleanupCmdArgv[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtRelPathAmStartCmd[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtDefAmStartCmdArgv[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtRelPathAmStopCmd[AVSV_MISC_STR_MAX_SIZE];
-	char saAmfCtDefAmStopCmdArgv[AVSV_MISC_STR_MAX_SIZE];
-	SaTimeT saAmfCtDefQuiescingCompleteTimeout;
-	SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError;
-	SaBoolT saAmfCtDefDisableRestart;
-
-	AVD_COMP *list_of_comp;
-
-} AVD_COMP_TYPE;
+  AVD_COMP* list_of_comp {};
+ private:
+  AVD_COMP_TYPE();
+  // disallow copy and assign
+  AVD_COMP_TYPE(const AVD_COMP_TYPE&);
+  void operator=(const AVD_COMP_TYPE&);
+};
 extern  AmfDb<std::string, AVD_COMP_TYPE> *comptype_db;
 
 /* AMF Class SaAmfCompCsType */
