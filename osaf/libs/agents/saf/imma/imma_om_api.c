@@ -132,6 +132,9 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 			cl_node->isImmA2e = true;
 			if(requested_version.minorVersion >= 0x0f) {
 				cl_node->isImmA2f = true;
+				if (requested_version.minorVersion >= 0x10) {
+					cl_node->isImmA2x10 = true;
+				}
 			}
 		}
 	}
@@ -186,6 +189,9 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 					cl_node->isImmA2e = true;
 					if(requested_version.minorVersion >= 0x0f) {
 						cl_node->isImmA2f = true;
+						if (requested_version.minorVersion >= 0x10) {
+							cl_node->isImmA2x10 = true;
+						}
 					}
 				}
 			}
@@ -4750,6 +4756,12 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 		if ((attr->attrFlags & SA_IMM_ATTR_DN) && !(cl_node->isImmA2f)) {
 			TRACE_2("SA_IMM_ATTR_DN flag is supported in version A.02.15 or higher");
+			rc = SA_AIS_ERR_VERSION;
+			goto mds_send_fail;
+		}
+
+		if ((attr->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED) && !(cl_node->isImmA2x10)) {
+			TRACE_2("SA_IMM_ATTR_DEFAULT_REMOVED flag is supported in version A.02.16 or higher");
 			rc = SA_AIS_ERR_VERSION;
 			goto mds_send_fail;
 		}

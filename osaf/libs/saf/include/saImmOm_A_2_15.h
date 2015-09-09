@@ -165,4 +165,6 @@ extern "C" {
 }
 #endif
 
+#include <saImmOm_A_2_16.h>
+
 #endif   /* _SA_IMM_OM_A_2_15_H */
