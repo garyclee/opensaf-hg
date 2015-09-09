@@ -964,6 +964,13 @@ immModel_protocol46Allowed(IMMND_CB *cb)
         SA_TRUE : SA_FALSE;
 }
 
+SaBoolT
+immModel_protocol47Allowed(IMMND_CB *cb)
+{
+    return (ImmModel::instance(&cb->immModel)->protocol47Allowed()) ?
+        SA_TRUE : SA_FALSE;
+}
+
 OsafImmAccessControlModeT
 immModel_accessControlMode(IMMND_CB *cb)
 {
@@ -3646,6 +3653,28 @@ ImmModel::protocol46Allowed()
 }
 
 bool
+ImmModel::protocol47Allowed()
+{
+    //TRACE_ENTER();
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return false;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi =
+        immObject->mAttrValueMap.find(immAttrNostFlags);
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
+    ImmAttrValue* valuep = avi->second;
+    unsigned int noStdFlags = valuep->getValue_int();
+
+    //TRACE_LEAVE();
+    return noStdFlags & OPENSAF_IMM_FLAG_PRT47_ALLOW;
+}
+
+bool
 ImmModel::protocol41Allowed()
 {
     //TRACE_ENTER();
@@ -4504,6 +4533,7 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard, bool pbe2)
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT43_ALLOW;
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT45_ALLOW;
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT46_ALLOW;
+                    noStdFlags |= OPENSAF_IMM_FLAG_PRT47_ALLOW;
                     valuep->setValue_int(noStdFlags);
                     LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
                     /* END Temporary code. */
