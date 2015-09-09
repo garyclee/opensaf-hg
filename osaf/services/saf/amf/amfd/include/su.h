@@ -90,7 +90,7 @@ class AVD_SU {
 	struct avd_su_si_rel_tag *list_of_susi;	/* the list of su si relationship elements */
 
 	// TODO: use some container for the comp list
-	struct avd_comp_tag *list_of_comp;	/* the list of  components in this SU */
+	AVD_COMP *list_of_comp;	/* the list of  components in this SU */
 
 	AVD_SU *sg_list_su_next;	/* the next SU in the SG */
 	AVD_SU *avnd_list_su_next;	/* the next SU in the AvND */
@@ -103,8 +103,8 @@ class AVD_SU {
 	void inc_curr_act_si();
 	void dec_curr_act_si();
 	int hastate_assignments_count(SaAmfHAStateT ha_state);
-	void add_comp(struct avd_comp_tag *comp);
-	void remove_comp(struct avd_comp_tag *comp);
+	void add_comp(AVD_COMP *comp);
+	void remove_comp(AVD_COMP *comp);
 	void set_admin_state(SaAmfAdminStateT admin_state);
 	void set_pres_state(SaAmfPresenceStateT state);
 	void set_readiness_state(SaAmfReadinessStateT readiness_state);

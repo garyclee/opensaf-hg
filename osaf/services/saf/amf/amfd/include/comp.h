@@ -54,73 +54,83 @@ typedef struct {
 } AVD_COMP_GLOBALATTR;
 
 /* AMF Class SaAmfCompType */
-typedef struct avd_comp_tag {
+class AVD_COMP {
+ public:
+  AVD_COMP();
+  explicit AVD_COMP(const SaNameT* dn );
+  
+  SaNameT saAmfCompType;
 
-	SaNameT saAmfCompType;
+  /* Detailed as in data structure definition */
+  AVSV_COMP_INFO comp_info;	/* component name field with 
+                                 * the length field in the 
+                                 * network order is used as the
+                                 * index. */
+  SaTimeT inst_retry_delay;	/* Delay interval after which
+                                 * the component is reinstantiated.
+                                 * Checkpointing - Sent as a one time update.
+                                 */
 
-	/* Detailed as in data structure definition */
-	AVSV_COMP_INFO comp_info;	/* component name field with 
-					 * the length field in the 
-					 * network order is used as the
-					 * index. */
-	SaTimeT inst_retry_delay;	/* Delay interval after which
-					 * the component is reinstantiated.
-					 * Checkpointing - Sent as a one time update.
-					 */
+  bool nodefail_cleanfail;	/* If flag set to true node will
+                                 * be considered failed when the
+                                 * cleanup script fails.
+                                 * Checkpointing - Sent as a one time update.
+                                 */
 
-	bool nodefail_cleanfail;	/* If flag set to true node will
-					 * be considered failed when the
-					 * cleanup script fails.
-					 * Checkpointing - Sent as a one time update.
-					 */
+  uint32_t max_num_inst_delay;	/* the maximum number of times
+                                 * AMF tries to instantiate
+                                 * the component with delay.
+                                 * Checkpointing - Sent as a one time update.
+                                 */
 
-	uint32_t max_num_inst_delay;	/* the maximum number of times
-					 * AMF tries to instantiate
-					 * the component with delay.
-					 * Checkpointing - Sent as a one time update.
-					 */
+  SaUint32T max_num_csi_actv;	/* number of CSI relationships that can be
+                                 * assigned active to this component 
+                                 * Checkpointing - Sent as a one time update.
+                                 */
 
-	SaUint32T max_num_csi_actv;	/* number of CSI relationships that can be
-					 * assigned active to this component 
-					 * Checkpointing - Sent as a one time update.
-					 */
+  SaUint32T max_num_csi_stdby;	/* number of CSI relationships that can be
+                                 * assigned standby to this component 
+                                 * Checkpointing - Sent as a one time update.
+                                 */
 
-	SaUint32T max_num_csi_stdby;	/* number of CSI relationships that can be
-					 * assigned standby to this component 
-					 * Checkpointing - Sent as a one time update.
-					 */
+  SaUint32T curr_num_csi_actv;	/* the number of CSI relationships that have
+                                 * been assigned active to this component
+                                 * Checkpointing - Sent update independently.
+                                 */
 
-	SaUint32T curr_num_csi_actv;	/* the number of CSI relationships that have
-					 * been assigned active to this component
-					 * Checkpointing - Sent update independently.
-					 */
+  SaUint32T curr_num_csi_stdby;	/* the number of CSI relationships that have
+                                 * been assigned standby to this component
+                                 * Checkpointing - Sent update independently.
+                                 */
+  SaNameT comp_proxy_csi;
+  SaNameT comp_container_csi;
 
-	SaUint32T curr_num_csi_stdby;	/* the number of CSI relationships that have
-					 * been assigned standby to this component
-					 * Checkpointing - Sent update independently.
-					 */
-	SaNameT comp_proxy_csi;
-	SaNameT comp_container_csi;
+  /* runtime attributes */
+  SaAmfOperationalStateT saAmfCompOperState;	
+  SaAmfReadinessStateT   saAmfCompReadinessState;
+  SaAmfPresenceStateT    saAmfCompPresenceState;
+  SaUint32T              saAmfCompRestartCount;
+  SaNameT                saAmfCompCurrProxyName;
+  SaNameT              **saAmfCompCurrProxiedNames;
 
-	/* runtime attributes */
-	SaAmfOperationalStateT saAmfCompOperState;	
-	SaAmfReadinessStateT   saAmfCompReadinessState;
-	SaAmfPresenceStateT    saAmfCompPresenceState;
-	SaUint32T              saAmfCompRestartCount;
-	SaNameT                saAmfCompCurrProxyName;
-	SaNameT              **saAmfCompCurrProxiedNames;
+  bool assign_flag;	/* Flag used while assigning. to mark this
+                         * comp has been assigned a CSI from
+                         * current SI being assigned
+                         */
+  struct avd_amf_comp_type_tag *comp_type;
+  AVD_COMP *comp_type_list_comp_next;
+  AVD_SU *su;		/* SU to which this component belongs */
+  AVD_COMP *su_comp_next;	/* the next component in list of  components
+                                 * in this SU */
+  AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
 
-	bool assign_flag;	/* Flag used while assigning. to mark this
-				 * comp has been assigned a CSI from
-				 * current SI being assigned
-				 */
-	struct avd_amf_comp_type_tag *comp_type;
-	struct avd_comp_tag *comp_type_list_comp_next;
-	AVD_SU *su;		/* SU to which this component belongs */
-	struct avd_comp_tag *su_comp_next;	/* the next component in list of  components
-						 * in this SU */
-	AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
-} AVD_COMP;
+ private:
+  void initialize();
+  // disallow copy and assign
+  AVD_COMP(const AVD_COMP&);
+  void operator=(const AVD_COMP&);
+
+};
 
 extern AmfDb<std::string, AVD_COMP> *comp_db;
 
@@ -148,7 +158,7 @@ typedef struct avd_amf_comp_type_tag {
 	SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError;
 	SaBoolT saAmfCtDefDisableRestart;
 
-	struct avd_comp_tag *list_of_comp;
+	AVD_COMP *list_of_comp;
 
 } AVD_COMP_TYPE;
 extern  AmfDb<std::string, AVD_COMP_TYPE> *comptype_db;

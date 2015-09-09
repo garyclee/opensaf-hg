@@ -92,7 +92,7 @@ struct cl_cb_tag;
 struct avd_avnd_tag;
 struct avd_hlt_tag;
 struct avd_su_si_rel_tag;
-struct avd_comp_tag;
+class AVD_COMP;
 struct avd_comp_csi_rel_tag;
 struct avd_csi_tag;
 
@@ -116,7 +116,7 @@ uint32_t avd_snd_oper_state_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
 uint32_t avd_snd_op_req_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, AVSV_PARAM_INFO *param_info);
 uint32_t avd_snd_su_reg_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, bool fail_over);
 uint32_t avd_snd_su_msg(struct cl_cb_tag *cb, AVD_SU *su);
-uint32_t avd_snd_comp_msg(struct cl_cb_tag *cb, struct avd_comp_tag *comp);
+uint32_t avd_snd_comp_msg(struct cl_cb_tag *cb, AVD_COMP *comp);
 uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, AVD_SU *su, struct avd_su_si_rel_tag *susi,
 				AVSV_SUSI_ACT actn, bool single_csi, struct avd_comp_csi_rel_tag*);
 uint32_t avd_snd_set_leds_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
@@ -127,7 +127,7 @@ uint32_t avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct av
 				  SaAmfProtectionGroupChangesT, SaNameT *);
 uint32_t avd_snd_hb_msg(struct cl_cb_tag *);
 uint32_t avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
-					    struct avd_comp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
+					    AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg);
 void avsv_d2d_msg_free(AVD_D2D_MSG *);
 uint32_t avd_d2d_msg_snd(struct cl_cb_tag *, AVD_D2D_MSG *);
 
