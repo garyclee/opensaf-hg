@@ -47,7 +47,7 @@
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
-static SaVersionT immVersion = { 'A', 2, 15 };
+static SaVersionT immVersion = { 'A', 2, 16 };
 
 static void usage(const char *progname)
 {
