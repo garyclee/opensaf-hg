@@ -185,13 +185,21 @@ private:
 extern  AmfDb<std::string, AVD_COMPCS_TYPE> *compcstype_db;
 
 /* AMF Class SaAmfCtCsType */
-typedef struct {
-	SaNameT name;
-	SaAmfCompCapabilityModelT saAmfCtCompCapability;
-	SaUint32T saAmfCtDefNumMaxActiveCSIs;
-	SaUint32T saAmfCtDefNumMaxStandbyCSIs;
-	AVD_COMP_TYPE *comptype;
-} AVD_CTCS_TYPE;
+class AVD_CTCS_TYPE {
+ public:
+  explicit AVD_CTCS_TYPE(const SaNameT *dn);
+
+  SaNameT name {};
+  SaAmfCompCapabilityModelT saAmfCtCompCapability {};
+  SaUint32T saAmfCtDefNumMaxActiveCSIs {};
+  SaUint32T saAmfCtDefNumMaxStandbyCSIs {};
+  AVD_COMP_TYPE *comptype {};
+ private:
+  AVD_CTCS_TYPE();
+  // disallow copy and assign
+  AVD_CTCS_TYPE(const AVD_CTCS_TYPE&);
+  void operator=(const AVD_CTCS_TYPE&);
+};
 
 extern AmfDb<std::string, AVD_CTCS_TYPE> *ctcstype_db;
 
