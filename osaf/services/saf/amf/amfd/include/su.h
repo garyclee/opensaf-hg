@@ -35,6 +35,7 @@
 #include "include/db_template.h"
 
 class AVD_SG;
+class AVD_SUTYPE;
 
 /**
  * AMF director Service Unit representation.
@@ -94,7 +95,7 @@ class AVD_SU {
 
 	AVD_SU *sg_list_su_next;	/* the next SU in the SG */
 	AVD_SU *avnd_list_su_next;	/* the next SU in the AvND */
-	struct avd_sutype *su_type;
+	AVD_SUTYPE *su_type;
 	AVD_SU *su_list_su_type_next;
 
 	void set_su_failover(bool value);

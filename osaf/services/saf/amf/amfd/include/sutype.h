@@ -20,16 +20,24 @@
 
 #include <saAis.h>
 #include <su.h>
+#include <vector>
 
-struct avd_sutype {
-	SaNameT name;
-	SaUint32T saAmfSutIsExternal;
-	SaUint32T saAmfSutDefSUFailover;
-	SaNameT *saAmfSutProvidesSvcTypes; /* array of DNs, size in number_svc_types */
-	unsigned int number_svc_types;	/* size of array saAmfSutProvidesSvcTypes */
-	AVD_SU *list_of_su;
+class AVD_SUTYPE {
+ public:
+  explicit AVD_SUTYPE(const SaNameT *dn);
+  SaNameT name {};
+  SaUint32T saAmfSutIsExternal {};
+  SaUint32T saAmfSutDefSUFailover {};
+  SaNameT *saAmfSutProvidesSvcTypes {}; /* array of DNs, size in number_svc_types */
+  unsigned int number_svc_types {};	/* size of array saAmfSutProvidesSvcTypes */
+  std::vector<AVD_SU*> list_of_su {};
+ private:
+  AVD_SUTYPE();
+  // disallow copy and assign
+  AVD_SUTYPE(const AVD_SUTYPE&);
+  void operator=(const AVD_SUTYPE&);
 };
-extern AmfDb<std::string, avd_sutype> *sutype_db;
+extern AmfDb<std::string, AVD_SUTYPE> *sutype_db;
 
 /**
  * Get SaAmfSUType from IMM and create internal objects

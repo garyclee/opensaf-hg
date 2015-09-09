@@ -27,37 +27,41 @@
 #include <cluster.h>
 #include <ntf.h>
 #include <proc.h>
+#include <algorithm>
 
-AmfDb<std::string, avd_sutype> *sutype_db = NULL;
+AmfDb<std::string, AVD_SUTYPE> *sutype_db = NULL;
 
-static struct avd_sutype *sutype_new(const SaNameT *dn)
+//
+AVD_SUTYPE::AVD_SUTYPE(const SaNameT *dn) {
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+}
+
+static AVD_SUTYPE *sutype_new(const SaNameT *dn)
 {
-	struct avd_sutype *sutype = new avd_sutype();
-
-	memcpy(sutype->name.value, dn->value, dn->length);
-	sutype->name.length = dn->length;
+	AVD_SUTYPE *sutype = new AVD_SUTYPE(dn);
 
 	return sutype;
 }
 
-static void sutype_delete(struct avd_sutype **sutype)
+static void sutype_delete(AVD_SUTYPE **sutype)
 {
-	osafassert(NULL == (*sutype)->list_of_su);
+	osafassert(true == (*sutype)->list_of_su.empty());
 	delete [] (*sutype)->saAmfSutProvidesSvcTypes;
 	delete *sutype;
 	*sutype = NULL;
 }
 
-static void sutype_db_add(struct avd_sutype *sutype)
+static void sutype_db_add(AVD_SUTYPE *sutype)
 {
 	unsigned int rc = sutype_db->insert(Amf::to_string(&sutype->name),sutype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
-static struct avd_sutype *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_SUTYPE *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	const SaImmAttrValuesT_2 *attr;
-	struct avd_sutype *sutype;
+	AVD_SUTYPE *sutype;
 	int rc = 0;
 	unsigned i = 0;
 	SaAisErrorT error;
@@ -166,7 +170,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 SaAisErrorT avd_sutype_config_get(void)
 {
-	struct avd_sutype *sut;
+	AVD_SUTYPE *sut;
 	SaAisErrorT error;
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
@@ -228,7 +232,7 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	int i = 0;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-	avd_sutype *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
+	AVD_SUTYPE *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSutDefSUFailover")) {
@@ -239,7 +243,7 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			/* Modify saAmfSUFailover for SUs which had inherited saAmfSutDefSUFailover.
 				Modification will not be done for the NPI SU */
 			if (old_value != sut->saAmfSutDefSUFailover) {
-				for (AVD_SU *su = sut->list_of_su; su; su = su->su_list_su_type_next) { 
+				for (const auto& su : sut->list_of_su) {
 					if ((!su->saAmfSUFailover_configured) && (su->saAmfSUPreInstantiable)) {
 						su->set_su_failover(static_cast<bool>(sut->saAmfSutDefSUFailover));
 					}
@@ -255,7 +259,7 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	struct avd_sutype *sut;
+	AVD_SUTYPE *sut;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -291,7 +295,7 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	avd_sutype *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
+	AVD_SUTYPE *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
@@ -311,7 +315,7 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 				goto done;
 			}	
 	
-			for (AVD_SU *su = sut->list_of_su; su; su = su->su_list_su_type_next) {
+			for (const auto& su : sut->list_of_su) {
 				if (su->saAmfSUFailover_configured)
 					continue;
 
@@ -341,8 +345,7 @@ done:
 static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	struct avd_sutype *sut;
-	AVD_SU *su; 
+	AVD_SUTYPE *sut;
 	bool su_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
@@ -358,23 +361,22 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		sut = sutype_db->find(Amf::to_string(&opdata->objectName));
-		if (NULL != sut->list_of_su) {
-			/* check whether there exists a delete operation for 
-			 * each of the SU in the su_type list in the current CCB 
-			 */                      
-			su = sut->list_of_su;
-			while (su != NULL) {  
-				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
-				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					su_exist = true;   
-					break;                  
-				}                       
-				su = su->su_list_su_type_next;
-			}                       
-			if (su_exist == true) {
-				report_ccb_validation_error(opdata, "SaAmfSUType '%s'is in use",sut->name.value);
-				goto done;
+
+		/* check whether there exists a delete operation for 
+		 * each of the SU in the su_type list in the current CCB 
+		 */                      
+
+		for (const auto& su : sut->list_of_su) {
+			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
+			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+				su_exist = true;
+				break;
 			}
+		}
+
+		if (su_exist == true) {
+			report_ccb_validation_error(opdata, "SaAmfSUType '%s'is in use",sut->name.value);
+			goto done;
 		}
 		rc = SA_AIS_OK;
 		break;
@@ -391,41 +393,23 @@ done:
 	/* Add SU to list in SU Type */
 void avd_sutype_add_su(AVD_SU* su)
 {
-	struct avd_sutype *sut = su->su_type;
-	su->su_list_su_type_next = sut->list_of_su;
-	sut->list_of_su = su;
+	AVD_SUTYPE *sut = su->su_type;
+	sut->list_of_su.push_back(su);
 }
 
-void avd_sutype_remove_su(AVD_SU* su)
-{
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
+void avd_sutype_remove_su(AVD_SU* su) {
+  AVD_SUTYPE *su_type = su->su_type;
 
-	if (su->su_type != NULL) {
-		i_su = su->su_type->list_of_su;
-
-		while ((i_su != NULL) && (i_su != su)) {
-			prev_su = i_su;
-			i_su = i_su->su_list_su_type_next;
-		}
-
-		if (i_su == su) {
-			if (prev_su == NULL) {
-				su->su_type->list_of_su = su->su_list_su_type_next;
-			} else {
-				prev_su->su_list_su_type_next = su->su_list_su_type_next;
-			}
-			
-			su->su_list_su_type_next = NULL;
-			su->su_type = NULL;
-		}
-	}
+  if (su_type != nullptr) {
+    su_type->list_of_su.erase(std::remove(su_type->list_of_su.begin(),
+                                          su_type->list_of_su.end(), su), su_type->list_of_su.end());
+  }
 }
 
 void avd_sutype_constructor(void)
 {
 
-	sutype_db = new AmfDb<std::string, avd_sutype>;
+	sutype_db = new AmfDb<std::string, AVD_SUTYPE>;
 	avd_class_impl_set("SaAmfSUBaseType", NULL, NULL,
 		avd_imm_default_OK_completed_cb, NULL);
 	avd_class_impl_set("SaAmfSUType", NULL, NULL,
