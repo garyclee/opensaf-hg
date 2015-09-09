@@ -86,7 +86,7 @@ class AVD_SU {
 	int su_act_state; // not used, kept for EDU, remove later
 
 	AVD_SG *sg_of_su;	/* the service group of this SU */
-	struct avd_avnd_tag *su_on_node;	/*  the node on which this SU resides */
+	AVD_AVND *su_on_node;	/*  the node on which this SU resides */
 	struct avd_su_si_rel_tag *list_of_susi;	/* the list of su si relationship elements */
 
 	// TODO: use some container for the comp list
@@ -118,7 +118,7 @@ class AVD_SU {
 	void set_term_state(bool state);
 	void remove_from_model();
 	void set_su_switch(SaToggleState state);
-	avd_avnd_tag *get_node_ptr(void);
+	AVD_AVND *get_node_ptr(void);
 	bool is_in_service(void);
 	bool is_instantiable(void);
 	void reset_all_comps_assign_flag();

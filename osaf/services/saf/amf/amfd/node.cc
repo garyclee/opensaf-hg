@@ -78,30 +78,71 @@ void avd_node_db_add(AVD_AVND *node)
 	}
 }
 
+//
+void AVD_AVND::initialize() {
+  name = {};
+  node_name = {};
+  node_info = {};
+  node_info.member = SA_FALSE;
+  adest = {};
+  saAmfNodeClmNode = {};
+  saAmfNodeCapacity = {};
+  saAmfNodeSuFailOverProb = {};
+  saAmfNodeSuFailoverMax = {};
+  saAmfNodeAutoRepair = {};
+  saAmfNodeFailfastOnTerminationFailure = {};
+  saAmfNodeFailfastOnInstantiationFailure = {};
+  saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
+  saAmfNodeOperState = SA_AMF_OPERATIONAL_DISABLED;
+  admin_node_pend_cbk = {};
+  su_cnt_admin_oper = {};
+  node_state = AVD_AVND_STATE_ABSENT;
+  list_of_ncs_su = {};
+  list_of_su = {};
+  pg_csi_list = {};
+  pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
+  pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
+  type = AVSV_AVND_CARD_PAYLOAD;
+  rcv_msg_id = {};
+  snd_msg_id = {};
+  cluster_list_node_next = {};
+  cluster = {};
+  clm_pend_inv = {};
+  clm_change_start_preceded = {};
+  recvr_fail_sw = {};
+  admin_ng = {};
+}
+
+//
+AVD_AVND::AVD_AVND() {
+  initialize();
+}
+
+//
+AVD_AVND::AVD_AVND(const SaNameT *dn) {
+
+  char *tmp_node_name;
+  SaNameT rdn = *dn;
+
+  initialize();
+
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+  tmp_node_name = strchr((char*)rdn.value, ',');
+  *tmp_node_name = 0;
+  tmp_node_name = strchr((char*)rdn.value, '=');
+  tmp_node_name++;
+  node_name = StrDup(tmp_node_name);
+}
+
+//
 AVD_AVND *avd_node_new(const SaNameT *dn)
 {
-	AVD_AVND *node;
-	char *node_name;
-	SaNameT rdn = *dn;
+  AVD_AVND *node;
 
-	node = new AVD_AVND();
+  node = new AVD_AVND(dn);
 
-	memcpy(node->name.value, dn->value, dn->length);
-	node->name.length = dn->length;
-	node_name = strchr((char*)rdn.value, ',');
-	*node_name = 0;
-	node_name = strchr((char*)rdn.value, '=');
-	node_name++;
-	node->node_name = StrDup(node_name);
-	node->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
-	node->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
-	node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
-	node->saAmfNodeOperState = SA_AMF_OPERATIONAL_DISABLED;
-	node->node_state = AVD_AVND_STATE_ABSENT;
-	node->node_info.member = SA_FALSE;
-	node->type = AVSV_AVND_CARD_PAYLOAD;
-
-	return node;
+  return node;
 }
 
 void avd_node_delete(AVD_AVND *node)

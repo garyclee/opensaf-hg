@@ -72,10 +72,13 @@ class AVD_AMF_NG;
  * support the cluster membership service.
  */
 
-typedef struct avd_avnd_tag {
-	SaNameT name; /* DN */ 
-	char *node_name;    /* RDN value, normally the short host name */
-	SaClmClusterNodeT_4 node_info;	/* the node information of the node on
+class AVD_AVND {
+ public:
+  AVD_AVND();
+  explicit AVD_AVND(const SaNameT* dn);
+  SaNameT name; /* DN */ 
+  char *node_name;    /* RDN value, normally the short host name */
+  SaClmClusterNodeT_4 node_info;	/* the node information of the node on
 					 * which this AvND exists. The length
 					 * field of nodeName structure is in
 					 * network order. The nodename is
@@ -83,61 +86,66 @@ typedef struct avd_avnd_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	MDS_DEST adest;		/* the Adest address of this
+  MDS_DEST adest;		/* the Adest address of this
 				 * nodes AvND.
 				 * Checkpointing - Sent on node up.
 				 */
-   /************ AMF B.04 **************************************************/
-	SaNameT saAmfNodeClmNode;
-	char *saAmfNodeCapacity;
-	SaTimeT saAmfNodeSuFailOverProb;
-	SaUint32T saAmfNodeSuFailoverMax;
-	SaBoolT saAmfNodeAutoRepair;
-	SaBoolT saAmfNodeFailfastOnTerminationFailure;
-	SaBoolT saAmfNodeFailfastOnInstantiationFailure;
-	SaAmfAdminStateT saAmfNodeAdminState;
-	SaAmfOperationalStateT saAmfNodeOperState;
+  /************ AMF B.04 **************************************************/
+  SaNameT saAmfNodeClmNode;
+  char *saAmfNodeCapacity;
+  SaTimeT saAmfNodeSuFailOverProb;
+  SaUint32T saAmfNodeSuFailoverMax;
+  SaBoolT saAmfNodeAutoRepair;
+  SaBoolT saAmfNodeFailfastOnTerminationFailure;
+  SaBoolT saAmfNodeFailfastOnInstantiationFailure;
+  SaAmfAdminStateT saAmfNodeAdminState;
+  SaAmfOperationalStateT saAmfNodeOperState;
 
-	AVD_ADMIN_OPER_CBK admin_node_pend_cbk;	/*to store any pending admin op
-						   callbacks on this node */
-	uint32_t su_cnt_admin_oper;	/* count to keep track SUs on this node 
-					   undergoing node admin op */
+  AVD_ADMIN_OPER_CBK admin_node_pend_cbk;	/*to store any pending admin op
+                                                  callbacks on this node */
+  uint32_t su_cnt_admin_oper;	/* count to keep track SUs on this node 
+                                   undergoing node admin op */
 
-   /************ AMF B.04 **************************************************/
+  /************ AMF B.04 **************************************************/
 
-	AVD_AVND_STATE node_state;	/* F.S.M state of the AVND 
-					 * Checkpointing - Sent independent update 
-					 */
+  AVD_AVND_STATE node_state;	/* F.S.M state of the AVND 
+                                 * Checkpointing - Sent independent update 
+                                 */
 
-	AVD_SU *list_of_ncs_su;	/* the list of NCS service units on
-						 * this node.
-						 */
-	AVD_SU *list_of_su;	/* the list of service units on this
-					 * node that are application specific.
-					 */
-	NCS_DB_LINK_LIST pg_csi_list;	/* list of csis for which pg is tracked 
+  AVD_SU *list_of_ncs_su;	/* the list of NCS service units on
+                                 * this node.
+                                 */
+  AVD_SU *list_of_su;	/* the list of service units on this
+                         * node that are application specific.
+                         */
+  NCS_DB_LINK_LIST pg_csi_list;	/* list of csis for which pg is tracked 
 					 * from this node */
 
-	AVSV_AVND_CARD type;	/* field that describes if this node is sytem
-				 * controller or not.
-				 * Checkpointing - Sent as a one time update.
-				 */
+  AVSV_AVND_CARD type;	/* field that describes if this node is sytem
+                         * controller or not.
+                         * Checkpointing - Sent as a one time update.
+                         */
 
-	uint32_t rcv_msg_id;	/* The receive message id counter 
-				 * Checkpointing - Sent independent update 
-				 */
+  uint32_t rcv_msg_id;	/* The receive message id counter 
+                         * Checkpointing - Sent independent update 
+                         */
 
-	uint32_t snd_msg_id;	/* The send message id counter 
-				 * Checkpointing - Sent independent update 
-				 */
+  uint32_t snd_msg_id;	/* The send message id counter 
+                         * Checkpointing - Sent independent update 
+                         */
 
-	struct avd_avnd_tag *cluster_list_node_next;
-	struct avd_cluster_tag *cluster;
-	SaInvocationT clm_pend_inv; /* pending response for any clm track cb */
-	bool clm_change_start_preceded; /* to indicate there was CLM start cbk before CLM completed cb. */
-	bool recvr_fail_sw; /* to indicate there was node reboot because of node failover/switchover.*/
-	AVD_AMF_NG *admin_ng; /* points to the nodegroup on which admin operation is going on.*/	
-} AVD_AVND;
+  AVD_AVND *cluster_list_node_next;
+  struct avd_cluster_tag *cluster;
+  SaInvocationT clm_pend_inv; /* pending response for any clm track cb */
+  bool clm_change_start_preceded; /* to indicate there was CLM start cbk before CLM completed cb. */
+  bool recvr_fail_sw; /* to indicate there was node reboot because of node failover/switchover.*/
+  AVD_AMF_NG *admin_ng; /* points to the nodegroup on which admin operation is going on.*/
+ private:
+  void initialize();
+  // disallow copy and assign
+  AVD_AVND(const AVD_AVND&);
+  void operator=(const AVD_AVND&);
+};
 
 bool operator<(const AVD_AVND& lhs, const AVD_AVND& rhs);
 
