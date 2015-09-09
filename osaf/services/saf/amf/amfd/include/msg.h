@@ -72,7 +72,7 @@ struct cl_cb_tag;
 struct avd_avnd_tag;
 class AVD_SU;
 struct avd_su_si_rel_tag;
-struct avd_comp_tag;
+class AVD_COMP;
 struct avd_comp_csi_rel_tag;
 struct avd_csi_tag;
 
@@ -105,7 +105,7 @@ uint32_t avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct av
 				  SaAmfProtectionGroupChangesT, SaNameT *);
 uint32_t avd_snd_hb_msg(struct cl_cb_tag *);
 uint32_t avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
-					    struct avd_comp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
+					    AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg);
 void avsv_d2d_msg_free(AVD_D2D_MSG *);
 void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *);
 void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *);

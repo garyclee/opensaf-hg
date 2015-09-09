@@ -52,25 +52,58 @@ void avd_comp_db_add(AVD_COMP *comp)
 	}
 }
 
+//
+void AVD_COMP::initialize() {
+  comp_info = {};
+  comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
+  comp_info.category = AVSV_COMP_TYPE_NON_SAF;
+  comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
+  comp_info.inst_level = 1;
+  comp_info.comp_restart = true;
+  nodefail_cleanfail = false;
+  saAmfCompOperState = SA_AMF_OPERATIONAL_DISABLED;
+  saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
+  saAmfCompPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
+  inst_retry_delay = {};
+  max_num_inst_delay = {};
+  max_num_csi_actv = {};
+  max_num_csi_stdby = {};
+  curr_num_csi_actv = {};
+  curr_num_csi_stdby = {};
+  comp_proxy_csi = {};
+  comp_container_csi = {};
+  saAmfCompRestartCount = {};
+  saAmfCompCurrProxyName = {};
+  saAmfCompCurrProxiedNames = {};
+  assign_flag = {};
+  comp_type = {};
+  comp_type_list_comp_next = {};
+  su = {};
+  su_comp_next = {};
+  admin_pend_cbk = {};
+}
+
+//
+AVD_COMP::AVD_COMP() {
+  initialize();
+}
+
+//
+AVD_COMP::AVD_COMP(const SaNameT *dn) {
+  initialize();
+
+  memcpy(&comp_info.name.value, dn->value, dn->length);
+  comp_info.name.length = dn->length;
+}
+
+//
 AVD_COMP *avd_comp_new(const SaNameT *dn)
 {
 	AVD_COMP *comp;
 
-	comp = new AVD_COMP();
-	
-	memcpy(comp->comp_info.name.value, dn->value, dn->length);
-	comp->comp_info.name.length = dn->length;
-	comp->comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
-	comp->comp_info.category = AVSV_COMP_TYPE_NON_SAF;
-	comp->comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
-	comp->comp_info.inst_level = 1;
-	comp->comp_info.comp_restart = true;
-	comp->nodefail_cleanfail = false;
-	comp->saAmfCompOperState = SA_AMF_OPERATIONAL_DISABLED;
-	comp->saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
-	comp->saAmfCompPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
+	comp = new AVD_COMP(dn);
 
-	return comp;
+        return comp;
 }
 
 /**
