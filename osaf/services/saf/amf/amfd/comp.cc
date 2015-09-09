@@ -898,7 +898,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				if (compcstype->comp == comp) {
 					SaNameT cstype_name;
 					AVD_CTCS_TYPE *ctcstype = NULL;
-					avd_cstype_t *cst = NULL;
+					AVD_CS_TYPE *cst = NULL;
 					get_child_dn_from_ass_dn(&compcstype->name, &cstype_name);
 					//First check if this cstype exists in the sustem.
 					if ((cst = cstype_db->find(Amf::to_string(&cstype_name))) == NULL) {

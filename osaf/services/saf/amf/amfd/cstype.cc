@@ -22,7 +22,7 @@
 #include <csi.h>
 #include <imm.h>
 
-AmfDb<std::string, avd_cstype_t> *cstype_db = NULL;
+AmfDb<std::string, AVD_CS_TYPE> *cstype_db = NULL;
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -35,23 +35,26 @@ static char *StrDup(const char *s)
 	return c;
 }
 
-static void cstype_add_to_model(avd_cstype_t *cst)
+static void cstype_add_to_model(AVD_CS_TYPE *cst)
 {
 	uint32_t rc = cstype_db->insert(Amf::to_string(&cst->name),cst);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
-static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+//
+AVD_CS_TYPE::AVD_CS_TYPE(const SaNameT *dn) {
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+}
+
+static AVD_CS_TYPE *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
-	avd_cstype_t *cst;
+	AVD_CS_TYPE *cst;
 	SaUint32T values_number;
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	cst = new avd_cstype_t();
-
-	memcpy(cst->name.value, dn->value, dn->length);
-	cst->name.length = dn->length;
+	cst = new AVD_CS_TYPE(dn);
 
 	if ((immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCSAttrName"), attributes, &values_number) == SA_AIS_OK) &&
 	    (values_number > 0)) {
@@ -70,7 +73,7 @@ static avd_cstype_t *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 *
  * Delete from DB and return memory
  * @param cst
  */
-static void cstype_delete(avd_cstype_t *cst)
+static void cstype_delete(AVD_CS_TYPE *cst)
 {
 	char *p;
 	int i = 0;
@@ -153,7 +156,7 @@ SaAisErrorT avd_cstype_config_get(void)
 	SaNameT dn;
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfCSType";
-	avd_cstype_t *cst;
+	AVD_CS_TYPE *cst;
 
 	TRACE_ENTER();
 
@@ -197,7 +200,7 @@ done1:
 static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	avd_cstype_t *cst;
+	AVD_CS_TYPE *cst;
 	AVD_CSI *csi; 
 	bool csi_exist = false;
 	CcbUtilOperationData_t *t_opData;
@@ -246,7 +249,7 @@ done:
 
 static void cstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	avd_cstype_t *cst;
+	AVD_CS_TYPE *cst;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -257,7 +260,7 @@ static void cstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		cstype_add_to_model(cst);
 		break;
 	case CCBUTIL_DELETE:
-		cstype_delete(static_cast<avd_cstype_t*>(opdata->userData));
+		cstype_delete(static_cast<AVD_CS_TYPE*>(opdata->userData));
 		break;
 	default:
 		osafassert(0);
@@ -267,7 +270,7 @@ static void cstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_cstype_constructor(void)
 {
-	cstype_db= new AmfDb<std::string, avd_cstype_t>;
+	cstype_db= new AmfDb<std::string, AVD_CS_TYPE>;
 
 	avd_class_impl_set("SaAmfCSType", NULL, NULL, cstype_ccb_completed_hdlr,
 		cstype_ccb_apply_cb);

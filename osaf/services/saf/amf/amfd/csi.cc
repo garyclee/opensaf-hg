@@ -862,7 +862,7 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
-			struct avd_cstype *csi_type;
+			AVD_CS_TYPE *csi_type;
 			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			TRACE("saAmfCSType modified from '%s' to '%s' for Csi'%s'", csi->saAmfCSType.value,
 					cstype_name.value, csi->name.value);

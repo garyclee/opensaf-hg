@@ -49,6 +49,8 @@ typedef struct avd_csi_deps_tag {
 	struct avd_csi_deps_tag *csi_dep_next; /* the next CSI dependency in the list */
 } AVD_CSI_DEPS;
 
+class AVD_CS_TYPE;
+
 /* Availability directors Component service in.stance structure(AVD_CSI):
  * This data structure lives in the AvD and reflects data points
  * associated with the CSI on the AvD.
@@ -77,19 +79,27 @@ typedef struct avd_csi_tag {
 							 * wrt to this CSI. */
 	uint32_t compcsi_cnt;	/* no of comp-csi rels */
 	struct avd_csi_tag *csi_list_cs_type_next;
-	struct avd_cstype *cstype;
+	AVD_CS_TYPE *cstype;
 	bool assign_flag;   /* Flag used while assigning. to mark this csi has been assigned a Comp 
 				   from * current SI being assigned */
 } AVD_CSI;
 extern AmfDb<std::string, AVD_CSI> *csi_db;
 
-typedef struct avd_cstype {
-	SaNameT name;		/* name of the CSType */
-	SaStringT *saAmfCSAttrName;
-	AVD_CSI *list_of_csi;
-} avd_cstype_t;
+class AVD_CS_TYPE {
+ public:
+  explicit AVD_CS_TYPE(const SaNameT *dn);
+  SaNameT name {};		/* name of the CSType */
+  SaStringT *saAmfCSAttrName {};
+  AVD_CSI *list_of_csi {};
 
-extern AmfDb<std::string, avd_cstype_t> *cstype_db;
+ private:
+  AVD_CS_TYPE();
+  // disallow copy and assign
+  AVD_CS_TYPE(const AVD_CS_TYPE&);
+  void operator=(const AVD_CS_TYPE&);
+};
+
+extern AmfDb<std::string, AVD_CS_TYPE> *cstype_db;
 
 /* This data structure lives in the AvD and reflects relationship
  * between the component and CSI on the AvD.
@@ -149,7 +159,7 @@ extern void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr);
 extern void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr);
 extern void avd_csi_constructor(void);
 
-extern avd_cstype_t *avd_cstype_get(const SaNameT *dn);
+extern AVD_CS_TYPE *avd_cstype_get(const SaNameT *dn);
 extern void avd_cstype_add_csi(AVD_CSI *csi);
 extern void avd_cstype_remove_csi(AVD_CSI *csi);
 extern void avd_cstype_constructor(void);
