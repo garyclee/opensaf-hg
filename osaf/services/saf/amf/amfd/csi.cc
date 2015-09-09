@@ -270,6 +270,11 @@ static void csi_remove_csidep(AVD_CSI *csi, const SaNameT *required_dn)
 	delete curr;
 }
 
+//
+AVD_CSI::AVD_CSI(const SaNameT* csi_name) {
+  memcpy(&name.value, csi_name->value, csi_name->length);
+  name.length = csi_name->length;
+}
 /**
  * @brief	creates new csi and adds csi node to the csi_db 
  *
@@ -283,10 +288,8 @@ AVD_CSI *csi_create(const SaNameT *csi_name)
 
 	TRACE_ENTER2("'%s'", csi_name->value);
 
-	csi = new AVD_CSI();
-	memcpy(csi->name.value, csi_name->value, csi_name->length);
-	csi->name.length = csi_name->length;
-
+	csi = new AVD_CSI(csi_name);
+	
 	if (csi_db->insert(Amf::to_string(&csi->name), csi) != NCSCC_RC_SUCCESS)
 		osafassert(0);
 

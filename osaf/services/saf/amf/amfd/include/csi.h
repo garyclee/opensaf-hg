@@ -51,38 +51,46 @@ typedef struct avd_csi_deps_tag {
 
 class AVD_CS_TYPE;
 
-/* Availability directors Component service in.stance structure(AVD_CSI):
+/* Availability directors Component service instance class(AVD_CSI):
  * This data structure lives in the AvD and reflects data points
  * associated with the CSI on the AvD.
  */
-typedef struct avd_csi_tag {
+class AVD_CSI {
+ public:
+  explicit AVD_CSI(const SaNameT* csi_name);
 
-	SaNameT name;
-	SaNameT saAmfCSType;
-	AVD_CSI_DEPS *saAmfCSIDependencies; /* list of all CSI dependencies for this CSI */
-        /* Rank is calculated based on CSI dependency. If no dependency configured then rank will be 1. 
-           Else rank will one more than rank of saAmfCSIDependencies. */
-	uint32_t rank;		/* The rank of the CSI in the SI 
+  SaNameT name {};
+  SaNameT saAmfCSType {};
+  AVD_CSI_DEPS *saAmfCSIDependencies {}; /* list of all CSI dependencies for this CSI */
+  /* Rank is calculated based on CSI dependency. If no dependency configured then rank will be 1. 
+     Else rank will one more than rank of saAmfCSIDependencies. */
+  uint32_t rank {};		/* The rank of the CSI in the SI
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	AVD_SI *si;		/* SI encompassing this csi */
+  AVD_SI *si {};		/* SI encompassing this csi */
 
-	uint32_t num_attributes;	/* The number of attributes in the list. */
-	AVD_CSI_ATTR *list_attributes;	/* list of all the attributes of this CSI. */
+  uint32_t num_attributes {};	/* The number of attributes in the list. */
+  AVD_CSI_ATTR *list_attributes {};	/* list of all the attributes of this CSI. */
 
-	NCS_DB_LINK_LIST pg_node_list;	/* list of nodes on which pg is 
+  NCS_DB_LINK_LIST pg_node_list {};	/* list of nodes on which pg is
 					 * tracked for this csi */
-	struct avd_csi_tag *si_list_of_csi_next;	/* the next CSI in the list of  component service
-							 * instances in the Service instance  */
-	struct avd_comp_csi_rel_tag *list_compcsi;	/* The list of compcsi relationship
-							 * wrt to this CSI. */
-	uint32_t compcsi_cnt;	/* no of comp-csi rels */
-	struct avd_csi_tag *csi_list_cs_type_next;
-	AVD_CS_TYPE *cstype;
-	bool assign_flag;   /* Flag used while assigning. to mark this csi has been assigned a Comp 
-				   from * current SI being assigned */
-} AVD_CSI;
+  AVD_CSI *si_list_of_csi_next {};	/* the next CSI in the list of  component service
+                                 * instances in the Service instance  */
+  struct avd_comp_csi_rel_tag *list_compcsi {};	/* The list of compcsi relationship
+                                                 * wrt to this CSI. */
+  uint32_t compcsi_cnt {};	/* no of comp-csi rels */
+  AVD_CSI *csi_list_cs_type_next {};
+  AVD_CS_TYPE *cstype {};
+  bool assign_flag {};   /* Flag used while assigning. to mark this csi has been assigned a Comp
+                         from * current SI being assigned */
+ private:
+  AVD_CSI();
+  // disallow copy and assign
+  AVD_CSI(const AVD_CSI&);
+  void operator=(const AVD_CSI&);
+};
+
 extern AmfDb<std::string, AVD_CSI> *csi_db;
 
 class AVD_CS_TYPE {
@@ -167,8 +175,8 @@ extern void avd_cstype_constructor(void);
 extern SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi);
 extern void avd_csiattr_constructor(void);
 extern void avd_compcsi_from_csi_and_susi_delete(struct avd_su_si_rel_tag *susi, struct avd_comp_csi_rel_tag *comp_csi, bool ckpt);
-extern void avd_csi_delete(struct avd_csi_tag *csi);
-extern void csi_cmplt_delete(struct avd_csi_tag *csi, bool ckpt);
+extern void avd_csi_delete(AVD_CSI *csi);
+extern void csi_cmplt_delete(AVD_CSI *csi, bool ckpt);
 extern AVD_CSI *csi_create(const SaNameT *csi_name);
 extern bool csi_assignment_validate(AVD_SG *sg);
 extern SaAisErrorT csi_assign_hdlr(AVD_CSI *csi);
