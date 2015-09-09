@@ -110,6 +110,7 @@ public:
     bool                protocol43Allowed();
     bool                protocol45Allowed();
     bool                protocol46Allowed();
+    bool                protocol47Allowed();
     bool                oneSafe2PBEAllowed();
     bool                purgeSyncRequest(SaUint32T clientId);
     bool                verifySchemaChange(const std::string& className,
