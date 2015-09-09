@@ -65,7 +65,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	return 1;
 }
 
-SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_sutype *sut)
+SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
 {
 	AVD_SUTCOMP_TYPE *sutcomptype;
 	SaAisErrorT error;

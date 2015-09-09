@@ -84,7 +84,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 	SaUint32T value;
 	SaBoolT abool;
-	struct avd_sutype *sut;
+	AVD_SUTYPE *sut;
 	const SaImmAttrValuesT_2 *attr;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {

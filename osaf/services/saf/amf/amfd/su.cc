@@ -230,7 +230,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaAmfAdminStateT admstate;
 	char *parent;
 	SaUint32T saAmfSutIsExternal;
-	struct avd_sutype *sut = NULL;
+	AVD_SUTYPE *sut = NULL;
 	CcbUtilOperationData_t *tmp;
 	AVD_SG *sg;
 
@@ -416,7 +416,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 {
 	int rc = -1;
 	AVD_SU *su;
-	struct avd_sutype *sut;
+	AVD_SUTYPE *sut;
 	SaAisErrorT error;
 
 	TRACE_ENTER2("'%s'", dn->value);
@@ -1691,7 +1691,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 					  su->saAmfSUMaintenanceCampaign.value, su->name.value);
 			}
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
-			struct avd_sutype *sut;
+			AVD_SUTYPE *sut;
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			TRACE("Modified saAmfSUType from '%s' to '%s'", su->saAmfSUType.value, sutype_name.value);
 			sut = sutype_db->find(Amf::to_string(&sutype_name));

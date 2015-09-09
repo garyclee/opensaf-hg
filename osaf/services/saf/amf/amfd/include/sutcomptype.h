@@ -36,7 +36,7 @@ typedef struct {
 } AVD_SUTCOMP_TYPE;
 extern AmfDb<std::string, AVD_SUTCOMP_TYPE> *sutcomptype_db;
 
-SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_sutype *sut);
+SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut);
 void avd_sutcomptype_constructor(void);
 
 #endif
