@@ -16,16 +16,23 @@
 #ifndef SVCTYPECSTYPE_H
 #define SVCTYPECSTYPE_H
 
-typedef struct {
-	SaNameT name;
-	SaUint32T saAmfSvctMaxNumCSIs;
+class AVD_SVC_TYPE_CS_TYPE {
+ public:
+  explicit AVD_SVC_TYPE_CS_TYPE(const SaNameT *dn);
 
-	SaUint32T curr_num_csis;
+  SaNameT name {};
+  SaUint32T saAmfSvctMaxNumCSIs {};
 
-	struct avd_amf_svc_type_tag *cs_type_on_svc_type;
-	struct avd_svc_type_cs_type_tag *cs_type_list_svc_type_next;
+  SaUint32T curr_num_csis {};
 
-} AVD_SVC_TYPE_CS_TYPE;
+  struct avd_amf_svc_type_tag *cs_type_on_svc_type {};
+  struct avd_svc_type_cs_type_tag *cs_type_list_svc_type_next {};
+ private:
+  AVD_SVC_TYPE_CS_TYPE();
+  // disallow copy and assign
+  AVD_SVC_TYPE_CS_TYPE(const AVD_SVC_TYPE_CS_TYPE&);
+  void operator=(const AVD_SVC_TYPE_CS_TYPE&);
+};
 
 SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
 void avd_svctypecstypes_constructor(void);

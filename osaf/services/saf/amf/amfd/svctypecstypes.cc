@@ -30,6 +30,11 @@ static void svctypecstype_db_add(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
+//
+AVD_SVC_TYPE_CS_TYPE::AVD_SVC_TYPE_CS_TYPE(const SaNameT *dn) {
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+}
 
 static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
@@ -37,10 +42,7 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	svctypecstype = new AVD_SVC_TYPE_CS_TYPE();
-
-	memcpy(svctypecstype->name.value, dn->value, dn->length);
-	svctypecstype->name.length = dn->length;
+	svctypecstype = new AVD_SVC_TYPE_CS_TYPE(dn);
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSvctMaxNumCSIs"), attributes, 0, &svctypecstype->saAmfSvctMaxNumCSIs) != SA_AIS_OK)
 		svctypecstype->saAmfSvctMaxNumCSIs = -1; /* no limit */
