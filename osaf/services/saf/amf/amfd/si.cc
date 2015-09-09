@@ -36,7 +36,7 @@ AmfDb<std::string, AVD_SI> *si_db = NULL;
  * @param name 
  * @param csi 
  */
-static void osafassert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag* csi)
+static void osafassert_if_loops_in_csideps(SaNameT *csi_name, AVD_CSI* csi)
 {         
 	AVD_CSI *temp_csi = NULL;
 	AVD_CSI_DEPS *csi_dep_ptr;
@@ -68,7 +68,7 @@ static void osafassert_if_loops_in_csideps(SaNameT *csi_name, struct avd_csi_tag
 	TRACE_LEAVE();
 }
 
-void AVD_SI::arrange_dep_csi(struct avd_csi_tag* csi)
+void AVD_SI::arrange_dep_csi(AVD_CSI* csi)
 {
 	AVD_CSI *temp_csi = NULL;
 
@@ -110,7 +110,7 @@ void AVD_SI::arrange_dep_csi(struct avd_csi_tag* csi)
 	return;
 }
 
-void AVD_SI::add_csi(struct avd_csi_tag* avd_csi)
+void AVD_SI::add_csi(AVD_CSI* avd_csi)
 {
 	AVD_CSI *temp_csi = NULL;
         bool found = false;
@@ -158,7 +158,7 @@ add_csi:
 	return;
 }
 
-void AVD_SI::add_csi_db(struct avd_csi_tag* csi)
+void AVD_SI::add_csi_db(AVD_CSI* csi)
 {
 	TRACE_ENTER2("%s", csi->name.value);
 

@@ -92,7 +92,7 @@ public:
 					 */
 
 	AVD_SG *sg_of_si;	/* the service group of this SI */
-	struct avd_csi_tag *list_of_csi;	/* The list of CSIs in the SI */
+	AVD_CSI *list_of_csi;	/* The list of CSIs in the SI */
 	AVD_SI *sg_list_of_si_next;	/* next SI in the SG list of SIs */
 	struct avd_su_si_rel_tag *list_of_sisu;	/* the list of su si relationship elements */
 	AVD_SI_DEP_STATE si_dep_state;	/* SI-SI dep state of this SI */
@@ -131,15 +131,15 @@ public:
 	uint32_t pref_standby_assignments() const;
 	uint32_t curr_standby_assignments() const;
 	
-	void add_csi(struct avd_csi_tag* csi);
-	void remove_csi(struct avd_csi_tag *csi);
+	void add_csi(AVD_CSI* csi);
+	void remove_csi(AVD_CSI *csi);
 	
 	void delete_assignments(AVD_CL_CB *cb);
 	void delete_csis();
 	void si_add_to_model();
 	
-	void arrange_dep_csi(struct avd_csi_tag* csi);
-	void add_csi_db(struct avd_csi_tag* csi);
+	void arrange_dep_csi(AVD_CSI* csi);
+	void add_csi_db(AVD_CSI* csi);
 	bool is_sirank_valid(uint32_t newSiRank) const;
 	void update_sirank(uint32_t newSiRank);
 private:

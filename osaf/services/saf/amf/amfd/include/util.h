@@ -94,7 +94,7 @@ struct avd_hlt_tag;
 struct avd_su_si_rel_tag;
 class AVD_COMP;
 struct avd_comp_csi_rel_tag;
-struct avd_csi_tag;
+class AVD_CSI;
 
 int get_child_dn_from_ass_dn(const SaNameT *ass_dn, SaNameT *child_dn);
 void avd_d2n_reboot_snd(struct avd_avnd_tag *node);
@@ -121,7 +121,7 @@ uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, AVD_SU *su, struct avd_su_si_rel
 				AVSV_SUSI_ACT actn, bool single_csi, struct avd_comp_csi_rel_tag*);
 uint32_t avd_snd_set_leds_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
 
-uint32_t avd_snd_pg_resp_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_csi_tag *,
+uint32_t avd_snd_pg_resp_msg(struct cl_cb_tag *, struct avd_avnd_tag *, AVD_CSI *,
 				   AVSV_N2D_PG_TRACK_ACT_MSG_INFO *);
 uint32_t avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, struct avd_comp_csi_rel_tag *,
 				  SaAmfProtectionGroupChangesT, SaNameT *);
