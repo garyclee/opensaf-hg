@@ -119,7 +119,6 @@ AVD_SG::AVD_SG():
 		sg_redundancy_model(SA_AMF_NO_REDUNDANCY_MODEL),
 		list_of_su(NULL),
 		list_of_si(NULL),
-		sg_list_sg_type_next(NULL),
 		sg_type(NULL),
 		sg_list_app_next(NULL),
 		app(NULL),

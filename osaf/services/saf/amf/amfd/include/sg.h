@@ -192,8 +192,7 @@ public:
 	SaInvocationT adminOp_invocationId;
 	SaAmfAdminOperationIdT adminOp;
 
-	AVD_SG *sg_list_sg_type_next;
-	struct avd_amf_sg_type_tag *sg_type;
+	AVD_AMF_SG_TYPE *sg_type;
 	AVD_SG *sg_list_app_next;
 	AVD_APP *app;
 	bool equal_ranked_su; /* This flag is set when ranks of all SU is the same.
