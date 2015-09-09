@@ -27,28 +27,37 @@
 
 #include <saAmf.h>
 #include <include/db_template.h>
+#include <vector>
 
 class AVD_SG;
 
-typedef struct avd_amf_sg_type_tag {
-	SaNameT name;
-	bool saAmfSgtDefAutoRepair_configured; /* True when user configures saAmfSGDefAutoRepair else false */
+class AVD_AMF_SG_TYPE {
+ public:
+  explicit AVD_AMF_SG_TYPE(const SaNameT *dn);
+  SaNameT name {};
+  bool saAmfSgtDefAutoRepair_configured {}; /* True when user configures saAmfSGDefAutoRepair else false */
    /******************** B.04 model *************************************************/
-	SaNameT *saAmfSGtValidSuTypes;	/* array of DNs, size in number_su_type */
-	SaAmfRedundancyModelT saAmfSgtRedundancyModel;
-	SaBoolT saAmfSgtDefAutoRepair;
-	SaBoolT saAmfSgtDefAutoAdjust;
-	SaTimeT saAmfSgtDefAutoAdjustProb;
-	SaTimeT saAmfSgtDefCompRestartProb;
-	SaUint32T saAmfSgtDefCompRestartMax;
-	SaTimeT saAmfSgtDefSuRestartProb;
-	SaUint32T saAmfSgtDefSuRestartMax;
+  SaNameT *saAmfSGtValidSuTypes {};	/* array of DNs, size in number_su_type */
+  SaAmfRedundancyModelT saAmfSgtRedundancyModel {};
+  SaBoolT saAmfSgtDefAutoRepair {};
+  SaBoolT saAmfSgtDefAutoAdjust {};
+  SaTimeT saAmfSgtDefAutoAdjustProb {};
+  SaTimeT saAmfSgtDefCompRestartProb {};
+  SaUint32T saAmfSgtDefCompRestartMax {};
+  SaTimeT saAmfSgtDefSuRestartProb {};
+  SaUint32T saAmfSgtDefSuRestartMax {};
    /******************** B.04 model *************************************************/
 
-	uint32_t number_su_type;	/* size of array saAmfSGtValidSuTypes */
-	AVD_SG *list_of_sg;
+  uint32_t number_su_type {};	/* size of array saAmfSGtValidSuTypes */
+  std::vector<AVD_SG*> list_of_sg {};
+ private:
+  AVD_AMF_SG_TYPE();
+  void initialize();
+  // disallow copy and assign
+  AVD_AMF_SG_TYPE(const AVD_AMF_SG_TYPE&);
+  void operator=(const AVD_AMF_SG_TYPE&);
 
-} AVD_AMF_SG_TYPE;
+};
 
 extern AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db;
 SaAisErrorT avd_sgtype_config_get(void);

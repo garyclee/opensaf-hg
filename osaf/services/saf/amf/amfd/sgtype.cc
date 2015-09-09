@@ -26,42 +26,27 @@
 #include <ntf.h>
 #include <sgtype.h>
 #include <proc.h>
+#include <algorithm>
 
 AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db = NULL;
 
 void avd_sgtype_add_sg(AVD_SG *sg)
 {
-	sg->sg_list_sg_type_next = sg->sg_type->list_of_sg;
-	sg->sg_type->list_of_sg = sg;
+	sg->sg_type->list_of_sg.push_back(sg);
 }
 
-void avd_sgtype_remove_sg(AVD_SG *sg)
-{
-	AVD_SG *i_sg = NULL;
-	AVD_SG *prev_sg = NULL;
+void avd_sgtype_remove_sg(AVD_SG *sg) {
+  AVD_AMF_SG_TYPE *sg_type = sg->sg_type;
 
-	if (sg->sg_type != NULL) {
-		i_sg = sg->sg_type->list_of_sg;
-
-		while ((i_sg != NULL) && (i_sg != sg)) {
-			prev_sg = i_sg;
-			i_sg = i_sg->sg_list_sg_type_next;
-		}
-
-		if (i_sg != sg) {
-			/* Log a fatal error */
-			osafassert(0);
-		} else {
-			if (prev_sg == NULL) {
-				sg->sg_type->list_of_sg = sg->sg_list_sg_type_next;
-			} else {
-				prev_sg->sg_list_sg_type_next = sg->sg_list_sg_type_next;
-			}
-		}
-
-		sg->sg_list_sg_type_next = NULL;
-		sg->sg_type = NULL;
-	}
+  if (sg_type != nullptr) {
+    auto pos = std::find(sg_type->list_of_sg.begin(), sg_type->list_of_sg.end(), sg);
+    if(pos != sg_type->list_of_sg.end()) {
+      sg_type->list_of_sg.erase(pos);
+    } else {
+      /* Log a fatal error */
+      osafassert(0);
+    }
+  }
 }
 
 static void sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
@@ -167,6 +152,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	return 1;
 }
 
+//
+AVD_AMF_SG_TYPE::AVD_AMF_SG_TYPE(const SaNameT *dn) {
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+}
+
 /**
  * Create a new SG type object and initialize its attributes from the attribute list.
  * @param dn
@@ -184,10 +175,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	sgt = new AVD_AMF_SG_TYPE();
-
-	memcpy(sgt->name.value, dn->value, dn->length);
-	sgt->name.length = dn->length;
+	sgt = new AVD_AMF_SG_TYPE(dn);
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtRedundancyModel"), attributes, 0, &sgt->saAmfSgtRedundancyModel);
 	osafassert(error == SA_AIS_OK);
@@ -354,7 +342,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_AMF_SG_TYPE *sgt;
-	AVD_SG *sg; 
+
 	bool sg_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
@@ -370,23 +358,18 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
-		if (sgt->list_of_sg != NULL) {
-			/* check whether there exists a delete operation for 
-			 * each of the SG in the sg_type list in the current CCB 
-			 */                      
-			sg = sgt->list_of_sg;
-			while (sg != NULL) {  
-				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->name);
-				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
-					sg_exist = true;   
-					break;                  
-				}                       
-				sg = sg->sg_list_sg_type_next;
-			}                       
-			if (sg_exist == true) {
-				report_ccb_validation_error(opdata, "SGs exist of this SG type '%s'",sgt->name.value);
+
+		for (const auto& sg : sgt->list_of_sg) {
+			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->name);
+			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+				sg_exist = true;
+				break;
+			}
+		}
+
+		if (sg_exist == true) {
+			report_ccb_validation_error(opdata, "SGs exist of this SG type '%s'",sgt->name.value);
 				goto done;
-			}                       
 		}
 		opdata->userData = sgt;	/* Save for later use in apply */
 		rc = SA_AIS_OK;
@@ -438,7 +421,8 @@ static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 			/* Modify saAmfSGAutoRepair for SGs which had inherited saAmfSgtDefAutoRepair.*/
 			if (old_value != sgt->saAmfSgtDefAutoRepair) {
-				for (AVD_SG *sg = sgt->list_of_sg; sg; sg = sg->sg_list_sg_type_next) {  
+
+				for (const auto& sg : sgt->list_of_sg) {
 					if (!sg->saAmfSGAutoRepair_configured) {
 						sg->saAmfSGAutoRepair = static_cast<SaBoolT>(sgt->saAmfSgtDefAutoRepair);
 						TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
