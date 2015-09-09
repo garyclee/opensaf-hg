@@ -44,7 +44,7 @@
 #include <ckpt.h>
 #include <timer.h>
 
-struct avd_avnd_tag;
+class AVD_AVND;
 
 typedef enum {
 	AVD_INIT_BGN = 1,
@@ -84,8 +84,8 @@ typedef struct avsv_nd_msg_list {
    node_state, rcv_msg_id, snd_msg_id of hosting node, so we also have a
    pointer to local AVD_AVND data structure. */
 typedef struct avd_ext_comp_info {
-	struct avd_avnd_tag *local_avnd_node;
-	struct avd_avnd_tag *ext_comp_hlt_check;
+	AVD_AVND *local_avnd_node;
+	AVD_AVND *ext_comp_hlt_check;
 } AVD_EXT_COMP_INFO;
 
 /*

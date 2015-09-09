@@ -347,7 +347,7 @@ public:
 	 * @return
 	 */
 	virtual uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su,
-			struct avd_avnd_tag *avnd) = 0;
+			AVD_AVND *avnd) = 0;
 
 	/**
 	 * Handle successful SUSI assignment
@@ -427,7 +427,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
-	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
@@ -459,7 +459,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
-	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
@@ -482,7 +482,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
-	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
@@ -502,7 +502,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
-	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
@@ -523,7 +523,7 @@ public:
 	uint32_t sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 	uint32_t su_insvc(AVD_CL_CB *cb, AVD_SU *su);
 	uint32_t su_fault(AVD_CL_CB *cb, AVD_SU *su);
-	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, struct avd_avnd_tag *avnd);
+	uint32_t su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd);
 	uint32_t susi_success(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,

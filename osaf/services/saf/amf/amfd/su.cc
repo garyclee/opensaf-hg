@@ -1963,7 +1963,7 @@ void AVD_SU::set_su_switch(SaToggleState state) {
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SWITCH);
 }
 
-struct avd_avnd_tag *AVD_SU::get_node_ptr(void) {
+AVD_AVND *AVD_SU::get_node_ptr(void) {
 	 if (su_is_external == true)
 		 return avd_cb->ext_comp_info.local_avnd_node;
 	 else
@@ -1978,7 +1978,7 @@ struct avd_avnd_tag *AVD_SU::get_node_ptr(void) {
  * @return true if SU can be made in-service
  */
 bool AVD_SU::is_in_service(void) {
-	struct avd_avnd_tag *node = get_node_ptr();
+	AVD_AVND *node = get_node_ptr();
 	const AVD_SG *sg = sg_of_su;
 	const AVD_APP *app = sg->app;
 
@@ -2012,7 +2012,7 @@ bool AVD_SU::is_in_service(void) {
  * @return true if SU can be made in-service
  */
 bool AVD_SU::is_instantiable(void) {
-        struct avd_avnd_tag *node = get_node_ptr();
+        AVD_AVND *node = get_node_ptr();
         const AVD_SG *sg = sg_of_su;
         const AVD_APP *app = sg->app;
 
