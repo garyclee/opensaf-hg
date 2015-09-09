@@ -86,6 +86,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	return 1;
 }
 
+//
+AVD_CTCS_TYPE::AVD_CTCS_TYPE(const SaNameT *dn) {
+  memcpy(&name.value, dn->value, dn->length);
+  name.length = dn->length;
+}
+
+//
 static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_CTCS_TYPE *ctcstype;
@@ -94,10 +101,9 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	ctcstype = new AVD_CTCS_TYPE();
+	ctcstype = new AVD_CTCS_TYPE(dn);
 
-	memcpy(ctcstype->name.value, dn->value, dn->length);
-	ctcstype->name.length = dn->length;
+	
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtCompCapability"), attributes, 0, &ctcstype->saAmfCtCompCapability);
 	osafassert(error == SA_AIS_OK);
