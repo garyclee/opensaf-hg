@@ -869,7 +869,6 @@ done:
 
 uint32_t SG_2N::su_fault_su_oper(AVD_SU *su) {
 	AVD_SU *a_su;
-	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	SaAmfHAStateT su_ha_state, a_su_ha_state;
@@ -905,8 +904,7 @@ uint32_t SG_2N::su_fault_su_oper(AVD_SU *su) {
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == true) {
+				if (su_node_ptr->is_node_lock() == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
@@ -2008,8 +2006,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 		if ((su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && ((all_quiesced(su) || all_unassigned(su)))) {
 			su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 		} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-			if (flag == true) {
+			if (su_node_ptr->is_node_lock() == true) {
 				node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 			}
 		}
@@ -2191,8 +2188,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == true) {
+				if (su_node_ptr->is_node_lock() == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			} else if (su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
@@ -2576,7 +2572,6 @@ uint32_t SG_2N::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	AVD_SU_SI_REL *s_susi, *o_susi, *l_susi;
 	AVD_SU *a_su;
-	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
@@ -2655,8 +2650,7 @@ uint32_t SG_2N::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == true) {
+				if (su_node_ptr->is_node_lock() == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
@@ -2867,7 +2861,6 @@ uint32_t SG_2N::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 void SG_2N::node_fail_su_oper(AVD_SU *su) {
 	AVD_SU_SI_REL *a_susi, *s_susi, *s_susi_temp;
 	AVD_SU *o_su;
-	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 	AVD_CL_CB *cb = avd_cb;
 
@@ -2928,8 +2921,7 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == true) {
+				if (su_node_ptr->is_node_lock() == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			} else {
@@ -2976,8 +2968,7 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 					avd_sg_su_oper_list_add(cb, a_susi->su, false);
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == true) {
+					if (su_node_ptr->is_node_lock() == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 					avd_sg_su_oper_list_add(cb, a_susi->su, false);

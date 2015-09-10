@@ -26,8 +26,6 @@ static SaVersionT clmVersion = { 'B', 4, 1 };
 
 static void clm_node_join_complete(AVD_AVND *node)
 {
-	AVD_SU *su;
-
 	TRACE_ENTER();
 	/* For each of the SUs calculate the readiness state. 
 	 ** call the SG FSM with the new readiness state.
@@ -39,8 +37,7 @@ static void clm_node_join_complete(AVD_AVND *node)
 	}
 
 	avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_ENABLED);
-	su = node->list_of_su;
-	while (su != NULL) {
+	for (const auto& su : node->list_of_su) {
 		/* For non-preinstantiable SU unlock-inst will not lead to its inst until unlock. */
 		if ( su->saAmfSUPreInstantiable == false ) {
 			/* Skip the instantiation. */
@@ -68,8 +65,6 @@ static void clm_node_join_complete(AVD_AVND *node)
 				}
 			}
 		}
-		/* get the next SU on the node */
-		su = su->avnd_list_su_next;
 	}
 
 	node_reset_su_try_inst_counter(node);
@@ -82,7 +77,6 @@ done:
 /* validating this node for a graceful exit */ 
 static void clm_node_exit_validate(AVD_AVND *node)
 {
-	AVD_SU *su;
 	AVD_SU_SI_REL *susi;
 	bool reject = false;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -99,8 +93,7 @@ static void clm_node_exit_validate(AVD_AVND *node)
 
 	/* now go through each SU to determine whether
 	 any SI assigned becomes unassigned due to node exit*/
-	su = node->list_of_su;
-	while (su != NULL) {
+	for (const auto& su : node->list_of_su) {
 		susi = su->list_of_susi;
 		/* now evalutate each SI that is assigned to this SU */
 		while (susi != NULL) {
@@ -114,7 +107,6 @@ static void clm_node_exit_validate(AVD_AVND *node)
 			}
 			susi = susi->su_next;
 		}
-		su = su->avnd_list_su_next;
 	}
 
 done:

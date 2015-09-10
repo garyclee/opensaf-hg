@@ -516,11 +516,11 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 	su_msg->msg_info.d2n_reg_su.msg_on_fover = fail_over;
 
 	// Add osaf SUs
-	for (su = avnd->list_of_ncs_su; su != NULL; su = su->avnd_list_su_next)
+	for (const auto& su : avnd->list_of_ncs_su)
 		reg_su_msg_init_su_info(su_msg, su);
 
 	// Add app SUs
-	for (su = avnd->list_of_su; su != NULL; su = su->avnd_list_su_next)
+	for (const auto& su : avnd->list_of_su)
 		reg_su_msg_init_su_info(su_msg, su);
 
 	// Add external SUs but only if node belongs to ACT controller

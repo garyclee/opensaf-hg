@@ -550,7 +550,6 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL, *other_avnd = NULL;
-	AVD_SU *i_su = NULL;
 
 	TRACE_ENTER();
 
@@ -561,7 +560,7 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 	other_avnd = avd_node_find_nodeid(cb->node_id_avd_other);
 
-	for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
+	for (const auto& i_su : avnd->list_of_ncs_su) {
 		if ((i_su->list_of_susi != 0) &&
 		    (i_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
 		    (i_su->list_of_susi->state != SA_AMF_HA_ACTIVE)) {
@@ -742,7 +741,6 @@ try_again:
 void amfd_switch(AVD_CL_CB *cb)
 {
 	AVD_AVND *avnd = NULL;  
-	AVD_SU *i_su = NULL;
 
 	TRACE_ENTER();
 
@@ -753,7 +751,7 @@ void amfd_switch(AVD_CL_CB *cb)
 	/* get the avnd from node_id */
 	avnd = avd_node_find_nodeid(cb->node_id_avd);
 
-	for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
+	for (const auto& i_su : avnd->list_of_ncs_su) {
 		if ((i_su->list_of_susi != 0) &&
 		    (i_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
 		    (i_su->list_of_susi->state == SA_AMF_HA_ACTIVE)) {

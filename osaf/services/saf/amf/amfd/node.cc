@@ -24,6 +24,7 @@
 #include <amfd.h>
 #include <cluster.h>
 #include <imm.h>
+#include <algorithm>
 
 AmfDb<std::string, AVD_AVND> *node_name_db = 0;	/* SaNameT index */
 AmfDb<uint32_t, AVD_AVND> *node_id_db = 0;	/* SaClmNodeIdT index */
@@ -76,6 +77,23 @@ void avd_node_db_add(AVD_AVND *node)
 		rc = node_name_db->insert(Amf::to_string(&node->name), node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
+}
+
+//
+bool AVD_AVND::is_node_lock() {
+  AVD_SU_SI_REL *curr_susi;
+  for (const auto& su : list_of_su) {
+    if ((su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER) ||
+        (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN)) {
+      for (curr_susi = su->list_of_susi;
+           (curr_susi) && ((SA_AMF_HA_QUIESCING != curr_susi->state) ||
+                           ((AVD_SU_SI_STATE_UNASGN == curr_susi->fsm)));
+           curr_susi = curr_susi->su_next); \
+      if (curr_susi)
+        return false;
+    }
+  }
+  return true;
 }
 
 //
@@ -453,7 +471,6 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_AVND *node = avd_node_get(&opdata->objectName);
-	AVD_SU *su; 
 	bool su_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
@@ -476,18 +493,16 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 	}
 
 	/* Check to see that no SUs exists on this node */
-	if (node->list_of_su != NULL) {
+	if (node->list_of_su.empty() != true) {
 		/* check whether there exists a delete operation for 
 		 * each of the SU in the node list in the current CCB 
 		 */                      
-		su = node->list_of_su;
-		while (su != NULL) {  
+		for (const auto& su : node->list_of_su) {
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
 			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				su_exist = true;   
 				break;                  
 			}                       
-			su = su->avnd_list_su_next;
 		}                       
 		if (su_exist == true) {
 			report_ccb_validation_error(opdata, "Node '%s' still has SUs", opdata->objectName.value);
@@ -778,14 +793,12 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
  */
 uint32_t avd_node_admin_lock_instantiation(AVD_AVND *node)
 {
-	AVD_SU *su;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", node->name.value);
 
 	/* terminate all the SUs on this Node */
-	su = node->list_of_su;
-	while (su != NULL) {
+	for (const auto& su : node->list_of_su) {
 		if ((su->saAmfSUPreInstantiable == true) &&
 		    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 		    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
@@ -798,7 +811,6 @@ uint32_t avd_node_admin_lock_instantiation(AVD_AVND *node)
 				LOG_WA("Failed Termination '%s'", su->name.value);
 			}
 		}
-		su = su->avnd_list_su_next;
 	}
 
 	TRACE_LEAVE2("%u, %u", rc, node->su_cnt_admin_oper);
@@ -812,14 +824,12 @@ uint32_t avd_node_admin_lock_instantiation(AVD_AVND *node)
  */
 uint32_t node_admin_unlock_instantiation(AVD_AVND *node)
 {
-	AVD_SU *su;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", node->name.value);
 
 	/* instantiate the SUs on this Node */
-	su = node->list_of_su;
-	while (su != NULL) {
+	for (const auto& su : node->list_of_su) {
 		if ((su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 		    (su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 		    (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) && 
@@ -839,7 +849,6 @@ uint32_t node_admin_unlock_instantiation(AVD_AVND *node)
 				}
 			} 
 		}
-		su = su->avnd_list_su_next;
 	}
 
 	node_reset_su_try_inst_counter(node);
@@ -859,7 +868,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				    SaInvocationT invocation, SaAmfAdminOperationIdT operationId)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
-	AVD_SU *su, *su_sg;
+	AVD_SU *su_sg;
 	bool su_admin = false;
 	AVD_SU_SI_REL *curr_susi;
 	AVD_AVND *su_node_ptr = NULL;
@@ -900,8 +909,8 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 	switch (new_admin_state) {
 	case SA_AMF_ADMIN_UNLOCKED:
 
-		su = node->list_of_su;
-		while (su != NULL) {
+		for (const auto& su : node->list_of_su) {
+
 			/* if SG to which this SU belongs and has SI assignments is undergoing 
 			 * su semantics return error.
 			 */
@@ -918,9 +927,6 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 							"invalid sg state %u for unlock", su->sg_of_su->sg_fsm_state);
 				goto end;
 			}
-
-			/* get the next SU on the node */
-			su = su->avnd_list_su_next;
 		}		/* while(su != AVD_SU_NULL) */
 
 		/* For each of the SUs calculate the readiness state. This routine is called
@@ -935,8 +941,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 		node->admin_node_pend_cbk.admin_oper = operationId;
 		node->su_cnt_admin_oper = 0;
 
-		su = node->list_of_su;
-		while (su != NULL) {
+		for (const auto& su : node->list_of_su) {
 			if (su->is_in_service() == true) {
 				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				su->sg_of_su->su_insvc(cb, su);
@@ -946,9 +951,6 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				 */
 			}
 			avd_sg_app_su_inst_func(cb, su->sg_of_su);
-
-			/* get the next SU on the node */
-			su = su->avnd_list_su_next;
 		}
 		if (node->su_cnt_admin_oper == 0 && invocation != 0) {
 			avd_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_OK);
@@ -961,8 +963,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 	case SA_AMF_ADMIN_LOCKED:
 	case SA_AMF_ADMIN_SHUTTING_DOWN:
 
-		su = node->list_of_su;
-		while (su != NULL) {
+		for (const auto& su : node->list_of_su) {
 			if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
 				is_assignments_done = true;
 				/* verify that two assigned SUs belonging to the same SG are not
@@ -1033,11 +1034,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				}
 
 			}
-
-			/* if(su->list_of_susi != AVD_SU_SI_REL_NULL) */
-			/* get the next SU on the node */
-			su = su->avnd_list_su_next;
-		}		/* while(su != AVD_SU_NULL) */
+		}		/* for (const auto& su : node->list_of_su) */
 
 		if(invocation != 0) {
 			node_admin_state_set(node, new_admin_state);
@@ -1052,8 +1049,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 		}
 
 		/* Now call the SG FSM for each of the SUs that have SI assignment. */
-		su = node->list_of_su;
-		while (su != NULL) {
+		for (const auto& su : node->list_of_su) {
 			is_assignments_done = false;
 			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
@@ -1069,9 +1065,6 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				node->su_cnt_admin_oper++;
 				TRACE("su_cnt_admin_oper:%u", node->su_cnt_admin_oper);
 			}
-
-			/* get the next SU on the node */
-			su = su->avnd_list_su_next;
 		}
 
 		if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su_admin == false)) {
@@ -1101,9 +1094,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
  */
 static void node_sus_termstate_set(AVD_AVND *node, bool term_state)
 {
-	AVD_SU *su;
-
-	for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
+	for (const auto& su : node->list_of_su) {
 		if (su->saAmfSUPreInstantiable == true)
 			su->set_term_state(term_state);
 	}
@@ -1123,7 +1114,6 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			     const SaImmAdminOperationParamsT_2 **params)
 {
 	AVD_AVND *node;
-	AVD_SU *su = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, operationId);
@@ -1141,8 +1131,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	/* Check for any conflicting admin operations */
 
-	su = node->list_of_su;
-	while (su != NULL) {
+	for (const auto& su : node->list_of_su) {
 		if (su->pend_cbk.admin_oper != 0) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
 					"SU on this node is undergoing admin op (%s)", su->name.value);
@@ -1163,7 +1152,6 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 					su->sg_of_su->name.value, su->name.value);
 			goto done;
 		}
-		su = su->avnd_list_su_next;
 	}
 
 	if (node->clm_pend_inv != 0) {
@@ -1220,7 +1208,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 		if (avd_cb->init_state == AVD_INIT_DONE) {
 			node_admin_state_set(node, SA_AMF_ADMIN_UNLOCKED);
-			for(su = node->list_of_su; su != NULL; su = su->avnd_list_su_next) {
+			for (const auto& su : node->list_of_su) {
 				if (su->is_in_service() == true) {
 					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				}
@@ -1255,7 +1243,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 		if (avd_cb->init_state == AVD_INIT_DONE) {
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
-			for(su = node->list_of_su; su != NULL; su = su->avnd_list_su_next) {
+			for (const auto& su : node->list_of_su) {
 				su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			}
 			avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
@@ -1381,69 +1369,34 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 void avd_node_add_su(AVD_SU *su)
 {
-	AVD_SU *i_su;
-	AVD_SU *prev_su = NULL;
-
 	if (strstr((char *)su->name.value, "safApp=OpenSAF") != NULL) {
-		i_su = su->su_on_node->list_of_ncs_su;
+		su->su_on_node->list_of_ncs_su.push_back(su);
+		std::sort(su->su_on_node->list_of_ncs_su.begin(), su->su_on_node->list_of_ncs_su.end(),
+			[](const AVD_SU *a, const AVD_SU *b) -> bool {return a->saAmfSURank < b->saAmfSURank;});
 	} else {
-		i_su = su->su_on_node->list_of_su;
-	}
-
-	for(;(i_su != NULL && i_su->saAmfSURank < su->saAmfSURank);i_su = i_su->avnd_list_su_next)
-		prev_su = i_su;
-
-	if (prev_su == NULL) {
-		if (strstr((char *)su->name.value, "safApp=OpenSAF") != NULL) {
-			su->avnd_list_su_next = su->su_on_node->list_of_ncs_su;
-			su->su_on_node->list_of_ncs_su = su;
-		} else {
-			su->avnd_list_su_next = su->su_on_node->list_of_su;
-			su->su_on_node->list_of_su = su;
-		}
-	} else {
-		prev_su->avnd_list_su_next = su;
-		su->avnd_list_su_next = i_su;
+		su->su_on_node->list_of_su.push_back(su);
+		std::sort(su->su_on_node->list_of_su.begin(), su->su_on_node->list_of_su.end(),
+			[](const AVD_SU *a, const AVD_SU *b) -> bool {return a->saAmfSURank < b->saAmfSURank;});
 	}
 }
 
-void avd_node_remove_su(AVD_SU *su)
-{
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
-	bool isNcs;
+void avd_node_remove_su(AVD_SU *su) {
+  std::vector<AVD_SU*> *su_list;
 
-	if ((su->sg_of_su) && (su->sg_of_su->sg_ncs_spec == true))
-		isNcs = true;
-	else
-		isNcs = false;
+  if ((su->sg_of_su) && (su->sg_of_su->sg_ncs_spec == true)) {
+    su_list = &su->su_on_node->list_of_ncs_su;
+  }
+  else {
+    su_list = &su->su_on_node->list_of_su;
+  }
 
-	/* For external component, there is no AvND attached, so let it return. */
-	if (su->su_on_node != NULL) {
-		/* remove SU from node */
-		i_su = (isNcs) ? su->su_on_node->list_of_ncs_su : su->su_on_node->list_of_su;
-
-		while ((i_su != NULL) && (i_su != su)) {
-			prev_su = i_su;
-			i_su = i_su->avnd_list_su_next;
-		}
-
-		if (i_su != su) {
-			osafassert(0);
-		} else {
-			if (prev_su == NULL) {
-				if (isNcs)
-					su->su_on_node->list_of_ncs_su = su->avnd_list_su_next;
-				else
-					su->su_on_node->list_of_su = su->avnd_list_su_next;
-			} else {
-				prev_su->avnd_list_su_next = su->avnd_list_su_next;
-			}
-		}
-
-		su->avnd_list_su_next = NULL;
-		su->su_on_node = NULL;
-	}
+  auto pos = std::find(su_list->begin(), su_list->end(), su);
+  if(pos != su_list->end()) {
+    su_list->erase(pos);
+  } else {
+    /* Log a fatal error */
+    osafassert(0);
+  }
 }
 
 /**
@@ -1454,13 +1407,9 @@ void avd_node_remove_su(AVD_SU *su)
  */
 void node_reset_su_try_inst_counter(const AVD_AVND *node)
 {
-        AVD_SU *su;
-
 	/* Reset the counters.*/
-	su = node->list_of_su;
-	while (su != NULL) {
+	for (const auto& su : node->list_of_su) {
 		su->sg_of_su->try_inst_counter = 0;
-		su = su->avnd_list_su_next;
 	}
 }
 /**

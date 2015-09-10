@@ -292,7 +292,6 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	unsigned j = 0;
 	const SaImmAttrModificationT_2 *mod;
 	AVD_AVND *node;
-	AVD_SU *su;
 	int delete_found = 0;
 	int add_found = 0;
 	int nodes_deleted = 0;
@@ -336,7 +335,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				/* Ensure no SU is mapped to this node via the node group */
 
 				/* for all OpenSAF SUs hosted by this node */
-				for (su = node->list_of_ncs_su; su; su = su->avnd_list_su_next) {
+				for (const auto& su : node->list_of_ncs_su) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
 						report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
 								" An SU is mapped using node group",
@@ -347,7 +346,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				}
 
 				/* for all application SUs hosted by this node */
-				for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
+				for (const auto& su : node->list_of_su) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
 						report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
 								" An SU is mapped using node group",
@@ -432,7 +431,6 @@ static bool is_deleted_in_ccb(SaImmOiCcbIdT ccbId, const SaNameT *dn)
 static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_SU *su;
 	AVD_AVND *node;
 	AVD_AMF_NG *ng = avd_ng_get(&opdata->objectName);
 
@@ -459,8 +457,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		** application removal), reject the deletion.
 		** If no SU is mapped, deletion is OK.
 		*/
-
-		for (su = node->list_of_ncs_su; su; su = su->avnd_list_su_next) {
+		for (const auto& su : node->list_of_ncs_su) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
 				is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
 				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
@@ -469,7 +466,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		}
 
-		for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
+		for (const auto& su : node->list_of_su) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
 				is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
 				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
@@ -632,8 +629,7 @@ static SaAisErrorT check_node_stability(const AVD_AVND *node, const AVD_AMF_NG *
 		rc = SA_AIS_ERR_TRY_AGAIN;
                 goto done;
         }
-	for (AVD_SU *su = node->list_of_su; su != NULL;  
-			su = su->avnd_list_su_next) {
+	for (const auto& su : node->list_of_su) {
 		rc = su->sg_of_su->check_sg_stability();	
 		if (rc != SA_AIS_OK)
 			goto done;
@@ -657,8 +653,7 @@ static SaAisErrorT check_red_model_service_outage(const AVD_AMF_NG *ng)
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
-		for (AVD_SU *su = node->list_of_su; su != NULL;  
-				su = su->avnd_list_su_next) {
+		for (const auto& su : node->list_of_su) {
 			//Make a temorary list_of_SG for later verification of service outage.
 			tmp_sg_list.insert(Amf::to_string(&su->sg_of_su->name));
 		}
@@ -756,14 +751,14 @@ void ng_node_lock_and_shutdown(AVD_AVND *node)
 	}
 	if (avd_cb->init_state == AVD_INIT_DONE) {
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
-		for(AVD_SU *su = node->list_of_su; su != NULL; su = su->avnd_list_su_next) {
+		for (const auto& su : node->list_of_su) {
 			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		}
 		return;
 	}
 	if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED)
 		return;
-	for (AVD_SU *su = node->list_of_su; su != NULL;  su = su->avnd_list_su_next) {
+	for (const auto& su : node->list_of_su) {
 		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		su->sg_of_su->ng_admin(su, node->admin_ng);
 	}
@@ -803,7 +798,7 @@ void ng_unlock(AVD_AMF_NG *ng)
 				(node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) ||
 				(node->node_info.member == false)) 
 			continue;
-		for (AVD_SU *su = node->list_of_su; su != NULL;  su = su->avnd_list_su_next) {
+		for (const auto& su : node->list_of_su) {
 			if (su->is_in_service() == true) {
 				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 			}
@@ -821,7 +816,7 @@ void ng_unlock(AVD_AMF_NG *ng)
 		   By this time Nodes of node group are in unlocked state.Let the
 		   SG semantics decide which su to chose for assignment and instantiation. 
 		 */
-		for (AVD_SU *su = node->list_of_su; su != NULL;  su = su->avnd_list_su_next) {
+		for (const auto& su : node->list_of_su) {
 			su->sg_of_su->su_insvc(avd_cb, su);
 			avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
 		}
@@ -838,9 +833,7 @@ void ng_unlock(AVD_AMF_NG *ng)
  */
 static void node_sus_termstate_set(AVD_AVND *node, bool term_state)
 {
-	AVD_SU *su;
-
-	for (su = node->list_of_su; su; su = su->avnd_list_su_next) {
+	for (const auto& su : node->list_of_su) {
 		if (su->saAmfSUPreInstantiable == true)
 			su->set_term_state(term_state);
 	}
@@ -870,7 +863,7 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 			LOG_NO("'%s' UNLOCK_INSTANTIATION: AMF node oper state disabled", node->name.value);
 			continue;
 		}
-		for (AVD_SU *node_su = node->list_of_su; node_su != NULL;  node_su = node_su->avnd_list_su_next) {
+		for (const auto& node_su : node->list_of_su) {
 			/*Instantiate only those SUs in this SG which are hosted on the Nodes of NG.
 			   Also honor saAmfSURank while instantating.
 			 */

@@ -186,21 +186,15 @@ done:
 
 void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	AVD_SU *ncs_su, *su;
-
 	TRACE_ENTER();
 
-	ncs_su = avnd->list_of_ncs_su;
-
-	while (ncs_su != NULL) {
+	for (const auto& ncs_su : avnd->list_of_ncs_su) {
 		if ((ncs_su->list_of_susi == AVD_SU_SI_REL_NULL) ||
 		    (ncs_su->list_of_susi->fsm != AVD_SU_SI_STATE_ASGND)) {
 			TRACE_LEAVE();
 			/* this is an unassigned SU so no need to scan further return here. */
 			return;
 		}
-
-		ncs_su = ncs_su->avnd_list_su_next;
 	}
 
 	/* All the NCS SUs are assigned now change the state to present */
@@ -209,7 +203,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
 
 		/* Make application SUs operational state ENABLED */
-		for (su = avnd->list_of_su; su != NULL; su = su->avnd_list_su_next) {
+		for (const auto& su : avnd->list_of_su) {
 			su->set_oper_state(SA_AMF_OPERATIONAL_ENABLED);
 			AVD_COMP *comp;
 			for (comp = su->list_of_comp; comp; comp = comp->su_comp_next)
@@ -468,7 +462,6 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd;
-	AVD_SU *su_ptr;
 	AVD_SU_SI_REL *rel_ptr;
 	AVD_DND_MSG *n2d_msg;
 	bool node_found = false;
@@ -546,7 +539,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * Send SU_SI relationship which are in ASSIGN, MODIFY and  
 		 * UNASSIGN state.for this node.
 		 */
-		for (su_ptr = avnd->list_of_ncs_su; su_ptr != NULL; su_ptr = su_ptr->avnd_list_su_next) {
+		for (const auto& su_ptr : avnd->list_of_ncs_su) {
 			for (rel_ptr = su_ptr->list_of_susi; rel_ptr != NULL; rel_ptr = rel_ptr->su_next) {
 				if ((AVD_SU_SI_STATE_ASGND == rel_ptr->fsm) || (AVD_SU_SI_STATE_ABSENT == rel_ptr->fsm))
 					continue;
@@ -568,7 +561,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/*
 		 * We have take care of NCS SU's, now do the same for normal SU's.
 		 */
-		for (su_ptr = avnd->list_of_su; su_ptr != NULL; su_ptr = su_ptr->avnd_list_su_next) {
+		for (const auto& su_ptr : avnd->list_of_su) {
 			/* check if susi. If not continue */
 			if (!su_ptr->list_of_susi)
 				continue;
