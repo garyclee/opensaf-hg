@@ -3043,7 +3043,7 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		AVD_AVND *node = avd_node_get(*iter);
 		AVD_SU *su = NULL;
 		//If this node has any susi on it.
-		for (su = node->list_of_su; su; su = su->avnd_list_su_next) 
+		for (const auto& su : node->list_of_su)
 			if (su->list_of_susi != NULL)
 				break;
 		if ((ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su != NULL))

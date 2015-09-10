@@ -43,6 +43,7 @@
 #include <timer.h>
 #include <db_template.h>
 #include <set>
+#include <vector>
 
 class AVD_SU;
 struct avd_cluster_tag;
@@ -76,6 +77,8 @@ class AVD_AVND {
  public:
   AVD_AVND();
   explicit AVD_AVND(const SaNameT* dn);
+
+  bool is_node_lock();
   SaNameT name; /* DN */ 
   char *node_name;    /* RDN value, normally the short host name */
   SaClmClusterNodeT_4 node_info;	/* the node information of the node on
@@ -112,10 +115,10 @@ class AVD_AVND {
                                  * Checkpointing - Sent independent update 
                                  */
 
-  AVD_SU *list_of_ncs_su;	/* the list of NCS service units on
+  std::vector<AVD_SU*> list_of_ncs_su;	/* the list of NCS service units on
                                  * this node.
                                  */
-  AVD_SU *list_of_su;	/* the list of service units on this
+  std::vector<AVD_SU*> list_of_su;	/* the list of service units on this
                          * node that are application specific.
                          */
   NCS_DB_LINK_LIST pg_csi_list;	/* list of csis for which pg is tracked 
@@ -190,26 +193,6 @@ extern AmfDb<std::string, AVD_AMF_NG> *nodegroup_db;
 #define m_AVD_SET_AVND_RCV_ID(cb,node,rcvid) {\
 node->rcv_msg_id = rcvid;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
-}
-
-#define m_AVD_IS_NODE_LOCK(node,flag)\
-{\
-   AVD_SU *i_su;\
-   AVD_SU_SI_REL *curr_susi = 0; \
-   flag = true;\
-   i_su = node->list_of_su;\
-   while ((i_su != NULL) && (flag == true))\
-   {\
-      if ((i_su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER) ||\
-          (i_su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN)) { \
-         for (curr_susi = i_su->list_of_susi; \
-              (curr_susi) && ((SA_AMF_HA_QUIESCING != curr_susi->state) ||\
-              ((AVD_SU_SI_STATE_UNASGN == curr_susi->fsm))); \
-              curr_susi = curr_susi->su_next); \
-         if (curr_susi) flag = false; \
-      } \
-      i_su = i_su->avnd_list_su_next;\
-   }\
 }
 
 /* AMF Node */

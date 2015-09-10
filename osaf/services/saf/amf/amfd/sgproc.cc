@@ -338,8 +338,7 @@ void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
 	/* Node may be in SHUTTING_DOWN state because of shutdown operation
 	   on nodegroup. Check if node can be transitioned to LOCKED sate.*/ 
 	if (node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-		m_AVD_IS_NODE_LOCK(node, flag);
-		if (flag == true)
+		if (node->is_node_lock() == true)
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 	}
 	/*In 2N model, if both active or standby SUs were part of nodegroup then
@@ -575,8 +574,7 @@ static void perform_nodeswitchover_recovery(AVD_AVND *node)
 	bool node_reboot = true;
 	TRACE_ENTER2("'%s'", node->name.value);
 
-	AVD_SU *su = node->list_of_su;
-	for (;su != NULL; su = su->avnd_list_su_next) {
+	for (const auto& su : node->list_of_su) {
 		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 
 		if (su->list_of_susi == NULL)
@@ -623,7 +621,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *node;
-	AVD_SU *su, *i_su;
+	AVD_SU *su;
 	SaAmfReadinessStateT old_state;
 	bool node_reboot_req = true;
 
@@ -714,10 +712,8 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 */
 				avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
 				node->recvr_fail_sw = true;
-				i_su = node->list_of_su;
-				while (i_su != NULL) {
+				for (const auto& su : node->list_of_su) {
 					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-					i_su = i_su->avnd_list_su_next;
 				}
 			}	/* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 		} /* if(cb->init_state == AVD_INIT_DONE) */
@@ -1413,12 +1409,10 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		/* We are checking only application components as on payload all ncs comp are in no_red model.
 		   We are doing the same thing for controller also. */
-		temp_su = node->list_of_su;
-		while (temp_su) {
+		for (const auto& temp_su : node->list_of_su) {
 			if (NULL != temp_su->list_of_susi) {
 				all_su_unassigned = false;
 			}
-			temp_su = temp_su->avnd_list_su_next;
 		}
 		if (true == all_su_unassigned) {
 			/* All app su got unassigned, Safe to reboot the blade now. */
@@ -1457,8 +1451,6 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	AVD_SU *i_su;
-
 	TRACE_ENTER2("'%s'", avnd->name.value);
 
 	if (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
@@ -1467,8 +1459,8 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	}
 
 	if (cb->init_state == AVD_INIT_DONE) {
-		i_su = avnd->list_of_su;
-		while (i_su != NULL) {
+		for (const auto& i_su : avnd->list_of_su) {
+
 			if ((i_su->term_state == false) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
 			    (i_su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) && 
@@ -1494,20 +1486,17 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 				}
 			}
 
-			i_su = i_su->avnd_list_su_next;
 		}
 		node_reset_su_try_inst_counter(avnd);
 
 	} else if (cb->init_state == AVD_APP_STATE) {
-		i_su = avnd->list_of_su;
-		while (i_su != NULL) {
+		for (const auto& i_su : avnd->list_of_su) {
 			if ((i_su->term_state == false) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
 				/* Look at the SG and do the instantiations. */
 				avd_sg_app_su_inst_func(cb, i_su->sg_of_su);
 			}
 
-			i_su = i_su->avnd_list_su_next;
 		}
 	}
 
@@ -1825,8 +1814,6 @@ done:
 
 void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	AVD_SU *i_su;
-
 	TRACE_ENTER2("'%s'", avnd->name.value);
 
 	/* run through all the MW SUs, make all of them O.O.S. Set
@@ -1835,9 +1822,9 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	 * disable and uninstantiated.  All the functionality for MW SUs is done in
 	 * one loop as more than one MW SU per SG in one node is not supported.
 	 */
-	i_su = avnd->list_of_ncs_su;
-	osafassert(i_su != 0);
-	while (i_su != NULL) {
+	osafassert(avnd->list_of_ncs_su.empty() != true);
+
+	for (const auto& i_su : avnd->list_of_ncs_su) {
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		i_su->set_pres_state(SA_AMF_PRESENCE_UNINSTANTIATED);
 		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
@@ -1864,9 +1851,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		/* Free all the SU SI assignments*/ 
 		i_su->delete_all_susis();
 
-		i_su = i_su->avnd_list_su_next;
-
-	}			/* while (i_su != AVD_SU_NULL) */
+	}		/* for (const auto& i_su : avnd->list_of_su) */
 
 	/* send pending callback for this node if any */
 	if (avnd->admin_node_pend_cbk.invocation != 0) {
@@ -1892,20 +1877,16 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
  **/
 void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	AVD_SU *i_su;
-
 	TRACE_ENTER2("'%s'", avnd->name.value);
 
 	/* Run through the list of application SUs make all of them O.O.S. 
 	 */
-	i_su = avnd->list_of_su;
-	while (i_su != NULL) {
+	for (const auto& i_su : avnd->list_of_su) {
 		i_su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		i_su->set_pres_state(SA_AMF_PRESENCE_UNINSTANTIATED);
 		i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		i_su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
 		i_su->disable_comps(SA_AIS_ERR_TIMEOUT);
-		i_su = i_su->avnd_list_su_next;
 	}
 
 	/* If the AvD is in AVD_APP_STATE run through all the application SUs and 
@@ -1913,8 +1894,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	 */
 
 	if (cb->init_state == AVD_APP_STATE) {
-		i_su = avnd->list_of_su;
-		while (i_su != NULL) {
+		for (const auto& i_su : avnd->list_of_su) {
 
 			/* Unlike active, quiesced and standby HA states, assignment counters
 			   in quiescing HA state are updated when AMFD receives assignment 
@@ -1963,17 +1943,15 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 			 */
 			avd_sg_app_su_inst_func(cb, i_su->sg_of_su);
 
-			i_su = i_su->avnd_list_su_next;
-
-		}		/* while (i_su != AVD_SU_NULL) */
+		}		/* for (const auto& i_su : avnd->list_of_su) */
 
 	}
 
 	/* If this node-failover/nodereboot occurs dueing nodegroup operation then check 
 	   if this leads to completion of operation and try to reply to imm.*/
-	if ((avnd->list_of_su != NULL) && (avnd->admin_ng != NULL)) {
+	if ((avnd->list_of_su.empty() != true) && (avnd->admin_ng != NULL)) {
 		avnd->su_cnt_admin_oper = 0;
-		process_su_si_response_for_ng(avnd->list_of_su, SA_AIS_OK);
+		process_su_si_response_for_ng(avnd->list_of_su.front(), SA_AIS_OK);
 	}
 	TRACE_LEAVE();
 }

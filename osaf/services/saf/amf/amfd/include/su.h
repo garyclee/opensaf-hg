@@ -94,7 +94,6 @@ class AVD_SU {
 	AVD_COMP *list_of_comp;	/* the list of  components in this SU */
 
 	AVD_SU *sg_list_su_next;	/* the next SU in the SG */
-	AVD_SU *avnd_list_su_next;	/* the next SU in the AvND */
 	AVD_SUTYPE *su_type;
 	AVD_SU *su_list_su_type_next;
 

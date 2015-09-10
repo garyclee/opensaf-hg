@@ -56,7 +56,6 @@ void AVD_SU::initialize() {
 	list_of_susi = NULL;
 	list_of_comp = NULL;
 	sg_list_su_next = NULL;
-	avnd_list_su_next = NULL;
 	su_type = NULL;
 	su_list_su_type_next = NULL; 
 	name.length = 0;
@@ -518,14 +517,14 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 		osafassert(node);
 
 		if (su->sg_of_su->sg_ncs_spec == true) {
-			for (su_temp = node->list_of_ncs_su; su_temp != NULL; su_temp = su_temp->avnd_list_su_next) {
+			for (const auto& su_temp : node->list_of_ncs_su) {
 				if (su_temp->sg_of_su == su->sg_of_su)
 					break;
 			}
 		}
 
 		if (su->sg_of_su->sg_ncs_spec == false) {
-			for (su_temp = node->list_of_su; su_temp != NULL; su_temp = su_temp->avnd_list_su_next) {
+			for (const auto& su_temp : node->list_of_su) {
 				if (su_temp->sg_of_su == su->sg_of_su)
 					break;
 			}

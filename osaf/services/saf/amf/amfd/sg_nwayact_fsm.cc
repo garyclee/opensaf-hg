@@ -363,8 +363,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == true) {
+					if (su_node_ptr->is_node_lock() == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -395,8 +394,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == true) {
+					if (su_node_ptr->is_node_lock() == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -677,8 +675,7 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				} else if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == true) {
+					if (su_node_ptr->is_node_lock() == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -871,8 +868,7 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 						su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 					} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-						m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-						if (flag == true) {
+						if (su_node_ptr->is_node_lock() == true) {
 							node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 						}
 					}
@@ -1008,7 +1004,6 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				    AVSV_SUSI_ACT act, SaAmfHAStateT state) {
-	bool flag;
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
@@ -1070,8 +1065,7 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				} else if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-					if (flag == true) {
+					if (su_node_ptr->is_node_lock() == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
@@ -1141,8 +1135,7 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 						su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 					} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-						m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-						if (flag == true) {
+						if (su_node_ptr->is_node_lock() == true) {
 							node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 						}
 					}
@@ -1341,8 +1334,7 @@ void SG_NACV::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == true) {
+				if (su_node_ptr->is_node_lock() == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
@@ -1394,8 +1386,7 @@ void SG_NACV::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
-				if (flag == true) {
+				if (su_node_ptr->is_node_lock() == true) {
 					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
