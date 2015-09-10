@@ -1,0 +1,169 @@
+#!/usr/bin/env python
+#
+#
+# (C) Copyright 2015 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+#
+"""
+ trace2dot creates a runtime call graph using an opensaf trace file as input
+ and produces a dot file. The generated dot file can be viewed graphically using e.g. dotty.
+
+ Example:
+ Create a dot file, amfd_trace.dot from osafamfd trace file. Start from function saClmDispatch.
+ $ trace2dot -t osafamfd -f saClmDispatch -d amfd_trace.dot
+ $ dotty amfd_trace.dot
+
+"""
+import sys
+import os
+import argparse
+
+
+def run(trace_file, from_function, dot_file):
+    ''' TBD '''
+    infile = open(trace_file)
+
+    if dot_file:
+        outfile = open(dot_file, 'w')
+    else:
+        outfile = sys.stdout
+
+    outfile.write('strict digraph test {\n')
+    outfile.write('node [shape=record, style=filled];\n')
+    outfile.write('edge [shape=normal];\n')
+
+    process_infile(infile, from_function, outfile)
+
+    outfile.write('}\n')
+
+
+def check_infile(trace_file):
+    '''  Rudimentary check for missing TRACE_ENTER/TRACE_LEAVE. Will not
+         check for e.g. returns before TRACE_LEAVE.
+    '''
+    infile = open(trace_file)
+    trace_enter = set()
+    trace_leave = set()
+    for line in infile:
+        items = line.split()
+        if items.__len__() > 6:
+            if items[5] == '>>':
+                name = items[6].rstrip(':')
+                trace_enter.add(name)
+
+            if items[5] == '<<':
+                name = items[6].rstrip(':')
+                trace_leave.add(name)
+
+    for name in trace_enter:
+        if name not in trace_leave:
+            print('%s %s' % ('TRACE_LEAVE is missing for function: ', name))
+
+    for name in trace_leave:
+        if name not in trace_enter:
+            print('%s %s' % ('TRACE_ENTER is missing for function: ', name))
+
+    infile.close()
+
+
+def process_infile(infile, from_function, outfile):
+    '''  TBD '''
+    function_names = []
+    from_func_found = False
+
+    for line in infile:
+        items = line.split()
+        if items.__len__() > 6:
+            if items[5] == '>>':
+                func_enter = items[6].rstrip(':')
+                if from_function and not from_func_found:
+                    if from_function != func_enter:
+                        continue
+                    else:
+                        from_func_found = True
+
+                function_names.append(func_enter)
+
+                if len(function_names) > 1:
+                    outfile.write(
+                        func_enter + ' [color=grey, shape=box, label="' + func_enter + '"];\n')
+                else:
+                    outfile.write(
+                        func_enter + ' [color=red, shape=box, label="' + func_enter + '"];\n')
+
+            if items[5] == '<<':
+                func_leave = items[6].rstrip(':')
+                if from_function:
+                    if from_function == func_leave:
+                        break
+
+                if len(function_names) > 0:
+                    func_enter = function_names.pop()
+                    if func_enter != func_leave:
+                        print('%s %s %s' % (func_enter, ' has no matching TRACE_LEAVE, found ', func_leave))
+                        outfile.write(func_leave + ' -> ' + func_enter + '\n')
+
+                    else:
+                        if len(function_names) > 0:
+                            caller = function_names[len(function_names) - 1]
+                            outfile.write(caller + ' -> ' + func_enter + '\n')
+
+
+def file_exists(filename):
+    '''Check if arg is a valid file that already exists on the file
+    system.
+    '''
+    if not os.path.exists(filename):
+        raise argparse.ArgumentTypeError(
+            "The file %s does not exist!" % filename)
+    else:
+        return filename
+
+
+def main():
+    ''' program main '''
+
+    parser = argparse.ArgumentParser(
+        description="Create runtime callgraph from OpenSAF trace file")
+
+    parser.add_argument('-t', '--tracefile', nargs='+',
+                        type=file_exists, help='OpenSAF trace file')
+    parser.add_argument('-f', '--fromfunction', nargs='+',
+                        help='Show runtime callgraph from function')
+    parser.add_argument('-d', '--dotfile', nargs='+', help='Result file in dot format')
+    parser.add_argument('-c', '--checkfile', nargs='+',
+                        type=file_exists, help='Check infile for matching trace_enter trace_leave')
+
+    args = parser.parse_args()
+
+    from_function = ''
+    dot_file = ''
+    trace_file = ''
+
+    if args.fromfunction:
+        from_function = args.fromfunction[0]
+
+    if args.dotfile:
+        dot_file = args.dotfile[0]
+
+    if args.checkfile:
+        trace_file = args.checkfile[0]
+        check_infile(trace_file)
+
+    if args.tracefile:
+        trace_file = args.tracefile[0]
+        run(trace_file, from_function, dot_file)
+
+if __name__ == '__main__':
+    main()
