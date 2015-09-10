@@ -551,9 +551,7 @@ static SaAisErrorT config_ccb_completed_create(SaImmOiHandleT immOiHandle,
  * =================================================
  */
 
-/* Attributes that can be modified if both nodes support LGS_MBCSV_VERSION_3
- */
-struct vattr_v3_t {
+struct vattr_t {
 	/* true if any of the attributes has been changed */
 	bool validate_flag;
 	SaUint32T logStreamSystemHighLimit;
@@ -573,27 +571,24 @@ struct vattr_v3_t {
  * the correct values.
  * See lgs_config for validation functions
  * 
- * @param vattr_v3 [in] struct with attributes to validate
+ * @param vattr[in] struct with attributes to validate
  * @param err_str [out] char vector of 256 bytes to return a string.
  * @return error code
  */
-static SaAisErrorT validate_mailbox_limits(struct vattr_v3_t vattr_v3, char *err_str)
+static SaAisErrorT validate_mailbox_limits(struct vattr_t vattr, char *err_str)
 {	
 	SaUint32T value32_high = 0;
 	SaUint32T value32_low = 0;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	int rc = 0;
-	bool v3_changed_flag = false; /* True if changes allowed only if V3 supported */
 	
 	TRACE_ENTER();
 	
-	/* Validate attributes that can be modified if both nodes support
-	 * LGS_MBCSV_VERSION_3
-	 */
-	if (vattr_v3.logStreamSystemHighLimit_changed) {
-		value32_high = vattr_v3.logStreamSystemHighLimit;
-		if (vattr_v3.logStreamSystemLowLimit_changed) {
-			value32_low = vattr_v3.logStreamSystemLowLimit;
+	/* Validate attributes that can be modified */
+	if (vattr.logStreamSystemHighLimit_changed) {
+		value32_high = vattr.logStreamSystemHighLimit;
+		if (vattr.logStreamSystemLowLimit_changed) {
+			value32_low = vattr.logStreamSystemLowLimit;
 		} else {
 			value32_low = *(SaUint32T *) lgs_cfg_get(
 					LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT);
@@ -605,14 +600,12 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_v3_t vattr_v3, char *err
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
-		
-		v3_changed_flag = true;
 	}
 	
-	if (vattr_v3.logStreamSystemLowLimit_changed) {
-		value32_low = vattr_v3.logStreamSystemLowLimit;
-		if (vattr_v3.logStreamSystemHighLimit_changed) {
-			value32_high = vattr_v3.logStreamSystemHighLimit;
+	if (vattr.logStreamSystemLowLimit_changed) {
+		value32_low = vattr.logStreamSystemLowLimit;
+		if (vattr.logStreamSystemHighLimit_changed) {
+			value32_high = vattr.logStreamSystemHighLimit;
 		} else {
 			value32_high = *(SaUint32T *) lgs_cfg_get(
 					LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT);
@@ -624,14 +617,12 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_v3_t vattr_v3, char *err
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
-		
-		v3_changed_flag = true;
 	}
 	
-	if (vattr_v3.logStreamAppHighLimit_changed) {
-		value32_high = vattr_v3.logStreamAppHighLimit;
-		if (vattr_v3.logStreamAppLowLimit_changed) {
-			value32_low = vattr_v3.logStreamAppLowLimit;
+	if (vattr.logStreamAppHighLimit_changed) {
+		value32_high = vattr.logStreamAppHighLimit;
+		if (vattr.logStreamAppLowLimit_changed) {
+			value32_low = vattr.logStreamAppLowLimit;
 		} else {
 			value32_low = *(SaUint32T *) lgs_cfg_get(
 					LGS_IMM_LOG_STREAM_APP_LOW_LIMIT);
@@ -643,14 +634,12 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_v3_t vattr_v3, char *err
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
-		
-		v3_changed_flag = true;
 	}
 	
-	if (vattr_v3.logStreamAppLowLimit_changed) {
-		value32_low = vattr_v3.logStreamAppLowLimit;
-		if (vattr_v3.logStreamAppHighLimit_changed) {
-			value32_high = vattr_v3.logStreamAppHighLimit;
+	if (vattr.logStreamAppLowLimit_changed) {
+		value32_low = vattr.logStreamAppLowLimit;
+		if (vattr.logStreamAppHighLimit_changed) {
+			value32_high = vattr.logStreamAppHighLimit;
 		} else {
 			value32_high = *(SaUint32T *) lgs_cfg_get(
 					LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT);
@@ -662,20 +651,8 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_v3_t vattr_v3, char *err
 			snprintf(err_str, 256, "HIGH limit < LOW limit");
 			goto done;
 		}
-		
-		v3_changed_flag = true;
 	}
 	
-	/* Check if other node supports v3 if any v3 attribute has changed */
-	if (v3_changed_flag == true) {
-		if (lgs_is_peer_v3() == false) {
-			/* Not supported by standby. Configuration change not allowed */
-			ais_rc = SA_AIS_ERR_FAILED_OPERATION;
-			snprintf(err_str, 256, "Not supported by standby node");
-			goto done;
-		}
-	}
-
 	done:
 	TRACE_LEAVE2("rc = %d", ais_rc);
 	return ais_rc;
@@ -697,7 +674,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 	int rc = 0;
 	int i = 0;
 	
-	struct vattr_v3_t vattr_v3 = {
+	struct vattr_t vattr= {
 		.validate_flag = false,
 		.logStreamSystemHighLimit = 0,
 		.logStreamSystemHighLimit_changed = false,
@@ -783,25 +760,25 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 			TRACE("maxLogRecordSize: %s is accepted", attribute->attrName);
 			goto done;
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
-			vattr_v3.logStreamSystemHighLimit = *((SaUint32T *)value);
-			vattr_v3.logStreamSystemHighLimit_changed = true;
+			vattr.logStreamSystemHighLimit = *((SaUint32T *)value);
+			vattr.logStreamSystemHighLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr_v3.logStreamSystemHighLimit);
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
-			vattr_v3.logStreamSystemLowLimit = *((SaUint32T *)value);
-			vattr_v3.logStreamSystemLowLimit_changed = true;
+			vattr.logStreamSystemLowLimit = *((SaUint32T *)value);
+			vattr.logStreamSystemLowLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr_v3.logStreamSystemHighLimit);
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_HIGH_LIMIT)) {
-			vattr_v3.logStreamAppHighLimit = *((SaUint32T *)value);
-			vattr_v3.logStreamAppHighLimit_changed = true;
+			vattr.logStreamAppHighLimit = *((SaUint32T *)value);
+			vattr.logStreamAppHighLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr_v3.logStreamSystemHighLimit);
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_APP_LOW_LIMIT)) {
-			vattr_v3.logStreamAppLowLimit = *((SaUint32T *)value);
-			vattr_v3.logStreamAppLowLimit_changed = true;
+			vattr.logStreamAppLowLimit = *((SaUint32T *)value);
+			vattr.logStreamAppLowLimit_changed = true;
 			TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
-					vattr_v3.logStreamSystemHighLimit);
+					vattr.logStreamSystemHighLimit);
 		} else if (!strcmp(attribute->attrName, LOG_MAX_APPLICATION_STREAMS)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
@@ -833,7 +810,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 		attrMod = opdata->param.modify.attrMods[i++];
 	}
 	
-	ais_rc = validate_mailbox_limits(vattr_v3, oi_err_str);
+	ais_rc = validate_mailbox_limits(vattr, oi_err_str);
 	if (ais_rc != SA_AIS_OK) {
 		TRACE("Reporting oi error \"%s\"", oi_err_str);
 		report_oi_error(immOiHandle, opdata->ccbId, "%s", oi_err_str);
