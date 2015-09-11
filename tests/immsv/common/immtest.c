@@ -22,8 +22,8 @@
 #include <pthread.h>
 #include "immtest.h"
 
-const SaVersionT constImmVersion = {'A', 0x02, 0x0f};
-SaVersionT immVersion = {'A', 0x02, 0x0f};
+const SaVersionT constImmVersion = {'A', 0x02, 0x10};
+SaVersionT immVersion = {'A', 0x02, 0x10};
 SaAisErrorT rc;
 SaImmHandleT immOmHandle;
 SaImmHandleT immOiHandle;
