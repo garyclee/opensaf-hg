@@ -17,13 +17,15 @@
 usage()
 {
 	echo ""
-	echo "usage: `basename $0` [<class name> [state name] [DN]]"
+	echo "usage: `basename $0` [<class name> [state name] [object/parent/ancestor DN]]"
 	echo ""
 	echo "	Without any arguments AMF entities with questionable health is displayed."
 	echo "	class names: app|comp|csiass|node|sg|si|siass|su|ng"
 	echo "	state names: adm|all|ass|ha|har|oper|pres|readi"
+	echo "	object/parent/ancestor DN: display objects with DN as ancestor/parent."
 	echo
 }
+CLASSNAME=""
 
 amf_state()
 {
@@ -577,7 +579,10 @@ ng_state()
                 done
         done
 }
-case "$CLASS" in
+
+states_of_dn()
+{
+   case "$CLASS" in
 	app)
 		app_state $STATE $DN
 		;;
@@ -608,6 +613,65 @@ case "$CLASS" in
 	*)
 		usage
 		exit 1
+   esac
+}
+
+
+verify_ancestor_dn()
+{
+	ANCESTOR_VALID=`immfind $DN 2> /dev/null`
+	if [ "$ANCESTOR_VALID" = "" ]; then
+		echo "object/parent/ancestor '$DN' does not exist in model"
+		exit 1
+	fi
+}
+
+states_of_children()
+{
+        child=""
+        ALL_CHILDS=`immfind -c $CLASSNAME | grep $DN`
+        for child in $ALL_CHILDS; do
+                 DN=$child
+                 states_of_dn
+        done
+}
+
+case "$1" in
+        app)
+                CLASSNAME="SaAmfApplication"
+                ;;
+        csiass)
+                CLASSNAME="SaAmfCSIAssignment"
+                ;;
+        comp)
+                CLASSNAME="SaAmfComp"
+                ;;
+        node)
+                CLASSNAME="SaAmfNode"
+                ;;
+        sg)
+                CLASSNAME="SaAmfSG"
+                ;;
+        si)
+                CLASSNAME="SaAmfSI"
+                ;;
+        siass)
+                CLASSNAME="SaAmfSIAssignment"
+                ;;
+        su)
+                CLASSNAME="SaAmfSU"
+                ;;
+        ng)
+                CLASSNAME="SaAmfNodeGroup"
+                ;;
 esac
+
+if [ $# -eq 3 ]; then
+	verify_ancestor_dn
+	states_of_children
+else 
+	states_of_dn
+fi
+
 exit 0
 

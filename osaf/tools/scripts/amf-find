@@ -14,124 +14,148 @@
 # Author(s): Ericsson
 #
 
-if [ $# -eq 0 ]; then
-	echo "usage: `basename $0` <app|comp|csi|csiass|node|sg|si|siass|su|
-		|appbasetype|apptype|csbasetype|csiattr|cstype|cluster|
-		|compbasetype|compcstype|compglobalattr|comptype|ctcstype|
-		|hc|hctype|ng|nodeswbundle|sgbasetype|sgtype|sidep|sirankedsu|
-		|subasetype|sutype|sutcomptype|sibasetype|sitype|sitypecstype>"
+usage ()
+{
+	echo ""
+	echo "usage: `basename $0` <class name> [ancestor DN"]
+	echo ""
+	echo "	class name: <app|comp|csi|csiass|node|sg|si|siass|su|
+			|appbasetype|apptype|csbasetype|csiattr|cstype|cluster|
+			|compbasetype|compcstype|compglobalattr|comptype|ctcstype|
+			|hc|hctype|ng|nodeswbundle|sgbasetype|sgtype|sidep|sirankedsu|
+			|subasetype|sutype|sutcomptype|sibasetype|sitype|sitypecstype>"
+	echo "	ancestor DN: display objects of <class name> having DN as ancestor." 
+}
 
-	exit 1
-fi
 
+CLASSNAME=""
+ANCESTOR=$2
+ANCESTOR_VALID=`immfind $2 2> /dev/null`
 case "$1" in
 	app)
-		immfind -c SaAmfApplication
+		CLASSNAME="SaAmfApplication"
 		;;
 	comp)
-		immfind -c SaAmfComp
+		CLASSNAME="SaAmfComp"
 		;;
 	csi)
-		immfind -c SaAmfCSI
+		CLASSNAME="SaAmfCSI"
 		;;
 	csiass)
-		immfind -c SaAmfCSIAssignment
+		CLASSNAME="SaAmfCSIAssignment"
 		;;
 	node)
-		immfind -c SaAmfNode
+		CLASSNAME="SaAmfNode"
 		;;
 	sg)
-		immfind -c SaAmfSG
+		CLASSNAME="SaAmfSG"
 		;;
 	si)
-		immfind -c SaAmfSI
+		CLASSNAME="SaAmfSI"
 		;;
 	siass)
-		immfind -c SaAmfSIAssignment
+		CLASSNAME="SaAmfSIAssignment"
 		;;
 	su)
-		immfind -c SaAmfSU
+		CLASSNAME="SaAmfSU"
 		;;
 	appbasetype)
-		immfind -c SaAmfAppBaseType
+		CLASSNAME="SaAmfAppBaseType"
 		;;
 	apptype)
-		immfind -c SaAmfAppType
+		CLASSNAME="SaAmfAppType"
 		;;
 	csbasetype)
-		immfind -c SaAmfCSBaseType
+		CLASSNAME="SaAmfCSBaseType"
 		;;
 	csiattr)
-		immfind -c SaAmfCSIAttribute
+		CLASSNAME="SaAmfCSIAttribute"
 		;;
 	cstype)
-		immfind -c SaAmfCSType
+		CLASSNAME="SaAmfCSType"
 		;;
 	cluster)
-		immfind -c SaAmfCluster
+		CLASSNAME="SaAmfCluster"
 		;;
 	compbasetype)
-		immfind -c SaAmfCompBaseType
+		CLASSNAME="SaAmfCompBaseType"
 		;;
 	compcstype)
-		immfind -c SaAmfCompCsType
+		CLASSNAME="SaAmfCompCsType"
 		;;
 	compglobalattr)
-		immfind -c SaAmfCompGlobalAttributes
+		CLASSNAME="SaAmfCompGlobalAttributes"
 		;;
 	comptype)
-		immfind -c SaAmfCompType
+		CLASSNAME="SaAmfCompType"
 		;;
 	ctcstype)
-		immfind -c SaAmfCtCsType
+		CLASSNAME="SaAmfCtCsType"
 		;;
 	hc)
-		immfind -c SaAmfHealthcheck
+		CLASSNAME="SaAmfHealthcheck"
 		;;
 	hctype)
-		immfind -c SaAmfHealthcheckType
+		CLASSNAME="SaAmfHealthcheckType"
 		;;
 	ng)
-		immfind -c SaAmfNodeGroup
+		CLASSNAME="SaAmfNodeGroup"
 		;;
 	nodeswbundle)
-		immfind -c SaAmfNodeSwBundle
+		CLASSNAME="SaAmfNodeSwBundle"
 		;;
 	sgbasetype)
-		immfind -c SaAmfSGBaseType
+		CLASSNAME="SaAmfSGBaseType"
 		;;
 	sgtype)
-		immfind -c SaAmfSGType
+		CLASSNAME="SaAmfSGType"
 		;;
 	sidep)
-		immfind -c SaAmfSIDependency
+		CLASSNAME="SaAmfSIDependency"
 		;;
 	sirankedsu)
-		 immfind -c SaAmfSIRankedSU
+		CLASSNAME="SaAmfSIRankedSU"
 		;;
 	subasetype)
-		immfind -c SaAmfSUBaseType
+		CLASSNAME="SaAmfSUBaseType"
 		;;
 	sutype)
-		immfind -c SaAmfSUType
+		CLASSNAME="SaAmfSUType"
 		;;
 	sutcomptype)
-		immfind -c SaAmfSutCompType
+		CLASSNAME="SaAmfSutCompType"
 		;;
 	sibasetype)
-		immfind -c SaAmfSvcBaseType
+		CLASSNAME="SaAmfSvcBaseType"
 		;;
 	sitype)
-		immfind -c SaAmfSvcType
+		CLASSNAME="SaAmfSvcType"
 		;;
 	sitypecstype)
-		immfind -c SaAmfSvcTypeCSTypes
-		;;
-	*)
-		echo "unsupported type, trying anyway..."
-		immfind -c $*
+		CLASSNAME="SaAmfSvcTypeCSTypes"
 		;;
 esac
+
+
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+elif  [ "$CLASSNAME" = "" ]; then 
+	echo "Class name incorrect."
+	exit 1
+elif [ $# -eq 2 ]; then
+	#TODO: Even if ancestor DN is valid, check if AMF implements it.
+	if [ "$ANCESTOR_VALID" = "" ]; then
+		echo "Invalid DN: "$2" does not exist in the model."
+		exit 1
+	fi
+fi
+
+if [ $# -eq 1 ]; then
+	immfind -c $CLASSNAME
+elif [ $# -eq 2 ]; then
+	immfind -c $CLASSNAME | grep $ANCESTOR
+fi
 
 exit $?
 
