@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import netifaces
+import select
+
+from pyosaf.saAis import eSaAisErrorT
+
+from pyosaf.utils import immom, immoi
+
+from pyosaf.utils.immom.object import ImmObject
+from pyosaf.utils.immom.iterator import InstanceIterator
+
+
+from pyosaf.utils.immoi import get_object_no_runtime
+from pyosaf.utils.immoi.implementer import Implementer
+
+interface_class_name = "InterfaceRO01"
+timeout = 1
+
+class InterfaceImplementer(Implementer):
+    
+
+    def __init__(self, timeout=1):
+        Implementer.__init__(self, name="InterfaceImplementer")
+
+        self.timeout = timeout
+
+    def get_interface_name_from_dn(self, dn):
+
+        return dn.split(',')[0].split('=')[1]
+
+    def create_rt_object_for_interface(self, interface):
+
+        mo = ImmObject(class_name=interface_class_name, dn='interfaceId=%s' % interface)
+
+        # Set the RDN with the right interface name
+        mo.interfaceId = 'interfaceId=%s' % interface
+
+        # Look up the IPv4 and IPv6 addresses
+        addresses = netifaces.ifaddresses(interface)
+
+        if netifaces.AF_INET in addresses:
+            ipv4 = [a['addr'] for a in addresses[netifaces.AF_INET]]
+            mo.ipv4Addresses = ipv4
+        else:
+            mo.ipv4Addresses = "dummy"
+
+        if netifaces.AF_INET6 in addresses:
+            ipv6 = [a['addr'] for a in addresses[netifaces.AF_INET6]]
+            mo.ipv6Addresses = ipv6
+        else:
+            mo.ipv6Addresses = "dummy"
+
+        ##
+        ## This exposes a potential fault in IMM.
+        ##
+        ## Cached attributes need to have their values set when 
+        ## the object is created. If there is an interface that lacks
+        ## an IPv4 or IPv6 address, this will be set to None and 
+        ## converted to an empty list in the implementer code. IMM
+        ## does not allow this and responds with SA_AIS_ERR_INVALID_PARAM
+        ##
+        ## Work around this for now by setting dummy values
+        ##
+
+        self.create(mo)
+
+    def enter_dispatch_loop(self):
+
+        # Wait for next IO event or N seconds
+        inputs  = [self.get_selection_object()]
+        outputs = []
+
+        while inputs:
+
+            readable, writable, exceptional = \
+            select.select(inputs, outputs, inputs, timeout)
+
+            if self.get_selection_object() in readable:
+                self.dispatch()
+            else:
+
+                interfaces = netifaces.interfaces()
+
+                # Add objects for new interfaces
+                for interface in interfaces:
+                    if not immoi.get_object_no_runtime('interfaceId=%s' % interface,
+                                                       class_name=interface_class_name):
+                        self.create_rt_object_for_interface(interface)
+
+                # Go through existing objects
+                for mo in InstanceIterator('InterfaceRO'):
+                    interface_name = self.get_interface_name_from_dn(mo.dn)
+
+                    # Remove objects for deleted interfaces
+                    if not mo.dn in interfaces:
+                        self.delete(mo.dn)
+
+                        continue
+
+                    # Update interfaces
+                    addresses = netifaces.ifaddresses(interface_name)
+
+                    attributes = {}
+
+                    if netifaces.AF_INET in addresses:
+                        attributes['ipv4Addresses'] = \
+                            [a['addr'] for a in addresses[netifaces.AF_INET]]
+
+                    if netifaces.AF_INET6 in addresses:
+                        attributes['ipv6Addresses'] = \
+                            [a['addr'] for a in addresses[netifaces.AF_INET6]]
+
+                    if attributes:
+                        self.update_runtime_attributes(mo.dn, attributes)
+
+
+if __name__ == "__main__":
+
+    # Create the implementer
+    interface_implementer = InterfaceImplementer()
+
+    # Enter an infinite select loop
+    interface_implementer.enter_dispatch_loop()
