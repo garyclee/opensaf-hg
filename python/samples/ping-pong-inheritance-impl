@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import select
+import argparse
 
 from pyosaf.saAis import eSaAisErrorT
 
@@ -35,6 +36,13 @@ class PingPong(Implementer):
 
 
 if __name__ == '__main__':
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Logs and replies to admin operations 0 and 1 towards %s,'
+        ' and replies' % dn)
+
+    parser.parse_args()
 
     # Create the ping-pong instance if it doesn't exist
     if not immom.get(dn):

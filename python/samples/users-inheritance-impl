@@ -6,6 +6,7 @@ from pyosaf.utils.immom.object import ImmObject
 from pyosaf.utils.immoi.implementer import Implementer
 
 import psutil
+import argparse
 
 class_name='UsersSampleClass'
 
@@ -18,7 +19,15 @@ class UsersImplementer(Implementer):
         return list(set(map(lambda x: x.name, psutil.get_users())))
 
 if __name__ == '__main__':
-    
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Creates the usersId=1 object and updates its users '
+        'attribute with the current list of logged in users when it\' read '
+        'in IMM.')
+
+    parser.parse_args()
+
     users_implementer = UsersImplementer()
 
     try:

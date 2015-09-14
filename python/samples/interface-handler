@@ -61,7 +61,7 @@ def create_rt_object_for_interface(implementer, interface):
     implementer.create(mo)
 
 def select_loop(implementer):
-
+    print 'select loop'
     # Get selection object for the implementer
     selection_object = implementer.get_selection_object()
 
@@ -82,16 +82,18 @@ def select_loop(implementer):
 
             # Add objects for new interfaces
             for interface in interfaces:
-                if not immoi.get_object_no_runtime('interfaceId=%s' % interface,
-                                                   class_name=interface_class_name):
+
+                try:
                     create_rt_object_for_interface(implementer, interface)
+                except Exception as err:
+                    pass
 
             # Go through existing objects
             for mo in InstanceIterator('InterfaceRO01'):
                 interface_name = get_interface_name_from_dn(mo.dn)
 
                 # Remove objects for deleted interfaces
-                if not mo.dn in interfaces:
+                if not mo.interfaceId.split('=')[1] in interfaces:
                     implementer.delete(mo.dn)
 
                     continue
@@ -114,6 +116,12 @@ def select_loop(implementer):
 
 
 if __name__ == "__main__":
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Creates a runtime object per network interface on the machine and populates the ipv4Addresses and ipv6Addresses attributes.')
+
+    parser.parse_args()
 
     # Create the implementer instance
     interface_implementer = Implementer(name="InterfaceImplementer")

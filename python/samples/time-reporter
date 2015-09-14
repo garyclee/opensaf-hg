@@ -2,6 +2,7 @@
 
 import select
 import datetime
+import argparse
 
 from pyosaf.utils import immom, immoi
 from pyosaf.utils.immoi.implementer import Implementer
@@ -45,6 +46,12 @@ def select_loop(implementer):
 
 if __name__ == '__main__':
 
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Keeps the %s object updated with the current time' % dn)
+
+    parser.parse_args()
+
     # Create the implementer instance
     time_implementer = Implementer(name="TimeReporter")
 
@@ -52,8 +59,7 @@ if __name__ == '__main__':
     (hours, minutes, seconds) = get_time()
 
     # Create the time instance if it doesn't exist
-    if not immoi.get_object_no_runtime(dn):
-
+    try:
         obj = ImmObject(class_name=class_name, dn=dn)
 
         obj.hours   = hours
@@ -62,6 +68,8 @@ if __name__ == '__main__':
         obj.timeId  = "timeId=1"
 
         time_implementer.create(obj)
+    except Exception as err:
+        pass
 
     # Start dispatch and time update loop
     select_loop(time_implementer)

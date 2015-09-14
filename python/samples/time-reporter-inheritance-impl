@@ -2,6 +2,7 @@
 
 import select
 import datetime
+import argparse
 
 from pyosaf.utils import immom, immoi
 from pyosaf.utils.immoi.implementer import Implementer
@@ -28,8 +29,7 @@ class TimeReporter(Implementer):
         # Create the time instance if it doesn't exist
         dn = "timeId=%s" % self.time_id
 
-        if not immoi.get_object_no_runtime(dn):
-
+        try:
             now = datetime.datetime.now()
 
             obj = ImmObject(class_name=class_name, dn=dn)
@@ -39,7 +39,9 @@ class TimeReporter(Implementer):
             obj.seconds = now.second
             obj.timeId  = "timeId=%" % self.time_id
 
-            time_implementer.create(obj)
+            self.create(obj)
+        except Exception as err:
+            pass
 
     def enter_dispatch_loop(self):
         ''' 
@@ -73,6 +75,12 @@ class TimeReporter(Implementer):
                 self.update_runtime_attributes(dn, attributes)
 
 if __name__ == '__main__':
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Keeps the %s object updated with the current time' % dn)
+
+    parser.parse_args()
 
     # Create the implementer instance
     time_implementer = TimeReporter(time_id=1)

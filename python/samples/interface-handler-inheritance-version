@@ -86,16 +86,17 @@ class InterfaceImplementer(Implementer):
 
                 # Add objects for new interfaces
                 for interface in interfaces:
-                    if not immoi.get_object_no_runtime('interfaceId=%s' % interface,
-                                                       class_name=interface_class_name):
+                    try:
                         self.create_rt_object_for_interface(interface)
+                    except Exception as err:
+                        pass
 
                 # Go through existing objects
                 for mo in InstanceIterator('InterfaceRO'):
                     interface_name = self.get_interface_name_from_dn(mo.dn)
 
                     # Remove objects for deleted interfaces
-                    if not mo.dn in interfaces:
+                    if not mo.interfaceId.split('=')[1] in interfaces:
                         self.delete(mo.dn)
 
                         continue
@@ -118,6 +119,12 @@ class InterfaceImplementer(Implementer):
 
 
 if __name__ == "__main__":
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Creates a runtime object per network interface on the machine and populates the ipv4Addresses and ipv6Addresses attributes.')
+
+    parser.parse_args()
 
     # Create the implementer
     interface_implementer = InterfaceImplementer()
