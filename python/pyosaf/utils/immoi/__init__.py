@@ -267,7 +267,7 @@ def get_class_name_for_dn(dn):
     else:
         return None
 
-def get_object_no_runtime(dn, class_name=None):
+def get_object_no_runtime(dn):
     ''' returns the IMM object with the given DN
 
         this is safe to call from OI callbacks as only the config attributes
@@ -278,20 +278,7 @@ def get_object_no_runtime(dn, class_name=None):
         it will be looked up.
     '''
 
-    if not class_name:
-        class_name = get_class_name_for_dn(dn)
-
-    class_desc = get_class_description(class_name)
-
-    config_attrs = []
-
-    for attr_desc in class_desc:
-        if attr_desc.attrFlags & saImm.saImm.SA_IMM_ATTR_CONFIG:
-            config_attrs.append(attr_desc.attrName)
-
-    obj = immom.get(dn, config_attrs)
-
-    return obj
+    return immom.get(dn, ['SA_IMM_SEARCH_GET_CONFIG_ATTR'])
 
 def cache_class_descriptions(class_names):
     ''' Explicitly caches the class description of the given class names 
