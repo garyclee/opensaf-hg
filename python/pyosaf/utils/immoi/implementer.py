@@ -61,7 +61,7 @@ def _collect_full_transaction(ccb_id):
     for class_name in implementer_instance.class_names:
         dns = immoi.get_object_names_for_class(class_name)
         for dn in dns:
-            obj = immoi.get_object_no_runtime(dn, class_name)
+            obj = immoi.get_object_no_runtime(dn)
 
             all_objects_now.append(obj)
 
@@ -88,15 +88,14 @@ def _collect_full_transaction(ccb_id):
 
             created.append(instance)
 
-            deleted = filter(lambda i: i.dn != dn, deleted)
+            if dn in deleted:
+                deleted.remove(dn)
 
         # Handle deletes
         elif operation_type == 'DELETE':
             dn = operation['dn']
 
-            obj = immom.get(dn)
-
-            deleted.append(obj)
+            deleted.append(dn)
 
             created = filter(lambda i: i.dn != dn, created)
             updated = filter(lambda i: i.dn != dn, updated)
@@ -149,13 +148,8 @@ def _collect_full_transaction(ccb_id):
     instances_after = []
 
     for mo in itertools.chain(all_objects_now, created):
-        is_deleted = False
 
-        for deleted_mo in deleted:
-            if deleted_mo.dn == mo.dn:
-                is_deleted = True
-
-        if not deleted:
+        if not mo.dn in deleted:
             instances_after.append(mo)
 
     out = {'instances_after' : instances_after,
@@ -213,7 +207,7 @@ def apply_ccb(oi_handle, ccb_id):
         dns = immoi.get_object_names_for_class(class_name)
 
         for dn in dns:
-            obj = immoi.get_object_no_runtime(dn, class_name)
+            obj = immoi.get_object_no_runtime(dn)
 
             all_instances.append(obj)
 
@@ -499,77 +493,95 @@ class Constraints:
 
         self.cardinality[pair] = [lower, upper]
 
+
     def validate(self, all_instances, updated, created, deleted):
         ''' Validates the constraints in this Constraints instance '''
 
-        # Validate containments
-        for mo in created:
+        def get_children_with_classname(parent_name, all_instances, class_name):
+            ''' Helper method to count the number of children of the given class 
+                in the list of all instances '''
+            current_children = []
+
+            for child in all_instances:
+
+                if not ',' in child.dn:
+                    continue
+
+                if immoi.get_parent_name_for_dn(child.dn) == parent_name and \
+                   child.class_name == class_name:
+                    current_children.append(child)
+
+            return current_children
+
+        def constraint_exists_for_child(class_name):
+            ''' Returns true if there exists a constraint for the given class as 
+                a child
+            '''
+            for child_classes in self.containments.values():
+                if class_name in child_classes:
+                    return True
+
+            return False
+
+        # Validate containments affected by create or delete
+        deleted_mos = [immoi.get_object_no_runtime(deleted_mo) \
+                       for deleted_mo in deleted]
+
+        for mo in itertools.chain(created, deleted_mos):
 
             parent_name = immoi.get_parent_name_for_dn(mo.dn)
 
             # Handle the case where there is no parent
             if not parent_name:
 
-                for parent_class, child_classes in self.containments.iteritems():
-                    if mo.SaImmAttrClassName in child_classes:
-                        error_string = "ERROR: Cannot create %s, %s must have a parent" % \
-                                       (mo.dn, mo.SaImmAttrClassName)
-                        raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM, 
-                                           error_string)
-
-            else:
-
-                parent_class = immoi.get_class_name_for_dn(parent_name)
-
-                child_classes = self.containments[parent_class]
-
-                if not mo.SaImmAttrClassName in child_classes:
-                    error_string = "ERROR: Cannot create %s as a child under %s. Possible children are %s" % \
-                                   (mo.dn, parent_class, child_classes)
-                    raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM,
+                if mo in created and \
+                   constraint_exists_for_child(mo.class_name):
+                    error_string = "ERROR: Cannot create %s, %s must have a parent" % \
+                                   (mo.dn, mo.SaImmAttrClassName)
+                    raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM, 
                                        error_string)
 
-        # Validate cardinality of containments
-        count_cardinality = {}
-
-        for mo in all_instances:
-
-            parent_name = immoi.get_parent_name_for_dn(mo.dn)
-
-            if parent_name:
-
-                parent_class = immoi.get_class_name_for_dn(parent_name)
-
-                # Count children of each parent-child relationship
-                pair = (parent_class, mo.SaImmAttrClassName)
-
-                if not pair in count_cardinality:
-                    count_cardinality[pair] = 0
-
-                count_cardinality[pair] += 1
-
-        # Verify the cardinality
-        for counted_pair, number in count_cardinality.iteritems():
-            parent_class = counted_pair[0]
-            child_class  = counted_pair[1]
-
-            # Ignore pairs that have no specified cardinality
-            if not counted_pair in self.cardinality:
+                # Allow this operation and check the next one
                 continue
 
-            lower = self.cardinality[counted_pair][0]
-            upper = self.cardinality[counted_pair][1]
+            # Handle the case where the parent is also deleted
+            if parent_name in deleted:
+                continue
 
-            if lower and number < lower:
+            parent_class = immoi.get_class_name_for_dn(parent_name)
+
+            # Ignore children where no constraint is defined for the child or the parent
+            if not parent_class in self.containments and not \
+               constraint_exists_for_child(mo.class_name):
+                continue
+
+            # Validate the containment if there is a parent
+            child_classes = self.containments[parent_class]
+
+            # Reject the create if the child's class is not part of the allowed child classes
+            if not mo.class_name in child_classes and mo in created:
+                error_string = "ERROR: Cannot create %s as a child under %s. Possible children are %s" % \
+                               (mo.dn, parent_class, child_classes)
+                raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM,
+                                   error_string)
+
+            # Count current containments
+            current_children = get_children_with_classname(parent_name, 
+                                                           all_instances,
+                                                           mo.class_name)
+
+            # Validate the number of children of the specific class to the given parent
+            lower, upper = self.cardinality[(parent_class, mo.class_name)]
+
+            if lower and len(current_children) < lower:
                 error_string = "ERROR: Must have at least %s instances of %s under %s" % \
-                               (lower, child_class, parent_class)
-                raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM,
-                                   error_string)
-            elif upper and number > upper:
+                               (lower, mo.class_name, parent_class)
+                raise SafException(eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION, error_string)
+
+            if upper and len(current_children) > upper:
                 error_string = "ERROR: Must have at most %s instances of %s under %s" % \
-                               (upper, child_class, parent_class)
-                raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM,
-                                   error_string)
+                               (upper, mo.class_name, parent_class)
+                raise SafException(eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION, error_string)
 
 
 class Implementer:
@@ -847,10 +859,7 @@ class Implementer:
                               deleted):
         ''' Validates configured constraints '''
         if self.constraints:
-            return self.constraints.validate(all_instances, updated, 
-                                             created, deleted)
-        else:
-            return eSaAisErrorT.SA_AIS_OK
+            self.constraints.validate(all_instances, updated, created, deleted)
 
 
 class Applier(Implementer):
