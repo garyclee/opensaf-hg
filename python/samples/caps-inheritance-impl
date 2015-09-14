@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import itertools
+import argparse
 
 from pyosaf.saAis import eSaAisErrorT
 
@@ -41,6 +42,14 @@ class Caps(Implementer):
 
 
 if __name__ == "__main__":
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Validates that the lowerCaps and upperCaps attributes
+of instances of the CapsSample class can only contain
+lower case and upper case text respectively.')
+
+    parser.parse_args()
 
     # Create the implementer
     caps_implementer = Caps()
