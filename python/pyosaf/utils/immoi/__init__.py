@@ -235,7 +235,11 @@ def get_class_category(class_name):
 
 def get_parent_name_for_dn(dn):
     ''' returns the dn of the parent of the instance of the given dn '''
-    return ",".join(dn.split(',')[1:])
+
+    if ',' in dn:
+        return dn.split(',', 1)[1]
+    else:
+        return None
 
 def get_object_names_for_class(class_name, root_name=None):
     ''' Returns the instances of the given class, optinally under the given root dn
