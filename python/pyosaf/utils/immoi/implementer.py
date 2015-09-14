@@ -867,7 +867,7 @@ class Applier(Implementer):
                              on_create=on_create, on_delete=on_delete,
                              on_modify=on_modify, on_apply=on_apply)
         
-    def _validate(self, instances, updated, created, deleted):
+    def _validate(self, ccb_id, instances, updated, created, deleted):
         ''' Empty validate handler as appliers cannot validate '''
         return eSaAisErrorT.SA_AIS_OK
 
