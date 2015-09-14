@@ -296,6 +296,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	int add_found = 0;
 	int nodes_deleted = 0;
 	AVD_AMF_NG *ng;
+	CcbUtilOperationData_t *t_opData;
 
 	TRACE_ENTER();
 
@@ -337,21 +338,26 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				/* for all OpenSAF SUs hosted by this node */
 				for (const auto& su : node->list_of_ncs_su) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
-						report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
+						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
+						if (t_opData == NULL || t_opData->operationType != CCBUTIL_DELETE) {
+							report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
 								" An SU is mapped using node group",
 								node->name.value, ng->name.value);
-						goto done;
-						
+								goto done;
+						}
 					}
 				}
 
 				/* for all application SUs hosted by this node */
 				for (const auto& su : node->list_of_su) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
-						report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
-								" An SU is mapped using node group",
-								node->name.value, ng->name.value);
-						goto done;
+						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
+						if (t_opData == NULL || t_opData->operationType != CCBUTIL_DELETE) {
+							report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
+							" An SU is mapped using node group",
+							node->name.value, ng->name.value);
+							goto done;
+						}
 					}
 				}
 				
