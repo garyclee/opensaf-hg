@@ -65,6 +65,15 @@ users:
         package psutil to fill in the list of logged in users. Run
         'users --help' for specific options and arguments.
 
+interface-handler:
+        The Interface Handler OI demonstrates creation of runtime
+        objects and updates triggered by the OI as a timeout in its
+        select loop. It creates runtime objects for all detected
+        interfaces on the machine where it is running and lists all
+        available IPv4 and IPv6 addresses. It depends on the python
+        netifaces library to do so. Run 'interface-handler --help' for
+        specific options and arguments.
+
 Logging for all apps/utils goes to /var/log/opensaf/saflog/saLogSystem*.log
 
 The IMM OI samples use the classes defined in the classes.xml file. Load it with immcfg -f classes.xml before trying them. 
