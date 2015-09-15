@@ -679,11 +679,17 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 	}
 	/* if ((load_su_found == true) && (i_si != AVD_SI_NULL)) */
-	if ((actv_su_found == false) || (sg->su_oper_list.su != NULL)) {
+	if ((actv_su_found == false) || (sg->su_oper_list.empty() == false)) {
 		/* Either there are no active SUs or there are some SUs being assigned 
 		 * active SI assignment.
 		 */
-		return sg->su_oper_list.su;
+		if (sg->su_oper_list.empty() == true) {
+			TRACE_LEAVE();
+			return NULL;
+		} else {
+			TRACE_LEAVE();
+			return sg->su_oper_list.front();
+		}
 	}
 
 	/* Identifying and assigning standby assignments. */
@@ -879,7 +885,15 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	}			/* while (i_si != AVD_SI_NULL) */
 
 done:
-	return sg->su_oper_list.su;
+	if (sg->su_oper_list.empty() == true) {
+		TRACE("%s su_oper_list is empty", sg->name.value);
+		TRACE_LEAVE();
+		return NULL;
+	} else {
+		TRACE("%s su_oper_list.front", sg->name.value);
+		TRACE_LEAVE();
+		return sg->su_oper_list.front();
+	}
 }
 
 uint32_t SG_NPM::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
@@ -935,7 +949,7 @@ uint32_t avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 }
 
  /*****************************************************************************
- * Function: avd_sg_npm_su_fault_su_oper
+ * Function: su_fault_su_oper
  *
  * Purpose:  This function is a subfunctionality of avd_sg_npm_su_fault_func.
  * It is called if the SG is in AVD_SG_FSM_SU_OPER.
@@ -951,11 +965,11 @@ uint32_t avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
  * 
  **************************************************************************/
 
-static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t SG_NPM::su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_AVND *su_node_ptr = NULL;
 
-	if (su->sg_of_su->su_oper_list.su == su) {
+	if (su_oper_list_front() == su) {
 		/* SU is in the SU oper list. If the admin state of the SU is 
 		 * shutdown change it to lock. Send a D2N-INFO_SU_SI_ASSIGN message
 		 * modify quiesced all message to the SU.
@@ -1014,7 +1028,7 @@ static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 }
 
  /*****************************************************************************
- * Function: avd_sg_npm_su_fault_si_oper
+ * Function: su_fault_si_oper
  *
  * Purpose:  This function is a subfunctionality of avd_sg_npm_su_fault_func.
  * It is called if the SG is in AVD_SG_FSM_SI_OPER or 
@@ -1031,7 +1045,7 @@ static uint32_t avd_sg_npm_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t SG_NPM::su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *l_susi;
 	bool l_flag;
@@ -1208,7 +1222,7 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 }
 
  /*****************************************************************************
- * Function: avd_sg_npm_su_fault_sg_relgn
+ * Function: su_fault_sg_relgn
  *
  * Purpose:  This function is a subfunctionality of avd_sg_npm_su_fault_func.
  * It is called if the SG is in AVD_SG_FSM_SG_REALIGN.
@@ -1224,13 +1238,13 @@ static uint32_t avd_sg_npm_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-static uint32_t avd_sg_npm_su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t SG_NPM::su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 {
 	bool l_flag = false;
 	AVD_AVND *su_node_ptr = NULL;
 
 	if (su->sg_of_su->admin_si != AVD_SI_NULL) {
-		return avd_sg_npm_su_fault_si_oper(cb, su);
+		return su_fault_si_oper(cb, su);
 
 	} /* if ((su->sg_of_su->admin_si != AVD_SI_NULL) */
 	else {
@@ -1392,19 +1406,19 @@ uint32_t SG_NPM::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_REALIGN:
 
-		if (avd_sg_npm_su_fault_sg_relgn(cb, su) == NCSCC_RC_FAILURE)
+		if (su_fault_sg_relgn(cb, su) == NCSCC_RC_FAILURE)
 			return NCSCC_RC_FAILURE;
 
 		break;		/* case AVD_SG_FSM_SG_REALIGN: */
 	case AVD_SG_FSM_SU_OPER:
 
-		if (avd_sg_npm_su_fault_su_oper(cb, su) == NCSCC_RC_FAILURE)
+		if (su_fault_su_oper(cb, su) == NCSCC_RC_FAILURE)
 			return NCSCC_RC_FAILURE;
 
 		break;		/* case AVD_SG_FSM_SU_OPER: */
 	case AVD_SG_FSM_SI_OPER:
 
-		if (avd_sg_npm_su_fault_si_oper(cb, su) == NCSCC_RC_FAILURE)
+		if (su_fault_si_oper(cb, su) == NCSCC_RC_FAILURE)
 			return NCSCC_RC_FAILURE;
 
 		break;		/* case AVD_SG_FSM_SI_OPER: */
@@ -1497,7 +1511,7 @@ uint32_t SG_NPM::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 }
 
  /*****************************************************************************
- * Function: avd_sg_npm_susi_sucss_sg_reln
+ * Function: susi_sucss_sg_reln
  *
  * Purpose:  This function is a subfunctionality of avd_sg_npm_susi_sucss_func.
  * It is called if the SG is in AVD_SG_FSM_SG_REALIGN.
@@ -1516,7 +1530,7 @@ uint32_t SG_NPM::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
  * 
  **************************************************************************/
 
-static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+uint32_t SG_NPM::susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi, *o_susi;
@@ -1696,7 +1710,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			su->delete_all_susis();
 			avd_sg_su_oper_list_del(cb, su, false);
 
-			if ((su->sg_of_su->su_oper_list.su == NULL) && (su->sg_of_su->admin_si == AVD_SI_NULL) &&
+			if ((su_oper_list.empty() == true) && (admin_si == AVD_SI_NULL) &&
 					(fover_progress == false)) {
 				/* Both the SI admin pointer and SU oper list are empty. Do the
 				 * functionality as in stable state to verify if new assignments 
@@ -1759,8 +1773,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				else {
 					/* Remove the SU from the SU oper list. */
 					avd_sg_su_oper_list_del(cb, su, false);
-					if ((su->sg_of_su->su_oper_list.su == NULL) &&
-					    (su->sg_of_su->admin_si == AVD_SI_NULL)) {
+					if ((su_oper_list.empty() == true) &&
+					    (admin_si == AVD_SI_NULL)) {
 						/* Both the SI admin pointer and SU oper list are empty. Do the
 						 * functionality as in stable state to verify if new assignments 
 						 * can be done. If yes stay in the same state. If no 
@@ -1792,7 +1806,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			/* standby all for a SU. remove the SU from the SU oper list. */
 			avd_sg_su_oper_list_del(cb, su, false);
 
-			if ((su->sg_of_su->su_oper_list.su == NULL) && (su->sg_of_su->admin_si == AVD_SI_NULL)) {
+			if ((su_oper_list.empty() == true) && (admin_si == AVD_SI_NULL)) {
 				/* Both the SI admin pointer and SU oper list are empty. Do the
 				 * functionality as in stable state to verify if new assignments 
 				 * can be done. If yes stay in the same state. If no 
@@ -1869,8 +1883,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 					else {
 						/* Remove the SU from the SU oper list. */
 						avd_sg_su_oper_list_del(cb, su, false);
-						if ((su->sg_of_su->su_oper_list.su == NULL) &&
-						    (su->sg_of_su->admin_si == AVD_SI_NULL)) {
+						if ((su_oper_list.empty() == true) &&
+						    (admin_si == AVD_SI_NULL)) {
 							/* Both the SI admin pointer and SU oper list are empty. Do the
 							 * functionality as in stable state to verify if new assignments 
 							 * can be done. If yes stay in the same state. If no 
@@ -1901,8 +1915,8 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				else {
 					/* Remove the SU from the SU oper list. */
 					avd_sg_su_oper_list_del(cb, su, false);
-					if ((su->sg_of_su->su_oper_list.su == NULL) &&
-					    (su->sg_of_su->admin_si == AVD_SI_NULL)) {
+					if ((su_oper_list.empty() == true) &&
+					    (admin_si == AVD_SI_NULL)) {
 						/* Both the SI admin pointer and SU oper list are empty. Do the
 						 * functionality as in stable state to verify if new assignments 
 						 * can be done. If yes stay in the same state. If no 
@@ -1963,7 +1977,7 @@ static uint32_t avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				} /* if( ( NULL != su->sg_of_su->si_tobe_redistributed ) &&
 				     (su == su->sg_of_su->min_assigned_su ) ) */
 
-				if ((su->sg_of_su->su_oper_list.su == NULL) && (su->sg_of_su->admin_si== AVD_SI_NULL)) {
+				if ((su_oper_list.empty() == true) && (admin_si== AVD_SI_NULL)) {
 					/* Both the SI admin pointer and SU oper list are empty. Do the
 					 * functionality as in stable state to verify if new assignments 
 					 * can be done. If yes stay in the same state. If no 
@@ -2408,7 +2422,7 @@ done:
 	TRACE_LEAVE();
 }
  /*****************************************************************************
- * Function: avd_sg_npm_susi_sucss_su_oper
+ * Function: susi_success_su_oper
  *
  * Purpose:  This function is a subfunctionality of avd_sg_npm_susi_sucss_func.
  * It is called if the SG is in AVD_SG_FSM_SU_OPER.
@@ -2427,7 +2441,7 @@ done:
  * 
  **************************************************************************/
 
-static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
+uint32_t SG_NPM::susi_success_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi;
@@ -2444,7 +2458,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 
 	
 	if ( act == AVSV_SUSI_ACT_MOD ) {
-		if ((state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->su_oper_list.su == su)) {
+		if ((state == SA_AMF_HA_QUIESCED) && (su_oper_list_front() == su)) {
 			if ( (su->sg_of_su->si_tobe_redistributed) && (su->sg_of_su->max_assigned_su == su)) {
 				/* SI Transfer flow, got response for max_assigned_su quiesced opr, if min_assigned_su
 				   is in in_service send Active assignment to it else revert back Active assignment to
@@ -2527,7 +2541,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 		}
 	}			/* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED) &&
 				   (su->sg_of_su->su_oper_list.su == su)) */
-	else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && (su->sg_of_su->su_oper_list.su != su)) {
+	else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && (su_oper_list_front() != su)) {
 		/* delete all and SU is not in the operation list. Free the SUSI 
 		 * relationships for the SU. 
 		 */
@@ -2536,7 +2550,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 
 	}			/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && 
 				   (su->sg_of_su->su_oper_list.su != su)) */
-	else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && (su->sg_of_su->su_oper_list.su == su)) {
+	else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL) && (su_oper_list_front() == su)) {
 		/*remove all and SU is in the operation list */
 		if (su->list_of_susi->state != SA_AMF_HA_QUIESCED) {
 			/* log error */
@@ -2572,7 +2586,7 @@ static uint32_t avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 		su->delete_all_susis();
 		avd_sg_su_oper_list_del(cb, su, false);
 
-		if (su->sg_of_su->su_oper_list.su == NULL) {
+		if (su_oper_list.empty() == true) {
 			/* SU oper list is empty. Do the
 			 * functionality as in stable state to verify if new assignments 
 			 * can be done. If yes stay in the same state. If no 
@@ -2822,13 +2836,13 @@ uint32_t SG_NPM::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_REALIGN:
 
-		if (avd_sg_npm_susi_sucss_sg_reln(cb, su, susi, act, state) == NCSCC_RC_FAILURE)
+		if (susi_sucss_sg_reln(cb, su, susi, act, state) == NCSCC_RC_FAILURE)
 			return NCSCC_RC_FAILURE;
 
 		break;		/* case AVD_SG_FSM_SG_REALIGN: */
 	case AVD_SG_FSM_SU_OPER:
 
-		if (avd_sg_npm_susi_sucss_su_oper(cb, su, susi, act, state) == NCSCC_RC_FAILURE)
+		if (susi_success_su_oper(cb, su, susi, act, state) == NCSCC_RC_FAILURE)
 			return NCSCC_RC_FAILURE;
 
 		break;		/* case AVD_SG_FSM_SU_OPER: */
@@ -2868,7 +2882,7 @@ uint32_t SG_NPM::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			 */
 			su->delete_all_susis();
 			avd_sg_su_oper_list_del(cb, su, false);
-			if (su->sg_of_su->su_oper_list.su == NULL) {
+			if (su_oper_list.empty() == true) {
 				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
@@ -2930,7 +2944,7 @@ uint32_t SG_NPM::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 		if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
 		    ((state == SA_AMF_HA_QUIESCED) || (state == SA_AMF_HA_QUIESCING))
-		    && (su->sg_of_su->su_oper_list.su == su)) {
+		    && (su_oper_list_front() == su)) {
 			/* quiesced all and SU is OOS. Send a D2N-INFO_SU_SI_ASSIGN remove
 			 * all to the SU.
 			 */
@@ -3285,7 +3299,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
-					if (su->sg_of_su->su_oper_list.su == NULL) {
+					if (su->sg_of_su->su_oper_list.empty() == true) {
 						/* both the SI admin pointer and SU oper list are empty.
 						 * Do the functionality as in stable state to verify if 
 						 * new assignments can be done. If yes stay in the same state.
@@ -3323,7 +3337,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* Free all the SI assignments to this SU. */
 					su->delete_all_susis();
 
-					if (su->sg_of_su->su_oper_list.su == NULL) {
+					if (su->sg_of_su->su_oper_list.empty() == true) {
 						/* both the SI admin pointer and SU oper list are empty.
 						 * Do the functionality as in stable state to verify if 
 						 * new assignments can be done. If yes stay in the same state.
@@ -3383,7 +3397,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/* Free all the SI assignments to this SU. */
 					su->delete_all_susis();
 
-					if (su->sg_of_su->su_oper_list.su == NULL) {
+					if (su->sg_of_su->su_oper_list.empty() == true) {
 						/* both the SI admin pointer and SU oper list are empty.
 						 * Do the functionality as in stable state to verify if 
 						 * new assignments can be done. If yes stay in the same state.
@@ -3437,7 +3451,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 					/*  Remove the SI from the SI admin pointer.  */
 					m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
-					if (su->sg_of_su->su_oper_list.su == NULL) {
+					if (su->sg_of_su->su_oper_list.empty() == true) {
 						/* both the SI admin pointer and SU oper list are empty.
 						 * Do the functionality as in stable state to verify if 
 						 * new assignments can be done. If yes stay in the same state.
@@ -3551,7 +3565,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				   (su->list_of_susi->state == SA_AMF_HA_QUIESCING) ||
 				   (su->list_of_susi->state == SA_AMF_HA_ACTIVE)) */
 
-			if (su->sg_of_su->su_oper_list.su == NULL) {
+			if (su->sg_of_su->su_oper_list.empty() == true) {
 				/* both the SI admin pointer and SU oper list are empty.
 				 * Do the functionality as in stable state to verify if 
 				 * new assignments can be done. If yes stay in the same state.
@@ -3605,7 +3619,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 }
 
 /*****************************************************************************
- * Function: avd_sg_npm_node_fail_su_oper
+ * Function: node_fail_su_oper
  *
  * Purpose:  This function is a subfunctionality of avd_sg_npm_node_fail_func.
  * It is called if the SG is in AVD_SG_FSM_SU_OPER.
@@ -3621,14 +3635,14 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
+void SG_NPM::node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *o_susi;
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("'%s' ", su->name.value);
 
-	if (su->sg_of_su->su_oper_list.su == su) {
+	if (su_oper_list_front() == su) {
 		/* SU is in the SU oper list. */
 
 		/* Check if we are in SI Transfer flow */
@@ -3678,7 +3692,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 			}
 		}
 
-		if (su->sg_of_su->su_oper_list.su == NULL) {
+		if (su_oper_list.empty() == true) {
 			/* SU oper list are empty.
 			 * Do the functionality as in stable state to verify if 
 			 * new assignments can be done. If yes change state to SG realign.
@@ -3737,7 +3751,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 }
 
 /*****************************************************************************
- * Function: avd_sg_npm_node_fail_si_oper
+ * Function: node_fail_si_oper
  *
  * Purpose:  This function is a subfunctionality of avd_sg_npm_node_fail_func.
  * It is called if the SG is in AVD_SG_FSM_SI_OPER.
@@ -3753,9 +3767,11 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
  * 
  **************************************************************************/
 
-static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
+void SG_NPM::node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *l_susi, *o_susi, *ot_susi;
+	
+	osafassert(this == su->sg_of_su);
 
 	l_susi = o_susi = AVD_SU_SI_REL_NULL;
 
@@ -3830,7 +3846,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
-				if (su->sg_of_su->su_oper_list.su == NULL) {
+				if (su_oper_list.empty() == true) {
 					/* both the SI admin pointer and SU oper list are empty.
 					 * Do the functionality as in stable state to verify if 
 					 * new assignments can be done. If yes stay in the same state.
@@ -3873,7 +3889,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* Free all the SI assignments to this SU. */
 				su->delete_all_susis();
 
-				if (su->sg_of_su->su_oper_list.su == NULL) {
+				if (su_oper_list.empty() == true) {
 					/* both the SI admin pointer and SU oper list are empty.
 					 * Do the functionality as in stable state to verify if 
 					 * new assignments can be done. If yes stay in the same state.
@@ -3931,7 +3947,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/* Free all the SI assignments to this SU. */
 				su->delete_all_susis();
 
-				if (su->sg_of_su->su_oper_list.su == NULL) {
+				if (su_oper_list.empty() == true) {
 					/* both the SI admin pointer and SU oper list are empty.
 					 * Do the functionality as in stable state to verify if 
 					 * new assignments can be done. If yes stay in the same state.
@@ -3988,7 +4004,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				/*  Remove the SI from the SI admin pointer.  */
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
-				if (su->sg_of_su->su_oper_list.su == NULL) {
+				if (su_oper_list.empty() == true) {
 					/* both the SI admin pointer and SU oper list are empty.
 					 * Do the functionality as in stable state to verify if 
 					 * new assignments can be done. If yes stay in the same state.
@@ -4091,12 +4107,12 @@ void SG_NPM::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		break;		/* case AVD_SG_FSM_SG_REALIGN: */
 	case AVD_SG_FSM_SU_OPER:
 
-		avd_sg_npm_node_fail_su_oper(cb, su);
+		node_fail_su_oper(cb, su);
 
 		break;		/* case AVD_SG_FSM_SU_OPER: */
 	case AVD_SG_FSM_SI_OPER:
 
-		avd_sg_npm_node_fail_si_oper(cb, su);
+		node_fail_si_oper(cb, su);
 
 		break;		/* case AVD_SG_FSM_SI_OPER: */
 	case AVD_SG_FSM_SG_ADMIN:
@@ -4125,7 +4141,7 @@ void SG_NPM::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		/* remove the SU from the operation list. */
 		avd_sg_su_oper_list_del(cb, su, false);
 
-		if (su->sg_of_su->su_oper_list.su == NULL) {
+		if (su_oper_list.empty() == true) {
 			if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 			}
@@ -4208,7 +4224,7 @@ uint32_t SG_NPM::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 		}		/* else (su->list_of_susi->state == SA_AMF_HA_ACTIVE) */
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SU_OPER:
-		if ((su->sg_of_su->su_oper_list.su == su) &&
+		if ((su_oper_list_front() == su) &&
 		    (su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
 		    ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
 		     ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
@@ -4371,7 +4387,7 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			return NCSCC_RC_FAILURE;
 		}
 
-		if (sg->su_oper_list.su != NULL) {
+		if (su_oper_list.empty() == false) {
 			m_AVD_SET_SG_FSM(cb, (sg), AVD_SG_FSM_SG_ADMIN);
 		}
 
