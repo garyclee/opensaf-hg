@@ -29,6 +29,7 @@
 #include <immutil.h>
 #include <logtrace.h>
 #include <set>
+#include <algorithm>
 
 #include <amfd.h>
 #include <imm.h>
@@ -1977,41 +1978,20 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_SG_OPER **i_su_opr;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
-	/* Check that the current pointer in the SG is empty and not same as
-	 * the SU to be added.
-	 */
-	if (su->sg_of_su->su_oper_list.su == NULL) {
-		su->sg_of_su->su_oper_list.su = su;
-
-		if (!ckpt)
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
-		goto done;
-	}
-
-	if (su->sg_of_su->su_oper_list.su == su) {
+	std::list<AVD_SU*>& su_oper_list = su->sg_of_su->su_oper_list;
+	
+	if (std::find(su_oper_list.begin(), su_oper_list.end(), su) != su_oper_list.end()) {
+		// SU is already present
 		TRACE("already added");
 		goto done;
 	}
-
-	i_su_opr = &su->sg_of_su->su_oper_list.next;
-	while (*i_su_opr != NULL) {
-		if ((*i_su_opr)->su == su) {
-			TRACE("already added");
-			goto done;
-		}
-		i_su_opr = &((*i_su_opr)->next);
-	}
-
-	/* Allocate the holder structure for having the pointer to the SU */
-	*i_su_opr = new AVD_SG_OPER;
-
-	/* Fill the content */
-	(*i_su_opr)->su = su;
-	(*i_su_opr)->next = NULL;
+	
+	TRACE("added %s to %s", su->name.value, su->sg_of_su->name.value);
+	
+	su_oper_list.push_back(su);
 
 	if (!ckpt)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
@@ -2041,53 +2021,27 @@ done:
 
 uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 {
-	AVD_SG_OPER **i_su_opr, *temp_su_opr;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	std::list<AVD_SU*>& su_oper_list = su->sg_of_su->su_oper_list;
+	std::list<AVD_SU*>::iterator elem = std::find(su_oper_list.begin(), su_oper_list.end(), su);
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
-	if (su->sg_of_su->su_oper_list.su == NULL) {
+	if (su_oper_list.empty() == true) {
 		LOG_ER("%s: su_oper_list empty", __FUNCTION__);
 		goto done;
 	}
-
-	if (su->sg_of_su->su_oper_list.su == su) {
-		if (su->sg_of_su->su_oper_list.next != NULL) {
-			temp_su_opr = su->sg_of_su->su_oper_list.next;
-			su->sg_of_su->su_oper_list.su = temp_su_opr->su;
-			su->sg_of_su->su_oper_list.next = temp_su_opr->next;
-			temp_su_opr->next = NULL;
-			temp_su_opr->su = NULL;
-			delete temp_su_opr;
-		} else {
-			su->sg_of_su->su_oper_list.su = NULL;
-		}
-
-		if (!ckpt)
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
+	
+	if (elem == su_oper_list.end()) {
+		LOG_ER("%s: su not found", __FUNCTION__);
+		rc = NCSCC_RC_FAILURE;
 		goto done;
-	}
+	}	
 
-	i_su_opr = &su->sg_of_su->su_oper_list.next;
-	while (*i_su_opr != NULL) {
-		if ((*i_su_opr)->su == su) {
-			temp_su_opr = *i_su_opr;
-			*i_su_opr = temp_su_opr->next;
-			temp_su_opr->next = NULL;
-			temp_su_opr->su = NULL;
-			delete temp_su_opr;
-
-			if (!ckpt)
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
-
-			goto done;
-		}
-
-		i_su_opr = &((*i_su_opr)->next);
-	}
-
-	rc = NCSCC_RC_FAILURE;
-
+	su_oper_list.erase(elem);
+	if (!ckpt)
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
+	
 done:
 	TRACE_LEAVE2("rc:%u", rc);
 	return rc;
