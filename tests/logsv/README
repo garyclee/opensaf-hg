@@ -10,3 +10,35 @@ The second TC tries to set the data group to "log-data" group.
 In order to help the TC passed, "log-data" group must be existing and be added
 to supplementary group list of the user as which LOGSV is running.
 Otherwise that TC will be skipped.
+
+
+SET UP A CLUSTER 02 NODES WITH DIFFERENT CKPT VERSIONS
+------------------------------------------------------
+There was issue when two nodes runs with different ckpt versions.
+Ticket #1459 is an example. How to setup this on UML?
+
+Here is guideline for environment preparing for the case active logsv with version #5,
+standby logsv with version #4.
+
+1. Create 02 separate folders, one refers to branch 5.0.x (folder A),
+   other one refers to 4.6.x branch (folder B).
+
+2. Build OpenSAF and UML for them (refer to Wiki)
+
+3. Open 2 terminals. On each one, change directory to ../tools/cluster_sim_uml
+
+4. Start active node SC-1 with logsv version #5.
+   cluster_sim_uml> ./opensaf nodestart 1
+
+5. Start standby node SC-2 with logsv version #4
+   cluster_sim_uml> ./opensaf nodestart 2
+
+6. Wait for seconds to make sure all OpenSAF services come up.
+
+7. Run test by `logtest` app with no option.
+
+8. Observe both nodes if there is any issue (e.g: node is rebooted)
+
+If want to test the case active logsv version #4, standby logsv version #5, reboot above SC-1 (swithover).
+
+
