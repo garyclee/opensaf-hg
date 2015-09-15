@@ -42,6 +42,7 @@
 #include <amf_d2nmsg.h>
 #include "db_template.h"
 #include "node.h"
+#include <list>
 
 class AVD_SU;
 class AVD_SI;
@@ -59,10 +60,7 @@ typedef enum {
 /* The structure used for containing the list of SUs
  * undergoing operations on them.
  */
-typedef struct avd_sg_oper_tag {
-	AVD_SU *su;	/* SU undergoing operation */
-	struct avd_sg_oper_tag *next;	/* The next SU undergoing operation. */
-} AVD_SG_OPER;
+typedef std::list<AVD_SU*> AVD_SG_OPER; // we don't own these pointers
 
 /**
  * Service group abstract base class
@@ -265,6 +263,15 @@ public:
 	 * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 	 */
 	uint32_t su_oper_list_del(AVD_SU *su); // TODO(hafe) add const when using container for operlist
+
+	void su_oper_list_clear();
+
+	/**
+	 * Retrieve first SU from operlist
+	 * @param none
+	 * @return first SU or NULL if empty
+	 */
+	const AVD_SU* su_oper_list_front();
 
 	/**
 	 * Handle node failure and fail over assignments
@@ -486,6 +493,17 @@ public:
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+        void node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su);
+        
+private:
+        uint32_t su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su);
+        uint32_t susi_success_su_oper(AVD_CL_CB *cb, AVD_SU *su, struct avd_su_si_rel_tag *susi,
+                AVSV_SUSI_ACT act, SaAmfHAStateT state);
+        void node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su);
+        uint32_t su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su);
+        uint32_t su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su);
+        uint32_t susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, struct avd_su_si_rel_tag *susi,
+	   AVSV_SUSI_ACT act, SaAmfHAStateT state);
 };
 
 /**
@@ -527,6 +545,14 @@ public:
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	void node_fail_si_oper(AVD_SU *su);
+
+private:
+	uint32_t susi_success_su_oper(AVD_CL_CB *cb, AVD_SU *su, struct avd_su_si_rel_tag *susi,
+		AVSV_SUSI_ACT act, SaAmfHAStateT state);
+	uint32_t su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su);
+	uint32_t su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su);
+	void node_fail_su_oper(AVD_SU *su);
 };
 
 // TODO(hafe) remove when all code has been changed
