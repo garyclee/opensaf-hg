@@ -159,6 +159,18 @@ def _collect_full_transaction(ccb_id):
 
     return out
 
+
+class AdminOperationParameter:
+    ''' This class represents an admin operation parameter '''
+
+    def __init__(self, name, param_type, value):
+        ''' Creates an instance of an admin operation parameter '''
+
+        self.name = name
+        self.type = param_type
+        self.value = value
+
+
 # Set up callbacks
 def admin_operation(oi_handle, c_invocation_id, c_name, c_operation_id, c_params):
     ''' Callback for administrative operations '''
@@ -178,7 +190,9 @@ def admin_operation(oi_handle, c_invocation_id, c_name, c_operation_id, c_params
 
         value = saImm.unmarshalSaImmValue(paramBuffer, paramType)
 
-        params.append(value)
+        parameter = AdminOperationParameter(paramName, paramType, value)
+
+        params.append(parameter)
 
     # Invoke the operation
     result = implementer_instance.admin_operation(operation_id, name, params)
@@ -548,7 +562,13 @@ class Constraints:
             if parent_name in deleted:
                 continue
 
-            parent_class = immoi.get_class_name_for_dn(parent_name)
+            # Avoid looking up the parent class in IMM if possible
+            parent_mos = filter(lambda x: x.dn == parent_name, all_instances)
+
+            if parent_mos:
+                parent_class = parent_mos[0].class_name
+            else:
+                parent_class = immoi.get_class_name_for_dn(parent_name)
 
             # Ignore children where no constraint is defined for the child or the parent
             if not parent_class in self.containments and not \
@@ -569,7 +589,6 @@ class Constraints:
             current_children = get_children_with_classname(parent_name, 
                                                            all_instances,
                                                            mo.class_name)
-
             # Validate the number of children of the specific class to the given parent
             lower, upper = self.cardinality[(parent_class, mo.class_name)]
 

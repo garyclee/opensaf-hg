@@ -378,7 +378,11 @@ def create_non_existing_imm_object(class_name, parent_name, attributes):
     rdn_attribute = get_rdn_attribute_for_class(class_name)
     rdn_value     = attributes[rdn_attribute][0]
 
-    dn  = '%s,%s' % (rdn_value, parent_name)
+    if parent_name:
+        dn  = '%s,%s' % (rdn_value, parent_name)
+    else:
+        dn = rdn_value
+
     obj = ImmObject(class_name = class_name, dn=dn)
 
     for name, values in attributes.iteritems():

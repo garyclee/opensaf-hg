@@ -92,7 +92,7 @@ class InterfaceImplementer(Implementer):
                         pass
 
                 # Go through existing objects
-                for mo in InstanceIterator('InterfaceRO'):
+                for mo in InstanceIterator('InterfaceRO01'):
                     interface_name = self.get_interface_name_from_dn(mo.dn)
 
                     # Remove objects for deleted interfaces

@@ -24,7 +24,8 @@ class PingPong(Implementer):
         print
         print "Pong!"
         print
-        print "INFO: I am %s, received arguments %s" % (dn, arguments)
+
+        self.print_admin_operation_info(dn, arguments)
 
     @AdminOperation(class_name, 1)
     def pong(self, dn, arguments):
@@ -32,8 +33,18 @@ class PingPong(Implementer):
         print
         print "Ping!"
         print
-        print "INFO: I am %s, received arguments %s" % (dn, arguments)
 
+        self.print_admin_operation_info(dn, arguments)
+
+    def print_admin_operation_info(self, dn, arguments):
+        print "INFO: I am %s" % dn
+
+        if arguments:
+            print "INFO: Received arguments"
+
+            for argument in arguments:
+                print " - %s: %s (%s)" % \
+                    (argument.name, argument.value, argument.type)
 
 if __name__ == '__main__':
 

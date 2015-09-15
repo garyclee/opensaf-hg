@@ -14,13 +14,24 @@ class_name = "PingPong"
 dn         = "pingPongId=1"
 
 
+def print_admin_operation_info(dn, arguments):
+    print "INFO: I am %s" % dn
+
+    if arguments:
+        print "INFO: Received arguments"
+
+        for argument in arguments:
+            print " - %s: %s (%s)" % \
+                (argument.name, argument.value, argument.type)
+
+
 def ping(dn, arguments):
     print
     print
     print "Pong!"
     print
 
-    print "INFO: I am %s, received arguments %s" % (dn, arguments)
+    print_admin_operation_info(dn, arguments)
 
     return eSaAisErrorT.SA_AIS_OK
 
@@ -31,7 +42,7 @@ def pong(dn, arguments):
     print "Ping!"
     print
 
-    print "INFO: I am %s, received arguments %s" % (dn, arguments)
+    print_admin_operation_info(dn, arguments)
 
     return eSaAisErrorT.SA_AIS_OK
 
