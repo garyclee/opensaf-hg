@@ -81,7 +81,6 @@ uint32_t mdtm_process_recv_events_tcp(void);
  */
 uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 {
-	uint32_t flags;
 	uint32_t sndbuf_size = 0; /* Send buffer size */
 	uint32_t rcvbuf_size = 0;  /* Receive buffer size */
 	socklen_t optlen; /* Option length */
@@ -125,7 +124,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 	/* Create the sockets required for Binding, Send, receive and Discovery */
 
-	tcp_cb->DBSRsock = socket(mds_socket_domain, SOCK_STREAM, 0);
+	tcp_cb->DBSRsock = socket(mds_socket_domain, SOCK_STREAM|SOCK_CLOEXEC, 0);
 	if (tcp_cb->DBSRsock < 0) {
 		syslog(LOG_ERR, "MDS:MDTM:TCP DBSRsock Socket creation failed in MDTM_INIT err :%s", strerror(errno));
 		return NCSCC_RC_FAILURE;
@@ -175,19 +174,6 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 		syslog(LOG_ERR, "MDS:MDTM:TCP Unable to set the SO_SNDBUF for DBSRsock  err :%s", strerror(errno));
 		close(tcp_cb->DBSRsock);
 		return NCSCC_RC_FAILURE;
-	}
-
-	flags = fcntl(tcp_cb->DBSRsock, F_GETFD, 0);
-	if ((flags < 0) || (flags > 1)) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP Unable to get the CLOEXEC Flag on DBSRsock  err :%s", strerror(errno));
-		close(tcp_cb->DBSRsock);
-		return NCSCC_RC_FAILURE;
-	} else {
-		if (fcntl(tcp_cb->DBSRsock, F_SETFD, (flags | FD_CLOEXEC)) == (-1)) {
-			syslog(LOG_ERR, "MDS:MDTM:TCP Unable to set the CLOEXEC Flag on DBSRsock err :%s", strerror(errno));
-			close(tcp_cb->DBSRsock);
-			return NCSCC_RC_FAILURE;
-		}
 	}
 
 	tcp_cb->adest = ((uint64_t)(nodeid)) << 32;
