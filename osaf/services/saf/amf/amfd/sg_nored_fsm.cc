@@ -94,7 +94,10 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 	}
 
 	TRACE_LEAVE();
-	return su_oper_list.su;
+	if (su_oper_list.empty() == false)
+		return su_oper_list.front();
+	else
+		return NULL;
 }
 
 uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
@@ -202,8 +205,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 
 		break;		/* case AVD_SG_FSM_SG_REALIGN: */
 	case AVD_SG_FSM_SU_OPER:
-
-		if (su->sg_of_su->su_oper_list.su == su) {
+		if (su_oper_list_front() == su) {
 			/* The SU is same as the SU in the list. If the SI relationships to
 			 * the SU is quiescing change the SU admin to LOCK. 
 			 * Send D2N-INFO_SU_SI_ASSIGN modify quiesced.
@@ -337,8 +339,9 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
+	osafassert(su->sg_of_su == this);	
 
-	switch (su->sg_of_su->sg_fsm_state) {
+	switch (sg_fsm_state) {
 	case AVD_SG_FSM_STABLE:
 		/* Do the action specified in the message if delete else no action. */
 		if (act == AVSV_SUSI_ACT_DEL) {
@@ -368,18 +371,18 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* Unassign the SUSI */
 			m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
-			if (su->sg_of_su->admin_si == l_si) {
+			if (admin_si == l_si) {
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 			} else {
 				su_oper_list_del(su);
 			}
 
-			if ((su->sg_of_su->admin_si == AVD_SI_NULL) && (su->sg_of_su->su_oper_list.su == NULL)) {
+			if ((admin_si == AVD_SI_NULL) && (su_oper_list.empty() == true)) {
 				if (assign_sis_to_sus() == NULL) {
 					/* No New assignments are been done in the SG */
 					set_fsm_state(AVD_SG_FSM_STABLE);
-					avd_sidep_sg_take_action(su->sg_of_su); 
-					avd_sg_app_su_inst_func(cb, su->sg_of_su);
+					avd_sidep_sg_take_action(this); 
+					avd_sg_app_su_inst_func(cb, this);
 				}
 
 			}
@@ -418,12 +421,12 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 			su_oper_list_del(su);
 
-			if (su->sg_of_su->su_oper_list.su == NULL) {
+			if (su_oper_list.empty() == true) {
 				if (assign_sis_to_sus() == NULL) {
 					/* No New assignments are been done in the SG */
 					set_fsm_state(AVD_SG_FSM_STABLE);
-					avd_sidep_sg_take_action(su->sg_of_su); 
-					avd_sg_app_su_inst_func(cb, su->sg_of_su);
+					avd_sidep_sg_take_action(this); 
+					avd_sg_app_su_inst_func(cb, this);
 				}
 			}
 		}
@@ -448,7 +451,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 			su_oper_list_del(su);
 
-			if (su->sg_of_su->su_oper_list.su == NULL) {
+			if (su->sg_of_su->su_oper_list.empty() == true) {
 				if (assign_sis_to_sus() != NULL) {
 					/* New assignments are been done in the SG. */
 					set_fsm_state(AVD_SG_FSM_SG_REALIGN);
@@ -467,11 +470,10 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			 * Send a D2N-INFO_SU_SI_ASSIGN with remove to the SU. Change to 
 			 * SG_realign state.
 			 */
-
 			if (avd_susi_del_send(su->list_of_susi) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
 
-			if (su->sg_of_su->su_oper_list.su != su) {
+			if (su_oper_list_front() != su) {
 				LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
 				LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->list_of_susi->si->name.value,
 								 su->list_of_susi->si->name.length);
@@ -577,14 +579,14 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 			su_oper_list_del(su);
 
-			if (su->sg_of_su->su_oper_list.su == NULL) {
-				avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
+			if (su_oper_list.empty() == true) {
+				avd_sg_admin_state_set(this, SA_AMF_ADMIN_LOCKED);
 
 				set_fsm_state(AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
-				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
-				avd_sidep_sg_take_action(su->sg_of_su); 
-				avd_sg_app_su_inst_func(cb, su->sg_of_su);
+				avd_sidep_update_si_dep_state_for_all_sis(this);
+				avd_sidep_sg_take_action(this); 
+				avd_sg_app_su_inst_func(cb, this);
 			}
 
 		} /* if (act == AVSV_SUSI_ACT_DEL) */
@@ -841,12 +843,12 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			}
 		}
 
-		if ((su->sg_of_su->admin_si == AVD_SI_NULL) && (su->sg_of_su->su_oper_list.su == NULL)) {
+		if ((admin_si == AVD_SI_NULL) && (su_oper_list.empty() == true)) {
 			if (assign_sis_to_sus() == NULL) {
 				/* No New assignments are been done in the SG */
 				set_fsm_state(AVD_SG_FSM_STABLE);
-				avd_sidep_sg_take_action(su->sg_of_su); 
-				avd_sg_app_su_inst_func(cb, su->sg_of_su);
+				avd_sidep_sg_take_action(this); 
+				avd_sg_app_su_inst_func(cb, this);
 			}
 
 		}
@@ -867,7 +869,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		/* Unassign the SUSI */
 		m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
-		if (su->sg_of_su->su_oper_list.su == su) {
+		if (su_oper_list_front() == su) {
 			su_oper_list_del(su);
 
 			su_node_ptr = su->get_node_ptr();
@@ -943,13 +945,13 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 
 		su_oper_list_del(su);
 
-		if (su->sg_of_su->su_oper_list.su == NULL) {
-			avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
+		if (su_oper_list.empty() == true) {
+			avd_sg_admin_state_set(this, SA_AMF_ADMIN_LOCKED);
 			set_fsm_state(AVD_SG_FSM_STABLE);
 			/*As sg is stable, screen for si dependencies and take action on whole sg*/
-			avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
-			avd_sidep_sg_take_action(su->sg_of_su); 
-			avd_sg_app_su_inst_func(cb, su->sg_of_su);
+			avd_sidep_update_si_dep_state_for_all_sis(this);
+			avd_sidep_sg_take_action(this); 
+			avd_sg_app_su_inst_func(cb, this);
 		}
 
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
@@ -995,7 +997,7 @@ uint32_t SG_NORED::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 				   ((avnd != AVD_AVND_NULL) && (avnd->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN))) */
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SU_OPER:
-		if ((su->sg_of_su->su_oper_list.su == su) &&
+		if ((su_oper_list_front() == su) &&
 		    (su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
 		    ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
 		     ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
@@ -1076,7 +1078,6 @@ uint32_t SG_NORED::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 
 uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 	AVD_SU *i_su;
-	AVD_SG_OPER *l_suopr;
 
 	TRACE_ENTER2("%u", sg->sg_fsm_state);
 
@@ -1127,7 +1128,7 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			return NCSCC_RC_FAILURE;
 		}
 
-		if (sg->su_oper_list.su != NULL) {
+		if (su_oper_list.empty() == false) {
 			set_fsm_state(AVD_SG_FSM_SG_ADMIN);
 		}
 
@@ -1138,24 +1139,13 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * SG to lock and send D2N-INFO_SU_SI_ASSIGN modify quiesced message
 			 * to all the SUs in the SU operation list with quiescing assignment.
 			 */
-			if (sg->su_oper_list.su != NULL) {
-				i_su = sg->su_oper_list.su;
+			
+			for (const auto& i_su : su_oper_list) {
 				if ((i_su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
 				    (i_su->list_of_susi->fsm == AVD_SU_SI_STATE_MODIFY)) {
 					avd_susi_mod_send(i_su->list_of_susi, SA_AMF_HA_QUIESCED);
 				}
-
-				l_suopr = i_su->sg_of_su->su_oper_list.next;
-				while (l_suopr != NULL) {
-					if ((l_suopr->su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
-					    (l_suopr->su->list_of_susi->fsm == AVD_SU_SI_STATE_MODIFY)) {
-						avd_susi_mod_send(l_suopr->su->list_of_susi, SA_AMF_HA_QUIESCED);
-					}
-
-					l_suopr = l_suopr->next;
-				}
 			}
-
 		}		/* if (sg->admin_state == NCS_ADMIN_STATE_LOCK) */
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
