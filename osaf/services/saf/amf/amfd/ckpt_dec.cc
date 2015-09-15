@@ -3043,9 +3043,11 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		AVD_AVND *node = avd_node_get(*iter);
 		AVD_SU *su = NULL;
 		//If this node has any susi on it.
-		for (const auto& su : node->list_of_su)
+		for (const auto& tmp : node->list_of_su) {
+			su = tmp;
 			if (su->list_of_susi != NULL)
 				break;
+		}
 		if ((ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su != NULL))
 			/* Still some assignments are not removed on the node.
 			   if ng in SHUTTING_DOWN state and contoller role changes then

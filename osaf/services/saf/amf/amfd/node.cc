@@ -88,7 +88,7 @@ bool AVD_AVND::is_node_lock() {
       for (curr_susi = su->list_of_susi;
            (curr_susi) && ((SA_AMF_HA_QUIESCING != curr_susi->state) ||
                            ((AVD_SU_SI_STATE_UNASGN == curr_susi->fsm)));
-           curr_susi = curr_susi->su_next); \
+           curr_susi = curr_susi->su_next);
       if (curr_susi)
         return false;
     }

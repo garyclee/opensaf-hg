@@ -713,8 +713,8 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 */
 				avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
 				node->recvr_fail_sw = true;
-				for (const auto& su : node->list_of_su) {
-					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+				for (const auto& i_su : node->list_of_su) {
+					i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 				}
 			}	/* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 		} /* if(cb->init_state == AVD_INIT_DONE) */
