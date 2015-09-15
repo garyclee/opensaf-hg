@@ -132,8 +132,6 @@ AVD_SG::AVD_SG():
 	memset(&name, 0, sizeof(SaNameT));
 	memset(&saAmfSGType, 0, sizeof(SaNameT));
 	memset(&saAmfSGSuHostNodeGroup, 0, sizeof(SaNameT));
-	su_oper_list.su = NULL;
-	su_oper_list.next = NULL;
 	adminOp_invocationId = 0;
 	ng_using_saAmfSGAdminState = false;
 }
@@ -1675,7 +1673,7 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 	}
 
 	if (state == AVD_SG_FSM_STABLE) {
-		osafassert(su_oper_list.su == NULL);
+		osafassert(su_oper_list.empty() == true);
 		if (adminOp_invocationId != 0) {
 			avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, adminOp_invocationId, SA_AIS_OK);
 			adminOp_invocationId = 0;
@@ -1717,29 +1715,43 @@ void AVD_SG::for_all_su_set_readiness_state(SaAmfReadinessStateT state) {
 }
 
 bool AVD_SG::in_su_oper_list(const AVD_SU *i_su) {
-	if (su_oper_list.su == i_su) {
+	if (std::find(su_oper_list.begin(), su_oper_list.end(), i_su) !=
+		su_oper_list.end()) {
+		TRACE("%s found in %s", i_su->name.value, name.value);
 		return true;
-	} else if (su_oper_list.next != NULL) {
-		AVD_SG_OPER *l_suopr = su_oper_list.next;
-		while (l_suopr != NULL) {
-			if (l_suopr->su == i_su)
-				return true;
-
-			l_suopr = l_suopr->next;
-		}
 	}
 
+	TRACE("%s not found in %s", i_su->name.value, name.value);
 	return false;
 }
 
 uint32_t AVD_SG::su_oper_list_add(AVD_SU *su) {
 	// TODO(hafe) move implementation here later when all uses this method
+	osafassert(this == su->sg_of_su);
 	return avd_sg_su_oper_list_add(avd_cb, su, false);
 }
 
 uint32_t AVD_SG::su_oper_list_del(AVD_SU *su) {
 	// TODO(hafe) move implementation here later when all uses this method
+	osafassert(this == su->sg_of_su);
 	return avd_sg_su_oper_list_del(avd_cb, su, false);
+}
+
+void AVD_SG::su_oper_list_clear() {
+	TRACE_ENTER2("%s", name.value);
+	for (auto it = su_oper_list.begin(); it != su_oper_list.end();) {
+		osafassert(this == (*it)->sg_of_su);
+		su_oper_list_del(*it++);
+	}
+	TRACE_LEAVE();
+}
+
+const AVD_SU* AVD_SG::su_oper_list_front() {
+	if (su_oper_list.empty() == false) {
+		return su_oper_list.front();
+	} else {
+		return NULL;
+	}
 }
 
 /**
