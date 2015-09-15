@@ -61,7 +61,7 @@ def create_rt_object_for_interface(implementer, interface):
     implementer.create(mo)
 
 def select_loop(implementer):
-    print 'select loop'
+
     # Get selection object for the implementer
     selection_object = implementer.get_selection_object()
 

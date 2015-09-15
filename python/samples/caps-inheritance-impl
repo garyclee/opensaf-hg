@@ -45,9 +45,9 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Validates that the lowerCaps and upperCaps attributes
-of instances of the CapsSample class can only contain
-lower case and upper case text respectively.')
+        description='Validates that the lowerCaps and upperCaps attributes'
+        'of instances of the CapsSample class can only contain'
+        'lower case and upper case text respectively.')
 
     parser.parse_args()
 
