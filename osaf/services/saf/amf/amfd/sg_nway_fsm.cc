@@ -33,18 +33,13 @@
 
 static uint32_t avd_sg_nway_su_fault_stable(AVD_CL_CB *, AVD_SU *);
 static uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *, AVD_SU *);
-static uint32_t avd_sg_nway_su_fault_su_oper(AVD_CL_CB *, AVD_SU *);
-static uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *, AVD_SU *);
 static uint32_t avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *, AVD_SU *);
 
 static uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
-static uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
 static uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
 static uint32_t avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *, AVSV_SUSI_ACT, SaAmfHAStateT);
 
 static void avd_sg_nway_node_fail_stable(AVD_CL_CB *, AVD_SU *, AVD_SU_SI_REL *);
-static void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *, AVD_SU *);
-static void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *, AVD_SU *);
 static void avd_sg_nway_node_fail_sg_admin(AVD_CL_CB *, AVD_SU *);
 static void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *, AVD_SU *);
 static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu);
@@ -193,11 +188,11 @@ uint32_t SG_NWAY::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 		break;
 
 	case AVD_SG_FSM_SU_OPER:
-		rc = avd_sg_nway_su_fault_su_oper(cb, su);
+		rc = su_fault_su_oper(cb, su);
 		break;
 
 	case AVD_SG_FSM_SI_OPER:
-		rc = avd_sg_nway_su_fault_si_oper(cb, su);
+		rc = su_fault_si_oper(cb, su);
 		break;
 
 	case AVD_SG_FSM_SG_ADMIN:
@@ -265,7 +260,7 @@ uint32_t SG_NWAY::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		break;
 
 	case AVD_SG_FSM_SU_OPER:
-		rc = avd_sg_nway_susi_succ_su_oper(cb, su, susi, act, state);
+		rc = susi_success_su_oper(cb, su, susi, act, state);
 		break;
 
 	case AVD_SG_FSM_SI_OPER:
@@ -487,11 +482,11 @@ void SG_NWAY::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		break;
 
 	case AVD_SG_FSM_SU_OPER:
-		avd_sg_nway_node_fail_su_oper(cb, su);
+		node_fail_su_oper(su);
 		break;
 
 	case AVD_SG_FSM_SI_OPER:
-		avd_sg_nway_node_fail_si_oper(cb, su);
+		node_fail_si_oper(su);
 		break;
 
 	case AVD_SG_FSM_SG_ADMIN:
@@ -592,7 +587,7 @@ uint32_t SG_NWAY::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 		break;
 
 	case AVD_SG_FSM_SU_OPER:
-		if ((su->sg_of_su->su_oper_list.su == su) &&
+		if ((su_oper_list_front() == su) &&
 		    ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
 		     (avnd && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
 			/* identify all the quiescing assignments & send quiesced assignment */
@@ -1768,7 +1763,7 @@ done:
 }
 
 /*****************************************************************************
- * Function : avd_sg_nway_su_fault_su_oper
+ * Function : su_fault_su_oper
  *
  * Purpose  : This routine handles the su-fault event in the su-oper state.
  *
@@ -1780,7 +1775,7 @@ done:
  * Notes    : None.
  * 
  **************************************************************************/
-uint32_t avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t SG_NWAY::su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	bool is_all_stdby = true;
@@ -1789,7 +1784,7 @@ uint32_t avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 	TRACE_ENTER2("SU '%s'",su->name.value);
 
-	if (su->sg_of_su->su_oper_list.su == su) {
+	if (su_oper_list_front() == su) {
 		su_node_ptr = su->get_node_ptr();
 
 		/* => su-lock/shutdown is followed by su-disable event */
@@ -1850,7 +1845,7 @@ done:
 }
 
 /*****************************************************************************
- * Function : avd_sg_nway_su_fault_si_oper
+ * Function : su_fault_si_oper
  *
  * Purpose  : This routine handles the su-fault event in the si-oper state.
  *
@@ -1862,7 +1857,7 @@ done:
  * Notes    : None.
  * 
  **************************************************************************/
-uint32_t avd_sg_nway_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
+uint32_t SG_NWAY::su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0;
 	AVD_SG *sg = su->sg_of_su;
@@ -2276,7 +2271,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 		}
 
 		/* if we are done with the upheaval, try assigning new sis to the sg */
-		if (!sg->admin_si && !sg->su_oper_list.su)
+		if (!sg->admin_si && sg->su_oper_list.empty() == true)
 			rc = avd_sg_nway_si_assign(cb, sg);
 
 	} else if (susi && (SA_AMF_HA_STANDBY == state) && (AVSV_SUSI_ACT_DEL != act)) {
@@ -2290,7 +2285,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 			avd_sg_su_oper_list_del(cb, su, false);
 
 		/* if we are done with the upheaval, try assigning new sis to the sg */
-		if (!sg->admin_si && !sg->su_oper_list.su)
+		if (!sg->admin_si && sg->su_oper_list.empty() == true)
 			rc = avd_sg_nway_si_assign(cb, sg);
 
 	} else if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act)) {
@@ -2444,7 +2439,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 			avd_sg_su_oper_list_del(cb, su, false);
 
 		/* if we are done with the upheaval, try assigning new sis to the sg */
-		if (!sg->admin_si && !sg->su_oper_list.su)
+		if (!sg->admin_si && sg->su_oper_list.empty() == true)
 			rc = avd_sg_nway_si_assign(cb, sg);
 
 	} else if (!susi && (AVSV_SUSI_ACT_DEL == act)) {
@@ -2467,7 +2462,7 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 		avd_sg_su_oper_list_del(cb, su, false);
 
 		/* if we are done with the upheaval, try assigning new sis to the sg */
-		if (!sg->admin_si && !sg->su_oper_list.su)
+		if (!sg->admin_si && sg->su_oper_list.empty() == true)
 			rc = avd_sg_nway_si_assign(cb, sg);
 	}
 
@@ -2521,7 +2516,7 @@ static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu)
 	return curr_sisu;
 }
 /*****************************************************************************
- * Function : avd_sg_nway_susi_succ_su_oper
+ * Function : susi_success_su_oper
  *
  * Purpose  : This routine handles the susi-success event in the su-oper
  *            state.
@@ -2537,8 +2532,8 @@ static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu)
  * Notes    : None.
  * 
  **************************************************************************/
-uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
-				    AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
+uint32_t SG_NWAY::susi_success_su_oper(AVD_CL_CB *cb,
+	AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *curr_susi = 0, *curr_sisu = 0;
 	AVD_SG *sg = su->sg_of_su;
@@ -2623,14 +2618,16 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 			avd_sidep_send_active_to_dependents(susi->si);
 		}
 
+		osafassert(su_oper_list.empty() == false);
+
 		/* determine if all the standby sus are engaged */
-		m_AVD_SG_NWAY_ARE_STDBY_SUS_ENGAGED(sg->su_oper_list.su, 0, is_eng);
+		m_AVD_SG_NWAY_ARE_STDBY_SUS_ENGAGED(su_oper_list.front(), 0, is_eng);
 		if (true == is_eng) {
 			/* send remove all msg for all sis for this su */
-			rc = avd_sg_su_si_del_snd(cb, sg->su_oper_list.su);
+			rc = avd_sg_su_si_del_snd(cb, su_oper_list.front());
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, sg->su_oper_list.su->name.value,
-								 sg->su_oper_list.su->name.length);
+				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_oper_list.front()->name.value,
+					 su_oper_list.front()->name.length);
 				goto done;
 			}
 
@@ -2681,7 +2678,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 		su->delete_all_susis();
 
 		/* transition to sg-realign state or initiate si assignments */
-		if (sg->su_oper_list.su) {
+		if (su_oper_list.empty() == false) {
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 		} else
 			avd_sg_nway_si_assign(cb, sg);
@@ -2699,7 +2696,7 @@ uint32_t avd_sg_nway_susi_succ_su_oper(AVD_CL_CB *cb,
 
 
 		/* transition to sg-realign state or initiate si assignments */
-		if (sg->su_oper_list.su) {
+		if (su_oper_list.empty() == false) {
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 		} else
 			avd_sg_nway_si_assign(cb, sg);
@@ -2960,7 +2957,7 @@ uint32_t avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
 			avd_sg_su_oper_list_del(cb, su, false);
 
 			/* if oper list is empty, transition the sg back to stable state */
-			if (!sg->su_oper_list.su) {
+			if (sg->su_oper_list.empty() == true) {
 				avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
@@ -3036,7 +3033,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 		}
 
 		/* transition to sg-realign state */
-		if (sg->su_oper_list.su) {
+		if (sg->su_oper_list.empty() == false) {
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 		}
 	}			/* for */
@@ -3063,7 +3060,7 @@ done:
 }
 
 /*****************************************************************************
- * Function : avd_sg_nway_node_fail_su_oper
+ * Function : node_fail_su_oper
  *
  * Purpose  : This routine handles the node failure event in the su-oper
  *            state.
@@ -3076,7 +3073,7 @@ done:
  * Notes    : None.
  * 
  **************************************************************************/
-void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
+void SG_NWAY::node_fail_su_oper(AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_susi = 0, *curr_sisu = 0;
 	AVD_SG *sg = su->sg_of_su;
@@ -3116,7 +3113,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					}
 					
 					/* add su to su-oper list */
-					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 
 					/* transition to sg-realign state */
 					m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
@@ -3134,7 +3131,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 				/* add su to su-oper list */
 				if (curr_sisu)
-					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 
 				/* transition to sg-realign state */
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
@@ -3142,11 +3139,11 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		}		/* for */
 
 		/* remove this su from su-oper list */
-		avd_sg_su_oper_list_del(cb, su, false);
+		avd_sg_su_oper_list_del(avd_cb, su, false);
 
 		/* if sg hasnt transitioned to sg-realign, initiate new si assignments */
 		if (AVD_SG_FSM_SG_REALIGN != sg->sg_fsm_state)
-			avd_sg_nway_si_assign(cb, sg);
+			avd_sg_nway_si_assign(avd_cb, sg);
 	} else {
 		/* engage the active susis with their standbys */
 		for (curr_susi = su->list_of_susi; curr_susi; curr_susi = curr_susi->su_next) {
@@ -3161,7 +3158,7 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 					}
 
 					/* add su to su-oper list */
-					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 
 					/* transition to sg-realign state */
 					m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
@@ -3179,7 +3176,7 @@ done:
 }
 
 /*****************************************************************************
- * Function : avd_sg_nway_node_fail_si_oper
+ * Function : node_fail_si_oper
  *
  * Purpose  : This routine handles the node failure event in the si-oper
  *            state.
@@ -3192,7 +3189,7 @@ done:
  * Notes    : None.
  * 
  **************************************************************************/
-void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
+void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 {
 	AVD_SU_SI_REL *curr_sisu = 0, *susi = 0;
 	AVD_SG *sg = su->sg_of_su;
@@ -3207,14 +3204,14 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 		if (su->sg_of_su->min_assigned_su == su) {
 			/* find whether the min_assigned su is already
 			 * in the process of taking active assignment */	
-			susi = avd_su_susi_find(cb, sg->min_assigned_su,
+			susi = avd_su_susi_find(avd_cb, sg->min_assigned_su,
 					&sg->si_tobe_redistributed->name);
 
 			if (susi != NULL && susi->state == SA_AMF_HA_ACTIVE) {
 				/* identify the quiesced assigning assignment
 				 * for the si_tobe_redistributed with max_su */
 
-				curr_sisu = avd_su_susi_find(cb, sg->max_assigned_su,
+				curr_sisu = avd_su_susi_find(avd_cb, sg->max_assigned_su,
 						&sg->si_tobe_redistributed->name);
 				/* if already ACTIVE assignment under process then
 				 * remove the quiesced assignment */
@@ -3222,31 +3219,31 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					if (avd_susi_del_send(curr_sisu) == NCSCC_RC_FAILURE)
 						goto done;
 					/* add su to su-oper list */
-					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 				}
 			} else {
 				/* identify the quiesced assignment of si_tobe_redistributed
 				 * to max su and assign back the active assignment */
 				 
-				curr_sisu = avd_su_susi_find(cb, sg->max_assigned_su,
+				curr_sisu = avd_su_susi_find(avd_cb, sg->max_assigned_su,
 						&sg->si_tobe_redistributed->name);
 				if (curr_sisu) {
 					rc = avd_susi_mod_send(curr_sisu, SA_AMF_HA_ACTIVE);
 					if (NCSCC_RC_SUCCESS != rc)
 						goto done;
 					/* add su to su-oper list */
-					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 				}
 			}
 
 			/* process the susis assigned to this su as in stable state */
-			avd_sg_nway_node_fail_stable(cb, su, 0);
+			avd_sg_nway_node_fail_stable(avd_cb, su, 0);
 
 			/* transition to sg-realign state */
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 		} else {
 			/* process the susis assigned to this su as in stable state */
-			avd_sg_nway_node_fail_stable(cb, su, 0);
+			avd_sg_nway_node_fail_stable(avd_cb, su, 0);
 
 			/* transition to sg-realign state */
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
@@ -3270,7 +3267,7 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 	    (SA_AMF_ADMIN_SHUTTING_DOWN == sg->admin_si->saAmfSIAdminState)) {
 		if (!susi) {
 			/* process as in stable state */
-			avd_sg_nway_node_fail_stable(cb, su, 0);
+			avd_sg_nway_node_fail_stable(avd_cb, su, 0);
 
 			/* transition to sg-realign state */
 			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
@@ -3282,7 +3279,7 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			if (((SA_AMF_HA_QUIESCED == susi->state) ||
 			     (SA_AMF_HA_QUIESCING == susi->state)) && (AVD_SU_SI_STATE_MODIFY == susi->fsm)) {
 				/* process as in stable state */
-				avd_sg_nway_node_fail_stable(cb, su, 0);
+				avd_sg_nway_node_fail_stable(avd_cb, su, 0);
 
 				/* transition to sg-realign state */
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
@@ -3305,14 +3302,14 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					}
 
 					/* add su to su-oper list */
-					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 				}
 
 				/* process the rest susis as in stable state */
-				avd_sg_nway_node_fail_stable(cb, su, susi);
+				avd_sg_nway_node_fail_stable(avd_cb, su, susi);
 
 				/* transition to sg-realign state */
-				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
+				m_AVD_SET_SG_FSM(avd_cb, sg, AVD_SG_FSM_SG_REALIGN);
 			}
 		}
 	} else if (AVSV_SI_TOGGLE_SWITCH == sg->admin_si->si_switch) {
@@ -3330,18 +3327,18 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					goto done;
 
 				/* add su to su-oper list */
-				avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+				avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 
 				/* si switch operation aborted */
-				sg->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
+				sg->admin_si->set_si_switch(avd_cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
 			}
 
 			/* process the susis assigned to this su as in stable state */
-			avd_sg_nway_node_fail_stable(cb, su, 0);
+			avd_sg_nway_node_fail_stable(avd_cb, su, 0);
 
 			/* transition to sg-realign state */
-			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
+			m_AVD_SET_SG_FSM(avd_cb, sg, AVD_SG_FSM_SG_REALIGN);
 		} else {
 			if (((SA_AMF_HA_QUIESCED == susi->state) && (AVD_SU_SI_STATE_MODIFY == susi->fsm)) ||
 			    ((SA_AMF_HA_ACTIVE == susi->state) && (AVD_SU_SI_STATE_ASGN == susi->fsm)) ||
@@ -3349,8 +3346,8 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			    ((SA_AMF_HA_STANDBY == susi->state) && (AVD_SU_SI_STATE_ASGND == susi->fsm))
 			    ) {
 				/* si switch operation aborted */
-				susi->si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
-				m_AVD_CLEAR_SG_ADMIN_SI(cb, sg);
+				susi->si->set_si_switch(avd_cb, AVSV_SI_TOGGLE_STABLE);
+				m_AVD_CLEAR_SG_ADMIN_SI(avd_cb, sg);
 
 				/* identify the susi that has to be assigned active */
 				for (curr_sisu = susi->si->list_of_sisu; curr_sisu; curr_sisu = curr_sisu->si_next) {
@@ -3385,14 +3382,14 @@ void avd_sg_nway_node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					}
 
 					/* add su to su-oper list */
-					avd_sg_su_oper_list_add(cb, curr_sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, curr_sisu->su, false);
 				}
 
 				/* process the rest susis as in stable state */
-				avd_sg_nway_node_fail_stable(cb, su, susi);
+				avd_sg_nway_node_fail_stable(avd_cb, su, susi);
 
 				/* transition to sg-realign state */
-				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
+				m_AVD_SET_SG_FSM(avd_cb, sg, AVD_SG_FSM_SG_REALIGN);
 			}
 		}
 	}
@@ -3428,7 +3425,7 @@ void avd_sg_nway_node_fail_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 	/* delete the su from the su-oper list */
 	avd_sg_su_oper_list_del(cb, su, false);
 
-	if (!sg->su_oper_list.su) {
+	if (sg->su_oper_list.empty() == true) {
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 		m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
 		/*As sg is stable, screen for si dependencies and take action on whole sg*/
@@ -3456,7 +3453,7 @@ void avd_sg_nway_node_fail_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
  **************************************************************************/
 void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 {
-	AVD_SG *sg = su->sg_of_su;
+	SG_NWAY *sg = static_cast<SG_NWAY*>(su->sg_of_su);
 	bool is_su_present;
 	AVD_AVND *su_node_ptr = NULL;
 
@@ -3464,7 +3461,7 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 
 	if (sg->admin_si) {
 		/* process as in si-oper state */
-		avd_sg_nway_node_fail_si_oper(cb, su);
+		sg->node_fail_si_oper(su);
 	} else {
 		/* => si operation isnt in progress */
 
@@ -3489,7 +3486,7 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 		avd_sg_su_oper_list_del(cb, su, false);
 
 		/* if we are done with the upheaval, try assigning new sis to the sg */
-		if (!sg->su_oper_list.su)
+		if (sg->su_oper_list.empty() == true)
 			avd_sg_nway_si_assign(cb, sg);
 	}
 
