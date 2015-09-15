@@ -489,6 +489,8 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 	AVD_SU *su_temp = NULL;
 	AVD_AVND *node = NULL;
 	std::set<std::string>::const_iterator node_iter;
+	std::vector<AVD_SU*>::const_iterator su_iter;
+	std::vector<AVD_SU*> *su_list = nullptr;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -517,20 +519,18 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 		osafassert(node);
 
 		if (su->sg_of_su->sg_ncs_spec == true) {
-			for (const auto& su_temp : node->list_of_ncs_su) {
-				if (su_temp->sg_of_su == su->sg_of_su)
-					break;
-			}
+			su_list = &node->list_of_ncs_su;
+		} else {
+			su_list = &node->list_of_su;
 		}
 
-		if (su->sg_of_su->sg_ncs_spec == false) {
-			for (const auto& su_temp : node->list_of_su) {
-				if (su_temp->sg_of_su == su->sg_of_su)
-					break;
-			}
+		for (su_iter = su_list->begin(); su_iter != su_list->end(); ++su_iter) {
+			su_temp = *su_iter;
+			if (su_temp->sg_of_su == su->sg_of_su)
+				break;
 		}
 
-		if (su_temp == NULL)
+		if (su_iter == su_list->end())
 			goto done;
 	}
 
