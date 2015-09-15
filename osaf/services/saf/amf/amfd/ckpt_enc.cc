@@ -2522,7 +2522,6 @@ static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *en
 {
 	uint32_t num_of_opr_su = 0;
 	uint8_t *encoded_cnt_loc;
-	AVD_SG_OPER *oper_list_ptr = NULL;
 
 	TRACE_ENTER();
 
@@ -2534,10 +2533,8 @@ static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *en
 	/*
 	 * Now walk through the entire SU operation list and encode it.
 	 */
-	for (oper_list_ptr = &sg->su_oper_list;
-	     ((oper_list_ptr != NULL) && (oper_list_ptr->su != NULL));
-			oper_list_ptr = oper_list_ptr->next) {
-		osaf_encode_sanamet(&enc->io_uba, &oper_list_ptr->su->name); 
+	for (const auto& su : sg->su_oper_list) {
+		osaf_encode_sanamet(&enc->io_uba, &(su->name)); 
 		num_of_opr_su++;
 	}
 
