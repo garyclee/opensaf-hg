@@ -39,6 +39,22 @@ LGSV_CKPT_COLD_SYNC_MSG
 -----------------------------------------------------------------------------------------------------------------------
 */
 
+/**
+ * Note on MBCSV checkpoint versions for log service configuration
+ * ---------------------------------------------------------------
+ * Version 2: Only log root directory and close timestamp are checkpointed.
+ *            The data structure is `lgsv_ckpt_msg_v2_t` which is used to replicate to standby node.
+ *
+ * Version 3: No change in the checkpoint data structure. Means `lgsv_ckpt_msg_v2_t` is re-used.
+ *            This version was introduced to handle the rule on changing mailbox limits.
+ *            Therefore, the data processing for checkpoint version 3 is same as version 2's.
+ *
+ * Version 4: Added group name to data structure. A new data structure was introduced `lgsv_ckpt_msg_v3_t`.
+ *
+ * Version 5: Was introduced to avoid creating new checkpoint version if any added/changed configuration parameters.
+ *
+ */
+
 static uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
@@ -319,19 +335,6 @@ uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 bool lgs_is_peer_v2(void)
 {
 	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_2) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-/**
- * Check if peer is version 3 (or later)
- * @return bool
- */
-bool lgs_is_peer_v3(void)
-{
-	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_3) {
 		return true;
 	} else {
 		return false;
@@ -1151,7 +1154,7 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 	if (lgs_is_peer_v5()) {
 		ckpt_msg_v5->header = hdr;
 		ckpt_msg = ckpt_msg_v5;
-	} else if (lgs_is_peer_v4() && (hdr_ptr->ckpt_rec_type == LGS_CKPT_LGS_CFG_V3)) {
+	} else if (lgs_is_peer_v4()) {
 		ckpt_msg_v3->header = hdr;
 		ckpt_msg = ckpt_msg_v3;
 	} else if (lgs_is_peer_v2()) {
@@ -1168,7 +1171,7 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 		TRACE_2("\tINITIALIZE REC: UPDATE");
 		if (lgs_is_peer_v5()) {
 			reg_rec = &ckpt_msg_v5->ckpt_rec.initialize_client;
-		} else if (lgs_is_peer_v3()) {
+		} else if (lgs_is_peer_v4()) {
 			reg_rec = &ckpt_msg_v3->ckpt_rec.initialize_client;
 		} else if (lgs_is_peer_v2()) {
 			reg_rec = &ckpt_msg_v2->ckpt_rec.initialize_client;
@@ -1193,7 +1196,7 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 		TRACE_2("\tSTREAM OPEN: UPDATE");
 		if (lgs_is_peer_v5()) {
 			stream_open = &ckpt_msg_v5->ckpt_rec.stream_open;
-		} else if (lgs_is_peer_v3()) {
+		} else if (lgs_is_peer_v4()) {
 			stream_open = &ckpt_msg_v3->ckpt_rec.stream_open;
 		} else if (lgs_is_peer_v2()) {
 			stream_open = &ckpt_msg_v2->ckpt_rec.stream_open;

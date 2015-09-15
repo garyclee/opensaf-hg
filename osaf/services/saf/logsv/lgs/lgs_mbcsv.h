@@ -37,7 +37,6 @@ extern "C" {
  */	
 #define LGS_MBCSV_VERSION_1 1
 #define LGS_MBCSV_VERSION_2 2
-#define LGS_MBCSV_VERSION_3 3
 #define LGS_MBCSV_VERSION_4 4
 #define LGS_MBCSV_VERSION_5 5
 /* Current version */
