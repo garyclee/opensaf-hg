@@ -11,7 +11,7 @@ import argparse
 class_name='UsersSampleClass'
 
 def on_attribute_update(*args):
-    return list(set(map(lambda x: x.name, psutil.get_users())))
+    return list(set(map(lambda x: x.name, psutil.users())))
 
 if __name__ == '__main__':
 
