@@ -2,10 +2,13 @@
 
 from pyosaf.utils.immoi.implementer import Implementer, Constraints
 
+import argparse
+
+tone_class_names = ["Do", "Re", "Mi", "Fa", "So", "La", "Ti"]
+
 class Tones(Implementer):
 
     def __init__(self):
-        tone_class_names = ["Do", "Re", "Mi", "Fa", "So", "La", "Ti"]
 
         Implementer.__init__(self, class_names=tone_class_names,
                              name="TonesImplementer")
@@ -24,6 +27,13 @@ class Tones(Implementer):
 
         
 if __name__ == "__main__":
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description=('Ensures that instances of %s can only be created in this '
+                     'order.') % ', '.join(tone_class_names))
+
+    args = parser.parse_args()
 
     # Create the implementer
     tones_implementer = Tones()
