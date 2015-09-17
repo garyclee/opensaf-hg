@@ -71,7 +71,7 @@ saImmOiAugmentCcbInitialize = decorate(saImmOi.saImmOiAugmentCcbInitialize)
 saImmOiCcbSetErrorString  = decorate(saImmOi.saImmOiCcbSetErrorString)
 
 
-def _initialize(callbacks=None):
+def initialize(callbacks=None):
     ''' Initializes IMM OI '''
 
     version = SaVersionT('A', 2, 15)
@@ -97,8 +97,6 @@ def register_implementer(name):
 def get_selection_object():
     ''' Retrieves the the selection object '''
 
-    global SELECTION_OBJECT
-
     saImmOiSelectionObjectGet(HANDLE, SELECTION_OBJECT)
 
 
@@ -111,7 +109,7 @@ def implement_class(class_name):
 
 
 def dispatch(mode=eSaDispatchFlagsT.SA_DISPATCH_ALL):
-    ''' Dispatches all queued callbacks.  
+    ''' Dispatches all queued callbacks.
     '''
 
     saImmOiDispatch(HANDLE, mode)
@@ -121,7 +119,7 @@ def create_rt_object(class_name, parent_name, obj):
     ''' Creates a runtime object '''
 
     # Marshall parameters
-    c_class_name  = SaImmClassNameT(class_name)
+    c_class_name = SaImmClassNameT(class_name)
 
     if parent_name:
         c_parent_name = SaNameT(parent_name)
@@ -158,7 +156,7 @@ def create_rt_object(class_name, parent_name, obj):
         c_attr_values.append(c_attr)
 
     # Call the function
-    saImmOiRtObjectCreate_2(HANDLE, c_class_name, c_parent_name, 
+    saImmOiRtObjectCreate_2(HANDLE, c_class_name, c_parent_name,
                                     c_attr_values)
 
 
@@ -227,7 +225,7 @@ def get_class_category(class_name):
     c_category   = SaImmClassCategoryT()
     c_class_name = SaImmClassNameT(class_name)
 
-    immom.saImmOmClassDescriptionGet_2(immom.HANDLE, c_class_name, c_category, 
+    immom.saImmOmClassDescriptionGet_2(immom.HANDLE, c_class_name, c_category,
                                        c_attr_defs)
 
     return c_category.value
@@ -241,8 +239,9 @@ def get_parent_name_for_dn(dn):
     else:
         return None
 
-def get_object_names_for_class(class_name, root_name=None):
-    ''' Returns the instances of the given class, optinally under the given root dn
+def get_object_names_for_class(class_name):
+    ''' Returns the instances of the given class, optionally under the given
+        root dn
 
         will not read runtime attributes and is safe to call from OI callbacks
     '''
@@ -285,7 +284,7 @@ def get_object_no_runtime(dn):
     return immom.get(dn, ['SA_IMM_SEARCH_GET_CONFIG_ATTR'])
 
 def cache_class_descriptions(class_names):
-    ''' Explicitly caches the class description of the given class names 
+    ''' Explicitly caches the class description of the given class names
 
         The get_class_description function uses the cache and will also
         implicitly cache descriptions
@@ -311,19 +310,19 @@ def get_class_description(class_name):
     return class_descriptions[class_name]
 
 def get_attribute_type(attribute, class_name):
-    ''' Returns the type of the attribute in the given class 
+    ''' Returns the type of the attribute in the given class
 
         This is safe to use from OI callbacks
     '''
 
     class_desc = immom.class_description_get(class_name)
 
-    attr_desc = filter(lambda ad: ad.attrName == attribute, class_desc)[0]
+    attr_desc = [ad for ad in class_desc if ad.attrName == attribute][0]
 
     return attr_desc.attrValueType
 
 def get_rdn_attribute_for_class(class_name):
-    ''' Returns the RDN attribute for the given class 
+    ''' Returns the RDN attribute for the given class
 
         This is safe to call from OI callbacks
     '''
@@ -336,32 +335,32 @@ def get_rdn_attribute_for_class(class_name):
 
     return None
 
-def unmarshalLenArray(c_array, length, value_type):
-	''' Convert c array with a known length to a Python list. '''
+def unmarshall_len_array(c_array, length, value_type):
+    ''' Convert c array with a known length to a Python list. '''
 
-	if not c_array:
-            return []
-	ctype = c_array[0].__class__
-	if ctype is str:
-            return unmarshalSaStringTArray(c_array)
-	val_list = []
-        i = 0
-	for ptr in c_array:
-            if i == length:
-                break
-            if not ptr:
-                break
+    if not c_array:
+        return []
+    ctype = c_array[0].__class__
+    if ctype is str:
+        return unmarshalSaStringTArray(c_array)
+    val_list = []
+    i = 0
+    for ptr in c_array:
+        if i == length:
+            break
+        if not ptr:
+            break
 
-            val = unmarshalSaImmValue(ptr, value_type)
+        val = unmarshalSaImmValue(ptr, value_type)
 
-            val_list.append(val)
+        val_list.append(val)
 
-            i = i + 1
+        i = i + 1
 
-	return val_list
+    return val_list
 
 def get_available_classes_in_imm():
-    ''' Returns a list of all available classes in IMM 
+    ''' Returns a list of all available classes in IMM
 
         Safe to call from OI callbacks
     '''
@@ -376,14 +375,14 @@ def create_non_existing_imm_object(class_name, parent_name, attributes):
     '''
 
     rdn_attribute = get_rdn_attribute_for_class(class_name)
-    rdn_value     = attributes[rdn_attribute][0]
+    rdn_value = attributes[rdn_attribute][0]
 
     if parent_name:
         dn  = '%s,%s' % (rdn_value, parent_name)
     else:
         dn = rdn_value
 
-    obj = ImmObject(class_name = class_name, dn=dn)
+    obj = ImmObject(class_name=class_name, dn=dn)
 
     for name, values in attributes.iteritems():
         obj.__setattr__(name, values)
