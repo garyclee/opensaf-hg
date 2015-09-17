@@ -2,10 +2,19 @@
 
 from pyosaf.utils.immoi import implementer
 
+import argparse
+
 tone_class_names = ["Do", "Re", "Mi", "Fa", "So", "La", "Ti"]
 
         
 if __name__ == "__main__":
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description=('Ensures that instances of %s can only be created in this '
+                     'order.') % ', '.join(tone_class_names))
+
+    args = parser.parse_args()
 
     # Set up containment constraints
     constraints = implementer.Constraints()
