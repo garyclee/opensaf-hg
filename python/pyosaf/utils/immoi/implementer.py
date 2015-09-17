@@ -21,7 +21,7 @@
 import select
 import itertools
 
-from pyosaf import saImm, saImmOm, saImmOi, saAis
+from pyosaf import saImm, saImmOi, saAis
 
 from pyosaf.saAis import eSaAisErrorT
 
@@ -30,13 +30,11 @@ from pyosaf.saImm import eSaImmValueTypeT, eSaImmAttrModificationTypeT, \
 
 from pyosaf.utils import immom, immoi, SafException
 
-from pyosaf.utils.immom.object import ImmObject
-
 implementer_instance = None
 
 # Cache CCBs
-completed_ccbs = {}
-ccbs           = {}
+COMPLETED_CCBS = {}
+CCBS = {}
 
 def _collect_full_transaction(ccb_id):
     ''' Goes through a completed CCB and summarizes the full transaction as
@@ -66,7 +64,7 @@ def _collect_full_transaction(ccb_id):
             all_objects_now.append(obj)
 
     # Collect proposed state by applying changes on current state
-    for operation in ccbs[ccb_id]:
+    for operation in CCBS[ccb_id]:
 
         operation_type = operation['type']
 
@@ -83,7 +81,7 @@ def _collect_full_transaction(ccb_id):
             else:
                 dn = rdn_value
 
-            instance = immoi.create_non_existing_imm_object(class_name, 
+            instance = immoi.create_non_existing_imm_object(class_name,
                                                             parent, attributes)
 
             created.append(instance)
@@ -97,27 +95,26 @@ def _collect_full_transaction(ccb_id):
 
             deleted.append(dn)
 
-            created = filter(lambda i: i.dn != dn, created)
-            updated = filter(lambda i: i.dn != dn, updated)
+            created = [i for i in created if i.dn != dn]
+            updated = [i for i in updated if i.dn != dn]
 
         # Handle modify operations
         elif operation_type == 'MODIFY':
             dn            = operation['dn']
             modifications = operation['modification']
 
-            for attr_modification in modifications: 
+            for attr_modification in modifications:
 
                 mod_type  = attr_modification['modification']
                 attribute = attr_modification['attribute']
                 values    = attr_modification['values']
 
                 # Find affected object
-                affected_instance = None
-
-                affected_instances = filter(lambda i: i.dn == dn, all_objects_now)
+                affected_instances = [i for i in all_objects_now if i.dn == dn]
 
                 if len(affected_instances) == 0:
-                    print 'ERROR: Failed to find object %s affected by modify operation' % dn
+                    print ('ERROR: Failed to find object %s affected by modify '
+                           'operation' % dn)
                 else:
                     affected_instance = affected_instances[0]
 
@@ -131,7 +128,7 @@ def _collect_full_transaction(ccb_id):
                     curr_value.append(values)
 
                     affected_instance.__setattr__(attribute, curr_value)
-                
+
                 elif mod_type == eSaImmAttrModificationTypeT.SA_IMM_ATTR_VALUES_DELETE:
                     for value in values:
 
@@ -140,7 +137,7 @@ def _collect_full_transaction(ccb_id):
                         curr_value.remove(value)
 
                         affected_instance.__setattr__(attribute, curr_value)
-                    
+
                 elif mod_type == eSaImmAttrModificationTypeT.SA_IMM_ATTR_VALUES_REPLACE:
                     affected_instance.__setattr__(attribute, values)
 
@@ -160,7 +157,7 @@ def _collect_full_transaction(ccb_id):
     return out
 
 
-class AdminOperationParameter:
+class AdminOperationParameter(object):
     ''' This class represents an admin operation parameter '''
 
     def __init__(self, name, param_type, value):
@@ -177,20 +174,20 @@ def admin_operation(oi_handle, c_invocation_id, c_name, c_operation_id, c_params
 
     # Unmarshal parameters
     invocation_id = c_invocation_id
-    name          = saImm.unmarshalSaImmValue(c_name, 
-                                              eSaImmValueTypeT.SA_IMM_ATTR_SANAMET)
+    name          = saImm.unmarshalSaImmValue(c_name,
+                                    eSaImmValueTypeT.SA_IMM_ATTR_SANAMET)
     operation_id  = c_operation_id
 
     params = []
 
-    for p in saAis.unmarshalNullArray(c_params):
-        paramName   = p.paramName
-        paramType   = p.paramType
-        paramBuffer = p.paramBuffer
+    for param in saAis.unmarshalNullArray(c_params):
+        param_name   = param.paramName
+        param_type   = param.paramType
+        param_buffer = param.paramBuffer
 
-        value = saImm.unmarshalSaImmValue(paramBuffer, paramType)
+        value = saImm.unmarshalSaImmValue(param_buffer, param_type)
 
-        parameter = AdminOperationParameter(paramName, paramType, value)
+        parameter = AdminOperationParameter(param_name, param_type, value)
 
         params.append(parameter)
 
@@ -201,16 +198,16 @@ def admin_operation(oi_handle, c_invocation_id, c_name, c_operation_id, c_params
     try:
         immoi.report_admin_operation_result(invocation_id, result)
     except SafException as err:
-        print "ERROR: Failed to report that %s::%s returned %s" % \
-            (name, invocation_id, result)
+        print "ERROR: Failed to report that %s::%s returned %s (%s)" % \
+            (name, invocation_id, result, err.msg)
 
 def abort_ccb(oi_handle, ccb_id):
-    ''' Callback for aborted CCBs. 
+    ''' Callback for aborted CCBs.
 
         Removes the given CCB from the cache.
     '''
 
-    del ccbs[ccb_id]
+    del CCBS[ccb_id]
 
 def apply_ccb(oi_handle, ccb_id):
     ''' Callback for apply of CCBs '''
@@ -225,22 +222,23 @@ def apply_ccb(oi_handle, ccb_id):
 
             all_instances.append(obj)
 
-    updated = completed_ccbs[ccb_id]['updated']
-    created = completed_ccbs[ccb_id]['added']
-    deleted = completed_ccbs[ccb_id]['removed']
+    updated = COMPLETED_CCBS[ccb_id]['updated']
+    created = COMPLETED_CCBS[ccb_id]['added']
+    deleted = COMPLETED_CCBS[ccb_id]['removed']
 
     # Remove the CCB from the caches
-    del ccbs[ccb_id]
-    del completed_ccbs[ccb_id]
+    del CCBS[ccb_id]
+    del COMPLETED_CCBS[ccb_id]
 
     # Tell the implementer to apply the changes
-    return implementer_instance.on_apply(all_instances, updated, created, deleted)
+    return implementer_instance.on_apply(all_instances, updated, created,
+                                         deleted)
 
 def attr_update(oi_handle, c_name, c_attr_names):
     ''' Callback for attribute update calls from IMM '''
 
     # Unmarshall parameters
-    name       = saImm.unmarshalSaImmValue(c_name, 
+    name       = saImm.unmarshalSaImmValue(c_name,
                                      eSaImmValueTypeT.SA_IMM_ATTR_SANAMET)
     attr_names = saAis.unmarshalNullArray(c_attr_names)
 
@@ -251,7 +249,7 @@ def attr_update(oi_handle, c_name, c_attr_names):
     attributes = {}
 
     for attr_name in attr_names:
-        values = implementer_instance.on_runtime_values_get(name, class_name, 
+        values = implementer_instance.on_runtime_values_get(name, class_name,
                                                             attr_name)
 
         if values is None:
@@ -266,22 +264,22 @@ def attr_update(oi_handle, c_name, c_attr_names):
     try:
         immoi.update_rt_object(name, attributes)
         return eSaAisErrorT.SA_AIS_OK
-    except SafException as err:
+    except SafException:
         return eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION
 
 def delete_added(oi_handle, ccb_id, c_name):
     ''' Callback for object delete '''
 
     # Unmarshall the parameters
-    name = saImm.unmarshalSaImmValue(c_name, 
+    name = saImm.unmarshalSaImmValue(c_name,
                                      eSaImmValueTypeT.SA_IMM_ATTR_SANAMET)
 
     # Create a new CCB in the cache if needed
-    if not ccb_id in ccbs.keys():
-        ccbs[ccb_id] = []
+    if not ccb_id in CCBS.keys():
+        CCBS[ccb_id] = []
 
     # Cache the operation
-    ccbs[ccb_id].append({'type' : 'DELETE', 
+    CCBS[ccb_id].append({'type' : 'DELETE',
                          'dn'   : name})
 
     # Tell the implementer about the operation
@@ -291,7 +289,7 @@ def modify_added(oi_handle, c_ccb_id, c_name, c_attr_modification):
     ''' Callback for object modify '''
 
     # Unmarshal the parameters
-    name   = saImm.unmarshalSaImmValue(c_name, 
+    name   = saImm.unmarshalSaImmValue(c_name,
                                        eSaImmValueTypeT.SA_IMM_ATTR_SANAMET)
     ccb_id = c_ccb_id
 
@@ -299,34 +297,33 @@ def modify_added(oi_handle, c_ccb_id, c_name, c_attr_modification):
 
     implementer_objection = None
 
-    for a in saAis.unmarshalNullArray(c_attr_modification):
-        attr_name  = a.modAttr.attrName
-        attr_type  = a.modAttr.attrValueType
-        mod_type   = a.modType
-        nr_values  = a.modAttr.attrValuesNumber
-        attrValues = immoi.unmarshalLenArray(a.modAttr.attrValues, 
-                                             a.modAttr.attrValuesNumber,
-                                             a.modAttr.attrValueType)
+    for attr in saAis.unmarshalNullArray(c_attr_modification):
+        attr_name   = attr.modAttr.attrName
+        attr_type   = attr.modAttr.attrValueType
+        mod_type    = attr.modType
+        attr_values = immoi.unmarshall_len_array(attr.modAttr.attrValues,
+                                                 attr.modAttr.attrValuesNumber,
+                                                 attr.modAttr.attrValueType)
 
-        attribute_modifications.append({'attribute'    : attr_name, 
-                                        'type'         : attr_type, 
-                                        'modification' : mod_type, 
-                                        'values'       : attrValues})
+        attribute_modifications.append({'attribute'    : attr_name,
+                                        'type'         : attr_type,
+                                        'modification' : mod_type,
+                                        'values'       : attr_values})
 
         # Tell the implementer about the modification
-        result = implementer_instance.on_modify_added(attr_name, mod_type, 
-                                                      attrValues)
+        result = implementer_instance.on_modify_added(attr_name, mod_type,
+                                                      attr_values)
 
         if result != eSaAisErrorT.SA_AIS_OK:
-            implementer_objected = result
+            implementer_objection = result
 
     # Create a new CCB in the cache if needed
-    if not ccb_id in ccbs.keys():
-        ccbs[ccb_id] = []
+    if not ccb_id in CCBS.keys():
+        CCBS[ccb_id] = []
 
     # Store the modifications in the cache
-    ccbs[ccb_id].append({'type'         : 'MODIFY', 
-                         'dn'           : name, 
+    CCBS[ccb_id].append({'type'         : 'MODIFY',
+                         'dn'           : name,
                          'modification' : attribute_modifications})
 
     # Respond and say if this is accepted by the implementer
@@ -340,20 +337,20 @@ def create_added(oi_handle, c_ccb_id, c_class_name, c_parent, c_attr_values):
     ''' Callback for object create '''
 
     # Unmarshal parameters
-    parent     = saImm.unmarshalSaImmValue(c_parent, 
+    parent     = saImm.unmarshalSaImmValue(c_parent,
                                            eSaImmValueTypeT.SA_IMM_ATTR_SANAMET)
     class_name = c_class_name
     ccb_id     = c_ccb_id
 
     attributes = {}
 
-    for a in saAis.unmarshalNullArray(c_attr_values):
-        attr_name  = a.attrName
-        attr_type  = a.attrValueType
-        nr_values  = a.attrValuesNumber
+    for attr in saAis.unmarshalNullArray(c_attr_values):
+        attr_name = attr.attrName
+        attr_type = attr.attrValueType
+        nr_values = attr.attrValuesNumber
 
-        attr_values = immoi.unmarshalLenArray(a.attrValues, nr_values, 
-                                              attr_type)
+        attr_values = immoi.unmarshall_len_array(attr.attrValues, nr_values,
+                                                 attr_type)
 
         if len(attr_values) > 0:
             attributes[attr_name] = attr_values
@@ -369,13 +366,13 @@ def create_added(oi_handle, c_ccb_id, c_class_name, c_parent, c_attr_values):
             attributes[attribute.attrName] = None
 
     # Create a new CCB in the cache if needed
-    if not ccb_id in ccbs.keys():
-        ccbs[ccb_id] = []
+    if not ccb_id in CCBS.keys():
+        CCBS[ccb_id] = []
 
     # Cache the create operation
-    ccbs[ccb_id].append({'type'       : 'CREATE', 
-                         'parent'     : parent, 
-                         'className'  : class_name, 
+    CCBS[ccb_id].append({'type'       : 'CREATE',
+                         'parent'     : parent,
+                         'className'  : class_name,
                          'attributes' : attributes})
 
     # Tell the implementer about the operation
@@ -387,8 +384,8 @@ def create_added(oi_handle, c_ccb_id, c_class_name, c_parent, c_attr_values):
 def completed_ccb(oi_handle, ccb_id):
     ''' Callback for CCB completed
 
-        Validates any configured containments and calls the configured 
-        on_validate function 
+        Validates any configured containments and calls the configured
+        on_validate function
     '''
 
     # Get a summary of the changes in the CCB
@@ -401,33 +398,33 @@ def completed_ccb(oi_handle, ccb_id):
     updated = summary['updated']
 
     # Store added, removed, updated for apply
-    completed_ccbs[ccb_id] = {'added'   : created,
+    COMPLETED_CCBS[ccb_id] = {'added'   : created,
                               'removed' : deleted,
                               'updated' : updated}
 
     # Perform validation on the full transaction
-    return implementer_instance._validate(ccb_id, instances, updated, created, 
+    return implementer_instance._validate(ccb_id, instances, updated, created,
                                           deleted)
 
 
 # OI callbacks
-callbacks = saImmOi.SaImmOiCallbacksT_2()
+CALLBACKS = saImmOi.SaImmOiCallbacksT_2()
 
-callbacks.saImmOiCcbAbortCallback        = \
+CALLBACKS.saImmOiCcbAbortCallback        = \
     saImmOi.SaImmOiCcbAbortCallbackT(abort_ccb)
-callbacks.saImmOiCcbApplyCallback        = \
+CALLBACKS.saImmOiCcbApplyCallback        = \
     saImmOi.SaImmOiCcbApplyCallbackT(apply_ccb)
-callbacks.saImmOiCcbCompletedCallback    = \
+CALLBACKS.saImmOiCcbCompletedCallback    = \
     saImmOi.SaImmOiCcbCompletedCallbackT(completed_ccb)
-callbacks.saImmOiCcbObjectCreateCallback = \
+CALLBACKS.saImmOiCcbObjectCreateCallback = \
     saImmOi.SaImmOiCcbObjectCreateCallbackT_2(create_added)
-callbacks.saImmOiCcbObjectDeleteCallback = \
+CALLBACKS.saImmOiCcbObjectDeleteCallback = \
     saImmOi.SaImmOiCcbObjectDeleteCallbackT(delete_added)
-callbacks.saImmOiCcbObjectModifyCallback = \
+CALLBACKS.saImmOiCcbObjectModifyCallback = \
     saImmOi.SaImmOiCcbObjectModifyCallbackT_2(modify_added)
-callbacks.saImmOiRtAttrUpdateCallback    = \
+CALLBACKS.saImmOiRtAttrUpdateCallback    = \
     saImmOi.SaImmOiRtAttrUpdateCallbackT(attr_update)
-callbacks.saImmOiAdminOperationCallback  = \
+CALLBACKS.saImmOiAdminOperationCallback  = \
     saImmOi.SaImmOiAdminOperationCallbackT_2(admin_operation)
 
 
@@ -438,27 +435,27 @@ def AdminOperation(class_name, op_id):
 
     def inner_admin_op_decorator(func):
         ''' Inner decorator which actually sets the admin_op id '''
-        
+
         setattr(func, 'AdminOperationOperationId', op_id)
-        setattr(func, 'AdminOperationClassName',   class_name)
+        setattr(func, 'AdminOperationClassName', class_name)
         return func
 
     return inner_admin_op_decorator
 
-class AdminOperationFunction:
+class AdminOperationFunction(object):
     ''' Encapsulation of an admin operation and its id '''
 
-    def __init__(self, class_name, operation_id, func):
+    def __init__(self, class_name, operation_id, function):
         ''' Creates a pair of an operation id and a function '''
 
         self.operation_id = operation_id
         self.class_name   = class_name
-        self.func         = func
+        self.function     = function
 
     def execute(self, name, parameters):
         ''' Executes the admin operation '''
 
-        return self.func(name, parameters)
+        return self.function(name, parameters)
 
     def matches(self, class_name, operation_id):
         ''' Returns true if this admin operation pair matches the given
@@ -469,12 +466,12 @@ class AdminOperationFunction:
                class_name == self.class_name
 
 
-class _ContainmentConstraint:
+class _ContainmentConstraint(object):
     ''' Defines a containment constraint '''
 
     def __init__(self, parent_class, child_class, lower, upper):
-        ''' 
-            Creates a containment constraint with optional lower and upper 
+        '''
+            Creates a containment constraint with optional lower and upper
             cardinality.
         '''
         self.parent_class = parent_class
@@ -483,8 +480,10 @@ class _ContainmentConstraint:
         self.upper        = upper
 
 
-class Constraints:
-    ''' Defines constraints for changes to the instances implemented by the OI '''
+class Constraints(object):
+    ''' Defines constraints for changes to the instances implemented by the
+        OI
+    '''
 
     def __init__(self):
         ''' Creates an empty Constraints instance '''
@@ -492,8 +491,8 @@ class Constraints:
         self.cardinality  = {}
 
     def add_allowed_containment(self, parent_class, child_class, lower=None, upper=None):
-        ''' Adds a constraint on which type of classes can be created 
-            under the parent 
+        ''' Adds a constraint on which type of classes can be created
+            under the parent
         '''
 
         # Store the allowed parent-child relationship
@@ -512,7 +511,7 @@ class Constraints:
         ''' Validates the constraints in this Constraints instance '''
 
         def get_children_with_classname(parent_name, all_instances, class_name):
-            ''' Helper method to count the number of children of the given class 
+            ''' Helper method to count the number of children of the given class
                 in the list of all instances '''
             current_children = []
 
@@ -528,9 +527,10 @@ class Constraints:
             return current_children
 
         def constraint_exists_for_child(class_name):
-            ''' Returns true if there exists a constraint for the given class as 
+            ''' Returns true if there exists a constraint for the given class as
                 a child
             '''
+
             for child_classes in self.containments.values():
                 if class_name in child_classes:
                     return True
@@ -550,9 +550,9 @@ class Constraints:
 
                 if mo in created and \
                    constraint_exists_for_child(mo.class_name):
-                    error_string = "ERROR: Cannot create %s, %s must have a parent" % \
-                                   (mo.dn, mo.SaImmAttrClassName)
-                    raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM, 
+                    error_string = ("ERROR: Cannot create %s, %s must have a "
+                                    "parent") % (mo.dn, mo.SaImmAttrClassName)
+                    raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM,
                                        error_string)
 
                 # Allow this operation and check the next one
@@ -563,14 +563,15 @@ class Constraints:
                 continue
 
             # Avoid looking up the parent class in IMM if possible
-            parent_mos = filter(lambda x: x.dn == parent_name, all_instances)
+            parent_mos = [x for x in all_instances if x.dn == parent_name]
 
             if parent_mos:
                 parent_class = parent_mos[0].class_name
             else:
                 parent_class = immoi.get_class_name_for_dn(parent_name)
 
-            # Ignore children where no constraint is defined for the child or the parent
+            # Ignore children where no constraint is defined for the child or
+            # the parent
             if not parent_class in self.containments and not \
                constraint_exists_for_child(mo.class_name):
                 continue
@@ -578,36 +579,44 @@ class Constraints:
             # Validate the containment if there is a parent
             child_classes = self.containments[parent_class]
 
-            # Reject the create if the child's class is not part of the allowed child classes
+            # Reject the create if the child's class is not part of the allowed
+            # child classes
             if not mo.class_name in child_classes and mo in created:
-                error_string = "ERROR: Cannot create %s as a child under %s. Possible children are %s" % \
-                               (mo.dn, parent_class, child_classes)
+                error_string = ("ERROR: Cannot create %s as a child under %s. "
+                                "Possible children are %s") % \
+                    (mo.dn, parent_class, child_classes)
                 raise SafException(eSaAisErrorT.SA_AIS_ERR_INVALID_PARAM,
                                    error_string)
 
             # Count current containments
-            current_children = get_children_with_classname(parent_name, 
+            current_children = get_children_with_classname(parent_name,
                                                            all_instances,
                                                            mo.class_name)
-            # Validate the number of children of the specific class to the given parent
+            # Validate the number of children of the specific class to the given
+            # parent
             lower, upper = self.cardinality[(parent_class, mo.class_name)]
 
             if lower and len(current_children) < lower:
-                error_string = "ERROR: Must have at least %s instances of %s under %s" % \
-                               (lower, mo.class_name, parent_class)
-                raise SafException(eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION, error_string)
+                error_string = ("ERROR: Must have at least %s instances of %s "
+                                "under %s") % \
+                    (lower, mo.class_name, parent_class)
+                raise SafException(eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION,
+                                   error_string)
 
             if upper and len(current_children) > upper:
-                error_string = "ERROR: Must have at most %s instances of %s under %s" % \
-                               (upper, mo.class_name, parent_class)
-                raise SafException(eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION, error_string)
+                error_string = ("ERROR: Must have at most %s instances of %s "
+                                "under %s") % \
+                    (upper, mo.class_name, parent_class)
+                raise SafException(eSaAisErrorT.SA_AIS_ERR_FAILED_OPERATION,
+                                   error_string)
 
 
-class Implementer:
+class Implementer(object):
+    ''' This class represents a class implementer '''
 
-    def __init__(self, class_names=[], name="wrapper", on_create=None, 
-                 on_delete=None, on_modify=None, on_validate=None, 
-                 on_apply=None, on_runtime_values_get=None, 
+    def __init__(self, class_names=[], name="wrapper", on_create=None,
+                 on_delete=None, on_modify=None, on_validate=None,
+                 on_apply=None, on_runtime_values_get=None,
                  admin_operations=None, constraints=None):
         ''' Creates an Implementer instance '''
 
@@ -651,13 +660,14 @@ class Implementer:
         self.admin_operations = admin_operations
 
     def on_runtime_values_get(self, name, class_name, attribute_name):
-        ''' Retrieves values for the requested attribute in the given 
+        ''' Retrieves values for the requested attribute in the given
             instance
         '''
 
         if self.on_runtime_values_get_cb:
             try:
-                return self.on_runtime_values_get_cb(name, class_name, attribute_name)
+                return self.on_runtime_values_get_cb(name, class_name,
+                                                     attribute_name)
             except SafException as err:
                 return err.value
         else:
@@ -668,7 +678,7 @@ class Implementer:
             ongoing CCB.
 
             Will call the on_modify parameter if it has been set. This method
-            can also be overridden by a subclass that wants to handle 
+            can also be overridden by a subclass that wants to handle
             on_modify_added'''
 
         if self.on_modify_cb:
@@ -683,8 +693,8 @@ class Implementer:
         ''' Called when an object delete operation has been added to the
             active CCB.
 
-            Will call the on_delete parameter if it has been set. This method 
-            can also be overridden by a subclass that wants to handle 
+            Will call the on_delete parameter if it has been set. This method
+            can also be overridden by a subclass that wants to handle
             on_delete_added
         '''
 
@@ -700,7 +710,7 @@ class Implementer:
         ''' Called when an object create operation has been performed.
 
             Will call the on_create parameter if it has been set. This
-            method can also be overridden by a subclass that wants to 
+            method can also be overridden by a subclass that wants to
             handle on_create_added
         '''
 
@@ -740,8 +750,8 @@ class Implementer:
         try:
 
             # Validate constraints on the containments (if configured)
-            self.__validate_constraints(instances, updated, created, 
-                                                 deleted)
+            self.__validate_constraints(instances, updated, created,
+                                        deleted)
 
             # Let the user code validate the CCB (if configured)
             self.on_validate(instances, updated, created, deleted)
@@ -771,10 +781,10 @@ class Implementer:
 
         # Find and execute a matching admin operation
         if self.admin_operations:
-            for admin_operation in self.admin_operations:
-                if admin_operation.matches(class_name, operation_id):
+            for operation in self.admin_operations:
+                if operation.matches(class_name, operation_id):
                     try:
-                        admin_operation.execute(object_name, parameters)
+                        operation.execute(object_name, parameters)
                         return eSaAisErrorT.SA_AIS_OK
                     except SafException as err:
                         print "ERROR: Admin operation %s caused exception %s" %\
@@ -784,14 +794,14 @@ class Implementer:
         # Scan for AdminOperation-decorated functions in subclasses
         for member_name in dir(self):
 
-            func = getattr(self, member_name)
+            function = getattr(self, member_name)
 
-            tmp_id         = getattr(func, 'AdminOperationOperationId', None)
-            tmp_class_name = getattr(func, 'AdminOperationClassName', None)
+            tmp_id    = getattr(function, 'AdminOperationOperationId', None)
+            tmp_class = getattr(function, 'AdminOperationClassName', None)
 
-            if tmp_id == operation_id and tmp_class_name == class_name:
+            if tmp_id == operation_id and tmp_class == class_name:
                 try:
-                    func(object_name, parameters)
+                    function(object_name, parameters)
                     return eSaAisErrorT.SA_AIS_OK
                 except SafException as err:
                     print "ERROR: Admin operation %s caused exception %s" % \
@@ -802,16 +812,18 @@ class Implementer:
         return eSaAisErrorT.SA_AIS_ERR_NOT_SUPPORTED
 
     def _register(self):
-        ''' Initializes IMM OI and registers as an OI for the configured 
-            classes 
+        ''' Initializes IMM OI and registers as an OI for the configured
+            classes
         '''
 
         # Initialize the OI API
-        immoi._initialize(callbacks)
+        immoi.initialize(CALLBACKS)
 
         # Ensure that all classes are configuration classes
-        runtime_classes = filter(lambda c: immoi.get_class_category(c) == \
-                                 eSaImmClassCategoryT.SA_IMM_CLASS_RUNTIME, self.class_names)
+        runtime_classes = [c for c in self.class_names if \
+                           immoi.get_class_category(c) == \
+                           eSaImmClassCategoryT.SA_IMM_CLASS_RUNTIME]
+
         if  runtime_classes:
             raise Exception("ERROR: Can't be an applier for runtime "
                             "classes %s" % runtime_classes)
@@ -829,8 +841,10 @@ class Implementer:
             if class_name in available_classes:
                 immoi.implement_class(class_name)
 
-            else:
-                print "WARNING: %s is missing in IMM. Not becoming implementer." % class_name
+                continue
+
+            print "WARNING: %s is missing in IMM. Not becoming implementer." % \
+                class_name
 
     def get_selection_object(self):
         ''' Returns the selection object '''
@@ -847,6 +861,7 @@ class Implementer:
                 (dn, err)
 
     def create(self, obj):
+        ''' Creates a runtime object '''
 
         # Get the parent name for the object
         parent_name = immoi.get_parent_name_for_dn(obj.dn)
@@ -863,18 +878,16 @@ class Implementer:
     def __start_dispatch_loop(self):
         ''' Starts an infinite dispatch loop '''
 
-        inputs  = [immoi.SELECTION_OBJECT.value]
-        outputs = []
+        inputs = [immoi.SELECTION_OBJECT.value]
 
         # Handle updates
         while inputs:
 
-            readable, writable, exceptional = select.select(inputs, outputs, 
-                                                            inputs)
+            select.select(inputs, [], inputs)
 
             immoi.dispatch()
 
-    def __validate_constraints(self, all_instances, updated, created, 
+    def __validate_constraints(self, all_instances, updated, created,
                               deleted):
         ''' Validates configured constraints '''
         if self.constraints:
@@ -884,33 +897,33 @@ class Implementer:
 class Applier(Implementer):
     ''' Class representing an applier '''
 
-    def __init__(self, class_names, name="wrapper", on_create=None, 
+    def __init__(self, class_names, name="wrapper", on_create=None,
                  on_delete=None, on_modify=None, on_apply=None):
         ''' Creates an Applier instance and runs the Implementer superclass'
             __init__ method
         '''
 
         # Initialize the base class
-        Implementer.__init__(self, class_names=class_names, name=name, 
+        Implementer.__init__(self, class_names=class_names, name=name,
                              on_create=on_create, on_delete=on_delete,
                              on_modify=on_modify, on_apply=on_apply)
-        
+
     def _validate(self, ccb_id, instances, updated, created, deleted):
         ''' Empty validate handler as appliers cannot validate '''
         return eSaAisErrorT.SA_AIS_OK
 
     def _register(self):
-        ''' Initializes IMM OI and registers as an applier for the configured 
-            classes 
+        ''' Initializes IMM OI and registers as an applier for the configured
+            classes
         '''
 
         # Initialize the OI API
-        immoi._initialize(callbacks)
+        immoi.initialize(CALLBACKS)
 
         # Ensure that all classes are configuration classes
-        runtime_classes = filter(lambda c: 
-                                 immoi.get_class_category(c) == \
-                                 eSaImmClassCategoryT.SA_IMM_CLASS_RUNTIME, self.class_names)
+        runtime_classes = [c for c in self.class_names if
+                           immoi.get_class_category(c) == \
+                           eSaImmClassCategoryT.SA_IMM_CLASS_RUNTIME]
         if runtime_classes:
             raise Exception("ERROR: Can't be an applier for runtime "
                             "classes %s" % runtime_classes)
