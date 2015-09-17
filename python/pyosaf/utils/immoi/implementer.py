@@ -636,8 +636,6 @@ class Implementer(object):
         implementer_instance = self
 
         # Initialize OI API and register as implementer for the classes
-        immoi.cache_class_descriptions(self.class_names)
-
         self._register()
 
     def get_implemented_classes(self):
