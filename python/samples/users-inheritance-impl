@@ -16,7 +16,7 @@ class UsersImplementer(Implementer):
         Implementer.__init__(self, name='UsersImplementer')
 
     def on_runtime_values_get(self, name, class_name, attribute):
-        return list(set(map(lambda x: x.name, psutil.get_users())))
+        return list(set(map(lambda x: x.name, psutil.users())))
 
 if __name__ == '__main__':
 
