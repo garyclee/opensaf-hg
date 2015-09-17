@@ -49,8 +49,6 @@ TRYAGAIN_CNT = 60
 
 OPENSAF_IMM_OBJECT = "opensafImm=opensafImm,safApp=safImmService"
 
-class_descriptions = {}
-
 # Decorate the raw saImmOi* functions with retry and raising exceptions
 saImmOiInitialize_2       = decorate(saImmOi.saImmOiInitialize_2)
 saImmOiSelectionObjectGet = decorate(saImmOi.saImmOiSelectionObjectGet)
@@ -127,10 +125,8 @@ def create_rt_object(class_name, parent_name, obj):
         c_parent_name = None
 
     c_attr_values = []
-    for name, value_pair in obj.attrs.iteritems():
 
-        c_attr_type = value_pair[0]
-        values      = value_pair[1]
+    for name, (c_attr_type, values) in obj.attrs.iteritems():
 
         if values == None:
             values = []
@@ -177,7 +173,7 @@ def update_rt_object(dn, attributes):
     class_name = get_class_name_for_dn(dn)
 
     # Create and marshall attribute modifications
-    attr_mods  = []
+    attr_mods = []
 
     for name, values in attributes.iteritems():
 
@@ -239,6 +235,7 @@ def get_parent_name_for_dn(dn):
     else:
         return None
 
+
 def get_object_names_for_class(class_name):
     ''' Returns the instances of the given class, optionally under the given
         root dn
@@ -282,32 +279,6 @@ def get_object_no_runtime(dn):
     '''
 
     return immom.get(dn, ['SA_IMM_SEARCH_GET_CONFIG_ATTR'])
-
-def cache_class_descriptions(class_names):
-    ''' Explicitly caches the class description of the given class names
-
-        The get_class_description function uses the cache and will also
-        implicitly cache descriptions
-    '''
-
-    global class_descriptions
-
-    for class_name in class_names:
-        class_descriptions[class_name] = immom.class_description_get(class_name)
-
-def get_class_description(class_name):
-    ''' Returns the description of the given class
-
-        Class descriptions are cached. This could cause a problem when
-        attributes are added.
-
-        This is safe to use from OI callbacks
-    '''
-
-    if not class_name in class_descriptions:
-        class_descriptions[class_name] = immom.class_description_get(class_name)
-
-    return class_descriptions[class_name]
 
 def get_attribute_type(attribute, class_name):
     ''' Returns the type of the attribute in the given class
@@ -378,7 +349,7 @@ def create_non_existing_imm_object(class_name, parent_name, attributes):
     rdn_value = attributes[rdn_attribute][0]
 
     if parent_name:
-        dn  = '%s,%s' % (rdn_value, parent_name)
+        dn = '%s,%s' % (rdn_value, parent_name)
     else:
         dn = rdn_value
 
