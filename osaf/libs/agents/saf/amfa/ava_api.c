@@ -953,9 +953,17 @@ SaAisErrorT saAmfPmStart(SaAmfHandleT hdl,
 
 	/* input validation of pmError */
 	if (pmErr != SA_AMF_PM_NON_ZERO_EXIT && pmErr != SA_AMF_PM_ZERO_EXIT &&
-	    pmErr != (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ZERO_EXIT)) {
-		TRACE_LEAVE2("Incorrect argument specified for SaAmfPmErrorsT ");
-		return SA_AIS_ERR_INVALID_PARAM;
+			pmErr != (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ZERO_EXIT)) {
+		if ((pmErr == SA_AMF_PM_ABNORMAL_END) ||
+				(pmErr == (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
+				(pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
+				(pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END))) {
+			TRACE_LEAVE2("Unsupported argument specified for SaAmfPmErrorsT ");
+			return SA_AIS_ERR_NOT_SUPPORTED;
+		} else {
+			TRACE_LEAVE2("Incorrect argument specified for SaAmfPmErrorsT ");
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
 	}
 
 	/* input validation of Recomended recovery */
@@ -1064,9 +1072,17 @@ SaAisErrorT saAmfPmStop(SaAmfHandleT hdl,
 
 	/* input validation of pmError */
 	if (pmErr != SA_AMF_PM_NON_ZERO_EXIT && pmErr != SA_AMF_PM_ZERO_EXIT &&
-	    pmErr != (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ZERO_EXIT)) {
-		TRACE_LEAVE2("Incorrect argument specified for SaAmfPmErrorsT");
-		return SA_AIS_ERR_INVALID_PARAM;
+			pmErr != (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ZERO_EXIT)) {
+		if ((pmErr == SA_AMF_PM_ABNORMAL_END) ||
+				(pmErr == (SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
+				(pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END)) ||
+				(pmErr == (SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT | SA_AMF_PM_ABNORMAL_END))) {
+			TRACE_LEAVE2("Unsupported argument specified for SaAmfPmErrorsT ");
+			return SA_AIS_ERR_NOT_SUPPORTED;
+		} else {
+			TRACE_LEAVE2("Incorrect argument specified for SaAmfPmErrorsT");
+			return SA_AIS_ERR_INVALID_PARAM;
+		}
 	}
 
 	/* input validation of Process ID */
