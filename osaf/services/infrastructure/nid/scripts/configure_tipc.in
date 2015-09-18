@@ -35,6 +35,16 @@ SUBSLOT_ID_FILE=$pkgsysconfdir/subslot_id
 # of the address and the slot ID is shifted up 4 bits. 
 USE_SUBSLOT_ID=${TIPC_USE_SUBSLOT_ID:-"NO"}
 
+# Currently supported max nodes for Opensaf
+TIPC_MAX_NODES=2000
+
+# Support for enable disable duplicate node verification.
+# When TIPC_DUPLICATE_NODE_DETECT is set to "YES" (the default is "YES"),
+# at Opensaf start-up , it is per-verified whether any duplicate node
+# exist in the cluster, set TIPC_DUPLICATE_NODE_DETECT set to NO to disable
+# per-verification of duplicate node.
+DUPLICATE_NODE_DETECT=${TIPC_DUPLICATE_NODE_DETECT:-"YES"}
+
 # constants
 SHIFT4=4
 
@@ -112,14 +122,15 @@ else
     TIPC_NODEID=$SLOT_ID    
 fi
 
-function tipc_configure ()
+function tipc_duplicate_node_detect ()
 {
-    echo "Inserting TIPC mdoule..."
-    
+    logger -t opensaf -s "Checking for duplicate Node: $TIPC_NODEID in Cluster..."
     if ! test -f "$TIPC_MODULE"  ; then
       modprobe tipc
-    else 
+      RM_TIPC_MODULE="modprobe -r tipc"
+    else
       insmod "$TIPC_MODULE"
+      RM_TIPC_MODULE="rmmod $TIPC_MODULE"
     fi
 
     ret_val=$?
@@ -130,11 +141,76 @@ function tipc_configure ()
 
     # max_nodes is not supported in TIPC 2.0
     if ${tipc_config} -max_nodes 2> /dev/null; then
-        ${tipc_config} -max_nodes=2000 
+        ${tipc_config} -max_nodes=$TIPC_MAX_NODES
+        ret_val=$?
+        if [ $ret_val -ne 0 ] ; then
+            $RM_TIPC_MODULE
+            exit 1
+        fi
+    fi
+ 
+    if [ $# -eq 1 ] ; then
+            ################ Address config and check #########
+            ${tipc_config} -a=1.1.$TIPC_MAX_NODES
+            ret_z1=$?
+            if [ $ret_z1 -ne 0 ] ; then
+                echo "Unable to Configure TIPC address, Please try again, exiting" 
+                $RM_TIPC_MODULE
+                exit 1
+            fi
+    else
+        ${tipc_config} -netid=$TIPC_NETID -a=1.1.$TIPC_MAX_NODES
+        ret_z2=$?
+        if [ $ret_z2 -ne 0 ] ; then
+            echo "Unable to Configure TIPC address, Please try again, exiting" 
+            $RM_TIPC_MODULE
+            exit 1
+        fi
+        ${tipc_config} -be=$(echo $ETH_NAME | sed 's/^/eth:/;s/,/,eth:/g')
+        ret_z3=$?
+        if [ $ret_z3 -ne 0 ] ; then
+            echo "Unable to Configure TIPC bearer interface, Please try again, exiting" 
+            $RM_TIPC_MODULE
+            exit 1
+        else
+          ${tipc_config} -nt | grep cluster | grep "1.1.$TIPC_NODEID:" > /dev/null
+          ret_z4=$?
+          if [ $ret_z4 -eq 0 ] ; then
+            logger -t opensaf -s "Unable to Configure TIPC Node, Duplicate Node $TIPC_NODEID exist in cluster, exiting..."
+            $RM_TIPC_MODULE
+            exit 1
+          fi
+        fi
+    fi
+
+    $RM_TIPC_MODULE
+}
+
+function tipc_configure ()
+{
+    echo "Inserting TIPC mdoule..."
+    
+    if ! test -f "$TIPC_MODULE"  ; then
+      modprobe tipc
+      RM_TIPC_MODULE="modprobe -r tipc"
+    else 
+      insmod "$TIPC_MODULE"
+      RM_TIPC_MODULE="rmmod $TIPC_MODULE"
+    fi
+
+    ret_val=$?
+    if [ $ret_val -ne 0 ] ; then
+        logger -p user.err " TIPC Module could not be loaded "
+        exit 1
+    fi
+
+    # max_nodes is not supported in TIPC 2.0
+    if ${tipc_config} -max_nodes 2> /dev/null; then
+        ${tipc_config} -max_nodes=$TIPC_MAX_NODES 
         ret_val=$?
         if [ $ret_val -ne 0 ] ; then 
-            echo "Unable to set the Max_nodes to 2000, exiting ....."
-            modprobe -r tipc
+            echo "Unable to set the Max_nodes to $TIPC_MAX_NODES, exiting ....."
+            $RM_TIPC_MODULE
             exit 1
         fi
     fi
@@ -147,7 +223,7 @@ function tipc_configure ()
             if [ $ret_z1 -ne 0 ] ; then 
                 echo "Unable to Configure TIPC address, Please try again, exiting" 
                 echo "Removing TIPC module ...."
-                modprobe -r tipc
+                $RM_TIPC_MODULE
                 exit 1
             fi
     else
@@ -158,7 +234,7 @@ function tipc_configure ()
         if [ $ret_z2 -ne 0 ] ; then 
             echo "Unable to Configure TIPC address, Please try again, exiting" 
             echo "Removing TIPC module ...."
-            modprobe -r tipc
+            $RM_TIPC_MODULE
             exit 1
         fi
         ################ Interface config and check #########
@@ -167,7 +243,7 @@ function tipc_configure ()
         if [ $ret_z3 -ne 0 ] ; then 
             echo "Unable to Configure TIPC bearer interface, Please try again, exiting" 
             echo "Removing TIPC module ...."
-            modprobe -r tipc
+            $RM_TIPC_MODULE
             exit 1
         fi
     fi   
@@ -177,6 +253,9 @@ function tipc_configure ()
 
 # Consider that TIPC could be statically linked
 if ! grep TIPC /proc/net/protocols >& /dev/null; then
+    if [ "$DUPLICATE_NODE_DETECT" = "YES" ]; then
+       tipc_duplicate_node_detect 
+    fi
     tipc_configure
 else
     # TIPC is already present, is it configured properly?
