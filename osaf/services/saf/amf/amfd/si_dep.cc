@@ -1530,10 +1530,10 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 		if (m_NCS_MDS_DEST_EQUAL(&sisu->su->su_on_node->adest,&su->su_on_node->adest)) {
 			avd_si_unassign(dep_si);
 		} else {
-			if((dep_si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING) ||
-					(dep_si->si_dep_state != AVD_SI_READY_TO_UNASSIGN)) {
+			/* Don't start tol timer if dep state are either in running or unassigned. */
+			if(!((dep_si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING) ||
+						(dep_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN))) {
 				avd_sidep_start_tolerance_timer_for_dependant(dep_si, si);
-
 			}
 		}
 		/* If this dependent SI is sponsor too, then unassign its dependents also */
@@ -1850,9 +1850,7 @@ void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 
 				if(su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) {
 					if ((m_NCS_MDS_DEST_EQUAL(&sisu->su->su_on_node->adest,&su->su_on_node->adest))) {
-						if(((dep_si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING) ||
-							(dep_si->si_dep_state != AVD_SI_READY_TO_UNASSIGN) ||
-							(dep_si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) &&
+						if((dep_si->si_dep_states_check() == false) &&
 							(avd_sidep_sponsors_assignment_states(dep_si))) {
 
 							avd_sidep_si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
@@ -1863,10 +1861,7 @@ void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 						}
 					}
 				} else if (dep_si->sg_of_si == si->sg_of_si) {
-					if((dep_si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING) ||
-						(dep_si->si_dep_state != AVD_SI_READY_TO_UNASSIGN) ||
-						(dep_si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) {
-
+					if(dep_si->si_dep_states_check() == false) {
 						avd_sidep_si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 						if (dep_si->num_dependents > 0) {
 							/* This SI also has dependents under it, update their state also */
@@ -1904,9 +1899,7 @@ void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 						}
 						if (sponsor_assignments_state == true) {
 
-							if((dep_si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING) ||
-							   (dep_si->si_dep_state != AVD_SI_READY_TO_UNASSIGN) ||
-							   (dep_si->si_dep_state != AVD_SI_FAILOVER_UNDER_PROGRESS)) {
+							if(dep_si->si_dep_states_check() == false) {
 
 								avd_sidep_si_dep_state_set(dep_si, AVD_SI_FAILOVER_UNDER_PROGRESS);
 								if (dep_si->num_dependents > 0) {
@@ -2618,4 +2611,20 @@ void avd_sidep_unassign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 done:
 	TRACE_LEAVE();
+}
+
+/**
+ * @brief Checks if si_dep_state is either in AVD_SI_TOL_TIMER_RUNNING,
+ * AVD_SI_READY_TO_UNASSIGN, AVD_SI_FAILOVER_UNDER_PROGRESS.
+ * @return true if si_dep_state is either one of the above state else false.
+ */
+bool AVD_SI::si_dep_states_check() {
+	TRACE_ENTER2("%u", si_dep_state);
+	if ((si_dep_state == AVD_SI_TOL_TIMER_RUNNING) ||
+			(si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
+			(si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)) {
+		return true;
+	}
+	TRACE_LEAVE();
+	return false;
 }
