@@ -797,6 +797,15 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 		goto done;
 	}
 
+	/* Validate maxFilesRotated just in case of SA_LOG_FILE_FULL_ACTION_ROTATE type */
+	if ((open_sync_param->logFileFullAction == SA_LOG_FILE_FULL_ACTION_ROTATE) &&
+		((open_sync_param->maxFilesRotated < 1) ||
+		 (open_sync_param->maxFilesRotated > 127))) {
+		TRACE("Invalid maxFilesRotated. Valid Range = [1-127]");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
 	if (open_sync_param->logFileFmt == NULL) {
 		TRACE("logFileFmt is NULL, use default one");
 		const char* logFileFormat = (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
