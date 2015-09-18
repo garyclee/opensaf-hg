@@ -35,6 +35,9 @@
 #define CCB_CRIT_THRESHOLD 8 /* See ImmModel::immNotPbeWritable */
 #define SEARCH_TIMEOUT_SEC 600 /* Search timeout */
 
+// Same strings exists in immnd_evt.c
+#define IMM_VALIDATION_ABORT	"IMM: Validation abort: "
+#define IMM_RESOURCE_ABORT		"IMM: Resource abort: "
 
 struct ContinuationInfo2
 {
@@ -2143,6 +2146,23 @@ immModel_resourceDisplay(IMMND_CB *cb,
 
     return ImmModel::instance(&cb->immModel)->
         resourceDisplay(reqparams, rparams, searchcount);
+}
+
+void
+immModel_setCcbErrorString(IMMND_CB *cb, SaUint32T ccbId, const char *errorString, ...) {
+    CcbVector::iterator cvi;
+    va_list vl;
+
+    cvi = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
+    if (cvi == sCcbVector.end()) {
+        /* Cannot find CCB. Error string will be ignored.
+         * This case should never happen. */
+        return;
+    }
+
+    va_start(vl, errorString);
+    ImmModel::instance(&cb->immModel)->setCcbErrorString(*cvi, errorString, vl);
+    va_end(vl);
 }
 
 /*====================================================================*/
@@ -5031,6 +5051,8 @@ ImmModel::ccbApply(SaUint32T ccbId,
             LOG_NO("ERR_BAD_HANDLE: Admin owner id %u does not exist", 
                 ccb->mAdminOwnerId);
             ccb->mVeto = SA_AIS_ERR_BAD_HANDLE;
+            /* Later in the code, error code will be set to SA_AIS_ERR_FAILED_OPERATION */
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Admin owner does not exist");
         } else if(ccb->mState > IMM_CCB_READY) {
             if(ccb->mState == IMM_CCB_VALIDATING) {
                 LOG_IN("Ccb <%u> in incorrect state 'CCB_VALIDATING for "
@@ -5052,6 +5074,8 @@ ImmModel::ccbApply(SaUint32T ccbId,
                             /* apply callback needs to be sent to implementers. */
                            err = SA_AIS_ERR_INTERRUPT;
                         }
+                    } else if(err == SA_AIS_ERR_FAILED_OPERATION) {
+                        setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Completed validation failed");
                     }
                     goto done;
                }
@@ -5082,9 +5106,11 @@ ImmModel::ccbApply(SaUint32T ccbId,
             }
             err = SA_AIS_ERR_FAILED_OPERATION;
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Parent is missing");
         } else if(!validateNoDanglingRefs(ccb)) {
             err = SA_AIS_ERR_FAILED_OPERATION;
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_VALIDATION_ABORT "No dangling validation failed");
         } else {
             /* sMissingParents must be empty if err is SA_AIS_OK */
             osafassert(sMissingParents.empty());
@@ -5123,6 +5149,8 @@ ImmModel::ccbApply(SaUint32T ccbId,
                         "refusing apply", impInfo->mImplementerName.c_str());
                     err = SA_AIS_ERR_FAILED_OPERATION;
                     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+                    setCcbErrorString(ccb,
+                            IMM_RESOURCE_ABORT "Lost connection with implementer");
                     break;
                 }
                 //Wait for ack, possibly remote
@@ -5711,7 +5739,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client,
            not really any error at all, but mVeto should not be SA_AIS_OK.
         */
         ccb->mVeto = SA_AIS_ERR_NO_RESOURCES;
-        setCcbErrorString(ccb, "Resource Error: CCB abort due to either "
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB abort due to either "
             "OI timeout or explicit abort request.");
     }
 
@@ -6099,6 +6127,7 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
            rsp->inv, ccbId);
         if(ccb->mVeto == SA_AIS_OK) {
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            /* Note: This error code is returned to OI. Parent CCB is aborted */
             err = SA_AIS_ERR_BAD_OPERATION;
         }
         goto done;
@@ -6120,6 +6149,7 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
         TRACE("Ccb %u is already in an error state %u, can not accept augmentation",
              ccbId, ccb->mVeto);
         err = SA_AIS_ERR_FAILED_OPERATION; /*ccb->mVeto;*/
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
         goto done;
     }
 
@@ -6872,6 +6902,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectCreate operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
         goto ccbObjectCreateExit;
     }
 
@@ -6879,6 +6910,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is not in an expected state:%u "
             "rejecting ccbObjectCreate operation ", ccbId, ccb->mState);
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is not in an expected state");
         goto ccbObjectCreateExit;
     }
 
@@ -6908,13 +6940,14 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb admoId:%u and AdminOwner-id:%u",
                 adminOwner->mId, ccb->mAdminOwnerId);
             err = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Inconsistency between CCB and AdminOwner");
             goto ccbObjectCreateExit;
         }
     }
 
     if (i3 == sClassMap.end()) {
         TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
-        setCcbErrorString(ccb, "ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
+        setCcbErrorString(ccb, "IMM: ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto ccbObjectCreateExit;
     } else if(sPbeRtMutations.find(className) != sPbeRtMutations.end()) {
@@ -7010,6 +7043,9 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     if (i4 == classInfo->mAttrMap.end()) {
         LOG_WA("ERR_FAILED_OPERATION: No RDN attribute found in class!");
         err = SA_AIS_ERR_FAILED_OPERATION;     //Should never happen!
+        // Here IMMND should assert ??? It cannot happen that class does not have RDN.
+        // This could happen due to memory corruption or heap overflow
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "No RDN found in a class");
         goto ccbObjectCreateExit;
     }
 
@@ -7247,7 +7283,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
             
             if (i6 == object->mAttrValueMap.end()) {
                 TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
-                setCcbErrorString(ccb, "ERR_NOT_EXIST: attr '%s' not defined",
+                setCcbErrorString(ccb, "IMM: ERR_NOT_EXIST: attr '%s' not defined",
                         attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 break; //out of for-loop
@@ -7557,6 +7593,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     ccb->mVeto = err;
                     LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
                            "ccb %u is aborted", ccbId);
+                    setCcbErrorString(ccb, IMM_RESOURCE_ABORT "PBE is down");
                 } else {
                     /* Pristine ccb can not start because PBE down */
                     TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
@@ -7638,7 +7675,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     }
                 } else {
                     setCcbErrorString(ccb,
-                        "ERR_BAD_OPERATION: Imm not allowing creates of instances of class '%s'",
+                        "IMM: ERR_BAD_OPERATION: Imm not allowing creates of instances of class '%s'",
                         immMngtClass.c_str());
                     err = SA_AIS_ERR_BAD_OPERATION;
                 }
@@ -7656,10 +7693,12 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                                     "but attribute 'longDnsAllowed' is not defined in class %s",
                                     immClassName.c_str());
                             err = SA_AIS_ERR_FAILED_OPERATION;
+                            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Long DN is used, but attribute longDnsAllowed in not defined");
                         } else if(!i6->second->getValue_int()) {
                             LOG_WA("ERR_FAILED_OPERATION: Long DN is used during the loading initial data, "
                                     "but longDnsAllowed is set to 0");
                             err = SA_AIS_ERR_FAILED_OPERATION;
+                            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Long DN is used when longDnsAllowed is set to 0");
                         }
                     } else {
                         /* 'else' branch is not needed. Only for small performance issue.
@@ -7671,7 +7710,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                     }
                 } else {
                     setCcbErrorString(ccb,
-                        "ERR_BAD_OPERATION: Imm not allowing creates of instances of class '%s'",
+                        "IMM: ERR_BAD_OPERATION: Imm not allowing creates of instances of class '%s'",
                         immClassName.c_str());
                     err = SA_AIS_ERR_BAD_OPERATION;
                 }
@@ -7685,7 +7724,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                         "implementer and flag SA_IMM_CCB_REGISTERED_OI is set", 
                         className.c_str());
                     setCcbErrorString(ccb,
-                            "ERR_NOT_EXIST: class '%s' does not have an "
+                            "IMM: ERR_NOT_EXIST: class '%s' does not have an "
                             "implementer and flag SA_IMM_CCB_REGISTERED_OI is set",
                             className.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
@@ -8014,6 +8053,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectModify operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
         goto ccbObjectModifyExit;
     }
     
@@ -8021,6 +8061,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         LOG_WA("ERR_FAILED_OPERATION: ccb %u is not in an expected state: %u "
             "rejecting ccbObjectModify operation ", ccbId, ccb->mState);
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is not in an expected state");
         goto ccbObjectModifyExit;
     }
     
@@ -8039,6 +8080,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb-admoId:%u and "
             "AdminOwnerId:%u", adminOwner->mId, ccb->mAdminOwnerId);
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Inconsistency between CCB and AdminOwner");
         goto ccbObjectModifyExit;
     }
     
@@ -8184,7 +8226,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             TRACE_7("ERR_BAD_OPERATION: attr '%s' in IMM object %s is not supported",
                 attrName.c_str(), objectName.c_str());
             setCcbErrorString(ccb,
-                "ERR_BAD_OPERATION: attr '%s' in IMM object %s is not supported",
+                "IMM: ERR_BAD_OPERATION: attr '%s' in IMM object %s is not supported",
                 attrName.c_str(), objectName.c_str());
             err = SA_AIS_ERR_BAD_OPERATION;
             break; //out of for-loop
@@ -8194,14 +8236,14 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             /* ENABLE_PBE defined in immnd.h */ 
             LOG_NO("ERR_BAD_OPERATION:  imm has not been built with --enable-imm-pbe");
             setCcbErrorString(ccb,
-                "ERR_BAD_OPERATION:  imm has not been built with --enable-imm-pbe");
+                "IMM: ERR_BAD_OPERATION:  imm has not been built with --enable-imm-pbe");
             err = SA_AIS_ERR_BAD_OPERATION;
             break; 
         }
         
         if(modifiedRim && !pbeFile) {
             LOG_NO("ERR_BAD_OPERATION: PBE file is not configured");
-            setCcbErrorString(ccb, "ERR_BAD_OPERATION: PBE file is not configured");
+            setCcbErrorString(ccb, "IMM: ERR_BAD_OPERATION: PBE file is not configured");
             err = SA_AIS_ERR_BAD_OPERATION;
             break; 
         }
@@ -8211,7 +8253,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             TRACE_7("ERR_NOT_EXIST: attr '%s' does not exist in object %s",
                 attrName.c_str(), objectName.c_str());
             setCcbErrorString(ccb,
-                "ERR_NOT_EXIST: attr '%s' does not exist in object %s",
+                "IMM: ERR_NOT_EXIST: attr '%s' does not exist in object %s",
                 attrName.c_str(), objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             break; //out of for-loop
@@ -8393,7 +8435,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         TRACE_7("ERR_BAD_OPERATION: attr '%s' in IMM object %s can not have value %u",
                             attrName.c_str(), objectName.c_str(), newRim);
                         setCcbErrorString(ccb,
-                            "ERR_BAD_OPERATION: attr '%s' in IMM object %s can not have value %u",
+                            "IMM: ERR_BAD_OPERATION: attr '%s' in IMM object %s can not have value %u",
                             attrName.c_str(), objectName.c_str(), newRim);
                         err = SA_AIS_ERR_BAD_OPERATION;
                         break;
@@ -8456,7 +8498,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     TRACE_7("ERR_BAD_OPERATION: attr '%s' in IMM object %s must not be empty",
                         attrName.c_str(), objectName.c_str());
                     setCcbErrorString(ccb,
-                        "ERR_BAD_OPERATION: attr '%s' in IMM object %s must not be empty",
+                        "IMM: ERR_BAD_OPERATION: attr '%s' in IMM object %s must not be empty",
                         attrName.c_str(), objectName.c_str());
                     err = SA_AIS_ERR_BAD_OPERATION;
                     break;
@@ -8523,6 +8565,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 ccb->mVeto = err;
                 LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
                        "ccb %u is aborted", ccbId);
+                setCcbErrorString(ccb, IMM_RESOURCE_ABORT "PBE is down");
             } else {
                 /* Pristine ccb can not start because PBE down */
                 TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
@@ -8680,9 +8723,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             if(longDnsPermitted != longDnsAllowedAfter) {
                 if(ccbIdLongDnGuard) {
                     /* This case should never happen since it is guarded by regular ccb handling. */
-                    setCcbErrorString(ccb, "ERR_BUSY: Other Ccb (%u) already using %s",
+                    setCcbErrorString(ccb, "IMM: ERR_BUSY: Other Ccb (%u) already using %s",
                         ccbIdLongDnGuard, immLongDnsAllowed.c_str());
-                    LOG_IN("ERR_BUSY: Other Ccb (%u) already using %s",
+                    LOG_IN("IMM: ERR_BUSY: Other Ccb (%u) already using %s",
                         ccbIdLongDnGuard, immLongDnsAllowed.c_str());
                     err = SA_AIS_ERR_BUSY;
                 } else {
@@ -8794,6 +8837,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     err = SA_AIS_ERR_FAILED_OPERATION;
                     //Let the timeout handling take care of it on other nodes.
                     //This really needs to be tested! But how ?
+                    setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Lost connection with implementer");
                 } else {
                     *continuationId = sLastContinuationId;
                 }
@@ -8815,7 +8859,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     "implementer and flag SA_IMM_CCB_REGISTERED_OI is set", 
                     objectName.c_str());
                 setCcbErrorString(ccb,
-                        "ERR_NOT_EXIST: object '%s' exist but "
+                        "IMM: ERR_NOT_EXIST: object '%s' exist but "
                         "no implementer (which is required)",
                         objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
@@ -8852,6 +8896,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         if(chainedOp) {
             err = SA_AIS_ERR_FAILED_OPERATION;
             ccb->mVeto = err; //Corrupted chain => corrupted ccb
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Corrupted CCB");
         } else { //First op on this object => ccb can survive
             if(afim) {
                 //Delete the cloned afim.
@@ -8957,6 +9002,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectDelete operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB in error state");
         goto ccbObjectDeleteExit;
     }
     
@@ -8964,6 +9010,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
         LOG_WA("ERR_FAILED_OPERATION: ccb %u is not in an expected state:%u "
             "rejecting ccbObjectDelete operation ", ccbId, ccb->mState);
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is not in an expected state");
         goto ccbObjectDeleteExit;
     }
     
@@ -8987,6 +9034,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
         LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb and AdminOwner");
         err = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Inconsistency between CCB and AdminOwner");
         goto ccbObjectDeleteExit;
     }
     
@@ -9020,6 +9068,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 ccb->mVeto = err;
                 LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
                        "ccb %u is aborted", ccbId);
+                setCcbErrorString(ccb, IMM_RESOURCE_ABORT "PBE is down");
             } else {
                 /* Pristine ccb can not start because PBE down */
                 TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
@@ -9240,7 +9289,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
         /* Prevent delete of imm service objects, even when there is no OI for them */
         if(oi->first == immManagementDn || oi->first == immObjectDn) {
             setCcbErrorString(ccb,
-                "ERR_BAD_OPERATION: Imm not allowing delete of object '%s'",
+                "IMM: ERR_BAD_OPERATION: Imm not allowing delete of object '%s'",
                 oi->first.c_str());
             return SA_AIS_ERR_BAD_OPERATION;
         }
@@ -9255,7 +9304,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                     "and flag SA_IMM_CCB_REGISTERED_OI is set", 
                     oi->first.c_str());
                 setCcbErrorString(ccb,
-                        "ERR_NOT_EXIST: object '%s' exist but "
+                        "IMM: ERR_NOT_EXIST: object '%s' exist but "
                         "no implementer (which is required)",
                         oi->first.c_str());
                 return SA_AIS_ERR_NOT_EXIST;
@@ -9428,24 +9477,21 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
 }
 
 void
-ImmModel::setCcbErrorString(CcbInfo *ccb, const char *errorString, ...)
-{
+ImmModel::setCcbErrorString(CcbInfo *ccb, const char *errorString, va_list vl) {
     int errLen = strlen(errorString) + 1;
     char *fmtError = (char *)malloc(errLen);
     int len;
-    va_list vl;
+    va_list args;
 
-    va_start(vl, errorString);
-    len = vsnprintf(fmtError, errLen, errorString, vl);
-    va_end(vl);
+    va_copy(args, vl);
+    len = vsnprintf(fmtError, errLen, errorString, args);
+    va_end(args);
 
     osafassert(len >= 0);
     len++;     /* Reserve one byte for null-terminated sign '\0' */
     if(len > errLen) {
         fmtError = (char *)realloc(fmtError, len);
-        va_start(vl, errorString);
         osafassert(vsnprintf(fmtError, len, errorString, vl) >= 0);
-        va_end(vl);
     }
 
     unsigned int ix=0;
@@ -9473,6 +9519,16 @@ ImmModel::setCcbErrorString(CcbInfo *ccb, const char *errorString, ...)
         (*errStrTail)->name.size = len;
         (*errStrTail)->name.buf = fmtError;
     }
+}
+
+void
+ImmModel::setCcbErrorString(CcbInfo *ccb, const char *errorString, ...)
+{
+    va_list vl;
+
+    va_start(vl, errorString);
+    setCcbErrorString(ccb, errorString, vl);
+    va_end(vl);
 }
 
 bool
@@ -9515,6 +9571,9 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err, bool augDel
         TRACE_5("CCb %u terminated during ccbObjectDelete processing, "
             "ccb must be aborted", ccbId);
         *err = SA_AIS_ERR_FAILED_OPERATION;
+        if(i1 != sCcbVector.end()) {
+            setCcbErrorString(*i1, IMM_RESOURCE_ABORT "CCB is terminated during ccbObjectDelete processing");
+        }
         return false;
     }
     CcbInfo* ccb = *i1;
@@ -9579,6 +9638,9 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
         TRACE_5("Ccb %u terminated during ccbCompleted processing, "
             "ccb must be aborted", ccbId);
         *err = SA_AIS_ERR_FAILED_OPERATION;
+        if(i1 != sCcbVector.end()) {
+            setCcbErrorString(*i1, IMM_RESOURCE_ABORT "CCB is terminated");
+        }
         return false;
     }
     CcbInfo* ccb = *i1;
@@ -9678,6 +9740,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
             *err = ccb->mVeto;
             LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
                            "ccb %u is aborted", ccbId);
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "PBE is down");
         }
     }
 
@@ -9708,6 +9771,7 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
         LOG_WA("Not a proper object name: %s", objectName.c_str());
         if(ccb->mVeto == SA_AIS_OK) {
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Not a proper object name");
         }
         return;
     }
@@ -9721,6 +9785,7 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
             if((rsp->result == SA_AIS_OK) && ccb->isActive()) {
                 LOG_NO("Vetoing ccb %u with ERR_FAILED_OPERATION", ccbId);
                 ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+                setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is interrupted in augmentation");
             }
         }
         ccb->mOriginatingConn = ccb->mAugCcbParent->mOriginatingConn;
@@ -9741,6 +9806,7 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
             objectName.c_str());
         if(ccb->mVeto == SA_AIS_OK) {
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Object is not found in CCB");
         }
     } else {
         osafassert(omuti->second->mWaitForImplAck);
@@ -9758,6 +9824,7 @@ ImmModel::ccbObjDelContinuation(immsv_oi_ccb_upcall_rsp* rsp,
                     "implementer returned error, Ccb aborted with error: %u",
                      rsp->result);
                 ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+                setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Implementer returned error: ", rsp->result);
                 //TODO: This is perhaps more drastic than the specification
                 //demands. We are here aborting the entire Ccb, whereas the spec
                 //seems to allow for a non-ok returnvalue from implementer 
@@ -9832,6 +9899,7 @@ ImmModel::ccbCompletedContinuation(immsv_oi_ccb_upcall_rsp* rsp,
             LOG_WA("Completed continuation: implementer '%u' Not found "
                 "in ccb %u aborting ccb", rsp->implId, ccbId);
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Implementer not found");
         } else {
             LOG_WA("Completed continuation: implementer '%u' Not found "
                 "in ccb %u in state(%u), can not abort", rsp->implId, 
@@ -9875,17 +9943,20 @@ ImmModel::ccbCompletedContinuation(immsv_oi_ccb_upcall_rsp* rsp,
                     case SA_AIS_ERR_BAD_OPERATION:
                         LOG_NO("Validation error (BAD_OPERATION) reported by implementer '%s', "
                                "Ccb %u will be aborted", ix->second->mImplementer->mImplementerName.c_str(), ccbId);
+                        setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Completed validation fails (ERR_BAD_OPERATION)");
                         break;
 
                     case SA_AIS_ERR_NO_MEMORY:
                     case SA_AIS_ERR_NO_RESOURCES:
                            LOG_NO("Resource error %u reported by implementer '%s', Ccb %u will be aborted",
                                rsp->result, ix->second->mImplementer->mImplementerName.c_str(), ccbId);
+                           setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Completed validation fails (Error code: %u)", rsp->result);
                         break;
 
                    default:
                            LOG_NO("Invalid error reported implementer '%s', Ccb %u will be aborted",
                                ix->second->mImplementer->mImplementerName.c_str(), ccbId);
+                           setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Completed validation fails (Error code: %u)", rsp->result);
                 }
                 ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
             }
@@ -9970,6 +10041,7 @@ ImmModel::ccbObjCreateContinuation(SaUint32T ccbId, SaUint32T invocation,
             invocation, ccbId);
         if(ccb->mVeto == SA_AIS_OK) {
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Create invocation is not found in CCB");
         }
     } else {
         osafassert(omuti->second->mWaitForImplAck);
@@ -9986,6 +10058,7 @@ ImmModel::ccbObjCreateContinuation(SaUint32T ccbId, SaUint32T invocation,
             if((error == SA_AIS_OK) && ccb->isActive()) {
                 LOG_IN("Vetoing ccb %u with ERR_FAILED_OPERATION", ccbId);
                 error = SA_AIS_ERR_FAILED_OPERATION;
+                setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB was interrupted in augmentation");
             }
         }
         ccb->mOriginatingConn = ccb->mAugCcbParent->mOriginatingConn;
@@ -10005,6 +10078,7 @@ ImmModel::ccbObjCreateContinuation(SaUint32T ccbId, SaUint32T invocation,
             "implementer returned error, Ccb aborted with error: %u",
             error);
         ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Implementer returned error: %u", error);
         //TODO: This is perhaps more drastic than the specification demands.
         //We are here aborting the entire Ccb, whereas the spec seems to allow
         //for a non-ok returnvalue from implementer (in this callback) to
@@ -10054,6 +10128,7 @@ ImmModel::ccbObjModifyContinuation(SaUint32T ccbId, SaUint32T invocation,
             invocation, ccbId);
         if(ccb->mVeto == SA_AIS_OK) {
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Modify invocation is not found in CCB");
         }
     } else {
         osafassert(omuti->second->mWaitForImplAck);
@@ -10070,6 +10145,7 @@ ImmModel::ccbObjModifyContinuation(SaUint32T ccbId, SaUint32T invocation,
             if((error == SA_AIS_OK) && ccb->isActive()) {
                 LOG_IN("Vetoing ccb %u with ERR_FAILED_OPERATION", ccbId);
                 error = SA_AIS_ERR_FAILED_OPERATION;
+                setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB was interrupted in augmentation");
             }
         }
         ccb->mOriginatingConn = ccb->mAugCcbParent->mOriginatingConn;
@@ -10088,6 +10164,7 @@ ImmModel::ccbObjModifyContinuation(SaUint32T ccbId, SaUint32T invocation,
         LOG_IN("ImmModel::ccbObjModifyContinuation: "
             "implementer returned error, Ccb aborted with error: %u", error);
         ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+        setCcbErrorString(ccb, IMM_VALIDATION_ABORT "Implementer returned error: %u", error);
         //TODO: This is perhaps more drastic than the specification demands.
         //We are here aborting the entire Ccb, whereas the spec seems to allow
         //for a non-ok returnvalue from implementer (in this callback) to

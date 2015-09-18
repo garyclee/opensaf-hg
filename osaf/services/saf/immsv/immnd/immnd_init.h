@@ -425,6 +425,12 @@ extern "C" {
 		const struct ImmsvAdminOperationParam *reqparams,
 		struct ImmsvAdminOperationParam **rparams);
 
+	void
+	immModel_setCcbErrorString(IMMND_CB *cb,
+		SaUint32T ccbId,
+		const char *errorString,
+		...);
+
 #ifdef __cplusplus
 }
 #endif

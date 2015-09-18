@@ -38,6 +38,10 @@
 #define IMMND_SEARCH_BUNDLE_SIZE ((MDS_DIRECT_BUF_MAXSIZE / 100) * 90)   
 #define IMMND_MAX_SEARCH_RESULT (IMMND_SEARCH_BUNDLE_SIZE / 300)  
 
+// Same strings exists in ImmModel.cc
+#define IMM_VALIDATION_ABORT	"IMM: Validation abort: "
+#define IMM_RESOURCE_ABORT		"IMM: Resource abort: "
+
 static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq, const IMMSV_SEND_INFO *sinfo);
 static uint32_t immnd_evt_proc_cb_dump(IMMND_CB *cb);
 static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
@@ -3600,14 +3604,41 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		IMMSV_ATTR_NAME_LIST strList;
+		IMMSV_ATTR_NAME_LIST errStrList = { { 0 }, NULL };
 		
 		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
-			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
+			if(evt->info.ccbUpcallRsp.result != SA_AIS_ERR_FAILED_OPERATION) {
+				char buf[2];
+				int size;
+
+				/* Create error string */
+				size = snprintf(buf, 1,
+						IMM_RESOURCE_ABORT "Upcall failed with error code: %u",
+						evt->info.ccbUpcallRsp.result);
+				osafassert(size >= 0);
+				errStrList.name.size = ++size;
+				errStrList.name.buf = (char *)malloc(size);
+				errStrList.next = NULL;
+				size = snprintf(errStrList.name.buf, errStrList.name.size,
+						IMM_RESOURCE_ABORT "Upcall failed with error code: %u",
+						evt->info.ccbUpcallRsp.result);
+				osafassert(size >= 0);
+
+				evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
+			}
 			if (evt->info.ccbUpcallRsp.errorString.size) {
 				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
-				strList.next = NULL;
+				if(errStrList.name.buf) {
+					strList.next = &errStrList;
+				} else {
+					strList.next = NULL;
+				}
 				strList.name = evt->info.ccbUpcallRsp.errorString;/*borrow*/
 				send_evt.info.imma.info.errRsp.errStrings = &(strList);
+				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+			} else if(errStrList.name.buf) {
+				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
+				send_evt.info.imma.info.errRsp.errStrings = &(errStrList);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
 			}
 		}
@@ -3619,6 +3650,8 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send response to agent/client over MDS rc:%u", rc);
 		}
+
+		free(errStrList.name.buf);
 	}
 
 	TRACE_LEAVE();
@@ -3670,14 +3703,41 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		IMMSV_ATTR_NAME_LIST strList;
+		IMMSV_ATTR_NAME_LIST errStrList = { { 0 }, NULL };
 
 		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
-			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
+			if(evt->info.ccbUpcallRsp.result != SA_AIS_ERR_FAILED_OPERATION) {
+				char buf[2];
+				int size;
+
+				/* Create error string */
+				size = snprintf(buf, 1,
+						IMM_RESOURCE_ABORT "Upcall failed with error code: %u",
+						evt->info.ccbUpcallRsp.result);
+				osafassert(size >= 0);
+				errStrList.name.size = ++size;
+				errStrList.name.buf = (char *)malloc(size);
+				errStrList.next = NULL;
+				size = snprintf(errStrList.name.buf, errStrList.name.size,
+						IMM_RESOURCE_ABORT "Upcall failed with error code: %u",
+						evt->info.ccbUpcallRsp.result);
+				osafassert(size >= 0);
+
+				evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
+			}
 			if (evt->info.ccbUpcallRsp.errorString.size) {
 				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP_2);
-				strList.next = NULL;
+				if(errStrList.name.buf) {
+					strList.next = &errStrList;
+				} else {
+					strList.next = NULL;
+				}
 				strList.name = evt->info.ccbUpcallRsp.errorString;/*borrow*/
 				send_evt.info.imma.info.errRsp.errStrings = &(strList);
+				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+			} else if(errStrList.name.buf) {
+				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
+				send_evt.info.imma.info.errRsp.errStrings = &(errStrList);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
 			}
 		}
@@ -3689,6 +3749,8 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send response to agent/client over MDS rc:%u", rc);
 		}
+
+		free(errStrList.name.buf);
 	}
 
 	TRACE_LEAVE();
@@ -4003,11 +4065,11 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 				err = SA_AIS_OK;
 				validateOnly = true;
 		} else {
-			errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbUpcallRsp.ccbId);
 			TRACE("Abort in immnd_evt_proc_ccb_compl_rsp reqConn: %u", reqConn);
 			/*err != SA_AIS_OK => generate SaImmOiCcbAbortCallbackT upcall
 				   for all local implementers involved in the Ccb */
 			immnd_evt_ccb_abort(cb, evt->info.ccbUpcallRsp.ccbId, NULL, NULL);
+			errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbUpcallRsp.ccbId);
 		}
 		/* Either commit or abort has been decided. Ccb is now done.
 		   If we are at originating request node, then we ALWAYS reply here. 
@@ -5933,6 +5995,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 			   should prevent any apply to succeed. 
 			*/
 			err = SA_AIS_ERR_FAILED_OPERATION;
+			immModel_setCcbErrorString(cb, evt->info.objCreate.ccbId,
+					IMM_RESOURCE_ABORT "PBE is down");
 			immnd_proc_global_abort_ccb(cb, evt->info.objCreate.ccbId);
 		} else {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -5952,6 +6016,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 				LOG_ER("Upcall over MDS for ccbObjectCreate "
 				       "to PBE failed! - aborting");
 				err = SA_AIS_ERR_FAILED_OPERATION;
+				immModel_setCcbErrorString(cb, evt->info.objCreate.ccbId,
+						IMM_RESOURCE_ABORT "Upcall over MDS to PBE failed");
 				immnd_proc_global_abort_ccb(cb, evt->info.objCreate.ccbId);
 			}
 			implHandle = 0LL;
@@ -5973,6 +6039,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 				LOG_WA("Client died");
 				err = SA_AIS_ERR_FAILED_OPERATION;
 				delayedReply = SA_FALSE;
+				immModel_setCcbErrorString(cb, evt->info.objCreate.ccbId,
+						IMM_RESOURCE_ABORT "Client died");
 			} else {
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -5992,6 +6060,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 						       oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
 					LOG_ER("Agent upcall over MDS for ccbObjectCreate failed");
 					err = SA_AIS_ERR_FAILED_OPERATION;
+					immModel_setCcbErrorString(cb, evt->info.objCreate.ccbId,
+							IMM_RESOURCE_ABORT "Agent upcall over MDS failed");
 				}
 			}
 		}
@@ -6164,6 +6234,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			   should prevent any apply to succeed. 
 			*/
 			err = SA_AIS_ERR_FAILED_OPERATION;
+			immModel_setCcbErrorString(cb, evt->info.objModify.ccbId,
+					IMM_RESOURCE_ABORT "PBE is down");
 			immnd_proc_global_abort_ccb(cb, evt->info.objModify.ccbId);
 		} else {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -6184,6 +6256,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 				LOG_ER("Upcall over MDS for ccbObjectModify "
 					"to PBE failed! - aborting");
 				err = SA_AIS_ERR_FAILED_OPERATION;
+				immModel_setCcbErrorString(cb, evt->info.objModify.ccbId,
+						IMM_RESOURCE_ABORT "Upcall over MDS to PBE failed");
 				immnd_proc_global_abort_ccb(cb, evt->info.objModify.ccbId);
 			}
 			implHandle = 0LL;
@@ -6203,9 +6277,11 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			immnd_client_node_get(cb, implHandle, &oi_cl_node);
 			osafassert(oi_cl_node != NULL);
 			if (oi_cl_node->mIsStale) {
-				LOG_WA("OI Client went down so nod modify upcall");
+				LOG_WA("OI Client went down so no modify upcall");
 				err = SA_AIS_ERR_FAILED_OPERATION;
 				delayedReply = SA_FALSE;
+				immModel_setCcbErrorString(cb, evt->info.objModify.ccbId,
+						IMM_RESOURCE_ABORT "OI client went down");
 			} else {
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -6228,6 +6304,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 						       oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
 					LOG_ER("Agent upcall over MDS for ccbObjectModify failed");
 					err = SA_AIS_ERR_FAILED_OPERATION;
+					immModel_setCcbErrorString(cb, evt->info.objModify.ccbId,
+							IMM_RESOURCE_ABORT "Agent upcall over MDS failed");
 				}
 			}
 		}
@@ -6742,6 +6820,10 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *client
 			send_evt.info.imma.info.errRsp.error =
 			    timeout ? SA_AIS_ERR_TIMEOUT : SA_AIS_ERR_FAILED_OPERATION;
 
+			if(send_evt.info.imma.info.errRsp.error == SA_AIS_ERR_FAILED_OPERATION) {
+				immModel_setCcbErrorString(cb, ccbId, IMM_RESOURCE_ABORT);
+			}
+
 			send_evt.info.imma.info.errRsp.errStrings =
 				immModel_ccbGrabErrStrings(cb, ccbId);
 			if(send_evt.info.imma.info.errRsp.errStrings) {
@@ -6856,6 +6938,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			   should prevent any apply to succeed. 
 			*/
 			err = SA_AIS_ERR_FAILED_OPERATION;
+			immModel_setCcbErrorString(cb, evt->info.objDelete.ccbId,
+					IMM_RESOURCE_ABORT "PBE is down");
 			immnd_proc_global_abort_ccb(cb, evt->info.objDelete.ccbId);			
 		} else {
 			/* We have obtained PBE handle & dest info for PBE. 
@@ -6881,6 +6965,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 						"to PBE failed! - aborting ccb %u",
 						evt->info.objDelete.ccbId);
 					err = SA_AIS_ERR_FAILED_OPERATION;
+					immModel_setCcbErrorString(cb, evt->info.objDelete.ccbId,
+							IMM_RESOURCE_ABORT "Upcall over MDS to PBE failed");
 					immnd_proc_global_abort_ccb(cb, evt->info.objDelete.ccbId);
 				}
 			}
@@ -6916,6 +7002,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					/* This should cause the ccb-operation to timeout on wait for the reply. */
 					err = SA_AIS_ERR_FAILED_OPERATION;
 					delayedReply = SA_FALSE;
+					immModel_setCcbErrorString(cb, evt->info.objDelete.ccbId,
+							IMM_RESOURCE_ABORT "Client went down");
 				} else {
 					/* Generate an implementer upcall for each deleted config object. 
 					   No implementer upcalls are generated for any runtime objects
@@ -6937,6 +7025,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 						/* This should cause the ccb-operation to timeout. */
 						err = SA_AIS_ERR_FAILED_OPERATION;
 						delayedReply = SA_FALSE;
+						immModel_setCcbErrorString(cb, evt->info.objDelete.ccbId,
+								IMM_RESOURCE_ABORT "Upcall over MDS failed");
 					}
 				}
 			}	/*for */
@@ -7413,14 +7503,22 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
-		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		send_evt.info.imma.info.errRsp.error = err;
+		send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbId);
+
+		if(send_evt.info.imma.info.errRsp.errStrings) {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+		} else {
+			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+		}
 
 		TRACE_2("SENDRSP %u", err);
 
 		if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send response to agent/client over MDS");
 		}
+
+		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
  done:
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
@@ -7515,6 +7613,8 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 					LOG_WA("IMMND - Client went down so no response");
 					err = SA_AIS_ERR_FAILED_OPERATION;
 					delayedReply = SA_FALSE;
+					immModel_setCcbErrorString(cb, evt->info.ccbId,
+							IMM_RESOURCE_ABORT "Client went down");
 				} else {
 					send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbId;
 					send_evt.info.imma.info.ccbCompl.implId = implIdArr[ix];
@@ -7529,6 +7629,8 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 						err = SA_AIS_ERR_FAILED_OPERATION;
 						/* should abort the entire ccb */
 						delayedReply = SA_FALSE;
+						immModel_setCcbErrorString(cb, evt->info.ccbId,
+								IMM_RESOURCE_ABORT "Upcall over MDS failed");
 					} else {
 						TRACE_2("IMMND UPCALL TO OI, SEND SUCCEEDED");
 					}
@@ -7768,11 +7870,19 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
 				send_evt.info.imma.info.errRsp.error = err;
-				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+				send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.objDelete.ccbId);
+
+				if(send_evt.info.imma.info.errRsp.errStrings) {
+					send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
+				} else {
+					send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+				}
 
 				if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 					LOG_WA("Failed to send result to Agent over MDS");
 				}
+
+				immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 			}
 		}
 	}
