@@ -273,6 +273,11 @@ public:
     void                setCcbErrorString(
                                           CcbInfo *ccb,
                                           const char *errorString,
+                                          va_list vl);
+
+    void                setCcbErrorString(
+                                          CcbInfo *ccb,
+                                          const char *errorString,
                                           ...);
 
     bool                hasLocalClassAppliers(ClassInfo* classInfo);
