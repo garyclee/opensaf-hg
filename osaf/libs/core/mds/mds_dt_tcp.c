@@ -81,6 +81,7 @@ uint32_t mdtm_process_recv_events_tcp(void);
  */
 uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 {
+	uint32_t flags;
 	uint32_t sndbuf_size = 0; /* Send buffer size */
 	uint32_t rcvbuf_size = 0;  /* Receive buffer size */
 	socklen_t optlen; /* Option length */
@@ -109,7 +110,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 	tcp_cb = (MDTM_TCP_CB *) malloc(sizeof(MDTM_TCP_CB));
 	if (tcp_cb == NULL) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP InSufficient Memory !!\n");
+		syslog(LOG_ERR, "MDTM:TCP InSufficient Memory !!\n");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -118,15 +119,15 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 	memset(&pat_tree_params, 0, sizeof(pat_tree_params));
 	pat_tree_params.key_size = sizeof(MDTM_REASSEMBLY_KEY);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&mdtm_reassembly_list, &pat_tree_params)) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP ncs_patricia_tree_init failed MDTM_INIT\n");
+		syslog(LOG_ERR, "MDTM:TCP ncs_patricia_tree_init failed MDTM_INIT\n");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Create the sockets required for Binding, Send, receive and Discovery */
 
-	tcp_cb->DBSRsock = socket(mds_socket_domain, SOCK_STREAM|SOCK_CLOEXEC, 0);
+	tcp_cb->DBSRsock = socket(mds_socket_domain, SOCK_STREAM, 0);
 	if (tcp_cb->DBSRsock < 0) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP DBSRsock Socket creation failed in MDTM_INIT err :%s", strerror(errno));
+		syslog(LOG_ERR, "MDTM:TCP DBSRsock Socket creation failed in MDTM_INIT err :%s", strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -165,15 +166,28 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 	/* Increase the socket buffer size */
 	if ((rcvbuf_size > 0) && (setsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, sizeof(rcvbuf_size)) != 0)) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP Unable to set the SO_RCVBUF for DBSRsock  err :%s", strerror(errno));
+		syslog(LOG_ERR, "MDTM:TCP Unable to set the SO_RCVBUF for DBSRsock  err :%s", strerror(errno));
 		close(tcp_cb->DBSRsock);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if ((sndbuf_size > 0) && (setsockopt(tcp_cb->DBSRsock, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size)) != 0)) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP Unable to set the SO_SNDBUF for DBSRsock  err :%s", strerror(errno));
+		syslog(LOG_ERR, "MDTM:TCP Unable to set the SO_SNDBUF for DBSRsock  err :%s", strerror(errno));
 		close(tcp_cb->DBSRsock);
 		return NCSCC_RC_FAILURE;
+	}
+
+	flags = fcntl(tcp_cb->DBSRsock, F_GETFD, 0);
+	if ((flags < 0) || (flags > 1)) {
+		syslog(LOG_ERR, "MDTM:TCP Unable to get the CLOEXEC Flag on DBSRsock  err :%s", strerror(errno));
+		close(tcp_cb->DBSRsock);
+		return NCSCC_RC_FAILURE;
+	} else {
+		if (fcntl(tcp_cb->DBSRsock, F_SETFD, (flags | FD_CLOEXEC)) == (-1)) {
+			syslog(LOG_ERR, "MDTM:TCP Unable to set the CLOEXEC Flag on DBSRsock err :%s", strerror(errno));
+			close(tcp_cb->DBSRsock);
+			return NCSCC_RC_FAILURE;
+		}
 	}
 
 	tcp_cb->adest = ((uint64_t)(nodeid)) << 32;
@@ -192,7 +206,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 		servlen = strlen(server_addr_un.sun_path) + sizeof(server_addr_un.sun_family);
 		/* Blocking Connect */
 		if (connect(tcp_cb->DBSRsock, (struct sockaddr *)&server_addr_un, servlen) == -1) {
-			syslog(LOG_ERR, "MDS:MDTM:TCP DBSRsock unable to connect err :%s", strerror(errno));
+			syslog(LOG_ERR, "MDTM:TCP DBSRsock unable to connect err :%s", strerror(errno));
 			close(tcp_cb->DBSRsock);
 			return NCSCC_RC_FAILURE;
 		}
@@ -206,7 +220,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 			/* Blocking Connect */
 			if (connect(tcp_cb->DBSRsock, (struct sockaddr *)&server_addr_in, sizeof(struct sockaddr)) == -1) {
-				syslog(LOG_ERR, "MDS:MDTM:TCP  DBSRsock unable to connect err :%s", strerror(errno));
+				syslog(LOG_ERR, "MDTM:TCP  DBSRsock unable to connect err :%s", strerror(errno));
 				close(tcp_cb->DBSRsock);
 				return NCSCC_RC_FAILURE;
 			}
@@ -217,7 +231,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 			/* Blocking Connect */
 			if (connect(tcp_cb->DBSRsock, (struct sockaddr *)&server_addr_in, sizeof(struct sockaddr)) == -1) {
-				syslog(LOG_ERR, "MDS:MDTM:TCP  DBSRsock unable to connect err :%s", strerror(errno));
+				syslog(LOG_ERR, "MDTM:TCP  DBSRsock unable to connect err :%s", strerror(errno));
 				close(tcp_cb->DBSRsock);
 				return NCSCC_RC_FAILURE;
 			}
@@ -237,7 +251,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 	/* This is still a blocking send */
 	if (send(tcp_cb->DBSRsock, buffer, MDS_MDTM_DTM_PID_BUFFER_SIZE, 0) != MDS_MDTM_DTM_PID_BUFFER_SIZE) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP Send on DBSRsock failed");
+		syslog(LOG_ERR, "MDTM:TCP Send on DBSRsock failed");
 		close(tcp_cb->DBSRsock);
 		return NCSCC_RC_FAILURE;
 	}
@@ -246,7 +260,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 	if (m_NCS_IPC_CREATE(&tcp_cb->tmr_mbx) != NCSCC_RC_SUCCESS) {
 		/* Mail box creation failed */
-		syslog(LOG_ERR, "MDS:MDTM:TCP Tmr Mailbox Creation failed:\n");
+		syslog(LOG_ERR, "MDTM:TCP Tmr Mailbox Creation failed:\n");
 		close(tcp_cb->DBSRsock);
 		return NCSCC_RC_FAILURE;
 	} else {
@@ -255,7 +269,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 		if (NCSCC_RC_SUCCESS != m_NCS_IPC_ATTACH(&tcp_cb->tmr_mbx)) {
 			m_NCS_IPC_RELEASE(&tcp_cb->tmr_mbx, NULL);
-			syslog(LOG_ERR, "MDS:MDTM:TCP Tmr Mailbox  Attach failed:\n");
+			syslog(LOG_ERR, "MDTM:TCP Tmr Mailbox  Attach failed:\n");
 			close(tcp_cb->DBSRsock);
 			return NCSCC_RC_FAILURE;
 		}
@@ -270,7 +284,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 	/* Create a task to receive the events and data */
 	if (mdtm_create_rcv_task() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "MDS:MDTM:TCP Receive Task Creation Failed in MDTM_INIT\n");
+		syslog(LOG_ERR, "MDTM:TCP Receive Task Creation Failed in MDTM_INIT\n");
 		close(tcp_cb->DBSRsock);
 		m_NCS_IPC_RELEASE(&tcp_cb->tmr_mbx, NULL);
 		return NCSCC_RC_FAILURE;

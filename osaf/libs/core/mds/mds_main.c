@@ -136,12 +136,12 @@ static void mds_register_callback(int fd, const struct ucred *creds)
 
 	int n = recv(fd, buf, sizeof(buf), 0);
 	if (n == -1) {
-		syslog(LOG_ERR, "%s: recv failed - %s", __FUNCTION__, strerror(errno));
+		syslog(LOG_ERR, "MDS: %s: recv failed - %s", __FUNCTION__, strerror(errno));
 		goto done;
 	}
 
 	if (n != 16) {
-		syslog(LOG_ERR, "%s: recv failed - %d bytes", __FUNCTION__, n);
+		syslog(LOG_ERR, "MDS: %s: recv failed - %d bytes", __FUNCTION__, n);
 		goto done;
 	}
 
@@ -150,7 +150,7 @@ static void mds_register_callback(int fd, const struct ucred *creds)
 	NCSMDS_SVC_ID svc_id = ncs_decode_32bit(&p);
 	MDS_DEST mds_dest = ncs_decode_64bit(&p);
 
-	TRACE("mds: received %d from %"PRIx64", pid %d", type, mds_dest, creds->pid);
+	TRACE("MDS: received %d from %"PRIx64", pid %d", type, mds_dest, creds->pid);
 
 	if (type == MDS_REGISTER_REQ) {
 		osaf_mutex_lock_ordie(&gl_mds_library_mutex);
@@ -168,7 +168,7 @@ static void mds_register_callback(int fd, const struct ucred *creds)
 			osafassert(rc == NCSCC_RC_SUCCESS);
 		} else {
 			/* when can this happen? */
-			LOG_NO("%s: dest %"PRIx64" already exist", __FUNCTION__, mds_dest);
+			LOG_NO("MDS: %s: dest %"PRIx64" already exist", __FUNCTION__, mds_dest);
 
 			// just update credentials
 			info->uid = creds->uid;
@@ -183,7 +183,7 @@ static void mds_register_callback(int fd, const struct ucred *creds)
 		sz += ncs_encode_32bit(&p, 0); // result OK
 
 		if ((n = send(fd, buf, sz, 0)) == -1)
-			syslog(LOG_ERR, "%s: send to pid %d failed - %s",
+			syslog(LOG_ERR, "MDS: %s: send to pid %d failed - %s",
 					__FUNCTION__, creds->pid, strerror(errno));
 	} else if (type == MDS_UNREGISTER_REQ) {
 		osaf_mutex_lock_ordie(&gl_mds_library_mutex);
@@ -200,10 +200,10 @@ static void mds_register_callback(int fd, const struct ucred *creds)
 		sz += ncs_encode_32bit(&p, 0);  // result OK
 
 		if ((n = send(fd, buf, sz, 0)) == -1)
-			syslog(LOG_ERR, "%s: send to pid %d failed - %s",
+			syslog(LOG_ERR, "MDS: %s: send to pid %d failed - %s",
 					__FUNCTION__, creds->pid, strerror(errno));
 	} else {
-		syslog(LOG_ERR, "%s: recv failed - wrong type %d", __FUNCTION__, type);
+		syslog(LOG_ERR, "MDS: %s: recv failed - wrong type %d", __FUNCTION__, type);
 		goto done;
 	}
 
@@ -219,12 +219,12 @@ done:
 int mds_auth_server_create(const char *name)
 {
 	if (mds_process_info_db_init() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "%s: mds_process_info_db_init failed", __FUNCTION__);
+		syslog(LOG_ERR, "MDS: %s: mds_process_info_db_init failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (osaf_auth_server_create(name, mds_register_callback) != 0) {
-		syslog(LOG_ERR, "%s: osaf_auth_server_create failed", __FUNCTION__);
+		syslog(LOG_ERR, "MDS: %s: osaf_auth_server_create failed", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -361,7 +361,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 		osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 
 		if (gl_mds_mcm_cb != NULL) {
-			syslog(LOG_ERR, "MDS_LIB_CREATE : MDS is already initialized");
+			syslog(LOG_ERR, "MDS:LIB_CREATE: MDS is already initialized");
 			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 			return NCSCC_RC_FAILURE;
 		}
@@ -375,7 +375,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 		p_field = (char *)ncs_util_search_argv_list(req->info.create.argc, req->info.create.argv, "NODE_ID=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("NODE_ID="), "%d", &node_id) != 1) {
-				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in NODE_ID argument\n");
+				syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in NODE_ID argument\n");
 				mds_mcm_destroy();
 				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -388,7 +388,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 							    "CLUSTER_ID=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("CLUSTER_ID="), "%d", &cluster_id) != 1) {
-				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in CLUSTER_ID argument\n");
+				syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in CLUSTER_ID argument\n");
 				mds_mcm_destroy();
 				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -401,7 +401,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			if (tipc_mcast_enabled != false)
 				tipc_mcast_enabled = true;
 				
-			m_MDS_LOG_DBG("MDS_TIPC_MCAST_ENABLED: %d  Set argument \n",tipc_mcast_enabled);	
+			m_MDS_LOG_DBG("MDS: TIPC_MCAST_ENABLED: %d  Set argument \n",tipc_mcast_enabled);	
 		}
 
 		/*  to use cluster id in mds prefix? */
@@ -417,7 +417,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 								    "MDS_LOG_LEVEL=");
 			if (p_field != NULL) {
 				if (sscanf(p_field + strlen("MDS_LOG_LEVEL="), "%d", &gl_mds_log_level) != 1) {
-					syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in MDS_LOG_LEVEL argument\n");
+					syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in MDS_LOG_LEVEL argument\n");
 					mds_mcm_destroy();
 					osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -442,7 +442,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 								    "MDS_CHECKSUM=");
 			if (p_field != NULL) {
 				if (sscanf(p_field + strlen("MDS_CHECKSUM="), "%d", &gl_mds_checksum) != 1) {
-					syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in MDS_CHECKSUM argument\n");
+					syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in MDS_CHECKSUM argument\n");
 					mds_mcm_destroy();
 					osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -465,7 +465,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 							    "SUBSCRIPTION_TMR_VAL=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("SUBSCRIPTION_TMR_VAL="), "%d", &MDS_SUBSCRIPTION_TMR_VAL) != 1) {
-				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in SUBSCRIPTION_TMR_VAL argument\n");
+				syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in SUBSCRIPTION_TMR_VAL argument\n");
 				mds_mcm_destroy();
 				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -478,7 +478,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 							    "AWAIT_ACTIVE_TMR_VAL=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("AWAIT_ACTIVE_TMR_VAL="), "%d", &MDS_AWAIT_ACTIVE_TMR_VAL) != 1) {
-				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in AWAIT_ACTIVE_TMR_VAL argument\n");
+				syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in AWAIT_ACTIVE_TMR_VAL argument\n");
 				mds_mcm_destroy();
 				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -491,7 +491,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 							    "QUIESCED_TMR_VAL=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("QUIESCED_TMR_VAL="), "%d", &MDS_QUIESCED_TMR_VAL) != 1) {
-				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in QUIESCED_TMR_VAL argument\n");
+				syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in QUIESCED_TMR_VAL argument\n");
 				mds_mcm_destroy();
 				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -504,7 +504,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 							    "REASSEMBLE_TMR_VAL=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("REASSEMBLE_TMR_VAL="), "%d", &MDTM_REASSEMBLE_TMR_VAL) != 1) {
-				syslog(LOG_ERR, "MDS_LIB_CREATE : Problem in REASSEMBLE_TMR_VAL argument\n");
+				syslog(LOG_ERR, "MDS:LIB_CREATE: Problem in REASSEMBLE_TMR_VAL argument\n");
 				mds_mcm_destroy();
 				osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -550,7 +550,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 		}
 		/* Wait for indication from MDS thread that it is ok to kill it */
 		osaf_poll_one_fd(m_GET_FD_FROM_SEL_OBJ(destroy_ack_obj), 70000); /* 70 seconds */
-		m_MDS_LOG_DBG("LIB_DESTROY:Destroy ack from MDS thread in 70 s");
+		m_MDS_LOG_DBG("MDS:LIB_DESTROY: Destroy ack from MDS thread in 70 s");
 
 		/* Take the lock before killing the thread */
 		osaf_mutex_lock_ordie(&gl_mds_library_mutex);
@@ -571,7 +571,7 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 
 		/* Sanity check */
 		if (gl_mds_mcm_cb == NULL) {
-			syslog(LOG_ERR, "MDS_LIB_DESTROY : MDS is already Destroyed");
+			syslog(LOG_ERR, "MDS:LIB_DESTROY: MDS LIB is already Destroyed");
 			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 			return NCSCC_RC_FAILURE;
 		}

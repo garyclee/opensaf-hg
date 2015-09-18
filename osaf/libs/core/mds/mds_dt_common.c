@@ -919,7 +919,7 @@ uint32_t mdtm_process_recv_data(uint8_t *buffer, uint16_t len, uint64_t transpor
 
 		seq_num = ncs_decode_32bit(&data);
 
-		m_MDS_LOG_DBG("MDTM: Recd message with Fragment Seqnum=%d, frag_num=%d, from src_Tipc_id=<0x%08x:%u>",
+		m_MDS_LOG_DBG("MDTM: Recd message with Fragment Seqnum=%d, frag_num=%d, from src_id=<0x%08x:%u>",
 			      seq_num, frag_num, (uint32_t)(transport_adest >> 32), (uint32_t)(transport_adest));
 
 		/* Checking in reassembly queue */

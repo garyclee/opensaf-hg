@@ -293,8 +293,7 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 					free(body);
 					return NCSCC_RC_FAILURE;
 				}
-				m_MDS_LOG_DBG
-				    ("MDTM:Sending message with Service Seqno=%d, Fragment Seqnum=%d, frag_num=%d, TO Dest_Tipc_id=<0x%08x:%u>",
+				m_MDS_LOG_DBG("MDTM: Sending msg with Service Seqno=%d, Fragment Seqnum=%d, frag_num=%d,to Dest_id=<0x%08x:%u>",
 				     req->svc_seq_num, seq_num, frag_val, id.node_id, id.process_id);
 
 				if (NCSCC_RC_SUCCESS != mds_sock_send(body, len_buf)) {
@@ -327,7 +326,7 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 					return NCSCC_RC_FAILURE;
 				}
 				m_MDS_LOG_DBG
-				    ("MDTM:Sending message with Service Seqno=%d, Fragment Seqnum=%d, frag_num=%d, TO Dest_Tipc_id=<0x%08x:%u>",
+				    ("MDTM: Sending message with Service Seqno=%d, Fragment Seqnum=%d, frag_num=%d, TO Dest_id=<0x%08x:%u>",
 				     req->svc_seq_num, seq_num, frag_val, id.node_id, id.process_id);
 
 				if (NCSCC_RC_SUCCESS !=	mds_sock_send(body, len_buf)) {
@@ -421,7 +420,7 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_MDS_LOG_DBG("MDTM:Sending message with Service Seqno=%d, TO Dest_Tipc_id=<0x%08x:%u> ",
+			m_MDS_LOG_DBG("MDTM: Sending message with Service Seqno=%d, TO Dest_id=<0x%08x:%u> ",
 				      req->svc_seq_num, id.node_id, id.process_id);
 
 			if (NCSCC_RC_SUCCESS != mds_sock_send(buffer_ack, len)) {
@@ -490,11 +489,11 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 					}
 
 					m_MDS_LOG_DBG
-					    ("MDTM:Sending message with Service Seqno=%d, TO Dest_Tipc_id=<0x%08x:%u> ",
+					    ("MDTM: Sending message with Service Seqno=%d, TO Dest_id=<0x%08x:%u> ",
 					     req->svc_seq_num, id.node_id, id.process_id);
 
 					if (NCSCC_RC_SUCCESS != mds_sock_send(body, (len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP))) {
-						m_MDS_LOG_ERR("MDTM: Unable to send the msg thru TIPC\n");
+						m_MDS_LOG_ERR("MDTM: Unable to send the msg \n");
 						m_MMGR_FREE_BUFR_LIST(usrbuf);
 						free(body);
 						return NCSCC_RC_FAILURE;
@@ -544,7 +543,7 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 				       req->msg.data.buff_info.len);
 
 				if (NCSCC_RC_SUCCESS != mds_sock_send(body, (req->msg.data.buff_info.len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP))) {
-					m_MDS_LOG_ERR("MDTM: Unable to send the msg thru TIPC\n");
+					m_MDS_LOG_ERR("MDTM: Unable to send the msg \n");
 					free(body);
 					mds_free_direct_buff(req->msg.data.buff_info.buff);
 					return NCSCC_RC_FAILURE;
@@ -585,7 +584,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 
 			recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->len_buff, 2, MSG_NOSIGNAL);
 			if (0 == recd_bytes) {
-				syslog(LOG_ERR, "MDTM:socket_recv() = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+				syslog(LOG_ERR, "MDTM:SOCKET recd_bytes :%d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
 				close(tcp_cb->DBSRsock);
 				exit(0);
 			} else if (2 == recd_bytes) {
@@ -599,19 +598,19 @@ void mdtm_process_poll_recv_data_tcp(void)
 				if (NULL == (tcp_cb->buffer = calloc(1, (local_len_buf + 1)))) {
 					/* Length + 2 is done to reuse the same buffer 
 					   while sending to other nodes */
-					syslog(LOG_ERR, "Memory allocation failed in dtm_intranode_processing");
+					syslog(LOG_ERR, "MDTM:SOCKET Memory allocation failed in dtm_intranode_processing");
 					return;
 				}
 				recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->buffer, local_len_buf, 0);
 				if (recd_bytes < 0) {
 					return;
 				} else if (0 == recd_bytes) {
-					syslog(LOG_ERR, "MDTM:socket_recv() = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+					syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
 					close(tcp_cb->DBSRsock);
 					exit(0);
 				} else if (local_len_buf > recd_bytes) {
 					/* can happen only in two cases, system call interrupt or half data, */
-					TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+					TRACE("MDTM:SOCKET less data recd, recd bytes = %d, actual len = %d", recd_bytes,
 					       local_len_buf);
 					tcp_cb->bytes_tb_read = tcp_cb->buff_total_len - recd_bytes;
 					return;
@@ -653,7 +652,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 				tcp_cb->buff_total_len = ncs_decode_16bit(&data);
 				return;
 			} else if (0 == recd_bytes) {
-				syslog(LOG_ERR, "MDTM:socket_recv() = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+				syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
 				close(tcp_cb->DBSRsock);
 				exit(0);
 			} else {
@@ -665,19 +664,19 @@ void mdtm_process_poll_recv_data_tcp(void)
 			if (NULL == (tcp_cb->buffer = calloc(1, (tcp_cb->buff_total_len + 1)))) {
 				/* Length + 2 is done to reuse the same buffer 
 				   while sending to other nodes */
-				syslog(LOG_ERR, "Memory allocation failed in dtm_internode_processing");
+				syslog(LOG_ERR, "MDTM:SOCKET Memory allocation failed in dtm_internode_processing");
 				return;
 			}
 			recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->buffer, tcp_cb->buff_total_len, 0);
 			if (recd_bytes < 0) {
 				return;
 			} else if (0 == recd_bytes) {
-				syslog(LOG_ERR, "MDTM:socket_recv() = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+				syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
 				close(tcp_cb->DBSRsock);
 				exit(0);
 			} else if (tcp_cb->buff_total_len > recd_bytes) {
 				/* can happen only in two cases, system call interrupt or half data, */
-				TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+				TRACE("MDTM:SOCKET less data recd, recd bytes = %d, actual len = %d", recd_bytes,
 				       tcp_cb->buff_total_len);
 				tcp_cb->bytes_tb_read = tcp_cb->buff_total_len - recd_bytes;
 				return;
@@ -706,12 +705,12 @@ void mdtm_process_poll_recv_data_tcp(void)
 		if (recd_bytes < 0) {
 			return;
 		} else if (0 == recd_bytes) {
-			syslog(LOG_ERR, "MDTM:socket_recv() = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+			syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
 			close(tcp_cb->DBSRsock);
 			exit(0);
 		} else if (tcp_cb->bytes_tb_read > recd_bytes) {
 			/* can happen only in two cases, system call interrupt or half data, */
-			TRACE("less data recd, recd bytes = %d, actual len = %d", recd_bytes, tcp_cb->bytes_tb_read);
+			TRACE("MDTM:SOCKET less data recd, recd bytes = %d, actual len = %d", recd_bytes, tcp_cb->bytes_tb_read);
 			tcp_cb->bytes_tb_read = tcp_cb->bytes_tb_read - recd_bytes;
 			return;
 		} else if (tcp_cb->bytes_tb_read == recd_bytes) {
@@ -824,7 +823,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 	mds_indentifire = ncs_decode_32bit(&buffer);
 	mds_version = ncs_decode_8bit(&buffer);
 	if ((MDS_RCV_IDENTIFIRE != mds_indentifire) || (MDS_RCV_VERSION != mds_version)) {
-		m_MDS_LOG_ERR("Malformed pkt, version or identifer mismatch");
+		m_MDS_LOG_ERR("MDTM: Malformed pkt, version or identifer mismatch");
 		return NCSCC_RC_FAILURE;
 	}
 	msg_type = ncs_decode_8bit(&buffer);
@@ -887,8 +886,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 				if (NCSCC_RC_SUCCESS != mds_mcm_svc_up(pwe_id, svc_id, role, scope,
 								       vdest, policy, adest, 0, svc_hdl,
 								       ref_val, svc_sub_part_ver, archword_type)) {
-					m_MDS_LOG_ERR
-					    ("SVC-UP Event processsing failed for SVC id = %d, subscribed by SVC id = %d",
+					m_MDS_LOG_ERR("SVC-UP Event processsing failed for SVC id = %d, subscribed by SVC id = %d",
 					     svc_id, m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl));
 					return NCSCC_RC_FAILURE;
 				}
@@ -898,8 +896,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 				if (NCSCC_RC_SUCCESS != mds_mcm_svc_down(pwe_id, svc_id, role, scope,
 									 vdest, policy, adest, 0, svc_hdl,
 									 ref_val, svc_sub_part_ver, archword_type)) {
-					m_MDS_LOG_ERR
-					    ("MDTM: SVC-DOWN Event processsing failed for SVC id = %d, subscribed by SVC id = %d\n",
+					m_MDS_LOG_ERR("MDTM: SVC-DOWN Event processsing failed for SVC id = %d, subscribed by SVC id = %d\n",
 					     svc_id, m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl));
 					return NCSCC_RC_FAILURE;
 				}
@@ -959,7 +956,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 		break;
 
 	default:
-		syslog(LOG_CRIT, " Message format is not correct something is wrong !!");
+		syslog(LOG_CRIT, "MDTM: Message format is not correct something is wrong !!");
 		assert(0);
 	}
 	return NCSCC_RC_SUCCESS;
