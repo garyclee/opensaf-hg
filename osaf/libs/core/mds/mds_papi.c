@@ -141,13 +141,13 @@ uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	if (svc_to_mds_info == NULL) {
-		m_MDS_LOG_ERR("MDS_PAPI : Input svc_to_mds_info = NULL in ncsmds_api()");
+		m_MDS_LOG_ERR("PAPI: Input svc_to_mds_info = NULL in ncsmds_api()");
 		return NCSCC_RC_FAILURE;
 	}
 
 	osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 	if (gl_mds_mcm_cb == NULL) {
-		m_MDS_LOG_ERR("MDS_PAPI : ncsmds_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
+		m_MDS_LOG_ERR("PAPI: ncsmds_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
 		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 		return NCSCC_RC_FAILURE;
 	}
@@ -158,7 +158,7 @@ uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 	} else {
 		status = mds_validate_pwe_hdl((MDS_PWE_HDL)svc_to_mds_info->i_mds_hdl);
 		if (status == NCSCC_RC_FAILURE) {
-			m_MDS_LOG_ERR("MDS_PAPI : Invalid pwe hdl in ncsmds_api()");
+			m_MDS_LOG_ERR("PAPI: Invalid pwe hdl in ncsmds_api()");
 			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 			return NCSCC_RC_FAILURE;
 		}
@@ -212,7 +212,7 @@ uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 		break;
 
 	default:
-		m_MDS_LOG_ERR("MDS_PAPI : API Option Unsupported in ncsmds_api()");
+		m_MDS_LOG_ERR("PAPI: API Option Unsupported in ncsmds_api()");
 		status = NCSCC_RC_FAILURE;
 		break;
 	}
@@ -238,12 +238,12 @@ uint32_t ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm)
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	if (mds_adm == NULL) {
-		m_MDS_LOG_ERR("MDS_PAPI : Invalid Input mds_adm = NULL in ncsmds_adm_api()");
+		m_MDS_LOG_ERR("PAPI: Invalid Input mds_adm = NULL in ncsmds_adm_api()");
 		return NCSCC_RC_FAILURE;
 	}
 	osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 	if (gl_mds_mcm_cb == NULL) {
-		m_MDS_LOG_ERR("MDS_PAPI : ncsmds_adm_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
+		m_MDS_LOG_ERR("PAPI: ncsmds_adm_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
 		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 		return NCSCC_RC_FAILURE;
 	}
@@ -278,7 +278,7 @@ uint32_t ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm)
 		break;
 
 	default:
-		m_MDS_LOG_ERR("MDS_PAPI : API Option Unsupported in ncsmds_adm_api()");
+		m_MDS_LOG_ERR("PAPI: API Option Unsupported in ncsmds_adm_api()");
 		status = NCSCC_RC_FAILURE;
 		break;
 	}
@@ -338,8 +338,7 @@ MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest)
 MDS_DIRECT_BUFF mds_alloc_direct_buff(uint16_t size)
 {
 	if (size > MDS_DIRECT_BUF_MAXSIZE) {
-		m_MDS_LOG_ERR
-		    ("MDS_PAPI : Requested Memory allocation for direct buff is greater than the Max Direct buff send size\n");
+		m_MDS_LOG_ERR("PAPI: Requested Memory allocation for direct buff > than the Max Direct buff \n");
 		return NULL;
 	} else
 		return (MDS_DIRECT_BUFF)(m_MMGR_ALLOC_DIRECT_BUFF(size));
@@ -360,6 +359,6 @@ void mds_free_direct_buff(MDS_DIRECT_BUFF buff)
 		m_MMGR_FREE_DIRECT_BUFF(buff);
 		buff = NULL;	/* Safer check */
 	} else {
-		m_MDS_LOG_ERR("MDS_PAPI : Trying to free the direct buffer with pointer as NULL\n");
+		m_MDS_LOG_ERR("PAPI: Trying to free the direct buffer with pointer as NULL\n");
 	}
 }

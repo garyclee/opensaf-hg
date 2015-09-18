@@ -48,6 +48,9 @@ extern uint32_t gl_mds_log_level;
 
 #define m_MDS_LOG_DBG if (gl_mds_log_level < NCSMDS_LC_DBG) {} else log_mds_dbg
 
+#define m_MDS_ENTER() m_MDS_LOG_DBG(">> %s", __FUNCTION__)
+#define m_MDS_LEAVE() m_MDS_LOG_DBG("<< %s", __FUNCTION__)
+
 extern void log_mds_dbg(char *fmt, ...);
 extern void log_mds_info(char *fmt, ...);
 extern void log_mds_notify(char *fmt, ...);

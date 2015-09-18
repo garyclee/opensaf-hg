@@ -891,20 +891,19 @@ static uint32_t mcm_pvt_normal_svc_snd(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 	send_msg.msg_type = MSG_NCSCONTEXT;
 	send_msg.data.msg = msg;
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_pvt_normal_svc_snd\n");
-
+	m_MDS_ENTER();
 	status = mcm_pvt_normal_snd_process_common(env_hdl, fr_svc_id, send_msg, to_dest, to_svc_id, req, pri, xch_id);
 
 	if (status == NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_INFO("MDS_SND_RCV: Normal send Message sent successfully from svc_id = %s(%d), to svc_id = %s(%d)\n",
 			       get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
-		m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_pvt_normal_svc_snd\n");
+		m_MDS_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {
 		m_MDS_LOG_ERR("MDS_SND_RCV: Normal send Message sent Failed from svc_id = %s(%d), to svc_id = %s(%d)\n",
 			      get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 		m_MDS_ERR_PRINT_ADEST(to_dest);
-		m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_pvt_normal_svc_snd\n");
+		m_MDS_LEAVE();
 		return status;
 	}
 }
@@ -940,8 +939,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 	MDS_SUBSCRIPTION_RESULTS_INFO *subs_result_hdl = NULL;
 	V_DEST_RL role_ret = 0;	/* Used only to get the subscription result ptr */
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_pvt_normal_snd_process_common\n");
-
+        m_MDS_ENTER();
 	if (to_msg.msg_type == MSG_NCSCONTEXT) {
 		if (to_msg.data.msg == NULL) {
 			m_MDS_LOG_ERR("MDS_SND_RCV: Null Message\n");
@@ -1037,7 +1035,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 #if 1
 	/* New code */
 	status = mds_mcm_send_msg_enc(to, svc_cb, &to_msg, to_svc_id, dest_vdest_id, req, xch_id, dest, pri);
-	m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_pvt_normal_snd_process_common\n");
+        m_MDS_LEAVE();
 	return status;
 #endif
 
@@ -1058,8 +1056,7 @@ static uint32_t mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG 
 {
 	MDS_SUBSCRIPTION_RESULTS_INFO *subs_result_hdl = NULL;
 	V_DEST_RL role = 0;
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mds_mcm_send_msg_enc\n");
-
+        m_MDS_ENTER();
 	if (NCSCC_RC_SUCCESS != mds_subtn_res_tbl_get_by_adest(svc_cb->svc_hdl, to_svc_id, dest_vdest_id,
 							       dest, &role, &subs_result_hdl)) {
 		/* Destination Route Not Found */
@@ -1075,18 +1072,18 @@ static uint32_t mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG 
 
 	if (to == DESTINATION_SAME_PROCESS) {
 		m_MDS_LOG_INFO("MDS_SND_RCV: Msg Destination is on same process\n");
-		m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mds_mcm_send_msg_enc\n");
+		m_MDS_LEAVE();
 		return mcm_msg_cpy_send(to, svc_cb, to_msg, to_svc_id, dest_vdest_id, req, xch_id, dest, pri);
 
 	} else if ((to == DESTINATION_OFF_NODE) || (to == DESTINATION_ON_NODE)) {
 		m_MDS_LOG_INFO("MDS_SND_RCV: Msg Destination is on off node or diff process\n");
 		if (to_msg->msg_type == MSG_DIRECT_BUFF) {
-			m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mds_mcm_send_msg_enc\n");
+			m_MDS_LEAVE();
 			return mcm_msg_direct_send_buff(to, to_msg->data.info, to_svc_id,
 							svc_cb, dest, dest_vdest_id, req->i_sendtype, xch_id, pri,
 							to_msg->msg_fmt_ver);
 		} else if (MSG_NCSCONTEXT == to_msg->msg_type) {
-			m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mds_mcm_send_msg_enc\n");
+			m_MDS_LEAVE();
 			return mcm_msg_encode_full_or_flat_and_send(to, to_msg, to_svc_id,
 								    svc_cb, dest, dest_vdest_id, req->i_sendtype,
 								    xch_id, pri);
@@ -1118,8 +1115,7 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 	MDS_MCM_SYNC_SEND_QUEUE *result;
 	MDS_BCAST_BUFF_LIST *bcast_ptr = NULL;
 	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_msg_cpy_send\n");
-
+        m_MDS_ENTER();
 
 	memset(&cbinfo, 0, sizeof(cbinfo));
 	memset(&req, 0, sizeof(req));
@@ -1146,12 +1142,12 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 			    (mds_svc_tbl_get(orig_sender_pwe_hdl, to_svc_id, ((NCSCONTEXT)&orig_sender_cb)))) {
 				m_MDS_LOG_ERR("MDS_SND_RCV: (Local) dest not found svc_id = %s(%d), Vdest_id = %d, PWE=%d\n",
 					      get_svc_names(to_svc_id), to_svc_id, dest_vdest_id, m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_cb->svc_hdl));
-				m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_cpy_send\n");
+				m_MDS_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
 			if (mcm_pvt_get_sync_send_entry(orig_sender_cb, &recv, &result) != NCSCC_RC_SUCCESS) {
 				m_MDS_LOG_ERR("MDS_SND_RCV: Sync entry doesnt exist\n");
-				m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_cpy_send\n");
+				m_MDS_LEAVE();
 				return NCSCC_RC_FAILURE;
 			}
 			orig_msg = result->orig_msg;
@@ -1273,7 +1269,7 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 	strcpy(req.sub_adest_details, lcl_subtn_res->sub_adest_details);
 
 	m_MDS_LOG_INFO("MDS_SND_RCV: Sending the data to MDTM layer\n");
-	m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_cpy_send\n");
+        m_MDS_LEAVE();
 	return mds_mdtm_send(&req);
 }
 
@@ -1298,8 +1294,7 @@ static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_i
 	/* Filling all the parameters */
 	memset(&req, 0, sizeof(req));
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mcm_msg_direct_send_buff\n");
-
+        m_MDS_ENTER();
 	req.msg.data.buff_info.buff = buff_info.buff;
 	req.msg.data.buff_info.len = buff_info.len;
 	req.msg.encoding = MDS_ENC_TYPE_DIRECT_BUFF;
@@ -1325,8 +1320,7 @@ static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_i
 	req.msg_fmt_ver = msg_fmt_ver;
 	strcpy(req.sub_adest_details, lcl_subtn_res->sub_adest_details);
 	m_MDS_LOG_INFO("MDS_SND_RCV: Sending the data to MDTM layer\n");
-
-	m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_direct_send_buff\n");
+        m_MDS_LEAVE();
 	return mds_mdtm_send(&req);
 }
 
@@ -1430,7 +1424,7 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 	if (status != NCSCC_RC_SUCCESS) {
 		m_MDS_LOG_ERR("MDS_SND_RCV: Encode callback of  Dest =%d, Adest = %s, svc_id = %s(%d) failed while sending to svc_id = %s(%d))",
 		      dest_vdest_id, svc_cb->adest_details, get_svc_names(svc_cb->svc_id), svc_cb->svc_id, get_svc_names(to_svc_id), to_svc_id);
-		m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_encode_full_or_flat_and_send\n");
+		m_MDS_LEAVE();
 		if (msg_send.msg.encoding == MDS_ENC_TYPE_FLAT) {
 			m_MMGR_FREE_BUFR_LIST(msg_send.msg.data.flat_uba.start);
 		} else if (msg_send.msg.encoding == MDS_ENC_TYPE_FULL) {
@@ -1443,7 +1437,7 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 		if (msg_send.msg.data.fullenc_uba.start == NULL) {
 			m_MDS_LOG_ERR("MDS_SND_RCV: Empty and NULL message from svc_id = %s(%d) to svc_id = %s(%d)", get_svc_names(svc_cb->svc_id), svc_cb->svc_id,
 				      get_svc_names(to_svc_id), to_svc_id);
-			m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_encode_full_or_flat_and_send\n");
+			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else if ((snd_type == MDS_SENDTYPE_BCAST) || (snd_type == MDS_SENDTYPE_RBCAST)) {
 			if ((svc_cb->subtn_info->prev_ver_sub_count > 0) || (!tipc_mode_enabled) || (!tipc_mcast_enabled)) {
@@ -1460,7 +1454,7 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 		if (msg_send.msg.data.flat_uba.start == NULL) {
 			m_MDS_LOG_ERR("MDS_SND_RCV: Empty and NULL message from svc_id = %s(%d) to svc_id = %s(%d)",
 			 get_svc_names(svc_cb->svc_id), svc_cb->svc_id,get_svc_names(to_svc_id), to_svc_id);
-			m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_encode_full_or_flat_and_send\n");
+			m_MDS_LEAVE();
 			return NCSCC_RC_FAILURE;
 		} else if ((snd_type == MDS_SENDTYPE_BCAST) || (snd_type == MDS_SENDTYPE_RBCAST)) {
 			if ((svc_cb->subtn_info->prev_ver_sub_count > 0) || (!tipc_mode_enabled) || (!tipc_mcast_enabled)) {
@@ -1519,8 +1513,7 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 		}
 	}
 	m_MDS_LOG_INFO("MDS_SND_RCV: Sending the data to MDTM layer\n");
-	m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mcm_msg_encode_full_or_flat_and_send\n");
-
+        m_MDS_LEAVE();
 	/* used only for case of bcast with full encode */ 
 	to_msg->bcast_buff_len = m_MMGR_LINK_DATA_LEN(msg_send.msg.data.fullenc_uba.start);
 	return mds_mdtm_send(&msg_send);
@@ -1539,20 +1532,18 @@ static uint32_t mds_mcm_raise_selection_obj_for_ack(MDS_SVC_INFO *svc_cb, MDS_DA
 {
 	MDS_MCM_SYNC_SEND_QUEUE *sync_queue;
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering mds_mcm_raise_selection_obj_for_ack\n");
+	m_MDS_ENTER();
 	if (NCSCC_RC_SUCCESS != mcm_pvt_get_sync_send_entry(svc_cb, recv, &sync_queue)) {
 		m_MDS_LOG_ERR("MDS_SND_RCV: No entry in sync send table svc_id = %s(%d), xch_id=%d\n",
-		 get_svc_names(svc_cb->svc_id), svc_cb->svc_id,
-			      recv->exchange_id);
-		m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mds_mcm_raise_selection_obj_for_ack\n");
+				get_svc_names(svc_cb->svc_id), svc_cb->svc_id, recv->exchange_id);
+		m_MDS_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 	sync_queue->status = NCSCC_RC_SUCCESS;
 	m_MDS_LOG_INFO("MDS_SND_RCV: Entry Found in sync send table svc_id = %s(%d), xch_id=%d ,raising sel object\n",
 		       get_svc_names(svc_cb->svc_id), svc_cb->svc_id, recv->exchange_id);
 	m_NCS_SEL_OBJ_IND(&sync_queue->sel_obj);
-	m_MDS_LOG_DBG("MDS_SND_RCV : Leaving mds_mcm_raise_selection_obj_for_ack\n");
-
+        m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1641,8 +1632,7 @@ static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_
 	MDS_SUBSCRIPTION_RESULTS_INFO *t_send_hdl = NULL;	/* Subscription Result */
 	MDS_SUBSCRIPTION_RESULTS_INFO *log_t_send_hdl = NULL;       /* Subscription Result */
 
-	m_MDS_LOG_DBG("MDS_SND_RCV :Entering mds_mcm_process_disc_queue_checks\n");
-
+        m_MDS_ENTER();
 	env_hdl = (MDS_HDL)(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_cb->svc_hdl));
 
 	dest_vdest_id = m_MDS_GET_INTERNAL_VDEST_ID_FROM_MDS_DEST(i_dest);
@@ -4245,8 +4235,7 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 {
 	uint32_t rc = 0;
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering  mds_mcm_process_recv_snd_msg_common\n");
-
+        m_MDS_ENTER();
 	if (true == svccb->q_ownership) {
 		if (NCSCC_RC_SUCCESS != mds_mcm_mailbox_post(svccb, recv, recv->pri)) {
 			m_MDS_LOG_ERR("Mailbox post failed\n");
@@ -4904,8 +4893,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 					    NCSCONTEXT orig_msg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering  mds_mcm_do_decode_full_or_flat\n");
+        m_MDS_ENTER();
 	/* Distinguish between intra-node and inter-node communication */
 	if (MDS_ENC_TYPE_FULL == recv_msg->msg.encoding) {
 		cbinfo->i_op = MDS_CALLBACK_DEC;
@@ -4924,8 +4912,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 			 get_svc_names(svccb->svc_id), svccb->svc_id);
 			rc = NCSCC_RC_FAILURE;
 		}
-
-		m_MDS_LOG_DBG("MDS_SND_RCV : Leaving  mds_mcm_do_decode_full_or_flat\n");
+		m_MDS_LEAVE();
 		return rc;
 	} else if (MDS_ENC_TYPE_FLAT == recv_msg->msg.encoding) {
 		cbinfo->i_op = MDS_CALLBACK_DEC_FLAT;
@@ -4943,8 +4930,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 			 get_svc_names(svccb->svc_id), svccb->svc_id);
 			rc = NCSCC_RC_FAILURE;
 		}
-
-		m_MDS_LOG_DBG("MDS_SND_RCV : Leaving  mds_mcm_do_decode_full_or_flat\n");
+		m_MDS_LEAVE();
 		return rc;
 	}
 	return rc;
@@ -6207,8 +6193,7 @@ uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
 	MDS_AWAIT_ACTIVE_QUEUE *mov_ptr, *del_ptr;
 	mov_ptr = queue;
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Entering : mds_await_active_tbl_del");
-
+        m_MDS_ENTER();
 	if (mov_ptr == NULL) {
 		/* Deleting osaf_mutex_unlock_ordie(&gl_mds_library_mutex, ...
 		 * from here as it is resulting in segmantation fault if some
@@ -6226,8 +6211,7 @@ uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
 	}
 	queue = NULL;
 
-	m_MDS_LOG_DBG("MDS_SND_RCV : Leaving : mds_await_active_tbl_del");
-
+        m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
