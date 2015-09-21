@@ -235,7 +235,7 @@ void avd_sidep_si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state)
 				if (*it1 == si) {
 					avd_cb->sis_in_Tolerance_Timer_state.erase(it1);
 					TRACE_1("Deleted '%s' from tol timer list,"
-							" size after deletion:%lu",
+							" size after deletion:%zu",
 							si->name.value,
 							avd_cb->sis_in_Tolerance_Timer_state.size());
 					break;
@@ -579,7 +579,7 @@ void avd_sidep_stdby_amfd_tol_timer_expiry(AVD_SI *spons_si, AVD_SI *dep_si)
 	 */
 	if (dep_si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING) {
 		avd_cb->sis_in_Tolerance_Timer_state.push_back(dep_si);
-		TRACE_1("Added '%s' to tol_timer list, size after addition:%lu",
+		TRACE_1("Added '%s' to tol_timer list, size after addition:%zu",
 				dep_si->name.value,avd_cb->sis_in_Tolerance_Timer_state.size());
 	}
 	TRACE_LEAVE();
