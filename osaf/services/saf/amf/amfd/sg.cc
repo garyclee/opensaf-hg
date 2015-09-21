@@ -117,7 +117,6 @@ AVD_SG::AVD_SG():
 		sg_fsm_state(AVD_SG_FSM_STABLE),
 		admin_si(NULL),
 		sg_redundancy_model(SA_AMF_NO_REDUNDANCY_MODEL),
-		list_of_su(NULL),
 		list_of_si(NULL),
 		sg_type(NULL),
 		sg_list_app_next(NULL),
@@ -162,7 +161,7 @@ static AVD_SG *sg_new(const SaNameT *dn, SaAmfRedundancyModelT redundancy_model)
 void avd_sg_delete(AVD_SG *sg)
 {
 	/* by now SU and SI should have been deleted */ 
-	osafassert(sg->list_of_su == NULL);
+	osafassert(sg->list_of_su.empty() == true);
 	osafassert(sg->list_of_si == NULL);
 	sg_remove_from_model(sg);
 	delete sg;
@@ -755,7 +754,6 @@ done:
  */
 static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 {
-	AVD_SU *su = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
 	memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
@@ -807,8 +805,7 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 	}
 
 	/* This value has to be updated on each SU on this SG */
-	su = sg->list_of_su;
-	while (su) {
+	for (const auto& su : sg->list_of_su) {
 		su_node_ptr = su->get_node_ptr();
 
 		if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
@@ -818,7 +815,6 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 				LOG_ER("%s::failed for %s",__FUNCTION__, su_node_ptr->name.value);
 			}
 		}
-		su = su->sg_list_su_next;
 	}
 	TRACE_LEAVE();
 }
@@ -1101,29 +1097,35 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 /**
  * Terminate SU in reverse order  
- * @param su
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
-static uint32_t avd_sg_su_term_in_reverse(AVD_SU *su)
+uint32_t AVD_SG::term_su_list_in_reverse()
 {
-  uint32_t rc = NCSCC_RC_SUCCESS; 
-  TRACE_ENTER2("su:'%s'", su ? su->name.value : NULL);
-  if (su->sg_list_su_next != NULL)
-	rc = avd_sg_su_term_in_reverse(su->sg_list_su_next);
-  if ((su->saAmfSUPreInstantiable == true) &&
-		  (su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
-		  (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
-		  (su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVD_SU *su;
 
-	  if (avd_snd_presence_msg(avd_cb, su, true) == NCSCC_RC_SUCCESS) {
-		  su->set_term_state(true);
-	  } else {
-		  rc = NCSCC_RC_FAILURE;
-		  LOG_WA("Failed Termination '%s'", su->name.value);
-	  }
-  }
-  TRACE_LEAVE();
-  return rc ;
+	TRACE_ENTER2("sg: %s", this->name.value);
+	for (auto iter = list_of_su.rbegin(); iter != list_of_su.rend(); ++iter) {
+		su = *iter;
+		TRACE("terminate su:'%s'", su ? su->name.value : NULL);
+
+		if ((su->saAmfSUPreInstantiable == true) &&
+			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
+			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
+			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+
+			if (avd_snd_presence_msg(avd_cb, su, true) == NCSCC_RC_SUCCESS) {
+				su->set_term_state(true);
+			} else {
+				rc = NCSCC_RC_FAILURE;
+				LOG_WA("Failed Termination '%s'", su->name.value);
+			}
+		}
+	}
+
+	TRACE_LEAVE();
+       
+	return rc ;
 }
 /**
  * perform lock-instantiation on a given SG
@@ -1137,8 +1139,8 @@ static uint32_t sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 	TRACE_ENTER2("%s", sg->name.value);
 
 	/* terminate all the SUs on this Node */
-	if (sg->list_of_su != NULL)
-		rc = avd_sg_su_term_in_reverse(sg->list_of_su);
+	if (sg->list_of_su.empty() == false)
+		rc = sg->term_su_list_in_reverse();
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -1152,13 +1154,14 @@ static uint32_t sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
  */
 static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 {
-	AVD_SU *su;
 	uint32_t su_try_inst;
 
 	TRACE_ENTER2("%s", sg->name.value);
 
 	/* Instantiate the SUs in this SG */
-	for (su = sg->list_of_su, su_try_inst = 0; su != NULL; su = su->sg_list_su_next) {
+	su_try_inst = 0;
+	
+	for (const auto& su : sg->list_of_su) {
 		if ((su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 				(su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 				(su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
@@ -1172,7 +1175,7 @@ static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 									__FUNCTION__, su->name.value,
 									su->su_on_node->node_info.nodeId);
 						} else {
-							su_try_inst ++;
+							su_try_inst++;
 						}
 					}
 				}
@@ -1212,7 +1215,6 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 {
 	AVD_SG *sg;
 	SaAmfAdminStateT adm_state;
-	AVD_SU *su;
 	AVD_AVND *node;
 
 	TRACE_ENTER2("'%s', %llu", object_name->value, op_id);
@@ -1231,7 +1233,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	}
 
 	/* Avoid multiple admin operations on other SUs belonging to the same SG. */
-	for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
+	for (const auto& su : sg->list_of_su) {
 		node = su->get_node_ptr();
 		if (su->pend_cbk.invocation != 0) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
@@ -1283,7 +1285,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		adm_state = sg->saAmfSGAdminState;
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_UNLOCKED);
 		if (avd_cb->init_state == AVD_INIT_DONE) {
-			for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
+			for (const auto& su : sg->list_of_su) {
 				if (su->is_in_service() == true) {
 					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				}
@@ -1316,7 +1318,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 
 		if (avd_cb->init_state == AVD_INIT_DONE) {
-			for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
+			for (const auto& su : sg->list_of_su) {
 				su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			}
 			break;
@@ -1396,7 +1398,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		/* If any su is in terminating state, that means lock-in op
 		   has not completed. Allow su to move into permanent state
 		   i.e. either in uninstanted or term failed state. */
-		for (su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
+		for (const auto& su : sg->list_of_su) {
 			if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) {
 				report_admin_op_error(immOiHandle, invocation,
 						SA_AIS_ERR_TRY_AGAIN, NULL,
@@ -1408,7 +1410,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
 
-		if ((sg->list_of_su != NULL) && (sg->list_of_su->saAmfSUPreInstantiable == false)) {
+		if ((sg->list_of_su.empty() == false) && (sg->first_su()->saAmfSUPreInstantiable == false)) {
 			avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 			goto done;
 		}
@@ -1562,30 +1564,20 @@ static void sg_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_sg_remove_su(AVD_SU* su)
 {
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
 	AVD_SG *sg = su->sg_of_su;
 
 	if (su->sg_of_su != NULL) {
 		/* remove SU from SG */
-		i_su = su->sg_of_su->list_of_su;
-
-		while ((i_su != NULL) && (i_su != su)) {
-			prev_su = i_su;
-			i_su = i_su->sg_list_su_next;
-		}
-
-		if (i_su != su) {
-			/* Log a fatal error */
+		auto su_to_delete = std::find(sg->list_of_su.begin(),
+			sg->list_of_su.end(),
+			su);
+		
+		if (su_to_delete != sg->list_of_su.end()) {
+			sg->list_of_su.erase(su_to_delete);
 		} else {
-			if (prev_su == NULL) {
-				su->sg_of_su->list_of_su = su->sg_list_su_next;
-			} else {
-				prev_su->sg_list_su_next = su->sg_list_su_next;
-			}
+			LOG_ER("su cannot be found");
 		}
 
-		su->sg_list_su_next = NULL;
 		su->sg_of_su = NULL;
 	} /* if (su->sg_of_su != AVD_SG_NULL) */
 
@@ -1595,26 +1587,17 @@ void avd_sg_remove_su(AVD_SU* su)
 
 void avd_sg_add_su(AVD_SU* su)
 {
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
-
 	if ((su == NULL) || (su->sg_of_su == NULL))
 		return;
 
-	i_su = su->sg_of_su->list_of_su;
+	su->sg_of_su->list_of_su.push_back(su);
 
-	while ((i_su != NULL) && (i_su->saAmfSURank < su->saAmfSURank)) {
-		prev_su = i_su;
-		i_su = i_su->sg_list_su_next;
-	}
+	// in descending order of SU rank (lowest to
+	// highest integer). Note: the lower the integer
+	// value, the higher the rank.
+	std::sort(su->sg_of_su->list_of_su.begin(), su->sg_of_su->list_of_su.end(),
+		[](const AVD_SU *a, const AVD_SU *b) -> bool {return a->saAmfSURank < b->saAmfSURank;});
 
-	if (prev_su == NULL) {
-		su->sg_list_su_next = su->sg_of_su->list_of_su;
-		su->sg_of_su->list_of_su = su;
-	} else {
-		prev_su->sg_list_su_next = su;
-		su->sg_list_su_next = i_su;
-	}
 	avd_verify_equal_ranked_su(su->sg_of_su);
 }
 
@@ -1666,6 +1649,8 @@ void AVD_SG::set_admin_state(SaAmfAdminStateT state) {
 }
 
 void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
+	TRACE_ENTER();
+
 	if (sg_fsm_state != state) {
 		TRACE("%s sg_fsm_state %u => %u", name.value, sg_fsm_state, state);
 		sg_fsm_state = state;
@@ -1687,6 +1672,8 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 			}
 		}
 	}
+
+	TRACE_LEAVE();
 }
 
 void AVD_SG::set_adjust_state(SaAdjustState state) {
@@ -1710,8 +1697,9 @@ void AVD_SG::clear_admin_si() {
 }
 
 void AVD_SG::for_all_su_set_readiness_state(SaAmfReadinessStateT state) {
-	for (AVD_SU *su = list_of_su; su != NULL; su = su->sg_list_su_next)
+	for (const auto& su : list_of_su) {
 		su->set_readiness_state(state);
+	}
 }
 
 bool AVD_SG::in_su_oper_list(const AVD_SU *i_su) {
@@ -1765,20 +1753,24 @@ const AVD_SU* AVD_SG::su_oper_list_front() {
  */
 static void avd_verify_equal_ranked_su(AVD_SG *avd_sg)
 {
-	AVD_SU *pre_temp_su = NULL, *temp_su;
+	uint32_t rank = 0;
+	bool valid_rank = false;
 
 	TRACE_ENTER();
-	/* Check ranks are still equal or not. Mark true in the begining*/
+	/* Check ranks are still equal or not. Mark true in the beginning*/
 	avd_sg->equal_ranked_su = true;
-	temp_su = avd_sg->list_of_su;
-	while(temp_su) {
-		if (pre_temp_su && temp_su->saAmfSURank != pre_temp_su->saAmfSURank) {
+	
+	for (const auto& su : avd_sg->list_of_su) {
+		if (valid_rank && rank != su->saAmfSURank) {
 			avd_sg->equal_ranked_su = false;
 			break;
 		}
-		pre_temp_su = temp_su;
-		temp_su = temp_su->sg_list_su_next;
+		
+		// store rank for comparison
+		rank = su->saAmfSURank;
+		valid_rank = true;
 	}
+
 	TRACE_LEAVE2("avd_sg->equal_ranked_su '%u'", avd_sg->equal_ranked_su);
 
 	return;
@@ -1794,7 +1786,7 @@ static void avd_verify_equal_ranked_su(AVD_SG *avd_sg)
 void avd_sg_adjust_config(AVD_SG *sg)
 {
 	// SUs in an SG are equal, only need to look at the first one
-	if ((sg->list_of_su != NULL) && !sg->list_of_su->saAmfSUPreInstantiable) {
+	if (sg->list_of_su.empty() == false && !(sg->first_su()->saAmfSUPreInstantiable)) {
 		// NPI SUs can only be assigned one SI, see 3.2.1.1
 		if ((sg->saAmfSGMaxActiveSIsperSU != static_cast<SaUint32T>(-1)) && (sg->saAmfSGMaxActiveSIsperSU > 1)) {
 			LOG_WA("invalid saAmfSGMaxActiveSIsperSU (%u) for NPI SU '%s', adjusting...",
@@ -1808,12 +1800,11 @@ void avd_sg_adjust_config(AVD_SG *sg)
 		}
 		sg->saAmfSGMaxStandbySIsperSU = 1;
 		/* saAmfSUFailover must be true for a NPI SU sec 3.11.1.3.2 AMF-B.04.01 spec */
-		for (AVD_SU *su = sg->list_of_su; su != NULL; su = su->sg_list_su_next) {
+		for (const auto& su : sg->list_of_su) {
 			if (!su->saAmfSUFailover) {
 				su->set_su_failover(true);
 			}
 		}
-
 	}
 
 	/* adjust saAmfSGNumPrefAssignedSUs if not configured, only applicable for
@@ -1837,11 +1828,10 @@ void avd_sg_adjust_config(AVD_SG *sg)
  */
 uint32_t sg_instantiated_su_count(const AVD_SG *sg)
 {
-	uint32_t inst_su_count;
-	AVD_SU *su;
+	uint32_t inst_su_count = 0;
 
 	TRACE_ENTER();
-	for (su = sg->list_of_su, inst_su_count = 0; su != NULL; su = su->sg_list_su_next) {
+	for (const auto& su : sg->list_of_su) {
 		TRACE_1("su'%s', pres state'%u', in_serv'%u', PrefIn'%u'", su->name.value,
 				su->saAmfSUPresenceState, su->saAmfSuReadinessState, sg->saAmfSGNumPrefInserviceSUs);
 		if (((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
@@ -1850,6 +1840,7 @@ uint32_t sg_instantiated_su_count(const AVD_SG *sg)
 			inst_su_count ++;
 		}
 	}
+
 	TRACE_LEAVE2("%u", inst_su_count);
 	return inst_su_count;
 }
@@ -1880,7 +1871,7 @@ bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg)
 
 	switch (sg->adminOp) {
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION :
-		for (AVD_SU *su = sg->list_of_su; su; su = su->sg_list_su_next) {
+		for (const auto& su : sg->list_of_su) {
 			if ((su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 				(su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
 				(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) 
@@ -1889,10 +1880,10 @@ bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg)
 		break;
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION :
 		/* Unlock-in of SG will not instantiate any component in NPI SU.*/
-		if ((sg->list_of_su != NULL) && (sg->list_of_su->saAmfSUPreInstantiable == false))
+		if ((sg->list_of_su.empty() == false) && (sg->first_su()->saAmfSUPreInstantiable == false))
 			return true;
-			
-		for (AVD_SU *su = sg->list_of_su; su; su = su->sg_list_su_next) {
+
+		for (const auto& su : sg->list_of_su) {
 			node_admin_state = su->su_on_node->saAmfNodeAdminState;
 			
 			if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
@@ -1947,7 +1938,7 @@ bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg)
  */
 bool AVD_SG::is_sg_assigned_only_in_ng(const AVD_AMF_NG *ng)
 {
-	for (AVD_SU *su = list_of_su; su; su = su->sg_list_su_next) {
+	for (const auto& su : list_of_su) {
 		if (su->list_of_susi == NULL)
 			continue;
 		//Return if this assigned su is not in this ng.
@@ -1964,7 +1955,7 @@ bool AVD_SG::is_sg_assigned_only_in_ng(const AVD_AMF_NG *ng)
  */
 bool AVD_SG::is_sg_serviceable_outside_ng(const AVD_AMF_NG *ng)
 {
-	for (AVD_SU *su = list_of_su; su; su = su->sg_list_su_next) {
+	for (const auto& su : list_of_su) {
 		//Check if any su exists outside nodegroup for this sg. 
 		if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false) {
 			/* 
@@ -2016,4 +2007,13 @@ SaAisErrorT AVD_SG::check_sg_stability()
 done:
 	return rc;
 
+}
+
+AVD_SU* AVD_SG::first_su()
+{
+	if (!list_of_su.empty()) {
+		return *list_of_su.begin();
+	} else {
+		return NULL;
+	}
 }
