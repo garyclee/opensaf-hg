@@ -587,7 +587,9 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU_SI_REL *a_susi;
 	AVD_SU_SI_REL *s_susi;
-	AVD_SU *a_su, *s_su, *return_su = NULL;
+	AVD_SU *a_su = NULL;
+	AVD_SU *s_su = NULL;
+	AVD_SU *return_su = NULL;
 	AVD_SI *i_si;
 	bool l_flag = true;
 	AVD_SU_SI_REL *tmp_susi;
@@ -601,14 +603,12 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* No active assignment exists. Scan the ranked list of SUs in the SG
 		 * to identify a in-service SU 
 		 */
-		a_su = sg->list_of_su;
-		while ((a_su != NULL) && (l_flag == true)) {
-			if (a_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
-				l_flag = false;
-				continue;
+		a_su = NULL;
+		for (const auto& iter : sg->list_of_su) {
+			if (iter->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
+				a_su = iter;
+				break;
 			}
-
-			a_su = a_su->sg_list_su_next;
 		}
 
 		if (a_su == NULL) {
@@ -658,16 +658,13 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* No standby assignment exists. Scan the ranked list of SUs in the SG
 		 * to identify a in-service SU with no assignments. 
 		 */
-		l_flag = true;
-		s_su = sg->list_of_su;
-		while ((s_su != NULL) && (l_flag == true)) {
-			if ((s_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-			    (s_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-				l_flag = false;
-				continue;
+		s_su = NULL;
+		for (const auto& iter : sg->list_of_su) {
+			if (iter->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE &&
+				iter->list_of_susi == AVD_SU_SI_REL_NULL) {
+				s_su = iter;
+				break;
 			}
-
-			s_su = s_su->sg_list_su_next;
 		}
 
 		if (s_su == NULL) {
@@ -1176,7 +1173,6 @@ done:
 }
 
 uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
-	AVD_SU *a_su;
 	AVD_SU_SI_REL *l_susi, *o_susi;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	SaAmfHAStateT su_ha_state;
@@ -1299,15 +1295,13 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 						goto done;
 					}
 					o_susi = AVD_SU_SI_REL_NULL;
-					a_su = su->sg_of_su->list_of_su;
-					while (a_su != NULL) {
+					for (const auto& a_su : su->sg_of_su->list_of_su) {
 						if (a_su->sg_of_su->ng_using_saAmfSGAdminState == false)
 							a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						if ((a_su->list_of_susi != AVD_SU_SI_REL_NULL)
 							&& (avd_su_state_determine(a_su) == SA_AMF_HA_STANDBY)){
 							o_susi = a_su->list_of_susi;
 						}
-						a_su = a_su->sg_list_su_next;
 					}
 					if (su->sg_of_su->ng_using_saAmfSGAdminState == true) {
 						su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_LOCKED;
@@ -1346,15 +1340,13 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 						goto done;
 					}
 					o_susi = AVD_SU_SI_REL_NULL;
-					a_su = su->sg_of_su->list_of_su;
-					while (a_su != NULL) {
+					for (const auto& a_su : su->sg_of_su->list_of_su) {
 						if (a_su->sg_of_su->ng_using_saAmfSGAdminState == false)
 							a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						if ((a_su->list_of_susi != AVD_SU_SI_REL_NULL)
 								&& (avd_su_state_determine(a_su) == SA_AMF_HA_STANDBY)){
 							o_susi = a_su->list_of_susi;
 						}
-						a_su = a_su->sg_list_su_next;
 					}
 					if (su->sg_of_su->ng_using_saAmfSGAdminState == true) {
 						su->sg_of_su->saAmfSGAdminState = SA_AMF_ADMIN_LOCKED;
@@ -2358,7 +2350,7 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 								   AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 
 	AVD_SU_SI_REL *s_susi, *n_susi;
-	AVD_SU *i_su, *a_su;
+	bool all_unassigned = true;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s' act=%u, hastate=%u, sg_fsm_state=%u", su->name.value, act,
@@ -2403,16 +2395,15 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			} else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_DEL)) {
 				/* Free all the SI assignments to this SU */
 				su->delete_all_susis();
-				i_su = su->sg_of_su->list_of_su;
-				while (i_su != NULL) {
-					if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-						/* found a assigned su break */
+				for (const auto& iter : su->sg_of_su->list_of_su) {
+					if (iter->list_of_susi != AVD_SU_SI_REL_NULL) {
+						all_unassigned = false;
+						/* found an assigned su break */
 						break;
 					}
-					i_su = i_su->sg_list_su_next;
 				}
 
-				if (i_su == NULL) {
+				if (all_unassigned == true) {
 					/* the SG doesnt have any SI assignments.Change state to stable. */
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 					/*As sg is stable, screen for si dependencies and take action on whole sg*/
@@ -2483,11 +2474,11 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 							AVSV_CKPT_SG_ADMIN_STATE);
 				} else
 					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
-				a_su = su->sg_of_su->list_of_su;
-				while ((a_su != NULL) &&
-						(a_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
+				for (const auto& a_su : su->sg_of_su->list_of_su) {
+					if (a_su->sg_of_su->ng_using_saAmfSGAdminState == true)
+						break;
+	
 					a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-					a_su = a_su->sg_list_su_next;
 				}
 			}	/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
 				   (state == SA_AMF_HA_QUIESCED)) */
@@ -2529,11 +2520,12 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 								AVSV_CKPT_SG_ADMIN_STATE);
 					} else
 						avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
-					a_su = su->sg_of_su->list_of_su;
-					while ((a_su != NULL) &&
-							(a_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
+
+					for (const auto& a_su : su->sg_of_su->list_of_su) {
+						if (a_su->sg_of_su->ng_using_saAmfSGAdminState == true)
+							break;
+
 						a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-						a_su = a_su->sg_list_su_next;
 					}
 				} else {
 					n_susi = avd_siass_next_susi_to_quiesce(susi);
@@ -2570,7 +2562,6 @@ done:
 uint32_t SG_2N::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	AVD_SU_SI_REL *s_susi, *o_susi, *l_susi;
-	AVD_SU *a_su;
 	AVD_AVND *su_node_ptr = NULL;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
@@ -2792,12 +2783,9 @@ uint32_t SG_2N::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				avd_sg_su_si_del_snd(cb, su);
 			}
 			avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
-			a_su = su->sg_of_su->list_of_su;
-			while (a_su != NULL) {
+			for (const auto& a_su : su->sg_of_su->list_of_su) {
 				a_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-				a_su = a_su->sg_list_su_next;
 			}
-
 		}		/* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
 				   ((state == SA_AMF_HA_QUIESCED) && 
 				   (su->sg_of_su->admin_state == NCS_ADMIN_STATE_LOCK)) */
@@ -3263,7 +3251,7 @@ void SG_2N::node_fail_si_oper(AVD_SU *su) {
 
 void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 	AVD_SU_SI_REL *a_susi, *s_susi;
-	AVD_SU *o_su, *i_su;
+	AVD_SU *o_su;
 	bool flag;
 	SaAmfHAStateT su_ha_state;
 
@@ -3473,19 +3461,19 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 
 		if (su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
 			/* SG is admin lock */
+			bool found_assigned = false;
 
 			/* Free all the SI assignments to this SU */
 			su->delete_all_susis();
-			i_su = su->sg_of_su->list_of_su;
-			while (i_su != NULL) {
-				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
+			for (const auto& iter : su->sg_of_su->list_of_su) {
+				if (iter->list_of_susi != AVD_SU_SI_REL_NULL) {
 					/* found a assigned su break */
+					found_assigned = true;
 					break;
 				}
-				i_su = i_su->sg_list_su_next;
 			}
 
-			if (i_su == NULL) {
+			if (found_assigned == false) {
 				/* the SG doesnt have any SI assignments.Change state to stable. */
 				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
@@ -3533,11 +3521,11 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 				} else
 					avd_sg_admin_state_set(su->sg_of_su, SA_AMF_ADMIN_LOCKED);
 
-				i_su = su->sg_of_su->list_of_su;
-				while ((i_su != NULL) &&
-						(i_su->sg_of_su->ng_using_saAmfSGAdminState == false)) {
-					i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-					i_su = i_su->sg_list_su_next;
+				for (const auto& iter : su->sg_of_su->list_of_su) {
+					if (iter->sg_of_su->ng_using_saAmfSGAdminState == true)
+						break;
+
+					iter->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 				}
 			} /* if (avd_su_state_determine(su) == SA_AMF_HA_QUIESCING) */
 			else {
