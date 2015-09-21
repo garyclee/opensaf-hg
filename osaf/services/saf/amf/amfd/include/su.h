@@ -93,7 +93,6 @@ class AVD_SU {
 	// TODO: use some container for the comp list
 	AVD_COMP *list_of_comp;	/* the list of  components in this SU */
 
-	AVD_SU *sg_list_su_next;	/* the next SU in the SG */
 	AVD_SUTYPE *su_type;
 	AVD_SU *su_list_su_type_next;
 
@@ -137,6 +136,7 @@ class AVD_SU {
 	bool any_susi_fsm_in_unasgn();
 	bool any_susi_fsm_in_modify();
 	SaAisErrorT check_su_stability();
+	
  private:
 	void initialize();
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
