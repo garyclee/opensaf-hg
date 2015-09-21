@@ -780,8 +780,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					}
 
 					if (l_val == SA_AMF_PRESENCE_TERMINATION_FAILED) {
-						for (AVD_SI* si = su->sg_of_su->list_of_si; si != NULL;
-								si = si->sg_list_of_si_next) {
+						for (const auto& si : su->sg_of_su->list_of_si) {
 							if (si->invocation != 0) {
 								report_admin_op_error(cb->immOiHandle, si->invocation,
 										SA_AIS_ERR_REPAIR_PENDING,

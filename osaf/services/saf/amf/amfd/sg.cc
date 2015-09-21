@@ -117,7 +117,6 @@ AVD_SG::AVD_SG():
 		sg_fsm_state(AVD_SG_FSM_STABLE),
 		admin_si(NULL),
 		sg_redundancy_model(SA_AMF_NO_REDUNDANCY_MODEL),
-		list_of_si(NULL),
 		sg_type(NULL),
 		sg_list_app_next(NULL),
 		app(NULL),
@@ -162,56 +161,30 @@ void avd_sg_delete(AVD_SG *sg)
 {
 	/* by now SU and SI should have been deleted */ 
 	osafassert(sg->list_of_su.empty() == true);
-	osafassert(sg->list_of_si == NULL);
+	osafassert(sg->list_of_si.empty() == true);
 	sg_remove_from_model(sg);
 	delete sg;
 }
 
 void AVD_SG::add_si(AVD_SI* si)
 {
-	AVD_SI *i_si = AVD_SI_NULL;
-	AVD_SI *prev_si = AVD_SI_NULL;
-
-	i_si = this->list_of_si;
-
-	while ((i_si != AVD_SI_NULL) && (i_si->saAmfSIRank < si->saAmfSIRank)) {
-		prev_si = i_si;
-		i_si = i_si->sg_list_of_si_next;
-	}
 	si->sg_of_si = this;
-	if (prev_si == AVD_SI_NULL) {
-		si->sg_list_of_si_next = si->sg_of_si->list_of_si;
-		this->list_of_si = si;
-	} else {
-		prev_si->sg_list_of_si_next = si;
-		si->sg_list_of_si_next = i_si;
-	}
+	list_of_si.push_back(si);
+	std::sort(list_of_si.begin(), list_of_si.end(),
+		[](const AVD_SI *a, const AVD_SI *b) -> bool {return a->saAmfSIRank < b->saAmfSIRank;});
 }
 
 void AVD_SG::remove_si(AVD_SI* si)
 {
-	AVD_SI *i_si = NULL;
-	AVD_SI *prev_si = NULL;
-
-	if (list_of_si != NULL) {
-		i_si = list_of_si;
-
-		while ((i_si != NULL) && (i_si != si)) {
-			prev_si = i_si;
-			i_si = i_si->sg_list_of_si_next;
-		}
-
-		if (i_si == si) {
-			if (prev_si == NULL) {
-				list_of_si = si->sg_list_of_si_next;
-			} else {
-				prev_si->sg_list_of_si_next = si->sg_list_of_si_next;
-			}
-
-			si->sg_list_of_si_next = NULL;
-			si->sg_of_si = NULL;
-		}
+	auto si_to_remove = std::find(list_of_si.begin(), list_of_si.end(), si);
+	
+	if (si_to_remove != list_of_si.end()) {
+		list_of_si.erase(si_to_remove);
+	} else {
+		osafassert(false);
 	}
+
+	si->sg_of_si = NULL;
 }
 
 /**
@@ -1198,9 +1171,7 @@ static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
  **/
 bool sg_is_tolerance_timer_running_for_any_si(AVD_SG *sg)
 {
-	AVD_SI  *si;
-
-	for (si = sg->list_of_si; si != NULL; si = si->sg_list_of_si_next) {
+	for (const auto& si : sg->list_of_si) {
 		if (si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING) {
 			TRACE("Tolerance timer running for si: %s",si->name.value);
 			return true;
@@ -1483,7 +1454,6 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SG *sg;
-	AVD_SI *si;
 	bool si_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
@@ -1499,21 +1469,19 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		sg = sg_db->find(Amf::to_string(&opdata->objectName));
-		if (sg->list_of_si != NULL) {
+		if (sg->list_of_si.empty() == false) {
 			/* check whether there is parent app delete */
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->app->name);
 			if (t_opData == NULL || t_opData->operationType != CCBUTIL_DELETE) {
 				/* check whether there exists a delete operation for 
 				 * each of the SIs in the SG's list in the current CCB
 				 */
-				si = sg->list_of_si;
-				while (si != NULL) {
+				for (const auto& si : sg->list_of_si) {
 					t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
 					if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
 						si_exist = true;
 						break;
 					}
-					si = si->sg_list_of_si_next;
 				}
 			}
 			if (si_exist == true) {
@@ -1664,7 +1632,7 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 			adminOp_invocationId = 0;
 			adminOp = static_cast<SaAmfAdminOperationIdT>(0);
 		}
-		for (AVD_SI* si = list_of_si; si != NULL; si = si->sg_list_of_si_next) {
+		for (const auto& si : list_of_si) {
 			if (si->invocation != 0) {
 				avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
 						si->invocation, SA_AIS_OK);

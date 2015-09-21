@@ -728,11 +728,9 @@ bool avd_sidep_all_sponsors_active(AVD_SI *si)
  **************************************************************************/
 void avd_sidep_update_si_dep_state_for_all_sis(AVD_SG *sg)
 {
-	AVD_SI *si = NULL;
-
 	TRACE_ENTER2("'%s'", sg->name.value);
 
-	for (si = sg->list_of_si; si != NULL; si = si->sg_list_of_si_next) {
+	for (const auto& si : sg->list_of_si) {
 
 		/*Avoid screening if si is neither a sponsor si nor a dependent si*/
 		if ((si->spons_si_list != NULL) || (si->num_dependents > 0)) 
@@ -2482,11 +2480,9 @@ void sidep_si_take_action(AVD_SI *si)
  **/
 void avd_sidep_sg_take_action(AVD_SG *sg)
 {
-	AVD_SI *si = NULL;
-
 	TRACE_ENTER2("'%s'", sg->name.value);
 
-	for (si = sg->list_of_si; si != NULL; si = si->sg_list_of_si_next) {
+	for (const auto& si : sg->list_of_si) {
 		if ((si->spons_si_list != NULL) || (si->num_dependents > 0)) 
 			sidep_si_take_action(si);
 	}

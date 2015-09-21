@@ -93,7 +93,6 @@ public:
 
 	AVD_SG *sg_of_si;	/* the service group of this SI */
 	AVD_CSI *list_of_csi;	/* The list of CSIs in the SI */
-	AVD_SI *sg_list_of_si_next;	/* next SI in the SG list of SIs */
 	struct avd_su_si_rel_tag *list_of_sisu;	/* the list of su si relationship elements */
 	AVD_SI_DEP_STATE si_dep_state;	/* SI-SI dep state of this SI */
 	struct avd_spons_si_tag *spons_si_list;

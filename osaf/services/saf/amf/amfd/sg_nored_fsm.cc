@@ -37,15 +37,12 @@
  *          no assignments need to happen.
  */
 AVD_SU *SG_NORED::assign_sis_to_sus() {
-	AVD_SI *i_si;
 	AVD_SU_SI_REL *tmp;
 
 	TRACE_ENTER();
 
-	i_si = list_of_si;
-
 	avd_sidep_update_si_dep_state_for_all_sis(this);
-	while (i_si != NULL) {
+	for (const auto& i_si : list_of_si) {
 
 		/* verify that the SI is unassigned and ready */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -54,7 +51,6 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
 			(i_si->list_of_csi == NULL) ||
 		    (i_si->list_of_sisu != NULL)) {
-			i_si = i_si->sg_list_of_si_next;
 			continue;
 		}
 
@@ -79,8 +75,6 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 		if (iter == list_of_su.end()) {
 			break;
 		}
-
-		i_si = i_si->sg_list_of_si_next;
 	}
 
 	TRACE_LEAVE();
