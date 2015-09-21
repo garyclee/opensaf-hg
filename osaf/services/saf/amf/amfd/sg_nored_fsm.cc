@@ -1067,8 +1067,6 @@ uint32_t SG_NORED::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 }
 
 uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
-	AVD_SU *i_su;
-
 	TRACE_ENTER2("%u", sg->sg_fsm_state);
 
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
