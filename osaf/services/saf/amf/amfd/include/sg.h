@@ -179,10 +179,13 @@ public:
 							 * Checkpointing - Sent as a one time update.
 							 */
 
-	AVD_SU *list_of_su;	/* the list of service units in this
-					 * group in the descending order of
-					 * the rank.
-					 */
+	/* the list of service units in this
+	 * group in the descending order of
+	 * the rank.
+	 */
+	std::vector<AVD_SU*> list_of_su;
+	AVD_SU* first_su();
+
 	AVD_SI *list_of_si;	/* the list of service instances in 
 				 * this group in the descending order 
 				 * of the rank.
@@ -411,6 +414,8 @@ public:
 	bool is_sg_serviceable_outside_ng(const AVD_AMF_NG *ng);
 	SaAisErrorT check_sg_stability();
 	bool ng_using_saAmfSGAdminState;
+	
+	uint32_t term_su_list_in_reverse();
 private:
 	// disallow copy and assign, TODO(hafe) add common macro for this
 	AVD_SG(const AVD_SG&);
