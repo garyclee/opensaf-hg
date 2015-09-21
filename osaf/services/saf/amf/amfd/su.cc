@@ -55,7 +55,6 @@ void AVD_SU::initialize() {
 	su_on_node = NULL;
 	list_of_susi = NULL;
 	list_of_comp = NULL;
-	sg_list_su_next = NULL;
 	su_type = NULL;
 	su_list_su_type_next = NULL; 
 	name.length = 0;
@@ -1132,7 +1131,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	const SaImmAdminOperationParamsT_2 **params)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB*) avd_cb;
-	AVD_SU    *su, *su_ptr;
+	AVD_SU    *su;
 	AVD_AVND  *node;
 
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, su_name->value, op_id);
@@ -1157,7 +1156,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	}
 
 	/* Avoid multiple admin operations on other SUs belonging to the same SG. */
-	for (su_ptr = su->sg_of_su->list_of_su; su_ptr != NULL; su_ptr = su_ptr->sg_list_su_next) {
+	for (auto const& su_ptr : su->sg_of_su->list_of_su) {
 		/* su's sg_fsm_state is checked below, just check other su. */
 		if ((su != su_ptr) && (su_ptr->pend_cbk.invocation != 0)) {
 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
