@@ -338,7 +338,6 @@ done:
  *****************************************************************************/
 static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 {
-	AVD_SI *curr_si = NULL;
 	AVD_SU *curr_su = NULL;
 	AVD_SU_SI_REL *susi;
 
@@ -349,8 +348,7 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 	 * qualified SU to take the active assignment for that SI
 	 */
 
-	curr_si = sg->list_of_si;
-	while (curr_si != NULL) {
+	for (const auto& curr_si : sg->list_of_si) {
 
 		/* verify that the SI is ready and needs active assignments. */
 		if ((curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -358,7 +356,6 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 				(curr_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 				(curr_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
 				(curr_si->list_of_csi == NULL)) {
-			curr_si = curr_si->sg_list_of_si_next;
 			continue;
 		}
 
@@ -388,7 +385,6 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_su->name.value, curr_su->name.length);
 			}
 		}
-		curr_si = curr_si->sg_list_of_si_next;
 	}
 
 	/* Now run through SI list of the SG to identify if there is
@@ -396,14 +392,12 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 	 * make a Standby HA assignment accordingly
 	 */
 
-	curr_si = sg->list_of_si;
-	while (curr_si != NULL) {
+	for (const auto& curr_si : sg->list_of_si) {
 		if ((curr_si->list_of_sisu ==  AVD_SU_SI_REL_NULL) || 
 			(curr_si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_FULLY_ASSIGNED)) { 
 			/* No standby assignment needs to be done when there is 
 			 * either no active assignment exists or it is fully assigned already
 			 */
-			curr_si = curr_si->sg_list_of_si_next;
 			continue;
 		}
 		/* an assignment exists for this SI check for 
@@ -435,8 +429,6 @@ static void avd_sg_npm_distribute_si_equal(AVD_SG *sg)
 				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_su->name.value, curr_su->name.length);
 			}
 		}
-
-		curr_si = curr_si->sg_list_of_si_next;
 	}
 
 	TRACE_LEAVE();
@@ -471,11 +463,12 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *i_su = NULL, *l_su = NULL, *n_su;
 	uint32_t cnt = 0;
-	AVD_SI *i_si;
+	AVD_SI *i_si = NULL;
 	bool new_su = false;
 	bool su_found, load_su_found;
 	bool actv_su_found = false;
 	AVD_SU_SI_REL *o_susi, *tmp_susi;
+	std::vector<AVD_SI*>::iterator si_iter;
 
 	TRACE_ENTER();
 
@@ -489,11 +482,12 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	}
 
 	/* Identifying and assigning active assignments. */
-	i_si = sg->list_of_si;
+	si_iter = sg->list_of_si.begin();
 	su_found = true;
 	actv_su_found = load_su_found = false;
 
-	while ((i_si != AVD_SI_NULL) && (su_found == true)) {
+	while ((si_iter != sg->list_of_si.end()) && (su_found == true)) {
+		i_si = *si_iter;
 
 		/* verify that the SI is ready and needs active assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -501,12 +495,12 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		    (i_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
 			(i_si->list_of_csi == NULL) ||
 		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
-			i_si = i_si->sg_list_of_si_next;
+			++si_iter;
 			continue;
 		}
 
 		if (i_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
-			i_si = i_si->sg_list_of_si_next;
+			++si_iter;
 			actv_su_found = true;
 			continue;
 		}
@@ -652,6 +646,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			/* if ((su_found == false) && 
 			   (cnt < sg->pref_num_active_su)) */
 		}		/* else (i_su != AVD_SU_NULL) */
+
 		if (su_found == true) {
 			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp_susi) == NCSCC_RC_SUCCESS) {
 				/* Add the SU to the operation list */
@@ -662,24 +657,26 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			}
 
 			/* choose the next SI */
-			i_si = i_si->sg_list_of_si_next;
+			++si_iter;
 		}
 
-	}			/* while ((i_si != AVD_SI_NULL) && (su_found == true)) */
+	}
 
 	/* The SUs were loaded only upto the preffered level. If still SIs
 	 * are left load them upto capability level.
 	 */
-	if ((load_su_found == true) && (i_si != AVD_SI_NULL) && (cnt == sg->saAmfSGNumPrefActiveSUs)) {
+	if ((load_su_found == true) && (si_iter != sg->list_of_si.end()) && (cnt == sg->saAmfSGNumPrefActiveSUs)) {
 		/* Identify the highest ranked active assigning SU.  */
 		i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_ACTIVE);
-		while ((i_si != AVD_SI_NULL) && (i_su != NULL)) {
+		while ((si_iter != sg->list_of_si.end()) && (i_su != NULL)) {
+			i_si = *si_iter;
+
 			if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 			    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 			    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
 				(i_si->list_of_csi == NULL) ||
 			    (i_si->list_of_sisu != AVD_SU_SI_REL_NULL)) {
-				i_si = i_si->sg_list_of_si_next;
+				++si_iter;
 				continue;
 			}
 
@@ -696,9 +693,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			}
 
 			/* choose the next SI */
-			i_si = i_si->sg_list_of_si_next;
-
-		}		/* while ((i_si != AVD_SI_NULL) && (i_su != AVD_SU_NULL)) */
+			++si_iter;
+		}
 
 	}
 	/* if ((load_su_found == true) && (i_si != AVD_SI_NULL)) */
@@ -716,16 +712,18 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	}
 
 	/* Identifying and assigning standby assignments. */
-	i_si = sg->list_of_si;
+	si_iter = sg->list_of_si.begin();
 	new_su = false;
 	cnt = 0;
 	l_su = NULL;
 	/* su with last inservice un assigned SUs. */
 	n_su = NULL;
-	while (i_si != AVD_SI_NULL) {
+	while (si_iter != sg->list_of_si.end()) {
+		i_si = *si_iter;
+
 		/* verify that the SI has active assignments and needs standby assignments. */
 		if ((i_si->list_of_sisu == AVD_SU_SI_REL_NULL) || (i_si->list_of_sisu->si_next != AVD_SU_SI_REL_NULL)) {
-			i_si = i_si->sg_list_of_si_next;
+			++si_iter;
 			continue;
 		}
 
@@ -924,9 +922,8 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		}
 
 		/* choose the next SI */
-		i_si = i_si->sg_list_of_si_next;
-
-	}			/* while (i_si != AVD_SI_NULL) */
+		++si_iter;
+	}
 
 done:
 	if (sg->su_oper_list.empty() == true) {

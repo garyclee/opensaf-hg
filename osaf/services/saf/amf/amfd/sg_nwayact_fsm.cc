@@ -57,22 +57,24 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *avd_sg, AVD_SI *avd_si,
 AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *i_su, *qualified_su;
-	AVD_SI *i_si;
 	bool l_flag, next_si_tobe_assigned = true;
 	AVD_SU_SI_REL *tmp_rel;
 
 	TRACE_ENTER2("'%s'", sg->name.value);
 
-	i_si = sg->list_of_si;
+	// @todo remove this l_flag??
 	l_flag = true;
 
 	avd_sidep_update_si_dep_state_for_all_sis(sg);
-	while ((i_si != AVD_SI_NULL) && (l_flag == true)) {
+	for (const auto& i_si : sg->list_of_si) {
+		if (l_flag == false) {
+			break;
+		}
+
 		/* verify that the SI is ready and needs come more assignments. */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 			(i_si->list_of_csi == NULL) ||
 		    (i_si->pref_active_assignments() <= i_si->curr_active_assignments() )) {
-			i_si = i_si->sg_list_of_si_next;
 			continue;
 		}
 
@@ -80,7 +82,6 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		if ((i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 				(i_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
 				(i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP)) {
-			i_si = i_si->sg_list_of_si_next;
 			continue;
 		}
 
@@ -228,11 +229,8 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			}/* while */
 		}/* if (true == sg->equal_ranked_su) */
 
-
 		/* choose the next SI */
-		i_si = i_si->sg_list_of_si_next;
-
-	}/* while ((i_si != AVD_SI_NULL) && (l_flag == true)) */
+	}
 
 	TRACE_LEAVE();
 

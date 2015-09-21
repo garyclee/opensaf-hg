@@ -186,10 +186,11 @@ public:
 	std::vector<AVD_SU*> list_of_su;
 	AVD_SU* first_su();
 
-	AVD_SI *list_of_si;	/* the list of service instances in 
-				 * this group in the descending order 
-				 * of the rank.
-				 */
+	/* the list of service instances in 
+	 * this group in the descending order 
+	 * of the rank.
+	 */
+	std::vector<AVD_SI*> list_of_si;
 	SaInvocationT adminOp_invocationId;
 	SaAmfAdminOperationIdT adminOp;
 

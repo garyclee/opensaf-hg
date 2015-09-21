@@ -264,7 +264,6 @@ static AVD_SU_SI_REL *su_assigned_susi_find(AVD_SU *su, AVD_SU_SI_REL **stby_sus
 	bool act_found = false, quisced_found = false, std_found = false, any_susi_act_found = false;
 	AVD_SU_SI_REL *a_susi = NULL;
 	AVD_SU_SI_REL *s_susi = NULL;
-	AVD_SI *si_temp;
 
 	TRACE_ENTER2("'%s'", su->name.value);
 
@@ -288,7 +287,7 @@ static AVD_SU_SI_REL *su_assigned_susi_find(AVD_SU *su, AVD_SU_SI_REL **stby_sus
 		/* Any one SI is act: SU state can be said to be Act. Find SUSI, which has both Act and Std assgnt.*/
 
 		/* Find SI, which has both Act and Stdby SUSI.*/
-		for (si_temp = su->sg_of_su->list_of_si;NULL != si_temp;si_temp = si_temp->sg_list_of_si_next) {
+		for (const auto& si_temp : su->sg_of_su->list_of_si) {
 			TRACE("si'%s'", si_temp->name.value);
 			/* check to see if this SI has both the assignments */
 			if (NULL == (susi = si_temp->list_of_sisu)) {
@@ -324,12 +323,10 @@ static AVD_SU_SI_REL *su_assigned_susi_find(AVD_SU *su, AVD_SU_SI_REL **stby_sus
 		   SU state can be said to be Act if other Su is not Act. Find SUSI,which has both Act and Std assgnt.*/
 
 		/* Find SI, which has both Act and Stdby SUSI.*/
-		si_temp = su->sg_of_su->list_of_si;
-		while (NULL != si_temp) {
+		for (const auto& si_temp : su->sg_of_su->list_of_si) {
 			TRACE("si'%s'", si_temp->name.value);
 			/* check to see if this SI has both the assignments */
 			if (NULL == (susi = si_temp->list_of_sisu)) {
-				si_temp = si_temp->sg_list_of_si_next;
 				continue;
 			}
 			TRACE("su'%s', si'%s'", susi->su->name.value, susi->si->name.value);
@@ -390,7 +387,6 @@ static AVD_SU_SI_REL *su_assigned_susi_find(AVD_SU *su, AVD_SU_SI_REL **stby_sus
 				}
 				break;
 			}
-			si_temp = si_temp->sg_list_of_si_next;
 		}/* while (NULL != si_temp)  */
 		osafassert(a_susi);
 		osafassert(s_susi);
@@ -401,12 +397,10 @@ static AVD_SU_SI_REL *su_assigned_susi_find(AVD_SU *su, AVD_SU_SI_REL **stby_sus
 	} else if ((true == std_found) && (false == quisced_found)) {
 		/* This means that there is no Act/Quisced assignment, then it may have all std assignment.*/
 		/* Find SI, which has both Act and Stdby SUSI.*/
-		si_temp = su->sg_of_su->list_of_si;
-		while (NULL != si_temp) {
+		for (const auto& si_temp : su->sg_of_su->list_of_si) {
 			TRACE("si'%s'", si_temp->name.value);
 			/* check to see if this SI has both the assignments */
 			if (NULL == (susi = si_temp->list_of_sisu)) {
-				si_temp = si_temp->sg_list_of_si_next;
 				continue;
 			}
 			TRACE("su'%s', si'%s'", susi->su->name.value, susi->si->name.value);
@@ -428,7 +422,6 @@ static AVD_SU_SI_REL *su_assigned_susi_find(AVD_SU *su, AVD_SU_SI_REL **stby_sus
 				}
 				break;
 			}
-			si_temp = si_temp->sg_list_of_si_next;
 		}
 		osafassert(a_susi);
 		osafassert(s_susi);
@@ -470,18 +463,14 @@ static AVD_SU_SI_REL *avd_sg_2n_act_susi(AVD_CL_CB *cb, AVD_SG *sg, AVD_SU_SI_RE
 	AVD_SU_SI_REL *susi;
 	AVD_SU_SI_REL *a_susi = NULL, *a_susi_1 = NULL, *a_susi_2 = NULL;
 	AVD_SU_SI_REL *s_susi = NULL, *s_susi_1 = NULL, *s_susi_2 = NULL;
-	AVD_SI *l_si;
 	AVD_SU *su_1 = NULL, *su_2 = NULL;
 
 	TRACE_ENTER2("'%s'", sg->name.value);
 
-	l_si = sg->list_of_si;
-
 	/* Find out single/both the assigned SUs of SG. */
-	while (NULL != l_si) {
+	for (const auto& l_si : sg->list_of_si) {
 		if ((susi = l_si->list_of_sisu) == NULL) {
 			/* SI with no assignments!! Check another SI.*/
-			l_si = l_si->sg_list_of_si_next;
 			continue;
 		}
 		su_1 = susi->su;
@@ -493,7 +482,6 @@ static AVD_SU_SI_REL *avd_sg_2n_act_susi(AVD_CL_CB *cb, AVD_SG *sg, AVD_SU_SI_RE
 			su_2 = susi->si_next->su;
 			break;	
 		}
-		l_si = l_si->sg_list_of_si_next;
 	}
 
 	if ((NULL == su_1) && (NULL == su_2))
@@ -590,7 +578,6 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *a_su = NULL;
 	AVD_SU *s_su = NULL;
 	AVD_SU *return_su = NULL;
-	AVD_SI *i_si;
 	bool l_flag = true;
 	AVD_SU_SI_REL *tmp_susi;
 
@@ -629,7 +616,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	l_flag = false;
 
 	/* choose and assign SIs in the SG that dont have active assignment */
-	for (i_si = sg->list_of_si; i_si != NULL; i_si = i_si->sg_list_of_si_next) {
+	for (const auto& i_si : sg->list_of_si) {
 
 		if ((i_si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 		    (i_si->list_of_csi != NULL) &&
@@ -687,7 +674,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	/* choose and assign SIs in the SG that have active assignment but dont
 	 * have standby assignment.
 	 */
-	for (i_si = sg->list_of_si; i_si != NULL; i_si = i_si->sg_list_of_si_next) {
+	for (const auto& i_si : sg->list_of_si) {
 		if (i_si->list_of_sisu != AVD_SU_SI_REL_NULL) {
 			/* found a SI that has active assignment. check if it has standby
 			 * assignment. If not assign standby to this SU. 

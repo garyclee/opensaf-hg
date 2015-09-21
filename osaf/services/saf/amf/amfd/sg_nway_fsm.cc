@@ -689,7 +689,6 @@ done:
 
 uint32_t SG_NWAY::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 	AVD_SU_SI_REL *curr_susi = 0;
-	AVD_SI *curr_si = 0;
 	bool is_act_asgn;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -751,7 +750,7 @@ uint32_t SG_NWAY::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 		if (SA_AMF_ADMIN_LOCKED == sg->saAmfSGAdminState) {
 			/* pick up all the quiescing susi assignments & 
 			   send quiesced assignments to them */
-			for (curr_si = sg->list_of_si; curr_si; curr_si = curr_si->sg_list_of_si_next) {
+			for (const auto& curr_si : sg->list_of_si) {
 				for (curr_susi = curr_si->list_of_sisu;
 				     curr_susi && (SA_AMF_HA_QUIESCING != curr_susi->state);
 				     curr_susi = curr_susi->si_next) ;
@@ -1244,7 +1243,6 @@ done:
  **************************************************************************/
 uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 {
-	AVD_SI *curr_si = 0;
 	AVD_SU *curr_su = NULL;
 	AVD_SU *pref_su = NULL;
 	bool is_act_ass_sent = false, is_all_su_oos = true, is_all_si_ok = false, su_found = true;
@@ -1258,8 +1256,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 
 	avd_sidep_update_si_dep_state_for_all_sis(sg);
 	/* assign active assignments to unassigned sis */
-	for (curr_si = sg->list_of_si; curr_si; curr_si = curr_si->sg_list_of_si_next) {
-
+	for (const auto& curr_si : sg->list_of_si) {
 		/* verify if si is ready and needs an assignment */
 		if ((curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
 		    (curr_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
@@ -1409,7 +1406,11 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 		goto done;
 
 	/* assign standby assignments to the sis */
-	for (curr_si = sg->list_of_si; curr_si && (true == su_found); curr_si = curr_si->sg_list_of_si_next) {
+	for (const auto& curr_si : sg->list_of_si) {
+		if (su_found == false) {
+			break;
+		}
+
 		/* verify if si is ready */
 		if (curr_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED)
 			continue;

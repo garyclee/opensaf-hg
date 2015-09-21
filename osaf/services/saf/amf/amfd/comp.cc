@@ -1659,7 +1659,7 @@ bool comp_is_preinstantiable(const AVD_COMP *comp) {
 
 bool is_comp_assigned_any_csi(AVD_COMP *comp)
 {
-	for (AVD_SI *si = comp->su->sg_of_su->list_of_si; si != NULL; si = si->sg_list_of_si_next) {
+	for (const auto& si : comp->su->sg_of_su->list_of_si) {
 		for (AVD_CSI *csi = si->list_of_csi; csi; csi = csi->si_list_of_csi_next) {
 			for (AVD_COMP_CSI_REL *compcsi = csi->list_compcsi; compcsi; compcsi = compcsi->csi_csicomp_next) {
 				if (compcsi->comp == comp)

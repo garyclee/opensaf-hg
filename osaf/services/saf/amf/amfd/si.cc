@@ -307,7 +307,6 @@ AVD_SI::AVD_SI() :
 	si_switch(AVSV_SI_TOGGLE_STABLE),
 	sg_of_si(NULL),
 	list_of_csi(NULL),
-	sg_list_of_si_next(NULL),
 	list_of_sisu(NULL),
 	si_dep_state(AVD_SI_NO_DEPENDENCY),
 	spons_si_list(NULL),

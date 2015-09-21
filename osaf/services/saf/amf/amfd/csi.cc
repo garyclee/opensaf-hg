@@ -1383,10 +1383,9 @@ void avd_csi_constructor(void)
  */
 bool csi_assignment_validate(AVD_SG *sg)
 {
-	AVD_SI *temp_si;
 	AVD_SU_SI_REL *temp_sisu;
 
-	for (temp_si = sg->list_of_si; temp_si; temp_si = temp_si->sg_list_of_si_next)
+	for (const auto& temp_si : sg->list_of_si)
 		for (temp_sisu = temp_si->list_of_sisu; temp_sisu; temp_sisu = temp_sisu->si_next)
 			if (temp_sisu->csi_add_rem == true)
 				return true;
