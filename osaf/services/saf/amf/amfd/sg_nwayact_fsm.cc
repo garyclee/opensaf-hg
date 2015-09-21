@@ -29,6 +29,7 @@
 #include <amfd.h>
 #include <imm.h>
 #include <si_dep.h>
+#include <algorithm>
 
 static AVD_SU *avd_get_qualified_su(AVD_SG *avd_sg, AVD_SI *avd_si, 
 		bool *next_si_tobe_assigned);
@@ -105,7 +106,17 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU != 0)
 			     && (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU <= i_su->saAmfSUNumCurrActiveSIs))) {
-				i_su = i_su->sg_list_su_next;
+				// set i_su to the next su in the list
+				std::vector<AVD_SU*>::iterator iter = std::find(i_su->sg_of_su->list_of_su.begin(),
+					i_su->sg_of_su->list_of_su.end(), i_su);
+				if (iter != i_su->sg_of_su->list_of_su.end()) {
+					++iter;
+					if (iter != i_su->sg_of_su->list_of_su.end()) {
+						i_su = *iter;
+					} else {
+						i_su = NULL;
+					}
+				}
 				continue;
 			}
 
@@ -138,12 +149,15 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		 * take more assignments so that the SI can be assigned. 
 		 */
 		l_flag = false;
-		i_su = sg->list_of_su;
-		while ((i_su != NULL) && (false == sg->equal_ranked_su)){
+		for (const auto& iter : sg->list_of_su) {
+			if (sg->equal_ranked_su == true) {
+				break;
+			}
+
+			i_su = iter;
 			if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 			    ((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU != 0)
 			     && (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU <= i_su->saAmfSUNumCurrActiveSIs))) {
-				i_su = i_su->sg_list_su_next;
 				continue;
 			}
 
@@ -161,7 +175,6 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				/* This SU has already a assignment for this SI go to the 
 				 * next SU.
 				 */
-				i_su = i_su->sg_list_su_next;
 				continue;
 			}
 
@@ -182,8 +195,6 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			}
 
 			/* choose the next SU */
-			i_su = i_su->sg_list_su_next;
-
 		}		/* while (i_su != AVD_SU_NULL) */
 
 		if (true == sg->equal_ranked_su) {
@@ -1660,7 +1671,6 @@ uint32_t SG_NACV::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 
 	switch (sg->sg_fsm_state) {
 	case AVD_SG_FSM_STABLE:
-
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
 			/* SG lock. Identify all the assigned SUs, send D2N-INFO_SU_SI_ASSIGN
 			 * modify quiesced all for each of the SU. Add them to 
@@ -1668,16 +1678,13 @@ uint32_t SG_NACV::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * If no assigned SU exist, no action, stay in stable state.
 			 */
 
-			i_su = sg->list_of_su;
-			while (i_su != NULL) {
+			for (const auto& i_su : sg->list_of_su) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_QUIESCED);
 
 					/* add the SU to the operation list */
 					avd_sg_su_oper_list_add(cb, i_su, false);
 				}
-
-				i_su = i_su->sg_list_su_next;
 			}
 
 		} /* if (sg->admin_state == NCS_ADMIN_STATE_LOCK) */
@@ -1687,16 +1694,13 @@ uint32_t SG_NACV::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * the SU operation list. Change state to SG_admin. 
 			 * If no assigned SU exist, no action, stay in stable state.
 			 */
-			i_su = sg->list_of_su;
-			while (i_su != NULL) {
+			for (const auto& i_su : sg->list_of_su) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_QUIESCING);
 
 					/* add the SU to the operation list */
 					avd_sg_su_oper_list_add(cb, i_su, false);
 				}
-
-				i_su = i_su->sg_list_su_next;
 			}
 
 		} /* if (sg->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
@@ -1756,14 +1760,14 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 		*next_si_tobe_assigned = true; 
 		return NULL;
 	}
-	i_su = sg->list_of_su;
-	while (i_su != NULL){
+
+	for (const auto& iter : sg->list_of_su) {
+		i_su = iter;
 
 		if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 				((i_su->sg_of_su->saAmfSGMaxActiveSIsperSU != 0)
 				 && (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU <=
 					 i_su->saAmfSUNumCurrActiveSIs))) {
-			i_su = i_su->sg_list_su_next;
 			continue;
 		}
 		l_flag = true;
@@ -1771,7 +1775,6 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 			/* This SU has already a assignment for this SI go to the
 			 * next SU.
 			 */
-			i_su = i_su->sg_list_su_next;
 			continue;
 		}
 
@@ -1787,8 +1790,6 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 		}
 		pre_temp_su = i_su;
 		/* choose the next SU */
-		i_su = i_su->sg_list_su_next;
-
 	}/* while (i_su != NULL)*/
 
 	if (false == l_flag){
@@ -1835,10 +1836,9 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 	avd_sg->max_assigned_su = avd_sg->min_assigned_su = NULL;
 	avd_sg->si_tobe_redistributed = NULL;
 
-        i_su = avd_sg->list_of_su;
-	while (i_su != NULL) {
+	for (const auto& iter : avd_sg->list_of_su) {
+		i_su = iter;
 		if (i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) {
-			i_su = i_su->sg_list_su_next;
 			continue;
 		}
 		if (NULL == avd_sg->max_assigned_su) {
@@ -1851,7 +1851,6 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 			if (i_su->saAmfSUNumCurrActiveSIs < avd_sg->min_assigned_su->saAmfSUNumCurrActiveSIs)
 				avd_sg->min_assigned_su = i_su;
 		}
-		i_su = i_su->sg_list_su_next;
 	} /*  while (i_su != NULL)  */
 
 	if ((NULL == avd_sg->max_assigned_su) || (NULL == avd_sg->min_assigned_su)) {
