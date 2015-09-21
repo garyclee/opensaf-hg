@@ -37,18 +37,15 @@
  *          no assignments need to happen.
  */
 AVD_SU *SG_NORED::assign_sis_to_sus() {
-	AVD_SU *i_su;
 	AVD_SI *i_si;
-	bool l_flag;
 	AVD_SU_SI_REL *tmp;
 
 	TRACE_ENTER();
 
 	i_si = list_of_si;
-	i_su = list_of_su;
 
 	avd_sidep_update_si_dep_state_for_all_sis(this);
-	while ((i_si != NULL) && (i_su != NULL)) {
+	while (i_si != NULL) {
 
 		/* verify that the SI is unassigned and ready */
 		if ((i_si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) ||
@@ -61,36 +58,29 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 			continue;
 		}
 
+		auto iter = list_of_su.begin();
+
 		/* identify a in-service unassigned SU so that the SI can be assigned. */
-		l_flag = true;
-		while ((i_su != NULL) && (l_flag == true)) {
-			if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-			    (i_su->list_of_susi == NULL)) {
-				l_flag = false;
-				continue;
+		for (; iter != list_of_su.end(); ++iter) {
+			const auto& su = *iter;
+			if ((su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
+			    (su->list_of_susi == NULL)) {
+				/* if the SU is not null assign active to that SU for the SI. */
+				if (avd_new_assgn_susi(avd_cb, su, i_si, SA_AMF_HA_ACTIVE, false, &tmp) == NCSCC_RC_SUCCESS) {
+					su_oper_list_add(su);
+					break;
+				} else {
+					LOG_ER("%s:%u: %s", __FILE__, __LINE__, i_si->name.value);
+					// try the next SU
+				}
 			}
-
-			i_su = i_su->sg_list_su_next;
 		}
 
-		if (i_su == NULL)
-			continue;
-
-		/* if the SU is not null assign active to that SU for the SI. */
-		if (avd_new_assgn_susi(avd_cb, i_su, i_si, SA_AMF_HA_ACTIVE, false, &tmp) == NCSCC_RC_SUCCESS) {
-			su_oper_list_add(i_su);
-
-			/* since both this SI and SU have a relationship choose the next Si and
-			 * SU.
-			 */
-			i_si = i_si->sg_list_of_si_next;
-			i_su = i_su->sg_list_su_next;
-		} else {
-			LOG_ER("%s:%u: %s", __FILE__, __LINE__, i_si->name.value);
-
-			/* choose the next SU */
-			i_su = i_su->sg_list_su_next;
+		if (iter == list_of_su.end()) {
+			break;
 		}
+
+		i_si = i_si->sg_list_of_si_next;
 	}
 
 	TRACE_LEAVE();
@@ -1095,16 +1085,12 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * If no assigned SU exist, no action, stay in stable state.
 			 */
 
-			i_su = sg->list_of_su;
-			while (i_su != NULL) {
-				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-					avd_susi_mod_send(i_su->list_of_susi, SA_AMF_HA_QUIESCED);
-					su_oper_list_add(i_su);
+			for (const auto& su : sg->list_of_su) {
+				if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
+					avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCED);
+					su_oper_list_add(su);
 				}
-
-				i_su = i_su->sg_list_su_next;
 			}
-
 		} /* if (sg->admin_state == NCS_ADMIN_STATE_LOCK) */
 		else if (sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			/* SG shutdown. Identify all the assigned SUs, 
@@ -1113,16 +1099,12 @@ uint32_t SG_NORED::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * Change state to SG_admin. If no assigned SU exist, change the 
 			 * SG admin state to LOCK, stay in stable state.
 			 */
-			i_su = sg->list_of_su;
-			while (i_su != NULL) {
-				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-					avd_susi_mod_send(i_su->list_of_susi, SA_AMF_HA_QUIESCING);
-					su_oper_list_add(i_su);
+			for (const auto& su : sg->list_of_su) {
+				if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
+					avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCING);
+					su_oper_list_add(su);
 				}
-
-				i_su = i_su->sg_list_su_next;
 			}
-
 		} /* if (sg->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
 		else {
 			return NCSCC_RC_FAILURE;
