@@ -28,6 +28,8 @@
 
 #include <amfd.h>
 #include <si_dep.h>
+#include <algorithm>
+
 extern uint32_t avd_sg_get_curr_act_cnt(AVD_SG *sg);
 
 static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg);
@@ -55,24 +57,38 @@ static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg);
 
 static AVD_SU *avd_sg_npm_su_next_asgn(AVD_CL_CB *cb, AVD_SG *sg, AVD_SU *su, SaAmfHAStateT state)
 {
-	AVD_SU *i_su;
+	std::vector<AVD_SU*>::iterator iter;
+	AVD_SU* next_su = NULL;
+	
 	TRACE_ENTER();
 
 	if (su == NULL) {
-		i_su = sg->list_of_su;
+		if (sg->list_of_su.empty() == false) {
+			iter = sg->list_of_su.begin();
+		} else {
+			return next_su;
+		}
 	} else {
-		i_su = su->sg_list_su_next;
+		iter = std::find(sg->list_of_su.begin(),
+                       sg->list_of_su.end(),
+                       su);
+		if (iter != sg->list_of_su.end()) {
+			// get the SU after 'su'
+			++iter;
+		}
 	}
-
-	while (i_su != NULL) {
-		if ((i_su->list_of_susi != AVD_SU_SI_REL_NULL) && (i_su->list_of_susi->state == state)) {
+	
+	while (iter != sg->list_of_su.end()) {
+		const AVD_SU* su = *iter;
+		if ((su->list_of_susi != AVD_SU_SI_REL_NULL) && (su->list_of_susi->state == state)) {
+			next_su = *iter;
 			break;
 		}
 
-		i_su = i_su->sg_list_su_next;
+		++iter;
 	}
 
-	return i_su;
+	return next_su;
 }
 
 /*****************************************************************************
@@ -206,7 +222,6 @@ done:
 static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 {
 	AVD_SU *pref_su = NULL;
-	AVD_SU *curr_su = NULL;
 	uint32_t curr_act_sus = 0;
 	uint32_t curr_std_sus = 0;
 
@@ -226,15 +241,13 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 		TRACE("curr_act_sus = %u", curr_act_sus);
 
 		if (curr_act_sus < sg->saAmfSGNumPrefActiveSUs) {
-			curr_su = sg->list_of_su;
-			while (curr_su != NULL) {
+			for (const auto& curr_su : sg->list_of_su) {
 		                if ((curr_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 						(curr_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 					/* got an in-service SU with no SI assignments */
 					pref_su = curr_su;
 					goto done;
 				}
-				curr_su = curr_su->sg_list_su_next;
 			}
 		}
 
@@ -242,9 +255,10 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 		 * active SI assignment so now loop through the su list of the sg 
 		 * to find an SU with least active SI assignments
 		 */
+		for (const auto& curr_su : sg->list_of_su) {
+			if (curr_act_sus == 0)
+				break;
 
-		curr_su = sg->list_of_su;
-		while (curr_su != NULL && curr_act_sus > 0) {
 			if ((curr_su->list_of_susi != AVD_SU_SI_REL_NULL) &&
 				(curr_su->list_of_susi->state == ha_state) &&
 				((curr_su->sg_of_su->saAmfSGMaxActiveSIsperSU == 0) ||
@@ -252,7 +266,6 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 				((!pref_su || pref_su->saAmfSUNumCurrActiveSIs > curr_su->saAmfSUNumCurrActiveSIs))) {
 					pref_su = curr_su;
 			}
-			curr_su = curr_su->sg_list_su_next;
 		}
 	}
 	else if (SA_AMF_HA_STANDBY == ha_state) {
@@ -262,22 +275,24 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 		 * return the SU with the least standby SI assignments
 		 * otherwise, return an in-service SU which has no assignments
 		 */
-		curr_su = sg->list_of_su;
-		while ((curr_su != NULL) && (curr_std_sus < sg->saAmfSGNumPrefStandbySUs)) {
-		                if ((curr_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-						(curr_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-					/* got an in-service SU with no SI assignments */
-					pref_su = curr_su;
-					goto done;
-				}
-				else if ((curr_su->list_of_susi != AVD_SU_SI_REL_NULL) &&
-						(curr_su->list_of_susi->state == ha_state)) {
-					/* increment the current active SUs count as you found 
-					 * a SU with atleast one active SI assignment
-					 */
-					curr_std_sus ++;
-				}
-				curr_su = curr_su->sg_list_su_next;
+		for (const auto& curr_su : sg->list_of_su) {
+			if (curr_std_sus >= sg->saAmfSGNumPrefStandbySUs) {
+				break;
+			}
+
+			if ((curr_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
+				(curr_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
+				/* got an in-service SU with no SI assignments */
+				pref_su = curr_su;
+				goto done;
+			}
+			else if ((curr_su->list_of_susi != AVD_SU_SI_REL_NULL) &&
+					(curr_su->list_of_susi->state == ha_state)) {
+				/* increment the current active SUs count as you found 
+				 * a SU with atleast one active SI assignment
+				 */
+				curr_std_sus ++;
+			}
 		}
 
 		TRACE("curr_std_sus = %u", curr_std_sus);
@@ -287,8 +302,11 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 		 * to find an SU with least standby SI assignments
 		 */
 
-		curr_su = sg->list_of_su;
-		while (curr_su != NULL && curr_std_sus > 0) {
+		for (const auto& curr_su : sg->list_of_su) {
+			if (curr_std_sus == 0) {
+				break;
+			}
+	
 			if ((curr_su->list_of_susi != AVD_SU_SI_REL_NULL) &&
 				(curr_su->list_of_susi->state == ha_state) &&
 				((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
@@ -296,7 +314,6 @@ static AVD_SU* avd_sg_npm_get_least_su(AVD_SG *sg, SaAmfHAStateT ha_state)
 				((!pref_su || pref_su->saAmfSUNumCurrStandbySIs > curr_su->saAmfSUNumCurrStandbySIs))) {
 					pref_su = curr_su;
 			}
-			curr_su = curr_su->sg_list_su_next;
 		}
 
 	}
@@ -515,7 +532,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					/* we have last assigning SU identify the next SU that has
 					 * active assignments.
 					 */
-					while ((i_su != NULL) && (su_found == false) &&
+					while ((i_su != NULL) &&
 					       (cnt < sg->saAmfSGNumPrefActiveSUs)) {
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_ACTIVE);
 						if (i_su != NULL) {
@@ -525,6 +542,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 							     i_su->saAmfSUNumCurrActiveSIs)) {
 								/* Found the next assigning SU that can take SI. */
 								su_found = true;
+								break;
 							} else if (sg->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs) {
 								load_su_found = true;
 							}
@@ -538,20 +556,23 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						 * in service unassigned SU in the SG.
 						 */
 						new_su = true;
-						i_su = sg->list_of_su;
-						while ((i_su != NULL) && (su_found == false)) {
-							if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)
-							    && (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
-								su_found = true;
-								cnt++;
-								continue;
+
+						if (su_found == false) {
+							for (const auto& iter : sg->list_of_su) {
+								i_su = iter;
+								if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)
+								    && (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
+									su_found = true;
+									cnt++;
+									break;
+								}
 							}
+						}
 
-							/* choose the next SU */
-							i_su = i_su->sg_list_su_next;
-
-						}	/* while (i_su != AVD_SU_NULL) */
-
+						if (su_found == false) {
+							// if su_found is false, then i_su is invalid, so set NULL
+							i_su = NULL;
+						}
 					}
 					/* if ((i_su == AVD_SU_NULL) && 
 					   (cnt < sg->pref_num_active_su)) */
@@ -561,19 +582,20 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					 * to be used for the SI. So identify the next SU.
 					 */
 
-					while ((i_su != NULL) && (su_found == false)) {
+					for (const auto& iter : sg->list_of_su) {
+						i_su = iter;
 						if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 						    (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 							su_found = true;
 							cnt++;
-							continue;
+							break;
 						}
+					}
 
-						/* choose the next SU */
-						i_su = i_su->sg_list_su_next;
-
-					}	/* while (i_su != AVD_SU_NULL) */
-
+					if (su_found == false) {
+						// if su_found is false, then i_su is invalid, so set NULL
+						i_su = NULL;
+					}
 				}
 				/* else if (cnt < sg->pref_num_active_su) */
 			}	/* else ((i_su->si_max_active > i_su->si_curr_active) &&
@@ -584,7 +606,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 
 			/* Identify the highest ranked active assigning SU.  */
 			i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_ACTIVE);
-			while ((i_su != NULL) && (su_found == false)) {
+			while (i_su != NULL) {
 				actv_su_found = true;
 				cnt++;
 
@@ -592,6 +614,7 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				     (i_su->sg_of_su->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs)) {
 					/* Found the next assigning SU that can take SI. */
 					su_found = true;
+					break;
 				} else if (cnt < sg->saAmfSGNumPrefActiveSUs) {
 					if (sg->saAmfSGMaxActiveSIsperSU > i_su->saAmfSUNumCurrActiveSIs)
 						load_su_found = true;
@@ -610,21 +633,21 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				 * in service unassigned SU in the SG.
 				 */
 				new_su = true;
-				i_su = sg->list_of_su;
-				while ((i_su != NULL) && (su_found == false)) {
+				for (const auto& iter : sg->list_of_su) {
+					i_su = iter;
 					if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 					    (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 						su_found = true;
 						actv_su_found = true;
 						cnt++;
-						continue;
+						break;
 					}
+				}
 
-					/* choose the next SU */
-					i_su = i_su->sg_list_su_next;
-
-				}	/* while (i_su != AVD_SU_NULL) */
-
+				if (su_found == false) {
+					// if su_found is false, then i_su is invalid, so set NULL
+					i_su = NULL;
+				}
 			}
 			/* if ((su_found == false) && 
 			   (cnt < sg->pref_num_active_su)) */
@@ -739,18 +762,21 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						   ((i_su->sg_of_su->su_max_standby == 0) ||
 						   (l_su->sg_of_su->su_max_standby > l_su->si_curr_standby))) */
 					if ((new_su == true) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
-						i_su = l_su;
-						while ((i_su != NULL) && (su_found == false)) {
+						std::vector<AVD_SU*>::iterator iter = std::find(sg->list_of_su.begin(),
+									sg->list_of_su.end(),
+									l_su);
+						
+						while (iter != sg->list_of_su.end()) {
+							i_su = *iter;
 							if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)
 							    && (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 								su_found = true;
 								cnt++;
-								continue;
+								break;
 							}
 
 							/* choose the next SU */
-							i_su = i_su->sg_list_su_next;
-
+							++iter;
 						}	/* while (i_su != AVD_SU_NULL) */
 
 						l_su = i_su;
@@ -758,48 +784,55 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					} /* if ((new_su == true) && (cnt < sg->pre_num_standby_su)) */
 					else if (cnt < sg->saAmfSGNumPrefStandbySUs) {
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, l_su, SA_AMF_HA_STANDBY);
-						while ((i_su != NULL) && (su_found == false)) {
+						while (i_su != NULL) {
 							cnt++;
 							if ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
 							     (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
-							      i_su->saAmfSUNumCurrStandbySIs))
+							      i_su->saAmfSUNumCurrStandbySIs)) {
 								/* Found the next assigning SU that can take SI. */
 								su_found = true;
-							else if (cnt < sg->saAmfSGNumPrefStandbySUs)
+								break;
+							} else if (cnt < sg->saAmfSGNumPrefStandbySUs) {
 								i_su =
 								    avd_sg_npm_su_next_asgn(cb, sg, i_su,
 											    SA_AMF_HA_STANDBY);
-							else
+							} else {
 								i_su = NULL;
+							}
 						}
 
 						if ((su_found == false) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
+							std::vector<AVD_SU*>::iterator iter;
+
 							/* All the current standby SUs are full. The SG can have
 							 * more standby assignments. identify the highest ranked
 							 * in service unassigned SU in the SG.
 							 */
 							new_su = true;
-							if (n_su == NULL)
-								i_su = sg->list_of_su;
-							else
-								i_su = n_su;
+							if (n_su == NULL) {
+								iter = sg->list_of_su.begin();
+							} else {
+								iter = std::find(sg->list_of_su.begin(),
+									sg->list_of_su.end(),
+									n_su);
+							}
 
-							while ((i_su != NULL) && (su_found == false)) {
-								if ((i_su->saAmfSuReadinessState ==
-								     SA_AMF_READINESS_IN_SERVICE)
+							while (iter != sg->list_of_su.end()) {
+								i_su = *iter;
+								if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE)
 								    && (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 									su_found = true;
 									cnt++;
-									continue;
+									break;
 								}
 
 								/* choose the next SU */
-								i_su = i_su->sg_list_su_next;
-
-							}	/* while (i_su != AVD_SU_NULL) */
-
+								++iter;
+							}	
+							if (su_found == false) {
+								i_su = NULL;
+							}
 							n_su = i_su;
-
 						}
 						/* if ((su_found == false) && 
 						   (cnt < sg->pre_num_standby_su)) */
@@ -817,42 +850,53 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				 */
 
 				i_su = avd_sg_npm_su_next_asgn(cb, sg, NULL, SA_AMF_HA_STANDBY);
-				while ((i_su != NULL) && (su_found == false)) {
+				while (i_su != NULL) {
 					cnt++;
 					if ((i_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
 					    (i_su->sg_of_su->saAmfSGMaxStandbySIsperSU >
-					     i_su->saAmfSUNumCurrStandbySIs))
+					     i_su->saAmfSUNumCurrStandbySIs)) {
 						/* Found the next assigning SU that can take SI. */
 						su_found = true;
-					else if (cnt < sg->saAmfSGNumPrefStandbySUs)
+						break;
+					} else if (cnt < sg->saAmfSGNumPrefStandbySUs) {
 						i_su = avd_sg_npm_su_next_asgn(cb, sg, i_su, SA_AMF_HA_STANDBY);
-					else
+					} else {
 						i_su = NULL;
+					}
 				}
 
 				if ((su_found == false) && (cnt < sg->saAmfSGNumPrefStandbySUs)) {
+					std::vector<AVD_SU*>::iterator iter;
+
 					/* All the current standby SUs are full. The SG can have
 					 * more standby assignments. identify the highest ranked
 					 * in service unassigned SU in the SG.
 					 */
 					new_su = true;
-					if (n_su == NULL)
-						i_su = sg->list_of_su;
-					else
-						i_su = n_su;
-					while ((i_su != NULL) && (su_found == false)) {
+					if (n_su == NULL) {
+						iter = sg->list_of_su.begin();
+					} else {
+						iter = std::find(sg->list_of_su.begin(),
+									sg->list_of_su.end(),
+									n_su);
+					}
+					while (iter != sg->list_of_su.end()) {
+						i_su = *iter;
 						if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 						    (i_su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 							su_found = true;
 							cnt++;
-							continue;
+							break;
 						}
 
 						/* choose the next SU */
-						i_su = i_su->sg_list_su_next;
-
+						++iter;
 					}	/* while (i_su != AVD_SU_NULL) */
 
+					if (su_found == false) {
+						// if su_found is false, then i_su is invalid, so set NULL
+						i_su = NULL;
+					}
 					n_su = i_su;
 
 				}
@@ -2063,16 +2107,14 @@ static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg)
 	avd_sg->min_assigned_su = NULL;
 	avd_sg->si_tobe_redistributed = NULL;
 
-        i_su = avd_sg->list_of_su;
 	/* Screen Active SUs */
-        while (i_su != NULL) {
+	for (const auto& iter : avd_sg->list_of_su) {
+		i_su = iter;
                 if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 					(NULL == i_su->list_of_susi)) {
-                        i_su = i_su->sg_list_su_next;
                         continue;
                 }
 		if(i_su->list_of_susi->state != SA_AMF_HA_ACTIVE ) {
-                        	i_su = i_su->sg_list_su_next;
                         	continue;
                 }
 		assigned_prefferd_SUs++;
@@ -2086,20 +2128,17 @@ static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg)
 
                 if (i_su->saAmfSUNumCurrActiveSIs < avd_sg->min_assigned_su->saAmfSUNumCurrActiveSIs)
                                 avd_sg->min_assigned_su = i_su;
-				
-                i_su = i_su->sg_list_su_next;
         } /*  while (i_su != NULL)  */
 
         if (NULL != avd_sg->max_assigned_su) { 
 		if(avd_sg->saAmfSGNumPrefActiveSUs > assigned_prefferd_SUs) {
-        		i_su = avd_sg->list_of_su;
-        		while (i_su != NULL) {
-                		if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) && 
+			for (const auto& iter : avd_sg->list_of_su) {
+				i_su = iter;
+				if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) && 
 						(NULL == i_su->list_of_susi)) {
-                                	avd_sg->min_assigned_su = i_su;
-                        		break;
-                		}
-                        	i_su = i_su->sg_list_su_next;
+					avd_sg->min_assigned_su = i_su;
+					break;
+				}
 			}
 		}
 	} else {
@@ -2118,15 +2157,13 @@ static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg)
 		assigned_prefferd_SUs = 0;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, avd_sg, AVSV_CKPT_AVD_SI_TRANS);
 
-        	i_su = avd_sg->list_of_su;
-        	while (i_su != NULL) {
+		for (const auto& iter : avd_sg->list_of_su) {
+			i_su = iter;
                 	if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) ||
 							(NULL == i_su->list_of_susi)) {
-                        	i_su = i_su->sg_list_su_next;
                         	continue;
                 	}
 			if(i_su->list_of_susi->state != SA_AMF_HA_STANDBY ) {
-                        	i_su = i_su->sg_list_su_next;
                         	continue;
                 	}
 			assigned_prefferd_SUs++;
@@ -2141,19 +2178,16 @@ static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg)
 
                         if (i_su->saAmfSUNumCurrStandbySIs < avd_sg->min_assigned_su->saAmfSUNumCurrStandbySIs)
                                 avd_sg->min_assigned_su = i_su;
-				
-                	i_su = i_su->sg_list_su_next;
         	}
         	if (NULL != avd_sg->max_assigned_su) { 
 			if(avd_sg->saAmfSGNumPrefStandbySUs > assigned_prefferd_SUs) {
-        			i_su = avd_sg->list_of_su;
-        			while (i_su != NULL) {
+				for (const auto& iter : avd_sg->list_of_su) {
+					i_su = iter;
                 			if ((i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) && 
 							(NULL == i_su->list_of_susi)) {
                                 		avd_sg->min_assigned_su = i_su;
                         			break;
                 			}
-                        		i_su = i_su->sg_list_su_next;
 				}
 			}
 		} else {
@@ -2289,20 +2323,19 @@ done:
  */
 uint32_t avd_sg_get_curr_act_cnt(AVD_SG *sg)
 {
-	AVD_SU *i_su = sg->list_of_su;
 	uint32_t curr_pref_active_sus = 0;
 	TRACE_ENTER2("SG name:%s ", sg->name.value);
 
-	while (i_su != NULL) {
+	for (const auto& i_su : sg->list_of_su) {
 		if ((i_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) || (NULL == i_su->list_of_susi)) {
-        		i_su = i_su->sg_list_su_next;
         		continue;
         	}
+
         	if(SA_AMF_HA_ACTIVE == i_su->list_of_susi->state)
 			curr_pref_active_sus++;
-                i_su = i_su->sg_list_su_next;
 	}
-        TRACE_LEAVE2("cureent Active SUs :%u",curr_pref_active_sus);
+
+        TRACE_LEAVE2("current Active SUs :%u",curr_pref_active_sus);
 	return curr_pref_active_sus;
 }
 /*
@@ -4328,8 +4361,6 @@ uint32_t SG_NPM::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 }
 
 uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
-	AVD_SU *i_su;
-
 	TRACE_ENTER2("%u", sg->sg_fsm_state);
 
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
@@ -4346,8 +4377,7 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * exist, no action, stay in stable state.
 			 */
 
-			i_su = sg->list_of_su;
-			while (i_su != NULL) {
+			for (const auto& i_su : sg->list_of_su) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					if (i_su->list_of_susi->state == SA_AMF_HA_ACTIVE)
 						avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_QUIESCED);
@@ -4357,8 +4387,6 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 					/* add the SU to the operation list */
 					avd_sg_su_oper_list_add(cb, i_su, false);
 				}
-
-				i_su = i_su->sg_list_su_next;
 			}
 
 		} /* if (sg->admin_state == NCS_ADMIN_STATE_LOCK) */
@@ -4369,8 +4397,7 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * If no active SU exist, change the SG admin state to LOCK, stay 
 			 * in stable state.
 			 */
-			i_su = sg->list_of_su;
-			while (i_su != NULL) {
+			for (const auto& i_su : sg->list_of_su) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					if (i_su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 						avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_QUIESCING);
@@ -4379,7 +4406,6 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 						avd_sg_su_oper_list_add(cb, i_su, false);
 					}
 				}
-				i_su = i_su->sg_list_su_next;
 			}
 
 		} /* if (sg->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
@@ -4400,8 +4426,7 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 			 * with remove all to the SUs with standby assignment and add the 
 			 * standby SUs to the SU oper list.
 			 */
-			i_su = sg->list_of_su;
-			while (i_su != NULL) {
+			for (const auto& i_su : sg->list_of_su) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					if (i_su->list_of_susi->state == SA_AMF_HA_QUIESCING) {
 						avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_QUIESCED);
@@ -4413,8 +4438,6 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 					}
 
 				}
-
-				i_su = i_su->sg_list_su_next;
 			}
 
 		}		/* if (sg->admin_state == NCS_ADMIN_STATE_LOCK) */
