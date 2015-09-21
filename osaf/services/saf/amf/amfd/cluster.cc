@@ -77,7 +77,7 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
 			it != sg_db->end(); it++) {
 		AVD_SG *i_sg = it->second;
-		if ((i_sg->list_of_su == NULL) || (i_sg->sg_ncs_spec == true)) {
+		if ((i_sg->list_of_su.empty() == true) || (i_sg->sg_ncs_spec == true)) {
 			continue;
 		}
 		i_sg->realign(cb, i_sg);
