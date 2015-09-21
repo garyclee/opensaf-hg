@@ -903,8 +903,8 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 			if (iter1 != tmp_sg_list.end())
 				continue;
 
-			AVD_SU *su =  sg->list_of_su;
-			for (su_try_inst = 0; su != NULL; su = su->sg_list_su_next) {
+			su_try_inst = 0;
+			for (const auto& su : sg->list_of_su) {
 				//Continue if this SU is not hosted on the Node of NG.
 				if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false)
 					continue;
