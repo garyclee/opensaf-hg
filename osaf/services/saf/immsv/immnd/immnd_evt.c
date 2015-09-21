@@ -7503,22 +7503,14 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		send_evt.info.imma.info.errRsp.error = err;
-		send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbId);
-
-		if(send_evt.info.imma.info.errRsp.errStrings) {
-			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
-		} else {
-			send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
-		}
 
 		TRACE_2("SENDRSP %u", err);
 
 		if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to send response to agent/client over MDS");
 		}
-
-		immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 	}
  done:
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
