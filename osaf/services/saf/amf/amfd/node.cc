@@ -913,7 +913,6 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				    SaInvocationT invocation, SaAmfAdminOperationIdT operationId)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
-	AVD_SU *su_sg;
 	bool su_admin = false;
 	AVD_SU_SI_REL *curr_susi;
 	AVD_AVND *su_node_ptr = NULL;
@@ -1014,8 +1013,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				/* verify that two assigned SUs belonging to the same SG are not
 				 * on this node 
 				 */
-				su_sg = su->sg_of_su->list_of_su;
-				while (su_sg != NULL) {
+				for (const auto& su_sg : su->sg_of_su->list_of_su) {
 					su_node_ptr = su->get_node_ptr();
 					su_sg_node_ptr = su_sg->get_node_ptr();
 
@@ -1037,10 +1035,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 						} 
 						goto end;
 					}
-
-					su_sg = su_sg->sg_list_su_next;
-
-				}	/* while (su_sg != AVD_SU_NULL) */
+				}
 
 				/* if SG to which this SU belongs and has SI assignments is undergoing 
 				 * any semantics other than for this SU return error.
