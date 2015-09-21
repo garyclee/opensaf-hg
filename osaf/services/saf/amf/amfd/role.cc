@@ -247,7 +247,7 @@ static void avd_act_on_sis_in_tol_timer_state()
 {
 	TRACE_ENTER();
 	std::list<AVD_SI*>::iterator it1;
-	TRACE_1("Size of list :%lu", avd_cb->sis_in_Tolerance_Timer_state.size());
+	TRACE_1("Size of list :%zu", avd_cb->sis_in_Tolerance_Timer_state.size());
 	for (it1 = avd_cb->sis_in_Tolerance_Timer_state.begin(); 
 			it1 != avd_cb->sis_in_Tolerance_Timer_state.end(); ++it1) {
 		AVD_SI *dep_si = *it1;
