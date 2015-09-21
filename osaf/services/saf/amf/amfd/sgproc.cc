@@ -905,7 +905,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *node;
-	AVD_SU *su, *temp_su;
+	AVD_SU *su;
 	AVD_SU_SI_REL *susi;
 	bool q_flag = false, qsc_flag = false, all_su_unassigned = true, all_csi_rem = true;
 
@@ -1374,8 +1374,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				if ((su->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) && 
 						(su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)) {
-					for (temp_su = su->sg_of_su->list_of_su; temp_su != NULL; 
-							temp_su = temp_su->sg_list_su_next) {
+					for (const auto& temp_su : su->sg_of_su->list_of_su) {
 						temp_su->complete_admin_op(SA_AIS_OK);
 					}
 				} else
@@ -1515,7 +1514,7 @@ done:
  */
 AVD_SU* su_to_instantiate(AVD_SG *sg)
 {
-	for (AVD_SU* i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
+	for (const auto& i_su : sg->list_of_su) {
 		TRACE("%s", i_su->name.value);
 		if (i_su->is_instantiable())
 			return i_su;
@@ -1533,7 +1532,7 @@ AVD_SU* su_to_terminate(AVD_SG *sg)
 {
 	AmfDb<std::string, AVD_SU> *su_rank = NULL;
 	su_rank = new  AmfDb<std::string, AVD_SU>;
-	for (AVD_SU* i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
+	for (const auto& i_su : sg->list_of_su) {
 		TRACE("In Seq %s, %u", i_su->name.value, i_su->saAmfSURank);
 		su_rank->insert(Amf::to_string(&i_su->name), i_su);
 	}
@@ -1569,7 +1568,7 @@ uint32_t in_serv_su(AVD_SG *sg)
 {
 	TRACE_ENTER();
 	uint32_t in_serv = 0;
-	for (AVD_SU* i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
+	for (const auto& i_su : sg->list_of_su) {
 		TRACE_ENTER2("%s", i_su->name.value);
 		if (i_su->is_in_service()) {
 			TRACE_ENTER2(" in_serv_su %s", i_su->name.value);
@@ -1609,13 +1608,11 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 	uint32_t num_asgd_su = 0;
 	uint32_t num_su = 0;
 	uint32_t num_try_insvc_su = 0;
-	AVD_SU *i_su;
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("'%s'", sg->name.value);
 
-	i_su = sg->list_of_su;
-	while (i_su != NULL) {
+	for (const auto& i_su : sg->list_of_su) {
 		su_node_ptr = i_su->get_node_ptr();
 		num_su++;
 		/* Check if the SU is inservice */
@@ -1692,9 +1689,6 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			} else
 				TRACE("nop for %s", i_su->name.value);
 		}
-		/* else if (i_su->num_of_comp == i_su->curr_num_comp) */
-		i_su = i_su->sg_list_su_next;
-
 	}			/* while (i_su != AVD_SU_NULL) */
 
 	/* The entire SG has been scanned for reinstatiations and terminations.
@@ -1732,7 +1726,6 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
-	AVD_SU *i_su;
 
 	TRACE_ENTER2("'%s'", sg->name.value);
 
@@ -1752,7 +1745,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 		 * only when AvD is in AVD_APP_STATE. call the SG FSM with the new readiness
 		 * state.
 		 */
-		for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
+		for (auto const& i_su : sg->list_of_su) {
 			if (i_su->is_in_service() == true) {
 				i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 			}
@@ -1761,7 +1754,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 		if (sg->realign(cb, sg) == NCSCC_RC_FAILURE) {
 			/* set all the SUs to OOS return failure */
 
-			for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
+			for (auto const& i_su : sg->list_of_su) {
 				i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			}
 
@@ -1779,7 +1772,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 			goto done;
 		}
 
-		for (i_su = sg->list_of_su; i_su != NULL; i_su = i_su->sg_list_su_next) {
+		for (auto const& i_su : sg->list_of_su) {
 			i_su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		}
 		break;
