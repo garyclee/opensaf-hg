@@ -3637,7 +3637,7 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
 				send_evt.info.imma.info.errRsp.errStrings = &(strList);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
 			} else if(errStrList.name.buf) {
-				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
+				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP);
 				send_evt.info.imma.info.errRsp.errStrings = &(errStrList);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
 			}
@@ -3736,7 +3736,7 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 				send_evt.info.imma.info.errRsp.errStrings = &(strList);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
 			} else if(errStrList.name.buf) {
-				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP_2);
+				osafassert(evt->type == IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP);
 				send_evt.info.imma.info.errRsp.errStrings = &(errStrList);
 				send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
 			}
