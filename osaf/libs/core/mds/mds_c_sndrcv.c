@@ -939,7 +939,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 	MDS_SUBSCRIPTION_RESULTS_INFO *subs_result_hdl = NULL;
 	V_DEST_RL role_ret = 0;	/* Used only to get the subscription result ptr */
 
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 	if (to_msg.msg_type == MSG_NCSCONTEXT) {
 		if (to_msg.data.msg == NULL) {
 			m_MDS_LOG_ERR("MDS_SND_RCV: Null Message\n");
@@ -1035,7 +1035,7 @@ static uint32_t mcm_pvt_normal_snd_process_common(MDS_HDL env_hdl, MDS_SVC_ID fr
 #if 1
 	/* New code */
 	status = mds_mcm_send_msg_enc(to, svc_cb, &to_msg, to_svc_id, dest_vdest_id, req, xch_id, dest, pri);
-        m_MDS_LEAVE();
+	m_MDS_LEAVE();
 	return status;
 #endif
 
@@ -1056,7 +1056,7 @@ static uint32_t mds_mcm_send_msg_enc(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG 
 {
 	MDS_SUBSCRIPTION_RESULTS_INFO *subs_result_hdl = NULL;
 	V_DEST_RL role = 0;
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 	if (NCSCC_RC_SUCCESS != mds_subtn_res_tbl_get_by_adest(svc_cb->svc_hdl, to_svc_id, dest_vdest_id,
 							       dest, &role, &subs_result_hdl)) {
 		/* Destination Route Not Found */
@@ -1115,7 +1115,7 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 	MDS_MCM_SYNC_SEND_QUEUE *result;
 	MDS_BCAST_BUFF_LIST *bcast_ptr = NULL;
 	MDS_SUBSCRIPTION_RESULTS_INFO *lcl_subtn_res = NULL;
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 
 	memset(&cbinfo, 0, sizeof(cbinfo));
 	memset(&req, 0, sizeof(req));
@@ -1269,7 +1269,7 @@ static uint32_t mcm_msg_cpy_send(uint8_t to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_
 	strcpy(req.sub_adest_details, lcl_subtn_res->sub_adest_details);
 
 	m_MDS_LOG_INFO("MDS_SND_RCV: Sending the data to MDTM layer\n");
-        m_MDS_LEAVE();
+	m_MDS_LEAVE();
 	return mds_mdtm_send(&req);
 }
 
@@ -1294,7 +1294,7 @@ static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_i
 	/* Filling all the parameters */
 	memset(&req, 0, sizeof(req));
 
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 	req.msg.data.buff_info.buff = buff_info.buff;
 	req.msg.data.buff_info.len = buff_info.len;
 	req.msg.encoding = MDS_ENC_TYPE_DIRECT_BUFF;
@@ -1320,7 +1320,7 @@ static uint32_t mcm_msg_direct_send_buff(uint8_t to, MDS_DIRECT_BUFF_INFO buff_i
 	req.msg_fmt_ver = msg_fmt_ver;
 	strcpy(req.sub_adest_details, lcl_subtn_res->sub_adest_details);
 	m_MDS_LOG_INFO("MDS_SND_RCV: Sending the data to MDTM layer\n");
-        m_MDS_LEAVE();
+	m_MDS_LEAVE();
 	return mds_mdtm_send(&req);
 }
 
@@ -1513,7 +1513,7 @@ static uint32_t mcm_msg_encode_full_or_flat_and_send(uint8_t to, SEND_MSG *to_ms
 		}
 	}
 	m_MDS_LOG_INFO("MDS_SND_RCV: Sending the data to MDTM layer\n");
-        m_MDS_LEAVE();
+	m_MDS_LEAVE();
 	/* used only for case of bcast with full encode */ 
 	to_msg->bcast_buff_len = m_MMGR_LINK_DATA_LEN(msg_send.msg.data.fullenc_uba.start);
 	return mds_mdtm_send(&msg_send);
@@ -1543,7 +1543,7 @@ static uint32_t mds_mcm_raise_selection_obj_for_ack(MDS_SVC_INFO *svc_cb, MDS_DA
 	m_MDS_LOG_INFO("MDS_SND_RCV: Entry Found in sync send table svc_id = %s(%d), xch_id=%d ,raising sel object\n",
 		       get_svc_names(svc_cb->svc_id), svc_cb->svc_id, recv->exchange_id);
 	m_NCS_SEL_OBJ_IND(&sync_queue->sel_obj);
-        m_MDS_LEAVE();
+	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1632,7 +1632,7 @@ static uint32_t mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_
 	MDS_SUBSCRIPTION_RESULTS_INFO *t_send_hdl = NULL;	/* Subscription Result */
 	MDS_SUBSCRIPTION_RESULTS_INFO *log_t_send_hdl = NULL;       /* Subscription Result */
 
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 	env_hdl = (MDS_HDL)(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_cb->svc_hdl));
 
 	dest_vdest_id = m_MDS_GET_INTERNAL_VDEST_ID_FROM_MDS_DEST(i_dest);
@@ -4235,7 +4235,7 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 {
 	uint32_t rc = 0;
 
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 	if (true == svccb->q_ownership) {
 		if (NCSCC_RC_SUCCESS != mds_mcm_mailbox_post(svccb, recv, recv->pri)) {
 			m_MDS_LOG_ERR("Mailbox post failed\n");
@@ -4893,7 +4893,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 					    NCSCONTEXT orig_msg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 	/* Distinguish between intra-node and inter-node communication */
 	if (MDS_ENC_TYPE_FULL == recv_msg->msg.encoding) {
 		cbinfo->i_op = MDS_CALLBACK_DEC;
@@ -6193,7 +6193,7 @@ uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
 	MDS_AWAIT_ACTIVE_QUEUE *mov_ptr, *del_ptr;
 	mov_ptr = queue;
 
-        m_MDS_ENTER();
+	m_MDS_ENTER();
 	if (mov_ptr == NULL) {
 		/* Deleting osaf_mutex_unlock_ordie(&gl_mds_library_mutex, ...
 		 * from here as it is resulting in segmantation fault if some
@@ -6211,7 +6211,7 @@ uint32_t mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
 	}
 	queue = NULL;
 
-        m_MDS_LEAVE();
+	m_MDS_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
