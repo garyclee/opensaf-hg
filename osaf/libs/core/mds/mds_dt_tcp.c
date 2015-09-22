@@ -125,7 +125,7 @@ uint32_t mds_mdtm_init_tcp(NODE_ID nodeid, uint32_t *mds_tcp_ref)
 
 	/* Create the sockets required for Binding, Send, receive and Discovery */
 
-	tcp_cb->DBSRsock = socket(mds_socket_domain, SOCK_STREAM, 0);
+	tcp_cb->DBSRsock = socket(mds_socket_domain, SOCK_STREAM|SOCK_CLOEXEC, 0);
 	if (tcp_cb->DBSRsock < 0) {
 		syslog(LOG_ERR, "MDTM:TCP DBSRsock Socket creation failed in MDTM_INIT err :%s", strerror(errno));
 		return NCSCC_RC_FAILURE;
