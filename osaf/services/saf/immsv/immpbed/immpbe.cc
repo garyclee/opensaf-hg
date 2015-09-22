@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <libgen.h>
 #include <unistd.h>
+#include "configmake.h"
 
 #define XML_VERSION "1.0"
 
@@ -51,26 +52,27 @@ static const SaImmCallbacksT callbacks = {
  * Check if osafimmpbe is executed by osafimmnd
  */
 static void checkParentProcess() {
-	char cmd[1024];
-	char *base;
+	const char *cmd = "cat " PKGPIDDIR "/osafimmnd.pid";
+	char buf[100];
 	pid_t ppid = getppid();
+	pid_t immndpid;
 
-	sprintf(cmd, "cat /proc/%u/cmdline", ppid);
 	FILE *f = popen(cmd, "r");
 	if(!f)
 		goto fail;
 
-	if(!fgets(cmd, 1024, f)) {
+	if(!fgets(buf, 100, f)) {
 		pclose(f);
 		goto fail;
 	}
 
 	pclose(f);
 
-	base = basename(cmd);
+	immndpid = strtol(buf, NULL, 10);
 
-	if(strncmp(base, "osafimmnd", strlen("osafimmnd")))
+	if(immndpid != ppid) {
 		goto fail;
+	}
 
 	return;
 
