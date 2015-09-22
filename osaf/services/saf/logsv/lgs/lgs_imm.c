@@ -697,14 +697,19 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 
 		TRACE("attribute %s", attribute->attrName);
 
-		/* Ignore deletion of attributes except for logDataGroupname*/
+		/**
+		 *  Ignore deletion of attributes
+		 *  except for logDataGroupname,
+		 *  and logStreamFileFormat
+		 */
 		if ((strcmp(attribute->attrName, LOG_DATA_GROUPNAME) != 0) &&
-			(attribute->attrValuesNumber == 0)) {
-			report_oi_error(immOiHandle, opdata->ccbId,
+			 (strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT) != 0) &&
+			 (attribute->attrValuesNumber == 0)) {
+				report_oi_error(immOiHandle, opdata->ccbId,
 					"deletion of value is not allowed for attribute %s stream %s",
 					attribute->attrName, opdata->objectName.value);
-			ais_rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
+				ais_rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
 		}
 
 		if (attribute->attrValuesNumber != 0) {
@@ -738,16 +743,19 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 				TRACE("groupname: %s is accepted", groupname);
 			}
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT)) {
-			char *logFileFormat = *((char **) value);
-			rc = lgs_cfg_verify_log_file_format(logFileFormat);
-			if (rc == -1) {
-				report_oi_error(immOiHandle, opdata->ccbId,
-								"%s value is NOT accepted", attribute->attrName);
-				ais_rc = SA_AIS_ERR_INVALID_PARAM;
-				goto done;
+			if (attribute->attrValuesNumber == 0) {
+				TRACE("Delete logStreamFileFormat");
+			} else {
+				char *logFileFormat = *((char **) value);
+				rc = lgs_cfg_verify_log_file_format(logFileFormat);
+				if (rc == -1) {
+					report_oi_error(immOiHandle, opdata->ccbId,
+									"%s value is NOT accepted", attribute->attrName);
+					ais_rc = SA_AIS_ERR_INVALID_PARAM;
+					goto done;
+				}
+				TRACE("logFileFormat: %s value is accepted", logFileFormat);
 			}
-			TRACE("logFileFormat: %s value is accepted", logFileFormat);
-			goto done;
 		} else if (!strcmp(attribute->attrName, LOG_MAX_LOGRECSIZE)) {
 			SaUint32T maxLogRecordSize = *((SaUint32T *)value);
 			rc = lgs_cfg_verify_max_logrecsize(maxLogRecordSize);
@@ -758,7 +766,6 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 				goto done;
 			}
 			TRACE("maxLogRecordSize: %s is accepted", attribute->attrName);
-			goto done;
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
 			vattr.logStreamSystemHighLimit = *((SaUint32T *)value);
 			vattr.logStreamSystemHighLimit_changed = true;
@@ -794,7 +801,6 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 				goto done;
 			}
 			TRACE("logFileIoTimeout: %d value is accepted", logFileIoTimeout);
-			goto done;
 		} else if (!strcmp(attribute->attrName, LOG_FILE_SYS_CONFIG)) {
 			report_oi_error(immOiHandle, opdata->ccbId,
 					"%s cannot be changed", attribute->attrName);
@@ -1946,11 +1952,16 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			lgs_cfgupd_list_create(LOG_DATA_GROUPNAME,
 				value_str, &config_data);
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT)) {
+			if (value == NULL) {
+				/* Use built-in file format as default */
+				value_str = DEFAULT_APP_SYS_FORMAT_EXP;
+			} else {
+				value_str = *((char **)value);
+			}
 			/**
 			 * This attribute value is used for default log file format of
 			 * app stream. Changing this value don't result in cfg/log file creation.
-			*/
-			value_str = *((char **)value);
+			 */
 			lgs_cfgupd_list_create(LOG_STREAM_FILE_FORMAT,
 				 value_str, &config_data);
 		} else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {

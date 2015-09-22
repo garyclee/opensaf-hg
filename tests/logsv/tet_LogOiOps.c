@@ -3128,6 +3128,140 @@ void verMaxFilesRotated(void)
     rc_validate(WEXITSTATUS(rc), 1);
 }
 
+/* Add test cases to test #1490 */
+
+/* Verify that logStreamFileFormat value is allowed to delete */
+void verLogStreamFileFormat(void)
+{
+    int rc;
+    char command[256];
+	char logFileFmt[256];
+	bool logFmtEmtpy = true;
+
+    /* Get current value of logStreamFileFormat attribute */
+    rc = get_attr_value(&configurationObject, "logStreamFileFormat", NULL,
+						logFileFmt);
+    if (rc != -1) {
+		logFmtEmtpy = false;
+	}
+
+    sprintf(command, "immcfg -a logStreamFileFormat= %s 2> /dev/null",
+		   LOGTST_IMM_LOG_CONFIGURATION);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);
+
+	if ((logFmtEmtpy == false) && (WEXITSTATUS(rc) == 0)) {
+		/* The value is deleted. Restore it */
+		sprintf(command, "immcfg -a logStreamFileFormat=\"%s\" %s 2> /dev/null",
+			   logFileFmt, LOGTST_IMM_LOG_CONFIGURATION);
+		rc = system(command);
+	}
+}
+
+/* Verify that logDataGroupname value is allowed to delete */
+void verLogDataGroupName(void)
+{
+    int rc;
+    char command[256];
+	char logGroupName[256];
+	bool logGroupEmpty = true;
+
+    /* Get current value of logDataGroupname attribute */
+    rc = get_attr_value(&configurationObject, "logDataGroupname", NULL,
+						logGroupName);
+    if (rc != -1) {
+		logGroupEmpty = false;
+	}
+
+    sprintf(command, "immcfg -a logDataGroupname= %s",
+			LOGTST_IMM_LOG_CONFIGURATION);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);
+
+	if ((logGroupEmpty == false) && (WEXITSTATUS(rc) == 0)) {
+		/* The value is deleted. Restore it */
+		sprintf(command, "immcfg -a logDataGroupname=\"%s\" %s",
+				logGroupName, LOGTST_IMM_LOG_CONFIGURATION);
+		rc = system(command);
+	}
+}
+
+/* One CCB with valid attributes, Allowed */
+void verCCBWithValidValues(void)
+{
+    int rc;
+    char command[256];
+	uint32_t timeout = 500;
+	uint32_t *tmp_to = &timeout;
+	uint32_t maxRec = 0;
+	uint32_t *tmp_max = &maxRec;
+
+    /* Get current values of ttributes */
+    rc = get_attr_value(&configurationObject, "logFileIoTimeout", (void**)&tmp_to,
+						NULL);
+    if (rc != -1) {
+		timeout = *tmp_to;
+	}
+
+	rc = get_attr_value(&configurationObject, "logMaxLogrecsize", (void**)&tmp_max,
+						NULL);
+    if (rc != -1) {
+		maxRec = *tmp_max;
+	}
+
+    sprintf(command, "immcfg -a logFileIoTimeout=600 -a logMaxLogrecsize=2000 %s",
+			LOGTST_IMM_LOG_CONFIGURATION);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 0);
+
+	if (WEXITSTATUS(rc) == 0) {
+		/* Restore the values */
+		sprintf(command, "immcfg -a logFileIoTimeout=%d -a logMaxLogrecsize=%d %s",
+				timeout,
+				maxRec,
+				LOGTST_IMM_LOG_CONFIGURATION);
+		rc = system(command);
+	}
+}
+
+/* One CCB with many valid attributes, but one of them invalid. Not Allowed */
+void verCCBWithInvalidValues(void)
+{
+    int rc;
+    char command[256];
+	uint32_t timeout = 500;
+	uint32_t *tmp_to = &timeout;
+	uint32_t maxRec = 0;
+	uint32_t *tmp_max = &maxRec;
+
+    /* Get current values of ttributes */
+    rc = get_attr_value(&configurationObject, "logFileIoTimeout", (void**)&tmp_to,
+						NULL);
+    if (rc != -1) {
+		timeout = *tmp_to;
+	}
+
+	rc = get_attr_value(&configurationObject, "logMaxLogrecsize", (void**)&tmp_max,
+						NULL);
+    if (rc != -1) {
+		maxRec = *tmp_max;
+	}
+
+	/* invalid value to logMaxLogrecsize */
+    sprintf(command, "immcfg -a logFileIoTimeout=600 -a logMaxLogrecsize=800000 %s "
+			" 2> /dev/null ", LOGTST_IMM_LOG_CONFIGURATION);
+    rc = system(command);
+    rc_validate(WEXITSTATUS(rc), 1);
+
+	if (WEXITSTATUS(rc) == 0) {
+		/* Restore the values */
+		sprintf(command, "immcfg -a logFileIoTimeout=%d -a logMaxLogrecsize=%d %s",
+				timeout,
+				maxRec,
+				LOGTST_IMM_LOG_CONFIGURATION);
+		rc = system(command);
+	}
+}
 
 __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 {
@@ -3223,6 +3357,13 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(5, verLogMaxLogrecsize_dep, "CCB Object Modify: logMaxLogrecsize dependencies, OK");
 	test_case_add(5, verLogMaxLogrecsize_Err_01, "CCB Object Modify: logMaxLogrecsize < 150, ERR");
 	test_case_add(5, verLogMaxLogrecsize_Err_02, "CCB Object Modify: logMaxLogrecsize > 65535, ERR");
+
+	/* Add test cases to test #1490 */
+	test_case_add(5, verLogStreamFileFormat, "CCB Object Modify: delete logStreamFileFormat, OK");
+	test_case_add(5, verLogDataGroupName, "CCB Object Modify: delete logDataGroupname, OK");
+	test_case_add(5, verCCBWithValidValues, "CCB Object Modify many attributes with valid values, OK");
+	test_case_add(5, verCCBWithInvalidValues, "CCB Object Modify many attributes with one invalid values, ERR");
+
 
 	/* Stream configuration object */
 	/* Tests for create */
