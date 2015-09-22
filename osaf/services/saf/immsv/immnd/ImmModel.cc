@@ -4214,6 +4214,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                     className.c_str(), attName.c_str());
                 change = true;
             }
+            immsv_evt_free_att_val(&oldval, (SaImmValueTypeT)oldAttr->mValueType);
         }
 
         if(change) {
