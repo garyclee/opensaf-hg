@@ -84,6 +84,9 @@ class AVD_CSI {
   AVD_CS_TYPE *cstype {};
   bool assign_flag {};   /* Flag used while assigning. to mark this csi has been assigned a Comp
                          from * current SI being assigned */
+
+  static AVD_COMP* find_assigned_comp(const SaNameT *cstype, const AVD_SU_SI_REL *sisu, const std::vector<AVD_COMP*> &list_of_comp);
+
  private:
   AVD_CSI();
   // disallow copy and assign

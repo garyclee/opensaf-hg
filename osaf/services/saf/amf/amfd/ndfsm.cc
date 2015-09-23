@@ -28,6 +28,7 @@
 #include <amfd.h>
 #include <cluster.h>
 #include <daemon.h>
+#include <algorithm>
 
 AmfDb<uint32_t, AVD_FAIL_OVER_NODE> *node_list_db = 0;      /* SaClmNodeIdT index */
 
@@ -205,9 +206,8 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 		/* Make application SUs operational state ENABLED */
 		for (const auto& su : avnd->list_of_su) {
 			su->set_oper_state(SA_AMF_OPERATIONAL_ENABLED);
-			AVD_COMP *comp;
-			for (comp = su->list_of_comp; comp; comp = comp->su_comp_next)
-				avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_ENABLED);
+			std::for_each (su->list_of_comp.begin(), su->list_of_comp.end(),
+				[] (AVD_COMP *comp) {avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_ENABLED);});
 		}
 		/* We can now set the LEDS */
 		avd_snd_set_leds_msg(cb, avnd);

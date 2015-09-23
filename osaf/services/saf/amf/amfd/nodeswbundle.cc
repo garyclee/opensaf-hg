@@ -71,11 +71,10 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 static int is_swbdl_delete_ok_for_node(const SaNameT *bundle_dn_to_delete,
 	const SaNameT *node_dn, const std::vector<AVD_SU*> &su_list, CcbUtilOperationData_t *opdata)
 {
-	const AVD_COMP *comp;
 	SaNameT bundle_dn;
 
 	for (const auto& su : su_list) {
-		for (comp = su->list_of_comp; comp != NULL; comp = comp->su_comp_next) {
+		for (const auto& comp : su->list_of_comp) {
 			avsv_create_association_class_dn(&comp->comp_type->saAmfCtSwBundle, 
 				node_dn, "safInstalledSwBundle", &bundle_dn);
 

@@ -26,6 +26,38 @@
 
 AmfDb<std::string, AVD_CSI> *csi_db = NULL;
 
+//
+AVD_COMP* AVD_CSI::find_assigned_comp(const SaNameT *cstype,
+                                        const AVD_SU_SI_REL *sisu,
+                                        const std::vector<AVD_COMP*> &list_of_comp) {
+  auto iter = list_of_comp.begin();
+  AVD_COMP* comp = nullptr;
+  for (; iter != list_of_comp.end(); ++iter) {
+    comp = *iter;
+    AVD_COMPCS_TYPE *cst;
+    if (NULL != (cst = avd_compcstype_find_match(cstype, comp))) {
+      if (SA_AMF_HA_ACTIVE == sisu->state) {
+        if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
+          break;
+        } else { /* We can't assign this csi to this comp, so check for another comp */
+          continue ;
+        }
+      } else {
+        if (cst->saAmfCompNumCurrStandbyCSIs < cst->saAmfCompNumMaxStandbyCSIs) {
+          break;
+        } else { /* We can't assign this csi to this comp, so check for another comp */
+          continue ;
+        }
+      }
+    }
+  }
+  if (iter == list_of_comp.end()) {
+    return NULL;
+  } else {
+    return comp;
+  }
+}
+
 void avd_csi_delete(AVD_CSI *csi)
 {
 	AVD_CSI_ATTR *temp;
@@ -445,7 +477,6 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_SU_SI_REL *t_sisu;
 	AVD_COMP_CSI_REL *compcsi;
 	SaNameT cstype_name;
-	AVD_COMPCS_TYPE *cst;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -480,7 +511,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 
 				compcsi = t_sisu->list_of_csicomp;
 				while (compcsi != NULL) {
-					compcsi->comp->assign_flag = true;
+					compcsi->comp->set_assigned();
 					compcsi = compcsi->susi_csicomp_next;
 				}
 
@@ -488,29 +519,9 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 
 				/* Component not found.*/
 				if (NULL == t_comp) {
-					/* This means that all the components are assigned, let us assigned it to assigned 
+					/* This means that all the components are assigned, let us assigned it to assigned
 					   component.*/
-					t_comp = su->list_of_comp;
-					while (t_comp != NULL) {
-						if (NULL != (cst = avd_compcstype_find_match(&cstype_name, t_comp))) {
-							if (SA_AMF_HA_ACTIVE == t_sisu->state) {
-								if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
-									break;
-								} else { /* We cann't assign this csi to this comp, so check for another comp */
-									t_comp = t_comp->su_comp_next;
-									continue ;
-								}
-							} else {
-								if (cst->saAmfCompNumCurrStandbyCSIs < cst->saAmfCompNumMaxStandbyCSIs) {
-									break;
-								} else { /* We cann't assign this csi to this comp, so check for another comp */
-									t_comp = t_comp->su_comp_next;
-									continue ;
-								}
-							}
-						}
-						t_comp = t_comp->su_comp_next;
-					}
+					t_comp = AVD_CSI::find_assigned_comp(&cstype_name, t_sisu, su->list_of_comp);
 				}
 				if (NULL == t_comp) {
 					report_ccb_validation_error(opdata, "Compcsi doesn't exist or "
@@ -958,7 +969,6 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 	AVD_SU_SI_REL *t_sisu;
 	bool first_sisu = true;
 	AVD_COMP_CSI_REL *compcsi;
-	AVD_COMPCS_TYPE *cst;
 	SaAisErrorT rc = SA_AIS_ERR_NO_OP;
 
 	/* Check whether csi assignment is already in progress and if yes, then return.
@@ -983,7 +993,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 
 			compcsi = t_sisu->list_of_csicomp;
 			while (compcsi != NULL) {
-				compcsi->comp->assign_flag = true;
+				compcsi->comp->set_assigned();
 				compcsi = compcsi->susi_csicomp_next;
 			}
 
@@ -993,27 +1003,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 			if (NULL == t_comp) {
 				/* This means that all the components are assigned, let us assigned it to assigned 
 				   component.*/
-				t_comp = t_sisu->su->list_of_comp;
-				while (t_comp != NULL) {
-					if (NULL != (cst = avd_compcstype_find_match(&csi->saAmfCSType, t_comp))) {
-						if (SA_AMF_HA_ACTIVE == t_sisu->state) {
-							if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
-								break;
-							} else { /* We cann't assign this csi to this comp, so check for another comp */
-								t_comp = t_comp->su_comp_next;
-								continue ;
-							}
-						} else {
-							if (cst->saAmfCompNumCurrStandbyCSIs < cst->saAmfCompNumMaxStandbyCSIs) {
-								break;
-							} else { /* We cann't assign this csi to this comp, so check for another comp */
-								t_comp = t_comp->su_comp_next;
-								continue ;
-							}
-						}
-					}
-					t_comp = t_comp->su_comp_next;
-				}
+				t_comp = AVD_CSI::find_assigned_comp(&csi->saAmfCSType, t_sisu, t_sisu->su->list_of_comp);
 			}
 			if (NULL == t_comp) {
 				LOG_ER("Compcsi doesn't exist or MaxActiveCSI/MaxStandbyCSI have reached for csi '%s'",
