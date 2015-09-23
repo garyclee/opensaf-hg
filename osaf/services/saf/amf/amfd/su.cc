@@ -54,7 +54,7 @@ void AVD_SU::initialize() {
 	sg_of_su = NULL;
 	su_on_node = NULL;
 	list_of_susi = NULL;
-	list_of_comp = NULL;
+	list_of_comp = {};
 	su_type = NULL;
 	su_list_su_type_next = NULL; 
 	name.length = 0;
@@ -85,7 +85,7 @@ void AVD_SU::remove_from_model() {
 	/* All the components under this SU should have been deleted
 	 * by now, just do the sanity check to confirm it is done 
 	 */
-	osafassert(list_of_comp == NULL);
+	osafassert(list_of_comp.empty() == true);
 	osafassert(list_of_susi == NULL);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, this, AVSV_CKPT_AVD_SU_CONFIG);
@@ -117,47 +117,25 @@ int AVD_SU::hastate_assignments_count(SaAmfHAStateT ha_state) {
 }
 
 void AVD_SU::remove_comp(AVD_COMP *comp) {
-	AVD_COMP *i_comp = NULL;
-	AVD_COMP *prev_comp = NULL;
 	AVD_SU *su_ref = comp->su;
 
 	osafassert(su_ref != NULL);
 
-	if (comp->su != NULL) {
-		/* remove COMP from SU */
-		i_comp = comp->su->list_of_comp;
-
-		while ((i_comp != NULL) && (i_comp != comp)) {
-			prev_comp = i_comp;
-			i_comp = i_comp->su_comp_next;
-		}
-
-		if (i_comp == comp) {
-			if (prev_comp == NULL) {
-				comp->su->list_of_comp = comp->su_comp_next;
-			} else {
-				prev_comp->su_comp_next = comp->su_comp_next;
-			}
-
-			comp->su_comp_next = NULL;
-			/* Marking SU referance pointer to NULL, please dont use further in the routine */
-			comp->su = NULL;
-		}
-	}
-
+	if (comp->su != nullptr) {
+	comp->su->list_of_comp.erase(std::remove(comp->su->list_of_comp.begin(),
+                                          comp->su->list_of_comp.end(), comp), comp->su->list_of_comp.end());
+  }
 	bool old_preinst_value = saAmfSUPreInstantiable;
 	bool curr_preinst_value = saAmfSUPreInstantiable;
 
 	// check if preinst possibly is still true
 	if (comp_is_preinstantiable(comp) == true) {
 		curr_preinst_value = false;
-		i_comp = list_of_comp;
-		while (i_comp) {
+		for (const auto& i_comp : list_of_comp) {
 			if ((comp_is_preinstantiable(i_comp) == true) && (i_comp != comp)) {
 				curr_preinst_value = true;
 				break;
 			}
-			i_comp = i_comp->su_comp_next;
 		}
 	}
 
@@ -174,37 +152,15 @@ void AVD_SU::remove_comp(AVD_COMP *comp) {
 }
 
 void AVD_SU::add_comp(AVD_COMP *comp) {
-	AVD_COMP *i_comp = comp->su->list_of_comp;
-	AVD_COMP *prev_comp = NULL; 
-	bool found_pos= false;
-
-	while ((i_comp == NULL) || (comp->comp_info.inst_level >= i_comp->comp_info.inst_level)) {
-		while ((i_comp != NULL) && (comp->comp_info.inst_level == i_comp->comp_info.inst_level)) {
-
-			if (m_CMP_HORDER_SANAMET(comp->comp_info.name, i_comp->comp_info.name) < 0){
-				found_pos = true;
-				break;
+	comp->su->list_of_comp.push_back(comp);
+	std::sort(comp->su->list_of_comp.begin(), comp->su->list_of_comp.end(), [] (const AVD_COMP *c1, const AVD_COMP *c2) -> bool {
+			if (c1->comp_info.inst_level < c2->comp_info.inst_level) return true;
+			if (c1->comp_info.inst_level == c2->comp_info.inst_level) {
+				if (m_CMP_HORDER_SANAMET(c1->comp_info.name, c2->comp_info.name) < 0)
+					return true;
 			}
-			prev_comp = i_comp;
-			i_comp = i_comp->su_comp_next;
-			if ((i_comp != NULL) && (i_comp->comp_info.inst_level > comp->comp_info.inst_level)) {
-				found_pos = true;
-				break;
-			}
-
-		}
-		if (found_pos || (i_comp == NULL))
-			break;
-		prev_comp = i_comp;
-		i_comp = i_comp->su_comp_next;
-	}
-	if (prev_comp == NULL) {
-		comp->su_comp_next = comp->su->list_of_comp;
-		comp->su->list_of_comp = comp;
-	} else {
-		prev_comp->su_comp_next = comp;
-		comp->su_comp_next = i_comp;
-	}
+			return false;
+		});
 
 	/* Verify if the SUs preinstan value need to be changed */
 	if (comp_is_preinstantiable(comp) == true) {
@@ -804,7 +760,6 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 	if (saAmfSuReadinessState == readiness_state)
 		return;
 
-	AVD_COMP *comp = NULL;
 	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
 	TRACE_ENTER2("'%s' %s", name.value,
 		avd_readiness_state_name[readiness_state]);
@@ -819,8 +774,8 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 
 	/* Since Su readiness state has changed, we need to change it for all the
 	 * component in this SU.*/
-	comp = list_of_comp;
-	while (comp != NULL) {
+
+	for (const auto& comp : list_of_comp) {
 		SaAmfReadinessStateT saAmfCompReadinessState;
 		if ((saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
 				(comp->saAmfCompOperState == SA_AMF_OPERATIONAL_ENABLED)) {
@@ -832,7 +787,6 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 			saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
 
 		avd_comp_readiness_state_set(comp, saAmfCompReadinessState);
-		comp = comp->su_comp_next;
 	}
 
 	TRACE_LEAVE();
@@ -1028,7 +982,7 @@ void AVD_SU::unlock_instantiation(SaImmOiHandleT immoi_handle,
 
 	TRACE_ENTER2("'%s'", name.value);
 
-	if (list_of_comp == NULL) {
+	if (list_of_comp.empty() == true) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
 				"There is no component configured for SU '%s'.", name.value);
 		goto done;
@@ -2057,12 +2011,7 @@ void AVD_SU::set_saAmfSUPreInstantiable(bool value) {
  * resets the assign flag for all contained components
  */
 void AVD_SU::reset_all_comps_assign_flag() {
-	AVD_COMP *t_comp = list_of_comp;
-	// TODO(hafe) add and use a comp method
-	while (t_comp != NULL) {
-		t_comp->assign_flag = false;
-		t_comp = t_comp->su_comp_next;
-	}
+	std::for_each(list_of_comp.begin(), list_of_comp.end(), [](AVD_COMP *comp ) {comp->set_unassigned();});
 }
 
 /**
@@ -2071,20 +2020,20 @@ void AVD_SU::reset_all_comps_assign_flag() {
  * @return
  */
 AVD_COMP *AVD_SU::find_unassigned_comp_that_provides_cstype(const SaNameT *cstype) {
-	AVD_COMP *l_comp = list_of_comp;
-	while (l_comp != NULL) {
+	AVD_COMP *l_comp = nullptr;
+	for (const auto& comp : list_of_comp) {
+		l_comp = comp;
 		bool npi_is_assigned = false;
 		AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&l_comp->saAmfCompType));
 		osafassert(comptype);
 		if ((comptype->saAmfCtCompCategory == SA_AMF_COMP_LOCAL) && is_comp_assigned_any_csi(l_comp))
 			npi_is_assigned = true;
 		
-		if ((l_comp->assign_flag == false) && (npi_is_assigned == false)) {
+		if ((l_comp->is_assigned() == false) && (npi_is_assigned == false)) {
 			AVD_COMPCS_TYPE *cst = avd_compcstype_find_match(cstype, l_comp);
 			if (cst != NULL)
 				break;
 		}
-		l_comp = l_comp->su_comp_next;
 	}
 
 	return l_comp;
@@ -2097,8 +2046,7 @@ AVD_COMP *AVD_SU::find_unassigned_comp_that_provides_cstype(const SaNameT *cstyp
  */
 void AVD_SU::disable_comps(SaAisErrorT result)
 {
-	AVD_COMP *comp;
-	for (comp = list_of_comp; comp; comp = comp->su_comp_next) {
+	for (const auto& comp : list_of_comp) {
 		comp->curr_num_csi_actv = 0;
 		comp->curr_num_csi_stdby = 0;
 		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_DISABLED);
@@ -2180,7 +2128,7 @@ SaAisErrorT AVD_SU::check_su_stability()
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
-	for (AVD_COMP *comp = list_of_comp; comp; comp = comp->su_comp_next) {
+	for (const auto& comp : list_of_comp) {
 		rc = check_comp_stability(comp);
 		if (rc != SA_AIS_OK)
 			goto done;

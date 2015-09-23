@@ -62,7 +62,7 @@ static void verify_csi_deps_and_delete_invalid_compcsi(AVD_SU_SI_REL *susi)
 							compcsi->comp->comp_info.name.value,
 							compcsi->csi->name.value);
 					compcsi->csi->assign_flag = false;
-					compcsi->comp->assign_flag = false;
+					compcsi->comp->set_unassigned();
 					avd_compcsi_from_csi_and_susi_delete(susi, compcsi, true);
 					//Delete compcsi of dependents.
 					verify_csi_deps_and_delete_invalid_compcsi(susi);
@@ -148,7 +148,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			continue;
 		}
 
-		l_comp->assign_flag = true;
+		l_comp->set_assigned();
 		l_csi->assign_flag = true;
 		l_csi = l_csi->si_list_of_csi_next;
 	} /* while(l_csi != AVD_CSI_NULL) */
@@ -169,31 +169,27 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	l_csi = si->list_of_csi;
 	while (NULL !=  l_csi) {
 		if (false == l_csi->assign_flag) {
-			l_comp = su->list_of_comp;
 			/* Assign to only those comps, which have assignment. Those comps, which could not have assignment 
 			   before, cann't find compcsi here also.*/
-			while (l_comp != NULL) { 
+			for (const auto& l_comp : su->list_of_comp) {
 				AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&l_comp->saAmfCompType));
 				osafassert(comptype);
-				if ((true == l_comp->assign_flag) && (comptype->saAmfCtCompCategory != SA_AMF_COMP_LOCAL)) {
+				if ((true == l_comp->is_assigned()) && (comptype->saAmfCtCompCategory != SA_AMF_COMP_LOCAL)) {
 					if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, l_comp))) {
 						if (SA_AMF_HA_ACTIVE == ha_state) {
 							if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
 							} else { /* We cann't assign this csi to this comp, so check for another comp */
-								l_comp = l_comp->su_comp_next;
 								continue ;
 							}
 						} else {
 							if (cst->saAmfCompNumCurrStandbyCSIs < cst->saAmfCompNumMaxStandbyCSIs) {
 							} else { /* We cann't assign this csi to this comp, so check for another comp */
-								l_comp = l_comp->su_comp_next;
 								continue ;
 							}
 						}
 						if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == NULL) {
 							/* free all the CSI assignments and end this loop */
 							avd_compcsi_delete(cb, susi, true);
-							l_comp = l_comp->su_comp_next;
 							continue;
 						}
 						l_csi->assign_flag = true;
@@ -201,8 +197,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 						break;
 					}/* if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, l_comp))) */
 				}/* if (true == l_comp->assign_flag) */
-				l_comp = l_comp->su_comp_next;
-			}/* while (l_comp != NULL) */
+			}/* for (const auto& l_comp : su->list_of_comp) */
 		}/* if (false == l_csi->assign_flag)*/
 		l_csi = l_csi->si_list_of_csi_next;
 	}/* while (l_csi != NULL) */

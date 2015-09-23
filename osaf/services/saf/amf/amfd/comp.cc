@@ -79,7 +79,6 @@ void AVD_COMP::initialize() {
   comp_type = {};
   comp_type_list_comp_next = {};
   su = {};
-  su_comp_next = {};
   admin_pend_cbk = {};
 }
 

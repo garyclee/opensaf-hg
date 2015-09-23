@@ -121,10 +121,11 @@ class AVD_COMP {
   AVD_COMP_TYPE *comp_type;
   AVD_COMP *comp_type_list_comp_next;
   AVD_SU *su;		/* SU to which this component belongs */
-  AVD_COMP *su_comp_next;	/* the next component in list of  components
-                                 * in this SU */
   AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
 
+  void set_unassigned() {assign_flag = false;}
+  void set_assigned() {assign_flag = true;}
+  bool is_assigned() {return assign_flag;}
  private:
   void initialize();
   // disallow copy and assign

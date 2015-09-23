@@ -90,8 +90,7 @@ class AVD_SU {
 	AVD_AVND *su_on_node;	/*  the node on which this SU resides */
 	struct avd_su_si_rel_tag *list_of_susi;	/* the list of su si relationship elements */
 
-	// TODO: use some container for the comp list
-	AVD_COMP *list_of_comp;	/* the list of  components in this SU */
+	std::vector<AVD_COMP*> list_of_comp;	/* the list of  components in this SU */
 
 	AVD_SUTYPE *su_type;
 	AVD_SU *su_list_su_type_next;
