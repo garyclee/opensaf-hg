@@ -7759,7 +7759,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 			SaUint32T applCtn = 0;
 			SaUint32T *applConnArr = NULL;
 			SaUint32T applArrSize =
-				immModel_getLocalAppliersForCcb(cb, evt->info.objModify.ccbId, &applConnArr, &applCtn);
+				immModel_getLocalAppliersForCcb(cb, evt->info.ccbId, &applConnArr, &applCtn);
 
 			if(applArrSize) {
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -7878,7 +7878,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
 				send_evt.info.imma.info.errRsp.error = err;
-				send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.objDelete.ccbId);
+				send_evt.info.imma.info.errRsp.errStrings = immModel_ccbGrabErrStrings(cb, evt->info.ccbId);
 
 				if(send_evt.info.imma.info.errRsp.errStrings) {
 					send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR_2;
