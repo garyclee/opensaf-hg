@@ -62,7 +62,7 @@ static void verify_csi_deps_and_delete_invalid_compcsi(AVD_SU_SI_REL *susi)
 							compcsi->comp->comp_info.name.value,
 							compcsi->csi->name.value);
 					compcsi->csi->assign_flag = false;
-					compcsi->comp->set_unassigned();
+					compcsi->comp->set_assigned(false);
 					avd_compcsi_from_csi_and_susi_delete(susi, compcsi, true);
 					//Delete compcsi of dependents.
 					verify_csi_deps_and_delete_invalid_compcsi(susi);
@@ -134,7 +134,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		/* find a component that can be assigned this CSI */
 		l_comp = su->find_unassigned_comp_that_provides_cstype(&l_csi->saAmfCSType);
 
-		if (l_comp == NULL) {
+		if (l_comp == nullptr) {
 			/* This means either - 1. l_csi cann't be assigned to any comp or 2. some comp got assigned 
 			   and the rest cann't be assigned.*/
 			l_csi = l_csi->si_list_of_csi_next;
@@ -148,7 +148,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			continue;
 		}
 
-		l_comp->set_assigned();
+		l_comp->set_assigned(true);
 		l_csi->assign_flag = true;
 		l_csi = l_csi->si_list_of_csi_next;
 	} /* while(l_csi != AVD_CSI_NULL) */
@@ -165,17 +165,17 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	   Here, policy for assigning more than 1 csi to components is : Assign to max to the deserving comps and then
 	   assign the rest csi to others. We are taking advantage of Specs defining implementation specific csi 
 	   assigiment.*/
-	TRACE("Now assiging more than one csi per comp");
+	TRACE("Now assigning more than one csi per comp");
 	l_csi = si->list_of_csi;
 	while (NULL !=  l_csi) {
 		if (false == l_csi->assign_flag) {
 			/* Assign to only those comps, which have assignment. Those comps, which could not have assignment 
 			   before, cann't find compcsi here also.*/
-			for (const auto& l_comp : su->list_of_comp) {
-				AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&l_comp->saAmfCompType));
+			for (const auto& comp_ : su->list_of_comp) {
+				AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&comp_->saAmfCompType));
 				osafassert(comptype);
-				if ((true == l_comp->is_assigned()) && (comptype->saAmfCtCompCategory != SA_AMF_COMP_LOCAL)) {
-					if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, l_comp))) {
+				if ((true == comp_->assigned()) && (comptype->saAmfCtCompCategory != SA_AMF_COMP_LOCAL)) {
+					if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, comp_))) {
 						if (SA_AMF_HA_ACTIVE == ha_state) {
 							if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
 							} else { /* We cann't assign this csi to this comp, so check for another comp */
@@ -187,7 +187,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 								continue ;
 							}
 						}
-						if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == NULL) {
+						if ((compcsi = avd_compcsi_create(susi, l_csi, comp_, true)) == NULL) {
 							/* free all the CSI assignments and end this loop */
 							avd_compcsi_delete(cb, susi, true);
 							continue;
@@ -195,9 +195,9 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 						l_csi->assign_flag = true;
 						/* If one csi has been assigned to a comp, then look for another csi. */
 						break;
-					}/* if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, l_comp))) */
-				}/* if (true == l_comp->assign_flag) */
-			}/* for (const auto& l_comp : su->list_of_comp) */
+					}/* if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, comp_))) */
+				}/* if (true == comp_->assigned()) */
+			}/* for (const auto& comp_ : su->list_of_comp) */
 		}/* if (false == l_csi->assign_flag)*/
 		l_csi = l_csi->si_list_of_csi_next;
 	}/* while (l_csi != NULL) */

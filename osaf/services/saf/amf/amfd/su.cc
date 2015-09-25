@@ -122,9 +122,13 @@ void AVD_SU::remove_comp(AVD_COMP *comp) {
 	osafassert(su_ref != NULL);
 
 	if (comp->su != nullptr) {
-	comp->su->list_of_comp.erase(std::remove(comp->su->list_of_comp.begin(),
-                                          comp->su->list_of_comp.end(), comp), comp->su->list_of_comp.end());
-  }
+		su_ref->list_of_comp.erase(std::remove(su_ref->list_of_comp.begin(),
+                                           su_ref->list_of_comp.end(), comp), su_ref->list_of_comp.end());
+
+		/* Marking SU referance pointer to NULL, please dont use further in the routine */
+		comp->su = nullptr;
+	}
+
 	bool old_preinst_value = saAmfSUPreInstantiable;
 	bool curr_preinst_value = saAmfSUPreInstantiable;
 
@@ -152,8 +156,8 @@ void AVD_SU::remove_comp(AVD_COMP *comp) {
 }
 
 void AVD_SU::add_comp(AVD_COMP *comp) {
-	comp->su->list_of_comp.push_back(comp);
-	std::sort(comp->su->list_of_comp.begin(), comp->su->list_of_comp.end(), [] (const AVD_COMP *c1, const AVD_COMP *c2) -> bool {
+	list_of_comp.push_back(comp);
+	std::sort(list_of_comp.begin(), list_of_comp.end(), [] (const AVD_COMP *c1, const AVD_COMP *c2) -> bool {
 			if (c1->comp_info.inst_level < c2->comp_info.inst_level) return true;
 			if (c1->comp_info.inst_level == c2->comp_info.inst_level) {
 				if (m_CMP_HORDER_SANAMET(c1->comp_info.name, c2->comp_info.name) < 0)
@@ -2011,7 +2015,7 @@ void AVD_SU::set_saAmfSUPreInstantiable(bool value) {
  * resets the assign flag for all contained components
  */
 void AVD_SU::reset_all_comps_assign_flag() {
-	std::for_each(list_of_comp.begin(), list_of_comp.end(), [](AVD_COMP *comp ) {comp->set_unassigned();});
+	std::for_each(list_of_comp.begin(), list_of_comp.end(), [](AVD_COMP *comp ) {comp->set_assigned(false);});
 }
 
 /**
@@ -2021,22 +2025,27 @@ void AVD_SU::reset_all_comps_assign_flag() {
  */
 AVD_COMP *AVD_SU::find_unassigned_comp_that_provides_cstype(const SaNameT *cstype) {
 	AVD_COMP *l_comp = nullptr;
-	for (const auto& comp : list_of_comp) {
-		l_comp = comp;
+	auto iter = list_of_comp.begin();
+	for (; iter != list_of_comp.end(); ++iter) {
+		l_comp = *iter;
 		bool npi_is_assigned = false;
 		AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&l_comp->saAmfCompType));
 		osafassert(comptype);
 		if ((comptype->saAmfCtCompCategory == SA_AMF_COMP_LOCAL) && is_comp_assigned_any_csi(l_comp))
 			npi_is_assigned = true;
 		
-		if ((l_comp->is_assigned() == false) && (npi_is_assigned == false)) {
+		if ((l_comp->assigned() == false) && (npi_is_assigned == false)) {
 			AVD_COMPCS_TYPE *cst = avd_compcstype_find_match(cstype, l_comp);
 			if (cst != NULL)
 				break;
 		}
 	}
 
-	return l_comp;
+	if (iter == list_of_comp.end()) {
+		return nullptr;
+	} else {
+		return l_comp;
+	}
 }
 
 /**

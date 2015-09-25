@@ -82,7 +82,7 @@ class AVD_CSI {
   uint32_t compcsi_cnt {};	/* no of comp-csi rels */
   AVD_CSI *csi_list_cs_type_next {};
   AVD_CS_TYPE *cstype {};
-  bool assign_flag {};   /* Flag used while assigning. to mark this csi has been assigned a Comp
+  bool assign_flag = false;   /* Flag used while assigning. to mark this csi has been assigned a Comp
                          from * current SI being assigned */
 
   static AVD_COMP* find_assigned_comp(const SaNameT *cstype, const AVD_SU_SI_REL *sisu, const std::vector<AVD_COMP*> &list_of_comp);
