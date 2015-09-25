@@ -629,7 +629,8 @@ verify_ancestor_dn()
 states_of_children()
 {
         child=""
-        ALL_CHILDS=`immfind -c $CLASSNAME | grep $DN`
+        TMP_DN=`echo "$DN" | sed "s,\\\\\,\\\\\\\\\\\\\,g"`
+        ALL_CHILDS=`immfind -c $CLASSNAME | grep $TMP_DN`
         for child in $ALL_CHILDS; do
                  DN=$child
                  states_of_dn
