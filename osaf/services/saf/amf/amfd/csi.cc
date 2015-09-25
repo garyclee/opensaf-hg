@@ -52,7 +52,7 @@ AVD_COMP* AVD_CSI::find_assigned_comp(const SaNameT *cstype,
     }
   }
   if (iter == list_of_comp.end()) {
-    return NULL;
+    return nullptr;
   } else {
     return comp;
   }
@@ -511,7 +511,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 
 				compcsi = t_sisu->list_of_csicomp;
 				while (compcsi != NULL) {
-					compcsi->comp->set_assigned();
+					compcsi->comp->set_assigned(true);
 					compcsi = compcsi->susi_csicomp_next;
 				}
 
@@ -993,7 +993,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 
 			compcsi = t_sisu->list_of_csicomp;
 			while (compcsi != NULL) {
-				compcsi->comp->set_assigned();
+				compcsi->comp->set_assigned(true);
 				compcsi = compcsi->susi_csicomp_next;
 			}
 

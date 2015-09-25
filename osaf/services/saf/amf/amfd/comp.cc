@@ -75,7 +75,7 @@ void AVD_COMP::initialize() {
   saAmfCompRestartCount = {};
   saAmfCompCurrProxyName = {};
   saAmfCompCurrProxiedNames = {};
-  assign_flag = {};
+  assign_flag = false;
   comp_type = {};
   comp_type_list_comp_next = {};
   su = {};
