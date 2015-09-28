@@ -252,7 +252,8 @@ def get_object_names_for_class(class_name):
     c_search_param.searchOneAttr.attrValue = cast(pointer(c_class_name), c_void_p)
 
     # Create the search iterator
-    sit = SearchIterator(_search_param=c_search_param)
+    sit = SearchIterator(_search_param=c_search_param,
+                         attribute_names=['SaImmAttrClassName'])
 
     # Return the results
     return [s.dn for s in sit]
