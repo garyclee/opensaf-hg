@@ -1347,8 +1347,8 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 							/* got an SU without any assignments select 
 							 * it for this SI's active assignment
 							 */
-							TRACE("set %s as pref_su", pref_su->name.value);
 							pref_su = iter;
+							TRACE("set %s as pref_su", pref_su->name.value);
 							break;
 						}
 						/* else try to select an SU with least active assignments */
@@ -1358,8 +1358,8 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 								 (iter->saAmfSUNumCurrActiveSIs < iter->sg_of_su->saAmfSGMaxActiveSIsperSU)) &&
 								(!pref_su || pref_su->saAmfSUNumCurrActiveSIs > iter->saAmfSUNumCurrActiveSIs)) { 
 								/* mark this as the preferred SU */
-								TRACE("set %s as pref_su", pref_su->name.value);
 								pref_su = iter;
+								TRACE("set %s as pref_su", pref_su->name.value);
 							}
 						}
 					}
