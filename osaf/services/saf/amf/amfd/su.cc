@@ -2065,6 +2065,38 @@ void AVD_SU::disable_comps(SaAisErrorT result)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 	}
 }
+/**
+ * @brief    Calculates number of standby assignments in a SU even
+ *         when SG is unstable.
+ * @return   count
+ */
+uint32_t AVD_SU::curr_num_standby_sis()
+{
+	uint32_t count = 0;
+	for (AVD_SU_SI_REL *susi = list_of_susi; susi != NULL; susi = susi->su_next)
+		if ((susi->state == SA_AMF_HA_STANDBY) &&
+				((susi->fsm == AVD_SU_SI_STATE_ASGN) ||
+				 (susi->fsm == AVD_SU_SI_STATE_ASGND) ||
+				 (susi->fsm == AVD_SU_SI_STATE_MODIFY)))
+			count++;
+	return count;
+}
+/**
+ * @brief    Calculates number of standby assignments in a SU even
+ *           when SG is unstable.
+ * @return   count
+ */
+uint32_t AVD_SU::curr_num_active_sis()
+{
+	uint32_t count = 0;
+	for (AVD_SU_SI_REL *susi = list_of_susi; susi != NULL; susi = susi->su_next)
+		if ((susi->state == SA_AMF_HA_ACTIVE) &&
+				((susi->fsm == AVD_SU_SI_STATE_ASGN) ||
+				 (susi->fsm == AVD_SU_SI_STATE_ASGND) ||
+				 (susi->fsm == AVD_SU_SI_STATE_MODIFY)))
+			count++;
+	return count;
+}
 
 /**
  * @brief	This function completes admin operation on SU.

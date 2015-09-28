@@ -135,6 +135,9 @@ class AVD_SU {
 	bool any_susi_fsm_in_unasgn();
 	bool any_susi_fsm_in_modify();
 	SaAisErrorT check_su_stability();
+	uint32_t curr_num_standby_sis();
+	uint32_t curr_num_active_sis();
+
 	
  private:
 	void initialize();

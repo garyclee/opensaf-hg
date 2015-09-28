@@ -1628,12 +1628,14 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 	if (state == AVD_SG_FSM_STABLE) {
 		osafassert(su_oper_list.empty() == true);
 		if (adminOp_invocationId != 0) {
+			TRACE("Admin operation finishes on SG:'%s'",name.value);
 			avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, adminOp_invocationId, SA_AIS_OK);
 			adminOp_invocationId = 0;
 			adminOp = static_cast<SaAmfAdminOperationIdT>(0);
 		}
 		for (const auto& si : list_of_si) {
 			if (si->invocation != 0) {
+				TRACE("Admin operation finishes on SI:'%s'",si->name.value);
 				avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
 						si->invocation, SA_AIS_OK);
 				si->invocation = 0;

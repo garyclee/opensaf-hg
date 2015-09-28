@@ -2776,8 +2776,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 		} else if (AVSV_SI_TOGGLE_SWITCH == susi->si->si_switch) {
 			/* si switch semantics in progress.. 
 			   identify the most preferred standby su & assign it active */
-			for (curr_susi = susi->si->list_of_sisu;
-			     curr_susi && (SA_AMF_HA_STANDBY != curr_susi->state); curr_susi = curr_susi->si_next) ;
+			curr_susi = find_pref_standby_susi(susi);
 
 			if (curr_susi) {
 				/* send active assignment */
@@ -2865,8 +2864,14 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 					curr_susi && (SA_AMF_HA_QUIESCED != curr_susi->state); curr_susi = curr_susi->si_next) ;
 
 			if (curr_susi) {
-				/* send standby assignment */
-				rc = avd_susi_mod_send(curr_susi, SA_AMF_HA_STANDBY);
+				/* send standby assignment if SU satisfies saAmfSGMaxStandbySIsperSU*/
+				if (curr_susi->su->curr_num_standby_sis() < sg->saAmfSGMaxStandbySIsperSU) {
+					rc = avd_susi_mod_send(curr_susi, SA_AMF_HA_STANDBY);
+				} else {
+					TRACE_2("'%s' cannot accomodate more standby, remove quiesced",
+							curr_susi->su->name.value);
+					rc = avd_susi_del_send(curr_susi);
+				}
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 
@@ -3326,6 +3331,7 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 		}
 	} else if (AVSV_SI_TOGGLE_SWITCH == sg->admin_si->si_switch) {
 		if (!susi) {
+			/* no relationship between SU with the SI undergoing si-swap.*/
 			/* identify the quiesced assigning assignment for the admin si ptr */
 			for (curr_sisu = sg->admin_si->list_of_sisu;
 			     curr_sisu && !((SA_AMF_HA_QUIESCED == curr_sisu->state) &&
@@ -3352,8 +3358,12 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 			/* transition to sg-realign state */
 			m_AVD_SET_SG_FSM(avd_cb, sg, AVD_SG_FSM_SG_REALIGN);
 		} else {
+			/* relationship exists between SU with the SI undergoing si-swap.*/
+			TRACE("For susi, su:'%s', si:'%s', state:%u, fsm:%u"
+					,susi->su->name.value,susi->si->name.value,susi->state,susi->fsm);
 			if (((SA_AMF_HA_QUIESCED == susi->state) && (AVD_SU_SI_STATE_MODIFY == susi->fsm)) ||
 			    ((SA_AMF_HA_ACTIVE == susi->state) && (AVD_SU_SI_STATE_ASGN == susi->fsm)) ||
+			    ((SA_AMF_HA_ACTIVE == susi->state) && (AVD_SU_SI_STATE_MODIFY == susi->fsm)) ||
 			    ((SA_AMF_HA_QUIESCED == susi->state) && (AVD_SU_SI_STATE_ASGND == susi->fsm)) ||
 			    ((SA_AMF_HA_STANDBY == susi->state) && (AVD_SU_SI_STATE_ASGND == susi->fsm))
 			    ) {
@@ -3374,6 +3384,16 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 					if ((SA_AMF_HA_ACTIVE == susi->state) && (AVD_SU_SI_STATE_ASGN == susi->fsm))
 						if (SA_AMF_HA_QUIESCED == curr_sisu->state)
 							break;
+
+					if ((SA_AMF_HA_ACTIVE == susi->state) &&
+							(AVD_SU_SI_STATE_MODIFY == susi->fsm))
+						if (SA_AMF_HA_QUIESCED == curr_sisu->state) {
+							TRACE("For curr_sisu, su:'%s', si:'%s', state:%u, fsm:%u",
+									curr_sisu->su->name.value,
+									curr_sisu->si->name.value,
+									curr_sisu->state,curr_sisu->fsm);
+							break;
+						}
 
 					if ((SA_AMF_HA_QUIESCED == susi->state) && (AVD_SU_SI_STATE_ASGND == susi->fsm))
 						if (SA_AMF_HA_ACTIVE == curr_sisu->state)
@@ -3504,6 +3524,79 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 
 	TRACE_LEAVE();
 	return;
+}
+SaAisErrorT SG_NWAY::si_swap(AVD_SI *si, SaInvocationT invocation) {
+	SaAisErrorT rc = SA_AIS_OK;
+	AVD_SU_SI_REL *actv_susi = NULL, *stdby_susi = NULL;
+	AVD_SG *sg = si->sg_of_si;
+
+	TRACE_ENTER2("'%s' sg_fsm_state=%u", si->name.value, si->sg_of_si->sg_fsm_state);
+
+	if (si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) {
+		LOG_NO("%s SWAP failed - wrong admin state=%u", si->name.value,
+			si->saAmfSIAdminState);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (avd_cb->init_state != AVD_APP_STATE) {
+		LOG_NO("%s SWAP failed - not in app state (%u)", si->name.value,
+			avd_cb->init_state);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+		LOG_NO("%s SWAP failed - SG not stable (%u)", si->name.value,
+			si->sg_of_si->sg_fsm_state);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (si->list_of_sisu == NULL) {
+		LOG_NO("%s SWAP failed - no assignments to swap", si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	if ((sg->equal_ranked_su == true) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
+		LOG_NO("%s Equal distribution is enabled, si-swap not allowed", si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+	if ((si->rankedsu_list_head != NULL) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
+		LOG_NO("%s SIRankedSU configured and autoadjust enabled, si-swap not allowed", si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+	if (si->list_of_sisu->si_next == NULL) {
+		LOG_NO("%s SWAP failed - only one assignment", si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	/*
+	   After SI swap, there should not be violation of saAmfSGMaxActiveSIsperSU. 
+	   After swap standby SU will receive one more active.
+	 */
+	for (actv_susi = si->list_of_sisu;
+			actv_susi && (actv_susi->state != SA_AMF_HA_ACTIVE); 
+			actv_susi = actv_susi->si_next);
+	stdby_susi = find_pref_standby_susi(actv_susi);
+	if (stdby_susi == NULL) {
+		LOG_NO("%s SWAP not allowed, it will violate saAmfSGMaxActiveSIsperSU",
+				si->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+	if ((avd_sg_nway_siswitch_func(avd_cb, si)) == NCSCC_RC_FAILURE) {
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+	si->invocation = invocation;
+done:
+	TRACE_LEAVE2("sg_fsm_state=%u", si->sg_of_si->sg_fsm_state);
+	return rc;
 }
 
 SG_NWAY::~SG_NWAY() {
