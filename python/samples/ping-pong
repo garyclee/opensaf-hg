@@ -51,8 +51,15 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Logs and replies to admin operations 0 and 1 towards %s,'
-        ' and replies' % dn)
+        description='''Logs and replies to admin operations 0 and 1 towards %s,
+and replies
+
+Use like this:
+
+$ ping-pong &
+
+$ immadm -o [0|1] pingPongId=1 <parameters..>
+''' % dn, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.parse_args()
 

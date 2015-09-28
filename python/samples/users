@@ -17,9 +17,16 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Creates the usersId=1 object and updates its users '
-        'attribute with the current list of logged in users when it\' read '
-        'in IMM.')
+        description='''Creates the usersId=1 object and updates its users
+attribute with the current list of logged in users when it is read
+in IMM.
+
+Use like this:
+
+$ users &
+
+$ immlist usersId=1
+''', formatter_class=argparse.RawTextHelpFormatter)
 
     parser.parse_args()
 

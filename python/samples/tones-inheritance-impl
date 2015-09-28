@@ -30,8 +30,21 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description=('Ensures that instances of %s can only be created in this '
-                     'order.') % ', '.join(tone_class_names))
+        description=('''Ensures that instances of %s can only be created in this '
+                     'order.
+
+Use like this:
+
+$ tones-inheritance-impl &
+
+$ immcfg -c Do doId=1                 (allowed)
+
+$ immcfg -c Re reId=1,doId=1          (allowed)
+
+$ immcfg -c Do doId=1,reId=1,doId=1   (not allowed)
+
+$ immcfg -c Mi miId=1                 (not allowed)
+''') % ', '.join(tone_class_names), formatter_class=argparse.RawTextHelpFormatter)
 
     args = parser.parse_args()
 

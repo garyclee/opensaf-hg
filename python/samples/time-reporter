@@ -46,9 +46,18 @@ def select_loop(implementer):
 
 if __name__ == '__main__':
 
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Keeps the %s object updated with the current time' % dn)
+        description='''Keeps the %s object updated with the current time.
+
+Use like this:
+
+$ time-reporter &
+
+$ immlist timeId=1
+
+''' % dn, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.parse_args()
 
