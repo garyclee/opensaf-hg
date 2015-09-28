@@ -947,7 +947,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(immOiHandle, invocation,
 				rc, NULL,
-				"SI Swap of %s failed", objectName->value);
+				"SI Swap of %s failed, syslog has details", objectName->value);
 			goto done;
 		} else
 			;  // response done later
