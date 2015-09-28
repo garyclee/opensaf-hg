@@ -105,7 +105,16 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Listens to changes to objects of the given classes')
+        description='''Listens to changes to objects of the given classes
+Use like this:
+
+$ imm-listener-inheritance-impl SampleClass1
+
+or, to listen for changes to all configuration classes:
+
+$ imm-listener-inheritance-impl --all
+''', formatter_class=argparse.RawTextHelpFormatter)
+
     parser.add_argument('classes', type=str, nargs='*', 
                         help='space-separated list of class names')
     parser.add_argument('--all', help='listens to changes to all classes',

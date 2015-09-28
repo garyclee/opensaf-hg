@@ -119,7 +119,14 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Creates a runtime object per network interface on the machine and populates the ipv4Addresses and ipv6Addresses attributes.')
+        description='''Creates a runtime object per network interface on the machine and populates the ipv4Addresses and ipv6Addresses attributes.
+
+Use like this:
+
+$ interface-handler &
+
+$ immfind -c InterfaceRO01
+''', formatter_class=argparse.RawTextHelpFormatter)
 
     parser.parse_args()
 

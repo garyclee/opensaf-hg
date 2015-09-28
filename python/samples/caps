@@ -34,9 +34,19 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Validates that the lowerCaps and upperCaps attributes'
-        'of instances of the CapsSample class can only contain'
-        'lower case and upper case text respectively.')
+        description='''Validates that the lowerCaps and upperCaps attributes
+of instances of the CapsSample class can only contain
+lower case and upper case text respectively.
+
+Use like this:
+$ caps &
+
+$ immcfg -c CapsSample capsId=<RDN>
+
+$ immcfg -a upperCaps=ABC capsId=<RDN>  (allowed)
+
+$ immcfg -a lowerCaps=Abc capsId=<RDN>  (not allowed)
+''', formatter_class=argparse.RawTextHelpFormatter)
 
     parser.parse_args()
 
