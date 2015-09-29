@@ -2841,6 +2841,11 @@ SaAisErrorT lgs_imm_init_OI(lgs_cb_t *cb)
 		}
 		TRACE("%s: saImmOiImplementerSet() for %s Done",
 			__FUNCTION__, implementerName);
+
+		/* Create the runtime object for showing the actual
+		 * log server configuration
+		 */
+		conf_runtime_obj_create(cb->immOiHandle);
 	}
 
 	/* Get selection object for event handling */

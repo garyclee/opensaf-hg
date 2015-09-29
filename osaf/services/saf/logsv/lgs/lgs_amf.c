@@ -78,13 +78,18 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 		LOG_ER("saImmOiClassImplementerSet (SaLogStreamConfig) failed: %d", error);
 		goto done;
 	}
-	/* Do this only if the class exists */
+	/* Do this only if the log service configuration class exists */
 	if (*(bool*) lgs_cfg_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST)) {
 		if ((error = immutil_saImmOiClassImplementerSet(cb->immOiHandle, "OpenSafLogConfig"))
 				!= SA_AIS_OK) {
 			LOG_ER("saImmOiClassImplementerSet (OpenSafLogConfig) failed: %d", error);
 			goto done;
 		}
+
+		/* Create a log service configuration runtime object if the
+		 * configuration runtime class exist and no object exist
+		 */
+		conf_runtime_obj_create(cb->immOiHandle);
 	}
 
 	/* check existing streams */
