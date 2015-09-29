@@ -21,7 +21,7 @@
 
 import os
 import time
-from ctypes import pointer
+from ctypes import pointer, POINTER, cast, c_char_p
 
 from pyosaf import saAis
 from pyosaf.saAis import eSaAisErrorT, SaVersionT, SaNameT, unmarshalNullArray
@@ -65,6 +65,7 @@ saImmOmCcbObjectDelete    = decorate(saImmOm.saImmOmCcbObjectDelete)
 saImmOmCcbObjectModify_2  = decorate(saImmOm.saImmOmCcbObjectModify_2)
 saImmOmCcbApply           = decorate(saImmOm.saImmOmCcbApply)
 saImmOmCcbFinalize        = decorate(saImmOm.saImmOmCcbFinalize)
+saImmOmCcbGetErrorStrings = decorate(saImmOm.saImmOmCcbGetErrorStrings)
 saImmOmAdminOperationInvoke_2 = decorate(saImmOm.saImmOmAdminOperationInvoke_2)
 saImmOmAdminOperationInvokeAsync_2 = decorate(saImmOm.saImmOmAdminOperationInvokeAsync_2)
 saImmOmAdminOperationContinue = decorate(saImmOm.saImmOmAdminOperationContinue)
@@ -174,3 +175,13 @@ def admin_op_invoke(dn, op_id, params=None):
         raise SafException(retval.value)
 
     error = saImmOmAdminOwnerFinalize(owner_handle)
+
+
+def get_error_strings(ccb_handle):
+    ''' Returns the current error strings '''
+
+    c_strings = POINTER(saAis.SaStringT)()
+
+    saImmOmCcbGetErrorStrings(ccb_handle, c_strings)
+
+    return unmarshalNullArray(c_strings)
