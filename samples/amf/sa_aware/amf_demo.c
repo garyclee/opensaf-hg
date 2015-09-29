@@ -166,11 +166,19 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 			syslog(LOG_ERR, "saAmfCSIQuiescingComplete FAILED - %u", rc);
 			exit(1);
 		}
+		if (csi_desc.csiFlags == SA_AMF_CSI_TARGET_ONE) {
+			rc = saAmfHAStateGet(my_amf_hdl, comp_name, &csi_desc.csiName, &my_ha_state);
+			if (rc != SA_AIS_OK) {
+				syslog(LOG_ERR, "saAmfHAStateGet FAILED - %u", rc);
+				exit(1);
+			}
+		} else if (csi_desc.csiFlags == SA_AMF_CSI_TARGET_ALL) {
+			// Application could iterate saAmfHAStateGet() for every csi
+			// which had been assigned to this component to ensure
+			// all csi(s) are QUIESCED
 
-		rc = saAmfHAStateGet(my_amf_hdl, comp_name, &csi_desc.csiName, &my_ha_state);
-		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "saAmfHAStateGet FAILED - %u", rc);
-			exit(1);
+			// temporary set to QUIESCED
+			my_ha_state = SA_AMF_HA_QUIESCED;
 		}
 
 		syslog(LOG_INFO, "My HA state is %s", ha_state_name[my_ha_state]);
