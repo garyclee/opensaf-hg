@@ -22,10 +22,12 @@
 #include "logtrace.h"
 #include "SmfUpgradeMethod.hh"
 #include "SmfUpgradeProcedure.hh"
+#include "SmfUpgradeCampaign.hh"
 #include "saSmf.h"
 #include "SmfUpgradeStep.hh"
 #include "SmfStepState.hh"
 #include "SmfStepTypes.hh"
+#include "smfd.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -204,10 +206,21 @@ SmfStepStateExecuting::execute(SmfUpgradeStep * i_step)
         SmfStepType* stepType = i_step->getStepType();
         if (stepType == NULL) {
                 /* We could have been restarted in this state e.g. at cluster reboot */
-                if (i_step->calculateStepType() != SA_AIS_OK) {
-                        LOG_ER("Failed to recalculate step type when trying to continue step %s", i_step->getDn().c_str());
-                        changeState(i_step, SmfStepStateFailed::instance());
-                        return SMF_STEP_FAILED;
+                if (SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->getProcExecutionMode()
+		    == SMF_MERGE_TO_SINGLE_STEP) {
+                        // If SMF_MERGE_TO_SINGLE_STEP is configured we can only come here after a cluster reboot
+                        if (i_step->calculateStepTypeForMergedSingle() != SA_AIS_OK) {
+                                LOG_ER("Failed to recalculate step type for merged single step when \
+                                        trying to continue step %s", i_step->getDn().c_str());
+                                changeState(i_step, SmfStepStateFailed::instance());
+                                return SMF_STEP_FAILED;
+                        }
+                } else {
+                        if (i_step->calculateStepType() != SA_AIS_OK) {
+                                LOG_ER("Failed to recalculate step type when trying to continue step %s", i_step->getDn().c_str());
+                                changeState(i_step, SmfStepStateFailed::instance());
+                                return SMF_STEP_FAILED;
+                        }
                 }
                 stepType = i_step->getStepType();
         }

@@ -60,6 +60,7 @@ class SmfCampState {
 	virtual SmfCampResultT executeProc(SmfUpgradeCampaign * i_camp);
 
 	virtual SmfCampResultT rollbackProc(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollbackSingleMergeProc(SmfUpgradeCampaign * i_camp);
 
 	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
 
@@ -341,6 +342,7 @@ class SmfCampRollingBack:public SmfCampState {
 
 	virtual SmfCampResultT rollback(SmfUpgradeCampaign * i_camp);
 	virtual SmfCampResultT rollbackProc(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT rollbackSingleMergeProc(SmfUpgradeCampaign * i_camp);
 	virtual SmfCampResultT rollbackInit(SmfUpgradeCampaign * i_camp);
 	virtual SmfCampResultT suspend(SmfUpgradeCampaign * i_camp);
 	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,

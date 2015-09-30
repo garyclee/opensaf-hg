@@ -31,6 +31,7 @@
 
 #include "smfd.h"
 #include "smfd_smfnd.h"
+#include "SmfUpgradeStep.hh"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -65,6 +66,8 @@ extern "C" {
         extern int  smf_system(std::string i_cmd);
 	extern void updateSaflog(const std::string& i_dn, const uint32_t& i_stateId, const uint32_t& i_newState, const uint32_t& i_oldState);
 	extern const std::string smfStateToString(const uint32_t& i_stateId, const uint32_t& i_state);
+        extern bool compare_du_part (unitNameAndState& first, unitNameAndState& second);
+        extern bool unique_du_part (unitNameAndState& first, unitNameAndState& second);
 
 #ifdef __cplusplus
 }

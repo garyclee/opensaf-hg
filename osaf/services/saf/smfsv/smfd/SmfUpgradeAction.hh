@@ -413,6 +413,9 @@ class SmfCallbackAction:public SmfUpgradeAction {
 
 	SmfCallback & getCallback(void) { return m_callback; }
 
+	void setCallbackProcedure(SmfUpgradeProcedure *i_proc)
+		{ m_callback.setProcedure(i_proc); }
+
  private:
 ///
 /// Purpose: Disables copy constructor.

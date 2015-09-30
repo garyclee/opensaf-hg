@@ -48,6 +48,7 @@ static const SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT)
 static const SaImmClassNameT campaignClassName = (SaImmClassNameT) "SaSmfCampaign";
 static const SaImmClassNameT smfConfigClassName = (SaImmClassNameT) "OpenSafSmfConfig";
 static const SaImmClassNameT smfSwBundleClassName = (SaImmClassNameT) "SaSmfSwBundle";
+static const SaImmClassNameT openSafSmfExecControlClassName = (SaImmClassNameT) "OpenSafSmfExecControl";
 
 typedef enum {
         SMF_CLASS_UNKNOWN  = 0,
@@ -228,6 +229,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                                 rc = SA_AIS_ERR_BAD_OPERATION;
                                 goto done;
 
+                        } else if (strcmp(ccbUtilOperationData->param.create.className, openSafSmfExecControlClassName) == 0) {
+                                ccbUtilOperationData->userData = (void*)SMF_CLASS_CONFIG;
+                                TRACE("Create %s", OPENSAF_SMF_EXEC_CONTROL); // Creation always allowed
                         //Handle unknown
                         } else {
                                 //Save the class name enum for use in later phases
@@ -329,6 +333,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 
                                 goto done;
                                 //Handle any unknown object
+                        } else if (className == openSafSmfExecControlClassName) {
+                                TRACE("Delete campaign %s", objToDelete.c_str()); // Delete always allowed
+                                ccbUtilOperationData->userData = (void*)SMF_CLASS_CONFIG;
                         } else {
                                 LOG_NO("Unknown object %s, can't be deleted", objToDelete.c_str());
                                 //Save the class name enum for use in later phases
@@ -498,7 +505,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                                 TRACE("Modification of object %s", objToModify.c_str());
                                 //Save the class name enum for use in later phases
                                 ccbUtilOperationData->userData = (void*)SMF_CLASS_BUNDLE;
-
+                        } else if (className == openSafSmfExecControlClassName) {
+                                TRACE("Modification of object %s", objToModify.c_str()); // Always allow modification
+                                ccbUtilOperationData->userData = (void*)SMF_CLASS_CONFIG;
                         //Handle any unknown object
                         } else {
                                 LOG_NO("Unknown object %s, can't be modified" ,objToModify.c_str());
@@ -714,7 +723,6 @@ uint32_t create_campaign_objects(smfd_cb_t * cb)
 	TRACE("Check if any executing campaign");
 
 	if (execCampaign != NULL) {
-		/* Start executing the campaign */
 		LOG_NO("Continue executing ongoing campaign %s", execCampaign->getDn().c_str());
 
 		if (SmfCampaignThread::start(execCampaign) == 0) {
@@ -726,7 +734,6 @@ uint32_t create_campaign_objects(smfd_cb_t * cb)
 			LOG_NO("create_campaign_objects, failed to start campaign");
 		}
 	}
-
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -788,6 +795,13 @@ uint32_t campaign_oi_activate(smfd_cb_t * cb)
 		TRACE("immutil_saImmOiClassImplementerSet fail, rc = %d classname=%s", rc, (char*)smfSwBundleClassName);
 		return NCSCC_RC_FAILURE;
 	}
+
+        rc = immutil_saImmOiClassImplementerSet(cb->campaignOiHandle, openSafSmfExecControlClassName);
+        if (rc != SA_AIS_OK) {
+                TRACE("immutil_saImmOiClassImplementerSet smfConfigOiHandle failed rc=%u class name=%s",
+                		rc, (char*)openSafSmfExecControlClassName);
+                return NCSCC_RC_FAILURE;
+        }
 
 	/* Create all Campaign objects found in the IMM  */
 	if (create_campaign_objects(cb) != NCSCC_RC_SUCCESS) {
@@ -865,6 +879,32 @@ uint32_t campaign_oi_init(smfd_cb_t * cb)
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
+}
+
+SaUint32T readExecControlObject(const char* openSafSmfExecControlDN)
+{
+	SmfImmUtils immUtil;
+	SaImmAttrValuesT_2 **attributes;
+	if (openSafSmfExecControlDN == NULL || strcmp(openSafSmfExecControlDN, "") == 0) {
+		LOG_NO("%s is not set, using standard mode", OPENSAF_SMF_EXEC_CONTROL);
+		openSafSmfExecControlDN = NULL;
+		return SMF_STANDARD_MODE;
+	}
+	else {
+		LOG_NO("%s is set to %s", OPENSAF_SMF_EXEC_CONTROL, openSafSmfExecControlDN);
+	}
+	if (immUtil.getObject(openSafSmfExecControlDN, &attributes) == false) {
+		LOG_NO("Failed to get object from attribute %s, using standard mode", OPENSAF_SMF_EXEC_CONTROL);
+		return SMF_STANDARD_MODE;
+	}
+	const SaUint32T* mode = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes,
+		"procExecMode", 0);
+	if (mode == NULL) {
+		LOG_WA("Attribute value was NULL for procExecMode, using standard mode");
+		return SMF_STANDARD_MODE;
+	}
+	LOG_NO("procExecMode is set to %u", *mode);
+	return *mode;
 }
 
 /**
@@ -1107,6 +1147,11 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 		LOG_NO("smfKeepDuState = %d", *keepDuState);
 	}
 
+	const char* smfExecControlDN = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
+							     OPENSAF_SMF_EXEC_CONTROL, 0);
+
+	SaUint32T procExecMode = readExecControlObject(smfExecControlDN);
+
 	cb->backupCreateCmd = strdup(backupCreateCmd);
 	cb->bundleCheckCmd = strdup(bundleCheckCmd);
 	cb->nodeCheckCmd = strdup(nodeCheckCmd);
@@ -1125,6 +1170,7 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 	cb->smfVerifyEnable = *smfVerifyEnable;
 	cb->smfVerifyTimeout = *verifyTimeout;
 	cb->smfKeepDuState = *keepDuState;
+	cb->procExecutionMode = procExecMode;
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1178,6 +1224,12 @@ void* smfd_coi_reinit_thread(void * _cb)
 			LOG_ER("immutil_saImmOiClassImplementerSet smfConfigOiHandle failed rc=%u class name=%s", rc, (char*)smfSwBundleClassName);
 			exit(EXIT_FAILURE);
 		}
+
+		rc = immutil_saImmOiClassImplementerSet(cb->campaignOiHandle, openSafSmfExecControlClassName);
+		if (rc != SA_AIS_OK) {
+			LOG_ER("immutil_saImmOiClassImplementerSet smfConfigOiHandle failed rc=%u class name=%s", rc, (char*)openSafSmfExecControlClassName);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	TRACE_LEAVE();
@@ -1201,3 +1253,4 @@ void smfd_coi_reinit_bg(smfd_cb_t *cb)
 	
 	TRACE_LEAVE();
 }
+

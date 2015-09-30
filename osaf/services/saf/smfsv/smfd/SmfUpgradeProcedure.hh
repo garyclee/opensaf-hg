@@ -205,6 +205,13 @@ class SmfUpgradeProcedure {
 	const std::string & getDn();
 
 ///
+/// Purpose:  Get the name of the procedure
+/// @param    None
+/// @return   A std::string containing the name of the procedure.
+///
+	const std::string & getName() { return m_name; };
+
+///
 /// Purpose:  Set the state in IMM procedure object and send state change notification
 /// @param    i_state The SaSmfProcStateT to set.
 /// @return   None.
@@ -308,6 +315,7 @@ class SmfUpgradeProcedure {
 /// @return   True if successful otherwise false
 ///
 	bool calculateSteps();
+	bool calculateSteps(std::multimap<std::string, objectInst> &i_objects);
 
 ///
 /// Purpose:  Calculate upgrade steps for rolling upgrade
@@ -324,6 +332,31 @@ class SmfUpgradeProcedure {
 ///
 	bool calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 				 std::multimap<std::string, objectInst> &i_objects);
+
+///
+/// Purpose:  Merge procedure steps into a single-step
+/// @param    i_proc A SmfUpgradeProcedure* pointing to the procedure
+/// @return   None.
+///
+        bool mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUpgradeStep *i_newStep = 0);
+
+///
+/// Purpose:  Merge merge existing single-step bundle ref into a new single-step
+/// @param    io_newStep a SmfUpgradeStep * pointion to the new step
+/// @param    i_oldStep a SmfUpgradeStep * pointion to the step to copy from
+/// @return   None.
+///
+        bool mergeBundleRefSingleStepToSingleStep(SmfUpgradeStep * io_newStep,
+                                                 SmfUpgradeStep * i_oldStep);
+
+///
+/// Purpose:  Merge merge existing step (rolling) bundle ref into a new single-step
+/// @param    io_newStep a SmfUpgradeStep * pointion to the new step
+/// @param    i_oldStep a SmfUpgradeStep * pointion to the step to copy from
+/// @return   None.
+///
+	bool mergeBundleRefRollingToSingleStep(SmfUpgradeStep * io_newStep,
+                                               SmfUpgradeStep * i_oldStep);
 
 ///
 /// Purpose:  Calculate list of nodes from objectDn
@@ -485,11 +518,25 @@ class SmfUpgradeProcedure {
 	SaAisErrorT getImmStepsSingleStep();
 
 ///
+/// Purpose:  Get procedure steps for merged Single step upgrade
+/// @param    -
+/// @return   -
+///
+	SaAisErrorT getImmStepsMergedSingleStep();
+
+///
 /// Purpose:  Read campaign data from IMM and store the information in i_newStep
 /// @param    -
 /// @return   -
 ///
 	SaAisErrorT readCampaignImmModel(SmfUpgradeStep * i_newStep);
+
+  ///
+/// Purpose:  Create lists of SmfBundleRef from a single step campaign IMM model.
+/// @param    -
+/// @return   -
+///
+	SaAisErrorT bundleRefFromSsCampaignImmModel(SmfUpgradeStep * i_newStep);
 
 ///
 /// Purpose:  Register the DNs of the added, removed or modified objects in the step
@@ -507,6 +554,15 @@ class SmfUpgradeProcedure {
         const std::vector < SmfUpgradeStep * >& getProcSteps() { return m_procSteps; }
 
 ///
+/// Purpose:  Add the list of upgrade steps
+/// @param    The list of upgrade steps to add
+/// @return   none
+///
+        void addProcSteps(const std::vector < SmfUpgradeStep * >& i_procSteps)
+                { m_procSteps.insert(m_procSteps.end(),
+                                     i_procSteps.begin(),
+                                     i_procSteps.end()); }
+///
 /// Purpose:  Get the list of init actions
 /// @param    -
 /// @return   The list of init actions.
@@ -514,11 +570,31 @@ class SmfUpgradeProcedure {
         const std::vector < SmfUpgradeAction * >& getInitActions() { return m_procInitAction; }
 
 ///
+/// Purpose:  Add a list of init actions
+/// @param    The list of init actions to add
+/// @return   none
+///
+        void addInitActions(const std::vector < SmfUpgradeAction * >& i_initActions)
+                { m_procInitAction.insert(m_procInitAction.end(),
+                                          i_initActions.begin(),
+                                          i_initActions.end()); }
+
+///
 /// Purpose:  Get the list of wrapup actions
 /// @param    -
 /// @return   The list of wrapup actions.
 ///
         const std::vector < SmfUpgradeAction * >& getWrapupActions() { return m_procWrapupAction; }
+
+///
+/// Purpose:  Add the list of wrapup actions
+/// @param    The list of wrapup actions to add
+/// @return   none
+///
+        void  addWrapupActions(const std::vector < SmfUpgradeAction * >& i_wrapupActions)
+                { m_procWrapupAction.insert(m_procWrapupAction.end(),
+                                            i_wrapupActions.begin(),
+                                            i_wrapupActions.end()); }
 
 ///
 /// Purpose:  Check if the component pointed out by DN is restartable
@@ -546,11 +622,31 @@ class SmfUpgradeProcedure {
         std::list < SmfCallback * >& getCbksBeforeLock() { return m_beforeLock; }
 
 ///
+/// Purpose:  Add the list of before lock callbacks
+/// @param    The list of  before lock callbacks to add
+/// @return   none
+///
+        void  addCbksBeforeLock(const std::list < SmfCallback * >& i_beforeLock)
+                { m_beforeLock.insert(m_beforeLock.end(),
+                                      i_beforeLock.begin(),
+                                      i_beforeLock.end()); }
+
+///
 /// Purpose:  Get the list of callbacks beforeTerm
 /// @param    -
 /// @return   The list of callbacks.
 ///
         std::list < SmfCallback * >& getCbksBeforeTerm() { return m_beforeTerm; }
+
+///
+/// Purpose:  Add the list of before term callbacks
+/// @param    The list of  before term callbacks to add
+/// @return   none
+///
+        void  addCbksBeforeTerm(const std::list < SmfCallback * >& i_beforeTerm)
+                { m_beforeTerm.insert(m_beforeTerm.end(),
+                                      i_beforeTerm.begin(),
+                                      i_beforeTerm.end()); }
 
 ///
 /// Purpose:  Get the list of callbacks afterImmModify
@@ -560,6 +656,16 @@ class SmfUpgradeProcedure {
         std::list < SmfCallback * >& getCbksAfterImmModify() { return m_afterImmModify; }
 
 ///
+/// Purpose:  Add the list of before term callbacks
+/// @param    The list of before term callbacks to add
+/// @return   none
+///
+        void  addCbksAfterImmModify(const std::list < SmfCallback * >& i_afterImmModify)
+                { m_afterImmModify.insert(m_afterImmModify.end(),
+                                      i_afterImmModify.begin(),
+                                      i_afterImmModify.end()); }
+
+///
 /// Purpose:  Get the list of callbacks afterInstall
 /// @param    -
 /// @return   The list of callbacks.
@@ -567,11 +673,39 @@ class SmfUpgradeProcedure {
         std::list < SmfCallback * >& getCbksAfterInstantiate() { return m_afterInstantiate; }
 
 ///
+/// Purpose:  Add the list of after instantiate callbacks
+/// @param    The list of after instantiate callbacks to add
+/// @return   none
+///
+        void  addCbksAfterInstantiate(const std::list < SmfCallback * >& i_afterInstantiate)
+                { m_afterInstantiate.insert(m_afterInstantiate.end(),
+                                      i_afterInstantiate.begin(),
+                                      i_afterInstantiate.end()); }
+
+///
 /// Purpose:  Get the list of callbacks afterUnlock
 /// @param    -
 /// @return   The list of callbacks.
 ///
         std::list < SmfCallback * >& getCbksAfterUnlock() { return m_afterUnlock; }
+
+///
+/// Purpose:  Add the list of after unlock callbacks
+/// @param    The list of after unlock callbacks to add
+/// @return   none
+///
+        void  addCbksAfterUnlock(const std::list < SmfCallback * >& i_afterUnlock)
+                { m_afterUnlock.insert(m_afterUnlock.end(),
+                                      i_afterUnlock.begin(),
+                                      i_afterUnlock.end()); }
+
+///
+/// Purpose:  Mark the procedure as merged or not
+/// @param    i_state a bool indicating if merged
+/// @return   -
+///
+        void setIsMergedProcedure(bool i_state)
+                { m_isMergedProcedure = i_state; }
 
 ///
 /// Purpose:  Reset the object counter of upgrade procedures
@@ -630,6 +764,7 @@ class SmfUpgradeProcedure {
         std::list < SmfCallback * >m_afterInstantiate;   //Container of the procedure callbacks to be invoked onstep, ataction
         std::list < SmfCallback * >m_afterUnlock;   //Container of the procedure callbacks to be invoked onstep, ataction
 	sem_t m_semaphore;
+        bool m_isMergedProcedure;
 };
 
 //////////////////////////////////////////////////

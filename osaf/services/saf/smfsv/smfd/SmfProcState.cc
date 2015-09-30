@@ -25,6 +25,7 @@
 
 #include "logtrace.h"
 #include "osaf_extended_name.h"
+#include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
 #include "SmfUpgradeStep.hh"
 #include "SmfProcState.hh"
@@ -240,13 +241,23 @@ SmfProcStateInitial::executeInit(SmfUpgradeProcedure * i_proc)
 {
 	TRACE_ENTER();
 	LOG_NO("PROC: Start procedure init actions");
-
-	TRACE("SmfProcStateInitial::executeInit, Calculate steps");
-        if( !i_proc->calculateSteps() ) {
-                changeState(i_proc, SmfProcStateExecFailed::instance());
-                LOG_NO("SmfProcStateExecuting::executeInit:Step calculation failes");
-                TRACE_LEAVE();
-                return SMF_PROC_FAILED;
+        if (SmfCampaignThread::instance()->campaign()->getUpgradeCampaign()->getProcExecutionMode() 
+	    == SMF_MERGE_TO_SINGLE_STEP) {
+                LOG_NO("SmfProcStateInitial::executeInit, Merge procedures into single step");
+                if( !i_proc->mergeStepIntoSingleStep(i_proc)) {
+                        changeState(i_proc, SmfProcStateExecFailed::instance());
+                        LOG_NO("SmfProcStateExecuting::executeInit:Rolling to single merging failes");
+                        TRACE_LEAVE();
+                        return SMF_PROC_FAILED;
+                }
+        } else {
+                TRACE("SmfProcStateInitial::executeInit, Calculate steps");
+                if( !i_proc->calculateSteps() ) {
+                        changeState(i_proc, SmfProcStateExecFailed::instance());
+                        LOG_NO("SmfProcStateExecuting::executeInit:Step calculation failes");
+                        TRACE_LEAVE();
+                        return SMF_PROC_FAILED;
+                }
         }
 
 	TRACE("SmfProcStateInitial::executeInit, Create step objects in IMM");

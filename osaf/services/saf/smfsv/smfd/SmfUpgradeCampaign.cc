@@ -73,7 +73,8 @@ class SmfUpgradeProcedure;
     m_waitToCommit(0),
     m_waitToAllowNewCampaign(0),
     m_noOfExecutingProc(0),
-    m_noOfProcResponses(0)
+    m_noOfProcResponses(0),
+    m_procExecutionMode(0)
 {
 
 }
@@ -84,7 +85,14 @@ class SmfUpgradeProcedure;
 SmfUpgradeCampaign::~SmfUpgradeCampaign()
 {
 	TRACE_ENTER();
-	//Delete procedures
+        //Delete merged procedure first since it contain references to other proc
+	//Check campaign state, if verify fails the campaign is still in state initial
+	//and the merged procedure is not yet created.
+	if ((getProcExecutionMode() == SMF_MERGE_TO_SINGLE_STEP) &&
+	    (m_state->getState() != SA_SMF_CMPG_INITIAL)) {
+                delete(m_mergedProcedure);
+        }
+
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
 
 	for (iter = m_procedure.begin(); iter != m_procedure.end(); ++iter) {
@@ -1006,6 +1014,19 @@ SmfUpgradeCampaign::continueExec()
             execute();
             // Refresh local variable.
             currentState = m_state->getState();
+        }
+
+	//Read and set the ProcExecutionMode after cluster reboot
+	setProcExecutionMode(smfd_cb->procExecutionMode);
+
+        //Start procedure threads
+        if (SmfCampaignThread::instance()->campaign()->startProcedureThreads() != SA_AIS_OK) {
+                LOG_NO("continueExec() fail to restart procedure threads");
+		std::string error = "Fail to restart procedure threads";
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(SmfCampStateExecFailed::instance());
+		TRACE_LEAVE();
+		return;
         }
 
         switch (currentState) {

@@ -48,7 +48,12 @@
 #define SMF_CLUSTER_CONTROLLERS_ATTR "smfClusterControllers"
 #define SMF_SS_AFFECTED_NODES_ENABLE_ATTR "smfSSAffectedNodesEnable"
 #define SMF_KEEP_DU_STATE_ATTR    "smfKeepDuState"
+#define OPENSAF_SMF_EXEC_CONTROL  "openSafSmfExecControl"
 #define SMF_UPDATE_ELAPSED_TIME_INTERVAL 10000
+
+/* We need some DN space for the step (~15),activation/deactivation (~30)
+   and image node (~15) objects */
+#define OSAF_STEP_ACT_LENGTH 60
 
 class SmfUpgradeCampaign;
 class SmfUpgradeProcedure;
@@ -80,6 +85,7 @@ class SmfCampaign {
 	SaAisErrorT adminOpVerify(void);
 
 	SaAisErrorT initExecution(void);
+	SaAisErrorT startProcedureThreads(void);
 
         //    void procResult(SmfUpgradeProcedure* procedure, PROCEDURE_RESULT rc);
 	/* TODO Remove procResult ?? */
