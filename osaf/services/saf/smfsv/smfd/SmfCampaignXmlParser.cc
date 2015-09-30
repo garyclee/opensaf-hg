@@ -1359,7 +1359,7 @@ SmfCampaignXmlParser::parseActivationUnit(SmfActivationUnitType *scope, xmlNode 
 			TRACE("xmlTag swRemove found");
 			SmfBundleRef br;
 			parseBundleRef(&br, n);
-			scope->m_swRemowe.push_back(br);
+			scope->m_swRemove.push_back(br);
 
 		} else if ((!strcmp((char *)n->name, "swAdd")) && (n->ns == ns)) {
 			TRACE("xmlTag swAdd found");

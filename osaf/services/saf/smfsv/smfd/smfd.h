@@ -55,6 +55,12 @@ extern "C" {
 #define SMF_NODE_ID_CONTROLLER_2 0x2020f
 #define SMF_CAMPAIGN_OI_NAME "safSmfCampaign"
 #define SMF_PROC_OI_NAME_PREFIX "safSmfProc"
+#define SMF_MERGED_SS_PROC_NAME "safSmfProc=SmfSSMergedProc"
+
+/* SMF execution modes */
+#define SMF_STANDARD_MODE 0
+#define SMF_MERGE_TO_SINGLE_STEP 1
+#define SMF_MERGE_TO_NODE_ROLLING 2
 
 /* ========================================================================
  *   TYPE DEFINITIONS

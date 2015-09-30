@@ -66,6 +66,12 @@ typedef struct smfd_cb {
 	uint32_t no_of_smfnd;
 	pthread_mutex_t lock;                     /* Used by smfd_cb_t lock/unlock functions */
 	uint32_t maxDnLength;                     /* Max DN length */
+        uint32_t procExecutionMode;               /* Control the procedure execution modes
+                                                     SMF_STANDARD 0
+                                                     SMF_MERGE_TO_SINGLE_STEP 1
+                                                     SMF_MERGE_TO_NODE_ROLLING 2
+                                                   */
+
 } smfd_cb_t;
 
 #ifdef __cplusplus

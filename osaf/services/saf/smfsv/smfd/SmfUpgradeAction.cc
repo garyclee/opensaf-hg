@@ -409,6 +409,14 @@ SmfAdminOperationAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i
 						const_cast<const SaImmAdminOperationParamsT_2 **>(params), 
 						smfd_cb->adminOpTimeout);
 
+        //If an admin operation is already performed SA_AIS_ERR_NO_OP is returned
+        //Treat this as OK, just log it and return SA_AIS_OK from this method
+        if (rc == SA_AIS_ERR_NO_OP) {
+                LOG_NO("Admin op [%d] on [%s], return SA_AIS_ERR_NO_OP, treated as OK",
+                       m_doOpId, m_doDn.c_str());
+               rc = SA_AIS_OK;
+        }
+
 	//Delete the mem hold by SaImmAdminOperationParamsT_2
 	for (int i = 0; params[i] != 0; i++) {
 		delete params[i];

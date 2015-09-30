@@ -113,6 +113,9 @@ public:
 	inline std::string const& getClmNode() const {
 		return m_clmNode;
 	};
+	inline void setAmfNode(std::string& i_amfNode) {
+		m_amfNode = i_amfNode;
+	};
 	inline std::string const& getAmfNode() const {
 		return m_amfNode;
 	};
@@ -187,7 +190,24 @@ class SmfBundleRef {
 	inline const std::list<SmfPlmExecEnv>& getPlmExecEnvList() const {
 		return m_plmExecEnvList;
 	};
+  
+///
+/// Purpose: Add a PlmExecEnv objects.
+/// @param   i_plmExecEnv A PlmExecEnv object
+/// @return  None
+///
+	void addPlmExecEnv(const SmfPlmExecEnv& i_plmExecEnv)
+                { m_plmExecEnvList.push_back(i_plmExecEnv); }
 
+///
+/// Purpose: Append the list of PlmExecEnv objects.
+/// @param   i_plmExecEnvList A list of PlmExecEnv objects
+/// @return  None
+///
+	void addPlmExecEnvList(const std::list<SmfPlmExecEnv>& i_plmExecEnvList)
+                { m_plmExecEnvList.insert(m_plmExecEnvList.end(),
+                                          i_plmExecEnvList.begin(),
+                                          i_plmExecEnvList.end()); }
 
  private:
 	friend class SmfCampaignXmlParser;

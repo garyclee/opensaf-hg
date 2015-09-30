@@ -75,7 +75,7 @@ SmfUpgradeStep::SmfUpgradeStep():
    m_stepState(SA_SMF_STEP_INITIAL),
    m_maxRetry(0), 
    m_retryCount(0), 
-   m_restartOption(1), //True 
+   m_restartOption(1), //True
    m_procedure(NULL),
    m_stepType(NULL),
    m_switchOver(false)
@@ -93,6 +93,7 @@ SmfUpgradeStep::~SmfUpgradeStep()
 	for (it = m_modificationList.begin(); it != m_modificationList.end(); ++it) {
 		delete(*it);
 	}
+
         delete m_stepType;
 }
 
@@ -426,7 +427,7 @@ SmfUpgradeStep::addSwRemove(std::list<SmfBundleRef> const& i_swRemove)
 //------------------------------------------------------------------------------
 // getSwRemoveList()
 //------------------------------------------------------------------------------
-const std::list < SmfBundleRef > &
+std::list < SmfBundleRef > &
 SmfUpgradeStep::getSwRemoveList()
 {
 	return m_swRemoveList;
@@ -454,7 +455,7 @@ SmfUpgradeStep::addSwAdd(std::list<SmfBundleRef> const& i_swAdd)
 //------------------------------------------------------------------------------
 // getSwAddList()
 //------------------------------------------------------------------------------
-const std::list < SmfBundleRef > &
+std::list < SmfBundleRef > &
 SmfUpgradeStep::getSwAddList()
 {
 	return m_swAddList;
@@ -1605,6 +1606,30 @@ SmfUpgradeStep::calculateStepType()
                 return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
+        return SA_AIS_OK;
+}
+
+//------------------------------------------------------------------------------
+// calculateStepTypeForMergedSingle()
+//------------------------------------------------------------------------------
+SaAisErrorT 
+SmfUpgradeStep::calculateStepTypeForMergedSingle()
+{
+        TRACE_ENTER();
+        bool activateUsed;
+        if((smfd_cb->nodeBundleActCmd == NULL) || (strcmp(smfd_cb->nodeBundleActCmd,"") == 0)) {
+                activateUsed = false;
+        }
+        else {
+                activateUsed = true;
+        }
+
+        if (activateUsed == false)
+                this->setStepType(new SmfStepTypeClusterReboot(this));
+        else
+                this->setStepType(new SmfStepTypeClusterRebootAct(this));
+
+        TRACE_LEAVE();
         return SA_AIS_OK;
 }
 

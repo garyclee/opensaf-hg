@@ -1272,3 +1272,18 @@ smfStateToString(const uint32_t& i_stateId, const uint32_t& i_state)
 		return "Unknown state ID";
 	}
 }
+
+bool compare_du_part (unitNameAndState& first, unitNameAndState& second)
+{
+  unsigned int i=0;
+  while ( (i<first.name.length()) && (i<second.name.length()) )
+  {
+    if (tolower(first.name[i])<tolower(second.name[i])) return true;
+    else if (tolower(first.name[i])>tolower(second.name[i])) return false;
+    ++i;
+  }
+  return ( first.name.length() < second.name.length() );
+}
+
+bool unique_du_part (unitNameAndState& first, unitNameAndState& second)
+{ return ( first.name == second.name ); }

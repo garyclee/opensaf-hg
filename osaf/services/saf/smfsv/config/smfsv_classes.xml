@@ -392,6 +392,12 @@
                         <flag>SA_WRITABLE</flag>
                         <default-value>0</default-value>
 		</attr>
+		<attr>
+			<name>openSafSmfExecControl</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
 	</class>
 	<class name="OpenSafSmfCampRestartInfo">
 		<category>SA_RUNTIME</category>
@@ -509,6 +515,21 @@
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
+		</attr>
+	</class>
+	<class name="OpenSafSmfExecControl">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>openSafSmfExecControl</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+		</rdn>
+		<attr>
+			<name>procExecMode</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
 		</attr>
 	</class>
 </imm:IMM-contents>

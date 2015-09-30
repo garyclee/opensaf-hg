@@ -234,6 +234,16 @@ class SmfUpgradeStep {
 	void addActivationUnit(const unitNameAndState & i_activationUnit);
 
 ///
+/// Purpose:  Add a list of activation units
+/// @param    i_activationUnits A list of unitNameAndState
+/// @return   None
+///
+	void addActivationUnits(const std::list < unitNameAndState > & i_activationUnits)
+                { m_activationUnit.m_actedOn.insert(m_activationUnit.m_actedOn.end(),
+                                     i_activationUnits.begin(),
+                                     i_activationUnits.end()); }
+
+///
 /// Purpose:  Get the activation unit DN
 /// @param     
 /// @return   A list of DN to activation units
@@ -246,6 +256,16 @@ class SmfUpgradeStep {
 /// @return   None
 ///
 	void addDeactivationUnit(const unitNameAndState & i_deactivationUnit);
+  
+///
+/// Purpose:  Add a list of deactivation units
+/// @param    i_deactivationUnits A list of unitNameAndState
+/// @return   None
+///
+	void addDeactivationUnits(const std::list < unitNameAndState > & i_deactivationUnits)
+                { m_deactivationUnit.m_actedOn.insert(m_deactivationUnit.m_actedOn.end(),
+                                     i_deactivationUnits.begin(),
+                                     i_deactivationUnits.end()); }
 
 ///
 /// Purpose:  Get the deactivation unit DN
@@ -253,6 +273,14 @@ class SmfUpgradeStep {
 /// @return   A list of DN to deactivation units
 ///
 	const std::list < unitNameAndState > &getDeactivationUnitList();
+  
+///
+/// Purpose:  Clean the deactivation unit list
+/// @param    None
+/// @return   None
+///
+	void cleanDeactivationUnitList(void)
+                { m_deactivationUnit.m_actedOn.clear(); }
 
 ///
 /// Purpose:  Add a sw bundle to remove
@@ -261,13 +289,15 @@ class SmfUpgradeStep {
 ///
 	void addSwRemove(const std::list < SmfBundleRef * >&i_swRemove);
 	void addSwRemove(std::list<SmfBundleRef> const& i_swRemove);
+	void addSwRemove(SmfBundleRef& i_swRemove)
+                { m_swRemoveList.push_back(i_swRemove); }
 
 ///
 /// Purpose:  Get the sw remove list
 /// @param     
 /// @return   A list of bundles to remove
 ///
-	const std::list < SmfBundleRef > &getSwRemoveList();
+	std::list < SmfBundleRef > &getSwRemoveList();
 
 ///
 /// Purpose:  Add a sw bundle to add
@@ -276,13 +306,14 @@ class SmfUpgradeStep {
 ///
 	void addSwAdd(const std::list < SmfBundleRef* >&i_swAdd);
 	void addSwAdd(std::list<SmfBundleRef> const& i_swAdd);
-
+	void addSwAdd(SmfBundleRef& i_swAdd)
+                { m_swAddList.push_back(i_swAdd); }
 ///
 /// Purpose:  Get the sw add list
 /// @param     
 /// @return   A list of bundles to add
 ///
-	const std::list < SmfBundleRef > &getSwAddList();
+	std::list < SmfBundleRef > &getSwAddList();
 
 ///
 /// Purpose:  Add a modification
@@ -290,6 +321,16 @@ class SmfUpgradeStep {
 /// @return   None
 ///
 	void addModification(SmfImmModifyOperation * i_modification);
+
+///
+/// Purpose:  Add a list of modifications
+/// @param    i_modifications A list of Imm modifications
+/// @return   None
+///
+	void addModifications(std::list < SmfImmOperation * >& i_modifications)
+                { m_modificationList.insert(m_modificationList.end(),
+                                     i_modifications.begin(),
+                                     i_modifications.end()); }
 
 ///
 /// Purpose:  Get modifications
@@ -569,12 +610,19 @@ class SmfUpgradeStep {
 
 ///
 /// Purpose:  calculateStepType  
-/// @param    i_needsReboot true if reboot is needed 
+/// @param    none
 /// @return   SA_AIS_OK if calculation went OK 
 ///
 	SaAisErrorT calculateStepType();
 
 ///
+/// Purpose:  calculateStepTypeForMergedSingle
+/// @param    none
+/// @return   SA_AIS_OK if calculation went OK
+///
+	SaAisErrorT calculateStepTypeForMergedSingle();
+
+  ///
 /// Purpose:  isCurrentNode  
 /// @param    - 
 /// @return   true if the calling component executes on the given AMF node, otherwise false.

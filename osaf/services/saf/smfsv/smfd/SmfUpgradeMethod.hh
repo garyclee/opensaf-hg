@@ -344,7 +344,7 @@ public:
 		return m_added;
 	};
 	inline std::list<SmfBundleRef> const& getSwRemove() const {
-		return m_swRemowe;
+		return m_swRemove;
 	};
 	inline std::list<SmfBundleRef> const& getSwAdd() const {
 		return m_swAdd;
@@ -355,7 +355,7 @@ private:
 	std::list<SmfEntity> m_actedOn;
 	std::list<SmfEntity> m_removed;
 	std::list<SmfImmCreateOperation> m_added;
-	std::list<SmfBundleRef> m_swRemowe;
+	std::list<SmfBundleRef> m_swRemove;
 	std::list<SmfBundleRef> m_swAdd;
 };
 

@@ -406,6 +406,30 @@ void verify();
 ///
 	const std::vector < SmfUpgradeProcedure * >& getProcedures() { return m_procedure; }
 
+/// Purpose: set the merged procedure
+/// @param   A SmfUpgradeProcedure *
+/// @return  the procedure.
+///
+	void setMergedProc(SmfUpgradeProcedure * proc) { m_mergedProcedure = proc; }
+
+/// Purpose: get the merged procedure
+/// @param   None.
+/// @return  the procedure.
+///
+	SmfUpgradeProcedure * getMergedProc() { return m_mergedProcedure; }
+
+/// Purpose: Set the procedure ecxecution mode
+/// @param   The execution mode.
+/// @return  none
+///
+	void setProcExecutionMode(int i_procExecutionMode) { m_procExecutionMode = i_procExecutionMode; }
+
+/// Purpose: Get the procedure ecxecution mode
+/// @param   none
+/// @return  The execution mode.
+///
+	int getProcExecutionMode() { return m_procExecutionMode; }
+
 	SmfCampaignInit & getCampaignInit() { return  m_campInit; }
 	SmfCampaignWrapup & getCampaignWrapup() { return  m_campWrapup; }
 
@@ -459,9 +483,11 @@ private:
 	SmfCampaignInit m_campInit;
 	SmfCampaignWrapup m_campWrapup;
         std::vector < SmfUpgradeProcedure * >m_procedure;
+        SmfUpgradeProcedure * m_mergedProcedure;
         SaTimeT m_waitToCommit;
         SaTimeT m_waitToAllowNewCampaign;
 	int m_noOfExecutingProc;
         int m_noOfProcResponses;
+	int m_procExecutionMode;
 };
 #endif				// __SMFUPGRADECAMPAIGN_H
