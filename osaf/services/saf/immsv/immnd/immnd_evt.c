@@ -7572,6 +7572,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
 	SaUint32T pbeId = 0;
 	SaUint32T pbeCtn = 0;
+	int bCcbFinalize = 0;
 	TRACE_ENTER();
 #if 0 /* Ticket #496  testcase immomtest 6 22 */
 	if((evt->info.ccbId == 10)&&(originatedAtThisNd)) {
@@ -7866,7 +7867,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 			osafassert(!client || originatedAtThisNd);
 		}
 		TRACE_2("CCB APPLY TERMINATING CCB: %u", evt->info.ccbId);
-		immModel_ccbFinalize(cb, evt->info.ccbId);
+		bCcbFinalize = 1;
 
  immediate_reply:
 		if (originatedAtThisNd) {
@@ -7892,6 +7893,10 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 
 				immsv_evt_free_attrNames(send_evt.info.imma.info.errRsp.errStrings);
 			}
+		}
+
+		if(bCcbFinalize) {
+			immModel_ccbFinalize(cb, evt->info.ccbId);
 		}
 	}
  done:
