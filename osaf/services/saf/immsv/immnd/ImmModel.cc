@@ -4082,6 +4082,8 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                                     "class change for class: %s attr: %s. Aborting Ccb.", 
                                     ccb->mId, omit->first.c_str(), className.c_str(),
                                     attName.c_str());
+                                setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Class change for class: %s, attr: %s",
+                                    className.c_str(), attName.c_str());
                                 ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
                             } else {
                                 osafassert(ccb->mState == IMM_CCB_CRITICAL);
@@ -5182,6 +5184,22 @@ ImmModel::ccbApply(SaUint32T ccbId,
         osafassert(reqConn==0 || (ccb->mOriginatingConn == reqConn));
         
         if(!ccb->isOk()) {
+            /* At this point, CCB might already have error string with CCB abort reason.
+             * If none CCB abort reason can be found in error strings,
+             * then it's a resource abort.
+            */
+            ImmsvAttrNameList *errStr = ccb->mErrorStrings;
+            while(errStr) {
+                if(strstr(errStr->name.buf, IMM_VALIDATION_ABORT) == errStr->name.buf
+                        || strstr(errStr->name.buf, IMM_RESOURCE_ABORT) == errStr->name.buf) {
+                    break;
+                }
+                errStr = errStr->next;
+            }
+            if(!errStr) {
+                setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
+            }
+
             err = SA_AIS_ERR_FAILED_OPERATION;
         } else if((sImmNodeState == IMM_NODE_LOADING) && !sMissingParents.empty()) {
             MissingParentsMap::iterator mpm;
@@ -6235,8 +6253,21 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
     if(ccb->mVeto != SA_AIS_OK) {
         TRACE("Ccb %u is already in an error state %u, can not accept augmentation",
              ccbId, ccb->mVeto);
+
+        /* ccb->mVeto != SA_AIS_OK, error string with abort reason can already be set */
+        ImmsvAttrNameList *errStr = ccb->mErrorStrings;
+        while(errStr) {
+            if(strstr(errStr->name.buf, IMM_VALIDATION_ABORT) == errStr->name.buf
+                    || strstr(errStr->name.buf, IMM_RESOURCE_ABORT) == errStr->name.buf) {
+                break;
+            }
+            errStr = errStr->next;
+        }
+        if(!errStr) {
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
+        }
+
         err = SA_AIS_ERR_FAILED_OPERATION; /*ccb->mVeto;*/
-        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
         goto done;
     }
 
@@ -6988,8 +7019,21 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
     if(!ccb->isOk()) {
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectCreate operation ", ccbId);
+
+        /* !ccb->isOk(), error string with abort reason can already be set */
+        ImmsvAttrNameList *errStr = ccb->mErrorStrings;
+        while(errStr) {
+            if(strstr(errStr->name.buf, IMM_VALIDATION_ABORT) == errStr->name.buf
+                    || strstr(errStr->name.buf, IMM_RESOURCE_ABORT) == errStr->name.buf) {
+                break;
+            }
+            errStr = errStr->next;
+        }
+        if(!errStr) {
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
+        }
+
         err = SA_AIS_ERR_FAILED_OPERATION;
-        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
         goto ccbObjectCreateExit;
     }
 
@@ -8147,8 +8191,21 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     if(!ccb->isOk()) {
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectModify operation ", ccbId);
+
+        /* !ccb->isOk(), error string with abort reason can already be set */
+        ImmsvAttrNameList *errStr = ccb->mErrorStrings;
+        while(errStr) {
+            if(strstr(errStr->name.buf, IMM_VALIDATION_ABORT) == errStr->name.buf
+                    || strstr(errStr->name.buf, IMM_RESOURCE_ABORT) == errStr->name.buf) {
+                break;
+            }
+            errStr = errStr->next;
+        }
+        if(!errStr) {
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
+        }
+
         err = SA_AIS_ERR_FAILED_OPERATION;
-        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
         goto ccbObjectModifyExit;
     }
     
@@ -9096,8 +9153,21 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     if(!ccb->isOk()) {
         LOG_NO("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectDelete operation ", ccbId);
+
+        /* !ccb->isOk(), error string with abort reason can already be set */
+        ImmsvAttrNameList *errStr = ccb->mErrorStrings;
+        while(errStr) {
+            if(strstr(errStr->name.buf, IMM_VALIDATION_ABORT) == errStr->name.buf
+                    || strstr(errStr->name.buf, IMM_RESOURCE_ABORT) == errStr->name.buf) {
+                break;
+            }
+            errStr = errStr->next;
+        }
+        if(!errStr) {
+            setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB is in an error state");
+        }
+
         err = SA_AIS_ERR_FAILED_OPERATION;
-        setCcbErrorString(ccb, IMM_RESOURCE_ABORT "CCB in error state");
         goto ccbObjectDeleteExit;
     }
     
