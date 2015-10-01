@@ -668,12 +668,31 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 
 		break;
 	}
+	case SA_AMF_ADMIN_RESTART: {
+		LOG_NO("Admin Restart request for '%s'", su->name.value);
+		su->admin_op_Id = SA_AMF_ADMIN_RESTART;
+		set_suRestart_flag(su);
+		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+		if ((su_all_comps_restartable(*su) == true) || 
+				(is_any_non_restartable_comp_assigned(*su) == false)) { 
+			rc = avnd_su_curr_info_del(cb, su);
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+			rc = avnd_su_si_unmark(cb, su);
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		}
+		rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_RESTART);
+		if (NCSCC_RC_SUCCESS != rc)
+			goto done;
+		break;
+	}
 	default:
 		LOG_NO("%s: unsupported adm op %u", __FUNCTION__, info->oper_id);
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
-
+done:
 	TRACE_LEAVE();
 	return rc;
 }

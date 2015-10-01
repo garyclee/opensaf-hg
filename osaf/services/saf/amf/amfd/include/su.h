@@ -130,6 +130,7 @@ class AVD_SU {
 	void unlock_instantiation(SaImmOiHandleT immoi_handle,
 		SaInvocationT invocation);
 	void repaired(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
+	void restart(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
 	void shutdown(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
 	void lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
 		SaAmfAdminStateT adm_state);
@@ -140,6 +141,10 @@ class AVD_SU {
 	uint32_t curr_num_active_sis();
 	bool su_any_comp_undergoing_restart_admin_op();
 	AVD_COMP *su_get_comp_undergoing_restart_admin_op();
+	bool su_all_comps_restartable();
+	bool is_any_non_restartable_comp_assigned();
+	bool all_pi_comps_restartable();
+	bool all_pi_comps_nonrestartable();
 	
  private:
 	void initialize();
