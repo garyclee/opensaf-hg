@@ -138,7 +138,8 @@ class AVD_SU {
 	SaAisErrorT check_su_stability();
 	uint32_t curr_num_standby_sis();
 	uint32_t curr_num_active_sis();
-
+	bool su_any_comp_undergoing_restart_admin_op();
+	AVD_COMP *su_get_comp_undergoing_restart_admin_op();
 	
  private:
 	void initialize();

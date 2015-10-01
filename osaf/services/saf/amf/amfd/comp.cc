@@ -782,13 +782,14 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	switch (opId) {
 		/* Valid B.04 AMF comp admin operations */
 	case SA_AMF_ADMIN_RESTART:
-		if (comp->comp_info.comp_restart == true) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
-					"Component Restart disabled '%s'", objectName->value);
-		}
-		else if (comp->admin_pend_cbk.invocation != 0) {
+		if (comp->admin_pend_cbk.invocation != 0) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
 					"Component undergoing admin operation '%s'", objectName->value);
+		} else if ((comp->su->sg_of_su->sg_ncs_spec == true) &&
+				(comp->su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)) {
+                        report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+                                        "Not allowed on comp of middleware 2N SU : %s, op_id: %llu",
+                                        objectName->value, opId);
 		}
 		else if (comp->su->pend_cbk.invocation != 0) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
@@ -802,16 +803,42 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
 					"Component not instantiated '%s'", objectName->value);
 		}
-		else {
-			/* prepare the admin op req message and queue it */
-			if (avd_admin_op_msg_snd(&comp->comp_info.name, AVSV_SA_AMF_COMP,
-				static_cast<SaAmfAdminOperationIdT>(opId), comp->su->su_on_node) == NCSCC_RC_SUCCESS) {
-				comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(opId);
-				comp->admin_pend_cbk.invocation = invocation;
-			}
-			else {
-				report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
-						"Admin op request send failed '%s'", objectName->value);
+		else if (comp->saAmfCompOperState == SA_AMF_OPERATIONAL_DISABLED) {
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"Component disabled, first repair su or check node status'%s'", objectName->value);
+		} else {
+			comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(opId);
+			comp->admin_pend_cbk.invocation = invocation;
+
+			if ((comp->comp_info.comp_restart == true) &&
+					(is_comp_assigned_any_csi(comp) == true)) {
+				/* Atleast one non-restartable (saAmfCompDisableRestart or
+				   saAmfCtDefDisableRestart is true) comp is assigned. 
+				   First gracefully  switch-over its assignments to comp in 
+				   other SU. At present assignment of whole SU will be gracefully
+				   reassigned.
+				   Thus PI applications modeled on NWay and Nway Active model
+				   this is spec deviation.
+				 */
+				if (comp->su->saAmfSUPreInstantiable == true) {
+					TRACE("surestart flag in '%s' is set to true",comp->su->name.value);
+					comp->su->surestart = true;
+				}
+				comp->su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+				comp->su->sg_of_su->su_fault(avd_cb, comp->su);
+			} else {
+				/* For a non restartable comp, amfd has no role in reassignment.
+                                   AMFND will take care of reassignment.*/
+
+				/* prepare the admin op req message and queue it */
+				if (avd_admin_op_msg_snd(&comp->comp_info.name, AVSV_SA_AMF_COMP,
+							static_cast<SaAmfAdminOperationIdT>(opId),
+							comp->su->su_on_node) != NCSCC_RC_SUCCESS) {
+					report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
+							"Admin op request send failed '%s'", objectName->value);
+					comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+					comp->admin_pend_cbk.invocation = 0;
+				}
 			}
 		}
 		break;

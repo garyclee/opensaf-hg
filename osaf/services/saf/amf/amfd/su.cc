@@ -726,10 +726,20 @@ void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
 	avd_saImmOiRtObjectUpdate(&name, "saAmfSUPresenceState",
 		SA_IMM_ATTR_SAUINT32T, &saAmfSUPresenceState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_PRES_STATE);
-	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) && (surestart == true)) {
+	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) && (surestart == true)) {
 		TRACE("setting surestart flag to false");
 		surestart = false;
 	}
+	//Section 3.2.1.4 Readiness State: presence state affects readiness state of  a PI SU.
+	if (saAmfSUPreInstantiable == true) {
+		if (((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
+				(saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING)) &&
+				(is_in_service() == true))
+			set_readiness_state(SA_AMF_READINESS_IN_SERVICE);	
+		else {
+			set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);	
+		} 
+	}	
 	TRACE_LEAVE();
 }
 
@@ -2194,4 +2204,30 @@ SaAisErrorT AVD_SU::check_su_stability()
         }
 done:
 	return rc;
+}
+
+/**
+ * @brief Checks any component is undergoing RESTART admin operation.
+ * @return true/false.
+ */
+bool AVD_SU::su_any_comp_undergoing_restart_admin_op()
+{
+	for (const auto& comp : list_of_comp) {
+		if (comp->admin_pend_cbk.admin_oper == SA_AMF_ADMIN_RESTART)
+			return true;
+        }
+	return false;
+}
+
+/**
+ * @brief Returns the comp which is undergoing RESTART admin operation. 
+ * @return AVD_COMP/NULL.
+ */
+AVD_COMP *AVD_SU::su_get_comp_undergoing_restart_admin_op()
+{ 
+	for (const auto& comp : list_of_comp) {
+		if (comp->admin_pend_cbk.admin_oper == SA_AMF_ADMIN_RESTART)
+			return comp;
+	}
+	return NULL;
 }

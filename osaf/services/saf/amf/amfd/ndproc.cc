@@ -286,28 +286,69 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
  */
 static void comp_admin_op_report_to_imm(AVD_COMP *comp, SaAmfPresenceStateT pres)
 {
-	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
-	TRACE_ENTER2("%u", pres);
-
-	if (comp->admin_pend_cbk.admin_oper == SA_AMF_ADMIN_RESTART) {
+	TRACE_ENTER2("%s", avd_pres_state_name[pres]);
+	SaAisErrorT rc = SA_AIS_OK;
+	
+	if (comp->admin_pend_cbk.admin_oper != SA_AMF_ADMIN_RESTART) {
+		TRACE_LEAVE2("(%llu)", comp->admin_pend_cbk.invocation);
+		return;
+	} 
+	if (comp->comp_info.comp_restart == false) {
 		if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
-		   (pres != SA_AMF_PRESENCE_RESTARTING)) {
-			report_admin_op_error(cb->immOiHandle, comp->admin_pend_cbk.invocation,
-					SA_AIS_ERR_BAD_OPERATION, &comp->admin_pend_cbk,
-					"Couldn't restart Comp '%s'", comp->comp_info.name.value);
-		}
+				(pres != SA_AMF_PRESENCE_RESTARTING))
+			rc = SA_AIS_ERR_BAD_OPERATION; 
 		else if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_RESTARTING) {
 			if (pres == SA_AMF_PRESENCE_INSTANTIATED)
-				avd_saImmOiAdminOperationResult(cb->immOiHandle,comp->admin_pend_cbk.invocation, SA_AIS_OK);
+				rc = SA_AIS_OK;
 			else
-				report_admin_op_error(cb->immOiHandle, comp->admin_pend_cbk.invocation,
-						SA_AIS_ERR_REPAIR_PENDING, &comp->admin_pend_cbk,
-						"Couldn't restart Comp '%s'", comp->comp_info.name.value);
-
-			comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
-			comp->admin_pend_cbk.invocation = 0;
+				rc = SA_AIS_ERR_REPAIR_PENDING; 
+		} else if (pres == SA_AMF_PRESENCE_RESTARTING) {
+			TRACE("Valid state transition is taking place, wait for final transition.");
+			goto done;
+		}
+	} else {
+		if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
+				(pres != SA_AMF_PRESENCE_TERMINATING))
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		else if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATING) &&
+				(pres != SA_AMF_PRESENCE_UNINSTANTIATED))
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		else if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
+				(pres != SA_AMF_PRESENCE_INSTANTIATING))
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		else if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATING) {
+			if (pres == SA_AMF_PRESENCE_INSTANTIATED)
+				rc = SA_AIS_OK;
+			else
+				rc = SA_AIS_ERR_REPAIR_PENDING; 
+		} else if ((pres == SA_AMF_PRESENCE_TERMINATING) ||
+				(pres == SA_AMF_PRESENCE_UNINSTANTIATED) ||
+				(pres == SA_AMF_PRESENCE_INSTANTIATING)) {
+			if ((comp->su->saAmfSUPreInstantiable == false) &&
+					(pres == SA_AMF_PRESENCE_UNINSTANTIATED)) {
+				/*
+				   All assignment are deleted. For a non-restartable comp in NPI
+				   SU, there will not be instantiation as a part of comp restart
+				   admin operation.
+				 */
+				rc = SA_AIS_OK;
+			} else {
+				TRACE("Valid state transition is taking place, wait for final transition.");
+				goto done;
+			}
 		}
 	}
+
+	if (rc == SA_AIS_OK) {
+		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,comp->admin_pend_cbk.invocation, rc);
+	} else {
+		report_admin_op_error(avd_cb->immOiHandle, comp->admin_pend_cbk.invocation,
+				rc, &comp->admin_pend_cbk, "Couldn't restart Comp '%s'",
+				comp->comp_info.name.value);
+	}
+	comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+	comp->admin_pend_cbk.invocation = 0;
+done:
 	TRACE_LEAVE2("(%llu)", comp->admin_pend_cbk.invocation);
 }
 
