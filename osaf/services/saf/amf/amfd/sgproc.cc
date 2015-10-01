@@ -620,7 +620,6 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *node;
 	AVD_SU *su;
-	SaAmfReadinessStateT old_state;
 	bool node_reboot_req = true;
 
 	TRACE_ENTER2("id:%u, node:%x, '%s' state:%u", n2d_msg->msg_info.n2d_opr_state.msg_id,
@@ -854,8 +853,6 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				}
 			}
 		} else {	/* if(su->sg_of_su->sg_ncs_spec == true) */
-			old_state = su->saAmfSuReadinessState;
-
 			/* If oper state of Uninstantiated SU got ENABLED so try to instantiate it 
 			   after evaluating SG. */
 			if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) {
@@ -865,7 +862,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 			if (su->is_in_service() == true) {
 				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
-				if ((cb->init_state == AVD_APP_STATE) && (old_state == SA_AMF_READINESS_OUT_OF_SERVICE)) {
+				if (cb->init_state == AVD_APP_STATE) {
 					/* An application SU has become in service call SG FSM */
 					if (su->sg_of_su->su_insvc(cb, su) == NCSCC_RC_FAILURE) {
 						/* Bad situation. Free the message and return since
@@ -895,7 +892,52 @@ static void susi_assign_msg_dump(const char *func, unsigned int line,
 	LOG_ER("%s:%d %s", func, line, info->su_name.value);
 }
 
-
+/**
+ * @brief       For RESTART admin operation on an assigned non-restartable comp,
+ *              AMFD will first switchover its assignment before asking AMFND to restart
+ *              the it. After getting response for the deletion of assignments from
+ *              AMFND, this function will send restart request to AMFND.
+ *              For a assigned non-restartable npi comp in PI SU, deletion of assigment itself marks the
+ *              end of operation because such a comp is instantiated only when
+ *              active assignments are given to its SU.
+ * @param[in]   ptr to SU (AVD_SU).
+ */
+void process_su_si_response_for_comp(AVD_SU *su)
+{
+	TRACE_ENTER();
+	if (su->list_of_susi != NULL) {
+		TRACE_LEAVE();
+		return;
+	}
+	AVD_COMP *comp = su->su_get_comp_undergoing_restart_admin_op();
+	AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&comp->saAmfCompType));
+	osafassert(comptype);
+	if ((comp->su->saAmfSUPreInstantiable == true) &&
+			(comptype->saAmfCtCompCategory != SA_AMF_COMP_SA_AWARE) &&
+			(comp->saAmfCompPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
+			 /*
+			    All assignment are deleted. For a non-restartable NPI comp in PI SU,
+			    there will be instantiation only when assignments are given.
+			  */
+		comp_complete_admin_op(comp, SA_AIS_OK);
+		TRACE("surestart flag is set falsefor '%s'",comp->su->name.value);
+		comp->su->surestart = false;		
+		comp->su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+		comp->su->sg_of_su->su_insvc(avd_cb, su);
+		TRACE_LEAVE();
+		return;
+	}
+	uint32_t rc = avd_admin_op_msg_snd(&comp->comp_info.name, AVSV_SA_AMF_COMP,
+			SA_AMF_ADMIN_RESTART, comp->su->su_on_node);
+	if (rc != NCSCC_RC_SUCCESS) {
+		report_admin_op_error(avd_cb->immOiHandle, comp->admin_pend_cbk.invocation,
+				SA_AIS_ERR_TIMEOUT, NULL,
+				"Admin op request send failed '%s'", comp->comp_info.name.value);
+		comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+		comp->admin_pend_cbk.invocation = 0;
+	}
+	TRACE_LEAVE();
+}
 /*****************************************************************************
  * Function: avd_su_si_assign_func
  *
@@ -912,7 +954,7 @@ static void susi_assign_msg_dump(const char *func, unsigned int line,
  * NOTES: None.
  *
  * 
- **************************************************************************/
+ *************************************************************************/
 
 void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
@@ -1383,6 +1425,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					su->su_on_node->name.value,su->su_on_node->su_cnt_admin_oper);
 			}
 			process_su_si_response_for_ng(su, SA_AIS_OK);
+		} else if (su->su_any_comp_undergoing_restart_admin_op() == true) { 
+			process_su_si_response_for_comp(su);
 		} else {
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				if ((su->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) && 
