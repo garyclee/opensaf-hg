@@ -353,6 +353,78 @@ done:
 }
 
 /**
+ * @brief Monitors the status of RESTART admin operation on SU. It responds to
+ *	  IMM for the result of operation upon failure or successful completion.
+ * @param ptr to su 
+ * @param pres (presence state of su).
+ */
+static void surestart_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
+{
+	TRACE_ENTER2("%s", avd_pres_state_name[pres]);
+	SaAisErrorT rc = SA_AIS_OK;
+	
+	if ((su->su_all_comps_restartable() == true) ||
+			((su->saAmfSUPreInstantiable == true) &&
+			 (su->all_pi_comps_restartable() == true))) {
+		if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
+				(pres != SA_AMF_PRESENCE_RESTARTING))
+			rc = SA_AIS_ERR_BAD_OPERATION; 
+		else if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING) &&
+				(pres != SA_AMF_PRESENCE_INSTANTIATING))
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		else if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) {
+			if (pres == SA_AMF_PRESENCE_INSTANTIATED)
+				rc = SA_AIS_OK;
+			else
+				rc = SA_AIS_ERR_REPAIR_PENDING; 
+		} else if ((pres == SA_AMF_PRESENCE_RESTARTING) ||
+				(pres == SA_AMF_PRESENCE_INSTANTIATING)) {
+                        TRACE("Valid state transition, wait for final transition.");
+                        goto done;
+                }
+
+	} else {
+		if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
+				(pres != SA_AMF_PRESENCE_TERMINATING))
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		else if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) &&
+				(pres != SA_AMF_PRESENCE_INSTANTIATING)) {
+			if (((su->saAmfSUPreInstantiable == false) ||
+						(su->all_pi_comps_nonrestartable() == true)) &&
+					(pres == SA_AMF_PRESENCE_UNINSTANTIATED))  {
+				TRACE("Valid state transition, wait for final transition.");
+				goto done;
+			}
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		} else if ((su->all_pi_comps_nonrestartable() == true) && 
+				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) && 
+				(pres != SA_AMF_PRESENCE_INSTANTIATING))
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		else if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) {
+			if (pres == SA_AMF_PRESENCE_INSTANTIATED)
+				rc = SA_AIS_OK;
+			else
+				rc = SA_AIS_ERR_REPAIR_PENDING; 
+		} else if ((pres == SA_AMF_PRESENCE_TERMINATING) ||
+				(pres == SA_AMF_PRESENCE_INSTANTIATING)) {
+                        TRACE("Valid state transition, wait for final transition.");
+			goto done;
+		}
+	}
+	if (rc == SA_AIS_OK) {
+		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,su->pend_cbk.invocation, rc);
+	} else {
+		report_admin_op_error(avd_cb->immOiHandle, su->pend_cbk.invocation,
+				rc, &su->pend_cbk, "Couldn't restart su '%s'",
+				su->name.value);
+	}
+	su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+	su->pend_cbk.invocation = 0;
+done:
+	TRACE_LEAVE2("(%llu)", su->pend_cbk.invocation);
+}
+
+/**
  * handler to report error response to imm for any pending admin operation on su 
  *
  * @param su
@@ -411,6 +483,9 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 					&su->pend_cbk, "Bad presence state %u after '%s' adm repaired", pres,
 					su->name.value);
 		}
+		break;
+	case SA_AMF_ADMIN_RESTART:
+		surestart_admin_op_report_to_imm(su, pres);
 		break;
 	default:
 		break;
@@ -809,16 +884,18 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				TRACE("su pres state");
 				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
 					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
-					su->set_pres_state(static_cast<SaAmfPresenceStateT>(l_val));
 
 					/* Send response to any admin callbacks delivered by IMM if not sent already. */
 					if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
 						node_admin_op_report_to_imm(su, static_cast<SaAmfPresenceStateT>(l_val));
 					} else if (su->pend_cbk.invocation != 0) {
 						su_admin_op_report_to_imm(su, static_cast<SaAmfPresenceStateT>(l_val));
-					} else if (su->su_on_node->admin_ng != NULL) {
-						process_su_si_response_for_ng(su, SA_AIS_OK);
 					}
+
+					su->set_pres_state(static_cast<SaAmfPresenceStateT>(l_val));
+
+					if (su->su_on_node->admin_ng != NULL)
+						process_su_si_response_for_ng(su, SA_AIS_OK);
 
 					if (l_val == SA_AMF_PRESENCE_TERMINATION_FAILED) {
 						for (const auto& si : su->sg_of_su->list_of_si) {

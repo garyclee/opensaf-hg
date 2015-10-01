@@ -1090,7 +1090,43 @@ void AVD_SU::repaired(SaImmOiHandleT immoi_handle,
 done:
 	TRACE_LEAVE();
 }
+/**
+ * @brief       Handles RESTART admin operation on SU.
+	        For a assigned non-restartable SU, it will only initiate
+ *		switchover/removal of assignments only.  For a restartable SU or 
+ *		a non-restartable unassigned SU, it will send RESTART request to AMFND.
+ * @param[in]   immoi_handle. 
+ * @param[in]   invocation.
+ */
+void AVD_SU::restart(SaImmOiHandleT immoi_handle,
+                      SaInvocationT invocation) {
+	TRACE_ENTER2("'%s'", name.value);
 
+	pend_cbk.admin_oper = SA_AMF_ADMIN_RESTART;
+	pend_cbk.invocation = invocation;
+	if ((su_all_comps_restartable() == true) ||
+			(is_any_non_restartable_comp_assigned() == false)) {
+		if (avd_admin_op_msg_snd(&name, AVSV_SA_AMF_SU, SA_AMF_ADMIN_RESTART,
+					su_on_node) != NCSCC_RC_SUCCESS) {
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
+					"Admin op request send failed '%s'", name.value);
+			pend_cbk.invocation = 0;
+			pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+		}
+	} else {
+		/* Atleast one non-restartable (saAmfCompDisableRestart or
+		   saAmfCtDefDisableRestart is true) comp is assigned.
+		   First gracefully switch-over SU's assignments to other
+		   At present assignment of whole SU will be gracefully
+		   reassigned.
+		   Thus for PI applications modeled on NWay and Nway Active model
+		   this is spec deviation.
+		 */
+		set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+		sg_of_su->su_fault(avd_cb, this);
+	}
+	TRACE_LEAVE();
+}
 /**
  * Handle admin operations on SaAmfSU objects.
  * 
@@ -1110,7 +1146,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 
 	TRACE_ENTER2("%llu, '%s', %llu", invocation, su_name->value, op_id);
 
-	if ( op_id > SA_AMF_ADMIN_SHUTDOWN && op_id != SA_AMF_ADMIN_REPAIRED) {
+	if ( op_id > SA_AMF_ADMIN_RESTART && op_id != SA_AMF_ADMIN_REPAIRED) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
 				"Unsupported admin op for SU: %llu", op_id);
 		goto done;
@@ -1185,10 +1221,12 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 	if (((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 		  (op_id != SA_AMF_ADMIN_LOCK) &&
 		  (op_id != SA_AMF_ADMIN_SHUTDOWN) &&
+		  (op_id != SA_AMF_ADMIN_RESTART) &&
 		  (op_id != SA_AMF_ADMIN_REPAIRED)) ||
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) &&
 		  (op_id != SA_AMF_ADMIN_UNLOCK) &&
 		  (op_id != SA_AMF_ADMIN_REPAIRED) &&
+		  (op_id != SA_AMF_ADMIN_RESTART) &&
 		  (op_id != SA_AMF_ADMIN_LOCK_INSTANTIATION))  ||
 	     ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 		  (op_id != SA_AMF_ADMIN_UNLOCK_INSTANTIATION) &&
@@ -1200,7 +1238,36 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 				"State transition invalid, state %u, op %llu", su->saAmfSUAdminState, op_id);
 		goto done;
 	}
-
+	if  (op_id == SA_AMF_ADMIN_RESTART) { 
+		if (su->sg_of_su->sg_ncs_spec == true) {
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"Not allowed on middleware SU: %s, op_id: %llu",
+					su->name.value, op_id);
+			goto done;
+		}
+		if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) {
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"Prescence state of SU is uninstantiated, it is: %u, op_id: %llu",
+					su->saAmfSUPresenceState, op_id);
+			goto done;
+		}
+		if (su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) {
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+					"SU is disabled (%u), repair it or check node status, op_id: %llu",
+					su->saAmfSUOperState, op_id);
+			goto done;
+		}
+		SaAisErrorT rc = SA_AIS_OK;
+		rc = su->check_su_stability();
+                if (rc != SA_AIS_OK) {
+                        report_admin_op_error(immoi_handle, invocation,
+                                              SA_AIS_ERR_TRY_AGAIN, NULL,
+                                              "Some entity is unstable, Operation cannot "
+                                              "be performed on '%s'"
+                                              "Check syslog for entity details", su->name.value);
+                        goto done;
+                }
+	}
 	node = su->get_node_ptr();
 	if (node->admin_node_pend_cbk.admin_oper != 0) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
@@ -1228,6 +1295,9 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 		break;
 	case SA_AMF_ADMIN_REPAIRED:
 		su->repaired(immoi_handle, invocation);
+		break;
+	case SA_AMF_ADMIN_RESTART:
+		su->restart(immoi_handle, invocation);
 		break;
 	default:
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,
@@ -2231,3 +2301,66 @@ AVD_COMP *AVD_SU::su_get_comp_undergoing_restart_admin_op()
 	}
 	return NULL;
 }
+
+/**
+ * @brief Checks if SU consists of only restartable components.
+ *        For a restartable component saAmfCompDisableRestart=0.
+ * @return true/false.
+ */
+bool AVD_SU::su_all_comps_restartable()
+{
+	for (const auto& comp : list_of_comp) {
+		if (comp->comp_info.comp_restart == true)
+			return false;
+	}
+	return true;
+}
+/**
+ * @brief Checks if any non-restartable comp in SU is assigned..
+ *        For a non restartable comp saAmfCompDisableRestart=1.
+ * @return true/false.
+ */
+bool AVD_SU::is_any_non_restartable_comp_assigned()
+{
+	for (const auto& comp : list_of_comp) {
+		if ((comp->comp_info.comp_restart == true) && 
+				(is_comp_assigned_any_csi(comp) == true))
+			return true;
+	}
+	return false;
+}
+
+/**
+ * @brief Checks if all PI comps of the SU are restartable.
+ *        For a restartable component saAmfCompDisableRestart=0.
+ * @return true/false.
+ */
+bool AVD_SU::all_pi_comps_restartable()
+{
+	for (const auto& comp : list_of_comp) {
+		AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&comp->saAmfCompType));
+		if ((comp->comp_info.comp_restart == true) &&
+				((comptype->saAmfCtCompCategory == SA_AMF_COMP_SA_AWARE) ||
+				 (IS_COMP_PROXIED_PI(comptype->saAmfCtCompCategory))))
+			return false;
+	}
+	return true;
+}
+
+/**
+ * @brief Checks if all PI comps of the SU are non-restartable.
+ *        For a restartable component saAmfCompDisableRestart=1.
+ * @return true/false.
+ */
+bool AVD_SU::all_pi_comps_nonrestartable()
+{
+	for (const auto& comp : list_of_comp) {
+		AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&comp->saAmfCompType));
+		if ((comp->comp_info.comp_restart == false) &&
+				((comptype->saAmfCtCompCategory == SA_AMF_COMP_SA_AWARE) ||
+				 (IS_COMP_PROXIED_PI(comptype->saAmfCtCompCategory))))
+			return false;
+	}
+	return true;
+}
+

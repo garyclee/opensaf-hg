@@ -938,6 +938,41 @@ void process_su_si_response_for_comp(AVD_SU *su)
 	}
 	TRACE_LEAVE();
 }
+
+/**
+ * @brief       For RESTART admin operation on an assigned non-restartable SU,
+ *              AMFD will first switchover its assignment before asking AMFND to restart
+ *              the SU. After getting response for the deletion of assignments from
+ *              AMFND, this function will send restart request to AMFND.
+ *              For a assigned non-restartable NPI SU, deletion of assigment itself marks the 
+ *		end of operation because such a SU is instantiated only when
+ *              active assignments are given to it.
+ * @param[in]   ptr to SU (AVD_SU).
+ */
+void process_su_si_response_for_surestart_admin_op(AVD_SU *su)
+{
+	TRACE_ENTER();
+	if (su->list_of_susi != NULL) {
+		if ((su->saAmfSUPreInstantiable == false) && (su->su_all_comps_restartable() == false) &&
+				(su->list_of_susi->state == SA_AMF_HA_QUIESCED)) {
+			TRACE("For NPI '%s' RESTART admin op ends.",su->name.value);
+			su->complete_admin_op(SA_AIS_OK);
+		}
+		TRACE_LEAVE();
+		return;
+	}
+
+	uint32_t rc = avd_admin_op_msg_snd(&su->name, AVSV_SA_AMF_SU, SA_AMF_ADMIN_RESTART,
+                                        su->su_on_node);
+	if (rc != NCSCC_RC_SUCCESS)  {
+		report_admin_op_error(avd_cb->immOiHandle, su->pend_cbk.invocation, 
+				SA_AIS_ERR_TIMEOUT, NULL,
+				"Admin op request send failed '%s'", su->name.value);
+		su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
+		su->pend_cbk.invocation = 0;
+	}
+	TRACE_LEAVE();
+}
 /*****************************************************************************
  * Function: avd_su_si_assign_func
  *
@@ -1377,6 +1412,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				} 
 				else
 					su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
+			} else if (su->pend_cbk.admin_oper == SA_AMF_ADMIN_RESTART) {
+				process_su_si_response_for_surestart_admin_op(su);
 			}
 		} else if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
 			/* decrement the SU count on the node undergoing admin operation  
