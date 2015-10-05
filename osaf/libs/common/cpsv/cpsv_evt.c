@@ -29,10 +29,882 @@
 */
 
 #include "cpsv.h"
+#include "cpa_tmr.h"
 
 FUNC_DECLARATION(CPSV_CKPT_DATA);
 static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uint32_t svc_id);
 static uint32_t cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id);
+static void cpsv_convert_sec_id_to_string(char *sec_id_str, SaCkptSectionIdT *section_id);
+
+const char *cpa_evt_str[] = {
+	"STRING_0",
+
+	/* Locally generated events */
+	"CPA_EVT_MDS_INFO",	/* CPND UP/DOWN Info */
+	"CPA_EVT_TIME_OUT",	/* Time out events at CPA */
+
+	/* Events from CPND */
+
+	"CPA_EVT_ND2A_CKPT_INIT_RSP",
+	"CPA_EVT_ND2A_CKPT_FINALIZE_RSP",
+	"CPA_EVT_ND2A_CKPT_OPEN_RSP",
+	"CPA_EVT_ND2A_CKPT_CLOSE_RSP",
+	"CPA_EVT_ND2A_CKPT_UNLINK_RSP",
+	"CPA_EVT_ND2A_CKPT_RDSET_RSP",
+	"CPA_EVT_ND2A_CKPT_AREP_SET_RSP",
+	"CPA_EVT_ND2A_CKPT_STATUS",
+
+	"CPA_EVT_ND2A_SEC_CREATE_RSP",
+	"CPA_EVT_ND2A_SEC_DELETE_RSP",
+	"CPA_EVT_ND2A_SEC_EXPTIME_RSP",
+	"CPA_EVT_ND2A_SEC_ITER_RSP",
+	"CPA_EVT_ND2A_SEC_ITER_GETNEXT_RSP",
+
+	"CPA_EVT_ND2A_CKPT_ARRIVAL_NTFY",
+
+	"CPA_EVT_ND2A_CKPT_DATA_RSP",
+
+	"CPA_EVT_ND2A_CKPT_SYNC_RSP",
+	"CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND",
+	"CPA_EVT_ND2A_CKPT_READ_ACK_RSP",
+	"CPA_EVT_ND2A_CKPT_BCAST_SEND",
+	"CPA_EVT_D2A_NDRESTART",
+	"CPA_EVT_CB_DUMP",
+	"CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT",
+	"CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED",
+	"CPA_EVT_ND2A_ACT_CKPT_INFO_BCAST_SEND",
+};
+
+const char* cpnd_evt_str[] = {
+	/* events from CPA to CPND */
+	"CPND_EVT_BASE = 1",
+
+	/* Locally generated events */
+	"CPND_EVT_MDS_INFO",	/* CPA/CPND/CPD UP/DOWN Info */
+	"CPND_EVT_TIME_OUT",	/* Time out event */
+
+	/* Events from CPA */
+
+	"CPND_EVT_A2ND_CKPT_INIT",	/* Checkpoint Initialization */
+	"CPND_EVT_A2ND_CKPT_FINALIZE",	/* Checkpoint finalization */
+	"CPND_EVT_A2ND_CKPT_OPEN",	/* Checkpoint Open Request */
+	"CPND_EVT_A2ND_CKPT_CLOSE",	/* Checkpoint Close Call */
+	"CPND_EVT_A2ND_CKPT_UNLINK",	/* Checkpoint Unlink Call */
+	"CPND_EVT_A2ND_CKPT_RDSET",	/* Checkpoint Retention duration set call */
+	"CPND_EVT_A2ND_CKPT_AREP_SET",	/* Checkpoint Active Replica Set Call */
+	"CPND_EVT_A2ND_CKPT_STATUS_GET",	/* Checkpoint Status Get Call */
+
+	"CPND_EVT_A2ND_CKPT_SECT_CREATE",	/* Checkpoint Section Create Call */
+	"CPND_EVT_A2ND_CKPT_SECT_DELETE",	/* Checkpoint Section Delete Call */
+	"CPND_EVT_A2ND_CKPT_SECT_EXP_SET",	/* Checkpoint Section Expiry Time Set Call */
+	"CPND_EVT_A2ND_CKPT_SECT_ITER_REQ",	/*Checkpoint Section iteration initialize */
+
+	"CPND_EVT_A2ND_CKPT_ITER_GETNEXT",	/* Checkpoint Section Iternation Getnext Call */
+
+	"CPND_EVT_A2ND_ARRIVAL_CB_REG",	/* Checkpoint Arrival Callback Register*/
+
+	"CPND_EVT_A2ND_CKPT_WRITE",	/* Checkpoint Write And overwrite call */
+	"CPND_EVT_A2ND_CKPT_READ",	/* Checkpoint Read Call  */
+	"CPND_EVT_A2ND_CKPT_SYNC",	/* Checkpoint Synchronize call */
+
+	"CPND_EVT_A2ND_CKPT_READ_ACK",	/* read ack */
+
+	/* Events from other CPND */
+
+/* ckpt status information from active */
+
+	"CPND_EVT_ND2ND_ACTIVE_STATUS",	/* ckpt status info from active */
+	"CPND_EVT_ND2ND_ACTIVE_STATUS_ACK",	/* ckpt status ack from active */
+
+	"CPND_EVT_ND2ND_CKPT_SYNC_REQ",	/* rqst from ND to ND(A) to sync ckpt */
+	"CPND_EVT_ND2ND_CKPT_ACTIVE_SYNC",	/* CPND(A) sync updts to All the Ckpts */
+/* Section Create Stuff.... */
+
+	"CPSV_EVT_ND2ND_CKPT_SECT_CREATE_REQ",
+	"CPSV_EVT_ND2ND_CKPT_SECT_CREATE_RSP",
+	"CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP",
+
+	"CPSV_EVT_ND2ND_CKPT_SECT_DELETE_REQ",
+	"CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP",
+
+	"CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_REQ",
+	"CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_RSP",
+
+	"CPSV_EVT_ND2ND_CKPT_SECT_DATA_ACCESS_REQ",	/* for write,read,overwrite */
+	"CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_REQ",
+	"CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP",
+
+	/* Events from CPD to CPND */
+
+	"CPND_EVT_D2ND_CKPT_INFO",	/* Rsp to the ckpt open call */
+	"CPND_EVT_D2ND_CKPT_SIZE",
+	"CPND_EVT_D2ND_CKPT_REP_ADD",	/* ckpt open is propogated to other NDs */
+	"CPND_EVT_D2ND_CKPT_REP_DEL",	/* ckpt close is propogated to other NDs */
+
+	"CPSV_D2ND_RESTART",	/* for cpnd redundancy */
+	"CPSV_D2ND_RESTART_DONE",	/* for cpnd redundancy */
+
+	"CPND_EVT_D2ND_CKPT_CREATE",	/* ckpt create evt for Non-collocated */
+	"CPND_EVT_D2ND_CKPT_DESTROY",	/* The ckpt destroy evt for Non-colloc */
+	"CPND_EVT_D2ND_CKPT_DESTROY_ACK",
+	"CPND_EVT_D2ND_CKPT_CLOSE_ACK",	/* Rsps to ckpt close call */
+	"CPND_EVT_D2ND_CKPT_UNLINK",	/* Unlink info */
+	"CPND_EVT_D2ND_CKPT_UNLINK_ACK",	/* Rsps to ckpt unlink call */
+	"CPND_EVT_D2ND_CKPT_RDSET",	/* Retention duration to set */
+	"CPND_EVT_D2ND_CKPT_RDSET_ACK",	/* Retention duration Ack */
+	"CPND_EVT_D2ND_CKPT_ACTIVE_SET",	/* for colloc ckpts,mark the Active */
+	"CPND_EVT_D2ND_CKPT_ACTIVE_SET_ACK",	/* Ack for active replica set rqst */
+
+	"CPND_EVT_ND2ND_CKPT_ITER_NEXT_REQ",
+	"CPND_EVT_ND2ND_CKPT_ACTIVE_ITERNEXT",
+
+	"CPND_EVT_CB_DUMP",
+
+   "CPND_EVT_D2ND_CKPT_NUM_SECTIONS",
+   "CPND_EVT_A2ND_CKPT_REFCNTSET",        /* ref cont opener's set call */
+   "CPND_EVT_A2ND_CKPT_LIST_UPDATE",	/* Checkpoint ckpt list update Call */
+   "CPND_EVT_A2ND_ARRIVAL_CB_UNREG",	/* Checkpoint Arrival Callback Un-Register*/
+};
+
+const char* cpd_evt_str[] = {
+	"CPD_EVT_BASE = 1",
+
+	/* Locally generated Events */
+	"CPD_EVT_MDS_INFO",
+
+	/* Events from CPND */
+	"CPD_EVT_ND2D_CKPT_CREATE",
+	"CPD_EVT_ND2D_CKPT_UNLINK",
+	"CPD_EVT_ND2D_CKPT_RDSET",
+	"CPD_EVT_ND2D_ACTIVE_SET",
+	"CPD_EVT_ND2D_CKPT_CLOSE",
+	"CPD_EVT_ND2D_CKPT_DESTROY",
+	"CPD_EVT_ND2D_CKPT_USR_INFO",
+	"CPD_EVT_ND2D_CKPT_SYNC_INFO",
+	"CPD_EVT_ND2D_CKPT_SEC_INFO_UPD",
+	"CPD_EVT_ND2D_CKPT_MEM_USED",
+	"CPD_EVT_CB_DUMP",
+	"CPD_EVT_MDS_QUIESCED_ACK_RSP",
+	"CPD_EVT_ND2D_CKPT_DESTROY_BYNAME",
+	"CPD_EVT_ND2D_CKPT_CREATED_SECTIONS",
+	"CPD_EVT_TIME_OUT",
+};
+
+/****************************************************************************\
+ PROCEDURE NAME : cpsv_evt_str
+
+ DESCRIPTION    : This routine will return the event string from the event
+
+ ARGUMENTS      : evt : event .
+
+ RETURNS        : None
+
+ NOTES          : 
+\*****************************************************************************/
+char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
+{
+	if (evt == NULL)
+		return "Invalid evt";
+
+	if (o_evt_str == NULL)
+		return "Invalid o_evt_str";
+
+	switch (evt->type) {
+	case CPSV_EVT_TYPE_CPND:
+		switch (evt->info.cpnd.type) {
+		case CPND_EVT_MDS_INFO:
+		{
+			CPSV_MDS_INFO *info = &evt->info.cpnd.info.mds_info;
+			snprintf(o_evt_str, len, "CPND_EVT_MDS_INFO(dest=0x%lX, svc=%s(%u) - %s(%u))", 
+				info->dest,
+				info->svc_id == NCSMDS_SVC_ID_CPA ? "CPA" :
+				info->svc_id == NCSMDS_SVC_ID_CPND ? "CPND" :
+				info->svc_id == NCSMDS_SVC_ID_CPD ? "CPD" : "OTHER",
+			       	info->svc_id,	
+			       	info->change == NCSMDS_NO_ACTIVE ? "NO_ACT" : 
+				info->change == NCSMDS_NEW_ACTIVE ? "NEW_ACT" :
+				info->change == NCSMDS_UP ? "UP" :
+				info->change == NCSMDS_DOWN ? "DOWN" :
+			        info->change == NCSMDS_RED_UP ? "RED_UP" :
+				info->change == NCSMDS_RED_DOWN ? "RED_DOWN" :
+				info->change == NCSMDS_CHG_ROLE ? "CHG_ROLE" : "OTHER",
+				info->change);	
+			break;
+		}
+		case CPND_EVT_TIME_OUT:
+		{
+			CPND_TMR_INFO *info = &evt->info.cpnd.info.tmr_info;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_TIME_OUT(type=%s(%u))", info->ckpt_id,
+				info->type == CPND_TMR_TYPE_RETENTION ? "RETENTION" :
+				info->type == CPND_TMR_TYPE_SEC_EXPI ? "SEC_EXPI" :
+				info->type == CPND_ALL_REPL_RSP_EXPI ? "REPL_RSP_EXPI" :
+				info->type == CPND_TMR_OPEN_ACTIVE_SYNC ? "OPEN_ACTIVE_SYNC" :
+				info->type == CPND_TMR_TYPE_NON_COLLOC_RETENTION ? "NON_COL_RETENTION" : "INVALID",
+				info->type);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_INIT:
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_INIT");
+			break;
+		case CPND_EVT_A2ND_CKPT_FINALIZE:
+		{
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_FINALIZE(hdl=%llu)", evt->info.cpnd.info.finReq.client_hdl);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_OPEN:
+		{
+			CPSV_A2ND_OPEN_REQ *info = &evt->info.cpnd.info.openReq;
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_OPEN(hdl=%llu, %s)",
+				info->client_hdl, info->ckpt_name.value);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_CLOSE:
+		{
+			CPSV_A2ND_CKPT_CLOSE *info = &evt->info.cpnd.info.closeReq;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_CLOSE(hdl=%llu, flags=0x%X)",
+				info->ckpt_id, info->client_hdl, info->ckpt_flags);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_UNLINK:
+		{
+			CPSV_A2ND_CKPT_UNLINK *info = &evt->info.cpnd.info.ulinkReq;
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_UNLINK(%s)", info->ckpt_name.value);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_RDSET:
+		{
+			CPSV_A2ND_RDSET *info = &evt->info.cpnd.info.rdsetReq;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_RDSET(reten_time=%llu)", info->ckpt_id, info->reten_time);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_AREP_SET:
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_AREP_SET", evt->info.cpnd.info.arsetReq.ckpt_id);
+			break;
+		case CPND_EVT_A2ND_CKPT_STATUS_GET:
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_STATUS_GET", evt->info.cpnd.info.statReq.ckpt_id);
+			break;
+		case CPND_EVT_A2ND_CKPT_SECT_CREATE:
+		{
+			CPSV_CKPT_SECT_CREATE *info = &evt->info.cpnd.info.sec_creatReq;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, info->sec_attri.sectionId);
+
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_SECT_CREATE(sec_id=%s, mdest=0x%lX)", 
+				info->ckpt_id, sec_id, info->agent_mdest);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_SECT_DELETE:
+		{
+			CPSV_A2ND_SECT_DELETE *info = &evt->info.cpnd.info.sec_delReq;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->sec_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_SECT_DELETE(sec_id=%s)", 
+				info->ckpt_id, sec_id);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_SECT_EXP_SET:
+		{
+			CPSV_A2ND_SECT_EXP_TIME *info = &evt->info.cpnd.info.sec_expset;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->sec_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_SECT_EXP_SET(sec_id=%s, exp_time=%llu)", 
+				info->ckpt_id, sec_id, info->exp_time);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_SECT_ITER_REQ:
+		{
+			CPSV_CKPT_STATUS_GET *info = &evt->info.cpnd.info.sec_iter_req;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_SECT_ITER_REQ", info->ckpt_id );
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_ITER_GETNEXT:
+		{
+			CPSV_A2ND_SECT_ITER_GETNEXT *info = &evt->info.cpnd.info.iter_getnext;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->section_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_ITER_GETNEXT(sec_id=%s, filter=%s, n_secs_trav=%u, exp_tmr=%llu)", 
+				info->ckpt_id, sec_id,
+				info->filter == SA_CKPT_SECTIONS_FOREVER ? "FOREVER" :
+				info->filter == SA_CKPT_SECTIONS_LEQ_EXPIRATION_TIME ? "LEQ_EX_TIME" :
+				info->filter == SA_CKPT_SECTIONS_GEQ_EXPIRATION_TIME ? "GEQ_EX_TIME" :
+				info->filter == SA_CKPT_SECTIONS_CORRUPTED ? "CORRUPTED" :
+				info->filter == SA_CKPT_SECTIONS_ANY ? "ANY" : "INVALID",
+				info->n_secs_trav, info->exp_tmr);
+			break;
+		}
+		case CPND_EVT_A2ND_ARRIVAL_CB_REG:
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_ARRIVAL_CB_REG(hdl=%llu)", evt->info.cpnd.info.arr_ntfy.client_hdl);
+			break;
+		case CPND_EVT_A2ND_CKPT_WRITE:
+		{
+			CPSV_CKPT_ACCESS *info = &evt->info.cpnd.info.ckpt_write;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_WRITE(type=%s(%d))", info->ckpt_id, 
+				info->type == CPSV_CKPT_ACCESS_WRITE ? "WRITE" :
+				info->type == CPSV_CKPT_ACCESS_OVWRITE ? "OVWRITE" : "INVALID",
+				info->type); 
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_READ:
+		{
+			CPSV_CKPT_ACCESS *info = &evt->info.cpnd.info.ckpt_read;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_READ()", info->ckpt_id);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_SYNC:
+		{
+			CPSV_A2ND_CKPT_SYNC *info = &evt->info.cpnd.info.ckpt_sync;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_SYNC(hdl=%llu, open=%s)",
+				info->ckpt_id, info->client_hdl, info->is_ckpt_open ? "true" : "false");
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_READ_ACK:
+			/* This message is not used */
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_READ_ACK");
+			break;
+		case CPND_EVT_ND2ND_ACTIVE_STATUS:
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_ND2ND_ACTIVE_STATUS", evt->info.cpnd.info.stat_get.ckpt_id);
+			break;
+		case CPND_EVT_ND2ND_ACTIVE_STATUS_ACK:
+		{
+			CPSV_CKPT_STATUS *info = &evt->info.cpnd.info.status;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_ND2ND_ACTIVE_STATUS_ACK(err=%u, mem_used=%llu, "
+				"n_secs=%u, ckpt_size=%llu, reten=%llu, max_sec=%u)", info->ckpt_id, info->error, 
+				info->status.memoryUsed, info->status.numberOfSections, 
+				info->status.checkpointCreationAttributes.checkpointSize,
+				info->status.checkpointCreationAttributes.retentionDuration,
+				info->status.checkpointCreationAttributes.maxSections);
+			break;
+		}
+		case CPND_EVT_ND2ND_CKPT_SYNC_REQ:
+		{
+			CPSV_A2ND_CKPT_SYNC *info = &evt->info.cpnd.info.sync_req;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_ND2ND_CKPT_SYNC_REQ(hdl=%llu, open=%s)",
+				info->ckpt_id, info->client_hdl, info->is_ckpt_open ? "true" : "false");
+			break;
+		}
+		case CPND_EVT_ND2ND_CKPT_ACTIVE_SYNC:
+		{
+			CPSV_CKPT_ACCESS *info = &evt->info.cpnd.info.ckpt_nd2nd_sync;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_ND2ND_CKPT_ACTIVE_SYNC(seq_no=%u, last_seq=%u, is_open=%s)", 
+				info->ckpt_id, info->seqno, info->last_seq, info->ckpt_sync.is_ckpt_open == true ? "true" : "false");
+			break;
+		}
+		case CPSV_EVT_ND2ND_CKPT_SECT_CREATE_REQ:
+		{
+			CPSV_CKPT_SECT_CREATE *info = &evt->info.cpnd.info.active_sec_creat;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, info->sec_attri.sectionId);
+
+			snprintf(o_evt_str, len, "[%llu] CPSV_EVT_ND2ND_CKPT_SECT_CREATE_REQ(sec_id=%s)", 
+				info->ckpt_id, sec_id);
+			break;
+		}
+		case CPSV_EVT_ND2ND_CKPT_SECT_CREATE_RSP:
+		{
+			CPSV_CKPT_SECT_INFO *info = &evt->info.cpnd.info.active_sec_creat_rsp;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->sec_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPSV_EVT_ND2ND_CKPT_SECT_CREATE_RSP(err=%u, sec_id=%s)",
+				info->ckpt_id, info->error, sec_id);
+			break;
+		}
+		case CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP:
+		{
+			CPSV_CKPT_SECT_INFO *info = &evt->info.cpnd.info.active_sec_creat_rsp;
+			snprintf(o_evt_str, len, "[%llu] CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP(err=%u)",
+				info->ckpt_id, info->error);
+			break;
+		}
+		case CPSV_EVT_ND2ND_CKPT_SECT_DELETE_REQ:
+		{
+			CPSV_CKPT_SECT_INFO *info = &evt->info.cpnd.info.sec_delete_req;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->sec_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPSV_EVT_ND2ND_CKPT_SECT_DELETE_REQ(sec_id=%s)", 
+				info->ckpt_id, sec_id);
+			break;
+		}
+		case CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP:
+			snprintf(o_evt_str, len, "CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP(err=%u)", evt->info.cpnd.info.sec_delete_rsp.error);
+			break;
+		case CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_REQ:
+		{
+			CPSV_A2ND_SECT_EXP_TIME *info = &evt->info.cpnd.info.sec_exp_set;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->sec_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_REQ(sec_id=%s, exp_tmr=%llu)", 
+				info->ckpt_id, sec_id, info->exp_time);
+			break;
+		}
+		case CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_RSP:
+			snprintf(o_evt_str, len, "CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_RSP(err=%u)", 
+				evt->info.cpnd.info.sec_exp_rsp.error);
+			break;
+		case CPSV_EVT_ND2ND_CKPT_SECT_DATA_ACCESS_REQ:
+			/* This message is not used */
+			snprintf(o_evt_str, len, "CPSV_EVT_ND2ND_CKPT_SECT_DATA_ACCESS_REQ");
+			break;
+		case CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_REQ:
+		{
+			CPSV_CKPT_ACCESS *info = &evt->info.cpnd.info.ckpt_nd2nd_data;
+			snprintf(o_evt_str, len, "[%llu] CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_REQ(type=%s(%d), seqno=%u, last_seq=%u)",
+				info->ckpt_id, 
+				info->type == CPSV_CKPT_ACCESS_WRITE ? "WRITE" :
+				info->type == CPSV_CKPT_ACCESS_OVWRITE ? "OVWRITE" : "INVALID",
+				info->type, info->seqno, info->last_seq);
+			break;
+		}
+		case CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP:
+		{
+			CPSV_ND2A_DATA_ACCESS_RSP *info = &evt->info.cpnd.info.ckpt_nd2nd_data_rsp;
+			snprintf(o_evt_str, len, "[%llu] CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP(err=%u, type=%s(%u))",
+				info->ckpt_id, 
+				info->type == CPSV_DATA_ACCESS_WRITE_RSP ? info->error : info->info.ovwrite_error.error,
+				info->type == CPSV_DATA_ACCESS_WRITE_RSP? "WRITE_RSP" : "OVWRITE_RSP", info->type);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_INFO:
+		{
+			CPSV_D2ND_CKPT_INFO *info = &evt->info.cpnd.info.ckpt_info;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_INFO(err=%u, active=0x%X, create_rep=%s)",
+				info->ckpt_id, info->error, m_NCS_NODE_ID_FROM_MDS_DEST(info->active_dest), 
+				info->ckpt_rep_create == true ? "true" : "false");
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_SIZE:
+		{
+			CPSV_CKPT_USED_SIZE *info = &evt->info.cpnd.info.ckpt_mem_size;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_SIZE(err=%u, used_mem=%u)", 
+				info->ckpt_id, info->error, info->ckpt_used_size);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_REP_ADD:
+		{
+			CPSV_CKPT_DESTLIST_INFO *info = &evt->info.cpnd.info.ckpt_add;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_REP_ADD(dest=0x%X, active=0x%X, restart=%s, dest_cnt=%u)",
+				info->ckpt_id, m_NCS_NODE_ID_FROM_MDS_DEST(info->mds_dest),
+				m_NCS_NODE_ID_FROM_MDS_DEST(info->active_dest), 
+				info->is_cpnd_restart == true ? "true" : "false", info->dest_cnt);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_REP_DEL:
+		{
+			CPSV_CKPT_DEST_INFO *info = &evt->info.cpnd.info.ckpt_del;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_REP_DEL(node_id=0x%X)",
+				info->ckpt_id, m_NCS_NODE_ID_FROM_MDS_DEST(info->mds_dest));
+			break;
+		}
+		case CPSV_D2ND_RESTART:
+			snprintf(o_evt_str, len, "[%llu] CPSV_D2ND_RESTART", evt->info.cpnd.info.cpnd_restart.ckpt_id);
+			break;
+		case CPSV_D2ND_RESTART_DONE:
+		{
+			CPSV_CKPT_DESTLIST_INFO *info = &evt->info.cpnd.info.cpnd_restart_done;
+			snprintf(o_evt_str, len, "[%llu] CPSV_D2ND_RESTART_DONE(active=0x%X, dest_cnt=%u)", info->ckpt_id,
+				m_NCS_NODE_ID_FROM_MDS_DEST(info->active_dest), info->dest_cnt);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_CREATE:
+		{
+			CPSV_D2ND_CKPT_CREATE *info = &evt->info.cpnd.info.ckpt_create;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_CREATE(%s, create_rep=%s, active=0x%X)",
+				info->ckpt_info.ckpt_id, info->ckpt_name.value,
+			       	info->ckpt_info.ckpt_rep_create ? "true" : "false",
+				m_NCS_NODE_ID_FROM_MDS_DEST(info->ckpt_info.active_dest));
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_DESTROY:
+		{
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_DESTROY", evt->info.cpnd.info.ckpt_destroy.ckpt_id);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_DESTROY_ACK:
+		{
+			snprintf(o_evt_str, len, "CPND_EVT_D2ND_CKPT_DESTROY_ACK(err=%u)", evt->info.cpnd.info.destroy_ack.error);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_CLOSE_ACK:
+			/* This message is not used */
+			snprintf(o_evt_str, len, "CPND_EVT_D2ND_CKPT_CLOSE_ACK");
+			break;
+		case CPND_EVT_D2ND_CKPT_UNLINK:
+		{
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_UNLINK", evt->info.cpnd.info.ckpt_ulink.ckpt_id);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_UNLINK_ACK:
+		{
+			CPSV_SAERR_INFO *info = &evt->info.cpnd.info.ulink_ack;
+			snprintf(o_evt_str, len, "CPND_EVT_D2ND_CKPT_UNLINK_ACK(err=%u)", info->error);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_RDSET:
+		{
+			CPSV_CKPT_RDSET *info = &evt->info.cpnd.info.rdset;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_RDSET(%s(%u), time=%llu)",
+				info->ckpt_id,
+			       	info->type == CPSV_CKPT_RDSET_INFO ? "INFO" :
+				info->type == CPSV_CKPT_RDSET_START ? "START" :
+				info->type == CPSV_CKPT_RDSET_STOP ? "STOP" : "OTHER",
+				info->type, info->reten_time);
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_RDSET_ACK:
+			snprintf(o_evt_str, len, "CPND_EVT_D2ND_CKPT_RDSET_ACK(err=%u)", evt->info.cpnd.info.rdset_ack.error);
+			break;
+		case CPND_EVT_D2ND_CKPT_ACTIVE_SET:
+		{
+			CPSV_CKPT_DEST_INFO *info = &evt->info.cpnd.info.active_set;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_ACTIVE_SET(active_node = 0x%X)",
+				info->ckpt_id, m_NCS_NODE_ID_FROM_MDS_DEST(info->mds_dest));
+			break;
+		}
+		case CPND_EVT_D2ND_CKPT_ACTIVE_SET_ACK:
+			/* This message is not used */
+			snprintf(o_evt_str, len, "CPND_EVT_D2ND_CKPT_ACTIVE_SET_ACK(err=%u)",
+				evt->info.cpnd.info.arep_ack.error);
+			break;
+		case CPND_EVT_ND2ND_CKPT_ITER_NEXT_REQ:
+		{
+			CPSV_A2ND_SECT_ITER_GETNEXT *info = &evt->info.cpnd.info.iter_getnext;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->section_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_ND2ND_CKPT_ITER_NEXT_REQ(sec_id=%s, filter=%s, n_secs_trav=%u, exp_tmr=%llu)", 
+				info->ckpt_id, sec_id,
+				info->filter == SA_CKPT_SECTIONS_FOREVER ? "FOREVER" :
+				info->filter == SA_CKPT_SECTIONS_LEQ_EXPIRATION_TIME ? "LEQ_EX_TIME" :
+				info->filter == SA_CKPT_SECTIONS_GEQ_EXPIRATION_TIME ? "GEQ_EX_TIME" :
+				info->filter == SA_CKPT_SECTIONS_CORRUPTED ? "CORRUPTED" :
+				info->filter == SA_CKPT_SECTIONS_ANY ? "ANY" : "INVALID",
+				info->n_secs_trav, info->exp_tmr);
+
+			break;
+		}
+		case CPND_EVT_ND2ND_CKPT_ACTIVE_ITERNEXT:
+			snprintf(o_evt_str, len, "CPND_EVT_ND2ND_CKPT_ACTIVE_ITERNEXT");
+			break;
+		case CPND_EVT_CB_DUMP:
+			snprintf(o_evt_str, len, "CPND_EVT_CB_DUMP");
+			break;
+		case CPND_EVT_D2ND_CKPT_NUM_SECTIONS:
+		{
+			CPSV_CKPT_NUM_SECTIONS *info = &evt->info.cpnd.info.ckpt_sections;
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_NUM_SECTIONS", info->ckpt_id);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_REFCNTSET:
+		{
+			CPSV_A2ND_REFCNTSET *info = &evt->info.cpnd.info.refCntsetReq;
+			snprintf(o_evt_str, len, " CPND_EVT_A2ND_CKPT_REFCNTSET(no_of_nodes=%u)", info->no_of_nodes);
+			break;
+		}
+		case CPND_EVT_A2ND_CKPT_LIST_UPDATE:
+		{
+			CPSV_A2ND_CKPT_LIST_UPDATE *info = &evt->info.cpnd.info.ckptListUpdate;
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_LIST_UPDATE(hdl=%llu, %s)", 
+				info->client_hdl, info->ckpt_name.value);
+			break;
+		}
+		case CPND_EVT_A2ND_ARRIVAL_CB_UNREG:
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_ARRIVAL_CB_UNREG(hdl=%llu)", 
+				evt->info.cpnd.info.arr_ntfy.client_hdl);
+			break;
+		default:
+			snprintf(o_evt_str, len, "INVALID_CPND_TYPE(type = %d)", evt->info.cpnd.type);
+			break;
+		}
+		break;
+
+	case CPSV_EVT_TYPE_CPA:
+		switch (evt->info.cpa.type) {
+		case CPA_EVT_MDS_INFO:
+			/* This message type is not used */
+			snprintf(o_evt_str, len, "CPA_EVT_MDS_INFO");
+			break;
+		case CPA_EVT_TIME_OUT:
+		{
+			CPA_TMR_INFO *info = &evt->info.cpa.info.tmr_info;
+			snprintf(o_evt_str, len, "CPA_EVT_TIME_OUT(hdl=%llu, type=%s(%u))",
+				info->client_hdl, 
+				info->type == CPA_TMR_TYPE_CPND_RETENTION ? "RETENTION" :
+				info->type == CPA_TMR_TYPE_OPEN ? "OPEN" :
+				info->type == CPA_TMR_TYPE_SYNC ? "SYNC" : "INVALID", 
+				info->type);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_INIT_RSP:
+		{
+			CPSV_ND2A_INIT_RSP *info = &evt->info.cpa.info.initRsp;
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_INIT_RSP(hdl=%llu, err=%u)", info->ckptHandle, info->error);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_FINALIZE_RSP:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_FINALIZE_RSP(err=%u)", evt->info.cpa.info.finRsp.error);
+			break;
+		case CPA_EVT_ND2A_CKPT_OPEN_RSP:
+		{
+			CPSV_ND2A_OPEN_RSP *info = &evt->info.cpa.info.openRsp;
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_OPEN_RSP(err=%u, active=0x%X, gbl_hdl=%llu, lcl_hdl=0x%llX)",
+				info->error, m_NCS_NODE_ID_FROM_MDS_DEST(info->active_dest), info->gbl_ckpt_hdl, info->lcl_ckpt_hdl);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_CLOSE_RSP:
+		{
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_CLOSE_RSP(err=%u)", evt->info.cpa.info.closeRsp.error);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_UNLINK_RSP:
+		{
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_UNLINK_RSP(err=%u)", evt->info.cpa.info.ulinkRsp.error);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_RDSET_RSP:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_RDSET_RSP(err=%u)", evt->info.cpa.info.rdsetRsp.error);
+			break;
+		case CPA_EVT_ND2A_CKPT_AREP_SET_RSP:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_AREP_SET_RSP(err=%u)", evt->info.cpa.info.arsetRsp.error);
+			break;
+		case CPA_EVT_ND2A_CKPT_STATUS:
+		{
+			CPSV_CKPT_STATUS *info = &evt->info.cpa.info.status;
+			snprintf(o_evt_str, len, "[%llu] CPA_EVT_ND2A_CKPT_STATUS(err=%u, mem_used=%llu, "
+				"n_secs=%u, ckpt_size=%llu, reten=%llu, max_sec=%u)", info->ckpt_id, info->error, 
+				info->status.memoryUsed, info->status.numberOfSections, 
+				info->status.checkpointCreationAttributes.checkpointSize,
+				info->status.checkpointCreationAttributes.retentionDuration,
+				info->status.checkpointCreationAttributes.maxSections);
+
+			break;
+		}
+		case CPA_EVT_ND2A_SEC_CREATE_RSP:
+		{
+			CPSV_CKPT_SECT_INFO *info = &evt->info.cpa.info.sec_creat_rsp;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->sec_id);
+
+			snprintf(o_evt_str, len, "[%llu] CPA_EVT_ND2A_SEC_CREATE_RSP(err=%u, sec_id=%s,  mdest=%lX)", 
+				info->ckpt_id, info->error, sec_id, info->agent_mdest);
+			break;
+		}
+		case CPA_EVT_ND2A_SEC_DELETE_RSP:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_SEC_DELETE_RSP(err=%u)", evt->info.cpa.info.sec_delete_rsp.error);
+			break;
+		case CPA_EVT_ND2A_SEC_EXPTIME_RSP:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_SEC_EXPTIME_RSP(err=%u)", evt->info.cpa.info.sec_exptmr_rsp.error);
+			break;
+		case CPA_EVT_ND2A_SEC_ITER_RSP:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_SEC_ITER_RSP(err=%u)", evt->info.cpa.info.sec_iter_rsp.error);
+			break;
+		case CPA_EVT_ND2A_SEC_ITER_GETNEXT_RSP:
+		{
+			CPSV_ND2A_SECT_ITER_GETNEXT_RSP *info = &evt->info.cpa.info.iter_next_rsp;
+			char sec_id[MAX_SEC_ID_LEN] = {0};
+			cpsv_convert_sec_id_to_string(sec_id, &info->sect_desc.sectionId);
+
+			snprintf(o_evt_str, len, "[%llu] CPA_EVT_ND2A_SEC_ITER_GETNEXT_RSP(err=%u, iter_id=%llu, sec_id=%s, n_secs_trav=%u)", 
+				info->ckpt_id, info->error, info->iter_id, sec_id, info->n_secs_trav);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_ARRIVAL_NTFY:
+		{
+			CPSV_ND2A_ARRIVAL_MSG *info = &evt->info.cpa.info.arr_msg;
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_ARRIVAL_NTFY(hdl=%llu)", info->client_hdl);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_DATA_RSP:
+		{
+			CPSV_ND2A_DATA_ACCESS_RSP *info = &evt->info.cpa.info.sec_data_rsp;
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_DATA_RSP(err=%u, type=%s(%u))", 
+				info->type == CPSV_DATA_ACCESS_OVWRITE_RSP ? info->info.ovwrite_error.error : info->error,
+				info->type == CPSV_DATA_ACCESS_LCL_READ_RSP ? "LCL_READ" :
+				info->type == CPSV_DATA_ACCESS_RMT_READ_RSP ? "RMT_READ" :
+				info->type == CPSV_DATA_ACCESS_WRITE_RSP ? "WRITE" :
+				info->type == CPSV_DATA_ACCESS_OVWRITE_RSP ? "OVWRITE" : "INVALID", info->type);
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_SYNC_RSP:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_SYNC_RSP(err=%u)",
+				evt->info.cpa.info.sync_rsp.error);
+			break;
+		case CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND:
+		{
+			CPSV_CKPT_DEST_INFO *info = &evt->info.cpa.info.ackpt_info;
+			snprintf(o_evt_str, len, "[%llu] CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND(active_node=0x%X)",
+				info->ckpt_id, m_NCS_NODE_ID_FROM_MDS_DEST(info->mds_dest));
+			break;
+		}
+		case CPA_EVT_ND2A_CKPT_READ_ACK_RSP:
+			/* This message type is not used */
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_READ_ACK_RSP");
+			break;
+		case CPA_EVT_ND2A_CKPT_BCAST_SEND:
+		{
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_BCAST_SEND");
+			break;
+		}
+		case CPA_EVT_D2A_NDRESTART:
+		{
+			CPSV_CKPT_DEST_INFO *info = &evt->info.cpa.info.ackpt_info;
+			snprintf(o_evt_str, len, "[%llu] CPA_EVT_D2A_NDRESTART(node=0x%X)", 
+				info->ckpt_id, m_NCS_NODE_ID_FROM_MDS_DEST(info->mds_dest));
+			break;
+		}
+		case CPA_EVT_CB_DUMP:
+			snprintf(o_evt_str, len, "CPA_EVT_CB_DUMP");
+			break;
+		case CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT");
+			break;
+		case CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED:
+			snprintf(o_evt_str, len, "CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED");
+			break;
+		case CPA_EVT_ND2A_ACT_CKPT_INFO_BCAST_SEND:
+		{
+			CPSV_CKPT_DEST_INFO *info = &evt->info.cpa.info.ackpt_info;
+			snprintf(o_evt_str, len, "[%llu] CPA_EVT_ND2A_ACT_CKPT_INFO_BCAST_SEND(active_node=0x%X)",
+				info->ckpt_id, m_NCS_NODE_ID_FROM_MDS_DEST(info->mds_dest));
+			break;
+		}
+		default:
+			snprintf(o_evt_str, len, "INVALID_CPA_TYPE(type = %d)", evt->info.cpa.type);
+			break;
+		}			
+		break;
+
+	case CPSV_EVT_TYPE_CPD:
+		switch (evt->info.cpd.type) {
+		case CPD_EVT_MDS_INFO:
+		{
+			CPSV_MDS_INFO *info = &evt->info.cpd.info.mds_info;
+			snprintf(o_evt_str, len, "CPD_EVT_MDS_INFO(dest=0x%lX, svc=%s(%u) - %s(%u))", 
+				info->dest,
+				info->svc_id == NCSMDS_SVC_ID_CPA ? "CPA" :
+				info->svc_id == NCSMDS_SVC_ID_CPND ? "CPND" :
+				info->svc_id == NCSMDS_SVC_ID_CPD ? "CPD" : "OTHER",
+			       	info->svc_id,	
+			       	info->change == NCSMDS_NO_ACTIVE ? "NO_ACT" : 
+				info->change == NCSMDS_NEW_ACTIVE ? "NEW_ACT" :
+				info->change == NCSMDS_UP ? "UP" :
+				info->change == NCSMDS_DOWN ? "DOWN" :
+			        info->change == NCSMDS_RED_UP ? "RED_UP" :
+				info->change == NCSMDS_RED_DOWN ? "RED_DOWN" :
+				info->change == NCSMDS_CHG_ROLE ? "CHG_ROLE" : "OTHERS",
+				info->change);	
+			break;
+
+		}
+		case CPD_EVT_ND2D_CKPT_CREATE:
+		{
+			CPSV_ND2D_CKPT_CREATE *info = &evt->info.cpd.info.ckpt_create;
+			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_CREATE(%s, creationFlags=0x%X)",
+				info->ckpt_name.value, info->attributes.creationFlags);
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_UNLINK:
+		{
+			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_UNLINK(%s)", evt->info.cpd.info.ckpt_ulink.ckpt_name.value);
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_RDSET:
+		{
+			CPSV_CKPT_RDSET *info = &evt->info.cpd.info.rd_set;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_RDSET(reten_time=%llu)", info->ckpt_id, info->reten_time);
+			break;
+		}
+		case CPD_EVT_ND2D_ACTIVE_SET:
+		{
+			CPSV_CKPT_DEST_INFO *info = &evt->info.cpd.info.arep_set;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_ACTIVE_SET(node=0x%X)", info->ckpt_id,
+				m_NCS_NODE_ID_FROM_MDS_DEST(info->mds_dest));
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_CLOSE:
+		{
+			CPSV_CKPT_ID_INFO *info = &evt->info.cpd.info.ckpt_close;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_CLOSE", info->ckpt_id);
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_DESTROY:
+		{
+			CPSV_CKPT_ID_INFO *info = &evt->info.cpd.info.ckpt_destroy;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_DESTROY", info->ckpt_id);
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_USR_INFO:
+		{
+			CPSV_ND2D_USR_INFO *info = &evt->info.cpd.info.ckpt_usr_info;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_USR_INFO(open_flags=0x%X, %s(%u), ckpt_flags=%u)",
+				info->ckpt_id, info->ckpt_flags, 
+				info->info_type == CPSV_USR_INFO_CKPT_OPEN ? "OPEN" :
+				info->info_type == CPSV_USR_INFO_CKPT_CLOSE ? "CLOSE" :
+				info->info_type == CPSV_USR_INFO_CKPT_OPEN_FIRST ? "OPEN_FIRST" :
+				info->info_type == CPSV_USR_INFO_CKPT_CLOSE_LAST ? "CLOSE_LAST" : "OTHER",
+				info->info_type, info->ckpt_flags);
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_SYNC_INFO:
+			/* This message type is not used */
+			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_SYNC_INFO");
+			break;
+		case CPD_EVT_ND2D_CKPT_SEC_INFO_UPD:
+		{
+			CPSV_CKPT_SEC_INFO_UPD *info = &evt->info.cpd.info.ckpt_sec_info;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_SEC_INFO_UPD(type=%s(%u))", info->ckpt_id,
+				info->info_type == CPSV_CKPT_SEC_INFO_CREATE ? "CREATE" :
+				info->info_type == CPSV_CKPT_SEC_INFO_DELETE ? "DELETE" : "OTHER",
+				info->info_type);
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_MEM_USED:
+		{
+			CPSV_CKPT_USED_SIZE *info = &evt->info.cpd.info.ckpt_mem_used;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_MEM_USED(err=%u, used_size=%u)", 
+				info->ckpt_id, info->error, info->ckpt_used_size);
+			break;
+		}
+		case CPD_EVT_CB_DUMP:
+			snprintf(o_evt_str, len, "CPD_EVT_CB_DUMP");
+			break;
+		case CPD_EVT_MDS_QUIESCED_ACK_RSP:
+			snprintf(o_evt_str, len, "CPD_EVT_MDS_QUIESCED_ACK_RSP");
+			break;
+		case CPD_EVT_ND2D_CKPT_DESTROY_BYNAME:
+		{
+			CPSV_CKPT_NAME_INFO *info = &evt->info.cpd.info.ckpt_destroy_byname;
+			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_DESTROY_BYNAME(ckpt=%s)", info->ckpt_name.value);
+			break;
+		}
+		case CPD_EVT_ND2D_CKPT_CREATED_SECTIONS:
+		{
+			CPSV_CKPT_NUM_SECTIONS *info = &evt->info.cpd.info.ckpt_created_sections;
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_CREATED_SECTIONS(err=%u, num_secs=%u)", 
+				info->ckpt_id, info->error, info->ckpt_num_sections);
+			break;
+		}
+		case CPD_EVT_TIME_OUT:
+		{
+			CPD_TMR_INFO *info = &evt->info.cpd.info.tmr_info;
+			snprintf(o_evt_str, len, "CPD_EVT_TIME_OUT(type=%u, node=0x%X)", info->type, 
+				m_NCS_NODE_ID_FROM_MDS_DEST(info->info.cpnd_dest));
+			break;
+		}
+		default:
+			snprintf(o_evt_str, len, "INVALID_CPD_TYPE(type = %d)", evt->info.cpd.type);
+			break;
+		}
+		break;
+	default:
+		snprintf(o_evt_str, len, "INVALID_EVENT_TYPE(type = %d)", evt->type);
+	}
+	return o_evt_str;
+}
 
 /****************************************************************************\
  PROCEDURE NAME : cpsv_evt_cpy
@@ -1275,3 +2147,93 @@ uint32_t cpsv_dbg_sink(uint32_t l, char *f, uint32_t code, char *str)
 }
 
 #endif
+
+/*****************************************************************************
+
+  PROCEDURE NAME:    cpsv_evt_trace
+
+  DESCRIPTION: This function log the event message.
+
+  ARGUMENTS:
+  char *svc_name : service name
+  CPSV_EVT_REQUEST request : event request (send, receive, or broadcast)
+  CPSV_EVT *evt : pointer to event content
+  MDS_DEST mds_dest : MDS destination
+
+  RETURNS:
+
+*****************************************************************************/
+void cpsv_evt_trace(char *svc_name, CPSV_EVT_REQUEST request, CPSV_EVT *evt, MDS_DEST mds_dest)
+{
+	char evt_str[MAX_EVT_STR_LEN] = {0};
+	int node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
+
+	cpsv_evt_str(evt, evt_str, MAX_EVT_STR_LEN);
+
+	if ((evt->type == CPSV_EVT_TYPE_CPA && evt->info.cpa.type == CPA_EVT_MDS_INFO) ||
+		(evt->type == CPSV_EVT_TYPE_CPND && evt->info.cpnd.type == CPND_EVT_MDS_INFO) || 
+		(evt->type == CPSV_EVT_TYPE_CPND && evt->info.cpd.type == CPD_EVT_MDS_INFO)) {
+		switch (request)
+		{
+		case CPSV_EVT_SEND:
+			TRACE("%s ==>> %s", svc_name, evt_str);
+			break;
+		case CPSV_EVT_RECEIVE:
+			TRACE("%s <<== %s", svc_name, evt_str);
+			break;
+		default:
+			TRACE("Invalid CPSV_EVT_REQUEST");
+			break;
+		}
+	} else {
+		switch (request)
+		{
+		case CPSV_EVT_SEND:
+			if (node_id != 0)
+				TRACE("%s ==>> %s to node 0x%X", svc_name, evt_str, node_id);
+			else
+				TRACE("%s ==>> %s to CPD", svc_name, evt_str);
+			break;
+		case CPSV_EVT_RECEIVE:
+			if (node_id != 0)
+				TRACE("%s <<== %s from node 0x%X", svc_name, evt_str, node_id);
+			else
+				TRACE("%s <<== %s from CPD", svc_name, evt_str);
+			break;
+		case CPSV_EVT_BROADCAST:
+			TRACE("%s ==>> %s (broadcast)", svc_name, evt_str);
+			break;
+		default:
+			TRACE("Invalid CPSV_EVT_REQUEST");
+			break;
+		}
+
+	}
+}
+
+/*****************************************************************************
+
+  PROCEDURE NAME:    cpsv_convert_sec_id_to_string
+
+  DESCRIPTION: This function convert section_id to string
+
+  ARGUMENTS:
+  char *sec_id_str : output section id string
+  SaCkptSectionIdT *section_id : pointer to section id
+
+  RETURNS:
+
+*****************************************************************************/
+void cpsv_convert_sec_id_to_string(char *sec_id_str, SaCkptSectionIdT *section_id)
+{
+	if (section_id != NULL && section_id->id != NULL && section_id->idLen != 0) {
+		strncpy(sec_id_str, "0x", MAX_SEC_ID_LEN);
+		for(int i = 0; i < section_id->idLen; i++) {
+			char element_id[3] = {0};
+			sprintf(element_id, "%02X", *(section_id->id + i));
+			strncat(sec_id_str, element_id, MAX_SEC_ID_LEN);
+		}
+	} else {
+		strncpy(sec_id_str, "(NULL)", MAX_SEC_ID_LEN);
+	}
+}

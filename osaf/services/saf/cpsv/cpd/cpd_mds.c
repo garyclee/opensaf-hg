@@ -658,6 +658,9 @@ uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
 	mds_info.info.svc_send.info.rsp.i_sender_dest = s_info->dest;
 
 	/* send the message */
+
+	cpsv_evt_trace("cpd", CPSV_EVT_SEND, evt, s_info->dest);
+
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpd mds send failed for dest %"PRIu64,s_info->dest);
@@ -707,12 +710,18 @@ uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = to_dest;
 
 	/* send the message */
+
+	cpsv_evt_trace("cpd", CPSV_EVT_SEND, i_evt, to_dest);
+
 	rc = ncsmds_api(&mds_info);
-	if (rc == NCSCC_RC_SUCCESS)
+	if (rc == NCSCC_RC_SUCCESS) {
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
+		cpsv_evt_trace("cpd", CPSV_EVT_RECEIVE, *o_evt, to_dest);
+	}
 	else {
 		LOG_ER("cpd mds send failed for dest %"PRIu64,to_dest);
 	}
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -753,6 +762,9 @@ uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EV
 	mds_info.info.svc_send.info.snd.i_to_dest = to_dest;
 
 	/* send the message */
+
+	cpsv_evt_trace("cpd", CPSV_EVT_SEND, evt, to_dest);
+
 	rc = ncsmds_api(&mds_info);
 
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -796,6 +808,8 @@ uint32_t cpd_mds_bcast_send(CPD_CB *cb, CPSV_EVT *evt, NCSMDS_SVC_ID to_svc)
 	info.info.svc_send.i_sendtype = MDS_SENDTYPE_BCAST;
 	info.info.svc_send.i_to_svc = to_svc;
 	info.info.svc_send.info.bcast.i_bcast_scope = NCSMDS_SCOPE_NONE;
+
+	cpsv_evt_trace("cpd", CPSV_EVT_BROADCAST, evt, 0);
 
 	res = ncsmds_api(&info);
 	if (res != NCSCC_RC_SUCCESS) {

@@ -45,6 +45,16 @@ typedef enum cpsv_evt_type {
 } CPSV_EVT_TYPE;
 
 /*****************************************************************************
+ * Event Request of CPSV
+ *****************************************************************************/
+typedef enum cpsv_evt_request {
+	CPSV_EVT_SEND,
+	CPSV_EVT_RECEIVE,
+	CPSV_EVT_BROADCAST,
+} CPSV_EVT_REQUEST;
+
+
+/*****************************************************************************
  * Event Type of CPA 
  *****************************************************************************/
 typedef enum cpa_evt_type {
@@ -431,6 +441,8 @@ typedef struct cpsv_a2nd_ckpt_list_update {
 #define CPSV_CKPT_ACCESS_SYNC            0x3
 
 #define MAX_SYNC_TRANSFER_SIZE           (30 * 1024 * 1024)
+#define MAX_EVT_STR_LEN                  512
+#define MAX_SEC_ID_LEN                   50
 
 typedef struct cpsv_ckpt_access {
 	SaUint32T type;		/* --- 0-write/1-overwrite/2-read/3-sync ----- */
@@ -850,6 +862,7 @@ typedef struct cpsv_evt {
 } CPSV_EVT;
 
 /* Event Declerations */
+char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len);
 uint32_t cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uint32_t svc_id);
 uint32_t cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub);
 uint32_t cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt);
@@ -864,6 +877,7 @@ uint32_t cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *i
 uint32_t cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba, MDS_CLIENT_MSG_FORMAT_VER i_msg_fmt_ver);
 uint32_t cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
 uint32_t cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba, MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver);
+void cpsv_evt_trace(char *svc_name, CPSV_EVT_REQUEST request, CPSV_EVT *evt, MDS_DEST mds_dest);
 
 /*
  * m_CPSV_DBG_SINK

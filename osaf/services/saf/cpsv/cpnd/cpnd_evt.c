@@ -176,9 +176,8 @@ void cpnd_process_evt(CPSV_EVT *evt)
 		cpnd_evt_destroy(evt);
 		return;
 	}
-#if (CPSV_DEBUG == 1)
-	TRACE("%s", cpnd_evt_str[evt->info.cpnd.type]);
-#endif
+
+	cpsv_evt_trace("cpnd", CPSV_EVT_RECEIVE, evt, evt->sinfo.dest);
 
 	switch (evt->info.cpnd.type) {
 	case CPND_EVT_MDS_INFO:
@@ -3424,8 +3423,8 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CP
 	}
 
 	if (cp_node->create_attrib.creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED) {
-	send_evt.info.cpnd.info.ckpt_nd2nd_sync.num_of_elmts = cp_node->replica_info.n_secs;
-	rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
+		send_evt.info.cpnd.info.ckpt_nd2nd_sync.num_of_elmts = cp_node->replica_info.n_secs;
+		rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 	}
 
 	if ((cp_node->replica_info.n_secs > 0) && !cpnd_ckpt_sec_empty(&cp_node->replica_info)) {
@@ -3440,7 +3439,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sync_req(CPND_CB *cb, CPND_EVT *evt, CP
 	}
 
 	if (evt->info.sync_req.is_ckpt_open) {
-		/* Add the new replica's MDS_DEST to the dest liot of this replica */
+		/* Add the new replica's MDS_DEST to the dest list of this replica */
 		rc = cpnd_ckpt_remote_cpnd_add(cp_node, sinfo->dest);
 	}
 
