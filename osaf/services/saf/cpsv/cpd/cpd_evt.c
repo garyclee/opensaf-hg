@@ -96,9 +96,8 @@ void cpd_process_evt(CPSV_EVT *evt)
 		TRACE_LEAVE();
 		return;
 	}
-#if ( CPSV_DEBUG == 1)
-	TRACE("%s", cpd_evt_str[evt->info.cpd.type]);
-#endif
+
+	cpsv_evt_trace("cpd", CPSV_EVT_RECEIVE, evt, evt->sinfo.dest);
 
 	switch (evt->info.cpd.type) {
 	case CPD_EVT_MDS_INFO:

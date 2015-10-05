@@ -732,6 +732,8 @@ static void cpa_proc_active_nd_down_bcast(CPA_CB *cb, CPA_EVT *evt)
 uint32_t cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	cpsv_evt_trace("cpa", CPSV_EVT_RECEIVE, evt, evt->sinfo.dest);
 	
 	TRACE_ENTER();
 	switch (evt->info.cpa.type) {

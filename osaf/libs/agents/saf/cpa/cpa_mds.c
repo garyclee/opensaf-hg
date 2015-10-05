@@ -763,11 +763,15 @@ uint32_t cpa_mds_msg_sync_send(uint32_t cpa_mds_hdl, MDS_DEST *destination, CPSV
 	mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;	/* timeto wait in 10ms */
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = *destination;
 
+	cpsv_evt_trace("cpa", CPSV_EVT_SEND, i_evt, *destination);
+
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 
-	if (rc == NCSCC_RC_SUCCESS)
+	if (rc == NCSCC_RC_SUCCESS) {
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
+		cpsv_evt_trace("cpa", CPSV_EVT_RECEIVE, *o_evt, *destination);
+	}
 
 	TRACE_LEAVE2("retval = %u",rc);
 	return rc;
@@ -809,6 +813,8 @@ uint32_t cpa_mds_msg_send(uint32_t cpa_mds_hdl, MDS_DEST *destination, CPSV_EVT 
 
 	/* fill the send rsp strcuture */
 	mds_info.info.svc_send.info.snd.i_to_dest = *destination;
+
+	cpsv_evt_trace("cpa", CPSV_EVT_SEND, i_evt, *destination);
 
 	/* send the message */
 	rc = ncsmds_api(&mds_info);

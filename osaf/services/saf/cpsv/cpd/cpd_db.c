@@ -403,6 +403,7 @@ uint32_t cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_
 			return NCSCC_RC_FAILURE;
 		}
 	}
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
