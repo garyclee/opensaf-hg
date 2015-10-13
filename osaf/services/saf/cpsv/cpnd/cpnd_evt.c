@@ -859,7 +859,10 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		    cp_node->create_attrib.maxSections == 1) {
 
 			SaCkptSectionIdT sec_id = SA_CKPT_DEFAULT_SECTION_ID;
-			cpnd_ckpt_sec_add(cp_node, &sec_id, 0, 0);
+			if(cpnd_ckpt_sec_add(cp_node, &sec_id, 0, 0) == NULL) {
+				TRACE_4("cpnd ckpt rep create failed with rc:%d",rc);
+				goto ckpt_shm_node_free_error;
+			}
 		}
 		if (out_evt) {
 			cpnd_evt_destroy(out_evt);
@@ -4060,7 +4063,11 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 		}
 		if (evt->info.ckpt_create.ckpt_info.ckpt_rep_create == true && cp_node->create_attrib.maxSections == 1) {
 			SaCkptSectionIdT sec_id = SA_CKPT_DEFAULT_SECTION_ID;
-			cpnd_ckpt_sec_add(cp_node, &sec_id, 0, 0);
+			if (cpnd_ckpt_sec_add(cp_node, &sec_id, 0, 0) == NULL) {
+				TRACE_4("cpnd ckpt rep create failed with rc:%d",rc);
+				goto ckpt_replica_create_failed;
+			}
+				
 		}
 		goto end;
 	}
