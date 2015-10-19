@@ -36,7 +36,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 	int i = 0;
 	const char *dn = (char*)opdata->objectName.value;
 
-	while ((mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (strcmp(mod->modAttr.attrName, "saAmfHctDefPeriod") == 0) {
 			SaTimeT value = *((SaTimeT *)mod->modAttr.attrValues[0]);
 			if (value < SA_TIME_ONE_SECOND) {
@@ -83,7 +83,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	std::set<AVD_AVND*, NodeNameCompare> node_set;
 
 	AVD_COMP *comp = comp_type->list_of_comp;
-	while (comp != NULL) {
+	while (comp != nullptr) {
 		node_set.insert(comp->su->su_on_node);
 		TRACE("comp name %s on node %s", comp->comp_info.name.value,  comp->su->su_on_node->name.value);
 		comp = comp->comp_type_list_comp_next;
@@ -92,7 +92,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	std::set<AVD_AVND*>::iterator it;
 	for (it = node_set.begin(); it != node_set.end(); ++it) {
 		i = 0;
-		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			AVSV_PARAM_INFO param;
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 			SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
@@ -164,7 +164,7 @@ static void hct_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_hctype_constructor(void)
 {
-	avd_class_impl_set("SaAmfHealthcheckType", NULL, NULL,
+	avd_class_impl_set("SaAmfHealthcheckType", nullptr, nullptr,
 		hct_ccb_completed_cb, hct_ccb_apply_cb);
 }
 

@@ -44,14 +44,14 @@
   
   1)A SI which is not participating in SI dependency can take 
     AVD_SI_NO_DEPENDENCY for si_dep_state.
-    Such a SI will have si->spons_list as NULL and si->num_dependents 
+    Such a SI will have si->spons_list as nullptr and si->num_dependents 
     as zero.
   2)A SI with only dependents and no sponsors can take following values 
     for si_dep_state:
 
     AVD_SI_NO_DEPENDENCY,
     AVD_SI_ASSIGNED.
-    Such a SI will have si->spons_list as NULL.
+    Such a SI will have si->spons_list as nullptr.
 
   3)A SI having sponsors as well as dependents can take all values for 
     si_dep_states except AVD_SI_NO_DEPENDENCY.
@@ -157,7 +157,7 @@
 #include <susi.h>
 #include <proc.h>
 
-AmfDb<std::pair<std::string, std::string>, AVD_SI_DEP> *sidep_db = NULL;
+AmfDb<std::pair<std::string, std::string>, AVD_SI_DEP> *sidep_db = nullptr;
 extern void avd_sg_npm_stdbysu_role_change(AVD_SU *su);
 extern uint32_t avd_sg_get_curr_act_cnt(AVD_SG *sg);
 
@@ -263,7 +263,7 @@ void avd_sidep_si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state)
  **************************************************************************/
 bool sidep_is_si_active(AVD_SI *si)
 {
-	AVD_SU_SI_REL *susi = NULL;
+	AVD_SU_SI_REL *susi = nullptr;
 	bool si_active = false;
 
 	TRACE_ENTER2("'%s'", si->name.value);
@@ -297,18 +297,18 @@ bool sidep_is_si_active(AVD_SI *si)
  **************************************************************************/
 void sidep_spons_list_del(AVD_SI_DEP *si_dep_rec)
 {
-	AVD_SI *dep_si = NULL;
-	AVD_SPONS_SI_NODE *spons_si_node = NULL;
-	AVD_SPONS_SI_NODE *del_spons_si_node = NULL;
+	AVD_SI *dep_si = nullptr;
+	AVD_SPONS_SI_NODE *spons_si_node = nullptr;
+	AVD_SPONS_SI_NODE *del_spons_si_node = nullptr;
 
 	TRACE_ENTER();
 
 	/* Dependent SI should be active, if not return error */
 	dep_si = avd_si_get(&si_dep_rec->dep_name);
-	osafassert(dep_si != NULL); 
+	osafassert(dep_si != nullptr); 
 
 	/* SI doesn't depend on any other SIs */
-	osafassert (dep_si->spons_si_list != NULL);
+	osafassert (dep_si->spons_si_list != nullptr);
 
 	spons_si_node = dep_si->spons_si_list;
 
@@ -319,7 +319,7 @@ void sidep_spons_list_del(AVD_SI_DEP *si_dep_rec)
 		spons_si_node->si->num_dependents --;
 		delete spons_si_node;
 	} else {
-		while (spons_si_node->next != NULL) {
+		while (spons_si_node->next != nullptr) {
 			if (m_CMP_HORDER_SANAMET(spons_si_node->next->si->name,
 						 si_dep_rec->spons_si->name) != 0) {
 				spons_si_node = spons_si_node->next;
@@ -406,7 +406,7 @@ void sidep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *dep_si)
 	AVD_SPONS_SI_NODE *spons_si_node = dep_si->spons_si_list;
 
 	while (spons_si_node) {
-		if ((rec = sidep_db_find(&spons_si_node->si->name, &dep_si->name)) != NULL) {
+		if ((rec = sidep_db_find(&spons_si_node->si->name, &dep_si->name)) != nullptr) {
 			if (rec->si_dep_timer.is_active == true) {
 				avd_stop_tmr(cb, &rec->si_dep_timer);
 				TRACE("Tolerance timer stopped for '%s'", dep_si->name.value);
@@ -439,7 +439,7 @@ void sidep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *dep_si)
  **************************************************************************/
 uint32_t sidep_unassign_dependent(AVD_CL_CB *cb, AVD_SI *si)
 {
-	AVD_SU_SI_REL *susi = NULL;
+	AVD_SU_SI_REL *susi = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("'%s'", si->name.value);
@@ -454,7 +454,7 @@ uint32_t sidep_unassign_dependent(AVD_CL_CB *cb, AVD_SI *si)
 
 		susi = susi->si_next;
 	}
-	if(si->spons_si_list == NULL)
+	if(si->spons_si_list == nullptr)
 		avd_sidep_si_dep_state_set(si, AVD_SI_NO_DEPENDENCY);
 	else
 		avd_sidep_si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
@@ -529,7 +529,7 @@ done:
  *****************************************************************************************/
 uint32_t sidep_si_dep_state_evt_send(AVD_CL_CB *cb, AVD_SI *si, AVD_EVT_TYPE evt_type)
 {
-	AVD_EVT *evt = NULL;
+	AVD_EVT *evt = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("si:'%s' evt_type:%u", si->name.value, evt_type);
@@ -595,8 +595,8 @@ void avd_sidep_stdby_amfd_tol_timer_expiry(AVD_SI *spons_si, AVD_SI *dep_si)
 */
 void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_SI *si = NULL;
-	AVD_SI *spons_si = NULL;
+	AVD_SI *si = nullptr;
+	AVD_SI *spons_si = nullptr;
 
 	TRACE_ENTER();
 
@@ -605,7 +605,7 @@ void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	si = avd_si_get(&evt->info.tmr.dep_si_name);
 	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
 
-	if ((si == NULL) || (spons_si == NULL)) {
+	if ((si == nullptr) || (spons_si == nullptr)) {
 		/* Nothing to do here as SI/spons-SI itself lost their existence */
 		TRACE("Sponsor SI or Dependent SI not exists");
 		goto done;
@@ -698,11 +698,11 @@ done:
 bool avd_sidep_all_sponsors_active(AVD_SI *si)
 {
 	bool spons_state = true;
-	AVD_SPONS_SI_NODE *spons_si_node = NULL;
+	AVD_SPONS_SI_NODE *spons_si_node = nullptr;
 
 	TRACE_ENTER2("'%s'", si->name.value);
 
-	for (spons_si_node = si->spons_si_list; spons_si_node != NULL;
+	for (spons_si_node = si->spons_si_list; spons_si_node != nullptr;
 			spons_si_node = spons_si_node->next) {
 		if (!sidep_is_si_active(spons_si_node->si)) {
 			spons_state = false;
@@ -733,7 +733,7 @@ void avd_sidep_update_si_dep_state_for_all_sis(AVD_SG *sg)
 	for (const auto& si : sg->list_of_si) {
 
 		/*Avoid screening if si is neither a sponsor si nor a dependent si*/
-		if ((si->spons_si_list != NULL) || (si->num_dependents > 0)) 
+		if ((si->spons_si_list != nullptr) || (si->num_dependents > 0)) 
 			sidep_si_screen_si_dependencies(si);
 	}
 	TRACE_LEAVE();
@@ -782,20 +782,20 @@ void sidep_si_screen_si_dependencies(AVD_SI *si)
  **/
 void avd_sidep_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_SI *dep_si = NULL;
+	AVD_SI *dep_si = nullptr;
 	bool role_failover_pending = false;
 
 	TRACE_ENTER();
 
-	if (evt == NULL) {
-		LOG_NO("Got NULL event");
+	if (evt == nullptr) {
+		LOG_NO("Got nullptr event");
 		goto done; 
 	}
 
 	osafassert(evt->rcv_evt == AVD_EVT_ASSIGN_SI_DEP_STATE);
 
 	dep_si = avd_si_get(&evt->info.tmr.dep_si_name);
-	if (dep_si == NULL)
+	if (dep_si == nullptr)
 		goto done;
 
 	/* Take action only when dependent sg fsm is stable.  When sg becomes
@@ -813,7 +813,7 @@ void avd_sidep_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if ((dep_si->list_of_sisu) && (dep_si->list_of_sisu->state == SA_AMF_HA_STANDBY) &&
 			(dep_si->list_of_sisu->fsm != AVD_SU_SI_STATE_UNASGN) &&
-			(dep_si->list_of_sisu->si_next == NULL)) {
+			(dep_si->list_of_sisu->si_next == nullptr)) {
 		role_failover_pending = true;
 	}
 
@@ -853,14 +853,14 @@ done:
  **************************************************************************/
 void sidep_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_SI *si = NULL;
+	AVD_SI *si = nullptr;
 
 	TRACE_ENTER();
 
 	si = avd_si_get(&evt->info.tmr.dep_si_name);
 
 	if (!si) {
-		LOG_ER("Received si NULL");
+		LOG_ER("Received si nullptr");
 		goto done;
 	}
 
@@ -912,12 +912,12 @@ done:
  **************************************************************************/
 void sidep_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, AVD_SI_DEP *si_dep_rec)
 {
-	AVD_SI *spons_si = NULL;
+	AVD_SI *spons_si = nullptr;
 
 	TRACE_ENTER2("si:'%s', si_dep_state:'%s'",dep_si->name.value,depstatename[dep_si->si_dep_state]);
 
 	spons_si = avd_si_get(&si_dep_rec->spons_name);
-	osafassert(spons_si != NULL);
+	osafassert(spons_si != nullptr);
 
 	/* Take action only when both sponsor and dependent belongs to same sg 
 	   or if dependent sg fsm is stable.  When sg becomes stable, 
@@ -982,7 +982,7 @@ void sidep_take_action_on_dependents(AVD_SI *si)
 			continue;
 
 		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
-		osafassert(dep_si != NULL);
+		osafassert(dep_si != nullptr);
 
 		/* Take action only when both sponsor and dependent belongs to same sg 
 		   or if dependent sg fsm is stable.  When sg becomes stable, 
@@ -1027,7 +1027,7 @@ AVD_SI_DEP *get_sidep_with_same_dep(AVD_SI_DEP *sidep)
 		if (m_CMP_HORDER_SANAMET(tmp_sidep->dep_name, sidep->dep_name) == 0)
 			return tmp_sidep;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*****************************************************************************
@@ -1047,11 +1047,11 @@ AVD_SI_DEP *get_sidep_with_same_dep(AVD_SI_DEP *sidep)
  **************************************************************************/
 uint32_t sidep_cyclic_dep_find(AVD_SI_DEP *sidep)
 {
-	AVD_SI_DEP_NAME_LIST *start = NULL;
-	AVD_SI_DEP_NAME_LIST *temp = NULL;
-	AVD_SI_DEP_NAME_LIST *last = NULL;
+	AVD_SI_DEP_NAME_LIST *start = nullptr;
+	AVD_SI_DEP_NAME_LIST *temp = nullptr;
+	AVD_SI_DEP_NAME_LIST *last = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	AVD_SI_DEP *tmp_sidep = NULL;
+	AVD_SI_DEP *tmp_sidep = nullptr;
 
 	TRACE_ENTER();
 
@@ -1065,7 +1065,7 @@ uint32_t sidep_cyclic_dep_find(AVD_SI_DEP *sidep)
 
 	start = new AVD_SI_DEP_NAME_LIST;
 	start->si_name = sidep->spons_name;
-	start->next = NULL;
+	start->next = nullptr;
 	last = start;
 	LOG_NO("got si :%s",start->si_name.value);
 	
@@ -1078,7 +1078,7 @@ uint32_t sidep_cyclic_dep_find(AVD_SI_DEP *sidep)
 				break;
 		}
 
-		while ((tmp_sidep != NULL) && (m_CMP_HORDER_SANAMET(tmp_sidep->dep_name, last->si_name) == 0)) { 
+		while ((tmp_sidep != nullptr) && (m_CMP_HORDER_SANAMET(tmp_sidep->dep_name, last->si_name) == 0)) { 
 			if (m_CMP_HORDER_SANAMET(sidep->dep_name, tmp_sidep->spons_name) == 0) {
 				/* Cyclic dependency found */
 				rc = NCSCC_RC_SUCCESS;
@@ -1088,16 +1088,16 @@ uint32_t sidep_cyclic_dep_find(AVD_SI_DEP *sidep)
 			/* Search if this SI name already exist in the list */
 			temp = start;
 			if (m_CMP_HORDER_SANAMET(temp->si_name, tmp_sidep->spons_name) != 0) {
-				while ((temp->next != NULL) &&
+				while ((temp->next != nullptr) &&
 						(m_CMP_HORDER_SANAMET(temp->next->si_name, tmp_sidep->spons_name) != 0)) {
 					temp = temp->next;
 				}
 
 				/* SI Name not found in the list, add it */
-				if (temp->next == NULL) {
+				if (temp->next == nullptr) {
 					temp->next = new AVD_SI_DEP_NAME_LIST;
 					temp->next->si_name = tmp_sidep->spons_name;
-					temp->next->next = NULL;
+					temp->next->next = nullptr;
 				}
 			}
 			tmp_sidep = get_sidep_with_same_dep(tmp_sidep);
@@ -1138,11 +1138,11 @@ static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_DEP *sidep_obj)
 
         /* find first occurence and step past it */
         p = strstr((char *)tmp.value, "safSi=") + 1;
-        if (p == NULL) return false;
+        if (p == nullptr) return false;
 
         /* find second occurence, an error if not found */
         p = strstr(p, "safSi=");
-        if (p == NULL) return false;
+        if (p == nullptr) return false;
 
         *(p - 1) = '\0';        /* null terminate at comma before SI */
 
@@ -1150,7 +1150,7 @@ static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_DEP *sidep_obj)
 
         /* Skip past the RDN tag */
         p = strchr((char *)tmp.value, '=') + 1;
-        if (p == NULL) return false;
+        if (p == nullptr) return false;
 
         /*
          ** Example DN, need to copy to get rid of back slash escaped commas.
@@ -1190,8 +1190,8 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 	}
 
 	/* Sponsor SI need to exist */
-	if ((spons_si = avd_si_get(&sidep.spons_name)) == NULL) {
-		if (opdata == NULL) {
+	if ((spons_si = avd_si_get(&sidep.spons_name)) == nullptr) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in model and '%s'"
 					" depends on it",
 					sidep.spons_name.value, sidep.dep_name.value);
@@ -1199,7 +1199,7 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 		}
 
 		/* SI does not exist in current model, check CCB */
-		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sidep.spons_name)) == NULL) {
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sidep.spons_name)) == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in existing model or"
 					" in CCB and '%s' depends on it",
 					 sidep.spons_name.value, sidep.dep_name.value);
@@ -1217,15 +1217,15 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 	if (spons_saAmfSIRank == 0)
 		spons_saAmfSIRank = ~0U; /* zero means lowest possible rank */
 
-	if ((dep_si = avd_si_get(&sidep.dep_name)) == NULL) {
-		if (opdata == NULL) {
+	if ((dep_si = avd_si_get(&sidep.dep_name)) == nullptr) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in model",
 					sidep.dep_name.value);
 			goto done;
 		}
 
 		/* SI does not exist in current model, check CCB */
-		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sidep.dep_name)) == NULL) {
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sidep.dep_name)) == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in existing"
 					" model or in CCB", sidep.dep_name.value);
 			goto done;
@@ -1242,7 +1242,7 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 	}
 
 	/* don't allow to dynamically create a dependency from an assigned SI already in the model */
-	if ((opdata != NULL) && dependent_si_is_assigned) {
+	if ((opdata != nullptr) && dependent_si_is_assigned) {
 		report_ccb_validation_error(opdata, "SI dep validation: adding dependency from existing SI '%s'"
 				" to SI '%s' is not allowed",
 				sidep.spons_name.value, sidep.dep_name.value);
@@ -1274,19 +1274,19 @@ done:
  
 static AVD_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **attributes)
 {
-	AVD_SI_DEP tmp_sidep, *sidep = NULL;
+	AVD_SI_DEP tmp_sidep, *sidep = nullptr;
 
 	TRACE_ENTER2("%s", sidep_name->value);
 
 	avd_sidep_indx_init(sidep_name, &tmp_sidep);
-	if ((sidep = sidep_db_find(&tmp_sidep.spons_name,&tmp_sidep.dep_name)) != NULL) {
+	if ((sidep = sidep_db_find(&tmp_sidep.spons_name,&tmp_sidep.dep_name)) != nullptr) {
 		TRACE("SI dependency already exists");
 	}
 
 	sidep = new AVD_SI_DEP();
 	avd_sidep_indx_init(sidep_name, sidep);
-	osafassert(sidep->dep_si != NULL);
-	osafassert(sidep->spons_si != NULL);
+	osafassert(sidep->dep_si != nullptr);
+	osafassert(sidep->spons_si != nullptr);
 	sidep_db->insert(make_pair(Amf::to_string(&sidep->spons_name), Amf::to_string(&sidep->dep_name)), sidep);
 
         /* Allocate a new block structure for imm rec now */
@@ -1335,9 +1335,9 @@ SaAisErrorT avd_sidep_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
+		nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("%s: saImmOmSearchInitialize failed: %u", __FUNCTION__, error);
@@ -1347,11 +1347,11 @@ SaAisErrorT avd_sidep_config_get(void)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &sidep_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		/* validate the configuration before adding the object */
 		memcpy(&sidep_validate, &sidep_name, sizeof(SaNameT));
-		if (!is_config_valid(&sidep_name, NULL)) {
+		if (!is_config_valid(&sidep_name, nullptr)) {
 			error = SA_AIS_ERR_BAD_OPERATION;
 			goto done2;
 		}
-		if(sidep_new(&sidep_name, attributes) == NULL) {
+		if(sidep_new(&sidep_name, attributes) == nullptr) {
 			error = SA_AIS_ERR_BAD_OPERATION;
 			goto done2;
 		}
@@ -1381,7 +1381,7 @@ static SaAisErrorT sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_MODIFY:
 		AVD_SI_DEP sidep;
 		avd_sidep_indx_init(&opdata->objectName, &sidep);
-		if (sidep_db_find(&sidep.spons_name, &sidep.dep_name) == NULL)
+		if (sidep_db_find(&sidep.spons_name, &sidep.dep_name) == nullptr)
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		break;
 	default:
@@ -1396,7 +1396,7 @@ static SaAisErrorT sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SI_DEP *sidep, tmp_sidep;
-	AVD_SI *dep_si = NULL;
+	AVD_SI *dep_si = nullptr;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
@@ -1411,7 +1411,7 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		avd_sidep_indx_init(&opdata->objectName, &tmp_sidep);
 		sidep = sidep_db_find(&tmp_sidep.spons_name, &tmp_sidep.dep_name);
 		dep_si = avd_si_get(&sidep->dep_name);
-		osafassert(dep_si != NULL);
+		osafassert(dep_si != nullptr);
 		/* If SI is in tolerance timer running state because of this
 		 * SI-SI dep cfg, then stop the tolerance timer.
 		 */
@@ -1435,7 +1435,7 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_MODIFY:
 		avd_sidep_indx_init(&opdata->objectName, &tmp_sidep);
 		sidep = sidep_db_find(&tmp_sidep.spons_name, &tmp_sidep.dep_name);
-		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			if (!strcmp(attr_mod->modAttr.attrName, "saAmfToleranceTime")) {
 				TRACE("saAmfToleranceTime modified from '%llu' to '%llu'", sidep->saAmfToleranceTime,
 						*((SaTimeT *)attr_mod->modAttr.attrValues[0]));
@@ -1455,7 +1455,7 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 void avd_sidep_constructor(void)
 {
 	sidep_db = new AmfDb<std::pair<std::string, std::string>, AVD_SI_DEP>;
-	avd_class_impl_set("SaAmfSIDependency", NULL, NULL, sidep_ccb_completed_cb,
+	avd_class_impl_set("SaAmfSIDependency", nullptr, nullptr, sidep_ccb_completed_cb,
 		sidep_ccb_apply_cb);
 }
 
@@ -1466,10 +1466,10 @@ void avd_sidep_start_tolerance_timer_for_dependant(AVD_SI *dep_si, AVD_SI *spons
 	TRACE("dep_si:%s spons_si:%s",dep_si->name.value,spons_si->name.value);
 
 	si_dep_rec = sidep_db_find(&spons_si->name, &dep_si->name);
-	if (si_dep_rec != NULL) {
+	if (si_dep_rec != nullptr) {
 		sidep_update_si_dep_state_for_spons_unassign(avd_cb, dep_si, si_dep_rec);
 	} else {
-		TRACE("si_dep_rec is NULL");
+		TRACE("si_dep_rec is nullptr");
 	}
 
 	TRACE_LEAVE();
@@ -1509,7 +1509,7 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 			continue;
 
 		dep_si = si_db->find(Amf::to_string(&sidep->dep_name));
-		osafassert(dep_si != NULL); 
+		osafassert(dep_si != nullptr); 
 
 		/* Get the Active susi */
 		for (sisu = dep_si->list_of_sisu;sisu;sisu = sisu->si_next) {
@@ -1519,7 +1519,7 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 			}
 		}
 
-		if (sisu == NULL) 
+		if (sisu == nullptr) 
 			continue;
 
 		/* if dependant SI has Active assignment on the node which went down, remove the assignments 
@@ -1559,7 +1559,7 @@ bool si_assignment_check_during_failover(AVD_SI *si, AVD_SU *su, AVD_SU_SI_REL *
 	bool assignmemt_status = false;
 
 	for (sisu = si->list_of_sisu;sisu;sisu = sisu->si_next) {
-		if ((sisu->su != su) && (*valid_stdby_sisu == NULL)) {
+		if ((sisu->su != su) && (*valid_stdby_sisu == nullptr)) {
 			if (((sisu->state == SA_AMF_HA_STANDBY) || (sisu->state == SA_AMF_HA_QUIESCED)) &&
 				(sisu->fsm == AVD_SU_SI_STATE_ASGND) &&
 				(sisu->su->saAmfSuReadinessState != SA_AMF_READINESS_OUT_OF_SERVICE)) {
@@ -1570,7 +1570,7 @@ bool si_assignment_check_during_failover(AVD_SI *si, AVD_SU *su, AVD_SU_SI_REL *
 					continue;
 			}
 		}
-		if (*active_sisu == NULL) {
+		if (*active_sisu == nullptr) {
 			if (((sisu->state == SA_AMF_HA_ACTIVE) || (sisu->state == SA_AMF_HA_QUIESCING) ||
 				(sisu->state == SA_AMF_HA_QUIESCED)) &&
 				(sisu->fsm != AVD_SU_SI_STATE_UNASGN)) {
@@ -1601,7 +1601,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 {
 	AVD_SPONS_SI_NODE *spons_si_node;
 	AVD_SU_SI_REL *sisu, *tmp_sisu;                 
-	AVD_SU_SI_REL *active_sisu = NULL, *valid_stdby_sisu = NULL;
+	AVD_SU_SI_REL *active_sisu = nullptr, *valid_stdby_sisu = nullptr;
 	bool failover_possible = true;
 	bool assignmemt_status = false;
 	bool valid_standby = false;
@@ -1613,7 +1613,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 	if ((su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) || 
 			(su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
 		assignmemt_status = si_assignment_check_during_failover(si, su, &active_sisu, &valid_stdby_sisu);
-		if (si->spons_si_list == NULL) {
+		if (si->spons_si_list == nullptr) {
 			/* Check if the susi is in unassigned state
 			 * 1) Beacuse of admin operation
 			 * 2) SI has Active assignments on the node which went down and there is no Standby assignment for the SI 
@@ -1622,7 +1622,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 				(si->sg_of_si->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) ||
 				((si->list_of_sisu) && (si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL) &&
 				(m_NCS_MDS_DEST_EQUAL(&si->list_of_sisu->su->su_on_node->adest,&su->su_on_node->adest))) ||
-				(valid_stdby_sisu == NULL)) {
+				(valid_stdby_sisu == nullptr)) {
 
 				avd_si_unassign(si);
 				failover_possible = false;
@@ -1651,8 +1651,8 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 		 */
 		for (spons_si_node = si->spons_si_list;spons_si_node;spons_si_node = spons_si_node->next) {
 			assignmemt_status = false;
-			active_sisu = NULL;
-			valid_stdby_sisu = NULL;
+			active_sisu = nullptr;
+			valid_stdby_sisu = nullptr;
 
 			assignmemt_status = si_assignment_check_during_failover(spons_si_node->si, su, &active_sisu, &valid_stdby_sisu);
 
@@ -1660,7 +1660,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 					(spons_si_node->si->sg_of_si->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) ||
 					((spons_si_node->si->list_of_sisu) && (spons_si_node->si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL) &&
 					 (m_NCS_MDS_DEST_EQUAL(&spons_si_node->si->list_of_sisu->su->su_on_node->adest,&su->su_on_node->adest))) ||
-					((assignmemt_status ==  false) && (valid_stdby_sisu == NULL))) {
+					((assignmemt_status ==  false) && (valid_stdby_sisu == nullptr))) {
 				avd_si_unassign(si);
 				failover_possible = false;
 				goto done;
@@ -1671,10 +1671,10 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 			}
 		}
 	} else {
-		if (si->spons_si_list == NULL) {
+		if (si->spons_si_list == nullptr) {
 			TRACE("SI doesnot have any dependencies");
 			/* Check whether valid standby SU is there for performing role failover */
-			for (sisu = si->list_of_sisu;sisu != NULL;sisu = sisu->si_next) {
+			for (sisu = si->list_of_sisu;sisu != nullptr;sisu = sisu->si_next) {
 				if (sisu->su != su) {
 					if (((sisu->state == SA_AMF_HA_STANDBY) || (sisu->state == SA_AMF_HA_QUIESCED)) && 
 						(sisu->fsm == AVD_SU_SI_STATE_ASGND) &&
@@ -1732,7 +1732,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 				/* There is no Active assignment and no valid Standby which can take Active assignment */
 				if (si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING)
 					sidep_stop_tol_timer(avd_cb, si);
-				for (tmp_sisu = si->list_of_sisu;tmp_sisu != NULL;tmp_sisu = tmp_sisu->si_next)
+				for (tmp_sisu = si->list_of_sisu;tmp_sisu != nullptr;tmp_sisu = tmp_sisu->si_next)
 					if (tmp_sisu->fsm != AVD_SU_SI_STATE_UNASGN)
 						avd_susi_del_send(tmp_sisu);
 				goto done;
@@ -1765,7 +1765,7 @@ bool avd_sidep_is_su_failover_possible(AVD_SU *su)
 
 	TRACE_ENTER2("SU:'%s' node_state:%d",su->name.value,su->su_on_node->node_state);
 
-	for (susi = su->list_of_susi;susi != NULL;susi = susi->su_next) {
+	for (susi = su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 		if (susi->si->spons_si_list) {
 			TRACE(":susi:%s si_dep_state:%u state:%u fsm:%u",susi->si->name.value,susi->si->si_dep_state, susi->state,susi->fsm);
 			if (susi->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
@@ -1800,7 +1800,7 @@ bool valid_standby_susi(AVD_SU_SI_REL *sisu)
 {
 	AVD_SU_SI_REL *tmp_sisu;
 
-	for (tmp_sisu = sisu->si->list_of_sisu;tmp_sisu != NULL;tmp_sisu = tmp_sisu->si_next) {
+	for (tmp_sisu = sisu->si->list_of_sisu;tmp_sisu != nullptr;tmp_sisu = tmp_sisu->si_next) {
 		if (tmp_sisu->su != sisu->su) {
 			if (((tmp_sisu->state == SA_AMF_HA_STANDBY) || (tmp_sisu->state == SA_AMF_HA_QUIESCED)) &&
 					(tmp_sisu->fsm == AVD_SU_SI_STATE_ASGND) &&
@@ -1838,7 +1838,7 @@ void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 			continue;
 
 		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
-		osafassert(dep_si != NULL); 
+		osafassert(dep_si != nullptr); 
 
 		for (AVD_SU_SI_REL *sisu = dep_si->list_of_sisu;sisu;sisu = sisu->si_next) {
 			TRACE("sisu si:%s su:%s state:%d fsm_state:%d",sisu->si->name.value,sisu->su->name.value,sisu->state,sisu->fsm);
@@ -1889,7 +1889,7 @@ void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 										(sisu->fsm != AVD_SU_SI_STATE_UNASGN)){
 									break;
 								}
-								if (sisu->si_next == NULL) {
+								if (sisu->si_next == nullptr) {
 									sponsor_assignments_state = false;
 									break;
 								}
@@ -1929,7 +1929,7 @@ void avd_sidep_update_depstate_su_rolefailover(AVD_SU *su)
 
 	TRACE_ENTER2(" for su '%s'", su->name.value);
 
-	for (susi = su->list_of_susi;susi != NULL;susi = susi->su_next) {
+	for (susi = su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 		if (susi->si->num_dependents > 0) {
 			/* This is a Sponsor SI update its dependent states */
 			avd_sidep_update_depstate_si_failover(susi->si, su);
@@ -1948,15 +1948,15 @@ void avd_sidep_update_depstate_su_rolefailover(AVD_SU *su)
  **/
 static void sidep_dependentsi_role_failover(AVD_SI *si)
 {
-	AVD_SU *stdby_su = NULL, *actv_su = NULL;
-	AVD_SU_SI_REL *susi, *std_susi = NULL;
+	AVD_SU *stdby_su = nullptr, *actv_su = nullptr;
+	AVD_SU_SI_REL *susi, *std_susi = nullptr;
 	uint32_t curr_pref_active_sus = 0;
 
 	TRACE_ENTER2(" for SI '%s'", si->name.value);
 
 	switch (si->sg_of_si->sg_redundancy_model) {
 	case SA_AMF_2N_REDUNDANCY_MODEL:
-		for (susi = si->list_of_sisu;susi != NULL;susi = susi->si_next) {
+		for (susi = si->list_of_sisu;susi != nullptr;susi = susi->si_next) {
 			if (susi->state == SA_AMF_HA_STANDBY)
 				stdby_su = susi->su;
 			else
@@ -1964,7 +1964,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 		}
 		if (stdby_su) {
 			if (avd_sidep_si_dependency_exists_within_su(stdby_su)) {
-				for (susi = stdby_su->list_of_susi;susi != NULL;susi = susi->su_next) {
+				for (susi = stdby_su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 					if (actv_su && avd_susi_role_failover(susi, actv_su) == NCSCC_RC_FAILURE) {
 						LOG_NO(" %s: %u: Active role modification failed for  %s ",
 								__FILE__, __LINE__, susi->su->name.value);
@@ -1977,7 +1977,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 				/* Check if there are any dependent SI's on this SU, if so check
 				   if their sponsor SI's * are in enable state or not
 				 */
-				for (susi = stdby_su->list_of_susi;susi != NULL;susi = susi->su_next) {
+				for (susi = stdby_su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 					if (susi->si->spons_si_list) {
 						if (!avd_sidep_all_sponsors_active(si)) {
 							TRACE("SI's sponsors are not yet assigned");
@@ -2000,7 +2000,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 		}
 		break;
 	case SA_AMF_NPM_REDUNDANCY_MODEL:
-		for (susi = si->list_of_sisu;susi != NULL;susi = susi->si_next) {
+		for (susi = si->list_of_sisu;susi != nullptr;susi = susi->si_next) {
 			if (susi->state == SA_AMF_HA_STANDBY) {
 				stdby_su = susi->su;
 				std_susi = susi;
@@ -2011,7 +2011,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 			/* Check if there are any dependent SI's on this SU, if so check if their sponsor SI's
 			 * are in enable state or not
 			 */
-			for (susi = stdby_su->list_of_susi;susi != NULL;susi = susi->su_next) {
+			for (susi = stdby_su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 				if (susi->si->spons_si_list) {
 					if (!avd_sidep_all_sponsors_active(si)) {
 						TRACE("SI's sponsors are not yet assigned");
@@ -2098,7 +2098,7 @@ void avd_sidep_reset_dependents_depstate_in_sufault(AVD_SI *si)
 			continue;
 
 		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
-		osafassert(dep_si != NULL); 
+		osafassert(dep_si != nullptr); 
 
 		if (dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
 			avd_sidep_si_dep_state_set(dep_si, AVD_SI_SPONSOR_UNASSIGNED);
@@ -2124,7 +2124,7 @@ bool avd_sidep_si_dependency_exists_within_su(const AVD_SU *su)
 	bool dep_exist = false;
 	TRACE_ENTER();
 
-	for (susi = su->list_of_susi; susi != NULL; susi = susi->su_next) {
+	for (susi = su->list_of_susi; susi != nullptr; susi = susi->su_next) {
 		if (susi->si->num_dependents) {
 			spons_exist = true;
 		}
@@ -2149,12 +2149,12 @@ bool avd_sidep_si_dependency_exists_within_su(const AVD_SU *su)
 void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 {
 	AVD_SU_SI_REL *sisu;
-	AVD_SU *active_su  = NULL;
+	AVD_SU *active_su  = nullptr;
 
 	TRACE_ENTER2(": '%s'",si->name.value);
 
 	/* determine the active su */
-	for (sisu = si->list_of_sisu;sisu != NULL;sisu = sisu->si_next) {
+	for (sisu = si->list_of_sisu;sisu != nullptr;sisu = sisu->si_next) {
 		if ((sisu->state == SA_AMF_HA_ACTIVE) && 
 			(sisu->fsm != AVD_SU_SI_STATE_UNASGN)) {
 			active_su = sisu->su;
@@ -2169,7 +2169,7 @@ void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 			continue;
 
 		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
-		osafassert(dep_si != NULL); 
+		osafassert(dep_si != nullptr); 
 
 		TRACE("dependent si:%s dep_si->si_dep_state:%d",dep_si->name.value,dep_si->si_dep_state);
 		if(dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
@@ -2182,7 +2182,7 @@ void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 			case SA_AMF_NO_REDUNDANCY_MODEL:
 			case SA_AMF_2N_REDUNDANCY_MODEL:
-				for (sisu = dep_si->list_of_sisu;sisu != NULL;sisu = sisu->si_next) {
+				for (sisu = dep_si->list_of_sisu;sisu != nullptr;sisu = sisu->si_next) {
 					if (sisu->su == active_su) {
 						if (((sisu->state == SA_AMF_HA_STANDBY) ||
 								(sisu->state == SA_AMF_HA_QUIESCED)) &&
@@ -2233,7 +2233,7 @@ bool avd_sidep_quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *
 			continue;
 
 		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
-		osafassert(dep_si != NULL); 
+		osafassert(dep_si != nullptr); 
 
 		for (AVD_SU_SI_REL *sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
 			if ((sisu->su == su) && 
@@ -2266,7 +2266,7 @@ bool avd_sidep_sponsors_assignment_states(AVD_SI *si)
 
 	TRACE_ENTER2("SI:%s",si->name.value);
 
-	if (si->spons_si_list == NULL) {
+	if (si->spons_si_list == nullptr) {
 		goto done;
 	}
 
@@ -2309,7 +2309,7 @@ void sidep_update_dependents_states(AVD_SI *si)
 			continue;
 
 		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
-		osafassert(dep_si != NULL); 
+		osafassert(dep_si != nullptr); 
 
 		/* update si_dep_state of dependent if its SG fsm is 
 		   stable or if both sponsor and dependent belongs to same SG.   
@@ -2342,7 +2342,7 @@ void sidep_update_si_self_dep_state(AVD_SI *si)
 		AVD_SPONS_SI_NODE *spons;
 		/*If atleast one sponsor is unassigned, unassign the dependent*/
 		for (spons = si->spons_si_list; spons; spons = spons->next) {
-			if (spons->si->list_of_sisu == NULL) {
+			if (spons->si->list_of_sisu == nullptr) {
 				avd_sidep_si_dep_state_set(si, AVD_SI_READY_TO_UNASSIGN);
 				goto done;	
 			}
@@ -2367,7 +2367,7 @@ void sidep_update_si_self_dep_state(AVD_SI *si)
 			  AVD_SI_NO_DEPENDENCY if it does not have any sponsor
 			  otherwise modify it to AVD_SI_READY_TO_ASSIGN.
 			 */
-			if (si->spons_si_list == NULL)
+			if (si->spons_si_list == nullptr)
 				avd_sidep_si_dep_state_set(si, AVD_SI_NO_DEPENDENCY);
 			else
 				avd_sidep_si_dep_state_set(si, AVD_SI_READY_TO_ASSIGN);
@@ -2415,7 +2415,7 @@ void sidep_si_take_action(AVD_SI *si)
 			/*If this SI is an sponsor, action will be taken on its
 			  dependents post SG stable screening.
 			 */
-			if (si->spons_si_list == NULL) {
+			if (si->spons_si_list == nullptr) {
 				sidep_sg_red_si_process_assignment(avd_cb, si);
 			}
 			else
@@ -2425,7 +2425,7 @@ void sidep_si_take_action(AVD_SI *si)
 		case AVD_SI_READY_TO_UNASSIGN:
 			/*Unassign this dependent because atleast one sponsor is
 			  unassigned.*/
-			if (si->spons_si_list == NULL)
+			if (si->spons_si_list == nullptr)
 				/*If sponsor SI then unassigned it.*/
 				sidep_unassign_dependent(avd_cb,si);
 			else
@@ -2483,7 +2483,7 @@ void avd_sidep_sg_take_action(AVD_SG *sg)
 	TRACE_ENTER2("'%s'", sg->name.value);
 
 	for (const auto& si : sg->list_of_si) {
-		if ((si->spons_si_list != NULL) || (si->num_dependents > 0)) 
+		if ((si->spons_si_list != nullptr) || (si->num_dependents > 0)) 
 			sidep_si_take_action(si);
 	}
 	TRACE_LEAVE();
@@ -2501,20 +2501,20 @@ void avd_sidep_sg_take_action(AVD_SG *sg)
  **/
 void sidep_process_ready_to_unassign_depstate(AVD_SI *dep_si) 
 {
-	AVD_SI *spons_si = NULL;
+	AVD_SI *spons_si = nullptr;
 	AVD_SI_DEP *si_dep_rec;
-	AVD_SPONS_SI_NODE *temp_spons_list = NULL;
+	AVD_SPONS_SI_NODE *temp_spons_list = nullptr;
 	bool all_spon_assigned = true;
 
 	TRACE_ENTER2("dep si:'%s'", dep_si->name.value);
 
-	for (temp_spons_list = dep_si->spons_si_list; temp_spons_list != NULL;
+	for (temp_spons_list = dep_si->spons_si_list; temp_spons_list != nullptr;
 			temp_spons_list = temp_spons_list->next) {
 		spons_si = temp_spons_list->si;
 		TRACE("spons si:'%s'",spons_si->name.value);
 
 		si_dep_rec = sidep_db_find(&spons_si->name, &dep_si->name);
-		if (si_dep_rec == NULL)
+		if (si_dep_rec == nullptr)
 			goto done;
 
 		if (sidep_is_si_active(spons_si)) {
@@ -2577,19 +2577,19 @@ void get_dependent_si_list(SaNameT spons_si_name, std::list<AVD_SI*>& depsi_list
  **/
 void avd_sidep_unassign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_SI *dep_si = NULL;
+	AVD_SI *dep_si = nullptr;
 
 	TRACE_ENTER();
 
-	if (evt == NULL) {
-		LOG_NO("Got NULL event");
+	if (evt == nullptr) {
+		LOG_NO("Got nullptr event");
 		goto done; 
 	}
 
 	osafassert(evt->rcv_evt == AVD_EVT_UNASSIGN_SI_DEP_STATE);
 
 	dep_si = avd_si_get(&evt->info.tmr.dep_si_name);
-	osafassert(dep_si != NULL); 
+	osafassert(dep_si != nullptr); 
 
 	avd_sidep_si_dep_state_set(dep_si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
 

@@ -57,7 +57,7 @@
 
 void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	NCS_UBAID *uba = NULL;
+	NCS_UBAID *uba = nullptr;
 	uint8_t *data;
 	AVD_D2D_MSG *msg = 0;
 
@@ -232,5 +232,5 @@ uint32_t avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 void avsv_d2d_msg_free(AVD_D2D_MSG *d2d_msg)
 {
 	delete d2d_msg;
-	d2d_msg = NULL;
+	d2d_msg = nullptr;
 }

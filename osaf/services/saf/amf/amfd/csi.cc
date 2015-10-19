@@ -24,7 +24,7 @@
 #include <imm.h>
 #include <proc.h>
 
-AmfDb<std::string, AVD_CSI> *csi_db = NULL;
+AmfDb<std::string, AVD_CSI> *csi_db = nullptr;
 
 //
 AVD_COMP* AVD_CSI::find_assigned_comp(const SaNameT *cstype,
@@ -35,7 +35,7 @@ AVD_COMP* AVD_CSI::find_assigned_comp(const SaNameT *cstype,
   for (; iter != list_of_comp.end(); ++iter) {
     comp = *iter;
     AVD_COMPCS_TYPE *cst;
-    if (NULL != (cst = avd_compcstype_find_match(cstype, comp))) {
+    if (nullptr != (cst = avd_compcstype_find_match(cstype, comp))) {
       if (SA_AMF_HA_ACTIVE == sisu->state) {
         if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
           break;
@@ -65,7 +65,7 @@ void avd_csi_delete(AVD_CSI *csi)
 
 	/* Delete CSI attributes */
 	temp = csi->list_attributes;
-	while (temp != NULL) {
+	while (temp != nullptr) {
 		avd_csi_remove_csiattr(csi, temp);
 		temp = csi->list_attributes;
 	}
@@ -75,12 +75,12 @@ void avd_csi_delete(AVD_CSI *csi)
 
 	csi_db->erase(Amf::to_string(&csi->name));
 	
-	if (csi->saAmfCSIDependencies != NULL) {
+	if (csi->saAmfCSIDependencies != nullptr) {
 		AVD_CSI_DEPS *csi_dep;
 		AVD_CSI_DEPS *next_csi_dep;
 		
 		csi_dep = csi->saAmfCSIDependencies;
-		while (csi_dep != NULL) {
+		while (csi_dep != nullptr) {
 			next_csi_dep = csi_dep->csi_dep_next;
 			delete csi_dep;
 			csi_dep = next_csi_dep;
@@ -98,7 +98,7 @@ void csi_cmplt_delete(AVD_CSI *csi, bool ckpt)
 	if (!ckpt) {
 		/* inform the avnds that track this csi */
 		for (curr = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&csi->pg_node_list);
-				curr != NULL; curr = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_NEXT(&curr->csi_dll_node)) {
+				curr != nullptr; curr = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_NEXT(&curr->csi_dll_node)) {
 		   avd_snd_pg_upd_msg(avd_cb, curr->node, 0, static_cast<SaAmfProtectionGroupChangesT>(0), &csi->name);
 		}
 	}
@@ -124,7 +124,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	const char *parent;
 	unsigned int values_number;
 
-	if ((parent = avd_getparent((const char*)dn->value)) == NULL) {
+	if ((parent = avd_getparent((const char*)dn->value)) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -137,14 +137,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCSType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (cstype_db->find(Amf::to_string(&aname)) == NULL) {
+	if (cstype_db->find(Amf::to_string(&aname)) == nullptr) {
 		/* CS type does not exist in current model, check CCB if passed as param */
-		if (opdata == NULL) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
@@ -168,9 +168,9 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 				return 0;
 			}
 
-			if (csi_db->find(Amf::to_string(&saAmfCSIDependency)) == NULL) {
+			if (csi_db->find(Amf::to_string(&saAmfCSIDependency)) == nullptr) {
 				/* CSI does not exist in current model, check CCB if passed as param */
-				if (opdata == NULL) {
+				if (opdata == nullptr) {
 					/* initial loading, check IMM */
 					if (!object_exist_in_imm(&saAmfCSIDependency)) {
 						report_ccb_validation_error(opdata, "'%s' validation failed - '%s' does not"
@@ -178,7 +178,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 								dn->value, saAmfCSIDependency.value);
 						return 0;
 					}
-				} else if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfCSIDependency) == NULL) {
+				} else if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfCSIDependency) == nullptr) {
 					report_ccb_validation_error(opdata, "'%s' validation failed - '%s' does not exist"
 							" in existing model or in CCB",
 							dn->value, saAmfCSIDependency.value);
@@ -186,7 +186,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 				}
 			}
 
-			if ((dep_parent = avd_getparent((const char*)saAmfCSIDependency.value)) == NULL) {
+			if ((dep_parent = avd_getparent((const char*)saAmfCSIDependency.value)) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' validation failed - invalid "
 						"saAmfCSIDependency '%s'", dn->value, saAmfCSIDependency.value);
 				return 0;
@@ -207,21 +207,21 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 		avsv_sanamet_init(dn, &si_name, "safSi");
 
-		if (NULL != (avd_si = avd_si_get(&si_name))) {
+		if (nullptr != (avd_si = avd_si_get(&si_name))) {
 			/* Check for any admin operations undergoing. This is valid during dyn add*/
-			if((opdata != NULL) && (AVD_SG_FSM_STABLE != avd_si->sg_of_si->sg_fsm_state)) {
+			if((opdata != nullptr) && (AVD_SG_FSM_STABLE != avd_si->sg_of_si->sg_fsm_state)) {
 				report_ccb_validation_error(opdata, "SG('%s') fsm state('%u') is not in "
 						"AVD_SG_FSM_STABLE(0)", 
 						avd_si->sg_of_si->name.value, avd_si->sg_of_si->sg_fsm_state);
 				return 0;
 			}
 		} else {
-			if (opdata == NULL) {
+			if (opdata == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", si_name.value);
 				return 0;
 			}
 
-			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == NULL) {
+			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
 						si_name.value);
 				return 0;
@@ -229,7 +229,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		}
 #if 0
 		svctypecstype = avd_svctypecstypes_get(&svctypecstype_name);
-		if (svctypecstype == NULL) {
+		if (svctypecstype == nullptr) {
 			LOG_ER("Not found '%s'", svctypecstype_name.value);
 			return -1;
 		}
@@ -260,7 +260,7 @@ static bool csi_add_csidep(AVD_CSI *csi,AVD_CSI_DEPS *new_csi_dep)
 	/* Check whether the CSI dependency is already existing in the existing list.
 	 * If yes, it should not get added again
 	 */
-	for (temp_csi_dep = csi->saAmfCSIDependencies; temp_csi_dep != NULL;
+	for (temp_csi_dep = csi->saAmfCSIDependencies; temp_csi_dep != nullptr;
 		temp_csi_dep = temp_csi_dep->csi_dep_next) {
 		if (0 == memcmp(&new_csi_dep->csi_dep_name_value,
 				&temp_csi_dep->csi_dep_name_value, sizeof(SaNameT))) {
@@ -281,18 +281,18 @@ static bool csi_add_csidep(AVD_CSI *csi,AVD_CSI_DEPS *new_csi_dep)
  */
 static void csi_remove_csidep(AVD_CSI *csi, const SaNameT *required_dn)
 {
-	AVD_CSI_DEPS *prev = NULL;
+	AVD_CSI_DEPS *prev = nullptr;
 	AVD_CSI_DEPS *curr;
 
-	for (curr = csi->saAmfCSIDependencies; curr != NULL; curr = curr->csi_dep_next) {
+	for (curr = csi->saAmfCSIDependencies; curr != nullptr; curr = curr->csi_dep_next) {
 		if (memcmp(required_dn, &curr->csi_dep_name_value, sizeof(SaNameT)) == 0) {
 			break;
 		}
 		prev = curr;
 	}
 
-	if (curr != NULL) {
-		if (prev == NULL) {
+	if (curr != nullptr) {
+		if (prev == nullptr) {
 			csi->saAmfCSIDependencies = curr->csi_dep_next;
 		} else {
 			prev->csi_dep_next = curr->csi_dep_next;
@@ -359,7 +359,7 @@ static void csi_get_attr_and_add_to_model(AVD_CSI *csi, const SaImmAttrValuesT_2
 			/* Dependency Configured. Decide rank when adding it in si list.*/
 			unsigned int i;
 			bool found;
-			AVD_CSI_DEPS *new_csi_dep = NULL;
+			AVD_CSI_DEPS *new_csi_dep = nullptr;
 
 			for (i = 0; i < values_number; i++) {
 				new_csi_dep = new AVD_CSI_DEPS();
@@ -422,17 +422,17 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
 
 	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, si_name, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle) != SA_AIS_OK) {
+		nullptr, &searchHandle) != SA_AIS_OK) {
 
 		LOG_ER("saImmOmSearchInitialize_2 failed");
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &csi_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&csi_name, attributes, NULL))
+		if (!is_config_valid(&csi_name, attributes, nullptr))
 			goto done2;
 
-		if ((csi = csi_db->find(Amf::to_string(&csi_name))) == NULL)
+		if ((csi = csi_db->find(Amf::to_string(&csi_name))) == nullptr)
 		{
 			csi = csi_create(&csi_name);
 
@@ -489,9 +489,9 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 	avsv_sanamet_init(&opdata->objectName, &si_name, "safSi");
 	avd_si = avd_si_get(&si_name);
 
-	if (NULL != avd_si) {
+	if (nullptr != avd_si) {
 		/* Check whether si has been assigned to any SU. */
-		if (NULL != avd_si->list_of_sisu) {
+		if (nullptr != avd_si->list_of_sisu) {
 			t_sisu = avd_si->list_of_sisu;
 			while(t_sisu) {
 				if (t_sisu->csi_add_rem == true) {
@@ -510,7 +510,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 				su->reset_all_comps_assign_flag();
 
 				compcsi = t_sisu->list_of_csicomp;
-				while (compcsi != NULL) {
+				while (compcsi != nullptr) {
 					compcsi->comp->set_assigned(true);
 					compcsi = compcsi->susi_csicomp_next;
 				}
@@ -518,12 +518,12 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 				t_comp = su->find_unassigned_comp_that_provides_cstype(&cstype_name);
 
 				/* Component not found.*/
-				if (NULL == t_comp) {
+				if (nullptr == t_comp) {
 					/* This means that all the components are assigned, let us assigned it to assigned
 					   component.*/
 					t_comp = AVD_CSI::find_assigned_comp(&cstype_name, t_sisu, su->list_of_comp);
 				}
-				if (NULL == t_comp) {
+				if (nullptr == t_comp) {
 					report_ccb_validation_error(opdata, "Compcsi doesn't exist or "
 							"MaxActiveCSI/MaxStandbyCSI have reached for csi '%s'",
 							opdata->objectName.value);
@@ -533,7 +533,7 @@ static SaAisErrorT csi_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
 
 				t_sisu = t_sisu->si_next;
 			}/*  while(t_sisu) */
-		}/* if (NULL != si->list_of_sisu) */
+		}/* if (nullptr != si->list_of_sisu) */
 	}
 
 	rc = SA_AIS_OK;
@@ -566,7 +566,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	assert(csi);
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
 			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			if(SA_AMF_ADMIN_LOCKED != csi->si->saAmfSIAdminState) {
@@ -574,7 +574,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 						csi->si->saAmfSIAdminState);
 				goto done;
 			}
-			if (cstype_db->find(Amf::to_string(&cstype_name)) == NULL) {
+			if (cstype_db->find(Amf::to_string(&cstype_name)) == nullptr) {
 				report_ccb_validation_error(opdata, "CS Type not found '%s'", cstype_name.value);
 				goto done;
 			}
@@ -591,7 +591,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			const AVD_CSI *required_csi = csi_db->find(Amf::to_string(required_dn));
 
 			// Required CSI must exist in current model
-			if (required_csi == NULL) {
+			if (required_csi == nullptr) {
 				report_ccb_validation_error(opdata,
 						"CSI '%s' does not exist", required_dn->value);
 				goto done;
@@ -599,7 +599,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			// Required CSI must be contained in the same SI
 			const char *si_dn = strchr((char*)required_dn->value, ',') + 1;
-			if (strstr((char*)opdata->objectName.value, si_dn) == NULL) {
+			if (strstr((char*)opdata->objectName.value, si_dn) == nullptr) {
 				report_ccb_validation_error(opdata,
 						"'%s' is not in the same SI as '%s'",
 						opdata->objectName.value, required_dn->value);
@@ -688,7 +688,7 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	csi = csi_db->find(Amf::to_string(&opdata->objectName));
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
-		if (csi == NULL) {
+		if (csi == nullptr) {
 			/* This means that csi has been deleted during checkpointing at STDBY and completed callback
 			   has arrived delayed.*/
 			report_ccb_validation_error(opdata, "CSI delete completed (STDBY): '%s' does not exist",
@@ -706,11 +706,11 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	}
 
 	if (csi->si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED) {
-		if (NULL == csi->si->list_of_sisu) {
+		if (nullptr == csi->si->list_of_sisu) {
 			/* UnLocked but not assigned. Safe to delete.*/
 		} else {/* Assigned to some SU, check whether the last csi. */
 			/* SI is unlocked and this is the last csi to be deleted, then donot allow it. */
-			if (csi->si->list_of_csi->si_list_of_csi_next == NULL) {
+			if (csi->si->list_of_csi->si_list_of_csi_next == nullptr) {
 				report_ccb_validation_error(opdata, " csi('%s') is the last csi in si('%s'). Lock SI and"
 						" then delete csi.", csi->name.value, csi->si->name.value);
 				rc = SA_AIS_ERR_BAD_OPERATION;
@@ -731,7 +731,7 @@ static SaAisErrorT csi_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 			}/*  while(t_sisu) */
 		}
 	} else {
-		if (csi->list_compcsi != NULL) {
+		if (csi->list_compcsi != nullptr) {
 			report_ccb_validation_error(opdata, "SaAmfCSI '%s' is in use", csi->name.value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -783,13 +783,13 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 		/* A double check whether csi has been deleted from DB or not and whether pointer stored userData 
 		   is still valid. */
 		csi_in_db =  csi_db->find(Amf::to_string(&opdata->objectName));
-		if ((csi == NULL) || (csi_in_db == NULL)) {
+		if ((csi == nullptr) || (csi_in_db == nullptr)) {
 			/* This means that csi has been deleted during checkpointing at STDBY and delete callback
 			   has arrived delayed.*/
 			LOG_WA("CSI delete apply (STDBY): csi does not exist");
 			goto done;
 		}
-		if (csi->list_compcsi == NULL ) {
+		if (csi->list_compcsi == nullptr ) {
 			/* delete the pg-node list */
 			avd_pg_csi_node_del_all(avd_cb, csi);
 
@@ -799,10 +799,10 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 		goto done;
 	}
 
-        TRACE_ENTER2("'%s'", csi ? csi->name.value : NULL);
+        TRACE_ENTER2("'%s'", csi ? csi->name.value : nullptr);
 
 	/* Check whether si has been assigned to any SU. */
-	if ((NULL != csi->si->list_of_sisu) && 
+	if ((nullptr != csi->si->list_of_sisu) && 
 			(csi->compcsi_cnt != 0)) {
 		TRACE("compcsi_cnt'%u'", csi->compcsi_cnt);
 		/* csi->compcsi_cnt == 0 ==> This means that there is no comp_csi related to this csi in the SI. It may
@@ -837,7 +837,7 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 			t_sisu = t_sisu->si_next;
 		}/* while(t_sisu) */
 
-	} else { /* if (NULL != csi->si->list_of_sisu) */
+	} else { /* if (nullptr != csi->si->list_of_sisu) */
 		csi_cmplt_delete(csi, false);
 	}
 
@@ -865,16 +865,16 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 {               
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	AVD_CSI *csi = NULL;
+	AVD_CSI *csi = nullptr;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
  
 	csi = csi_db->find(Amf::to_string(&opdata->objectName));
-	assert(csi != NULL);
+	assert(csi != nullptr);
 	AVD_SI *si = csi->si;
-	assert(si != NULL);
+	assert(si != nullptr);
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSType")) {
 			AVD_CS_TYPE *csi_type;
 			SaNameT cstype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
@@ -936,8 +936,8 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
  **************************************************************************/
 static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 {
-	AVD_CSI *csi = NULL;
-	if ((csi = csi_db->find(Amf::to_string(&opdata->objectName))) == NULL) {
+	AVD_CSI *csi = nullptr;
+	if ((csi = csi_db->find(Amf::to_string(&opdata->objectName))) == nullptr) {
 		/* this check is added because, some times there is
 		   possibility that before getting ccb apply callback
 		   we might get compcsi create checkpoint and csi will
@@ -973,8 +973,8 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 
 	/* Check whether csi assignment is already in progress and if yes, then return.
 	   This csi will be assigned after the undergoing csi assignment gets over.*/
-	if (csi->si->list_of_sisu != NULL) {
-		for(t_sisu = csi->si->list_of_sisu; t_sisu != NULL; t_sisu = t_sisu->si_next) {
+	if (csi->si->list_of_sisu != nullptr) {
+		for(t_sisu = csi->si->list_of_sisu; t_sisu != nullptr; t_sisu = t_sisu->si_next) {
 			if (t_sisu->csi_add_rem == true) {
 				LOG_NO("CSI create '%s' delayed: pending assignment for '%s'",
 						csi->name.value, t_sisu->su->name.value);
@@ -984,7 +984,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 	}
 
 	/* Check whether si has been assigned to any SU. */
-	if (NULL != csi->si->list_of_sisu) {
+	if (nullptr != csi->si->list_of_sisu) {
 		t_sisu = csi->si->list_of_sisu;
 		while(t_sisu) {
 			/* We need to assign this csi if an extra component exists, which is unassigned.*/
@@ -992,7 +992,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 			t_sisu->su->reset_all_comps_assign_flag();
 
 			compcsi = t_sisu->list_of_csicomp;
-			while (compcsi != NULL) {
+			while (compcsi != nullptr) {
 				compcsi->comp->set_assigned(true);
 				compcsi = compcsi->susi_csicomp_next;
 			}
@@ -1000,18 +1000,18 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 			t_comp = t_sisu->su->find_unassigned_comp_that_provides_cstype(&csi->saAmfCSType);
 
 			/* Component not found.*/
-			if (NULL == t_comp) {
+			if (nullptr == t_comp) {
 				/* This means that all the components are assigned, let us assigned it to assigned 
 				   component.*/
 				t_comp = AVD_CSI::find_assigned_comp(&csi->saAmfCSType, t_sisu, t_sisu->su->list_of_comp);
 			}
-			if (NULL == t_comp) {
+			if (nullptr == t_comp) {
 				LOG_ER("Compcsi doesn't exist or MaxActiveCSI/MaxStandbyCSI have reached for csi '%s'",
 						csi->name.value);
 				goto done;
 			}
 
-			if ((compcsi = avd_compcsi_create(t_sisu, csi, t_comp, true)) == NULL) {
+			if ((compcsi = avd_compcsi_create(t_sisu, csi, t_comp, true)) == nullptr) {
 				/* free all the CSI assignments and end this loop */
 				avd_compcsi_delete(avd_cb, t_sisu, true);
 				break;
@@ -1038,7 +1038,7 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 			t_sisu = t_sisu->si_next;
 		}/* while(t_sisu) */
 
-	}/* if (NULL != csi->si->list_of_sisu) */
+	}/* if (nullptr != csi->si->list_of_sisu) */
 	else if (csi->si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) {
 		/* CSI has been added into an SI, now SI can be assigned */
 		csi->si->sg_of_si->si_assign(avd_cb, csi->si);
@@ -1101,10 +1101,10 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
 			&attr_safCSIComp,
 			&attr_saAmfCSICompHAState,
 			&attr_saAmfCSICompHAReadinessState,
-			NULL
+			nullptr
 	};
 
-	avsv_create_association_class_dn(comp_dn, NULL, "safCSIComp", &dn);
+	avsv_create_association_class_dn(comp_dn, nullptr, "safCSIComp", &dn);
 
 	TRACE("Adding %s", dn.value);
 	avd_saImmOiRtObjectCreate("SaAmfCSIAssignment",	csi_dn, attrValues);
@@ -1113,11 +1113,11 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
 AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
 	AVD_COMP *comp, bool create_in_imm)
 {
-	AVD_COMP_CSI_REL *compcsi = NULL;
+	AVD_COMP_CSI_REL *compcsi = nullptr;
 
-	if ((csi == NULL) && (comp == NULL)) {
-		LOG_ER("Either csi or comp is NULL");
-                return NULL;
+	if ((csi == nullptr) && (comp == nullptr)) {
+		LOG_ER("Either csi or comp is nullptr");
+                return nullptr;
 	}
 
 	TRACE_ENTER2("Comp'%s' and Csi'%s'", comp->comp_info.name.value, csi->name.value);
@@ -1135,7 +1135,7 @@ AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
 	compcsi->susi = susi;
 
 	/* Add to the CSI owned list */
-	if (csi->list_compcsi == NULL) {
+	if (csi->list_compcsi == nullptr) {
 		csi->list_compcsi = compcsi;
 	} else {
 		compcsi->csi_csicomp_next = csi->list_compcsi;
@@ -1144,7 +1144,7 @@ AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
 	csi->compcsi_cnt++;
 
 	/* Add to the SUSI owned list */
-	if (susi->list_of_csicomp == NULL) {
+	if (susi->list_of_csicomp == nullptr) {
 		susi->list_of_csicomp = compcsi;
 	} else {
 		compcsi->susi_csicomp_next = susi->list_of_csicomp;
@@ -1192,21 +1192,21 @@ static void avd_delete_csiassignment_from_imm(const SaNameT *comp_dn, const SaNa
 uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 {
 	AVD_COMP_CSI_REL *lcomp_csi;
-	AVD_COMP_CSI_REL *i_compcsi, *prev_compcsi = NULL;
+	AVD_COMP_CSI_REL *i_compcsi, *prev_compcsi = nullptr;
 
 	TRACE_ENTER();
-	while (susi->list_of_csicomp != NULL) {
+	while (susi->list_of_csicomp != nullptr) {
 		lcomp_csi = susi->list_of_csicomp;
 
 		i_compcsi = lcomp_csi->csi->list_compcsi;
-		while ((i_compcsi != NULL) && (i_compcsi != lcomp_csi)) {
+		while ((i_compcsi != nullptr) && (i_compcsi != lcomp_csi)) {
 			prev_compcsi = i_compcsi;
 			i_compcsi = i_compcsi->csi_csicomp_next;
 		}
 		if (i_compcsi != lcomp_csi) {
 			/* not found */
 		} else {
-			if (prev_compcsi == NULL) {
+			if (prev_compcsi == nullptr) {
 				lcomp_csi->csi->list_compcsi = i_compcsi->csi_csicomp_next;
 			} else {
 				prev_compcsi->csi_csicomp_next = i_compcsi->csi_csicomp_next;
@@ -1218,12 +1218,12 @@ uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 				avd_pg_compcsi_chg_prc(cb, lcomp_csi, true);
 			}
 
-			i_compcsi->csi_csicomp_next = NULL;
+			i_compcsi->csi_csicomp_next = nullptr;
 		}
 
 		susi->list_of_csicomp = lcomp_csi->susi_csicomp_next;
-		lcomp_csi->susi_csicomp_next = NULL;
-		prev_compcsi = NULL;
+		lcomp_csi->susi_csicomp_next = nullptr;
+		prev_compcsi = nullptr;
 		avd_delete_csiassignment_from_imm(&lcomp_csi->comp->comp_info.name, &lcomp_csi->csi->name);
 		delete lcomp_csi;
 
@@ -1250,7 +1250,7 @@ uint32_t avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
  **************************************************************************/
 void avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL *comp_csi, bool ckpt)
 {
-	AVD_COMP_CSI_REL *t_compcsi, *t_compcsi_susi, *prev_compcsi = NULL;
+	AVD_COMP_CSI_REL *t_compcsi, *t_compcsi_susi, *prev_compcsi = nullptr;
 
 	TRACE_ENTER2("Csi'%s', compcsi_cnt'%u'", comp_csi->csi->name.value, comp_csi->csi->compcsi_cnt);
 
@@ -1264,14 +1264,14 @@ void avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL 
 	}
 	osafassert(t_compcsi_susi);
 	/* Delink the csi from this susi. */
-	if (NULL == prev_compcsi)
+	if (nullptr == prev_compcsi)
 		susi->list_of_csicomp = t_compcsi_susi->susi_csicomp_next;
 	else {
 		prev_compcsi->susi_csicomp_next = t_compcsi_susi->susi_csicomp_next;
-		t_compcsi_susi->susi_csicomp_next = NULL;
+		t_compcsi_susi->susi_csicomp_next = nullptr;
 	}
 
-	prev_compcsi =  NULL;
+	prev_compcsi =  nullptr;
 	/* Find the comp-csi in csi->list_compcsi. */
 	t_compcsi = comp_csi->csi->list_compcsi;
 	while (t_compcsi) {
@@ -1282,11 +1282,11 @@ void avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL 
 	}
 	osafassert(t_compcsi);
 	/* Delink the csi from csi->list_compcsi. */
-	if (NULL == prev_compcsi)
+	if (nullptr == prev_compcsi)
 		comp_csi->csi->list_compcsi = t_compcsi->csi_csicomp_next;
 	else {
 		prev_compcsi->csi_csicomp_next = t_compcsi->csi_csicomp_next;
-		t_compcsi->csi_csicomp_next = NULL;
+		t_compcsi->csi_csicomp_next = nullptr;
 	}
 
 	osafassert(t_compcsi == t_compcsi_susi);
@@ -1302,14 +1302,14 @@ void avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL 
 
 void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 {
-	AVD_CSI_ATTR *i_attr = NULL;
-	AVD_CSI_ATTR *p_attr = NULL;
+	AVD_CSI_ATTR *i_attr = nullptr;
+	AVD_CSI_ATTR *p_attr = nullptr;
 
 	TRACE_ENTER();
 	/* remove ATTR from CSI list */
 	i_attr = csi->list_attributes;
 
-	while ((i_attr != NULL) && (i_attr != attr)) {
+	while ((i_attr != nullptr) && (i_attr != attr)) {
 		p_attr = i_attr;
 		i_attr = i_attr->attr_next;
 	}
@@ -1318,7 +1318,7 @@ void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 		/* Log a fatal error */
 		osafassert(0);
 	} else {
-		if (p_attr == NULL) {
+		if (p_attr == nullptr) {
 			csi->list_attributes = i_attr->attr_next;
 		} else {
 			p_attr->attr_next = i_attr->attr_next;
@@ -1340,9 +1340,9 @@ void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr)
 	TRACE_ENTER();
 	/* Count number of attributes (multivalue) */
 	ptr = csiattr;
-	while (ptr != NULL) {
+	while (ptr != nullptr) {
 		cnt++;
-		if (ptr->attr_next != NULL)
+		if (ptr->attr_next != nullptr)
 			ptr = ptr->attr_next;
 		else
 			break;
@@ -1357,7 +1357,7 @@ void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr)
 void avd_csi_constructor(void)
 {
 	csi_db = new AmfDb<std::string, AVD_CSI>;
-	avd_class_impl_set("SaAmfCSI", NULL, NULL, csi_ccb_completed_cb,
+	avd_class_impl_set("SaAmfCSI", nullptr, nullptr, csi_ccb_completed_cb,
 		csi_ccb_apply_cb);
 }
 
@@ -1390,7 +1390,7 @@ bool csi_assignment_validate(AVD_SG *sg)
  */
 bool are_sponsor_csis_assigned_in_su(AVD_CSI *csi, AVD_SU *su)
 {
-        for (AVD_CSI_DEPS *spons_csi = csi->saAmfCSIDependencies; spons_csi != NULL;
+        for (AVD_CSI_DEPS *spons_csi = csi->saAmfCSIDependencies; spons_csi != nullptr;
                 spons_csi = spons_csi->csi_dep_next) {
 		bool is_sponsor_assigned = false;
 		

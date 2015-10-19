@@ -92,7 +92,7 @@ static void ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfClusterStartupTimeout")) {
 			SaTimeT cluster_startup_timeout = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			TRACE("saAmfClusterStartupTimeout modified from '%llu' to '%llu'", 
@@ -108,7 +108,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfClusterStartupTimeout")) {
 			SaTimeT cluster_startup_timeout = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			if (0 == cluster_startup_timeout) {
@@ -180,7 +180,7 @@ static void cluster_admin_op_cb(SaImmOiHandleT immOiHandle,
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL, "Not supported"); 
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr, "Not supported"); 
 		break;
 	}
 }
@@ -206,9 +206,9 @@ SaAisErrorT avd_cluster_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	if ((error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	if ((error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 						       SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-						       &searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
+						       &searchParam, nullptr, &searchHandle)) != SA_AIS_OK) {
 		LOG_ER("saImmOmSearchInitialize failed: %u", error);
 		goto done;
 	}
@@ -221,7 +221,7 @@ SaAisErrorT avd_cluster_config_get(void)
 	avd_cluster->saAmfCluster = dn;
 
 	/* Cluster should be root object */
-	if (strchr((char *)dn.value, ',') != NULL) {
+	if (strchr((char *)dn.value, ',') != nullptr) {
 		LOG_ER("Parent to '%s' is not root", dn.value);
 		return static_cast<SaAisErrorT>(-1);
 	}
@@ -258,7 +258,7 @@ SaAisErrorT avd_cluster_config_get(void)
 
 void avd_cluster_constructor(void)
 {
-   avd_class_impl_set("SaAmfCluster", NULL, cluster_admin_op_cb,
+   avd_class_impl_set("SaAmfCluster", nullptr, cluster_admin_op_cb,
 		cluster_ccb_completed_cb, cluster_ccb_apply_cb);
 }
 

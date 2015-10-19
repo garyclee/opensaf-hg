@@ -47,13 +47,13 @@ static void apptype_delete(AVD_APP_TYPE **apptype)
 
 	(*apptype)->sgAmfApptSGTypes.clear();
 	delete *apptype;
-	*apptype = NULL;
+	*apptype = nullptr;
 }
 
 static void apptype_add_to_model(AVD_APP_TYPE *app_type)
 {
 	unsigned int rc;
-	osafassert(app_type != NULL);
+	osafassert(app_type != nullptr);
 	TRACE("'%s'", app_type->name.value);
 
 	rc = app_type_db->insert(Amf::to_string(&app_type->name), app_type);
@@ -69,7 +69,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	AVD_AMF_SG_TYPE *sg_type;
 	const SaImmAttrValuesT_2 *attr;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -80,7 +80,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	while ((attr = attributes[i++]) != NULL)
+	while ((attr = attributes[i++]) != nullptr)
 		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
 			break;
 
@@ -90,14 +90,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
 		sg_type = sgtype_db->find(Amf::to_string(name));
-		if (sg_type == NULL) {
-			if (opdata == NULL) {
+		if (sg_type == nullptr) {
+			if (opdata == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
 				return 0;
 			}
 
 			/* SG type does not exist in current model, check CCB */
-			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
+			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
 						name->value);
 				return 0;
@@ -120,7 +120,7 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 
 	app_type = new AVD_APP_TYPE(dn);
 
-	while ((attr = attributes[i++]) != NULL)
+	while ((attr = attributes[i++]) != nullptr)
 		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
 			break;
 
@@ -161,14 +161,14 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		app_type = avd_apptype_get(&opdata->objectName);
-		if (NULL != app_type->list_of_app) {
+		if (nullptr != app_type->list_of_app) {
 			/* check whether there exists a delete operation for 
 			 * each of the App in the app_type list in the current CCB
 			 */
 			app = app_type->list_of_app;
-			while (app != NULL) {
+			while (app != nullptr) {
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &app->name);
-				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+				if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 					app_exist = true;
 					break;
 				}
@@ -228,9 +228,9 @@ SaAisErrorT avd_apptype_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 			SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-			NULL, &searchHandle);
+			nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("No AMF app types found");
@@ -238,11 +238,11 @@ SaAisErrorT avd_apptype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, nullptr))
 			goto done2;
 
-		if ((app_type = avd_apptype_get(&dn)) == NULL ) {
-			if ((app_type = apptype_create(&dn, attributes)) == NULL)
+		if ((app_type = avd_apptype_get(&dn)) == nullptr ) {
+			if ((app_type = apptype_create(&dn, attributes)) == nullptr)
 				goto done2;
 
 			apptype_add_to_model(app_type);
@@ -265,13 +265,13 @@ void avd_apptype_add_app(AVD_APP *app)
 
 void avd_apptype_remove_app(AVD_APP *app)
 {
-	AVD_APP *i_app = NULL;
-	AVD_APP *prev_app = NULL;
+	AVD_APP *i_app = nullptr;
+	AVD_APP *prev_app = nullptr;
 
-	if (app->app_type != NULL) {
+	if (app->app_type != nullptr) {
 		i_app = app->app_type->list_of_app;
 
-		while ((i_app != NULL) && (i_app != app)) {
+		while ((i_app != nullptr) && (i_app != app)) {
 			prev_app = i_app;
 			i_app = i_app->app_type_list_app_next;
 		}
@@ -279,15 +279,15 @@ void avd_apptype_remove_app(AVD_APP *app)
 		if (i_app != app) {
 			/* Log a fatal error */
 		} else {
-			if (prev_app == NULL) {
+			if (prev_app == nullptr) {
 				app->app_type->list_of_app = app->app_type_list_app_next;
 			} else {
 				prev_app->app_type_list_app_next = app->app_type_list_app_next;
 			}
 		}
 
-		app->app_type_list_app_next = NULL;
-		app->app_type = NULL;
+		app->app_type_list_app_next = nullptr;
+		app->app_type = nullptr;
 	}
 }
 
@@ -295,9 +295,9 @@ void avd_apptype_constructor(void)
 {
 	app_type_db = new AmfDb<std::string, AVD_APP_TYPE>;
 
-	avd_class_impl_set("SaAmfAppBaseType", NULL, NULL,
-			avd_imm_default_OK_completed_cb, NULL);
-	avd_class_impl_set("SaAmfAppType", NULL, NULL, apptype_ccb_completed_cb,
+	avd_class_impl_set("SaAmfAppBaseType", nullptr, nullptr,
+			avd_imm_default_OK_completed_cb, nullptr);
+	avd_class_impl_set("SaAmfAppType", nullptr, nullptr, apptype_ccb_completed_cb,
 			apptype_ccb_apply_cb);
 }
 

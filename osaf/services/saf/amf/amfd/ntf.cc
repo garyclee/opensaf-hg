@@ -120,7 +120,7 @@ void avd_send_cluster_reset_alarm(const SaNameT *comp_name)
 				 SA_AMF_NTFID_CLUSTER_RESET,
 				 SA_NTF_SOFTWARE_ERROR,
 				 SA_NTF_SEVERITY_MAJOR,
-				 NULL,
+				 nullptr,
 				 false /* No add_info */);
 
 }
@@ -151,7 +151,7 @@ void avd_send_si_unassigned_alarm(const SaNameT *si_name)
 				 SA_AMF_NTFID_SI_UNASSIGNED,
 				 SA_NTF_SOFTWARE_ERROR,
 				 SA_NTF_SEVERITY_MAJOR,
-				 NULL,
+				 nullptr,
 				 false /* No add_info */);
 
 }
@@ -183,7 +183,7 @@ void avd_send_comp_proxy_status_unproxied_alarm(const SaNameT *comp_name)
 				 SA_AMF_NTFID_COMP_UNPROXIED,
 				 SA_NTF_SOFTWARE_ERROR,
 				 SA_NTF_SEVERITY_MAJOR,
-				 NULL,
+				 nullptr,
 				 false /* No add_info */);
 
 }
@@ -219,7 +219,7 @@ void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT
 					SA_AMF_ADMIN_STATE,
 					old_state,
 					new_state,
-					NULL,
+					nullptr,
 					false);
 
 	TRACE_LEAVE();
@@ -256,7 +256,7 @@ void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_
 					SA_AMF_OP_STATE,
 					old_state,
 					new_state,
-					NULL,
+					nullptr,
 					false);
 	TRACE_LEAVE();
 }
@@ -292,7 +292,7 @@ void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name,
 					SA_AMF_PRESENCE_STATE,
 					old_state,
 					new_state,
-					NULL,
+					nullptr,
 					false);
 
 	TRACE_LEAVE();
@@ -406,7 +406,7 @@ void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_
 					SA_AMF_ASSIGNMENT_STATE,
 					old_state,
 					new_state,
-					NULL,
+					nullptr,
 					false);
 
 	TRACE_LEAVE();
@@ -444,7 +444,7 @@ void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 					SA_AMF_PROXY_STATUS,
 					old_status,
 					new_status,
-					NULL,
+					nullptr,
 					false);
 
 }
@@ -477,7 +477,7 @@ void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uint32_t probableCa
 	       minorId,
 	       probableCause,
 	       SA_NTF_SEVERITY_CLEARED,
-	       NULL,
+	       nullptr,
 	       false);
 }
 

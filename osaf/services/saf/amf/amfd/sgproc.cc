@@ -109,9 +109,9 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		/* on Active AMFD empty SI should never be tried for assignments.
 		 * on Standby AMFD this may be still possible as CSI are not
 		 * checkpointed dynamically */
-		osafassert (si->list_of_csi != NULL);
+		osafassert (si->list_of_csi != nullptr);
 
-	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt)) == NULL) {
+	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt)) == nullptr) {
 		LOG_ER("%s: Could not create SUSI '%s' '%s'", __FUNCTION__,
 			su->name.value, si->name.value);
 		goto done;
@@ -122,7 +122,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 	/* Mark csi to be unassigned to detect duplicate assignment.*/
 	l_csi = si->list_of_csi;
-	while (l_csi != NULL) {
+	while (l_csi != nullptr) {
 		l_csi->assign_flag = false;
 		l_csi = l_csi->si_list_of_csi_next;
 	}
@@ -130,7 +130,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	su->reset_all_comps_assign_flag();
 
 	l_csi = si->list_of_csi;
-	while (l_csi != NULL) {
+	while (l_csi != nullptr) {
 		/* find a component that can be assigned this CSI */
 		l_comp = su->find_unassigned_comp_that_provides_cstype(&l_csi->saAmfCSType);
 
@@ -141,7 +141,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			continue;
 		}
 
-		if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == NULL) {
+		if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == nullptr) {
 			/* free all the CSI assignments and end this loop */
 			avd_compcsi_delete(cb, susi, true);
 			l_csi = l_csi->si_list_of_csi_next;
@@ -157,7 +157,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	if (su->saAmfSUPreInstantiable == false)
 		goto npisu_done;
 
-	/* After previous while loop(while (l_csi != NULL)) all the deserving components got assigned at least one. Some
+	/* After previous while loop(while (l_csi != nullptr)) all the deserving components got assigned at least one. Some
 	   components and csis may be left out. We need to ignore now all unassigned comps as they cann't be assigned 
 	   any csi. Unassigned csis may include those csi, which cann't be assigned to any comp and those csi, which 
 	   can be assigned to comp, which are already assigned(more than 1 csi to be assigned). 
@@ -167,7 +167,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	   assigiment.*/
 	TRACE("Now assigning more than one csi per comp");
 	l_csi = si->list_of_csi;
-	while (NULL !=  l_csi) {
+	while (nullptr !=  l_csi) {
 		if (false == l_csi->assign_flag) {
 			/* Assign to only those comps, which have assignment. Those comps, which could not have assignment 
 			   before, cann't find compcsi here also.*/
@@ -175,7 +175,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 				AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&comp_->saAmfCompType));
 				osafassert(comptype);
 				if ((true == comp_->assigned()) && (comptype->saAmfCtCompCategory != SA_AMF_COMP_LOCAL)) {
-					if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, comp_))) {
+					if (nullptr != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, comp_))) {
 						if (SA_AMF_HA_ACTIVE == ha_state) {
 							if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
 							} else { /* We cann't assign this csi to this comp, so check for another comp */
@@ -187,7 +187,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 								continue ;
 							}
 						}
-						if ((compcsi = avd_compcsi_create(susi, l_csi, comp_, true)) == NULL) {
+						if ((compcsi = avd_compcsi_create(susi, l_csi, comp_, true)) == nullptr) {
 							/* free all the CSI assignments and end this loop */
 							avd_compcsi_delete(cb, susi, true);
 							continue;
@@ -195,12 +195,12 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 						l_csi->assign_flag = true;
 						/* If one csi has been assigned to a comp, then look for another csi. */
 						break;
-					}/* if (NULL != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, comp_))) */
+					}/* if (nullptr != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, comp_))) */
 				}/* if (true == comp_->assigned()) */
 			}/* for (const auto& comp_ : su->list_of_comp) */
 		}/* if (false == l_csi->assign_flag)*/
 		l_csi = l_csi->si_list_of_csi_next;
-	}/* while (l_csi != NULL) */
+	}/* while (l_csi != nullptr) */
 
 npisu_done:
 	
@@ -211,7 +211,7 @@ npisu_done:
 	verify_csi_deps_and_delete_invalid_compcsi(susi);
 	
 	l_csi = si->list_of_csi;
-	while (l_csi != NULL) {
+	while (l_csi != nullptr) {
 		if (l_csi->assign_flag == false) {
 			if (su->saAmfSUPreInstantiable == false)
 				LOG_WA("Invalid configuration: More than one CSI" 
@@ -228,7 +228,7 @@ npisu_done:
 	 * called while doing checkpoint update.
 	 */
 
-	if (susi->list_of_csicomp == NULL) {
+	if (susi->list_of_csicomp == nullptr) {
 		TRACE("Couldn't add any compcsi to Si'%s'", susi->si->name.value);
 		avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_DEL, static_cast<SaAmfHAStateT>(0), 
 				static_cast<SaAmfHAStateT>(0));
@@ -238,14 +238,14 @@ npisu_done:
 	}
 
 	if (false == ckpt) {
-		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN, false, NULL) == NCSCC_RC_SUCCESS) {
+		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN, false, nullptr) == NCSCC_RC_SUCCESS) {
 			AVD_AVND *node = su->su_on_node;
-			if ((node->admin_node_pend_cbk.invocation != 0) || ((node->admin_ng != NULL) &&
+			if ((node->admin_node_pend_cbk.invocation != 0) || ((node->admin_ng != nullptr) &&
 						(node->admin_ng->admin_ng_pend_cbk.invocation !=0))) {
 				node->su_cnt_admin_oper++;
 				TRACE("node:'%s', su_cnt_admin_oper:%u", 
 						node->name.value, node->su_cnt_admin_oper);
-				if (node->admin_ng != NULL) {
+				if (node->admin_ng != nullptr) {
 					node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
 					TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
 				}
@@ -357,7 +357,7 @@ void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
 			avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
 		}
 	}
-	if (ng == NULL)
+	if (ng == nullptr)
 		goto done;
 	/* During nodegroup shutdown operation, mark nodegrouoop LOCKED if 
 	   all nodes transtioned to LOCKED state.*/
@@ -455,7 +455,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 		su->complete_admin_op(SA_AIS_ERR_TIMEOUT);
 	su->disable_comps(SA_AIS_ERR_TIMEOUT);
 	if ((su->su_on_node->admin_node_pend_cbk.invocation != 0) ||
-			(su->su_on_node->admin_ng != NULL)) {
+			(su->su_on_node->admin_ng != nullptr)) {
 		/* Node or nodegroup level operation is going on the node hosting the SU for which 
 		   sufailover got escalated. Sufailover event will always come after the 
 		   initiation of node level operation on the list of SUs. So if this SU has 
@@ -523,7 +523,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 	}
 
 	/* If nodegroup level operation is finished on all the nodes, reply to imm.*/
-	if (su->su_on_node->admin_ng != NULL)
+	if (su->su_on_node->admin_ng != nullptr)
 		process_su_si_response_for_ng(su, res);
 
 	rc =  NCSCC_RC_SUCCESS;
@@ -596,7 +596,7 @@ static void perform_nodeswitchover_recovery(AVD_AVND *node)
 	for (const auto& su : node->list_of_su) {
 		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 
-		if (su->list_of_susi == NULL)
+		if (su->list_of_susi == nullptr)
 			continue;
 
 		if (su_recover_from_fault(su) == NCSCC_RC_FAILURE) {
@@ -604,7 +604,7 @@ static void perform_nodeswitchover_recovery(AVD_AVND *node)
 			goto done;
 		}
 
-		if (su->list_of_susi != NULL)
+		if (su->list_of_susi != nullptr)
 			node_reboot = false;
 
 		if (avd_sg_app_su_inst_func(avd_cb, su->sg_of_su) == NCSCC_RC_FAILURE) {
@@ -649,7 +649,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				 n2d_msg->msg_info.n2d_opr_state.su_oper_state);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG,
-		n2d_msg->msg_info.n2d_opr_state.msg_id)) == NULL) {
+		n2d_msg->msg_info.n2d_opr_state.msg_id)) == nullptr) {
 		/* sanity failed return */
 		goto done;
 	}
@@ -673,7 +673,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* get the SU from the tree */
 
-	if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_opr_state.su_name))) == NULL) {
+	if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_opr_state.su_name))) == nullptr) {
 		LOG_ER("%s: %s not found", __FUNCTION__, n2d_msg->msg_info.n2d_opr_state.su_name.value);
 		goto done;
 	}
@@ -833,7 +833,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					}
 				}
 
-				if (su->list_of_susi == NULL)
+				if (su->list_of_susi == nullptr)
 					su_try_repair(su);
 
 				/* Verify the SG to check if any instantiations need
@@ -899,7 +899,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 done:
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 	TRACE_LEAVE();
 }
 
@@ -925,7 +925,7 @@ static void susi_assign_msg_dump(const char *func, unsigned int line,
 void process_su_si_response_for_comp(AVD_SU *su)
 {
 	TRACE_ENTER();
-	if (su->list_of_susi != NULL) {
+	if (su->list_of_susi != nullptr) {
 		TRACE_LEAVE();
 		return;
 	}
@@ -950,7 +950,7 @@ void process_su_si_response_for_comp(AVD_SU *su)
 			SA_AMF_ADMIN_RESTART, comp->su->su_on_node);
 	if (rc != NCSCC_RC_SUCCESS) {
 		report_admin_op_error(avd_cb->immOiHandle, comp->admin_pend_cbk.invocation,
-				SA_AIS_ERR_TIMEOUT, NULL,
+				SA_AIS_ERR_TIMEOUT, nullptr,
 				"Admin op request send failed '%s'", comp->comp_info.name.value);
 		comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 		comp->admin_pend_cbk.invocation = 0;
@@ -971,7 +971,7 @@ void process_su_si_response_for_comp(AVD_SU *su)
 void process_su_si_response_for_surestart_admin_op(AVD_SU *su)
 {
 	TRACE_ENTER();
-	if (su->list_of_susi != NULL) {
+	if (su->list_of_susi != nullptr) {
 		if ((su->saAmfSUPreInstantiable == false) && (su->su_all_comps_restartable() == false) &&
 				(su->list_of_susi->state == SA_AMF_HA_QUIESCED)) {
 			TRACE("For NPI '%s' RESTART admin op ends.",su->name.value);
@@ -985,7 +985,7 @@ void process_su_si_response_for_surestart_admin_op(AVD_SU *su)
                                         su->su_on_node);
 	if (rc != NCSCC_RC_SUCCESS)  {
 		report_admin_op_error(avd_cb->immOiHandle, su->pend_cbk.invocation, 
-				SA_AIS_ERR_TIMEOUT, NULL,
+				SA_AIS_ERR_TIMEOUT, nullptr,
 				"Admin op request send failed '%s'", su->name.value);
 		su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 		su->pend_cbk.invocation = 0;
@@ -1025,10 +1025,10 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			n2d_msg->msg_info.n2d_su_si_assign.error, n2d_msg->msg_info.n2d_su_si_assign.single_csi);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_su_si_assign.node_id, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG,
-	     n2d_msg->msg_info.n2d_su_si_assign.msg_id)) == NULL) {
+	     n2d_msg->msg_info.n2d_su_si_assign.msg_id)) == nullptr) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
@@ -1077,7 +1077,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * SU operation. 
 		 */
 
-		if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_su_si_assign.su_name))) == NULL) {
+		if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_su_si_assign.su_name))) == nullptr) {
 			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, n2d_msg->msg_info.n2d_su_si_assign.su_name.value);
 			goto done;
 		}
@@ -1106,7 +1106,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					 */
 
 					avsv_dnd_msg_free(n2d_msg);
-					evt->info.avnd_msg = NULL;
+					evt->info.avnd_msg = nullptr;
 					goto done;
 				} else if ((susi->state == SA_AMF_HA_QUIESCING)
 					   && (susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
@@ -1183,7 +1183,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				   csi, recovery will take care of this.*/
 				AVD_COMP_CSI_REL *t_comp_csi;
 				AVD_SU_SI_REL *t_sisu;
-				AVD_CSI *csi_tobe_deleted = NULL;
+				AVD_CSI *csi_tobe_deleted = nullptr;
 
 				osafassert(susi->csi_add_rem);
 				/* Checkpointing for compcsi removal */
@@ -1284,12 +1284,12 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					}
 					t_sisu = t_sisu->si_next;
 				}/* while(t_sisu) */
-				if (t_sisu == NULL) {
+				if (t_sisu == nullptr) {
 					/* Since csi assignment is over, walkthrough other
 					   unassigned CSIs for assignment. */
 					for (csi = susi->si->list_of_csi; csi; csi = 
 							csi->si_list_of_csi_next) {
-						if (csi->list_compcsi == NULL) {
+						if (csi->list_compcsi == nullptr) {
 							/* Assign this csi and when the assignment
 							   will be over for this csi, then other
 							   unassigned CSIs will be taken.*/
@@ -1407,7 +1407,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_su_si_assign.su_name));
 
-	if (su != NULL) {
+	if (su != nullptr) {
 		if (su->pend_cbk.invocation != 0) {
 			if ((su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK)
 			    || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN)) {
@@ -1462,15 +1462,15 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
 				report_admin_op_error(cb->immOiHandle, su->su_on_node->admin_node_pend_cbk.invocation,
 						SA_AIS_ERR_REPAIR_PENDING, &su->su_on_node->admin_node_pend_cbk,
-						NULL);
+						nullptr);
 				su->su_on_node->su_cnt_admin_oper = 0;
 			}
 			/* else admin oper still not complete */
-		} else if ((su->sg_of_su->sg_ncs_spec == false) && ((su->su_on_node->admin_ng != NULL) ||
+		} else if ((su->sg_of_su->sg_ncs_spec == false) && ((su->su_on_node->admin_ng != nullptr) ||
 					(su->sg_of_su->ng_using_saAmfSGAdminState == true))) {
 			AVD_AMF_NG *ng = su->su_on_node->admin_ng;
 			//Got response from AMFND for assignments decrement su_cnt_admin_oper.
-			if ((ng != NULL) &&
+			if ((ng != nullptr) &&
 				(((((ng->admin_ng_pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ||
 				(ng->admin_ng_pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK)) &&
 				(su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) &&
@@ -1497,9 +1497,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* also check for pending clm callback operations */ 
 		if (su->su_on_node->clm_pend_inv != 0) {
 			if((su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0)
-					&& (su->list_of_susi == NULL))
+					&& (su->list_of_susi == nullptr))
 				su->su_on_node->su_cnt_admin_oper--;
-			if ((su->su_on_node->su_cnt_admin_oper == 0) && (su->list_of_susi == NULL)) {
+			if ((su->su_on_node->su_cnt_admin_oper == 0) && (su->list_of_susi == nullptr)) {
 				/* since unassignment of all SIs on this node has been done
 				   now go on with the terminataion */
 				/* clm admin lock/shutdown operations were on, so we need to reset 
@@ -1525,7 +1525,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* We are checking only application components as on payload all ncs comp are in no_red model.
 		   We are doing the same thing for controller also. */
 		for (const auto& temp_su : node->list_of_su) {
-			if (NULL != temp_su->list_of_susi) {
+			if (nullptr != temp_su->list_of_susi) {
 				all_su_unassigned = false;
 			}
 		}
@@ -1536,7 +1536,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 	/* Free the messages */
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 
  done:
 	TRACE_LEAVE();
@@ -1632,7 +1632,7 @@ AVD_SU* su_to_instantiate(AVD_SG *sg)
 		if (i_su->is_instantiable())
 			return i_su;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /**
@@ -1643,7 +1643,7 @@ AVD_SU* su_to_instantiate(AVD_SG *sg)
  */
 AVD_SU* su_to_terminate(AVD_SG *sg)
 {
-	AmfDb<std::string, AVD_SU> *su_rank = NULL;
+	AmfDb<std::string, AVD_SU> *su_rank = nullptr;
 	su_rank = new  AmfDb<std::string, AVD_SU>;
 	for (const auto& i_su : sg->list_of_su) {
 		TRACE("In Seq %s, %u", i_su->name.value, i_su->saAmfSURank);
@@ -1662,13 +1662,13 @@ AVD_SU* su_to_terminate(AVD_SG *sg)
 				su->saAmfSuReadinessState, su->saAmfSUPresenceState);
 		if ((su->saAmfSuReadinessState == SA_AMF_READINESS_OUT_OF_SERVICE) &&
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
-				(su->list_of_susi == NULL)) {
+				(su->list_of_susi == nullptr)) {
 			delete su_rank;
 			return su;
 		}
 	}
 	delete su_rank;
-	return NULL;
+	return nullptr;
 }
 
 /**
@@ -1721,7 +1721,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 	uint32_t num_asgd_su = 0;
 	uint32_t num_su = 0;
 	uint32_t num_try_insvc_su = 0;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER2("'%s'", sg->name.value);
 
@@ -2058,7 +2058,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	/* If this node-failover/nodereboot occurs dueing nodegroup operation then check 
 	   if this leads to completion of operation and try to reply to imm.*/
-	if ((avnd->list_of_su.empty() != true) && (avnd->admin_ng != NULL)) {
+	if ((avnd->list_of_su.empty() != true) && (avnd->admin_ng != nullptr)) {
 		avnd->su_cnt_admin_oper = 0;
 		process_su_si_response_for_ng(avnd->list_of_su.front(), SA_AIS_OK);
 	}
@@ -2211,7 +2211,7 @@ uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 	/* Now send a single message about the SU SI assignment to
 	 * the AvND for all the SIs assigned to the SU.
 	 */
-	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD, false, NULL) != NCSCC_RC_SUCCESS) {
+	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD, false, nullptr) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {
@@ -2308,7 +2308,7 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	/* Now send a single delete message about the SU SI assignment to
 	 * the AvND for all the SIs assigned to the SU.
 	 */
-	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_DEL, false, NULL) != NCSCC_RC_SUCCESS) {
+	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_DEL, false, nullptr) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {

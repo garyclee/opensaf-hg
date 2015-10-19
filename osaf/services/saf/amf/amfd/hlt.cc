@@ -32,7 +32,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 		SaTimeT *value = (SaTimeT *)attribute->attrValues[0];
 
@@ -71,7 +71,7 @@ static SaAisErrorT ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	avsv_sanamet_init(&opdata->objectName, &comp_name, "safComp=");
 
 	comp = comp_db->find(Amf::to_string(&comp_name));
-	for (curr_susi = comp->su->list_of_susi; curr_susi != NULL; curr_susi = curr_susi->su_next)
+	for (curr_susi = comp->su->list_of_susi; curr_susi != nullptr; curr_susi = curr_susi->su_next)
 		for (compcsi = curr_susi->list_of_csicomp; compcsi; compcsi = compcsi->susi_csicomp_next) {
 			if (compcsi->comp == comp) {
 				report_ccb_validation_error(opdata, "Deletion of SaAmfHealthcheck requires"
@@ -128,7 +128,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	comp = comp_db->find(Amf::to_string(&comp_dn));
 	osafassert(comp);
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		AVSV_PARAM_INFO param;
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 		SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
@@ -189,7 +189,7 @@ static void hc_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_hc_constructor(void)
 {
-	avd_class_impl_set("SaAmfHealthcheck", NULL, NULL, hc_ccb_completed_cb,
+	avd_class_impl_set("SaAmfHealthcheck", nullptr, nullptr, hc_ccb_completed_cb,
 		hc_ccb_apply_cb);
 }
 

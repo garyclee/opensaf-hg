@@ -53,7 +53,7 @@ uint32_t avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE ac
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (node = avd_node_get(&ckpt_node->name))) {
+	if (nullptr == (node = avd_node_get(&ckpt_node->name))) {
 		LOG_ER("avd_node_get FAILED for '%s'", ckpt_node->name.value);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -70,7 +70,7 @@ uint32_t avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE ac
 	node->node_info.initialViewNumber = ckpt_node->node_info.initialViewNumber;
 	node->adest = ckpt_node->adest;
 	node->node_info.nodeId = ckpt_node->node_info.nodeId;
-	if (NULL == avd_node_find_nodeid(ckpt_node->node_info.nodeId))
+	if (nullptr == avd_node_find_nodeid(ckpt_node->node_info.nodeId))
 		avd_node_add_nodeid(node);
 
 done:
@@ -103,7 +103,7 @@ uint32_t avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE actio
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
 	AVD_APP *app = app_db->find(Amf::to_string(&ckpt_app->name));
-	if (app == NULL) {
+	if (app == nullptr) {
 		TRACE("'%s' does not exist, creating it", ckpt_app->name.value);
 		app = new AVD_APP(&ckpt_app->name);
 		app_db->insert(Amf::to_string(&app->name), app);
@@ -144,7 +144,7 @@ uint32_t avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (sg = sg_db->find(Amf::to_string(&ckpt_sg->name)))) {
+	if (nullptr == (sg = sg_db->find(Amf::to_string(&ckpt_sg->name)))) {
 		LOG_ER("sg_db->find() FAILED for '%s'", ckpt_sg->name.value);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -187,7 +187,7 @@ uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (su = su_db->find(Amf::to_string(&ckpt_su->name)))) {
+	if (nullptr == (su = su_db->find(Amf::to_string(&ckpt_su->name)))) {
 		LOG_ER("su_db->find FAILED for '%s'", ckpt_su->name.value);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -242,7 +242,7 @@ uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (si = avd_si_get(&ckpt_si->name))) {
+	if (nullptr == (si = avd_si_get(&ckpt_si->name))) {
 		LOG_WA("%s: avd_si_get FAILED", __FUNCTION__);
 		goto done;
 	}
@@ -316,14 +316,14 @@ uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE 
 	osaf_decode_sanamet(uba, &name);
 
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		si->sg_of_si->admin_si = si;
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		si->sg_of_si->admin_si = NULL;
+		si->sg_of_si->admin_si = nullptr;
 		break;
 	default:
 		osafassert(0);
@@ -357,9 +357,9 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
-		sg_ptr->si_tobe_redistributed = NULL;
-		sg_ptr->min_assigned_su = NULL;
-		sg_ptr->max_assigned_su = NULL;
+		sg_ptr->si_tobe_redistributed = nullptr;
+		sg_ptr->min_assigned_su = nullptr;
+		sg_ptr->max_assigned_su = nullptr;
 		break;
 
 	default:
@@ -412,7 +412,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
-		if (NULL == su_si_rel_ptr) {
+		if (nullptr == su_si_rel_ptr) {
 			if (NCSCC_RC_SUCCESS != avd_new_assgn_susi(cb, su_ptr, si_ptr_up,
 				su_si_ckpt->state, true, &su_si_rel_ptr)) {
 				
@@ -426,7 +426,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 		 */
 
 	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL != su_si_rel_ptr) {
+		if (nullptr != su_si_rel_ptr) {
 			su_si_rel_ptr->fsm = static_cast<AVD_SU_SI_STATE>(su_si_ckpt->fsm);
 			su_si_rel_ptr->state = su_si_ckpt->state;
 			su_si_rel_ptr->csi_add_rem = su_si_ckpt->csi_add_rem;
@@ -434,11 +434,11 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 				su_si_rel_ptr->comp_name = su_si_ckpt->comp_name;
 				su_si_rel_ptr->csi_name = su_si_ckpt->csi_name;
 				TRACE("compcsi create for '%s' '%s'", su_si_rel_ptr->comp_name.value, su_si_rel_ptr->csi_name.value);
-				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_rel_ptr->comp_name)))) == NULL) {
+				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_rel_ptr->comp_name)))) == nullptr) {
 					LOG_ER("comp_db->find() FAILED for '%s'", su_si_rel_ptr->comp_name.value);
 					return NCSCC_RC_FAILURE;
 				}
-				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_rel_ptr->csi_name)))) == NULL) {
+				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_rel_ptr->csi_name)))) == nullptr) {
 					/* This condition will arise if there is some delay in the ccb apply callback
 					 * So create csi and add it to the csi_db here, later in the ccb apply callback
 					 * attributes will be updated and csi will be added to the model
@@ -446,7 +446,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 					csi_ptr = csi_create(&su_si_rel_ptr->csi_name);
 					osafassert(csi_ptr);
 				}
-				if ((avd_compcsi_create(su_si_rel_ptr, csi_ptr, comp_ptr, false)) == NULL) {
+				if ((avd_compcsi_create(su_si_rel_ptr, csi_ptr, comp_ptr, false)) == nullptr) {
 					LOG_ER("avd_compcsi_create FAILED for csi '%s' comp '%s'",
 						su_si_rel_ptr->csi_name.value,su_si_rel_ptr->comp_name.value);
 					return NCSCC_RC_FAILURE;
@@ -461,15 +461,15 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 		}
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		if (NULL != su_si_rel_ptr) {
+		if (nullptr != su_si_rel_ptr) {
 			if(su_si_ckpt->csi_add_rem) {
 				TRACE("compcsi remove for '%s' '%s'", su_si_ckpt->comp_name.value, su_si_ckpt->csi_name.value);
-				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_ckpt->comp_name)))) == NULL) {
+				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_ckpt->comp_name)))) == nullptr) {
 					LOG_ER("comp_db->find() FAILED for '%s'",su_si_ckpt->comp_name.value);
 					return NCSCC_RC_FAILURE;
 				}
 
-				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_ckpt->csi_name)))) == NULL) {
+				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_ckpt->csi_name)))) == nullptr) {
 					LOG_ER("csi_db->find() FAILED for '%s'",su_si_ckpt->csi_name.value);
 					return NCSCC_RC_FAILURE;
 				}
@@ -487,7 +487,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 				/* Delete comp-csi. */
 				avd_compcsi_from_csi_and_susi_delete(su_si_rel_ptr, t_csicomp, true);
 
-				if (csi_ptr->list_compcsi == NULL ) {
+				if (csi_ptr->list_compcsi == nullptr ) {
 					/* delete the pg-node list */
 					avd_pg_csi_node_del_all(avd_cb, csi_ptr);
 
@@ -538,7 +538,7 @@ uint32_t avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE ac
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (comp = comp_db->find(Amf::to_string(dn)))) {
+	if (nullptr == (comp = comp_db->find(Amf::to_string(dn)))) {
 		LOG_ER("comp_db->find() FAILED for '%s'", dn->value);
 		goto done;
 	}
@@ -587,7 +587,7 @@ uint32_t avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NC
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (NULL == (ccst = compcstype_db->find(Amf::to_string(dn)))) {
+	if (nullptr == (ccst = compcstype_db->find(Amf::to_string(dn)))) {
 		LOG_ER("compcstype_db->find()FAILED for '%s'", dn->value);
 		goto done;
 	}
@@ -617,7 +617,7 @@ done:
 uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 {
 #if 0
-	AVD_HLT *hlt_chk = NULL;
+	AVD_HLT *hlt_chk = nullptr;
 	AVSV_HLT_KEY hlt_name;
 
 	AVD_SU *su;
@@ -645,7 +645,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	AVD_COMPCS_TYPE *comp_cs = AVD_COMP_CS_TYPE_NULL;
 	AVD_COMP_CS_TYPE_INDX comp_cs_indx;
 #if 0
-	AVD_CS_TYPE_PARAM *cs_param = NULL;
+	AVD_CS_TYPE_PARAM *cs_param = nullptr;
 	AVD_CS_TYPE_PARAM_INDX cs_param_indx;
 #endif
 	TRACE_ENTER();
@@ -655,7 +655,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all HLT entries.
 	 */
 	memset(&hlt_name, '\0', sizeof(AVSV_HLT_KEY));
-	for (hlt_chk = avd_hlt_struc_find_next(cb, hlt_name); hlt_chk != NULL;
+	for (hlt_chk = avd_hlt_struc_find_next(cb, hlt_name); hlt_chk != nullptr;
 	     hlt_chk = avd_hlt_struc_find_next(cb, hlt_name)) {
 		/*
 		 * Remove this HLT from the list.
@@ -669,7 +669,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all SU SI relationship entries.
 	 */
 	su_name.length = 0;
-	for (su = avd_su_struc_find_next(cb, su_name, false); su != NULL;
+	for (su = avd_su_struc_find_next(cb, su_name, false); su != nullptr;
 	     su = avd_su_struc_find_next(cb, su_name, false)) {
 		while (su->list_of_susi != AVD_SU_SI_REL_NULL) {
 			avd_compcsi_list_del(cb, su->list_of_susi, true);
@@ -683,7 +683,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all CSI entries.
 	 */
 	csi_name.length = 0;
-	for (csi = avd_csi_struc_find_next(cb, csi_name, false); csi != NULL;
+	for (csi = avd_csi_struc_find_next(cb, csi_name, false); csi != nullptr;
 	     csi = avd_csi_struc_find_next(cb, csi_name, false)) {
 		csi_name = csi->name;
 		avd_remove_csi(cb, csi);
@@ -694,7 +694,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all component entries.
 	 */
 	comp_name.length = 0;
-	for (comp = avd_comp_struc_find_next(cb, comp_name, false); comp != NULL;
+	for (comp = avd_comp_struc_find_next(cb, comp_name, false); comp != nullptr;
 	     comp = avd_comp_struc_find_next(cb, comp_name, false)) {
 		comp_name = comp->comp_info.name;
 		/* remove the COMP from SU list.
@@ -716,7 +716,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete entire operation SU's.
 	 */
 	su_name.length = 0;
-	for (su = avd_su_struc_find_next(cb, su_name, false); su != NULL;
+	for (su = avd_su_struc_find_next(cb, su_name, false); su != nullptr;
 	     su = avd_su_struc_find_next(cb, su_name, false)) {
 		/* HACK FOR TESTING SHULD BE CHANGED LATER */
 		if (su->sg_of_su == 0) {
@@ -724,7 +724,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 			continue;
 		}
 
-		if (su->sg_of_su->su_oper_list.su != NULL)
+		if (su->sg_of_su->su_oper_list.su != nullptr)
 			avd_sg_su_oper_list_del(cb, su, true);
 
 		su_name = su->name;
@@ -735,7 +735,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all SI entries.
 	 */
 	si_name.length = 0;
-	for (si = avd_si_struc_find_next(cb, si_name, false); si != NULL;
+	for (si = avd_si_struc_find_next(cb, si_name, false); si != nullptr;
 	     si = avd_si_struc_find_next(cb, si_name, false)) {
 		si_name = si->name;
 		/* remove the SI from the SG list.
@@ -753,7 +753,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all SU entries.
 	 */
 	su_name.length = 0;
-	for (su = avd_su_struc_find_next(cb, su_name, false); su != NULL;
+	for (su = avd_su_struc_find_next(cb, su_name, false); su != nullptr;
 	     su = avd_su_struc_find_next(cb, su_name, false)) {
 		su_name = su->name;
 		/* remove the SU from both the SG list and the
@@ -774,7 +774,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 */
 	sg_name.length = 0;
 	for (sg = avd_sg_struc_find_next(cb, sg_name, false);
-	     sg != NULL; sg = avd_sg_struc_find_next(cb, sg_name, false)) {
+	     sg != nullptr; sg = avd_sg_struc_find_next(cb, sg_name, false)) {
 		sg_name = sg->name;
 		/*
 		 * Remove this SG from the list.
@@ -787,7 +787,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all the AVND entries.
 	 */
 	node_id = 0;
-	while (NULL != (avnd = avd_avnd_struc_find_next_nodeid(node_id))) {
+	while (nullptr != (avnd = avd_avnd_struc_find_next_nodeid(node_id))) {
 		/*
 		 * Remove this AVND from the list.
 		 */
@@ -803,7 +803,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all entries.
 	 */
 	memset(&su_si_rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-	for (su_si_rank = avd_sus_per_si_rank_struc_find_next(cb, su_si_rank_indx); su_si_rank != NULL;
+	for (su_si_rank = avd_sus_per_si_rank_struc_find_next(cb, su_si_rank_indx); su_si_rank != nullptr;
 	     su_si_rank = avd_sus_per_si_rank_struc_find_next(cb, su_si_rank_indx)) {
 		/*
 		 * Remove this entry from the list.
@@ -817,7 +817,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 	 * Delete all entries.
 	 */
 	memset(&comp_cs_indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
-	for (comp_cs = avd_compcstype_struc_find_next(cb, comp_cs_indx); comp_cs != NULL;
+	for (comp_cs = avd_compcstype_struc_find_next(cb, comp_cs_indx); comp_cs != nullptr;
 	     comp_cs = avd_compcstype_struc_find_next(cb, comp_cs_indx)) {
 		/*
 		 * Remove this entry from the list.
@@ -832,7 +832,7 @@ uint32_t avd_data_clean_up(AVD_CL_CB *cb)
 #if 0
 	/*  TODO */
 	memset(&cs_param_indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
-	for (cs_param = avd_cs_type_param_struc_find_next(cb, cs_param_indx); cs_param != NULL;
+	for (cs_param = avd_cs_type_param_struc_find_next(cb, cs_param_indx); cs_param != nullptr;
 	     cs_param = avd_cs_type_param_struc_find_next(cb, cs_param_indx)) {
 		/*
 		 * Remove this entry from the list.

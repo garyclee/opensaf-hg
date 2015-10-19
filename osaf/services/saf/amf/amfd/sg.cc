@@ -31,7 +31,7 @@
 #include <csi.h>
 #include <algorithm>
 
-AmfDb<std::string, AVD_SG> *sg_db = NULL;
+AmfDb<std::string, AVD_SG> *sg_db = nullptr;
 
 static void avd_verify_equal_ranked_su(AVD_SG *avd_sg);
 
@@ -39,7 +39,7 @@ void avd_sg_db_add(AVD_SG *sg)
 {
 	unsigned int rc;
 
-	if (sg_db->find(Amf::to_string(&sg->name)) == NULL) {
+	if (sg_db->find(Amf::to_string(&sg->name)) == nullptr) {
 		rc = sg_db->insert(Amf::to_string(&sg->name),sg);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -57,7 +57,7 @@ static void sg_add_to_model(AVD_SG *sg)
 	TRACE_ENTER2("%s", sg->name.value);
 
 	/* Check parent link to see if it has been added already */
-	if (sg->app != NULL) {
+	if (sg->app != nullptr) {
 		TRACE("already added");
 		goto done;
 	}
@@ -115,15 +115,15 @@ AVD_SG::AVD_SG():
 		adjust_state(AVSV_SG_STABLE),
 		sg_ncs_spec(false),
 		sg_fsm_state(AVD_SG_FSM_STABLE),
-		admin_si(NULL),
+		admin_si(nullptr),
 		sg_redundancy_model(SA_AMF_NO_REDUNDANCY_MODEL),
-		sg_type(NULL),
-		sg_list_app_next(NULL),
-		app(NULL),
+		sg_type(nullptr),
+		sg_list_app_next(nullptr),
+		app(nullptr),
 		equal_ranked_su(false),
-		max_assigned_su(NULL),
-		min_assigned_su(NULL),
-		si_tobe_redistributed(NULL),
+		max_assigned_su(nullptr),
+		min_assigned_su(nullptr),
+		si_tobe_redistributed(nullptr),
 		try_inst_counter(0)
 {
 	adminOp = static_cast<SaAmfAdminOperationIdT>(0);
@@ -184,7 +184,7 @@ void AVD_SG::remove_si(AVD_SI* si)
 		osafassert(false);
 	}
 
-	si->sg_of_si = NULL;
+	si->sg_of_si = nullptr;
 }
 
 /**
@@ -203,7 +203,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaAmfAdminStateT admstate;
 	char *parent;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -216,14 +216,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (sgtype_db->find(Amf::to_string(&aname)) == NULL) {
-		if (opdata == NULL) {
+	if (sgtype_db->find(Amf::to_string(&aname)) == nullptr) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
 		/* SG type does not exist in current model, check CCB */
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
@@ -248,7 +248,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGSuHostNodeGroup"), attributes, 0, &aname) == SA_AIS_OK) &&
-	    (avd_ng_get(&aname) == NULL)) {
+	    (avd_ng_get(&aname) == nullptr)) {
 		report_ccb_validation_error(opdata, "Invalid saAmfSGSuHostNodeGroup '%s' for '%s'", aname.value, dn->value);
 		return 0;
 	}
@@ -379,7 +379,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 
 	if (rc != 0) {
 		avd_sg_delete(sg);
-		sg = NULL;
+		sg = nullptr;
 	}
 
 	TRACE_LEAVE();
@@ -419,7 +419,7 @@ SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
 		const_cast<SaImmAttrNameT>("saAmfSGSuRestartProb"),
 		const_cast<SaImmAttrNameT>("saAmfSGSuRestartMax"),
 		const_cast<SaImmAttrNameT>("saAmfSGAdminState"),
-		NULL
+		nullptr
 	};
 
 	TRACE_ENTER();
@@ -441,12 +441,12 @@ SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
 	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &dn,
 		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 
-		if (!is_config_valid(&dn, attributes, NULL)) {
+		if (!is_config_valid(&dn, attributes, nullptr)) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if ((sg = sg_create(&dn, attributes)) == NULL) {
+		if ((sg = sg_create(&dn, attributes)) == nullptr) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
@@ -507,7 +507,7 @@ static bool ng_change_is_valid(const AVD_SG *sg, const SaNameT *ng_name,
 		// of the new one.
 
 		const AVD_AMF_NG *ng = avd_ng_get(ng_name);
-		if (ng == NULL) {
+		if (ng == nullptr) {
 			report_ccb_validation_error(opdata,
 					"Node Group '%s' not found", ng_name->value);
 			return false;
@@ -541,7 +541,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	sg = sg_db->find(Amf::to_string(&opdata->objectName));
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 
 	/* Validate whether we can modify it. */
 
@@ -549,13 +549,13 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 		(sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED)) {
 
 		i = 0;
-		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
-			void *value = NULL;
+			void *value = nullptr;
 
 			/* Attribute value removed */
 			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
-					(attribute->attrValues == NULL))
+					(attribute->attrValues == nullptr))
 				continue;
 
 			value = attribute->attrValues[0];
@@ -571,7 +571,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 					goto done;
 				}
 
-				if (sgtype_db->find(Amf::to_string(&sg_type_name)) == NULL) {
+				if (sgtype_db->find(Amf::to_string(&sg_type_name)) == nullptr) {
 					report_ccb_validation_error(opdata,
 						"SG Type '%s' not found", sg_type_name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
@@ -622,18 +622,18 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
-		}		/* while (attr_mod != NULL) */
+		}		/* while (attr_mod != nullptr) */
 
 	} else {	/* Admin state is UNLOCKED */
 		i = 0;
 		/* Modifications can be done for the following parameters. */
-		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
-			void *value = NULL;
+			void *value = nullptr;
 
 			/* Attribute value removed */
 			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
-					(attribute->attrValues == NULL))
+					(attribute->attrValues == nullptr))
 				value_is_deleted = true;
 			else {
 				value_is_deleted = false;
@@ -711,7 +711,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
-		}		/* while (attr_mod != NULL) */
+		}		/* while (attr_mod != nullptr) */
 	}			/* Admin state is UNLOCKED */
 
 done:
@@ -727,7 +727,7 @@ done:
  */
 static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 {
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
 	AVSV_PARAM_INFO param;
 	memset(((uint8_t *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 
@@ -798,23 +798,23 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_AMF_SG_TYPE *sg_type;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	void *value = NULL;
+	void *value = nullptr;
 	bool value_is_deleted;
 
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	sg = sg_db->find(Amf::to_string(&opdata->objectName));
-	assert(sg != NULL);
+	assert(sg != nullptr);
 
 	sg_type = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
-	osafassert(NULL != sg_type);
+	osafassert(nullptr != sg_type);
 
 	if (sg->saAmfSGAdminState != SA_AMF_ADMIN_UNLOCKED) {
 		attr_mod = opdata->param.modify.attrMods[i++];
-		while (attr_mod != NULL) {
+		while (attr_mod != nullptr) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
-			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attribute->attrValues == NULL)) {
+			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attribute->attrValues == nullptr)) {
 				/* Attribute value is deleted, revert to default value */
 				value_is_deleted = true;
 			} else {
@@ -829,7 +829,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 						sg_type_name.value, sg->name.value);
 
 				sg_type = sgtype_db->find(Amf::to_string(&sg_type_name));
-				osafassert(NULL != sg_type);
+				osafassert(nullptr != sg_type);
 
 				/* Remove from old type */
 				avd_sgtype_remove_sg(sg);
@@ -976,10 +976,10 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 		i = 0;
 		/* Modifications can be done for the following parameters. */
 		attr_mod = opdata->param.modify.attrMods[i++];
-		while (attr_mod != NULL) {
+		while (attr_mod != nullptr) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
-			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attribute->attrValues == NULL)) {
+			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attribute->attrValues == nullptr)) {
 				/* Attribute value is deleted, revert to default value */
 				value_is_deleted = true;
 			} else {
@@ -1063,7 +1063,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 
 			attr_mod = opdata->param.modify.attrMods[i++];
-		}		/* while (attr_mod != NULL) */
+		}		/* while (attr_mod != nullptr) */
 
 	}			/* Admin state is UNLOCKED */
 }
@@ -1080,7 +1080,7 @@ uint32_t AVD_SG::term_su_list_in_reverse()
 	TRACE_ENTER2("sg: %s", this->name.value);
 	for (auto iter = list_of_su.rbegin(); iter != list_of_su.rend(); ++iter) {
 		su = *iter;
-		TRACE("terminate su:'%s'", su ? su->name.value : NULL);
+		TRACE("terminate su:'%s'", su ? su->name.value : nullptr);
 
 		if ((su->saAmfSUPreInstantiable == true) &&
 			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
@@ -1192,13 +1192,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	sg = sg_db->find(Amf::to_string(object_name));
 
 	if (sg->sg_ncs_spec == true) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 				"Admin Op on OpenSAF MW SG is not allowed");
 		goto done;
 	}
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"SG not in STABLE state (%s)", sg->name.value);
 		goto done;
 	}
@@ -1207,12 +1207,12 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	for (const auto& su : sg->list_of_su) {
 		node = su->get_node_ptr();
 		if (su->pend_cbk.invocation != 0) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"Admin operation'%u' is already going on su'%s' belonging to the same SG",
 					su->pend_cbk.admin_oper, su->name.value);
 			goto done;
 		} else if (node->admin_node_pend_cbk.admin_oper != 0) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"Node'%s' hosting SU'%s' belonging to the same SG, undergoing admin"
 					" operation'%u'", node->name.value, su->name.value,
 					node->admin_node_pend_cbk.admin_oper);
@@ -1221,20 +1221,20 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	}
 
 	if ((sg->adminOp_invocationId  != 0) || (sg->adminOp != 0))  {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Admin operation is going on (%s)", sg->name.value);
 		goto done;
 	}
         /* Avoid if any single Csi assignment is undergoing on SG. */
         if (csi_assignment_validate(sg) == true) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Single Csi assignment undergoing on (sg'%s')", sg->name.value);
                 goto done;
         }
 
 	/* if Tolerance timer is running for any SI's withing this SG, then return SA_AIS_ERR_TRY_AGAIN */
 	if (sg_is_tolerance_timer_running_for_any_si(sg)) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Tolerance timer is running for some of the SI's in the SG '%s',"
 				" so differing admin opr", sg->name.value);
 		goto done;
@@ -1242,13 +1242,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"%s is already unlocked", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
@@ -1265,8 +1265,8 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-					NULL);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
+					nullptr);
 			goto done;
 		}
 		sg->adminOp = SA_AMF_ADMIN_UNLOCK;
@@ -1274,13 +1274,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 	case SA_AMF_ADMIN_LOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"%s is already locked", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
@@ -1297,8 +1297,8 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-					NULL);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
+					nullptr);
 			goto done;
 		}
 
@@ -1306,14 +1306,14 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		break;
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"%s is shutting down", object_name->value);
 			goto done;
 		}
 
 		if ((sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) ||
 		    (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"%s is locked (instantiation)", object_name->value);
 			goto done;
 		}
@@ -1322,21 +1322,21 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_SHUTTING_DOWN);
 		if (avd_sg_app_sg_admin_func(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-					NULL);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
+					nullptr);
 			goto done;
 		}
 		sg->adminOp = SA_AMF_ADMIN_SHUTDOWN;
 		break;
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"%s is already locked-instantiation", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"%s is not locked", object_name->value);
 			goto done;
 		}
@@ -1345,8 +1345,8 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 		if (sg_app_sg_admin_lock_inst(avd_cb, sg) != NCSCC_RC_SUCCESS) {
 			avd_sg_admin_state_set(sg, adm_state);
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
-					NULL);
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
+					nullptr);
 			goto done;
 		}
 
@@ -1355,13 +1355,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		break;
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"%s is already locked", object_name->value);
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"%s is not in locked instantiation state", object_name->value);
 			goto done;
 		}
@@ -1372,7 +1372,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		for (const auto& su : sg->list_of_su) {
 			if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) {
 				report_admin_op_error(immOiHandle, invocation,
-						SA_AIS_ERR_TRY_AGAIN, NULL,
+						SA_AIS_ERR_TRY_AGAIN, nullptr,
 						"su'%s' in terminating state",
 						su->name.value);
 				goto done;
@@ -1391,7 +1391,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		break;
 	case SA_AMF_ADMIN_SG_ADJUST:
 	default:
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 				"Admin Operation '%llu' not supported", op_id);
 		goto done;
 	}
@@ -1424,9 +1424,9 @@ static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("'%s'", objectName->value);
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 
-	while ((attributeName = attributeNames[i++]) != NULL) {
+	while ((attributeName = attributeNames[i++]) != nullptr) {
 		if (!strcmp("saAmfSGNumCurrAssignedSUs", attributeName)) {
 			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrAssignedSUs);
@@ -1472,13 +1472,13 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		if (sg->list_of_si.empty() == false) {
 			/* check whether there is parent app delete */
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->app->name);
-			if (t_opData == NULL || t_opData->operationType != CCBUTIL_DELETE) {
+			if (t_opData == nullptr || t_opData->operationType != CCBUTIL_DELETE) {
 				/* check whether there exists a delete operation for 
 				 * each of the SIs in the SG's list in the current CCB
 				 */
 				for (const auto& si : sg->list_of_si) {
 					t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
-					if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+					if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 						si_exist = true;
 						break;
 					}
@@ -1534,7 +1534,7 @@ void avd_sg_remove_su(AVD_SU* su)
 {
 	AVD_SG *sg = su->sg_of_su;
 
-	if (su->sg_of_su != NULL) {
+	if (su->sg_of_su != nullptr) {
 		/* remove SU from SG */
 		auto su_to_delete = std::find(sg->list_of_su.begin(),
 			sg->list_of_su.end(),
@@ -1546,7 +1546,7 @@ void avd_sg_remove_su(AVD_SU* su)
 			LOG_ER("su cannot be found");
 		}
 
-		su->sg_of_su = NULL;
+		su->sg_of_su = nullptr;
 	} /* if (su->sg_of_su != AVD_SG_NULL) */
 
 	avd_verify_equal_ranked_su(sg);
@@ -1555,7 +1555,7 @@ void avd_sg_remove_su(AVD_SU* su)
 
 void avd_sg_add_su(AVD_SU* su)
 {
-	if ((su == NULL) || (su->sg_of_su == NULL))
+	if ((su == nullptr) || (su->sg_of_su == nullptr))
 		return;
 
 	su->sg_of_su->list_of_su.push_back(su);
@@ -1659,10 +1659,10 @@ void AVD_SG::set_admin_si(AVD_SI *si) {
 }
 
 void AVD_SG::clear_admin_si() {
-	if (admin_si != NULL) {
+	if (admin_si != nullptr) {
 		TRACE("%s admin_si cleared", name.value);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, this, AVSV_CKPT_AVD_SG_ADMIN_SI);
-		admin_si = NULL;
+		admin_si = nullptr;
 	}
 }
 
@@ -1708,7 +1708,7 @@ const AVD_SU* AVD_SG::su_oper_list_front() {
 	if (su_oper_list.empty() == false) {
 		return su_oper_list.front();
 	} else {
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -1909,7 +1909,7 @@ bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg)
 bool AVD_SG::is_sg_assigned_only_in_ng(const AVD_AMF_NG *ng)
 {
 	for (const auto& su : list_of_su) {
-		if (su->list_of_susi == NULL)
+		if (su->list_of_susi == nullptr)
 			continue;
 		//Return if this assigned su is not in this ng.
 		if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false)
@@ -1984,6 +1984,6 @@ AVD_SU* AVD_SG::first_su()
 	if (!list_of_su.empty()) {
 		return *list_of_su.begin();
 	} else {
-		return NULL;
+		return nullptr;
 	}
 }

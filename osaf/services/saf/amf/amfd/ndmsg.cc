@@ -110,7 +110,7 @@ uint32_t avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 
 	TRACE_ENTER();
 
-	if (cpy_info->i_msg == NULL) {
+	if (cpy_info->i_msg == nullptr) {
 		LOG_ER("%s: no msg", __FUNCTION__);
 		return NCSCC_RC_FAILURE;
 	}
@@ -151,9 +151,9 @@ uint32_t avd_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: decode failed %u %u", __FUNCTION__, rc, ederror);
 
-		if (dec_info->o_msg != NULL) {
+		if (dec_info->o_msg != nullptr) {
 			avsv_dnd_msg_free(static_cast<AVSV_DND_MSG*>(dec_info->o_msg));
-			dec_info->o_msg = NULL;
+			dec_info->o_msg = nullptr;
 		}
 
 		return rc;
@@ -342,7 +342,7 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 
 	TRACE_ENTER();
 
-	if (rcv_msg == NULL) {
+	if (rcv_msg == nullptr) {
 		LOG_ER("%s: no msg", __FUNCTION__);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
@@ -363,7 +363,7 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: ncs_ipc_send failed", __FUNCTION__);
 		avsv_dnd_msg_free(rcv_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		delete evt;
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;

@@ -56,7 +56,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	const SaImmAttrValuesT_2 *attr;
 
 	p = strchr((char *)dn->value, ',');
-	if (p == NULL) {
+	if (p == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -66,7 +66,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	while ((attr = attributes[i++]) != NULL)
+	while ((attr = attributes[i++]) != nullptr)
 		if (!strcmp(attr->attrName, "saAmfNGNodeList"))
 			break;
 
@@ -76,14 +76,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
 		AVD_AVND *node = avd_node_get(name);
-		if (node == NULL) {
-			if (opdata == NULL) {
+		if (node == nullptr) {
+			if (opdata == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
 				return 0;
 			}
 
 			/* Node does not exist in current model, check CCB */
-			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
+			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
 						name->value);
 				return 0;
@@ -98,7 +98,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	 */
 	
 	AVD_AMF_NG *tmp_ng = ng_create((SaNameT *)dn, attributes);
-	if (tmp_ng == NULL)
+	if (tmp_ng == nullptr)
 		return 0;
 	if (attr->attrValuesNumber != tmp_ng->number_nodes()) {
 		LOG_ER("Duplicate nodes in saAmfNGNodeList of '%s'",tmp_ng->name.value);
@@ -147,7 +147,7 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 		&values_number) == SA_AIS_OK) && (values_number > 0)) {
 
 		for (i = 0; i < values_number; i++) {
-			if ((node_name = immutil_getNameAttr(attributes, "saAmfNGNodeList", i)) != NULL) {
+			if ((node_name = immutil_getNameAttr(attributes, "saAmfNGNodeList", i)) != nullptr) {
 				ng->saAmfNGNodeList.insert(Amf::to_string(node_name));
 			}
 		}
@@ -166,7 +166,7 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 done:
 	if (rc != 0) {
 		delete ng;
-		ng = NULL;
+		ng = nullptr;
 	}
 
 	TRACE_LEAVE();
@@ -215,9 +215,9 @@ SaAisErrorT avd_ng_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
+		nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("No objects found");
@@ -225,12 +225,12 @@ SaAisErrorT avd_ng_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL)) {
+		if (!is_config_valid(&dn, attributes, nullptr)) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if ((ng = ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
+		if ((ng = ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == nullptr)
 			goto done2;
 
 		nodegroup_db->insert(Amf::to_string(&ng->name), ng);
@@ -304,12 +304,12 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER();
 
 	ng = avd_ng_get(&opdata->objectName);
-	if (ng == NULL) {
+	if (ng == nullptr) {
 		report_ccb_validation_error(opdata, "ng modify: nodegroup cannot be found");
 		goto done;
 	}
 
-	while ((mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (mod->modType == SA_IMM_ATTR_VALUES_REPLACE) {
 			TRACE("replace");
 			goto done;
@@ -325,7 +325,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
 				node = avd_node_get((SaNameT *)mod->modAttr.attrValues[j]);
-				if (node == NULL) {
+				if (node == nullptr) {
 					report_ccb_validation_error(opdata, "Node '%s' does not exist",
 							((SaNameT *)mod->modAttr.attrValues[j])->value);
 					goto done;
@@ -346,7 +346,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				for (const auto& su : node->list_of_ncs_su) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
 						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
-						if (t_opData == NULL || t_opData->operationType != CCBUTIL_DELETE) {
+						if (t_opData == nullptr || t_opData->operationType != CCBUTIL_DELETE) {
 							report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
 								" An SU is mapped using node group",
 								node->name.value, ng->name.value);
@@ -359,7 +359,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				for (const auto& su : node->list_of_su) {
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
 						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
-						if (t_opData == NULL || t_opData->operationType != CCBUTIL_DELETE) {
+						if (t_opData == nullptr || t_opData->operationType != CCBUTIL_DELETE) {
 							report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
 							" An SU is mapped using node group",
 							node->name.value, ng->name.value);
@@ -388,8 +388,8 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
 				node = avd_node_get((SaNameT *)mod->modAttr.attrValues[j]);
-				if ((node == NULL) &&
-					(ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)mod->modAttr.attrValues[j]) == NULL)) {
+				if ((node == nullptr) &&
+					(ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)mod->modAttr.attrValues[j]) == nullptr)) {
 
 					report_ccb_validation_error(opdata, "'%s' does not exist in model or CCB",
 							((SaNameT *)mod->modAttr.attrValues[j])->value);
@@ -429,7 +429,7 @@ static bool is_deleted_in_ccb(SaImmOiCcbIdT ccbId, const SaNameT *dn)
 {
 	CcbUtilOperationData_t *opdata = ccbutil_getCcbOpDataByDN(ccbId, dn);
 
-	if ((opdata != NULL) && (opdata->operationType == CCBUTIL_DELETE))
+	if ((opdata != nullptr) && (opdata->operationType == CCBUTIL_DELETE))
 		return true;
 	else
 		return false;
@@ -541,7 +541,7 @@ static void ng_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	ng = avd_ng_get(&opdata->objectName);
 
-	while ((mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		switch (mod->modType) {
 		case SA_IMM_ATTR_VALUES_ADD: {
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
@@ -577,7 +577,7 @@ static void ng_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 				iter != ng->saAmfNGNodeList.end(); ++iter) {
 			AVD_AVND *node = avd_node_get(*iter);
-			node->admin_ng = NULL;
+			node->admin_ng = nullptr;
 		}
 		ng_delete(ng);
 		goto done;
@@ -615,7 +615,7 @@ static void ng_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
-		node->admin_ng = NULL;
+		node->admin_ng = nullptr;
 	}
 	ng->node_oper_list.clear();
 	ng_delete(ng);
@@ -794,7 +794,7 @@ void ng_complete_admin_op(AVD_AMF_NG *ng, SaAisErrorT result)
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
-		node->admin_ng = NULL;
+		node->admin_ng = nullptr;
 	}
 }
 /**
@@ -996,20 +996,20 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_ng_stability(ng);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation,
-					      rc, NULL,
+					      rc, nullptr,
 					      "Some entity is unstable, Operation cannot "
 					      "be performed on '%s'"
 					      "Check syslog for entity details", ng_name->value);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					      "'%s' Invalid Admin Operation LOCK INSTANTIATION in state %s",
 					      ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					      "'%s' Invalid Admin Operation LOCK_INSTANTIATION in state %s",
 					      ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
@@ -1017,7 +1017,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_red_model_service_outage(ng);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation,
-					      SA_AIS_ERR_NOT_SUPPORTED, NULL,
+					      SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					      "SUs of unsupported red models hosted on '%s'"
 					      "Check syslog for entity details", ng_name->value);
 			goto done;
@@ -1066,20 +1066,20 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_ng_stability(ng);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation,
-					      rc, NULL,
+					      rc, nullptr,
 					      "Some entity is unstable, Operation cannot "
 					      "be performed on '%s'"
 					      "Check syslog for entity details", ng_name->value);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					      "'%s' Already in LOCKED state", ng->name.value);
 			goto done;
 		}
 
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					      "'%s' Invalid Admin Operation UNLOCK_INSTANTIATION in state %s",
 					      ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
@@ -1087,7 +1087,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_red_model_service_outage(ng);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation,
-					      SA_AIS_ERR_NOT_SUPPORTED, NULL,
+					      SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					      "SUs of unsupported red models hosted on '%s'"
 					      "Check syslog for entity details", ng_name->value);
 			goto done;
@@ -1116,19 +1116,19 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_ng_stability(ng);	
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, 
-					rc, NULL,
+					rc, nullptr,
 					"Some entity is unstable, Operation cannot "
 					"be performed on '%s'"
 					"Check syslog for entity details", ng_name->value);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED) {
-                        report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+                        report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
                                         "'%s' Already in LOCKED state", ng->name.value);
                         goto done;
                 }
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation LOCK in state %s",
 					ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
@@ -1136,7 +1136,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_red_model_service_outage(ng);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, 
-					SA_AIS_ERR_NOT_SUPPORTED, NULL,
+					SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					"SUs of unsupported red models hosted on '%s'"
 					"Check syslog for entity details", ng_name->value);
 			goto done;
@@ -1169,19 +1169,19 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_ng_stability(ng);	
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, 
-					rc, NULL,
+					rc, nullptr,
 					"Some entity is unstable, Operation cannot "
 					"be performed on '%s'"
 					"Check syslog for entity details", ng_name->value);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"'%s' Already in SHUTTING DOWN state", ng->name.value);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation SHUTDOWN in state %s",
 					ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
@@ -1189,7 +1189,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_red_model_service_outage(ng);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, 
-					SA_AIS_ERR_NOT_SUPPORTED, NULL,
+					SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					"SUs of unsupported red models hosted on '%s'"
 					"Check syslog for entity details", ng_name->value);
 			goto done;
@@ -1233,19 +1233,19 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		rc = check_ng_stability(ng);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation,
-					rc, NULL,
+					rc, nullptr,
 					"Some entity is unstable, Operation cannot "
 					"be performed on '%s'"
 					"Check syslog for entity details", ng_name->value);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"'%s' Already in UNLOCKED state", ng->name.value);
                         goto done;
 		}
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation UNLOCK in state %s",
                                         ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
                         goto done;
@@ -1260,7 +1260,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 			ng_complete_admin_op(ng, SA_AIS_OK);
 		break;
 	default:
-		report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+		report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 				"Operation is not supported (%llu)", op_id);
 		break;
 	}
@@ -1274,7 +1274,7 @@ done:
 void avd_ng_constructor(void)
 {
 	nodegroup_db = new AmfDb<std::string, AVD_AMF_NG>;
-	avd_class_impl_set("SaAmfNodeGroup", NULL, ng_admin_op_cb, ng_ccb_completed_cb,
+	avd_class_impl_set("SaAmfNodeGroup", nullptr, ng_admin_op_cb, ng_ccb_completed_cb,
 			ng_ccb_apply_cb);
 }
 

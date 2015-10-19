@@ -35,12 +35,12 @@
 #include <csi.h>
 #include <logtrace.h>
 
-AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK> *sirankedsu_db= NULL;
+AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK> *sirankedsu_db= nullptr;
 static void avd_susi_namet_init(const SaNameT *object_name, SaNameT *su_name, SaNameT *si_name);
 
 static void avd_sirankedsu_db_add(AVD_SUS_PER_SI_RANK *sirankedsu)
 {
-        AVD_SI *avd_si = NULL;
+        AVD_SI *avd_si = nullptr;
 	unsigned int rc = sirankedsu_db->insert(make_pair(Amf::to_string(&(sirankedsu->indx.si_name)),
 				sirankedsu->indx.su_rank), sirankedsu);
         osafassert(rc == NCSCC_RC_SUCCESS);
@@ -105,7 +105,7 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, AVD_SUS_PER_SI_
 
 static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
 {
-	AVD_SUS_PER_SI_RANK *ranked_su_per_si = NULL;
+	AVD_SUS_PER_SI_RANK *ranked_su_per_si = nullptr;
 	AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
 	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
@@ -136,7 +136,7 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RA
  **************************************************************************/
 static uint32_t avd_sirankedsu_delete(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *ranked_su_per_si)
 {
-	if (ranked_su_per_si == NULL)
+	if (ranked_su_per_si == nullptr)
 		return NCSCC_RC_FAILURE;
 
 	sirankedsu_db->erase(make_pair(Amf::to_string(&(ranked_su_per_si->indx.si_name)),
@@ -163,7 +163,7 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
 		const SaImmAttrValuesT_2 **attributes)
 {
         uint32_t rank = 0;
-	AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank = NULL;
+	AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank = nullptr;
 	SaNameT su_name;
 	SaNameT si_name;
 	AVD_SUS_PER_SI_RANK_INDX indx;
@@ -204,13 +204,13 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
  **************************************************************************/
 static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_per_si_rank)
 {
-	AVD_SUS_PER_SI_RANK *i_sus_per_si_rank = NULL;
-	AVD_SUS_PER_SI_RANK *prev_sus_per_si_rank = NULL;
+	AVD_SUS_PER_SI_RANK *i_sus_per_si_rank = nullptr;
+	AVD_SUS_PER_SI_RANK *prev_sus_per_si_rank = nullptr;
 
-	if (sus_per_si_rank->sus_per_si_rank_on_si != NULL) {
+	if (sus_per_si_rank->sus_per_si_rank_on_si != nullptr) {
 		i_sus_per_si_rank = sus_per_si_rank->sus_per_si_rank_on_si->list_of_sus_per_si_rank;
 
-		while ((i_sus_per_si_rank != NULL) && (i_sus_per_si_rank != sus_per_si_rank)) {
+		while ((i_sus_per_si_rank != nullptr) && (i_sus_per_si_rank != sus_per_si_rank)) {
 			prev_sus_per_si_rank = i_sus_per_si_rank;
 			i_sus_per_si_rank = i_sus_per_si_rank->sus_per_si_rank_list_si_next;
 		}
@@ -220,7 +220,7 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 					sus_per_si_rank->indx.si_name.value, sus_per_si_rank->su_name.value,
 					sus_per_si_rank->indx.su_rank);
 		} else {
-			if (prev_sus_per_si_rank == NULL) {
+			if (prev_sus_per_si_rank == nullptr) {
 				sus_per_si_rank->sus_per_si_rank_on_si->list_of_sus_per_si_rank =
 				    sus_per_si_rank->sus_per_si_rank_list_si_next;
 			} else {
@@ -230,8 +230,8 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 		}
 		sus_per_si_rank->sus_per_si_rank_on_si->remove_rankedsu(&sus_per_si_rank->su_name);
 
-		sus_per_si_rank->sus_per_si_rank_list_si_next = NULL;
-		sus_per_si_rank->sus_per_si_rank_on_si = NULL;
+		sus_per_si_rank->sus_per_si_rank_list_si_next = nullptr;
+		sus_per_si_rank->sus_per_si_rank_on_si = nullptr;
 	}
 
 	return;
@@ -239,12 +239,12 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
-        AVD_SI *avd_si = NULL;
+        AVD_SI *avd_si = nullptr;
 	SaNameT su_name;
 	SaNameT si_name;
         uint32_t rank = 0;
 	AVD_SUS_PER_SI_RANK_INDX indx;
-	AVD_SU *avd_su = NULL;
+	AVD_SU *avd_su = nullptr;
 
         memset(&su_name, 0, sizeof(SaNameT));
         memset(&si_name, 0, sizeof(SaNameT));
@@ -253,14 +253,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
         /* Find the si name. */
         avd_si = avd_si_get(&si_name);
 
-        if (avd_si == NULL) {
+        if (avd_si == nullptr) {
                 /* SI does not exist in current model, check CCB */
-                if (opdata == NULL) {
+                if (opdata == nullptr) {
                         report_ccb_validation_error(opdata, "'%s' does not exist in model", si_name.value);
                         return 0;
                 }
 
-                if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == NULL) {
+                if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == nullptr) {
                         report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
 					si_name.value);
                         return 0;
@@ -269,14 +269,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	/* Find the su name. */
 	avd_su = su_db->find(Amf::to_string(&su_name));
-	if (avd_su == NULL) {
+	if (avd_su == nullptr) {
 		/* SU does not exist in current model, check CCB */
-		if (opdata == NULL) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", su_name.value);
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &su_name) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &su_name) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
 					su_name.value);
 			return 0;
@@ -290,8 +290,8 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	indx.si_name = si_name;
 	indx.su_rank = rank;
-	if ((avd_sirankedsu_find(avd_cb, indx)) != NULL ) {
-		if (opdata != NULL) {
+	if ((avd_sirankedsu_find(avd_cb, indx)) != nullptr ) {
+		if (opdata != nullptr) {
 			report_ccb_validation_error(opdata, "saAmfRankedSu exists %s, si'%s', rank'%u'",
 					dn->value, si_name.value, rank);
 			return 0;
@@ -304,7 +304,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 static void avd_susi_namet_init(const SaNameT *object_name, SaNameT *su_name, SaNameT *si_name)
 {
-	char *p = NULL;
+	char *p = nullptr;
 
 	if (su_name) {
 		SaNameT temp_name;
@@ -343,7 +343,7 @@ static void avd_susi_namet_init(const SaNameT *object_name, SaNameT *su_name, Sa
 
 static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	AVD_SUS_PER_SI_RANK *avd_sirankedsu = NULL;
+	AVD_SUS_PER_SI_RANK *avd_sirankedsu = nullptr;
 
         TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -367,7 +367,7 @@ static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
-	AVD_SI *si = NULL;
+	AVD_SI *si = nullptr;
 	SaNameT su_name;
 	SaNameT si_name;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0;
@@ -400,14 +400,14 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	/* Find the si name. */
 	si = avd_si_get(&si_name);
 
-	if (si == NULL) {
+	if (si == nullptr) {
 		LOG_ER("SI '%s' not found", si_name.value);
 		goto error;
 	}
 
-	if (si != NULL) {
+	if (si != nullptr) {
 		/* SI should not be assigned while SI ranked SU needs to be deleted */
-		if (si->list_of_sisu != NULL) {
+		if (si->list_of_sisu != nullptr) {
 			TRACE("Parent SI is in assigned state '%s'", si->name.value);
 			goto error;
 		}
@@ -460,7 +460,7 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 	const char *className = "SaAmfSIRankedSU";
 	AVD_SUS_PER_SI_RANK_INDX indx;
 	SaNameT dn;
-	AVD_SUS_PER_SI_RANK *avd_sirankedsu = NULL;
+	AVD_SUS_PER_SI_RANK *avd_sirankedsu = nullptr;
 
         TRACE_ENTER();
 
@@ -470,7 +470,7 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 
 	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, si_name, SA_IMM_SUBTREE,
 	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-	      NULL, &searchHandle) != SA_AIS_OK) {
+	      nullptr, &searchHandle) != SA_AIS_OK) {
 
 		LOG_ER("No objects found (1)");
 		goto done1;
@@ -486,11 +486,11 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 			goto done1;
 		}
 
-                if (!is_config_valid(&dn, attributes, NULL))
+                if (!is_config_valid(&dn, attributes, nullptr))
 			goto done2;
 
-		if ((avd_sirankedsu = avd_sirankedsu_find(avd_cb, indx)) == NULL) {
-			if ((avd_sirankedsu = avd_sirankedsu_ccb_apply_create_hdlr(&dn, attributes)) == NULL)
+		if ((avd_sirankedsu = avd_sirankedsu_find(avd_cb, indx)) == nullptr) {
+			if ((avd_sirankedsu = avd_sirankedsu_ccb_apply_create_hdlr(&dn, attributes)) == nullptr)
 				goto done2;
 
 			avd_sirankedsu_db_add(avd_sirankedsu);
@@ -509,7 +509,7 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 void avd_sirankedsu_constructor(void)
 {
 	sirankedsu_db = new AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK>;
-	avd_class_impl_set("SaAmfSIRankedSU", NULL, NULL,
+	avd_class_impl_set("SaAmfSIRankedSU", nullptr, nullptr,
 		sirankedsu_ccb_completed_cb, sirankedsu_ccb_apply_cb);
 }
 

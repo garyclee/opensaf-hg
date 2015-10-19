@@ -29,7 +29,7 @@
 #include <proc.h>
 #include <algorithm>
 
-AmfDb<std::string, AVD_SUTYPE> *sutype_db = NULL;
+AmfDb<std::string, AVD_SUTYPE> *sutype_db = nullptr;
 
 //
 AVD_SUTYPE::AVD_SUTYPE(const SaNameT *dn) {
@@ -49,7 +49,7 @@ static void sutype_delete(AVD_SUTYPE **sutype)
 	osafassert(true == (*sutype)->list_of_su.empty());
 	delete [] (*sutype)->saAmfSutProvidesSvcTypes;
 	delete *sutype;
-	*sutype = NULL;
+	*sutype = nullptr;
 }
 
 static void sutype_db_add(AVD_SUTYPE *sutype)
@@ -68,9 +68,9 @@ static AVD_SUTYPE *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **a
 
 	TRACE_ENTER2("'%s'", dn->value);
 
-	if ((sutype = sutype_new(dn)) == NULL) {
+	if ((sutype = sutype_new(dn)) == nullptr) {
 		LOG_ER("avd_sutype_new failed");
-		return NULL;
+		return nullptr;
 	}
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutIsExternal"), attributes, 0, &sutype->saAmfSutIsExternal);
@@ -79,7 +79,7 @@ static AVD_SUTYPE *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **a
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover"), attributes, 0, &sutype->saAmfSutDefSUFailover);
 	osafassert(error == SA_AIS_OK);
 
-	while ((attr = attributes[i++]) != NULL)
+	while ((attr = attributes[i++]) != nullptr)
 		if (!strcmp(attr->attrName, "saAmfSutProvidesSvcTypes"))
 			break;
 
@@ -114,7 +114,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	/* int i = 0; */
 	char *parent;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -133,10 +133,10 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	for (i = 0; i < su_type->number_svc_types; i++) {
 		AVD_AMF_SVC_TYPE *svc_type =
 		    avd_svctype_find(avd_cb, su_type->saAmfSutProvidesSvcTypes[i], true);
-		if (svc_type == NULL) {
+		if (svc_type == nullptr) {
 			/* Svc type does not exist in current model, check CCB */
-			if ((opdata != NULL) &&
-			    (ccbutil_getCcbOpDataByDN(opdata->ccbId, &su_type->saAmfSutProvidesSvcTypes[i]) == NULL)) {
+			if ((opdata != nullptr) &&
+			    (ccbutil_getCcbOpDataByDN(opdata->ccbId, &su_type->saAmfSutProvidesSvcTypes[i]) == nullptr)) {
 				LOG_ER("Svc type '%s' does not exist either in model or CCB",
 					su_type->saAmfSutProvidesSvcTypes[i]);
 				return SA_AIS_ERR_BAD_OPERATION;
@@ -184,9 +184,9 @@ SaAisErrorT avd_sutype_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
+		nullptr, &searchHandle);
 	
 	if (SA_AIS_OK != error) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
@@ -194,12 +194,12 @@ SaAisErrorT avd_sutype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, nullptr))
 		    goto done2;
 
-		if (( sut = sutype_db->find(Amf::to_string(&dn))) == NULL) {
+		if (( sut = sutype_db->find(Amf::to_string(&dn))) == nullptr) {
 
-			if ((sut = sutype_create(&dn, attributes)) == NULL) {
+			if ((sut = sutype_create(&dn, attributes)) == nullptr) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
 			}
@@ -234,7 +234,7 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 	AVD_SUTYPE *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSutDefSUFailover")) {
 			uint32_t old_value = sut->saAmfSutDefSUFailover;
 			sut->saAmfSutDefSUFailover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
@@ -298,9 +298,9 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	AVD_SUTYPE *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == NULL)) {
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == nullptr)) {
 			report_ccb_validation_error(opdata, "Attributes cannot be deleted in SaAmfSUType");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
@@ -368,7 +368,7 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 		for (const auto& su : sut->list_of_su) {
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
-			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+			if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				su_exist = true;
 				break;
 			}
@@ -410,8 +410,8 @@ void avd_sutype_constructor(void)
 {
 
 	sutype_db = new AmfDb<std::string, AVD_SUTYPE>;
-	avd_class_impl_set("SaAmfSUBaseType", NULL, NULL,
-		avd_imm_default_OK_completed_cb, NULL);
-	avd_class_impl_set("SaAmfSUType", NULL, NULL,
+	avd_class_impl_set("SaAmfSUBaseType", nullptr, nullptr,
+		avd_imm_default_OK_completed_cb, nullptr);
+	avd_class_impl_set("SaAmfSUType", nullptr, nullptr,
 		sutype_ccb_completed_cb, sutype_ccb_apply_cb);
 }

@@ -65,7 +65,7 @@ done:
 static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = 0;
-	AVD_CSI_ATTR *csiattr = NULL, *tmp;
+	AVD_CSI_ATTR *csiattr = nullptr, *tmp;
 	unsigned int values_number;
 	SaNameT dn;
 	unsigned int i;
@@ -89,17 +89,17 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 			csiattr->name_value.name.length = dn.length;
 			memcpy(csiattr->name_value.name.value, dn.value, csiattr->name_value.name.length);
 
-			if ((value = immutil_getStringAttr(attributes, "saAmfCSIAttriValue", i)) != NULL) {
+			if ((value = immutil_getStringAttr(attributes, "saAmfCSIAttriValue", i)) != nullptr) {
 				csiattr->name_value.string_ptr = new char[strlen(value)+1];
 				memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1);
 				csiattr->name_value.value.length
 					= snprintf((char *)csiattr->name_value.value.value,
 							SA_MAX_NAME_LENGTH, "%s", value);
 			} else {
-				csiattr->name_value.string_ptr = NULL;
+				csiattr->name_value.string_ptr = nullptr;
 				csiattr->name_value.value.length = 0;
 			}
-			tmp = NULL; 
+			tmp = nullptr; 
 		}
 	} else {
 		/* No values found, create value empty attribute */
@@ -111,12 +111,12 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_obj_name, const SaImm
 
 done:
 	if (rc != 0) {
-		while (csiattr != NULL) {
+		while (csiattr != nullptr) {
 			tmp = csiattr;
 			csiattr = csiattr->attr_next;
 			delete tmp;
 		}
-		csiattr = NULL;
+		csiattr = nullptr;
 	}
 
 	return csiattr;
@@ -132,17 +132,17 @@ done:
 static AVD_CSI_ATTR *csi_name_value_pair_find_last_entry(AVD_CSI *csi, SaNameT *attr_name)
 {
 	AVD_CSI_ATTR *i_attr = csi->list_attributes;
-	AVD_CSI_ATTR *attr = NULL;
+	AVD_CSI_ATTR *attr = nullptr;
 	SaUint32T    found_once = false;
 
 	TRACE_ENTER();
 
-	while (i_attr != NULL) {
+	while (i_attr != nullptr) {
 		if (strncmp((char *)&i_attr->name_value.name.value, (char *)&attr_name->value,
 				attr_name->length) == 0) {
 			if (found_once == true) {
 				/* More then one entry exist */
-				return NULL;
+				return nullptr;
 			}
 			found_once = true;
 			attr = i_attr;
@@ -160,7 +160,7 @@ static AVD_CSI_ATTR *csi_name_value_pair_find_last_entry(AVD_CSI *csi, SaNameT *
  *
  * Input  : Csi pointer, pointer to csi attr obj name, pointer to value of name-value pair.
  *  
- * Returns: Pointer to name value pair if found else NULL.
+ * Returns: Pointer to name value pair if found else nullptr.
  *  
  * NOTES  : None.
  *
@@ -170,7 +170,7 @@ static AVD_CSI_ATTR * csi_name_value_pair_find(AVD_CSI *csi, SaNameT *csiattr_na
         AVD_CSI_ATTR *i_attr = csi->list_attributes;
 	TRACE_ENTER();
 
-        while (i_attr != NULL) {
+        while (i_attr != nullptr) {
 		if ((strncmp((char *)&i_attr->name_value.name.value, (char *)&csiattr_name->value, 
 						csiattr_name->length) == 0) &&
 				(strncmp((char *)i_attr->name_value.string_ptr, value, strlen(value)) == 0)) {
@@ -180,7 +180,7 @@ static AVD_CSI_ATTR * csi_name_value_pair_find(AVD_CSI *csi, SaNameT *csiattr_na
         }
 
 	TRACE_LEAVE();
-        return NULL;
+        return nullptr;
 }
 
 static AVD_CSI_ATTR * is_csiattr_exists(AVD_CSI *csi, SaNameT *csiattr_obj_name)
@@ -192,7 +192,7 @@ static AVD_CSI_ATTR * is_csiattr_exists(AVD_CSI *csi, SaNameT *csiattr_obj_name)
 
 	if (SA_AIS_OK != csiattr_dn_to_csiattr_name(csiattr_obj_name, &dn)) goto done;
 
-	while (i_attr != NULL) {
+	while (i_attr != nullptr) {
 		if (strncmp((char *)&i_attr->name_value.name.value, (char *)&dn.value, dn.length) == 0)
 			return i_attr;
 		i_attr = i_attr->attr_next;
@@ -200,14 +200,14 @@ static AVD_CSI_ATTR * is_csiattr_exists(AVD_CSI *csi, SaNameT *csiattr_obj_name)
 
 done:
 	TRACE_LEAVE();
-	return NULL;
+	return nullptr;
 }
 
 static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 {
 	char *parent;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -244,7 +244,7 @@ SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi)
 
 	if ((error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, csi_name,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-		&searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
+		&searchParam, nullptr, &searchHandle)) != SA_AIS_OK) {
 
 		LOG_ER("saImmOmSearchInitialize failed: %u", error);
 		goto done1;
@@ -253,7 +253,7 @@ SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi)
 	while ((error = immutil_saImmOmSearchNext_2(searchHandle, &csiattr_name,
 		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 
-		if ((csiattr = csiattr_create(&csiattr_name, attributes)) != NULL)
+		if ((csiattr = csiattr_create(&csiattr_name, attributes)) != nullptr)
 			avd_csi_add_csiattr(csi, csiattr);
 	}
 
@@ -296,8 +296,8 @@ static SaAisErrorT csiattr_ccb_completed_create_hdlr(CcbUtilOperationData_t *opd
 			SA_MAX_NAME_LENGTH); 
 	csi_dn.length = strlen((char *)&csi_dn.value);
 
-	if (NULL == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
-		/* if CSI is NULL, that means the CSI is added in the same CCB
+	if (nullptr == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
+		/* if CSI is nullptr, that means the CSI is added in the same CCB
 		 * so allow the csi attributes also to be added in any state of the parent SI
 		 */
 		rc = SA_AIS_OK;
@@ -353,7 +353,7 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 			SA_MAX_NAME_LENGTH);
 	csi_dn.length = strlen((char *)&csi_dn.value);
 
-	if (NULL == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
+	if (nullptr == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
 		report_ccb_validation_error(opdata, "csi '%s' doesn't exists", csi_dn.value);
 		goto done;
 	}
@@ -368,7 +368,7 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 
 	if (SA_AIS_OK != (rc = csiattr_dn_to_csiattr_name(&opdata->objectName, &csi_attr_name))) goto done;
 
-	while ((attr_mod = opdata->param.modify.attrMods[attr_counter++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[attr_counter++]) != nullptr) {
 
 		if ((SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) || (SA_IMM_ATTR_VALUES_DELETE == attr_mod->modType)) {
 			if (0 == attr_mod->modAttr.attrValuesNumber) {
@@ -406,9 +406,9 @@ static SaAisErrorT csiattr_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opd
 			for (i = 0; i < attribute->attrValuesNumber; i++) {
 				char *value = *(char **)attribute->attrValues[i++];
 
-				if (NULL == value) goto done;
+				if (nullptr == value) goto done;
 
-				if (NULL == csi_name_value_pair_find(csi, &csi_attr_name, value)) {
+				if (nullptr == csi_name_value_pair_find(csi, &csi_attr_name, value)) {
 					report_ccb_validation_error(opdata, "csi attr name '%s' and value '%s' doesn't exist", 
 							csi_attr_name.value, value);
 					rc = SA_AIS_ERR_NOT_EXIST;
@@ -454,7 +454,7 @@ static SaAisErrorT csiattr_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opd
                         SA_MAX_NAME_LENGTH);
         csi_dn.length = strlen((char *)&csi_dn.value);
 
-        if (NULL == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
+        if (nullptr == (csi = csi_db->find(Amf::to_string(&csi_dn)))) {
                 report_ccb_validation_error(opdata, "csi '%s' doesn't exists", csi_dn.value);
                 goto done;
         }
@@ -513,7 +513,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
 	const SaImmAttrValuesT_2 *attribute;
-	AVD_CSI_ATTR *csiattr = NULL, *i_attr, *tmp_csi_attr = NULL;
+	AVD_CSI_ATTR *csiattr = nullptr, *i_attr, *tmp_csi_attr = nullptr;
         SaNameT csi_attr_name, csi_dn;
 	int counter = 0;
 	unsigned int i = 0;
@@ -529,11 +529,11 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 
         csiattr_dn_to_csiattr_name(&opdata->objectName, &csi_attr_name);
 	/* create new name-value pairs for the modified csi attribute */
-	while ((attr_mod = opdata->param.modify.attrMods[counter++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[counter++]) != nullptr) {
 		attribute = &attr_mod->modAttr;
 		if (SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) {
 			tmp_csi_attr = csi_name_value_pair_find_last_entry(csi, &csi_attr_name);
-			if((NULL != tmp_csi_attr)&&  (!tmp_csi_attr->name_value.value.length)) {
+			if((nullptr != tmp_csi_attr)&&  (!tmp_csi_attr->name_value.value.length)) {
 				/* dummy csi_attr_name+value node is present in the csi->list_attributes
 				* use this node for adding the first value
 				*/
@@ -570,7 +570,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 					tmp_csi_attr = csi_name_value_pair_find_last_entry(csi,
 								&csiattr->name_value.name);
 					if(tmp_csi_attr) {
-						/* Only one entry with this csi_attr_name is present, so set NULL value.
+						/* Only one entry with this csi_attr_name is present, so set nullptr value.
 						 * This is to make  sure that csi_attr node in the csi->list_attributes
 						 * wont be deleted when there is only  one name+value pair is found
 						 */
@@ -622,7 +622,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
  **************************************************************************/
 static void csiattr_delete_apply(CcbUtilOperationData_t *opdata)
 {
-        AVD_CSI_ATTR *csiattr = NULL;
+        AVD_CSI_ATTR *csiattr = nullptr;
         SaNameT csi_attr_name, csi_dn;
         AVD_CSI *csi;
 
@@ -636,7 +636,7 @@ static void csiattr_delete_apply(CcbUtilOperationData_t *opdata)
 
         csi = csi_db->find(Amf::to_string(&csi_dn));
 
-	if (NULL == csi) {
+	if (nullptr == csi) {
 		/* This is the case when csi might have been deleted before csi attr. 
 		   This will happen when csi delete is done before csi attr. In csi delete case, csi attr
 		   also gets deleted along with csi. */
@@ -676,7 +676,7 @@ static void csiattr_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_csiattr_constructor(void)
 {
-	avd_class_impl_set("SaAmfCSIAttribute", NULL, NULL,
+	avd_class_impl_set("SaAmfCSIAttribute", nullptr, nullptr,
 		csiattr_ccb_completed_cb, csiattr_ccb_apply_cb);
 }
 

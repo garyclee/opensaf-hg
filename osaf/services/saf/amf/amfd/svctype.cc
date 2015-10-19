@@ -29,7 +29,7 @@
 #include <proc.h>
 #include <algorithm>
 
-AmfDb<std::string, AVD_SVC_TYPE> *svctype_db = NULL;
+AmfDb<std::string, AVD_SVC_TYPE> *svctype_db = nullptr;
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -53,18 +53,18 @@ static void svctype_delete(AVD_SVC_TYPE *svc_type)
 {
 	svctype_db->erase(Amf::to_string(&svc_type->name));
 
-	if (svc_type->saAmfSvcDefActiveWeight != NULL) {
+	if (svc_type->saAmfSvcDefActiveWeight != nullptr) {
 		unsigned int i = 0;
-		while (svc_type->saAmfSvcDefActiveWeight[i] != NULL) {
+		while (svc_type->saAmfSvcDefActiveWeight[i] != nullptr) {
 			delete [] svc_type->saAmfSvcDefActiveWeight[i];
 			++i;
 		}
 		delete [] svc_type->saAmfSvcDefActiveWeight;
 	}
 
-	if (svc_type->saAmfSvcDefStandbyWeight != NULL) {
+	if (svc_type->saAmfSvcDefStandbyWeight != nullptr) {
 		unsigned int i = 0;
-		while (svc_type->saAmfSvcDefStandbyWeight[i] != NULL) {
+		while (svc_type->saAmfSvcDefStandbyWeight[i] != nullptr) {
 			delete [] svc_type->saAmfSvcDefStandbyWeight[i];
 			++i;
 		}
@@ -89,8 +89,8 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 
 	svct = new AVD_SVC_TYPE(dn);
 
-	svct->saAmfSvcDefActiveWeight = NULL;
-	svct->saAmfSvcDefStandbyWeight = NULL;
+	svct->saAmfSvcDefActiveWeight = nullptr;
+	svct->saAmfSvcDefStandbyWeight = nullptr;
 
 	/* Optional, [0..*] */
 	if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfSvcDefActiveWeight"), attributes, &attrValuesNumber) == SA_AIS_OK) {
@@ -99,7 +99,7 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 			svct->saAmfSvcDefActiveWeight[i] =
 			    StrDup(immutil_getStringAttr(attributes, "saAmfSvcDefActiveWeight", i));
 		}
-		svct->saAmfSvcDefActiveWeight[i] = NULL;
+		svct->saAmfSvcDefActiveWeight[i] = nullptr;
 	}
 
 	/* Optional, [0..*] */
@@ -109,7 +109,7 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 			svct->saAmfSvcDefStandbyWeight[i] =
 			    StrDup(immutil_getStringAttr(attributes, "saAmfSvcDefStandbyWeight", i));
 		}
-		svct->saAmfSvcDefStandbyWeight[i] = NULL;
+		svct->saAmfSvcDefStandbyWeight[i] = nullptr;
 	}
 
 	TRACE_LEAVE();
@@ -120,7 +120,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 {
 	char *parent;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -160,7 +160,7 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		 */
 		for (const auto& si : svc_type->list_of_si) {
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
-			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+			if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				si_exist = true;
 				break;
 			}
@@ -230,20 +230,20 @@ SaAisErrorT avd_svctype_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle) != SA_AIS_OK) {
+		nullptr, &searchHandle) != SA_AIS_OK) {
 
 		LOG_ER("No objects found (1)");
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, nullptr))
 			goto done2;
 
-		if ((svc_type = svctype_db->find(Amf::to_string(&dn))) == NULL) {
-			if ((svc_type = svctype_create(&dn, attributes)) == NULL)
+		if ((svc_type = svctype_db->find(Amf::to_string(&dn))) == nullptr) {
+			if ((svc_type = svctype_create(&dn, attributes)) == nullptr)
 				goto done2;
 
 			svctype_db_add(svc_type);
@@ -288,9 +288,9 @@ void avd_svctype_constructor(void)
 {
 	svctype_db = new AmfDb<std::string, AVD_SVC_TYPE>;
 
-	avd_class_impl_set("SaAmfSvcType", NULL, NULL, svctype_ccb_completed_cb,
+	avd_class_impl_set("SaAmfSvcType", nullptr, nullptr, svctype_ccb_completed_cb,
 			svctype_ccb_apply_cb);
-	avd_class_impl_set("SaAmfSvcBaseType", NULL, NULL,
-			avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfSvcBaseType", nullptr, nullptr,
+			avd_imm_default_OK_completed_cb, nullptr);
 }
 

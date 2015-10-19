@@ -25,7 +25,7 @@
 #include <imm.h>
 #include <include/csi.h>
 
-AmfDb<std::string, AVD_CTCS_TYPE> *ctcstype_db = NULL;
+AmfDb<std::string, AVD_CTCS_TYPE> *ctcstype_db = nullptr;
 
 static void ctcstype_db_add(AVD_CTCS_TYPE *ctcstype)
 {
@@ -44,15 +44,15 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	if (cstype_db->find(Amf::to_string(&cstype_dn)) == NULL) {
-		if (opdata == NULL) {
+	if (cstype_db->find(Amf::to_string(&cstype_dn)) == nullptr) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata,
 				"SaAmfCSType object '%s' does not exist in model",
 				cstype_dn.value);
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &cstype_dn) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &cstype_dn) == nullptr) {
 			report_ccb_validation_error(opdata,
 				"SaAmfCSType object '%s' does not exist in model or CCB",
 				cstype_dn.value);
@@ -61,12 +61,12 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	/* Second comma should be parent */
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
 
-	if ((parent = strchr(++parent, ',')) == NULL) {
+	if ((parent = strchr(++parent, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -120,7 +120,7 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	if (rc != 0) {
 		delete ctcstype;
-		ctcstype = NULL;
+		ctcstype = nullptr;
 	}
 	TRACE_LEAVE();
 	return ctcstype;
@@ -144,18 +144,18 @@ SaAisErrorT avd_ctcstype_config_get(const SaNameT *comp_type_dn, AVD_COMP_TYPE *
 
 	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, comp_type_dn,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-		&searchParam, NULL, &searchHandle) != SA_AIS_OK) {
+		&searchParam, nullptr, &searchHandle) != SA_AIS_OK) {
 
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, nullptr))
 			goto done2;
 
-		if ((ctcstype = ctcstype_db->find(Amf::to_string(&dn))) == NULL ) {
-			if ((ctcstype = ctcstype_create(&dn, attributes)) == NULL)
+		if ((ctcstype = ctcstype_db->find(Amf::to_string(&dn))) == nullptr ) {
+			if ((ctcstype = ctcstype_create(&dn, attributes)) == nullptr)
 				goto done2;
 
 			ctcstype_db_add(ctcstype);
@@ -211,7 +211,7 @@ static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		ctcstype = ctcstype_db->find(Amf::to_string(&opdata->objectName));
-		if (ctcstype != NULL) {
+		if (ctcstype != nullptr) {
 			ctcstype_db->erase(Amf::to_string(&ctcstype->name));
 			delete ctcstype;
 		}
@@ -227,7 +227,7 @@ static void ctcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 AVD_CTCS_TYPE *get_ctcstype(const SaNameT *comptype_name, const SaNameT *cstype_name)
 {
 	SaNameT dn;
-	AVD_CTCS_TYPE *ctcs_type = NULL;
+	AVD_CTCS_TYPE *ctcs_type = nullptr;
 	avsv_create_association_class_dn(cstype_name, comptype_name,
 			"safSupportedCsType", &dn);
 	ctcs_type = ctcstype_db->find(Amf::to_string(&dn));
@@ -238,7 +238,7 @@ void avd_ctcstype_constructor(void)
 {
 	ctcstype_db = new AmfDb<std::string, AVD_CTCS_TYPE>;
 
-	avd_class_impl_set("SaAmfCtCsType", NULL, NULL,
+	avd_class_impl_set("SaAmfCtCsType", nullptr, nullptr,
 		ctcstype_ccb_completed_cb, ctcstype_ccb_apply_cb);
 }
 

@@ -29,7 +29,7 @@
 #include <proc.h>
 #include <ckpt_msg.h>
 
-AmfDb<std::string, AVD_COMPCS_TYPE> *compcstype_db = NULL;;
+AmfDb<std::string, AVD_COMPCS_TYPE> *compcstype_db = nullptr;;
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -56,7 +56,7 @@ void avd_compcstype_db_add(AVD_COMPCS_TYPE *cst)
 {
 	unsigned int rc;
 
-	if (compcstype_db->find(Amf::to_string(&cst->name)) == NULL) {
+	if (compcstype_db->find(Amf::to_string(&cst->name)) == nullptr) {
 		rc = compcstype_db->insert(Amf::to_string(&cst->name),cst); 
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -74,7 +74,7 @@ AVD_COMPCS_TYPE *avd_compcstype_new(const SaNameT *dn)
 static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
 {
 	/* Check comp link to see if it has been added already */
-	if (cst->comp == NULL) {
+	if (cst->comp == nullptr) {
 		SaNameT dn;
 		avd_compcstype_db_add(cst);
 		avsv_sanamet_init(&cst->name, &dn, "safComp=");
@@ -100,7 +100,7 @@ static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
 
 AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *cstype_name, const AVD_COMP *comp)
 {
-	AVD_COMPCS_TYPE *cst = NULL;
+	AVD_COMPCS_TYPE *cst = nullptr;
 	SaNameT dn;
 
 	TRACE_ENTER();
@@ -128,7 +128,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 	char *p;
 
 	/* This is an association class, the parent (SaAmfComp) should come after the second comma */
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		goto free_cstype_name;
 	}
@@ -136,7 +136,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 	parent++;
 
 	/* Second comma should be the parent */
-	if ((parent = strchr(parent, ',')) == NULL) {
+	if ((parent = strchr(parent, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		goto free_cstype_name;
 	}
@@ -157,17 +157,17 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 	avsv_sanamet_init(dn, &comp_name, "safComp=");
 	comp = comp_db->find(Amf::to_string(&comp_name));
 
-	if (comp != NULL)
+	if (comp != nullptr)
 		comptype_name = &comp->saAmfCompType;
 	else {
 		CcbUtilOperationData_t *tmp;
 
-		if (opdata == NULL) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", comp_name.value);
 			goto free_cstype_name;
 		}
 
-		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp_name)) == NULL) {
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp_name)) == nullptr) {
 			LOG_ER("'%s'does not exist in existing model or in CCB", comp_name.value);
 			osafassert(0);
 			goto free_cstype_name;
@@ -183,13 +183,13 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 
 	ctcstype_name.length = sprintf((char*)ctcstype_name.value, "%s,%s", cstype_name, comptype_name->value);
 
-	if (ctcstype_db->find(Amf::to_string(&ctcstype_name)) == NULL) {
-		if (opdata == NULL) {
+	if (ctcstype_db->find(Amf::to_string(&ctcstype_name)) == nullptr) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", ctcstype_name.value);
 			goto free_cstype_name;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &ctcstype_name) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &ctcstype_name) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
 					ctcstype_name.value);
 			goto free_cstype_name;
@@ -222,8 +222,8 @@ static AVD_COMPCS_TYPE *compcstype_create(const SaNameT *dn, const SaImmAttrValu
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if ((NULL == (compcstype = compcstype_db->find(Amf::to_string(dn)))) &&
-	    ((compcstype = avd_compcstype_new(dn)) == NULL))
+	if ((nullptr == (compcstype = compcstype_db->find(Amf::to_string(dn)))) &&
+	    ((compcstype = avd_compcstype_new(dn)) == nullptr))
 		goto done;
 
 	avsv_sanamet_init(dn, &comp_name, "safComp=");
@@ -287,7 +287,7 @@ SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp)
 	const char *className = "SaAmfCompCsType";
 	AVD_COMPCS_TYPE *compcstype;
 	SaImmAttrNameT attributeNames[] = {const_cast<SaImmAttrNameT>("saAmfCompNumMaxActiveCSIs"),
-					   const_cast<SaImmAttrNameT>("saAmfCompNumMaxStandbyCSIs"), NULL};
+					   const_cast<SaImmAttrNameT>("saAmfCompNumMaxStandbyCSIs"), nullptr};
 
 	TRACE_ENTER();
 
@@ -307,12 +307,12 @@ SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp)
 	while ((error = immutil_saImmOmSearchNext_2(searchHandle, &dn,
 		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 
-		if (!is_config_valid(&dn, NULL)) {
+		if (!is_config_valid(&dn, nullptr)) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if ((compcstype = compcstype_create(&dn, attributes)) == NULL) {
+		if ((compcstype = compcstype_create(&dn, attributes)) == nullptr) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
@@ -354,7 +354,7 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		osafassert(cst);
 		avsv_sanamet_init(&opdata->objectName, &comp_name, "safComp=");
 		comp = comp_db->find(Amf::to_string(&comp_name));
-		for (curr_susi = comp->su->list_of_susi; curr_susi != NULL; curr_susi = curr_susi->su_next)
+		for (curr_susi = comp->su->list_of_susi; curr_susi != nullptr; curr_susi = curr_susi->su_next)
 			for (compcsi = curr_susi->list_of_csicomp; compcsi; compcsi = compcsi->susi_csicomp_next) {
 				if (compcsi->comp == comp) {
 					report_ccb_validation_error(opdata, "Deletion of SaAmfCompCsType requires"
@@ -386,7 +386,7 @@ static void compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		cst = compcstype_db->find(Amf::to_string(&opdata->objectName));
-		if (cst != NULL) {
+		if (cst != nullptr) {
 			compcstype_db->erase(Amf::to_string(&cst->name));
 			delete cst;
 		}
@@ -406,9 +406,9 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER2("%s", objectName->value);
-	osafassert(cst != NULL);
+	osafassert(cst != nullptr);
 
-	while ((attributeName = attributeNames[i++]) != NULL) {
+	while ((attributeName = attributeNames[i++]) != nullptr) {
 		if (!strcmp("saAmfCompNumCurrActiveCSIs", attributeName)) {
 			rc = avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrActiveCSIs);
@@ -434,7 +434,7 @@ static SaAisErrorT compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
 void avd_compcstype_constructor(void)
 {
 	compcstype_db = new AmfDb<std::string, AVD_COMPCS_TYPE>;
-	avd_class_impl_set("SaAmfCompCsType", compcstype_rt_attr_callback, NULL,
+	avd_class_impl_set("SaAmfCompCsType", compcstype_rt_attr_callback, nullptr,
 		compcstype_ccb_completed_cb, compcstype_ccb_apply_cb);
 }
 

@@ -70,10 +70,10 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
 			&attr_safSISU,
 			&attr_saAmfSISUHAState,
 			&attr_saAmfSISUHAReadinessState,
-			NULL
+			nullptr
 	};
 
-	avsv_create_association_class_dn(su_dn, NULL, "safSISU", &dn);
+	avsv_create_association_class_dn(su_dn, nullptr, "safSISU", &dn);
 	avd_saImmOiRtObjectCreate("SaAmfSIAssignment", si_dn, attrValues);
 }
 
@@ -112,7 +112,7 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
     		   SA_IMM_ATTR_SAUINT32T, &ha_state);
 
        /* Update all CSI assignments */
-       for (compcsi = susi->list_of_csicomp; compcsi != NULL; compcsi = compcsi->susi_csicomp_next) {
+       for (compcsi = susi->list_of_csicomp; compcsi != nullptr; compcsi = compcsi->susi_csicomp_next) {
 	       avsv_create_association_class_dn(&compcsi->comp->comp_info.name,
 		       &compcsi->csi->name, "safCSIComp", &dn);
 
@@ -153,7 +153,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 
 	su_si->state = state;
 	su_si->fsm = AVD_SU_SI_STATE_ABSENT;
-	su_si->list_of_csicomp = NULL;
+	su_si->list_of_csicomp = nullptr;
 	su_si->si = si;
 	su_si->su = su;
 
@@ -176,7 +176,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	su_si->is_per_si = (curr_su == su) ? true : false;
 
 	/* determine the insert position */
-	for (p_su_si = NULL, i_su_si = si->list_of_sisu;
+	for (p_su_si = nullptr, i_su_si = si->list_of_sisu;
 	     i_su_si; p_su_si = i_su_si, i_su_si = i_su_si->si_next) {
 		if (i_su_si->is_per_si == true) {
 			if (false == su_si->is_per_si)
@@ -218,21 +218,21 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	}
 
 	/* keep the list in su inascending order */
-	if (su->list_of_susi == NULL) {
+	if (su->list_of_susi == nullptr) {
 		su->list_of_susi = su_si;
-		su_si->su_next = NULL;
+		su_si->su_next = nullptr;
 		goto done;
 	}
 
-	p_su_si = NULL;
+	p_su_si = nullptr;
 	i_su_si = su->list_of_susi;
-	while ((i_su_si != NULL) &&
+	while ((i_su_si != nullptr) &&
 	       (m_CMP_HORDER_SANAMET(i_su_si->si->name, su_si->si->name) < 0)) {
 		p_su_si = i_su_si;
 		i_su_si = i_su_si->su_next;
 	}
 
-	if (p_su_si == NULL) {
+	if (p_su_si == nullptr) {
 		su_si->su_next = su->list_of_susi;
 		su->list_of_susi = su_si;
 	} else {
@@ -242,9 +242,9 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 
 done:
 	//ADD susi in imm job queue at both standby and active amfd.
-	if (su_si != NULL)
+	if (su_si != nullptr)
 		avd_create_susi_in_imm(state, &si->name, &su->name);
-	if ((ckpt == false) && (su_si != NULL)) {
+	if ((ckpt == false) && (su_si != nullptr)) {
 		avd_susi_update_assignment_counters(su_si, AVSV_SUSI_ACT_ASGN, state, state);
 		avd_gen_su_ha_state_changed_ntf(cb, su_si);
 	}
@@ -281,15 +281,15 @@ AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_nam
 	memcpy(lsi_name.value, si_name->value, si_name->length);
 	lsi_name.length = si_name->length;
 
-	while ((su_si != NULL) && (m_CMP_HORDER_SANAMET(su_si->si->name, lsi_name) < 0)) {
+	while ((su_si != nullptr) && (m_CMP_HORDER_SANAMET(su_si->si->name, lsi_name) < 0)) {
 		su_si = su_si->su_next;
 	}
 
-	if ((su_si != NULL) && (m_CMP_HORDER_SANAMET(su_si->si->name, lsi_name) == 0)) {
+	if ((su_si != nullptr) && (m_CMP_HORDER_SANAMET(su_si->si->name, lsi_name) == 0)) {
 		return su_si;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*****************************************************************************
@@ -313,8 +313,8 @@ AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaName
 {
 	AVD_SU *su;
 
-	if ((su = su_db->find(Amf::to_string(su_name))) == NULL)
-		return NULL;
+	if ((su = su_db->find(Amf::to_string(su_name))) == nullptr)
+		return nullptr;
 
 	return avd_su_susi_find(cb, su, si_name);
 }
@@ -345,13 +345,13 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 
 	/* check the SU list to get the prev pointer */
 	i_su_si = susi->su->list_of_susi;
-	p_su_si = NULL;
-	while ((i_su_si != NULL) && (i_su_si != susi)) {
+	p_su_si = nullptr;
+	while ((i_su_si != nullptr) && (i_su_si != susi)) {
 		p_su_si = i_su_si;
 		i_su_si = i_su_si->su_next;
 	}
 
-	if (i_su_si == NULL) {
+	if (i_su_si == nullptr) {
 		/* problem it is mssing to delete */
 		/* log error */
 		return NCSCC_RC_FAILURE;
@@ -359,35 +359,35 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 
 	/* check the SI list to get the prev pointer */
 	i_su_si = susi->si->list_of_sisu;
-	p_si_su = NULL;
+	p_si_su = nullptr;
 
-	while ((i_su_si != NULL) && (i_su_si != susi)) {
+	while ((i_su_si != nullptr) && (i_su_si != susi)) {
 		p_si_su = i_su_si;
 		i_su_si = i_su_si->si_next;
 	}
 
-	if (i_su_si == NULL) {
+	if (i_su_si == nullptr) {
 		/* problem it is mssing to delete */
 		/* log error */
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* now delete it from the SU list */
-	if (p_su_si == NULL) {
+	if (p_su_si == nullptr) {
 		susi->su->list_of_susi = susi->su_next;
-		susi->su_next = NULL;
+		susi->su_next = nullptr;
 	} else {
 		p_su_si->su_next = susi->su_next;
-		susi->su_next = NULL;
+		susi->su_next = nullptr;
 	}
 
 	/* now delete it from the SI list */
-	if (p_si_su == NULL) {
+	if (p_si_su == nullptr) {
 		susi->si->list_of_sisu = susi->si_next;
-		susi->si_next = NULL;
+		susi->si_next = nullptr;
 	} else {
 		p_si_su->si_next = susi->si_next;
-		susi->si_next = NULL;
+		susi->si_next = nullptr;
 	}
 
 	if (ckpt == false) {
@@ -407,8 +407,8 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 
 	avd_delete_siassignment_from_imm(&susi->si->name, &susi->su->name);
 
-	susi->si = NULL;
-	susi->su = NULL;
+	susi->si = nullptr;
+	susi->su = nullptr;
 
 	delete susi;
 
@@ -467,7 +467,7 @@ AVD_SU_SI_REL * avd_find_preferred_standby_susi(AVD_SI *si)
 
 	TRACE_ENTER();
 
-	for (curr_sisu = si->list_of_sisu;curr_sisu != NULL;curr_sisu = curr_sisu->si_next) {
+	for (curr_sisu = si->list_of_sisu;curr_sisu != nullptr;curr_sisu = curr_sisu->si_next) {
 		if ((SA_AMF_READINESS_IN_SERVICE == curr_sisu->su->saAmfSuReadinessState) &&
 			(SA_AMF_HA_STANDBY == curr_sisu->state)) {
 			/* Find the Current Active assignments on the curr_sisu->su.
@@ -477,7 +477,7 @@ AVD_SU_SI_REL * avd_find_preferred_standby_susi(AVD_SI *si)
 			 * assignment process saAmfSUNumCurrActiveSIs wont give the currect value
 			 */
 			curr_su_act_cnt = 0;
-			for (curr_susi = curr_sisu->su->list_of_susi;curr_susi != NULL;
+			for (curr_susi = curr_sisu->su->list_of_susi;curr_susi != nullptr;
 				curr_susi = curr_susi->su_next) {
 				if (SA_AMF_HA_ACTIVE == curr_susi->state)
 					curr_su_act_cnt++;
@@ -514,7 +514,7 @@ uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	old_fsm_state = susi->fsm;
 	susi->state = ha_state;
 	susi->fsm = AVD_SU_SI_STATE_MODIFY;
-	rc = avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, NULL);
+	rc = avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, nullptr);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("role modification msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
 			susi->su->name.value,susi->si->name.value);
@@ -554,7 +554,7 @@ uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi)
 	old_fsm_state = susi->fsm;
 	susi->fsm = AVD_SU_SI_STATE_UNASGN;
 
-	avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, NULL);
+	avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, nullptr);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("susi del msg snd failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
 				susi->su->name.value,susi->si->name.value);
@@ -728,7 +728,7 @@ AVD_SU_SI_REL *avd_siass_next_susi_to_quiesce(const AVD_SU_SI_REL *susi)
 		}
 	}
 done:
-	TRACE_LEAVE2("next_susi: %s",a_susi ? a_susi->si->name.value : NULL);
+	TRACE_LEAVE2("next_susi: %s",a_susi ? a_susi->si->name.value : nullptr);
 	return a_susi;
 }
 
@@ -757,7 +757,7 @@ bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
 				continue;
 
 			AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
-			osafassert(dep_si != NULL); 
+			osafassert(dep_si != nullptr); 
 
 			for (AVD_SU_SI_REL *sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
 				if (sisu->su == susi->su) {
