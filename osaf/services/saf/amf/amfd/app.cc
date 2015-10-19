@@ -28,10 +28,10 @@ AmfDb<std::string, AVD_APP> *app_db = 0;
 AVD_APP::AVD_APP() :
 	saAmfApplicationAdminState(SA_AMF_ADMIN_UNLOCKED),
 	saAmfApplicationCurrNumSGs(0),
-	list_of_sg(NULL),
-	list_of_si(NULL),
-	app_type_list_app_next(NULL),
-	app_type(NULL)
+	list_of_sg(nullptr),
+	list_of_si(nullptr),
+	app_type_list_app_next(nullptr),
+	app_type(nullptr)
 {
 	memset(&name, 0, sizeof(SaNameT));
 	memset(&saAmfAppType, 0, sizeof(SaNameT));
@@ -40,10 +40,10 @@ AVD_APP::AVD_APP() :
 AVD_APP::AVD_APP(const SaNameT* dn) :
 	saAmfApplicationAdminState(SA_AMF_ADMIN_UNLOCKED),
 	saAmfApplicationCurrNumSGs(0),
-	list_of_sg(NULL),
-	list_of_si(NULL),
-	app_type_list_app_next(NULL),
-	app_type(NULL)
+	list_of_sg(nullptr),
+	list_of_si(nullptr),
+	app_type_list_app_next(nullptr),
+	app_type(nullptr)
 {
 	memset(&name, 0, sizeof(SaNameT));
 	memcpy(name.value, dn->value, dn->length);
@@ -69,7 +69,7 @@ static void app_add_to_model(AVD_APP *app)
 	TRACE_ENTER2("%s", app->name.value);
 
 	/* Check type link to see if it has been added already */
-	if (app->app_type != NULL) {
+	if (app->app_type != nullptr) {
 		TRACE("already added");
 		goto done;
 	}
@@ -96,11 +96,11 @@ void AVD_APP::add_si(AVD_SI *si)
 void AVD_APP::remove_si(AVD_SI *si)
 {
 	AVD_SI *i_si;
-	AVD_SI *prev_si = NULL;
+	AVD_SI *prev_si = nullptr;
 
 	i_si = list_of_si;
 
-	while ((i_si != NULL) && (i_si != si)) {
+	while ((i_si != nullptr) && (i_si != si)) {
 		prev_si = i_si;
 		i_si = i_si->si_list_app_next;
 	}
@@ -109,15 +109,15 @@ void AVD_APP::remove_si(AVD_SI *si)
 		/* Log a fatal error */
 		osafassert(0);
 	} else {
-		if (prev_si == NULL) {
+		if (prev_si == nullptr) {
 			list_of_si = si->si_list_app_next;
 		} else {
 			prev_si->si_list_app_next = si->si_list_app_next;
 		}
 	}
 	
-	si->si_list_app_next = NULL;
-	si->app = NULL;
+	si->si_list_app_next = nullptr;
+	si->app = nullptr;
 }
 
 void AVD_APP::add_sg(AVD_SG *sg)
@@ -132,11 +132,11 @@ void AVD_APP::add_sg(AVD_SG *sg)
 void AVD_APP::remove_sg(AVD_SG *sg)
 {
 	AVD_SG *i_sg;
-	AVD_SG *prev_sg = NULL;
+	AVD_SG *prev_sg = nullptr;
 
 	i_sg = list_of_sg;
 
-	while ((i_sg != NULL) && (i_sg != sg)) {
+	while ((i_sg != nullptr) && (i_sg != sg)) {
 		prev_sg = i_sg;
 		i_sg = i_sg->sg_list_app_next;
 	}
@@ -145,7 +145,7 @@ void AVD_APP::remove_sg(AVD_SG *sg)
 		/* Log a fatal error */
 		osafassert(0);
 	} else {
-		if (prev_sg == NULL) {
+		if (prev_sg == nullptr) {
 			list_of_sg = sg->sg_list_app_next;
 		} else {
 			prev_sg->sg_list_app_next = sg->sg_list_app_next;
@@ -156,8 +156,8 @@ void AVD_APP::remove_sg(AVD_SG *sg)
 	saAmfApplicationCurrNumSGs--;
 	if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_AVD_APP_CONFIG);
-	sg->sg_list_app_next = NULL;
-	sg->app = NULL;
+	sg->sg_list_app_next = nullptr;
+	sg->app = nullptr;
 }
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
@@ -168,7 +168,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaAmfAdminStateT admstate;
 
 	/* Applications should be root objects */
-	if (strchr((char *)dn->value, ',') != NULL) {
+	if (strchr((char *)dn->value, ',') != nullptr) {
 		report_ccb_validation_error(opdata, "Parent to '%s' is not root", dn->value);
 		return 0;
 	}
@@ -176,14 +176,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfAppType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (avd_apptype_get(&aname) == NULL) {
+	if (avd_apptype_get(&aname) == nullptr) {
 		/* App type does not exist in current model, check CCB */
-		if (opdata == NULL) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
@@ -210,7 +210,7 @@ AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes
 	** but needs to get configuration attributes initialized.
 	*/
 	app = app_db->find(Amf::to_string(dn));
-	if (app == NULL) {
+	if (app == nullptr) {
 		app = new AVD_APP(dn);
 	} else
 		TRACE("already created, refreshing config...");
@@ -241,12 +241,12 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
 			if (!strcmp(attribute->attrName, "saAmfAppType")) {
 				SaNameT dn = *((SaNameT*)attribute->attrValues[0]);
-				if (NULL == avd_apptype_get(&dn)) {
+				if (nullptr == avd_apptype_get(&dn)) {
 					report_ccb_validation_error(opdata, "saAmfAppType '%s' not found", dn.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
@@ -295,7 +295,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		const SaImmAttrModificationT_2 *attr_mod;
 		app = app_db->find(Amf::to_string(&opdata->objectName));
 
-		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
 			if (!strcmp(attribute->attrName, "saAmfAppType")) {
@@ -318,8 +318,8 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		 * app object should have been *DELETED* just  
 		 * do a sanity check here
 		 */
-		osafassert(app->list_of_sg == NULL);
-		osafassert(app->list_of_si == NULL);
+		osafassert(app->list_of_sg == nullptr);
+		osafassert(app->list_of_si == nullptr);
 		avd_app_delete(app);
 		break;
 	default:
@@ -339,17 +339,17 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 
 	/* Find the app name. */
 	app = app_db->find(Amf::to_string(object_name));
-	osafassert(app != NULL);
+	osafassert(app != nullptr);
 
 	if (op_id == SA_AMF_ADMIN_UNLOCK) {
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"%s is already unlocked", object_name->value);
 			goto done;
 		}
 
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
@@ -357,13 +357,13 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 
 	if (op_id == SA_AMF_ADMIN_LOCK) {
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"%s is already locked", object_name->value);
 			goto done;
 		}
 
 		if (app->saAmfApplicationAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"%s is locked instantiation", object_name->value);
 			goto done;
 		}
@@ -371,7 +371,7 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 
 	/* recursively perform admin op */
 #if 0
-	while (sg != NULL) {
+	while (sg != nullptr) {
 		avd_sa_avd_sg_object_admin_hdlr(avd_cb, object_name, op_id, params);
 		sg = sg->sg_list_app_next;
 	}
@@ -384,7 +384,7 @@ static void app_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 				"Not supported");
 		break;
 	}
@@ -400,9 +400,9 @@ static SaAisErrorT app_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("%s", objectName->value);
-	osafassert(app != NULL);
+	osafassert(app != nullptr);
 
-	while ((attributeName = attributeNames[i++]) != NULL) {
+	while ((attributeName = attributeNames[i++]) != nullptr) {
 		TRACE("Attribute %s", attributeName);
 		if (!strcmp(attributeName, "saAmfApplicationCurrNumSGs")) {
 			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
@@ -427,7 +427,7 @@ SaAisErrorT avd_app_config_get(void)
 	SaImmAttrNameT configAttributes[] = {
 	   const_cast<SaImmAttrNameT>("saAmfAppType"),
 	   const_cast<SaImmAttrNameT>("saAmfApplicationAdminState"),
-		NULL
+		nullptr
 	};
 
 	TRACE_ENTER();
@@ -436,7 +436,7 @@ SaAisErrorT avd_app_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
 		configAttributes, &searchHandle) != SA_AIS_OK) {
 
@@ -447,10 +447,10 @@ SaAisErrorT avd_app_config_get(void)
 	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &dn,
 		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, nullptr))
 			goto done2;
 
-		if ((app = avd_app_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
+		if ((app = avd_app_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == nullptr)
 			goto done2;
 
 		app_add_to_model(app);

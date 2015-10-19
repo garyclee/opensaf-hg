@@ -51,14 +51,14 @@ AmfDb<uint32_t, AVD_FAIL_OVER_NODE> *node_list_db = 0;      /* SaClmNodeIdT inde
 
 void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_AVND *avnd = NULL;
+	AVD_AVND *avnd = nullptr;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_node_up.node_id);
 
 	/* Cannot use avd_msg_sanity_chk here since this is a special case */
-	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_node_up.node_id)) == NULL) {
+	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_node_up.node_id)) == nullptr) {
 		TRACE("invalid node ID (%x)", n2d_msg->msg_info.n2d_node_up.node_id);
 		goto done;
 	}
@@ -162,7 +162,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 done:
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 	TRACE_LEAVE();
 }
 
@@ -224,7 +224,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 		/* Check if all SUs are in 'in-service' cluster-wide, if so start assignments */
 		if ((cb->amf_init_tmr.is_active == true) && 
-				(cluster_su_instantiation_done(cb, NULL) == true)) {
+				(cluster_su_instantiation_done(cb, nullptr) == true)) {
 			avd_stop_tmr(cb, &cb->amf_init_tmr);
 			cluster_startup_expiry_event_generate(cb);
 		}
@@ -319,7 +319,7 @@ void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	TRACE_ENTER2("%x, %p", evt->info.node_id, node);
 
-	if (node != NULL) {
+	if (node != nullptr) {
 		// Do nothing if the local node goes down. Most likely due to system shutdown.
 		// If node director goes down due to a bug, the AMF watchdog will restart the node.
 		if (node->node_info.nodeId == cb->node_id_avd) {
@@ -487,31 +487,31 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (node_found == false) {
 		/* do i need to log an error */
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
 	/*
 	 * Check if AVND is in the present state. If No then drop this event.
 	 */
-	if (NULL == (avnd = avd_node_find_nodeid(evt->info.avnd_msg->msg_info.n2d_ack_nack_info.node_id))) {
+	if (nullptr == (avnd = avd_node_find_nodeid(evt->info.avnd_msg->msg_info.n2d_ack_nack_info.node_id))) {
 		/* Not an error? Log information will be helpful */
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
 	if (AVD_AVND_STATE_PRESENT != avnd->node_state) {
 		/* Not an error? Log information will be helpful */
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
 	if (true == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
 		/* Wow great!! We are in sync with this node...Log inforamtion */
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
@@ -531,7 +531,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 			avd_node_down_func(cb, avnd);
 			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
+			evt->info.avnd_msg = nullptr;
 			goto done;
 		}
 
@@ -540,11 +540,11 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * UNASSIGN state.for this node.
 		 */
 		for (const auto& su_ptr : avnd->list_of_ncs_su) {
-			for (rel_ptr = su_ptr->list_of_susi; rel_ptr != NULL; rel_ptr = rel_ptr->su_next) {
+			for (rel_ptr = su_ptr->list_of_susi; rel_ptr != nullptr; rel_ptr = rel_ptr->su_next) {
 				if ((AVD_SU_SI_STATE_ASGND == rel_ptr->fsm) || (AVD_SU_SI_STATE_ABSENT == rel_ptr->fsm))
 					continue;
 
-				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, static_cast<AVSV_SUSI_ACT>(rel_ptr->fsm), false, NULL) != NCSCC_RC_SUCCESS) {
+				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, static_cast<AVSV_SUSI_ACT>(rel_ptr->fsm), false, nullptr) != NCSCC_RC_SUCCESS) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
 									     su_ptr->name.length);
 				}
@@ -571,16 +571,16 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			    (su_ptr->sg_of_su->sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL) ||
 			    (su_ptr->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL)) {
 				if (AVD_SU_SI_STATE_MODIFY == su_ptr->list_of_susi->fsm) {
-					avd_snd_susi_msg(cb, su_ptr, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD, false, NULL);
+					avd_snd_susi_msg(cb, su_ptr, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD, false, nullptr);
 					continue;
 				}
 			}
 
-			for (rel_ptr = su_ptr->list_of_susi; rel_ptr != NULL; rel_ptr = rel_ptr->su_next) {
+			for (rel_ptr = su_ptr->list_of_susi; rel_ptr != nullptr; rel_ptr = rel_ptr->su_next) {
 				if ((AVD_SU_SI_STATE_ASGND == rel_ptr->fsm) || (AVD_SU_SI_STATE_ABSENT == rel_ptr->fsm))
 					continue;
 
-				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, static_cast<AVSV_SUSI_ACT>(rel_ptr->fsm), false, NULL) != NCSCC_RC_SUCCESS) {
+				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, static_cast<AVSV_SUSI_ACT>(rel_ptr->fsm), false, nullptr) != NCSCC_RC_SUCCESS) {
 					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
 									     su_ptr->name.length);
 				}
@@ -589,7 +589,7 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 done:
 	TRACE_LEAVE();
 }
@@ -614,7 +614,7 @@ uint32_t avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 
 	TRACE_ENTER();
 
-	if ((avnd = avd_node_find_nodeid(node_id)) == NULL) {
+	if ((avnd = avd_node_find_nodeid(node_id)) == nullptr) {
 		/* log error that the node id is invalid */
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, node_id);
 		return NCSCC_RC_FAILURE;

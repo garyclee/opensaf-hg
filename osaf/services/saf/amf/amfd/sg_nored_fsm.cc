@@ -49,8 +49,8 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 		    (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) ||
 		    (i_si->si_dep_state == AVD_SI_READY_TO_UNASSIGN) ||
 		    (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
-			(i_si->list_of_csi == NULL) ||
-		    (i_si->list_of_sisu != NULL)) {
+			(i_si->list_of_csi == nullptr) ||
+		    (i_si->list_of_sisu != nullptr)) {
 			continue;
 		}
 
@@ -60,7 +60,7 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 		for (; iter != list_of_su.end(); ++iter) {
 			const auto& su = *iter;
 			if ((su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-			    (su->list_of_susi == NULL)) {
+			    (su->list_of_susi == nullptr)) {
 				/* if the SU is not null assign active to that SU for the SI. */
 				if (avd_new_assgn_susi(avd_cb, su, i_si, SA_AMF_HA_ACTIVE, false, &tmp) == NCSCC_RC_SUCCESS) {
 					su_oper_list_add(su);
@@ -81,7 +81,7 @@ AVD_SU *SG_NORED::assign_sis_to_sus() {
 	if (su_oper_list.empty() == false)
 		return su_oper_list.front();
 	else
-		return NULL;
+		return nullptr;
 }
 
 uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
@@ -97,7 +97,7 @@ uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (assign_sis_to_sus() == NULL) {
+	if (assign_sis_to_sus() == nullptr) {
 		/* all the assignments have already been done in the SG. */
 		return NCSCC_RC_SUCCESS;
 	}
@@ -109,7 +109,7 @@ uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 
 uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 	bool flag;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -306,7 +306,7 @@ uint32_t SG_NORED::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (assign_sis_to_sus() == NULL) {
+	if (assign_sis_to_sus() == nullptr) {
 		avd_sg_app_su_inst_func(cb, su->sg_of_su);
 
 		/* all the assignments have already been done in the SG. */
@@ -320,7 +320,7 @@ uint32_t SG_NORED::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				   AVSV_SUSI_ACT act, SaAmfHAStateT state) {
 	AVD_SI *l_si;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 	osafassert(su->sg_of_su == this);	
@@ -362,7 +362,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			}
 
 			if ((admin_si == AVD_SI_NULL) && (su_oper_list.empty() == true)) {
-				if (assign_sis_to_sus() == NULL) {
+				if (assign_sis_to_sus() == nullptr) {
 					/* No New assignments are been done in the SG */
 					set_fsm_state(AVD_SG_FSM_STABLE);
 					avd_sidep_sg_take_action(this); 
@@ -406,7 +406,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			su_oper_list_del(su);
 
 			if (su_oper_list.empty() == true) {
-				if (assign_sis_to_sus() == NULL) {
+				if (assign_sis_to_sus() == nullptr) {
 					/* No New assignments are been done in the SG */
 					set_fsm_state(AVD_SG_FSM_STABLE);
 					avd_sidep_sg_take_action(this); 
@@ -436,7 +436,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			su_oper_list_del(su);
 
 			if (su->sg_of_su->su_oper_list.empty() == true) {
-				if (assign_sis_to_sus() != NULL) {
+				if (assign_sis_to_sus() != nullptr) {
 					/* New assignments are been done in the SG. */
 					set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 					return NCSCC_RC_SUCCESS;
@@ -506,7 +506,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			}
 
 			if (su->sg_of_su->admin_si == AVD_SI_NULL) {
-				if (assign_sis_to_sus() != NULL) {
+				if (assign_sis_to_sus() != nullptr) {
 					/* New assignments are been done in the SG. */
 					set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 					return NCSCC_RC_SUCCESS;
@@ -597,7 +597,7 @@ uint32_t SG_NORED::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 uint32_t SG_NORED::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				  AVSV_SUSI_ACT act, SaAmfHAStateT state) {
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -746,7 +746,7 @@ uint32_t SG_NORED::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 		goto done;
 	}
 
-	if (assign_sis_to_sus() == NULL) {
+	if (assign_sis_to_sus() == nullptr) {
 		/* all the assignments have already been done in the SG. */
 		set_adjust_state(AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
@@ -765,7 +765,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 
 	AVD_SI *l_si;
 	SaAmfHAStateT old_state;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER2("%s, sg_fsm_state=%u", su->name.value, su->sg_of_su->sg_fsm_state);
 
@@ -780,7 +780,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		/* Unassign the SUSI */
 		m_AVD_SU_SI_TRG_DEL(cb, su->list_of_susi);
 
-		if (assign_sis_to_sus() != NULL) {
+		if (assign_sis_to_sus() != nullptr) {
 			/* new assignments are been done in the SG. */
 			set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
@@ -828,7 +828,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		}
 
 		if ((admin_si == AVD_SI_NULL) && (su_oper_list.empty() == true)) {
-			if (assign_sis_to_sus() == NULL) {
+			if (assign_sis_to_sus() == nullptr) {
 				/* No New assignments are been done in the SG */
 				set_fsm_state(AVD_SG_FSM_STABLE);
 				avd_sidep_sg_take_action(this); 
@@ -867,7 +867,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 				}
 			}
 
-			if (assign_sis_to_sus() != NULL) {
+			if (assign_sis_to_sus() != nullptr) {
 				/* New assignments are been done in the SG */
 				set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				return;
@@ -902,7 +902,7 @@ void SG_NORED::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 			l_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 
-			if (assign_sis_to_sus() != NULL) {
+			if (assign_sis_to_sus() != nullptr) {
 				/* New assignments are been done in the SG */
 				set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				return;
@@ -959,7 +959,7 @@ uint32_t SG_NORED::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 	switch (su->sg_of_su->sg_fsm_state) {
 	case AVD_SG_FSM_STABLE:
 		if ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
-		    ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED))) {
+		    ((avnd != nullptr) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED))) {
 
 			/* change the  assignment to quiesced. */
 			if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE)
@@ -970,7 +970,7 @@ uint32_t SG_NORED::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 		}		/* if ((su->admin_state == NCS_ADMIN_STATE_LOCK) ||
 				   ((avnd != AVD_AVND_NULL) && (avnd->su_admin_state == NCS_ADMIN_STATE_LOCK))) */
 		else if ((su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
-			 ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN))) {
+			 ((avnd != nullptr) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN))) {
 			/* change the  assignment to quiesced. */
 			if (avd_susi_mod_send(su->list_of_susi, SA_AMF_HA_QUIESCING) == NCSCC_RC_FAILURE)
 				return NCSCC_RC_FAILURE;
@@ -984,7 +984,7 @@ uint32_t SG_NORED::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 		if ((su_oper_list_front() == su) &&
 		    (su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
 		    ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
-		     ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
+		     ((avnd != nullptr) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
 			/* If the SU is in the operation list and the SU admin state is lock.
 			 * send D2N-INFO_SU_SI_ASSIGN modify quiesced message to the SU. 
 			 */
@@ -1146,7 +1146,7 @@ void SG_NORED::ng_admin(AVD_SU *su, AVD_AMF_NG *ng)
 {
 	TRACE_ENTER2("'%s', sg_fsm_state:%u",su->name.value,
 			su->sg_of_su->sg_fsm_state);
-	if (su->list_of_susi == NULL) {
+	if (su->list_of_susi == nullptr) {
 		avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
 		return;
 	}

@@ -172,7 +172,7 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[] = {
 	enc_comp_readiness_state,
 	enc_comp_pres_state,
 	enc_comp_restart_count,
-	NULL,			/* AVSV_SYNC_COMMIT */
+	nullptr,			/* AVSV_SYNC_COMMIT */
 	enc_su_restart_count,
 	enc_si_dep_state,
 	enc_ng_admin_state
@@ -1930,7 +1930,7 @@ static uint32_t entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_
 	ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 
 	/* 
-	 * If reo_handle and reo_type is NULL then this the first time mbcsv is calling
+	 * If reo_handle and reo_type is nullptr then this the first time mbcsv is calling
 	 * the cold sync response for the standby. So start from first data structure 
 	 * which is CB. Next time onwards depending on the value of reo_type and reo_handle
 	 * send the next data structures.
@@ -1938,7 +1938,7 @@ static uint32_t entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_
 	status = enc_cs_data_func_list[enc->io_reo_type] (cb, enc, &num_of_obj);
 
 	/* Now encode the number of objects actually in the UBA. */
-	if (encoded_cnt_loc != NULL) {
+	if (encoded_cnt_loc != nullptr) {
 		ncs_encode_32bit(&encoded_cnt_loc, num_of_obj);
 	}
 
@@ -2268,7 +2268,7 @@ static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
 			it != sg_db->end(); it++) {
 		AVD_SG *sg = it->second;
-		if (NULL == sg->admin_si) 
+		if (nullptr == sg->admin_si) 
 			continue;
 
 		osaf_encode_sanamet(&enc->io_uba, &sg->admin_si->name);
@@ -2297,7 +2297,7 @@ static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *
 	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
 			it != sg_db->end(); it++) {
 		AVD_SG *sg = it->second;
-	    if (sg->si_tobe_redistributed != NULL) { 
+	    if (sg->si_tobe_redistributed != nullptr) { 
 		si_trans_ckpt.sg_name = sg->name;
 		si_trans_ckpt.si_name = sg->si_tobe_redistributed->name;
 		si_trans_ckpt.min_su_name = sg->min_assigned_su->name;
@@ -2354,7 +2354,7 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 		su = it->second;
 		su_si_ckpt.su_name = su->name;
 
-		for (rel = su->list_of_susi; rel != NULL; rel = rel->su_next) {
+		for (rel = su->list_of_susi; rel != nullptr; rel = rel->su_next) {
 			su_si_ckpt.si_name = rel->si->name;
 			su_si_ckpt.fsm = rel->fsm;
 			su_si_ckpt.state = rel->state;
@@ -2541,7 +2541,7 @@ static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *en
 	/* 
 	 * Encode the number of operation SU's we are sending in this message.
 	 */
-	if (encoded_cnt_loc != NULL) {
+	if (encoded_cnt_loc != nullptr) {
 		ncs_encode_32bit(&encoded_cnt_loc, num_of_opr_su);
 	}
 

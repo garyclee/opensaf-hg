@@ -38,7 +38,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	const char *path_prefix;
 
 	parent = avd_getparent((char*)dn->value);
-	if (parent == NULL) {
+	if (parent == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -164,6 +164,6 @@ static void nodeswbdl_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_nodeswbundle_constructor(void)
 {
-	avd_class_impl_set("SaAmfNodeSwBundle", NULL, NULL,
+	avd_class_impl_set("SaAmfNodeSwBundle", nullptr, nullptr,
 		nodeswbdl_ccb_completed_cb, nodeswbdl_ccb_apply_cb);
 }

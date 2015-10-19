@@ -54,23 +54,23 @@ AVD_AVND *avd_msg_sanity_chk(AVD_EVT* evt, SaClmNodeIdT node_id, AVSV_DND_MSG_TY
 
 	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
 		LOG_WA("%s: cluster admin state down", __FUNCTION__);
-		return NULL;
+		return nullptr;
 	}
 
 	if (evt->info.avnd_msg->msg_type != msg_typ) {
 		LOG_WA("%s: wrong message type (%u)", __FUNCTION__,evt->info.avnd_msg->msg_type);
-		return NULL;
+		return nullptr;
 	}
 
-	if ((node = avd_node_find_nodeid(node_id)) == NULL) {
+	if ((node = avd_node_find_nodeid(node_id)) == nullptr) {
 		LOG_WA("%s: invalid node ID (%x)", __FUNCTION__, node_id);
-		return NULL;
+		return nullptr;
 	}
 
 	if ((node->rcv_msg_id + 1) != msg_id) {
 		LOG_WA("%s: invalid msg id %u, from %x should be %u",
 			__FUNCTION__, msg_id, node_id, node->rcv_msg_id + 1);
-		return NULL;
+		return nullptr;
  	}
 
 	return node;
@@ -102,17 +102,17 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER2("from %x, '%s'", n2d_msg->msg_info.n2d_reg_su.node_id, n2d_msg->msg_info.n2d_reg_su.su_name.value);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_reg_su.node_id, AVSV_N2D_REG_SU_MSG,
-		n2d_msg->msg_info.n2d_reg_su.msg_id)) == NULL) {
+		n2d_msg->msg_info.n2d_reg_su.msg_id)) == nullptr) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
 		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
@@ -137,7 +137,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
@@ -159,7 +159,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
@@ -173,7 +173,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	avd_node_down_func(cb, node);
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 
 	/* checkpoint the AVND structure */
  done:
@@ -237,7 +237,7 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_op_req.node_id);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_op_req.node_id, AVSV_N2D_OPERATION_REQUEST_MSG,
-		n2d_msg->msg_info.n2d_op_req.msg_id)) == NULL) {
+		n2d_msg->msg_info.n2d_op_req.msg_id)) == nullptr) {
 		/* sanity failed return */
 		goto done;
 	}
@@ -274,7 +274,7 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
  done:
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 	TRACE_LEAVE();
 }
 
@@ -610,10 +610,10 @@ void cluster_startup_expiry_event_generate(AVD_CL_CB *cb)
  */
 bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su)
 {
-	AVD_AVND *node = NULL;
+	AVD_AVND *node = nullptr;
 	TRACE_ENTER2("%p", su);
 
-	if(su == NULL)
+	if(su == nullptr)
 		goto node_walk;
 
 	TRACE("SU '%s', SUPresenceState '%u'", su->name.value, su->saAmfSUPresenceState);
@@ -654,10 +654,10 @@ node_walk:
 		} else {
 			goto done;
 		}
-		node = NULL;
+		node = nullptr;
 	}
 
-	if (node == NULL) {
+	if (node == nullptr) {
 		TRACE("All nodes have joined the Cluster");
 		return true;
 	}
@@ -715,7 +715,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_data_req.node_id);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_data_req.node_id, AVSV_N2D_DATA_REQUEST_MSG,
-		n2d_msg->msg_info.n2d_data_req.msg_id)) == NULL) {
+		n2d_msg->msg_info.n2d_data_req.msg_id)) == nullptr) {
 		/* sanity failed return */
 		goto done;
 	}
@@ -747,7 +747,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	switch (n2d_msg->msg_info.n2d_data_req.param_info.class_id) {
 	case AVSV_SA_AMF_COMP:{
 			/* Find the component record in the database, specified in the message. */
-			if ((comp = comp_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_data_req.param_info.name))) == NULL) {
+			if ((comp = comp_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_data_req.param_info.name))) == nullptr) {
 				/* In case of component delete, component gets
 				   deleted at Amfd first and then it gets
 				   uninstantiated and then deleted at Amfnd.
@@ -869,7 +869,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	case AVSV_SA_AMF_SU:{
 			/* Find the component record in the database, specified in the message. */
-			if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_data_req.param_info.name))) == NULL) {
+			if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_data_req.param_info.name))) == nullptr) {
 				LOG_ER("%s: Invalid SU '%s' (%u)", __FUNCTION__,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.value,
 					n2d_msg->msg_info.n2d_data_req.param_info.name.length);
@@ -898,7 +898,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 					su->set_pres_state(static_cast<SaAmfPresenceStateT>(l_val));
 
-					if (su->su_on_node->admin_ng != NULL)
+					if (su->su_on_node->admin_ng != nullptr)
 						process_su_si_response_for_ng(su, SA_AIS_OK);
 
 					if (l_val == SA_AMF_PRESENCE_TERMINATION_FAILED) {
@@ -906,7 +906,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 							if (si->invocation != 0) {
 								report_admin_op_error(cb->immOiHandle, si->invocation,
 										SA_AIS_ERR_REPAIR_PENDING,
-										NULL,
+										nullptr,
 										"SU '%s' moved to 'termination failed' state",
 										su->name.value);
 								si->invocation = 0;
@@ -956,7 +956,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
  done:
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 	TRACE_LEAVE();
 }
 
@@ -977,28 +977,28 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_COMP *comp_ptr = NULL;
+	AVD_COMP *comp_ptr = nullptr;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	uint32_t res = NCSCC_RC_SUCCESS;
 	AVD_AVND *node;
-	AVSV_N2D_COMP_VALIDATION_INFO *valid_info = NULL;
+	AVSV_N2D_COMP_VALIDATION_INFO *valid_info = nullptr;
 
 	valid_info = &n2d_msg->msg_info.n2d_comp_valid_info;
 
 	TRACE_ENTER2("%s", valid_info->comp_name.value);
 
 	if ((node = avd_msg_sanity_chk(evt, valid_info->node_id, AVSV_N2D_COMP_VALIDATION_MSG,
-		valid_info->msg_id)) == NULL) {
+		valid_info->msg_id)) == nullptr) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
 		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
@@ -1007,14 +1007,14 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	comp_ptr = comp_db->find(Amf::to_string(&valid_info->comp_name));
 
-	if (NULL != comp_ptr) {
+	if (nullptr != comp_ptr) {
 		/* We found the component, reply to AvND. */
 		res = avd_snd_comp_validation_resp(cb, node, comp_ptr, n2d_msg);
 
 	} else {
 		/* We couldn't find the component, this is not a configured component. 
 		   Reply to AvND. */
-		res = avd_snd_comp_validation_resp(cb, node, NULL, n2d_msg);
+		res = avd_snd_comp_validation_resp(cb, node, nullptr, n2d_msg);
 	}
 
 	if (NCSCC_RC_FAILURE == res) {
@@ -1022,7 +1022,7 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 done:
 	TRACE_LEAVE();
 }

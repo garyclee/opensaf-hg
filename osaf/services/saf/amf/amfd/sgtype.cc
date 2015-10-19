@@ -28,7 +28,7 @@
 #include <proc.h>
 #include <algorithm>
 
-AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db = NULL;
+AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db = nullptr;
 
 void avd_sgtype_add_sg(AVD_SG *sg)
 {
@@ -87,7 +87,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	AVD_SUTYPE *sut;
 	const SaImmAttrValuesT_2 *attr;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -107,7 +107,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	while ((attr = attributes[i++]) != NULL)
+	while ((attr = attributes[i++]) != nullptr)
 		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes"))
 			break;
 
@@ -117,14 +117,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
 		sut = sutype_db->find(Amf::to_string(name));
-		if (sut == NULL) {
-			if (opdata == NULL) {
+		if (sut == nullptr) {
+			if (opdata == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
 				return 0;
 			}
 			
 			/* SG type does not exist in current model, check CCB */
-			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == NULL) {
+			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
 						name->value);
 				return 0;
@@ -180,7 +180,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtRedundancyModel"), attributes, 0, &sgt->saAmfSgtRedundancyModel);
 	osafassert(error == SA_AIS_OK);
 
-	while ((attr = attributes[i++]) != NULL)
+	while ((attr = attributes[i++]) != nullptr)
 		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes"))
 			break;
 
@@ -234,7 +234,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 	if (rc != 0) {
 		delete [] sgt->saAmfSGtValidSuTypes;
 		delete sgt;
-		sgt = NULL;
+		sgt = nullptr;
 	}
 
 	TRACE_LEAVE();
@@ -263,9 +263,9 @@ SaAisErrorT avd_sgtype_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-						  NULL, &searchHandle);
+						  nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
@@ -273,10 +273,10 @@ SaAisErrorT avd_sgtype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, nullptr))
 			goto done2;
-		if (( sgt = sgtype_db->find(Amf::to_string(&dn))) == NULL) {
-			if ((sgt = sgtype_create(&dn, attributes)) == NULL)
+		if (( sgt = sgtype_db->find(Amf::to_string(&dn))) == nullptr) {
+			if ((sgt = sgtype_create(&dn, attributes)) == nullptr)
 				goto done2;
 
 			sgtype_add_to_model(sgt);
@@ -307,9 +307,9 @@ static SaAisErrorT sgtype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	AVD_AMF_SG_TYPE *sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == NULL))
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == nullptr))
 			continue;
 
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSgtDefAutoRepair")) {
@@ -361,7 +361,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 		for (const auto& sg : sgt->list_of_sg) {
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->name);
-			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+			if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				sg_exist = true;
 				break;
 			}
@@ -397,9 +397,9 @@ static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 	AVD_AMF_SG_TYPE *sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		bool value_is_deleted; 
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attr_mod->modAttr.attrValues == NULL))
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attr_mod->modAttr.attrValues == nullptr))
 			/* Attribute value is deleted, revert to default value */
 			value_is_deleted = true;
 		else 
@@ -473,8 +473,8 @@ void avd_sgtype_constructor(void)
 {
 
 	sgtype_db = new AmfDb<std::string, AVD_AMF_SG_TYPE>;
-	avd_class_impl_set("SaAmfSGType", NULL, NULL, sgtype_ccb_completed_cb,
+	avd_class_impl_set("SaAmfSGType", nullptr, nullptr, sgtype_ccb_completed_cb,
 		sgtype_ccb_apply_cb);
-	avd_class_impl_set("SaAmfSGBaseType", NULL, NULL,
-		avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfSGBaseType", nullptr, nullptr,
+		avd_imm_default_OK_completed_cb, nullptr);
 }

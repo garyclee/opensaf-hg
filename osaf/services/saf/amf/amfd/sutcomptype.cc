@@ -24,7 +24,7 @@
 #include <sutcomptype.h>
 #include <imm.h>
 
-AmfDb<std::string, AVD_SUTCOMP_TYPE> *sutcomptype_db = NULL;
+AmfDb<std::string, AVD_SUTCOMP_TYPE> *sutcomptype_db = nullptr;
 
 static void sutcomptype_db_add(AVD_SUTCOMP_TYPE *sutcomptype)
 {
@@ -83,7 +83,7 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
 
 	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, sutype_name, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
+		nullptr, &searchHandle);
 	
 	if (SA_AIS_OK != error) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
@@ -91,10 +91,10 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, nullptr))
 			goto done2;
-		if ((sutcomptype = sutcomptype_db->find(Amf::to_string(&dn))) == NULL) {
-			if ((sutcomptype = sutcomptype_create(&dn, attributes)) == NULL) {
+		if ((sutcomptype = sutcomptype_db->find(Amf::to_string(&dn))) == nullptr) {
+			if ((sutcomptype = sutcomptype_create(&dn, attributes)) == nullptr) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
 			}
@@ -115,7 +115,7 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
 static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_SUTCOMP_TYPE *sutcomptype = NULL;
+	AVD_SUTCOMP_TYPE *sutcomptype = nullptr;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -144,7 +144,7 @@ static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 static void sutcomptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	AVD_SUTCOMP_TYPE *sutcomptype = NULL;
+	AVD_SUTCOMP_TYPE *sutcomptype = nullptr;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -167,7 +167,7 @@ void avd_sutcomptype_constructor(void)
 {
 
 	sutcomptype_db = new AmfDb<std::string, AVD_SUTCOMP_TYPE>;
-	avd_class_impl_set("SaAmfSutCompType", NULL, NULL,
+	avd_class_impl_set("SaAmfSutCompType", nullptr, nullptr,
 		sutcomptype_ccb_completed_cb, sutcomptype_ccb_apply_cb);
 }
 

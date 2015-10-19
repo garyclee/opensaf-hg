@@ -120,7 +120,7 @@ ImmObjCreate::~ImmObjCreate()
 {
 	unsigned int i, j;
 
-	for (i = 0; attrValues_[i] != NULL; i++) {
+	for (i = 0; attrValues_[i] != nullptr; i++) {
 		SaImmAttrValuesT_2 *attrValue =
 			(SaImmAttrValuesT_2 *)attrValues_[i];
 		
@@ -147,7 +147,7 @@ AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
 	AvdJobDequeueResultT res;
 	
 	SaImmAttrModificationT_2 attrMod;
-	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, NULL};
+	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
 	SaImmAttrValueT attrValues[] = {value_};
 
 	TRACE_ENTER2("Update '%s' %s", dn_.value, attributeName_);
@@ -324,7 +324,7 @@ AvdJobDequeueResultT Fifo::execute(SaImmOiHandleT immOiHandle)
 		return JOB_EINVH;
 	}
 
-	if ((ajob = peek()) == NULL)
+	if ((ajob = peek()) == nullptr)
 		return JOB_ENOTEXIST;
 
 	TRACE_ENTER();
@@ -343,7 +343,7 @@ void Fifo::empty()
 
 	TRACE_ENTER();
 
-	while ((ajob = dequeue()) != NULL) {
+	while ((ajob = dequeue()) != nullptr) {
 		delete ajob;
 	}
 
@@ -521,10 +521,10 @@ static const SaImmAttrValuesT_2 **dupSaImmAttrValuesT_array(const SaImmAttrValue
 	const SaImmAttrValuesT_2 **copy;
 	unsigned int i, alen = 0;
 
-	if (original == NULL)
-		return NULL;
+	if (original == nullptr)
+		return nullptr;
 
-	while (original[alen] != NULL)
+	while (original[alen] != nullptr)
 		alen++;
 
 	copy = new const SaImmAttrValuesT_2*[alen + 1]();
@@ -692,8 +692,8 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
  			(strncmp((char*)object_name->value, applierNamePrefix, strlen(applierNamePrefix)) == 0)) {
  		// admin op targeted at the AMF implementer itself
  		if (op_id == 99) {
- 	 		char *filename = NULL;
- 	 		if (params[0] != NULL) {
+ 	 		char *filename = nullptr;
+ 	 		if (params[0] != nullptr) {
  	 			const SaImmAdminOperationParamsT_2 *param = params[0];
  	 			if (param->paramType == SA_IMM_ATTR_SASTRINGT &&
  	 					strcmp(param->paramName, "filename") == 0)
@@ -704,16 +704,16 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
  				(void) saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);
  			else
  	 			report_admin_op_error(immoi_handle, invocation,
- 	 				SA_AIS_ERR_INVALID_PARAM, NULL,	"%s", strerror(rc));
+ 	 				SA_AIS_ERR_INVALID_PARAM, nullptr,	"%s", strerror(rc));
  		} else
- 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,
+ 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, nullptr,
  				"Admin operation not supported for %s (%u)", object_name->value, type);
  		goto done;
 	}
 
 	/* ignore admin ops if we are in the middle of a role switch */
 	if (avd_cb->swap_switch == SA_TRUE) {
-		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 			"Admin op received during a role switch");
 		goto done;
 	}
@@ -721,9 +721,9 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 	saflog(LOG_NOTICE, amfSvcUsrName, "Admin op \"%s\" initiated for '%s', invocation: %llu",
 	       admin_op_name(static_cast<SaAmfAdminOperationIdT>(op_id)), object_name->value, invocation);
 
-	if (admin_op_callback[type] != NULL) {
+	if (admin_op_callback[type] != nullptr) {
 		if (admin_op_is_valid(op_id, type) == false) {
-			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"AMF (state %u) is not available for admin op'%llu' on '%s'",
 					avd_cb->init_state, op_id, object_name->value);
 			goto done;
@@ -732,7 +732,7 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 		}
 	} else {
 		LOG_ER("Admin operation not supported for %s (%u)", object_name->value, type);
-		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, NULL,
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, nullptr,
 			"Admin operation not supported for %s (%u)", object_name->value, type);
 	}
 
@@ -759,7 +759,7 @@ static SaAisErrorT rt_attr_update_cb(SaImmOiHandleT immoi_handle,
 	AVSV_AMF_CLASS_ID type = object_name_to_class_type(object_name);
 
 	TRACE_ENTER2("%s", object_name->value);
-	osafassert(rtattr_update_callback[type] != NULL);
+	osafassert(rtattr_update_callback[type] != nullptr);
 	error = rtattr_update_callback[type](immoi_handle, object_name, attribute_names);
 	TRACE_LEAVE2("%u", error);
 	return error;
@@ -802,7 +802,7 @@ static SaAisErrorT ccb_object_create_cb(SaImmOiHandleT immoi_handle,
 		goto done;
 	}
 
-	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) == NULL) {
+	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) == nullptr) {
 		LOG_ER("Failed to get CCB object for %llu", ccb_id);
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
@@ -810,18 +810,18 @@ static SaAisErrorT ccb_object_create_cb(SaImmOiHandleT immoi_handle,
 
 	operation = ccbutil_ccbAddCreateOperation(ccb_util_ccb_data, class_name, parent_name, attr);
 
-	if (operation == NULL) {
+	if (operation == nullptr) {
 		LOG_ER("Failed to get CCB operation object for %llu", ccb_id);
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
 
 	/* Find the RDN attribute and store the object DN */
-	while ((attrValue = attr[i++]) != NULL) {
+	while ((attrValue = attr[i++]) != nullptr) {
 		if (!strncmp(attrValue->attrName, "saf", 3)) {
 			if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 				SaStringT rdnVal = *((SaStringT *)attrValue->attrValues[0]);
-				if ((parent_name != NULL) && (parent_name->length > 0)) {
+				if ((parent_name != nullptr) && (parent_name->length > 0)) {
 					operation->objectName.length = sprintf((char *)operation->objectName.value,
 						"%s,%s", rdnVal, parent_name->value);
 				} else {
@@ -886,7 +886,7 @@ static SaAisErrorT ccb_object_delete_cb(SaImmOiHandleT immoi_handle,
 		goto done;
 	}
 
-	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
+	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != nullptr) {
 		/* "memorize the request" */
 		ccbutil_ccbAddDeleteOperation(ccb_util_ccb_data, object_name);
 	} else {
@@ -930,7 +930,7 @@ static SaAisErrorT ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
 		goto done;
         }
 
-	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
+	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != nullptr) {
 		/* "memorize the request" */
 		if (ccbutil_ccbAddModifyOperation(ccb_util_ccb_data, object_name, attr_mods) != 0) {
 			LOG_ER("Failed '%s'", object_name->value);
@@ -962,7 +962,7 @@ static SaAisErrorT ccb_completed_cb(SaImmOiHandleT immoi_handle,
 	SaImmOiCcbIdT ccb_id)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	CcbUtilOperationData_t *opdata = NULL;
+	CcbUtilOperationData_t *opdata = nullptr;
 	AVSV_AMF_CLASS_ID type;
 
 	TRACE_ENTER2("CCB ID %llu", ccb_id);
@@ -973,14 +973,14 @@ static SaAisErrorT ccb_completed_cb(SaImmOiHandleT immoi_handle,
 	   valid and that no errors will be generated when these changes
 	   are applied." */
 
-	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != NULL) {
+	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != nullptr) {
 		type = object_name_to_class_type(&opdata->objectName);
 
 		/* Standby AMFD should process CCB completed callback only for CCB_DELETE. */
 		if ((avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) &&
 				(opdata->operationType != CCBUTIL_DELETE))
 			continue;
-		if (ccb_completed_callback[type] == NULL) {
+		if (ccb_completed_callback[type] == nullptr) {
 			/* this can happen for malformed DNs */
 			LOG_ER("Class implementer for '%s' not found", opdata->objectName.value);
 			goto done;
@@ -1017,7 +1017,7 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 
 	/* Return CCB container memory */
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
-	/* ccb_util_ccb_data may be NULL when first create/modify/delete cbk
+	/* ccb_util_ccb_data may be nullptr when first create/modify/delete cbk
 	   was rejected before adding the ccb information in the data base.*/
 	if (ccb_util_ccb_data)
 		ccbutil_deleteCcbData(ccb_util_ccb_data);
@@ -1041,9 +1041,9 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 		CcbUtilOperationData_t *opdata, AVSV_AMF_CLASS_ID type)
 {
-	AvdCcbApplyOrderedListT *temp = NULL;
-	AvdCcbApplyOrderedListT *prev = NULL;
-	AvdCcbApplyOrderedListT *next = NULL;
+	AvdCcbApplyOrderedListT *temp = nullptr;
+	AvdCcbApplyOrderedListT *prev = nullptr;
+	AvdCcbApplyOrderedListT *next = nullptr;
 
 	/* allocate memory */
 
@@ -1052,7 +1052,7 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 	temp->ccb_apply_cb = ccb_apply_cb;
 	temp->opdata = opdata;
 	temp->class_type = type;
-	temp->next_ccb_to_apply = NULL;
+	temp->next_ccb_to_apply = nullptr;
 
 	/* ccbs are sorted in top-down order in create/modify operations and
 	 * sorted in bottom-up order for delete operation. All the ccbs are 
@@ -1063,7 +1063,7 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
 		next = ccb_apply_list;
-		while (next != NULL) {
+		while (next != nullptr) {
 			if((next->opdata->operationType != CCBUTIL_CREATE) ||
 					(next->class_type > temp->class_type)) 
 				break;
@@ -1071,7 +1071,7 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 			next = next->next_ccb_to_apply;
 		}
 		/* insert the ccb */
-		if (prev != NULL) 
+		if (prev != nullptr) 
 			prev->next_ccb_to_apply = temp;
 		else 
 			ccb_apply_list = temp;
@@ -1088,7 +1088,7 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 			next = next->next_ccb_to_apply;
 		}
 
-		while (next != NULL) {
+		while (next != nullptr) {
 			if((next->opdata->operationType != CCBUTIL_MODIFY) ||
 					(next->class_type > temp->class_type)) 
 				break;
@@ -1096,7 +1096,7 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 			next = next->next_ccb_to_apply;
 		}
 		/* insert the ccb */
-		if (prev != NULL) 
+		if (prev != nullptr) 
 			prev->next_ccb_to_apply = temp;
 		else 
 			ccb_apply_list = temp;
@@ -1119,14 +1119,14 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 			next = next->next_ccb_to_apply;
 		}
 
-		while (next != NULL) {
+		while (next != nullptr) {
 			if(next->class_type < temp->class_type) 
 				break;
 			prev = next;
 			next = next->next_ccb_to_apply;
 		}
 		/* insert the ccb */
-		if (prev != NULL) 
+		if (prev != nullptr) 
 			prev->next_ccb_to_apply = temp;
 		else 
 			ccb_apply_list = temp;
@@ -1156,17 +1156,17 @@ static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 {
 	CcbUtilCcbData_t *ccb_util_ccb_data;
-	CcbUtilOperationData_t *opdata = NULL;
+	CcbUtilOperationData_t *opdata = nullptr;
 	AVSV_AMF_CLASS_ID type;
-	AvdCcbApplyOrderedListT *next = NULL;
-	AvdCcbApplyOrderedListT *temp = NULL;
+	AvdCcbApplyOrderedListT *next = nullptr;
+	AvdCcbApplyOrderedListT *temp = nullptr;
 
 	TRACE_ENTER2("CCB ID %llu", ccb_id);
 
-	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != NULL) {
+	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != nullptr) {
 		type = object_name_to_class_type(&opdata->objectName);
 		/* Base types will not have an apply callback, skip empty ones */
-		if (ccb_apply_callback[type] != NULL) {
+		if (ccb_apply_callback[type] != nullptr) {
 			/* insert the apply callback into the sorted list
 			 * to be applied later, after all the ccb apply 
 			 * callback are sorted as required by the internal
@@ -1198,7 +1198,7 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 
 	/* First pass: apply all the CCBs in the sorted order */
 	next = ccb_apply_list;
-	while (next != NULL) {
+	while (next != nullptr) {
 		next->ccb_apply_cb(next->opdata);
 		temp = next;
 		next = next->next_ccb_to_apply;
@@ -1206,7 +1206,7 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 
 	/* Second pass: adjust configuration after all model changes has been applied */
 	next = ccb_apply_list;
-	while (next != NULL) {
+	while (next != nullptr) {
 		// TODO: would be more elegant with yet another function pointer
 		type = object_name_to_class_type(&next->opdata->objectName);
 		if ((type == AVSV_SA_AMF_SG) && (next->opdata->operationType == CCBUTIL_CREATE)) {
@@ -1218,13 +1218,13 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 
 	/* Third pass: free allocated memory */
 	next = ccb_apply_list;
-	while (next != NULL) {
+	while (next != nullptr) {
 		temp = next;
 		next = next->next_ccb_to_apply;
 		delete temp;
 	}
 
-	ccb_apply_list = NULL;
+	ccb_apply_list = nullptr;
 
 	/* Return CCB container memory */
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
@@ -1276,7 +1276,7 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 		goto done;
 	}
 
-	if ((error = immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion)) != SA_AIS_OK) {
+	if ((error = immutil_saImmOmInitialize(&cb->immOmHandle, nullptr, &immVersion)) != SA_AIS_OK) {
 		LOG_ER("saImmOmInitialize failed %u", error);
 		goto done;
 	}
@@ -1318,7 +1318,7 @@ SaAisErrorT avd_imm_impl_set(void)
 	}
 
 	for (i = 0; i < AVSV_SA_AMF_CLASS_MAX; i++) {
-		if ((NULL != ccb_completed_callback[i]) &&
+		if ((nullptr != ccb_completed_callback[i]) &&
 		    (rc = immutil_saImmOiClassImplementerSet(avd_cb->immOiHandle, avd_class_names[i])) != SA_AIS_OK) {
 
 			LOG_ER("Impl Set Failed for %s, returned %d",	avd_class_names[i], rc);
@@ -1356,7 +1356,7 @@ SaAisErrorT avd_imm_applier_set(void)
 	}
 
 	for (i = 0; i < AVSV_SA_AMF_CLASS_MAX; i++) {
-		if ((NULL != ccb_completed_callback[i]) &&
+		if ((nullptr != ccb_completed_callback[i]) &&
 		    (rc = immutil_saImmOiClassImplementerSet(avd_cb->immOiHandle, avd_class_names[i])) != SA_AIS_OK) {
 
 			LOG_ER("Impl Set Failed for %s, returned %d",	avd_class_names[i], rc);
@@ -1387,7 +1387,7 @@ static void *avd_imm_impl_set_task(void *_cb)
 		exit(EXIT_FAILURE);	// TODO ncs_reboot?
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*****************************************************************************
@@ -1425,7 +1425,7 @@ void avd_class_impl_set(const char *className,
 
 	rtattr_update_callback[type] = rtattr_cb;
 	admin_op_callback[type] = adminop_cb;
-	osafassert(ccb_completed_callback[type] == NULL);
+	osafassert(ccb_completed_callback[type] == nullptr);
 	ccb_completed_callback[type] = ccb_compl_cb;
 	ccb_apply_callback[type] = ccb_apply_cb;
 }
@@ -1534,7 +1534,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT att
 {
 	SaAisErrorT rc;
 	SaImmAttrModificationT_2 attrMod;
-	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, NULL};
+	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
 	SaImmAttrValueT attrValues[] = {value};
 
 	TRACE_ENTER2("'%s' %s", dn->value, attributeName);
@@ -1634,7 +1634,7 @@ void avd_saImmOiRtObjectCreate(const char *className,
 	ImmObjCreate* ajob = new ImmObjCreate;
 
 	ajob->className_ = StrDup(className);
-	osafassert(ajob->className_ != NULL);
+	osafassert(ajob->className_ != nullptr);
 	ajob->parentName_ = *parentName;
 	ajob->attrValues_ = dupSaImmAttrValuesT_array(attrValues);
 	Fifo::queue(ajob);
@@ -1821,7 +1821,7 @@ static void *avd_imm_reinit_bg_thread(void *_cb)
 	/* Release mutex taken.*/
 	osaf_mutex_unlock_ordie(&imm_reinit_mutex);
 	TRACE_LEAVE();
-	return NULL;
+	return nullptr;
 }
 
 /**
@@ -1898,7 +1898,7 @@ void report_ccb_validation_error(const CcbUtilOperationData_t *opdata, const cha
 	(void) vsnprintf(err_str, sizeof(err_str), format, ap);
 	va_end(ap);
 
-	if (opdata != NULL) {
+	if (opdata != nullptr) {
 		TRACE("%s", err_str);
 		saflog(LOG_NOTICE, amfSvcUsrName, "CCB %llu validation error: %s",
 			   opdata->ccbId, err_str);
@@ -1930,7 +1930,7 @@ void report_admin_op_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		const_cast<SaStringT *>	(&p_ao_err_string)};
 	const SaImmAdminOperationParamsT_2 *ao_err_params[2] = {
 		&ao_err_param,
-		NULL };
+		nullptr };
 	ao_err_string[sizeof(ao_err_string) - 1] = 0;
 
 	va_list ap;

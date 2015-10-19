@@ -171,7 +171,7 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[] = {
 	dec_comp_readiness_state,
 	dec_comp_pres_state,
 	dec_comp_restart_count,
-	NULL,			/* AVSV_SYNC_COMMIT */
+	nullptr,			/* AVSV_SYNC_COMMIT */
 	dec_su_restart_count,
 	dec_si_dep_state,
 	dec_ng_admin_state
@@ -809,7 +809,7 @@ static uint32_t dec_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
+	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
@@ -860,7 +860,7 @@ static uint32_t dec_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
+	if (nullptr == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
 		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -908,7 +908,7 @@ static uint32_t dec_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
+	if (nullptr == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
 		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -956,7 +956,7 @@ static uint32_t dec_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
+	if (nullptr == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
 		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1003,7 +1003,7 @@ static uint32_t dec_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
+	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1051,7 +1051,7 @@ static uint32_t dec_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osafassert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
+	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1086,7 +1086,7 @@ static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->saAmfSGAdminState);
 
 	cb->async_updt_cnt.sg_updt++;
@@ -1139,7 +1139,7 @@ static uint32_t dec_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrAssignedSUs);
 
 	cb->async_updt_cnt.sg_updt++;
@@ -1171,7 +1171,7 @@ static uint32_t dec_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
 
 	cb->async_updt_cnt.sg_updt++;
@@ -1203,7 +1203,7 @@ static uint32_t dec_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 
 	cb->async_updt_cnt.sg_updt++;
@@ -1235,7 +1235,7 @@ static uint32_t dec_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->adjust_state);
 
 	cb->async_updt_cnt.sg_updt++;
@@ -1266,7 +1266,7 @@ static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
-	osafassert(sg != NULL);
+	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->sg_fsm_state);
 
 	cb->async_updt_cnt.sg_updt++;
@@ -1297,7 +1297,7 @@ static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUPreInstantiable);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1330,7 +1330,7 @@ static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	if (su == NULL) {
+	if (su == nullptr) {
 		TRACE("'%s' does not exist, creating it", name.value);
 		su = new AVD_SU(&name);
 		unsigned int rc = su_db->insert(Amf::to_string(&su->name), su);
@@ -1369,7 +1369,7 @@ static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUAdminState);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1402,7 +1402,7 @@ static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSuReadinessState);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1435,7 +1435,7 @@ static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUPresenceState);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1468,7 +1468,7 @@ static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &su->saAmfSUNumCurrActiveSIs);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1499,7 +1499,7 @@ static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &su->saAmfSUNumCurrStandbySIs);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1530,7 +1530,7 @@ static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->term_state);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1561,7 +1561,7 @@ static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->su_switch);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1613,7 +1613,7 @@ static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &su->saAmfSURestartCount);
 
 	cb->async_updt_cnt.su_updt++;
@@ -1645,7 +1645,7 @@ static uint32_t dec_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSIAdminState);
 
 	cb->async_updt_cnt.si_updt++;
@@ -1677,7 +1677,7 @@ static uint32_t dec_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSIAssignmentState);
 
 	cb->async_updt_cnt.si_updt++;
@@ -1703,9 +1703,9 @@ static uint32_t dec_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	if (si == NULL) {
+	if (si == nullptr) {
 		si = avd_si_new(&name);
-		osafassert(si != NULL);
+		osafassert(si != nullptr);
 		avd_si_db_add(si);		
 	}
 
@@ -1743,7 +1743,7 @@ static uint32_t dec_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSINumCurrActiveAssignments);
 
 	cb->async_updt_cnt.si_updt++;
@@ -1775,7 +1775,7 @@ static uint32_t dec_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->saAmfSINumCurrStandbyAssignments);
 
 	cb->async_updt_cnt.si_updt++;
@@ -1807,7 +1807,7 @@ static uint32_t dec_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->si_switch);
 
 	cb->async_updt_cnt.si_updt++;
@@ -1839,7 +1839,7 @@ static uint32_t dec_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&si->alarm_sent);
 
 	cb->async_updt_cnt.si_updt++;
@@ -1883,7 +1883,7 @@ static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	if (status != NCSCC_RC_SUCCESS)
 		osafassert(0);
 
-	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name))))
+	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name))))
 		osafassert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1930,7 +1930,7 @@ static uint32_t dec_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	if (status != NCSCC_RC_SUCCESS)
 		osafassert(0);
 
-	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
+	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1981,7 +1981,7 @@ static uint32_t dec_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
+	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2082,7 +2082,7 @@ static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
+	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2135,7 +2135,7 @@ static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
+	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -2188,7 +2188,7 @@ static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	if (NULL == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
+	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
 		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
 		return NCSCC_RC_FAILURE;
 	}
@@ -3045,7 +3045,7 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE_ENTER();
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_AMF_NG *ng = nodegroup_db->find(Amf::to_string(&name));
-	osafassert(ng != NULL);
+	osafassert(ng != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&ng->saAmfNGAdminState);
 	cb->async_updt_cnt.ng_updt++;
 
@@ -3055,14 +3055,14 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
-		AVD_SU *su = NULL;
+		AVD_SU *su = nullptr;
 		//If this node has any susi on it.
 		for (const auto& tmp : node->list_of_su) {
 			su = tmp;
-			if (su->list_of_susi != NULL)
+			if (su->list_of_susi != nullptr)
 				break;
 		}
-		if ((ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su != NULL))
+		if ((ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su != nullptr))
 			/* Still some assignments are not removed on the node.
 			   if ng in SHUTTING_DOWN state and contoller role changes then
 			   after all nodes of nodegroup transitions to LOCKED state, new active 
@@ -3072,7 +3072,7 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED)
 			/* If controller does not change role during shutdown operation,
 			   then new active controller will have to clear its admin_ng pointer.*/
-			node->admin_ng = NULL;
+			node->admin_ng = nullptr;
 	}
 	TRACE_LEAVE2("'%s', saAmfNGAdminState=%u, ng_updt:%d",
 			name.value, ng->saAmfNGAdminState, cb->async_updt_cnt.ng_updt);

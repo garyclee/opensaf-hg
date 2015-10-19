@@ -239,14 +239,14 @@ static void standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	LOG_IN("avd_standby_invalid_evh: %u", evt->rcv_evt);
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
-		if (evt->info.avnd_msg == NULL) {
+		if (evt->info.avnd_msg == nullptr) {
 			LOG_ER("avd_standby_invalid_evh: no msg");
 			return;
 		}
 
 		n2d_msg = evt->info.avnd_msg;
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 	}
 }
 
@@ -275,14 +275,14 @@ static void qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	cb->sync_required = false;
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
-		if (evt->info.avnd_msg == NULL) {
+		if (evt->info.avnd_msg == nullptr) {
 			LOG_ER("avd_qsd_invalid_evh: no msg");
 			return;
 		}
 
 		n2d_msg = evt->info.avnd_msg;
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 	}
 }
 
@@ -308,14 +308,14 @@ static void qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	cb->sync_required = false;
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
-		if (evt->info.avnd_msg == NULL) {
+		if (evt->info.avnd_msg == nullptr) {
 			LOG_ER("avd_qsd_ignore_evh: no msg");
 			return;
 		}
 
 		n2d_msg = evt->info.avnd_msg;
 		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
+		evt->info.avnd_msg = nullptr;
 	}
 }
 
@@ -411,7 +411,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 				   performed or not. */
 				for (const auto& i_su : node->list_of_ncs_su) {
 					if ((i_su->sg_of_su->sg_redundancy_model == SA_AMF_NO_REDUNDANCY_MODEL) &&
-							(i_su->list_of_susi == NULL)) {
+							(i_su->list_of_susi == nullptr)) {
 						fover_done = true;
 						break;
 					}
@@ -533,8 +533,8 @@ static uint32_t initialize(void)
 	cb->heartbeat_tmr.type = AVD_TMR_SND_HB;
 	cb->heartbeat_tmr_period = AVSV_DEF_HB_PERIOD;
 
-	if ((val = getenv("AVSV_HB_PERIOD")) != NULL) {
-		cb->heartbeat_tmr_period = strtoll(val, NULL, 0);
+	if ((val = getenv("AVSV_HB_PERIOD")) != nullptr) {
+		cb->heartbeat_tmr_period = strtoll(val, nullptr, 0);
 		if (cb->heartbeat_tmr_period == 0) {
 			/* no value or non convertable value, revert to default */
 			cb->heartbeat_tmr_period = AVSV_DEF_HB_PERIOD;
@@ -564,7 +564,7 @@ static uint32_t initialize(void)
 		goto done;
 	}
 
-	if ((rc = saNtfInitialize(&cb->ntfHandle, NULL, &ntfVersion)) != SA_AIS_OK) {
+	if ((rc = saNtfInitialize(&cb->ntfHandle, nullptr, &ntfVersion)) != SA_AIS_OK) {
 		LOG_ER("saNtfInitialize Failed (%u)", rc);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -687,8 +687,8 @@ static void main_loop(void)
 		if (fds[FD_MBX].revents & POLLIN) {
 			evt = (AVD_EVT *)ncs_ipc_non_blk_recv(&cb->avd_mbx);
 
-			if (evt == NULL) {
-				LOG_ER("main: NULL evt");
+			if (evt == nullptr) {
+				LOG_ER("main: nullptr evt");
 				continue;
 			}
 
@@ -837,7 +837,7 @@ int main(int argc, char *argv[])
 	daemonize(argc, argv);
 
 	if (initialize() != NCSCC_RC_SUCCESS) {
-		(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_FAILURE, NULL);
+		(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_FAILURE, nullptr);
 		LOG_ER("initialize failed, exiting");
 		exit(EXIT_FAILURE);
 	}
@@ -845,7 +845,7 @@ int main(int argc, char *argv[])
 	/* Act Amfd need to inform nid after it has initialized itself, while
 	   Stanby Amfd need to inform nid after it has done cold sync. */
 	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
-		(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_SUCCESS, NULL);
+		(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_SUCCESS, nullptr);
 	}
 
 	main_loop();

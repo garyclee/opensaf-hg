@@ -252,7 +252,7 @@ static void avd_act_on_sis_in_tol_timer_state()
 			it1 != avd_cb->sis_in_Tolerance_Timer_state.end(); ++it1) {
 		AVD_SI *dep_si = *it1;
 		if (dep_si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING)
-			avd_sidep_activ_amfd_tol_timer_expiry(NULL, dep_si);
+			avd_sidep_activ_amfd_tol_timer_expiry(nullptr, dep_si);
 	}
 	avd_cb->sis_in_Tolerance_Timer_state.clear();
 	TRACE_LEAVE();
@@ -294,12 +294,12 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (NULL == (my_node = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (nullptr == (my_node = avd_node_find_nodeid(cb->node_id_avd))) {
 		LOG_ER("FAILOVER StandBy --> Active FAILED, node %x not found", cb->node_id_avd);
 		goto done;
 	}
 
-	if (NULL == (failed_node = avd_node_find_nodeid(cb->node_id_avd_other))) {
+	if (nullptr == (failed_node = avd_node_find_nodeid(cb->node_id_avd_other))) {
 		LOG_ER("FAILOVER StandBy --> Active FAILED, node %x not found", cb->node_id_avd_other);
 		goto done;
 	}
@@ -393,8 +393,8 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 done:
 	if (NCSCC_RC_SUCCESS != status)
-		opensaf_reboot(my_node != NULL ? my_node->node_info.nodeId : 0,
-				my_node != NULL ? (char *)my_node->node_info.executionEnvironment.value : NULL,
+		opensaf_reboot(my_node != nullptr ? my_node->node_info.nodeId : 0,
+				my_node != nullptr ? (char *)my_node->node_info.executionEnvironment.value : nullptr,
 				"FAILOVER failed");
 
 
@@ -419,8 +419,8 @@ done:
 static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd = NULL;
-	AVD_AVND *avnd_other = NULL;
+	AVD_AVND *avnd = nullptr;
+	AVD_AVND *avnd_other = nullptr;
 	AVD_EVT *evt = AVD_EVT_NULL;
 	NCSMDS_INFO svc_to_mds_info;
 	SaAisErrorT rc;
@@ -442,7 +442,7 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (nullptr == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		LOG_ER("FAILOVER Quiesced --> Active FAILED, DB not found");
 		return NCSCC_RC_FAILURE;
 	}
@@ -477,7 +477,7 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 			cb->avail_state_avd = role;
 			avd_role_switch_ncs_su_evh(cb, &evt);
 
-			if (NULL != (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
+			if (nullptr != (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 				/* We are successfully changed role to Active.
 				   do node down processing for other node */
 				avd_node_mark_absent(avnd_other);
@@ -576,12 +576,12 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 \**************************************************************************/
 void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_AVND *avnd = NULL, *other_avnd = NULL;
+	AVD_AVND *avnd = nullptr, *other_avnd = nullptr;
 
 	TRACE_ENTER();
 
 	/* get the avnd from node_id */
-	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (nullptr == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, cb->node_id_avd);
 		return;
 	}
@@ -591,7 +591,7 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		if ((i_su->list_of_susi != 0) &&
 		    (i_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
 		    (i_su->list_of_susi->state != SA_AMF_HA_ACTIVE)) {
-			if (NULL != other_avnd ) {
+			if (nullptr != other_avnd ) {
 				avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_ACTIVE);
 			} else {
 				avd_sg_su_oper_list_add(cb, i_su, false);
@@ -620,7 +620,7 @@ static void reset_admin_op_params_after_impl_clear()
 			for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 					iter != ng->saAmfNGNodeList.end(); ++iter) {
 				AVD_AVND *node = avd_node_get(*iter);
-				node->admin_ng = NULL;
+				node->admin_ng = nullptr;
 			}
 		}
 	}
@@ -767,7 +767,7 @@ try_again:
 
 void amfd_switch(AVD_CL_CB *cb)
 {
-	AVD_AVND *avnd = NULL;  
+	AVD_AVND *avnd = nullptr;  
 
 	TRACE_ENTER();
 
@@ -929,8 +929,8 @@ uint32_t avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uint32_t status, SaAmfHAStateT role
 
 uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 {
-	AVD_AVND *avnd = NULL;
-	AVD_AVND *avnd_other = NULL;
+	AVD_AVND *avnd = nullptr;
+	AVD_AVND *avnd_other = nullptr;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
@@ -943,14 +943,14 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	}
 
 	/* get the avnd from node_id */
-	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (nullptr == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		LOG_ER("ROLE SWITCH Active --> Quiesced, Local Node not found");
 		cb->swap_switch = false;
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* get the avnd from node_id */
-	if (NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
+	if (nullptr == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 		LOG_ER("ROLE SWITCH Active --> Quiesced, remote Node not found");
 		cb->swap_switch = false;
 		return NCSCC_RC_FAILURE;

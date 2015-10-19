@@ -70,7 +70,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* run sanity check on the msg */
 	if ((node = avd_msg_sanity_chk(evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG,
-		info->msg_id)) == NULL)
+		info->msg_id)) == nullptr)
 		goto done;
 
 	/* Update the receive id for the node */
@@ -85,7 +85,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	csi = csi_db->find(Amf::to_string(&info->csi_name));
 
 	/* update the pg lists maintained on csi & node */
-	if (csi != NULL) {
+	if (csi != nullptr) {
 		switch (info->actn) {
 		case AVSV_PG_TRACK_ACT_START:
 			/* add the relvant recs to the lists */
@@ -108,7 +108,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 done:
 	avsv_dnd_msg_free(evt->info.avnd_msg);
-	evt->info.avnd_msg = NULL;
+	evt->info.avnd_msg = nullptr;
 	TRACE_LEAVE();
 }
 

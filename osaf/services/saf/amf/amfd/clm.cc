@@ -96,7 +96,7 @@ static void clm_node_exit_validate(AVD_AVND *node)
 	for (const auto& su : node->list_of_su) {
 		susi = su->list_of_susi;
 		/* now evalutate each SI that is assigned to this SU */
-		while (susi != NULL) {
+		while (susi != nullptr) {
 			if ((susi->state == SA_AMF_HA_ACTIVE) &&
 			    (susi->si->saAmfSINumCurrActiveAssignments == 1) &&
 			    (susi->si->saAmfSINumCurrStandbyAssignments == 0) &&
@@ -162,7 +162,7 @@ static void clm_node_exit_start(AVD_AVND *node, SaClmClusterChangesT change)
 	}
 
 	if (change == SA_CLM_NODE_SHUTDOWN) {
-		/* call with NULL invocation to differentiate it with AMF node shutdown. */
+		/* call with nullptr invocation to differentiate it with AMF node shutdown. */
 		avd_node_admin_lock_unlock_shutdown(node, 0, SA_AMF_ADMIN_SHUTDOWN); 
 	}
 	else {/* SA_CLM_NODE_LEFT case */
@@ -183,7 +183,7 @@ static void clm_node_exit_complete(SaClmNodeIdT nodeId)
 
 	TRACE_ENTER2("%x", nodeId);
 
-	if (node == NULL) {
+	if (node == nullptr) {
 		LOG_IN("Node %x left but is not an AMF cluster member", nodeId);
 		goto done;
 	}
@@ -230,7 +230,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 		case SA_CLM_CHANGE_VALIDATE:
 			if(notifItem->clusterChange == SA_CLM_NODE_LEFT) {
 				node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
-				if (node == NULL) {
+				if (node == nullptr) {
 					LOG_IN("%s: CLM node '%s' is not an AMF cluster member",
 						   __FUNCTION__, notifItem->clusterNode.nodeName.value);
 					goto done;
@@ -247,7 +247,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 
 		case SA_CLM_CHANGE_START:
 			node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
-			if (node == NULL) {
+			if (node == nullptr) {
 				LOG_IN("%s: CLM node '%s' is not an AMF cluster member",
 					   __FUNCTION__, notifItem->clusterNode.nodeName.value);
 				goto done;
@@ -270,7 +270,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			if( (notifItem->clusterChange == SA_CLM_NODE_LEFT)||
 			    (notifItem->clusterChange == SA_CLM_NODE_SHUTDOWN)) {
 				node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
-				if (node == NULL) {
+				if (node == nullptr) {
 					LOG_IN("%s: CLM node '%s' is not an AMF cluster member",
 						   __FUNCTION__, notifItem->clusterNode.nodeName.value);
 					goto done;
@@ -315,7 +315,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				/* delete, reconfigure, re-add to the node-id db
 				   incase if the node id has changed */
 				node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
-				if (node == NULL) {
+				if (node == nullptr) {
 					LOG_NO("Node not a member");
 					goto done;
 				}
@@ -330,7 +330,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				   SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
 				   in saClmClusterTrack call so update the local database */
 				/* get the first node */
-				node = NULL;
+				node = nullptr;
 				for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
 						it != node_name_db->end(); it++) {
 					node = it->second;
@@ -339,7 +339,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 								notifItem->clusterNode.nodeName.length))
 					break;
 				}
-				if ( node != NULL ) {
+				if ( node != nullptr ) {
 					memcpy(&(node->node_info), &(notifItem->clusterNode),
 							sizeof(SaClmClusterNodeT_4));
 					avd_node_add_nodeid(node);
@@ -414,7 +414,7 @@ SaAisErrorT avd_clm_track_start(void)
 	SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY|SA_TRACK_VALIDATE_STEP|SA_TRACK_START_STEP; 
         
 	TRACE_ENTER();
-	error = saClmClusterTrack_4(avd_cb->clmHandle, trackFlags, NULL);
+	error = saClmClusterTrack_4(avd_cb->clmHandle, trackFlags, nullptr);
         if (SA_AIS_OK != error)
                 LOG_ER("Failed to start cluster tracking %u", error);
 

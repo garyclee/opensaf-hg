@@ -22,7 +22,7 @@
 #include <csi.h>
 #include <imm.h>
 
-AmfDb<std::string, AVD_CS_TYPE> *cstype_db = NULL;
+AmfDb<std::string, AVD_CS_TYPE> *cstype_db = nullptr;
 
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
@@ -80,8 +80,8 @@ static void cstype_delete(AVD_CS_TYPE *cst)
 
 	cstype_db->erase(Amf::to_string(&cst->name));
 
-	if (cst->saAmfCSAttrName != NULL) {
-		while ((p = cst->saAmfCSAttrName[i++]) != NULL) {
+	if (cst->saAmfCSAttrName != nullptr) {
+		while ((p = cst->saAmfCSAttrName[i++]) != nullptr) {
 			delete [] p;
 		}
 	}
@@ -98,12 +98,12 @@ void avd_cstype_add_csi(AVD_CSI *csi)
 void avd_cstype_remove_csi(AVD_CSI *csi)
 {
 	AVD_CSI *i_csi;
-	AVD_CSI *prev_csi = NULL;
+	AVD_CSI *prev_csi = nullptr;
 
-	if (csi->cstype != NULL) {
+	if (csi->cstype != nullptr) {
 		i_csi = csi->cstype->list_of_csi;
 
-		while ((i_csi != NULL) && (i_csi != csi)) {
+		while ((i_csi != nullptr) && (i_csi != csi)) {
 			prev_csi = i_csi;
 			i_csi = i_csi->csi_list_cs_type_next;
 		}
@@ -112,15 +112,15 @@ void avd_cstype_remove_csi(AVD_CSI *csi)
 			/* Log a fatal error */
 			osafassert(0);
 		} else {
-			if (prev_csi == NULL) {
+			if (prev_csi == nullptr) {
 				csi->cstype->list_of_csi = csi->csi_list_cs_type_next;
 			} else {
 				prev_csi->csi_list_cs_type_next = csi->csi_list_cs_type_next;
 			}
 		}
 
-		csi->csi_list_cs_type_next = NULL;
-		csi->cstype = NULL;
+		csi->csi_list_cs_type_next = nullptr;
+		csi->cstype = nullptr;
 	}
 }
 
@@ -128,7 +128,7 @@ static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
 {
 	char *parent;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -164,18 +164,18 @@ SaAisErrorT avd_cstype_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam, NULL, &searchHandle) != SA_AIS_OK) {
+	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam, nullptr, &searchHandle) != SA_AIS_OK) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, NULL))
+		if (!is_config_valid(&dn, nullptr))
 			goto done2;
 
-		if ((cst = cstype_db->find(Amf::to_string(&dn))) == NULL){
-			if ((cst = cstype_create(&dn, attributes)) == NULL)
+		if ((cst = cstype_db->find(Amf::to_string(&dn))) == nullptr){
+			if ((cst = cstype_create(&dn, attributes)) == nullptr)
 				goto done2;
 
 			cstype_add_to_model(cst);
@@ -217,14 +217,14 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		cst = cstype_db->find(Amf::to_string(&opdata->objectName));
-		if (cst->list_of_csi != NULL) {
+		if (cst->list_of_csi != nullptr) {
 			/* check whether there exists a delete operation for 
 			 * each of the CSI in the cs_type list in the current CCB 
 			 */                      
 			csi = cst->list_of_csi;
-			while (csi != NULL) {  
+			while (csi != nullptr) {  
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &csi->name);
-				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+				if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 					csi_exist = true;   
 					break;                  
 				}                       
@@ -272,8 +272,8 @@ void avd_cstype_constructor(void)
 {
 	cstype_db= new AmfDb<std::string, AVD_CS_TYPE>;
 
-	avd_class_impl_set("SaAmfCSType", NULL, NULL, cstype_ccb_completed_hdlr,
+	avd_class_impl_set("SaAmfCSType", nullptr, nullptr, cstype_ccb_completed_hdlr,
 		cstype_ccb_apply_cb);
-	avd_class_impl_set("SaAmfCSBaseType", NULL, NULL,
-		avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfCSBaseType", nullptr, nullptr,
+		avd_imm_default_OK_completed_cb, nullptr);
 }

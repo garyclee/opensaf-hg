@@ -23,7 +23,7 @@
 #include <include/csi.h>
 
 
-AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db = NULL;
+AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db = nullptr;
 static void svctypecstype_db_add(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 {
 	uint32_t rc = svctypecstypes_db->insert(Amf::to_string(&svctypecstype->name),svctypecstype);
@@ -76,7 +76,7 @@ SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
 
 	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, svctype_name, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
+		nullptr, &searchHandle);
 	
 	if (SA_AIS_OK != error) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
@@ -85,8 +85,8 @@ SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		if ((svctypecstype = svctypecstypes_db->find(Amf::to_string(&dn)))== NULL) {
-			if ((svctypecstype = svctypecstypes_create(&dn, attributes)) == NULL) {
+		if ((svctypecstype = svctypecstypes_db->find(Amf::to_string(&dn)))== nullptr) {
+			if ((svctypecstype = svctypecstypes_create(&dn, attributes)) == nullptr) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
 			}
@@ -125,15 +125,15 @@ static SaAisErrorT svctypecstypes_ccb_completed_cb(CcbUtilOperationData_t *opdat
 			goto done;
 		}
 
-		if (cstype_db->find(Amf::to_string(&cstype_dn)) == NULL) {
-			if (cstype_db->find(Amf::to_string(&cstype_dn)) == NULL) {
-				if (opdata == NULL) {
+		if (cstype_db->find(Amf::to_string(&cstype_dn)) == nullptr) {
+			if (cstype_db->find(Amf::to_string(&cstype_dn)) == nullptr) {
+				if (opdata == nullptr) {
 					report_ccb_validation_error(opdata,
 						"SaAmfCSType object '%s' does not exist", cstype_dn.value);
 					goto done;
 				}
 
-				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &cstype_dn) == NULL) {
+				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &cstype_dn) == nullptr) {
 					report_ccb_validation_error(opdata,
 						"SaAmfCSType object '%s' does not exist in model or in CCB",
 						cstype_dn.value);
@@ -182,7 +182,7 @@ static void svctypecstypes_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		svctypecstype = svctypecstypes_db->find(Amf::to_string(&opdata->objectName));
-		if (svctypecstype != NULL) {
+		if (svctypecstype != nullptr) {
 			svctypecstypes_db->erase(Amf::to_string(&opdata->objectName));
 			delete svctypecstype;
 		}
@@ -197,7 +197,7 @@ static void svctypecstypes_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 void avd_svctypecstypes_constructor(void)
 {
 	svctypecstypes_db = new AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE>;
-	avd_class_impl_set("SaAmfSvcTypeCSTypes", NULL, NULL,
+	avd_class_impl_set("SaAmfSvcTypeCSTypes", nullptr, nullptr,
 		svctypecstypes_ccb_completed_cb, svctypecstypes_ccb_apply_cb);
 }
 

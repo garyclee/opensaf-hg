@@ -188,7 +188,7 @@ uint32_t avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	TRACE_ENTER();
 
 	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == NULL) {
+	if (avnd == nullptr) {
 		/* This is a invalid situation as the node record
 		 * needs to be mentioned.
 		 */
@@ -247,7 +247,7 @@ uint32_t avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_ack)
 	TRACE_ENTER();
 
 	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == NULL) {
+	if (avnd == nullptr) {
 		/* This is a invalid situation as the node record
 		 * needs to be mentioned.
 		 */
@@ -306,7 +306,7 @@ uint32_t avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_a
 	TRACE_ENTER();
 
 	/* Verify if the node structure pointer is valid. */
-	if (avnd == NULL) {
+	if (avnd == nullptr) {
 		/* This is a invalid situation as the avnd record
 		 * needs to be mentioned.
 		 */
@@ -399,7 +399,7 @@ done:
  *
  * Input: cb - Pointer to the AVD control block
  *        avnd - Pointer to the AVND info for the node that needs to be sent
- *               the message. Non NULL if message need to be sent to a
+ *               the message. Non nullptr if message need to be sent to a
  *               particular node.
  *  param_info - Pointer to the information and operation that need to be done.
  *             
@@ -425,7 +425,7 @@ uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *para
 	op_req_msg->msg_type = AVSV_D2N_OPERATION_REQUEST_MSG;
 	memcpy(&op_req_msg->msg_info.d2n_op_req.param_info, param_info, sizeof(AVSV_PARAM_INFO));
 
-	if (avnd == NULL) {
+	if (avnd == nullptr) {
 		/* This means the message needs to be broadcasted to
 		 * all the nodes.
 		 */
@@ -505,7 +505,7 @@ static void reg_su_msg_init_su_info(AVD_DND_MSG *su_msg, const AVD_SU *su)
 
 uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 {
-	AVD_SU *su = NULL;
+	AVD_SU *su = nullptr;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%s", avnd->node_name);
@@ -545,7 +545,7 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 	/* check if atleast one SU data is being sent. If not 
 	 * dont send the messages.
 	 */
-	if (su_msg->msg_info.d2n_reg_su.su_list == NULL) {
+	if (su_msg->msg_info.d2n_reg_su.su_list == nullptr) {
 		/* Free all the messages and return success */
 		d2n_msg_free(su_msg);
 		goto done;
@@ -658,7 +658,7 @@ static uint32_t avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_in
 	compcsi_info->attrs.number = 0;
 
 	/* Scan the list of attributes for the CSI and add it to the message */
-	while ((attr_ptr != NULL) && (compcsi_info->attrs.number < compcsi->csi->num_attributes)) {
+	while ((attr_ptr != nullptr) && (compcsi_info->attrs.number < compcsi->csi->num_attributes)) {
 		memcpy(i_ptr, &attr_ptr->name_value, sizeof(AVSV_ATTR_NAME_VAL));
 		compcsi_info->attrs.number++;
 		i_ptr = i_ptr + 1;
@@ -694,12 +694,12 @@ static SaAmfCompCapabilityModelT get_comp_capability(const AVD_CSI *csi,
  *
  * Input: cb - Pointer to the AVD control block *        
  *        su - Pointer to the SU related to which the messages need to be sent.
- *      susi - SU SI relationship struct pointer. Is NULL when all the 
+ *      susi - SU SI relationship struct pointer. Is nullptr when all the 
  *             SI assignments need to be deleted
  *             or when all the SIs of the SU need to change role.
  *      actn - The action value that needs to be sent in the message.
  *      single_csi - If a single component is to be assigned as csi.
- *      compcsi - Comp CSI assignment(signle comp and associated csi) if single_csi is true else NULL.
+ *      compcsi - Comp CSI assignment(signle comp and associated csi) if single_csi is true else nullptr.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -898,7 +898,7 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		} else
 			l_compcsi = l_susi->list_of_csicomp;
 
-		while (l_compcsi != NULL) {
+		while (l_compcsi != nullptr) {
 			compcsi_info = new AVSV_SUSI_ASGN();
 
 			compcsi_info->comp_name = l_compcsi->comp->comp_info.name;
@@ -922,8 +922,8 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* fill the quiesced and active component name info */
 			if (!((actn == AVSV_SUSI_ACT_ASGN) &&
 			      (susi_msg->msg_info.d2n_su_si_assign.ha_state == SA_AMF_HA_ACTIVE))) {
-				if (l_compcsi->csi_csicomp_next == NULL) {
-					if ((l_compcsi->csi->list_compcsi != NULL) &&
+				if (l_compcsi->csi_csicomp_next == nullptr) {
+					if ((l_compcsi->csi->list_compcsi != nullptr) &&
 					    (l_compcsi->csi->list_compcsi != l_compcsi)) {
 						compcsi_info->active_comp_name =
 						    l_compcsi->csi->list_compcsi->comp->comp_info.name;
@@ -1058,7 +1058,7 @@ uint32_t avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N
 	switch (n2d_msg->actn) {
 	case AVSV_PG_TRACK_ACT_START:
 		{
-			if (csi != NULL) {
+			if (csi != nullptr) {
 				pg_msg_info->is_csi_exist = true;
 				rc = avd_prep_pg_mem_list(cb, csi, &pg_msg_info->mem_list);
 				if (NCSCC_RC_SUCCESS != rc)
@@ -1169,7 +1169,7 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	TRACE_ENTER();
 
 	/* Verify if the node structure pointer is valid. */
-	if (avnd == NULL) {
+	if (avnd == nullptr) {
 		/* This is a invalid situation as the avnd record
 		 * needs to be mentioned.
 		 */
@@ -1232,8 +1232,8 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 uint32_t avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg)
 {
-	AVD_DND_MSG *d2n_msg = NULL;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_DND_MSG *d2n_msg = nullptr;
+	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER();
 
@@ -1245,7 +1245,7 @@ uint32_t avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *c
 
 	d2n_msg->msg_info.d2n_comp_valid_resp_info.comp_name = n2d_msg->msg_info.n2d_comp_valid_info.comp_name;
 	d2n_msg->msg_info.d2n_comp_valid_resp_info.msg_id = n2d_msg->msg_info.n2d_comp_valid_info.msg_id;
-	if (NULL == comp_ptr) {
+	if (nullptr == comp_ptr) {
 		/* We don't have the component, so node id is unavailable. */
 		d2n_msg->msg_info.d2n_comp_valid_resp_info.node_id = 0;
 		d2n_msg->msg_info.d2n_comp_valid_resp_info.result = AVSV_VALID_FAILURE;
@@ -1363,7 +1363,7 @@ void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
  * Dumps the director state to file
  * This can be done using an admin command:
  * immadm -o 99 <DN of AMF Cluster>
- * @param filename path to file or NULL if a filename should be generated
+ * @param filename path to file or nullptr if a filename should be generated
  * @return 0 at OK, errno otherwise
  */
 int amfd_file_dump(const char *filename)
@@ -1373,7 +1373,7 @@ int amfd_file_dump(const char *filename)
 	const AVD_CSI *csi;
 	const char *path = filename;
 
-	if (filename == NULL) {
+	if (filename == nullptr) {
 		char _path[128];
 		// add unique suffix to state file
 		sprintf(_path, "/tmp/amfd.state.%d", getpid());
@@ -1528,7 +1528,7 @@ int amfd_file_dump(const char *filename)
 		fprintf(f, "    term_state: %u\n", su->term_state);
 		fprintf(f, "    su_switch: %u\n", su->su_switch);
 		fprintf(f, "    assigned_SIs:\n");
-		for (susi = su->list_of_susi; susi != NULL; susi = susi->su_next) {
+		for (susi = su->list_of_susi; susi != nullptr; susi = susi->su_next) {
 			fprintf(f, "      dn: %s\n", susi->si->name.value);
 			fprintf(f, "      hastate: %s\n", avd_ha_state[susi->state]);
 			fprintf(f, "      fsm: %u\n", susi->fsm);
@@ -1614,11 +1614,11 @@ const char* avd_getparent(const char* dn)
 
 	/* Check if there exist any escaped RDN in the DN */
 	tmp_parent = strrchr(dn, '\\');
-	if (tmp_parent != NULL) {
+	if (tmp_parent != nullptr) {
 		parent = tmp_parent + 2;
 	}
 
-	if ((parent = strchr((char*)parent, ',')) != NULL) {
+	if ((parent = strchr((char*)parent, ',')) != nullptr) {
 		parent++;
 	}
 
@@ -1636,7 +1636,7 @@ bool object_exist_in_imm(const SaNameT *dn)
 	bool rc = false;
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
-	SaImmAttrNameT attributeNames[] = {const_cast<SaImmAttrNameT>("SaImmAttrClassName"), NULL};
+	SaImmAttrNameT attributeNames[] = {const_cast<SaImmAttrNameT>("SaImmAttrClassName"), nullptr};
 
 	immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
 
@@ -1676,7 +1676,7 @@ static void free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
 {
 	AVSV_SU_INFO_MSG *su_info;
 
-	while (su_msg->msg_info.d2n_reg_su.su_list != NULL) {
+	while (su_msg->msg_info.d2n_reg_su.su_list != nullptr) {
 		su_info = su_msg->msg_info.d2n_reg_su.su_list;
 		su_msg->msg_info.d2n_reg_su.su_list = su_info->next;
 		delete su_info;
@@ -1703,12 +1703,12 @@ static void free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
 {
 	AVSV_SUSI_ASGN *compcsi_info;
 
-	while (susi_msg->msg_info.d2n_su_si_assign.list != NULL) {
+	while (susi_msg->msg_info.d2n_su_si_assign.list != nullptr) {
 		compcsi_info = susi_msg->msg_info.d2n_su_si_assign.list;
 		susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info->next;
-		if (compcsi_info->attrs.list != NULL) {
+		if (compcsi_info->attrs.list != nullptr) {
 			delete [] (compcsi_info->attrs.list);
-			compcsi_info->attrs.list = NULL;
+			compcsi_info->attrs.list = nullptr;
 		}
 		delete compcsi_info;
 	}
@@ -1756,7 +1756,7 @@ static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 ******************************************************************************/
 void d2n_msg_free(AVSV_DND_MSG *msg)
 {
-	if (msg == NULL)
+	if (msg == nullptr)
 		return;
 
 	/* these messages have information list in them free them
@@ -1880,21 +1880,21 @@ bool admin_op_is_valid(SaImmAdminOperationIdT opId, AVSV_AMF_CLASS_ID class_id)
  
  	/* find first comma and step past it */
  	char *p = strchr((char *)_ass_dn.value, ',');
- 	if (p == NULL)
+ 	if (p == nullptr)
  		return -1;
  
  	p++;
  
  	/* find second comma, an error if not found */
  	p = strchr(p, ',');
- 	if (p == NULL)
+ 	if (p == nullptr)
  		return -1;
  
  	*p = '\0';  /* null terminate at comma before parent */
  
  	/* Skip past the RDN tag */
  	p = strchr((char *)_ass_dn.value, '=');
- 	if (p == NULL)
+ 	if (p == nullptr)
  		return -1;
  
  	p++;

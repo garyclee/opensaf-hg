@@ -29,7 +29,7 @@
 /* Global variable for the singleton object used by comp class */
 AVD_COMP_GLOBALATTR avd_comp_global_attrs;
 
-AmfDb<std::string, AVD_COMP_TYPE> *comptype_db = NULL;
+AmfDb<std::string, AVD_COMP_TYPE> *comptype_db = nullptr;
 
 static void comptype_db_add(AVD_COMP_TYPE *compt)
 {
@@ -39,7 +39,7 @@ static void comptype_db_add(AVD_COMP_TYPE *compt)
 
 static void comptype_delete(AVD_COMP_TYPE *avd_comp_type)
 {
-	osafassert(NULL == avd_comp_type->list_of_comp);
+	osafassert(nullptr == avd_comp_type->list_of_comp);
 	comptype_db->erase(Amf::to_string(&avd_comp_type->name));
 	delete avd_comp_type;
 }
@@ -52,26 +52,26 @@ void avd_comptype_add_comp(AVD_COMP *comp)
 
 void avd_comptype_remove_comp(AVD_COMP *comp)
 {
-	AVD_COMP *i_comp = NULL;
-	AVD_COMP *prev_comp = NULL;
+	AVD_COMP *i_comp = nullptr;
+	AVD_COMP *prev_comp = nullptr;
 
-	if (comp->comp_type != NULL) {
+	if (comp->comp_type != nullptr) {
 		i_comp = comp->comp_type->list_of_comp;
 
-		while ((i_comp != NULL) && (i_comp != comp)) {
+		while ((i_comp != nullptr) && (i_comp != comp)) {
 			prev_comp = i_comp;
 			i_comp = i_comp->comp_type_list_comp_next;
 		}
 
 		if (i_comp == comp) {
-			if (prev_comp == NULL) {
+			if (prev_comp == nullptr) {
 				comp->comp_type->list_of_comp = comp->comp_type_list_comp_next;
 			} else {
 				prev_comp->comp_type_list_comp_next = comp->comp_type_list_comp_next;
 			}
 
-			comp->comp_type_list_comp_next = NULL;
-			comp->comp_type = NULL;
+			comp->comp_type_list_comp_next = nullptr;
+			comp->comp_type = nullptr;
 		}
 	}
 }
@@ -97,33 +97,33 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtSwBundle"), attributes, 0, &compt->saAmfCtSwBundle);
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", 0)) != nullptr)
 		strcpy(compt->saAmfCtDefCmdEnv, str);
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefClcCliTimeout"), attributes, 0, &compt->saAmfCtDefClcCliTimeout);
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefCallbackTimeout"), attributes, 0, &compt->saAmfCtDefCallbackTimeout);
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathInstantiateCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathInstantiateCmd", 0)) != nullptr)
 		strcpy(compt->saAmfCtRelPathInstantiateCmd, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefInstantiateCmdArgv", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefInstantiateCmdArgv", 0)) != nullptr)
 		strcpy(compt->saAmfCtDefInstantiateCmdArgv, str);
 
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefInstantiationLevel"), attributes, 0, &compt->saAmfCtDefInstantiationLevel);
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathTerminateCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathTerminateCmd", 0)) != nullptr)
 		strcpy(compt->saAmfCtRelPathTerminateCmd, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefTerminateCmdArgv", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefTerminateCmdArgv", 0)) != nullptr)
 		strcpy(compt->saAmfCtDefTerminateCmdArgv, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0)) != nullptr)
 		strcpy(compt->saAmfCtRelPathCleanupCmd, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCleanupCmdArgv", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCleanupCmdArgv", 0)) != nullptr)
 		strcpy(compt->saAmfCtDefCleanupCmdArgv, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStartCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStartCmd", 0)) != nullptr)
 		strcpy(compt->saAmfCtRelPathAmStartCmd, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefAmStartCmdArgv", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefAmStartCmdArgv", 0)) != nullptr)
 		strcpy(compt->saAmfCtDefAmStartCmdArgv, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStopCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStopCmd", 0)) != nullptr)
 		strcpy(compt->saAmfCtRelPathAmStopCmd, str);
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefAmStopCmdArgv", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefAmStopCmdArgv", 0)) != nullptr)
 		strcpy(compt->saAmfCtDefAmStopCmdArgv, str);
 
 	if ((IS_COMP_SAAWARE(compt->saAmfCtCompCategory) || IS_COMP_PROXIED_PI(compt->saAmfCtCompCategory)) &&
@@ -154,7 +154,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
  */
 static inline void report_path_validation_err(CcbUtilOperationData_t *opdata,
                                               const char *attr_name) {
-	if (opdata != NULL) {
+	if (opdata != nullptr) {
 		report_ccb_validation_error(opdata,
 			"%s does not contain an absolute path and "
 			"attribute saAmfCtSwBundle is not configured for '%s'",
@@ -186,7 +186,7 @@ static bool config_is_valid(const SaNameT *dn,
 	const char *cmd;
 	const char *attr_name;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return false;
 	}
@@ -256,7 +256,7 @@ static bool config_is_valid(const SaNameT *dn,
 		attr_name = "saAmfCtRelPathInstantiateCmd";
 
 		cmd = immutil_getStringAttr(attributes, attr_name, 0);
-		if (cmd == NULL) {
+		if (cmd == nullptr) {
 			report_ccb_validation_error(opdata,
 				"Required attribute %s not configured for '%s'",
 				attr_name, opdata->objectName.value);
@@ -278,7 +278,7 @@ static bool config_is_valid(const SaNameT *dn,
 		attr_name = "saAmfCtRelPathTerminateCmd";
 
 		cmd = immutil_getStringAttr(attributes, attr_name, 0);
-		if (cmd == NULL) {
+		if (cmd == nullptr) {
 			report_ccb_validation_error(opdata,
 				"Required attribute %s not configured for '%s'",
 				attr_name, opdata->objectName.value);
@@ -299,7 +299,7 @@ static bool config_is_valid(const SaNameT *dn,
 		attr_name = "saAmfCtRelPathCleanupCmd";
 
 		cmd = immutil_getStringAttr(attributes, attr_name, 0);
-		if (cmd == NULL) {
+		if (cmd == nullptr) {
 			report_ccb_validation_error(opdata,
 				"Required attribute %s not configured for '%s'",
 				attr_name, opdata->objectName.value);
@@ -314,7 +314,7 @@ static bool config_is_valid(const SaNameT *dn,
 
 	attr_name = "saAmfCtRelPathAmStartCmd";
 	cmd = immutil_getStringAttr(attributes, attr_name, 0);
-	if (cmd != NULL) {
+	if (cmd != nullptr) {
 		if ((cmd[0] != '/') && (bundle_configured == false)) {
 			report_path_validation_err(opdata, attr_name);
 			return false;
@@ -323,7 +323,7 @@ static bool config_is_valid(const SaNameT *dn,
 
 	attr_name = "saAmfCtRelPathAmStopCmd";
 	cmd = immutil_getStringAttr(attributes, attr_name, 0);
-	if (cmd != NULL) {
+	if (cmd != nullptr) {
 		if ((cmd[0] != '/') && (bundle_configured == false)) {
 			report_path_validation_err(opdata, attr_name);
 			return false;
@@ -376,9 +376,9 @@ SaAisErrorT avd_comptype_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-		&searchParam, NULL, &searchHandle);
+		&searchParam, nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
@@ -386,10 +386,10 @@ SaAisErrorT avd_comptype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (config_is_valid(&dn, attributes, NULL) == false)
+		if (config_is_valid(&dn, attributes, nullptr) == false)
 			goto done2;
-		if ((comp_type = comptype_db->find(Amf::to_string(&dn))) == NULL) {
-			if ((comp_type = comptype_create(&dn, attributes)) == NULL)
+		if ((comp_type = comptype_db->find(Amf::to_string(&dn))) == nullptr) {
+			if ((comp_type = comptype_create(&dn, attributes)) == nullptr)
 				goto done2;
 
 			comptype_db_add(comp_type);
@@ -431,7 +431,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	std::set<AVD_AVND*, NodeNameCompare> node_set;
 
 	AVD_COMP *comp = comp_type->list_of_comp;
-	while (comp != NULL) {
+	while (comp != nullptr) {
 		node_set.insert(comp->su->su_on_node);
 		TRACE("comp name %s on node %s", comp->comp_info.name.value,  comp->su->su_on_node->name.value);
 		comp = comp->comp_type_list_comp_next;
@@ -440,7 +440,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	std::set<AVD_AVND*>::iterator it;
 	for (it = node_set.begin(); it != node_set.end(); ++it) {
 		i = 0;
-		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			AVSV_PARAM_INFO param;
 			memset(&param, 0, sizeof(param));
 			param.class_id = AVSV_SA_AMF_COMP_TYPE;
@@ -539,11 +539,11 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 	int i = 0;
 	const char *dn = (char*)opdata->objectName.value;
 
-	while ((mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (strcmp(mod->modAttr.attrName, "saAmfCtDefClcCliTimeout") == 0) {
 			// if it exist it cannot be removed, just changed
 			if ((mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
-					(mod->modAttr.attrValues == NULL)) {
+					(mod->modAttr.attrValues == nullptr)) {
 				report_ccb_validation_error(opdata,
 					"Value deletion for '%s' is not supported", mod->modAttr.attrName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
@@ -560,7 +560,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 		} else if (strcmp(mod->modAttr.attrName, "saAmfCtDefCallbackTimeout") == 0) {
 			// if it exist it cannot be removed, just changed
 			if ((mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
-					(mod->modAttr.attrValues == NULL)) {
+					(mod->modAttr.attrValues == nullptr)) {
 				report_ccb_validation_error(opdata,
 					"Value deletion for '%s' is not supported", mod->modAttr.attrName);
 				rc = SA_AIS_ERR_BAD_OPERATION;
@@ -653,14 +653,14 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		comp_type = comptype_db->find(Amf::to_string(&opdata->objectName));
-		if (NULL != comp_type->list_of_comp) {
+		if (nullptr != comp_type->list_of_comp) {
 			/* check whether there exists a delete operation for 
 			 * each of the Comp in the comp_type list in the current CCB
 			 */
 			comp = comp_type->list_of_comp;
-			while (comp != NULL) {
+			while (comp != nullptr) {
 				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &comp->comp_info.name);
-				if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+				if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 					comp_exist = true;
 					break;
 				}
@@ -686,9 +686,9 @@ done:
 void avd_comptype_constructor(void)
 {
 	comptype_db = new AmfDb<std::string, AVD_COMP_TYPE>;
-	avd_class_impl_set("SaAmfCompBaseType", NULL, NULL,
-		avd_imm_default_OK_completed_cb, NULL);
-	avd_class_impl_set("SaAmfCompType", NULL, NULL,
+	avd_class_impl_set("SaAmfCompBaseType", nullptr, nullptr,
+		avd_imm_default_OK_completed_cb, nullptr);
+	avd_class_impl_set("SaAmfCompType", nullptr, nullptr,
 		comptype_ccb_completed_cb, comptype_ccb_apply_cb);
 }
 
@@ -706,7 +706,7 @@ SaAisErrorT avd_compglobalattrs_config_get(void)
 	dn.length = strlen((char *)dn.value);
 
 	immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
-	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, NULL, (SaImmAttrValuesT_2 ***)&attributes);
+	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOmAccessorGet_2 FAILED %u", rc);
 		rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -757,7 +757,7 @@ static void avd_compglobalattrs_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_MODIFY:
-		while ((attrMod = opdata->param.modify.attrMods[i++]) != NULL) {
+		while ((attrMod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			if (!strcmp("saAmfNumMaxInstantiateWithoutDelay", attrMod->modAttr.attrName)) {
 				TRACE("saAmfNumMaxInstantiateWithoutDelay modified from '%u' to '%u'",
 						avd_comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay, 
@@ -827,7 +827,7 @@ static SaAisErrorT avd_compglobalattrs_ccb_completed_cb(CcbUtilOperationData_t *
 
 void avd_compglobalattrs_constructor(void)
 {
-	avd_class_impl_set("SaAmfCompGlobalAttributes", NULL, NULL,
+	avd_class_impl_set("SaAmfCompGlobalAttributes", nullptr, nullptr,
 		avd_compglobalattrs_ccb_completed_cb, avd_compglobalattrs_ccb_apply_cb);
 }
 

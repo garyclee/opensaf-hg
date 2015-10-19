@@ -447,7 +447,7 @@ ignore_msg:
 				cb->stby_sync_state = AVD_STBY_IN_SYNC;
 				/* It is important for Standby Amfd to inform nid after it is
 				   ready for Act controller failover and accept Act role. */
-				(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_SUCCESS, NULL);
+				(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_SUCCESS, nullptr);
 			}
 
 			cb->synced_reo_type = arg->info.decode.i_reo_type;
@@ -740,8 +740,8 @@ uint32_t avsv_set_ckpt_role(AVD_CL_CB *cb, uint32_t role)
 \**************************************************************************/
 uint32_t avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uint32_t role)
 {
-	AVD_DND_MSG *d2n_msg = NULL;
-	AVD_AVND *node = NULL;
+	AVD_DND_MSG *d2n_msg = nullptr;
+	AVD_AVND *node = nullptr;
 
 	TRACE_ENTER2("node_id %x role %u", node_id, role);
 
@@ -753,7 +753,7 @@ uint32_t avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uint32_t role
 
 	/* It may happen that this function has been called before AvND has come
 	   up, so just return SUCCESS. Send the role change when AvND comes up. */
-	if ((node = avd_node_find_nodeid(node_id)) == NULL) {
+	if ((node = avd_node_find_nodeid(node_id)) == nullptr) {
 		LOG_ER("%s: node not found", __FUNCTION__);
 		goto done;
 	}
@@ -1217,7 +1217,7 @@ uint32_t avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, bool pr_or_fr)
 	 * This is a FIFO queue. Remove first message first entered in the 
 	 * queue and then process it.
 	 */
-	while (NULL != (updt_msg = cb->async_updt_msgs.async_updt_queue)) {
+	while (nullptr != (updt_msg = cb->async_updt_msgs.async_updt_queue)) {
 		cb->async_updt_msgs.async_updt_queue = updt_msg->next;
 
 		/*
@@ -1265,8 +1265,8 @@ free_msg:
 		delete updt_msg;
 	}
 
-	/* All messages are dequeued. Set tail to NULL */
-	cb->async_updt_msgs.tail = NULL;
+	/* All messages are dequeued. Set tail to nullptr */
+	cb->async_updt_msgs.tail = nullptr;
 
 	return status;
 }
@@ -1287,7 +1287,7 @@ free_msg:
 uint32_t avsv_send_data_req(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {};
-	NCS_UBAID *uba = NULL;
+	NCS_UBAID *uba = nullptr;
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;

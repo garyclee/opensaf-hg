@@ -55,7 +55,7 @@ uint32_t avd_node_add_nodeid(AVD_AVND *node)
 {
 	unsigned int rc;
 
-	if ((node_id_db->find(node->node_info.nodeId) == NULL) &&
+	if ((node_id_db->find(node->node_info.nodeId) == nullptr) &&
 			(node->node_info.nodeId != 0)) {
 		rc = node_id_db->insert(node->node_info.nodeId, node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
@@ -73,7 +73,7 @@ void avd_node_db_add(AVD_AVND *node)
 {
 	unsigned int rc;
 
-	if (node_name_db->find(Amf::to_string(&node->name)) == NULL) {
+	if (node_name_db->find(Amf::to_string(&node->name)) == nullptr) {
 		rc = node_name_db->insert(Amf::to_string(&node->name), node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -179,13 +179,13 @@ static void node_add_to_model(AVD_AVND *node)
 	TRACE_ENTER2("%s", node->node_info.nodeName.value);
 
 	/* Check parent link to see if it has been added already */
-	if (node->cluster != NULL) {
+	if (node->cluster != nullptr) {
 		TRACE("already added");
 		goto done;
 	}
 
 	node->cluster = avd_cluster;
-	node->admin_ng = NULL;
+	node->admin_ng = nullptr;
 
 	avd_node_db_add(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
@@ -223,7 +223,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 	SaNameT saAmfNodeClmNode;
 
-	if ((parent = strchr((char *)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char *)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -284,8 +284,8 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 	 ** If called at new active at failover, the object is found in the DB
 	 ** but needs to get configuration attributes initialized.
 	 */
-	if (NULL == (node = avd_node_get(dn))) {
-		if ((node = avd_node_new(dn)) == NULL)
+	if (nullptr == (node = avd_node_get(dn))) {
+		if ((node = avd_node_new(dn)) == nullptr)
 			goto done;
 	} else
 		TRACE("already created, refreshing config...");
@@ -330,7 +330,7 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 done:
 	if (rc != 0) {
 		avd_node_delete(node);
-		node = NULL;
+		node = nullptr;
 	}
 
 	TRACE_LEAVE();
@@ -359,9 +359,9 @@ SaAisErrorT avd_node_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-						  NULL, &searchHandle);
+						  nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("No objects found");
@@ -369,12 +369,12 @@ SaAisErrorT avd_node_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL)) {
+		if (!is_config_valid(&dn, attributes, nullptr)) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if ((node = node_create(&dn, attributes)) == NULL) {
+		if ((node = node_create(&dn, attributes)) == nullptr) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
@@ -500,7 +500,7 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 		 */                      
 		for (const auto& su : node->list_of_su) {
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
-			if ((t_opData == NULL) || (t_opData->operationType != CCBUTIL_DELETE)) {
+			if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				su_exist = true;   
 				break;                  
 			}                       
@@ -523,8 +523,8 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 			TRACE("check if node is being deleted from nodegroup '%s'", ng->name.value);
 			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &ng->name);
 			
-			if (t_opData == NULL) {
-				TRACE("t_opData is NULL");
+			if (t_opData == nullptr) {
+				TRACE("t_opData is nullptr");
 				report_ccb_validation_error(opdata, "'%s' exists in"
 						" the nodegroup '%s'",
 						opdata->objectName.value, ng->name.value);
@@ -532,7 +532,7 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 				goto done;
 			}
 
-			const SaImmAttrModificationT_2 *mod = NULL;
+			const SaImmAttrModificationT_2 *mod = nullptr;
 			int i = 0;
 			bool node_being_removed = false;
 
@@ -542,7 +542,7 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 				node_being_removed = true;
 				break;
 			case CCBUTIL_MODIFY:				
-				while ((mod = t_opData->param.modify.attrMods[i++]) != NULL &&
+				while ((mod = t_opData->param.modify.attrMods[i++]) != nullptr &&
 					node_being_removed == false) {
 					if (mod->modType == SA_IMM_ATTR_VALUES_DELETE) {
 						for (unsigned j = 0; j < mod->modAttr.attrValuesNumber; j++) {
@@ -583,7 +583,7 @@ static SaAisErrorT node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata
 
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
 		if (!strcmp(attribute->attrName, "saAmfNodeSuFailOverProb")) {
@@ -616,7 +616,7 @@ static SaAisErrorT node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfNodeFailfastOnInstantiationFailure")) {
-			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == NULL)) {
+			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == nullptr)) {
 				report_ccb_validation_error(opdata,
 					"Invalid saAmfNodeFailfastOnInstantiationFailure '%s'",
 					opdata->objectName.value);
@@ -687,11 +687,11 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	node = avd_node_get(&opdata->objectName);
-	osafassert(node != NULL);
+	osafassert(node != nullptr);
 
 	i = 0;
 	/* Modifications can be done for the following parameters. */
-	while (((attr_mod = opdata->param.modify.attrMods[i++])) != NULL) {
+	while (((attr_mod = opdata->param.modify.attrMods[i++])) != nullptr) {
 		void *value;
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 		AVSV_PARAM_INFO param;
@@ -767,7 +767,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 		} else {
 			osafassert(0);
 		}
-	}			/* while (attr_mod != NULL) */
+	}			/* while (attr_mod != nullptr) */
 
 	TRACE_LEAVE();
 }
@@ -915,8 +915,8 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 	bool su_admin = false;
 	AVD_SU_SI_REL *curr_susi;
-	AVD_AVND *su_node_ptr = NULL;
-	AVD_AVND *su_sg_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
+	AVD_AVND *su_sg_node_ptr = nullptr;
 	SaAmfAdminStateT new_admin_state;
 	bool is_assignments_done = false;
 
@@ -967,7 +967,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				LOG_WA("invalid sg state %u for unlock", su->sg_of_su->sg_fsm_state);
 				
 				if (invocation != 0)
-					report_admin_op_error(cb->immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+					report_admin_op_error(cb->immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 							"invalid sg state %u for unlock", su->sg_of_su->sg_fsm_state);
 				goto end;
 			}
@@ -1026,7 +1026,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 						LOG_WA("Node lock/shutdown not allowed with two SUs on same node");
 						if (invocation != 0)
 							report_admin_op_error(cb->immOiHandle, invocation,
-									SA_AIS_ERR_NOT_SUPPORTED, NULL,
+									SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 									"Node lock/shutdown not allowed with two SUs"
 									" on same node");
 						else {
@@ -1048,7 +1048,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 						       su->sg_of_su->sg_fsm_state);
 						if (invocation != 0)
 							report_admin_op_error(cb->immOiHandle, invocation,
-									SA_AIS_ERR_TRY_AGAIN, NULL,
+									SA_AIS_ERR_TRY_AGAIN, nullptr,
 									"invalid sg state %u for lock/shutdown",
 									su->sg_of_su->sg_fsm_state);
 						else {
@@ -1164,7 +1164,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	if (node->admin_node_pend_cbk.admin_oper != 0) {
 		/* Donot pass node->admin_node_pend_cbk here as previous counters will get reset in
 		   report_admin_op_error. */
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Node undergoing admin operation");
 		goto done;
 	}
@@ -1173,7 +1173,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	for (const auto& su : node->list_of_su) {
 		if (su->pend_cbk.admin_oper != 0) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"SU on this node is undergoing admin op (%s)", su->name.value);
 			goto done;
 		}
@@ -1181,13 +1181,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) ||
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) || 
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING)) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"'%s' presence state is '%u'", su->name.value, su->saAmfSUPresenceState);
 			goto done;
 		}
 
 		if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"SG'%s' of SU'%s' on this node not in STABLE state",
 					su->sg_of_su->name.value, su->name.value);
 			goto done;
@@ -1195,7 +1195,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	}
 
 	if (node->clm_pend_inv != 0) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Clm lock operation going on");
 		goto done;
 	}
@@ -1203,13 +1203,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	switch (operationId) {
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"'%s' Already in SHUTTING DOWN state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation SHUTDOWN in state %s",
 					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
@@ -1227,13 +1227,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_UNLOCK:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"'%s' Already in UNLOCKED state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation UNLOCK in state %s",
 					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
@@ -1262,13 +1262,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_LOCK:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"'%s' Already in LOCKED state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation LOCK in state %s",
 					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
@@ -1295,13 +1295,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"'%s' Already in LOCKED INSTANTIATION state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation LOCK_INSTANTIATION in state %s",
 					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
@@ -1334,7 +1334,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			else
 				avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 		} else {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_REPAIR_PENDING, nullptr,
 					"LOCK_INSTANTIATION FAILED");
 			avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
 			goto done;
@@ -1343,13 +1343,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"'%s' Already in LOCKED state", node->name.value);
 			goto done;
 		}
 
 		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation UNLOCK_INSTANTIATION in state %s",
 					node->name.value, avd_adm_state_name[node->saAmfNodeAdminState]);
 			goto done;
@@ -1391,14 +1391,14 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 				avd_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 		} else {
 			rc = SA_AIS_ERR_TIMEOUT;
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TIMEOUT, nullptr,
 					"UNLOCK_INSTANTIATION FAILED");
 			goto done;
 		}
 		break;
 
 	default:
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 				"UNSUPPORTED ADMIN OPERATION (%llu)", operationId);
 		break;
 	}
@@ -1409,7 +1409,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 
 void avd_node_add_su(AVD_SU *su)
 {
-	if (strstr((char *)su->name.value, "safApp=OpenSAF") != NULL) {
+	if (strstr((char *)su->name.value, "safApp=OpenSAF") != nullptr) {
 		su->su_on_node->list_of_ncs_su.push_back(su);
 		std::sort(su->su_on_node->list_of_ncs_su.begin(), su->su_on_node->list_of_ncs_su.end(),
 			[](const AVD_SU *a, const AVD_SU *b) -> bool {return a->saAmfSURank < b->saAmfSURank;});
@@ -1490,7 +1490,7 @@ void avd_node_constructor(void)
 	node_name_db = new AmfDb<std::string, AVD_AVND>;
 	node_id_db = new AmfDb<uint32_t, AVD_AVND>;
 
-	avd_class_impl_set("SaAmfNode", NULL, node_admin_op_cb,
+	avd_class_impl_set("SaAmfNode", nullptr, node_admin_op_cb,
 			node_ccb_completed_cb, node_ccb_apply_cb);
 }
 

@@ -27,7 +27,7 @@
 #include <proc.h>
 #include <si_dep.h>
 
-AmfDb<std::string, AVD_SI> *si_db = NULL;
+AmfDb<std::string, AVD_SI> *si_db = nullptr;
 
 /**
  * @brief Checks if the dependencies configured leads to loop
@@ -38,7 +38,7 @@ AmfDb<std::string, AVD_SI> *si_db = NULL;
  */
 static void osafassert_if_loops_in_csideps(SaNameT *csi_name, AVD_CSI* csi)
 {         
-	AVD_CSI *temp_csi = NULL;
+	AVD_CSI *temp_csi = nullptr;
 	AVD_CSI_DEPS *csi_dep_ptr;
          
 	TRACE_ENTER2("%s", csi->name.value);
@@ -70,7 +70,7 @@ static void osafassert_if_loops_in_csideps(SaNameT *csi_name, AVD_CSI* csi)
 
 void AVD_SI::arrange_dep_csi(AVD_CSI* csi)
 {
-	AVD_CSI *temp_csi = NULL;
+	AVD_CSI *temp_csi = nullptr;
 
 	TRACE_ENTER2("%s", csi->name.value);
 	
@@ -112,7 +112,7 @@ void AVD_SI::arrange_dep_csi(AVD_CSI* csi)
 
 void AVD_SI::add_csi(AVD_CSI* avd_csi)
 {
-	AVD_CSI *temp_csi = NULL;
+	AVD_CSI *temp_csi = nullptr;
         bool found = false;
 
 	TRACE_ENTER2("%s", avd_csi->name.value);
@@ -162,16 +162,16 @@ void AVD_SI::add_csi_db(AVD_CSI* csi)
 {
 	TRACE_ENTER2("%s", csi->name.value);
 
-	AVD_CSI *i_csi = NULL;
-	AVD_CSI *prev_csi = NULL;
+	AVD_CSI *i_csi = nullptr;
+	AVD_CSI *prev_csi = nullptr;
 	bool found_pos =  false;
 
-	osafassert((csi != NULL) && (csi->si != NULL));
+	osafassert((csi != nullptr) && (csi->si != nullptr));
 	osafassert(csi->si == this);
 
 	i_csi = list_of_csi;
-	while ((i_csi != NULL) && (csi->rank <= i_csi->rank)) {
-		while ((i_csi != NULL) && (csi->rank == i_csi->rank)) {
+	while ((i_csi != nullptr) && (csi->rank <= i_csi->rank)) {
+		while ((i_csi != nullptr) && (csi->rank == i_csi->rank)) {
 
 			if (m_CMP_HORDER_SANAMET(csi->name, i_csi->name) < 0){
 				found_pos = true;
@@ -180,19 +180,19 @@ void AVD_SI::add_csi_db(AVD_CSI* csi)
 			prev_csi = i_csi;
 			i_csi = i_csi->si_list_of_csi_next;
 
-			if ((i_csi != NULL) && (i_csi->rank < csi->rank)) {
+			if ((i_csi != nullptr) && (i_csi->rank < csi->rank)) {
 				found_pos = true;
 				break;
 			}
 		}
 
-		if (found_pos || i_csi == NULL)
+		if (found_pos || i_csi == nullptr)
 			break;
 		prev_csi = i_csi;
 		i_csi = i_csi->si_list_of_csi_next;
 	}
 
-	if (prev_csi == NULL) {
+	if (prev_csi == nullptr) {
 		csi->si_list_of_csi_next = list_of_csi;
 		list_of_csi = csi;
 	} else {
@@ -213,7 +213,7 @@ void AVD_SI::add_csi_db(AVD_CSI* csi)
 void AVD_SI::add_rankedsu(const SaNameT *suname, uint32_t saAmfRank)
 {
 	avd_sirankedsu_t *tmp;
-	avd_sirankedsu_t *prev = NULL;
+	avd_sirankedsu_t *prev = nullptr;
 	avd_sirankedsu_t *ranked_su;
 	TRACE_ENTER();
 
@@ -221,14 +221,14 @@ void AVD_SI::add_rankedsu(const SaNameT *suname, uint32_t saAmfRank)
 	ranked_su->suname = *suname;
 	ranked_su->saAmfRank = saAmfRank;
 
-	for (tmp = rankedsu_list_head; tmp != NULL; tmp = tmp->next) {
+	for (tmp = rankedsu_list_head; tmp != nullptr; tmp = tmp->next) {
 		if (tmp->saAmfRank >= saAmfRank)
 			break;
 		else
 			prev = tmp;
 	}
 
-	if (prev == NULL) {
+	if (prev == nullptr) {
 		ranked_su->next = rankedsu_list_head;
 		rankedsu_list_head = ranked_su;
 	} else {
@@ -246,17 +246,17 @@ void AVD_SI::add_rankedsu(const SaNameT *suname, uint32_t saAmfRank)
 void AVD_SI::remove_rankedsu(const SaNameT *suname)
 {
 	avd_sirankedsu_t *tmp;
-	avd_sirankedsu_t *prev = NULL;
+	avd_sirankedsu_t *prev = nullptr;
 	TRACE_ENTER();
 
-	for (tmp = rankedsu_list_head; tmp != NULL; tmp = tmp->next) {
+	for (tmp = rankedsu_list_head; tmp != nullptr; tmp = tmp->next) {
 		if (memcmp(&tmp->suname, suname, sizeof(*suname)) == 0)
 			break;
 		prev = tmp;
 	}
 
-	if (prev == NULL)
-		rankedsu_list_head = NULL;
+	if (prev == nullptr)
+		rankedsu_list_head = nullptr;
 	else
 		prev->next = tmp->next;
 
@@ -266,17 +266,17 @@ void AVD_SI::remove_rankedsu(const SaNameT *suname)
 
 void AVD_SI::remove_csi(AVD_CSI* csi)
 {
-	AVD_CSI *i_csi = NULL;
-	AVD_CSI *prev_csi = NULL;
+	AVD_CSI *i_csi = nullptr;
+	AVD_CSI *prev_csi = nullptr;
 	
 	osafassert(csi->si == this);
 
 	/* remove CSI from the SI */
-	prev_csi = NULL;
+	prev_csi = nullptr;
 	i_csi = list_of_csi;
 
 	// find 'csi'
-	while ((i_csi != NULL) && (i_csi != csi)) {
+	while ((i_csi != nullptr) && (i_csi != csi)) {
 		prev_csi = i_csi;
 		i_csi = i_csi->si_list_of_csi_next;
 	}
@@ -285,14 +285,14 @@ void AVD_SI::remove_csi(AVD_CSI* csi)
 		/* Log a fatal error */
 		osafassert(0);
 	} else {
-		if (prev_csi == NULL) {
+		if (prev_csi == nullptr) {
 			list_of_csi = csi->si_list_of_csi_next;
 		} else {
 			prev_csi->si_list_of_csi_next = csi->si_list_of_csi_next;
 		}
 	}
 
-	csi->si_list_of_csi_next = NULL;
+	csi->si_list_of_csi_next = nullptr;
 }
 
 
@@ -305,18 +305,18 @@ AVD_SI::AVD_SI() :
 	saAmfSINumCurrActiveAssignments(0),
 	saAmfSINumCurrStandbyAssignments(0),
 	si_switch(AVSV_SI_TOGGLE_STABLE),
-	sg_of_si(NULL),
-	list_of_csi(NULL),
-	list_of_sisu(NULL),
+	sg_of_si(nullptr),
+	list_of_csi(nullptr),
+	list_of_sisu(nullptr),
 	si_dep_state(AVD_SI_NO_DEPENDENCY),
-	spons_si_list(NULL),
+	spons_si_list(nullptr),
 	num_dependents(0),
 	tol_timer_count(0),
-	svc_type(NULL),
-	app(NULL),
-	si_list_app_next(NULL),
-	list_of_sus_per_si_rank(NULL),
-	rankedsu_list_head(NULL),
+	svc_type(nullptr),
+	app(nullptr),
+	si_list_app_next(nullptr),
+	list_of_sus_per_si_rank(nullptr),
+	rankedsu_list_head(nullptr),
 	invocation(0),
 	alarm_sent(false)
 {
@@ -347,13 +347,13 @@ void AVD_SI::delete_csis()
 	AVD_CSI *csi, *temp;
 
 	csi = list_of_csi; 
-	while (csi != NULL) {
+	while (csi != nullptr) {
 		temp = csi;
 		csi = csi->si_list_of_csi_next;
 		avd_csi_delete(temp);
 	}
 
-	list_of_csi = NULL;
+	list_of_csi = nullptr;
 }
 
 void avd_si_delete(AVD_SI *si)
@@ -385,7 +385,7 @@ void avd_si_delete(AVD_SI *si)
  *
  * @param[in] cb - the AvD control block
  *
- * @return    NULL
+ * @return    nullptr
  *
  */
 void AVD_SI::delete_assignments(AVD_CL_CB *cb)
@@ -393,7 +393,7 @@ void AVD_SI::delete_assignments(AVD_CL_CB *cb)
 	AVD_SU_SI_REL *sisu = list_of_sisu;
 	TRACE_ENTER2(" '%s'", name.value);
 
-	for (; sisu != NULL; sisu = sisu->si_next) {
+	for (; sisu != nullptr; sisu = sisu->si_next) {
 		if(sisu->fsm != AVD_SU_SI_STATE_UNASGN)
 			if (avd_susi_del_send(sisu) == NCSCC_RC_SUCCESS)
 				avd_sg_su_oper_list_add(cb, sisu->su, false);
@@ -405,7 +405,7 @@ void avd_si_db_add(AVD_SI *si)
 {
 	unsigned int rc;
 
-	if (si_db->find(Amf::to_string(&si->name)) == NULL) {
+	if (si_db->find(Amf::to_string(&si->name)) == nullptr) {
 		rc = si_db->insert(Amf::to_string(&si->name), si);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -416,7 +416,7 @@ AVD_SI *avd_si_get(const SaNameT *dn)
 	SaNameT tmp = {0};
 
 	if (dn->length > SA_MAX_NAME_LENGTH)
-		return NULL;
+		return nullptr;
 
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
@@ -433,7 +433,7 @@ void AVD_SI::si_add_to_model()
 	TRACE_ENTER2("%s", name.value);
 
 	/* Check parent link to see if it has been added already */
-	if (svc_type != NULL) {
+	if (svc_type != nullptr) {
 		TRACE("already added");
 		goto done;
 	}
@@ -472,7 +472,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	SaAmfAdminStateT admstate;
 	char *parent, *app;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -485,14 +485,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSvcType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (svctype_db->find(Amf::to_string(&aname)) == NULL) {
+	if (svctype_db->find(Amf::to_string(&aname)) == nullptr) {
 		/* SVC type does not exist in current model, check CCB if passed as param */
-		if (opdata == NULL) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
@@ -503,21 +503,21 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	if (sg_db->find(Amf::to_string(&aname)) == NULL) {
-		if (opdata == NULL) {
+	if (sg_db->find(Amf::to_string(&aname)) == nullptr) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist", aname.value);
 			return 0;
 		}
 		
 		/* SG does not exist in current model, check CCB */
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
 	}
 
 	/* saAmfSIProtectedbySG and SI should belong to the same applicaion. */
-	if ((app = strchr((char*)aname.value, ',')) == NULL) {
+	if ((app = strchr((char*)aname.value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", aname.value);
 		return 0;
 	}
@@ -552,8 +552,8 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if ((si = si_db->find(Amf::to_string(si_name))) == NULL) {
-		if ((si = avd_si_new(si_name)) == NULL)
+	if ((si = si_db->find(Amf::to_string(si_name))) == nullptr) {
+		if ((si = avd_si_new(si_name)) == nullptr)
 			goto done;
 	} else {
 		TRACE("already created, refreshing config...");
@@ -564,14 +564,14 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 
 		/* delete the corresponding compcsi configuration also */
 		sisu = si->list_of_sisu;
-		while (sisu != NULL) {
+		while (sisu != nullptr) {
 			compcsi = sisu->list_of_csicomp;
-			while (compcsi != NULL) {
+			while (compcsi != nullptr) {
 				temp = compcsi;
 				compcsi = compcsi->susi_csicomp_next;
 				delete temp;
 			}
-			sisu->list_of_csicomp = NULL;
+			sisu->list_of_csicomp = nullptr;
 			sisu = sisu->si_next;
 		}
 	}
@@ -639,7 +639,7 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 done:
 	if (rc != 0) {
 		avd_si_delete(si);
-		si = NULL;
+		si = nullptr;
 	}
 
 	TRACE_LEAVE();
@@ -673,7 +673,7 @@ SaAisErrorT avd_si_config_get(AVD_APP *app)
 		const_cast<SaImmAttrNameT>("saAmfSIPrefActiveAssignments"),
 		const_cast<SaImmAttrNameT>("saAmfSIPrefStandbyAssignments"),
 		const_cast<SaImmAttrNameT>("saAmfSIAdminState"),
-		NULL
+		nullptr
 	};
 
 	TRACE_ENTER();
@@ -692,10 +692,10 @@ SaAisErrorT avd_si_config_get(AVD_APP *app)
 
 	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &si_name,
 					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
-		if (!is_config_valid(&si_name, attributes, NULL))
+		if (!is_config_valid(&si_name, attributes, nullptr))
 			goto done2;
 
-		if ((si = si_create(&si_name, attributes)) == NULL)
+		if ((si = si_create(&si_name, attributes)) == nullptr)
 			goto done2;
 
 		si->si_add_to_model();
@@ -728,14 +728,14 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	si = avd_si_get(&opdata->objectName);
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 
 	/* Modifications can only be done for these attributes. */
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
-		//void *value = NULL;
+		//void *value = nullptr;
 
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == NULL)) {
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == nullptr)) {
 			/* Attribute value is deleted, revert to default value */
 			value_is_deleted = true;
 		} else {
@@ -816,13 +816,13 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	si = avd_si_get(objectName);
 	
 	if ((operationId != SA_AMF_ADMIN_SI_SWAP) && (si->sg_of_si->sg_ncs_spec == true)) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 				"Admin operation %llu on MW SI is not allowed", operationId);
 		goto done;
 	}
 	/* if Tolerance timer is running for any SI's withing this SG, then return SA_AIS_ERR_TRY_AGAIN */
         if (sg_is_tolerance_timer_running_for_any_si(si->sg_of_si)) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Tolerance timer is running for some of the SI's in the SG '%s', "
 				"so differing admin opr",si->sg_of_si->name.value);
 		goto done;
@@ -830,7 +830,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
         /* Avoid if any single Csi assignment is undergoing on SG. */
 	if (csi_assignment_validate(si->sg_of_si) == true) {
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Single Csi assignment undergoing on (sg'%s')", si->sg_of_si->name.value);
 		goto done;
 	}
@@ -838,13 +838,13 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	switch (operationId) {
 	case SA_AMF_ADMIN_UNLOCK:
 		if (SA_AMF_ADMIN_UNLOCKED == si->saAmfSIAdminState) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"SI unlock of %s failed, already unlocked", objectName->value);
 			goto done;
 		}
 
 		if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"SI unlock of %s failed, SG not stable", objectName->value);
 			goto done;
 		}
@@ -859,7 +859,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		err = si->sg_of_si->si_assign(avd_cb, si);
-		if (si->list_of_sisu == NULL) {
+		if (si->list_of_sisu == nullptr) {
 			LOG_NO("'%s' could not be assigned to any SU", si->name.value);
 			rc = SA_AIS_OK;
 			avd_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
@@ -867,7 +867,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		}
 
 		if (err != NCSCC_RC_SUCCESS) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"SI unlock of %s failed", objectName->value);
 			si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			goto done;
@@ -877,14 +877,14 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (SA_AMF_ADMIN_SHUTTING_DOWN == si->saAmfSIAdminState) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"SI unlock of %s failed, already shutting down", objectName->value);
 			goto done;
 		}
 
 		if ((SA_AMF_ADMIN_LOCKED == si->saAmfSIAdminState) ||
 		    (SA_AMF_ADMIN_LOCKED_INSTANTIATION == si->saAmfSIAdminState)) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"SI unlock of %s failed, is locked (instantiation)", objectName->value);
 			goto done;
 		}
@@ -897,7 +897,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			adm_state = SA_AMF_ADMIN_LOCKED;
 
 		if (SA_AMF_ADMIN_LOCKED == si->saAmfSIAdminState) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					"SI lock of %s failed, already locked", objectName->value);
 			goto done;
 		}
@@ -918,11 +918,11 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			if ((si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
 			    (si->saAmfSIAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) ||
 			    (adm_state != SA_AMF_ADMIN_LOCKED)) {
-				report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+				report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 						"SI lock of '%s' failed, SG not stable", objectName->value);
 				goto done;
 			} else {
-				report_admin_op_error(immOiHandle, si->invocation, SA_AIS_ERR_INTERRUPT, NULL,
+				report_admin_op_error(immOiHandle, si->invocation, SA_AIS_ERR_INTERRUPT, nullptr,
 						"SI lock has been issued '%s'", objectName->value);
 				si->invocation = 0;
 			}
@@ -934,7 +934,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		err = si->sg_of_si->si_admin_down(avd_cb, si);
 		if (err != NCSCC_RC_SUCCESS) {
 			si->set_admin_state(back_val);
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"SI shutdown/lock of %s failed", objectName->value);
 			goto done;
 		}
@@ -946,7 +946,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		rc = si->sg_of_si->si_swap(si, invocation);
 		if (rc != SA_AIS_OK) {
 			report_admin_op_error(immOiHandle, invocation,
-				rc, NULL,
+				rc, nullptr,
 				"SI Swap of %s failed, syslog has details", objectName->value);
 			goto done;
 		} else
@@ -957,7 +957,7 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:
 	default:
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 				"SI Admin operation %llu not supported", operationId);
 		goto done;
 	}
@@ -974,9 +974,9 @@ static SaAisErrorT si_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("%s", objectName->value);
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 
-	while ((attributeName = attributeNames[i++]) != NULL) {
+	while ((attributeName = attributeNames[i++]) != nullptr) {
 		if (!strcmp("saAmfSINumCurrActiveAssignments", attributeName)) {
 			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrActiveAssignments);
@@ -1008,12 +1008,12 @@ static SaAisErrorT si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		si = avd_si_get(&opdata->objectName);
-		if (NULL != si->list_of_sisu) {
+		if (nullptr != si->list_of_sisu) {
 			report_ccb_validation_error(opdata, "SaAmfSI is in use '%s'", si->name.value);
 			goto done;
 		}
 		/* check for any SI-SI dependency configurations */
-		if (0 != si->num_dependents || si->spons_si_list != NULL) {
+		if (0 != si->num_dependents || si->spons_si_list != nullptr) {
 			report_ccb_validation_error(opdata, "Sponsors or Dependents Exist; Cannot delete '%s'",
 					si->name.value);
 			goto done;
@@ -1046,7 +1046,7 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 	if( sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL ) {
 		if( mod_pref_assignments > saAmfSINumCurrActiveAssignments ) {
 			/* SI assignment is not yet complete, choose and assign to appropriate SUs */
-			if ( avd_sg_nacvred_su_chose_asgn(avd_cb, sg_of_si ) != NULL ) {
+			if ( avd_sg_nacvred_su_chose_asgn(avd_cb, sg_of_si ) != nullptr ) {
 				/* New assignments are been done in the SG.
                                    change the SG FSM state to AVD_SG_FSM_SG_REALIGN */
 				m_AVD_SET_SG_FSM(avd_cb, sg_of_si, AVD_SG_FSM_SG_REALIGN);
@@ -1064,15 +1064,15 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 			/* Get the sisu pointer from the  si->list_of_sisu list from which 
 			no of sisus need to be deleted based on SI ranked SU */
 			sisu = tmp_sisu = list_of_sisu;
-			for( i = 0; i < no_of_sisus_to_delete && NULL != tmp_sisu; i++ ) {
+			for( i = 0; i < no_of_sisus_to_delete && nullptr != tmp_sisu; i++ ) {
 				tmp_sisu = tmp_sisu->si_next;
 			}
-			while( tmp_sisu && (tmp_sisu->si_next != NULL) ) {
+			while( tmp_sisu && (tmp_sisu->si_next != nullptr) ) {
 				sisu = sisu->si_next;
 				tmp_sisu = tmp_sisu->si_next;
 			}
 
-			for( i = 0; i < no_of_sisus_to_delete && (NULL != sisu); i++ ) {
+			for( i = 0; i < no_of_sisus_to_delete && (nullptr != sisu); i++ ) {
 				/* Send quiesced request for the sisu that needs tobe deleted */
 				if (avd_susi_mod_send(sisu, SA_AMF_HA_QUIESCED) == NCSCC_RC_SUCCESS) {
 					/* Add SU to su_opr_list */
@@ -1098,15 +1098,15 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 			/* Get the sisu pointer from the  si->list_of_sisu list from which 
 			no of sisus need to be deleted based on SI ranked SU */
 			sisu = tmp_sisu = list_of_sisu;
-			for(i = 0; i < no_of_sisus_to_delete && (NULL != tmp_sisu); i++) {
+			for(i = 0; i < no_of_sisus_to_delete && (nullptr != tmp_sisu); i++) {
 				tmp_sisu = tmp_sisu->si_next;
 			}
-			while( tmp_sisu && (tmp_sisu->si_next != NULL) ) {
+			while( tmp_sisu && (tmp_sisu->si_next != nullptr) ) {
 				sisu = sisu->si_next;
 				tmp_sisu = tmp_sisu->si_next;
 			}
 
-			for( i = 0; i < no_of_sisus_to_delete && (NULL != sisu); i++ ) {
+			for( i = 0; i < no_of_sisus_to_delete && (nullptr != sisu); i++ ) {
 				/* Delete Standby SI assignment & move it to Realign state */
 				if (avd_susi_del_send(sisu) == NCSCC_RC_SUCCESS) {
 					/* Add SU to su_opr_list */
@@ -1132,13 +1132,13 @@ static void si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	si = avd_si_get(&opdata->objectName);
-	osafassert(si != NULL);
+	osafassert(si != nullptr);
 
 	/* Modifications can be done for any parameters. */
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == NULL))
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == nullptr))
 			value_is_deleted = true;
 		else
 			value_is_deleted = false;

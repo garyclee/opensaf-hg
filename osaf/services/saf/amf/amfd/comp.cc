@@ -40,13 +40,13 @@
 #include <proc.h>
 #include <ckpt_msg.h>
 
-AmfDb<std::string, AVD_COMP> *comp_db = NULL;
+AmfDb<std::string, AVD_COMP> *comp_db = nullptr;
 
 void avd_comp_db_add(AVD_COMP *comp)
 {
 	unsigned int rc;
 
-	if (comp_db->find(Amf::to_string(&comp->comp_info.name)) == NULL) {
+	if (comp_db->find(Amf::to_string(&comp->comp_info.name)) == nullptr) {
 		rc = comp_db->insert(Amf::to_string(&comp->comp_info.name), comp);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -234,7 +234,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	TRACE_ENTER2("%s", comp->comp_info.name.value);
 
 	/* Check parent link to see if it has been added already */
-	if (su != NULL) {
+	if (su != nullptr) {
 		TRACE("already added");
 		goto done;
 	}
@@ -329,7 +329,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 	SaUint32T value;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
 		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -342,14 +342,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompType"), attributes, 0, &aname);
 	osafassert(rc == SA_AIS_OK);
 
-	if (comptype_db->find(Amf::to_string(&aname)) == NULL) {
+	if (comptype_db->find(Amf::to_string(&aname)) == nullptr) {
 		/* Comp type does not exist in current model, check CCB */
-		if (opdata == NULL) {
+		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
 			return 0;
 		}
@@ -454,7 +454,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		avd_create_association_class_dn(&comp->saAmfCompType, &su->saAmfSUType,
 			"safMemberCompType", &sutcomptype_name);
 		sutcomptype = avd_sutcomptype_get(&sutcomptype_name);
-		if (sutcomptype == NULL) {
+		if (sutcomptype == nullptr) {
 			LOG_ER("Not found '%s'", sutcomptype_name.value);
 			return -1;
 		}
@@ -500,8 +500,8 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (comp = comp_db->find(Amf::to_string(dn)))) {
-		if ((comp = avd_comp_new(dn)) == NULL)
+	if (nullptr == (comp = comp_db->find(Amf::to_string(dn)))) {
+		if ((comp = avd_comp_new(dn)) == nullptr)
 			goto done;
 	}
 	else
@@ -510,7 +510,7 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompType"), attributes, 0, &comp->saAmfCompType);
 	osafassert(error == SA_AIS_OK);
 
-	if ((comptype = comptype_db->find(Amf::to_string(&comp->saAmfCompType))) == NULL) {
+	if ((comptype = comptype_db->find(Amf::to_string(&comp->saAmfCompType))) == nullptr) {
 		LOG_ER("saAmfCompType '%s' does not exist", comp->saAmfCompType.value);
 		goto done;
 	}
@@ -527,10 +527,10 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 		cmd_argv = comp->comp_info.init_info + strlen(comp->comp_info.init_info);
 		*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 
-		if ((str = immutil_getStringAttr(attributes, "saAmfCompInstantiateCmdArgv", 0)) == NULL)
+		if ((str = immutil_getStringAttr(attributes, "saAmfCompInstantiateCmdArgv", 0)) == nullptr)
 			str = comptype->saAmfCtDefInstantiateCmdArgv;
 
-		if (str != NULL)
+		if (str != nullptr)
 			strcpy(cmd_argv, str);
 
 		comp->comp_info.init_len = strlen(comp->comp_info.init_info);
@@ -563,10 +563,10 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 		cmd_argv = comp->comp_info.term_info + strlen(comp->comp_info.term_info);
 		*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 
-		if ((str = immutil_getStringAttr(attributes, "saAmfCompTerminateCmdArgv", 0)) == NULL)
+		if ((str = immutil_getStringAttr(attributes, "saAmfCompTerminateCmdArgv", 0)) == nullptr)
 			str = comptype->saAmfCtDefTerminateCmdArgv;
 
-		if (str != NULL)
+		if (str != nullptr)
 			strcpy(cmd_argv, str);
 
 		comp->comp_info.term_len = strlen(comp->comp_info.term_info);
@@ -581,10 +581,10 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 		cmd_argv = comp->comp_info.clean_info + strlen(comp->comp_info.clean_info);
 		*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 
-		if ((str = immutil_getStringAttr(attributes, "saAmfCompCleanupCmdArgv", 0)) == NULL)
+		if ((str = immutil_getStringAttr(attributes, "saAmfCompCleanupCmdArgv", 0)) == nullptr)
 			str = comptype->saAmfCtDefCleanupCmdArgv;
 
-		if (str != NULL)
+		if (str != nullptr)
 			strcpy(cmd_argv, str);
 
 		comp->comp_info.clean_len = strlen(comp->comp_info.clean_info);
@@ -598,10 +598,10 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 		cmd_argv = comp->comp_info.amstart_info + strlen(comp->comp_info.amstart_info);
 		*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 
-		if ((str = immutil_getStringAttr(attributes, "saAmfCompAmStartCmdArgv", 0)) == NULL)
+		if ((str = immutil_getStringAttr(attributes, "saAmfCompAmStartCmdArgv", 0)) == nullptr)
 			str = comptype->saAmfCtDefAmStartCmdArgv;
 
-		if (str != NULL)
+		if (str != nullptr)
 			strcpy(cmd_argv, str);
 
 		comp->comp_info.amstart_len = strlen(comp->comp_info.amstart_info);
@@ -619,10 +619,10 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 		cmd_argv = comp->comp_info.amstop_info + strlen(comp->comp_info.amstop_info);
 		*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 
-		if ((str = immutil_getStringAttr(attributes, "saAmfCompAmStopCmdArgv", 0)) == NULL)
+		if ((str = immutil_getStringAttr(attributes, "saAmfCompAmStopCmdArgv", 0)) == nullptr)
 			str = comptype->saAmfCtDefAmStopCmdArgv;
 
-		if (str != NULL)
+		if (str != nullptr)
 			strcpy(cmd_argv, str);
 	}
 
@@ -664,7 +664,7 @@ static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attri
 done:
 	if (rc != 0) {
 		avd_comp_delete(comp);
-		comp = NULL;
+		comp = nullptr;
 	}
 
 	TRACE_LEAVE();
@@ -712,7 +712,7 @@ SaAisErrorT avd_comp_config_get(const SaNameT *su_name, AVD_SU *su)
 		const_cast<SaImmAttrNameT>("saAmfCompQuiescingCompleteTimeout"),
 		const_cast<SaImmAttrNameT>("saAmfCompRecoveryOnError"),
 		const_cast<SaImmAttrNameT>("saAmfCompDisableRestart"),
-		NULL
+		nullptr
 	};
 
 	TRACE_ENTER();
@@ -732,10 +732,10 @@ SaAisErrorT avd_comp_config_get(const SaNameT *su_name, AVD_SU *su)
 	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &comp_name,
 		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 
-		if (!is_config_valid(&comp_name, attributes, NULL))
+		if (!is_config_valid(&comp_name, attributes, nullptr))
 			goto done2;
 
-		if ((comp = comp_create(&comp_name, attributes)) == NULL)
+		if ((comp = comp_create(&comp_name, attributes)) == nullptr)
 			goto done2;
 
 		num_of_comp_in_su ++;
@@ -777,34 +777,34 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
         TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, opId);
 
 	AVD_COMP *comp = comp_db->find(Amf::to_string(objectName));
-	osafassert(comp != NULL);
+	osafassert(comp != nullptr);
 
 	switch (opId) {
 		/* Valid B.04 AMF comp admin operations */
 	case SA_AMF_ADMIN_RESTART:
 		if (comp->admin_pend_cbk.invocation != 0) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"Component undergoing admin operation '%s'", objectName->value);
 		} else if ((comp->su->sg_of_su->sg_ncs_spec == true) &&
 				(comp->su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)) {
-                        report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+                        report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
                                         "Not allowed on comp of middleware 2N SU : %s, op_id: %llu",
                                         objectName->value, opId);
 		}
 		else if (comp->su->pend_cbk.invocation != 0) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"SU undergoing admin operation '%s'", objectName->value);
 		}
 		else if (comp->su->su_on_node->admin_node_pend_cbk.invocation != 0) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"Node undergoing admin operation '%s'", objectName->value);
 		}
 		else if (comp->saAmfCompPresenceState != SA_AMF_PRESENCE_INSTANTIATED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"Component not instantiated '%s'", objectName->value);
 		}
 		else if (comp->saAmfCompOperState == SA_AMF_OPERATIONAL_DISABLED) {
-			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, NULL,
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"Component disabled, first repair su or check node status'%s'", objectName->value);
 		} else {
 			comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(opId);
@@ -832,7 +832,7 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 				if (avd_admin_op_msg_snd(&comp->comp_info.name, AVSV_SA_AMF_COMP,
 							static_cast<SaAmfAdminOperationIdT>(opId),
 							comp->su->su_on_node) != NCSCC_RC_SUCCESS) {
-					report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TIMEOUT, NULL,
+					report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TIMEOUT, nullptr,
 							"Admin op request send failed '%s'", objectName->value);
 					comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 					comp->admin_pend_cbk.invocation = 0;
@@ -844,7 +844,7 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	case SA_AMF_ADMIN_EAM_START:
 	case SA_AMF_ADMIN_EAM_STOP:
 	default:
-		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, NULL,
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 				"Unsupported admin operation '%llu'", opId);
 		break;
 	}
@@ -860,9 +860,9 @@ static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	int i = 0;
 
 	TRACE_ENTER2("'%s'", objectName->value);
-	osafassert(comp != NULL);
+	osafassert(comp != nullptr);
 
-	while ((attributeName = attributeNames[i++]) != NULL) {
+	while ((attributeName = attributeNames[i++]) != nullptr) {
 		if (!strcmp("saAmfCompRestartCount", attributeName)) {
 			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompRestartCount);
@@ -891,19 +891,19 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	comp = comp_db->find(Amf::to_string(&opdata->objectName));
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 		void *value;
 
 		/* Attribute value removed */
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == NULL))
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == nullptr))
 			continue;
 
 		value = attribute->attrValues[0];
 
 		if (!strcmp(attribute->attrName, "saAmfCompType")) {
 			SaNameT dn = *((SaNameT*)value);
-			if (NULL == comptype_db->find(Amf::to_string(&dn))) {
+			if (nullptr == comptype_db->find(Amf::to_string(&dn))) {
 				report_ccb_validation_error(opdata, "saAmfCompType '%s' not found", dn.value);
 				goto done;
 			}
@@ -922,17 +922,17 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				AVD_COMPCS_TYPE *compcstype = it->second;
 				if (compcstype->comp == comp) {
 					SaNameT cstype_name;
-					AVD_CTCS_TYPE *ctcstype = NULL;
-					AVD_CS_TYPE *cst = NULL;
+					AVD_CTCS_TYPE *ctcstype = nullptr;
+					AVD_CS_TYPE *cst = nullptr;
 					get_child_dn_from_ass_dn(&compcstype->name, &cstype_name);
 					//First check if this cstype exists in the sustem.
-					if ((cst = cstype_db->find(Amf::to_string(&cstype_name))) == NULL) {
+					if ((cst = cstype_db->find(Amf::to_string(&cstype_name))) == nullptr) {
 						LOG_WA("cstype of '%s' is not preseint in AMF database",
 								compcstype->name.value);
 						continue;
 					}
 					//ctcstype relationship should exists with all the cstypes.
-					if ((ctcstype = get_ctcstype(&dn, &cstype_name)) == NULL) {	
+					if ((ctcstype = get_ctcstype(&dn, &cstype_name)) == nullptr) {	
 						report_ccb_validation_error(opdata, "ctcstype relationship " 
 								"between new comptype and cstype from"
 								"component's compcstype(s) does not exist");
@@ -942,9 +942,9 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
 			char *param_val = *((char **)value);
-			if (NULL == param_val) {
+			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata,
-						"Modification of saAmfCompInstantiateCmdArgv Fail, NULL arg");
+						"Modification of saAmfCompInstantiateCmdArgv Fail, nullptr arg");
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateTimeout")) {
@@ -986,9 +986,9 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateCmdArgv")) {
 			char *param_val = *((char **)value);
-			if (NULL == param_val) {
+			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata,
-						"Modification of saAmfCompTerminateCmdArgv Fail, NULL arg");
+						"Modification of saAmfCompTerminateCmdArgv Fail, nullptr arg");
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateTimeout")) {
@@ -1001,9 +1001,9 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupCmdArgv")) {
 			char *param_val = *((char **)value);
-			if (NULL == param_val) {
+			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata,
-						"Modification of saAmfCompCleanupCmdArgv Fail, NULL arg");
+						"Modification of saAmfCompCleanupCmdArgv Fail, nullptr arg");
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupTimeout")) {
@@ -1016,9 +1016,9 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartCmdArgv")) {
 			char *param_val = *((char **)value);
-			if (NULL == param_val) {
+			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata, 
-						"Modification of saAmfCompAmStartCmdArgv Fail, NULL arg");
+						"Modification of saAmfCompAmStartCmdArgv Fail, nullptr arg");
 				goto done;
 			}
 			if (true == comp->su->su_is_external) {
@@ -1058,8 +1058,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 						"Modification of saAmfCompAmStopCmdArgv Fail, Comp su_is_external");
 				goto done;
 			}
-			if (NULL == param_val) {
-				report_ccb_validation_error(opdata, "Modification of saAmfCompAmStopCmdArgv Fail, NULL arg");
+			if (nullptr == param_val) {
+				report_ccb_validation_error(opdata, "Modification of saAmfCompAmStopCmdArgv Fail, nullptr arg");
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopTimeout")) {
@@ -1186,7 +1186,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	int i = 0;
 	AVD_COMP *comp;
 	bool node_present = false;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr = nullptr;
 	AVD_COMP_TYPE *comp_type;
 	AVSV_PARAM_INFO param;
 	bool value_is_deleted;
@@ -1209,11 +1209,11 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		node_present = true;
 	}
 
-	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
-		void *value = NULL;
+		void *value = nullptr;
 
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attribute->attrValues == NULL)) {
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||	(attribute->attrValues == nullptr)) {
 			/* Attribute value is deleted, revert to default value */
 			value_is_deleted = true;
 		} else {
@@ -1586,7 +1586,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	 * first and then parent SU delete is applied
 	 * just doing sanity check here
 	 **/
-	osafassert(comp != NULL);
+	osafassert(comp != nullptr);
 
 	// send message to ND requesting delete of the component
 	AVD_AVND *su_node_ptr = comp->su->get_node_ptr();
@@ -1646,7 +1646,7 @@ AVD_COMP *avd_comp_get_or_create(const SaNameT *dn)
 	if (!comp) {
 		TRACE("'%s' does not exist, creating it", dn->value);
 		comp = avd_comp_new(dn);
-		osafassert(comp != NULL);
+		osafassert(comp != nullptr);
 		avd_comp_db_add(comp);
 	}
 
