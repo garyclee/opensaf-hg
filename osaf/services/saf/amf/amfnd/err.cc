@@ -991,8 +991,8 @@ uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_FLAG_CHANGE);
 	}
 	/* Unordered cleanup of all local application components */
-	for (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)NULL);
-		  comp != NULL;
+	for (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)nullptr);
+		  comp != nullptr;
 		  comp = (AVND_COMP *) ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name)) {
 
 		if (comp->su->is_ncs || comp->su->su_is_external)

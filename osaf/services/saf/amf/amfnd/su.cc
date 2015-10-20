@@ -54,7 +54,7 @@ static bool get_su_failover(const SaNameT *name)
 	SaImmAttrNameT attributeNames[] = {
 		const_cast<SaImmAttrNameT>("saAmfSUFailover"),
 		const_cast<SaImmAttrNameT>("saAmfSUType"),
-		NULL
+		nullptr
 	};
 
 	TRACE_ENTER2("'%s'", name->value);
@@ -62,7 +62,7 @@ static bool get_su_failover(const SaNameT *name)
 	// TODO remove, just for test
 	LOG_NO("get_su_failover '%s'", name->value);
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
 	/* Use an attribute name list to avoid reading runtime attributes which
@@ -80,8 +80,8 @@ static bool get_su_failover(const SaNameT *name)
 				attributes, 0, &sutype) == SA_AIS_OK) {
 
 			attributeNames[0] = const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover");
-			attributeNames[1] = NULL;
-			if (immutil_saImmOmAccessorGet_2(accessorHandle, &sutype, NULL,
+			attributeNames[1] = nullptr;
+			if (immutil_saImmOmAccessorGet_2(accessorHandle, &sutype, nullptr,
 					(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 				immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover"),
 					attributes, 0, &sufailover);
@@ -144,7 +144,7 @@ uint32_t avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		   1. for adding new SU in the data base
 		   2. for adding a new component in the existing su.
 		   So, check whether the SU exists or not. */
-		if (su == NULL)
+		if (su == nullptr)
 			su = avnd_sudb_rec_add(cb, su_info, &rc);
 
 		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
@@ -212,7 +212,7 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 
 	/* scan the su list & add each su to su-db */
 	for (su_info = info->su_list; su_info; su = 0, su_info = su_info->next) {
-		if (NULL == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name))) {
+		if (nullptr == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name))) {
 			/* SU is not present so add it */
 			su = avnd_sudb_rec_add(cb, su_info, &rc);
 			if (!su) {
@@ -243,7 +243,7 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 	 * updates are not received in the message.
 	 */
 	memset(&su_name, 0, sizeof(SaNameT));
-	while (NULL != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name))) {
+	while (nullptr != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su_name))) {
 		su_name = su->name;
 
 		if (false == su->avd_updt_flag) {
@@ -319,7 +319,7 @@ static uint32_t get_sirank(const SaNameT *dn)
 	SaAisErrorT error;
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
-	SaImmAttrNameT attributeNames[2] = {const_cast<SaImmAttrNameT>("saAmfSIRank"), NULL};
+	SaImmAttrNameT attributeNames[2] = {const_cast<SaImmAttrNameT>("saAmfSIRank"), nullptr};
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = {'A', 2, 1};
 	uint32_t rank = -1; // lowest possible rank if uninitialized
@@ -327,7 +327,7 @@ static uint32_t get_sirank(const SaNameT *dn)
 	// TODO remove, just for test
 	LOG_NO("get_sirank %s", dn->value);
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
 	osafassert((error = immutil_saImmOmAccessorGet_2(accessorHandle, dn,
@@ -403,7 +403,7 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 
 			/* indicate that capability is invalid for later use when
 			 * creating CSI_REC */
-			for (csi = info->list; csi != NULL; csi = csi->next) {
+			for (csi = info->list; csi != nullptr; csi = csi->next) {
 				csi->capability = (SaAmfCompCapabilityModelT) ~0;
 			}
 
@@ -412,11 +412,11 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 	} else {
 		if (info->si_name.length > 0) {
-			if (avnd_su_si_rec_get(cb, &info->su_name, &info->si_name) == NULL)
+			if (avnd_su_si_rec_get(cb, &info->su_name, &info->si_name) == nullptr)
 				LOG_ER("susi_assign_evh: '%s' is not assigned to '%s'",
 						info->si_name.value, su->name.value);
 		} else {
-			if (m_NCS_DBLIST_FIND_FIRST(&su->si_list) == NULL) {
+			if (m_NCS_DBLIST_FIND_FIRST(&su->si_list) == nullptr) {
 				LOG_ER("susi_assign_evh: '%s' has no assignments", su->name.value);
 				/* Some times AMFD sends redundant message for removal of assignments.
 				   If removal of assignments is already done for the SU then complete
@@ -604,7 +604,7 @@ static bool comp_in_term_failed_state(void)
 	AVND_COMP *comp =
 		(AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)0);
 
-	while (comp != NULL) {
+	while (comp != nullptr) {
 		if (comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED)
 			return true;
 
@@ -633,7 +633,7 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	cb->rcv_msg_id = info->msg_id;
 
 	su = m_AVND_SUDB_REC_GET(cb->sudb, info->dn);
-	osafassert(su != NULL);
+	osafassert(su != nullptr);
 
 	switch(info->oper_id) {
 	case SA_AMF_ADMIN_REPAIRED: {

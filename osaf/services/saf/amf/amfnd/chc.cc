@@ -352,7 +352,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			/* get the record from healthcheck database */
 			if (0 == avnd_hcdb_rec_get(cb, &hlt_chk)) {
 				/* HC instance did not exist, look for HC type */
-				if (NULL == avnd_hctypedb_rec_get(&(*o_comp)->saAmfCompType, &hc_start->hc_key)) {
+				if (nullptr == avnd_hctypedb_rec_get(&(*o_comp)->saAmfCompType, &hc_start->hc_key)) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
@@ -509,13 +509,13 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 	hlt_chk.name.keyLen = hc_start->hc_key.keyLen;
 
 	/* get the record from hc db */
-	if ((hc = avnd_hcdb_rec_get(cb, &hlt_chk)) != NULL) {
+	if ((hc = avnd_hcdb_rec_get(cb, &hlt_chk)) != nullptr) {
 		rec->period = hc->period;
 		rec->max_dur = hc->max_dur;
 	} else {
 		/* HC instance did not exist, look for HC type */
 		AVND_HCTYPE *hctype = avnd_hctypedb_rec_get(&comp->saAmfCompType, &hc_start->hc_key);
-		if (hctype != NULL) {
+		if (hctype != nullptr) {
 			rec->period = hctype->saAmfHctDefPeriod;
 			rec->max_dur = hctype->saAmfHctDefMaxDuration;
 		} else
@@ -762,12 +762,12 @@ uint32_t avnd_comp_hc_cmd_start(AVND_CB *cb, AVND_COMP *comp)
  */
 static AVND_COMP_HC_REC *find_hc_rec(const AVND_COMP *comp)
 {
-	AVND_COMP_HC_REC *rec = NULL;
+	AVND_COMP_HC_REC *rec = nullptr;
 
 	TRACE_ENTER2("'%s'", comp->name.value);
 
 	for (rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
-		  rec != NULL;
+		  rec != nullptr;
 		  rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&rec->comp_dll_node)) {
 
 		if (strncmp((char*)rec->key.key, hc_cmd_name, sizeof(rec->key.key)) == 0)
@@ -791,7 +791,7 @@ void avnd_comp_hc_cmd_restart(AVND_COMP *comp)
 {
 	AVND_COMP_HC_REC *rec = find_hc_rec(comp);
 	/* This may come because of script responding after component was terminated by lock-in. */
-	if(rec == NULL)
+	if(rec == nullptr)
 		return;
 
 	if (rec->status == AVND_COMP_HC_STATUS_SND_TMR_EXPD) {
@@ -817,7 +817,7 @@ void avnd_comp_hc_cmd_stop(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_HC_REC *rec = find_hc_rec(comp);
 
-	if (rec != NULL)
+	if (rec != nullptr)
 		avnd_stop_tmr(cb, &rec->tmr);
 }
 

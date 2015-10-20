@@ -133,7 +133,7 @@ uint32_t avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (m_AVND_COMP_TYPE_IS_PROXIED(comp))
 			rc = avnd_comp_unreg_prc(cb, comp, comp->pxy_comp);
 		else
-			rc = avnd_comp_unreg_prc(cb, comp, NULL);
+			rc = avnd_comp_unreg_prc(cb, comp, nullptr);
 	}
 	/* Now do the same for the normal component */
 	avnd_comp_hdl_finalize(cb, comp, fin, api_info);
@@ -198,7 +198,7 @@ uint32_t avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 		pxy_comp = avnd_internode_comp_add(&(cb->internode_avail_comp_db),
 						   &(reg->proxy_comp_name), node_id, &rc,
 						   comp->su->su_is_external, true);
-		if (NULL != pxy_comp) {
+		if (nullptr != pxy_comp) {
 			if (SA_AIS_ERR_EXIST == rc) {
 				/* This means that the proxy component is already serving to at 
 				   least one proxied component, so no need to send Ckpt Update 
@@ -208,7 +208,7 @@ uint32_t avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 			}
 		}
 
-		if (NULL == pxy_comp)
+		if (nullptr == pxy_comp)
 			amf_rc = static_cast<SaAisErrorT>(rc);
 		else {
 			/* We need to set amf_rc to OK as this has been changed to INVLD. See 
@@ -511,7 +511,7 @@ proceed:
 
 proceed_next:
 
-	if (NULL == (*o_comp)) {
+	if (nullptr == (*o_comp)) {
 		*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
 		return;
 	}
@@ -834,7 +834,7 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		}
 
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
-		rc = avnd_comp_proxied_del(cb, comp, comp->pxy_comp, false, NULL);
+		rc = avnd_comp_proxied_del(cb, comp, comp->pxy_comp, false, nullptr);
 
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("avnd_comp_proxied_del fail:'%s' Type=%u Hdl='%llx' Dest=%" PRId64,
@@ -877,7 +877,7 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 
 		/*remove the component from the list of proxied of its proxy */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
-		rc = avnd_comp_proxied_del(cb, comp, pxy_comp, true, NULL);
+		rc = avnd_comp_proxied_del(cb, comp, pxy_comp, true, nullptr);
 
 		/* process proxied comp unregistration */
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp))
@@ -1473,7 +1473,7 @@ static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uint32_t rank)
 	TRACE_ENTER2("'%s'rank=%u", si->name.value, rank);
 
 	for (csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-			csi != NULL;
+			csi != nullptr;
 			csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 
 		if ((csi->rank == rank) && (csi->curr_assign_state != AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED)) {
@@ -1520,13 +1520,13 @@ static int assign_all_csis_at_rank(struct avnd_su_si_rec *si, uint32_t rank, boo
 	TRACE_ENTER2("'%s' rank=%u", si->name.value, rank);
 
 	for (csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-		  csi != NULL;
+		  csi != nullptr;
 		  csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 
 		if (csi->rank == rank &&
 				(csi->si->curr_assign_state != AVND_SU_SI_ASSIGN_STATE_ASSIGNED)
 				&& (csi->si->curr_assign_state != AVND_SU_SI_ASSIGN_STATE_REMOVED)) {
-			rc = avnd_comp_csi_assign(avnd_cb, csi->comp, (single_csi) ? csi : NULL);
+			rc = avnd_comp_csi_assign(avnd_cb, csi->comp, (single_csi) ? csi : nullptr);
 			if (NCSCC_RC_SUCCESS != rc)
 				break;
 		}
@@ -1545,10 +1545,10 @@ static int assign_all_csis_at_rank(struct avnd_su_si_rec *si, uint32_t rank, boo
  */
 static AVND_COMP_CSI_REC *find_unassigned_csi_at_rank(struct avnd_su_si_rec *si, uint32_t rank)
 {
-	AVND_COMP_CSI_REC *csi = NULL;
+	AVND_COMP_CSI_REC *csi = nullptr;
 
 	for (csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-		  csi != NULL;
+		  csi != nullptr;
 		  csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 
 		if ((csi->rank == rank) &&  (csi->curr_assign_state == AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED))
@@ -1585,7 +1585,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 
 	TRACE_ENTER2("'%s', %p", comp->name.value, csi);
 
-	if (csi != NULL) {
+	if (csi != nullptr) {
 		csi->single_csi_add_rem_in_si = AVSV_SUSI_ACT_BASE;
 		curr_csi = csi;
 		csiname = (char*)csi->name.value;
@@ -1652,11 +1652,11 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 			uint32_t rank = (SA_AMF_HA_ACTIVE == csi->si->curr_state) ?
 				csi->rank + 1 : csi->rank - 1 ;
 
-			if (find_unassigned_csi_at_rank(csi->si, rank) != NULL) {
+			if (find_unassigned_csi_at_rank(csi->si, rank) != nullptr) {
 				rc = assign_all_csis_at_rank(csi->si, rank, true);
 			} else {
 				/* all csis belonging to the si are assigned */
-				rc = avnd_su_si_oper_done(cb, comp->su, m_AVND_SU_IS_ALL_SI(comp->su) ? NULL : csi->si);
+				rc = avnd_su_si_oper_done(cb, comp->su, m_AVND_SU_IS_ALL_SI(comp->su) ? nullptr : csi->si);
 			}
 		}
 
@@ -1678,11 +1678,11 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 			uint32_t rank = (SA_AMF_HA_ACTIVE == curr_csi->si->curr_state) ?
 				curr_csi->rank + 1 : curr_csi->rank - 1 ;
 
-			if (find_unassigned_csi_at_rank(curr_csi->si, rank) != NULL) {
+			if (find_unassigned_csi_at_rank(curr_csi->si, rank) != nullptr) {
 				rc = assign_all_csis_at_rank(curr_csi->si, rank, false);
 			} else {
 				/* all csis belonging to the si are assigned */
-				rc = avnd_su_si_oper_done(cb, comp->su, NULL);
+				rc = avnd_su_si_oper_done(cb, comp->su, nullptr);
 			}
 		}
 	}
@@ -1757,7 +1757,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	const char *csiname = csi ? (char*)csi->name.value : "all CSIs";
 
-	TRACE_ENTER2("'%s' '%s'", comp->name.value, csi ? csi->name.value : NULL);
+	TRACE_ENTER2("'%s' '%s'", comp->name.value, csi ? csi->name.value : nullptr);
 	LOG_IN("Removed '%s' from '%s'", csiname, comp->name.value);
 
 	/* 
@@ -1828,7 +1828,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 			if ((all_csis_in_si_removed(csi->si) == true) &&
 					(m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVING(csi->si)))
 				rc = avnd_su_si_oper_done(cb, comp->su,
-						m_AVND_SU_IS_ALL_SI(comp->su) ? NULL : csi->si);
+						m_AVND_SU_IS_ALL_SI(comp->su) ? nullptr : csi->si);
 		}
 	} else {		
 		/* Issue remove callback with TARGET_ALL for CSIs belonging to prv rank.*/
@@ -2049,7 +2049,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 			if ((SA_AMF_CSI_ADD_ONE == csi_desc.csiFlags) && (curr_csi->attrs.number != 0)) {
 				attr.list = static_cast<AVSV_ATTR_NAME_VAL*>
 					(calloc(curr_csi->attrs.number, sizeof(AVSV_ATTR_NAME_VAL)));
-				osafassert(attr.list != NULL);
+				osafassert(attr.list != nullptr);
 
 				memcpy(attr.list, curr_csi->attrs.list,
 				       sizeof(AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number);
@@ -2132,7 +2132,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
                   ctxt    - mds context on which AvA is waiting
                   comp    - Ptr to the component structure, used in reg resp
                             only needed when msg has to be forwarded to AvND
-                            i.e. when msg_to_avnd is true. Else NULL
+                            i.e. when msg_to_avnd is true. Else nullptr
                   msg_to_avnd - If the req msg has come from AvND then
                                 the resp should go to AvND.
  
@@ -2149,7 +2149,7 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
 	AVSV_ND2ND_AVND_MSG *avnd_msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST i_to_dest;
-	AVSV_NDA_AVA_MSG *temp_ptr = NULL;
+	AVSV_NDA_AVA_MSG *temp_ptr = nullptr;
 	NODE_ID node_id = 0;
 	MDS_SYNC_SND_CTXT temp_ctxt;
 	TRACE_ENTER();
@@ -2329,7 +2329,7 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 	TRACE("pxy_comp:'%s': nodeid:%u comp_type: %u",
 			      pxy_comp->name.value, pxy_comp->node_id, pxy_comp->comp_type);
 
-	if (NULL == rec_to_be_deleted) {
+	if (nullptr == rec_to_be_deleted) {
 		/* unlink the rec */
 		rec = (AVND_COMP_PXIED_REC *)ncs_db_link_list_remove(&pxy_comp->pxied_list, (uint8_t *)&comp->name);
 	} else
@@ -2399,7 +2399,7 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t rc_send = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec = 0;
-	AVND_COMP *pxd_comp = NULL;
+	AVND_COMP *pxd_comp = nullptr;
 	TRACE_ENTER2("Comp '%s'", comp->name.value);
 
 	/* parse thru all proxied comp of this proxy */
@@ -2565,7 +2565,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 	 *  su-sis may be in assigning/removing state. signal csi
 	 * assign/remove done so that su-si assignment/removal algo can proceed.
 	 */
-	while ((comp->cbk_list != NULL) && (comp->cbk_list != cbk)) {
+	while ((comp->cbk_list != nullptr) && (comp->cbk_list != cbk)) {
 		cbk = comp->cbk_list;
 
 		if (AVSV_AMF_CSI_SET == cbk->cbk_info->type) {
@@ -2615,7 +2615,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 				LOG_ER("Comp callback record not found: '%s'", comp->name.value);
 				break;
 			}
-			cbk->next = NULL;
+			cbk->next = nullptr;
 
 			/*  add this rec on to temp_cbk_list */
 			if (head == 0) {
@@ -2629,7 +2629,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 		}		/* else */
 	}			/* while */
 
-	if (head != NULL) {
+	if (head != nullptr) {
 		/* copy other callback's back to cbk_list */
 		temp_cbk_list->next = comp->cbk_list;
 		comp->cbk_list = head;
@@ -2760,7 +2760,7 @@ uint32_t avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	cb->rcv_msg_id = info->msg_id;
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, info->dn);
-	osafassert( comp != NULL);
+	osafassert( comp != nullptr);
 
 	switch(info->oper_id) {
 	case SA_AMF_ADMIN_RESTART:
@@ -2802,14 +2802,14 @@ static SaAisErrorT avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_dn
 
 	memset(&su_dn, 0, sizeof(SaNameT));
 	p = strstr((char*)comp_dn->value, "safSu");
-	if (p == NULL)
+	if (p == nullptr)
 		return SA_AIS_ERR_INVALID_PARAM;
 
 	su_dn.length = strlen(p);
 	memcpy(su_dn.value, p, comp_dn->length);
 
 	/* We got the name of SU, check whether this SU exists or not in our DB. */
-	if(NULL == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_dn)))
+	if(nullptr == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_dn)))
 		return SA_AIS_ERR_NOT_EXIST;
 
 	/* We got it, so create comp db. */
@@ -2868,7 +2868,7 @@ bool comp_has_quiesced_assignment(const AVND_COMP *comp)
 
 	for (csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(
 			m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-		csi != NULL;
+		csi != nullptr;
 		csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(
 			m_NCS_DBLIST_FIND_NEXT(&csi->comp_dll_node))) {
 

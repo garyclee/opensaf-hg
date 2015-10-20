@@ -106,7 +106,7 @@ static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRAC
 		for (curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list);
 		     curr; curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_NEXT(&curr->pg_dll_node)) {
 			rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_START, SA_AIS_ERR_NOT_EXIST,
-						0, &curr->info.key.mds_dest, &curr->info.mds_ctxt, NULL, false);
+						0, &curr->info.key.mds_dest, &curr->info.mds_ctxt, nullptr, false);
 			if (NCSCC_RC_SUCCESS != rc)
 				return rc;
 		}		/* while */
@@ -247,7 +247,7 @@ uint32_t avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	/* respond bk to the application */
 	if (!pg || !pg_trk)
 		amf_rc = SA_AIS_ERR_NOT_EXIST;
-	rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_STOP, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, NULL, false);
+	rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_STOP, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, nullptr, false);
 
 	/* proceed with rest of the processing */
 	if ((SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc)) {
@@ -292,7 +292,7 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 			/* get the mem rec */
 			pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, mem_info->member.compName);
 
-			if (NULL == pg_mem) {
+			if (nullptr == pg_mem) {
 				pg_mem = avnd_pgdb_mem_rec_add(cb, pg, mem_info);
 			} else {
 				pg_mem->mem_exist = true;
@@ -398,7 +398,7 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 			pg = m_AVND_PGDB_REC_GET(cb->pgdb, info->csi_name);
 			TRACE("pg '%p', msg_on_fover '%u'", pg, info->msg_on_fover);
 			if (true == info->msg_on_fover) {
-				if (NULL != pg) {
+				if (nullptr != pg) {
 					if (false == pg->is_exist)
 						return avnd_pg_start_rsp_prc(cb, pg, info);
 					else
@@ -502,7 +502,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 			osafassert(0);
 		}		/* switch */
 
-		if (NULL == chg_mem)
+		if (nullptr == chg_mem)
 			return NCSCC_RC_FAILURE;
 
 		/* inform all the appl */
@@ -643,7 +643,7 @@ uint32_t avnd_pg_track_start(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
 	/* send the response to the application */
 	if (false == pg_trk->info.is_syn) {
 		rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_START, SA_AIS_OK,
-					0, &pg_trk->info.key.mds_dest, &pg_trk->info.mds_ctxt, NULL, false);
+					0, &pg_trk->info.key.mds_dest, &pg_trk->info.mds_ctxt, nullptr, false);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
 	}

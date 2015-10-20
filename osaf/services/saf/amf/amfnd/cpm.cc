@@ -112,7 +112,7 @@ uint32_t avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *re
 		return rc;
 
 	/* add the record to the mon req list */
-	if(avnd_mon_req_add(cb, rec) == NULL) {
+	if(avnd_mon_req_add(cb, rec) == nullptr) {
 		ncs_db_link_list_remove(&comp->pm_list, rec->comp_dll_node.key);
 		return NCSCC_RC_FAILURE;
 	}
@@ -146,7 +146,7 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("PM Rec doesn't exist in Comp '%s' of pid %llu", comp->name.value, pid);
 	}
-	rec = NULL;		/* rec is no more, dont use it */
+	rec = nullptr;		/* rec is no more, dont use it */
 
 	/* remove the corresponding element from mon_req list */
 	rc = avnd_mon_req_del(cb, pid);

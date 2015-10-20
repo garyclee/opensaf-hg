@@ -221,7 +221,7 @@ uint32_t avnd_mon_task_create(void)
 	int policy = SCHED_OTHER; /*root defaults */
 	int prio_val = sched_get_priority_min(policy);
 	
-	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, NULL,
+	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, nullptr,
 			       (char *)"OSAF_AVND_MON", prio_val, policy, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_CR("Passive Monitoring thread CREATE failed");
@@ -310,7 +310,7 @@ void avnd_mon_pids(AVND_CB *cb)
 	for (mon_rec = (AVND_MON_REQ *) m_NCS_DBLIST_FIND_FIRST(pid_mon_list);
 	     mon_rec; mon_rec = (AVND_MON_REQ *) m_NCS_DBLIST_FIND_NEXT(&mon_rec->mon_dll_node)) {
 
-		if (mon_rec->pm_rec == NULL) {
+		if (mon_rec->pm_rec == nullptr) {
 			/* Should not happen, LOG the err message */
 			LOG_ER("Weird issue, PID (%lld) monitor rec doesn't have context of PM record", mon_rec->pid);
 			continue;
@@ -384,13 +384,13 @@ uint32_t avnd_evt_pid_exit_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	TRACE_ENTER();
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, evt->info.pm_evt.comp_name);
-	if (NULL == comp) {
+	if (nullptr == comp) {
 		LOG_NO("Comp '%s' not found ", evt->info.pm_evt.comp_name.value);
 		goto done;
 	}
 	pm_rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, 
 			(uint8_t *)&evt->info.pm_evt.pid);	
-	if (NULL == pm_rec) {
+	if (nullptr == pm_rec) {
 		LOG_NO("PID '%llu' not found for Comp '%s'", evt->info.pm_evt.pid, evt->info.pm_evt.comp_name.value);
 		goto done;
 	}

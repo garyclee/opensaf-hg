@@ -310,7 +310,7 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 {
 	AVND_SU_SI_REC *si = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVND_COMP_CSI_REC *csi = NULL;
+	AVND_COMP_CSI_REC *csi = nullptr;
 
 	TRACE_ENTER2("'%s', act=%u, ha_state=%u, single_csi=%u",
 				 su->name.value, info->msg_act, info->ha_state, info->single_csi);
@@ -329,7 +329,7 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 			if (false == info->single_csi) {
 				/* add to the database */
 				si = avnd_su_si_rec_add(cb, su, info, &rc);
-				if (NULL != si) {
+				if (nullptr != si) {
 					/* Send the ASYNC updates for this SI and its CSI. First of all 
 					   send SU_SI record and then all the CSIs. */
 					m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, si, AVND_CKPT_SU_SI_REC);
@@ -384,7 +384,7 @@ uint32_t avnd_su_si_msg_prc(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *info)
 				csi_param = info->list;
 				osafassert(csi_param);
 				osafassert(!(csi_param->next));
-				if (NULL ==  (csi_rec = avnd_compdb_csi_rec_get(cb, &csi_param->comp_name, &csi_param->csi_name))) {
+				if (nullptr ==  (csi_rec = avnd_compdb_csi_rec_get(cb, &csi_param->comp_name, &csi_param->csi_name))) {
 					LOG_ER("No CSI Rec exists for comp='%s'and csi=%s",csi_param->comp_name.value, 
 							csi_param->csi_name.value); 
 					goto done;
@@ -480,21 +480,21 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 			if (single_csi) {
 				for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list),
 					rank = curr_csi->rank;
-					(curr_csi != NULL) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
+					(curr_csi != nullptr) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
 					curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 					curr_csi->comp->assigned_flag = false;
 				}
 			}
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list),
 				 rank = curr_csi->rank;
-				  (curr_csi != NULL) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
+				  (curr_csi != nullptr) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
 				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 
 				if (AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED != curr_csi->curr_assign_state) {
 					if (false == curr_csi->comp->assigned_flag) {
 						/* Dont assign, if already assignd */
 						if (AVND_SU_SI_ASSIGN_STATE_ASSIGNED != curr_csi->si->curr_assign_state) {
-							rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
+							rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : nullptr);
 							if (NCSCC_RC_SUCCESS != rc)
 								goto done;
 						}
@@ -512,14 +512,14 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 			if (single_csi) {
 				for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list),
 					rank = curr_csi->rank;
-					(curr_csi != NULL) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
+					(curr_csi != nullptr) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
 					curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
 					curr_csi->comp->assigned_flag = false;
 				}
 			}
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&si->csi_list),
 				 rank = curr_csi->rank;
-				  (curr_csi != NULL) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
+				  (curr_csi != nullptr) && ((curr_csi->rank == rank) || (curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN));
 				  curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
 
 				/* We need to send only one csi set for a comp having  more than one CSI assignment for
@@ -528,7 +528,7 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 					if (false == curr_csi->comp->assigned_flag) {
 						/* Dont assign, if already assignd */
 						if (AVND_SU_SI_ASSIGN_STATE_ASSIGNED != curr_csi->si->curr_assign_state) {
-							rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : NULL);
+							rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, (single_csi) ? curr_csi : nullptr);
 							if (NCSCC_RC_SUCCESS != rc)
 								goto done;
 						}
@@ -560,7 +560,7 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 
 			// first find the newly added unassigned CSI
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-					curr_csi != NULL;
+					curr_csi != nullptr;
 					curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 
 				if (curr_csi->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN)
@@ -626,7 +626,7 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 		if (AVND_SU_PRES_FSM_EV_MAX != su_ev) {
 			rc = avnd_su_pres_fsm_run(avnd_cb, su, 0, su_ev);
 		} else
-			rc = avnd_su_si_oper_done(avnd_cb, su, ((single_csi) ? si:NULL));
+			rc = avnd_su_si_oper_done(avnd_cb, su, ((single_csi) ? si:nullptr));
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
 	}
@@ -669,7 +669,7 @@ uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	AVND_SU_SI_REC *curr_si;
 	AVND_COMP_CSI_REC *curr_csi;
 
-	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : NULL);
+	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : nullptr);
 
 	/* mark the si(s) assigning and assign to su */
 	if (si) {
@@ -678,12 +678,12 @@ uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		rc = assign_si_to_su(si, su, true);
 	} else {
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		     curr_si != NULL;
+		     curr_si != nullptr;
 			 curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
 			if (SA_AMF_HA_ACTIVE == curr_si->curr_state) {
 				for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&curr_si->csi_list),
 					rank = curr_csi->rank;
-					(curr_csi != NULL) && (curr_csi->rank == rank);
+					(curr_csi != nullptr) && (curr_csi->rank == rank);
 					curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 					curr_csi->comp->assigned_flag = false;
 				}
@@ -691,7 +691,7 @@ uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 			else { 
 				for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&curr_si->csi_list),
 					rank = curr_csi->rank;
-					(curr_csi != NULL) && (curr_csi->rank == rank);
+					(curr_csi != nullptr) && (curr_csi->rank == rank);
 					curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
 					curr_csi->comp->assigned_flag = false;
 				}
@@ -701,7 +701,7 @@ uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		}
 		/* if no si is specified, the action is aimed at all the sis... loop */
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-		     curr_si != NULL;
+		     curr_si != nullptr;
 			 curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
 
 			rc = assign_si_to_su(curr_si, su, false);
@@ -740,7 +740,7 @@ uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	AVND_SU_SI_REC *curr_si = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : NULL);
+	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : nullptr);
 
 	/* mark the si(s) removing */
 	if (si) {
@@ -754,7 +754,7 @@ uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		}
 	}
 
-	if ((su->si_list.n_nodes > 1) && (si == NULL))
+	if ((su->si_list.n_nodes > 1) && (si == nullptr))
 		LOG_NO("Removing 'all (%u) SIs' from '%s'", su->si_list.n_nodes, su->name.value);
 
 	/* if no si is specified, the action is aimed at all the sis... pick up any si */
@@ -805,7 +805,7 @@ uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 				/* remove all the CSIs from this comp */
 				if (curr_csi) {
-					rc = avnd_comp_csi_remove(cb, curr_csi->comp, NULL);
+					rc = avnd_comp_csi_remove(cb, curr_csi->comp, nullptr);
 					if (NCSCC_RC_SUCCESS != rc || !su->si_list.n_nodes) 
 						goto done;
 				}
@@ -816,17 +816,17 @@ uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 	/* initiate the si removal for npi su */
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-		if ((si != NULL) && (si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_DEL) &&
+		if ((si != nullptr) && (si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_DEL) &&
 				(si->curr_state == SA_AMF_HA_ACTIVE)) {
 			/* we are removing a single CSI, first find it */
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-				 curr_csi != NULL;
+				 curr_csi != nullptr;
 					curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 				if (AVSV_SUSI_ACT_DEL == curr_csi->single_csi_add_rem_in_si)
 					break;
 			}
 
-			osafassert(curr_csi != NULL);
+			osafassert(curr_csi != nullptr);
    			rc = avnd_comp_csi_remove(cb, curr_csi->comp, curr_csi);
 			if (rc == NCSCC_RC_SUCCESS)
 				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
@@ -863,7 +863,7 @@ static bool susi_operation_in_progress(AVND_SU *su, AVND_SU_SI_REC *si)
 	AVND_COMP_CSI_REC *curr_csi, *t_csi;
 	bool opr_done = true;
 
-	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : NULL);
+	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : nullptr);
 
 	for (curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 			curr_si && opr_done; curr_si = (si) ? 0 : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
@@ -1040,7 +1040,7 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	bool opr_done;
 
-	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : NULL);
+	TRACE_ENTER2("'%s' '%s'", su->name.value, si ? si->name.value : nullptr);
 
 	/* mark the individual sis after operation is completed for all the SI's */
 	opr_done = susi_operation_in_progress(su, si);
@@ -1097,20 +1097,20 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 				 (su_all_comps_restartable(*su) == false) &&
 				 (is_any_non_restartable_comp_assigned(*su) == true))) &&
 			(is_no_assignment_due_to_escalations(su) == false)) {
-		rc = avnd_di_susi_resp_send(cb, su, m_AVND_SU_IS_ALL_SI(su) ? NULL : si);
+		rc = avnd_di_susi_resp_send(cb, su, m_AVND_SU_IS_ALL_SI(su) ? nullptr : si);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
 	}
 
 	if (si && (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_INITIATED)) {
-		(void) avnd_evt_last_step_term_evh(cb, NULL);
+		(void) avnd_evt_last_step_term_evh(cb, nullptr);
 	} else if (si && (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED) &&
 		   m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(si)) {
 
 		if (all_sis_atrank_removed(si)) {
 			AVND_SU_SI_REC *tmp = get_higher_ranked_si(si);
 
-			if (tmp != NULL) {
+			if (tmp != nullptr) {
 				uint32_t sirank = tmp->rank;
 
 				for (; tmp && (tmp->rank == sirank); tmp = avnd_silist_getprev(tmp)) {
@@ -1173,13 +1173,13 @@ uint32_t avnd_su_si_oper_done(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 			rc = avnd_err_su_repair(cb, su);
 	}
 
-	if ((NULL == si) && (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_INITIATED)) {
-		(void) avnd_evt_last_step_term_evh(cb, NULL);
-	} else if ((NULL == si) && (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED)) {
+	if ((nullptr == si) && (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_INITIATED)) {
+		(void) avnd_evt_last_step_term_evh(cb, nullptr);
+	} else if ((nullptr == si) && (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED)) {
 
 		AVND_SU_SI_REC *tmp = avnd_silist_getlast();
 		
-		if (tmp != NULL) {
+		if (tmp != nullptr) {
 			uint32_t sirank = tmp->rank;
 
 			for (; tmp && (tmp->rank == sirank); tmp = avnd_silist_getprev(tmp)) {
@@ -1934,7 +1934,7 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2011,7 +2011,7 @@ uint32_t avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2064,7 +2064,7 @@ uint32_t avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2085,7 +2085,7 @@ uint32_t avnd_su_pres_insting_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2191,7 +2191,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2272,7 +2272,7 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2395,7 +2395,7 @@ static bool all_csis_in_restarting_state(const AVND_SU *su)
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2507,7 +2507,7 @@ uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2576,7 +2576,7 @@ done:
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2589,7 +2589,7 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 	TRACE_ENTER2("CompTerminating event in the Instantiated state:'%s' : '%s'",
 				 su->name.value, compname);
 	//A SU enters in TERMINATING state when any component is terminating.
-	if (((comp != NULL) && (comp->admin_oper == true)) || 
+	if (((comp != nullptr) && (comp->admin_oper == true)) || 
 			m_AVND_SU_IS_FAILED(su) || (su->admin_op_Id == SA_AMF_ADMIN_RESTART)) {
 		avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
 	}
@@ -2606,7 +2606,7 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2663,7 +2663,7 @@ uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2785,7 +2785,7 @@ bool all_csis_in_assigned_state(const AVND_SU *su)
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -2849,7 +2849,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 					}
 				}
 			}
-		} else if ((comp != NULL) && (comp->admin_oper == true) &&
+		} else if ((comp != nullptr) && (comp->admin_oper == true) &&
 				(cb->term_state != AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED) &&
 				(m_AVND_COMP_IS_RESTART_DIS(comp))) {
 			TRACE("Admin operation on component");
@@ -2880,7 +2880,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 			}		
 			if (pi_su_all_comps_uninstantiated(*su) == true) 
 				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
-			else if ((curr_comp == NULL) && (su->admin_op_Id == SA_AMF_ADMIN_RESTART)) {
+			else if ((curr_comp == nullptr) && (su->admin_op_Id == SA_AMF_ADMIN_RESTART)) {
 				/*
 				   It means it is a SU comprising of assigned non restartable comps and 
                                    restartable comps and it is restart admin op on su.
@@ -2953,7 +2953,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -3090,7 +3090,7 @@ done:
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -3160,7 +3160,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		/* Restart next component associated with unassigned CSI and if the component 
 		   is not already in RESTARTING state. 
 		 */
-		if ((curr_csi != NULL) && 
+		if ((curr_csi != nullptr) && 
 			(m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_RESTARTING(curr_csi) == true) &&
 			(m_AVND_SU_IS_RESTART(su))) {
 			/* we have another csi. trigger the comp fsm with Inst event*/
@@ -3188,7 +3188,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -3264,7 +3264,7 @@ uint32_t avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_C
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -3366,7 +3366,7 @@ uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
  
   Arguments     : cb   - ptr to the AvND control block
                   su   - ptr to the su
-                  comp - ptr to the comp (can be NULL)
+                  comp - ptr to the comp (can be nullptr)
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -3562,7 +3562,7 @@ uint32_t avnd_su_pres_terming_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_C
 			su->name.value, compname);
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		TRACE("PI SU");
-		AVND_COMP * curr_comp = NULL;
+		AVND_COMP * curr_comp = nullptr;
 		for (curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_PREV(&comp->su_dll_node));
 			curr_comp;
 			curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_PREV(&curr_comp->su_dll_node))) {
@@ -3724,7 +3724,7 @@ uint32_t avnd_su_pres_inst_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 
 		/* get the next csi */
 		curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node);
-		if ((curr_csi != NULL) &&
+		if ((curr_csi != nullptr) &&
 			(m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_RESTARTING(curr_csi) == true) &&
 			(m_AVND_SU_IS_RESTART(su))) {
 			/* we have another csi. trigger the comp fsm with InstEv */

@@ -166,7 +166,7 @@ static uint32_t avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 
 	TRACE_ENTER();
 
-	if (NULL == arg) {
+	if (nullptr == arg) {
 		LOG_ER("avnd_mbcsv_cb: arg is NULL");
 		return NCSCC_RC_FAILURE;
 	}
@@ -1054,7 +1054,7 @@ uint32_t avnd_dequeue_async_update_msgs(AVND_CB *cb, bool pr_or_fr)
 	 * This is a FIFO queue. Remove first message first entered in the 
 	 * queue and then process it.
 	 */
-	while (NULL != (updt_msg = cb->async_updt_msgs.async_updt_queue)) {
+	while (nullptr != (updt_msg = cb->async_updt_msgs.async_updt_queue)) {
 		cb->async_updt_msgs.async_updt_queue = updt_msg->next;
 
 		/*
@@ -1066,8 +1066,8 @@ uint32_t avnd_dequeue_async_update_msgs(AVND_CB *cb, bool pr_or_fr)
 		delete updt_msg;
 	}
 
-	/* All messages are dequeued. Set tail to NULL */
-	cb->async_updt_msgs.tail = NULL;
+	/* All messages are dequeued. Set tail to nullptr */
+	cb->async_updt_msgs.tail = nullptr;
 
 	TRACE_LEAVE();
 	return status;
@@ -1089,7 +1089,7 @@ uint32_t avnd_dequeue_async_update_msgs(AVND_CB *cb, bool pr_or_fr)
 uint32_t avnd_send_data_req(AVND_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
-	NCS_UBAID *uba = NULL;
+	NCS_UBAID *uba = nullptr;
 
 	TRACE_ENTER();
 
@@ -1259,7 +1259,7 @@ static uint32_t avnd_validate_reo_type_in_csync(AVND_CB *cb, uint32_t reo_type)
 uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVSV_D2N_ROLE_CHANGE_INFO *info = NULL;
+	AVSV_D2N_ROLE_CHANGE_INFO *info = nullptr;
 	V_DEST_RL mds_role;
 	SaAmfHAStateT prev_ha_state;
 
@@ -1350,12 +1350,12 @@ uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 \**************************************************************************/
 uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type)
 {
-	uint8_t *reo_hdl_ptr = NULL;
+	uint8_t *reo_hdl_ptr = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	reo_hdl_ptr = static_cast<uint8_t*>(NCS_INT64_TO_PTR_CAST(reo_hdl));
 
-	if (NULL == reo_hdl_ptr)
+	if (nullptr == reo_hdl_ptr)
 		return rc;
 
 	switch (reo_type) {
@@ -1520,14 +1520,14 @@ uint32_t avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uint32_t reo_type
 \**************************************************************************/
 uint32_t avnd_evt_ha_state_change_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	AVND_HA_STATE_CHANGE_EVT *ha_state_event = NULL;
+	AVND_HA_STATE_CHANGE_EVT *ha_state_event = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER();
 
 	ha_state_event = &evt->info.ha_state_change;
 
-	if (NULL == ha_state_event)
+	if (nullptr == ha_state_event)
 		return rc;
 
 	if (AVND_EVT_HA_STATE_CHANGE != evt->type)
@@ -1569,10 +1569,10 @@ error:
 uint32_t avnd_ha_state_act_hdlr(AVND_CB *cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVND_SU *su = NULL;
-	AVND_COMP *comp = NULL;
-	AVND_COMP_HC_REC *comp_hc = NULL;
-	AVND_COMP_CBK *comp_cbk = NULL;
+	AVND_SU *su = nullptr;
+	AVND_COMP *comp = nullptr;
+	AVND_COMP_HC_REC *comp_hc = nullptr;
+	AVND_COMP_CBK *comp_cbk = nullptr;
 	TRACE_ENTER();
 
 /******************  Starting SU Timers  *******************************/

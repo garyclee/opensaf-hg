@@ -289,7 +289,7 @@ static uint32_t avnd_entire_data_update(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, bool
 	ncs_enc_claim_space(&enc->io_uba, sizeof(uint32_t));
 
 	/* 
-	 * If reo_handle and reo_type is NULL then this the first time mbcsv is calling
+	 * If reo_handle and reo_type is nullptr then this the first time mbcsv is calling
 	 * the cold sync response for the standby. So start from first data structure 
 	 * which is CB. Next time onwards depending on the value of reo_type and reo_handle
 	 * send the next data structures.
@@ -298,7 +298,7 @@ static uint32_t avnd_entire_data_update(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, bool
 
 	/* Now encode the number of objects actually in the UBA. */
 
-	if (encoded_cnt_loc != NULL) {
+	if (encoded_cnt_loc != nullptr) {
 		ncs_encode_32bit(&encoded_cnt_loc, num_of_obj);
 	}
 
@@ -390,9 +390,9 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_
 	   We need to send internode component(proxy) first and after that external
 	   component (proxied), bz while decoding, first we will add all proxy 
 	   components in DB and then one by one proxied component. After decoding
-	   proxied component, we can check comp->proxy_comp_name, if it NULL,
+	   proxied component, we can check comp->proxy_comp_name, if it nullptr,
 	   then comp will be in ORPH state and no proxy is attached to it. If 
-	   comp->proxy_comp_name is not NULL, then it is name of proxy for the
+	   comp->proxy_comp_name is not nullptr, then it is name of proxy for the
 	   proxied component and use avnd_comp_proxied_add to add it in proxy
 	   component pxied_list. For adding proxied component to the pxied_list
 	   of proxy component, we should have proxy component already in DB,
@@ -503,7 +503,7 @@ static uint32_t avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 static uint32_t avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVND_SU *su = NULL;
+	AVND_SU *su = nullptr;
 	AVND_SU_SIQ_REC *siq;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 
@@ -549,8 +549,8 @@ static uint32_t avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU *su;
-	AVND_SU_SI_REC *curr_su_si = NULL;
-	AVND_COMP_CSI_REC *csi = NULL;
+	AVND_SU_SI_REC *curr_su_si = nullptr;
+	AVND_COMP_CSI_REC *csi = nullptr;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 
 
@@ -604,8 +604,8 @@ static uint32_t avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 static uint32_t avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVND_COMP *comp = NULL;
-	AVND_COMP_HC_REC *comp_hc = NULL;
+	AVND_COMP *comp = nullptr;
+	AVND_COMP_HC_REC *comp_hc = nullptr;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 
 
@@ -656,8 +656,8 @@ static uint32_t avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB
 static uint32_t avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVND_COMP *comp = NULL;
-	AVND_COMP_CBK *comp_cbk = NULL;
+	AVND_COMP *comp = nullptr;
+	AVND_COMP_CBK *comp_cbk = nullptr;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 
 

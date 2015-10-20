@@ -81,15 +81,15 @@ AVND_SU_SI_REC *avnd_silist_getfirst(void)
 {
 	NCS_DB_LINK_LIST_NODE *p = m_NCS_DBLIST_FIND_FIRST(&avnd_cb->si_list);
 
-	if (p != NULL)
-		return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)NULL)->cb_dll_node));
+	if (p != nullptr)
+		return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)nullptr)->cb_dll_node));
 	else
-		return NULL;
+		return nullptr;
 }
 
 /**
  * Get next SI from SI list
- * @param si if NULL first SI is returned
+ * @param si if nullptr first SI is returned
  * 
  * @return AVND_SU_SI_REC*
  */
@@ -98,10 +98,10 @@ AVND_SU_SI_REC *avnd_silist_getnext(const AVND_SU_SI_REC *si)
 	if (si) {
 		NCS_DB_LINK_LIST_NODE *p = m_NCS_DBLIST_FIND_NEXT(&si->cb_dll_node);
 
-		if (p != NULL)
-			return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)NULL)->cb_dll_node));
+		if (p != nullptr)
+			return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)nullptr)->cb_dll_node));
 		else
-			return NULL;
+			return nullptr;
 	}
 	else
 		return avnd_silist_getfirst();
@@ -117,10 +117,10 @@ AVND_SU_SI_REC *avnd_silist_getprev(const AVND_SU_SI_REC *si)
 {
 	NCS_DB_LINK_LIST_NODE *p = m_NCS_DBLIST_FIND_PREV(&si->cb_dll_node);
 
-	if (p != NULL)
-		return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)NULL)->cb_dll_node));
+	if (p != nullptr)
+		return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)nullptr)->cb_dll_node));
 	else
-		return NULL;
+		return nullptr;
 }
 
 /**
@@ -133,10 +133,10 @@ AVND_SU_SI_REC *avnd_silist_getlast(void)
 {
 	NCS_DB_LINK_LIST_NODE *p = m_NCS_DBLIST_FIND_LAST(&avnd_cb->si_list);
 
-	if (p != NULL)
-		return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)NULL)->cb_dll_node));
+	if (p != nullptr)
+		return (AVND_SU_SI_REC *) ((char*)p - ((char*) &((AVND_SU_SI_REC *)nullptr)->cb_dll_node));
 	else
-		return NULL;
+		return nullptr;
 }
 
 /****************************************************************************
@@ -249,7 +249,7 @@ static void get_cstype(SaImmHandleT immOmHandle,
 	SaAisErrorT error;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAttrNameT attributeNames[2] =
-		{const_cast<SaImmAttrNameT>("saAmfCSType"), NULL};
+		{const_cast<SaImmAttrNameT>("saAmfCSType"), nullptr};
 
 	// TODO remove, just for test
 	LOG_NO("get_cstype: csi = '%s'", csi_name->value);
@@ -274,7 +274,7 @@ static SaAmfCompCapabilityModelT get_comp_capability(const SaNameT *comp_type,
 	const SaImmAttrValuesT_2 **attributes;
 	SaAmfCompCapabilityModelT comp_cap;
 	SaImmAttrNameT attributeNames[2] =
-		{const_cast<SaImmAttrNameT>("saAmfCtCompCapability"), NULL};
+		{const_cast<SaImmAttrNameT>("saAmfCtCompCapability"), nullptr};
 	SaImmHandleT immOmHandle = 0;
 	SaVersionT immVersion = { 'A', 2, 1 };
 	SaNameT cs_type;
@@ -284,7 +284,7 @@ static SaAmfCompCapabilityModelT get_comp_capability(const SaNameT *comp_type,
 
 	TRACE_ENTER2("comptype = '%s' : csi = '%s'", comp_type->value, csi_name->value);
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
 	get_cstype(immOmHandle, accessorHandle, csi_name, &cs_type);

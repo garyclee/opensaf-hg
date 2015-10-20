@@ -169,9 +169,9 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_DND_MSG_LIST *rec = 0;
-	AVSV_D2N_COMP_VALIDATION_RESP_INFO *info = NULL;
+	AVSV_D2N_COMP_VALIDATION_RESP_INFO *info = nullptr;
 	SaAisErrorT amf_rc = SA_AIS_OK;
-	AVND_COMP *comp = NULL, *pxy_comp = NULL;
+	AVND_COMP *comp = nullptr, *pxy_comp = nullptr;
 	AVSV_N2D_COMP_VALIDATION_INFO comp_valid_info;
 	AVSV_AMF_API_INFO api_info;
 
@@ -188,7 +188,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	m_AVND_DIQ_REC_FIND(cb, info->msg_id, rec);
 
-	if ((NULL == rec) || (memcmp(&info->comp_name,
+	if ((nullptr == rec) || (memcmp(&info->comp_name,
 				     &rec->msg.info.avd->msg_info.n2d_comp_valid_info.comp_name,
 				     sizeof(SaNameT)) != 0)) {
 		/* Seems the rec was deleted, some problem. */
@@ -227,7 +227,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				goto send_resp;
 			}
 
-			if ((NULL != pxy_comp) && (!m_AVND_COMP_IS_REG(pxy_comp))) {
+			if ((nullptr != pxy_comp) && (!m_AVND_COMP_IS_REG(pxy_comp))) {
 				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
 				rc = NCSCC_RC_FAILURE;
 				amf_rc = SA_AIS_ERR_NOT_EXIST;
@@ -286,7 +286,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_COMP_REG, amf_rc, 0,
-				&comp_valid_info.mds_dest, &comp_valid_info.mds_ctxt, NULL, false);
+				&comp_valid_info.mds_dest, &comp_valid_info.mds_ctxt, nullptr, false);
 
  done:
 	if (rec) {
@@ -322,7 +322,7 @@ uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE ty
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_MSG msg;
-	AVSV_ND2ND_AVA_MSG *nd_nd_ava_msg = NULL;
+	AVSV_ND2ND_AVA_MSG *nd_nd_ava_msg = nullptr;
 	MDS_DEST i_to_dest = 0;
 	AVSV_AMF_API_INFO *info = (AVSV_AMF_API_INFO *)msg_info;
 
@@ -413,7 +413,7 @@ uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 			     MDS_SYNC_SND_CTXT *ctxt, SaAisErrorT *o_amf_rc, bool *int_ext_comp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVND_COMP *o_comp = NULL;
+	AVND_COMP *o_comp = nullptr;
 	SaNameT comp_name;
 	bool send_resp = true;
 	AVND_COMP_CBK *cbk_rec = 0;
@@ -572,7 +572,7 @@ resp to originator AvND.
  resp_send:
 
 	if (true == send_resp) {
-		rc = avnd_amf_resp_send(cb, api_info->type, *o_amf_rc, 0, &api_info->dest, ctxt, NULL, false);
+		rc = avnd_amf_resp_send(cb, api_info->type, *o_amf_rc, 0, &api_info->dest, ctxt, nullptr, false);
 	}
 
  done:

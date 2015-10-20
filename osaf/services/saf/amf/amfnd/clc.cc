@@ -316,7 +316,7 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, clc_evt->comp_name);
 
 	/* the comp has been deleted? */
-	if (comp == NULL) {
+	if (comp == nullptr) {
 		 LOG_WA("%s: could not find comp '%s'", __FUNCTION__,
 				 clc_evt->comp_name.value);
 		 goto done;
@@ -615,12 +615,12 @@ done:
 ******************************************************************************/
 static uint32_t comp_clc_resp_callback(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *info)
 {
-	AVND_CLC_EVT *clc_evt = NULL;
+	AVND_CLC_EVT *clc_evt = nullptr;
 	AVND_EVT *evt = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
-	assert(info != NULL);
+	assert(info != nullptr);
 	clc_evt = (AVND_CLC_EVT *)info->i_usr_hdl;
 
 	/* fill the clc-evt param */
@@ -787,7 +787,7 @@ uint32_t avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_
 				osafassert(NCSCC_RC_SUCCESS == rc);
 				/* delete all SUSI record in amfnd database */
 				tmp_su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
-				while (tmp_su != NULL) {
+				while (tmp_su != nullptr) {
 					if (tmp_su->is_ncs || tmp_su->su_is_external) {
 						/* Don't delete middleware SUSI. We are only performing appl
 						   failover in case of node failover recovery. This will help
@@ -1422,7 +1422,7 @@ uint32_t avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 	   instantiating by calling the proxied callback. else start timer and 
 	   wait for inst timeout duration */
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
-		if (comp->pxy_comp != NULL) {
+		if (comp->pxy_comp != nullptr) {
 			if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
 				/* call the proxied instantiate callback   */
 				rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_PXIED_COMP_INST, 0, 0);
@@ -1729,7 +1729,7 @@ uint32_t avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 		/* => keep retrying */
 		/* instantiate the comp */
 		if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
-			if (comp->pxy_comp != NULL) {
+			if (comp->pxy_comp != nullptr) {
 				if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
 					/* call the proxied instantiate callback   */
 					rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_PXIED_COMP_INST, 0, 0);
@@ -2183,7 +2183,7 @@ uint32_t avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 			AVND_COMP_CSI_REC *csi;
 
 			for (csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
-				csi != NULL;
+				csi != nullptr;
 				csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&csi->comp_dll_node))) {
 				/* In shutdown phase SIs are removed honoring saAmfSIRank in reverse
 				   order. A component which is having a CSI from a higher rank assigned 
@@ -2296,7 +2296,7 @@ uint32_t avnd_comp_clc_restart_inst_hdler (AVND_CB *cb, AVND_COMP *comp)
 	   instantiating by calling the proxied callback. else start timer and 
 	   wait for inst timeout duration */
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
-		if (comp->pxy_comp != NULL) {
+		if (comp->pxy_comp != nullptr) {
 			if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
 				/* call the proxied instantiate callback   */
 				rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_PXIED_COMP_INST, 0, 0);
@@ -2820,10 +2820,10 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	/*** populate the env variable set ***/
 	env_counter = 0;
 
-	if (comp->saAmfCompCmdEnv != NULL) {
-		while ((env = comp->saAmfCompCmdEnv[env_counter]) != NULL) {
+	if (comp->saAmfCompCmdEnv != nullptr) {
+		while ((env = comp->saAmfCompCmdEnv[env_counter]) != nullptr) {
 			char* equalPos = strchr(env, '=');
-			if (equalPos == NULL) {
+			if (equalPos == nullptr) {
 				LOG_ER("Unknown enviroment variable format '%s'. Should be 'var=value'", env);
 				env_counter++;
 				continue;
@@ -2904,10 +2904,10 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 				TRACE("%s=%s", csiattr->name.value, csiattr->string_ptr);
 				env_set[env_counter].overwrite = 1;
 				env_set[env_counter].name = strdup((char*)csiattr->name.value);
-				osafassert(env_set[env_counter].name != NULL);
-				if (NULL != csiattr->string_ptr) {
+				osafassert(env_set[env_counter].name != nullptr);
+				if (nullptr != csiattr->string_ptr) {
 					env_set[env_counter].value = strdup(csiattr->string_ptr);
-					osafassert(env_set[env_counter].value != NULL);
+					osafassert(env_set[env_counter].value != nullptr);
 				} else {
 					env_set[env_counter].value = new char(); 
 				}

@@ -315,8 +315,8 @@ AVND_CB *avnd_cb_create()
 	cb->hb_duration_tmr.type = AVND_TMR_HB_DURATION;
 	cb->hb_duration = AVSV_DEF_HB_DURATION;
 
-	if ((val = getenv("AVSV_HB_DURATION")) != NULL) {
-		cb->hb_duration = strtoll(val, NULL, 0);
+	if ((val = getenv("AVSV_HB_DURATION")) != nullptr) {
+		cb->hb_duration = strtoll(val, nullptr, 0);
 		if (cb->hb_duration == 0) {
 			/* no value or non convertable value, revert to default */
 			cb->hb_duration = AVSV_DEF_HB_DURATION;
@@ -500,7 +500,7 @@ void avnd_sigterm_handler(void)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* create the evt with evt type indicating last step of termination */
-	evt = avnd_evt_create(avnd_cb, AVND_EVT_LAST_STEP_TERM, NULL, NULL, NULL, 0, 0);
+	evt = avnd_evt_create(avnd_cb, AVND_EVT_LAST_STEP_TERM, nullptr, nullptr, nullptr, 0, 0);
 	if (!evt) {
 		LOG_ER("SIG term event create failed");
 		rc = NCSCC_RC_FAILURE;
@@ -600,7 +600,7 @@ void avnd_main_process(void)
 		}
 
 		if (fds[FD_MBX].revents & POLLIN) {
-			while (NULL != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(&avnd_cb->mbx)))
+			while (nullptr != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(&avnd_cb->mbx)))
 				avnd_evt_process(evt);
 		}
 

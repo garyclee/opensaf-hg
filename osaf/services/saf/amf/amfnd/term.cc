@@ -65,7 +65,7 @@ void avnd_last_step_clean(AVND_CB *cb)
 	LOG_NO("Terminating all AMF components");
 
 	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
-	while (comp != NULL) {
+	while (comp != nullptr) {
 		if (false == comp->su->su_is_external) {
 			/* Don't call cleanup script for PI/NPI components in UNINSTANTIATED state.*/
 			if ((comp->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
@@ -157,7 +157,7 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 	sirank = si->rank;
 
 	/* Remove all assignments of equal rank */
-	for (; (si != NULL) && (si->rank == sirank); ) {
+	for (; (si != nullptr) && (si->rank == sirank); ) {
 		AVND_SU_SI_REC *currsi = si;
 		si = avnd_silist_getprev(currsi);
 
@@ -212,7 +212,7 @@ uint32_t avnd_evt_avd_set_leds_evh(AVND_CB *cb, AVND_EVT *evt)
 	cb->led_state = AVND_LED_STATE_GREEN;
 
 	/* Notify the NIS script/deamon that we have fully come up */
-	nid_notify(const_cast<char*>("AMFND"), NCSCC_RC_SUCCESS, NULL);
+	nid_notify(const_cast<char*>("AMFND"), NCSCC_RC_SUCCESS, nullptr);
 
 done:
 	TRACE_LEAVE();

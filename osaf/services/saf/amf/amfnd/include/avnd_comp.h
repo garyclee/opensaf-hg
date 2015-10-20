@@ -661,28 +661,28 @@ typedef struct avnd_comp_tag {
 /* macro to parse the clc cmd string */
 #define m_AVND_COMP_CLC_STR_PARSE(st, sc, ac, av, tav) \
 { \
-   char str[SAAMF_CLC_LEN], *tok = NULL; \
+   char str[SAAMF_CLC_LEN], *tok = nullptr; \
    /* copy the str as strtok modifies the original str */ \
    strcpy(str, st); \
    ac = 0; \
-   if ( NULL != (tok = strtok(str, " ")) ) { \
+   if ( nullptr != (tok = strtok(str, " ")) ) { \
       strncpy(sc, tok, SAAMF_CLC_LEN-1); \
       av[ac] = sc; \
    } \
    ac++; \
-   while ( (NULL != (tok = strtok(NULL, " "))) && \
+   while ( (nullptr != (tok = strtok(nullptr, " "))) && \
            (ac < (AVND_COMP_CLC_PARAM_MAX+1)) ) { \
       if ( strlen(tok) > AVND_COMP_CLC_PARAM_SIZE_MAX ) break; \
       strcpy(tav[ac], tok); \
       av[ac] = tav[ac]; \
       ac++;\
    } \
-   if ( NULL != tok ) { \
-      sc[0] = (char)(long)NULL; \
-      av[0] = NULL; \
+   if ( nullptr != tok ) { \
+      sc[0] = (char)(long)nullptr; \
+      av[0] = nullptr; \
       ac = 0; \
    } else \
-      av[ac] = NULL; \
+      av[ac] = nullptr; \
 }
 
 /* macros for comp proxy status */

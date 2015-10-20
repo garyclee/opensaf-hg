@@ -395,7 +395,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		// if all OK send a response to the client
 		if ((rc == NCSCC_RC_SUCCESS) && (resp->err == SA_AIS_OK)) {
-			rc = avnd_amf_resp_send(cb, AVSV_AMF_COMP_TERM_RSP, SA_AIS_OK, NULL,
+			rc = avnd_amf_resp_send(cb, AVSV_AMF_COMP_TERM_RSP, SA_AIS_OK, nullptr,
 					&api_info->dest, &evt->mds_ctxt, comp, false);
 		}
 		break;
@@ -423,7 +423,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		/* check, if the older assignment was overriden by new one, if so trash this resp */
 		if (!csi) {
-			AVND_COMP_CSI_REC *temp_csi = NULL;
+			AVND_COMP_CSI_REC *temp_csi = nullptr;
 			temp_csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
 
 			if (cbk_rec->cbk_info->param.csi_set.ha != temp_csi->si->curr_state) {
@@ -721,8 +721,8 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVSV_ND2ND_AVND_MSG *avnd_msg = NULL;
-	AVSV_NDA_AVA_MSG *temp_ptr = NULL;
+	AVSV_ND2ND_AVND_MSG *avnd_msg = nullptr;
+	AVSV_NDA_AVA_MSG *temp_ptr = nullptr;
 
 	TRACE_ENTER();
 	memset(&msg, 0, sizeof(AVND_MSG));
@@ -1030,7 +1030,7 @@ void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, SaNameT *csi_name)
 	AVSV_AMF_CBK_INFO *info = 0;
 	bool to_del = false;
 
-	TRACE_ENTER2("'%s', '%s'", comp->name.value, csi_name ? csi_name->value : NULL);
+	TRACE_ENTER2("'%s', '%s'", comp->name.value, csi_name ? csi_name->value : nullptr);
 
 	/* scan the entire comp-cbk list & delete the matching records */
 	while (curr) {
@@ -1082,7 +1082,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 	AVND_COMP_CBK *cbk = 0, *temp_cbk_list = 0, *head = 0;
 	AVND_COMP_CSI_REC *csi = 0;
 
-	while ((comp->cbk_list != NULL) && (comp->cbk_list != cbk)) {
+	while ((comp->cbk_list != nullptr) && (comp->cbk_list != cbk)) {
 		cbk = comp->cbk_list;
 
 		switch (cbk->cbk_info->type) {
@@ -1097,7 +1097,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 					LOG_NO("%s - '%s' type:%u", __FUNCTION__, comp->name.value,
 						   cbk->cbk_info->type);
 
-				cbk->next = NULL;
+				cbk->next = nullptr;
 
 				/*  add this rec on to temp_cbk_list */
 				{
@@ -1119,7 +1119,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 
 				/* check, if the older assignment was overriden by new one, if so trash this resp */
 				if (!csi) {
-					AVND_COMP_CSI_REC *temp_csi = NULL;
+					AVND_COMP_CSI_REC *temp_csi = nullptr;
 					temp_csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
 
 					if (cbk->cbk_info->param.csi_set.ha != temp_csi->si->curr_state) {

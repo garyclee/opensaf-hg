@@ -844,7 +844,7 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	AVSV_NDA_AVA_MSG *ava;
 	uint32_t rc = NCSCC_RC_SUCCESS, i;
-	SaStringT value = NULL;
+	SaStringT value = nullptr;
 
 	ava = ((AVND_MSG *)enc_info->i_msg)->info.ava;
 	osafassert(ava);
@@ -965,9 +965,9 @@ uint32_t avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 					EDP_OP_TYPE_DEC, (AVSV_DND_MSG **)&dec_info->o_msg, &ederror,
 					dec_info->i_msg_fmt_ver);
 		if (rc != NCSCC_RC_SUCCESS) {
-			if (dec_info->o_msg != NULL) {
+			if (dec_info->o_msg != nullptr) {
 				avsv_dnd_msg_free(static_cast<AVSV_DND_MSG*>(dec_info->o_msg));
-				dec_info->o_msg = NULL;
+				dec_info->o_msg = nullptr;
 			}
 			return rc;
 		}
@@ -984,9 +984,9 @@ uint32_t avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 					EDP_OP_TYPE_DEC, (AVSV_ND2ND_AVND_MSG **)&dec_info->o_msg,
 					&ederror, dec_info->i_msg_fmt_ver);
 		if (rc != NCSCC_RC_SUCCESS) {
-			if (dec_info->o_msg != NULL) {
+			if (dec_info->o_msg != nullptr) {
 				avsv_nd2nd_avnd_msg_free(static_cast<AVSV_ND2ND_AVND_MSG*>(dec_info->o_msg));
-				dec_info->o_msg = NULL;
+				dec_info->o_msg = nullptr;
 			}
 			return rc;
 		}
@@ -1003,9 +1003,9 @@ uint32_t avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 					EDP_OP_TYPE_DEC, (AVSV_NDA_AVA_MSG **)&dec_info->o_msg, &ederror,
 					dec_info->i_msg_fmt_ver);
 		if (rc != NCSCC_RC_SUCCESS) {
-			if (dec_info->o_msg != NULL) {
+			if (dec_info->o_msg != nullptr) {
 				avsv_nda_ava_msg_free(static_cast<AVSV_NDA_AVA_MSG*>(dec_info->o_msg));
-				dec_info->o_msg = NULL;
+				dec_info->o_msg = nullptr;
 			}
 			return rc;
 		}
@@ -1061,9 +1061,9 @@ uint32_t avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 					EDP_OP_TYPE_DEC, (AVSV_DND_MSG **)&dec_info->o_msg, &ederror,
 					dec_info->i_msg_fmt_ver);
 		if (rc != NCSCC_RC_SUCCESS) {
-			if (dec_info->o_msg != NULL) {
+			if (dec_info->o_msg != nullptr) {
 				avsv_dnd_msg_free(static_cast<AVSV_DND_MSG*>(dec_info->o_msg));
-				dec_info->o_msg = NULL;
+				dec_info->o_msg = nullptr;
 			}
 			return rc;
 		}
@@ -1080,9 +1080,9 @@ uint32_t avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 					EDP_OP_TYPE_DEC, (AVSV_ND2ND_AVND_MSG **)&dec_info->o_msg,
 					&ederror, dec_info->i_msg_fmt_ver);
 		if (rc != NCSCC_RC_SUCCESS) {
-			if (dec_info->o_msg != NULL) {
+			if (dec_info->o_msg != nullptr) {
 				avsv_nd2nd_avnd_msg_free(static_cast<AVSV_ND2ND_AVND_MSG*>(dec_info->o_msg));
-				dec_info->o_msg = NULL;
+				dec_info->o_msg = nullptr;
 			}
 			return rc;
 		}
@@ -1347,8 +1347,8 @@ uint32_t avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	MDS_SEND_INFO *send_info = NULL;
-	MDS_SENDTYPE_SNDRSP_INFO *send = NULL;
+	MDS_SEND_INFO *send_info = nullptr;
+	MDS_SENDTYPE_SNDRSP_INFO *send = nullptr;
 
 	TRACE_ENTER();
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -1428,8 +1428,8 @@ uint32_t avnd_mds_quiesced_process(AVND_CB *cb)
 	AVND_EVT *evt = 0;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	evt = avnd_evt_create(cb, AVND_EVT_HA_STATE_CHANGE, 0, NULL, 0, 0, 0);
-	if (NULL == evt) {
+	evt = avnd_evt_create(cb, AVND_EVT_HA_STATE_CHANGE, 0, nullptr, 0, 0, 0);
+	if (nullptr == evt) {
 		LOG_ER("%s, Event is NULL",__FUNCTION__);
 	} else {
 		/* Don't use avail_state_avnd as this is not yet updated. It will be 
