@@ -191,7 +191,7 @@ uint32_t avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
-	AVND_HC *hc = NULL;
+	AVND_HC *hc = nullptr;
   
 	hc = new AVND_HC();
 
@@ -214,7 +214,7 @@ static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **a
  done:
 	if (rc != NCSCC_RC_SUCCESS) {
 		delete hc;
-		hc = NULL;
+		hc = nullptr;
 	}
 
 	return hc;
@@ -233,7 +233,7 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 
 	avnd_hctype_config_get(immOmHandle, &comp->saAmfCompType);
 
@@ -243,7 +243,7 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 
 	error = immutil_saImmOmSearchInitialize_2(immOmHandle, &comp_dn,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-		&searchParam, NULL, &searchHandle);
+		&searchParam, nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
@@ -254,7 +254,7 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 
 		TRACE_1("'%s'", hc_name.value);
 
-		if (hc_create(avnd_cb, &hc_name, attributes) == NULL)
+		if (hc_create(avnd_cb, &hc_name, attributes) == nullptr)
 			goto done2;
 	}
 
@@ -293,7 +293,7 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValue
  done:
 	if (rc != NCSCC_RC_SUCCESS) {
 		delete hc;
-		hc = NULL;
+		hc = nullptr;
 	}
 
 	return hc;
@@ -316,7 +316,7 @@ SaAisErrorT avnd_hctype_config_get(SaImmHandleT immOmHandle, const SaNameT *comp
 
 	error = immutil_saImmOmSearchInitialize_2(immOmHandle, comptype_dn,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-		&searchParam, NULL, &searchHandle);
+		&searchParam, nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
@@ -327,10 +327,10 @@ SaAisErrorT avnd_hctype_config_get(SaImmHandleT immOmHandle, const SaNameT *comp
 
 		TRACE_1("'%s'", hc_name.value);
 		//A record may get created in the context of some other component of same comptype.
-		AVND_HCTYPE *hctype = NULL;
+		AVND_HCTYPE *hctype = nullptr;
 		if ((hctype = (AVND_HCTYPE *)ncs_patricia_tree_get(&hctypedb,
-						(uint8_t *)&hc_name)) == NULL) {
-			if (hctype_create(avnd_cb, &hc_name, attributes) == NULL)
+						(uint8_t *)&hc_name)) == nullptr) {
+			if (hctype_create(avnd_cb, &hc_name, attributes) == nullptr)
 				goto done2;
 		}
 		else 
@@ -403,14 +403,14 @@ static void comp_hctype_update_compdb(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			memcpy(hlt_chk.name.key, hlt_chk_key.c_str(), hlt_chk_key.size());
 			hlt_chk.name.keyLen = hlt_chk.key_len;
 			TRACE("comp_name %s key %s keyLen %u", hlt_chk.comp_name.value, hlt_chk.name.key, hlt_chk.name.keyLen);
-			if (avnd_hcdb_rec_get(cb, &hlt_chk) == NULL) {
+			if (avnd_hcdb_rec_get(cb, &hlt_chk) == nullptr) {
 				TRACE("comp uses healthcheckType rec");
 				// 4. found a component that uses the healthcheckType record, update the comp_hc_rec
 				memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
 				tmp_hc_rec.key = hlt_chk.name;
 				tmp_hc_rec.req_hdl = comp->reg_hdl;
 				TRACE("tmp_hc_rec: key %s req_hdl %llu", tmp_hc_rec.key.key, tmp_hc_rec.req_hdl);
-				if ((comp_hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec)) != NULL) {
+				if ((comp_hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec)) != nullptr) {
 					TRACE("comp_hc_rec: period %llu max_dur %llu", comp_hc_rec->period, comp_hc_rec->max_dur);
 					switch (param->attr_id) {
 					case saAmfHctDefPeriod_ID:
@@ -466,7 +466,7 @@ uint32_t avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	}
 
 	case AVSV_OBJ_OPR_DEL: {
-		if (hc != NULL) {
+		if (hc != nullptr) {
 			rc = ncs_patricia_tree_del(&cb->hcdb, &hc->tree_node);
 			osafassert(rc == NCSCC_RC_SUCCESS);
 			LOG_IN("Deleted '%s'", param->name.value);
@@ -529,7 +529,7 @@ uint32_t avnd_hctype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	}
 
 	case AVSV_OBJ_OPR_DEL: {
-		if (hctype != NULL) {
+		if (hctype != nullptr) {
 			rc = ncs_patricia_tree_del(&hctypedb, &hctype->tree_node);
 			osafassert(rc == NCSCC_RC_SUCCESS);
 			LOG_IN("Deleted '%s'", param->name.value);

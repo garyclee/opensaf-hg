@@ -175,7 +175,7 @@ void avnd_msgid_assert(uint32_t rcv_msg_id)
 		char reason[128];
 		snprintf(reason, sizeof(reason), "Message ID mismatch, rec %u, expected %u",
 				 rcv_msg_id, expected_msg_id);
-		opensaf_reboot(0, NULL, reason);
+		opensaf_reboot(0, nullptr, reason);
 		abort();
 	}
 }
@@ -267,7 +267,7 @@ static void free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
 {
 	AVSV_SU_INFO_MSG *su_info;
 
-	while (su_msg->msg_info.d2n_reg_su.su_list != NULL) {
+	while (su_msg->msg_info.d2n_reg_su.su_list != nullptr) {
 		su_info = su_msg->msg_info.d2n_reg_su.su_list;
 		su_msg->msg_info.d2n_reg_su.su_list = su_info->next;
 		delete su_info;
@@ -294,14 +294,14 @@ static void free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
 {
 	AVSV_SUSI_ASGN *compcsi_info;
 
-	while (susi_msg->msg_info.d2n_su_si_assign.list != NULL) {
+	while (susi_msg->msg_info.d2n_su_si_assign.list != nullptr) {
 		compcsi_info = susi_msg->msg_info.d2n_su_si_assign.list;
 		susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info->next;
-		if (compcsi_info->attrs.list != NULL) {
+		if (compcsi_info->attrs.list != nullptr) {
 			// AVSV_ATTR_NAME_VAL variables
 			// are malloc'ed, use free()
 			free(compcsi_info->attrs.list);
-			compcsi_info->attrs.list = NULL;
+			compcsi_info->attrs.list = nullptr;
 		}
 		delete compcsi_info;
 	}
@@ -349,7 +349,7 @@ static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 ******************************************************************************/
 void dnd_msg_free(AVSV_DND_MSG *msg)
 {
-	if (msg == NULL)
+	if (msg == nullptr)
 		return;
 
 	/* these messages have information list in them free them
@@ -451,7 +451,7 @@ void amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr,
 {
 	uint32_t cnt;
 
-	if (dattr == NULL || sattr == NULL)
+	if (dattr == nullptr || sattr == nullptr)
 		goto done;
 
 	dattr->attr = new SaAmfCSIAttributeT[sattr->number];
@@ -493,7 +493,7 @@ void amf_csi_attr_list_free(SaAmfCSIAttributeListT *attrs)
 {
 	uint32_t cnt;
 
-	if (attrs == NULL)
+	if (attrs == nullptr)
 		return;
 
 	/* free the attr name-val pair */
@@ -524,7 +524,7 @@ uint32_t amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, const AVSV_AMF_CBK_INFO *scbk)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	if (o_dcbk == NULL || scbk == NULL)
+	if (o_dcbk == nullptr || scbk == nullptr)
 		return NCSCC_RC_FAILURE;
 
 	/* allocate the dest cbk-info */
@@ -567,7 +567,7 @@ uint32_t amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, const AVSV_AMF_CBK_INFO *scbk)
 		if (scbk->param.csi_set.attrs.number > 0) {
 			(*o_dcbk)->param.csi_set.attrs.list = static_cast<AVSV_ATTR_NAME_VAL*>
 				(calloc(scbk->param.csi_set.attrs.number, sizeof(AVSV_ATTR_NAME_VAL)));
-			osafassert((*o_dcbk)->param.csi_set.attrs.list != NULL);
+			osafassert((*o_dcbk)->param.csi_set.attrs.list != nullptr);
 
 			for (uint32_t i = 0; i < scbk->param.csi_set.attrs.number; ++i) {
 				(*o_dcbk)->param.csi_set.attrs.list[i] =
@@ -603,7 +603,7 @@ uint32_t amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, const AVSV_AMF_CBK_INFO *scbk)
 ******************************************************************************/
 void amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 {
-	if (cbk_info == NULL)
+	if (cbk_info == nullptr)
 		return;
 
 	switch (cbk_info->type) {

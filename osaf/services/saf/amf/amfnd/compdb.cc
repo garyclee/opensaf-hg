@@ -127,7 +127,7 @@ static SaAisErrorT avnd_compglobalattrs_config_get(SaImmHandleT immOmHandle)
 	dn.length = strlen((char *)dn.value);
 
 	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
-	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, NULL, (SaImmAttrValuesT_2 ***)&attributes);
+	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOmAccessorGet_2 FAILED %u", rc);
 		goto done;
@@ -189,7 +189,7 @@ uint32_t avnd_compdb_init(AVND_CB *cb)
 
 	TRACE_ENTER();
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 
 	if (avnd_compglobalattrs_config_get(immOmHandle) != SA_AIS_OK) {
 		rc = NCSCC_RC_FAILURE;
@@ -770,8 +770,8 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 					goto done;
 				}
 				
-				(&comp->su_dll_node)->prev = NULL;
-				(&comp->su_dll_node)->next = NULL;
+				(&comp->su_dll_node)->prev = nullptr;
+				(&comp->su_dll_node)->next = nullptr;
 				
 				/* Add to the comp-list (maintained by su) */
 				m_AVND_SUDB_REC_COMP_ADD(*su, *comp, rc);
@@ -845,7 +845,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			   when comp is getting deleted. */
 			AVND_COMP *comp = 
 				m_AVND_COMPDB_REC_GET(cb->compdb, param->name);
-			if (comp == NULL) {
+			if (comp == nullptr) {
 				LOG_ER("%s: Comp '%s' not found", __FUNCTION__,
 						param->name.value);
 				goto done;
@@ -1001,8 +1001,8 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 							goto done;
 						}
 				
-						(&comp->su_dll_node)->prev = NULL;
-						(&comp->su_dll_node)->next = NULL;
+						(&comp->su_dll_node)->prev = nullptr;
+						(&comp->su_dll_node)->next = nullptr;
 				
 						/* Add to the comp-list (maintained by su) */
 						m_AVND_SUDB_REC_COMP_ADD(*su, *comp, rc);
@@ -1067,9 +1067,9 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 	}
 
 	/* Free saAmfCtDefCmdEnv[i] before freeing saAmfCtDefCmdEnv */
-	if (compt->saAmfCtDefCmdEnv != NULL) {
+	if (compt->saAmfCtDefCmdEnv != nullptr) {
 		arg_counter = 0;
-		while ((argv = compt->saAmfCtDefCmdEnv[arg_counter++]) != NULL)
+		while ((argv = compt->saAmfCtDefCmdEnv[arg_counter++]) != nullptr)
 			delete [] argv;
 		delete [] compt->saAmfCtDefCmdEnv;
 	}
@@ -1078,7 +1078,7 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 
 	/* Free saAmfCtDefInstantiateCmdArgv[i] before freeing saAmfCtDefInstantiateCmdArgv */
 	arg_counter = 0;
-	while ((argv = compt->saAmfCtDefInstantiateCmdArgv[arg_counter++]) != NULL)
+	while ((argv = compt->saAmfCtDefInstantiateCmdArgv[arg_counter++]) != nullptr)
 		delete [] argv;
 	delete [] compt->saAmfCtDefInstantiateCmdArgv;
 
@@ -1086,34 +1086,34 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 
 	/* Free saAmfCtDefTerminateCmdArgv[i] before freeing saAmfCtDefTerminateCmdArgv */
 	arg_counter = 0;
-	while ((argv = compt->saAmfCtDefTerminateCmdArgv[arg_counter++]) != NULL)
+	while ((argv = compt->saAmfCtDefTerminateCmdArgv[arg_counter++]) != nullptr)
 		delete [] argv;
 	delete [] compt->saAmfCtDefTerminateCmdArgv;
 
 	delete [] compt->saAmfCtRelPathCleanupCmd;
 	/* Free saAmfCtDefCleanupCmdArgv[i] before freeing saAmfCtDefCleanupCmdArgv */
 	arg_counter = 0;
-	while ((argv = compt->saAmfCtDefCleanupCmdArgv[arg_counter++]) != NULL)
+	while ((argv = compt->saAmfCtDefCleanupCmdArgv[arg_counter++]) != nullptr)
 		delete [] argv;
 	delete [] compt->saAmfCtDefCleanupCmdArgv;
 
 	delete [] compt->saAmfCtRelPathAmStartCmd;
 	/* Free saAmfCtDefAmStartCmdArgv[i] before freeing saAmfCtDefAmStartCmdArgv */
 	arg_counter = 0;
-	while ((argv = compt->saAmfCtDefAmStartCmdArgv[arg_counter++]) != NULL)
+	while ((argv = compt->saAmfCtDefAmStartCmdArgv[arg_counter++]) != nullptr)
 		delete [] argv;
 	delete [] compt->saAmfCtDefAmStartCmdArgv;
 
 	delete [] compt->saAmfCtRelPathAmStopCmd;
 	/* Free saAmfCtDefAmStopCmdArgv[i] before freeing saAmfCtDefAmStopCmdArgv */
 	arg_counter = 0;
-	while ((argv = compt->saAmfCtDefAmStopCmdArgv[arg_counter++]) != NULL)
+	while ((argv = compt->saAmfCtDefAmStopCmdArgv[arg_counter++]) != nullptr)
 		delete [] argv;
 	delete [] compt->saAmfCtDefAmStopCmdArgv;
 
 	delete [] compt->osafAmfCtRelPathHcCmd;
 	arg_counter = 0;
-	while ((argv = compt->osafAmfCtDefHcCmdArgv[arg_counter++]) != NULL)
+	while ((argv = compt->osafAmfCtDefHcCmdArgv[arg_counter++]) != nullptr)
 		delete [] argv;
 	delete [] compt->osafAmfCtDefHcCmdArgv;
 
@@ -1138,7 +1138,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 	(void)immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
-	if (immutil_saImmOmAccessorGet_2(accessorHandle, dn, NULL, (SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
+	if (immutil_saImmOmAccessorGet_2(accessorHandle, dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
 		LOG_ER("saImmOmAccessorGet_2 FAILED for '%s'", dn->value);
 		goto done;
 	}
@@ -1170,7 +1170,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefCallbackTimeout"), attributes, 0, &compt->saAmfCtDefCallbackTimeout);
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathInstantiateCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathInstantiateCmd", 0)) != nullptr)
 		compt->saAmfCtRelPathInstantiateCmd = StrDup(str);
 
 	immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCtDefInstantiateCmdArgv"), attributes, &j);
@@ -1186,7 +1186,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefInstantiationLevel"), attributes, 0, &compt->saAmfCtDefInstantiationLevel) != SA_AIS_OK)
 		compt->saAmfCtDefInstantiationLevel = 0;
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathTerminateCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathTerminateCmd", 0)) != nullptr)
 		compt->saAmfCtRelPathTerminateCmd = StrDup(str);
 
 	immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCtDefTerminateCmdArgv"), attributes, &j);
@@ -1199,7 +1199,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 		osafassert(compt->saAmfCtDefTerminateCmdArgv[i]);
 	}
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0)) != nullptr)
 		compt->saAmfCtRelPathCleanupCmd = StrDup(str);
 
 	immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCtDefCleanupCmdArgv"), attributes, &j);
@@ -1212,7 +1212,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 		osafassert(compt->saAmfCtDefCleanupCmdArgv[i]);
 	}
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStartCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStartCmd", 0)) != nullptr)
 		compt->saAmfCtRelPathAmStartCmd = StrDup(str);
 
 	immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCtDefAmStartCmdArgv"), attributes, &j);
@@ -1225,7 +1225,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 		osafassert(compt->saAmfCtDefAmStartCmdArgv[i]);
 	}
 
-	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStopCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "saAmfCtRelPathAmStopCmd", 0)) != nullptr)
 		compt->saAmfCtRelPathAmStopCmd = StrDup(str);
 
 	immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCtDefAmStopCmdArgv"), attributes, &j);
@@ -1238,7 +1238,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 		osafassert(compt->saAmfCtDefAmStopCmdArgv[i]);
 	}
 
-	if ((str = immutil_getStringAttr(attributes, "osafAmfCtRelPathHcCmd", 0)) != NULL)
+	if ((str = immutil_getStringAttr(attributes, "osafAmfCtRelPathHcCmd", 0)) != nullptr)
 		compt->osafAmfCtRelPathHcCmd = StrDup(str);
 
 	immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("osafAmfCtDefHcCmdArgv"), attributes, &j);
@@ -1276,7 +1276,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
  done:
 	if (rc != 0) {
 		avnd_comptype_delete(compt);
-		compt = NULL;
+		compt = nullptr;
 	}
 
 	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
@@ -1337,7 +1337,7 @@ static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT a
 	int rc = -1;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
-	SaImmAttrNameT attributeNames[2] = {attrName, NULL};
+	SaImmAttrNameT attributeNames[2] = {attrName, nullptr};
 	const char *s;
 	SaAisErrorT error;
 	TRACE_ENTER();
@@ -1349,7 +1349,7 @@ static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT a
 		goto done;
 	}
 
-	if ((s = immutil_getStringAttr(attributes, attrName, 0)) == NULL) {
+	if ((s = immutil_getStringAttr(attributes, attrName, 0)) == nullptr) {
 		TRACE("Get %s FAILED for '%s'", attrName, dn->value);
 		goto done;
 	}
@@ -1387,19 +1387,19 @@ static void init_clc_cli_command(AVND_COMP_CLC_CMD_PARAM *cmd,
 	const char *argv;
 
 	// prepend with path prefix if available
-	if (path_prefix == NULL)
+	if (path_prefix == nullptr)
 		i = snprintf(buf, sizeof(cmd->cmd), "%s", clc_cmd);
 	else
 		i = snprintf(buf, sizeof(cmd->cmd), "%s/%s",	path_prefix, clc_cmd);
 
 	// append argv from comp type
 	j = 0;
-	while ((argv = clc_cmd_argv[j++]) != NULL)
+	while ((argv = clc_cmd_argv[j++]) != nullptr)
 		i += snprintf(&buf[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 	// append argv from comp instance
 	j = 0;
-	while ((argv = immutil_getStringAttr(attributes, attr_name, j++)) != NULL)
+	while ((argv = immutil_getStringAttr(attributes, attr_name, j++)) != nullptr)
 		i += snprintf(&buf[i], sizeof(cmd->cmd) - i, " %s", argv);
 
 	cmd->len = i;
@@ -1427,7 +1427,7 @@ static void init_clc_cli_attributes(AVND_COMP *comp,
 	TRACE_ENTER();
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1];
-	if (comptype->saAmfCtRelPathInstantiateCmd != NULL) {
+	if (comptype->saAmfCtRelPathInstantiateCmd != nullptr) {
 		init_clc_cli_command(cmd, comptype->saAmfCtRelPathInstantiateCmd,
 			comptype->saAmfCtDefInstantiateCmdArgv, path_prefix,
 			attributes, "saAmfCompInstantiateCmdArgv");
@@ -1444,7 +1444,7 @@ static void init_clc_cli_attributes(AVND_COMP *comp,
 	}
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1];
-	if (comptype->saAmfCtRelPathTerminateCmd != NULL) {
+	if (comptype->saAmfCtRelPathTerminateCmd != nullptr) {
 		init_clc_cli_command(cmd, comptype->saAmfCtRelPathTerminateCmd,
 			comptype->saAmfCtDefTerminateCmdArgv, path_prefix,
 			attributes, "saAmfCompTerminateCmdArgv");
@@ -1463,7 +1463,7 @@ static void init_clc_cli_attributes(AVND_COMP *comp,
 	}
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1];
-	if (comptype->saAmfCtRelPathCleanupCmd != NULL) {
+	if (comptype->saAmfCtRelPathCleanupCmd != nullptr) {
 		init_clc_cli_command(cmd, comptype->saAmfCtRelPathCleanupCmd,
 			comptype->saAmfCtDefCleanupCmdArgv, path_prefix,
 			attributes, "saAmfCompCleanupCmdArgv");
@@ -1480,7 +1480,7 @@ static void init_clc_cli_attributes(AVND_COMP *comp,
 	}
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1];
-	if (comptype->saAmfCtRelPathAmStartCmd != NULL) {
+	if (comptype->saAmfCtRelPathAmStartCmd != nullptr) {
 		init_clc_cli_command(cmd, comptype->saAmfCtRelPathAmStartCmd,
 			comptype->saAmfCtDefAmStartCmdArgv, path_prefix,
 			attributes, "saAmfCompAmStartCmdArgv");
@@ -1494,7 +1494,7 @@ static void init_clc_cli_attributes(AVND_COMP *comp,
 	}
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1];
-	if (comptype->saAmfCtRelPathAmStopCmd != NULL) {
+	if (comptype->saAmfCtRelPathAmStopCmd != nullptr) {
 		init_clc_cli_command(cmd, comptype->saAmfCtRelPathAmStopCmd,
 			comptype->saAmfCtDefAmStopCmdArgv, path_prefix,
 			attributes, "saAmfCompAmStopCmdArgv");
@@ -1507,7 +1507,7 @@ static void init_clc_cli_attributes(AVND_COMP *comp,
 	}
 
 	cmd = &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_HC - 1];
-	if (comptype->osafAmfCtRelPathHcCmd != NULL) {
+	if (comptype->osafAmfCtRelPathHcCmd != nullptr) {
 		init_clc_cli_command(cmd, comptype->osafAmfCtRelPathHcCmd,
 			comptype->osafAmfCtDefHcCmdArgv, path_prefix,
 			attributes, "osafAmfCompHcCmdArgv");
@@ -1531,7 +1531,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	amf_comp_type_t *comptype;
 	SaNameT nodeswbundle_name;
 	bool disable_restart;
-	char *path_prefix = NULL;
+	char *path_prefix = nullptr;
 	unsigned int i;
 	unsigned int num_of_comp_env = 0;
 	unsigned int num_of_ct_env = 0;
@@ -1543,9 +1543,9 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 
 	TRACE_ENTER2("%s", comp->name.value);
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 
-	if ((comptype = avnd_comptype_create(immOmHandle, &comp->saAmfCompType)) == NULL) {
+	if ((comptype = avnd_comptype_create(immOmHandle, &comp->saAmfCompType)) == nullptr) {
 		LOG_ER("%s: avnd_comptype_create FAILED for '%s'", __FUNCTION__,
 			comp->saAmfCompType.value);
 		goto done;
@@ -1627,19 +1627,19 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
 
         /* Remove any previous environment variables */
-        if (comp->saAmfCompCmdEnv != NULL) {
+        if (comp->saAmfCompCmdEnv != nullptr) {
         	env_cntr = 0;
-        	while ((env = comp->saAmfCompCmdEnv[env_cntr++]) != NULL)
+        	while ((env = comp->saAmfCompCmdEnv[env_cntr++]) != nullptr)
         		delete env;
         	delete comp->saAmfCompCmdEnv;
-                comp->saAmfCompCmdEnv = NULL;
+                comp->saAmfCompCmdEnv = nullptr;
         }
 
         /* Find out how many environment variables there are in our comp type */
         num_of_ct_env = 0;
-        if (comptype->saAmfCtDefCmdEnv != NULL) {
+        if (comptype->saAmfCtDefCmdEnv != nullptr) {
                 env_cntr = 0;
-        	while ((comptype->saAmfCtDefCmdEnv[env_cntr++]) != NULL)
+        	while ((comptype->saAmfCtDefCmdEnv[env_cntr++]) != nullptr)
                         num_of_ct_env++;
         }
 
@@ -1655,7 +1655,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 
         /* Copy environment variables from our comp type */
         env_cntr = 0;
-        while ((comptype->saAmfCtDefCmdEnv[env_cntr]) != NULL) {
+        while ((comptype->saAmfCtDefCmdEnv[env_cntr]) != nullptr) {
                 comp->saAmfCompCmdEnv[env_cntr] = StrDup (comptype->saAmfCtDefCmdEnv[env_cntr]);
                 env_cntr++;
         }
@@ -1671,7 +1671,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
         /* The env string array will be terminated by zero due to the c++ value-initialized new above */
 
 	/* if we are missing path_prefix we need to refresh the config later */
-	if (path_prefix != NULL)
+	if (path_prefix != nullptr)
 		comp->config_is_valid = 1;
 
 	res = 0;
@@ -1696,9 +1696,9 @@ void avnd_comp_delete(AVND_COMP *comp)
 	SaStringT env;
 
         /* Free saAmfCompCmdEnv[i] before freeing saAmfCompCmdEnv */
-        if (comp->saAmfCompCmdEnv != NULL) {
+        if (comp->saAmfCompCmdEnv != nullptr) {
         	env_counter = 0;
-        	while ((env = comp->saAmfCompCmdEnv[env_counter++]) != NULL)
+        	while ((env = comp->saAmfCompCmdEnv[env_counter++]) != nullptr)
         		delete [] env;
         	delete [] comp->saAmfCompCmdEnv;
         }
@@ -1810,7 +1810,7 @@ done:
 		/* remove the association with hdl mngr */
 		ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, comp->comp_hdl);
 		avnd_comp_delete(comp);
-		comp = NULL;
+		comp = nullptr;
 	}
 	TRACE_LEAVE2("%u", rc);
 	return comp;
@@ -1839,14 +1839,14 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 
 	TRACE_ENTER2("SU'%s'", su->name.value);
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
 	if ((error = immutil_saImmOmSearchInitialize_2(immOmHandle, &su->name,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_CONFIG_ATTR,
-		&searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
+		&searchParam, nullptr, &searchHandle)) != SA_AIS_OK) {
 
 		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
 		goto done1;
@@ -1857,7 +1857,7 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 
 		TRACE_1("'%s'", comp_name.value);
 		if(0 == m_AVND_COMPDB_REC_GET(avnd_cb->compdb, comp_name)) {
-			if ((comp = avnd_comp_create(&comp_name, attributes, su)) == NULL)
+			if ((comp = avnd_comp_create(&comp_name, attributes, su)) == nullptr)
 				goto done2;
 
 			avnd_hc_config_get(comp);
@@ -1904,10 +1904,10 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 
 	TRACE_1("%s", comp->name.value);
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
-	if (immutil_saImmOmAccessorGet_2(accessorHandle, &comp->name, NULL,
+	if (immutil_saImmOmAccessorGet_2(accessorHandle, &comp->name, nullptr,
 		(SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
 
 		LOG_ER("saImmOmAccessorGet_2 FAILED for '%s'", comp->name.value);

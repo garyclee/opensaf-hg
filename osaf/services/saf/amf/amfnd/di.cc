@@ -625,7 +625,7 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
               msg.info.avd->msg_info.n2d_su_si_assign.si_name.value, msg.info.avd->msg_info.n2d_su_si_assign.ha_state,
               msg.info.avd->msg_info.n2d_su_si_assign.error,  msg.info.avd->msg_info.n2d_su_si_assign.single_csi);
 
-        if ((su->si_list.n_nodes > 1) && (si == NULL)) {
+        if ((su->si_list.n_nodes > 1) && (si == nullptr)) {
                 if (msg.info.avd->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_DEL)
                         LOG_NO("Removed 'all SIs' from '%s'", su->name.value);
 

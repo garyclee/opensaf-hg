@@ -40,7 +40,7 @@
 
 static void clm_node_left(SaClmNodeIdT node_id)
 {
-	AVND_COMP *comp = NULL;
+	AVND_COMP *comp = nullptr;
 	uint32_t rc;
 	SaNameT name;
 	AVND_COMP_PXIED_REC *pxd_rec = 0, *curr_rec = 0;
@@ -55,7 +55,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 		LOG_NO("This node has exited the cluster");
 		avnd_cb->node_info.member = SA_FALSE;
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uint8_t *)0);
-		while( comp != NULL ) {
+		while( comp != nullptr ) {
 			if(comp->su->is_ncs != true ) {
 				avnd_comp_clc_fsm_run(avnd_cb, comp, AVND_COMP_CLC_PRES_FSM_EV_TERM);
 			}
@@ -77,7 +77,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 				/* Remove the proxied component from pxied_list  */
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(avnd_cb, comp,
 								 AVND_CKPT_COMP_PROXY_PROXIED_DEL);
-				avnd_comp_proxied_del(avnd_cb, comp, comp->pxy_comp, false, NULL);
+				avnd_comp_proxied_del(avnd_cb, comp, comp->pxy_comp, false, nullptr);
 				/* Delete the proxied component */
 				m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(avnd_cb, comp, AVND_CKPT_COMP_CONFIG);
 				avnd_internode_comp_del(avnd_cb, &(avnd_cb->internode_avail_comp_db),
@@ -121,11 +121,11 @@ static void clm_to_amf_node(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 
-	error = immutil_saImmOmSearchInitialize_2(immOmHandle, NULL, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(immOmHandle, nullptr, SA_IMM_SUBTREE,
 					SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
-					&searchParam,NULL, &searchHandle);
+					&searchParam,nullptr, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("No objects found");
@@ -276,7 +276,7 @@ SaAisErrorT avnd_clm_init(void)
                 LOG_ER("Failed to get CLM selectionObject: %u", error);
                 goto done;
         }
-	error = saClmClusterTrack_4(avnd_cb->clmHandle, trackFlags, NULL);
+	error = saClmClusterTrack_4(avnd_cb->clmHandle, trackFlags, nullptr);
         if (SA_AIS_OK != error) {
                 LOG_ER("Failed to start cluster tracking: %u", error);
                 goto done;

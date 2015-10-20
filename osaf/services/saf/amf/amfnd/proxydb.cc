@@ -40,14 +40,14 @@
 ******************************************************************************/
 uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 {
-	AVND_NODEID_TO_MDSDEST_MAP *rec = NULL;
+	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
 	NODE_ID node_id = 0;
 	uint32_t res = NCSCC_RC_SUCCESS;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
 	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
-	if (rec != NULL) {
+	if (rec != nullptr) {
 		LOG_ER("nodeid_mdsdest rec already exists, Rec Add Failed: MdsDest:%" PRId64 ", NodeId:%u",
 				    mds_dest, node_id);
 		return NCSCC_RC_FAILURE;
@@ -68,7 +68,7 @@ uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 			return res;
 		}
 
-	}			/* Else of if(rec != NULL)  */
+	}			/* Else of if(rec != nullptr)  */
 
 	return res;
 
@@ -89,14 +89,14 @@ uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 ******************************************************************************/
 uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 {
-	AVND_NODEID_TO_MDSDEST_MAP *rec = NULL;
+	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
 	NODE_ID node_id = 0;
 	uint32_t res = NCSCC_RC_SUCCESS;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
 	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
-	if (rec == NULL) {
+	if (rec == nullptr) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec del failed: MdsDest:%" PRId64 " NodeId:%u",
 				    mds_dest, node_id);
 		return NCSCC_RC_FAILURE;
@@ -109,7 +109,7 @@ uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 			return res;
 		}
 
-	}			/* Else of if(rec == NULL) */
+	}			/* Else of if(rec == nullptr) */
 
 	delete rec;
 
@@ -130,10 +130,10 @@ uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 ******************************************************************************/
 MDS_DEST avnd_get_mds_dest_from_nodeid(AVND_CB *cb, NODE_ID node_id)
 {
-	AVND_NODEID_TO_MDSDEST_MAP *rec = NULL;
+	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
 
 	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
-	if (rec == NULL) {
+	if (rec == nullptr) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec get failed: NodeId:%u",node_id);
 		return 0;
 	}
@@ -224,7 +224,7 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 	*rc = SA_AIS_OK;
 
 	/* verify if this component is already present in the db */
-	if (NULL != (comp = m_AVND_COMPDB_REC_GET(*ptree, *name))) {
+	if (nullptr != (comp = m_AVND_COMPDB_REC_GET(*ptree, *name))) {
 		/* This is a proxy and already proxying at least one component. 
 		   So, no problem. */
 		*rc = SA_AIS_ERR_EXIST;
@@ -305,7 +305,7 @@ uint32_t avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT 
 {
 	AVND_COMP *comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVND_COMP_CBK *cbk_rec = NULL, *temp_cbk_ptr = NULL;
+	AVND_COMP_CBK *cbk_rec = nullptr, *temp_cbk_ptr = nullptr;
 
 	/* get the comp */
 	comp = m_AVND_COMPDB_REC_GET(*ptree, *name);

@@ -57,7 +57,7 @@ static uint32_t avnd_send_pg_start_on_fover(AVND_CB *cb)
 
 	memset(&csi_name, '\0', sizeof(SaNameT));
 
-	while (NULL != (pg = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, csi_name))) {
+	while (nullptr != (pg = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, csi_name))) {
 		rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_START, true);
 
 		if (NCSCC_RC_SUCCESS != rc)
@@ -137,7 +137,7 @@ uint32_t avnd_evt_avd_verify_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * Otherwise this exercise also helps us in cleaning all the messages 
 	 * currently pending in the Queue and are not acked.
 	 */
-	for (rec = list->head; NULL != rec;) {
+	for (rec = list->head; nullptr != rec;) {
 		t_rec = *rec;
 
 		/* 

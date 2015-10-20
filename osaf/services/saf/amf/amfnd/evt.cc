@@ -176,7 +176,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 
 	default:
 		delete evt;
-		evt = NULL;
+		evt = nullptr;
 		break;
 	}
 

@@ -45,19 +45,19 @@ uint32_t avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t res = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_avnd_msg = evt->info.avnd;
-	AVSV_ND2ND_AVA_MSG *msg = NULL;
+	AVSV_ND2ND_AVA_MSG *msg = nullptr;
 
 	TRACE_ENTER2("%u", avnd_avnd_msg->type);
 
 	if (AVND_AVND_CBK_DEL == avnd_avnd_msg->type) {
 		/* This is a Callback Del message */
-		AVSV_ND2ND_CBK_DEL *del_cbk = NULL;
-		AVND_COMP *o_comp = NULL;
-		AVND_COMP_CBK *cbk_rec = NULL;
+		AVSV_ND2ND_CBK_DEL *del_cbk = nullptr;
+		AVND_COMP *o_comp = nullptr;
+		AVND_COMP_CBK *cbk_rec = nullptr;
 
 		del_cbk = &avnd_avnd_msg->info.cbk_del;
 		o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, del_cbk->comp_name);
-		if (NULL == o_comp) {
+		if (nullptr == o_comp) {
 			LOG_ER("Comp not in Inter/Ext Comp DB: %s : opq_hdl= %u",del_cbk->comp_name.value,del_cbk->opq_hdl);
 			return NCSCC_RC_FAILURE;
 		}
@@ -121,7 +121,7 @@ uint32_t avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	   is needed only in case of SYNC call from AvA ->proxy AvND. 
 	   Presently only two calls from AvA are ASYNC and 
 	   those are quiescing_compl and ava_resp, these wouln't require
-	   mds context information and it will be NULL for these two calls */
+	   mds context information and it will be nullptr for these two calls */
 
 	memcpy(&(evt->mds_ctxt), &(evt->info.avnd->mds_ctxt), sizeof(MDS_SYNC_SND_CTXT));
 
@@ -140,7 +140,7 @@ uint32_t avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			bool msg_from_avnd = true;
 
 			comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name);
-			if (NULL == comp)
+			if (nullptr == comp)
 				return NCSCC_RC_FAILURE;
 
 			/* send the response back to AvA */
@@ -181,15 +181,15 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t res = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_msg = evt->info.avnd;
-	AVND_COMP *o_comp = NULL;
+	AVND_COMP *o_comp = nullptr;
 	AVSV_AMF_API_RESP_INFO *resp_info = &avnd_msg->info.msg->info.api_resp_info;
-	SaAmfHAStateT *ha_state = NULL;
+	SaAmfHAStateT *ha_state = nullptr;
 	MDS_DEST reg_dest = 0;
 
 	TRACE_ENTER2("%s: Type =%u and rc = %u",avnd_msg->comp_name.value, resp_info->type, resp_info->rc);
 
 	o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
-	if (NULL == o_comp) {
+	if (nullptr == o_comp) {
 		LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 		res = NCSCC_RC_FAILURE;
 		goto done;
@@ -203,7 +203,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		if (SA_AIS_OK != resp_info->rc) {
 			/* We got comp reg failure. We need to delete the component.  */
 			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
-			if (NULL == o_comp) {
+			if (nullptr == o_comp) {
 				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
 				goto done;
@@ -213,7 +213,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(avnd_msg->comp_name));
 		} else {
 			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
-			if (NULL == o_comp) {
+			if (nullptr == o_comp) {
 				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
 				goto done;
@@ -234,14 +234,14 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			/* Unreg SUCCESS. We need to delete the component as well as proxy-proxied 
 			   relation */
 			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
-			if (NULL == o_comp) {
+			if (nullptr == o_comp) {
 				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
 				goto done;
 			}
 			reg_dest = o_comp->reg_dest;
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
-			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, false, NULL);
+			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, false, nullptr);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, o_comp, AVND_CKPT_COMP_CONFIG);
 			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(o_comp->name));
 		}
@@ -257,7 +257,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 
 	/* We have to fprwrd this message to AvA.  */
 	res = avnd_amf_resp_send(cb, resp_info->type, resp_info->rc, (uint8_t *)ha_state,
-				 &reg_dest, &avnd_msg->mds_ctxt, NULL, false);
+				 &reg_dest, &avnd_msg->mds_ctxt, nullptr, false);
 
 	if (NCSCC_RC_SUCCESS != res) {
 		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u, Dest:%" PRIu64 ,__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc, reg_dest);
@@ -289,10 +289,10 @@ uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t rc = 0;
 	AVSV_ND2ND_AVND_MSG *avnd_msg = evt->info.avnd;
-	AVND_COMP *comp = NULL;
+	AVND_COMP *comp = nullptr;
 	AVSV_AMF_CBK_INFO *cbk_info = avnd_msg->info.msg->info.cbk_info;
-	AVSV_AMF_CBK_INFO *cbk_rec = NULL;
-	AVND_COMP_CBK *rec = NULL;
+	AVSV_AMF_CBK_INFO *cbk_rec = nullptr;
+	AVND_COMP_CBK *rec = nullptr;
 
 	TRACE_ENTER2("Type:%u, Hdl:%llu, Inv:%llu", cbk_info->type, cbk_info->hdl, cbk_info->inv);
 

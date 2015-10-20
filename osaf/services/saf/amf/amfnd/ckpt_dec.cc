@@ -334,7 +334,7 @@ static uint32_t avnd_decode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_DE
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_ptr = NULL;
+	AVND_SU *su_ptr = nullptr;
 	AVND_SU dec_su;
 
 
@@ -427,7 +427,7 @@ static uint32_t avnd_decode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	AVND_SU_SIQ_REC *su_siq_ckpt;
 	AVND_SU_SIQ_REC dec_su_siq_ckpt;
-	AVND_SU_SI_PARAM *su_si_param_ptr = NULL;
+	AVND_SU_SI_PARAM *su_si_param_ptr = nullptr;
 
 	su_si_param_ptr = &(dec_su_siq_ckpt.info);
 	su_siq_ckpt = &dec_su_siq_ckpt;
@@ -1098,7 +1098,7 @@ static uint32_t avnd_decode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU_SIQ_REC *siq_ptr;
 	AVND_SU_SIQ_REC dec_siq;
-	AVND_SU_SI_PARAM *su_si_param_ptr = NULL;
+	AVND_SU_SI_PARAM *su_si_param_ptr = nullptr;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 
 
@@ -1358,9 +1358,9 @@ static uint32_t avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_HC *hc_ptr = NULL;
+	AVND_HC *hc_ptr = nullptr;
 	AVND_HC dec_hc;
-	AVND_HC *hc_rec = NULL;
+	AVND_HC *hc_rec = nullptr;
 
 
 	hc_ptr = &dec_hc;
@@ -1378,7 +1378,7 @@ static uint32_t avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	}
 
 	hc_rec = avnd_hcdb_rec_get(cb, &hc_ptr->key);
-	if (NULL == hc_rec) {
+	if (nullptr == hc_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1408,9 +1408,9 @@ static uint32_t avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_HC *hc_ptr = NULL;
+	AVND_HC *hc_ptr = nullptr;
 	AVND_HC dec_hc;
-	AVND_HC *hc_rec = NULL;
+	AVND_HC *hc_rec = nullptr;
 
 
 	hc_ptr = &dec_hc;
@@ -1428,7 +1428,7 @@ static uint32_t avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	}
 
 	hc_rec = avnd_hcdb_rec_get(cb, &hc_ptr->key);
-	if (NULL == hc_rec) {
+	if (nullptr == hc_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1458,9 +1458,9 @@ static uint32_t avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1478,7 +1478,7 @@ static uint32_t avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1508,9 +1508,9 @@ static uint32_t avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1528,7 +1528,7 @@ static uint32_t avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1558,9 +1558,9 @@ static uint32_t avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1578,7 +1578,7 @@ static uint32_t avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1608,9 +1608,9 @@ static uint32_t avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_D
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1628,7 +1628,7 @@ static uint32_t avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1658,9 +1658,9 @@ static uint32_t avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1678,7 +1678,7 @@ static uint32_t avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1708,9 +1708,9 @@ static uint32_t avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1728,7 +1728,7 @@ static uint32_t avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1758,9 +1758,9 @@ static uint32_t avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_D
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1778,7 +1778,7 @@ static uint32_t avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1808,9 +1808,9 @@ static uint32_t avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1828,7 +1828,7 @@ static uint32_t avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1858,9 +1858,9 @@ static uint32_t avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1878,7 +1878,7 @@ static uint32_t avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1909,9 +1909,9 @@ static uint32_t avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1929,7 +1929,7 @@ static uint32_t avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1959,9 +1959,9 @@ static uint32_t avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU *su_dec_ptr = NULL;
+	AVND_SU *su_dec_ptr = nullptr;
 	AVND_SU dec_su;
-	AVND_SU *su_rec = NULL;
+	AVND_SU *su_rec = nullptr;
 
 
 	su_dec_ptr = &dec_su;
@@ -1979,7 +1979,7 @@ static uint32_t avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
-	if (NULL == su_rec) {
+	if (nullptr == su_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2009,9 +2009,9 @@ static uint32_t avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2029,7 +2029,7 @@ static uint32_t avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2059,9 +2059,9 @@ static uint32_t avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2079,7 +2079,7 @@ static uint32_t avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2109,9 +2109,9 @@ static uint32_t avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2129,7 +2129,7 @@ static uint32_t avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2159,9 +2159,9 @@ static uint32_t avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2179,7 +2179,7 @@ static uint32_t avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2209,9 +2209,9 @@ static uint32_t avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2229,7 +2229,7 @@ static uint32_t avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2259,9 +2259,9 @@ static uint32_t avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2279,7 +2279,7 @@ static uint32_t avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2309,9 +2309,9 @@ static uint32_t avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2329,7 +2329,7 @@ static uint32_t avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2359,9 +2359,9 @@ static uint32_t avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_M
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2379,7 +2379,7 @@ static uint32_t avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_M
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2409,9 +2409,9 @@ static uint32_t avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2429,7 +2429,7 @@ static uint32_t avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2459,9 +2459,9 @@ static uint32_t avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MB
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2479,7 +2479,7 @@ static uint32_t avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MB
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2509,9 +2509,9 @@ static uint32_t avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_M
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2529,7 +2529,7 @@ static uint32_t avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_M
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2559,9 +2559,9 @@ static uint32_t avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2579,7 +2579,7 @@ static uint32_t avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2612,9 +2612,9 @@ static uint32_t avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2632,7 +2632,7 @@ static uint32_t avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2662,9 +2662,9 @@ static uint32_t avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2682,7 +2682,7 @@ static uint32_t avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2712,9 +2712,9 @@ static uint32_t avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2732,7 +2732,7 @@ static uint32_t avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2762,9 +2762,9 @@ static uint32_t avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2782,7 +2782,7 @@ static uint32_t avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2812,9 +2812,9 @@ static uint32_t avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2832,7 +2832,7 @@ static uint32_t avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2862,9 +2862,9 @@ static uint32_t avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2882,7 +2882,7 @@ static uint32_t avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2913,9 +2913,9 @@ static uint32_t avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2933,7 +2933,7 @@ static uint32_t avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -2963,9 +2963,9 @@ static uint32_t avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -2983,7 +2983,7 @@ static uint32_t avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3019,9 +3019,9 @@ static uint32_t avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3039,7 +3039,7 @@ static uint32_t avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3075,9 +3075,9 @@ static uint32_t avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3095,7 +3095,7 @@ static uint32_t avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3126,9 +3126,9 @@ static uint32_t avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3146,7 +3146,7 @@ static uint32_t avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3177,9 +3177,9 @@ static uint32_t avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_D
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3197,7 +3197,7 @@ static uint32_t avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3227,9 +3227,9 @@ static uint32_t avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_D
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3247,7 +3247,7 @@ static uint32_t avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3277,9 +3277,9 @@ static uint32_t avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3297,7 +3297,7 @@ static uint32_t avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3327,9 +3327,9 @@ static uint32_t avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DE
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3347,7 +3347,7 @@ static uint32_t avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DE
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3377,9 +3377,9 @@ static uint32_t avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3397,7 +3397,7 @@ static uint32_t avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3427,9 +3427,9 @@ static uint32_t avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3447,7 +3447,7 @@ static uint32_t avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3478,9 +3478,9 @@ static uint32_t avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_D
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3498,7 +3498,7 @@ static uint32_t avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
-	if (NULL == comp_rec) {
+	if (nullptr == comp_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3528,10 +3528,10 @@ static uint32_t avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_C
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
-	AVND_COMP *pxy_comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
+	AVND_COMP *pxy_comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3565,7 +3565,7 @@ static uint32_t avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_C
 							     comp_dec_ptr->proxy_comp_name);
 	}
 
-	if ((NULL == comp_rec) || (NULL == pxy_comp_rec)) {
+	if ((nullptr == comp_rec) || (nullptr == pxy_comp_rec)) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3598,10 +3598,10 @@ static uint32_t avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_C
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP *comp_dec_ptr = NULL;
+	AVND_COMP *comp_dec_ptr = nullptr;
 	AVND_COMP dec_comp;
-	AVND_COMP *comp_rec = NULL;
-	AVND_COMP *pxy_comp_rec = NULL;
+	AVND_COMP *comp_rec = nullptr;
+	AVND_COMP *pxy_comp_rec = nullptr;
 
 
 	comp_dec_ptr = &dec_comp;
@@ -3635,11 +3635,11 @@ static uint32_t avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_C
 							     comp_dec_ptr->proxy_comp_name);
 	}
 
-	if ((NULL == comp_rec) || (NULL == pxy_comp_rec)) {
+	if ((nullptr == comp_rec) || (nullptr == pxy_comp_rec)) {
 		return NCSCC_RC_FAILURE;
 	}
 
-	status = avnd_comp_proxied_del(cb, comp_rec, pxy_comp_rec, false, NULL);
+	status = avnd_comp_proxied_del(cb, comp_rec, pxy_comp_rec, false, nullptr);
 	if (NCSCC_RC_SUCCESS != status) {
 		return NCSCC_RC_FAILURE;
 	}
@@ -3668,9 +3668,9 @@ static uint32_t avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
+	AVND_SU_SI_REC *su_si_dec_ptr = nullptr;
 	AVND_SU_SI_REC dec_su_si;
-	AVND_SU_SI_REC *su_si_rec = NULL;
+	AVND_SU_SI_REC *su_si_rec = nullptr;
 
 
 	su_si_dec_ptr = &dec_su_si;
@@ -3688,7 +3688,7 @@ static uint32_t avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
-	if (NULL == su_si_rec) {
+	if (nullptr == su_si_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3718,9 +3718,9 @@ static uint32_t avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_D
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
+	AVND_SU_SI_REC *su_si_dec_ptr = nullptr;
 	AVND_SU_SI_REC dec_su_si;
-	AVND_SU_SI_REC *su_si_rec = NULL;
+	AVND_SU_SI_REC *su_si_rec = nullptr;
 
 
 	su_si_dec_ptr = &dec_su_si;
@@ -3738,7 +3738,7 @@ static uint32_t avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
-	if (NULL == su_si_rec) {
+	if (nullptr == su_si_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3768,9 +3768,9 @@ static uint32_t avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MB
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
+	AVND_SU_SI_REC *su_si_dec_ptr = nullptr;
 	AVND_SU_SI_REC dec_su_si;
-	AVND_SU_SI_REC *su_si_rec = NULL;
+	AVND_SU_SI_REC *su_si_rec = nullptr;
 
 
 	su_si_dec_ptr = &dec_su_si;
@@ -3788,7 +3788,7 @@ static uint32_t avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MB
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
-	if (NULL == su_si_rec) {
+	if (nullptr == su_si_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3818,9 +3818,9 @@ static uint32_t avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBC
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_SU_SI_REC *su_si_dec_ptr = NULL;
+	AVND_SU_SI_REC *su_si_dec_ptr = nullptr;
 	AVND_SU_SI_REC dec_su_si;
-	AVND_SU_SI_REC *su_si_rec = NULL;
+	AVND_SU_SI_REC *su_si_rec = nullptr;
 
 
 	su_si_dec_ptr = &dec_su_si;
@@ -3838,7 +3838,7 @@ static uint32_t avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBC
 	}
 
 	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
-	if (NULL == su_si_rec) {
+	if (nullptr == su_si_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3868,9 +3868,9 @@ static uint32_t avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_C
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
+	AVND_COMP_CSI_REC *csi_dec_ptr = nullptr;
 	AVND_COMP_CSI_REC dec_csi;
-	AVND_COMP_CSI_REC *csi_rec = NULL;
+	AVND_COMP_CSI_REC *csi_rec = nullptr;
 
 
 	csi_dec_ptr = &dec_csi;
@@ -3888,7 +3888,7 @@ static uint32_t avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_C
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
-	if (NULL == csi_rec) {
+	if (nullptr == csi_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3918,9 +3918,9 @@ static uint32_t avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_D
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
+	AVND_COMP_CSI_REC *csi_dec_ptr = nullptr;
 	AVND_COMP_CSI_REC dec_csi;
-	AVND_COMP_CSI_REC *csi_rec = NULL;
+	AVND_COMP_CSI_REC *csi_rec = nullptr;
 
 
 	csi_dec_ptr = &dec_csi;
@@ -3938,7 +3938,7 @@ static uint32_t avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_D
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
-	if (NULL == csi_rec) {
+	if (nullptr == csi_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -3968,9 +3968,9 @@ static uint32_t avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
+	AVND_COMP_CSI_REC *csi_dec_ptr = nullptr;
 	AVND_COMP_CSI_REC dec_csi;
-	AVND_COMP_CSI_REC *csi_rec = NULL;
+	AVND_COMP_CSI_REC *csi_rec = nullptr;
 
 
 	csi_dec_ptr = &dec_csi;
@@ -3988,7 +3988,7 @@ static uint32_t avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
-	if (NULL == csi_rec) {
+	if (nullptr == csi_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4018,9 +4018,9 @@ static uint32_t avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBC
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
+	AVND_COMP_CSI_REC *csi_dec_ptr = nullptr;
 	AVND_COMP_CSI_REC dec_csi;
-	AVND_COMP_CSI_REC *csi_rec = NULL;
+	AVND_COMP_CSI_REC *csi_rec = nullptr;
 
 
 	csi_dec_ptr = &dec_csi;
@@ -4038,7 +4038,7 @@ static uint32_t avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBC
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
-	if (NULL == csi_rec) {
+	if (nullptr == csi_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4068,9 +4068,9 @@ static uint32_t avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCS
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CSI_REC *csi_dec_ptr = NULL;
+	AVND_COMP_CSI_REC *csi_dec_ptr = nullptr;
 	AVND_COMP_CSI_REC dec_csi;
-	AVND_COMP_CSI_REC *csi_rec = NULL;
+	AVND_COMP_CSI_REC *csi_rec = nullptr;
 
 
 	csi_dec_ptr = &dec_csi;
@@ -4088,7 +4088,7 @@ static uint32_t avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCS
 	}
 
 	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
-	if (NULL == csi_rec) {
+	if (nullptr == csi_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4118,9 +4118,9 @@ static uint32_t avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DE
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_HC_REC *comp_hc_dec_ptr = NULL;
-	AVND_COMP_HC_REC *comp_hc_rec = NULL;
-	AVND_COMP *comp = NULL;
+	AVND_COMP_HC_REC *comp_hc_dec_ptr = nullptr;
+	AVND_COMP_HC_REC *comp_hc_rec = nullptr;
+	AVND_COMP *comp = nullptr;
 	AVND_COMP_HC_REC tmp_hc_rec;
 	AVND_COMP_HC_REC dec_comp_hc;
 
@@ -4140,7 +4140,7 @@ static uint32_t avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DE
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name);
-	if (NULL == comp) {
+	if (nullptr == comp) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4150,7 +4150,7 @@ static uint32_t avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DE
 
 	comp_hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
 
-	if (NULL == comp_hc_rec) {
+	if (nullptr == comp_hc_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4180,9 +4180,9 @@ static uint32_t avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_HC_REC *comp_hc_dec_ptr = NULL;
-	AVND_COMP_HC_REC *comp_hc_rec = NULL;
-	AVND_COMP *comp = NULL;
+	AVND_COMP_HC_REC *comp_hc_dec_ptr = nullptr;
+	AVND_COMP_HC_REC *comp_hc_rec = nullptr;
+	AVND_COMP *comp = nullptr;
 	AVND_COMP_HC_REC tmp_hc_rec;
 	AVND_COMP_HC_REC dec_comp_hc;
 
@@ -4202,7 +4202,7 @@ static uint32_t avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name);
-	if (NULL == comp) {
+	if (nullptr == comp) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4212,7 +4212,7 @@ static uint32_t avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 
 	comp_hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
 
-	if (NULL == comp_hc_rec) {
+	if (nullptr == comp_hc_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4242,9 +4242,9 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
-	AVND_COMP_CBK *comp_cbk_rec = NULL;
-	AVND_COMP *comp = NULL;
+	AVND_COMP_CBK *comp_cbk_dec_ptr = nullptr;
+	AVND_COMP_CBK *comp_cbk_rec = nullptr;
+	AVND_COMP *comp = nullptr;
 	AVND_COMP_CBK dec_comp_cbk;
 
 
@@ -4263,7 +4263,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
-	if (NULL == comp) {
+	if (nullptr == comp) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4283,7 +4283,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_
 		}
 	}
 
-	if (NULL == comp_cbk_rec) {
+	if (nullptr == comp_cbk_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4313,9 +4313,9 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
-	AVND_COMP_CBK *comp_cbk_rec = NULL;
-	AVND_COMP *comp = NULL;
+	AVND_COMP_CBK *comp_cbk_dec_ptr = nullptr;
+	AVND_COMP_CBK *comp_cbk_rec = nullptr;
+	AVND_COMP *comp = nullptr;
 	AVND_COMP_CBK dec_comp_cbk;
 
 
@@ -4334,7 +4334,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
-	if (NULL == comp) {
+	if (nullptr == comp) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4354,7 +4354,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		}
 	}
 
-	if (NULL == comp_cbk_rec) {
+	if (nullptr == comp_cbk_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4384,9 +4384,9 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
-	AVND_COMP_CBK *comp_cbk_rec = NULL;
-	AVND_COMP *comp = NULL;
+	AVND_COMP_CBK *comp_cbk_dec_ptr = nullptr;
+	AVND_COMP_CBK *comp_cbk_rec = nullptr;
+	AVND_COMP *comp = nullptr;
 	AVND_COMP_CBK dec_comp_cbk;
 
 
@@ -4405,7 +4405,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
-	if (NULL == comp) {
+	if (nullptr == comp) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4425,7 +4425,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		}
 	}
 
-	if (NULL == comp_cbk_rec) {
+	if (nullptr == comp_cbk_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4455,9 +4455,9 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVND_COMP_CBK *comp_cbk_dec_ptr = NULL;
-	AVND_COMP_CBK *comp_cbk_rec = NULL;
-	AVND_COMP *comp = NULL;
+	AVND_COMP_CBK *comp_cbk_dec_ptr = nullptr;
+	AVND_COMP_CBK *comp_cbk_rec = nullptr;
+	AVND_COMP *comp = nullptr;
 	AVND_COMP_CBK dec_comp_cbk;
 
 
@@ -4476,7 +4476,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_
 	}
 
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
-	if (NULL == comp) {
+	if (nullptr == comp) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -4496,7 +4496,7 @@ static uint32_t avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_
 		}
 	}
 
-	if (NULL == comp_cbk_rec) {
+	if (nullptr == comp_cbk_rec) {
 		return NCSCC_RC_FAILURE;
 	}
 
