@@ -215,8 +215,8 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPND_EVT_MDS_INFO:
 		{
 			CPSV_MDS_INFO *info = &evt->info.cpnd.info.mds_info;
-			snprintf(o_evt_str, len, "CPND_EVT_MDS_INFO(dest=0x%lX, svc=%s(%u) - %s(%u))", 
-				info->dest,
+			snprintf(o_evt_str, len, "CPND_EVT_MDS_INFO(dest=0x%llX, svc=%s(%u) - %s(%u))", 
+				(unsigned long long)info->dest,
 				info->svc_id == NCSMDS_SVC_ID_CPA ? "CPA" :
 				info->svc_id == NCSMDS_SVC_ID_CPND ? "CPND" :
 				info->svc_id == NCSMDS_SVC_ID_CPD ? "CPD" : "OTHER",
@@ -289,8 +289,8 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 			char sec_id[MAX_SEC_ID_LEN] = {0};
 			cpsv_convert_sec_id_to_string(sec_id, info->sec_attri.sectionId);
 
-			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_SECT_CREATE(sec_id=%s, mdest=0x%lX)", 
-				info->ckpt_id, sec_id, info->agent_mdest);
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_A2ND_CKPT_SECT_CREATE(sec_id=%s, mdest=0x%llX)", 
+				info->ckpt_id, sec_id, (unsigned long long)info->agent_mdest);
 			break;
 		}
 		case CPND_EVT_A2ND_CKPT_SECT_DELETE:
@@ -689,8 +689,8 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 			char sec_id[MAX_SEC_ID_LEN] = {0};
 			cpsv_convert_sec_id_to_string(sec_id, &info->sec_id);
 
-			snprintf(o_evt_str, len, "[%llu] CPA_EVT_ND2A_SEC_CREATE_RSP(err=%u, sec_id=%s,  mdest=%lX)", 
-				info->ckpt_id, info->error, sec_id, info->agent_mdest);
+			snprintf(o_evt_str, len, "[%llu] CPA_EVT_ND2A_SEC_CREATE_RSP(err=%u, sec_id=%s,  mdest=%llX)", 
+				info->ckpt_id, info->error, sec_id, (unsigned long long)info->agent_mdest);
 			break;
 		}
 		case CPA_EVT_ND2A_SEC_DELETE_RSP:
@@ -783,8 +783,8 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPD_EVT_MDS_INFO:
 		{
 			CPSV_MDS_INFO *info = &evt->info.cpd.info.mds_info;
-			snprintf(o_evt_str, len, "CPD_EVT_MDS_INFO(dest=0x%lX, svc=%s(%u) - %s(%u))", 
-				info->dest,
+			snprintf(o_evt_str, len, "CPD_EVT_MDS_INFO(dest=0x%llX, svc=%s(%u) - %s(%u))", 
+				(unsigned long long)info->dest,
 				info->svc_id == NCSMDS_SVC_ID_CPA ? "CPA" :
 				info->svc_id == NCSMDS_SVC_ID_CPND ? "CPND" :
 				info->svc_id == NCSMDS_SVC_ID_CPD ? "CPD" : "OTHER",
