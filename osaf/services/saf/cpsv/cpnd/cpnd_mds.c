@@ -894,7 +894,7 @@ static uint32_t cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 		case NCSMDS_UP:
 			cb->is_cpd_up = true;
 			cb->cpd_mdest_id = svc_evt->i_dest;
-			TRACE_4("cpnd cpd service came up - cpd_mdest_id = 0x%lX", cb->cpd_mdest_id);
+			TRACE_4("cpnd cpd service came up - cpd_mdest_id = 0x%llX", (unsigned long long)cb->cpd_mdest_id);
 			break;
 
 		case NCSMDS_NO_ACTIVE:

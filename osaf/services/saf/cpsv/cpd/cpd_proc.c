@@ -342,7 +342,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 			goto ckpt_node_add_fail;
 		}
 		if (reploc_info && create_reploc_node) {
-			TRACE_4("reploc node add for non-collocated on node 0x%X - ckpt_id:%llx", m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_dest), ckpt_id);
+			TRACE_4("reploc node add for non-collocated on node 0x%X - ckpt_id:%llx", m_NCS_NODE_ID_FROM_MDS_DEST(*cpnd_dest), ckpt_id);
 			proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
 			if (proc_rc != NCSCC_RC_SUCCESS) {
 				/* goto reploc_node_add_fail; */
