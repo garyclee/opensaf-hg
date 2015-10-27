@@ -45,6 +45,8 @@
 #include <timer.h>
 
 #include <list>
+#include <queue>
+
 class AVD_SI;
 class AVD_AVND;
 
@@ -73,11 +75,6 @@ typedef struct avsv_nd_msg_queue {
 	NCSMDS_INFO snd_msg;
 	struct avsv_nd_msg_queue *next;
 } AVSV_ND_MSG_QUEUE;
-
-typedef struct avsv_nd_msg_list {
-	AVSV_ND_MSG_QUEUE *nd_msg_queue;
-	AVSV_ND_MSG_QUEUE *tail;
-} AVSV_ND_MSG_LIST;
 
 /* For external components, we need to have a list of health check information
    as the health check is assotiated with node. But we wouldn't have health
@@ -158,7 +155,7 @@ typedef struct cl_cb_tag {
 	 * Message queue to hold messages to be sent to the ND.
 	 * This is a FIFO queue.
 	 */
-	AVSV_ND_MSG_LIST nd_msg_queue_list;
+	std::queue<AVSV_ND_MSG_QUEUE*> nd_msg_queue_list {};
 
 	/* Event Queue to hold the events during fail-over */
 	AVD_EVT_QUEUE_LIST evt_queue;
@@ -238,29 +235,6 @@ typedef struct cl_cb_tag {
 	std::list<AVD_SI*> sis_in_Tolerance_Timer_state;
 
 } AVD_CL_CB;
-
-/* macro to push the ND msg in the queue (to the end of the list) */
-#define m_AVD_DTOND_MSG_PUSH(cb, msg) \
-{ \
-   AVSV_ND_MSG_LIST *list = &((cb)->nd_msg_queue_list); \
-   if (!(list->nd_msg_queue)) \
-       list->nd_msg_queue = (msg); \
-   else \
-      list->tail->next = (msg); \
-   list->tail = (msg); \
-}
-
-/* macro to pop the msg (from the beginning of the list) */
-#define m_AVD_DTOND_MSG_POP(cb, msg) \
-{ \
-   AVSV_ND_MSG_LIST *list = &((cb)->nd_msg_queue_list); \
-   if (list->nd_msg_queue) { \
-      (msg) = list->nd_msg_queue; \
-      list->nd_msg_queue = (msg)->next; \
-      (msg)->next = 0; \
-      if (list->tail == (msg)) list->tail = 0; \
-   } else (msg) = 0; \
-}
 
 /* macro to enqueue the AVD events in the queue (to the end of the list) */
 #define m_AVD_EVT_QUEUE_ENQUEUE(cb, evt) \

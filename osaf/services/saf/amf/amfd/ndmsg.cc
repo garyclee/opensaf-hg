@@ -203,7 +203,7 @@ static void avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
 
 	memcpy(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
 
-	m_AVD_DTOND_MSG_PUSH(cb, nd_msg);
+	cb->nd_msg_queue_list.push(nd_msg);
 }
 
 /****************************************************************************
@@ -226,9 +226,9 @@ uint32_t avd_d2n_msg_dequeue(AVD_CL_CB *cb)
 	 * De-queue messages from the Queue and then do the MDS send.
 	 */
 
-	m_AVD_DTOND_MSG_POP(cb, queue_elem);
-
-	while (queue_elem != NULL) {
+	while (!cb->nd_msg_queue_list.empty()) {
+		queue_elem = cb->nd_msg_queue_list.front();
+		cb->nd_msg_queue_list.pop();
 		/*
 		 * Now do MDS send.
 		 */
@@ -239,8 +239,6 @@ uint32_t avd_d2n_msg_dequeue(AVD_CL_CB *cb)
 		d2n_msg_free((AVD_DND_MSG *)queue_elem->snd_msg.info.svc_send.i_msg);
 
 		delete queue_elem;
-
-		m_AVD_DTOND_MSG_POP(cb, queue_elem);
 	}
 
 	return rc;
