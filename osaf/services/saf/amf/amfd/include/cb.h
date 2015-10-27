@@ -96,12 +96,6 @@ typedef struct avd_evt_queue {
 	struct avd_evt_queue *next;
 } AVD_EVT_QUEUE;
 
-typedef struct avd_evt_queue_list {
-	AVD_EVT_QUEUE *evt_msg_queue;
-	AVD_EVT_QUEUE *tail;
-} AVD_EVT_QUEUE_LIST;
-
-
 /* AVD IMM Admin Operation Callback */
 typedef struct admin_oper_cbk {
 	SaAmfAdminOperationIdT admin_oper;
@@ -158,7 +152,7 @@ typedef struct cl_cb_tag {
 	std::queue<AVSV_ND_MSG_QUEUE*> nd_msg_queue_list {};
 
 	/* Event Queue to hold the events during fail-over */
-	AVD_EVT_QUEUE_LIST evt_queue;
+	std::queue<AVD_EVT_QUEUE*> evt_queue {};
 	/* 
 	 * MBCSv related variables.
 	 */
@@ -235,29 +229,6 @@ typedef struct cl_cb_tag {
 	std::list<AVD_SI*> sis_in_Tolerance_Timer_state;
 
 } AVD_CL_CB;
-
-/* macro to enqueue the AVD events in the queue (to the end of the list) */
-#define m_AVD_EVT_QUEUE_ENQUEUE(cb, evt) \
-{ \
-   AVD_EVT_QUEUE_LIST *list = &((cb)->evt_queue); \
-   if (!(list->evt_msg_queue)) \
-       list->evt_msg_queue = (evt); \
-   else \
-      list->tail->next = (evt); \
-   list->tail = (evt); \
-}
-
-/* macro to dequeue the msg (from the beginning of the list) */
-#define m_AVD_EVT_QUEUE_DEQUEUE(cb, evt) \
-{ \
-   AVD_EVT_QUEUE_LIST *list = &((cb)->evt_queue); \
-   if (list->evt_msg_queue) { \
-      (evt) = list->evt_msg_queue; \
-      list->evt_msg_queue = (evt)->next; \
-      (evt)->next = 0; \
-      if (list->tail == (evt)) list->tail = 0; \
-   } else (evt) = 0; \
-}
 
 extern AVD_CL_CB *avd_cb;
 

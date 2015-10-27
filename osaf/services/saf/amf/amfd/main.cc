@@ -377,7 +377,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 		/* Enqueue this event */
 		queue_evt = new AVD_EVT_QUEUE();
 		queue_evt->evt = evt;
-		m_AVD_EVT_QUEUE_ENQUEUE(cb, queue_evt);
+		cb->evt_queue.push(queue_evt);
 	}
 
 	std::map<uint32_t, AVD_FAIL_OVER_NODE *>::const_iterator it = node_list_db->begin();
@@ -389,12 +389,12 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 
 		/* Dequeue, all the messages from the queue
 		   and process them now */
-		m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 
-		while (NULL != queue_evt) {
+		while (!cb->evt_queue.empty()) {
+			queue_evt = cb->evt_queue.front();
+			cb->evt_queue.pop();
 			process_event(cb, queue_evt->evt);
 			delete queue_evt;
-			m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 		}
 
 		/* Walk through all the nodes to check if any of the nodes state is
