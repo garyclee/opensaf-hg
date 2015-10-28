@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2015 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,81 +11,35 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Ericsson AB
 #
 
 include $(top_srcdir)/Makefile.common
 
-MAINTAINERCLEANFILES = Makefile.in
+TESTS = testamfd
 
-SUBDIRS = include scripts tests
+check_PROGRAMS = testamfd
 
-osaf_execbindir = $(pkglibdir)
-osaf_execbin_PROGRAMS = osafamfd
+testamfd_CXXFLAGS =$(AM_CXXFLAGS)
 
-osafamfd_CXXFLAGS =$(AM_CXXFLAGS)
-
-osafamfd_CPPFLAGS = \
+testamfd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/amf/include \
 	-I$(top_srcdir)/osaf/services/saf/amf/amfd/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/osaf/tools/saflog/include
+	-I$(top_srcdir)/osaf/tools/saflog/include \
+	-I$(GTEST_DIR)/include
 
-osafamfd_SOURCES = \
-	app.cc \
-	apptype.cc \
-	chkop.cc \
-	ckpt_dec.cc \
-	ckpt_edu.cc \
-	ckpt_enc.cc \
-	ckpt_updt.cc \
-	cluster.cc \
-	clm.cc \
-	comp.cc \
-	compcstype.cc \
-	comptype.cc \
-	csiattr.cc \
-	csi.cc \
-	cstype.cc \
-	ctcstype.cc \
-	dmsg.cc \
-	hlt.cc \
-	hlttype.cc \
-	imm.cc \
-	main.cc \
-	mds.cc \
-	ndfsm.cc \
-	ndmsg.cc \
-	ndproc.cc \
-	node.cc \
-	nodegroup.cc \
-	nodeswbundle.cc \
-	ntf.cc \
-	pg.cc \
-	role.cc \
-	sg_2n_fsm.cc \
-	sg.cc \
-	sg_nored_fsm.cc \
-	sg_npm_fsm.cc \
-	sg_nwayact_fsm.cc \
-	sg_nway_fsm.cc \
-	sgproc.cc \
-	sgtype.cc \
-	siass.cc \
-	si.cc \
-	si_dep.cc \
-	su.cc \
-	sirankedsu.cc \
-	sutcomptype.cc \
-	sutype.cc \
-	svctype.cc \
-	svctypecstypes.cc \
-	timer.cc \
-	util.cc
+testamfd_LDFLAGS = \
+	-lpthread
 
-osafamfd_LDADD = \
+testamfd_SOURCES = \
+	test_amfdb.cc
+
+testamfd_LDADD = \
+	$(GTEST_DIR)/lib/libgtest.la \
+	$(GTEST_DIR)/lib/libgtest_main.la \
 	$(top_builddir)/osaf/tools/saflog/src/libsaflog.la \
 	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
