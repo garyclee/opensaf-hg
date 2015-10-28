@@ -804,6 +804,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/amf/amfd/include/Makefile
         osaf/services/saf/amf/amfd/scripts/Makefile
         osaf/services/saf/amf/amfd/scripts/osaf-amfd
+        osaf/services/saf/amf/amfd/tests/Makefile
         osaf/services/saf/amf/amfnd/Makefile
         osaf/services/saf/amf/amfnd/include/Makefile
         osaf/services/saf/amf/amfnd/scripts/Makefile

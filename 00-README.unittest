@@ -1,0 +1,48 @@
+Support for using google unit test in openSAF. Using unit test during e.g. refactoring
+to identify units and make code unit testable should improve the overall code quality and robustness.
+Regarding google unit test, see:
+https://code.google.com/p/googletest/
+
+To get and install google test do the following:
+
+wget https://googletest.googlecode.com/files/gtest-1.7.0.zip
+unzip gtest-1.7.0.zip
+cd gtest-1.7.0
+./configure
+make
+export GTEST_DIR=`pwd`
+
+configure openSAF as usual, for example:
+./bootstrap.ch
+./configure CFLAGS="-DRUNASROOT -O2" CXXFLAGS="-DRUNASROOT -O2" --enable-tipc
+
+make -j
+
+To build and run the unit tests
+make check
+
+A unit test report will be written on the console. Unit test logs etc. can be found under the tests directory.
+
+Gtest unit test code to be placed at each service under service/saf/"service"/tests, example:
+
+services/saf/amf/
+├── amfd
+│   ├── include
+│   ├── scripts
+│   └── tests
+├── amfnd
+│   ├── include
+│   ├── scripts
+│   └── tests
+├── amfwdog
+│   ├── scripts
+│   └── tests
+└── config
+
+The test code to have the following naming convention as below:
+tests will be in file test_xxxx.cc, where xxxx is the name of the unit test case,
+e.g test_amfdb.cc. No need to call the RUN_ALL_TESTS() macro, it is included in gtest_main 
+and are automatically linked with the unit test cases.
+
+
+
