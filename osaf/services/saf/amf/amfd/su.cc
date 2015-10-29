@@ -726,10 +726,9 @@ void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
 	avd_saImmOiRtObjectUpdate(&name, "saAmfSUPresenceState",
 		SA_IMM_ATTR_SAUINT32T, &saAmfSUPresenceState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_PRES_STATE);
-	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) && (surestart == true)) {
-		TRACE("setting surestart flag to false");
-		surestart = false;
-	}
+	if ((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
+			(get_surestart() == true))
+		set_surestart(false);
 	//Section 3.2.1.4 Readiness State: presence state affects readiness state of  a PI SU.
 	if (saAmfSUPreInstantiable == true) {
 		if (((saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
@@ -787,7 +786,7 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 		avd_readiness_state_name[saAmfSuReadinessState],
 		avd_readiness_state_name[readiness_state]);
 	saAmfSuReadinessState = readiness_state;
-	if (surestart == false)
+	if (get_surestart() == false)
 		avd_saImmOiRtObjectUpdate(&name, "saAmfSUReadinessState",
 				SA_IMM_ATTR_SAUINT32T, &saAmfSuReadinessState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_READINESS_STATE);
@@ -2382,3 +2381,13 @@ bool AVD_SU::all_comps_in_presence_state(SaAmfPresenceStateT pres) const
 		return false;
 	}
 }
+
+void AVD_SU::set_surestart(bool value)
+{
+	surestart = value;
+	TRACE("surestart flag set to '%u' for '%s'",surestart, name.value);
+}
+
+bool AVD_SU::get_surestart() const
+{ return surestart; }
+

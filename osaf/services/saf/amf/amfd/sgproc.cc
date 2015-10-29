@@ -715,8 +715,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 */
 	if (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.raw == AVSV_ERR_RCVR_SU_RESTART) {
 		TRACE("surestart recovery request for '%s'", su->name.value);
-		su->surestart = true;
-		TRACE("surestart flag is set true");
+		su->set_surestart(true);
 		/*Readiness is temporarliy kept OOS so as to reuse sg_fsm.
 		  It will not be updated to IMM and thus not visible to user.
 		 */
@@ -941,8 +940,7 @@ void process_su_si_response_for_comp(AVD_SU *su)
 			    there will be instantiation only when assignments are given.
 			  */
 		comp_complete_admin_op(comp, SA_AIS_OK);
-		TRACE("surestart flag is set falsefor '%s'",comp->su->name.value);
-		comp->su->surestart = false;		
+		comp->su->set_surestart(false);		
 		comp->su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 		comp->su->sg_of_su->su_insvc(avd_cb, su);
 		TRACE_LEAVE();

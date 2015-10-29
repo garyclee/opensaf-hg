@@ -188,7 +188,7 @@ void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness
 		comp->comp_info.name.value,
 		avd_readiness_state_name[comp->saAmfCompReadinessState], avd_readiness_state_name[readiness_state]);
 	comp->saAmfCompReadinessState = readiness_state;
-	if (comp->su->surestart == false)
+	if (comp->su->get_surestart() == false)
 		avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
 				SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_READINESS_STATE);
@@ -820,10 +820,8 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 				   Thus PI applications modeled on NWay and Nway Active model
 				   this is spec deviation.
 				 */
-				if (comp->su->saAmfSUPreInstantiable == true) {
-					TRACE("surestart flag in '%s' is set to true",comp->su->name.value);
-					comp->su->surestart = true;
-				}
+				if (comp->su->saAmfSUPreInstantiable == true)
+					comp->su->set_surestart(true);
 				comp->su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 				comp->su->sg_of_su->su_fault(avd_cb, comp->su);
 			} else {

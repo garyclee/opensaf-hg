@@ -87,7 +87,6 @@ class AVD_SU {
 	int su_act_state; // not used, kept for EDU, remove later
 
 	AVD_SG *sg_of_su;	/* the service group of this SU */
-	bool surestart; /* used during surestart recovery and restart op on non restartable comp*/
 	AVD_AVND *su_on_node;	/*  the node on which this SU resides */
 	struct avd_su_si_rel_tag *list_of_susi;	/* the list of su si relationship elements */
 
@@ -147,9 +146,12 @@ class AVD_SU {
 	bool all_pi_comps_nonrestartable();
 	SaAmfAdminOperationIdT get_admin_op_id() const;
 	bool all_comps_in_presence_state(SaAmfPresenceStateT pres) const;
+	void set_surestart(bool state);
+	bool get_surestart() const;
 
  private:
 	void initialize();
+	bool surestart; /* used during surestart recovery and restart op on non restartable comp*/
 	void send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id);
 	void set_saAmfSUPreInstantiable(bool value);
 
