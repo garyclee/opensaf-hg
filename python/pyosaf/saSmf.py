@@ -15,8 +15,9 @@
 #
 ############################################################################
 
-from ctypes import *
-from saAis import *
+from ctypes import CDLL, POINTER, Structure, CFUNCTYPE
+from pyosaf.saAis import SaUint64T, SaUint32T, SaEnumT, Enumeration, BYREF, \
+        SaSizeT, SaStringT, SaInvocationT, SaNameT, SaUint8T
 
 # Only mirrors API calls implemented in osaf/libs/agents/saf/smfa/smfa_api.c
 # If it ain't implemented here (or is commented out here),

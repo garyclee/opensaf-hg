@@ -18,15 +18,12 @@
 Class representing an IMM CCB.
 '''
 
-import time
 from ctypes import c_void_p, pointer, cast
 
 from pyosaf.saAis import eSaAisErrorT, SaNameT, SaStringT, \
-    SaDoubleT, SaTimeT, SaUint64T, SaInt64T, SaUint32T, SaInt32T, SaFloatT, \
-    marshalNullArray
+    SaDoubleT, SaTimeT, SaUint64T, SaInt64T, SaUint32T, SaInt32T, SaFloatT
 
-from pyosaf.saImm import eSaImmScopeT, eSaImmValueTypeT, SaImmAttrValuesT_2, \
-    SaImmValueTypeMap
+from pyosaf.saImm import eSaImmScopeT, eSaImmValueTypeT, SaImmAttrValuesT_2
 
 from pyosaf import saImm
 from pyosaf import saImmOm
@@ -71,12 +68,14 @@ def marshal_c_array(value_type, value_list):
     return c_array
 
 class Ccb(object):
+    ''' Represents an ongoing CCB '''
+
     def __init__(self, flags=[saImm.saImm.SA_IMM_CCB_REGISTERED_OI]):
         self.owner_handle = saImmOm.SaImmAdminOwnerHandleT()
 
         owner_name = saImmOm.SaImmAdminOwnerNameT("DummyName")
 
-        err = immom.saImmOmAdminOwnerInitialize(immom.HANDLE, owner_name,
+        immom.saImmOmAdminOwnerInitialize(immom.HANDLE, owner_name,
                 saAis.eSaBoolT.SA_TRUE, self.owner_handle)
 
         self.ccb_handle = saImmOm.SaImmCcbHandleT()
@@ -86,12 +85,12 @@ class Ccb(object):
         else:
             ccb_flags = saImmOm.SaImmCcbFlagsT(0)
 
-        err = immom.saImmOmCcbInitialize(self.owner_handle, ccb_flags,
-                                           self.ccb_handle)
+        immom.saImmOmCcbInitialize(self.owner_handle, ccb_flags,
+                                   self.ccb_handle)
 
     def __enter__(self):
         ''' Called when Ccb is used in a with statement:
-        
+
             with Ccb() as ccb:
                 ...
 
@@ -99,28 +98,28 @@ class Ccb(object):
         '''
         return self
 
-    def __exit__(self, type, value, traceback):
-        ''' Called when Ccb is used in a with statement, 
-            just before it exits 
+    def __exit__(self, exit_type, value, traceback):
+        ''' Called when Ccb is used in a with statement,
+            just before it exits
 
-            type, value and traceback are only set if the with
+            exit_type, value and traceback are only set if the with
             statement was left via an exception
         '''
-        if type or value or traceback:
+        if exit_type or value or traceback:
             self.__del__()
         else:
             self.apply()
             self.__del__()
 
     def __del__(self):
-        error = immom.saImmOmAdminOwnerFinalize(self.owner_handle)
+        immom.saImmOmAdminOwnerFinalize(self.owner_handle)
 
     def create(self, obj, _parent_name=None):
         ''' add to the CCB the object 'obj' '''
         if _parent_name is not None:
             parent_name = SaNameT(_parent_name)
             object_names = [parent_name]
-            err = immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
+            immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
                 eSaImmScopeT.SA_IMM_SUBTREE)
         else:
             parent_name = None
@@ -135,22 +134,25 @@ class Ccb(object):
             attr.attrValues = marshal_c_array(attr.attrValueType, values)
             attr_values.append(attr)
 
-        err = immom.saImmOmCcbObjectCreate_2(self.ccb_handle,
-                                               obj.class_name,
-                                               parent_name,
-                                               attr_values)
+        immom.saImmOmCcbObjectCreate_2(self.ccb_handle,
+                                       obj.class_name,
+                                       parent_name,
+                                       attr_values)
 
     def delete(self, _object_name):
+        ''' Adds a delete operation of the object with the given DN to the
+            CCB'''
+
         if _object_name is None:
             raise SafException(eSaAisErrorT.SA_AIS_ERR_NOT_EXIST)
 
         object_name = SaNameT(_object_name)
         object_names = [object_name]
 
-        err = immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
-            eSaImmScopeT.SA_IMM_SUBTREE)
+        immom.saImmOmAdminOwnerSet(self.owner_handle, object_names,
+                                   eSaImmScopeT.SA_IMM_SUBTREE)
 
-        err = immom.saImmOmCcbObjectDelete(self.ccb_handle, object_name)
+        immom.saImmOmCcbObjectDelete(self.ccb_handle, object_name)
 
     def modify_value_add(self, object_name, attr_name, values):
         ''' add to the CCB an ADD modification of an existing object '''
@@ -282,19 +284,22 @@ class Ccb(object):
 
         attr_mods.append(attr_mod)
 
-        err = immom.saImmOmCcbObjectModify_2(self.ccb_handle,
-            object_names[0], attr_mods)
+        immom.saImmOmCcbObjectModify_2(self.ccb_handle,
+                                       object_names[0], attr_mods)
 
     def apply(self):
         ''' Apply the CCB '''
 
-        err = immom.saImmOmCcbApply(self.ccb_handle)
+        immom.saImmOmCcbApply(self.ccb_handle)
 
 
 def test():
+    ''' Small test case to show how the Ccb class can be used'''
+
     ccb = Ccb()
-    ccb.modify("safAmfCluster=myAmfCluster", "saAmfClusterStartupTimeout",
-               10000000000)
+    ccb.modify_value_replace("safAmfCluster=myAmfCluster",
+                             "saAmfClusterStartupTimeout",
+                             [10000000000])
     ccb.apply()
     del ccb
 

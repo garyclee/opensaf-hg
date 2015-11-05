@@ -15,9 +15,12 @@
 #
 ############################################################################
 
-from ctypes import *
-from saAis import *
-from saNtf import *
+from ctypes import POINTER, Structure, CFUNCTYPE, CDLL, Union
+from pyosaf.saAis import SaAisErrorT, SaInvocationT, SaNameT, SaUint64T, \
+        SaUint32T, SaTimeT, SaUint8T, SaInt64T, SaInt32T, SaDispatchFlagsT, \
+        SaVersionT, SaSelectionObjectT, SaEnumT, Enumeration, SaInt8T, \
+        SaUint16T, Const, BYREF
+from pyosaf.saNtf import SaNtfIdentifierT, SaNtfCorrelationIdsT
 
 # Only mirrors API calls implemented in osaf/libs/agents/saf/ava/ava_api.c
 # If it ain't implemented here (or is commented out here),
@@ -33,7 +36,7 @@ saAmf.SA_AMF_PM_ZERO_EXIT = 0x1
 saAmf.SA_AMF_PM_NON_ZERO_EXIT = 0x2
 saAmf.SA_AMF_PM_ABNORMAL_END = 0x4
 
-SaAmfPmErrorsT = SaUint32T  
+SaAmfPmErrorsT = SaUint32T
 
 SaAmfPmStopQualifierT = SaEnumT
 eSaAmfPmStopQualifierT = Enumeration((
@@ -137,7 +140,7 @@ saAmf.SA_AMF_CSI_ADD_ONE = 0X1
 saAmf.SA_AMF_CSI_TARGET_ONE = 0X2
 saAmf.SA_AMF_CSI_TARGET_ALL = 0X4
 
-SaAmfCSIFlagsT = SaUint32T  
+SaAmfCSIFlagsT = SaUint32T
 
 SaAmfCSITransitionDescriptorT = SaEnumT
 eSaAmfCSITransitionDescriptorT = Enumeration((
@@ -150,7 +153,7 @@ eSaAmfCSITransitionDescriptorT = Enumeration((
 class SaAmfCSIActiveDescriptorT(Structure):
 	"""Contain information associated with active assignment.
 	"""
-	_fields_ = [('transitionDescriptor',SaAmfCSITransitionDescriptorT),
+	_fields_ = [('transitionDescriptor', SaAmfCSITransitionDescriptorT),
 		('activeCompName', SaNameT)]
 
 class SaAmfCSIStandbyDescriptorT(Structure):
@@ -164,7 +167,7 @@ class SaAmfCSIStateDescriptorT(Union):
 	"""
 	_fields_ = [('activeDescriptor', SaAmfCSIActiveDescriptorT),
 		('standbyDescriptor', SaAmfCSIStandbyDescriptorT)]
-	
+
 class SaAmfCSIAttributeT(Structure):
 	"""Contain a single CSI attribute's name and value strings.
 	"""
@@ -269,7 +272,7 @@ saAmf.SA_AMF_COMP_CONTAINER = 0x0010
 saAmf.SA_AMF_COMP_CONTAINED = 0x0020
 saAmf.SA_AMF_COMP_PROXIED_NPI = 0x0040
 
-SaAmfCompCategoryT = SaUint32T  
+SaAmfCompCategoryT = SaUint32T
 
 SaAmfRedundancyModelT = SaEnumT
 eSaAmfRedundancyModelT = Enumeration((
@@ -416,7 +419,7 @@ def saAmfInitialize(amfHandle, amfCallbacks, version):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfInitialize.argtypes = [POINTER(SaAmfHandleT),
                                        POINTER(SaAmfCallbacksT),
                                        POINTER(SaVersionT)]
@@ -443,7 +446,7 @@ def saAmfPmStart(amfHandle, compName, processId,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfPmStart.argtypes = [SaAmfHandleT,
                                     POINTER(SaNameT),
                                     SaUint64T,
@@ -457,7 +460,7 @@ def saAmfPmStart(amfHandle, compName, processId,
 			descendentsTreeDepth, pmErrors, recommendedRecovery)
 #endif /* SA_AMF_B01 || SA_AMF_B02 */
 
-#ifdef SA_AMF_B03 
+#ifdef SA_AMF_B03
 class SaAmfCallbacksT_3(Structure):
 	"""Contain various callbacks AMF may invoke on a component.
 	"""
@@ -492,7 +495,7 @@ def saAmfInitialize_3(amfHandle, amfCallbacks, version):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfInitialize_3.argtypes = [POINTER(SaAmfHandleT),
                                          POINTER(SaAmfCallbacksT_3),
                                          POINTER(SaVersionT)]
@@ -517,7 +520,7 @@ def saAmfComponentUnregister(amfHandle, compName, proxyCompName):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfComponentUnregister.argtypes = [SaAmfHandleT,
                                                 POINTER(SaNameT),
                                                 POINTER(SaNameT)]
@@ -566,7 +569,7 @@ def saAmfProtectionGroupNotificationFree(amfHandle, notification):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfProtectionGroupNotificationFree.argtypes = [SaAmfHandleT,
                                                             POINTER(SaAmfProtectionGroupNotificationT)]
 
@@ -591,7 +594,7 @@ def saAmfComponentErrorReport(amfHandle,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfComponentErrorReport.argtypes = [SaAmfHandleT,
 												POINTER(SaNameT),
 												SaTimeT,
@@ -630,7 +633,7 @@ def saAmfResponse(amfHandle, invocation, error):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfResponse.argtypes = [SaAmfHandleT,
                                      SaInvocationT,
                                      SaAisErrorT]
@@ -674,7 +677,7 @@ def saAmfInitialize_4(amfHandle, amfCallbacks, version):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfInitialize_4.argtypes = [POINTER(SaAmfHandleT),
                                          POINTER(SaAmfCallbacksT_4),
                                          POINTER(SaVersionT)]
@@ -696,7 +699,7 @@ def saAmfSelectionObjectGet(amfHandle, selectionObject):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfSelectionObjectGet.argtypes = [SaAmfHandleT,
                                                POINTER(SaSelectionObjectT)]
 
@@ -716,7 +719,7 @@ def saAmfDispatch(amfHandle, dispatchFlags):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfDispatch.argtypes = [SaAmfHandleT,
                                      SaDispatchFlagsT]
 
@@ -734,7 +737,7 @@ def saAmfFinalize(amfHandle):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfFinalize.argtypes = [SaAmfHandleT]
 
 	amfdll.saAmfFinalize.restype = SaAisErrorT
@@ -753,7 +756,7 @@ def saAmfComponentRegister(amfHandle, compName, proxyCompName):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfComponentRegister.argtypes = [SaAmfHandleT,
                                               POINTER(SaNameT),
                                               POINTER(SaNameT)]
@@ -775,7 +778,7 @@ def saAmfComponentNameGet(amfHandle, compName):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfComponentNameGet.argtypes = [SaAmfHandleT,
                                              POINTER(SaNameT)]
 
@@ -800,7 +803,7 @@ def saAmfPmStart_3(amfHandle,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfPmStart_3.argtypes = [SaAmfHandleT,
                                       POINTER(SaNameT),
                                       SaInt64T,
@@ -828,7 +831,7 @@ def saAmfPmStop(amfHandle, compName, stopQualifier, processId, pmErrors):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfPmStop.argtypes = [SaAmfHandleT,
                                    POINTER(SaNameT),
                                    SaAmfPmStopQualifierT,
@@ -856,7 +859,7 @@ def saAmfHealthcheckStart(amfHandle,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfHealthcheckStart.argtypes = [SaAmfHandleT,
                                              POINTER(SaNameT),
                                              POINTER(SaAmfHealthcheckKeyT),
@@ -883,7 +886,7 @@ def saAmfHealthcheckConfirm(amfHandle,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfHealthcheckConfirm.argtypes = [SaAmfHandleT,
                                                POINTER(SaNameT),
                                                POINTER(SaAmfHealthcheckKeyT),
@@ -907,7 +910,7 @@ def saAmfHealthcheckStop(amfHandle, compName, healthcheckKey):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfHealthcheckStop.argtypes = [SaAmfHandleT,
                                             POINTER(SaNameT),
                                             POINTER(SaAmfHealthcheckKeyT)]
@@ -930,7 +933,7 @@ def saAmfCSIQuiescingComplete(amfHandle, invocation, error):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfCSIQuiescingComplete.argtypes = [SaAmfHandleT,
                                                  SaInvocationT,
                                                  SaAisErrorT]
@@ -954,7 +957,7 @@ def saAmfHAReadinessStateSet(amfHandle,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfHAReadinessStateSet.argtypes = [SaAmfHandleT,
 											    POINTER(SaNameT),
 											    POINTER(SaNameT),
@@ -962,7 +965,7 @@ def saAmfHAReadinessStateSet(amfHandle,
 											    POINTER(SaNtfCorrelationIdsT)]
 
 	amfdll.saAmfHAReadinessStateSet.restype = SaAisErrorT
-	
+
 	return amfdll.saAmfHAReadinessStateSet(amfHandle,
 			BYREF(compName), BYREF(csiName), haReadinessState,
 			BYREF(correlationIds))
@@ -980,7 +983,7 @@ def saAmfHAStateGet(amfHandle, compName, csiName, haState):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfHAStateGet.argtypes = [SaAmfHandleT,
                                        POINTER(SaNameT),
                                        POINTER(SaNameT),
@@ -1005,7 +1008,7 @@ def saAmfProtectionGroupTrack_4(amfHandle,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfProtectionGroupTrack_4.argtypes = [SaAmfHandleT,
                                                    POINTER(SaNameT),
                                                    SaUint8T,
@@ -1027,7 +1030,7 @@ def saAmfProtectionGroupTrackStop(amfHandle, csiName):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfProtectionGroupTrackStop.argtypes = [SaAmfHandleT,
                                                      POINTER(SaNameT)]
 
@@ -1047,7 +1050,7 @@ def saAmfProtectionGroupNotificationFree_4(amfHandle, notification):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfProtectionGroupNotificationFree_4.argtypes = [SaAmfHandleT,
                                                               POINTER(SaAmfProtectionGroupNotificationT_4)]
 
@@ -1072,7 +1075,7 @@ def saAmfComponentErrorReport_4(amfHandle,
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfComponentErrorReport_4.argtypes = [SaAmfHandleT,
                                                    POINTER(SaNameT),
                                                    SaTimeT,
@@ -1100,7 +1103,7 @@ def saAmfCorrelationIdsGet(amfHandle, invocation, correlationIds):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfCorrelationIdsGet.argtypes = [SaAmfHandleT,
                                               SaInvocationT,
                                               POINTER(SaNtfCorrelationIdsT)]
@@ -1122,7 +1125,7 @@ def saAmfComponentErrorClear_4(amfHandle, compName, correlationIds):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfComponentErrorClear_4.argtypes = [SaAmfHandleT,
                                                   POINTER(SaNtfCorrelationIdsT),
                                                   POINTER(SaNtfCorrelationIdsT)]
@@ -1145,7 +1148,7 @@ def saAmfResponse_4(amfHandle, invocation, correlationIds, error):
 		SaAisErrorT
 
 	"""
-	
+
 	amfdll.saAmfResponse_4.argtypes = [SaAmfHandleT,
                                        SaInvocationT,
                                        POINTER(SaNtfCorrelationIdsT),

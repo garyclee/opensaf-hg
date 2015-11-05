@@ -15,12 +15,15 @@
 #
 ############################################################################
 
-from ctypes import *
-from saAis import *
+from ctypes import POINTER, CFUNCTYPE, Structure, CDLL
+from pyosaf.saAis import BYREF, SaUint64T, Const, SaUint32T, SaAisErrorT, \
+        SaUint8T, SaInvocationT, SaSizeT, SaVoidPtr, SaNameT, SaEnumT, \
+        Enumeration, SaTimeT, SaUint16T, SaOffsetT, SaVersionT, \
+        SaSelectionObjectT, SaDispatchFlagsT
 
 ckptdll = CDLL('libSaCkpt.so.1')
 
-SaCkptHandleT = SaUint64T  
+SaCkptHandleT = SaUint64T
 SaCkptCheckpointHandleT = SaUint64T
 SaCkptSectionIterationHandleT = SaUint64T
 
@@ -130,7 +133,8 @@ SaCkptCheckpointSynchronizeCallbackT = CFUNCTYPE(None,
 		SaInvocationT, SaAisErrorT)
 
 SaCkptCheckpointTrackCallbackT = CFUNCTYPE(None,
-                SaCkptCheckpointHandleT, POINTER(SaCkptIOVectorElementT), SaUint32T)
+                SaCkptCheckpointHandleT, POINTER(SaCkptIOVectorElementT),
+                                           SaUint32T)
 
 
 class SaCkptCallbacksT(Structure):
@@ -561,7 +565,7 @@ def saCkptSectionIterationNext(sectionIterationHandle, sectionDescriptor):
 
 	return ckptdll.saCkptSectionIterationNext(sectionIterationHandle,
 			BYREF(sectionDescriptor))
- 
+
 def saCkptSectionIterationFinalize(sectionIterationHandle):
 	"""Free resources allocated for iteration.
 
@@ -720,12 +724,12 @@ def saCkptCheckpointSynchronizeAsync(checkpointHandle, invocation):
 	return ckptdll.saCkptCheckpointSynchronizeAsync(checkpointHandle,
 			invocation)
 
-def saCkptSectionIdFree(checkpointHandle, id):
-	"""Free memory to which id points, allocated by saCkptSectionCreate().
+def saCkptSectionIdFree(checkpointHandle, section_id):
+	"""Free memory to which section_id points, allocated by saCkptSectionCreate().
 
 	type arguments:
 		SaCkptCheckpointHandleT checkpointHandle
-		POINTER(SaUint8T) id
+		POINTER(SaUint8T) section_id
 
 	returns:
 		SaAisErrorT
@@ -738,8 +742,8 @@ def saCkptSectionIdFree(checkpointHandle, id):
 
 	ckptdll.saCkptSectionIdFree.restype = SaAisErrorT
 
-	return ckptdll.saCkptSectionIdFree(checkpointHandle, 
-									BYREF(id))
+	return ckptdll.saCkptSectionIdFree(checkpointHandle,
+                                           BYREF(section_id))
 
 def saCkptIOVectorElementDataFree(checkpointHandle, data):
 	"""Free memory to which data points, allocated by saCkptCheckpointRead().
@@ -759,7 +763,7 @@ def saCkptIOVectorElementDataFree(checkpointHandle, data):
 
 	ckptdll.saCkptIOVectorElementDataFree.restype = SaAisErrorT
 
-	return ckptdll.saCkptIOVectorElementDataFree(checkpointHandle, 
+	return ckptdll.saCkptIOVectorElementDataFree(checkpointHandle,
                                                     data)
 
 def saCkptTrack(ckptHandle):

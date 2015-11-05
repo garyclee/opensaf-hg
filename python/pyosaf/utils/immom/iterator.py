@@ -20,7 +20,6 @@ IMM Search iterators
 '''
 
 import sys
-import time
 import collections
 from ctypes import pointer, c_char_p, cast, c_void_p
 
@@ -63,11 +62,11 @@ class SearchIterator(collections.Iterator):
             search_param = _search_param
 
         try:
-            err = immom.saImmOmSearchInitialize_2(immom.HANDLE, 
-                                                  self.root_name, self.scope, 
-                                                  search_options, search_param, 
-                                                  self.attribute_names,
-                                                  self.search_handle)
+            immom.saImmOmSearchInitialize_2(immom.HANDLE,
+                                            self.root_name, self.scope,
+                                            search_options, search_param,
+                                            self.attribute_names,
+                                            self.search_handle)
         except SafException as err:
             if err.value == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
                 self.search_handle = None
@@ -77,7 +76,7 @@ class SearchIterator(collections.Iterator):
 
     def __del__(self):
         if self.search_handle is not None:
-            error = immom.saImmOmSearchFinalize(self.search_handle)
+            immom.saImmOmSearchFinalize(self.search_handle)
 
     def __iter__(self):
         return self
@@ -86,8 +85,8 @@ class SearchIterator(collections.Iterator):
         name = SaNameT()
         attributes = pointer(pointer(SaImmAttrValuesT_2()))
         try:
-            error = immom.saImmOmSearchNext_2(self.search_handle, name,
-                                              attributes)
+            immom.saImmOmSearchNext_2(self.search_handle, name,
+                                      attributes)
         except SafException as err:
             if err.value == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
                 raise StopIteration

@@ -7,7 +7,7 @@ import immom
 def getimplementer(dn):
     """Returns the implmenter of an object or '' if there are no implementer.
     """
-    for (n,t,v) in immom.getobject(dn):
+    for (n, t, v) in immom.getobject(dn):
         if n == 'SaImmAttrImplementerName':
             if v:
                 return v[0]
@@ -26,7 +26,7 @@ def getimplementers():
 def getadminowner(dn):
     """Returns the adminowner of an object or '' if there are no adminowner.
     """
-    for (n,t,v) in immom.getobject(dn):
+    for (n, t, v) in immom.getobject(dn):
         if n == 'SaImmAttrAdminOwnerName':
             if v:
                 return v[0]
@@ -37,7 +37,7 @@ def runtimeclasses():
     """
     rtset = set()
     for cn in immom.getclassnames():
-        (c,a) = immom.getclass(cn)
+        (c, a) = immom.getclass(cn)
         if c == 'RUNTIME':
             rtset.add(cn)
     return rtset
@@ -54,8 +54,8 @@ def configrtclasses():
     """
     rtset = set()
     for cn in configclasses():
-        (c,a) = immom.getclass(cn)
-        for (n,t,f,d) in a:
+        (c, a) = immom.getclass(cn)
+        for (n, t, f, d) in a:
             if 'RUNTIME' in f:
                 rtset.add(cn)
     return rtset

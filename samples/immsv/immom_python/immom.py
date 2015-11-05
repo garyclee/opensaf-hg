@@ -42,7 +42,7 @@ immom -- An IMM Object Manager in Python
         "SA_AIS_ERR_REPAIR_PENDING",
         "SA_AIS_ERR_NO_BINDINGS",
         "SA_AIS_ERR_UNAVAILABLE"
-  
+
 
 """
 import sys
@@ -76,10 +76,10 @@ def _flag_parse(l):
     return f
 
 def _get_rdn_attr(class_name):
-    (c,a) = getclass(class_name)
-    for (n,t,f,l) in a:
+    (c, a) = getclass(class_name)
+    for (n, t, f, l) in a:
         if 'RDN' in f:
-            return (n,t)
+            return (n, t)
 
 def split_dn(dn):
     """Split a distinguish (dn) name into a tuple; (rdn,parent)
@@ -88,12 +88,12 @@ def split_dn(dn):
     ('ref=one=1\\,two=2\\,three=3', 'top=1')
     """
     dnitems = dn.split(',')
-    i=0
+    i = 0
     while dnitems[i][-1] == '\\':
         i = i+1
     rdn = ','.join(dnitems[:i+1])
     parent = ','.join(dnitems[i+1:])
-    return (rdn,parent)
+    return (rdn, parent)
 
 def getclass(name):
     """Get IMM Class Information.
@@ -117,14 +117,14 @@ def getclass(name):
             'RUNTIME' | 'PERSISTENT' | 'CACHED'
 
     """
-    (c,a) = immombin.saImmOmClassDescriptionGet(name)
-    return (c, [(n,t,_flag_list(f),l) for (n,t,f,l) in a])
+    (c, a) = immombin.saImmOmClassDescriptionGet(name)
+    return (c, [(n, t, _flag_list(f), l) for (n, t, f, l) in a])
 
 def getclassnames():
     """Returns a list of all defined IMM classes.
     """
     dn='opensafImm=opensafImm,safApp=safImmService'
-    for (n,t,v) in immombin.saImmOmAccessorGet(dn):
+    for (n, t, v) in immombin.saImmOmAccessorGet(dn):
         if n == 'opensafImmClassNames':
             return v
 
@@ -135,7 +135,7 @@ def createclass(name, category, attrs):
 
     NOTE: Default values are not yet implemented.
     """
-    attrs = [ (n,t,_flag_parse(f),l) for (n,t,f,l) in attrs
+    attrs = [ (n, t, _flag_parse(f), l) for (n, t, f, l) in attrs
               if not n.startswith('SaImm') ]
     immombin.saImmOmClassCreate(name, category, attrs)
 
@@ -175,7 +175,7 @@ def getinstanceof(dn, classname):
 def classof(dn):
     """Get the class of an object.
     """
-    for (n,t,v) in getobject(dn):
+    for (n, t, v) in getobject(dn):
         if n == 'SaImmAttrClassName':
             return v[0]
     
@@ -192,7 +192,7 @@ def getattributes(dn):
     a convenient dictionary. The type info is however lost.
     """
     a = dict()
-    for (n,t,v) in immombin.saImmOmAccessorGet(dn):
+    for (n, t, v) in immombin.saImmOmAccessorGet(dn):
         a[n] = v
     return a
 
@@ -238,9 +238,9 @@ def createobject(dn, class_name, attr_list):
     attribute will be created automatically and shall not be included
     in the attr_list. Any "SaImm*" and RDN attributes will be ignored.
     """
-    (rdn,parent) = split_dn(dn)
-    (rdn_attr,rdn_type) = _get_rdn_attr(class_name)
-    attr_list = filter(lambda (n,t,v):
+    (rdn, parent) = split_dn(dn)
+    (rdn_attr, rdn_type) = _get_rdn_attr(class_name)
+    attr_list = filter(lambda (n, t, v):
                        not n.startswith('SaImm') and n != rdn_attr, attr_list)
     attr_list.append( (rdn_attr, rdn_type, [ rdn ]) )
     if parent:
@@ -251,7 +251,7 @@ def copyobject(src_dn, dst_dn):
     """Copy an IMM object.
     """
     attr_list = getobject(src_dn)
-    for (n,t,v) in attr_list:
+    for (n, t, v) in attr_list:
         if n == 'SaImmAttrClassName':
             class_name = v[0]
             break
@@ -262,7 +262,7 @@ def modifyobject(dn, attr_list):
     Any "SaImm*" attributes will be ignored.
     """
     #immombin.saImmOmAdminOwnerSet('SA_IMM_ONE', [dn])
-    attr_list = filter(lambda (n,t,v):
+    attr_list = filter(lambda (n, t, v):
                        not n.startswith('SaImm'), attr_list)
     immombin.saImmOmCcbObjectModify(dn, attr_list)
 
@@ -315,15 +315,15 @@ def _dumpclassattr(n, t, f, d):
 def dumpclass(cn):
     """Dump a class in imm-xml format.
     """
-    (c,a) = getclass(cn)
+    (c, a) = getclass(cn)
     print '  <class name="%s">' % cn
     print '    <category>SA_%s</category>' % c
-    for (n,t,f,d) in a:
-        _dumpclassattr(n,t,f,d)
+    for (n, t, f, d) in a:
+        _dumpclassattr(n, t, f, d)
     print '  </class>'
 
 def _getaflags(ca, attr):
-    for (n,t,f,d) in ca:
+    for (n, t, f, d) in ca:
         if n == attr:
             return f
 
@@ -338,7 +338,7 @@ def dumpobj(dn):
 
     print '  <object class="%s">' % c
     print '    <dn>%s</dn>' % dn
-    for (k,v) in a.iteritems():
+    for (k, v) in a.iteritems():
         if k.startswith('Sa') or not v:
             continue
         f = _getaflags(ax, k)

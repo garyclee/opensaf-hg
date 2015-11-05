@@ -20,7 +20,6 @@
 '''
 
 from pyosaf.saImm import saImm
-from pyosaf import saImmOm
 import pyosaf.utils.immom
 
 

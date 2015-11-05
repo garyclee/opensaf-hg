@@ -15,15 +15,17 @@
 #
 ############################################################################
 
-from ctypes import *
-from saAis import *
+from ctypes import POINTER, CFUNCTYPE, Structure, Union, CDLL
+from pyosaf.saAis import SaUint64T, SaEnumT, Enumeration, Const, BYREF, \
+        SaUint32T, SaUint16T, SaBoolT, SaStringT, SaNameT, SaTimeT, SaDoubleT, \
+        SaInt64T, SaUint8T, SaInt8T, SaInt16T, SaInt32T, SaFloatT
 
 ntfdll = CDLL('libSaNtf.so.0')
 
 SaNtfHandleT = SaUint64T
 SaNtfNotificationHandleT = SaUint64T
-SaNtfNotificationFilterHandleT = SaUint64T  
-SaNtfReadHandleT = SaUint64T  
+SaNtfNotificationFilterHandleT = SaUint64T
+SaNtfReadHandleT = SaUint64T
 
 SaNtfNotificationTypeT = SaEnumT
 eSaNtfNotificationTypeT = Enumeration((
@@ -65,13 +67,13 @@ eSaNtfEventTypeT = Enumeration((
 	'SA_NTF_ALARM_EQUIPMENT',
 	'SA_NTF_ALARM_ENVIRONMENT',
 
-	('SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START', 
+	('SA_NTF_SECURITY_ALARM_NOTIFICATIONS_START',
 	     eSaNtfNotificationTypeT.SA_NTF_TYPE_SECURITY_ALARM),
 	'SA_NTF_INTEGRITY_VIOLATION',
 	'SA_NTF_OPERATION_VIOLATION',
 	'SA_NTF_PHYSICAL_VIOLATION',
 	'SA_NTF_SECURITY_SERVICE_VIOLATION',
-	'SA_NTF_TIME_VIOLATION', 
+	'SA_NTF_TIME_VIOLATION',
 
 	('SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START',
 	    eSaNtfNotificationTypeT.SA_NTF_TYPE_MISCELLANEOUS),
@@ -132,7 +134,7 @@ saNtf.SA_NTF_HPI_EVENT_FUMI_BIT = 0x8000000
 saNtf.SA_NTF_HPI_EVENT_OTHER_BIT = 0x10000000
 saNtf.SA_NTF_APPLICATION_EVENT_BIT = 0x100000000000
 
-SaNtfEventTypeBitmapT = SaUint64T  
+SaNtfEventTypeBitmapT = SaUint64T
 
 class SaNtfClassIdT(Structure):
 	"""Contain unique identifier for the situation that triggered
@@ -144,7 +146,7 @@ class SaNtfClassIdT(Structure):
 
 saNtf.SA_NTF_VENDOR_ID_SAF = 18568
 
-SaNtfElementIdT = SaUint16T  
+SaNtfElementIdT = SaUint16T
 
 SaNtfIdentifierT = SaUint64T
 saNtf.SA_NTF_IDENTIFIER_UNUSED = 0
@@ -474,11 +476,11 @@ class SaNtfMiscellaneousNotificationT(Structure):
 	"""Contain pointers to the fields in a miscellaneous notification.
 	"""
 	_fields_ = [('notificationHandle', SaNtfNotificationHandleT),
-		('notificationHeader', SaNtfNotificationHeaderT )]
+		('notificationHeader', SaNtfNotificationHeaderT)]
 
 saNtf.SA_NTF_ALLOC_SYSTEM_LIMIT = -1
 
-SaNtfSubscriptionIdT = SaUint32T  
+SaNtfSubscriptionIdT = SaUint32T
 
 class SaNtfNotificationFilterHeaderT(Structure):
 	"""Contain filter elements common to all notification types.
@@ -554,8 +556,8 @@ class SaNtfSecurityAlarmNotificationFilterT(Structure):
 	"""
 	_fields_ = [('notificationFilterHandle',
 			SaNtfNotificationFilterHandleT),
-		('notificationFilterHeader',SaNtfNotificationFilterHeaderT ),
-		('numProbableCauses',SaUint16T ),
+		('notificationFilterHeader', SaNtfNotificationFilterHeaderT),
+		('numProbableCauses', SaUint16T),
 		('numSeverities', SaUint16T),
 		('numSecurityAlarmDetectors', SaUint16T),
 		('numServiceUsers', SaUint16T),
@@ -724,7 +726,7 @@ class SaNtfCallbacksT_2(Structure):
 
 SaNtfStaticSuppressionFilterSetCallbackT_3 = CFUNCTYPE(None,
 	SaNtfHandleT, SaNtfEventTypeBitmapT)
-    
+
 SaNtfNotificationCallbackT_3 = CFUNCTYPE(None,
 	SaNtfSubscriptionIdT, POINTER(SaNtfNotificationsT_3))
 
@@ -1038,7 +1040,7 @@ def saNtfStateChangeNotificationAllocate(ntfHandle,
 			numStateChanges,
 			variableDataSize)
 #endif /* SA_NTF_A01 || SA_NTF_A02 */
-    
+
 def saNtfStateChangeNotificationAllocate_3(ntfHandle,
 		notification,
 		numCorrelatedNotifications,
@@ -1608,7 +1610,7 @@ def saNtfNotificationReadNext_3(readHandle, searchDirection, notification):
 	return ntfdll.saNtfNotificationReadNext_3(readHandle,
 			searchDirection,
 			BYREF(notification))
-    
+
 def saNtfNotificationReadFinalize(readHandle):
 	"""Release resources bound to the read handle.
 

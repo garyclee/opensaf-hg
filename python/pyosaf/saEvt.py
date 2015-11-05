@@ -15,8 +15,8 @@
 #
 ############################################################################
 
-from ctypes import *
-from saAis import *
+from ctypes import POINTER, CFUNCTYPE, Structure, CDLL, create_string_buffer
+from pyosaf.saAis import SaUint64T, SaUint32T, SaInvocationT, SaAisErrorT, SaSizeT, SaUint8T, BYREF, SaEnumT, Enumeration, SaInt8T, Const
 
 evtdll = CDLL('libSaEvt.so.1')
 

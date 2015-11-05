@@ -15,10 +15,14 @@
 #
 ############################################################################
 
-from ctypes import *
-from saImm import *
-from saAis import *
-from saImmOm import SaImmCcbHandleT, SaImmAdminOwnerHandleT
+from ctypes import POINTER, CFUNCTYPE, CDLL, Structure
+from pyosaf.saImm import SaImmAttrNameT, SaImmClassNameT, SaImmAttrValuesT_2, \
+        SaImmAttrModificationT_2, SaImmAdminOperationIdT, \
+        SaImmAdminOperationIdT, SaImmAdminOperationParamsT_2, SaImmScopeT
+from pyosaf.saAis import SaUint64T, SaStringT, SaAisErrorT, SaNameT, \
+        SaInvocationT, SaVersionT, BYREF, SaSelectionObjectT, \
+        SaDispatchFlagsT, marshalNullArray
+from pyosaf.saImmOm import SaImmCcbHandleT, SaImmAdminOwnerHandleT
 
 oidll = CDLL('libSaImmOi.so.0')
 
@@ -68,7 +72,7 @@ class SaImmOiCallbacksT_2(Structure):
 			SaImmOiCcbApplyCallbackT),
 		('saImmOiCcbCompletedCallback',
 			SaImmOiCcbCompletedCallbackT),
-		('saImmOiCcbObjectCreateCallback', 
+		('saImmOiCcbObjectCreateCallback',
 			SaImmOiCcbObjectCreateCallbackT_2),
 		('saImmOiCcbObjectDeleteCallback',
 			SaImmOiCcbObjectDeleteCallbackT),
@@ -91,10 +95,10 @@ def saImmOiInitialize_2(immOiHandle, immOiCallbacks, version):
 
 	"""
 	oidll.saImmOiInitialize_2.argtypes = [POINTER(SaImmOiHandleT),
-										  POINTER(SaImmOiCallbacksT_2),
-										  POINTER(SaVersionT)]
+                                              POINTER(SaImmOiCallbacksT_2),
+                                              POINTER(SaVersionT)]
 	oidll.saImmOiInitialize_2.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiInitialize_2(BYREF(immOiHandle),
 			BYREF(immOiCallbacks),
 			BYREF(version))
@@ -111,12 +115,12 @@ def saImmOiSelectionObjectGet(immOiHandle, selectionObject):
 		SaAisErrorT
 
 	"""
-	
+
 	oidll.saImmOiSelectionObjectGet.argtypes = [SaImmOiHandleT,
-												POINTER(SaSelectionObjectT)]
-	
+                                                    POINTER(SaSelectionObjectT)]
+
 	oidll.saImmOiSelectionObjectGet.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiSelectionObjectGet(immOiHandle,
 			BYREF(selectionObject))
 
@@ -131,11 +135,11 @@ def saImmOiDispatch(immOiHandle, dispatchFlags):
 		SaAisErrorT
 
 	"""
-	
-	oidll.saImmOiDispatch.argtypes = [SaImmOiHandleT,SaDispatchFlagsT]
-	
+
+	oidll.saImmOiDispatch.argtypes = [SaImmOiHandleT, SaDispatchFlagsT]
+
 	oidll.saImmOiDispatch.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiDispatch(immOiHandle, dispatchFlags)
 
 def saImmOiFinalize(immOiHandle):
@@ -148,11 +152,11 @@ def saImmOiFinalize(immOiHandle):
 		SaAisErrorT
 
 	"""
-	
+
 	oidll.saImmOiFinalize.argtypes = [SaImmOiHandleT]
-	
+
 	oidll.saImmOiFinalize.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiFinalize(immOiHandle)
 
 def saImmOiImplementerSet(immOiHandle, implementerName):
@@ -167,11 +171,11 @@ def saImmOiImplementerSet(immOiHandle, implementerName):
 		SaAisErrorT
 
 	"""
-	
+
 	oidll.saImmOiImplementerSet.argtypes = [SaImmOiHandleT,
-											SaImmOiImplementerNameT]
+                                                SaImmOiImplementerNameT]
 	oidll.saImmOiImplementerSet.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiImplementerSet(immOiHandle, implementerName)
 
 def saImmOiImplementerClear(immOiHandle):
@@ -187,7 +191,7 @@ def saImmOiImplementerClear(immOiHandle):
 	"""
 	oidll.saImmOiImplementerClear.argtypes = [SaImmOiHandleT]
 	oidll.saImmOiImplementerClear.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiImplementerClear(immOiHandle)
 
 def saImmOiClassImplementerSet(immOiHandle, className):
@@ -204,10 +208,10 @@ def saImmOiClassImplementerSet(immOiHandle, className):
 
 	"""
 	oidll.saImmOiClassImplementerSet.argtypes = [SaImmOiHandleT,
-												 SaImmClassNameT]
-	
+                                                     SaImmClassNameT]
+
 	oidll.saImmOiClassImplementerSet.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiClassImplementerSet(immOiHandle, className)
 
 def saImmOiClassImplementerRelease(immOiHandle, className):
@@ -223,12 +227,12 @@ def saImmOiClassImplementerRelease(immOiHandle, className):
 		SaAisErrorT
 
 	"""
-	
+
 	oidll.saImmOiClassImplementerRelease.argtypes = [SaImmOiHandleT,
-													 SaImmClassNameT]
-	
+                                                         SaImmClassNameT]
+
 	oidll.saImmOiClassImplementerRelease.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiClassImplementerRelease(immOiHandle, className)
 
 def saImmOiObjectImplementerSet(immOiHandle, objectName, scope):
@@ -245,13 +249,13 @@ def saImmOiObjectImplementerSet(immOiHandle, objectName, scope):
 		SaAisErrorT
 
 	"""
-	
+
 	oidll.saImmOiObjectImplementerSet.argtypes = [SaImmOiHandleT,
-												  POINTER(SaNameT),
-												  SaImmScopeT]
-	
+                                                      POINTER(SaNameT),
+                                                      SaImmScopeT]
+
 	oidll.saImmOiObjectImplementerSet.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiObjectImplementerSet(immOiHandle,
 			BYREF(objectName),
 			scope)
@@ -270,13 +274,13 @@ def saImmOiObjectImplementerRelease(immOiHandle, objectName, scope):
 		SaAisErrorT
 
 	"""
-	
+
 	oidll.saImmOiObjectImplementerRelease.argtypes = [SaImmOiHandleT,
-													  POINTER(SaNameT),
-													  SaImmScopeT]
-	
+                                                          POINTER(SaNameT),
+                                                          SaImmScopeT]
+
 	oidll.saImmOiObjectImplementerRelease.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiObjectImplementerRelease(immOiHandle,
 			BYREF(objectName),
 			scope)
@@ -297,10 +301,10 @@ def saImmOiRtObjectCreate_2(immOiHandle, className, parentName, attrValues):
 	"""
 	c_attr_values = marshalNullArray(attrValues)
 	oidll.saImmOiRtObjectCreate_2.argtypes = [SaImmOiHandleT,
-											  SaImmClassNameT,
-											  POINTER(SaNameT),
-											  POINTER(POINTER(SaImmAttrValuesT_2))]
-	
+                                                  SaImmClassNameT,
+                                                  POINTER(SaNameT),
+                                                  POINTER(POINTER(SaImmAttrValuesT_2))]
+
 	oidll.saImmOiRtObjectCreate_2.restype = SaAisErrorT
 
 	return oidll.saImmOiRtObjectCreate_2(immOiHandle,
@@ -321,9 +325,9 @@ def saImmOiRtObjectDelete(immOiHandle, objectName):
 	"""
 
 	oidll.saImmOiRtObjectDelete.argtypes = [SaImmOiHandleT,
-											POINTER(SaNameT)]
+                                                POINTER(SaNameT)]
 	oidll.saImmOiRtObjectDelete.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiRtObjectDelete(immOiHandle, BYREF(objectName))
 
 def saImmOiRtObjectUpdate_2(immOiHandle, objectName, attrMods):
@@ -340,11 +344,11 @@ def saImmOiRtObjectUpdate_2(immOiHandle, objectName, attrMods):
 	"""
 	c_attr_mods = marshalNullArray(attrMods)
 	oidll.saImmOiRtObjectUpdate_2.argtypes = [SaImmOiHandleT,
-											  POINTER(SaNameT),
-											  POINTER(POINTER(SaImmAttrModificationT_2))]
-	
+                                                  POINTER(SaNameT),
+                                                  POINTER(POINTER(SaImmAttrModificationT_2))]
+
 	oidll.saImmOiRtObjectUpdate_2.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiRtObjectUpdate_2(immOiHandle,
 			BYREF(objectName),
 			c_attr_mods)
@@ -362,17 +366,17 @@ def saImmOiAdminOperationResult(immOiHandle, invocation, result):
 		SaAisErrorT
 
 	"""
-	
+
 	oidll.saImmOiAdminOperationResult.argtypes = [SaImmOiHandleT,
-												  SaInvocationT,
-												  SaAisErrorT]
-	
+                                                      SaInvocationT,
+                                                      SaAisErrorT]
+
 	oidll.saImmOiAdminOperationResult.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiAdminOperationResult(immOiHandle, invocation, result)
 
 def saImmOiAdminOperationResult_o2(immOiHandle, invocation, result,
-								   returnParams):
+                                   returnParams):
 	"""Respond to IMM with result of saImmOiAdminOperationCallback()
 	invoked by IMM.
 
@@ -386,18 +390,19 @@ def saImmOiAdminOperationResult_o2(immOiHandle, invocation, result,
 		SaAisErrorT
 
 	"""
-	
-	oidll.saImmOiAdminOperationResult_o2.argtypes = [SaImmOiHandleT,
-												  SaInvocationT,
-												  SaAisErrorT,
-												  POINTER(POINTER(SaImmAdminOperationParamsT_2))]
-	
-	oidll.saImmOiAdminOperationResult_o2.restype = SaAisErrorT
-	
-	return oidll.saImmOiAdminOperationResult_o2(immOiHandle, invocation, result, BYREF(returnParams))
 
-def saImmOiAugmentCcbInitialize(immOiHandle, ccbId64, ccbHandle, 
-							    ownerHandle):
+	oidll.saImmOiAdminOperationResult_o2.argtypes = [SaImmOiHandleT,
+                                                         SaInvocationT,
+                                                         SaAisErrorT,
+                                                         POINTER(POINTER(SaImmAdminOperationParamsT_2))]
+
+	oidll.saImmOiAdminOperationResult_o2.restype = SaAisErrorT
+
+	return oidll.saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+                                                    result, BYREF(returnParams))
+
+def saImmOiAugmentCcbInitialize(immOiHandle, ccbId64, ccbHandle,
+                                ownerHandle):
 	"""Allows the OI implementers to augment ops to a ccb related
     to a current ccb-upcall, before returning from the upcall.
     This is allowed inside:
@@ -408,27 +413,28 @@ def saImmOiAugmentCcbInitialize(immOiHandle, ccbId64, ccbHandle,
        SaImmOiCcbCompletedCallbackT
        SaImmOiApplyCallbackT
        SaImmOiAbortCallbackT
-       
+
     type arguments:
        SaImmOiHandleT immOiHandle
        SaImmOiCcbIdT ccbId64
        SaImmCcbHandleT *ccbHandle
        SaImmAdminOwnerHandleT *ownerHandle
-				     
+
     returns:
        SaAisErrorT
     """
-    
-	oidll.saImmOiAugmentCcbInitialize.argtypes = [SaImmOiHandleT, 
-												  SaImmOiCcbIdT,
-												  POINTER(SaImmCcbHandleT),
-												  POINTER(SaImmAdminOwnerHandleT)]
+
+	oidll.saImmOiAugmentCcbInitialize.argtypes = [SaImmOiHandleT,
+                                                      SaImmOiCcbIdT,
+                                                      POINTER(SaImmCcbHandleT),
+                                                      POINTER(SaImmAdminOwnerHandleT)]
 
 	oidll.saImmOiAugmentCcbInitialize.restype = SaAisErrorT
-    
+
 	return oidll.saImmOiAugmentCcbInitialize(immOiHandle, ccbId64,
-											 BYREF(ccbHandle),BYREF(ownerHandle))
-    
+                                                 BYREF(ccbHandle),
+                                                 BYREF(ownerHandle))
+
 def saImmOiCcbSetErrorString(immOiHandle, ccbId, errorString):
 	"""Allows the OI implementers to post an error string related
     to a current ccb-upcall, before returning from the upcall.
@@ -438,21 +444,21 @@ def saImmOiCcbSetErrorString(immOiHandle, ccbId, errorString):
         SaImmOiCcbObjectDeleteCallbackT
         SaImmOiCcbObjectModifyCallbackT
         SaImmOiCcbCompletedCallbackT
-                   
+
     type arguments:
         SaImmOiHandleT - immOiHandle
         SaImmOiCcbIdT - ccbId
         SaStringT - errorString
-        
+
     returns:
         SaAisErrorT
- 
+
 	"""
 	oidll.saImmOiCcbSetErrorString.argtypes = [SaImmOiHandleT,
-											   SaImmOiCcbIdT,
-											   SaStringT]
-	
+                                                   SaImmOiCcbIdT,
+                                                   SaStringT]
+
 	oidll.saImmOiCcbSetErrorString.restype = SaAisErrorT
-	
+
 	return oidll.saImmOiCcbSetErrorString(immOiHandle, ccbId, errorString)
 
