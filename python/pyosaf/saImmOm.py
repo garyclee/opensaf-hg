@@ -262,7 +262,7 @@ def saImmOmSearchInitialize_2(immHandle,
 		SaAisErrorT
 
 	"""
-        c_attributeNames = marshalNullArray(attributeNames)
+	c_attributeNames = marshalNullArray(attributeNames)
 
 	omdll.saImmOmSearchInitialize_2.argtypes = [SaImmHandleT,
 						POINTER(SaNameT),

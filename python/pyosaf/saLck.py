@@ -15,8 +15,9 @@
 #
 ############################################################################
 
-from ctypes import *
-from saAis import *
+from ctypes import CFUNCTYPE, Structure, CDLL
+from pyosaf.saAis import SaUint64T, Const, SaUint32T, SaEnumT, Enumeration, \
+        BYREF, SaAisErrorT, SaInvocationT
 
 lckdll = CDLL('libSaLck.so.0')
 
@@ -73,7 +74,7 @@ class SaLckCallbacksT(Structure):
 	_fields_ = [('saLckResourceOpenCallback', SaLckResourceOpenCallbackT),
 		('saLckLockGrantCallback', SaLckLockGrantCallbackT),
 		('saLckLockWaiterCallback', SaLckLockWaiterCallbackT),
-		('saLckResourceUnlockCallback',SaLckResourceUnlockCallbackT )]
+		('saLckResourceUnlockCallback', SaLckResourceUnlockCallbackT)]
 
 def saLckInitialize(lckHandle, lckCallbacks, version):
 	"""Register invoking process with Lock Service.

@@ -15,8 +15,10 @@
 #
 ############################################################################
 
-from ctypes import *
-from saAis import *
+from ctypes import POINTER, CDLL, CFUNCTYPE, Structure
+from pyosaf.saAis import SaUint64T, SaUint32T, Const, BYREF, SaAisErrorT, \
+        SaInvocationT, SaNameT, Enumeration, SaEnumT, SaSizeT, SaUint8T, \
+        SaVoidPtr, SaTimeT
 
 msgdll = CDLL('libSaMsg.so.1')
 
