@@ -170,7 +170,7 @@ class SaLogCallbacksT(Structure):
 
 SaLogLimitIdT = SaEnumT
 eSaLogLimitIdT = Enumeration((
-        ('SA_LOG_MAX_NUM_CLUSTER_APP_LOG_STREAMS_ID', 1)
+        ('SA_LOG_MAX_NUM_CLUSTER_APP_LOG_STREAMS_ID', 1),
 ))
 
 def saLogInitialize(logHandle, callbacks, version):
