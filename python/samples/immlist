@@ -16,8 +16,9 @@
 #
 ############################################################################
 
+from pyosaf import saImm
+from pyosaf.utils import immom
 from optparse import OptionParser
-from immbase import *
 import json
 import sys
 
@@ -42,36 +43,24 @@ class ListOptions(object):
 		self.ugly = False
 
 def immlist(options, args):
-	try:
-		immHandle = SaImmHandleT()
-		rc = saImmOmInitialize(immHandle, None, IMM_VERSION)
-		if rc != eSaAisErrorT.SA_AIS_OK:
-			raise SafException(rc)
+        objects = {}
 
-		accessorHandle = SaImmAccessorHandleT()
-		rc = saImmOmAccessorInitialize(immHandle, accessorHandle)
-		if rc != eSaAisErrorT.SA_AIS_OK:
-			raise SafException(rc)
+        for dn in args:
+                obj = immom.get(dn, attr_name_list=options.attr)
 
-		objects = {}
-		attribNames = [SaImmAttrNameT(a) for a in options.attr]\
-				if options.attr else None
-		attribs = pointer(pointer(SaImmAttrValuesT_2()))
-		for dn in args:
-			rc = saImmOmAccessorGet_2(accessorHandle,
-					SaNameT(dn), attribNames, attribs)
-			if rc == eSaAisErrorT.SA_AIS_ERR_NOT_EXIST:
-				continue;
-			if rc != eSaAisErrorT.SA_AIS_OK:
-				raise SafException(rc)
-			objects[dn] = SafObject(dn, attribs, options.numeric)
-	finally:
-		saImmOmAccessorFinalize(accessorHandle)
-		saImmOmFinalize(immHandle)
-	return objects
+                if obj:
+                        attributes = {}
+                        for name, value_pair in obj.attrs.iteritems():
+                                type_str = saImm.eSaImmValueTypeT.whatis(value_pair[0])
+                                value    = value_pair[1]
+
+                                attributes[name] = [type_str, value]
+
+                        objects[dn] = attributes
+
+        return objects
 
 if __name__ == '__main__':
 	(options, args) = parseArgs()
-	print json.dumps(immlist(options, args),
-			default=SafObject.serialize,
-			indent=None if options.ugly else 4)
+        print json.dumps(immlist(options, args), 
+                         indent=None if options.ugly else 4)
