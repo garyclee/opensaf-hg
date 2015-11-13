@@ -341,7 +341,7 @@ static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
-static void decode_app(NCS_UBAID *ub, AVD_APP *app)
+void decode_app(NCS_UBAID *ub, AVD_APP *app)
 {
 	osaf_decode_sanamet(ub, &app->name);
 	osaf_decode_uint32(ub, (uint32_t*)&app->saAmfApplicationAdminState);

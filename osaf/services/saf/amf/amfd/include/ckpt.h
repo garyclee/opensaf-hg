@@ -47,7 +47,7 @@
 
 struct avd_evt_tag;
 struct cl_cb_tag;
-
+class AVD_APP;
 /* 
  * SU SI Relationship checkpoint encode/decode message structure..
  */
@@ -152,5 +152,6 @@ uint32_t avd_dec_warm_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
 uint32_t avd_dec_data_sync_rsp(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
 uint32_t avd_dec_data_req(struct cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
 uint32_t avd_avnd_send_role_change(struct cl_cb_tag *cb, NODE_ID, uint32_t role);
-
+void encode_app(NCS_UBAID *ub, const AVD_APP *app);
+void decode_app(NCS_UBAID *ub, AVD_APP *app);
 #endif
