@@ -326,7 +326,7 @@ static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	return status;
 }
 
-static void encode_app(NCS_UBAID *ub, const AVD_APP *app)
+void encode_app(NCS_UBAID *ub, const AVD_APP *app)
 {
 	osaf_encode_sanamet(ub, &app->name);
 	osaf_encode_uint32(ub, app->saAmfApplicationAdminState);
