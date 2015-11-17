@@ -185,3 +185,14 @@ def get_error_strings(ccb_handle):
     saImmOmCcbGetErrorStrings(ccb_handle, c_strings)
 
     return unmarshalNullArray(c_strings)
+
+
+def get_rdn_attribute_for_class(class_name):
+    ''' Returns the RDN attribute for the given class. This is safe to call
+        from OI callbacks
+    '''
+    desc = class_description_get(class_name)
+    for attr_desc in desc:
+        if attr_desc.attrFlags & saImm.saImm.SA_IMM_ATTR_RDN:
+            return attr_desc.attrName
+    return None
