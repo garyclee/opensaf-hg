@@ -61,6 +61,9 @@ class ImmObject(object):
         else:
             raise
 
+        self.__dict__["rdn_attribute"] = \
+            pyosaf.utils.immom.get_rdn_attribute_for_class(class_name)
+
     def get_value_type(self, attrname):
         ''' returns IMM value type of the named attribute '''
         for attrdef in self.class_desc[self.class_name]:
