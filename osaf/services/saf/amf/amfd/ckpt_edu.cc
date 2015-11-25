@@ -61,10 +61,6 @@ uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_comp, &err);
-	if (rc != NCSCC_RC_SUCCESS)
-		goto error;
-
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_siass, &err);
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
@@ -241,55 +237,6 @@ uint32_t avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	}
 
 	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_node_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-
-	return rc;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:   avsv_edp_ckpt_msg_comp
-
-  DESCRIPTION:      EDU program handler for "AVD_COMP" data. This 
-                    function is invoked by EDU for performing encode/decode 
-                    operation on "AVD_COMP" data.
-
-  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-
-*****************************************************************************/
-uint32_t avsv_edp_ckpt_msg_comp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_COMP *struct_ptr = nullptr, **d_ptr = nullptr;
-
-	EDU_INST_SET avsv_ckpt_msg_comp_rules[] = {
-		{EDU_START, avsv_edp_ckpt_msg_comp, 0, 0, 0, sizeof(AVD_COMP), 0, nullptr},
-
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_COMP *)0)->comp_info.name, 0, nullptr},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_COMP *)0)->saAmfCompOperState, 0, nullptr},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_COMP *)0)->saAmfCompReadinessState, 0, nullptr},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_COMP *)0)->saAmfCompPresenceState, 0, nullptr},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((AVD_COMP *)0)->saAmfCompRestartCount, 0, nullptr},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_COMP *)0)->saAmfCompCurrProxyName, 0, nullptr},
-
-		{EDU_END, 0, 0, 0, 0, 0, 0, nullptr},
-	};
-
-	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (AVD_COMP *)ptr;
-	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (AVD_COMP **)ptr;
-		if (*d_ptr == nullptr) {
-			*o_err = EDU_ERR_MEM_FAIL;
-			return NCSCC_RC_FAILURE;
-		}
-		memset(*d_ptr, '\0', sizeof(AVD_COMP));
-		struct_ptr = *d_ptr;
-	} else {
-		struct_ptr = static_cast<AVD_COMP*>(ptr);
-	}
-
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_comp_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
 
 	return rc;
 }
