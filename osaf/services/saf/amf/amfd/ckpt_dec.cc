@@ -165,7 +165,7 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[] = {
 
 	/* COMP Async Update messages */
 	dec_comp_proxy_comp_name,
-	dec_comp_curr_num_csi_actv,
+        dec_comp_curr_num_csi_actv,
 	dec_comp_curr_num_csi_stby,
 	dec_comp_oper_state,
 	dec_comp_readiness_state,
@@ -1895,105 +1895,18 @@ static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
-/****************************************************************************\
- * Function: dec_comp_curr_num_csi_actv
- *
- * Purpose:  Decode COMP Current number of CSI active.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uint32_t dec_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMP *comp_struct;
-
-	TRACE_ENTER();
-
-	comp_ptr = &dec_comp;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 32);
-
-	if (status != NCSCC_RC_SUCCESS)
-		osafassert(0);
-
-	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
-		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	comp_struct->curr_num_csi_actv = comp_ptr->curr_num_csi_actv;
-
-	cb->async_updt_cnt.comp_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+// Function are not used
+static uint32_t dec_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  LOG_NO("dec_comp_curr_num_csi_actv is deprecated");
+  return NCSCC_RC_SUCCESS;
 }
 
-/****************************************************************************\
- * Function: dec_comp_curr_num_csi_stby
- *
- * Purpose:  Decode COMP Current number of CSI standby.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uint32_t dec_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMP *comp_struct;
-
-	TRACE_ENTER();
-
-	comp_ptr = &dec_comp;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 33);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
-		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	comp_struct->curr_num_csi_stdby = comp_ptr->curr_num_csi_stdby;
-
-	cb->async_updt_cnt.comp_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+// Function are not used
+ static uint32_t dec_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  LOG_NO("dec_comp_curr_num_csi_stby is deprecated");
+  return NCSCC_RC_SUCCESS;
 }
+
 
 /****************************************************************************\
  * Function: dec_comp_oper_state

@@ -1017,7 +1017,7 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 			return NCSCC_RC_SUCCESS;
 			/* else fall through */
 	case AVSV_CKPT_COMP_CURR_PROXY_NAME:
-	case AVSV_CKPT_COMP_CURR_NUM_CSI_ACTV:
+        case AVSV_CKPT_COMP_CURR_NUM_CSI_ACTV:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_STBY:
 	case AVSV_CKPT_COMP_OPER_STATE:
 	case AVSV_CKPT_COMP_READINESS_STATE:
