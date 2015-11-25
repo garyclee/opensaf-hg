@@ -669,6 +669,29 @@ static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
+ * Function: decode_comp
+ *
+ * Purpose:  Decode entire AVD_COMP data.
+ *
+ * Input: ub   - USRBUF work space for encode/decode.
+ *        comp - AVD_COMP class to be decoded.
+ *
+ * Returns: void.
+ *
+ * NOTES:
+ *
+ *
+\**************************************************************************/
+void decode_comp(NCS_UBAID *ub, AVD_COMP *comp) {
+  osaf_decode_sanamet(ub, &comp->comp_info.name);
+  osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompOperState));
+  osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompReadinessState));
+  osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompPresenceState));
+  osaf_decode_uint32(ub, &comp->saAmfCompRestartCount);
+  osaf_decode_sanamet(ub, &comp->saAmfCompCurrProxyName);
+}
+
+/****************************************************************************\
  * Function: dec_comp_config
  *
  * Purpose:  Decode entire AVD_COMP data..
@@ -682,54 +705,38 @@ static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t dec_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+static uint32_t dec_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  uint32_t status = NCSCC_RC_SUCCESS;
+  AVD_COMP comp;
 
-	TRACE_ENTER2("i_action '%u'", dec->i_action);
-	comp_ptr = &dec_comp;
+  TRACE_ENTER2("i_action '%u'", dec->i_action);
 
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror,
-			dec->i_peer_version);
-		break;
+  /*
+   * Check for the action type (whether it is add, rmv or update) and act
+   * accordingly. If it is add then create new element, if it is update
+   * request then just update data structure, and if it is remove then
+   * remove entry from the list.
+   */
+  switch (dec->i_action) {
+    case NCS_MBCSV_ACT_ADD:
+    case NCS_MBCSV_ACT_UPDATE:
+      decode_comp(&dec->i_uba, &comp);
+      break;
+    case NCS_MBCSV_ACT_RMV:
+      osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
+      break;
+    default:
+      osafassert(0);
+  }
 
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 1, 1);
-		break;
+  status = avd_ckpt_comp(cb, &comp, dec->i_action);
 
-	default:
-		osafassert(0);
-	}
+  /* If update is successful, update async update count */
+  if (NCSCC_RC_SUCCESS == status)
+    cb->async_updt_cnt.comp_updt++;
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	status = avd_ckpt_comp(cb, comp_ptr, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.comp_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+  TRACE_LEAVE();
+  return status;
 }
 
 /****************************************************************************\
@@ -1862,37 +1869,28 @@ static uint32_t dec_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMP *comp_struct;
+static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  AVD_COMP comp;
+  AVD_COMP *comp_struct {};
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	comp_ptr = &dec_comp;
+  /*
+   * Action in this case is just to update.
+   */
+  osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
+  osaf_decode_sanamet(&dec->i_uba, &comp.saAmfCompCurrProxyName);
 
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 6);
+  if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name))))
+    osafassert(0);
 
-	if (status != NCSCC_RC_SUCCESS)
-		osafassert(0);
+  /* Update the fields received in this checkpoint message */
+  comp_struct->saAmfCompCurrProxyName = comp.saAmfCompCurrProxyName;
 
-	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name))))
-		osafassert(0);
+  cb->async_updt_cnt.comp_updt++;
 
-	/* Update the fields received in this checkpoint message */
-	comp_struct->saAmfCompCurrProxyName = comp_ptr->saAmfCompCurrProxyName;
-
-	cb->async_updt_cnt.comp_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 // Function are not used
@@ -1922,40 +1920,29 @@ static uint32_t dec_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t dec_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMP *comp_struct;
+static uint32_t dec_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  AVD_COMP comp;
+  AVD_COMP *comp_struct {};
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	comp_ptr = &dec_comp;
+  /*
+   * Action in this case is just to update.
+   */
+  osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
+  osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*> (&comp.saAmfCompOperState));
 
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 2);
+  comp_struct = avd_comp_get_or_create(&comp.comp_info.name);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+  /* Update the fields received in this checkpoint message */
+  comp_struct->saAmfCompOperState = comp.saAmfCompOperState;
+  avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompOperState",
+                            SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompOperState);
 
-	comp_struct = avd_comp_get_or_create(&comp_ptr->comp_info.name);
+  cb->async_updt_cnt.comp_updt++;
 
-	/* Update the fields received in this checkpoint message */
-	comp_struct->saAmfCompOperState = comp_ptr->saAmfCompOperState;
-	avd_saImmOiRtObjectUpdate(&comp_ptr->comp_info.name, "saAmfCompOperState",
-		SA_IMM_ATTR_SAUINT32T, &comp_ptr->saAmfCompOperState);
-
-	cb->async_updt_cnt.comp_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1972,43 +1959,32 @@ static uint32_t dec_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMP *comp_struct;
+static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  AVD_COMP comp;
+  AVD_COMP *comp_struct {};
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	comp_ptr = &dec_comp;
+  /*
+   * Action in this case is just to update.
+   */
+  osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
+  osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*> (&comp.saAmfCompReadinessState));
 
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 3);
+  if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name)))) {
+    LOG_ER("%s: comp not found, %s", __FUNCTION__, comp.comp_info.name.value);
+    return NCSCC_RC_FAILURE;
+  }
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+  /* Update the fields received in this checkpoint message */
+  comp_struct->saAmfCompReadinessState = comp.saAmfCompReadinessState;
 
-	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
-		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
-		return NCSCC_RC_FAILURE;
-	}
+  cb->async_updt_cnt.comp_updt++;
 
-	/* Update the fields received in this checkpoint message */
-	comp_struct->saAmfCompReadinessState = comp_ptr->saAmfCompReadinessState;
-
-	cb->async_updt_cnt.comp_updt++;
-
-	avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompReadinessState",
-		SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompReadinessState);
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+  avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompReadinessState",
+                            SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompReadinessState);
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2025,43 +2001,32 @@ static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMP *comp_struct;
+static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  AVD_COMP comp;
+  AVD_COMP *comp_struct {};
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	comp_ptr = &dec_comp;
+  /*
+   * Action in this case is just to update.
+   */
+  osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
+  osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*> (&comp.saAmfCompPresenceState));
 
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 4);
+  if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name)))) {
+    LOG_ER("%s: comp not found, %s", __FUNCTION__, comp.comp_info.name.value);
+    return NCSCC_RC_FAILURE;
+  }
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+  /* Update the fields received in this checkpoint message */
+  comp_struct->saAmfCompPresenceState = comp.saAmfCompPresenceState;
 
-	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
-		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
-		return NCSCC_RC_FAILURE;
-	}
+  cb->async_updt_cnt.comp_updt++;
+  avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompPresenceState",
+                            SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompPresenceState);
 
-	/* Update the fields received in this checkpoint message */
-	comp_struct->saAmfCompPresenceState = comp_ptr->saAmfCompPresenceState;
-
-	cb->async_updt_cnt.comp_updt++;
-	avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompPresenceState",
-		SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompPresenceState);
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2078,41 +2043,30 @@ static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMP *comp_struct;
+static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  AVD_COMP comp;
+  AVD_COMP *comp_struct{};
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	comp_ptr = &dec_comp;
+  /*
+   * Action in this case is just to update.
+   */
+  osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
+  osaf_decode_uint32(&dec->i_uba, &comp.saAmfCompRestartCount);
 
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 5);
+  if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name)))) {
+    LOG_ER("%s: comp not found, %s", __FUNCTION__, comp.comp_info.name.value);
+    return NCSCC_RC_FAILURE;
+  }
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+  /* Update the fields received in this checkpoint message */
+  comp_struct->saAmfCompRestartCount = comp.saAmfCompRestartCount;
 
-	if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp_ptr->comp_info.name)))) {
-		LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_ptr->comp_info.name.value);
-		return NCSCC_RC_FAILURE;
-	}
+  cb->async_updt_cnt.comp_updt++;
 
-	/* Update the fields received in this checkpoint message */
-	comp_struct->saAmfCompRestartCount = comp_ptr->saAmfCompRestartCount;
-
-	cb->async_updt_cnt.comp_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2583,40 +2537,29 @@ static uint32_t dec_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_
  *
  * 
 \**************************************************************************/
-static uint32_t dec_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
-{
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_COMP *comp_ptr;
-	AVD_COMP dec_comp;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	uint32_t count = 0;
+static uint32_t dec_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj) {
+  uint32_t status = NCSCC_RC_SUCCESS;
+  AVD_COMP comp;
+  uint32_t count = 0;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	comp_ptr = &dec_comp;
-	/* 
-	 * Walk through the entire list and send the entire list data.
-	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror,
-					    dec->i_peer_version);
+  /*
+   * Walk through the entire list and send the entire list data.
+   */
+  for (count = 0; count < num_of_obj; count++) {
+    decode_comp(&dec->i_uba, &comp);
 
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-			return status;
-		}
+    status = avd_ckpt_comp(cb, &comp, dec->i_action);
 
-		status = avd_ckpt_comp(cb, comp_ptr, dec->i_action);
+    if (status != NCSCC_RC_SUCCESS) {
+      return NCSCC_RC_FAILURE;
+    }
 
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
+  }
 
-	}
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+  TRACE_LEAVE2("status '%u'", status);
+  return status;
 }
 
 /****************************************************************************\
