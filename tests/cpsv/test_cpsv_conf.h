@@ -1,5 +1,5 @@
-#ifndef _TET_CPSV_CONF_H_
-#define _TET_CPSV_CONF_H_
+#ifndef _TEST_CPSV_CONF_H_
+#define _TEST_CPSV_CONF_H_
 
 typedef enum {
   TEST_NONCONFIG_MODE = 0,
@@ -71,7 +71,7 @@ struct cpsv_testcase_data
   char data1[14],data2[14],data3[14];
   SaSizeT size,size_zero;
 
-  SaUint8T sec_id1,sec_id2,sec_id3,sec_id4,inv_sec;
+  SaUint8T *sec_id1, *sec_id2, *sec_id3, *sec_id4, *inv_sec;
   char filedata1[600],filedata2[600],filedata3[600];
   char buffer[200],buffer_large[400];
   char buffer1[200],buffer2[200],buffer3[200];
@@ -104,50 +104,51 @@ struct cpsv_testcase_data
 
 struct cpsv_testcase_data tcd;
 
-extern int tet_test_ckptInitialize(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptDispatch(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptFinalize(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptOpen(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptStatusGet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptUnlink(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptClose(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptDurationSet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptWrite(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptRead(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptOverwrite(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptSynchronize(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptIterationInit(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptIterationNext(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_ckptIterationFin(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptInitialize(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptDispatch(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptFinalize(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptOpen(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptStatusGet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptUnlink(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptClose(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptDurationSet(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptWrite(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptRead(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptOverwrite(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptSynchronize(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptIterationInit(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptIterationNext(int i,CONFIG_FLAG cfg_flg);
-extern int tet_test_red_ckptIterationFin(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptInitialize(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptDispatch(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptFinalize(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptOpen(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptStatusGet(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg);
+extern int test_saCkptSectionIdFree(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptUnlink(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptClose(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptDurationSet(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptWrite(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptRead(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptOverwrite(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptSynchronize(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptIterationInit(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptIterationNext(int i,CONFIG_FLAG cfg_flg);
+extern int test_ckptIterationFin(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptInitialize(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptDispatch(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptFinalize(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptOpen(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptStatusGet(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptUnlink(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptClose(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptDurationSet(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptWrite(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptRead(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptOverwrite(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptSynchronize(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptIterationInit(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptIterationNext(int i,CONFIG_FLAG cfg_flg);
+extern int test_red_ckptIterationFin(int i,CONFIG_FLAG cfg_flg);
 extern void selection_thread_blocking(NCSCONTEXT arg);
 extern void cpsv_createthread(SaCkptHandleT *cl_hdl);
 
@@ -155,10 +156,10 @@ extern void printHead(char *str);
 extern void cpsv_clean_clbk_params();
 extern void printResult(int result);
 extern void AppCkptArrivalCallback(const SaCkptCheckpointHandleT ckptArrivalHandle, SaCkptIOVectorElementT *ioVector, SaUint32T num_of_elem);
-extern void tet_cpsv_cleanup(CPSV_CLEANUP_TC_TYPE i);
-extern void tet_ckpt_cleanup(CPSV_CLEANUP_CKPT_TC_TYPE i);
-extern void tet_red_cpsv_cleanup(CPSV_CLEANUP_TC_TYPE i);
-extern void tet_red_ckpt_cleanup(CPSV_CLEANUP_CKPT_TC_TYPE i);
+extern void test_cpsv_cleanup(CPSV_CLEANUP_TC_TYPE i);
+extern void test_ckpt_cleanup(CPSV_CLEANUP_CKPT_TC_TYPE i);
+extern void test_red_cpsv_cleanup(CPSV_CLEANUP_TC_TYPE i);
+extern void test_red_ckpt_cleanup(CPSV_CLEANUP_CKPT_TC_TYPE i);
 extern int cpsv_test_result(SaAisErrorT rc,SaAisErrorT exp_out,char *test_case,CONFIG_FLAG flg);
 extern void fill_ckpt_attri(SaCkptCheckpointCreationAttributesT *cr_attr,SaCkptCheckpointCreationFlagsT cr_flags,SaSizeT ckptSize, SaTimeT ret,
                                                          SaUint32T max_sec, SaSizeT max_sec_size, SaSizeT max_sec_id_size);
@@ -178,5 +179,5 @@ extern int fill_syncparameters(int vote);
 
 
 
-#endif /* _TET_CPSV_CONF_H_ */
+#endif /* _TEST_CPSV_CONF_H_ */
 

@@ -1,0 +1,63 @@
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2015 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+1. General
+
+This directory tree contains a unit test suite for CKPT B.02.02. The goal is to
+test the API extensively. Checking all possible error conditions etc.
+
+The test suite is not distributed but can of course be run on every node in
+the system which kind of makes it distributed.
+
+The CKPT test suite uses the unit test framework in OpenSAF (tests/unit_test_fw).
+
+
+2. Building and installing
+
+The program cpsvtest is built by OpenSAF's normal make system. They are either 
+installed using 'make install' or packaged in the tools rpm. They will be in 
+the path after installation.
+
+
+3. Running the test suite.
+
+3.1 General
+
+A specific test suite or test case can be run. Just give the numerical value 
+for the suite and/or test case as arguments to the binary.
+
+Examples from the UML Environment:
+# /hostfs/cpsvtest
+# /hostfs/cpsvtest 3
+# /hostfs/cpsvtest 4 2
+
+The result is printed to stdout. Each test case represents one line. At the 
+end a result summary is printed.
+
+To enable full printouts from the test cases uncomment the following line in 
+the Makefile.am
+
+#cpsvtest_CPPFLAGS += -DFULL_LOG 
+
+4. Adding a new test suite/case
+
+Each test case is implemented in a function in test_cpa.c file. To add a new 
+test case, a new function for new test case should be defined. Then, it should
+be included in the test case list below in same file.
+
+__attribute__ ((constructor)) static void ckpt_cpa_test_constructor(void) {
+

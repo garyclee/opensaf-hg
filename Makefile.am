@@ -169,6 +169,11 @@ SUBDIRS += \
 	tests/clmsv \
 	tests/mds
 
+if ENABLE_AIS_CKPT
+SUBDIRS += \
+	tests/cpsv
+endif
+
 if ENABLE_AIS_PLM
 SUBDIRS += \
 	tests/plmsv

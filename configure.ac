@@ -922,6 +922,7 @@ AC_CONFIG_FILES([
         tests/plmsv/plms/Makefile
         tests/plmsv/Makefile
         tests/mds/Makefile
+        tests/cpsv/Makefile
         tests/unit_test_fw/Makefile
 	tests/unit_test_fw/src/Makefile
         tests/unit_test_fw/inc/Makefile])

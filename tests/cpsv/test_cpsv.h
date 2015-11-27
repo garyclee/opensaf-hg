@@ -1,47 +1,26 @@
-#ifndef _TET_CPSV_H_
-#define _TET_CPSV_H_
+#ifndef _TEST_CPSV_H_
+#define _TEST_CPSV_H_
 
 
 #include "saAmf.h"
 #include "saCkpt.h"
-#include "cpsv_papi.h"
 #include "string.h"
 #include "stdio.h"
 #include "math.h"
 #include "errno.h"
+#include "cpsv_papi.h"
+#include <utest.h>
+#include <util.h>
 
-static const char *saf_error_string[] = {
-        "SA_AIS_NOT_VALID",
-        "SA_AIS_OK",
-        "SA_AIS_ERR_LIBRARY",
-        "SA_AIS_ERR_VERSION",
-        "SA_AIS_ERR_INIT",
-        "SA_AIS_ERR_TIMEOUT",
-        "SA_AIS_ERR_TRY_AGAIN",
-        "SA_AIS_ERR_INVALID_PARAM",
-        "SA_AIS_ERR_NO_MEMORY",
-        "SA_AIS_ERR_BAD_HANDLE",
-        "SA_AIS_ERR_BUSY",
-        "SA_AIS_ERR_ACCESS",
-        "SA_AIS_ERR_NOT_EXIST",
-        "SA_AIS_ERR_NAME_TOO_LONG",
-        "SA_AIS_ERR_EXIST",
-        "SA_AIS_ERR_NO_SPACE",
-        "SA_AIS_ERR_INTERRUPT",
-        "SA_AIS_ERR_NAME_NOT_FOUND",
-        "SA_AIS_ERR_NO_RESOURCES",
-        "SA_AIS_ERR_NOT_SUPPORTED",
-        "SA_AIS_ERR_BAD_OPERATION",
-        "SA_AIS_ERR_FAILED_OPERATION",
-        "SA_AIS_ERR_MESSAGE_ERROR",
-        "SA_AIS_ERR_QUEUE_FULL",
-        "SA_AIS_ERR_QUEUE_NOT_AVAILABLE",
-        "SA_AIS_ERR_BAD_FLAGS",
-        "SA_AIS_ERR_TOO_BIG",
-        "SA_AIS_ERR_NO_SECTIONS",
-};
+#define TEST_PASS	0
+#define TEST_FAIL	1
+#define TEST_UNRESOLVED	2
+#define TEST_NOTINUSE	3
+#define TEST_UNSUPPORTED	4
+#define TEST_UNTESTED	5
+#define TEST_UNINITIATED	6
+#define TEST_NORESULT	7
 
-                                                                                                                                                                     
 struct SafCkptInitialize {
         SaCkptHandleT *ckptHandle;
         SaVersionT *vers;
@@ -692,7 +671,7 @@ typedef enum {
     CKPT_READ_LARGE_SUCCESS2_T,
 }CKPT_READ_LARGE_TC_TYPE;
 
-typedef struct tet_cpsv_inst {
+typedef struct test_cpsv_inst {
     int inst_num;
     int test_list;
     int test_case_num;
@@ -712,7 +691,7 @@ typedef struct tet_cpsv_inst {
     SaNameT active_rep_lckpt_name;
     SaNameT weak_rep_lckpt_name;
     SaNameT collocated_lckpt_name;
-}TET_CPSV_INST;
+}TEST_CPSV_INST;
  void cpsv_it_init_01(void);
  void cpsv_it_init_02(void);
  void cpsv_it_init_03(void);
@@ -957,7 +936,7 @@ typedef struct tet_cpsv_inst {
  void selection_thread3(NCSCONTEXT arg);
  void selection_thread4(NCSCONTEXT arg);
  void createBlockingThreads(void);
- void tet_readFile(void);
+ void test_readFile(void);
  void cpsv_clean_clbk_params(void);
  void handleAssigner(SaInvocationT invocation, SaCkptCheckpointHandleT checkpointHandle);
  void fill_ckpt_version(SaVersionT *version,SaUint8T rel_code,SaUint8T mjr_ver,SaUint8T mnr_ver);
@@ -967,9 +946,9 @@ typedef struct tet_cpsv_inst {
  void AppCkptOpenCallback(SaInvocationT invocation, SaCkptCheckpointHandleT checkpointHandle, SaAisErrorT error);
  void AppCkptSyncCallback(SaInvocationT invocation, SaAisErrorT error);
  void fill_testcase_data(void);
- void tet_cpsv_get_inputs(TET_CPSV_INST *inst);
- void tet_initialize(void);
- void tet_cpsv_fill_inputs(TET_CPSV_INST *inst);
+ void test_cpsv_get_inputs(TEST_CPSV_INST *inst);
+ void test_initialize(void);
+ void test_cpsv_fill_inputs(TEST_CPSV_INST *inst);
  void app1(void);
  void app2(void);
  void cpsv_it_noncolloc_01(void);
@@ -978,11 +957,11 @@ typedef struct tet_cpsv_inst {
  void cpsv_it_read_withoutwrite(void);
  void cpsv_it_read_withnullbuf(void);
  void cpsv_it_arr_invalid_param(void);
- void tet_run_cpsv_instance(TET_CPSV_INST *inst);
- void tet_run_cpsv_app(void);
+ void test_run_cpsv_instance(TEST_CPSV_INST *inst);
+ void test_run_cpsv_app(void);
  void selection_thread5(NCSCONTEXT arg);
  
 
 
-#endif /* _TET_CPSV_H_ */
+#endif /* _TEST_CPSV_H_ */
 

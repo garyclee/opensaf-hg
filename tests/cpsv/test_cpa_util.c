@@ -1,12 +1,18 @@
-#if ( TET_A==1 )
-
-
-#include "tet_startup.h"
-#include "tet_cpsv.h"
-#include "tet_cpsv_conf.h"
+#include <unistd.h>
+#include "test_cpsv.h"
+#include "test_cpsv_conf.h"
+#include "ncssysf_tsk.h"
+#include "ncssysf_def.h"
 
 #define APP_TIMEOUT 1000000000000000000ULL
-#define m_TET_CPSV_PRINTF printf
+
+#if FULL_LOG
+#define m_TEST_CPSV_PRINTF printf
+extern const char *saf_error_string[];
+#else 
+#define m_TEST_CPSV_PRINTF(...) 
+#endif
+
 #define END_OF_WHILE while(((rc == SA_AIS_ERR_TRY_AGAIN) || ( rc == SA_AIS_ERR_TIMEOUT)) && (tmoutFlag == 0)); \
                      gl_tmout_cnt = 0 ; \
                      gl_try_again_cnt = 0 ; \
@@ -14,6 +20,7 @@
 
 int gl_try_again_cnt;
 int gl_tmout_cnt;
+int gl_sync_pointnum;
 int tmoutFlag;
 
 int cpsv_test_result(SaAisErrorT rc,SaAisErrorT exp_out,char *test_case,CONFIG_FLAG flg)
@@ -22,17 +29,15 @@ int cpsv_test_result(SaAisErrorT rc,SaAisErrorT exp_out,char *test_case,CONFIG_F
 
    if(rc == SA_AIS_ERR_TRY_AGAIN)
    {
-      result = TET_FAIL;
+      result = TEST_FAIL;
       if(gl_try_again_cnt++ == 0)
       {
-         m_TET_CPSV_PRINTF("\n FAILED          : %s\n",test_case);
-         m_TET_CPSV_PRINTF(" Return Value    : %s\n\n",saf_error_string[rc]);
-         tet_printf("\n FAILED          : %s\n",test_case);
-         tet_printf(" Return Value    : %s\n\n",saf_error_string[rc]);
+         m_TEST_CPSV_PRINTF("\n FAILED          : %s\n",test_case);
+         m_TEST_CPSV_PRINTF(" Return Value    : %s\n\n",saf_error_string[rc]);
       }
 
       if(!(gl_try_again_cnt%10))
-         m_TET_CPSV_PRINTF(" Try again count : %d \n",gl_try_again_cnt);
+         m_TEST_CPSV_PRINTF(" Try again count : %d \n",gl_try_again_cnt);
 
       usleep(500000); /* 500 ms */
       return(result);
@@ -40,26 +45,22 @@ int cpsv_test_result(SaAisErrorT rc,SaAisErrorT exp_out,char *test_case,CONFIG_F
    
    if(rc == SA_AIS_ERR_TIMEOUT)
    {
-      result = TET_FAIL;
+      result = TEST_FAIL;
       if(gl_tmout_cnt++ == 0)
       {
-         m_TET_CPSV_PRINTF("\n FAILED          : %s\n",test_case);
-         m_TET_CPSV_PRINTF(" Return Value    : %s\n\n",saf_error_string[rc]);
-         tet_printf("\n FAILED          : %s\n",test_case);
-         tet_printf(" Return Value    : %s\n\n",saf_error_string[rc]);
+         m_TEST_CPSV_PRINTF("\n FAILED          : %s\n",test_case);
+         m_TEST_CPSV_PRINTF(" Return Value    : %s\n\n",saf_error_string[rc]);
       }
 
       if(gl_try_again_cnt > 0)
       {
-         m_TET_CPSV_PRINTF("\n TIMEOUT AFTER TRY_AGAIN POSSIBLE ERROR  : %s\n",test_case);
-         tet_printf("\n TIMEOUT AFTER TRY_AGAIN POSSIBLE ERROR  : %s\n",test_case);
+         m_TEST_CPSV_PRINTF("\n TIMEOUT AFTER TRY_AGAIN POSSIBLE ERROR  : %s\n",test_case);
          tmoutFlag = 1;
       }
 
       if(gl_tmout_cnt == 10)
       {
-         m_TET_CPSV_PRINTF(" Timeout count : %d \n",gl_tmout_cnt);
-         tet_printf(" Timeout count : %d \n",gl_tmout_cnt);
+         m_TEST_CPSV_PRINTF(" Timeout count : %d \n",gl_tmout_cnt);
          tmoutFlag = 1;
       }
         
@@ -69,57 +70,45 @@ int cpsv_test_result(SaAisErrorT rc,SaAisErrorT exp_out,char *test_case,CONFIG_F
    
    if(gl_try_again_cnt)
    {
-       m_TET_CPSV_PRINTF(" Try again count : %d \n",gl_try_again_cnt);
-       tet_printf(" Try again count : %d \n",gl_try_again_cnt);
+       m_TEST_CPSV_PRINTF(" Try again count : %d \n",gl_try_again_cnt);
        gl_try_again_cnt = 0;
    }
 
    if(gl_tmout_cnt)
    {
-       m_TET_CPSV_PRINTF(" Timeout count : %d \n",gl_tmout_cnt);
-       tet_printf(" Timeout count : %d \n",gl_tmout_cnt);
+       m_TEST_CPSV_PRINTF(" Timeout count : %d \n",gl_tmout_cnt);
        gl_tmout_cnt = 0;
        tmoutFlag = 0;
    }
 
    if(rc == exp_out)
    {
-      m_TET_CPSV_PRINTF("\n SUCCESS       : %s  \n",test_case);
-      tet_printf("\n SUCCESS       : %s  \n",test_case);
-      result = TET_PASS;
+      m_TEST_CPSV_PRINTF("\n SUCCESS       : %s  \n",test_case);
+      result = TEST_PASS;
    }
    else
    {
-      m_TET_CPSV_PRINTF("\n FAILED        : %s  \n",test_case);
-      tet_printf("\n FAILED        : %s  \n",test_case);
-      result = TET_FAIL;
+      m_TEST_CPSV_PRINTF("\n FAILED        : %s  \n",test_case);
+      result = TEST_FAIL;
       if(flg == TEST_CONFIG_MODE)
-         result = TET_UNRESOLVED;
+         result = TEST_UNRESOLVED;
    }
 
-   m_TET_CPSV_PRINTF(" Return Value  : %s\n",saf_error_string[rc]);
-   tet_printf(" Return Value  : %s\n",saf_error_string[rc]);
+   m_TEST_CPSV_PRINTF(" Return Value  : %s\n",saf_error_string[rc]);
    return(result);
 }
 
 void printStatus(SaCkptCheckpointDescriptorT ckptStatus)
 {
-  m_TET_CPSV_PRINTF(" Number of Sections: %u\n",ckptStatus.numberOfSections);
-  m_TET_CPSV_PRINTF(" Memory Used: %u\n",ckptStatus.memoryUsed);
+  m_TEST_CPSV_PRINTF(" Number of Sections: %u\n",ckptStatus.numberOfSections);
+  m_TEST_CPSV_PRINTF(" Memory Used: %llu\n", ckptStatus.memoryUsed);
   tcd.memLeft = (ckptStatus.checkpointCreationAttributes.checkpointSize)-(ckptStatus.memoryUsed);
-  m_TET_CPSV_PRINTF(" Memory Left: %llu\n",tcd.memLeft);
-  m_TET_CPSV_PRINTF(" CreationFlags: %u\n",ckptStatus.checkpointCreationAttributes.creationFlags);
-  m_TET_CPSV_PRINTF(" Checkpoint Size: %llu\n",ckptStatus.checkpointCreationAttributes.checkpointSize);
-  m_TET_CPSV_PRINTF(" Retention Duration: %llu\n",ckptStatus.checkpointCreationAttributes.retentionDuration);
-  m_TET_CPSV_PRINTF(" Max Sections: %u\n",ckptStatus.checkpointCreationAttributes.maxSections);
-  m_TET_CPSV_PRINTF(" Max Section Size: %llu\n",ckptStatus.checkpointCreationAttributes.maxSectionSize);
-  tet_printf(" Number of Sections: %lu\n",ckptStatus.numberOfSections);
-  tet_printf(" Memory Used: %lu\n",ckptStatus.memoryUsed);
-  tet_printf(" CreationFlags: %lu\n",ckptStatus.checkpointCreationAttributes.creationFlags);
-  tet_printf(" Checkpoint Size: %llu\n",ckptStatus.checkpointCreationAttributes.checkpointSize);
-  tet_printf(" Retention Duration: %llu\n",ckptStatus.checkpointCreationAttributes.retentionDuration);
-  tet_printf(" Max Sections: %lu\n",ckptStatus.checkpointCreationAttributes.maxSections);
-  tet_printf(" Max Section Size: %llu\n",ckptStatus.checkpointCreationAttributes.maxSectionSize);
+  m_TEST_CPSV_PRINTF(" Memory Left: %llu\n",tcd.memLeft);
+  m_TEST_CPSV_PRINTF(" CreationFlags: %u\n",ckptStatus.checkpointCreationAttributes.creationFlags);
+  m_TEST_CPSV_PRINTF(" Checkpoint Size: %llu\n",ckptStatus.checkpointCreationAttributes.checkpointSize);
+  m_TEST_CPSV_PRINTF(" Retention Duration: %llu\n",ckptStatus.checkpointCreationAttributes.retentionDuration);
+  m_TEST_CPSV_PRINTF(" Max Sections: %u\n",ckptStatus.checkpointCreationAttributes.maxSections);
+  m_TEST_CPSV_PRINTF(" Max Section Size: %llu\n",ckptStatus.checkpointCreationAttributes.maxSectionSize);
 }
 
 
@@ -134,7 +123,7 @@ struct SafCkptInitialize API_Initialize[]={
 
   [CKPT_INIT_NULL_VERSION_T]   =  {&tcd.junkHandle2,NULL,&tcd.general_callbks,SA_AIS_ERR_INVALID_PARAM,"Init with NULL version pointer"},
 
-  [CKPT_INIT_VER_CBKS_NULL_T]   =  {&tcd.junkHandle2,NULL,NULL,SA_AIS_ERR_INVALID_PARAM,"Init with version n calbks NULL"}, 
+  [CKPT_INIT_VER_CBKS_NULL_T]   =  {&tcd.junkHandle2,NULL,NULL,SA_AIS_ERR_INVALID_PARAM,"Init with version and calbks NULL"}, 
 
   [CKPT_INIT_ERR_VERSION_T]   =  {&tcd.junkHandle2,&tcd.version_err,&tcd.general_callbks,SA_AIS_ERR_VERSION,"Init with WRONG version"},  
 
@@ -157,7 +146,7 @@ struct SafCkptInitialize API_Initialize[]={
 
 };
 
-int tet_test_ckptInitialize(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptInitialize(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -167,12 +156,12 @@ int tet_test_ckptInitialize(int i,CONFIG_FLAG cfg_flg)
   result = cpsv_test_result( rc,API_Initialize[i].exp_output,API_Initialize[i].result_string,cfg_flg); 
                                                                                                                                                                       
    if(rc == SA_AIS_OK)
-      m_TET_CPSV_PRINTF(" Ckpt Handle   :  %llu\n",*API_Initialize[i].ckptHandle);
+      m_TEST_CPSV_PRINTF(" Ckpt Handle   :  %llu\n",*API_Initialize[i].ckptHandle);
                                                                                                                                                                       
    return(result);
 }
 
-int tet_test_red_ckptInitialize(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptInitialize(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -184,7 +173,7 @@ int tet_test_red_ckptInitialize(int i,CONFIG_FLAG cfg_flg)
   
      result = cpsv_test_result( rc,API_Initialize[i].exp_output,API_Initialize[i].result_string,cfg_flg); 
      if(rc == SA_AIS_OK)
-        m_TET_CPSV_PRINTF(" Ckpt Handle   :  %llu\n",*API_Initialize[i].ckptHandle);
+        m_TEST_CPSV_PRINTF(" Ckpt Handle   :  %llu\n",*API_Initialize[i].ckptHandle);
   }END_OF_WHILE;
      
   return result;
@@ -192,11 +181,11 @@ int tet_test_red_ckptInitialize(int i,CONFIG_FLAG cfg_flg)
 
 void printHandles()
 {
-  m_TET_CPSV_PRINTF("ckptHandle - %llu\n", tcd.ckptHandle);
-  m_TET_CPSV_PRINTF("ckptHandle2 - %llu\n", tcd.ckptHandle2);
-  m_TET_CPSV_PRINTF("ckptHandle3 - %llu\n", tcd.ckptHandle3);
-  m_TET_CPSV_PRINTF("ckptHandle4 - %llu\n", tcd.ckptHandle4);
-  m_TET_CPSV_PRINTF("ckptHandle5 - %llu\n", tcd.ckptHandle5);
+  m_TEST_CPSV_PRINTF("ckptHandle - %llu\n", tcd.ckptHandle);
+  m_TEST_CPSV_PRINTF("ckptHandle2 - %llu\n", tcd.ckptHandle2);
+  m_TEST_CPSV_PRINTF("ckptHandle3 - %llu\n", tcd.ckptHandle3);
+  m_TEST_CPSV_PRINTF("ckptHandle4 - %llu\n", tcd.ckptHandle4);
+  m_TEST_CPSV_PRINTF("ckptHandle5 - %llu\n", tcd.ckptHandle5);
 }
 
 /* END OF INTIALIZATION */
@@ -221,7 +210,7 @@ struct SafSelectionObject API_Selection[]={
 
 };
 
-int tet_test_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg) 
 {
 
   SaAisErrorT rc;
@@ -240,7 +229,7 @@ int tet_test_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg)
   return(cpsv_test_result( rc,API_Selection[i].exp_output,API_Selection[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptSelectionObject(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -321,10 +310,10 @@ struct SafCheckpointOpen API_Open[]={
                                           APP_TIMEOUT,&tcd.testHandle,SA_AIS_ERR_NOT_EXIST,"Open with bad name"},     
 
     [CKPT_OPEN_COLLOCATE_INVALID_T]     = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.collocated,SA_CKPT_CHECKPOINT_READ,
-                                          APP_TIMEOUT,&tcd.testHandle,SA_AIS_ERR_INVALID_PARAM,"Open with invalid params"},  
+                                          APP_TIMEOUT,&tcd.testHandle,SA_AIS_ERR_INVALID_PARAM,"Open with creation attribute but No CREATE flag"},  
 
     [CKPT_OPEN_NULL_ATTR_T]             = {&tcd.ckptHandle,&tcd.collocated_ckpt,NULL,SA_CKPT_CHECKPOINT_CREATE,
-                                          APP_TIMEOUT,&tcd.testHandle,SA_AIS_ERR_INVALID_PARAM,"Open with NULL cr attributes and CREATE flag"},  
+                                          APP_TIMEOUT,&tcd.testHandle,SA_AIS_ERR_INVALID_PARAM,"Open with NULL creation attributes and CREATE flag"},  
 
     [CKPT_OPEN_ATTR_INVALID_T]          = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.invalid,SA_CKPT_CHECKPOINT_CREATE,
                                           APP_TIMEOUT,&tcd.testHandle,SA_AIS_ERR_INVALID_PARAM,"Open with invalid param"},  
@@ -394,7 +383,7 @@ struct SafCheckpointOpen API_Open[]={
    [CKPT_OPEN_ACTIVE_CREATE_WRITE_SUCCESS_T] = {&tcd.ckptHandle,&tcd.active_replica_ckpt,&tcd.active_replica,(SA_CKPT_CHECKPOINT_CREATE | SA_CKPT_CHECKPOINT_WRITE),
                                             APP_TIMEOUT,&tcd.active_replica_Createhdl ,SA_AIS_OK,"ckpt with ACTIVE REPLICA created"},
     [CKPT_OPEN_SUCCESS_EXIST2_T]                = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.invalid_collocated,SA_CKPT_CHECKPOINT_CREATE,
-                                               APP_TIMEOUT,&tcd.testHandle,SA_AIS_OK,"Open already existing ckpt but  different retention duration"},
+                                               APP_TIMEOUT,&tcd.testHandle,SA_AIS_OK,"Open already existing ckpt but different retention duration"},
    [CKPT_OPEN_WEAK_CREATE_READ_SUCCESS_T]   = {&tcd.ckptHandle,&tcd.weak_replica_ckpt,&tcd.replica_weak,(SA_CKPT_CHECKPOINT_CREATE | SA_CKPT_CHECKPOINT_READ) ,
                                           APP_TIMEOUT,&tcd.weak_replica_Createhdl ,SA_AIS_OK,"ckpt with WEAK REPLICA created"},
     [CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T]  = {&tcd.ckptHandle,&tcd.active_replica_ckpt,NULL,(SA_CKPT_CHECKPOINT_WRITE | SA_CKPT_CHECKPOINT_READ),
@@ -405,7 +394,7 @@ struct SafCheckpointOpen API_Open[]={
 
 };
 
-int tet_test_ckptOpen(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptOpen(int i,CONFIG_FLAG cfg_flg) 
 {
    SaAisErrorT rc;
    int result;
@@ -415,12 +404,12 @@ int tet_test_ckptOpen(int i,CONFIG_FLAG cfg_flg)
    result = cpsv_test_result( rc,API_Open[i].exp_output,API_Open[i].result_string,cfg_flg);
 
    if(rc == SA_AIS_OK)
-      m_TET_CPSV_PRINTF("\n Checkpoint Handle   : %llu\n",*API_Open[i].checkpointhandle);
+      m_TEST_CPSV_PRINTF("\n Checkpoint Handle   : %llu\n",*API_Open[i].checkpointhandle);
                                                                                                                                                                       
    return(result);
 }
 
-int tet_test_red_ckptOpen(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptOpen(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -433,7 +422,7 @@ int tet_test_red_ckptOpen(int i,CONFIG_FLAG cfg_flg)
       result = cpsv_test_result( rc,API_Open[i].exp_output,API_Open[i].result_string,cfg_flg);
    
       if(rc == SA_AIS_OK)
-         m_TET_CPSV_PRINTF("\n Checkpoint Handle   : %llu\n",*API_Open[i].checkpointhandle);
+         m_TEST_CPSV_PRINTF("\n Checkpoint Handle   : %llu\n",*API_Open[i].checkpointhandle);
   }END_OF_WHILE;
 
   return result;
@@ -443,186 +432,36 @@ int tet_test_red_ckptOpen(int i,CONFIG_FLAG cfg_flg)
 
 /******************** Open Aysnc ***************/
 
-
-void selection_thread (NCSCONTEXT arg)
-{
-                                                                                                                             
- SaSelectionObjectT     selection_object;
- SaCkptHandleT threadHandle = *(SaCkptHandleT *)arg;
- NCS_SEL_OBJ_SET io_readfds;
- NCS_SEL_OBJ sel_obj;
- SaAisErrorT rc;
-                                                                                                                             
-   m_TET_CPSV_PRINTF("Executing Thread selection\n");
-   rc = saCkptSelectionObjectGet(threadHandle, &selection_object);
-   if (rc != SA_AIS_OK)
-   {
-        m_TET_CPSV_PRINTF(" saCkptSelectionObjectGet failed  - %d", rc);
-/*        tet_result(TET_FAIL);*/
-        return;
-   }
-
-  m_SET_FD_IN_SEL_OBJ(selection_object, sel_obj);
-  m_NCS_SEL_OBJ_ZERO(&io_readfds);
-  m_NCS_SEL_OBJ_SET(sel_obj, &io_readfds);
-                                                                                                                             
-#if 0
-   rc = m_NCS_SEL_OBJ_SELECT(sel_obj, &io_readfds, NULL, NULL, NULL);
-   if (rc == -1)
-   {
-      m_TET_CPSV_PRINTF("Select failed\n");
-      return;
-   }
-   printf(" In selection Thread after select \n");
-                                                                                                                             
-   if (m_NCS_SEL_OBJ_ISSET(sel_obj, &io_readfds) )
-   {
-      rc = saCkptDispatch(threadHandle, SA_DISPATCH_ONE);
-      if (rc != SA_AIS_OK)
-      {
-          m_TET_CPSV_PRINTF("dispatching failed %d \n", rc);
-/*          tet_result(TET_FAIL);*/
-       }
-        else
-      {
-          m_TET_CPSV_PRINTF("Thread selected \n");
-/*          tet_result(TET_PASS);*/
-       }
-   }
-   pthread_exit(0);
-#endif
-
-     while( m_NCS_SEL_OBJ_SELECT(sel_obj, &io_readfds, NULL, NULL, NULL) != -1)
-        {
-           if (m_NCS_SEL_OBJ_ISSET(sel_obj, &io_readfds) )
-                {
-                        rc = saCkptDispatch(threadHandle, SA_DISPATCH_ONE);
-                        sleep(1);
-                }
-                                                                                                                                                                      
-           m_NCS_SEL_OBJ_ZERO(&io_readfds);
-           m_NCS_SEL_OBJ_SET(sel_obj, &io_readfds);
-        }
-
-
-}
-
-
 void selection_thread_blocking (NCSCONTEXT arg)
 {
                                                                                                                              
+   fd_set read_fd;
    SaSelectionObjectT     selection_object;
    SaCkptHandleT threadHandle = *(SaCkptHandleT *)arg;
-   NCS_SEL_OBJ_SET io_readfds;
-   NCS_SEL_OBJ sel_obj;
    SaAisErrorT rc;
                                                                                                                              
-   m_TET_CPSV_PRINTF("Executing Thread selection\n");
+   m_TEST_CPSV_PRINTF("\n Executing Thread selection\n");
    rc = saCkptSelectionObjectGet(threadHandle, &selection_object);
    if (rc != SA_AIS_OK)
    {
-        m_TET_CPSV_PRINTF(" saCkptSelectionObjectGet failed  - %d", rc);
+        m_TEST_CPSV_PRINTF(" saCkptSelectionObjectGet failed  - %d", rc);
         return;
    }
 
-   m_SET_FD_IN_SEL_OBJ(selection_object, sel_obj);
-   m_NCS_SEL_OBJ_ZERO(&io_readfds);
-   m_NCS_SEL_OBJ_SET(sel_obj, &io_readfds);
-                                                                                                                             
-   rc = m_NCS_SEL_OBJ_SELECT(sel_obj, &io_readfds, NULL, NULL, NULL);
+   FD_ZERO(&read_fd);
+   FD_SET(selection_object, &read_fd);
+   rc = select(selection_object + 1, &read_fd, NULL, NULL, NULL);
    if (rc == -1)
    {
-      m_TET_CPSV_PRINTF("Select failed\n");
+      m_TEST_CPSV_PRINTF("Select FAILED\n");
       return;
    }
                                                                                                                              
-   if (m_NCS_SEL_OBJ_ISSET(sel_obj, &io_readfds) )
-   {
-      rc = saCkptDispatch(threadHandle, SA_DISPATCH_BLOCKING);
-      if (rc != SA_AIS_OK)
-         m_TET_CPSV_PRINTF("dispatching failed %d \n", rc);
-      else
-         m_TET_CPSV_PRINTF("Thread selected \n");
-   }
-}
-
-void selection_thread1(NCSCONTEXT arg)
-{
- SaAisErrorT rc;
-                                                                                                                             
-        while(1)
-        {
-          rc = saCkptDispatch(tcd.ckptHandle, SA_DISPATCH_ONE);
-          sleep(2);
-        }
-}
-
-void selection_thread2(NCSCONTEXT arg)
-{
- SaAisErrorT rc;
-                                                                                                                             
-        while(1)
-        {
-          rc = saCkptDispatch(tcd.ckptHandle2, SA_DISPATCH_ONE);
-          sleep(2);
-        }
-}
-
-void selection_thread3(NCSCONTEXT arg)
-{
- SaAisErrorT rc;
-                                                                                                                             
-        while(1)
-        {
-          rc = saCkptDispatch(tcd.ckptHandle3, SA_DISPATCH_ONE);
-          sleep(2);
-        }
-}
-
-void selection_thread4(NCSCONTEXT arg)
-{
- SaAisErrorT rc;
-                                                                                                                             
-        while(1)
-        {
-          rc = saCkptDispatch(tcd.ckptHandle4, SA_DISPATCH_ONE);
-          sleep(2);
-        }
-}
-
-void selection_thread5(NCSCONTEXT arg)
-{
- SaAisErrorT rc;
-                                                                                                                             
-        while(1)
-        {
-          rc = saCkptDispatch(tcd.ckptHandle5, SA_DISPATCH_ONE);
-          sleep(2);
-        }
-}
-
-void createBlockingThreads()
-{
-        SaAisErrorT rc;
-        rc = m_NCS_TASK_CREATE((NCS_OS_CB)selection_thread1, (NCSCONTEXT)NULL,"cpsv_client1_test", 5, 8000, &tcd.thread_handle1);
-        if (rc != SA_AIS_OK)
-        m_TET_CPSV_PRINTF("Thread create failed for client1");
-                                                                                                                                                                      
-        rc = m_NCS_TASK_CREATE((NCS_OS_CB)selection_thread2, (NCSCONTEXT)NULL,"cpsv_client2_test", 5, 8000, &tcd.thread_handle2);
-        if (rc != SA_AIS_OK)
-        m_TET_CPSV_PRINTF("Thread create failed for client2");
-                                                                                                                                                                      
-        rc = m_NCS_TASK_CREATE((NCS_OS_CB)selection_thread3, (NCSCONTEXT)NULL,"cpsv_client3_test", 5, 8000, &tcd.thread_handle3);
-        if (rc != SA_AIS_OK)
-        m_TET_CPSV_PRINTF("Thread create failed for client3");
-                                                                                                                                                                      
-        rc = m_NCS_TASK_CREATE((NCS_OS_CB)selection_thread4, (NCSCONTEXT)NULL,"cpsv_client4_test", 5, 8000, &tcd.thread_handle4);
-        if (rc != SA_AIS_OK)
-        m_TET_CPSV_PRINTF("Thread create failed for client4");
-                                                                                                                                                                      
-        rc = m_NCS_TASK_CREATE((NCS_OS_CB)selection_thread5, (NCSCONTEXT)NULL,"cpsv_client5_test", 5, 8000, &tcd.thread_handle5);
-        if (rc != SA_AIS_OK)
-        m_TET_CPSV_PRINTF("Thread create failed for client5");
+   rc = saCkptDispatch(threadHandle, SA_DISPATCH_BLOCKING);
+   if (rc != SA_AIS_OK)
+      m_TEST_CPSV_PRINTF("\n Dispatching FAILED %d \n", rc);
+   else
+      m_TEST_CPSV_PRINTF("\n Thread selected \n");
 }
 
 void cpsv_createthread(SaCkptHandleT *cl_hdl)
@@ -631,17 +470,17 @@ void cpsv_createthread(SaCkptHandleT *cl_hdl)
    NCSCONTEXT thread_handle;
 
    rc = m_NCS_TASK_CREATE((NCS_OS_CB)selection_thread_blocking, (NCSCONTEXT)cl_hdl,
-                           "cpsv_block_test", 5, 8000, &thread_handle);
+                           "cpsv_block_test", 0, SCHED_OTHER, 8000, &thread_handle);
    if (rc != NCSCC_RC_SUCCESS)
    {
-       m_TET_CPSV_PRINTF(" Failed to create thread\n");
+       m_TEST_CPSV_PRINTF(" Failed to create thread\n");
        return ;
    }
                                                                                                                                                                       
    rc = m_NCS_TASK_START(thread_handle);
    if (rc != NCSCC_RC_SUCCESS)
    {
-       m_TET_CPSV_PRINTF(" Failed to start thread\n");
+       m_TEST_CPSV_PRINTF(" Failed to start thread\n");
        return ;
    }
 
@@ -656,7 +495,7 @@ struct SafCheckpointOpenAsync API_OpenAsync[]={
                                          SA_CKPT_CHECKPOINT_CREATE,SA_AIS_ERR_INIT,"Open Async err init invocation 1001"},   
 
     [CKPT_OPEN_ASYNC_ALL_CREATE_SUCCESS_T]     = {&tcd.ckptHandle,1002,&tcd.async_all_replicas_ckpt,&tcd.all_replicas,
-                                                 SA_CKPT_CHECKPOINT_CREATE,SA_AIS_OK," all replicas ckpt created with invocation 1002"},    
+                                                 SA_CKPT_CHECKPOINT_CREATE,SA_AIS_OK,"all replicas ckpt created with invocation 1002"},    
 
     [CKPT_OPEN_ASYNC_ACTIVE_CREATE_SUCCESS_T]   = {&tcd.ckptHandle,1003,&tcd.async_active_replica_ckpt,&tcd.active_replica,
                                                   SA_CKPT_CHECKPOINT_CREATE,SA_AIS_OK,"active replica ckpt created with invocation 1003"},      
@@ -708,7 +547,7 @@ struct SafCheckpointOpenAsync API_OpenAsync[]={
                                                     "ckpt5 created with invocation 1018"},    
 
     [CKPT_OPEN_ASYNC_NULL_INVOCATION]     = {&tcd.ckptHandle,0,&tcd.async_all_replicas_ckpt,&tcd.all_replicas,
-                                                 SA_CKPT_CHECKPOINT_CREATE,SA_AIS_OK," NULL invocation"},    
+                                                 SA_CKPT_CHECKPOINT_CREATE,SA_AIS_OK,"NULL invocation"},    
 
     [CKPT_OPEN_ASYNC_ERR_EXIST_T]         = {&tcd.ckptHandle,1019,&tcd.collocated_ckpt,&tcd.invalid_collocated,SA_CKPT_CHECKPOINT_CREATE,
                                                SA_AIS_OK,"Open already existing ckpt but diff params"},
@@ -718,7 +557,7 @@ struct SafCheckpointOpenAsync API_OpenAsync[]={
 
 };
 
-int tet_test_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg) 
 {
    SaAisErrorT rc;
    rc = saCkptCheckpointOpenAsync(*(API_OpenAsync[i].ckptHandle),API_OpenAsync[i].invocation,API_OpenAsync[i].ckptName,
@@ -727,7 +566,7 @@ int tet_test_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg)
    return(cpsv_test_result( rc,API_OpenAsync[i].exp_output,API_OpenAsync[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -834,12 +673,12 @@ struct SafCheckpointSectionCreate API_SectionCreate[]= {
 };
 
 
-int tet_test_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg) 
 {
 
   SaAisErrorT rc;
   int result;
-  SaTimeT now, duration,temp;
+  SaTimeT now, duration,temp = 0;
   int64_t gigasec = 1000000000;
 
   duration = m_GET_TIME_STAMP(now) * gigasec;
@@ -866,7 +705,7 @@ retry:
   {
      if (i == CKPT_SECTION_CREATE_SUCCESS5_T)
      {
-        m_TET_CPSV_PRINTF("Section Id generated is \n");
+        m_TEST_CPSV_PRINTF("Section Id generated is \n");
         tcd.generate_write.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
         tcd.generate_write.sectionId.idLen = API_SectionCreate[i].sectionCreationAttributes->sectionId->idLen;
         tcd.generate_read.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
@@ -879,7 +718,7 @@ retry:
      }
      else if (i == CKPT_SECTION_CREATE_GEN_T)
      {
-        m_TET_CPSV_PRINTF("Section Id generated is \n");
+        m_TEST_CPSV_PRINTF("Section Id generated is \n");
         tcd.generate_write1.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
         tcd.generate_write1.sectionId.idLen = API_SectionCreate[i].sectionCreationAttributes->sectionId->idLen;
         tcd.generate_read.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
@@ -897,13 +736,13 @@ retry:
   return result;
 }
 
-int tet_test_red_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptSectionCreate(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
   int prev_rc = SA_AIS_OK;
   int err_not_exist_cnt=0;
-  SaTimeT now, duration,temp;
+  SaTimeT now, duration,temp = 0;
   int64_t gigasec = 1000000000;
 
   duration = m_GET_TIME_STAMP(now) * gigasec;
@@ -926,7 +765,7 @@ retry:
      if(rc == SA_AIS_ERR_NOT_EXIST)
      {
         err_not_exist_cnt++;
-        m_TET_CPSV_PRINTF("ERR_NOT_EXIST_COUNT %d \n",err_not_exist_cnt);
+        m_TEST_CPSV_PRINTF("ERR_NOT_EXIST_COUNT %d \n",err_not_exist_cnt);
         if((i == CKPT_SECTION_CREATE_GEN_T) && (tcd.redFlag == 1))
         {
           sleep(1);
@@ -938,7 +777,7 @@ retry:
      }
 
      if(rc == SA_AIS_ERR_EXIST && prev_rc == SA_AIS_ERR_TIMEOUT && API_SectionCreate[i].exp_output == SA_AIS_OK)
-        result = TET_PASS;
+        result = TEST_PASS;
                                                                                                                              
       prev_rc = rc;
   }END_OF_WHILE;
@@ -947,7 +786,7 @@ retry:
   {
      if (i == CKPT_SECTION_CREATE_SUCCESS5_T)
      {
-        m_TET_CPSV_PRINTF("Section Id generated is \n");
+        m_TEST_CPSV_PRINTF("Section Id generated is \n");
         tcd.generate_write.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
         tcd.generate_write.sectionId.idLen = API_SectionCreate[i].sectionCreationAttributes->sectionId->idLen;
         tcd.generate_read.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
@@ -960,7 +799,7 @@ retry:
      }
      else if (i == CKPT_SECTION_CREATE_GEN_T)
      {
-        m_TET_CPSV_PRINTF("Section Id generated is \n");
+        m_TEST_CPSV_PRINTF("Section Id generated is \n");
         tcd.generate_write1.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
         tcd.generate_write1.sectionId.idLen = API_SectionCreate[i].sectionCreationAttributes->sectionId->idLen;
         tcd.generate_read.sectionId.id = API_SectionCreate[i].sectionCreationAttributes->sectionId->id;
@@ -1006,7 +845,7 @@ struct SafCheckpointExpirationTimeSet API_ExpirationSet[] = {
                                    SA_AIS_OK,"Expiration Timeset success for ckpt4"},    
 };
 
-int tet_test_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -1029,7 +868,7 @@ retry:
   return result;
 }
 
-int tet_test_red_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptExpirationSet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -1079,7 +918,7 @@ struct SafCheckpointDurationSet API_DurationSet[]={
 };
 
 
-int tet_test_ckptDurationSet(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptDurationSet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
 
@@ -1092,7 +931,7 @@ retry:
   return(cpsv_test_result(rc,API_DurationSet[i].exp_output,API_DurationSet[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptDurationSet(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptDurationSet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   gl_try_again_cnt=0;
@@ -1189,7 +1028,7 @@ struct SafCheckpointWrite API_Write[]={
 };
 
 
-int tet_test_ckptWrite(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptWrite(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result,j;
@@ -1207,9 +1046,9 @@ retry:
   {
      for(j=0;j<(*(API_Write[i].numberOfElements));j++)
      {
-         m_TET_CPSV_PRINTF(" DataSize:%llu\n",API_Write[i].ioVector[j].dataSize);
+         m_TEST_CPSV_PRINTF(" DataSize:%llu\n",API_Write[i].ioVector[j].dataSize);
 #if 0
-         m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Write[i].ioVector[j].dataBuffer);
+         m_TEST_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Write[i].ioVector[j].dataBuffer);
 #endif
      }
   }
@@ -1217,7 +1056,7 @@ retry:
   return result;
 }
 
-int tet_test_red_ckptWrite(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptWrite(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result,j;
@@ -1233,9 +1072,9 @@ int tet_test_red_ckptWrite(int i,CONFIG_FLAG cfg_flg)
      {
         for(j=0;j<(*(API_Write[i].numberOfElements));j++)
         {
-            m_TET_CPSV_PRINTF(" DataSize:%llu\n",API_Write[i].ioVector[j].dataSize);
+            m_TEST_CPSV_PRINTF(" DataSize:%llu\n",API_Write[i].ioVector[j].dataSize);
 #if 0
-            m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Write[i].ioVector[j].dataBuffer);
+            m_TEST_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Write[i].ioVector[j].dataBuffer);
 #endif
         }
      }
@@ -1309,7 +1148,7 @@ struct SafCheckpointRead API_Read[]={
 
 };
 
-int tet_test_ckptRead(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptRead(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result,j;
@@ -1325,22 +1164,22 @@ retry:
   {
      for(j=0;j<(*(API_Read[i].numberOfElements));j++)
      {
-         m_TET_CPSV_PRINTF(" DataSize:%llu\n",API_Read[i].ioVector[j].dataSize);
-         m_TET_CPSV_PRINTF(" ReadSize:%llu\n",API_Read[i].ioVector[j].readSize);
+         m_TEST_CPSV_PRINTF(" DataSize:%llu\n",API_Read[i].ioVector[j].dataSize);
+         m_TEST_CPSV_PRINTF(" ReadSize:%llu\n",API_Read[i].ioVector[j].readSize);
 #if 1      
          if(i == CKPT_READ_BUFFER_NULL_T) 
          { 
-         m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Read[i].ioVector[j].dataBuffer);
+         m_TEST_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Read[i].ioVector[j].dataBuffer);
 	  	 if (API_Read[i].ioVector[j].readSize != 0)
 	  	 rc = saCkptIOVectorElementDataFree(*(API_Read[i].checkpointHandle),(API_Read[i].ioVector[j].dataBuffer));
                else
 		  rc = SA_AIS_OK;
 		 if ( rc == SA_AIS_OK)
-	   	  m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer SUCCESS  \n");
+	   	  m_TEST_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer SUCCESS  \n");
 	 	 else
 	 	 {
-	     		 m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer FAIL rc-%d\n",rc);
-			 result = TET_FAIL;
+	     		 m_TEST_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer FAIL rc-%d\n",rc);
+			 result = TEST_FAIL;
 	 	 }
          }
 #endif
@@ -1350,7 +1189,7 @@ retry:
   return result;
 }
 
-int tet_test_red_ckptRead(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptRead(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result,j;
@@ -1366,22 +1205,22 @@ int tet_test_red_ckptRead(int i,CONFIG_FLAG cfg_flg)
       {
          for(j=0;j<(*(API_Read[i].numberOfElements));j++)
          {
-             m_TET_CPSV_PRINTF(" DataSize:%llu\n",API_Read[i].ioVector[j].dataSize);
-             m_TET_CPSV_PRINTF(" ReadSize:%llu\n",API_Read[i].ioVector[j].readSize);
+             m_TEST_CPSV_PRINTF(" DataSize:%llu\n",API_Read[i].ioVector[j].dataSize);
+             m_TEST_CPSV_PRINTF(" ReadSize:%llu\n",API_Read[i].ioVector[j].readSize);
 #if 1      
          if(i == CKPT_READ_BUFFER_NULL_T)
          { 
-             m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Read[i].ioVector[j].dataBuffer);
+             m_TEST_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Read[i].ioVector[j].dataBuffer);
 	        if (API_Read[i].ioVector[j].readSize != 0)
 	  	 rc = saCkptIOVectorElementDataFree(*(API_Read[i].checkpointHandle),(API_Read[i].ioVector[j].dataBuffer));
                else
 		  rc = SA_AIS_OK;
 		 if ( rc == SA_AIS_OK)
-	   	  m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer SUCESS  \n");
+	   	  m_TEST_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer SUCESS  \n");
 	 	 else
 	     	{
-	     		 m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer FAIL rc-%d\n",rc);
-			 result = TET_FAIL;
+	     		 m_TEST_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer FAIL rc-%d\n",rc);
+			 result = TEST_FAIL;
 	 	 }
          }
 #endif
@@ -1448,7 +1287,7 @@ struct SafCheckpointOverwrite API_Overwrite[]={
 
 };
 
-int tet_test_ckptOverwrite(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptOverwrite(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -1463,9 +1302,9 @@ retry:
 
   if ( rc == SA_AIS_OK)
   {
-     m_TET_CPSV_PRINTF(" DataSize:%llu\n",*API_Overwrite[i].dataSize);
+     m_TEST_CPSV_PRINTF(" DataSize:%llu\n",*API_Overwrite[i].dataSize);
 #if 0
-     m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Overwrite[i].dataBuffer);
+     m_TEST_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Overwrite[i].dataBuffer);
 #endif
   }
 
@@ -1473,7 +1312,7 @@ retry:
 }
 
 
-int tet_test_red_ckptOverwrite(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptOverwrite(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -1487,9 +1326,9 @@ int tet_test_red_ckptOverwrite(int i,CONFIG_FLAG cfg_flg)
   
      if ( rc == SA_AIS_OK)
      {
-        m_TET_CPSV_PRINTF(" DataSize:%llu\n",*API_Overwrite[i].dataSize);
+        m_TEST_CPSV_PRINTF(" DataSize:%llu\n",*API_Overwrite[i].dataSize);
 #if 0
-        m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Overwrite[i].dataBuffer);
+        m_TEST_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Overwrite[i].dataBuffer);
 #endif
      }
   }END_OF_WHILE;
@@ -1535,7 +1374,7 @@ struct SafCheckpointSynchronize API_Sync[]={
 
 };
 
-int tet_test_ckptSynchronize(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptSynchronize(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   SaCkptCheckpointHandleT hdl;
@@ -1555,7 +1394,7 @@ retry:
   {
      if(rc == SA_AIS_ERR_NOT_EXIST)
      {
-        m_TET_CPSV_PRINTF("Return value is SA_AIS_ERR_NOT_EXIST trying again");
+        m_TEST_CPSV_PRINTF("Return value is SA_AIS_ERR_NOT_EXIST trying again");
         rc = saCkptCheckpointSynchronize(hdl,API_Sync[i].timeout);
      }
   }
@@ -1563,7 +1402,7 @@ retry:
   return(cpsv_test_result(rc,API_Sync[i].exp_output,API_Sync[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptSynchronize(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptSynchronize(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   SaCkptCheckpointHandleT hdl;
@@ -1582,7 +1421,7 @@ int tet_test_red_ckptSynchronize(int i,CONFIG_FLAG cfg_flg)
      {
         if(rc == SA_AIS_ERR_NOT_EXIST)
         {
-           m_TET_CPSV_PRINTF("Return value is SA_AIS_ERR_NOT_EXIST trying again");
+           m_TEST_CPSV_PRINTF("Return value is SA_AIS_ERR_NOT_EXIST trying again");
            rc = saCkptCheckpointSynchronize(hdl,API_Sync[i].timeout);
         }
      }
@@ -1625,14 +1464,14 @@ struct SafCheckpointSynchronizeAsync API_SyncAsync[]={
 
 };
 
-int tet_test_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   rc=saCkptCheckpointSynchronizeAsync(*(API_SyncAsync[i].checkpointHandle),API_SyncAsync[i].invocation);
   return(cpsv_test_result(rc,API_SyncAsync[i].exp_output,API_SyncAsync[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptSynchronizeAsync(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   gl_try_again_cnt=0;
@@ -1673,14 +1512,14 @@ struct SafCheckpointActiveReplicaSet API_ReplicaSet[]={
 };
 
 
-int tet_test_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   rc=saCkptActiveReplicaSet(*(API_ReplicaSet[i].checkpointHandle));
   return(cpsv_test_result(rc,API_ReplicaSet[i].exp_output,API_ReplicaSet[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptReplicaSet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   gl_try_again_cnt=0;
@@ -1727,7 +1566,7 @@ struct SafCheckpointStatusGet API_StatusGet[]={
 };
 
 
-int tet_test_ckptStatusGet(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptStatusGet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaCkptCheckpointHandleT localHandle;
   SaAisErrorT rc;
@@ -1751,7 +1590,7 @@ retry:
   return result;
 }
 
-int tet_test_red_ckptStatusGet(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptStatusGet(int i,CONFIG_FLAG cfg_flg) 
 {
   SaCkptCheckpointHandleT localHandle;
   SaAisErrorT rc;
@@ -1818,7 +1657,7 @@ struct SafCheckpointIterationInitialize API_IterationInit[] = {
 
 };
 
-int tet_test_ckptIterationInit(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptIterationInit(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   SaTimeT now, duration;
@@ -1839,7 +1678,7 @@ retry:
   return(cpsv_test_result(rc,API_IterationInit[i].exp_output,API_IterationInit[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptIterationInit(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptIterationInit(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   SaTimeT now, duration;
@@ -1889,7 +1728,7 @@ struct SafCheckpointIterationNext API_IterationNext[] = {
 
 };
 
-int tet_test_ckptIterationNext(int i,CONFIG_FLAG cfg_flg)
+int test_ckptIterationNext(int i,CONFIG_FLAG cfg_flg)
 {
   SaAisErrorT rc;
   int result;
@@ -1900,12 +1739,12 @@ retry:
 
   if (rc == SA_AIS_OK)
   {
-     m_TET_CPSV_PRINTF(" Section Id is %s\n",API_IterationNext[i].sectionDescriptor->sectionId.id);
-     m_TET_CPSV_PRINTF(" Section IdLen is %d\n",API_IterationNext[i].sectionDescriptor->sectionId.idLen);
-     m_TET_CPSV_PRINTF(" Expiration Time is %llu\n",API_IterationNext[i].sectionDescriptor->expirationTime);
-     m_TET_CPSV_PRINTF(" Section Size is %llu\n",API_IterationNext[i].sectionDescriptor->sectionSize);
-     m_TET_CPSV_PRINTF(" Section State is %d\n",API_IterationNext[i].sectionDescriptor->sectionState);
-     m_TET_CPSV_PRINTF(" Last Update happened at %llu\n",API_IterationNext[i].sectionDescriptor->lastUpdate);
+     m_TEST_CPSV_PRINTF(" Section Id is %s\n",API_IterationNext[i].sectionDescriptor->sectionId.id);
+     m_TEST_CPSV_PRINTF(" Section IdLen is %d\n",API_IterationNext[i].sectionDescriptor->sectionId.idLen);
+     m_TEST_CPSV_PRINTF(" Expiration Time is %llu\n",API_IterationNext[i].sectionDescriptor->expirationTime);
+     m_TEST_CPSV_PRINTF(" Section Size is %llu\n",API_IterationNext[i].sectionDescriptor->sectionSize);
+     m_TEST_CPSV_PRINTF(" Section State is %d\n",API_IterationNext[i].sectionDescriptor->sectionState);
+     m_TEST_CPSV_PRINTF(" Last Update happened at %llu\n",API_IterationNext[i].sectionDescriptor->lastUpdate);
   }
   if(rc == SA_AIS_ERR_TRY_AGAIN)
      goto retry;
@@ -1913,7 +1752,7 @@ retry:
   return result;
 }
 
-int tet_test_red_ckptIterationNext(int i,CONFIG_FLAG cfg_flg)
+int test_red_ckptIterationNext(int i,CONFIG_FLAG cfg_flg)
 {
   SaAisErrorT rc;
   int result;
@@ -1927,12 +1766,12 @@ int tet_test_red_ckptIterationNext(int i,CONFIG_FLAG cfg_flg)
 
   if (rc == SA_AIS_OK)
   {
-     m_TET_CPSV_PRINTF(" Section Id is %s\n",API_IterationNext[i].sectionDescriptor->sectionId.id);
-     m_TET_CPSV_PRINTF(" Section IdLen is %d\n",API_IterationNext[i].sectionDescriptor->sectionId.idLen);
-     m_TET_CPSV_PRINTF(" Expiration Time is %llu\n",API_IterationNext[i].sectionDescriptor->expirationTime);
-     m_TET_CPSV_PRINTF(" Section Size is %llu\n",API_IterationNext[i].sectionDescriptor->sectionSize);
-     m_TET_CPSV_PRINTF(" Section State is %d\n",API_IterationNext[i].sectionDescriptor->sectionState);
-     m_TET_CPSV_PRINTF(" Last Update happened at %llu\n",API_IterationNext[i].sectionDescriptor->lastUpdate);
+     m_TEST_CPSV_PRINTF(" Section Id is %s\n",API_IterationNext[i].sectionDescriptor->sectionId.id);
+     m_TEST_CPSV_PRINTF(" Section IdLen is %d\n",API_IterationNext[i].sectionDescriptor->sectionId.idLen);
+     m_TEST_CPSV_PRINTF(" Expiration Time is %llu\n",API_IterationNext[i].sectionDescriptor->expirationTime);
+     m_TEST_CPSV_PRINTF(" Section Size is %llu\n",API_IterationNext[i].sectionDescriptor->sectionSize);
+     m_TEST_CPSV_PRINTF(" Section State is %d\n",API_IterationNext[i].sectionDescriptor->sectionState);
+     m_TEST_CPSV_PRINTF(" Last Update happened at %llu\n",API_IterationNext[i].sectionDescriptor->lastUpdate);
   }
 
   return result;
@@ -1956,7 +1795,7 @@ struct SafCheckpointIterationFinalize API_IterationFin[] = {
 
 };
 
-int tet_test_ckptIterationFin(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptIterationFin(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
 retry:
@@ -1968,7 +1807,7 @@ retry:
   return(cpsv_test_result(rc,API_IterationFin[i].exp_output,API_IterationFin[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptIterationFin(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptIterationFin(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   gl_try_again_cnt=0;
@@ -2017,7 +1856,7 @@ struct SafCheckpointSectionDelete API_SectionDelete[]={
 
 };
 
-int tet_test_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -2031,7 +1870,7 @@ retry:
   
   return result;
 }
-int tet_test_saCkptSectionIdFree(int i,CONFIG_FLAG cfg_flg) 
+int test_saCkptSectionIdFree(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
@@ -2043,7 +1882,7 @@ retry:
   return result;
 }
 
-int tet_test_red_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptSectionDelete(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   gl_try_again_cnt=0;
@@ -2100,22 +1939,25 @@ struct SafCheckpointUnlink API_Unlink[]= {
 };
 
 
-int tet_test_ckptUnlink(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptUnlink(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   int result;
+  int retry_counter = 3;
 
-retry:
-  rc=saCkptCheckpointUnlink(*(API_Unlink[i].checkpointHandle),API_Unlink[i].checkpointName);
-  result = cpsv_test_result(rc,API_Unlink[i].exp_output,API_Unlink[i].result_string,cfg_flg);
+  do
+  {
+     rc=saCkptCheckpointUnlink(*(API_Unlink[i].checkpointHandle),API_Unlink[i].checkpointName);
+     result = cpsv_test_result(rc,API_Unlink[i].exp_output,API_Unlink[i].result_string,cfg_flg);
 
-  if(rc == SA_AIS_ERR_TRY_AGAIN)
-     goto retry;
+     retry_counter--;
+
+  } while ((rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT) && (retry_counter != 0));
 
   return result;
 }
 
-int tet_test_red_ckptUnlink(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptUnlink(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   gl_try_again_cnt=0;
@@ -2164,14 +2006,14 @@ struct SafCheckpointClose API_Close[]= {
 };
 
 
-int tet_test_ckptClose(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptClose(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   rc=saCkptCheckpointClose(*(API_Close[i].checkpointHandle));
   return(cpsv_test_result(rc,API_Close[i].exp_output,API_Close[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptClose(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptClose(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   gl_try_again_cnt=0;
@@ -2213,7 +2055,7 @@ struct SafFinalize API_Finalize[]={
 
 };
 
-int tet_test_ckptFinalize(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptFinalize(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   SaCkptHandleT localHandle;
@@ -2228,12 +2070,12 @@ int tet_test_ckptFinalize(int i,CONFIG_FLAG cfg_flg)
   result = cpsv_test_result(rc,API_Finalize[i].exp_output,API_Finalize[i].result_string,cfg_flg);
 
   if(rc == SA_AIS_OK)
-     m_TET_CPSV_PRINTF(" Ckpt Handle   :  %llu Finalized  \n",*API_Finalize[i].ckptHandle);
+     m_TEST_CPSV_PRINTF(" Ckpt Handle   :  %llu Finalized  \n",*API_Finalize[i].ckptHandle);
 
   return result;
 }
 
-int tet_test_red_ckptFinalize(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptFinalize(int i,CONFIG_FLAG cfg_flg) 
 {
   SaAisErrorT rc;
   SaCkptHandleT localHandle;
@@ -2251,7 +2093,7 @@ int tet_test_red_ckptFinalize(int i,CONFIG_FLAG cfg_flg)
      result = cpsv_test_result(rc,API_Finalize[i].exp_output,API_Finalize[i].result_string,cfg_flg);
 
      if(rc == SA_AIS_OK)
-        m_TET_CPSV_PRINTF(" Ckpt Handle   :  %llu Finalized  \n",*API_Finalize[i].ckptHandle);
+        m_TEST_CPSV_PRINTF(" Ckpt Handle   :  %llu Finalized  \n",*API_Finalize[i].ckptHandle);
   }END_OF_WHILE;
 
   return result;
@@ -2283,7 +2125,7 @@ struct SafDispatch API_Dispatch[]={
   [CKPT_DISPATCH_BAD_HANDLE5_T] = {&tcd.ckptHandle,SA_DISPATCH_ONE,SA_AIS_ERR_BAD_HANDLE,"Dispatch bad handle"},
 };
 
-int tet_test_ckptDispatch(int i,CONFIG_FLAG cfg_flg) 
+int test_ckptDispatch(int i,CONFIG_FLAG cfg_flg) 
 {
   SaCkptHandleT localHandle;
   SaAisErrorT rc;
@@ -2297,7 +2139,7 @@ int tet_test_ckptDispatch(int i,CONFIG_FLAG cfg_flg)
   return(cpsv_test_result(rc,API_Dispatch[i].exp_output,API_Dispatch[i].result_string,cfg_flg));
 }
 
-int tet_test_red_ckptDispatch(int i,CONFIG_FLAG cfg_flg) 
+int test_red_ckptDispatch(int i,CONFIG_FLAG cfg_flg) 
 {
   SaCkptHandleT localHandle;
   SaAisErrorT rc;
@@ -2317,9 +2159,3 @@ int tet_test_red_ckptDispatch(int i,CONFIG_FLAG cfg_flg)
 
   return result;
 }
-
-
-
-#endif
-
-
