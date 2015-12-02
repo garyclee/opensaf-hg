@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2015 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,27 +11,25 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Ericsson AB
 #
 
 include $(top_srcdir)/Makefile.common
 
-MAINTAINERCLEANFILES = Makefile.in
+TESTS = testamfnd
 
-SUBDIRS = include tests
+check_PROGRAMS = testamfnd
 
-noinst_LTLIBRARIES = libava.la
+testamfnd_CXXFLAGS =$(AM_CXXFLAGS)
 
-libava_la_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/amf/include \
-	-I$(top_srcdir)/osaf/libs/agents/saf/amfa/include
+testamfnd_CPPFLAGS = \
+	-I$(GTEST_DIR)/include
 
-libava_la_LDFLAGS = -static
+testamfnd_LDFLAGS =
 
-libava_la_SOURCES = \
-	ava_api.c \
-	ava_hdl.c \
-	ava_init.c \
-	ava_mds.c \
-	ava_op.c
+# Add test case cc files here
+testamfnd_SOURCES =
+
+testamfnd_LDADD = \
+	$(GTEST_DIR)/lib/libgtest.la \
+	$(GTEST_DIR)/lib/libgtest_main.la

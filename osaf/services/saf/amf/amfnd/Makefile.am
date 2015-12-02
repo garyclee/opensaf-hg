@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include scripts
+SUBDIRS = include scripts tests
 
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafamfnd

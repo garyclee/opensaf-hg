@@ -690,6 +690,7 @@ AC_CONFIG_FILES([
         osaf/libs/agents/saf/Makefile
         osaf/libs/agents/saf/amfa/Makefile
         osaf/libs/agents/saf/amfa/include/Makefile
+        osaf/libs/agents/saf/amfa/tests/Makefile
         osaf/libs/agents/saf/imma/Makefile
         osaf/libs/agents/saf/plma/Makefile
         osaf/libs/agents/saf/lga/Makefile
@@ -809,6 +810,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/amf/amfnd/include/Makefile
         osaf/services/saf/amf/amfnd/scripts/Makefile
         osaf/services/saf/amf/amfnd/scripts/osaf-amfnd
+        osaf/services/saf/amf/amfnd/tests/Makefile
         osaf/services/saf/amf/amfwdog/Makefile
         osaf/services/saf/amf/amfwdog/scripts/Makefile
         osaf/services/saf/amf/amfwdog/scripts/osaf-amfwd
