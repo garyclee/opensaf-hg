@@ -157,5 +157,7 @@ void encode_app(NCS_UBAID *ub, const AVD_APP *app);
 void decode_app(NCS_UBAID *ub, AVD_APP *app);
 void encode_comp(NCS_UBAID *ub, const AVD_COMP *comp);
 void decode_comp(NCS_UBAID *ub, AVD_COMP *comp);
+void encode_cb(NCS_UBAID *ub, const struct cl_cb_tag *cb, const uint16_t peer_version);
+void decode_cb(NCS_UBAID *ub, struct cl_cb_tag *cb, const uint16_t peer_version);
 
 #endif

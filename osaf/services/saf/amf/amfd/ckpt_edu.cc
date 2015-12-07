@@ -53,10 +53,6 @@ uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb)
 
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &err);
-	if (rc != NCSCC_RC_SUCCESS)
-		goto error;
-
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &err);
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
@@ -87,56 +83,6 @@ error:
 	LOG_ER("%s:%u err=%u", __FUNCTION__, __LINE__, err);
 	/* EDU cleanup */
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
-	return rc;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:   avsv_edp_ckpt_msg_cb
-
-  DESCRIPTION:      EDU program handler for "AVD_CL_CB" data. This 
-                    function is invoked by EDU for performing encode/decode 
-                    operation on "AVD_CL_CB" data.
-
-  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-
-*****************************************************************************/
-uint32_t avsv_edp_ckpt_msg_cb(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_CL_CB *struct_ptr = nullptr, **d_ptr = nullptr;
-
-	EDU_INST_SET avsv_ckpt_msg_cb_rules[] = {
-		{EDU_START, avsv_edp_ckpt_msg_cb, 0, 0, 0, sizeof(AVD_CL_CB), 0, nullptr},
-
-		/* AVD Control block information */
-		{EDU_EXEC, ncs_edp_int, 0, 0, 0,
-		 (long)&((AVD_CL_CB *)0)->init_state, 0, nullptr},
-		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-		 (long)&((AVD_CL_CB *)0)->cluster_init_time, 0, nullptr},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((AVD_CL_CB *)0)->nodes_exit_cnt, 0, nullptr},
-
-		{EDU_END, 0, 0, 0, 0, 0, 0, nullptr},
-	};
-
-	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (AVD_CL_CB *)ptr;
-	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (AVD_CL_CB **)ptr;
-		if (*d_ptr == nullptr) {
-			*o_err = EDU_ERR_MEM_FAIL;
-			return NCSCC_RC_FAILURE;
-		}
-		/*memset(*d_ptr, '\0', sizeof(AVD_CL_CB)); */
-		struct_ptr = *d_ptr;
-	} else {
-	   struct_ptr = static_cast<AVD_CL_CB*>(ptr);
-	}
-
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_cb_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-
 	return rc;
 }
 
