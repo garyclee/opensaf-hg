@@ -200,6 +200,15 @@ const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR enc_cs_data_func_list[] = {
 	enc_cs_async_updt_cnt
 };
 
+void encode_cb(NCS_UBAID *ub,
+	const AVD_CL_CB *cb,
+	const uint16_t peer_version)
+{
+	osaf_encode_uint32(ub, cb->init_state);
+	osaf_encode_satimet(ub, cb->cluster_init_time);
+	osaf_encode_uint32(ub, cb->nodes_exit_cnt);
+}
+
 /****************************************************************************\
  * Function: enc_cb_config
  *
@@ -216,23 +225,17 @@ const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR enc_cs_data_func_list[] = {
 \**************************************************************************/
 static uint32_t enc_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* 
 	 * For updating CB, action is always to do update. We don't have add and remove
 	 * action on CB. So call EDU to encode CB data.
 	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &enc->io_uba,
-				    EDP_OP_TYPE_ENC, cb, &ederror, enc->i_peer_version);
+	osafassert(enc->io_action == NCS_MBCSV_ACT_UPDATE);
+	encode_cb(&enc->io_uba, cb, enc->i_peer_version);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1906,25 +1909,16 @@ static uint32_t entire_data_update(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, bool c_
 \**************************************************************************/
 static uint32_t enc_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* 
 	 * Send the CB data.
 	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &enc->io_uba,
-				    EDP_OP_TYPE_ENC, cb, &ederror, enc->i_peer_version);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-		return NCSCC_RC_FAILURE;
-	}
-
+	encode_cb(&enc->io_uba, cb, enc->i_peer_version);
 	*num_of_obj = 1;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\

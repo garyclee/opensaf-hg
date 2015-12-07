@@ -199,6 +199,16 @@ const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR dec_cs_data_func_list[] = {
 	dec_cs_async_updt_cnt
 };
 
+void decode_cb(NCS_UBAID *ub,
+	AVD_CL_CB *cb,
+	const uint16_t peer_version)
+{
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&cb->init_state));
+	osaf_decode_satimet(ub, &cb->cluster_init_time);
+	osaf_decode_uint32(ub, &cb->nodes_exit_cnt);
+}
+
+
 /****************************************************************************\
  * Function: dec_cb_config
  *
@@ -213,32 +223,18 @@ const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR dec_cs_data_func_list[] = {
  *
  * 
 \**************************************************************************/
-static uint32_t dec_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_DEC *dec)
+static uint32_t dec_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_CL_CB *cb;
-
-	cb = cb_ptr;
-
 	TRACE_ENTER();
-	/* 
-	 * For updating CB, action is always to do update. We don't have add and remove
-	 * action on CB. So call EDU to decode CB data.
-	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &dec->i_uba,
-				    EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb, &ederror, dec->i_peer_version);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
+	decode_cb(&dec->i_uba, cb, dec->i_peer_version);
 
 	/* Since update is successful, update async update count */
 	cb->async_updt_cnt.cb_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2139,22 +2135,15 @@ uint32_t avd_dec_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_CL_CB *cb_ptr;
-
 	TRACE_ENTER();
 
-	cb_ptr = cb;
 	/* 
 	 * Send the CB data.
 	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &dec->i_uba,
-				    EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb_ptr, &ederror, dec->i_peer_version);
-	osafassert(status == NCSCC_RC_SUCCESS);
+	decode_cb(&dec->i_uba, cb, dec->i_peer_version);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\

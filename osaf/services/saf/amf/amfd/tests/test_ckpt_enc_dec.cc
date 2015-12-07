@@ -166,3 +166,63 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
   ASSERT_EQ(comp.saAmfCompRestartCount, static_cast<uint32_t>(0x77665544));
   ASSERT_EQ(Amf::to_string(&comp.saAmfCompCurrProxyName), "CompProxyName");
 }
+
+
+TEST_F(CkptEncDecTest, testEncDecAvdCb) {
+  int rc = 0;
+  AVD_CL_CB cb;
+
+  cb.init_state = AVD_APP_STATE;
+  cb.cluster_init_time = 0x8877665544332211;
+  cb.nodes_exit_cnt = 0x55443322;
+  
+  rc = ncs_enc_init_space(&enc.io_uba);
+  ASSERT_TRUE(rc == NCSCC_RC_SUCCESS);
+
+  enc.io_msg_type = NCS_MBCSV_MSG_ASYNC_UPDATE;
+  enc.io_action = NCS_MBCSV_ACT_UPDATE;
+  enc.io_reo_hdl = (MBCSV_REO_HDL)&cb;
+  enc.io_reo_type = AVSV_CKPT_AVD_CB_CONFIG;
+  enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_3;
+
+  encode_cb(&enc.io_uba, &cb, enc.i_peer_version);
+  
+  // retrieve AVD_CL_CB encoded data from the USR buf
+  int32_t size = enc.io_uba.ttl;
+  char *tmpData = new char[size];
+
+  char *buf = sysf_data_at_start(enc.io_uba.ub, size, tmpData);
+  uint32_t offset = 0;
+  uint32_t *fld = reinterpret_cast<uint32_t*>(&buf[offset]);
+  
+  // verify that the encoded value is in network byte order
+  if (isLittleEndian()) {
+    // app_state
+    ASSERT_EQ(*fld++, static_cast<uint32_t>(0x04000000));
+    // cluster_init_time
+    ASSERT_EQ(*fld++, static_cast<uint32_t>(0x55667788));
+    ASSERT_EQ(*fld++, static_cast<uint32_t>(0x11223344));
+    // nodes_exit_cnt
+    ASSERT_EQ(*fld, static_cast<uint32_t>(0x22334455));
+  } else {
+    // app_state
+    ASSERT_EQ(*fld++, static_cast<uint32_t>(0x00000004));
+    // cluster_init_time
+    ASSERT_EQ(*fld++, static_cast<uint32_t>(0x88776655));
+    ASSERT_EQ(*fld++, static_cast<uint32_t>(0x44332211));
+    // nodes_exit_cnt
+    ASSERT_EQ(*fld, static_cast<uint32_t>(0x55443322));
+  }
+
+  delete [] tmpData;
+
+  cb.init_state = AVD_INIT_BGN;
+  cb.cluster_init_time = 0x0;
+  cb.nodes_exit_cnt = 0x0;
+ 
+  decode_cb(&enc.io_uba, &cb, enc.i_peer_version);
+
+  ASSERT_EQ(cb.init_state, AVD_APP_STATE);
+  ASSERT_EQ(cb.cluster_init_time, static_cast<SaTimeT>(0x8877665544332211));
+  ASSERT_EQ(cb.nodes_exit_cnt, static_cast<uint32_t>(0x55443322));
+}
