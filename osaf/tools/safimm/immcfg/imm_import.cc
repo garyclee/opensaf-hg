@@ -1384,7 +1384,8 @@ static bool loadXsd(const xmlChar** attrs) {
                     strcmp(value, "SA_INITIALIZED") && strcmp(value, "SA_PERSISTENT") &&
                     strcmp(value, "SA_CACHED") && strcmp(value, "SA_NOTIFY") &&
                     strcmp(value, "SA_NO_DUPLICATES") && strcmp(value, "SA_NO_DANGLING") &&
-                    strcmp(value, "SA_DN") && strcmp(value, "SA_DEFAULT_REMOVED")) {
+                    strcmp(value, "SA_DN") && strcmp(value, "SA_DEFAULT_REMOVED") &&
+                    strcmp(value, "SA_STRONG_DEFAULT")) {
                 attrFlagSet.insert(value);
             }
         }
@@ -2062,6 +2063,8 @@ static SaImmAttrFlagsT charsToFlagsHelper(const xmlChar* str, size_t len)
 		return SA_IMM_ATTR_DN;
 	} else if (len == strlen("SA_DEFAULT_REMOVED") && strncmp((const char*)str, "SA_DEFAULT_REMOVED", len) == 0) {
 		return SA_IMM_ATTR_DEFAULT_REMOVED;
+	} else if (len == strlen("SA_STRONG_DEFAULT") && strncmp((const char*)str, "SA_STRONG_DEFAULT", len) == 0) {
+		return SA_IMM_ATTR_STRONG_DEFAULT;
 	}
 
 	std::string flag((char *)str, len);
@@ -2608,7 +2611,7 @@ int loadImmXML(const char *xmlfile, int strictParse)
 
 	version.releaseCode   = 'A';
 	version.majorVersion  = 2;
-	version.minorVersion  = 16;
+	version.minorVersion  = 17;
 
 	TRACE_8("Loading from %s", xmlfile);
 
