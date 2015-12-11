@@ -165,6 +165,9 @@ extern void saImmOmCcbObjectModify_2_18(void);
 extern void saImmOmCcbObjectModify_2_19(void);
 extern void saImmOmCcbObjectModify_2_20(void);
 extern void saImmOmCcbObjectModify_2_21(void);
+extern void saImmOmCcbObjectModify_2_22(void);
+extern void saImmOmCcbObjectModify_2_23(void);
+extern void saImmOmCcbObjectModify_2_24(void);
 extern void saImmOmCcbApply_01(void);
 extern void saImmOmCcbApply_02(void);
 extern void saImmOmCcbFinalize_01(void);
@@ -238,6 +241,9 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbObjectModify_2_19, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_BUSY, set NO_DANGLING reference to a deleted object by another CCB");
     test_case_add(6, saImmOmCcbObjectModify_2_20, "saImmOmCcbObjectModify_2 - SA_AIS_ERR_BUSY, set NO_DANGLING reference to a create object by another CCB");
     test_case_add(6, saImmOmCcbObjectModify_2_21, "saImmOmCcbObjectModify_2 - SA_AIS_OK, set NO_DANGLING reference to an object created in the same CCB");
+    test_case_add(6, saImmOmCcbObjectModify_2_22, "saImmOmCcbObjectModify_2 - STRONG_DEFAULT, Set value of attribute to NULL");
+    test_case_add(6, saImmOmCcbObjectModify_2_23, "saImmOmCcbObjectModify_2 - STRONG_DEFAULT, Set value of multi-valued attribute to NULL");
+    test_case_add(6, saImmOmCcbObjectModify_2_24, "saImmOmCcbObjectModify_2 - STRONG_DEFAULT, Delete all values of multi-valued attribute");
 
     test_case_add(6, saImmOmCcbApply_01, "saImmOmCcbApply - SA_AIS_OK");
     test_case_add(6, saImmOmCcbApply_02, "saImmOmCcbApply - SA_AIS_ERR_BAD_HANDLE");

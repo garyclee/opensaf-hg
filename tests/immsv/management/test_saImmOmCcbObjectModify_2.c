@@ -851,6 +851,179 @@ void saImmOmCcbObjectModify_2_21(void)
     test_validate(rc, SA_AIS_OK);
 }
 
+void saImmOmCcbObjectModify_2_22(void) {
+    /*
+     * STRONG_DEFAULT, Set value of attribute to NULL
+     */
+
+    /* Create class */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_STRONG_DEFAULT, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions), SA_AIS_OK);
+
+    /* Create object */
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    const SaNameT obj = { strlen("id=1"), "id=1" };
+    SaUint32T val = 200;
+    SaImmAttrValueT valArray = &val;
+    SaImmAttrValuesT_2 createValue= { "attr", SA_IMM_ATTR_SAUINT32T, 1, &valArray };
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(object_create(immOmHandle, ownerHandle, className, &obj, NULL, &createValue), SA_AIS_OK);
+
+    /* Set the strong default attribute to NULL */
+    SaImmCcbHandleT ccbHandle;
+    SaImmAttrValuesT_2 value = { "attr", SA_IMM_ATTR_SAUINT32T, 0, NULL };
+    SaImmAttrModificationT_2 attrMod = { SA_IMM_ATTR_VALUES_REPLACE, value };
+    const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbObjectModify_2(ccbHandle, &obj, attrMods), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+
+    /* Check value of the attribute */
+    SaImmAccessorHandleT accessorHandle;
+    const SaImmAttrNameT attName = "attr";
+    SaImmAttrNameT attNames[] = {attName, NULL};
+    SaImmAttrValuesT_2 ** resultAttrs;
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &obj, attNames, &resultAttrs), SA_AIS_OK);
+    assert(resultAttrs[0] && (resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T));
+    assert(resultAttrs[0]->attrValuesNumber == 1);
+    test_validate(*((SaUint32T *) resultAttrs[0]->attrValues[0]), defaultVal);
+
+    /* Delete object */
+    safassert(object_delete(ownerHandle, &obj, 1), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+
+    /* Delete class */
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmCcbObjectModify_2_23(void) {
+    /*
+     * STRONG_DEFAULT, Set value of multi-valued attribute to NULL
+     */
+
+    /* Create class */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_STRONG_DEFAULT | SA_IMM_ATTR_MULTI_VALUE, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions), SA_AIS_OK);
+
+    /* Create object */
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    const SaNameT obj = { strlen("id=1"), "id=1" };
+    SaUint32T val1 = 200;
+    SaUint32T val2 = 300;
+    SaImmAttrValueT valArray[] = {&val1, &val2};
+    SaImmAttrValuesT_2 createValue= { "attr", SA_IMM_ATTR_SAUINT32T, 2, valArray };
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(object_create(immOmHandle, ownerHandle, className, &obj, NULL, &createValue), SA_AIS_OK);
+
+    /* Set the strong default attribute to NULL */
+    SaImmCcbHandleT ccbHandle;
+    SaImmAttrValuesT_2 modValue = { "attr", SA_IMM_ATTR_SAUINT32T, 0, NULL };
+    SaImmAttrModificationT_2 attrMod = { SA_IMM_ATTR_VALUES_REPLACE, modValue };
+    const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbObjectModify_2(ccbHandle, &obj, attrMods), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+
+    /* Check value of the attribute */
+    SaImmAccessorHandleT accessorHandle;
+    const SaImmAttrNameT attName = "attr";
+    SaImmAttrNameT attNames[] = {attName, NULL};
+    SaImmAttrValuesT_2 ** resultAttrs;
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &obj, attNames, &resultAttrs), SA_AIS_OK);
+    assert(resultAttrs[0] && (resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T));
+    assert(resultAttrs[0]->attrValuesNumber == 1);
+    test_validate(*((SaUint32T *) resultAttrs[0]->attrValues[0]), defaultVal);
+
+    /* Delete object */
+    safassert(object_delete(ownerHandle, &obj, 1), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+
+    /* Delete class */
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmCcbObjectModify_2_24(void) {
+    /*
+     * STRONG_DEFAULT, Delete all values of multi-valued attribute
+     */
+
+    /* Create class */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_STRONG_DEFAULT | SA_IMM_ATTR_MULTI_VALUE, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions), SA_AIS_OK);
+
+    /* Create object */
+    const SaImmAdminOwnerNameT adminOwnerName = (SaImmAdminOwnerNameT) __FUNCTION__;
+    SaImmAdminOwnerHandleT ownerHandle;
+    const SaNameT obj = { strlen("id=1"), "id=1" };
+    SaUint32T val1 = 200;
+    SaUint32T val2 = 300;
+    SaImmAttrValueT valArray[] = {&val1, &val2};
+    SaImmAttrValuesT_2 createValue= { "attr", SA_IMM_ATTR_SAUINT32T, 2, valArray };
+    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
+    safassert(object_create(immOmHandle, ownerHandle, className, &obj, NULL, &createValue), SA_AIS_OK);
+
+    /* Delete all value of attribute */
+    SaImmCcbHandleT ccbHandle;
+    SaImmAttrValuesT_2 modValue = { "attr", SA_IMM_ATTR_SAUINT32T, 2, valArray };
+    SaImmAttrModificationT_2 attrMod = { SA_IMM_ATTR_VALUES_DELETE, modValue };
+    const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbObjectModify_2(ccbHandle, &obj, attrMods), SA_AIS_OK);
+    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+
+    /* Check value of the attribute */
+    SaImmAccessorHandleT accessorHandle;
+    const SaImmAttrNameT attName = "attr";
+    SaImmAttrNameT attNames[] = {attName, NULL};
+    SaImmAttrValuesT_2 ** resultAttrs;
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &obj, attNames, &resultAttrs), SA_AIS_OK);
+    assert(resultAttrs[0] && (resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T));
+    assert(resultAttrs[0]->attrValuesNumber == 1);
+    test_validate(*((SaUint32T *) resultAttrs[0]->attrValues[0]), defaultVal);
+
+    /* Delete object */
+    safassert(object_delete(ownerHandle, &obj, 1), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+
+    /* Delete class */
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
 __attribute__ ((constructor)) static void saImmOmCcbObjectModify_2_constructor(void)
 {
     dnObj1.length = (SaUint16T) sprintf((char*) dnObj1.value, "%s,%s", rdnObj1.value, rootObj.value);
