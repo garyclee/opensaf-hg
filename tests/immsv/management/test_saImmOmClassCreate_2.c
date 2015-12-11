@@ -299,6 +299,50 @@ void saImmOmClassCreate_2_17(void)
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
+void saImmOmClassCreate_2_18(void)
+{
+    /*
+     * Create a class that has STRONG_DEFAULT flag.
+     */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_STRONG_DEFAULT, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+
+    rc = saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions);
+    test_validate(rc, SA_AIS_OK);
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOmClassCreate_2_19(void)
+{
+    /*
+     * Create a class that has STRONG_DEFAULT flag without having default value.
+     */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_STRONG_DEFAULT, NULL};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+
+    rc = saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
 #define OPENSAF_IMM_NOSTD_FLAG_PARAM "opensafImmNostdFlags"
 #define OPENSAF_IMM_NOSTD_FLAG_ON    1
 #define OPENSAF_IMM_NOSTD_FLAG_OFF   2
@@ -946,6 +990,64 @@ void saImmOmClassCreate_SchemaChange_2_16(void)
     if (!schemaChangeEnabled) disableSchemaChange();
 }
 
+void saImmOmClassCreate_SchemaChange_2_17(void)
+{
+    /*
+     * Add STRONG_DEFAULT flag to an attribute
+     */
+    int schemaChangeEnabled = enableSchemaChange();
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 weak =
+        {"attr", SA_IMM_ATTR_SAUINT32T, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE, &defaultVal};
+    SaImmAttrDefinitionT_2 strong =
+        {"attr", SA_IMM_ATTR_SAUINT32T, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_STRONG_DEFAULT, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, NULL, NULL};
+
+    attrDefinitions[1] = &weak;
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions), SA_AIS_OK);
+    attrDefinitions[1] = &strong;
+    rc = saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions);
+    test_validate(rc, SA_AIS_OK);
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+    if (!schemaChangeEnabled) disableSchemaChange();
+}
+
+void saImmOmClassCreate_SchemaChange_2_18(void)
+{
+    /*
+     * Remove STRONG_DEFAULT flag from an attribute
+     */
+    int schemaChangeEnabled = enableSchemaChange();
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 weak =
+        {"attr", SA_IMM_ATTR_SAUINT32T, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE, &defaultVal};
+    SaImmAttrDefinitionT_2 strong =
+        {"attr", SA_IMM_ATTR_SAUINT32T, SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE | SA_IMM_ATTR_STRONG_DEFAULT, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, NULL, NULL};
+
+    attrDefinitions[1] = &strong;
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions), SA_AIS_OK);
+    attrDefinitions[1] = &weak;
+    rc = saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_CONFIG, attrDefinitions);
+    test_validate(rc, SA_AIS_OK);
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+    if (!schemaChangeEnabled) disableSchemaChange();
+}
+
 extern void saImmOmClassDescriptionGet_2_01(void);
 extern void saImmOmClassDescriptionGet_2_02(void);
 extern void saImmOmClassDescriptionGet_2_03(void);
@@ -982,6 +1084,8 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(2, saImmOmClassCreate_2_15, "saImmOmClassCreate_2 - SA_AIS_ERR_INVALID_PARAM, flag SA_IMM_ATTR_NO_DUPLICATES only allowed on multivalued");
     test_case_add(2, saImmOmClassCreate_2_16, "saImmOmClassCreate_2 - SA_AIS_OK, flag SA_IMM_ATTR_NO_DANGLING");
     test_case_add(2, saImmOmClassCreate_2_17, "saImmOmClassCreate_2 - SA_AIS_ERR_INVALID_PARAM, flag SA_IMM_ATTR_NO_DANGLING for PRTA");
+    test_case_add(2, saImmOmClassCreate_2_18, "saImmOmClassCreate_2 - SA_AIS_OK, Create a class that has STRONG_DEFAULT flag");
+    test_case_add(2, saImmOmClassCreate_2_19, "saImmOmClassCreate_2 - SA_AIS_OK, Create a class that has STRONG_DEFAULT flag without having default value");
 
     test_case_add(2, saImmOmClassDescriptionGet_2_01, "saImmOmClassDescriptionGet_2 - SA_AIS_OK");
     test_case_add(2, saImmOmClassDescriptionGet_2_02, "saImmOmClassDescriptionGet_2 - SA_AIS_ERR_BAD_HANDLE");
@@ -1014,5 +1118,8 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(2, saImmOmClassCreate_SchemaChange_2_14, "SchemaChange - SA_AIS_ERR_INVALID_PARAM, Create new class with DEFAULT_REMOVED flag (Runtime class)");
     test_case_add(2, saImmOmClassCreate_SchemaChange_2_15, "SchemaChange - SA_AIS_ERR_INVALID_PARAM, Set value of default-removed attribute to empty when creating an object (Runtime class)");
     test_case_add(2, saImmOmClassCreate_SchemaChange_2_16, "SchemaChange - Set value of default-restored attribute to empty when creating an object (Runtime class)");
+
+    test_case_add(2, saImmOmClassCreate_SchemaChange_2_17, "SchemaChange - SA_AIS_OK, Add STRONG_DEFAULT flag to an attribute");
+    test_case_add(2, saImmOmClassCreate_SchemaChange_2_18, "SchemaChange - SA_AIS_OK, Remove STRONG_DEFAULT flag from an attribute");
 }
 

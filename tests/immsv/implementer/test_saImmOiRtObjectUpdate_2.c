@@ -214,3 +214,176 @@ void saImmOiRtObjectUpdate_2_06(void)
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
+
+void saImmOiRtObjectUpdate_2_07(void) {
+    /*
+     * STRONG_DEFAULT, Set value of runtime attribute to NULL
+     */
+
+    /* Create class */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_STRONG_DEFAULT, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_RUNTIME, attrDefinitions), SA_AIS_OK);
+
+    /* Create object */
+    SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT) __FUNCTION__;
+    SaNameT obj = { strlen("id=1"), "id=1" };
+    SaImmAttrValueT nameValue = &obj;
+    SaImmAttrValuesT_2 rdnValue = {"rdn",  SA_IMM_ATTR_SANAMET, 1, &nameValue};
+    SaUint32T val = 200;
+    SaImmAttrValueT valArray = &val;
+    SaImmAttrValuesT_2 createValue= { "attr", SA_IMM_ATTR_SAUINT32T, 1, &valArray };
+    const SaImmAttrValuesT_2 * attrValues[] = {&rdnValue, &createValue, NULL};
+    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
+    safassert(saImmOiRtObjectCreate_2(immOiHandle, className, NULL, attrValues), SA_AIS_OK);
+
+    /* Set the strong default attribute to NULL */
+    SaImmAttrValuesT_2 value = { "attr", SA_IMM_ATTR_SAUINT32T, 0, NULL };
+    SaImmAttrModificationT_2 attrMod = { SA_IMM_ATTR_VALUES_REPLACE, value };
+    const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+    safassert(saImmOiRtObjectUpdate_2(immOiHandle, &obj, attrMods), SA_AIS_OK);
+
+    /* Check value of the attribute */
+    SaImmAccessorHandleT accessorHandle;
+    const SaImmAttrNameT attName = "attr";
+    SaImmAttrNameT attNames[] = {attName, NULL};
+    SaImmAttrValuesT_2 ** resultAttrs;
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &obj, attNames, &resultAttrs), SA_AIS_OK);
+    assert(resultAttrs[0] && (resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T));
+    assert(resultAttrs[0]->attrValuesNumber == 1);
+    test_validate(*((SaUint32T *) resultAttrs[0]->attrValues[0]), defaultVal);
+
+    /* Delete Object */
+    safassert(saImmOiRtObjectDelete(immOiHandle, &obj), SA_AIS_OK);
+    safassert(saImmOiImplementerClear(immOiHandle), SA_AIS_OK);
+    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+
+    /* Delete class */
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOiRtObjectUpdate_2_08(void) {
+    /*
+     * STRONG_DEFAULT, Set value of multi-valued runtime attribute to NULL
+     */
+
+    /* Create class */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_STRONG_DEFAULT | SA_IMM_ATTR_MULTI_VALUE, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_RUNTIME, attrDefinitions), SA_AIS_OK);
+
+    /* Create object */
+    SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT) __FUNCTION__;
+    SaNameT obj = { strlen("id=1"), "id=1" };
+    SaImmAttrValueT nameValue = &obj;
+    SaImmAttrValuesT_2 rdnValue = {"rdn",  SA_IMM_ATTR_SANAMET, 1, &nameValue};
+    SaUint32T val1 = 200;
+    SaUint32T val2 = 300;
+    SaImmAttrValueT valArray[] = {&val1, &val2};
+    SaImmAttrValuesT_2 createValue= { "attr", SA_IMM_ATTR_SAUINT32T, 2, valArray };
+    const SaImmAttrValuesT_2 * attrValues[] = {&rdnValue, &createValue, NULL};
+    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
+    safassert(saImmOiRtObjectCreate_2(immOiHandle, className, NULL, attrValues), SA_AIS_OK);
+
+    /* Set the strong default attribute to NULL */
+    SaImmAttrValuesT_2 value = { "attr", SA_IMM_ATTR_SAUINT32T, 0, NULL };
+    SaImmAttrModificationT_2 attrMod = { SA_IMM_ATTR_VALUES_REPLACE, value };
+    const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+    safassert(saImmOiRtObjectUpdate_2(immOiHandle, &obj, attrMods), SA_AIS_OK);
+
+    /* Check value of the attribute */
+    SaImmAccessorHandleT accessorHandle;
+    const SaImmAttrNameT attName = "attr";
+    SaImmAttrNameT attNames[] = {attName, NULL};
+    SaImmAttrValuesT_2 ** resultAttrs;
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &obj, attNames, &resultAttrs), SA_AIS_OK);
+    assert(resultAttrs[0] && (resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T));
+    assert(resultAttrs[0]->attrValuesNumber == 1);
+    test_validate(*((SaUint32T *) resultAttrs[0]->attrValues[0]), defaultVal);
+
+    /* Delete Object */
+    safassert(saImmOiRtObjectDelete(immOiHandle, &obj), SA_AIS_OK);
+    safassert(saImmOiImplementerClear(immOiHandle), SA_AIS_OK);
+    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+
+    /* Delete class */
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}
+
+void saImmOiRtObjectUpdate_2_09(void) {
+    /*
+     * STRONG_DEFAULT, Delete all values of multi-valued runtime attribute
+     */
+
+    /* Create class */
+    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
+    const SaImmClassNameT className = (SaImmClassNameT) __FUNCTION__;
+    SaImmAttrDefinitionT_2 rdn =
+        {"rdn", SA_IMM_ATTR_SANAMET, SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_RDN, NULL};
+    SaUint32T defaultVal = 100;
+    SaImmAttrDefinitionT_2 attr =
+        {"attr", SA_IMM_ATTR_SAUINT32T,
+            SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_STRONG_DEFAULT | SA_IMM_ATTR_MULTI_VALUE, &defaultVal};
+    const SaImmAttrDefinitionT_2 *attrDefinitions[] = {&rdn, &attr, NULL};
+    safassert(saImmOmClassCreate_2(immOmHandle, className, SA_IMM_CLASS_RUNTIME, attrDefinitions), SA_AIS_OK);
+
+    /* Create object */
+    SaImmOiImplementerNameT implementerName = (SaImmOiImplementerNameT) __FUNCTION__;
+    SaNameT obj = { strlen("id=1"), "id=1" };
+    SaImmAttrValueT nameValue = &obj;
+    SaImmAttrValuesT_2 rdnValue = {"rdn",  SA_IMM_ATTR_SANAMET, 1, &nameValue};
+    SaUint32T val1 = 200;
+    SaUint32T val2 = 300;
+    SaImmAttrValueT valArray[] = {&val1, &val2};
+    SaImmAttrValuesT_2 createValue= { "attr", SA_IMM_ATTR_SAUINT32T, 2, valArray };
+    const SaImmAttrValuesT_2 * attrValues[] = {&rdnValue, &createValue, NULL};
+    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
+    safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
+    safassert(saImmOiRtObjectCreate_2(immOiHandle, className, NULL, attrValues), SA_AIS_OK);
+
+    /* Set the strong default attribute to NULL */
+    SaImmAttrValuesT_2 value = { "attr", SA_IMM_ATTR_SAUINT32T, 2, valArray };
+    SaImmAttrModificationT_2 attrMod = { SA_IMM_ATTR_VALUES_DELETE, value };
+    const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+    safassert(saImmOiRtObjectUpdate_2(immOiHandle, &obj, attrMods), SA_AIS_OK);
+
+    /* Check value of the attribute */
+    SaImmAccessorHandleT accessorHandle;
+    const SaImmAttrNameT attName = "attr";
+    SaImmAttrNameT attNames[] = {attName, NULL};
+    SaImmAttrValuesT_2 ** resultAttrs;
+    safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
+    safassert(saImmOmAccessorGet_2(accessorHandle, &obj, attNames, &resultAttrs), SA_AIS_OK);
+    assert(resultAttrs[0] && (resultAttrs[0]->attrValueType == SA_IMM_ATTR_SAUINT32T));
+    assert(resultAttrs[0]->attrValuesNumber == 1);
+    test_validate(*((SaUint32T *) resultAttrs[0]->attrValues[0]), defaultVal);
+
+    /* Delete Object */
+    safassert(saImmOiRtObjectDelete(immOiHandle, &obj), SA_AIS_OK);
+    safassert(saImmOiImplementerClear(immOiHandle), SA_AIS_OK);
+    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+
+    /* Delete class */
+    safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
+    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+}

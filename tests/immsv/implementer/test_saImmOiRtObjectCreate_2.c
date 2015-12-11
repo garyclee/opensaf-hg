@@ -204,6 +204,9 @@ extern void saImmOiRtObjectUpdate_2_03(void);
 extern void saImmOiRtObjectUpdate_2_04(void);
 extern void saImmOiRtObjectUpdate_2_05(void);
 extern void saImmOiRtObjectUpdate_2_06(void);
+extern void saImmOiRtObjectUpdate_2_07(void);
+extern void saImmOiRtObjectUpdate_2_08(void);
+extern void saImmOiRtObjectUpdate_2_09(void);
 extern void SaImmOiRtAttrUpdateCallbackT_01(void);
 
 __attribute__ ((constructor)) static void saImmOiRtObjectCreate_2_constructor(void)
@@ -232,6 +235,9 @@ __attribute__ ((constructor)) static void saImmOiRtObjectCreate_2_constructor(vo
     test_case_add(3, saImmOiRtObjectUpdate_2_04, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_BAD_OPERATION - update object not owned by implementer");
     test_case_add(3, saImmOiRtObjectUpdate_2_05, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_INVALID_PARAM - new value for the RDN attr");
     test_case_add(3, saImmOiRtObjectUpdate_2_06, "saImmOiRtObjectUpdate_2 - SA_AIS_ERR_INVALID_PARAM - update configuration attribute");
+    test_case_add(3, saImmOiRtObjectUpdate_2_07, "saImmOiRtObjectUpdate_2 - STRONG_DEFAULT, Set value of runtime attribute to NULL");
+    test_case_add(3, saImmOiRtObjectUpdate_2_08, "saImmOiRtObjectUpdate_2 - STRONG_DEFAULT, Set value of multi-valued runtime attribute to NULL");
+    test_case_add(3, saImmOiRtObjectUpdate_2_09, "saImmOiRtObjectUpdate_2 - STRONG_DEFAULT, Delete all values of multi-valued runtime attribute");
 
     test_case_add(3, SaImmOiRtAttrUpdateCallbackT_01, "SaImmOiRtAttrUpdateCallbackT - SA_AIS_OK");
 }
