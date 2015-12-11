@@ -172,6 +172,9 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 						cl_node->isImmA2f = true;
 						if (requested_version.minorVersion >= 0x10) {
 							cl_node->isImmA2x10 = true;
+							if (requested_version.minorVersion >= 0x11) {
+								cl_node->isImmA2x11 = true;
+							}
 						}
 					}
 				}

@@ -31,7 +31,7 @@
 
 #define RELEASE_CODE 'A'
 #define MAJOR_VERSION 2
-#define MINOR_VERSION 16
+#define MINOR_VERSION 17
 
 /* Prototypes */
 typedef std::map<std::string, SaImmAttrFlagsT> AttrMap;

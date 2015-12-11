@@ -3238,7 +3238,8 @@ static int pbeAuditAttributeFlags(sqlite3 *dbHandle) {
 						| SA_IMM_ATTR_NOTIFY
 						| SA_IMM_ATTR_NO_DANGLING
 						| SA_IMM_ATTR_DN
-						| SA_IMM_ATTR_DEFAULT_REMOVED;
+						| SA_IMM_ATTR_DEFAULT_REMOVED
+						| SA_IMM_ATTR_STRONG_DEFAULT;
 	const char *sql = "select class_name, attr_name, attr_flags "
 			"from attr_def, classes "
 			"where (attr_flags & ~%lu) != 0 "

@@ -134,6 +134,9 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 				cl_node->isImmA2f = true;
 				if (requested_version.minorVersion >= 0x10) {
 					cl_node->isImmA2x10 = true;
+					if (requested_version.minorVersion >= 0x11) {
+						cl_node->isImmA2x11 = true;
+					}
 				}
 			}
 		}
@@ -191,6 +194,9 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 						cl_node->isImmA2f = true;
 						if (requested_version.minorVersion >= 0x10) {
 							cl_node->isImmA2x10 = true;
+							if (requested_version.minorVersion >= 0x11) {
+								cl_node->isImmA2x11 = true;
+							}
 						}
 					}
 				}
@@ -4629,6 +4635,12 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 				TRACE_LEAVE();
 				return SA_AIS_ERR_INVALID_PARAM;
 			}
+
+			if (attr->attrFlags & SA_IMM_ATTR_STRONG_DEFAULT) {
+				TRACE("ERR_INVALID_PARAM: RDN '%s' can not have STRONG_DEFAULT flag", attr->attrName);
+				TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
 		}
 
 		if(attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) {
@@ -4762,6 +4774,12 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 		if ((attr->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED) && !(cl_node->isImmA2x10)) {
 			TRACE_2("SA_IMM_ATTR_DEFAULT_REMOVED flag is supported in version A.02.16 or higher");
+			rc = SA_AIS_ERR_VERSION;
+			goto mds_send_fail;
+		}
+
+		if ((attr->attrFlags & SA_IMM_ATTR_STRONG_DEFAULT) && !(cl_node->isImmA2x11)) {
+			TRACE_2("SA_IMM_ATTR_STRONG_DEFAULT flag is supported in version A.02.17 or higher");
 			rc = SA_AIS_ERR_VERSION;
 			goto mds_send_fail;
 		}

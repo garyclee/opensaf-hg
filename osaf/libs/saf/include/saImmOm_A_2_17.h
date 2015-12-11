@@ -27,8 +27,8 @@
  */
 
 
-#ifndef _SA_IMM_OM_A_2_16_H
-#define _SA_IMM_OM_A_2_16_H
+#ifndef _SA_IMM_OM_A_2_17_H
+#define _SA_IMM_OM_A_2_17_H
 
 #ifdef  __cplusplus
 extern "C" {
@@ -51,19 +51,17 @@ extern "C" {
 							 Supported in OpenSaf 4.3 * /
 #define SA_IMM_ATTR_NO_DANGLING       0x0000000004000000    / * See: https://sourceforge.net/p/opensaf/tickets/49/
                                                          Supported in OpenSaf 4.4 * /
-
 #define SA_IMM_ATTR_DN                0x0000000008000000    / * See: https://sourceforge.net/p/opensaf/tickets/643
                                                          Supported in OpenSaf 4.6 * /
+#define SA_IMM_ATTR_DEFAULT_REMOVED   0x0000000010000000    / * See: https://sourceforge.net/p/opensaf/tickets/1471
+                                                         Supported in OpenSaf 4.7 * /
 	*/
-#define SA_IMM_ATTR_DEFAULT_REMOVED   0x0000000010000000    /* See: https://sourceforge.net/p/opensaf/tickets/1471
-                                                         Supported in OpenSaf 4.7 */
-
+#define SA_IMM_ATTR_STRONG_DEFAULT    0x0000000020000000    /* See: https://sourceforge.net/p/opensaf/tickets/1425
+                                                         Supported in OpenSaf 5.0 */
 
 
 #ifdef  __cplusplus
 }
 #endif
 
-#include <saImmOm_A_2_17.h>
-
-#endif   /* _SA_IMM_OM_A_2_16_H */
+#endif   /* _SA_IMM_OM_A_2_17_H */
