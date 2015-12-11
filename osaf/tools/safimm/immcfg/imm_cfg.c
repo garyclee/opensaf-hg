@@ -52,7 +52,7 @@ typedef struct ObjectInfo {
 	struct ObjectInfo *next;
 } ObjectInfoT;
 
-static SaVersionT immVersion = { 'A', 2, 16 };
+static SaVersionT immVersion = { 'A', 2, 17 };
 int verbose = 0;
 int ccb_safe = 1;
 
