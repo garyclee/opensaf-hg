@@ -42,6 +42,7 @@ include_HEADERS = \
 	saImmOm_A_2_14.h \
 	saImmOi_A_2_15.h \
 	saImmOm_A_2_15.h \
-	saImmOm_A_2_16.h
+	saImmOm_A_2_16.h \
+	saImmOm_A_2_17.h
 
 
