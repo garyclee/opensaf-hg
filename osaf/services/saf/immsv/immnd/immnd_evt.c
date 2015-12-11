@@ -3275,6 +3275,18 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 				list = list->next;
 			}
 		}
+		if (!immModel_protocol50Allowed(cb)) {
+			IMMSV_ATTR_DEF_LIST* list = frwrd_evt.info.immnd.info.classDescr.attrDefinitions;
+			while (list) {
+				if (list->d.attrFlags & SA_IMM_ATTR_STRONG_DEFAULT) {
+					LOG_WA("ERR_TRY_AGAIN: Can not create class with SA_IMM_ATTR_STRONG_DEFAULT "
+							"when proto50 is not enabled");
+					error = SA_AIS_ERR_TRY_AGAIN;
+					break; /* while */
+				}
+				list = list->next;
+			}
+		}
 
 		break;
 

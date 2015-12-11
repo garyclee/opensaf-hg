@@ -3216,6 +3216,11 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
                 LOG_NO("ERR_INVALID_PARAM: RDN '%s' cannot have SA_IMM_ATTR_DEFAULT_REMOVED flag", attNm);
                 illegal = 1;
             }
+
+            if (attr->attrFlags & SA_IMM_ATTR_STRONG_DEFAULT) {
+                LOG_NO("ERR_INVALID_PARAM: RDN '%s' cannot have SA_IMM_ATTR_STRONG_DEFAULT flag", attNm);
+                illegal = 1;
+            }
         }
 
         if(attr->attrFlags & SA_IMM_ATTR_NO_DANGLING) {
@@ -3250,6 +3255,20 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             LOG_NO("ERR_INVALID_PARAM: Attribute '%s' has SA_IMM_ATTR_DEFAULT_REMOVED flag, "
                     "but this flag is only available for schema changes", attNm);
             illegal = 1;
+        }
+
+        if (attr->attrFlags & SA_IMM_ATTR_STRONG_DEFAULT) {
+            if (!attr->attrDefaultValue) {
+                LOG_NO("ERR_INVALID_PARAM: Attribute '%s' can not have SA_IMM_ATTR_STRONG_DEFAULT flag "
+                        "without having a default value", attNm);
+                illegal = 1;
+            }
+
+            if (attr->attrFlags & SA_IMM_ATTR_DEFAULT_REMOVED) {
+                LOG_NO("ERR_INVALID_PARAM: Attribute '%s' can not have both SA_IMM_ATTR_STRONG_DEFAULT flag "
+                        "and SA_IMM_ATTR_DEFAULT_REMOVED flag", attNm);
+                illegal = 1;
+            }
         }
 
         if(attr->attrDefaultValue) {
@@ -3901,6 +3920,7 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
         bool checkCcb=false;
         bool checkNoDup=false;
         bool checkNoDanglingRefs=false;
+        bool checkStrongDefault=false;
         osafassert(changedAttrs);
         if(oldAttr->mValueType != newAttr->mValueType) {
             LOG_NO("Impossible upgrade, attribute %s:%s changes value type",
@@ -4083,6 +4103,22 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                     change = true;
                 }
             }
+
+            if (!(oldAttr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) &&
+                (newAttr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT)) {
+                LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
+                    "SA_IMM_ATTR_STRONG_DEFAULT", className.c_str(), attName.c_str());
+                checkCcb = true;
+                checkStrongDefault = true;
+                change = true;
+            }
+
+            if ((oldAttr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) &&
+                !(newAttr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT)) {
+                LOG_NO("Allowed upgrade, attribute %s:%s removes flag "
+                    "SA_IMM_ATTR_STRONG_DEFAULT", className.c_str(), attName.c_str());
+                change = true;
+            }
         }
 
         osafassert(!checkNoDup || checkCcb); //Duplicate-check implies ccb-check
@@ -4149,6 +4185,25 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
                         LOG_NO("Impossible upgrade, attribute %s:%s adds flag "
                             "SA_IMM_ATTR_NO_DUPLICATE, but object '%s' has "
                             "duplicate values in that attribute", 
+                            className.c_str(), attName.c_str(), objName.c_str());
+                        return true;
+                    }
+                }
+            }
+
+            if (checkStrongDefault) {
+                /* Screen all instances of the class.
+                 * If there's an instance with the attribute being NULL, abort the schema change. */
+                ObjectSet::iterator osi = oldClassInfo->mExtent.begin();
+                for (; osi != oldClassInfo->mExtent.end(); ++osi) {
+                    obj = *osi;
+                    ImmAttrValueMap::iterator oavi = obj->mAttrValueMap.find(attName);
+                    osafassert(oavi != obj->mAttrValueMap.end());
+                    if (oavi->second->empty()) {
+                        std::string objName;
+                        getObjectName(obj, objName);
+                        LOG_NO("Impossible upgrade, attribute %s:%s adds SA_IMM_ATTR_STRONG_DEFAULT flag, "
+                            "but that attribute of object '%s' has NULL value",
                             className.c_str(), attName.c_str(), objName.c_str());
                         return true;
                     }
@@ -4411,7 +4466,8 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr,
             SA_IMM_ATTR_NOTIFY |
             SA_IMM_ATTR_NO_DANGLING |
             SA_IMM_ATTR_DN |
-            SA_IMM_ATTR_DEFAULT_REMOVED);
+            SA_IMM_ATTR_DEFAULT_REMOVED |
+            SA_IMM_ATTR_STRONG_DEFAULT);
 
         if(unknownFlags) {
             /* This error means that at least one attribute flag is not supported by this
@@ -8525,6 +8581,18 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break; //out of switch
                     }
+
+                    if (attr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) {
+                        LOG_WA("There's an attempt to set attr '%s' to NULL, "
+                                "default value will be set", attrName.c_str());
+                        osafassert(!attr->mDefaultValue.empty());
+                        (*attrValue) = attr->mDefaultValue;
+
+                        TRACE("Canonicalizing attr-mod for attribute '%s'", attrName.c_str());
+                        p->attrValue.attrValuesNumber = 1;
+                        attrValue->copyValueToEdu(&(p->attrValue.attrValue),
+                                                  (SaImmValueTypeT) p->attrValue.attrValueType);
+                    }
                     continue; //Ok to replace with nothing.
                 }
                 //else intentional fall-through
@@ -8690,6 +8758,13 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                             " cannot modify to zero values", attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break; //out of switch
+                    }
+
+                    if (attrValue->empty() && (attr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT)) {
+                        LOG_WA("There's an attempt to set attr '%s' to NULL, "
+                                "default value will be set", attrName.c_str());
+                        osafassert(!attr->mDefaultValue.empty());
+                        (*attrValue) = attr->mDefaultValue;
                     }
                 }
 
@@ -16081,6 +16156,13 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         attrValue->discardValues();
                     }
                     if(p->attrValue.attrValuesNumber == 0) {
+                        LOG_WA("There's an attempt to set attr '%s' to NULL, "
+                                "default value will be set", attrName.c_str());
+                        if (attr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) {
+                            osafassert(!attr->mDefaultValue.empty());
+                            (*attrValue) = attr->mDefaultValue;
+                        }
+
                         p = p->next;
                         continue; //Ok to replace with nothing.
                     }
@@ -16203,6 +16285,13 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                                 attrValue->removeValue(tmpos);
                                 al = al->next;
                             }
+                        }
+
+                        if (attrValue->empty() && (attr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT)) {
+                            LOG_WA("There's an attempt to set attr '%s' to NULL, "
+                                    "default value will be set", attrName.c_str());
+                            osafassert(!attr->mDefaultValue.empty());
+                            (*attrValue) = attr->mDefaultValue;
                         }
                     }
                     break; //out of switch
@@ -16956,6 +17045,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
         } //while(p)
         
         //Check that all attributes with INITIALIZED flag have been set.
+        //Check that all attributes with STRONG_DEFAULT flag have been set.
         ImmAttrValueMap::iterator i6;
         for(i6=object->mAttrValueMap.begin(); 
             i6!=object->mAttrValueMap.end() && err==SA_AIS_OK;
@@ -16971,6 +17061,12 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' must be initialized "
                     "yet no value provided in the object create call", 
                     attrName.c_str());
+                err = SA_AIS_ERR_INVALID_PARAM;
+            }
+
+            if ((attr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) && attrValue->empty()) {
+                LOG_WA("ERR_INVALID_PARAM: attr '%s' has STRONG_DEFAULT flag "
+                    "but has no value", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
             }
         }
