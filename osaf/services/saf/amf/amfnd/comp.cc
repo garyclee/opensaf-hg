@@ -816,12 +816,9 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		api_info.param.unreg.comp_name.length = comp->name.length;
 		memcpy(api_info.param.unreg.comp_name.value,
 		       comp->name.value, api_info.param.unreg.comp_name.length);
-		api_info.param.unreg.comp_name.length = api_info.param.unreg.comp_name.length;
 		api_info.param.unreg.proxy_comp_name.length = pxy_comp->name.length;
 		memcpy(api_info.param.unreg.proxy_comp_name.value,
 		       pxy_comp->name.value, api_info.param.unreg.proxy_comp_name.length);
-		api_info.param.unreg.proxy_comp_name.length =
-			api_info.param.unreg.proxy_comp_name.length;
 
 		rc = avnd_int_ext_comp_hdlr(cb, &api_info, &ctxt, &amf_rc, &int_ext_comp);
 		/* Since there is no Mds Context information being sent so, no response 
@@ -2427,14 +2424,10 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 			api_info.param.unreg.comp_name.length = pxd_comp->name.length;
 			memcpy(api_info.param.unreg.comp_name.value,
 			       pxd_comp->name.value, api_info.param.unreg.comp_name.length);
-			api_info.param.unreg.comp_name.length =
-			    api_info.param.unreg.comp_name.length;
 			api_info.param.unreg.proxy_comp_name.length =
 			    pxd_comp->pxy_comp->name.length;
 			memcpy(api_info.param.unreg.proxy_comp_name.value,
 			       pxd_comp->pxy_comp->name.value, api_info.param.unreg.proxy_comp_name.length);
-			api_info.param.unreg.proxy_comp_name.length =
-			    api_info.param.unreg.proxy_comp_name.length;
 
 			rc = avnd_int_ext_comp_hdlr(cb, &api_info, &ctxt, &amf_rc, &int_ext_comp);
 			/* Since there is no Mds Context information being sent so, no response 

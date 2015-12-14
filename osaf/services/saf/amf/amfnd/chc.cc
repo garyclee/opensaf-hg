@@ -728,7 +728,7 @@ uint32_t avnd_comp_hc_cmd_start(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s'", comp->name.value);
 
 	/* create a HC key with a default name */
-	strncpy((char*)hc.hc_key.key, hc_cmd_name, sizeof(hc.hc_key.key));
+	strncpy((char*)hc.hc_key.key, hc_cmd_name, sizeof(hc.hc_key.key)-1);
 
 	hc.hc_key.keyLen = strlen((char*)hc.hc_key.key);
 	hc.inv_type = SA_AMF_HEALTHCHECK_AMF_INVOKED;

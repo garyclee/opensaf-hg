@@ -59,7 +59,7 @@ uint32_t avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVND_SU *su_ptr = nullptr;
-	AVSV_SU_INFO_MSG su_info;
+	AVSV_SU_INFO_MSG su_info {};
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su->name);

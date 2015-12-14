@@ -212,7 +212,7 @@ uint32_t avnd_evt_avd_set_leds_evh(AVND_CB *cb, AVND_EVT *evt)
 	cb->led_state = AVND_LED_STATE_GREEN;
 
 	/* Notify the NIS script/deamon that we have fully come up */
-	nid_notify(const_cast<char*>("AMFND"), NCSCC_RC_SUCCESS, nullptr);
+	rc = nid_notify(const_cast<char*>("AMFND"), NCSCC_RC_SUCCESS, nullptr);
 
 done:
 	TRACE_LEAVE();
