@@ -190,7 +190,7 @@ done:
 
 static int get_node_type(void)
 {
-        size_t bytes;
+        size_t no_of_matches;
         int type;
         char buf[32];
         FILE *f = fopen(PKGSYSCONFDIR "/node_type", "r");
@@ -200,7 +200,8 @@ static int get_node_type(void)
                 return AVSV_AVND_CARD_PAYLOAD;
         }
 
-        if ((bytes = fscanf(f, "%s", buf)) > 0) {
+	// Give length of buf -1 as argument to fscanf to avoid buffer overflows
+        if ((no_of_matches = fscanf(f, "%31s", buf)) > 0) {
                 if (strncmp(buf, "controller", sizeof(buf)) == 0) {
 			TRACE("Node type: controller");
                         type = AVSV_AVND_CARD_SYS_CON;

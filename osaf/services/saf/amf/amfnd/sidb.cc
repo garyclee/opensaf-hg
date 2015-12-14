@@ -272,7 +272,7 @@ static SaAmfCompCapabilityModelT get_comp_capability(const SaNameT *comp_type,
 	SaNameT dn;
 	SaImmAccessorHandleT accessorHandle = 0;
 	const SaImmAttrValuesT_2 **attributes;
-	SaAmfCompCapabilityModelT comp_cap;
+	SaAmfCompCapabilityModelT comp_cap {};
 	SaImmAttrNameT attributeNames[2] =
 		{const_cast<SaImmAttrNameT>("saAmfCtCompCapability"), nullptr};
 	SaImmHandleT immOmHandle = 0;

@@ -509,7 +509,6 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	/* extract the su-name from comp dn */
 	memset(&su_name, 0, sizeof(SaNameT));
 	avsv_cpy_SU_DN_from_DN(&su_name, name);
-	su_name.length = su_name.length;
 
 	/* get the su record */
 	su = m_AVND_SUDB_REC_GET(cb->sudb, su_name);
@@ -664,7 +663,6 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			avsv_cpy_SU_DN_from_DN(&su_name, &param->name);
 			
 			/* get the su record */
-			su_name.length = su_name.length;
 			su = m_AVND_SUDB_REC_GET(cb->sudb, su_name);
 			if (!su) {
 				LOG_ER("no su in database for the comp %s", param->name.value);

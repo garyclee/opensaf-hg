@@ -229,7 +229,6 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfHealthcheck";
 	SaNameT comp_dn = comp->name;
-	comp_dn.length = comp_dn.length;
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
 
