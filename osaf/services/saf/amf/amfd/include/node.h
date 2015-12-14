@@ -77,6 +77,7 @@ class AVD_AVND {
  public:
   AVD_AVND();
   explicit AVD_AVND(const SaNameT* dn);
+  ~AVD_AVND();
 
   bool is_node_lock();
   SaNameT name; /* DN */ 

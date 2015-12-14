@@ -72,7 +72,7 @@ static void avd_sirankedsu_db_add(AVD_SUS_PER_SI_RANK *sirankedsu)
  * 
  **************************************************************************/
 
-static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
+static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, const AVD_SUS_PER_SI_RANK_INDX &indx)
 {
 	AVD_SUS_PER_SI_RANK *ranked_su_per_si;
 
@@ -103,7 +103,7 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, AVD_SUS_PER_SI_
  * 
  **************************************************************************/
 
-static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
+static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, const AVD_SUS_PER_SI_RANK_INDX &indx)
 {
 	AVD_SUS_PER_SI_RANK *ranked_su_per_si = nullptr;
 	AVD_SUS_PER_SI_RANK_INDX rank_indx;

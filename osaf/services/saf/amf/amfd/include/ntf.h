@@ -79,7 +79,7 @@ SaAisErrorT fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,
 				   int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
-					SaNameT comp_name,
+					const SaNameT &comp_name,
 					SaUint8T *add_text,
 					SaUint16T majorId,
 					SaUint16T minorId,
@@ -89,7 +89,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 					int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
-					      SaNameT comp_name,
+					      const SaNameT &comp_name,
 					      SaUint8T *add_text,
 					      SaUint16T majorId,
 					      SaUint16T minorId,

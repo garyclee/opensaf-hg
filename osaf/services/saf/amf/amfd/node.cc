@@ -154,6 +154,11 @@ AVD_AVND::AVD_AVND(const SaNameT *dn) {
 }
 
 //
+AVD_AVND::~AVD_AVND() {
+  delete [] node_name;
+}
+
+//
 AVD_AVND *avd_node_new(const SaNameT *dn)
 {
   AVD_AVND *node;
@@ -170,7 +175,6 @@ void avd_node_delete(AVD_AVND *node)
 		avd_node_delete_nodeid(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 	node_name_db->erase(Amf::to_string(&node->name));
-	delete [] node->node_name;
 	delete node;
 }
 
