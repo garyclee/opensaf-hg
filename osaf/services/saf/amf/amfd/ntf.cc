@@ -483,7 +483,7 @@ void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uint32_t probableCa
 
 SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeader,
 			      SaNtfEventTypeT eventType,
-			      SaNameT comp_name,
+			      const SaNameT &comp_name,
 			      SaUint8T *add_text,
 			      SaUint16T majorId,
 			      SaUint16T minorId,
@@ -552,7 +552,7 @@ SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeade
 }
 
 uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
-			       SaNameT ntf_object,
+			       const SaNameT &ntf_object,
 			       SaUint8T *add_text,
 			       SaUint16T majorId,
 			       SaUint16T minorId,
@@ -638,7 +638,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 }
 
 uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
-				     SaNameT ntf_object,
+				     const SaNameT &ntf_object,
 				     SaUint8T *add_text,
 				     SaUint16T majorId,
 				     SaUint16T minorId,

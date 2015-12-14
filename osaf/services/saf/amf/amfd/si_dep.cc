@@ -2554,7 +2554,7 @@ done:
  * @param [in] @spons_si_name: Name of sponsor si
  * @param [out] @depsi_list: list of dependent si
  */
-void get_dependent_si_list(SaNameT spons_si_name, std::list<AVD_SI*>& depsi_list)
+void get_dependent_si_list(const SaNameT &spons_si_name, std::list<AVD_SI*>& depsi_list)
 {
 	std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it;
 	for (it = sidep_db->begin(); it != sidep_db->end(); it++) {

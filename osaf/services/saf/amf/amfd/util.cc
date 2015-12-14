@@ -1372,15 +1372,16 @@ void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
  */
 int amfd_file_dump(const char *filename)
 {
+	const int PATH_LEN = 128;
 	const AVD_SU_SI_REL *susi;
 	const AVD_SI *si;
 	const AVD_CSI *csi;
 	const char *path = filename;
+	char _path[PATH_LEN];
 
 	if (filename == nullptr) {
-		char _path[128];
 		// add unique suffix to state file
-		sprintf(_path, "/tmp/amfd.state.%d", getpid());
+		snprintf(_path, PATH_LEN, "/tmp/amfd.state.%d", getpid());
 		path = _path;
 	}
 

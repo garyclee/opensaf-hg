@@ -54,6 +54,7 @@ void avd_comp_db_add(AVD_COMP *comp)
 
 //
 void AVD_COMP::initialize() {
+  saAmfCompType = {};
   comp_info = {};
   comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
   comp_info.category = AVSV_COMP_TYPE_NON_SAF;
