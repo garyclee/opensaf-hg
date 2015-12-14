@@ -150,7 +150,7 @@ static void amf_down_cb(void)
 int main(int argc, char *argv[])
 {
 	SaAmfCallbacksT    amf_callbacks = {0};
-	SaVersionT         ver = {.releaseCode = 'B', ver.majorVersion = 0x01, ver.minorVersion = 0x01};
+	SaVersionT         ver = {.releaseCode = 'B', .majorVersion = 0x01, .minorVersion = 0x01};
 	SaAisErrorT        rc;
 	SaSelectionObjectT amf_sel_obj;
 	struct pollfd fds[1];
