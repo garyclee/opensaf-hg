@@ -49,6 +49,7 @@ struct avd_evt_tag;
 struct cl_cb_tag;
 class AVD_APP;
 class AVD_COMP;
+class AVD_SG;
 /* 
  * SU SI Relationship checkpoint encode/decode message structure..
  */
@@ -162,5 +163,7 @@ void decode_cb(NCS_UBAID *ub, struct cl_cb_tag *cb, const uint16_t peer_version)
 
 void encode_siass(NCS_UBAID *ub, const struct avd_su_si_rel_tag *susi, const uint16_t peer_version);
 void decode_siass(NCS_UBAID *ub, struct avsv_su_si_rel_ckpt_msg *susi, const uint16_t peer_version);
+void encode_si_trans(NCS_UBAID *ub, const AVD_SG *sg, const uint16_t peer_version);
+void decode_si_trans(NCS_UBAID *ub, AVSV_SI_TRANS_CKPT_MSG *msg, const uint16_t peer_version);
 
 #endif

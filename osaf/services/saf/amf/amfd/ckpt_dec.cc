@@ -553,6 +553,16 @@ static uint32_t dec_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
+void decode_si_trans(NCS_UBAID *ub,
+	AVSV_SI_TRANS_CKPT_MSG *msg,
+	const uint16_t peer_version)
+{
+	osaf_decode_sanamet(ub, &msg->sg_name);
+	osaf_decode_sanamet(ub, &msg->si_name);
+	osaf_decode_sanamet(ub, &msg->min_su_name);
+	osaf_decode_sanamet(ub, &msg->max_su_name);
+}
+
 /**************************************************************************
  * @brief  decodes the si transfer parameters 
  * @param[in] cb
@@ -560,45 +570,30 @@ static uint32_t dec_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *************************************************************************/
 static uint32_t dec_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt;
-	AVSV_SI_TRANS_CKPT_MSG dec_si_trans_ckpt;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
 
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
-	si_trans_ckpt = &dec_si_trans_ckpt;
-
 	switch (dec->i_action) {
 	case NCS_MBCSV_ACT_ADD:
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SI_TRANS_CKPT_MSG **)&si_trans_ckpt,
-			&ederror, dec->i_peer_version);
+		decode_si_trans(&dec->i_uba, &si_trans_ckpt, dec->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans, &dec->i_uba,
-			EDP_OP_TYPE_DEC, (AVSV_SI_TRANS_CKPT_MSG **)&si_trans_ckpt, &ederror, 1, 1);
+		osaf_decode_sanamet(&dec->i_uba, &si_trans_ckpt.sg_name);
 		break;
 
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+	avd_ckpt_si_trans(cb, &si_trans_ckpt, dec->i_action);
 
-	avd_ckpt_si_trans(cb, si_trans_ckpt, dec->i_action);
+	cb->async_updt_cnt.si_trans_updt++;
 
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.si_trans_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 void decode_siass(NCS_UBAID *ub,
@@ -2433,33 +2428,18 @@ static uint32_t dec_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_
  *****************************************************************/
 static uint32_t dec_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt;
-	AVSV_SI_TRANS_CKPT_MSG dec_si_trans_ckpt;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
 	uint32_t count = 0;
 
 	TRACE_ENTER();
 
-	si_trans_ckpt = &dec_si_trans_ckpt;
-
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
-				&dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SI_TRANS_CKPT_MSG **)&si_trans_ckpt,
-				&ederror, dec->i_peer_version);
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		}
-
-		status = avd_ckpt_si_trans(cb, si_trans_ckpt, dec->i_action);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
+		decode_si_trans(&dec->i_uba, &si_trans_ckpt, dec->i_peer_version);
+		avd_ckpt_si_trans(cb, &si_trans_ckpt, dec->i_action);
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 
 }
 
