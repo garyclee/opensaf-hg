@@ -601,6 +601,23 @@ static uint32_t dec_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return status;
 }
 
+void decode_siass(NCS_UBAID *ub,
+	AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt,
+	const uint16_t peer_version)
+{
+	osaf_decode_sanamet(ub, &su_si_ckpt->su_name);
+	osaf_decode_sanamet(ub, &su_si_ckpt->si_name);
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&su_si_ckpt->state));
+	osaf_decode_uint32(ub, &su_si_ckpt->fsm);
+	if (peer_version >= AVD_MBCSV_SUB_PART_VERSION_3) {
+		bool csi_add_rem;
+		osaf_decode_bool(ub, &csi_add_rem);
+		su_si_ckpt->csi_add_rem = static_cast<SaBoolT>(csi_add_rem);
+		osaf_decode_sanamet(ub, &su_si_ckpt->comp_name);
+		osaf_decode_sanamet(ub, &su_si_ckpt->csi_name);
+	};
+}
+
 /****************************************************************************\
  * Function: dec_siass
  *
@@ -617,14 +634,10 @@ static uint32_t dec_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt;
-	AVSV_SU_SI_REL_CKPT_MSG dec_su_si_ckpt;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
 
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
-	su_si_ckpt = &dec_su_si_ckpt;
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
 	 * accordingly. If it is add then create new element, if it is update
@@ -634,34 +647,23 @@ static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	switch (dec->i_action) {
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SU_SI_REL_CKPT_MSG **)&su_si_ckpt,
-			&ederror, dec->i_peer_version);
+		decode_siass(&dec->i_uba, &su_si_ckpt, dec->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
-				&dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SU_SI_REL_CKPT_MSG **)&su_si_ckpt,
-				&ederror, dec->i_peer_version);
+		decode_siass(&dec->i_uba, &su_si_ckpt, dec->i_peer_version);
 		break;
 
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+	avd_ckpt_siass(cb, &su_si_ckpt, dec);
 
-	avd_ckpt_siass(cb, su_si_ckpt, dec);
+	cb->async_updt_cnt.siass_updt++;
 
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.siass_updt++;
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2478,14 +2480,10 @@ static uint32_t dec_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t n
 static uint32_t dec_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt;
-	AVSV_SU_SI_REL_CKPT_MSG dec_su_si_ckpt;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
 	uint32_t count = 0;
 
-	TRACE_ENTER();
-
-	su_si_ckpt = &dec_su_si_ckpt;
+	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
 	/* 
 	 * Walk through the entire list and send the entire list data.
@@ -2494,14 +2492,8 @@ static uint32_t dec_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_
 	 * in the same update.
 	 */
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SU_SI_REL_CKPT_MSG **)&su_si_ckpt,
-					    &ederror, dec->i_peer_version);
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		}
-
-		status = avd_ckpt_siass(cb, su_si_ckpt, dec);
+		decode_siass(&dec->i_uba, &su_si_ckpt, dec->i_peer_version);
+		status = avd_ckpt_siass(cb, &su_si_ckpt, dec);
 
 		if (status != NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_FAILURE;
