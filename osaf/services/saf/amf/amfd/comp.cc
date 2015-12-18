@@ -887,6 +887,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	int i = 0;
 	AVD_COMP *comp;
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	bool value_is_deleted;
 
 	TRACE_ENTER();
 
@@ -894,15 +895,20 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
-		void *value;
+		void *value = nullptr;
 
-		/* Attribute value removed */
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == nullptr))
-			continue;
-
-		value = attribute->attrValues[0];
+		 if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attribute->attrValues == nullptr)) {
+                        /* Attribute value is deleted, revert to default value */
+                        value_is_deleted = true;
+                } else {
+                        /* Attribute value is modified */
+                        value_is_deleted = false;
+                        value = attribute->attrValues[0];
+                }
 
 		if (!strcmp(attribute->attrName, "saAmfCompType")) {
+			if (value_is_deleted == true)
+				continue;
 			SaNameT dn = *((SaNameT*)value);
 			if (nullptr == comptype_db->find(Amf::to_string(&dn))) {
 				report_ccb_validation_error(opdata, "saAmfCompType '%s' not found", dn.value);
@@ -942,6 +948,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				}
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
+			if (value_is_deleted == true)
+				continue;
 			char *param_val = *((char **)value);
 			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata,
@@ -949,6 +957,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -957,6 +967,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiationLevel")) {
+			if (value_is_deleted == true)
+				continue;
 			uint32_t num_inst = *((SaUint32T *)value);
 			if (num_inst == 0) {
 				report_ccb_validation_error(opdata, "Modification of saAmfCompInstantiationLevel Fail,"
@@ -964,6 +976,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithoutDelay")) {
+			if (value_is_deleted == true)
+				continue;
 			uint32_t num_inst = *((SaUint32T *)value);
 			if (num_inst == 0) {
 				report_ccb_validation_error(opdata, "Modification of saAmfCompNumMaxInstantiateWithoutDelay"
@@ -971,6 +985,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithDelay")) {
+			if (value_is_deleted == true)
+				continue;
 			uint32_t num_inst = *((SaUint32T *)value);
 			if (num_inst == 0) {
 				report_ccb_validation_error(opdata, "Modification of saAmfCompNumMaxInstantiateWithDelay"
@@ -978,6 +994,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompDelayBetweenInstantiateAttempts")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -986,6 +1004,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateCmdArgv")) {
+			if (value_is_deleted == true)
+				continue;
 			char *param_val = *((char **)value);
 			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata,
@@ -993,6 +1013,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -1001,6 +1023,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupCmdArgv")) {
+			if (value_is_deleted == true)
+				continue;
 			char *param_val = *((char **)value);
 			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata,
@@ -1008,6 +1032,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -1016,6 +1042,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartCmdArgv")) {
+			if (value_is_deleted == true)
+				continue;
 			char *param_val = *((char **)value);
 			if (nullptr == param_val) {
 				report_ccb_validation_error(opdata, 
@@ -1028,6 +1056,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -1041,6 +1071,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
+			if (value_is_deleted == true)
+				continue;
 			uint32_t num_am_start = *((SaUint32T *)value);
 			if (true == comp->su->su_is_external) {
 				report_ccb_validation_error(opdata, "Modification of saAmfCompNumMaxAmStartAttempt Fail,"
@@ -1053,6 +1085,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			} 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopCmdArgv")) {
+			if (value_is_deleted == true)
+				continue;
 			char *param_val = *((char **)value);
 			if (true == comp->su->su_is_external) {
 				report_ccb_validation_error(opdata,
@@ -1064,6 +1098,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			if (true == comp->su->su_is_external) {
 				report_ccb_validation_error(opdata,
@@ -1077,6 +1113,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}		
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {	
+			if (value_is_deleted == true)
+				continue;
 			uint32_t num_am_stop = *((SaUint32T *)value);
 			if (true == comp->su->su_is_external) {
 				report_ccb_validation_error(opdata, "Modification of saAmfCompNumMaxAmStopAttempt Fail,"
@@ -1089,6 +1127,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}		
 		} else if (!strcmp(attribute->attrName, "saAmfCompCSISetCallbackTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -1097,6 +1137,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}		
 		} else if (!strcmp(attribute->attrName, "saAmfCompCSIRmvCallbackTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -1105,6 +1147,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompQuiescingCompleteTimeout")) {
+			if (value_is_deleted == true)
+				continue;
 			SaTimeT timeout;
 			m_NCS_OS_HTONLL_P(&timeout, (*((SaTimeT *)value)));
 			if (timeout == 0) {
@@ -1113,6 +1157,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompRecoveryOnError")) {
+			if (value_is_deleted == true)
+				continue;
 			uint32_t recovery = *((SaUint32T *)value);
 			if ((recovery < SA_AMF_NO_RECOMMENDATION) || (recovery > SA_AMF_CONTAINER_RESTART )) {
 				report_ccb_validation_error(opdata, "Modification of saAmfCompRecoveryOnError Fail,"
@@ -1120,6 +1166,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			} 
 		} else if (!strcmp(attribute->attrName, "saAmfCompDisableRestart")) {
+			if (value_is_deleted == true)
+				continue;
 			SaBoolT val = *((SaBoolT *)value);
 			if ((val != SA_TRUE) && (val != SA_FALSE)) {
 				report_ccb_validation_error(opdata,
@@ -1127,6 +1175,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompProxyCsi")) {
+			if (value_is_deleted == true)
+				continue;
 			SaNameT name;
 			name = *((SaNameT *)value);
 			if (name.length == 0) {
@@ -1134,6 +1184,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attribute->attrName, "saAmfCompContainerCsi")) {
+			if (value_is_deleted == true)
+				continue;
 			SaNameT name;
 			name = *((SaNameT *)value);
 			if (name.length == 0) {
