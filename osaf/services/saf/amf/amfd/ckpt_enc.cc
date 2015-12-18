@@ -599,6 +599,16 @@ static uint32_t enc_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	return status;
 }
 
+void encode_si_trans(NCS_UBAID *ub,
+	const AVD_SG *sg,
+	const uint16_t peer_version)
+{
+	osaf_encode_sanamet(ub, &sg->name);
+	osaf_encode_sanamet(ub, &sg->si_tobe_redistributed->name);
+	osaf_encode_sanamet(ub, &sg->min_assigned_su->name);
+	osaf_encode_sanamet(ub, &sg->max_assigned_su->name);
+}
+
 /*********************************************************************
  * @brief encodes si transfer parameters
  * @param[in] cb
@@ -606,39 +616,26 @@ static uint32_t enc_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
  ********************************************************************/
 static uint32_t enc_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
-	memset(&si_trans_ckpt, 0, sizeof(AVSV_SI_TRANS_CKPT_MSG));
-	si_trans_ckpt.sg_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->name;
+	const AVD_SG *sg = reinterpret_cast<AVD_SG*>(enc->io_reo_hdl);
 
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_ADD:
-		si_trans_ckpt.si_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->si_tobe_redistributed->name;
-		si_trans_ckpt.min_su_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->min_assigned_su->name;
-		si_trans_ckpt.max_su_name = ((AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->max_assigned_su->name;
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
-			&enc->io_uba, EDP_OP_TYPE_ENC, &si_trans_ckpt, &ederror, enc->i_peer_version);
+		encode_si_trans(&enc->io_uba, sg, enc->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans, &enc->io_uba,
-			EDP_OP_TYPE_ENC, &si_trans_ckpt, &ederror, enc->i_peer_version, 1, 1);
+		osaf_encode_sanamet(&enc->io_uba, &sg->name);
 		break;
 
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-	}
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 void encode_siass(NCS_UBAID *ub,
@@ -2205,35 +2202,19 @@ static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
  *******************************************************************/
 static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVSV_SI_TRANS_CKPT_MSG si_trans_ckpt;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-
 	TRACE_ENTER();
 
 	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
 			it != sg_db->end(); it++) {
 		AVD_SG *sg = it->second;
-	    if (sg->si_tobe_redistributed != nullptr) { 
-		si_trans_ckpt.sg_name = sg->name;
-		si_trans_ckpt.si_name = sg->si_tobe_redistributed->name;
-		si_trans_ckpt.min_su_name = sg->min_assigned_su->name;
-		si_trans_ckpt.max_su_name = sg->max_assigned_su->name;
-
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_trans,
-				&enc->io_uba, EDP_OP_TYPE_ENC, &si_trans_ckpt, &ederror,
-				enc->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-			return status;
+		if (sg->si_tobe_redistributed != nullptr) {
+			encode_si_trans(&enc->io_uba, sg, enc->i_peer_version);
+			(*num_of_obj)++;
 		}
-
-		(*num_of_obj)++;
-	    }
 	}
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\

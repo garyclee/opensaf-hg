@@ -268,3 +268,42 @@ TEST_F(CkptEncDecTest, testEncDecAvdCb) {
   ASSERT_EQ(cb.cluster_init_time, static_cast<SaTimeT>(0x8877665544332211));
   ASSERT_EQ(cb.nodes_exit_cnt, static_cast<uint32_t>(0x55443322));
 }
+
+TEST_F(CkptEncDecTest, testEncDecAvdSiTrans) {
+  int rc = 0;
+  SG_2N sg;
+  AVD_SI tobe_redistributed;
+  AVD_SU min_assigned_su;
+  AVD_SU max_assigned_su;
+  std::string sg_name("sg_name");
+  std::string si_name("si_name");
+  std::string min_name("min_name");
+  std::string max_name("max_name");
+  AVSV_SI_TRANS_CKPT_MSG msg;
+
+  min_assigned_su.name = *(asSaNameT(min_name));
+  max_assigned_su.name = *(asSaNameT(max_name));
+  tobe_redistributed.name = *(asSaNameT(si_name));
+  sg.name = *(asSaNameT(sg_name));
+  sg.si_tobe_redistributed = &tobe_redistributed;
+  sg.min_assigned_su = &min_assigned_su;
+  sg.max_assigned_su = &max_assigned_su;
+
+  rc = ncs_enc_init_space(&enc.io_uba);
+  ASSERT_TRUE(rc == NCSCC_RC_SUCCESS);
+
+  enc.io_msg_type = NCS_MBCSV_MSG_ASYNC_UPDATE;
+  enc.io_action = NCS_MBCSV_ACT_UPDATE;
+  enc.io_reo_hdl = (MBCSV_REO_HDL)&sg;
+  enc.io_reo_type = AVSV_CKPT_AVD_SI_TRANS;
+  enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_4;
+
+  encode_si_trans(&enc.io_uba, static_cast<AVD_SG*>(&sg), enc.i_peer_version);
+  decode_si_trans(&enc.io_uba, &msg, enc.i_peer_version);
+
+  ASSERT_EQ(Amf::to_string(&msg.sg_name), sg_name);
+  ASSERT_EQ(Amf::to_string(&msg.si_name), si_name);
+  ASSERT_EQ(Amf::to_string(&msg.min_su_name), min_name);
+  ASSERT_EQ(Amf::to_string(&msg.max_su_name), max_name);
+}
+
