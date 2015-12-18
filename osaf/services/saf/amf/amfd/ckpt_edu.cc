@@ -57,10 +57,6 @@ uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb)
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_siass, &err);
-	if (rc != NCSCC_RC_SUCCESS)
-		goto error;
-
 	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt, &err);
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
@@ -183,61 +179,6 @@ uint32_t avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	}
 
 	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_node_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-
-	return rc;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:   avsv_edp_ckpt_msg_siass
-
-  DESCRIPTION:      EDU program handler for "AVD_SU_SI_REL" data. This 
-                    function is invoked by EDU for performing encode/decode 
-                    operation on "AVD_SU_SI_REL" data.
-
-  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-
-*****************************************************************************/
-uint32_t avsv_edp_ckpt_msg_siass(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				  NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVSV_SU_SI_REL_CKPT_MSG *struct_ptr = nullptr, **d_ptr = nullptr;
-	uint16_t base_ver = AVD_MBCSV_SUB_PART_VERSION_3;
-
-	EDU_INST_SET avsv_ckpt_msg_su_si_rel_rules[] = {
-		{EDU_START, avsv_edp_ckpt_msg_siass, 0, 0, 0,
-		 sizeof(AVSV_SU_SI_REL_CKPT_MSG), 0, nullptr},
-
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->su_name, 0, nullptr},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->si_name, 0, nullptr},
-		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->state, 0, nullptr},
-		{EDU_EXEC, ncs_edp_int, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->fsm, 0, nullptr},
-		{EDU_VER_GE, nullptr,   0, 0, 4, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(base_ver)))},
-		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->csi_add_rem, 0, nullptr},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->comp_name, 0, nullptr},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVSV_SU_SI_REL_CKPT_MSG *)0)->csi_name, 0, nullptr},
-
-		{EDU_END, 0, 0, 0, 0, 0, 0, nullptr},
-	};
-
-	if (op == EDP_OP_TYPE_ENC) {
-		struct_ptr = (AVSV_SU_SI_REL_CKPT_MSG *)ptr;
-	} else if (op == EDP_OP_TYPE_DEC) {
-		d_ptr = (AVSV_SU_SI_REL_CKPT_MSG **)ptr;
-		if (*d_ptr == nullptr) {
-			*o_err = EDU_ERR_MEM_FAIL;
-			return NCSCC_RC_FAILURE;
-		}
-		memset(*d_ptr, '\0', sizeof(AVSV_SU_SI_REL_CKPT_MSG));
-		struct_ptr = *d_ptr;
-	} else {
-		struct_ptr = static_cast<AVSV_SU_SI_REL_CKPT_MSG*>(ptr);
-	}
-
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_su_si_rel_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
 
 	return rc;
 }

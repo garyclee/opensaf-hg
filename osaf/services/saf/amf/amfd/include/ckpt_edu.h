@@ -45,9 +45,6 @@ uint32_t avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 uint32_t avsv_edp_ckpt_msg_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t avsv_edp_ckpt_msg_siass(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uint32_t avsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 						NCSCONTEXT ptr, uint32_t *ptr_data_len,
 						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);

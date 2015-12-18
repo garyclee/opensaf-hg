@@ -18,6 +18,7 @@
 #include "mbcsv_papi.h"
 #include "cb.h"
 #include "app.h"
+#include "susi.h"
 #include "gtest/gtest.h"
 #include "ncssysf_mem.h"
 
@@ -167,6 +168,47 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
   ASSERT_EQ(Amf::to_string(&comp.saAmfCompCurrProxyName), "CompProxyName");
 }
 
+TEST_F(CkptEncDecTest, testEncDecAvdSiAss) {
+  int rc = 0;
+  AVD_SU_SI_REL susi;
+  AVSV_SU_SI_REL_CKPT_MSG susi_ckpt;
+  AVD_SU su;
+  AVD_SI si;
+  std::string su_name("su_name");
+  std::string si_name("si_name");
+  std::string comp_name("comp_name");
+  std::string csi_name("csi_name");
+
+  rc = ncs_enc_init_space(&enc.io_uba);
+  ASSERT_TRUE(rc == NCSCC_RC_SUCCESS);
+
+  su.name = *(asSaNameT(su_name));
+  si.name = *(asSaNameT(si_name));
+  susi.su = &su;
+  susi.si = &si;
+  susi.state = SA_AMF_HA_ACTIVE;
+  susi.fsm = AVD_SU_SI_STATE_ABSENT;
+  susi.csi_add_rem = SA_FALSE; 
+  susi.comp_name = *(asSaNameT(comp_name));
+  susi.csi_name = *(asSaNameT(csi_name));
+
+  enc.io_msg_type = NCS_MBCSV_MSG_ASYNC_UPDATE;
+  enc.io_action = NCS_MBCSV_ACT_UPDATE;
+  enc.io_reo_hdl = (MBCSV_REO_HDL)&susi;
+  enc.io_reo_type = AVSV_CKPT_AVD_SI_ASS;
+  enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_4;
+
+  encode_siass(&enc.io_uba, &susi, enc.i_peer_version);
+  decode_siass(&enc.io_uba, &susi_ckpt, enc.i_peer_version);
+
+  ASSERT_EQ(Amf::to_string(&susi_ckpt.su_name), su_name);
+  ASSERT_EQ(Amf::to_string(&susi_ckpt.si_name), si_name);
+  ASSERT_EQ(susi_ckpt.state, SA_AMF_HA_ACTIVE);
+  ASSERT_EQ(susi_ckpt.fsm, AVD_SU_SI_STATE_ABSENT);
+  ASSERT_EQ(susi_ckpt.csi_add_rem, SA_FALSE);
+  ASSERT_EQ(Amf::to_string(&susi_ckpt.comp_name), comp_name);
+  ASSERT_EQ(Amf::to_string(&susi_ckpt.csi_name), csi_name);
+}
 
 TEST_F(CkptEncDecTest, testEncDecAvdCb) {
   int rc = 0;

@@ -160,4 +160,7 @@ void decode_comp(NCS_UBAID *ub, AVD_COMP *comp);
 void encode_cb(NCS_UBAID *ub, const struct cl_cb_tag *cb, const uint16_t peer_version);
 void decode_cb(NCS_UBAID *ub, struct cl_cb_tag *cb, const uint16_t peer_version);
 
+void encode_siass(NCS_UBAID *ub, const struct avd_su_si_rel_tag *susi, const uint16_t peer_version);
+void decode_siass(NCS_UBAID *ub, struct avsv_su_si_rel_ckpt_msg *susi, const uint16_t peer_version);
+
 #endif

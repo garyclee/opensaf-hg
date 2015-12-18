@@ -641,6 +641,22 @@ static uint32_t enc_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	return status;
 }
 
+void encode_siass(NCS_UBAID *ub,
+	const AVD_SU_SI_REL *susi,
+	const uint16_t peer_version)
+{
+	osaf_encode_sanamet(ub, &susi->su->name);
+	osaf_encode_sanamet(ub, &susi->si->name);
+	osaf_encode_uint32(ub, susi->state);
+	osaf_encode_uint32(ub, susi->fsm);
+	if (peer_version >= AVD_MBCSV_SUB_PART_VERSION_3) {
+		osaf_encode_bool(ub, static_cast<bool>(susi->csi_add_rem));
+		osaf_encode_sanamet(ub, &susi->comp_name);
+		osaf_encode_sanamet(ub, &susi->csi_name);
+	};
+}
+
+
 /****************************************************************************\
  * Function: enc_siass
  *
@@ -657,52 +673,31 @@ static uint32_t enc_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER2("io_action '%u'", enc->io_action);
 
-	memset(&su_si_ckpt, 0, sizeof(su_si_ckpt));
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
 	 * accordingly. If it is update or add, encode entire data. If it is rmv
 	 * send key information only. In this case key is SU and SI key.
 	 */
-	su_si_ckpt.su_name = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->su->name;
-	su_si_ckpt.si_name = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->si->name;
+	const AVD_SU_SI_REL *susi = static_cast<AVD_SU_SI_REL*>(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
 
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
-		su_si_ckpt.fsm = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->fsm;
-		su_si_ckpt.state = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->state;
-		su_si_ckpt.csi_add_rem = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->csi_add_rem;
-		su_si_ckpt.comp_name = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->comp_name;
-		su_si_ckpt.csi_name = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->csi_name;
-
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
-			&enc->io_uba, EDP_OP_TYPE_ENC, &su_si_ckpt, &ederror, enc->i_peer_version);
+		encode_siass(&enc->io_uba, susi, enc->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
-		su_si_ckpt.csi_add_rem = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->csi_add_rem;
-		su_si_ckpt.comp_name = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->comp_name;
-		su_si_ckpt.csi_name = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->csi_name;
-
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
-				&enc->io_uba, EDP_OP_TYPE_ENC, &su_si_ckpt, &ederror, enc->i_peer_version);
+		encode_siass(&enc->io_uba, susi, enc->i_peer_version);
 		break;
 
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-	}
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 
@@ -2257,11 +2252,9 @@ static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *
  \**************************************************************************/
 static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_SU *su;
-	AVSV_SU_SI_REL_CKPT_MSG su_si_ckpt;
-	AVD_SU_SI_REL *rel;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	const AVD_SU *su;
+	const AVD_SU_SI_REL *rel;
+	AVD_SU_SI_REL copy;
 	TRACE_ENTER();
 
 	/* 
@@ -2270,31 +2263,19 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 	 * are sent.We will send the corresponding COMP_CSI relationship for that SU_SI
 	 * in the same update.
 	 */
-	memset(&su_si_ckpt, 0, sizeof(su_si_ckpt));
 	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
 			it != su_db->end(); it++) {
 		su = it->second;
-		su_si_ckpt.su_name = su->name;
 
 		for (rel = su->list_of_susi; rel != nullptr; rel = rel->su_next) {
-			su_si_ckpt.si_name = rel->si->name;
-			su_si_ckpt.fsm = rel->fsm;
-			su_si_ckpt.state = rel->state;
-
-			status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
-						    &enc->io_uba, EDP_OP_TYPE_ENC, &su_si_ckpt, &ederror,
-						    enc->i_peer_version);
-
-			if (status != NCSCC_RC_SUCCESS) {
-				LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-				return status;
-			}
-
+			memcpy(&copy, rel, sizeof(AVD_SU_SI_REL));
+			copy.csi_add_rem = SA_FALSE;
+			encode_siass(&enc->io_uba, &copy, enc->i_peer_version);
 			(*num_of_obj)++;
 		}
 	}
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
