@@ -296,6 +296,8 @@ extern "C" {
 
 	void immModel_genSpecialModify(IMMND_CB *cb, struct ImmsvOmCcbObjectModify *req);
 
+	struct immsv_attr_mods_list*
+	immModel_canonicalizeAttrModification(IMMND_CB *cb, const struct ImmsvOmCcbObjectModify *req);
 
 	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
 	SaBoolT immModel_protocol43Allowed(IMMND_CB *cb);
