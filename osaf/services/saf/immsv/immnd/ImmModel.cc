@@ -4105,7 +4105,8 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
             }
 
             if (!(oldAttr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) &&
-                (newAttr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT)) {
+                (newAttr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) &&
+                protocol50Allowed()) {
                 LOG_NO("Allowed upgrade, attribute %s:%s adds flag "
                     "SA_IMM_ATTR_STRONG_DEFAULT", className.c_str(), attName.c_str());
                 checkCcb = true;
@@ -16156,9 +16157,9 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         attrValue->discardValues();
                     }
                     if(p->attrValue.attrValuesNumber == 0) {
-                        LOG_WA("There's an attempt to set attr '%s' to NULL, "
-                                "default value will be set", attrName.c_str());
                         if (attr->mFlags & SA_IMM_ATTR_STRONG_DEFAULT) {
+                            LOG_WA("There's an attempt to set attr '%s' to NULL, "
+                                   "default value will be set", attrName.c_str());
                             osafassert(!attr->mDefaultValue.empty());
                             (*attrValue) = attr->mDefaultValue;
                         }
