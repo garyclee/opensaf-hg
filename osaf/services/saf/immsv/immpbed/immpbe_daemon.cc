@@ -136,6 +136,10 @@ static SaAisErrorT sqlite_prepare_ccb(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT 
 				TRACE("Modify of object with DN: %s",
 					osaf_extended_name_borrow(ccbUtilOperationData->param.modify.objectName));
 
+				/* Pbe receives canonicalized attrMod for config-object modifications (CCB)
+				 * but it still receive normal attrMod for runtime-object modifications (updating PRTA).
+				 * So we have to support all kinds of SaImmAttrModificationTypeT here.
+				 */
 				objName.append(osaf_extended_name_borrow(ccbUtilOperationData->
 					param.modify.objectName));
 				attrMods = ccbUtilOperationData->param.modify.attrMods;

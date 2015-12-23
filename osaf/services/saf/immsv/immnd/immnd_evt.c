@@ -6213,6 +6213,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	SaNameT objName;
 	osaf_extended_name_clear(&objName);
 	bool hasLongDns=false;
+	IMMSV_ATTR_MODS_LIST* canonicalizedAttrMod = NULL;
+
 	TRACE_ENTER();
 #if 0				/*ABT DEBUG PRINTOUTS START */
 	TRACE_2("ABT immnd_evt_proc_object_modify object:%s", evt->info.objModify.objectName.buf);
@@ -6272,6 +6274,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			/* PBE is internal => can handle long DNs */
 			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
 			send_evt.info.imma.info.objModify = evt->info.objModify;
+			canonicalizedAttrMod = immModel_canonicalizeAttrModification(cb, &(evt->info.objModify));
+			send_evt.info.imma.info.objModify.attrMods = canonicalizedAttrMod;
 			send_evt.info.imma.info.objModify.adminOwnerId = 0; 
 			/*We re-use the adminOwner member of the ccbModify message to hold the 
 			  invocation id. In this case, 0 => no reply is expected. */
@@ -6318,6 +6322,17 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 					IMMA_EVT_ND2A_OI_OBJ_MODIFY_LONG_UC : IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
 
 				send_evt.info.imma.info.objModify = evt->info.objModify;
+
+				/* For A.2.17 or later */
+				if (oi_cl_node->version.minorVersion >= 0x11 &&
+						oi_cl_node->version.majorVersion == 0x2 &&
+						oi_cl_node->version.releaseCode == 'A') {
+					if (!canonicalizedAttrMod) { /* Check if canonicalizedAttrMod is already built */
+						canonicalizedAttrMod = immModel_canonicalizeAttrModification(cb, &(evt->info.objModify));
+					}
+					send_evt.info.imma.info.objModify.attrMods = canonicalizedAttrMod;
+				}
+
 				/* shallow copy into stack alocated structure. */
 
 				send_evt.info.imma.info.objModify.adminOwnerId = continuationId;
@@ -6359,6 +6374,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			  invocation id. In this case, 0 => no reply is expected. */
 
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
+				bool isSpecialApplier = false;
+				send_evt.info.imma.info.objModify.attrMods = evt->info.objModify.attrMods;
 				implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
 				send_evt.info.imma.info.objModify.immHandle = implHandle;
 
@@ -6368,14 +6385,35 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
                                            If not special applier, then attribute-list will be untouched
 					   since the last applier is then a regular applier. 
 					 */
-					evt->info.objModify.attrMods = send_evt.info.imma.info.objModify.attrMods =
+					send_evt.info.imma.info.objModify.attrMods =
 						immModel_specialApplierTrimModify(cb, applConnArr[ix], &(evt->info.objModify));
 
+					/* If attrMods of 'send_evt' is different from attrMods of 'evt'
+					 * then we are sending to the special applier. */
+					if (send_evt.info.imma.info.objModify.attrMods != evt->info.objModify.attrMods) {
+						isSpecialApplier = true;
+						evt->info.objModify.attrMods = send_evt.info.imma.info.objModify.attrMods;
+					}
 				}
 
 				/*Fetch client node for Applier OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
 				osafassert(oi_cl_node != NULL);
+
+				/* For A.2.17 or later */
+				if (!isSpecialApplier &&
+						oi_cl_node->version.minorVersion >= 0x11 &&
+						oi_cl_node->version.majorVersion == 0x2 &&
+						oi_cl_node->version.releaseCode == 'A') {
+					if (!canonicalizedAttrMod) { /* Check if canonicalizedAttrMod is already built */
+						canonicalizedAttrMod = immModel_canonicalizeAttrModification(cb, &(evt->info.objModify));
+					}
+					send_evt.info.imma.info.objModify.attrMods = canonicalizedAttrMod;
+				}
+				/* Slave pbe is initialized with latest OI api version,
+				 * it will also receive canonicalized attrMod like the primary pbe
+				 */
+
 				if (oi_cl_node->mIsStale) {
 					LOG_WA("Applier client went down so modify upcall not sent");
 					continue;
@@ -6417,12 +6455,9 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	}
 
  done:
-	/*Free the incomming events substructure. */
-	free(evt->info.objModify.objectName.buf);
-	evt->info.objModify.objectName.buf = NULL;
-	evt->info.objModify.objectName.size = 0;
-	immsv_free_attrmods(evt->info.objModify.attrMods);
-	evt->info.objModify.attrMods = NULL;
+	/* Free the canonicalized attr mods */
+	immsv_free_attrmods(canonicalizedAttrMod);
+	canonicalizedAttrMod = NULL;
 	osaf_extended_name_free(&objName);
 	TRACE_LEAVE();
 }

@@ -239,6 +239,9 @@ public:
 					SaUint32T ccbId,
                                         ConnVector& connVector,
 					SaUint32T* appCtnPtr);
+
+    immsv_attr_mods_list* canonicalizeAttrModification(
+            const struct ImmsvOmCcbObjectModify *req);
     
     SaAisErrorT         ccbObjectModify(
                                         const ImmsvOmCcbObjectModify* req,
@@ -708,6 +711,10 @@ private:
     bool noDanglingRefExist(
                             ObjectInfo *obj,
                             const char *noDanglingRef);
+
+    immsv_attr_mods_list* attrValueToAttrMod(const ObjectInfo* obj,
+                                             const std::string& attrName,
+                                             SaUint32T attrType);
 
 };
 

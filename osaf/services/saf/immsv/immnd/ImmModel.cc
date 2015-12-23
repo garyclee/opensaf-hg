@@ -717,6 +717,11 @@ immModel_genSpecialModify(IMMND_CB *cb, struct ImmsvOmCcbObjectModify *req)
         genSpecialModify(req);
 }
 
+struct immsv_attr_mods_list*
+immModel_canonicalizeAttrModification(IMMND_CB *cb, const struct ImmsvOmCcbObjectModify *req)
+{
+    return ImmModel::instance(&cb->immModel)->canonicalizeAttrModification(req);
+}
 
 SaUint32T
 immModel_getLocalAppliersForObj(IMMND_CB *cb,
@@ -7017,6 +7022,101 @@ ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* r
 
  done:
     return attrValues;
+}
+
+/* This function converts value(s) of an attribute into a single attr-mod.
+ * attrModType is always SA_IMM_ATTR_VALUES_REPLACE.
+ */
+immsv_attr_mods_list*
+ImmModel::attrValueToAttrMod(const ObjectInfo* obj, const std::string& attrName,
+                             SaUint32T attrType)
+{
+    ImmAttrValueMap::const_iterator avi = obj->mAttrValueMap.find(attrName);
+    osafassert(avi != obj->mAttrValueMap.end());
+    ImmAttrValue* attrValue = avi->second;
+
+    immsv_attr_mods_list* attrMod = (immsv_attr_mods_list*) calloc(1, sizeof(immsv_attr_mods_list));
+    osafassert(attrMod);
+    attrMod->attrModType = SA_IMM_ATTR_VALUES_REPLACE;
+
+    /* attrValue.attrValueType */
+    attrMod->attrValue.attrValueType = attrType;
+
+    /* attrValue.attrName */
+    attrMod->attrValue.attrName.size = strlen(attrName.c_str()) + 1;
+    attrMod->attrValue.attrName.buf = (char*) malloc(attrMod->attrValue.attrName.size);
+    osafassert(attrMod->attrValue.attrName.buf);
+    strncpy(attrMod->attrValue.attrName.buf, attrName.c_str(), attrMod->attrValue.attrName.size);
+
+    /* attrValue.attrValuesNumber, attrValue.attrValue and attrValue.attrMoreValues */
+    attrMod->attrValue.attrValuesNumber = 0;
+    if (!attrValue->empty()) {
+        attrValue->copyValueToEdu(&(attrMod->attrValue.attrValue), (SaImmValueTypeT) attrType);
+        if (attrValue->extraValues()) {
+            ImmAttrMultiValue* multiVal = (ImmAttrMultiValue *) attrValue;
+            multiVal->copyExtraValuesToEdu(&(attrMod->attrValue.attrMoreValues), (SaImmValueTypeT) attrType);
+        }
+        attrMod->attrValue.attrValuesNumber = 1 + attrValue->extraValues();
+    } /* else, attrValuesNumber is already set to 0 */
+
+    return attrMod;
+}
+
+/* This function allocates new memory for canonicalized attribute-modifications.
+ * The 'attrMods' of input ImmsvOmCcbObjectModify remains untouched.
+ * Remember to free the memory with immsv_free_attrmods().
+ */
+immsv_attr_mods_list*
+ImmModel::canonicalizeAttrModification(const ImmsvOmCcbObjectModify *req)
+{
+    TRACE_ENTER();
+    immsv_attr_mods_list* result = NULL;
+    std::string objectName;
+    CcbVector::iterator ci;
+    CcbInfo* ccb = NULL;
+    ObjectInfo* afim = NULL;
+    ObjectMutationMap::iterator omuti;
+    ObjectMutation* oMut = NULL;
+
+    /* Get object Name */
+    size_t sz = strnlen(req->objectName.buf, (size_t) req->objectName.size);
+    objectName.append((const char*) req->objectName.buf, sz);
+    osafassert(!objectName.empty());
+
+    /* Get ccb info */
+    ci = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
+    osafassert(ci != sCcbVector.end());
+    ccb = *ci;
+
+    /* Get object mutation */
+    omuti = ccb->mMutations.find(objectName);
+    osafassert(omuti != ccb->mMutations.end());
+    oMut = omuti->second;
+
+    /* Get after image */
+    osafassert(oMut->mOpType != IMM_DELETE);
+    if (oMut->mOpType == IMM_CREATE) { /* Chained operation */
+        ObjectMap::iterator oi = sObjectMap.find(objectName);
+        osafassert(oi != sObjectMap.end());
+        afim = oi->second;
+    } else if (oMut->mOpType == IMM_MODIFY) {
+        afim = oMut->mAfterImage;
+    }
+
+    /* Build canonicalized attr-mod list */
+    immsv_attr_mods_list* reqAttrMods = req->attrMods;
+    for (; reqAttrMods; reqAttrMods = reqAttrMods->next) {
+        size_t sz = strnlen(reqAttrMods->attrValue.attrName.buf,
+                            (size_t) reqAttrMods->attrValue.attrName.size);
+        std::string attrName((const char *) reqAttrMods->attrValue.attrName.buf, sz);
+        immsv_attr_mods_list* attrMod = attrValueToAttrMod(afim, attrName,
+                                                           reqAttrMods->attrValue.attrValueType);
+        attrMod->next = result;
+        result = attrMod;
+    }
+
+    TRACE_LEAVE();
+    return result;
 }
 
 /** 
