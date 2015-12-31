@@ -1368,14 +1368,21 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
+	bool value_is_deleted = false;
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 
-		/* Attribute value removed */
-		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == nullptr))
-			continue;
-
+		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
+				(attr_mod->modAttr.attrValues == nullptr)) {
+			/* Attribute value is deleted, revert to default value if applicable*/
+			value_is_deleted = true;
+		} else {
+			/* Attribute value is modified */
+			value_is_deleted = false;
+		}
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
+			if (value_is_deleted == true)
+				continue;
 			AVD_SU *su = su_db->find(Amf::to_string(&opdata->objectName));
 			uint32_t su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 
@@ -1396,6 +1403,8 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
+			if (value_is_deleted == true)
+				continue;
 			AVD_SU *su = su_db->find(Amf::to_string(&opdata->objectName));
 
 			if (su->saAmfSUMaintenanceCampaign.length > 0) {
@@ -1405,6 +1414,8 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 			}
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
+			if (value_is_deleted == true)
+				continue;
 			AVD_SU *su;
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
 			su = su_db->find(Amf::to_string(&opdata->objectName));
