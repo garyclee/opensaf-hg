@@ -16,10 +16,19 @@
 #ifndef SIRANKEDSU_H
 #define SIRANKEDSU_H
 
-typedef struct avd_sirankedsu {
-	SaNameT suname;
-	uint32_t saAmfRank;
-	struct avd_sirankedsu *next;
-} avd_sirankedsu_t;
+class AVD_SIRANKEDSU {
+ public:
+  AVD_SIRANKEDSU(const std::string &name, uint32_t rank) : suname(name), saAmfRank(rank) {}
+  const std::string& get_suname() const {return suname;}
+  uint32_t get_sa_amf_rank() const {return saAmfRank;}
+
+ private:
+  std::string suname;
+  uint32_t saAmfRank;
+  // disallow copy and assign.
+  AVD_SIRANKEDSU(const AVD_SIRANKEDSU&);
+  void operator=(const AVD_SIRANKEDSU&);
+
+};
 
 #endif

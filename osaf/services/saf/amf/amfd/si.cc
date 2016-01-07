@@ -15,7 +15,6 @@
  *            Ericsson AB
  *
  */
-
 #include <logtrace.h>
 #include <saflog.h>
 
@@ -210,58 +209,39 @@ void AVD_SI::add_csi_db(AVD_CSI* csi)
  * @param suname
  * @param saAmfRank
  */
-void AVD_SI::add_rankedsu(const SaNameT *suname, uint32_t saAmfRank)
-{
-	avd_sirankedsu_t *tmp;
-	avd_sirankedsu_t *prev = nullptr;
-	avd_sirankedsu_t *ranked_su;
-	TRACE_ENTER();
+void AVD_SI::add_rankedsu(const SaNameT *suname, uint32_t saAmfRank) {
+  AVD_SIRANKEDSU *ranked_su;
+  TRACE_ENTER();
 
-	ranked_su = new avd_sirankedsu_t;
-	ranked_su->suname = *suname;
-	ranked_su->saAmfRank = saAmfRank;
+  ranked_su = new AVD_SIRANKEDSU(Amf::to_string(suname), saAmfRank);
 
-	for (tmp = rankedsu_list_head; tmp != nullptr; tmp = tmp->next) {
-		if (tmp->saAmfRank >= saAmfRank)
-			break;
-		else
-			prev = tmp;
-	}
+  rankedsu_list.push_back(ranked_su);
 
-	if (prev == nullptr) {
-		ranked_su->next = rankedsu_list_head;
-		rankedsu_list_head = ranked_su;
-	} else {
-		ranked_su->next = prev->next;
-		prev->next = ranked_su;
-	}
-	TRACE_LEAVE();
+  std::sort(rankedsu_list.begin(), rankedsu_list.end(), [](const AVD_SIRANKEDSU *a, const AVD_SIRANKEDSU * b) -> bool {
+    return a->get_sa_amf_rank() < b->get_sa_amf_rank();
+  });
+
+  TRACE_LEAVE();
 }
+
 /**
  * @brief Remove a SIranked SU from the SI list
  *
  * @param si
  * @param suname
  */
-void AVD_SI::remove_rankedsu(const SaNameT *suname)
-{
-	avd_sirankedsu_t *tmp;
-	avd_sirankedsu_t *prev = nullptr;
-	TRACE_ENTER();
+void AVD_SI::remove_rankedsu(const std::string &suname) {
+  TRACE_ENTER();
+	
+  auto pos = std::find_if(rankedsu_list.begin(), rankedsu_list.end(), [&suname] (AVD_SIRANKEDSU *sirankedsu) -> bool {
+    return sirankedsu->get_suname() == suname;});
 
-	for (tmp = rankedsu_list_head; tmp != nullptr; tmp = tmp->next) {
-		if (memcmp(&tmp->suname, suname, sizeof(*suname)) == 0)
-			break;
-		prev = tmp;
-	}
+  if (pos != rankedsu_list.end()) {
+    delete *pos;
+    rankedsu_list.erase(pos);
+  }
 
-	if (prev == nullptr)
-		rankedsu_list_head = nullptr;
-	else
-		prev->next = tmp->next;
-
-	delete tmp;
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }
 
 void AVD_SI::remove_csi(AVD_CSI* csi)
@@ -316,7 +296,7 @@ AVD_SI::AVD_SI() :
 	app(nullptr),
 	si_list_app_next(nullptr),
 	list_of_sus_per_si_rank(nullptr),
-	rankedsu_list_head(nullptr),
+	rankedsu_list {},
 	invocation(0),
 	alarm_sent(false)
 {
@@ -1500,4 +1480,23 @@ void AVD_SI::update_sirank(uint32_t newSiRank)
 	sg->remove_si(this);
 	saAmfSIRank = (newSiRank == 0) ? ~0U : newSiRank;
 	sg->add_si(this);
+}
+
+/*
+ * @brief Get si_ranked_su
+ *
+ * @param [in] @su_name: si ranked su
+ */
+const AVD_SIRANKEDSU *AVD_SI::get_si_ranked_su(const std::string &su_name) const {
+
+  const AVD_SIRANKEDSU* sirankedsu = nullptr;
+
+  for (auto tmp : rankedsu_list) {
+    if (tmp->get_suname() == su_name) {
+      sirankedsu = tmp;
+      break;
+    }
+  }
+
+  return sirankedsu;
 }

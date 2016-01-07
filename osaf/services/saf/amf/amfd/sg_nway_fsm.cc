@@ -843,25 +843,7 @@ static void avd_sg_nway_swap_si_redistr(AVD_SG *sg)
 	}
 	TRACE_LEAVE();
 }
-/**
- * @brief Finds SiRankedSU node corresponding to the given su and si
- *
- * @param [in] si
- * @param [in] su
- * @param suname
- *
- * @returns pointer to avd_sirankedsu_t
- */
-avd_sirankedsu_t *avd_si_find_sirankedsu(AVD_SI *si, AVD_SU *su)
-{
-        avd_sirankedsu_t *temp_su;
 
-        for (temp_su = si->rankedsu_list_head; temp_su != nullptr; temp_su = temp_su->next) {
-                if (memcmp(&temp_su->suname, &su->name, sizeof(SaNameT)) == 0)
-                        break;
-        }
-        return temp_su;
-}
 /**
  * @brief check if this SU has any non ranked assignments or not 
  *
@@ -879,13 +861,13 @@ static uint32_t su_has_any_non_ranked_assignment_with_state(AVD_SU *su, SaAmfHAS
 
 	for (susi = su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 		if (susi->state == ha_state) {
-                        if (nullptr == susi->si->rankedsu_list_head) {
+                        if (susi->si->rankedsu_list.empty() == true) {
                                 TRACE("No sirankedsu_assignment ");
                                 found = true;
                                 break;
                         } else {
                                 /* Check whether the susi assignment is based on SIRankedSU */
-                                if (avd_si_find_sirankedsu(susi->si, susi->su) == nullptr) {
+                                if (susi->si->get_si_ranked_su(Amf::to_string(&susi->su->name)) == nullptr) {
                                         TRACE("NON sirankedsu_assignment");
                                         found = true;
                                         break;
@@ -930,7 +912,7 @@ static AVD_SI * find_the_si_to_transfer(AVD_SG *sg, SaAmfHAStateT ha_state)
 				}
 			}
 			/* Check whether this assignment is based on SIRankedSU, if so dont consider this SI for transfer */
-			if (avd_si_find_sirankedsu(susi->si, susi->su) != nullptr) {
+			if (susi->si->get_si_ranked_su(Amf::to_string(&susi->su->name)) != nullptr) {
 				continue;
 			}
 			if (si_to_transfer == nullptr)
@@ -1168,58 +1150,58 @@ AVD_SU *avd_sg_nway_get_su_std_equal(AVD_SG *sg, AVD_SI *curr_si)
  *
  * @returns pointer to the highest ranked SU
  */
-AVD_SU *avd_sg_nway_si_find_highest_sirankedsu(AVD_CL_CB *cb, AVD_SI *si, AVD_SU **assigned_su)
-{
-	AVD_SU_SI_REL *sisu;
-	avd_sirankedsu_t *assigned_sirankedsu = nullptr;
-	AVD_SU *pref_sirankedsu = nullptr;
-	AVD_SU *ranked_su;
-	avd_sirankedsu_t *sirankedsu = nullptr;
+AVD_SU *avd_sg_nway_si_find_highest_sirankedsu(AVD_CL_CB *cb, AVD_SI *si, AVD_SU **assigned_su) {
+  AVD_SU_SI_REL *sisu;
+  const AVD_SIRANKEDSU *assigned_sirankedsu = nullptr;
+  AVD_SU *pref_sirankedsu = nullptr;
+  AVD_SU *ranked_su;
+  AVD_SIRANKEDSU *sirankedsu = nullptr;
 
-	TRACE_ENTER2("for SI '%s'",si->name.value);
+  TRACE_ENTER2("for SI '%s'", si->name.value);
 
-	/* Find the SU for which Active role is assigned for this SI */
-	for (sisu = si->list_of_sisu; sisu ; sisu = sisu->si_next) {
-		if (SA_AMF_HA_ACTIVE == sisu->state) {
-			*assigned_su = sisu->su;
-			break;
-		}
-	}
-	/* Find the corresponding sirankedsu */
-	if (sisu)
-		assigned_sirankedsu = avd_si_find_sirankedsu(si, sisu->su);
-	else {
-		/* Atleast one Active assignment should be there */
-		LOG_ER("Not able to find the Active assignment");
-		goto done;
-	}
-	
-	/* Iterate through the si->rankedsu_list_head to find the highest sirankedsu */
-	sirankedsu = si->rankedsu_list_head;
-	for (; sirankedsu ; sirankedsu = sirankedsu->next) {
-		if ((ranked_su = su_db->find(Amf::to_string(&sirankedsu->suname))) != nullptr) {
-			if (ranked_su == *assigned_su) {
-                                TRACE("SI is assigned to highest SIRankedSU for this SI");
-                                break;
-			} else {
-				if ((ranked_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
-					(ranked_su->saAmfSUNumCurrActiveSIs < si->sg_of_si->saAmfSGMaxActiveSIsperSU)) {
-					if (assigned_sirankedsu) {
-						if (assigned_sirankedsu->saAmfRank > sirankedsu->saAmfRank) {
-							pref_sirankedsu = ranked_su;
-							break;
-						}
-					} else {
-						pref_sirankedsu = ranked_su;
-						break;
-					}
-				}
-			}
-		}
-	}
+  /* Find the SU for which Active role is assigned for this SI */
+  for (sisu = si->list_of_sisu; sisu; sisu = sisu->si_next) {
+    if (SA_AMF_HA_ACTIVE == sisu->state) {
+      *assigned_su = sisu->su;
+      break;
+    }
+  }
+  /* Find the corresponding sirankedsu */
+  if (sisu)
+    assigned_sirankedsu = si->get_si_ranked_su(Amf::to_string(&sisu->su->name));
+  else {
+    /* Atleast one Active assignment should be there */
+    LOG_ER("Not able to find the Active assignment");
+    goto done;
+  }
+
+  /* Iterate through the si->rankedsu_list_head to find the highest sirankedsu */
+  
+  for (auto iter = si->rankedsu_list.cbegin(); iter != si->rankedsu_list.cend(); ++iter) {
+    sirankedsu = *iter;
+    if ((ranked_su = su_db->find(sirankedsu->get_suname())) != nullptr) {
+      if (ranked_su == *assigned_su) {
+        TRACE("SI is assigned to highest SIRankedSU for this SI");
+        break;
+      } else {
+        if ((ranked_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
+            (ranked_su->saAmfSUNumCurrActiveSIs < si->sg_of_si->saAmfSGMaxActiveSIsperSU)) {
+          if (assigned_sirankedsu) {
+            if (assigned_sirankedsu->get_sa_amf_rank() > sirankedsu->get_sa_amf_rank()) {
+              pref_sirankedsu = ranked_su;
+              break;
+            }
+          } else {
+            pref_sirankedsu = ranked_su;
+            break;
+          }
+        }
+      }
+    }
+  }
 done:
-	TRACE_LEAVE2(" '%s'",pref_sirankedsu ? (char *)pref_sirankedsu->name.value:"assigned to highest SIRankedSU");
-	return pref_sirankedsu;
+  TRACE_LEAVE2(" '%s'", pref_sirankedsu ? (char *) pref_sirankedsu->name.value : "assigned to highest SIRankedSU");
+  return pref_sirankedsu;
 }
 
 /*****************************************************************************
@@ -1267,7 +1249,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 
 		is_all_si_ok = true;
 
-		if (curr_si->list_of_sisu && sg->saAmfSGAutoAdjust && (curr_si->rankedsu_list_head)) {
+		if (curr_si->list_of_sisu && sg->saAmfSGAutoAdjust && (!curr_si->rankedsu_list.empty())) {
 			/* The SI has sirankedsu configured and auto adjust enabled, make
 			 *sure the highest ranked SU has the active assignment
 			 */
@@ -3564,7 +3546,7 @@ SaAisErrorT SG_NWAY::si_swap(AVD_SI *si, SaInvocationT invocation) {
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
-	if ((si->rankedsu_list_head != nullptr) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
+	if ((si->rankedsu_list.empty() == false) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
 		LOG_NO("%s SIRankedSU configured and autoadjust enabled, si-swap not allowed", si->name.value);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
