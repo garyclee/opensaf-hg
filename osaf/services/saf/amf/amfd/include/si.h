@@ -45,6 +45,7 @@
 #include <sirankedsu.h>
 #include <amf_defs.h>
 #include <ckpt_msg.h>
+#include <algorithm>
 #include <vector>
 #include <list>
 
@@ -102,7 +103,7 @@ public:
 	AVD_APP *app;
 	AVD_SI *si_list_app_next;
 	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;
-	avd_sirankedsu_t *rankedsu_list_head;
+	std::vector<AVD_SIRANKEDSU*> rankedsu_list;
 	SaInvocationT invocation;
 	
 	bool alarm_sent; /* SI unassigned alarm has been sent */
@@ -120,7 +121,7 @@ public:
 	void set_admin_state(SaAmfAdminStateT state);
 
 	void add_rankedsu(const SaNameT *suname, uint32_t saAmfRank);
-	void remove_rankedsu(const SaNameT *suname);
+	void remove_rankedsu(const std::string &suname);
 	
 	void set_si_switch(AVD_CL_CB *cb, const SaToggleState state);
 	
@@ -141,6 +142,7 @@ public:
 	bool is_sirank_valid(uint32_t newSiRank) const;
 	void update_sirank(uint32_t newSiRank);
 	bool si_dep_states_check();
+        const AVD_SIRANKEDSU *get_si_ranked_su(const std::string &su_name) const;
 private:
 	AVD_SI(const AVD_SI&);
 	AVD_SI& operator=(const AVD_SI&);
