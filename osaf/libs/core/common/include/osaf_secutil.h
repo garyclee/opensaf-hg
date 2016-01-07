@@ -18,7 +18,9 @@
 #ifndef OPENSAF_CORE_OSAF_SECUTIL_H_
 #define OPENSAF_CORE_OSAF_SECUTIL_H_
 
-#define  _GNU_SOURCE
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <stddef.h>
 #include <stdbool.h>
 #include <unistd.h>
