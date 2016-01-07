@@ -18,35 +18,26 @@
 #include "osaf_time.h"
 #include <errno.h>
 
-void osaf_nanosleep(const struct timespec* i_req)
+const struct timespec kZeroSeconds = { 0, 0 };
+const struct timespec kTenMilliseconds = { 0, 10000000 };
+const struct timespec kHundredMilliseconds = { 0, 100000000 };
+const struct timespec kOneSecond = { 1, 0 };
+const struct timespec kTwoSeconds = { 2, 0 };
+const struct timespec kFiveSeconds = { 5, 0 };
+const struct timespec kTenSeconds = { 10, 0 };
+const struct timespec kFifteenSeconds = { 15, 0 };
+const struct timespec kOneMinute = { 60, 0 };
+const struct timespec kOneHour = { 3600, 0 };
+
+void osaf_nanosleep(const struct timespec* sleep_duration)
 {
-	struct timespec req = *i_req;
-	struct timespec start_time;
-	osaf_clock_gettime(CLOCK_MONOTONIC, &start_time);
-	for (;;) {
-		struct timespec current_time;
-		struct timespec elapsed_time;
-		/* We could have utilised the second parameter to nanosleep(),
-		 * which will return the remaining sleep time in the case
-		 * nanosleep() was interrupted by a signal. But this gives
-		 * inaccurate sleep time, for various reasons. See the man page
-		 * of nanosleep(2) for details.
-		 */
-		int result = nanosleep(&req, NULL);
-		if (result == 0) break;
-		if (errno != EINTR) osaf_abort(result);
-		osaf_clock_gettime(CLOCK_MONOTONIC, &current_time);
-		osaf_timespec_subtract(&current_time, &start_time,
-			&elapsed_time);
-		if (osaf_timespec_compare(&current_time, &start_time) < 0) {
-			/* Handle the unlikely case that the elapsed time is
-			 * negative. Shouldn't happen with a monotonic clock,
-			 * but just to be on the safe side.
-			 */
-			elapsed_time.tv_sec = 0;
-			elapsed_time.tv_nsec = 0;
-		}
-		if (osaf_timespec_compare(&elapsed_time, i_req) >= 0) break;
-		osaf_timespec_subtract(i_req, &elapsed_time, &req);
-	}
+	struct timespec wakeup_time;
+	osaf_clock_gettime(CLOCK_MONOTONIC, &wakeup_time);
+	osaf_timespec_add(&wakeup_time, sleep_duration, &wakeup_time);
+	int retval;
+	do {
+		retval = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
+					 &wakeup_time, NULL);
+	} while (retval == EINTR);
+	if (retval != 0) osaf_abort(retval);
 }

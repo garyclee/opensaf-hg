@@ -56,6 +56,17 @@ enum {
 	kMillisPerSec = 1000
 };
 
+extern const struct timespec kZeroSeconds;
+extern const struct timespec kTenMilliseconds;
+extern const struct timespec kHundredMilliseconds;
+extern const struct timespec kOneSecond;
+extern const struct timespec kTwoSeconds;
+extern const struct timespec kFiveSeconds;
+extern const struct timespec kTenSeconds;
+extern const struct timespec kFifteenSeconds;
+extern const struct timespec kOneMinute;
+extern const struct timespec kOneHour;
+
 /**
  * @brief Sleep for the specified time
  *
@@ -66,7 +77,7 @@ enum {
  * time. Thus, this function will never return earlier than the requested
  * time-out.
  */
-extern void osaf_nanosleep(const struct timespec* i_req);
+extern void osaf_nanosleep(const struct timespec* sleep_duration);
 
 /**
  * @brief Get the time
