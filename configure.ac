@@ -705,6 +705,7 @@ AC_CONFIG_FILES([
         osaf/libs/core/include/Makefile
         osaf/libs/core/common/Makefile
         osaf/libs/core/common/include/Makefile
+        osaf/libs/core/common/tests/Makefile
         osaf/libs/core/leap/tests/Makefile
         osaf/libs/core/leap/Makefile
         osaf/libs/core/leap/include/Makefile
