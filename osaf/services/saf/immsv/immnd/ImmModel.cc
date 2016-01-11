@@ -13215,7 +13215,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
                         goto done;
                     }
 
-                    if(isApplier) { 
+                    if(isApplier && conn) {
                         if( ! obj->mClassInfo->mAppliers.empty()) {
                             ImplementerSet::iterator ii = obj->mClassInfo->mAppliers.begin();
                             for(; ii != obj->mClassInfo->mAppliers.end(); ++ii) {
@@ -13387,6 +13387,12 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
         LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle "
             "conn:%u nodeId:%x", conn, nodeId);
         err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    }
+
+    if(info->mApplier && !conn) {
+        // Applier is not on this node. No need to proceed further
+        err = SA_AIS_OK;
         goto done;
     }
 
@@ -13642,6 +13648,12 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
         goto done;
     } 
 
+    if(info->mApplier && !conn) {
+        // Applier is not on this node. No need to proceed further
+        err = SA_AIS_OK;
+        goto done;
+    }
+
     //conn is NULL on all nodes except primary.
     //At these other nodes the only info on implementer existence
     //is that the nodeId is non-zero. The nodeId is the nodeId of
@@ -13829,6 +13841,12 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
         goto done;
     }
 
+    if(info->mApplier && !conn) {
+        // Applier is not on this node. No need to proceed further
+        err = SA_AIS_OK;
+        goto done;
+    }
+
     //conn is NULL on all nodes except primary.
     //At these other nodes the only info on implementer existence 
     //is that the nodeId is non-zero. The nodeId is the nodeId of
@@ -13934,6 +13952,12 @@ SaAisErrorT ImmModel::objectImplementerRelease(
         LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
             conn, nodeId);
         err = SA_AIS_ERR_BAD_HANDLE;
+        goto done;
+    }
+
+    if(info->mApplier && !conn) {
+        // Applier is not on this node. No need to proceed further
+        err = SA_AIS_OK;
         goto done;
     }
 
