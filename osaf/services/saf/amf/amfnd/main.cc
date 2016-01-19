@@ -35,7 +35,6 @@
 #define FD_MBX   0
 #define FD_TERM  1
 #define FD_CLM   2 
-#define FD_MBCSV 3
 
 static const char* internal_version_id_  __attribute__ ((used)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
 
@@ -307,7 +306,6 @@ AVND_CB *avnd_cb_create()
 	cb->oper_state = SA_AMF_OPERATIONAL_ENABLED;
 	cb->term_state = AVND_TERM_STATE_UP;
 	cb->led_state = AVND_LED_STATE_RED;
-	cb->stby_sync_state = AVND_STBY_IN_SYNC;
 
 	/* assign the default timeout values (in nsec) */
 	cb->msg_resp_intv = AVND_AVD_MSG_RESP_TIME * 1000000;
@@ -464,15 +462,6 @@ uint32_t avnd_ext_intf_create(AVND_CB *cb)
 		goto err;
 	}
 	TRACE("MDS registration success");
-#if FIXME
-	if (cb->type == AVSV_AVND_CARD_SYS_CON) {
-		rc = avnd_mds_mbcsv_reg(cb);
-		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_CR("MBCSv registration failed");
-			goto err;
-		}
-	}
-#endif
 	TRACE_LEAVE();
 	return rc;
 
@@ -573,14 +562,6 @@ void avnd_main_process(void)
 
 	fds[FD_CLM].fd = avnd_cb->clm_sel_obj;
 	fds[FD_CLM].events = POLLIN;
-         
-#if FIXME
-	if (avnd_cb->type == AVSV_AVND_CARD_SYS_CON) {
-		fds[FD_MBCSV].fd = avnd_cb->avnd_mbcsv_sel_obj;
-		fds[FD_MBCSV].events = POLLIN;
-		nfds++;
-	}
-#endif
 
 	/* now wait forever */
 	while (1) {
@@ -609,15 +590,6 @@ void avnd_main_process(void)
 			ncs_sel_obj_rmv_ind(&term_sel_obj, true, true);
 			avnd_sigterm_handler();
 		}
-
-#if FIXME
-		if ((avnd_cb->type == AVSV_AVND_CARD_SYS_CON) &&
-		    (fds[FD_MBCSV].revents & POLLIN)) {
-			if (NCSCC_RC_SUCCESS != avnd_mbcsv_dispatch(avnd_cb, SA_DISPATCH_ALL)) {
-				; /* continue with our loop. */
-			}
-		}
-#endif
 	}
 
 done:
@@ -659,10 +631,6 @@ void avnd_evt_process(AVND_EVT *evt)
 
 	/* invoke the event handler */
 	rc = g_avnd_func_list[evt->type] (cb, evt);
-
-	if ((SA_AMF_HA_ACTIVE == cb->avail_state_avnd) || (SA_AMF_HA_QUIESCED == cb->avail_state_avnd)) {
-		m_AVND_SEND_CKPT_UPDT_SYNC(cb, NCS_MBCSV_ACT_UPDATE, 0);
-	}
 
 	/* log the result of event processing */
 	TRACE("Evt Type:%u %s",evt->type,((rc == NCSCC_RC_SUCCESS) ? "success" : "failure"));

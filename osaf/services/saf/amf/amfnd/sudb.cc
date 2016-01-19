@@ -195,7 +195,6 @@ uint32_t avnd_sudb_rec_del(AVND_CB *cb, SaNameT *name)
 
 	/* Delete all components */
 	while ((comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list)))) {
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 		rc = avnd_compdb_rec_del(cb, &comp->name);
 		if (rc != NCSCC_RC_SUCCESS)
 			goto done;
@@ -245,7 +244,6 @@ uint32_t avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	switch (param->act) {
 	case AVSV_OBJ_OPR_DEL:
 		/* delete the record */
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
 		rc = avnd_sudb_rec_del(cb, &param->name);
 		break;
 	case AVSV_OBJ_OPR_MOD: {

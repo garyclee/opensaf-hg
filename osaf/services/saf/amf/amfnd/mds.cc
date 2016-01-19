@@ -204,69 +204,6 @@ uint32_t avnd_mds_reg(AVND_CB *cb)
 }
 
 /****************************************************************************
-  Name          : avnd_mds_vdest_reg
- 
-  Description   : This routine registers the AVND Service with MDS for VDEST. 
-                  It does the following:
-                  a) Gets the MDS handle & AvND MDS address
-                  b) installs AvND service with MDS
-                  c) Subscribes to MDS events
- 
-  Arguments     : cb - ptr to the AVND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : MDS messages are not used, we are only interested in MBCSV 
-                  messages.
-******************************************************************************/
-uint32_t avnd_mds_vdest_reg(AVND_CB *cb)
-{
-	NCSVDA_INFO vda_info;
-	NCSMDS_INFO svc_to_mds_info;
-
-	memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
-
-	cb->avnd_mbcsv_vaddr = AVND_VDEST_ID;
-
-	vda_info.req = NCSVDA_VDEST_CREATE;
-	vda_info.info.vdest_create.i_persistent = false;
-	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
-	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	vda_info.info.vdest_create.info.specified.i_vdest = cb->avnd_mbcsv_vaddr;
-
-	/* create Vdest address */
-	if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS) {
-		LOG_CR("Vdest Creation failed");
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* store the info returned by MDS */
-	cb->avnd_mbcsv_vaddr_pwe_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
-	cb->avnd_mbcsv_vaddr_hdl = vda_info.info.vdest_create.o_mds_vdest_hdl;
-
-	memset(&svc_to_mds_info, '\0', sizeof(NCSMDS_INFO));
-	/* Install on mds VDEST */
-	svc_to_mds_info.i_mds_hdl = cb->avnd_mbcsv_vaddr_pwe_hdl;
-	svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_AVND_CNTLR;
-	svc_to_mds_info.i_op = MDS_INSTALL;
-	svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
-	svc_to_mds_info.info.svc_install.i_svc_cb = avnd_mds_cbk;
-	svc_to_mds_info.info.svc_install.i_mds_q_ownership = false;
-	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = AVND_MDS_SUB_PART_VERSION;
-
-	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
-		memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
-		vda_info.req = NCSVDA_VDEST_DESTROY;
-		vda_info.info.vdest_destroy.i_vdest = cb->avnd_mbcsv_vaddr;
-		ncsvda_api(&vda_info);
-		LOG_CR("Mds Installation failed");
-		return NCSCC_RC_FAILURE;
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
   Name          : avnd_mds_cbk
  
   Description   : This routine is a callback routine that is provided to MDS.
@@ -1446,5 +1383,4 @@ uint32_t avnd_mds_quiesced_process(AVND_CB *cb)
 		avnd_evt_destroy(evt);
 
 	return rc;
-
 }

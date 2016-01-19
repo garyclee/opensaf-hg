@@ -448,13 +448,11 @@ uint32_t avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 		case saAmfHealthcheckPeriod_ID:
 			osafassert(sizeof(SaTimeT) == param->value_len);
 			hc->period = *((SaTimeT *)param->value);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
 			break;
 
 		case saAmfHealthcheckMaxDuration_ID:
 			osafassert(sizeof(SaTimeT) == param->value_len);
 			hc->max_dur = *((SaTimeT *)param->value);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
 			break;
 
 		default:
@@ -510,14 +508,12 @@ uint32_t avnd_hctype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			osafassert(sizeof(SaTimeT) == param->value_len);
 			hctype->saAmfHctDefPeriod = *((SaTimeT *)param->value);
 			comp_hctype_update_compdb(cb, param);
-			//m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
 			break;
 
 		case saAmfHctDefMaxDuration_ID:
 			osafassert(sizeof(SaTimeT) == param->value_len);
 			hctype->saAmfHctDefMaxDuration = *((SaTimeT *)param->value);
 			comp_hctype_update_compdb(cb, param);
-			//m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
 			break;
 
 		default:

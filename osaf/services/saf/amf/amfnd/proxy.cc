@@ -258,7 +258,6 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				goto send_resp;
 			}
 			comp->reg_resp_pending = true;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, comp, AVND_CKPT_COMP_CONFIG);
 			goto done;
 		} else {
 			amf_rc = static_cast<SaAisErrorT>(rc);

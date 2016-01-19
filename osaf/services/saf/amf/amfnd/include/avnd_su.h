@@ -354,6 +354,10 @@ typedef struct avnd_su_tag {
 #define m_AVND_SUDB_REC_SI_REM(su, si) \
            ncs_db_link_list_delink(&(su).si_list, &(si).su_dll_node)
 
+/* macro to remove a csi-record from the si-csi list */
+#define m_AVND_SU_SI_CSI_REC_REM(si, csi) \
+           ncs_db_link_list_delink(&(si).csi_list, &(csi).si_dll_node)
+
 /***************************************************************************
  ******  E X T E R N A L   F U N C T I O N   D E C L A R A T I O N S  ******
  ***************************************************************************/
@@ -388,11 +392,6 @@ uint32_t avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *
 uint32_t avnd_su_si_reassign(struct avnd_cb_tag *, AVND_SU *);
 uint32_t avnd_su_curr_info_del(struct avnd_cb_tag *, AVND_SU *);
 
-AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
-							 AVND_SU *su,
-							 AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uint32_t *rc);
-uint32_t avnd_mbcsv_su_si_csi_rec_del(struct avnd_cb_tag *cb,
-					    AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec);
 uint32_t avnd_su_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern uint32_t avnd_evt_su_admin_op_req(struct avnd_cb_tag *cb, struct avnd_evt_tag  *evt);
 extern struct avnd_comp_csi_rec *avnd_su_si_csi_rec_add(struct avnd_cb_tag *, AVND_SU *,

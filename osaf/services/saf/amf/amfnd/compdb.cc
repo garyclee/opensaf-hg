@@ -681,7 +681,6 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].timeout =
 				    m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_TIMEOUT);
 				break;
 
 			case saAmfCompDelayBetweenInstantiateAttempts_ID:
@@ -691,7 +690,6 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].timeout =
 				    m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_TIMEOUT);
 				break;
 
 			case saAmfCompCleanupTimeout_ID:
@@ -715,43 +713,31 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			case saAmfCompTerminateCallbackTimeOut_ID:
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->term_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_TERM_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompCSISetCallbackTimeout_ID:
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->csi_set_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompQuiescingCompleteTimeout_ID:
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->quies_complete_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompCSIRmvCallbackTimeout_ID:
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->csi_rmv_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompProxiedCompInstantiateCallbackTimeout_ID:
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->pxied_inst_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompProxiedCompCleanupCallbackTimeout_ID:
 				osafassert(sizeof(SaTimeT) == param->value_len);
 				comp->pxied_clean_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT);
 				break;
 
 			case saAmfCompNodeRebootCleanupFail_ID:
@@ -770,24 +756,20 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				
 				(&comp->su_dll_node)->prev = nullptr;
 				(&comp->su_dll_node)->next = nullptr;
-				
+
 				/* Add to the comp-list (maintained by su) */
 				m_AVND_SUDB_REC_COMP_ADD(*su, *comp, rc);
-				
+
 				break;
 			case saAmfCompRecoveryOnError_ID:
 				osafassert(sizeof(uint32_t) == param->value_len);
 				comp->err_info.def_rec = static_cast<SaAmfRecommendedRecoveryT>(m_NCS_OS_NTOHL(*(uint32_t *)(param->value)));
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_DEFAULT_RECVR);
 				break;
 
 			case saAmfCompNumMaxInstantiate_ID:
 				osafassert(sizeof(uint32_t) == param->value_len);
 				comp->clc_info.inst_retry_max =
 				    m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
-								 AVND_CKPT_COMP_INST_RETRY_MAX);
 				break;
 
 			case saAmfCompAMEnable_ID:
@@ -863,13 +845,11 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				   will be already terminated, so we just want to delete
 				   the comp record.*/
 				if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
-					m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 					rc = avnd_compdb_rec_del(cb, &param->name);
 					goto done;
 				}
 			}
 			/* Delete the component in case, it is in term failed or so. */
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 			rc = avnd_compdb_rec_del(cb, &param->name);
 
 		}
@@ -1786,20 +1766,15 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	} else
 		m_AVND_COMP_TYPE_SET_LOCAL_NODE(comp);
 
-	m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(avnd_cb, comp, AVND_CKPT_COMP_CONFIG);
-
 	/* determine if su is pre-instantiable */
 	if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
 		m_AVND_SU_PREINSTANTIABLE_SET(comp->su);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(avnd_cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
 //			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(avnd_cb, comp->su, SA_AMF_OPERATIONAL_DISABLED);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(avnd_cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 	}
 
 	/* determine if su is restart capable */
 	if (m_AVND_COMP_IS_RESTART_DIS(comp)) {
 		m_AVND_SU_RESTART_DIS_SET(comp->su);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(avnd_cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
 	}
 
 	rc = 0;

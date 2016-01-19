@@ -321,7 +321,6 @@ uint32_t avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT 
 	cbk_rec = comp->cbk_list;
 	while (cbk_rec) {
 		temp_cbk_ptr = cbk_rec->next;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, cbk_rec, AVND_CKPT_COMP_CBK_REC);
 		avnd_comp_cbq_rec_del(cb, comp, cbk_rec);
 		cbk_rec = temp_cbk_ptr;
 	}

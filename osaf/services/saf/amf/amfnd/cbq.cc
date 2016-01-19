@@ -361,7 +361,6 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 						avnd_comp_hc_rec_start(cb, comp, hc_rec);
 					} else
 						hc_rec->status = AVND_COMP_HC_STATUS_STABLE;
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc_rec, AVND_CKPT_COMP_HC_REC_STATUS);
 				}
 			}
 			break;
@@ -374,7 +373,6 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 					comp->name.value, resp->err);
 
 			m_AVND_COMP_TERM_FAIL_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 		}
 		/* For successful response from (1.) Sa-Aware PI component, wait
 		   for down event to come, don't run clc here, run clc when down
@@ -454,7 +452,6 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				/* Just stop the callback timer, Quiescing complete will come after some time */
 				if (m_AVND_TMR_IS_ACTIVE(cbk_rec->resp_tmr)) {
 					m_AVND_TMR_COMP_CBK_RESP_STOP(cb, *cbk_rec)
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cbk_rec, AVND_CKPT_COMP_CBK_REC_TMR);
 				}
 
 				/* Now Start the QSCING complete timer */
@@ -560,8 +557,6 @@ uint32_t avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, rec->comp->su->su_is_external))
 		goto done;
 
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_CBK_REC_TMR);
-
 	/* 
 	 * the record may be deleted as a part of the expiry processing. 
 	 * hence returning the record to the hdl mngr.
@@ -574,7 +569,6 @@ uint32_t avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		rc = avnd_comp_clc_fsm_run(cb, rec->comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL);
 	} else if (AVSV_AMF_COMP_TERM == rec->cbk_info->type) {
 		m_AVND_COMP_TERM_FAIL_SET(rec->comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec->comp, AVND_CKPT_COMP_FLAG_CHANGE);
 		if (rec->comp->term_cbq_inv_value != 0) {
 			AVND_COMP_CBK *cbk_rec;
 			/* Since, the cbq timer has expired and no down event
@@ -664,8 +658,6 @@ uint32_t avnd_comp_cbq_send(AVND_CB *cb,
 		/* assign inv & hdl values */
 		rec->cbk_info->inv = rec->opq_hdl;
 		rec->cbk_info->hdl = ((!hdl) ? comp->reg_hdl : hdl);
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, rec, AVND_CKPT_COMP_CBK_REC);
 
 		/* send the request if comp is not in orphaned state.
 		   in case of orphaned component we will send it later when
@@ -776,7 +768,6 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 		/* start the callback response timer */
 		if (true == timer_start) {
 			m_AVND_TMR_COMP_CBK_RESP_START(cb, *rec, rec->timeout, rc);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_CBK_REC_TMR);
 			/* Not sure why someone has written the following line. */
 			msg.info.ava = 0;
 		}
@@ -831,7 +822,6 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, bool send_del_cbk)
 
 		/* if(true == send_del_cbk) */
 		/* delete the record */
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_CBK_REC);
 		avnd_comp_cbq_rec_del(cb, comp, rec);
 	} while (1);
 	TRACE_LEAVE();
@@ -877,7 +867,6 @@ void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *
 
 			}	/* if(cb->node_info.nodeId != dest_node_id) */
 		}		/* if(true == send_del_cbk) */
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_CBK_REC);
 		avnd_comp_cbq_rec_del(cb, comp, rec);
 	}			/* if(found) */
 }
@@ -995,7 +984,6 @@ void avnd_comp_cbq_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl, MDS_
 			if (curr->cbk_info && (curr->cbk_info->type == AVSV_AMF_COMP_TERM)
 			    && (!m_AVND_COMP_TYPE_IS_PROXIED(comp))) {
 				m_AVND_COMP_TERM_FAIL_SET(comp);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 				avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 			}
 

@@ -325,3 +325,45 @@ uint32_t avnd_evt_send(AVND_CB *cb, AVND_EVT *evt)
 
 	return rc;
 }
+
+/****************************************************************************\
+ * Function: avnd_evt_ha_state_change
+ *
+ * Purpose:  Takes cares state change of HA State.
+ *
+ * Input: cb        - AVND control block pointer.
+ *        evt - ptr to the AvND event
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ *
+\**************************************************************************/
+uint32_t avnd_evt_ha_state_change_evh(AVND_CB *cb, AVND_EVT *evt)
+{
+	AVND_HA_STATE_CHANGE_EVT *ha_state_event = nullptr;
+	uint32_t rc = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER();
+
+	ha_state_event = &evt->info.ha_state_change;
+
+	if (nullptr == ha_state_event)
+		return rc;
+
+	if (AVND_EVT_HA_STATE_CHANGE != evt->type)
+		goto error;
+
+	if ((SA_AMF_HA_QUIESCED == ha_state_event->ha_state) && (true == cb->is_quisced_set)) {
+		cb->avail_state_avnd = SA_AMF_HA_QUIESCED;
+		cb->is_quisced_set = false;
+		return rc;
+	}
+
+error:
+	TRACE("evt_type:%u, ha_state:%u ,cb->is_quisced_set:%u, rc:%u are",evt->type, ha_state_event->ha_state, cb->is_quisced_set, rc);
+
+	TRACE_LEAVE();
+	return rc;
+}
