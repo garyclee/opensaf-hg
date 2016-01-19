@@ -107,7 +107,6 @@ uint32_t avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	/* now proceeed with the rest of the processing */
 	if ((SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc)) {
 		if ((0 != (rec = avnd_comp_hc_rec_add(cb, comp, hc_start, &api_info->dest)))) {
-			m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, rec, AVND_CKPT_COMP_HLT_REC);
 			rc = avnd_comp_hc_rec_process(cb, comp, rec, AVND_COMP_HC_START, static_cast<SaAisErrorT>(0));
 		} else
 			rc = NCSCC_RC_FAILURE;
@@ -272,8 +271,6 @@ uint32_t avnd_evt_tmr_hc_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, rec->comp->su->su_is_external))
 		goto done;
-
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_TMR);
 
 	/* process the timer expiry */
 	rc = avnd_comp_hc_rec_process(cb, rec->comp, rec, AVND_COMP_HC_TMR_EXP, static_cast<SaAisErrorT>(0));
@@ -613,7 +610,6 @@ void avnd_comp_hc_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 
 	/* scan & delete each healthcheck record */
 	while (0 != (rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list))) {
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_HLT_REC);
 		avnd_comp_hc_rec_del(cb, comp, rec);
 	}
 	TRACE_LEAVE();
@@ -697,13 +693,11 @@ uint32_t avnd_comp_hc_rec_start(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *
 
 		if (NCSCC_RC_SUCCESS == rc)
 			rec->status = AVND_COMP_HC_STATUS_WAIT_FOR_RESP;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_STATUS);
 	}
 
 	/* now start the periodic timer (relevant both for comp-initiated & amf-initiated) */
 	if (NCSCC_RC_SUCCESS == rc) {
 		m_AVND_TMR_COMP_HC_START(cb, *rec, rc);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_TMR);
 	}
 
 	return rc;
@@ -855,7 +849,6 @@ uint32_t avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
 	}
 
 	/* delete the record */
-	m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_HLT_REC);
 	avnd_comp_hc_rec_del(cb, comp, rec);
 
 	return rc;
@@ -889,7 +882,6 @@ uint32_t avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 		/* restart the periodic timer */
 		m_AVND_TMR_COMP_HC_STOP(cb, *rec);
 		m_AVND_TMR_COMP_HC_START(cb, *rec, rc);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_TMR);
 	} else {
 		/* process comp failure */
 		err_info.src = AVND_ERR_SRC_HC;
@@ -936,7 +928,6 @@ uint32_t avnd_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 			}
 		else if (rec->status == AVND_COMP_HC_STATUS_WAIT_FOR_RESP) {
 			rec->status = AVND_COMP_HC_STATUS_SND_TMR_EXPD;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_STATUS);
 		}
 	} else {
 		/* process comp failure */
@@ -977,7 +968,6 @@ void avnd_comp_hc_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl, MDS_D
 		prv = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_PREV(&curr->comp_dll_node);
 
 		if ((curr->req_hdl == hdl) && !memcmp(&curr->dest, dest, sizeof(MDS_DEST))) {
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, curr, AVND_CKPT_COMP_HLT_REC);
 			avnd_comp_hc_rec_del(cb, comp, curr);
 			curr = (prv) ? (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&prv->comp_dll_node) :
 			    (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
@@ -1017,61 +1007,4 @@ uint32_t avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2)
 		return avsv_dblist_uns64_cmp((uint8_t *)&rec1->req_hdl, (uint8_t *)&rec2->req_hdl);
 
 	return ((i > 0) ? 1 : 2);
-}
-
-/****************************************************************************
-  Name          : avnd_mbcsv_comp_hc_rec_tmr_exp
- 
-  Description   : This routine is just a wrapper of avnd_comp_hc_rec_tmr_exp.
- 
-  Arguments     : cb   - ptr to the AvND control block
-                  comp - ptr the the component
-                  rec  - ptr to the healthcheck record
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_mbcsv_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
-{
-	return (avnd_comp_hc_rec_tmr_exp(cb, comp, rec));
-}
-
-/****************************************************************************
-  Name          : avnd_mbcsv_comp_hc_rec_add
- 
-  Description   : This routine is a wrapper of avnd_comp_hc_rec_add.
- 
-  Arguments     : cb        - ptr to the AvND control block
-                  comp      - ptr the the component
-                  hc_start  - ptr to the healthcheck start parameters
-                  dest      - ptr to the mds-dest of the process that started 
-                              the healthcheck
- 
-  Return Values : ptr to the healthcheck record.
- 
-  Notes         : None.
-******************************************************************************/
-AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add(AVND_CB *cb,
-					     AVND_COMP *comp, AVSV_AMF_HC_START_PARAM *hc_start, MDS_DEST *dest)
-{
-	return (avnd_comp_hc_rec_add(cb, comp, hc_start, dest));
-}
-
-/****************************************************************************
-  Name          : avnd_mbcsv_comp_hc_rec_del
- 
-  Description   : This routine is a wrapper of avnd_comp_hc_rec_del.
- 
-  Arguments     : cb   - ptr to the AvND control block
-                  comp - ptr the the component
-                  rec  - ptr to healthcheck record
- 
-  Return Values : None.
- 
-  Notes         : None.
-******************************************************************************/
-void avnd_mbcsv_comp_hc_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
-{
-	return (avnd_comp_hc_rec_del(cb, comp, rec));
 }

@@ -335,7 +335,6 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (NCS_OS_PROC_EXIT_NORMAL == clc_evt->exec_stat.value) {
 			/* mark that the inst cmd has been successfully executed */
 			m_AVND_COMP_INST_CMD_SUCC_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 			if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) || m_AVND_COMP_IS_REG(comp)) {
 				/* all set... proceed with inst-succ evt for the fsm */
@@ -344,7 +343,6 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			} else {
 				/* start the comp-reg timer */
 				m_AVND_TMR_COMP_REG_START(cb, *comp, rc);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 			}
 		} else {
 			ev = AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL;
@@ -352,7 +350,6 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			if (NCS_OS_PROC_EXIT_WITH_CODE == clc_evt->exec_stat.value) {
 				comp->clc_info.inst_code_rcvd =
 					clc_evt->exec_stat.info.exit_with_code.exit_code;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CODE_RCVD);
 			}
 
 			LOG_NO("Instantiation of '%s' failed", comp->name.value);
@@ -367,7 +364,6 @@ uint32_t avnd_evt_clc_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		} else {
 			ev = AVND_COMP_CLC_PRES_FSM_EV_CLEANUP;
 			m_AVND_COMP_TERM_FAIL_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			LOG_NO("Termination of '%s' failed", comp->name.value);
 			log_failed_exec(&clc_evt->exec_stat, comp, clc_evt->cmd_type);
 		}
@@ -495,8 +491,6 @@ uint32_t avnd_evt_tmr_clc_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, comp->su->su_is_external))
 		goto done;
 
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
-
 	LOG_NO("Instantiation of '%s' failed", comp->name.value);
 	LOG_NO("Reason: component registration timer expired");
 
@@ -542,8 +536,6 @@ uint32_t avnd_evt_tmr_clc_pxied_comp_inst_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, comp->su->su_is_external))
 		goto done;
 
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
-
 	/* trigger the fsm with inst-fail event */
 	rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL);
 
@@ -588,8 +580,6 @@ uint32_t avnd_evt_tmr_clc_pxied_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, comp->su->su_is_external))
 		goto done;
-
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ORPH_TMR);
 
 	/* process comp failure */
 	err_info.src = AVND_ERR_SRC_PXIED_REG_TIMEOUT;
@@ -931,8 +921,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			prv_st != final_st && comp->admin_oper != true) {
 		comp->err_info.restart_cnt++;
 
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ERR_INFO);
-
 		TRACE_1("Component restart not through admin operation");
 		/* inform avd of the change in restart count */
 		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRestartCount_ID, 
@@ -983,7 +971,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 			clear_error_report_alarm(comp);
 		}
 
@@ -995,7 +982,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 			m_AVND_COMP_FAILED_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 		}
 
 		/* terminating -> term-failed */
@@ -1008,12 +994,10 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			/* reset the comp failed flag & set the oper state to enabled */
 			if (m_AVND_COMP_IS_FAILED(comp)) {
 				m_AVND_COMP_FAILED_RESET(comp);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
 				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 				clear_error_report_alarm(comp);
 			}
 
@@ -1045,7 +1029,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 					/*Clear SU failed state as all components are enabled.*/
 					m_AVND_SU_FAILED_RESET(comp->su);
 					m_AVND_SU_OPER_STATE_SET(comp->su, SA_AMF_OPERATIONAL_ENABLED);
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 					rc = avnd_di_oper_send(cb, comp->su, 0);
 					if (NCSCC_RC_SUCCESS != rc)
 						goto done;
@@ -1076,7 +1059,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			} else if (m_AVND_COMP_IS_FAILED(comp) && !comp->csi_list.n_nodes) {
 				m_AVND_COMP_FAILED_RESET(comp);	/*if we moved from restart -> term
 												due to admn operation */
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			}
 		}
 	}
@@ -1102,7 +1084,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 
 			if (sufailover_in_progress(comp->su) || (sufailover_during_nodeswitchover(comp->su))) {
 				/* Do not reset any flag during:
@@ -1132,13 +1113,11 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 						m_AVND_SU_IS_ENABLED(comp->su, is_en);
 						if (true == is_en) {
 							m_AVND_SU_OPER_STATE_SET(comp->su,SA_AMF_OPERATIONAL_ENABLED);
-							m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 							rc = avnd_di_oper_send(cb, comp->su, 0);
 							if (NCSCC_RC_SUCCESS != rc)
 								goto done;
 						}
 						m_AVND_COMP_FAILED_RESET(comp);
-						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 					} else if ((m_AVND_SU_IS_RESTART(comp->su)) && (m_AVND_SU_IS_FAILED(comp->su))) {
 						TRACE("suRestart escalation context");
 						m_AVND_COMP_FAILED_RESET(comp);
@@ -1152,12 +1131,10 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			/* reset the comp failed flag & set the oper state to enabled */
 			if (m_AVND_COMP_IS_FAILED(comp)) {
 				m_AVND_COMP_FAILED_RESET(comp);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
 				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 				clear_error_report_alarm(comp);
 			}
 
@@ -1175,15 +1152,12 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 		/* instantiating -> instantiation failed */
 		if ((SA_AMF_PRESENCE_INSTANTIATING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st)) {
 			m_AVND_COMP_FAILED_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 			/* update comp oper state */
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 
 			m_AVND_SU_FAILED_SET(comp->su);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
 			/* csi-set Failed.. Respond failure for Su-Si */
 			csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 			osafassert(csi);
@@ -1199,12 +1173,10 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 		/* restarting -> instantiated */
 		if ((SA_AMF_PRESENCE_RESTARTING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
 			m_AVND_COMP_FAILED_RESET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
 			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 			clear_error_report_alarm(comp);
 		}
 
@@ -1219,7 +1191,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 			}
 		}
 
@@ -1228,12 +1199,10 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				((final_st == SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
 				 (final_st == SA_AMF_PRESENCE_TERMINATION_FAILED))) {
 			m_AVND_COMP_FAILED_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 		}
 	}
 
@@ -1294,7 +1263,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				curr_rec->dest = comp->reg_dest;
 				curr_rec->timeout = comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].timeout;
 				curr_rec->cbk_info->hdl = comp->reg_hdl;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_rec, AVND_CKPT_COMP_CBK_REC);
 
 				/* send it */
 				rc = avnd_comp_cbq_rec_send(cb, comp, curr_rec, true);
@@ -1432,11 +1400,9 @@ uint32_t avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 			if (NCSCC_RC_SUCCESS == rc) {
 				/* increment the retry count */
 				comp->clc_info.inst_retry_cnt++;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_CNT);
 			}
 		} else {
 			m_AVND_TMR_PXIED_COMP_INST_START(cb, *comp, rc);	/* start a timer for proxied instantiating timeout duration */
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 		}
 
 		/* transition to 'instantiating' state */
@@ -1452,12 +1418,8 @@ uint32_t avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 		/* timestamp the start of this instantiation phase */
 		m_GET_TIME_STAMP(comp->clc_info.inst_cmd_ts);
 
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD_TS);
-
 		/* increment the retry count */
 		comp->clc_info.inst_retry_cnt++;
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_CNT);
 
 		/* transition to 'instantiating' state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATING);
@@ -1488,8 +1450,6 @@ uint32_t avnd_comp_clc_insting_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	/* increment the retry count */
 	comp->clc_info.inst_retry_cnt++;
-
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_CNT);
 
 	if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)){
 		TRACE("component type is preinstantiable");
@@ -1535,7 +1495,6 @@ uint32_t avnd_comp_clc_insting_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	/* transition to 'instantiated' state */
 	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATED);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 
 	TRACE_LEAVE();
 	return rc;
@@ -1566,8 +1525,6 @@ uint32_t avnd_comp_clc_xxxing_instfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	if (m_AVND_COMP_TYPE_IS_PROXY(comp))
 		rc = avnd_comp_proxy_unreg(cb, comp);
-
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 
 	/* delete hc-list, cbk-list, pg-list & pm-list */
 	avnd_comp_hc_rec_del_all(cb, comp);
@@ -1614,8 +1571,6 @@ uint32_t avnd_comp_clc_insting_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
 		m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
 
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
-
 		/* delete hc-list, cbk-list, pg-list & pm-list */
 		avnd_comp_hc_rec_del_all(cb, comp);
 		avnd_comp_cbq_del(cb, comp, true);
@@ -1661,8 +1616,6 @@ uint32_t avnd_comp_clc_insting_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* transition to 'terminating' state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -1743,7 +1696,6 @@ uint32_t avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 				/* start a timer for proxied instantiating timeout duration */
 				m_AVND_TMR_PXIED_COMP_INST_START(cb, *comp, rc);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 			}
 		} else
 			rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_INSTANTIATE);
@@ -1752,17 +1704,13 @@ uint32_t avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 			/* timestamp the start of this instantiation phase */
 			m_GET_TIME_STAMP(clc_info->inst_cmd_ts);
 
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD_TS);
-
 			/* increment the retry count */
 			clc_info->inst_retry_cnt++;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_CNT);
 		}
 	} else {
 		/* stop the inst timer, inst timer might still be running */
 		if (m_AVND_COMP_TYPE_IS_PROXIED(comp) && m_AVND_TMR_IS_ACTIVE(comp->clc_info.clc_reg_tmr)) {
 			m_AVND_TMR_PXIED_COMP_INST_STOP(cb, *comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 		}
 		/* => retries over... transition to inst-failed state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
@@ -1824,8 +1772,6 @@ uint32_t avnd_comp_clc_insting_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* transition to 'restarting' state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_RESTARTING);
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -1858,8 +1804,6 @@ uint32_t avnd_comp_clc_inst_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 		rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
 
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
-
 		/* delete hc-list, cbk-list, pg-list & pm-list */
 		avnd_comp_hc_rec_del_all(cb, comp);
 		avnd_comp_cbq_del(cb, comp, true);
@@ -1876,7 +1820,6 @@ uint32_t avnd_comp_clc_inst_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 		/* invoke terminate command */
 		rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_TERMINATE);
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	if (NCSCC_RC_SUCCESS == rc) {
@@ -1885,7 +1828,6 @@ uint32_t avnd_comp_clc_inst_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* transition to 'terminating' state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -1947,8 +1889,6 @@ uint32_t avnd_comp_clc_inst_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_TERM_FAIL_RESET(comp);
 		/* transition to 'terminating' state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 done:
@@ -1981,7 +1921,6 @@ uint32_t avnd_comp_clc_inst_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 	else if (m_AVND_COMP_IS_FAILED(comp)) {
 		rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	} else {
 		if (m_AVND_COMP_TYPE_IS_PROXIED(comp) && !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
 			/* invoke csi set callback with active ha state */
@@ -1989,8 +1928,6 @@ uint32_t avnd_comp_clc_inst_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 		else if (m_AVND_COMP_TYPE_IS_SAAWARE(comp) && (!m_AVND_COMP_IS_REG(comp))) {
 			rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 			m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 
 			/* delete hc-list, cbk-list, pg-list & pm-list */
 			avnd_comp_hc_rec_del_all(cb, comp);
@@ -2018,7 +1955,6 @@ uint32_t avnd_comp_clc_inst_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 		else {
 			rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_TERMINATE);
 			m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 		}
 	}
 
@@ -2038,7 +1974,6 @@ uint32_t avnd_comp_clc_inst_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_RESTARTING);
 		else
 			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 done:
 	TRACE_LEAVE();
@@ -2067,8 +2002,6 @@ uint32_t avnd_comp_clc_inst_orph_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	/* start the orphaned timer */
 	m_AVND_TMR_PXIED_COMP_REG_START(cb, *comp, rc);
-
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ORPH_TMR);
 
 	if (NCSCC_RC_SUCCESS == rc) {
 		avnd_comp_pres_state_set(comp, static_cast<SaAmfPresenceStateT>(SA_AMF_PRESENCE_ORPHANED));
@@ -2102,7 +2035,6 @@ uint32_t avnd_comp_clc_terming_termsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* reset the comp-reg & instantiate params */
 	if (!m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 		avnd_comp_curr_info_del(cb, comp);
 	}
 
@@ -2138,12 +2070,10 @@ uint32_t avnd_comp_clc_terming_termfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 		rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 
 	m_AVND_COMP_TERM_FAIL_RESET(comp);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 	/* reset the comp-reg & instantiate params */
 	if (!m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -2246,7 +2176,6 @@ uint32_t avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* reset the comp-reg & instantiate params */
 	if (!m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -2318,12 +2247,10 @@ uint32_t avnd_comp_clc_restart_inst_hdler (AVND_CB *cb, AVND_COMP *comp)
 			if (NCSCC_RC_SUCCESS == rc) {
 				/* increment the retry count */
 				comp->clc_info.inst_retry_cnt++;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_CNT);
 			}
 		} else {
 			/* start a timer for proxied instantiating timeout duration */
 			m_AVND_TMR_PXIED_COMP_INST_START(cb, *comp, rc);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 		}
 		goto done;
 	}
@@ -2332,10 +2259,8 @@ uint32_t avnd_comp_clc_restart_inst_hdler (AVND_CB *cb, AVND_COMP *comp)
 	if (NCSCC_RC_SUCCESS == rc) {
 		/* timestamp the start of this instantiation phase */
 		m_GET_TIME_STAMP(comp->clc_info.inst_cmd_ts);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD_TS);
 		/* increment the retry count */
 		comp->clc_info.inst_retry_cnt++;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_CNT);
 	}
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -2363,7 +2288,6 @@ uint32_t avnd_comp_clc_restart_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* stop the reg tmr */
 	if (m_AVND_TMR_IS_ACTIVE(comp->clc_info.clc_reg_tmr)) {
 		m_AVND_TMR_COMP_REG_STOP(cb, *comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CLC_REG_TMR);
 	}
 
 	/* just transition back to 'instantiated' state */
@@ -2413,8 +2337,6 @@ uint32_t avnd_comp_clc_restart_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* transition to 'terminating' state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -2447,7 +2369,6 @@ uint32_t avnd_comp_clc_restart_termsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	if (!m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	/*A NPI comp in PI SU can get terminated in other than admin restartop on it viz.
@@ -2478,7 +2399,6 @@ uint32_t avnd_comp_clc_restart_termsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	if (NCSCC_RC_SUCCESS == rc) {
 		/* timestamp the start of this instantiation phase */
 		m_GET_TIME_STAMP(comp->clc_info.inst_cmd_ts);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD_TS);
 	}
 done:
 	TRACE_LEAVE();
@@ -2560,8 +2480,6 @@ uint32_t avnd_comp_clc_restart_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
 		else
 			m_AVND_COMP_TERM_FAIL_RESET(comp);
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -2614,7 +2532,6 @@ uint32_t avnd_comp_clc_orph_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* stop the proxied registration timer */
 	if (m_AVND_TMR_IS_ACTIVE(comp->orph_tmr)) {
 		m_AVND_TMR_PXIED_COMP_REG_STOP(cb, *comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ORPH_TMR);
 	}
 
 	/* just transition to 'instantiated' state */
@@ -2644,7 +2561,7 @@ uint32_t avnd_comp_clc_orph_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	/* queue up this event, we will process it in inst state */
 	comp->pend_evt = AVND_COMP_CLC_PRES_FSM_EV_TERM;
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PEND_EVT);
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -2670,7 +2587,6 @@ uint32_t avnd_comp_clc_orph_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* stop orphan timer if still running */
 	if (m_AVND_TMR_IS_ACTIVE(comp->orph_tmr)) {
 		m_AVND_TMR_PXIED_COMP_REG_STOP(cb, *comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ORPH_TMR);
 	}
 
 	avnd_comp_cbq_del(cb, comp, true);
@@ -2684,8 +2600,6 @@ uint32_t avnd_comp_clc_orph_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* transition to 'terminating' state */
 		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();
@@ -2714,7 +2628,6 @@ uint32_t avnd_comp_clc_orph_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 	   just queue the event , we will handle it 
 	   on reaching inst state */
 	comp->pend_evt = AVND_COMP_CLC_PRES_FSM_EV_RESTART;
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PEND_EVT);
 
 	TRACE_LEAVE();
 	return rc;
@@ -3022,25 +2935,21 @@ uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 
 	/* mark the comp failed */
 	m_AVND_COMP_FAILED_SET(failed_comp);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_comp, AVND_CKPT_COMP_OPER_STATE);
 
 	/* if we are in the middle of su restart, reset the flag and go ahead */
 	if (m_AVND_SU_IS_RESTART(su)) {
 		m_AVND_SU_RESTART_RESET(su);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 	}
 
 	/* mark the su failed */
 	if (!m_AVND_SU_IS_FAILED(su)) {
 		m_AVND_SU_FAILED_SET(su);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 	}
 
 	/*
@@ -3063,7 +2972,6 @@ uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 	/* update su oper state */
 	if (m_AVND_SU_OPER_STATE_IS_ENABLED(su)) {
 		m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 
 		/* inform AvD */
 		rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
@@ -3103,7 +3011,6 @@ static uint32_t avnd_comp_clc_restart_restart_hdler(AVND_CB *cb, AVND_COMP *comp
 		if (!m_AVND_COMP_TYPE_IS_PROXIED(comp))
 			m_AVND_COMP_REG_PARAM_RESET(cb, comp);
 		m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 	}
 
 	TRACE_LEAVE();

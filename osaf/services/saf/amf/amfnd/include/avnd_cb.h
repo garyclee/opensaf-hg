@@ -33,14 +33,6 @@
 #ifndef AVND_CB_H
 #define AVND_CB_H
 
-/*
- * Sync state of the Standby.
- */
-typedef enum {
-	AVND_STBY_OUT_OF_SYNC,
-	AVND_STBY_IN_SYNC,
-	AVND_STBY_SYNC_STATE_MAX
-} AVND_STBY_SYNC_STATE;
 
 typedef struct avnd_cb_tag {
 	SYSF_MBX mbx;		/* mailbox on which AvND waits */
@@ -105,22 +97,9 @@ typedef struct avnd_cb_tag {
 
 	NCS_DB_LINK_LIST si_list; /* all application SIs sorted by their rank */
 
-	MDS_HDL avnd_mbcsv_vaddr_pwe_hdl;	/* The pwe handle returned when
-						 * vdest address is created.
-						 */
-	MDS_HDL avnd_mbcsv_vaddr_hdl;	/* The handle returned by mds
-					 * for vaddr creation
-					 */
-	MDS_DEST avnd_mbcsv_vaddr;	/* vcard address of the this AvD                                                 */
-	AVND_ASYNC_UPDT_CNT avnd_async_updt_cnt;
-	AVND_STBY_SYNC_STATE stby_sync_state;
+	MDS_DEST avnd_mbcsv_vaddr;      /* vcard address of the this AvD */
 	uint32_t synced_reo_type;	/* Count till which sync is done */
-	NCS_MBCSV_HDL avnd_mbcsv_hdl;
-	uint32_t avnd_mbcsv_ckpt_hdl;
-	SaSelectionObjectT avnd_mbcsv_sel_obj;
 	SaAmfHAStateT avail_state_avnd;
-	/* Queue for keeping async update messages  on Standby */
-	AVND_ASYNC_UPDT_MSG_QUEUE_LIST async_updt_msgs;
 	bool is_quisced_set;
 	NCS_DB_LINK_LIST pid_mon_list;	/* PID list to monitor */
 

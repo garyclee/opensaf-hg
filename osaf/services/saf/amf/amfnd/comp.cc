@@ -198,15 +198,6 @@ uint32_t avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 		pxy_comp = avnd_internode_comp_add(&(cb->internode_avail_comp_db),
 						   &(reg->proxy_comp_name), node_id, &rc,
 						   comp->su->su_is_external, true);
-		if (nullptr != pxy_comp) {
-			if (SA_AIS_ERR_EXIST == rc) {
-				/* This means that the proxy component is already serving to at 
-				   least one proxied component, so no need to send Ckpt Update 
-				   here. */
-			} else if (SA_AIS_OK == rc) {
-				m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, pxy_comp, AVND_CKPT_COMP_CONFIG);
-			}
-		}
 
 		if (nullptr == pxy_comp)
 			amf_rc = static_cast<SaAisErrorT>(rc);
@@ -718,11 +709,8 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 
 	/* update the comp reg params */
 	comp->reg_hdl = reg->hdl;
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_REG_HDL);
 	comp->reg_dest = *dest;
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_REG_DEST);
 	m_AVND_COMP_REG_SET(comp);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 	/* if proxied comp, do add to the pxied_list of pxy */
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp))
@@ -730,8 +718,6 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 
 	if (rc != NCSCC_RC_SUCCESS)
 		goto done;
-
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_ADD);
 
 	/* process comp registration */
 	if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATING(comp) || m_AVND_COMP_PRES_STATE_IS_RESTARTING(comp)) {
@@ -750,13 +736,11 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 
 		/* update su oper state */
 		m_AVND_SU_IS_ENABLED(comp->su, su_is_enabled);
 		if (true == su_is_enabled) {
 			m_AVND_SU_OPER_STATE_SET(comp->su, SA_AMF_OPERATIONAL_ENABLED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 
 			/* inform AvD */
 			rc = avnd_di_oper_send(cb, comp->su, 0);
@@ -830,7 +814,6 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 			goto err;
 		}
 
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
 		rc = avnd_comp_proxied_del(cb, comp, comp->pxy_comp, false, nullptr);
 
 		if (NCSCC_RC_SUCCESS != rc) {
@@ -839,7 +822,6 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 			goto err;
 		}
 		comp_name = comp->name;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 		rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
 
 		if (NCSCC_RC_SUCCESS != rc) {
@@ -855,7 +837,6 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 
 	/* reset the comp register params */
 	m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
 
 	if ((comp->su->is_ncs == true) &&
 	    (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) &&
@@ -873,7 +854,6 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		}
 
 		/*remove the component from the list of proxied of its proxy */
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
 		rc = avnd_comp_proxied_del(cb, comp, pxy_comp, true, nullptr);
 
 		/* process proxied comp unregistration */
@@ -892,12 +872,10 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 
 		/* update su oper state */
 		if (m_AVND_SU_OPER_STATE_IS_ENABLED(comp->su)) {
 			m_AVND_SU_OPER_STATE_SET(comp->su, SA_AMF_OPERATIONAL_DISABLED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 
 			/* inform AvD */
 			rc = avnd_di_oper_send(cb, comp->su, SA_AMF_COMPONENT_FAILOVER);
@@ -956,10 +934,8 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 				TRACE("'%s'", csi->name.value);
 				/* after restart we should go ahead with next csi, so mark the curr_csi as assigning */
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 			} else {
 				m_AVND_COMP_ALL_CSI_SET(comp);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 				for (curr_csi =
 				     m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 				     curr_csi;
@@ -969,8 +945,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 					/* after restart we should go ahead with next csi, so mark the curr_csi as assigning */
 					m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi,
 									      AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi,
-									 AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 				}	/* for */
 			}
 
@@ -979,7 +953,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 			/* while restarting only quiesced assignment can expected,both will lead to cleanup
 			   of component, so we can ignore the error */
 			m_AVND_COMP_FAILED_RESET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 			/* fall down down to assignment flow */
 		} else {
@@ -995,10 +968,8 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 		if (csi) {
 			TRACE("'%s'", csi->name.value);
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		} else {
 			m_AVND_COMP_ALL_CSI_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			for (curr_csi =
 				m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 				curr_csi;
@@ -1006,8 +977,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 						(&curr_csi->comp_dll_node))) {
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi,
 						AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi,
-						AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 			}
 		}
 		rc = avnd_comp_csi_assign_done(cb, comp, csi);
@@ -1020,7 +989,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 		((curr_csi->capability == SA_AMF_COMP_X_ACTIVE) ||
 			(curr_csi->capability == SA_AMF_COMP_1_ACTIVE))) {
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		rc = avnd_comp_csi_assign_done(cb, comp, csi);
 		goto done;
 	}
@@ -1030,7 +998,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 		/* assign all csis in one shot */
 		if (!csi) {
 			m_AVND_COMP_ALL_CSI_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 			if (!m_AVND_COMP_CSI_PRV_ASSIGN_STATE_IS_ASSIGNED(curr_csi)) {
 				/*
@@ -1088,8 +1055,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 									   (&curr_csi->comp_dll_node))) {
 					m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi,
 									      AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi,
-									 AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 				}	/* for */
 			}
 		}
@@ -1116,7 +1081,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 						goto done;
 					m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi,
 									      AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 				}
 			} else {
 				/* => prv si assignment was completed.. assign the csi */
@@ -1124,7 +1088,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 			}
 		}
 	}
@@ -1178,7 +1141,6 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 
 		/* mark the csi state assigning */
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 
 		if (AVND_COMP_CLC_PRES_FSM_EV_MAX != comp_ev) {
 			/* trigger comp fsm */
@@ -1186,10 +1148,8 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 				m_AVND_COMP_ALL_CSI_SET(comp);
 			} else {
 				m_AVND_COMP_ALL_CSI_RESET(comp);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			}
 
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			rc = avnd_comp_clc_fsm_run(cb, comp, comp_ev);
 		} else
 			/* this csi assignment is over.. process it */
@@ -1266,17 +1226,14 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 		if (csi) {
 			/* after restart we should go ahead with next csi, so mark the curr_csi as assigning */
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVING);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		} else {
 			m_AVND_COMP_ALL_CSI_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 			     curr_csi;
 			     curr_csi =
 			     m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_csi->comp_dll_node))) {
 				/* after restart we should go ahead with next csi, so mark the curr_csi as assigning */
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVING);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 			}	/* for */
 		}
 
@@ -1289,7 +1246,6 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 		/* remove all csis in one shot */
 		if (!csi) {
 			m_AVND_COMP_ALL_CSI_SET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 			/* mark the curr assigned csis removing */
 			for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 			     curr_csi;
@@ -1300,8 +1256,6 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 				if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_UNASSIGNED(curr_csi)) {
 					m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi,
 									      AVND_COMP_CSI_ASSIGN_STATE_REMOVING);
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi,
-									 AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 					rc = avnd_comp_csi_remove_done(cb, comp, csi);
 					goto done;
 				} else if ((m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_csi))
@@ -1311,8 +1265,6 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 						is_assigned = true;
 					m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi,
 									      AVND_COMP_CSI_ASSIGN_STATE_REMOVING);
-					m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi,
-									 AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 				}
 			}	/* for */
 
@@ -1331,7 +1283,6 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 				/* remove this csi */
 				rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_CSI_REM, 0, csi);
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVING);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 				if (NCSCC_RC_SUCCESS != rc) {
 					if (m_AVND_IS_SHUTTING_DOWN(cb)) {
 						/* Csi remove failure may be because of component crash during 
@@ -1362,7 +1313,6 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 
 		/* mark the csi state removing */
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVING);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 
 		if (comp->pres == SA_AMF_PRESENCE_INSTANTIATED) {
 			rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_TERM);
@@ -1434,8 +1384,6 @@ uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 				(SA_AMF_HA_QUIESCED == curr->si->curr_state))) {
 			/* mark the csi state assigning */
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 
 			/* invoke the callback */
 			rc = avnd_comp_cbk_send(cb, curr->comp, AVSV_AMF_CSI_SET, 0, curr);
@@ -1605,19 +1553,16 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	/* while restarting, we wont use assign all, so csi will not be null */
 	if (csi && m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_RESTARTING(csi)) {
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		goto done;
 	}
 
 	if (!csi && m_AVND_COMP_IS_ALL_CSI(comp)) {
 		m_AVND_COMP_ALL_CSI_RESET(comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 	}
 	/* mark the csi(s) assigned */
 	if (csi) {
 		if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(csi)) {
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		}
 	} else {
 		for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
@@ -1626,7 +1571,6 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 		{
 			if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_csi)) {
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 			}
 		}		/* for */
 	}
@@ -1769,14 +1713,12 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	/* ok, time to reset CSi_ALL flag */
 	if (!csi && m_AVND_COMP_IS_ALL_CSI(comp)) {
 		m_AVND_COMP_ALL_CSI_RESET(comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 	}
 
 	/* mark the csi(s) removed */
 	if (csi) {
 		if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVING(csi)) {
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		}
 	} else {
 		for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
@@ -1785,7 +1727,6 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 		{
 			if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVING(curr_csi)) {
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVED);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 			}
 		}		/* for */
 	}
@@ -1892,7 +1833,6 @@ uint32_t avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 	     curr_csi;
 	     curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_csi->comp_dll_node))) {
 		m_AVND_COMP_CSI_PRV_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE);
 	}			/* for */
 
 	/* reset err-esc param & oper state (if comp & su are healthy) */
@@ -1902,8 +1842,6 @@ uint32_t avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 		comp->err_info.detect_time = 0;
 		comp->err_info.restart_cnt = 0;
 
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ERR_INFO);
-
 		/* disable the oper state (if pi comp) */
 		if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) &&
 				(m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(comp) ||
@@ -1912,14 +1850,12 @@ uint32_t avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_OPER_STATE);
 		}
 	}
 
 	/* reset retry count */
 	comp->clc_info.inst_retry_cnt = 0;
 	comp->clc_info.am_start_retry_cnt = 0;
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_CNT);
 
 	/* Stop the qscing complete timer if started any */
 	if (m_AVND_TMR_IS_ACTIVE(comp->qscing_tmr)) {
@@ -2350,10 +2286,6 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 			/* Since this is an internode proxy component and it is not 
 			   serving any proxied comp, so , better remove this from 
 			   the data base. */
-			/* No Need to send checkpoint here as on the STDBY side, it will
-			   be automatically done.  
-			   m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, pxy_comp, AVND_CKPT_COMP_CONFIG);
-			 */
 			rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(pxy_comp->name));
 		}
 	}
@@ -2439,7 +2371,6 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 				goto err;
 			}
 
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
 			rc = avnd_comp_proxied_del(cb, pxd_comp, pxd_comp->pxy_comp, false, rec);
 
 			if (NCSCC_RC_SUCCESS != rc) {
@@ -2448,7 +2379,6 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 				goto err;
 			}
 			comp_name = pxd_comp->name;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, pxd_comp, AVND_CKPT_COMP_CONFIG);
 			rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
 
 			if (NCSCC_RC_SUCCESS != rc) {
@@ -2480,12 +2410,10 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 
 		/* mark the proxied as unregistered */
 		m_AVND_COMP_REG_RESET(rec->pxied_comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec->pxied_comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 		/* mark the proxy comp as normal comp, its not proxying anybody */
 		if (comp->pxied_list.n_nodes != 0) {
 			m_AVND_COMP_TYPE_PROXY_RESET(comp);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 		}
 
 		/* now free the rec */
@@ -2714,8 +2642,6 @@ uint32_t comp_restart_initiate(AVND_COMP *comp)
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_RESTARTING(csi)) {
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi,
 					AVND_COMP_CSI_ASSIGN_STATE_RESTARTING);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi,
-					AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		} else if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_UNASSIGNED(csi)) {
 			/* we need not change the csi state. let it be in unassigned state.
 			 * The instantiation success will not trigger any csi assignment done.
@@ -2725,8 +2651,6 @@ uint32_t comp_restart_initiate(AVND_COMP *comp)
 		} else {
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi,
 					AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi,
-					AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		}
 	}
 
@@ -2848,7 +2772,6 @@ void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate)
 	/* Inform AMFD to generate ErrorClear() notification */
 	clear_error_report_alarm(comp);
 
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
 }
 
 /**

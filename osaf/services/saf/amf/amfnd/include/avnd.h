@@ -52,8 +52,6 @@
 #include "amf_nd2ndmsg.h"
 
 /* AvND Files */
-#include "mbcsv_papi.h"
-#include "avnd_mbcsv.h"
 #include "avnd_tmr.h"
 #include "avnd_mds.h"
 #include "avnd_proc.h"
@@ -68,8 +66,6 @@
 #include "avnd_clm.h"
 #include "avnd_cb.h"
 #include "avnd_proxy.h"
-#include "avnd_ckpt_updt.h"
-#include "avnd_ckpt_msg.h"
 
 extern uint32_t avnd_create(void);
 extern void avnd_sigterm_handler(void);

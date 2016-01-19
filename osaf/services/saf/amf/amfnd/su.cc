@@ -147,8 +147,6 @@ uint32_t avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (su == nullptr)
 			su = avnd_sudb_rec_add(cb, su_info, &rc);
 
-		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
-
 		/* su_failover included in message version 5 and higher */
 		if (evt->msg_fmt_ver < 5) {
 			su->sufailover = get_su_failover(&su->name);
@@ -222,7 +220,6 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 				return rc;
 			}
 
-			m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
 			avnd_di_reg_su_rsp_snd(cb, &su_info->name, rc);
 		} else {
 			/* SU present, so update its contents */
@@ -232,7 +229,6 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 			su->su_restart_prob = su_info->su_restart_prob;
 			su->su_restart_max = su_info->su_restart_max;
 			su->is_ncs = su_info->is_ncs;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_CONFIG);
 		}
 
 		su->avd_updt_flag = true;
@@ -252,7 +248,6 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 			 */
 			while ((comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list)))) {
 				/* delete the record */
-				m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 				rc = avnd_compdb_rec_del(cb, &comp->name);
 				if (NCSCC_RC_SUCCESS != rc) {
 					/* Log error */
@@ -263,7 +258,6 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 
 			/* Delete SU from the list */
 			/* delete the record */
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
 			rc = avnd_sudb_rec_del(cb, &su->name);
 			if (NCSCC_RC_SUCCESS != rc) {
 				/* Log error */
@@ -432,12 +426,7 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 	} else {
 		/* buffer the msg (if no assignment / removal is on) */
 		siq = avnd_su_siq_rec_buf(cb, su, info);
-		if (siq) {
-			/* Send async update for SIQ Record for external SU only. */
-			if (su->su_is_external) {
-				m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, &(siq->info), AVND_CKPT_SIQ_REC);
-			}
-		} else {
+		if (siq == nullptr) {
 			/* the msg isn't buffered, process it */
 			rc = avnd_su_si_msg_prc(cb, su, info);
 		}
@@ -482,20 +471,16 @@ uint32_t avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, su->su_is_external))
 		goto done;
 
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_TMR);
-
 	switch (su->su_err_esc_level) {
 	case AVND_ERR_ESC_LEVEL_0:
 		su->comp_restart_cnt = 0;
 		su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_CNT);
 		su_reset_restart_count_in_comps(su);
 		break;
 	case AVND_ERR_ESC_LEVEL_1:
 		su->su_restart_cnt = 0;
 		su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 		cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_CNT);
 		su_reset_restart_count_in_comps(su);
 		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, &su->name, su->su_restart_cnt);
 		break;
@@ -507,7 +492,6 @@ uint32_t avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 	default:
 		osafassert(0);
 	}
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);
 
 done:
 	if (su)
@@ -576,13 +560,11 @@ uint32_t avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 		su_reset_restart_count_in_comps(su);
 		su->su_restart_cnt = 0;
 		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, &su->name, su->su_restart_cnt);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_CONFIG);
 		/* stop su_err_esc_tmr TBD Later */
 
 		/* disable the oper state (if pi su) */
 		if (m_AVND_SU_IS_PREINSTANTIABLE(su) && (su->admin_op_Id != SA_AMF_ADMIN_RESTART)) {
 			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 		}
 	}
 
@@ -672,7 +654,6 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 		LOG_NO("Admin Restart request for '%s'", su->name.value);
 		su->admin_op_Id = SA_AMF_ADMIN_RESTART;
 		set_suRestart_flag(su);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 		if ((su_all_comps_restartable(*su) == true) || 
 				(is_any_non_restartable_comp_assigned(*su) == false)) { 
 			rc = avnd_su_curr_info_del(cb, su);
@@ -710,7 +691,6 @@ void avnd_su_pres_state_set(AVND_SU *su, SaAmfPresenceStateT newstate)
 		presence_state[su->pres], presence_state[newstate]);
 	su->pres = newstate;
 	avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUPresenceState_ID, &su->name, su->pres);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 }
 
 /**

@@ -137,7 +137,6 @@ uint32_t avnd_mds_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_SYNC_SN
 
 uint32_t avnd_mds_red_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_DEST *);
 uint32_t avnd_avnd_mds_send(struct avnd_cb_tag *, MDS_DEST, AVND_MSG *);
-uint32_t avnd_mds_vdest_reg(struct avnd_cb_tag *cb);
 uint32_t avnd_mds_set_vdest_role(struct avnd_cb_tag *cb, SaAmfHAStateT role);
 
 #endif   /* !AVND_MDS_H */

@@ -53,10 +53,6 @@ static uint32_t avnd_su_si_csi_del(AVND_CB *, AVND_SU *, AVND_SU_SI_REC *);
    rc = ncs_db_link_list_add(&(si).csi_list, &(csi).si_dll_node); \
 };
 
-/* macro to remove a csi-record from the si-csi list */
-#define m_AVND_SU_SI_CSI_REC_REM(si, csi) \
-           ncs_db_link_list_delink(&(si).csi_list, &(csi).si_dll_node)
-
 /* macro to add a susi record to the beginning of the susi queue */
 #define m_AVND_SUDB_REC_SIQ_ADD(su, susi, rc) \
            (rc) = ncs_db_link_list_add(&(su).siq, &(susi).su_dll_node);
@@ -482,8 +478,6 @@ AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM
 	TRACE_1("Marking curr assigned state of '%s' unassigned.",si_rec->name.value);
 	m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si_rec, AVND_SU_SI_ASSIGN_STATE_UNASSIGNED);
 
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si_rec, AVND_CKPT_SU_SI_REC);
-
 	/* now modify the csi records */
 	*rc = avnd_su_si_csi_rec_modify(cb, su, si_rec,
 					((SA_AMF_HA_QUIESCED == param->ha_state) ||
@@ -526,9 +520,7 @@ uint32_t avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_
 		     curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 			/* store the prv assign-state & update the new assign-state */
 			curr_csi->prv_assign_state = curr_csi->curr_assign_state;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE);
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 		}		/* for */
 	}
 
@@ -550,7 +542,6 @@ uint32_t avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_
 		curr_csi->prv_assign_state = curr_csi->curr_assign_state;
 		TRACE("Marking curr assigned state of '%s' unassigned.",curr_csi->name.value);
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_CSI_REC);
 	}			/* for */
 
  done:
@@ -589,7 +580,6 @@ uint32_t avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param
 		/* store the prv assign-state & update the new assign-state */
 		curr_si->prv_assign_state = curr_si->curr_assign_state;
 		m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(curr_si, AVND_SU_SI_ASSIGN_STATE_UNASSIGNED);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_si, AVND_CKPT_SU_SI_REC);
 	}                       /* for */
 
 	if (su->si_list.n_nodes > 1)
@@ -637,9 +627,7 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 			     curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 				/* store the prv assign-state & update the new assign-state */
 				curr_csi->prv_assign_state = curr_csi->curr_assign_state;
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE);
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
 			}	/* for */
 		}		/* for */
 	}
@@ -678,7 +666,6 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 				/* store the prv assign-state & update the new assign-state */
 				curr_csi->prv_assign_state = curr_csi->curr_assign_state;
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_CSI_REC);
 			}		/* for */
 			curr_comp->assigned_flag = true;
 		}
@@ -784,7 +771,6 @@ uint32_t avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
 
 	/* scan & delete each si record */
 	while (0 != (si_rec = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list))) {
-		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, si_rec, AVND_CKPT_SU_SI_REC);
 		rc = avnd_su_si_rec_del(cb, su_name, &si_rec->name);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto err;
@@ -861,7 +847,6 @@ uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
 	    !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(csi_rec->comp) &&
 	    m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(csi_rec->comp) && csi_rec->comp->csi_list.n_nodes == 0) {
 		m_AVND_COMP_FAILED_RESET(csi_rec->comp);
-		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi_rec->comp, AVND_CKPT_COMP_FLAG_CHANGE);
 	}
 
 	/* remove from the si-csi list */
@@ -1009,45 +994,4 @@ void avnd_su_siq_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SIQ_REC *siq)
 
 	TRACE_LEAVE();
 	return;
-}
-
-/****************************************************************************
-  Name          : avnd_mbcsv_su_si_csi_rec_del
- 
-  Description   : This routine is a wrapper of avnd_su_si_csi_rec_del.
- 
-  Arguments     : cb      - ptr to AvND control block
-                  su      - ptr to the AvND SU
-                  si_rec  - ptr to the SI record
-                  csi_rec - ptr to the CSI record
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uint32_t avnd_mbcsv_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
-{
-	return (avnd_su_si_csi_rec_del(cb, su, si_rec, csi_rec));
-}
-
-/****************************************************************************
-  Name          : avnd_mbcsv_su_si_csi_rec_add
- 
-  Description   : This routine is a wrapper of avnd_su_si_csi_rec_add. 
- 
-  Arguments     : cb     - ptr to AvND control block
-                  su     - ptr to the AvND SU
-                  si_rec - ptr to the SI record
-                  param  - ptr to the CSI parameters
-                  rc     - ptr to the operation result
- 
-  Return Values : ptr to the comp-csi relationship record
- 
-  Notes         : None
-******************************************************************************/
-AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(AVND_CB *cb,
-						AVND_SU *su,
-						AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uint32_t *rc)
-{
-	return (avnd_su_si_csi_rec_add(cb, su, si_rec, param, rc));
 }

@@ -435,6 +435,11 @@ typedef struct avnd_comp_tag {
 #define m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(x) \
            ( SA_AMF_PRESENCE_TERMINATION_FAILED == (x)->pres )
 
+/* marco to check if external component on standby */
+#define m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb,ext_comp)     \
+   (((SA_AMF_HA_STANDBY == (cb)->avail_state_avnd) && \
+      (true == (ext_comp))) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE)
+
 /* pre-configured comp type values */
 #define AVND_COMP_TYPE_LOCAL           0x00000001
 #define AVND_COMP_TYPE_PROXY           0x00000002
@@ -907,11 +912,6 @@ extern uint32_t avnd_comp_hc_cmd_start(struct avnd_cb_tag *, AVND_COMP *);
 extern void avnd_comp_hc_cmd_restart(AVND_COMP *);
 extern void avnd_comp_hc_cmd_stop(struct avnd_cb_tag *, AVND_COMP *);
 extern uint32_t avnd_comp_unreg_prc(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP *);
-extern uint32_t avnd_mbcsv_comp_hc_rec_tmr_exp(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
-extern AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add(struct avnd_cb_tag *cb,
-						      AVND_COMP *comp,
-						      AVSV_AMF_HC_START_PARAM *hc_start, MDS_DEST *dest);
-extern void avnd_mbcsv_comp_hc_rec_del(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
 
 extern uint32_t avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern uint32_t avnd_comptype_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);

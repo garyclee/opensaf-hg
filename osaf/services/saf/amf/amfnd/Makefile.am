@@ -37,10 +37,6 @@ osafamfnd_SOURCES = \
 	cam.cc \
 	cbq.cc \
 	chc.cc \
-	ckpt_dec.cc \
-	ckpt_edu.cc \
-	ckpt_enc.cc \
-	ckpt_updt.cc \
 	clc.cc \
 	clm.cc \
 	comp.cc \
@@ -51,7 +47,6 @@ osafamfnd_SOURCES = \
 	evt.cc \
 	hcdb.cc \
 	main.cc \
-	mbcsv.cc \
 	mds.cc \
 	mon.cc \
 	pg.cc \

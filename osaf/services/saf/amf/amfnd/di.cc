@@ -142,23 +142,18 @@ static uint32_t avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 		case saAmfSGCompRestartProb_ID:
 			osafassert(sizeof(SaTimeT) == param->value_len);
 			su->comp_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su,
-				AVND_CKPT_SU_COMP_RESTART_PROB);
 			break;
 		case saAmfSGCompRestartMax_ID:
 			osafassert(sizeof(uint32_t) == param->value_len);
 			su->comp_restart_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_MAX);
 			break;
 		case saAmfSGSuRestartProb_ID:
 			osafassert(sizeof(SaTimeT) == param->value_len);
 			su->su_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_PROB);
 			break;
 		case saAmfSGSuRestartMax_ID:
 			osafassert(sizeof(uint32_t) == param->value_len);
 			su->su_restart_max = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_MAX);
 			break;
 		default:
 			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
@@ -643,7 +638,6 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
         if (su_assign_state_is_stable(su))
                 m_AVND_SU_ASSIGN_PEND_RESET(su);
         m_AVND_SU_ALL_SI_RESET(su);
-        m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
@@ -1139,4 +1133,74 @@ uint32_t avnd_evt_tmr_avd_hb_duration_evh(AVND_CB *cb, AVND_EVT *evt)
 				   "AMF director heart beat timeout");
 
 	return NCSCC_RC_SUCCESS;
+}
+
+/******************************************************************************
+  Name          : avnd_evt_avd_role_change_evh
+
+  Description   : This routine takes cares of role change of AvND.
+
+  Arguments     : cb  - ptr to the AvND control block.
+                  evt - ptr to the AvND event.
+
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         : None
+******************************************************************************/
+uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVSV_D2N_ROLE_CHANGE_INFO *info = nullptr;
+	V_DEST_RL mds_role;
+	SaAmfHAStateT prev_ha_state;
+
+	TRACE_ENTER();
+
+	/* dont process unless AvD is up */
+	if (!m_AVND_CB_IS_AVD_UP(cb)){
+		LOG_IN("AVD is not up yet");
+		return NCSCC_RC_FAILURE;
+	}
+
+	info = &evt->info.avd->msg_info.d2n_role_change_info;
+
+	TRACE("MsgId: %u,NodeId:%u, role rcvd:%u role present:%u",\
+			      info->msg_id, info->node_id, info->role, cb->avail_state_avnd);
+
+	avnd_msgid_assert(info->msg_id);
+	cb->rcv_msg_id = info->msg_id;
+
+	prev_ha_state = cb->avail_state_avnd;
+
+	/* Ignore the duplicate roles. */
+	if (prev_ha_state == (SaAmfHAStateT)info->role) {
+		return NCSCC_RC_SUCCESS;
+	}
+
+	if ((SA_AMF_HA_ACTIVE == cb->avail_state_avnd) && (SA_AMF_HA_QUIESCED == info->role)) {
+		TRACE_1("SA_AMF_HA_QUIESCED role received");
+		if (NCSCC_RC_SUCCESS != (rc = avnd_mds_set_vdest_role(cb, static_cast<SaAmfHAStateT>(V_DEST_RL_QUIESCED)))) {
+			TRACE("avnd_mds_set_vdest_role returned failure, role:%u",info->role);
+			return rc;
+		}
+		return rc;
+	}
+
+	cb->avail_state_avnd = static_cast<SaAmfHAStateT>(info->role);
+
+	if (cb->avail_state_avnd == SA_AMF_HA_ACTIVE) {
+		mds_role = V_DEST_RL_ACTIVE;
+		TRACE_1("SA_AMF_HA_ACTIVE role received");
+	} else {
+		mds_role = V_DEST_RL_STANDBY;
+		TRACE_1("SA_AMF_HA_STANDBY role received");
+	}
+
+	if (NCSCC_RC_SUCCESS != (rc = avnd_mds_set_vdest_role(cb, static_cast<SaAmfHAStateT>(mds_role)))) {
+		TRACE_1("avnd_mds_set_vdest_role returned failure");
+		return rc;
+	}
+
+	TRACE_LEAVE();
+	return rc;
 }

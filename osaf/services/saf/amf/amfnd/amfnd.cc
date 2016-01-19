@@ -209,7 +209,6 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 				goto done;
 			}
 			reg_dest = o_comp->reg_dest;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, o_comp, AVND_CKPT_COMP_CONFIG);
 			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(avnd_msg->comp_name));
 		} else {
 			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
@@ -223,7 +222,6 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			o_comp->reg_resp_pending = false;
 			m_AVND_COMP_REG_SET(o_comp);
 			res = avnd_comp_proxied_add(cb, o_comp, o_comp->pxy_comp, false);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_comp, AVND_CKPT_COMP_PROXY_PROXIED_ADD);
 		}
 	}
 
@@ -240,9 +238,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 				goto done;
 			}
 			reg_dest = o_comp->reg_dest;
-			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
 			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, false, nullptr);
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, o_comp, AVND_CKPT_COMP_CONFIG);
 			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(o_comp->name));
 		}
 	}
@@ -331,8 +327,6 @@ uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		rec->orig_opq_hdl = cbk_rec->inv;
 		rec->cbk_info->inv = rec->opq_hdl;
 		rec->cbk_info->hdl = comp->reg_hdl;
-
-		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, rec, AVND_CKPT_COMP_CBK_REC);
 
 		/* send the request if comp is not in orphaned state.
 		   in case of orphaned component we will send it later when

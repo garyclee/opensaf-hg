@@ -36,9 +36,5 @@ noinst_HEADERS = \
    avnd_su.h \
    avnd_tmr.h \
    avnd_util.h \
-   avnd_ckpt_edu.h \
-   avnd_ckpt_msg.h \
-   avnd_ckpt_updt.h \
-   avnd_mbcsv.h \
    avnd_proxy.h
 

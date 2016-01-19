@@ -75,11 +75,8 @@ static void clm_node_left(SaClmNodeIdT node_id)
 				/* We need to delete the proxied component and remove
 				   this component from the proxy's pxied_list */
 				/* Remove the proxied component from pxied_list  */
-				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(avnd_cb, comp,
-								 AVND_CKPT_COMP_PROXY_PROXIED_DEL);
 				avnd_comp_proxied_del(avnd_cb, comp, comp->pxy_comp, false, nullptr);
 				/* Delete the proxied component */
-				m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(avnd_cb, comp, AVND_CKPT_COMP_CONFIG);
 				avnd_internode_comp_del(avnd_cb, &(avnd_cb->internode_avail_comp_db),
 									     &(comp->name));
 			} /* if(m_AVND_COMP_TYPE_IS_PROXIED(comp)) */
