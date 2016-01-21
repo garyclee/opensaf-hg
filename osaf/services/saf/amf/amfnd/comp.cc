@@ -919,14 +919,9 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 	TRACE_ENTER2("comp:'%s'", comp->name.value);
 	LOG_IN("Assigning '%s' %s to '%s'", csiname, ha_state[curr_csi->si->curr_state], comp->name.value);
 
-	/* skip assignments to failed / unregistered comp */
+	/* skip assignments to unqualified comp */
 	if (!m_AVND_SU_IS_RESTART(comp->su) &&
-	    (m_AVND_COMP_IS_FAILED(comp) || 
-	     (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) &&
-	      ((!m_AVND_COMP_IS_REG(comp) && !m_AVND_COMP_PRES_STATE_IS_ORPHANED (comp)) ||
-	       (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp) &&
-		(comp->su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
-		!m_AVND_COMP_PRES_STATE_IS_ORPHANED (comp)))))) {
+		!IsCompQualifiedAssignment(comp)) {
 		TRACE("Not suRestart context and comp is failed or unregistered");
 		/* dont skip restarting components. wait till restart is complete */
 		if ((comp->pres == SA_AMF_PRESENCE_RESTARTING) && m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {	/* mark the csi(s) assigned */
@@ -1210,19 +1205,8 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 	TRACE_ENTER2("comp: '%s' : csi: '%p'", comp->name.value, csi);
 	LOG_IN("Removing '%s' from '%s'", csiname, comp->name.value);
 
-	/* skip removal from failed / unregistered comp */
-	if (m_AVND_COMP_IS_FAILED(comp) || (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && ((!m_AVND_COMP_IS_REG(comp)
-											   &&
-											   !m_AVND_COMP_PRES_STATE_IS_ORPHANED
-											   (comp))
-											  ||
-											  (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED
-											   (comp)
-											   && (comp->su->pres ==
-											       SA_AMF_PRESENCE_INSTANTIATION_FAILED)
-											   &&
-											   !m_AVND_COMP_PRES_STATE_IS_ORPHANED
-											   (comp))))) {
+	/* skip removal from unqualified comp */
+	if (!IsCompQualifiedAssignment(comp)) {
 		if (csi) {
 			/* after restart we should go ahead with next csi, so mark the curr_csi as assigning */
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVING);
@@ -1406,6 +1390,37 @@ uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 }
 
 /**
+ * Check whether a component is qualified for assignment
+ * @param comp
+ *
+ * @return bool
+ */
+bool IsCompQualifiedAssignment(const AVND_COMP *comp)
+{
+	bool rc = true;
+	TRACE_ENTER2();
+	if (m_AVND_COMP_IS_FAILED(comp)) {
+		LOG_IN("Ignoring Failed comp:'%s', comp_flag %x",
+				comp->name.value, comp->flag);
+		rc = false;
+	} else if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
+		if (!m_AVND_COMP_IS_REG(comp) && !m_AVND_COMP_PRES_STATE_IS_ORPHANED(comp)) {
+			LOG_IN("Ignoring Unregistered comp:'%s'", comp->name.value);
+			rc = false;
+		} else if (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED (comp) &&
+					comp->su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED &&
+					!m_AVND_COMP_PRES_STATE_IS_ORPHANED(comp)) {
+			LOG_IN("Ignoring comp with invalid presence state:'%s', comp_flag %x, comp_pres=%u, su_pres=%u",
+					comp->name.value, comp->flag,
+					comp->pres, comp->su->pres);
+			rc = false;
+		}
+	}
+	TRACE_LEAVE2("rc:%u", rc);
+	return rc;
+}
+
+/**
  * Are all CSIs at the specified rank assigned for this SI?
  * @param si
  * @param rank
@@ -1422,18 +1437,10 @@ static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uint32_t rank)
 			csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 
 		if ((csi->rank == rank) && (csi->curr_assign_state != AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED)) {
-			/* Ignore the case of failed component/unregistered comp. */
-			if (!m_AVND_SU_IS_RESTART(csi->comp->su) && (m_AVND_COMP_IS_FAILED(csi->comp) || 
-						(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(csi->comp) && 
-						 ((!m_AVND_COMP_IS_REG(csi->comp) && 
-						   !m_AVND_COMP_PRES_STATE_IS_ORPHANED (csi->comp)) ||
-						  (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED (csi->comp) && 
-						   (csi->comp->su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED) && 
-						   !m_AVND_COMP_PRES_STATE_IS_ORPHANED
-						   (csi->comp)))))) {
-
-			LOG_IN("Ignoring Failed/Unreg Comp'%s' comp pres state=%u, comp flag %x, su pres state %u", 
-				csi->comp->name.value, csi->comp->pres, csi->comp->flag, csi->comp->su->pres);
+			/* Ignore unqualified comp. */
+			if (!m_AVND_SU_IS_RESTART(csi->comp->su) && !IsCompQualifiedAssignment(csi->comp)) {
+				LOG_IN("Ignoring comp'%s' which is not qualified for assignment",
+					csi->comp->name.value);
 			} else if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(csi->comp) &&
 					csi->suspending_assignment) {
 				LOG_IN("Ignoring quiescing/quiesced assignment on unassigned comp'%s'",
