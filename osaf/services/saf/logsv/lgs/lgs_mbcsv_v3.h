@@ -19,10 +19,6 @@
 #ifndef LGS_MBCSV_V3_H
 #define LGS_MBCSV_V3_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include "lgs.h"
 #include "lgs_mbcsv.h"
 #include "lgs_mbcsv_v2.h"
@@ -56,9 +52,5 @@ uint32_t edp_ed_lgs_cfg_rec_v3(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uint32_t edp_ed_ckpt_msg_v3(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 			     NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* LGS_MBCSV_V3_H */

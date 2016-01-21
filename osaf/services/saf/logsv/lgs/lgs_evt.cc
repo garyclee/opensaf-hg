@@ -15,18 +15,9 @@
  *
  */
 
-#include <alloca.h>
-#include <time.h>
-#include <limits.h>
-
 #include "immutil.h"
 #include "osaf_time.h"
 #include "saf_error.h"
-
-#include "lgs.h"
-#include "lgs_util.h"
-#include "lgs_fmt.h"
-#include "lgs_config.h"
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
@@ -76,8 +67,9 @@ log_client_t *lgs_client_get_by_id(uint32_t client_id)
 	log_client_t *rec;
 
 	client_id_net = m_NCS_OS_HTONL(client_id);
-	rec = (log_client_t *)ncs_patricia_tree_get(&lgs_cb->client_tree, (uint8_t *)&client_id_net);
-
+	rec = reinterpret_cast<log_client_t *>(
+	    ncs_patricia_tree_get(&lgs_cb->client_tree,
+				  reinterpret_cast<uint8_t *>(&client_id_net)));
 	if (NULL == rec)
 		TRACE("client_id: %u lookup failed", client_id);
 
@@ -104,7 +96,9 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_l
 			lgs_cb->last_client_id++;
 	}
 
-	if (NULL == (client = calloc(1, sizeof(log_client_t)))) {
+	client = static_cast<log_client_t *>(calloc(1, sizeof(log_client_t)));
+
+	if (NULL == client) {
 		LOG_WA("lgs_client_new calloc FAILED");
 		goto done;
 	}
@@ -210,7 +204,8 @@ int lgs_client_stream_add(uint32_t client_id, uint32_t stream_id)
 		goto err_exit;
 	}
 
-	if ((stream = malloc(sizeof(lgs_stream_list_t))) == NULL) {
+	stream = static_cast<lgs_stream_list_t *>(malloc(sizeof(lgs_stream_list_t)));
+	if (stream  == NULL) {
 		LOG_WA("malloc FAILED");
 		rs = -1;
 		goto err_exit;
@@ -288,7 +283,7 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest, time_t *closetime_ptr)
 	uint32_t client_id_net;
 
 	TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
-	rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uint8_t *)0);
+	rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL));
 
 	while (rp != NULL) {
 	/** Store the client_id_net for get Next  */
@@ -296,8 +291,10 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest, time_t *closetime_ptr)
 		if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest))
 			rc = lgs_client_delete(rp->client_id, closetime_ptr);
 
-		rp = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, (uint8_t *)&client_id_net);
+		rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(
+		    &lgs_cb->client_tree, reinterpret_cast<uint8_t *>(&client_id_net)));
 	}
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -376,6 +373,7 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 	switch (evt->evt_type) {
 	case LGSV_LGS_EVT_LGA_UP:
 		break;
+
 	case LGSV_LGS_EVT_LGA_DOWN:
 		if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		/* Remove this LGA entry from our processing lists */
@@ -409,7 +407,8 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 		} else if (lgs_cb->ha_state == SA_AMF_HA_STANDBY) {
 			LGA_DOWN_LIST *lga_down_rec = NULL;
 			if (lgs_lga_entry_valid(lgs_cb, evt->fr_dest)) {
-				if (NULL == (lga_down_rec = (LGA_DOWN_LIST *) malloc(sizeof(LGA_DOWN_LIST)))) {
+				lga_down_rec = static_cast<LGA_DOWN_LIST *>(malloc(sizeof(LGA_DOWN_LIST)));
+				if (NULL == lga_down_rec) {
 				/* Log it */
 					LOG_WA("memory allocation for the LGA_DOWN_LIST failed");
 					break;
@@ -426,6 +425,7 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 			}
 		}
 		break;
+
 	default:
 		TRACE("Unknown evt type!!!");
 		break;
@@ -474,7 +474,7 @@ static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 * Clear any pending lga_down records 
 *
 */
-static void lgs_process_lga_down_list(void)
+static void lgs_process_lga_down_list()
 {
 	struct timespec closetime_tspec;
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -567,7 +567,6 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 	reg_param.key_size = sizeof(uint32_t);
 
 	/* Assign Initial HA state */
-	lgs_cb->ha_state = LGS_HA_INIT_STATE;
 	lgs_cb->csi_assigned = false;
 
 	/* Assign Version. Currently, hardcoded, This will change later */
@@ -684,7 +683,8 @@ static uint32_t proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		ckpt_v2.header.num_ckpt_records = 1;
 		ckpt_v2.header.data_len = 1;
 		ckpt_v2.ckpt_rec.finalize_client.client_id = client_id;
-		ckpt_v2.ckpt_rec.finalize_client.c_file_close_time_stamp = (SaTimeT) closetime;
+		ckpt_v2.ckpt_rec.finalize_client.c_file_close_time_stamp =
+				static_cast<SaTimeT>(closetime);
 		ckpt_ptr = &ckpt_v2;
 	} else {
 		memset(&ckpt_v1, 0, sizeof(ckpt_v1));
@@ -749,7 +749,7 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
 		ckpt_rec_open_ptr->logPath = logStream->pathName;
 		ckpt_rec_open_ptr->logFileCurrent = logStream->logFileCurrent;
 		ckpt_rec_open_ptr->fileFmt = logStream->logFileFormat;
-		ckpt_rec_open_ptr->logStreamName = (char *)logStream->name;
+		ckpt_rec_open_ptr->logStreamName = logStream->name;
 
 		ckpt_rec_open_ptr->maxFileSize = logStream->maxLogFileSize;
 		ckpt_rec_open_ptr->maxLogRecordSize = logStream->fixedLogRecordSize;
@@ -782,6 +782,7 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 	log_stream_t *stream;
 	SaBoolT twelveHourModeFlag;
 	uint32_t len = 0;
+	SaUint32T logMaxLogrecsize_conf = 0;
 
 	TRACE_ENTER();
 
@@ -808,7 +809,7 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 
 	if (open_sync_param->logFileFmt == NULL) {
 		TRACE("logFileFmt is NULL, use default one");
-		const char* logFileFormat = (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT);
+		const char* logFileFormat = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
 		open_sync_param->logFileFmt = strdup(logFileFormat);
 	}
 
@@ -846,7 +847,7 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 	}
 
 	/* Verify that the fixedLogRecordSize is in valid range */
-	SaUint32T logMaxLogrecsize_conf = *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE);
+	logMaxLogrecsize_conf = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
 	if ((open_sync_param->maxLogRecordSize != 0) &&
 		((open_sync_param->maxLogRecordSize < SA_LOG_MIN_RECORD_SIZE) ||
 		(open_sync_param->maxLogRecordSize > logMaxLogrecsize_conf))) {
@@ -928,8 +929,7 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param, l
 		      open_sync_param->logFilePathName, applicationStream->pathName);
 		rs = SA_AIS_ERR_EXIST;
 	} else if ((open_sync_param->logFileFmt != NULL) &&
-		   strcmp((const char *)applicationStream->logFileFormat,
-			  (const char *)open_sync_param->logFileFmt) != 0) {
+		   strcmp(applicationStream->logFileFormat, open_sync_param->logFileFmt) != 0) {
 		TRACE("logFile format differs, new: %s existing: %s",
 		      open_sync_param->logFileFmt, applicationStream->logFileFormat);
 		rs = SA_AIS_ERR_EXIST;
@@ -1111,7 +1111,7 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		ckpt_v1.header.num_ckpt_records = 1;
 		ckpt_v1.header.data_len = 1;
 		ckpt_v1.ckpt_rec.stream_close.clientId = close_param->client_id;
-		ckpt_v1.ckpt_rec.stream_close.streamId = streamId;		
+		ckpt_v1.ckpt_rec.stream_close.streamId = streamId;
 		ckpt_ptr = &ckpt_v1;
 	}
 	
@@ -1151,6 +1151,7 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_ckpt_msg_v1_t ckpt_v1;
 	lgsv_ckpt_msg_v2_t ckpt_v2;
 	void *ckpt_ptr;
+	uint32_t max_logrecsize = 0;
 
 	TRACE_ENTER2("client_id %u, stream ID %u", param->client_id, param->lstr_id);
 
@@ -1177,11 +1178,9 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	** To avoid truncation we support fixedLogRecordSize==0. We then allocate an
 	** a buffer with an implementation defined size instead. We also do not pad in this mode.
 	*/
-	uint32_t max_logrecsize = *(uint32_t *) lgs_cfg_get(
-		LGS_IMM_LOG_MAX_LOGRECSIZE);
-	
+	max_logrecsize = *static_cast<const uint32_t *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
 	buf_size = stream->fixedLogRecordSize == 0 ? max_logrecsize : stream->fixedLogRecordSize;
-	logOutputString = calloc(1, buf_size+1); /* Make room for a '\0' termination */
+	logOutputString = static_cast<char *>(calloc(1, buf_size + 1)); /* Make room for a '\0' termination */
 	if (logOutputString == NULL) {
 		LOG_ER("Could not allocate %d bytes", stream->fixedLogRecordSize + 1);
 		error = SA_AIS_ERR_NO_MEMORY;
@@ -1193,9 +1192,9 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		error = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
-	
+
 	rc = log_stream_write_h(stream, logOutputString, n);
-	
+
 	/* '\0' terminate log record string before check pointing.
 	 * Since the log record always is a string '\0' can be used instead of
 	 * using an extra parameter for buffer size.
@@ -1355,7 +1354,7 @@ void lgs_process_mbx(SYSF_MBX *mbx)
 {
 	lgsv_lgs_evt_t *msg;
 
-	msg = (lgsv_lgs_evt_t *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, msg);
+	msg = reinterpret_cast<lgsv_lgs_evt_t *>(m_NCS_IPC_NON_BLK_RECEIVE(mbx, msg));
 	if (msg != NULL) {
 		if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 			if (msg->evt_type <= LGSV_LGS_EVT_LGA_DOWN) {

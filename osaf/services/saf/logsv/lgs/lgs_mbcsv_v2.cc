@@ -46,16 +46,18 @@
 uint32_t ckpt_proc_lgs_cfg_v2(lgs_cb_t *cb, void *data)
 {
 	TRACE_ENTER();
+
 	if (!lgs_is_peer_v2()) {
 		LOG_ER("%s ERROR: Called when ceck-point version 1",__FUNCTION__);
 		osafassert(0);
 	}
-	lgsv_ckpt_msg_v2_t *data_v2 = data;
+
+	lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 	lgs_ckpt_lgs_cfg_v2_t *param = &data_v2->ckpt_rec.lgs_cfg;
 	
 	/* Handle log files for new directory if configured for split file system */
 	if (lgs_is_split_file_system()) {
-		const char *old_root = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+		const char *old_root = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 		const char *new_root = param->logRootDirectory;
 		/* Change root path in configuration struct */
 		lgs_rootpathconf_set(param->logRootDirectory);
@@ -113,9 +115,9 @@ uint32_t edp_ed_write_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 	
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_write_msg_ptr = (lgs_ckpt_write_log_v2_t *)ptr;
+		ckpt_write_msg_ptr = static_cast<lgs_ckpt_write_log_v2_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_write_msg_dec_ptr = (lgs_ckpt_write_log_v2_t **)ptr;
+		ckpt_write_msg_dec_ptr = static_cast<lgs_ckpt_write_log_v2_t **>(ptr);
 		if (*ckpt_write_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -123,10 +125,13 @@ uint32_t edp_ed_write_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_write_msg_dec_ptr, '\0', sizeof(lgs_ckpt_write_log_v2_t));
 		ckpt_write_msg_ptr = *ckpt_write_msg_dec_ptr;
 	} else {
-		ckpt_write_msg_ptr = ptr;
+		ckpt_write_msg_ptr = static_cast<lgs_ckpt_write_log_v2_t *>(ptr);
 	}
 
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_write_rec_ed_rules, ckpt_write_msg_ptr, ptr_data_len,
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_write_rec_ed_rules,
+				 ckpt_write_msg_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 
 	return rc;
@@ -168,9 +173,9 @@ uint32_t edp_ed_close_stream_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_close_stream_msg_ptr = (lgs_ckpt_stream_close_v2_t *)ptr;
+		ckpt_close_stream_msg_ptr = static_cast<lgs_ckpt_stream_close_v2_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_close_stream_msg_dec_ptr = (lgs_ckpt_stream_close_v2_t **)ptr;
+		ckpt_close_stream_msg_dec_ptr = static_cast<lgs_ckpt_stream_close_v2_t **>(ptr);
 		if (*ckpt_close_stream_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -178,7 +183,7 @@ uint32_t edp_ed_close_stream_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_close_stream_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_close_v2_t));
 		ckpt_close_stream_msg_ptr = *ckpt_close_stream_msg_dec_ptr;
 	} else {
-		ckpt_close_stream_msg_ptr = ptr;
+		ckpt_close_stream_msg_ptr = static_cast<lgs_ckpt_stream_close_v2_t *>(ptr);
 	}
 
 	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_close_stream_rec_ed_rules,
@@ -222,9 +227,9 @@ uint32_t edp_ed_finalize_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_final_msg_ptr = (lgs_ckpt_finalize_msg_v2_t *)ptr;
+		ckpt_final_msg_ptr = static_cast<lgs_ckpt_finalize_msg_v2_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_final_msg_dec_ptr = (lgs_ckpt_finalize_msg_v2_t **)ptr;
+		ckpt_final_msg_dec_ptr = static_cast<lgs_ckpt_finalize_msg_v2_t **>(ptr);
 		if (*ckpt_final_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -232,9 +237,13 @@ uint32_t edp_ed_finalize_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_final_msg_dec_ptr, '\0', sizeof(lgs_ckpt_finalize_msg_v2_t));
 		ckpt_final_msg_ptr = *ckpt_final_msg_dec_ptr;
 	} else {
-		ckpt_final_msg_ptr = ptr;
+		ckpt_final_msg_ptr = static_cast<lgs_ckpt_finalize_msg_v2_t *>(ptr);
 	}
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_final_rec_ed_rules, ckpt_final_msg_ptr, ptr_data_len,
+
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_final_rec_ed_rules,
+				 ckpt_final_msg_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 
 	return rc;
@@ -286,9 +295,9 @@ uint32_t edp_ed_cfg_stream_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_stream_cfg_msg_ptr = (lgs_ckpt_stream_cfg_v2_t *)ptr;
+		ckpt_stream_cfg_msg_ptr = static_cast<lgs_ckpt_stream_cfg_v2_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_stream_cfg_msg_dec_ptr = (lgs_ckpt_stream_cfg_v2_t **)ptr;
+		ckpt_stream_cfg_msg_dec_ptr = static_cast<lgs_ckpt_stream_cfg_v2_t **>(ptr);
 		if (*ckpt_stream_cfg_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -296,10 +305,13 @@ uint32_t edp_ed_cfg_stream_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_stream_cfg_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_cfg_v2_t));
 		ckpt_stream_cfg_msg_ptr = *ckpt_stream_cfg_msg_dec_ptr;
 	} else {
-		ckpt_stream_cfg_msg_ptr = ptr;
+		ckpt_stream_cfg_msg_ptr = static_cast<lgs_ckpt_stream_cfg_v2_t *>(ptr);
 	}
 
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_stream_cfg_rec_ed_rules, ckpt_stream_cfg_msg_ptr, ptr_data_len,
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_stream_cfg_rec_ed_rules,
+				 ckpt_stream_cfg_msg_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
 
@@ -339,9 +351,9 @@ uint32_t edp_ed_lgs_cfg_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_lgs_cfg_msg_ptr = (lgs_ckpt_lgs_cfg_v2_t *)ptr;
+		ckpt_lgs_cfg_msg_ptr = static_cast<lgs_ckpt_lgs_cfg_v2_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_lgs_cfg_msg_dec_ptr = (lgs_ckpt_lgs_cfg_v2_t **)ptr;
+		ckpt_lgs_cfg_msg_dec_ptr = static_cast<lgs_ckpt_lgs_cfg_v2_t **>(ptr);
 		if (*ckpt_lgs_cfg_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -349,10 +361,13 @@ uint32_t edp_ed_lgs_cfg_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_lgs_cfg_msg_dec_ptr, '\0', sizeof(lgs_ckpt_lgs_cfg_v2_t));
 		ckpt_lgs_cfg_msg_ptr = *ckpt_lgs_cfg_msg_dec_ptr;
 	} else {
-		ckpt_lgs_cfg_msg_ptr = ptr;
+		ckpt_lgs_cfg_msg_ptr = static_cast<lgs_ckpt_lgs_cfg_v2_t *>(ptr);
 	}
 
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_lgs_cfg_rec_ed_rules, ckpt_lgs_cfg_msg_ptr, ptr_data_len,
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_lgs_cfg_rec_ed_rules,
+				 ckpt_lgs_cfg_msg_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
 
@@ -393,9 +408,9 @@ uint32_t edp_ed_agent_down_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_agent_down_msg_ptr = (lgs_ckpt_agent_down_v2_t *)ptr;
+		ckpt_agent_down_msg_ptr = static_cast<lgs_ckpt_agent_down_v2_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_agent_down_dec_ptr = (lgs_ckpt_agent_down_v2_t **)ptr;
+		ckpt_agent_down_dec_ptr = static_cast<lgs_ckpt_agent_down_v2_t **>(ptr);
 		if (*ckpt_agent_down_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -403,10 +418,13 @@ uint32_t edp_ed_agent_down_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_agent_down_dec_ptr, '\0', sizeof(lgs_ckpt_agent_down_v2_t));
 		ckpt_agent_down_msg_ptr = *ckpt_agent_down_dec_ptr;
 	} else {
-		ckpt_agent_down_msg_ptr = ptr;
+		ckpt_agent_down_msg_ptr = static_cast<lgs_ckpt_agent_down_v2_t *>(ptr);
 	}
 
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_lgs_agent_down_ed_rules, ckpt_agent_down_msg_ptr, ptr_data_len,
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_lgs_agent_down_ed_rules,
+				 ckpt_agent_down_msg_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
 
@@ -450,45 +468,45 @@ uint32_t edp_ed_ckpt_msg_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		 (EDU_EXEC_RTINE)ckpt_msg_test_type},
 
 		/* Reg Record */
-		{EDU_EXEC, edp_ed_reg_rec, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_reg_rec, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.initialize_client, 0, NULL},
 
 		/* Finalize record */
-		{EDU_EXEC, edp_ed_finalize_rec_v2, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_finalize_rec_v2, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.finalize_client, 0, NULL},
 
 		/* write log Record */
-		{EDU_EXEC, edp_ed_write_rec_v2, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_write_rec_v2, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.write_log, 0, NULL},
 
 		/* Open stream */
-		{EDU_EXEC, edp_ed_open_stream_rec, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_open_stream_rec, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.stream_open, 0, NULL},
 
 		/* Close stream */
-		{EDU_EXEC, edp_ed_close_stream_rec_v2, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_close_stream_rec_v2, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.stream_close, 0, NULL},
 
 		/* Agent dest */
-		{EDU_EXEC, edp_ed_agent_down_rec_v2, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_agent_down_rec_v2, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.stream_cfg, 0, NULL},
 
 
 		/* Cfg stream */
-		{EDU_EXEC, edp_ed_cfg_stream_rec_v2, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_cfg_stream_rec_v2, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.stream_cfg, 0, NULL},
 
 		/* Lgs cfg */
-		{EDU_EXEC, edp_ed_lgs_cfg_rec_v2, 0, 0, EDU_EXIT,
+		{EDU_EXEC, edp_ed_lgs_cfg_rec_v2, 0, 0, static_cast<int>(EDU_EXIT),
 		 (long)&((lgsv_ckpt_msg_v2_t *)0)->ckpt_rec.lgs_cfg, 0, NULL},
 
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_msg_ptr = (lgsv_ckpt_msg_v2_t *)ptr;
+		ckpt_msg_ptr = static_cast<lgsv_ckpt_msg_v2_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_msg_dec_ptr = (lgsv_ckpt_msg_v2_t **)ptr;
+		ckpt_msg_dec_ptr = static_cast<lgsv_ckpt_msg_v2_t **>(ptr);
 		if (*ckpt_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -496,10 +514,14 @@ uint32_t edp_ed_ckpt_msg_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_msg_dec_ptr, '\0', sizeof(lgsv_ckpt_msg_v2_t));
 		ckpt_msg_ptr = *ckpt_msg_dec_ptr;
 	} else {
-		ckpt_msg_ptr = ptr;
+		ckpt_msg_ptr = static_cast<lgsv_ckpt_msg_v2_t *>(ptr);
 	}
 
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_msg_ed_rules, ckpt_msg_ptr, ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_msg_ed_rules,
+				 ckpt_msg_ptr,
+				 ptr_data_len,
+				 buf_env, op, o_err);
 	return rc;
 
 }	/* End edu_enc_dec_ckpt_msg() */

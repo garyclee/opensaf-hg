@@ -20,12 +20,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include "saImmOi.h"
 #include "saAmf.h"
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
 
 #define LGS_CFG_RUNTIME_OBJECT "logConfig=currentConfig,safApp=safLogService"
 
@@ -68,13 +65,13 @@ typedef struct config_chkpt {
 	uint64_t ckpt_buffer_size;	/* Total size of the buffer */
 }lgs_config_chg_t;
 
-/* 
+/*
  * For function information see code file lgs_config.c
  */
 void lgs_cfg_init(SaImmOiHandleT immOiHandle, SaAmfHAStateT ha_state);
 const void *lgs_cfg_get(lgs_logconfGet_t param);
 bool lgs_path_is_writeable_dir_h(const char *pathname);
-void lgs_cfgupd_list_create(char *name_str, char *value_str,
+void lgs_cfgupd_list_create(const char *name_str, char *value_str,
 	lgs_config_chg_t *config_data);
 char *lgs_cfgupd_list_read(char **name_str, char **value_str,
 	char *next_param_ptr, lgs_config_chg_t *cfgupd_ptr);
@@ -108,12 +105,8 @@ void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attr
 /*
  *  Trace functions
  */
-void lgs_trace_config(void);
-void lgs_cfg_read_trace(void);
-
-#ifdef	__cplusplus
-}
-#endif
+void lgs_trace_config();
+void lgs_cfg_read_trace();
 
 #endif	/* LGS_CONFIG_H */
 

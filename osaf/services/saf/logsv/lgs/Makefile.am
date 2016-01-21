@@ -40,28 +40,30 @@ noinst_HEADERS = \
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osaflogd
 
+osaflogd_CXXFLAGS = $(AM_CXXFLAGS)
+
 osaflogd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/logsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osaflogd_SOURCES = \
-	lgs_amf.c \
-	lgs_evt.c \
-	lgs_fmt.c \
-	lgs_imm.c \
-	lgs_main.c \
-	lgs_mbcsv.c \
-	lgs_mbcsv_v1.c \
-	lgs_mbcsv_v2.c \
-	lgs_mds.c \
-	lgs_stream.c \
-	lgs_util.c \
-	lgs_file.c \
-	lgs_filehdl.c \
-	lgs_mbcsv_v3.c \
-	lgs_config.c \
-	lgs_mbcsv_v5.c
+	lgs_amf.cc \
+	lgs_evt.cc \
+	lgs_fmt.cc \
+	lgs_imm.cc \
+	lgs_main.cc \
+	lgs_mbcsv.cc \
+	lgs_config.cc \
+	lgs_mbcsv_v1.cc \
+	lgs_mbcsv_v2.cc \
+	lgs_mds.cc \
+	lgs_stream.cc \
+	lgs_util.cc \
+	lgs_file.cc \
+	lgs_filehdl.cc \
+	lgs_mbcsv_v3.cc \
+	lgs_mbcsv_v5.cc
 
 osaflogd_LDADD = \
 	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \

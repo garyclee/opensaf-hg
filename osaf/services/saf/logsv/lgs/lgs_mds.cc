@@ -16,9 +16,9 @@
  */
 
 #include <ncsencdec_pub.h>
+
 #include "lgs.h"
 #include "osaf_time.h"
-#include "osaf_utility.h"
 
 #define LGS_SVC_PVT_SUBPART_VERSION 1
 #define LGS_WRT_LGA_SUBPART_VER_AT_MIN_MSG_FMT 1
@@ -179,15 +179,16 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	p8 = ncs_dec_flatten_space(uba, local_data, 24);
 	param->maxLogFileSize = ncs_decode_64bit(&p8);
 	param->maxLogRecordSize = ncs_decode_32bit(&p8);
-	param->haProperty = ncs_decode_32bit(&p8);
-	param->logFileFullAction = ncs_decode_32bit(&p8);
+	param->haProperty = static_cast<SaBoolT>(ncs_decode_32bit(&p8));
+	param->logFileFullAction = static_cast<SaLogFileFullActionT>(ncs_decode_32bit(&p8));
 	param->maxFilesRotated = ncs_decode_16bit(&p8);
 	len = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 24);
 
 	/* Decode format string if initiated */
 	if (len > 0) {
-		if ((param->logFileFmt = malloc(len)) == NULL) {
+		param->logFileFmt = static_cast<char *>(malloc(len));
+		if (param->logFileFmt == NULL) {
 			LOG_WA("malloc FAILED");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
@@ -269,19 +270,20 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	param->lstr_id = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 20);
 
-	param->logRecord = malloc(sizeof(SaLogRecordT));
+	param->logRecord = static_cast<SaLogRecordT *>(malloc(sizeof(SaLogRecordT)));
 	if (!param->logRecord) {
 		LOG_WA("malloc FAILED");
 		rc = NCSCC_RC_FAILURE;
 		goto err_done;
 	}
+
 	/* Initiate logRecord pointers */
 	param->logRecord->logBuffer = NULL;
 	
 	/* ************* SaLogRecord decode ************** */
 	p8 = ncs_dec_flatten_space(uba, local_data, 12);
 	param->logRecord->logTimeStamp = ncs_decode_64bit(&p8);
-	param->logRecord->logHdrType = ncs_decode_32bit(&p8);
+	param->logRecord->logHdrType = static_cast<SaLogHeaderTypeT>(ncs_decode_32bit(&p8));
 	ncs_dec_skip_space(uba, 12);
 
 	/*
@@ -299,9 +301,9 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		
 		p8 = ncs_dec_flatten_space(uba, local_data, 14);
 		ntfLogH->notificationId = ncs_decode_64bit(&p8);
-		ntfLogH->eventType = ncs_decode_32bit(&p8);
+		ntfLogH->eventType = static_cast<SaNtfEventTypeT>(ncs_decode_32bit(&p8));
 
-		ntfLogH->notificationObject = malloc(sizeof(SaNameT) + 1);
+		ntfLogH->notificationObject = static_cast<SaNameT *>(malloc(sizeof(SaNameT) + 1));
 		if (!ntfLogH->notificationObject) {
 			LOG_WA("malloc FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -320,7 +322,7 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 					     ntfLogH->notificationObject->value, ntfLogH->notificationObject->length);
 		ntfLogH->notificationObject->value[ntfLogH->notificationObject->length] = '\0';
 
-		ntfLogH->notifyingObject = malloc(sizeof(SaNameT) + 1);
+		ntfLogH->notifyingObject = static_cast<SaNameT *>(malloc(sizeof(SaNameT) + 1));
 		if (!ntfLogH->notifyingObject) {
 			LOG_WA("malloc FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -339,7 +341,7 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		ncs_decode_n_octets_from_uba(uba, ntfLogH->notifyingObject->value, ntfLogH->notifyingObject->length);
 		ntfLogH->notifyingObject->value[ntfLogH->notifyingObject->length] = '\0';
 
-		ntfLogH->notificationClassId = malloc(sizeof(SaNtfClassIdT));
+		ntfLogH->notificationClassId = static_cast<SaNtfClassIdT *>(malloc(sizeof(SaNtfClassIdT)));
 		if (!ntfLogH->notificationClassId) {
 			LOG_WA("malloc FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -358,7 +360,7 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		/* Initiate general header pointers */
 		genLogH->notificationClassId = NULL;
 		
-		genLogH->notificationClassId = malloc(sizeof(SaNtfClassIdT));
+		genLogH->notificationClassId = static_cast<SaNtfClassIdT *>(malloc(sizeof(SaNtfClassIdT)));
 		if (!genLogH->notificationClassId) {
 			LOG_WA("malloc FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -369,7 +371,7 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		genLogH->notificationClassId->majorId = ncs_decode_16bit(&p8);
 		genLogH->notificationClassId->minorId = ncs_decode_16bit(&p8);
 
-		logSvcUsrName = malloc(sizeof(SaNameT) + 1);
+		logSvcUsrName = static_cast<SaNameT *>(malloc(sizeof(SaNameT) + 1));
 		if (!logSvcUsrName) {
 			LOG_WA("malloc FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -403,7 +405,7 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		goto err_done;
 	}
 	
-	param->logRecord->logBuffer = malloc(sizeof(SaLogBufferT));
+	param->logRecord->logBuffer = static_cast<SaLogBufferT *>(malloc(sizeof(SaLogBufferT)));
 	if (!param->logRecord->logBuffer) {
 		LOG_WA("malloc FAILED");
 		rc = NCSCC_RC_FAILURE;
@@ -417,7 +419,8 @@ static uint32_t dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	ncs_dec_skip_space(uba, 4);
 
 	/* Make sure at least one byte is allocated for later */
-	param->logRecord->logBuffer->logBuf = calloc(1, param->logRecord->logBuffer->logBufSize + 1);
+	param->logRecord->logBuffer->logBuf = static_cast<SaUint8T *>(
+		calloc(1, param->logRecord->logBuffer->logBufSize + 1));
 	if (param->logRecord->logBuffer->logBuf == NULL) {
 		LOG_WA("malloc FAILED");
 		rc = NCSCC_RC_FAILURE;
@@ -650,7 +653,7 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 	}
 	info->info.enc.o_msg_fmt_ver = msg_fmt_version;
 
-	msg = (lgsv_msg_t *)info->info.enc.i_msg;
+	msg = static_cast<lgsv_msg_t *>(info->info.enc.i_msg);
 	uba = info->info.enc.io_uba;
 
 	if (uba == NULL) {
@@ -769,7 +772,8 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info)
 	}
 
     /** allocate an LGSV_LGS_EVENT now **/
-	if (NULL == (evt = calloc(1, sizeof(lgsv_lgs_evt_t)))) {
+	evt = static_cast<lgsv_lgs_evt_t *>(calloc(1, sizeof(lgsv_lgs_evt_t)));
+	if (NULL == evt) {
 		LOG_WA("calloc FAILED");
 		goto err;
 	}
@@ -778,12 +782,12 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info)
 	info->info.dec.o_msg = (uint8_t *)evt;
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
-	evt->info.msg.type = ncs_decode_32bit(&p8);
+	evt->info.msg.type = static_cast<lgsv_msg_type_t>(ncs_decode_32bit(&p8));
 	ncs_dec_skip_space(uba, 4);
 
 	if (LGSV_LGA_API_MSG == evt->info.msg.type) {
 		p8 = ncs_dec_flatten_space(uba, local_data, 4);
-		evt->info.msg.info.api_info.type = ncs_decode_32bit(&p8);
+		evt->info.msg.info.api_info.type = static_cast<lgsv_api_msg_type_t>(ncs_decode_32bit(&p8));
 		ncs_dec_skip_space(uba, 4);
 
 		/* FIX error handling for dec functions */
@@ -929,7 +933,7 @@ static NCS_IPC_PRIORITY getmboxprio(const lgsv_api_info_t *api_info)
 
 static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 {
-	lgsv_lgs_evt_t *evt = (lgsv_lgs_evt_t *)mds_info->info.receive.i_msg;
+	lgsv_lgs_evt_t *evt = static_cast<lgsv_lgs_evt_t *>(mds_info->info.receive.i_msg);
 	const lgsv_api_info_t *api_info = &evt->info.msg.info.api_info;
 	lgsv_api_msg_type_t type = api_info->type;
 	NCS_IPC_PRIORITY prio = NCS_IPC_PRIORITY_LOW;
@@ -1040,7 +1044,8 @@ static uint32_t mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
 	TRACE_ENTER();
 
-	if (NULL == (lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t)))) {
+	lgsv_evt = static_cast<lgsv_lgs_evt_t *>(calloc(1, sizeof(lgsv_lgs_evt_t)));
+	if (NULL == lgsv_evt) {
 		LOG_WA("calloc FAILED");
 		goto err;
 	}
@@ -1097,7 +1102,8 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
 
 			/* As of now we are only interested in LGA events */
-			if (NULL == (evt = calloc(1, sizeof(lgsv_lgs_evt_t)))) {
+			evt = static_cast<lgsv_lgs_evt_t *>(calloc(1, sizeof(lgsv_lgs_evt_t)));
+			if (NULL == evt) {
 				LOG_WA("calloc FAILED");
 				rc = NCSCC_RC_FAILURE;
 				goto done;

@@ -50,20 +50,23 @@ struct file_communicate {
 	void *indata_ptr;	/* In-parameters for handlers */
 	size_t outdata_size;
 	void *outdata_ptr;	/* Out data from handlers */
+
+	file_communicate() {
+		answer_f = false;
+		request_f = false;
+		timeout_f = false;
+		request_code = LGSF_NOREQ;
+		return_code = LGSF_NORETC;
+		indata_ptr = NULL;
+		outdata_ptr = NULL;
+		outdata_size = 0;
+	}
 };
 
 /* Used for synchronizing and transfer of data ownership between main thread
  * and file thread.
  */
-static struct file_communicate lgs_com_data = {
-	.answer_f = false,
-	.request_f = false,
-	.timeout_f = false,
-	.request_code = LGSF_NOREQ,
-	.return_code = LGSF_NORETC,
-	.indata_ptr = NULL,
-	.outdata_ptr = NULL
-};
+static struct file_communicate lgs_com_data;
 
 static pthread_t file_thread_id;
 
@@ -71,7 +74,7 @@ static pthread_t file_thread_id;
  * Utility functions
  *****************************************************************************/
 
-static int start_file_thread(void);
+static int start_file_thread();
 
 /**
  * Creates absolute time to use with pthread_cond_timedwait.
@@ -209,7 +212,7 @@ static void *file_hndl_thread(void *noparam)
  * 
  * @param 
  */
-static int start_file_thread(void)
+static int start_file_thread()
 {
 	int rc = 0;
 	int tbd_inpar=1;
@@ -249,7 +252,7 @@ done:
 /**
  * Initialize threaded file handling
  */
-uint32_t lgs_file_init(void)
+uint32_t lgs_file_init()
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	
@@ -288,7 +291,7 @@ void lgs_fd_list_add(int32_t fd)
 	
 	TRACE_ENTER2("fd = %d", fd);
 	
-	fd_new_p = (fd_list_t *) malloc(sizeof(fd_list_t));
+	fd_new_p = static_cast<fd_list_t *>(malloc(sizeof(fd_list_t)));
 	osafassert(fd_new_p);
 	
 	if (fd_first_p == NULL) {
@@ -310,7 +313,7 @@ void lgs_fd_list_add(int32_t fd)
  * Get and remove file descriptor from list 
  * @return fd If list empty return -1
  */
-int32_t lgs_fd_list_get(void)
+int32_t lgs_fd_list_get()
 {
 	int32_t r_fp;
 	fd_list_t *fd_rem_p;
@@ -346,12 +349,12 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	int rc = 0;
 	struct timespec timeout_time;
 	int fd = 0;
-
 	/* If this flag is true always return LGSF_BUSY */
 	bool busy_close_flag = false;
-	
+	uint32_t max_waittime_ms = 0;
+
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK */
-	
+
 	/* If busy_f is true the file thread is hanging. In this case don't send
 	 * a request.
 	 */
@@ -420,7 +423,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in)
 	if (rc != 0) osaf_abort(rc);
 	
 	/* Wait for an answer */
-	uint32_t max_waittime_ms = *(SaUint32T *) lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT);
+	max_waittime_ms = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT));
 	get_timeout_time(&timeout_time, max_waittime_ms);
 
 	while (lgs_com_data.answer_f == false) {
@@ -469,19 +472,18 @@ api_exit:
 char *lgsf_retcode_str(lgsf_retcode_t rc)
 {
 	static char errstr[256];
-	
+
 	switch (rc) {
 	case LGSF_SUCESS:
-		return "LGSF_SUCESS";
+		return const_cast<char *>("LGSF_SUCESS");
 	case LGSF_BUSY:
-		return "LGSF_BUSY";
+		return const_cast<char *>("LGSF_BUSY");
 	case LGSF_TIMEOUT:
-		return "LGSF_TIMEOUT";
+		return const_cast<char *>("LGSF_TIMEOUT");
 	case LGSF_FAIL:
-		return "LGSF_FAIL";
+		return const_cast<char *>("LGSF_FAIL");
 	default:
 		sprintf(errstr,"Unknown lgsf_retcode %d",rc);
 		return errstr;
 	}
-	return "dummy"; 
 }

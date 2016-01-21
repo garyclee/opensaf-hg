@@ -20,10 +20,6 @@
 #ifndef LGS_MBCSV_H
 #define	LGS_MBCSV_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 /* Version 1: Logservice check-point version older versions than OpenSAF 4.4.
  *            Cannot be configured for split filesystem.
  * Version 2: Check-pointing version used in OpenSAF version 4.4 after
@@ -88,7 +84,7 @@ typedef struct {
 	char *logPath;		/* log file path */
 	uint64_t maxFileSize;	/* max file size configurable */
 	int32_t maxLogRecordSize;	/* constant size of the records */
-	int32_t logFileFullAction;
+	SaLogFileFullActionT logFileFullAction;
 	int32_t maxFilesRotated;	/* max number of rotation files configurable */
 	char *fileFmt;
 	/* end correspond to SaLogFileCreateAttributes */
@@ -102,11 +98,11 @@ typedef struct {
 
 uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb);
 uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
-bool lgs_is_peer_v2(void);
-bool lgs_is_peer_v3(void);
-bool lgs_is_peer_v4(void);
-bool lgs_is_peer_v5(void);
-bool lgs_is_split_file_system(void);
+bool lgs_is_peer_v2();
+bool lgs_is_peer_v3();
+bool lgs_is_peer_v4();
+bool lgs_is_peer_v5();
+bool lgs_is_split_file_system();
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 void lgs_free_edu_mem(char *ptr);
 uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream,
@@ -123,10 +119,4 @@ uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				    NCSCONTEXT ptr, uint32_t *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-
-#ifdef	__cplusplus
-}
-#endif
-
 #endif	/* LGS_MBCSV_H */
-

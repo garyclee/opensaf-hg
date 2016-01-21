@@ -23,6 +23,7 @@
 #include <saImmOi.h>
 #include <mbcsv_papi.h>
 #include <ncs_edu_pub.h>
+
 #include "lgs_stream.h"
 
 /* Default HA state assigned locally during lgs initialization */
