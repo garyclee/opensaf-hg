@@ -41,6 +41,7 @@ noinst_HEADERS = \
    msg.h \
    pg.h \
    proc.h \
+   role.h \
    sg.h \
    sgtype.h \
    si.h \
