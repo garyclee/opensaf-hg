@@ -24,17 +24,17 @@ SUBDIRS = scripts
 noinst_HEADERS = \
 	lgs_cb.h \
 	lgs_fmt.h \
-	lgs_mbcsv.h \
-	lgs_mbcsv_v1.h \
-	lgs_mbcsv_v2.h \
 	lgs_util.h \
 	lgs_evt.h \
 	lgs.h \
 	lgs_stream.h \
 	lgs_file.h \
 	lgs_filehdl.h \
-	lgs_mbcsv_v3.h \
 	lgs_config.h \
+	lgs_mbcsv.h \
+	lgs_mbcsv_v1.h \
+	lgs_mbcsv_v2.h \
+	lgs_mbcsv_v3.h \
 	lgs_mbcsv_v5.h
 
 osaf_execbindir = $(pkglibdir)
@@ -53,15 +53,15 @@ osaflogd_SOURCES = \
 	lgs_fmt.cc \
 	lgs_imm.cc \
 	lgs_main.cc \
-	lgs_mbcsv.cc \
 	lgs_config.cc \
-	lgs_mbcsv_v1.cc \
-	lgs_mbcsv_v2.cc \
 	lgs_mds.cc \
 	lgs_stream.cc \
 	lgs_util.cc \
 	lgs_file.cc \
 	lgs_filehdl.cc \
+	lgs_mbcsv.cc \
+	lgs_mbcsv_v1.cc \
+	lgs_mbcsv_v2.cc \
 	lgs_mbcsv_v3.cc \
 	lgs_mbcsv_v5.cc
 

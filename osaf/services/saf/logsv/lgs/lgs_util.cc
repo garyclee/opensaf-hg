@@ -43,6 +43,9 @@
 #define LGS_CREATE_CLOSE_TIME_LEN 16
 #define START_YEAR 1900
 
+// The length of '_yyyymmdd_hhmmss_yyyymmdd_hhmmss.log' including null-termination char
+#define LOG_TAIL_MAX (std::string("_yyyymmdd_hhmmss_yyyymmdd_hhmmss.log").size())
+
 /**
  * Create config file according to spec.
  * @param root_path[in]
@@ -50,70 +53,65 @@
  * 
  * @return -1 on error
  */
-int lgs_create_config_file_h(const char *root_path, log_stream_t *stream)
+int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
-	void *params_in;
+	void *params_in = NULL;
 	ccfh_t *header_in_p;
 	size_t params_in_size;
 	char *logFileFormat_p;
 	char *pathname_p;
 
 	int rc;
-	int path_len;
 	uint32_t n = 0;
-	char pathname[PATH_MAX];
+	std::string pathname;
 	size_t logFileFormat_size = 0;
 	size_t pathname_size = 0;
 
-
 	TRACE_ENTER();
-	
+
 	/* check the existence of logsv_root_dir/pathName,
 	 * check that the path is safe.
 	 * If ok, create the path if it doesn't already exits
 	 */
-	path_len = snprintf(pathname, PATH_MAX, "%s/%s",
-		root_path, stream->pathName);
-	if (path_len >= PATH_MAX) {
+	pathname = root_path + "/" + stream->pathName;
+	if (pathname.size() >= PATH_MAX) {
 		LOG_WA("logsv_root_dir + pathName > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
-	
+
 	if (lgs_relative_path_check_ts(pathname) == true) {
-		LOG_WA("Directory path \"%s\" not allowed", pathname);
+		LOG_WA("Directory path \"%s\" not allowed", pathname.c_str());
 		rc = -1;
 		goto done;
 	}
 	
 	if (lgs_make_reldir_h(stream->pathName) != 0) {
 		LOG_WA("Create directory '%s/%s' failed",
-			root_path, stream->pathName);
+			   root_path.c_str(), stream->pathName.c_str());
 		rc = -1;
 		goto done;
 	}
 
 	/* create absolute path for config file */
-	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg",
-			root_path, stream->pathName, stream->fileName);
-	
-	if (n >= PATH_MAX) {
+	pathname += "/" + stream->fileName + ".cfg";
+	if (pathname.size() > PATH_MAX) {
 		LOG_WA("Complete pathname > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
-	TRACE("%s - Config file path \"%s\"",__FUNCTION__, pathname);
+	TRACE("%s - Config file path \"%s\"", __FUNCTION__, pathname.c_str());
 
-	/* 
+	/*
 	 * Create the configuration file.
 	 * Open the file, write it's content and close the file
 	 */
 	
 	/* Allocate memory for parameters */
 	params_in_size = sizeof(ccfh_t) + (strlen(stream->logFileFormat) + 1) +
-			(strlen(pathname) + 1);
+			(pathname.size() + 1);
 	params_in = malloc(params_in_size);
 	
 	/* Set pointers to allocated memory */
@@ -138,13 +136,14 @@ int lgs_create_config_file_h(const char *root_path, log_stream_t *stream)
 		LOG_WA("Log file format string too long");
 		goto done_free;
 	}
-	n = snprintf(pathname_p, pathname_size, "%s", pathname);
+
+	n = snprintf(pathname_p, pathname_size, "%s", pathname.c_str());
 	if (n >= pathname_size) {
 		rc = -1;
 		LOG_WA("Path name string too long");
 		goto done_free;
 	}
-	
+
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_CREATECFGFILE;
 	apipar.data_in_size = params_in_size;
@@ -251,20 +250,19 @@ SaTimeT lgs_get_SaTime()
  * @return -1 if error
  */
 int lgs_file_rename_h(
-		const char *root_path,
-		const char *rel_path,
-		const char *old_name,
-		const char *time_stamp,
-		const char *suffix,
-		char *new_name)
+	const std::string &root_path,
+	const std::string &rel_path,
+	const std::string &old_name,
+	const std::string &time_stamp,
+	const std::string &suffix,
+	std::string &new_name)
 {
 	int rc;
-	char oldpath[PATH_MAX];
-	char newpath[PATH_MAX];
-	char new_name_loc[NAME_MAX];
-	size_t n;
+	std::string oldpath;
+	std::string newpath;
+	std::string new_name_loc;
 	lgsf_apipar_t apipar;
-	void *params_in_p;
+	void *params_in_p = NULL;
 	size_t params_in_size;
 	lgsf_retcode_t api_rc;
 	char *oldpath_in_p;
@@ -275,37 +273,36 @@ int lgs_file_rename_h(
 
 	TRACE_ENTER();
 
-	n = snprintf(oldpath, PATH_MAX, "%s/%s/%s%s",
-			root_path, rel_path, old_name, suffix);
-	if (n >= PATH_MAX) {
+	oldpath = root_path + "/" + rel_path + "/" + old_name + suffix;
+	if (oldpath.size() >= PATH_MAX) {
 		LOG_ER("Cannot rename file, old path > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
 
-	if (time_stamp != NULL) {
-		snprintf(new_name_loc, NAME_MAX, "%s_%s%s", old_name, time_stamp, suffix);
+	if (time_stamp.empty() == false) {
+		new_name_loc = old_name + "_" + time_stamp + suffix;
 	} else {
-		snprintf(new_name_loc, NAME_MAX, "%s%s", new_name, suffix);
+		new_name_loc = new_name + suffix;
 	}
-	n = snprintf(newpath, PATH_MAX, "%s/%s/%s",
-			root_path, rel_path, new_name_loc);
-	if (n >= PATH_MAX) {
+
+	newpath = root_path + "/" + rel_path + "/" + new_name_loc;
+	if (newpath.size() >= PATH_MAX) {
 		LOG_ER("Cannot rename file, new path > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
-	
-	if (new_name != NULL) {
-		strcpy(new_name, new_name_loc);
+
+	if (new_name.empty() == false) {
+		new_name = new_name_loc;
 	}
-	
-	TRACE_4("Rename file from %s", oldpath);
-	TRACE_4("              to %s", newpath);
-	
+
+	TRACE_4("Rename file from %s", oldpath.c_str());
+	TRACE_4("              to %s", newpath.c_str());
+
 	/* Allocate memory for parameters */
-	oldpath_size = strlen(oldpath) + 1;
-	newpath_size = strlen(newpath) + 1;
+	oldpath_size = oldpath.size() + 1;
+	newpath_size = newpath.size() + 1;
 	params_in_size = sizeof(size_t) + oldpath_size + newpath_size;
 	
 	params_in_p = malloc(params_in_size);
@@ -317,9 +314,9 @@ int lgs_file_rename_h(
 	
 	/* Fill in parameters */
 	*oldpath_str_size_p = oldpath_size;
-	memcpy(oldpath_in_p, oldpath, oldpath_size);
-	memcpy(newpath_in_p, newpath, newpath_size);
-	
+	memcpy(oldpath_in_p, oldpath.c_str(), oldpath_size);
+	memcpy(newpath_in_p, newpath.c_str(), newpath_size);
+
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_RENAME_FILE;
 	apipar.data_in_size = params_in_size;
@@ -336,7 +333,7 @@ int lgs_file_rename_h(
 	}
 	
 	free(params_in_p);
-	
+
 done:
 	TRACE_LEAVE();
 	return rc;
@@ -448,12 +445,13 @@ void lgs_free_write_log(const lgsv_write_log_async_req_t *param)
  * @param path
  * @return true if path is not allowed
  */
-bool lgs_relative_path_check_ts(const char* path)
+bool lgs_relative_path_check_ts(const std::string &path)
 {
 	bool rc = false;
-	int len_path = strlen(path);
+	int len_path = path.size();
 	if (len_path >= 3) {
-		if (strstr(path, "/../") != NULL || strstr(path, "/..") != NULL) {
+		if (path.find("/../") != std::string::npos ||
+			path.find("/..") != std::string::npos) {
 			/* /..dir/ is not allowed, however /dir../ is allowed. */
 			rc = true;
 		} else if (path[0] == '.' && path[1] == '.' && path[2] == '/') {
@@ -476,49 +474,34 @@ bool lgs_relative_path_check_ts(const char* path)
  * @param path, Path relative log service root directory
  * @return -1 on error
  */
-int lgs_make_reldir_h(const char* path)
+int lgs_make_reldir_h(const std::string &path)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
 	int rc = -1;
 	mld_in_t params_in;
-	char new_rootstr[PATH_MAX];
-	size_t n1, n2;
-	
-	new_rootstr[0] = '\0'; /* Initiate to empty string */
-	
+
 	TRACE_ENTER();
 
-	const char *logsv_root_dir = static_cast<const char *>(
+	const std::string logsv_root_dir = static_cast<const char *>(
 		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
-	
-	TRACE("logsv_root_dir \"%s\"",logsv_root_dir);
-	TRACE("path \"%s\"",path);
-	
-	n1 = snprintf(params_in.root_dir, PATH_MAX, "%s", logsv_root_dir);
-	if (n1 >= PATH_MAX) {
-		LOG_WA("logsv_root_dir > PATH_MAX");
-		goto done;
-	}
-	n2 = snprintf(params_in.rel_path, PATH_MAX, "%s", path);
-	if (n2 >= PATH_MAX) {
-		LOG_WA("path > PATH_MAX");
-		goto done;
-	}
-	
-	/* Check that the complete path is not longer than PATH_MAX */
+
+	TRACE("logsv_root_dir \"%s\"", logsv_root_dir.c_str());
+	TRACE("path \"%s\"", path.c_str());
+
+	params_in.root_dir = const_cast<char *>(logsv_root_dir.c_str());
+	params_in.rel_path = const_cast<char *>(path.c_str());
 	if ((strlen(params_in.root_dir) + strlen(params_in.rel_path)) >= PATH_MAX) {
 		LOG_WA("root_dir + rel_path > PATH_MAX");
 		goto done;
 	}
-	
+
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_MAKELOGDIR;
 	apipar.data_in_size = sizeof(mld_in_t);
 	apipar.data_in = &params_in;
-	apipar.data_out_size = PATH_MAX;
-	apipar.data_out = &new_rootstr;
-	
+	apipar.data_out_size = 0;
+	apipar.data_out = NULL;
 	api_rc = log_file_api(&apipar);
 	if (api_rc != LGSF_SUCESS) {
 		TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
@@ -526,18 +509,9 @@ int lgs_make_reldir_h(const char* path)
 	} else {
 		rc = apipar.hdl_ret_code_out;
 	}
-	
-	/* Handle a possible change of root dir to default */
-	if (new_rootstr[0] != '\0') {
-		//lgs_imm_rootpathconf_set(new_rootstr);
-		/* LLDTEST1XXX Replace with new handling
-		 */
-		TRACE("%s - new_rootstr \"%s\"",__FUNCTION__,new_rootstr);
-	}
 
 done:
 	TRACE_LEAVE2("rc = %d",rc);
-	
 	return rc;
 }
 
@@ -615,37 +589,25 @@ int lgs_own_log_files_h(log_stream_t *stream, const char *groupname)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
-	olfbgh_t *data_in = static_cast<olfbgh_t *>(malloc(sizeof(olfbgh_t)));
 	int rc = 0, n, path_len;
+	std::string dir_path;
+	olfbgh_t *data_in = static_cast<olfbgh_t *>(malloc(sizeof(olfbgh_t)));
 
 	TRACE_ENTER2("stream %s",stream->name);
 
 	/* Set in parameter dir_path */
-	const char *logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+	const std::string logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
 	/* Set in parameter file_name */
-	n = snprintf(data_in->file_name, SA_MAX_NAME_LENGTH, "%s", stream->fileName);
-	if (n >= SA_MAX_NAME_LENGTH) {
-		rc = -1;
-		LOG_WA("file_name > SA_MAX_NAME_LENGTH");
-		goto done;
-	}
-
-	n = snprintf(data_in->dir_path, PATH_MAX, "%s/%s",
-		logsv_root_dir, stream->pathName);
-	if (n >= PATH_MAX) {
-		rc = -1;
-		LOG_WA("dir_path > PATH_MAX");
-		goto done;
-	}
-
+	data_in->file_name = const_cast<char *>(stream->fileName.c_str());
+	dir_path = logsv_root_dir + "/" + stream->pathName;
+	data_in->dir_path = const_cast<char *>(dir_path.c_str());
 	path_len = strlen(data_in->file_name) +	strlen(data_in->dir_path);
 	if (path_len > PATH_MAX) {
 		LOG_WA("Path to log files > PATH_MAX");
 		rc = -1;
 		goto done;
 	}
-
 	/* Set in parameter groupname */
 	n = snprintf(data_in->groupname, UT_NAMESIZE, "%s", groupname);
 	if (n > UT_NAMESIZE) {
@@ -681,7 +643,7 @@ done:
  * @param: str [in] input string for checking
  * @return: true if there is special character, otherwise false.
  */
-bool lgs_has_special_char(const char *str)
+bool lgs_has_special_char(const std::string &str)
 {
 	int index = 0;
 	char c;
@@ -733,4 +695,103 @@ bool lgs_has_special_char(const char *str)
 		}
 	}
 	return false;
+}
+
+
+/**
+ * Get the maximum length of filename
+ *
+ * @param:none
+ * @return: the maximum length of filename
+ */
+static size_t lgs_pathconf()
+{
+	static size_t name_max = 0;
+	static bool invoked = false;
+	static std::string old_path;
+
+	std::string dir_path = static_cast<const char *>(
+	    lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+
+	/* To avoid invoking pathconf() unncessarily */
+	if ((invoked == true) && (dir_path == old_path)) {
+		return name_max;
+	}
+
+	errno = 0;
+	long max = pathconf(dir_path.c_str(), _PC_NAME_MAX);
+
+	/* Get default value if the limit is not defined, or error */
+	if (max == -1) {
+		max = 255;
+		invoked = false;
+		LOG_WA("pathconf error: %s", strerror(errno));
+	}
+
+	/* Backup the values to avoid calling pathconf() */
+	name_max = max;
+	old_path = dir_path;
+
+	invoked = true;
+	return name_max;
+}
+
+/**
+ * Get the maximum length of a <filename> which is inputed from users
+ * exlcuded tail part.
+ *
+ * @param: none
+ * @return: the maximum length of <filename>
+ */
+size_t lgs_max_nlength()
+{
+	return (lgs_pathconf() - LOG_TAIL_MAX);
+}
+
+/**
+ * Check if file length is valid.
+ *
+ * logsv will append the tail to fileName such as file extention, open time.
+ * and <fileName> is input from user (immcfg, imm.xml, log Open API),
+ * so once passing the checking, logsv does not need to be worry
+ * about the file name is over the limitation.
+
+ * @param: fileName - file name for checking (excluse the tail part)
+ * @return: true if file is valid, false otherwise.
+ *
+ */
+bool lgs_is_valid_filelength(const std::string &fileName)
+{
+	size_t filelen = fileName.size() + 1;
+	size_t maxsize = lgs_pathconf();
+
+	return ((filelen + LOG_TAIL_MAX) < maxsize);
+}
+
+/**
+ * Check if the length of the path to file is valid
+ * Path to file format: rootDir/pathToDir/<fileName><tail>
+ *
+ * @param:
+ * - path: the path to log file of the stream (excluse root dir).
+ * - fileName: the <fileName> of the log stream (excluse the tail part)
+ * @return: true if the path is valid, false otherwise.
+ */
+bool lgs_is_valid_pathlength(const std::string &path,
+			     const std::string &fileName,
+			     const std::string &rootPath)
+{
+	std::string rootpath;
+	size_t pathlen = path.size();
+	size_t filelen = fileName.size();
+
+	if (rootPath.empty() == true) {
+		rootpath = static_cast<const char *>(
+		    lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+	} else {
+		rootpath = rootPath;
+	}
+	size_t rootlen = rootpath.size() + 1;
+
+	return ((rootlen + pathlen + filelen + LOG_TAIL_MAX) < PATH_MAX);
 }

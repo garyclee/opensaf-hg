@@ -130,6 +130,12 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	lgsv_stream_open_req_t *param = &msg->info.api_info.param.lstr_open_sync;
 	uint8_t local_data[256];
 
+	TRACE_ENTER();
+	// To make it safe when using free()
+	param->logFileName = NULL;
+	param->logFilePathName = NULL;
+	param->logFileFmt = NULL;
+
 	/* client_id  */
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	param->client_id = ncs_decode_32bit(&p8);
@@ -154,26 +160,48 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	len = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 2);
 
-	if ((len == 0) || (len > NAME_MAX)) {
-		TRACE("%s - logFileName length is invalid (%d)",__FUNCTION__, len);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
+	TRACE("enter dealing with logfilename");
+	/**
+	 * Leave the upper limit check to lgs_evt.
+	 * Then, if the file length is invalid, LOG agent will get INVALID_PARAM
+	 * instead of error code RC_FAILURE returned by MDS layer.
+	 */
+	if (len > 0) {
+		/**
+		 * This allocated memory is freed in proc_stream_open_msg() @ lgs_evt.c
+		 */
+		param->logFileName = static_cast<char *>(malloc(len));
+		if (param->logFileName == NULL) {
+			LOG_ER("%s - Failed to allocate memory for logFileName", __FUNCTION__);
+			rc = NCSCC_RC_FAILURE;
+			goto done_err;
+		}
+		ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFileName, len);
 	}
-
-	ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFileName, len);
 
 	/* log file path name */
 	p8 = ncs_dec_flatten_space(uba, local_data, 2);
 	len = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 2);
 
-	if ((len == 0) || (len > PATH_MAX)) {
-		TRACE("%s - logFilePathName length is invalid (%d)",__FUNCTION__, len);
+	if (len > PATH_MAX) {
+		TRACE("%s - logFilePathName length is invalid (%d)", __FUNCTION__, len);
 		rc = NCSCC_RC_FAILURE;
-		goto done;
+		goto done_err;
 	}
 
-	ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFilePathName, len);
+	if (len > 0) {
+		/**
+		 * This allocated memory is freed in proc_stream_open_msg() @ lgs_evt.c
+		 */
+		param->logFilePathName = static_cast<char *>(malloc(len));
+		if (param->logFilePathName == NULL) {
+			LOG_ER("%s - Failed to allocate memory for logFilePathName", __FUNCTION__);
+			rc = NCSCC_RC_FAILURE;
+			goto done_err;
+		}
+		ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFilePathName, len);
+	}
 
 	/* log record format length */
 	p8 = ncs_dec_flatten_space(uba, local_data, 24);
@@ -191,7 +219,7 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		if (param->logFileFmt == NULL) {
 			LOG_WA("malloc FAILED");
 			rc = NCSCC_RC_FAILURE;
-			goto done;
+			goto done_err;
 		}
 		ncs_decode_n_octets_from_uba(uba, (uint8_t *)param->logFileFmt, len);
 	}
@@ -201,7 +229,15 @@ static uint32_t dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	param->lstr_open_flags = ncs_decode_8bit(&p8);
 	ncs_dec_skip_space(uba, 1);
 
- done:
+	// Everything is ok. Do not free the allocated memories.
+	goto done;
+
+done_err:
+	free(param->logFileName);
+	free(param->logFilePathName);
+	free(param->logFileFmt);
+
+done:
 	TRACE_8("LGSV_STREAM_OPEN_REQ");
 	return rc;
 }

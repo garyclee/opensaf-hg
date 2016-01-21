@@ -51,23 +51,30 @@
  */
 
 extern char *lgs_get_time(time_t *time_in);
-extern int lgs_create_config_file_h(const char *root_path, log_stream_t *stream);
+extern int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream);
 extern void lgs_evt_destroy(lgsv_lgs_evt_t *evt);
 extern SaTimeT lgs_get_SaTime();
 extern int lgs_file_rename_h(
-		const char *root_path,
-		const char *rel_path,
-		const char *old_name,
-		const char *time_stamp,
-		const char *suffix,
-		char *new_name);
+    const std::string &root_path,
+    const std::string &rel_path,
+    const std::string &old_name,
+    const std::string &time_stamp,
+    const std::string &suffix,
+    std::string &new_name);
 //extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb); /* Not used, no code */
 extern void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
-extern bool lgs_relative_path_check_ts(const char* path);
-extern int lgs_make_reldir_h(const char* path);
-extern int lgs_check_path_exists_h(const char *path_to_check);
+extern bool lgs_relative_path_check_ts(const std::string &path);
+extern int lgs_make_reldir_h(const std::string &path);
+extern int lgs_check_path_exists_h(const std::string &path_to_check);
 extern gid_t lgs_get_data_gid(char *groupname);
 extern int lgs_own_log_files_h(log_stream_t *stream, const char *groupname);
-extern bool lgs_has_special_char(const char *str);
+extern bool lgs_has_special_char(const std::string &str);
+
+// Functions to check if the filename/path length is valid
+size_t lgs_max_nlength();
+bool lgs_is_valid_filelength(const std::string &fileName);
+bool lgs_is_valid_pathlength(const std::string &path,
+                             const std::string &fileName,
+			     const std::string &rootPath = "");
 
 #endif   /* ifndef __LGS_UTIL_H */

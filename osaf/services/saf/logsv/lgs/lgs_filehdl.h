@@ -42,9 +42,9 @@
  * No typedef needed
  */
 typedef struct {
-	char filepath[PATH_MAX];	/* Complete path to file */
+	char *filepath;	/* Complete path to file */
 	char groupname[UT_NAMESIZE];	/* Name of owner group */
-}fopen_in_t;
+} fopen_in_t;
 
 /* 
  * fileclose_hdl(..)
@@ -67,31 +67,24 @@ typedef struct {
  * Parameter data_out_size must be set to PATH_MAX
  */
 typedef struct {
-	char root_dir[PATH_MAX]; /* Implementer defined root directory */
-	char rel_path[PATH_MAX]; /* Path to create */
-}mld_in_t;
+	char *root_dir; /* Implementer defined root directory */
+	char *rel_path; /* Path to create */
+} mld_in_t;
 
 /* 
  * get_number_of_log_files_hdl(..)
  */
 typedef struct {
 	/* File name prefix (name part before time stamps) */
-	char file_name[SA_MAX_NAME_LENGTH];
+	char *file_name;
 	/* logsv_root_dir + pathName makes up the path to the log files
 	 * Note: The whole path cannot be a longer string than PATH_MAX
 	 */
-	char logsv_root_dir[PATH_MAX];
-	char pathName[PATH_MAX];
-}gnolfh_in_t;
+	char *logsv_root_dir;
+	char *pathName;
+} gnolfh_in_t;
 
-	/* parameter [out]
-	 * char str[PATH_MAX]
-	 * No typdef needed
-	 * Out parameter is a string of max PATH_MAX + NAME_MAX length
-	 * Parameter data_out_size must be set to PATH_MAX + NAME_MAX.
-	 */
-
-/* 
+/*
  * write_log_record_hdl(..)
  * Outpar int errno_save
  */
@@ -115,7 +108,7 @@ typedef struct {
 	SaUint32T maxFilesRotated;
 	/* File information */
 	size_t file_path_size; /* Size of file_path incl. '\0' */
-}ccfh_t;
+} ccfh_t;
 	/* char logFileFormat[]
 	 * char file_path[]
 	 * Strings of varying length that shall be added
@@ -126,11 +119,11 @@ typedef struct {
  * No out parameters
  */
 typedef struct {
-	char dir_path[PATH_MAX]; /* Full path to stream directory */
+	char *dir_path; /* Full path to stream directory */
 	/* File name prefix (name part before time stamps) */
-	char file_name[SA_MAX_NAME_LENGTH];
+	char *file_name;
 	char groupname[UT_NAMESIZE];	/* Name of owner group */
-}olfbgh_t;
+} olfbgh_t;
 
 /*
  * rename_file_hdl(..)

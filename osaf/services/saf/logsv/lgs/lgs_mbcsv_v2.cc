@@ -57,8 +57,9 @@ uint32_t ckpt_proc_lgs_cfg_v2(lgs_cb_t *cb, void *data)
 	
 	/* Handle log files for new directory if configured for split file system */
 	if (lgs_is_split_file_system()) {
-		const char *old_root = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
-		const char *new_root = param->logRootDirectory;
+		const std::string old_root = static_cast<const char *>(
+			lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+		const std::string new_root = param->logRootDirectory;
 		/* Change root path in configuration struct */
 		lgs_rootpathconf_set(param->logRootDirectory);
 		logRootDirectory_filemove(new_root, old_root,

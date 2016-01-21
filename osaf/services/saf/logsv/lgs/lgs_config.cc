@@ -109,7 +109,7 @@ static struct lgs_conf_def_t {
  */
 typedef struct _lgs_conf_t {
 	/* --- Corresponds to IMM Class SaLogConfig --- */
-	char logRootDirectory[PATH_MAX];
+	std::string logRootDirectory;
 	char logDataGroupname[UT_NAMESIZE];
 	char logStreamFileFormat[MAX_FIELD_SIZE];
 	SaUint32T logMaxLogrecsize;
@@ -164,7 +164,7 @@ typedef struct _lgs_conf_t {
 		logFileSysConfig_cnfflag = LGS_CNF_DEF;
 		logStreamFileFormat_cnfflag = LGS_CNF_DEF;
 
-		(void) strcpy(logRootDirectory, lgs_conf_def.logRootDirectory);
+		logRootDirectory = lgs_conf_def.logRootDirectory;
 		(void) strcpy(logDataGroupname, lgs_conf_def.logDataGroupname);
 		(void) strcpy(logStreamFileFormat, lgs_conf_def.logStreamFileFormat);
 		logMaxLogrecsize = lgs_conf_def.logMaxLogrecsize;
@@ -383,8 +383,7 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data)
 
 		/* Update config data */
 		if (strcmp(name_str, LOG_ROOT_DIRECTORY) == 0) {
-			(void) snprintf(lgs_conf.logRootDirectory, PATH_MAX,
-				"%s", value_str);
+			lgs_conf.logRootDirectory = value_str;
 			lgs_conf.logRootDirectory_cnfflag = LGS_CNF_OBJ;
 		} else if (strcmp(name_str, LOG_DATA_GROUPNAME) == 0) {
 			(void) snprintf(lgs_conf.logDataGroupname, UT_NAMESIZE,
@@ -461,15 +460,31 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data)
  * @param root_str_in[in] Root path to verify
  * @return -1 on error
  */
-int lgs_cfg_verify_root_dir(char *root_str_in)
+int lgs_cfg_verify_root_dir(const std::string &root_str_in)
 {
 	int rc = 0;
-	size_t n_max = PATH_MAX+1;
-	size_t n = strnlen(root_str_in, n_max);
+	log_stream_t *stream = NULL;
+	size_t n = root_str_in.size();
+
 	if (n > PATH_MAX) {
 		LOG_NO("verify_root_dir Fail. Path > PATH_MAX");
 		rc = -1;
 		goto done;
+	}
+
+	/**
+	 * Make sure that the path /rootPath/streamPath/<fileName><tail>
+	 * must not be larger than PATH_MAX.
+	 */
+	stream = log_stream_getnext_by_name(NULL);
+	while (stream != NULL) {
+		if (lgs_is_valid_pathlength(stream->pathName, stream->fileName,
+									root_str_in) == false) {
+			TRACE("The rootPath is invalid (%s)", root_str_in.c_str());
+			rc = -1;
+			goto done;
+		}
+		stream = log_stream_getnext_by_name(stream->name);
 	}
 
 	if (lgs_path_is_writeable_dir_h(root_str_in) == false) {
@@ -525,9 +540,10 @@ int lgs_cfg_verify_log_file_format(const char* log_file_format)
 	int rc = 0;
 	SaBoolT dummy;
 
-	if (!lgs_is_valid_format_expression((const SaStringT)log_file_format,
-										STREAM_TYPE_APPLICATION,
-										&dummy)) {
+	if (!lgs_is_valid_format_expression(
+		    (const SaStringT)log_file_format,
+		    STREAM_TYPE_APPLICATION,
+		    &dummy)) {
 		LOG_NO("logStreamFileFormat has invalid value = %s",
 			   log_file_format);
 		rc = -1;
@@ -658,11 +674,10 @@ static int lgs_cfg_verify_log_filesys_config(uint32_t log_filesys_config)
  * @param root_str_in[in] Root path to verify
  * @return -1 on error
  */
-static int verify_root_dir_init(char *root_str_in)
+static int verify_root_dir_init(const std::string &root_str_in)
 {
 	int rc = 0;
-	size_t n_max = PATH_MAX+1;
-	size_t n = strnlen(root_str_in, n_max);
+	size_t n = root_str_in.size();
 	if (n > PATH_MAX) {
 		LOG_NO("verify_root_dir Fail. Path > PATH_MAX");
 		rc = -1;
@@ -687,7 +702,7 @@ static int verify_all_init()
 	TRACE_ENTER();
 
 	if (verify_root_dir_init(lgs_conf.logRootDirectory) == -1) {
-		strcpy(lgs_conf.logRootDirectory, lgs_conf_def.logRootDirectory);
+		lgs_conf.logRootDirectory = lgs_conf_def.logRootDirectory;
 		lgs_conf.logRootDirectory_cnfflag = LGS_CNF_DEF;
 		rc = -1;
 	}
@@ -813,15 +828,14 @@ static void read_logsv_config_obj_2() {
 		value = attribute->attrValues[0];
 
 		if (!strcmp(attribute->attrName, LOG_ROOT_DIRECTORY)) {
-			n = snprintf(lgs_conf.logRootDirectory, PATH_MAX, "%s",
-					*((char **) value));
-			if (n >= PATH_MAX) {
+			lgs_conf.logRootDirectory = *(static_cast<char **>(value));
+			if (lgs_conf.logRootDirectory.size() >= PATH_MAX) {
+				lgs_conf.logRootDirectory = "";
 				LOG_WA("LOG root dir read from config object is > PATH_MAX");
-				lgs_conf.logRootDirectory[0] = '\0';
 			} else {
 				lgs_conf.logRootDirectory_cnfflag = LGS_CNF_OBJ;
 				TRACE("Conf obj; logRootDirectory: %s",
-					lgs_conf.logRootDirectory);
+				      lgs_conf.logRootDirectory.c_str());
 			}
 		} else if (!strcmp(attribute->attrName, LOG_DATA_GROUPNAME)) {
 			n = snprintf(lgs_conf.logDataGroupname, UT_NAMESIZE, "%s",
@@ -923,11 +937,10 @@ static void read_log_config_environ_var_2() {
 	if (lgs_conf.logRootDirectory_cnfflag == LGS_CNF_DEF) {
 		/* Has not been set when reading config object */
 		if ((val_str = getenv("LOGSV_ROOT_DIRECTORY")) != NULL) {
-			n = snprintf(lgs_conf.logRootDirectory, PATH_MAX, "%s", val_str);
-			if (n >= PATH_MAX) {
-				/* Fail */
+			lgs_conf.logRootDirectory = val_str;
+			if (lgs_conf.logRootDirectory.size() > PATH_MAX) {
 				LOG_WA("LOG root dir read from config file is > PATH_MAX");
-				lgs_conf.logRootDirectory[0] = '\0';
+				lgs_conf.logRootDirectory = "";
 			} else {
 				lgs_conf.logRootDirectory_cnfflag = LGS_CNF_ENV;
 			}
@@ -936,7 +949,8 @@ static void read_log_config_environ_var_2() {
 		}
 	}
 	TRACE("logRootDirectory \"%s\", cnfflag '%s'",
-		lgs_conf.logRootDirectory, cnfflag_str(lgs_conf.logRootDirectory_cnfflag));
+		  lgs_conf.logRootDirectory.c_str(),
+		  cnfflag_str(lgs_conf.logRootDirectory_cnfflag));
 
 	/* logDataGroupname
 	 * Rule: Object has precedence
@@ -1184,7 +1198,7 @@ const void *lgs_cfg_get(lgs_logconfGet_t param)
 
 	switch (param) {
 	case LGS_IMM_LOG_ROOT_DIRECTORY:
-		value_ptr = lgs_conf.logRootDirectory;
+		value_ptr = const_cast<char *>(lgs_conf.logRootDirectory.c_str());
 		break;
 	case LGS_IMM_DATA_GROUPNAME:
 		value_ptr = lgs_conf.logDataGroupname;
@@ -1241,7 +1255,7 @@ const void *lgs_cfg_get(lgs_logconfGet_t param)
  * return: true  = Path is valid
  *         false = Path is invalid
  */
-bool lgs_path_is_writeable_dir_h(const char *pathname)
+bool lgs_path_is_writeable_dir_h(const std::string &pathname)
 {
 	bool is_writeable_dir = false;
 
@@ -1251,9 +1265,9 @@ bool lgs_path_is_writeable_dir_h(const char *pathname)
 
 	TRACE_ENTER();
 
-	TRACE("%s - pathname \"%s\"",__FUNCTION__,pathname);
+	TRACE("%s - pathname \"%s\"", __FUNCTION__, pathname.c_str());
 
-	size_t params_in_size = strlen(pathname)+1;
+	size_t params_in_size = pathname.size() + 1;
 	if (params_in_size > PATH_MAX) {
 		is_writeable_dir = false;
 		LOG_WA("Path > PATH_MAX");
@@ -1264,7 +1278,7 @@ bool lgs_path_is_writeable_dir_h(const char *pathname)
 	params_in_p = malloc(params_in_size);
 
 	/* Fill in path */
-	memcpy(params_in_p, pathname, params_in_size);
+	memcpy(params_in_p, pathname.c_str(), params_in_size);
 
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_CHECKDIR;
@@ -1302,15 +1316,14 @@ done:
  *
  * @param root_path_str
  */
-void lgs_rootpathconf_set(const char *root_path_str)
+void lgs_rootpathconf_set(const std::string &root_path_str)
 {
 	/* Lock mutex while config data is written */
 	osaf_mutex_lock_ordie(&lgs_config_data_mutex);
 
-	(void) snprintf(lgs_conf.logRootDirectory, PATH_MAX, "%s",
-		root_path_str);
-	TRACE("%s logRootDirectory updated to \"%s\"",__FUNCTION__,
-		lgs_conf.logRootDirectory);
+	lgs_conf.logRootDirectory = root_path_str;
+	TRACE("%s logRootDirectory updated to \"%s\"", __FUNCTION__,
+	      lgs_conf.logRootDirectory.c_str());
 
 	osaf_mutex_unlock_ordie(&lgs_config_data_mutex);
 }
@@ -1523,7 +1536,7 @@ void lgs_trace_config()
 
 	TRACE("===== LOG Configuration Start =====");
 	TRACE("logRootDirectory\t\t \"%s\",\t %s",
-		lgs_conf.logRootDirectory,
+		  lgs_conf.logRootDirectory.c_str(),
 		cnfflag_str(lgs_conf.logRootDirectory_cnfflag));
 	TRACE("logDataGroupname\t\t \"%s\",\t %s",
 		lgs_conf.logDataGroupname,

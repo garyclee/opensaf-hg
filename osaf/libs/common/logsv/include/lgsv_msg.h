@@ -76,8 +76,8 @@ typedef struct {
 typedef struct {
 	uint32_t client_id;
 	SaNameT lstr_name;
-	char logFileName[NAME_MAX];
-	char logFilePathName[PATH_MAX];
+	char *logFileName;
+	char *logFilePathName;
 	SaUint64T maxLogFileSize;
 	SaUint32T maxLogRecordSize;
 	SaBoolT haProperty;

@@ -338,99 +338,63 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 	int rc = 0;
 	int mldh_rc = 0;
 	mld_in_t *params_in = static_cast<mld_in_t *>(indata);
-	char *out_path = static_cast<char *>(outdata);
-	char *relpath = params_in->rel_path;
-	char *rootpath = params_in->root_dir;
-	char dir_to_make[PATH_MAX];
-	char mpath[PATH_MAX];
-	char *spath_p;
-	char *epath_p;
-	struct stat statbuf;
-	int n;
+	std::string relpath = params_in->rel_path;
+	std::string rootpath = params_in->root_dir;
+	std::string dir_to_make;
+	std::string mpath;
+	const char *spath_p = NULL;
+	const char *epath_p = NULL;
 	int path_len = 0;
-	char *rootpp = NULL;
 
 	TRACE_ENTER();
 
-	TRACE("rootpath \"%s\"",rootpath);
-	TRACE("relpath \"%s\"",relpath);
+	TRACE("rootpath \"%s\"", rootpath.c_str());
+	TRACE("relpath \"%s\"", relpath.c_str());
 
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
 	/*
 	 * Create root directory if it does not exists.
-	 * TBD. Handle via separate ticket
-	 * (Create the default root path regardless of what is set in the
-	 * configuration object.)
-	 */
-	out_path[0] = '\0';
-	if (lstat(rootpath, &statbuf) != 0) {
-#if 0
-		rootpath = PKGLOGDIR;
-#endif
-		n = snprintf(out_path, max_outsize, "%s", rootpath);
-		if (n < 0 || static_cast<uint32_t>(n) >=  max_outsize) {
-			LOG_WA("Invalid root path > max_outsize");
-			mldh_rc = -1;
-			goto done;
-		}
-		LOG_NO("LOG Root path does not exist. Will be created");
-		TRACE("%s - create rootpath \"%s\"",__FUNCTION__,rootpath);
-	}
-	
-	/*
 	 * Create root path without preceding '/' and ending '/'
 	 * Example: ro1/ro2/ro3
-	 * Check that not > PATH_MAX
 	 */
-	n = snprintf(mpath, PATH_MAX, "%s", rootpath);
-	if (n >= PATH_MAX) {
-		LOG_WA("Could not create path, rootpath > PATH_MAX");
-		mldh_rc = -1;
-		goto done;
-	}
 
-	rootpp = mpath;
-	while (*rootpp == '/') rootpp++; /* Remove preceding '/' */
-	while (mpath[strlen(mpath)-1] == '/') { /* Remove trailing '/' if needed */
-		mpath[strlen(mpath)-1] = '\0';
-	}
+	/* Remove preceding '/' */
+	rootpath.erase(0, rootpath.find_first_not_of('/'));
+	/* Remove trailing '/' */
+	rootpath.erase(rootpath.find_last_not_of('/') + 1);
 
 	/*
 	 * Add relative path. Shall end with '/'
 	 * Example: ro1/ro2/ro3/re1/re2/re3/
-	 * Check that not > PATH_MAX
 	 */
-	if (relpath[strlen(relpath)-1] != '/') {
-		n = snprintf(dir_to_make, PATH_MAX, "/%s/%s/", rootpp, relpath);
+	if (relpath[relpath.size() - 1] != '/') {
+		dir_to_make = "/" + rootpath + "/" + relpath + "/";
 	} else {
-		n = snprintf(dir_to_make, PATH_MAX, "/%s/%s", rootpp, relpath);
+		dir_to_make = "/" + rootpath + "/" + relpath;
 	}
-	if (n >= PATH_MAX) {
-		LOG_WA("Could not create path > PATH_MAX");
-		mldh_rc = -1;
-		goto done;
-	}
-	TRACE("%s - Path to create \"%s\"",__FUNCTION__,dir_to_make);
+
+	TRACE("%s - Path to create \"%s\"", __FUNCTION__, dir_to_make.c_str());
 
 	/* Create the path */
-	spath_p = epath_p = dir_to_make;
+	spath_p = epath_p = dir_to_make.c_str();
 	while ((epath_p = strchr(epath_p, '/')) != NULL) {
 		if (epath_p == spath_p) {
 			epath_p++;
 			continue; /* Don't try to create path "/" */
 		}
+
 		epath_p++;
 		path_len = epath_p - spath_p;
-		strncpy(mpath, spath_p, path_len);
-		mpath[path_len] = '\0';
-		rc = mkdir(mpath, S_IRWXU | S_IRWXG | S_IRWXO);
+
+		mpath.assign(spath_p, path_len);
+		rc = mkdir(mpath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 		if ((rc != 0) && (errno != EEXIST)) {
-			LOG_ER("mkdir \"%s\" Fail %s", mpath, strerror(errno));
+			LOG_ER("mkdir \"%s\" Fail %s", mpath.c_str(), strerror(errno));
 			mldh_rc = -1;
 			goto done;
 		}
 	}
-	TRACE("%s - Dir \"%s\" created",__FUNCTION__, mpath);
+	TRACE("%s - Dir \"%s\" created", __FUNCTION__, mpath.c_str());
 
 done:
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
@@ -606,12 +570,16 @@ static int check_oldest(char *line, char *fname_prefix, int fname_prefix_size, i
 }
 
 /* Filter function used by scandir. */
-static char file_prefix[SA_MAX_NAME_LENGTH];
+static std::string file_prefix;
+
 static int filter_func(const struct dirent *finfo)
 {
 	int ret;
 	int filenameLen = strlen(finfo->d_name) - strlen(".log");
-	ret = strncmp(file_prefix, finfo->d_name, strlen(file_prefix)) || strcmp(finfo->d_name + filenameLen, ".log");
+
+	ret = strncmp(file_prefix.c_str(), finfo->d_name, file_prefix.size())
+		|| strcmp(finfo->d_name + filenameLen, ".log");
+
 	return !ret;
 }
 
@@ -627,7 +595,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 {
 	struct dirent **namelist;
 	int n, old_date = -1, old_time = -1, old_ind = -1, files, i, failed = 0;
-	char path[PATH_MAX];
+	std::string path;
 	gnolfh_in_t *params_in;
 	char *oldest_file;
 	int rc = 0;
@@ -638,32 +606,20 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 	oldest_file = static_cast<char *>(outdata);
 
 	/* Initialize the filter */
-	n = snprintf(file_prefix, SA_MAX_NAME_LENGTH, "%s", params_in->file_name);
-	if (n >= SA_MAX_NAME_LENGTH) {
-		rc = -1;
-		LOG_WA("file_prefix > SA_MAX_NAME_LENGTH");
-		goto done_exit;
-	}
-
-	n = snprintf(path, PATH_MAX, "%s/%s",
-			params_in->logsv_root_dir, params_in->pathName);
-	if (n >= PATH_MAX) {
-		LOG_WA("path > PATH_MAX");
-		rc = -1;
-		goto done_exit;
-	}
+	file_prefix = params_in->file_name;
+	path = std::string(params_in->logsv_root_dir) + "/" + params_in->pathName;
 
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-	files = n = scandir(path, &namelist, filter_func, alphasort);
-
+	files = n = scandir(path.c_str(), &namelist, filter_func, alphasort);
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
+
 	if (n == -1 && errno == ENOENT) {
 		rc = 0;
 		goto done_exit;
 	}
 
 	if (n < 0) {
-		LOG_WA("scandir:%s - %s", strerror(errno), path);
+		LOG_WA("scandir:%s - %s", strerror(errno), path.c_str());
 		rc = -1;
 		goto done_exit;
 	}
@@ -685,7 +641,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 	if (old_ind != -1) {
 		TRACE_1("oldest: %s", namelist[old_ind]->d_name);
 		n = snprintf(oldest_file, max_outsize, "%s/%s",
-				path, namelist[old_ind]->d_name);
+			     path.c_str(), namelist[old_ind]->d_name);
 		if (n < 0 || static_cast<uint32_t>(n) >= max_outsize) {
 			LOG_WA("oldest_file > max_outsize");
 			rc = -1;
@@ -718,7 +674,8 @@ done_exit:
  *
  * @return int, 0 on success or -1 if error
  */
-int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) {
+int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize)
+{
 	struct dirent **namelist;
 	int n, files, i;
 	olfbgh_t *params_in;
@@ -730,15 +687,9 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 	params_in = static_cast<olfbgh_t *>(indata);
 
 	/* Set file prefix filter */
-	n = snprintf(file_prefix, SA_MAX_NAME_LENGTH, "%s", params_in->file_name);
-	if (n >= SA_MAX_NAME_LENGTH) {
-		rc = -1;
-		LOG_WA("file_prefix > SA_MAX_NAME_LENGTH");
-		goto done_exit;
-	}
+	file_prefix = params_in->file_name;
 
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-
 	files = n = scandir(params_in->dir_path, &namelist, filter_func, alphasort);
 
 	if (n == -1 && errno == ENOENT) {
@@ -760,21 +711,16 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 	gid = lgs_get_data_gid(params_in->groupname);
 
 	while (n--) {
-		char file[PATH_MAX];
-		int len = snprintf(file, PATH_MAX, "%s/%s",
-					params_in->dir_path, namelist[n]->d_name);
-		if (len >= PATH_MAX) {
-			LOG_WA("path > PATH_MAX");
-			rc = -1;
-			goto done_free;
-		}
-		TRACE_3("%s", file);
-		if (chown(file, (uid_t) -1, gid) != 0) {
+		std::string file;
+		file = std::string(params_in->dir_path) + "/" + namelist[n]->d_name;
+
+		TRACE_3("%s", file.c_str());
+
+		if (chown(file.c_str(), (uid_t) -1, gid) != 0) {
 			LOG_WA("Failed to change the ownership of %s - %s", namelist[n]->d_name, strerror(errno));
 		}
 	}
 
-done_free:
 	/* Free scandir allocated memory */
 	for (i = 0; i < files; i++)
 		free(namelist[i]);
