@@ -35,17 +35,13 @@
 #define AVD_MSG_H
 
 #include <amf_d2nmsg.h>
+#include "role.h"
 
 typedef enum {
 	AVD_D2D_CHANGE_ROLE_REQ = AVSV_DND_MSG_MAX,
 	AVD_D2D_CHANGE_ROLE_RSP,
 	AVD_D2D_MSG_MAX,
 } AVD_D2D_MSG_TYPE;
-
-typedef enum avd_rol_chg_cause_type {
-        AVD_SWITCH_OVER,
-        AVD_FAIL_OVER
-} AVD_ROLE_CHG_CAUSE_T;
 
 typedef AVSV_DND_MSG AVD_DND_MSG;
 #define AVD_DND_MSG_NULL ((AVD_DND_MSG *)0)
@@ -86,26 +82,6 @@ uint32_t avd_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info);
 uint32_t avd_mds_dec_flat(MDS_CALLBACK_DEC_FLAT_INFO *dec_info);
 uint32_t avd_d2n_msg_bcast(struct cl_cb_tag *cb, AVD_DND_MSG *bcast_msg);
 
-uint32_t avd_snd_node_ack_msg(struct cl_cb_tag *cb, AVD_AVND *avnd, uint32_t msg_id);
-uint32_t avd_snd_node_data_verify_msg(struct cl_cb_tag *cb, AVD_AVND *avnd);
-uint32_t avd_snd_node_info_on_fover_msg(struct cl_cb_tag *cb, AVD_AVND *avnd);
-uint32_t avd_snd_node_update_msg(struct cl_cb_tag *cb, AVD_AVND *avnd);
-uint32_t avd_snd_node_up_msg(struct cl_cb_tag *cb, AVD_AVND *avnd, uint32_t msg_id_ack);
-uint32_t avd_snd_presence_msg(struct cl_cb_tag *cb, AVD_SU *su, bool term_state);
-uint32_t avd_snd_oper_state_msg(struct cl_cb_tag *cb, AVD_AVND *avnd, uint32_t msg_id_ack);
-uint32_t avd_snd_op_req_msg(struct cl_cb_tag *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_info);
-uint32_t avd_snd_su_msg(struct cl_cb_tag *cb, AVD_SU *su);
-uint32_t avd_snd_susi_msg(struct cl_cb_tag *cb, AVD_SU *su, struct avd_su_si_rel_tag *susi,
-				AVSV_SUSI_ACT actn, SaBoolT single_csi, struct avd_comp_csi_rel_tag*);
-uint32_t avd_snd_set_leds_msg(struct cl_cb_tag *cb, AVD_AVND *avnd);
-
-uint32_t avd_snd_pg_resp_msg(struct cl_cb_tag *, AVD_AVND *, AVD_CSI *,
-				   AVSV_N2D_PG_TRACK_ACT_MSG_INFO *);
-uint32_t avd_snd_pg_upd_msg(struct cl_cb_tag *, AVD_AVND *, struct avd_comp_csi_rel_tag *,
-				  SaAmfProtectionGroupChangesT, SaNameT *);
-uint32_t avd_snd_hb_msg(struct cl_cb_tag *);
-uint32_t avd_snd_comp_validation_resp(struct cl_cb_tag *cb, AVD_AVND *avnd,
-					    AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg);
 void avsv_d2d_msg_free(AVD_D2D_MSG *);
 void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *);
 void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *);

@@ -39,6 +39,7 @@
 
 #include "amfd.h"
 #include "logtrace.h"
+#include "role.h"
 
 /*****************************************************************************
  * Function: avd_mds_d_enc

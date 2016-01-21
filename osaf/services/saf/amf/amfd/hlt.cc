@@ -26,6 +26,7 @@
 #include <csi.h>
 #include <hlt.h>
 #include <comp.h>
+#include "util.h"
 
 static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {

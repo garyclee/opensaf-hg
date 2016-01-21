@@ -45,6 +45,7 @@
 #include <clm.h>
 #include <si_dep.h>
 #include "osaf_utility.h"
+#include "role.h"
 
 extern pthread_mutex_t imm_reinit_mutex;
 
