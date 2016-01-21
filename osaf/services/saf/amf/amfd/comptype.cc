@@ -25,6 +25,7 @@
 #include <amf_util.h>
 #include <comp.h>
 #include <imm.h>
+#include "util.h"
 
 /* Global variable for the singleton object used by comp class */
 AVD_COMP_GLOBALATTR avd_comp_global_attrs;
