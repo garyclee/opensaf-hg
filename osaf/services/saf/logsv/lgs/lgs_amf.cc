@@ -26,7 +26,7 @@
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
-static void close_all_files(void)
+static void close_all_files()
 {
 	log_stream_t *stream;
 
@@ -171,7 +171,7 @@ static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb, SaInvocationT invoca
 
 	mds_role = cb->mds_role;
 	cb->mds_role = V_DEST_RL_QUIESCED;
-	if ((rc = lgs_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
+	if (lgs_mds_change_role(cb) != NCSCC_RC_SUCCESS) {
 		LOG_ER("lgs_mds_change_role FAILED");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		cb->mds_role = mds_role;
@@ -306,7 +306,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		}
 
 		/* Inform MBCSV of HA state change */
-		if (NCSCC_RC_SUCCESS != (error = lgs_mbcsv_change_HA_state(lgs_cb)))
+		if (NCSCC_RC_SUCCESS != lgs_mbcsv_change_HA_state(lgs_cb))
 			error = SA_AIS_ERR_FAILED_OPERATION;
 	}
 

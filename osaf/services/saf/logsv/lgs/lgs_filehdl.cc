@@ -19,10 +19,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <limits.h>
 #include <errno.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -30,15 +26,10 @@
 
 #include <unistd.h>
 
-#include <configmake.h>
 #include <logtrace.h>
-#include <ncsgl_defs.h>
-#include <osaf_utility.h>
 #include <osaf_time.h>
 
 #include "lgs.h"
-#include "lgs_util.h"
-#include "lgs_file.h"
 
 extern pthread_mutex_t lgs_ftcom_mutex;	/* For locking communication */
 
@@ -133,17 +124,17 @@ int check_path_exists_hdl(void *indata, void *outdata, size_t max_outsize)
 int rename_file_hdl(void *indata, void *outdata, size_t max_outsize)
 {
 	int rc = 0;
-	
-	TRACE_ENTER();
-	size_t old_path_size = *((size_t *) indata);
-	char *old_path = (char *) indata + sizeof(size_t);
+	size_t old_path_size = *static_cast<size_t *>(indata);
+	char *old_path = static_cast<char *>(indata) + sizeof(size_t);
 	char *new_path = old_path + old_path_size;
-	
+
+	TRACE_ENTER();
+
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
-	
+
 	if ((rc = rename(old_path, new_path)) == -1)
 		LOG_NO("rename: FAILED - %s", strerror(errno));
-	
+
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
 	TRACE_LEAVE();
@@ -163,16 +154,16 @@ int create_config_file_hdl(void *indata, void *outdata, size_t max_outsize)
 {
 	int rc = 0;
 	FILE *filp;
-	ccfh_t *params_in = (ccfh_t *) indata;
-	char *logFileFormat = (char *) (indata + sizeof(ccfh_t));
+	ccfh_t *params_in = static_cast<ccfh_t *>(indata);
+	char *logFileFormat = static_cast<char *>(indata) + sizeof(ccfh_t);
 	char *file_path = (logFileFormat + params_in->logFileFormat_size);
-	
+
 	TRACE_ENTER();
-	
+
 	TRACE("%s - file_path \"%s\"",__FUNCTION__,file_path);
 
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
-	
+
 	/* Create the config file */
 	do {
 		if ((filp = fopen(file_path, "w")) != NULL)
@@ -226,7 +217,7 @@ int create_config_file_hdl(void *indata, void *outdata, size_t max_outsize)
 	if (rc == -1) {
 		LOG_NO("Could not close \"%s\" - \"%s\"", file_path, strerror(errno));
 	}
-	
+
 done:
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 	TRACE_LEAVE2("rc = %d", rc);
@@ -244,16 +235,17 @@ done:
  */
 int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_f)
 {
-	int rc, bytes_written = 0;
+	int rc = 0;
+	uint32_t bytes_written = 0;
 	off_t file_length = 0;
-	wlrh_t *params_in = (wlrh_t *) indata;
+	wlrh_t *params_in = static_cast<wlrh_t *>(indata);
 	/* Get log record pointed by lgs_rec pointer */
-	char *logrecord = (char *) params_in->lgs_rec;
-	int *errno_out_p = (int *) outdata;
+	char *logrecord = const_cast<char *>(static_cast<const char*>(params_in->lgs_rec));
+	int *errno_out_p = static_cast<int *>(outdata);
 	*errno_out_p = 0;
 
 	TRACE_ENTER();
-	
+
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
 
  retry:
@@ -272,18 +264,18 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *
 		if (bytes_written < params_in->record_size)
 			goto retry;
 	}
- 
+
  	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
 	/* If the thread was hanging and has timed out and the log record was
 	 * written it is invalid and shall be removed from file (log service has
-	 * returned SA_AIS_TRY_AGAIN). 
+	 * returned SA_AIS_TRY_AGAIN).
 	 */
 	if (*timeout_f == true) {
 		TRACE("Timeout, removing last log record");
 		file_length = lseek(params_in->fd, -bytes_written, SEEK_END);
 		if (file_length != -1) {
-			do { 
+			do {
 				rc = ftruncate(params_in->fd, file_length);
 			} while ((rc == -1) && (errno == EINTR));
 		}
@@ -293,7 +285,7 @@ int write_log_record_hdl(void *indata, void *outdata, size_t max_outsize, bool *
 					__FUNCTION__,strerror(errno));
 		} else if (rc == -1) {
 			LOG_WA("%s - ftruncate error, Could not remove redundant log record, %s",
-					__FUNCTION__,strerror(errno));			
+					__FUNCTION__,strerror(errno));
 		}
 	}
 
@@ -345,9 +337,8 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 {
 	int rc = 0;
 	int mldh_rc = 0;
-	mld_in_t *params_in = (mld_in_t *) indata;
-	char *out_path = (char *) outdata;
-	
+	mld_in_t *params_in = static_cast<mld_in_t *>(indata);
+	char *out_path = static_cast<char *>(outdata);
 	char *relpath = params_in->rel_path;
 	char *rootpath = params_in->root_dir;
 	char dir_to_make[PATH_MAX];
@@ -356,14 +347,16 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 	char *epath_p;
 	struct stat statbuf;
 	int n;
-	
+	int path_len = 0;
+	char *rootpp = NULL;
+
 	TRACE_ENTER();
-	
+
 	TRACE("rootpath \"%s\"",rootpath);
 	TRACE("relpath \"%s\"",relpath);
-	
+
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
-	/* 
+	/*
 	 * Create root directory if it does not exists.
 	 * TBD. Handle via separate ticket
 	 * (Create the default root path regardless of what is set in the
@@ -375,7 +368,7 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 		rootpath = PKGLOGDIR;
 #endif
 		n = snprintf(out_path, max_outsize, "%s", rootpath);
-		if (n >= max_outsize) {
+		if (n < 0 || static_cast<uint32_t>(n) >=  max_outsize) {
 			LOG_WA("Invalid root path > max_outsize");
 			mldh_rc = -1;
 			goto done;
@@ -395,7 +388,8 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 		mldh_rc = -1;
 		goto done;
 	}
-	char *rootpp = mpath;
+
+	rootpp = mpath;
 	while (*rootpp == '/') rootpp++; /* Remove preceding '/' */
 	while (mpath[strlen(mpath)-1] == '/') { /* Remove trailing '/' if needed */
 		mpath[strlen(mpath)-1] = '\0';
@@ -417,9 +411,8 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 		goto done;
 	}
 	TRACE("%s - Path to create \"%s\"",__FUNCTION__,dir_to_make);
-		
+
 	/* Create the path */
-	int path_len = 0;
 	spath_p = epath_p = dir_to_make;
 	while ((epath_p = strchr(epath_p, '/')) != NULL) {
 		if (epath_p == spath_p) {
@@ -438,7 +431,7 @@ int make_log_dir_hdl(void *indata, void *outdata, size_t max_outsize)
 		}
 	}
 	TRACE("%s - Dir \"%s\" created",__FUNCTION__, mpath);
-	
+
 done:
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 	TRACE_LEAVE2("mldh_rc = %u", mldh_rc);
@@ -461,13 +454,13 @@ done:
 int fileopen_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_f)
 {
 	int errno_save = 0;
-	fopen_in_t *param_in = (fopen_in_t *) indata;
-	int *errno_out_p = (int *) outdata;
+	fopen_in_t *param_in = static_cast<fopen_in_t *>(indata);
+	int *errno_out_p = static_cast<int *>(outdata);
 	int fd;
 	gid_t gid;
-	
+
 	TRACE_ENTER();
-	
+
 	TRACE("%s - filepath \"%s\"",__FUNCTION__,param_in->filepath);
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section  */
 
@@ -495,7 +488,7 @@ open_retry:
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
 	*errno_out_p = errno_save;
-	
+
 	/* If the file was opened but thread was hanging and has timed out than
 	 * opening the file is reported as failed. This means that the file has to
 	 * be closed again in order to not get a stray fd.
@@ -505,7 +498,7 @@ open_retry:
 		fd = -1;
 		errno_save = 0;
 	}
-	
+
 	TRACE_LEAVE();
 	return fd;
 }
@@ -521,8 +514,8 @@ int fileclose_hdl(void *indata, void *outdata, size_t max_outsize)
 {
 	int rc = 0;
 	int fd;
-	
-	fd = *(int *) indata;
+
+	fd = *static_cast<int *>(indata);
 	TRACE_ENTER2("fd=%d", fd);
 
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
@@ -536,7 +529,7 @@ int fileclose_hdl(void *indata, void *outdata, size_t max_outsize)
 			LOG_NO("%s: fdatasync() error \"%s\"",__FUNCTION__, strerror(errno));
 		}
 	}
- 
+
 	/* Close the file */
 	rc = close(fd);
 	if (rc == -1) {
@@ -558,10 +551,10 @@ int fileclose_hdl(void *indata, void *outdata, size_t max_outsize)
 int delete_file_hdl(void *indata, void *outdata, size_t max_outsize)
 {
 	int rc = 0;
-	char *pathname = (char *) indata;
-	
+	char *pathname = static_cast<char *>(indata);
+
 	TRACE_ENTER();
-	
+
 	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
 	if ((rc = unlink(pathname)) == -1) {
 		if (errno == ENOENT)
@@ -571,6 +564,7 @@ int delete_file_hdl(void *indata, void *outdata, size_t max_outsize)
 	}
 
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -637,12 +631,12 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 	gnolfh_in_t *params_in;
 	char *oldest_file;
 	int rc = 0;
-	
+
 	TRACE_ENTER();
-	
-	params_in = (gnolfh_in_t *) indata;
-	oldest_file = (char *) outdata;
-	
+
+	params_in = static_cast<gnolfh_in_t *>(indata);
+	oldest_file = static_cast<char *>(outdata);
+
 	/* Initialize the filter */
 	n = snprintf(file_prefix, SA_MAX_NAME_LENGTH, "%s", params_in->file_name);
 	if (n >= SA_MAX_NAME_LENGTH) {
@@ -673,7 +667,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 		rc = -1;
 		goto done_exit;
 	}
-	
+
 	if (n == 0) {
 		rc = files;
 		goto done_exit;
@@ -692,7 +686,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 		TRACE_1("oldest: %s", namelist[old_ind]->d_name);
 		n = snprintf(oldest_file, max_outsize, "%s/%s",
 				path, namelist[old_ind]->d_name);
-		if (n >= max_outsize) {
+		if (n < 0 || static_cast<uint32_t>(n) >= max_outsize) {
 			LOG_WA("oldest_file > max_outsize");
 			rc = -1;
 			goto done_free;
@@ -709,7 +703,7 @@ done_free:
 		free(namelist[i]);
 	free(namelist);
 
-done_exit:	
+done_exit:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -729,10 +723,11 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 	int n, files, i;
 	olfbgh_t *params_in;
 	int rc = 0;
+	gid_t gid = 0;
 
 	TRACE_ENTER();
 
-	params_in = (olfbgh_t *) indata;
+	params_in = static_cast<olfbgh_t *>(indata);
 
 	/* Set file prefix filter */
 	n = snprintf(file_prefix, SA_MAX_NAME_LENGTH, "%s", params_in->file_name);
@@ -762,7 +757,7 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
 		goto done_exit;
 	}
 
-	gid_t gid = lgs_get_data_gid(params_in->groupname);
+	gid = lgs_get_data_gid(params_in->groupname);
 
 	while (n--) {
 		char file[PATH_MAX];

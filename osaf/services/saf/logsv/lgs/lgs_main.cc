@@ -20,25 +20,20 @@
  *   INCLUDE FILES
  * ========================================================================
  */
-
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#endif
+
 #include <signal.h>
 #include <poll.h>
 
-#include <configmake.h>
 #include <rda_papi.h>
 #include <daemon.h>
 #include <nid_api.h>
 #include <ncs_main_papi.h>
 
 #include "lgs.h"
-#include "lgs_util.h"
 #include "lgs_file.h"
-#include "lgs_config.h"
 #include "osaf_utility.h"
 
 /* ========================================================================
@@ -92,11 +87,6 @@ static struct pollfd fds[5];
 static nfds_t nfds = 5;
 static NCS_SEL_OBJ usr1_sel_obj;
 
-/* ========================================================================
- *   FUNCTION PROTOTYPES
- * ========================================================================
- */
-
 /**
  * Callback from RDA. Post a message/event to the lgs mailbox.
  * @param cb_hdl
@@ -110,7 +100,7 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 
 	TRACE_ENTER();
 
-	evt = calloc(1, sizeof(lgsv_lgs_evt_t));
+	evt = static_cast<lgsv_lgs_evt_t *>(calloc(1, sizeof(lgsv_lgs_evt_t)));
 	if (NULL == evt) {
 		LOG_ER("calloc failed");
 		goto done;
@@ -119,9 +109,12 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 	evt->evt_type = LGSV_EVT_RDA;
 	evt->info.rda_info.io_role = cb_info->info.io_role;
 
-	rc = ncs_ipc_send(&lgs_mbx, (NCS_IPC_MSG *)evt, LGS_IPC_PRIO_CTRL_MSGS);
-	if (rc != NCSCC_RC_SUCCESS)
+        rc = ncs_ipc_send(&lgs_mbx, reinterpret_cast<NCS_IPC_MSG *>(evt),
+                          LGS_IPC_PRIO_CTRL_MSGS);
+	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IPC send failed %d", rc);
+		free(evt);
+	}
 
 done:
 	TRACE_LEAVE();
@@ -160,7 +153,7 @@ uint32_t lgs_configure_mailbox(void)
 	 */
 	osaf_mutex_lock_ordie(&lgs_mbox_init_mutex);
 	
-	limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT);
+        limit = *static_cast<const uint32_t*>(lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT));
 
 	mbox_high[LGS_IPC_PRIO_SYS_STREAM] = limit;
 	mbox_low[LGS_IPC_PRIO_SYS_STREAM] = LOG_STREAM_LOW_LIMIT_PERCENT * limit;
@@ -171,11 +164,12 @@ uint32_t lgs_configure_mailbox(void)
 			&mbox_msgs[LGS_IPC_PRIO_SYS_STREAM]);
 
 	if (limit != 0) {
-		limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT);
+                limit = *static_cast<const uint32_t*>(
+                    lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT));
 		mbox_low[LGS_IPC_PRIO_SYS_STREAM] = limit;
 	}
 
-	limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT);
+        limit = *static_cast<const uint32_t*>(lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT));
 
 	mbox_high[LGS_IPC_PRIO_APP_STREAM] = limit;
 	mbox_low[LGS_IPC_PRIO_APP_STREAM] = LOG_STREAM_LOW_LIMIT_PERCENT * limit;
@@ -186,7 +180,8 @@ uint32_t lgs_configure_mailbox(void)
 			&mbox_msgs[LGS_IPC_PRIO_APP_STREAM]);
 
 	if (limit != 0) {
-		limit = *(uint32_t*) lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT);
+                limit = *static_cast<const uint32_t*>(
+                    lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT));
 		mbox_low[LGS_IPC_PRIO_APP_STREAM] = limit;
 	}
 
@@ -209,6 +204,8 @@ static uint32_t log_initialize(void)
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER();
+        const char *logsv_root_dir = NULL;
+        const char *logsv_data_groupname = NULL;
 
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
@@ -239,8 +236,8 @@ static uint32_t log_initialize(void)
 	lgs_trace_config(); /* Show all configuration in TRACE */
 	
 	/* Show some configurtion info in sysylog */
-	char *logsv_root_dir = (char *) lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
-	char *logsv_data_groupname = (char *) lgs_cfg_get(LGS_IMM_DATA_GROUPNAME);
+        logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+        logsv_data_groupname = static_cast<const char *>(lgs_cfg_get(LGS_IMM_DATA_GROUPNAME));
 	LOG_NO("LOG root directory is: \"%s\"", logsv_root_dir);
 	LOG_NO("LOG data group is: \"%s\"", logsv_data_groupname);
 
@@ -342,7 +339,7 @@ static uint32_t log_initialize(void)
 
 done:
 	if (lgs_cb->nid_started &&
-	    nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS) {
+            nid_notify(const_cast<char *>("LOGD"), rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
 	}

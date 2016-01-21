@@ -18,7 +18,6 @@
 #include "lgs.h"
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
-#include "lgs_fmt.h"
 #include "osaf_time.h"
 
 #include "lgs_mbcsv_v5.h"
@@ -28,9 +27,9 @@
 
 /*
 LGS_CKPT_DATA_HEADER
-       4                4               4                 2            
+       4                4               4                 2
 -----------------------------------------------------------------
-| ckpt_rec_type | num_ckpt_records | tot_data_len |  checksum   | 
+| ckpt_rec_type | num_ckpt_records | tot_data_len |  checksum   |
 -----------------------------------------------------------------
 
 LGSV_CKPT_COLD_SYNC_MSG
@@ -147,9 +146,9 @@ uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_open_stream_msg_ptr = (lgs_ckpt_stream_open_t *)ptr;
+		ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_open_stream_msg_dec_ptr = (lgs_ckpt_stream_open_t **)ptr;
+		ckpt_open_stream_msg_dec_ptr = static_cast<lgs_ckpt_stream_open_t **>(ptr);
 		if (*ckpt_open_stream_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -157,7 +156,7 @@ uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_open_stream_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_open_t));
 		ckpt_open_stream_msg_ptr = *ckpt_open_stream_msg_dec_ptr;
 	} else {
-		ckpt_open_stream_msg_ptr = ptr;
+		ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
 	}
 
 	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_open_stream_rec_ed_rules, ckpt_open_stream_msg_ptr,
@@ -175,11 +174,11 @@ void lgs_free_edu_mem(char *ptr)
 }
 
 /****************************************************************************
- * Name          : lgsv_mbcsv_init 
+ * Name          : lgsv_mbcsv_init
  *
  * Description   : This function initializes the mbcsv interface and
  *                 obtains a selection object from mbcsv.
- *                 
+ *
  * Arguments     : LGS_CB * - A pointer to the lgs control block.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
@@ -280,7 +279,7 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_CHG_ROLE FAILED");
 		return NCSCC_RC_FAILURE;
 	}
-	
+
 	/* If configured for split file system and becoming active some
 	 * stb stream parameters has to be copied to corresponding active. The
 	 * reason is that standby may have for example another current file in a
@@ -301,7 +300,7 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 				stream->stb_curFileSize = stream->curFileSize;
 				*stream->p_fd = -1; /* Reopen files */
 			}
-			
+
 			stream = log_stream_getnext_by_name(stream->name);
 		}
 	}
@@ -314,7 +313,7 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 /**
  * Mbcsv dispatcher
  * @param mbcsv_hdl
- * @return 
+ * @return
  */
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 {
@@ -332,7 +331,7 @@ uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  * Check if peer is version 2 (or later)
  * @return bool
  */
-bool lgs_is_peer_v2(void)
+bool lgs_is_peer_v2()
 {
 	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_2) {
 		return true;
@@ -345,7 +344,7 @@ bool lgs_is_peer_v2(void)
  * Check if peer is version 4 (or later)
  * @return bool
  */
-bool lgs_is_peer_v4(void)
+bool lgs_is_peer_v4()
 {
 	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_4) {
 		return true;
@@ -358,7 +357,7 @@ bool lgs_is_peer_v4(void)
  * Check if peer is version 5 (or later)
  * @return bool
  */
-bool lgs_is_peer_v5(void)
+bool lgs_is_peer_v5()
 {
 	if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_5) {
 		return true;
@@ -373,10 +372,10 @@ bool lgs_is_peer_v5(void)
  * 
  * @return bool
  */
-bool lgs_is_split_file_system(void)
+bool lgs_is_split_file_system()
 {
 	SaUint32T lgs_file_config;
-	lgs_file_config = *(SaUint32T*) lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG);
+	lgs_file_config = *static_cast<const SaUint32T*>(lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG));
 
 	if ((lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) && lgs_is_peer_v2()) {
 		return true;
@@ -598,7 +597,7 @@ uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_
 	stream_open->logPath = logStream->pathName;
 	stream_open->logFileCurrent = logStream->logFileCurrent;
 	stream_open->fileFmt = logStream->logFileFormat;
-	stream_open->logStreamName = (char *)logStream->name;
+	stream_open->logStreamName = logStream->name;
 	stream_open->maxFileSize = logStream->maxLogFileSize;
 	stream_open->maxLogRecordSize = logStream->fixedLogRecordSize;
 	stream_open->logFileFullAction = logStream->logFullAction;
@@ -621,13 +620,13 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 {
 	log_stream_t *log_stream_rec = NULL;
 	lgs_ckpt_stream_open_t *ckpt_stream_rec;
-	EDU_ERR ederror = 0;
+	EDU_ERR ederror;
 	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	lgsv_ckpt_header_t ckpt_hdr;
 
 	/* Prepare reg. structure to encode */
-	ckpt_stream_rec = malloc(sizeof(lgs_ckpt_stream_open_t));
+	ckpt_stream_rec = static_cast<lgs_ckpt_stream_open_t *>(malloc(sizeof(lgs_ckpt_stream_open_t)));
 	if (ckpt_stream_rec == NULL) {
 		LOG_WA("malloc FAILED");
 		return (NCSCC_RC_FAILURE);
@@ -667,7 +666,7 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 	enc_ckpt_header(pheader, ckpt_hdr);
 
 	free(ckpt_stream_rec);
-	
+
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -691,14 +690,15 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 {
 	log_client_t *client = NULL;
 	lgs_ckpt_initialize_msg_t *ckpt_reg_rec;
-	EDU_ERR ederror = 0;
+	EDU_ERR ederror;
 	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	lgsv_ckpt_header_t ckpt_hdr;
 
 	TRACE_ENTER();
+
 	/* Prepare reg. structure to encode */
-	ckpt_reg_rec = malloc(sizeof(lgs_ckpt_initialize_msg_t));
+	ckpt_reg_rec = static_cast<lgs_ckpt_initialize_msg_t *>(malloc(sizeof(lgs_ckpt_initialize_msg_t)));
 	if (ckpt_reg_rec == NULL) {
 		LOG_WA("malloc FAILED");
 		return (NCSCC_RC_FAILURE);
@@ -713,7 +713,7 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 	}
 	ncs_enc_claim_space(uba, sizeof(lgsv_ckpt_header_t));
 
-	client = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)0);
+	client = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&cb->client_tree, NULL));
 
 	/* Walk through the reg list and encode record by record */
 	while (client != NULL) {
@@ -732,8 +732,9 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 		++num_rec;
 
 		/* length+=lgs_edp_ed_reg_rec(reg_rec,o_ub); */
-		client = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)&client->client_id_net);
-	}			/* End while RegRec */
+		client = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&cb->client_tree,
+				    reinterpret_cast<uint8_t *>(&client->client_id_net)));
+	} /* End while RegRec */
 
 	/* Encode RegHeader */
 	ckpt_hdr.ckpt_rec_type = LGS_CKPT_CLIENT_INITIALIZE;
@@ -771,30 +772,30 @@ static uint32_t ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_
 	lgsv_ckpt_msg_v2_t *data_v2 = NULL;
 	lgsv_ckpt_msg_v1_t *data_v1 = NULL;
 	void * vdata = NULL;
-	EDU_ERR ederror = 0;
+	EDU_ERR ederror;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_PROG_HANDLER edp_function;
-	
+
 	TRACE_ENTER();
 	/* Set reo_hdl from callback arg to ckpt_rec */
 	if (lgs_is_peer_v5()) {
-		data_v5 = (lgsv_ckpt_msg_v5_t *)(long)cbk_arg->info.encode.io_reo_hdl;
+		data_v5 = reinterpret_cast<lgsv_ckpt_msg_v5_t *>((long)cbk_arg->info.encode.io_reo_hdl);
 		vdata = data_v5;
 		edp_function = edp_ed_ckpt_msg_v5;
 	} else if (lgs_is_peer_v4()) {
-		data_v3 = (lgsv_ckpt_msg_v3_t *)(long)cbk_arg->info.encode.io_reo_hdl;
+		data_v3 = reinterpret_cast<lgsv_ckpt_msg_v3_t *>((long)cbk_arg->info.encode.io_reo_hdl);
 		vdata = data_v3;
 		edp_function = edp_ed_ckpt_msg_v3;
 	} else if (lgs_is_peer_v2()) {
-		data_v2 = (lgsv_ckpt_msg_v2_t *)(long)cbk_arg->info.encode.io_reo_hdl;
+		data_v2 = reinterpret_cast<lgsv_ckpt_msg_v2_t *>((long)cbk_arg->info.encode.io_reo_hdl);
 		vdata = data_v2;
 		edp_function = edp_ed_ckpt_msg_v2;
 	} else {
-		data_v1 = (lgsv_ckpt_msg_v1_t *)(long)cbk_arg->info.encode.io_reo_hdl;
+		data_v1 = reinterpret_cast<lgsv_ckpt_msg_v1_t *>((long)cbk_arg->info.encode.io_reo_hdl);
 		vdata = data_v1;
 		edp_function = edp_ed_ckpt_msg_v1;
 	}
-	
+
 	if (vdata == NULL) {
 		TRACE("   data == NULL, FAILED");
 		TRACE_LEAVE();
@@ -940,7 +941,7 @@ static uint32_t ckpt_decode_log_struct(
 	}
 
 	rc = process_ckpt_data(cb, ckpt_msg);
-	return rc;	
+	return rc;
 }
 
 static uint32_t ckpt_decode_log_write(lgs_cb_t *cb, void *ckpt_msg,
@@ -953,15 +954,15 @@ static uint32_t ckpt_decode_log_write(lgs_cb_t *cb, void *ckpt_msg,
 	const int max_waiting_time_ms = 100;
 
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = ckpt_msg;
+		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_msg);
 		write_log = &ckpt_msg_v2->ckpt_rec.write_log;
 		edp_function = edp_ed_write_rec_v2;
 	} else {
-		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = ckpt_msg;
+		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(ckpt_msg);
 		write_log = &ckpt_msg_v1->ckpt_rec.write_log;
 		edp_function = edp_ed_write_rec_v1;
 	}
-	
+
 	rc = ckpt_decode_log_struct(cb, cbk_arg, ckpt_msg, write_log, edp_function);
 
 	/*
@@ -993,17 +994,17 @@ static uint32_t ckpt_decode_log_close(lgs_cb_t *cb, void *ckpt_msg,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	void *stream_close;
 	EDU_PROG_HANDLER edp_function;
-	
+
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = ckpt_msg;
+		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_msg);
 		stream_close = &ckpt_msg_v2->ckpt_rec.stream_close;
 		edp_function = edp_ed_close_stream_rec_v2;
 	} else {
-		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = ckpt_msg;
+		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(ckpt_msg);
 		stream_close = &ckpt_msg_v1->ckpt_rec.stream_close;
 		edp_function = edp_ed_close_stream_rec_v1;
 	}
-	
+
 	rc = ckpt_decode_log_struct(cb, cbk_arg, ckpt_msg, stream_close, edp_function);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("%s - ckpt_decode_log_struct Fail",__FUNCTION__);
@@ -1017,17 +1018,17 @@ static uint32_t ckpt_decode_log_client_finalize(lgs_cb_t *cb, void *ckpt_msg,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	void *finalize_client;
 	EDU_PROG_HANDLER edp_function;
-	
+
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = ckpt_msg;
+		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_msg);
 		finalize_client = &ckpt_msg_v2->ckpt_rec.finalize_client;
 		edp_function = edp_ed_finalize_rec_v2;
 	} else {
-		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = ckpt_msg;
+		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(ckpt_msg);
 		finalize_client = &ckpt_msg_v1->ckpt_rec.finalize_client;
 		edp_function = edp_ed_finalize_rec_v1;
 	}
-	
+
 	rc = ckpt_decode_log_struct(cb, cbk_arg, ckpt_msg, finalize_client, edp_function);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("%s - ckpt_decode_log_struct Fail",__FUNCTION__);
@@ -1043,11 +1044,11 @@ static uint32_t ckpt_decode_log_client_down(lgs_cb_t *cb, void *ckpt_msg,
 	EDU_PROG_HANDLER edp_function;
 		
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = ckpt_msg;
+		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_msg);
 		client_down = &ckpt_msg_v2->ckpt_rec.agent_down;
 		edp_function = edp_ed_agent_down_rec_v2;
 	} else {
-		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = ckpt_msg;
+		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(ckpt_msg);
 		client_down = &ckpt_msg_v1->ckpt_rec.agent_dest;
 		edp_function = ncs_edp_mds_dest;
 	}
@@ -1067,11 +1068,11 @@ static uint32_t ckpt_decode_log_cfg_stream(lgs_cb_t *cb, void *ckpt_msg,
 	EDU_PROG_HANDLER edp_function;
 	
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = ckpt_msg;
+		lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_msg);
 		stream_cfg = &ckpt_msg_v2->ckpt_rec.stream_cfg;
 		edp_function = edp_ed_cfg_stream_rec_v2;
 	} else {
-		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = ckpt_msg;
+		lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(ckpt_msg);
 		stream_cfg = &ckpt_msg_v1->ckpt_rec.stream_cfg;
 		edp_function = edp_ed_cfg_stream_rec_v1;
 	}
@@ -1094,15 +1095,15 @@ static uint32_t ckpt_decode_log_cfg(lgs_cb_t *cb, void *ckpt_msg,
 	lgsv_ckpt_msg_v2_t *ckpt_msg_v2;
 
 	if (lgs_is_peer_v5()) {
-		ckpt_msg_v5 = ckpt_msg;
+		ckpt_msg_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(ckpt_msg);
 		lgs_cfg = &ckpt_msg_v5->ckpt_rec.lgs_cfg;
 		edp_function = edp_ed_lgs_cfg_rec_v5;
 	} else if (lgs_is_peer_v4()) {
-		ckpt_msg_v3 = ckpt_msg;
+		ckpt_msg_v3 = static_cast<lgsv_ckpt_msg_v3_t *>(ckpt_msg);
 		lgs_cfg = &ckpt_msg_v3->ckpt_rec.lgs_cfg;
 		edp_function = edp_ed_lgs_cfg_rec_v3;
 	} else if (lgs_is_peer_v2()) {
-		ckpt_msg_v2 = ckpt_msg;
+		ckpt_msg_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_msg);
 		lgs_cfg = &ckpt_msg_v2->ckpt_rec.lgs_cfg;
 		edp_function = edp_ed_lgs_cfg_rec_v2;
 	} else {
@@ -1286,7 +1287,7 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 static uint32_t ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
+	EDU_ERR ederror;
 	lgsv_ckpt_msg_v1_t msg_v1;
 	lgsv_ckpt_msg_v2_t msg_v2;
 	uint32_t num_rec = 0;
@@ -1436,7 +1437,7 @@ static uint32_t process_ckpt_data(lgs_cb_t *cb, void *data)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	lgsv_ckpt_msg_type_t lgsv_ckpt_msg_type;
-	lgsv_ckpt_msg_v2_t *data_v1;
+	lgsv_ckpt_msg_v1_t *data_v1;
 	lgsv_ckpt_msg_v2_t *data_v2;
 	lgsv_ckpt_msg_v3_t *data_v3;
 	lgsv_ckpt_msg_v5_t *data_v5;
@@ -1447,16 +1448,16 @@ static uint32_t process_ckpt_data(lgs_cb_t *cb, void *data)
 	}
 	
 	if (lgs_is_peer_v5()) {
-		data_v5 = data;
+		data_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(data);
 		lgsv_ckpt_msg_type = data_v5->header.ckpt_rec_type;
 	} else if (lgs_is_peer_v4()) {
-		data_v3 = data;
+		data_v3 = static_cast<lgsv_ckpt_msg_v3_t *>(data);
 		lgsv_ckpt_msg_type = data_v3->header.ckpt_rec_type;
 	} else if (lgs_is_peer_v2()) {
-		data_v2 = data;
+		data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 		lgsv_ckpt_msg_type = data_v2->header.ckpt_rec_type;
 	} else {
-		data_v1 = data;
+		data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		lgsv_ckpt_msg_type = data_v1->header.ckpt_rec_type;
 	}
 	
@@ -1498,10 +1499,10 @@ static uint32_t ckpt_proc_initialize_client(lgs_cb_t *cb, void *data)
 	lgs_ckpt_initialize_msg_t *param;
 	
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *data_v2 = data;
+		lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 		param = &data_v2->ckpt_rec.initialize_client;
 	} else {
-		lgsv_ckpt_msg_v1_t *data_v1 = data;
+		lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		param = &data_v1->ckpt_rec.initialize_client;
 	}
 
@@ -1530,7 +1531,7 @@ static uint32_t ckpt_proc_initialize_client(lgs_cb_t *cb, void *data)
  * Helper functions for ckpt_proc_log_write()
  * 
  */
-static SaTimeT setLogTime(void)
+static SaTimeT setLogTime()
 {
 	struct timeval currentTime;
 	SaTimeT logTime;
@@ -1559,7 +1560,8 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 	const int LOG_REC_ID = 0;
 	const int sleep_delay_ms = 10;
 	const int max_waiting_time_ms = 100;
-	
+	int msecs_waited = 0;
+
 	/* Log record common */
 	//log_record.logTimeStamp = setLogTime();
 	log_record.logTimeStamp = setLogTime();
@@ -1603,10 +1605,10 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 	}
 	
 	/* Allocate memory for the resulting log record */
-	uint32_t max_logrecsize = *(uint32_t *) lgs_cfg_get(
-		LGS_IMM_LOG_MAX_LOGRECSIZE);
+	uint32_t max_logrecsize = *static_cast<const uint32_t *>(lgs_cfg_get(
+		LGS_IMM_LOG_MAX_LOGRECSIZE));
 	buf_size = stream->fixedLogRecordSize == 0 ? max_logrecsize : stream->fixedLogRecordSize;
-	logOutputString = calloc(1, buf_size+1); /* Make room for a '\0' termination */
+	logOutputString = static_cast<char *>(calloc(1, buf_size+1)); /* Make room for a '\0' termination */
 	if (logOutputString == NULL) {
 		LOG_ER("%s - Could not allocate %d bytes",__FUNCTION__, stream->fixedLogRecordSize + 1);
 		goto done;
@@ -1621,7 +1623,6 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 	}
 
 	/* Write the log record to file */
-	int msecs_waited = 0;
 	rc = log_stream_write_h(stream, logOutputString, n);
 	while ((rc == -2) && (msecs_waited < max_waiting_time_ms)) {
 		usleep(sleep_delay_ms * 1000);
@@ -1632,7 +1633,7 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 		  Therefore, need to re-allocate memory & retry writing log.
 		*/
 		if (logOutputString == NULL) {
-			logOutputString = calloc(1, buf_size + 1); /* Make room for a '\0' termination */
+			logOutputString = static_cast<char *>(calloc(1, buf_size + 1)); /* Make room for a '\0' termination */
 			if (logOutputString == NULL) {
 				LOG_ER("%s - Could not allocate %d bytes",__FUNCTION__, stream->fixedLogRecordSize + 1);
 			}
@@ -1700,7 +1701,7 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 	TRACE_ENTER();
 
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *data_v2 = data;
+		lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 		streamId = data_v2->ckpt_rec.write_log.streamId;
 		recordId = data_v2->ckpt_rec.write_log.recordId;
 		curFileSize = data_v2->ckpt_rec.write_log.curFileSize;
@@ -1708,7 +1709,7 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 		logRecord = data_v2->ckpt_rec.write_log.logRecord;
 		c_file_close_time_stamp = data_v2->ckpt_rec.write_log.c_file_close_time_stamp;
 	} else {
-		lgsv_ckpt_msg_v1_t *data_v1 = data;
+		lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		streamId = data_v1->ckpt_rec.write_log.streamId;
 		recordId = data_v1->ckpt_rec.write_log.recordId;
 		curFileSize = data_v1->ckpt_rec.write_log.curFileSize;
@@ -1737,7 +1738,7 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 		 * in log file.
 		 */
 		if ((stream->stb_logRecordId + 1) != recordId) {
-			insert_localmsg_in_stream(stream, "Possible loss of log record");
+			insert_localmsg_in_stream(stream, const_cast<char *>("Possible loss of log record"));
 		}
 
 		/* Make a limited number of attempts to write if file IO timed out when 
@@ -1803,13 +1804,14 @@ static uint32_t ckpt_proc_close_stream(lgs_cb_t *cb, void *data)
 	TRACE_ENTER();
 
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *data_v2 = data;
+		lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 		streamId = data_v2->ckpt_rec.stream_close.streamId;
 		clientId = data_v2->ckpt_rec.stream_close.clientId;
 		/* Set time for closing. Used for renaming */
-		closetime_ptr = (time_t *) &data_v2->ckpt_rec.stream_close.c_file_close_time_stamp;
+		closetime_ptr = reinterpret_cast<time_t *>(
+			&data_v2->ckpt_rec.stream_close.c_file_close_time_stamp);
 	} else {
-		lgsv_ckpt_msg_v1_t *data_v1 = data;
+		lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		streamId = data_v1->ckpt_rec.stream_close.streamId;
 		clientId = data_v1->ckpt_rec.stream_close.clientId;
 		closetime_ptr = NULL;
@@ -1858,15 +1860,17 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 	TRACE_ENTER();
 	
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *data_v2 = data;
+		lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 		param = &data_v2->ckpt_rec.stream_open;
 	} else {
-		lgsv_ckpt_msg_v1_t *data_v1 = data;
+		lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		param = &data_v1->ckpt_rec.stream_open;
 	}	
 
+	uint32_t invalidClient = static_cast<uint32_t>(-1);
 	/* Check that client still exist */
-	if ((param->clientId != -1) && (lgs_client_get_by_id(param->clientId) == NULL)) {
+	if ((param->clientId != invalidClient) &&
+		(lgs_client_get_by_id(param->clientId) == NULL)) {
 		LOG_WA("\tClient %u does not exist, failed to create stream '%s'", param->clientId, param->logStreamName);
 		goto done;
 	}
@@ -1928,7 +1932,8 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 	 ** Create an association between this client_id and the stream
 	 ** A client ID of -1 indicates that no client exist, skip this step.
 	 */
-	if ((param->clientId != -1) && lgs_client_stream_add(param->clientId, stream->streamId) != 0) {
+	if ((param->clientId != invalidClient) &&
+		lgs_client_stream_add(param->clientId, stream->streamId) != 0) {
 		/* Do not allow standby to get out of sync */
 		LOG_ER("%s - Failed to add stream '%s' to client %u",__FUNCTION__,
 				param->logStreamName, param->clientId);
@@ -1968,12 +1973,12 @@ static uint32_t ckpt_proc_finalize_client(lgs_cb_t *cb, void *data)
 	time_t *closetime_ptr;
 	
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *data_v2 = data;
+		lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 		lgs_ckpt_finalize_msg_v2_t *param = &data_v2->ckpt_rec.finalize_client;
-		closetime_ptr = (time_t *) &param->c_file_close_time_stamp;
+		closetime_ptr = reinterpret_cast<time_t *>(&param->c_file_close_time_stamp);
 		client_id = param->client_id;
 	} else {
-		lgsv_ckpt_msg_v1_t *data_v1 = data;
+		lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		lgs_ckpt_finalize_msg_v1_t *param = &data_v1->ckpt_rec.finalize_client;
 		closetime_ptr = NULL;
 		client_id = param->client_id;
@@ -2007,16 +2012,16 @@ uint32_t ckpt_proc_agent_down(lgs_cb_t *cb, void *data)
 {
 	MDS_DEST agent_dest;
 	time_t *closetime_ptr;
-	
+
 	TRACE_ENTER();
-	
+
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *data_v2 = data;
-		closetime_ptr = (time_t *) &data_v2->ckpt_rec.agent_down.c_file_close_time_stamp;
-		agent_dest = (MDS_DEST) data_v2->ckpt_rec.agent_down.agent_dest;
-		
+		lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
+		closetime_ptr = reinterpret_cast<time_t *>(
+			&data_v2->ckpt_rec.agent_down.c_file_close_time_stamp);
+		agent_dest = data_v2->ckpt_rec.agent_down.agent_dest;
 	} else {
-		lgsv_ckpt_msg_v1_t *data_v1 = data;
+		lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		closetime_ptr = NULL;
 		agent_dest = data_v1->ckpt_rec.agent_dest;
 	}
@@ -2070,10 +2075,10 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 	TRACE_ENTER();
 	
 	if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *data_v2 = data;
+		lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
 		name = data_v2->ckpt_rec.stream_cfg.name;
 		fileName = data_v2->ckpt_rec.stream_cfg.fileName;
-		pathName = data_v2->ckpt_rec.stream_cfg.pathName; 
+		pathName = data_v2->ckpt_rec.stream_cfg.pathName;
 		maxLogFileSize = data_v2->ckpt_rec.stream_cfg.maxLogFileSize;
 		fixedLogRecordSize = data_v2->ckpt_rec.stream_cfg.fixedLogRecordSize;
 		logFullAction = data_v2->ckpt_rec.stream_cfg.logFullAction;
@@ -2084,10 +2089,10 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 		logFileCurrent = data_v2->ckpt_rec.stream_cfg.logFileCurrent;
 		closetime = data_v2->ckpt_rec.stream_cfg.c_file_close_time_stamp;
 	} else {
-		lgsv_ckpt_msg_v1_t *data_v1 = data;
+		lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
 		name = data_v1->ckpt_rec.stream_cfg.name;
 		fileName = data_v1->ckpt_rec.stream_cfg.fileName;
-		pathName = data_v1->ckpt_rec.stream_cfg.pathName; 
+		pathName = data_v1->ckpt_rec.stream_cfg.pathName;
 		maxLogFileSize = data_v1->ckpt_rec.stream_cfg.maxLogFileSize;
 		fixedLogRecordSize = data_v1->ckpt_rec.stream_cfg.fixedLogRecordSize;
 		logFullAction = data_v1->ckpt_rec.stream_cfg.logFullAction;
@@ -2099,7 +2104,7 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 		osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
 		closetime = closetime_tspec.tv_sec;
 	}
-	
+
 	if ((stream = log_stream_get_by_name(name)) == NULL) {
 		LOG_ER("Could not lookup stream");
 		goto done;
@@ -2113,34 +2118,35 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 	stream->logFullAction = logFullAction;
 	stream->logFullHaltThreshold = logFullHaltThreshold;
 	stream->maxFilesRotated = maxFilesRotated;
+
 	if (stream->logFileFormat != NULL) {
 		free(stream->logFileFormat);
 		stream->logFileFormat = strdup(logFileFormat);
-	}        
+	}
+
 	strcpy(stream->logFileFormat, logFileFormat);
 	stream->severityFilter = severityFilter;
 	strcpy(stream->logFileCurrent, logFileCurrent);
-		
+
 	/* If split file mode, update standby files */
 	if (lgs_is_split_file_system()) {
-		int rc=0;
-		const char *root_path = lgs_cfg_get(
-			LGS_IMM_LOG_ROOT_DIRECTORY);
+		int rc = 0;
+		const char *root_path = static_cast<const char *>(lgs_cfg_get(
+			LGS_IMM_LOG_ROOT_DIRECTORY));
 		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES,
 				root_path, stream,
-				stream->stb_logFileCurrent, &closetime))
-				!= 0) {
+				stream->stb_logFileCurrent, &closetime)) != 0) {
 			LOG_ER("log_stream_config_change failed: %d", rc);
 		}
-		
+
 		/* When modifying old files are closed and new are opened meaning that
 		 * we have a new  standby current log-file
 		 */
 		strcpy(stream->stb_prev_actlogFileCurrent, stream->logFileCurrent);
 		strcpy(stream->stb_logFileCurrent, stream->logFileCurrent);
 	}
-	
- done:
+
+done:
 	/* Free strings allocated by the EDU encoder */
 	lgs_free_edu_mem(fileName);
 	lgs_free_edu_mem(pathName);
@@ -2180,26 +2186,25 @@ uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, void *ckpt_rec, uint32_t action)
 	lgsv_ckpt_msg_type_t ckpt_rec_type;
 
 	if (lgs_is_peer_v5()) {
-		lgsv_ckpt_msg_v5_t *ckpt_rec_v5 = ckpt_rec;
+		lgsv_ckpt_msg_v5_t *ckpt_rec_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(ckpt_rec);
 		ckpt_rec_type = ckpt_rec_v5->header.ckpt_rec_type;
 	} else if (lgs_is_peer_v4()) {
-		lgsv_ckpt_msg_v3_t *ckpt_rec_v3 = ckpt_rec;
+		lgsv_ckpt_msg_v3_t *ckpt_rec_v3 = static_cast<lgsv_ckpt_msg_v3_t *>(ckpt_rec);
 		ckpt_rec_type = ckpt_rec_v3->header.ckpt_rec_type;
 	} else if (lgs_is_peer_v2()) {
-		lgsv_ckpt_msg_v2_t *ckpt_rec_v2 = ckpt_rec;
+		lgsv_ckpt_msg_v2_t *ckpt_rec_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_rec);
 		ckpt_rec_type = ckpt_rec_v2->header.ckpt_rec_type;
 	} else {
-		lgsv_ckpt_msg_v1_t *ckpt_rec_v1 = ckpt_rec;
+		lgsv_ckpt_msg_v1_t *ckpt_rec_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(ckpt_rec);
 		ckpt_rec_type = ckpt_rec_v1->header.ckpt_rec_type;
 	}
-	
-	
+
 	/* Fill mbcsv specific data */
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-	mbcsv_arg.info.send_ckpt.i_action = action;
-	mbcsv_arg.info.send_ckpt.i_ckpt_hdl = (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
+	mbcsv_arg.info.send_ckpt.i_action = static_cast<NCS_MBCSV_ACT_TYPE>(action);
+	mbcsv_arg.info.send_ckpt.i_ckpt_hdl = static_cast<NCS_MBCSV_CKPT_HDL>(cb->mbcsv_ckpt_hdl);
 	mbcsv_arg.info.send_ckpt.i_reo_hdl = NCS_PTR_TO_UNS64_CAST(ckpt_rec);	/*Will be used in encode callback */
 
 	/* Just store the address of the data to be send as an 
@@ -2325,11 +2330,12 @@ static uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_stream_list_msg_ptr = (lgs_stream_list_t *)ptr;
+		ckpt_stream_list_msg_ptr = static_cast<lgs_stream_list_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_stream_list_msg_dec_ptr = (lgs_stream_list_t **)ptr;
+		ckpt_stream_list_msg_dec_ptr = static_cast<lgs_stream_list_t **>(ptr);
 		if (*ckpt_stream_list_msg_dec_ptr == NULL) {
-			*ckpt_stream_list_msg_dec_ptr = calloc(1, sizeof(lgs_stream_list_t));
+			*ckpt_stream_list_msg_dec_ptr = static_cast<lgs_stream_list *>(
+			    calloc(1, sizeof(lgs_stream_list_t)));
 			if (*ckpt_stream_list_msg_dec_ptr == NULL) {
 				LOG_WA("calloc FAILED");
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -2339,10 +2345,13 @@ static uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_stream_list_msg_dec_ptr, '\0', sizeof(lgs_stream_list_t));
 		ckpt_stream_list_msg_ptr = *ckpt_stream_list_msg_dec_ptr;
 	} else {
-		ckpt_stream_list_msg_ptr = ptr;
+		ckpt_stream_list_msg_ptr = static_cast<lgs_stream_list *>(ptr);
 	}
 
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_stream_list_ed_rules, ckpt_stream_list_msg_ptr, ptr_data_len,
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_stream_list_ed_rules,
+				 ckpt_stream_list_msg_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
 }
@@ -2363,9 +2372,9 @@ uint32_t edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_reg_msg_ptr = (lgs_ckpt_initialize_msg_t *)ptr;
+		ckpt_reg_msg_ptr = static_cast<lgs_ckpt_initialize_msg_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_reg_msg_dec_ptr = (lgs_ckpt_initialize_msg_t **)ptr;
+		ckpt_reg_msg_dec_ptr = static_cast<lgs_ckpt_initialize_msg_t **>(ptr);
 
 		if (*ckpt_reg_msg_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
@@ -2374,10 +2383,13 @@ uint32_t edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_reg_msg_dec_ptr, '\0', sizeof(lgs_ckpt_initialize_msg_t));
 		ckpt_reg_msg_ptr = *ckpt_reg_msg_dec_ptr;
 	} else {
-		ckpt_reg_msg_ptr = ptr;
+		ckpt_reg_msg_ptr = static_cast<lgs_ckpt_initialize_msg_t *>(ptr);
 	}
 
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_reg_rec_ed_rules, ckpt_reg_msg_ptr, ptr_data_len,
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_reg_rec_ed_rules,
+				 ckpt_reg_msg_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
 }	/* End edp_ed_reg_rec */
@@ -2417,9 +2429,9 @@ uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	};
 
 	if (op == EDP_OP_TYPE_ENC) {
-		ckpt_header_ptr = (lgsv_ckpt_header_t *)ptr;
+		ckpt_header_ptr = static_cast<lgsv_ckpt_header_t *>(ptr);
 	} else if (op == EDP_OP_TYPE_DEC) {
-		ckpt_header_dec_ptr = (lgsv_ckpt_header_t **)ptr;
+		ckpt_header_dec_ptr = static_cast<lgsv_ckpt_header_t **>(ptr);
 		if (*ckpt_header_dec_ptr == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -2427,9 +2439,12 @@ uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 		memset(*ckpt_header_dec_ptr, '\0', sizeof(lgsv_ckpt_header_t));
 		ckpt_header_ptr = *ckpt_header_dec_ptr;
 	} else {
-		ckpt_header_ptr = ptr;
+		ckpt_header_ptr = static_cast<lgsv_ckpt_header_t *>(ptr);
 	}
-	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_header_rec_ed_rules, ckpt_header_ptr, ptr_data_len,
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+				 ckpt_header_rec_ed_rules,
+				 ckpt_header_ptr,
+				 ptr_data_len,
 				 buf_env, op, o_err);
 
 	return rc;
@@ -2473,7 +2488,7 @@ int32_t ckpt_msg_test_type(NCSCONTEXT arg)
 
 	if (arg == NULL)
 		return EDU_FAIL;
-	ckpt_rec_type = *(lgsv_ckpt_msg_type_t *)arg;
+	ckpt_rec_type = *static_cast<lgsv_ckpt_msg_type_t *>(arg);
 
 	switch (ckpt_rec_type) {
 	case LGS_CKPT_CLIENT_INITIALIZE:
@@ -2541,13 +2556,16 @@ static uint32_t dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header)
 {
 	uint8_t *p8;
 	uint8_t local_data[256];
+
 	TRACE_ENTER();
+
 	if ((uba == NULL) || (header == NULL)) {
 		TRACE("NULL pointer, FAILED");
 		return NCSCC_RC_FAILURE;
 	}
+
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
-	header->ckpt_rec_type = ncs_decode_32bit(&p8);
+	header->ckpt_rec_type = static_cast<lgsv_ckpt_msg_type_t>(ncs_decode_32bit(&p8));
 	ncs_dec_skip_space(uba, 4);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -2557,6 +2575,8 @@ static uint32_t dec_ckpt_header(NCS_UBAID *uba, lgsv_ckpt_header_t *header)
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
 	header->data_len = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
+
 	TRACE_LEAVE();
+
 	return NCSCC_RC_SUCCESS;
 }	/*End lgs_dec_ckpt_header */

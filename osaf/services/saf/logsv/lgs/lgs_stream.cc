@@ -44,6 +44,8 @@ static unsigned int stream_array_size = 3;
 /* Current number of streams */
 static unsigned int numb_of_streams;
 
+static const uint32_t kInvalidId = static_cast<uint32_t> (-1);
+
 static int lgs_stream_array_insert(log_stream_t *stream, uint32_t id);
 static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id);
 static int lgs_stream_array_remove(int id);
@@ -62,7 +64,7 @@ static int fileopen_h(char *filepath, int *errno_save)
 	lgsf_retcode_t api_rc;
 	int fd;
 	fopen_in_t data_in;
-	char *groupname = NULL;
+	const char *groupname = NULL;
 	
 	TRACE_ENTER();
 	
@@ -74,7 +76,7 @@ static int fileopen_h(char *filepath, int *errno_save)
 		goto done;
 	}
 
-	groupname = (char *) lgs_cfg_get(LGS_IMM_DATA_GROUPNAME);
+	groupname = static_cast<const char *>(lgs_cfg_get(LGS_IMM_DATA_GROUPNAME));
 
 	strcpy(data_in.filepath, filepath);
 	strcpy(data_in.groupname, groupname);
@@ -84,9 +86,9 @@ static int fileopen_h(char *filepath, int *errno_save)
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_FILEOPEN;
 	apipar.data_in_size = sizeof(fopen_in_t);
-	apipar.data_in = (void*) &data_in;
+	apipar.data_in = &data_in;
 	apipar.data_out_size = sizeof(int);
-	apipar.data_out = (void *) errno_save;
+	apipar.data_out = errno_save;
 	
 	api_rc = log_file_api(&apipar);
 	if (api_rc != LGSF_SUCESS) {
@@ -119,7 +121,7 @@ static int fileclose_h(int fd, int *errno_save)
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_FILECLOSE;
 	apipar.data_in_size = sizeof(int);
-	apipar.data_in = (void*) &fd;
+	apipar.data_in = &fd;
 	apipar.data_out_size = 0;
 	apipar.data_out = NULL;
 	
@@ -171,7 +173,7 @@ static int file_unlink_h(char *filepath)
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_DELETE_FILE;
 	apipar.data_in_size = filepath_len;
-	apipar.data_in = (void*) filepath;
+	apipar.data_in = filepath;
 	apipar.data_out_size = 0;
 	apipar.data_out = NULL;
 	
@@ -204,8 +206,8 @@ static int delete_config_file(log_stream_t *stream)
 	TRACE_ENTER();
 
 	/* create absolute path for config file */
-	char *logsv_root_dir = (char *)
-		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	const char *logsv_root_dir = static_cast<const char *>(
+		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
 	n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg",
 		logsv_root_dir, stream->pathName, stream->fileName);
@@ -246,7 +248,7 @@ static int rotate_if_needed(log_stream_t *stream)
 	 ** Remove until we have one less than allowed, we are just about to
 	 ** create a new one again.
 	 */
-	while (file_cnt >= stream->maxFilesRotated) {
+	while (file_cnt >= static_cast<int>(stream->maxFilesRotated)) {
 		if ((rc = file_unlink_h(oldest_file)) == -1) {
 			LOG_NO("Could not delete: %s - %s", oldest_file, strerror(errno));
 			goto done;
@@ -287,7 +289,7 @@ static uint32_t log_stream_remove(const char *key)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	log_stream_t *stream;
 
-	stream = (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)key);
+	stream = reinterpret_cast<log_stream_t *>(ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)key));
 	if (stream == NULL) {
 		TRACE_2("ncs_patricia_tree_get FAILED");
 		rc = NCSCC_RC_FAILURE;
@@ -313,7 +315,7 @@ static uint32_t log_stream_remove(const char *key)
 void log_initiate_stream_files(log_stream_t *stream)
 {
 	int errno_save;
-	const char *log_root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	const char *log_root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 	
 	TRACE_ENTER();
 	
@@ -368,7 +370,7 @@ log_stream_t *log_stream_get_by_name(const char *name)
 	strcpy(nname, name);
 	memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
 
-	return (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)nname);
+	return reinterpret_cast<log_stream_t *>(ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)nname));
 }
 
 log_stream_t *log_stream_getnext_by_name(const char *name)
@@ -379,9 +381,9 @@ log_stream_t *log_stream_getnext_by_name(const char *name)
 		/* Create SA_MAX_NAME_LENGTH stream name */
 		strcpy(nname, name);
 		memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
-		return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, (uint8_t *)nname);
+		return reinterpret_cast<log_stream_t *>(ncs_patricia_tree_getnext(&stream_dn_tree, (uint8_t *)nname));
 	} else
-		return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, NULL);
+		return reinterpret_cast<log_stream_t *>(ncs_patricia_tree_getnext(&stream_dn_tree, NULL));
 }
 
 void log_stream_print(log_stream_t *stream)
@@ -507,7 +509,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 	if (lgs_relative_path_check_ts(pathname)) {
 		goto done;
 	}
-	stream = calloc(1, sizeof(log_stream_t));
+	stream = static_cast<log_stream_t *>(calloc(1, sizeof(log_stream_t)));
 	if (stream == NULL) {
 		LOG_WA("log_stream_new calloc FAILED");
 		goto done;
@@ -546,7 +548,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 	}
 
 	/* Add stream to array */
-	if (stream->streamId == -1)
+	if (stream->streamId == kInvalidId)
 		rc = lgs_stream_array_insert_new(stream, &stream->streamId);
 	else
 		rc = lgs_stream_array_insert(stream, stream->streamId);
@@ -575,7 +577,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 
 		void *arr1[] = { &rdnstr };
 		const SaImmAttrValuesT_2 attr_safLgStr = {
-			.attrName = "safLgStr",
+			.attrName = const_cast<SaImmAttrNameT>("safLgStr"),
 			.attrValueType = SA_IMM_ATTR_SASTRINGT,
 			.attrValuesNumber = 1,
 			.attrValues = arr1
@@ -583,7 +585,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 		char *str2 = stream->fileName;
 		void *arr2[] = { &str2 };
 		const SaImmAttrValuesT_2 attr_safLogStreamFileName = {
-			.attrName = "saLogStreamFileName",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamFileName"),
 			.attrValueType = SA_IMM_ATTR_SASTRINGT,
 			.attrValuesNumber = 1,
 			.attrValues = arr2
@@ -591,42 +593,42 @@ log_stream_t *log_stream_new(SaNameT *dn,
 		char *str3 = stream->pathName;
 		void *arr3[] = { &str3 };
 		const SaImmAttrValuesT_2 attr_safLogStreamPathName = {
-			.attrName = "saLogStreamPathName",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamPathName"),
 			.attrValueType = SA_IMM_ATTR_SASTRINGT,
 			.attrValuesNumber = 1,
 			.attrValues = arr3
 		};
 		void *arr4[] = { &stream->maxLogFileSize };
 		const SaImmAttrValuesT_2 attr_saLogStreamMaxLogFileSize = {
-			.attrName = "saLogStreamMaxLogFileSize",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamMaxLogFileSize"),
 			.attrValueType = SA_IMM_ATTR_SAUINT64T,
 			.attrValuesNumber = 1,
 			.attrValues = arr4
 		};
 		void *arr5[] = { &stream->fixedLogRecordSize };
 		const SaImmAttrValuesT_2 attr_saLogStreamFixedLogRecordSize = {
-			.attrName = "saLogStreamFixedLogRecordSize",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamFixedLogRecordSize"),
 			.attrValueType = SA_IMM_ATTR_SAUINT32T,
 			.attrValuesNumber = 1,
 			.attrValues = arr5
 		};
 		void *arr6[] = { &stream->haProperty };
 		const SaImmAttrValuesT_2 attr_saLogStreamHaProperty = {
-			.attrName = "saLogStreamHaProperty",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamHaProperty"),
 			.attrValueType = SA_IMM_ATTR_SAUINT32T,
 			.attrValuesNumber = 1,
 			.attrValues = arr6
 		};
 		void *arr7[] = { &stream->logFullAction };
 		const SaImmAttrValuesT_2 attr_saLogStreamLogFullAction = {
-			.attrName = "saLogStreamLogFullAction",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamLogFullAction"),
 			.attrValueType = SA_IMM_ATTR_SAUINT32T,
 			.attrValuesNumber = 1,
 			.attrValues = arr7
 		};
 		void *arr8[] = { &stream->maxFilesRotated };
 		const SaImmAttrValuesT_2 attr_saLogStreamMaxFilesRotated = {
-			.attrName = "saLogStreamMaxFilesRotated",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamMaxFilesRotated"),
 			.attrValueType = SA_IMM_ATTR_SAUINT32T,
 			.attrValuesNumber = 1,
 			.attrValues = arr8
@@ -634,21 +636,21 @@ log_stream_t *log_stream_new(SaNameT *dn,
 		char *str9 = stream->logFileFormat;
 		void *arr9[] = { &str9 };
 		const SaImmAttrValuesT_2 attr_saLogStreamLogFileFormat = {
-			.attrName = "saLogStreamLogFileFormat",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamLogFileFormat"),
 			.attrValueType = SA_IMM_ATTR_SASTRINGT,
 			.attrValuesNumber = 1,
 			.attrValues = arr9
 		};
 		void *arr10[] = { &stream->severityFilter };
 		const SaImmAttrValuesT_2 attr_saLogStreamSeverityFilter = {
-			.attrName = "saLogStreamSeverityFilter",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamSeverityFilter"),
 			.attrValueType = SA_IMM_ATTR_SAUINT32T,
 			.attrValuesNumber = 1,
 			.attrValues = arr10
 		};
 		void *arr11[] = { &stream->creationTimeStamp };
 		const SaImmAttrValuesT_2 attr_saLogStreamCreationTimestamp = {
-			.attrName = "saLogStreamCreationTimestamp",
+			.attrName = const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
 			.attrValueType = SA_IMM_ATTR_SATIMET,
 			.attrValuesNumber = 1,
 			.attrValues = arr11
@@ -673,7 +675,8 @@ log_stream_t *log_stream_new(SaNameT *dn,
 			SaAisErrorT rv;
 
 			rv = saImmOiRtObjectCreate_2(lgs_cb->immOiHandle,
-							     "SaLogStream", parentName, attrValues);
+						     const_cast<SaImmClassNameT>("SaLogStream"),
+						     parentName, attrValues);
 			free(dndup);
 
 			if (rv != SA_AIS_OK) {
@@ -704,7 +707,7 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 	osafassert(name != NULL);
 	TRACE_ENTER2("%s, l: %u", name->value, (unsigned int)name->length);
 
-	stream = calloc(1, sizeof(log_stream_t));
+	stream = static_cast<log_stream_t *>(calloc(1, sizeof(log_stream_t)));
 	if (stream == NULL) {
 		LOG_WA("calloc FAILED");
 		goto done;
@@ -727,7 +730,7 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 	}
 
 	/* Add stream to array */
-	if (stream->streamId == -1)
+	if (stream->streamId == kInvalidId)
 		rc = lgs_stream_array_insert_new(stream, &stream->streamId);
 	else
 		rc = lgs_stream_array_insert(stream, stream->streamId);
@@ -843,12 +846,12 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 	log_stream_t *stream = *s;
 	char *file_to_rename = NULL;
 	char *timeString = NULL;
-	int msecs_waited = 0;
+	uint32_t msecs_waited = 0;
 	const unsigned int max_waiting_time = 8 * 1000;	/* 8 secs */
 	const unsigned int sleep_delay_ms = 500;
 	SaUint32T trace_num_openers;
 	struct timespec closetime_tspec;
-	const char *root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	const char *root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
 	osafassert(stream != NULL);
 	TRACE_ENTER2("%s", stream->name);
@@ -978,16 +981,15 @@ static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
 	int rc, n;
 	
 	TRACE_ENTER();
-	
+
+	const char *logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+
 	n = snprintf(parameters_in.file_name, SA_MAX_NAME_LENGTH, "%s", logStream->fileName);
 	if (n >= SA_MAX_NAME_LENGTH) {
 		rc = -1;
 		LOG_WA("file_name > SA_MAX_NAME_LENGTH");
 		goto done;
 	}
-
-	char *logsv_root_dir = (char *)
-		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 
 	n = snprintf(parameters_in.logsv_root_dir, PATH_MAX, "%s", logsv_root_dir);
 	if (n >= PATH_MAX) {
@@ -1014,9 +1016,9 @@ static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_GET_NUM_LOGFILES;
 	apipar.data_in_size = sizeof(gnolfh_in_t);
-	apipar.data_in = (void*) &parameters_in;
+	apipar.data_in = &parameters_in;
 	apipar.data_out_size = PATH_MAX;
-	apipar.data_out = (void *) oldest_file;
+	apipar.data_out = oldest_file;
 	
 	api_rc = log_file_api(&apipar);
 	if (api_rc != LGSF_SUCESS) {
@@ -1047,7 +1049,7 @@ static int log_rotation_stb(log_stream_t *stream, size_t count)
 	char *current_time_str;
 	char new_current_log_filename[NAME_MAX];
 	bool do_rotate = false;
-	const char *root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	const char *root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 	
 	TRACE_ENTER();
 
@@ -1145,7 +1147,7 @@ static int log_rotation_act(log_stream_t *stream, size_t count)
 	int errno_save;
 	int errno_ret;
 	struct timespec closetime_tspec;
-	const char *root_path = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	const char *root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 	
 	/* If file size > max file size:
 	 *  - Close the log file and create a new.
@@ -1269,7 +1271,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	apipar.data_in_size = params_in_size;
 	apipar.data_in = &params_in;
 	apipar.data_out_size = sizeof(int);
-	apipar.data_out = (void *) &write_errno;
+	apipar.data_out = &write_errno;
 	
 	api_rc = log_file_api(&apipar);
 	if (api_rc == LGSF_TIMEOUT) {
@@ -1387,7 +1389,7 @@ static int lgs_stream_array_insert(log_stream_t *stream, uint32_t id)
 static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id)
 {
 	int rc = -1;
-	int i;
+	uint32_t i = 0;
 
 	osafassert(id != NULL);
 
@@ -1419,7 +1421,7 @@ static int lgs_stream_array_remove(int id)
 {
 	int rc = -1;
 
-	if (0 <= id && id < stream_array_size) {
+	if (0 <= id && id < static_cast<int>(stream_array_size)) {
 		osafassert(stream_array[id] != NULL);
 		stream_array[id] = NULL;
 		rc = 0;
@@ -1433,9 +1435,9 @@ static int lgs_stream_array_remove(int id)
 /**
  * Dump the stream array
  */
-void log_stream_id_print(void)
+void log_stream_id_print()
 {
-	int i;
+	uint32_t i = 0;
 
 	TRACE("  Current number of streams: %u", numb_of_streams);
 	for (i = 0; i < stream_array_size; i++) {
@@ -1444,17 +1446,17 @@ void log_stream_id_print(void)
 	}
 }
 
-uint32_t log_stream_init(void)
+uint32_t log_stream_init()
 {
 	NCS_PATRICIA_PARAMS param;
 	SaUint32T value;
 
 	/* Get configuration of how many application streams we should allow. */
-	value = *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS);
+	value = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS));
 	stream_array_size += value;
 
 	TRACE("Max %u application log streams", stream_array_size - 3);
-	stream_array = calloc(1, sizeof(log_stream_t *) * stream_array_size);
+	stream_array = static_cast<log_stream_t **>(calloc(1, sizeof(log_stream_t *) * stream_array_size));
 	if (stream_array == NULL) {
 		LOG_WA("calloc FAILED");
 		return NCSCC_RC_FAILURE;

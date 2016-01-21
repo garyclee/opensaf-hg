@@ -18,10 +18,10 @@
 #ifndef __LGS_STREAM_H
 #define __LGS_STREAM_H
 
+#include <ncspatricia.h>
 #include <time.h>
 #include <limits.h>
 #include "lgs_fmt.h"
-#include <ncspatricia.h>
 
 /**
  * Stream descriptor.
@@ -73,8 +73,7 @@ typedef struct log_stream {
 	uint32_t stb_curFileSize;	/* Bytes written to current log file */
 } log_stream_t;
 
-extern uint32_t log_stream_init(void);
-
+extern uint32_t log_stream_init();
 extern void log_stream_delete(log_stream_t **s);
 
 #define STREAM_NEW -1
@@ -99,7 +98,7 @@ extern void log_initiate_stream_files(log_stream_t *stream);
 extern void log_stream_close(log_stream_t **stream, time_t *close_time);
 extern int log_stream_file_close(log_stream_t *stream);
 extern int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count);
-extern void log_stream_id_print(void);
+extern void log_stream_id_print();
 
 #define LGS_STREAM_CREATE_FILES true
 int log_stream_config_change(bool create_files_f,

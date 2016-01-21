@@ -27,15 +27,12 @@
  */
 
 #include "lgs_util.h"
+
 #include <stdlib.h>
-#include <inttypes.h>
-#include <sys/stat.h>
 #include <grp.h>
+
 #include "immutil.h"
 #include "lgs.h"
-#include "lgs_config.h"
-#include "lgs_util.h"
-#include "lgs_fmt.h"
 #include "lgs_file.h"
 #include "lgs_filehdl.h"
 #include "osaf_time.h"
@@ -62,10 +59,14 @@ int lgs_create_config_file_h(const char *root_path, log_stream_t *stream)
 	size_t params_in_size;
 	char *logFileFormat_p;
 	char *pathname_p;
-	
+
 	int rc;
-	int path_len, n;
+	int path_len;
+	uint32_t n = 0;
 	char pathname[PATH_MAX];
+	size_t logFileFormat_size = 0;
+	size_t pathname_size = 0;
+
 
 	TRACE_ENTER();
 	
@@ -116,11 +117,11 @@ int lgs_create_config_file_h(const char *root_path, log_stream_t *stream)
 	params_in = malloc(params_in_size);
 	
 	/* Set pointers to allocated memory */
-	header_in_p = params_in;
-	logFileFormat_p = params_in + sizeof(ccfh_t);
-	size_t logFileFormat_size = params_in_size - sizeof(ccfh_t);
+	header_in_p = static_cast<ccfh_t *>(params_in);
+	logFileFormat_p = static_cast<char *>(params_in) + sizeof(ccfh_t);
+	logFileFormat_size = params_in_size - sizeof(ccfh_t);
 	pathname_p = logFileFormat_p + strlen(stream->logFileFormat) + 1;
-	size_t pathname_size = logFileFormat_size - (strlen(stream->logFileFormat) + 1);
+	pathname_size = logFileFormat_size - (strlen(stream->logFileFormat) + 1);
 
 	/* Fill in in parameters */
 	header_in_p->version.releaseCode = lgs_cb->log_version.releaseCode;
@@ -147,7 +148,7 @@ int lgs_create_config_file_h(const char *root_path, log_stream_t *stream)
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_CREATECFGFILE;
 	apipar.data_in_size = params_in_size;
-	apipar.data_in = (void*) params_in;
+	apipar.data_in = params_in;
 	apipar.data_out_size = 0;
 	apipar.data_out = NULL;
 	
@@ -224,7 +225,7 @@ char *lgs_get_time(time_t *time_in)
 	return timeStampString;
 }
 
-SaTimeT lgs_get_SaTime(void)
+SaTimeT lgs_get_SaTime()
 {
 	SaTimeT logTime;
 	struct timespec curtime_tspec;
@@ -269,7 +270,9 @@ int lgs_file_rename_h(
 	char *oldpath_in_p;
 	char *newpath_in_p;
 	size_t *oldpath_str_size_p;
-	
+	size_t oldpath_size = 0;
+	size_t newpath_size = 0;
+
 	TRACE_ENTER();
 
 	n = snprintf(oldpath, PATH_MAX, "%s/%s/%s%s",
@@ -301,15 +304,15 @@ int lgs_file_rename_h(
 	TRACE_4("              to %s", newpath);
 	
 	/* Allocate memory for parameters */
-	size_t oldpath_size = strlen(oldpath)+1;
-	size_t newpath_size = strlen(newpath)+1;
+	oldpath_size = strlen(oldpath) + 1;
+	newpath_size = strlen(newpath) + 1;
 	params_in_size = sizeof(size_t) + oldpath_size + newpath_size;
 	
 	params_in_p = malloc(params_in_size);
 	
 	/* Fill in pointer addresses */
-	oldpath_str_size_p = params_in_p;
-	oldpath_in_p = params_in_p + sizeof(size_t);
+	oldpath_str_size_p = static_cast<size_t *>(params_in_p);
+	oldpath_in_p = static_cast<char *>(params_in_p) + sizeof(size_t);
 	newpath_in_p = oldpath_in_p + oldpath_size;
 	
 	/* Fill in parameters */
@@ -347,30 +350,32 @@ void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr)
 }
 
 /****************************************************************************
- *                      
- * lgs_lga_entry_valid  
- *                              
+ *
+ * lgs_lga_entry_valid
+ *
  *  Searches the cb->client_tree for an reg_id entry whos MDS_DEST equals
  *  that passed DEST and returns true if itz found.
- *                                      
- * This routine is typically used to find the validity of the lga down rec from standby 
+ *
+ * This routine is typically used to find the validity of the lga down rec from standby
  * LGA_DOWN_LIST as  LGA client has gone away.
- *                              
+ *
  ****************************************************************************/
 bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest)
-{                                       
+{
 	log_client_t *rp = NULL;
-                                       
-	rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)0);
-                                
-	while (rp != NULL) {    
+
+	rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&cb->client_tree, NULL));
+
+	while (rp != NULL) {
 		if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest)) {
 			return true;
 		}
 
-		rp = (log_client_t *)ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)&rp->client_id_net);
-	}       
-        
+		rp = reinterpret_cast<log_client_t *>(
+		    ncs_patricia_tree_getnext(&cb->client_tree,
+			reinterpret_cast<uint8_t *>(&rp->client_id_net)));
+	}
+
 	return false;
 }
 
@@ -407,7 +412,7 @@ void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisE
 
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS)
-		LOG_NO("Send of WRITE ack to %"PRIu64"x FAILED: %u", mds_dest, rc);
+		LOG_NO("Failed (%u) to send of WRITE ack to: %" PRIu64, rc, mds_dest);
 
 	TRACE_LEAVE();
 }
@@ -484,8 +489,8 @@ int lgs_make_reldir_h(const char* path)
 	
 	TRACE_ENTER();
 
-	char *logsv_root_dir = (char *)
-		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
+	const char *logsv_root_dir = static_cast<const char *>(
+		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 	
 	TRACE("logsv_root_dir \"%s\"",logsv_root_dir);
 	TRACE("path \"%s\"",path);
@@ -510,7 +515,7 @@ int lgs_make_reldir_h(const char* path)
 	/* Fill in API structure */
 	apipar.req_code_in = LGSF_MAKELOGDIR;
 	apipar.data_in_size = sizeof(mld_in_t);
-	apipar.data_in = (void*) &params_in;
+	apipar.data_in = &params_in;
 	apipar.data_out_size = PATH_MAX;
 	apipar.data_out = &new_rootstr;
 	
@@ -610,10 +615,13 @@ int lgs_own_log_files_h(log_stream_t *stream, const char *groupname)
 {
 	lgsf_apipar_t apipar;
 	lgsf_retcode_t api_rc;
-	olfbgh_t *data_in = (olfbgh_t *) malloc(sizeof(olfbgh_t));
+	olfbgh_t *data_in = static_cast<olfbgh_t *>(malloc(sizeof(olfbgh_t)));
 	int rc = 0, n, path_len;
 
 	TRACE_ENTER2("stream %s",stream->name);
+
+	/* Set in parameter dir_path */
+	const char *logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
 	/* Set in parameter file_name */
 	n = snprintf(data_in->file_name, SA_MAX_NAME_LENGTH, "%s", stream->fileName);
@@ -622,9 +630,6 @@ int lgs_own_log_files_h(log_stream_t *stream, const char *groupname)
 		LOG_WA("file_name > SA_MAX_NAME_LENGTH");
 		goto done;
 	}
-
-	/* Set in parameter dir_path */
-	const char *logsv_root_dir = lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
 
 	n = snprintf(data_in->dir_path, PATH_MAX, "%s/%s",
 		logsv_root_dir, stream->pathName);
@@ -722,6 +727,9 @@ bool lgs_has_special_char(const char *str)
 		/* case '*': */
 		/* case '%': */
 			return true;
+
+			default:
+				break;
 		}
 	}
 	return false;

@@ -15,27 +15,26 @@
  *
  */
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include "lgs_config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <grp.h>
 #include <utmp.h>
 
 #include "configmake.h"
-
 #include "saf_error.h"
 #include "osaf_secutil.h"
 #include "osaf_utility.h"
 #include "logtrace.h"
 #include "immutil.h"
 #include "lgs_file.h"
-#include "lgs_fmt.h"
+#include "lgs.h"
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 static SaVersionT immVersion = { 'A', 2, 11 };
@@ -69,9 +68,46 @@ typedef enum {
 } lgs_conf_flg_t;
 
 /**
+ * LOG configuration
+ * For more info about attributes see Log Programmers reference
+ * See also IMM class OpenSafLogConfig
+ * Distinguished name of config object is 'logConfig=1,safApp=safLogService'
+ */
+
+/* The default values */
+static struct lgs_conf_def_t {
+	const char *logRootDirectory;
+	const char *logDataGroupname;
+	const char *logStreamFileFormat;
+	SaUint32T logStreamSystemHighLimit;
+	SaUint32T logStreamSystemLowLimit;
+	SaUint32T logStreamAppHighLimit;
+	SaUint32T logStreamAppLowLimit;
+	SaUint32T logMaxLogrecsize;
+	SaUint32T logMaxApplicationStreams;
+	SaUint32T logFileIoTimeout;
+	SaUint32T logFileSysConfig;
+
+	lgs_conf_def_t() {
+		logRootDirectory = PKGLOGDIR;
+		logDataGroupname = "";
+		logStreamFileFormat = DEFAULT_APP_SYS_FORMAT_EXP;
+		logStreamSystemHighLimit = 0;
+		logStreamSystemLowLimit = 0;
+		logStreamAppHighLimit = 0;
+		logStreamAppLowLimit = 0;
+		logMaxLogrecsize = 1024;
+		logMaxApplicationStreams = 64;
+		logFileIoTimeout = 500;
+		logFileSysConfig = 1;
+	}
+
+} lgs_conf_def;
+
+/**
  * The structure holding all log service configuration data
  */
-typedef struct {
+typedef struct _lgs_conf_t {
 	/* --- Corresponds to IMM Class SaLogConfig --- */
 	char logRootDirectory[PATH_MAX];
 	char logDataGroupname[UT_NAMESIZE];
@@ -102,98 +138,59 @@ typedef struct {
 	lgs_conf_flg_t logFileSysConfig_cnfflag;
 	lgs_conf_flg_t logDataGroupname_cnfflag;
 	lgs_conf_flg_t logStreamFileFormat_cnfflag;
+
+	_lgs_conf_t() {
+		/*
+		 * For the following flags, LGS_CNF_DEF means that no external
+		 * configuration exists and the corresponding attributes hard-coded
+		 * default value is used.Is set to false if configuration is found in
+		 * IMM object or environment variable.
+		 * See function lgs_logconf_get() for more info.
+		 */
+		OpenSafLogConfig_object_exist = false;
+		logRootDirectory_cnfflag = LGS_CNF_DEF;
+		logStreamSystemHighLimit_cnfflag = LGS_CNF_DEF;
+		logStreamSystemLowLimit_cnfflag = LGS_CNF_DEF;
+		logStreamAppHighLimit_cnfflag = LGS_CNF_DEF;
+		logStreamAppLowLimit_cnfflag = LGS_CNF_DEF;
+		logDataGroupname_cnfflag = LGS_CNF_DEF;
+		/*
+		 * The following attributes cannot be configured in the config file
+		 * Will be set to false if the attribute exists in the IMM config object
+		 */
+		logMaxLogrecsize_cnfflag = LGS_CNF_DEF;
+		logMaxApplicationStreams_cnfflag = LGS_CNF_DEF;
+		logFileIoTimeout_cnfflag = LGS_CNF_DEF;
+		logFileSysConfig_cnfflag = LGS_CNF_DEF;
+		logStreamFileFormat_cnfflag = LGS_CNF_DEF;
+
+		(void) strcpy(logRootDirectory, lgs_conf_def.logRootDirectory);
+		(void) strcpy(logDataGroupname, lgs_conf_def.logDataGroupname);
+		(void) strcpy(logStreamFileFormat, lgs_conf_def.logStreamFileFormat);
+		logMaxLogrecsize = lgs_conf_def.logMaxLogrecsize;
+		logStreamSystemHighLimit = lgs_conf_def.logStreamSystemHighLimit;
+		logStreamSystemLowLimit = lgs_conf_def.logStreamSystemLowLimit;
+		logStreamAppHighLimit = lgs_conf_def.logStreamAppHighLimit;
+		logStreamAppLowLimit = lgs_conf_def.logStreamAppLowLimit;
+		logMaxApplicationStreams = lgs_conf_def.logMaxApplicationStreams;
+		logFileIoTimeout = lgs_conf_def.logFileIoTimeout;
+		logFileSysConfig = lgs_conf_def.logFileSysConfig;
+	}
+
 } lgs_conf_t;
 
-/**
- * LOG configuration
- * For more info about attributes see Log Programmers reference
- * See also IMM class OpenSafLogConfig
- * Distinguished name of config object is 'logConfig=1,safApp=safLogService'
- */
-
-/* The default values */
-static struct {
-	const char *logRootDirectory;
-	const char *logDataGroupname;
-	const char *logStreamFileFormat;
-	SaUint32T logStreamSystemHighLimit;
-	SaUint32T logStreamSystemLowLimit;
-	SaUint32T logStreamAppHighLimit;
-	SaUint32T logStreamAppLowLimit;
-	SaUint32T logMaxLogrecsize;
-	SaUint32T logMaxApplicationStreams;
-	SaUint32T logFileIoTimeout;
-	SaUint32T logFileSysConfig;
-} lgs_conf_def = {
-	.logRootDirectory = PKGLOGDIR,
-	.logDataGroupname = "",
-	.logStreamFileFormat = DEFAULT_APP_SYS_FORMAT_EXP,
-	.logStreamSystemHighLimit = 0,
-	.logStreamSystemLowLimit = 0,
-	.logStreamAppHighLimit = 0,
-	.logStreamAppLowLimit = 0,
-	.logMaxLogrecsize = 1024,
-	.logMaxApplicationStreams = 64,
-	.logFileIoTimeout = 500,
-	.logFileSysConfig = 1,
-};
-
-static lgs_conf_t lgs_conf = {
-	/*
-	 * For the following flags, LGS_CNF_DEF means that no external
-	 * configuration exists and the corresponding attributes hard-coded
-	 * default value is used.Is set to false if configuration is found in
-	 * IMM object or environment variable.
-	 * See function lgs_logconf_get() for more info.
-	 */
-	.OpenSafLogConfig_object_exist = false,
-
-	.logRootDirectory_cnfflag = LGS_CNF_DEF,
-	.logStreamSystemHighLimit_cnfflag = LGS_CNF_DEF,
-	.logStreamSystemLowLimit_cnfflag = LGS_CNF_DEF,
-	.logStreamAppHighLimit_cnfflag = LGS_CNF_DEF,
-	.logStreamAppLowLimit_cnfflag = LGS_CNF_DEF,
-	.logDataGroupname_cnfflag = LGS_CNF_DEF,
-	/*
-	 * The following attributes cannot be configured in the config file
-	 * Will be set to false if the attribute exists in the IMM config object
-	 */
-	.logMaxLogrecsize_cnfflag = LGS_CNF_DEF,
-	.logMaxApplicationStreams_cnfflag = LGS_CNF_DEF,
-	.logFileIoTimeout_cnfflag = LGS_CNF_DEF,
-	.logFileSysConfig_cnfflag = LGS_CNF_DEF,
-	.logStreamFileFormat_cnfflag = LGS_CNF_DEF,
-};
-
+static lgs_conf_t lgs_conf;
 
 /******************************************************************************
  * Internal functions
  ******************************************************************************/
 
 static char *cnfflag_str(lgs_conf_flg_t cnfflag);
-static int verify_all_init(void);
+static int verify_all_init();
 
 /******************************************************************************
  * Utility functions
  */
-
-/**
- * Set default values for all parameters
- */
-static void init_default(void)
-{
-	(void) strcpy(lgs_conf.logRootDirectory, lgs_conf_def.logRootDirectory);
-	(void) strcpy(lgs_conf.logDataGroupname, lgs_conf_def.logDataGroupname);
-	(void) strcpy(lgs_conf.logStreamFileFormat, lgs_conf_def.logStreamFileFormat);
-	lgs_conf.logMaxLogrecsize = lgs_conf_def.logMaxLogrecsize;
-	lgs_conf.logStreamSystemHighLimit = lgs_conf_def.logStreamSystemHighLimit;
-	lgs_conf.logStreamSystemLowLimit = lgs_conf_def.logStreamSystemLowLimit;
-	lgs_conf.logStreamAppHighLimit = lgs_conf_def.logStreamAppHighLimit;
-	lgs_conf.logStreamAppLowLimit = lgs_conf_def.logStreamAppLowLimit;
-	lgs_conf.logMaxApplicationStreams = lgs_conf_def.logMaxApplicationStreams;
-	lgs_conf.logFileIoTimeout = lgs_conf_def.logFileIoTimeout;
-	lgs_conf.logFileSysConfig = lgs_conf_def.logFileSysConfig;
-}
 
 /******************************************************************************
  * Check-pointing handling of configuration
@@ -219,7 +216,7 @@ static void init_default(void)
  *                         NOTE! Must be initiated before first call {NULL, 0}
  *
  */
-void lgs_cfgupd_list_create(char *name_str, char *value_str,
+void lgs_cfgupd_list_create(const char *name_str, char *value_str,
 	lgs_config_chg_t *config_data)
 {
 	char *tmp_char_ptr = NULL;
@@ -230,7 +227,7 @@ void lgs_cfgupd_list_create(char *name_str, char *value_str,
 	TRACE_ENTER2("name_str '%s', value_str \"%s\"", name_str, value_str);
 
 	cfg_size = strlen(name_str) + strlen(value_str) + 2;
-	cfg_param_str = malloc(cfg_size);
+	cfg_param_str = static_cast<char *>(malloc(cfg_size));
 	if (cfg_param_str == NULL) {
 		TRACE("%s: malloc Fail Aborted", __FUNCTION__);
 		osaf_abort(0);
@@ -242,7 +239,7 @@ void lgs_cfgupd_list_create(char *name_str, char *value_str,
 
 	if (config_data->ckpt_buffer_ptr == NULL) {
 		/* Allocate memory for first chkpt data */
-		tmp_char_ptr = (char *) malloc(alloc_size);
+		tmp_char_ptr = static_cast<char *>(malloc(alloc_size));
 		if (tmp_char_ptr == NULL) {
 			TRACE("%s: malloc Fail Aborted", __FUNCTION__);
 			osaf_abort(0);
@@ -253,8 +250,8 @@ void lgs_cfgupd_list_create(char *name_str, char *value_str,
 		strcpy(tmp_char_ptr, cfg_param_str);
 	} else {
 		/* Add memory for more data */
-		tmp_char_ptr = (char *) realloc(
-			config_data->ckpt_buffer_ptr, alloc_size);
+		tmp_char_ptr = static_cast<char *>(realloc(
+			config_data->ckpt_buffer_ptr, alloc_size));
 		if (tmp_char_ptr == NULL) {
 			TRACE("%s: malloc Fail Aborted", __FUNCTION__);
 			osaf_abort(0);
@@ -363,7 +360,7 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data)
 	 * since the information is changed by the strok() function. The
 	 * original config_data must not be changed.
 	 */
-	allocmem_ptr = calloc(1,config_data->ckpt_buffer_size);
+	allocmem_ptr = static_cast<char *>(calloc(1,config_data->ckpt_buffer_size));
 	param_ptr = allocmem_ptr;
 	(void) memcpy(param_ptr, config_data->ckpt_buffer_ptr, config_data->ckpt_buffer_size);
 
@@ -381,7 +378,7 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data)
 		value_str = strtok_r(NULL, "=", &saveptr);
 		if (value_str == NULL) {
 			TRACE("%s: value_str is NULL", __FUNCTION__);
-			value_str = "";
+			value_str = const_cast<char *> ("");
 		}
 
 		/* Update config data */
@@ -683,7 +680,7 @@ static int verify_root_dir_init(char *root_str_in)
  * 
  * @return -1 on error
  */
-static int verify_all_init(void)
+static int verify_all_init()
 {
 	int rc = 0;
 
@@ -772,7 +769,7 @@ static int verify_all_init(void)
  * is updated if attribute value is found
  * Note: Validation is not done here
  */
-static void read_logsv_config_obj_2(void) {
+static void read_logsv_config_obj_2() {
 	SaImmHandleT omHandle;
 	SaNameT objectName;
 	SaImmAccessorHandleT accessorHandle;
@@ -913,7 +910,7 @@ done:
  * some deviations. The rules are applied here.
  *
  */
-static void read_log_config_environ_var_2(void) {
+static void read_log_config_environ_var_2() {
 	char *val_str;
 	unsigned long int val_uint;
 	int n;
@@ -1135,10 +1132,6 @@ static void read_log_config_environ_var_2(void) {
 void lgs_cfg_init(SaImmOiHandleT immOiHandle, SaAmfHAStateT ha_state)
 {
 	TRACE_ENTER2("immOiHandle = %lld", immOiHandle);
-	
-	/* Initiate the default values for all parameters
-	 */
-	init_default();
 
 	/* Read configuration step 1
 	 * Read all values from the log service configuration object
@@ -1367,7 +1360,7 @@ void conf_runtime_obj_create(SaImmOiHandleT immOiHandle)
 	char *nameptr = namestr;
 	void *valarr[] = { &nameptr };
 	const SaImmAttrValuesT_2 attr_logConfig = {
-		.attrName = "logConfig",
+		.attrName = const_cast<SaImmAttrNameT>("logConfig"),
 		.attrValueType = SA_IMM_ATTR_SASTRINGT,
 		.attrValuesNumber = 1,
 		.attrValues = valarr
@@ -1384,7 +1377,7 @@ void conf_runtime_obj_create(SaImmOiHandleT immOiHandle)
 	parent_name_p = &parent_name;
 
 	rc = saImmOiRtObjectCreate_2(immOiHandle,
-			"OpenSafLogCurrentConfig",
+			const_cast<SaImmClassNameT>("OpenSafLogCurrentConfig"),
 			parent_name_p,
 			attrValues);
 
@@ -1510,20 +1503,20 @@ static char *cnfflag_str(lgs_conf_flg_t cnfflag)
 {
 	switch (cnfflag) {
 	case LGS_CNF_OBJ:
-		return "Config object";
+		return const_cast<char *>("Config object");
 	case LGS_CNF_ENV:
-		return "Environment variable";
+		return const_cast<char *>("Environment variable");
 	case LGS_CNF_DEF:
-		return "Default value";
+		return const_cast<char *>("Default value");
 	default:
-		return "Bad input";
+		return const_cast<char *>("Bad input");
 	}
 }
 
 /**
  * Print all in lgs_conf to trace file
  */
-void lgs_trace_config(void)
+void lgs_trace_config()
 {
 	/* Lock mutex while reading config data from struct */
 	osaf_mutex_lock_ordie(&lgs_config_data_mutex);
@@ -1573,19 +1566,30 @@ void lgs_trace_config(void)
 /**
  * Print configuration values read using lgs_cfg_get()
  */
-void lgs_cfg_read_trace(void)
+void lgs_cfg_read_trace()
 {
 	TRACE("##### LOG Configuration parameter read start #####");
-	TRACE("logRootDirectory\t\t \"%s\"", (char *) lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
-	TRACE("logDataGroupname\t\t \"%s\"", (char *) lgs_cfg_get(LGS_IMM_DATA_GROUPNAME));
-	TRACE("logStreamFileFormat\t\t \"%s\"", (char *) lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
-	TRACE("logMaxLogrecsize\t\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
-	TRACE("logStreamSystemHighLimit\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT));
-	TRACE("logStreamSystemLowLimit\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT));
-	TRACE("logStreamAppHighLimit\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT));
-	TRACE("logStreamAppLowLimit\t\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT));
-	TRACE("logMaxApplicationStreams\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS));
-	TRACE("logFileIoTimeout\t\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT));
-	TRACE("logFileSysConfig\t\t %u", *(SaUint32T *) lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG));
+	TRACE("logRootDirectory\t\t \"%s\"",
+		  static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY)));
+	TRACE("logDataGroupname\t\t \"%s\"",
+		  static_cast<const char *>(lgs_cfg_get(LGS_IMM_DATA_GROUPNAME)));
+	TRACE("logStreamFileFormat\t\t \"%s\"",
+		  static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT)));
+	TRACE("logMaxLogrecsize\t\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE)));
+	TRACE("logStreamSystemHighLimit\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT)));
+	TRACE("logStreamSystemLowLimit\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT)));
+	TRACE("logStreamAppHighLimit\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT)));
+	TRACE("logStreamAppLowLimit\t\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT)));
+	TRACE("logMaxApplicationStreams\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS)));
+	TRACE("logFileIoTimeout\t\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT)));
+	TRACE("logFileSysConfig\t\t %u",
+		  *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG)));
 	TRACE("##### LOG Configuration parameter read done  #####");
 }

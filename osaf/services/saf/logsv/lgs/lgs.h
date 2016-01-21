@@ -23,19 +23,12 @@
  * ========================================================================
  */
 
-#include <assert.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <ncsgl_defs.h>
-#include <ncs_lib.h>
-#include <mds_papi.h>
 #include <ncs_mda_pvt.h>
 #include <mbcsv_papi.h>
 #include <ncs_edu_pub.h>
 #include <ncs_util.h>
-#include <logtrace.h>
-#include <limits.h>
 #include <saAis.h>
 
 /* LGS files */
@@ -46,7 +39,6 @@
 #include "lgs_mbcsv.h"
 #include "lgs_util.h"
 #include "lgs_stream.h"
-
 #include "lgs_config.h"
 
 /* ========================================================================
@@ -95,9 +87,9 @@ extern uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
 extern pthread_mutex_t lgs_mbox_init_mutex;
 extern pthread_mutex_t lgs_OI_init_mutex;
 
-extern uint32_t lgs_configure_mailbox(void);
+extern uint32_t lgs_configure_mailbox();
 
-extern uint32_t lgs_amf_init(lgs_cb_t *);
+extern SaAisErrorT lgs_amf_init(lgs_cb_t *cb);
 extern uint32_t lgs_mds_init(lgs_cb_t *cb);
 extern uint32_t lgs_mds_finalize(lgs_cb_t *cb);
 extern uint32_t lgs_mds_change_role(lgs_cb_t *cb);
@@ -112,9 +104,11 @@ extern void logRootDirectory_filemove(
 		time_t *cur_time_in);
 extern void logDataGroupname_fileown(const char *new_logDataGroupname);
 
+
 extern void lgs_imm_impl_reinit_nonblocking(lgs_cb_t *cb);
 extern void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
-	SaSelectionObjectT *immSelectionObject);
+                                   SaSelectionObjectT *immSelectionObject);
 extern void lgs_imm_impl_set(SaImmOiHandleT immOiHandle);
+
 
 #endif   /* ifndef __LGS_H */

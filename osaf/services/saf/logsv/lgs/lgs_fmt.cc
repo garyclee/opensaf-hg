@@ -15,14 +15,13 @@
  *
  */
 
-#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
 #include <logtrace.h>
-#include <ncsgl_defs.h>
+
 #include "lgs_fmt.h"
 
 /* Number of seconds per an hour/minute */
@@ -531,11 +530,13 @@ static int extractCommonField(char *dest, size_t dest_size,
 			      const struct tm *timeStampData, const SaLogRecordT *logRecord, SaUint16T rec_size)
 {
 	SaInt32T fieldSize;
-	size_t stringSize;
+	size_t stringSize, i;
 	SaUint16T fieldSizeOffset = 0;
 	int characters = 0;
 	char *hex_string = NULL, *hex_string_ptr = NULL;
-        int no_ch = 0, i;
+	int no_ch = 0;
+	SaTimeT us = 0;
+	long gmtOffset = 0, uGmtOffset = 0;
 
 	*fmtExpPtrOffset = DEFAULT_FMT_EXP_PTR_OFFSET;
 
@@ -697,17 +698,17 @@ static int extractCommonField(char *dest, size_t dest_size,
 	case C_TIME_MILLISECOND_LETTER:
 		stringSize = 4 * sizeof(char);
 		/* Extract millisecond from logTimestamp */
-		SaTimeT us = logRecord->logTimeStamp / SA_TIME_ONE_MICROSECOND;
+		us = logRecord->logTimeStamp / SA_TIME_ONE_MICROSECOND;
 		characters = snprintf(dest, dest_size, "%03lld", us % SA_TIME_ONE_MICROSECOND);
 		break;
 
 	case C_TIME_TIMEZONE_LETTER:
 		stringSize = 6 * sizeof(char);
 		/* Get timezone offset from localtime to UTC time */
-		long gmtOffset = (timeStampData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
+		gmtOffset = (timeStampData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
 			(timeStampData->tm_gmtoff % SECOND_PER_HOUR) / SECOND_PER_MINUTE;
 
-		long uGmtOffset = (gmtOffset >= 0) ? (gmtOffset) : (gmtOffset * -1);
+		uGmtOffset = (gmtOffset >= 0) ? (gmtOffset) : (gmtOffset * -1);
 		characters = snprintf(dest, dest_size, "%c%04ld", gmtOffset >= 0 ? '+' : '-', uGmtOffset);
 		break;
 
@@ -759,7 +760,7 @@ static int extractCommonField(char *dest, size_t dest_size,
 	case C_LR_HEX_CHAR_BODY_LETTER:
 		stringSize = logRecord->logBuffer->logBufSize;
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
-		hex_string = (char *)malloc(2 * stringSize + 1);
+		hex_string = static_cast<char *>(malloc(2 * stringSize + 1));
 
 		if (hex_string == NULL){
 			osafassert(0);
@@ -794,7 +795,7 @@ static int extractCommonField(char *dest, size_t dest_size,
 	if (characters == -1)
 		characters = 0;
 
-	if (characters > dest_size)
+	if (characters > static_cast<int>(dest_size))
 		characters = dest_size;
 
 	return characters;
@@ -820,6 +821,7 @@ static int extractNotificationField(char *dest, size_t dest_size,
 	SaInt32T fieldSize;
 	SaInt32T characters = 0;
 	SaUint16T fieldSizeOffset = 0;
+	long gmtOffset = 0, uGmtOffset = 0;
 
 	*fmtExpPtrOffset = DEFAULT_FMT_EXP_PTR_OFFSET;
 
@@ -981,11 +983,10 @@ static int extractNotificationField(char *dest, size_t dest_size,
 
 	case N_EVENT_TIME_TIMEZONE_LETTER:
 		/* Get time offset from localtime to UTC */
-		characters = 6;	/* to avoid using {} */
-		long gmtOffset = (eventTimeData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
+		gmtOffset = (eventTimeData->tm_gmtoff / SECOND_PER_HOUR) * 100 +
 			(eventTimeData->tm_gmtoff % SECOND_PER_HOUR) / SECOND_PER_MINUTE;
 
-		long uGmtOffset = (gmtOffset >= 0) ? (gmtOffset) : (gmtOffset * -1);
+		uGmtOffset = (gmtOffset >= 0) ? (gmtOffset) : (gmtOffset * -1);
 		characters = snprintf(dest, dest_size, "%c%04ld", gmtOffset >= 0 ? '+' : '-', uGmtOffset);
 		break;
 
@@ -1049,7 +1050,7 @@ static int extractNotificationField(char *dest, size_t dest_size,
 	if (characters == -1)
 		characters = 0;
 
-	if (characters > dest_size)
+	if (characters > static_cast<int>(dest_size))
 		characters = dest_size;
 
 	return characters;
@@ -1134,7 +1135,7 @@ static int extractSystemField(char *dest, size_t dest_size,
 	if (characters == -1)
 		characters = 0;
 
-	if (characters > dest_size)
+	if (characters > static_cast<int>(dest_size))
 		characters = dest_size;
 
 	return characters;
@@ -1240,7 +1241,7 @@ int lgs_format_log_record(SaLogRecordT *logRecord, const SaStringT formatExpress
 	struct tm *timeStampData;
 	SaBoolT _twelveHourModeFlag = SA_FALSE;
 	const SaBoolT *twelveHourModeFlag = &_twelveHourModeFlag;
-	int i = 0;
+	size_t i = 0;
 	SaUint16T rec_size = dest_size;
 
 	if (formatExpression == NULL) {

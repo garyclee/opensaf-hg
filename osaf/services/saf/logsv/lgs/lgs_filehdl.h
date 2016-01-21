@@ -20,14 +20,11 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <saAis.h>
 #include <limits.h>
 #include <utmp.h>
-#include "lgs_util.h"
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+#include <saAis.h>
+#include "lgs_util.h"
 
 /*****************************************************************************
  * Handlers:
@@ -176,10 +173,6 @@ int fileclose_hdl(void *indata, void *outdata, size_t max_outsize);
 int delete_file_hdl(void *indata, void *outdata, size_t max_outsize);
 int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize);
 int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize);
-
-#ifdef	__cplusplus
-}
-#endif
 
 #endif	/* LGS_FILEHDL_H */
 

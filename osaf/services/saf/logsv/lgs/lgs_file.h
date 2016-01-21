@@ -23,10 +23,6 @@
 
 #include <saAis.h>
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 typedef enum {
 	LGSF_SUCESS,	/* Operation done successfully */
 	LGSF_BUSY,		/* A request is ongoing. File system may be unavailable */
@@ -61,14 +57,9 @@ typedef struct {
 }lgsf_apipar_t;
 
 char *lgsf_retcode_str(lgsf_retcode_t rc);
-uint32_t lgs_file_init(void);
+uint32_t lgs_file_init();
 lgsf_retcode_t log_file_api(lgsf_apipar_t *param_in);
 void lgs_fd_list_add(int32_t fd);
-int32_t lgs_fd_list_get(void);
-
-#ifdef	__cplusplus
-}
-#endif
+int32_t lgs_fd_list_get();
 
 #endif	/* LGS_FILE_H */
-
