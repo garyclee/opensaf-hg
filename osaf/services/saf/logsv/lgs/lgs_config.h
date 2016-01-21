@@ -20,6 +20,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string>
 
 #include "saImmOi.h"
 #include "saAmf.h"
@@ -70,7 +71,7 @@ typedef struct config_chkpt {
  */
 void lgs_cfg_init(SaImmOiHandleT immOiHandle, SaAmfHAStateT ha_state);
 const void *lgs_cfg_get(lgs_logconfGet_t param);
-bool lgs_path_is_writeable_dir_h(const char *pathname);
+bool lgs_path_is_writeable_dir_h(const std::string &pathname);
 void lgs_cfgupd_list_create(const char *name_str, char *value_str,
 	lgs_config_chg_t *config_data);
 char *lgs_cfgupd_list_read(char **name_str, char **value_str,
@@ -81,14 +82,14 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data);
  * Functions for updating some parameters. Used to support check-point before
  * version 5
  */
-void lgs_rootpathconf_set(const char *root_path_str);
+void lgs_rootpathconf_set(const std::string &root_path_str);
 void lgs_groupnameconf_set(const char *data_groupname_str);
 
 /*
  * Parameter value validation functions. Validates parameters. See function
  * headers for validation rules
  */
-int lgs_cfg_verify_root_dir(char *root_str_in);
+int lgs_cfg_verify_root_dir(const std::string &root_str_in);
 int lgs_cfg_verify_log_data_groupname(char *group_name);
 int lgs_cfg_verify_log_file_format(const char* log_file_format);
 int lgs_cfg_verify_max_logrecsize(uint32_t max_logrecsize_in);

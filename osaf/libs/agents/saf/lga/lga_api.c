@@ -27,6 +27,13 @@
      (SA_DISPATCH_BLOCKING == flag) )
 
 #define LGSV_NANOSEC_TO_LEAPTM 10000000
+/**
+ * Temporary maximum log file name length to avoid LOG client sends
+ * log file name too long (big data) to LOG service.
+ *
+ * The real limit check will be done by service side.
+ */
+#define LGA_FILE_LENGTH_TEMP_LIMIT 2048
 
 /* The main controle block */
 lga_cb_t lga_cb = {
@@ -58,15 +65,6 @@ static void populate_open_params(lgsv_stream_open_req_t *open_param,
 	} else {
 		/* Server will assign a def fmt string if needed (logFileFmt==NULL) */
 		open_param->logFileFmt = logFileCreateAttributes->logFileFmt;
-
-		strncpy(open_param->logFileName, logFileCreateAttributes->logFileName, NAME_MAX);
-
-		/* A NULL pointer refers to impl defined directory */
-		if (logFileCreateAttributes->logFilePathName == NULL)
-			strcpy(open_param->logFilePathName, ".");
-		else
-			strncpy(open_param->logFilePathName, logFileCreateAttributes->logFilePathName, PATH_MAX);
-
 		open_param->maxLogFileSize = logFileCreateAttributes->maxLogFileSize;
 		open_param->maxLogRecordSize = logFileCreateAttributes->maxLogRecordSize;
 		open_param->haProperty = logFileCreateAttributes->haProperty;
@@ -74,6 +72,7 @@ static void populate_open_params(lgsv_stream_open_req_t *open_param,
 		open_param->maxFilesRotated = logFileCreateAttributes->maxFilesRotated;
 		open_param->lstr_open_flags = logStreamOpenFlags;
 	}
+
 	TRACE_LEAVE();
 }
 
@@ -561,8 +560,8 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 	/* Check implementation specific string length */
 	if (NULL != logFileCreateAttributes) {
 		len = strlen(logFileCreateAttributes->logFileName);
-		if ((len == 0) || (len > LOG_NAME_MAX)) {
-			TRACE("logFileName");
+		if ((len == 0) || (len > LGA_FILE_LENGTH_TEMP_LIMIT)) {
+			TRACE("logFileName is too long (max = %d)", LGA_FILE_LENGTH_TEMP_LIMIT);
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
 		if (logFileCreateAttributes->logFilePathName != NULL) {
@@ -628,9 +627,41 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	msg.info.api_info.type = LGSV_STREAM_OPEN_REQ;
 	open_param = &msg.info.api_info.param.lstr_open_sync;
 
+	/* Make it safe for free */
+	open_param->logFileName = NULL;
+	open_param->logFilePathName = NULL;
+
 	populate_open_params(open_param,
 			     logStreamName,
-			     hdl_rec, (SaLogFileCreateAttributesT_2 *)logFileCreateAttributes, logStreamOpenFlags);
+			     hdl_rec,
+			     (SaLogFileCreateAttributesT_2 *)logFileCreateAttributes,
+			     logStreamOpenFlags);
+
+	if (logFileCreateAttributes != NULL) {
+		/* Construct the logFileName */
+		open_param->logFileName = (char *) malloc(strlen(logFileCreateAttributes->logFileName) + 1);
+		if (open_param->logFileName == NULL) {
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_give_hdl;
+		}
+		strcpy(open_param->logFileName, logFileCreateAttributes->logFileName);
+
+		/* Construct the logFilePathName */
+		/* A NULL pointer refers to impl defined directory */
+		size_t len = (logFileCreateAttributes->logFilePathName == NULL) ? (2) :
+			         (strlen(logFileCreateAttributes->logFilePathName) + 1);
+
+		open_param->logFilePathName = (char *) malloc(len);
+		if (open_param->logFilePathName == NULL) {
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_give_hdl;
+		}
+
+		if (logFileCreateAttributes->logFilePathName == NULL)
+			strcpy(open_param->logFilePathName, ".");
+		else
+			strcpy(open_param->logFilePathName, logFileCreateAttributes->logFilePathName);
+	}
 
 	/* Normalize the timeOut value */
 	timeout = (uint32_t)(timeOut / LGSV_NANOSEC_TO_LEAPTM);
@@ -699,6 +730,9 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 
  done_give_hdl:
 	ncshm_give_hdl(logHandle);
+	free(open_param->logFileName);
+	free(open_param->logFilePathName);
+
  done:
 	TRACE_LEAVE();
 	return rc;

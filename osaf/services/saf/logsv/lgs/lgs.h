@@ -94,14 +94,16 @@ extern uint32_t lgs_mds_init(lgs_cb_t *cb);
 extern uint32_t lgs_mds_finalize(lgs_cb_t *cb);
 extern uint32_t lgs_mds_change_role(lgs_cb_t *cb);
 extern uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
-			      lgsv_msg_t *msg,
-			      MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
+				 lgsv_msg_t *msg,
+				 MDS_DEST *dest,
+				 MDS_SYNC_SND_CTXT *mds_ctxt,
+				 MDS_SEND_PRIORITY_TYPE prio);
 
 extern SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb);
 extern void logRootDirectory_filemove(
-		const char *new_logRootDirectory,
-		const char *old_logRootDirectory,
-		time_t *cur_time_in);
+	const std::string &new_logRootDirectory,
+	const std::string &old_logRootDirectory,
+	time_t *cur_time_in);
 extern void logDataGroupname_fileown(const char *new_logDataGroupname);
 
 

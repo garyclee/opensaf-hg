@@ -235,8 +235,8 @@ static uint32_t ckpt_stream_config(log_stream_t *stream)
 		ckpt_v2.header.data_len = 1;
 
 		ckpt_v2.ckpt_rec.stream_cfg.name = (char *)stream->name;
-		ckpt_v2.ckpt_rec.stream_cfg.fileName = stream->fileName;
-		ckpt_v2.ckpt_rec.stream_cfg.pathName = stream->pathName;
+		ckpt_v2.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
+		ckpt_v2.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
 		ckpt_v2.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
 		ckpt_v2.ckpt_rec.stream_cfg.fixedLogRecordSize = stream->fixedLogRecordSize;
 		ckpt_v2.ckpt_rec.stream_cfg.logFullAction = stream->logFullAction;
@@ -244,7 +244,7 @@ static uint32_t ckpt_stream_config(log_stream_t *stream)
 		ckpt_v2.ckpt_rec.stream_cfg.maxFilesRotated = stream->maxFilesRotated;
 		ckpt_v2.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
 		ckpt_v2.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
-		ckpt_v2.ckpt_rec.stream_cfg.logFileCurrent = stream->logFileCurrent;
+		ckpt_v2.ckpt_rec.stream_cfg.logFileCurrent = const_cast<char *>(stream->logFileCurrent.c_str());
 		ckpt_v2.ckpt_rec.stream_cfg.c_file_close_time_stamp = stream->act_last_close_timestamp;
 		ckpt_ptr = &ckpt_v2;
 	} else {
@@ -254,8 +254,8 @@ static uint32_t ckpt_stream_config(log_stream_t *stream)
 		ckpt_v1.header.data_len = 1;
 
 		ckpt_v1.ckpt_rec.stream_cfg.name = (char *)stream->name;
-		ckpt_v1.ckpt_rec.stream_cfg.fileName = stream->fileName;
-		ckpt_v1.ckpt_rec.stream_cfg.pathName = stream->pathName;
+		ckpt_v1.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
+		ckpt_v1.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
 		ckpt_v1.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
 		ckpt_v1.ckpt_rec.stream_cfg.fixedLogRecordSize = stream->fixedLogRecordSize;
 		ckpt_v1.ckpt_rec.stream_cfg.logFullAction = stream->logFullAction;
@@ -263,7 +263,7 @@ static uint32_t ckpt_stream_config(log_stream_t *stream)
 		ckpt_v1.ckpt_rec.stream_cfg.maxFilesRotated = stream->maxFilesRotated;
 		ckpt_v1.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
 		ckpt_v1.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
-		ckpt_v1.ckpt_rec.stream_cfg.logFileCurrent = stream->logFileCurrent;
+		ckpt_v1.ckpt_rec.stream_cfg.logFileCurrent = const_cast<char *>(stream->logFileCurrent.c_str());
 		ckpt_ptr = &ckpt_v1;
 	}
 
@@ -735,15 +735,15 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 
 		if (!strcmp(attribute->attrName, LOG_ROOT_DIRECTORY)) {
 			if (attribute->attrValuesNumber != 0) {
-				char *pathName = *((char **)value);
-				rc = lgs_cfg_verify_root_dir(pathName);
-				if (rc == -1) {
+				std::string pathName = *(static_cast<char **>(value));
+				if (lgs_cfg_verify_root_dir(pathName) != 0) {
 					report_oi_error(immOiHandle, opdata->ccbId,
-							"pathName: %s is NOT accepted", pathName);
+							"pathName: %s is NOT accepted",
+							pathName.c_str());
 					ais_rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
-				TRACE("pathName: %s is accepted", pathName);
+				TRACE("pathName: %s is accepted", pathName.c_str());
 			}
 		} else if (!strcmp(attribute->attrName, LOG_DATA_GROUPNAME)) {
 			if (attribute->attrValuesNumber == 0) {
@@ -1000,18 +1000,18 @@ static lgs_stream_defval_t *get_SaLogStreamConfig_default()
  * @return true if exists
 */
 bool chk_filepath_stream_exist(
-		char *fileName,
-		char *pathName,
-		log_stream_t *stream,
-		enum CcbUtilOperationType operationType)
+	std::string &fileName,
+	std::string &pathName,
+	log_stream_t *stream,
+	enum CcbUtilOperationType operationType)
 {
 	log_stream_t *i_stream = NULL;
-	char *i_fileName = NULL;
-	char *i_pathName = NULL;
+	std::string i_fileName;
+	std::string i_pathName;
 	bool rc = false;
 
 	TRACE_ENTER();
-	TRACE("fileName \"%s\", pathName \"%s\"", fileName, pathName);
+	TRACE("fileName \"%s\", pathName \"%s\"", fileName.c_str(), pathName.c_str());
 
 	/* If a stream is modified only the name may be modified. The path name
 	 * must be fetched from the stream.
@@ -1022,26 +1022,26 @@ bool chk_filepath_stream_exist(
 			/* No stream to modify. Should never happen */
 			osafassert(0);
 		}
-		if ((fileName == NULL) && (pathName == NULL)) {
+		if ((fileName.empty() == true) && (pathName.empty() == true)) {
 			/* Nothing has changed */
 			TRACE("Nothing has changed");
 			return false;
 		}
-		if (fileName == NULL) {
+		if (fileName.empty() == true) {
 			i_fileName = stream->fileName;
-			TRACE("From stream: fileName \"%s\"", i_fileName);
+			TRACE("From stream: fileName \"%s\"", i_fileName.c_str());
 		} else {
 			i_fileName = fileName;
 		}
-		if (pathName == NULL) {
+		if (pathName.empty() == true) {
 			i_pathName = stream->pathName;
-			TRACE("From stream: pathName \"%s\"", i_pathName);
+			TRACE("From stream: pathName \"%s\"", i_pathName.c_str());
 		} else {
 			i_pathName = pathName;
 		}
 	} else if (operationType == CCBUTIL_CREATE) {
 		TRACE("CREATE");
-		if ((fileName == NULL) || (pathName == NULL)) {
+		if ((fileName.empty() == true) || (pathName.empty() == true)) {
 			/* Should never happen
 			 * A valid fileName and pathName is always given at create */
 			LOG_ER("fileName or pathName is not a string");
@@ -1060,8 +1060,8 @@ bool chk_filepath_stream_exist(
 	i_stream = log_stream_getnext_by_name(NULL);
 	while (i_stream != NULL) {
 		TRACE("Check stream \"%s\"", i_stream->name);
-		if ((strncmp(i_stream->fileName, i_fileName, NAME_MAX) == 0) &&
-			(strncmp(i_stream->pathName, i_pathName, SA_MAX_NAME_LENGTH) == 0)) {
+		if ((i_stream->fileName == i_fileName) &&
+			(i_stream->pathName == i_pathName)) {
 			rc = true;
 			break;
 		}
@@ -1253,10 +1253,10 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 	/* Attribute values to be checked
 	 */
 	/* Mandatory if create. Can be modified */
-	char *i_fileName = NULL;
+	std::string i_fileName;
 	bool i_fileName_mod = false;
 	/* Mandatory if create. Cannot be changed (handled in class definition) */
-	char *i_pathName = NULL;
+	std::string i_pathName;
 	bool i_pathName_mod = false;
 	/* Modification flag -> true if modified */
 	SaUint32T i_streamFixedLogRecordSize = 0;
@@ -1306,7 +1306,7 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 			i_pathName = stream->pathName;
 			i_fileName = stream->fileName;
 			TRACE("From stream: pathName \"%s\", fileName \"%s\"",
-					i_pathName, i_fileName);
+				  i_pathName.c_str(), i_fileName.c_str());
 		}
 	} else if (opdata->operationType == CCBUTIL_CREATE){
 		TRACE("Validate for CREATE");
@@ -1420,7 +1420,7 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 		 */
 		if (i_pathName_mod) {
 			TRACE("Checking saLogStreamPathName");
-			if (i_pathName == NULL) {
+			if (i_pathName.empty() == true) {
 				/* Must point to a string */
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				report_oi_error(immOiHandle, opdata->ccbId,
@@ -1429,7 +1429,7 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 				goto done;
 			}
 
-			if (strlen(i_pathName) > PATH_MAX) {
+			if (lgs_is_valid_pathlength(i_pathName, i_fileName) == false) {
 				/* Path name is too long */
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				report_oi_error(immOiHandle, opdata->ccbId,
@@ -1440,9 +1440,9 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 
 			if (lgs_relative_path_check_ts(i_pathName) == true) {
 				report_oi_error(immOiHandle, opdata->ccbId,
-							"Path %s not valid", i_pathName);
+						"Path %s not valid", i_pathName.c_str());
 				rc = SA_AIS_ERR_BAD_OPERATION;
-				TRACE("Path %s not valid", i_pathName);
+				TRACE("Path %s not valid", i_pathName.c_str());
 				goto done;
 			}
 		}
@@ -1453,7 +1453,7 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 		 */
 		if (i_fileName_mod) {
 			TRACE("Checking saLogStreamFileName");
-			if (i_fileName == NULL) {
+			if (i_fileName.empty() == true) {
 				/* Must point to a string */
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				report_oi_error(immOiHandle, opdata->ccbId,
@@ -1462,20 +1462,22 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 				goto done;
 			}
 
-			if (strlen(i_fileName) > LOG_NAME_MAX) {
+			if ((lgs_is_valid_pathlength(i_pathName, i_fileName) == false) ||
+				(lgs_is_valid_filelength(i_fileName) == false)) {
 				/* File name is too long */
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				report_oi_error(immOiHandle, opdata->ccbId,
 						"saLogStreamFileName is so long");
-				TRACE("saLogStreamFileName is so long (max: %d)", LOG_NAME_MAX);
+				TRACE("saLogStreamFileName is so long");
 				goto done;
 			}
+
 			/* Not allow special characters exising in file name */
 			if (lgs_has_special_char(i_fileName) == true) {
 				/* Report failed if has special character in file name */
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				report_oi_error(immOiHandle, opdata->ccbId,
-								"Invalid saLogStreamFileName value");
+						"Invalid saLogStreamFileName value");
 				TRACE("\t448 Invalid saLogStreamFileName value");
 				goto done;
 			}
@@ -1483,10 +1485,11 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 			if (chk_filepath_stream_exist(i_fileName, i_pathName,
 					stream, opdata->operationType)) {
 				report_oi_error(immOiHandle, opdata->ccbId,
-						"Path/file %s/%s already exist", i_pathName, i_fileName);
+						"Path/file %s/%s already exist",
+						i_pathName.c_str(), i_fileName.c_str());
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				TRACE("Path/file %s/%s already exist",
-						i_pathName, i_fileName);
+					  i_pathName.c_str(), i_fileName.c_str());
 				goto done;
 			}
 		}
@@ -1799,26 +1802,19 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
  * @param cur_time_in
  */
 void logRootDirectory_filemove(
-		const char *new_logRootDirectory,
-		const char *old_logRootDirectory,
-		time_t *cur_time_in)
+	const std::string &new_logRootDirectory,
+	const std::string &old_logRootDirectory,
+	time_t *cur_time_in)
 {
 	TRACE_ENTER();
 	log_stream_t *stream;
-	int n = 0;
-	char *current_logfile;
-
-	/* Shall never happen */
-	if (strlen(new_logRootDirectory) + 1 > PATH_MAX) {
-		LOG_ER("%s Root path > PATH_MAX! Abort", __FUNCTION__);
-		osafassert(0);
-	}
+	std::string current_logfile;
 
 	/* Close and rename files at current path
 	 */
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
-		TRACE("Handling file %s", stream->logFileCurrent);
+		TRACE("Handling file %s", stream->logFileCurrent.c_str());
 
 		if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 			current_logfile = stream->logFileCurrent;
@@ -1826,7 +1822,7 @@ void logRootDirectory_filemove(
 			current_logfile = stream->stb_logFileCurrent;
 		}
 
-		TRACE("current_logfile \"%s\"",current_logfile);
+		TRACE("current_logfile \"%s\"", current_logfile.c_str());
 
 		if (log_stream_config_change(!LGS_STREAM_CREATE_FILES,
 				old_logRootDirectory, stream, current_logfile,
@@ -1848,12 +1844,9 @@ void logRootDirectory_filemove(
 
 		/* Create the new log file based on updated configuration */
 		char *current_time = lgs_get_time(cur_time_in);
-		n = snprintf(stream->logFileCurrent, NAME_MAX, "%s_%s", stream->fileName,
-				current_time);
-		if (n >= NAME_MAX) {
-			LOG_ER("New log file could not be created for stream: %s",
-					stream->name);
-		} else if ((*stream->p_fd = log_file_open(new_logRootDirectory,
+		stream->logFileCurrent = stream->fileName + "_" + current_time;
+
+		if ((*stream->p_fd = log_file_open(new_logRootDirectory,
 			stream, stream->logFileCurrent, NULL)) == -1) {
 			LOG_ER("New log file could not be created for stream: %s",
 					stream->name);
@@ -1862,7 +1855,7 @@ void logRootDirectory_filemove(
 		/* Also update standby current file name
 		 * Used if standby and configured for split file system
 		 */
-		strcpy(stream->stb_logFileCurrent, stream->logFileCurrent);
+		stream->stb_logFileCurrent = stream->logFileCurrent;
 		stream = log_stream_getnext_by_name(stream->name);
 	}
 	TRACE_LEAVE();
@@ -2104,7 +2097,8 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 	*stream = NULL;
 	int i = 0;
 	SaNameT objectName;
-	int n = 0;
+	std::string fileName;
+	std::string pathName;
 
 	TRACE_ENTER();
 
@@ -2141,19 +2135,9 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 			SaImmAttrValueT value = ccb->param.create.attrValues[i]->attrValues[0];
 
 			if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamFileName")) {
-				n = snprintf((*stream)->fileName, NAME_MAX, "%s", *((char **) value));
-				if (n >= NAME_MAX) {
-					LOG_ER("Error: saLogStreamFileName > NAME_MAX");
-					osafassert(0);
-				}
-				TRACE("fileName: %s", (*stream)->fileName);
+				fileName = *(static_cast<char **>(value));
 			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamPathName")) {
-				n = snprintf((*stream)->pathName, PATH_MAX, "%s", *((char **) value));
-				if (n >= PATH_MAX) {
-					LOG_ER("Error: Path name size > PATH_MAX");
-					osafassert(0);
-				}
-				TRACE("pathName: %s", (*stream)->pathName);
+				pathName = *(static_cast<char **>(value));
 			} else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamMaxLogFileSize")) {
 				(*stream)->maxLogFileSize = *((SaUint64T *) value);
 				TRACE("maxLogFileSize: %llu", (*stream)->maxLogFileSize);
@@ -2187,6 +2171,18 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 		}
 		i++;
 	} // while
+
+	/* Check if filename & pathName is valid */
+	if (lgs_is_valid_filelength(fileName) && lgs_is_valid_pathlength(pathName, fileName)) {
+		(*stream)->fileName = fileName;
+		(*stream)->pathName = pathName;
+		TRACE("fileName: %s", fileName.c_str());
+		TRACE("pathName: %s", pathName.c_str());
+	} else {
+		TRACE("Problem with fileName (%s) or pathName (%s)", fileName.c_str(), pathName.c_str());
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done;
+	}
 
 	if ((*stream)->logFileFormat == NULL) {
 		/* If passing NULL to log file format, use default value */
@@ -2226,11 +2222,10 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attrMod;
 	int i = 0;
 	log_stream_t *stream;
-	char current_logfile_name[NAME_MAX];
+	std::string current_logfile_name;
 	bool new_cfg_file_needed = false;
-	int n = 0;
 	struct timespec curtime_tspec;
-	char *fileName;
+	std::string fileName;
 	bool modify = false;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -2238,11 +2233,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	stream = log_stream_get_by_name((char*)opdata->objectName.value);
 	osafassert(stream);
 
-	n = snprintf(current_logfile_name, NAME_MAX, "%s", stream->logFileCurrent);
-	if (n >= NAME_MAX) {
-		LOG_ER("Error: a. File name > NAME_MAX");
-		osafassert(0);
-	}
+	current_logfile_name = stream->logFileCurrent;
 
 	attrMod = opdata->param.modify.attrMods[i++];
 	while (attrMod != NULL) {
@@ -2295,7 +2286,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 
 	osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
 	time_t cur_time = curtime_tspec.tv_sec;
-	const char *root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+	std::string root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
 	if (new_cfg_file_needed) {
 		int rc;
@@ -2316,17 +2307,14 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 			LOG_ER("log_stream_config_change failed: %d", rc);
 		}
 
-		n = snprintf(stream->fileName, NAME_MAX, "%s", fileName);
-		if (n >= NAME_MAX) {
-			LOG_ER("Error: File name (%zu) > NAME_MAX (%d)", strlen(fileName), (int) NAME_MAX);
-			osafassert(0);
-		}
+		stream->fileName = fileName;
+
 		if ((rc = lgs_create_config_file_h(root_path, stream)) != 0) {
 			LOG_ER("lgs_create_config_file_h failed: %d", rc);
 		}
 
 		char *current_time = lgs_get_time(&cur_time);
-		sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
+		stream->logFileCurrent = stream->fileName + "_" + current_time;
 
 		// Create the new log file based on updated configuration
 		*stream->p_fd = log_file_open(root_path,
@@ -2579,11 +2567,11 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 		value = attribute->attrValues[0];
 
 		if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-			strcpy(stream->fileName, *((char **)value));
-			TRACE("fileName: %s", stream->fileName);
+			stream->fileName =  *(static_cast<char **>(value));
+			TRACE("fileName: %s", stream->fileName.c_str());
 		} else if (!strcmp(attribute->attrName, "saLogStreamPathName")) {
-			strcpy(stream->pathName, *((char **)value));
-			TRACE("pathName: %s", stream->pathName);
+			stream->pathName = *(static_cast<char **>(value));
+			TRACE("pathName: %s", stream->pathName.c_str());
 		} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
 			stream->maxLogFileSize = *((SaUint64T *)value);
 			TRACE("maxLogFileSize: %llu", stream->maxLogFileSize);
@@ -2619,6 +2607,14 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 			stream->severityFilter = *((SaUint32T *)value);
 			TRACE("severityFilter: %u", stream->severityFilter);
 		}
+	}
+
+	/* Check if the fileName and pathName are valid */
+	if ((lgs_is_valid_filelength(stream->fileName) == false) ||
+		(lgs_is_valid_pathlength(stream->pathName, stream->fileName) == false)) {
+		LOG_ER("Problem with fileName (%s)/pathName (%s)",
+			   stream->fileName.c_str(), stream->pathName.c_str());
+		osafassert(0);
 	}
 
 	if (stream->logFileFormat == NULL) {

@@ -745,9 +745,9 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
 		ckpt_rec_open_ptr->clientId = open_sync_param->client_id;
 		ckpt_rec_open_ptr->streamId = logStream->streamId;
 
-		ckpt_rec_open_ptr->logFile = logStream->fileName;
-		ckpt_rec_open_ptr->logPath = logStream->pathName;
-		ckpt_rec_open_ptr->logFileCurrent = logStream->logFileCurrent;
+		ckpt_rec_open_ptr->logFile = const_cast<char *>(logStream->fileName.c_str());
+		ckpt_rec_open_ptr->logPath = const_cast<char *>(logStream->pathName.c_str());
+		ckpt_rec_open_ptr->logFileCurrent = const_cast<char *>(logStream->logFileCurrent.c_str());
 		ckpt_rec_open_ptr->fileFmt = logStream->logFileFormat;
 		ckpt_rec_open_ptr->logStreamName = logStream->name;
 
@@ -781,7 +781,6 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 	SaAisErrorT rc = SA_AIS_OK;
 	log_stream_t *stream;
 	SaBoolT twelveHourModeFlag;
-	uint32_t len = 0;
 	SaUint32T logMaxLogrecsize_conf = 0;
 
 	TRACE_ENTER();
@@ -827,11 +826,26 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 		goto done;
 	}
 
+	/* Verify if logFileName length is valid */
+	if (lgs_is_valid_filelength(open_sync_param->logFileName) == false) {
+		TRACE("logFileName is invalid");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	/* Verify if logFilePathName length is valid */
+	if (lgs_is_valid_pathlength(open_sync_param->logFilePathName,
+				    open_sync_param->logFileName) == false) {
+		TRACE("logFilePathName is invalid");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
 	/* Verify that path and file are unique */
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
-		if ((strncmp(stream->fileName, open_sync_param->logFileName, NAME_MAX) == 0) &&
-		    (strncmp(stream->pathName, open_sync_param->logFilePathName, SA_MAX_NAME_LENGTH) == 0)) {
+		if ((stream->fileName == open_sync_param->logFileName) &&
+		    (stream->pathName == open_sync_param->logFilePathName)) {
 			TRACE("pathname already exist");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
@@ -852,22 +866,6 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 		((open_sync_param->maxLogRecordSize < SA_LOG_MIN_RECORD_SIZE) ||
 		(open_sync_param->maxLogRecordSize > logMaxLogrecsize_conf))) {
 		TRACE("maxLogRecordSize is invalid");
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto done;
-	}
-
-	/* Verify if logFileName length is valid */
-	len = strlen(open_sync_param->logFileName);
-	if ((len == 0) || (len > LOG_NAME_MAX)) {
-		TRACE("logFileName is invalid");
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto done;
-	}
-
-	/* Verify if logFilePathName length is valid */
-	len = strlen(open_sync_param->logFilePathName);
-	if ((len == 0) || (len > PATH_MAX)) {
-		TRACE("logFilePathName is invalid");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -920,13 +918,13 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param, l
 		TRACE("logFileFullAction create params differs, new: %d, old: %d",
 		      open_sync_param->logFileFullAction, applicationStream->logFullAction);
 		rs = SA_AIS_ERR_EXIST;
-	} else if (strcmp(applicationStream->fileName, open_sync_param->logFileName) != 0) {
+	} else if (applicationStream->fileName != open_sync_param->logFileName) {
 		TRACE("logFileName differs, new: %s existing: %s",
-		      open_sync_param->logFileName, applicationStream->fileName);
+		      open_sync_param->logFileName, applicationStream->fileName.c_str());
 		rs = SA_AIS_ERR_EXIST;
-	} else if (strcmp(applicationStream->pathName, open_sync_param->logFilePathName) != 0) {
+	} else if (applicationStream->pathName != open_sync_param->logFilePathName) {
 		TRACE("log file path differs, new: %s existing: %s",
-		      open_sync_param->logFilePathName, applicationStream->pathName);
+		      open_sync_param->logFilePathName, applicationStream->pathName.c_str());
 		rs = SA_AIS_ERR_EXIST;
 	} else if ((open_sync_param->logFileFmt != NULL) &&
 		   strcmp(applicationStream->logFileFormat, open_sync_param->logFileFmt) != 0) {
@@ -1047,7 +1045,12 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	if (ais_rv == SA_AIS_OK) {
 		(void)lgs_ckpt_stream_open(cb, logStream, open_sync_param);
 	}
+
+	// These memories are allocated in MDS log open decode callback.
 	free(open_sync_param->logFileFmt);
+	free(open_sync_param->logFilePathName);
+	free(open_sync_param->logFileName);
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1217,7 +1220,8 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 			ckpt_v2.ckpt_rec.write_log.recordId = stream->logRecordId;
 			ckpt_v2.ckpt_rec.write_log.streamId = stream->streamId;
 			ckpt_v2.ckpt_rec.write_log.curFileSize = stream->curFileSize;
-			ckpt_v2.ckpt_rec.write_log.logFileCurrent = stream->logFileCurrent;
+			ckpt_v2.ckpt_rec.write_log.logFileCurrent = const_cast<char *>(
+			    stream->logFileCurrent.c_str());
 			ckpt_v2.ckpt_rec.write_log.logRecord = logOutputString;
 			ckpt_v2.ckpt_rec.write_log.c_file_close_time_stamp = stream->act_last_close_timestamp;
 			ckpt_ptr = &ckpt_v2;
@@ -1229,7 +1233,8 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 			ckpt_v1.ckpt_rec.write_log.recordId = stream->logRecordId;
 			ckpt_v1.ckpt_rec.write_log.streamId = stream->streamId;
 			ckpt_v1.ckpt_rec.write_log.curFileSize = stream->curFileSize;
-			ckpt_v1.ckpt_rec.write_log.logFileCurrent = stream->logFileCurrent;
+			ckpt_v1.ckpt_rec.write_log.logFileCurrent = const_cast<char *>(
+			    stream->logFileCurrent.c_str());
 			ckpt_ptr = &ckpt_v1;
 		}
 

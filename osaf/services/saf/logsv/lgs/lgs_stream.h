@@ -18,9 +18,11 @@
 #ifndef __LGS_STREAM_H
 #define __LGS_STREAM_H
 
+#include <string>
 #include <ncspatricia.h>
 #include <time.h>
 #include <limits.h>
+
 #include "lgs_fmt.h"
 
 /**
@@ -33,8 +35,8 @@ typedef struct log_stream {
 
 	/* --- Corresponds to IMM Class SaLogStream/SaLogStreamConfig --- */
 	char name[SA_MAX_NAME_LENGTH + 1];	/* add for null termination */
-	char fileName[NAME_MAX];
-	char pathName[PATH_MAX];
+	std::string fileName;
+	std::string pathName;
 	SaUint64T maxLogFileSize;
 	SaUint32T fixedLogRecordSize;
 	SaBoolT haProperty;	/* app log stream only */
@@ -52,7 +54,7 @@ typedef struct log_stream {
 	int32_t fd_shared;	/* Checkpointed stream file descriptor for shared fs */
 	int32_t fd_local;	/* Local stream file descriptor for split fs */
 	int32_t *p_fd;      /* Points to shared or local fd depending on fs config */
-	char logFileCurrent[NAME_MAX];	/* Current file name */
+	std::string logFileCurrent;	/* Current file name */
 	uint32_t curFileSize;	/* Bytes written to current log file */
 	uint32_t logRecordId;	/* log record indentifier increased for each record */
 	SaBoolT twelveHourModeFlag; /* Not used. Can be removed? */ 
@@ -68,8 +70,8 @@ typedef struct log_stream {
 	
 	/* Not checkpointed parameters. Used by standby in split file mode */
 	uint32_t stb_logRecordId; /* Last written Id. For checking Id inconsistency */
-	char stb_logFileCurrent[NAME_MAX];	/* Current file name used on standby */
-	char stb_prev_actlogFileCurrent[NAME_MAX];	/* current file name on active when previous record was written */
+	std::string stb_logFileCurrent;	/* Current file name used on standby */
+	std::string stb_prev_actlogFileCurrent;	/* current file name on active when previous record was written */
 	uint32_t stb_curFileSize;	/* Bytes written to current log file */
 } log_stream_t;
 
@@ -78,8 +80,8 @@ extern void log_stream_delete(log_stream_t **s);
 
 #define STREAM_NEW -1
 extern log_stream_t *log_stream_new(SaNameT *name,
-				    const char *filename,
-				    const char *pathname,
+				    const std::string &filename,
+				    const std::string &pathname,
 				    SaUint64T maxLogFileSize,
 				    SaUint32T fixedLogRecordSize,
 				    SaLogFileFullActionT logFullAction,
@@ -102,12 +104,14 @@ extern void log_stream_id_print();
 
 #define LGS_STREAM_CREATE_FILES true
 int log_stream_config_change(bool create_files_f,
-			const char *root_path,
-			log_stream_t *stream,
-			const char *current_logfile_name,
-			time_t *cur_time_in);
-extern int log_file_open(const char *root_path, log_stream_t *stream,
-			 const char* filename, int *errno_save);
+			     const std::string &root_path,
+			     log_stream_t *stream,
+			     const std::string &current_logfile_name,
+			     time_t *cur_time_in);
+extern int log_file_open(const std::string &root_path,
+			 log_stream_t *stream,
+			 const std::string &filename,
+			 int *errno_save);
 
 /* Accessor functions */
 extern log_stream_t *log_stream_get_by_name(const char *name);

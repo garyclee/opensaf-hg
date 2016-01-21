@@ -291,12 +291,12 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 		stream = log_stream_getnext_by_name(NULL);
 		while (stream != NULL) { /* Iterate over all streams */
 			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-				strcpy(stream->logFileCurrent, stream->stb_logFileCurrent);
+				stream->logFileCurrent = stream->stb_logFileCurrent;
 				stream->curFileSize = stream->stb_curFileSize;
 				*stream->p_fd = -1; /* Reopen files */
 			} else if (cb->ha_state == SA_AMF_HA_QUIESCED) {
-				strcpy(stream->stb_logFileCurrent, stream->logFileCurrent);
-				strcpy(stream->stb_prev_actlogFileCurrent, stream->stb_logFileCurrent);
+				stream->stb_logFileCurrent = stream->logFileCurrent;
+				stream->stb_prev_actlogFileCurrent = stream->stb_logFileCurrent;
 				stream->stb_curFileSize = stream->curFileSize;
 				*stream->p_fd = -1; /* Reopen files */
 			}
@@ -593,9 +593,9 @@ uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_
 	memset(stream_open, 0, sizeof(lgs_ckpt_stream_open_t));
 	stream_open->clientId = -1;	/* not used in this message */
 	stream_open->streamId = logStream->streamId;
-	stream_open->logFile = logStream->fileName;
-	stream_open->logPath = logStream->pathName;
-	stream_open->logFileCurrent = logStream->logFileCurrent;
+	stream_open->logFile = const_cast<char *>(logStream->fileName.c_str());
+	stream_open->logPath = const_cast<char *>(logStream->pathName.c_str());
+	stream_open->logFileCurrent = const_cast<char *>(logStream->logFileCurrent.c_str());
 	stream_open->fileFmt = logStream->logFileFormat;
 	stream_open->logStreamName = logStream->name;
 	stream_open->maxFileSize = logStream->maxLogFileSize;
@@ -1724,8 +1724,8 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 
 	stream->logRecordId = recordId;
 	stream->curFileSize = curFileSize;
-	strcpy(stream->logFileCurrent, logFileCurrent);
-	
+	stream->logFileCurrent = logFileCurrent;
+
 	/* If configured for split file system log records shall be written also if
 	 * we are standby.
 	 */
@@ -1912,10 +1912,10 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 
 		stream->numOpeners = param->numOpeners;
 		stream->creationTimeStamp = param->creationTimeStamp;
-		strcpy(stream->logFileCurrent, param->logFileCurrent);
 		stream->stb_curFileSize = 0;
-		strcpy(stream->stb_prev_actlogFileCurrent, param->logFileCurrent);
-		strcpy(stream->stb_logFileCurrent, param->logFileCurrent);
+		stream->logFileCurrent = param->logFileCurrent;
+		stream->stb_prev_actlogFileCurrent = param->logFileCurrent;
+		stream->stb_logFileCurrent = param->logFileCurrent;
 	}
 
 	/* If configured for split file system files shall be opened on stand by
@@ -2112,7 +2112,7 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 
 	TRACE("config stream %s, id: %u", stream->name, stream->streamId);
 	stream->act_last_close_timestamp = closetime; /* Not used if ver 1 */
-	strcpy(stream->fileName, fileName);
+	stream->fileName = fileName;
 	stream->maxLogFileSize = maxLogFileSize;
 	stream->fixedLogRecordSize = fixedLogRecordSize;
 	stream->logFullAction = logFullAction;
@@ -2126,12 +2126,12 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 
 	strcpy(stream->logFileFormat, logFileFormat);
 	stream->severityFilter = severityFilter;
-	strcpy(stream->logFileCurrent, logFileCurrent);
+	stream->logFileCurrent = logFileCurrent;
 
 	/* If split file mode, update standby files */
 	if (lgs_is_split_file_system()) {
 		int rc = 0;
-		const char *root_path = static_cast<const char *>(lgs_cfg_get(
+		std::string root_path = static_cast<const char *>(lgs_cfg_get(
 			LGS_IMM_LOG_ROOT_DIRECTORY));
 		if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES,
 				root_path, stream,
@@ -2142,8 +2142,8 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 		/* When modifying old files are closed and new are opened meaning that
 		 * we have a new  standby current log-file
 		 */
-		strcpy(stream->stb_prev_actlogFileCurrent, stream->logFileCurrent);
-		strcpy(stream->stb_logFileCurrent, stream->logFileCurrent);
+		stream->stb_prev_actlogFileCurrent = stream->logFileCurrent;
+		stream->stb_logFileCurrent = stream->logFileCurrent;
 	}
 
 done:
