@@ -237,39 +237,45 @@ static uint32_t dec_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return NCSCC_RC_SUCCESS;
 }
 
-/****************************************************************************\
- * Function: dec_avnd_config
- *
- * Purpose:  Decode entire AVD_AVND data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
+void decode_cluster(NCS_UBAID *ub,
+	AVD_CLUSTER *cluster,
+	const uint16_t peer_version)
+{
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&cluster->saAmfClusterAdminState));
+}
+
 static uint32_t dec_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_CLUSTER dec_cluster;
-	AVD_CLUSTER *cluster = &dec_cluster;
-
 	TRACE_ENTER();
+
+	AVD_CLUSTER cluster;
 
 	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
 
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster,
-		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CLUSTER **)&cluster, &ederror,
-		dec->i_peer_version);
-	osafassert(status == NCSCC_RC_SUCCESS);
+	decode_cluster(&dec->i_uba, &cluster, dec->i_peer_version);
+	avd_cluster->saAmfClusterAdminState = cluster.saAmfClusterAdminState;
 
-	avd_cluster->saAmfClusterAdminState = cluster->saAmfClusterAdminState;
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
+}
+
+void decode_node_config(NCS_UBAID *ub,
+	AVD_AVND *avnd,
+	const uint16_t peer_version)
+{
+	osaf_decode_uint32(ub, &avnd->node_info.nodeId);
+	osaf_decode_saclmnodeaddresst(ub, &avnd->node_info.nodeAddress);
+	osaf_decode_sanamet(ub, &avnd->name);
+	osaf_decode_bool(ub, reinterpret_cast<bool*>(&avnd->node_info.member));
+	osaf_decode_satimet(ub, &avnd->node_info.bootTimestamp);
+	osaf_decode_uint64(ub, reinterpret_cast<uint64_t*>(&avnd->node_info.initialViewNumber));
+	osaf_decode_uint64(ub, &avnd->adest);
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->saAmfNodeAdminState));
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->saAmfNodeOperState));
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->node_state));
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->type));
+	osaf_decode_uint32(ub, &avnd->rcv_msg_id);
+	osaf_decode_uint32(ub, &avnd->snd_msg_id);	
 }
 
 /****************************************************************************\
@@ -289,13 +295,9 @@ static uint32_t dec_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_AVND avnd;
 
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
-
-	avnd_ptr = &dec_avnd;
 
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -307,27 +309,19 @@ static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror,
-			dec->i_peer_version);
+		decode_node_config(&dec->i_uba, &avnd, dec->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 1, 3);
+		osaf_decode_sanamet(&dec->i_uba, &avnd.name);
 		break;
 
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	status = avd_ckpt_node(cb, avnd_ptr, dec->i_action);
+	status = avd_ckpt_node(cb, &avnd, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
@@ -788,42 +782,36 @@ static uint32_t dec_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_AVND avnd;
 	AVD_AVND *avnd_struct;
 
 	TRACE_ENTER();
 
-	avnd_ptr = &dec_avnd;
-
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 6, 1, 2, 4, 5, 6, 7);
+	osaf_decode_uint32(&dec->i_uba, &avnd.node_info.nodeId);
+	osaf_decode_saclmnodeaddresst(&dec->i_uba, &avnd.node_info.nodeAddress);
+	osaf_decode_bool(&dec->i_uba, reinterpret_cast<bool*>(&avnd.node_info.member));
+	osaf_decode_satimet(&dec->i_uba, &avnd.node_info.bootTimestamp);
+	osaf_decode_uint64(&dec->i_uba, reinterpret_cast<uint64_t*>(&avnd.node_info.initialViewNumber));
+	osaf_decode_uint64(&dec->i_uba, &avnd.adest);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: decode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
+	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd.node_info.nodeId))) {
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd.node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->node_info.nodeAddress = avnd_ptr->node_info.nodeAddress;
-	avnd_struct->node_info.member = avnd_ptr->node_info.member;
-	avnd_struct->node_info.bootTimestamp = avnd_ptr->node_info.bootTimestamp;
-	avnd_struct->node_info.initialViewNumber = avnd_ptr->node_info.initialViewNumber;
-	avnd_struct->adest = avnd_ptr->adest;
+	avnd_struct->node_info.nodeAddress = avnd.node_info.nodeAddress;
+	avnd_struct->node_info.member = avnd.node_info.member;
+	avnd_struct->node_info.bootTimestamp = avnd.node_info.bootTimestamp;
+	avnd_struct->node_info.initialViewNumber = avnd.node_info.initialViewNumber;
+	avnd_struct->adest = avnd.adest;
 
 	cb->async_updt_cnt.node_updt++;
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -842,36 +830,29 @@ static uint32_t dec_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_AVND avnd;
 	AVD_AVND *avnd_struct;
 
 	TRACE_ENTER();
 
-	avnd_ptr = &dec_avnd;
-
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 8);
+	osaf_decode_sanamet(&dec->i_uba, &avnd.name);
+	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.saAmfNodeAdminState));
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (nullptr == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
-		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
+	if (nullptr == (avnd_struct = avd_node_get(&avnd.name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->saAmfNodeAdminState = avnd_ptr->saAmfNodeAdminState;
+	avnd_struct->saAmfNodeAdminState = avnd.saAmfNodeAdminState;
 
 	cb->async_updt_cnt.node_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -890,36 +871,29 @@ static uint32_t dec_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_AVND avnd;
 	AVD_AVND *avnd_struct;
 
 	TRACE_ENTER();
 
-	avnd_ptr = &dec_avnd;
-
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 9);
+	osaf_decode_sanamet(&dec->i_uba, &avnd.name);
+	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.saAmfNodeOperState));
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (nullptr == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
-		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
+	if (nullptr == (avnd_struct = avd_node_get(&avnd.name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->saAmfNodeOperState = avnd_ptr->saAmfNodeOperState;
+	avnd_struct->saAmfNodeOperState = avnd.saAmfNodeOperState;
 
 	cb->async_updt_cnt.node_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -938,35 +912,28 @@ static uint32_t dec_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_AVND avnd;
 	AVD_AVND *avnd_struct;
 
 	TRACE_ENTER();
 
-	avnd_ptr = &dec_avnd;
-
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 3, 10);
-
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (nullptr == (avnd_struct = avd_node_get(&avnd_ptr->name))) {
-		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd_ptr->name.value);
+	osaf_decode_sanamet(&dec->i_uba, &avnd.name);
+	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.node_state));
+	
+	if (nullptr == (avnd_struct = avd_node_get(&avnd.name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.value);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->node_state = avnd_ptr->node_state;
+	avnd_struct->node_state = avnd.node_state;
 
 	cb->async_updt_cnt.node_updt++;
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -985,36 +952,29 @@ static uint32_t dec_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_AVND avnd;
 	AVD_AVND *avnd_struct;
 
 	TRACE_ENTER();
 
-	avnd_ptr = &dec_avnd;
-
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 12);
+	osaf_decode_uint32(&dec->i_uba, &avnd.node_info.nodeId);
+	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.rcv_msg_id));
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
+	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd.node_info.nodeId))) {
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd.node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->rcv_msg_id = avnd_ptr->rcv_msg_id;
+	avnd_struct->rcv_msg_id = avnd.rcv_msg_id;
 
 	cb->async_updt_cnt.node_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1033,36 +993,29 @@ static uint32_t dec_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
+	AVD_AVND avnd;
 	AVD_AVND *avnd_struct;
 
 	TRACE_ENTER();
 
-	avnd_ptr = &dec_avnd;
-
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 13);
+	osaf_decode_uint32(&dec->i_uba, &avnd.node_info.nodeId);
+	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.snd_msg_id));
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-
-	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
-		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd_ptr->node_info.nodeId);
+	if (nullptr == (avnd_struct = avd_node_find_nodeid(avnd.node_info.nodeId))) {
+		LOG_ER("%s: node not found, nodeid=%x", __FUNCTION__, avnd.node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->snd_msg_id = avnd_ptr->snd_msg_id;
+	avnd_struct->snd_msg_id = avnd.snd_msg_id;
 
 	cb->async_updt_cnt.node_updt++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2160,20 +2113,13 @@ static uint32_t dec_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 static uint32_t dec_cs_cluster_config(AVD_CL_CB *cb,
 	NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
-	uint32_t status;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_CLUSTER dec_cluster;
-	AVD_CLUSTER *cluster = &dec_cluster;
-
 	TRACE_ENTER();
+	
+	AVD_CLUSTER cluster;
+	decode_cluster(&dec->i_uba, &cluster, dec->i_peer_version);
+	avd_cluster->saAmfClusterAdminState = cluster.saAmfClusterAdminState;
 
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster,
-		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CLUSTER **)&cluster, &ederror,
-		dec->i_peer_version);
-	osafassert(status == NCSCC_RC_SUCCESS);
-	avd_cluster->saAmfClusterAdminState = cluster->saAmfClusterAdminState;
-
-	TRACE_LEAVE2("status '%u'", status);
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2195,23 +2141,16 @@ static uint32_t dec_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
 	uint32_t count = 0;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_AVND *avnd_ptr;
-	AVD_AVND dec_avnd;
+	AVD_AVND avnd;
 
 	TRACE_ENTER();
-
-	avnd_ptr = &dec_avnd;
 
 	/* 
 	 * Walk through the entire list and decode the entire AVND data received.
 	 */
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror,
-					    dec->i_peer_version);
-		osafassert(status == NCSCC_RC_SUCCESS);
-		status = avd_ckpt_node(cb, avnd_ptr, dec->i_action);
+		decode_node_config(&dec->i_uba, &avnd, dec->i_peer_version);
+		status = avd_ckpt_node(cb, &avnd, dec->i_action);
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 
@@ -2752,6 +2691,13 @@ static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	return NCSCC_RC_SUCCESS;
 }
 
+void decode_comp_cs_type_config(NCS_UBAID *ub, AVD_COMPCS_TYPE* comp_cs_type)
+{
+	osaf_decode_sanamet(ub, &comp_cs_type->name);
+	osaf_decode_uint32(ub, &comp_cs_type->saAmfCompNumCurrActiveCSIs);
+	osaf_decode_uint32(ub, &comp_cs_type->saAmfCompNumCurrStandbyCSIs);
+}
+
 /****************************************************************************\
  * Function: dec_comp_cs_type_config
  *
@@ -2769,13 +2715,9 @@ static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 static uint32_t dec_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMPCS_TYPE *comp_cs;
 	AVD_COMPCS_TYPE comp_cs_type;
 
 	TRACE_ENTER();
-
-	comp_cs = &comp_cs_type;
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -2785,23 +2727,17 @@ static uint32_t dec_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 */
 	switch (dec->i_action) {
 	case NCS_MBCSV_ACT_UPDATE:
-	case NCS_MBCSV_ACT_ADD:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMPCS_TYPE **)&comp_cs, &ederror,
-			dec->i_peer_version);
+		decode_comp_cs_type_config(&dec->i_uba, &comp_cs_type);
 		break;
-
+	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_RMV:
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type,
-			&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMPCS_TYPE **)&comp_cs, &ederror, 1, 1);
+		osafassert(false);
 		break;
 	default:
 		osafassert(0);
 	}
 
-	osafassert(status == NCSCC_RC_SUCCESS);
-	status = avd_ckpt_compcstype(cb, comp_cs, dec->i_action);
+	status = avd_ckpt_compcstype(cb, &comp_cs_type, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
@@ -2828,20 +2764,14 @@ static uint32_t dec_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVD_COMPCS_TYPE dec_comp_cs;
-	AVD_COMPCS_TYPE *comp_cs_ptr = &dec_comp_cs;
+	AVD_COMPCS_TYPE comp_cs_type;
 	uint32_t count;
 
 	TRACE_ENTER();
 
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMPCS_TYPE **)&comp_cs_ptr, &ederror,
-					    dec->i_peer_version);
-
-		osafassert(status == NCSCC_RC_SUCCESS);
-		status = avd_ckpt_compcstype(cb, comp_cs_ptr, dec->i_action);
+		decode_comp_cs_type_config(&dec->i_uba, &comp_cs_type);
+		status = avd_ckpt_compcstype(cb, &comp_cs_type, dec->i_action);
 		osafassert(status == NCSCC_RC_SUCCESS);
 	}
 	TRACE_LEAVE2("status '%u'", status);
