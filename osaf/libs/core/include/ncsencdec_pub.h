@@ -93,6 +93,7 @@
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include <saAis.h>
+#include <saClm.h>
 #include <ncs_ubaid.h>
 #include "ncsusrbuf.h"
 #include "ncs_svd.h"
@@ -156,6 +157,8 @@ void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time);
 void osaf_decode_satimet(NCS_UBAID *ub, SaTimeT *time);
 void osaf_encode_bool(NCS_UBAID *ub, bool value);
 void osaf_decode_bool(NCS_UBAID *ub, bool *to);
+void osaf_encode_saclmnodeaddresst(NCS_UBAID *ub, const SaClmNodeAddressT *addr);
+void osaf_decode_saclmnodeaddresst(NCS_UBAID *ub, SaClmNodeAddressT *addr);
 
 /* encode float */
 #define m_NCS_ENCODE_FLOAT(f, enc) {\

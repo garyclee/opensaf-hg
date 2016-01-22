@@ -388,6 +388,26 @@ void osaf_decode_sanamet(NCS_UBAID *ub, SaNameT *name)
 		osaf_decode_uint8(ub, &name->value[i]);
 }
 
+void osaf_encode_saclmnodeaddresst(NCS_UBAID *ub, const SaClmNodeAddressT *addr)
+{
+	SaUint8T i;
+	osaf_encode_uint32(ub, addr->family);
+	osaf_encode_uint16(ub, addr->length);
+	for ( i = 0; i < SA_CLM_MAX_ADDRESS_LENGTH; ++i) {
+		osaf_encode_uint8(ub, addr->value[i]);
+	}
+}
+
+void osaf_decode_saclmnodeaddresst(NCS_UBAID *ub, SaClmNodeAddressT *addr)
+{
+	SaUint8T i;
+	osaf_decode_uint32(ub, &addr->family);
+	osaf_decode_uint16(ub, &addr->length);
+	for ( i = 0; i < SA_CLM_MAX_ADDRESS_LENGTH; ++i) {
+		osaf_decode_uint8(ub, &addr->value[i]);
+	}
+}
+
 void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time)
 {
 	osaf_encode_uint64(ub, time);
