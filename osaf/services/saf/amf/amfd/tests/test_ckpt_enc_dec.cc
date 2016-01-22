@@ -307,3 +307,74 @@ TEST_F(CkptEncDecTest, testEncDecAvdSiTrans) {
   ASSERT_EQ(Amf::to_string(&msg.max_su_name), max_name);
 }
 
+TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
+  int rc = 0;
+  AVD_AVND avnd;
+
+  // generate an address for comparison    
+  SaClmNodeAddressT nodeAddress;
+  nodeAddress.family = SA_CLM_AF_INET6;
+  nodeAddress.length = 64;
+  for (SaUint8T i = 0; i < 64; ++i) {
+    nodeAddress.value[i] = i;
+  }
+
+  // convert to string for human readability if address doesn't match
+  std::string address;
+  std::transform(nodeAddress.value,
+    nodeAddress.value + 64,
+    std::back_inserter(address),
+    [](int c){return c+'0';});
+  const std::string name("this_is_a_test");
+
+  // initialize avnd structure
+  avnd.node_info.nodeId = 1;
+  avnd.node_info.nodeAddress = nodeAddress;
+  avnd.node_info.member = SA_TRUE;
+  avnd.node_info.bootTimestamp = 0x3322118877665544;
+  avnd.node_info.initialViewNumber = 0x8877665544332211;
+  avnd.name = *(asSaNameT(name));
+  avnd.adest = 0x4433221188776655;
+  avnd.saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
+  avnd.saAmfNodeOperState = SA_AMF_OPERATIONAL_ENABLED;
+  avnd.node_state = AVD_AVND_STATE_NCS_INIT;
+  avnd.type = AVSV_AVND_CARD_SYS_CON;
+  avnd.rcv_msg_id = 0xA;
+  avnd.snd_msg_id = 0xB;
+
+  rc = ncs_enc_init_space(&enc.io_uba);
+  ASSERT_TRUE(rc == NCSCC_RC_SUCCESS);
+
+  enc.io_msg_type = NCS_MBCSV_MSG_ASYNC_UPDATE;
+  enc.io_action = NCS_MBCSV_ACT_UPDATE;
+  enc.io_reo_hdl = (MBCSV_REO_HDL)&avnd;
+  enc.io_reo_type = AVSV_CKPT_AVD_NODE_CONFIG;
+  enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_4;
+
+  encode_node_config(&enc.io_uba, &avnd, enc.i_peer_version);
+  memset(&avnd, '\0', sizeof(AVD_AVND));
+  decode_node_config(&enc.io_uba, &avnd, enc.i_peer_version);
+
+  // convert decoded address to string
+  std::string decoded_address;
+  std::transform(avnd.node_info.nodeAddress.value,
+    avnd.node_info.nodeAddress.value + 64,
+    std::back_inserter(decoded_address),
+    [](int c){return c + '0';});
+
+  ASSERT_EQ(avnd.node_info.nodeId, 1);
+  ASSERT_EQ(avnd.node_info.nodeAddress.family, SA_CLM_AF_INET6);
+  ASSERT_EQ(avnd.node_info.nodeAddress.length, 64);
+  ASSERT_EQ(decoded_address, address);
+  ASSERT_EQ(avnd.node_info.member, SA_TRUE);
+  ASSERT_EQ(avnd.node_info.bootTimestamp, 0x3322118877665544);
+  ASSERT_EQ(avnd.node_info.initialViewNumber, 0x8877665544332211);
+  ASSERT_EQ(Amf::to_string(&avnd.name), name);
+  ASSERT_EQ(avnd.adest, 0x4433221188776655);
+  ASSERT_EQ(avnd.saAmfNodeAdminState, SA_AMF_ADMIN_UNLOCKED);
+  ASSERT_EQ(avnd.saAmfNodeOperState, SA_AMF_OPERATIONAL_ENABLED);
+  ASSERT_EQ(avnd.node_state, AVD_AVND_STATE_NCS_INIT);
+  ASSERT_EQ(avnd.type, AVSV_AVND_CARD_SYS_CON);
+  ASSERT_EQ(avnd.rcv_msg_id, 0xA);
+  ASSERT_EQ(avnd.snd_msg_id, 0xB);
+}
