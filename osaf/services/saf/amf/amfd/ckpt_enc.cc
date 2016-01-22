@@ -238,6 +238,13 @@ static uint32_t enc_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	return NCSCC_RC_SUCCESS;
 }
 
+void encode_cluster(NCS_UBAID *ub,
+	const AVD_CLUSTER *cluster,
+	const uint16_t peer_version)
+{
+	osaf_encode_uint32(ub, cluster->saAmfClusterAdminState);
+}
+
 /****************************************************************************\
  * Function: enc_cluster_config
  *
@@ -254,27 +261,37 @@ static uint32_t enc_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
+
+	const AVD_CLUSTER *cluster = reinterpret_cast<AVD_CLUSTER*>(enc->io_reo_hdl);
 
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_UPDATE:
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version);
+		encode_cluster(&enc->io_uba, cluster, enc->i_peer_version);
 		break;
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+void encode_node_config(NCS_UBAID *ub, const AVD_AVND* avnd, uint16_t peer_version)
+{
+	osaf_encode_uint32(ub, avnd->node_info.nodeId);
+	osaf_encode_saclmnodeaddresst(ub, &avnd->node_info.nodeAddress);
+	osaf_encode_sanamet(ub, &avnd->name);
+	osaf_encode_bool(ub, avnd->node_info.member);
+	osaf_encode_satimet(ub, avnd->node_info.bootTimestamp);
+	osaf_encode_uint64(ub, avnd->node_info.initialViewNumber);
+	osaf_encode_uint64(ub, avnd->adest);
+	osaf_encode_uint32(ub, avnd->saAmfNodeAdminState);
+	osaf_encode_uint32(ub, avnd->saAmfNodeOperState);
+	osaf_encode_uint32(ub, avnd->node_state);
+	osaf_encode_uint32(ub, avnd->type);
+	osaf_encode_uint32(ub, avnd->rcv_msg_id);
+	osaf_encode_uint32(ub, avnd->snd_msg_id);
 }
 
 /****************************************************************************\
@@ -293,10 +310,9 @@ static uint32_t enc_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER2("io_action '%u'", enc->io_action);
-
+	
+	const AVD_AVND *avnd = reinterpret_cast<AVD_AVND *>(enc->io_reo_hdl);
 	/* 
 	 * Check for the action type (whether it is add, rmv or update) and act
 	 * accordingly. If it is update or add, encode entire data. If it is rmv
@@ -306,27 +322,18 @@ static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version);
+		encode_node_config(&enc->io_uba, avnd, enc->i_peer_version);
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_APP*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version, 1, 3);
+		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
 		break;
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-		return status;
-	}
-
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 void encode_app(NCS_UBAID *ub, const AVD_APP *app)
@@ -810,27 +817,26 @@ static uint32_t enc_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
+
+	const AVD_AVND *avnd = reinterpret_cast<AVD_AVND*>(enc->io_reo_hdl);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 6, 1, 2, 4, 5, 6, 7);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-
+		osaf_encode_uint32(&enc->io_uba, avnd->node_info.nodeId);
+		osaf_encode_saclmnodeaddresst(&enc->io_uba, &avnd->node_info.nodeAddress);
+		osaf_encode_bool(&enc->io_uba, avnd->node_info.member);
+		osaf_encode_satimet(&enc->io_uba, avnd->node_info.bootTimestamp);
+		osaf_encode_uint64(&enc->io_uba, avnd->node_info.initialViewNumber);
+		osaf_encode_uint64(&enc->io_uba, avnd->adest);
 	} else
 		osafassert(0);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -849,26 +855,22 @@ static uint32_t enc_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
+
+	const AVD_AVND *avnd = reinterpret_cast<AVD_AVND*>(enc->io_reo_hdl);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 3, 8);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
+		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
+		osaf_encode_uint32(&enc->io_uba, avnd->saAmfNodeAdminState);
 	} else
 		osafassert(0);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -887,26 +889,22 @@ static uint32_t enc_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
+
+	const AVD_AVND *avnd = reinterpret_cast<AVD_AVND*>(enc->io_reo_hdl);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 3, 9);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
+		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
+		osaf_encode_uint32(&enc->io_uba, avnd->saAmfNodeOperState);
 	} else
 		osafassert(0);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -925,26 +923,22 @@ static uint32_t enc_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
+
+	const AVD_AVND *avnd = reinterpret_cast<AVD_AVND*>(enc->io_reo_hdl);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 3, 10);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
+		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
+		osaf_encode_uint32(&enc->io_uba, avnd->node_state);
 	} else
 		osafassert(0);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -963,26 +957,22 @@ static uint32_t enc_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
+
+	const AVD_AVND *avnd = reinterpret_cast<AVD_AVND*>(enc->io_reo_hdl);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 1, 12);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
+		osaf_encode_uint32(&enc->io_uba, avnd->node_info.nodeId);
+		osaf_encode_uint32(&enc->io_uba, avnd->rcv_msg_id);
 	} else
 		osafassert(0);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1001,26 +991,22 @@ static uint32_t enc_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
+
+	const AVD_AVND *avnd = reinterpret_cast<AVD_AVND*>(enc->io_reo_hdl);
 
 	/* 
 	 * Action in this case is just to update. If action passed is add/rmv then log
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 2, 1, 13);
-
-		if (status != NCSCC_RC_SUCCESS)
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
+		osaf_encode_uint32(&enc->io_uba, avnd->node_info.nodeId);
+		osaf_encode_uint32(&enc->io_uba, avnd->snd_msg_id);
 	} else
 		osafassert(0);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1929,22 +1915,13 @@ static uint32_t enc_cs_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 \**************************************************************************/
 static uint32_t enc_cs_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster, &enc->io_uba,
-		EDP_OP_TYPE_ENC, avd_cluster, &ederror, enc->i_peer_version);
-	
-	if (status != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-		return NCSCC_RC_FAILURE;
-	}
-
+	encode_cluster(&enc->io_uba, avd_cluster, enc->i_peer_version);
 	(*num_of_obj)++;
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -1963,8 +1940,6 @@ static uint32_t enc_cs_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint
 \**************************************************************************/
 static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* 
@@ -1973,19 +1948,12 @@ static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
 			it != node_name_db->end(); it++) {
 		AVD_AVND *avnd_node = it->second;
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
-				&enc->io_uba, EDP_OP_TYPE_ENC, avnd_node, &ederror, enc->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-			return NCSCC_RC_FAILURE;
-		}
-
+		encode_node_config(&enc->io_uba, avnd_node, enc->i_peer_version);
 		(*num_of_obj)++;
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2426,6 +2394,15 @@ static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *en
 	return NCSCC_RC_SUCCESS;
 }
 
+void encode_comp_cs_type_config(NCS_UBAID *ub,
+	const AVD_COMPCS_TYPE *comp_cs_type,
+	const uint16_t peer_version)
+{
+	osaf_encode_sanamet(ub, &comp_cs_type->name);
+	osaf_encode_uint32(ub, comp_cs_type->saAmfCompNumCurrActiveCSIs);
+	osaf_encode_uint32(ub, comp_cs_type->saAmfCompNumCurrStandbyCSIs);
+}
+
 /****************************************************************************\
  * Function: enc_comp_cs_type_config
  *
@@ -2442,9 +2419,8 @@ static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *en
 \**************************************************************************/
 static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER2("io_action '%u'", enc->io_action);
+	const AVD_COMPCS_TYPE *comp_cs_type = reinterpret_cast<AVD_COMPCS_TYPE*>(enc->io_reo_hdl);
 
 	/*
 	 * Check for the action type (whether it is add, rmv or update) and act
@@ -2453,27 +2429,20 @@ static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	 */
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_UPDATE:
-	case NCS_MBCSV_ACT_ADD:
 		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_COMPCS_TYPE *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)), &ederror,
-			enc->i_peer_version);
+		encode_comp_cs_type_config(&enc->io_uba, comp_cs_type, enc->i_peer_version);
 		break;
+	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type, &enc->io_uba,
-			EDP_OP_TYPE_ENC, (AVD_COMPCS_TYPE*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-			&ederror, enc->i_peer_version, 1, 1);
+		osafassert(0);
 		break;
 	default:
 		osafassert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS)
-		LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -2492,8 +2461,6 @@ static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	SaNameT dn = {0};
 	TRACE_ENTER();
 
@@ -2503,20 +2470,13 @@ static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc,
 	for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
 			it != compcstype_db->end(); it++) {
 		AVD_COMPCS_TYPE *compcstype = it->second;
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, compcstype, &ederror, enc->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: encode failed, ederror=%u", __FUNCTION__, ederror);
-			break;
-		}
+		encode_comp_cs_type_config(&enc->io_uba, compcstype, enc->i_peer_version);
 
 		dn = compcstype->name;
 		(*num_of_obj)++;
 	}
 
-	TRACE_LEAVE2("status '%u'", status);
-	return status;
+	return NCSCC_RC_SUCCESS;
 }
 
 /**
