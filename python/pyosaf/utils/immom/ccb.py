@@ -159,6 +159,10 @@ class Ccb(object):
 
         assert object_name
 
+        # Make sure the values field is a list
+        if not isinstance(values, list):
+            values = [values]
+
         # first get class name to read class description to get value type...
         try:
             obj = immom.get(object_name)
@@ -204,6 +208,10 @@ class Ccb(object):
 
         assert object_name
 
+        # Make sure the values field is a list
+        if not isinstance(values, list):
+            values = [values]
+
         # first get class name to read class description to get value type...
         try:
             obj = immom.get(object_name)
@@ -247,6 +255,10 @@ class Ccb(object):
         ''' add to the CCB an DELETE modification of an existing object '''
 
         assert object_name
+
+        # Make sure the values field is a list
+        if not isinstance(values, list):
+            values = [values]
 
         # first get class name to read class description to get value type...
         try:

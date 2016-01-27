@@ -101,6 +101,11 @@ class ImmObject(object):
             return False
 
     def __setattr__(self, key, value):
+        # Correct RDN assignments missing the RDN attribute name in the value
+        # part
+        if key == self.rdn_attribute and value.find(self.rdn_attribute) != 0:
+            value = '%s=%s' % (self.rdn_attribute, value)
+
         value_type = self.get_value_type(key)
         if type(value) is list:
             attr_value = (value_type, value)
