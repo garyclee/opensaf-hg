@@ -150,6 +150,10 @@ static void usage(const char *progname)
 	printf("\t\tchange one attribute for one object\n");
 	printf("\timmcfg -c SaAmfApplication -a saAmfAppType=Test safApp=myTestApp1\n");
 	printf("\t\tcreate one object setting one initialized attribute\n");
+	printf("\timmcfg -c class -a attrMulti=one -a attrMulti=two obj=1\n");
+	printf("\t\tcreate object with multiple values for MULTI_VALUE attribute\n");
+	printf("\timmcfg -a attrMulti=three -a attrMulti=four obj=1\n");
+	printf("\t\tModify object with multiple values for MULTI_VALUE attribute\n");
 	printf("\timmcfg -d safAmfNode=Node01,safAmfCluster=1\n");
 	printf("\t\tdelete one object\n");
 	printf("\timmcfg -d safAmfNode=Node01,safAmfCluster=1 safAmfNode=Node02,safAmfCluster=1\n");
@@ -287,15 +291,37 @@ static void free_attr_values(SaImmAttrValuesT_2 *attrValues) {
 }
 
 static void free_attr_mod(SaImmAttrModificationT_2 *attrMod) {
+	int i;
 	if(attrMod) {
 		if(attrMod->modAttr.attrName)
 			free(attrMod->modAttr.attrName);
-		if(attrMod->modAttr.attrValues) {
-			free_attr_value(attrMod->modAttr.attrValueType, attrMod->modAttr.attrValues[0]);
-			free(attrMod->modAttr.attrValues);
+		for(i=0; i< attrMod->modAttr.attrValuesNumber;i++){
+			free_attr_value(attrMod->modAttr.attrValueType, attrMod->modAttr.attrValues[i]);
 		}
+		free(attrMod->modAttr.attrValues);
 		free(attrMod);
 	}
+}
+
+static SaAisErrorT get_attrValueType(SaImmAttrDefinitionT_2 **attrDefinitions, SaImmAttrNameT attrName, 
+		SaImmValueTypeT *attrValueType, SaImmAttrFlagsT * flags) {
+	if(!attrDefinitions || !attrName)
+		return SA_AIS_ERR_NOT_EXIST;
+
+	int i=0;
+	while(attrDefinitions[i]) {
+		if(!strcmp(attrDefinitions[i]->attrName, attrName)) {
+			if(attrValueType){
+				*attrValueType = attrDefinitions[i]->attrValueType;
+				if(flags){
+					*flags = attrDefinitions[i]->attrFlags;
+				}
+			}
+			return SA_AIS_OK;
+		}
+		i++;
+	}
+	return SA_AIS_ERR_NOT_EXIST;
 }
 
 /**
@@ -305,7 +331,7 @@ static void free_attr_mod(SaImmAttrModificationT_2 *attrMod) {
  *
  * @return SaImmAttrModificationT_2*
  */
-static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *nameval)
+static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *nameval, SaImmAttrFlagsT * flags)
 {
 	int res = 0;
 	char *name = strdup(nameval);
@@ -314,11 +340,19 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	SaImmClassNameT className;
 	SaAisErrorT error;
 	SaImmAttrModificationTypeT modType = SA_IMM_ATTR_VALUES_REPLACE;
+	SaImmClassCategoryT classCategory;
+	 SaImmAttrDefinitionT_2 **attrDefinitions = NULL;
 
 	className = object_info_get_class(osaf_extended_name_borrow(objectName));
 	if(!className) {
 		className = immutil_get_className(objectName);
 	}
+	
+	if((error = saImmOmClassDescriptionGet_2(immHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmClassDescriptionGet_2. FAILED: %s\n", saf_error(error));
+		goto done;
+	}
+
 
 	if (className == NULL) {
 		fprintf(stderr, "Object with DN '%s' does not exist\n", osaf_extended_name_borrow(objectName));
@@ -345,7 +379,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	*value = '\0';
 	value++;
 
-	error = immutil_get_attrValueType(className, name, &attrMod->modAttr.attrValueType);
+	error = get_attrValueType(attrDefinitions, name, &attrMod->modAttr.attrValueType, flags);
 	if (error == SA_AIS_ERR_NOT_EXIST) {
 		fprintf(stderr, "Class '%s' does not exist\n", className);
 		res = -1;
@@ -357,6 +391,8 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 		res = -1;
 		goto done;
 	}
+
+	
 
 	attrMod->modType = modType;
 	attrMod->modAttr.attrName = name;
@@ -384,24 +420,10 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 			attrMod = NULL;
 		}
 	}
+	if(attrDefinitions)
+		saImmOmClassDescriptionMemoryFree_2(immHandle, attrDefinitions);
+
 	return attrMod;
-}
-
-static SaAisErrorT get_attrValueType(SaImmAttrDefinitionT_2 **attrDefinitions, SaImmAttrNameT attrName, SaImmValueTypeT *attrValueType) {
-	if(!attrDefinitions || !attrName)
-		return SA_AIS_ERR_NOT_EXIST;
-
-	int i=0;
-	while(attrDefinitions[i]) {
-		if(!strcmp(attrDefinitions[i]->attrName, attrName)) {
-			if(attrValueType)
-				*attrValueType = attrDefinitions[i]->attrValueType;
-			return SA_AIS_OK;
-		}
-		i++;
-	}
-
-	return SA_AIS_ERR_NOT_EXIST;
 }
 
 /**
@@ -412,7 +434,8 @@ static SaAisErrorT get_attrValueType(SaImmAttrDefinitionT_2 **attrDefinitions, S
  *
  * @return SaImmAttrValuesT_2*
  */
-static SaImmAttrValuesT_2 *new_attr_value(SaImmAttrDefinitionT_2 **attrDefinitions, char *nameval, int isRdn)
+static SaImmAttrValuesT_2 *new_attr_value(SaImmAttrDefinitionT_2 **attrDefinitions, char *nameval, int isRdn, 
+			SaImmAttrFlagsT * flags)
 {
 	int res = 0;
 	char *name = strdup(nameval), *p;
@@ -435,7 +458,7 @@ static SaImmAttrValuesT_2 *new_attr_value(SaImmAttrDefinitionT_2 **attrDefinitio
 	name = NULL;
 	VERBOSE_INFO("new_attr_value attrValue->attrName: '%s' value:'%s'\n", attrValue->attrName, isRdn ? nameval : value);
 
-	error = get_attrValueType(attrDefinitions, attrValue->attrName, &attrValue->attrValueType);
+	error = get_attrValueType(attrDefinitions, attrValue->attrName, &attrValue->attrValueType, flags);
 
 	if (error != SA_AIS_OK) {
 		fprintf(stderr, "Attribute '%s' does not exist in class\n", attrValue->attrName);
@@ -490,6 +513,8 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	const SaStringT* errStrings=NULL;
 	SaImmClassCategoryT classCategory;
 	SaImmAttrDefinitionT_2 **attrDefinitions = NULL;
+	SaImmAttrFlagsT flags=0;
+	SaBoolT attrAdded = SA_FALSE;
 
 	if((error = saImmOmClassDescriptionGet_2(immHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmClassDescriptionGet_2. FAILED: %s\n", saf_error(error));
@@ -498,15 +523,37 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 
 	for (i = 0; i < optargs_len; i++) {
 		VERBOSE_INFO("object_create optargs[%d]: '%s'\n", i, optargs[i]);
-		if ((attrValue = new_attr_value(attrDefinitions, optargs[i], 0)) == NULL){
+		if ((attrValue = new_attr_value(attrDefinitions, optargs[i], 0, &flags)) == NULL){
 			fprintf(stderr, "error - creating attribute from '%s'\n", optargs[i]);
 			goto done;
 		}
 
-		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
-		attrValues[attr_len - 1] = attrValue;
-		attrValues[attr_len] = NULL;
-		attr_len++;
+		if(attrValues && (flags & SA_IMM_ATTR_MULTI_VALUE)){
+			int j=0;
+			while(attrValues[j]){
+				if(!strcmp(attrValue->attrName, attrValues[j]->attrName)){
+					attrValues[j]->attrValues = realloc(attrValues[j]->attrValues,
+							(attrValues[j]->attrValuesNumber+1) * sizeof(SaImmAttrValueT *));
+					attrValues[j]->attrValues[attrValues[j]->attrValuesNumber] = attrValue->attrValues[0]; 
+					attrValues[j]->attrValuesNumber++;
+					attrAdded = SA_TRUE;
+
+					free(attrValue->attrName);
+					free(attrValue->attrValues);
+					free(attrValue);
+					break;
+				}		
+				j++;
+			}
+		} 
+		if(!attrAdded){
+
+			attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
+			attrValues[attr_len - 1] = attrValue;
+			attrValues[attr_len] = NULL;
+			attr_len++;
+		}
+		attrAdded = SA_FALSE;
 	}
 
 	attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
@@ -560,7 +607,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 		}
 
 		VERBOSE_INFO("object_create rdn attribute attrValues[%d]: '%s' \n", attr_len - 1, str);
-		if ((attrValue = new_attr_value(attrDefinitions, str, 1)) == NULL){
+		if ((attrValue = new_attr_value(attrDefinitions, str, 1, NULL)) == NULL){
 			fprintf(stderr, "error - creating rdn attribute from '%s'\n", str);
 			goto done;
 		}
@@ -636,23 +683,66 @@ done:
 int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 {
 	SaAisErrorT error;
-	int i;
+	int i, j;
 	int attr_len = 1;
 	int rc = EXIT_FAILURE;
 	SaImmAttrModificationT_2 *attrMod;
 	SaImmAttrModificationT_2 **attrMods = NULL;
 	const SaStringT* errStrings=NULL;
+	SaImmAttrFlagsT flags=0;
+	SaBoolT attrAdded = SA_FALSE;
+
 
 	for (i = 0; i < optargs_len; i++) {
-		if ((attrMod = new_attr_mod(objectNames[0], optargs[i])) == NULL) {
+		if ((attrMod = new_attr_mod(objectNames[0], optargs[i], &flags)) == NULL) {
 			fprintf(stderr, "error - creating attribute from '%s'\n", optargs[i]);
 			goto done;
 		}
+		
+		if(attrMods && (flags & SA_IMM_ATTR_MULTI_VALUE)){
+			j = 0;
+			while(attrMods[j]){
+				if(!strcmp(attrMod->modAttr.attrName, attrMods[j]->modAttr.attrName)){
+					if(attrMod->modType == attrMods[j]->modType){
+						if(!(attrMod->modAttr.attrValues)){
+							fprintf(stderr, "error Empty value is used for adding Multi value"
+								" attribute %s\n", attrMod->modAttr.attrName);
+							free_attr_mod(attrMod);
+							goto done;
+						} else {
+							
+							attrMods[j]->modAttr.attrValues = realloc(attrMods[j]->modAttr.attrValues,
+								(attrMods[j]->modAttr.attrValuesNumber+1) * 
+								sizeof(SaImmAttrValueT *));
+							attrMods[j]->modAttr.attrValues[attrMods[j]->modAttr.attrValuesNumber] = 
+								attrMod->modAttr.attrValues[0];
 
-		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
-		attrMods[attr_len - 1] = attrMod;
-		attrMods[attr_len] = NULL;
-		attr_len++;
+							attrMods[j]->modAttr.attrValuesNumber++;
+							attrAdded = SA_TRUE;
+
+							free(attrMod->modAttr.attrName);
+							free(attrMod->modAttr.attrValues);
+							free(attrMod);
+							break;
+						}
+					} else {
+						fprintf(stderr, "error - Only one Modify operation type is supported"
+								" for attribute\n");
+						free_attr_mod(attrMod);
+						goto done;
+					}
+				}
+				j++;
+			}
+		}
+
+		if(!attrAdded) {
+			attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
+			attrMods[attr_len - 1] = attrMod;
+			attrMods[attr_len] = NULL;
+			attr_len++;
+		}
+		attrAdded = SA_FALSE;
 	}
 
 	if ((error = immutil_saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
