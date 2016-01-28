@@ -1715,6 +1715,11 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 			if (m_AVND_SU_OPER_STATE_IS_ENABLED(su)) {
 				TRACE("SU oper state is enabled");
 				m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
+				/*No re-assignments and further escalation happens in INST_FAILED state,
+				  so reset suRestart flag.*/
+				if (isRestartSet(su))
+					reset_suRestart_flag(su);
+				//Ask AMFD to remove assignments.
 				rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
@@ -1777,6 +1782,11 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
 			/* npi su is disabled in inst-fail state */
 			m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 
+			/*No re-assignments and further escalation happens in INST_FAILED state,
+			  so reset suRestart flag.*/
+			if (isRestartSet(su))
+                                reset_suRestart_flag(su);
+			//Ask AMFD to remove assignments.
 			rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
 		}
 		if ((SA_AMF_PRESENCE_RESTARTING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st)) {
@@ -2156,7 +2166,7 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 	AVND_COMP *curr_comp = 0;
 	AVND_SU_SI_REC *si = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS, comp_count = 0;
 	const char *compname = comp ? (char*)comp->name.value : "none";
 	TRACE_ENTER2("CompInstantiateFailed event in the Instantiate State: '%s' : '%s'",
 				 su->name.value, compname);
@@ -2184,8 +2194,15 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 				rc = avnd_comp_clc_fsm_run(cb, curr_comp, AVND_COMP_CLC_PRES_FSM_EV_TERM);
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
+				comp_count++;
 			}
 		}		/* for */
+		if (comp_count == 1) {
+                        /* If all comps are terminated then set term state and
+			   process the SUSI assignment.*/
+                        m_AVND_SU_ALL_TERM_SET(su);
+                        avnd_su_siq_prc(cb, su);
+                }
 	}
 
 	/* 
