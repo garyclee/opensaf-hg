@@ -134,10 +134,10 @@ void AVD_SU::remove_comp(AVD_COMP *comp) {
 	bool curr_preinst_value = saAmfSUPreInstantiable;
 
 	// check if preinst possibly is still true
-	if (comp_is_preinstantiable(comp) == true) {
+	if (comp->is_preinstantiable() == true) {
 		curr_preinst_value = false;
 		for (const auto& i_comp : list_of_comp) {
-			if ((comp_is_preinstantiable(i_comp) == true) && (i_comp != comp)) {
+			if ((i_comp->is_preinstantiable() == true) && (i_comp != comp)) {
 				curr_preinst_value = true;
 				break;
 			}
@@ -168,7 +168,7 @@ void AVD_SU::add_comp(AVD_COMP *comp) {
 		});
 
 	/* Verify if the SUs preinstan value need to be changed */
-	if (comp_is_preinstantiable(comp) == true) {
+	if (comp->is_preinstantiable() == true) {
 		set_saAmfSUPreInstantiable(true);
 	}
 }
@@ -805,7 +805,7 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 		} else
 			saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
 
-		avd_comp_readiness_state_set(comp, saAmfCompReadinessState);
+		comp->avd_comp_readiness_state_set(saAmfCompReadinessState);
 	}
 
 	TRACE_LEAVE();
@@ -2127,7 +2127,7 @@ AVD_COMP *AVD_SU::find_unassigned_comp_that_provides_cstype(const SaNameT *cstyp
 		bool npi_is_assigned = false;
 		AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&l_comp->saAmfCompType));
 		osafassert(comptype);
-		if ((comptype->saAmfCtCompCategory == SA_AMF_COMP_LOCAL) && is_comp_assigned_any_csi(l_comp))
+		if ((comptype->saAmfCtCompCategory == SA_AMF_COMP_LOCAL) && l_comp->is_comp_assigned_any_csi())
 			npi_is_assigned = true;
 		
 		if ((l_comp->assigned() == false) && (npi_is_assigned == false)) {
@@ -2154,9 +2154,9 @@ void AVD_SU::disable_comps(SaAisErrorT result)
 	for (const auto& comp : list_of_comp) {
 		comp->curr_num_csi_actv = 0;
 		comp->curr_num_csi_stdby = 0;
-		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_DISABLED);
+		comp->avd_comp_oper_state_set(SA_AMF_OPERATIONAL_DISABLED);
 		if (comp->saAmfCompPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)
-			avd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+			comp->avd_comp_pres_state_set(SA_AMF_PRESENCE_UNINSTANTIATED);
 
 		/*
 		   Mark a term_failed component uninstantiated when node is rebooted.
@@ -2166,7 +2166,7 @@ void AVD_SU::disable_comps(SaAisErrorT result)
 		 */
 		if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED) &&
 				(su_on_node->node_state == AVD_AVND_STATE_ABSENT)) {
-				avd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+				comp->avd_comp_pres_state_set(SA_AMF_PRESENCE_UNINSTANTIATED);
 		}
 		comp->saAmfCompRestartCount = 0;
 		comp_complete_admin_op(comp, result);
@@ -2278,7 +2278,7 @@ SaAisErrorT AVD_SU::check_su_stability()
 		goto done;
 	}
 	for (const auto& comp : list_of_comp) {
-		rc = check_comp_stability(comp);
+		rc = comp->check_comp_stability();
 		if (rc != SA_AIS_OK)
 			goto done;
         }
@@ -2334,7 +2334,7 @@ bool AVD_SU::is_any_non_restartable_comp_assigned()
 {
 	for (const auto& comp : list_of_comp) {
 		if ((comp->comp_info.comp_restart == true) && 
-				(is_comp_assigned_any_csi(comp) == true))
+				(comp->is_comp_assigned_any_csi() == true))
 			return true;
 	}
 	return false;

@@ -765,7 +765,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					SaAmfReadinessStateT saAmfCompReadinessState;
 
 					l_val = *((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
-					avd_comp_oper_state_set(comp, static_cast<SaAmfOperationalStateT>(ntohl(l_val)));
+					comp->avd_comp_oper_state_set(static_cast<SaAmfOperationalStateT>(ntohl(l_val)));
 
 					/* We need to update saAmfCompReadinessState */
 					if ((comp->su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) &&
@@ -777,7 +777,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					} else
 						saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
 
-					avd_comp_readiness_state_set(comp, saAmfCompReadinessState);
+					comp->avd_comp_readiness_state_set(saAmfCompReadinessState);
 				} else {
 					/* log error that a the  value len is invalid */
 					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
@@ -792,7 +792,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					   adminstrative operation invocation on the component */
 					if (comp->admin_pend_cbk.invocation != 0)
 						comp_admin_op_report_to_imm(comp, static_cast<SaAmfPresenceStateT>(l_val));
-					avd_comp_pres_state_set(comp, static_cast<SaAmfPresenceStateT>(l_val));
+					comp->avd_comp_pres_state_set(static_cast<SaAmfPresenceStateT>(l_val));
 					
 					if ((comp->su->get_admin_op_id() == SA_AMF_ADMIN_RESTART) &&
 					(comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATED) && 
@@ -838,7 +838,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				TRACE("comp proxy status");
 				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uint32_t)) {
 					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
-					avd_comp_proxy_status_change(comp, static_cast<SaAmfProxyStatusT>(l_val));
+					comp->avd_comp_proxy_status_change(static_cast<SaAmfProxyStatusT>(l_val));
 				} else {
 					/* log error that a the  value len is invalid */
 					LOG_ER("%s:%u: %u", __FILE__, __LINE__, n2d_msg->msg_info.n2d_data_req.param_info.
