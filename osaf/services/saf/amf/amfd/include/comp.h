@@ -59,7 +59,40 @@ class AVD_COMP {
  public:
   AVD_COMP();
   explicit AVD_COMP(const SaNameT* dn );
-  
+
+/**
+ * Set the presence state of the specified component, log, update IMM & check point to peer
+ * @param comp
+ * @param pres_state
+ */
+void avd_comp_pres_state_set(SaAmfPresenceStateT pres_state);
+
+/**
+ * Set the operational state of the specified component, log, update IMM & check point to peer
+ * @param comp
+ * @param oper_state
+ */
+void avd_comp_oper_state_set(SaAmfOperationalStateT oper_state);
+
+/**
+ * Set the readindess state of the specified component, log, update IMM & check point to peer
+ * @param comp
+ * @param readiness_state
+ */
+void avd_comp_readiness_state_set(SaAmfReadinessStateT readiness_state);
+
+/**
+ * Information regarding change of proxy status of the specified component,
+ * log, update IMM & check point to peer
+ * @param comp
+ * @param proxy_status
+ */
+void avd_comp_proxy_status_change(SaAmfProxyStatusT proxy_status);
+
+bool is_preinstantiable() const;
+bool is_comp_assigned_any_csi() const;
+SaAisErrorT check_comp_stability() const;
+
   SaNameT saAmfCompType;
 
   /* Detailed as in data structure definition */
@@ -212,35 +245,6 @@ extern AmfDb<std::string, AVD_CTCS_TYPE> *ctcstype_db;
 
 extern AVD_COMP_GLOBALATTR avd_comp_global_attrs;
 
-/**
- * Set the presence state of the specified component, log, update IMM & check point to peer
- * @param comp
- * @param pres_state
- */
-extern void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state);
-
-/**
- * Set the operational state of the specified component, log, update IMM & check point to peer
- * @param comp
- * @param oper_state
- */
-extern void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state);
-
-/**
- * Set the readindess state of the specified component, log, update IMM & check point to peer
- * @param comp
- * @param readiness_state
- */
-extern void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness_state);
-
-/**
- * Information regarding change of proxy status of the specified component,
- * log, update IMM & check point to peer
- * @param comp
- * @param proxy_status
- */
-extern void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy_status);
-
 extern void avd_comp_db_add(AVD_COMP *comp);
 
 extern AVD_COMP *avd_comp_new(const SaNameT *dn);
@@ -271,8 +275,5 @@ extern AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn);
 extern AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *csi, const AVD_COMP *comp);
 extern void avd_compcstype_constructor(void);
 extern AVD_COMP *avd_comp_get_or_create(const SaNameT *dn);
-bool comp_is_preinstantiable(const AVD_COMP *comp);
-extern bool is_comp_assigned_any_csi(AVD_COMP *comp);
-extern SaAisErrorT check_comp_stability(const AVD_COMP*);
 extern AVD_CTCS_TYPE *get_ctcstype(const SaNameT *comptype_name, const SaNameT *cstype_name);
 #endif

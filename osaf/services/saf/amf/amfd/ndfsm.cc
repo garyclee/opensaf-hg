@@ -207,7 +207,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 		for (const auto& su : avnd->list_of_su) {
 			su->set_oper_state(SA_AMF_OPERATIONAL_ENABLED);
 			std::for_each (su->list_of_comp.begin(), su->list_of_comp.end(),
-				[] (AVD_COMP *comp) {avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_ENABLED);});
+				[] (AVD_COMP *comp) {comp->avd_comp_oper_state_set(SA_AMF_OPERATIONAL_ENABLED);});
 		}
 		/* We can now set the LEDS */
 		avd_snd_set_leds_msg(cb, avnd);

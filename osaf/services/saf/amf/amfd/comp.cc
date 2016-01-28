@@ -113,101 +113,101 @@ AVD_COMP *avd_comp_new(const SaNameT *dn)
  * @param comp
  * @param pres_state
  */
-void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
+void AVD_COMP::avd_comp_pres_state_set(SaAmfPresenceStateT pres_state)
 {
-	AVD_AVND *node = comp->su->su_on_node;
-	SaAmfPresenceStateT old_state = comp->saAmfCompPresenceState;
+	AVD_AVND *node = su->su_on_node;
+	SaAmfPresenceStateT old_state = saAmfCompPresenceState;
 
 	osafassert(pres_state <= SA_AMF_PRESENCE_TERMINATION_FAILED);
-	TRACE_ENTER2("'%s' %s => %s", comp->comp_info.name.value,
-		avd_pres_state_name[comp->saAmfCompPresenceState],
+	TRACE_ENTER2("'%s' %s => %s", comp_info.name.value,
+		avd_pres_state_name[saAmfCompPresenceState],
 		avd_pres_state_name[pres_state]);
 
-	if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED) &&
+	if ((saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED) &&
 			(pres_state == SA_AMF_PRESENCE_UNINSTANTIATED)){
-		avd_alarm_clear(&comp->comp_info.name,
+		avd_alarm_clear(&comp_info.name,
 			SA_AMF_NTFID_COMP_CLEANUP_FAILED, SA_NTF_SOFTWARE_ERROR);
 	}
 
-	if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
+	if ((saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
 			(pres_state == SA_AMF_PRESENCE_UNINSTANTIATED)){
-		avd_alarm_clear(&comp->comp_info.name,
+		avd_alarm_clear(&comp_info.name,
 				SA_AMF_NTFID_COMP_INSTANTIATION_FAILED, SA_NTF_SOFTWARE_ERROR);
 	}
 
 
-	comp->saAmfCompPresenceState = pres_state;
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompPresenceState",
-		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_PRES_STATE);
+	saAmfCompPresenceState = pres_state;
+	avd_saImmOiRtObjectUpdate(&comp_info.name, "saAmfCompPresenceState",
+		SA_IMM_ATTR_SAUINT32T, &saAmfCompPresenceState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_COMP_PRES_STATE);
 
-	if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
-		avd_send_comp_inst_failed_alarm(&comp->comp_info.name, &node->name);
-	else if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)
-		avd_send_comp_clean_failed_alarm(&comp->comp_info.name, &node->name);
+	if (saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
+		avd_send_comp_inst_failed_alarm(&comp_info.name, &node->name);
+	else if (saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)
+		avd_send_comp_clean_failed_alarm(&comp_info.name, &node->name);
 
-	if ((comp->su->sg_of_su->saAmfSGAutoRepair == true) &&
+	if ((su->sg_of_su->saAmfSGAutoRepair == true) &&
 		(node->saAmfNodeAutoRepair == true) &&
 		(((node->saAmfNodeFailfastOnTerminationFailure == true) && 
-		 (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) ||
+		 (saAmfCompPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) ||
 		 ((node->saAmfNodeFailfastOnInstantiationFailure == true) && 
-		  (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)))) {
+		  (saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)))) {
 
 		saflog(LOG_NOTICE, amfSvcUsrName, "%s PresenceState %s => %s",
-				comp->comp_info.name.value, avd_pres_state_name[old_state],
+				comp_info.name.value, avd_pres_state_name[old_state],
 				avd_pres_state_name[pres_state]);
 		saflog(LOG_NOTICE, amfSvcUsrName,
 				"Ordering reboot of '%s' as repair action",
 				node->name.value);
 		LOG_NO("Node Failfast for '%s' as '%s' enters Term/Inst Failed state",
-				node->name.value,comp->comp_info.name.value);
+				node->name.value,comp_info.name.value);
 		avd_d2n_reboot_snd(node);
 	}
 	TRACE_LEAVE();
 }
 
-void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state)
+void AVD_COMP::avd_comp_oper_state_set(SaAmfOperationalStateT oper_state)
 {
 	osafassert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	TRACE_ENTER2("'%s' %s => %s",
-		comp->comp_info.name.value, avd_oper_state_name[comp->saAmfCompOperState], avd_oper_state_name[oper_state]);
+		comp_info.name.value, avd_oper_state_name[saAmfCompOperState], avd_oper_state_name[oper_state]);
 
-	comp->saAmfCompOperState = oper_state;
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompOperState",
-		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_OPER_STATE);
+	saAmfCompOperState = oper_state;
+	avd_saImmOiRtObjectUpdate(&comp_info.name, "saAmfCompOperState",
+		SA_IMM_ATTR_SAUINT32T, &saAmfCompOperState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_COMP_OPER_STATE);
 	TRACE_LEAVE();
 }
 
-void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness_state)
+void AVD_COMP::avd_comp_readiness_state_set(SaAmfReadinessStateT readiness_state)
 {
-	if (comp->saAmfCompReadinessState == readiness_state)
+	if (saAmfCompReadinessState == readiness_state)
 		return;
 
 	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
 	TRACE_ENTER2("'%s' %s => %s",
-		comp->comp_info.name.value,
-		avd_readiness_state_name[comp->saAmfCompReadinessState], avd_readiness_state_name[readiness_state]);
-	comp->saAmfCompReadinessState = readiness_state;
-	if (comp->su->get_surestart() == false)
-		avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
-				SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_READINESS_STATE);
+		comp_info.name.value,
+		avd_readiness_state_name[saAmfCompReadinessState], avd_readiness_state_name[readiness_state]);
+	saAmfCompReadinessState = readiness_state;
+	if (su->get_surestart() == false)
+		avd_saImmOiRtObjectUpdate(&comp_info.name, "saAmfCompReadinessState",
+				SA_IMM_ATTR_SAUINT32T, &saAmfCompReadinessState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_COMP_READINESS_STATE);
 	TRACE_LEAVE();
 }
 
-void avd_comp_proxy_status_change(AVD_COMP *comp, SaAmfProxyStatusT proxy_status)
+void AVD_COMP::avd_comp_proxy_status_change(SaAmfProxyStatusT proxy_status)
 {
 	osafassert(proxy_status <= SA_AMF_PROXY_STATUS_PROXIED);
-	TRACE_ENTER2("'%s' ProxyStatus is now %s", comp->comp_info.name.value, avd_proxy_status_name[proxy_status]);
+	TRACE_ENTER2("'%s' ProxyStatus is now %s", comp_info.name.value, avd_proxy_status_name[proxy_status]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s ProxyStatus is now %s", 
-			comp->comp_info.name.value, avd_proxy_status_name[proxy_status]);
+			comp_info.name.value, avd_proxy_status_name[proxy_status]);
 
 	/* alarm & notifications */
 	if(proxy_status == SA_AMF_PROXY_STATUS_UNPROXIED)
-		avd_send_comp_proxy_status_unproxied_alarm(&comp->comp_info.name);
+		avd_send_comp_proxy_status_unproxied_alarm(&comp_info.name);
 	else if(proxy_status == SA_AMF_PROXY_STATUS_PROXIED)
-		avd_send_comp_proxy_status_proxied_ntf(&comp->comp_info.name, 
+		avd_send_comp_proxy_status_proxied_ntf(&comp_info.name, 
 		                                       SA_AMF_PROXY_STATUS_UNPROXIED, 
 		                                       SA_AMF_PROXY_STATUS_PROXIED);
 
@@ -299,7 +299,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 	if ((comp->su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
 			(comp->su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 			(comp->su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
-		avd_comp_oper_state_set(comp, SA_AMF_OPERATIONAL_ENABLED);
+		comp->avd_comp_oper_state_set(SA_AMF_OPERATIONAL_ENABLED);
 
 	/* Set runtime cached attributes. */
 	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
@@ -812,7 +812,7 @@ static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			comp->admin_pend_cbk.invocation = invocation;
 
 			if ((comp->comp_info.comp_restart == true) &&
-					(is_comp_assigned_any_csi(comp) == true)) {
+					(comp->is_comp_assigned_any_csi() == true)) {
 				/* Atleast one non-restartable (saAmfCompDisableRestart or
 				   saAmfCtDefDisableRestart is true) comp is assigned. 
 				   First gracefully  switch-over its assignments to comp in 
@@ -1726,8 +1726,8 @@ void avd_comp_constructor(void)
  * @param comp
  * @return
  */
-bool comp_is_preinstantiable(const AVD_COMP *comp) {
-	AVSV_COMP_TYPE_VAL category = comp->comp_info.category;
+bool AVD_COMP::is_preinstantiable() const {
+	AVSV_COMP_TYPE_VAL category = comp_info.category;
 	return ((category == AVSV_COMP_TYPE_SA_AWARE) ||
 			(category == AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
 			(category == AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE));
@@ -1742,12 +1742,11 @@ bool comp_is_preinstantiable(const AVD_COMP *comp) {
  * @return true/false.
  */
 
-bool is_comp_assigned_any_csi(AVD_COMP *comp)
-{
-	for (const auto& si : comp->su->sg_of_su->list_of_si) {
+bool AVD_COMP::is_comp_assigned_any_csi() const {
+	for (const auto& si : su->sg_of_su->list_of_si) {
 		for (AVD_CSI *csi = si->list_of_csi; csi; csi = csi->si_list_of_csi_next) {
 			for (AVD_COMP_CSI_REL *compcsi = csi->list_compcsi; compcsi; compcsi = compcsi->csi_csicomp_next) {
-				if (compcsi->comp == comp)
+				if (compcsi->comp == this)
 					return true;
 			}
 		}
@@ -1761,10 +1760,10 @@ bool is_comp_assigned_any_csi(AVD_COMP *comp)
  * @param  ptr to component(AVD_COMP).
  * @Return SA_AIS_OK/SA_AIS_ERR_TRY_AGAIN.
  */
-SaAisErrorT check_comp_stability(const AVD_COMP *comp)
+SaAisErrorT AVD_COMP::check_comp_stability() const
 {
-        if (comp->admin_pend_cbk.invocation != 0) {
-                LOG_NO("Component undergoing admin operation '%s'", comp->comp_info.name.value);
+        if (admin_pend_cbk.invocation != 0) {
+                LOG_NO("Component undergoing admin operation '%s'", comp_info.name.value);
                 return SA_AIS_ERR_TRY_AGAIN;
         }
         return SA_AIS_OK;
