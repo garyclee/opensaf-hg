@@ -30,6 +30,10 @@
 #ifndef AVA_MDS_H
 #define AVA_MDS_H
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 /* In Service upgrade support */
 #define AVA_MDS_SUB_PART_VERSION   1
 
@@ -276,4 +280,7 @@ uint32_t ava_mds_cbk(NCSMDS_CALLBACK_INFO *);
 
 uint32_t ava_mds_send(struct ava_cb_tag *, AVSV_NDA_AVA_MSG *, AVSV_NDA_AVA_MSG **);
 
+#ifdef  __cplusplus
+}
+#endif
 #endif   /* !AVA_MDS_H */

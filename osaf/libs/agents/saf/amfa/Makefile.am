@@ -22,6 +22,8 @@ SUBDIRS = include tests
 
 noinst_LTLIBRARIES = libava.la
 
+libava_la_CXXFLAGS = $(AM_CXXFLAGS)
+
 libava_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/amf/include \
@@ -30,8 +32,8 @@ libava_la_CPPFLAGS = \
 libava_la_LDFLAGS = -static
 
 libava_la_SOURCES = \
-	ava_api.c \
-	ava_hdl.c \
-	ava_init.c \
-	ava_mds.c \
-	ava_op.c
+	amf_agent.cc \
+	ava_hdl.cc \
+	ava_init.cc \
+	ava_mds.cc \
+	ava_op.cc

@@ -34,7 +34,7 @@ libSaAmf_la_CPPFLAGS = \
 if HAVE_LD_VERSION_SCRIPT
 libSaAmf_la_LDFLAGS = \
 	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaAmf/libSaAmf.map \
-	-version-number $(LIB_VERSION)
+	-version-number $(LIB_VERSION) -lstdc++
 else
 libSaAmf_la_LDFLAGS = \
 	-version-number $(LIB_VERSION)

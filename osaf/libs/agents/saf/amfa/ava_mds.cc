@@ -530,7 +530,7 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 	TRACE_ENTER();	
 
 	/* allocate the msg */
-	msg = calloc(1, sizeof(AVSV_NDA_AVA_MSG));
+	msg = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 	if (!msg) {
 		rc = NCSCC_RC_FAILURE;
 		LOG_CR("Calloc failed");
@@ -550,7 +550,7 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 		{
 			/* alloc cbk-info */
 			msg->info.cbk_info = 0;
-			if (0 == (msg->info.cbk_info = calloc(1, sizeof(AVSV_AMF_CBK_INFO)))) {
+			if (0 == (msg->info.cbk_info = static_cast<AVSV_AMF_CBK_INFO*>(calloc(1, sizeof(AVSV_AMF_CBK_INFO))))) {
 				LOG_CR("Calloc failed");
 				rc = NCSCC_RC_FAILURE;
 				goto err;
@@ -573,7 +573,7 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 					if (csi_set->attrs.number) {
 						csi_set->attrs.list = 0;
 						csi_set->attrs.list =
-						    calloc(1, csi_set->attrs.number * sizeof(AVSV_ATTR_NAME_VAL));
+						    static_cast<AVSV_ATTR_NAME_VAL*>(calloc(1, csi_set->attrs.number * sizeof(AVSV_ATTR_NAME_VAL)));
 						if (!csi_set->attrs.list) {
 							rc = NCSCC_RC_FAILURE;
 							LOG_CR("Calloc failed");
@@ -590,7 +590,7 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 							p8 = ncs_dec_flatten_space(dec_info->io_uba, (uint8_t *)&len, 2);
 							len = ncs_decode_16bit(&p8);
 							ncs_dec_skip_space(dec_info->io_uba, 2);
-							csi_set->attrs.list[i].string_ptr = calloc(1, len+1);
+							csi_set->attrs.list[i].string_ptr = static_cast<SaStringT>(calloc(1, len+1));
 							osafassert(csi_set->attrs.list[i].string_ptr);
 							rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
 								(uint8_t *)csi_set->attrs.list[i].string_ptr,
@@ -611,8 +611,8 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 					if (pg_track->buf.numberOfItems) {
 						pg_track->buf.notification = 0;
 						pg_track->buf.notification =
-						    calloc(1, pg_track->buf.numberOfItems *
-							   sizeof(SaAmfProtectionGroupNotificationT));
+						    static_cast<SaAmfProtectionGroupNotificationT*>(calloc(1, pg_track->buf.numberOfItems *
+							   sizeof(SaAmfProtectionGroupNotificationT)));
 						if (!pg_track->buf.notification) {
 							rc = NCSCC_RC_FAILURE;
 							LOG_CR("Calloc failed");
@@ -816,7 +816,7 @@ uint32_t ava_mds_param_get(AVA_CB *cb)
 ******************************************************************************/
 uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
-	EDU_ERR ederror = 0;
+	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
@@ -831,7 +831,7 @@ uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE_2("EDU rules execution failed");
 			if (dec_info->o_msg != NULL) {
-				avsv_nda_ava_msg_free(dec_info->o_msg);
+				avsv_nda_ava_msg_free(static_cast<AVSV_NDA_AVA_MSG*>(dec_info->o_msg));
 				dec_info->o_msg = NULL;
 			}
 			return rc;
@@ -861,7 +861,7 @@ uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 ******************************************************************************/
 uint32_t ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	EDU_ERR ederror = 0;
+	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	AVSV_NDA_AVA_MSG *msg = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
@@ -891,7 +891,7 @@ uint32_t ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
  * @param cb
  * 
  */
-void ava_install_amf_down_cb(void (*cb) (void))
+extern "C" void ava_install_amf_down_cb(void (*cb) (void))
 {
 	TRACE_ENTER();
 

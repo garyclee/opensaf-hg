@@ -30,6 +30,10 @@
 #ifndef AVA_HDL_H
 #define AVA_HDL_H
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 /*
  * Pending callback list definitions 
  */
@@ -197,4 +201,7 @@ AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *, SaInvocationT);
 
 uint32_t ava_callback_ipc_init(AVA_HDL_REC *hdl_rec);
 
+#ifdef  __cplusplus
+}
+#endif
 #endif   /* !AVA_HDL_H */

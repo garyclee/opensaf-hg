@@ -30,6 +30,10 @@
 #ifndef AVA_CB_H
 #define AVA_CB_H
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 /* AvA control block */
 typedef struct ava_cb_tag {
 	uint32_t cb_hdl;		/* CB hdl returned by hdl mngr */
@@ -110,4 +114,7 @@ void ava_cpy_protection_group_ntf(SaAmfProtectionGroupNotificationT_4  *to_ntf,
 				SaUint32T items,
 				SaAmfHAReadinessStateT ha_read_state);
 
+#ifdef  __cplusplus
+}
+#endif
 #endif   /* !AVA_CB_H */

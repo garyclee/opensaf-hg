@@ -18,8 +18,15 @@
 #ifndef AVA_DL_API_H
 #define AVA_DL_API_H
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 uint32_t ava_lib_req(NCS_LIB_REQ_INFO *);
 unsigned int ncs_ava_startup(void);
 unsigned int ncs_ava_shutdown(void);
 
+#ifdef  __cplusplus
+}
+#endif
 #endif   /* !AVA_DL_API_H */
