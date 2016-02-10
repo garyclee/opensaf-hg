@@ -37,7 +37,7 @@
 #include "osaf_poll.h"
 
 /* global cb handle */
-uint32_t gl_ava_hdl = 0;
+//uint32_t gl_ava_hdl = 0;
 static uint32_t ava_use_count = 0;
 
 /* mutex for synchronising agent startup and shutdown */
@@ -123,7 +123,7 @@ uint32_t ava_create(NCS_LIB_CREATE *create_info)
 	TRACE_ENTER();
 
 	/* allocate AvA cb */
-	if (!(cb = calloc(1, sizeof(AVA_CB)))) {
+	if (!(cb = static_cast<AVA_CB*>(calloc(1, sizeof(AVA_CB))))) {
 		LOG_ER("AVA Create: Calloc failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error;

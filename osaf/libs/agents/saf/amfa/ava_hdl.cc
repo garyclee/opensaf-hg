@@ -223,7 +223,7 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 	TRACE_ENTER();
 
 	/* allocate the hdl rec */
-	if (!(rec = calloc(1, sizeof(AVA_HDL_REC)))) {
+	if (!(rec = static_cast<AVA_HDL_REC*>(calloc(1, sizeof(AVA_HDL_REC))))) {
 		LOG_CR("Error occurred calling calloc");
 		osafassert(0);
 	}
@@ -275,7 +275,7 @@ uint32_t ava_hdl_cbk_param_add(AVA_CB *cb, AVA_HDL_REC *hdl_rec, AVSV_AMF_CBK_IN
 	TRACE_ENTER();
 
 	/* allocate the callbk rec */
-	if (!(rec = calloc(1, sizeof(AVA_PEND_CBK_REC)))) {
+	if (!(rec = static_cast<AVA_PEND_CBK_REC*>(calloc(1, sizeof(AVA_PEND_CBK_REC))))) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -378,7 +378,7 @@ uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 
 		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
-		if (0 == (*hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
+		if (0 == (*hdl_rec = static_cast<AVA_HDL_REC*>(ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)))) {
 			/* hdl is already finalized */
 			ava_hdl_cbk_rec_del(rec);
 			TRACE_LEAVE2("Handle is already finalized");
@@ -450,7 +450,7 @@ uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
 		/* is it finalized ? */
-		if (!(*hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl))) {
+		if (!(*hdl_rec = static_cast<AVA_HDL_REC*>(ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)))) {
 			ava_hdl_cbk_rec_del(rec);
 			TRACE("Handle is already finalized");
 			break;
@@ -685,7 +685,7 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 					buf.numberOfItems = pg_track->buf.numberOfItems;
 
 					buf.notification =
-						malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT_4));
+						static_cast<SaAmfProtectionGroupNotificationT_4*>(malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT_4)));
 					if (buf.notification) {
 						ava_cpy_protection_group_ntf(buf.notification, pg_track->buf.notification,
 								pg_track->buf.numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
@@ -714,7 +714,7 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 					buf.notification = 0;
 
 					buf.notification =
-						malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+						static_cast<SaAmfProtectionGroupNotificationT*>(malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT)));
 					if (buf.notification) {
 						memcpy(buf.notification, pg_track->buf.notification,
 							   buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));

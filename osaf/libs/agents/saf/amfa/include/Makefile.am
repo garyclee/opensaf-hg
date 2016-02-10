@@ -19,6 +19,7 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
+   amf_agent.h \
    ava_cb.h \
    ava_def.h \
    ava_dl_api.h \
