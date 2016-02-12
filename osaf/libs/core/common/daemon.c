@@ -254,7 +254,16 @@ void daemonize(int argc, char *argv[])
 		policy = strtol(thread_policy, NULL, 0);
 
 	param.sched_priority = prio_val;
-	if (sched_setscheduler(0, policy, &param) == -1) {
+	int result = sched_setscheduler(0, policy, &param);
+	if (result == -1 && errno == EPERM && policy != SCHED_OTHER) {
+		LOG_WA("sched_setscheduler failed with EPERM, falling back to "
+			"SCHED_OTHER policy for %s", basename(argv[0]));
+		policy = SCHED_OTHER;
+		prio_val = sched_get_priority_min(policy);
+		param.sched_priority = prio_val;
+		result = sched_setscheduler(0, policy, &param);
+	}
+	if (result == -1) {
 		syslog(LOG_ERR, "Could not set scheduling class for %s", strerror(errno));
 		if( (!strncmp("osafamfwd", basename(argv[0]), 9)) || (!strncmp("osafamfnd", basename(argv[0]), 9))) 
 		{
