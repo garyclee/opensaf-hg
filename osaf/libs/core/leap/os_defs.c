@@ -52,6 +52,7 @@
 #include "ncssysf_def.h"
 #include "osaf_utility.h"
 #include "osaf_time.h"
+#include "logtrace.h"
 
 NCS_OS_LOCK gl_ncs_atomic_mtx;
 #ifndef NDEBUG
@@ -222,12 +223,28 @@ unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 			rc = pthread_create(task->info.create.o_handle, &attr,
 					    (void *(*)(void *))task->info.create.i_entry_point,
 					    task->info.create.i_ep_arg);
+			if (rc == EPERM && policy != SCHED_OTHER) {
+				LOG_WA("pthread_create failed with EPERM, "
+					"falling back to SCHED_OTHER policy "
+					"for %s", task->info.create.i_name);
+				policy = SCHED_OTHER;
+				sp.sched_priority = sched_get_priority_min(policy);
+				rc = pthread_attr_setschedpolicy(&attr, policy);
+				if (rc != 0) osaf_abort(rc);
+				rc = pthread_attr_setschedparam(&attr, &sp);
+				if (rc != 0) osaf_abort(rc);
+				rc = pthread_create(task->info.create.o_handle,
+					&attr,
+					(void *(*)(void *))task->info.create.
+					i_entry_point,
+					task->info.create.i_ep_arg);
+			}
 			if (rc != 0) {
 				if (policy == SCHED_RR || policy == SCHED_FIFO)
-					syslog(LOG_ERR, "Creation of real-time thread '%s' FAILED - '%s'",
+					LOG_ER("Creation of real-time thread '%s' FAILED - %s",
 							task->info.create.i_name, strerror(rc));
 				else
-					syslog(LOG_ERR, "Creation of thread '%s' FAILED - '%s'",
+					LOG_ER("Creation of thread '%s' FAILED - %s",
 							task->info.create.i_name, strerror(rc));
 				free(task->info.create.o_handle);
 				return NCSCC_RC_FAILURE;
