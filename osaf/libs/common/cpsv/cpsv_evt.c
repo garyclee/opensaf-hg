@@ -2172,7 +2172,7 @@ void cpsv_evt_trace(char *svc_name, CPSV_EVT_REQUEST request, CPSV_EVT *evt, MDS
 
 	if ((evt->type == CPSV_EVT_TYPE_CPA && evt->info.cpa.type == CPA_EVT_MDS_INFO) ||
 		(evt->type == CPSV_EVT_TYPE_CPND && evt->info.cpnd.type == CPND_EVT_MDS_INFO) || 
-		(evt->type == CPSV_EVT_TYPE_CPND && evt->info.cpd.type == CPD_EVT_MDS_INFO)) {
+		(evt->type == CPSV_EVT_TYPE_CPD && evt->info.cpd.type == CPD_EVT_MDS_INFO)) {
 		switch (request)
 		{
 		case CPSV_EVT_SEND:
@@ -2226,12 +2226,20 @@ void cpsv_evt_trace(char *svc_name, CPSV_EVT_REQUEST request, CPSV_EVT *evt, MDS
 *****************************************************************************/
 void cpsv_convert_sec_id_to_string(char *sec_id_str, SaCkptSectionIdT *section_id)
 {
+	int16_t remaining_bytes = MAX_SEC_ID_LEN - 1;
+
 	if (section_id != NULL && section_id->id != NULL && section_id->idLen != 0) {
-		strncpy(sec_id_str, "0x", MAX_SEC_ID_LEN);
+		strncpy(sec_id_str, "0x", remaining_bytes);
+		remaining_bytes -= 2;
+
 		for(int i = 0; i < section_id->idLen; i++) {
 			char element_id[3] = {0};
 			sprintf(element_id, "%02X", *(section_id->id + i));
-			strncat(sec_id_str, element_id, MAX_SEC_ID_LEN);
+			strncat(sec_id_str, element_id, remaining_bytes);
+			remaining_bytes -= 2;
+
+			if (remaining_bytes < 2)
+				break;
 		}
 	} else {
 		strncpy(sec_id_str, "(NULL)", MAX_SEC_ID_LEN);
