@@ -67,7 +67,9 @@ struct cpsv_testcase_data
   SaNameT all_replicas_ckpt_large,active_replica_ckpt_large,weak_replica_ckpt_large,collocated_ckpt_large;
 
   SaCkptSectionIdT section1,section2,section3,section4,section5,section6,section7,invalid_sec,invalidsection,gen_sec,invalidSection,gen_sec_del;
+  SaCkptSectionIdT long_section_id;
   SaCkptSectionCreationAttributesT general_attr,expiration_attr,section_attr,special_attr,special_attr2,special_attr3,invalid_attr,multi_attr;
+  SaCkptSectionCreationAttributesT section_attr_with_long_id;
   char data1[14],data2[14],data3[14];
   SaSizeT size,size_zero;
 
