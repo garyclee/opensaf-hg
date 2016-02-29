@@ -34,6 +34,7 @@ libopensaf_common_la_SOURCES = \
 	osaf_utility.c \
 	osaf_poll.c \
 	osaf_time.c \
+	osaf_timerfd.c \
 	osaf_extended_name.c \
 	nid_start_util.c \
 	saf_edu.c \
