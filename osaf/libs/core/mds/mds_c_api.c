@@ -2884,8 +2884,7 @@ else (entry exists)
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_ip, uint16_t addr_family)
-
+uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_ip, uint16_t addr_family, char *node_name)
 {
 	MDS_MCM_MSG_ELEM *event_msg = NULL;
 	MDS_SVC_INFO *local_svc_info = NULL;
@@ -2929,13 +2928,18 @@ uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_
 	cbinfo->info.node_evt.node_id = node_id;
 	cbinfo->info.node_evt.addr_family = addr_family;
 	if (node_ip) {
-		memcpy(cbinfo->info.node_evt.ip_addr, node_ip, INET6_ADDRSTRLEN);
-		cbinfo->info.node_evt.length = strlen(node_ip);
+		cbinfo->info.node_evt.ip_addr_len = strlen(node_ip);
+		cbinfo->info.node_evt.length = cbinfo->info.node_evt.ip_addr_len;
+		memcpy(cbinfo->info.node_evt.ip_addr, node_ip, cbinfo->info.node_evt.ip_addr_len);
 	}
 
 	m_MDS_LOG_INFO("MDTM: node up node_ip:%s, length:%d node_id:%u addr_family:%d msg_type:%d",
-			cbinfo->info.node_evt.ip_addr, cbinfo->info.node_evt.length, 
+			cbinfo->info.node_evt.ip_addr, cbinfo->info.node_evt.ip_addr_len, 
 			cbinfo->info.node_evt.node_id, cbinfo->info.node_evt.addr_family, cbinfo->info.node_evt.node_chg);
+	if (node_name) {
+		cbinfo->info.node_evt.i_node_name_len = strlen(node_name);
+		strncpy(cbinfo->info.node_evt.i_node_name, node_name, cbinfo->info.node_evt.i_node_name_len);
+	}  
 
 	/* Post to mail box If Q Ownership is enabled Else Call user callback */
 	if (local_svc_info->q_ownership == true) {

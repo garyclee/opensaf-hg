@@ -4289,6 +4289,7 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 			cbinfo.info.receive.i_to_svc_id = svccb->svc_id;
 			cbinfo.info.receive.i_priority = recv->pri;
 			cbinfo.info.receive.i_msg_fmt_ver = recv->msg_fmt_ver;
+			strncpy(cbinfo.info.receive.i_node_name, recv->src_node_name , recv->src_node_name_len);
 		} else if (recv->msg.encoding == MDS_ENC_TYPE_DIRECT_BUFF) {
 			cbinfo.i_op = MDS_CALLBACK_DIRECT_RECEIVE;
 			cbinfo.info.direct_receive.i_fr_anc = recv->src_adest;
@@ -4319,6 +4320,7 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 			cbinfo.info.direct_receive.i_to_svc_id = svccb->svc_id;
 			cbinfo.info.direct_receive.i_priority = recv->pri;
 			cbinfo.info.direct_receive.i_msg_fmt_ver = recv->msg_fmt_ver;
+			strncpy(cbinfo.info.direct_receive.i_node_name, recv->src_node_name , recv->src_node_name_len);
 		} else if (recv->msg.encoding == MDS_ENC_TYPE_CPY) {
 			cbinfo.i_op = MDS_CALLBACK_RECEIVE;
 
@@ -4346,6 +4348,7 @@ static uint32_t mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DAT
 			cbinfo.info.receive.i_to_svc_id = svccb->svc_id;
 			cbinfo.info.receive.i_priority = recv->pri;
 			cbinfo.info.receive.i_msg_fmt_ver = recv->msg_fmt_ver;
+			strncpy(cbinfo.info.receive.i_node_name, recv->src_node_name , recv->src_node_name_len);
 		} else {
 			mds_mcm_free_msg_memory(recv->msg);
 			return NCSCC_RC_FAILURE;
@@ -4904,6 +4907,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 		cbinfo->info.dec.o_msg = orig_msg;
 
 		cbinfo->info.dec.i_msg_fmt_ver = recv_msg->msg_fmt_ver;
+		strncpy(cbinfo->info.dec.i_node_name, recv_msg->src_node_name , recv_msg->src_node_name_len);
 
 		m_MDS_LOG_DBG("MDS_SND_RCV : calling callback ptr\n");
 
@@ -4923,6 +4927,7 @@ static uint32_t mds_mcm_do_decode_full_or_flat(MDS_SVC_INFO *svccb, NCSMDS_CALLB
 		cbinfo->info.dec_flat.o_msg = orig_msg;
 
 		cbinfo->info.dec_flat.i_msg_fmt_ver = recv_msg->msg_fmt_ver;
+		strncpy(cbinfo->info.dec_flat.i_node_name, recv_msg->src_node_name , recv_msg->src_node_name_len);
 		m_MDS_LOG_DBG("MDS_SND_RCV : calling callback ptr\n");
 
 		if ((rc = svccb->cback_ptr(cbinfo)) != NCSCC_RC_SUCCESS) {

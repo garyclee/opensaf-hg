@@ -106,9 +106,9 @@ typedef struct mds_mcm_sync_send_queue {
 		MDS_DEST adest;
 	} dest_sndrack_adest;	/*  Filled, when the sndrack and redrack is being sent to originator and checked when ack
 				   is recd for the sent sndrack or redrack */
-
 	struct mds_mcm_sync_send_queue *next_send;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver;
+	char i_node_name[HOST_NAME_MAX]; /* Node Name of the sender*/
 
 } MDS_MCM_SYNC_SEND_QUEUE;
 
@@ -287,6 +287,8 @@ MDS_SVC_INFO *mds_get_svc_info_by_hdl(MDS_SVC_HDL hdl);
 typedef struct mds_mcm_cb {
 	MDS_DEST adest;
 	char adest_details[MDS_MAX_PROCESS_NAME_LEN]; /* <node[slotno]:processname[pid]> */
+	char node_name[HOST_NAME_MAX]; /* Node Name of this Node*/
+	uint8_t node_name_len; /* configured Node Name len of this Node*/
 
 	/* List of all subscription results MDS_SUBSCRIPTION_RESULTS_INFO */
 	NCS_PATRICIA_TREE subtn_results;

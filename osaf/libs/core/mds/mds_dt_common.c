@@ -294,13 +294,7 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 
 			return NCSCC_RC_FAILURE;
 		}
-		/* Check whether mds header length received is not less than mds header length of this instance */
-		if (len_mds_hdr < MDS_HDR_LEN) {
-			m_MDS_LOG_ERR
-			    ("MDTM:Mds hdr len of recd msg (Non frag) = %d is less than local mds hdr len = %d",
-			     len_mds_hdr, MDS_HDR_LEN);
-			return NCSCC_RC_FAILURE;
-		}
+
 
 		data = &buffer[MDS_HEADER_PWE_ID_POSITION];
 
@@ -412,8 +406,36 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 			break;
 		}
 
+		data = NULL;
 		data = &buffer[MDS_HEADER_APP_VERSION_ID_POSITION];
 		reassem_queue->recv.msg_fmt_ver = ncs_decode_16bit(&data);	/* For the version field */
+
+		/* Check message revived form new node or old node */
+		if (len_mds_hdr > (MDS_HDR_LEN - 1)) {
+			data = NULL;
+			data = &buffer[MDS_HEADER_NODE_NAME_LEN_POSITION];
+			reassem_queue->recv.src_node_name_len = ncs_decode_8bit(&data);
+
+			/* Check whether mds header length received is not less than mds header length of this instance */
+			if (len_mds_hdr < (MDS_HDR_LEN + reassem_queue->recv.src_node_name_len)) {
+				m_MDS_LOG_ERR
+					("MDTM:Mds hdr len of recd msg (Non frag) = %d is less than local mds hdr len = %d",
+					 len_mds_hdr, (MDS_HDR_LEN + reassem_queue->recv.src_node_name_len));
+				return NCSCC_RC_FAILURE;
+			}
+
+			data = NULL;
+			data = &buffer[MDS_HEADER_NODE_NAME_POSITION];
+			strncpy((char *)reassem_queue->recv.src_node_name, (char *)data, reassem_queue->recv.src_node_name_len);
+		} else {
+			/* Check whether mds header length received is not less than mds header length of this instance */
+			if (len_mds_hdr < (MDS_HDR_LEN - 1)) {
+				m_MDS_LOG_ERR
+					("MDTM:Mds hdr len of recd msg (Non frag) = %d is less than local mds hdr len = %d",
+					 len_mds_hdr, (MDS_HDR_LEN - 1 ));
+				return NCSCC_RC_FAILURE;
+			}
+		}
 
 		reassem_queue->recv.exchange_id = xch_id;
 		reassem_queue->next_frag_num = 0;
@@ -517,13 +539,6 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 			m_MDS_LOG_ERR("MDTM: Message recd (Fragmented First Pkt) len is less than or equal to \
 			     the sum of (len_mds_hdr+MDTM_FRAG_HDR_LEN) len, Adest = <%"PRId64">",
 			     transport_adest);
-			return NCSCC_RC_FAILURE;
-		}
-		/* Check whether mds header length received is not less than mds header length of this instance */
-		if (len_mds_hdr < MDS_HDR_LEN) {
-			m_MDS_LOG_DBG
-			    ("MDTM:Mds hdr len of recd msg(Frag first pkt) = %d is less than local mds hdr len = %d",
-			     len_mds_hdr, MDS_HDR_LEN);
 			return NCSCC_RC_FAILURE;
 		}
 		data = &buffer[MDS_HEADER_PWE_ID_POSITION + MDTM_FRAG_HDR_LEN];
@@ -641,6 +656,35 @@ uint32_t mdtm_process_recv_message_common(uint8_t flag, uint8_t *buffer, uint16_
 
 		data = &buffer[MDS_HEADER_APP_VERSION_ID_POSITION + MDTM_FRAG_HDR_LEN];
 		reassem_queue->recv.msg_fmt_ver = ncs_decode_16bit(&data);	/* For the version field */
+
+		/* Check message revived form new node or old node */
+		if (len_mds_hdr > (MDS_HDR_LEN - 1)) {
+
+			data = NULL;
+			data = &buffer[MDS_HEADER_NODE_NAME_LEN_POSITION + MDTM_FRAG_HDR_LEN];
+			reassem_queue->recv.src_node_name_len = ncs_decode_8bit(&data);
+
+			/* Check whether mds header length received is not less than mds header length of this instance */
+			if (len_mds_hdr < (MDS_HDR_LEN + reassem_queue->recv.src_node_name_len)) {
+				m_MDS_LOG_ERR
+					("MDTM:Mds hdr len of recd msg ( frag) = %d is less than local mds hdr len = %d",
+					 len_mds_hdr, (MDS_HDR_LEN + reassem_queue->recv.src_node_name_len));
+				return NCSCC_RC_FAILURE;
+			}
+
+			data = NULL;
+			data = &buffer[MDS_HEADER_NODE_NAME_POSITION + MDTM_FRAG_HDR_LEN];
+			strncpy((char *)reassem_queue->recv.src_node_name, (char *)data, reassem_queue->recv.src_node_name_len);
+		} else {
+			/* Check whether mds header length received is not less than mds header length of this instance */
+			if (len_mds_hdr < (MDS_HDR_LEN -1)) {
+				m_MDS_LOG_ERR
+					("MDTM:Mds hdr len of recd msg ( frag) = %d is less than local mds hdr len = %d",
+					 len_mds_hdr, (MDS_HDR_LEN - 1));
+				return NCSCC_RC_FAILURE;
+			}
+
+		}
 
 		reassem_queue->recv.exchange_id = xch_id;
 		reassem_queue->next_frag_num = 2;
