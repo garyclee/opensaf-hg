@@ -395,14 +395,46 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 			}
 		}
 
-		/* Get tipc_mcast_enabled */
-		if ((ptr = getenv("MDS_TIPC_MCAST_ENABLED")) != NULL) {
-			tipc_mcast_enabled = atoi(ptr);
-			if (tipc_mcast_enabled != false)
-				tipc_mcast_enabled = true;
-				
-			m_MDS_LOG_DBG("MDS: TIPC_MCAST_ENABLED: %d  Set argument \n",tipc_mcast_enabled);	
+		FILE *fp;
+#ifdef ENABLE_TIPC_TRANSPORT
+		int rc;
+		struct stat sockStat;
+
+		rc = stat(MDS_MDTM_CONNECT_PATH, &sockStat);
+		if (rc != 0) {
+			/* dtm intra server not exists */
+			tipc_mode_enabled = true;
 		}
+
+		if (tipc_mode_enabled) {
+			/* Get tipc_mcast_enabled */
+			if ((ptr = getenv("MDS_TIPC_MCAST_ENABLED")) != NULL) {
+				tipc_mcast_enabled = atoi(ptr);
+				if (tipc_mcast_enabled != false)
+					tipc_mcast_enabled = true;
+
+				m_MDS_LOG_DBG("MDS: TIPC_MCAST_ENABLED: %d  Set argument \n",tipc_mcast_enabled);	
+			}
+
+		}
+#endif
+		fp = fopen(PKGSYSCONFDIR "/node_name", "r");
+		if (fp == NULL) {
+			LOG_ER("MDS:TIPC Could not open file  node_name ");
+			mds_mcm_destroy();
+			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+		if (EOF == fscanf(fp, "%s", gl_mds_mcm_cb->node_name)) {
+			fclose(fp);
+			LOG_ER("MDS:TIPC Could not get node name ");
+			mds_mcm_destroy();
+			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+		fclose(fp);
+		gl_mds_mcm_cb->node_name_len = (uint8_t)strlen(gl_mds_mcm_cb->node_name);
+		m_MDS_LOG_DBG("MDS:TIPC config->node_name : %s", gl_mds_mcm_cb->node_name);
 
 		/*  to use cluster id in mds prefix? */
 
@@ -599,15 +631,6 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 void mds_init_transport(void)
 {
 #ifdef ENABLE_TIPC_TRANSPORT
-	int rc;
-	struct stat sockStat;
-
-	rc = stat(MDS_MDTM_CONNECT_PATH, &sockStat);
-	if (rc != 0) {
-		/* dtm intra server not exists */
-		tipc_mode_enabled = true;
-	}
-
 	if (tipc_mode_enabled) {
 		mds_mdtm_init = mdtm_tipc_init;
 		mds_mdtm_destroy = mdtm_tipc_destroy;

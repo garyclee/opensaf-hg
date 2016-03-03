@@ -43,7 +43,7 @@ typedef uint8_t MDS_SVC_ARCHWORD_TYPE;	/*MDS  app-svc arch and word_size combina
  *    Version 0 uses 1400 bytes fragmentation.
  *    Version 1 uses TIPC max msg (66000 bytes) fragmentation.
  */
-#define MDS_SELF_ARCHWORD ((MDS_SVC_ARCHWORD_TYPE) ((MDS_WORD_SIZE_TYPE<<3) | 1))
+#define MDS_SELF_ARCHWORD ((MDS_SVC_ARCHWORD_TYPE) ((MDS_WORD_SIZE_TYPE<<3) | 2))
 
 typedef enum {
 	MDS_VIEW_NORMAL,
@@ -106,6 +106,8 @@ typedef struct mds_data_recv {
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver;	/* message format version specification */
 	MDS_SVC_PVT_SUB_PART_VER src_svc_sub_part_ver;
 	MDS_SVC_ARCHWORD_TYPE msg_arch_word;
+	uint8_t src_node_name_len;
+	char src_node_name[HOST_NAME_MAX]; /* Node Name of the sender/source*/
 	uint32_t src_seq_num;
 	pid_t pid;
 	uid_t uid;
@@ -400,7 +402,7 @@ extern uint32_t mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL 
 			      MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
 
 /* NODE UP */
-extern uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_ip, uint16_t addr_family);
+extern uint32_t mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, char *node_ip, uint16_t addr_family, char *node_name);
 
 /* NODE DOWN */
 extern uint32_t mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id, uint16_t addr_family);

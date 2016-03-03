@@ -73,8 +73,7 @@ typedef struct mdtm_reassembly_queue {
 } MDTM_REASSEMBLY_QUEUE;
 
 /* Defines regarding to the Send and receive buff sizes */
-#define MDS_HDR_LEN         24	/* Mds_prot-4bit, Mds_version-2bit , Msg prior-2bit, Hdr_len-16bit, Seq_no-32bit, Enc_dec_type-2bit, Msg_snd_type-6bit,
-				   Pwe_id-16bit, Sndr_vdest_id-16bit, Sndr_svc_id-16bit, Rcvr_vdest_id-16bit, Rcvr_svc_id-16bit, Exch_id-32bit, App_Vers-16bit */
+#define MDS_HDR_LEN         25	/* Mds_prot-4bit, Mds_version-2bit , Msg prior-2bit, Hdr_len-16bit, Seq_no-32bit, Enc_dec_type-2bit, Msg_snd_type-6bit, Pwe_id-16bit, Sndr_vdest_id-16bit, Sndr_svc_id-16bit, Rcvr_vdest_id-16bit, Rcvr_svc_id-16bit, Exch_id-32bit, App_Vers-16bit  node_name_len-8bit,  dynamic value node_name-<HOST_NAME_MAX>bits*/
 
 /* Following defines the positions of each field in the mds hdr */
 #define MDS_HEADER_PROT_VER_PRIOR_POSITION    0
@@ -88,6 +87,8 @@ typedef struct mdtm_reassembly_queue {
 #define MDS_HEADER_RCVR_SVC_ID_POSITION       16
 #define MDS_HEADER_EXCHG_ID_POSITION          18
 #define MDS_HEADER_APP_VERSION_ID_POSITION    22
+#define MDS_HEADER_NODE_NAME_LEN_POSITION     24
+#define MDS_HEADER_NODE_NAME_POSITION         25
 
 #define MDTM_FRAG_HDR_LEN    8	/* Msg Seq_no-32bit, More Frag-1bit, Frag_num-15bit, Frag_size-16bit */
 

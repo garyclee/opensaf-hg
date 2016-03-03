@@ -703,6 +703,7 @@ typedef uint8_t *MDS_DIRECT_BUFF;
 		NCSCONTEXT o_msg;	/* New message resulting from decode  */
 		NODE_ID i_node_id;	/* Node id of the sender              */
 		MDS_CLIENT_MSG_FORMAT_VER i_msg_fmt_ver;
+		char i_node_name[HOST_NAME_MAX]; /* Node Name of the sender              */
 
 	} MDS_CALLBACK_DEC_INFO;
 
@@ -735,6 +736,7 @@ unpack individual structure members. */
 		MDS_SVC_ID i_to_svc_id;
 		MDS_SEND_PRIORITY_TYPE i_priority;	/* Priority with which this message was sent */
 		NODE_ID i_node_id;	/* Node id of the sender              */
+		char i_node_name[HOST_NAME_MAX]; /* Node Name of the sender              */
 
 		/* Local handle to the PWE of "svc_id". It is meaningful only to "Global
 		   MDS services". Global MDS services are global to a "MDS_DEST" scope.
@@ -767,6 +769,7 @@ unpack individual structure members. */
 		MDS_SVC_ID i_to_svc_id;
 		MDS_SEND_PRIORITY_TYPE i_priority;	/* Priority with which this message was sent */
 		NODE_ID i_node_id;	/* Node id of the sender              */
+		char i_node_name[HOST_NAME_MAX]; /* Node Name of the sender              */
 
 		/* Local handle to the PWE of "svc_id". It is meaningful only to "Global
 		   MDS services". Global MDS services are global to a "MDS_DEST" scope.
@@ -838,8 +841,11 @@ unpack individual structure members. */
 		NCSMDS_NODE_CHG  node_chg;
 		NODE_ID node_id;
 		uint16_t addr_family;
-		uint16_t length;
+		uint16_t length; /* will be deprecated after few version */
+		uint16_t ip_addr_len;
 		uint8_t ip_addr[INET6_ADDRSTRLEN];
+		uint16_t i_node_name_len;
+		char i_node_name[HOST_NAME_MAX]; /* Node Name of the sender */
 	} MDS_CALLBACK_NODE_EVENT_INFO;
 
 	typedef struct mds_callback_msg_loss_event_info {
