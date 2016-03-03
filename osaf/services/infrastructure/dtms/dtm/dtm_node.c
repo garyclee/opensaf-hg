@@ -29,7 +29,7 @@
 /* packet_size +  mds_indentifier + mds_version +  msg_type  +node_id + node_name_len + node_name */
 #define NODE_INFO_HDR_SIZE 16
 
-#define NODE_INFO_PKT_SIZE (NODE_INFO_HDR_SIZE + MAX_NAME_LENGTH)
+#define NODE_INFO_PKT_SIZE (NODE_INFO_HDR_SIZE + HOST_NAME_MAX)
 
 static struct pollfd fds[MAX_FD];	/* Poll fds global list */
 static int nfds = 0;
@@ -78,7 +78,7 @@ uint32_t dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint
 	uint32_t node_id;
 	DTM_NODE_DB *node;
 	uint32_t nodename_len;
-	char nodename[MAX_NAME_LENGTH];
+	char nodename[HOST_NAME_MAX];
 	int rc = 0;
 	uint8_t *data = buffer;
 	TRACE_ENTER();

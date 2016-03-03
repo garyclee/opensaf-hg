@@ -666,9 +666,11 @@ uint32_t dtm_intranode_process_node_subscribe_msg(uint8_t *buff, int fd)
 			} else {
 				node_up_msg.node_id = node_db->node_id;
 				node_up_msg.ref_val = node_subscr_info->subtn_ref_val;
-				strcpy(node_up_msg.node_ip, node_db->node_ip);
+				strncpy(node_up_msg.node_ip, node_db->node_ip, INET6_ADDRSTRLEN);
+				strncpy(node_up_msg.node_name, node_db->node_name, HOST_NAME_MAX); 
 				node_up_msg.i_addr_family = node_db->i_addr_family;
-				TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ", node_up_msg.node_ip, node_up_msg.node_id, node_up_msg.i_addr_family);
+				TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d",
+						node_up_msg.node_ip, node_up_msg.node_id, node_up_msg.i_addr_family);
 				dtm_lib_prepare_node_up_msg(&node_up_msg, buffer);
 				dtm_lib_msg_snd_common(buffer,
 						       node_subscr_info->process_id, DTM_LIB_NODE_UP_MSG_SIZE_FULL);
@@ -1383,6 +1385,8 @@ static uint32_t dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uint8_
 	ncs_encode_64bit(&data, up_msg->ref_val);
 	ncs_encode_8bit(&data, (uint8_t)up_msg->i_addr_family);
 	memcpy(data, up_msg->node_ip, INET6_ADDRSTRLEN);
+	data = data+INET6_ADDRSTRLEN;
+	memcpy(data, up_msg->node_name, HOST_NAME_MAX);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -1437,7 +1441,8 @@ uint32_t dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, char *n
 	node_db_info->mbx = mbx;
 	node_db_info->i_addr_family = i_addr_family;
 	strcpy(node_db_info->node_ip, node_ip);
-	TRACE("node_ip:%s, node_id:%u i_addr_family:%d ", node_db_info->node_ip, node_db_info->node_id, node_db_info->i_addr_family);
+	TRACE("node_name:%s, node_ip:%s, node_id:%u i_addr_family:%d ", 
+			node_db_info->node_name, node_db_info->node_ip, node_db_info->node_id, node_db_info->i_addr_family);
 	/* Initialize the pat tree */
 	pat_tree_params.key_size = sizeof(uint32_t);
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&node_db_info->dtm_rem_node_svc_tree, &pat_tree_params)) {
@@ -1457,7 +1462,8 @@ uint32_t dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, char *n
 		uint8_t buffer[DTM_LIB_NODE_UP_MSG_SIZE_FULL];
 		node_up_msg.node_id = node_id;
 		node_up_msg.i_addr_family = i_addr_family;
-		strcpy(node_up_msg.node_ip, node_ip);
+		strncpy(node_up_msg.node_ip, node_ip, INET6_ADDRSTRLEN);
+		strncpy(node_up_msg.node_name, node_db_info->node_name, HOST_NAME_MAX);
 		TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ", node_up_msg.node_ip, node_up_msg.node_id, node_up_msg.i_addr_family);
 		dtm_lib_prepare_node_up_msg(&node_up_msg, buffer);
 		while (NULL != node_subscr_info) {
@@ -1914,7 +1920,7 @@ uint32_t dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, N
             2 - NCSCC_RC_FAILURE
 
 *********************************************************/
-uint32_t dtm_intranode_add_self_node_to_node_db(NODE_ID node_id,char *node_ip, DTM_IP_ADDR_TYPE i_addr_family)
+uint32_t dtm_intranode_add_self_node_to_node_db(NODE_ID node_id, char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family)
 {
 	/* Add to the node db list */
 	DTM_INTRANODE_NODE_DB *node_db_info = NULL;
@@ -1925,7 +1931,9 @@ uint32_t dtm_intranode_add_self_node_to_node_db(NODE_ID node_id,char *node_ip, D
 	node_db_info->node_id = node_id;
 	node_db_info->i_addr_family = i_addr_family;
 	memcpy(node_db_info->node_ip, node_ip, INET6_ADDRSTRLEN);
-	TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ",node_db_info->node_ip,node_db_info->node_id,node_db_info->i_addr_family);
+	memcpy(node_db_info->node_name, node_name, HOST_NAME_MAX);
+	TRACE("DTM: nnode_name:%s, node_ip:%s, node_id:%u i_addr_family:%d ",
+			node_db_info->node_name, node_db_info->node_ip,node_db_info->node_id,node_db_info->i_addr_family);
 	if (NCSCC_RC_SUCCESS != (dtm_add_to_node_db_list(node_db_info))) {
 		/* This is critical */
 		LOG_ER("DTM INTRA: Unable to add the node to node_db_list");

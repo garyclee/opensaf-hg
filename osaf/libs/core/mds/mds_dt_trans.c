@@ -33,8 +33,9 @@
 #define MDTM_FRAG_HDR_PLUS_LEN_2_TCP (2 + MDS_SEND_ADDRINFO_TCP + MDTM_FRAG_HDR_LEN_TCP)
 
 /* Defines regarding to the Send and receive buff sizes */
-#define MDS_HDR_LEN_TCP         24	/* Mds_prot-4bit, Mds_version-2bit , Msg prior-2bit, Hdr_len-16bit, Seq_no-32bit, Enc_dec_type-2bit, Msg_snd_type-6bit,
-					   Pwe_id-16bit, Sndr_vdest_id-16bit, Sndr_svc_id-16bit, Rcvr_vdest_id-16bit, Rcvr_svc_id-16bit, Exch_id-32bit, App_Vers-16bit */
+#define MDS_HDR_LEN_TCP         25	/* Mds_prot-4bit, Mds_version-2bit , Msg prior-2bit, Hdr_len-16bit, Seq_no-32bit, Enc_dec_type-2bit, Msg_snd_type-6bit,
+					   Pwe_id-16bit, Sndr_vdest_id-16bit, Sndr_svc_id-16bit, Rcvr_vdest_id-16bit, Rcvr_svc_id-16bit, Exch_id-32bit, App_Vers-16bit
+					   node_name_len-8bit, dynamic value node_name-<HOST_NAME_MAX>bits */
 
 #define MDTM_FRAG_HDR_LEN_TCP    8	/* Msg Seq_no-32bit, More Frag-1bit, Frag_num-15bit, Frag_size-16bit */
 #define MDS_SEND_ADDRINFO_TCP    22	/* Identifier-32bit, Version-8bit, message type-8bit, DestNodeid-32bit, DestProcessid-32bit, SrcNodeid-32bit, SrcProcessid-32bit */
@@ -87,6 +88,14 @@ static uint32_t mdtm_add_mds_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uint32
 	uint32_t zero_32 = 0;
 
 	uint32_t xch_id = 0;
+	uint16_t mds_hdr_len_tcp;
+	int version = req->msg_arch_word & 0x7;
+	if (version > 1) {
+		mds_hdr_len_tcp = (MDS_HDR_LEN_TCP + gl_mds_mcm_cb->node_name_len);
+	} else {
+		/* Old MDS_HDR_LEN = 24 */
+		mds_hdr_len_tcp  = (MDS_HDR_LEN_TCP - 1);
+        }
 
 	uint8_t *ptr;
 	ptr = buffer;
@@ -113,10 +122,9 @@ static uint32_t mdtm_add_mds_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uint32
 	ncs_encode_32bit(&ptr, zero_32);
 	ncs_encode_16bit(&ptr, zero_16);
 	ncs_encode_16bit(&ptr, zero_16);
-
 	/* MDS HDR */
 	ncs_encode_8bit(&ptr, prot_ver);
-	ncs_encode_16bit(&ptr, (uint16_t)(MDS_HDR_LEN));	/* Will be updated if any additional options are being added at the end */
+	ncs_encode_16bit(&ptr, (uint16_t) mds_hdr_len_tcp);	/* Will be updated if any additional options are being added at the end */
 	ncs_encode_32bit(&ptr, req->svc_seq_num);
 	ncs_encode_8bit(&ptr, enc_snd_type);
 	ncs_encode_16bit(&ptr, req->src_pwe_id);
@@ -146,7 +154,10 @@ static uint32_t mdtm_add_mds_hdr_tcp(uint8_t *buffer, MDTM_SEND_REQ *req, uint32
 
 	ncs_encode_32bit(&ptr, xch_id);
 	ncs_encode_16bit(&ptr, req->msg_fmt_ver);	/* New field */
-
+	if (version > 1) {
+		ncs_encode_8bit(&ptr, gl_mds_mcm_cb->node_name_len); /* New field 1 */
+		ncs_encode_octets(&ptr, (uint8_t *)gl_mds_mcm_cb->node_name, gl_mds_mcm_cb->node_name_len); /* New field 2 */
+	}
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -226,7 +237,19 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 	uint8_t *p8;
 	uint16_t i = 1;
 	uint16_t frag_val = 0;
+	uint32_t sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp;
+	uint32_t mdtm_max_send_pkt_size_tcp;
+        int version = req->msg_arch_word & 0x7;
+	if (version > 1) {
 
+		sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp = (SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP + gl_mds_mcm_cb->node_name_len);
+		mdtm_max_send_pkt_size_tcp = (MDTM_MAX_SEND_PKT_SIZE_TCP + gl_mds_mcm_cb->node_name_len);
+
+	} else {
+		sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp = (SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP - 1);
+                mdtm_max_send_pkt_size_tcp = (MDTM_MAX_SEND_PKT_SIZE_TCP - 1);
+	}
+	
 	switch (req->msg.encoding) {
 	case MDS_ENC_TYPE_FULL:
 		usrbuf = req->msg.data.fullenc_uba.start;
@@ -253,11 +276,11 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 	while (len != 0) {
 		if (len > MDS_DIRECT_BUF_MAXSIZE) {
 			if (i == 1) {
-				len_buf = MDTM_MAX_SEND_PKT_SIZE_TCP;
+				len_buf = mdtm_max_send_pkt_size_tcp;
 				frag_val = MORE_FRAG_BIT | i;
 			} else {
-				if ((len + MDTM_FRAG_HDR_PLUS_LEN_2_TCP) > MDTM_MAX_SEND_PKT_SIZE_TCP) {
-					len_buf = MDTM_MAX_SEND_PKT_SIZE_TCP;
+				if ((len + MDTM_FRAG_HDR_PLUS_LEN_2_TCP) > mdtm_max_send_pkt_size_tcp) {
+					len_buf = mdtm_max_send_pkt_size_tcp;
 					frag_val = MORE_FRAG_BIT | i;
 				} else {
 					len_buf = len + MDTM_FRAG_HDR_PLUS_LEN_2_TCP;
@@ -273,12 +296,12 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 			body = calloc(1, len_buf);
 			if (i == 1) {
 				p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf,
-								  (len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP),
+								  (len_buf - sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp),
 								  (char *)
-								  (body + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP));
+								  (body + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp));
 
-				if (p8 != (body + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP))
-					memcpy((body + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP), p8, (len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP));
+				if (p8 != (body + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp))
+					memcpy((body + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp), p8, (len_buf - sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp));
 
 				if (NCSCC_RC_SUCCESS != mdtm_add_mds_hdr_tcp(body, req, len_buf)) {
 					m_MDS_LOG_ERR("MDTM: frg MDS hdr addition failed\n");
@@ -302,9 +325,9 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 					return NCSCC_RC_FAILURE;
 				}
 
-				m_MMGR_REMOVE_FROM_START(&usrbuf, len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP);
+				m_MMGR_REMOVE_FROM_START(&usrbuf, len_buf - sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp);
 				free(body);
-				len = len - (len_buf - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP);
+				len = len - (len_buf - sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp);
 			} else {
 				p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf, len_buf - MDTM_FRAG_HDR_PLUS_LEN_2_TCP,
 								  (char *)(body + MDTM_FRAG_HDR_PLUS_LEN_2_TCP));
@@ -360,6 +383,14 @@ static uint32_t mdtm_frag_and_send_tcp(MDTM_SEND_REQ *req, uint32_t seq_num, MDS
 uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 {
 	uint32_t status = 0;
+	uint32_t sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp;
+	int version = req->msg_arch_word & 0x7;
+	if (version > 1) {
+		sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp = (SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP + gl_mds_mcm_cb->node_name_len);
+	} else {
+		sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp = (SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP - 1);
+	}
+
 
 	if (req->to == DESTINATION_SAME_PROCESS) {
 		MDS_DATA_RECV recv;
@@ -378,6 +409,8 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 		recv.pri = req->pri;
 		recv.msg_fmt_ver = req->msg_fmt_ver;
 		recv.src_svc_sub_part_ver = req->src_svc_sub_part_ver;
+		strncpy((char *)recv.src_node_name, (char *)gl_mds_mcm_cb->node_name, gl_mds_mcm_cb->node_name_len);
+
 
 		/* This is exclusively for the Bcast ENC and ENC_FLAT case */
 		if (recv.msg.encoding == MDS_ENC_TYPE_FULL) {
@@ -407,7 +440,7 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 
 		/* Only for the ack and not for any other message */
 		if (req->snd_type == MDS_SENDTYPE_ACK || req->snd_type == MDS_SENDTYPE_RACK) {
-			uint8_t len = SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP;
+			uint8_t len = sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp;
 			uint8_t buffer_ack[len];
 
 			/* Add mds_hdr */
@@ -461,17 +494,17 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 				} else {
 					uint8_t *p8;
 					uint8_t *body = NULL;
-					body = calloc(1, len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP);
+					body = calloc(1, len + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp);
 
 					p8 = (uint8_t *)m_MMGR_DATA_AT_START(usrbuf, len, (char *)
-									  (body + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP));
+									  (body + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp));
 
-					if (p8 != (body + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP))
-						memcpy((body + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP), p8, len);
+					if (p8 != (body + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp))
+						memcpy((body + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp), p8, len);
 
 					if (NCSCC_RC_SUCCESS !=
 					    mdtm_add_mds_hdr_tcp(body, req,
-								 len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP)) {
+								 (len + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp))) {
 						m_MDS_LOG_ERR("MDTM: Unable to add the mds Hdr to the send msg\n");
 						m_MMGR_FREE_BUFR_LIST(usrbuf);
 						free(body);
@@ -480,7 +513,7 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 
 					if (NCSCC_RC_SUCCESS !=
 					    mdtm_add_frag_hdr_tcp((body + 24),
-								  (len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP),
+								  (len + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp),
 								  frag_seq_num, 0)) {
 						m_MDS_LOG_ERR("MDTM: Unable to add the frag Hdr to the send msg\n");
 						m_MMGR_FREE_BUFR_LIST(usrbuf);
@@ -492,7 +525,7 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 					    ("MDTM: Sending message with Service Seqno=%d, TO Dest_id=<0x%08x:%u> ",
 					     req->svc_seq_num, id.node_id, id.process_id);
 
-					if (NCSCC_RC_SUCCESS != mds_sock_send(body, (len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP))) {
+					if (NCSCC_RC_SUCCESS != mds_sock_send(body, (len + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp))) {
 						m_MDS_LOG_ERR("MDTM: Unable to send the msg \n");
 						m_MMGR_FREE_BUFR_LIST(usrbuf);
 						free(body);
@@ -508,7 +541,7 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 		case MDS_ENC_TYPE_DIRECT_BUFF:
 			{
 				if (req->msg.data.buff_info.len >
-				    (MDTM_MAX_DIRECT_BUFF_SIZE - SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP)) {
+				    (MDTM_MAX_DIRECT_BUFF_SIZE - sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp)) {
 					m_MDS_LOG_CRITICAL
 					    ("MDTM: Passed pkt len is more than the single send direct buff\n");
 					mds_free_direct_buff(req->msg.data.buff_info.buff);
@@ -519,12 +552,12 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 					       req->msg.data.buff_info.len, get_svc_names(req->src_svc_id), req->src_svc_id, get_svc_names(req->dest_svc_id), req->dest_svc_id);
 
 				uint8_t *body = NULL;
-				body = calloc(1, (req->msg.data.buff_info.len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP));
+				body = calloc(1, (req->msg.data.buff_info.len + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp));
 
 				if (NCSCC_RC_SUCCESS !=
 				    mdtm_add_mds_hdr_tcp(body, req,
-							 req->msg.data.buff_info.len +
-							 SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP)) {
+							 (req->msg.data.buff_info.len +
+							 sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp))) {
 					m_MDS_LOG_ERR("MDTM: Unable to add the mds Hdr to the send msg\n");
 					free(body);
 					mds_free_direct_buff(req->msg.data.buff_info.buff);
@@ -533,16 +566,16 @@ uint32_t mds_mdtm_send_tcp(MDTM_SEND_REQ *req)
 				if (NCSCC_RC_SUCCESS !=
 				    mdtm_add_frag_hdr_tcp((body + 24),
 							  req->msg.data.buff_info.len +
-							  SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP, frag_seq_num, 0)) {
+							  sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp, frag_seq_num, 0)) {
 					m_MDS_LOG_ERR("MDTM: Unable to add the frag Hdr to the send msg\n");
 					free(body);
 					mds_free_direct_buff(req->msg.data.buff_info.buff);
 					return NCSCC_RC_FAILURE;
 				}
-				memcpy((body + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP), req->msg.data.buff_info.buff,
+				memcpy((body + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp), req->msg.data.buff_info.buff,
 				       req->msg.data.buff_info.len);
 
-				if (NCSCC_RC_SUCCESS != mds_sock_send(body, (req->msg.data.buff_info.len + SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP))) {
+				if (NCSCC_RC_SUCCESS != mds_sock_send(body, (req->msg.data.buff_info.len + sum_mds_hdr_plus_mdtm_hdr_plus_len_tcp))) {
 					m_MDS_LOG_ERR("MDTM: Unable to send the msg \n");
 					free(body);
 					mds_free_direct_buff(req->msg.data.buff_info.buff);
@@ -911,6 +944,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 		{
 			uint16_t addr_family; /* Indicates V4 or V6 */
 			char node_ip[INET6_ADDRSTRLEN];
+			char node_name[HOST_NAME_MAX];
 			node_id = ncs_decode_32bit(&buffer);
 			ref_val = ncs_decode_64bit(&buffer);
 
@@ -922,13 +956,14 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 			if (msg_type == MDTM_LIB_NODE_UP_TYPE) {
 				addr_family = ncs_decode_8bit(&buffer);
 				memset(node_ip,0, INET6_ADDRSTRLEN);
+				memset(node_name,0, HOST_NAME_MAX);
 				memcpy(node_ip, (uint8_t *)buffer, INET6_ADDRSTRLEN);
-				m_MDS_LOG_INFO("MDTM: NODE_UP node_ip:%s, node_id:%u addr_family:%d msg_type:%d",
-						node_ip, node_id, addr_family, msg_type);
-				mds_mcm_node_up(svc_hdl, node_id, node_ip, addr_family);
-			}
-
-			if (msg_type == MDTM_LIB_NODE_DOWN_TYPE) {
+				buffer = buffer+INET6_ADDRSTRLEN;
+				memcpy(node_name, (uint8_t *)buffer, HOST_NAME_MAX);	
+				m_MDS_LOG_INFO("MDTM: NODE_UP for node_name:%s, node_ip:%s, node_id:%u addr_family:%d msg_type:%d",
+						node_name, node_ip, node_id, addr_family, msg_type);
+				mds_mcm_node_up(svc_hdl, node_id, node_ip, addr_family, node_name);
+			} else if (msg_type == MDTM_LIB_NODE_DOWN_TYPE) {
 				m_MDS_LOG_INFO("MDTM: NODE_DOWN  node_id:%u msg_type:%d",node_id, msg_type);
 				/* TBD if required this can be AF_INET or AF_INET6
 				   for now to distinguished between TCP & TIPC   hardcoding to AF_INET
