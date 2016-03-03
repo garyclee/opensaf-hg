@@ -56,7 +56,7 @@ static struct pollfd *pfd_list;
 
 static int  dtm_intranode_max_fd;
 
-static uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, int32_t sndbuf_size, int32_t rcvbuf_size);
+static uint32_t dtm_intra_processing_init(char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, int32_t sndbuf_size, int32_t rcvbuf_size);
 static void dtm_intranode_processing(void);
 static uint32_t dtm_intranode_add_poll_fdlist(int fd, uint16_t event);
 static uint32_t dtm_intranode_create_rcv_task(int task_hdl);
@@ -77,7 +77,7 @@ uint32_t dtm_socket_domain = AF_UNIX;
  */
 uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb)
 {
-	return dtm_intra_processing_init(dtms_cb->ip_addr, dtms_cb->i_addr_family, dtms_cb->sock_sndbuf_size,dtms_cb->sock_rcvbuf_size);
+	return dtm_intra_processing_init(dtms_cb->node_name, dtms_cb->ip_addr, dtms_cb->i_addr_family, dtms_cb->sock_sndbuf_size,dtms_cb->sock_rcvbuf_size);
 }
 
 
@@ -89,7 +89,7 @@ uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb)
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, int32_t sndbuf_size, int32_t rcvbuf_size)
+uint32_t dtm_intra_processing_init(char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, int32_t sndbuf_size, int32_t rcvbuf_size)
 {
 
 	int servlen;	/* For socket fd and server len */
@@ -260,7 +260,7 @@ uint32_t dtm_intra_processing_init(char *node_ip, DTM_IP_ADDR_TYPE i_addr_family
 		return NCSCC_RC_FAILURE;
 	}
 
-	dtm_intranode_add_self_node_to_node_db(dtm_intranode_cb->nodeid, node_ip, i_addr_family);
+	dtm_intranode_add_self_node_to_node_db(dtm_intranode_cb->nodeid, node_name, node_ip, i_addr_family);
 
 	if (m_NCS_IPC_CREATE(&dtm_intranode_cb->mbx) != NCSCC_RC_SUCCESS) {
 		/* Mail box creation failed */
