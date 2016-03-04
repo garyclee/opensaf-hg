@@ -1115,8 +1115,6 @@ fi
 %config(noreplace) %{_pkgsysconfdir}/immd.conf
 %{_pkglibdir}/osafimmd
 %{_pkgclcclidir}/osaf-immd
-%{_pkglibdir}/osafimmloadd
-%{_pkglibdir}/osafimmpbed
 %if %is_immxml
 %{_pkgimmxmldir}/baseimm.py*
 %{_pkgimmxmldir}/README
@@ -1141,6 +1139,8 @@ fi
 %dir %{_pkgclcclidir}
 %config(noreplace) %{_pkgsysconfdir}/immnd.conf
 %{_pkglibdir}/osafimmnd
+%{_pkglibdir}/osafimmloadd
+%{_pkglibdir}/osafimmpbed
 %{_pkgclcclidir}/osaf-immnd
  
  
