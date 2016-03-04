@@ -1201,7 +1201,7 @@ static ClassInfo* verifyClassPBE(std::string classNameString,
 	/*
 	  This function does very little verification right now. It should do more.
 	  Reason is we are re-attaching to a DB file after a gap during which we do not know
-	  what has happened to that file. We should at least verify that the number of classes 
+	  what has happened to that file. We should at least verify that the number of classes
 	  and number of objects match. Each object should really have a checksum.
 	  Verification of objects should be a separate function verifyObjectPBE.
 	*/
@@ -2524,6 +2524,7 @@ int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle
 	int nrows=0;
 	int ncols=0;
 	bool badfile=false;
+
 	TRACE_ENTER();
 
 	classNameList = getClassNames(immHandle);

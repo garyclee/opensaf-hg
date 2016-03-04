@@ -412,7 +412,9 @@ typedef struct immsv_d2nd_control {
 
 	IMMSV_OCTET_STRING dir;
 	IMMSV_OCTET_STRING xmlFile;
-	IMMSV_OCTET_STRING pbeFile;	
+	IMMSV_OCTET_STRING pbeFile;
+
+
 } IMMSV_D2ND_CONTROL;
 
 /****************************************************************************
@@ -422,7 +424,7 @@ typedef struct immsv_d2nd_control {
 typedef struct immsv_nd2d_control {
 	SaUint32T ndExecPid;
 	SaUint32T epoch;
-	uint8_t refresh;		//TRUE=> This is a refresh of epoch.
+	uint8_t refresh; /* refresh>0 => Refresh of epoch; refresh==2 => IMMD restart intro.*/
 	uint8_t pbeEnabled;/* OpenSaf4.4: 
 			      2:not-enabled-not-configured can be convertred to 0 in immd.
 			      3:not-enabled-configured
@@ -435,6 +437,17 @@ typedef struct immsv_nd2d_control {
 	IMMSV_OCTET_STRING dir;
 	IMMSV_OCTET_STRING xmlFile;
 	IMMSV_OCTET_STRING pbeFile;
+
+	/* OpenSaf5.0: At restart of IMMD sv-id, IMMND gives feeedback on:
+	 - fevs_count
+	 - admo_id_count
+	 - ccb_id_count
+	 - impl_count
+	*/
+	SaUint64T fevs_count;   //Max received at IMMND for Fevs Count
+	SaUint32T admo_id_count;//Max received at IMMND for AdminOwner ID
+	SaUint32T ccb_id_count;	//Max received at IMMND for CCB ID
+	SaUint32T impl_count;	//Max received at IMMND for Implementer ID
 } IMMSV_ND2D_CONTROL;
 
 typedef struct immsv_nd2d_2_pbe {
