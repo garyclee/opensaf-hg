@@ -217,20 +217,22 @@ int main(int argc, char *argv[])
 	struct pollfd fds[4];
 	const int peerMaxWaitMin = 5; /*5 sec*/
 	const char * peerWaitStr = getenv("IMMSV_2PBE_PEER_SC_MAX_WAIT");
+	const char * absentScStr = getenv("IMMSV_SC_ABSENCE_ALLOWED");
 	int32_t timeout = (-1);
 	int32_t total_wait = (-1);
 	int64_t start_time = 0LL;
 	uint32_t print_at_secs = 1LL;
 	int term_fd;
+	uint16_t scAbsenceAllowed = 0;
 
 	daemonize(argc, argv);
 
-	if (immd_initialize() != NCSCC_RC_SUCCESS) {
-		TRACE("initialize_immd failed");
-		goto done;
+	if(absentScStr) {
+		scAbsenceAllowed = atoi(absentScStr);
+		if(!scAbsenceAllowed) {
+			LOG_WA("SC_ABSENCE_ALLOWED malconfigured: '%s'", absentScStr);
+		}
 	}
-
-	daemon_sigterm_install(&term_fd);
 
 	if(peerWaitStr) {
 		int32_t peerMaxWait = atoi(peerWaitStr);
@@ -247,9 +249,28 @@ int main(int argc, char *argv[])
 		start_time = m_NCS_GET_TIME_MS;
 
 		immd_cb->mIs2Pbe = true; /* Redundant PBE */
-		immd_cb->m2PbeCanLoad = false; /* Not ready to load yet */
+
+		if(scAbsenceAllowed) {
+			LOG_ER("SC_ABSENCE_ALLOWED  is *incompatible* with 2PBE - 2PBE overrides");
+			scAbsenceAllowed = 0;
+		}
 	}
 
+	if(scAbsenceAllowed) {
+		LOG_NO("******* SC_ABSENCE_ALLOWED (Headless Hydra) is configured: %u ***********",
+			scAbsenceAllowed);
+		LOG_NO("Waiting 3 seconds to allow IMMND MDS attachments to get processed.");
+		sleep(3);
+	}
+
+	immd_cb->mScAbsenceAllowed = scAbsenceAllowed;
+
+	if (immd_initialize() != NCSCC_RC_SUCCESS) {
+		TRACE("initialize_immd failed");
+		goto done;
+	}
+
+	daemon_sigterm_install(&term_fd);
 
 	/* Get file descriptor for mailbox */
 	mbx_fd = ncs_ipc_get_sel_obj(&immd_cb->mbx);

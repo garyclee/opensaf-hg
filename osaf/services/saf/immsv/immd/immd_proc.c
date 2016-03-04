@@ -126,6 +126,7 @@ void immd_proc_immd_reset(IMMD_CB *cb, bool active)
 
 	cb->mRulingEpoch = 0;
 	cb->immnd_coord = 0;
+	cb->payload_coord_dest = 0L;
 	cb->fevsSendCount = 0LL;
 
 	cb->locPbe.epoch = 0;
@@ -242,6 +243,11 @@ bool immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 				} else {
 					/* Re-elect local coord. See #578 */
 					if(immnd_info_node->immnd_key != cb->node_id) {
+						if(cb->mScAbsenceAllowed) {
+							LOG_WA("ScAbsenceAllowed(%u), failover after SC-absence => coord at payload",
+							       cb->mScAbsenceAllowed);
+							break;
+						}
 						LOG_ER("Changing IMMND coord while old coord is still up!");
 						/* Could theoretically happen if remote IMMD is down, i.e. 
 						   failover, but MDS has not yet provided IMMND DOWN for that
@@ -271,6 +277,7 @@ bool immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 		 */
 	} else {
 		/* Try to elect a new coord. */
+		cb->payload_coord_dest = 0LL;
 		memset(&key, 0, sizeof(MDS_DEST));
 		immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
 		while (immnd_info_node) {
@@ -284,8 +291,33 @@ bool immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 			immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
 		}
 
+		if (!immnd_info_node && cb->mScAbsenceAllowed) {
+			/* If SC absence is allowed and no SC based IMMND is available
+			   then elect an IMMND coord at a payload. Note this means that
+			   an IMMND at a payload may be elected coord even if one or both
+			   SCs are available, but no synced IMMND is avaialble at any SC.
+			*/
+		       memset(&key, 0, sizeof(MDS_DEST));
+		       immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
+		       while (immnd_info_node) {
+			       key = immnd_info_node->immnd_dest;
+			       if (immnd_info_node->epoch == cb->mRulingEpoch) {
+				       /*We found a new candidate for cordinator */
+				       immnd_info_node->isCoord = true;
+				       cb->payload_coord_dest = immnd_info_node->immnd_dest;
+				       LOG_NO("Coord elected at payload:%x", immnd_info_node->immnd_key);
+				       break;
+			       } else {
+				       LOG_IN("Payload %x rejected as coord, epoch(%u) != rulingEpoch(%u)",
+					       immnd_info_node->immnd_key, immnd_info_node->epoch, cb->mRulingEpoch);
+			       }
+			       immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
+		       }
+		}
+
 		if (!immnd_info_node) {
-			LOG_ER("Failed to find candidate for new IMMND coordinator");
+			LOG_ER("Failed to find candidate for new IMMND coordinator (ScAbsenceAllowed:%u RulingEpoch:%u",
+				cb->mScAbsenceAllowed,  cb->mRulingEpoch);
 
 			TRACE_LEAVE();
 			immd_proc_immd_reset(cb, true);
@@ -320,7 +352,7 @@ bool immd_proc_elect_coord(IMMD_CB *cb, bool new_active)
 		send_evt.info.immnd.type = IMMND_EVT_D2ND_INTRO_RSP;
 		send_evt.info.immnd.info.ctrl.nodeId = immnd_info_node->immnd_key;
 		send_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
-		send_evt.info.immnd.info.ctrl.canBeCoord = immnd_info_node->isOnController;
+		send_evt.info.immnd.info.ctrl.canBeCoord = (immnd_info_node->isOnController)?1:(cb->mScAbsenceAllowed)?4:0;
 		send_evt.info.immnd.info.ctrl.ndExecPid = immnd_info_node->immnd_execPid;
 		send_evt.info.immnd.info.ctrl.isCoord = true;
 		send_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
@@ -604,7 +636,9 @@ uint32_t immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, 
 			}
 			immnd_info->isCoord = 0;
 			immnd_info->isOnController = 0;
+			immnd_info->epoch = 0; /* needed ? */
 			cb->immnd_coord = 0;
+			cb->payload_coord_dest = 0L;
 			coord_exists = immd_proc_elect_coord(cb, false);
 		}
 	} else {

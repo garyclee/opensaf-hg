@@ -1115,6 +1115,9 @@ static uint32_t mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 		if (node_info->isCoord) {
 			cb->immnd_coord = node_info->immnd_key;
+			if(!node_info->isOnController && cb->mScAbsenceAllowed) {
+				cb->payload_coord_dest = node_info->immnd_dest;
+			}
 		}
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint8_t));

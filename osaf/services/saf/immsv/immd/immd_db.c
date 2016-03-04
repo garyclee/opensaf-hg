@@ -256,9 +256,8 @@ uint32_t immd_cb_db_init(IMMD_CB *cb)
 	}
 
 	cb->mRim = SA_IMM_INIT_FROM_FILE;
-	cb->mIs2Pbe = false;
-	cb->m2PbeCanLoad = true;
-	if(cb->ha_state == SA_AMF_HA_ACTIVE) {
+	cb->m2PbeCanLoad = !cb->mIs2Pbe;
+	if((cb->ha_state == SA_AMF_HA_ACTIVE) && !cb->mScAbsenceAllowed) {
 		cb->is_loading = true;
 	}
 
@@ -409,4 +408,9 @@ void immd_db_purge_fevs(IMMD_CB *cb)
 		free(old);
 	}
 	TRACE_LEAVE();
+}
+
+uint32_t immd_immnd_info_node_cardinality(NCS_PATRICIA_TREE *immnd_tree)
+{
+	return 	ncs_patricia_tree_size(immnd_tree);
 }
