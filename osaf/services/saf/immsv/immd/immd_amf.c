@@ -15,7 +15,6 @@
  *
  */
 
-#include <logtrace.h>
 #include <nid_start_util.h>
 #include "immd.h"
 #include "immsv.h"

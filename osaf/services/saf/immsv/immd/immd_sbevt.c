@@ -137,7 +137,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		ctrl->nodeId, ctrl->nodeEpoch, ctrl->canBeCoord, ctrl->isCoord, ctrl->syncStarted, 
 		ctrl->rulingEpoch, ctrl->pbeEnabled);
 
-	if((ctrl->canBeCoord > 1) && !(immd_cb->mIs2Pbe)) {
+	if((ctrl->canBeCoord > 1) && (ctrl->canBeCoord < 4) && !(immd_cb->mIs2Pbe)) {
 		LOG_ER("Active IMMD has 2PBE enabled, yet this standby is not enabled for 2PBE - exiting");
 		exit(1);
 	} else if((cb->immnd_coord == 0) && immd_cb->mIs2Pbe && (ctrl->canBeCoord == 1)) {
@@ -175,7 +175,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 
 			immnd_info_node->epoch = ctrl->nodeEpoch;
 		}
-		if (!(immnd_info_node->isOnController) && ctrl->canBeCoord) {
+		if (!(immnd_info_node->isOnController) && ctrl->canBeCoord && (ctrl->canBeCoord < 4)) {
 			immnd_info_node->isOnController = true;
 			TRACE_5("Corrected isOnController status for immnd node info");
 
@@ -193,6 +193,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		if(ctrl->isCoord) {
 			SaImmRepositoryInitModeT oldRim = cb->mRim;
 			cb->immnd_coord = immnd_info_node->immnd_key;
+			cb->payload_coord_dest = (immnd_info_node->isOnController) ? 0LL : immnd_info_node->immnd_dest;
 			cb->m2PbeCanLoad = true;
 			LOG_NO("IMMND coord at %x", immnd_info_node->immnd_key);
 			immnd_info_node->syncStarted = ctrl->syncStarted;
@@ -215,7 +216,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 			}
 		}
 
-		if(!(ctrl->canBeCoord)) { /* payload node */
+		if(!(ctrl->canBeCoord) || (ctrl->canBeCoord== 4)) { /* payload node */
 			/* Remove the node-id from the list of detached payloads. */
 			IMMD_IMMND_DETACHED_NODE *detached_node = cb->detached_nodes;
 			IMMD_IMMND_DETACHED_NODE **prev = &(cb->detached_nodes);
@@ -246,7 +247,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		TRACE("Standby receiving FS params: %s %s %s", 
 			ctrl->dir.buf, ctrl->xmlFile.buf, ctrl->pbeFile.buf);
 
-		if(ctrl->dir.size && cb->mDir==NULL && ctrl->canBeCoord) {
+		if(ctrl->dir.size && cb->mDir==NULL && (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
 			TRACE("cb->mDir set to %s in standby", ctrl->dir.buf);
 			cb->mDir = ctrl->dir.buf; /*steal*/
 		} else if(ctrl->dir.size && cb->mDir) {
@@ -261,7 +262,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		ctrl->dir.size=0;
 
 
-		if(ctrl->xmlFile.size && cb->mFile==NULL && ctrl->canBeCoord) {
+		if(ctrl->xmlFile.size && cb->mFile==NULL && (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
 			TRACE("cb->mFile set to %s in standby",ctrl->xmlFile.buf );
 			cb->mFile = ctrl->xmlFile.buf; /*steal*/
 		} else if(ctrl->xmlFile.size && cb->mFile) {
@@ -276,7 +277,7 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		ctrl->xmlFile.size=0;
 
 
-		if(ctrl->pbeFile.size && cb->mPbeFile==NULL && ctrl->canBeCoord) {
+		if(ctrl->pbeFile.size && cb->mPbeFile==NULL && (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
 			TRACE("cb->mPbeFile set to %s in standby", ctrl->pbeFile.buf);
 			cb->mPbeFile = ctrl->pbeFile.buf; /*steal*/
 		} else if(ctrl->pbeFile.size && cb->mPbeFile) {

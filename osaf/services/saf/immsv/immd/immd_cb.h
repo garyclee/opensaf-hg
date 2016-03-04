@@ -137,7 +137,10 @@ typedef struct immd_cb_tag {
 	bool m2PbeCanLoad;      /* true => 2PBE Loading arbitration completed */
 	bool m2PbeExtraWait;    /* true => Used only to prolong wait if both SCs
 				   have been introduced but one has not yet replied. */
-	bool nid_started;	/**< true if started by NID */
+	bool nid_started;	/* true if started by NID */
+	SaUint16T mScAbsenceAllowed; /* Non zero if SC absence is allowed (loss of both IMMDs/SCs).
+				       Value is number of seconds of SC absence tolerated. */
+	MDS_DEST payload_coord_dest; /* IMMND coord may be at payload if mScAbsenceAllowed is nonzero */
 } IMMD_CB;
 
 uint32_t immd_immnd_info_tree_init(IMMD_CB *cb);
@@ -170,5 +173,7 @@ void immd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificati
 uint32_t immd_mds_change_role(IMMD_CB *cb);
 
 void immd_proc_immd_reset(IMMD_CB *cb, bool active);
+
+uint32_t immd_immnd_info_node_cardinality(NCS_PATRICIA_TREE *immnd_tree);
 
 #endif
