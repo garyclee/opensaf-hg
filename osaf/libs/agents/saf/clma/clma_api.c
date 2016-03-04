@@ -743,7 +743,7 @@ done_give_hdl:
 SaAisErrorT saClmDispatch(SaClmHandleT clmHandle, SaDispatchFlagsT dispatchFlags)
 {
 	clma_client_hdl_rec_t *hdl_rec;
-	SaAisErrorT rc;
+	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
@@ -761,11 +761,27 @@ SaAisErrorT saClmDispatch(SaClmHandleT clmHandle, SaDispatchFlagsT dispatchFlags
 		goto done;
 	}
 
-        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
-                TRACE("Node is unconfigured");
-                rc = SA_AIS_ERR_UNAVAILABLE;
-                goto done_give_hdl; 
-        }
+	if (hdl_rec->stale == true) {
+		TRACE("Inform client of bad handle");
+		rc = clma_hdl_rec_del(&clma_cb.client_list, hdl_rec);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("clma_hdl_rec_del failed");
+		}
+		ncshm_give_hdl(clmHandle);
+		rc = clma_shutdown();
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("clma_shutdown failed");
+		}
+
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
+		TRACE("Node is unconfigured");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	if ((rc = clma_hdl_cbk_dispatch(&clma_cb, hdl_rec, dispatchFlags)) != SA_AIS_OK)	/*need to do */
 		TRACE("CLMA_DISPATCH_FAILURE");
@@ -773,7 +789,7 @@ SaAisErrorT saClmDispatch(SaClmHandleT clmHandle, SaDispatchFlagsT dispatchFlags
 done_give_hdl:
 	ncshm_give_hdl(clmHandle);
 
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 

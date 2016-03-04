@@ -72,6 +72,7 @@ static unsigned int clma_create(void)
 
 	pthread_mutex_lock(&clma_cb.cb_lock);
 	clma_cb.clms_sync_awaited = 0;
+	clma_cb.clms_reinit_required = false;
 	pthread_mutex_unlock(&clma_cb.cb_lock);
 
 	/* No longer needed */
@@ -264,6 +265,7 @@ clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t * cb, const SaClmCallbacksT *r
 	rec->clms_client_id = client_id;
 	rec->is_member = SA_TRUE;	
 	rec->is_configured = SA_TRUE;
+	rec->stale = false;
 
 	/** Initialize and attach the IPC/Priority queue
      	**/
