@@ -75,9 +75,9 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 					 IMMND_EVT *evt,
 					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
-static void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
-					      IMMND_EVT *evt,
-					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+//static void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
+//					      IMMND_EVT *evt,
+//					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_admo_set(IMMND_CB *cb,
 				    IMMND_EVT *evt,
@@ -1516,7 +1516,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 			   on a previous syncronous call. Discard the connection and return
 			   BAD_HANDLE to allow client to recover and make progress.
 			 */
-			immnd_proc_imma_discard_connection(cb, cl_node);
+			immnd_proc_imma_discard_connection(cb, cl_node, false);
 			rc = immnd_client_node_del(cb, cl_node);
 			osafassert(rc  == NCSCC_RC_SUCCESS);
 			free(cl_node);
@@ -1974,7 +1974,7 @@ static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 		goto agent_rsp;
 	}
 
-	immnd_proc_imma_discard_connection(cb, cl_node);
+	immnd_proc_imma_discard_connection(cb, cl_node, false);
 
 	rc = immnd_client_node_del(cb, cl_node);
 	if (rc == NCSCC_RC_FAILURE) {
@@ -2198,9 +2198,11 @@ static uint32_t immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt,
     cl_node->mIsResurrect = 0x1;
 
     if (immnd_client_node_add(cb, cl_node) != NCSCC_RC_SUCCESS) {
+#if 0 //CLOUD-PROTO  clients should be discarded !!!!
 	    LOG_ER("IMMND - Adding temporary imma client Failed.");
 	    /*free(cl_node);*/
 	    abort();
+#endif
     }
 
     TRACE_2("Added client with id: %llx <node:%x, count:%u>",
@@ -2315,7 +2317,7 @@ static uint32_t immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 			   on a previous syncronous call. Discard the connection and return
 			   BAD_HANDLE to allow client to recover and make progress.
 			 */
-			immnd_proc_imma_discard_connection(cb, cl_node);
+			immnd_proc_imma_discard_connection(cb, cl_node, false);
 			rc = immnd_client_node_del(cb, cl_node);
 			osafassert(rc  == NCSCC_RC_SUCCESS);
 			free(cl_node);
@@ -2443,7 +2445,7 @@ static uint32_t immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 			   on a previous syncronous call. Discard the connection and return
 			   BAD_HANDLE to allow client to recover and make progress.
 			 */
-			immnd_proc_imma_discard_connection(cb, cl_node);
+			immnd_proc_imma_discard_connection(cb, cl_node, false);
 			rc = immnd_client_node_del(cb, cl_node);
 			osafassert(rc  == NCSCC_RC_SUCCESS);
 			free(cl_node);
@@ -2574,7 +2576,7 @@ static uint32_t immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 			   on a previous syncronous call. Discard the connection and return
 			   BAD_HANDLE to allow client to recover and make progress.
 			 */
-			immnd_proc_imma_discard_connection(cb, cl_node);
+			immnd_proc_imma_discard_connection(cb, cl_node, false);
 			rc = immnd_client_node_del(cb, cl_node);
 			osafassert(rc  == NCSCC_RC_SUCCESS);
 			free(cl_node);
@@ -2681,7 +2683,7 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 			   on a previous syncronous call. Discard the connection and return
 			   BAD_HANDLE to allow client to recover and make progress.
 			 */
-			immnd_proc_imma_discard_connection(cb, cl_node);
+			immnd_proc_imma_discard_connection(cb, cl_node, false);
 			rc = immnd_client_node_del(cb, cl_node);
 			osafassert(rc  == NCSCC_RC_SUCCESS);
 			free(cl_node);
@@ -2867,7 +2869,7 @@ static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 				   on a previous syncronous call. Discard the connection and return
 				   BAD_HANDLE to allow client to recover and make progress.
 				*/
-				immnd_proc_imma_discard_connection(cb, cl_node);
+				immnd_proc_imma_discard_connection(cb, cl_node, false);
 				rc = immnd_client_node_del(cb, cl_node);
 				osafassert(rc  == NCSCC_RC_SUCCESS);
 				free(cl_node);
@@ -8380,7 +8382,7 @@ uint32_t immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO
 		if (cb->mState == IMM_SERVER_SYNC_CLIENT ||
 			cb->mState == IMM_SERVER_SYNC_PENDING) {	/* Sync client will have to restart the sync */
 			cb->mState = IMM_SERVER_LOADING_PENDING;
-			LOG_WA("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER LOADING PENDING (sync aborted)");
+			LOG_WA("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM_SERVER_LOADING_PENDING (sync aborted)");
 			cb->mStep = 0;
 			cb->mJobStart = time(NULL);
 			osafassert(cb->mJobStart >= ((time_t) 0));
@@ -8514,6 +8516,7 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		   with respect to the just arriving start-sync.
 		   Search for "ticket:#598" in immnd_proc.c
 		 */
+		immModel_setScAbsenceAllowed(cb);
 	} else if ((cb->mState == IMM_SERVER_SYNC_CLIENT) && (immnd_syncComplete(cb, SA_FALSE, cb->mStep))) {
 		cb->mStep = 0;
 		cb->mJobStart = time(NULL);
@@ -8530,6 +8533,7 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		   with respect to the just arriving start-sync.
 		   Search for "ticket:#599" in immnd_proc.c
 		 */
+		immModel_setScAbsenceAllowed(cb);
 	}
 
 	cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
@@ -8606,7 +8610,7 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 static uint32_t immnd_evt_proc_reset(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	TRACE_ENTER();
-	if (cb->mIntroduced) {
+	if (cb->mIntroduced==1) {
 		LOG_ER("IMMND forced to restart on order from IMMD, exiting");
 		if(cb->mState < IMM_SERVER_READY) {
 			immnd_ackToNid(NCSCC_RC_FAILURE);
@@ -8731,11 +8735,15 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		evt->info.ctrl.nodeId != cb->node_id);
 	cb->mNumNodes++;
 	TRACE("immnd_evt_proc_intro_rsp cb->mNumNodes: %u", cb->mNumNodes);
+	LOG_IN("immnd_evt_proc_intro_rsp: epoch:%i rulingEpoch:%u", cb->mMyEpoch, evt->info.ctrl.rulingEpoch);
+	if(evt->info.ctrl.rulingEpoch > cb->mRulingEpoch) {
+		cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
+	}
 
 	if (evt->info.ctrl.nodeId == cb->node_id) {
 		/*This node was introduced to the IMM cluster */
 		uint8_t oldCanBeCoord = cb->mCanBeCoord;
-		cb->mIntroduced = true;
+		cb->mIntroduced = 1;
 		if(evt->info.ctrl.canBeCoord == 3) {
 			cb->m2Pbe = 1;
 			evt->info.ctrl.canBeCoord = 1;
@@ -8771,6 +8779,14 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 				((oldCanBeCoord == 2)?"load":"sync"));
 		}
 
+		if(cb->mCanBeCoord == 4) {
+			osafassert(!(cb->m2Pbe));
+			cb->mScAbsenceAllowed =  evt->info.ctrl.ndExecPid;
+			LOG_IN("cb->mScAbsenceAllowed:%u evt->info.ctrl.ndExecPid:%u", cb->mScAbsenceAllowed, evt->info.ctrl.ndExecPid);
+			LOG_IN("SC_ABSENCE_ALLOWED is configured for %u seconds. CanBeCoord:%u",
+				cb->mScAbsenceAllowed, cb->mCanBeCoord);
+		}
+
 		if (evt->info.ctrl.isCoord) {
 			if (cb->mIsCoord) {
 				LOG_NO("This IMMND re-elected coord redundantly, failover ?");
@@ -8796,7 +8812,14 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 				
 			}
 		}
-		cb->mIsCoord = evt->info.ctrl.isCoord;
+		if(cb->mIsCoord) {
+			if(!(evt->info.ctrl.isCoord)) {
+				LOG_NO("Avoided canceling coord - SHOULD NOT GET HERE");
+			}
+		} else {
+			LOG_NO("SETTING COORD TO %u CLOUD PROTO", evt->info.ctrl.isCoord);
+			cb->mIsCoord = evt->info.ctrl.isCoord;
+		}
 		osafassert(!cb->mIsCoord || cb->mCanBeCoord);
 		cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
 		if (cb->mRulingEpoch) {
@@ -8814,7 +8837,7 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		   
 		*/
 		if(cb->mCanBeCoord && evt->info.ctrl.canBeCoord) {
-			LOG_IN("Other SC node (%x) has been introduced", evt->info.ctrl.nodeId);
+			LOG_IN("Other %s IMMND node (%x) has been introduced", (cb->mScAbsenceAllowed)?"candidate coord":"SC", evt->info.ctrl.nodeId);
 			cb->mIsOtherScUp = true; /* Prevents oneSafe2PBEAllowed from being turned on */
 			cb->other_sc_node_id = evt->info.ctrl.nodeId;
 			
@@ -9129,7 +9152,9 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 	SaUint32T conn;
 	SaUint32T ownerId = 0;
 
-	osafassert(evt);
+	/* Remember latest admo_id for IMMD recovery. */
+	cb->mLatestAdmoId = evt->info.adminitGlobal.globalOwnerId;
+
 	conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	ownerId = evt->info.adminitGlobal.globalOwnerId;
@@ -9293,6 +9318,45 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 			}
 			/*This adjust-epoch will persistify the new epoch for: veterans. */
 			immnd_adjustEpoch(cb, SA_TRUE); /* Will osafassert if immd is down. */
+		}
+
+		if(cb->mScAbsenceAllowed) {/* Coord and veteran nodes. */
+			IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+			SaImmHandleT prev_hdl;
+			unsigned int count = 0;
+			IMMSV_EVT send_evt;
+			/* Sync completed for veteran & SC absence allowed => trigger active
+			   resurrect. */
+			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+			send_evt.type = IMMSV_EVT_TYPE_IMMA;
+			send_evt.info.imma.type = IMMA_EVT_ND2A_PROC_STALE_CLIENTS;
+			immnd_client_node_getnext(cb, 0, &cl_node);
+			while (cl_node) {
+				prev_hdl = cl_node->imm_app_hdl;
+				if(!(cl_node->mIsResurrect)) {
+					LOG_IN("Veteran node found active client id: %llx "
+						"version:%c %u %u, after sync.",
+						cl_node->imm_app_hdl, cl_node->version.releaseCode,
+						cl_node->version.majorVersion,
+						cl_node->version.minorVersion);
+					immnd_client_node_getnext(cb, prev_hdl, &cl_node);
+					continue;
+				}
+				/* Send resurrect message. */
+				if (immnd_mds_msg_send(cb, cl_node->sv_id,
+						cl_node->agent_mds_dest, &send_evt)!=NCSCC_RC_SUCCESS)
+				{
+					LOG_WA("Failed to send active resurrect message");
+				}
+				/* Remove the temporary client node. */
+				immnd_client_node_del(cb, cl_node);
+				memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
+				free(cl_node);
+				cl_node = NULL;
+				++count;
+				immnd_client_node_getnext(cb, 0, &cl_node);
+			}
+			TRACE_2("Triggered %u active resurrects at veteran node", count);
 		}
 	}
 
@@ -9548,7 +9612,7 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
  *                                         is to be sent (only relevant if
  *                                         originatedAtThisNode is false).
  *****************************************************************************/
-static void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
+void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 					      IMMND_EVT *evt,
 					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
@@ -9612,6 +9676,9 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 		 * as the default value */
 		evt->info.implSet.oi_timeout = 0;
 	}
+
+	/* Remember latest impl_id for IMMD recovery. */
+	cb->mLatestImplId =  evt->info.implSet.impl_id;
 
 	err = immModel_implementerSet(cb, &(evt->info.implSet.impl_name),
 			(originatedAtThisNd) ? conn : 0, nodeId, implId,
@@ -9997,6 +10064,9 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 	nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	ccbId = evt->info.ccbinitGlobal.globalCcbId;
 
+	/* Remember latest ccb_id for IMMD recovery. */
+	cb->mLatestCcbId =  evt->info.ccbinitGlobal.globalCcbId;
+
 	err = immModel_ccbCreate(cb,
 				 evt->info.ccbinitGlobal.i.adminOwnerId,
 				 evt->info.ccbinitGlobal.i.ccbFlags,
@@ -10116,12 +10186,61 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 		immnd_proc_imma_down(cb, evt->info.mds_info.dest, evt->info.mds_info.svc_id);
 	} else if ((evt->info.mds_info.change == NCSMDS_DOWN) && evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMD) {
 		/* Cluster is going down. */
-		LOG_NO("No IMMD service => cluster restart, exiting");
-		if(cb->mState < IMM_SERVER_SYNC_SERVER) {
-			immnd_ackToNid(NCSCC_RC_FAILURE);
+		if(cb->mScAbsenceAllowed == 0) {
+			/* Regular (non Hydra) exit on IMMD DOWN. */
+			LOG_ER("No IMMD service => cluster restart, exiting");
+			if(cb->mState < IMM_SERVER_SYNC_SERVER) {
+				immnd_ackToNid(NCSCC_RC_FAILURE);
+			}
+			exit(1);
+		} else { /* SC ABSENCE ALLOWED */
+			LOG_WA("SC Absence IS allowed:%u IMMD service is DOWN", cb->mScAbsenceAllowed);
+			if(cb->mIsCoord) {
+				/* Note that normally the coord will reside at SCs so this branch will
+				   only be relevant if REPEATED toal scAbsence occurs. After SC absence
+				   and subsequent return of SC, the coord will be elected at a payload.
+				   That coord will be active untill restart of that payload..
+				   unless we add functionality for the payload coord to restart after
+				   a few minutes .. ?
+				*/
+				LOG_WA("This IMMND coord has to exit allowing restarted IMMD to select new coord");
+				if(cb->mState < IMM_SERVER_SYNC_SERVER) {
+					immnd_ackToNid(NCSCC_RC_FAILURE);
+				}
+				exit(1);
+			} else if(cb->mState <= IMM_SERVER_LOADING_PENDING) {
+				/* Reset state in payloads that had not joined. No need to restart. */
+				LOG_IN("Resetting IMMND state from %u to IMM_SERVER_ANONYMOUS", cb->mState);
+				cb->mState = IMM_SERVER_ANONYMOUS;
+			} else if(cb->mState < IMM_SERVER_READY) {
+				LOG_WA("IMMND was being synced or loaded (%u), has to restart", cb->mState);
+				if(cb->mState < IMM_SERVER_SYNC_SERVER) {
+					immnd_ackToNid(NCSCC_RC_FAILURE);
+				}
+				exit(1);
+			}
 		}
-		exit(1);
-
+		cb->mIntroduced = 2;
+		LOG_NO("IMMD SERVICE IS DOWN, HYDRA IS CONFIGURED => UNREGISTERING IMMND form MDS");
+		immnd_mds_unregister(cb);
+		/* Discard local clients ...  */
+		immnd_proc_discard_other_nodes(cb); /* Isolate from the rest of cluster */
+		LOG_NO("MDS unregisterede. sleeping ...");
+		sleep(1);
+		LOG_NO("Sleep done registering IMMND with MDS");
+		rc = immnd_mds_register(immnd_cb);
+		if(rc == NCSCC_RC_SUCCESS) {
+			LOG_NO("SUCCESS IN REGISTERING IMMND WITH MDS");
+		} else {
+			LOG_ER("FAILURE IN REGISTERING IMMND WITH MDS - exiting");
+			exit(1);
+		}
+	} else if ((evt->info.mds_info.change == NCSMDS_UP) && (evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMD)) {
+		LOG_NO("IMMD service is UP ... ScAbsenseAllowed?:%u introduced?:%u",
+			   cb->mScAbsenceAllowed, cb->mIntroduced);
+		if((cb->mIntroduced==2) && (immnd_introduceMe(cb) != NCSCC_RC_SUCCESS)) {
+			LOG_WA("IMMND re-introduceMe after IMMD restart failed, will retry");
+		}
 	} else if ((evt->info.mds_info.change == NCSMDS_UP) &&
 		   (evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMA_OM ||
 		    evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMA_OM)) {
@@ -10136,7 +10255,6 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 		TRACE_2("IMMD FAILOVER");
 		/* The IMMD has failed over. */
 		immnd_proc_imma_discard_stales(cb);
-
 	} else if (evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMND) {
 		LOG_NO("MDS SERVICE EVENT OF TYPE IMMND!!");
 	}

@@ -113,13 +113,17 @@ typedef struct immnd_cb_tag {
 	SaUint32T mMyEpoch;	//Epoch counter, used in synch of immnds
 	SaUint32T mMyPid;	//Is this needed ??
 	SaUint32T mRulingEpoch;
-	uint8_t mAccepted;		//Should all fevs messages be processed?
+	SaUint32T mLatestAdmoId;
+	SaUint32T mLatestImplId;
+	SaUint32T mLatestCcbId;
+
+	uint8_t mAccepted; //If=!0 Fevs messages can be processed. 2=>IMMD re-introduce.
 	uint8_t mIntroduced;	//Ack received on introduce message
 	uint8_t mSyncRequested;	//true=> I am coord, other req sync
 	uint8_t mPendSync;		//1=>sync announced but not received.
 	uint8_t mSyncFinalizing;   //1=>finalizeSync sent but not received.
 	uint8_t mSync;		//true => this node is being synced (client).
-	uint8_t mCanBeCoord;    //If!=0 then SC, if 2 the 2pbe arbitration.
+	uint8_t mCanBeCoord;    //If!=0 then SC, 2 => 2pbe arbitration, 4 => absentScAllowed.
 	uint8_t mIsCoord;
 	uint8_t mLostNodes;       //Detached & not syncreq => delay sync start
 	uint8_t mBlockPbeEnable;  //Current PBE has not completed shutdown yet.
@@ -128,6 +132,8 @@ typedef struct immnd_cb_tag {
 	bool mIsOtherScUp; //If set & this is an SC then other SC is up(2pbe).
 	           //False=> *allow* 1safe 2pbe. May err conservatively (true) 
 	bool mForceClean; //true => Force cleanTheHouse to run once *now*.
+	SaUint16T mScAbsenceAllowed; /* Non zero if SC absence is allowed (loss of both IMMDs/SCs).
+				       Value is number of seconds of SC absence tolerated. */
 
 	/* Information about the IMMD */
 	MDS_DEST immd_mdest_id;

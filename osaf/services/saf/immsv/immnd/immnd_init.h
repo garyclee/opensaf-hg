@@ -39,8 +39,10 @@ extern IMMND_CB *immnd_cb;
 
 /* file : -  immnd_proc.c */
 
+void immnd_proc_discard_other_nodes(IMMND_CB *cb);
+
 void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id);
-uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
+uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node, bool scAbsenceAllowed);
 void immnd_proc_imma_discard_stales(IMMND_CB *cb);
 
 void immnd_cb_dump(void);
@@ -74,6 +76,10 @@ extern "C" {
 	   to the C++ world of the IMM server model. */
 
 	void immModel_abortSync(IMMND_CB *cb);
+
+	void immModel_isolateThisNode(IMMND_CB *cb);
+
+	void immModel_abortNonCriticalCcbs(IMMND_CB *cb);
 
 	void immModel_pbePrtoPurgeMutations(IMMND_CB *cb, unsigned int nodeId, SaUint32T *reqArrSize,
 		SaUint32T **reqConArr);
@@ -435,6 +441,8 @@ extern "C" {
 		const char *errorString,
 		...);
 
+	void immModel_setScAbsenceAllowed(IMMND_CB *cb);
+
 #ifdef __cplusplus
 }
 #endif
@@ -473,6 +481,9 @@ uint32_t immnd_mds_get_handle(IMMND_CB *cb);
 /* File : ----  immnd_evt.c */
 void immnd_process_evt(void);
 uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line);
+void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb, IMMND_EVT *evt,
+	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+
 /* End : ----  immnd_evt.c  */
 
 /* File : ----  immnd_proc.c */
