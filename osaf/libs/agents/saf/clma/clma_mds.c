@@ -942,6 +942,8 @@ static uint32_t clma_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 ******************************************************************************/
 static uint32_t clma_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 {
+	clma_client_hdl_rec_t *clma_hdl_rec;
+
 	TRACE_2("CLMA Rcvd MDS subscribe evt from svc %d \n", mds_cb_info->info.svc_evt.i_svc_id);
 
 	if (mds_cb_info->info.svc_evt.i_svc_id != NCSMDS_SVC_ID_CLMS) {
@@ -950,13 +952,20 @@ static uint32_t clma_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 	}
 
 	switch (mds_cb_info->info.svc_evt.i_change) {
-	case NCSMDS_NO_ACTIVE:
 	case NCSMDS_DOWN:
+		TRACE("CLMS down");
+		pthread_mutex_lock(&clma_cb.cb_lock);
+		memset(&clma_cb.clms_mds_dest, 0, sizeof(MDS_DEST));
+		clma_cb.clms_up = 0;
+		clma_cb.clms_reinit_required = true;
+		pthread_mutex_unlock(&clma_cb.cb_lock);
+		break;
+	case NCSMDS_NO_ACTIVE:
 		/** TBD what to do if CLMS goes down
                  ** Hold on to the subscription if possible
                  ** to send them out if CLMS comes back up
                  **/
-		TRACE("CLMS down");
+		TRACE("CLMS no active");
 		pthread_mutex_lock(&clma_cb.cb_lock);
 		memset(&clma_cb.clms_mds_dest, 0, sizeof(MDS_DEST));
 		clma_cb.clms_up = 0;
@@ -969,11 +978,23 @@ static uint32_t clma_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 		TRACE_2("MSG from CLMS NCSMDS_NEW_ACTIVE/UP");
 		pthread_mutex_lock(&clma_cb.cb_lock);
 		clma_cb.clms_mds_dest = mds_cb_info->info.svc_evt.i_dest;
-		clma_cb.clms_up = 1;
 		if (clma_cb.clms_sync_awaited) {
 			/* signal waiting thread */
 			m_NCS_SEL_OBJ_IND(&clma_cb.clms_sync_sel);
 		}
+
+		// signal BAD_HANDLE for existing handle
+		if (clma_cb.clms_reinit_required == true) {
+			for (clma_hdl_rec = clma_cb.client_list; clma_hdl_rec != NULL; clma_hdl_rec = clma_hdl_rec->next) {
+				TRACE("Marking handle as BAD");
+				clma_hdl_rec->stale = true;
+				NCS_SEL_OBJ sel_obj = m_NCS_IPC_GET_SEL_OBJ(&clma_hdl_rec->mbx);
+				m_NCS_SEL_OBJ_IND(&sel_obj);
+			}
+		}
+
+		clma_cb.clms_up = 1;
+		clma_cb.clms_reinit_required = false;
 		pthread_mutex_unlock(&clma_cb.cb_lock);
 		break;
 	default:

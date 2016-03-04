@@ -68,6 +68,7 @@ typedef struct clma_client_hdl_rec {
 	SYSF_MBX mbx;		/* priority q mbx b/w MDS & Library */
 	SaBoolT is_member;
 	SaBoolT is_configured;
+	bool stale;
 	struct clma_client_hdl_rec *next;	/* next pointer for the list in clma_cb_t */
 } clma_client_hdl_rec_t;
 
@@ -82,6 +83,7 @@ typedef struct {
 	MDS_DEST clms_mds_dest;	/* CLMS absolute/virtual address */
 	int clms_up;		/* Indicate that MDS subscription
 				 * is complete */
+	bool clms_reinit_required; // indicates we've been left without any CLMS before
 	/* CLMS CLMA sync params */
 	int clms_sync_awaited;
 	NCS_SEL_OBJ clms_sync_sel;
