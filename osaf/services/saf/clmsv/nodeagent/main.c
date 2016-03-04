@@ -179,6 +179,16 @@ static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 			break;
 		}
 		break;
+	case NCSMDS_DOWN:
+		switch (mds_cb_info->info.svc_evt.i_svc_id) {
+		case NCSMDS_SVC_ID_CLMS:
+			// if CLMS dies, then we have to send nodeup again
+			clmna_cb->server_synced = false;
+			break;
+		default:
+			break;
+		}
+		break;
 	default:
 		break;
 	}
