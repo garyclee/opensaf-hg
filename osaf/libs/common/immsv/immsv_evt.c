@@ -2908,6 +2908,27 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				ncs_enc_claim_space(o_ub, 4);
 				/* immdevt->info.ctrl_msg.pbeFile.buf encoded by sublevel */
 			}
+
+			if((immdevt->info.ctrl_msg.refresh == 2) &&
+				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* Intro after IMMD restart. */
+
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
+				ncs_encode_64bit(&p8, immdevt->info.ctrl_msg.fevs_count);
+				ncs_enc_claim_space(o_ub, 8);
+
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.admo_id_count);
+				ncs_enc_claim_space(o_ub, 4);
+
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.ccb_id_count);
+				ncs_enc_claim_space(o_ub, 4);
+
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immdevt->info.ctrl_msg.impl_count);
+				ncs_enc_claim_space(o_ub, 4);
+			}
+
 			break;
 
 		case IMMD_EVT_ND2D_SYNC_FEVS_BASE:
@@ -4283,6 +4304,28 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				ncs_dec_skip_space(i_ub, 4);
 				/* immdevt->info.ctrl_msg.pbeFile.buf decoded by sublevel */
 			}
+
+
+			if((immdevt->info.ctrl_msg.refresh == 2) &&
+				(immdevt->type == IMMD_EVT_ND2D_INTRO)) { /* Intro after IMMD restart. */
+
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
+				immdevt->info.ctrl_msg.fevs_count = ncs_decode_64bit(&p8);
+				ncs_dec_skip_space(i_ub, 8);
+
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immdevt->info.ctrl_msg.admo_id_count = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immdevt->info.ctrl_msg.ccb_id_count = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immdevt->info.ctrl_msg.impl_count = ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+			}
+
 			break;
 
 		case IMMD_EVT_ND2D_SYNC_FEVS_BASE:

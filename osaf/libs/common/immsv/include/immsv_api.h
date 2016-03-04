@@ -61,6 +61,7 @@ extern "C" {
 #define OPENSAF_IMM_LONG_DNS_ALLOWED "longDnsAllowed"
 #define OPENSAF_IMM_ACCESS_CONTROL_MODE "accessControlMode"
 #define OPENSAF_IMM_AUTHORIZED_GROUP "authorizedGroup"
+#define OPENSAF_IMM_SC_ABSENCE_ALLOWED "scAbsenceAllowed"
 
 typedef enum {
 	ACCESS_CONTROL_DISABLED = 0,
