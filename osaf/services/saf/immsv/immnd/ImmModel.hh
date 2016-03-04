@@ -145,12 +145,6 @@ public:
                                             const immsv_octet_string* clName,
                                             ImmsvOmClassDescr* res);
     
-    SaAisErrorT         classSerialize(
-                                       const char* className, 
-                                       char** data, 
-                                       size_t* size);
-    
-    
     SaAisErrorT         attrCreate(
                                    ClassInfo* classInfo,
                                    const ImmsvAttrDefinition* attr,
@@ -483,6 +477,8 @@ public:
                                       const struct ImmsvAdminOperationParam *reqparams, 
                                       struct ImmsvAdminOperationParam **rparams,
                                       SaUint64T searchcount);
+
+    void              setScAbsenceAllowed(SaUint16T scAbsenceAllowed);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
     bool              fetchRtUpdate(ImmsvOmObjectSync* syncReq,
@@ -520,6 +516,7 @@ public:
     void              recognizedIsolated();
     bool              syncComplete(bool isJoining);
     void              abortSync();
+    void              isolateThisNode(unsigned int thisNode, bool isAtCoord);
     void              pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector);
     SaAisErrorT       ccbResult(SaUint32T ccbId);
     ImmsvAttrNameList * ccbGrabErrStrings(SaUint32T ccbId);

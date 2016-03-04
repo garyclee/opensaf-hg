@@ -446,6 +446,7 @@ static const std::string immPbeBSlaveName(OPENSAF_IMM_2PBE_APPL_NAME);
 static const std::string immLongDnsAllowed(OPENSAF_IMM_LONG_DNS_ALLOWED);
 static const std::string immAccessControlMode(OPENSAF_IMM_ACCESS_CONTROL_MODE);
 static const std::string immAuthorizedGroup(OPENSAF_IMM_AUTHORIZED_GROUP);
+static const std::string immScAbsenceAllowed(OPENSAF_IMM_SC_ABSENCE_ALLOWED);
 
 static const std::string immMngtClass("SaImmMngt");
 static const std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
@@ -492,6 +493,17 @@ struct CcbIdIs
 };
 
 
+void
+immModel_setScAbsenceAllowed(IMMND_CB *cb)
+{
+    if(cb->mCanBeCoord == 4) {
+        osafassert(cb->mScAbsenceAllowed > 0);
+    } else {
+        osafassert(cb->mScAbsenceAllowed == 0);
+    }
+    ImmModel::instance(&cb->immModel)->setScAbsenceAllowed(cb->mScAbsenceAllowed);
+}
+
 SaAisErrorT 
 immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId)
 {
@@ -508,6 +520,36 @@ void
 immModel_abortSync(IMMND_CB *cb)
 {
     ImmModel::instance(&cb->immModel)->abortSync();
+}
+
+void
+immModel_isolateThisNode(IMMND_CB *cb)
+{
+  ImmModel::instance(&cb->immModel)->isolateThisNode(cb->node_id, cb->mIsCoord);
+}
+
+void
+immModel_abortNonCriticalCcbs(IMMND_CB *cb)
+{
+    SaUint32T arrSize;
+    SaUint32T* implConnArr = NULL;
+    SaUint32T* clientArr = NULL;
+    SaUint32T clientArrSize = 0;
+    SaClmNodeIdT pbeNodeId;
+    SaUint32T nodeId;
+    CcbVector::iterator i3 = sCcbVector.begin();
+    for(; i3!=sCcbVector.end(); ++i3) {
+        if((*i3)->mState < IMM_CCB_CRITICAL) {
+            osafassert(immModel_ccbAbort(cb, (*i3)->mId, &arrSize, &implConnArr, &clientArr, &clientArrSize, &nodeId, &pbeNodeId));
+            osafassert(immModel_ccbFinalize(cb, (*i3)->mId) == SA_AIS_OK);
+            if (arrSize) {
+                free(implConnArr);
+            }
+            if (clientArrSize) {
+                free(clientArr);
+            }
+        }
+    }
 }
 
 void
@@ -17318,6 +17360,27 @@ ImmModel::getParentDn(std::string& parentName, const std::string& objectName)
     TRACE_LEAVE();
 }
 
+void
+ImmModel::setScAbsenceAllowed(SaUint16T scAbsenceAllowed)
+{
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    osafassert(oi != sObjectMap.end());
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi =
+        immObject->mAttrValueMap.find(immScAbsenceAllowed);
+    if(avi == immObject->mAttrValueMap.end()) {
+        LOG_WA("Attribue '%s' does not exist in object '%s'",
+            immScAbsenceAllowed.c_str(), immObjectDn.c_str());
+        return;
+    }
+
+    osafassert(!(avi->second->isMultiValued()));
+    ImmAttrValue* valuep = (ImmAttrValue *) avi->second;
+    valuep->setValue_int(scAbsenceAllowed);
+
+    LOG_NO("ImmModel received scAbsenceAllowed %u", scAbsenceAllowed);
+}
+
 SaAisErrorT
 ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord, 
     bool isSyncClient)
@@ -18214,3 +18277,59 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
     return err;
 }
 
+void
+ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
+{
+    /* Move this logic up to immModel_isolate... No need for this extra level.
+       But need to abort and terminate ccbs.
+     */
+    ImplementerVector::iterator i;
+    AdminOwnerVector::iterator i2;
+    CcbVector::iterator i3;
+    unsigned int otherNode;
+
+    if((sImmNodeState != IMM_NODE_FULLY_AVAILABLE) && (sImmNodeState != IMM_NODE_R_AVAILABLE)) {
+        LOG_NO("SC abscence interrupted sync of this IMMND - exiting");
+        exit(0);
+    }
+
+    i = sImplementerVector.begin();
+    while(i != sImplementerVector.end()) {
+        IdVector cv, gv;
+        ImplementerInfo* info = (*i);
+        otherNode = info->mNodeId;
+        if(otherNode == thisNode || otherNode == 0) {
+            i++;
+        } else {
+            info = NULL;
+            this->discardNode(otherNode, cv, gv, isAtCoord);
+            LOG_NO("Impl Discarded node %x", otherNode);
+            /* Discard ccbs. */
+
+            i = sImplementerVector.begin(); /* restart iteration. */
+        }
+    }
+
+    i2 = sOwnerVector.begin();
+    while(i2 != sOwnerVector.end()) {
+        IdVector cv, gv;
+        AdminOwnerInfo* ainfo = (*i2);
+        otherNode = ainfo->mNodeId;
+        if(otherNode == thisNode || otherNode == 0) {
+            /* ??? (otherNode == 0) is that really correct ??? */
+            i2++;
+        } else {
+            ainfo = NULL;
+            this->discardNode(otherNode, cv, gv, isAtCoord);
+            LOG_NO("Admo Discarded node %x", otherNode);
+            /* Discard ccbs */
+
+            i2 =  sOwnerVector.begin(); /* restart iteration. */
+        }
+    }
+
+    /* Verify that all noncritical CCBs are aborted.
+       Ccbs where client resided at this node chould already have been handled in
+       immnd_proc_discard_other_nodes() that calls immnd_proc_imma_discard_connection()
+     */
+}

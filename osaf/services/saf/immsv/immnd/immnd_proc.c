@@ -34,6 +34,7 @@
 
 #include "immnd.h"
 #include "immsv_api.h"
+#include "immnd_init.h"
 
 static const char *loaderBase = "osafimmloadd";
 static const char *pbeBase = "osafimmpbed";
@@ -76,7 +77,7 @@ void immnd_proc_immd_down(IMMND_CB *cb)
  * Notes         : Policy used for handling immd down is to blindly cleanup 
  *                :immnd_cb 
  ****************************************************************************/
-uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
+uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node, bool scAbsence)
 {
 	SaUint32T client_id;
 	SaUint32T node_id;
@@ -129,7 +130,8 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 		send_evt.type = IMMSV_EVT_TYPE_IMMD;
 		send_evt.info.immd.type = IMMD_EVT_ND2D_DISCARD_IMPL;
 		send_evt.info.immd.info.impl_set.r.impl_id = implId;
-		if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt) != NCSCC_RC_SUCCESS) {
+
+		if (!scAbsence && immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt) != NCSCC_RC_SUCCESS) {
 			if (immnd_is_immd_up(cb)) {
 				LOG_ER("Discard implementer failed for implId:%u "
 				       "but IMMD is up !? - case not handled. Client will be orphanded", implId);
@@ -142,7 +144,8 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 		/*Discard the local implementer directly and redundantly to avoid 
 		   race conditions using this implementer (ccb's causing abort upcalls).
 		 */
-		immModel_discardImplementer(cb, implId, SA_FALSE, NULL, NULL);
+		//immModel_discardImplementer(cb, implId, SA_FALSE, NULL, NULL);
+		immModel_discardImplementer(cb, implId, scAbsence, NULL, NULL);
 	}
 
 	if (cl_node->mIsStale) {
@@ -154,7 +157,9 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 	   Abort all such ccbs via broadcast over IMMD. 
 	 */
 
-	immModel_getCcbIdsForOrigCon(cb, client_id, &arrSize, &idArr);
+	if(!scAbsence)
+		immModel_getCcbIdsForOrigCon(cb, client_id, &arrSize, &idArr);
+
 	if (arrSize) {
 		SaUint32T ix;
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -197,20 +202,29 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 		send_evt.type = IMMSV_EVT_TYPE_IMMD;
 		send_evt.info.immd.type = IMMD_EVT_ND2D_ADMO_HARD_FINALIZE;
 		for (ix = 0; ix < arrSize && !(cl_node->mIsStale); ++ix) {
-			send_evt.info.immd.info.admoId = idArr[ix];
 			TRACE_5("Hard finalize of AdmOwner id:%u originating at "
 				"dead connection: %u", idArr[ix], client_id);
-			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id,
+			if (scAbsence) {
+				SaImmHandleT clnt_hdl;
+				MDS_DEST reply_dest;
+				memset(&clnt_hdl, '\0', sizeof(SaImmHandleT));
+				memset(&reply_dest, '\0', sizeof(MDS_DEST));
+				send_evt.info.immnd.info.admFinReq.adm_owner_id = idArr[ix];
+				immnd_evt_proc_admo_hard_finalize(cb, &send_evt.info.immnd, false, clnt_hdl, reply_dest);
+			} else {
+				send_evt.info.immd.info.admoId = idArr[ix];
+				if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id,
 					       &send_evt) != NCSCC_RC_SUCCESS) {
-				if (immnd_is_immd_up(cb)) {
-					LOG_ER("Failure to broadcast discard admo0wner for ccbId:%u "
-					       "but IMMD is up !? - case not handled. Client will "
-					       "be orphanded", implId);
-				} else {
-					LOG_WA("Failure to broadcast discard admowner for id:%u "
-					       "(immd down)- will retry later", idArr[ix]);
+					if (immnd_is_immd_up(cb)) {
+						LOG_ER("Failure to broadcast discard admo0wner for ccbId:%u "
+							"but IMMD is up !? - case not handled. Client will "
+							"be orphanded", implId);
+					} else {
+						LOG_WA("Failure to broadcast discard admowner for id:%u "
+							"(immd down)- will retry later", idArr[ix]);
+					}
+					cl_node->mIsStale = true;
 				}
-				cl_node->mIsStale = true;
 			}
 		}
 		free(idArr);
@@ -251,7 +265,7 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
 		prev_hdl = cl_node->imm_app_hdl;
 
 		if ((memcmp(&dest, &cl_node->agent_mds_dest, sizeof(MDS_DEST)) == 0) && sv_id == cl_node->sv_id) {
-			if (immnd_proc_imma_discard_connection(cb, cl_node)) {
+			if (immnd_proc_imma_discard_connection(cb, cl_node, false)) {
 				TRACE_5("Removing client id:%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);
 				immnd_client_node_del(cb, cl_node);
 				memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
@@ -300,7 +314,7 @@ void immnd_proc_imma_discard_stales(IMMND_CB *cb)
 		prev_hdl = cl_node->imm_app_hdl;
 		if (cl_node->mIsStale) {
 			cl_node->mIsStale = false;
-			if (immnd_proc_imma_discard_connection(cb, cl_node)) {
+			if (immnd_proc_imma_discard_connection(cb, cl_node, false)) {
 				TRACE_5("Removing client id:%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);
 				immnd_client_node_del(cb, cl_node);
 				memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
@@ -421,6 +435,17 @@ uint32_t immnd_introduceMe(IMMND_CB *cb)
 	TRACE("Possibly extended intro from this IMMND pbeEnabled: %u  dirsize:%u",
 		send_evt.info.immd.info.ctrl_msg.pbeEnabled,
 		send_evt.info.immd.info.ctrl_msg.dir.size);
+
+	if(cb->mIntroduced==2) {
+		LOG_NO("Re-introduce-me highestProcessed:%llu highestReceived:%llu",
+			cb->highestProcessed, cb->highestReceived);
+		send_evt.info.immd.info.ctrl_msg.refresh = 2;
+		send_evt.info.immd.info.ctrl_msg.fevs_count = cb->highestReceived;
+
+		send_evt.info.immd.info.ctrl_msg.admo_id_count = cb->mLatestAdmoId;;
+		send_evt.info.immd.info.ctrl_msg.ccb_id_count = cb->mLatestCcbId;
+		send_evt.info.immd.info.ctrl_msg.impl_count = cb->mLatestImplId;
+	}
 
 	if (!immnd_is_immd_up(cb)) {
 		return NCSCC_RC_FAILURE;
@@ -546,6 +571,7 @@ static uint32_t immnd_requestSync(IMMND_CB *cb)
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 	} else {
+		LOG_IN("Could not request sync because IMMD is not UP");
 		rc = NCSCC_RC_FAILURE;
 	}
 	return (rc == NCSCC_RC_SUCCESS);
@@ -1577,7 +1603,7 @@ static int immnd_forkPbe(IMMND_CB *cb)
 		if(veteran) {
 			pbeArgs[1] =  "--recover";
 			pbeArgs[2] = (cb->m2Pbe)?((cb->mIsCoord)?"--pbe2A":"--pbe2B"):"--pbe";
-			pbeArgs[3] = dbFilePath; 
+			pbeArgs[3] = dbFilePath;
 			pbeArgs[4] =  0;
 		} else {
 			pbeArgs[1] = (cb->m2Pbe)?((cb->mIsCoord)?"--pbe2A":"--pbe2B"):"--pbe";
@@ -1685,7 +1711,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				cb->mJobStart = now;
 			}
 		} else {	/*We are not ready to start loading yet */
-			if(cb->mIntroduced) {
+			if(cb->mIntroduced==1) {
 				if((cb->m2Pbe == 2) && !(cb->preLoadPid)) {
 					cb->preLoadPid = immnd_forkLoader(cb, true);
 				}
@@ -1833,6 +1859,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				cb->mState = IMM_SERVER_READY;
 				immnd_ackToNid(NCSCC_RC_SUCCESS);
 				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_SERVER --> IMM_SERVER_READY");
+				immModel_setScAbsenceAllowed(cb);
 				cb->mJobStart = now;
 				if (cb->mPbeFile) {/* Pbe enabled */
 					cb->mRim = immModel_getRepositoryInitMode(cb);
@@ -1876,6 +1903,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			cb->mState = IMM_SERVER_READY;
 			cb->mJobStart = now;
 			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY");
+			immModel_setScAbsenceAllowed(cb);
 			if (cb->mPbeFile) {/* Pbe configured */
 				cb->mRim = immModel_getRepositoryInitMode(cb);
 
@@ -1896,7 +1924,9 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			cb->mJobStart = now;
 			cb->mState = IMM_SERVER_READY;
 			immnd_ackToNid(NCSCC_RC_SUCCESS);
-			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER READY");
+			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM_SERVER_READY");
+			immModel_setScAbsenceAllowed(cb);
+
 			/*
 			   This code case duplicated in immnd_evt.c
 			   Search for: "ticket:#599"
@@ -1927,7 +1957,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				cb->mStep = 0;
 				cb->mJobStart = now;
 				cb->mState = IMM_SERVER_READY;
-				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
+				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
 			}
 			if (!(cb->mStep % 60)) {
 				LOG_IN("Sync Phase-1, waiting for existing "
@@ -1944,7 +1974,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				cb->mStep = 0;
 				cb->mJobStart = now;
 				cb->mState = IMM_SERVER_READY;
-				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
+				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
 			}
 
 			/* PBE may intentionally be restarted by sync. Catch this here. */
@@ -1977,7 +2007,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
 					immnd_abortSync(cb);
-					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
+					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
 				} else {
 					LOG_IN("Sync Phase-2: Ccbs are terminated, IMM in "
 					       "read-only mode, forked sync process pid:%u", cb->syncPid);
@@ -1991,7 +2021,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 					cb->mStep = 0;
 					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
-					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
+					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
 				} else if (!(cb->mSyncFinalizing)) {
 					int status = 0;
 					if (waitpid(cb->syncPid, &status, WNOHANG) > 0) {
@@ -2029,6 +2059,11 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				   But since sync apparently succeeded, we dont care. */
 				cb->syncPid = 0;
 			}
+		}
+
+		if(cb->mIntroduced == 2) {
+			immnd_introduceMe(cb);
+			break;
 		}
 
 		coord = immnd_iAmCoordinator(cb);
@@ -2275,3 +2310,26 @@ void immnd_dump_client_info(IMMND_IMM_CLIENT_NODE *cl_node)
 }
 
 #endif
+
+/* Only for scAbsenceAllowed */
+void immnd_proc_discard_other_nodes(IMMND_CB *cb)
+{
+	TRACE_ENTER();
+	/* Discard all clients. */
+
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	immnd_client_node_getnext(cb, 0, &cl_node);
+	while (cl_node) {
+		LOG_NO("Removing client id:%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);
+		osafassert(immnd_proc_imma_discard_connection(cb, cl_node, true));
+		osafassert(immnd_client_node_del(cb, cl_node) == NCSCC_RC_SUCCESS);
+		free(cl_node);
+		cl_node = NULL;
+		immnd_client_node_getnext(cb, 0, &cl_node);
+	}
+
+	immModel_isolateThisNode(cb);
+	immModel_abortNonCriticalCcbs(cb);
+	cb->mPbeVeteran = SA_FALSE;
+	TRACE_LEAVE();
+}
