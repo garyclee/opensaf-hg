@@ -293,11 +293,12 @@ void opensafClassCreate(SaImmHandleT immHandle)
 {
     SaAisErrorT err = SA_AIS_OK;
     int retries=0;
-    SaImmAttrDefinitionT_2 d1, d2, d3, d4, d5, d6, d7, d8;
+    SaImmAttrDefinitionT_2 d1, d2, d3, d4, d5, d6, d7, d8, d9;
     SaUint32T nost_flags_default = 0;
     SaUint32T batch_size_default = IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE;
     SaUint32T extended_names_enabled_default = 0;
     SaUint32T access_control_mode_default = IMM_ACCESS_CONTROL_MODE;
+    SaUint32T absent_scs_allowed_default = 0;
 
     d1.attrName = (char *) OPENSAF_IMM_ATTR_RDN;
     d1.attrValueType = SA_IMM_ATTR_SANAMET;
@@ -340,8 +341,13 @@ void opensafClassCreate(SaImmHandleT immHandle)
     d8.attrFlags = SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_WRITABLE;
     d8.attrDefaultValue = NULL;
 
+    d9.attrName = (char *) OPENSAF_IMM_SC_ABSENCE_ALLOWED;
+    d9.attrValueType = SA_IMM_ATTR_SAUINT32T;
+    d9.attrFlags = SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_PERSISTENT;
+    d9.attrDefaultValue = &absent_scs_allowed_default;
+
     const SaImmAttrDefinitionT_2* attrDefs[] =
-    	{&d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, 0};
+	    {&d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, 0};
 
 
     do {/* Create the class */
