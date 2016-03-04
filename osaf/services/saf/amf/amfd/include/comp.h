@@ -276,4 +276,5 @@ extern AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *csi, const AVD
 extern void avd_compcstype_constructor(void);
 extern AVD_COMP *avd_comp_get_or_create(const SaNameT *dn);
 extern AVD_CTCS_TYPE *get_ctcstype(const SaNameT *comptype_name, const SaNameT *cstype_name);
+extern void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata);
 #endif
