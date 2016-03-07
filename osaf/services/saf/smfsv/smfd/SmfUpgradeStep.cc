@@ -19,6 +19,13 @@
  *   INCLUDE FILES
  * ========================================================================
  */
+#include <poll.h>
+#include <sched.h>
+
+#include <ncssysf_def.h>
+#include <ncssysf_ipc.h>
+#include <ncssysf_tsk.h>
+
 #include <saAis.h>
 #include <saSmf.h>
 #include <stdio.h>
@@ -31,6 +38,7 @@
 #include "SmfUpgradeStep.hh"
 #include "SmfCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
+#include "SmfProcedureThread.hh"
 #include "SmfUpgradeMethod.hh"
 #include "SmfProcedureThread.hh"
 #include "SmfStepState.hh"
@@ -1904,14 +1912,13 @@ SmfUpgradeStep::callActivationCmd()
 	SmfImmUtils immUtil;
 
 	TRACE_ENTER();
-
-	if (getSwNode().length() == 0) {
-
-		/* In the single-step upgrade the nodes for
-		   the bundle is provided in the m_swNodeList
-		   and the PlmExecEnv list. The step itself is
-		   not bound to a particular node, so the
-		   "i_node" will be empty. */
+	//Single step
+	if (this->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+		// In the single-step upgrade the nodes for
+		// the bundle is provided in the m_swNodeList
+		// and the PlmExecEnv list. The step itself is
+		// not bound to a particular node, so the
+		// "i_node" will be empty.
 
                 //Find out which nodes are affected for each bundle, plmExecEnv overrides calc nodes
                 std::list < SmfBundleRef >::const_iterator bundleit;
@@ -1920,65 +1927,61 @@ SmfUpgradeStep::callActivationCmd()
                 //Find out which nodes was addressed for removal
                 for (bundleit = m_swRemoveList.begin(); bundleit != m_swRemoveList.end(); ++bundleit) {
                         if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
-                                LOG_NO("Fail to calculate nodes for bundle [%s]", bundleit->getBundleDn().c_str());
+                                LOG_NO("Fail to calculate nodes for bundle [%s]",
+				       bundleit->getBundleDn().c_str());
                         }
                 }
                 //Find out which nodes was addressed for installation
                 for (bundleit = m_swAddList.begin(); bundleit != m_swAddList.end(); ++bundleit) {
                         if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
-                                LOG_NO("Fail to calculate nodes for bundle [%s]", bundleit->getBundleDn().c_str());
+                                LOG_NO("Fail to calculate nodes for bundle [%s]",
+				       bundleit->getBundleDn().c_str());
                         }
                 }
 
-		std::list<std::string>::const_iterator n;
-		for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
-			char const* nodeName = n->c_str();
-                        SmfndNodeDest nodeDest;
-
-			TRACE("Executing activation command '%s' on node '%s' (single-step)", 
-			      actCommand.c_str(), nodeName);
-                        if (!waitForNodeDestination(*n, &nodeDest)) {
-				LOG_NO("no node destination found for node [%s]", nodeName);
-				result = false;
-				goto done;
-			}
-			uint32_t rc = smfnd_exec_remote_cmd(actCommand.c_str(), &nodeDest, timeout / 10000000, 0);
-			if (rc != 0) {
-				LOG_NO("executing activation command '%s' on node '%s' failed (%x)", 
-				       actCommand.c_str(), nodeName, rc);
-				result = false;
-				goto done;
-			}
+		//Start a load thread for each node
+		std::list <std::string>::iterator nodeIt;
+		for (nodeIt = swNodeList.begin(); nodeIt != swNodeList.end(); ++nodeIt) {
+			SmfNodeSwLoadThread *swLoadThread = new SmfNodeSwLoadThread(this,
+										    *nodeIt,
+										    SMF_ACTIVATE_ALL);
+			swLoadThread->start();
 		}
 
-	} else {
-
-                SmfndNodeDest nodeDest;
-		TRACE("Executing  activation command '%s' on node '%s'", 
-		      actCommand.c_str(), getSwNode().c_str());
-		TRACE("Get node destination for %s", getSwNode().c_str());
-
-		if (!getNodeDestination(getSwNode(), &nodeDest, NULL)) {
-			LOG_NO("no node destination found for node %s", getSwNode().c_str());
-			result = false;
-			goto done;
+		if((result = waitForBundleCmdResult(swNodeList)) == false) {
+			LOG_NO("STEP: Fail to execute bundle command");
 		}
 
-		/* TODO : how to handle the case where the cmd is an URI */
-		/* First fetch the script using e.g. wget etc */
+		TRACE_LEAVE();
+		return result;
+	}
 
-		/* Execute the bundle script remote on node */
-		uint32_t rc = smfnd_exec_remote_cmd(actCommand.c_str(), &nodeDest, timeout / 10000000, 0);
-		/* convert ns to 10 ms cliTimeouttimeout */
-		if (rc != 0) {
-			LOG_NO("executing activation command '%s' on node '%s' failed (%x)", 
-			       actCommand.c_str(), getSwNode().c_str(), rc);
-			result = false;
-			goto done;
-		}
+	//Rolling upgrade
+	SmfndNodeDest nodeDest;
+	TRACE("Executing  activation command '%s' on node '%s'", 
+	      actCommand.c_str(), getSwNode().c_str());
+	TRACE("Get node destination for %s", getSwNode().c_str());
+	uint32_t rc;
+
+	if (!getNodeDestination(getSwNode(), &nodeDest, NULL)) {
+		LOG_NO("no node destination found for node %s", getSwNode().c_str());
+		result = false;
+		goto done;
+	}
+
+	// TODO : how to handle the case where the cmd is an URI
+	// First fetch the script using e.g. wget etc
+
+	// Execute the bundle script remote on node
+	rc = smfnd_exec_remote_cmd(actCommand.c_str(), &nodeDest, timeout / 10000000, 0);
+	// Convert ns to 10 ms cliTimeouttimeout
+	if (rc != 0) {
+		LOG_NO("executing activation command '%s' on node '%s' failed (%x)", 
+		       actCommand.c_str(), getSwNode().c_str(), rc);
+		result = false;
+		goto done;
 	}
 done:
-
 	TRACE_LEAVE();
 	return result;
 }
@@ -2001,47 +2004,96 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 	bool result = true;
 	SaTimeT timeout = smfd_cb->cliTimeout;	/* Default timeout */
 	SmfImmUtils immUtil;
-
+	std::list<std::string> swNodeList; //Total node list
 	TRACE_ENTER();
 
+	//Single step
+	if (this->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+		// In the single-step upgrade the nodes for
+		// the bundle is provided in the m_swNodeList
+		// and the PlmExecEnv list. The step itself is
+		// not bound to a particular node, so the
+		// "i_node" will be empty.
+
+		//Find total affected nodes
+		std::list < SmfBundleRef >::const_iterator bundleit;
+		for (bundleit = i_bundleList.begin(); bundleit != i_bundleList.end(); ++bundleit) {
+			if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
+				result = false;
+				TRACE_LEAVE();
+				return result;
+			}
+		}
+		//Start a load thread for each node
+		std::list <std::string>::iterator nodeIt;
+		for (nodeIt = swNodeList.begin(); nodeIt != swNodeList.end(); ++nodeIt) {
+			SmfNodeSwLoadThread *swLoadThread = new SmfNodeSwLoadThread(this,
+										    *nodeIt,
+										    i_order);
+			swLoadThread->start();
+		}
+
+		if((result = waitForBundleCmdResult(swNodeList)) == false) {
+			LOG_NO("STEP: Fail to execute bundle command");
+		}
+
+		TRACE_LEAVE();
+		return result;
+	}
+
+	//Rolling upgrade
 	for (bundleit = i_bundleList.begin(); bundleit != i_bundleList.end(); ++bundleit) {
 		/* Get bundle object from IMM */
 		if (immUtil.getObject((*bundleit).getBundleDn(), &attributes) == false) {
 			return false;
 		}
-		
+
+		//Get timeout attribute
+		const SaTimeT *defaultTimeout = immutil_getTimeAttr((const SaImmAttrValuesT_2 **)attributes,
+								    "saSmfBundleDefaultCmdTimeout",
+								    0);
+		if (defaultTimeout != NULL) {
+			timeout = *defaultTimeout;
+		}
+
 		std::string curBundleDN = (*bundleit).getBundleDn();
 		TRACE("Found bundle %s in Imm", curBundleDN.c_str());
 
 		switch (i_order) {
 		case SMF_STEP_OFFLINE_INSTALL:
-			{
-				/* Find offline install script name and args */
-				cmdAttr = "saSmfBundleInstallOfflineCmdUri";
-				argsAttr = "saSmfBundleInstallOfflineCmdArgs";
-				break;
-			}
+		{
+			/* Find offline install script name and args */
+			cmdAttr = "saSmfBundleInstallOfflineCmdUri";
+			argsAttr = "saSmfBundleInstallOfflineCmdArgs";
+			break;
+		}
 		case SMF_STEP_ONLINE_INSTALL:
-			{
-				/* Find online install script name and args */
-				cmdAttr = "saSmfBundleInstallOnlineCmdUri";
-				argsAttr = "saSmfBundleInstallOnlineCmdArgs";
-				break;
-			}
+		{
+			/* Find online install script name and args */
+			cmdAttr = "saSmfBundleInstallOnlineCmdUri";
+			argsAttr = "saSmfBundleInstallOnlineCmdArgs";
+			break;
+		}
 		case SMF_STEP_OFFLINE_REMOVE:
-			{
-				/* Find offline remove script name and args */
-				cmdAttr = "saSmfBundleRemoveOfflineCmdUri";
-				argsAttr = "saSmfBundleRemoveOfflineCmdArgs";
-				break;
-			}
+		{
+			/* Find offline remove script name and args */
+			cmdAttr = "saSmfBundleRemoveOfflineCmdUri";
+			argsAttr = "saSmfBundleRemoveOfflineCmdArgs";
+			break;
+		}
 		case SMF_STEP_ONLINE_REMOVE:
-			{
-				/* Find online remove script name and args */
-				cmdAttr = "saSmfBundleRemoveOnlineCmdUri";
-				argsAttr = "saSmfBundleRemoveOnlineCmdArgs";
-				break;
-			}
+		{
+			/* Find online remove script name and args */
+			cmdAttr = "saSmfBundleRemoveOnlineCmdUri";
+			argsAttr = "saSmfBundleRemoveOnlineCmdArgs";
+			break;
+		}
+		default:
+		{
+			LOG_NO("Invalid order [%d]", i_order);
+			result = false;
+			goto done;
+		}
 		}
 
 		/* Get cmd attribute */
@@ -2062,72 +2114,28 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 			command += args;
 		}
 
-		/* Get timeout attribute */
-		const SaTimeT *defaultTimeout = immutil_getTimeAttr((const SaImmAttrValuesT_2 **)attributes,
-								    "saSmfBundleDefaultCmdTimeout",
-								    0);
-		if (defaultTimeout != NULL) {
-			timeout = *defaultTimeout;
+		SmfndNodeDest nodeDest;
+		TRACE("Executing bundle script '%s' on node '%s'", 
+		      command.c_str(), i_node.c_str());
+		TRACE("Get node destination for %s", i_node.c_str());
+
+		if (!waitForNodeDestination(i_node, &nodeDest)) {
+			LOG_NO("no node destination found for node %s", i_node.c_str());
+			result = false;
+			goto done;
 		}
 
-		if (i_node.length() == 0) {
+		/* TODO : how to handle the case where the cmd is an URI */
+		/* First fetch the script using e.g. wget etc */
 
-			/* In the single-step upgrade the nodes for
-			   the bundle is provided in the m_swNodeList
-			   and the PlmExecEnv list. The step itself is
-			   not bound to a particular node, so the
-			   "i_node" will be empty. */
-
-			std::list<std::string> swNodeList;
-			if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
-				result = false;
-				goto done;					
-			}
-
-			std::list<std::string>::const_iterator n;
-			for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
-                                SmfndNodeDest nodeDest;
-				char const* nodeName = n->c_str();
-				TRACE("Executing bundle script '%s' on node '%s' (single-step)", 
-				      command.c_str(), nodeName);
-				if (!waitForNodeDestination(*n, &nodeDest)) {
-					LOG_NO("no node destination found for node [%s]", nodeName);
-					result = false;
-					goto done;
-				}
-				uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
-				if (rc != 0) {
-					LOG_NO("executing command '%s' on node '%s' failed (%x)", 
-					       command.c_str(), nodeName, rc);
-					result = false;
-					goto done;
-				}
-			}
-		} else {
-
-                        SmfndNodeDest nodeDest;
-			TRACE("Executing bundle script '%s' on node '%s'", 
-			      command.c_str(), i_node.c_str());
-			TRACE("Get node destination for %s", i_node.c_str());
-
-                        if (!waitForNodeDestination(i_node, &nodeDest)) {
-                                LOG_NO("no node destination found for node %s", i_node.c_str());
-                                result = false;
-                                goto done;
-                        }
-
-			/* TODO : how to handle the case where the cmd is an URI */
-			/* First fetch the script using e.g. wget etc */
-
-			/* Execute the bundle script remote on node */
-			uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
-			/* convert ns to 10 ms timeout */
-			if (rc != 0) {
-				LOG_NO("executing command '%s' on node '%s' failed (%x)", 
-				       command.c_str(), i_node.c_str(), rc);
-				result = false;
-				goto done;
-			}
+		/* Execute the bundle script remote on node */
+		uint32_t rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
+		/* convert ns to 10 ms timeout */
+		if (rc != 0) {
+			LOG_NO("executing command '%s' on node '%s' failed (%x)", 
+			       command.c_str(), i_node.c_str(), rc);
+			result = false;
+			goto done;
 		}
 	}
  done:
@@ -2137,9 +2145,95 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 }
 
 //------------------------------------------------------------------------------
-// callAdminOperation()
+// waitForBundleCmdResult()
 //------------------------------------------------------------------------------
 bool 
+SmfUpgradeStep::waitForBundleCmdResult(std::list<std::string>& i_swNodeList)
+{
+	TRACE_ENTER();
+	SYSF_MBX mbx;
+	NCS_SEL_OBJ mbx_fd;
+	typedef enum {
+		PROC_MBX_FD,
+	        PROC_MAX_FD
+	} proc_pollfd_t;
+	struct pollfd fds[PROC_MAX_FD];
+	PROCEDURE_EVT *evt;
+	int ret;
+	bool rc(true);
+	std::list<PROCEDURE_EVT*> evtToResend;
+
+	//Wait for all bundle command threads to finish, then continue...
+	mbx = getProcedure()->getProcThread()->getMbx();
+	mbx_fd = ncs_ipc_get_sel_obj(&mbx);
+
+	/* Set up all file descriptors to listen to */
+	fds[PROC_MBX_FD].fd = mbx_fd.rmv_obj;
+	fds[PROC_MBX_FD].events = POLLIN;
+	fds[PROC_MBX_FD].revents = 0; //Coverity
+
+	LOG_NO("Waiting for bundle command execution to finish on all affected nodes");
+	while (!i_swNodeList.empty()) {
+		ret = poll(fds, PROC_MAX_FD, -1);
+
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+
+			LOG_ER("Poll failed - %s", strerror(errno));
+			break;
+		}
+
+		//Process the Mail box events
+		if (fds[PROC_MBX_FD].revents & POLLIN) {
+			//Dispatch MBX events
+			evt = (PROCEDURE_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(&mbx, evt);
+			if (evt != NULL) {
+				switch (evt->type) {
+				case PROCEDURE_EVT_SWRESULT:
+				{
+					if (evt->event.swResult.rc == 0) {
+						LOG_NO("Successfully invoked bundle commands for %s",
+						       evt->event.swResult.nodeName);
+					} else {
+						LOG_NO("Fail to invoke bundle commands for node [%s], rc [%d]",
+						       evt->event.swResult.nodeName,
+						       evt->event.swResult.rc);
+						rc = false;
+					}
+
+					i_swNodeList.remove(evt->event.swResult.nodeName);
+					delete(evt->event.swResult.nodeName);
+					delete(evt);
+					break;
+				}
+				default:
+				{
+					//The only event handled here is PROCEDURE_EVT_SWRESULT.
+					//If other event is received, save it and repost as last action.
+					LOG_NO("Unhandled event [%d] receiced, save and resend later", evt->type);
+					evtToResend.push_back(evt);
+				}
+				}
+			}
+		}
+	}
+
+	//Repost unhandled saved events to procedure thread
+	std::list < PROCEDURE_EVT* >::iterator evtit;
+	for (evtit = evtToResend.begin(); evtit != evtToResend.end(); ++evtit) {
+		LOG_NO("Requeue unhandled event [%d]", (*evtit)->type);
+		getProcedure()->getProcThread()->send(*evtit);
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+//------------------------------------------------------------------------------
+// callAdminOperation()
+//------------------------------------------------------------------------------
+bool
 SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
                                    const SaImmAdminOperationParamsT_2 ** i_params,
                                    std::list <unitNameAndState> &i_dnList)
@@ -2724,3 +2818,282 @@ bool SmfUpgradeStep::readSmfClusterControllers()
         return true;
 }
 
+/*====================================================================*/
+/*  Class SmfNodeSwLoadThread                                               */
+/*====================================================================*/
+
+/*====================================================================*/
+/*  Static methods                                                    */
+/*====================================================================*/
+
+/** 
+ * SmfSmfNodeSwLoadThread::main
+ * static main for the thread
+ */
+void
+SmfNodeSwLoadThread::main(NCSCONTEXT info)
+{
+	SmfNodeSwLoadThread *self = (SmfNodeSwLoadThread *) info;
+	self->main();
+	TRACE("Swap thread exits");
+	delete self;
+}
+
+/*====================================================================*/
+/*  Methods                                                           */
+/*====================================================================*/
+
+/** 
+ * Constructor
+ */
+SmfNodeSwLoadThread::SmfNodeSwLoadThread(SmfUpgradeStep * i_step,
+					 std::string i_nodeName,
+					 SmfUpgradeStep::SmfInstallRemoveT i_order):
+	m_task_hdl(0),
+	m_step(i_step),
+	m_amfNode(i_nodeName),
+	m_order(i_order)
+{
+	sem_init(&m_semaphore, 0, 0);
+}
+
+/** 
+ * Destructor
+ */
+SmfNodeSwLoadThread::~SmfNodeSwLoadThread()
+{
+}
+
+/**
+ * SmfNodeSwLoadThread::start
+ * Start the SmfNodeSwLoadThread.
+ */
+int
+SmfNodeSwLoadThread::start(void)
+{
+	TRACE_ENTER();
+	uint32_t rc;
+
+	/* Create the task */
+	int policy = SCHED_OTHER; /*root defaults */
+	int prio_val = sched_get_priority_min(policy);
+	std::string threadName = "OSAF_SMF_LOAD_THREAD " + m_amfNode;
+
+	if ((rc = m_NCS_TASK_CREATE((NCS_OS_CB) SmfNodeSwLoadThread::main,
+				    (NCSCONTEXT) this,
+				    (char*)threadName.c_str(),
+				    prio_val, policy,
+				    m_LOAD_THREAD_STACKSIZE, &m_task_hdl))
+	    != NCSCC_RC_SUCCESS) {
+		LOG_NO("SmfNodeSwLoadThread::start: TASK_CREATE_FAILED");
+		return -1;
+	}
+	if ((rc =m_NCS_TASK_DETACH(m_task_hdl)) != NCSCC_RC_SUCCESS) {
+		LOG_NO("SmfNodeSwLoadThread::start: TASK_START_DETACH\n");
+		return -1;
+	}
+
+	if ((rc = m_NCS_TASK_START(m_task_hdl)) != NCSCC_RC_SUCCESS) {
+		LOG_NO("SmfNodeSwLoadThread::start: TASK_START_FAILED\n");
+		return -1;
+	}
+
+	/* Wait for the thread to start */
+	while((sem_wait(&m_semaphore) == -1) && (errno == EINTR))
+               continue;       /* Restart if interrupted by handler */
+
+	TRACE_LEAVE();
+	return 0;
+}
+
+/**
+ * SmfNodeSwLoadThread::main
+ * main for the thread.
+ */
+void
+SmfNodeSwLoadThread::main(void)
+{
+	std::list < SmfBundleRef >::const_iterator bundleit;
+	std::list < SmfBundleRef > bundleList;
+	std::string command;
+	std::string cmdAttr;
+	std::string argsAttr;
+	SaImmAttrValuesT_2 **attributes;
+	const char *cmd = NULL;
+	const char *args = NULL;
+	SaTimeT timeout = smfd_cb->cliTimeout;	/* Default timeout */
+	SmfImmUtils immUtil;
+	std::list<std::string> swNodeList; //Total node list
+	std::string curBundleDN;
+	SaTimeT *defaultTimeout;
+
+	TRACE_ENTER();
+	sem_post(&m_semaphore);          //Start method waits for thread to start
+
+	TRACE("Bundle command thread for node [%s] started", m_amfNode.c_str());
+ 	uint32_t rc = 0;
+	if ((m_order == SmfUpgradeStep::SMF_STEP_OFFLINE_INSTALL) ||
+	    (m_order == SmfUpgradeStep::SMF_STEP_ONLINE_INSTALL)) {
+		    bundleList = m_step->getSwAddList();
+	}
+	else if ((m_order == SmfUpgradeStep::SMF_STEP_OFFLINE_REMOVE) ||
+		 (m_order == SmfUpgradeStep::SMF_STEP_ONLINE_REMOVE)) {
+		    bundleList = m_step->getSwRemoveList();
+	}
+	else if (m_order == SmfUpgradeStep::SMF_ACTIVATE_ALL) {
+		command = smfd_cb->nodeBundleActCmd;
+		swNodeList.push_back(m_amfNode);
+		std::list<std::string>::const_iterator n;
+		for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+			if( *n != m_amfNode) {
+				continue;
+			}
+			TRACE("Executing bundle activation command '%s' on node '%s'",
+			      command.c_str(), m_amfNode.c_str());
+
+			SmfndNodeDest nodeDest;
+			if (!waitForNodeDestination(m_amfNode, &nodeDest)) {
+				LOG_NO("no node destination found for node [%s]", m_amfNode.c_str());
+				goto done;
+			}
+			rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
+			if (rc != 0) {
+				LOG_NO("Executing bundle command '%s' on node '%s' failed (%x)",
+				       command.c_str(), m_amfNode.c_str(), rc);
+				goto done;
+			}
+			TRACE("Bundle activation command [%s] successfully executed on node [%s]",
+			      command.c_str(),
+			      m_amfNode.c_str());
+		}
+		goto done;
+	}
+	else {
+		LOG_NO("Unknown bundle command order");
+		rc = 1;
+		goto done;
+	}
+
+	for (bundleit = bundleList.begin(); bundleit != bundleList.end(); ++bundleit) {
+		/* Get bundle object from IMM */
+		if (immUtil.getObject((*bundleit).getBundleDn(), &attributes) == false) {
+			LOG_NO("Fail to read bundle object for bundle DN [%s]",
+			       (*bundleit).getBundleDn().c_str());
+			rc = 1;
+			goto done;
+		}
+
+		// Get timeout attribute
+		defaultTimeout = const_cast<SaTimeT*>(immutil_getTimeAttr((const SaImmAttrValuesT_2 **)attributes,
+									  "saSmfBundleDefaultCmdTimeout",
+									  0));
+		if (defaultTimeout != NULL) {
+			timeout = *defaultTimeout;
+		}
+
+		curBundleDN = (*bundleit).getBundleDn();
+		TRACE("Found bundle %s in Imm", curBundleDN.c_str());
+
+		//For the node, call bundle command
+		switch (m_order) {
+		case SmfUpgradeStep::SMF_STEP_OFFLINE_INSTALL:
+		{
+			/* Find offline install script name and args */
+			cmdAttr = "saSmfBundleInstallOfflineCmdUri";
+			argsAttr = "saSmfBundleInstallOfflineCmdArgs";
+			break;
+		}
+		case SmfUpgradeStep::SMF_STEP_ONLINE_INSTALL:
+		{
+			/* Find online install script name and args */
+			cmdAttr = "saSmfBundleInstallOnlineCmdUri";
+			argsAttr = "saSmfBundleInstallOnlineCmdArgs";
+			break;
+		}
+		case SmfUpgradeStep::SMF_STEP_OFFLINE_REMOVE:
+		{
+			/* Find offline remove script name and args */
+			cmdAttr = "saSmfBundleRemoveOfflineCmdUri";
+			argsAttr = "saSmfBundleRemoveOfflineCmdArgs";
+			break;
+		}
+		case SmfUpgradeStep::SMF_STEP_ONLINE_REMOVE:
+		{
+			/* Find online remove script name and args */
+			cmdAttr = "saSmfBundleRemoveOnlineCmdUri";
+			argsAttr = "saSmfBundleRemoveOnlineCmdArgs";
+			break;
+		}
+		default:
+		{
+			LOG_NO("Invalid order [%d]", m_order);
+			rc = 1;
+			goto done;
+		}
+		}
+
+		//Get cmd attribute
+		cmd = immutil_getStringAttr((const SaImmAttrValuesT_2 **)
+					    attributes, cmdAttr.c_str(), 0);
+		if ((cmd == NULL) || (strlen(cmd) == 0)) {
+			TRACE("STEP: Attribute %s is NULL or empty in bundle %s",
+			      cmdAttr.c_str(), curBundleDN.c_str());
+			continue;
+		}
+		command = cmd;
+
+		//Get args attribute
+		args = immutil_getStringAttr((const SaImmAttrValuesT_2 **)
+					     attributes, argsAttr.c_str(), 0);
+		if (args != NULL) {
+			command += " ";
+			command += args;
+		}
+
+		swNodeList.clear();
+		if (!m_step->calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
+			rc = 1;
+			goto done;
+		}
+
+		std::list<std::string>::const_iterator n;
+		for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+			if( *n != m_amfNode) {
+				continue;
+			}
+			TRACE("Executing bundle command '%s' on node '%s'",
+			      command.c_str(), m_amfNode.c_str());
+
+			SmfndNodeDest nodeDest;
+			if (!waitForNodeDestination(m_amfNode, &nodeDest)) {
+				LOG_NO("no node destination found for node [%s]", m_amfNode.c_str());
+				goto done;
+			}
+			rc = smfnd_exec_remote_cmd(command.c_str(), &nodeDest, timeout / 10000000, 0);
+			if (rc != 0) {
+				LOG_NO("Executing bundle command '%s' on node '%s' failed (%x)",
+				       command.c_str(), m_amfNode.c_str(), rc);
+				goto done;
+			}
+			TRACE("Bundle command [%s] successfully executed on node [%s]",
+			      command.c_str(),
+			      m_amfNode.c_str());
+		}
+	}
+
+done:
+	/* Send response to procedure thread */
+	PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+	evt->type = PROCEDURE_EVT_SWRESULT;
+	evt->event.swResult.rc = rc;
+
+	char* node = (char*)calloc(1, m_amfNode.size() + 1);
+	memcpy(node, m_amfNode.c_str(), m_amfNode.size());
+	evt->event.swResult.nodeName = node;
+
+	m_step->getProcedure()->getProcThread()->send(evt);
+	TRACE("Sent PROCEDURE_EVT_SWRESULT for node [%s], rc [%d]",m_amfNode.c_str(), rc);
+
+        TRACE_LEAVE();
+        return;
+}

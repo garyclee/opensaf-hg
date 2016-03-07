@@ -783,3 +783,13 @@ SmfProcedureThread::main(void)
 	}
 	TRACE_LEAVE();
 }
+
+/**
+ * SmfProcedureThread::getMbx
+ * Get the mbx.
+ */
+SYSF_MBX &
+SmfProcedureThread::getMbx()
+{
+	return m_mbx;
+}

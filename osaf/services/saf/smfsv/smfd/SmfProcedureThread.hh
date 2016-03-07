@@ -41,6 +41,7 @@ typedef enum {
 	PROCEDURE_EVT_SUSPEND = 6,
 	PROCEDURE_EVT_COMMIT = 7,
 	PROCEDURE_EVT_ROLLBACK = 8,
+	PROCEDURE_EVT_SWRESULT = 9,
 	PROCEDURE_EVT_MAX
 } PROCEDURE_EVT_TYPE;
 
@@ -78,6 +79,11 @@ typedef struct {
 } procedure_evt_rollback;
 
 typedef struct {
+	char *nodeName;
+	uint32_t rc;
+} procedure_evt_swResult;
+
+typedef struct {
 	void *next;		/* needed by mailbox send/receive */
 	PROCEDURE_EVT_TYPE type;	/* evt type */
 	union {
@@ -89,6 +95,7 @@ typedef struct {
 		procedure_evt_suspend suspend;
 		procedure_evt_commit commit;
 		procedure_evt_rollback rollback;
+		procedure_evt_swResult swResult;
 	} event;
 } PROCEDURE_EVT;
 
@@ -112,8 +119,8 @@ class SmfProcedureThread {
 
 	SaImmOiHandleT getImmHandle();
 
+	SYSF_MBX & getMbx();
 	SYSF_MBX & getCbkMbx();
-
 
  private:
 
