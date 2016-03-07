@@ -22,6 +22,8 @@
  *   INCLUDE FILES
  * ========================================================================
  */
+#include <semaphore.h>
+#include <ncsgl_defs.h>
 
 #include <string>
 #include <vector>
@@ -45,6 +47,7 @@ class SmfCallback;
  *   TYPE DEFINITIONS
  * ========================================================================
  */
+#define m_LOAD_THREAD_STACKSIZE NCS_STACKSIZE_SMALL
 
 typedef enum {
 	SMF_NO_CLUSTER_REBOOT = 0,
@@ -703,13 +706,15 @@ class SmfUpgradeStep {
 
         friend class SmfStepState;
 
- private:
 	typedef enum {
 		SMF_STEP_OFFLINE_INSTALL = 1,
 		SMF_STEP_ONLINE_INSTALL  = 2,
 		SMF_STEP_OFFLINE_REMOVE  = 3,
-		SMF_STEP_ONLINE_REMOVE   = 4
+		SMF_STEP_ONLINE_REMOVE   = 4,
+		SMF_ACTIVATE_ALL         = 5
 	} SmfInstallRemoveT;
+
+ private:
 
 ///
 /// Purpose:  Call bundle script on remote node
@@ -720,8 +725,15 @@ class SmfUpgradeStep {
 			      const std::string & i_node);
 
 ///
+/// Purpose:  Wait for all prarallell bundle cmd threads to answer 
+/// @param    Reference to the list of nodes
+/// @return   Bool true if successful, otherwise false.
+///
+	bool waitForBundleCmdResult(std::list<std::string>& i_swNodeList);
+
+///
 /// Purpose:  setMaintenanceState  
-/// @param    - 
+/// @param    -
 /// @return   true on success else false
 ///
 	bool setMaintenanceState(SmfActivationUnit& i_units);
@@ -788,6 +800,30 @@ class SmfUpgradeStep {
 	std::list<std::string> m_ssAffectedNodeList; // Total list of affected nodes in a single-step
 	SmfStepType* m_stepType;	     // Type of step
         bool     m_switchOver;               // Switchover executed 
+};
+
+//////////////////////////////////////////////////
+//Class SmfNodeSwLoadThread
+//Used for node sw update
+//////////////////////////////////////////////////
+class SmfNodeSwLoadThread {
+ public:
+  SmfNodeSwLoadThread(SmfUpgradeStep * i_step, std::string i_nodeName, SmfUpgradeStep::SmfInstallRemoveT i_order);
+	~SmfNodeSwLoadThread();
+	int start(void);
+
+ private:
+
+	void main(void);
+	int init(void);
+
+	static void main(NCSCONTEXT info);
+
+	NCSCONTEXT        m_task_hdl;
+	SmfUpgradeStep *  m_step;
+	std::string       m_amfNode;
+	SmfUpgradeStep::SmfInstallRemoveT m_order;
+	sem_t             m_semaphore;
 };
 
 #endif				// SMFUPGRADESTEP_HH
