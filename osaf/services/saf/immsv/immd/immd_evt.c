@@ -721,9 +721,6 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 			if(cb->mIs2Pbe) {
 				/* 2PBE is true => joining SC must sync AND get informed of 2PBE. */
 				accept_evt.info.immnd.info.ctrl.canBeCoord = 3; 
-			} else {
-				/* 1PBE or 0PBE joining SC must sync */
-				accept_evt.info.immnd.info.ctrl.canBeCoord = (node_info->isOnController)?1:(cb->mScAbsenceAllowed)?4:0;
 			}
 		}
 	} else if(cb->immnd_coord == 0 && cb->mScAbsenceAllowed && knownVeteran) {
