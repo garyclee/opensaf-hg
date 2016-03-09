@@ -223,8 +223,9 @@ extern const char *get_svc_names(int svc_id);
 #define NCSMDS_MAX_VDEST    32767
 #define NCSMDS_MAX_SVCS     1023
 
-/* Maximum size of the buffer used with MDS_DIRECT_SEND (no encoding) */
-#define MDS_DIRECT_BUF_MAXSIZE  (65535 - 56)
+/* Maximum size of the buffer used with MDS_DIRECT_SEND (no encoding)
+  (2^16  - (SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN_TCP + _POSIX_HOST_NAME_MAX)) */
+#define MDS_DIRECT_BUF_MAXSIZE  (65535 - (57 + _POSIX_HOST_NAME_MAX))
 
 typedef uint8_t *MDS_DIRECT_BUFF;
 
