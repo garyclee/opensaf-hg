@@ -107,7 +107,7 @@ typedef struct mds_data_recv {
 	MDS_SVC_PVT_SUB_PART_VER src_svc_sub_part_ver;
 	MDS_SVC_ARCHWORD_TYPE msg_arch_word;
 	uint8_t src_node_name_len;
-	char src_node_name[HOST_NAME_MAX]; /* Node Name of the sender/source*/
+	char src_node_name[_POSIX_HOST_NAME_MAX]; /* Node Name of the sender/source*/
 	uint32_t src_seq_num;
 	pid_t pid;
 	uid_t uid;

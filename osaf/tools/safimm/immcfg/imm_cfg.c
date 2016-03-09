@@ -900,8 +900,8 @@ done:
 }
 
 static char *create_adminOwnerName(char *base){
-	char hostname[HOST_NAME_MAX];
-	char *unique_adminOwner = malloc(HOST_NAME_MAX+10+strlen(base)+5);
+	char hostname[_POSIX_HOST_NAME_MAX];
+	char *unique_adminOwner = malloc(_POSIX_HOST_NAME_MAX+10+strlen(base)+5);
 
 	if (gethostname(hostname, sizeof(hostname)) != 0){
 		fprintf(stderr, "error while retrieving hostname\n");
