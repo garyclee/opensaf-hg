@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include "lga.h"
+#include "lga_state.h"
 
 static MDS_CLIENT_MSG_FORMAT_VER
  LGA_WRT_LGS_MSG_FMT_ARRAY[LGA_WRT_LGS_SUBPART_VER_RANGE] = {
@@ -478,38 +479,56 @@ static uint32_t lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg, MDS_SEND_PR
 ******************************************************************************/
 static uint32_t lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 {
-	TRACE_2("LGA Rcvd MDS subscribe evt from svc %d \n", mds_cb_info->info.svc_evt.i_svc_id);
+	TRACE_ENTER();
 
 	switch (mds_cb_info->info.svc_evt.i_change) {
 	case NCSMDS_NO_ACTIVE:
-	case NCSMDS_DOWN:
+		TRACE("%s\t NCSMDS_NO_ACTIVE", __FUNCTION__);
+		/* This is a temporary server down e.g. during switch/fail over*/
 		if (mds_cb_info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_LGS) {
-		/** TBD what to do if LGS goes down
-                 ** Hold on to the subscription if possible
-                 ** to send them out if LGS comes back up
-                 **/
-			TRACE("LGS down");
 			pthread_mutex_lock(&lga_cb.cb_lock);
+			TRACE("NCSMDS_NO_ACTIVE");
+
 			memset(&lga_cb.lgs_mds_dest, 0, sizeof(MDS_DEST));
-			lga_cb.lgs_up = 0;
+			lga_cb.lgs_state = LGS_NO_ACTIVE;
 			pthread_mutex_unlock(&lga_cb.cb_lock);
+		}
+		break;
+	case NCSMDS_DOWN:
+		TRACE("%s\t NCSMDS_DOWN", __FUNCTION__);
+		/* This may be a loss of server where all client and stream information
+		 * is lost on server side. In this situation client info in agent is
+		 * no longer valid and clients must register again (initialize)
+		 */
+		if (mds_cb_info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_LGS) {
+			pthread_mutex_lock(&lga_cb.cb_lock);
+			TRACE("LGS down");
+			memset(&lga_cb.lgs_mds_dest, 0, sizeof(MDS_DEST));
+			lga_cb.lgs_state = LGS_DOWN;
+			pthread_mutex_unlock(&lga_cb.cb_lock);
+
+			/* The log server is lost */
+			lga_no_server_state_set();
 		}
 		break;
 	case NCSMDS_NEW_ACTIVE:
 	case NCSMDS_UP:
 		switch (mds_cb_info->info.svc_evt.i_svc_id) {
 		case NCSMDS_SVC_ID_LGS:
+			TRACE("%s\t NCSMDS_UP" , __FUNCTION__);
 		    /** Store the MDS DEST of the LGS 
                      **/
-			TRACE_2("MSG from LGS NCSMDS_NEW_ACTIVE/UP");
 			pthread_mutex_lock(&lga_cb.cb_lock);
 			lga_cb.lgs_mds_dest = mds_cb_info->info.svc_evt.i_dest;
-			lga_cb.lgs_up = 1;
+			lga_cb.lgs_state = LGS_UP;
 			if (lga_cb.lgs_sync_awaited) {
 				/* signal waiting thread */
 				m_NCS_SEL_OBJ_IND(&lga_cb.lgs_sync_sel);
 			}
 			pthread_mutex_unlock(&lga_cb.cb_lock);
+
+			/* The log server is up */
+			lga_serv_recov1state_set();
 			break;
 		default:
 			break;
@@ -519,6 +538,7 @@ static uint32_t lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 		break;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1141,8 +1161,9 @@ uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_m
 		/* Retrieve the response and take ownership of the memory  */
 		*o_msg = (lgsv_msg_t *)mds_info.info.svc_send.info.sndrsp.o_rsp;
 		mds_info.info.svc_send.info.sndrsp.o_rsp = NULL;
-	} else
+	} else {
 		TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
+	}
 
 	TRACE_LEAVE();
 	return rc;
@@ -1184,8 +1205,9 @@ uint32_t lga_mds_msg_async_send(lga_cb_t *cb, struct lgsv_msg *i_msg, uint32_t p
 
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
-	if (rc != NCSCC_RC_SUCCESS)
-		TRACE("failed");
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE("%s: async send failed", __FUNCTION__);
+	}
 
 	TRACE_LEAVE();
 	return rc;

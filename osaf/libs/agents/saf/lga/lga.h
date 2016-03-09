@@ -29,6 +29,7 @@
 #include <ncsencdec_pub.h>
 #include <ncs_util.h>
 #include <logtrace.h>
+#include <osaf_time.h>
 
 #include "lgsv_msg.h"
 #include "lgsv_defs.h"
@@ -49,6 +50,11 @@ typedef struct lga_log_stream_hdl_rec {
 	unsigned int lgs_log_stream_id;	/* server reference for this log stream */
 	struct lga_log_stream_hdl_rec *next;	/* next pointer for the list in lga_client_hdl_rec_t */
 	struct lga_client_hdl_rec *parent_hdl;	/* Back Pointer to the client instantiation */
+	/* This flag is used with recovery handling. It is valid only
+	 * after server down has happened (will be initiated when server down
+	 * event occurs). It's not valid in LGA_NORMAL state.
+	 */
+	bool recovered_flag;
 } lga_log_stream_hdl_rec_t;
 
 /* LGA client record */
@@ -59,8 +65,46 @@ typedef struct lga_client_hdl_rec {
 	lga_log_stream_hdl_rec_t *stream_list;	/* List of open streams per client */
 	SYSF_MBX mbx;		/* priority q mbx b/w MDS & Library */
 	struct lga_client_hdl_rec *next;	/* next pointer for the list in lga_cb_t */
+	/* These flags are used with recovery handling. They are valid only
+	 * after server down has happened (will be initiated when server down
+	 * event occurs). They are not valid in LGA_NORMAL state
+	 */
+	bool initialized_flag;      /* Used with "headless" recovery handling
+				     * Set when client is initialized. Streams
+				     * may not have been recovered
+				     */
+	bool recovered_flag;        /* Used with "headless" recovery handling
+				     * Set when client is initialized an all
+				     * streams are recovered
+				     */
 } lga_client_hdl_rec_t;
 
+/* States of the server */
+typedef enum {
+	LGS_START,      /* The state before agent is started
+			 */
+	LGS_DOWN,       /* Server is down (headless)
+			 */
+	LGS_NO_ACTIVE,  /* No active server (switch/fail - over)
+			 */
+	LGS_UP          /* Server is up
+			 */
+} lgs_state_t;
+
+/* Agent internal states */
+typedef enum {
+	LGA_NORMAL,     /* Server is up and no recovery is ongoing
+			 */
+	LGA_NO_SERVER,  /* No Server (Server down) state
+			 */
+	LGA_RECOVERY1,  /* Server is up. Recover clients and streams when
+			 * request from client.
+			 * Recovery1 timer is running
+			 */
+	LGA_RECOVERY2   /* Auto recover remaining clients and streams
+			 * After recovery1 timeout
+			 */
+} lga_state_t;
 /*
  * The LGA control block is the master anchor structure for all LGA
  * instantiations within a process.
@@ -70,8 +114,8 @@ typedef struct {
 	lga_client_hdl_rec_t *client_list;	/* LGA client handle database */
 	MDS_HDL mds_hdl;	/* MDS handle */
 	MDS_DEST lgs_mds_dest;	/* LGS absolute/virtual address */
-	int lgs_up;		/* Indicate that MDS subscription
-				 * is complete */
+	lgs_state_t lgs_state;	/* Indicate current server MDS state */
+	lga_state_t lga_state;  /* Indicate current state of the agent */
 	/* LGS LGA sync params */
 	int lgs_sync_awaited;
 	NCS_SEL_OBJ lgs_sync_sel;
@@ -88,8 +132,9 @@ extern uint32_t lga_mds_msg_async_send(lga_cb_t *cb, lgsv_msg_t *i_msg, uint32_t
 extern void lgsv_lga_evt_free(struct lgsv_msg *);
 
 /* lga_init.c */
-extern unsigned int lga_startup(void);
-extern unsigned int lga_shutdown(void);
+unsigned int lga_startup(lga_cb_t *cb);
+extern unsigned int lga_shutdown_after_last_client(void);
+extern unsigned int lga_force_shutdown(void);
 
 /* lga_hdl.c */
 extern SaAisErrorT lga_hdl_cbk_dispatch(lga_cb_t *, lga_client_hdl_rec_t *, SaDispatchFlagsT);

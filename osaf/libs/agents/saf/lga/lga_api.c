@@ -16,7 +16,10 @@
  */
 
 #include <string.h>
+#include <saf_error.h>
 #include "lga.h"
+
+#include "lga_state.h"
 
 #define NCS_SAF_MIN_ACCEPT_TIME 10
 
@@ -38,6 +41,8 @@
 /* The main controle block */
 lga_cb_t lga_cb = {
 	.cb_lock = PTHREAD_MUTEX_INITIALIZER,
+	.lga_state = LGA_NORMAL,
+	.lgs_state = LGS_START
 };
 
 static void populate_open_params(lgsv_stream_open_req_t *open_param,
@@ -116,20 +121,16 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 {
 	lga_client_hdl_rec_t *lga_hdl_rec;
 	lgsv_msg_t i_msg, *o_msg;
-	SaAisErrorT rc;
-	uint32_t client_id;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	int rc;
+	uint32_t client_id = 0;
 
 	TRACE_ENTER();
 
+	/* Verify parameters (log handle and that version is given) */
 	if ((logHandle == NULL) || (version == NULL)) {
 		TRACE("version or handle FAILED");
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto done;
-	}
-
-	if ((rc = lga_startup()) != NCSCC_RC_SUCCESS) {
-		TRACE("lga_startup FAILED: %u", rc);
-		rc = SA_AIS_ERR_LIBRARY;
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
@@ -144,15 +145,59 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 		version->releaseCode = LOG_RELEASE_CODE;
 		version->majorVersion = LOG_MAJOR_VERSION;
 		version->minorVersion = LOG_MINOR_VERSION;
-		lga_shutdown();
-		rc = SA_AIS_ERR_VERSION;
+		lga_shutdown_after_last_client();
+		ais_rc = SA_AIS_ERR_VERSION;
 		goto done;
 	}
 
-	if (!lga_cb.lgs_up) {
-		lga_shutdown();
-		TRACE("LGS server is down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
+	/***
+	 * Handle states
+	 * Synchronize with mds and recovery thread (mutex)
+	 * NOTE: Nothing to handle if recovery state 1
+	 */
+	pthread_mutex_lock(&lga_cb.cb_lock);
+	lgs_state_t lgs_state = lga_cb.lgs_state;
+	lga_state_t lga_state = lga_cb.lga_state;
+	pthread_mutex_unlock(&lga_cb.cb_lock);
+
+	if (lgs_state == LGS_NO_ACTIVE) {
+		/* We have a server but it is temporary unavailable. Client may
+		 * try again
+		 */
+		TRACE("%s LGS no active", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (lga_state == LGA_NO_SERVER) {
+		/* We have no server and cannot initialize.
+		 * The client may try again
+		 */
+		TRACE("%s No server", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (lga_state == LGA_RECOVERY2) {
+		/* Auto recovery is ongoing. We have to wait for it to finish.
+		 * The client may try again
+		 */
+		TRACE("%s LGA auto recovery ongoing (2)", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	/***
+	 * Do Initiate. It's ok to initiate in recovery state 1 since we have a
+	 * server and is not conflicting with auto recovery
+	 */
+
+	/* Initiate the client in the agent and if first client also start MDS
+	 * etc.
+	 */
+	if ((rc = lga_startup(&lga_cb)) != NCSCC_RC_SUCCESS) {
+		TRACE("lga_startup FAILED: %u", rc);
+		ais_rc = SA_AIS_ERR_LIBRARY;
 		goto done;
 	}
 
@@ -165,18 +210,18 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 	/* Send a message to LGS to obtain a client_id/server ref id which is cluster
 	 * wide unique.
 	 */
-	rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg, LGS_WAIT_TIME,MDS_SEND_PRIORITY_HIGH);
+	rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg, LGS_WAIT_TIME, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
-		lga_shutdown();
-		rc = SA_AIS_ERR_TRY_AGAIN;
+		lga_shutdown_after_last_client();
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
 
     /** Make sure the LGS return status was SA_AIS_OK 
      **/
-	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
-		rc = o_msg->info.api_resp_info.rc;
-		TRACE("LGS return FAILED");
+	ais_rc = o_msg->info.api_resp_info.rc;
+	if (SA_AIS_OK != ais_rc) {
+		TRACE("%s LGS error response %s", __FUNCTION__, saf_error(ais_rc));
 		goto err;
 	}
 
@@ -189,27 +234,26 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 	/* create the hdl record & store the callbacks */
 	lga_hdl_rec = lga_hdl_rec_add(&lga_cb, callbacks, client_id);
 	if (lga_hdl_rec == NULL) {
-		rc = SA_AIS_ERR_NO_MEMORY;
+		ais_rc = SA_AIS_ERR_NO_MEMORY;
 		goto err;
 	}
 
 	/* pass the handle value to the appl */
-	if (SA_AIS_OK == rc)
-		*logHandle = lga_hdl_rec->local_hdl;
+	*logHandle = lga_hdl_rec->local_hdl;
 
  err:
 	/* free up the response message */
 	if (o_msg)
 		lga_msg_destroy(o_msg);
 
-	if (rc != SA_AIS_OK) {
-		TRACE_2("LGA INIT FAILED\n");
-		lga_shutdown();
+	if (ais_rc != SA_AIS_OK) {
+		TRACE_2("%s LGA INIT FAILED\n", __FUNCTION__);
+		lga_shutdown_after_last_client();
 	}
 
  done:
-	TRACE_LEAVE();
-	return rc;
+	TRACE_LEAVE2("client_id = %d", client_id);
+	return ais_rc;
 }
 
 /***************************************************************************
@@ -325,6 +369,61 @@ SaAisErrorT saLogDispatch(SaLogHandleT logHandle, SaDispatchFlagsT dispatchFlags
 	return rc;
 }
 
+/******************************************************************************
+ * Finalize
+ * API function and help functions
+ ******************************************************************************/
+
+/**
+ * Create and send a Finalize message to the server
+ *
+ * @param hdl_rec
+ * @return AIS return code
+ */
+static SaAisErrorT send_Finalize_msg(lga_client_hdl_rec_t *hdl_rec)
+{
+	uint32_t mds_rc;
+	lgsv_msg_t msg, *o_msg = NULL;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	memset(&msg, 0, sizeof(lgsv_msg_t));
+	msg.type = LGSV_LGA_API_MSG;
+	msg.info.api_info.type = LGSV_FINALIZE_REQ;
+	msg.info.api_info.param.finalize.client_id = hdl_rec->lgs_client_id;
+
+	mds_rc = lga_mds_msg_sync_send(
+		&lga_cb, &msg,
+		&o_msg,
+		LGS_WAIT_TIME,
+		MDS_SEND_PRIORITY_MEDIUM
+		);
+	switch (mds_rc) {
+	case NCSCC_RC_SUCCESS:
+		break;
+	case NCSCC_RC_REQ_TIMOUT:
+		ais_rc = SA_AIS_ERR_TIMEOUT;
+		TRACE("lga_mds_msg_sync_send FAILED: %s", saf_error(ais_rc));
+		goto done;
+	default:
+		TRACE("lga_mds_msg_sync_send FAILED: %s", saf_error(ais_rc));
+		ais_rc = SA_AIS_ERR_NO_RESOURCES;
+		goto done;
+	}
+
+	if (o_msg != NULL) {
+		ais_rc = o_msg->info.api_resp_info.rc;
+		lga_msg_destroy(o_msg);
+	} else
+		ais_rc = SA_AIS_ERR_NO_RESOURCES;
+
+	done:
+
+	TRACE_LEAVE();
+	return ais_rc;
+}
+
 /***************************************************************************
  * 8.4.4
  *
@@ -350,84 +449,119 @@ SaAisErrorT saLogDispatch(SaLogHandleT logHandle, SaDispatchFlagsT dispatchFlags
 SaAisErrorT saLogFinalize(SaLogHandleT logHandle)
 {
 	lga_client_hdl_rec_t *hdl_rec;
-	lgsv_msg_t msg, *o_msg = NULL;
-	SaAisErrorT rc = SA_AIS_OK;
-	uint32_t mds_rc;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	uint32_t rc;
 
 	TRACE_ENTER();
 
 	/* retrieve hdl rec */
 	hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, logHandle);
 	if (hdl_rec == NULL) {
-		TRACE("ncshm_take_hdl failed");
-		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE("%s ncshm_take_hdl failed", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
 
-	/* Check Whether LGS is up or not */
-	if (!lga_cb.lgs_up) {
-		TRACE("LGS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
+	/***
+	 * Handle states
+	 * Synchronize with mds and recovery thread (mutex)
+	 */
+	pthread_mutex_lock(&lga_cb.cb_lock);
+	lgs_state_t lgs_state = lga_cb.lgs_state;
+	lga_state_t lga_state = lga_cb.lga_state;
+	pthread_mutex_unlock(&lga_cb.cb_lock);
+
+	if (lgs_state == LGS_NO_ACTIVE) {
+		/* We have a server but it is temporary unavailable. Client may
+		 * try again
+		 */
+		TRACE("%s lgs_state = LGS no active", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done_give_hdl;
 	}
 
-    /** populate & send the finalize message 
-     ** and make sure the finalize from the server
-     ** end returned before deleting the local records.
-     **/
-	memset(&msg, 0, sizeof(lgsv_msg_t));
-	msg.type = LGSV_LGA_API_MSG;
-	msg.info.api_info.type = LGSV_FINALIZE_REQ;
-	msg.info.api_info.param.finalize.client_id = hdl_rec->lgs_client_id;
-
-	mds_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, LGS_WAIT_TIME,MDS_SEND_PRIORITY_MEDIUM);
-	switch (mds_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
-		TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
-		goto done_give_hdl;
-	default:
-		TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
-		rc = SA_AIS_ERR_NO_RESOURCES;
+	if (lga_state == LGA_NO_SERVER) {
+		/* We have no server but can still finalize client.
+		 * In this situation no message to server is sent
+		 */
+		TRACE("%s lga_state = LGS down", __FUNCTION__);
+		ais_rc = SA_AIS_OK;
 		goto done_give_hdl;
 	}
 
-	if (o_msg != NULL) {
-		rc = o_msg->info.api_resp_info.rc;
-		lga_msg_destroy(o_msg);
-	} else
-		rc = SA_AIS_ERR_NO_RESOURCES;
+	if (lga_state == LGA_RECOVERY2) {
+		/* Auto recovery is ongoing. We have to wait for it to finish.
+		 * The client may try again
+		 */
+		TRACE("%s lga_state = LGA auto recovery ongoing (2)", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl;
+	}
 
-	if (rc == SA_AIS_OK) {
-		rc = lga_hdl_rec_del(&lga_cb.client_list, hdl_rec);
-		if (rc != NCSCC_RC_SUCCESS)
-			rc = SA_AIS_ERR_BAD_HANDLE;
+	if (lga_state == LGA_RECOVERY1) {
+		/* We are in recovery state 1. Client may or may not have been
+		 * initialized. If initialized a finalize request must be sent
+		 * to the server else the client is finalized in the agent only
+		 */
+		TRACE("%s lga_state = Recovery state (1)", __FUNCTION__);
+		if (hdl_rec->initialized_flag == false) {
+			TRACE("\t Client is not initialized");
+			goto done_give_hdl;
+		}
+		TRACE("\t Client is initialized");
+	}
+
+	/***
+	 * Populate & send the finalize message
+	 * and make sure the finalize from the server
+	 * end returned before deleting the local records.
+	 */
+	ais_rc = send_Finalize_msg(hdl_rec);
+
+	if (ais_rc == SA_AIS_OK) {
+		TRACE("%s delete_one_client", __FUNCTION__);
+		(void) delete_one_client(&lga_cb.client_list, hdl_rec);
 	}
 
  done_give_hdl:
 	ncshm_give_hdl(logHandle);
 
-	if (rc == SA_AIS_OK) {
-		rc = lga_shutdown();
+	if (ais_rc == SA_AIS_OK) {
+		rc = lga_shutdown_after_last_client();
 		if (rc != NCSCC_RC_SUCCESS)
 			TRACE("lga_shutdown ");
 	}
 
  done:
-	TRACE_LEAVE2("rc = %u", rc);
-	return rc;
+	TRACE_LEAVE2("ais_rc = %s", saf_error(ais_rc));
+	return ais_rc;
 }
 
-static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
-					const SaNameT *logStreamName,
-					const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
-					SaLogStreamOpenFlagsT logStreamOpenFlags,
-					SaTimeT timeOut, SaLogStreamHandleT *logStreamHandle, uint32_t *header_type)
+/******************************************************************************
+ * Open a stream
+ * API function and help functions
+ ******************************************************************************/
+
+/**
+ * Check input parameters for opening a stream
+ *
+ * @param logStreamName
+ * @param logFileCreateAttributes
+ * @param logStreamOpenFlags
+ * @param logStreamHandle
+ * @param header_type
+ * @return
+ */
+static SaAisErrorT validate_open_params(
+	const SaNameT *logStreamName,
+	const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
+	SaLogStreamOpenFlagsT logStreamOpenFlags,
+	SaLogStreamHandleT *logStreamHandle,
+	uint32_t *header_type
+	)
 {
 	size_t len;
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT ais_rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
@@ -435,7 +569,7 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 
 	if ((NULL == logStreamName) || (NULL == logStreamHandle)) {
 		TRACE("SA_AIS_ERR_INVALID_PARAM => NULL pointer check");
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 	
@@ -450,7 +584,7 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 	 */
 	if (logStreamName->length >= SA_MAX_NAME_LENGTH) {
 		TRACE("SA_AIS_ERR_INVALID_PARAM, logStreamName->length > SA_MAX_NAME_LENGTH");
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
@@ -575,10 +709,11 @@ static SaAisErrorT validate_open_params(SaLogHandleT logHandle,
 
  done:
 	TRACE_LEAVE();
-	return rc;
+	return ais_rc;
 }
 
 /**
+ * API function for opening a stream
  * 
  * @param logHandle
  * @param logStreamName
@@ -599,29 +734,85 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	lga_client_hdl_rec_t *hdl_rec;
 	lgsv_msg_t msg, *o_msg = NULL;
 	lgsv_stream_open_req_t *open_param;
-	SaAisErrorT rc;
+	SaAisErrorT ais_rc;
+	int rc = 0;
+	uint32_t ncs_rc;
 	uint32_t timeout;
 	uint32_t log_stream_id;
 	uint32_t log_header_type = 0;
 
 	TRACE_ENTER();
 
-	rc = validate_open_params(logHandle, logStreamName, logFileCreateAttributes,
-				  logStreamOpenFlags, timeOut, logStreamHandle, &log_header_type);
-	if (rc != SA_AIS_OK)
+	ais_rc = validate_open_params(logStreamName, logFileCreateAttributes,
+				  logStreamOpenFlags, logStreamHandle, &log_header_type);
+	if (ais_rc != SA_AIS_OK)
 		goto done;
 
 	/* retrieve log service hdl rec */
 	hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, logHandle);
 	if (hdl_rec == NULL) {
 		TRACE("ncshm_take_hdl failed");
-		rc = SA_AIS_ERR_BAD_HANDLE;
+		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
 
+	/***
+	 * Handle states
+	 * Synchronize with mds and recovery thread (mutex)
+	 */
+	pthread_mutex_lock(&lga_cb.cb_lock);
+	lgs_state_t lgs_state = lga_cb.lgs_state;
+	lga_state_t lga_state = lga_cb.lga_state;
+	pthread_mutex_unlock(&lga_cb.cb_lock);
+
+	if (lgs_state == LGS_NO_ACTIVE) {
+		/* We have a server but it is temporary unavailable. Client may
+		 * try again
+		 */
+		TRACE("%s LGS no active", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl;
+	}
+
+	if (lga_state == LGA_NO_SERVER) {
+		/* We have no server and cannot open a stream.
+		 * The client may try again
+		 */
+		TRACE("%s No server", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl;
+	}
+
+	if (lga_state == LGA_RECOVERY2) {
+		/* Auto recovery is ongoing. We have to wait for it to finish.
+		 * The client may try again
+		 */
+		TRACE("%s LGA auto recovery ongoing (2)", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl;
+	}
+
+	if (lga_state == LGA_RECOVERY1) {
+		/* We are in recovery 1 state.
+		 * Recover client and execute the request
+		 */
+		rc = recover_one_client(hdl_rec);
+		if (rc == -1) {
+			/* Client could not be recovered. Delete client and
+			 * return BAD HANDLE
+			 */
+			TRACE("%s delete_one_client", __FUNCTION__);
+			(void) delete_one_client(&lga_cb.client_list, hdl_rec);
+			ais_rc = SA_AIS_ERR_BAD_HANDLE;
+			/* Handles are destroyed so we shall not give handles */
+			goto done;
+		}
+	}
+
+
     /** Populate a sync MDS message to obtain a log stream id and an
-     **  instance open id.
-     **/
+     *  instance open id.
+     */
 	memset(&msg, 0, sizeof(lgsv_msg_t));
 	msg.type = LGSV_LGA_API_MSG;
 	msg.info.api_info.type = LGSV_STREAM_OPEN_REQ;
@@ -641,7 +832,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 		/* Construct the logFileName */
 		open_param->logFileName = (char *) malloc(strlen(logFileCreateAttributes->logFileName) + 1);
 		if (open_param->logFileName == NULL) {
-			rc = SA_AIS_ERR_NO_MEMORY;
+			ais_rc = SA_AIS_ERR_NO_MEMORY;
 			goto done_give_hdl;
 		}
 		strcpy(open_param->logFileName, logFileCreateAttributes->logFileName);
@@ -653,7 +844,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 
 		open_param->logFilePathName = (char *) malloc(len);
 		if (open_param->logFilePathName == NULL) {
-			rc = SA_AIS_ERR_NO_MEMORY;
+			ais_rc = SA_AIS_ERR_NO_MEMORY;
 			goto done_give_hdl;
 		}
 
@@ -668,31 +859,21 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 
 	if (timeout < NCS_SAF_MIN_ACCEPT_TIME) {
 		TRACE("Timeout");
-		rc = SA_AIS_ERR_TIMEOUT;
-		goto done_give_hdl;
-	}
-
-	/* Check whether LGS is up or not */
-	if (!lga_cb.lgs_up) {
-		TRACE("LGS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
+		ais_rc = SA_AIS_ERR_TIMEOUT;
 		goto done_give_hdl;
 	}
 
 	/* Send a sync MDS message to obtain a log stream id */
-	rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, timeout,MDS_SEND_PRIORITY_HIGH);
-	if (rc != NCSCC_RC_SUCCESS) {
-		if (o_msg)
-			lga_msg_destroy(o_msg);
-		rc = SA_AIS_ERR_TRY_AGAIN;
+	ncs_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, timeout, MDS_SEND_PRIORITY_HIGH);
+	if (ncs_rc != NCSCC_RC_SUCCESS) {
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done_give_hdl;
 	}
 
-	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
-		rc = o_msg->info.api_resp_info.rc;
-		TRACE("Bad return status!!! rc = %d", rc);
-		if (o_msg)
-			lga_msg_destroy(o_msg);
+	ais_rc = o_msg->info.api_resp_info.rc;
+	if (SA_AIS_OK != ais_rc) {
+		TRACE("Bad return status!!! rc = %d", ais_rc);
+		lga_msg_destroy(o_msg);
 		goto done_give_hdl;
 	}
 
@@ -708,25 +889,28 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
     /** Allocate an LGA_LOG_STREAM_HDL_REC structure and insert this
      *  into the list of channel hdl record.
      **/
-	lstr_hdl_rec = lga_log_stream_hdl_rec_add(&hdl_rec,
-						  log_stream_id, logStreamOpenFlags, logStreamName, log_header_type);
+	lstr_hdl_rec = lga_log_stream_hdl_rec_add(
+		&hdl_rec,
+		log_stream_id, logStreamOpenFlags,
+		logStreamName, log_header_type
+		);
 	if (lstr_hdl_rec == NULL) {
 		pthread_mutex_unlock(&lga_cb.cb_lock);
-		if (o_msg)
-			lga_msg_destroy(o_msg);
-		rc = SA_AIS_ERR_NO_MEMORY;
+		lga_msg_destroy(o_msg);
+		ais_rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
+
     /** UnLock LGA_CB
      **/
 	pthread_mutex_unlock(&lga_cb.cb_lock);
 
-    /** Give the hdl-mgr allocated hdl to the application.
-     **/
+	 /** Give the hdl-mgr allocated hdl to the application and free the response
+	  *  message
+      **/
 	*logStreamHandle = (SaLogStreamHandleT)lstr_hdl_rec->log_stream_hdl;
 
-	if (o_msg)
-		lga_msg_destroy(o_msg);
+	lga_msg_destroy(o_msg);
 
  done_give_hdl:
 	ncshm_give_hdl(logHandle);
@@ -735,7 +919,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 
  done:
 	TRACE_LEAVE();
-	return rc;
+	return ais_rc;
 }
 
 /**
@@ -756,6 +940,136 @@ SaAisErrorT saLogStreamOpenAsync_2(SaLogHandleT logHandle,
 	TRACE_ENTER();
 	TRACE_LEAVE();
 	return SA_AIS_ERR_NOT_SUPPORTED;
+}
+
+/******************************************************************************
+ * Write Log record
+ * API function and help functions
+ ******************************************************************************/
+
+/**
+ * Validate the log record and if generic header add
+ * logSvcUsrName from environment variable SA_AMF_COMPONENT_NAME
+ *
+ * @param logRecord[in]
+ * @param logSvcUsrName[out]
+ * @param write_param[out]
+ * @return AIS return code
+ */
+static SaAisErrorT handle_log_record(const SaLogRecordT *logRecord,
+	SaNameT *logSvcUsrName,
+	lgsv_write_log_async_req_t *write_param)
+{
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	SaTimeT logTimeStamp;
+
+	TRACE_ENTER();
+
+	if (NULL == logRecord) {
+		TRACE("SA_AIS_ERR_INVALID_PARAM => NULL pointer check");
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
+		switch (logRecord->logHeader.genericHdr.logSeverity) {
+		case SA_LOG_SEV_EMERGENCY:
+		case SA_LOG_SEV_ALERT:
+		case SA_LOG_SEV_CRITICAL:
+		case SA_LOG_SEV_ERROR:
+		case SA_LOG_SEV_WARNING:
+		case SA_LOG_SEV_NOTICE:
+		case SA_LOG_SEV_INFO:
+			break;
+		default:
+			TRACE("Invalid severity: %x",
+				logRecord->logHeader.genericHdr.logSeverity);
+			ais_rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+	}
+
+	if (logRecord->logBuffer != NULL) {
+		if ((logRecord->logBuffer->logBuf == NULL) &&
+			(logRecord->logBuffer->logBufSize != 0)) {
+			TRACE("logBuf == NULL && logBufSize != 0");
+			ais_rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+	}
+
+	/* Set timeStamp data if not provided by application user */
+	if (logRecord->logTimeStamp == SA_TIME_UNKNOWN) {
+		logTimeStamp = setLogTime();
+		write_param->logTimeStamp = &logTimeStamp;
+	} else {
+		write_param->logTimeStamp = (SaTimeT *)&logRecord->logTimeStamp;
+	}
+
+	/* SA_AIS_ERR_INVALID_PARAM, bullet 2 in SAI-AIS-LOG-A.02.01
+	   Section 3.6.3, Return Values */
+	if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
+		if (logRecord->logHeader.genericHdr.logSvcUsrName == NULL) {
+			char *logSvcUsrChars = NULL;
+			TRACE("logSvcUsrName == NULL");
+			logSvcUsrChars = getenv("SA_AMF_COMPONENT_NAME");
+			if (logSvcUsrChars == NULL) {
+				ais_rc = SA_AIS_ERR_INVALID_PARAM;
+				goto done;
+			}
+			logSvcUsrName->length = strlen(logSvcUsrChars);
+			if (logSvcUsrName->length >= SA_MAX_NAME_LENGTH) {
+				TRACE("SA_AMF_COMPONENT_NAME is too long");
+				ais_rc = SA_AIS_ERR_INVALID_PARAM;
+				goto done;
+			}
+			strcpy((char *)logSvcUsrName->value, logSvcUsrChars);
+			write_param->logSvcUsrName = logSvcUsrName;
+		} else {
+			if (logRecord->logHeader.genericHdr.logSvcUsrName->length >=
+				SA_MAX_NAME_LENGTH) {
+				TRACE("logSvcUsrName too long");
+				ais_rc = SA_AIS_ERR_INVALID_PARAM;
+				goto done;
+			}
+			logSvcUsrName->length =
+				logRecord->logHeader.genericHdr.logSvcUsrName->length;
+			write_param->logSvcUsrName =
+				(SaNameT *)logRecord->logHeader.genericHdr.logSvcUsrName;
+		}
+	}
+
+	if (logRecord->logHdrType == SA_LOG_NTF_HEADER) {
+		if (logRecord->logHeader.ntfHdr.notificationObject == NULL) {
+			TRACE("notificationObject == NULL");
+			ais_rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+
+		if (logRecord->logHeader.ntfHdr.notificationObject->length >=
+			SA_MAX_NAME_LENGTH) {
+			TRACE("notificationObject.length >= SA_MAX_NAME_LENGTH");
+			ais_rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+
+		if (logRecord->logHeader.ntfHdr.notifyingObject == NULL) {
+			TRACE("notifyingObject == NULL");
+			ais_rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+
+		if (logRecord->logHeader.ntfHdr.notifyingObject->length >=
+			SA_MAX_NAME_LENGTH) {
+			TRACE("notifyingObject.length >= SA_MAX_NAME_LENGTH");
+			ais_rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+	}
+
+done:
+	TRACE_LEAVE();
+	return ais_rc;
 }
 
 /**
@@ -788,158 +1102,125 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 	lga_log_stream_hdl_rec_t *lstr_hdl_rec;
 	lga_client_hdl_rec_t *hdl_rec;
 	lgsv_msg_t msg;
-	SaAisErrorT rc = SA_AIS_OK;
-	SaNameT logSvcUsrName;
-	SaTimeT logTimeStamp;
+	SaAisErrorT ais_rc = SA_AIS_OK;
 	lgsv_write_log_async_req_t *write_param;
+	SaNameT logSvcUsrName;
+	int rc;
 
 	memset(&(msg), 0, sizeof(lgsv_msg_t));
 	write_param = &msg.info.api_info.param.write_log_async;
 	TRACE_ENTER();
 
-	if (NULL == logRecord) {
-		TRACE("SA_AIS_ERR_INVALID_PARAM => NULL pointer check");
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto done;
-	}
-
-	if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
-		switch (logRecord->logHeader.genericHdr.logSeverity) {
-		case SA_LOG_SEV_EMERGENCY:
-		case SA_LOG_SEV_ALERT:
-		case SA_LOG_SEV_CRITICAL:
-		case SA_LOG_SEV_ERROR:
-		case SA_LOG_SEV_WARNING:
-		case SA_LOG_SEV_NOTICE:
-		case SA_LOG_SEV_INFO:
-			break;
-		default:
-			TRACE("Invalid severity: %x", logRecord->logHeader.genericHdr.logSeverity);
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-	}
-
-	if (logRecord->logBuffer != NULL) {
-		if ((logRecord->logBuffer->logBuf == NULL) && (logRecord->logBuffer->logBufSize != 0)) {
-			TRACE("logBuf == NULL && logBufSize != 0");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-	}
-
 	if ((ackFlags != 0) && (ackFlags != SA_LOG_RECORD_WRITE_ACK)) {
 		TRACE("SA_AIS_ERR_BAD_FLAGS=> ackFlags");
-		rc = SA_AIS_ERR_BAD_FLAGS;
+		ais_rc = SA_AIS_ERR_BAD_FLAGS;
 		goto done;
 	}
 
-	/* Set timeStamp data if not provided by application user */
-	if (logRecord->logTimeStamp == SA_TIME_UNKNOWN) {
-		logTimeStamp = setLogTime();
-		write_param->logTimeStamp = &logTimeStamp;
-	} else {
-		write_param->logTimeStamp = (SaTimeT *)&logRecord->logTimeStamp;
+	/* Validate the log record and if generic header add
+	 * logSvcUsrName from environment variable SA_AMF_COMPONENT_NAME
+	 */
+	ais_rc = handle_log_record(logRecord, &logSvcUsrName, write_param);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s: Validate Log record Fail", __FUNCTION__);
+		goto done;
 	}
 
-	/* SA_AIS_ERR_INVALID_PARAM, bullet 2 in SAI-AIS-LOG-A.02.01 
-	   Section 3.6.3, Return Values */
-	if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
-		if (logRecord->logHeader.genericHdr.logSvcUsrName == NULL) {
-			char *logSvcUsrChars = NULL;
-			TRACE("logSvcUsrName == NULL");
-			logSvcUsrChars = getenv("SA_AMF_COMPONENT_NAME");
-			if (logSvcUsrChars == NULL) {
-				rc = SA_AIS_ERR_INVALID_PARAM;
-				goto done;
-			}
-			logSvcUsrName.length = strlen(logSvcUsrChars);
-			if (logSvcUsrName.length >= SA_MAX_NAME_LENGTH) {
-				TRACE("SA_AMF_COMPONENT_NAME is too long");
-				rc = SA_AIS_ERR_INVALID_PARAM;
-				goto done;
-			}
-			strcpy((char *)logSvcUsrName.value, logSvcUsrChars);
-			write_param->logSvcUsrName = &logSvcUsrName;
-		} else {
-			if (logRecord->logHeader.genericHdr.logSvcUsrName->length >= SA_MAX_NAME_LENGTH) {
-				TRACE("logSvcUsrName too long");
-				rc = SA_AIS_ERR_INVALID_PARAM;
-				goto done;
-			}
-			logSvcUsrName.length = logRecord->logHeader.genericHdr.logSvcUsrName->length;
-			write_param->logSvcUsrName = (SaNameT *)logRecord->logHeader.genericHdr.logSvcUsrName;
-		}
-	}
-
-	if (logRecord->logHdrType == SA_LOG_NTF_HEADER) {
-		if (logRecord->logHeader.ntfHdr.notificationObject == NULL) {
-			TRACE("notificationObject == NULL");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-
-		if (logRecord->logHeader.ntfHdr.notificationObject->length >= SA_MAX_NAME_LENGTH) {
-			TRACE("notificationObject.length >= SA_MAX_NAME_LENGTH");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-
-		if (logRecord->logHeader.ntfHdr.notifyingObject == NULL) {
-			TRACE("notifyingObject == NULL");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-
-		if (logRecord->logHeader.ntfHdr.notifyingObject->length >= SA_MAX_NAME_LENGTH) {
-			TRACE("notifyingObject.length >= SA_MAX_NAME_LENGTH");
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-	}
-
-	/* retrieve log stream hdl record */
+	/* Retrieve log stream hdl record
+	 * From now on we must give stream before return
+	 */
 	lstr_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, logStreamHandle);
 	if (lstr_hdl_rec == NULL) {
-		TRACE("ncshm_take_hdl logStreamHandle FAILED!");
-		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE("%s: ncshm_take_hdl logStreamHandle FAILED!",
+			__FUNCTION__);
+		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
 
 	/* SA_AIS_ERR_INVALID_PARAM, bullet 1 in SAI-AIS-LOG-A.02.01 
 	   Section 3.6.3, Return Values */
 	if (lstr_hdl_rec->log_header_type != logRecord->logHdrType) {
-		TRACE("lstr_hdl_rec->log_header_type != logRecord->logHdrType");
-		ncshm_give_hdl(logStreamHandle);
-		rc = SA_AIS_ERR_INVALID_PARAM;
-		goto done;
+		TRACE("%s: lstr_hdl_rec->log_header_type != logRecord->logHdrType",
+			__FUNCTION__);
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done_give_hdl_stream;
 	}
 
-	/* retrieve the lga client hdl record */
+	/* retrieve the lga client hdl record
+	 * From now on we must give both stream and client (parent) handle
+	 * before return
+	 */
 	hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, lstr_hdl_rec->parent_hdl->local_hdl);
 	if (hdl_rec == NULL) {
-		TRACE("ncshm_take_hdl logHandle FAILED!");
-		ncshm_give_hdl(logStreamHandle);
-		rc = SA_AIS_ERR_LIBRARY;
-		goto done;
+		TRACE("%s: ncshm_take_hdl logHandle FAILED!",
+			__FUNCTION__);
+		ais_rc = SA_AIS_ERR_LIBRARY;
+		goto done_give_hdl_stream;
 	}
 
 	if ((hdl_rec->reg_cbk.saLogWriteLogCallback == NULL) && (ackFlags == SA_LOG_RECORD_WRITE_ACK)) {
-		TRACE("Write Callback not registered");
-		ncshm_give_hdl(logStreamHandle);
-		ncshm_give_hdl(hdl_rec->local_hdl);
-		rc = SA_AIS_ERR_INIT;
-		goto done;
+		TRACE("%s: Write Callback not registered", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_INIT;
+		goto done_give_hdl_all;
 	}
 
+	/***
+	 * Handle states
+	 * Synchronize with mds and recovery thread (mutex)
+	 */
+	pthread_mutex_lock(&lga_cb.cb_lock);
+	lgs_state_t lgs_state = lga_cb.lgs_state;
+	lga_state_t lga_state = lga_cb.lga_state;
+	pthread_mutex_unlock(&lga_cb.cb_lock);
 
-	/* Check Whether LGS is up or not */
-	if (!lga_cb.lgs_up) {
-		ncshm_give_hdl(logStreamHandle);
-		ncshm_give_hdl(hdl_rec->local_hdl);
-		TRACE("LGS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done;
+	if (lgs_state == LGS_NO_ACTIVE) {
+		/* We have a server but it is temporarily unavailable.
+		 * Client may try again
+		 */
+		TRACE("%s: LGS no active", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl_all;
+	}
+
+	if (lga_state == LGA_NO_SERVER) {
+		/* We have no server and cannot write. The client may try again
+		 */
+		TRACE("\t LGA_NO_SERVER");
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl_all;
+	}
+
+	if (lga_state == LGA_RECOVERY2) {
+		/* Auto recovery is ongoing. We have to wait for it to finish.
+		 * The client may try again
+		 */
+		TRACE("\t LGA_RECOVERY2");
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl_all;
+	}
+
+	if (lga_state == LGA_RECOVERY1) {
+		/* We are in recovery 1 state.
+		 * Recover client and execute the request
+		 */
+		TRACE("\t LGA_RECOVERY1");
+		rc = recover_one_client(hdl_rec);
+		if (rc == -1) {
+			/* Client could not be recovered. Delete client and
+			 * return BAD HANDLE
+			 */
+			TRACE("\t recover_one_client Fail");
+			/* The log stream handle is not released in
+			 * delete_one_client()  so we have to do it here.
+			 * The function is used in other APIs that does not
+			 * take a log stream handle
+			 */
+			ncshm_give_hdl(logStreamHandle);
+			(void) delete_one_client(&lga_cb.client_list, hdl_rec);
+			ais_rc = SA_AIS_ERR_BAD_HANDLE;
+			/* Handles are destroyed so we shall not give handles */
+			goto done;
+		}
 	}
 
     /** populate the mds message to send across to the LGS
@@ -955,18 +1236,20 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
     /** Send the message out to the LGS
      **/
 	if (NCSCC_RC_SUCCESS != lga_mds_msg_async_send(&lga_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))
-		rc = SA_AIS_ERR_TRY_AGAIN;
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
 
-    /** Give all the handles that were taken **/
-	ncshm_give_hdl(lstr_hdl_rec->log_stream_hdl);
+ done_give_hdl_all:
 	ncshm_give_hdl(hdl_rec->local_hdl);
+ done_give_hdl_stream:
+	ncshm_give_hdl(logStreamHandle);
 
- done:
+done:
 	TRACE_LEAVE();
-	return rc;
+	return ais_rc;
 }
 
 /**
+ * API function for closing stream
  * 
  * @param logStreamHandle
  * 
@@ -977,33 +1260,85 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
 	lga_log_stream_hdl_rec_t *lstr_hdl_rec;
 	lga_client_hdl_rec_t *hdl_rec;
 	lgsv_msg_t msg, *o_msg = NULL;
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT ais_rc = SA_AIS_OK;
 	uint32_t mds_rc;
+	int rc;
 
 	TRACE_ENTER();
 
 	lstr_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, logStreamHandle);
 	if (lstr_hdl_rec == NULL) {
 		TRACE("ncshm_take_hdl logStreamHandle ");
-		rc = SA_AIS_ERR_BAD_HANDLE;
+		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+
+	/***
+	 * Handle states
+	 * Synchronize with mds and recovery thread (mutex)
+	 */
+	pthread_mutex_lock(&lga_cb.cb_lock);
+	lgs_state_t lgs_state = lga_cb.lgs_state;
+	lga_state_t lga_state = lga_cb.lga_state;
+	pthread_mutex_unlock(&lga_cb.cb_lock);
+
+	if (lgs_state == LGS_NO_ACTIVE) {
+		/* We have a server but it is temporarily unavailable. Client may
+		 * try again
+		 */
+		TRACE("%s LGS no active", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl_stream;
+	}
+
+	if (lga_state == LGA_RECOVERY2) {
+		/* Auto recovery is ongoing. We have to wait for it to finish.
+		 * The client may try again
+		 */
+		TRACE("%s LGA auto recovery ongoing (2)", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done_give_hdl_stream;
 	}
 
 	/* retrieve the client hdl record */
 	hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, lstr_hdl_rec->parent_hdl->local_hdl);
 	if (hdl_rec == NULL) {
 		TRACE("ncshm_take_hdl logHandle ");
-		rc = SA_AIS_ERR_LIBRARY;
+		ais_rc = SA_AIS_ERR_LIBRARY;
 		goto done_give_hdl_stream;
 	}
 
-	/* Check Whether LGS is up or not */
-	if (!lga_cb.lgs_up) {
-		TRACE("LGS is down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done_give_hdl_all;
+	if (lga_state == LGA_NO_SERVER) {
+		/* No server is available. Remove the stream from client database.
+		 * Server side will manage to release resources of this stream when up.
+		 */
+		TRACE("%s No server", __FUNCTION__);
+		ais_rc = SA_AIS_OK;
+		goto rmv_stream;
 	}
 
+	if (lga_state == LGA_RECOVERY1) {
+		/* We are in recovery 1 state.
+		 * Recover client and execute the request
+		 */
+		rc = recover_one_client(hdl_rec);
+		if (rc == -1) {
+			/* Client could not be recovered. Delete client and
+			 * return BAD HANDLE
+			 */
+			TRACE("%s Recover Fail delete_one_client", __FUNCTION__);
+			/* The log stream handle is not released in
+			 * delete_one_client()  so we have to do it here.
+			 * The function is used in other APIs that does not
+			 * take a log stream handle
+			 */
+			ncshm_give_hdl(logStreamHandle);
+			(void) delete_one_client(&lga_cb.client_list, hdl_rec);
+			ais_rc = SA_AIS_ERR_BAD_HANDLE;
+			/* Handles are destroyed so we shall not give handles */
+			goto done;
+		}
+	}
 
     /** Populate a MDS message to send to the LGS for a channel
      *  close operation.
@@ -1018,22 +1353,23 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
 	case NCSCC_RC_SUCCESS:
 		break;
 	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
-		TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
+		ais_rc = SA_AIS_ERR_TIMEOUT;
+		TRACE("lga_mds_msg_sync_send FAILED: %s", saf_error(ais_rc));
 		goto done_give_hdl_all;
 	default:
-		TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
-		rc = SA_AIS_ERR_NO_RESOURCES;
+		TRACE("lga_mds_msg_sync_send FAILED: %s", saf_error(ais_rc));
+		ais_rc = SA_AIS_ERR_NO_RESOURCES;
 		goto done_give_hdl_all;
 	}
 
 	if (o_msg != NULL) {
-		rc = o_msg->info.api_resp_info.rc;
+		ais_rc = o_msg->info.api_resp_info.rc;
 		lga_msg_destroy(o_msg);
 	} else
-		rc = SA_AIS_ERR_NO_RESOURCES;
+		ais_rc = SA_AIS_ERR_NO_RESOURCES;
 
-	if (rc == SA_AIS_OK) {
+rmv_stream:
+	if (ais_rc == SA_AIS_OK) {
 		pthread_mutex_lock(&lga_cb.cb_lock);
 
 	/** Delete this log stream & the associated resources with this
@@ -1041,7 +1377,7 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
         **/
 		if (NCSCC_RC_SUCCESS != lga_log_stream_hdl_rec_del(&hdl_rec->stream_list, lstr_hdl_rec)) {
 			TRACE("Unable to delete log stream");
-			rc = SA_AIS_ERR_LIBRARY;
+			ais_rc = SA_AIS_ERR_LIBRARY;
 		}
 
 		pthread_mutex_unlock(&lga_cb.cb_lock);
@@ -1054,7 +1390,7 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
 
  done:
 	TRACE_LEAVE();
-	return rc;
+	return ais_rc;
 }
 
 /**

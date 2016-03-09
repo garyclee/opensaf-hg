@@ -20,7 +20,8 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-	lga.h
+	lga.h \
+	lga_state.h
 
 noinst_LTLIBRARIES = liblga.la
 
@@ -31,6 +32,7 @@ liblga_la_CPPFLAGS = \
 liblga_la_SOURCES = \
 	lga_api.c \
 	lga_util.c \
-	lga_mds.c
+	lga_mds.c \
+	lga_state.c
 
 liblga_la_LDFLAGS = -static
