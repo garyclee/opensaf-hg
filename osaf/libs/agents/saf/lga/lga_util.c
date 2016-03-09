@@ -44,7 +44,11 @@ static unsigned int lga_create(void)
 	}
 
 	/* Block and wait for indication from MDS meaning LGS is up */
-	osaf_poll_one_fd(m_GET_FD_FROM_SEL_OBJ(lga_cb.lgs_sync_sel), 30000);
+
+	/* #1179 Change timeout from 30 sec (30000) to 10 sec (10000)
+	 * 30 sec is probably too long for a synchronous API function
+	 */
+	osaf_poll_one_fd(m_GET_FD_FROM_SEL_OBJ(lga_cb.lgs_sync_sel), 10000);
 
 	pthread_mutex_lock(&lga_cb.cb_lock);
 	lga_cb.lgs_sync_awaited = 0;
@@ -118,12 +122,16 @@ static bool lga_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 static void lga_log_stream_hdl_rec_list_del(lga_log_stream_hdl_rec_t **plstr_hdl)
 {
 	lga_log_stream_hdl_rec_t *lstr_hdl;
+	TRACE_ENTER();
 	while ((lstr_hdl = *plstr_hdl) != NULL) {
 		*plstr_hdl = lstr_hdl->next;
+		TRACE("%s stream \"%s\", hdl = %d",__FUNCTION__,
+			lstr_hdl->log_stream_name.value, lstr_hdl->log_stream_hdl);
 		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, lstr_hdl->log_stream_hdl);
 		free(lstr_hdl);
 		lstr_hdl = NULL;
 	}
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -264,11 +272,13 @@ static uint32_t lga_hdl_cbk_dispatch_block(lga_cb_t *cb, lga_client_hdl_rec_t *h
 }
 
 /**
- * 
+ * Initiate the agent when first used.
+ * Start NCS service
+ * Register with MDS
  * 
  * @return unsigned int
  */
-unsigned int lga_startup(void)
+unsigned int lga_startup(lga_cb_t *cb)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 	pthread_mutex_lock(&lga_lock);
@@ -287,8 +297,14 @@ unsigned int lga_startup(void)
 		if ((rc = lga_create()) != NCSCC_RC_SUCCESS) {
 			ncs_agents_shutdown();
 			goto done;
-		} else
+		} else {
 			lga_use_count = 1;
+		}
+
+		/* Agent has successfully been started including communication
+		 * with server
+		 */
+		cb->lga_state = LGA_NORMAL;
 	}
 
  done:
@@ -299,11 +315,18 @@ unsigned int lga_startup(void)
 }
 
 /**
+ * If called when only one (the last) client for this agent the client list a
+ * complete 'shut down' of the agent is done.
+ *  - Erase the clients list. Frees all memory including list of open
+ *    streams.
+ *  - Unregister with MDS
+ *  - Shut down ncs agents
  * 
+ * Global lga_use_count Conatins number of registered clients
  * 
- * @return unsigned int
+ * @return unsigned int (always NCSCC_RC_SUCCESS)
  */
-unsigned int lga_shutdown(void)
+unsigned int lga_shutdown_after_last_client(void)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 
@@ -322,6 +345,37 @@ unsigned int lga_shutdown(void)
 	pthread_mutex_unlock(&lga_lock);
 
 	TRACE_LEAVE2("rc: %u, lga_use_count: %u", rc, lga_use_count);
+	return rc;
+}
+
+/**
+ * Makes a forced shut down of the agent if there are registered clients
+ * Makes all handles invalid and frees all resources (memory, mds)
+ *
+ * clients and the log server is down and no other recovery is possible.
+ *  - Erase the clients list. Frees all memory including list of open
+ *    streams.
+ *  - Unregister with MDS
+ *  - Shut down ncs agents
+ *  - Set
+ *
+ * Global lga_use_count [in/out] = 0
+ *
+ * @return always NCSCC_RC_SUCCESS
+ */
+unsigned int lga_force_shutdown(void)
+{
+	unsigned int rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+	pthread_mutex_lock(&lga_lock);
+	if (lga_use_count > 0) {
+		lga_destroy();
+		rc = ncs_agents_shutdown(); /* Always returns NCSCC_RC_SUCCESS */
+		lga_use_count = 0;
+		TRACE("%s: Forced shutdown. Handles invalidated\n",__FUNCTION__);
+	}
+	pthread_mutex_unlock(&lga_lock);
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -387,6 +441,8 @@ void lga_hdl_list_del(lga_client_hdl_rec_t **p_client_hdl)
 {
 	lga_client_hdl_rec_t *client_hdl;
 
+	TRACE_ENTER();
+
 	while ((client_hdl = *p_client_hdl) != NULL) {
 		*p_client_hdl = client_hdl->next;
 		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, client_hdl->local_hdl);
@@ -398,6 +454,7 @@ void lga_hdl_list_del(lga_client_hdl_rec_t **p_client_hdl)
 		free(client_hdl);
 		client_hdl = 0;
 	}
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -416,6 +473,7 @@ void lga_hdl_list_del(lga_client_hdl_rec_t **p_client_hdl)
 ******************************************************************************/
 uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_log_stream_hdl_rec_t *rm_node)
 {
+	TRACE_ENTER();
 	/* Find the channel hdl record in the list of records */
 	lga_log_stream_hdl_rec_t *list_iter = *list_head;
 
@@ -427,6 +485,7 @@ uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_lo
 		ncshm_give_hdl(rm_node->log_stream_hdl);
 		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
 		free(rm_node);
+		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	} else {		/* find the rec */
 
@@ -438,6 +497,7 @@ uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_lo
 				ncshm_give_hdl(rm_node->log_stream_hdl);
 				ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
 				free(rm_node);
+				TRACE_LEAVE();
 				return NCSCC_RC_SUCCESS;
 			}
 			/* move onto the next one */
@@ -493,7 +553,6 @@ uint32_t lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t 
 		rc = NCSCC_RC_SUCCESS;
 		goto out;
 	} else {		/* find the rec */
-
 		while (NULL != list_iter) {
 			if (list_iter->next == rm_node) {
 				list_iter->next = rm_node->next;
@@ -517,10 +576,9 @@ uint32_t lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t 
 			list_iter = list_iter->next;
 		}
 	}
-	TRACE("failed");
 
  out:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc = %d (2 <=> fail)", rc);
 	return rc;
 }
 
@@ -566,6 +624,15 @@ lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_
 	rec->log_stream_name.length = logStreamName->length;
 	memcpy((void *)rec->log_stream_name.value, (void *)logStreamName->value, logStreamName->length);
 	rec->log_header_type = log_header_type;
+
+	/***
+	 * Initiate the recovery flag
+	 * The setting means that the stream is initialized and that there is
+	 * no reason to recover. This setting will change if server down is
+	 * detected
+	 */
+	rec->recovered_flag = true;
+
     /** Initialize the parent handle **/
 	rec->parent_hdl = *hdl_rec;
 
@@ -615,6 +682,15 @@ lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb, const SaLogCallbacksT *reg_c
     /** Associate with the client_id obtained from LGS
      **/
 	rec->lgs_client_id = client_id;
+
+	/***
+	 * Initiate the recovery flags
+	 * The setting means that the client is initialized and that there is
+	 * no reason to recover. This setting will change if server down is
+	 * detected
+	 */
+	rec->initialized_flag = true;
+	rec->recovered_flag = true;
 
     /** Initialize and attach the IPC/Priority queue
      **/
