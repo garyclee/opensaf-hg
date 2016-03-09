@@ -32,7 +32,7 @@
 /* 2 -len(0), 4 - iden(2), 1- ver(6), 1-msg type(7), 4- node_id (8),
 			8 -ref_val(12) */
 
-#define DTM_LIB_NODE_UP_MSG_SIZE (18 + 1 /*i_addr_family*/ + 46 /*ip_addr*/ + HOST_NAME_MAX  /* node_name */)
+#define DTM_LIB_NODE_UP_MSG_SIZE (18 + 1 /*i_addr_family*/ + 46 /*ip_addr*/ + _POSIX_HOST_NAME_MAX  /* node_name */)
 
 #define DTM_LIB_NODE_DOWN_MSG_SIZE 18
 
@@ -65,7 +65,7 @@ typedef struct dtm_lib_node_up_msg {
 	uint64_t ref_val;
 	DTM_IP_ADDR_TYPE i_addr_family; /* Indicates V4 or V6 */
 	char node_ip[INET6_ADDRSTRLEN];
-	char node_name[HOST_NAME_MAX];
+	char node_name[_POSIX_HOST_NAME_MAX];
 } DTM_LIB_NODE_UP_MSG;
 
 typedef DTM_LIB_NODE_UP_MSG DTM_LIB_NODE_DOWN_MSG;
@@ -115,7 +115,7 @@ typedef struct dtm_intranode_pid_info {
 typedef struct dtm_intranode_node_db {
 	struct dtm_intranode_node_db *next;
 	NODE_ID node_id;
-	char node_name[HOST_NAME_MAX];
+	char node_name[_POSIX_HOST_NAME_MAX];
 	SYSF_MBX mbx;
 	int fd;
 	DTM_IP_ADDR_TYPE i_addr_family;

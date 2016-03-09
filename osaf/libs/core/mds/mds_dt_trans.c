@@ -35,7 +35,7 @@
 /* Defines regarding to the Send and receive buff sizes */
 #define MDS_HDR_LEN_TCP         25	/* Mds_prot-4bit, Mds_version-2bit , Msg prior-2bit, Hdr_len-16bit, Seq_no-32bit, Enc_dec_type-2bit, Msg_snd_type-6bit,
 					   Pwe_id-16bit, Sndr_vdest_id-16bit, Sndr_svc_id-16bit, Rcvr_vdest_id-16bit, Rcvr_svc_id-16bit, Exch_id-32bit, App_Vers-16bit
-					   node_name_len-8bit, dynamic value node_name-<HOST_NAME_MAX>bits */
+					   node_name_len-8bit, dynamic value node_name-<_POSIX_HOST_NAME_MAX>bits */
 
 #define MDTM_FRAG_HDR_LEN_TCP    8	/* Msg Seq_no-32bit, More Frag-1bit, Frag_num-15bit, Frag_size-16bit */
 #define MDS_SEND_ADDRINFO_TCP    22	/* Identifier-32bit, Version-8bit, message type-8bit, DestNodeid-32bit, DestProcessid-32bit, SrcNodeid-32bit, SrcProcessid-32bit */
@@ -944,7 +944,7 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 		{
 			uint16_t addr_family; /* Indicates V4 or V6 */
 			char node_ip[INET6_ADDRSTRLEN];
-			char node_name[HOST_NAME_MAX];
+			char node_name[_POSIX_HOST_NAME_MAX];
 			node_id = ncs_decode_32bit(&buffer);
 			ref_val = ncs_decode_64bit(&buffer);
 
@@ -956,10 +956,10 @@ static uint32_t mds_mdtm_process_recvdata(uint32_t rcv_bytes, uint8_t *buff_in)
 			if (msg_type == MDTM_LIB_NODE_UP_TYPE) {
 				addr_family = ncs_decode_8bit(&buffer);
 				memset(node_ip,0, INET6_ADDRSTRLEN);
-				memset(node_name,0, HOST_NAME_MAX);
+				memset(node_name,0, _POSIX_HOST_NAME_MAX);
 				memcpy(node_ip, (uint8_t *)buffer, INET6_ADDRSTRLEN);
 				buffer = buffer+INET6_ADDRSTRLEN;
-				memcpy(node_name, (uint8_t *)buffer, HOST_NAME_MAX);	
+				memcpy(node_name, (uint8_t *)buffer, _POSIX_HOST_NAME_MAX);	
 				m_MDS_LOG_INFO("MDTM: NODE_UP for node_name:%s, node_ip:%s, node_id:%u addr_family:%d msg_type:%d",
 						node_name, node_ip, node_id, addr_family, msg_type);
 				mds_mcm_node_up(svc_hdl, node_id, node_ip, addr_family, node_name);

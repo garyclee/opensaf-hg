@@ -667,7 +667,7 @@ uint32_t dtm_intranode_process_node_subscribe_msg(uint8_t *buff, int fd)
 				node_up_msg.node_id = node_db->node_id;
 				node_up_msg.ref_val = node_subscr_info->subtn_ref_val;
 				strncpy(node_up_msg.node_ip, node_db->node_ip, INET6_ADDRSTRLEN);
-				strncpy(node_up_msg.node_name, node_db->node_name, HOST_NAME_MAX); 
+				strncpy(node_up_msg.node_name, node_db->node_name, _POSIX_HOST_NAME_MAX); 
 				node_up_msg.i_addr_family = node_db->i_addr_family;
 				TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d",
 						node_up_msg.node_ip, node_up_msg.node_id, node_up_msg.i_addr_family);
@@ -1386,7 +1386,7 @@ static uint32_t dtm_lib_prepare_node_up_msg(DTM_LIB_NODE_UP_MSG * up_msg, uint8_
 	ncs_encode_8bit(&data, (uint8_t)up_msg->i_addr_family);
 	memcpy(data, up_msg->node_ip, INET6_ADDRSTRLEN);
 	data = data+INET6_ADDRSTRLEN;
-	memcpy(data, up_msg->node_name, HOST_NAME_MAX);
+	memcpy(data, up_msg->node_name, _POSIX_HOST_NAME_MAX);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -1463,7 +1463,7 @@ uint32_t dtm_intranode_process_node_up(NODE_ID node_id, char *node_name, char *n
 		node_up_msg.node_id = node_id;
 		node_up_msg.i_addr_family = i_addr_family;
 		strncpy(node_up_msg.node_ip, node_ip, INET6_ADDRSTRLEN);
-		strncpy(node_up_msg.node_name, node_db_info->node_name, HOST_NAME_MAX);
+		strncpy(node_up_msg.node_name, node_db_info->node_name, _POSIX_HOST_NAME_MAX);
 		TRACE("DTM: node_ip:%s, node_id:%u i_addr_family:%d ", node_up_msg.node_ip, node_up_msg.node_id, node_up_msg.i_addr_family);
 		dtm_lib_prepare_node_up_msg(&node_up_msg, buffer);
 		while (NULL != node_subscr_info) {
@@ -1931,7 +1931,7 @@ uint32_t dtm_intranode_add_self_node_to_node_db(NODE_ID node_id, char *node_name
 	node_db_info->node_id = node_id;
 	node_db_info->i_addr_family = i_addr_family;
 	memcpy(node_db_info->node_ip, node_ip, INET6_ADDRSTRLEN);
-	memcpy(node_db_info->node_name, node_name, HOST_NAME_MAX);
+	memcpy(node_db_info->node_name, node_name, _POSIX_HOST_NAME_MAX);
 	TRACE("DTM: nnode_name:%s, node_ip:%s, node_id:%u i_addr_family:%d ",
 			node_db_info->node_name, node_db_info->node_ip,node_db_info->node_id,node_db_info->i_addr_family);
 	if (NCSCC_RC_SUCCESS != (dtm_add_to_node_db_list(node_db_info))) {
