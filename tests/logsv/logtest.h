@@ -27,6 +27,9 @@
 #include <utest.h>
 #include <util.h>
 
+#include <osaf_time.h>
+#include <logtrace.h>
+
 #define SA_LOG_CONFIGURATION_OBJECT "logConfig=1,safApp=safLogService"
 #define SA_LOG_STREAM_APPLICATION1 "safLgStr=saLogApplication1"
 #define SA_LOG_STREAM_APPLICATION2 "safLgStr=saLogApplication2"
@@ -71,7 +74,62 @@ extern char log_root_path[];
 /* Same as system() but returns WEXITSTATUS if not -1 */
 int tet_system(const char *command);
 
+/* Vebose mode. If set some test cases will print extra information */
+bool verbose_flg;
+void printf_v(const char *format, ...) __attribute__ ((format(printf, 1, 2)));
+
+/* Silent mode. If set test cases printing information will be silent
+ * Only affects stdout. Do not affect default printouts for PASS/FAIL info
+ */
+bool silent_flg;
+void printf_s(const char *format, ...) __attribute__ ((format(printf, 1, 2)));
+
+/* Tag mode. Same as silent mode except that a TAG is printed on stdout when
+ * time to take an external action. E.g. TAG_ND means stop SC nodes.
+ * The tag is printed on a separate line.
+ */
+bool tag_flg;
+void print_t(const char *format, ...) __attribute__ ((format(printf, 1, 2)));
+
+/* Extra test cases */
+void add_suite_9(void);
+void add_suite_10(void);
+void add_suite_11(void);
+
 int get_active_sc(void);
 int get_attr_value(SaNameT *inObjName, char *inAttr, void **outNum, char *outStr);
+
+/* Inline time measuring functions */
+typedef struct {
+    struct timespec start_time;
+    struct timespec end_time;
+    struct timespec diff_time;
+} time_meas_t;
+/**
+ *
+ * @param tm[out]
+ */
+static inline void time_meas_start(time_meas_t* tm)
+{
+    osaf_clock_gettime(CLOCK_REALTIME, &tm->start_time);
+}
+
+static inline void time_meas_log(time_meas_t* tm, char *id)
+{
+    osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
+    osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
+    LOG_NO("LLDTEST3 %s [%s]\t Elapsed time %ld sec, %ld nsec",
+	    __FUNCTION__, id,
+	    tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
+}
+
+
+static inline void time_meas_print_v(time_meas_t* tm, char *id)
+{
+    osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
+    osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
+    printf_v("\n%s. Elapsed time %ld.%09ld sec\n", id,
+	    tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
+}
 
 #endif

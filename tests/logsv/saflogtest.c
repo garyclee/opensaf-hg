@@ -41,9 +41,39 @@
 #include <poll.h>
 #include <unistd.h>
 #include <limits.h>
+#include <saf_error.h>
 
 #include <saAis.h>
 #include <saLog.h>
+
+#if 1 /*LLDTEST1 Test inline functions */
+#include <osaf_time.h>
+#include <logtrace.h>
+
+typedef struct {
+    struct timespec start_time;
+    struct timespec end_time;
+    struct timespec diff_time;
+} time_meas_t;
+/**
+ *
+ * @param tm[out]
+ */
+static inline void time_meas_start(time_meas_t* tm)
+{
+    osaf_clock_gettime(CLOCK_REALTIME, &tm->start_time);
+}
+
+
+static inline void time_meas_log(time_meas_t* tm, char *id)
+{
+    osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
+    osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
+    LOG_NO("LLDTEST3 %s [%s]\t Elapsed time %ld sec, %ld nsec",
+	    __FUNCTION__, id,
+	    tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
+}
+#endif
 
 #define DEFAULT_FORMAT_EXPRESSION "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\""
 #define DEFAULT_APP_LOG_REC_SIZE 150
@@ -147,7 +177,7 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 	errorCode = saLogWriteLogAsync(logStreamHandle, invocation, ackflags, logRecord);
 
 	if (errorCode != SA_AIS_OK) {
-		fprintf(stderr, "saLogWriteLogAsync FAILED: %u\n", errorCode);
+		fprintf(stderr, "saLogWriteLogAsync FAILED: %s\n", saf_error(errorCode));
 		return errorCode;
 	}
 
@@ -174,7 +204,7 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 
 		errorCode = saLogDispatch(logHandle, SA_DISPATCH_ONE);
 		if (errorCode != SA_AIS_OK) {
-			fprintf(stderr, "saLogDispatch FAILED: %u\n", errorCode);
+			fprintf(stderr, "saLogDispatch FAILED: %s\n", saf_error(errorCode));
 			return errorCode;
 		}
 
@@ -184,7 +214,7 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 		}
 
 		if ((cb_error != SA_AIS_ERR_TRY_AGAIN) && (cb_error != SA_AIS_OK)) {
-			fprintf(stderr, "logWriteLogCallbackT FAILED: %u\n", cb_error);
+			fprintf(stderr, "logWriteLogCallbackT FAILED: %s\n", saf_error(cb_error));
 			return cb_error;
 		}
 
@@ -488,7 +518,7 @@ int main(int argc, char *argv[])
 	
 	error = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "saLogInitialize FAILED: %u\n", error);
+		fprintf(stderr, "saLogInitialize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
@@ -517,7 +547,7 @@ int main(int argc, char *argv[])
 				SA_TIME_ONE_SECOND,
 				&logStreamHandle);
 		if (error != SA_AIS_OK) {
-			fprintf(stderr, "saLogStreamOpen_2 FAILED: %u\n", error);
+			fprintf(stderr, "saLogStreamOpen_2 FAILED: %s\n", saf_error(error));
 			exit(EXIT_FAILURE);
 		}
 		free_logFileCreateAttributes(logFileCreateAttributes_ptr);
@@ -540,7 +570,7 @@ int main(int argc, char *argv[])
 
 	/* Wait for key press (any key) before closing stream(s) and or finalize */
 	if (do_not_exit_f == true) {
-		printf("\nWaiting for any key to close stream(s) and exit...\n");
+		printf("\nPress 'Enter' to close stream(s) finalize and exit...\n");
 		(void) getchar();
 		do_not_exit_f = false;
 	}
@@ -558,14 +588,14 @@ int main(int argc, char *argv[])
 	if (stream_cnt == 1) {
 		error = saLogStreamClose(logStreamHandle);
 		if (SA_AIS_OK != error) {
-			fprintf(stderr, "saLogStreamClose FAILED: %u\n", error);
+			fprintf(stderr, "saLogStreamClose FAILED: %s\n", saf_error(error));
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	error = saLogFinalize(logHandle);
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "saLogFinalize FAILED: %u\n", error);
+		fprintf(stderr, "saLogFinalize FAILED: %s\n", saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 

@@ -54,7 +54,7 @@ static bool verbose_pr = false;
 static bool step_exec = false;
 
 const int trymax = 20;
-const unsigned int sleep_delay_us = 500 * 1000 * 1000; /* 0,5 sec */
+const unsigned int sleep_delay_us = 5 * 100 * 1000; /* 0,5 sec */
 const char logfile_name_str[] = "logtestfr";
 const char logfile_path_str[] = "logtestfr_path";
 const SaUint32T logrec_max_size = 256;
@@ -235,7 +235,7 @@ static int init_log_open_stream(SaAisErrorT *ais_rc)
 	/* Prepare callback */
 	logCallbacks.saLogWriteLogCallback = log_write_callback;
 	
-	/* Initialize log API. No callbacks needed */
+	/* Initialize log API */
 	do {
 		/* Try again loop. If other error end loop */
 		*ais_rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
@@ -396,7 +396,7 @@ static int write_logrecord(int rec_cnt, SaAisErrorT *ais_rc)
 			/* An error or timeout. Could be EAGAIN but we handle this as an
 			 * error
 			 */
-			if (rc == -1) {
+			if (poll_rc == -1) {
 				perror("write_logrecord() Poll fail");
 			} else {
 				printf_v("%s Poll timeout when writing log record\n",

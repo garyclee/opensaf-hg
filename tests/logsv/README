@@ -12,6 +12,10 @@ to supplementary group list of the user as which LOGSV is running.
 Otherwise that TC will be skipped.
 
 
+
+Tests not part of the automatic regression test suites
+------------------------------------------------------
+
 SET UP A CLUSTER 02 NODES WITH DIFFERENT CKPT VERSIONS
 ------------------------------------------------------
 There was issue when two nodes runs with different ckpt versions.

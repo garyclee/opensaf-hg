@@ -45,6 +45,7 @@ logtest_SOURCES = \
 	tet_saLogLimitGet.c \
 	tet_LogOiOps.c \
 	tet_Log_misc.c \
+	tet_Log_recov.c \
 	tet_log_runtime_cfgobj.c
 
 logtest_LDADD = \
