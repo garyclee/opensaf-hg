@@ -1,0 +1,234 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2015 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+GENERAL
+-------
+
+This is a description of how the Log service handle headless (SC down) and
+recovery after SC up.
+For the LOG Service this means that all information that existed in the server
+on SC-nodes is lost. The concept is that the server use information left in
+cached runtime attributes in stream IMM runtime objects together with
+information in log files to recover streams and information obtained from agents
+to recover information about connected clients.
+
+
+CONFIGURATION
+-------------
+
+The Log service reads the "scAbsenceAllowed" attribute. If the attribute is not
+empty the Log service will perform recovery when SC-nodes are up after headless.
+If the attribute is empty the Log service will still be able to restart after
+headless but all handles are invalidated meaning that all APIs except initialize
+will return BAD HANDLE.
+
+
+RECOVERY HANDLING IN SERVER
+---------------------------
+
+The active server will do the following recovery handling:
+
+* Search for and create a list of all runtime objects (dn)
+  If objects are found it most likely means that we have started after a
+  headless state.
+* Start a timeout timer if there are objects in the list. The timeout time is
+  set to a long time, 10 min. The reason is that recovery may take place during
+  a rather long time. Recovery for a specific client is not actually needed
+  before the client sends a request. A typical use case is that a client
+  from before the headless state wants to write a log record.
+* The agent keeps track of which clients that is not yet recovered. Before
+  receiving a write request or opening a stream the server expects that the
+  client is initialized. The next request is expected to be to open a stream.
+  If the open request is for opening an existing stream and the stream does not
+  exist the server will look in the list. If the stream is found it will be
+  recreated. After it is recreated it is removed from the list. If not found in
+  the list normal error handling apply
+* A stream is recreated based on the cached runtime attributes in the stream
+  runtime IMM object. Some information however is not found there. This
+  information is current log file, size of current log file and record Id for
+  last written log record. This information will be recreated from the log file
+  that was open when server down happened. This log file can be found using the
+  stream name, relative path and the fact that the file does not have a close
+  time stamp in its name.
+* When the list is empty the timeout timer is stopped. If timeout happen
+  remaining objects in the list are deleted. Now the server works as before.
+  The reason that there may be objects left in the list when timeout is that
+  clients that existed before headless state no longer exist (e.g. if running on
+  SC node) and that such a client has created a stream and no other client that
+  has opened this stream exist either.
+* If recover fail; the file cannot be found or some other file problem or
+  problem with the stream object etc. an error code is returned to the agent.
+  The actual recovery will take place when the stream open request is received
+  so it is most likely that this request will get the error code.
+  If the stream object exist in the list it will be deleted and removed from the
+  list.
+
+The standby server will do the following:
+
+* Search for and create a list of all runtime objects (dn). See active
+
+* Start a timeout timer if there are objects in the list. See active
+
+* When receiving check-point events for stream open the correponding name is
+  removed from the list if exist
+
+* When timeout the list is deleted
+
+The list must be handled on standby in order to have a relevant list in case of
+standby becoming active.
+
+
+States in the Log server
+-------------------------
+Recovery state:
+ Enter if runtime objects found during startup
+  - Start recovery timer
+  - Handle recovery
+ Exit when recovery timer timeout
+  - Remove remaining runtime objects if any
+  - Go to Normal state
+
+Normal state:
+ Enter if no runtime object found during startup or when exiting Recovery state
+  - This is normal state of operation.
+
+
+RECOVERY HANDLING IN AGENT
+--------------------------
+
+General
+-------
+To spread out recovery communication with the server as much as possible in time
+the recovery actions are not started automatically by all agents in the cluster
+as soon as server up is detected. First, recovery is done based on when it is
+needed and is done when a client sends a request, most likely a write request.
+It may also be a request to open a stream that is assumed to exist. However it
+is likely that a client does not write to the log very often and the first time
+such a client wants to write is well after the time when recovery is no longer
+possible (see timeout handling in server). It is therefore necessary for the
+agent to make sure that recovery is done for all clients before recovery time
+is up. This is done using a timeout timer and when timeout a recovery thread
+starts to recover all clients that are not already recovered.
+
+The agent will do the following when detecting server down, during server down
+(headless state) and when server up detected:
+
+States in the agent
+-------------------
+Server down detected:
+* Mark all clients and their open streams as not recovered. Also remove id
+  information received from the server (client id and stream ids)
+* Stop recovery timer if running and remove recovery thread if it exist
+* Set No server state
+
+No server state:
+* Return TRY AGAIN for all APIs except StreamClose, Finalize and Write
+  - Finalize:
+    Remove client by freeing all resources and remove from list
+    (normal handling) but do not send message to server. Normal error handling
+    and return codes apply
+ - StreamClose:
+   It is possible to call SaLogStreamClose API when headless.
+   When the LOG service is up, all "abandoned" runtime stream will be cleanup,
+   include removing IMM obj and rename cfg/log file name by appending close time to them.
+
+Server up detected:
+Note: This is done in the MDS thread
+* Start a timer and a recovery thread waiting for timeout. The timeout time is
+  randomly selected within an interval resulting in a timeout time that is
+  significantly shorter than the timeout in the server resulting in deletion of
+  stream runtime objects
+* Set Recovery state 1
+
+Recovery state 1:
+* Before timeout and if the client is not recovered (client recovered flag is
+  false) a client requesting to open an existing stream or write a log record
+  starts a recovery sequence. This recovery sequence is done in the client
+  thread calling the API function.
+  If the request is to close a stream that is not marked as recovered it will
+  just be removed from the client list of streams. No message is sent to the
+  server.
+  If the request is to finalize the client will be removed from the agent
+  client list. No message is sent to the server.
+
+  The recovery sequence is:
+   - Send an Initialize request (if not already initialized) to get a client id
+   - Send a server request to open an existing stream for the stream in the
+     client open request or write request to get a stream id
+   - Set stream as recovered
+   - If all streams are recovered set the client as recovered
+
+  If Fail:
+   - Invalidate the client handle (delete the client) and return BAD HANDLE.
+     The client and all its stream handles are lost and must be reinitialized
+
+* If all clients are fully recovered:
+   - Stop timer
+   - Set Normal state
+
+* If timeout:
+   - Set Recovery state 2
+
+Recovery state 2:
+* When timeout a recovery sequence to recover all clients registered with the
+  agent and not already recovered is started in a recover thread. During this
+  recovery all requests from the client will be answered with TRY AGAIN this is
+  also the case for Finalize and Write.
+
+  The sequence is for each client not already recovered:
+   - Initialize the client if not already initialized
+   - Open all not already opened streams registered with the client.
+     An open request without parameters and create flag not set is used.
+     The server will check if the stream already has an IMM object and if so
+     restore the stream. See [RECOVERY HANDLING IN SERVER]
+   - If success the client is marked as recovered
+  If Fail
+   - Invalidate the client handle (delete the client). If the client later
+     request an operation other than initialize BAD HANDLE will be returned.
+     The client and all its stream handles are lost and must be reinitialized
+
+* All clients are recovered
+   - Terminate the recovery thread
+   - Set Normal state
+
+Normal state:
+ Enter when server up during normal startup
+  - This is normal state of operation.
+
+
+Limitations
+-----------
+There are some situations when recovery or a complete recovery cannot/is not
+done:
+
+* If recovery of a stream fails the client will be invalidated.
+  This is the case also if the client has more than one stream and one or more
+  streams already has been successfully recovered. The reason for this is to
+  avoid resource leaks. This will happen if the client error handling is to
+  re-initialize the log service if BAD HANDLE is received if opening a stream or
+  writing to a stream. If this is done the "old" client and its open streams
+  will continue living as a "zombie" client in the server.
+
+* Recovery of log record Id is done by parsing the latest log file that contains
+  log records. The log record Id is normally a number that is in the beginning
+  of each log record. This is always the case if the default format is used.
+  The latest record Id for a stream is found by searching backwards from the
+  end of the file until '\n' is found (or start of file) the first characters
+  after that character is assumed to be the Id number. This however does not
+  always work e.g if a log message contains a '\n'.
+  This will not fail the recovery of the stream but record Id numbering will
+  restart from 1.
