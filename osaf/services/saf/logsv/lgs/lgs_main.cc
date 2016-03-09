@@ -31,21 +31,26 @@
 #include <daemon.h>
 #include <nid_api.h>
 #include <ncs_main_papi.h>
+#include <osaf_time.h>
 
 #include "lgs.h"
 #include "lgs_file.h"
 #include "osaf_utility.h"
+#include "lgs_recov.h"
 
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
  */
-
-#define FD_TERM 0
-#define FD_AMF 1
-#define FD_MBCSV 2
-#define FD_MBX 3
-#define FD_IMM 4		/* Must be the last in the fds array */
+enum {
+	FD_TERM = 0,
+	FD_AMF,
+	FD_MBCSV,
+	FD_MBX,
+	FD_CLTIMER,
+	FD_IMM,		/* Must be the last in the fds array */
+	FD_NUM
+};
 
 #ifndef LOG_STREAM_LOW_LIMIT_PERCENT
 #define LOG_STREAM_LOW_LIMIT_PERCENT 0.6 // default value for low is 60%
@@ -62,6 +67,7 @@
  */
 
 static lgs_cb_t _lgs_cb;
+
 lgs_cb_t *lgs_cb = &_lgs_cb;
 SYSF_MBX lgs_mbx; /* LGS's mailbox */
 
@@ -83,8 +89,8 @@ uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
  */
 pthread_mutex_t lgs_mbox_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static struct pollfd fds[5];
-static nfds_t nfds = 5;
+static struct pollfd fds[FD_NUM];
+static nfds_t nfds = FD_NUM;
 static NCS_SEL_OBJ usr1_sel_obj;
 
 /**
@@ -195,6 +201,69 @@ uint32_t lgs_configure_mailbox(void)
 }
 
 /**
+ * Get OpenSAF global scAbsenceAllowed configuration
+ */
+static void init_scAbsenceAllowed()
+{
+	SaUint32T scAbsenceAllowed_val = 0;
+
+	TRACE_ENTER();
+
+	if (lgs_get_scAbsenceAllowed_attr(&scAbsenceAllowed_val) != NULL) {
+		TRACE("%s\t Got scAbsenceAllowed_val = %d", __FUNCTION__,
+			scAbsenceAllowed_val);
+	}
+
+	lgs_cb->scAbsenceAllowed = scAbsenceAllowed_val;
+
+	TRACE_LEAVE();
+}
+
+/**
+ * Initiate recovery handling.
+ * Note1: This must be done during init before any streams are created
+ * Note2: Recovery state timer is started in the main() function
+ *
+ * If absence is allowed configuration is set:
+ * - Create a list of recoverable streams
+ * - If list is not empty set recovery state to LGS_RECOVERY
+ */
+static void init_recovery()
+{
+	int list_num = 0;
+
+	TRACE_ENTER();
+
+	/* Set default state */
+	lgs_cb->lgs_recovery_state = LGS_NORMAL;
+
+	/* Get the value of the scAbsenceAllowed IMM attribute for configuring
+	 * SC node absence handling
+	 */
+	init_scAbsenceAllowed();
+
+	if (lgs_cb->scAbsenceAllowed == 0) {
+		TRACE("%s Absence is not allowded", __FUNCTION__);
+		TRACE_LEAVE();
+		return;
+	}
+
+	/* Create a list of recoverable (IMM object exist) streams */
+	lgs_search_stream_objects();
+	list_num = log_rtobj_list_no();
+
+	TRACE("Number of runtime objects found = %d", list_num);
+
+	/* set recovery state if the list is not empty */
+	if (list_num != 0) {
+		/* There are objects in list */
+		lgs_cb->lgs_recovery_state = LGS_RECOVERY;
+	}
+
+	TRACE_LEAVE2();
+}
+
+/**
  * Initialize log
  * 
  * @return uns32
@@ -253,6 +322,9 @@ static uint32_t log_initialize(void)
 		LOG_ER("lgs_file_init FAILED");
 		goto done;
 	}
+
+	/* Initiate "headless" recovery handling */
+	init_recovery();
 
 	/* Initialize configuration stream class
 	 * Configuration must have been initialized
@@ -324,7 +396,11 @@ static uint32_t log_initialize(void)
 		/* Create streams that has configuration objects and become
 		 * class implementer for the SaLogStreamConfig class
 		 */
-		if (lgs_imm_create_configStream(lgs_cb) != SA_AIS_OK) {
+
+		/* Note1: lgs_cb->immOiHandle is set in lgs_imm_init()
+		 * Note2: lgs_cb->logsv_root_dir must be set
+		 */
+		if (lgs_imm_init_configStreams(lgs_cb) != SA_AIS_OK) {
 			LOG_ER("lgs_imm_create_configStream FAILED");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
@@ -362,6 +438,17 @@ int main(int argc, char *argv[])
 	uint32_t rc;
 	int term_fd;
 
+	/* File descriptor for timeout to delete not used stream runtime objects.
+	 * May exist after 'headless' state.
+	 */
+	int cltimer_fd = -1;
+
+	/* Timeout time in seconds before clean up of runtime objects that may
+	 * still exist after a "headless" situation. After timeout recovery of
+	 * "lost" streams is no longer possible.
+	 */
+	const time_t CLEAN_TIMEOUT = 600; /* 10 min */
+
 	daemonize(argc, argv);
 	
 	if (log_initialize() != NCSCC_RC_SUCCESS) {
@@ -371,6 +458,13 @@ int main(int argc, char *argv[])
 	
 	mbx_fd = ncs_ipc_get_sel_obj(&lgs_mbx);
 	daemon_sigterm_install(&term_fd);
+
+	if (log_rtobj_list_no() != 0) {
+		/* Needed only if any "lost" objects are found
+		 * See log_initialize */
+		cltimer_fd = lgs_init_timer(CLEAN_TIMEOUT);
+		TRACE("%s Recovery timeout started", __FUNCTION__);
+	}
 
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
@@ -382,6 +476,8 @@ int main(int argc, char *argv[])
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
+	fds[FD_CLTIMER].fd = cltimer_fd;
+	fds[FD_CLTIMER].events = POLLIN;
 	fds[FD_IMM].fd = lgs_cb->immSelectionObject;
 	fds[FD_IMM].events = POLLIN;
 
@@ -438,6 +534,25 @@ int main(int argc, char *argv[])
 				LOG_ER("MBCSv Dispatch Failed");
 				break;
 			}
+		}
+
+		if (fds[FD_CLTIMER].revents & POLLIN) {
+			/* To avoid 'stray objects', after a timeout all runtime
+			 * objects that has not been restored shall be deleted
+			 */
+			TRACE("Recover state End. Clean objects");
+
+			/* Close timer to free resources and stop timer poll */
+			lgs_close_timer(cltimer_fd);
+			fds[FD_CLTIMER].fd = -1;
+
+			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+				/* Delete objects left if active */
+				lgs_cleanup_abandoned_streams();
+			}
+
+			/* Remove the found objects list */
+			log_rtobj_list_free();
 		}
 
 		if (fds[FD_MBX].revents & POLLIN)

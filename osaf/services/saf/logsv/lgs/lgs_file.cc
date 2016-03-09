@@ -184,6 +184,11 @@ static void *file_hndl_thread(void *noparam)
 				hndl_rc = own_log_files_by_group_hdl(lgs_com_data.indata_ptr,
 						lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
 				break;
+			case LGSF_GET_FILE_PAR:
+				hndl_rc = lgs_get_file_params_hdl(lgs_com_data.indata_ptr,
+								  lgs_com_data.outdata_ptr,
+								  lgs_com_data.outdata_size);
+				break;
 			default:
 				break;
 			}

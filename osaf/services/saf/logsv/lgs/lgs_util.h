@@ -77,4 +77,8 @@ bool lgs_is_valid_pathlength(const std::string &path,
                              const std::string &fileName,
 			     const std::string &rootPath = "");
 
+/* Timer functions */
+int lgs_init_timer(time_t timeout_s);
+void lgs_close_timer(int ufd);
+
 #endif   /* ifndef __LGS_UTIL_H */

@@ -42,6 +42,7 @@
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_file.h"
+#include "lgs_recov.h"
 #include "lgs_config.h"
 #include "saf_error.h"
 
@@ -276,8 +277,6 @@ static uint32_t ckpt_stream_config(log_stream_t *stream)
 /**
  * Pack and send an open stream checkpoint using mbcsv
  * @param stream
- * @param recType
- *
  * @return uint32
  */
 static uint32_t ckpt_stream_open(log_stream_t *stream)
@@ -2507,7 +2506,8 @@ done:
  * @return SaAisErrorT
  */
 static SaAisErrorT stream_create_and_configure(const char *dn,
-		log_stream_t **in_stream, int stream_id, SaImmAccessorHandleT accessorHandle)
+		log_stream_t **in_stream, int stream_id,
+		SaImmAccessorHandleT accessorHandle)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	SaNameT objectName;
@@ -2606,6 +2606,15 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 		} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
 			stream->severityFilter = *((SaUint32T *)value);
 			TRACE("severityFilter: %u", stream->severityFilter);
+		} else if (!strcmp(attribute->attrName, "saLogStreamCreationTimestamp")) {
+			if (attribute->attrValuesNumber != 0) {
+				/* Restore creation timestamp if exist
+				 * Note: Creation timestamp in stream is set to
+				 * current time which will be the value if no
+				 * value found in object
+				 */
+				stream->creationTimeStamp = *(static_cast<SaTimeT *>(value));
+			}
 		}
 	}
 
@@ -2648,11 +2657,15 @@ static const SaImmOiCallbacksT_2 callbacks = {
  * IMM-OM interface and initialize the corresponding information
  * in the LOG control block. Initialize the LOG IMM-OI
  * interface. Become class implementer.
+ *
+ * @param cb[in] control block
+ * @return
  */
-SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb)
+SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 {
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT ais_rc = SA_AIS_OK;
 	SaAisErrorT om_rc;
+	int int_rc = 0;
 	log_stream_t *stream;
 	SaImmHandleT omHandle;
 	SaImmAccessorHandleT accessorHandle;
@@ -2685,9 +2698,13 @@ SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb)
 			&immSearchHandle)) == SA_AIS_OK) {
 
 		while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
-			if ((rc = stream_create_and_configure((char*) objectName.value,
-					&stream, streamId, accessorHandle)) != SA_AIS_OK) {
-				LOG_ER("stream_create_and_configure failed %d", rc);
+			/* Note: Here is creationTimeStamp and severityFilter set
+			 * Can be recovered if scAbseceAllowed
+			 */
+			ais_rc = stream_create_and_configure((char*) objectName.value,
+					&stream, streamId, accessorHandle);
+			if (ais_rc != SA_AIS_OK) {
+				LOG_WA("stream_create_and_configure failed %d", ais_rc);
 				goto done;
 			}
 			streamId += 1;
@@ -2709,12 +2726,28 @@ SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb)
 
 	stream = log_stream_getnext_by_name(NULL);
 	while (stream != NULL) {
-		(void)immutil_update_one_rattr(cb->immOiHandle, stream->name,
-					       const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
-					       SA_IMM_ATTR_SATIMET,
-					       &stream->creationTimeStamp);
+		if (cb->scAbsenceAllowed != 0) {
+			int_rc = log_stream_open_file_restore(stream);
+			if (int_rc == -1) {
+				/* Restore failed. Initialize instead */
+				LOG_NO("%s: log_stream_open_file_restore Fail", __FUNCTION__);
+				log_stream_open_fileinit(stream);
+				stream->creationTimeStamp = lgs_get_SaTime();
+			}
+		} else {
+			/* Always create new files and set current timestamp to
+			 * current time
+			 */
+			log_stream_open_fileinit(stream);
+			stream->creationTimeStamp = lgs_get_SaTime();
+		}
 
-		log_stream_open_fileinit(stream);
+		(void)immutil_update_one_rattr(
+			cb->immOiHandle, stream->name,
+			const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
+			SA_IMM_ATTR_SATIMET,
+			&stream->creationTimeStamp);
+
 		stream = log_stream_getnext_by_name(stream->name);
 	}
 
@@ -2740,7 +2773,7 @@ SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb)
 	immutilWrapperProfile.errorsAreFatal = errorsAreFatal; /* Enable again */
 
 	TRACE_LEAVE();
-	return rc;
+	return ais_rc;
 }
 
 /**
@@ -2950,4 +2983,480 @@ void lgs_imm_impl_reinit_nonblocking(lgs_cb_t *cb)
 	pthread_attr_destroy(&attr);
 
 	TRACE_LEAVE();
+}
+
+/******************************************************************************
+ * Functions used for recovery handling
+ ******************************************************************************/
+/**
+ * Search for old runtime stream objects and put their names in a list.
+ * Become OI for the runtime stream class if any objects found
+ *
+ * @param object_list
+ */
+void lgs_search_stream_objects()
+{
+	int rc = 0;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	SaImmHandleT immOmHandle;
+	SaImmSearchHandleT immSearchHandle;
+	const char* class_name = "SaLogStream";
+
+	TRACE_ENTER();
+
+	/* Save immutil settings and reconfigure immutil
+	 */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+
+	/* Intialize Om API
+	 */
+	ais_rc = immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	if (ais_rc != SA_AIS_OK) {
+		LOG_WA("%s saImmOmInitialize FAIL %d", __FUNCTION__, ais_rc);
+		goto done;
+	}
+
+	/* Initialize search for application stream runtime objects
+	 * Search for all objects of class 'SaLogStream'
+	 * Search criteria:
+	 * Attribute SaImmAttrClassName == SaLogStream
+	 */
+	SaImmSearchParametersT_2 searchParam;
+	searchParam.searchOneAttr.attrName = const_cast<char *>("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &class_name;
+	SaNameT root_name;
+	root_name.value[0] = '\0';
+	root_name.length = 1;
+
+	ais_rc = immutil_saImmOmSearchInitialize_2(
+			immOmHandle,
+			&root_name,
+			SA_IMM_SUBTREE,
+			SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
+			&searchParam,
+			NULL,
+			&immSearchHandle);
+	if (ais_rc != SA_AIS_OK) {
+		LOG_WA("%s saImmOmSearchInitialize FAIL %d", __FUNCTION__, ais_rc);
+		goto done_fin_Om;
+	}
+
+	/* Iterate the search and save objects in list until all objects found
+	 */
+	SaNameT object_name;
+	SaImmAttrValuesT_2 **attributes;
+
+	ais_rc = immutil_saImmOmSearchNext_2(immSearchHandle, &object_name, &attributes);
+	if (ais_rc == SA_AIS_ERR_NOT_EXIST) {
+		TRACE("\tNo objects found");
+	}
+
+	while (ais_rc == SA_AIS_OK) {
+		TRACE("\tFound object \"%s\"", reinterpret_cast<char *>(object_name.value));
+		/* Add the string to the list
+		 */
+		rc = log_rtobj_list_add(reinterpret_cast<char *>(object_name.value));
+		if (rc == -1) {
+			TRACE("%s Could not add %s to list Fail",
+			      __FUNCTION__, reinterpret_cast<char *>(object_name.value));
+		}
+
+		/* Get next object */
+		ais_rc = immutil_saImmOmSearchNext_2(immSearchHandle,
+			&object_name, &attributes);
+	}
+	if (ais_rc == SA_AIS_ERR_NOT_EXIST) {
+		TRACE("\tAll objects found OK");
+	} else {
+		LOG_WA("\t%s saImmOmSearchNext FAILED %d", __FUNCTION__, ais_rc);
+	}
+
+	/* Finalize the serach API
+	 */
+	ais_rc = immutil_saImmOmSearchFinalize(immSearchHandle);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("\tsaImmOmSearchFinalize FAIL %d", ais_rc);
+	}
+
+done_fin_Om:
+	/* Finalize the Om API
+	 */
+	ais_rc = immutil_saImmOmFinalize(immOmHandle);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("\tsaImmOmFinalize FAIL %d", ais_rc);
+	}
+
+done:
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+	TRACE_LEAVE();
+}
+
+void lgs_delete_one_stream_object(char *name_str)
+{
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	SaNameT object_name;
+
+	if (name_str == NULL) {
+		TRACE("%s No object name given", __FUNCTION__);
+		return;
+	}
+
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	/* Copy name to a SaNameT */
+	(void) strncpy(reinterpret_cast<char *>(object_name.value),
+		       name_str, SA_MAX_NAME_LENGTH);
+	object_name.length = strlen(name_str) + 1;
+
+	/* and delete the object */
+	ais_rc = immutil_saImmOiRtObjectDelete(lgs_cb->immOiHandle, &object_name);
+	if (ais_rc == SA_AIS_OK) {
+		TRACE("%s Object \"%s\" deleted", __FUNCTION__,
+		      reinterpret_cast<char *>(object_name.value));
+	} else {
+		LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
+		       __FUNCTION__, reinterpret_cast<char *>(object_name.value), ais_rc);
+	}
+
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+}
+
+/**
+ * Delete all stream objects in the stream object list.
+ * And do appending close time to cfg/log files of the streams.
+ * See also: lgs_search_stream_objects()
+ */
+void lgs_cleanup_abandoned_streams()
+{
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	int pos = 0;
+	char *name_str;
+	SaNameT object_name;
+
+	TRACE_ENTER();
+	/* Check if there are any objects to delete. If not do nothing  */
+	if (log_rtobj_list_no() <= 0) {
+		TRACE("%s\t No objects to delete is found", __FUNCTION__);
+		return;
+	}
+
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	pos = log_rtobj_list_getnamepos();
+	while (pos != -1) {
+		/* Get found name */
+		name_str = log_rtobj_list_getname(pos);
+
+		/* Append the close time to log file and configuration file */
+		(void) log_close_rtstream_files(name_str);
+
+		/* Delete the object if in object list. Note this is an Oi operation
+		 * Remove name from list
+		 */
+		if (name_str != NULL) {
+			/* Copy name to a SaNameT */
+			(void) strncpy(reinterpret_cast<char *>(object_name.value),
+				       name_str, SA_MAX_NAME_LENGTH);
+			object_name.length = strlen(name_str) + 1;
+			/* and delete the object */
+			ais_rc = immutil_saImmOiRtObjectDelete(lgs_cb->immOiHandle,
+				&object_name);
+			if (ais_rc == SA_AIS_OK) {
+				TRACE("\tObject \"%s\" deleted",
+				      reinterpret_cast<char *>(object_name.value));
+			} else {
+				LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
+				       __FUNCTION__,
+				       reinterpret_cast<char *>(object_name.value), ais_rc);
+			}
+		} else {
+			/* Should never happen! */
+			TRACE("%s\tFound name has NULL pointer!", __FUNCTION__);
+		}
+		/* Remove deleted object name from list */
+		log_rtobj_list_erase_one_pos(pos);
+
+		/* Get next object */
+		pos = log_rtobj_list_getnamepos();
+	}
+
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+	TRACE_LEAVE();
+}
+
+/**
+ * Get cached stream attributes for given object name
+ *
+ * @param attrib_out[out] Pointer to a NULL terminated SaImmAttrValuesT_2 vector
+ * @param object_name[in]  String containing the object name
+ * @param immOmHandle[out]
+ * @return -1 on error
+ */
+int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out, char *object_name_in,
+	SaImmHandleT *immOmHandle)
+{
+	int rc = 0;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	SaImmAccessorHandleT accessorHandle;
+	char *attribute_names[] = {
+		const_cast<char *>("saLogStreamFileName"),
+		const_cast<char *>("saLogStreamPathName"),
+		const_cast<char *>("saLogStreamMaxLogFileSize"),
+		const_cast<char *>("saLogStreamFixedLogRecordSize"),
+		const_cast<char *>("saLogStreamHaProperty"),
+		const_cast<char *>("saLogStreamLogFullAction"),
+		const_cast<char *>("saLogStreamMaxFilesRotated"),
+		const_cast<char *>("saLogStreamLogFileFormat"),
+		const_cast<char *>("saLogStreamSeverityFilter"),
+		const_cast<char *>("saLogStreamCreationTimestamp"),
+		NULL
+	};
+
+	TRACE_ENTER2("object_name_in \"%s\"", object_name_in);
+
+	SaNameT object_name;
+
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	if (object_name_in == NULL) {
+		TRACE("%s No object name given (NULL)", __FUNCTION__);
+		rc = -1;
+		goto done;
+	}
+
+	/* Initialize Om API
+	 */
+	ais_rc = immutil_saImmOmInitialize(immOmHandle, NULL, &immVersion);
+	if (ais_rc != SA_AIS_OK) {
+		LOG_WA("\t%s saImmOmInitialize FAIL %d", __FUNCTION__, ais_rc);
+		rc = -1;
+		goto done;
+	}
+
+	/* Initialize accessor for reading attributes
+	 */
+	ais_rc = immutil_saImmOmAccessorInitialize(*immOmHandle, &accessorHandle);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s\t saImmOmAccessorInitialize Fail '%s'",
+			__FUNCTION__, saf_error(ais_rc));
+		rc = -1;
+		goto done;
+	}
+
+	strncpy(reinterpret_cast<char *>(object_name.value),
+		object_name_in, SA_MAX_NAME_LENGTH);
+	object_name.length = strlen(reinterpret_cast<char *>(object_name.value)) + 1;
+
+	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
+			attribute_names, attrib_out);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s\t saImmOmAccessorGet_2 Fail '%s'",
+			__FUNCTION__, saf_error(ais_rc));
+		rc = -1;
+		goto done_fin_Om;
+	} else {
+		goto done;
+	}
+
+done_fin_Om:
+	/* Free resources if fail */
+	ais_rc = immutil_saImmOmFinalize(*immOmHandle);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s\t saImmOmFinalize Fail '%s'",
+			__FUNCTION__, saf_error(ais_rc));
+	}
+
+done:
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Free resources claimed when calling lgs_get_streamobj_attr()
+ *
+ * @param immHandle[in]
+ * @return -1 on error
+ */
+int lgs_free_streamobj_attr(SaImmHandleT immOmHandle)
+{
+	int rc = 0;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	ais_rc = immutil_saImmOmFinalize(immOmHandle);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s\t saImmOmFinalize Fail '%s'",
+			__FUNCTION__, saf_error(ais_rc));
+		rc = -1;
+	}
+
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Read the scAbsenceAllowed attribute in
+ * opensafImm=opensafImm,safApp=safImmService object.
+ * No value means that "absence handling" is not allowed. For Log this means
+ * that no recovery shall be done.
+ *
+ * @param attr_val[out] Value read from scAbsenceAllowed attribute. 0 = No value
+ * @return Pointer to attr_val if value is read. NULL if no value. If NULL the
+ *         value in attr_val is not valid
+ */
+SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val)
+{
+	SaUint32T *rc_attr_val = NULL;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	SaImmAccessorHandleT accessorHandle;
+	SaImmHandleT immOmHandle;
+	SaImmAttrValuesT_2 *attribute;
+	SaImmAttrValuesT_2 **attributes;
+
+	TRACE_ENTER();
+	char *attribute_names[] = {
+		const_cast<char *>("scAbsenceAllowed"),
+		NULL
+	};
+	char object_name_str[] = "opensafImm=opensafImm,safApp=safImmService";
+
+	SaNameT object_name;
+	strncpy(reinterpret_cast<char *>(object_name.value),
+		object_name_str, SA_MAX_NAME_LENGTH);
+	object_name.length = strlen(reinterpret_cast<char *>(object_name.value)) + 1;
+
+	/* Default restore handling shall be disabled. Is enabled if the
+	 * scAbsenceAllowed attribute is not empty
+	 */
+	*attr_val = 0;
+
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	/* Initialize Om API
+	 */
+	ais_rc = immutil_saImmOmInitialize(&immOmHandle, NULL, &immVersion);
+	if (ais_rc != SA_AIS_OK) {
+		LOG_WA("\t%s saImmOmInitialize FAIL %d", __FUNCTION__, ais_rc);
+		goto done;
+	}
+
+	/* Initialize accessor for reading attributes
+	 */
+	ais_rc = immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s\t saImmOmAccessorInitialize Fail '%s'",
+			__FUNCTION__, saf_error(ais_rc));
+		goto done;
+	}
+
+
+	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
+			attribute_names, &attributes);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s\t saImmOmAccessorGet_2 Fail '%s'",
+			__FUNCTION__, saf_error(ais_rc));
+		goto done_fin_Om;
+	}
+
+	void *value;
+
+	/* Handle the global scAbsenceAllowed_flag */
+	attribute = attributes[0];
+	TRACE("%s\t attrName \"%s\"", __FUNCTION__, attribute->attrName);
+	if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
+		/* scAbsenceAllowed has value. Get the value */
+		value = attribute->attrValues[0];
+		*attr_val = *(static_cast<SaUint32T *>(value));
+		rc_attr_val = attr_val;
+	}
+
+done_fin_Om:
+	/* Free Om resources */
+	ais_rc = immutil_saImmOmFinalize(immOmHandle);
+	if (ais_rc != SA_AIS_OK) {
+		TRACE("%s\t saImmOmFinalize Fail '%s'",
+			__FUNCTION__, saf_error(ais_rc));
+	}
+
+done:
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+	TRACE_LEAVE();
+	return rc_attr_val;
 }

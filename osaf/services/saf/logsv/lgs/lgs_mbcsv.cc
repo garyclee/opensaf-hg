@@ -24,6 +24,7 @@
 #include "lgs_mbcsv_v3.h"
 #include "lgs_mbcsv_v2.h"
 #include "lgs_mbcsv_v1.h"
+#include "lgs_recov.h"
 
 /*
 LGS_CKPT_DATA_HEADER
@@ -1856,6 +1857,7 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 {
 	lgs_ckpt_stream_open_t *param;
 	log_stream_t *stream;
+	int pos = 0;
 
 	TRACE_ENTER();
 	
@@ -1871,7 +1873,8 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 	/* Check that client still exist */
 	if ((param->clientId != invalidClient) &&
 		(lgs_client_get_by_id(param->clientId) == NULL)) {
-		LOG_WA("\tClient %u does not exist, failed to create stream '%s'", param->clientId, param->logStreamName);
+		LOG_WA("\tClient %u does not exist, failed to create stream '%s'",
+			   param->clientId, param->logStreamName);
 		goto done;
 	}
 
@@ -1890,7 +1893,7 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 		strcpy((char *)name.value, param->logStreamName);
 		name.length = strlen(param->logStreamName);
 
-		stream = log_stream_new(&name,
+		stream = log_stream_new_1(&name,
 				param->logFile,
 				param->logPath,
 				param->maxFileSize,
@@ -1901,11 +1904,12 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 				param->streamType,
 				param->streamId,
 				SA_FALSE,	// FIX sync or calculate?
-				param->logRecordId);
+				param->logRecordId,
+				0);
 
 		if (stream == NULL) {
 			/* Do not allow standby to get out of sync */
-			LOG_ER("%s - Failed to create stream '%s'",__FUNCTION__,
+			LOG_ER("%s - Failed to create stream '%s'", __FUNCTION__,
 					param->logStreamName);
 			goto done;
 		}
@@ -1923,6 +1927,9 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 	 */
 	if (lgs_is_split_file_system()) {
 		if (stream->numOpeners <= 1) {
+			TRACE("%s: log_initiate_stream_files(%s)",
+				  __FUNCTION__, stream->fileName.c_str());
+
 			log_initiate_stream_files(stream);
 		}
 	}
@@ -1935,10 +1942,15 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 	if ((param->clientId != invalidClient) &&
 		lgs_client_stream_add(param->clientId, stream->streamId) != 0) {
 		/* Do not allow standby to get out of sync */
-		LOG_ER("%s - Failed to add stream '%s' to client %u",__FUNCTION__,
+		LOG_ER("%s - Failed to add stream '%s' to client %u", __FUNCTION__,
 				param->logStreamName, param->clientId);
 		lgs_exit("Could not add stream to client", SA_AMF_COMPONENT_RESTART);
 	}
+
+	/* Stream is opened  on standby. Remove from rtobj list if exist */
+	pos = log_rtobj_list_find(param->logStreamName);
+	if (pos != -1)
+		log_rtobj_list_erase_one_pos(pos);
 
  done:
 	/* Free strings allocated by the EDU encoder */

@@ -21,6 +21,7 @@
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
+#include "lgs_recov.h"
 
 /* Macro to validate the version */
 #define m_LOG_VER_IS_VALID(ver)   \
@@ -375,6 +376,8 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 		break;
 
 	case LGSV_LGS_EVT_LGA_DOWN:
+		TRACE("%s: LGSV_LGS_EVT_LGA_DOWN mds_dest = %" PRIx64,
+		      __FUNCTION__, evt->fr_dest);
 		if ((lgs_cb->ha_state == SA_AMF_HA_ACTIVE) || (lgs_cb->ha_state == SA_AMF_HA_QUIESCED)) {
 		/* Remove this LGA entry from our processing lists */
 			osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
@@ -772,11 +775,17 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
 
 /**
  * Create a new application stream
- * @param open_sync_param
- * @param o_stream
- * @return 
+ *
+ * @param open_sync_param[in] Parameters used to create the stream
+ * @param o_stream[out]       The created stream
+ * @param create_object_f     IMM stream object is created
+ *
+ * @return AIS return code
  */
-static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_stream_t **o_stream)
+SaAisErrorT create_new_app_stream(
+		lgsv_stream_open_req_t *open_sync_param,
+		log_stream_t **o_stream,
+		int creationFlag)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	log_stream_t *stream;
@@ -870,7 +879,7 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 		goto done;
 	}
 
-	stream = log_stream_new(&open_sync_param->lstr_name,
+	stream = log_stream_new_1(&open_sync_param->lstr_name,
 				open_sync_param->logFileName,
 				open_sync_param->logFilePathName,
 				open_sync_param->maxLogFileSize,
@@ -878,7 +887,11 @@ static SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param
 				open_sync_param->logFileFullAction,
 				open_sync_param->maxFilesRotated,
 				open_sync_param->logFileFmt,
-				STREAM_TYPE_APPLICATION, STREAM_NEW, twelveHourModeFlag, 0);
+				STREAM_TYPE_APPLICATION,
+				STREAM_NEW,
+				twelveHourModeFlag,
+				0,
+				creationFlag);
 
 	if (stream == NULL) {
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -960,6 +973,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	log_stream_t *logStream;
 	char name[SA_MAX_NAME_LENGTH + 1];
 	time_t file_closetime = 0;
+	int i_rc = 0;
 
 	/* Create null-terminated stream name */
 	memcpy(name, open_sync_param->lstr_name.value, open_sync_param->lstr_name.length);
@@ -981,10 +995,12 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 			/* One of the well-known log streams */
 			if (open_sync_param->lstr_open_flags & SA_LOG_STREAM_CREATE) {
 				ais_rv = SA_AIS_ERR_INVALID_PARAM;
+				rc = NCSCC_RC_FAILURE;
 				goto snd_rsp;
 			}
 		}
 	} else {
+		/* Stream does not exist */
 		if (cb->immOiHandle == 0) {
 			TRACE("IMM service unavailable, open stream failed");
 			ais_rv = SA_AIS_ERR_TRY_AGAIN;
@@ -992,20 +1008,48 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		}
 
 		if ((open_sync_param->lstr_open_flags & SA_LOG_STREAM_CREATE) == 0) {
-			ais_rv = SA_AIS_ERR_NOT_EXIST;
-			goto snd_rsp;
+			/* The stream does not exist but the create flag is not
+			 * set. If lgs_state is LGS_RECOVERY then:
+			 * Check if the stream is in the list of stream objects
+			 * not recovered. If in list, recover the stream and
+			 * add it to the client
+			 */
+			if (lgs_cb->lgs_recovery_state == LGS_RECOVERY) {
+				TRACE("%s LGS_RECOVERY",__FUNCTION__);
+				i_rc = lgs_restore_one_app_stream(name,
+					open_sync_param->client_id,
+					&logStream);
+				if (i_rc == -1) {
+					TRACE("%s lgs_restore_one_stream Fail", __FUNCTION__);
+					ais_rv = SA_AIS_ERR_NOT_EXIST;
+					goto snd_rsp;
+				}
+				TRACE("%s Stream %s is recovered", __FUNCTION__, name);
+				log_stream_print(logStream); /* TRACE */
+				lstr_id = logStream->streamId;
+				goto snd_rsp;
+			} else {
+				/* Trying to open a non existing stream */
+				TRACE("%s Attempt to open not existing stream", __FUNCTION__);
+				ais_rv = SA_AIS_ERR_NOT_EXIST;
+				goto snd_rsp;
+			}
 		}
 
 		/* Create the stream: 
 		 *  - Check parameters
 		 *  - Create the stream in the stream "data base"
 		 *  - If active create IMM runtime object
+		 *  - If recover do not create IMM object
 		 * 
 		 * Note: Files are not created here
 		 */
-		ais_rv = create_new_app_stream(open_sync_param, &logStream);
-		if (ais_rv != SA_AIS_OK)
+		ais_rv = create_new_app_stream(open_sync_param, &logStream, 1);
+		if (ais_rv != SA_AIS_OK) {
+			TRACE("%s create_new_app_stream Fail \"%s\"",
+				__FUNCTION__, saf_error(ais_rv));
 			goto snd_rsp;
+		}
 	}
 
 	/* Create the log files:
@@ -1030,7 +1074,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		goto snd_rsp;
 	}
 
-	TRACE_4("logStream->streamId = %u", logStream->streamId);
+	TRACE_4("logStream->streamId = %u is created", logStream->streamId);
 	lstr_id = logStream->streamId;
 
  snd_rsp:

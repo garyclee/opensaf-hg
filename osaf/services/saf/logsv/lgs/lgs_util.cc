@@ -30,12 +30,13 @@
 
 #include <stdlib.h>
 #include <grp.h>
+#include <osaf_time.h>
 
 #include "immutil.h"
 #include "lgs.h"
 #include "lgs_file.h"
 #include "lgs_filehdl.h"
-#include "osaf_time.h"
+#include "osaf_timerfd.h"
 
 #define ALARM_STREAM_ENV_PREFIX "ALARM"
 #define NOTIFICATION_STREAM_ENV_PREFIX "NOTIFICATION"
@@ -239,14 +240,14 @@ SaTimeT lgs_get_SaTime()
  * @param root_path[in]
  * @param rel_path[in]
  * @param old_name[in]
- * @param time_stamp[in] 
+ * @param time_stamp[in]
  *        Can be set to NULL but then new_name must be the complete new name
  *        including time stamps but without suffix
  * @param suffix[in]
- * @param new_name[in/out] 
- *        Pointer to char string of NAME_MAX size
+ * @param new_name[in/out]
+ *        Pointer to char string
  *        Filename of renamed file. Can be set to NULL
- * 
+ *
  * @return -1 if error
  */
 int lgs_file_rename_h(
@@ -409,7 +410,7 @@ void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisE
 
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS)
-		LOG_NO("Failed (%u) to send of WRITE ack to: %" PRIu64, rc, mds_dest);
+		LOG_NO("Failed (%u) to send of WRITE ack to: %" PRIx64, rc, mds_dest);
 
 	TRACE_LEAVE();
 }
@@ -635,6 +636,45 @@ done:
 	free(data_in);
 	TRACE_LEAVE2("rc = %d",rc);
 	return rc;
+}
+
+/**
+ * Initiate a timer:
+ * Creates a timeout timer, set timeout time and starts the timer
+ * returns a file descriptor to the timer that can be used with poll()
+ * See also osaf_timerfd.h
+ *
+ * @param timeout_s[in] Timeout time in seconds
+ * @return fd  File descriptor referring to the created timer
+ */
+int lgs_init_timer(time_t timeout_s)
+{
+	int fd;
+	struct itimerspec lgs_cltimer;
+
+	fd = osaf_timerfd_create(CLOCK_MONOTONIC, 0);
+
+	/* Set timeout time. Do not use as interval timer */
+	lgs_cltimer.it_interval.tv_sec = 0;
+	lgs_cltimer.it_interval.tv_nsec = 0;
+	/* Set timeout in seconds */
+	lgs_cltimer.it_value.tv_sec = timeout_s;
+	lgs_cltimer.it_value.tv_nsec = 0;
+
+	osaf_timerfd_settime(fd, 0, &lgs_cltimer, NULL);
+
+	return fd;
+}
+
+/**
+ * Close a timer created with lgs_init_timer()
+ * See also osaf_timerfd.h
+ *
+ * @param ufd[in]
+ */
+void lgs_close_timer(int ufd)
+{
+	osaf_timerfd_close(ufd);
 }
 
 /**
