@@ -21,12 +21,16 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <configmake.h>
+#include <ctype.h>
+#include <stdarg.h>
 #include <saImmOm.h>
 #include <immutil.h>
 #include <saImm.h>
 #include <saf_error.h>
 
 #include "logtest.h"
+
+#define LLDTEST
 
 SaNameT systemStreamName =
 {
@@ -260,6 +264,69 @@ int get_attr_value(SaNameT *inObjName, char *inAttr, void **outNum,
 }
 
 /**
+ * Verbose printing
+ * If chosen extra trace printouts will be done during test.
+ *
+ * In-parameters same as printf()
+ * @param format [in]
+ * @param ... [in]
+ */
+void printf_v(const char *format, ...)
+{
+	va_list argptr;
+
+	if (!verbose_flg)
+		return;
+
+	va_start(argptr, format);
+	(void) vfprintf(stdout, format, argptr);
+	va_end(argptr);
+}
+
+/**
+ * Silent printing
+ * If chosen no information printouts will be done during test.
+ * Only affects stdout. Do not affect default printouts for PASS/FAIL info
+ *
+ * In-parameters same as printf()
+ * @param format [in]
+ * @param ... [in]
+ */
+void printf_s(const char *format, ...)
+{
+	va_list argptr;
+
+	if (silent_flg)
+		return;
+
+	va_start(argptr, format);
+	(void) vfprintf(stdout, format, argptr);
+	va_end(argptr);
+}
+
+/**
+ * Tag printing
+ * If chosen no information printouts will be done during test.
+ * Only affects stdout. Do not affect default printouts for PASS/FAIL info
+ *
+ * In-parameters same as printf()
+ * @param format [in]
+ * @param ... [in]
+ */
+void print_t(const char *format, ...)
+{
+	va_list argptr;
+
+	if (!tag_flg)
+		return;
+
+	va_start(argptr, format);
+	(void) vfprintf(stdout, format, argptr);
+	va_end(argptr);
+	(void) fflush(NULL);
+}
+
+/**
  * Return info about which SC node that is Active
  * 
  * Note: Using immutil with default setting meaning abort if error
@@ -315,34 +382,215 @@ int get_active_sc(void)
 	return active_sc;
 }
 
-int main(int argc, char **argv) 
+/**
+ * Print help text
+ */
+static void usage(void)
 {
-    int suite = ALL_SUITES, tcase = ALL_TESTS;
+	printf("\nNAME\n");
+	printf("\tlogtest - Test log service\n");
 
-	init_logrootpath();
-    srandom(getpid());
+	printf("\nSYNOPSIS\n");
+	printf("\tlogtest [options]\n");
 
-    if (argc > 1)
-    {
-        suite = atoi(argv[1]);
-    }
+	printf(	"\nDESCRIPTION\n");
+	printf(	"\tRun test suite or single test case for log service\n"
+		"\tSome tests are not included in the 'general' test suite.\n"
+		"\tOptions are used to 'activate' not included tests.\n"
+		"\tIf logtest is used with no options all 'general' test cases\n"
+		"\tin all suites will be executed.\n"
+		"\tIt is also possible to run one suite or one test case.\n"
+		"\tExamples:\n"
+		"\tlogtest 1\tWill execute all test cases in suite 1\n"
+		"\tlogtest 1 1\tWill execute test case 1 in suite 1\n");
 
-    if (argc > 2)
-    {
-        tcase = atoi(argv[2]);
-    }
+	printf("\nOPTIONS\n");
 
-    if (suite == 0)
-    {
-        test_list();
-        return 0;
-    }
-	
-	if (suite == 999) {
-		return 0;
+	printf(	"  '0'\t\tList all 'general' test cases.\n"
+		"  \t\tNo test case is executed\n");
+	printf(	"  [s] [t]\tRun test case 't' in 'general' suite 's'\n"
+		"  \t\tIf 's' or 't' (or both) is omittet all 'general' testcases\n"
+		"  \t\tare executed or all test cases in suite 's'\n");
+	printf(	"  -l\t\tList all test cases including test cases not included\n"
+		"  \t\tin the 'general' test\n");
+	printf(	"  -e \"<s> [t]\"\tExecute 'extended' tests not part of\n"
+		"  \t\t\'general' test.\n"
+		"  \t\ts: Test suite number. Must be given\n"
+		"  \t\tt: Test case number. Can be omitted. If omitted all\n"
+		"  \t\t   testcases in the suite is executed\n");
+	printf(	"  -h\t\tThis help\n");
+
+	printf(	"\n  The following options can only be used together with -e\n\n");
+	printf(	"  -v\t\tActivate verbose printing. Some test cases can print\n"
+		"  \t\textra information if verbose is activated\n");
+	printf(	"  -s\t\tActivate silent mode. Suppress printing of information\n"
+		"  \t\tduring test. Only 'standard' PASS/FAIL information will\n"
+		"  \t\tbe printed\n");
+	printf(	"  -t\t\tActivate tag mode. Suppress printing of information\n"
+		"  \t\tduring test. Only 'standard' PASS/FAIL information and\n"
+		"  \t\ttags will be printed. A tag is a short string that will\n"
+		"  \t\tnever be changed. It can be used to trig external events\n"
+		"  \t\tif a test is executed in an external test framework\n");
+
+	printf(	"\n");
+}
+
+static void err_exit(void)
+{
+	usage();
+	exit(1);
+}
+
+/**
+ * Get numeric value (positive) from a string
+ * Will return the value if the initial part of the string is a numeric value
+ * See strtol()
+ *
+ * @param in_str [in] String to investigate
+ * @return value or -2 if not numeric or negative
+ */
+static int str_to_digit(const char *in_str) {
+	long int value = -1;
+	char *endptr;
+
+	value = strtol(in_str, &endptr, 10);
+	if ((endptr == in_str) || (value < 0)) {
+		/* No numeric value or negative */
+		value = -2;
 	}
 
-    return test_run(suite, tcase);
-}  
+	return (int) value;
+}
 
+int main(int argc, char **argv) 
+{
+	int suite = ALL_SUITES, tcase = ALL_TESTS;
+	int opt_val = 0;
+	bool etst_flg = false;
+	int i=0;
+	char *opt_str_ptr;
+	char *tok_str_ptr = NULL;
 
+	init_logrootpath();
+	srandom(getpid());
+	silent_flg = false;
+
+	/* Handle options */
+	char optstr[] ="hle:vst";
+	opt_val = getopt(argc, argv, optstr);
+	do {
+		if (opt_val == -1) /* No option */
+			break;
+
+		switch (opt_val) {
+		case 'h':
+			usage();
+			exit(0);
+		case 'l':
+			add_suite_9();
+			add_suite_10();
+			add_suite_11();
+			test_list();
+			exit(0);
+		case 'e':
+			opt_str_ptr = argv[optind-1];
+
+			tok_str_ptr = strtok(opt_str_ptr, " ");
+			for (i = 0; i < 2; i++) {
+				if (tok_str_ptr == NULL)
+					break;
+
+				if (i == 0) {
+					suite = atoi(tok_str_ptr);
+					if (suite == 0) {
+						/* Argument is not numeric or 0 */
+						err_exit();
+					}
+				} else {
+					tcase = atoi(tok_str_ptr);
+					if (tcase == 0) {
+						/* Argument is not numeric or 0 */
+						err_exit();
+					}
+				}
+				tok_str_ptr = strtok(NULL, " ");
+			}
+
+			etst_flg = true;
+			add_suite_9();
+			add_suite_10();
+			add_suite_11();
+			break;
+		case 'v':
+			if (silent_flg == true) {
+				/* Cannot have silent and
+				 * verbose at the same time */
+				err_exit();
+			}
+			verbose_flg = true;
+			break;
+		case 's':
+			if (verbose_flg == true) {
+				/* Cannot have silent and
+				 * verbose at the same time */
+				err_exit();
+			}
+			silent_flg = true;
+			break;
+		case 't':
+			if (verbose_flg == true) {
+				/* Cannot have tag/silent and
+				 * verbose at the same time */
+				err_exit();
+			}
+			silent_flg = true;
+			tag_flg = true;
+			break;
+		default:
+			/* Unknown option */
+			err_exit();
+		}
+
+		//if (break_flg) break;
+
+		opt_val = getopt(argc, argv, optstr);
+	} while (opt_val != -1);
+
+	if (etst_flg == false) {
+		/* Get input values if no options */
+		if (argc > 1)
+		{
+			suite = str_to_digit(argv[1]);
+			if (suite < ALL_SUITES) {
+				err_exit();
+			}
+		}
+
+		if (argc > 2)
+		{
+			tcase = str_to_digit(argv[2]);
+			if (tcase < ALL_TESTS) {
+				err_exit();
+			}
+		}
+
+		if (suite == 0)
+		{
+			test_list();
+			return 0;
+		}
+
+		if (suite == 999) {
+			return 0;
+		}
+	}
+
+	/* Run test and Measure time to run test.
+	 * Result will be printed if -v option
+	 */
+	time_meas_t tm_tr;
+	time_meas_start(&tm_tr);
+	int rc_tr = test_run(suite, tcase);
+	time_meas_print_v(&tm_tr, "Complete test");
+	return rc_tr;
+}

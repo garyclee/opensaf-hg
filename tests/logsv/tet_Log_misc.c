@@ -17,21 +17,32 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <poll.h>
 #include <saImm.h>
 #include <saImmOm.h>
 #include <limits.h>
 #include <unistd.h>
+#include <stdarg.h>
+#include <osaf_utility.h>
+#include <saf_error.h>
+#include <osaf_poll.h>
 #include "logtest.h"
 
 /*
  * Miscellaneous tests that does not fit in any of the other test suites
  */
 
-/* 
- * Test cases
+/* ********************************
+ * Test cases automatically loaded
  */
 
-void saLogMisc_01(void)
+/**
+ * Log rotation when names of log files has been changed outside of log service
+ * The log service shall not crash
+ *
+ * "Log file rotation if file names truncated"
+ */
+void saLogMisc_71(void)
 {
 	int rc;
 	char command[512];
@@ -44,9 +55,10 @@ void saLogMisc_01(void)
 
 /* 
  * Test suite 7
+ * Miscellaneous tests that does not fit in any of the other test suites
  */
-__attribute__ ((constructor)) static void saOiOperations_constructor(void)
+__attribute__ ((constructor)) static void saMiscLogTest_constructor(void)
 {
-    test_suite_add(7, "LOG Miscellaneous tests");
-    test_case_add(7, saLogMisc_01, "Log file rotation if file names truncated");
+	test_suite_add(7, "LOG Miscellaneous tests");
+	test_case_add(7, saLogMisc_71, "Log file rotation if file names truncated");
 }
