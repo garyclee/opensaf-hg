@@ -26,6 +26,14 @@
 
 #include "lgs_stream.h"
 
+/* LGS Recovery states */
+typedef enum {
+    LGS_NORMAL,     /* No recovery is ongoing. All requests are handled normally */
+    LGS_RECOVERY    /* Recover streams if in recovery list when stream open
+					 * request with no parameters
+					 */
+} lgs_state_t;
+
 /* Default HA state assigned locally during lgs initialization */
 #define LGS_HA_INIT_STATE 0
 
@@ -87,6 +95,12 @@ typedef struct lgs_cb {
 	LGA_DOWN_LIST *lga_down_list_tail;
 
 	bool nid_started;	/**< true if started by NID */
+	SaUint32T scAbsenceAllowed; /* OpenSAF global configuration for recovery handling */
+	lgs_state_t lgs_recovery_state; /* Indicate current recovery state for the server */
+
+	// Initialize default value in contructor
+	lgs_cb() : lgs_recovery_state(LGS_NORMAL) {};
+
 } lgs_cb_t;
 
 extern uint32_t lgs_cb_init(lgs_cb_t *);

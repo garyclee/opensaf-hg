@@ -30,6 +30,8 @@
 #include <ncs_edu_pub.h>
 #include <ncs_util.h>
 #include <saAis.h>
+#include <saf_error.h>
+#include <saImmOm.h>
 
 /* LGS files */
 #include "lgsv_defs.h"
@@ -111,6 +113,16 @@ extern void lgs_imm_impl_reinit_nonblocking(lgs_cb_t *cb);
 extern void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
                                    SaSelectionObjectT *immSelectionObject);
 extern void lgs_imm_impl_set(SaImmOiHandleT immOiHandle);
+extern  SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb);
 
+// Functions for recovery handling
+void lgs_cleanup_abandoned_streams();
+void lgs_delete_one_stream_object(char *name_str);
+void lgs_search_stream_objects();
+SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val);
+int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out,
+			   char *object_name,
+			   SaImmHandleT *immOmHandle);
+int lgs_free_streamobj_attr(SaImmHandleT immHandle);
 
 #endif   /* ifndef __LGS_H */

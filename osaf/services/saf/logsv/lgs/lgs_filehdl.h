@@ -155,6 +155,26 @@ typedef struct {
  * No out parameters
  */
 
+/*
+ * lgs_get_file_params_hdl(...)
+ * Ret code -1 if error
+ */
+/* IN params */
+typedef struct {
+	/* File name prefix (name part before time stamps) */
+	char *file_name;
+	/* Full path to directory root path + rel path */
+	char *file_path;
+} gfp_in_t;
+
+/* OUT params */
+typedef struct {
+	char *curFileName;
+	uint32_t curFileSize;	/* Bytes written to current log file */
+	uint32_t logRecordId;	/* log record identifier increased for each record */
+} gfp_out_t;
+
+
 int path_is_writeable_dir_hdl(void *indata, void *outdata, size_t max_outsize);
 int check_path_exists_hdl(void *indata, void *outdata, size_t max_outsize);
 int rename_file_hdl(void *indata, void *outdata, size_t max_outsize);
@@ -166,6 +186,7 @@ int fileclose_hdl(void *indata, void *outdata, size_t max_outsize);
 int delete_file_hdl(void *indata, void *outdata, size_t max_outsize);
 int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize);
 int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize);
+int lgs_get_file_params_hdl(void *indata, void *outdata, size_t max_outsize);
 
 #endif	/* LGS_FILEHDL_H */
 

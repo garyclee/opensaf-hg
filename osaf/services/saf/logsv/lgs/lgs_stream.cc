@@ -33,8 +33,6 @@
 #include "osaf_time.h"
 
 #define DEFAULT_NUM_APP_LOG_STREAMS 64
-#define LGS_LOG_FILE_EXT ".log"
-#define LGS_LOG_FILE_CONFIG_EXT ".cfg"
 
 static NCS_PATRICIA_TREE stream_dn_tree;
 
@@ -409,6 +407,33 @@ void log_stream_print(log_stream_t *stream)
 	TRACE_2("  filtered:             %llu", stream->filtered);
 }
 
+/**
+ * Free stream resources
+ *
+ * @param stream[in]
+ */
+void log_free_stream_resources(log_stream_t *stream)
+{
+	if (stream->streamId != 0)
+		lgs_stream_array_remove(stream->streamId);
+
+	if (stream->pat_node.key_info != NULL)
+		log_stream_remove(stream->name);
+
+	if (stream->logFileFormat != NULL)
+		free(stream->logFileFormat);
+
+	delete stream;
+	stream = NULL;
+}
+
+/**
+ * Remove a log stream including:
+ * - Runtime object if application stream and active
+ * - Remove stream resources (allocated memory)
+ *
+ * @param s[in] Pointer to the array of streams
+ */
 void log_stream_delete(log_stream_t **s)
 {
 	log_stream_t *stream;
@@ -469,6 +494,12 @@ static void init_log_stream_fd(log_stream_t *stream)
  * Create a new stream object. If HA state active, create the
  * correspronding IMM runtime object.
  * 
+ * Note: log_stream_new() is replaced by this function.
+ *       The new function is doing the same as the old but the possibility
+ *       to create a stream without creating a corresponding runtime object
+ *       is added. See creationFlag parameter
+ *
+ * Stream attributes[in]:
  * @param name
  * @param filename
  * @param pathname
@@ -484,17 +515,21 @@ static void init_log_stream_fd(log_stream_t *stream)
  * 
  * @return log_stream_t*
  */
-log_stream_t *log_stream_new(SaNameT *dn,
-				 const std::string &filename,
-				 const std::string &pathname,
-			     SaUint64T maxLogFileSize,
-			     SaUint32T fixedLogRecordSize,
-			     SaLogFileFullActionT logFullAction,
-			     SaUint32T maxFilesRotated,
-			     const char *logFileFormat,
-			     logStreamTypeT streamType, int stream_id,
-				 SaBoolT twelveHourModeFlag,
-				 uint32_t logRecordId)
+log_stream_t *log_stream_new_1(
+	SaNameT *dn,
+	const std::string &filename,
+	const std::string &pathname,
+	SaUint64T maxLogFileSize,
+	SaUint32T fixedLogRecordSize,
+	SaLogFileFullActionT logFullAction,
+	SaUint32T maxFilesRotated,
+	const char *logFileFormat,
+	logStreamTypeT streamType,
+	int stream_id,
+	SaBoolT twelveHourModeFlag,
+	uint32_t logRecordId,
+	int creationFlag
+	)
 {
 	int rc;
 	log_stream_t *stream = NULL;
@@ -690,10 +725,10 @@ log_stream_t *log_stream_new(SaNameT *dn,
 }
 
 /**
- * Create a new stream object. Do not create an IMM runtime object.
+ * Create a new default stream. Do not create an IMM runtime object.
  * @param name
  * @param stream_id
- * 
+ *
  * @return log_stream_t*
  */
 log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
@@ -704,7 +739,7 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 	osafassert(name != NULL);
 	TRACE_ENTER2("%s, l: %u", name->value, (unsigned int)name->length);
 
-	stream = new (std::nothrow) (log_stream_t)();
+	stream = new (std::nothrow) log_stream_t();
 	if (stream == NULL) {
 		LOG_WA("calloc FAILED");
 		goto done;

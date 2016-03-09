@@ -25,6 +25,9 @@
 
 #include "lgs_fmt.h"
 
+#define LGS_LOG_FILE_EXT ".log"
+#define LGS_LOG_FILE_CONFIG_EXT ".cfg"
+
 /**
  * Stream descriptor.
  * Contains both the IMM LOG Class attributes and implementation dependent
@@ -79,18 +82,21 @@ extern uint32_t log_stream_init();
 extern void log_stream_delete(log_stream_t **s);
 
 #define STREAM_NEW -1
-extern log_stream_t *log_stream_new(SaNameT *name,
-				    const std::string &filename,
-				    const std::string &pathname,
-				    SaUint64T maxLogFileSize,
-				    SaUint32T fixedLogRecordSize,
-				    SaLogFileFullActionT logFullAction,
-				    SaUint32T maxFilesRotated,
-				    const char *logFileFormat,
-				    logStreamTypeT streamType,
-				    int stream_id,
-				    SaBoolT twelveHourModeFlag,
-				    uint32_t logRecordId);
+extern log_stream_t *log_stream_new_1(
+	SaNameT *name,
+	const std::string &filename,
+	const std::string &pathname,
+	SaUint64T maxLogFileSize,
+	SaUint32T fixedLogRecordSize,
+	SaLogFileFullActionT logFullAction,
+	SaUint32T maxFilesRotated,
+	const char *logFileFormat,
+	logStreamTypeT streamType,
+	int stream_id,
+	SaBoolT twelveHourModeFlag,
+	uint32_t logRecordId,
+	int creationFlag
+	);
 
 extern log_stream_t *log_stream_new_2(SaNameT *name, int stream_id);
 
@@ -118,5 +124,6 @@ extern log_stream_t *log_stream_get_by_name(const char *name);
 extern log_stream_t *log_stream_getnext_by_name(const char *name);
 extern void log_stream_print(log_stream_t *stream);
 extern log_stream_t *log_stream_get_by_id(uint32_t id);
+void log_free_stream_resources(log_stream_t *stream);
 
 #endif

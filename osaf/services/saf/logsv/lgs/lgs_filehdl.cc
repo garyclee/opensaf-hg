@@ -23,7 +23,6 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-
 #include <unistd.h>
 
 #include <logtrace.h>
@@ -729,5 +728,428 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize)
 done_exit:
 	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 	TRACE_LEAVE();
+	return rc;
+}
+
+/* ****************************************************************************
+ * lgs_get_file_params_hdl() with help functions
+ *
+ * Find the file that was current log file before server down.
+ * Get file size
+ * Get last written record Id by reading the first characters of the last
+ * log record in the file
+ *
+ */
+
+/**
+ * Count the occurrences  of character <c> in a string
+ * Count from end of string and stop when lim <c> is found or
+ * beginning of string
+ *
+ * @param str[in] '\0' terminated string to count characters in
+ * @param c[in]   Character to count
+ * @param lim[in] Stop count when lim characters found
+ * @return number of occurrences
+ */
+static int chr_cnt_b(char *str, char c, int lim)
+{
+	int cnt = 0;
+
+	if ((str == NULL) || (*str == '\0')) {
+		TRACE("%s: Parameter error", __FUNCTION__);
+		return 0;
+	}
+
+	char *ptr_str_end = strchr(str, '\0');
+	char *ptr_str_pos = ptr_str_end - 1;
+
+	while (1) {
+		if (*ptr_str_pos == c)
+			cnt++;
+
+		/* End if beginning of file or char limit */
+		if ((ptr_str_pos == str) || (cnt >= lim))
+			break;
+
+		ptr_str_pos--;
+	}
+
+	return cnt;
+}
+
+/**
+ * Filter function used by scandir.
+ * Find a current log file if it exist
+ * - name as in file_name_find[]
+ * - extension .log
+ * - two timestamps (other log files has four)
+ */
+/* Filename prefix (no timestamps or extension */
+static std::string file_name_find_g;
+static int filter_logfile_name(const struct dirent *finfo)
+{
+	bool name_found = false, ext_found = false;
+
+	if (strstr(finfo->d_name, file_name_find_g.c_str()) != NULL)
+		name_found = true;
+	if (strstr(finfo->d_name, ".log") != NULL)
+		ext_found = true;
+
+	return (int) (name_found && ext_found);
+}
+
+/**
+ * Get name and size of log file containing the last record Id. Is current log
+ * file if not empty or last rotated if current log file is empty
+ * Also give name of current log file if exist
+ *
+ * @param filepath_i[in]    Path to log file directory
+ * @param filename_i[in]    Name prefix for file to search for
+ * @param filename_o[out]   Name of file with Id. "" if no file found
+ * @param curname_o[out]    Name of current log  file or "" if no current found
+ * @param fsize[out]        Size of current log file
+ * @return -1 on error filename_o is not valid
+ */
+static int filename_get(
+	char *filepath_i, char *filename_i,
+	std::string &filename_o, std::string &curname_o,
+	uint32_t *fsize)
+{
+	int rc = 0;
+	int num_files = 0;
+	int i = 0;
+	struct dirent **namelist;
+	struct stat statbuf;
+	std::string file_path;
+	double time_tmp;
+	char *str_p = NULL;
+	int len = 0;
+	/* Time newest file */
+	double time_new = 0;
+	/* Index in namelist for newest and second newest file */
+	int name_ix_prv = 0, name_ix_new = 0;
+	/* Set to true if file is empty */
+	bool empty_flg_prv = true, empty_flg_new = true;
+
+	TRACE_ENTER();
+
+	// /* Initiate out data */
+	filename_o.clear();
+	curname_o.clear();
+	*fsize = 0;
+
+	/* Create a list of all .log files that has
+	 * <filename_i> in <filepath_i>
+	 */
+	file_name_find_g = filename_i;
+	num_files = scandir(filepath_i, &namelist, filter_logfile_name, alphasort);
+	if (num_files == -1) {
+		TRACE("%s: scandir Fail %s", __FUNCTION__, strerror(errno));
+		rc = -1;
+		goto done;
+	}
+
+	if (num_files == 0) {
+		/* There is no log file at all */
+		TRACE("\t No log file at all found");
+		goto done_free;
+	}
+
+	/* Special case, only one file is found
+	 */
+	if (num_files == 1) {
+		file_path = std::string(filepath_i) + "/" + namelist[0]->d_name;
+		if (stat(file_path.c_str(), &statbuf) == -1) {
+			TRACE("%s: stat() Fail %s", __FUNCTION__, strerror(errno));
+			rc = -1;
+			goto done_free;
+		}
+
+		/* Save found file name */
+		filename_o = namelist[0]->d_name;
+
+		/* Handle current log file output */
+		goto done_hdl_cur;
+	}
+
+	/* Find the newest and the second newest file in the list
+	 * Return in filename_o name of newest file if not empty else
+	 * the second newest (if that also is empty return error)
+	 */
+	time_new = time_tmp = 0;
+	name_ix_prv = name_ix_new = 0;
+	empty_flg_prv = empty_flg_new = false;
+
+	for (i = 0; i < num_files; i++) {
+		file_path = std::string(filepath_i) + "/" + namelist[i]->d_name;
+		if (stat(file_path.c_str(), &statbuf) == -1) {
+			TRACE("%s: stat() Fail %s", __FUNCTION__, strerror(errno));
+			rc = -1;
+			goto done_free;
+		}
+
+		time_tmp = osaf_timespec_to_double(&statbuf.st_mtim);
+		if (time_tmp > time_new) {
+			name_ix_prv = name_ix_new;
+			name_ix_new = i;
+			time_new = time_tmp;
+			empty_flg_prv = empty_flg_new;
+			if (statbuf.st_size == 0)
+				empty_flg_new = true;
+			else
+				empty_flg_new = false;
+		}
+	}
+
+	/* Give found filename for output */
+	*fsize = 0;
+	if (empty_flg_new == false) {
+		/* Give the newest filename and its size. File is not empty */
+		filename_o = namelist[name_ix_new]->d_name;
+		*fsize = statbuf.st_size;
+	} else if (empty_flg_prv == false) {
+		/* Give the second newest filename. File is not empty */
+		filename_o = namelist[name_ix_prv]->d_name;
+	} else {
+		/* Both files are empty. This is an error */
+		TRACE("%s: Both newest and second newest are empy", __FUNCTION__);
+		filename_o.clear();
+		rc = -1;
+	}
+
+done_hdl_cur:
+	/* Handle current log file output */
+	len = strlen(filename_i);
+	str_p = namelist[name_ix_new]->d_name + len;
+	if (chr_cnt_b(str_p, '_', 4) == 2) {
+		/* Newest is current log file */
+		curname_o = namelist[name_ix_new]->d_name;
+	}
+
+done_free:
+	/* Free namelist */
+	for (i = 0; i < num_files; i++) {
+		free(namelist[i]);
+	}
+
+	free(namelist);
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Get last record Id from the given file.
+ * Each record begins with a record Id number. The wanted Id is the last Id
+ * in the file
+ *
+ * @param file_name[in] Complete path to the file
+ * @return record Id or -1 on error. Set to 0 if no error but no Id is found
+ */
+static int record_id_get(const char *file_path)
+{
+	FILE *fd = NULL;
+	int id_rc = 0;
+	int i;
+	int c;
+	long endpos;
+
+	char *read_line = NULL;
+	size_t dummy_n = 0;
+	ssize_t line_len;
+
+	TRACE_ENTER();
+
+	/* Open the file */
+	while (1) {
+		fd = fopen(file_path, "r");
+		if (fd != NULL) {
+			break;
+		} else if (errno != EINTR){
+			TRACE("%s fopen Fail %s",
+				__FUNCTION__, strerror(errno));
+			id_rc = -1;
+			goto done;
+		}
+	}
+
+	/* Get last pos in file */
+	while(1) {
+		if (fseek(fd, 0, SEEK_END) == -1) {
+			if (errno == EINTR)
+				continue;
+			TRACE("\t %d fseek Fail %s",__LINE__, strerror(errno));
+			id_rc = -1;
+			goto done;
+		}
+		break;
+	}
+	endpos = ftell(fd);
+
+	if (endpos == 0) {
+		/* The file is empty. No Id to find */
+		id_rc = 0;
+		goto done;
+	}
+
+	/* Search from the end for '\n' (end of prev record)
+	 * or beginning of file
+	 */
+	for (i = 2; i < endpos; i++) {
+		while(1) {
+			if (fseek(fd, -i, SEEK_END) == -1) {
+				if (errno == EINTR)
+					continue;
+				TRACE("\t %d fseek Fail %s",
+					__LINE__, strerror(errno));
+				id_rc = -1;
+				goto done;
+			}
+			break;
+		}
+
+		c = getc(fd);
+		if (c == '\n')
+			break;
+	}
+
+	/* Get pos for line start */
+	c = getc(fd); /* Dummy read '\n' */
+
+	/* Read the last record and get record id */
+	line_len = getline(&read_line, &dummy_n, fd);
+	if (line_len == -1) {
+		TRACE("%s: getline Fail %s",
+			__FUNCTION__, strerror(errno));
+		id_rc = -1;
+		goto done;
+	}
+	id_rc = atoi(read_line);
+	if (id_rc == 0) {
+		TRACE("%s: \"%s\" has no number. Id set to 0",
+			__FUNCTION__, read_line);
+		id_rc = 0;
+		goto done_free;
+	}
+
+done_free:
+	free(read_line);
+
+done:
+	if (fd != NULL)
+		fclose(fd);
+
+	TRACE_LEAVE();
+	return id_rc;
+}
+
+/**
+ * Get log file information:
+ * - Name of current log file: <name prefix>_YYMMDD_HHMMSS
+ * - Log record id
+ *
+ * Rules:
+ * - If current log file not empty: Name = cur log file, Size = file size,
+ *                                  Id = fr file, rc = OK
+ * - If current log file empty no rotated: Name = cur log file, Size = 0,
+ *                                         Id = 1, rc = OK
+ * - If current log file empty is rotated: Name = cur log file, Size = 0,
+ *                                         Id = fr last rotated, rc = OK
+ * - If no log file at all:  Name = NULL, Size = 0, Id = 1, rc = OK
+ * - If only rotated log file: Name = NULL, Size = 0, Id = fr rotated file,
+ *                             rc = OK
+ *
+ * @param indata[in]      gfp_in_t
+ *        file_name: File name prefix (name part before time stamps)
+ *        file_path: Full path to directory root path + rel path
+ *
+ * @param outdata[out]    gfp_out_t
+ *        curFileName: Current file name <name prefix>_YYMMDD_HHMMSS
+ *        curFileSize: Bytes written to current log file (file size)
+ *        logRecordId: log record identifier for last written log record
+
+ * @param max_outsize[in] sizeof gfp_out_t (not used)
+ *
+ * @return (-1) on error, out data not valid
+ */
+int lgs_get_file_params_hdl(void *indata, void *outdata, size_t max_outsize)
+{
+	gfp_in_t *par_in = static_cast<gfp_in_t *>(indata);
+	gfp_out_t *par_out = static_cast<gfp_out_t *>(outdata);
+	int rc = 0, int_rc = 0;
+	std::string file_name;
+	std::string file_name_cur;
+	std::string file_path;
+	int rec_id = 0;
+	char *ptr_str;
+
+	uint32_t file_size = 0;
+
+	TRACE_ENTER();
+
+	osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK  Critical section */
+
+	/* Initialize out parameters */
+	par_out->curFileName = NULL;
+	par_out->curFileSize = 0;
+	par_out->logRecordId = 0;
+
+	TRACE("file_path = %s, file_name = %s", par_in->file_path, par_in->file_name);
+	/* Get log file to get info from and its size */
+	int_rc = filename_get(
+		par_in->file_path, par_in->file_name,
+		file_name, file_name_cur, &file_size
+		);
+	if (int_rc == -1) {
+		TRACE("%s: filename_get Fail",__FUNCTION__);
+		rc = -1;
+		goto done;
+	}
+
+	if (file_name[0] == '\0') {
+		TRACE("No file found.");
+		par_out->logRecordId = 0;
+		goto done;
+	}
+
+	/* Create the file path */
+	file_path = std::string(par_in->file_path) + "/" + file_name;
+
+	/* Find record id in file */
+	rec_id = record_id_get(file_path.c_str());
+	if (rec_id == -1) {
+		TRACE("%s: record_id_get Fail", __FUNCTION__);
+		rc = -1;
+		goto done;
+	}
+
+	/* Fill in out data */
+	par_out->logRecordId = rec_id;
+	par_out->curFileSize = file_size;
+	if (file_name_cur.empty() == false) {
+		// This memory will be deleted in log_stream_open_file_restore()
+		// who wants to get the info from this memory - par_out->curFileName
+		par_out->curFileName = static_cast<char *>(
+			calloc(1, file_name_cur.size() + 1));
+		if (par_out->curFileName == NULL) {
+			LOG_ER("%s Failed to allocate memory", __FUNCTION__);
+			rc = -1;
+			goto done;
+		}
+
+		strcpy(par_out->curFileName, file_name_cur.c_str());
+		/* Remove extension */
+		ptr_str = strstr(par_out->curFileName, ".log");
+		if (ptr_str == NULL) {
+			TRACE("%s: Could not find .log extension Fail", __FUNCTION__);
+			rc = -1;
+		}
+		*ptr_str = '\0';
+	}
+
+done:
+	osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
+	TRACE_LEAVE2("rc = %d", rc);
 	return rc;
 }
