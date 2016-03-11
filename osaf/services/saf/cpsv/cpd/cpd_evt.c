@@ -43,6 +43,7 @@ static uint32_t cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt);
 static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt);
 
 static uint32_t cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+static uint32_t cpd_evt_proc_ckpt_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
 
 #if ( CPSV_DEBUG == 1)
 static char *cpd_evt_str[] = {
@@ -133,6 +134,9 @@ void cpd_process_evt(CPSV_EVT *evt)
 	case CPD_EVT_MDS_QUIESCED_ACK_RSP:
 		(void)cpd_evt_mds_quiesced_ack_rsp(cb, &evt->info.cpd, &evt->sinfo);
 		break;
+	case CPD_EVT_ND2D_CKPT_INFO_UPDATE:
+		(void)cpd_evt_proc_ckpt_info_upd(cb, &evt->info.cpd, &evt->sinfo);
+		break;
 
 	case CPD_EVT_CB_DUMP:
 		(void)cpd_evt_proc_cb_dump(cb);
@@ -175,6 +179,14 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 	bool is_first_rep = false, is_new_noncol = false;
 	
 	TRACE_ENTER();
+
+	/* Verify if the CKPT Info is updating after headless state */
+	if (cb->is_ckpt_updating == true) {
+		LOG_IN("cpd ckpt info is updating after headless state - rc=SA_AIS_ERR_TRY_AGAIN");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto send_rsp;
+	}
+
 	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_create->ckpt_name, &map_info);
 	if (map_info) {
 
@@ -548,6 +560,14 @@ static uint32_t cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 	CPSV_EVT send_evt;
 
 	TRACE_ENTER();
+
+	/* Verify if the CKPT Info is updating after headless state */
+	if (cb->is_ckpt_updating == true) {
+		LOG_IN("cpd ckpt info is updating after headless state rc=SA_AIS_ERR_TRY_AGAIN");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto send_rsp;
+	}
+
 	rc = cpd_proc_unlink_set(cb, &ckpt_node, map_info, ckpt_name);
 	if (rc != SA_AIS_OK)
 		goto send_rsp;
@@ -606,6 +626,14 @@ static uint32_t cpd_evt_proc_ckpt_rdset(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
+
+	/* Verify if the CKPT Info is updating after headless state */
+	if (cb->is_ckpt_updating == true) {
+		LOG_IN("cpd ckpt info is updating after headless state rc=SA_AIS_ERR_TRY_AGAIN");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto send_rsp;
+	}
+
 	rc = cpd_proc_retention_set(cb, evt->info.rd_set.ckpt_id, evt->info.rd_set.reten_time, &ckpt_node);
 	if (rc != SA_AIS_OK)
 		goto send_rsp;
@@ -656,6 +684,14 @@ static uint32_t cpd_evt_proc_active_set(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
+
+	/* Verify if the CKPT Info is updating after headless state */
+	if (cb->is_ckpt_updating == true) {
+		LOG_IN("cpd ckpt info is updating after headless state rc=SA_AIS_ERR_TRY_AGAIN");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto send_rsp;
+	}
+
 	rc = cpd_proc_active_set(cb, evt->info.arep_set.ckpt_id, evt->info.arep_set.mds_dest, &ckpt_node);
 	if (rc != SA_AIS_OK)
 		goto send_rsp;
@@ -885,6 +921,15 @@ static uint32_t cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt)
 			}
 		}
 		break;
+	case CPD_TMR_TYPE_CKPT_UPDATE:
+		if (cb->ha_state == SA_AMF_HA_ACTIVE && cb->is_ckpt_updating == true)
+			cpd_proc_ckpt_update_post(cb);
+
+		cb->is_ckpt_updating = false;
+		cpd_tmr_stop(&cb->ckpt_update_timer);
+		LOG_NO("cpd_evt_proc_timer_expiry::is_ckpt_updating = %s", cb->is_ckpt_updating ? "true" : "false");
+		break;
+
 	default:
 		break;
 	}
@@ -917,6 +962,8 @@ static uint32_t cpnd_down_process(CPD_CB *cb, CPSV_MDS_INFO *mds_info, CPD_CPND_
 	cpnd_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
 	cpnd_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
 	cpd_tmr_start(&cpnd_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);
+	LOG_NO("cpnd_down_process:: Start CPND_RETENTION timer id = %p, arg=%p",
+		cpnd_info->cpnd_ret_timer.tmr_id, &cpnd_info->cpnd_ret_timer);
 
 	cref_info = cpnd_info->ckpt_ref_list;
 
@@ -1165,6 +1212,22 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 
 	memset(&phy_slot_sub_slot, 0, sizeof(uint32_t));
 
+	/* CKPT Update state handling */
+	if (cb->scAbsenceAllowed && cb->node_id == mds_info->node_id && mds_info->svc_id == NCSMDS_SVC_ID_CPD) 
+		switch (mds_info->change) {
+		case NCSMDS_UP: /* Both SCs restarted, ckpt needs updating so wait for time out */
+			cb->is_ckpt_updating = true;
+			cb->ckpt_update_timer.tmr_id = 0;
+			cb->ckpt_update_timer.type = CPD_TMR_TYPE_CKPT_UPDATE;
+			cpd_tmr_start(&cb->ckpt_update_timer, CPD_CKPT_UPDATE_TIME);
+			LOG_NO("cpd_evt_proc_mds_evt::Start CKPT UPDATE timer tmr_id=%p, arg=%p",
+			      	cb->ckpt_update_timer.tmr_id, &cb->ckpt_update_timer);
+			break;
+
+		default: /* Ignore other states */
+			break;
+		}
+
 	switch (mds_info->change) {
 
 	case NCSMDS_RED_UP:
@@ -1410,4 +1473,170 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+ * Name          : cpd_evt_proc_ckpt_info_upd
+ *
+ * Description   : Function to process update ckpt info receiving from CPND.
+ *
+ * Arguments     : CPND_CB *cb - CPND CB pointer
+ *                 CPSV_EVT *evt - Received Event structure
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uint32_t cpd_evt_proc_ckpt_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+{
+	CPSV_EVT send_evt;
+	SaAisErrorT rc = SA_AIS_OK;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	CPD_CKPT_INFO_NODE *ckpt_node = 0;
+	CPD_CKPT_MAP_INFO *map_info = NULL;
+	CPSV_ND2D_CKPT_INFO_UPD *ckpt_info = &evt->info.ckpt_info;
+	bool is_first_rep = false, is_new_noncol = false;
+	
+	TRACE_ENTER();
+
+	/* Check if Ckpt updating was done or time-out */
+	if (cb->is_ckpt_updating == false) {
+		LOG_ER("cpd ckpt update - Updating ckpt was done or time-out");
+		rc = SA_AIS_ERR_TIMEOUT;
+		goto send_rsp;
+	}
+
+	/* Verify if the checkpoint exist in the database */
+	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_info->ckpt_name, &map_info);
+	if (map_info) {
+		if (!m_COMPARE_CREATE_ATTR(&ckpt_info->attributes, &map_info->attributes)) {
+			/* TODO: There is difference in checkpoint attribute betweent replicas.
+			 * This should never happen */
+			LOG_ER("cpd ckpt update - Difference in checkpoint attribute, ckpt name,dest :%s,%"PRIu64,ckpt_info->ckpt_name.value, sinfo->dest);
+			rc = SA_AIS_ERR_EXIST;
+			goto send_rsp;
+		}
+	} else {
+		is_first_rep = true;
+	}
+
+	/* Add/Update the entries in ckpt DB, ckpt_map DB, ckpt_node DB */
+	proc_rc = cpd_ckpt_db_update_after_headless(cb, &sinfo->dest, ckpt_info, &ckpt_node, &map_info);
+	if (proc_rc == NCSCC_RC_OUT_OF_MEM) {
+		LOG_ER("cpd ckpt update failure ckpt name,dest :  %s, %"PRIu64,ckpt_info->ckpt_name.value, sinfo->dest);
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto send_rsp;
+	} else if (proc_rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("cpd ckpt update failure ckpt name,dest :  %s, %"PRIu64,ckpt_info->ckpt_name.value, sinfo->dest);
+		rc = SA_AIS_ERR_LIBRARY;
+		goto send_rsp;
+	}
+
+	/* Update active replica info */
+	if (ckpt_info->is_active) {
+		if (ckpt_node->is_active_exists == false) {
+			ckpt_node->is_active_exists = true;
+			ckpt_node->active_dest = sinfo->dest;
+		} else {
+			/* TODO: There are 2 active replicas existing same time. This should not happen */
+			LOG_ER("cpd ckpt update - There are 2 active replica existing on 2 nodes 0x%X and 0x%X",
+				m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest),
+				m_NCS_NODE_ID_FROM_MDS_DEST(sinfo->dest));
+		}
+	}
+
+	/* Update ckpt_node with user info */
+	ckpt_node->num_readers += ckpt_info->num_readers;
+	ckpt_node->num_writers += ckpt_info->num_writers;
+	ckpt_node->num_users += ckpt_info->num_users;
+
+	/* Redundancy A2S This is for async update   */
+	/* Only for 1st replica we send the entire info , for later openings we send dest_add */
+	if (is_first_rep) { 
+		cpd_a2s_ckpt_create(cb, ckpt_node);
+		cpd_a2s_ckpt_usr_info(cb, ckpt_node);
+	} else {
+		/* Send the dest info to the Standby SCXB This is for async update */
+		cpd_a2s_ckpt_dest_add(cb, ckpt_node, &sinfo->dest);
+		cpd_a2s_ckpt_usr_info(cb, ckpt_node);
+	}
+
+	/* Non-colocated processing */
+	if ((ckpt_info->is_active == true) && (!(map_info->attributes.creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED))) {
+		/* Policy is to create the replica on both active & standby SCXB's CPND 
+		   Right now replica exists only on the active (local) SCXB */
+		/* if(cb->is_loc_cpnd_up && (cpd_get_slot_sub_id_from_mds_dest(sinfo->dest) != ckpt_node->ckpt_on_scxb1)) */
+		if (cb->is_loc_cpnd_up
+		    && (!m_CPND_IS_ON_SCXB(cb->cpd_self_id, cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))) {
+			proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->loc_cpnd_dest, ckpt_node, map_info);
+			if (proc_rc == NCSCC_RC_SUCCESS)
+				LOG_IN("cpd non coloc ckpt update success ckpt name %s, loc_cpnd_dest:%"PRIu64,ckpt_info->ckpt_name.value, cb->loc_cpnd_dest);
+			else 
+				LOG_ER("cpd non coloc ckpt update failure ckpt name %s, loc_cpnd_dest:%"PRIu64,ckpt_info->ckpt_name.value, cb->loc_cpnd_dest);
+		}
+		/*  if(cb->is_rem_cpnd_up && (cpd_get_slot_sub_id_from_mds_dest(sinfo->dest) != ckpt_node->ckpt_on_scxb2)) */
+		if (cb->is_rem_cpnd_up
+		    && (!m_CPND_IS_ON_SCXB(cb->cpd_remote_id, cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))) {
+			proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->rem_cpnd_dest, ckpt_node, map_info);
+			if (proc_rc == NCSCC_RC_SUCCESS)
+				LOG_IN("cpd non coloc ckpt update success ckpt_name %s and rem_cpnd %"PRIu64,ckpt_info->ckpt_name.value,cb->rem_cpnd_dest);
+			else
+				LOG_ER("cpd non coloc ckpt update failure ckpt_name %s and rem_cpnd %"PRIu64,ckpt_info->ckpt_name.value,cb->rem_cpnd_dest);
+		}
+		/* ND on SCXB has created the same checkpoint, so is_new_noncol must be made to true */
+		is_new_noncol = true;
+	}
+
+	/* Ckpt info successfully updated at CPD, send it to all CPNDs */
+	/* Broadcast the ckpt add info to all the CPNDs, only the relevent CPNDs 
+	   will process this message */
+	if ((is_first_rep == false) || (is_new_noncol == true)) {
+		memset(&send_evt, 0, sizeof(CPSV_EVT));
+		send_evt.type = CPSV_EVT_TYPE_CPND;
+		send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_REP_ADD;
+		send_evt.info.cpnd.info.ckpt_add.ckpt_id = ckpt_node->ckpt_id;
+		send_evt.info.cpnd.info.ckpt_add.mds_dest = sinfo->dest;
+		send_evt.info.cpnd.info.ckpt_add.is_cpnd_restart = false;
+
+		proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			rc = SA_AIS_ERR_LIBRARY;
+			LOG_ER("cpd non coloc ckpt update - broadcast REP_ADD failed rc=%u", proc_rc);
+		} else 
+			LOG_IN("cpd rep add success for ckpt_id:%llx,dest :%"PRIu64,map_info->ckpt_id,sinfo->dest);
+	}
+
+	/* Sync the non-collocated checkpoint. Although the ckpt was synchronized when the replica created
+	 * that synchronization didn't take effect because the SC replica hasn't been added yet */
+	if ((ckpt_info->is_active == true) && (!(map_info->attributes.creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED))) {
+		memset(&send_evt, '\0', sizeof(CPSV_EVT));
+		send_evt.type = CPSV_EVT_TYPE_CPND;
+		send_evt.info.cpnd.type = CPND_EVT_ND2ND_CKPT_SYNC_REQ;
+		send_evt.info.cpnd.info.sync_req.ckpt_id = ckpt_node->ckpt_id;
+
+		proc_rc = cpd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, ckpt_node->active_dest, &send_evt);
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			rc = SA_AIS_ERR_LIBRARY;
+			LOG_ER("cpd non coloc ckpt update - sync failed rc=%u", proc_rc);
+		}
+
+	}
+
+	if (is_first_rep)
+		LOG_IN("cpd ckpt update success for first replica ckpt_id:%llx,dest :%"PRIu64,map_info->ckpt_id,sinfo->dest);
+	else
+		LOG_IN("cpd ckpt update success ckpt_id:%llx,dest :%"PRIu64,map_info->ckpt_id,sinfo->dest);
+
+ send_rsp:
+	/* Send the response to the creater of this ckpt */
+	/* Populate & Send the Open Event to CPND */
+	memset(&send_evt, 0, sizeof(CPSV_EVT));
+	send_evt.info.cpnd.info.ckpt_info_update_ack.error = rc;
+
+	send_evt.type = CPSV_EVT_TYPE_CPND;
+	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_INFO_UPDATE_ACK;
+	proc_rc = cpd_mds_send_rsp(cb, sinfo, &send_evt);
+
+	TRACE_LEAVE2("Ret val %d",proc_rc);
+	return proc_rc;
 }

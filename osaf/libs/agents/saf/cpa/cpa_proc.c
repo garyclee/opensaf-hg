@@ -701,6 +701,53 @@ static void cpa_proc_active_ckpt_info_bcast(CPA_CB *cb, CPA_EVT *evt)
 }
 
 /****************************************************************************
+  Name          : cpa_proc_ckpt_destroy 
+  Description   : This function clean up all information in db relating 
+                  to the destroyed ckpt
+  Arguments     : cb - CPA CB.
+                  evt - CPA_EVT.
+  Return Values : None
+  Notes         : None
+******************************************************************************/
+static void cpa_proc_ckpt_destroy(CPA_CB *cb, CPA_EVT *evt)
+{
+	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
+	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
+	CPA_SECT_ITER_NODE *sect_iter_node = NULL;
+	bool add_flag = false;
+
+	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
+	/* Destroy section iteration node */
+	cpa_sect_iter_node_getnext(&cb->sect_iter_tree, NULL, &sect_iter_node);
+	while (sect_iter_node != NULL) {
+		SaCkptSectionIterationHandleT prev_iter_id = sect_iter_node->iter_id;
+		
+		if (sect_iter_node->gbl_ckpt_hdl == evt->info.ckpt_destroy.ckpt_id)
+			cpa_sect_iter_node_delete(cb, sect_iter_node);
+
+		cpa_sect_iter_node_getnext(&cb->sect_iter_tree, &prev_iter_id, &sect_iter_node);
+	}
+
+	/* Destroy local node connection to the destroy ckpt id */
+	cpa_lcl_ckpt_node_getnext(cb, NULL, &lc_node);
+	while (lc_node != NULL) {
+		SaCkptCheckpointHandleT prev_lcl_ckpt_hdl = lc_node->lcl_ckpt_hdl;
+
+		if (lc_node->gbl_ckpt_hdl == evt->info.ckpt_destroy.ckpt_id)
+			cpa_lcl_ckpt_node_delete(cb, lc_node);
+
+		cpa_lcl_ckpt_node_getnext(cb, &prev_lcl_ckpt_hdl, &lc_node);
+	}
+
+	/* Destroy global node */
+	cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree, &evt->info.ckpt_destroy.ckpt_id, &gc_node, &add_flag);
+	cpa_gbl_ckpt_node_delete(cb, gc_node);
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+}
+
+/****************************************************************************
   Name          : cpa_proc_active_nd_down_bcast 
   Description   : This function will process the bcast from  cpd.
   Arguments     : cb - CPA CB.
@@ -762,10 +809,15 @@ uint32_t cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt)
 	case CPA_EVT_D2A_NDRESTART:
 		cpa_proc_active_nd_down_bcast(cb, &evt->info.cpa);
 		break;
+
 	case CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT:
 	case CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED:
 		if (cpa_proc_ckpt_clm_status_changed(cb, evt) != NCSCC_RC_SUCCESS)
 			rc = NCSCC_RC_FAILURE;
+		break;
+
+	case CPA_EVT_ND2A_CKPT_DESTROY:
+		cpa_proc_ckpt_destroy(cb, &evt->info.cpa);
 		break;
 
 	default:

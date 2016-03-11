@@ -27,6 +27,7 @@ osafckptnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	-DNCS_CPND=1  \
 	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include
 
 osafckptnd_SOURCES = \
@@ -43,6 +44,9 @@ osafckptnd_SOURCES = \
 
 osafckptnd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/common/cpsv/libcpsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
-	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

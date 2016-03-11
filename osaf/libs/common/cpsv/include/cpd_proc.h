@@ -20,6 +20,7 @@
 
 /* CPD definations */
 #define CPD_CPND_DOWN_RETENTION_TIME 600	/* 100 Milli Sec */
+#define CPD_CKPT_UPDATE_TIME 600	/* 10 Milli Sec */
 #define CPD_CLM_API_TIMEOUT 10000000000LL
 /* The count of non colloc replicas created by CPSv (Policy) */
 #define CPD_NON_COLLOC_CREATED_REPLICA_CNT 1
@@ -48,6 +49,11 @@ void cpd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName, SaAm
 uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 					MDS_DEST *cpnd_dest,
 					CPSV_ND2D_CKPT_CREATE *ckpt_create,
+					CPD_CKPT_INFO_NODE **o_ckpt_node, CPD_CKPT_MAP_INFO **io_map_info);
+
+uint32_t cpd_ckpt_db_update_after_headless(CPD_CB *cb,
+					MDS_DEST *cpnd_dest,
+					CPSV_ND2D_CKPT_INFO_UPD *ckpt_info,
 					CPD_CKPT_INFO_NODE **o_ckpt_node, CPD_CKPT_MAP_INFO **io_map_info);
 
 uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
@@ -102,4 +108,5 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg);
 uint32_t cpd_mbcsv_close(CPD_CB *cb);
 bool cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb,  CPD_CKPT_REPLOC_INFO *ckpt_reploc_node ,bool is_unlink_set);
+uint32_t cpd_proc_ckpt_update_post(CPD_CB *cb);
 #endif

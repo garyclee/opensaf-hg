@@ -32,6 +32,7 @@
 #include <daemon.h>
 #include "cpd.h"
 #include "cpd_imm.h"
+#include <rda_papi.h>
 
 enum {
 	FD_TERM = 0,
@@ -202,6 +203,12 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 
 	/* Store the handle in some global location */
 	m_CPD_STORE_CB_HDL(cb->cpd_hdl);
+
+	if (cpd_get_scAbsenceAllowed_attr() != 0 ) {
+		cb->scAbsenceAllowed = true;
+		TRACE("cpd scAbsenceAllowed = true");
+	} else
+		cb->scAbsenceAllowed = false;
 
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->cpd_mbx)) != NCSCC_RC_SUCCESS) {
@@ -430,6 +437,7 @@ void cpd_main_process(CPD_CB *cb)
 	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
 	SaAisErrorT error = SA_AIS_OK;
 	int term_fd;
+	SaAmfHAStateT rda_role = SA_AMF_HA_STANDBY;
 
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->cpd_mbx);
 	error = saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj);
@@ -444,13 +452,27 @@ void cpd_main_process(CPD_CB *cb)
 	}
 
 	daemon_sigterm_install(&term_fd);
-	
+
 	error = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
-	 if (error != SA_AIS_OK) {
+	if (error != SA_AIS_OK) {
 		LOG_ER("cpd clm cluster track failed %u",error);
                 return;
         }
 
+	/* Get the role. If role=SA_AMF_HA_ACTIVE, this is the first checkpoint director
+	 *    starting after both directors have been down.
+	 *    In this case delete old checkpoint runtime objects */
+	if (rda_get_role(&rda_role) != NCSCC_RC_SUCCESS) {
+		LOG_ER("cpd rda_get_role FAILED");
+		return;
+	}
+	if (rda_role == SA_AMF_HA_ACTIVE) {
+		LOG_NO("cpd RDA role is active, clean old checkpoint runtime objects");
+		if (cpd_clean_checkpoint_objects(cb)!= NCSCC_RC_SUCCESS) {
+			LOG_ER("cpd_clean_checkpoint_objects FAILED");
+			return;
+		}
+	}
 
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;

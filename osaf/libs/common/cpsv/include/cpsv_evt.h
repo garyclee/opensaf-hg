@@ -94,6 +94,7 @@ typedef enum cpa_evt_type {
 	CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT,
 	CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED,
 	CPA_EVT_ND2A_ACT_CKPT_INFO_BCAST_SEND,
+	CPA_EVT_ND2A_CKPT_DESTROY,
 	CPA_EVT_MAX
 } CPA_EVT_TYPE;
 
@@ -189,6 +190,7 @@ typedef enum cpnd_evt_type {
    CPND_EVT_A2ND_CKPT_REFCNTSET,        /* ref cont opener's set call */
    CPND_EVT_A2ND_CKPT_LIST_UPDATE,	/* Checkpoint ckpt list update Call */
    CPND_EVT_A2ND_ARRIVAL_CB_UNREG,	/* Checkpoint Arrival Callback Un-Register*/
+   CPND_EVT_D2ND_CKPT_INFO_UPDATE_ACK,	/* Checkpoint information update ack */
    CPND_EVT_MAX
 
 }CPND_EVT_TYPE;
@@ -218,6 +220,7 @@ typedef enum cpd_evt_type {
 	CPD_EVT_ND2D_CKPT_DESTROY_BYNAME,
 	CPD_EVT_ND2D_CKPT_CREATED_SECTIONS,
 	CPD_EVT_TIME_OUT,
+	CPD_EVT_ND2D_CKPT_INFO_UPDATE,   /* Checkpoint information update */
 	CPD_EVT_MAX
 } CPD_EVT_TYPE;
 
@@ -663,6 +666,20 @@ typedef struct cpsv_nd2d_ckpt_name {
 	SaNameT ckpt_name;
 } CPSV_CKPT_NAME_INFO;
 
+typedef struct cpsv_nd2d_ckpt_info_update {
+	SaCkptCheckpointHandleT ckpt_id;
+	SaNameT ckpt_name;
+	SaCkptCheckpointCreationAttributesT attributes;
+	SaCkptCheckpointOpenFlagsT ckpt_flags;
+	SaVersionT client_version;
+	bool is_active;
+	uint32_t num_users;
+	uint32_t num_writers;
+	uint32_t num_readers;
+	bool is_last;
+	bool is_unlink;
+} CPSV_ND2D_CKPT_INFO_UPD;
+
 /* CPA Local Events */
 typedef struct cpa_tmr_info {
 	uint32_t type;
@@ -701,6 +718,7 @@ typedef struct cpa_evt {
 		CPSV_SAERR_INFO readackRsp;
 		CPA_TMR_INFO tmr_info;
 		CPSV_CKPT_DEST_INFO ackpt_info;
+		CPSV_CKPT_ID_INFO ckpt_destroy;
 	} info;
 
 } CPA_EVT;
@@ -771,6 +789,7 @@ typedef struct cpnd_evt
 		CPSV_SAERR_INFO crset_ack;	/* How about get rid of this ACK */
 		CPSV_SAERR_INFO arep_ack;
 		CPSV_SAERR_INFO destroy_ack;
+		CPSV_SAERR_INFO ckpt_info_update_ack;
 
 		CPSV_CKPT_ID_INFO cpnd_restart;
 		CPSV_CKPT_DESTLIST_INFO cpnd_restart_done;
@@ -842,6 +861,7 @@ typedef struct cpd_evt {
 		CPSV_CKPT_DEST_INFO arep_set;
 		CPD_TMR_INFO tmr_info;
 		CPSV_MDS_INFO mds_info;
+		CPSV_ND2D_CKPT_INFO_UPD ckpt_info;
 
 	} info;
 } CPD_EVT;

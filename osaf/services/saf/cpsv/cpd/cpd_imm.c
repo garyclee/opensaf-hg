@@ -19,7 +19,9 @@
 #include "cpd_imm.h"
 #include "immutil.h"
 #include "saImm.h"
+#include "saf_error.h"
 
+extern const SaImmOiImplementerNameT implementer_name;
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 #define CPSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safCheckPointService"
 const SaImmOiImplementerNameT implementer_name = CPSV_IMM_IMPLEMENTER_NAME;
@@ -703,3 +705,203 @@ void cpd_imm_reinit_bg(CPD_CB * cb)
 	TRACE_LEAVE();
 }
 
+/**
+ * @Brief
+ * Search for old runtime checkpoint objects and delete them
+ *
+ * If the checkpoint server on both SC nodes is stopped, runtime IMM
+ * objects for application checkpoints may be left.
+ * This has to be cleaned up when the checkpoint server is started again.
+ *
+ *
+ */
+SaAisErrorT cpd_clean_checkpoint_objects(CPD_CB *cb)
+{
+       SaAisErrorT rc = SA_AIS_OK;
+       SaImmHandleT immOmHandle;
+       SaImmSearchHandleT immSearchHandle;
+
+       TRACE_ENTER();
+
+       /* Save immutil settings and reconfigure */
+       struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+       tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+       tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+       tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+       immutilWrapperProfile.errorsAreFatal = 0;
+       immutilWrapperProfile.nTries = 500;
+       immutilWrapperProfile.retryInterval = 1000;
+
+       /* Intialize Om API
+        */
+       rc = immutil_saImmOmInitialize(&immOmHandle, NULL, &imm_version);
+       if (rc != SA_AIS_OK) {
+               LOG_ER("%s saImmOmInitialize FAIL %d", __FUNCTION__, rc);
+               goto done;
+       }
+
+       rc = immutil_saImmOiImplementerSet(cb->immOiHandle, implementer_name);
+       if (rc != SA_AIS_OK){
+               LOG_ER("cpd immOiImplmenterSet failed with err = %u", rc);
+               goto done;
+       }
+
+       /* Initialize search for application checkpoint runtime objects
+        * Search for all objects of class 'SaCkptCheckpoint'
+        * Search criteria:
+        * Attribute SaImmAttrClassName == SaCkptCheckpoint
+        */
+       SaImmSearchParametersT_2 searchParam;
+       const char* class_name = "SaCkptCheckpoint";
+       searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+       searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+       searchParam.searchOneAttr.attrValue = &class_name;
+       SaNameT root_name;
+       root_name.value[0] = '\0';
+       root_name.length = 1;
+
+       rc = immutil_saImmOmSearchInitialize_2(
+                       immOmHandle,
+                       &root_name,
+                       SA_IMM_SUBTREE,
+                       SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
+                       &searchParam,
+                       NULL,
+                       &immSearchHandle);
+       if (rc != SA_AIS_OK) {
+               LOG_ER("%s saImmOmSearchInitialize FAIL %d", __FUNCTION__, rc);
+               goto done;
+       }
+
+       /* Iterate the search until all objects found
+        * When an object is found it is deleted
+        */
+       SaNameT object_name;
+       SaImmAttrValuesT_2 **attributes;
+
+       while ((rc = immutil_saImmOmSearchNext_2(immSearchHandle, &object_name, &attributes)) == SA_AIS_OK) {
+               /* Delete the runtime object and its children. */
+               rc = immutil_saImmOiRtObjectDelete(cb->immOiHandle, &object_name);
+               if (rc == SA_AIS_OK) {
+                       TRACE("Object \"%s\" deleted", (char *) object_name.value);
+               } else {
+                       LOG_ER("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
+                                       __FUNCTION__, (char *) object_name.value, rc);
+               }
+       }
+
+       if (rc != SA_AIS_ERR_NOT_EXIST) {
+               LOG_ER("%s saImmOmSearchNext FAILED %d", __FUNCTION__, rc);
+       }
+
+done:
+       rc = immutil_saImmOiImplementerClear(cb->immOiHandle);
+       if (rc != SA_AIS_OK) {
+               LOG_ER("saImmOiImplementerClear FAIL %d", rc);
+       }
+
+       /* Finalize the Om API
+        */
+       rc = immutil_saImmOmFinalize(immOmHandle);
+       if (rc != SA_AIS_OK) {
+               LOG_ER("saImmOmFinalize FAIL %d", rc);
+       }
+
+       /* Restore immutil settings */
+       immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+       immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+       immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+       TRACE_LEAVE();
+       return rc;
+}
+
+/****************************************************************************************
+ * Name          : cpd_get_scAbsenceAllowed_attr
+ *
+ * Description   : This function gets scAbsenceAllowed attribute
+ *
+ * Arguments     : -
+ * 
+ * Return Values : scAbsenceAllowed attribute (0 = not allowed)
+ *****************************************************************************************/
+SaUint32T cpd_get_scAbsenceAllowed_attr()
+{
+	SaUint32T rc_attr_val = 0;
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmAccessorHandleT accessorHandle;
+	SaImmHandleT immOmHandle;
+	SaImmAttrValuesT_2 *attribute;
+	SaImmAttrValuesT_2 **attributes;
+
+	TRACE_ENTER();
+
+	char *attribute_names[] = {
+		"scAbsenceAllowed",
+		NULL
+	};
+	char object_name_str[] = "opensafImm=opensafImm,safApp=safImmService";
+
+	SaNameT object_name;
+	strncpy((char *) object_name.value, object_name_str, SA_MAX_NAME_LENGTH);
+	object_name.length = strlen((char *) object_name.value) + 1;
+
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	/* Initialize Om API */
+	rc = immutil_saImmOmInitialize(&immOmHandle, NULL, &imm_version);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("%s saImmOmInitialize FAIL %d", __FUNCTION__, rc);
+		goto done;
+	}
+
+	/* Initialize accessor for reading attributes */
+	rc = immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("%s saImmOmAccessorInitialize Fail %s", __FUNCTION__, saf_error(rc));
+		goto done;
+	}
+
+
+	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, attribute_names, &attributes);
+	if (rc != SA_AIS_OK) {
+		TRACE("%s saImmOmAccessorGet_2 Fail '%s'", __FUNCTION__, saf_error(rc));
+		goto done_fin_Om;
+	}
+
+	void *value;
+
+	/* Handle the global scAbsenceAllowed_flag */
+	attribute = attributes[0];
+	TRACE("%s attrName \"%s\"",__FUNCTION__,attribute->attrName);
+	if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
+		/* scAbsenceAllowed has value. Get the value */
+		value = attribute->attrValues[0];
+		rc_attr_val = *((SaUint32T *) value);
+	}
+
+	done_fin_Om:
+	/* Free Om resources */
+	rc = immutil_saImmOmFinalize(immOmHandle);
+	if (rc != SA_AIS_OK) {
+		TRACE("%s saImmOmFinalize Fail '%s'", __FUNCTION__, saf_error(rc));
+	}
+
+	done:
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+	TRACE_LEAVE();
+	return rc_attr_val;
+}

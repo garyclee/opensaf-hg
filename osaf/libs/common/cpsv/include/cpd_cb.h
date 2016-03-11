@@ -207,6 +207,10 @@ typedef struct cpd_cb_tag {
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for IMM events */
 
+	CPD_TMR ckpt_update_timer;
+	bool is_ckpt_updating;
+	bool scAbsenceAllowed;
+
 } CPD_CB;
 
 #define CPD_CB_NULL  ((CPD_CB *)0)
