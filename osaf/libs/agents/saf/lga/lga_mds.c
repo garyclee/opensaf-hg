@@ -140,16 +140,39 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		TRACE("p8 NULL!!!");
 		goto done;
 	}
-	if (param->logFileName != NULL)
+	if (param->logFileName != NULL) {
 		len = strlen(param->logFileName) + 1;
-	else
-		len = 0;
+	} else {
+		/**
+		 * Workaround to keep backward compatible [#1686]
+		 * The problem was that standby node (OpenSAF 5.0) failed to come up
+		 * when active node ran with older OpenSAF version (e.g OpenSAF 4.7).
+		 *
+		 * In OpenSAF 4.7 or older, logFileName is declared as an static array of chars
+		 * and always passed to MDS layer for encoding. The length (len) is at least one.
+		 * Therefore, in log service side, there is an precondition check
+		 * in MDS decoding callback if the length of logFileName data is invalid (0).
+		 *
+		 * In OpenSAF 5.0 or later, logFileName is declared as an dynamic one and then
+		 * there is posibility to be NULL when opening one of dedicated log streams.
+		 * Suppose we did not pass any data for encoding when logFileName is NULL,
+		 * when OpenSAF 5.0 log client communicates with OpenSAF 4.7 active log service,
+		 * it would get failed at saLogStreamOpen() because of log service unsuccesfully
+		 * deeode the message at MDS layer (len = 0).
+		 */
+		len = 1;
+	}
+
 	ncs_encode_16bit(&p8, len);
 	ncs_enc_claim_space(uba, 2);
 	total_bytes += 2;
 
 	if (param->logFileName != NULL) {
 		ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->logFileName, len);
+		total_bytes += len;
+	} else {
+		/* Keep backward compatible */
+		ncs_encode_n_octets_in_uba(uba, (uint8_t *)"", len);
 		total_bytes += len;
 	}
 
@@ -159,16 +182,23 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		TRACE("p8 NULL!!!");
 		goto done;
 	}
-	if (param->logFilePathName)
+	if (param->logFilePathName) {
 		len = strlen(param->logFilePathName) + 1;
-	else
-		len = 0;
+	} else {
+		/* Workaround to keep backward compatible */
+		len = 1;
+	}
+
 	ncs_encode_16bit(&p8, len);
 	ncs_enc_claim_space(uba, 2);
 	total_bytes += 2;
 
 	if (param->logFilePathName != NULL) {
 		ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->logFilePathName, len);
+		total_bytes += len;
+	} else {
+		/* Workaround to keep backward compatible */
+		ncs_encode_n_octets_in_uba(uba, (uint8_t *)"", len);
 		total_bytes += len;
 	}
 
