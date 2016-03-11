@@ -184,6 +184,22 @@ void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_
 }
 
 /****************************************************************************
+ * Name          : cpnd_number_of_clients_get
+ *
+ * Description   : Function to get the number of client nodes from client db Tree.
+ *
+ * Arguments     : CPND_CB *cb, - CPND Control Block
+ *
+ * Return Values : uint32_t, the number of clients in db Tree.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uint32_t cpnd_number_of_clients_get(CPND_CB *cb)
+{
+       return (uint32_t)ncs_patricia_tree_size(&cb->client_info_db);
+}
+
+/****************************************************************************
  * Name          : cpnd_client_node_getnext
  *
  * Description   : Function to get next ckpt node of a given ckpt from ckpt Tree.

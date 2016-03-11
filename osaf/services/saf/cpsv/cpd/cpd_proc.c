@@ -1252,6 +1252,315 @@ uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckp
 	return NCSCC_RC_SUCCESS;
 }
 
+/****************************************************************************
+ * Name          : cpd_ckpt_db_update_after_headless
+ *
+ * Description   : This routine will update the CPD database when a new ckpt
+ *                 got created.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uint32_t cpd_ckpt_db_update_after_headless(CPD_CB *cb,
+			       MDS_DEST *cpnd_dest,
+			       CPSV_ND2D_CKPT_INFO_UPD *ckpt_info,
+			       CPD_CKPT_INFO_NODE **o_ckpt_node, CPD_CKPT_MAP_INFO **io_map_info)
+{
+	CPD_CPND_INFO_NODE *node_info = NULL;
+	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
+	CPD_CKPT_MAP_INFO *map_info = NULL;
+	CPD_CKPT_REPLOC_INFO *reploc_info = NULL;
+	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	SaCkptCheckpointHandleT ckpt_id = 0;
+	bool add_flag = true;
+	SaClmClusterNodeT cluster_node;
+	NODE_ID key;
+	SaClmNodeIdT node_id;
+	SaNameT ckpt_name;
+	CPD_REP_KEY_INFO key_info;
+
+	TRACE_ENTER();
+
+	if (ckpt_info == NULL) {
+		LOG_ER("cpd ckpt_info = NULL");
+		return NCSCC_RC_FAILURE;
+	}
+
+	memset(&ckpt_name, 0, sizeof(SaNameT));
+	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
+	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
+	
+	/* -------------------------------------------------------
+	 * Update database with MAP_INFO and CKPT_NODE information 
+	 * ------------------------------------------------------- */
+	if (*io_map_info == NULL) { 
+	/* There is no map information (i.e this is a first time the checkpoint updated)
+	 * Thus the map_info and ckpt_node must be created and add into the db */
+
+		/* Fill the MAP INFO Node and add it into the ckpt_map_tree */
+		map_info = m_MMGR_ALLOC_CPD_CKPT_MAP_INFO;
+		if (map_info == NULL) {
+			LOG_ER("CPD CPD_CKPT_MAP_INFO alloc failed"); 
+			goto free_mem;
+		}
+
+		memset(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
+		map_info->ckpt_name = ckpt_info->ckpt_name;
+		map_info->attributes = ckpt_info->attributes;
+		map_info->client_version = ckpt_info->client_version;
+		map_info->ckpt_id = ckpt_info->ckpt_id;
+
+		proc_rc = cpd_ckpt_map_node_add(&cb->ckpt_map_tree, map_info);
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			LOG_IN("cpd db add failed for ckpt_id:%llx",map_info->ckpt_id);
+			goto free_mem;
+		}
+
+		/* Update nxt_ckpt_id accordingly so that ID is created correctly in next creation */
+		if (cb->nxt_ckpt_id <= ckpt_info->ckpt_id)
+		       cb->nxt_ckpt_id = ckpt_info->ckpt_id + 1;	
+
+		/* Fill the CKPT NODE and add it into the ckpt_tree */
+		ckpt_node = m_MMGR_ALLOC_CPD_CKPT_INFO_NODE;
+		if (ckpt_node == NULL) {
+			LOG_ER("CPD_CKPT_INFO_NODE alloc failed ");
+			goto free_mem;
+		}
+
+		memset(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
+		ckpt_node->ckpt_id = map_info->ckpt_id;
+		ckpt_node->ckpt_name = ckpt_info->ckpt_name;
+		ckpt_node->is_unlink_set = ckpt_info->is_unlink;
+		ckpt_node->attributes = ckpt_info->attributes;
+		if (ckpt_node->attributes.maxSections == 1)
+			ckpt_node->num_sections = 1;
+		ckpt_node->ret_time = ckpt_info->attributes.retentionDuration;
+		m_GET_TIME_STAMP(ckpt_node->create_time);
+		ckpt_node->ckpt_flags = ckpt_info->ckpt_flags;
+			
+		if ((!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes))
+		    && (m_CPND_IS_ON_SCXB(cb->cpd_self_id, cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest)))) {
+			if (!ckpt_node->ckpt_on_scxb1)
+				ckpt_node->ckpt_on_scxb1 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+			else
+				ckpt_node->ckpt_on_scxb2 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+		}
+		if ((!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes))
+		    && m_CPND_IS_ON_SCXB(cb->cpd_remote_id, cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest))) {
+			if (!ckpt_node->ckpt_on_scxb1)
+				ckpt_node->ckpt_on_scxb1 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+			else
+				ckpt_node->ckpt_on_scxb2 = (uint32_t)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
+		}
+
+		proc_rc = cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node, cb->ha_state, cb->immOiHandle);
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("cpd db add failed for ckpt_id:%llx",ckpt_node->ckpt_id);
+			goto free_mem;
+		}
+
+		*io_map_info = map_info;
+		*o_ckpt_node = ckpt_node;
+	} else {
+	/* The checkpoint data already exist in database */
+	
+		map_info = *io_map_info;
+		ckpt_id = (*io_map_info)->ckpt_id;
+
+		/* This checkpoint already available with CPD, Get the ckpt_node */
+		cpd_ckpt_node_get(&cb->ckpt_tree, &ckpt_id, &ckpt_node);
+		if (ckpt_node == NULL) {
+			/* This should not happen, some thing seriously wrong with the CPD data base */
+			/* TODO: The right thing is crash the CPD TBD */
+			LOG_ER("cpd db maybe crashed for ckpt_id:%llx",ckpt_id);
+			return NCSCC_RC_FAILURE;
+		}
+		*o_ckpt_node = ckpt_node;
+	}
+
+	/* ------------------------------------------
+	 * Update database with CPND_NODE information 
+	 * ------------------------------------------ */
+	/* Get the CPD_CPND_INFO_NODE (CPND from where this ckpt is created) */
+	proc_rc = cpd_cpnd_info_node_find_add(&cb->cpnd_tree, cpnd_dest, &node_info, &add_flag);
+	if (!node_info) {
+		LOG_ER("CPD DB add cpnd info node failed with return value:%u for cpnd_dest:0x%X", proc_rc ,
+			m_NCS_NODE_ID_FROM_MDS_DEST(*cpnd_dest));
+		proc_rc = NCSCC_RC_OUT_OF_MEM;
+		goto free_mem;
+	}
+
+	/* --------------------------------------------
+	 * Update database with REPLOC_NODE information 
+	 * -------------------------------------------- */
+	/* Processing for the Node name with CLM  */
+	key = m_NCS_NODE_ID_FROM_MDS_DEST(*cpnd_dest);
+	node_id = key;
+
+	if (saClmClusterNodeGet(cb->clm_hdl, node_id, CPD_CLM_API_TIMEOUT, &cluster_node) != SA_AIS_OK) {
+		proc_rc = NCSCC_RC_FAILURE;
+		LOG_ER("saClmClusterNodeGet failed for node_id 0x%X",node_id);
+		goto free_mem;
+	}
+
+	node_info->node_name = cluster_node.nodeName;
+	key_info.node_name = cluster_node.nodeName;
+	key_info.ckpt_name = ckpt_info->ckpt_name;
+
+	/* Create and add the reploc node into ckpt_reploc_tree if it doesn't exist */
+	/* Only create reploc_node for Collocated and Non-collocated active replica */
+	cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &reploc_info);
+	if ((reploc_info == NULL) &&
+ 	    ((m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes) || ckpt_info->is_active))) {
+
+		/* Allocate replica location node memory */
+		reploc_info = m_MMGR_ALLOC_CPD_CKPT_REPLOC_INFO;
+		if (reploc_info == NULL) {
+			LOG_ER("Allocate replica location memory failed");
+			goto free_mem;
+		}
+
+		/* Initialize the reploc info node */
+		memset(reploc_info, 0, sizeof(CPD_CKPT_REPLOC_INFO));
+		reploc_info->rep_key.node_name = cluster_node.nodeName;
+		reploc_info->rep_key.ckpt_name = ckpt_info->ckpt_name;
+
+		if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes))
+			reploc_info->rep_type = REP_NONCOLL;
+		else {
+			if ((ckpt_info->attributes.creationFlags & SA_CKPT_WR_ALL_REPLICAS)
+			    && (m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes)))
+				reploc_info->rep_type = REP_SYNCUPD;
+
+			if ((ckpt_info->attributes.creationFlags & SA_CKPT_WR_ACTIVE_REPLICA)
+			    && (m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes)))
+				reploc_info->rep_type = REP_NOTACTIVE;
+			if ((ckpt_info->attributes.creationFlags & SA_CKPT_WR_ACTIVE_REPLICA_WEAK)
+			    && (m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes)))
+				reploc_info->rep_type = REP_NOTACTIVE;
+		}
+
+		/* Add new reploc node into the ckpt_reploc_tree and create IMM Object for this replica */
+		proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("cpd db add failed in db entry update");
+			goto free_mem;
+		}
+
+		/* Add the CPND Details (CPND reference) to the ckpt node */
+		cpd_node_ref_info_add(ckpt_node, cpnd_dest);
+
+		/* Add the ckpt reference to the CPND node info */
+		cpd_ckpt_ref_info_add(node_info, ckpt_node);
+	}
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+
+ free_mem:
+	if (*io_map_info == NULL) {
+		if (ckpt_node) {
+			CPD_CKPT_INFO_NODE *tmp_ckpt_node;
+			cpd_ckpt_node_get(&cb->ckpt_tree, &ckpt_info->ckpt_id, &tmp_ckpt_node);
+			if (tmp_ckpt_node) /* The ckpt_node was added into the tree */
+				cpd_ckpt_node_delete(cb, ckpt_node);
+			else
+				m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);
+		}
+
+		if (map_info) {
+			CPD_CKPT_MAP_INFO *tmp_map_info;
+			cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_info->ckpt_name, &tmp_map_info);
+			if (tmp_map_info) /* The map info was added into the tree */
+				cpd_ckpt_map_node_delete(cb, map_info);
+			else
+				m_MMGR_FREE_CPD_CKPT_MAP_INFO(map_info);
+		}
+	}
+
+	if (reploc_info)
+		m_MMGR_FREE_CPD_CKPT_REPLOC_INFO(reploc_info);
+
+	TRACE_LEAVE();
+	return proc_rc;
+}
+
+/****************************************************************************
+ * Name          : cpd_proc_ckpt_update_post
+ *
+ * Description   : This routine will process post activities after updating
+ * 		   ckpt at headless:
+ * 		   - Set active replica for write all collocated ckpt
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uint32_t cpd_proc_ckpt_update_post(CPD_CB *cb)
+{
+	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
+
+	TRACE_ENTER();
+
+	cpd_ckpt_node_getnext(&cb->ckpt_tree, NULL, &ckpt_node);
+	while(ckpt_node) {
+		SaCkptCheckpointHandleT prev_ckpt_id = ckpt_node->ckpt_id;
+		/* Start loop */
+
+		/* Set active replica for write all non-collocated checkpoints */
+		if (m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes) && 
+		!m_IS_ASYNC_UPDATE_OPTION(&ckpt_node->attributes)) {
+
+			if (ckpt_node->is_active_exists == false) {
+				CPSV_EVT send_evt;
+				CPD_NODE_REF_INFO *nref_info = ckpt_node->node_list;
+
+				/* The policy is to select the next replica as the active
+				   replica, This is available at last node in the ckpt_node->node_list */
+				while (nref_info) {
+					if (nref_info->next == NULL)
+						break;	/* This is the last node */
+					else
+						nref_info = nref_info->next;
+				}
+
+				if (nref_info) {
+					ckpt_node->is_active_exists = true;
+					ckpt_node->active_dest = nref_info->dest;
+				} else {
+					LOG_ER("cpd ckpt_id %llu - node_list = NULL", ckpt_node->ckpt_id);
+					cpd_ckpt_node_getnext(&cb->ckpt_tree, &prev_ckpt_id, &ckpt_node);
+					continue;
+				}
+
+				/* broadcast to all CPNDs and CPAs */
+				memset(&send_evt, 0, sizeof(CPSV_EVT));
+				send_evt.type = CPSV_EVT_TYPE_CPND;
+				send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_ACTIVE_SET;
+				send_evt.info.cpnd.info.active_set.ckpt_id = ckpt_node->ckpt_id;
+				send_evt.info.cpnd.info.active_set.mds_dest = ckpt_node->active_dest;
+				(void)cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
+
+				memset(&send_evt, 0, sizeof(CPSV_EVT));
+				send_evt.type = CPSV_EVT_TYPE_CPA;
+				send_evt.info.cpa.type = CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND;
+				send_evt.info.cpa.info.ackpt_info.ckpt_id = ckpt_node->ckpt_id;
+				send_evt.info.cpa.info.ackpt_info.mds_dest = ckpt_node->active_dest;
+				(void)cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
+
+				LOG_NO("cpd ckpt active change success for ckpt_id:%llx,active_dest:0x%X",
+				ckpt_node->ckpt_id, m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest));
+			}
+		}
+
+		/* End loop */
+		cpd_ckpt_node_getnext(&cb->ckpt_tree, &prev_ckpt_id, &ckpt_node);
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
+
 /******************************************************************************************
  * Name          : cpd_proc_broadcast_RDSET_STOP
  *

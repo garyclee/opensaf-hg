@@ -28,6 +28,24 @@
 ******************************************************************************/
 
 #include "cpnd.h"
+#include "saImm.h"
+#include "saImmOi.h"
+#include "saImmOm.h"
+#include "immutil.h"
+#include "saf_error.h"
+
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
+/* IMMSv Defs */
+#define CPSV_IMM_RELEASE_CODE 'A'
+#define CPSV_IMM_MAJOR_VERSION 0x02
+#define CPSV_IMM_MINOR_VERSION 0x01
+
+static SaVersionT imm_version = {
+	CPSV_IMM_RELEASE_CODE,
+	CPSV_IMM_MAJOR_VERSION,
+	CPSV_IMM_MINOR_VERSION
+};
+
 extern uint32_t gl_read_lck;
 static void cpnd_dump_ckpt_info(CPND_CKPT_NODE *ckpt_node);
 static void cpnd_dump_client_info(CPND_CKPT_CLIENT_NODE *cl_node);
@@ -35,6 +53,8 @@ static void cpnd_dump_replica_info(CPND_CKPT_REPLICA_INFO *ckpt_replica_node);
 static void cpnd_dump_section_info(CPND_CKPT_SECTION_INFO *sec_info);
 static void cpnd_dump_shm_info(NCS_OS_POSIX_SHM_REQ_INFO *open);
 static void cpnd_dump_ckpt_attri(CPND_CKPT_NODE *cp_node);
+static void cpnd_ckpt_sc_cpnd_mdest_del(CPND_CB *cb);
+static void cpnd_headless_ckpt_node_del(CPND_CB *cb);
 
 /****************************************************************************
  * Name          : cpnd_ckpt_client_add
@@ -725,11 +745,19 @@ uint32_t cpnd_ckpt_sec_read(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
  *****************************************************************************/
 void cpnd_proc_cpd_down(CPND_CB *cb)
 {
-	/* cleanup ckpt node tree */
-	cpnd_ckpt_node_tree_cleanup(cb);
+	if (cb->scAbsenceAllowed) {
+		/* cleanup all SC cpnd mdests in the ckpt node dest list */
+		cpnd_ckpt_sc_cpnd_mdest_del(cb);
 
-	/* cleanup client node tree */
-	cpnd_client_node_tree_cleanup(cb);
+		/* cleanup ckpt_node and replica */
+		cpnd_headless_ckpt_node_del(cb);
+	} else {
+		/* cleanup ckpt node tree */
+		cpnd_ckpt_node_tree_cleanup(cb);
+
+		/* cleanup client node tree */
+		cpnd_client_node_tree_cleanup(cb);
+	}
 }
 
 /****************************************************************************
@@ -2370,4 +2398,395 @@ void cpnd_proc_free_read_data(CPSV_EVT *evt)
 		}
 		m_MMGR_FREE_CPND_DEFAULT(evt->info.cpa.info.sec_data_rsp.info.read_data);
 	}
+}
+
+/****************************************************************************************
+ * Name          : cpnd_ckpt_sc_cpnd_mdest_del
+ *
+ * Description   : This is the function delete sc cpnd mds dests on all ckpt node
+ * Arguments     : cb       - CPND Control Block pointer
+ * 
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *****************************************************************************************/
+void cpnd_ckpt_sc_cpnd_mdest_del(CPND_CB *cb)
+{
+	CPND_CKPT_NODE *ckpt_node = NULL;
+
+	TRACE_ENTER();
+	cpnd_ckpt_node_getnext(cb, 0, &ckpt_node);
+	while (ckpt_node != NULL) {
+		CPSV_CPND_DEST_INFO *dest_list = NULL;
+	
+		dest_list = ckpt_node->cpnd_dest_list;
+
+		/* Delete SC cpnd mdests in the cpnd_dest_list */
+		while (dest_list) {
+			if ((m_CPND_IS_ON_SCXB (cb->cpnd_active_id, cpnd_get_slot_sub_slot_id_from_mds_dest(dest_list->dest))) ||
+			    (m_CPND_IS_ON_SCXB (cb->cpnd_standby_id, cpnd_get_slot_sub_slot_id_from_mds_dest(dest_list->dest)))) 
+				cpnd_ckpt_remote_cpnd_del(ckpt_node, dest_list->dest);
+
+			dest_list = dest_list->next;
+		}
+
+		SaCkptCheckpointHandleT prev_ckpt_id;
+		prev_ckpt_id = ckpt_node->ckpt_id;
+		cpnd_ckpt_node_getnext(cb, prev_ckpt_id, &ckpt_node);
+	}
+	TRACE_LEAVE();
+}
+
+/****************************************************************************************
+ * Name          : cpnd_headless_ckpt_node_del
+ *
+ * Description   : This is the function delete following type of ckpt node:
+ *                 - ckpt node was unlinked
+ *                 - non-collocated ckpt node which has active replica located on SC
+ *
+ * Arguments     : cb       - CPND Control Block pointer
+ * 
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *****************************************************************************************/
+void cpnd_headless_ckpt_node_del(CPND_CB *cb)
+{
+	CPND_CKPT_NODE *ckpt_node = NULL;
+	CPSV_EVT send_evt;
+
+	TRACE_ENTER();
+	cpnd_ckpt_node_getnext(cb, 0, &ckpt_node);
+	while (ckpt_node != NULL) {
+		SaCkptCheckpointHandleT prev_ckpt_id = ckpt_node->ckpt_id;
+		MDS_DEST active_mds_dest = ckpt_node->active_mds_dest;
+		bool destroy = false;
+
+		/* Unlink checkpoint */
+		if (ckpt_node->is_unlink == true)
+			destroy = true;
+
+		/* Non collocated checkpoint with active replica located on SC */
+		if (!m_CPND_IS_COLLOCATED_ATTR_SET(ckpt_node->create_attrib.creationFlags)){
+			if ((m_CPND_IS_ON_SCXB (cb->cpnd_active_id, cpnd_get_slot_sub_slot_id_from_mds_dest(active_mds_dest))) ||
+			    (m_CPND_IS_ON_SCXB (cb->cpnd_standby_id, cpnd_get_slot_sub_slot_id_from_mds_dest(active_mds_dest))))
+				destroy = true;
+		}
+
+		if (destroy == true) {
+			/* Delete ckpt_node and replica */
+			cpnd_ckpt_replica_delete(cb, ckpt_node);
+			cpnd_restart_shm_ckpt_free(cb, ckpt_node);
+			cpnd_ckpt_node_destroy(cb, ckpt_node);
+
+			/* Broadcase CPA_EVT_ND2A_CKPT_DESTROY to CPA */
+			memset(&send_evt, 0, sizeof(CPSV_EVT));
+			send_evt.type = CPSV_EVT_TYPE_CPA;
+			send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_DESTROY;
+			send_evt.info.cpa.info.ckpt_destroy.ckpt_id = prev_ckpt_id;
+			cpnd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
+
+			LOG_IN("cpnd ckpt_node and replica destroy successful - cpkt_id - %llu", prev_ckpt_id);
+		}
+
+		cpnd_ckpt_node_getnext(cb, prev_ckpt_id, &ckpt_node);
+	}
+	TRACE_LEAVE();
+}
+
+/****************************************************************************************
+ * Name          : cpnd_proc_ckpt_info_update
+ *
+ * Description   : This is the function update cpd about ckpt info after headless
+ *
+ * Arguments     : cb       - CPND Control Block pointer
+ * 
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *****************************************************************************************/
+void cpnd_proc_ckpt_info_update(CPND_CB *cb)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	CPND_CKPT_NODE *ckpt_node = NULL;
+	CPSV_EVT send_evt;
+	SaVersionT client_version = {'B', 0x02, 0x02};
+	unsigned int remaining_node = cb->ckpt_info_db.n_nodes;
+
+	TRACE_ENTER();
+	memset(&send_evt, '\0', sizeof(CPSV_EVT));
+
+	cpnd_ckpt_node_getnext(cb, 0, &ckpt_node);
+	while (ckpt_node != NULL) {
+		SaCkptCheckpointHandleT prev_ckpt_id = ckpt_node->ckpt_id;
+		CPSV_EVT *out_evt = NULL;
+		bool update_success = false;
+		remaining_node--;
+
+		/* send info to cpd */
+		LOG_NO("cpnd_proc_update_cpd_data::ckpt_name = %s[%llu]", (char*)ckpt_node->ckpt_name.value,
+			ckpt_node->ckpt_id);
+		send_evt.type = CPSV_EVT_TYPE_CPD;
+		send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_INFO_UPDATE;
+		send_evt.info.cpd.info.ckpt_info.ckpt_id = ckpt_node->ckpt_id;
+		send_evt.info.cpd.info.ckpt_info.ckpt_name = ckpt_node->ckpt_name;
+		send_evt.info.cpd.info.ckpt_info.attributes = ckpt_node->create_attrib;
+		send_evt.info.cpd.info.ckpt_info.ckpt_flags = ckpt_node->open_flags;
+		send_evt.info.cpd.info.ckpt_info.num_users = ckpt_node->ckpt_lcl_ref_cnt;
+		send_evt.info.cpd.info.ckpt_info.num_readers = 0;
+		send_evt.info.cpd.info.ckpt_info.num_writers = 0;
+		send_evt.info.cpd.info.ckpt_info.client_version = client_version;
+		send_evt.info.cpd.info.ckpt_info.is_unlink = ckpt_node->is_unlink; 
+		
+		if (ckpt_node->is_active_exist && m_NCS_MDS_DEST_EQUAL(&ckpt_node->active_mds_dest, &cb->cpnd_mdest_id)) {
+			send_evt.info.cpd.info.ckpt_info.is_active = true;
+		} else
+			send_evt.info.cpd.info.ckpt_info.is_active = false;
+
+		if (remaining_node == 0)
+			send_evt.info.cpd.info.ckpt_info.is_last = true;
+		else
+			send_evt.info.cpd.info.ckpt_info.is_last = false;
+
+		LOG_NO("cpnd_proc_update_cpd_data::send CPD_EVT_ND2D_CKPT_INFO_UPDATE");
+		rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id, &send_evt, &out_evt,
+					    CPSV_WAIT_TIME);
+
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("cpnd_proc_update_cpd_data::fail to send CPD_EVT_ND2D_CKPT_INFO_UPDATE");
+		}
+
+		if (out_evt == NULL) {
+			LOG_ER("cpnd_proc_update_cpd_data:: cpnd ckpt memory alloc failed");
+		} else {
+			switch (out_evt->info.cpnd.type) {
+
+				case CPND_EVT_D2ND_CKPT_INFO_UPDATE_ACK:
+					if (out_evt->info.cpnd.info.ckpt_info_update_ack.error == SA_AIS_OK) {
+						LOG_NO("cpnd_proc_update_cpd_data::CPND_EVT_D2ND_CKPT_INFO_UPDATE_ACK received");
+						update_success = true;
+					}
+					else {
+						LOG_ER("cpnd_proc_update_cpd_data::Fail to update CPD after headless rc=[%d]",
+						       out_evt->info.cpnd.info.ckpt_info_update_ack.error);
+					}
+					break;
+				default:
+					LOG_ER("cpnd_proc_update_cpd_data:: cpnd evt unknown type :%d",out_evt->info.cpnd.type);
+					break;
+			}
+
+			cpnd_evt_destroy(out_evt);
+		}
+
+		/* Update ckpt fail destroy the ckpt_node and replica */
+		if (update_success == false) {
+			/* Delete ckpt_node and replica */
+			cpnd_ckpt_replica_delete(cb, ckpt_node);
+			cpnd_restart_shm_ckpt_free(cb, ckpt_node);
+			cpnd_ckpt_node_destroy(cb, ckpt_node);
+
+			/* Broadcase CPA_EVT_ND2A_CKPT_DESTROY to CPA */
+			memset(&send_evt, 0, sizeof(CPSV_EVT));
+			send_evt.type = CPSV_EVT_TYPE_CPA;
+			send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_DESTROY;
+			send_evt.info.cpa.info.ckpt_destroy.ckpt_id = ckpt_node->ckpt_id;
+			cpnd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
+		} 
+
+		/* The SC is UP again and the checkpoint was recovered successfull. Re-initialize ckpt_node flags */ 
+		ckpt_node->is_restart = false;
+
+		/* end of loop */
+		cpnd_ckpt_node_getnext(cb, prev_ckpt_id, &ckpt_node);
+	}
+}
+
+/****************************************************************************************
+ * Name          : cpnd_ckpt_replica_delete
+ *
+ * Description   : This is the function delete replica without sending destroy signal to CPD
+ *
+ * Arguments     : cb       - CPND Control Block pointer
+ * 
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *****************************************************************************************/
+void cpnd_ckpt_replica_delete(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node)
+{
+	NCS_OS_POSIX_SHM_REQ_INFO shm_info;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
+	if (ckpt_node->cpnd_rep_create) {
+
+		/* First delete all sections in the heckpoint about to be deleted */
+		cpnd_ckpt_delete_all_sect(ckpt_node);
+
+		memset(&shm_info, '\0', sizeof(shm_info));
+
+		shm_info.type = NCS_OS_POSIX_SHM_REQ_CLOSE;
+		shm_info.info.close.i_addr = ckpt_node->replica_info.open.info.open.o_addr;
+		shm_info.info.close.i_fd = ckpt_node->replica_info.open.info.open.o_fd;
+		shm_info.info.close.i_hdl = ckpt_node->replica_info.open.info.open.o_hdl;
+		shm_info.info.close.i_size = ckpt_node->replica_info.open.info.open.i_size;
+
+		rc = ncs_os_posix_shm(&shm_info);
+
+		if (rc == NCSCC_RC_FAILURE) {
+			LOG_ER("cpnd ckpt close failed for ckpt_id:%llx",ckpt_node->ckpt_id);
+			TRACE_LEAVE();
+			return;
+		}
+
+		/* unlink the name */
+		shm_info.type = NCS_OS_POSIX_SHM_REQ_UNLINK;
+		shm_info.info.unlink.i_name = ckpt_node->replica_info.open.info.open.i_name;
+
+		rc = ncs_os_posix_shm(&shm_info);
+
+		if (rc == NCSCC_RC_FAILURE) {
+			LOG_ER("cpnd ckpt unlink failed ckpt_id:%llx",ckpt_node->ckpt_id);
+			TRACE_LEAVE();
+			return;
+		}
+
+		if (cb->num_rep)
+			cb->num_rep--;
+
+		m_MMGR_FREE_CPND_DEFAULT(ckpt_node->replica_info.open.info.open.i_name);
+
+		/* freeing the sec_mapping memory */
+		if (ckpt_node->replica_info.shm_sec_mapping)
+			m_MMGR_FREE_CPND_DEFAULT(ckpt_node->replica_info.shm_sec_mapping);
+	}
+	TRACE_LEAVE();
+}
+
+/****************************************************************************************
+ * Name          : cpnd_proc_active_down_ckpt_node_del
+ *
+ * Description   : This is the function delete non-collocated ckpt node which has active
+ *                 replica node is down
+ *
+ * Arguments     : cb       - CPND Control Block pointer
+ *                 mds_dest - Active replica cpnd mds_dest
+ * 
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *****************************************************************************************/
+void cpnd_proc_active_down_ckpt_node_del(CPND_CB *cb, MDS_DEST mds_dest)
+{
+	CPND_CKPT_NODE *ckpt_node = NULL;
+	CPSV_EVT send_evt;
+
+	TRACE_ENTER();
+	cpnd_ckpt_node_getnext(cb, 0, &ckpt_node);
+	while (ckpt_node != NULL) {
+		SaCkptCheckpointHandleT prev_ckpt_id = ckpt_node->ckpt_id;
+		MDS_DEST active_mds_dest = ckpt_node->active_mds_dest;
+
+		if (!m_CPND_IS_COLLOCATED_ATTR_SET(ckpt_node->create_attrib.creationFlags) &&
+		(active_mds_dest == mds_dest)){
+
+			/* Delete ckpt_node and replica */
+			cpnd_ckpt_replica_delete(cb, ckpt_node);
+			cpnd_restart_shm_ckpt_free(cb, ckpt_node);
+			cpnd_ckpt_node_destroy(cb, ckpt_node);
+
+			/* Broadcase CPA_EVT_ND2A_CKPT_DESTROY to CPA */
+			memset(&send_evt, 0, sizeof(CPSV_EVT));
+			send_evt.type = CPSV_EVT_TYPE_CPA;
+			send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_DESTROY;
+			send_evt.info.cpa.info.ckpt_destroy.ckpt_id = prev_ckpt_id;
+			cpnd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
+
+			LOG_NO("cpnd node=0x%X DOWN - ckpt_node and replica destroy successful - cpkt_id - %llu",
+				m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest), prev_ckpt_id);
+		}
+
+		cpnd_ckpt_node_getnext(cb, prev_ckpt_id, &ckpt_node);
+	}
+	TRACE_LEAVE();
+}
+
+/****************************************************************************************
+ * Name          : cpnd_get_scAbsenceAllowed_attr
+ *
+ * Description   : This function gets scAbsenceAllowed attribute
+ *
+ * Arguments     : -
+ * 
+ * Return Values : scAbsenceAllowed attribute (0 = not allowed)
+ *****************************************************************************************/
+SaUint32T cpnd_get_scAbsenceAllowed_attr()
+{
+	SaUint32T rc_attr_val = 0;
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmAccessorHandleT accessorHandle;
+	SaImmHandleT immOmHandle;
+	SaImmAttrValuesT_2 *attribute;
+	SaImmAttrValuesT_2 **attributes;
+
+	TRACE_ENTER();
+
+	char *attribute_names[] = {
+		"scAbsenceAllowed",
+		NULL
+	};
+	char object_name_str[] = "opensafImm=opensafImm,safApp=safImmService";
+
+	SaNameT object_name;
+	strncpy((char *) object_name.value, object_name_str, SA_MAX_NAME_LENGTH);
+	object_name.length = strlen((char *) object_name.value) + 1;
+
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
+
+	/* Initialize Om API */
+	rc = immutil_saImmOmInitialize(&immOmHandle, NULL, &imm_version);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("%s saImmOmInitialize FAIL %d", __FUNCTION__, rc);
+		goto done;
+	}
+
+	/* Initialize accessor for reading attributes */
+	rc = immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("%s saImmOmAccessorInitialize Fail %s", __FUNCTION__, saf_error(rc));
+		goto done;
+	}
+
+
+	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, attribute_names, &attributes);
+	if (rc != SA_AIS_OK) {
+		TRACE("%s saImmOmAccessorGet_2 Fail '%s'", __FUNCTION__, saf_error(rc));
+		goto done_fin_Om;
+	}
+
+	void *value;
+
+	/* Handle the global scAbsenceAllowed_flag */
+	attribute = attributes[0];
+	TRACE("%s attrName \"%s\"",__FUNCTION__,attribute->attrName);
+	if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
+		/* scAbsenceAllowed has value. Get the value */
+		value = attribute->attrValues[0];
+		rc_attr_val = *((SaUint32T *) value);
+	}
+
+	done_fin_Om:
+	/* Free Om resources */
+	rc = immutil_saImmOmFinalize(immOmHandle);
+	if (rc != SA_AIS_OK) {
+		TRACE("%s saImmOmFinalize Fail '%s'", __FUNCTION__, saf_error(rc));
+	}
+
+	done:
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+
+	TRACE_LEAVE();
+	return rc_attr_val;
 }

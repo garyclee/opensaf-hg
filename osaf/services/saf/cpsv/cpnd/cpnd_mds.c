@@ -152,6 +152,19 @@ uint32_t cpnd_mds_register(CPND_CB *cb)
 		goto error1;
 	}
 
+
+	/* STEP 5: Subscribe to CPND up/down events */
+	svc_id[0] = NCSMDS_SVC_ID_CPND;
+	svc_info.i_op = MDS_SUBSCRIBE;
+	svc_info.info.svc_subscribe.i_num_svcs = 1;
+	svc_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
+	svc_info.info.svc_subscribe.i_svc_ids = svc_id;
+
+	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
+		LOG_ER("cpnd mds subscribe cpnd failed");
+		goto error1;
+	}
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
  error1:

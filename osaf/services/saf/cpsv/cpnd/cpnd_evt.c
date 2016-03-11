@@ -28,6 +28,8 @@
 
 extern uint32_t cpnd_proc_rdset_start(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 extern uint32_t cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_id);
+extern void cpnd_proc_ckpt_info_update(CPND_CB *cb);
+extern void cpnd_proc_active_down_ckpt_node_del(CPND_CB *cb, MDS_DEST mds_dest);
 
 static uint32_t cpnd_evt_proc_cb_dump(CPND_CB *cb);
 static uint32_t cpnd_evt_proc_ckpt_init(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
@@ -1031,6 +1033,12 @@ static uint32_t cpnd_evt_proc_ckpt_close(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 
 	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(CPSV_EVT));
+
+	if (cpnd_number_of_clients_get(cb) == 0) {
+		/* The tree may have been cleaned up, if both controllers went down and NCSMDS_DOWN was received */
+		send_evt.info.cpa.info.closeRsp.error = SA_AIS_OK;
+		goto agent_rsp;
+	}
 
 	if (!cpnd_is_cpd_up(cb)) {
 		send_evt.info.cpa.info.closeRsp.error = SA_AIS_ERR_TRY_AGAIN;
@@ -3847,6 +3855,10 @@ static uint32_t cpnd_evt_proc_mds_evt(CPND_CB *cb, CPND_EVT *evt)
 	if ((evt->info.mds_info.change == NCSMDS_DOWN) && evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPA) {
 		cpnd_proc_cpa_down(cb, evt->info.mds_info.dest);
 	} else if ((evt->info.mds_info.change == NCSMDS_DOWN) && evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPD) {
+		/* Headless state (both SCs are down) happens */
+		if (cb->scAbsenceAllowed)
+			cb->is_cpd_need_update = true;
+
 		cpnd_proc_cpd_down(cb);
 	} else if ((evt->info.mds_info.change == NCSMDS_UP) && evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPA) {
 		cpnd_proc_cpa_up(cb, evt->info.mds_info.dest);
@@ -3856,6 +3868,18 @@ static uint32_t cpnd_evt_proc_mds_evt(CPND_CB *cb, CPND_EVT *evt)
 	} else if ((evt->info.mds_info.change == NCSMDS_CHG_ROLE) &&
 		   (evt->info.mds_info.role == V_DEST_RL_ACTIVE) && (evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPD)) {
 		cpnd_proc_cpd_new_active(cb);
+
+		/* Update ckpt info to CPD after headless state */
+		if (cb->is_cpd_need_update == true) {
+			cpnd_proc_ckpt_info_update(cb);
+			cb->is_cpd_need_update = false;
+		}
+	} else if ((evt->info.mds_info.change == NCSMDS_DOWN) && evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPND) {
+		/* In headless state, when the cpnd is down the node also restart.
+		 * Thus the non-collocated checkpoint which has active replica located on this node
+		 * should be deleted */
+		if ((cb->is_cpd_need_update == true) && (cb->is_cpd_up == false))
+			cpnd_proc_active_down_ckpt_node_del(cb, evt->info.mds_info.dest);
 	}
 
 	return rc;

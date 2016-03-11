@@ -211,6 +211,12 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	/* Store the handle in some global location */
 	m_CPND_STORE_CB_HDL(cb->cpnd_cb_hdl_id);
 
+	if (cpnd_get_scAbsenceAllowed_attr() != 0 ) {
+		cb->scAbsenceAllowed = true;
+		TRACE("cpnd scAbsenceAllowed = true");
+	} else
+		cb->scAbsenceAllowed = false;
+
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->cpnd_mbx)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpnd ipc create fail");
@@ -225,6 +231,11 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	gen_cbk.saClmClusterNodeGetCallback = NULL;
 	gen_cbk.saClmClusterTrackCallback = cpnd_clm_cluster_track_cb;
 	rc = saClmInitialize(&clmHandle, &gen_cbk, &clm_version);
+	while (rc == SA_AIS_ERR_TRY_AGAIN) {
+		usleep(1000000);
+		rc = saClmInitialize(&clmHandle, &gen_cbk, &clm_version);
+	}
+
 	if (rc != SA_AIS_OK) {
 		LOG_ER("cpnd clm init failed with return value:%d",rc);
 		goto cpnd_clm_init_fail;
@@ -560,8 +571,27 @@ void cpnd_main_process(CPND_CB *cb)
 
 		if (fds[FD_CLM].revents & POLLIN) {
 			clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
-			if (clm_error != SA_AIS_OK) {
-				LOG_ER("cpnd amf dispatch failure %u",clm_error);
+			if (clm_error == SA_AIS_ERR_BAD_HANDLE) {
+				SaVersionT clm_version;
+				SaClmHandleT clmHandle;
+				SaClmCallbacksT gen_cbk;
+
+				LOG_NO("Bad CLM handle. Reinitializing.");
+				usleep(100000);
+
+				m_CPSV_GET_AMF_VER(clm_version);
+				gen_cbk.saClmClusterNodeGetCallback = NULL;
+				gen_cbk.saClmClusterTrackCallback = cpnd_clm_cluster_track_cb;
+
+				clm_error = saClmInitialize(&clmHandle, &gen_cbk, &clm_version);
+				if (clm_error != SA_AIS_OK) {
+					 LOG_ER("cpnd clm init failed with return value:%d", clm_error);
+					  TRACE_LEAVE();
+					   return;
+				}
+				cb->clm_hdl = clmHandle;
+			} else if (clm_error != SA_AIS_OK) {
+				LOG_ER("cpnd clm dispatch failure %u", clm_error);
 			}
 		}
 		/* process the CPND Mail box */

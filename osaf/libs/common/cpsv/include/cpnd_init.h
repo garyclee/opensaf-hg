@@ -85,6 +85,7 @@ uint32_t cpnd_ckpt_client_del(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl
 uint32_t cpnd_client_ckpt_info_add(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node);
 uint32_t cpnd_client_ckpt_info_del(CPND_CKPT_CLIENT_NODE *cl_node, CPND_CKPT_NODE *cp_node);
 uint32_t cpnd_ckpt_replica_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error);
+void cpnd_ckpt_replica_delete(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node);
 uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 uint32_t cpnd_ckpt_remote_cpnd_add(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info);
 uint32_t cpnd_ckpt_remote_cpnd_del(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info);
@@ -128,6 +129,7 @@ uint32_t cpnd_ckpt_client_find(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *c
 uint32_t cpnd_all_repl_rsp_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info);
 uint32_t cpnd_open_active_sync_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info);
 void cpnd_proc_free_read_data(CPSV_EVT *evt);
+SaUint32T cpnd_get_scAbsenceAllowed_attr();
 /* End cpnd_proc.c */
 
 /* File : ---  cpnd_amf.c */
@@ -153,6 +155,7 @@ void cpnd_ckpt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_
 uint32_t cpnd_ckpt_node_add(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node);
 uint32_t cpnd_ckpt_node_del(CPND_CB *cb, CPND_CKPT_NODE *ckpt_node);
 void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_CLIENT_NODE **ckpt_client_node);
+uint32_t cpnd_number_of_clients_get(CPND_CB *cb);
 void cpnd_client_node_getnext(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_CLIENT_NODE **ckpt_client_node);
 uint32_t cpnd_client_node_add(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_node);
 uint32_t cpnd_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_client_node);

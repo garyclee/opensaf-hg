@@ -42,6 +42,8 @@ void cpd_timer_expiry(NCSCONTEXT uarg)
 	CPSV_EVT *evt = NULL;
 	uint32_t cpd_hdl = m_CPD_GET_CB_HDL;
 
+	TRACE("cpd_timer_expiry(uarg=%p, type=%u)", uarg, tmr->type);
+
 	/* post a message to the corresponding component */
 	if ((cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, cpd_hdl)) == NULL)
 		return;
@@ -58,6 +60,11 @@ void cpd_timer_expiry(NCSCONTEXT uarg)
 			case CPD_TMR_TYPE_CPND_RETENTION:
 				evt->info.cpd.info.tmr_info.type = CPD_TMR_TYPE_CPND_RETENTION;
 				evt->info.cpd.info.tmr_info.info.cpnd_dest = tmr->info.cpnd_dest;
+				break;
+
+			case CPD_TMR_TYPE_CKPT_UPDATE:
+				evt->info.cpd.info.tmr_info.type = CPD_TMR_TYPE_CKPT_UPDATE;
+				evt->info.cpd.info.tmr_info.info.cpnd_dest = 0;
 				break;
 
 			default:

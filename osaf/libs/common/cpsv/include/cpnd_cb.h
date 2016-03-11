@@ -277,6 +277,7 @@ typedef struct cpnd_cb_tag {
 	/* Information about the CPD */
 	MDS_DEST cpd_mdest_id;
 	bool is_cpd_up;
+	bool is_cpd_need_update; /* This flag indicates if cpd needs updating after headless state */
 	bool is_joined_cl;
 	uint32_t num_rep;		/* Number of shared memory segments */
 
@@ -316,6 +317,8 @@ typedef struct cpnd_cb_tag {
 	NCS_LOCK cpnd_cpd_up_lock;
 
 	NCS_QUEUE cpnd_cpd_deferred_reqs_list;	/* Queue for storing CPD timeout requests  */
+
+	bool scAbsenceAllowed;
 
 } CPND_CB;
 
