@@ -29,6 +29,9 @@
 *****************************************************************************/
 
 #include <nid_api.h>
+#include <stdbool.h>
+
+static bool is_nid_notified = false;
 
 /****************************************************************************
  * Name          : nid_notify                                               *
@@ -43,13 +46,15 @@
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uint32_t nid_notify(char *service, uint32_t status, uint32_t *error)
+uint32_t nid_notify(const char* service, uint32_t status, uint32_t* error)
 {
 	uint32_t scode;
 	char msg[250];
 	int32_t fd = -1;
 	uint32_t retry = 3;
 	char strbuff[256];
+
+	if (is_nid_notified) return NCSCC_RC_SUCCESS;
 
 	scode = status;
 
@@ -90,62 +95,7 @@ uint32_t nid_notify(char *service, uint32_t status, uint32_t *error)
 		return NCSCC_RC_FAILURE;
 	}
 
-	nid_close_ipc();
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : nis_notify                                               *
- *                                                                          *
- * Description   : Opens the FIFO to bladeinitd and write the service and   *
- *                 status code to FIFO.                                     *
- *                                                                          *
- * Arguments     : status   - input parameter providing status              *
- *                 error    - output parameter to return error code if any  *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..                      *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-uint32_t nis_notify(char *status, uint32_t *error)
-{
-	int32_t fd = -1;
-	uint32_t retry = 3;
-	char strbuff[256];
-
-	if (status == NULL) {
-		if (error != NULL)
-			*error = NID_INV_PARAM;
-		return NCSCC_RC_FAILURE;
-	}
-
-	while (retry) {
-		if (nid_open_ipc(&fd, strbuff) != NCSCC_RC_SUCCESS) {
-			retry--;
-		} else
-			break;
-	}
-
-	if ((fd < 0) && (retry == 0)) {
-		if (error != NULL)
-			*error = NID_OFIFO_ERR;
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Send the message */
-	retry = 3;
-	while (retry) {
-		if (write(fd, status, strlen(status)) == strlen(status))
-			break;
-		else
-			retry--;
-	}
-
-	if (retry == 0) {
-		if (error != NULL)
-			*error = NID_WFIFO_ERR;
-		return NCSCC_RC_FAILURE;
-	}
-
+	is_nid_notified = true;
 	nid_close_ipc();
 	return NCSCC_RC_SUCCESS;
 }
