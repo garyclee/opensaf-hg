@@ -114,8 +114,10 @@ uint32_t smfd_cb_init(smfd_cb_t * smfd_cb)
 
 	pthread_mutexattr_t mutex_attr;
 
-	/* Assign Initial HA state */
+	smfd_cb->amfSelectionObject = -1;
+	smfd_cb->campaignSelectionObject = -1;
 	smfd_cb->ha_state = SMFD_HA_INIT_STATE;
+	smfd_cb->fully_initialized = false;
 
 	/* TODO Assign Version. Currently, hardcoded, This will change later */
 	smfd_cb->smf_version.releaseCode = SMF_RELEASE_CODE;
@@ -130,6 +132,11 @@ uint32_t smfd_cb_init(smfd_cb_t * smfd_cb)
 	smfd_cb->repositoryCheckCmd = NULL;
 	smfd_cb->clusterRebootCmd = NULL;
 	smfd_cb->smfnd_list = NULL;
+
+	smfd_cb->smfNodeIdControllers[0] = 0x2010f;
+	smfd_cb->smfNodeIdControllers[1] = 0x2020f;
+	smfd_cb->smfControllersUp[0] = false;
+	smfd_cb->smfControllersUp[1] = false;
 
 	if (pthread_mutexattr_init(&mutex_attr) != 0) {
 		LOG_ER("Failed pthread_mutexattr_init");
@@ -198,21 +205,38 @@ static uint32_t initialize_smfd(void)
 		goto done;
 	}
 
-	/* Init mds communication */
-	if ((rc = smfd_mds_init(smfd_cb)) != NCSCC_RC_SUCCESS) {
-		TRACE("smfd_mds_init FAILED %d", rc);
-		return rc;
-	}
-
 	/* Init with AMF */
 	if ((rc = smfd_amf_init(smfd_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("init amf failed");
 		goto done;
 	}
 
+	if ((rc = initialize_for_assignment(smfd_cb, smfd_cb->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+ 		goto done;
+ 	}
+
  done:
 	TRACE_LEAVE();
 	return (rc);
+}
+
+uint32_t initialize_for_assignment(smfd_cb_t *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
+		goto done;
+	}
+	if ((rc = smfd_mds_init(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("clms_mds_init FAILED %d", rc);
+		goto done;
+	}
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
+	return rc;
 }
 
 typedef enum {

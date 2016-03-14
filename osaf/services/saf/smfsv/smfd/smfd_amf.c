@@ -211,7 +211,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 				 SaAmfHAStateT new_haState,
 				 SaAmfCSIDescriptorT csiDescriptor)
 {
-	SaAisErrorT result = SA_AIS_OK;
+	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
 	bool role_change = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -223,27 +223,34 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	 */
 	prev_haState = smfd_cb->ha_state;
 
+	if ((rc = initialize_for_assignment(smfd_cb, new_haState)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		goto response;
+	}
+
 	/* Invoke the appropriate state handler routine */
 	switch (new_haState) {
 	case SA_AMF_HA_ACTIVE:
-		result = amf_active_state_handler(smfd_cb, invocation);
+		error = amf_active_state_handler(smfd_cb, invocation);
 		break;
 	case SA_AMF_HA_STANDBY:
-		result = amf_standby_state_handler(smfd_cb, invocation);
+		error = amf_standby_state_handler(smfd_cb, invocation);
 		break;
 	case SA_AMF_HA_QUIESCED:
-		result = amf_quiesced_state_handler(smfd_cb, invocation);
+		error = amf_quiesced_state_handler(smfd_cb, invocation);
 		break;
 	case SA_AMF_HA_QUIESCING:
-		result = amf_quiescing_state_handler(smfd_cb, invocation);
+		error = amf_quiescing_state_handler(smfd_cb, invocation);
 		break;
 	default:
 		LOG_WA("invalid state: %d ", new_haState);
-		result = SA_AIS_ERR_BAD_OPERATION;
+		error = SA_AIS_ERR_BAD_OPERATION;
 		break;
 	}
 
-	if (result != SA_AIS_OK)
+	if (error != SA_AIS_OK)
 		goto response;
 
 	if (new_haState == SA_AMF_HA_QUIESCED)
@@ -264,12 +271,12 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	if (role_change == true) {
 		if ((rc = smfd_mds_change_role(smfd_cb)) != NCSCC_RC_SUCCESS) {
 			TRACE("smfd_mds_change_role FAILED");
-			result = SA_AIS_ERR_FAILED_OPERATION;
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto response;
 		}
 	}
  response:
-	saAmfResponse(smfd_cb->amf_hdl, invocation, result);
+	saAmfResponse(smfd_cb->amf_hdl, invocation, error);
  done:
 	TRACE_LEAVE();
 }

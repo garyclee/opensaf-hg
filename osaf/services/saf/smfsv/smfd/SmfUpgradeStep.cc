@@ -2637,7 +2637,7 @@ bool SmfUpgradeStep::readSmfClusterControllers()
                 //This will override nodes set in SMF config class attr. smfClusterControllers
                 //Find the CLM nodes with hard coded default node Id
                 LOG_NO("smfSSAffectedNodesEnable is [true]. SMF handle nodeId %x and %x as controllers in SS procedures",
-                       SMF_NODE_ID_CONTROLLER_1, SMF_NODE_ID_CONTROLLER_2);
+                       smfd_cb->smfNodeIdControllers[0], smfd_cb->smfNodeIdControllers[1]);
                 SaImmSearchHandleT immSearchHandle;
                 SaNameT objectName;
 
@@ -2669,7 +2669,7 @@ bool SmfUpgradeStep::readSmfClusterControllers()
                                 if (nodeId == NULL) {
                                         continue;
                                 }
-                                if ((*nodeId == SMF_NODE_ID_CONTROLLER_1) || (*nodeId == SMF_NODE_ID_CONTROLLER_2)) {
+                                if ((*nodeId == smfd_cb->smfNodeIdControllers[0]) || (*nodeId == smfd_cb->smfNodeIdControllers[1])) {
                                         smfd_cb->smfClusterControllers[ix] = strdup(osaf_extended_name_borrow(&objectName));
                                         LOG_NO("Cluster controller[%d] = %s",ix ,smfd_cb->smfClusterControllers[ix]);
                                         ix++;

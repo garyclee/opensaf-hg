@@ -50,8 +50,32 @@ static void proc_mds_info(smfd_cb_t * cb, SMFSV_EVT * evt)
 	switch (mds_info->change) {
 
 	case NCSMDS_RED_UP:
-		/* get the peer mds_red_up */
+		if (mds_info->svc_id != NCSMDS_SVC_ID_SMFD) break;
+		if (cb->smfNodeIdControllers[0] == mds_info->node_id ||
+			cb->smfControllersUp[1]) {
+			cb->smfNodeIdControllers[0] = mds_info->node_id;
+			cb->smfControllersUp[0] = true;
+		} else {
+			cb->smfNodeIdControllers[1] = mds_info->node_id;
+			cb->smfControllersUp[1] = true;
+		}
+		TRACE("SMFD up on node id 0x%x. Controllers: 0x%x & 0x%x",
+			mds_info->node_id,
+			cb->smfNodeIdControllers[0],
+			cb->smfNodeIdControllers[1]);
+		break;
 
+	case NCSMDS_RED_DOWN:
+		if (mds_info->svc_id != NCSMDS_SVC_ID_SMFD) break;
+		if (cb->smfNodeIdControllers[0] == mds_info->node_id) {
+			cb->smfControllersUp[0] = false;
+		} else {
+			cb->smfControllersUp[1] = false;
+		}
+		TRACE("SMFD down on node id 0x%x. Controllers: 0x%x & 0x%x",
+			mds_info->node_id,
+			cb->smfNodeIdControllers[0],
+			cb->smfNodeIdControllers[1]);
 		break;
 
 	case NCSMDS_UP:
