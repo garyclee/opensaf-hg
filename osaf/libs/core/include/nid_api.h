@@ -64,8 +64,7 @@ typedef struct nid_fifo_msg {
 /**********************************************************************
  *    Exported finctions by NID_API                                    *
  **********************************************************************/
-uint32_t nid_notify(char *, uint32_t, uint32_t *);
-uint32_t nis_notify(char *, uint32_t *);
+uint32_t nid_notify(const char*, uint32_t, uint32_t*);
 uint32_t nid_create_ipc(char *);
 uint32_t nid_open_ipc(int32_t *fd, char *);
 void nid_close_ipc(void);
