@@ -1,0 +1,77 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2015 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+GENERAL
+-------
+
+This is a description of how the Checkpoint service preserves checkpoint replicas in case
+both SCs down (headless state) and recovers replicas in case one of SCs up again. 
+
+If both SCs goes down, checkpoint replicas on surviving nodes still
+remain. When a SC is available again, surviving replicas are automatically
+registered to the SC checkpoint database. Content in surviving replicas are
+intacted and synchronized to new replicas.
+
+In headless state, checkpoint client can read from and write to existing checkpoint replicas. 
+However checkpoint APIs changing checkpoint configuration which requires SC communication 
+are rejected with fault code SA_AIS_ERR_TRY_AGAIN. The rejected APIs are:
+
+- saCkptCheckpointOpen()
+- saCkptCheckpointOpenAsync()
+- saCkptCheckpointClose()
+- saCkptCheckpointUnlink()
+- saCkptCheckpointRetentionDurationSet()
+- saCkptActiveReplicaSet()
+
+In case the node which hosts the active replica goes down during headless state,
+accessing checkpoint replicas does not work anymore. It will back working when a SC available again.
+
+RECOVERY HANDLING
+-----------------
+
+In case headless state happen, the Checkpoint Node Director (CPND) deletes un-recoverable 
+checkpoint nodes on PLs. Then it requests CPA to destroy corresponding checkpoint node by 
+using the new message CPA_EVT_ND2A_CKPT_DESTROY.
+
+In case an active SC is up after headless, CPND updates CPD with checkpoint information by using
+a new message CPD_EVT_ND2D_CKPT_INFO_UPDATE instead of using CPD_EVT_ND2D_CKPT_CREATE. This is
+because the CPND will create new ckpt_id for the checkpoint which might be different with the
+current ckpt id if the CPD_EVT_ND2D_CKPT_CREATE is used. 
+
+The CPD collects checkpoint information within 6s. During this updating time, following requests 
+is rejected with fault code SA_AIS_ERR_TRY_AGAIN:
+
+- CPD_EVT_ND2D_CKPT_CREATE
+- CPD_EVT_ND2D_CKPT_UNLINK
+- CPD_EVT_ND2D_ACTIVE_SET
+- CPD_EVT_ND2D_CKPT_RDSET
+
+LIMITATIONS
+-----------
+
+The CKPT service can not support recovering checkpoints in following cases:
+
+ - The checkpoint which is unlinked before headless.
+
+ - The non-collocated checkpoint has active replica locating on SC.
+
+ - The non-collocated checkpoint has active replica locating on a PL and this
+   PL restarts during headless state. 
+
+In these cases, the checkpoint replica is destroyed. The fault code 
+SA_AIS_ERR_BAD_HANDLE is returned when the client accesses the checkpoint 
+in these cases. The client must re-open the checkpoint.
