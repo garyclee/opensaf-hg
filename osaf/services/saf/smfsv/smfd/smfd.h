@@ -26,6 +26,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include "saAmf.h"
 
 #include <ncsgl_defs.h>
 #include <ncs_lib.h>
@@ -51,8 +53,6 @@ extern "C" {
 #define IMM_LONG_DN_CONFIG_ATTRIBUTE_NAME "longDnsAllowed"
 #define SMF_SAF_APP_DN "safApp=safSmfService"
 #define SMF_CAMP_RESTART_INDICATOR_RDN "smfCampaignRestartIndicator=smf"
-#define SMF_NODE_ID_CONTROLLER_1 0x2010f
-#define SMF_NODE_ID_CONTROLLER_2 0x2020f
 #define SMF_CAMPAIGN_OI_NAME "safSmfCampaign"
 #define SMF_PROC_OI_NAME_PREFIX "safSmfProc"
 #define SMF_MERGED_SS_PROC_NAME "safSmfProc=SmfSSMergedProc"
@@ -75,6 +75,8 @@ extern "C" {
  */
 	extern smfd_cb_t *smfd_cb;
 	extern const SaNameT *smfApplDN;
+	extern uint32_t initialize_for_assignment(smfd_cb_t *cb,
+		SaAmfHAStateT ha_state);
 	extern uint32_t smfd_amf_init(smfd_cb_t *);
 	extern uint32_t smfd_mds_init(smfd_cb_t *);
 	extern uint32_t smfd_mds_finalize(smfd_cb_t *);

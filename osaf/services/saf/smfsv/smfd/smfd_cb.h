@@ -18,12 +18,13 @@
 #ifndef SMFD_CB_H
 #define SMFD_CB_H
 
+#include <stdbool.h>
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <smfd_smfnd.h>
 
 /* Default HA state assigned locally during smfd initialization */
-#define SMFD_HA_INIT_STATE SA_AMF_HA_STANDBY
+#define SMFD_HA_INIT_STATE SA_AMF_HA_QUIESCED
 
 #define SMFD_MDS_PVT_SUBPART_VERSION 1
 
@@ -41,6 +42,7 @@ typedef struct smfd_cb {
 	SaImmOiHandleT campaignOiHandle;            /* IMM Campaign OI handle                           */
 	SaSelectionObjectT campaignSelectionObject; /* Selection Object to wait for campaign IMM events */
 	SaAmfHAStateT ha_state;	                    /* present AMF HA state of the component            */
+	bool fully_initialized;
 	MDS_DEST smfnd_dests[NCS_MAX_SLOTS];        /* destinations for all smfnd   */
 	char *backupCreateCmd;	                    /* Backup create cmd string     */
 	char *bundleCheckCmd;	                    /* Bundle check cmd string      */
@@ -59,7 +61,9 @@ typedef struct smfd_cb {
 	SaUint32T smfInactivatePbeDuringUpgrade;    /* True (1) if PBE shall be deactivated during upgrade */
 	SaUint32T smfVerifyEnable;                  /* dis/enable pre-campaign verification callbacks */
 	SaTimeT smfVerifyTimeout;                   /* pre-campaign verification timeout */
-        char *smfClusterControllers[2];/* list of nodes where amfd is execting */
+	NODE_ID smfNodeIdControllers[2];            /* NODE_ID of the nodes where amfd is executing */
+	bool smfControllersUp[2];                   /* True if the smfNodeIdControllers node is up */
+	char *smfClusterControllers[2];/* list of nodes where amfd is execting */
 	SaUint32T smfKeepDuState;                   /* Keep DU state in an upgrade if true (>0) */
 	SaInvocationT cbk_inv_id;                   /* Invocation ID of the callback */
 	SMFD_SMFND_ADEST_INVID_MAP *smfnd_list;     /* SMFNDs need to respond to the callback. */
