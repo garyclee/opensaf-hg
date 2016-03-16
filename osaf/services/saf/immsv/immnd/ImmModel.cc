@@ -7123,6 +7123,7 @@ ImmModel::canonicalizeAttrModification(const ImmsvOmCcbObjectModify *req)
     /* Get object Name */
     size_t sz = strnlen(req->objectName.buf, (size_t) req->objectName.size);
     objectName.append((const char*) req->objectName.buf, sz);
+    osafassert(nameToInternal(objectName));
     osafassert(!objectName.empty());
 
     /* Get ccb info */
