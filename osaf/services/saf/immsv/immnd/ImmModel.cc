@@ -765,6 +765,12 @@ immModel_canonicalizeAttrModification(IMMND_CB *cb, const struct ImmsvOmCcbObjec
     return ImmModel::instance(&cb->immModel)->canonicalizeAttrModification(req);
 }
 
+struct immsv_attr_mods_list*
+immModel_getAllWritableAttributes(IMMND_CB *cb, const ImmsvOmCcbObjectModify *req, bool* hasLongDn)
+{
+    return ImmModel::instance(&cb->immModel)->getAllWritableAttributes(req, hasLongDn);
+}
+
 SaUint32T
 immModel_getLocalAppliersForObj(IMMND_CB *cb,
     const SaNameT* objName,
@@ -816,6 +822,11 @@ immModel_getLocalAppliersForCcb(IMMND_CB *cb,
     }
 
     return arrSize;
+}
+
+SaUint32T immModel_getPbeApplierConn(IMMND_CB *cb)
+{
+	return ImmModel::instance(&cb->immModel)->getPbeApplierConn();
 }
 
 SaAisErrorT
@@ -6649,6 +6660,15 @@ void ImmModel::getLocalAppliersForObj(const SaNameT* objName, SaUint32T ccbId,
     }
 }
 
+SaUint32T ImmModel::getPbeApplierConn()
+{
+	SaUint32T conn = 0;
+	unsigned int nodeId = 0;
+	getPbeBSlave(&conn, &nodeId);
+
+	return conn;
+}
+
 /*
   Checks if the there is any local special applier AND if the CCB op callbacks
   have not yet included information about admin-owner-name.
@@ -7066,12 +7086,45 @@ ImmModel::specialApplierTrimCreate(SaUint32T clientId, ImmsvOmCcbObjectCreate* r
     return attrValues;
 }
 
+/* Get after image of an object in a specific CCB */
+ObjectInfo*
+ImmModel::getObjectAfterImageInCcb(const std::string& objName, SaUint32T ccbId)
+{
+    CcbVector::iterator ci;
+    CcbInfo* ccb = NULL;
+    ObjectInfo* afim = NULL;
+    ObjectMutationMap::iterator omuti;
+    ObjectMutation* oMut = NULL;
+
+    osafassert(!objName.empty());
+
+    /* Get ccb info */
+    ci = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
+    osafassert(ci != sCcbVector.end());
+    ccb = *ci;
+
+    /* Get object mutation */
+    omuti = ccb->mMutations.find(objName);
+    osafassert(omuti != ccb->mMutations.end());
+    oMut = omuti->second;
+
+    /* Get after image */
+    if (oMut->mOpType == IMM_CREATE || oMut->mOpType == IMM_MODIFY) {
+        afim = oMut->mAfterImage;
+    } /* return NULL for IMM_DELETE */
+
+    return afim;
+}
+
 /* This function converts value(s) of an attribute into a single attr-mod.
  * attrModType is always SA_IMM_ATTR_VALUES_REPLACE.
+ *
+ * 'hasLongDns' is set to true when there's at least one value is long dn.
+ * If it's NULL or 'true', no checking for long DNs will be done.
  */
 immsv_attr_mods_list*
 ImmModel::attrValueToAttrMod(const ObjectInfo* obj, const std::string& attrName,
-                             SaUint32T attrType)
+                             SaUint32T attrType, SaImmAttrFlagsT attrFlags, bool* hasLongDn)
 {
     ImmAttrValueMap::const_iterator avi = obj->mAttrValueMap.find(attrName);
     osafassert(avi != obj->mAttrValueMap.end());
@@ -7101,6 +7154,26 @@ ImmModel::attrValueToAttrMod(const ObjectInfo* obj, const std::string& attrName,
         attrMod->attrValue.attrValuesNumber = 1 + attrValue->extraValues();
     } /* else, attrValuesNumber is already set to 0 */
 
+    /* Check for long DN when attribute type is
+     * 'SA_IMM_ATTR_SANAMET' or 'SA_IMM_ATTR_SASTRINGT with SA_IMM_ATTR_DN'.
+     * Will be skipped if hasLongDn is NULL or already 'true'. */
+    if (hasLongDn && !(*hasLongDn) && !attrValue->empty() &&
+            (attrType == SA_IMM_ATTR_SANAMET ||
+                    (attrType == SA_IMM_ATTR_SASTRINGT && (attrFlags & SA_IMM_ATTR_DN)))) {
+        if (strlen(attrValue->getValueC_str()) >= SA_MAX_UNEXTENDED_NAME_LENGTH) { /* Check head value */
+            *hasLongDn = true; /* Found! Skip checking more values */
+        } else if (attrValue->extraValues()) { /* Check more values */
+            ImmAttrMultiValue* multiVal = ((ImmAttrMultiValue *) attrValue)->getNextAttrValue();
+            while (multiVal) {
+                if (!multiVal->empty() && strlen(multiVal->getValueC_str()) >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                    *hasLongDn = true; /* Found! Stop checking */
+                    break; /* while */
+                }
+                multiVal = multiVal->getNextAttrValue();
+            }
+        }
+    }
+
     return attrMod;
 }
 
@@ -7114,11 +7187,7 @@ ImmModel::canonicalizeAttrModification(const ImmsvOmCcbObjectModify *req)
     TRACE_ENTER();
     immsv_attr_mods_list* result = NULL;
     std::string objectName;
-    CcbVector::iterator ci;
-    CcbInfo* ccb = NULL;
     ObjectInfo* afim = NULL;
-    ObjectMutationMap::iterator omuti;
-    ObjectMutation* oMut = NULL;
 
     /* Get object Name */
     size_t sz = strnlen(req->objectName.buf, (size_t) req->objectName.size);
@@ -7126,25 +7195,9 @@ ImmModel::canonicalizeAttrModification(const ImmsvOmCcbObjectModify *req)
     osafassert(nameToInternal(objectName));
     osafassert(!objectName.empty());
 
-    /* Get ccb info */
-    ci = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(req->ccbId));
-    osafassert(ci != sCcbVector.end());
-    ccb = *ci;
-
-    /* Get object mutation */
-    omuti = ccb->mMutations.find(objectName);
-    osafassert(omuti != ccb->mMutations.end());
-    oMut = omuti->second;
-
     /* Get after image */
-    osafassert(oMut->mOpType != IMM_DELETE);
-    if (oMut->mOpType == IMM_CREATE) { /* Chained operation */
-        ObjectMap::iterator oi = sObjectMap.find(objectName);
-        osafassert(oi != sObjectMap.end());
-        afim = oi->second;
-    } else if (oMut->mOpType == IMM_MODIFY) {
-        afim = oMut->mAfterImage;
-    }
+    afim = getObjectAfterImageInCcb(objectName, req->ccbId);
+    osafassert(afim);
 
     /* Build canonicalized attr-mod list */
     immsv_attr_mods_list* reqAttrMods = req->attrMods;
@@ -7156,6 +7209,47 @@ ImmModel::canonicalizeAttrModification(const ImmsvOmCcbObjectModify *req)
                                                            reqAttrMods->attrValue.attrValueType);
         attrMod->next = result;
         result = attrMod;
+    }
+
+    TRACE_LEAVE();
+    return result;
+}
+
+/* This function allocates new memory for attribute-modifications
+ * for all writable attributes of object.
+ * Remember to free the memory with immsv_free_attrmods().
+ */
+immsv_attr_mods_list*
+ImmModel::getAllWritableAttributes(const ImmsvOmCcbObjectModify *req, bool* hasLongDn)
+{
+    TRACE_ENTER();
+    immsv_attr_mods_list* result = NULL;
+    std::string objectName;
+    ObjectInfo* afim = NULL;
+    AttrMap::iterator ai;
+
+    /* Get object Name */
+    size_t sz = strnlen(req->objectName.buf, (size_t) req->objectName.size);
+    objectName.append((const char*) req->objectName.buf, sz);
+    osafassert(nameToInternal(objectName));
+    osafassert(!objectName.empty());
+
+    /* Get after image */
+    afim = getObjectAfterImageInCcb(objectName, req->ccbId);
+    osafassert(afim);
+
+    /* Build attr-mod list for all writable attributes */
+    osafassert(hasLongDn);
+    ClassInfo* classInfo = afim->mClassInfo;
+    ai = classInfo->mAttrMap.begin();
+    for (; ai != classInfo->mAttrMap.end(); ai++) {
+        if (ai->second->mFlags & SA_IMM_ATTR_WRITABLE) {
+            immsv_attr_mods_list* attrMod = attrValueToAttrMod(afim, (std::string&) ai->first,
+                                                               ai->second->mValueType,
+                                                               ai->second->mFlags, hasLongDn);
+            attrMod->next = result;
+            result = attrMod;
+        }
     }
 
     TRACE_LEAVE();

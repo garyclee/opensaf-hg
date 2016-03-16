@@ -234,9 +234,13 @@ public:
                                         ConnVector& connVector,
 					SaUint32T* appCtnPtr);
 
+    SaUint32T getPbeApplierConn();
+
     immsv_attr_mods_list* canonicalizeAttrModification(
             const struct ImmsvOmCcbObjectModify *req);
     
+    immsv_attr_mods_list* getAllWritableAttributes(const ImmsvOmCcbObjectModify *req, bool* hasLongDn);
+
     SaAisErrorT         ccbObjectModify(
                                         const ImmsvOmCcbObjectModify* req,
                                         SaUint32T* implConn,
@@ -709,9 +713,14 @@ private:
                             ObjectInfo *obj,
                             const char *noDanglingRef);
 
+    ObjectInfo* getObjectAfterImageInCcb(const std::string& objName,
+                                         SaUint32T ccbId);
+
     immsv_attr_mods_list* attrValueToAttrMod(const ObjectInfo* obj,
                                              const std::string& attrName,
-                                             SaUint32T attrType);
+                                             SaUint32T attrType,
+                                             SaImmAttrFlagsT attrFlags = 0,
+                                             bool* hasLongDn = NULL);
 
 };
 
