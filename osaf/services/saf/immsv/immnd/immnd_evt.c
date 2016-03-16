@@ -6215,7 +6215,11 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	SaNameT objName;
 	osaf_extended_name_clear(&objName);
 	bool hasLongDns=false;
+	/* These 2 attr-mods lists will only be generated on demand */
 	IMMSV_ATTR_MODS_LIST* canonicalizedAttrMod = NULL;
+	IMMSV_ATTR_MODS_LIST* allWritableAttr = NULL;
+	/* Used when canonicalizing all writable attributes */
+	bool writableAttrHasLongDns = false;
 
 	TRACE_ENTER();
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -6247,6 +6251,9 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
 	err = immModel_ccbObjectModify(cb, &(evt->info.objModify), &implConn, &implNodeId, 
 		&continuationId, &pbeConn, pbeNodeIdPtr, &objName, &hasLongDns);
+
+	/* If 'hasLongDns' is true, allWritableAttr will also contains long DN */
+	writableAttrHasLongDns = hasLongDns;
 
 	if(pbeNodeIdPtr && pbeConn && err == SA_AIS_OK) {
 		/*The persistent back-end is present and executing at THIS node. */
@@ -6364,12 +6371,11 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		SaUint32T arrSize =
 			immModel_getLocalAppliersForObj(cb, &objName,
 				evt->info.objModify.ccbId, &applConnArr, SA_FALSE);
+		SaUint32T pbeApplierConn = immModel_getPbeApplierConn(cb); /* 0 if not local or not exist */
 
 		if(arrSize) {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
-			send_evt.info.imma.type = hasLongDns ? IMMA_EVT_ND2A_OI_OBJ_MODIFY_LONG_UC :
-				IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
 			send_evt.info.imma.info.objModify = evt->info.objModify;
 			send_evt.info.imma.info.objModify.adminOwnerId = 0;
 			/* Re-use the adminOwner member of the ccbModify message to hold the 
@@ -6378,6 +6384,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 				bool isSpecialApplier = false;
 				send_evt.info.imma.info.objModify.attrMods = evt->info.objModify.attrMods;
+				send_evt.info.imma.type = hasLongDns ? IMMA_EVT_ND2A_OI_OBJ_MODIFY_LONG_UC :
+					IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
 				implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
 				send_evt.info.imma.info.objModify.immHandle = implHandle;
 
@@ -6407,10 +6415,18 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 						oi_cl_node->version.minorVersion >= 0x11 &&
 						oi_cl_node->version.majorVersion == 0x2 &&
 						oi_cl_node->version.releaseCode == 'A') {
-					if (!canonicalizedAttrMod) { /* Check if canonicalizedAttrMod is already built */
-						canonicalizedAttrMod = immModel_canonicalizeAttrModification(cb, &(evt->info.objModify));
+					if (applConnArr[ix] == pbeApplierConn) { /* Slave pbe */
+						osafassert(canonicalizedAttrMod); /* Must already be built for primary pbe */
+						send_evt.info.imma.info.objModify.attrMods = canonicalizedAttrMod;
+					} else {
+						if (!allWritableAttr) { /* Check if allWritableAttr is already built */
+							allWritableAttr = immModel_getAllWritableAttributes(cb, &(evt->info.objModify),
+																					 &writableAttrHasLongDns);
+						}
+						send_evt.info.imma.info.objModify.attrMods = allWritableAttr;
+						send_evt.info.imma.type = writableAttrHasLongDns ?
+							IMMA_EVT_ND2A_OI_OBJ_MODIFY_LONG_UC : IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
 					}
-					send_evt.info.imma.info.objModify.attrMods = canonicalizedAttrMod;
 				}
 				/* Slave pbe is initialized with latest OI api version,
 				 * it will also receive canonicalized attrMod like the primary pbe
@@ -6460,6 +6476,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	/* Free the canonicalized attr mods */
 	immsv_free_attrmods(canonicalizedAttrMod);
 	canonicalizedAttrMod = NULL;
+	immsv_free_attrmods(allWritableAttr);
+	allWritableAttr = NULL;
 	osaf_extended_name_free(&objName);
 	TRACE_LEAVE();
 }

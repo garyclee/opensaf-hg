@@ -176,6 +176,7 @@ extern "C" {
                 SaUint32T **aplConnArr, SaBoolT externalRep);
 	SaUint32T immModel_getLocalAppliersForCcb(IMMND_CB *cb, SaUint32T ccbId, SaUint32T **aplConnArr,
 		SaUint32T* applCtnPtr);
+	SaUint32T immModel_getPbeApplierConn(IMMND_CB *cb);
 
 	SaAisErrorT
 	    immModel_ccbObjectModify(IMMND_CB *cb,
@@ -304,6 +305,9 @@ extern "C" {
 
 	struct immsv_attr_mods_list*
 	immModel_canonicalizeAttrModification(IMMND_CB *cb, const struct ImmsvOmCcbObjectModify *req);
+
+	struct immsv_attr_mods_list*
+	immModel_getAllWritableAttributes(IMMND_CB *cb, const struct ImmsvOmCcbObjectModify *req, bool* hasLongDn);
 
 	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
 	SaBoolT immModel_protocol43Allowed(IMMND_CB *cb);
