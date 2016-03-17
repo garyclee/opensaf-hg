@@ -28,7 +28,7 @@ uint32_t immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg);
 uint32_t immd_mbcsv_register(IMMD_CB *cb);
 uint32_t immd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
 uint32_t immd_mbcsv_finalize(IMMD_CB *cb);
-uint32_t immd_mbcsv_chgrole(IMMD_CB *cb);
+uint32_t immd_mbcsv_chgrole(IMMD_CB *cb, SaAmfHAStateT ha_state);
 uint32_t immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg);
 uint32_t immd_process_sb_count(IMMD_CB *cb, uint32_t count, uint32_t evt_type);
 uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl);

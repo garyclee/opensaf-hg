@@ -282,7 +282,7 @@ uint32_t immd_mbcsv_selobj_get(IMMD_CB *cb)
  *                          Role Active - send ckpt data to multiple standby
  *                           peers
 ******************************************************************************/
-uint32_t immd_mbcsv_chgrole(IMMD_CB *cb)
+uint32_t immd_mbcsv_chgrole(IMMD_CB *cb, SaAmfHAStateT ha_state)
 {
 	NCS_MBCSV_ARG arg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -292,7 +292,7 @@ uint32_t immd_mbcsv_chgrole(IMMD_CB *cb)
 	arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
 	arg.i_mbcsv_hdl = cb->mbcsv_handle;
 	arg.info.chg_role.i_ckpt_hdl = cb->o_ckpt_hdl;
-	arg.info.chg_role.i_ha_state = cb->ha_state;
+	arg.info.chg_role.i_ha_state = ha_state;
 
 	/*  ha_state is assigned at the time of amf_init where csi_set_callback 
 	   will assign the state */

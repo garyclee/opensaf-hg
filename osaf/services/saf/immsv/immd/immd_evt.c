@@ -26,6 +26,8 @@
 
 #include "immsv.h"
 #include "immsv_evt.h"
+#include <stdbool.h>
+#include <stdlib.h>
 #include "immd.h"
 #include "ncssysf_mem.h"
 #include "osaf_extended_name.h"
@@ -2499,7 +2501,16 @@ static uint32_t immd_evt_proc_rda_callback(IMMD_CB *cb, IMMD_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("role = %d", (int) evt->info.rda_info.io_role);
+
+	bool was_fully_initialized = cb->fully_initialized;
+	if ((rc = initialize_for_assignment(cb,
+		(SaAmfHAStateT) evt->info.rda_info.io_role))
+		!= NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		exit(EXIT_FAILURE);
+	}
+
 	if ((cb->ha_state != SA_AMF_HA_ACTIVE) &&
 		(evt->info.rda_info.io_role == PCS_RDA_ACTIVE)) {
 		cb->mds_role = V_DEST_RL_ACTIVE;
@@ -2507,14 +2518,16 @@ static uint32_t immd_evt_proc_rda_callback(IMMD_CB *cb, IMMD_EVT *evt)
 
 		LOG_NO("ACTIVE request");
 
-		if ((rc = immd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
-			LOG_WA("immd_mds_change_role FAILED");
-			goto done;
-		}
+		if (was_fully_initialized == true) {
+			if ((rc = immd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
+				LOG_WA("immd_mds_change_role FAILED");
+				goto done;
+			}
 
-		if (immd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS) {
-			LOG_WA("immd_mbcsv_chgrole FAILED");
-			goto done;
+			if (immd_mbcsv_chgrole(cb, cb->ha_state) != NCSCC_RC_SUCCESS) {
+				LOG_WA("immd_mbcsv_chgrole FAILED");
+				goto done;
+			}
 		}
 
 		/* Change of role to active => We may need to elect new coord */
@@ -2549,7 +2562,7 @@ static uint32_t immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_
 		cb->is_quiesced_set = false;
 
 		/* Inform mbcsv about the changed role */
-		if (immd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS)
+		if (immd_mbcsv_chgrole(cb, cb->ha_state) != NCSCC_RC_SUCCESS)
 			LOG_WA("mbcsv_chgrole to quiesced FAILED");
 
 		/* Finally respond to AMF */
