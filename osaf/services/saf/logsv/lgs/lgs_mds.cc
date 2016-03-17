@@ -1273,7 +1273,7 @@ static uint32_t mds_vdest_create(lgs_cb_t *lgs_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t lgs_mds_init(lgs_cb_t *cb)
+uint32_t lgs_mds_init(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
@@ -1288,10 +1288,10 @@ uint32_t lgs_mds_init(lgs_cb_t *cb)
 	}
 
 	/* Set the role of MDS */
-	if (cb->ha_state == SA_AMF_HA_ACTIVE)
+	if (ha_state == SA_AMF_HA_ACTIVE)
 		cb->mds_role = V_DEST_RL_ACTIVE;
 
-	if (cb->ha_state == SA_AMF_HA_STANDBY)
+	if (ha_state == SA_AMF_HA_STANDBY)
 		cb->mds_role = V_DEST_RL_STANDBY;
 
 	if (NCSCC_RC_SUCCESS != (rc = lgs_mds_change_role(cb))) {

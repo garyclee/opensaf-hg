@@ -186,7 +186,7 @@ void lgs_free_edu_mem(char *ptr)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t lgs_mbcsv_init(lgs_cb_t *cb)
+uint32_t lgs_mbcsv_init(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 {
 	uint32_t rc;
 	NCS_MBCSV_ARG arg;
@@ -242,7 +242,7 @@ uint32_t lgs_mbcsv_init(lgs_cb_t *cb)
 		goto done;
 	}
 
-	rc = lgs_mbcsv_change_HA_state(cb);
+	rc = lgs_mbcsv_change_HA_state(cb, ha_state);
 
 done:
 	TRACE_LEAVE();
@@ -264,7 +264,7 @@ done:
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
+uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 {
 	TRACE_ENTER();
 	NCS_MBCSV_ARG mbcsv_arg;
@@ -274,7 +274,7 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
-	mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
+	mbcsv_arg.info.chg_role.i_ha_state = ha_state;
 
 	if (ncs_mbcsv_svc(&mbcsv_arg) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_CHG_ROLE FAILED");
@@ -291,11 +291,11 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 	if (lgs_is_split_file_system()) {
 		stream = log_stream_getnext_by_name(NULL);
 		while (stream != NULL) { /* Iterate over all streams */
-			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+			if (ha_state == SA_AMF_HA_ACTIVE) {
 				stream->logFileCurrent = stream->stb_logFileCurrent;
 				stream->curFileSize = stream->stb_curFileSize;
 				*stream->p_fd = -1; /* Reopen files */
-			} else if (cb->ha_state == SA_AMF_HA_QUIESCED) {
+			} else if (ha_state == SA_AMF_HA_QUIESCED) {
 				stream->stb_logFileCurrent = stream->logFileCurrent;
 				stream->stb_prev_actlogFileCurrent = stream->stb_logFileCurrent;
 				stream->stb_curFileSize = stream->curFileSize;

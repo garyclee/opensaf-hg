@@ -20,6 +20,9 @@
 #ifndef LGS_MBCSV_H
 #define	LGS_MBCSV_H
 
+#include <stdint.h>
+#include "saAmf.h"
+
 /* Version 1: Logservice check-point version older versions than OpenSAF 4.4.
  *            Cannot be configured for split filesystem.
  * Version 2: Check-pointing version used in OpenSAF version 4.4 after
@@ -96,8 +99,8 @@ typedef struct {
 	uint32_t logRecordId;	/* log record identifier increased for each record */
 } lgs_ckpt_stream_open_t;
 
-uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb);
-uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
+uint32_t lgs_mbcsv_init(lgs_cb_t *lgs_cb, SaAmfHAStateT ha_state);
+uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb, SaAmfHAStateT ha_state);
 bool lgs_is_peer_v2();
 bool lgs_is_peer_v3();
 bool lgs_is_peer_v4();

@@ -15,6 +15,7 @@
  *
  */
 
+#include <stdlib.h>
 #include "immutil.h"
 #include "osaf_time.h"
 #include "saf_error.h"
@@ -460,7 +461,8 @@ static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 		lgs_cb->ha_state = SA_AMF_HA_QUIESCED;
 
 		/* Inform MBCSV of HA state change */
-		if (lgs_mbcsv_change_HA_state(lgs_cb) != NCSCC_RC_SUCCESS)
+		if (lgs_mbcsv_change_HA_state(lgs_cb, lgs_cb->ha_state) !=
+			NCSCC_RC_SUCCESS)
 			TRACE("lgs_mbcsv_change_HA_state FAILED");
 
 		/* Finally respond to AMF */
@@ -508,9 +510,17 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 	log_stream_t *stream;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%u", evt->info.rda_info.io_role);
+	TRACE_ENTER2("%d", (int) evt->info.rda_info.io_role);
 
-	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
+	if ((rc = initialize_for_assignment(lgs_cb,
+		(SaAmfHAStateT) evt->info.rda_info.io_role))
+		!= NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		exit(EXIT_FAILURE);
+	}
+
+	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE &&
+            lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		LOG_NO("ACTIVE request");
 		lgs_cb->mds_role = V_DEST_RL_ACTIVE;
 		lgs_cb->ha_state = SA_AMF_HA_ACTIVE;
@@ -520,13 +530,14 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 			exit(EXIT_FAILURE);
 		}
 
-		if ((rc = lgs_mbcsv_change_HA_state(lgs_cb)) != NCSCC_RC_SUCCESS) {
+		if ((rc = lgs_mbcsv_change_HA_state(lgs_cb, lgs_cb->ha_state))
+			!= NCSCC_RC_SUCCESS) {
 			LOG_ER("lgs_mbcsv_change_HA_state FAILED %u", rc);
 			exit(EXIT_FAILURE);
 		}
 
 		/* fail over, become implementer */
-		lgs_imm_impl_set(lgs_cb->immOiHandle);
+		lgs_imm_impl_set(&lgs_cb->immOiHandle, &lgs_cb->immSelectionObject);
 
 		/* Agent down list has to be processed first */
 		lgs_process_lga_down_list();
@@ -569,8 +580,10 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 
 	reg_param.key_size = sizeof(uint32_t);
 
-	/* Assign Initial HA state */
-	lgs_cb->csi_assigned = false;
+	lgs_cb->fully_initialized = false;
+	lgs_cb->amfSelectionObject = -1;
+	lgs_cb->immSelectionObject = -1;
+	lgs_cb->mbcsv_sel_obj = -1;
 
 	/* Assign Version. Currently, hardcoded, This will change later */
 	lgs_cb->log_version.releaseCode = LOG_RELEASE_CODE;
