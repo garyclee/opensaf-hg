@@ -149,22 +149,6 @@ static uint32_t immd_initialize(void)
 		goto done;
 	}
 
-	if ((rc = immd_mds_register(immd_cb)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("immd_mds_register FAILED %d", rc);
-		goto done;
-	}
-
-	/* Initialise with the MBCSV service  */
-	if ((rc = immd_mbcsv_register(immd_cb)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("immd_mbcsv_register FAILED %d", rc);
-		goto done;
-	}
-
-	if ((rc = immd_mbcsv_chgrole(immd_cb)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("immd_mbcsv_chgrole FAILED %d", rc);
-		goto done;
-	}
-
 	/* Create a selection object */
 	if (immd_cb->nid_started &&
 		(rc = ncs_sel_obj_create(&immd_cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
@@ -189,6 +173,12 @@ static uint32_t immd_initialize(void)
 		goto done;
 	}
 
+	if ((rc = initialize_for_assignment(immd_cb, immd_cb->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		goto done;
+	}
+
 	syslog(LOG_INFO, "Initialization Success, role %s",
 	       (immd_cb->ha_state == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
 
@@ -200,6 +190,34 @@ done:
 	}
 
 	TRACE_LEAVE();
+	return rc;
+}
+
+uint32_t initialize_for_assignment(IMMD_CB *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) goto done;
+	cb->ha_state = ha_state;
+	if ((rc = immd_mds_register(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("immd_mds_register FAILED %d", rc);
+		goto done;
+	}
+	if ((rc = immd_mbcsv_register(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("immd_mbcsv_register FAILED %d", rc);
+		immd_mds_unregister(cb);
+		goto done;
+	}
+	if ((rc = immd_mbcsv_chgrole(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("immd_mbcsv_chgrole FAILED %d", rc);
+		immd_mbcsv_close(cb);
+		immd_mbcsv_finalize(cb);
+		immd_mds_unregister(cb);
+		goto done;
+	}
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
 	return rc;
 }
 
@@ -281,12 +299,13 @@ int main(int argc, char *argv[])
 	fds[FD_AMF].fd = immd_cb->nid_started ?
 		immd_cb->usr1_sel_obj.rmv_obj : immd_cb->amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_MBCSV].fd = immd_cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 
 	while (1) {
+		fds[FD_MBCSV].fd = immd_cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
+
 		int ret = poll(fds, 4, timeout);
 
 		if (ret == -1) {

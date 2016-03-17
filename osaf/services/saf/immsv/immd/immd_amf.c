@@ -15,6 +15,7 @@
  *
  */
 
+#include <stdbool.h>
 #include <nid_start_util.h>
 #include "immd.h"
 #include "immsv.h"
@@ -189,6 +190,14 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
 
 	prev_ha_state = cb->ha_state;
 
+	bool was_fully_initialized = cb->fully_initialized;
+	if ((rc = initialize_for_assignment(cb, new_haState))
+		!= NCSCC_RC_SUCCESS) {
+		TRACE("initialize_for_assignment FAILED %u", (unsigned) rc);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		goto response;
+	}
+
 	/* Invoke the appropriate state handler routine */
 	switch (new_haState) {
 	case SA_AMF_HA_ACTIVE:
@@ -232,19 +241,21 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
 	}
 
 	if (role_change) {
-		if ((rc = immd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
-			LOG_WA("immd_mds_change_role FAILED");
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto response;
-		}
+		if (was_fully_initialized == true) {
+			if ((rc = immd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
+				LOG_WA("immd_mds_change_role FAILED");
+				error = SA_AIS_ERR_FAILED_OPERATION;
+				goto response;
+			}
 
-		TRACE_5("Inform MBCSV of HA state change to %s",
-			(new_haState == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
+			TRACE_5("Inform MBCSV of HA state change to %s",
+				(new_haState == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
 
-		if (immd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS) {
-			LOG_WA("immd_mbcsv_chgrole FAILED");
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto response;
+			if (immd_mbcsv_chgrole(cb, new_haState) != NCSCC_RC_SUCCESS) {
+				LOG_WA("immd_mbcsv_chgrole FAILED");
+				error = SA_AIS_ERR_FAILED_OPERATION;
+				goto response;
+			}
 		}
 
 		if (new_haState == SA_AMF_HA_ACTIVE) {

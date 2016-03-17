@@ -261,6 +261,12 @@ uint32_t immd_cb_db_init(IMMD_CB *cb)
 		cb->is_loading = true;
 	}
 
+	cb->fully_initialized = false;
+	cb->mbcsv_sel_obj = -1;
+	cb->usr1_sel_obj.raise_obj = -1;
+	cb->usr1_sel_obj.rmv_obj = -1;
+	cb->amf_sel_obj = -1;
+
 	return (NCSCC_RC_SUCCESS);
 }
 

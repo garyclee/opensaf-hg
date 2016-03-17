@@ -38,7 +38,7 @@ void immd_pending_payload_discards(IMMD_CB *cb);
 
 void immd_cb_dump(void);
 
-uint32_t immd_mbcsv_chgrole(IMMD_CB *cb);
+uint32_t immd_mbcsv_chgrole(IMMD_CB *cb, SaAmfHAStateT ha_state);
 
 uint32_t immd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg);
 uint32_t immd_get_slot_and_subslot_id_from_mds_dest(MDS_DEST dest);

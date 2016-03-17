@@ -30,6 +30,9 @@
 #ifndef IMMD_H
 #define IMMD_H
 
+#include <stdint.h>
+#include "saAmf.h"
+
 #include "immsv.h"
 #include "mbcsv_papi.h"
 #include "immd_cb.h"
@@ -40,5 +43,7 @@
 #include "ncs_mda_pvt.h"
 
 IMMD_CB *immd_cb;
+
+extern uint32_t initialize_for_assignment(IMMD_CB *cb, SaAmfHAStateT ha_state);
 
 #endif   /* IMMD_H */

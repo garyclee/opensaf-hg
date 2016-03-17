@@ -91,7 +91,7 @@ uint32_t immd_mds_vdest_create(IMMD_CB *cb)
  
   Notes         : None.
 ****************************************************************************/
-uint32_t immd_mds_register(IMMD_CB *cb)
+uint32_t immd_mds_register(IMMD_CB *cb, SaAmfHAStateT ha_state)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
@@ -106,10 +106,10 @@ uint32_t immd_mds_register(IMMD_CB *cb)
 	}
 
 	/* Set the role of MDS  ABT added new code see lgs_mds.c lgs_mds_init */
-	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+	if (ha_state == SA_AMF_HA_ACTIVE) {
 		TRACE_5("Set MDS role to ACTIVE");
 		cb->mds_role = V_DEST_RL_ACTIVE;
-	} else if (cb->ha_state == SA_AMF_HA_STANDBY) {
+	} else if (ha_state == SA_AMF_HA_STANDBY) {
 		TRACE_5("Set MDS role to STANDBY");
 		cb->mds_role = V_DEST_RL_STANDBY;
 	} else {
