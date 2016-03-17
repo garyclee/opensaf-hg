@@ -207,8 +207,8 @@ validate_options()
    trace "SC_COUNT:$SC_COUNT PL_COUNT:$PL_COUNT"
 
    if [ $SC_COUNT -ne $UNDEF_COUNT ] ; then
-      if [ $SC_COUNT -lt 1 -o $SC_COUNT -gt 2 ] ; then
-         script_error "One or two SC's must be specified!. Exiting!"
+      if [ $SC_COUNT -lt 1 ] ; then
+         script_error "At least One or SC must be specified!. Exiting!"
          exit 1
       fi
 
