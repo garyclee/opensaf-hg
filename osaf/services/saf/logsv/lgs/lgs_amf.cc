@@ -64,7 +64,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 		goto done;
 	}
 
-	lgs_imm_impl_set(cb->immOiHandle);
+	lgs_imm_impl_set(&cb->immOiHandle, &cb->immSelectionObject);
 	conf_runtime_obj_create(cb->immOiHandle);
 
 	/* check existing streams */
@@ -246,6 +246,13 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	 */
 	prev_haState = lgs_cb->ha_state;
 
+	if ((rc = initialize_for_assignment(lgs_cb,
+		new_haState)) != NCSCC_RC_SUCCESS) {
+		TRACE("initialize_for_assignment FAILED %u", (unsigned) rc);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		goto response;
+	}
+
 	/* Invoke the appropriate state handler routine */
 	switch (new_haState) {
 	case SA_AMF_HA_ACTIVE:
@@ -279,15 +286,8 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	/* Update control block */
 	lgs_cb->ha_state = new_haState;
 
-	if (lgs_cb->csi_assigned == false) {
-		lgs_cb->csi_assigned = true;
-		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
-	} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
+	if (new_haState == SA_AMF_HA_ACTIVE || new_haState == SA_AMF_HA_STANDBY) {
 		lgs_cb->ckpt_state = COLD_SYNC_IDLE;
-		/* NOTE: This behaviour has to be checked later, when scxb redundancy is available 
-		 * Also, change role of mds, mbcsv during quiesced has to be done after mds
-		 * supports the same.  TBD
-		 */
 	}
 
 	/* Handle active to active role change. */
@@ -306,7 +306,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		}
 
 		/* Inform MBCSV of HA state change */
-		if (NCSCC_RC_SUCCESS != lgs_mbcsv_change_HA_state(lgs_cb))
+		if (NCSCC_RC_SUCCESS != lgs_mbcsv_change_HA_state(lgs_cb, new_haState))
 			error = SA_AIS_ERR_FAILED_OPERATION;
 	}
 

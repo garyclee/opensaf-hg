@@ -23,7 +23,8 @@
  * ========================================================================
  */
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <stdint.h>
 
 #include <ncs_mda_pvt.h>
 #include <mbcsv_papi.h>
@@ -32,6 +33,7 @@
 #include <saAis.h>
 #include <saf_error.h>
 #include <saImmOm.h>
+#include "saAmf.h"
 
 /* LGS files */
 #include "lgsv_defs.h"
@@ -89,10 +91,12 @@ extern uint32_t mbox_low[NCS_IPC_PRIORITY_MAX];
 extern pthread_mutex_t lgs_mbox_init_mutex;
 extern pthread_mutex_t lgs_OI_init_mutex;
 
+extern uint32_t initialize_for_assignment(lgs_cb_t *cb, SaAmfHAStateT ha_state);
+
 extern uint32_t lgs_configure_mailbox();
 
 extern SaAisErrorT lgs_amf_init(lgs_cb_t *cb);
-extern uint32_t lgs_mds_init(lgs_cb_t *cb);
+extern uint32_t lgs_mds_init(lgs_cb_t *cb, SaAmfHAStateT ha_state);
 extern uint32_t lgs_mds_finalize(lgs_cb_t *cb);
 extern uint32_t lgs_mds_change_role(lgs_cb_t *cb);
 extern uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
@@ -112,7 +116,8 @@ extern void logDataGroupname_fileown(const char *new_logDataGroupname);
 extern void lgs_imm_impl_reinit_nonblocking(lgs_cb_t *cb);
 extern void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
                                    SaSelectionObjectT *immSelectionObject);
-extern void lgs_imm_impl_set(SaImmOiHandleT immOiHandle);
+extern void lgs_imm_impl_set(SaImmOiHandleT* immOiHandle,
+                             SaSelectionObjectT* immSelectionObject);
 extern  SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb);
 
 // Functions for recovery handling

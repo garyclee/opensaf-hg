@@ -273,8 +273,6 @@ static uint32_t log_initialize(void)
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER();
-        const char *logsv_root_dir = NULL;
-        const char *logsv_data_groupname = NULL;
 
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
@@ -293,44 +291,8 @@ static uint32_t log_initialize(void)
 		goto done;
 	}
 
-	/* Initialize IMM OI handle and selection object */
-	lgs_imm_init_OI_handle(&lgs_cb->immOiHandle, &lgs_cb->immSelectionObject);
-
-	TRACE("IMM init done: lgs_cb->immOiHandle = %lld", lgs_cb->immOiHandle);
-
-	/* Initialize log configuration
-	 * Must be done after IMM OI is initialized
-	 */
-	lgs_cfg_init(lgs_cb->immOiHandle, lgs_cb->ha_state);
-	lgs_trace_config(); /* Show all configuration in TRACE */
-	
-	/* Show some configurtion info in sysylog */
-        logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
-        logsv_data_groupname = static_cast<const char *>(lgs_cfg_get(LGS_IMM_DATA_GROUPNAME));
-	LOG_NO("LOG root directory is: \"%s\"", logsv_root_dir);
-	LOG_NO("LOG data group is: \"%s\"", logsv_data_groupname);
-
 	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("rda_register_callback FAILED %u", rc);
-		goto done;
-	}
-
-	/* Initialize file handling thread
-	 * Configuration must have been initialized
-	 */
-	if (lgs_file_init() != NCSCC_RC_SUCCESS) {
-		LOG_ER("lgs_file_init FAILED");
-		goto done;
-	}
-
-	/* Initiate "headless" recovery handling */
-	init_recovery();
-
-	/* Initialize configuration stream class
-	 * Configuration must have been initialized
-	 */
-	if (log_stream_init() != NCSCC_RC_SUCCESS) {
-		LOG_ER("log_stream_init FAILED");
 		goto done;
 	}
 
@@ -345,28 +307,6 @@ static uint32_t log_initialize(void)
 	/* Attach mailbox to this thread */
 	if ((rc = m_NCS_IPC_ATTACH(&lgs_mbx) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
-		goto done;
-	}
-
-	/* Configuration must have been initialized */
-	if (lgs_configure_mailbox() != NCSCC_RC_SUCCESS) {
-		LOG_ER("configure_mailbox FAILED");
-		goto done;
-	}
-
-	/* Initialize mailbox used for communication mds thread -> main thread
-	 * Update mds_role is in lgs_cb
-	 * Uses ha_state in lgs_cb
-	 *
-	 */
-	if ((rc = lgs_mds_init(lgs_cb)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("lgs_mds_init FAILED %d", rc);
-		goto done;
-	}
-
-	/* Update mbcsv_hdl in lgs_cb */
-	if ((rc = lgs_mbcsv_init(lgs_cb)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("lgs_mbcsv_init FAILED");
 		goto done;
 	}
 
@@ -388,28 +328,15 @@ static uint32_t log_initialize(void)
 		goto done;
 	}
 
-	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
-		/* Become OI. We will be blocked here until done */
-		lgs_imm_impl_set(lgs_cb->immOiHandle);
-		conf_runtime_obj_create(lgs_cb->immOiHandle);
-
-		/* Create streams that has configuration objects and become
-		 * class implementer for the SaLogStreamConfig class
-		 */
-
-		/* Note1: lgs_cb->immOiHandle is set in lgs_imm_init()
-		 * Note2: lgs_cb->logsv_root_dir must be set
-		 */
-		if (lgs_imm_init_configStreams(lgs_cb) != SA_AIS_OK) {
-			LOG_ER("lgs_imm_create_configStream FAILED");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-	}
-
 	/* If AMF started register immediately */
 	if (!lgs_cb->nid_started && lgs_amf_init(lgs_cb) != SA_AIS_OK) {
 		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	if ((rc = initialize_for_assignment(lgs_cb, lgs_cb->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
 		goto done;
 	}
 
@@ -422,6 +349,89 @@ done:
 
 	TRACE_LEAVE();
 	return (rc);
+}
+
+uint32_t initialize_for_assignment(lgs_cb_t *cb, SaAmfHAStateT ha_state)
+{
+        const char *logsv_root_dir = NULL;
+        const char *logsv_data_groupname = NULL;
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) goto done;
+	cb->ha_state = ha_state;
+	/* Initialize IMM OI handle and selection object */
+	lgs_imm_init_OI_handle(&cb->immOiHandle, &cb->immSelectionObject);
+
+	TRACE("IMM init done: cb->immOiHandle = %lld", cb->immOiHandle);
+
+	/* Initialize log configuration
+	 * Must be done after IMM OI is initialized
+	 */
+	lgs_cfg_init(cb->immOiHandle, cb->ha_state);
+	lgs_trace_config(); /* Show all configuration in TRACE */
+	
+	/* Show some configurtion info in sysylog */
+        logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+        logsv_data_groupname = static_cast<const char *>(lgs_cfg_get(LGS_IMM_DATA_GROUPNAME));
+	LOG_NO("LOG root directory is: \"%s\"", logsv_root_dir);
+	LOG_NO("LOG data group is: \"%s\"", logsv_data_groupname);
+
+	/* Initialize file handling thread
+	 * Configuration must have been initialized
+	 */
+	if (lgs_file_init() != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_file_init FAILED");
+		goto done;
+	}
+
+	/* Initiate "headless" recovery handling */
+	init_recovery();
+
+	/* Initialize configuration stream class
+	 * Configuration must have been initialized
+	 */
+	if (log_stream_init() != NCSCC_RC_SUCCESS) {
+		LOG_ER("log_stream_init FAILED");
+		goto done;
+	}
+
+	/* Configuration must have been initialized */
+	if (lgs_configure_mailbox() != NCSCC_RC_SUCCESS) {
+		LOG_ER("configure_mailbox FAILED");
+		goto done;
+	}
+
+	if ((rc = lgs_mds_init(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_mds_init FAILED %d", rc);
+		goto done;
+	}
+	if ((rc = lgs_mbcsv_init(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_mbcsv_init FAILED");
+		lgs_mds_finalize(cb);
+		goto done;
+	}
+	if (ha_state == SA_AMF_HA_ACTIVE) {
+		/* Become OI. We will be blocked here until done */
+		lgs_imm_impl_set(&cb->immOiHandle, &cb->immSelectionObject);
+		conf_runtime_obj_create(cb->immOiHandle);
+
+		/* Create streams that has configuration objects and become
+		 * class implementer for the SaLogStreamConfig class
+		 */
+
+		/* Note1: cb->immOiHandle is set in lgs_imm_init()
+		 * Note2: cb->logsv_root_dir must be set
+		 */
+		if (lgs_imm_init_configStreams(cb) != SA_AIS_OK) {
+			LOG_ER("lgs_imm_create_configStream FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+	}
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
+	return rc;
 }
 
 /**
@@ -459,29 +469,29 @@ int main(int argc, char *argv[])
 	mbx_fd = ncs_ipc_get_sel_obj(&lgs_mbx);
 	daemon_sigterm_install(&term_fd);
 
-	if (log_rtobj_list_no() != 0) {
-		/* Needed only if any "lost" objects are found
-		 * See log_initialize */
-		cltimer_fd = lgs_init_timer(CLEAN_TIMEOUT);
-		TRACE("%s Recovery timeout started", __FUNCTION__);
-	}
-
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
 	fds[FD_AMF].fd = lgs_cb->nid_started ?
 		usr1_sel_obj.rmv_obj : lgs_cb->amfSelectionObject;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_MBCSV].fd = lgs_cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
-	fds[FD_CLTIMER].fd = cltimer_fd;
-	fds[FD_CLTIMER].events = POLLIN;
 	fds[FD_IMM].fd = lgs_cb->immSelectionObject;
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+		if (cltimer_fd < 0 && log_rtobj_list_no() != 0) {
+			/* Needed only if any "lost" objects are found
+			 * See log_initialize */
+			cltimer_fd = lgs_init_timer(CLEAN_TIMEOUT);
+			TRACE("%s Recovery timeout started", __FUNCTION__);
+		}
+
+		fds[FD_CLTIMER].fd = cltimer_fd;
+		fds[FD_CLTIMER].events = POLLIN;
+		fds[FD_MBCSV].fd = lgs_cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
 
 		/* Protect since the reinit thread may be in the process of
 		 * changing the values
@@ -545,6 +555,7 @@ int main(int argc, char *argv[])
 			/* Close timer to free resources and stop timer poll */
 			lgs_close_timer(cltimer_fd);
 			fds[FD_CLTIMER].fd = -1;
+			cltimer_fd = -1;
 
 			if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 				/* Delete objects left if active */
@@ -586,6 +597,7 @@ int main(int argc, char *argv[])
 				 */
 				saImmOiFinalize(lgs_cb->immOiHandle);
 				lgs_cb->immOiHandle = 0;
+				lgs_cb->immSelectionObject = -1;
 
 				/* Initiate IMM reinitializtion in the background */
 				lgs_imm_impl_reinit_nonblocking(lgs_cb);

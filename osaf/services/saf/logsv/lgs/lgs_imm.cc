@@ -2823,59 +2823,99 @@ void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
  * @param immOiHandle[in]
  * @return SaAisErrorT
  */
-static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT immOiHandle)
+static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT* immOiHandle,
+					 SaSelectionObjectT* immSelectionObject)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t msecs_waited = 0;
 
 	TRACE_ENTER();
 
-	/* Become object implementer
-	 */
-	rc = saImmOiImplementerSet(immOiHandle, implementerName);
-	while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) &&
-			(msecs_waited < max_waiting_time_60s)) {
-		usleep(sleep_delay_ms * 1000);
-		msecs_waited += sleep_delay_ms;
-		rc = saImmOiImplementerSet(immOiHandle, implementerName);
-	}
-	if (rc != SA_AIS_OK) {
-		TRACE("saImmOiImplementerSet failed %s", saf_error(rc));
-		goto done;
-	}
-
-	/*
-	 * Become class implementer for the OpenSafLogConfig class if it exists
-	 * Become class implementer for the SaLogStreamConfig class
-	 */
-	if (true == *static_cast<const bool*>(lgs_cfg_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST))) {
-		msecs_waited = 0;
-		rc = saImmOiClassImplementerSet(immOiHandle, logConfig_str);
-		while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
-				&& (msecs_waited < max_waiting_time_60s)) {
-			usleep(sleep_delay_ms * 1000);
-			msecs_waited += sleep_delay_ms;
-			rc = saImmOiClassImplementerSet(immOiHandle, logConfig_str);
-		}
-		if (rc != SA_AIS_OK) {
-			TRACE("saImmOiClassImplementerSet OpenSafLogConfig failed %s", saf_error(rc));
+        for (;;) {
+		if (msecs_waited >= max_waiting_time_60s) {
+			TRACE("Timeout in imm_impl_set_sequence");
 			goto done;
 		}
-	}
 
-	msecs_waited = 0;
-	rc = saImmOiClassImplementerSet(immOiHandle, streamConfig_str);
-	while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
-			&& (msecs_waited < max_waiting_time_60s)) {
-		usleep(sleep_delay_ms * 1000);
-		msecs_waited += sleep_delay_ms;
-		rc = saImmOiClassImplementerSet(immOiHandle, streamConfig_str);
-	}
-	if (rc != SA_AIS_OK) {
-		TRACE("saImmOiClassImplementerSet SaLogStreamConfig failed %u", rc);
-		goto done;
-	}
-	
+		/* Become object implementer
+		 */
+		rc = saImmOiImplementerSet(*immOiHandle, implementerName);
+		while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) &&
+		       (msecs_waited < max_waiting_time_60s)) {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			rc = saImmOiImplementerSet(*immOiHandle, implementerName);
+		}
+		if (rc == SA_AIS_ERR_BAD_HANDLE || rc == SA_AIS_ERR_TIMEOUT) {
+			LOG_WA("saImmOiImplementerSet returned %s",
+			       saf_error(rc));
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			saImmOiFinalize(*immOiHandle);
+			*immOiHandle = 0;
+			*immSelectionObject = -1;
+			lgs_imm_init_OI_handle(immOiHandle, immSelectionObject);
+			continue;
+		}
+		if (rc != SA_AIS_OK) {
+			TRACE("saImmOiImplementerSet failed %s", saf_error(rc));
+			goto done;
+		}
+
+		/*
+		 * Become class implementer for the OpenSafLogConfig class if it exists
+		 * Become class implementer for the SaLogStreamConfig class
+		 */
+		if (true == *static_cast<const bool*>(lgs_cfg_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST))) {
+			rc = saImmOiClassImplementerSet(*immOiHandle, logConfig_str);
+			while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
+			       && (msecs_waited < max_waiting_time_60s)) {
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+				rc = saImmOiClassImplementerSet(*immOiHandle, logConfig_str);
+			}
+			if (rc == SA_AIS_ERR_BAD_HANDLE || rc == SA_AIS_ERR_TIMEOUT) {
+				LOG_WA("saImmOiClassImplementerSet returned %s",
+				       saf_error(rc));
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+				saImmOiFinalize(*immOiHandle);
+				*immOiHandle = 0;
+				*immSelectionObject = -1;
+				lgs_imm_init_OI_handle(immOiHandle, immSelectionObject);
+				continue;
+			}
+			if (rc != SA_AIS_OK) {
+				TRACE("saImmOiClassImplementerSet OpenSafLogConfig failed %s", saf_error(rc));
+				goto done;
+			}
+		}
+
+		rc = saImmOiClassImplementerSet(*immOiHandle, streamConfig_str);
+		while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
+		       && (msecs_waited < max_waiting_time_60s)) {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			rc = saImmOiClassImplementerSet(*immOiHandle, streamConfig_str);
+		}
+		if (rc == SA_AIS_ERR_BAD_HANDLE || rc == SA_AIS_ERR_TIMEOUT) {
+			LOG_WA("saImmOiClassImplementerSet returned %s",
+			       saf_error(rc));
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			saImmOiFinalize(*immOiHandle);
+			*immOiHandle = 0;
+			*immSelectionObject = -1;
+			lgs_imm_init_OI_handle(immOiHandle, immSelectionObject);
+			continue;
+		}
+		if (rc != SA_AIS_OK) {
+			TRACE("saImmOiClassImplementerSet SaLogStreamConfig failed %s", saf_error(rc));
+			goto done;
+		}
+		break;
+        }
+
 done:
 	return rc;
 	TRACE_LEAVE();
@@ -2887,13 +2927,14 @@ done:
  *
  * @param cb
  */
-void lgs_imm_impl_set(SaImmOiHandleT immOiHandle)
+void lgs_imm_impl_set(SaImmOiHandleT* immOiHandle,
+		      SaSelectionObjectT* immSelectionObject)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
-	rc = imm_impl_set_sequence(immOiHandle);
+	rc = imm_impl_set_sequence(immOiHandle, immSelectionObject);
 	if (rc != SA_AIS_OK) {
 		lgs_exit("Becoming OI implementer failed", SA_AMF_COMPONENT_RESTART);
 	}
@@ -2918,7 +2959,7 @@ static void *imm_impl_init_thread(void *_cb)
 
 	/* Initialize handles and become implementer */
 	lgs_imm_init_OI_handle(&immOiHandle, &immSelectionObject);
-	rc = imm_impl_set_sequence(immOiHandle);
+	rc = imm_impl_set_sequence(&immOiHandle, &immSelectionObject);
 	if (rc != SA_AIS_OK) {
 		lgs_exit("Becoming OI implementer failed", SA_AMF_COMPONENT_RESTART);
 	}
