@@ -2562,6 +2562,36 @@ uint32_t avd_dec_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 		cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
                 /* We need to figure out when there is out of sync, later on we have to remove it. */
+
+		if (updt_cnt->cb_updt != cb->async_updt_cnt.cb_updt)
+			LOG_ER("cb_updt counters mismatch: Active: %u  Standby: %u", updt_cnt->cb_updt, cb->async_updt_cnt.cb_updt);
+		if (updt_cnt->node_updt != cb->async_updt_cnt.node_updt)
+			LOG_ER("node_updt counters mismatch: Active: %u Standby: %u", updt_cnt->node_updt, cb->async_updt_cnt.node_updt);
+		if (updt_cnt->app_updt != cb->async_updt_cnt.app_updt)
+			LOG_ER("app_updt counters mismatch: Active: %u Standby: %u", updt_cnt->app_updt, cb->async_updt_cnt.app_updt);
+		if (updt_cnt->sg_updt != cb->async_updt_cnt.sg_updt)
+			LOG_ER("sg_updt counters mismatch: Active: %u Standby: %u", updt_cnt->sg_updt, cb->async_updt_cnt.sg_updt);
+		if (updt_cnt->su_updt != cb->async_updt_cnt.su_updt)
+			LOG_ER("su_updt counters mismatch: Active: %u Standby: %u", updt_cnt->su_updt, cb->async_updt_cnt.su_updt);
+		if (updt_cnt->si_updt != cb->async_updt_cnt.si_updt)
+			LOG_ER("si_updt counters mismatch: Active: %u Standby: %u", updt_cnt->si_updt, cb->async_updt_cnt.si_updt);
+		if (updt_cnt->sg_su_oprlist_updt != cb->async_updt_cnt.sg_su_oprlist_updt)
+			LOG_ER("sg_su_oprlist_updt counters mismatch: Active: %u Standby: %u", updt_cnt->sg_su_oprlist_updt, cb->async_updt_cnt.sg_su_oprlist_updt );
+		if (updt_cnt->sg_admin_si_updt != cb->async_updt_cnt.sg_admin_si_updt)
+			LOG_ER("sg_admin_si_updt counters mismatch: Active: %u Standby: %u", updt_cnt->sg_admin_si_updt, cb->async_updt_cnt.sg_admin_si_updt);
+		if (updt_cnt->siass_updt != cb->async_updt_cnt.siass_updt)
+			LOG_ER("siass_updt counters mismatch: Active: %u Standby: %u", updt_cnt->siass_updt, cb->async_updt_cnt.siass_updt);
+		if (updt_cnt->comp_updt != cb->async_updt_cnt.comp_updt)
+			LOG_ER("comp_updt counters mismatch: Active: %u Standby: %u", updt_cnt->comp_updt, cb->async_updt_cnt.comp_updt);
+		if (updt_cnt->csi_updt != cb->async_updt_cnt.csi_updt)
+			LOG_ER("csi_updt counters mismatch: Active: %u Standby: %u", updt_cnt->csi_updt, cb->async_updt_cnt.csi_updt);
+		if (updt_cnt->compcstype_updt != cb->async_updt_cnt.compcstype_updt)
+			LOG_ER("compcstype_updt counters mismatch: Active: %u Standby: %u", updt_cnt->compcstype_updt, cb->async_updt_cnt.compcstype_updt);
+		if (updt_cnt->si_trans_updt != cb->async_updt_cnt.si_trans_updt)
+			LOG_ER("si_trans_updt counters mismatch: Active: %u Standby: %u", updt_cnt->si_trans_updt, cb->async_updt_cnt.si_trans_updt);
+		if (updt_cnt->ng_updt != cb->async_updt_cnt.ng_updt)
+			LOG_ER("ng_updt counters mismatch: Active: %u Standby: %u", updt_cnt->ng_updt, cb->async_updt_cnt.ng_updt);
+
 		LOG_ER("Out of sync detected in warm sync response, exiting");
 		osafassert(0);
 
