@@ -43,8 +43,8 @@ validate_options()
       echo -e $USAGE ; exit 1
    fi
 
-   if [ $SC_COUNT -lt 1 -o $SC_COUNT -gt 2 ] ; then
-      script_error "One or two SC's must be specified!. Exiting!"
+   if [ $SC_COUNT -lt 1 ] ; then
+      script_error "At least one SC must be specified!. Exiting!"
       exit 1
    fi
 
