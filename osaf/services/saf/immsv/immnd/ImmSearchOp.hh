@@ -23,6 +23,7 @@
 #include <string>
 #include <list>
 #include <time.h>
+#include "immnd.h"
 
 
 struct SearchAttribute
@@ -85,7 +86,7 @@ public:
     bool          isAccessor() {return mIsAccessor;}
     bool          isNonExtendedNameSet() {return mNonExtendedName;}
     time_t        getLastSearchTime() { return mLastSearch; }
-    void          updateSearchTime() { mLastSearch = time(NULL); }
+    void          updateSearchTime() { osaf_clock_gettime_sec(CLOCK_MONOTONIC, &mLastSearch); }
     void*         syncOsi;
     void*         attrNameList;
     void*         classInfo;
