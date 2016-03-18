@@ -16,7 +16,6 @@
 */
 
 #include "ImmSearchOp.hh"
-#include "immnd.h"
 
 
 ImmSearchOp::ImmSearchOp()

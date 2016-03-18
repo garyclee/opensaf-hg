@@ -597,7 +597,7 @@ void immnd_announceDump(IMMND_CB *cb)
 		/* Reset jobStart timer to delay potential start of sync.
 		   Reduces risk of epoch race with dump.
 		 */
-		cb->mJobStart = time(NULL);
+		osaf_clock_gettime_sec(CLOCK_MONOTONIC, &cb->mJobStart);
 		osafassert(cb->mJobStart >= ((time_t) 0));
 	}
 }
@@ -1648,7 +1648,8 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	int32_t coord, newEpoch;
 	int32_t printFrq = (*timeout > 100) ? 5 : 50;
-	time_t now = time(NULL);
+	time_t now;
+	osaf_clock_gettime_sec(CLOCK_MONOTONIC, &now);
 	osafassert(now >= ((time_t) 0));
 	uint32_t jobDuration = (uint32_t) now - cb->mJobStart;
 	SaBoolT pbeImmndDeadlock=SA_FALSE;

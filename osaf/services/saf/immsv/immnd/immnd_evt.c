@@ -8402,7 +8402,7 @@ uint32_t immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO
 			cb->mState = IMM_SERVER_LOADING_PENDING;
 			LOG_WA("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM_SERVER_LOADING_PENDING (sync aborted)");
 			cb->mStep = 0;
-			cb->mJobStart = time(NULL);
+			osaf_clock_gettime_sec(CLOCK_MONOTONIC, &cb->mJobStart);
 			osafassert(cb->mJobStart >= ((time_t) 0));
 			cb->mMyEpoch = 0;
 			cb->mSync = false;
@@ -8537,7 +8537,7 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		immModel_setScAbsenceAllowed(cb);
 	} else if ((cb->mState == IMM_SERVER_SYNC_CLIENT) && (immnd_syncComplete(cb, SA_FALSE, cb->mStep))) {
 		cb->mStep = 0;
-		cb->mJobStart = time(NULL);
+		osaf_clock_gettime_sec(CLOCK_MONOTONIC, &cb->mJobStart);
 		osafassert(cb->mJobStart >= ((time_t) 0));
 		cb->mState = IMM_SERVER_READY;
 		immnd_ackToNid(NCSCC_RC_SUCCESS);
@@ -8671,7 +8671,7 @@ static uint32_t immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> IMM_SERVER_LOADING_CLIENT (materialized by proc_loading_ok)");
 			cb->mState = IMM_SERVER_LOADING_CLIENT;
 			cb->mStep = 0;
-			cb->mJobStart = time(NULL);
+			osaf_clock_gettime_sec(CLOCK_MONOTONIC, &cb->mJobStart);
 			osafassert(cb->mJobStart >= ((time_t) 0));
 			cb->mAccepted = true;
 			if(cb->mCanBeCoord) {cb->mIsOtherScUp = true;}
