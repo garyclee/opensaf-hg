@@ -1297,7 +1297,7 @@ immModel_discardNode(IMMND_CB *cb,
     ConnVector cv, gv;
     ConnVector::iterator cvi, gvi;
     unsigned int ix=0;
-    ImmModel::instance(&cb->immModel)->discardNode(nodeId, cv, gv, cb->mIsCoord);
+    ImmModel::instance(&cb->immModel)->discardNode(nodeId, cv, gv, cb->mIsCoord, false);
     *arrSize = (SaUint32T) cv.size();
     if(*arrSize) {
         *ccbIdArr = (SaUint32T *) malloc((*arrSize)* sizeof(SaUint32T));
@@ -12572,7 +12572,7 @@ ImmModel::getImplementerId(SaUint32T localConn)
 }
 
 void
-ImmModel::discardNode(unsigned int deadNode, IdVector& cv, IdVector& gv, bool isAtCoord )
+ImmModel::discardNode(unsigned int deadNode, IdVector& cv, IdVector& gv, bool isAtCoord, bool scAbsence)
 {
     ImplementerVector::iterator i;
     AdminOwnerVector::iterator i2;
@@ -12675,7 +12675,7 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv, IdVector& gv, bool is
     i2 = sOwnerVector.begin();
     while(i2 != sOwnerVector.end()) {
         AdminOwnerInfo* ainfo = (*i2);
-        if(ainfo->mNodeId == deadNode && (!ainfo->mDying)) {
+        if(ainfo->mNodeId == deadNode && (!ainfo->mDying || scAbsence)) {
             //Inefficient: lookup of admin owner again.
             if(adminOwnerDelete(ainfo->mId, true) == SA_AIS_OK) {
                 i2 = sOwnerVector.begin();//restart of iteration again.
@@ -18076,7 +18076,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 for(;ivi != sNodesDeadDuringSync.end(); ++ivi) {
                     ConnVector cv, gv;
                     LOG_NO("Sync client re-executing discardNode for node %x", (*ivi));
-                    this->discardNode((*ivi), cv, gv, false);
+                    this->discardNode((*ivi), cv, gv, false, false);
                     if(!(cv.empty())) {
                         LOG_ER("Sync can not discard node with active ccbs");
                         err = SA_AIS_ERR_FAILED_OPERATION;
@@ -18399,7 +18399,7 @@ ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
             i++;
         } else {
             info = NULL;
-            this->discardNode(otherNode, cv, gv, isAtCoord);
+            this->discardNode(otherNode, cv, gv, isAtCoord, true);
             LOG_NO("Impl Discarded node %x", otherNode);
             /* Discard ccbs. */
 
@@ -18417,7 +18417,7 @@ ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
             i2++;
         } else {
             ainfo = NULL;
-            this->discardNode(otherNode, cv, gv, isAtCoord);
+            this->discardNode(otherNode, cv, gv, isAtCoord, true);
             LOG_NO("Admo Discarded node %x", otherNode);
             /* Discard ccbs */
 

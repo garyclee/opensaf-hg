@@ -550,7 +550,7 @@ public:
 					 IdVector& gv, 
 					 bool isAtCoord);
     void              discardContinuations(SaUint32T dead);
-    void              discardNode(unsigned int nodeId, IdVector& cv, IdVector& gv, bool isAtCoord);
+    void              discardNode(unsigned int nodeId, IdVector& cv, IdVector& gv, bool isAtCoord, bool scAbsence);
     void              getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv);
     void              getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv);
     bool              ccbCommit(SaUint32T ccbId, ConnVector& connVector);
