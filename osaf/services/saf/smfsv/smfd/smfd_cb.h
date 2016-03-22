@@ -43,7 +43,6 @@ typedef struct smfd_cb {
 	SaSelectionObjectT campaignSelectionObject; /* Selection Object to wait for campaign IMM events */
 	SaAmfHAStateT ha_state;	                    /* present AMF HA state of the component            */
 	bool fully_initialized;
-	MDS_DEST smfnd_dests[NCS_MAX_SLOTS];        /* destinations for all smfnd   */
 	char *backupCreateCmd;	                    /* Backup create cmd string     */
 	char *bundleCheckCmd;	                    /* Bundle check cmd string      */
 	char *nodeCheckCmd;	                    /* Node check cmd string        */
