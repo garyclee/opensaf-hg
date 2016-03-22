@@ -102,6 +102,13 @@ extern "C" {
 	size_t ntfs_sanamet_length(const SaNameT* pName);
 	void ntfs_sanamet_steal(SaStringT value, size_t length, SaNameT* pName);
 	void ntfs_sanamet_alloc(SaConstStringT value, size_t length, SaNameT* pName);
+
+	SaAisErrorT ntfsv_copy_ntf_filter_header(SaNtfNotificationFilterHeaderT*, const SaNtfNotificationFilterHeaderT*);
+	SaAisErrorT ntfsv_copy_ntf_filter_alarm(SaNtfAlarmNotificationFilterT*, const SaNtfAlarmNotificationFilterT*);
+	SaAisErrorT ntfsv_copy_ntf_filter_sec_alarm(SaNtfSecurityAlarmNotificationFilterT*, const SaNtfSecurityAlarmNotificationFilterT*);
+	SaAisErrorT ntfsv_copy_ntf_filter_state_ch(SaNtfStateChangeNotificationFilterT*, const SaNtfStateChangeNotificationFilterT*);
+	SaAisErrorT ntfsv_copy_ntf_filter_obj_cr_del(SaNtfObjectCreateDeleteNotificationFilterT*, const SaNtfObjectCreateDeleteNotificationFilterT*);
+	SaAisErrorT ntfsv_copy_ntf_filter_attr_ch(SaNtfAttributeChangeNotificationFilterT*, const SaNtfAttributeChangeNotificationFilterT*);
 #ifdef  __cplusplus
 }
 #endif

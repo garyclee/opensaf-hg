@@ -60,6 +60,7 @@ as mentioned in LOGSV PR doc Section 3.5.2.1*/
 
 /* NTFSV Callback enums */
 	typedef enum {
+		NTFSV_DUMMY_CALLBACK = 0,
 		NTFSV_NOTIFICATION_CALLBACK = 1,
 		NTFSV_DISCARDED_CALLBACK = 2,
 		NTFSV_NTFS_CBK_MAX = 3
