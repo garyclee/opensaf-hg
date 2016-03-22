@@ -96,7 +96,7 @@ static NTFS_CKPT_HDLR ckpt_data_handler[NTFS_CKPT_MSG_MAX] = {
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t ntfs_mbcsv_init(ntfs_cb_t *cb)
+uint32_t ntfs_mbcsv_init(ntfs_cb_t *cb, SaAmfHAStateT ha_state)
 {
 	uint32_t rc;
 	NCS_MBCSV_ARG arg;
@@ -151,7 +151,7 @@ uint32_t ntfs_mbcsv_init(ntfs_cb_t *cb)
 		goto done;
 	}
 
-	rc = ntfs_mbcsv_change_HA_state(ntfs_cb);
+	rc = ntfs_mbcsv_change_HA_state(ntfs_cb, ha_state);
 
  done:
 	TRACE_LEAVE();
@@ -173,7 +173,7 @@ uint32_t ntfs_mbcsv_init(ntfs_cb_t *cb)
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb)
+uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb, SaAmfHAStateT ha_state)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 	uint32_t rc = SA_AIS_OK;
@@ -184,7 +184,7 @@ uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
-	mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
+	mbcsv_arg.info.chg_role.i_ha_state = ha_state;
 
 	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
 		LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_CHG_ROLE FAILED");

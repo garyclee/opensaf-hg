@@ -22,6 +22,7 @@
 #include "ntfs.h"
 #include "ntfs_com.h"
 #include "ntfs_imcnutil.h"
+#include "saflog.h"
 
 /****************************************************************************
  * Name          : amf_active_state_handler
@@ -186,6 +187,13 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		goto response;
 	}
 
+	if ((rc = initialize_for_assignment(ntfs_cb,
+		new_haState)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		goto response;
+	}
+
 	/* Invoke the appropriate state handler routine */
 	switch (new_haState) {
 	case SA_AMF_HA_ACTIVE:
@@ -214,16 +222,6 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 
 	/* Update control block */
 	ntfs_cb->ha_state = new_haState;
-	
-	if (ntfs_cb->csi_assigned == false) {
-		ntfs_cb->csi_assigned = true;
-		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
-	} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
-		/* NOTE: This behaviour has to be checked later, when scxb redundancy is available 
-		 * Also, change role of mds, mbcsv during quiesced has to be done after mds
-		 * supports the same.  TBD
-		 */
-	}
 
 	/* Handle active to active role change. */
 	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
@@ -240,7 +238,8 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		}
 
 		/* Inform MBCSV of HA state change */
-		if (NCSCC_RC_SUCCESS != (error = ntfs_mbcsv_change_HA_state(ntfs_cb)))
+		if (NCSCC_RC_SUCCESS != (error = ntfs_mbcsv_change_HA_state(
+			ntfs_cb, new_haState)))
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		
 		TRACE("%s NTFS changing HA role from %s to %s",

@@ -22,6 +22,7 @@
  */
 
 #define _GNU_SOURCE
+#include <stdbool.h>
 #include <libgen.h>
 #include <string.h>
 #include <stdio.h>
@@ -74,7 +75,6 @@ static NCS_SEL_OBJ usr1_sel_obj;
 extern void initAdmin(void);
 extern void printAdminInfo();
 extern void logEvent();
-
 
 const char *ha_state_str(SaAmfHAStateT state)
 {
@@ -226,16 +226,6 @@ static uint32_t initialize()
 		goto done;
 	}
 
-	if ((rc = ntfs_mds_init(ntfs_cb)) != NCSCC_RC_SUCCESS) {
-		TRACE("ntfs_mds_init FAILED %d", rc);
-		return rc;
-	}
-
-	if ((rc = ntfs_mbcsv_init(ntfs_cb)) != NCSCC_RC_SUCCESS) {
-		TRACE("ntfs_mbcsv_init FAILED");
-		return rc;
-	}
-
 	if (ntfs_cb->nid_started &&
 		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS)
 	{
@@ -250,16 +240,16 @@ static uint32_t initialize()
 		goto done;
 	}
 	
-	initAdmin();
 
 	if (!ntfs_cb->nid_started && ntfs_amf_init() != SA_AIS_OK) {
 		goto done;
 	}
 
-	/* Initialize with saflog. This is necessary to avoid
-	 *  getting blocked by LOG during role change (switchover/failover)
-	 */
-	saflog_init();
+	if ((rc = initialize_for_assignment(ntfs_cb, ntfs_cb->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		goto done;
+	}
 
 done:
 	if (ntfs_cb->nid_started &&
@@ -269,6 +259,33 @@ done:
 	}
 	TRACE_LEAVE();
 	return (rc);
+}
+
+uint32_t initialize_for_assignment(ntfs_cb_t *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
+		goto done;
+	}
+	cb->ha_state = ha_state;
+	init_ntfimcn(ha_state);
+	if ((rc = ntfs_mds_init(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ntfs_mds_init FAILED %d", rc);
+		goto done;
+	}
+	if ((rc = ntfs_mbcsv_init(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ntfs_mbcsv_init FAILED");
+		ntfs_mds_finalize(cb);
+		goto done;
+	}
+	initAdmin();
+	saflog_init();
+
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
+	return rc;
 }
 
 /**
@@ -292,9 +309,6 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	/* Start the imcn subprocess */
-	init_ntfimcn(ntfs_cb->ha_state);
-
 	mbx_fd = ncs_ipc_get_sel_obj(&ntfs_cb->mbx);
 	daemon_sigterm_install(&term_fd);
 
@@ -304,17 +318,17 @@ int main(int argc, char *argv[])
 	fds[FD_AMF].fd = ntfs_cb->nid_started ?
 		usr1_sel_obj.rmv_obj : ntfs_cb->amfSelectionObject;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_MBCSV].fd = ntfs_cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
-	fds[FD_LOG].fd = ntfs_cb->logSelectionObject;
-	fds[FD_LOG].events = POLLIN;
 	
 	TRACE("Started. HA state is %s",ha_state_str(ntfs_cb->ha_state));
 
 	/* NTFS main processing loop. */
 	while (1) {
+		fds[FD_MBCSV].fd = ntfs_cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
+		fds[FD_LOG].fd = ntfs_cb->logSelectionObject;
+		fds[FD_LOG].events = POLLIN;
 		int ret = poll(fds, SIZE_FDS, -1);
 
 		if (ret == -1) {

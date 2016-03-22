@@ -337,16 +337,18 @@ int stop_ntfimcn(void)
 	int rc = 0;
 	TRACE_ENTER();
 
-	TRACE("%s: Cancel the imcn surveillance thread", __FUNCTION__);
-	rc = pthread_cancel(ipar.thread);
-	if (rc != 0) osaf_abort(rc);
-	rc = pthread_join(ipar.thread,&join_ret);
-	if (rc != 0) osaf_abort(rc);
-	rc = pthread_mutex_destroy(&ntfimcn_mutex);
-	if (rc != 0) osaf_abort(rc);
+	if (ipar.ha_state != 0) {
+		TRACE("%s: Cancel the imcn surveillance thread", __FUNCTION__);
+		rc = pthread_cancel(ipar.thread);
+		if (rc != 0) osaf_abort(rc);
+		rc = pthread_join(ipar.thread,&join_ret);
+		if (rc != 0) osaf_abort(rc);
+		rc = pthread_mutex_destroy(&ntfimcn_mutex);
+		if (rc != 0) osaf_abort(rc);
 	
-	TRACE("%s: Terminating osafntfimcnd process",__FUNCTION__);
-	timedwait_imcn_exit();
+		TRACE("%s: Terminating osafntfimcnd process",__FUNCTION__);
+		timedwait_imcn_exit();
+	}
 	
 	TRACE_LEAVE();
 	return rc;

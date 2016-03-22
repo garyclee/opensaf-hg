@@ -26,6 +26,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include "saAmf.h"
 
 #include <ncsgl_defs.h>
 #include <ncs_lib.h>
@@ -60,7 +62,7 @@
  */
 extern ntfs_cb_t *ntfs_cb;
 extern SaAisErrorT ntfs_amf_init();
-extern uint32_t ntfs_mds_init(ntfs_cb_t *cb);
+extern uint32_t ntfs_mds_init(ntfs_cb_t *cb, SaAmfHAStateT ha_state);
 extern uint32_t ntfs_mds_finalize(ntfs_cb_t *cb);
 extern uint32_t ntfs_mds_change_role();
 extern uint32_t ntfs_mds_msg_send(ntfs_cb_t *cb,
@@ -69,5 +71,6 @@ extern uint32_t ntfs_mds_msg_send(ntfs_cb_t *cb,
 extern void ntfs_evt_destroy(ntfsv_ntfs_evt_t *evt);
 
 const char *ha_state_str(SaAmfHAStateT state);
-
+extern uint32_t initialize_for_assignment(ntfs_cb_t *cb,
+	SaAmfHAStateT ha_state);
 #endif   /* ifndef __NTFS_H */
