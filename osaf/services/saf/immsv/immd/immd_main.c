@@ -33,6 +33,7 @@
 #include <rda_papi.h>
 #include <daemon.h>
 #include <nid_api.h>
+#include "osaf_poll.h"
 
 #include "immd.h"
 #include <immd_proc.h>
@@ -275,10 +276,16 @@ int main(int argc, char *argv[])
 	}
 
 	if(scAbsenceAllowed) {
-		LOG_NO("******* SC_ABSENCE_ALLOWED (Headless Hydra) is configured: %u ***********",
-			scAbsenceAllowed);
-		LOG_NO("Waiting 3 seconds to allow IMMND MDS attachments to get processed.");
-		sleep(3);
+		/* Create the sel-obj before initializing MDS.
+		 * This way, we can avoid an extra 'veteran_sync_awaited' variable in IMMD_CB */
+		if (m_NCS_LOCK_INIT(&immd_cb->veteran_sync_lock) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Failed to get veteran_sync_lock lock");
+			goto done;
+		}
+		if (m_NCS_SEL_OBJ_CREATE(&immd_cb->veteran_sync_sel)!= NCSCC_RC_SUCCESS) {
+			LOG_ER("Failed to create veteran_sync_sel sel_obj");
+			goto done;
+		}
 	}
 
 	immd_cb->mScAbsenceAllowed = scAbsenceAllowed;
@@ -286,6 +293,27 @@ int main(int argc, char *argv[])
 	if (immd_initialize() != NCSCC_RC_SUCCESS) {
 		TRACE("initialize_immd failed");
 		goto done;
+	}
+
+	if(scAbsenceAllowed) {
+		LOG_NO("******* SC_ABSENCE_ALLOWED (Headless Hydra) is configured: %u ***********",
+			scAbsenceAllowed);
+
+		/* If this IMMD has active role, wait for veteran payloads.
+		 * Give up after 3 seconds if there's no veteran payload. */
+		if (immd_cb->ha_state == SA_AMF_HA_ACTIVE) {
+			LOG_NO("Waiting 3 seconds to allow IMMND MDS attachments to get processed.");
+
+			if (osaf_poll_one_fd(m_GET_FD_FROM_SEL_OBJ(immd_cb->veteran_sync_sel), 3000) != 1) {
+				TRACE("osaf_poll_one_fd on veteran_sync_sel failed or timed out");
+			} else {
+				LOG_NO("Received intro message from veteran payload, stop waiting");
+			}
+		}
+
+		m_NCS_LOCK(&immd_cb->veteran_sync_lock,NCS_LOCK_WRITE);
+		m_NCS_SEL_OBJ_DESTROY(&immd_cb->veteran_sync_sel);
+		m_NCS_UNLOCK(&immd_cb->veteran_sync_lock,NCS_LOCK_WRITE);
 	}
 
 	daemon_sigterm_install(&term_fd);

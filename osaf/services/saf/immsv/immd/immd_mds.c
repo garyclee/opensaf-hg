@@ -489,6 +489,7 @@ static uint32_t immd_mds_rcv(IMMD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT *pEvt = (IMMSV_EVT *)rcv_info->i_msg;
+	NCS_IPC_PRIORITY prio = NCS_IPC_PRIORITY_NORMAL;
 
 	pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
 	pEvt->sinfo.dest = rcv_info->i_fr_dest;
@@ -497,8 +498,23 @@ static uint32_t immd_mds_rcv(IMMD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		pEvt->sinfo.stype = MDS_SENDTYPE_RSP;
 	}
 
+	/* Set priority of intro messages from veteran payloads to PRIORITY_HIGH.
+	 * IMMD will process them before the intro messages from other IMMNDs. */
+	if (cb->mScAbsenceAllowed &&
+			pEvt->info.immd.type == IMMD_EVT_ND2D_INTRO &&
+			pEvt->info.immd.info.ctrl_msg.refresh == 2) {
+
+		prio = NCS_IPC_PRIORITY_HIGH;
+
+		m_NCS_LOCK(&immd_cb->veteran_sync_lock,NCS_LOCK_WRITE);
+		if (cb->veteran_sync_sel.raise_obj != -1) { /* Check if the sel_obj is not destroyed */
+			m_NCS_SEL_OBJ_IND(&cb->veteran_sync_sel);
+		}
+		m_NCS_UNLOCK(&immd_cb->veteran_sync_lock,NCS_LOCK_WRITE);
+	}
+
 	/* Put it in IMMD's Event Queue */
-	rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)pEvt, NCS_IPC_PRIORITY_NORMAL);
+	rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)pEvt, prio);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_WA("IMMD - IPC SEND FAILED");
 	}
@@ -542,7 +558,7 @@ static uint32_t immd_mds_svc_evt(IMMD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 	evt->info.immd.info.mds_info.node_id = svc_evt->i_node_id;
 
 	/* Put it in IMMD's Event Queue */
-	rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_HIGH);
+	rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_VERY_HIGH);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_WA("IMMD - IPC SEND FAILED");
 		free(evt);
