@@ -56,7 +56,7 @@ typedef struct ntfs_cb {
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
-	bool csi_assigned;
+	bool fully_initialized;
 	unsigned int cache_size; /* size of the reader cache */
 	bool nid_started;	/**< true if started by NID */
 } ntfs_cb_t;

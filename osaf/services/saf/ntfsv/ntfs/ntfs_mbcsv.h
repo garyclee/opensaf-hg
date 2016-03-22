@@ -18,6 +18,7 @@
 #ifndef NTFS_CKPT_H
 #define NTFS_CKPT_H
 
+#include "saAmf.h"
 
 #define NTFS_MBCSV_VERSION 1
 #define NTFS_MBCSV_VERSION_MIN 1
@@ -108,8 +109,8 @@ typedef struct {
 } ntfsv_ckpt_msg_t;
 
 typedef uint32_t (*NTFS_CKPT_HDLR) (ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
-uint32_t ntfs_mbcsv_init(ntfs_cb_t *ntfs_cb);
-uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb);
+uint32_t ntfs_mbcsv_init(ntfs_cb_t *ntfs_cb, SaAmfHAStateT ha_state);
+uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb, SaAmfHAStateT ha_state);
 uint32_t ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint32_t action);
 void update_standby(ntfsv_ckpt_msg_t *ckpt, uint32_t action);

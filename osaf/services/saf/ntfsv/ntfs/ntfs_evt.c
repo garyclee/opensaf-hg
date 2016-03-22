@@ -15,6 +15,7 @@
  *
  */
 #include "ntfs_com.h"
+#include <stdlib.h>
 #include <alloca.h>
 #include <time.h>
 #include <limits.h>
@@ -22,6 +23,7 @@
 #include "ntfsv_enc_dec.h"
 #include "osaf_extended_name.h"
 #include "ntfs_imcnutil.h"
+#include "saflog.h"
 
 
 #define m_NTFSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt,client_id){ \
@@ -132,7 +134,7 @@ static uint32_t proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
 	if (ntfs_cb->is_quisced_set == true) {
 		ntfs_cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
-		if (ntfs_mbcsv_change_HA_state(ntfs_cb) != NCSCC_RC_SUCCESS)
+		if (ntfs_mbcsv_change_HA_state(ntfs_cb, ntfs_cb->ha_state) != NCSCC_RC_SUCCESS)
 			TRACE("ntfs_mbcsv_change_HA_state FAILED");
 
 		/* Update control block */
@@ -159,9 +161,16 @@ static uint32_t proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
 {
 	uint32_t rc;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%d", (int) evt->info.rda_info.io_role);
+	if ((rc = initialize_for_assignment(ntfs_cb,
+		(SaAmfHAStateT) evt->info.rda_info.io_role)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		exit(EXIT_FAILURE);
+	}
 
-	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
+	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE &&
+		ntfs_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		SaAmfHAStateT old_ha_state = ntfs_cb->ha_state;
 		LOG_NO("ACTIVE request");
 
@@ -172,7 +181,7 @@ static uint32_t proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
 		}
 
 		ntfs_cb->ha_state = SA_AMF_HA_ACTIVE;
-		if ((rc = ntfs_mbcsv_change_HA_state(ntfs_cb)) != NCSCC_RC_SUCCESS) {
+		if ((rc = ntfs_mbcsv_change_HA_state(ntfs_cb, ntfs_cb->ha_state)) != NCSCC_RC_SUCCESS) {
 			LOG_ER("ntfs_mbcsv_change_HA_state FAILED %u", rc);
 			goto done;
 		}
@@ -207,13 +216,14 @@ uint32_t ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 {
 	char *tmp;
 	TRACE_ENTER();
-	/* Assign Initial HA state */
-	ntfs_cb->ha_state = NTFS_HA_INIT_STATE;
-	ntfs_cb->csi_assigned = false;
-	/* Assign Version. Currently, hardcoded, This will change later */
 	ntfs_cb->ntf_version.releaseCode = NTF_RELEASE_CODE;
 	ntfs_cb->ntf_version.majorVersion = NTF_MAJOR_VERSION;
 	ntfs_cb->ntf_version.minorVersion = NTF_MINOR_VERSION;
+	ntfs_cb->amfSelectionObject = -1;
+	ntfs_cb->logSelectionObject = -1;
+	ntfs_cb->ha_state = NTFS_HA_INIT_STATE;
+	ntfs_cb->mbcsv_sel_obj = -1;
+	ntfs_cb->fully_initialized = false;
 
 	tmp = (char *)getenv("NTFSV_ENV_CACHE_SIZE");
 	if (tmp) {
