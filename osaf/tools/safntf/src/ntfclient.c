@@ -34,6 +34,8 @@ void ntfsvtools_exitIfFalse(const char *file, unsigned int line, int expression)
 	}
 }
 
+unsigned int gl_apiTolerance = 900; // in seconds
+unsigned int gl_apiRetry = 3; // in seconds
 static const char *sa_probable_cause_list[] = {
 	"SA_NTF_ADAPTER_ERROR",
 	"SA_NTF_APPLICATION_SUBSYSTEM_FAILURE",
@@ -1125,4 +1127,160 @@ void set_nType_for_eType(SaNtfNotificationTypeT *nType, SaNtfEventTypeT *eType)
 			(*eType <= SA_NTF_TIME_VIOLATION))
 		*nType = SA_NTF_TYPE_SECURITY_ALARM;
 
+}
+
+/**
+ * @brief wrapper of saNtfInitialize
+ */
+SaAisErrorT ntftool_saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfCallbacks, SaVersionT *version)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfInitialize(ntfHandle, ntfCallbacks, version);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
+}
+
+/**
+ * @brief wrapper of saNtfDispatch
+ */
+SaAisErrorT ntftool_saNtfDispatch(SaNtfHandleT ntfHandle, SaDispatchFlagsT dispatchFlags)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfDispatch(ntfHandle, dispatchFlags);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
+}
+
+/**
+ * @brief wrapper of saNtfNotificationSend
+ */
+SaAisErrorT ntftool_saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfNotificationSend(notificationHandle);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
+}
+
+/**
+ * @brief wrapper of saNtfNotificationSubscribe
+ */
+SaAisErrorT ntftool_saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+				       SaNtfSubscriptionIdT subscriptionId)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfNotificationSubscribe(notificationFilterHandles, subscriptionId);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
+}
+
+/**
+ * @brief wrapper of saNtfNotificationUnsubscribe
+ */
+SaAisErrorT ntftool_saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfNotificationUnsubscribe(subscriptionId);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
+}
+
+/**
+ * @brief wrapper of saNtfNotificationReadIntialize
+ */
+SaAisErrorT ntftool_saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
+					    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+					    SaNtfReadHandleT *readHandle)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfNotificationReadInitialize(searchCriteria, notificationFilterHandles, readHandle);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
+}
+
+/**
+ * @brief wrapper of saNtfNotificationReadNext
+ */
+SaAisErrorT ntftool_saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
+				      SaNtfSearchDirectionT searchDirection, SaNtfNotificationsT *notification)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfNotificationReadNext(readHandle, searchDirection, notification);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
+}
+
+/**
+ * @brief wrapper of saNtfNotificationReadFinalize
+ */
+SaAisErrorT ntftool_saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
+{
+	int curRetryTime = 0;
+	SaAisErrorT rc;
+	do {
+		rc = saNtfNotificationReadFinalize(readhandle);
+		if (rc == SA_AIS_ERR_TRY_AGAIN) {
+			sleep(gl_apiRetry);
+			curRetryTime += gl_apiRetry;
+		} else
+			break;
+	} while (curRetryTime < gl_apiTolerance);
+
+	return rc;
 }

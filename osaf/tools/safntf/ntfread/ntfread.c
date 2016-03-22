@@ -224,23 +224,23 @@ static SaAisErrorT readAll() {
 	fhdls.alarmFilterHandle = af.notificationFilterHandle;
 	fhdls.securityAlarmFilterHandle = saf.notificationFilterHandle; 
 
-	rc = saNtfNotificationReadInitialize(searchCriteria, &fhdls,
+	rc = ntftool_saNtfNotificationReadInitialize(searchCriteria, &fhdls,
 		&readHandle);
 	if (rc != SA_AIS_OK) {
-		fprintf(stderr, "saNtfNotificationReadInitialize failed - %s\n",
+		fprintf(stderr, "ntftool_saNtfNotificationReadInitialize failed - %s\n",
 			error_output(rc));
 		goto done;
 	}
 
     /* read as many notifications as exist */
-	while ((rc = saNtfNotificationReadNext(readHandle, searchDirection, &n))
+	while ((rc = ntftool_saNtfNotificationReadNext(readHandle, searchDirection, &n))
 	       == SA_AIS_OK) {
 		saNtfNotificationCallback(0, &n);                                       
 	}
 	if (rc == SA_AIS_ERR_NOT_EXIST) {
 		rc = SA_AIS_OK;	/* no more notification exists */ 
 	} else {
-		fprintf(stderr, "saNtfNotificationReadNext failed - %s\n",
+		fprintf(stderr, "ntftool_saNtfNotificationReadNext failed - %s\n",
 			error_output(rc));           
 	}
 	done:
@@ -362,9 +362,9 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Try '%s -h' for more information. \n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
-	rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	rc = ntftool_saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
 	if (SA_AIS_OK != rc) {
-		fprintf(stderr, "saNtfInitialize failed - %s\n",
+		fprintf(stderr, "ntftool_saNtfInitialize failed - %s\n",
 			error_output(rc));
 		exit(EXIT_FAILURE);
 	}
@@ -389,9 +389,9 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 	}
-	rc = saNtfNotificationReadFinalize(readHandle);
+	rc = ntftool_saNtfNotificationReadFinalize(readHandle);
 	if (SA_AIS_OK != rc) {
-		fprintf(stderr, "saNtfNotificationReadFinalize failed - %s\n",
+		fprintf(stderr, "ntftool_saNtfNotificationReadFinalize failed - %s\n",
 			error_output(rc));
 		exit(EXIT_FAILURE);
 	}
