@@ -61,20 +61,38 @@ int ntfimcn_ntf_init(ntfimcn_cb_t *cb)
 {
 	SaAisErrorT rc;
 	int internal_rc = 0;
-	
-	TRACE_ENTER();
 
+	TRACE_ENTER();
 
 	if (cb->haState == SA_AMF_HA_ACTIVE) {
 		int msecs_waited = 0;
+		cb->ntf_handle = 0;
 		rc = saNtfInitialize(&cb->ntf_handle, NULL, &ntf_version);
-		while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_init_waiting_time_ms)) {
+		while ((rc == SA_AIS_ERR_TRY_AGAIN ||
+			rc == SA_AIS_ERR_TIMEOUT) &&
+		       msecs_waited < max_init_waiting_time_ms) {
+			if (rc == SA_AIS_ERR_TIMEOUT) {
+				LOG_WA("%s saNtfInitialize( returned %s",
+				       __FUNCTION__, saf_error(rc));
+			}
 			usleep(sleep_delay_ms * 1000);
 			msecs_waited += sleep_delay_ms;
-			rc = saNtfInitialize(&cb->ntf_handle, NULL, &ntf_version);
+			if (rc == SA_AIS_ERR_TIMEOUT && cb->ntf_handle != 0) {
+				while (saNtfFinalize(cb->ntf_handle) ==
+				       SA_AIS_ERR_TRY_AGAIN &&
+				       msecs_waited <
+				       max_init_waiting_time_ms) {
+					usleep(sleep_delay_ms * 1000);
+					msecs_waited += sleep_delay_ms;
+				}
+			}
+			cb->ntf_handle = 0;
+			rc = saNtfInitialize(&cb->ntf_handle, NULL,
+					     &ntf_version);
 		}
 		if (rc != SA_AIS_OK) {
-			LOG_ER("%s NTF API could not be initialized: %s",__FUNCTION__,saf_error(rc));
+			LOG_ER("%s NTF API could not be initialized: %s",
+			       __FUNCTION__, saf_error(rc));
 			internal_rc = (-1);
 			goto done;
 		}
