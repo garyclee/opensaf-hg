@@ -1335,3 +1335,162 @@ void ntfs_sanamet_steal(SaStringT value, size_t length, SaNameT* pName)
 		*((SaUint16T*)pName) += 1;
 	}
 }
+
+/**
+ *  @Brief: Copy filter header from pSrc to pDes
+ */
+SaAisErrorT ntfsv_copy_ntf_filter_header(SaNtfNotificationFilterHeaderT* pDes,
+		const SaNtfNotificationFilterHeaderT* pSrc)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	int i;
+	/* Event Types */
+	pDes->numEventTypes = pSrc->numEventTypes;
+	for (i = 0; i < pDes->numEventTypes; i++)
+		pDes->eventTypes[i] = pSrc->eventTypes[i];
+	/* notification objects */
+	pDes->numNotificationObjects = pSrc->numNotificationObjects;
+	for (i = 0; i < pDes->numNotificationObjects && rc == SA_AIS_OK; i++)
+		rc = ntfsv_sanamet_copy(&pDes->notificationObjects[i],
+							&pSrc->notificationObjects[i]);
+	/* notifying objects */
+	pDes->numNotifyingObjects = pSrc->numNotifyingObjects;
+	for (i = 0; i < pDes->numNotifyingObjects && rc == SA_AIS_OK; i++)
+		rc = ntfsv_sanamet_copy(&pDes->notifyingObjects[i],
+							&pSrc->notifyingObjects[i]);
+	/* notification class ids */
+	pDes->numNotificationClassIds = pSrc->numNotificationClassIds;
+	for (i = 0; i < pDes->numNotificationClassIds; i++)
+		pDes->notificationClassIds[i] = pSrc->notificationClassIds[i];
+
+	return rc;
+}
+
+/**
+ *  @Brief: Copy alarm notification filter
+ */
+SaAisErrorT ntfsv_copy_ntf_filter_alarm(SaNtfAlarmNotificationFilterT* pDes,
+		const SaNtfAlarmNotificationFilterT* pSrc)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	int i;
+	pDes->notificationFilterHandle = pSrc->notificationFilterHandle;
+	if ((rc = ntfsv_copy_ntf_filter_header(&pDes->notificationFilterHeader,
+									&pSrc->notificationFilterHeader)) != SA_AIS_OK)
+		goto done;
+
+	pDes->numPerceivedSeverities = pSrc->numPerceivedSeverities;
+	for (i = 0; i < pDes->numPerceivedSeverities; i++)
+		pDes->perceivedSeverities[i] = pSrc->perceivedSeverities[i];
+
+	pDes->numProbableCauses = pSrc->numProbableCauses;
+	for (i = 0; i < pDes->numProbableCauses; i++)
+		pDes->probableCauses[i] = pSrc->probableCauses[i];
+
+	pDes->numTrends = pSrc->numTrends;
+	for (i = 0; i < pDes->numTrends; i++)
+		pDes->trends[i] = pSrc->trends[i];
+
+done:
+	return rc;
+}
+
+/**
+ *  @Brief: Copy security alarm notification filter
+ */
+SaAisErrorT ntfsv_copy_ntf_filter_sec_alarm(SaNtfSecurityAlarmNotificationFilterT* pDes,
+		const SaNtfSecurityAlarmNotificationFilterT* pSrc)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	int i;
+	pDes->notificationFilterHandle = pSrc->notificationFilterHandle;
+	if ((rc = ntfsv_copy_ntf_filter_header(&pDes->notificationFilterHeader,
+									&pSrc->notificationFilterHeader)) != SA_AIS_OK)
+		goto done;
+
+	pDes->numProbableCauses = pSrc->numProbableCauses;
+	for (i = 0; i < pDes->numProbableCauses; i++)
+		pDes->probableCauses[i] = pSrc->probableCauses[i];
+
+	pDes->numSecurityAlarmDetectors = pSrc->numSecurityAlarmDetectors;
+	for (i = 0; i < pDes->numSecurityAlarmDetectors; i++)
+		pDes->securityAlarmDetectors[i] = pSrc->securityAlarmDetectors[i];
+
+	pDes->numServiceProviders = pSrc->numServiceProviders;
+	for (i = 0; i < pDes->numServiceProviders; i++)
+		pDes->serviceProviders[i] = pSrc->serviceProviders[i];
+
+	pDes->numServiceUsers = pSrc->numServiceUsers;
+	for (i = 0; i < pDes->numServiceUsers; i++)
+		pDes->serviceUsers[i] = pSrc->serviceUsers[i];
+
+	pDes->numSeverities = pSrc->numSeverities;
+	for (i = 0; i < pDes->numSeverities; i++)
+		pDes->severities[i] = pSrc->severities[i];
+done:
+	return rc;
+}
+
+/**
+ *  @Brief: Copy state change notification filter
+ */
+SaAisErrorT ntfsv_copy_ntf_filter_state_ch(SaNtfStateChangeNotificationFilterT* pDes,
+		const SaNtfStateChangeNotificationFilterT* pSrc)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	int i;
+	pDes->notificationFilterHandle = pSrc->notificationFilterHandle;
+	if ((rc = ntfsv_copy_ntf_filter_header(&pDes->notificationFilterHeader,
+									&pSrc->notificationFilterHeader)) != SA_AIS_OK)
+		goto done;
+
+	pDes->numSourceIndicators = pSrc->numSourceIndicators;
+	for (i = 0; i < pDes->numSourceIndicators; i++)
+		pDes->sourceIndicators[i] = pSrc->sourceIndicators[i];
+
+	pDes->numStateChanges = pSrc->numStateChanges;
+	for (i = 0; i < pDes->numStateChanges; i++)
+		pDes->changedStates[i] = pSrc->changedStates[i];
+done:
+	return rc;
+}
+
+/**
+ *  @Brief: Copy object create delete notification filter
+ */
+SaAisErrorT ntfsv_copy_ntf_filter_obj_cr_del(SaNtfObjectCreateDeleteNotificationFilterT* pDes,
+		const SaNtfObjectCreateDeleteNotificationFilterT* pSrc)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	int i;
+	pDes->notificationFilterHandle = pSrc->notificationFilterHandle;
+	if ((rc = ntfsv_copy_ntf_filter_header(&pDes->notificationFilterHeader,
+									&pSrc->notificationFilterHeader)) != SA_AIS_OK)
+		goto done;
+
+	pDes->numSourceIndicators = pSrc->numSourceIndicators;
+	for (i = 0; i < pDes->numSourceIndicators; i++)
+		pDes->sourceIndicators[i] = pSrc->sourceIndicators[i];
+done:
+	return rc;
+}
+
+/**
+ *  @Brief: Copy attribute change notification filter
+ */
+SaAisErrorT ntfsv_copy_ntf_filter_attr_ch(SaNtfAttributeChangeNotificationFilterT* pDes,
+		const SaNtfAttributeChangeNotificationFilterT* pSrc)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	int i;
+	pDes->notificationFilterHandle = pSrc->notificationFilterHandle;
+	if ((rc = ntfsv_copy_ntf_filter_header(&pDes->notificationFilterHeader,
+									&pSrc->notificationFilterHeader)) != SA_AIS_OK)
+		goto done;
+
+	pDes->numSourceIndicators = pSrc->numSourceIndicators;
+	for (i = 0; i < pDes->numSourceIndicators; i++)
+		pDes->sourceIndicators[i] = pSrc->sourceIndicators[i];
+done:
+	return rc;
+}
