@@ -49,7 +49,7 @@ static unsigned int ntfa_create(void)
 	}
 
 	/* Block and wait for indication from MDS meaning NTFS is up */
-	osaf_poll_one_fd(m_GET_FD_FROM_SEL_OBJ(ntfa_cb.ntfs_sync_sel), 30000);
+	osaf_poll_one_fd(m_GET_FD_FROM_SEL_OBJ(ntfa_cb.ntfs_sync_sel), 10000);
 
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	ntfa_cb.ntfs_sync_awaited = 0;
@@ -108,7 +108,25 @@ static bool ntfa_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 	}
 	return true;
 }
+/****************************************************************************
+  Name          : ntfa_notification_list_del
 
+  Description   : This routine free element allocated in list of notification
+
+  Arguments     : pointer to the list of notification records anchor.
+
+  Return Values : None
+
+  Notes         :
+******************************************************************************/
+static void ntfa_notification_list_del(ntfa_notification_hdl_rec_t **plstr_hdl)
+{
+	ntfa_notification_hdl_rec_t *lstr_hdl = *plstr_hdl;
+	while (lstr_hdl != NULL) {
+		ntfa_notification_destructor(lstr_hdl);
+		lstr_hdl = lstr_hdl->next;
+	}
+}
 /****************************************************************************
   Name          : ntfa_notification_hdl_rec_list_del
  
@@ -126,6 +144,70 @@ static void ntfa_notification_hdl_rec_list_del(ntfa_notification_hdl_rec_t **pls
 	while ((lstr_hdl = *plstr_hdl) != NULL) {
 		*plstr_hdl = lstr_hdl->next;
 		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, lstr_hdl->notification_hdl);
+		free(lstr_hdl);
+		lstr_hdl = NULL;
+	}
+}
+/****************************************************************************
+  Name          : ntfa_filter_list_del
+
+  Description   : This routine free element allocated in list of filter
+
+  Arguments     : pointer to the list of filters records anchor.
+
+  Return Values : None
+
+  Notes         :
+******************************************************************************/
+static void ntfa_filter_list_del(ntfa_filter_hdl_rec_t **plstr_hdl)
+{
+	ntfa_filter_hdl_rec_t *lstr_hdl = *plstr_hdl;
+
+	while (lstr_hdl != NULL) {
+		ntfa_filter_destructor(lstr_hdl);
+		lstr_hdl = lstr_hdl->next;
+	}
+}
+/****************************************************************************
+  Name          : ntfa_filter_hdl_rec_list_del
+
+  Description   : This routine deletes a list of allocated filters
+
+  Arguments     : pointer to the list of filters records anchor.
+
+  Return Values : None
+
+  Notes         :
+******************************************************************************/
+static void ntfa_filter_hdl_rec_list_del(ntfa_filter_hdl_rec_t **plstr_hdl)
+{
+	ntfa_filter_hdl_rec_t *lstr_hdl;
+
+	while ((lstr_hdl = *plstr_hdl) != NULL) {
+		*plstr_hdl = lstr_hdl->next;
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, lstr_hdl->filter_hdl);
+		free(lstr_hdl);
+		lstr_hdl = NULL;
+	}
+}
+/****************************************************************************
+  Name          : ntfa_reader_hdl_rec_list_del
+
+  Description   : This routine deletes a list of allocated readers
+
+  Arguments     : pointer to the list of readers records anchor.
+
+  Return Values : None
+
+  Notes         :
+******************************************************************************/
+static void ntfa_reader_hdl_rec_list_del(ntfa_reader_hdl_rec_t **plstr_hdl)
+{
+	ntfa_reader_hdl_rec_t *lstr_hdl;
+	while ((lstr_hdl = *plstr_hdl) != NULL) {
+		*plstr_hdl = lstr_hdl->next;
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, lstr_hdl->reader_hdl);
+		ntfa_del_ntf_filter_ptrs(&lstr_hdl->filters);
 		free(lstr_hdl);
 		lstr_hdl = NULL;
 	}
@@ -407,6 +489,10 @@ static SaAisErrorT ntfa_hdl_cbk_rec_prc(ntfa_cb_t *cb, ntfsv_msg_t *msg, ntfa_cl
 			free(cbk_info->param.discarded_cbk.discardedNotificationIdentifiers);
 		}
 		break;
+	case NTFSV_DUMMY_CALLBACK:
+		TRACE("Do nothing with dummy callback, just return OK");
+		rc = SA_AIS_OK;
+		break;
 	default:
 		TRACE("unsupported callback type: %d", cbk_info->type);
 		rc = SA_AIS_ERR_LIBRARY;
@@ -544,20 +630,21 @@ unsigned int ntfa_startup(void)
  * 
  * @return unsigned int
  */
-unsigned int ntfa_shutdown(void)
+unsigned int ntfa_shutdown(bool forced)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("ntfa_use_count: %u", ntfa_use_count);
+	TRACE_ENTER2("ntfa_use_count: %u, forced: %u", ntfa_use_count, forced);
 	pthread_mutex_lock(&ntfa_lock);
 
-	if (ntfa_use_count > 1) {
-		/* Users still exist, just decrement the use count */
-		ntfa_use_count--;
-	} else if (ntfa_use_count == 1) {
+	if ((forced && (ntfa_use_count > 0)) || (ntfa_use_count == 1)) {
 		ntfa_destroy();
 		rc = ncs_agents_shutdown();
 		ntfa_use_count = 0;
+		ntfa_cb.ntfa_ntfsv_state = NTFA_NTFSV_NONE;
+	} else if (ntfa_use_count > 1) {
+		/* Users still exist, just decrement the use count */
+		ntfa_use_count--;
 	}
 
 	pthread_mutex_unlock(&ntfa_lock);
@@ -633,7 +720,27 @@ ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uint32
 
 	return NULL;
 }
+/****************************************************************************
+  Name          : ntfa_subscriber_list_del
 
+  Description   : This routine deletes a list of allocated subscribers
+
+  Arguments     : pointer to the list of subscribers records anchor.
+
+  Return Values : None
+
+  Notes         :
+******************************************************************************/
+void ntfa_subscriber_list_del()
+{
+	ntfa_subscriber_list_t *listPtr = subscriberNoList;
+	while (listPtr != NULL) {
+		ntfa_subscriber_list_t* tmpSub = listPtr;
+		listPtr = listPtr->next;
+		free(tmpSub);
+	}
+	subscriberNoList = NULL;
+}
 /****************************************************************************
   Name          : ntfa_hdl_list_del
  
@@ -651,15 +758,24 @@ void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **p_client_hdl)
 
 	while ((client_hdl = *p_client_hdl) != NULL) {
 		*p_client_hdl = client_hdl->next;
+		m_NCS_IPC_DETACH(&client_hdl->mbx, ntfa_clear_mbx, NULL);
+		m_NCS_IPC_RELEASE(&client_hdl->mbx, NULL);
 		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, client_hdl->local_hdl);
 	/** clean up the channel records for this ntfa-client
          **/
+		ntfa_notification_list_del(&client_hdl->notification_list);
 		ntfa_notification_hdl_rec_list_del(&client_hdl->notification_list);
+
+		ntfa_filter_list_del(&client_hdl->filter_list);
+		ntfa_filter_hdl_rec_list_del(&client_hdl->filter_list);
+
+		ntfa_reader_hdl_rec_list_del(&client_hdl->reader_list);
 	/** remove the association with hdl-mngr 
          **/
 		free(client_hdl);
 		client_hdl = 0;
 	}
+	ntfa_subscriber_list_del();
 }
 
 /****************************************************************************
@@ -757,10 +873,80 @@ uint32_t ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head, ntfa_filter_
 	TRACE("The node couldn't be deleted");
 	return NCSCC_RC_FAILURE;
 }
+/****************************************************************************
+  Name          : ntfa_hdl_rec_force_del
 
+  Description   : This routine deletes all memory allocated to client.
+
+  Arguments     : NTFA_CLIENT_HDL_REC **list_head
+		  NTFA_CLIENT_HDL_REC *rm_node
+
+  Return Values : None
+
+  Notes         :
+******************************************************************************/
+void ntfa_hdl_rec_force_del(ntfa_client_hdl_rec_t **list_head, ntfa_client_hdl_rec_t *rm_node)
+{
+	ntfa_client_hdl_rec_t *list_iter = *list_head;
+	TRACE_ENTER();
+	/* First remove the rm_node out of the list of client */
+	if (list_iter == rm_node)
+		*list_head = rm_node->next;
+	else {
+		while (list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+				break;
+			}
+			list_iter = list_iter->next;
+		}
+	}
+	/* Release all msgs in mailbox */
+	ntfsv_msg_t *cbk_msg;
+	while((cbk_msg = (ntfsv_msg_t*)m_NCS_IPC_NON_BLK_RECEIVE(&rm_node->mbx, cbk_msg))
+		!= NULL) {
+		ntfa_msg_destroy(cbk_msg);
+	}
+	/* delete subscriber of this client out of the subcriberNoList*/
+	ntfa_subscriber_list_t* subscriber_hdl = subscriberNoList;
+	while (subscriber_hdl != NULL) {
+		ntfa_subscriber_list_t *rm_subscriber = subscriber_hdl;
+		subscriber_hdl = subscriber_hdl->next;
+		if (rm_node->local_hdl == rm_subscriber->subscriberListNtfHandle) {
+			if (rm_subscriber->next != NULL) {
+				rm_subscriber->next->prev = rm_subscriber->prev;
+			}
+
+			if (rm_subscriber->prev != NULL) {
+				rm_subscriber->prev->next = rm_subscriber->next;
+			} else {
+				if (rm_subscriber->next != NULL)
+					subscriberNoList = rm_subscriber->next;
+				else
+					subscriberNoList = NULL;
+			}
+			ntfa_del_ntf_filter_ptrs(&rm_subscriber->filters);
+			free(rm_subscriber);
+		}
+	}
+	/* Now delete client */
+	m_NCS_IPC_DETACH(&rm_node->mbx, ntfa_clear_mbx, NULL);
+	m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
+	ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->local_hdl);
+	ntfa_notification_list_del(&rm_node->notification_list);
+	ntfa_notification_hdl_rec_list_del(&rm_node->notification_list);
+
+	ntfa_filter_list_del(&rm_node->filter_list);
+	ntfa_filter_hdl_rec_list_del(&rm_node->filter_list);
+
+	ntfa_reader_hdl_rec_list_del(&rm_node->reader_list);
+	free(rm_node);
+
+	TRACE_LEAVE();
+}
 /****************************************************************************
   Name          : ntfa_hdl_rec_del
- 
+
   Description   : This routine deletes the a client handle record from
                   a list of client hdl records. 
  
@@ -962,7 +1148,7 @@ ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb, const SaNtfCallbacksT *re
     /** Associate with the client_id obtained from NTFS
      **/
 	rec->ntfs_client_id = client_id;
-
+	rec->valid = true;
     /** Initialize and attach the IPC/Priority queue
      **/
 
@@ -1063,7 +1249,7 @@ static void logtrace_init_constructor(void)
  * 
  * @param instance
  */
-void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance)
+void ntfa_notification_destructor(ntfa_notification_hdl_rec_t *instance)
 {
 	ntfa_notification_hdl_rec_t *notificationInstance = instance;
 
@@ -1111,7 +1297,7 @@ void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance)
  * 
  * @param instance
  */
-void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t *filter_rec)
+void ntfa_filter_destructor(ntfa_filter_hdl_rec_t *filter_rec)
 {
 	switch (filter_rec->ntfType) {
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
@@ -1202,6 +1388,7 @@ uint32_t ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **list_head, ntfa_reader_
          **/
 		ncshm_give_hdl(rm_node->reader_hdl);
 		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->reader_hdl);
+		ntfa_del_ntf_filter_ptrs(&rm_node->filters);
 		free(rm_node);
 		return NCSCC_RC_SUCCESS;
 	} else {		/* find the rec */
@@ -1213,6 +1400,7 @@ uint32_t ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **list_head, ntfa_reader_
                  **/
 				ncshm_give_hdl(rm_node->reader_hdl);
 				ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->reader_hdl);
+				ntfa_del_ntf_filter_ptrs(&rm_node->filters);
 				free(rm_node);
 				return NCSCC_RC_SUCCESS;
 			}
@@ -1257,4 +1445,259 @@ void ntfa_add_to_async_cbk_msg_list(ntfsv_msg_t ** head, ntfsv_msg_t * new_node)
 	}
 
 	TRACE_LEAVE();
+}
+
+/****************************************************************************
+  Name          : ntfa_notify_handle_invalid
+
+  Description   : This routine sends a dummy callback msg to client's mailbox
+		  so that the client polls in and calls saNtfDispatch.
+  Arguments     :
+
+  Return Values : None
+
+  Notes         : None
+******************************************************************************/
+void ntfa_notify_handle_invalid() {
+	ntfa_client_hdl_rec_t *client_hdl = ntfa_cb.client_list;
+	TRACE_ENTER();
+	while (client_hdl != NULL) {
+		/* Only applicable for subscriber */
+		if (client_hdl->reg_cbk.saNtfNotificationCallback != NULL ||
+			client_hdl->reg_cbk.saNtfNotificationDiscardedCallback != NULL) {
+			/* Create a dummy msg */
+			ntfsv_msg_t *msg = malloc(sizeof(ntfsv_msg_t));
+			memset(msg, 0, sizeof(ntfsv_msg_t));
+			msg->info.cbk_info.type = NTFSV_DUMMY_CALLBACK;
+			/* Send dummy msg to client mailbox */
+			if (m_NCS_IPC_SEND(&client_hdl->mbx, msg, MDS_SEND_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
+				TRACE_1("m_NCS_IPC_SEND Failed to client(id:%u)", client_hdl->ntfs_client_id);
+				ntfa_msg_destroy(msg);
+			}
+		}
+
+		client_hdl = client_hdl->next;
+	}
+	TRACE_LEAVE();
+}
+/****************************************************************************
+  Name          : ntfa_update_ntfsv_state
+
+  Description   : Update current NTF Server state by the @changedState indicated
+		  by MDS event
+  Arguments     : @changedState [IN]: state to be changed of NTF Server
+
+  Return Values : None
+
+  Notes         : None
+******************************************************************************/
+void ntfa_update_ntfsv_state(ntfa_ntfsv_state_t changedState)
+{
+	TRACE_ENTER();
+	TRACE_1("Current state: %u, Changed state: %u", ntfa_cb.ntfa_ntfsv_state,
+												changedState);
+
+	ntfa_client_hdl_rec_t *client_hdl = ntfa_cb.client_list;
+
+	switch (ntfa_cb.ntfa_ntfsv_state){
+	case NTFA_NTFSV_NONE:
+		ntfa_cb.ntfa_ntfsv_state = changedState;
+		break;
+	case NTFA_NTFSV_DOWN:
+		if (changedState == NTFA_NTFSV_NEW_ACTIVE ||
+			changedState == NTFA_NTFSV_UP) {
+			TRACE("Active NTF server has been restarted");
+			ntfa_cb.ntfa_ntfsv_state = NTFA_NTFSV_UP;
+			ntfa_notify_handle_invalid();
+		} else
+			TRACE("Unexpected state changes");
+		break;
+	case NTFA_NTFSV_NO_ACTIVE:
+		if (changedState == NTFA_NTFSV_NEW_ACTIVE) {
+			TRACE("Standby NTF server becomes new Active");
+			/* NTF server is functioning normally */
+			ntfa_cb.ntfa_ntfsv_state = NTFA_NTFSV_UP;
+		} else if (changedState == NTFA_NTFSV_DOWN) {
+			TRACE("Active NTF Server is Down");
+			ntfa_cb.ntfa_ntfsv_state = NTFA_NTFSV_DOWN;
+			/* Mark all client handles are invalid */
+			while (client_hdl != NULL) {
+				client_hdl->valid = false;
+				client_hdl = client_hdl->next;
+			}
+		}
+		break;
+	case NTFA_NTFSV_NEW_ACTIVE:
+		TRACE("Unknown");
+		break;
+	case NTFA_NTFSV_UP:
+		if (changedState == NTFA_NTFSV_NO_ACTIVE) {
+			TRACE("Active NTF server temporarily unavailable");
+			/* Failover/Switchover is happening
+			 * Any API calls result in TRY_AGAIN
+			 */
+			ntfa_cb.ntfa_ntfsv_state = NTFA_NTFSV_NO_ACTIVE;
+		} else
+			TRACE("Unexpected state changes");
+		break;
+	default:
+		osafassert(false);
+	}
+
+	TRACE_LEAVE();
+}
+/****************************************************************************
+  Name          : ntfa_copy_ntf_filter_ptrs
+
+  Description   : Copy a list of filter from pSrc to pDes
+
+  Arguments     : pDes* [OUT]: list of outcome filter
+		  pSrc* [IN]: list of input filter
+
+  Return Values : SA_AIS_OK if succeed, other values as failed
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT ntfa_copy_ntf_filter_ptrs(ntfsv_filter_ptrs_t* pDes,
+								const ntfsv_filter_ptrs_t* pSrc) {
+	SaAisErrorT rc = SA_AIS_OK;
+	SaNtfNotificationFilterHeaderT *des_header;
+	SaNtfNotificationFilterHeaderT *src_header;
+	TRACE_ENTER();
+
+	if (pSrc->alarm_filter) {
+		pDes->alarm_filter = calloc(1, sizeof(SaNtfAlarmNotificationFilterT));
+		des_header = &(pDes->alarm_filter->notificationFilterHeader);
+		src_header = &(pSrc->alarm_filter->notificationFilterHeader);
+		if ((rc = ntfsv_filter_header_alloc(des_header, src_header->numEventTypes,
+											src_header->numNotificationObjects,
+											src_header->numNotifyingObjects,
+											src_header->numNotificationClassIds)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_filter_alarm_alloc(pDes->alarm_filter,
+											pSrc->alarm_filter->numProbableCauses,
+											pSrc->alarm_filter->numPerceivedSeverities,
+											pSrc->alarm_filter->numTrends)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_copy_ntf_filter_alarm(pDes->alarm_filter,
+												pSrc->alarm_filter)) != SA_AIS_OK)
+			goto done;
+	}
+
+	if (pSrc->sec_al_filter) {
+		pDes->sec_al_filter = calloc(1, sizeof(SaNtfSecurityAlarmNotificationFilterT));
+		des_header = &(pDes->sec_al_filter->notificationFilterHeader);
+		src_header = &(pSrc->sec_al_filter->notificationFilterHeader);
+		if ((rc = ntfsv_filter_header_alloc(des_header, src_header->numEventTypes,
+											src_header->numNotificationObjects,
+											src_header->numNotifyingObjects,
+											src_header->numNotificationClassIds)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_filter_sec_alarm_alloc(pDes->sec_al_filter,
+											pSrc->sec_al_filter->numProbableCauses,
+											pSrc->sec_al_filter->numSeverities,
+											pSrc->sec_al_filter->numSecurityAlarmDetectors,
+											pSrc->sec_al_filter->numServiceUsers,
+											pSrc->sec_al_filter->numServiceProviders)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_copy_ntf_filter_sec_alarm(pDes->sec_al_filter,
+												pSrc->sec_al_filter)) != SA_AIS_OK)
+			goto done;
+	}
+
+	if (pSrc->sta_ch_filter) {
+		pDes->sta_ch_filter = calloc(1, sizeof(SaNtfStateChangeNotificationFilterT));
+		des_header = &(pDes->sta_ch_filter->notificationFilterHeader);
+		src_header = &(pSrc->sta_ch_filter->notificationFilterHeader);
+		if ((rc = ntfsv_filter_header_alloc(des_header, src_header->numEventTypes,
+											src_header->numNotificationObjects,
+											src_header->numNotifyingObjects,
+											src_header->numNotificationClassIds)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_filter_state_ch_alloc(pDes->sta_ch_filter,
+											pSrc->sta_ch_filter->numSourceIndicators,
+											pSrc->sta_ch_filter->numStateChanges)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_copy_ntf_filter_state_ch(pDes->sta_ch_filter,
+												pSrc->sta_ch_filter)) != SA_AIS_OK)
+			goto done;
+	}
+
+	if (pSrc->obj_cr_del_filter) {
+		pDes->obj_cr_del_filter = calloc(1, sizeof(SaNtfObjectCreateDeleteNotificationFilterT));
+		des_header = &(pDes->obj_cr_del_filter->notificationFilterHeader);
+		src_header = &(pSrc->obj_cr_del_filter->notificationFilterHeader);
+		if ((rc = ntfsv_filter_header_alloc(des_header, src_header->numEventTypes,
+											src_header->numNotificationObjects,
+											src_header->numNotifyingObjects,
+											src_header->numNotificationClassIds)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_filter_obj_cr_del_alloc(pDes->obj_cr_del_filter,
+											pSrc->obj_cr_del_filter->numSourceIndicators)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_copy_ntf_filter_obj_cr_del(pDes->obj_cr_del_filter,
+												pSrc->obj_cr_del_filter)) != SA_AIS_OK)
+			goto done;
+	}
+
+	if (pSrc->att_ch_filter) {
+		pDes->att_ch_filter = calloc(1, sizeof(SaNtfAttributeChangeNotificationFilterT));
+		des_header = &(pDes->att_ch_filter->notificationFilterHeader);
+		src_header = &(pSrc->att_ch_filter->notificationFilterHeader);
+		if ((rc = ntfsv_filter_header_alloc(des_header, src_header->numEventTypes,
+											src_header->numNotificationObjects,
+											src_header->numNotifyingObjects,
+											src_header->numNotificationClassIds)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_filter_attr_change_alloc(pDes->att_ch_filter,
+											pSrc->att_ch_filter->numSourceIndicators)) != SA_AIS_OK)
+			goto done;
+		if ((rc = ntfsv_copy_ntf_filter_attr_ch(pDes->att_ch_filter,
+												pSrc->att_ch_filter)) != SA_AIS_OK)
+			goto done;
+	}
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/****************************************************************************
+  Name          : ntfa_del_ntf_filter_ptrs
+
+  Description   : Delete the filter pointers
+
+  Arguments     : filter_ptrs* [IN/OUT]: filter pointers
+
+  Return Values : SA_AIS_OK if succeed, other values as failed
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT ntfa_del_ntf_filter_ptrs(ntfsv_filter_ptrs_t* filter_ptrs)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	if (filter_ptrs->alarm_filter) {
+		ntfsv_filter_alarm_free(filter_ptrs->alarm_filter, true);
+		free(filter_ptrs->alarm_filter);
+	}
+
+	if (filter_ptrs->sec_al_filter) {
+		ntfsv_filter_sec_alarm_free(filter_ptrs->sec_al_filter, true);
+		free(filter_ptrs->sec_al_filter);
+	}
+
+	if (filter_ptrs->sta_ch_filter) {
+		ntfsv_filter_state_ch_free(filter_ptrs->sta_ch_filter, true);
+		free(filter_ptrs->sta_ch_filter);
+	}
+
+	if (filter_ptrs->obj_cr_del_filter) {
+		ntfsv_filter_obj_cr_del_free(filter_ptrs->obj_cr_del_filter, true);
+		free(filter_ptrs->obj_cr_del_filter);
+	}
+
+	if (filter_ptrs->att_ch_filter) {
+		ntfsv_filter_attr_ch_free(filter_ptrs->att_ch_filter, true);
+		free(filter_ptrs->att_ch_filter);
+	}
+	return rc;
 }

@@ -369,7 +369,12 @@ static uint32_t ntfa_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 			TRACE("NTFS down");
 			pthread_mutex_lock(&ntfa_cb.cb_lock);
 			memset(&ntfa_cb.ntfs_mds_dest, 0, sizeof(MDS_DEST));
-			ntfa_cb.ntfs_up = 0;
+
+			if (mds_cb_info->info.svc_evt.i_change == NCSMDS_NO_ACTIVE) {
+				ntfa_update_ntfsv_state(NTFA_NTFSV_NO_ACTIVE);
+			} else
+				ntfa_update_ntfsv_state(NTFA_NTFSV_DOWN);
+
 			pthread_mutex_unlock(&ntfa_cb.cb_lock);
 		}
 		break;
@@ -382,7 +387,12 @@ static uint32_t ntfa_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 			TRACE_2("MSG from NTFS NCSMDS_NEW_ACTIVE/UP");
 			pthread_mutex_lock(&ntfa_cb.cb_lock);
 			ntfa_cb.ntfs_mds_dest = mds_cb_info->info.svc_evt.i_dest;
-			ntfa_cb.ntfs_up = 1;
+
+			if (mds_cb_info->info.svc_evt.i_change == NCSMDS_NEW_ACTIVE) {
+				ntfa_update_ntfsv_state(NTFA_NTFSV_NEW_ACTIVE);
+			} else
+				ntfa_update_ntfsv_state(NTFA_NTFSV_UP);
+
 			if (ntfa_cb.ntfs_sync_awaited) {
 				/* signal waiting thread */
 				m_NCS_SEL_OBJ_IND(&ntfa_cb.ntfs_sync_sel);

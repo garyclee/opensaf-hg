@@ -91,6 +91,7 @@ typedef struct ntfa_filter_hdl_rec {
 typedef struct subscriberList {
 	SaNtfHandleT subscriberListNtfHandle;
 	SaNtfSubscriptionIdT subscriberListSubscriptionId;
+	ntfsv_filter_ptrs_t filters; /* remember the filters used by this subscriber */
 	struct subscriberList *prev;
 	struct subscriberList *next;
 } ntfa_subscriber_list_t;
@@ -100,6 +101,10 @@ typedef struct ntfa_reader_hdl_rec {
 	unsigned int reader_id;	/* handle value returned by NTFS for this client */
 	SaNtfHandleT ntfHandle;
 	unsigned int reader_hdl;	/* READER handle from handle mgr */
+
+	ntfsv_filter_ptrs_t filters; /* remember the filters used by this reader */
+	SaNtfSearchCriteriaT searchCriteria; /* remember the searchCriteria for recovery */
+
 	struct ntfa_reader_hdl_rec *next;	/* next pointer for the list in ntfa_cb_t */
 	struct ntfa_client_hdl_rec *parent_hdl;	/* Back Pointer to the client instantiation */
 } ntfa_reader_hdl_rec_t;
@@ -114,24 +119,35 @@ typedef struct ntfa_client_hdl_rec {
 	ntfa_reader_hdl_rec_t *reader_list;
 	SYSF_MBX mbx;		/* priority q mbx b/w MDS & Library */
 	struct ntfa_client_hdl_rec *next;	/* next pointer for the list in ntfa_cb_t */
+	bool valid;		/* handle is valid if it's known by NTF server, used for headless hydra */
+	SaVersionT version; /* the API version is being used by client, used for recover after headless */
 } ntfa_client_hdl_rec_t;
 
 /*
  * The NTFA control block is the master anchor structure for all NTFA
  * instantiations within a process.
  */
+typedef enum {
+	NTFA_NTFSV_NONE = 0,
+	NTFA_NTFSV_DOWN,
+	NTFA_NTFSV_NO_ACTIVE,
+	NTFA_NTFSV_NEW_ACTIVE,
+	NTFA_NTFSV_UP
+}ntfa_ntfsv_state_t;
+
 typedef struct {
 	pthread_mutex_t cb_lock;	/* CB lock */
 	ntfa_client_hdl_rec_t *client_list;	/* NTFA client handle database */
 	ntfa_reader_hdl_rec_t *reader_list;
 	MDS_HDL mds_hdl;	/* MDS handle */
 	MDS_DEST ntfs_mds_dest;	/* NTFS absolute/virtual address */
-	int ntfs_up;		/* Indicate that MDS subscription
-				 * is complete */
+
 	/* NTFS NTFA sync params */
 	int ntfs_sync_awaited;
 	NCS_SEL_OBJ ntfs_sync_sel;
 	SaUint32T ntf_var_data_limit;	/* max allowed variableDataSize */
+	/* NTF Server state */
+	ntfa_ntfsv_state_t ntfa_ntfsv_state;
 } ntfa_cb_t;
 
 /* ntfa_saf_api.c */
@@ -149,7 +165,7 @@ extern void ntfsv_ntfa_evt_free(struct ntfsv_msg *);
 
 /* ntfa_init.c */
 extern unsigned int ntfa_startup(void);
-extern unsigned int ntfa_shutdown(void);
+extern unsigned int ntfa_shutdown(bool forced);
 
 /* ntfa_hdl.c */
 extern SaAisErrorT ntfa_hdl_cbk_dispatch(ntfa_cb_t *, ntfa_client_hdl_rec_t *, SaDispatchFlagsT);
@@ -159,6 +175,7 @@ extern ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hd
 extern ntfa_filter_hdl_rec_t *ntfa_filter_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec);
 extern void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **);
 extern uint32_t ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **, ntfa_client_hdl_rec_t *);
+extern void ntfa_hdl_rec_force_del(ntfa_client_hdl_rec_t **, ntfa_client_hdl_rec_t *);
 extern uint32_t ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **, ntfa_notification_hdl_rec_t *);
 extern uint32_t ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **, ntfa_filter_hdl_rec_t *);
 extern bool ntfa_validate_ntfa_client_hdl(ntfa_cb_t *ntfa_cb, ntfa_client_hdl_rec_t *find_hdl_rec);
@@ -166,11 +183,15 @@ extern bool ntfa_validate_ntfa_client_hdl(ntfa_cb_t *ntfa_cb, ntfa_client_hdl_re
 /* ntfa_util.c */
 extern ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uint32_t client_id);
 extern void ntfa_msg_destroy(ntfsv_msg_t *msg);
-extern void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance);
-extern void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t
+extern void ntfa_notification_destructor(ntfa_notification_hdl_rec_t *instance);
+extern void ntfa_filter_destructor(ntfa_filter_hdl_rec_t
 					   *notificationFilterInstance);
 extern ntfa_reader_hdl_rec_t *ntfa_reader_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec);
 extern uint32_t ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **, ntfa_reader_hdl_rec_t *);
 extern void ntfa_add_to_async_cbk_msg_list(ntfsv_msg_t ** head, ntfsv_msg_t * new_node);
 extern uint32_t ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIORITY_TYPE prio);
+extern void ntfa_update_ntfsv_state(ntfa_ntfsv_state_t changedState);
+extern SaAisErrorT ntfa_copy_ntf_filter_ptrs(ntfsv_filter_ptrs_t* pDes,
+								const ntfsv_filter_ptrs_t* pSrc);
+extern SaAisErrorT ntfa_del_ntf_filter_ptrs(ntfsv_filter_ptrs_t* filter_ptrs);
 #endif   /* !NTFA_H */
