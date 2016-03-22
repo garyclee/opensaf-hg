@@ -705,7 +705,7 @@ int ntfimcn_imm_init(ntfimcn_cb_t *cb)
 	int msecs_waited;
 
 	TRACE_ENTER();
-	
+
 	/*
 	 * Set IMM environment variable for synchronous timeout to 1 sec
 	 */
@@ -716,62 +716,126 @@ int ntfimcn_imm_init(ntfimcn_cb_t *cb)
 	 * -------------------------
 	 */
 	msecs_waited = 0;
-	rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &imm_version);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
-		usleep(sleep_delay_ms * 1000);
-		msecs_waited += sleep_delay_ms;
-		rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &imm_version);
-	}
-	if (rc != SA_AIS_OK) {
-		LOG_ER("%s saImmOiInitialize_2 failed %s",__FUNCTION__,saf_error(rc));
-		internal_rc = NTFIMCN_INTERNAL_ERROR;
-		goto done;
-	}
-
-	/*
-	 * Get a selection object for the IMM OI
-	 * -------------------------------------
-	 */
-	msecs_waited = 0;
-	rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
-		usleep(sleep_delay_ms * 1000);
-		msecs_waited += sleep_delay_ms;
-		rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
-	}
-	if (rc != SA_AIS_OK) {
-		LOG_ER("%s saImmOiSelectionObjectGet failed %s",__FUNCTION__,saf_error(rc));
-		internal_rc = NTFIMCN_INTERNAL_ERROR;
-		goto done;
-	}
-
-	/*
-	 * Become the "configuration change" applier
-	 * -----------------------------------------
-	 */
-	SaImmOiImplementerNameT applier_name = applier_nameA;
-	msecs_waited = 0;
-	rc = saImmOiImplementerSet(cb->immOiHandle, applier_name);
-	while (((rc == SA_AIS_ERR_TRY_AGAIN) ||
-			(rc == SA_AIS_ERR_EXIST)) &&
-			(msecs_waited < max_waiting_time_60s)) {
-		usleep(sleep_delay_ms * 1000);
-		msecs_waited += sleep_delay_ms;
-		
-		if (rc == SA_AIS_ERR_EXIST) {
-			if (strcmp( applier_name, applier_nameA) == 0) {
-				applier_name = applier_nameB;
-			} else {
-				applier_name = applier_nameA;
-			}
+	for (;;) {
+		if (msecs_waited >= max_waiting_time_60s) {
+			LOG_ER("%s Timeout when initalizing OI", __FUNCTION__);
+			internal_rc = NTFIMCN_INTERNAL_ERROR;
+			goto done;
 		}
+		cb->immOiHandle = 0;
+		rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks,
+					 &imm_version);
+		while ((rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT)
+		       && msecs_waited < max_waiting_time_60s) {
+			if (rc == SA_AIS_ERR_TIMEOUT) {
+				LOG_WA("%s saImmOiInitialize_2() returned %s",
+				       __FUNCTION__, saf_error(rc));
+			}
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			if (rc == SA_AIS_ERR_TIMEOUT && cb->immOiHandle != 0) {
+				while (saImmOiFinalize(cb->immOiHandle) ==
+				       SA_AIS_ERR_TRY_AGAIN &&
+				       msecs_waited < max_waiting_time_60s) {
+					usleep(sleep_delay_ms * 1000);
+					msecs_waited += sleep_delay_ms;
+				}
+			}
+			cb->immOiHandle = 0;
+			rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks,
+						 &imm_version);
+		}
+		if (rc != SA_AIS_OK) {
+			LOG_ER("%s saImmOiInitialize_2 failed %s", __FUNCTION__,
+			       saf_error(rc));
+			internal_rc = NTFIMCN_INTERNAL_ERROR;
+			goto done;
+		}
+
+		/*
+		 * Get a selection object for the IMM OI
+		 * -------------------------------------
+		 */
+		rc = saImmOiSelectionObjectGet(cb->immOiHandle,
+					       &cb->immSelectionObject);
+		while ((rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT)
+		       && msecs_waited < max_waiting_time_60s) {
+			if (rc == SA_AIS_ERR_TIMEOUT) {
+				LOG_WA("%s saImmOiSelectionObjectGet() "
+				       "returned %s", __FUNCTION__,
+				       saf_error(rc));
+			}
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			rc = saImmOiSelectionObjectGet(cb->immOiHandle,
+						       &cb->immSelectionObject);
+		}
+		if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_BAD_HANDLE) {
+			LOG_WA("%s saImmOiSelectionObjectGet() returned %s",
+			       __FUNCTION__, saf_error(rc));
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			while (saImmOiFinalize(cb->immOiHandle) ==
+			       SA_AIS_ERR_TRY_AGAIN &&
+				msecs_waited < max_waiting_time_60s) {
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+			}
+			cb->immOiHandle = 0;
+			cb->immSelectionObject = -1;
+			continue;
+		}
+		if (rc != SA_AIS_OK) {
+			LOG_ER("%s saImmOiSelectionObjectGet failed %s",
+			       __FUNCTION__, saf_error(rc));
+			internal_rc = NTFIMCN_INTERNAL_ERROR;
+			goto done;
+		}
+
+		/*
+		 * Become the "configuration change" applier
+		 * -----------------------------------------
+		 */
+		SaImmOiImplementerNameT applier_name = applier_nameA;
 		rc = saImmOiImplementerSet(cb->immOiHandle, applier_name);
-	}
-		
-	if (rc != SA_AIS_OK) {
-		LOG_ER("%s Becoming an applier failed %s",__FUNCTION__,saf_error(rc));
-		internal_rc = NTFIMCN_INTERNAL_ERROR;
-		goto done;
+		while ((rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_EXIST) &&
+		       msecs_waited < max_waiting_time_60s) {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+
+			if (rc == SA_AIS_ERR_EXIST) {
+				if (strcmp( applier_name, applier_nameA) == 0) {
+					applier_name = applier_nameB;
+				} else {
+					applier_name = applier_nameA;
+				}
+			}
+			rc = saImmOiImplementerSet(cb->immOiHandle,
+						   applier_name);
+		}
+		if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_BAD_HANDLE) {
+			LOG_WA("%s saImmOiImplementerSet() returned %s",
+			       __FUNCTION__, saf_error(rc));
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			while (saImmOiFinalize(cb->immOiHandle) ==
+			       SA_AIS_ERR_TRY_AGAIN &&
+				msecs_waited < max_waiting_time_60s) {
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+			}
+			cb->immOiHandle = 0;
+			cb->immSelectionObject = -1;
+			continue;
+		}
+
+		if (rc != SA_AIS_OK) {
+			LOG_ER("%s Becoming an applier failed %s", __FUNCTION__,
+			       saf_error(rc));
+			internal_rc = NTFIMCN_INTERNAL_ERROR;
+			goto done;
+		}
+		break;
 	}
 
 	/*
@@ -779,14 +843,31 @@ int ntfimcn_imm_init(ntfimcn_cb_t *cb)
 	 * -------------------------
 	 */
 	msecs_waited = 0;
+	cb->immOmHandle = 0;
 	rc = saImmOmInitialize(&cb->immOmHandle, &omCallbacks, &imm_version);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
+	while ((rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT)
+	       && msecs_waited < max_waiting_time_60s) {
+		if (rc == SA_AIS_ERR_TIMEOUT) {
+			LOG_WA("%s saImmOmInitialize() returned %s",
+			       __FUNCTION__, saf_error(rc));
+		}
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
-		rc = saImmOmInitialize(&cb->immOmHandle, &omCallbacks, &imm_version);
+		if (rc == SA_AIS_ERR_TIMEOUT && cb->immOmHandle != 0) {
+			while (saImmOmFinalize(cb->immOmHandle) ==
+			       SA_AIS_ERR_TRY_AGAIN &&
+			       msecs_waited < max_waiting_time_60s) {
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+			}
+		}
+		cb->immOmHandle = 0;
+		rc = saImmOmInitialize(&cb->immOmHandle, &omCallbacks,
+				       &imm_version);
 	}
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s saImmOmInitialize failed %s",__FUNCTION__,saf_error(rc));
+		LOG_ER("%s saImmOmInitialize failed %s", __FUNCTION__,
+		       saf_error(rc));
 		internal_rc = NTFIMCN_INTERNAL_ERROR;
 		goto done;
 	}
