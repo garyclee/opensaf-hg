@@ -34,10 +34,60 @@
 /* The main controle block */
 ntfa_cb_t ntfa_cb = {
 	.cb_lock = PTHREAD_MUTEX_INITIALIZER,
+	.ntfa_ntfsv_state = NTFA_NTFSV_NONE,
 };
 
 /* list of subscriptions for this process */
 ntfa_subscriber_list_t *subscriberNoList = NULL;
+
+/*
+ * @Brief: Determine the common "availability" of API, which depends on the
+ *         NTF Server state
+ * @Param: None
+ * @Return: OK - If Server state is UP
+ *          TRY_AGAIN - If Server state is Down and No Active (temporary no active)
+ */
+static SaAisErrorT checkNtfServerState()
+{
+	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
+
+	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+
+	/* Check NTF server availability */
+	if (ntfa_cb.ntfa_ntfsv_state == NTFA_NTFSV_UP) {
+		rc = SA_AIS_OK;
+	} else if (ntfa_cb.ntfa_ntfsv_state == NTFA_NTFSV_DOWN) {
+		TRACE("NTFS server is down");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+	} else if (ntfa_cb.ntfa_ntfsv_state == NTFA_NTFSV_NO_ACTIVE) {
+		TRACE("NTFS server is unavailable");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+	} else if (ntfa_cb.ntfa_ntfsv_state == NTFA_NTFSV_NONE) {
+		TRACE("No NTF server is detected, or API is called during headless");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+	} else
+		TRACE("Not supported API call under NTF Server state (%u)",
+				ntfa_cb.ntfa_ntfsv_state);
+
+	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+
+	return rc;
+}
+
+/*
+ * @Brief: Return ntf server state in thread safe manner
+ * @Param: None
+ * @Return: Server state
+ */
+static ntfa_ntfsv_state_t getServerState()
+{
+	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+
+	ntfa_ntfsv_state_t state = ntfa_cb.ntfa_ntfsv_state;
+
+	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+	return state;
+}
 
 static SaAisErrorT checkNtfValueTypeRange(SaNtfValueTypeT type)
 {
@@ -871,7 +921,271 @@ SaAisErrorT getFilters(const SaNtfNotificationTypeFilterHandlesT *notificationFi
 }
 
 /* end help functions */
+/****************************************************************************
+  Name          : reinitializeClient
 
+  Description   : This routine sends initialize messages to NTF Server in
+		  order to obtain new client id
+
+  Arguments     : client_hdl* [IN]: client handle
+
+  Return Values : SA_AIS_OK if success, others are failure
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT reinitializeClient(ntfa_client_hdl_rec_t* client_hdl) {
+	uint32_t mds_rc;
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfsv_msg_t i_msg, *o_msg = NULL;
+
+	TRACE_ENTER();
+
+	memset(&i_msg, 0, sizeof(ntfsv_msg_t));
+	i_msg.type = NTFSV_NTFA_API_MSG;
+	i_msg.info.api_info.type = NTFSV_INITIALIZE_REQ;
+	i_msg.info.api_info.param.init.version = client_hdl->version;
+
+	mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &i_msg, &o_msg, NTFS_WAIT_TIME);
+	switch (mds_rc) {
+	case NCSCC_RC_SUCCESS:
+		break;
+	case NCSCC_RC_REQ_TIMOUT:
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	default:
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	osafassert(o_msg != NULL);
+	/* Check response msg: type, rc */
+	if (o_msg->info.api_resp_info.type != NTFSV_INITIALIZE_RSP) {
+		TRACE("info.api_resp_info.type:%u", o_msg->info.api_resp_info.type);
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	if ((rc = o_msg->info.api_resp_info.rc) != SA_AIS_OK) {
+		TRACE("info.api_resp_info.rc:%u", o_msg->info.api_resp_info.rc);
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	client_hdl->ntfs_client_id = o_msg->info.api_resp_info.param.init_rsp.client_id;
+	TRACE("Successfully recover client_id, new client_id:%u",
+			client_hdl->ntfs_client_id);
+
+done:
+	if (o_msg)
+		ntfa_msg_destroy(o_msg);
+	TRACE_LEAVE();
+	return rc;
+}
+/****************************************************************************
+  Name          : recoverReader
+
+  Description   : This routine sends read_initialize messages to NTF Server in
+		  order to reintroduce this reader to NTF Server
+
+  Arguments     : client_hdl* [IN]: client handle
+		  reader_hdl* [IN]: reader handle
+
+  Return Values : SA_AIS_OK if success, others are failure
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT recoverReader(ntfa_client_hdl_rec_t* client_hdl, ntfa_reader_hdl_rec_t* reader_hdl) {
+	uint32_t mds_rc;
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfsv_msg_t i_msg, *o_msg = NULL;
+	ntfsv_reader_init_req_2_t *send_param;
+
+	TRACE_ENTER();
+
+	/* Make sure the filters have not been deleted */
+	if (reader_hdl->filters.alarm_filter == NULL &&
+		reader_hdl->filters.att_ch_filter == NULL &&
+		reader_hdl->filters.obj_cr_del_filter == NULL &&
+		reader_hdl->filters.sec_al_filter == NULL &&
+		reader_hdl->filters.sta_ch_filter == NULL)
+		return SA_AIS_ERR_BAD_HANDLE;
+
+	memset(&i_msg, 0, sizeof(ntfsv_msg_t));
+	i_msg.type = NTFSV_NTFA_API_MSG;
+	i_msg.info.api_info.type = NTFSV_READER_INITIALIZE_REQ_2;
+	send_param = &i_msg.info.api_info.param.reader_init_2;
+	send_param->head.client_id = client_hdl->ntfs_client_id;
+	send_param->head.searchCriteria = reader_hdl->searchCriteria;
+	send_param->f_rec = reader_hdl->filters;
+
+	mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &i_msg, &o_msg, NTFS_WAIT_TIME);
+
+	switch (mds_rc) {
+	case NCSCC_RC_SUCCESS:
+		break;
+	case NCSCC_RC_REQ_TIMOUT:
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	default:
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	osafassert(o_msg != NULL);
+	if ((rc = o_msg->info.api_resp_info.rc) != SA_AIS_OK) {
+		TRACE("o_msg->info.api_resp_info.rc:%u", o_msg->info.api_resp_info.rc);
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if (o_msg->info.api_resp_info.type != NTFSV_READER_INITIALIZE_RSP) {
+		TRACE("msg type (%d) failed", (int)o_msg->info.api_resp_info.type);
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	/* Update reader_id since it may be changed */
+	reader_hdl->reader_id = o_msg->info.api_resp_info.param.reader_init_rsp.readerId;
+
+	TRACE("Recover reader successfully");
+done:
+	if (o_msg)
+		ntfa_msg_destroy(o_msg);
+	TRACE_LEAVE();
+	return rc;
+}
+/****************************************************************************
+  Name          : recoverSubscriber
+
+  Description   : This routine sends subscribe messages to NTF Server in
+		  order to reintroduce this subscriber to NTF Server
+
+  Arguments     : client_hdl* [IN]: client handle
+		  subscriber_hdl* [IN]: subscriber handle
+
+  Return Values : SA_AIS_OK if success, others are failure
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT recoverSubscriber(ntfa_client_hdl_rec_t* client_hdl,
+									ntfa_subscriber_list_t* subscriber_hdl) {
+	uint32_t mds_rc;
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfsv_msg_t i_msg, *o_msg = NULL;
+	ntfsv_subscribe_req_t *send_param;
+
+	TRACE_ENTER();
+
+	/* Make sure the filters have not been deleted */
+	if (subscriber_hdl->filters.alarm_filter == NULL &&
+		subscriber_hdl->filters.att_ch_filter == NULL &&
+		subscriber_hdl->filters.obj_cr_del_filter == NULL &&
+		subscriber_hdl->filters.sec_al_filter == NULL &&
+		subscriber_hdl->filters.sta_ch_filter == NULL)
+		return SA_AIS_ERR_BAD_HANDLE;
+
+	memset(&i_msg, 0, sizeof(ntfsv_msg_t));
+	i_msg.type = NTFSV_NTFA_API_MSG;
+	i_msg.info.api_info.type = NTFSV_SUBSCRIBE_REQ;
+	send_param = &i_msg.info.api_info.param.subscribe;
+
+	send_param->client_id = client_hdl->ntfs_client_id;
+	send_param->subscriptionId = subscriber_hdl->subscriberListSubscriptionId;
+	send_param->f_rec = subscriber_hdl->filters;
+
+	mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &i_msg, &o_msg, NTFS_WAIT_TIME);
+
+	switch (mds_rc) {
+	case NCSCC_RC_SUCCESS:
+		break;
+	case NCSCC_RC_REQ_TIMOUT:
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	default:
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	osafassert(o_msg != NULL);
+
+	if ((rc = o_msg->info.api_resp_info.rc) != SA_AIS_OK) {
+		TRACE("o_msg->info.api_resp_info.rc:%u", o_msg->info.api_resp_info.rc);
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if (o_msg->info.api_resp_info.type != NTFSV_SUBSCRIBE_RSP) {
+		TRACE("msg type (%d) failed", (int)o_msg->info.api_resp_info.type);
+		rc = SA_AIS_ERR_LIBRARY;
+		goto done;
+	}
+	TRACE("Recover subscriber successfully");
+done:
+	if (o_msg)
+		ntfa_msg_destroy(o_msg);
+
+	TRACE_LEAVE();
+	return rc;
+}
+/****************************************************************************
+  Name          : recoverClient
+
+  Description   : In NTF-A.03.01, section 2.1.2. A client can be producer,
+		  subscriber, and reader at the same time.
+		  This routine will recovery:
+		  (1) client_id
+		  (2) Then it will continue the recovery if this client also
+		  has instance of subscriber or reader.
+  Arguments     : client_hdl* [IN]: client handle
+
+  Return Values : SA_AIS_OK if success, others are failure
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT recoverClient(ntfa_client_hdl_rec_t *client_hdl) {
+
+	TRACE_ENTER();
+	SaAisErrorT rc = SA_AIS_OK;
+
+	osafassert(client_hdl);
+	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+
+	if (client_hdl->valid == true)
+		goto done;
+
+	if ((rc = reinitializeClient(client_hdl)) == SA_AIS_OK) {
+		/* Restore reader */
+		ntfa_reader_hdl_rec_t* reader_hdl = client_hdl->reader_list;
+		while (reader_hdl != NULL && rc == SA_AIS_OK) {
+			rc = recoverReader(client_hdl, reader_hdl);
+			reader_hdl = reader_hdl->next;
+		}
+		if (rc != SA_AIS_OK) {
+			TRACE("Failed to restore reader (readerId:%d)",
+					reader_hdl->reader_id);
+			goto done;
+		}
+		/* Restore subscriber */
+		ntfa_subscriber_list_t* subscriber_hdl = subscriberNoList;
+		while (subscriber_hdl != NULL && rc == SA_AIS_OK) {
+			if (client_hdl->local_hdl == subscriber_hdl->subscriberListNtfHandle)
+				rc = recoverSubscriber(client_hdl, subscriber_hdl);
+			subscriber_hdl = subscriber_hdl->next;
+		}
+		if (rc != SA_AIS_OK) {
+			TRACE("Failed to restore subscriber (subscriptionId:%d)",
+					subscriber_hdl->subscriberListSubscriptionId);
+			goto done;
+		}
+		client_hdl->valid = true;
+	} else {
+		TRACE("Failed to restore client (id:%d)", client_hdl->ntfs_client_id);
+		goto done;
+	}
+
+done:
+	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+	TRACE_LEAVE();
+	return rc;
+}
 /***************************************************************************
  * 8.4.1
  *
@@ -923,15 +1237,14 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 		version->releaseCode = NTF_RELEASE_CODE;
 		version->majorVersion = NTF_MAJOR_VERSION;
 		version->minorVersion = NTF_MINOR_VERSION;
-		ntfa_shutdown();
+		ntfa_shutdown(false);
 		rc = SA_AIS_ERR_VERSION;
 		goto done;
 	}
 
-	if (!ntfa_cb.ntfs_up) {
-		ntfa_shutdown();
-		TRACE("NTFS server is down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
+	/* Check NTF server availability */
+	if ((rc = checkNtfServerState()) != SA_AIS_OK) {
+		ntfa_shutdown(false);
 		goto done;
 	}
 
@@ -977,7 +1290,7 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto err;
 	}
-
+	ntfa_hdl_rec->version = *version;
 	/* pass the handle value to the appl */
 	if (SA_AIS_OK == rc)
 		*ntfHandle = ntfa_hdl_rec->local_hdl;
@@ -990,7 +1303,7 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 
 	if (rc != SA_AIS_OK) {
 		TRACE_2("NTFA INIT FAILED\n");
-		ntfa_shutdown();
+		ntfa_shutdown(false);
 	}
 
  done:
@@ -1101,6 +1414,28 @@ SaAisErrorT saNtfDispatch(SaNtfHandleT ntfHandle, SaDispatchFlagsT dispatchFlags
 		goto done;
 	}
 
+	/* Need to check NTF server availability here
+	 * Because if the notificationCallback just comes after MDS_DOWN
+	 * it will go to recovery then result in failure due to no director
+	 */
+	if ((rc = checkNtfServerState()) != SA_AIS_OK) {
+		ncshm_give_hdl(ntfHandle);
+		goto done;
+	}
+
+	if (!hdl_rec->valid) {
+		/* recovery */
+		if ((rc = recoverClient(hdl_rec)) != SA_AIS_OK) {
+			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+				ncshm_give_hdl(ntfHandle);
+				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, hdl_rec);
+				osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+				ntfa_shutdown(false);
+				goto done;
+			}
+		}
+	}
 	if ((rc = ntfa_hdl_cbk_dispatch(&ntfa_cb, hdl_rec, dispatchFlags)) != SA_AIS_OK)
 		TRACE("NTFA_DISPATCH_FAILURE");
 
@@ -1145,6 +1480,13 @@ SaAisErrorT saNtfFinalize(SaNtfHandleT ntfHandle)
 
 	TRACE_ENTER();
 
+	/* Check NTF server availability */
+	if (getServerState() == NTFA_NTFSV_NO_ACTIVE) {
+		TRACE("NTFS server is temporarily unavailable");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
 	/* retrieve hdl rec */
 	hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
 	if (hdl_rec == NULL) {
@@ -1152,42 +1494,36 @@ SaAisErrorT saNtfFinalize(SaNtfHandleT ntfHandle)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
+	if (hdl_rec->valid) {
+		/** populate & send the finalize message
+		 ** and make sure the finalize from the server
+		 ** end returned before deleting the local records.
+		 **/
+		memset(&msg, 0, sizeof(ntfsv_msg_t));
+		msg.type = NTFSV_NTFA_API_MSG;
+		msg.info.api_info.type = NTFSV_FINALIZE_REQ;
+		msg.info.api_info.param.finalize.client_id = hdl_rec->ntfs_client_id;
 
-	/* Check Whether NTFS is up or not */
-	if (!ntfa_cb.ntfs_up) {
-		TRACE("NTFS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done_give_hdl;
+		mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, NTFS_WAIT_TIME);
+		switch (mds_rc) {
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = SA_AIS_ERR_TIMEOUT;
+			TRACE("ntfa_mds_msg_sync_send FAILED: %u", rc);
+			goto done_give_hdl;
+		default:
+			TRACE("ntfa_mds_msg_sync_send FAILED: %u", rc);
+			rc = SA_AIS_ERR_NO_RESOURCES;
+			goto done_give_hdl;
+		}
+
+		if (o_msg != NULL) {
+			rc = o_msg->info.api_resp_info.rc;
+			ntfa_msg_destroy(o_msg);
+		} else
+			rc = SA_AIS_ERR_NO_RESOURCES;
 	}
-
-    /** populate & send the finalize message
-     ** and make sure the finalize from the server
-     ** end returned before deleting the local records.
-     **/
-	memset(&msg, 0, sizeof(ntfsv_msg_t));
-	msg.type = NTFSV_NTFA_API_MSG;
-	msg.info.api_info.type = NTFSV_FINALIZE_REQ;
-	msg.info.api_info.param.finalize.client_id = hdl_rec->ntfs_client_id;
-
-	mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, NTFS_WAIT_TIME);
-	switch (mds_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
-		TRACE("ntfa_mds_msg_sync_send FAILED: %u", rc);
-		goto done_give_hdl;
-	default:
-		TRACE("ntfa_mds_msg_sync_send FAILED: %u", rc);
-		rc = SA_AIS_ERR_NO_RESOURCES;
-		goto done_give_hdl;
-	}
-
-	if (o_msg != NULL) {
-		rc = o_msg->info.api_resp_info.rc;
-		ntfa_msg_destroy(o_msg);
-	} else
-		rc = SA_AIS_ERR_NO_RESOURCES;
 
 	if (rc == SA_AIS_OK) {
 	/** delete the hdl rec
@@ -1205,7 +1541,7 @@ SaAisErrorT saNtfFinalize(SaNtfHandleT ntfHandle)
 	ncshm_give_hdl(ntfHandle);
 
 	if (rc == SA_AIS_OK) {
-		rc = ntfa_shutdown();
+		rc = ntfa_shutdown(false);
 		if (rc != NCSCC_RC_SUCCESS)
 			TRACE_1("ntfa_shutdown failed");
 	}
@@ -1349,7 +1685,7 @@ SaAisErrorT saNtfNotificationFree(SaNtfNotificationHandleT notificationHandle)
 	}
 
 	/* free the resources allocated by saNtf<ntfType>NotificationAllocate */
-	ntfa_hdl_rec_destructor(notification_hdl_rec);
+	ntfa_notification_destructor(notification_hdl_rec);
 
     /** Delete the resources related to the notificationHandle &
      *  remove reference in the client.
@@ -1419,6 +1755,24 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 	}
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 
+	/* Check NTF server availability */
+	if ((rc = checkNtfServerState()) != SA_AIS_OK)
+		goto done_give_hdls;
+
+	/* Recover if this is invalid handle */
+	if (!client_rec->valid) {
+		if ((rc = recoverClient(client_rec)) != SA_AIS_OK) {
+			ncshm_give_hdl(client_handle);
+			ncshm_give_hdl(notificationHandle);
+			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_rec);
+				osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+				ntfa_shutdown(false);
+			}
+			goto err_free;
+		}
+	}
     /**
      ** Populate a sync MDS message
      **/
@@ -1478,13 +1832,6 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 	}
 	rc = fillSendStruct(ntfHeader, send_param);
 	if (rc != SA_AIS_OK) {
-		goto done_give_hdls;
-	}
-
-	/* Check whether NTFS is up or not */
-	if (!ntfa_cb.ntfs_up) {
-		TRACE("NTFS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done_give_hdls;
 	}
 
@@ -1596,7 +1943,8 @@ static  SaNtfHandleT ntfHandleGet(SaNtfSubscriptionIdT subscriptionId)
 	return ntfHandle;
 }
 
-static SaAisErrorT subscriptionListAdd(SaNtfHandleT ntfHandle, SaNtfSubscriptionIdT subscriptionId)
+static SaAisErrorT subscriptionListAdd(SaNtfHandleT ntfHandle, SaNtfSubscriptionIdT subscriptionId,
+										ntfsv_filter_ptrs_t filters)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	ntfa_subscriber_list_t* ntfSubscriberList;
@@ -1610,7 +1958,9 @@ static SaAisErrorT subscriptionListAdd(SaNtfHandleT ntfHandle, SaNtfSubscription
 	/* Add ntfHandle and subscriptionId into list */
 	ntfSubscriberList->subscriberListNtfHandle = ntfHandle;
 	ntfSubscriberList->subscriberListSubscriptionId = subscriptionId;
-	
+	memset(&ntfSubscriberList->filters, 0, sizeof(ntfsv_filter_ptrs_t));
+	ntfa_copy_ntf_filter_ptrs(&ntfSubscriberList->filters, &filters);
+
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 	if (NULL == subscriberNoList) {
 		subscriberNoList = ntfSubscriberList;
@@ -1648,6 +1998,7 @@ static void subscriberListItemRemove(SaNtfSubscriptionIdT subscriptionId)
 			subscriberNoList = NULL;
 	}
 	TRACE_1("REMOVE: listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
+	ntfa_del_ntf_filter_ptrs(&listPtr->filters);
 	free(listPtr);
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 }
@@ -1666,20 +2017,33 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_subscribe_req_t *send_param;
 	uint32_t timeout = NTFS_WAIT_TIME;
-	
+	bool recovery_failed = false;
 	TRACE_ENTER();
+
 	rc = getFilters(notificationFilterHandles, &filters, &ntfHandle, &client_hdl_rec);
 	if (rc != SA_AIS_OK) {
 		TRACE("getFilters failed");
 		goto done;
 	}
 	
+	/* Check NTF server availability */
+	if ((rc = checkNtfServerState()) != SA_AIS_OK)
+		goto done;
+
+	/* recovery */
+	if (client_hdl_rec != NULL && !client_hdl_rec->valid) {
+		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
+			recovery_failed = true;
+			goto done;
+		}
+	}
+
 	tmpHandle = ntfHandleGet(subscriptionId);
 	if (tmpHandle != 0) {
 		rc = SA_AIS_ERR_EXIST;
 		goto done;
 	}
-	rc = subscriptionListAdd(ntfHandle, subscriptionId);
+	rc = subscriptionListAdd(ntfHandle, subscriptionId, filters);
 	if (rc != SA_AIS_OK) {
 		goto done;
 	}
@@ -1693,29 +2057,24 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	send_param->client_id = client_hdl_rec->ntfs_client_id;
 	send_param->subscriptionId = subscriptionId;
 	send_param->f_rec = filters;
-	/* Check whether NTFS is up or not */
-	if (ntfa_cb.ntfs_up) {
-		uint32_t rv;
-		/* Send a sync MDS message to obtain a log stream id */
-		rv = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
-		if (rv == NCSCC_RC_SUCCESS) {
-			osafassert(o_msg != NULL);
-			if (SA_AIS_OK == o_msg->info.api_resp_info.rc) {
-				TRACE_1("subscriptionId from server %u",
-					o_msg->info.api_resp_info.param.subscribe_rsp.subscriptionId);
-			} else {
-				rc = o_msg->info.api_resp_info.rc;
-				TRACE("Bad return status!!! rc = %d", rc);
-			}
+
+	uint32_t rv;
+	/* Send a sync MDS message to obtain a log stream id */
+	rv = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
+	if (rv == NCSCC_RC_SUCCESS) {
+		osafassert(o_msg != NULL);
+		if (SA_AIS_OK == o_msg->info.api_resp_info.rc) {
+			TRACE_1("subscriptionId from server %u",
+				o_msg->info.api_resp_info.param.subscribe_rsp.subscriptionId);
 		} else {
-			if(rv == NCSCC_RC_INVALID_INPUT)
-				rc = SA_AIS_ERR_INVALID_PARAM;
-			else
-				rc = SA_AIS_ERR_TRY_AGAIN;
+			rc = o_msg->info.api_resp_info.rc;
+			TRACE("Bad return status!!! rc = %d", rc);
 		}
 	} else {
-		TRACE_1("NTFS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
+		if(rv == NCSCC_RC_INVALID_INPUT)
+			rc = SA_AIS_ERR_INVALID_PARAM;
+		else
+			rc = SA_AIS_ERR_TRY_AGAIN;
 	}
 
 	if (rc != SA_AIS_OK) {
@@ -1724,6 +2083,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	if (o_msg)
 		ntfa_msg_destroy(o_msg);
 	done:
+
 	ncshm_give_hdl(ntfHandle);
 	if (notificationFilterHandles) { 
 		if (notificationFilterHandles->attributeChangeFilterHandle)
@@ -1737,6 +2097,13 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		if (notificationFilterHandles->alarmFilterHandle)
 			ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
 	}
+	if (recovery_failed && rc == SA_AIS_ERR_BAD_HANDLE) {
+		osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+		ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		ntfa_shutdown(false);
+	}
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1995,6 +2362,7 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
+
 	/* retrieve hdl rec */
 	hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
 	if (hdl_rec == NULL) {
@@ -2058,6 +2426,7 @@ SaAisErrorT saNtfPtrValAllocate(SaNtfNotificationHandleT notificationHandle,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
+
 	notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationHandle);
 	if (notification_hdl_rec == NULL) {
 		TRACE("ncshm_take_hdl notificationHandle failed");
@@ -2098,6 +2467,7 @@ SaAisErrorT saNtfArrayValAllocate(SaNtfNotificationHandleT notificationHandle,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
+
 	notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationHandle);
 	if (notification_hdl_rec == NULL) {
 		TRACE("ncshm_take_hdl notificationHandle failed");
@@ -2228,6 +2598,7 @@ SaAisErrorT saNtfArrayValGet(SaNtfNotificationHandleT notificationHandle,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
+
 	notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationHandle);
 	if (notification_hdl_rec == NULL) {
 		TRACE("ncshm_take_hdl notificationHandle failed");
@@ -2695,7 +3066,7 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
 	}
 
 	/* free the resources allocated by saNtf<ntfType>FilterAllocate */
-	ntfa_filter_hdl_rec_destructor(filter_hdl_rec);
+	ntfa_filter_destructor(filter_hdl_rec);
 
     /** Delete the resources related to the notificationFilterHandle &
      *  remove reference in the client.
@@ -2727,9 +3098,8 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
 SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 {
 	TRACE_ENTER();
-	SaAisErrorT rc = SA_AIS_ERR_NOT_EXIST;
+	SaAisErrorT rc = SA_AIS_OK;
 	SaNtfHandleT ntfHandle;
-
 	ntfa_client_hdl_rec_t *client_hdl_rec;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
@@ -2737,6 +3107,12 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 	ntfsv_unsubscribe_req_t *send_param;
 	uint32_t timeout = NTFS_WAIT_TIME;
 
+	/* Check NTF server availability */
+	if (getServerState() == NTFA_NTFSV_NO_ACTIVE) {
+		TRACE("NTFS server is temporarily unavailable");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
 
 	ntfHandle = ntfHandleGet(subscriptionId);
 	if (ntfHandle == 0) {
@@ -2753,9 +3129,10 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 		goto done;
 	}
 
-	/**
-         ** Populate a sync MDS message
-         **/
+	if (client_hdl_rec->valid) {
+		/**
+	 	 ** Populate a sync MDS message
+		 **/
 		memset(&msg, 0, sizeof(ntfsv_msg_t));
 		msg.type = NTFSV_NTFA_API_MSG;
 		msg.info.api_info.type = NTFSV_UNSUBSCRIBE_REQ;
@@ -2763,13 +3140,6 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 
 		send_param->client_id = client_hdl_rec->ntfs_client_id;
 		send_param->subscriptionId = subscriptionId;
-
-		/* Check whether NTFS is up or not */
-		if (!ntfa_cb.ntfs_up) {
-			TRACE_1("NTFS down");
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done_give_hdl;
-		}
 
 		/* Send a sync MDS message to obtain a log stream id */
 		rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
@@ -2785,6 +3155,7 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 			TRACE_1("Bad return status! rc = %d", rc);
 			goto done_give_hdl;
 		}
+	}
 		subscriberListItemRemove(subscriptionId);
 
 		/*Remove msg for subscriptionId from mailbox*/
@@ -2815,6 +3186,19 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
  done_give_hdl:
 	if (o_msg)
 		 ntfa_msg_destroy(o_msg);
+
+	if (!client_hdl_rec->valid && getServerState() == NTFA_NTFSV_UP) {
+		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
+			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+				ncshm_give_hdl(ntfHandle);
+				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
+				osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+				ntfa_shutdown(false);
+				goto done;
+			}
+		}
+	}
 	ncshm_give_hdl(ntfHandle);
  done:
 	TRACE_LEAVE();
@@ -2838,6 +3222,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	ntfsv_reader_init_req_2_t *send_param;
 	uint32_t timeout = NTFS_WAIT_TIME;
 
+	bool recovery_failed = false;
 	TRACE_ENTER();
 	if (notificationFilterHandles == NULL || readHandle == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -2872,6 +3257,18 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 		goto done_give_client_hdl;
 	} 
 	
+	/* Check NTF server availability */
+	if ((rc = checkNtfServerState()) != SA_AIS_OK)
+		goto done_give_client_hdl;
+
+	/* recovery */
+	if (client_hdl_rec != NULL && !client_hdl_rec->valid) {
+		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
+			recovery_failed = true;
+			goto done_give_client_hdl;
+		}
+	}
+
     /**
      ** Populate a sync MDS message
      **/
@@ -2883,13 +3280,6 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	/* Fill in ipc send struct */
 	send_param->head.searchCriteria = searchCriteria;
 	send_param->f_rec = filters;
-
-	/* Check whether NTFS is up or not */
-	if (!ntfa_cb.ntfs_up) {
-		TRACE("NTFS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done_give_client_hdl;
-	}
 
 	/* Send a sync MDS message to obtain a log stream id */
 	rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
@@ -2925,12 +3315,16 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	reader_hdl_rec->ntfHandle = ntfHandle;
 	/* Store the readerId returned from server */
 	reader_hdl_rec->reader_id = o_msg->info.api_resp_info.param.reader_init_rsp.readerId;
+	memset(&reader_hdl_rec->filters, 0, sizeof(ntfsv_filter_ptrs_t));
+	ntfa_copy_ntf_filter_ptrs(&reader_hdl_rec->filters, &filters);
+	reader_hdl_rec->searchCriteria = searchCriteria;
     /**                  UnLock ntfa_CB            **/
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 
 done_give_client_hdl:
 	if (o_msg)
 		ntfa_msg_destroy(o_msg);
+
    if (client_hdl_rec)
 		ncshm_give_hdl(client_hdl_rec->local_hdl);
 	if (notificationFilterHandles) { 
@@ -2947,6 +3341,12 @@ done_give_client_hdl:
 	}
 
 	ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
+	if (recovery_failed && rc == SA_AIS_ERR_BAD_HANDLE) {
+		osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+		ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		ntfa_shutdown(false);
+	}
 done:
 	TRACE_LEAVE();
 	return rc;
@@ -2955,7 +3355,7 @@ done:
 /*  3.15.4.2	saNtfNotificationReadFinalize()  */
 SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 {
-	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
+	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t oas_rc = NCSCC_RC_FAILURE;
 
 	ntfa_client_hdl_rec_t *client_hdl_rec;
@@ -2966,6 +3366,12 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 	uint32_t timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
+	/* Check NTF server availability */
+	if (getServerState() == NTFA_NTFSV_NO_ACTIVE) {
+		TRACE("NTFS server is temporarily unavailable");
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
 
 	/* retrieve notification filter hdl rec */
 	reader_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, readhandle);
@@ -2983,42 +3389,39 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 	}
 	TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
 
-    /**
-     ** Populate a sync MDS message
-     **/
-	memset(&msg, 0, sizeof(ntfsv_msg_t));
-	msg.type = NTFSV_NTFA_API_MSG;
-	msg.info.api_info.type = NTFSV_READER_FINALIZE_REQ;
-	send_param = &msg.info.api_info.param.reader_finalize;
-	send_param->client_id = client_hdl_rec->ntfs_client_id;
-	send_param->readerId = reader_hdl_rec->reader_id;
+	if (client_hdl_rec->valid) {
+		/**
+		 ** Populate a sync MDS message
+		 **/
+		memset(&msg, 0, sizeof(ntfsv_msg_t));
+		msg.type = NTFSV_NTFA_API_MSG;
+		msg.info.api_info.type = NTFSV_READER_FINALIZE_REQ;
+		send_param = &msg.info.api_info.param.reader_finalize;
+		send_param->client_id = client_hdl_rec->ntfs_client_id;
+		send_param->readerId = reader_hdl_rec->reader_id;
 
-	/* Check whether NTFS is up or not */
-	if (!ntfa_cb.ntfs_up) {
-		TRACE("NTFS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done_give_hdls;
+
+		/* Send a sync MDS message */
+		rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
+		if (rc != NCSCC_RC_SUCCESS) {
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			goto done_give_hdls;
+		}
+
+		osafassert(o_msg != NULL);
+		if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
+			rc = o_msg->info.api_resp_info.rc;
+			TRACE("Bad return status!!! rc = %d", rc);
+			goto done_give_hdls;
+		}
+
+		if (o_msg->info.api_resp_info.type != NTFSV_READER_FINALIZE_RSP) {
+			TRACE("msg type (%d) failed", (int)o_msg->info.api_resp_info.type);
+			rc = SA_AIS_ERR_LIBRARY;
+			goto done_give_hdls;
+		}
 	}
 
-	/* Send a sync MDS message */
-	rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
-	if (rc != NCSCC_RC_SUCCESS) {
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done_give_hdls;
-	}
-
-	osafassert(o_msg != NULL);
-	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
-		rc = o_msg->info.api_resp_info.rc;
-		TRACE("Bad return status!!! rc = %d", rc);
-		goto done_give_hdls;
-	}
-
-	if (o_msg->info.api_resp_info.type != NTFSV_READER_FINALIZE_RSP) {
-		TRACE("msg type (%d) failed", (int)o_msg->info.api_resp_info.type);
-		rc = SA_AIS_ERR_LIBRARY;
-		goto done_give_hdls;
-	}
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 	oas_rc = ntfa_reader_hdl_rec_del(&client_hdl_rec->reader_list, reader_hdl_rec);
 	if (oas_rc != NCSCC_RC_SUCCESS) {
@@ -3029,6 +3432,20 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
  done_give_hdls:
 	if (o_msg)
 		 ntfa_msg_destroy(o_msg);
+
+	if (!client_hdl_rec->valid && getServerState() == NTFA_NTFSV_UP) {
+		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
+			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+				ncshm_give_hdl(client_hdl_rec->local_hdl);
+				ncshm_give_hdl(readhandle);
+				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
+				osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+				ntfa_shutdown(false);
+				goto done;
+			}
+		}
+	}
 	ncshm_give_hdl(client_hdl_rec->local_hdl);
  done_give_read_hdl:
 	ncshm_give_hdl(readhandle);
@@ -3082,6 +3499,23 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 	}
 	TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
 
+	/* Check NTF server availability */
+	if ((rc = checkNtfServerState()) != SA_AIS_OK)
+		goto done_give_hdls;
+
+	if (!client_hdl_rec->valid) {
+		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
+			ncshm_give_hdl(client_hdl_rec->local_hdl);
+			ncshm_give_hdl(readHandle);
+			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
+				osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+				ntfa_shutdown(false);
+			}
+			goto done;
+		}
+	}
     /**
      ** Populate a sync MDS message
      **/
@@ -3092,12 +3526,6 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 	send_param->client_id = client_hdl_rec->ntfs_client_id;
 	send_param->readerId = reader_hdl_rec->reader_id;
 	send_param->searchDirection = searchDirection;
-	/* Check whether NTFS is up or not */
-	if (!ntfa_cb.ntfs_up) {
-		TRACE("NTFS down");
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done_give_hdls;
-	}
 
 	do {
 		/* Send a sync MDS message */
