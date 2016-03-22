@@ -129,6 +129,41 @@ typedef struct {
     unsigned int            repeateSends;
 } saNotificationParamsT;
 
+typedef enum {
+	SANTF_ALL = 0,
+	SANTF_INITIALIZE,
+	SANTF_SELECTION_OBJECT_GET,
+	SANTF_DISPATCH,
+	SANTF_FINALIZE,
+	SANTF_ALARM_NOTIFICATION_ALLOCATE,
+	SANTF_STATECHANGE_NOTIFICATION_ALLOCATE,
+	SANTF_OBJECTCREATEDELETE_NOTIFICATION_ALLOCATE,
+	SANTF_ATTRIBUTECHANGE_NOTIFICATION_ALLOCATE,
+	SANTF_NOTIFICATION_FREE,
+	SANTF_NOTIFICATION_SEND,
+	SANTF_NOTIFICATION_SUBSCRIBE,
+	SANTF_SECURITY_ALARM_NOTIFICATION_ALLOCATE,
+	SANTF_PTRVAL_ALLOCATE,
+	SANTF_ARRAYVAL_ALLOCATE,
+	SANTF_LOCALIZED_MESSAGE_GET,
+	SANTF_LOCALIZED_MESSAGE_FREE,
+	SANTF_PTRVAL_GET,
+	SANTF_ARRAYVAL_GET,
+	SANTF_OBJECTCREATEDELETE_NOTIFICATION_FILTER_ALLOCATE,
+	SANTF_ATTRIBUTECHANGE_NOTIFICATION_FILTER_ALLOCATE,
+	SANTF_STATECHANGE_NOTIFICATION_FILTER_ALLOCATE,
+	SANTF_ALARM_NOTIFICATION_FILTER_ALLOCATE,
+	SANTF_SECURITYALARM_NOTIFICATION_FILTER_ALLOCATE,
+	SANTF_NOTIFICATION_FILTER_FREE,
+	SANTF_NOTIFICATION_UNSUBSCRIBE,
+	SANTF_NOTIFICATION_READ_INITIALIZE,
+	SANTF_NOTIFICATION_READ_FINALIZE,
+	SANTF_NOTIFICATION_READ_NEXT,
+	SANTF_API_MAX
+
+} eSaNtfAPI;
+
+
 typedef SaUint16T       saNotificationFlagsT;
 extern SaNtfIdentifierT last_not_id;
 
@@ -186,6 +221,158 @@ void newNotification(
 extern SaNtfIdentifierT get_ntf_id(const SaNtfNotificationsT *notif);
 void poll_until_received(SaNtfHandleT ntfHandle, SaNtfIdentifierT wanted_id);
 
+SaAisErrorT ntftest_saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfCallbacks, SaVersionT *version);
+SaAisErrorT ntftest_saNtfSelectionObjectGet(SaNtfHandleT ntfHandle, SaSelectionObjectT *selectionObject);
+SaAisErrorT ntftest_saNtfDispatch(SaNtfHandleT ntfHandle, SaDispatchFlagsT dispatchFlags);
+SaAisErrorT ntftest_saNtfFinalize(SaNtfHandleT ntfHandle);
+SaAisErrorT ntftest_saNtfNotificationFree(SaNtfNotificationHandleT notificationHandle);
+SaAisErrorT ntftest_saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle);
+SaAisErrorT ntftest_saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+				       SaNtfSubscriptionIdT subscriptionId);
+SaAisErrorT ntftest_saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId);
+SaAisErrorT ntftest_saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHandle, SaNtfObjectCreateDeleteNotificationFilterT
+							      *notificationFilter, SaUint16T numEventTypes,
+							      SaUint16T numNotificationObjects,
+							      SaUint16T numNotifyingObjects,
+							      SaUint16T numNotificationClassIds,
+							      SaUint16T numSourceIndicators);
+SaAisErrorT ntftest_saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+							   SaNtfAttributeChangeNotificationFilterT *notificationFilter,
+							   SaUint16T numEventTypes,
+							   SaUint16T numNotificationObjects,
+							   SaUint16T numNotifyingObjects,
+							   SaUint16T numNotificationClassIds,
+							   SaUint16T numSourceIndicators);
+SaAisErrorT ntftest_saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+						       SaNtfStateChangeNotificationFilterT *notificationFilter,
+						       SaUint16T numEventTypes,
+						       SaUint16T numNotificationObjects,
+						       SaUint16T numNotifyingObjects,
+						       SaUint16T numNotificationClassIds,
+						       SaUint16T numSourceIndicators, SaUint16T numChangedStates);
+SaAisErrorT ntftest_saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+						 SaNtfAlarmNotificationFilterT *notificationFilter,
+						 SaUint16T numEventTypes,
+						 SaUint16T numNotificationObjects,
+						 SaUint16T numNotifyingObjects,
+						 SaUint16T numNotificationClassIds,
+						 SaUint16T numProbableCauses,
+						 SaUint16T numPerceivedSeverities, SaUint16T numTrends);
+SaAisErrorT ntftest_saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+							 SaNtfSecurityAlarmNotificationFilterT *notificationFilter,
+							 SaUint16T numEventTypes,
+							 SaUint16T numNotificationObjects,
+							 SaUint16T numNotifyingObjects,
+							 SaUint16T numNotificationClassIds,
+							 SaUint16T numProbableCauses,
+							 SaUint16T numSeverities,
+							 SaUint16T numSecurityAlarmDetectors,
+							 SaUint16T numServiceUsers, SaUint16T numServiceProviders);
+
+SaAisErrorT ntftest_saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificationFilterHandle);
+SaAisErrorT ntftest_saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
+					    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+					    SaNtfReadHandleT *readHandle);
+
+SaAisErrorT ntftest_saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
+				      SaNtfSearchDirectionT searchDirection, SaNtfNotificationsT *notification);
+
+SaAisErrorT ntftest_saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle);
+
+SaAisErrorT ntftest_saNtfPtrValAllocate(SaNtfNotificationHandleT notificationHandle,
+				SaUint16T dataSize, void **dataPtr, SaNtfValueT *value);
+
+SaAisErrorT ntftest_saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
+					   SaNtfAlarmNotificationT *notification,
+					   SaUint16T numCorrelatedNotifications,
+					   SaUint16T lengthAdditionalText,
+					   SaUint16T numAdditionalInfo,
+					   SaUint16T numSpecificProblems,
+					   SaUint16T numMonitoredAttributes,
+					   SaUint16T numProposedRepairActions,
+					   SaInt16T variableDataSize);
+
+SaAisErrorT ntftest_saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
+						   SaNtfSecurityAlarmNotificationT *notification,
+						   SaUint16T numCorrelatedNotifications,
+						   SaUint16T lengthAdditionalText,
+						   SaUint16T numAdditionalInfo,
+						   SaInt16T variableDataSize);
+
+SaAisErrorT ntftest_saNtfStateChangeNotificationAllocate(SaNtfHandleT ntfHandle,
+				     SaNtfStateChangeNotificationT *notification,
+				     SaUint16T numCorrelatedNotifications,
+				     SaUint16T lengthAdditionalText,
+				     SaUint16T numAdditionalInfo,
+					 SaUint16T numStateChanges,
+					 SaInt16T variableDataSize);
+
+SaAisErrorT ntftest_saNtfObjectCreateDeleteNotificationAllocate(SaNtfHandleT ntfHandle,
+					    SaNtfObjectCreateDeleteNotificationT *notification,
+					    SaUint16T numCorrelatedNotifications,
+					    SaUint16T lengthAdditionalText,
+					    SaUint16T numAdditionalInfo,
+					    SaUint16T numAttributes,
+						SaInt16T variableDataSize);
+
+SaAisErrorT ntftest_saNtfAttributeChangeNotificationAllocate(SaNtfHandleT ntfHandle,
+					 SaNtfAttributeChangeNotificationT *notification,
+					 SaUint16T numCorrelatedNotifications,
+					 SaUint16T lengthAdditionalText,
+					 SaUint16T numAdditionalInfo,
+					 SaUint16T numAttributes,
+					 SaInt16T variableDataSize);
+
+SaAisErrorT ntftest_saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+						 SaNtfAlarmNotificationFilterT *notificationFilter,
+						 SaUint16T numEventTypes,
+						 SaUint16T numNotificationObjects,
+						 SaUint16T numNotifyingObjects,
+						 SaUint16T numNotificationClassIds,
+						 SaUint16T numProbableCauses,
+						 SaUint16T numPerceivedSeverities,
+						 SaUint16T numTrends);
+
+SaAisErrorT ntftest_saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+							 SaNtfSecurityAlarmNotificationFilterT *notificationFilter,
+							 SaUint16T numEventTypes,
+							 SaUint16T numNotificationObjects,
+							 SaUint16T numNotifyingObjects,
+							 SaUint16T numNotificationClassIds,
+							 SaUint16T numProbableCauses,
+							 SaUint16T numSeverities,
+							 SaUint16T numSecurityAlarmDetectors,
+							 SaUint16T numServiceUsers,
+							 SaUint16T numServiceProviders);
+
+SaAisErrorT ntftest_saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+						       SaNtfStateChangeNotificationFilterT *notificationFilter,
+						       SaUint16T numEventTypes,
+						       SaUint16T numNotificationObjects,
+						       SaUint16T numNotifyingObjects,
+						       SaUint16T numNotificationClassIds,
+						       SaUint16T numSourceIndicators,
+							   SaUint16T numChangedStates);
+
+SaAisErrorT ntftest_saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+								SaNtfObjectCreateDeleteNotificationFilterT *notificationFilter,
+								SaUint16T numEventTypes,
+							    SaUint16T numNotificationObjects,
+							    SaUint16T numNotifyingObjects,
+							    SaUint16T numNotificationClassIds,
+							    SaUint16T numSourceIndicators);
+
+SaAisErrorT ntftest_saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+							   SaNtfAttributeChangeNotificationFilterT *notificationFilter,
+							   SaUint16T numEventTypes,
+							   SaUint16T numNotificationObjects,
+							   SaUint16T numNotifyingObjects,
+							   SaUint16T numNotificationClassIds,
+							   SaUint16T numSourceIndicators);
+
+void fprintf_v(FILE*, const char *format, ...);
+void fprintf_t(FILE*, const char *format, ...);
+void fprintf_p(FILE*, const char *format, ...);
 
 extern void assertvalue_impl(__const char *__assertion, __const char *__file,
 		   unsigned int __line, __const char *__function);

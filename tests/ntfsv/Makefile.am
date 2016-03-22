@@ -36,6 +36,7 @@ ntftest_SOURCES = \
 	tet_ntf_main.c \
 	sa_error.c \
 	tet_ntf_common.c \
+	tet_ntf_api_wrapper.c \
 	tet_saNtfInitialize.c \
 	tet_saNtfSelectionObjectGet.c \
 	tet_saNtfDispatch.c \
@@ -65,7 +66,8 @@ ntftest_SOURCES = \
 	tet_saNtfArrayValGet.c \
 	tet_saNtfPtrValGet.c \
 	test_ntfFilterVerification.c \
-	tet_longDnObject_notification.c
+	tet_longDnObject_notification.c \
+	tet_scOutage_reinitializeHandle.c
 
 ntftest_LDADD = \
 	$(top_builddir)/tests/unit_test_fw/src/libutest.la

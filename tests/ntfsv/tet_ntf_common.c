@@ -20,6 +20,7 @@
 #include <util.h>
 #include <poll.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include "sa_error.h"
 #include "tet_ntf.h"
 #include "tet_ntf_common.h"
@@ -27,6 +28,9 @@
 #define CALLBACK_USED 1
 
 SaNtfIdentifierT last_not_id = SA_NTF_IDENTIFIER_UNUSED;
+extern int verbose;
+extern int gl_tag_mode;
+extern int gl_prompt_mode;
 
 void assertvalue_impl(__const char *__assertion, __const char *__file,
 		   unsigned int __line, __const char *__function)
@@ -1206,4 +1210,67 @@ int verifySecurityAlarmNotification(const SaNtfSecurityAlarmNotificationT *aNtf1
 				&aNtf2->securityAlarmDetector->value);
 	}
 	return errors;
+}
+
+/**
+ * verbose printout
+ * String will only be printed if verbose is enabled
+ *
+ * @param f [out] output stream
+ * @param format [in] format string
+ * @param ... [in] arguments of format string
+ */
+void fprintf_v(FILE* f, const char *format, ...)
+{
+	va_list argptr;
+
+	if (!verbose)
+		return;
+
+	va_start(argptr, format);
+	vfprintf(f, format, argptr);
+	va_end(argptr);
+	fflush(f);
+}
+
+/**
+ * printout in tag mode
+ * String will only be printed if tag_mode is enabled
+ *
+ * @param f [out] output stream
+ * @param format [in] format string
+ * @param ... [in] arguments of format string
+ */
+void fprintf_t(FILE* f, const char *format, ...)
+{
+	va_list argptr;
+
+	if (!gl_tag_mode)
+		return;
+
+	va_start(argptr, format);
+	vfprintf(f, format, argptr);
+	va_end(argptr);
+	fflush(f);
+}
+
+/**
+ * printout in prompt mode
+ * String will only be printed if prompt_mode is enabled
+ *
+ * @param f [out] output stream
+ * @param format [in] format string
+ * @param ... [in] arguments of format string
+ */
+void fprintf_p(FILE* f, const char *format, ...)
+{
+	va_list argptr;
+
+	if (!gl_prompt_mode)
+		return;
+
+	va_start(argptr, format);
+	vfprintf(f, format, argptr);
+	va_end(argptr);
+	fflush(f);
 }
