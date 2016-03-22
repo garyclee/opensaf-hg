@@ -142,4 +142,29 @@ int get_long_long_digit(char *str, long long *val);
 bool validate_nType_eType(SaNtfNotificationTypeT nType, SaNtfEventTypeT eType);
 void set_nType_for_eType(SaNtfNotificationTypeT *nType, SaNtfEventTypeT *eType);
 
+/* wrapper of NTF API to handle TRY_AGAIN */
+SaAisErrorT ntftool_saNtfInitialize(
+		SaNtfHandleT *ntfHandle,
+		const SaNtfCallbacksT *ntfCallbacks,
+		SaVersionT *version);
+SaAisErrorT ntftool_saNtfDispatch(
+		SaNtfHandleT ntfHandle,
+		SaDispatchFlagsT dispatchFlags);
+SaAisErrorT ntftool_saNtfNotificationSend(
+		SaNtfNotificationHandleT notificationHandle);
+SaAisErrorT ntftool_saNtfNotificationSubscribe(
+		const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+		SaNtfSubscriptionIdT subscriptionId);
+SaAisErrorT ntftool_saNtfNotificationUnsubscribe(
+		SaNtfSubscriptionIdT subscriptionId);
+SaAisErrorT ntftool_saNtfNotificationReadInitialize(
+		SaNtfSearchCriteriaT searchCriteria,
+		const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+		SaNtfReadHandleT *readHandle);
+SaAisErrorT ntftool_saNtfNotificationReadNext(
+		SaNtfReadHandleT readHandle,
+		SaNtfSearchDirectionT searchDirection, SaNtfNotificationsT *notification);
+SaAisErrorT ntftool_saNtfNotificationReadFinalize(
+		SaNtfReadHandleT readhandle);
+
 #endif

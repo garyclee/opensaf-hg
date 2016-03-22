@@ -145,25 +145,25 @@ static SaAisErrorT waitForNotifications(SaNtfHandleT myHandle, int selectionObje
 		if (fds[FD_NTF].revents & POLLIN) {
 
 			do {
-				error = saNtfDispatch(myHandle, SA_DISPATCH_ALL);
+				error = ntftool_saNtfDispatch(myHandle, SA_DISPATCH_ALL);
 				if (SA_AIS_ERR_TRY_AGAIN == error)
 					sleep(1);
 			} while (SA_AIS_ERR_TRY_AGAIN == error);
 
 			if (error != SA_AIS_OK)
-				fprintf(stderr, "saNtfDispatch Error %d\n", error);
+				fprintf(stderr, "ntftool_saNtfDispatch Error %d\n", error);
 		}
 		if ((fds[FD_TERM].revents & POLLIN) || (fds[FD_INT].revents & POLLIN)) {
 
-			error = saNtfDispatch(myHandle, SA_DISPATCH_ALL);
+			error = ntftool_saNtfDispatch(myHandle, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK) {
-				fprintf(stderr, "saNtfDispatch Error %d\n", error);
+				fprintf(stderr, "ntftool_saNtfDispatch Error %d\n", error);
 				exit(EXIT_FAILURE);
 			}
 
-			error = saNtfNotificationUnsubscribe(my_subscriptionId);
+			error = ntftool_saNtfNotificationUnsubscribe(my_subscriptionId);
 			if (error != SA_AIS_OK) {
-				fprintf(stderr, "saNtfNotificationUnsubscribe failed - %d\n", error);
+				fprintf(stderr, "ntftool_saNtfNotificationUnsubscribe failed - %d\n", error);
 				exit(EXIT_FAILURE);
 			}
 
@@ -308,9 +308,9 @@ static SaAisErrorT subscribeForNotifications(const saNotificationFilterAllocatio
 	}
 
 	
-	errorCode = saNtfNotificationSubscribe(&notificationFilterHandles, subscriptionId);
+	errorCode = ntftool_saNtfNotificationSubscribe(&notificationFilterHandles, subscriptionId);
 	if (SA_AIS_OK != errorCode) {
-		fprintf(stderr, "saNtfNotificationSubscribe failed - %s\n", error_output(errorCode));
+		fprintf(stderr, "ntftool_saNtfNotificationSubscribe failed - %s\n", error_output(errorCode));
 		return errorCode;
 	}
 	freeNtfFilter (&notificationFilterHandles.alarmFilterHandle);
@@ -421,9 +421,9 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	error = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	error = ntftool_saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "saNtfInitialize failed - %s\n", error_output(error));
+		fprintf(stderr, "ntftool_saNtfInitialize failed - %s\n", error_output(error));
 		exit(EXIT_FAILURE);
 	}
 
@@ -445,7 +445,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	error = saNtfNotificationUnsubscribe(my_subscriptionId);
+	error = ntftool_saNtfNotificationUnsubscribe(my_subscriptionId);
 	if (SA_AIS_OK != error) {
 		fprintf(stderr, "waitForNotifications failed - %s\n", error_output(error));
 		exit(EXIT_FAILURE);

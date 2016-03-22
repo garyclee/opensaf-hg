@@ -349,9 +349,9 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 	unsigned int repeat = notificationParams->repeateSends;
 
 	do {
-		errorCode = saNtfInitialize(&ntfHandle, NULL, &version);
+		errorCode = ntftool_saNtfInitialize(&ntfHandle, NULL, &version);
 		if (SA_AIS_OK != errorCode && SA_AIS_ERR_TRY_AGAIN != errorCode) {
-			(void)printf("saNtfInitialize %s\n", error_output(errorCode));
+			(void)printf("ntftool_saNtfInitialize %s\n", error_output(errorCode));
 			return errorCode;
 		}
 		if (SA_AIS_ERR_TRY_AGAIN == errorCode) {
@@ -681,9 +681,9 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 		/* Send the alarm notification */
 		do {
 
-			errorCode = saNtfNotificationSend(myAlarmNotification.notificationHandle);
+			errorCode = ntftool_saNtfNotificationSend(myAlarmNotification.notificationHandle);
 			if (SA_AIS_OK != errorCode && SA_AIS_ERR_TRY_AGAIN != errorCode) {
-				(void)printf("saNtfNotificationSend %s\n", error_output(errorCode));
+				(void)printf("ntftool_saNtfNotificationSend %s\n", error_output(errorCode));
 				return errorCode;
 			}
 			if (SA_AIS_ERR_TRY_AGAIN == errorCode) {
@@ -720,9 +720,9 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 		/* Send the state change notification */
 
 		do {
-			errorCode = saNtfNotificationSend(myStateChangeNotification.notificationHandle);
+			errorCode = ntftool_saNtfNotificationSend(myStateChangeNotification.notificationHandle);
 			if (SA_AIS_OK != errorCode && SA_AIS_ERR_TRY_AGAIN != errorCode) {
-				(void)printf("saNtfNotificationSend %s\n", error_output(errorCode));
+				(void)printf("ntftool_saNtfNotificationSend %s\n", error_output(errorCode));
 				return errorCode;
 			}
 			if (SA_AIS_ERR_TRY_AGAIN == errorCode) {
@@ -759,9 +759,9 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 
 		do {
 
-			errorCode = saNtfNotificationSend(myObjectCreateDeleteNotification.notificationHandle);
+			errorCode = ntftool_saNtfNotificationSend(myObjectCreateDeleteNotification.notificationHandle);
 			if (SA_AIS_OK != errorCode && SA_AIS_ERR_TRY_AGAIN != errorCode) {
-				(void)printf("saNtfNotificationSend %s\n", error_output(errorCode));
+				(void)printf("ntftool_saNtfNotificationSend %s\n", error_output(errorCode));
 				return errorCode;
 			}
 			if (SA_AIS_ERR_TRY_AGAIN == errorCode) {
@@ -799,9 +799,9 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
 		/* Send the attribute change notification */
 		do {
-			errorCode = saNtfNotificationSend(myAttributeChangeNotification.notificationHandle);
+			errorCode = ntftool_saNtfNotificationSend(myAttributeChangeNotification.notificationHandle);
 			if (SA_AIS_OK != errorCode && SA_AIS_ERR_TRY_AGAIN != errorCode) {
-				(void)printf("saNtfNotificationSend %s\n", error_output(errorCode));
+				(void)printf("ntftool_saNtfNotificationSend %s\n", error_output(errorCode));
 				return errorCode;
 			}
 			if (SA_AIS_ERR_TRY_AGAIN == errorCode) {
@@ -838,9 +838,9 @@ sendNotification(const saNotificationAllocationParamsT *notificationAllocationPa
 	case SA_NTF_TYPE_SECURITY_ALARM:	/* Send the state change notification */
 
 		do {
-			errorCode = saNtfNotificationSend(mySecurityAlarmNotification.notificationHandle);
+			errorCode = ntftool_saNtfNotificationSend(mySecurityAlarmNotification.notificationHandle);
 			if (SA_AIS_OK != errorCode && SA_AIS_ERR_TRY_AGAIN != errorCode) {
-				(void)printf("saNtfNotificationSend %s\n", error_output(errorCode));
+				(void)printf("ntftool_saNtfNotificationSend %s\n", error_output(errorCode));
 				return errorCode;
 			}
 			if (SA_AIS_ERR_TRY_AGAIN == errorCode) {
