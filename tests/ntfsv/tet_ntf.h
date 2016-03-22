@@ -44,7 +44,9 @@ extern SaAisErrorT rc;
 extern SaNtfHandleT ntfHandle;
 extern SaNtfCallbacksT ntfCallbacks;
 extern SaSelectionObjectT selectionObject;
-
+int verbose;
+int gl_tag_mode;
+int gl_prompt_mode;
 #define DEFAULT_ADDITIONAL_TEXT "this is additional text info"
 
 typedef struct  {
