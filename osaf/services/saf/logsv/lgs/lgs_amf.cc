@@ -66,6 +66,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 
 	lgs_imm_impl_set(&cb->immOiHandle, &cb->immSelectionObject);
 	conf_runtime_obj_create(cb->immOiHandle);
+	lgs_start_gcfg_applier();
 
 	/* check existing streams */
 	stream = log_stream_getnext_by_name(NULL);
@@ -75,8 +76,8 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 		*stream->p_fd = -1; /* First Initialize fd */
 		stream = log_stream_getnext_by_name(stream->name);
 	}
-	
- done:
+
+done:
 	immutilWrapperProfile.nTries = 20; /* Reset retry time to more normal value. */
 	immutilWrapperProfile.errorsAreFatal = 1;
 	/* Update role independent of stream processing */
@@ -134,6 +135,8 @@ static SaAisErrorT amf_quiescing_state_handler(lgs_cb_t *cb, SaInvocationT invoc
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 	immutilWrapperProfile.errorsAreFatal = 1;
 
+	lgs_stop_gcfg_applier();
+
 	return saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, SA_AIS_OK);
 }
 
@@ -162,6 +165,8 @@ static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb, SaInvocationT invoca
 	immutilWrapperProfile.errorsAreFatal = 0;
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
 	immutilWrapperProfile.errorsAreFatal = 1;
+
+	lgs_stop_gcfg_applier();
 
 	/*
 	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type

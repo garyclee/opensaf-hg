@@ -44,6 +44,7 @@
 #include "lgs_util.h"
 #include "lgs_stream.h"
 #include "lgs_config.h"
+#include "lgs_imm_gcfg.h"
 
 /* ========================================================================
  *   DEFINITIONS

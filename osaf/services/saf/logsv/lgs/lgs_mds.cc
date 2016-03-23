@@ -979,14 +979,18 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 	/* Wait if the mailbox is being reinitialized in the main thread.
 	 */
 	osaf_mutex_lock_ordie(&lgs_mbox_init_mutex);
-	
+
 	evt->evt_type = LGSV_LGS_LGSV_MSG;
 	evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 	evt->fr_node_id = mds_info->info.receive.i_node_id;
 	evt->fr_dest = mds_info->info.receive.i_fr_dest;
 	evt->rcvd_prio = mds_info->info.receive.i_priority;
 	evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
-	
+
+	/* Get node name from MDS */
+	memset(evt->node_name, 0, _POSIX_HOST_NAME_MAX);
+	strncpy(evt->node_name, mds_info->info.receive.i_node_name, _POSIX_HOST_NAME_MAX);
+
 	/* for all msg types but WRITEs, sample curr time and store in msg */
 	if ((type == LGSV_INITIALIZE_REQ) || (type == LGSV_STREAM_OPEN_REQ)) {
 		osaf_clock_gettime(CLOCK_MONOTONIC, &evt->entered_at);

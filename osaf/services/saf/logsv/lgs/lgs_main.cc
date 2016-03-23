@@ -357,8 +357,10 @@ uint32_t initialize_for_assignment(lgs_cb_t *cb, SaAmfHAStateT ha_state)
         const char *logsv_data_groupname = NULL;
 	TRACE_ENTER2("ha_state = %d", (int) ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
+
 	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) goto done;
 	cb->ha_state = ha_state;
+
 	/* Initialize IMM OI handle and selection object */
 	lgs_imm_init_OI_handle(&cb->immOiHandle, &cb->immSelectionObject);
 
@@ -405,15 +407,18 @@ uint32_t initialize_for_assignment(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 		LOG_ER("lgs_mds_init FAILED %d", rc);
 		goto done;
 	}
+
 	if ((rc = lgs_mbcsv_init(cb, ha_state)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("lgs_mbcsv_init FAILED");
 		lgs_mds_finalize(cb);
 		goto done;
 	}
+
 	if (ha_state == SA_AMF_HA_ACTIVE) {
 		/* Become OI. We will be blocked here until done */
 		lgs_imm_impl_set(&cb->immOiHandle, &cb->immSelectionObject);
 		conf_runtime_obj_create(cb->immOiHandle);
+		lgs_start_gcfg_applier();
 
 		/* Create streams that has configuration objects and become
 		 * class implementer for the SaLogStreamConfig class
@@ -428,6 +433,7 @@ uint32_t initialize_for_assignment(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 			goto done;
 		}
 	}
+
 	cb->fully_initialized = true;
 done:
 	TRACE_LEAVE2("rc = %u", rc);

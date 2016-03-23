@@ -23,6 +23,7 @@
 #include <logtrace.h>
 
 #include "lgs_fmt.h"
+#include "lgs.h"
 
 /* Number of seconds per an hour/minute */
 #define SECOND_PER_HOUR  3600L
@@ -251,6 +252,24 @@ static SaBoolT validateComToken(SaStringT fmtExpPtr,
 		/* This token is valid for application log streams only */
 		if (logStreamType <= STREAM_TYPE_SYSTEM) {
 			tokenOk = SA_FALSE;
+		}
+		break;
+
+	case C_NETWORK_NAME_LETTER:
+		shiftOffset = static_cast<int>(C_NETWORK_NAME_OFFSET);
+		if ((*tokenFlags >> shiftOffset) & 1) {
+			tokenOk = SA_FALSE;	/* Same token used two times */
+		} else {
+			*tokenFlags = (*tokenFlags | (1 << shiftOffset));
+		}
+		break;
+
+	case C_NODE_NAME_LETTER:
+		shiftOffset = static_cast<int>(C_NODE_NAME_OFFSET);
+		if ((*tokenFlags >> shiftOffset) & 1) {
+			tokenOk = SA_FALSE;	/* Same token used two times */
+		} else {
+			*tokenFlags = (*tokenFlags | (1 << shiftOffset));
 		}
 		break;
 
@@ -528,7 +547,10 @@ static int extractCommonField(char *dest, size_t dest_size,
 			      SaInt32T inputPos,
 			      SaUint32T logRecordIdCounter,
 			      const SaBoolT *twelveHourModeFlag,
-			      const struct tm *timeStampData, const SaLogRecordT *logRecord, SaUint16T rec_size)
+			      const struct tm *timeStampData,
+			      const SaLogRecordT *logRecord,
+			      SaUint16T rec_size,
+			      char *node_name)
 {
 	SaInt32T fieldSize;
 	size_t stringSize, i;
@@ -786,6 +808,16 @@ static int extractCommonField(char *dest, size_t dest_size,
 		free(hex_string);
 		break;
 
+	case C_NETWORK_NAME_LETTER:
+		characters = snprintf(dest, dest_size, "%s", lgs_get_networkname().c_str());
+		stringSize = characters;
+		break;
+
+	case C_NODE_NAME_LETTER:
+		characters = snprintf(dest, dest_size, "%s", node_name);
+		stringSize = characters;
+		break;
+
 	default:
 		characters = 0;
 		break;
@@ -1005,7 +1037,7 @@ static int extractNotificationField(char *dest, size_t dest_size,
 			fieldSize = (fieldSize > 2) ? (fieldSize - 2) : 2;
 			characters = snprintf(dest, dest_size,
                                       "%#.*x", fieldSize,
-										logRecord->logHeader.ntfHdr.eventType);
+					logRecord->logHeader.ntfHdr.eventType);
 		}
 
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
@@ -1231,8 +1263,14 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
  * 
  * @return int number of bytes written to dest
  */
-int lgs_format_log_record(SaLogRecordT *logRecord, const SaStringT formatExpression, SaUint64T logFileSize,
-	SaUint16T fixedLogRecordSize, size_t dest_size, char *dest, SaUint32T logRecordIdCounter)
+int lgs_format_log_record(SaLogRecordT *logRecord,
+			  const SaStringT formatExpression,
+			  SaUint64T logFileSize,
+			  SaUint16T fixedLogRecordSize,
+			  size_t dest_size,
+			  char *dest,
+			  SaUint32T logRecordIdCounter,
+			  char *node_name)
 {
 	SaStringT fmtExpPtr = &formatExpression[0];
 	SaStringT fmtExpPtrSnabel = &formatExpression[1];
@@ -1274,7 +1312,11 @@ int lgs_format_log_record(SaLogRecordT *logRecord, const SaStringT formatExpress
 							&truncationLetterPos,
 							(SaInt32T)strlen(dest),
 							logRecordIdCounter,
-							twelveHourModeFlag, timeStampData, logRecord,rec_size);
+							twelveHourModeFlag,
+							timeStampData,
+							logRecord,
+							rec_size,
+							node_name);
 				break;
 
 			case NOTIFICATION_LOG_RECORD_FIELD_TYPE:
