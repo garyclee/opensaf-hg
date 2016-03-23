@@ -49,10 +49,12 @@
 
 #define LOGTST_IMM_LOG_CONFIGURATION "logConfig=1,safApp=safLogService"
 #define LOGTST_IMM_LOG_RUNTIME       "logConfig=currentConfig,safApp=safLogService"
+#define LOGTST_IMM_LOG_GCFG          "opensafConfigId=opensafGlobalConfig,safApp=OpenSAF"
 
 extern SaNameT systemStreamName;
 extern SaNameT alarmStreamName;
 extern SaNameT notificationStreamName;
+extern SaNameT globalConfig;
 extern SaNameT app1StreamName;
 extern SaNameT notifyingObject;
 extern SaNameT notificationObject;
@@ -97,13 +99,13 @@ void add_suite_10(void);
 void add_suite_11(void);
 
 int get_active_sc(void);
-int get_attr_value(SaNameT *inObjName, char *inAttr, void **outNum, char *outStr);
+int get_attr_value(SaNameT *inObjName, char *inAttr, void *outValue);
 
 /* Inline time measuring functions */
 typedef struct {
-    struct timespec start_time;
-    struct timespec end_time;
-    struct timespec diff_time;
+	struct timespec start_time;
+	struct timespec end_time;
+	struct timespec diff_time;
 } time_meas_t;
 /**
  *
@@ -111,25 +113,25 @@ typedef struct {
  */
 static inline void time_meas_start(time_meas_t* tm)
 {
-    osaf_clock_gettime(CLOCK_REALTIME, &tm->start_time);
+	osaf_clock_gettime(CLOCK_REALTIME, &tm->start_time);
 }
 
 static inline void time_meas_log(time_meas_t* tm, char *id)
 {
-    osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
-    osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
-    LOG_NO("LLDTEST3 %s [%s]\t Elapsed time %ld sec, %ld nsec",
-	    __FUNCTION__, id,
-	    tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
+	osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
+	osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
+	LOG_NO("LLDTEST3 %s [%s]\t Elapsed time %ld sec, %ld nsec",
+	       __FUNCTION__, id,
+	       tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
 }
 
 
 static inline void time_meas_print_v(time_meas_t* tm, char *id)
 {
-    osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
-    osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
-    printf_v("\n%s. Elapsed time %ld.%09ld sec\n", id,
-	    tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
+	osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
+	osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
+	printf_v("\n%s. Elapsed time %ld.%09ld sec\n", id,
+		 tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
 }
 
 #endif

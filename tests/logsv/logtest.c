@@ -34,38 +34,45 @@
 
 SaNameT systemStreamName =
 {
-    .value = SA_LOG_STREAM_SYSTEM,
-    .length = sizeof(SA_LOG_STREAM_SYSTEM)
+	.value = SA_LOG_STREAM_SYSTEM,
+	.length = sizeof(SA_LOG_STREAM_SYSTEM)
 };
 
 SaNameT alarmStreamName =
 {
-    .value = SA_LOG_STREAM_ALARM,
-    .length = sizeof(SA_LOG_STREAM_ALARM)
+	.value = SA_LOG_STREAM_ALARM,
+	.length = sizeof(SA_LOG_STREAM_ALARM)
 };
+
+SaNameT globalConfig =
+{
+	.value = LOGTST_IMM_LOG_GCFG,
+	.length = sizeof(LOGTST_IMM_LOG_GCFG)
+};
+
 
 SaNameT notificationStreamName =
 {
-    .value = SA_LOG_STREAM_NOTIFICATION,
-    .length = sizeof(SA_LOG_STREAM_NOTIFICATION)
+	.value = SA_LOG_STREAM_NOTIFICATION,
+	.length = sizeof(SA_LOG_STREAM_NOTIFICATION)
 };
 
 SaNameT app1StreamName =
 {
-    .value = SA_LOG_STREAM_APPLICATION1,
-    .length = sizeof(SA_LOG_STREAM_APPLICATION1)
+	.value = SA_LOG_STREAM_APPLICATION1,
+	.length = sizeof(SA_LOG_STREAM_APPLICATION1)
 };
 
 SaNameT notifyingObject =
 {
-    .value = DEFAULT_NOTIFYING_OBJECT,
-    .length = sizeof(DEFAULT_NOTIFYING_OBJECT)
+	.value = DEFAULT_NOTIFYING_OBJECT,
+	.length = sizeof(DEFAULT_NOTIFYING_OBJECT)
 };
 
 SaNameT notificationObject =
 {
-    .value = DEFAULT_NOTIFICATION_OBJECT,
-    .length = sizeof(DEFAULT_NOTIFICATION_OBJECT)
+	.value = DEFAULT_NOTIFICATION_OBJECT,
+	.length = sizeof(DEFAULT_NOTIFICATION_OBJECT)
 };
 
 SaNameT configurationObject =
@@ -76,60 +83,60 @@ SaNameT configurationObject =
 
 SaNameT saNameT_Object_256 =
 {
-    .value = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"bbbbb",
-    .length = 256
+	.value = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"bbbbb",
+	.length = 256
 };
 
 SaNameT saNameT_appstream_name_256 =
 {
-    .value = "safLgStr=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-			"bbbbb",
-    .length = 256
+	.value = "safLgStr=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	"bbbbb",
+	.length = 256
 };
 
 static char buf[2048];
 
 SaLogBufferT alarmStreamBuffer =
 {
-    .logBuf = (SaUint8T *) buf,
-    .logBufSize = 0,
+	.logBuf = (SaUint8T *) buf,
+	.logBufSize = 0,
 };
 
 SaLogBufferT notificationStreamBuffer =
 {
-    .logBuf = (SaUint8T *) buf,
-    .logBufSize = 0,
+	.logBuf = (SaUint8T *) buf,
+	.logBufSize = 0,
 };
 
 static SaLogBufferT genLogBuffer =
 {
-    .logBuf = (SaUint8T *) buf,
-    .logBufSize = 0,
+	.logBuf = (SaUint8T *) buf,
+	.logBufSize = 0,
 };
 
 SaNameT logSvcUsrName = 
 {
-    .value = SA_LOG_STREAM_APPLICATION1,
-    .length = sizeof(SA_LOG_STREAM_APPLICATION1)
+	.value = SA_LOG_STREAM_APPLICATION1,
+	.length = sizeof(SA_LOG_STREAM_APPLICATION1)
 };
 
 SaLogRecordT genLogRecord =
 {
-    .logTimeStamp = SA_TIME_UNKNOWN,
-    .logHdrType = SA_LOG_GENERIC_HEADER,
-    .logHeader.genericHdr.notificationClassId = NULL,
-    .logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO,
-    .logHeader.genericHdr.logSvcUsrName = &logSvcUsrName,
-    .logBuffer = &genLogBuffer
+	.logTimeStamp = SA_TIME_UNKNOWN,
+	.logHdrType = SA_LOG_GENERIC_HEADER,
+	.logHeader.genericHdr.notificationClassId = NULL,
+	.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO,
+	.logHeader.genericHdr.logSvcUsrName = &logSvcUsrName,
+	.logBuffer = &genLogBuffer
 };
 
 SaVersionT logVersion = {'A', 0x02, 0x01}; 
@@ -180,7 +187,7 @@ void init_logrootpath(void)
 
 	/* Get all attributes of the object */
 	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName,
-										attributeNames, &attributes);
+					      attributeNames, &attributes);
 	if (ais_rc == SA_AIS_OK) {
 		attribute = attributes[0];
 		value = attribute->attrValues[0];
@@ -192,17 +199,14 @@ void init_logrootpath(void)
 	(void) immutil_saImmOmFinalize(omHandle);
 }
 
-
 /**
  * Get attribute value from IMM
  * @param inObjname Distinguished Name
  * @param inAttr Attribute to search for value
- * @param outNume The holder for the output for number data type attribute
- * @param outvalue The holder for the output for string data type attribute
+ * @param value The holder for the output value
  * @return 0 if successfull, otherwise (-1)
  */
-int get_attr_value(SaNameT *inObjName, char *inAttr, void **outNum,
-	char* outStr)
+int get_attr_value(SaNameT *inObjName, char *inAttr, void *outValue)
 {
 	SaImmHandleT omHandle;
 	SaImmAccessorHandleT accessorHandle;
@@ -210,8 +214,7 @@ int get_attr_value(SaNameT *inObjName, char *inAttr, void **outNum,
 	SaImmAttrValuesT_2 **attributes;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	SaImmAttrNameT attributeNames[2] = {inAttr, NULL};
-	void *value;
-	static uint64_t g_val = 0;
+	void *value = NULL;
 	int rc = 0;
 
 	/* NOTE: immutil init osaf_assert if error */
@@ -222,38 +225,50 @@ int get_attr_value(SaNameT *inObjName, char *inAttr, void **outNum,
 	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, inObjName, attributeNames, &attributes);
 	if (ais_rc == SA_AIS_OK) {
 		attribute = attributes[0];
-		/* Return error if the attribute have not been initialized yet */
-		if (attribute == NULL) return (-1);
+		if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
+			value = attribute->attrValues[0];
+			switch (attribute->attrValueType) {
+			case SA_IMM_ATTR_SAINT32T:
+				*((SaInt32T *)outValue) = *(SaInt32T *)value;
+				break;
 
-		/* Value is empty */
-		if (attribute->attrValuesNumber == 0) return (-1);
+			case SA_IMM_ATTR_SAUINT32T:
+				*((SaUint32T *)outValue) = *(SaUint32T *)value;
+				break;
 
-		/**
-		 * Seperate processing for 2 kinds of data type - string/numbers (uint32/uint64).
-		 */
-		value = attribute->attrValues[0];
-		if (!strcmp(inAttr, "logMaxLogrecsize") ||
-			!strcmp(inAttr, "logMaxApplicationStreams") ||
-			!strcmp(inAttr, "logFileIoTimeout") ||
-			!strcmp(inAttr, "logStreamSystemLowLimit") ||
-			!strcmp(inAttr, "logStreamSystemHighLimit") ||
-			!strcmp(inAttr, "logStreamAppLowLimit") ||
-			!strcmp(inAttr, "logStreamAppHighLimit") ||
-			!strcmp(inAttr, "logFileSysConfig") ||
-			!strcmp(inAttr, "saLogStreamMaxLogFileSize") ||
-			!strcmp(inAttr, "saLogStreamLogFullHaltThreshold") ||
-			!strcmp(inAttr, "saLogStreamLogFullAction") ||
-			!strcmp(inAttr, "saLogStreamFixedLogRecordSize") ||
-			!strcmp(inAttr, "saLogStreamSeverityFilter") ||
-			!strcmp(inAttr, "saLogStreamMaxFilesRotated")) {
-			 /* uint32_t/uint64_t data type */
-			g_val = *(SaUint64T *) value;
-			*outNum = &g_val;
+			case SA_IMM_ATTR_SAINT64T:
+				*((SaInt64T *)outValue) = *(SaInt64T *)value;
+				break;
+
+			case SA_IMM_ATTR_SAUINT64T:
+				*((SaUint64T *)outValue) = *(SaUint64T *)value;
+				break;
+
+			case SA_IMM_ATTR_SATIMET:
+				*((SaTimeT *)outValue) = *(SaTimeT *)value;
+				break;
+
+			case SA_IMM_ATTR_SAFLOATT:
+				*((SaFloatT *)outValue) = *(SaFloatT *)value;
+				break;
+
+			case SA_IMM_ATTR_SADOUBLET:
+				*((SaDoubleT *)outValue) = *(SaDoubleT *)value;
+				break;
+
+			case SA_IMM_ATTR_SANAMET:
+			case SA_IMM_ATTR_SASTRINGT:
+				strcpy(outValue, *((char **)value));
+				break;
+
+			default:
+				fprintf(stderr, "Unsupported data type (%s) \n", inAttr);
+				rc = -1;
+				break;
+			}
 		} else {
-			/* String data type */
-			strcpy(outStr, *((char **) value));
+			rc = (-1);
 		}
-
 	} else {
 		/* We didn't get the attribute value from IMM. Return error (-1) */
 		rc = (-1);
@@ -358,13 +373,13 @@ int get_active_sc(void)
 	int try_cnt = 0;
 	while (1) {
 		(void) immutil_saImmOmAccessorGet_2(accessorHandle, &objectName1,
-											attributeNames, &attributes);
+						    attributeNames, &attributes);
 		if (attributes[0]->attrValuesNumber != 0)
 			break;
 		sleep(1);
 		if (try_cnt++ >= 10) {
 			fprintf(stderr ,"%s FAILED Attribute value could not be read\n",
-					__FUNCTION__);
+				__FUNCTION__);
 			abort();
 		}
 	}
