@@ -10212,24 +10212,38 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 			}
 			exit(1);
 		} else { /* SC ABSENCE ALLOWED */
+			cb->mIntroduced = 2;
 			LOG_WA("SC Absence IS allowed:%u IMMD service is DOWN", cb->mScAbsenceAllowed);
 			if(cb->mIsCoord) {
-				/* Note that normally the coord will reside at SCs so this branch will
-				   only be relevant if REPEATED toal scAbsence occurs. After SC absence
-				   and subsequent return of SC, the coord will be elected at a payload.
-				   That coord will be active untill restart of that payload..
-				   unless we add functionality for the payload coord to restart after
-				   a few minutes .. ?
-				*/
-				LOG_WA("This IMMND coord has to exit allowing restarted IMMD to select new coord");
-				if(cb->mState < IMM_SERVER_SYNC_SERVER) {
-					immnd_ackToNid(NCSCC_RC_FAILURE);
+				cb->mIsCoord = false;
+
+				if (cb->mSyncRequested) {
+					/* Just got sync requested from IMMD, nothing happened yet */
+					cb->mSyncRequested = false;
+
+				} else if (cb->mState == IMM_SERVER_SYNC_SERVER && cb->mPendSync) {
+					/* Sent out sync-start msg but sync didn't start yet, revert the state to IMM_SERVER_READY */
+					cb->mPendSync = false;
+					cb->mState = IMM_SERVER_READY;
+					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
+
+				} else if (cb->mState == IMM_SERVER_SYNC_SERVER && (cb->syncPid > 0)) {
+					/* Sync started, kill sync process to trigger sync abort in immnd_proc_server() */
+					osafassert(!cb->mPendSync);
+					kill(cb->syncPid, SIGTERM);
 				}
-				exit(1);
+
 			} else if(cb->mState <= IMM_SERVER_LOADING_PENDING) {
 				/* Reset state in payloads that had not joined. No need to restart. */
 				LOG_IN("Resetting IMMND state from %u to IMM_SERVER_ANONYMOUS", cb->mState);
 				cb->mState = IMM_SERVER_ANONYMOUS;
+
+			} else if (cb->mState == IMM_SERVER_READY && immModel_immNotWritable(cb)) {
+				/* This SC absence allowed case, when IMMD is down and
+				 The sync is in progress. Veteran nodes Other than the syncing node,
+				 has to change the node state from NODE_R_AVAILABLE to NODE_FULLY_AVAILABLE*/
+				immnd_abortSync(cb);
+
 			} else if(cb->mState < IMM_SERVER_READY) {
 				LOG_WA("IMMND was being synced or loaded (%u), has to restart", cb->mState);
 				if(cb->mState < IMM_SERVER_SYNC_SERVER) {
@@ -10238,7 +10252,6 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 				exit(1);
 			}
 		}
-		cb->mIntroduced = 2;
 		LOG_NO("IMMD SERVICE IS DOWN, HYDRA IS CONFIGURED => UNREGISTERING IMMND form MDS");
 		immnd_mds_unregister(cb);
 		/* Discard local clients ...  */
