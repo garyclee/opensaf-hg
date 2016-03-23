@@ -23,6 +23,7 @@
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
 #include "lgs_recov.h"
+#include "lgs_imm_gcfg.h"
 
 /* Macro to validate the version */
 #define m_LOG_VER_IS_VALID(ver)   \
@@ -538,6 +539,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 
 		/* fail over, become implementer */
 		lgs_imm_impl_set(&lgs_cb->immOiHandle, &lgs_cb->immSelectionObject);
+		lgs_start_gcfg_applier();
 
 		/* Agent down list has to be processed first */
 		lgs_process_lga_down_list();
@@ -1212,8 +1214,13 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_ckpt_msg_v2_t ckpt_v2;
 	void *ckpt_ptr;
 	uint32_t max_logrecsize = 0;
+	char node_name[_POSIX_HOST_NAME_MAX];
 
-	TRACE_ENTER2("client_id %u, stream ID %u", param->client_id, param->lstr_id);
+	memset(node_name, 0, _POSIX_HOST_NAME_MAX);
+	strncpy(node_name, evt->node_name, _POSIX_HOST_NAME_MAX);
+
+	TRACE_ENTER2("client_id %u, stream ID %u, node_name = %s",
+		     param->client_id, param->lstr_id, node_name);
 
 	if (lgs_client_get_by_id(param->client_id) == NULL) {
 		TRACE("Bad client ID: %u", param->client_id);
@@ -1248,7 +1255,7 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	}
 
 	if ((n = lgs_format_log_record(param->logRecord, stream->logFileFormat, stream->maxLogFileSize,
-		stream->fixedLogRecordSize, buf_size, logOutputString, ++stream->logRecordId)) == 0) {
+	   stream->fixedLogRecordSize, buf_size, logOutputString, ++stream->logRecordId, node_name)) == 0) {
 		error = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}

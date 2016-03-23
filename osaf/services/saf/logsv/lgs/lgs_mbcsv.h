@@ -38,6 +38,7 @@
 #define LGS_MBCSV_VERSION_2 2
 #define LGS_MBCSV_VERSION_4 4
 #define LGS_MBCSV_VERSION_5 5
+
 /* Current version */
 #define LGS_MBCSV_VERSION 5
 #define LGS_MBCSV_VERSION_MIN 1

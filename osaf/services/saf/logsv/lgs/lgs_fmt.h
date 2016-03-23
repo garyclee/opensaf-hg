@@ -54,7 +54,9 @@ typedef enum {
 	C_NOTIFICATION_CLASS_ID_SHIFT_OFFSET,
 	C_LR_TRUNCATION_INFO_SHIFT_OFFSET,
 	C_LR_STRING_BODY_SHIFT_OFFSET,
-	C_LR_HEX_CHAR_BODY_SHIFT_OFFSET
+	C_LR_HEX_CHAR_BODY_SHIFT_OFFSET,
+	C_NETWORK_NAME_OFFSET,
+	C_NODE_NAME_OFFSET
 } commonTokenShiftOffsetT;
 
 typedef enum {
@@ -100,7 +102,9 @@ typedef enum {
 	C_NOTIFICATION_CLASS_ID_LETTER = 'c',
 	C_LR_TRUNCATION_INFO_LETTER = 'x',
 	C_LR_STRING_BODY_LETTER = 'b',
-	C_LR_HEX_CHAR_BODY_LETTER = 'i'
+	C_LR_HEX_CHAR_BODY_LETTER = 'i',
+	C_NETWORK_NAME_LETTER = 'p',
+	C_NODE_NAME_LETTER = 'q'
 } commonTokenLetterT;
 
 typedef enum {
@@ -172,7 +176,15 @@ typedef enum {
 } logStreamTypeT;
 
 extern SaBoolT lgs_is_valid_format_expression(const SaStringT, logStreamTypeT, SaBoolT *);
-extern int lgs_format_log_record(SaLogRecordT *, const SaStringT, SaUint64T logFileSize, SaUint16T fixedLogRecordSize,
-	size_t dest_size, char *dest, SaUint32T);
+extern int lgs_format_log_record(
+	SaLogRecordT *,
+	const SaStringT,
+	SaUint64T logFileSize,
+	SaUint16T fixedLogRecordSize,
+	size_t dest_size,
+	char *dest,
+	SaUint32T,
+	char *node_name
+	);
 
 #endif

@@ -52,6 +52,7 @@ typedef struct lgsv_lgs_evt {
 					 */
 	MDS_DEST fr_dest;
 	NODE_ID fr_node_id;
+	char node_name[_POSIX_HOST_NAME_MAX];
 	MDS_SEND_PRIORITY_TYPE rcvd_prio;	/* Priority of the recvd evt */
 	LGSV_LGS_EVT_TYPE evt_type;
 	union {

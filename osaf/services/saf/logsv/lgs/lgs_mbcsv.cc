@@ -780,25 +780,29 @@ static uint32_t ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_
 	TRACE_ENTER();
 	/* Set reo_hdl from callback arg to ckpt_rec */
 	if (lgs_is_peer_v5()) {
-		data_v5 = reinterpret_cast<lgsv_ckpt_msg_v5_t *>((long)cbk_arg->info.encode.io_reo_hdl);
+		data_v5 = reinterpret_cast<lgsv_ckpt_msg_v5_t *>(
+			static_cast<long>(cbk_arg->info.encode.io_reo_hdl));
 		vdata = data_v5;
 		edp_function = edp_ed_ckpt_msg_v5;
 	} else if (lgs_is_peer_v4()) {
-		data_v3 = reinterpret_cast<lgsv_ckpt_msg_v3_t *>((long)cbk_arg->info.encode.io_reo_hdl);
+		data_v3 = reinterpret_cast<lgsv_ckpt_msg_v3_t *>(
+			static_cast<long>(cbk_arg->info.encode.io_reo_hdl));
 		vdata = data_v3;
 		edp_function = edp_ed_ckpt_msg_v3;
 	} else if (lgs_is_peer_v2()) {
-		data_v2 = reinterpret_cast<lgsv_ckpt_msg_v2_t *>((long)cbk_arg->info.encode.io_reo_hdl);
+		data_v2 = reinterpret_cast<lgsv_ckpt_msg_v2_t *>(
+			static_cast<long>(cbk_arg->info.encode.io_reo_hdl));
 		vdata = data_v2;
 		edp_function = edp_ed_ckpt_msg_v2;
 	} else {
-		data_v1 = reinterpret_cast<lgsv_ckpt_msg_v1_t *>((long)cbk_arg->info.encode.io_reo_hdl);
+		data_v1 = reinterpret_cast<lgsv_ckpt_msg_v1_t *>(
+			static_cast<long>(cbk_arg->info.encode.io_reo_hdl));
 		vdata = data_v1;
 		edp_function = edp_ed_ckpt_msg_v1;
 	}
 
 	if (vdata == NULL) {
-		TRACE("   data == NULL, FAILED");
+		TRACE("data == NULL, FAILED");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -1136,11 +1140,11 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 	lgsv_ckpt_msg_v5_t *ckpt_msg_v5 = &msg_v5;
 	void *ckpt_msg;
 	lgsv_ckpt_header_t hdr, *hdr_ptr = &hdr;
-	
+
 	/* Same in all versions */
 	lgs_ckpt_initialize_msg_t *reg_rec;
 	lgs_ckpt_stream_open_t *stream_open;
-	
+
 	TRACE_ENTER();
 
 	/* Decode the message header */
@@ -1444,10 +1448,10 @@ static uint32_t process_ckpt_data(lgs_cb_t *cb, void *data)
 	lgsv_ckpt_msg_v5_t *data_v5;
 
 	if ((!cb) || (data == NULL)) {
-		TRACE("%s - FAILED: (!cb) || (data == NULL)",__FUNCTION__);
+		TRACE("%s - FAILED: (!cb) || (data == NULL)", __FUNCTION__);
 		return (rc = NCSCC_RC_FAILURE);
 	}
-	
+
 	if (lgs_is_peer_v5()) {
 		data_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(data);
 		lgsv_ckpt_msg_type = data_v5->header.ckpt_rec_type;
@@ -1576,18 +1580,10 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 	SaNtfClassId.vendorId = SA_NTF_VENDOR_ID_SAF;
 	
 	/* Construct logSvcUsrName for log service */
-	char hostname[_POSIX_HOST_NAME_MAX];
-	if (gethostname(hostname, _POSIX_HOST_NAME_MAX) == -1) {
-		fprintf(stderr, "gethostname failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	SaNameT logSvcUsrName;
 	sprintf((char *)logSvcUsrName.value, "%s", "safApp=safLogService");
 	logSvcUsrName.length = strlen((char *)logSvcUsrName.value);
 
-
-	
 	/* Create a log header corresponding to type of stream */
 	if ((stream->streamType == STREAM_TYPE_ALARM) ||
 			(stream->streamType == STREAM_TYPE_NOTIFICATION)) {
@@ -1615,10 +1611,18 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 		goto done;
 	}
 
+	/* Use local host name as node name for missing record */
+	char host_name[_POSIX_HOST_NAME_MAX];
+	memset(host_name, 0, _POSIX_HOST_NAME_MAX);
+	if (gethostname(host_name, _POSIX_HOST_NAME_MAX) == -1) {
+		LOG_WA("gethostname failed (%s). Use default SC-2", strerror(errno));
+		strcpy(host_name, "SC-2");
+	}
+
 	/* Format the log record */
 	if ((n = lgs_format_log_record(&log_record, stream->logFileFormat, stream->maxLogFileSize,
-			stream->fixedLogRecordSize, buf_size, logOutputString,
-			LOG_REC_ID)) == 0) {
+				       stream->fixedLogRecordSize, buf_size, logOutputString,
+				       LOG_REC_ID, host_name)) == 0) {
 		LOG_ER("%s - Could not format internal log record",__FUNCTION__);
 		goto done;
 	}
@@ -1640,10 +1644,15 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 			}
 
 			/* Format the log record */
-			if ((n = lgs_format_log_record(&log_record, stream->logFileFormat, stream->maxLogFileSize,
-						       stream->fixedLogRecordSize, buf_size, logOutputString,
-						       LOG_REC_ID)) == 0) {
-				LOG_ER("%s - Could not format internal log record",__FUNCTION__);
+			if ((n = lgs_format_log_record(
+				     &log_record,
+				     stream->logFileFormat,
+				     stream->maxLogFileSize,
+				     stream->fixedLogRecordSize,
+				     buf_size,
+				     logOutputString,
+				     LOG_REC_ID, host_name)) == 0) {
+				LOG_ER("%s - Could not format internal log record", __FUNCTION__);
 			}
 		}
 
@@ -1771,7 +1780,9 @@ static uint32_t ckpt_proc_log_write(lgs_cb_t *cb, void *data)
 		lgs_free_edu_mem(logRecord);
 		logRecord = NULL;
 	}
+
 	lgs_free_edu_mem(logFileCurrent);
+
 	TRACE_LEAVE();
 	/*
 	  If rc == -2, means something happens in log handler thread

@@ -732,3 +732,18 @@ for file handling thread complete file IO operation.
 If user suffers the timeout when sending a big record size (e.g: 65535 bytes),
 the user can adjust the waiting time by updating logFileIoTimeout attribute value up to 5000ms.
 
+3. New tokens are added (#1480)
+-------------------------------
+- @Cp: for showing the network name
+- @Cq: for showing node name where the log record comes from.
+
+a) The network name comes from an attribute, `opensafNetworkName`
+   which belongs to the `OpensafConfig` class.
+   The `opensafConfigId=opensafGlobalConfig,safApp=OpenSAF` object of this class is an
+   OpenSAF global configuration object.
+
+   LOG service is an applier for this object, so that whenever there is change of
+   network name attribute `opensafNetworkName`, LOG service will be notified.
+
+b) Regarding node name, LOG service gets this information when decoding messages at MDS layer.
+
