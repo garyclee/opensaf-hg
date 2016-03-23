@@ -3633,6 +3633,70 @@ done:
 	return err;
 }
 
+static int pbeAuditNoDuplicates(sqlite3 *dbHandle) {
+	sqlite3_stmt *stmt = NULL;
+	int rc;
+	int err = 0;
+	/* SA_IMM_ATTR_NO_DUPLICATES = 16777216 */
+	const char *sql =
+			"select obj.dn, ad.attr_name, oim.int_val as val, count(oim.int_val) as num "
+			"from attr_def ad, objects obj, objects_int_multi oim "
+			"where (ad.attr_flags & 16777216) = 16777216 "
+			"and obj.class_id = ad.class_id and oim.obj_id = obj.obj_id and oim.attr_name = ad.attr_name "
+			"group by obj.dn, ad.attr_name, oim.int_val "
+			"having num > 1 "
+			"union all "
+			"select obj.dn, ad.attr_name, otm.text_val as val, count(otm.text_val) as num "
+			"from attr_def ad, objects obj, objects_text_multi otm "
+			"where (ad.attr_flags & 16777216) = 16777216 "
+			"and obj.class_id = ad.class_id and otm.obj_id = obj.obj_id and otm.attr_name = ad.attr_name "
+			"group by obj.dn, ad.attr_name, otm.text_val "
+			"having num > 1 "
+			"union all "
+			"select obj.dn, ad.attr_name, orm.real_val as val, count(orm.real_val) as num "
+			"from attr_def ad, objects obj, objects_real_multi orm "
+			"where (ad.attr_flags & 16777216) = 16777216 "
+			"and obj.class_id = ad.class_id and orm.obj_id = obj.obj_id and orm.attr_name = ad.attr_name "
+			"group by obj.dn, ad.attr_name, orm.real_val "
+			"having num > 1 "
+			"union all "
+			"select obj.dn, ad.attr_name, obm.blob_val as val, count(obm.blob_val) as num "
+			"from attr_def ad, objects obj, objects_blob_multi obm "
+			"where (ad.attr_flags & 16777216) = 16777216 "
+			"and obj.class_id = ad.class_id and obm.obj_id = obj.obj_id and obm.attr_name = ad.attr_name "
+			"group by obj.dn, ad.attr_name, obm.blob_val "
+			"having num > 1";
+
+	/* Audit NO_DUPLICATES for multi-valued attributes */
+	rc = sqlite3_prepare_v2(dbHandle, sql, -1, &stmt, NULL);
+	if(rc != SQLITE_OK) {
+		LOG_ER("Failed to prepare SQL statement for(%d): %s", rc, sql);
+		err = 1;
+		goto end;
+	}
+
+	while((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		LOG_ER("NO_DUPLICATES: '%s:%s' has %s values of '%s'",
+				sqlite3_column_text(stmt, 0),
+				sqlite3_column_text(stmt, 1),
+				sqlite3_column_text(stmt, 3),
+				sqlite3_column_text(stmt, 2));
+		err = 1;
+	}
+
+	if(rc != SQLITE_DONE) {
+		LOG_ER("SQL statement ('%s') failed with error code: %d\n", sql, rc);
+		err = 1;
+	}
+
+end:
+	if(stmt) {
+		sqlite3_finalize(stmt);
+	}
+
+	return err;
+}
+
 int pbeAudit(void *db_handle) {
 	int rc;
 
@@ -3641,6 +3705,7 @@ int pbeAudit(void *db_handle) {
 	rc |= pbeAuditObjectRdnFlag((sqlite3 *)db_handle);
 	rc |= pbeAuditObjectDn((sqlite3 *)db_handle);
 	rc |= pbeAuditClasses((sqlite3 *)db_handle);
+	rc |= pbeAuditNoDuplicates((sqlite3 *)db_handle);
 
 	return rc;
 }
