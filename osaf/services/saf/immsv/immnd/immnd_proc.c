@@ -872,7 +872,7 @@ void immnd_abortSync(IMMND_CB *cb)
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	TRACE_ENTER();
 	TRACE("ME:%u RE:%u", cb->mMyEpoch, cb->mRulingEpoch);
-	osafassert(cb->mIsCoord);
+	osafassert(cb->mIsCoord || (cb->mScAbsenceAllowed && cb->mIntroduced == 2 ));
 	cb->mPendSync = 0;
 	if(cb->mSyncFinalizing) {
 		cb->mSyncFinalizing = 0x0;
@@ -896,6 +896,12 @@ void immnd_abortSync(IMMND_CB *cb)
 		cb->mMyEpoch = cb->mRulingEpoch;
 	} else if (cb->mRulingEpoch != cb->mMyEpoch) {
 		LOG_ER("immnd_abortSync not clean on epoch: RE:%u ME:%u", cb->mRulingEpoch, cb->mMyEpoch);
+	}
+
+	/* Skip broadcasting sync abort msg when SC are absent */
+	if (cb->mScAbsenceAllowed && cb->mIntroduced == 2) {
+		TRACE_LEAVE();
+		return;
 	}
 
 	while (!immnd_is_immd_up(cb) && (retryCount++ < 20)) {
@@ -1319,6 +1325,10 @@ void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId)
 
 static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, SaBoolT* pbeImmndDeadlock)
 {
+	if (cb->mIntroduced == 2) {
+		/* Return true to enter phase 2 or phase 3 of SYNC_SERVER */
+		return SA_TRUE;
+	}
 	osafassert(cb->mIsCoord);
 	osafassert(pbeImmndDeadlock);
 	(*pbeImmndDeadlock) = SA_FALSE;
@@ -2000,9 +2010,14 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			/*Phase 2 */
 			if (cb->syncPid <= 0) {
 				/*Fork sync-agent */
-				cb->syncPid = immnd_forkSync(cb);
+				/* When SC are absent, we don't fork to trigger abortSync */
+				if (cb->mIntroduced != 2) {
+					cb->syncPid = immnd_forkSync(cb);
+				}
 				if (cb->syncPid <= 0) {
-					LOG_ER("Failed to fork sync process");
+					if (cb->mIntroduced != 2) {
+						LOG_ER("Failed to fork sync process");
+					}
 					cb->syncPid = 0;
 					cb->mStep = 0;
 					cb->mJobStart = now;
@@ -2064,6 +2079,19 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 
 		if(cb->mIntroduced == 2) {
 			immnd_introduceMe(cb);
+			if(cb->pbePid > 0) {
+				/* Check if pbe process is terminated.
+				 * Will send SIGKILL if it's not terminated. */
+				int status = 0;
+				if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
+					cb->pbePid = 0;
+					LOG_NO("PBE has terminated due to SC absence");
+				} else {
+					cb->pbePid = 0;
+					LOG_WA("SC were absent and PBE appears hung, sending SIGKILL");
+					kill(cb->pbePid, SIGKILL);
+				}
+			}
 			break;
 		}
 
