@@ -1212,9 +1212,9 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
  * 
  * @param node
  */
-static void node_sus_termstate_set(AVD_AVND *node, bool term_state)
+void AVD_AVND::node_sus_termstate_set(bool term_state) const
 {
-	for (const auto& su : node->list_of_su) {
+	for (const auto& su : list_of_su) {
 		if (su->saAmfSUPreInstantiable == true)
 			su->set_term_state(term_state);
 	}
@@ -1387,7 +1387,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		node_sus_termstate_set(node, true);
+		node->node_sus_termstate_set(true);
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 
 		if (node->node_info.member == false) {
@@ -1435,7 +1435,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		node_sus_termstate_set(node, false);
+		node->node_sus_termstate_set(false);
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 
 		if (node->node_info.member == false) {

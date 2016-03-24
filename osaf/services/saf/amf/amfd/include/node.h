@@ -144,6 +144,9 @@ class AVD_AVND {
   bool clm_change_start_preceded; /* to indicate there was CLM start cbk before CLM completed cb. */
   bool recvr_fail_sw; /* to indicate there was node reboot because of node failover/switchover.*/
   AVD_AMF_NG *admin_ng; /* points to the nodegroup on which admin operation is going on.*/
+
+  //Member functions.
+  void node_sus_termstate_set(bool term_state) const;
  private:
   void initialize();
   // disallow copy and assign

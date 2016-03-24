@@ -29,7 +29,6 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 //TODO: Make  below function members.
 static void ng_admin_unlock_inst(AVD_AMF_NG *ng);
 static void ng_unlock(AVD_AMF_NG *ng);
-static void node_sus_termstate_set(AVD_AVND *node, bool term_state);
 
 /**
  * Lookup object in db using dn
@@ -601,7 +600,7 @@ static void ng_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 			if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) ||
 					(any_ng_in_locked_in_state(node) == true))
 				continue;
-			node_sus_termstate_set(node, false);
+			node->node_sus_termstate_set(false);
 		}
 		//Instantiate SUs on nodes of NG. AMFD takes care of assignment after instantiation.
 		ng_admin_unlock_inst(ng);
@@ -932,19 +931,6 @@ static void ng_unlock(AVD_AMF_NG *ng)
 }
 
 /**
- * Set term_state for all pre-inst SUs hosted on the specified node
- *
- * @param node
- */
-static void node_sus_termstate_set(AVD_AVND *node, bool term_state)
-{
-	for (const auto& su : node->list_of_su) {
-		if (su->saAmfSUPreInstantiable == true)
-			su->set_term_state(term_state);
-	}
-}
-
-/**
  * perform unlock-instantiation on NG with honoring saAmfSURank. 
  * 
  * @param cb
@@ -1079,7 +1065,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 			node->admin_ng = ng;
 			if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED)
 				continue;
-			node_sus_termstate_set(node, true);
+			node->node_sus_termstate_set(true);
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 		}
 		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
@@ -1150,7 +1136,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 			node->admin_ng = ng;
 			if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)
 				continue;
-			node_sus_termstate_set(node, false);  
+			node->node_sus_termstate_set(false);  
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 		}
 		ng_admin_unlock_inst(ng);
