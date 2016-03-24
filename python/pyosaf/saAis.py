@@ -18,9 +18,11 @@
 '''
 Common types and prototypes used by all modules in pyosaf
 '''
+from os import environ
 
 import ctypes
-from ctypes import pointer, POINTER, cast, byref, c_void_p, Structure, Union
+from ctypes import pointer, POINTER, cast, byref, c_void_p, Structure, \
+	Union, CDLL
 from pyosaf.saEnumConst import Enumeration, Const
 
 SaInt8T = ctypes.c_char
@@ -159,17 +161,42 @@ class SaAnyT(Structure):
 	_fields_ = [('bufferSize', SaSizeT),
 		('bufferAddr', POINTER(SaInt8T))]
 
+if environ.get('SA_ENABLE_EXTENDED_NAMES') == '1':
+	immdll = CDLL('libSaImmOm.so.0')
+	SaConstStringT = ctypes.c_char_p
 
-class SaNameT(Structure):
-	"""Contain names.
-	"""
-	_fields_ = [('length', SaUint16T),
-		('value', (SaInt8T*saAis.SA_MAX_NAME_LENGTH))]
-
-	def __init__(self, name=''):
-		"""Construct instance with contents of 'name'.
+	class SaNameT(Structure):
+		"""Extended SaNameT
 		"""
-		super(SaNameT, self).__init__(len(name), name)
+		_fields_ = [('_opaque', SaUint16T*129)]
+
+		def __init__(self, name=''):
+			"""Construct instance with contents of 'name'.
+			"""
+			super(SaNameT, self).__init__()
+			immdll.saAisNameLend.argtypes = [SaConstStringT,
+											POINTER(SaNameT)]
+			immdll.saAisNameLend.restype = None
+
+			immdll.saAisNameLend(name, BYREF(self))
+
+		def __str__(self):
+			"""Returns the content of SaNameT
+			"""
+			immdll.saAisNameBorrow.argtypes = [POINTER(SaNameT)]
+			immdll.saAisNameBorrow.restype = SaConstStringT
+			return immdll.saAisNameBorrow(BYREF(self))
+else:
+	class SaNameT(Structure):
+		"""Contain names.
+		"""
+		_fields_ = [('length', SaUint16T),
+			('value', (SaInt8T*saAis.SA_MAX_NAME_LENGTH))]
+
+		def __init__(self, name=''):
+			"""Construct instance with contents of 'name'.
+			"""
+			super(SaNameT, self).__init__(len(name), name)
 
 
 class SaVersionT(Structure):
