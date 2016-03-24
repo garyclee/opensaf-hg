@@ -183,6 +183,7 @@ public:
 	uint32_t oper_list_size() const {
 		return node_oper_list.size();
 	}
+	void assign_unlocked_nodes() const;
  private:
 	// disallow copy and assign
 	AVD_AMF_NG(const AVD_AMF_NG&);
