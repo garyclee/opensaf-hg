@@ -29,6 +29,7 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 //TODO: Make  below function members.
 static void ng_admin_unlock_inst(AVD_AMF_NG *ng);
 static void ng_unlock(AVD_AMF_NG *ng);
+static void node_sus_termstate_set(AVD_AVND *node, bool term_state);
 
 /**
  * Lookup object in db using dn
@@ -456,9 +457,10 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	TRACE_ENTER2("%u", ng->number_nodes());
 	std::set<std::string>::const_iterator iter;
 	if ((ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) &&
-			(ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED)) {
-		report_ccb_validation_error(opdata, "'%s' can be deleted in locked or unlocked admin state",
-					ng->name.value);
+			(ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED) && 
+			(ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
+		report_ccb_validation_error(opdata, "'%s' can be deleted in locked," 
+				"lock-in or unlocked admin state", ng->name.value);
 		goto done;
 	}
 	for (iter = ng->saAmfNGNodeList.begin();
@@ -578,50 +580,42 @@ static void ng_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	TRACE_ENTER();
 	AVD_AMF_NG *ng = avd_ng_get(&opdata->objectName);
+	SaAmfAdminStateT old_admin_state = ng->saAmfNGAdminState;
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
 		//Since AMF will delete NG, clear its pointers in node.
 		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 				iter != ng->saAmfNGNodeList.end(); ++iter) {
 			AVD_AVND *node = avd_node_get(*iter);
 			node->admin_ng = nullptr;
+			node->su_cnt_admin_oper = 0;
 		}
 		ng_delete(ng);
 		goto done;
         }
-	//Temporarily keep NG in UNLOCKED state to assign SUs.
+	//Temporarily keep NG in UNLOCKED state to instantiate and assign SUs.
 	ng->saAmfNGAdminState = SA_AMF_ADMIN_UNLOCKED;	
-	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
-                        iter != ng->saAmfNGNodeList.end(); ++iter) {
-                AVD_AVND *node = avd_node_get(*iter);
-                if ((node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) ||
-                                (node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) ||
-                                (node->node_info.member == false))
-                        continue;
-                for (const auto& su : node->list_of_su) {
-                        if (su->is_in_service() == true) {
-                                su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
-                        }
-                }
-        }
-	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
-			iter != ng->saAmfNGNodeList.end(); ++iter) {
-		AVD_AVND *node = avd_node_get(*iter);
-		if ((node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) ||
-				(node->node_info.member == false) ||
-				(node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) ||
-				(avd_cb->init_state == AVD_INIT_DONE))
-			continue;
-		/* This node is capable of assignment. Let the SG semantics decide which
-		   su to choose for assignment.
-		 */
-		for (const auto& su : node->list_of_su)
-			su->sg_of_su->su_insvc(avd_cb, su);
+	if (old_admin_state == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
+				iter != ng->saAmfNGNodeList.end(); ++iter) {
+			AVD_AVND *node = avd_node_get(*iter);
+			if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) ||
+					(any_ng_in_locked_in_state(node) == true))
+				continue;
+			node_sus_termstate_set(node, false);
+		}
+		//Instantiate SUs on nodes of NG. AMFD takes care of assignment after instantiation.
+		ng_admin_unlock_inst(ng);
+	} else if (old_admin_state == SA_AMF_ADMIN_LOCKED){
+		/*Now try to assign SUs on the eligible nodes. Internally it takes care 
+		  of instantiation of new SUs also.*/
+		ng->assign_unlocked_nodes();
 	}
 	//Since AMF will delete NG, clear its pointers in node.
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
 		node->admin_ng = nullptr;
+		node->su_cnt_admin_oper = 0;
 	}
 	ng->node_oper_list.clear();
 	ng_delete(ng);
@@ -803,6 +797,46 @@ void ng_complete_admin_op(AVD_AMF_NG *ng, SaAisErrorT result)
 		node->admin_ng = nullptr;
 	}
 }
+
+/**
+ *  Assign SUs on nodes of NG after evaluating 
+ *  assignment criteria.	 
+ */
+void AVD_AMF_NG::assign_unlocked_nodes() const
+{
+	TRACE_ENTER();
+	for (std::set<std::string>::const_iterator iter = saAmfNGNodeList.begin();
+			iter != saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		if ((node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) ||
+				(node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) ||
+				(node->node_info.member == false) ||
+				(are_all_ngs_in_unlocked_state(node) == false))
+			continue;
+		for (const auto& su : node->list_of_su) {
+			if (su->is_in_service() == true) {
+				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+			}
+		}
+	}
+	for (std::set<std::string>::const_iterator iter = saAmfNGNodeList.begin();
+			iter != saAmfNGNodeList.end(); ++iter) {
+		AVD_AVND *node = avd_node_get(*iter);
+		if ((node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) ||
+				(node->node_info.member == false) ||
+				(node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) ||
+				(avd_cb->init_state == AVD_INIT_DONE) ||
+				(are_all_ngs_in_unlocked_state(node) == false))
+			continue;
+		/* This node is capable of assignment. Let the SG semantics decide which
+		   su to choose for assignment.
+		 */
+		for (const auto& su : node->list_of_su)
+			su->sg_of_su->su_insvc(avd_cb, su);
+	}
+	TRACE_LEAVE();
+}
+
 /**
  * @brief       Handles node level funtionality during nodegroup lock
  *              or shutdown operation. For each SU hosted on this node, 
@@ -925,7 +959,6 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
-                node->su_cnt_admin_oper = 0;
 		if (node->node_info.member == false) {
 			LOG_NO("'%s' UNLOCK_INSTANTIATION: CLM node is not member", node->name.value);
 			continue;
