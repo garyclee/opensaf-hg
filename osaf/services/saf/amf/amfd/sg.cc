@@ -136,7 +136,7 @@ AVD_SG::AVD_SG():
 
 static AVD_SG *sg_new(const SaNameT *dn, SaAmfRedundancyModelT redundancy_model)
 {
-	AVD_SG *sg;
+	AVD_SG *sg = nullptr;
 
 	if (redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)
 		sg = new SG_2N();
