@@ -31,6 +31,7 @@
 #include "immutil.h"
 #include "logtrace.h"
 #include "nid_api.h"
+#include <imm.hh>
 
 #define FD_MBX   0
 #define FD_TERM  1
@@ -552,7 +553,7 @@ void avnd_main_process(void)
 		LOG_ER("signal TERM failed: %s", strerror(errno));
 		goto done;
 	}
-
+	ImmReader::imm_reader_thread_create();
 	mbx_fd = ncs_ipc_get_sel_obj(&avnd_cb->mbx);
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
@@ -638,6 +639,7 @@ void avnd_evt_process(AVND_EVT *evt)
 done:
 	if (evt)
 		avnd_evt_destroy(evt);
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
