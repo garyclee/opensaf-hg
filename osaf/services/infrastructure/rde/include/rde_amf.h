@@ -36,10 +36,9 @@
  * Includes
  */
 
-#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdarg.h>
+#include <cstdarg>
 
 #include "ncs_main_papi.h"
 #include "saAis.h"
@@ -53,14 +52,14 @@
 /*
  * RDE AMF control information
  */
-typedef struct {
+struct RDE_AMF_CB {
 	char comp_name[256];
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
 	bool is_amf_up;	/* For amf_fd and pipe_fd */
 	bool nid_started;	/**< true if started by NID */
 
-} RDE_AMF_CB;
+};
 
 extern uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb);
 

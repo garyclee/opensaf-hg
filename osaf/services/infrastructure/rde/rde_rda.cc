@@ -299,7 +299,7 @@ static uint32_t rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int 
 
 	TRACE_ENTER();
 
-	if (rde_set_role(role) != NCSCC_RC_SUCCESS)
+	if (rde_set_role(static_cast<PCS_RDA_ROLE>(role)) != NCSCC_RC_SUCCESS)
 		sprintf(msg, "%d", RDE_RDA_SET_ROLE_NACK);
 	else
 		sprintf(msg, "%d", RDE_RDA_SET_ROLE_ACK);
@@ -529,12 +529,12 @@ uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disc
 	 ** Parse the message for cmd type and value
 	 */
 	ptr = strchr(msg, ' ');
-	if (ptr == NULL) {
-		cmd_type = atoi(msg);
+	if (ptr == nullptr) {
+		cmd_type = static_cast<RDE_RDA_CMD_TYPE>(atoi(msg));
 
 	} else {
 		*ptr = '\0';
-		cmd_type = atoi(msg);
+		cmd_type = static_cast<RDE_RDA_CMD_TYPE>(atoi(msg));
 		value = atoi(++ptr);
 	}
 
@@ -584,7 +584,7 @@ uint32_t rde_rda_send_role(int role)
 {
 	int index;
 	char msg[64] = { 0 };
-	RDE_RDA_CB *rde_rda_cb = NULL;
+	RDE_RDA_CB *rde_rda_cb = nullptr;
 	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
 
 	rde_rda_cb = &rde_cb->rde_rda_cb;

@@ -20,7 +20,7 @@
 
 #include "rde_cb.h"
 
-static RDE_AMF_CB *rde_amf_get_cb(void)
+static RDE_AMF_CB *rde_amf_get_cb()
 {
 	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
 	return &rde_cb->rde_amf_cb;
@@ -100,7 +100,7 @@ static uint32_t rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
 
 	memset(&Healthy, 0, sizeof(Healthy));
 	phlth_ptr = getenv("RDE_HA_ENV_HEALTHCHECK_KEY");
-	if (phlth_ptr == NULL) {
+	if (phlth_ptr == nullptr) {
 		/*
 		 ** default health check key 
 		 */
@@ -163,7 +163,7 @@ uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb)
 		return NCSCC_RC_FAILURE;
 	}
 
-	amf_error = saAmfComponentRegister(rde_amf_cb->amf_hdl, &sname, (SaNameT *)NULL);
+	amf_error = saAmfComponentRegister(rde_amf_cb->amf_hdl, &sname, (SaNameT *) nullptr);
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("saAmfComponentRegister FAILED %u", amf_error);
 		return NCSCC_RC_FAILURE;

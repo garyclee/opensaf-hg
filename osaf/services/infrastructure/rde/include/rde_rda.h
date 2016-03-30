@@ -50,9 +50,9 @@
 **
 */
 
-typedef enum {
+enum RDE_RDA_SOCK_LIMITS {
 	RDE_RDA_SOCK_BUFFER_SIZE = 3200
-} RDE_RDA_SOCK_LIMITS;
+};
 
 /*****************************************************************************\
  *                                                                             *
@@ -67,27 +67,27 @@ typedef enum {
  * Forward declarations
  */
 
-typedef struct {
+struct RDE_RDA_CLIENT {
 
 	int fd;
 	bool is_async;
 
-} RDE_RDA_CLIENT;
+};
 
 /*
  *  Socket Management related information
  */
 
-typedef struct sockaddr_un rde_rda_sock_addr;
+using rde_rda_sock_addr = sockaddr_un;
 
-typedef struct {
+struct RDE_RDA_CB {
 	struct sockaddr_un sock_address;
 	int fd;			/* File descriptor          */
 	int flags;		/* Flags specified for open */
 	int client_count;
 	RDE_RDA_CLIENT clients[MAX_RDA_CLIENTS];
 
-} RDE_RDA_CB;
+} ;
 
 /***************************************************************\
  *                                                               *

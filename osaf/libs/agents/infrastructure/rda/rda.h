@@ -33,9 +33,10 @@
 /*
 ** includes
 */
-#include <stdio.h>
+#include <cstdio>
 #include <sys/types.h>
-#include <string.h>
+#include <cstring>
+#include <stdint.h>
 #include <unistd.h>
 #include <sys/un.h>
 #include <sys/socket.h>
@@ -69,18 +70,18 @@
 /*
 ** Structure declarations
 */
-typedef struct {
+struct RDA_CALLBACK_CB {
 	NCSCONTEXT task_handle;
 	bool task_terminate;
 	PCS_RDA_CB_PTR callback_ptr;
 	uint32_t callback_handle;
 	int sockfd;
 
-} RDA_CALLBACK_CB;
+};
 
-typedef struct {
-	struct sockaddr_un sock_address;
+struct RDA_CONTROL_BLOCK {
+	sockaddr_un sock_address;
 
-} RDA_CONTROL_BLOCK;
+};
 
 #endif   /* RDA_H */

@@ -48,7 +48,7 @@
 /*
 ** Protocal message primitives for RDE-RDA interaction
 */
-typedef enum {
+enum RDE_RDA_CMD_TYPE {
 	RDE_RDA_UNKNOWN,
 	RDE_RDA_GET_ROLE_REQ,
 	RDE_RDA_GET_ROLE_RES,
@@ -60,7 +60,7 @@ typedef enum {
 	RDE_RDA_REG_CB_NACK,
 	RDE_RDA_DISCONNECT_REQ,
 	RDE_RDA_HA_ROLE,
-} RDE_RDA_CMD_TYPE;
+};
 
 /*
 ** PDU (Protocol Data Units) for the above 

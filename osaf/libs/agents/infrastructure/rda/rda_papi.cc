@@ -33,7 +33,8 @@
 ** Includes
 */
 #include "rda.h"
-#include <errno.h>
+#include <cerrno>
+#include <cstdlib>
 #include <sched.h>
 #include "logtrace.h"
 #include "osaf_poll.h"
@@ -47,12 +48,15 @@ static void *pcs_rda_callback_cb = NULL;
 /*
 ** Static functions
 */
-static uint32_t rda_read_msg(int sockfd, char *msg, int size);
-static uint32_t rda_write_msg(int sockfd, char *msg);
-static uint32_t rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value);
-static uint32_t rda_connect(int *sockfd);
-static uint32_t rda_disconnect(int sockfd);
-static uint32_t rda_callback_req(int sockfd);
+static PCSRDA_RETURN_CODE rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb);
+static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, void **task_cb);
+static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb);
+static PCSRDA_RETURN_CODE rda_read_msg(int sockfd, char *msg, int size);
+static PCSRDA_RETURN_CODE rda_write_msg(int sockfd, char *msg);
+static PCSRDA_RETURN_CODE rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value);
+static PCSRDA_RETURN_CODE rda_connect(int *sockfd);
+static PCSRDA_RETURN_CODE rda_disconnect(int sockfd);
+static PCSRDA_RETURN_CODE rda_callback_req(int sockfd);
 
 /*****************************************************************************
 
@@ -70,14 +74,14 @@ static uint32_t rda_callback_req(int sockfd);
   NOTES:
 
 *****************************************************************************/
-static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
+static PCSRDA_RETURN_CODE rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
 {
 	char msg[64] = { 0 };
-	uint32_t rc = PCSRDA_RC_SUCCESS;
+	PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
 	int value = -1;
 	int retry_count = 0;
 	bool conn_lost = false;
-	RDE_RDA_CMD_TYPE cmd_type = 0;
+	RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 	PCS_RDA_CB_INFO cb_info;
 
 	while (!rda_callback_cb->task_terminate) {
@@ -153,7 +157,7 @@ static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
 		 ** Invoke callback
 		 */
 		cb_info.cb_type = PCS_RDA_ROLE_CHG_IND;
-		cb_info.info.io_role = value;
+		cb_info.info.io_role = static_cast<PCS_RDA_ROLE>(value);
 
 		(*rda_callback_cb->callback_ptr) (rda_callback_cb->callback_handle, &cb_info, PCSRDA_RC_SUCCESS);
 	}
@@ -173,9 +177,9 @@ static uint32_t rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
  *
  * Notes         : None
  *****************************************************************************/
-static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, void **task_cb)
+static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, void **task_cb)
 {
-	uint32_t rc = PCSRDA_RC_SUCCESS;
+	PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
 	int sockfd = -1;
 	bool is_task_spawned = false;
 	RDA_CALLBACK_CB *rda_callback_cb = NULL;
@@ -214,7 +218,7 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
 		/*
 		 ** Allocate callback control block
 		 */
-		rda_callback_cb = m_NCS_MEM_ALLOC(sizeof(RDA_CALLBACK_CB), 0, 0, 0);
+		rda_callback_cb = static_cast<RDA_CALLBACK_CB*>(malloc(sizeof(RDA_CALLBACK_CB)));
 		if (rda_callback_cb == NULL) {
 			rc = PCSRDA_RC_MEM_ALLOC_FAILED;
 			break;
@@ -282,9 +286,9 @@ static int pcs_rda_reg_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, v
  *
  * Notes         : None
  *****************************************************************************/
-static int pcs_rda_unreg_callback(void *task_cb)
+static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb)
 {
-	uint32_t rc = PCSRDA_RC_SUCCESS;
+	PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
 	RDA_CALLBACK_CB *rda_callback_cb = NULL;
 
 	if (!task_cb)
@@ -336,13 +340,13 @@ static int pcs_rda_unreg_callback(void *task_cb)
  *
  * Notes         : None
  *****************************************************************************/
-static int pcs_rda_set_role(PCS_RDA_ROLE role)
+static PCSRDA_RETURN_CODE pcs_rda_set_role(PCS_RDA_ROLE role)
 {
-	uint32_t rc = PCSRDA_RC_SUCCESS;
+	PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
 	int sockfd;
 	char msg[64] = { 0 };
 	int value = -1;
-	RDE_RDA_CMD_TYPE cmd_type = 0;
+	RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 
 	/*
 	 ** Connect
@@ -401,13 +405,13 @@ static int pcs_rda_set_role(PCS_RDA_ROLE role)
  *
  * Notes         : None
  *****************************************************************************/
-static int pcs_rda_get_role(PCS_RDA_ROLE *role)
+static PCSRDA_RETURN_CODE pcs_rda_get_role(PCS_RDA_ROLE *role)
 {
-	uint32_t rc = PCSRDA_RC_SUCCESS;
+	PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
 	int sockfd;
 	char msg[64] = { 0 };
 	int value = -1;
-	RDE_RDA_CMD_TYPE cmd_type = 0;
+	RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 
 	*role = PCS_RDA_UNDEFINED;
 
@@ -446,7 +450,7 @@ static int pcs_rda_get_role(PCS_RDA_ROLE *role)
 		/*
 		 ** We have a role
 		 */
-		*role = value;
+		*role = static_cast<PCS_RDA_ROLE>(value);
 
 	} while (0);
 
@@ -468,7 +472,7 @@ static int pcs_rda_get_role(PCS_RDA_ROLE *role)
   NOTES:
 
 *****************************************************************************/
-static RDA_CONTROL_BLOCK *rda_get_control_block(void)
+static RDA_CONTROL_BLOCK *rda_get_control_block()
 {
 	static bool initialized = false;
 	static RDA_CONTROL_BLOCK rda_cb;
@@ -504,7 +508,7 @@ static RDA_CONTROL_BLOCK *rda_get_control_block(void)
   NOTES:
 
 *****************************************************************************/
-static uint32_t rda_connect(int *sockfd)
+static PCSRDA_RETURN_CODE rda_connect(int *sockfd)
 {
 	RDA_CONTROL_BLOCK *rda_cb = rda_get_control_block();
 	/*
@@ -542,7 +546,7 @@ static uint32_t rda_connect(int *sockfd)
   NOTES:
 
 *****************************************************************************/
-static uint32_t rda_disconnect(int sockfd)
+static PCSRDA_RETURN_CODE rda_disconnect(int sockfd)
 {
 	char msg[64] = { 0 };
 
@@ -578,12 +582,12 @@ static uint32_t rda_disconnect(int sockfd)
   NOTES:
 
 *****************************************************************************/
-static uint32_t rda_callback_req(int sockfd)
+static PCSRDA_RETURN_CODE rda_callback_req(int sockfd)
 {
 	char msg[64] = { 0 };
-	uint32_t rc = PCSRDA_RC_SUCCESS;
+	PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
 	int value = -1;
-	RDE_RDA_CMD_TYPE cmd_type = 0;
+	RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 
 	/*
 	 ** Send callback reg request messgae
@@ -625,7 +629,7 @@ static uint32_t rda_callback_req(int sockfd)
   NOTES:
 
 *****************************************************************************/
-static uint32_t rda_write_msg(int sockfd, char *msg)
+static PCSRDA_RETURN_CODE rda_write_msg(int sockfd, char *msg)
 {
 	int msg_size = 0;
 
@@ -656,7 +660,7 @@ static uint32_t rda_write_msg(int sockfd, char *msg)
   NOTES:
 
 *****************************************************************************/
-static uint32_t rda_read_msg(int sockfd, char *msg, int size)
+static PCSRDA_RETURN_CODE rda_read_msg(int sockfd, char *msg, int size)
 {
 	int rc;
 	int msg_size = 0;
@@ -715,7 +719,7 @@ static uint32_t rda_read_msg(int sockfd, char *msg, int size)
   NOTES:
 
 *****************************************************************************/
-static uint32_t rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value)
+static PCSRDA_RETURN_CODE rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value)
 {
 	char msg[64] = { 0 };
 	char *ptr;
@@ -729,11 +733,11 @@ static uint32_t rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int 
 	 */
 	ptr = strchr(msg, ' ');
 	if (ptr == NULL) {
-		*cmd_type = atoi(msg);
+		*cmd_type = static_cast<RDE_RDA_CMD_TYPE>(atoi(msg));
 
 	} else {
 		*ptr = '\0';
-		*cmd_type = atoi(msg);
+		*cmd_type = static_cast<RDE_RDA_CMD_TYPE>(atoi(msg));
 		*value = atoi(++ptr);
 	}
 
@@ -793,9 +797,9 @@ uint32_t rda_register_callback(uint32_t cb_handle, PCS_RDA_CB_PTR rda_cb_ptr)
  *
  * Notes         : None
  *****************************************************************************/
-int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req)
+PCSRDA_RETURN_CODE pcs_rda_request(PCS_RDA_REQ *pcs_rda_req)
 {
-	int ret = PCSRDA_RC_SUCCESS;
+	PCSRDA_RETURN_CODE ret = PCSRDA_RC_SUCCESS;
 
 	switch (pcs_rda_req->req_type) {
 

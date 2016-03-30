@@ -28,10 +28,10 @@ osafrded_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/services/infrastructure/rde/include
 
 osafrded_SOURCES = \
-	rde_amf.c \
-	rde_main.c \
-	rde_mds.c \
-	rde_rda.c
+	rde_amf.cc \
+	rde_main.cc \
+	rde_mds.cc \
+	rde_rda.cc
 
 osafrded_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
