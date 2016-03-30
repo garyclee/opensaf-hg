@@ -41,7 +41,7 @@
       <type>SA_UINT32_T</type>
       <category>SA_CONFIG</category>
       <flag>SA_WRITABLE</flag>
-      <default-value>65479</default-value>
+      <default-value>65223</default-value>
     </attr>
     <attr>
       <name>opensafImmNostdFlags</name>

@@ -27,7 +27,7 @@
 #include "mdstipc.h"
 #include "ncssysf_tmr.h"
 
-#define MSG_SIZE 65479
+#define MSG_SIZE MDS_DIRECT_BUF_MAXSIZE 
 static MDS_CLIENT_MSG_FORMAT_VER gl_set_msg_fmt_ver;
 
 MDS_SVC_ID svc_ids[3]={2006,2007,2008};
@@ -400,9 +400,8 @@ void  tet_svc_install_tp_10()
     FAIL = 1;
   }
 
-  sleep(2);
   //Now Release the Install Thread
-  rc = m_NCS_TASK_RELEASE(gl_tet_vdest[0].svc[0].task.t_handle);
+  rc = tet_release_task(gl_tet_vdest[0].svc[0].task.t_handle);
   if (rc !=  NCSCC_RC_SUCCESS) {
     printf("\nFail to release thread\n");
     FAIL = 1;
@@ -1015,10 +1014,9 @@ void tet_svc_unstall_tp_5()
     FAIL = 1;
   }
 
-  sleep(2);
 
   //Now Release the Uninstall Thread
-  rc = m_NCS_TASK_RELEASE(gl_tet_vdest[0].svc[0].task.t_handle);
+  rc = tet_release_task(gl_tet_vdest[0].svc[0].task.t_handle);
   if (rc !=  NCSCC_RC_SUCCESS) {
     printf("\nFail to release the uninstall thread\n");
     FAIL = 1;
@@ -2543,10 +2541,9 @@ void tet_svc_subscr_ADEST_8()
     {
       printf("\nTask has been Created\n");fflush(stdout);
     }
-    sleep(2);
     fflush(stdout);
     printf("\nAction: Release the Cancel Thread\n");
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[0].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[0].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\nTASK is released\n");
@@ -2657,10 +2654,9 @@ void tet_svc_subscr_ADEST_10()
     {
       printf("\nTask has been Created\n");fflush(stdout);
     }
-    sleep(2);
     fflush(stdout);
     printf("\nAction: Release the Retrieve Thread\n");
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[0].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[0].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\nTASK is released\n");
@@ -5201,7 +5197,7 @@ void tet_send_response_tp_1()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\tTASK is released\n");
@@ -5286,7 +5282,7 @@ void tet_send_response_tp_2()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\tTASK is released\n");
@@ -5371,7 +5367,7 @@ void tet_send_response_tp_3()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[0].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[0].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\tTASK is released\n");
@@ -5454,7 +5450,7 @@ void tet_send_response_tp_4()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\nTASK is released\n");
@@ -5546,7 +5542,7 @@ void tet_send_response_tp_5()
       printf("\nSuccess\n");
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\tTASK is released\n");
@@ -5642,7 +5638,7 @@ void tet_send_response_tp_6()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\tTASK is released\n");
@@ -5717,7 +5713,7 @@ void tet_send_response_tp_7()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\tTASK is released\n");
@@ -5760,7 +5756,7 @@ void tet_send_response_tp_7()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\nTASK is released\n");
@@ -5974,7 +5970,7 @@ void tet_send_response_tp_11()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
     {
       printf("\tTASK is released\n");
@@ -6350,7 +6346,7 @@ void tet_adest_all_rcvrack_chgrole_thread()
       }
       rs=mds_sendrsp_getack(gl_tet_adest.mds_pwe1_hdl, NCSMDS_SVC_ID_EXTERNAL_MIN,
                             0,mesg);
-      if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+      if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
          ==NCSCC_RC_SUCCESS)
         printf("\tTASK is released\n");
       fflush(stdout);
@@ -6398,7 +6394,7 @@ void tet_Dadest_all_rcvrack_chgrole_thread()
       }
       else
         printf("Response Success\n");
-      if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)==NCSCC_RC_SUCCESS)
+      if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)==NCSCC_RC_SUCCESS)
       {
         printf("\tTASK is released\n");
       }
@@ -6588,7 +6584,7 @@ void tet_send_all_tp_1()
     printf("\nSuccess\n"); 
 
   /*Now Stop and Release the Receiver Thread*/
-  if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+  if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
      ==NCSCC_RC_SUCCESS)
     printf("\nTASK is released\n");                
   fflush(stdout);                
@@ -6631,7 +6627,7 @@ void tet_send_all_tp_1()
     printf("\nSuccess\n"); 
 
   /*Now Stop and Release the Receiver Thread*/
-  if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+  if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
      ==NCSCC_RC_SUCCESS)
     printf("\nTASK is released\n");                
   fflush(stdout);                
@@ -6767,7 +6763,7 @@ void tet_send_all_tp_2()
   else
     printf("\nSuccess\n");
 
-  if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+  if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
      ==NCSCC_RC_SUCCESS)
     printf("\nTASK is released\n");
   fflush(stdout);
@@ -6810,7 +6806,7 @@ void tet_send_all_tp_2()
 
   else
     printf("\nSuccess\n");
-  if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+  if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
      ==NCSCC_RC_SUCCESS)
     printf("\nTASK is released\n");
   /*RSP*/
@@ -6837,7 +6833,7 @@ void tet_send_all_tp_2()
     printf("\nSuccess\n"); 
 
   /*Now Stop and Release the Receiver Thread*/
-  if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+  if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
      ==NCSCC_RC_SUCCESS)
     printf("\nTASK is released\n");                
   fflush(stdout);                
@@ -6867,7 +6863,7 @@ void tet_send_all_tp_2()
     printf("\nSuccess\n"); 
 
   /*Now Stop and Release the Receiver Thread*/
-  if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+  if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
      ==NCSCC_RC_SUCCESS)
     printf("\nTASK is released\n");                
   fflush(stdout);                
@@ -6897,7 +6893,6 @@ void tet_send_response_ack_tp_1()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -6949,7 +6944,7 @@ void tet_send_response_ack_tp_1()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");                
     fflush(stdout);                
@@ -6977,7 +6972,6 @@ void tet_send_response_ack_tp_2()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -7029,7 +7023,7 @@ void tet_send_response_ack_tp_2()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");                
     fflush(stdout);                
@@ -7057,7 +7051,6 @@ void tet_send_response_ack_tp_3()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -7108,7 +7101,7 @@ void tet_send_response_ack_tp_3()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
       printf("\tTASK is released\n");
     }
     fflush(stdout);                
@@ -7136,7 +7129,6 @@ void tet_send_response_ack_tp_4()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -7187,7 +7179,7 @@ void tet_send_response_ack_tp_4()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");                
     fflush(stdout);                
@@ -7215,7 +7207,6 @@ void tet_send_response_ack_tp_5()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -7262,7 +7253,7 @@ void tet_send_response_ack_tp_5()
       printf("\nFail\n");
       FAIL=1; 
     }
-    sleep(2);         
+    sleep(2);
     /*Sender */ 
     if(mds_send_get_response(gl_tet_adest.mds_pwe1_hdl,
                              NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -7276,7 +7267,7 @@ void tet_send_response_ack_tp_5()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
       printf("\tTASK is released\n");
     }
 
@@ -7310,7 +7301,6 @@ void tet_send_response_ack_tp_6()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -7355,7 +7345,7 @@ void tet_send_response_ack_tp_6()
       printf("\nFail\n");
       FAIL=1; 
     }
-    sleep(2);         
+    sleep(2);
     /*Sender */ 
     if(mds_send_get_response(gl_tet_adest.mds_pwe1_hdl,
                              NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -7370,7 +7360,7 @@ void tet_send_response_ack_tp_6()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");                
     fflush(stdout);                
@@ -7402,7 +7392,6 @@ void tet_send_response_ack_tp_7()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -7434,9 +7423,8 @@ void tet_send_response_ack_tp_7()
     } else {
       printf("\nSuccess\n");
     }
-
     /*Now Stop and Release the Receiver Thread*/
-    if (m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
+    if (tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
       printf("\tTASK is released\n");
     }          
   
@@ -7473,7 +7461,7 @@ void tet_send_response_ack_tp_7()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");                
     fflush(stdout);                
@@ -7500,7 +7488,6 @@ void tet_send_response_ack_tp_7()
 void tet_send_response_ack_tp_8()
 {
   int FAIL=0;
-  void tet_vdest_rcvr_thread();
 
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
@@ -7537,7 +7524,7 @@ void tet_send_response_ack_tp_8()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS) {
       printf("\nTASK is released\n");
     }
   }
@@ -9214,7 +9201,7 @@ void tet_direct_send_all_tp_1()
     else
       printf("\nSuccess\n");
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
 
     fflush(stdout);
@@ -9238,9 +9225,8 @@ void tet_direct_send_all_tp_1()
     }
     else
       printf("\nSuccess\n");
-    sleep(2); /*in 16.0.2*/
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle) == NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
  
     /*--------------------------------------------------------------------*/
@@ -9343,7 +9329,7 @@ void tet_direct_send_all_tp_2()
     else
       printf("\nSuccess\n");
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);
@@ -9368,9 +9354,8 @@ void tet_direct_send_all_tp_2()
     }
     else
       printf("\nSuccess\n");
-    sleep(2); /*in 16.0.2*/
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);         
@@ -9474,7 +9459,7 @@ void tet_direct_send_all_tp_3()
     else
       printf("\nSuccess\n");
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);
@@ -9499,9 +9484,8 @@ void tet_direct_send_all_tp_3()
     }
     else
       printf("\nSuccess\n");
-    sleep(2); /*in 16.0.2*/
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);         
@@ -9605,7 +9589,7 @@ void tet_direct_send_all_tp_4()
     else
       printf("\nSuccess\n");
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);
@@ -9630,9 +9614,8 @@ void tet_direct_send_all_tp_4()
     }
     else
       printf("\nSuccess\n");
-    sleep(2); /*in 16.0.2*/
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);         
@@ -9769,7 +9752,7 @@ void tet_direct_send_all_tp_5()
     else
       printf("\nSuccess\n");
 
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);
@@ -9814,7 +9797,7 @@ void tet_direct_send_all_tp_5()
 
     else
       printf("\nSuccess\n");
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
 
@@ -9846,7 +9829,7 @@ void tet_direct_send_all_tp_5()
       printf("\nSuccess\n");
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");
     fflush(stdout);
@@ -9895,7 +9878,7 @@ void tet_direct_send_all_tp_5()
       printf("\nSuccess\n"); 
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");                
     fflush(stdout);                
@@ -10087,7 +10070,7 @@ void tet_direct_send_all_tp_6()
       printf("\nSuccess\n"); 
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");                
     fflush(stdout);                
@@ -10130,7 +10113,7 @@ void tet_direct_send_all_tp_6()
       printf("\nSuccess\n"); 
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");                
     fflush(stdout);                
@@ -11435,7 +11418,7 @@ void tet_direct_send_response_tp_1()
       printf("\nSuccess\n");
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");               
     fflush(stdout); 
@@ -11518,7 +11501,7 @@ void tet_direct_send_response_tp_2()
       printf("\nSuccess\n"); 
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -11591,7 +11574,7 @@ void tet_direct_send_response_tp_3()
       printf("\nSuccess\n");
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -11663,7 +11646,7 @@ void tet_direct_send_response_tp_4()
       printf("\nSuccess\n");
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -11743,7 +11726,7 @@ void tet_direct_send_response_tp_5()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -11785,7 +11768,7 @@ void tet_direct_send_response_tp_5()
       printf("\nSuccess\n");
 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_adest.svc[2].task.t_handle)
+    if(tet_release_task(gl_tet_adest.svc[2].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -11864,9 +11847,8 @@ void tet_direct_send_response_ack_tp_1()
     else
       printf("\nSuccess\n"); 
 
-    sleep(2); /*in 16.0.2*/
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout);
@@ -11945,9 +11927,8 @@ void tet_direct_send_response_ack_tp_2()
     }
     else
       printf("\nSuccess\n"); 
-    sleep(2); /*in 16.0.2*/
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");            
     fflush(stdout); 
@@ -12028,7 +12009,7 @@ void tet_direct_send_response_ack_tp_3()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -12106,9 +12087,8 @@ void tet_direct_send_response_ack_tp_4()
     }
     else
       printf("\nSuccess\n"); 
-    sleep(2); /*in 16.0.2*/
     /*Now Stop and Release the Receiver Thread*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -12193,8 +12173,7 @@ void tet_direct_send_response_ack_tp_5()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    sleep(2); /*in 16.0.2*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\tTASK is released\n");               
     fflush(stdout); 
@@ -12234,8 +12213,7 @@ void tet_direct_send_response_ack_tp_5()
     else
       printf("\nSuccess\n"); 
     /*Now Stop and Release the Receiver Thread*/
-    sleep(2); /*in 16.0.2*/
-    if(m_NCS_TASK_RELEASE(gl_tet_vdest[1].svc[1].task.t_handle)
+    if(tet_release_task(gl_tet_vdest[1].svc[1].task.t_handle)
        ==NCSCC_RC_SUCCESS)
       printf("\nTASK is released\n");               
     fflush(stdout); 
