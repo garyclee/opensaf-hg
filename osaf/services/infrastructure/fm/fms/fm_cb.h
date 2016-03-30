@@ -32,6 +32,7 @@ uint32_t gl_fm_hdl;
 typedef enum {
 	FM_TMR_TYPE_MIN,
 	FM_TMR_PROMOTE_ACTIVE,
+	FM_TMR_ACTIVATION_SUPERVISION,
 	FM_TMR_TYPE_MAX
 } FM_TMR_TYPE;
 
@@ -76,9 +77,11 @@ typedef struct fm_cb {
 
 /* Timers */
 	FM_TMR promote_active_tmr;
+	FM_TMR activation_supervision_tmr;
 
 /* Time in terms of one hundredth of seconds (500 for 5 secs.) */
 	uint32_t active_promote_tmr_val;
+	uint32_t activation_supervision_tmr_val;
 	bool fully_initialized;
 	bool csi_assigned;
 /* Variable to indicate OpenSAF control of TIPC transport */

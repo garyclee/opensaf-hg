@@ -389,12 +389,22 @@ static uint32_t fm_get_args(FM_CB *fm_cb)
 /* Update fm_cb configuration fields */
 	fm_cb->node_id = m_NCS_GET_NODE_ID;
 
-	fm_cb->active_promote_tmr_val = atoi(getenv("FMS_PROMOTE_ACTIVE_TIMER"));
+	fm_cb->active_promote_tmr_val =
+		atoi(getenv("FMS_PROMOTE_ACTIVE_TIMER"));
+	char* activation_supervision_tmr_val =
+		getenv("FMS_ACTIVATION_SUPERVISION_TIMER");
+	if (activation_supervision_tmr_val != NULL) {
+		fm_cb->activation_supervision_tmr_val =
+			atoi(activation_supervision_tmr_val);
+	} else {
+		fm_cb->activation_supervision_tmr_val = 30000;
+	}
 
 /* Set timer variables */
 	fm_cb->promote_active_tmr.type = FM_TMR_PROMOTE_ACTIVE;
-	
-  	TRACE_LEAVE();  
+	fm_cb->activation_supervision_tmr.type = FM_TMR_ACTIVATION_SUPERVISION;
+
+  	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -521,6 +531,10 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 			opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
 				       "Received Node Down for Active peer");
 			fm_rda_set_role(fm_cb, PCS_RDA_ACTIVE);
+		} else if (fm_mbx_evt->info.fm_tmr->type == FM_TMR_ACTIVATION_SUPERVISION) {
+			opensaf_reboot(0, NULL, "Activation timer supervision "
+				       "expired: no ACTIVE assignment received "
+				       "within the time limit");
 		}
 		break;
 	case FM_EVT_RDA_ROLE:
@@ -544,6 +558,22 @@ static void fm_evt_proc_rda_callback(FM_CB *cb, FM_EVT *evt)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("%d", (int) evt->info.rda_info.role);
+	if (evt->info.rda_info.role != PCS_RDA_ACTIVE &&
+	    cb->promote_active_tmr.status == FM_TMR_RUNNING) {
+		fm_tmr_stop(&cb->activation_supervision_tmr);
+		LOG_NO("Stopped activation supervision due to new role %u",
+		       (unsigned) evt->info.rda_info.role);
+	}
+	if (evt->info.rda_info.role == PCS_RDA_ACTIVE &&
+	    cb->role != PCS_RDA_ACTIVE &&
+	    cb->amf_state != SA_AMF_HA_ACTIVE &&
+	    cb->activation_supervision_tmr_val != 0 &&
+	    cb->promote_active_tmr.status != FM_TMR_RUNNING) {
+		LOG_NO("Starting activation supervision: %" PRIu64 "ms",
+		       10 * (uint64_t) cb->activation_supervision_tmr_val);
+		fm_tmr_start(&cb->activation_supervision_tmr,
+			     cb->activation_supervision_tmr_val);
+	}
 	if ((rc = initialize_for_assignment(cb,
 		(SaAmfHAStateT) evt->info.rda_info.role)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
@@ -588,6 +618,21 @@ uint32_t fm_tmr_start(FM_TMR *tmr, SaTimeT period)
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
+}
+
+void fm_tmr_stop(FM_TMR *tmr)
+{
+	TRACE_ENTER();
+	if (tmr->tmr_id != NULL) {
+		if (tmr->status == FM_TMR_RUNNING) {
+			m_NCS_TMR_STOP(tmr->tmr_id);
+		}
+		m_NCS_TMR_DESTROY(tmr->tmr_id);
+		tmr->tmr_id = NULL;
+	}
+	tmr->status = FM_TMR_STOPPED;
+	TRACE_LEAVE();
+	return;
 }
 
 /****************************************************************************

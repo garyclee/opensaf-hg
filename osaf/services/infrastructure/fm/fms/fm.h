@@ -75,6 +75,6 @@
 
 extern void amfnd_down_callback(void);
 extern void ava_install_amf_down_cb(void (*cb) (void));
-extern uint32_t initialize_for_assignment(FM_CB *cb,
-                                                            SaAmfHAStateT ha_state);
+extern uint32_t initialize_for_assignment(FM_CB *cb, SaAmfHAStateT ha_state);
+extern void fm_tmr_stop(FM_TMR *tmr);
 #endif
