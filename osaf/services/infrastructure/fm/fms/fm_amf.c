@@ -128,17 +128,26 @@ void fm_amf_give_hdl(void)
  * Notes         : None.
  *****************************************************************************/
 void fm_saf_CSI_set_callback(SaInvocationT invocation,
-			     const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+			     const SaNameT *compName, SaAmfHAStateT new_haState, SaAmfCSIDescriptorT csiDescriptor)
 {
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
-	TRACE_ENTER();    
-	syslog(LOG_INFO, "fm_saf_CSI_set_callback: Comp %s, state %s", compName->value, ha_role_string[haState - 1]);
+	uint32_t rc;
+	TRACE_ENTER2("ha_state %d", (int) new_haState);
+	syslog(LOG_INFO, "fm_saf_CSI_set_callback: Comp %s, state %s",
+		compName->value, ha_role_string[new_haState - 1]);
 	fm_amf_cb = fm_amf_take_hdl();
 	if (fm_amf_cb != NULL) {
-		fm_cb->amf_state = haState;
+		if ((rc = initialize_for_assignment(fm_cb, new_haState)) !=
+			NCSCC_RC_SUCCESS) {
+			LOG_ER("initialize_for_assignment FAILED %u",
+				(unsigned) rc);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		} else {
+			fm_cb->amf_state = new_haState;
+			fm_cb->csi_assigned = true;
+		}
 		error = saAmfResponse(fm_amf_cb->amf_hdl, invocation, error);
-		fm_cb->csi_assigned = true;
 	}
 	fm_amf_give_hdl();
 	TRACE_LEAVE();
