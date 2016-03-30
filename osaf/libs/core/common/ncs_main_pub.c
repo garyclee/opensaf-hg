@@ -139,7 +139,7 @@ typedef struct ncs_main_pub_cb {
 } NCS_MAIN_PUB_CB;
 
 typedef struct ncs_sys_params {
-	NCS_PHY_SLOT_ID slot_id;
+	SlotSubslotId slot_subslot_id;
 	NCS_CHASSIS_ID shelf_id;
 	NCS_NODE_ID node_id;
 	uint32_t cluster_id;
@@ -714,7 +714,6 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 	char *p_field;
 	uint32_t tmp_ctr;
 	uint32_t orig_argc;
-	NCS_SUB_SLOT_ID sub_slot_id = 0;
 	NCS_SYS_PARAMS params;
 	char *ptr;
 	int argc = 0;
@@ -756,17 +755,13 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 
 	gl_ncs_main_pub_cb.my_nodeid = sys_params->node_id;
 
-	if (m_NCS_GET_PHYINFO_FROM_NODE_ID(sys_params->node_id, &sys_params->shelf_id,
-					   &sys_params->slot_id, &sub_slot_id) != NCSCC_RC_SUCCESS) {
-
-		m_LEAP_DBG_SINK_VOID;
-		return;
-	}
+	sys_params->shelf_id = GetChassisIdFromNodeId(sys_params->node_id);
+	sys_params->slot_subslot_id = GetSlotSubslotIdFromNodeId(sys_params->node_id);
 
 	sprintf(gl_pargv[orig_argc + 0], "NONE");
 	sprintf(gl_pargv[orig_argc + 1], "CLUSTER_ID=%d", sys_params->cluster_id);
 	sprintf(gl_pargv[orig_argc + 2], "SHELF_ID=%d", sys_params->shelf_id);
-	sprintf(gl_pargv[orig_argc + 3], "SLOT_ID=%d", sys_params->slot_id);
+	sprintf(gl_pargv[orig_argc + 3], "SLOT_ID=%d", sys_params->slot_subslot_id);
 	sprintf(gl_pargv[orig_argc + 4], "NODE_ID=%d", sys_params->node_id);
 	sprintf(gl_pargv[orig_argc + 5], "PCON_ID=%d", sys_params->pcon_id);
 

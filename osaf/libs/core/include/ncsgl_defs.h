@@ -73,8 +73,12 @@ extern "C" {
 
 /*************************************************
  * Maximum Slots (Including sub slots) supported
- * 16 slots x 8 subslots
+ * 256 slots x 16 subslots
  *************************************************/
+enum {
+	kMaxSlotsSubslots = 4096
+};
+
 #define NCS_SLOT_MAX 16
 
 #define NCS_SUB_SLOT_MAX 16
@@ -86,6 +90,7 @@ extern "C" {
 	typedef uint8_t NCS_CHASSIS_ID;
 	typedef uint8_t NCS_PHY_SLOT_ID;
 	typedef uint8_t NCS_SUB_SLOT_ID;
+	typedef uint32_t SlotSubslotId;
 
 /* m_NCS_NODE_ID_FROM_MDS_DEST: Returns node-id if the MDS_DEST provided
                                 is an absolute destination. Returns 0

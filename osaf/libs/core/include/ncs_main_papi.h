@@ -112,6 +112,22 @@ extern "C" {
 						   NCS_CHASSIS_ID *o_chassis_id,
 						   NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id);
 
+static inline NCS_CHASSIS_ID GetChassisIdFromNodeId(NCS_NODE_ID node_id)
+{
+	uint32_t kChassisMask = 0xff;
+	uint32_t chassis_id = (((uint32_t) node_id) >> 16) & kChassisMask;
+	return chassis_id;
+}
+
+static inline SlotSubslotId GetSlotSubslotIdFromNodeId(NCS_NODE_ID node_id)
+{
+	uint32_t kSubslotMask = 0xf;
+	uint32_t kSlotMask = 0xff;
+	uint32_t subslot_id = ((uint32_t) node_id) & kSubslotMask;
+	uint32_t slot_id = (((uint32_t) node_id) >> 8) & kSlotMask;
+	return ((subslot_id ^ kSubslotMask) << 8) | slot_id;
+}
+
 #ifdef  __cplusplus
 }
 #endif
