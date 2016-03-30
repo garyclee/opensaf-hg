@@ -71,9 +71,9 @@ if ! test -f "$SLOT_ID_FILE"; then
    exit 1
 fi
 SLOT_ID=`cat "$SLOT_ID_FILE"`
-if [ "$SLOT_ID" -gt "255" ] || [ "$SLOT_ID" -lt "1" ]  
+if [ "$SLOT_ID" -gt "4095" ] || [ "$SLOT_ID" -lt "1" ]
     then 
-      echo "SLOT ID Should be in the range of 1 to 255"
+      echo "SLOT ID Should be in the range of 1 to 4095"
       echo "Quitting......"
       exit 1
 fi
@@ -113,7 +113,7 @@ if [ $# -gt 1 ] ; then
     fi
 fi    
 
-printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $pkglocalstatedir/node_id
+printf "00%02x%02x%02x\n" $CHASSIS_ID $((SLOT_ID & 255)) $((SUBSLOT_ID ^ ((SLOT_ID >> 8) & 15) )) > $pkglocalstatedir/node_id
 chmod 744 $pkglocalstatedir/node_id
 if [ "$USE_SUBSLOT_ID" = "YES" ]; then
     TIPC_NODEID=$(($SLOT_ID << $SHIFT4))
