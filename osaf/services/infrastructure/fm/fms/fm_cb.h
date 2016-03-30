@@ -18,6 +18,15 @@
 #ifndef FM_CB_H
 #define FM_CB_H
 
+#include <stdbool.h>
+#include <stdint.h>
+#include "saAmf.h"
+#include "ncssysf_tmr.h"
+#include "ncssysf_ipc.h"
+#include "mds_papi.h"
+#include "rda_papi.h"
+#include "fm_amf.h"
+
 uint32_t gl_fm_hdl;
 
 typedef enum {
@@ -70,6 +79,7 @@ typedef struct fm_cb {
 
 /* Time in terms of one hundredth of seconds (500 for 5 secs.) */
 	uint32_t active_promote_tmr_val;
+	bool fully_initialized;
 	bool csi_assigned;
 /* Variable to indicate OpenSAF control of TIPC transport */
 	bool control_tipc;
@@ -88,7 +98,6 @@ extern FM_CB *fm_cb;
 *         Prototypes for extern functions                       *
 *****************************************************************/
 uint32_t fm_rda_init(FM_CB *);
-uint32_t fm_rda_finalize(FM_CB *);
 uint32_t fm_rda_set_role(FM_CB *, PCS_RDA_ROLE);
 
 #endif

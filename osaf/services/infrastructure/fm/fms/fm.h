@@ -19,6 +19,7 @@
 #define FM_H
 
 #include <stdio.h>
+#include <stdint.h>
 #include <poll.h>
 #include <sys/types.h>
 #include <string.h>
@@ -32,6 +33,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/time.h>
+#include "saAmf.h"
 
 #include "ncs_main_papi.h"
 #include "ncsgl_defs.h"
@@ -73,4 +75,6 @@
 
 extern void amfnd_down_callback(void);
 extern void ava_install_amf_down_cb(void (*cb) (void));
+extern uint32_t initialize_for_assignment(FM_CB *cb,
+                                                            SaAmfHAStateT ha_state);
 #endif

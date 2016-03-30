@@ -39,8 +39,8 @@ enum {
 };
 
 FM_CB *fm_cb = NULL;
-char *role_string[] = { "Undefined", "ACTIVE", "STANDBY", "QUIESCED",
-	"ASSERTING", "YIELDING", "UNDEFINED"
+char *role_string[] = { "UNDEFINED", "ACTIVE", "STANDBY", "QUIESCED",
+	"QUIESCING"
 };
 
 /*****************************************************************
@@ -55,6 +55,7 @@ static uint32_t fms_fms_exchange_node_info(FM_CB *);
 static uint32_t fm_nid_notify(uint32_t);
 static uint32_t fm_tmr_start(FM_TMR *, SaTimeT);
 static void fm_mbx_msg_handler(FM_CB *, FM_EVT *);
+static void fm_evt_proc_rda_callback(FM_CB*, FM_EVT*);
 static void fm_tmr_exp(void *);
 void handle_mbx_event(void);
 extern uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb);
@@ -148,6 +149,9 @@ int main(int argc, char *argv[])
 
 	memset(fm_cb, 0, sizeof(FM_CB));
 	fm_cb->fm_amf_cb.nid_started = nid_started;
+	fm_cb->fm_amf_cb.amf_fd = -1;
+	fm_cb->fully_initialized = false;
+	fm_cb->csi_assigned = false;
 
 	/* Variable to control whether FM will trigger failover immediately
 	 * upon recieving down event of critical services or will wait
@@ -186,16 +190,9 @@ int main(int argc, char *argv[])
 		goto fm_init_failed;
 	}
 
-/* MDS initialization */
-	if (fm_mds_init(fm_cb) != NCSCC_RC_SUCCESS) {
-		goto fm_init_failed;
-	}
-
-/* RDA initialization */
 	if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS) {
 		goto fm_init_failed;
 	}
-
 	if ((control_tipc = getenv("OPENSAF_MANAGE_TIPC")) == NULL)
 		fm_cb->control_tipc = false;
 	else if (strncmp(control_tipc, "yes", 3) == 0)
@@ -223,9 +220,13 @@ int main(int argc, char *argv[])
 
 	if (!nid_started &&
 		fm_amf_init(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS)
-		goto done;
+		goto fm_init_failed;
 
-	fm_cb->csi_assigned = false;
+	if ((rc = initialize_for_assignment(fm_cb,
+		(SaAmfHAStateT) fm_cb->role)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+ 		goto fm_init_failed;
+ 	}
 
 	/* Get mailbox selection object */
 	mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&fm_cb->mbx);
@@ -295,6 +296,21 @@ int main(int argc, char *argv[])
 	exit(1);
 }
 
+uint32_t initialize_for_assignment(FM_CB *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) goto done;
+	cb->role = (PCS_RDA_ROLE) ha_state;
+	if ((rc = fm_mds_init(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("immd_mds_register FAILED %d", rc);
+		goto done;
+	}
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
+	return rc;
+}
 
 /****************************************************************************
 * Name          : handle_mbx_event
@@ -508,9 +524,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 		}
 		break;
 	case FM_EVT_RDA_ROLE:
-		/* RDA role assignment for this controller node */
-		fm_cb->role = fm_mbx_evt->info.rda_info.role;
-		syslog(LOG_INFO, "RDA role for this controller node: %s", role_string[fm_cb->role]);
+		fm_evt_proc_rda_callback(fm_cb, fm_mbx_evt);
 		break;
 	default:
 		break;
@@ -523,6 +537,22 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 	}
 	TRACE_LEAVE();
 	return;
+}
+
+static void fm_evt_proc_rda_callback(FM_CB *cb, FM_EVT *evt)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%d", (int) evt->info.rda_info.role);
+	if ((rc = initialize_for_assignment(cb,
+		(SaAmfHAStateT) evt->info.rda_info.role)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		opensaf_reboot(0, NULL, "FM service initialization failed");
+	}
+	cb->role = evt->info.rda_info.role;
+	syslog(LOG_INFO, "RDA role for this controller node: %s",
+		role_string[cb->role]);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************

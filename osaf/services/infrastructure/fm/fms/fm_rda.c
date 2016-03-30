@@ -15,7 +15,11 @@
  *
  */
 
-#include "fm.h"
+#include "fm_cb.h"
+#include <string.h>
+#include <syslog.h>
+#include "rda_papi.h"
+#include "logtrace.h"
 
 /****************************************************************************
  * Name          : fm_rda_init 
@@ -31,84 +35,29 @@
 uint32_t fm_rda_init(FM_CB *fm_cb)
 {
 	uint32_t rc;
-	uint32_t status = NCSCC_RC_SUCCESS;
-	PCS_RDA_REQ rda_req;
+	SaAmfHAStateT ha_state;
 	TRACE_ENTER();
-
-	/* initialize the RDA Library */
-	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
-	rda_req.req_type = PCS_RDA_LIB_INIT;
-	rc = pcs_rda_request(&rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		syslog(LOG_ERR, "RDA lib init failed");
-		return NCSCC_RC_FAILURE;
+	if ((rc = rda_get_role(&ha_state)) != NCSCC_RC_SUCCESS) {
+ 		LOG_ER("rda_get_role FAILED");
+ 		goto done;
+ 	}
+	switch (ha_state) {
+	case SA_AMF_HA_ACTIVE:
+		fm_cb->role = PCS_RDA_ACTIVE;
+		break;
+	case SA_AMF_HA_STANDBY:
+		fm_cb->role = PCS_RDA_STANDBY;
+		break;
+	case SA_AMF_HA_QUIESCED:
+		fm_cb->role = PCS_RDA_QUIESCED;
+		break;
+	case SA_AMF_HA_QUIESCING:
+		fm_cb->role = PCS_RDA_QUIESCING;
+		break;
 	}
-
-	/* get the role */
-	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
-	rda_req.req_type = PCS_RDA_GET_ROLE;
-	rc = pcs_rda_request(&rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		/* set the error code to be returned */
-		status = NCSCC_RC_FAILURE;
-		/* finalize */
-		syslog(LOG_ERR, "RDA get role failed");
-		goto rda_lib_destroy;
-	}
-
-	/* update role in fm_cb */
-	if ((rda_req.info.io_role == PCS_RDA_ACTIVE) || (rda_req.info.io_role == PCS_RDA_STANDBY)) {
-		fm_cb->role = rda_req.info.io_role;
-	} else {
-		/* set the error code to be returned */
-		status = NCSCC_RC_FAILURE;
-		syslog(LOG_ERR, "RDA role is neither Active nor Standby");
-		goto rda_lib_destroy;
-	}
-	 
-	return status; 
-
-	/* finalize the library */
- rda_lib_destroy:
-	syslog(LOG_INFO, "RDA lib destroy called");
-	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
-	rda_req.req_type = PCS_RDA_LIB_DESTROY;
-	rc = pcs_rda_request(&rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		syslog(LOG_ERR, "RDA lib destroy failed in fm_rda_init");
-		return NCSCC_RC_FAILURE;
-	}
+done:
 	TRACE_LEAVE();
-	/* return the final status */
-	return status;
-}
-
-/****************************************************************************
- * Name          : fm_rda_finalize 
- *
- * Description   : Finalizes RDA interfaces.
- *
- * Arguments     : Pointer to Control Block. 
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- * 
- * Notes         : None. 
- *****************************************************************************/
-uint32_t fm_rda_finalize(FM_CB *fm_cb)
-{
-	uint32_t rc;
-	uint32_t status = NCSCC_RC_SUCCESS;
-	PCS_RDA_REQ rda_req;
-	TRACE_ENTER();
-	memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
-	rda_req.req_type = PCS_RDA_LIB_DESTROY;
-	rc = pcs_rda_request(&rda_req);
-	if (rc != PCSRDA_RC_SUCCESS) {
-		syslog(LOG_INFO, "RDA lib destroy failed in fm_rda_finalize ");
-		status = NCSCC_RC_FAILURE;
-	}
-	TRACE_LEAVE();
-	return status;
+	return rc;
 }
 
 /****************************************************************************

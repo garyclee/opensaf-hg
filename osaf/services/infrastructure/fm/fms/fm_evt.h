@@ -67,6 +67,4 @@ typedef struct fm_evt {
 	} info;
 } FM_EVT;
 
-void fm_mbx_evt_handler(FM_CB *fm_cb, FM_EVT *fm_evt);
-
 #endif
