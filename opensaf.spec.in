@@ -1394,6 +1394,8 @@ fi
 %{_pkgimmxml_svcdir}/rde_sc_template.xml
 %{_pkgimmxml_svcdir}/fm_objects.xml
 %{_pkgimmxml_svcdir}/fm_sc_template.xml
+%{_pkgimmxml_svcdir}/osaf_globalconfig_classes.xml
+%{_pkgimmxml_svcdir}/osaf_globalconfig_objects.xml
 %endif
 
 
