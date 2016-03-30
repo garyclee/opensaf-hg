@@ -18,6 +18,7 @@
 #ifndef GLD_CB_H
 #define GLD_CB_H
 
+#include <stdbool.h>
 #include "gld_tmr.h"
 #include "saImmOi.h"
 
@@ -110,6 +111,7 @@ typedef struct glsv_gld_cb_tag {
 	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for 
 					   IMM events */
 	bool is_impl_set;
+	bool fully_initialized;
 } GLSV_GLD_CB;
 
 #define GLD_CB_NULL  ((GLSV_GLD_CB *)0)

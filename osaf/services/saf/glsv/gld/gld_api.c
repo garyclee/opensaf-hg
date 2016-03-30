@@ -25,9 +25,11 @@
 ******************************************************************************/
 
 #include "gld.h"
-#include "gld_imm.h"
 #include <poll.h>
 #include <string.h>
+#include <stdlib.h>
+#include "gld_imm.h"
+
 uint32_t gl_gld_hdl;
 
 void gld_main_process(SYSF_MBX *mbx);
@@ -145,49 +147,10 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	}
 	TRACE_1("AMF Initialize success");
 
-	/* Bind to MDS */
-	if (gld_mds_init(gld_cb) != NCSCC_RC_SUCCESS) {
-		saAmfFinalize(gld_cb->amf_hdl);
-		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
-		TRACE_2("MDS Install failed");
-		res = NCSCC_RC_FAILURE;
-		goto end;
-	} else
-		TRACE_1("MDS Install success");
-
-	/*   Initialise with the MBCSV service  */
-	if (glsv_gld_mbcsv_register(gld_cb) != NCSCC_RC_SUCCESS) {
-		TRACE_2("GLD mbcsv init failed");
-		gld_mds_shut(gld_cb);
-		saAmfFinalize(gld_cb->amf_hdl);
-		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
-		res = NCSCC_RC_FAILURE;
-		goto end;
-
-	} else {
-		TRACE_1("GLD mbcsv init success");
-
-	}
-
-	/* register glsv with imm */
-	amf_error = gld_imm_init(gld_cb);
-	if (amf_error != SA_AIS_OK) {
-		glsv_gld_mbcsv_unregister(gld_cb);
-		gld_mds_shut(gld_cb);
-		saAmfFinalize(gld_cb->amf_hdl);
-		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
-		LOG_ER("Imm Init Failed %u\n", amf_error);
-		res = NCSCC_RC_FAILURE;
-		goto end;
-	}
-
 	/* TASK CREATION AND INITIALIZING THE MAILBOX */
 	if ((m_NCS_IPC_CREATE(&gld_cb->mbx) != NCSCC_RC_SUCCESS) ||
 	    (m_NCS_IPC_ATTACH(&gld_cb->mbx) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("Failure in task initiation");
-		saImmOiFinalize(gld_cb->immOiHandle);
-		glsv_gld_mbcsv_unregister(gld_cb);
-		gld_mds_shut(gld_cb);
 		saAmfFinalize(gld_cb->amf_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
@@ -203,9 +166,6 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		LOG_ER("AMF Registration Failed");
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
-		saImmOiFinalize(gld_cb->immOiHandle);
-		glsv_gld_mbcsv_unregister(gld_cb);
-		gld_mds_shut(gld_cb);
 		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		res = NCSCC_RC_FAILURE;
@@ -233,16 +193,64 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
-		saImmOiFinalize(gld_cb->immOiHandle);
-		glsv_gld_mbcsv_unregister(gld_cb);
-		gld_mds_shut(gld_cb);
 		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 	} else
 		TRACE_1("AMF Health Check started");
+
+	if ((res = initialize_for_assignment(gld_cb, gld_cb->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) res);
+		exit(EXIT_FAILURE);
+	}
+
  end:
 	TRACE_LEAVE();
 	return (res);
+}
+
+uint32_t initialize_for_assignment(GLSV_GLD_CB *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT amf_error;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
+		goto done;
+	}
+
+	/* Bind to MDS */
+	if (gld_mds_init(cb) != NCSCC_RC_SUCCESS) {
+		TRACE_2("MDS Install failed");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	} else {
+		TRACE_1("MDS Install success");
+	}
+
+	/*   Initialise with the MBCSV service  */
+	if (glsv_gld_mbcsv_register(cb) != NCSCC_RC_SUCCESS) {
+		TRACE_2("GLD mbcsv init failed");
+		gld_mds_shut(cb);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	} else {
+		TRACE_1("GLD mbcsv init success");
+	}
+
+	/* register glsv with imm */
+	amf_error = gld_imm_init(cb);
+	if (amf_error != SA_AIS_OK) {
+		glsv_gld_mbcsv_unregister(cb);
+		gld_mds_shut(cb);
+		LOG_ER("Imm Init Failed %u\n", (unsigned) amf_error);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
+	return rc;
 }
 
 /****************************************************************************
@@ -338,6 +346,11 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 
 	/* Initialize the next resource id */
 	gld_cb->nxt_rsc_id = 1;
+
+	gld_cb->ha_state = SA_AMF_HA_QUIESCED;
+	gld_cb->mbcsv_sel_obj = -1;
+	gld_cb->imm_sel_obj = -1;
+	gld_cb->fully_initialized = false;
  end:
 	TRACE_LEAVE();
 	return rc;
@@ -504,14 +517,14 @@ void gld_main_process(SYSF_MBX *mbx)
 	fds[FD_TERM].events = POLLIN;
 	fds[FD_AMF].fd = amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_MBCSV].fd = gld_cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = gld_cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+		fds[FD_MBCSV].fd = gld_cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
 		if ((gld_cb->immOiHandle != 0) && (gld_cb->is_impl_set == true)){
 			fds[FD_IMM].fd = gld_cb->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
@@ -581,7 +594,9 @@ void gld_main_process(SYSF_MBX *mbx)
 				 ** close resource requests. That is needed since the IMM OI
 				 ** is used in context of these functions.
 				 */
+				saImmOiFinalize(gld_cb->immOiHandle);
 				gld_cb->immOiHandle = 0;
+				gld_cb->imm_sel_obj = -1;
 				gld_cb->is_impl_set = false;
 				gld_imm_reinit_bg(gld_cb);
 			} else if (error != SA_AIS_OK) {

@@ -74,10 +74,19 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 	GLSV_GLD_CB *gld_cb;
 	SaAisErrorT error = SA_AIS_OK;
 	V_DEST_RL mds_role;
+	uint32_t rc;
 	TRACE_ENTER2("component name %s haState %d", compName->value, haState);
 
 	gld_cb = m_GLSV_GLD_RETRIEVE_GLD_CB;
 	if (gld_cb != NULL) {
+		if ((rc = initialize_for_assignment(gld_cb, haState)) !=
+		    NCSCC_RC_SUCCESS) {
+			LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			saAmfResponse(gld_cb->amf_hdl, invocation, error);
+			m_GLSV_GLD_GIVEUP_GLD_CB;
+			goto end;
+		}
 		if (gld_cb->ha_state == SA_AMF_HA_ACTIVE && haState == SA_AMF_HA_QUIESCED) {
 			mds_role = SA_AMF_HA_QUIESCED;
 
