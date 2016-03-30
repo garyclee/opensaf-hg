@@ -32,8 +32,10 @@
 #ifndef EDS_CB_H
 #define EDS_CB_H
 
+#include <stdbool.h>
 #include <saClm.h>
 #include <saImmOi.h>
+#include "saAmf.h"
 
 #include "ncssysf_tmr.h"
 
@@ -56,7 +58,7 @@ struct eda_reg_list_tag;
 #define UNLINKED_CHANNEL   0x08
 
 /* Default HA state assigned locally during eds initialization */
-#define EDS_HA_INIT_STATE 0
+#define EDS_HA_INIT_STATE SA_AMF_HA_QUIESCED
 /* Local limitations on patterns, filters &data */
 #define EDS_MAX_NUM_PATTERNS 20
 #define EDS_MAX_PATTERN_SIZE 256
@@ -262,6 +264,7 @@ typedef struct eds_cb_tag {
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/* Selection object to wait for IMM events */
 	bool is_impl_set;
+	bool fully_initialized;
 } EDS_CB;
 
 
