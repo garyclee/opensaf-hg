@@ -1584,6 +1584,15 @@ uint32_t tet_create_task(NCS_OS_CB task_startup,
     return NCSCC_RC_FAILURE;
 }
 
+uint32_t tet_release_task(void *task_handle)
+{
+	sleep(2);
+	if(m_NCS_TASK_RELEASE(task_handle) == NCSCC_RC_SUCCESS)
+		return NCSCC_RC_SUCCESS;
+	else
+		return NCSCC_RC_FAILURE;
+}
+
 uint32_t mds_service_retrieve(MDS_HDL mds_hdl,
                            MDS_SVC_ID svc_id,
                            SaDispatchFlagsT dispatchFlags)
