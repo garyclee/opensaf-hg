@@ -46,6 +46,12 @@ int main(int argc, char **argv)
 		else if (SA_AMF_HA_STANDBY == ha_state) {
 			printf("STANDBY\n");
 		}
+		else if (SA_AMF_HA_QUIESCED == ha_state) {
+			printf("QUIESCED\n");
+		}
+		else if (SA_AMF_HA_QUIESCING == ha_state) {
+			printf("QUIESCING\n");
+		}
 		else {
 			printf("UNKNOWN\n");
 			return EXIT_FAILURE;
