@@ -27,6 +27,7 @@ This include file contains AMF interaction logic for health-check and other
 stuff.
 *******************************************************************************/
 #include "eds.h"
+#include "eds_dl_api.h"
 
 /* HA AMF statemachine & State handler definitions */
 
@@ -217,6 +218,16 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 		TRACE_LEAVE();
 		return;
 	} else {
+		if ((rc = initialize_for_assignment(eds_cb, new_haState)) !=
+		    NCSCC_RC_SUCCESS) {
+			LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			saAmfResponse(eds_cb->amf_hdl, invocation, error);
+			ncshm_give_hdl(gl_eds_hdl);
+			TRACE_LEAVE();
+			return;
+		}
+
 		/*
 		 *  Handle Active to Active role change.
 		 */

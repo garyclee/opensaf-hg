@@ -76,6 +76,11 @@ uint32_t eds_cb_init(EDS_CB *eds_cb)
 	eds_cb->ha_state = EDS_HA_INIT_STATE;
 	eds_cb->csi_assigned = false;
 	eds_cb->is_impl_set = false;
+	eds_cb->amfSelectionObject = -1;
+	eds_cb->mbcsv_sel_obj = -1;
+	eds_cb->clm_sel_obj = -1;
+	eds_cb->imm_sel_obj = -1;
+	eds_cb->fully_initialized = false;
 
 	/* Assign Version. Currently, hardcoded, This will change later */
 	m_GET_MY_VERSION(eds_cb->eds_version);
@@ -207,10 +212,6 @@ void eds_main_process(SYSF_MBX *mbx)
 	fds[FD_TERM].events = POLLIN;
 	fds[FD_AMF].fd = eds_cb->amfSelectionObject;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_CLM].fd = eds_cb->clm_sel_obj;
-	fds[FD_CLM].events = POLLIN;
-	fds[FD_MBCSV].fd = eds_cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = eds_cb->imm_sel_obj;
@@ -219,6 +220,10 @@ void eds_main_process(SYSF_MBX *mbx)
 	TRACE("Entering the forever loop");
 
 	while (1) {
+		fds[FD_CLM].fd = eds_cb->clm_sel_obj;
+		fds[FD_CLM].events = POLLIN;
+		fds[FD_MBCSV].fd = eds_cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
 
 		if ((eds_cb->immOiHandle != 0) && (eds_cb->is_impl_set == true)){
 			fds[FD_IMM].fd = eds_cb->imm_sel_obj;
@@ -294,6 +299,7 @@ void eds_main_process(SYSF_MBX *mbx)
 				/* Invalidate the IMM OI handle. */
 				saImmOiFinalize(eds_cb->immOiHandle);
 				eds_cb->immOiHandle = 0;
+				eds_cb->imm_sel_obj = -1;
 				eds_cb->is_impl_set = false;
 				eds_imm_reinit_bg(eds_cb);
 				

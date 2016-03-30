@@ -32,6 +32,11 @@
 #ifndef _EDS_DL_API_H
 #define _EDS_DL_API_H
 
+#include <stdint.h>
+#include "saAmf.h"
+#include "eds_cb.h"
+
+uint32_t initialize_for_assignment(EDS_CB *cb, SaAmfHAStateT ha_state);
 uint32_t ncs_edsv_eds_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* _EDS_DL_API_H */
