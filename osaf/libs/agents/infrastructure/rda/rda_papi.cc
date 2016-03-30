@@ -761,6 +761,12 @@ uint32_t rda_get_role(SaAmfHAStateT *ha_state)
 	case PCS_RDA_STANDBY:
 		*ha_state = SA_AMF_HA_STANDBY;
 		break;
+	case PCS_RDA_QUIESCED:
+		*ha_state = SA_AMF_HA_QUIESCED;
+		break;
+	case PCS_RDA_QUIESCING:
+		*ha_state = SA_AMF_HA_QUIESCING;
+		break;
 	default:
 		return NCSCC_RC_FAILURE;
 	}
