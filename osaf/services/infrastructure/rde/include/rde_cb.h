@@ -33,7 +33,7 @@
 **
 */
 
-typedef struct {
+struct RDE_CONTROL_BLOCK {
 	SYSF_MBX mbx;
 	const char *prog_name;
 	NCSCONTEXT task_handle;
@@ -46,14 +46,14 @@ typedef struct {
 	RDE_RDA_CB rde_rda_cb;
 	RDE_AMF_CB rde_amf_cb;
 
-} RDE_CONTROL_BLOCK;
+};
 
-typedef enum rde_msg_type {
+enum RDE_MSG_TYPE {
 	RDE_MSG_PEER_UP = 1,
 	RDE_MSG_PEER_DOWN = 2,
 	RDE_MSG_PEER_INFO_REQ = 3,
 	RDE_MSG_PEER_INFO_RESP = 4,
-} RDE_MSG_TYPE;
+};
 
 struct rde_peer_info {
 	PCS_RDA_ROLE ha_role;
@@ -78,7 +78,7 @@ extern NCS_NODE_ID rde_my_node_id;
  *                                                                             *
 \*****************************************************************************/
 
-extern RDE_CONTROL_BLOCK *rde_get_control_block(void);
+extern RDE_CONTROL_BLOCK *rde_get_control_block();
 extern uint32_t rde_mds_register(RDE_CONTROL_BLOCK *cb);
 extern uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest);
 extern uint32_t rde_set_role(PCS_RDA_ROLE role);

@@ -28,7 +28,7 @@ librda_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/services/infrastructure/rde/include
 
 librda_la_SOURCES = \
-	rda_papi.c
+	rda_papi.cc
 
 librda_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
 

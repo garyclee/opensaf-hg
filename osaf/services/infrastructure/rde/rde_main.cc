@@ -17,7 +17,7 @@
  */
 
 #include <configmake.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <poll.h>
 #include <libgen.h>
 
@@ -67,7 +67,7 @@ static RDE_CONTROL_BLOCK *rde_cb = &_rde_cb;
 static NCS_SEL_OBJ usr1_sel_obj;
 
 
-RDE_CONTROL_BLOCK *rde_get_control_block(void)
+RDE_CONTROL_BLOCK *rde_get_control_block()
 {
 	return rde_cb;
 }
@@ -112,7 +112,7 @@ static int fd_to_client_ixd(int fd)
 	return i;
 }
 
-static void handle_mbx_event(void)
+static void handle_mbx_event()
 {
 	struct rde_msg *msg;
 
@@ -307,18 +307,18 @@ done:
  * 
  * @return int, 0=OK
  */
-static int initialize_rde(void)
+static int initialize_rde()
 {
 	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
 	int rc = NCSCC_RC_FAILURE;
 	char *val;
 
 	/* Determine how this process was started, by NID or AMF */
-	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
+	if (getenv("SA_AMF_COMPONENT_NAME") == nullptr)
 		rde_cb->rde_amf_cb.nid_started = true;
 
-	if ((val = getenv("RDE_DISCOVER_PEER_TIMEOUT")) != NULL)
-		discover_peer_timeout = strtoul(val, NULL, 0);
+	if ((val = getenv("RDE_DISCOVER_PEER_TIMEOUT")) != nullptr)
+		discover_peer_timeout = strtoul(val, nullptr, 0);
 
 	TRACE("discover_peer_timeout=%d", discover_peer_timeout);
 
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (rde_cb->rde_amf_cb.nid_started &&
-		nid_notify("RDE", rc, NULL) != NCSCC_RC_SUCCESS) {
+		nid_notify("RDE", rc, nullptr) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		goto done;
 	}
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
 		if (fds[FD_RDA_SERVER].revents & POLLIN) {
 			int newsockfd;
 
-			newsockfd = accept(rde_rda_cb->fd, (struct sockaddr *)NULL, NULL);
+			newsockfd = accept(rde_rda_cb->fd, (struct sockaddr *) nullptr, nullptr);
 			if (newsockfd < 0) {
 				LOG_ER("accept FAILED %s", strerror(errno));
 				goto done;
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
 			TRACE("accepted new client, fd=%d, idx=%d, nfds=%lu", newsockfd, rde_rda_cb->client_count, nfds);
 		}
 
-		for (i = FD_CLIENT_START; i < nfds; i++) {
+		for (i = FD_CLIENT_START; static_cast<nfds_t>(i) < nfds; i++) {
 			if (fds[i].revents & POLLIN) {
 				int client_disconnected = 0;
 				TRACE("received msg on fd %u", fds[i].fd);
@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
 
  init_failed:
 	if (rde_cb->rde_amf_cb.nid_started &&
-		nid_notify("RDE", NCSCC_RC_FAILURE, NULL) != NCSCC_RC_SUCCESS) {
+		nid_notify("RDE", NCSCC_RC_FAILURE, nullptr) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
 	}

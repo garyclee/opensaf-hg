@@ -76,7 +76,7 @@ static uint32_t msg_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 			goto done;
 	}
 
-	msg = malloc(sizeof(*msg));
+	msg = static_cast<rde_msg*>(malloc(sizeof(*msg)));
 	assert(msg);
 
 	dec_info->o_msg = msg;
@@ -84,7 +84,7 @@ static uint32_t msg_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 
 	data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 	assert(data);
-	msg->type = ncs_decode_32bit(&data);
+	msg->type = static_cast<RDE_MSG_TYPE>(ncs_decode_32bit(&data));
 	ncs_dec_skip_space(uba, sizeof(uint32_t));
 
 	switch (msg->type) {
@@ -92,7 +92,7 @@ static uint32_t msg_decode(MDS_CALLBACK_DEC_INFO *dec_info)
 	case RDE_MSG_PEER_INFO_RESP:
 		data = ncs_dec_flatten_space(uba, data_buff, sizeof(uint32_t));
 		assert(data);
-		msg->info.peer_info.ha_role = ncs_decode_32bit(&data);
+		msg->info.peer_info.ha_role = static_cast<PCS_RDA_ROLE>(ncs_decode_32bit(&data));
 		ncs_dec_skip_space(uba, sizeof(uint32_t));
 		break;
 
@@ -108,7 +108,7 @@ done:
 static int mbx_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	struct rde_msg *msg = calloc(1, sizeof(struct rde_msg));
+	struct rde_msg *msg = static_cast<rde_msg*>(calloc(1, sizeof(struct rde_msg)));
 	RDE_CONTROL_BLOCK *cb = rde_get_control_block();
 
 	msg->type = type;

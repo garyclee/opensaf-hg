@@ -116,7 +116,7 @@ typedef struct {
 /*
 ** API Declaration
 */
-int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
+PCSRDA_RETURN_CODE pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
 
 /**
  * Get AMF style HA role from RDE
