@@ -36,7 +36,7 @@ SUBSLOT_ID_FILE=$pkgsysconfdir/subslot_id
 USE_SUBSLOT_ID=${TIPC_USE_SUBSLOT_ID:-"NO"}
 
 # Currently supported max nodes for Opensaf
-TIPC_MAX_NODES=2000
+TIPC_MAX_NODES=4095
 
 # Support for enable disable duplicate node verification.
 # When TIPC_DUPLICATE_NODE_DETECT is set to "YES" (the default is "YES"),
