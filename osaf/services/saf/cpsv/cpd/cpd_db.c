@@ -1209,12 +1209,7 @@ uint32_t cpd_process_cpnd_del(CPD_CB *cb, MDS_DEST *cpnd_dest)
 
 uint32_t cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
 {
-	NCS_PHY_SLOT_ID phy_slot;
-	NCS_SUB_SLOT_ID sub_slot;
-
-	m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest), NULL, &phy_slot, &sub_slot);
-
-	return ((sub_slot * NCS_SUB_SLOT_MAX) + (phy_slot));
+	return GetSlotSubslotIdFromNodeId(m_NCS_NODE_ID_FROM_MDS_DEST(dest));
 }
 
 /********************************************************************************
@@ -1228,13 +1223,7 @@ uint32_t cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
 
 uint32_t cpd_get_slot_sub_slot_id_from_node_id(NCS_NODE_ID i_node_id)
 {
-	NCS_PHY_SLOT_ID phy_slot;
-	NCS_SUB_SLOT_ID sub_slot;
-
-	m_NCS_GET_PHYINFO_FROM_NODE_ID(i_node_id, NULL, &phy_slot, &sub_slot);
-
-	return ((sub_slot * NCS_SUB_SLOT_MAX) + (phy_slot));
-
+	return GetSlotSubslotIdFromNodeId(i_node_id);
 }
 
 /*******************************************************************************************
