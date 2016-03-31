@@ -237,7 +237,8 @@ bool mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
 
 /*
  * In the default flat addressing scheme, TIPC node addresses looks like
- * 1.1.1, 1.1.2 etc.
+ * 1.1.1, 1.1.2 etc. The ones' complement of the subslot ID is shifted 8
+ * bits up and the slot ID is added in the 8 LSB.
  * In the non flat (old/legacy) addressing scheme TIPC addresses looks like
  * 1.1.31, 1.1.47. The slot ID is shifted 4 bits up and subslot ID is added
  * in the 4 LSB.
@@ -248,13 +249,20 @@ bool mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
 
 #if (MDS_USE_SUBSLOT_ID == 0)
 #define MDS_TIPC_NODE_ID_MIN     0x01001001
-#define MDS_TIPC_NODE_ID_MAX     0x010010ff
-#define MDS_NCS_NODE_ID_MIN      (MDS_NCS_CHASSIS_ID|0x0000010f)
-#define MDS_NCS_NODE_ID_MAX      (MDS_NCS_CHASSIS_ID|0x0000ff0f)
-#define m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node) \
-        (NODE_ID)( MDS_NCS_CHASSIS_ID | (((node)&0xff)<<8) | (0xf))
-#define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node) \
-        (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>8) )
+#define MDS_TIPC_NODE_ID_MAX     0x01001fff
+static inline NODE_ID m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(NODE_ID node) {
+        return MDS_NCS_CHASSIS_ID | ((node & 0xff) << 8) | (((node & 0xf00) >> 8) ^ 0xf);
+}
+static inline NODE_ID m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(NODE_ID node) {
+        return MDS_TIPC_COMMON_ID | ((node & 0xff00) >> 8) | (((node & 0xf) ^ 0xf) << 8);
+}
+static inline uint32_t m_MDS_CHECK_TIPC_NODE_ID_RANGE(NODE_ID node) {
+	return node < MDS_TIPC_NODE_ID_MIN || node > MDS_TIPC_NODE_ID_MAX ?
+		NCSCC_RC_FAILURE : NCSCC_RC_SUCCESS;
+}
+static inline uint32_t m_MDS_CHECK_NCS_NODE_ID_RANGE(NODE_ID node) {
+    return m_MDS_CHECK_TIPC_NODE_ID_RANGE(m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node));
+}
 #else
 #define MDS_TIPC_NODE_ID_MIN     0x01001001
 #define MDS_TIPC_NODE_ID_MAX     0x0100110f
@@ -264,10 +272,10 @@ bool mdtm_mailbox_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
         (NODE_ID)( MDS_NCS_CHASSIS_ID | ((node)&0xf) | (((node)&0xff0)<<4))
 #define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node) \
         (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>4) | ((node)&0xf) )
-#endif
 
 #define m_MDS_CHECK_TIPC_NODE_ID_RANGE(node) (((((node)<MDS_TIPC_NODE_ID_MIN)||((node)>MDS_TIPC_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS))
 #define m_MDS_CHECK_NCS_NODE_ID_RANGE(node) (((((node)<MDS_NCS_NODE_ID_MIN)||((node)>MDS_NCS_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS))
+#endif
 
 /* ******************************************** */
 /* ******************************************** */
