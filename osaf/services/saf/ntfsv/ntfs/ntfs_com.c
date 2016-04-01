@@ -38,7 +38,8 @@ int activeController()
 	return (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE);
 }
 
-void client_added_res_lib(SaAisErrorT error, unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt)
+void client_added_res_lib(SaAisErrorT error, unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt,
+	SaVersionT *version)
 {
 	uint32_t rc;
 	ntfsv_msg_t msg;
@@ -61,6 +62,7 @@ void client_added_res_lib(SaAisErrorT error, unsigned int clientId, MDS_DEST mds
 		ckpt.header.data_len = 1;
 		ckpt.ckpt_rec.reg_rec.client_id = clientId;
 		ckpt.ckpt_rec.reg_rec.mds_dest = mdsDest;
+		ckpt.ckpt_rec.reg_rec.version =*version;
 		update_standby(&ckpt, NCS_MBCSV_ACT_ADD);
 	}
 	TRACE_LEAVE();
@@ -382,12 +384,13 @@ int sendNoOfClients(uint32_t num_rec, NCS_UBAID *uba)
 	return enc_ckpt_reserv_header(uba, NTFS_CKPT_INITIALIZE_REC, num_rec, 0);
 }
 
-int sendNewClient(unsigned int clientId, MDS_DEST mdsDest, NCS_UBAID *uba)
+int sendNewClient(unsigned int clientId, MDS_DEST mdsDest, SaVersionT *version, NCS_UBAID *uba)
 {
 	ntfs_ckpt_reg_msg_t client_rec;
 
 	client_rec.client_id = clientId;
 	client_rec.mds_dest = mdsDest;
+	client_rec.version = *version;
 	if (0 == enc_mbcsv_client_msg(uba, &client_rec))
 		return 0;
 	return 1;
@@ -508,4 +511,47 @@ void sendNotConfirmUpdate(unsigned int clientId, SaNtfSubscriptionIdT subscripti
 	ckpt.ckpt_rec.send_confirm.discarded = discarded;
 	update_standby(&ckpt, NCS_MBCSV_ACT_ADD);
 	TRACE_LEAVE();
+}
+
+
+/**
+ * @brief  Send Membership status of node to a lib on that node.
+ *  
+ * @param SaClmClusterChangesT (CLM status of node) 
+ * @param client_id 
+ * @param mdsDest of client
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+uint32_t send_clm_node_status_lib(SaClmClusterChangesT cluster_change, unsigned int client_id, MDS_DEST mdsDest)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	ntfsv_msg_t msg;
+
+	TRACE_ENTER();
+	TRACE_3("change:%u, client_id: %u", cluster_change, client_id);
+
+	memset(&msg, 0, sizeof(ntfsv_msg_t));
+	msg.type = NTFSV_NTFS_CBK_MSG;
+	msg.info.cbk_info.type = NTFSV_CLM_NODE_STATUS_CALLBACK;
+	msg.info.cbk_info.ntfs_client_id = client_id;
+	msg.info.cbk_info.subscriptionId = 0;
+	msg.info.cbk_info.param.clm_node_status_cbk.clm_node_status = cluster_change;
+	rc = ntfs_mds_msg_send(ntfs_cb, &msg, &mdsDest, NULL, MDS_SEND_PRIORITY_HIGH);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
+	} 
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * @brief Checks if NTFS has already initialized with CLM service. 
+ *
+ * @return true/false.
+ */
+bool is_clm_init()
+{
+	return (ntfs_cb->clm_hdl != 0 ? true : false);
 }

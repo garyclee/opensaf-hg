@@ -20,7 +20,8 @@
 
 #include "saAmf.h"
 
-#define NTFS_MBCSV_VERSION 1
+#define NTFS_MBCSV_VERSION 2
+#define NTFS_MBCSV_VERSION_1 1
 #define NTFS_MBCSV_VERSION_MIN 1
 
 /* Checkpoint message types(Used as 'reotype' w.r.t mbcsv)  */
@@ -55,6 +56,7 @@ typedef enum ntfsv_discarded_rec_type {
 typedef struct {
 	uint32_t client_id;	/* Registration Id at Active */
 	MDS_DEST mds_dest;	/* Handy when an NTFA instance goes away */
+	SaVersionT version;     /* SAF version of the client.*/
 } ntfs_ckpt_reg_msg_t;
 
 /* finalize checkpoint record, used in cold/async checkpoint updates */

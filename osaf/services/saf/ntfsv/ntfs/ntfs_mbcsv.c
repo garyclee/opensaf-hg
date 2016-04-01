@@ -412,14 +412,26 @@ uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 
 	osafassert(uba != NULL);
     /** encode the contents **/
-	p8 = ncs_enc_reserve_space(uba, 12);
+	if (ntfs_cb->peer_mbcsv_version == NTFS_MBCSV_VERSION_1) {
+		p8 = ncs_enc_reserve_space(uba, 12);
+	} else {
+		p8 = ncs_enc_reserve_space(uba, 15);
+	}
+
 	if (!p8) {
 		TRACE("NULL pointer");
 		return NCSCC_RC_OUT_OF_MEM;
 	}
 	ncs_encode_32bit(&p8, param->client_id);
 	ncs_encode_64bit(&p8, param->mds_dest);
-	ncs_enc_claim_space(uba, 12);
+	if (ntfs_cb->peer_mbcsv_version == NTFS_MBCSV_VERSION_1) {
+		ncs_enc_claim_space(uba, 12);
+	} else {
+		ncs_encode_8bit(&p8, param->version.releaseCode);
+		ncs_encode_8bit(&p8, param->version.majorVersion);
+		ncs_encode_8bit(&p8, param->version.minorVersion);
+		ncs_enc_claim_space(uba, 15);
+	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -531,6 +543,7 @@ static uint32_t ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NC
 
 		ckpt_reg_rec.client_id = data->ckpt_rec.reg_rec.client_id;
 		ckpt_reg_rec.mds_dest = data->ckpt_rec.reg_rec.mds_dest;
+		ckpt_reg_rec.version = data->ckpt_rec.reg_rec.version;
 		rc = enc_mbcsv_client_msg(uba, &ckpt_reg_rec);
 		break;
 	case NTFS_CKPT_FINALIZE_REC:
@@ -818,14 +831,24 @@ static uint32_t ckpt_decode_async_update(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_ar
 static uint32_t decode_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param)
 {
 	uint8_t *p8;
-	uint8_t local_data[12];
 
 	/* releaseCode, majorVersion, minorVersion */
-	p8 = ncs_dec_flatten_space(uba, local_data, 12);
-	param->client_id = ncs_decode_32bit(&p8);
-	param->mds_dest = ncs_decode_64bit(&p8);
-	ncs_dec_skip_space(uba, 12);
-
+	if (ntfs_cb->peer_mbcsv_version == NTFS_MBCSV_VERSION_1) {
+		uint8_t local_data[12];
+		p8 = ncs_dec_flatten_space(uba, local_data, 12);
+		param->client_id = ncs_decode_32bit(&p8);
+		param->mds_dest = ncs_decode_64bit(&p8);
+		ncs_dec_skip_space(uba, 12);
+        } else {
+		uint8_t local_data[15];
+		p8 = ncs_dec_flatten_space(uba, local_data, 15);
+		param->client_id = ncs_decode_32bit(&p8);
+		param->mds_dest = ncs_decode_64bit(&p8);
+		param->version.releaseCode = ncs_decode_8bit(&p8);
+		param->version.majorVersion = ncs_decode_8bit(&p8);
+		param->version.minorVersion = ncs_decode_8bit(&p8);
+		ncs_dec_skip_space(uba, 15);
+        }
 	TRACE_8("decode_client_msg");
 	return NCSCC_RC_SUCCESS;
 }
@@ -1097,7 +1120,12 @@ static uint32_t ckpt_proc_reg_rec(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	clientAdded(param->client_id, param->mds_dest, NULL);
+	if (ntfs_cb->peer_mbcsv_version == NTFS_MBCSV_VERSION_1) {
+		SaVersionT version = { NTF_RELEASE_CODE_0, NTF_MAJOR_VERSION_0, NTF_MINOR_VERSION_0 };
+		clientAdded(param->client_id, param->mds_dest, NULL, &version);
+	} else {
+		clientAdded(param->client_id, param->mds_dest, NULL, &param->version);
+	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -1360,6 +1388,8 @@ static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		TRACE("peer_version not correct!!\n");
 		return NCSCC_RC_FAILURE;
 	}
+	ntfs_cb->peer_mbcsv_version = arg->info.peer.i_peer_version;
+	TRACE("peer_mbcsv_version:%u",ntfs_cb->peer_mbcsv_version);
 	return NCSCC_RC_SUCCESS;
 }
 

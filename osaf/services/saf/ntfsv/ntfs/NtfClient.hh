@@ -66,6 +66,9 @@ public:
 	 void discardedAdd(SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId);
 	 void discardedClear(SaNtfSubscriptionIdT subscriptionId);
     void printInfo();
+    bool IsA11Client() const;
+    void set_client_version(SaVersionT *ver);
+    SaVersionT *getSafVersion();
 
 private:
     void newReaderResponse(SaAisErrorT* error,
@@ -82,6 +85,7 @@ private:
     unsigned int readerId_;
 
     MDS_DEST mdsDest_;
+    SaVersionT safVersion_;
     typedef std::map<SaNtfSubscriptionIdT,NtfSubscription*> SubscriptionMap;
     SubscriptionMap subscriptionMap;
 

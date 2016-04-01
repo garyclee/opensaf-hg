@@ -173,6 +173,13 @@ void NtfClient::notificationReceived(unsigned int clientId,
             }                
         }
     }
+    
+    //Send notification to this client if its node is CLM member node.
+    if (is_stale_client(clientId_) == true) {
+	    TRACE_2("NtfClient::notificationReceived, non clm member client:'%u' cannot"
+			    " receive notification %llu", clientId_, notification->getNotificationId());
+		return;
+    }
 
     // scan through all subscriptions
     SubscriptionMap::iterator pos;
@@ -476,3 +483,38 @@ void NtfClient::printInfo()
     }
 }
 
+/**
+ * @breif  Checks if this client is a A11 initialized client.
+ *
+ * @return true/false.
+ */
+bool NtfClient::IsA11Client() const
+{
+    if ((safVersion_.releaseCode == NTF_RELEASE_CODE_0) &&
+        (safVersion_.majorVersion == NTF_MAJOR_VERSION_0) &&
+	(safVersion_.minorVersion == NTF_MINOR_VERSION_0))
+        return true;
+    else 
+        return false;
+}
+
+
+/**
++ * @brief Sets saf version of client.
++ *
++ * @param ptr to SaVersionT
++ */
+void NtfClient::set_client_version(SaVersionT *ver)
+ {
+     safVersion_ = *ver;
+ }
+
+
+/**
+ * @brief  returns saf version of client.
+ * @return ptr to SaVersionT. 
+ */
+SaVersionT *NtfClient::getSafVersion() 
+{
+    return &safVersion_;
+}

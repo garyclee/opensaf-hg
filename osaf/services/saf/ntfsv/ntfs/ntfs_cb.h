@@ -20,6 +20,7 @@
 
 #include <stdbool.h>
 #include <saNtf.h>
+#include <saClm.h>
 
 /* Default HA state assigned locally during ntfs initialization */
 #define NTFS_HA_INIT_STATE 0
@@ -49,6 +50,7 @@ typedef struct ntfs_cb {
 	bool is_quisced_set;
 	SaSelectionObjectT amfSelectionObject;	/* Selection Object to wait for amf events */
 	SaSelectionObjectT logSelectionObject;	/* Selection Object to wait for log events */
+	SaSelectionObjectT clmSelectionObject;	/* Selection Object to wait for clms events */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	uint32_t async_upd_cnt;	/* Async Update Count for Warmsync */
 	CHECKPOINT_STATE ckpt_state;	/* State if cold synched */
@@ -59,6 +61,9 @@ typedef struct ntfs_cb {
 	bool fully_initialized;
 	unsigned int cache_size; /* size of the reader cache */
 	bool nid_started;	/**< true if started by NID */
+	SaClmHandleT clm_hdl;	/* CLM handle, obtained through CLM init        */
+	NCS_SEL_OBJ usr2_sel_obj; /* Selection object for CLM initialization.*/
+	uint16_t peer_mbcsv_version; /*Remeber peer NTFS MBCSV version.*/
 } ntfs_cb_t;
 
 extern uint32_t ntfs_cb_init(ntfs_cb_t *);
