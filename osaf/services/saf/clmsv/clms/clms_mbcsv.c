@@ -557,7 +557,7 @@ static uint32_t process_ckpt_data(CLMS_CB * cb, CLMS_CKPT_REC * data)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t clms_mbcsv_init(CLMS_CB * cb)
+uint32_t clms_mbcsv_init(CLMS_CB * cb, SaAmfHAStateT ha_state)
 {
 	uint32_t rc;
 	NCS_MBCSV_ARG arg;
@@ -613,7 +613,7 @@ uint32_t clms_mbcsv_init(CLMS_CB * cb)
 		goto done;
 	}
 
-	rc = clms_mbcsv_change_HA_state(cb);
+	rc = clms_mbcsv_change_HA_state(cb, ha_state);
 
 	/* Set MBCSV role here itself */
  done:
@@ -636,7 +636,7 @@ uint32_t clms_mbcsv_init(CLMS_CB * cb)
  *                 during the first CSI assignment from AVSv  .
  *****************************************************************************/
 
-uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb)
+uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb, SaAmfHAStateT ha_state)
 {
 	NCS_MBCSV_ARG mbcsv_arg;
 	uint32_t rc = SA_AIS_OK;
@@ -647,7 +647,7 @@ uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
-	mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
+	mbcsv_arg.info.chg_role.i_ha_state = ha_state;
 
 	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
 		LOG_ER("ncs_mbcsv_svc FAILED");

@@ -188,7 +188,8 @@ static void clms_amf_health_chk_callback(SaInvocationT invocation, const SaNameT
  * Notes         : None.
  *****************************************************************************/
 static void clms_amf_csi_set_callback(SaInvocationT invocation,
-				      const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+	const SaNameT *compName, SaAmfHAStateT new_haState,
+	SaAmfCSIDescriptorT csiDescriptor)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
@@ -202,8 +203,15 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 	 */
 	prev_haState = clms_cb->ha_state;
 
+	if ((rc = initialize_for_assignment(clms_cb, new_haState)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		goto response;
+	}
+
 	/* Invoke the appropriate state handler routine */
-	switch (haState) {
+	switch (new_haState) {
 	case SA_AMF_HA_ACTIVE:
 		error = amf_active_state_handler(clms_cb, invocation);
 		break;
@@ -219,7 +227,7 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 		error = amf_quiescing_state_handler(clms_cb, invocation);
 		break;
 	default:
-		LOG_WA("invalid state: %d ", haState);
+		LOG_WA("invalid state: %d ", new_haState);
 		error = SA_AIS_ERR_FAILED_OPERATION;
 		break;
 	}
@@ -227,44 +235,39 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 	if (error != SA_AIS_OK)
 		goto response;
 
-	if (haState == SA_AMF_HA_QUIESCED) {
+	if (new_haState == SA_AMF_HA_QUIESCED) {
 		/* AMF response will be done later when MDS quiesced ack has been received */
 		goto done;
 	}
 
 	/* Update control block */
-	clms_cb->ha_state = haState;
+	clms_cb->ha_state = new_haState;
 
-	if (clms_cb->csi_assigned == false) {
-		clms_cb->csi_assigned = true;
-		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
-	} else if ((haState == SA_AMF_HA_ACTIVE) || (haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
+	if (new_haState == SA_AMF_HA_ACTIVE || new_haState == SA_AMF_HA_STANDBY) {
 		clms_cb->ckpt_state = COLD_SYNC_IDLE;
-		/* NOTE: This behaviour has to be checked later, when scxb redundancy is available 
-		 * Also, change role of mds, mbcsv during quiesced has to be done after mds
-		 * supports the same.  TBD
-		 */
 	}
 
 	/* Handle active to active role change. */
-	if ((prev_haState == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_ACTIVE))
+	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
 		role_change = false;
 
 	/* Handle Stby to Stby role change. */
-	if ((prev_haState == SA_AMF_HA_STANDBY) && (haState == SA_AMF_HA_STANDBY))
+	if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
 		role_change = false;
 
 	if (role_change == true) {
 		/* i.e Set up the infrastructure first.
 		 * i.e. Declare yourself as ACTIVE first.
 		 */
-		if ((rc = clms_mds_change_role(clms_cb)) != NCSCC_RC_SUCCESS) {
+		if ((rc = clms_mds_change_role(clms_cb)) !=
+			NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		}
 
 		/* Inform MBCSV of HA state change */
-		if (NCSCC_RC_SUCCESS != (error = clms_mbcsv_change_HA_state(clms_cb)))
+		if (NCSCC_RC_SUCCESS != (error = clms_mbcsv_change_HA_state(
+			clms_cb, new_haState)))
 			error = SA_AIS_ERR_FAILED_OPERATION;
 
 		if(clms_cb->ha_state == SA_AMF_HA_ACTIVE) {

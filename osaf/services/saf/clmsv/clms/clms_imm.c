@@ -410,23 +410,92 @@ SaAisErrorT clms_imm_activate(CLMS_CB *cb)
 	}
 
 	if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
-		if ((rc = immutil_saImmOiImplementerSet(cb->immOiHandle, IMPLEMENTER_NAME)) != SA_AIS_OK) {
-			LOG_ER("saImmOiImplementerSet failed rc:%u", rc);
-			goto done;
-		}
+		int msecs_waited = 0;
+		for (;;) {
+			if (msecs_waited >= max_waiting_time_ms) {
+				LOG_ER("Timeout in clms_imm_activate");
+				goto done;
+			}
 
-		if ((rc = immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaClmNode")) != SA_AIS_OK) {
-			LOG_ER("saImmOiClassImplementerSet failed for class SaClmNode rc:%u", rc);
-			goto done;
-		}
+			rc = immutil_saImmOiImplementerSet(cb->immOiHandle,
+							   IMPLEMENTER_NAME);
+			if (rc == SA_AIS_ERR_TIMEOUT ||
+			    rc == SA_AIS_ERR_BAD_HANDLE) {
+				LOG_WA("saImmOiImplementerSet returned %u",
+				       (unsigned) rc);
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+				saImmOiFinalize(cb->immOiHandle);
+				cb->immOiHandle = 0;
+				cb->imm_sel_obj = -1;
+				cb->is_impl_set = false;
+				if ((rc = clms_imm_init(clms_cb)) !=
+				    NCSCC_RC_SUCCESS) {
+					LOG_ER("clms_imm_init FAILED");
+					goto done;
+				}
+				continue;
+			}
+			if (rc != SA_AIS_OK) {
+				LOG_ER("saImmOiImplementerSet failed rc: %u",
+				       (unsigned) rc);
+				goto done;
+			}
 
-		if ((rc = immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaClmCluster")) != SA_AIS_OK) {
-			LOG_ER("saImmOiClassImplementerSet failed for class SaClmCluster rc:%u", rc);
-			goto done;
-		}
+			rc = immutil_saImmOiClassImplementerSet(cb->immOiHandle,
+								"SaClmNode");
+			if (rc == SA_AIS_ERR_TIMEOUT ||
+			    rc == SA_AIS_ERR_BAD_HANDLE) {
+				LOG_WA("saImmOiClassImplementerSet returned %u",
+				       (unsigned) rc);
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+				saImmOiFinalize(cb->immOiHandle);
+				cb->immOiHandle = 0;
+				cb->imm_sel_obj = -1;
+				cb->is_impl_set = false;
+				if ((rc = clms_imm_init(clms_cb)) !=
+				    NCSCC_RC_SUCCESS) {
+					LOG_ER("clms_imm_init FAILED");
+					goto done;
+				}
+				continue;
+			}
+			if (rc != SA_AIS_OK) {
+				LOG_ER("saImmOiClassImplementerSet failed for "
+				       "class SaClmNode rc: %u", (unsigned) rc);
+				goto done;
+			}
 
-		cb->is_impl_set = true;
-		clms_all_node_rattr_update();
+			rc = immutil_saImmOiClassImplementerSet(cb->immOiHandle,
+								"SaClmCluster");
+			if (rc == SA_AIS_ERR_TIMEOUT ||
+			    rc == SA_AIS_ERR_BAD_HANDLE) {
+				LOG_WA("saImmOiClassImplementerSet returned %u",
+				       (unsigned) rc);
+				usleep(sleep_delay_ms * 1000);
+				msecs_waited += sleep_delay_ms;
+				saImmOiFinalize(cb->immOiHandle);
+				cb->immOiHandle = 0;
+				cb->imm_sel_obj = -1;
+				cb->is_impl_set = false;
+				if ((rc = clms_imm_init(clms_cb)) !=
+				    NCSCC_RC_SUCCESS) {
+					LOG_ER("clms_imm_init FAILED");
+					goto done;
+				}
+				continue;
+			}
+			if (rc != SA_AIS_OK) {
+				LOG_ER("saImmOiClassImplementerSet failed for "
+				       "class SaClmNode rc %u", (unsigned) rc);
+				goto done;
+			}
+
+			cb->is_impl_set = true;
+			clms_all_node_rattr_update();
+			break;
+		}
 	}
 
 	rc = SA_AIS_OK;
@@ -499,6 +568,7 @@ void clms_admin_state_update_rattr(CLMS_CLUSTER_NODE * nd)
 
 		saImmOiFinalize(clms_cb->immOiHandle);
 		clms_cb->immOiHandle = 0;
+		clms_cb->imm_sel_obj = -1;
 		clms_cb->is_impl_set = false;
 
 		/* Initiate IMM reinitializtion in the background */
@@ -590,6 +660,7 @@ void clms_node_update_rattr(CLMS_CLUSTER_NODE * nd)
 
 		saImmOiFinalize(clms_cb->immOiHandle);
 		clms_cb->immOiHandle = 0;
+		clms_cb->imm_sel_obj = -1;
 		clms_cb->is_impl_set = false;
 
 		/* Initiate IMM reinitializtion in the background */
@@ -766,6 +837,7 @@ void clms_cluster_update_rattr(CLMS_CLUSTER_INFO * osaf_cluster)
 
 		saImmOiFinalize(clms_cb->immOiHandle);
 		clms_cb->immOiHandle = 0;
+		clms_cb->imm_sel_obj = -1;
 		clms_cb->is_impl_set = false;
 
 		/* Initiate IMM reinitializtion in the background */
@@ -2295,33 +2367,99 @@ static void  *clm_imm_reinit_thread(void * _cb)
 	CLMS_CB *cb = (CLMS_CB *)_cb;
 
 	TRACE_ENTER();
-	if ((ais_rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion)) != SA_AIS_OK) {
-		LOG_ER("saImmOiInitialize_2 failed %u, exiting", ais_rc);
-		exit(EXIT_FAILURE);
-	}
-
-	if ((ais_rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj)) != SA_AIS_OK) {
-		LOG_ER("saImmOiSelectionObjectGet failed %u, exiting", ais_rc);
-		exit(EXIT_FAILURE);
-	}
-
-	if (cb->ha_state == SA_AMF_HA_ACTIVE){
-		/* Update IMM */
-		if ((ais_rc = immutil_saImmOiImplementerSet(cb->immOiHandle, IMPLEMENTER_NAME)) != SA_AIS_OK) {
-			LOG_ER("saImmOiImplementerSet failed rc:%u, exiting", ais_rc);
+	int msecs_waited = 0;
+	for (;;) {
+		if (msecs_waited >= max_waiting_time_ms) {
+			LOG_ER("Timeout in clm_imm_reinit_thread, exiting");
 			exit(EXIT_FAILURE);
 		}
 
-		if ((ais_rc = immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaClmNode")) != SA_AIS_OK) {
-			LOG_ER("saImmOiClassImplementerSet failed for class SaClmNode rc:%u, exiting", ais_rc);
+		if ((ais_rc = immutil_saImmOiInitialize_2(&cb->immOiHandle,
+							  &callbacks,
+							  &immVersion)) !=
+		    SA_AIS_OK) {
+			LOG_ER("saImmOiInitialize_2 failed %u, exiting",
+			       ais_rc);
 			exit(EXIT_FAILURE);
 		}
 
-		if ((ais_rc = immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaClmCluster")) != SA_AIS_OK) {
-			LOG_ER("saImmOiClassImplementerSet failed for class SaClmCluster rc:%u, exiting", ais_rc);
+		if ((ais_rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle,
+								&cb->
+								imm_sel_obj)) !=
+		    SA_AIS_OK) {
+			LOG_ER("saImmOiSelectionObjectGet failed %u, exiting",
+			       ais_rc);
 			exit(EXIT_FAILURE);
 		}
-		cb->is_impl_set = true;
+
+		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+			/* Update IMM */
+			if ((ais_rc =
+			     immutil_saImmOiImplementerSet(cb->immOiHandle,
+							   IMPLEMENTER_NAME)) !=
+			    SA_AIS_OK) {
+				if (ais_rc == SA_AIS_ERR_TIMEOUT) {
+					LOG_WA("saImmOiImplementerSet returned "
+					       "%u", (unsigned) ais_rc);
+					usleep(sleep_delay_ms * 1000);
+					msecs_waited += sleep_delay_ms;
+					saImmOiFinalize(cb->immOiHandle);
+					cb->immOiHandle = 0;
+					cb->imm_sel_obj = -1;
+					cb->is_impl_set = false;
+					continue;
+				}
+				LOG_ER("saImmOiImplementerSet failed rc: %u, "
+				       "exiting", (unsigned) ais_rc);
+				exit(EXIT_FAILURE);
+			}
+
+			if ((ais_rc =
+			     immutil_saImmOiClassImplementerSet(cb->immOiHandle,
+								"SaClmNode")) !=
+			    SA_AIS_OK) {
+				if (ais_rc == SA_AIS_ERR_TIMEOUT) {
+					LOG_WA("saImmOiClassImplementerSet "
+					       "returned %u",
+					       (unsigned) ais_rc);
+					usleep(sleep_delay_ms * 1000);
+					msecs_waited += sleep_delay_ms;
+					saImmOiFinalize(cb->immOiHandle);
+					cb->immOiHandle = 0;
+					cb->imm_sel_obj = -1;
+					cb->is_impl_set = false;
+					continue;
+				}
+				LOG_ER("saImmOiClassImplementerSet failed for "
+				       "class SaClmNode rc: %u, exiting",
+				       (unsigned) ais_rc);
+				exit(EXIT_FAILURE);
+			}
+
+			if ((ais_rc =
+			     immutil_saImmOiClassImplementerSet(cb->immOiHandle,
+								"SaClmCluster"))
+			    != SA_AIS_OK) {
+				if (ais_rc == SA_AIS_ERR_TIMEOUT) {
+					LOG_WA("saImmOiClassImplementerSet "
+					       "returned %u",
+					       (unsigned) ais_rc);
+					usleep(sleep_delay_ms * 1000);
+					msecs_waited += sleep_delay_ms;
+					saImmOiFinalize(cb->immOiHandle);
+					cb->immOiHandle = 0;
+					cb->imm_sel_obj = -1;
+					cb->is_impl_set = false;
+					continue;
+				}
+				LOG_ER("saImmOiClassImplementerSet failed for "
+				       "class SaClmCluster rc: %u, exiting",
+				       (unsigned) ais_rc);
+				exit(EXIT_FAILURE);
+			}
+			cb->is_impl_set = true;
+		}
+		break;
 	}
 
 	TRACE_LEAVE();

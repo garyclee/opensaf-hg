@@ -16,6 +16,7 @@
  */
 
 #include "clms.h"
+#include "osaf_time.h"
 
 #define ADDITION_TEXT_LENGTH 256
 #define CLMS_NTF_SENDER "safApp=safClmService"
@@ -270,14 +271,21 @@ void clms_node_admin_state_change_ntf(CLMS_CB * clms_cb, CLMS_CLUSTER_NODE * nod
 
 SaAisErrorT clms_ntf_init(CLMS_CB * cb)
 {
-
-	SaAisErrorT rc = SA_AIS_OK;
-	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+	SaAisErrorT rc = SA_AIS_ERR_TRY_AGAIN;
 
 	TRACE_ENTER();
 
-	rc = saNtfInitialize(&cb->ntf_hdl, NULL, &ntfVersion);
-	TRACE("saNtfInitialize rc value %u", rc);
+	while (rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT) {
+		SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+		rc = saNtfInitialize(&cb->ntf_hdl, NULL, &ntfVersion);
+		TRACE("saNtfInitialize rc value %u", rc);
+		if (rc == SA_AIS_ERR_TIMEOUT) {
+			LOG_WA("saNtfInitialize returned SA_AIS_ERR_TIMEOUT");
+		}
+		if (rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT) {
+			osaf_nanosleep(&kHundredMilliseconds);
+		}
+	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saNtfInitialize Failed (%u)", rc);
 	}
