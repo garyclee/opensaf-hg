@@ -270,6 +270,33 @@ uint32_t ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_PRIO
 	switch (ntfsv_msg->type) {
 	case NTFSV_NTFS_CBK_MSG:
 		switch (ntfsv_msg->info.cbk_info.type) {
+		case NTFSV_CLM_NODE_STATUS_CALLBACK:
+			{
+				ntfa_client_hdl_rec_t *ntfa_hdl_rec;
+				ntfsv_ntfa_clm_status_cbk_t *param = &ntfsv_msg->info.cbk_info.param.clm_node_status_cbk;
+				TRACE_2("NTFSV_CLM_NODE_STATUS_CALLBACK: "
+						"subscriptionId = %d,"
+						" client_id = %d",
+						(int)ntfsv_msg->info.cbk_info.subscriptionId,
+						(int)ntfsv_msg->info.cbk_info.ntfs_client_id);
+				cb->clm_node_state = (SaClmClusterChangesT) param->clm_node_status;
+				TRACE_2("CLM Membership of local node changed to : %u",
+						cb->clm_node_state);
+				//Search client.
+				if (NULL == (ntfa_hdl_rec =
+							ntfa_find_hdl_rec_by_client_id(cb,
+								ntfsv_msg->info.cbk_info.ntfs_client_id))) {
+					TRACE("client_id not found");
+					ntfa_msg_destroy(ntfsv_msg);
+                                        TRACE_LEAVE();
+                                        return NCSCC_RC_FAILURE;
+                                }
+				//A client becomes stale if Node loses CLM Membership.
+				if (cb->clm_node_state != SA_CLM_NODE_JOINED)
+					ntfa_hdl_rec->is_stale_client = true;
+				ntfa_msg_destroy(ntfsv_msg);
+			}
+			break;
 		case NTFSV_NOTIFICATION_CALLBACK:
 			{
 				ntfa_client_hdl_rec_t *ntfa_hdl_rec;
@@ -620,6 +647,27 @@ static uint32_t ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	return ntfsv_dec_discard_msg(uba, param);
 }
 
+/**
+ * @brief  Decodes CLM node status callback msg.
+ *
+ * @param  ptr to NCS_UBAID.
+ * @param  ptr to ntfsv_msg_t.
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+static uint32_t ntfa_dec_clm_node_status_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+{
+	uint8_t *p8;
+	ntfsv_ntfa_clm_status_cbk_t *param = &msg->info.cbk_info.param.clm_node_status_cbk;
+	uint8_t local_data[2];
+
+	osafassert(uba != NULL);
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 2);
+	param->clm_node_status = ncs_decode_16bit(&p8);
+	ncs_dec_skip_space(uba, 2);
+	return NCSCC_RC_SUCCESS;
+}
 /****************************************************************************
   Name          : ntfa_dec_subscribe_rsp_msg
  
@@ -861,6 +909,10 @@ static uint32_t ntfa_mds_dec(struct ncsmds_callback_info *info)
 			case NTFSV_DISCARDED_CALLBACK:
 				TRACE_2("decode discarded cbk message");
 				rc = ntfa_dec_not_discard_cbk_msg(uba, msg);
+				break;
+			case NTFSV_CLM_NODE_STATUS_CALLBACK:
+				TRACE_2("decode clm node status cbk message");
+				rc = ntfa_dec_clm_node_status_cbk_msg(uba, msg);
 				break;
 			default:
 				TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);

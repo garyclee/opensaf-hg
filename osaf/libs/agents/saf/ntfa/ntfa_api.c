@@ -1229,7 +1229,8 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 	if ((version->releaseCode == NTF_RELEASE_CODE) && (version->majorVersion <= NTF_MAJOR_VERSION) &&
 	    (0 < version->majorVersion)) {
 		version->majorVersion = NTF_MAJOR_VERSION;
-		version->minorVersion = NTF_MINOR_VERSION;
+		if (version->minorVersion != NTF_MINOR_VERSION_0)
+			version->minorVersion = NTF_MINOR_VERSION;
 	} else {
 		TRACE("version FAILED, required: %c.%u.%u, supported: %c.%u.%u\n",
 		      version->releaseCode, version->majorVersion, version->minorVersion,
@@ -1276,6 +1277,10 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 		rc = o_msg->info.api_resp_info.rc;
 		TRACE("NTFS return FAILED");
+		/*Check CLM membership of node.*/
+		if (rc == SA_AIS_ERR_UNAVAILABLE) {
+			TRACE("Node not CLM member or stale client");
+		}
 		goto err;
 	}
 
@@ -1357,7 +1362,13 @@ SaAisErrorT saNtfSelectionObjectGet(SaNtfHandleT ntfHandle, SaSelectionObjectT *
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
-
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		ncshm_give_hdl(ntfHandle);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done;
+	}
 	/* Obtain the selection object from the IPC queue */
 	sel_obj = m_NCS_IPC_GET_SEL_OBJ(&hdl_rec->mbx);
 
@@ -1426,7 +1437,7 @@ SaAisErrorT saNtfDispatch(SaNtfHandleT ntfHandle, SaDispatchFlagsT dispatchFlags
 	if (!hdl_rec->valid) {
 		/* recovery */
 		if ((rc = recoverClient(hdl_rec)) != SA_AIS_OK) {
-			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+			if ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_UNAVAILABLE)) {
 				ncshm_give_hdl(ntfHandle);
 				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, hdl_rec);
@@ -1436,6 +1447,15 @@ SaAisErrorT saNtfDispatch(SaNtfHandleT ntfHandle, SaDispatchFlagsT dispatchFlags
 			}
 		}
 	}
+
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		ncshm_give_hdl(ntfHandle);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done;
+	}
+
 	if ((rc = ntfa_hdl_cbk_dispatch(&ntfa_cb, hdl_rec, dispatchFlags)) != SA_AIS_OK)
 		TRACE("NTFA_DISPATCH_FAILURE");
 
@@ -1601,6 +1621,14 @@ SaAisErrorT saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
     /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
+
     /** Allocate an ntfa_LOG_STREAM_HDL_REC structure and insert this
      *  into the list of channel hdl record.
      **/
@@ -1683,6 +1711,13 @@ SaAisErrorT saNtfNotificationFree(SaNtfNotificationHandleT notificationHandle)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done_give_hdl;
 	}
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		ncshm_give_hdl(client_handle);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	/* free the resources allocated by saNtf<ntfType>NotificationAllocate */
 	ntfa_notification_destructor(notification_hdl_rec);
@@ -1753,6 +1788,14 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done_give_hdl;
 	}
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		ncshm_give_hdl(client_handle);
+		goto done_give_hdl;
+	}
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 
 	/* Check NTF server availability */
@@ -1764,7 +1807,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		if ((rc = recoverClient(client_rec)) != SA_AIS_OK) {
 			ncshm_give_hdl(client_handle);
 			ncshm_give_hdl(notificationHandle);
-			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+			if ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_UNAVAILABLE)) {
 				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_rec);
 				osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -1862,6 +1905,10 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 		rc = o_msg->info.api_resp_info.rc;
 		TRACE("Bad return status!!! rc = %d", rc);
+		/*Check CLM membership of node.*/
+		if (rc == SA_AIS_ERR_UNAVAILABLE) {
+			TRACE("Node not CLM member or stale client");
+		}
 		goto done_give_hdls;
 	}
 	/* Return the notificationId to client from right notification */
@@ -2037,7 +2084,12 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 			goto done;
 		}
 	}
-
+	/*Check CLM membership of node.*/
+	if (client_hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done;
+	}
 	tmpHandle = ntfHandleGet(subscriptionId);
 	if (tmpHandle != 0) {
 		rc = SA_AIS_ERR_EXIST;
@@ -2079,6 +2131,10 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 
 	if (rc != SA_AIS_OK) {
 		subscriberListItemRemove(subscriptionId);
+		/*Check CLM membership of node.*/
+		if (rc == SA_AIS_ERR_UNAVAILABLE) {
+			TRACE("Node not CLM member or stale client");
+		}
 	}
 	if (o_msg)
 		ntfa_msg_destroy(o_msg);
@@ -2097,13 +2153,12 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		if (notificationFilterHandles->alarmFilterHandle)
 			ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
 	}
-	if (recovery_failed && rc == SA_AIS_ERR_BAD_HANDLE) {
+	if (recovery_failed && ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_UNAVAILABLE))) {
 		osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 		ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
 		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 		ntfa_shutdown(false);
 	}
-
 	TRACE_LEAVE();
 	return rc;
 }
@@ -2155,7 +2210,13 @@ saNtfObjectCreateDeleteNotificationAllocate(SaNtfHandleT ntfHandle,
 
     /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
-
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -2229,7 +2290,13 @@ saNtfAttributeChangeNotificationAllocate(SaNtfHandleT ntfHandle,
 	}
     /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
-
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -2302,6 +2369,13 @@ saNtfStateChangeNotificationAllocate(SaNtfHandleT ntfHandle,
 
     /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -2372,6 +2446,13 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 	}
     /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -2444,6 +2525,14 @@ SaAisErrorT saNtfPtrValAllocate(SaNtfNotificationHandleT notificationHandle,
 	}
 
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		ncshm_give_hdl(client_handle);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	rc = ntfsv_ptr_val_alloc(&notification_hdl_rec->variable_data, value, dataSize, dataPtr);
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 	ncshm_give_hdl(client_handle);
@@ -2484,6 +2573,14 @@ SaAisErrorT saNtfArrayValAllocate(SaNtfNotificationHandleT notificationHandle,
 		goto done_give_hdl;
 	}
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		ncshm_give_hdl(client_handle);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	rc = ntfsv_array_val_alloc(&notification_hdl_rec->variable_data, value, numElements, elementSize, arrayPtr);
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 	ncshm_give_hdl(client_handle);
@@ -2569,6 +2666,14 @@ SaAisErrorT saNtfPtrValGet(SaNtfNotificationHandleT notificationHandle,
 	}
 
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		ncshm_give_hdl(client_handle);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	rc = ntfsv_ptr_val_get(&notification_hdl_rec->variable_data, value, dataPtr, dataSize);
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
 	ncshm_give_hdl(client_handle);
@@ -2616,6 +2721,14 @@ SaAisErrorT saNtfArrayValGet(SaNtfNotificationHandleT notificationHandle,
 	}
 
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		ncshm_give_hdl(client_handle);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 	rc = ntfsv_array_val_get(&notification_hdl_rec->variable_data, value, arrayPtr, numElements, elementSize);
 	ncshm_give_hdl(client_handle);
 	osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -2656,6 +2769,13 @@ SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHa
 
 	 /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
 	if (filter_hdl_rec == NULL) {
@@ -2736,6 +2856,13 @@ SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandl
 
 	 /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
 	if (filter_hdl_rec == NULL) {
@@ -2818,6 +2945,13 @@ SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 
 	 /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
 	if (filter_hdl_rec == NULL) {
@@ -2899,6 +3033,13 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 
     /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
 	if (filter_hdl_rec == NULL) {
@@ -2983,6 +3124,13 @@ SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 
 	 /**                 Lock ntfa_CB                 **/
 	osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
 	if (filter_hdl_rec == NULL) {
@@ -3065,6 +3213,14 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
 		goto done_give_hdl;
 	}
 
+	/*Check CLM membership of node.*/
+	if (client_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		ncshm_give_hdl(client_handle);
+		goto done_give_hdl;
+	}
 	/* free the resources allocated by saNtf<ntfType>FilterAllocate */
 	ntfa_filter_destructor(filter_hdl_rec);
 
@@ -3128,6 +3284,12 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
+	/*Check CLM membership of node.*/
+	if (client_hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	if (client_hdl_rec->valid) {
 		/**
@@ -3153,6 +3315,10 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 		if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 			rc = o_msg->info.api_resp_info.rc;
 			TRACE_1("Bad return status! rc = %d", rc);
+			/*Check CLM membership of node.*/
+			if (rc == SA_AIS_ERR_UNAVAILABLE) {
+				TRACE("Node not CLM member or stale client");
+			}
 			goto done_give_hdl;
 		}
 	}
@@ -3189,7 +3355,7 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 
 	if (!client_hdl_rec->valid && getServerState() == NTFA_NTFSV_UP) {
 		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
-			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+			if ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_UNAVAILABLE)) {
 				ncshm_give_hdl(ntfHandle);
 				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
@@ -3256,6 +3422,12 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 		TRACE("getFilters failed");
 		goto done_give_client_hdl;
 	} 
+	/*Check CLM membership of node.*/
+	if (client_hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_client_hdl;
+	}
 	
 	/* Check NTF server availability */
 	if ((rc = checkNtfServerState()) != SA_AIS_OK)
@@ -3292,6 +3464,10 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 		rc = o_msg->info.api_resp_info.rc;
 		TRACE("Bad return status!!! rc = %d", rc);
+		/*Check CLM membership of node.*/
+		if (rc == SA_AIS_ERR_UNAVAILABLE) {
+			TRACE("Node not CLM member or stale client");
+		}
 		goto done_give_client_hdl;
 	}
 
@@ -3341,7 +3517,7 @@ done_give_client_hdl:
 	}
 
 	ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
-	if (recovery_failed && rc == SA_AIS_ERR_BAD_HANDLE) {
+	if (recovery_failed && ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_UNAVAILABLE))) {
 		osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 		ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
 		osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -3387,6 +3563,12 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done_give_read_hdl;
 	}
+	/*Check CLM membership of node.*/
+	if (client_hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdls;
+	}
 	TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
 
 	if (client_hdl_rec->valid) {
@@ -3412,6 +3594,10 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 		if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 			rc = o_msg->info.api_resp_info.rc;
 			TRACE("Bad return status!!! rc = %d", rc);
+			/*Check CLM membership of node.*/
+			if (rc == SA_AIS_ERR_UNAVAILABLE) {
+				TRACE("Node not CLM member or stale client");
+			}
 			goto done_give_hdls;
 		}
 
@@ -3435,7 +3621,7 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 
 	if (!client_hdl_rec->valid && getServerState() == NTFA_NTFSV_UP) {
 		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
-			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+			if ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_UNAVAILABLE)) {
 				ncshm_give_hdl(client_hdl_rec->local_hdl);
 				ncshm_give_hdl(readhandle);
 				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
@@ -3497,6 +3683,12 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done_give_read_hdl;
 	}
+	/*Check CLM membership of node.*/
+	if (client_hdl_rec->is_stale_client == true) {
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdls;
+	}
 	TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
 
 	/* Check NTF server availability */
@@ -3507,7 +3699,7 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
 			ncshm_give_hdl(client_hdl_rec->local_hdl);
 			ncshm_give_hdl(readHandle);
-			if (rc == SA_AIS_ERR_BAD_HANDLE) {
+			if ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_UNAVAILABLE)) {
 				osafassert(pthread_mutex_lock(&ntfa_cb.cb_lock) == 0);
 				ntfa_hdl_rec_force_del(&ntfa_cb.client_list, client_hdl_rec);
 				osafassert(pthread_mutex_unlock(&ntfa_cb.cb_lock) == 0);
@@ -3539,6 +3731,10 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 		if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 			rc = o_msg->info.api_resp_info.rc;
 			TRACE("error: response msg rc = %d", rc);
+			/*Check CLM membership of node.*/
+			if (rc == SA_AIS_ERR_UNAVAILABLE) {
+				TRACE("Node not CLM member or stale client");
+			}
 			goto done_give_hdls;
 		}
 		if (o_msg->info.api_resp_info.type != NTFSV_READ_NEXT_RSP) {

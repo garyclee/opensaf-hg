@@ -53,6 +53,8 @@ static unsigned int ntfa_create(void)
 
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	ntfa_cb.ntfs_sync_awaited = 0;
+	ntfa_cb.clm_node_state = SA_CLM_NODE_JOINED;
+
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
 	/* No longer needed */
@@ -1149,6 +1151,7 @@ ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb, const SaNtfCallbacksT *re
      **/
 	rec->ntfs_client_id = client_id;
 	rec->valid = true;
+	rec->is_stale_client = false;
     /** Initialize and attach the IPC/Priority queue
      **/
 
