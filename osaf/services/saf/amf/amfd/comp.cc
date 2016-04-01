@@ -161,7 +161,13 @@ void AVD_COMP::avd_comp_pres_state_set(SaAmfPresenceStateT pres_state)
 				node->name.value);
 		LOG_NO("Node Failfast for '%s' as '%s' enters Term/Inst Failed state",
 				node->name.value,comp_info.name.value);
-		avd_d2n_reboot_snd(node);
+		
+		if (node->node_state < AVD_AVND_STATE_PRESENT) {
+			// reboot when node_up is processed
+			node->reboot = true;
+		} else {
+			avd_d2n_reboot_snd(node);
+		}
 	}
 	TRACE_LEAVE();
 }

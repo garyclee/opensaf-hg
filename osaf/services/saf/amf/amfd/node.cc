@@ -57,6 +57,7 @@ uint32_t avd_node_add_nodeid(AVD_AVND *node)
 
 	if ((node_id_db->find(node->node_info.nodeId) == nullptr) &&
 			(node->node_info.nodeId != 0)) {
+		TRACE("added node %d", node->node_info.nodeId);
 		rc = node_id_db->insert(node->node_info.nodeId, node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -161,11 +162,11 @@ AVD_AVND::~AVD_AVND() {
 //
 AVD_AVND *avd_node_new(const SaNameT *dn)
 {
-  AVD_AVND *node;
-
-  node = new AVD_AVND(dn);
-
-  return node;
+	AVD_AVND *node;
+	node = new AVD_AVND(dn);
+	node->node_up_msg_count = 0;
+	node->reboot = false;
+	return node;
 }
 
 void avd_node_delete(AVD_AVND *node)
@@ -463,8 +464,10 @@ void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state)
 	osafassert(node_state <= AVD_AVND_STATE_NCS_INIT);
 	TRACE_ENTER2("'%s' %s => %s",	node->name.value, node_state_name[node->node_state],
 		node_state_name[node_state]);
-	node->node_state = node_state;
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_NODE_STATE);
+	if (node->node_state != node_state) {
+		node->node_state = node_state;
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_NODE_STATE);
+	}
 	TRACE_LEAVE();
 }
 

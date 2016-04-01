@@ -357,7 +357,23 @@ uint32_t avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uint16_t msg_fmt
 		cb->peer_msg_fmt_ver = msg_fmt_ver;
 	}
 
-	evt->rcv_evt = static_cast<AVD_EVT_TYPE>((rcv_msg->msg_type - AVSV_N2D_NODE_UP_MSG) + AVD_EVT_NODE_UP_MSG);
+	switch (rcv_msg->msg_type) {
+		case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
+			// 'offset lookup' can't be used for this
+			evt->rcv_evt = AVD_EVT_ND_SISU_STATE_INFO_MSG;
+			break;
+		case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
+			// 'offset lookup' can't be used for this
+			evt->rcv_evt = AVD_EVT_ND_CSICOMP_STATE_INFO_MSG;
+			break;
+		default:
+			evt->rcv_evt = static_cast<AVD_EVT_TYPE>((rcv_msg->msg_type - AVSV_N2D_NODE_UP_MSG) + AVD_EVT_NODE_UP_MSG);
+			break;
+	}
+
+	osafassert((AVD_EVT_INVALID < evt->rcv_evt)
+		&& (evt->rcv_evt < AVD_EVT_MAX));
+
 	evt->info.avnd_msg = rcv_msg;
 
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {

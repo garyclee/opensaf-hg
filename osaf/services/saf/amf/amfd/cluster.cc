@@ -25,6 +25,7 @@
 #include <imm.h>
 #include <evt.h>
 #include <proc.h>
+#include <si_dep.h>
 
 /* Singleton cluster object */
 static AVD_CLUSTER _avd_cluster;
@@ -52,6 +53,7 @@ AVD_CLUSTER *avd_cluster = &_avd_cluster;
 void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	TRACE_ENTER();
+	AVD_SU *su = nullptr;
 	saflog(LOG_NOTICE, amfSvcUsrName, "Cluster startup timeout, assigning SIs to SUs");
 
 	osafassert(evt->info.tmr.type == AVD_TMR_CL_INIT);
@@ -80,10 +82,54 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		if ((i_sg->list_of_su.empty() == true) || (i_sg->sg_ncs_spec == true)) {
 			continue;
 		}
-		i_sg->realign(cb, i_sg);
+
+		if (i_sg->sg_fsm_state == AVD_SG_FSM_STABLE)
+			i_sg->realign(cb, i_sg);
+	}
+
+	if (cb->scs_absence_max_duration > 0) {
+		TRACE("check if any SU is auto repair enabled");
+
+		for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
+			it != su_db->end(); it++) {
+
+			su = it->second;
+
+			if (su->list_of_susi == nullptr &&
+				su->su_on_node != nullptr &&
+				su->su_on_node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) {
+				su_try_repair(su);
+			}
+		}
 	}
 
 done:
+	TRACE_LEAVE();
+}
+
+/****************************************************************************
+ *  Name          : avd_node_sync_tmr_evh
+ *
+ *  Description   : This is node sync timer expiry routine handler
+ *
+ *  Arguments     : cb         -  AvD cb
+ *                  evt        -  ptr to the received event
+ *
+ *  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ *  Notes         : None.
+ ***************************************************************************/
+void avd_node_sync_tmr_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+	TRACE_ENTER();
+
+	osafassert(evt->info.tmr.type == AVD_TMR_NODE_SYNC);
+	LOG_NO("NodeSync timeout");
+
+	// Setting true here to indicate the node sync window has closed
+	// Further node up message will be treated specially
+	cb->node_sync_window_closed = true;
+
 	TRACE_LEAVE();
 }
 

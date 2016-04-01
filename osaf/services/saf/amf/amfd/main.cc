@@ -100,11 +100,14 @@ static const AVD_EVT_HDLR g_actv_list[AVD_EVT_MAX] = {
 	invalid_evh,         /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
 	avd_ack_nack_evh,	     /* AVD_EVT_VERIFY_ACK_NACK_MSG */
 	avd_comp_validation_evh, /* AVD_EVT_COMP_VALIDATION_MSG */
+	avd_nd_sisu_state_info_evh,       /* AVD_EVT_ND_SISU_STATE_INFO_MSG */
+	avd_nd_compcsi_state_info_evh, 	  /* AVD_EVT_ND_COMPCSI_STATE_INFO_MSG */
 
 	/* active AvD timer events processing */
 	avd_tmr_snd_hb_evh,       /* AVD_EVT_TMR_SND_HB */
 	avd_cluster_tmr_init_evh, /* AVD_EVT_TMR_CL_INIT */
 	avd_sidep_tol_tmr_evh,   /* AVD_EVT_TMR_SI_DEP_TOL */
+	avd_node_sync_tmr_evh,   /* AVD_EVT_TMR_ALL_NODE_UP */
 
 	/* active AvD MDS events processing */
 	avd_mds_avd_up_evh,	/* AVD_EVT_MDS_AVD_UP */
@@ -139,11 +142,15 @@ static const AVD_EVT_HDLR g_stndby_list[AVD_EVT_MAX] = {
 	standby_invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
 	standby_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
 	standby_invalid_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	standby_invalid_evh,    /* AVD_EVT_ND_SUSI_STATE_INFO_MSG */
+	standby_invalid_evh,	/* AVD_EVT_ND_COMPCSI_STATE_INFO_MSG */
+
 
 	/* standby AvD timer events processing */
 	avd_tmr_snd_hb_evh,           /* AVD_EVT_TMR_SND_HB */
 	standby_invalid_evh,      /* AVD_EVT_TMR_CL_INIT */
 	avd_sidep_tol_tmr_evh,      /* AVD_EVT_TMR_SI_DEP_TOL */
+	standby_invalid_evh,      /* AVD_EVT_TMR_ALL_NODE_UP */
 
 	/* standby AvD MDS events processing */
 	avd_mds_avd_up_evh,       /* AVD_EVT_MDS_AVD_UP */
@@ -177,11 +184,14 @@ static const AVD_EVT_HDLR g_quiesc_list[AVD_EVT_MAX] = {
 	invalid_evh,	/* AVD_EVT_SHUTDOWN_APP_SU_MSG */
 	qsd_invalid_evh,	/* AVD_EVT_VERIFY_ACK_NACK_MSG */
 	avd_comp_validation_evh,	/* AVD_EVT_COMP_VALIDATION_MSG */
+	qsd_invalid_evh,	/* AVD_EVT_ND_SISU_STATE_INFO_MSG */
+	qsd_invalid_evh, /* AVD_EVT_ND_COMPCSI_STATE_INFO_MSG */
 
 	/* active AvD timer events processing */
 	avd_tmr_snd_hb_evh,     /* AVD_EVT_TMR_SND_HB */
 	qsd_ignore_evh,	/* AVD_EVT_TMR_CL_INIT */
 	avd_sidep_tol_tmr_evh,	/* AVD_EVT_TMR_SI_DEP_TOL */
+	qsd_ignore_evh,      /* AVD_EVT_TMR_ALL_NODE_UP */
 
 	/* active AvD MDS events processing */
 	avd_mds_avd_up_evh,	/* AVD_EVT_MDS_AVD_UP */
@@ -532,6 +542,9 @@ static uint32_t initialize(void)
 	cb->heartbeat_tmr.is_active = false;
 	cb->heartbeat_tmr.type = AVD_TMR_SND_HB;
 	cb->heartbeat_tmr_period = AVSV_DEF_HB_PERIOD;
+	cb->all_nodes_synced = false;
+	cb->node_sync_window_closed = false;
+	cb->scs_absence_max_duration = 0;
 
 	if ((val = getenv("AVSV_HB_PERIOD")) != nullptr) {
 		cb->heartbeat_tmr_period = strtoll(val, nullptr, 0);
@@ -598,6 +611,13 @@ static uint32_t initialize(void)
 			LOG_ER("avd_active_role_initialization FAILED");
 			goto done;
 		}
+
+		/* in a normal cluster start there will be no assignments object found so
+		 * nothing happens. Used to cleanup cached RTAs after SCs recover after
+		 * being headless.
+		 */
+		avd_susi_cleanup();
+		avd_compcsi_cleanup();
 	}
 	else {
 		rc = avd_standby_role_initialization(cb);
@@ -780,6 +800,8 @@ static void main_loop(void)
  **************************************************************************/
 static void process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
+	TRACE_ENTER2("evt->rcv_evt %u", evt->rcv_evt);
+
 	/* check the HA state */
 	if (cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) {
 		/* if active call g_avd_actv_list functions */
@@ -824,6 +846,8 @@ static void process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	cb_now->sync_required = true;
 
 	delete evt;
+
+	TRACE_LEAVE();
 }
 
 /**

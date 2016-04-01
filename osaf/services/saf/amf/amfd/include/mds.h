@@ -33,13 +33,13 @@
 
 /* In Service upgrade support */
 #define AVD_MDS_SUB_PART_VERSION_4 4
-#define AVD_MDS_SUB_PART_VERSION   5
+#define AVD_MDS_SUB_PART_VERSION   6
 
 #define AVD_AVND_SUBPART_VER_MIN   1
-#define AVD_AVND_SUBPART_VER_MAX   5
+#define AVD_AVND_SUBPART_VER_MAX   6
 
 #define AVD_AVD_SUBPART_VER_MIN    1
-#define AVD_AVD_SUBPART_VER_MAX    5
+#define AVD_AVD_SUBPART_VER_MAX    6
 
 /* Message format versions */
 #define AVD_AVD_MSG_FMT_VER_1    1
@@ -47,6 +47,7 @@
 #define AVD_AVD_MSG_FMT_VER_3    3
 #define AVD_AVD_MSG_FMT_VER_4    4
 #define AVD_AVD_MSG_FMT_VER_5    5
+#define AVD_AVD_MSG_FMT_VER_6    6
 
 uint32_t avd_mds_set_vdest_role(struct cl_cb_tag *cb, SaAmfHAStateT role);
 uint32_t avd_mds_init(struct cl_cb_tag *cb);

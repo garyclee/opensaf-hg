@@ -1410,3 +1410,108 @@ bool are_sponsor_csis_assigned_in_su(AVD_CSI *csi, AVD_SU *su)
         return true;
 }
 
+/**
+ * Clean up COMPCSI objects by searching for SaAmfCSIAssignment instances in IMM
+ * @return SA_AIS_OK when OK
+ */
+SaAisErrorT avd_compcsi_cleanup(void)
+{
+	SaAisErrorT rc;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	const char *className = "SaAmfCSIAssignment";
+
+	TRACE_ENTER();
+
+	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if ((rc = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
+	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam,
+		  nullptr, &searchHandle)) != SA_AIS_OK) {
+		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
+		goto done;
+	}
+
+	SaNameT csiass_name;
+	const SaImmAttrValuesT_2 **attributes;
+	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &csiass_name,
+				(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
+		avd_saImmOiRtObjectDelete(&csiass_name);
+	}
+
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+
+done:
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+
+/**
+ * Re-create csi assignment and update comp related states, which are
+ * collected after headless
+ * Update relevant runtime attributes
+ * @return SA_AIS_OK when OK
+ */
+SaAisErrorT avd_compcsi_recreate(AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO *info)
+{
+	AVD_SU_SI_REL *susi;
+	const AVD_SI *si;
+	AVD_CSI *csi;
+	AVD_COMP *comp;
+	const AVSV_CSICOMP_STATE_MSG *csicomp;
+	const AVSV_COMP_STATE_MSG *comp_state;
+
+	TRACE_ENTER();
+
+	for (csicomp = info->csicomp_list; csicomp != nullptr; csicomp=csicomp->next) {
+		csi = csi_db->find(Amf::to_string(&csicomp->safCSI));
+		osafassert(csi);
+
+		comp = comp_db->find(Amf::to_string(&csicomp->safComp));
+		osafassert(comp);
+
+		TRACE("Received CSICOMP state msg: csi %s, comp %s",
+			(char*)&csicomp->safCSI.value, (char*)&csicomp->safComp.value);
+
+		si = csi->si;
+		osafassert(si);
+
+		susi = avd_susi_find(avd_cb, &comp->su->name, &si->name);
+		if (susi == 0) {
+			LOG_ER("SU_SI_REL record for SU '%s' and SI '%s' was not found",
+                         comp->su->name.value, si->name.value);
+			return SA_AIS_ERR_NOT_EXIST;
+		}
+
+		AVD_COMP_CSI_REL *compcsi = avd_compcsi_create(susi, csi, comp, true);
+		osafassert(compcsi);
+	}
+
+	for (comp_state = info->comp_list; comp_state != nullptr; comp_state = comp_state->next) {
+		comp = comp_db->find(Amf::to_string(&comp_state->safComp));
+		osafassert(comp);
+
+		// operation state
+		comp->avd_comp_oper_state_set(static_cast<SaAmfOperationalStateT>(comp_state->comp_oper_state));
+
+		// . update saAmfCompReadinessState after SU:saAmfSuReadinessState
+		// . saAmfCompCurrProxyName and saAmfCompCurrProxiedNames wouldn't change during headless
+		//   so they need not to update
+
+		// presense state
+		comp->avd_comp_pres_state_set(static_cast<SaAmfPresenceStateT>(comp_state->comp_pres_state));
+
+		// restart count
+		comp->saAmfCompRestartCount = comp_state->comp_restart_cnt;
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_RESTART_COUNT);
+		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+			const_cast<SaImmAttrNameT>("saAmfCompRestartCount"), SA_IMM_ATTR_SAUINT32T,
+			&comp->saAmfCompRestartCount);
+	}
+
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+

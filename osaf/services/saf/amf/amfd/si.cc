@@ -614,6 +614,10 @@ static AVD_SI *si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes
 		si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
 	}
 
+	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfUnassignedAlarmStatus"), attributes, 0, &si->alarm_sent) != SA_AIS_OK) {
+		/* Empty, assign default value */
+		si->alarm_sent = false;
+	}
 	rc = 0;
 
 done:
@@ -653,6 +657,7 @@ SaAisErrorT avd_si_config_get(AVD_APP *app)
 		const_cast<SaImmAttrNameT>("saAmfSIPrefActiveAssignments"),
 		const_cast<SaImmAttrNameT>("saAmfSIPrefStandbyAssignments"),
 		const_cast<SaImmAttrNameT>("saAmfSIAdminState"),
+		const_cast<SaImmAttrNameT>("saAmfUnassignedAlarmStatus"),
 		nullptr
 	};
 
@@ -1273,8 +1278,6 @@ void AVD_SI::update_ass_state()
 		if (saAmfSINumCurrActiveAssignments == 0) {
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 		} else {
-			osafassert(saAmfSINumCurrActiveAssignments == 1);
-			osafassert(saAmfSINumCurrStandbyAssignments == 0);
 			newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 		}
 		break;
@@ -1294,21 +1297,14 @@ void AVD_SI::update_ass_state()
 
 		/* alarm & notifications */
 		if (saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED) {
-			avd_send_si_unassigned_alarm(&name);
-			alarm_sent = true;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ALARM_SENT);
+			update_alarm_state(true);
 		}
 		else {
 			avd_send_si_assigned_ntf(&name, oldState, saAmfSIAssignmentState);
-			
 			/* Clear of alarm */
 			if ((oldState == SA_AMF_ASSIGNMENT_UNASSIGNED) && alarm_sent) {
-				avd_alarm_clear(&name, SA_AMF_NTFID_SI_UNASSIGNED, SA_NTF_SOFTWARE_ERROR);
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ALARM_SENT);
+				update_alarm_state(false);
 			}
-
-			/* always reset in case the SI has been recycled */
-			alarm_sent = false;
 		}
 
 		avd_saImmOiRtObjectUpdate(&name, "saAmfSIAssignmentState",
@@ -1499,4 +1495,29 @@ const AVD_SIRANKEDSU *AVD_SI::get_si_ranked_su(const std::string &su_name) const
   }
 
   return sirankedsu;
+}
+
+/*
+ * @brief Update alarm_sent by new value of @alarm_state,
+ *        then update saAmfUnassignedAlarmStatus IMM attribute
+ *        and raise/clear SI unassigned alarm (if specified) accordingly
+ * @param [in] @alarm_state: Indication of alarm raising/clearing
+ * @param [in] @sent_notification: Indication of sending alarm
+ *                                 raising/clearing notification
+ */
+void AVD_SI::update_alarm_state(bool alarm_state, bool sent_notification)
+{
+	alarm_sent = alarm_state;
+	avd_saImmOiRtObjectUpdate(&name, "saAmfUnassignedAlarmStatus",
+		SA_IMM_ATTR_SAUINT32T, &alarm_sent);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SI_ALARM_SENT);
+
+	if (sent_notification == true) {
+		if (alarm_sent == true) {
+			avd_send_si_unassigned_alarm(&name);
+		}
+		else {
+			avd_alarm_clear(&name, SA_AMF_NTFID_SI_UNASSIGNED, SA_NTF_SOFTWARE_ERROR);
+		}
+	}
 }
