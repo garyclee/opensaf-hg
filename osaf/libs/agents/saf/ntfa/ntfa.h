@@ -120,6 +120,7 @@ typedef struct ntfa_client_hdl_rec {
 	SYSF_MBX mbx;		/* priority q mbx b/w MDS & Library */
 	struct ntfa_client_hdl_rec *next;	/* next pointer for the list in ntfa_cb_t */
 	bool valid;		/* handle is valid if it's known by NTF server, used for headless hydra */
+	bool is_stale_client;  /* Status of client based on the CLM status of node.*/
 	SaVersionT version; /* the API version is being used by client, used for recover after headless */
 } ntfa_client_hdl_rec_t;
 
@@ -148,6 +149,7 @@ typedef struct {
 	SaUint32T ntf_var_data_limit;	/* max allowed variableDataSize */
 	/* NTF Server state */
 	ntfa_ntfsv_state_t ntfa_ntfsv_state;
+	SaClmClusterChangesT clm_node_state; /*Reflects CLM status of this node(for future use).*/
 } ntfa_cb_t;
 
 /* ntfa_saf_api.c */
