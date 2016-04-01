@@ -60,6 +60,9 @@
 /* Default Heart beat duration */
 #define AVSV_DEF_HB_DURATION (60 * SA_TIME_ONE_SECOND)
 
+/* Default sync node duration */
+#define AVSV_DEF_NODE_SYNC_PERIOD (10 * SA_TIME_ONE_SECOND)
+
 typedef enum {
 	AVSV_COMP_TYPE_INVALID,
 	AVSV_COMP_TYPE_SA_AWARE,

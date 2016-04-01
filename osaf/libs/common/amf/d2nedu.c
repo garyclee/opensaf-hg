@@ -57,6 +57,7 @@ uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	AVSV_DND_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	uint16_t ver3 = AVSV_AVD_AVND_MSG_FMT_VER_3;
 	uint16_t ver5 = AVSV_AVD_AVND_MSG_FMT_VER_5;
+	uint16_t ver6 = AVSV_AVD_AVND_MSG_FMT_VER_6;
 
 	EDU_INST_SET avsv_dnd_msg_rules[] = {
 		{EDU_START, avsv_edp_dnd_msg, 0, 0, 0,
@@ -71,8 +72,14 @@ uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		/* AVSV_N2D_NODE_UP_MSG_INFO */
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.msg_id, 0, NULL},
+		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver6)))},
+		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.leds_set, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.node_id, 0, NULL},
+		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver6)))},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.node_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_node_up.adest_address, 0, NULL},
 
@@ -365,6 +372,34 @@ uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, EDU_EXIT,
 			(long)&((AVSV_DND_MSG *)0)->msg_info.d2n_reboot_info.node_id, 0, NULL},
 
+		/* AVSV_N2D_ND_SISU_STATE_INFO_MSG */
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+			(long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_sisu_state_info.msg_id, 0, NULL},
+		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0,
+			(long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_sisu_state_info.node_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		(long)&((AVSV_DND_MSG*)0)->msg_info.n2d_nd_sisu_state_info.num_sisu, 0, NULL},
+		{EDU_EXEC, avsv_edp_sisu_state_info_msg, EDQ_POINTER, 0, 0,
+			 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_sisu_state_info.sisu_list, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+			(long)&((AVSV_DND_MSG*)0)->msg_info.n2d_nd_sisu_state_info.num_su, 0, NULL},
+		{EDU_EXEC, avsv_edp_su_state_info_msg, EDQ_POINTER, 0, EDU_EXIT,
+			 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_sisu_state_info.su_list, 0, NULL},
+
+		/* AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG */
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+			(long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_csicomp_state_info.msg_id, 0, NULL},
+		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0,
+			(long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_csicomp_state_info.node_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+			(long)&((AVSV_DND_MSG*)0)->msg_info.n2d_nd_csicomp_state_info.num_csicomp, 0, NULL},
+		{EDU_EXEC, avsv_edp_csicomp_state_info_msg, EDQ_POINTER, 0, 0,
+			 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_csicomp_state_info.csicomp_list, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+			(long)&((AVSV_DND_MSG*)0)->msg_info.n2d_nd_csicomp_state_info.num_comp, 0, NULL},
+		{EDU_EXEC, avsv_edp_comp_state_info_msg, EDQ_POINTER, 0, EDU_EXIT,
+			 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_csicomp_state_info.comp_list, 0, NULL},
+
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -404,33 +439,35 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 {
 	enum {
 		LCL_JMP_OFFSET_AVSV_N2D_NODE_UP_MSG = 1,
-		LCL_JMP_OFFSET_AVSV_N2D_REG_SU_MSG = 4,
-		LCL_JMP_OFFSET_AVSV_N2D_REG_COMP_MSG = 8,
-		LCL_JMP_OFFSET_AVSV_N2D_OPERATION_STATE_MSG = 12,
-		LCL_JMP_OFFSET_AVSV_N2D_INFO_SU_SI_ASSIGN_MSG = 18,
-		LCL_JMP_OFFSET_AVSV_N2D_PG_TRACK_ACT_MSG = 27,
-		LCL_JMP_OFFSET_AVSV_N2D_OPERATION_REQUEST_MSG = 32,
-		LCL_JMP_OFFSET_AVSV_N2D_DATA_REQUEST_MSG = 36,
-		LCL_JMP_OFFSET_AVSV_N2D_SHUTDOWN_APP_SU_MSG = 39,
-		LCL_JMP_OFFSET_AVSV_N2D_VERIFY_ACK_NACK_MSG = 41,
-		LCL_JMP_OFFSET_AVSV_D2N_CLM_NODE_UP_MSG = 44,
-		LCL_JMP_OFFSET_AVSV_D2N_REG_SU_MSG = 48,
-		LCL_JMP_OFFSET_AVSV_D2N_REG_COMP_MSG = 53,
-		LCL_JMP_OFFSET_AVSV_D2N_INFO_SU_SI_ASSIGN_MSG = 58,
-		LCL_JMP_OFFSET_AVSV_D2N_PG_TRACK_ACT_RSP_MSG = 70,
-		LCL_JMP_OFFSET_AVSV_D2N_PG_UPD_MSG = 77,
-		LCL_JMP_OFFSET_AVSV_D2N_OPERATION_REQUEST_MSG = 81,
-		LCL_JMP_OFFSET_AVSV_D2N_PRESENCE_SU_MSG = 84,
-		LCL_JMP_OFFSET_AVSV_D2N_DATA_VERIFY_MSG = 88,
-		LCL_JMP_OFFSET_AVSV_D2N_DATA_ACK_MSG = 93,
-		LCL_JMP_OFFSET_AVSV_D2N_SHUTDOWN_APP_SU_MSG = 95,
-		LCL_JMP_OFFSET_AVSV_D2N_SET_LEDS_MSG = 97,
-		LCL_JMP_OFFSET_AVSV_N2D_COMP_VALID_MSG = 99,
-		LCL_JMP_OFFSET_AVSV_D2N_COMP_VALID_RESP_MSG = 107,
-		LCL_JMP_OFFSET_AVSV_D2N_ROLE_CHANGE_MSG = 111,
-		LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG = 114,
-		LCL_JMP_OFFSET_AVSV_D2N_HEARTBEAT_MSG = 118,
-		LCL_JMP_OFFSET_AVSV_D2N_REBOOT_MSG = 119
+		LCL_JMP_OFFSET_AVSV_N2D_REG_SU_MSG = 8,
+		LCL_JMP_OFFSET_AVSV_N2D_REG_COMP_MSG = 12,
+		LCL_JMP_OFFSET_AVSV_N2D_OPERATION_STATE_MSG = 16,
+		LCL_JMP_OFFSET_AVSV_N2D_INFO_SU_SI_ASSIGN_MSG = 22,
+		LCL_JMP_OFFSET_AVSV_N2D_PG_TRACK_ACT_MSG = 31,
+		LCL_JMP_OFFSET_AVSV_N2D_OPERATION_REQUEST_MSG = 36,
+		LCL_JMP_OFFSET_AVSV_N2D_DATA_REQUEST_MSG = 40,
+		LCL_JMP_OFFSET_AVSV_N2D_SHUTDOWN_APP_SU_MSG = 43,
+		LCL_JMP_OFFSET_AVSV_N2D_VERIFY_ACK_NACK_MSG = 45,
+		LCL_JMP_OFFSET_AVSV_D2N_CLM_NODE_UP_MSG = 48,
+		LCL_JMP_OFFSET_AVSV_D2N_REG_SU_MSG = 52,
+		LCL_JMP_OFFSET_AVSV_D2N_REG_COMP_MSG = 57,
+		LCL_JMP_OFFSET_AVSV_D2N_INFO_SU_SI_ASSIGN_MSG = 62,
+		LCL_JMP_OFFSET_AVSV_D2N_PG_TRACK_ACT_RSP_MSG = 74,
+		LCL_JMP_OFFSET_AVSV_D2N_PG_UPD_MSG = 81,
+		LCL_JMP_OFFSET_AVSV_D2N_OPERATION_REQUEST_MSG = 85,
+		LCL_JMP_OFFSET_AVSV_D2N_PRESENCE_SU_MSG = 88,
+		LCL_JMP_OFFSET_AVSV_D2N_DATA_VERIFY_MSG = 92,
+		LCL_JMP_OFFSET_AVSV_D2N_DATA_ACK_MSG = 97,
+		LCL_JMP_OFFSET_AVSV_D2N_SHUTDOWN_APP_SU_MSG = 99,
+		LCL_JMP_OFFSET_AVSV_D2N_SET_LEDS_MSG = 101,
+		LCL_JMP_OFFSET_AVSV_N2D_COMP_VALID_MSG = 103,
+		LCL_JMP_OFFSET_AVSV_D2N_COMP_VALID_RESP_MSG = 111,
+		LCL_JMP_OFFSET_AVSV_D2N_ROLE_CHANGE_MSG = 115,
+		LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG = 118,
+		LCL_JMP_OFFSET_AVSV_D2N_HEARTBEAT_MSG = 122,
+		LCL_JMP_OFFSET_AVSV_D2N_REBOOT_MSG = 123,
+		LCL_JMP_OFFSET_AVSV_N2D_ND_SISU_STATE_INFO_MSG = 125,
+		LCL_JMP_OFFSET_AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG = 131
 	};
 	AVSV_DND_MSG_TYPE type;
 
@@ -496,6 +533,11 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		return LCL_JMP_OFFSET_AVSV_D2N_HEARTBEAT_MSG;
 	case AVSV_D2N_REBOOT_MSG:
 		return LCL_JMP_OFFSET_AVSV_D2N_REBOOT_MSG;
+	case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
+		return LCL_JMP_OFFSET_AVSV_N2D_ND_SISU_STATE_INFO_MSG ;
+	case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
+		return LCL_JMP_OFFSET_AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG ;
+
 	default:
 		break;
 	}
@@ -807,3 +849,218 @@ uint32_t avsv_edp_susi_asgn(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_susi_asgn_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
+/*****************************************************************************
+
+  PROCEDURE NAME:   avsv_edp_sisu_state_info_msg
+
+  DESCRIPTION:      EDU program handler for "AVSV_SISU_STATE_MSG" data. This function
+                    is invoked by EDU for performing encode/decode operation
+                    on "AVSV_SISU_STATE_MSG" data.
+
+  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+*****************************************************************************/
+uint32_t avsv_edp_sisu_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVSV_SISU_STATE_MSG *struct_ptr = NULL, **d_ptr = NULL;
+
+	EDU_INST_SET avsv_sisu_state_msg_rules[] = {
+		{EDU_START, avsv_edp_sisu_state_info_msg, EDQ_LNKLIST, 0, 0,
+		 sizeof(AVSV_SISU_STATE_MSG), 0, NULL},
+
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_SISU_STATE_MSG *)0)->safSU, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_SISU_STATE_MSG *)0)->safSI, 0, NULL},
+		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
+		 (long)&((AVSV_SISU_STATE_MSG *)0)->saAmfSISUHAState, 0, NULL},
+
+		{EDU_TEST_LL_PTR, avsv_edp_sisu_state_info_msg, 0, 0, 0,
+		 (long)&((AVSV_SISU_STATE_MSG *)0)->next, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (AVSV_SISU_STATE_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (AVSV_SISU_STATE_MSG **)ptr;
+		if (*d_ptr == NULL) {
+			*d_ptr = malloc(sizeof(AVSV_SISU_STATE_MSG));
+			if (*d_ptr == NULL) {
+				*o_err = EDU_ERR_MEM_FAIL;
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		memset(*d_ptr, '\0', sizeof(AVSV_SISU_STATE_MSG));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_sisu_state_msg_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+	return rc;
+}
+/*****************************************************************************
+
+  PROCEDURE NAME:   avsv_edp_su_state_info_msg
+
+  DESCRIPTION:      EDU program handler for "AVSV_SU_STATE_MSG" data. This function
+                    is invoked by EDU for performing encode/decode operation
+                    on "AVSV_SU_STATE_MSG" data.
+
+  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+*****************************************************************************/
+uint32_t avsv_edp_su_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVSV_SU_STATE_MSG *struct_ptr = NULL, **d_ptr = NULL;
+
+	EDU_INST_SET avsv_su_state_msg_rules[] = {
+		{EDU_START, avsv_edp_su_state_info_msg, EDQ_LNKLIST, 0, 0,
+		 sizeof(AVSV_SU_STATE_MSG), 0, NULL},
+
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_SU_STATE_MSG *)0)->safSU, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_SU_STATE_MSG *)0)->su_restart_cnt, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_SU_STATE_MSG *)0)->su_pres_state, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_SU_STATE_MSG *)0)->su_oper_state, 0, NULL},
+
+		{EDU_TEST_LL_PTR, avsv_edp_su_state_info_msg, 0, 0, 0,
+		 (long)&((AVSV_SU_STATE_MSG *)0)->next, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (AVSV_SU_STATE_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (AVSV_SU_STATE_MSG **)ptr;
+		if (*d_ptr == NULL) {
+			*d_ptr = malloc(sizeof(AVSV_SU_STATE_MSG));
+			if (*d_ptr == NULL) {
+				*o_err = EDU_ERR_MEM_FAIL;
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		memset(*d_ptr, '\0', sizeof(AVSV_SU_STATE_MSG));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_su_state_msg_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+	return rc;
+}
+/*****************************************************************************
+
+  PROCEDURE NAME:   avsv_edp_csicomp_state_info_msg
+
+  DESCRIPTION:      EDU program handler for "AVSV_CSICOMP_STATE_MSG" data. This function
+                    is invoked by EDU for performing encode/decode operation
+                    on "AVSV_CSICOMP_STATE_MSG" data.
+
+  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+*****************************************************************************/
+uint32_t avsv_edp_csicomp_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVSV_CSICOMP_STATE_MSG *struct_ptr = NULL, **d_ptr = NULL;
+
+	EDU_INST_SET avsv_csicomp_state_msg_rules[] = {
+		{EDU_START, avsv_edp_csicomp_state_info_msg, EDQ_LNKLIST, 0, 0,
+		 sizeof(AVSV_CSICOMP_STATE_MSG), 0, NULL},
+
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_CSICOMP_STATE_MSG *)0)->safComp, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_CSICOMP_STATE_MSG *)0)->safCSI, 0, NULL},
+		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
+		 (long)&((AVSV_CSICOMP_STATE_MSG *)0)->saAmfCSICompHAState, 0, NULL},
+
+		{EDU_TEST_LL_PTR, avsv_edp_csicomp_state_info_msg, 0, 0, 0,
+		 (long)&((AVSV_CSICOMP_STATE_MSG *)0)->next, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (AVSV_CSICOMP_STATE_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (AVSV_CSICOMP_STATE_MSG **)ptr;
+		if (*d_ptr == NULL) {
+			*d_ptr = malloc(sizeof(AVSV_CSICOMP_STATE_MSG));
+			if (*d_ptr == NULL) {
+				*o_err = EDU_ERR_MEM_FAIL;
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		memset(*d_ptr, '\0', sizeof(AVSV_CSICOMP_STATE_MSG));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_csicomp_state_msg_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+	return rc;
+
+}
+/*****************************************************************************
+
+  PROCEDURE NAME:   avsv_edp_comp_state_info_msg
+
+  DESCRIPTION:      EDU program handler for "AVSV_COMP_STATE_MSG" data. This function
+                    is invoked by EDU for performing encode/decode operation
+                    on "AVSV_COMP_STATE_MSG" data.
+
+  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+*****************************************************************************/
+uint32_t avsv_edp_comp_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVSV_COMP_STATE_MSG *struct_ptr = NULL, **d_ptr = NULL;
+
+	EDU_INST_SET avsv_comp_state_msg_rules[] = {
+		{EDU_START, avsv_edp_comp_state_info_msg, EDQ_LNKLIST, 0, 0,
+		 sizeof(AVSV_COMP_STATE_MSG), 0, NULL},
+
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_COMP_STATE_MSG *)0)->safComp, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_COMP_STATE_MSG *)0)->comp_restart_cnt, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_COMP_STATE_MSG *)0)->comp_pres_state, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_COMP_STATE_MSG *)0)->comp_oper_state, 0, NULL},
+
+		{EDU_TEST_LL_PTR, avsv_edp_comp_state_info_msg, 0, 0, 0,
+		 (long)&((AVSV_COMP_STATE_MSG *)0)->next, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (AVSV_COMP_STATE_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (AVSV_COMP_STATE_MSG **)ptr;
+		if (*d_ptr == NULL) {
+			*d_ptr = malloc(sizeof(AVSV_COMP_STATE_MSG));
+			if (*d_ptr == NULL) {
+				*o_err = EDU_ERR_MEM_FAIL;
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		memset(*d_ptr, '\0', sizeof(AVSV_COMP_STATE_MSG));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_comp_state_msg_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+	return rc;
+
+}
+
