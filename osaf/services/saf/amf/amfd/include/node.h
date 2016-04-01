@@ -144,6 +144,8 @@ class AVD_AVND {
   bool clm_change_start_preceded; /* to indicate there was CLM start cbk before CLM completed cb. */
   bool recvr_fail_sw; /* to indicate there was node reboot because of node failover/switchover.*/
   AVD_AMF_NG *admin_ng; /* points to the nodegroup on which admin operation is going on.*/
+  uint16_t node_up_msg_count; /* to count of node_up msg that director had received from this node */
+  bool reboot;
 
   //Member functions.
   void node_sus_termstate_set(bool term_state) const;
@@ -210,6 +212,7 @@ extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);
 extern uint32_t avd_node_add_nodeid(AVD_AVND *avnd);
 extern void avd_node_delete_nodeid(AVD_AVND *node);
 extern AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id);
+extern AVD_AVND *avd_node_get(const SaNameT *dn);
 extern SaAisErrorT avd_node_config_get(void);
 extern void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state);
 extern void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state);

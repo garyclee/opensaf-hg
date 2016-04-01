@@ -1245,6 +1245,60 @@ static const SaImmOiCallbacksT_2 avd_callbacks = {
 };
 
 /*****************************************************************************
+ * Function: hydra_config_get
+ *
+ * Purpose: This function checks if Hydra configuration is enabled in IMM
+ *          then set the corresponding value to scs_absence_max_duration variable in
+ *          avd_cb.
+ *
+ * Input: None.
+ *
+ * Returns: SaAisErrorT
+ *
+ * NOTES: If IMM attribute fetching fails that means Hydra
+ *        configuration is disabled.
+ *
+ **************************************************************************/
+static SaAisErrorT hydra_config_get(void)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	const SaImmAttrValuesT_2 **attributes;
+	SaImmAccessorHandleT accessorHandle;
+	SaNameT dn = {0, "opensafImm=opensafImm,safApp=safImmService"};
+	SaImmAttrNameT attrName = const_cast<SaImmAttrNameT>("scAbsenceAllowed");
+	SaImmAttrNameT attributeNames[] = {attrName, nullptr};
+	const SaUint32T *value = nullptr;
+
+	TRACE_ENTER();
+
+	dn.length = strlen((char *)dn.value);
+
+	immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
+	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, attributeNames,
+				(SaImmAttrValuesT_2 ***)&attributes);
+
+	if (rc != SA_AIS_OK) {
+		LOG_WA("saImmOmAccessorGet_2 FAILED %u for %s", rc, dn.value);
+		goto done;
+	}
+
+	value = immutil_getUint32Attr(attributes, attrName, 0);
+	if (value == nullptr) {
+		LOG_WA("immutil_getUint32Attr FAILED for %s", dn.value);
+		goto done;
+	}
+
+	avd_cb->scs_absence_max_duration = *value;
+
+done:
+	immutil_saImmOmAccessorFinalize(accessorHandle);
+	LOG_IN("scs_absence_max_duration: %d", avd_cb->scs_absence_max_duration);
+
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+
+/*****************************************************************************
  * Function: avd_imm_init
  *
  * Purpose: This function Initialize the OI interface and get a selection 
@@ -1499,6 +1553,10 @@ unsigned int avd_imm_config_get(void)
 		goto done;
 
 	if (avd_sidep_config_get() != SA_AIS_OK)
+		goto done;
+
+	/* retrieve hydra configuration from IMM */
+	if (hydra_config_get() != SA_AIS_OK)
 		goto done;
 
 	// SGs needs to adjust configuration once all instances have been added

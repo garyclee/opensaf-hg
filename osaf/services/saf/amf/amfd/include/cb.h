@@ -182,6 +182,7 @@ typedef struct cl_cb_tag {
 	SaClmNodeIdT node_avd_failed;	/* node id where AVD is down */
 
 	AVD_TMR amf_init_tmr;	/* The timer for amf initialisation. */
+	AVD_TMR node_sync_tmr;	/* The timer for reception of all node_up from all PLs. */
 	AVD_TMR heartbeat_tmr;	/* The timer for sending heart beats to nd. */
 	SaTimeT heartbeat_tmr_period;
 
@@ -215,6 +216,8 @@ typedef struct cl_cb_tag {
 	 * Used to skip usage of dependent services in the no-active state
 	 */
 	bool active_services_exist;
+	bool all_nodes_synced;
+	bool node_sync_window_closed;
 
 	/*
 	A list of those SIs for which SI dep tolerance timer is running.
@@ -228,6 +231,8 @@ typedef struct cl_cb_tag {
 	 */
 	std::list<AVD_SI*> sis_in_Tolerance_Timer_state;
 
+	/* The duration that amfd should tolerate the absence of SCs */
+	uint32_t scs_absence_max_duration;
 } AVD_CL_CB;
 
 extern AVD_CL_CB *avd_cb;

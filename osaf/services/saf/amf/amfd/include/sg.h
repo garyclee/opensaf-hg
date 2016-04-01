@@ -593,5 +593,4 @@ extern uint32_t sg_instantiated_su_count(const AVD_SG *sg);
 extern bool sg_stable_after_lock_in_or_unlock_in(AVD_SG *sg);
 extern void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res);
 
-
 #endif

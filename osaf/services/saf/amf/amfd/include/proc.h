@@ -43,6 +43,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_su_si_assign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 				  SaAmfHAStateT role, bool ckpt, AVD_SU_SI_REL **ret_ptr);
+void su_try_repair(const AVD_SU *su);
 void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd);
 uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt);
@@ -58,6 +59,10 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *, AVD_SG *);
 /* The following are for N-way Active redundancy model */
 AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg);
 
+uint32_t avd_count_node_up(AVD_CL_CB *cb);
+uint32_t avd_evt_queue_count(AVD_CL_CB *cb);
+uint32_t avd_count_sync_node_size(AVD_CL_CB *cb);
+void avd_process_state_info_queue(AVD_CL_CB *cb);
 void avd_node_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_reg_su_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 void avd_oper_req_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
@@ -72,6 +77,8 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_node_down_func(AVD_CL_CB *cb, AVD_AVND *avnd);
+void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 uint32_t avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id);
 AVD_AVND *avd_msg_sanity_chk(AVD_EVT *evt, SaClmNodeIdT node_id,
 	AVSV_DND_MSG_TYPE msg_typ, uint32_t msg_id);

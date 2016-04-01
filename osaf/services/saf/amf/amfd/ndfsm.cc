@@ -33,11 +33,221 @@
 AmfDb<uint32_t, AVD_FAIL_OVER_NODE> *node_list_db = 0;      /* SaClmNodeIdT index */
 
 /*****************************************************************************
- * Function: avd_node_up_func
+ * Function: avd_process_state_info_queue
+ *
+ * Purpose:  This function will pull out the queue event and looking for sync
+ * info (sisu, compcsi) event to recover the SI/CSI assignment
+ *
+ * Input: cb - the AVD control block
+ *
+ * Returns: None.
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+void avd_process_state_info_queue(AVD_CL_CB *cb)
+{
+	uint32_t i;
+	const auto queue_size = cb->evt_queue.size();
+	AVD_EVT_QUEUE *queue_evt = nullptr;
+
+	TRACE_ENTER();
+
+	TRACE("queue_size before processing: %lu", queue_size);
+
+	// recover assignments from state info
+	for(i=0 ; i<queue_size ; i++) {
+		queue_evt = cb->evt_queue.front();
+		osafassert(queue_evt->evt);
+		cb->evt_queue.pop();
+
+		TRACE("rcv_evt: %u", queue_evt->evt->rcv_evt);
+
+		if (queue_evt->evt->rcv_evt == AVD_EVT_ND_SISU_STATE_INFO_MSG ||
+			queue_evt->evt->rcv_evt == AVD_EVT_ND_CSICOMP_STATE_INFO_MSG) {
+
+			AVD_DND_MSG* n2d_msg = queue_evt->evt->info.avnd_msg;
+
+			TRACE("msg_type: %u", n2d_msg->msg_type);
+
+			switch(n2d_msg->msg_type) {
+				case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
+					avd_susi_recreate(&n2d_msg->msg_info.n2d_nd_sisu_state_info);
+					break;
+				case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
+					avd_compcsi_recreate(&n2d_msg->msg_info.n2d_nd_csicomp_state_info);
+					break;
+				default:
+					break;
+			}
+
+			avsv_dnd_msg_free(n2d_msg);
+
+			delete queue_evt->evt;
+			delete queue_evt;
+		} else {
+			cb->evt_queue.push(queue_evt);
+		}
+	}
+
+	// Once active amfd looks up the state info from queue, that means node sync
+	// finishes. Therefore, if the queue is empty, this active amfd is coming
+	// from a cluster restart, the alarm state should be reset.
+	// Otherwise, amfd is coming from SC recovery from headless, SI alarm state
+	// should be re-evalutated and raise the alarm in case it's still unassigned.
+	if (queue_size == 0) {
+		for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
+				it != si_db->end(); it++) {
+			AVD_SI *si = it->second;
+			if (si->alarm_sent == true) {
+				si->update_alarm_state(false, false);
+			}
+		}
+	}
+	else {
+		for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
+				it != si_db->end(); it++) {
+			AVD_SI *si = it->second;
+			if (si->alarm_sent == false &&
+					si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED) {
+				si->update_alarm_state(true);
+			}
+		}
+	}
+	TRACE("queue_size after processing: %lu", cb->evt_queue.size());
+	TRACE_LEAVE();
+}
+/*****************************************************************************
+ * Function: avd_count_sync_node_size
+ *
+ * Purpose:  Helper function count the maximum number of node in cluster
+ *           to be synced from headless
+ *
+ * Input: cb - the AVD control block
+ *
+ * Returns: Number of nd
+ *
+ * NOTES:
+ *
+ **************************************************************************/
+uint32_t avd_count_sync_node_size(AVD_CL_CB *cb)
+{
+	uint32_t twon_ncs_su_count = 0;
+	uint32_t count = 0;
+	TRACE_ENTER();
+
+	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
+			it != node_name_db->end(); it++) {
+		AVD_AVND *avnd = it->second;
+		osafassert(avnd);
+		for (const auto& su :avnd->list_of_ncs_su) {
+			if (su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) {
+				twon_ncs_su_count++;
+				continue;
+			}
+		}
+	}
+	// cluster can have 1 SC or more SCs which hosting 2N Opensaf SU
+	// so twon_ncs_su_count at least is 1
+	osafassert(twon_ncs_su_count > 0);
+
+	if (twon_ncs_su_count == 1) {
+		// 1 SC, the rest of nodes could be in sync from headless
+		count = node_name_db->size() - 1;
+	} else {
+		// >=2 SCs, the rest of nodes could be in sync except active/standby SC
+		count = node_name_db->size() - 2;
+	}
+
+	TRACE("sync node size:%d", count);
+	TRACE_LEAVE();
+	return count;
+}
+/*****************************************************************************
+ * Function: avd_count_node_up
+ *
+ * Purpose:  Helper function count number of nodes that sent node_up msg to
+ *           director
+ *
+ * Input: cb - the AVD control block
+ *
+ * Returns: Number of node
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+uint32_t avd_count_node_up(AVD_CL_CB *cb)
+{
+	uint32_t received_count = 0;
+	AVD_AVND *node = nullptr;
+
+	TRACE_ENTER();
+
+	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
+			it != node_name_db->end(); it++) {
+		node = it->second;
+		if (node->node_up_msg_count > 0
+				&& node->node_info.nodeId != cb->node_id_avd
+				&& node->node_info.nodeId != cb->node_id_avd_other)
+			++received_count;
+	}
+	TRACE("Number of node director(s) that director received node_up msg:%u",
+			received_count);
+
+	TRACE_LEAVE();
+	return received_count;
+}
+
+/*****************************************************************************
+ * Function: record_node_up_msg_info
+ *
+ * Purpose:  Update the rcv_msg_id and adest which are sent from amfnd
+ *
+ * Input: avnd - ptr to the appropriate amfnd
+ *        n2d_msg - node_up msg sent from amfnd
+ *
+ * Returns: None
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+void record_node_up_msg_info(AVD_AVND *avnd, const AVD_DND_MSG *n2d_msg)
+{
+	osafassert(avnd != nullptr);
+
+	avnd->adest = n2d_msg->msg_info.n2d_node_up.adest_address;
+
+	if (n2d_msg->msg_info.n2d_node_up.msg_id >= avnd->rcv_msg_id) {
+		LOG_NO("Received node_up from %x: msg_id %u",
+			n2d_msg->msg_info.n2d_node_up.node_id,
+			n2d_msg->msg_info.n2d_node_up.msg_id);
+
+		avnd->rcv_msg_id = n2d_msg->msg_info.n2d_node_up.msg_id;
+	} else {
+		// This is expected after recovering from a headless state.
+		// NODE_UPs will not be processed until all PLs are up.
+		// In the mean time, we may get other messages from amfnd
+		// that pushes up rcv_msg_id
+		LOG_NO("NODE UP from %x: msg_id out of order. rcv_msg_id %u, msg_id %u",
+			n2d_msg->msg_info.n2d_node_up.node_id,
+			avnd->rcv_msg_id,
+			n2d_msg->msg_info.n2d_node_up.msg_id);
+	}
+}
+
+
+
+/*****************************************************************************
+ * Function: avd_node_up_evh
  *
  * Purpose:  This function is the handler for node up event indicating
  * the arrival of the node_up message. Based on the state machine either
- * It will ignore the message or send all the reg messages to the node. 
+ * It will ignore the message or send all the reg messages to the node
+ * or order the node reboot if the node_up message arrives after the node
+ * sync window has closed.
  *
  * Input: cb - the AVD control block
  *        evt - The event information.
@@ -54,14 +264,70 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *avnd = nullptr;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint32_t sync_nd_size = avd_count_sync_node_size(cb);
+	bool act_nd;
 
-	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_node_up.node_id);
+	TRACE_ENTER2("from %x, %s", n2d_msg->msg_info.n2d_node_up.node_id,
+				n2d_msg->msg_info.n2d_node_up.node_name.value);
+
+	act_nd = n2d_msg->msg_info.n2d_node_up.node_id == cb->node_id_avd;
+	if (cb->scs_absence_max_duration > 0 &&
+		cb->all_nodes_synced == false &&
+		cb->node_sync_window_closed == false) {
+		avnd = avd_node_get(&n2d_msg->msg_info.n2d_node_up.node_name);
+		if (avnd == nullptr) {
+			LOG_ER("Invalid node_name. Check node_id");
+
+			// perhaps this is a node_up from an old version of amfnd without headless support
+			// let's check if the node_id is valid
+			if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_node_up.node_id)) == nullptr) {
+				LOG_ER("invalid node ID (%x)", n2d_msg->msg_info.n2d_node_up.node_id);
+				goto done;
+			}
+		}
+		uint32_t rc_node_up;
+		avnd->node_up_msg_count++;
+		rc_node_up = avd_count_node_up(cb);
+		if (rc_node_up == sync_nd_size) {
+			if (cb->node_sync_tmr.is_active) {
+				avd_stop_tmr(cb, &cb->node_sync_tmr);
+				TRACE("stop NodeSync timer");
+			}
+			cb->all_nodes_synced = true;
+			LOG_NO("Received node_up_msg from all nodes");
+		} else {
+			if (avnd->node_up_msg_count == 1 &&
+				(act_nd || n2d_msg->msg_info.n2d_node_up.leds_set)) {
+
+				// start (or restart) timer if this is the first message
+				// from amfnd-active-SC or amfnd-green-leds-PL
+				cb->node_sync_tmr.type = AVD_TMR_NODE_SYNC;
+				avd_start_tmr(cb, &(cb->node_sync_tmr), AVSV_DEF_NODE_SYNC_PERIOD);
+
+				TRACE("Received node_up_msg from node:%s. Start/Restart "
+						" NodeSync timer waiting for remaining (%d) node(s)",
+						n2d_msg->msg_info.n2d_node_up.node_name.value,
+						sync_nd_size - rc_node_up);
+				goto done;
+			}
+			if (cb->node_sync_tmr.is_active == true) {
+				if (n2d_msg->msg_info.n2d_node_up.leds_set == false) {
+					TRACE("NodeSync timer is active, ignore this node_up msg (nodeid:%x)",
+						n2d_msg->msg_info.n2d_node_up.node_id);
+					goto done;
+				}
+			}
+		}
+	}
 
 	/* Cannot use avd_msg_sanity_chk here since this is a special case */
 	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_node_up.node_id)) == nullptr) {
 		TRACE("invalid node ID (%x)", n2d_msg->msg_info.n2d_node_up.node_id);
 		goto done;
 	}
+
+	/* Retrieve the information from the message */
+	record_node_up_msg_info(avnd, n2d_msg);
 
 	/* Check the AvD FSM state process node up only if AvD is in init done or
 	 * APP init state for all nodes except the primary system controller
@@ -73,15 +339,10 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
-		LOG_WA("invalid node state %u for node %x",
-			avnd->node_state, n2d_msg->msg_info.n2d_node_up.node_id);
-		goto done;
+	if ((n2d_msg->msg_info.n2d_node_up.node_id == cb->node_id_avd) && (cb->init_state < AVD_INIT_DONE)) {
+		// node up from local AVND
+		avd_process_state_info_queue(cb);
 	}
-
-	/* Retrive the information from the message */
-	avnd->adest = n2d_msg->msg_info.n2d_node_up.adest_address;
-	avnd->rcv_msg_id = n2d_msg->msg_info.n2d_node_up.msg_id;
 
 	if (avnd->node_info.member != SA_TRUE) {
 		LOG_WA("Not a Cluster Member dropping the msg");
@@ -108,7 +369,9 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* send the Ack message to the node. */
-	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
+	// note: it's important to ack the msg_id received in n2d_msg, rather than avnd->rcv_msg_id.
+	// They will not always be same when headless option is enabled.
+	if (avd_snd_node_ack_msg(cb, avnd, n2d_msg->msg_info.n2d_node_up.msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, avnd->node_info.nodeId);
 
@@ -117,6 +380,39 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 		avd_node_down_func(cb, avnd);
 		goto done;
+	}
+
+	if (n2d_msg->msg_info.n2d_node_up.leds_set == true) {
+		TRACE("node %x is already up", avnd->node_info.nodeId);
+
+		if (cb->node_sync_window_closed == true && avnd->node_up_msg_count == 0) {
+			LOG_WA("Received new node_up_msg from node:%s after node sync window, "
+				"sending node reboot order to target node",
+				n2d_msg->msg_info.n2d_node_up.node_name.value);
+				avd_d2n_reboot_snd(avnd);
+				goto done;
+		} else if (avnd->reboot) {
+			// delayed node failfast
+			avd_d2n_reboot_snd(avnd);
+			avnd->reboot = false;
+			goto done;
+		}
+		else {
+			// this node is already up
+			avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
+			avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
+
+			// Update readiness state of all SUs which are waiting for node
+			// oper state
+			for (const auto& su :avnd->list_of_ncs_su) {
+				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+			}
+			for (const auto& su :avnd->list_of_su) {
+				if (su->is_in_service())
+					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+			}
+			goto node_joined;
+		}
 	}
 
 	/* Send role change to this controller AvND */
@@ -153,9 +449,10 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	LOG_NO("Node '%s' joined the cluster", avnd->node_name);
-
 	avd_node_state_set(avnd, AVD_AVND_STATE_NO_CONFIG);
+
+node_joined:
+	LOG_NO("Node '%s' joined the cluster", avnd->node_name);
 
 	/* checkpoint the node. */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_NODE_CONFIG);

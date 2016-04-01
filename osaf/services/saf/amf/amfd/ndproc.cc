@@ -68,8 +68,9 @@ AVD_AVND *avd_msg_sanity_chk(AVD_EVT* evt, SaClmNodeIdT node_id, AVSV_DND_MSG_TY
 	}
 
 	if ((node->rcv_msg_id + 1) != msg_id) {
-		LOG_WA("%s: invalid msg id %u, from %x should be %u",
-			__FUNCTION__, msg_id, node_id, node->rcv_msg_id + 1);
+		LOG_WA("%s: invalid msg id %u, msg type %u, from %x should be %u",
+			__FUNCTION__, msg_id, evt->info.avnd_msg->msg_type,
+			node_id, node->rcv_msg_id + 1);
 		return nullptr;
  	}
 
@@ -275,6 +276,94 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
  done:
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = nullptr;
+	TRACE_LEAVE();
+}
+
+/*****************************************************************************
+ * Function: avd_nd_sisu_state_info_evh
+ *
+ * Purpose:  This function is the handler for the sync sisu_state_info event.
+ * No process on the event, push in queue or ignore it if the node sync window
+ * has closed.
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+
+void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
+	AVD_EVT_QUEUE* state_info_evt;
+
+	TRACE_ENTER();
+	LOG_NO("Receive message with event type:%u, msg_type:%u, from node:%x, msg_id:%u",
+			evt->rcv_evt,
+			evt->info.avnd_msg->msg_type,
+			evt->info.avnd_msg->msg_info.n2d_nd_sisu_state_info.node_id,
+			evt->info.avnd_msg->msg_info.n2d_nd_sisu_state_info.msg_id);
+
+	if (cb->node_sync_window_closed == false) {
+		state_info_evt = new AVD_EVT_QUEUE();
+		state_info_evt->evt = new AVD_EVT();
+		memcpy(state_info_evt->evt, evt, sizeof(AVD_EVT));
+		state_info_evt->evt->info.avnd_msg = n2d_msg;
+		cb->evt_queue.push(state_info_evt);
+	}
+	else {
+		LOG_WA("Ignore this sisu_state_info message since node sync window has closed");
+		avsv_dnd_msg_free(n2d_msg);
+	}
+
+	TRACE_LEAVE();
+}
+
+/*****************************************************************************
+ * Function: avd_nd_compcsi_state_info_evh
+ *
+ * Purpose:  This function is the handler for the sync compcsi_state_info event.
+ * No process on the event, push in queue or ignore it if the node sync window
+ * has closed.
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+
+void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
+{
+	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
+	AVD_EVT_QUEUE* state_info_evt;
+
+	TRACE_ENTER();
+	LOG_NO("Receive message with event type:%u, msg_type:%u, from node:%x, msg_id:%u",
+			evt->rcv_evt,
+			evt->info.avnd_msg->msg_type,
+			evt->info.avnd_msg->msg_info.n2d_nd_csicomp_state_info.node_id,
+			evt->info.avnd_msg->msg_info.n2d_nd_csicomp_state_info.msg_id);
+
+	if (cb->node_sync_window_closed == false) {
+		state_info_evt = new AVD_EVT_QUEUE();
+		state_info_evt->evt = new AVD_EVT();
+		memcpy(state_info_evt->evt, evt, sizeof(AVD_EVT));
+		state_info_evt->evt->info.avnd_msg = n2d_msg;
+		cb->evt_queue.push(state_info_evt);
+	}
+	else {
+		LOG_WA("Ignore this compcsi_state_info message since node sync window has closed");
+		avsv_dnd_msg_free(n2d_msg);
+	}
+
 	TRACE_LEAVE();
 }
 
@@ -721,7 +810,10 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		LOG_ER("%s: node %x, receive msg_id(%u) in invalid node state %u",
+			__FUNCTION__, node->node_info.nodeId,
+			n2d_msg->msg_info.n2d_data_req.msg_id, node->node_state);
+
 		goto done;
 	}
 
@@ -883,6 +975,11 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					l_val = ntohl(*((uint32_t *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
 					su->set_oper_state(l_val);
 				}
+
+				if (su->is_in_service() == true) {
+					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+				}
+
 				break;
 			case saAmfSUPresenceState_ID:
 				TRACE("su pres state");

@@ -45,6 +45,7 @@ class AmfDb {
 
    const_iterator begin() const {return db.begin();}
    const_iterator end() const {return db.end();}
+   typename AmfDbMap::size_type size() const {return db.size();}
    const_reverse_iterator rbegin() const {return db.rbegin();}
    const_reverse_iterator rend() const {return db.rend();}
 

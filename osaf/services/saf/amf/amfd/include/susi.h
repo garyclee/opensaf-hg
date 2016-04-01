@@ -157,4 +157,7 @@ extern bool si_assignment_state_check(AVD_SI *si);
 extern SaAmfHAStateT avd_su_state_determine(AVD_SU *su);
 extern AVD_SU_SI_REL *avd_siass_next_susi_to_quiesce(const AVD_SU_SI_REL *susi);
 extern bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi);
+SaAisErrorT avd_susi_cleanup(void);
+SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO*);
+
 #endif

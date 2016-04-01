@@ -278,7 +278,7 @@ done:
  * @param[in]   su
  *
  **/
-static void su_try_repair(const AVD_SU *su)
+void su_try_repair(const AVD_SU *su)
 {
 	TRACE_ENTER2("Repair for SU:'%s'", su->name.value);
 
@@ -288,11 +288,11 @@ static void su_try_repair(const AVD_SU *su)
 			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 
 		saflog(LOG_NOTICE, amfSvcUsrName, "Ordering Auto repair of '%s' as sufailover repair action",
-				su->sg_of_su->name.value);
+				su->name.value);
 		avd_admin_op_msg_snd(&su->name, AVSV_SA_AMF_SU,
 				static_cast<SaAmfAdminOperationIdT>(SA_AMF_ADMIN_REPAIRED), su->su_on_node); 
 	} else {
-		saflog(LOG_NOTICE, amfSvcUsrName, "Autorepair not done for '%s'", su->sg_of_su->name.value);
+		saflog(LOG_NOTICE, amfSvcUsrName, "Autorepair not done for '%s'", su->name.value);
 	}
 
 	TRACE_LEAVE();
@@ -480,8 +480,11 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 		}
 	}
 
+	TRACE("init_state %u", avd_cb->init_state);
+
 	/*If the AvD is in AVD_APP_STATE then reassign all the SUSI assignments for this SU */
-	if (avd_cb->init_state == AVD_APP_STATE) {
+	if (avd_cb->init_state == AVD_APP_STATE ||
+		avd_cb->scs_absence_max_duration > 0) {
 		/* Unlike active, quiesced and standby HA states, assignment counters
 		   in quiescing HA state are updated when AMFD receives assignment 
 		   response from AMFND. During sufailover amfd will not receive 
@@ -489,6 +492,9 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 		   So if any SU is under going modify operation then update assignment 
 		   counters for those SUSIs which are in quiescing state in the SU.
 		 */ 
+		TRACE("Reassign SUSI assignments for %s, init_state %u",
+			su->name.value, avd_cb->init_state);
+
 		for (AVD_SU_SI_REL *susi = su->list_of_susi; susi; susi = susi->su_next) {
 			if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
 					(susi->state == SA_AMF_HA_QUIESCING)) {
@@ -738,7 +744,9 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * disabled.      
 		 */
 
-		if (cb->init_state == AVD_INIT_DONE) {
+		TRACE("init_state %u", cb->init_state);
+
+		if (cb->init_state == AVD_INIT_DONE && cb->scs_absence_max_duration == 0) {
 			su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
@@ -752,7 +760,11 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				}
 			}	/* if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) */
 		} /* if(cb->init_state == AVD_INIT_DONE) */
-		else if (cb->init_state == AVD_APP_STATE) {
+		else if (cb->init_state == AVD_APP_STATE ||
+			(cb->init_state == AVD_INIT_DONE && cb->scs_absence_max_duration > 0)) {
+
+			TRACE("Setting SU to disabled in init_state %u", cb->init_state);
+
 			su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 			su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 			if (n2d_msg->msg_info.n2d_opr_state.node_oper_state == SA_AMF_OPERATIONAL_DISABLED) {
@@ -873,6 +885,20 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				}
 			}
 		} else {	/* if(su->sg_of_su->sg_ncs_spec == true) */
+			if (avd_cb->scs_absence_max_duration > 0 &&
+				su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED &&
+				su->saAmfSUPreInstantiable == false) {
+				// this is to allow non NPI SUs to be repaired if
+				// headless mode is enabled. Otherwise, the code
+				// following will assume the SU is already in service
+				// when it failed to instantiate while headless
+
+				if (cb->init_state == AVD_APP_STATE) {
+					LOG_NO("Setting NPI SU '%s' to OOS after headless state", su->name.value);
+					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+				}
+			}
+
 			/* If oper state of Uninstantiated SU got ENABLED so try to instantiate it 
 			   after evaluating SG. */
 			if (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) {
@@ -1726,6 +1752,14 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 	TRACE_ENTER2("'%s'", sg->name.value);
 
 	for (const auto& i_su : sg->list_of_su) {
+		TRACE("Checking '%s'", i_su->name.value);
+
+		TRACE("saAmfSuReadinessState: %u", i_su->saAmfSuReadinessState);
+		TRACE("saAmfSUPreInstantiable: %u", i_su->saAmfSUPreInstantiable);
+		TRACE("saAmfSUPresenceState: %u", i_su->saAmfSUPresenceState);
+		TRACE("saAmfSUOperState: %u", i_su->saAmfSUOperState);
+		TRACE("term_state: %u", i_su->term_state);
+
 		su_node_ptr = i_su->get_node_ptr();
 		num_su++;
 		/* Check if the SU is inservice */
@@ -1746,6 +1780,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			    (any_ng_in_locked_in_state(su_node_ptr) == false)) {
 
 				if (i_su->is_in_service() == true) {
+					TRACE("Calling su_insvc() for '%s'", i_su->name.value);
 					i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 					i_su->sg_of_su->su_insvc(cb, i_su);
 

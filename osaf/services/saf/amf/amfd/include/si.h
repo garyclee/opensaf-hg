@@ -140,6 +140,7 @@ public:
 	void arrange_dep_csi(AVD_CSI* csi);
 	void add_csi_db(AVD_CSI* csi);
 	bool is_sirank_valid(uint32_t newSiRank) const;
+	void update_alarm_state(bool alarm_state, bool sent_notification = true);
 	void update_sirank(uint32_t newSiRank);
 	bool si_dep_states_check();
         const AVD_SIRANKEDSU *get_si_ranked_su(const std::string &su_name) const;

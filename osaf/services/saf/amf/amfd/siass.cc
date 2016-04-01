@@ -775,3 +775,124 @@ done:
 	TRACE_LEAVE2("quiesc_role:%u",quiesc_role);
 	return quiesc_role;
 }
+
+/**
+ * Clean up SUSI objects by searching for SaAmfSIAssignment instances in IMM
+ * @return SA_AIS_OK when OK
+ */
+SaAisErrorT avd_susi_cleanup(void)
+{
+	SaAisErrorT rc;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	const char *className = "SaAmfSIAssignment";
+
+	TRACE_ENTER();
+
+	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if ((rc = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
+	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam,
+		  nullptr, &searchHandle)) != SA_AIS_OK) {
+		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
+		goto done;
+	}
+
+	SaNameT siass_name;
+	const SaImmAttrValuesT_2 **attributes;
+	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &siass_name,
+					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
+		avd_saImmOiRtObjectDelete(&siass_name);
+	}
+
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+
+done:
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
+
+/**
+ * Recreates SUSI objects by with information retrieved from node directors.
+ * Update relevant runtime attributes
+ * @return SA_AIS_OK when OK
+ */
+SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
+{
+	TRACE_ENTER2("msg_id: %u node_id: %u num_sisu: %u", info->msg_id,
+		info->node_id, info->num_sisu);
+	AVD_SU_SI_REL *susi = nullptr;
+	AVD_AVND *node = nullptr;
+
+	const AVSV_SISU_STATE_MSG *susi_state = nullptr;
+	const AVSV_SU_STATE_MSG *su_state = nullptr;
+
+	node = avd_node_find_nodeid(info->node_id);
+	if (node == 0) {
+          LOG_ER("Node %" PRIx32 " has left the cluster", info->node_id);
+          return SA_AIS_ERR_NOT_EXIST;
+        }
+
+	for (su_state = info->su_list; su_state != nullptr;
+		su_state = su_state->next) {
+
+		AVD_SU *su = su_db->find(Amf::to_string(&su_state->safSU));
+		osafassert(su);
+
+		// present state
+		su->set_pres_state(static_cast<SaAmfPresenceStateT>(su_state->su_pres_state));
+
+		// oper state
+		su->set_oper_state(su_state->su_oper_state);
+
+		// . readiness state is updated when node_up of PL is accepted
+		// . saAmfSUHostedByNode does not need to update since mapping
+		//   su to node should reserve the same order
+		// . saAmfSUPreInstantiable wouldn't change during headless
+		//   so they need not to update
+		// . saAmfSUNumCurrActiveSIs & saAmfSUNumCurrStandbySIs to be updated
+		//   during avd_susi_create()
+
+		// restart count
+		su->saAmfSURestartCount = su_state->su_restart_cnt;
+		avd_saImmOiRtObjectUpdate(&su->name,
+					const_cast<SaImmAttrNameT>("saAmfSURestartCount"), SA_IMM_ATTR_SAUINT32T,
+					&su->saAmfSURestartCount);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_RESTART_COUNT);
+	}
+
+	for (susi_state = info->sisu_list; susi_state != nullptr;
+			susi_state = susi_state->next) {
+
+		assert(susi_state->safSI.length > 0);
+		AVD_SI *si = si_db->find(Amf::to_string(&susi_state->safSI));
+		osafassert(si);
+
+		AVD_SU *su = su_db->find(Amf::to_string(&susi_state->safSU));
+		osafassert(su);
+
+		SaAmfHAStateT ha_state = susi_state->saAmfSISUHAState;
+
+		susi = avd_su_susi_find(avd_cb, su, &susi_state->safSI);
+		if (susi == nullptr) {
+			susi = avd_susi_create(avd_cb, si, su, ha_state, false);
+			osafassert(susi);
+		} else {
+			avd_susi_ha_state_set(susi, ha_state);
+		}
+		susi->fsm = AVD_SU_SI_STATE_ASGND;
+
+		if (susi->state == SA_AMF_HA_QUIESCING) {
+			susi->su->inc_curr_act_si();
+			susi->si->inc_curr_act_ass();
+		}
+
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
+	}
+
+
+	TRACE_LEAVE();
+	return SA_AIS_OK;
+}
