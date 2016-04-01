@@ -261,7 +261,81 @@ Currently a simple unit test can be found in 'tests/ntfsv'. The test suite
 is built by the main make system and is either install by 'make install' or by
 installing the tools rpm.
 
+Integration of NTFSv with CLM service for return code SA_AIS_ERR_UNAVAILABLE. 
+====================================================================
+Current implementation of NTFSv conforms to A.01.01 spec and this spec version
+does not talk about unavailability of the NTFSv APIs on a CLM Non-Member Node.
+Intergartion of NTFSv with CLM is mentioned in the A.02.01 spec in the section 
+"3.13 Unavailability of the Notification Service API on a Non-Member Node" page no. 42.
+For OpenSAF release 5.0, enhancement ticket https://sourceforge.net/p/opensaf/tickets/1639/
+is intended to provide this functionality for A.01.01 APIs. This enhancement does not
+implement any new API of A.02.01.
 
+Implementation Notes for NTF-CLM integration:
+============================================
+As a part of \#1639, minor version of NTF service is updated to 02, so 
+highest supported version will be A.01.02. Update to the minor version is done
+keeping in mind following facts:
+
+1)A A.01.01 user will not be ready to handle SA_AIS_ERR_UNAVAILABLE.
+2)A new NTF user can initialize with A.01.02 for the impact of CLM membership
+  status of node on application and for getting A.01.01 functionality at the same
+  time.
+3)All OpenSAF middleware services which are integrated with NTFs should not be impacted
+  because of membership status of node. 
+
+Thus there is a minor deviation from spec in following ways:
+1)An application trying to initialize with A.01.01 will get A.01.01 as returned
+version not the highest supported version A.01.02.
+2)An application trying to initialize other than A.01.01 will get returned version A.01.02.
+
+Changes at NTFS (NTF-CLM integration):
+=========================================
+1)Now NTFS (both active and standby) maintains saf version of the client (in class NtfClient)
+  to differentiate between A.01.02 and A.01.01 (in future A.02.01 and A.03.01).
+2)Active NTFS now checkpoints SAF version of the clients along with mdsDest and client_id. For
+  this its MBCSV version is upgraded and now it remembers its peer MBCSV version also.
+3)NtfAdmin maintains a list of nodes which are member nodes (in class NtfAdmin).
+  It also provides memeber functions and their wrappers for accessing this list. 
+4)NTFs subscribes for CLM service to track clm membership status of node.
+  For this new file ntf_clm.c has been introduced. As of now subscription to CLM service
+  is done when NTFS gets up event for AVD(through MDS). The reason: CLMSv is started after NTFSV
+  and CLMSv is client of NTFSv. In the abscence of CLMSV during start up, initial
+  membership status of node is a member-node. In 5.1 release, after cluster management 
+  enhancement \#439 this may require minor changes.
+5)Upon receiving CLM track callback, NTFS (both active and standby) updates its membership 
+  list for new change only like a new node join cluster or existing node lost CLM membership status. 
+  After updating list, only active NTFS will send changed membership status to all the clients, 
+  excluding A.01.01, on that node. For this a new callback message structure ntfsv_ntfa_clm_status_cbk_t
+  is introduce in main callback structure ntfsv_cbk_info_t.
+6)Every time a new A.01.02 agent comes up on any node, it is initialized only after verfifying the 
+  CLM membership status of its node.
+
+Changes at NTFA (NTF-CLM integration):
+=========================================
+1)NTFA maintains membership status of its node in ntfa_cb->clm_node_state. It is updated
+  when NTFS sends membership status through MDS message.
+2)A client at NTFA now maintains its SAF version(client->version) and 
+  its own validity (client->is_stale_client) because of membership status of node. A client
+  becomes stale if its node loses cluster membership.
+3)Each API (except saNtfFinalize()) now checks validity of client with respect to CLM 
+  membership for returning SA_AIS_ERR_UNAVAILABLE.
+4)Upon receiving membership status of node from NTFS, NTFA updates ntfa_cb->clm_node_state and 
+  mark client as a stale client. For such a client all API calls (except saNtfFinalize()) will 
+  result in SA_AIS_ERR_UNAVAILABLE. A user is expected to call saNtfFinalize() in this case.
+
+Other Changes and tests (NTF-CLM integration):
+===================================
+1)SAF version of commands  ntfread, ntfsend and ntfsubscribe is now updated to A.01.02.
+2)New file tests/ntfsv/tet_ntf_clm.c contains tests for this functionality. For running
+  these tests atleast two nodes are required as CLM admin operation are not supported on active
+  controller. These tests are not included in the testlist if run on active controller.
+
+TODOs (NTF-CLM integration):
+=============================
+1)Forced admin lock of CLM node when shutdown operation is going on. For this,
+  NTFS must track CLM with SA_CLM_CHANGE_START also.
+   
 ITEMS TO BE DONE:
 -----------------
 Cleanup:
