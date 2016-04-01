@@ -18,7 +18,7 @@
 #include <thread>
 #include "avnd.h"
 #include <poll.h>
-#include <imm.hh>
+#include <imm.h>
 
 ir_cb_t ir_cb;
 struct pollfd ImmReader::fds[];
