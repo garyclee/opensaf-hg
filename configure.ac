@@ -774,6 +774,9 @@ AC_CONFIG_FILES([
         osaf/libs/saf/libSaSmf/Makefile
         osaf/libs/saf/libSaSmf/pkgconfig/Makefile
         osaf/libs/saf/libSaSmf/pkgconfig/opensaf-smf.pc
+        osaf/libs/core/cplusplus/Makefile
+        osaf/libs/core/cplusplus/base/Makefile
+        osaf/libs/core/cplusplus/base/tests/Makefile
         osaf/services/Makefile
         osaf/services/config/Makefile
         osaf/services/infrastructure/Makefile

@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include common leap mbcsv mds
+SUBDIRS = include common leap mbcsv mds cplusplus
 
 LIB_VERSION = 0:2:0
 
@@ -30,11 +30,12 @@ libopensaf_core_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
 libopensaf_core_la_LDFLAGS = \
-	-lpthread -ldl -lrt \
+	-pthread -ldl -lrt -lstdc++ \
 	-version-number $(LIB_VERSION)
 
 libopensaf_core_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/common/libopensaf_common.la \
 	$(top_builddir)/osaf/libs/core/leap/libleap.la \
 	$(top_builddir)/osaf/libs/core/mbcsv/libmbca.la \
-	$(top_builddir)/osaf/libs/core/mds/libmds.la
+	$(top_builddir)/osaf/libs/core/mds/libmds.la \
+	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase.la
