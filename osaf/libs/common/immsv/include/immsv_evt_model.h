@@ -208,6 +208,7 @@ extern "C" {
 		SaUint64T searchOptions;
 		IMMSV_SEARCH_PARAM searchParam;
 		IMMSV_ATTR_NAME_LIST *attributeNames;
+		SaUint32T ccbId; /* Only for saImmOmCcbObjectRead */
 	} IMMSV_OM_SEARCH_INIT;
 
 	typedef struct ImmsvOmSearchRemote {

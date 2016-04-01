@@ -181,6 +181,7 @@ static const char *immnd_evt_names[] = {
 	"IMMND_EVT_D2ND_IMPLSET_RSP_2",	/* Implementer set reply from D with impl id */
 	"IMMND_EVT_A2ND_OBJ_CREATE_2",  /* saImmOmCcbObjectCreate_o3 */
 	"IMMND_EVT_A2ND_OI_OBJ_CREATE_2",       /* saImmOiRtObjectCreate_o3 */
+	"IMMND_EVT_A2ND_OBJ_SAFE_READ",       /* saImmOmCcbObjectRead */
 	"undefined (high)"
 };
 
@@ -1860,7 +1861,8 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				}
 			}
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) ||
-			(i_evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET)) {
+			(i_evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET) ||
+			(i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SAFE_READ)) {
 			int depth = 0;
 			/*Encode the rootName */
 			IMMSV_OCTET_STRING *os = &(i_evt->info.immnd.info.searchInit.rootName);
@@ -1901,7 +1903,6 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 				LOG_ER("TOO MANY attribute names line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
-
 		} else if (i_evt->info.immnd.type == IMMND_EVT_A2ND_RT_ATT_UPPD_RSP) {
 			int depth = 0;
 			/*Encode the objectName */
@@ -2406,8 +2407,9 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 					++depth;
 				}
 			}
-		} else if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) || 
-			(o_evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET)) {
+		} else if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) ||
+			(o_evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET) ||
+			(o_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SAFE_READ)) {
 			/*Decode the rootName */
 			IMMSV_OCTET_STRING *os = &(o_evt->info.immnd.info.searchInit.rootName);
 			if (os->size) {
@@ -3235,6 +3237,7 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 		case IMMND_EVT_A2ND_SEARCHINIT:	/* SearchInitialize */
 		case IMMND_EVT_A2ND_ACCESSOR_GET:	/* AccessorGet */
+		case IMMND_EVT_A2ND_OBJ_SAFE_READ:	/* saImmOmCcbObjectRead */
 
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 8);
 			ncs_encode_64bit(&p8, immndevt->info.searchInit.client_hdl);
@@ -3274,6 +3277,12 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 			ncs_encode_8bit(&p8, (immndevt->info.searchInit.attributeNames) ? 1 : 0);
 			ncs_enc_claim_space(o_ub, 1);
+
+			if(immndevt->type == IMMND_EVT_A2ND_OBJ_SAFE_READ) {
+				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
+				ncs_encode_32bit(&p8, immndevt->info.searchInit.ccbId);
+				ncs_enc_claim_space(o_ub, 4);
+			}
 			break;
 
 		case IMMND_EVT_A2ND_SEARCHNEXT:	/* SearchNext */
@@ -4638,6 +4647,7 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
 		case IMMND_EVT_A2ND_ACCESSOR_GET:	/* AccessorGet */
 		case IMMND_EVT_A2ND_SEARCHINIT:	/* SearchInitialize */
+		case IMMND_EVT_A2ND_OBJ_SAFE_READ: /* saImmOmCcbObjectRead */
 			IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 8);
 			immndevt->info.searchInit.client_hdl = ncs_decode_64bit(&p8);
 			ncs_dec_skip_space(i_ub, 8);
@@ -4677,6 +4687,12 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				immndevt->info.searchInit.attributeNames = (void *)0x1;
 			}
 			ncs_dec_skip_space(i_ub, 1);
+
+			if(immndevt->type == IMMND_EVT_A2ND_OBJ_SAFE_READ) {
+				IMMSV_FLTN_SPACE_ASSERT(p8, local_data, i_ub, 4);
+				immndevt->info.searchInit.ccbId =  ncs_decode_32bit(&p8);
+				ncs_dec_skip_space(i_ub, 4);
+			}
 			break;
 
 		case IMMND_EVT_A2ND_SEARCHNEXT:	/* SearchNext */

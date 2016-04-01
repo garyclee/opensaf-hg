@@ -59,6 +59,12 @@ extern "C" {
 #define SA_IMM_ATTR_STRONG_DEFAULT    0x0000000020000000    /* See: https://sourceforge.net/p/opensaf/tickets/1425
                                                          Supported in OpenSaf 5.0 */
 
+/* 5.0.x saImmOmCcb  */
+
+	extern SaAisErrorT
+	 saImmOmCcbObjectRead(SaImmCcbHandleT ccbHandle, SaConstStringT objectName,
+			 const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes);
+
 
 #ifdef  __cplusplus
 }

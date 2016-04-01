@@ -1880,6 +1880,7 @@ static void imma_proc_ccbaug_setup(IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO
 		case IMMA_CALLBACK_OI_CCB_CREATE:
 		case IMMA_CALLBACK_OI_CCB_DELETE:
 		case IMMA_CALLBACK_OI_CCB_MODIFY:
+		case IMMA_CALLBACK_OI_CCB_COMPLETED:
 			if(!(imma_oi_ccb_record_note_callback(cl_node, callback->ccbID, callback))) {
 				TRACE_3("Failed to note callback for ccb %u, "
 					"Ccb augment not possible", callback->ccbID);
@@ -2162,10 +2163,41 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				}
 
 				if(!(cl_node->isApplier) || (isPbeOp && cl_node->isPbe)) {
+					SaImmHandleT privateAugOmHandle = 0LL;
 					/* Appliers dont reply on completed except PBE slave replying on completed
 					   for PRTO- delete. PRTO-delete means ccb-id is in the high rannge.
 					   So PBE slave does NOT reply on completed for regular CCBs. 
 					*/
+
+					//Add code for closing safe-read augmentations in completed callback.
+					if(!imma_oi_ccb_record_close_augment(cl_node, callback->ccbID, &privateAugOmHandle, false)) {
+						TRACE_3("CcbObjectCompletedCallback: imma_oi_ccb_record_close_augment "
+							"returned false for ccb %u", callback->ccbID);
+					}
+
+					if(privateAugOmHandle) {
+						osafassert(locked);
+						osafassert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						locked = false;
+
+						osafassert(immsv_om_augment_ccb_get_result);
+						SaAisErrorT augResult = immsv_om_augment_ccb_get_result(privateAugOmHandle,
+							callback->ccbID);
+
+						osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+						locked = true;
+
+						if(augResult != SA_AIS_OK) {
+							TRACE("A non-ok result %u from an augmented CCB overrides the reply from "
+								"the OI %u on completed", augResult,
+								ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.result);
+
+							ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.result = augResult;
+						}							
+					}
+
+
+
 					localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, false);
 					if (localEr != NCSCC_RC_SUCCESS) {
 						/*Cant do anything but log error and drop this reply. */
@@ -2486,7 +2518,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						locked = true;
 
 						if(augResult != SA_AIS_OK) {
-							TRACE("A non-ok result from an augmented CCB %u overrides the reply from "
+							TRACE("A non-ok result %u from an augmented CCB overrides the reply from "
 								"the OI %u on create-uc", augResult,
 								ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.result);
 
@@ -2652,7 +2684,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						locked = true;
 
 						if(augResult != SA_AIS_OK) {
-							TRACE("A non-ok result from an augmented CCB %u overrides the reply from "
+							TRACE("A non-ok result %u from an augmented CCB overrides the reply from "
 								"the OI %u on delete-op", augResult,
 								ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.result);
 
@@ -2891,7 +2923,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						locked = true;
 
 						if(augResult != SA_AIS_OK) {
-							TRACE("A non-ok result from an augmented CCB %u overrides the reply from "
+							TRACE("A non-ok result %u from an augmented CCB overrides the reply from "
 								"the OI %u on modify-uc", augResult, 
 								ccbObjModRpl.info.immnd.info.ccbUpcallRsp.result);
 

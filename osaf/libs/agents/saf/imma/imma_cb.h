@@ -96,6 +96,7 @@ typedef struct imma_ccb_node {
 	SaImmCcbHandleT ccb_hdl;	/* locally generated handle */
 	SaImmHandleT mImmHandle;	/* The immOm handle */
 	SaImmAdminOwnerHandleT mAdminOwnerHdl;
+	SaImmAccessorHandleT mCcbObjectReadAccessorHandle; 
 	SaImmCcbFlagsT mCcbFlags;
 	SaUint32T mCcbId;   /* Om client uses 32 bit ccbId. */
 	SaStringT* mErrorStrings;

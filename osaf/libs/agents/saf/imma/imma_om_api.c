@@ -3463,7 +3463,8 @@ SaAisErrorT imma_applyCcb(SaImmCcbHandleT ccbHandle, bool onlyValidate)
                                 Ccb handle is still valid.
 
                    SA_AIS_ERR_VERSION - Not allowed for IMM API version below A.2.14.
-                   SA_AIS_ERR_BAD_OPERATION - saImmOmCcbAbort not allowed on augmented ccb.
+                   SA_AIS_ERR_BAD_OPERATION - saImmOmCcbAbort not allowed in ccb
+                                              augmentation
 
                    Remaining returncodes identical to saImmOmFinalize.
 
@@ -3488,7 +3489,7 @@ SaAisErrorT saImmOmCcbAbort(SaImmCcbHandleT ccbHandle)
                    such as some problem with the PBE (persistent back end), or a crash
                    of some vital IMM process. 
 
-                   Thus after a successfull saImmOmCcbVAlidate, the ccb is in a state
+                   Thus after a successfull saImmOmCcbValidate, the ccb is in a state
                    that only accepts one of:
 
                       - saImmOmCcbApply(ccbHandle);  - Only applicable if saImmOmCcbValidate
@@ -3513,14 +3514,14 @@ SaAisErrorT saImmOmCcbAbort(SaImmCcbHandleT ccbHandle)
                    SA_AIS_ERR_FAILED_OPERATION - Ccb is aborted possibly due to failed
                                                  validation.
 
+
+
  
 ******************************************************************************/
 SaAisErrorT saImmOmCcbValidate(SaImmCcbHandleT ccbHandle)
 {
 	return imma_applyCcb(ccbHandle, true);
 }
-
-
 
 /****************************************************************************
   Name          :  saImmOmAdminOperationInvoke_2/_o2/_o3
@@ -5705,7 +5706,8 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 				 SaConstStringT objectName,
 				 const SaImmAttrNameT *attributeNames,
 				 SaImmAttrValuesT_2 ***attributes,
-				 bool bUseString);
+				 bool bUseString,
+	                         SaUint32T ccbId);
 
 SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 				 const SaNameT *objectName,
@@ -5732,7 +5734,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		}
 	}
 
-	rc = accessor_get_common(accessorHandle, objectNameStr, attributeNames, attributes, false);
+	rc = accessor_get_common(accessorHandle, objectNameStr, attributeNames, attributes, false, 0);
 
 	if(freeMemory == SA_TRUE) {
 		free(objectNameStr);
@@ -5745,14 +5747,15 @@ SaAisErrorT saImmOmAccessorGet_o3(SaImmAccessorHandleT accessorHandle,
 				 SaConstStringT objectName,
 				 const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes)
 {
-	return accessor_get_common(accessorHandle, objectName, attributeNames, attributes, true);
+	return accessor_get_common(accessorHandle, objectName, attributeNames, attributes, true, 0);
 }
 
 static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 				 SaConstStringT objectName,
 				 const SaImmAttrNameT *attributeNames,
 				 SaImmAttrValuesT_2 ***attributes,
-				 bool bUseString)
+				 bool bUseString,
+				 SaUint32T ccbId)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t proc_rc;
@@ -5830,6 +5833,17 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 		goto release_lock;
 	}
 
+	if(ccbId && !cl_node->isImmA2x11) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: Safe read only supported for "
+			"A.02.17 and above");
+		goto release_lock;
+	}
+
+	if(ccbId) {
+		TRACE_2("This is a SAFE read, ccbId:%u", ccbId);
+	}
+
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -5861,11 +5875,12 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
-	evt.info.immnd.type = IMMND_EVT_A2ND_ACCESSOR_GET;
+	evt.info.immnd.type = (ccbId)?IMMND_EVT_A2ND_OBJ_SAFE_READ:IMMND_EVT_A2ND_ACCESSOR_GET;
 	IMMSV_OM_SEARCH_INIT *req = &(evt.info.immnd.info.searchInit);
 	req->client_hdl = immHandle;
 	req->rootName.size = strlen(objectName) + 1;
 	req->rootName.buf = (char *)objectName;
+	req->ccbId = ccbId; /* Zero if not safe read. */
 
 	req->scope = SA_IMM_ONE;
 	if(osaf_is_extended_names_enabled()) {
@@ -6163,6 +6178,384 @@ static unsigned int get_obj_size(const IMMSV_OM_OBJECT_SYNC* batch)
 	return obj_size;
 }
 
+/****************************************************************************
+  Name          :  saImmOmCcbObjectRead
+
+  Description   :  Adds support for an OM CCB client to read-access a config object
+                   transactionally. The API works exactly the same way as
+                   saImmOmAccessorGet, except that
+
+                   a) The API takes a SaImmCcbHandleT instead of a SaImmAccessorHandleT
+
+                   b) The values returned for the objects config attributes are from
+                      a version of the object consistent with the CCB/transaction.
+                      This means either the latest applied version or a newer version
+                      created in the same CCB but not yet applied.
+
+                   c) Access to an object that has been deleted in the same CCB but
+                      not applied is rejected with ERR_NOT_EXIST.
+
+                   d) Access to an object that has been created in the same CCB but
+                      not applied is allowed, providing the latest version of
+                      the config attributes in that CCB.
+
+                   e) Safe read is not allowed using a runtime object as target.
+
+                   Runtime attributes residing in a config object are handled exactly
+                   the same as for saImmOmAccessorGet. The reason a safe-read call
+                   is not allowed on a runtime *object* is that a runtime object *only*
+                   contains runtime attributes. Performing a safe-read on a runtime
+                   object makes no sense.
+
+
+  Arguments     :  ccbHandle - Ccb Handle
+
+  Return Values :  
+                   Same return values as saImmOmAccessorGet_2 with adjustments to exceptions
+                   in stated in the description
+
+                   Refer to SAI-AIS IMM A.2.1 specification for the other return values
+                   and to the OpenSAF_IMMSv_PR (programmers reference) for implementation
+                   specific details. 
+
+******************************************************************************/
+SaAisErrorT saImmOmCcbObjectRead(SaImmCcbHandleT ccbHandle, SaConstStringT objectName,
+	  const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	IMMA_CB *cb = &imma_cb;
+	bool locked = false;
+	SaImmAccessorHandleT accessorHandle=0LL; // handle value will be copied from ccb-node
+	IMMA_ADMIN_OWNER_NODE *ao_node = NULL;
+	IMMA_CCB_NODE *ccb_node = NULL;
+	SaImmHandleT immHandle=0LL;
+	IMMA_CLIENT_NODE *cl_node = NULL;
+	SaUint32T ccbId = 0;
+	SaUint32T adminOwnerId = 0;
+	//SaStringT *newErrorStrings = NULL;
+	TRACE_ENTER();
+
+	/* Library checks below follows same "pattern" as ccb_object_modify_common */
+	if (cb->sv_id == 0) {
+		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		return SA_AIS_ERR_BAD_HANDLE;
+	}
+
+	if (objectName == NULL) {
+		TRACE_2("ERR_INVALID_PARAM: objectName is NULL");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	if (!objectName[0]) {
+		TRACE_2("ERR_INVALID_PARAM: objectName is empty");
+		TRACE_LEAVE();
+		return SA_AIS_ERR_INVALID_PARAM;
+	}
+
+	if (cb->is_immnd_up == false) {
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
+		/* Any on going ccb has been aborted and this will be detected
+		   in resurrect processing. But this could be the first operation
+		   attempted for a new ccb-id, i.e. there is no on-going ccb-id,
+		   (remember that a ccb-handle is associated with a chain of actual
+		   ccb-ids). In that case resurrection may succeed.
+		*/
+		return SA_AIS_ERR_TRY_AGAIN;
+	}
+
+	/* get the CB Lock */
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: Lock failed");
+		goto lock_fail;
+	}
+	locked = true;
+
+	/* Get the CCB info */
+	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+	if (!ccb_node) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_2("ERR_BAD_HANDLE: Ccb handle not valid");
+		goto done;
+	}
+
+	if (ccb_node->mExclusive) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+			ccb_node->mCcbId);
+		goto done;
+	}
+
+	if (ccb_node->mAborted) {
+		TRACE_2("ERR_FAILED_OPERATION: CCB %u has already been aborted",
+			ccb_node->mCcbId);
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+		goto done;
+	}
+
+	immHandle = ccb_node->mImmHandle;
+
+
+	/* Free string from previous ccb-op */
+	imma_free_errorStrings(ccb_node->mErrorStrings);
+	ccb_node->mErrorStrings = NULL;
+
+	/*Look up client node also, to verify that the client handle
+	   is still active. */
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if (!(cl_node && cl_node->isOm)) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
+		goto done;
+	}
+
+	if(!cl_node->isImmA2x11) {
+		rc = SA_AIS_ERR_VERSION;
+		TRACE_2("ERR_VERSION: saImmOmCcbObjectRead only supported for "
+			"A.02.17 and above");
+		goto done;
+	}
+
+	/* Stale check and possible resurrect done here for the complete ccb-handle level.
+	   The stale check later done in the call via accessorGet wil be redundant. But
+	   the handle should never be stale there if call arrived from here.
+	 */
+	if (cl_node->stale) {
+		TRACE_1("IMM Handle %llx is stale", immHandle);
+
+		if(!(ccb_node->mApplied)) {
+			TRACE_3("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
+				"in active but non-critical state");
+			ccb_node->mAborted = true;
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			/* We drop the resurrect task since this ccb is doomed. */
+			goto done;
+		}
+
+		/* Why do we bother trying resurrect? See ##1## above. */
+
+		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
+		cl_node = NULL;
+		ccb_node =NULL;
+
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			TRACE_4("ERR_LIBRARY: Lock failed");
+			rc = SA_AIS_ERR_LIBRARY;
+			goto done;
+		}
+		locked = true;
+
+		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+
+		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = true;}
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			goto done;
+		}
+
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
+
+		/* Look up ccb_node again */
+		imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+		if (!ccb_node) {
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			TRACE_3("ERR_BAD_HANDLE: Ccb handle not valid after successful resurrect");
+			goto done;
+		}
+
+		if (ccb_node->mExclusive) {
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, "
+				"in another thread", ccb_node->mCcbId);
+			goto done;
+		}
+
+		if (ccb_node->mAborted) {
+			TRACE_3("ERR_FAILED_OPERATION: Ccb-id %u was aborted", ccb_node->mCcbId);
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			goto done;
+		}
+	}
+
+	/* Get the Admin Owner info  Although not really interested in admo for safe-read. */
+	imma_admin_owner_node_get(&cb->admin_owner_tree, &(ccb_node->mAdminOwnerHdl), &ao_node);
+	if (!ao_node) {
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_4("ERR_LIBRARY: No Amin-Owner associated with Ccb");
+		goto done;
+	}
+
+	osafassert(ccb_node->mImmHandle == ao_node->mImmHandle);
+	adminOwnerId = ao_node->mAdminOwnerId;
+	ao_node=NULL;
+
+	if (ccb_node->mApplied) {  /* Current ccb-id is closed, get a new one.*/
+		if((rc = imma_proc_increment_pending_reply(cl_node, true)) != SA_AIS_OK) {
+			TRACE_4("ERR_LIBRARY: Overlapping use of IMM handle by multiple threads");
+			goto done;
+		}
+		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
+		cl_node = NULL;
+		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
+		/* ccb_node still valid if rc == SA_AIS_OK. */
+		if(rc == SA_AIS_OK) {
+			osafassert(!(ccb_node->mExclusive));
+			osafassert(locked);
+		}
+
+		if (!locked) {
+			if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+				rc = SA_AIS_ERR_LIBRARY;
+				TRACE_4("ERR_LIBRARY: Lock failed");
+				goto done;
+			}
+			locked = true;
+		}
+
+		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+		if (!(cl_node && cl_node->isOm)) {
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: No client associated with Admin Owner");
+			goto done;
+		}
+
+		imma_proc_decrement_pending_reply(cl_node, true);
+
+		if (rc != SA_AIS_OK) {
+			goto done;
+		}
+
+		/* successfully obtained new ccb-id */
+
+		if (cl_node->stale) {
+			/* Became stale AFTER we successfully obtained new ccb-id ! */
+			TRACE_3("ERR_FAILED_OPERATION: IMM Handle %llx became stale", immHandle);
+
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			/* We know the ccb WAS terminated*/
+			ccb_node->mCcbId = 0;
+			ccb_node->mAborted = true;
+			goto done;
+		}
+	}
+
+	osafassert(locked);
+	osafassert(cl_node);
+	osafassert(ccb_node);
+
+	ccbId = ccb_node->mCcbId;
+	accessorHandle = ccb_node->mCcbObjectReadAccessorHandle;
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	locked = false;
+
+	if(accessorHandle == 0LL) {
+		rc = saImmOmAccessorInitialize(immHandle, &accessorHandle);
+		if (rc != SA_AIS_OK) {
+			TRACE_2("Failed to initialize accessor-handle");
+			goto done;
+		}
+		TRACE_2("Initialized CCB safe-read accessor handle %llu", accessorHandle);
+
+		/* get the CB Lock */
+		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: Lock failed");
+			goto lock_fail;
+		}
+		locked = true;
+
+		/* Get the CCB info */
+		imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+		if (!ccb_node) {
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			TRACE_2("ERR_BAD_HANDLE: Ccb handle not valid");
+			goto done;
+		}
+
+		ccb_node->mCcbObjectReadAccessorHandle = accessorHandle;
+
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = false;
+	}
+
+	TRACE("Optimistically invoking accessor_get_common with ccbid:%u", ccbId);
+	rc = accessor_get_common(accessorHandle, objectName, attributeNames, attributes, true, ccbId);
+	if(rc == SA_AIS_ERR_INTERRUPT) {
+		TRACE("CcbObjectRead: Object was not locked. Get global shared read lock");
+		IMMSV_EVT evt;
+		IMMSV_EVT *out_evt = NULL;
+
+		/* get the CB Lock */
+		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: Lock failed");
+			goto lock_fail;
+		}
+		locked = true;
+
+		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+		if (!(cl_node && cl_node->isOm)) {
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("ERR_LIBRARY: No client associated with Admin Owner");
+			goto done;
+		}
+
+		/* Obtain a safe-read CCB lock for this the object over fevs. */
+		memset(&evt, 0, sizeof(IMMSV_EVT));
+		evt.type = IMMSV_EVT_TYPE_IMMND;
+		/* This is a hack. Re-using the SAFE_READ msg type here only to ackquire lock. */
+		evt.info.immnd.type = IMMND_EVT_A2ND_OBJ_SAFE_READ;
+		IMMSV_OM_SEARCH_INIT *req = &(evt.info.immnd.info.searchInit);
+		req->client_hdl = immHandle;
+		req->rootName.size = strlen(objectName) + 1;
+		req->rootName.buf = (char *)objectName;
+		req->ccbId = ccbId; 
+		req->scope = SA_IMM_ONE;
+		if(osaf_is_extended_names_enabled()) {
+			req->searchParam.present = ImmOmSearchParameter_PR_NOTHING;
+		} else {
+			req->searchParam.present = ImmOmSearchParameter_PR_nonExtendedName_NOTHING;
+		}
+		req->searchOptions = SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR;
+		req->searchOptions |= SA_IMM_SEARCH_NO_RDN;
+
+		rc = imma_evt_fake_evs(cb, &evt, &out_evt, cl_node->syncr_timeout, cl_node->handle, &locked, false);
+		if(rc != SA_AIS_OK ) { 
+			goto done;
+		}
+
+		rc = out_evt->info.imma.info.errRsp.error;
+		if(rc != SA_AIS_OK ) { 
+			goto done;
+		}
+
+		if (locked) {
+			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+			locked = false;
+		}
+		TRACE("Ccb %u Obtained shared safe-read lock for object '%s' over fevs", 
+			ccbId, objectName);
+			
+		rc = accessor_get_common(accessorHandle, objectName, attributeNames, attributes, true, ccbId);
+	}
+
+ done:
+	//imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
+
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = false;
+	}
+
+ lock_fail:
+
+	TRACE_LEAVE();
+	return rc;
+
+}
 
 
 SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
@@ -8429,6 +8822,7 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 	SaImmAdminOwnerHandleT adminOwnerHdl = 0LL;
 	SaUint32T adminOwnerId = 0;
 	SaUint32T timeout = 0;
+	SaImmAccessorHandleT safeReadAccessorHandle=0LL; // Copied from ccb_node later.
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -8476,10 +8870,13 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 		goto done;
 	}
 
+
+
 	immHandle = ccb_node->mImmHandle;
 	adminOwnerHdl = ccb_node->mAdminOwnerHdl;
 	ccbActive = ccb_node->mCcbId && !(ccb_node->mApplied);
 	ccbId = ccb_node->mCcbId;
+	safeReadAccessorHandle = ccb_node->mCcbObjectReadAccessorHandle; /* Safe read handle */
 
 	ccb_node->mExclusive = true; 
 
@@ -8647,8 +9044,14 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 	}
 
  done:
-	if (locked)
+	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
+
+	if(safeReadAccessorHandle &&  !keepCcbHandleOpen) {
+		TRACE_3("Finalizing CCB safe-read accessor handle %llu", safeReadAccessorHandle);
+		saImmOmAccessorFinalize(safeReadAccessorHandle);
+	}
 
  lock_fail:
 
@@ -9042,7 +9445,8 @@ SaAisErrorT saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
 /* Internal function used *only* from saImmOiAugmentCcbInitialize
    Creates a mockup ccb-node and mockup admo-node so that an
    OI client can augment a pre existing ccb with added create,
-   delete and modify operations.
+   delete and modify operations. Safe read can augment a ccb
+   in completed operation.
 */
 SaAisErrorT immsv_om_augment_ccb_initialize(
 				 SaImmOiHandleT privateOmHandle,
@@ -9243,8 +9647,8 @@ SaAisErrorT immsv_om_augment_ccb_initialize(
 
 /* Internal function used *only* from callback processing in imma_proc.c
    Obtains the outcome for an OI augmented CCB. 
-   The outcome should be obtained after the create/delete/modify callback 
-   to the OI returns, to the callback post processing in imma_proc.c
+   The outcome should be obtained after the create/delete/modify/completed
+   callback to the OI returns, to the callback post processing in imma_proc.c
    See imma_process_callback_info()
 */
 SaAisErrorT immsv_om_augment_ccb_get_result(

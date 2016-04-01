@@ -3655,7 +3655,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	IMMA_CALLBACK_INFO * cbi=NULL;
 	SaImmHandleT privateOmHandle = 0LL;
 	SaImmAdminOwnerHandleT privateAoHandle = 0LL;
-	SaVersionT version = {'A', 2, 11};
+	SaVersionT version = {'A', 2, 17};
 	SaUint32T adminOwnerId = 0;
 	SaUint32T ccbId = 0;
 
