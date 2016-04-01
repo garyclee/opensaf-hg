@@ -2186,7 +2186,10 @@ static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t
 	for (count = 0; count < num_of_obj; count++) {
 		decode_app(&dec->i_uba, &dec_app);
 		status = avd_ckpt_app(cb, &dec_app, dec->i_action);
-		osafassert(status == NCSCC_RC_SUCCESS);
+		if (status != NCSCC_RC_SUCCESS) {
+			// perhaps this ckpt came late, after app was deleted
+			LOG_WA("'%s' update failed", dec_app.name.value);
+		}
 	}
 
 	TRACE_LEAVE2("status %u, count %u", status, count);
@@ -2217,7 +2220,10 @@ static uint32_t dec_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 	for (count = 0; count < num_of_obj; count++) {
 		decode_sg(&dec->i_uba, &dec_sg);
 		status = avd_ckpt_sg(cb, &dec_sg, dec->i_action);
-		osafassert(status == NCSCC_RC_SUCCESS);
+		if (status != NCSCC_RC_SUCCESS) {
+			// perhaps this ckpt came late, after sg was deleted
+			LOG_WA("'%s' update failed", dec_sg.name.value);
+		}
 	}
 
 	TRACE_LEAVE2("status %u, count %u", status, count);
@@ -2248,7 +2254,10 @@ static uint32_t dec_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 	for (unsigned i = 0; i < num_of_obj; i++) {
 		decode_su(&dec->i_uba, &su, dec->i_peer_version);
 		status = avd_ckpt_su(cb, &su, dec->i_action);
-		osafassert(status == NCSCC_RC_SUCCESS);
+		if (status != NCSCC_RC_SUCCESS) {
+                    // perhaps this ckpt came late, after a su delete
+                    LOG_WA("'%s' update failed", su.name.value);
+                }
 	}
 
 	TRACE_LEAVE2("status '%u'", status);
@@ -2282,7 +2291,10 @@ static uint32_t dec_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 	for (unsigned i = 0; i < num_of_obj; i++) {
 		decode_si(&dec->i_uba, &si, dec->i_peer_version);
 		status = avd_ckpt_si(cb, &si, dec->i_action);
-		osafassert(status == NCSCC_RC_SUCCESS);
+                if (status != NCSCC_RC_SUCCESS) {
+                    // perhaps this ckpt came late, after a si delete
+                    LOG_WA("'%s' update failed", si.name.value);
+                }
 	}
 
 	TRACE_LEAVE2("status '%u'", status);
@@ -2802,7 +2814,10 @@ static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec,
 	for (count = 0; count < num_of_obj; count++) {
 		decode_comp_cs_type_config(&dec->i_uba, &comp_cs_type);
 		status = avd_ckpt_compcstype(cb, &comp_cs_type, dec->i_action);
-		osafassert(status == NCSCC_RC_SUCCESS);
+		if (status != NCSCC_RC_SUCCESS) {
+			// perhaps this ckpt came late, after a delete
+			LOG_WA("'%s' update failed", comp_cs_type.name.value);
+		}
 	}
 	TRACE_LEAVE2("status '%u'", status);
 	return status;
