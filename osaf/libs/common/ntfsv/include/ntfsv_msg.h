@@ -63,6 +63,7 @@ as mentioned in LOGSV PR doc Section 3.5.2.1*/
 		NTFSV_DUMMY_CALLBACK = 0,
 		NTFSV_NOTIFICATION_CALLBACK = 1,
 		NTFSV_DISCARDED_CALLBACK = 2,
+		NTFSV_CLM_NODE_STATUS_CALLBACK = 3,
 		NTFSV_NTFS_CBK_MAX = 3
 	} ntfsv_cbk_msg_type_t;
 
@@ -188,6 +189,11 @@ as mentioned in LOGSV PR doc Section 3.5.2.1*/
 		} param;
 	} ntfsv_api_info_t;
 
+/*CLM node status callback structure for NTFA*/
+	typedef struct ntfsv_ntfa_clm_status_param_tag {
+		uint32_t clm_node_status;
+	} ntfsv_ntfa_clm_status_cbk_t;
+
 /* wrapper structure for all the callbacks */
 	typedef struct {
 		ntfsv_cbk_msg_type_t type;	/* callback type */
@@ -197,6 +203,7 @@ as mentioned in LOGSV PR doc Section 3.5.2.1*/
 		union {
 			ntfsv_send_not_req_t *notification_cbk;
 			ntfsv_discarded_info_t discarded_cbk;
+			ntfsv_ntfa_clm_status_cbk_t clm_node_status_cbk;
 		} param;
 	} ntfsv_cbk_info_t;
 
