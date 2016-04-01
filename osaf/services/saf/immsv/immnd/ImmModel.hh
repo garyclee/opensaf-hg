@@ -79,6 +79,9 @@ typedef std::vector<SaInvocationT> InvocVector;
 /* Maps an object pointer, to a set of object pointers.*/
 typedef std::multimap<ObjectInfo*, ObjectInfo*> ObjectMMap;
 
+/**/
+typedef std::map<ObjectInfo*, uint16_t> ObjectShortCountMap;
+
 /* Object mutation */
 struct ObjectMutation;
 typedef std::map<std::string, ObjectMutation*> ObjectMutationMap;
@@ -272,7 +275,8 @@ public:
                                      ObjectNameVector& objNameVector,
                                      ConnVector& connVector,
                                      IdVector& continuations,
-                                     unsigned int pbeIsLocal);
+                                     unsigned int pbeIsLocal,
+                                     ObjectInfo **readLockedObject);
     
     void                setCcbErrorString(
                                           CcbInfo *ccb,
@@ -382,6 +386,10 @@ public:
     SaAisErrorT         nextSyncResult(ImmsvOmRspSearchNext** rsp,
                                        ImmSearchOp& op);
     
+    SaAisErrorT         objectIsLockedByCcb(const ImmsvOmSearchInit* req);
+
+    SaAisErrorT         ccbReadLockObject(const ImmsvOmSearchInit* req);
+
     SaAisErrorT         accessorGet(
                                     const ImmsvOmSearchInit* req,
                                     ImmSearchOp& op);

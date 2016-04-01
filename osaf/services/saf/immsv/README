@@ -2704,6 +2704,50 @@ Bit 5 controls OpenSAF4.5 protocols allowed or not (normally on/1).
 Bit 6 controls OpenSAF4.6 protocols allowed or not (normally on/1).
 Bit 7 controls OpenSAF4.7 protocols allowed or not (normally on/1).
 
+
+Safe-read (transactional read) (5.0)
+=============================================
+http://sourceforge.net/p/opensaf/tickets/48/
+
+Adds support for an OM CCB client to read-access a config object transactionally.
+The API works exactly the same way as saImmOmAccessorGet, except that
+
+   a) The API takes a SaImmCcbHandleT instead of a SaImmAccessorHandleT
+
+   b) The values returned for the objects config attributes are from a version
+      of the object consistent with the CCB/transaction. This means either the
+      latest applied version or a newer version created in the same CCB but
+      not yet applied. 
+
+   c) Access to an object that has been deleted in the same CCB but not applied
+      is rejected with ERR_NOT_EXIST. 
+
+   d) Access to an object that has been created in the same CCB but not applied
+      is allowed, providing the latest version of the config attributes in that CCB.
+
+   e) Safe read is not allowed using a runtime object as target.
+
+Runtime attributes residing in a config object are handled exactly the same as for
+saImmOmAccessorGet. The reason a safe-read call is not allowed on a runtime *object*
+is that a runtime object *only* contains runtime attributes. Performing a safe-read
+on a runtime object makes no sense. 
+
+
+saImmOmCcbObjectRead(SaImmCcbHandleT ccbHandle, /* in */
+                     SaConstStringT objectName, /* in */
+                     const SaImmAttrNameT *attributeNames, /* in */
+                     SaImmAttrValuesT_2 ***attributes); /* out */
+
+
+Return Values :   SA_AIS_ERR_BUSY - The object targeted by the request is already
+                  the target of conflicting/exclusive operation in another CCB.
+                  The conflicting operation would be a modify or delete.
+
+                  SA_AIS_ERR_INVALID_PARAM - The objectName parameter identifies a
+                  runtime object.
+
+                  Returncodes otherwise identical to saImmOmAccessorGet.
+
 ----------------------------------------
 DEPENDENCIES
 ============

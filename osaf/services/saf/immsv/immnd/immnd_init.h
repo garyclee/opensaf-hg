@@ -202,6 +202,9 @@ extern "C" {
 
 	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp, SaBoolT isSync, SaBoolT isAccessor);
 
+	SaAisErrorT immModel_objectIsLockedByCcb(IMMND_CB *cb, struct ImmsvOmSearchInit *req);
+	SaAisErrorT immModel_ccbReadLockObject(IMMND_CB *cb, struct ImmsvOmSearchInit *req);
+
 	SaAisErrorT immModel_testTopResult(void *searchOp, SaUint32T *implNodeId, SaBoolT *bRtAttrsToFetch);
 
 	SaAisErrorT

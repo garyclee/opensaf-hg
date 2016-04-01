@@ -217,9 +217,9 @@ static uint32_t immnd_evt_proc_search_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMM
 
 static uint32_t immnd_evt_proc_accessor_get(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
-static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt);
+static uint32_t immnd_evt_proc_safe_read(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
-/*static uint32_t immnd_evt_immd_new_active(IMMND_CB *cb);*/
+static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt);
 
 static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T **clientArr, 
 		SaUint32T * clArrSize, SaUint32T *nodeId);
@@ -358,7 +358,8 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 	} else if (evt->info.immnd.type == IMMND_EVT_ND2ND_SEARCH_REMOTE_RSP) {
 		freeSearchNext(&evt->info.immnd.info.rspSrchRmte.runtimeAttrs, false);
 	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) ||
-		(evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET)) {
+		(evt->info.immnd.type == IMMND_EVT_A2ND_ACCESSOR_GET) ||
+		(evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SAFE_READ)) {
 		free(evt->info.immnd.info.searchInit.rootName.buf);
 		evt->info.immnd.info.searchInit.rootName.buf = NULL;
 		evt->info.immnd.info.searchInit.rootName.size = 0;
@@ -604,6 +605,10 @@ void immnd_process_evt(void)
 
 	case IMMND_EVT_A2ND_SEARCHNEXT:
 		rc = immnd_evt_proc_search_next(cb, &evt->info.immnd, &evt->sinfo);
+		break;
+
+	case IMMND_EVT_A2ND_OBJ_SAFE_READ:
+		rc = immnd_evt_proc_safe_read(cb, &evt->info.immnd, &evt->sinfo);
 		break;
 
 	case IMMND_EVT_A2ND_ACCESSOR_GET:
@@ -1795,6 +1800,80 @@ static uint32_t immnd_evt_proc_search_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMM
 }
 
 /****************************************************************************
+ * Name          : immnd_evt_proc_safe_read
+ *
+ * Description   : Function to process the saImmOmCcbObjectRead call.
+ *                 This call can in some cases be resolved with success locally.
+ *                 This will be the case if the object to be accessed is already
+ *                 locked previously by this CCB.
+ *                 
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMND_EVT *evt - Received Event structure
+ *                 IMMSV_SEND_INFO *sinfo - sender info
+ *****************************************************************************/
+static uint32_t immnd_evt_proc_safe_read(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+	IMMSV_EVT send_evt;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT err = SA_AIS_OK;
+	TRACE_ENTER();
+	memset(&send_evt, 0, sizeof(IMMSV_EVT));
+
+	if(evt->info.searchInit.ccbId == 0) {
+		err = SA_AIS_ERR_LIBRARY;
+		LOG_WA("ERR_LIBRARY: Received zero ccb-id for safe-read");
+		goto error;
+	}
+
+	/* Dive into ImmModel to do locking checks. 
+	   If already locked in this ccb continue with accessor. 
+	   If locked by other ccb then reject with ERR_BUSY
+	   If not locked, then generate fevs message for locking AND read.
+	 */
+
+	err = immModel_objectIsLockedByCcb(cb, &(evt->info.searchInit));
+
+	switch (err) {
+		case SA_AIS_OK:
+			TRACE("Safe read: Object is locked by this CCB(%u). Go ahead and safe-read",
+				evt->info.searchInit.ccbId);
+			/* Invoke accessor_get which will send the reply. */
+			break;
+
+		case SA_AIS_ERR_BUSY:
+			TRACE("Object is locked by some other CCB than this CCB(%u). Reply with BUSY",
+				evt->info.searchInit.ccbId);
+			goto error;
+
+		case SA_AIS_ERR_INTERRUPT:
+			TRACE("Object not locked. Ccb (%u) needs to lock it over fevs. Reply with INTERRUPT",
+				evt->info.searchInit.ccbId);
+			/* Should result in fevs message to read-lock object. */
+			goto error;
+
+		default:
+			TRACE("Unusual error from immModel_objectIsLockedByCcb: %u", err);
+			goto error;
+	}
+
+	rc = immnd_evt_proc_accessor_get(cb, evt, sinfo);
+	goto done;
+
+ error:
+	send_evt.type = IMMSV_EVT_TYPE_IMMA;
+	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+	send_evt.info.imma.info.errRsp.error = err;
+	send_evt.info.imma.info.errRsp.errStrings = NULL;
+
+	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+
+ done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/****************************************************************************
  * Name          : immnd_evt_proc_accessor_get
  *
  * Description   : Function to process the saImmOmAccessorGet call.
@@ -1822,7 +1901,13 @@ static uint32_t immnd_evt_proc_accessor_get(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 	/* Search Init */
 
 	memset(&send_evt, 0, sizeof(IMMSV_EVT));
-	TRACE_2("ACCESSOR GET:%s", evt->info.searchInit.rootName.buf);
+
+	if(evt->info.searchInit.ccbId != 0) {
+		TRACE_2("SAFE READ :%s CcbId: %u", evt->info.searchInit.rootName.buf, evt->info.searchInit.ccbId);
+	} else {
+		TRACE_2("ACCESSOR GET:%s", evt->info.searchInit.rootName.buf);
+	}
+
 
 	/*Look up client-node */
 	immnd_client_node_get(cb, evt->info.searchInit.client_hdl, &cl_node);
@@ -3205,6 +3290,13 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 		}
 		break;
 
+	case IMMND_EVT_A2ND_OBJ_SAFE_READ:
+		TRACE("IMMND_EVT_A2ND_OBJ_SAFE_READ noted in fevs_local_checks");
+		if(!immModel_protocol50Allowed(cb) || immModel_pbeNotWritable(cb)) {
+			error = SA_AIS_ERR_TRY_AGAIN;
+		}
+		break;
+
 	case IMMND_EVT_A2ND_OBJ_CREATE_2:
         if(!immModel_protocol46Allowed(cb) || immModel_pbeNotWritable(cb)) {
             error = SA_AIS_ERR_TRY_AGAIN;
@@ -3548,7 +3640,6 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 		}
 		break;
 
-
 	case IMMND_EVT_A2ND_PBE_ADMOP_RSP:
 		if(fevsReq->sender_count != 0x0) {
 			LOG_WA("ERR_LIBRARY: IMMND_EVT_A2ND_PBE_ADMOP_RSP fevsReq->sender_count != 0x0");
@@ -3562,7 +3653,7 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 		break;
 
 	default:
-		LOG_ER("UNPACK FAILURE, unrecognized message type: %u over FEVS", 
+		LOG_ER("UNPACK FAILURE, unrecognized message type: %u caught in fevs_local_checks", 
 			frwrd_evt.info.immnd.type);
 		error = SA_AIS_ERR_LIBRARY;
 		break;
@@ -4378,6 +4469,58 @@ static void immnd_evt_sync_fevs_base(IMMND_CB *cb, IMMND_EVT *evt,
 
 }
 
+static void immnd_evt_safe_read_lock(IMMND_CB *cb, IMMND_EVT *evt,
+       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+{
+	IMMSV_EVT send_evt;
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	SaAisErrorT err = SA_AIS_OK;
+	TRACE_ENTER();
+
+	err = immModel_objectIsLockedByCcb(cb, &(evt->info.searchInit));
+
+	switch (err) {
+		case SA_AIS_OK:
+			TRACE("safe_read_lock: Object is already locked by this CCB(%u)!!",
+				evt->info.searchInit.ccbId);
+			break;
+
+		case SA_AIS_ERR_BUSY:
+			TRACE("Object is locked by some other CCB than this CCB(%u). Reply with BUSY",
+				evt->info.searchInit.ccbId);
+			break;
+
+		case SA_AIS_ERR_INTERRUPT:
+			TRACE("Object not locked. Ccb (%u) will now lock it",
+				evt->info.searchInit.ccbId);
+			err = immModel_ccbReadLockObject(cb, &(evt->info.searchInit));
+			break;
+
+		default:
+			TRACE("Unusual error from immModel_objectIsLockedByCcb: %u", err);
+	}
+
+	if(originatedAtThisNd) {
+		immnd_client_node_get(cb, clnt_hdl, &cl_node);
+		if (cl_node == NULL || cl_node->mIsStale) {
+			LOG_WA("IMMND - Client went down so no response");
+			return;
+		}
+		TRACE_2("Send immediate reply to client");
+
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.info.errRsp.error = err;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+
+		if (immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != NCSCC_RC_SUCCESS) {
+			LOG_WA("immnd_evt_class_delete: SENDRSP FAILED TO SEND");
+		}
+	}
+
+	TRACE_LEAVE();
+}
+
 
 /****************************************************************************
  * Name          : immnd_evt_pbe_admop_rsp
@@ -5141,7 +5284,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 	if (originatedAtThisNd) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
-			LOG_ER("IMMND - Client went down so no response");
+			LOG_WA("IMMND - Client went down so no response");
 			return;
 		}
 
@@ -8291,6 +8434,11 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 
 	case IMMND_EVT_D2ND_SYNC_FEVS_BASE:
 		immnd_evt_sync_fevs_base(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		break;
+
+	case IMMND_EVT_A2ND_OBJ_SAFE_READ:
+		TRACE("IMMND_EVT_A2ND_OBJ_SAFE_READ Received over fevs");
+		immnd_evt_safe_read_lock(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
 	default:
