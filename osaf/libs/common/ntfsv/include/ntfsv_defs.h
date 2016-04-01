@@ -20,6 +20,10 @@
 
 #define NTF_RELEASE_CODE 'A'
 #define NTF_MAJOR_VERSION 1
-#define NTF_MINOR_VERSION 1
+#define NTF_MINOR_VERSION 2
+
+#define NTF_RELEASE_CODE_0 'A'
+#define NTF_MAJOR_VERSION_0 1
+#define NTF_MINOR_VERSION_0 1
 
 #endif   /* NTFSV_DEFS_H */
