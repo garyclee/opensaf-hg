@@ -30,7 +30,9 @@ typedef struct ImmThreadArg {
 static int objectDispatchThreadIsSet = 0;
 static int classDispatchThreadIsSet = 0;
 static int useAdminOwner = 0;
-static int testValidate = 0;
+static int testCcbValidate = 0;
+static int testAugmentSafeReadInCompleted = 0;
+static int testModificationInCompleted = 0;
 static SaAisErrorT globalRc = SA_AIS_OK;
 
 static const SaNameT rdnObj1 = {sizeof("Obj1"), "Obj1"};
@@ -133,10 +135,27 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
 static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle,
     SaImmOiCcbIdT ccbId)
 {
+    SaAisErrorT err = SA_AIS_OK;
+    SaImmCcbHandleT ccbHandle=0LL;
+    SaImmAdminOwnerHandleT ownerHandle=0LL;
+    SaImmAttrValuesT_2** attributes=NULL;
     TRACE_ENTER2();
     callbackCounter++;
+    if(testAugmentSafeReadInCompleted) {
+        globalRc = err = saImmOiAugmentCcbInitialize(immOiHandle, ccbId, &ccbHandle, &ownerHandle);
+        if(err == SA_AIS_OK) {
+            globalRc = err = saImmOmCcbObjectRead(ccbHandle, "opensafImm=opensafImm,safApp=safImmService", NULL, &attributes);
+            err = saImmOmCcbApply(ccbHandle);
+        }
+    } else if(testModificationInCompleted) {
+        globalRc = err = saImmOiAugmentCcbInitialize(immOiHandle, ccbId, &ccbHandle, &ownerHandle);
+        if(err == SA_AIS_OK) {
+            globalRc = err = saImmOmCcbObjectDelete_o3(ccbHandle, (SaConstStringT) rdnObj1.value);
+            err = saImmOmCcbApply(ccbHandle);
+        }
+    }
     TRACE_LEAVE2();
-    return saImmOiCcbCompletedCallback_response;
+    return (testAugmentSafeReadInCompleted) ? err : saImmOiCcbCompletedCallback_response;
 }
 
 static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle,
@@ -233,7 +252,7 @@ static SaAisErrorT saImmOiAugCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
     if(useAdminOwner)
     	safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK); 
     if((rc = saImmOmCcbObjectModify_2(ccbHandle, &rdnObj2, attrMods)) == SA_AIS_OK) {
-	    if(testValidate) {
+	    if(testCcbValidate) {
 		    globalRc = saImmOmCcbValidate(ccbHandle);
 	    } //else {
 		    rc = saImmOmCcbApply(ccbHandle);
@@ -512,7 +531,9 @@ static void saImmOiCcbAugmentInitialize_02(void)
 
     assert(callbackCounter == 1);
 
-    safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
+    rc = saImmOmCcbApply(ccbHandle);
+
+    if(!testModificationInCompleted)  safassert(rc, SA_AIS_OK);
 
     /* Wait for completed and apply collbacks */
     while(callbackCounter != 3 && threadCounter == 1)
@@ -523,14 +544,14 @@ static void saImmOiCcbAugmentInitialize_02(void)
     if ((rc = saImmOmCcbObjectDelete(ccbHandle, &rdnObj1)) != SA_AIS_OK)
     	goto done;
 
-	assert(callbackCounter == 1);
+    assert(callbackCounter == 1);
 
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
 
 done:
 	pthread_join(threadid, NULL);
 
-	if(!testValidate) {
+	if(!testCcbValidate && !testAugmentSafeReadInCompleted && !testModificationInCompleted) {
 		test_validate(rc, SA_AIS_OK);
 	}
 
@@ -734,10 +755,36 @@ static void saImmOiCcbAugmentInitialize_05(void)
 	*/
     TRACE_ENTER();
 
-    testValidate = 1;
+    testCcbValidate = 1;
     saImmOiCcbAugmentInitialize_02();
     test_validate(globalRc, SA_AIS_ERR_BAD_OPERATION);
 
+    TRACE_LEAVE();
+}
+
+static void saImmOiCcbAugmentInitialize_06(void)
+{
+    TRACE_ENTER();
+
+    testCcbValidate = 0;
+    testAugmentSafeReadInCompleted = 1;
+    testModificationInCompleted = 0;
+    saImmOiCcbAugmentInitialize_02();
+    test_validate(globalRc, SA_AIS_OK);
+    testAugmentSafeReadInCompleted = 0;
+    TRACE_LEAVE();
+}
+
+static void saImmOiCcbAugmentInitialize_07(void)
+{
+    TRACE_ENTER();
+
+    testCcbValidate = 0;
+    testAugmentSafeReadInCompleted = 0;
+    testModificationInCompleted = 1;
+    saImmOiCcbAugmentInitialize_02();
+    test_validate(globalRc, SA_AIS_ERR_FAILED_OPERATION);
+    testModificationInCompleted = 0;
     TRACE_LEAVE();
 }
 
@@ -749,5 +796,7 @@ __attribute__ ((constructor)) static void saImmOiCcbAugmentInitialize_constructo
     test_case_add(6, saImmOiCcbAugmentInitialize_03, "saImmOiCcbAugmentInitialize - SA_AIS_OK - two object implementers: modify, delete");
     test_case_add(6, saImmOiCcbAugmentInitialize_04, "saImmOiCcbAugmentInitialize - SA_AIS_OK - two object implementers: modify and delete with saImmOmAdminOwnerSet");
     test_case_add(6, saImmOiCcbAugmentInitialize_05, "saImmOiCcbAugmentInitialize - SA_AIS_ERR_BAD_OPERATION - saImmOmValidate not allowed in augmentation");
+    test_case_add(6, saImmOiCcbAugmentInitialize_06, "saImmOiCcbAugmentInitialize - SA_AIS_OK - augment with safe read allowed in completed");
+    test_case_add(6, saImmOiCcbAugmentInitialize_07, "saImmOiCcbAugmentInitialize - SA_AIS_ERR_FAIlED_OPERATION - augment with mutation (delete) NOT allowed in completed");
 }
 
