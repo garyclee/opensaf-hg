@@ -24,7 +24,7 @@
 typedef NCS_IPC_MSG CLMNA_MBX_MSG;
 typedef enum clmna_evt_type {
 	CLMNA_EVT_INVALID = 0,
-	CLMNA_EVT_DUMMY_MSG,
+	CLMNA_EVT_CHANGE_MSG,
 	CLMNA_EVT_MAX_MSG
 } CLMNA_EVT_TYPE;
 
@@ -32,6 +32,9 @@ typedef struct clmna_evt_tags {
 	CLMNA_MBX_MSG next;
 	CLMNA_EVT_TYPE type;
 	bool caused_by_timer_expiry;
+	NCSMDS_CHG change;
+	NODE_ID node_id;
+	MDS_SVC_ID svc_id;
 } CLMNA_EVT;
 
 
