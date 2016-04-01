@@ -376,6 +376,13 @@ void fprintf_p(FILE*, const char *format, ...);
 
 extern void assertvalue_impl(__const char *__assertion, __const char *__file,
 		   unsigned int __line, __const char *__function);
+
+extern  void saNtfNotificationSend_01(void);
+extern  void saNtfNotificationSend_02(void);
+extern  void saNtfNotificationSend_03(void);
+extern  void saNtfNotificationSend_04(void);
+extern  void saNtfNotificationSend_05(void);
+extern const SaVersionT lowestVersion;
 #define assertvalue(expr) \
   (((expr) ? 0 : (assertvalue_impl (__STRING(expr), __FILE__, __LINE__, __FUNCTION__), 1)))
 
