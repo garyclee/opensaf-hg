@@ -6,7 +6,8 @@ CORE_INCLUDES = \
 	-I$(top_srcdir)/osaf/libs/core/include \
 	-I$(top_srcdir)/osaf/libs/core/leap/include \
 	-I$(top_srcdir)/osaf/libs/core/mds/include \
-	-I$(top_srcdir)/osaf/libs/core/common/include
+	-I$(top_srcdir)/osaf/libs/core/common/include \
+	-I$(top_srcdir)/osaf/libs/core/cplusplus
 
 AM_CPPFLAGS = \
 	$(CORE_INCLUDES) \
