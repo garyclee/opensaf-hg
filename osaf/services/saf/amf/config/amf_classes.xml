@@ -641,6 +641,14 @@
 			<type>SA_UINT32_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
+		<attr>
+			<name>saAmfUnassignedAlarmStatus</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<default-value>0</default-value>
+		</attr>
 	</class>
 	<class name="SaAmfSvcType">
 		<category>SA_CONFIG</category>
