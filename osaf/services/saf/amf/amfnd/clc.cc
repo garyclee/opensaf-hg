@@ -454,7 +454,7 @@ uint32_t avnd_evt_comp_pres_fsm_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if ((is_uninst == true) &&
 			(comp->pres == SA_AMF_PRESENCE_INSTANTIATING))
-		avnd_su_pres_state_set(comp->su, SA_AMF_PRESENCE_INSTANTIATING);
+		avnd_su_pres_state_set(cb, comp->su, SA_AMF_PRESENCE_INSTANTIATING);
 
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -767,7 +767,7 @@ uint32_t avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_
 		TRACE("Term state is NODE_FAILOVER, event '%s'", pres_state_evt[ev]);
 		switch (ev) {
 		case AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC:
-			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+			avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 			if (all_app_comps_terminated()) {
 				AVND_SU *tmp_su;
 				cb->term_state = AVND_TERM_STATE_NODE_FAILOVER_TERMINATED;
@@ -924,8 +924,10 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 
 		TRACE_1("Component restart not through admin operation");
 		/* inform avd of the change in restart count */
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRestartCount_ID, 
+		if (cb->is_avd_down == false) {
+			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRestartCount_ID,
 				&comp->name, comp->err_info.restart_cnt);
+		}
 	}
 	/* reset the admin-oper flag to false */
 	if ((comp->admin_oper == true) && (final_st == SA_AMF_PRESENCE_INSTANTIATED)) {
@@ -981,7 +983,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				 (final_st == SA_AMF_PRESENCE_TERMINATION_FAILED))) {
 			/* instantiation failed.. log it */
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			if (cb->is_avd_down == false) {
+				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			}
 			m_AVND_COMP_FAILED_SET(comp);
 		}
 
@@ -996,7 +1000,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			if (m_AVND_COMP_IS_FAILED(comp)) {
 				m_AVND_COMP_FAILED_RESET(comp);
 				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+				if (cb->is_avd_down == false) {
+					m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+				}
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 				clear_error_report_alarm(comp);
@@ -1082,7 +1088,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 		if ((SA_AMF_PRESENCE_TERMINATING == prv_st) && (SA_AMF_PRESENCE_UNINSTANTIATED == final_st)) {
 			/* npi comps are enabled in uninstantiated state */
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			if (cb->is_avd_down == false) {
+				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			}
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 
@@ -1133,7 +1141,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			if (m_AVND_COMP_IS_FAILED(comp)) {
 				m_AVND_COMP_FAILED_RESET(comp);
 				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+				if (cb->is_avd_down == false) {
+					m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+				}
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 				clear_error_report_alarm(comp);
@@ -1156,7 +1166,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 
 			/* update comp oper state */
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			if (cb->is_avd_down == false) {
+				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			}
 
 			m_AVND_SU_FAILED_SET(comp->su);
 			/* csi-set Failed.. Respond failure for Su-Si */
@@ -1175,7 +1187,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 		if ((SA_AMF_PRESENCE_RESTARTING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
 			m_AVND_COMP_FAILED_RESET(comp);
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			if (cb->is_avd_down == false) {
+				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			}
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 			clear_error_report_alarm(comp);
@@ -1189,7 +1203,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			else {
 				/* npi comps are enabled in uninstantiated state */
 				m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+				if (cb->is_avd_down == false) {
+					m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+				}
 				if (NCSCC_RC_SUCCESS != rc)
 					goto done;
 			}
@@ -1201,7 +1217,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				 (final_st == SA_AMF_PRESENCE_TERMINATION_FAILED))) {
 			m_AVND_COMP_FAILED_SET(comp);
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			if (cb->is_avd_down == false) {
+				m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			}
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 		}
@@ -1407,7 +1425,7 @@ uint32_t avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 		}
 
 		/* transition to 'instantiating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_INSTANTIATING);
 
 		goto done;
 	}
@@ -1423,7 +1441,7 @@ uint32_t avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 		comp->clc_info.inst_retry_cnt++;
 
 		/* transition to 'instantiating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_INSTANTIATING);
 	}
 
 done:
@@ -1495,7 +1513,7 @@ uint32_t avnd_comp_clc_insting_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	comp->clc_info.inst_retry_cnt = 0;
 
 	/* transition to 'instantiated' state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_INSTANTIATED);
 
 	TRACE_LEAVE();
 	return rc;
@@ -1581,7 +1599,7 @@ uint32_t avnd_comp_clc_insting_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 		avnd_comp_pm_rec_del_all(cb, comp);	/*if at all anythnig is left behind */
 
 		/* transition to 'terminating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 	TRACE_LEAVE();
@@ -1616,7 +1634,7 @@ uint32_t avnd_comp_clc_insting_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_TERM_FAIL_RESET(comp);
 
 		/* transition to 'terminating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 	TRACE_LEAVE();
@@ -1650,7 +1668,7 @@ static bool is_failed_comp_eligible_for_instantiation(AVND_COMP *comp) {
 			     component was cleaned up in the context of comp-restart recovery.
 			     Since further escalation has reached to surestart, same cleanup can be used
 			     and thus comp can be marked uninstantiated.*/
-			  avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+			  avnd_comp_pres_state_set(avnd_cb, comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 			  return false;
 		 }
 	  } else { //Case of RESTART admin op or assignment phase of surestart recovery.
@@ -1750,7 +1768,7 @@ uint32_t avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 			m_AVND_TMR_PXIED_COMP_INST_STOP(cb, *comp);
 		}
 		/* => retries over... transition to inst-failed state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	}
 done:
 	TRACE_LEAVE();
@@ -1776,7 +1794,7 @@ uint32_t avnd_comp_clc_insting_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Cleanup Fail event in the instantiating state", comp->name.value);
 
 	/* nothing can be done now.. just transition to term-failed state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
 
 	TRACE_LEAVE();
 	return rc;
@@ -1808,7 +1826,7 @@ uint32_t avnd_comp_clc_insting_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
 
 		/* transition to 'restarting' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_RESTARTING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_RESTARTING);
 	}
 
 	TRACE_LEAVE();
@@ -1864,7 +1882,7 @@ uint32_t avnd_comp_clc_inst_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
 
 		/* transition to 'terminating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 	TRACE_LEAVE();
@@ -1925,7 +1943,7 @@ uint32_t avnd_comp_clc_inst_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		m_AVND_COMP_TERM_FAIL_RESET(comp);
 		/* transition to 'terminating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 done:
@@ -2008,9 +2026,9 @@ uint32_t avnd_comp_clc_inst_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 		/* If DisableRestart=0 then transition to 'restarting' state and 
 		   DisableRestart=1 then  transition to 'terminating' state */
 		if (!m_AVND_COMP_IS_RESTART_DIS(comp))
-			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_RESTARTING);
+			avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_RESTARTING);
 		else
-			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+			avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 	}
 done:
 	TRACE_LEAVE();
@@ -2041,7 +2059,7 @@ uint32_t avnd_comp_clc_inst_orph_hdler(AVND_CB *cb, AVND_COMP *comp)
 	m_AVND_TMR_PXIED_COMP_REG_START(cb, *comp, rc);
 
 	if (NCSCC_RC_SUCCESS == rc) {
-		avnd_comp_pres_state_set(comp, static_cast<SaAmfPresenceStateT>(SA_AMF_PRESENCE_ORPHANED));
+		avnd_comp_pres_state_set(cb, comp, static_cast<SaAmfPresenceStateT>(SA_AMF_PRESENCE_ORPHANED));
 	}
 
 	TRACE_LEAVE();
@@ -2067,7 +2085,7 @@ uint32_t avnd_comp_clc_terming_termsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Terminate success event in the terminating state", comp->name.value);
 
 	/* just transition to 'uninstantiated' state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 
 	/* reset the comp-reg & instantiate params */
 	if (!m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
@@ -2137,7 +2155,7 @@ uint32_t avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Cleanup success event in the terminating state", comp->name.value);
 
 	/* just transition to 'uninstantiated' state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_UNINSTANTIATED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 
 	if (AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED == cb->term_state) {
 		/*
@@ -2244,7 +2262,7 @@ uint32_t avnd_comp_clc_terming_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Cleanup fail event in the terminating state", comp->name.value);
 
 	/* just transition to 'term-failed' state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
 	avnd_comp_curr_info_del(cb, comp);
 	if ((cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED) &&
 			all_comps_terminated()) {
@@ -2334,7 +2352,7 @@ uint32_t avnd_comp_clc_restart_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	}
 
 	/* just transition back to 'instantiated' state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_INSTANTIATED);
 
 	TRACE_LEAVE();
 	return rc;
@@ -2379,7 +2397,7 @@ uint32_t avnd_comp_clc_restart_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
 
 		/* transition to 'terminating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 	TRACE_LEAVE();
@@ -2474,7 +2492,7 @@ uint32_t avnd_comp_clc_restart_termfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	/* transition to 'term-failed' state */
 	if (NCSCC_RC_SUCCESS == rc) {
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
 	}
 
 	TRACE_LEAVE();
@@ -2520,7 +2538,7 @@ uint32_t avnd_comp_clc_restart_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		/* transition to 'terminating' state */
 		if (!m_AVND_COMP_IS_TERM_FAIL(comp))
-			avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+			avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 		else
 			m_AVND_COMP_TERM_FAIL_RESET(comp);
 	}
@@ -2548,7 +2566,7 @@ uint32_t avnd_comp_clc_restart_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	TRACE_ENTER2("'%s': Cleanup fail event in the restarting state", comp->name.value);
 
 	/* transition to 'term-failed' state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATION_FAILED);
 
 	TRACE_LEAVE();
 	return rc;
@@ -2578,7 +2596,7 @@ uint32_t avnd_comp_clc_orph_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 	}
 
 	/* just transition to 'instantiated' state */
-	avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_INSTANTIATED);
+	avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_INSTANTIATED);
 
 	TRACE_LEAVE();
 	return rc;
@@ -2642,7 +2660,7 @@ uint32_t avnd_comp_clc_orph_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
 
 		/* transition to 'terminating' state */
-		avnd_comp_pres_state_set(comp, SA_AMF_PRESENCE_TERMINATING);
+		avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 	TRACE_LEAVE();
@@ -3018,12 +3036,22 @@ uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 
 		/* inform AvD */
 		rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
+
+		if (cb->is_avd_down == true) {
+			// remove assignment if instantiation fails and leads
+			// to comp failover in headless mode for PI SU
+			if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+				LOG_WA("Director is down. Remove all SIs from '%s'", su->name.value);
+				avnd_su_si_del(avnd_cb, &su->name);
+			}
+		}
 	}
 
  done:
-	if (rc == NCSCC_RC_SUCCESS)
+	if (rc == NCSCC_RC_SUCCESS) {
 		LOG_NO("Component Failover trigerred for '%s': Failed component: '%s'",
 			su->name.value, failed_comp->name.value);
+	}
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }

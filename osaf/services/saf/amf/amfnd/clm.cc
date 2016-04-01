@@ -37,6 +37,7 @@
 #include "avnd.h"
 #include "mds_pvt.h"
 #include "nid_api.h"
+#include "amf_si_assign.h"
 
 static void clm_node_left(SaClmNodeIdT node_id)
 {
@@ -118,7 +119,12 @@ static void clm_to_amf_node(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
+	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	if (SA_AIS_OK != error) {
+		LOG_CR("saImmOmInitialize failed. Use previous value of nodeName.");
+		osafassert(avnd_cb->amf_nodeName.length != 0);
+		goto done1;
+	}
 
 	error = immutil_saImmOmSearchInitialize_2(immOmHandle, nullptr, SA_IMM_SUBTREE,
 					SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
@@ -140,6 +146,7 @@ static void clm_to_amf_node(void)
 done:
 	immutil_saImmOmSearchFinalize(searchHandle);
 	immutil_saImmOmFinalize(immOmHandle);
+done1:
 	TRACE_LEAVE2("%u", error);
 }
 
@@ -169,6 +176,8 @@ uint32_t avnd_evt_avd_node_up_evh(AVND_CB *cb, AVND_EVT *evt)
 	cb->type = info->node_type;
 	cb->su_failover_max = info->su_failover_max;
 	cb->su_failover_prob = info->su_failover_prob;
+
+	cb->amfd_sync_required = false;
 
 	TRACE_LEAVE();
 	return rc;

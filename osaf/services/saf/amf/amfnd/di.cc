@@ -266,6 +266,110 @@ done:
 }
 
 /****************************************************************************
+  Name          : add_sisu_state_info
+
+  Description   : This routine adds susi assignment to sisu state info message
+
+  Arguments     : msg - ptr to message
+                  si_assign - ptr to sisu assignment
+
+  Return Values : None
+
+  Notes         : None.
+******************************************************************************/
+void add_sisu_state_info(AVND_MSG *msg, SaAmfSIAssignment *si_assign)
+{
+	AVSV_SISU_STATE_MSG *sisu_state = new AVSV_SISU_STATE_MSG();
+
+	sisu_state->safSU = si_assign->su;
+	sisu_state->safSI = si_assign->si;
+	sisu_state->saAmfSISUHAState = si_assign->saAmfSISUHAState;
+
+	sisu_state->next = msg->info.avd->msg_info.n2d_nd_sisu_state_info.sisu_list;
+	msg->info.avd->msg_info.n2d_nd_sisu_state_info.sisu_list = sisu_state;
+	msg->info.avd->msg_info.n2d_nd_sisu_state_info.num_sisu++;
+}
+
+/****************************************************************************
+  Name          : add_su_state_info
+
+  Description   : This routine adds su info to sisu state info message
+
+  Arguments     : msg - ptr to message
+                  su - ptr to su
+
+  Return Values : None
+
+  Notes         : None.
+******************************************************************************/
+void add_su_state_info(AVND_MSG *msg, const AVND_SU* su)
+{
+	AVSV_SU_STATE_MSG *su_state = new AVSV_SU_STATE_MSG();
+
+	su_state->safSU = su->name;
+	su_state->su_restart_cnt = su->su_restart_cnt;
+	su_state->su_oper_state = su->oper;
+	su_state->su_pres_state = su->pres;
+
+	su_state->next = msg->info.avd->msg_info.n2d_nd_sisu_state_info.su_list;
+	msg->info.avd->msg_info.n2d_nd_sisu_state_info.su_list = su_state;
+	msg->info.avd->msg_info.n2d_nd_sisu_state_info.num_su++;
+}
+
+/****************************************************************************
+  Name          : add_csicomp_state_info
+
+  Description   : This routine adds csi assignment info to csi comp state info
+                  message
+
+  Arguments     : msg - ptr to message
+                  csi_assign - ptr to csi assignment
+
+  Return Values : None
+
+  Notes         : None.
+******************************************************************************/
+void add_csicomp_state_info(AVND_MSG *msg, SaAmfCSIAssignment *csi_assign)
+{
+	AVSV_CSICOMP_STATE_MSG *csicomp_state = new AVSV_CSICOMP_STATE_MSG();
+
+	csicomp_state->safCSI = csi_assign->csi;
+	csicomp_state->safComp = csi_assign->comp;
+	csicomp_state->saAmfCSICompHAState = csi_assign->saAmfCSICompHAState;
+
+	csicomp_state->next = msg->info.avd->msg_info.n2d_nd_csicomp_state_info.csicomp_list;
+	msg->info.avd->msg_info.n2d_nd_csicomp_state_info.csicomp_list = csicomp_state;
+	msg->info.avd->msg_info.n2d_nd_csicomp_state_info.num_csicomp++;
+}
+
+/****************************************************************************
+  Name          : add_comp_state_info
+
+  Description   : This routine adds csi assignment info to comp state info
+                  message
+
+  Arguments     : msg - ptr to message
+                  comp - ptr to comp
+
+  Return Values : None
+
+  Notes         : None.
+******************************************************************************/
+void add_comp_state_info(AVND_MSG *msg, const AVND_COMP *comp)
+{
+	AVSV_COMP_STATE_MSG *comp_state = new AVSV_COMP_STATE_MSG();
+
+	comp_state->safComp = comp->name;
+	comp_state->comp_restart_cnt = comp->err_info.restart_cnt;
+	comp_state->comp_oper_state = comp->oper;
+	comp_state->comp_pres_state = comp->pres;
+
+	comp_state->next = msg->info.avd->msg_info.n2d_nd_csicomp_state_info.comp_list;
+	msg->info.avd->msg_info.n2d_nd_csicomp_state_info.comp_list = comp_state;
+	msg->info.avd->msg_info.n2d_nd_csicomp_state_info.num_comp++;
+}
+
+/****************************************************************************
   Name          : avnd_evt_avd_ack_message
  
   Description   : This routine processes Ack message 
@@ -335,6 +439,7 @@ void avnd_send_node_up_msg(void)
 {
 	AVND_CB *cb = avnd_cb;
 	AVND_MSG msg = {};
+	AVND_DND_MSG_LIST *pending_rec = 0;
 	uint32_t rc;
 
 	TRACE_ENTER();
@@ -349,10 +454,20 @@ void avnd_send_node_up_msg(void)
 		goto done;
 	}
 
+	// We don't send node_up if it has already been sent and waiting for ACK
+	for (pending_rec = cb->dnd_list.head; pending_rec != nullptr; pending_rec = pending_rec->next) {
+		if (pending_rec->msg.info.avd->msg_type == AVSV_N2D_NODE_UP_MSG) {
+			TRACE("Don't send another node_up since it has been sent and waiting for ack");
+			goto done;
+		}
+	}
+
 	msg.info.avd = new AVSV_DND_MSG();
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_NODE_UP_MSG;
 	msg.info.avd->msg_info.n2d_node_up.msg_id = ++(cb->snd_msg_id);
+	msg.info.avd->msg_info.n2d_node_up.leds_set = cb->led_state == AVND_LED_STATE_GREEN ? true : false;
+	msg.info.avd->msg_info.n2d_node_up.node_name = cb->amf_nodeName;
 	msg.info.avd->msg_info.n2d_node_up.node_id = cb->node_info.nodeId;
 	msg.info.avd->msg_info.n2d_node_up.adest_address = cb->avnd_dest;
 
@@ -419,8 +534,38 @@ uint32_t avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* store the AVD MDS address */
 		cb->avd_dest = evt->info.mds.mds_dest;
 
-		avnd_send_node_up_msg();
+		/* amfnd receives NCSMDS_UP in either cluster start up; or recovery from headless
+		 * after a long gap greater than no-active timer in MDS. We send node_up in both cases
+		 * but only sync info is sent for recovery
+		 */
+		if (evt->info.mds.i_change == NCSMDS_UP) {
+			if (cb->amfd_sync_required && cb->led_state == AVND_LED_STATE_GREEN) {
+				avnd_sync_sisu(cb);
+				avnd_sync_csicomp(cb);
+			}
+
+			LOG_NO("Sending node up due to NCSMDS_UP");
+			avnd_send_node_up_msg();
+		}
+		/* amfnd receives NCSMDS_NEW_ACTIVE in either Failover; or recovery from headless
+		 * provided that the no-active timer in MDS has not expired. We only want to send
+		 * node_up/sync info in case of recovery.
+		 */
+		if (evt->info.mds.i_change == NCSMDS_NEW_ACTIVE && cb->amfd_sync_required) {
+			if (cb->led_state == AVND_LED_STATE_GREEN) {
+				LOG_NO("Sending node up due to NCSMDS_NEW_ACTIVE");
+
+				// node_up, sync sisu, compcsi info to AVND for recovery
+				avnd_sync_sisu(cb);
+				avnd_sync_csicomp(cb);
+				avnd_send_node_up_msg();
+			}
+		}
 	}
+
+	cb->is_avd_down = false;
+	if (m_AVND_TMR_IS_ACTIVE(cb->sc_absence_tmr))
+		avnd_stop_tmr(cb, &cb->sc_absence_tmr);
 
 done:
 	TRACE_LEAVE();
@@ -454,15 +599,94 @@ uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 	}
 
-	LOG_ER("AMF director unexpectedly crashed");
+	m_AVND_CB_AVD_UP_RESET(cb);
+	cb->active_avd_adest = 0;
 
-	/* Don't issue reboot if it has been already issued.*/
-	if (false == cb->reboot_in_progress) {
-		cb->reboot_in_progress = true;
-		opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
+	LOG_WA("AMF director unexpectedly crashed");
+
+	if (cb->scs_absence_max_duration == 0) {
+		/* Don't issue reboot if it has been already issued.*/
+		if (false == cb->reboot_in_progress) {
+			cb->reboot_in_progress = true;
+			opensaf_reboot(avnd_cb->node_info.nodeId, (char *) avnd_cb->node_info.executionEnvironment.value,
 				"local AVD down(Adest) or both AVD down(Vdest) received");
+		}
+
+		TRACE_LEAVE();
+		return rc;
 	}
 
+	/*
+	 * No contact with any controller
+	 * Reboot this node if:
+	 * 1) director is of an older version that does not support restart
+	 * 2) we have a pending message TO the director
+	 * 3) we have a pending message FROM the director
+	 */
+
+	if (cb->scs_absence_max_duration == 0) {
+		// check for pending messages TO director
+		if ((cb->dnd_list.head != nullptr)) {
+			uint32_t no_pending_msg = 0;
+			AVND_DND_MSG_LIST *rec = 0;
+			for (rec = cb->dnd_list.head; rec != nullptr; rec = rec->next, no_pending_msg++) {
+				osafassert(rec->msg.type == AVND_MSG_AVD);
+			}
+
+			/* Don't issue reboot if it has been already issued.*/
+			if (false == cb->reboot_in_progress) {
+				LOG_ER("%d pending messages to director. Rebooting to re-sync.", no_pending_msg);
+
+				cb->reboot_in_progress = true;
+				opensaf_reboot(avnd_cb->node_info.nodeId,
+					       (char *)avnd_cb->node_info.executionEnvironment.value,
+					       "local AVD down(Adest) or both AVD down(Vdest) received");
+			}
+		}
+	} else {
+		TRACE("Delete all pending messages to be sent to AMFD");
+		avnd_diq_del(cb);
+	}
+
+	// check for pending messages FROM director
+	// scan all SUs "siq" message list, if anyone is not empty reboot
+	const AVND_SU *su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
+	while (su != 0) {
+		LOG_NO("Checking '%s' for pending messages", su->name.value);
+
+		const AVND_SU_SIQ_REC *siq =
+			(AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_LAST(&su->siq);
+
+		if (siq != nullptr) {
+			/* Don't issue reboot if it has been already issued.*/
+			if (false == cb->reboot_in_progress) {
+				LOG_ER("Pending messages from director. Rebooting to re-sync.");
+
+				cb->reboot_in_progress = true;
+				opensaf_reboot(avnd_cb->node_info.nodeId,
+					(char *)avnd_cb->node_info.executionEnvironment.value,
+					"local AVD down(Adest) or both AVD down(Vdest) received");
+			}
+		}
+
+		su = (AVND_SU *)ncs_patricia_tree_getnext(
+			&cb->sudb, (uint8_t *)&su->name);
+	}
+	// record we are now 'headless'
+	cb->is_avd_down = true;
+	cb->amfd_sync_required = true;
+	// start the sc absence timer if it hasn't started.
+	// During headless, MDS reports avd_down 2 times,
+	// the 2nd time is 3 mins later then the 1st time.
+	// The absence timer should only start at the 1st time.
+	if (!m_AVND_TMR_IS_ACTIVE(cb->sc_absence_tmr)) {
+		avnd_start_tmr(cb, &cb->sc_absence_tmr, AVND_TMR_SC_ABSENCE,
+			cb->scs_absence_max_duration, 0);
+	}
+
+	// reset msg_id counter
+	cb->rcv_msg_id = 0;
+	cb->snd_msg_id = 0;
 	TRACE_LEAVE();
 	return rc;
 }
@@ -485,6 +709,13 @@ uint32_t avnd_di_oper_send(AVND_CB *cb, const AVND_SU *su, uint32_t rcvr)
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	if (cb->is_avd_down == true) {
+		LOG_NO("avnd_di_oper_send() deferred as AMF director is offline");
+
+		// reconcile operational states later
+		return rc;
+	}
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 	TRACE_ENTER2("SU '%p', recv '%u'", su, rcvr);
@@ -569,6 +800,11 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 	if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED)
 		return rc;
+
+	if (cb->is_avd_down == true) {
+        m_AVND_SU_ALL_SI_RESET(su);
+		return rc;
+	}
 
 	// should be in assignment pending state to be here
 	osafassert(m_AVND_SU_IS_ASSIGN_PEND(su));
@@ -664,6 +900,11 @@ uint32_t avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Comp '%s'", param->name.value);
+
+	if (cb->is_avd_down == true) {
+		TRACE_LEAVE2("AVD is down. %u", rc);
+		return rc;
+	}
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
@@ -784,6 +1025,10 @@ uint32_t avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 		   tables by this time) */
 		TRACE_1("%s, Active AVD Adest: %" PRIu64, __FUNCTION__, cb->active_avd_adest);
 		rc = avnd_mds_red_send(cb, msg, &cb->avd_dest, &cb->active_avd_adest);
+		goto done;
+	} else if ((msg->info.avd->msg_type == AVSV_N2D_ND_SISU_STATE_INFO_MSG) ||
+			(msg->info.avd->msg_type == AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG)) {
+		rc = avnd_mds_send(cb, msg, &cb->avd_dest, 0);
 		goto done;
 	}
 
@@ -1005,8 +1250,17 @@ void avnd_diq_rec_del(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 		ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, rec->opq_hdl);
 
 	/* stop the AvD msg response timer */
-	if (m_AVND_TMR_IS_ACTIVE(rec->resp_tmr))
+	if (m_AVND_TMR_IS_ACTIVE(rec->resp_tmr)) {
 		m_AVND_TMR_MSG_RESP_STOP(cb, *rec);
+		// Resend msgs from queue because amfd dropped during sync
+		if ((cb->dnd_list.head != nullptr)) {
+			TRACE("retransmit message to amfd");
+			AVND_DND_MSG_LIST *pending_rec = 0;
+			for (pending_rec = cb->dnd_list.head; pending_rec != nullptr; pending_rec = pending_rec->next) {
+				avnd_diq_rec_send(cb, pending_rec);
+			}
+		}
+	}
 
 	/* free the avnd message contents */
 	avnd_msg_content_free(cb, &rec->msg);
@@ -1203,4 +1457,155 @@ uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	TRACE_LEAVE();
 	return rc;
+}
+
+/**
+ * The SC absence timer expired. Reboot this node.
+ * @param cb
+ * @param evt
+ *
+ * @return uns32
+ */
+uint32_t avnd_evt_tmr_sc_absence_evh(AVND_CB *cb, AVND_EVT *evt)
+{
+	TRACE_ENTER();
+
+	LOG_ER("AMF director absence timeout");
+
+	opensaf_reboot(avnd_cb->node_info.nodeId,
+				   (char *)avnd_cb->node_info.executionEnvironment.value,
+				   "AMF director absence timeout");
+
+	return NCSCC_RC_SUCCESS;
+}
+
+/**
+ * Send csi comp state info to amfd when cluster comes back from headless
+ * @param cb
+  *
+ * @return void
+ */
+void avnd_sync_csicomp(AVND_CB *cb)
+{
+	AVND_MSG msg;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	const AVND_COMP* comp;
+	const AVND_COMP_CSI_REC* csi;
+	SaAmfCSIAssignment csi_assignment;
+
+	TRACE_ENTER();
+
+	/* Send the state info to avd. */
+	memset(&msg, 0, sizeof(AVND_MSG));
+	msg.info.avd = new AVSV_DND_MSG();
+
+	msg.type = AVND_MSG_AVD;
+	msg.info.avd->msg_type = AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG;
+	msg.info.avd->msg_info.n2d_nd_csicomp_state_info.msg_id = cb->snd_msg_id;
+	msg.info.avd->msg_info.n2d_nd_csicomp_state_info.node_id = cb->node_info.nodeId;
+	msg.info.avd->msg_info.n2d_nd_csicomp_state_info.num_csicomp = 0;
+	msg.info.avd->msg_info.n2d_nd_csicomp_state_info.csicomp_list = nullptr;
+
+	// add CSICOMP objects
+	comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)0);
+	while (comp != nullptr) {
+		TRACE("syncing comp: %s", comp->name.value);
+		for (csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
+				csi != nullptr;
+				csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&csi->comp_dll_node))) {
+			osafassert(csi != nullptr);
+
+			csi_assignment.comp = comp->name;
+			csi_assignment.csi = csi->name;
+
+			if (csi->si != nullptr) {
+				csi_assignment.saAmfCSICompHAState = csi->si->curr_state;
+				TRACE("si found. HA state is %d", csi_assignment.saAmfCSICompHAState);
+			} else {
+				TRACE("csi->si is nullptr");
+				csi_assignment.saAmfCSICompHAState = SA_AMF_HA_QUIESCED;
+			}
+
+			add_csicomp_state_info(&msg, &csi_assignment);
+		}
+
+		add_comp_state_info(&msg, comp);
+		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name);
+	}
+
+	LOG_NO("%d CSICOMP states synced", msg.info.avd->msg_info.n2d_nd_csicomp_state_info.num_csicomp);
+	LOG_NO("%d SU states sent", msg.info.avd->msg_info.n2d_nd_csicomp_state_info.num_comp);
+
+	rc = avnd_di_msg_send(cb, &msg);
+	if (rc == NCSCC_RC_SUCCESS)
+		msg.info.avd = 0;
+	else
+		LOG_ER("avnd_di_msg_send FAILED");
+
+	avnd_msg_content_free(cb, &msg);
+
+	TRACE_LEAVE();
+}
+
+/**
+ * Send susi state info to amfd when cluster comes back from headless
+ * @param cb
+  *
+ * @return void
+ */
+void avnd_sync_sisu(AVND_CB *cb)
+{
+	AVND_MSG msg;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAmfSIAssignment si_assignment;
+	const AVND_SU* su;
+	const AVND_SU_SI_REC* si;
+
+	TRACE_ENTER();
+
+	/* Send the state info to avd. */
+	memset(&msg, 0, sizeof(AVND_MSG));
+	msg.info.avd = new AVSV_DND_MSG();
+
+	msg.type = AVND_MSG_AVD;
+	msg.info.avd->msg_type = AVSV_N2D_ND_SISU_STATE_INFO_MSG; //AVSV_N2D_ND_ASSIGN_STATES_MSG
+	msg.info.avd->msg_info.n2d_nd_sisu_state_info.msg_id = cb->snd_msg_id;
+	msg.info.avd->msg_info.n2d_nd_sisu_state_info.node_id = cb->node_info.nodeId;
+	msg.info.avd->msg_info.n2d_nd_sisu_state_info.num_sisu = 0;
+	msg.info.avd->msg_info.n2d_nd_sisu_state_info.sisu_list = nullptr;
+
+	// gather SISU states
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)0);
+	while (su != nullptr) {
+		TRACE("syncing su: %s", su->name.value);
+
+		// attach SISUs
+		for (si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
+				si != nullptr;
+				si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&si->su_dll_node)) {
+
+			si_assignment.su = su->name;
+			si_assignment.si = si->name;
+			si_assignment.saAmfSISUHAState = si->curr_state;
+
+			add_sisu_state_info(&msg, &si_assignment);
+		}
+
+		add_su_state_info(&msg, su);
+
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uint8_t *)&su->name);
+	}
+
+	LOG_NO("%d SISU states sent", msg.info.avd->msg_info.n2d_nd_sisu_state_info.num_sisu);
+	LOG_NO("%d SU states sent", msg.info.avd->msg_info.n2d_nd_sisu_state_info.num_su);
+
+	rc = avnd_di_msg_send(cb, &msg);
+	if (rc == NCSCC_RC_SUCCESS)
+		msg.info.avd = 0;
+	else
+		LOG_ER("avnd_di_msg_send FAILED");
+
+	avnd_msg_content_free(cb, &msg);
+
+	TRACE_LEAVE();
 }

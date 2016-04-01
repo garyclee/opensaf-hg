@@ -281,7 +281,12 @@ static SaAmfCompCapabilityModelT get_comp_capability(const SaNameT *comp_type,
 
 	TRACE_ENTER2("comptype = '%s' : csi = '%s'", comp_type->value, csi_name->value);
 
-	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
+	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	if (error != SA_AIS_OK ) {
+		// TODO - what should comp_cap be?
+		LOG_CR("saImmOmInitialize failed: %u", error);
+		goto done1;
+	}
 	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 
 	get_cstype(immOmHandle, accessorHandle, csi_name, &cs_type);
@@ -300,7 +305,7 @@ static SaAmfCompCapabilityModelT get_comp_capability(const SaNameT *comp_type,
 done:
 	immutil_saImmOmAccessorFinalize(accessorHandle);
 	immutil_saImmOmFinalize(immOmHandle);
-
+done1:
 	TRACE_LEAVE2("%u", comp_cap);
 	return comp_cap;
 }

@@ -30,7 +30,7 @@
   
 ******************************************************************************
 */
-
+#include <immutil.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -365,6 +365,12 @@ void dnd_msg_free(AVSV_DND_MSG *msg)
 	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
 		free_d2n_pg_msg_info(msg);
 		break;
+	case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
+		free_n2d_nd_sisu_state_info(msg);
+		break;
+	case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
+		free_n2d_nd_csicomp_state_info(msg);
+		break;
 	default:
 		break;
 	}
@@ -638,6 +644,7 @@ void amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 
 	/* free the cbk-info ptr */
 	delete cbk_info;
+	cbk_info = nullptr;
 
 	return;
 }
@@ -666,4 +673,148 @@ void nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg)
 	delete msg;
 
 	return;
+}
+
+/****************************************************************************
+  Name          : free_n2d_nd_csicomp_state_info
+
+  Description   : This routine frees csicomp_state message.
+
+  Arguments     : msg - ptr to the msg
+
+  Return Values : None
+
+  Notes         : None.
+******************************************************************************/
+void free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg)
+{
+	TRACE_ENTER();
+
+	AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO *info = nullptr;
+	AVSV_CSICOMP_STATE_MSG *ptr = nullptr;
+	AVSV_CSICOMP_STATE_MSG *next_ptr = nullptr;
+
+	AVSV_COMP_STATE_MSG *comp_ptr = nullptr;
+	AVSV_COMP_STATE_MSG *comp_next_ptr = nullptr;
+
+	if (msg == nullptr)
+		goto done;
+
+	osafassert(msg->msg_type == AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG);
+
+	info = &msg->msg_info.n2d_nd_csicomp_state_info;
+	osafassert(info);
+
+	ptr = info->csicomp_list;
+
+	TRACE("%u csicomp records to free", info->num_csicomp);
+
+	while (ptr != nullptr) {
+		TRACE("freeing %s:%s", (char*)ptr->safCSI.value, (char*)ptr->safComp.value);
+		next_ptr = ptr->next;
+		delete ptr;
+		ptr = next_ptr;
+	}
+
+	comp_ptr = info->comp_list;
+
+	TRACE("%u comp records to free", info->num_comp);
+
+	while (comp_ptr != nullptr) {
+		comp_next_ptr = comp_ptr->next;
+		delete comp_ptr;
+		comp_ptr = comp_next_ptr;
+	}
+
+	info->num_csicomp = 0;
+	info->csicomp_list = nullptr;
+	info->num_comp = 0;
+	info->comp_list = nullptr;
+
+done:
+	TRACE_LEAVE();
+}
+
+/****************************************************************************
+  Name          : free_n2d_nd_sisu_state_info
+
+  Description   : This routine frees sisu_state message.
+
+  Arguments     : msg - ptr to the msg
+
+  Return Values : None
+
+  Notes         : None.
+******************************************************************************/
+void free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg)
+{
+	TRACE_ENTER();
+
+	AVSV_N2D_ND_SISU_STATE_MSG_INFO *info = &msg->msg_info.n2d_nd_sisu_state_info;
+	AVSV_SISU_STATE_MSG *ptr = info->sisu_list;
+	AVSV_SISU_STATE_MSG *next_ptr = nullptr;
+	AVSV_SU_STATE_MSG *su_ptr = info->su_list;
+	AVSV_SU_STATE_MSG *su_next_ptr = nullptr;
+
+	if (msg == nullptr)
+		goto done;
+
+	osafassert(msg->msg_type == AVSV_N2D_ND_SISU_STATE_INFO_MSG);
+
+	info = &msg->msg_info.n2d_nd_sisu_state_info;
+	osafassert(info);
+
+	ptr = info->sisu_list;
+
+	TRACE("%u sisu records to free", info->num_sisu);
+
+	while (ptr != nullptr) {
+		TRACE("freeing %s:%s", (char*)ptr->safSI.value, (char*)ptr->safSU.value);
+		next_ptr = ptr->next;
+		delete ptr;
+		ptr = next_ptr;
+	}
+
+	su_ptr = info->su_list;
+
+	TRACE("%u su records to free", info->num_su);
+
+	while (su_ptr != nullptr) {
+		su_next_ptr = su_ptr->next;
+		delete su_ptr;
+		su_ptr = su_next_ptr;
+	}
+
+
+	info->num_sisu = 0;
+	info->sisu_list = nullptr;
+	info->num_su = 0;
+	info->su_list = nullptr;
+
+done:
+	TRACE_LEAVE();
+}
+
+/****************************************************************************
+  Name          : saImmOmInitialize_cond
+
+  Description   : A wrapper of saImmOmInitialize for headless.
+
+  Arguments     : msg - ptr to the msg
+
+  Return Values : SA_AIS_OK or other SA_AIS_ERR_xxx code
+
+  Notes         : None.
+******************************************************************************/
+SaAisErrorT saImmOmInitialize_cond(SaImmHandleT *immHandle,
+	const SaImmCallbacksT *immCallbacks, SaVersionT *version)
+{
+	if (avnd_cb->scs_absence_max_duration == 0) {
+		return immutil_saImmOmInitialize(immHandle, immCallbacks, version);
+	}
+
+	// if headless mode is enabled, don't retry as IMMA already has a 30s
+	// initial connection timeout towards IMMND. If we retry, we may
+	// cause the watchdog to kill AMFND.
+	return saImmOmInitialize(immHandle, immCallbacks, version);
 }

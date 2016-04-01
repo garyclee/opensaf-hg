@@ -82,6 +82,7 @@ typedef enum avnd_evt_type {
 	AVND_EVT_TMR_CLC_PXIED_COMP_INST,
 	AVND_EVT_TMR_CLC_PXIED_COMP_REG,
 	AVND_EVT_TMR_HB_DURATION,
+	AVND_EVT_TMR_SC_ABSENCE,
 	AVND_EVT_TMR_MAX,
 
 	/* mds event types */
@@ -128,6 +129,7 @@ typedef struct avnd_tmr_evt {
 typedef struct avnd_mds_evt {
 	MDS_DEST mds_dest;	/* mds address */
 	NODE_ID node_id;
+	NCSMDS_CHG i_change;
 } AVND_MDS_EVT;
 
 /* HA STATE change event definition */

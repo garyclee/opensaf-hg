@@ -232,7 +232,11 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
 
-	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
+	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	if (error != SA_AIS_OK) {
+		LOG_CR("saImmOmInitialize failed: %u", error);
+		goto done;
+	}
 
 	avnd_hctype_config_get(immOmHandle, &comp->saAmfCompType);
 
@@ -263,7 +267,7 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
  done1:
 	immutil_saImmOmFinalize(immOmHandle);
-
+ done:
 	return error;
 }
 

@@ -72,6 +72,11 @@ uint32_t avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	TRACE_ENTER();
 
+	if (cb->is_avd_down == true) {
+		LOG_ER("AVD is down. Component finalization not available.");
+		goto done;
+	}
+
 	/* 
 	 * See appendix B. Non registered processes can use parts of the API.
 	 * For such processes finalize is OK, AMF has no allocated resources.
@@ -243,6 +248,12 @@ uint32_t avnd_evt_ava_comp_unreg_evh(AVND_CB *cb, AVND_EVT *evt)
 	bool msg_from_avnd = false, int_ext_comp = false;
 
 	TRACE_ENTER();
+
+	/* return error if amfd is down */
+	if (cb->is_avd_down == true) {
+		LOG_ER("AVD is down. Component unregistration not available.");
+		goto done;
+	}
 
 	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
 		/* This means that the message has come from proxy AvND to this AvND. */
@@ -2749,7 +2760,7 @@ static SaAisErrorT avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_dn
  * @param comp
  * @param newstate
  */
-void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate)
+void avnd_comp_pres_state_set(const AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceStateT newstate)
 {
 	SaAmfPresenceStateT prv_st = comp->pres;
 
@@ -2769,7 +2780,9 @@ void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate)
 	if ((SA_AMF_PRESENCE_ORPHANED != newstate) &&
 	    (!((SA_AMF_PRESENCE_INSTANTIATED == newstate) && (SA_AMF_PRESENCE_ORPHANED == prv_st)))) {
 
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompPresenceState_ID, &comp->name, comp->pres);
+		if (cb->is_avd_down == false) {
+			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompPresenceState_ID, &comp->name, comp->pres);
+		}
 	}
 
 	/* create failed state file meaning system restart/cleanup needed */
@@ -2807,12 +2820,14 @@ bool comp_has_quiesced_assignment(const AVND_COMP *comp)
  * @brief Resets component restart count.
  * @param comp
  */
-void comp_reset_restart_count(AVND_COMP *comp)
+void comp_reset_restart_count(const AVND_CB *cb, AVND_COMP *comp)
 {
 	if (comp->err_info.restart_cnt != 0) {
 		comp->err_info.restart_cnt = 0;
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRestartCount_ID,
+		if (cb->is_avd_down == false) {
+			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRestartCount_ID,
 				&comp->name, comp->err_info.restart_cnt);
+		}
 	}
 }
 /**
@@ -2831,6 +2846,25 @@ void clear_error_report_alarm(AVND_COMP *comp)
 		comp->error_report_sent = false;
 	}
 }
+
+void m_AVND_COMP_OPER_STATE_AVD_SYNC(struct avnd_cb_tag *cb, const AVND_COMP *comp, uint32_t& o_rc)
+{
+	AVSV_PARAM_INFO param;
+	if (cb->is_avd_down == true) {
+		// pretend it's successful
+		o_rc = NCSCC_RC_SUCCESS;
+		return;
+	}
+	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
+	param.class_id = AVSV_SA_AMF_COMP;
+	param.attr_id = saAmfCompOperState_ID;
+	param.name = (comp)->name;
+	param.act = AVSV_OBJ_OPR_MOD;
+	*((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->oper);
+	param.value_len = sizeof(uint32_t);
+	(o_rc) = avnd_di_object_upd_send((cb), &param);
+}
+
 
 /**
  * @brief  Checks if comp is nonrestartable (DisableRestart=1). 
