@@ -38,6 +38,7 @@ static const char *tmr_type[] =
 	"proxied inst timer",
 	"proxied orphan timer",
 	"HB tmr",
+	"SC absence timer",
 	"Qscing Complete",
 	"AVND_TMR_MAX"
 };

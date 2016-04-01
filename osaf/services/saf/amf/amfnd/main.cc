@@ -96,6 +96,7 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_tmr_clc_pxied_comp_inst_evh,	/* AVND_EVT_TMR_CLC_PXIED_COMP_INST */
 	avnd_evt_tmr_clc_pxied_comp_reg_evh,	/* AVND_EVT_TMR_CLC_PXIED_COMP_REG */
 	avnd_evt_tmr_avd_hb_duration_evh,
+	avnd_evt_tmr_sc_absence_evh,	/* AVND_EVT_TMR_SC_ABSENCE */
 
 	/* mds event types */
 	avnd_evt_mds_avd_up_evh,	/* AVND_EVT_MDS_AVD_UP */
@@ -120,6 +121,8 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_tmr_qscing_cmpl_evh	/* AVND_EVT_TMR_QSCING_CMPL */
 };
 
+extern struct ImmutilWrapperProfile immutilWrapperProfile;
+
 /* global task handle */
 NCSCONTEXT gl_avnd_task_hdl = 0;
 
@@ -134,6 +137,8 @@ static AVND_CB *avnd_cb_create(void);
 static uint32_t avnd_mbx_create(AVND_CB *);
 
 static uint32_t avnd_ext_intf_create(AVND_CB *);
+
+static void hydra_config_get(AVND_CB *);
 
 
 static int __init_avnd(void)
@@ -173,6 +178,10 @@ int main(int argc, char *argv[])
 		syslog(LOG_ERR, "__init_avd() failed");
 		goto done;
 	}
+
+	immutilWrapperProfile.retryInterval = 400;
+	immutilWrapperProfile.nTries = 25;
+	immutilWrapperProfile.errorsAreFatal = 0;
 
 	/* should never return */
 	avnd_main_process();
@@ -328,6 +337,16 @@ AVND_CB *avnd_cb_create()
 
 	/* iniialize the error escaltion paramaets */
 	cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
+
+	cb->is_avd_down = true;
+	cb->amfd_sync_required = false;
+
+	// retrieve hydra configuration from IMM
+	hydra_config_get(cb);
+	cb->sc_absence_tmr.is_active = false;
+	cb->sc_absence_tmr.type = AVND_TMR_SC_ABSENCE;
+
+	memset(&cb->amf_nodeName, 0, sizeof(cb->amf_nodeName));
 
 	/*** initialize avnd dbs ***/
 
@@ -537,6 +556,8 @@ void avnd_main_process(void)
 	struct pollfd fds[4];
 	nfds_t nfds = 3;
 	AVND_EVT *evt;
+	SaAisErrorT result = SA_AIS_OK;
+	SaAisErrorT rc = SA_AIS_OK;
 
 	TRACE_ENTER();
 
@@ -579,7 +600,18 @@ void avnd_main_process(void)
 
 		if (fds[FD_CLM].revents & POLLIN) {
 			TRACE("CLM event recieved");
-			saClmDispatch(avnd_cb->clmHandle, SA_DISPATCH_ALL);
+			result = saClmDispatch(avnd_cb->clmHandle, SA_DISPATCH_ALL);
+			switch (result) {
+			case SA_AIS_OK:
+				break;
+			case SA_AIS_ERR_BAD_HANDLE:
+				usleep(100000);
+				rc = avnd_clm_init();
+				osafassert(rc == SA_AIS_OK);
+				break;
+			default:
+				goto done;
+			}
 		}
 
 		if (fds[FD_MBX].revents & POLLIN) {
@@ -622,9 +654,11 @@ void avnd_evt_process(AVND_EVT *evt)
 	}
 
 	/* Temp: AvD Down Handling */
-	if (true == cb->is_avd_down){
-		LOG_IN("%s: AvD is down, dropping event %u",__FUNCTION__,evt->type);
-		goto done;
+	if (cb->scs_absence_max_duration == 0) {
+		if (true == cb->is_avd_down){
+			LOG_IN("%s: AvD is down, dropping event %u",__FUNCTION__,evt->type);
+			goto done;
+		}
 	}
 
 	/* log the event reception */
@@ -661,4 +695,65 @@ static uint32_t avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	LOG_NO("avnd_evt_invalid_func: %u", evt->type);
 	return NCSCC_RC_SUCCESS;
+}
+
+/*****************************************************************************
+ * Function: hydra_config_get
+ *
+ * Purpose: This function checks if Hydra configuration is enabled in IMM
+ *          then set the corresponding value to scs_absence_max_duration
+ *          variable in avnd_cb.
+ *
+ * Input: None.
+ *
+ * Returns: None.
+ *
+ * NOTES: If IMM attribute fetching fails that means Hydra configuration
+ *        is disabled thus sc_absence_max_duration is set to 0
+ *
+ **************************************************************************/
+static void hydra_config_get(AVND_CB *cb)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmHandleT immOmHandle;
+	SaVersionT immVersion = { 'A', 2, 1 };
+	const SaImmAttrValuesT_2 **attributes;
+	SaImmAccessorHandleT accessorHandle;
+	SaNameT dn = {0, "opensafImm=opensafImm,safApp=safImmService"};
+	SaImmAttrNameT attrName = const_cast<SaImmAttrNameT>("scAbsenceAllowed");
+	SaImmAttrNameT attributeNames[] = {attrName, nullptr};
+	const SaUint32T *value = nullptr;
+
+	TRACE_ENTER();
+
+	/* Set to default value */
+	cb->scs_absence_max_duration = 0;
+
+	dn.length = strlen((char *)dn.value);
+
+	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
+	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
+	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, attributeNames,
+		(SaImmAttrValuesT_2 ***)&attributes);
+
+	if (rc != SA_AIS_OK) {
+		LOG_WA("saImmOmAccessorGet_2 FAILED %u for %s", rc, dn.value);
+		goto done;
+	}
+
+	value = immutil_getUint32Attr(attributes, attrName, 0);
+	if (value == nullptr) {
+		LOG_WA("immutil_getUint32Attr FAILED for %s", dn.value);
+		goto done;
+	}
+
+	avnd_cb->scs_absence_max_duration = *value * SA_TIME_ONE_SECOND;
+
+done:
+	immutil_saImmOmAccessorFinalize(accessorHandle);
+	immutil_saImmOmFinalize(immOmHandle);
+	LOG_IN("scs_absence_max_duration: %llu", avnd_cb->scs_absence_max_duration);
+
+	TRACE_LEAVE();
+	return;
 }

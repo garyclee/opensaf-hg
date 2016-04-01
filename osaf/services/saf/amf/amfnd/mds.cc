@@ -41,14 +41,14 @@
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avd_msg_fmt_map_table[] = {
 	AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2,
 	AVSV_AVD_AVND_MSG_FMT_VER_3, AVSV_AVD_AVND_MSG_FMT_VER_4,
-	AVSV_AVD_AVND_MSG_FMT_VER_4
+	AVSV_AVD_AVND_MSG_FMT_VER_4, AVSV_AVD_AVND_MSG_FMT_VER_6
 };
 
 /* messages from director */
 const MDS_CLIENT_MSG_FORMAT_VER avd_avnd_msg_fmt_map_table[] = {
 	AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2,
 	AVSV_AVD_AVND_MSG_FMT_VER_3, AVSV_AVD_AVND_MSG_FMT_VER_4,
-	AVSV_AVD_AVND_MSG_FMT_VER_5
+	AVSV_AVD_AVND_MSG_FMT_VER_5, AVSV_AVD_AVND_MSG_FMT_VER_6
 };
 
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avnd_msg_fmt_map_table[] = {
@@ -513,11 +513,26 @@ uint32_t avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 
 	/* assign mds-dest for AVD, AVND & AVA as per the MDS event */
 	switch (evt_info->i_change) {
+	case NCSMDS_NEW_ACTIVE:
+		if (evt_info->i_svc_id == NCSMDS_SVC_ID_AVD) {
+			LOG_NO("AVD NEW_ACTIVE, adest:%" PRIu64, evt_info->i_dest);
+
+			// sometimes NEW_ACTIVE director is received before
+			// DOWN is received for the old director ..
+			if (m_AVND_CB_IS_AVD_UP(cb)) {
+				m_AVND_CB_AVD_UP_RESET(cb);
+			}
+
+			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_UP, 0, &evt_info->i_dest, 0, 0, 0);
+			evt->info.mds.i_change = evt_info->i_change;
+		}
+		break;
 	case NCSMDS_UP:
 		switch (evt_info->i_svc_id) {
 		case NCSMDS_SVC_ID_AVD:
 			/* create the mds event */
 			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_UP, 0, &evt_info->i_dest, 0, 0, 0);
+			evt->info.mds.i_change = evt_info->i_change;
 			break;
 
 		case NCSMDS_SVC_ID_AVA:

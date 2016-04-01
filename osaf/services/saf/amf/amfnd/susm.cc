@@ -447,7 +447,7 @@ static bool csi_of_same_si_in_assigning_state(const AVND_COMP *cmp, const AVND_S
  * 
  * @return uns32
  */
-static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
+static uint32_t assign_si_to_su(const AVND_CB *cb, AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CSI_REC *curr_csi;
@@ -553,7 +553,7 @@ static uint32_t assign_si_to_su(AVND_SU_SI_REC *si, AVND_SU *su, int single_csi)
 			osafassert(curr_csi);
 
 			if (si->curr_state == SA_AMF_HA_ACTIVE) {
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATING);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
 				rc = avnd_comp_csi_assign(avnd_cb, curr_csi->comp, curr_csi);
 			} else {
 				curr_csi->single_csi_add_rem_in_si = AVSV_SUSI_ACT_BASE;
@@ -657,7 +657,7 @@ uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	/* mark the si(s) assigning and assign to su */
 	if (si) {
 		m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si, AVND_SU_SI_ASSIGN_STATE_ASSIGNING);
-		rc = assign_si_to_su(si, su, true);
+		rc = assign_si_to_su(cb, si, su, true);
 	} else {
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 		     curr_si != nullptr;
@@ -685,7 +685,7 @@ uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		     curr_si != nullptr;
 			 curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
 
-			rc = assign_si_to_su(curr_si, su, false);
+			rc = assign_si_to_su(cb, curr_si, su, false);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 		}
@@ -808,7 +808,7 @@ uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 			osafassert(curr_csi != nullptr);
    			rc = avnd_comp_csi_remove(cb, curr_csi->comp, curr_csi);
 			if (rc == NCSCC_RC_SUCCESS)
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
  		} else {
 			/* nothing to be done, termination already done in
 			   quiescing/quiesced state */
@@ -1357,11 +1357,17 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 		   of openSAF SUs, so don't refresh config info if it is openSAF SU. */
 
 		if ((false == su->is_ncs) && (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS)) {
-			m_AVND_SU_REG_FAILED_SET(su);
-			/* Will transition to instantiation-failed when instantiated */
-			LOG_ER("'%s':FAILED", __FUNCTION__); 
-			rc = NCSCC_RC_FAILURE;
+			if (cb->scs_absence_max_duration == 0) {
+				 m_AVND_SU_REG_FAILED_SET(su);
+				/* Will transition to instantiation-failed when instantiated */
+				LOG_ER("'%s':FAILED", __FUNCTION__);
+				rc = NCSCC_RC_FAILURE;
 			goto done;
+			} else {
+				// @TODO(garylee) this is a temporary workaround: IMM is not accepting OM connections
+				// and a component needs to be restarted.
+				LOG_CR("'%s': failed to refresh components in SU. Attempt to reuse old config", __FUNCTION__);
+			}
 		}
 		/* trigger su instantiation for pi su */
 		if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
@@ -1372,7 +1378,7 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 			if (m_AVND_SU_IS_REG_FAILED(su)) {
 				/* The SU configuration is bad, we cannot do much other transition to failed state */
 				TRACE_2("SU Configuration is bad");
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 				m_AVND_SU_ALL_TERM_RESET(su);
 			} else
 				osafassert(0);
@@ -1502,7 +1508,7 @@ uint32_t avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU
                 osafassert(NCSCC_RC_SUCCESS == rc);
                 avnd_su_si_del(avnd_cb, &su->name);
 		if (!m_AVND_SU_IS_PREINSTANTIABLE(su))
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_UNINSTANTIATED);
 		goto done;
         } else if ((cb->term_state == AVND_TERM_STATE_NODE_SWITCHOVER_STARTED) &&
 			(cb->oper_state == SA_AMF_OPERATIONAL_DISABLED) && 
@@ -1788,6 +1794,11 @@ uint32_t avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT 
                                 reset_suRestart_flag(su);
 			//Ask AMFD to remove assignments.
 			rc = avnd_di_oper_send(cb, su, SA_AMF_COMPONENT_FAILOVER);
+			if (cb->is_avd_down == true) {
+				LOG_WA("Director is down. Remove all SIs from '%s'", su->name.value);
+				avnd_su_si_del(avnd_cb, &su->name);
+			}
+
 		}
 		if ((SA_AMF_PRESENCE_RESTARTING == prv_st) && (SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st)) {
 			TRACE("Restarting -> Instantiation Failed");
@@ -1960,11 +1971,11 @@ uint32_t avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 	}
 
 	/* transition to instantiating state */
-	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATING);
+	avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
 
  done:
 	if (rc == NCSCC_RC_FAILURE)
-		avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+		avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -2015,7 +2026,7 @@ uint32_t avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 	}			/* for */
 
 	/* transition to terminating state */
-	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+	avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 
  done:
 	TRACE_LEAVE2("%u", rc);
@@ -2095,7 +2106,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		/* determine su presence state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
 		if (true == is) {
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 	}
 
@@ -2114,7 +2125,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		if (curr_csi->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN) {
 			// we are adding a single CSI, the comp is instantiated so now we're done
 			curr_csi->single_csi_add_rem_in_si = AVSV_SUSI_ACT_BASE;
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 			goto done;
 		}
 
@@ -2130,7 +2141,7 @@ uint32_t avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		} else {
 			/* => si assignment done */
 			TRACE("SI Assignment done");
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 	}
 
@@ -2172,7 +2183,7 @@ uint32_t avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 				 su->name.value, compname);
 
 	/* transition to inst-failed state */
-	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+	avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	m_AVND_SU_ALL_TERM_RESET(su);
 
 	/* 
@@ -2328,11 +2339,11 @@ uint32_t avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
 		if ((csi->comp->pres == SA_AMF_PRESENCE_UNINSTANTIATED) && 
 			(cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED)) {
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVED);
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 			AVND_COMP_CSI_REC *assigned_csi = get_next_assigned_csi_from_end(si);
 			if (assigned_csi == nullptr) {
 				//Components of all the CSIs in SI are cleaned up.
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_UNINSTANTIATED);
 				goto done;
 			} else {
 				//One CSI is still assigned.
@@ -2348,7 +2359,7 @@ uint32_t avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
 
 	/* transition to terminating state */
 	if (su->pres != SA_AMF_PRESENCE_TERMINATING)
-		avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+		avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 
  done:
 	TRACE_LEAVE2("%u", rc);
@@ -2457,14 +2468,14 @@ uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 					else
 						rc = avnd_comp_clc_fsm_run(cb, curr_comp, AVND_COMP_CLC_PRES_FSM_EV_RESTART);
 					if (curr_comp->pres == SA_AMF_PRESENCE_TERMINATING)
-						avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+						avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 					break;
 				}
 			}
 		}		/* for */
 		if ((su_evaluate_restarting_state(su) == true) && (!m_AVND_SU_IS_FAILED(su))) {
 			TRACE("Mark su restarting");
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_RESTARTING);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_RESTARTING);
 		}
 	}
 
@@ -2498,7 +2509,7 @@ uint32_t avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 		}
 		if ((all_csis_in_restarting_state(su) == true) && (!m_AVND_SU_IS_FAILED(su))) { 
 			TRACE("All CSIs are in restarting state, so marking SU restarting");
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_RESTARTING);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_RESTARTING);
 		}
 	}
 
@@ -2546,7 +2557,7 @@ uint32_t avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 			}
 		} 
 		if (su_evaluate_restarting_state(su) == true)
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_RESTARTING);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_RESTARTING);
 	}
 	
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
@@ -2569,7 +2580,7 @@ uint32_t avnd_su_pres_inst_comprestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
                 }
                 if (all_csis_in_restarting_state(su) == true) { 
                         TRACE_2("All CSIs are in restarting state, so marking SU restarting");
-                        avnd_su_pres_state_set(su, SA_AMF_PRESENCE_RESTARTING);
+                        avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_RESTARTING);
                 }
         }
 done:
@@ -2600,7 +2611,7 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 	//A SU enters in TERMINATING state when any component is terminating.
 	if (((comp != nullptr) && (comp->admin_oper == true)) || 
 			m_AVND_SU_IS_FAILED(su) || (su->admin_op_Id == SA_AMF_ADMIN_RESTART)) {
-		avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+		avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 	}
 
 	TRACE_LEAVE2("%u", rc);
@@ -2637,7 +2648,7 @@ uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		/* determine if su can be transitioned to instantiated state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
 		if (true == is) {
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
                 if (m_AVND_SU_IS_RESTART(su)) {
 			if (su->admin_op_Id == SA_AMF_ADMIN_RESTART)
@@ -2740,7 +2751,7 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 	}
 	
 	/* transition to term-failed state */
-	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATION_FAILED);
+	avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATION_FAILED);
 
 	if (true == su->is_ncs) {
 		char reason[SA_MAX_NAME_LENGTH + 64];
@@ -2814,7 +2825,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 		if (m_AVND_SU_IS_FAILED(su)) {
 			TRACE("SU is in Failed state");
 			if (pi_su_all_comps_uninstantiated(*su) == true) 
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_UNINSTANTIATED);
 
 			if (m_AVND_SU_IS_RESTART(su)) {
 				for (curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_LAST(&su->comp_list));
@@ -2851,7 +2862,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 							else
 								rc = avnd_comp_clc_fsm_run(cb, curr_comp, AVND_COMP_CLC_PRES_FSM_EV_RESTART);
 							if (curr_comp->pres == SA_AMF_PRESENCE_TERMINATING)
-								avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+								avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 							break;
 						}
 					}
@@ -2862,9 +2873,9 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 				(m_AVND_COMP_IS_RESTART_DIS(comp))) {
 			TRACE("Admin operation on component");
 			if (pi_su_all_comps_uninstantiated(*su) == true) 
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_UNINSTANTIATED);
 			avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_INST);
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATING);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
 		} else {
 			TRACE("Admin operation on SU");
 			for (curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_PREV(&comp->su_dll_node));
@@ -2904,7 +2915,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 				}
 			}		
 			if (pi_su_all_comps_uninstantiated(*su) == true) 
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_UNINSTANTIATED);
 			else if ((curr_comp == nullptr) && (su->admin_op_Id == SA_AMF_ADMIN_RESTART)) {
 				/*
 				   It means it is a SU comprising of assigned non restartable comps and 
@@ -2938,7 +2949,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 			/* get here when a CSI is removed from a component in an NPI SU */
 			assert(curr_csi->si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_DEL);
 			rc = avnd_su_si_oper_done(cb, su, curr_csi->si);
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 			goto done;
 		}
 
@@ -2959,7 +2970,7 @@ uint32_t avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_CO
 
 		if (all_csis_in_assigned_state(su) || all_csis_in_removed_state(su)) {
 			TRACE("SI Assignment done");
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_UNINSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_UNINSTANTIATED);
 			goto done;
 		}
 
@@ -3035,7 +3046,7 @@ uint32_t avnd_su_pres_restart_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 	}			/* for */
 
 	/* transition to terminating state */
-	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+	avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 
  done:
 	TRACE_LEAVE2("%u", rc);
@@ -3155,7 +3166,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		     curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_comp->su_dll_node))) {
 			if ((curr_comp->pres == SA_AMF_PRESENCE_INSTANTIATED) &&
 				(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(curr_comp)))
-				avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 		}
 		for (curr_comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&comp->su_dll_node));
 			curr_comp;
@@ -3190,7 +3201,7 @@ uint32_t avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 		/* mark the csi state assigned */
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
 		if (su->pres != SA_AMF_PRESENCE_INSTANTIATED)
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 
 		/* get the next csi */
 		curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node);
@@ -3285,7 +3296,7 @@ uint32_t avnd_su_pres_restart_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_C
 	}			/* for */
 
 	/* transition to terminating state */
-	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_TERMINATING);
+	avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_TERMINATING);
 
  done:
 	TRACE_LEAVE2("%u", rc);
@@ -3322,7 +3333,7 @@ uint32_t avnd_su_pres_inst_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 				 su->name.value, compname);
 
 	/* transition to inst-failed state */
-	avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+	avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	m_AVND_SU_ALL_TERM_RESET(su);
 
 	/* 
@@ -3563,7 +3574,7 @@ uint32_t avnd_su_pres_terming_surestart_hdler (AVND_CB *cb, AVND_SU *su, AVND_CO
 		}
                 if (all_csis_in_restarting_state(su) == true) { 
                         TRACE("All CSIs are in restarting state, so marking SU restarting");
-                        avnd_su_pres_state_set(su, SA_AMF_PRESENCE_RESTARTING);
+                        avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_RESTARTING);
                 }
 	}
  done:
@@ -3658,7 +3669,7 @@ uint32_t avnd_su_pres_terming_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 		}		/* for */
 		if ((curr_comp) && (curr_comp->pres == SA_AMF_PRESENCE_INSTANTIATING) &&
 				(su->pres == SA_AMF_PRESENCE_TERMINATING))
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATING);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
 	}
 
 	/*TODO_SURESTART:Will relook for NPI SU as there seems a rare possbility for su instantiate
@@ -3685,12 +3696,12 @@ uint32_t avnd_su_pres_terming_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 		}
 		if ((csi->comp) && (csi->comp->pres == SA_AMF_PRESENCE_INSTANTIATING) &&
 				(su->pres == SA_AMF_PRESENCE_TERMINATING))
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATING);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
 	}
 
  done:
 	if (rc == NCSCC_RC_FAILURE)
-		avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+		avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -3745,7 +3756,7 @@ uint32_t avnd_su_pres_inst_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNED);
 
 		if (su->pres != SA_AMF_PRESENCE_INSTANTIATED)
-			avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATED);
+			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATED);
 
 		/* get the next csi */
 		curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node);

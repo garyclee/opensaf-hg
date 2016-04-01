@@ -650,18 +650,7 @@ typedef struct avnd_comp_tag {
         (o_rec) = (o_rec)->next); \
 }
 
-#define m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, o_rc) \
-{ \
-   AVSV_PARAM_INFO param; \
-   memset(&param, 0, sizeof(AVSV_PARAM_INFO)); \
-   param.class_id = AVSV_SA_AMF_COMP; \
-   param.attr_id = saAmfCompOperState_ID; \
-   param.name = (comp)->name; \
-   param.act = AVSV_OBJ_OPR_MOD; \
-   *((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->oper); \
-   param.value_len = sizeof(uint32_t); \
-   (o_rc) = avnd_di_object_upd_send((cb), &param); \
-};
+void m_AVND_COMP_OPER_STATE_AVD_SYNC(struct avnd_cb_tag *cb, const AVND_COMP *comp, uint32_t& o_rc);
 
 /* macro to parse the clc cmd string */
 #define m_AVND_COMP_CLC_STR_PARSE(st, sc, ac, av, tav) \
@@ -918,7 +907,7 @@ extern uint32_t avnd_comptype_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *
 extern unsigned int avnd_comp_config_get_su(struct avnd_su_tag *su);
 extern int avnd_comp_config_reinit(AVND_COMP *comp);
 extern void avnd_comp_delete(AVND_COMP *comp);
-extern void avnd_comp_pres_state_set(AVND_COMP *comp, SaAmfPresenceStateT newstate);
+extern void avnd_comp_pres_state_set(const struct avnd_cb_tag *cb, AVND_COMP *comp, SaAmfPresenceStateT newstate);
 bool comp_has_quiesced_assignment(const AVND_COMP *comp);
 bool IsCompQualifiedAssignment(const AVND_COMP *comp);
 /**
@@ -929,7 +918,7 @@ bool IsCompQualifiedAssignment(const AVND_COMP *comp);
  * 	* Faulty NPI/PI components: launch the cleanup CLC CLI script
  */
 extern uint32_t comp_restart_initiate(AVND_COMP *comp);
-extern void comp_reset_restart_count(AVND_COMP *comp);
+extern void comp_reset_restart_count(const struct avnd_cb_tag *cb, AVND_COMP *comp);
 extern void clear_error_report_alarm(AVND_COMP *comp);
 bool nonrestartable(const AVND_COMP *comp);
 uint32_t csi_count(const AVND_COMP *comp);

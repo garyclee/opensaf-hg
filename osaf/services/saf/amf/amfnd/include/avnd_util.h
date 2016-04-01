@@ -57,4 +57,8 @@ uint32_t amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, const AVSV_AMF_CBK_INFO *scbk)
 void amf_cbk_free(AVSV_AMF_CBK_INFO* cbk_info);
 void nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg);
 
+void free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg);
+void free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg);
+SaAisErrorT saImmOmInitialize_cond(SaImmHandleT *immHandle,
+	const SaImmCallbacksT *immCallbacks, SaVersionT *version);
 #endif   /* !AVND_UTIL_H */

@@ -396,7 +396,7 @@ uint32_t avnd_su_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 extern uint32_t avnd_evt_su_admin_op_req(struct avnd_cb_tag *cb, struct avnd_evt_tag  *evt);
 extern struct avnd_comp_csi_rec *avnd_su_si_csi_rec_add(struct avnd_cb_tag *, AVND_SU *,
                                                  struct avnd_su_si_rec *, struct avsv_susi_asgn *, uint32_t *);
-extern void avnd_su_pres_state_set(AVND_SU *su, SaAmfPresenceStateT newstate);
+extern void avnd_su_pres_state_set(const struct avnd_cb_tag *cb, AVND_SU *su, SaAmfPresenceStateT newstate);
 
 extern void avnd_silist_init(struct avnd_cb_tag *cb);
 extern struct avnd_su_si_rec *avnd_silist_getfirst(void);
@@ -406,7 +406,7 @@ extern struct avnd_su_si_rec *avnd_silist_getlast(void);
 extern bool sufailover_in_progress(const AVND_SU *su);
 extern bool sufailover_during_nodeswitchover(const AVND_SU *su);
 extern bool all_csis_in_removed_state(const AVND_SU *su);
-extern void su_reset_restart_count_in_comps(const AVND_SU *su);
+extern void su_reset_restart_count_in_comps(const struct avnd_cb_tag *cb, const AVND_SU *su);
 extern bool all_comps_terminated_in_su(const AVND_SU *su);
 
 void su_increment_su_restart_count(AVND_SU& su);

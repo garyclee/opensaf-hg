@@ -77,6 +77,8 @@ static uint32_t avnd_err_restart_esc_level_0(AVND_CB *, AVND_SU *, AVND_ERR_ESC_
 static uint32_t avnd_err_restart_esc_level_1(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
 static uint32_t avnd_err_restart_esc_level_2(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL *, AVSV_ERR_RCVR *);
 
+static void cleanup_all_comps_and_reboot(AVND_CB *cb);
+
 /* LSB Changes. Strings to represent source of component Error */
 
 static const char *g_comp_err[] = {
@@ -414,6 +416,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		goto done;
 
  done:
+
 	TRACE_LEAVE2("Return value:'%u'", rc);
 	return rc;
 }
@@ -474,8 +477,11 @@ uint32_t avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t *
 
 	case SA_AMF_NODE_SWITCHOVER:
 	case SA_AMF_NODE_FAILOVER:
-	case SA_AMF_NODE_FAILFAST:
 	case SA_AMF_CLUSTER_RESET:
+		break;
+
+	case SA_AMF_NODE_FAILFAST:
+		// this is still supported in headless mode
 		break;
 
 	case AVSV_ERR_RCVR_SU_RESTART:
@@ -765,11 +771,41 @@ uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *failed_comp)
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		/* clean the failed comp */
 		rc = avnd_comp_clc_fsm_run(cb, failed_comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
-		if (NCSCC_RC_SUCCESS != rc)
+		if (NCSCC_RC_SUCCESS != rc) {
+			LOG_ER("cleanup of '%s' failed", failed_comp->name.value);
 			goto done;
+		}
+
+		// if headless, remove all assignments from this SU
+		if (cb->is_avd_down == true) {
+			AVND_SU_SI_REC *si = 0;
+			AVND_SU_SI_REC *next_si = 0;
+			uint32_t rc = NCSCC_RC_SUCCESS;
+			TRACE("Removing assignments from '%s'", su->name.value);
+
+			m_AVND_SU_ASSIGN_PEND_SET(su);
+
+			/* scan the su-si list & remove the sis */
+			for (si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list); si;) {
+				next_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&si->su_dll_node);
+				rc = avnd_su_si_remove(cb, su, si);
+				if (NCSCC_RC_SUCCESS != rc) {
+					LOG_ER("failed to remove SI assignment from '%s'",
+						su->name.value);
+					break;
+				}
+				si = next_si;
+			}
+		}
 	} else  {
 		/* request director to orchestrate component failover */
 		rc = avnd_di_oper_send(cb, failed_comp->su, AVSV_ERR_RCVR_SU_FAILOVER);
+
+		// if headless, we have to perform the 'failover' without amfd
+		if (cb->is_avd_down == true) {
+			// SU failover results in a node failfast if headless (not nice)
+			cleanup_all_comps_and_reboot(cb);
+		}
 	}
 
  done:
@@ -816,9 +852,13 @@ uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 			LOG_ER("'%s' termination failed", comp->name.value);
 			goto done;
 		}
-		avnd_su_pres_state_set(comp->su, SA_AMF_PRESENCE_TERMINATING);
+		avnd_su_pres_state_set(cb, comp->su, SA_AMF_PRESENCE_TERMINATING);
 	}
+
 done:
+	if (cb->is_avd_down == true) {
+		cleanup_all_comps_and_reboot(cb);
+	}
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -906,7 +946,7 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 				LOG_ER("'%s' termination failed", comp->name.value);
 				goto done;
 			}
-			avnd_su_pres_state_set(failed_comp->su, SA_AMF_PRESENCE_TERMINATING);
+			avnd_su_pres_state_set(cb, failed_comp->su, SA_AMF_PRESENCE_TERMINATING);
 		}
 	}
 	else {
@@ -918,7 +958,13 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 		}
 	}
 
- done:
+done:
+	// TODO - try to see if we can avoid a reboot & terminate components more gracefully
+	// if headless, reboot as we can't perform a switchover without amfd
+	if (cb->is_avd_down == true) {
+		cleanup_all_comps_and_reboot(cb);
+	}
+
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -980,7 +1026,17 @@ uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 			LOG_ER("Exiting (due to comp term failed) to aid fast node reboot");
 			exit(1);
 		}
-		avnd_su_pres_state_set(comp->su, SA_AMF_PRESENCE_TERMINATING);
+		avnd_su_pres_state_set(cb, comp->su, SA_AMF_PRESENCE_TERMINATING);
+	}
+
+	// TODO - try to see if we can avoid a reboot
+	// if headless, reboot as we can't perform a failover without amfd
+	if (cb->is_avd_down == true) {
+		opensaf_reboot(avnd_cb->node_info.nodeId,
+			(char *)avnd_cb->node_info.executionEnvironment.value,
+			"Can't perform node failover while controllers are down. Recovery is node failfast.");
+		LOG_ER("Exiting to aid fast node reboot");
+		exit(1);
 	}
 
 	TRACE_LEAVE2("%u", rc);
@@ -1059,7 +1115,7 @@ uint32_t avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 	   is no such event handler and event in SU FSM. 
 	 */ 
 	if ((is_uninst == true) && (is_comp_insting == true))
-	       avnd_su_pres_state_set(su, SA_AMF_PRESENCE_INSTANTIATING);
+	       avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
  done:
 	TRACE_LEAVE2("retval=%u", rc);
 	return rc;
@@ -1162,7 +1218,7 @@ uint32_t avnd_err_restart_esc_level_0(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 		/*stop the comp-err-esc-timer */
 		tmr_comp_err_esc_stop(cb, su);
 		su->comp_restart_cnt = 0;
-		su_reset_restart_count_in_comps(su);
+		su_reset_restart_count_in_comps(cb, su);
 
 		/* go to the next possible level, is su restart capable? */
 		if (su->su_restart_max != 0 && !m_AVND_SU_IS_SU_RESTART_DIS(su)) {
@@ -1250,7 +1306,7 @@ uint32_t avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 		/* stop timer */
 		tmr_su_err_esc_stop(cb, su);
 		su->su_restart_cnt = 0;
-		su_reset_restart_count_in_comps(su);
+		su_reset_restart_count_in_comps(cb, su);
 
 		/* go to the next possible level, get escalated recovery and modify count */
 		if ((cb->su_failover_max != 0) || (true == su->su_is_external)) {
@@ -1267,7 +1323,10 @@ uint32_t avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 	}
 
  done:
-	avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, &su->name, su->su_restart_cnt);
+	if (cb->is_avd_down == false) {
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, &su->name, su->su_restart_cnt);
+	}
+	
 	TRACE_LEAVE2("retval=%u", rc);
 	return rc;
 }
@@ -1442,7 +1501,7 @@ uint32_t avnd_evt_tmr_node_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (su->su_err_esc_level == AVND_ERR_ESC_LEVEL_2) {
 			su->comp_restart_cnt = 0;
 			su->su_restart_cnt = 0;
-			su_reset_restart_count_in_comps(su);
+			su_reset_restart_count_in_comps(cb, su);
 			avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID,
 					&su->name, su->su_restart_cnt);
 			su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
@@ -1538,4 +1597,35 @@ bool is_no_assignment_due_to_escalations(AVND_SU *su)
 	}
 	TRACE_LEAVE2("false");
 	return false;
+}
+
+void cleanup_all_comps_and_reboot(AVND_CB *cb)
+{
+	AVND_COMP *comp;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	/* Unordered cleanup of all local application components */
+	for (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)nullptr);
+		  comp != nullptr;
+		  comp = (AVND_COMP *) ncs_patricia_tree_getnext(&cb->compdb, (uint8_t *)&comp->name)) {
+
+		if (comp->su->is_ncs || comp->su->su_is_external)
+			continue;
+
+		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("'%s' termination failed", comp->name.value);
+			opensaf_reboot(avnd_cb->node_info.nodeId,
+						   (char *)avnd_cb->node_info.executionEnvironment.value,
+						   "Component termination failed at node switchover");
+			LOG_ER("Exiting (due to comp term failed) to aid fast node reboot");
+			exit(1);
+		}
+	}
+
+	opensaf_reboot(avnd_cb->node_info.nodeId,
+		(char *)avnd_cb->node_info.executionEnvironment.value,
+		"Can't perform recovery while controllers are down. Recovery is node failfast.");
+	LOG_ER("Exiting to aid fast node reboot");
+	exit(1);
 }

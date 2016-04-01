@@ -186,10 +186,16 @@ uint32_t avnd_compdb_init(AVND_CB *cb)
 	uint32_t rc;
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
+	SaAisErrorT error;
 
 	TRACE_ENTER();
 
-	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
+	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	if (error != SA_AIS_OK) {
+		LOG_CR("saImmOmInitialize failed: %u", error);
+		rc = NCSCC_RC_FAILURE;
+		goto done1;
+	}
 
 	if (avnd_compglobalattrs_config_get(immOmHandle) != SA_AIS_OK) {
 		rc = NCSCC_RC_FAILURE;
@@ -205,6 +211,7 @@ uint32_t avnd_compdb_init(AVND_CB *cb)
 
 done:
 	immutil_saImmOmFinalize(immOmHandle);
+done1:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1518,10 +1525,15 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	SaStringT env;
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
+	SaAisErrorT error;
 
 	TRACE_ENTER2("%s", comp->name.value);
 
-	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
+	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	if (error != SA_AIS_OK) {
+		LOG_CR("saImmOmInitialize failed: %u", error);
+		goto done1;
+	}
 
 	if ((comptype = avnd_comptype_create(immOmHandle, &comp->saAmfCompType)) == nullptr) {
 		LOG_ER("%s: avnd_comptype_create FAILED for '%s'", __FUNCTION__,
@@ -1658,6 +1670,7 @@ done:
 	delete [] path_prefix;
 	avnd_comptype_delete(comptype);
 	immutil_saImmOmFinalize(immOmHandle);
+done1:
 	TRACE_LEAVE();
 	return res;
 }
@@ -1698,7 +1711,7 @@ void avnd_comp_delete(AVND_COMP *comp)
  */
 static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **attributes, AVND_SU *su)
 {
-	int rc = -1;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *comp;
 	SaAisErrorT error;
 
@@ -1812,7 +1825,11 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 
 	TRACE_ENTER2("SU'%s'", su->name.value);
 
-	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
+	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	if (error != SA_AIS_OK) {
+		LOG_CR("saImmOmInitialize failed: %u", error);
+		goto done;
+	}
 	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
@@ -1843,6 +1860,7 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
  done1:
 	immutil_saImmOmFinalize(immOmHandle);
+ done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1861,6 +1879,7 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
+	SaAisErrorT error;
 
 	TRACE_ENTER2("'%s'", comp->name.value);
 
@@ -1877,14 +1896,21 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 
 	TRACE_1("%s", comp->name.value);
 
-	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
-	immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
-
+	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	if (error != SA_AIS_OK) {
+		LOG_CR("saImmOmInitialize FAILED for '%s'", comp->name.value);
+		goto done1;
+	}
+	error = immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
+	if (error != SA_AIS_OK) {
+		LOG_CR("immutil_saImmOmAccessorInitialize FAILED for '%s'", comp->name.value);
+		goto done2;
+	}
 	if (immutil_saImmOmAccessorGet_2(accessorHandle, &comp->name, nullptr,
 		(SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
 
 		LOG_ER("saImmOmAccessorGet_2 FAILED for '%s'", comp->name.value);
-		goto done2;
+		goto done3;
 	}
 
 	res = comp_init(comp, attributes);
@@ -1894,8 +1920,9 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 	/* need to get HC type configuration also if that has been recently created */
 	avnd_hctype_config_get(immOmHandle, &comp->saAmfCompType);
 
-done2:
+done3:
 	immutil_saImmOmAccessorFinalize(accessorHandle);
+done2:
 	immutil_saImmOmFinalize(immOmHandle);
 done1:
 	TRACE_LEAVE2("%u", res);

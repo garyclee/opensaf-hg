@@ -42,6 +42,7 @@ typedef struct avnd_cb_tag {
 	MDS_DEST avnd_dest;	/* AvND mds addr */
 	MDS_DEST avd_dest;	/* AvD mds addr */
 	bool is_avd_down;	/* Temp: Indicates if AvD went down */
+	bool amfd_sync_required;
 
 	/* cb related params */
 	NCS_LOCK mon_lock;	/* PID monitor lock */
@@ -90,7 +91,12 @@ typedef struct avnd_cb_tag {
 	uint32_t rcv_msg_id;	/* Message ID of the last message received */
 	/* AvD messaging params (retransmit list etc.) */
 	uint32_t snd_msg_id;	/* send msg id */
-	AVND_DND_LIST dnd_list;	/* list of messages sent to AvD */
+
+	/** List of messages sent to director but not yet acked.
+	 * Messages are removed when acked with the ACK message.
+	 * At director failover the list is scanned handling the
+	 * VERIFY message from the director and possibly resent again */
+	AVND_DND_LIST dnd_list;
 
 	AVND_TERM_STATE term_state;
 	AVND_LED_STATE led_state;
@@ -109,6 +115,11 @@ typedef struct avnd_cb_tag {
 	bool reboot_in_progress;
 	AVND_SU *failed_su;
 	bool cont_reboot_in_progress;
+
+	/* the duration that amfnd should tolerate absence of any SC */
+	SaTimeT scs_absence_max_duration;
+	/* the timer for supervision of the absence of SC */
+	AVND_TMR sc_absence_tmr;
 } AVND_CB;
 
 #define AVND_CB_NULL ((AVND_CB *)0)
