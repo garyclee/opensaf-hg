@@ -52,6 +52,7 @@ enum {
 	FD_MBCSV,
 	FD_MBX,
 	FD_LOG,
+	FD_CLM,
 	SIZE_FDS
 } NTFS_FDS;
 
@@ -232,6 +233,12 @@ static uint32_t initialize()
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
+	if (ntfs_cb->nid_started &&
+			(rc = ncs_sel_obj_create(&ntfs_cb->usr2_sel_obj)) != NCSCC_RC_SUCCESS)
+	{
+		LOG_ER("ncs_sel_obj_create failed");
+		goto done;
+	}
 
 	if (ntfs_cb->nid_started &&
 		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
@@ -320,6 +327,10 @@ int main(int argc, char *argv[])
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
+	fds[FD_CLM].fd =  ntfs_cb->nid_started ?
+		ntfs_cb->usr2_sel_obj.rmv_obj : ntfs_cb->clmSelectionObject;
+	fds[FD_CLM].events = POLLIN;
+
 	
 	TRACE("Started. HA state is %s",ha_state_str(ntfs_cb->ha_state));
 
@@ -380,6 +391,23 @@ int main(int argc, char *argv[])
 		/* process all the log callbacks */
 		if (fds[FD_LOG].revents & POLLIN)
 			logEvent();
+
+		if (fds[FD_CLM].revents & POLLIN) {
+			if (ntfs_cb->clm_hdl != 0) {
+				if ((error = saClmDispatch(ntfs_cb->clm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+					LOG_ER("saClmDispatch failed: %u", error);
+					break;
+				}
+			} else {
+				TRACE("SIGUSR2 event rec");
+				ncs_sel_obj_rmv_ind(&ntfs_cb->usr2_sel_obj, true, true);
+				ncs_sel_obj_destroy(&ntfs_cb->usr2_sel_obj);
+				if (ntfs_clm_init() != SA_AIS_OK)
+					break;
+				TRACE("CLM Initialization SUCCESS......");
+				fds[FD_CLM].fd = ntfs_cb->clmSelectionObject;
+			}
+		}
 	}
 
 done:

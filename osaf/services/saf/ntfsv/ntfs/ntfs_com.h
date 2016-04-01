@@ -29,11 +29,14 @@
  */
 #include "saAis.h"
 #include "saNtf.h"
+#include "saClm.h"
 #include "ntfsv_msg.h"
 #include "ntfs.h"
 
 /* TODO: remove this, only used until external test is possible. */
 #define DISCARDED_TEST 0
+#define m_NTFS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uint64_t)adest >> 32)
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,7 +55,7 @@ extern "C" {
 /* From communication layer --> Admin */
 	void initAdmin(void);
 	void startSendSync(void);
-	void clientAdded(unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt);
+	void clientAdded(unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt, SaVersionT *version);
 	void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt);
 
 	void notificationReceived(unsigned int clientId,
@@ -92,8 +95,8 @@ extern "C" {
  */
 	int activeController(void);
 
-	void client_added_res_lib(SaAisErrorT error,
-				  unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt);
+	void client_added_res_lib(SaAisErrorT error, unsigned int clientId,
+			MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt, SaVersionT *version);
 
 	void client_removed_res_lib(SaAisErrorT error,
 				    unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt);
@@ -122,11 +125,13 @@ extern "C" {
 
 	void setStartSyncTimer();
 	void setSyncWaitTimer();
+	uint32_t send_clm_node_status_lib(SaClmClusterChangesT cluster_change, unsigned int client_id,
+		MDS_DEST mdsDest);
 
 /* messages sent over MBCSv to cold sync stby NTF server */
 	int sendSyncGlobals(const struct NtfGlobals *ntfGlobals, NCS_UBAID *uba);
 	int sendNewNotification(unsigned int connId, ntfsv_send_not_req_t *notificationInfo, NCS_UBAID *uba);
-	int sendNewClient(unsigned int clientId, MDS_DEST mdsDest, NCS_UBAID *uba);
+	int sendNewClient(unsigned int clientId, MDS_DEST mdsDest, SaVersionT *ver, NCS_UBAID *uba);
 	int sendNewSubscription(ntfsv_subscribe_req_t *s, NCS_UBAID *uba);
 
 	void sendMapNoOfSubscriptionToNotification(unsigned int noOfSubcriptions, NCS_UBAID *uba);
@@ -146,6 +151,16 @@ extern "C" {
 /* Calls from c --> c++ layer */
 	void logEvent();
 	void checkNotificationList();
+	void add_member_node(NODE_ID node_id);
+	NODE_ID *find_member_node(NODE_ID node_id);
+	void remove_member_node(NODE_ID node_id);
+	uint32_t send_clm_node_status_change(SaClmClusterChangesT cluster_change, NODE_ID node_id);
+	void  print_member_nodes(void);
+	uint32_t count_member_nodes();
+	bool is_client_clm_member(NODE_ID node_id, SaVersionT *client_ver);
+	bool is_clm_init();
+	bool is_stale_client(unsigned int clientId);
+
 
 #ifdef __cplusplus
 }

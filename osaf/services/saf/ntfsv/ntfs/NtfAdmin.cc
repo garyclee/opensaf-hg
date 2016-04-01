@@ -63,7 +63,7 @@ NtfAdmin::~NtfAdmin()
  */
 void NtfAdmin::clientAdded(unsigned int clientId,
                            MDS_DEST mdsDest,
-                           MDS_SYNC_SND_CTXT *mdsCtxt)
+                           MDS_SYNC_SND_CTXT *mdsCtxt, SaVersionT *version)
 {
     SaAisErrorT rc = SA_AIS_OK;
 
@@ -87,6 +87,7 @@ void NtfAdmin::clientAdded(unsigned int clientId,
     /*  The client object is deleted in NtfAdmin::clientRemoved if a client is removed */
     NtfClient* client = new NtfClient(clientId,
                                       mdsDest);
+    client->set_client_version(version);
     // check if client already exists
     ClientMap::iterator pos;
     pos = clientMap.find(client->getClientId());
@@ -111,7 +112,8 @@ void NtfAdmin::clientAdded(unsigned int clientId,
         client_added_res_lib(rc,
                              clientId,
                              mdsDest,
-                             mdsCtxt);
+                             mdsCtxt,
+                             version);
     }
 }
 
@@ -613,6 +615,7 @@ void NtfAdmin::syncRequest(NCS_UBAID *uba)
                 client->getClientId());
         int retval = sendNewClient(client->getClientId(),
                                    client->getMdsDest(),
+                                   client->getSafVersion(),
                                    uba);
         if (retval != 1)
         {
@@ -928,6 +931,128 @@ void NtfAdmin::storeMatchingSubscription(SaNtfIdentifierT notificationId,
         TRACE_2("Notification: %llu does not exist", notificationId);
     }
 }
+/**
+ * @brief Adds NCS node to list of memeber nodes. 
+ *
+ * @param node_id 
+ */
+void NtfAdmin::AddMemberNode(NODE_ID node_id) 
+{
+	NODE_ID *node = new NODE_ID;
+	*node = node_id;
+	member_node_list.push_back(node);
+}
+
+/**
+ * @brief Finds a NCS node in the list of memeber nodes.
+ *
+ * @param node_id
+ * @return pointer to the node.
+ */
+NODE_ID* NtfAdmin::FindMemberNode(NODE_ID node_id) 
+{
+	std::list<NODE_ID*>::iterator it;
+	for (it = member_node_list.begin(); it != member_node_list.end(); ++it) {
+		NODE_ID *node = *it;
+		if (*node == node_id)
+			return node; 
+	}
+	return nullptr;
+}
+
+/**
+ * @brief Removes a NCS node from the list of memeber nodes.
+ *
+ * @param node_id
+ */
+void NtfAdmin::RemoveMemberNode(NODE_ID node_id) 
+{
+	std::list<NODE_ID*>::iterator it;
+	for (it = member_node_list.begin(); it != member_node_list.end(); ++it) {
+		NODE_ID *node = *it;
+		if (*node == node_id) {
+			member_node_list.erase(it);
+			TRACE_2("Deleted:%x",*node);
+			delete node;
+			return;
+		}
+	}
+}
+
+/**
+ * @brief Count no. of member nodes.
+ *
+ * @return member node counts.
+ */
+uint32_t NtfAdmin::MemberNodeListSize()
+{
+	return member_node_list.size();
+}
+
+/**
+ * @brief Print node_ids of member nodes.
+ */
+void NtfAdmin::PrintMemberNodes()
+{
+        std::list<NODE_ID*>::iterator it;
+        for (it = member_node_list.begin(); it != member_node_list.end(); ++it) {
+                NODE_ID *node = *it;
+		TRACE_1("NODE_ID:%x",*node);
+        }
+}
+
+/**
+ * @brief  Sends CLM membership status of the node to all the clients
+ *         on the node except A11 clients.
+ * @param  cluster_change (CLM membership status of node).
+ * @param  NCS node_id. 
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+uint32_t NtfAdmin::send_cluster_membership_msg_to_clients(SaClmClusterChangesT cluster_change, NODE_ID node_id)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	unsigned int client_id;
+	MDS_DEST mds_dest;
+
+        TRACE_ENTER();
+        TRACE_3("node_id: %x, change:%u", node_id, cluster_change);
+	ClientMap::iterator pos;
+	for (pos = clientMap.begin(); pos != clientMap.end(); pos++)
+	{
+		NtfClient* client = pos->second;
+		client_id = client->getClientId();
+		mds_dest = client->getMdsDest();
+		NODE_ID tmp_node_id = m_NTFS_GET_NODE_ID_FROM_ADEST(mds_dest);
+		//Do not send to A11 client.
+		if ((tmp_node_id == node_id) && (client->IsA11Client() == false))
+			rc = send_clm_node_status_lib(cluster_change, client_id, mds_dest);	
+	}
+	TRACE_LEAVE();
+        return rc; 
+}
+
+/**
+ * @brief  Checks CLM membership status of a client using clientId.
+ * @param  clientId MDS_DEST
+ * @return true/false.
+ */
+bool NtfAdmin::is_stale_client(unsigned int client_id) 
+{
+    //Find client.
+    ClientMap::iterator pos;
+    pos = clientMap.find(client_id);
+    if (pos != clientMap.end())
+    {
+	MDS_DEST mds_dest;
+        // Client found
+        NtfClient* client = pos->second;
+	mds_dest = client->getMdsDest();
+	return (!is_client_clm_member(m_NTFS_GET_NODE_ID_FROM_ADEST(mds_dest),
+				client->getSafVersion()));
+    } else
+	//Client not found.
+        return false;
+}
 
 // C wrapper funcions start here
 
@@ -945,10 +1070,10 @@ void initAdmin()
 
 void clientAdded(unsigned int clientId,
                  MDS_DEST mdsDest,
-                 MDS_SYNC_SND_CTXT *mdsCtxt)
+                 MDS_SYNC_SND_CTXT *mdsCtxt, SaVersionT *version)
 {
     osafassert(NtfAdmin::theNtfAdmin != NULL);
-    NtfAdmin::theNtfAdmin->clientAdded(clientId, mdsDest, mdsCtxt);
+    NtfAdmin::theNtfAdmin->clientAdded(clientId, mdsDest, mdsCtxt, version);
 }
 
 void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt)
@@ -1102,3 +1227,73 @@ void discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId)
     osafassert(NtfAdmin::theNtfAdmin != NULL);
     return NtfAdmin::theNtfAdmin->discardedClear(clientId, subscriptionId);    
 }
+
+/************************C Wrappers related to CLM Integration **************************/
+void add_member_node(NODE_ID node_id)
+{
+	NtfAdmin::theNtfAdmin->AddMemberNode(node_id);
+	return;
+}
+
+NODE_ID *find_member_node(NODE_ID node_id)
+{
+	return NtfAdmin::theNtfAdmin->FindMemberNode(node_id);
+}
+
+void remove_member_node(NODE_ID node_id)
+{
+	NtfAdmin::theNtfAdmin->RemoveMemberNode(node_id);
+	return;
+}
+
+uint32_t count_member_nodes()
+{
+	return NtfAdmin::theNtfAdmin->MemberNodeListSize();
+}
+
+void print_member_nodes()
+{
+	NtfAdmin::theNtfAdmin->PrintMemberNodes();
+	return;
+}
+
+bool is_stale_client(unsigned int clientId)
+{
+	return (NtfAdmin::theNtfAdmin->is_stale_client(clientId));
+}
+
+uint32_t send_clm_node_status_change(SaClmClusterChangesT cluster_change, NODE_ID node_id)
+{
+        return (NtfAdmin::theNtfAdmin->send_cluster_membership_msg_to_clients(cluster_change, node_id));
+
+}
+
+/**
+ * @brief  Checks CLM membership status of a client.
+ *         A0101 clients are always CLM member.
+ * @param  Client MDS_DEST 
+ * @param  Client saf version.
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+bool is_client_clm_member(NODE_ID node_id, SaVersionT *ver)
+{
+	NODE_ID *node = NULL;
+
+	//Before CLM init all clients are clm member.
+	if (is_clm_init() == false)
+		return true;
+	//CLM integration is supported from A.01.02. So old clients A.01.01 are always clm member.
+        if ((ver->releaseCode == NTF_RELEASE_CODE_0) &&
+                (ver->majorVersion == NTF_MAJOR_VERSION_0) &&
+                (ver->minorVersion == NTF_MINOR_VERSION_0))
+                return true;
+	/*
+	   It means CLM initialization is successful and this is atleast a A.01.02 client.
+	   So check CLM membership status of client's node.
+	 */
+        if ((node = NtfAdmin::theNtfAdmin->FindMemberNode(node_id)) == NULL)
+                return false;
+        else
+                return true;
+}
+

@@ -224,6 +224,7 @@ uint32_t ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 	ntfs_cb->ha_state = NTFS_HA_INIT_STATE;
 	ntfs_cb->mbcsv_sel_obj = -1;
 	ntfs_cb->fully_initialized = false;
+	ntfs_cb->clm_hdl = 0;
 
 	tmp = (char *)getenv("NTFSV_ENV_CACHE_SIZE");
 	if (tmp) {
@@ -267,10 +268,17 @@ static uint32_t proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	if (!ntf_version_is_valid(version)) {
 		ais_rc = SA_AIS_ERR_VERSION;
 		TRACE("version FAILED");
-		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt);
+		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt, version);
 		goto done;
 	}
-	clientAdded(0, evt->fr_dest, &evt->mds_ctxt);
+	//Do not initialize, if node of client is not CLM member. 
+	if (is_client_clm_member(evt->fr_node_id, version) == false) {
+		ais_rc = SA_AIS_ERR_UNAVAILABLE;
+		TRACE("New client node is not CLM member.");
+		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt, version);
+		goto done;
+	}
+	clientAdded(0, evt->fr_dest, &evt->mds_ctxt, version);
 
  done:
 	TRACE_LEAVE();
@@ -315,6 +323,15 @@ static uint32_t proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	TRACE_ENTER();
 	ntfsv_subscribe_req_t *subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
 
+	//This may be a queued request, first verify CLM membership status of client node.
+	if (is_stale_client(subscribe_param->client_id) == true) {
+		TRACE_5("Client node is not CLM member.");
+		subscribe_res_lib(SA_AIS_ERR_UNAVAILABLE, subscribe_param->subscriptionId,
+				evt->fr_dest, &evt->mds_ctxt);
+		TRACE_LEAVE();
+		return rc;
+	}
+
 	TRACE_4("subscriptionId: %u", subscribe_param->subscriptionId);
 	subscriptionAdded(*subscribe_param, &evt->mds_ctxt);
 
@@ -336,6 +353,15 @@ static uint32_t proc_unsubscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	ntfsv_unsubscribe_req_t *param = &(evt->info.msg.info.api_info.param.unsubscribe);
 
 	TRACE_ENTER2("client_id %u, subscriptionId %u", param->client_id, param->subscriptionId);
+
+	//This may be a queued request, first verify CLM membership status of client node.
+	if (is_stale_client(param->client_id) == true) {
+		TRACE_5("Client node is not CLM member.");
+		unsubscribe_res_lib(SA_AIS_ERR_UNAVAILABLE, param->subscriptionId,
+				evt->fr_dest, &evt->mds_ctxt);
+		TRACE_LEAVE();
+		return rc;
+	}
 
 	subscriptionRemoved(param->client_id, param->subscriptionId, &evt->mds_ctxt);
 	TRACE_LEAVE();
@@ -406,6 +432,13 @@ static uint32_t proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	TRACE_ENTER();
 	ntfsv_send_not_req_t *param = evt->info.msg.info.api_info.param.send_notification;
 	
+	//This may be a queued request, first verify CLM membership status of client node.
+	if (is_stale_client(param->client_id) == true) {
+		TRACE_5("Client node is not CLM member.");
+		notfication_result_lib(SA_AIS_ERR_UNAVAILABLE, 0, &evt->mds_ctxt, evt->fr_dest);
+		TRACE_LEAVE();
+		return rc;
+	}
 	if (param->notificationType == SA_NTF_TYPE_ALARM) {
 		print_header(&param->notification.alarm.notificationHeader);
 	}
@@ -436,6 +469,14 @@ static uint32_t proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	TRACE_ENTER();
 	ntfsv_reader_init_req_t *reader_initialize_param = &(evt->info.msg.info.api_info.param.reader_init);
 
+	//This may be a queued request, first verify CLM membership status of client node.
+        if (is_stale_client(reader_initialize_param->client_id) == true) {
+                TRACE_5("Client node is not CLM member.");
+		new_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, 0, evt->fr_dest, &evt->mds_ctxt);
+                TRACE_LEAVE();
+                return rc;
+        }
+
 	TRACE_4("client_id: %u", reader_initialize_param->client_id);
 	newReader(reader_initialize_param->client_id, reader_initialize_param->searchCriteria, NULL, &evt->mds_ctxt);
 	TRACE_LEAVE();
@@ -463,6 +504,15 @@ static uint32_t proc_reader_initialize_msg_2(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *ev
 	ntfsv_reader_init_req_2_t *rp = &(evt->info.msg.info.api_info.param.reader_init_2);
 
 	TRACE_4("client_id: %u", rp->head.client_id);
+
+	//This may be a queued request, first verify CLM membership status of client node.
+	if (is_stale_client(rp->head.client_id) == true) {
+		TRACE_5("Client node is not CLM member.");
+		new_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, 0, evt->fr_dest, &evt->mds_ctxt);
+		TRACE_LEAVE();
+		return rc;
+	}
+
 	newReader(rp->head.client_id, rp->head.searchCriteria, &rp->f_rec, &evt->mds_ctxt);
 	TRACE_LEAVE();
 	return rc;
@@ -487,6 +537,14 @@ static uint32_t proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 
 	TRACE_ENTER();
 	ntfsv_reader_finalize_req_t *reader_finalize_param = &(evt->info.msg.info.api_info.param.reader_finalize);
+
+	//This may be a queued request, first verify CLM membership status of client node.
+        if (is_stale_client(reader_finalize_param->client_id) == true) {
+                TRACE_5("Client node is not CLM member.");
+                delete_reader_res_lib(SA_AIS_ERR_UNAVAILABLE, evt->fr_dest, &evt->mds_ctxt);
+                TRACE_LEAVE();
+                return rc;
+        }
 
 	TRACE_4("client_id: %u", reader_finalize_param->client_id);
 	deleteReader(reader_finalize_param->client_id, reader_finalize_param->readerId, &evt->mds_ctxt);
@@ -523,6 +581,15 @@ static uint32_t proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	ntfsv_read_next_req_t *read_next_param = &(evt->info.msg.info.api_info.param.read_next);
 
 	TRACE_4("client_id: %u", read_next_param->client_id);
+
+        //This may be a queued request, first verify CLM membership status of client node.
+        if (is_stale_client(read_next_param->client_id) == true) {
+                TRACE_5("Client node is not CLM member.");
+                read_next_res_lib(SA_AIS_ERR_UNAVAILABLE, NULL, evt->fr_dest, &evt->mds_ctxt);
+                TRACE_LEAVE();
+                return rc;
+        }
+
 	readNext(read_next_param->client_id,
 		 read_next_param->readerId, read_next_param->searchDirection, &evt->mds_ctxt);
 /*  if (ais_rv == SA_AIS_OK)                                                 */

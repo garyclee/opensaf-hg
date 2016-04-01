@@ -483,6 +483,34 @@ static uint32_t enc_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	return ntfsv_enc_not_msg(uba, param->readNotification);
 }
 
+/**
+ * @brief Encodes CLM node status callback msg. 
+ *         
+ * @param  ptr to NCS_UBAID.
+ * @param  ptr to ntfsv_msg_t.
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+static uint32_t enc_send_clm_node_status_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+{
+	ntfsv_ntfa_clm_status_cbk_t *param = &msg->info.cbk_info.param.clm_node_status_cbk;
+	uint8_t *p8;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	p8 = ncs_enc_reserve_space(uba, 2);
+	if (p8 == NULL) {
+		TRACE("ncs_enc_reserve_space failed");
+		rc = NCSCC_RC_OUT_OF_MEM;
+		goto done;
+	}
+	ncs_encode_16bit(&p8, param->clm_node_status);
+	ncs_enc_claim_space(uba, 2);
+
+ done:
+        TRACE_8("Encode CLM node status msg");
+        return rc;
+}
+
 /****************************************************************************
  * Name          : mds_cpy
  *
@@ -616,6 +644,8 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 			rc = enc_send_not_cbk_msg(uba, msg);
 		} else if (msg->info.cbk_info.type == NTFSV_DISCARDED_CALLBACK) {
 			rc = enc_send_discard_cbk_msg(uba, msg);
+		} else if (msg->info.cbk_info.type == NTFSV_CLM_NODE_STATUS_CALLBACK) {
+			rc = enc_send_clm_node_status_cbk_msg(uba, msg);
 		} else {
 			TRACE("unknown callback type %d", msg->info.cbk_info.type);
 			rc = NCSCC_RC_FAILURE;
@@ -875,6 +905,7 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 	ntfsv_ntfs_evt_t *evt = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+	TRACE("MDS SVC event.");
 	/* First make sure that this event is indeed for us */
 	if (info->info.svc_evt.i_your_id != NCSMDS_SVC_ID_NTFS) {
 		TRACE("event not NCSMDS_SVC_ID_NTFS");
@@ -913,6 +944,13 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
+		}
+	} else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_AVD) {
+		if (info->info.svc_evt.i_change == NCSMDS_UP) {
+			TRACE_8("MDS UP dest: %" PRIx64 ", node ID: %x, svc_id: %d",
+					info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
+			if (ntfs_cb->clm_hdl == 0)
+				ncs_sel_obj_ind(&ntfs_cb->usr2_sel_obj);
 		}
 	}
 
@@ -1084,6 +1122,23 @@ uint32_t ntfs_mds_init(ntfs_cb_t *cb, SaAmfHAStateT ha_state)
 		LOG_ER("MDS subscribe FAILED");
 		return rc;
 	}
+
+	svc = NCSMDS_SVC_ID_AVD;
+	/* Now subscribe for AVD events in MDS. This will be 
+	   used for CLM registration.*/
+        memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
+        mds_info.i_mds_hdl = cb->mds_hdl;
+        mds_info.i_svc_id = NCSMDS_SVC_ID_NTFS;
+        mds_info.i_op = MDS_SUBSCRIBE;
+        mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_INTRANODE;
+        mds_info.info.svc_subscribe.i_num_svcs = 1;
+        mds_info.info.svc_subscribe.i_svc_ids = &svc;
+
+        rc = ncsmds_api(&mds_info);
+        if (rc != NCSCC_RC_SUCCESS) {
+                LOG_ER("MDS subscribe FAILED");
+                return rc;
+        }
 
 	TRACE_LEAVE();
 	return rc;

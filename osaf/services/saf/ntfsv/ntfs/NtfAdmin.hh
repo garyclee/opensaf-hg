@@ -45,7 +45,7 @@ public:
     virtual ~NtfAdmin();
     void clientAdded(unsigned int clientId,
                      MDS_DEST mdsDest,
-                     MDS_SYNC_SND_CTXT *mdsCtxt);
+                     MDS_SYNC_SND_CTXT *mdsCtxt, SaVersionT *version);
     void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsDest);
     void notificationReceived(unsigned int clientId,
                               SaNtfNotificationTypeT notificationType,
@@ -95,6 +95,13 @@ public:
 	 static NtfAdmin* theNtfAdmin;
     NtfLogger logger;
 
+    void AddMemberNode(NODE_ID node_id);
+    NODE_ID* FindMemberNode(NODE_ID node_id);
+    void RemoveMemberNode(NODE_ID node_id); 
+    uint32_t MemberNodeListSize();
+    void PrintMemberNodes();
+    uint32_t send_cluster_membership_msg_to_clients(SaClmClusterChangesT cluster_change, NODE_ID node_id);
+    bool is_stale_client(unsigned int clientId);
 private:
     void processNotification(unsigned int clientId,
                              SaNtfNotificationTypeT notificationType,
@@ -109,6 +116,7 @@ private:
     NotificationMap notificationMap;
     SaNtfIdentifierT notificationIdCounter;
     unsigned int clientIdCounter;
+    std::list<NODE_ID*> member_node_list; /*To maintain NCS node_ids of CLM memeber nodes.*/
 };
 
 #endif // NTFADMIN_H
