@@ -59,7 +59,7 @@ static nfds_t fds_num = FD_MAX;
 static char *progname;
 
 /* Release code, major version, minor version */
-static SaVersionT version = { 'A', 0x01, 0x01 };
+static SaVersionT version = { 'A', 0x01, 0x02 };
 
 static struct s_filters_T {
 	int all; 

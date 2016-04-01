@@ -48,7 +48,7 @@ SaNtfHandleT ntfHandle;
 static char *progname;
 
 /* Release code, major version, minor version */
-static SaVersionT version = { 'A', 0x01, 0x01};
+static SaVersionT version = { 'A', 0x01, 0x02};
 
 static bool filterAlarm = true;
 static bool filterSecurityAlarm = true;
