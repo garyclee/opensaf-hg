@@ -41,6 +41,8 @@ const SaNameT rootObj = {
 		.value = "rdn=root"
 };
 
+const SaConstStringT rootObjS = "Obj1,rdn=root";
+
 void (*test_setup)(void) = NULL;
 void (*test_cleanup)(void) = NULL;
 

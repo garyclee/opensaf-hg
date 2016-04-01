@@ -177,6 +177,9 @@ extern void saImmOmCcbAbort_02(void);
 extern void saImmOmCcbAbort_03(void);
 extern void saImmOmCcbValidate_01(void);
 extern void saImmOmCcbValidate_02(void);
+extern void saImmOmCcbObjectRead_01(void);
+extern void saImmOmCcbObjectRead_02(void);
+extern void saImmOmCcbObjectRead_03(void);
 
 __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
 {
@@ -261,5 +264,9 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbAbort_03, "saImmOmCcbAbort after apply with lower imm version - SA_AIS_ERR_VERSION");
     test_case_add(6, saImmOmCcbValidate_01, "saImmOmCcbValidate followed by apply - SA_AIS_OK");
     test_case_add(6, saImmOmCcbValidate_02, "saImmOmCcbValidate followed by abort - SA_AIS_OK");
+
+    test_case_add(6, saImmOmCcbObjectRead_01, "saImmOmCcbObjectRead Normal Case - SA_AIS_OK");
+    test_case_add(6, saImmOmCcbObjectRead_02, "saImmOmCcbObjectRead escalated to modify - SA_AIS_OK");
+    test_case_add(6, saImmOmCcbObjectRead_03, "saImmOmCcbObjectRead escalated to delete - SA_AIS_OK");
 }
 

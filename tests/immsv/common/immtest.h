@@ -43,6 +43,7 @@ extern const SaImmClassNameT configClassName;
 extern const SaImmClassNameT runtimeClassName;
 extern const SaImmClassNameT nodanglingClassName;
 extern const SaNameT rootObj;
+extern const SaConstStringT rootObjS;
 
 /* Implementer globals */
 extern SaImmHandleT immOiHandle;
