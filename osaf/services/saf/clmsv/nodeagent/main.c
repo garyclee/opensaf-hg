@@ -16,6 +16,10 @@
  *
  */
 
+#define _GNU_SOURCE
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include "cb.h"
 #include <ncs_main_papi.h>
@@ -30,7 +34,11 @@
 #include "clmsv_enc_dec.h"
 #include "evt.h"
 #include "clmna.h"
-#include<errno.h>
+#include "osaf_poll.h"
+#include "osaf_time.h"
+#include "ncsgl_defs.h"
+#include "mds_papi.h"
+#include "election_starter_wrapper.h"
 
 enum {
 	FD_TERM = 0,
@@ -47,7 +55,7 @@ static NCS_SEL_OBJ usr1_sel_obj;
 
 
 #define CLMNA_MDS_SUB_PART_VERSION   1
-#define CLMS_NODEUP_WAIT_TIME 1000
+#define CLMS_NODEUP_WAIT_TIME 60000
 #define CLMNA_SCALE_OUT_RETRY_TIME 100
 #define CLMNA_SVC_PVT_SUBPART_VERSION  1
 #define CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT 1
@@ -156,6 +164,36 @@ static uint32_t clmna_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 	return NCSCC_RC_SUCCESS;
 }
 
+static void clmna_handle_mds_change_evt(bool caused_by_timer_expiry,
+	NCSMDS_CHG change, NODE_ID node_id, MDS_SVC_ID svc_id)
+{
+	if ((change == NCSMDS_NEW_ACTIVE || change == NCSMDS_UP) &&
+	    svc_id == NCSMDS_SVC_ID_CLMS && clmna_cb->server_synced == false) {
+		if (clmna_process_dummyup_msg(caused_by_timer_expiry) != SA_AIS_OK) {
+			/* NID will anyway stop and retry */
+			LOG_ER("Exiting");
+		}
+	}
+
+	if (caused_by_timer_expiry == false &&
+	    (change == NCSMDS_UP || change == NCSMDS_DOWN) &&
+	    (svc_id == NCSMDS_SVC_ID_CLMNA || svc_id == NCSMDS_SVC_ID_RDE)) {
+		if (change == NCSMDS_UP) {
+			ElectionStarterUpEvent(clmna_cb->election_starter,
+					       node_id,
+					       svc_id == NCSMDS_SVC_ID_CLMNA ?
+					       ElectionStarterServiceNode :
+					       ElectionStarterServiceController);
+		} else {
+			ElectionStarterDownEvent(clmna_cb->election_starter,
+						 node_id,
+						 svc_id == NCSMDS_SVC_ID_CLMNA ?
+						 ElectionStarterServiceNode :
+						 ElectionStarterServiceController);
+		}
+	}
+}
+
 static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 {
 	TRACE_ENTER2("%d", mds_cb_info->info.svc_evt.i_change);
@@ -169,11 +207,6 @@ static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 			clmna_cb->clms_mds_dest = mds_cb_info->info.svc_evt.i_dest;
 			TRACE("subpart version: %u", mds_cb_info->info.svc_evt.i_rem_svc_pvt_ver);
 			TRACE("svc_id %d", mds_cb_info->info.svc_evt.i_svc_id);
-			evt = calloc(1, sizeof(CLMNA_EVT));
-			evt->type = CLMNA_EVT_DUMMY_MSG;
-			evt->caused_by_timer_expiry = false;
-			if (m_NCS_IPC_SEND(&clmna_cb->mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS)
-				LOG_ER("IPC send to mailbox failed: %s", __FUNCTION__);
 			break;
 		default:
 			break;
@@ -191,6 +224,17 @@ static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 		break;
 	default:
 		break;
+	}
+
+	evt = calloc(1, sizeof(CLMNA_EVT));
+	evt->type = CLMNA_EVT_CHANGE_MSG;
+	evt->caused_by_timer_expiry = false;
+	evt->change = mds_cb_info->info.svc_evt.i_change;
+	evt->node_id = mds_cb_info->info.svc_evt.i_node_id;
+	evt->svc_id = mds_cb_info->info.svc_evt.i_svc_id;
+	if (m_NCS_IPC_SEND(&clmna_cb->mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) !=
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("IPC send to mailbox failed: %s", __FUNCTION__);
 	}
 
 	TRACE_LEAVE();
@@ -312,7 +356,8 @@ static uint32_t clmna_mds_init(void)
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	MDS_SVC_ID svc = NCSMDS_SVC_ID_CLMS;
+	MDS_SVC_ID svc[] = { NCSMDS_SVC_ID_CLMS, NCSMDS_SVC_ID_CLMNA,
+		NCSMDS_SVC_ID_RDE };
 
 	TRACE_ENTER();
 
@@ -355,8 +400,8 @@ static uint32_t clmna_mds_init(void)
 	mds_info.i_op = MDS_SUBSCRIBE;
 
 	mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
-	mds_info.info.svc_subscribe.i_num_svcs = 1;
-	mds_info.info.svc_subscribe.i_svc_ids = &svc;
+	mds_info.info.svc_subscribe.i_num_svcs = 3;
+	mds_info.info.svc_subscribe.i_svc_ids = svc;
 
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -444,8 +489,11 @@ static void scale_out_tmr_exp(void *arg)
 	if (clmna_cb->is_scale_out_retry_tmr_running == true) {
 		CLMNA_EVT *evt = calloc(1, sizeof(CLMNA_EVT));
 		if (evt != NULL) {
-			evt->type = CLMNA_EVT_DUMMY_MSG;
+			evt->type = CLMNA_EVT_CHANGE_MSG;
 			evt->caused_by_timer_expiry = true;
+			evt->change = NCSMDS_UP;
+			evt->node_id = 0;
+			evt->svc_id = NCSMDS_SVC_ID_CLMS;
 			if (m_NCS_IPC_SEND(&clmna_cb->mbx, evt,
 				NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS)
 				LOG_ER("IPC send to mailbox failed: %s",
@@ -577,17 +625,11 @@ void clmna_process_mbx(SYSF_MBX *mbx)
 		goto done;
 	}
 	switch (msg->type) {
-	case CLMNA_EVT_DUMMY_MSG:
-		if (clmna_cb->server_synced == false) {
-			if (clmna_process_dummyup_msg(msg->
-				caused_by_timer_expiry) != SA_AIS_OK) {
-				/* NID will anyway stop and retry */
-				LOG_ER("Exiting");
-				free(msg);
-				msg = NULL;
-			} else
-				goto done;
-		}
+	case CLMNA_EVT_CHANGE_MSG:
+		clmna_handle_mds_change_evt(msg->caused_by_timer_expiry,
+			msg->change,
+			msg->node_id,
+			msg->svc_id);
 		break;
 	default:
 		TRACE("Invalid message type");
@@ -683,6 +725,10 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
+	clmna_cb->election_starter =
+		ElectionStarterConstructor(clmna_cb->nid_started,
+					   clmna_cb->node_info.node_id);
+
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
 	fds[FD_AMF].fd = clmna_cb->nid_started ?
@@ -692,14 +738,11 @@ int main(int argc, char *argv[])
 	fds[FD_MBX].events = POLLIN;
 
 	while (1) {
-		ret = poll(fds, nfds, -1);
+		struct timespec timeout = ElectionStarterPoll(clmna_cb->election_starter);
+		ret = osaf_ppoll(fds, nfds, &timeout, NULL);
 
-		if (ret == -1) {
-			if (errno == EINTR)
-				continue;
-
-			LOG_ER("%s: poll failed - %s", __FUNCTION__, strerror(errno));
-			break;
+		if (ret == 0) {
+			continue;
 		}
 
 		if (fds[FD_TERM].revents & POLLIN) {

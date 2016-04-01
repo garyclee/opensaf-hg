@@ -23,7 +23,9 @@ SUBDIRS = scripts
 noinst_HEADERS = \
 	cb.h \
 	clmna.h \
-	evt.h
+	evt.h \
+	election_starter.h \
+	election_starter_wrapper.h
 
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafclmna
@@ -35,9 +37,12 @@ osafclmna_CPPFLAGS = \
 
 osafclmna_SOURCES = \
 	main.c \
-	amf.c
+	amf.c \
+	election_starter.cc \
+	election_starter_wrapper.cc
 
 osafclmna_LDADD = \
 	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la
+	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
+	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la

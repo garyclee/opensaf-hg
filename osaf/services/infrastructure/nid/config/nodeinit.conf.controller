@@ -54,6 +54,7 @@
 #############################################################################
 
 xxCLCCLIDIRxx/osaf-transport:TRANSPORT:S:xxCLCCLIDIRxx/osaf-transport:6000:-6:2:1:start:stop
+xxCLCCLIDIRxx/osaf-clmna:CLMNA:S:xxCLCCLIDIRxx/osaf-clmna:8000::9:1:start:stop
 xxCLCCLIDIRxx/osaf-rded:RDE:S:xxCLCCLIDIRxx/osaf-rded:12000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-fmd:HLFM:S:xxCLCCLIDIRxx/osaf-fmd:12000:-6:2:1:start:stop
 xxCLCCLIDIRxx/osaf-immd:IMMD:S:xxCLCCLIDIRxx/osaf-immd:4000:4:2:1:start:stop
@@ -62,6 +63,5 @@ xxCLCCLIDIRxx/osaf-logd:LOGD:S:xxCLCCLIDIRxx/osaf-logd:4000:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-ntfd:NTFD:S:xxCLCCLIDIRxx/osaf-ntfd:4000:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-plmd:PLMD:S:xxCLCCLIDIRxx/osaf-plmd:6500:4:2:1:start:stop
 xxCLCCLIDIRxx/osaf-clmd:CLMD:S:xxCLCCLIDIRxx/osaf-clmd:192000:4:2:1:start:stop
-xxCLCCLIDIRxx/osaf-clmna:CLMNA:S:xxCLCCLIDIRxx/osaf-clmna:4000::9:1:start:stop
 xxCLCCLIDIRxx/osaf-amfd:AMFD:S:xxCLCCLIDIRxx/osaf-amfd:192000:-6:0:1:start:stop
 xxCLCCLIDIRxx/osaf-amfnd:AMFND:S:xxCLCCLIDIRxx/osaf-amfnd:192000::0:1:start:stop
