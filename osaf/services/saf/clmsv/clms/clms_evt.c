@@ -753,11 +753,17 @@ static uint32_t proc_rda_evt(CLMSV_CLMS_EVT * evt)
 	SaAmfHAStateT prev_haState;
 	bool role_change = true;
 
-	TRACE_ENTER2("%u", evt->info.rda_info.io_role);
-
+	TRACE_ENTER2("%d", (int) evt->info.rda_info.io_role);
 	prev_haState = clms_cb->ha_state;
+	if ((rc = initialize_for_assignment(clms_cb,
+		(SaAmfHAStateT) evt->info.rda_info.io_role))
+		!= NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		exit(EXIT_FAILURE);
+	}
 
-	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
+	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE &&
+		clms_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		LOG_NO("ACTIVE request");
 		clms_cb->mds_role = V_DEST_RL_ACTIVE;
 		clms_cb->ha_state = SA_AMF_HA_ACTIVE;
@@ -780,7 +786,8 @@ static uint32_t proc_rda_evt(CLMSV_CLMS_EVT * evt)
 				goto done;
 			}
 
-			if (NCSCC_RC_SUCCESS != clms_mbcsv_change_HA_state(clms_cb))
+			if (NCSCC_RC_SUCCESS != clms_mbcsv_change_HA_state(
+				clms_cb, clms_cb->ha_state))
 				goto done;
 
 			/* fail over, become implementer */
@@ -1001,7 +1008,8 @@ static uint32_t proc_mds_quiesced_ack_msg(CLMSV_CLMS_EVT * evt)
 		(void)immutil_saImmOiImplementerClear(clms_cb->immOiHandle);
 		clms_cb->ha_state = SA_AMF_HA_QUIESCED;
 		/* Inform MBCSV of HA state change */
-		if (clms_mbcsv_change_HA_state(clms_cb) != NCSCC_RC_SUCCESS)
+		if (clms_mbcsv_change_HA_state(clms_cb, clms_cb->ha_state) !=
+			NCSCC_RC_SUCCESS)
 			TRACE("clms_mbcsv_change_HA_state FAILED");
 
 		/* Update control block */

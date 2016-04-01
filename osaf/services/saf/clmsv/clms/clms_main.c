@@ -174,11 +174,11 @@ static uint32_t clms_self_node_info(void)
 	if (node->admin_state == SA_CLM_ADMIN_UNLOCKED) {
 		node->member = SA_TRUE;
 		++(osaf_cluster->num_nodes);
-		node->boot_time = clms_get_SaTime();
+		node->boot_time = clms_get_BootTime();
 #ifdef ENABLE_AIS_PLM
 		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;	/*TBD : changed when plm scripts are added to rc scripts */
 #endif
-		osaf_cluster->init_time = node->boot_time;
+		osaf_cluster->init_time = clms_get_SaTime();
 	}
 	rc = NCSCC_RC_SUCCESS;
  done:
@@ -221,7 +221,7 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	osaf_cluster = NULL;
 	clms_cb->reg_with_plm = SA_FALSE;
 	clms_cb->cluster_view_num = 0;
-	clms_cb->csi_assigned = false;
+	clms_cb->fully_initialized = false;
 	clms_cb->curr_invid = 1;
 	clms_cb->immOiHandle = 0;
 	clms_cb->is_impl_set = false;
@@ -252,6 +252,12 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	clms_cb->clm_ver.releaseCode = CLM_RELEASE_CODE;
 	clms_cb->clm_ver.majorVersion = CLM_MAJOR_VERSION_4;
 	clms_cb->clm_ver.minorVersion = CLM_MINOR_VERSION;
+	clms_cb->amf_sel_obj = -1;
+	clms_cb->sighdlr_sel_obj.raise_obj = -1;
+	clms_cb->sighdlr_sel_obj.rmv_obj = -1;
+	clms_cb->mbcsv_sel_obj = -1;
+	clms_cb->imm_sel_obj = -1;
+	clms_cb->plm_sel_obj = -1;
 
 	/* Initialize patricia tree for reg list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->client_db, &client_param))
@@ -326,18 +332,63 @@ static uint32_t clms_init(void)
 		goto done;
 	}
 
-	/*Initialize mds */
-	if ((rc = clms_mds_init(clms_cb)) != NCSCC_RC_SUCCESS) {
+	/* Create a selection object */
+	if (clms_cb->nid_started &&
+		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_sel_obj_create failed");
+		goto done;
+	}
+
+	/*
+	 ** Initialize a signal handler that will use the selection object.
+	 ** The signal is sent from our script when AMF does instantiate.
+	 */
+	if (clms_cb->nid_started &&
+		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+		LOG_ER("signal USR1 failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if (!clms_cb->nid_started &&
+		clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS) {
+		LOG_ER("AMF Initialization failed");
+		goto done;
+	}
+
+	if ((rc = initialize_for_assignment(clms_cb, clms_cb->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+ 		goto done;
+ 	}
+
+	rc = NCSCC_RC_SUCCESS;
+
+ done:
+	if (clms_cb->nid_started &&
+		nid_notify("CLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("nid_notify failed");
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+uint32_t initialize_for_assignment(CLMS_CB *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) goto done;
+	cb->ha_state = ha_state;
+	if ((rc = clms_mds_init(cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_mds_init FAILED %d", rc);
 		goto done;
 	}
-
-	/* Initialize with MBCSV */
-	if ((rc = clms_mbcsv_init(clms_cb)) != NCSCC_RC_SUCCESS) {
+	if ((rc = clms_mbcsv_init(cb, ha_state)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_mbcsv_init FAILED");
+		clms_mds_finalize(cb);
 		goto done;
 	}
-
 	/* Initialize with IMMSv */
 	if ((rc = clms_imm_init(clms_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_imm_init FAILED");
@@ -366,44 +417,14 @@ static uint32_t clms_init(void)
 	if ((rc = clms_self_node_info()) != NCSCC_RC_SUCCESS)
 		goto done;
 
-	/* Create a selection object */
-	if (clms_cb->nid_started &&
-		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_sel_obj_create failed");
-		goto done;
-	}
-
-	/*
-	 ** Initialize a signal handler that will use the selection object.
-	 ** The signal is sent from our script when AMF does instantiate.
-	 */
-	if (clms_cb->nid_started &&
-		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
-		LOG_ER("signal USR1 failed: %s", strerror(errno));
-		goto done;
-	}
-
-	if (!clms_cb->nid_started &&
-		clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS) {
-		LOG_ER("AMF Initialization failed");
-		goto done;
-	}
-
 	/* Initialize with saflog. This is necessary to avoid
 	 *  getting blocked by LOG during role change (switchover/failover)
 	 */
 	saflog_init();
 
-	rc = NCSCC_RC_SUCCESS;
-
- done:
-	if (clms_cb->nid_started &&
-		nid_notify("CLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
-		LOG_ER("nid_notify failed");
-		rc = NCSCC_RC_FAILURE;
-	}
-
-	TRACE_LEAVE();
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
 	return rc;
 }
 
@@ -439,19 +460,15 @@ int main(int argc, char *argv[])
 	fds[FD_AMF].fd = clms_cb->nid_started ?
 		usr1_sel_obj.rmv_obj : clms_cb->amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_MBCSV].fd = clms_cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
-	fds[FD_IMM].fd = clms_cb->imm_sel_obj;
-	fds[FD_IMM].events = POLLIN;
-
-#ifdef ENABLE_AIS_PLM
-	fds[FD_PLM].fd = clms_cb->plm_sel_obj;
-	fds[FD_PLM].events = POLLIN;
-#endif
-
 	while (1) {
+		fds[FD_MBCSV].fd = clms_cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
+#ifdef ENABLE_AIS_PLM
+		fds[FD_PLM].fd = clms_cb->plm_sel_obj;
+		fds[FD_PLM].events = POLLIN;
+#endif
 
 		if (clms_cb->rtu_pending == true) {
 			TRACE("There is an IMM task to be tried again. setting poll time out to 500");
@@ -550,6 +567,7 @@ int main(int argc, char *argv[])
 					 */
 					saImmOiFinalize(clms_cb->immOiHandle);
 					clms_cb->immOiHandle = 0;
+					clms_cb->imm_sel_obj = -1;
 					clms_cb->is_impl_set = false;
 
 					/* Initiate IMM reinitializtion in the background */

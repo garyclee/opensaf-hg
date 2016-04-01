@@ -18,6 +18,9 @@
 #ifndef CLMSV_CKPT_H
 #define CLMSV_CKPT_H
 
+#include <stdint.h>
+#include "saAmf.h"
+
 #define CLMS_MBCSV_VERSION 1
 #define CLMS_MBCSV_VERSION_MIN 1
 
@@ -152,12 +155,12 @@ typedef struct clms_ckpt_rec_t {
 } CLMS_CKPT_REC;
 
 typedef uint32_t (*CLMS_CKPT_HDLR) (CLMS_CB * cb, CLMS_CKPT_REC * data);
-extern uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb);
+extern uint32_t clms_mbcsv_change_HA_state(CLMS_CB * cb, SaAmfHAStateT ha_state);
 extern uint32_t clms_send_async_update(CLMS_CB * cb, CLMS_CKPT_REC * ckpt_rec, uint32_t action);
 extern void prepare_ckpt_node(CLMSV_CKPT_NODE * node, CLMS_CLUSTER_NODE * cluster_node);
 extern void prepare_cluster_node(CLMS_CLUSTER_NODE * node, CLMSV_CKPT_NODE * cluster_node);
 extern void prepare_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node, CLMS_CLUSTER_NODE * cluster_node);
-extern uint32_t clms_mbcsv_init(CLMS_CB * cb);
+extern uint32_t clms_mbcsv_init(CLMS_CB * cb, SaAmfHAStateT ha_state);
 extern uint32_t clms_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 extern void prepare_ckpt_to_ckpt_node(CLMSV_CKPT_NODE * node, CLMSV_CKPT_NODE * cluster_node);
 extern void prepare_ckpt_to_ckpt_config_node(CLMSV_CKPT_NODE_CONFIG_REC * node,
