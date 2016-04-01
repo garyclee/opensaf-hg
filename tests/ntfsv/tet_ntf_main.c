@@ -20,9 +20,9 @@
 #include "tet_ntf.h"
 
 /* Change this to current highest supported version */
-#define NTF_HIGHEST_SUPPORTED_VERSION {'A', 0x01, 0x01}
-
+#define NTF_HIGHEST_SUPPORTED_VERSION {'A', 0x01, 0x02}
 const SaVersionT refVersion = NTF_HIGHEST_SUPPORTED_VERSION;
+const SaVersionT lowestVersion =  {'A', 0x01, 0x01};
 SaVersionT ntfVersion = NTF_HIGHEST_SUPPORTED_VERSION;
 SaAisErrorT rc = SA_AIS_OK;
 SaNtfHandleT ntfHandle = 0;
