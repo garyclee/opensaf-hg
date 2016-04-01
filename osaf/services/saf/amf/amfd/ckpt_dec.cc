@@ -2255,9 +2255,9 @@ static uint32_t dec_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 		decode_su(&dec->i_uba, &su, dec->i_peer_version);
 		status = avd_ckpt_su(cb, &su, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
-                    // perhaps this ckpt came late, after a su delete
-                    LOG_WA("'%s' update failed", su.name.value);
-                }
+			// perhaps this ckpt came late, after a su delete
+			LOG_WA("'%s' update failed", su.name.value);
+		}
 	}
 
 	TRACE_LEAVE2("status '%u'", status);
@@ -2291,10 +2291,10 @@ static uint32_t dec_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 	for (unsigned i = 0; i < num_of_obj; i++) {
 		decode_si(&dec->i_uba, &si, dec->i_peer_version);
 		status = avd_ckpt_si(cb, &si, dec->i_action);
-                if (status != NCSCC_RC_SUCCESS) {
-                    // perhaps this ckpt came late, after a si delete
-                    LOG_WA("'%s' update failed", si.name.value);
-                }
+		if (status != NCSCC_RC_SUCCESS) {
+			// perhaps this ckpt came late, after a si delete
+			LOG_WA("'%s' update failed", si.name.value);
+		}
 	}
 
 	TRACE_LEAVE2("status '%u'", status);
