@@ -39,7 +39,7 @@
 static char *progname;
 
 /* Release code, major version, minor version */
-SaVersionT version = { 'A', 0x01, 0x01 };
+SaVersionT version = { 'A', 0x01, 0x02 };
 
 static char *error_output(SaAisErrorT result)
 {
