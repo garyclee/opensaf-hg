@@ -344,8 +344,8 @@ int imma_oi_ccb_record_ok_for_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT 
 				TRACE_5("op-count matches with inv:%u", inv);
 			}
 		}
-		tmp->isCcbAugOk = false; /* not allowed to augment ccb in completed UC */
-		tmp->ccbCallback = NULL;
+		tmp->isCcbAugOk = true; /* only allowed to augment ccb with safe-read in completed UC */
+		//tmp->ccbCallback = NULL;
 	} else {
 		LOG_NO("Record for ccb 0x%llx not found or found aborted in ok_for_critical", ccbId);
 	}
@@ -532,12 +532,12 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 	IMMA_CALLBACK_INFO *callback)
 {
 	/* Stores pointer to callback record in oi_ccb_record, but should only
-	   be done for ccb create/delete/modify upcalls and only for main OI 
-	   (not appliers), since otherwise the ccb can not be augmented.
-	   The pointer is needed for the augmented ccb dowcalls. These 
+	   be done for ccb create/delete/modify/completed upcalls and only for
+	   main OI (not appliers), since otherwise the ccb can not be augmented.
+	   The pointer is needed for the augmented ccb downcalls. These
 	   downcalls are in essence incremental pre-replies on an on-going
-	   oi-upcall (create/delete/modify). The augmenting "sub ccb" must be
-	   terminated before returning from the oi-upcall. 
+	   oi-upcall (create/delete/modify/completed). The augmenting "sub ccb"
+	   must be terminated before returning from the oi-upcall.
 	 */
 
 	int rs = 0;
@@ -547,6 +547,7 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 		tmp->ccbCallback = callback;
 		if(callback) {
 			tmp->isCcbAugOk = true;
+
 			osafassert(!(tmp->isCritical));
 			osafassert(!(cl_node->isApplier));
 			rs = 1;
