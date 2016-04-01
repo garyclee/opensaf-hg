@@ -49,6 +49,7 @@ extern "C" {
 #define AVSV_AVD_AVND_MSG_FMT_VER_3    3
 #define AVSV_AVD_AVND_MSG_FMT_VER_4    4
 #define AVSV_AVD_AVND_MSG_FMT_VER_5    5
+#define AVSV_AVD_AVND_MSG_FMT_VER_6    6
 
 /* Internode/External Components Validation result */
 typedef enum {
@@ -89,6 +90,10 @@ typedef enum {
 	AVSV_D2N_ADMIN_OP_REQ_MSG,
 	AVSV_D2N_HEARTBEAT_MSG,
 	AVSV_D2N_REBOOT_MSG,
+ 	AVSV_D2D_CHANGE_ROLE_REQ, // to maintain backwards compatibility
+	AVSV_D2D_CHANGE_ROLE_RSP, // to maintain backwards compatibility
+	AVSV_N2D_ND_SISU_STATE_INFO_MSG,
+	AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG,
 	AVSV_DND_MSG_MAX
 } AVSV_DND_MSG_TYPE;
 
@@ -337,8 +342,10 @@ typedef enum {
 
 typedef struct avsv_n2d_node_up_msg_info_tag {
 	uint32_t msg_id;
+	bool leds_set;
 	SaClmNodeIdT node_id;
 	MDS_DEST adest_address;
+	SaNameT node_name;
 } AVSV_N2D_NODE_UP_MSG_INFO;
 
 typedef struct avsv_n2d_comp_validation_msg_info_tag {
@@ -426,6 +433,54 @@ typedef struct avsv_n2d_verify_ack_nack_msg_info {
 	SaClmNodeIdT node_id;
 	bool ack;
 } AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO;
+
+typedef struct avsv_sisu_state_msg_tag {
+	SaNameT safSU;
+	SaNameT safSI;
+	SaAmfHAStateT saAmfSISUHAState;
+	struct avsv_sisu_state_msg_tag *next;
+} AVSV_SISU_STATE_MSG;
+
+typedef struct avsv_su_state_msg_tag {
+	SaNameT safSU;
+	uint32_t su_restart_cnt;
+	uint32_t su_pres_state;
+	uint32_t su_oper_state;
+	struct avsv_su_state_msg_tag *next;
+} AVSV_SU_STATE_MSG;
+
+typedef struct avsv_n2d_nd_sisu_state_msg_info_tag {
+	uint32_t msg_id;
+	SaClmNodeIdT node_id;
+	uint32_t num_sisu;
+	AVSV_SISU_STATE_MSG *sisu_list;
+	uint32_t num_su;
+	AVSV_SU_STATE_MSG *su_list;
+} AVSV_N2D_ND_SISU_STATE_MSG_INFO;
+
+typedef struct avsv_csicomp_state_msg_tag {
+	SaNameT safComp;
+	SaNameT safCSI;
+	SaAmfHAStateT saAmfCSICompHAState;
+	struct avsv_csicomp_state_msg_tag *next;
+} AVSV_CSICOMP_STATE_MSG;
+
+typedef struct avsv_comp_state_msg_tag {
+	SaNameT safComp;
+	uint32_t comp_restart_cnt;
+	uint32_t comp_pres_state;
+	uint32_t comp_oper_state;
+	struct avsv_comp_state_msg_tag *next;
+} AVSV_COMP_STATE_MSG;
+
+typedef struct avsv_n2d_nd_csicomp_state_msg_info_tag {
+	uint32_t msg_id;
+	SaClmNodeIdT node_id;
+	uint32_t num_csicomp;
+	AVSV_CSICOMP_STATE_MSG *csicomp_list;
+	uint32_t num_comp;
+	AVSV_COMP_STATE_MSG *comp_list;
+} AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO;
 
 typedef struct avsv_d2n_node_up_msg_info_tag {
 	SaClmNodeIdT node_id;
@@ -575,6 +630,8 @@ typedef struct avsv_dnd_msg {
 		AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO n2d_ack_nack_info;
 		AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO n2d_shutdown_app_su;
 		AVSV_N2D_COMP_VALIDATION_INFO n2d_comp_valid_info;
+		AVSV_N2D_ND_SISU_STATE_MSG_INFO n2d_nd_sisu_state_info;
+		AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO n2d_nd_csicomp_state_info;
 		AVSV_D2N_NODE_UP_MSG_INFO d2n_node_up;
 		AVSV_D2N_REG_SU_MSG_INFO d2n_reg_su;
 		AVSV_D2N_REG_COMP_MSG_INFO d2n_reg_comp;
@@ -621,6 +678,10 @@ typedef uint32_t (*AVSV_COPY_DND_MSG) (AVSV_DND_MSG *, AVSV_DND_MSG *);
 /* Extern Fuction Prototypes */
 void avsv_dnd_msg_free(AVSV_DND_MSG *);
 uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *, AVSV_DND_MSG *);
+
+void avsv_free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg);
+void avsv_free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg);
+
 
 #ifdef __cplusplus
 }

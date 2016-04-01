@@ -250,6 +250,127 @@ static uint32_t cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
 	return NCSCC_RC_SUCCESS;
 }
 
+/*****************************************************************************
+ * Function: cpy_n2d_nd_sisu_state_info
+ *
+ * Purpose:  This function makes a copy of the n2d SI SU message contents.
+ *
+ * Input: dst - Pointer to the SU SI message to be copied to.
+ *        src - Pointer to the SU SI message to be copied.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * NOTES: It also allocates and copies the array of attributes, which are separately
+ * allocated and pointed to by AVSV_SISU_STATE_MSG structure.
+ *
+ **************************************************************************/
+static uint32_t cpy_n2d_nd_sisu_state_info(AVSV_DND_MSG *dst, const AVSV_DND_MSG *src)
+{
+	const AVSV_SISU_STATE_MSG *src_sisu;
+	AVSV_SISU_STATE_MSG *dst_sisu;
+
+	const AVSV_SU_STATE_MSG *src_su;
+	AVSV_SU_STATE_MSG *dst_su;
+
+	memset(dst, '\0', sizeof(AVSV_DND_MSG));
+
+	memcpy(dst, src, sizeof(AVSV_DND_MSG));
+	dst->msg_info.n2d_nd_sisu_state_info.sisu_list = NULL;
+	dst->msg_info.n2d_nd_sisu_state_info.su_list = NULL;
+
+	// copy SISU stuff
+	src_sisu = src->msg_info.n2d_nd_sisu_state_info.sisu_list;
+	while (src_sisu != NULL) {
+		dst_sisu = malloc(sizeof(AVSV_SISU_STATE_MSG));
+		osafassert(dst_sisu);
+
+		memcpy(dst_sisu, src_sisu, sizeof(AVSV_SISU_STATE_MSG));
+		// insert at the start
+		dst_sisu->next = dst->msg_info.n2d_nd_sisu_state_info.sisu_list;
+		dst->msg_info.n2d_nd_sisu_state_info.sisu_list = dst_sisu;
+
+		// now go to the next sisu info in source
+		src_sisu = src_sisu->next;
+	}
+
+	// copy SU stuff
+	src_su = src->msg_info.n2d_nd_sisu_state_info.su_list;
+	while (src_su != NULL) {
+		dst_su = malloc(sizeof(AVSV_SU_STATE_MSG));
+		osafassert(dst_su);
+
+		memcpy(dst_su, src_su, sizeof(AVSV_SU_STATE_MSG));
+		// insert at the start
+		dst_su->next = dst->msg_info.n2d_nd_sisu_state_info.su_list;
+		dst->msg_info.n2d_nd_sisu_state_info.su_list = dst_su;
+
+		// now go to the next su info in source
+		src_su = src_su->next;
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
+/*****************************************************************************
+ * Function: cpy_n2d_nd_csicomp_state_info
+ *
+ * Purpose:  This function makes a copy of the n2d csi comp message contents.
+ *
+ * Input: dst - Pointer to the COMPCSI message to be copied to.
+ *        src - Pointer to the COMPCSI message to be copied.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * NOTES: It also allocates and copies the array of attributes, which are separately
+ * allocated and pointed to by AVSV_CSICOMP_STATE_MSG structure.
+ *
+ **************************************************************************/
+static uint32_t cpy_n2d_nd_csicomp_state_info(AVSV_DND_MSG *dst, const AVSV_DND_MSG *src)
+{
+	const AVSV_CSICOMP_STATE_MSG *src_csicomp;
+	AVSV_CSICOMP_STATE_MSG *dst_csicomp;
+
+	const AVSV_COMP_STATE_MSG *src_comp;
+	AVSV_COMP_STATE_MSG *dst_comp;
+
+	memset(dst, '\0', sizeof(AVSV_DND_MSG));
+
+	memcpy(dst, src, sizeof(AVSV_DND_MSG));
+	dst->msg_info.n2d_nd_csicomp_state_info.csicomp_list = NULL;
+	dst->msg_info.n2d_nd_csicomp_state_info.comp_list = NULL;
+
+	// CSICOMP
+	src_csicomp = src->msg_info.n2d_nd_csicomp_state_info.csicomp_list;
+	while (src_csicomp != NULL) {
+		dst_csicomp = malloc(sizeof(AVSV_CSICOMP_STATE_MSG));
+		osafassert(dst_csicomp);
+
+		memcpy(dst_csicomp, src_csicomp, sizeof(AVSV_CSICOMP_STATE_MSG));
+		// insert at the start
+		dst_csicomp->next = dst->msg_info.n2d_nd_csicomp_state_info.csicomp_list;
+		dst->msg_info.n2d_nd_csicomp_state_info.csicomp_list = dst_csicomp;
+
+		// now go to the next csicomp info in source
+		src_csicomp = src_csicomp->next;
+	}
+
+	// COMP
+	src_comp = src->msg_info.n2d_nd_csicomp_state_info.comp_list;
+	while (src_comp != NULL) {
+		dst_comp = malloc(sizeof(AVSV_COMP_STATE_MSG));
+		osafassert(dst_comp);
+
+		memcpy(dst_comp, src_comp, sizeof(AVSV_COMP_STATE_MSG));
+		// insert at the start
+		dst_comp->next = dst->msg_info.n2d_nd_csicomp_state_info.comp_list;
+		dst->msg_info.n2d_nd_csicomp_state_info.comp_list = dst_comp;
+
+		// now go to the next comp info in source
+		src_comp = src_comp->next;
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
+
 /****************************************************************************
   Name          : avsv_dnd_msg_free
  
@@ -282,6 +403,12 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 		break;
 	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
 		free_d2n_pg_msg_info(msg);
+		break;
+	case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
+		avsv_free_n2d_nd_sisu_state_info(msg);
+		break;
+	case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
+		avsv_free_n2d_nd_csicomp_state_info(msg);
 		break;
 	default:
 		break;
@@ -323,6 +450,10 @@ uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 		return cpy_d2n_susi_msg(dmsg, smsg);
 	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
 		return cpy_d2n_pg_msg(dmsg, smsg);
+	case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
+		return cpy_n2d_nd_sisu_state_info(dmsg, smsg);
+	case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
+		return cpy_n2d_nd_csicomp_state_info(dmsg, smsg);
 	default:
 		/* copy only the contents */
 		memcpy(dmsg, smsg, sizeof(AVSV_DND_MSG));
@@ -331,3 +462,138 @@ uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 
 	return NCSCC_RC_SUCCESS;
 }
+/*****************************************************************************
+ * Function: avsv_free_n2d_nd_csicomp_state_info
+ *
+ * Purpose:  This function frees the n2d csi comp message contents.
+ *
+ * Input: msg - Pointer to the message contents to be freed.
+ *
+ * Returns: None
+ *
+ * NOTES: None
+ *
+ *
+ **************************************************************************/
+void avsv_free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg)
+{
+	TRACE_ENTER();
+
+	AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO *info = NULL;
+	AVSV_CSICOMP_STATE_MSG *csicomp_ptr = NULL;
+	AVSV_CSICOMP_STATE_MSG *next_csicomp_ptr = NULL;
+
+	AVSV_COMP_STATE_MSG *comp_ptr = NULL;
+	AVSV_COMP_STATE_MSG *next_comp_ptr = NULL;
+
+	if (msg == NULL)
+		goto done;
+
+	osafassert(msg->msg_type == AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG);
+
+	info = &msg->msg_info.n2d_nd_csicomp_state_info;
+	osafassert(info);
+
+	// free CSICOMP stuff
+	csicomp_ptr = info->csicomp_list;
+
+	TRACE("%u CSICOMP records to free", info->num_csicomp);
+
+	while (csicomp_ptr != NULL) {
+		TRACE("freeing %s:%s", (char*)csicomp_ptr->safCSI.value, (char*)csicomp_ptr->safComp.value);
+		next_csicomp_ptr = csicomp_ptr->next;
+		free(csicomp_ptr);
+		csicomp_ptr = next_csicomp_ptr;
+	}
+
+	info->num_csicomp = 0;
+	info->csicomp_list = NULL;
+
+	// free COMP stuff
+	comp_ptr = info->comp_list;
+
+	TRACE("%u COMP records to free", info->num_comp);
+
+	while (comp_ptr != NULL) {
+		TRACE("freeing %s", (char*)comp_ptr->safComp.value);
+		next_comp_ptr = comp_ptr->next;
+		free(comp_ptr);
+		comp_ptr = next_comp_ptr;
+	}
+
+	info->num_comp = 0;
+	info->comp_list = NULL;
+
+done:
+	TRACE_LEAVE();
+
+}
+
+/*****************************************************************************
+ * Function: avsv_free_n2d_nd_sisu_state_info
+ *
+ * Purpose:  This function frees the n2d si su message contents.
+ *
+ * Input: msg - Pointer to the message contents to be freed.
+ *
+ * Returns: None
+ *
+ * NOTES: None
+ *
+ *
+ **************************************************************************/
+void avsv_free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg)
+{
+	TRACE_ENTER();
+
+	AVSV_N2D_ND_SISU_STATE_MSG_INFO *info = &msg->msg_info.n2d_nd_sisu_state_info;
+
+	AVSV_SISU_STATE_MSG *sisu_ptr = info->sisu_list;
+	AVSV_SISU_STATE_MSG *next_sisu_ptr = NULL;
+
+	AVSV_SU_STATE_MSG *su_ptr = info->su_list;
+	AVSV_SU_STATE_MSG *next_su_ptr = NULL;
+
+	if (msg == NULL)
+		goto done;
+
+	osafassert(msg->msg_type == AVSV_N2D_ND_SISU_STATE_INFO_MSG);
+
+	info = &msg->msg_info.n2d_nd_sisu_state_info;
+	osafassert(info);
+
+	// free SISU stuff
+	sisu_ptr = info->sisu_list;
+
+	TRACE("%u SISU records to free", info->num_sisu);
+
+	while (sisu_ptr != NULL) {
+		TRACE("freeing %s:%s", (char*)sisu_ptr->safSI.value, (char*)sisu_ptr->safSU.value);
+		next_sisu_ptr = sisu_ptr->next;
+		free(sisu_ptr);
+		sisu_ptr = next_sisu_ptr;
+	}
+
+	info->num_sisu = 0;
+	info->sisu_list = NULL;
+
+	// free SU stuff
+	su_ptr = info->su_list;
+
+	TRACE("%u SU records to free", info->num_su);
+
+	while (su_ptr != NULL) {
+		TRACE("freeing %s", (char*)su_ptr->safSU.value);
+		next_su_ptr = su_ptr->next;
+		free(su_ptr);
+		su_ptr = next_su_ptr;
+	}
+
+	info->num_su = 0;
+	info->su_list = NULL;
+
+done:
+	TRACE_LEAVE();
+}
+
+
