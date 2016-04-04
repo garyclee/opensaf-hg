@@ -481,6 +481,11 @@ uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	cp_node->replica_info.open.info.open.i_size =
 	    sizeof(CPSV_CKPT_HDR) + cp_node->create_attrib.maxSections * (sizeof(CPSV_SECT_HDR) +
 									  cp_node->create_attrib.maxSectionSize);
+	if (cb->shm_alloc_guaranteed == true)
+		cp_node->replica_info.open.info.open.ensures_space = true;
+	else
+		cp_node->replica_info.open.info.open.ensures_space = false;
+
 	cp_node->replica_info.open.info.open.i_offset = 0;
 	cp_node->replica_info.open.info.open.i_name = buf;
 	cp_node->replica_info.open.info.open.i_map_flags = MAP_SHARED;

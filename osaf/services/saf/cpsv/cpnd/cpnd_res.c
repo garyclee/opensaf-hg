@@ -145,7 +145,7 @@ uint32_t cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
 */
 
 uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
-				   uint32_t ref_cnt, CKPT_INFO *cp_info)
+				   uint32_t ref_cnt, CKPT_INFO *cp_info, bool shm_alloc_guaranteed)
 {
 /*   NCS_OS_POSIX_SHM_REQ_INFO read_req,shm_read; */
 	CPSV_CKPT_HDR ckpt_hdr;
@@ -160,6 +160,10 @@ uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char 
 	open_req->type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	open_req->info.open.i_size =
 	    sizeof(CPSV_CKPT_HDR) + (cp_info->maxSections * ((sizeof(CPSV_SECT_HDR) + cp_info->maxSecSize)));
+	if (shm_alloc_guaranteed == true)
+		open_req->info.open.ensures_space = true;
+	else
+		open_req->info.open.ensures_space = false;
 	open_req->info.open.i_offset = 0;
 	open_req->info.open.i_name = buf;
 	open_req->info.open.i_map_flags = MAP_SHARED;
@@ -344,6 +348,10 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	cpnd_open_req->info.open.i_size =
 	    sizeof(CLIENT_HDR) + (MAX_CLIENTS * sizeof(CLIENT_INFO)) + sizeof(CKPT_HDR) +
 	    (MAX_CKPTS * sizeof(CKPT_INFO));
+	if (cb->shm_alloc_guaranteed == true)
+		cpnd_open_req->info.open.ensures_space = true;
+	else
+		cpnd_open_req->info.open.ensures_space = false; 
 	cpnd_open_req->info.open.i_offset = 0;
 	cpnd_open_req->info.open.i_name = buffer;
 	cpnd_open_req->info.open.i_map_flags = MAP_SHARED;
@@ -484,7 +492,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 					memset(buf, '\0', total_length);
 					strncpy(buf, (char *)cp_node->ckpt_name.value, size);
 					sprintf(buf + size - 1, "_%d_%d", (uint32_t)nodeid, (uint32_t)cp_node->ckpt_id);
-					rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open, buf, &cp_node, 0, &cp_info);
+					rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open, buf, &cp_node, 0, &cp_info, cb->shm_alloc_guaranteed);
 					if (rc != NCSCC_RC_SUCCESS) {
 						/*   assert(0); */
 						TRACE_4("cpnd ckpt replica create failed with return value %d",rc);

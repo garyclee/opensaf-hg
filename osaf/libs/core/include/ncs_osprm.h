@@ -564,6 +564,7 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 		uint32_t i_flags;
 		uint32_t i_map_flags;
 		uint64_t i_size;
+		bool ensures_space;
 		uint64_t i_offset;
 		void *o_addr;
 		int32_t o_fd;

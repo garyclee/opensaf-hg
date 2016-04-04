@@ -179,6 +179,7 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 
 	m_CPSV_GET_AMF_VER(clm_version);
 	SaClmCallbacksT gen_cbk;
+	char *ptr;
 
 	TRACE_ENTER();
 	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
@@ -216,6 +217,14 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 		TRACE("cpnd scAbsenceAllowed = true");
 	} else
 		cb->scAbsenceAllowed = false;
+
+
+	/* Get shm_alloc_guaranteed */
+	if ((ptr = getenv("OSAF_CKPT_SHM_ALLOC_GUARANTEE")) != NULL) {
+		cb->shm_alloc_guaranteed = atoi(ptr);
+	} else {
+		cb->shm_alloc_guaranteed = false;
+	}
 
 	/* create a mail box */
 	if ((rc = m_NCS_IPC_CREATE(&cb->cpnd_mbx)) != NCSCC_RC_SUCCESS) {

@@ -795,9 +795,16 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 		if (req->info.open.o_fd < 0) {
 			return NCSCC_RC_FAILURE;
 		} else {
-			if (ftruncate(req->info.open.o_fd, (off_t) shm_size /* off_t == long */ ) < 0) {
-				printf("ftruncate failed with errno value %d \n", errno);
-				return NCSCC_RC_FAILURE;
+			if (req->info.open.ensures_space == true) {
+				if (posix_fallocate(req->info.open.o_fd, 0, shm_size) != 0) {
+					LOG_ER("posix_shm:posix_fallocate failed() with errno: %d \n", errno);
+					return NCSCC_RC_FAILURE;
+				}
+			} else {
+				if (ftruncate(req->info.open.o_fd, (off_t) shm_size /* off_t == long */ ) < 0) {
+					printf("ftruncate failed with errno value %d \n", errno);
+					return NCSCC_RC_FAILURE;
+                                }
 			}
 
 			prot_flag = ncs_shm_prot_flags(req->info.open.i_flags);
