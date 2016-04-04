@@ -28,11 +28,13 @@
 ******************************************************************************/
 
 #include <poll.h>
+#include <stdlib.h>
 
 #include <daemon.h>
 #include "cpd.h"
 #include "cpd_imm.h"
 #include <rda_papi.h>
+#include "osaf_time.h"
 
 enum {
 	FD_TERM = 0,
@@ -171,10 +173,6 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	SaAisErrorT amf_error;
 	SaAmfHealthcheckKeyT healthy;
 	int8_t *health_key;
-	SaVersionT clm_version;
-
-	m_CPSV_GET_AMF_VER(clm_version);
-	SaClmCallbacksT cpd_clm_cbk;
 
 	/* allocate a CB  */
 	cb = m_MMGR_ALLOC_CPD_CB;
@@ -222,11 +220,6 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 		goto cpd_ipc_att_fail;
 	}
 
-	if ((rc = cpd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("cpd mds register failed");
-		goto cpd_mds_fail;
-	}
-
 	/* Initialise with the AMF service */
 	if (cpd_amf_init(cb) != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpd amf init failed");	
@@ -240,26 +233,6 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 		LOG_ER("cpd amf register failed");
 		goto amf_reg_err;
 	}
-
-	/*   Initialise with the MBCSV service  */
-	if (cpd_mbcsv_register(cb) != NCSCC_RC_SUCCESS) {
-		LOG_ER("cpd mbcsv register failed");
-		goto mbcsv_reg_err;
-	}
-
-	cpd_clm_cbk.saClmClusterNodeGetCallback = NULL;
-	cpd_clm_cbk.saClmClusterTrackCallback = cpd_clm_cluster_track_cb;
-
-	if (saClmInitialize(&cb->clm_hdl, &cpd_clm_cbk, &clm_version) != SA_AIS_OK) {
-		LOG_ER("cpd clm Initialize failed");
-		goto cpd_clm_fail;
-	}
-
-	if (cpd_imm_init(cb) != SA_AIS_OK) {
-		LOG_ER("cpd imm initialize failed ");
-		goto cpd_imm_fail;
-	}
-
 
 	/* Register with CLM */
 
@@ -284,27 +257,23 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("cpd health check start failed");
 	}
+
+	if ((rc = initialize_for_assignment(cb, cb->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		exit(EXIT_FAILURE);
+	}
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 
- cpd_imm_fail:
  cpd_mab_fail:
-	cpd_mds_unregister(cb);
- cpd_clm_fail:
-	saClmFinalize(cb->clm_hdl);
-
-	cpd_mbcsv_finalize(cb);
-
- mbcsv_reg_err:
 	cpd_amf_deregister(cb);
 
  amf_reg_err:
 	cpd_amf_de_init(cb);
 
  amf_init_err:
-	cpd_mds_unregister(cb);
-
- cpd_mds_fail:
 	m_NCS_IPC_DETACH(&cb->cpd_mbx, cpd_clear_mbx, cb);
 
  cpd_ipc_att_fail:
@@ -324,6 +293,83 @@ static uint32_t cpd_lib_init(CPD_CREATE_INFO *info)
 
 	TRACE_LEAVE();
 	return (rc);
+}
+
+uint32_t initialize_for_assignment(CPD_CB *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	SaClmCallbacksT cpd_clm_cbk;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT error;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
+		goto done;
+	}
+	cb->ha_state = ha_state;
+	if ((rc = cpd_mds_register(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("cpd mds register failed");
+		goto cpd_mds_fail;
+	}
+	/*   Initialise with the MBCSV service  */
+	if ((rc = cpd_mbcsv_register(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("cpd mbcsv register failed");
+		goto mbcsv_reg_err;
+	}
+
+	cpd_clm_cbk.saClmClusterNodeGetCallback = NULL;
+	cpd_clm_cbk.saClmClusterTrackCallback = cpd_clm_cluster_track_cb;
+
+	for (;;) {
+		SaVersionT clm_version;
+		m_CPSV_GET_AMF_VER(clm_version);
+		error = saClmInitialize(&cb->clm_hdl, &cpd_clm_cbk, &clm_version);
+		if (error == SA_AIS_ERR_TRY_AGAIN ||
+		    error == SA_AIS_ERR_TIMEOUT ||
+                    error == SA_AIS_ERR_UNAVAILABLE) {
+			if (error != SA_AIS_ERR_TRY_AGAIN) {
+				LOG_WA("saClmInitialize returned %u",
+				       (unsigned) error);
+			}
+			osaf_nanosleep(&kHundredMilliseconds);
+			continue;
+		}
+		if (error == SA_AIS_OK) break;
+		LOG_ER("Failed to Initialize with CLM: %u", error);
+		rc = NCSCC_RC_FAILURE;
+		goto cpd_clm_fail;
+	}
+
+	error =	saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
+	if (error != SA_AIS_OK) {
+		LOG_ER("cpd clm selectionobjget failed %u",error);
+		rc = NCSCC_RC_FAILURE;
+		goto cpd_imm_fail;
+	}
+
+	error = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
+	if (error != SA_AIS_OK) {
+		LOG_ER("cpd clm cluster track failed %u",error);
+		rc = NCSCC_RC_FAILURE;
+		goto cpd_imm_fail;
+        }
+
+	if (cpd_imm_init(&cb->immOiHandle, &cb->imm_sel_obj) != SA_AIS_OK) {
+		LOG_ER("cpd imm initialize failed ");
+		rc = NCSCC_RC_FAILURE;
+		goto cpd_imm_fail;
+	}
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE();
+	return rc;
+cpd_imm_fail:
+	saClmFinalize(cb->clm_hdl);
+cpd_clm_fail:
+	cpd_mbcsv_finalize(cb);
+mbcsv_reg_err:
+	cpd_mds_unregister(cb);
+cpd_mds_fail:
+	TRACE_LEAVE2("rc = %u", rc);
+	return rc;
 }
 
 /****************************************************************************
@@ -434,7 +480,7 @@ void cpd_main_process(CPD_CB *cb)
 	NCS_SEL_OBJ mbx_fd;
 	SYSF_MBX mbx = cb->cpd_mbx;
 	NCS_MBCSV_ARG mbcsv_arg;
-	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
+	SaSelectionObjectT amf_sel_obj;
 	SaAisErrorT error = SA_AIS_OK;
 	int term_fd;
 	SaAmfHAStateT rda_role = SA_AMF_HA_STANDBY;
@@ -445,19 +491,8 @@ void cpd_main_process(CPD_CB *cb)
 		LOG_ER("cpd amf selectionobjget failed %u",error);
 		return;
 	}
-	error =	saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj);
-	if (error != SA_AIS_OK) {
-		LOG_ER("cpd clm selectionobjget failed %u",error);
-		return;
-	}
 
 	daemon_sigterm_install(&term_fd);
-
-	error = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
-	if (error != SA_AIS_OK) {
-		LOG_ER("cpd clm cluster track failed %u",error);
-                return;
-        }
 
 	/* Get the role. If role=SA_AMF_HA_ACTIVE, this is the first checkpoint director
 	 *    starting after both directors have been down.
@@ -479,16 +514,16 @@ void cpd_main_process(CPD_CB *cb)
 	fds[FD_TERM].events = POLLIN;
 	fds[FD_AMF].fd = amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_CLM].fd = clm_sel_obj;
-	fds[FD_CLM].events = POLLIN;
-	fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
 
 	while (1) {
+		fds[FD_CLM].fd = cb->clm_sel_obj;
+		fds[FD_CLM].events = POLLIN;
+		fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
 
 		if (cb->immOiHandle != 0) {
 			fds[FD_IMM].fd = cb->imm_sel_obj;
@@ -574,6 +609,7 @@ void cpd_main_process(CPD_CB *cb)
 				 */
 				saImmOiFinalize(cb->immOiHandle);
 				cb->immOiHandle = 0;
+				cb->imm_sel_obj = -1;
 				cpd_imm_reinit_bg(cb);
 
 			} else if (error != SA_AIS_OK) {

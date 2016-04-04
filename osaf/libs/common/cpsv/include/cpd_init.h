@@ -26,6 +26,13 @@
   This file consists of constats, enums and data structs used by cpd_init.c
 ******************************************************************************/
 
+#ifndef OPENSAF_OSAF_LIBS_COMMON_CPSV_INCLUDE_CPD_INIT_H_
+#define OPENSAF_OSAF_LIBS_COMMON_CPSV_INCLUDE_CPD_INIT_H_
+
+#include <stdint.h>
+#include "saAmf.h"
+#include "cpd_cb.h"
+
 uint32_t gl_cpd_cb_hdl;
 
 /* Macro to get the component name for the component type */
@@ -62,3 +69,8 @@ typedef struct cpd_create_info {
 typedef struct cpd_destroy_info {
 	uint32_t dummy;
 } CPD_DESTROY_INFO;
+
+extern uint32_t initialize_for_assignment(CPD_CB *cb,
+					  SaAmfHAStateT ha_state);
+
+#endif	/* OPENSAF_OSAF_LIBS_COMMON_CPSV_INCLUDE_CPD_INIT_H_ */

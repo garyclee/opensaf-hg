@@ -922,6 +922,11 @@ uint32_t cpd_cb_db_init(CPD_CB *cb)
 	
 	TRACE_ENTER();
 	cb->nxt_ckpt_id = 1;
+	cb->mbcsv_sel_obj = -1;
+	cb->ha_state = SA_AMF_HA_QUIESCED;
+	cb->imm_sel_obj = -1;
+	cb->clm_sel_obj = -1;
+	cb->fully_initialized = false;
 
 	rc = cpd_ckpt_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
