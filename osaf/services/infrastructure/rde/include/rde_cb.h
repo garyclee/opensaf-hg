@@ -25,6 +25,12 @@
 #include "rde_amf.h"
 #include "rde_rda.h"
 #include "rda_papi.h"
+#include "osaf_utility.h"
+
+/* The value to put in the PATH environment variable when calling the
+   SC active script */
+#define SC_ACTIVE_PATH_ENV "/usr/local/sbin:/usr/local/bin:/usr/sbin:" \
+	"/usr/bin:/sbin:/bin"
 
 /*
 **  RDE_CONTROL_BLOCK
@@ -40,8 +46,6 @@ struct RDE_CONTROL_BLOCK {
 	bool task_terminate;
 	bool fabric_interface;
 	uint32_t select_timeout;
-
-	PCS_RDA_ROLE ha_role;
 
 	RDE_RDA_CB rde_rda_cb;
 	RDE_AMF_CB rde_amf_cb;
@@ -70,7 +74,6 @@ struct rde_msg {
 };
 
 extern const char *rde_msg_name[];
-extern NCS_NODE_ID rde_my_node_id;
 
 /*****************************************************************************\
  *                                                                             *
@@ -79,7 +82,8 @@ extern NCS_NODE_ID rde_my_node_id;
 \*****************************************************************************/
 
 extern RDE_CONTROL_BLOCK *rde_get_control_block();
-extern uint32_t rde_mds_register(RDE_CONTROL_BLOCK *cb);
+extern uint32_t rde_mds_register();
+extern uint32_t rde_mds_unregister();
 extern uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest);
 extern uint32_t rde_set_role(PCS_RDA_ROLE role);
 

@@ -15,10 +15,13 @@
  *
  */
 
+#include "rde_amf.h"
+
 #include <logtrace.h>
 #include <nid_start_util.h>
 
 #include "rde_cb.h"
+#include "role.h"
 
 static RDE_AMF_CB *rde_amf_get_cb()
 {
@@ -27,13 +30,24 @@ static RDE_AMF_CB *rde_amf_get_cb()
 }
 
 static void rde_saf_CSI_set_callback(SaInvocationT invocation,
-	const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+	const SaNameT *compName, SaAmfHAStateT new_haState,
+	SaAmfCSIDescriptorT csiDescriptor)
 {
 	RDE_AMF_CB *rde_amf_cb = rde_amf_get_cb();
-
-	TRACE_ENTER();
-
-	(void) saAmfResponse(rde_amf_cb->amf_hdl, invocation, SA_AIS_OK);
+	TRACE_ENTER2("new_haState = %d, current = %d",
+                     static_cast<int>(new_haState),
+                     static_cast<int>(rde_amf_cb->role->role()));
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT error = SA_AIS_OK;
+	if (new_haState != SA_AMF_HA_ACTIVE) {
+		if ((rc = rde_amf_cb->role->SetRole((PCS_RDA_ROLE) new_haState)) !=
+			NCSCC_RC_SUCCESS) {
+			LOG_ER("SetRole failed %u", (unsigned) rc);
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+	}
+	error = saAmfResponse(rde_amf_cb->amf_hdl, invocation, error);
+	TRACE_LEAVE2("rc = %u, error = %d", (unsigned) rc, (int) error);
 }
 
 static void rde_saf_health_chk_callback(SaInvocationT invocation,
@@ -46,14 +60,19 @@ static void rde_saf_health_chk_callback(SaInvocationT invocation,
 	(void) saAmfResponse(rde_amf_cb->amf_hdl, invocation, SA_AIS_OK);
 }
 
-void rde_saf_CSI_rem_callback(SaInvocationT invocation,
-			      const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
+void rde_saf_CSI_rem_callback(SaInvocationT invocation, const SaNameT *compName,
+	const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
 {
 	RDE_AMF_CB *rde_amf_cb = rde_amf_get_cb();
-
-	TRACE_ENTER();
-
-	(void) saAmfResponse(rde_amf_cb->amf_hdl, invocation, SA_AIS_OK);
+	TRACE_ENTER2("current role: %d", static_cast<int>(rde_amf_cb->role->role()));
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT error = SA_AIS_OK;
+	if ((rc = rde_amf_cb->role->SetRole(PCS_RDA_QUIESCED)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("SetRole failed %u", (unsigned) rc);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+	}
+	error = saAmfResponse(rde_amf_cb->amf_hdl, invocation, error);
+	TRACE_LEAVE2("rc = %u, error = %d", (unsigned) rc, (int) error);
 }
 
 void rde_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
@@ -176,4 +195,3 @@ uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb)
 	TRACE_LEAVE2("AMF Initialization SUCCESS......");
 	return(rc);
 }
-

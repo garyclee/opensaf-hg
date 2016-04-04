@@ -31,7 +31,8 @@ osafrded_SOURCES = \
 	rde_amf.cc \
 	rde_main.cc \
 	rde_mds.cc \
-	rde_rda.cc
+	rde_rda.cc \
+	role.cc
 
 osafrded_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

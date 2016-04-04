@@ -15,6 +15,8 @@
  *
  */
 
+#include <thread>
+#include <chrono>
 #include <logtrace.h>
 #include <mds_papi.h>
 #include <ncsencdec_pub.h>
@@ -23,7 +25,6 @@
 
 #define RDE_MDS_PVT_SUBPART_VERSION 1
 
-static MDS_DEST peer_dest;
 static MDS_HDL mds_hdl;
 
 static uint32_t msg_encode(MDS_CALLBACK_ENC_INFO *enc_info)
@@ -145,12 +146,6 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info)
 	case MDS_CALLBACK_DEC_FLAT:
 		break;
 	case MDS_CALLBACK_RECEIVE:
-		if (!peer_dest) {
-			/* Sometimes a message from peer is received before MDS_UP, simulate MDS_UP */
-			TRACE("generating up msg from rec event!");
-			rc = mbx_send(RDE_MSG_PEER_UP, info->info.receive.i_fr_dest, info->info.receive.i_node_id);
-		}
-
 		msg = (struct rde_msg*)info->info.receive.i_msg;
 		msg->fr_dest = info->info.receive.i_fr_dest;
 		msg->fr_node_id = info->info.receive.i_node_id;
@@ -162,18 +157,13 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info)
 		}
 		break;
 	case MDS_CALLBACK_SVC_EVENT:
-		if (rde_my_node_id == info->info.svc_evt.i_node_id)
-			goto done;
-
 		if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
 			TRACE("MDS DOWN dest: %" PRIx64 ", node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
-			peer_dest = 0;
 			rc = mbx_send(RDE_MSG_PEER_DOWN, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
 		} else if (info->info.svc_evt.i_change == NCSMDS_UP) {
 			TRACE("MDS UP dest: %" PRIx64 ", node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
-			peer_dest = info->info.svc_evt.i_dest;
 			rc = mbx_send(RDE_MSG_PEER_UP, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
 		} else {
 			TRACE("MDS %u dest: %" PRIx64 ", node ID: %x, svc_id: %d", info->info.svc_evt.i_change,
@@ -192,7 +182,7 @@ done:
 	return rc;
 }
 
-uint32_t rde_mds_register(RDE_CONTROL_BLOCK *cb)
+uint32_t rde_mds_register()
 {
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO svc_info;
@@ -243,28 +233,56 @@ uint32_t rde_mds_register(RDE_CONTROL_BLOCK *cb)
 	return NCSCC_RC_SUCCESS;
 }
 
+uint32_t rde_mds_unregister()
+{
+	NCSMDS_INFO mds_info;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
+	/* Un-install your service into MDS.
+	   No need to cancel the services that are subscribed */
+	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
+
+	mds_info.i_mds_hdl = mds_hdl;
+	mds_info.i_svc_id = NCSMDS_SVC_ID_RDE;
+	mds_info.i_op = MDS_UNINSTALL;
+
+	rc = ncsmds_api(&mds_info);
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_WA("MDS Unregister Failed");
+	}
+
+	TRACE_LEAVE2("retval = %u", rc);
+	return rc;
+}
+
 uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest)
 {
 	NCSMDS_INFO info;
 	uint32_t rc;
 
-	TRACE("Sending %s to %" PRIx64, rde_msg_name[msg->type], to_dest);
-	memset(&info, 0, sizeof(info));
+        for (int i = 0; i != 3; ++i) {
+		TRACE("Sending %s to %" PRIx64, rde_msg_name[msg->type], to_dest);
+		memset(&info, 0, sizeof(info));
 
-	info.i_mds_hdl = mds_hdl;
-	info.i_op = MDS_SEND;
-	info.i_svc_id = NCSMDS_SVC_ID_RDE;
-	
-	info.info.svc_send.i_msg = msg;
-	info.info.svc_send.i_priority = MDS_SEND_PRIORITY_MEDIUM;
-	info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
-	info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_RDE;
-	info.info.svc_send.info.snd.i_to_dest = to_dest;
-	
-	rc = ncsmds_api(&info);
-	if (NCSCC_RC_FAILURE == rc)
-		LOG_ER("rde async MDS send FAILED");
+		info.i_mds_hdl = mds_hdl;
+		info.i_op = MDS_SEND;
+		info.i_svc_id = NCSMDS_SVC_ID_RDE;
+
+		info.info.svc_send.i_msg = msg;
+		info.info.svc_send.i_priority = MDS_SEND_PRIORITY_MEDIUM;
+		info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+		info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_RDE;
+		info.info.svc_send.info.snd.i_to_dest = to_dest;
+
+		rc = ncsmds_api(&info);
+		if (NCSCC_RC_FAILURE == rc) {
+			LOG_ER("Failed to send %s to %" PRIx64, rde_msg_name[msg->type], to_dest);
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		} else {
+			break;
+		}
+	}
 
 	return rc;
 }
-

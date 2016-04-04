@@ -44,6 +44,8 @@
 #include "saAis.h"
 #include "saAmf.h"
 
+class Role;
+
 /*
  * Macro used to get the AMF version used 
  */
@@ -56,11 +58,14 @@ struct RDE_AMF_CB {
 	char comp_name[256];
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
+	Role* role;
 	bool is_amf_up;	/* For amf_fd and pipe_fd */
 	bool nid_started;	/**< true if started by NID */
 
 };
 
 extern uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb);
+extern SaAisErrorT internal_csi_set_callback(SaInvocationT invocation,
+	SaAmfHAStateT new_haState);
 
 #endif

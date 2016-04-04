@@ -38,6 +38,7 @@
 #include <logtrace.h>
 
 #include "rde_cb.h"
+#include "role.h"
 
 /*****************************************************************************
 
@@ -261,11 +262,9 @@ static uint32_t rde_rda_read_msg(int fd, char *msg, int size)
 static uint32_t rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index)
 {
 	char msg[64] = { 0 };
-	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
-
 	TRACE_ENTER();
 
-	sprintf(msg, "%d %d", RDE_RDA_GET_ROLE_RES, rde_cb->ha_role);
+	sprintf(msg, "%d %d", RDE_RDA_GET_ROLE_RES, static_cast<int>(rde_rda_cb->role->role()));
 	if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
@@ -299,7 +298,7 @@ static uint32_t rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int 
 
 	TRACE_ENTER();
 
-	if (rde_set_role(static_cast<PCS_RDA_ROLE>(role)) != NCSCC_RC_SUCCESS)
+	if (rde_rda_cb->role->SetRole(static_cast<PCS_RDA_ROLE>(role)) != NCSCC_RC_SUCCESS)
 		sprintf(msg, "%d", RDE_RDA_SET_ROLE_NACK);
 	else
 		sprintf(msg, "%d", RDE_RDA_SET_ROLE_ACK);

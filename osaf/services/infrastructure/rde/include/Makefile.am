@@ -22,4 +22,5 @@ noinst_HEADERS = \
 	rde_amf.h \
 	rde_cb.h \
 	rde_rda.h \
-	rde_rda_common.h
+	rde_rda_common.h \
+	role.h
