@@ -20,6 +20,14 @@
 #include <cstdlib>
 #include <poll.h>
 #include <libgen.h>
+#include <cstring>
+#include <cerrno>
+#include <unistd.h>
+#include <limits.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include <logtrace.h>
 #include <mds_papi.h>
@@ -28,18 +36,11 @@
 #include <nid_api.h>
 
 #include "rde_cb.h"
+#include "osaf_time.h"
+#include "osaf_poll.h"
+#include "role.h"
 
 #define RDA_MAX_CLIENTS 32
-
-static const char *role_string[] =
-{
-	"Undefined role",
-	"ACTIVE",
-	"STANDBY",
-	"QUIESCED",
-	"QUIESCING",
-	"Invalid"
-};
 
 enum {
 	FD_TERM = 0,
@@ -49,8 +50,9 @@ enum {
 	FD_CLIENT_START
 };
 
-NCS_NODE_ID rde_my_node_id;
-static NCS_NODE_ID peer_node_id;
+static void SendPeerInfoReq(MDS_DEST mds_dest);
+static void SendPeerInfoResp(MDS_DEST mds_dest);
+static void CheckForSplitBrain(const rde_msg* msg);
 
 const char *rde_msg_name[] = {
 	"-",
@@ -60,12 +62,11 @@ const char *rde_msg_name[] = {
 	"RDE_MSG_PEER_INFO_RESP(4)",
 };
 
-/* note: default value mentioned in $pkgsysconfdir/rde.conf, change in both places */
-static int discover_peer_timeout = 2000;
 static RDE_CONTROL_BLOCK _rde_cb;
 static RDE_CONTROL_BLOCK *rde_cb = &_rde_cb;
 static NCS_SEL_OBJ usr1_sel_obj;
-
+static NODE_ID own_node_id;
+static Role* role;
 
 RDE_CONTROL_BLOCK *rde_get_control_block()
 {
@@ -86,18 +87,6 @@ static void sigusr1_handler(int sig)
 	ncs_sel_obj_ind(&usr1_sel_obj);
 }
 
-uint32_t rde_set_role(PCS_RDA_ROLE role)
-{
-	LOG_NO("RDE role set to %s", role_string[role]);
-
-	rde_cb->ha_role = role;
-
-	/* Send new role to all RDA client */
-	rde_rda_send_role(rde_cb->ha_role);
-
-	return NCSCC_RC_SUCCESS;
-}
-
 static int fd_to_client_ixd(int fd)
 {
 	int i;
@@ -114,28 +103,42 @@ static int fd_to_client_ixd(int fd)
 
 static void handle_mbx_event()
 {
-	struct rde_msg *msg;
+	rde_msg *msg;
 
 	TRACE_ENTER();
 
 	msg = (struct rde_msg*)ncs_ipc_non_blk_recv(&rde_cb->mbx);
+	TRACE("Received %s from node 0x%x with state %s. My state is %s",
+	      rde_msg_name[msg->type], msg->fr_node_id,
+	      Role::to_string(msg->info.peer_info.ha_role),
+	      Role::to_string(role->role()));
 
 	switch (msg->type) {
 	case RDE_MSG_PEER_INFO_REQ: {
-		struct rde_msg peer_info_req;
-		TRACE("Received %s", rde_msg_name[msg->type]);
-		peer_info_req.type = RDE_MSG_PEER_INFO_RESP;
-		peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
-		rde_mds_send(&peer_info_req, msg->fr_dest);
+		LOG_NO("Got peer info request from node 0x%x with role %s",
+			msg->fr_node_id,
+		       Role::to_string(msg->info.peer_info.ha_role));
+                CheckForSplitBrain(msg);
+                SendPeerInfoResp(msg->fr_dest);
 		break;
 	}
-	case RDE_MSG_PEER_UP:
-		TRACE("Received %s", rde_msg_name[msg->type]);
-		peer_node_id = msg->fr_node_id;
+	case RDE_MSG_PEER_INFO_RESP: {
+		LOG_NO("Got peer info response from node 0x%x with role %s",
+			msg->fr_node_id,
+			Role::to_string(msg->info.peer_info.ha_role));
+                CheckForSplitBrain(msg);
+		role->SetPeerState(msg->info.peer_info.ha_role, msg->fr_node_id);
 		break;
+	}
+	case RDE_MSG_PEER_UP: {
+		if (msg->fr_node_id != own_node_id) {
+			LOG_NO("Peer up on node 0x%x", msg->fr_node_id);
+			SendPeerInfoReq(msg->fr_dest);
+		}
+		break;
+	}
 	case RDE_MSG_PEER_DOWN:
-		TRACE("Received %s", rde_msg_name[msg->type]);
-		peer_node_id = 0;
+		LOG_NO("Peer down on node 0x%x", msg->fr_node_id);
 		break;
 	default:
 		LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
@@ -147,159 +150,26 @@ static void handle_mbx_event()
 	TRACE_LEAVE();
 }
 
-static uint32_t discover_peer(int mbx_fd)
-{
-	struct pollfd fds[1];
-	struct rde_msg *msg;
-	int ret;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	TRACE_ENTER();
-
-	fds[0].fd = mbx_fd;
-	fds[0].events = POLLIN;
-
-	while (1) {
-		ret = poll(fds, 1, discover_peer_timeout);
-
-		if (ret == -1) {
-			if (errno == EINTR)
-				continue;
-			
-			LOG_ER("poll failed - %s", strerror(errno));
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-
-		if (ret == 0) {
-			TRACE("Peer discovery timeout");
-			goto done;
-		}
-
-		if (ret == 1) {
-			msg = (struct rde_msg*)ncs_ipc_non_blk_recv(&rde_cb->mbx);
-
-			switch (msg->type) {
-			case RDE_MSG_PEER_UP: {
-				struct rde_msg peer_info_req;
-
-				peer_node_id = msg->fr_node_id;
-				TRACE("Received %s", rde_msg_name[msg->type]);
-
-				/* Send request for peer information */
-				peer_info_req.type = RDE_MSG_PEER_INFO_REQ;
-				peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
-				rde_mds_send(&peer_info_req, msg->fr_dest);
-				goto done;
-			}
-			default:
-				LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
-				break;
-			}
-
-		} else
-			assert(0);
-	}
-done:
-	TRACE_LEAVE();
-	return rc;
+static void CheckForSplitBrain(const rde_msg* msg) {
+  PCS_RDA_ROLE own_role = role->role();
+  PCS_RDA_ROLE other_role = msg->info.peer_info.ha_role;
+  if (own_role == PCS_RDA_ACTIVE && other_role == PCS_RDA_ACTIVE) {
+    opensaf_reboot(0, NULL, "Split-brain detected");
+  }
 }
 
-static uint32_t determine_role(int mbx_fd)
-{
-	struct pollfd fds[1];
-	struct rde_msg *msg;
-	int ret;
-	uint32_t rc = NCSCC_RC_SUCCESS;
+static void SendPeerInfoReq(MDS_DEST mds_dest) {
+	rde_msg peer_info_req;
+	peer_info_req.type = RDE_MSG_PEER_INFO_REQ;
+	peer_info_req.info.peer_info.ha_role = role->role();
+	rde_mds_send(&peer_info_req, mds_dest);
+}
 
-	TRACE_ENTER();
-
-	if (peer_node_id == 0) {
-		LOG_NO("No peer available => Setting Active role for this node");
-		rde_cb->ha_role = PCS_RDA_ACTIVE;
-		goto done;
-	}
-
-	fds[0].fd = mbx_fd;
-	fds[0].events = POLLIN;
-
-	while (1) {
-		ret = poll(fds, 1, -1);
-
-		if (ret == -1) {
-			if (errno == EINTR)
-				continue;
-			
-			LOG_ER("poll failed - %s", strerror(errno));
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-
-		assert(ret == 1);
-
-		msg = (struct rde_msg*)ncs_ipc_non_blk_recv(&rde_cb->mbx);
-
-		switch (msg->type) {
-		case RDE_MSG_PEER_UP:
-			TRACE("Received straggler up msg, ignoring");
-			assert(peer_node_id);
-			break;
-		case RDE_MSG_PEER_DOWN:
-			TRACE("Received %s", rde_msg_name[msg->type]);
-			LOG_NO("peer rde@%x down waiting for response => Setting Active role", peer_node_id);
-			rde_cb->ha_role = PCS_RDA_ACTIVE;
-			peer_node_id = 0;
-			goto done;
-		case RDE_MSG_PEER_INFO_REQ: {
-			struct rde_msg peer_info_req;
-			TRACE("Received %s", rde_msg_name[msg->type]);
-			peer_info_req.type = RDE_MSG_PEER_INFO_RESP;
-			peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
-			rde_mds_send(&peer_info_req, msg->fr_dest);
-			break;
-		}
-		case RDE_MSG_PEER_INFO_RESP:
-			TRACE("Received %s", rde_msg_name[msg->type]);
-			switch (msg->info.peer_info.ha_role) {
-			case PCS_RDA_UNDEFINED:
-				TRACE("my=%x, peer=%x", rde_my_node_id, msg->fr_node_id);
-				if (rde_my_node_id < msg->fr_node_id) {
-					rde_cb->ha_role = PCS_RDA_ACTIVE;
-					LOG_NO("Peer rde@%x has no state, my nodeid is less => Setting Active role", msg->fr_node_id);
-				} else if (rde_my_node_id > msg->fr_node_id) {
-					rde_cb->ha_role = PCS_RDA_STANDBY;
-					LOG_NO("Peer rde@%x has no state, my nodeid is greater => Setting Standby role", msg->fr_node_id);
-				} else
-					assert(0);
-				goto done;
-			case PCS_RDA_ACTIVE:
-				rde_cb->ha_role = PCS_RDA_STANDBY;
-				LOG_NO("Peer rde@%x has active state => Assigning Standby role to this node", msg->fr_node_id);
-				goto done;
-			case PCS_RDA_STANDBY:
-				LOG_NO("Peer rde@%x has standby state => possible fail over, waiting...", msg->fr_node_id);
-				sleep(1);
-				
-				/* Send request for peer information */
-				struct rde_msg peer_info_req;
-				peer_info_req.type = RDE_MSG_PEER_INFO_REQ;
-				peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
-				rde_mds_send(&peer_info_req, msg->fr_dest);
-				break;
-			default:
-				LOG_NO("rde@%x has unsupported state, panic!", msg->fr_node_id);
-				assert(0);
-			}
-			break;
-		default:
-			LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
-			break;
-		}
-	} /* while (1) */
-
-done:
-	TRACE_LEAVE();
-	return rc;
+static void SendPeerInfoResp(MDS_DEST mds_dest) {
+	rde_msg peer_info_req;
+	peer_info_req.type = RDE_MSG_PEER_INFO_RESP;
+	peer_info_req.info.peer_info.ha_role = role->role();
+	rde_mds_send(&peer_info_req, mds_dest);
 }
 
 /**
@@ -311,21 +181,25 @@ static int initialize_rde()
 {
 	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
 	int rc = NCSCC_RC_FAILURE;
-	char *val;
+
+	if ((rc = rde_rda_open(RDE_RDA_SOCK_NAME, rde_rda_cb)) !=
+		NCSCC_RC_SUCCESS) {
+		goto init_failed;
+	}
 
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == nullptr)
 		rde_cb->rde_amf_cb.nid_started = true;
 
-	if ((val = getenv("RDE_DISCOVER_PEER_TIMEOUT")) != nullptr)
-		discover_peer_timeout = strtoul(val, nullptr, 0);
-
-	TRACE("discover_peer_timeout=%d", discover_peer_timeout);
-
 	if ((rc = ncs_core_agents_startup()) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_core_agents_startup FAILED");
 		goto init_failed;
 	}
+
+	own_node_id = ncs_get_node_id();
+        role = new Role(own_node_id);
+	rde_rda_cb->role = role;
+	rde_cb->rde_amf_cb.role = role;
 
 	if (rde_cb->rde_amf_cb.nid_started &&
 		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
@@ -343,19 +217,11 @@ static int initialize_rde()
 		goto init_failed;
 	}
 
-	rde_my_node_id = ncs_get_node_id();
-
-	if ((rc = rde_rda_open(RDE_RDA_SOCK_NAME, rde_rda_cb)) != NCSCC_RC_SUCCESS)
-		goto init_failed;
-
 	if (rde_cb->rde_amf_cb.nid_started &&
 		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 FAILED: %s", strerror(errno));
 		goto init_failed;
 	}
-
-	if (rde_mds_register(rde_cb) != NCSCC_RC_SUCCESS)
-		goto init_failed;
 
 	rc = NCSCC_RC_SUCCESS;
 
@@ -365,13 +231,14 @@ static int initialize_rde()
 
 int main(int argc, char *argv[])
 {
-	uint32_t rc;
-	nfds_t nfds = 4;
+	nfds_t nfds = FD_CLIENT_START;
 	struct pollfd fds[nfds + RDA_MAX_CLIENTS];
-	int i, ret;
+	int ret;
 	NCS_SEL_OBJ mbx_sel_obj;
 	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
 	int term_fd;
+
+	opensaf_reboot_prepare();
 
 	daemonize(argc, argv);
 
@@ -380,22 +247,10 @@ int main(int argc, char *argv[])
 
 	mbx_sel_obj = ncs_ipc_get_sel_obj(&rde_cb->mbx);
 
-	if ((rc = discover_peer(mbx_sel_obj.rmv_obj)) == NCSCC_RC_FAILURE)
-		goto init_failed;
-
-	if ((rc = determine_role(mbx_sel_obj.rmv_obj)) == NCSCC_RC_FAILURE)
-		goto init_failed;
-
 	/* If AMF started register immediately */
 	if (!rde_cb->rde_amf_cb.nid_started &&
-		(rc = rde_amf_init(&rde_cb->rde_amf_cb)) != NCSCC_RC_SUCCESS) {
+		rde_amf_init(&rde_cb->rde_amf_cb) != NCSCC_RC_SUCCESS) {
 		goto init_failed;
-	}
-
-	if (rde_cb->rde_amf_cb.nid_started &&
-		nid_notify("RDE", rc, nullptr) != NCSCC_RC_SUCCESS) {
-		LOG_ER("nid_notify failed");
-		goto done;
 	}
 
 	daemon_sigterm_install(&term_fd);
@@ -416,8 +271,27 @@ int main(int argc, char *argv[])
 	fds[FD_RDA_SERVER].fd = rde_cb->rde_rda_cb.fd;
 	fds[FD_RDA_SERVER].events = POLLIN;
 
+	if (rde_cb->rde_amf_cb.nid_started) {
+		TRACE("NID started");
+		if (nid_notify("RDE", NCSCC_RC_SUCCESS, nullptr) != NCSCC_RC_SUCCESS) {
+			LOG_ER("nid_notify failed");
+			goto init_failed;
+		}
+	} else {
+		TRACE("Not NID started");
+	}
+
 	while (1) {
-		ret = poll(fds, nfds, -1);
+		nfds_t fds_to_poll = role->role() != PCS_RDA_UNDEFINED ?
+			nfds : FD_CLIENT_START;
+		ret = osaf_poll(fds, fds_to_poll, 0);
+		if (ret == 0) {
+			timespec ts;
+			timespec* timeout = role->Poll(&ts);
+			fds_to_poll = role->role() != PCS_RDA_UNDEFINED ?
+				nfds : FD_CLIENT_START;
+			ret = osaf_ppoll(fds, fds_to_poll, timeout, nullptr);
+		}
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -475,7 +349,9 @@ int main(int argc, char *argv[])
 			TRACE("accepted new client, fd=%d, idx=%d, nfds=%lu", newsockfd, rde_rda_cb->client_count, nfds);
 		}
 
-		for (i = FD_CLIENT_START; static_cast<nfds_t>(i) < nfds; i++) {
+		for (nfds_t i = FD_CLIENT_START;
+			role->role() != PCS_RDA_UNDEFINED && i < fds_to_poll;
+			i++) {
 			if (fds[i].revents & POLLIN) {
 				int client_disconnected = 0;
 				TRACE("received msg on fd %u", fds[i].fd);
@@ -483,9 +359,9 @@ int main(int argc, char *argv[])
 				if (client_disconnected) {
 					/* reinitialize the fd array & nfds */
 					nfds = FD_CLIENT_START;
-					for (i = 0; i < rde_rda_cb->client_count; i++, nfds++) {
-						fds[i + FD_CLIENT_START].fd = rde_rda_cb->clients[i].fd;
-						fds[i + FD_CLIENT_START].events = POLLIN;
+					for (int j = 0; j < rde_rda_cb->client_count; j++, nfds++) {
+						fds[j + FD_CLIENT_START].fd = rde_rda_cb->clients[j].fd;
+						fds[j + FD_CLIENT_START].events = POLLIN;
 					}
 					TRACE("client disconnected, fd array reinitialized, nfds=%lu", nfds);
 					break;
@@ -498,7 +374,6 @@ int main(int argc, char *argv[])
 	if (rde_cb->rde_amf_cb.nid_started &&
 		nid_notify("RDE", NCSCC_RC_FAILURE, nullptr) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
-		rc = NCSCC_RC_FAILURE;
 	}
 
  done:

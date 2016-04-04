@@ -38,6 +38,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+class Role;
+
 /*****************************************************************************\
  *                                                                             *
  *   Constants and Enumerated Values                                           *
@@ -85,6 +87,7 @@ struct RDE_RDA_CB {
 	int fd;			/* File descriptor          */
 	int flags;		/* Flags specified for open */
 	int client_count;
+	Role* role;
 	RDE_RDA_CLIENT clients[MAX_RDA_CLIENTS];
 
 } ;

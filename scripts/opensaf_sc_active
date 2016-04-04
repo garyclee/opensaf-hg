@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2015 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+. /etc/opensaf/osafdir.conf
+
+export PATH=$sbindir:$bindir:$PATH
+export LD_LIBRARY_PATH=$libdir:$LD_LIBRARY_PATH
+
+# This script will be executed before a node becomes the active SC.
+#
+# NOTE: The SC will wait for this script to exit before taking on the active
+# role, so therefore this script must exit quickly. The execution time is
+# supervised and if it exceeds the RDE_PRE_ACTIVE_SCRIPT_TIMEOUT time configured
+# in rde.conf, the script will be killed.
+exit 0
