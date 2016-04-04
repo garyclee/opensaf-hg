@@ -30,10 +30,12 @@
 #ifndef MQA_DB_H
 #define MQA_DB_H
 
+#include "ncsgl_defs.h"
+
 extern  uint32_t gl_mqa_hdl;
 
 /*Maximum Nodes in the cluster */
-#define MQA_MAX_NODES NCS_MAX_SLOTS
+#define MQA_MAX_NODES kMaxSlotsSubslots
 typedef unsigned short SVC_SUBPART_VER;
 
 /********************Service Sub part Versions*********************************/

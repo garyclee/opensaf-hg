@@ -86,7 +86,7 @@
 
 uint32_t machineEndianness(void);
 uint32_t mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerhandle);
-NCS_PHY_SLOT_ID mqsv_get_phy_slot_id(MDS_DEST dest);
+SlotSubslotId mqsv_get_phy_slot_id(MDS_DEST dest);
 typedef unsigned int MSG_FRMT_VER;
 
 #define m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
