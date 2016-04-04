@@ -88,30 +88,6 @@ extern "C" {
 	NCS_NODE_ID ncs_get_node_id(void);
 #define m_NCS_GET_NODE_ID ncs_get_node_id()
 
-
-#define m_NCS_GET_PHYINFO_FROM_NODE_ID( i_node_id, o_chassis_id, o_phy_slot_id ,\
-                                        o_sub_slot_id) ncs_get_phyinfo_from_node_id( i_node_id,\
-                                        o_chassis_id , o_phy_slot_id, o_sub_slot_id)
-/****************************************************************************
-  Name          :  ncs_get_phyinfo_from_node_id
-
-  Description   :  This function extracts node_id from chassis id ,physical
-                   slot id and  sub slot id into node_id
-
-  Arguments     :  i_chassis_id  - chassis id
-                   i_phy_slot_id - physical slot id
-                   i_sub_slot_id - slot id
-                   *o_node_id - node_id
-
-  Return Values :  On Failure NCSCC_RC_FAILURE
-                   On Success NCSCC_RC_SUCCESS
-
-  Notes         :  None.
-******************************************************************************/
-	uint8_t ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id,
-						   NCS_CHASSIS_ID *o_chassis_id,
-						   NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id);
-
 static inline NCS_CHASSIS_ID GetChassisIdFromNodeId(NCS_NODE_ID node_id)
 {
 	uint32_t kChassisMask = 0xff;

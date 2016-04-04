@@ -801,35 +801,3 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 	}
 	return NULL;
 }
-
-
-/****************************************************************************
-  Name          :  ncs_get_phyinfo_from_node_id
-
-  Description   :  This function extracts chassis id,physical slot
-                    id and sub slot id from node_id
-
-  Arguments     :  i_node_id  -    node id
-                   *o_chassis_id  - chassis id
-                   *o_phy_slot_id - physical slot id
-                   *o_sub_slot_id - slot id
-
-  Return Values :  On Failure NCSCC_RC_FAILURE
-                   On Success NCSCC_RC_SUCCESS
-
-  Notes         :  None.
-******************************************************************************/
-uint8_t ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id, NCS_CHASSIS_ID *o_chassis_id,
-				  NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id)
-{
-	if (o_sub_slot_id != NULL)
-		*o_sub_slot_id = ((NCS_SUB_SLOT_ID)i_node_id);
-
-	if (o_chassis_id != NULL)
-		*o_chassis_id = (NCS_CHASSIS_ID)(i_node_id >> 16);
-
-	if (o_phy_slot_id != NULL)
-		*o_phy_slot_id = (NCS_PHY_SLOT_ID)(i_node_id >> 8);
-
-	return NCSCC_RC_SUCCESS;
-}
