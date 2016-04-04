@@ -40,12 +40,8 @@ void plms_mds_unregister();
 *****************************************************************************/
 SaUint32T plms_get_slot_and_subslot_id_from_node_id(NCS_NODE_ID node_id)
 {
-	NCS_PHY_SLOT_ID phy_slot;
-	NCS_SUB_SLOT_ID sub_slot;
-	m_NCS_GET_PHYINFO_FROM_NODE_ID(node_id, NULL, &phy_slot, &sub_slot);
-	return ((sub_slot * NCS_SUB_SLOT_MAX) + (phy_slot));
+	return GetSlotSubslotIdFromNodeId(node_id);
 }
-   
 
 
 /****************************************************************************\
