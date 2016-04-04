@@ -117,12 +117,7 @@ uint32_t mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
 
 *************************************************************************************/
 
-NCS_PHY_SLOT_ID mqsv_get_phy_slot_id(MDS_DEST dest)
+SlotSubslotId mqsv_get_phy_slot_id(MDS_DEST dest)
 {
-	NCS_PHY_SLOT_ID phy_slot;
-	NCS_SUB_SLOT_ID sub_slot;
-
-	m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest), NULL, &phy_slot, &sub_slot);
-
-	return ((sub_slot * NCS_SUB_SLOT_MAX) + phy_slot);
+	return GetSlotSubslotIdFromNodeId(m_NCS_NODE_ID_FROM_MDS_DEST(dest));
 }

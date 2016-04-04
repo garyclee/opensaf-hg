@@ -567,7 +567,8 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
 	case NCSMDS_UP:
 		{
 			if (svc->i_svc_id == NCSMDS_SVC_ID_MQND) {
-				uint16_t to_dest_slotid, o_msg_fmt_ver;
+				SlotSubslotId to_dest_slotid;
+				uint16_t o_msg_fmt_ver;
 				to_dest_slotid = mqsv_get_phy_slot_id(svc->i_dest);
 
 				o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(svc->i_rem_svc_pvt_ver,
