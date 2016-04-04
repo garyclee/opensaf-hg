@@ -882,7 +882,19 @@ void AVD_SU::lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
 	bool is_oper_successful = true;
 
 	TRACE_ENTER2("'%s'", name.value);
-	/* Change the admin state to lock and return as cluster timer haven't expired.*/
+
+	if (sg_of_su->sg_ncs_spec == true &&
+	    sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL &&
+	    sg_of_su->list_of_su.size() > 2) {
+		report_admin_op_error(immoi_handle, invocation,
+				      SA_AIS_ERR_NOT_SUPPORTED, nullptr,
+				      "Locking OpenSAF 2N SU is currently not "
+				      "supported when more than two SUs are "
+				      "configured");
+		goto done;
+	}
+
+        /* Change the admin state to lock and return as cluster timer haven't expired.*/
 	if (avd_cb->init_state == AVD_INIT_DONE) {
 		set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 		set_admin_state(SA_AMF_ADMIN_LOCKED);

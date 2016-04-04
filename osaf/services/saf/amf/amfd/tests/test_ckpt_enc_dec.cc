@@ -338,7 +338,6 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
   avnd.saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
   avnd.saAmfNodeOperState = SA_AMF_OPERATIONAL_ENABLED;
   avnd.node_state = AVD_AVND_STATE_NCS_INIT;
-  avnd.type = AVSV_AVND_CARD_SYS_CON;
   avnd.rcv_msg_id = 0xA;
   avnd.snd_msg_id = 0xB;
 
@@ -374,7 +373,6 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
   ASSERT_EQ(avnd.saAmfNodeAdminState, SA_AMF_ADMIN_UNLOCKED);
   ASSERT_EQ(avnd.saAmfNodeOperState, SA_AMF_OPERATIONAL_ENABLED);
   ASSERT_EQ(avnd.node_state, AVD_AVND_STATE_NCS_INIT);
-  ASSERT_EQ(avnd.type, AVSV_AVND_CARD_SYS_CON);
   ASSERT_EQ(avnd.rcv_msg_id, 0xA);
   ASSERT_EQ(avnd.snd_msg_id, 0xB);
 }

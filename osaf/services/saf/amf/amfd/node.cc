@@ -121,7 +121,6 @@ void AVD_AVND::initialize() {
   pg_csi_list = {};
   pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
   pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
-  type = AVSV_AVND_CARD_PAYLOAD;
   rcv_msg_id = {};
   snd_msg_id = {};
   cluster_list_node_next = {};
@@ -543,9 +542,21 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
-	if (node->type == AVSV_AVND_CARD_SYS_CON) {
-		report_ccb_validation_error(opdata, "Cannot remove controller node");
-		return SA_AIS_ERR_BAD_OPERATION;
+ 	for (const auto& ncs_su : node->list_of_ncs_su) {
+		if (ncs_su->sg_of_su->sg_redundancy_model ==
+		    SA_AMF_2N_REDUNDANCY_MODEL) {
+			if (ncs_su->sg_of_su->list_of_su.size() <=
+			    avd_cb->minimum_cluster_size) {
+				report_ccb_validation_error(
+					opdata, "Configured minimum cluster "
+					"size is %u (see "
+					"OSAF_AMF_MIN_CLUSTER_SIZE in "
+					"amfd.conf)",
+					avd_cb->minimum_cluster_size);
+				return SA_AIS_ERR_BAD_OPERATION;
+			}
+			break;
+		}
 	}
 
 	/* Check to see that the node is in admin locked state before delete */

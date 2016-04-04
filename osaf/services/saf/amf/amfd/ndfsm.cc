@@ -54,7 +54,7 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 
 	TRACE_ENTER();
 
-	TRACE("queue_size before processing: %lu", queue_size);
+	TRACE("queue_size before processing: %lu", (unsigned long) queue_size);
 
 	// recover assignments from state info
 	for(i=0 ; i<queue_size ; i++) {
@@ -115,7 +115,7 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 			}
 		}
 	}
-	TRACE("queue_size after processing: %lu", cb->evt_queue.size());
+	TRACE("queue_size after processing: %lu", (unsigned long) cb->evt_queue.size());
 	TRACE_LEAVE();
 }
 /*****************************************************************************
@@ -288,7 +288,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		uint32_t rc_node_up;
 		avnd->node_up_msg_count++;
 		rc_node_up = avd_count_node_up(cb);
-		if (rc_node_up == sync_nd_size) {
+		if (rc_node_up == sync_nd_size-1) {
 			if (cb->node_sync_tmr.is_active) {
 				avd_stop_tmr(cb, &cb->node_sync_tmr);
 				TRACE("stop NodeSync timer");
@@ -349,11 +349,6 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	/* Identify if this AVND is running on the same node as AVD */
-	if ((avnd->node_info.nodeId == cb->node_id_avd) || (avnd->node_info.nodeId == cb->node_id_avd_other)) {
-		avnd->type = AVSV_AVND_CARD_SYS_CON;
-	}
-
 	/* send the node up message to the node. */
 	if (avd_snd_node_up_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to send the message */
@@ -401,12 +396,21 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			// this node is already up
 			avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
 			avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
-
+			
 			// Update readiness state of all SUs which are waiting for node
 			// oper state
-			for (const auto& su :avnd->list_of_ncs_su) {
+			for (const auto& su : avnd->list_of_ncs_su) {
 				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+				if (su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) {
+					if (su->sg_of_su->su_insvc(cb, su) == NCSCC_RC_FAILURE) {
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+						su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+						goto done;
+					}
+					avd_node_state_set(avnd, AVD_AVND_STATE_NCS_INIT);
+				}
 			}
+			
 			for (const auto& su :avnd->list_of_su) {
 				if (su->is_in_service())
 					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
@@ -467,10 +471,11 @@ done:
  * Function: avd_nd_ncs_su_assigned
  *
  * Purpose:  This function is the handler for node director event when a
- *           NCS SU is assigned with a SI. It verifies that all the
- *           NCS SUs are assigned and calls the SG module instantiation
- *           function for each of the SUs on the node. It will also change the 
- *           node FSM state to present and call the AvD state machine.
+ *           NCS SU is assigned with a SI or when a spare NCS 2N SU is
+ *           instantiated. It verifies that all the NCS SUs are assigned
+ *           and all the spare SUs are instantiated then calls the SG module
+ *           instantiation function for each of the SUs on the node. It will also
+ *           change the node FSM state to present and call the AvD state machine.
  *
  * Input: cb - the AVD control block
  *        avnd - The AvND which has sent the ack for all the component additions.
@@ -487,11 +492,22 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 	TRACE_ENTER();
 
 	for (const auto& ncs_su : avnd->list_of_ncs_su) {
-		if ((ncs_su->list_of_susi == AVD_SU_SI_REL_NULL) ||
-		    (ncs_su->list_of_susi->fsm != AVD_SU_SI_STATE_ASGND)) {
-			TRACE_LEAVE();
-			/* this is an unassigned SU so no need to scan further return here. */
-			return;
+		if (ncs_su->list_of_susi == AVD_SU_SI_REL_NULL ||
+			ncs_su->list_of_susi->fsm != AVD_SU_SI_STATE_ASGND) {
+			if (ncs_su->sg_of_su->sg_redundancy_model == SA_AMF_NO_REDUNDANCY_MODEL) {
+				/* This is an unassigned nored ncs SU so no need to scan further, return here. */
+				TRACE_LEAVE();
+				return;
+			}
+			else if (ncs_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL &&
+					(ncs_su->sg_of_su->curr_assigned_sus() < 2 ||
+					ncs_su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATED)) {
+				/* This is an unassigned ncs 2N SU or not yet instantiated ncs spare 2N SU
+				 * so no need to scan further, return here.
+				 */
+				TRACE_LEAVE();
+				return;
+			}
 		}
 	}
 
@@ -625,6 +641,10 @@ void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
 			avd_node_failover(node);
+			// Update standby out of sync if standby sc goes down
+			if (avd_cb->node_id_avd_other == node->node_info.nodeId) {
+				cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
+			}
 		} else {
 			/* Remove dynamic info for node but keep in nodeid tree.
 			 * Possibly used at the end of controller failover to

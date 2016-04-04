@@ -197,43 +197,6 @@ done:
 	exit(1);
 }
 
-static int get_node_type(void)
-{
-        size_t no_of_matches;
-        int type;
-        char buf[32];
-        FILE *f = fopen(PKGSYSCONFDIR "/node_type", "r");
-
-        if (!f) {
-                LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "/node_type", strerror(errno));
-                return AVSV_AVND_CARD_PAYLOAD;
-        }
-
-	// Give length of buf -1 as argument to fscanf to avoid buffer overflows
-        if ((no_of_matches = fscanf(f, "%31s", buf)) > 0) {
-                if (strncmp(buf, "controller", sizeof(buf)) == 0) {
-			TRACE("Node type: controller");
-                        type = AVSV_AVND_CARD_SYS_CON;
-		}
-                else if (strncmp(buf, "payload", sizeof(buf)) == 0) {
-			TRACE("Node type: payload");
-                        type = AVSV_AVND_CARD_PAYLOAD;
-		}
-                else {
-                        LOG_ER("Unknown node type %s", buf);
-                        type = AVSV_AVND_CARD_PAYLOAD;
-                }
-        } else {
-		LOG_ER("fscanf FAILED for %s - %s", PKGSYSCONFDIR "/node_type", strerror(errno));
-                type = AVSV_AVND_CARD_PAYLOAD;
-        }
-
-        (void)fclose(f);
-
-	return type;
-}
-
-
 /****************************************************************************
   Name          : avnd_create
  
@@ -278,7 +241,7 @@ uint32_t avnd_create(void)
 	}
 
 	/* initialize external interfaces */
-	rc = avnd_clm_init();
+	rc = avnd_clm_init(cb);
 	if (SA_AIS_OK != rc) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -362,8 +325,6 @@ AVND_CB *avnd_cb_create()
 
 	/* initialize healthcheck db */
 	avnd_hcdb_init(cb);
-
-	avnd_cb->type = static_cast<AVSV_AVND_CARD>(get_node_type());
 
 	/* initialize pg db */
 	if (NCSCC_RC_SUCCESS != avnd_pgdb_init(cb))
@@ -598,18 +559,19 @@ void avnd_main_process(void)
 			break;
 		}
 
-		if (fds[FD_CLM].revents & POLLIN) {
-			TRACE("CLM event recieved");
+		if (avnd_cb->clmHandle && (fds[FD_CLM].revents & POLLIN)) {
+			//LOG_NO("DEBUG-> CLM event fd: %d sel_obj: %llu, clm handle: %llu", fds[FD_CLM].fd, avnd_cb->clm_sel_obj, avnd_cb->clmHandle);
 			result = saClmDispatch(avnd_cb->clmHandle, SA_DISPATCH_ALL);
 			switch (result) {
 			case SA_AIS_OK:
 				break;
 			case SA_AIS_ERR_BAD_HANDLE:
 				usleep(100000);
-				rc = avnd_clm_init();
+				LOG_NO("saClmDispatch BAD_HANDLE");
+				rc = avnd_start_clm_init_bg();
 				osafassert(rc == SA_AIS_OK);
 				break;
-			default:
+				default:
 				goto done;
 			}
 		}

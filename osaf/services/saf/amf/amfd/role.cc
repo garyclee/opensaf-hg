@@ -46,6 +46,7 @@
 #include <si_dep.h>
 #include "osaf_utility.h"
 #include "role.h"
+#include "nid_api.h"
 
 extern pthread_mutex_t imm_reinit_mutex;
 
@@ -73,7 +74,15 @@ void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_ROLE_CHG_CAUSE_T cause = msg->msg_info.d2d_chg_role_req.cause;
 	SaAmfHAStateT role = msg->msg_info.d2d_chg_role_req.role;
 
-	TRACE_ENTER2("cause=%u, role=%u", cause, role);
+	TRACE_ENTER2("cause=%u, role=%u, current_role=%u", cause, role,
+		cb->avail_state_avd);
+
+	if ((status = initialize_for_assignment(cb, role))
+		!= NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u",
+			(unsigned) status);
+		_exit(EXIT_FAILURE);
+	}
 
 	if (cb->avail_state_avd == role) {
 		goto done;
@@ -128,6 +137,13 @@ void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if ((cause == AVD_FAIL_OVER) &&
+	    (cb->avail_state_avd == SA_AMF_HA_QUIESCED) && (role == SA_AMF_HA_STANDBY)) {
+		/* Fail-over Quiesced to standby (spare controller role change) */
+		status = NCSCC_RC_SUCCESS;
+		goto done;
+	}
+
+	if ((cause == AVD_FAIL_OVER) &&
 	    (cb->avail_state_avd == SA_AMF_HA_QUIESCED) && (role == SA_AMF_HA_ACTIVE)) {
 		/* Fail-over Quiesced to Active */
 		status = avd_role_failover_qsd_actv(cb, role);
@@ -155,7 +171,80 @@ void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	return;
 }
 
-/****************************************************************************\
+uint32_t initialize_for_assignment(cl_cb_tag* cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", static_cast<int>(ha_state));
+	SaVersionT ntfVersion = {'A', 0x01, 0x01};
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT error;
+	if (cb->fully_initialized) goto done;
+	cb->avail_state_avd = ha_state;
+	if (ha_state == SA_AMF_HA_QUIESCED) {
+		if ((rc = nid_notify(const_cast<char*>("AMFD"),
+				     NCSCC_RC_SUCCESS, nullptr)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("nid_notify failed");
+		}
+		goto done;
+	}
+	if ((rc = avd_mds_init(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_mds_init FAILED");
+		goto done;
+	}
+	if ((rc = avsv_mbcsv_register(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("avsv_mbcsv_register FAILED");
+		goto done;
+	}
+	if (avd_clm_init() != SA_AIS_OK) {
+		LOG_EM("avd_clm_init FAILED");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+	if (avd_imm_init(cb) != SA_AIS_OK) {
+		LOG_ER("avd_imm_init FAILED");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+	if ((error = saNtfInitialize(&cb->ntfHandle, nullptr, &ntfVersion)) !=
+	    SA_AIS_OK) {
+		LOG_ER("saNtfInitialize Failed (%u)", error);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+	if ((rc = avd_mds_set_vdest_role(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_mds_set_vdest_role FAILED");
+		goto done;
+	}
+	if ((rc = avsv_set_ckpt_role(cb, ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("avsv_set_ckpt_role FAILED");
+		goto done;
+	}
+	if (ha_state == SA_AMF_HA_ACTIVE) {
+		rc = avd_active_role_initialization(cb, ha_state);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("avd_active_role_initialization FAILED");
+			goto done;
+		}
+
+		/* in a normal cluster start there will be no assignments object found so
+		 * nothing happens. Used to cleanup cached RTAs after SCs recover after
+		 * being headless.
+		 */
+		avd_susi_cleanup();
+		avd_compcsi_cleanup();
+	} else if (ha_state == SA_AMF_HA_STANDBY) {
+		rc = avd_standby_role_initialization(cb);
+		if (rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("avd_standby_role_initialization FAILED");
+			goto done;
+		}
+	}
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
+ 	return rc;
+}
+
+/**************************************************************************** \
  * Function: avd_init_role_set
  *
  * Purpose:  AVSV function to handle AVD's initial role setting. 

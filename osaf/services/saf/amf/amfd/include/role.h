@@ -34,6 +34,8 @@ extern uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb);
 extern uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb);
 extern uint32_t amfd_switch_qsd_actv(AVD_CL_CB *cb);
 extern uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb);
+extern uint32_t initialize_for_assignment(cl_cb_tag* cb,
+                                          SaAmfHAStateT ha_state);
 
 #endif /* ROLE_H */
 

@@ -273,7 +273,8 @@ void decode_node_config(NCS_UBAID *ub,
 	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->saAmfNodeAdminState));
 	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->saAmfNodeOperState));
 	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->node_state));
-	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->type));
+        uint32_t node_type;
+	osaf_decode_uint32(ub, &node_type);
 	osaf_decode_uint32(ub, &avnd->rcv_msg_id);
 	osaf_decode_uint32(ub, &avnd->snd_msg_id);	
 }

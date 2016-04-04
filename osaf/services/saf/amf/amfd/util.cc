@@ -262,7 +262,7 @@ uint32_t avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uint32_t msg_id_ack)
 	/* prepare the message */
 	d2n_msg->msg_type = AVSV_D2N_NODE_UP_MSG;
 	d2n_msg->msg_info.d2n_node_up.node_id = avnd->node_info.nodeId;
-	d2n_msg->msg_info.d2n_node_up.node_type = avnd->type;
+	d2n_msg->msg_info.d2n_node_up.node_type = AVSV_AVND_CARD_SYS_CON;
 	d2n_msg->msg_info.d2n_node_up.su_failover_max = avnd->saAmfNodeSuFailoverMax;
 	d2n_msg->msg_info.d2n_node_up.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 
@@ -1180,13 +1180,6 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* If we have wrongly identified the card type of avnd, its time to correct it */
-	if ((cb->node_id_avd_other == avnd->node_info.nodeId) && (avnd->type != AVSV_AVND_CARD_SYS_CON)) {
-		avnd->type = AVSV_AVND_CARD_SYS_CON;
-		/* checkpoint this information */
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_NODE_CONFIG);
-	}
-
 	/* prepare the message. */
 	d2n_msg = new AVSV_DND_MSG();
 
@@ -1431,7 +1424,6 @@ int amfd_file_dump(const char *filename)
 		fprintf(f, "    saAmfNodeOperState: %s\n",
 				avd_oper_state_name[node->saAmfNodeOperState]);
 		fprintf(f, "    node_state: %u\n", node->node_state);
-		fprintf(f, "    type: %u\n", node->type);
 		fprintf(f, "    adest:%" PRIx64 "\n", node->adest);
 		fprintf(f, "    rcv_msg_id: %u\n", node->rcv_msg_id);
 		fprintf(f, "    snd_msg_id: %u\n", node->snd_msg_id);

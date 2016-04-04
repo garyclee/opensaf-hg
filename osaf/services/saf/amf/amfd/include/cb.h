@@ -33,6 +33,7 @@
 #ifndef AVD_CB_H
 #define AVD_CB_H
 
+#include <cstdint>
 #include <saImmOi.h>
 #include <saClm.h>
 
@@ -185,6 +186,7 @@ typedef struct cl_cb_tag {
 	AVD_TMR node_sync_tmr;	/* The timer for reception of all node_up from all PLs. */
 	AVD_TMR heartbeat_tmr;	/* The timer for sending heart beats to nd. */
 	SaTimeT heartbeat_tmr_period;
+	uint32_t minimum_cluster_size;
 
 	uint32_t nodes_exit_cnt;	/* The counter to identifies the number
 				   of nodes that have exited the membership
@@ -208,6 +210,7 @@ typedef struct cl_cb_tag {
 	SaClmHandleT clmHandle;
 	SaSelectionObjectT clm_sel_obj;
 
+	bool fully_initialized;
 	bool swap_switch; /* true - In middle of role switch. */
 
 	/** true when active services (IMM, LOG, NTF, etc.) exist

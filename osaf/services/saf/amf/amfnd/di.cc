@@ -515,7 +515,7 @@ uint32_t avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 		NCS_NODE_ID node_id, my_node_id = ncs_get_node_id();
 		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->info.mds.mds_dest);
 
-		if ((node_id == my_node_id) && (cb->type == AVSV_AVND_CARD_SYS_CON)) {
+		if (node_id == my_node_id) {
 			TRACE("Starting hb supervision of local avd");
 			avnd_stop_tmr(cb, &cb->hb_duration_tmr);
 			avnd_start_tmr(cb, &cb->hb_duration_tmr,
