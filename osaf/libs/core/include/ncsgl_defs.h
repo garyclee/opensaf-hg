@@ -79,17 +79,9 @@ enum {
 	kMaxSlotsSubslots = 4096
 };
 
-#define NCS_SLOT_MAX 16
-
-#define NCS_SUB_SLOT_MAX 16
-
-#define NCS_MAX_SLOTS ((NCS_SLOT_MAX *  NCS_SUB_SLOT_MAX) + NCS_SLOT_MAX)
-
 	typedef uint64_t MDS_DEST;
 	typedef uint32_t NCS_NODE_ID;
 	typedef uint8_t NCS_CHASSIS_ID;
-	typedef uint8_t NCS_PHY_SLOT_ID;
-	typedef uint8_t NCS_SUB_SLOT_ID;
 	typedef uint32_t SlotSubslotId;
 
 /* m_NCS_NODE_ID_FROM_MDS_DEST: Returns node-id if the MDS_DEST provided
