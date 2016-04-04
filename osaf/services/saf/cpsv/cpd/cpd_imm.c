@@ -467,13 +467,14 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT cpd_imm_init(CPD_CB *cb)
+SaAisErrorT cpd_imm_init(SaImmOiHandleT* immOiHandle, SaSelectionObjectT* imm_sel_obj)
 {
 	SaAisErrorT rc;
 	immutilWrapperProfile.errorsAreFatal = 0;
-	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
+
+	rc = immutil_saImmOiInitialize_2(immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK) {
-		rc = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
+		rc = immutil_saImmOiSelectionObjectGet(*immOiHandle, imm_sel_obj);
 	}
 	return rc;
 }
@@ -489,25 +490,46 @@ SaAisErrorT cpd_imm_init(CPD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static void *_cpd_imm_declare_implementer(void *cb)
+void cpd_imm_declare_implementer(SaImmOiHandleT* immOiHandle, SaSelectionObjectT* imm_sel_obj)
 {
 	SaAisErrorT error = SA_AIS_OK;
-	CPD_CB *cpd_cb = (CPD_CB *)cb;
 
 	TRACE_ENTER();
-	error = saImmOiImplementerSet(cpd_cb->immOiHandle, implementer_name);
-	unsigned int nTries = 1;
-	while (error == SA_AIS_ERR_TRY_AGAIN && nTries < 25) {
-		usleep(400 * 1000);
-		error = saImmOiImplementerSet(cpd_cb->immOiHandle, implementer_name);
-		nTries++;
-	}
-	if (error != SA_AIS_OK) {
-		LOG_ER("saImmOiImplementerSet FAILED, rc = %u", error);
-		exit(EXIT_FAILURE);
+	static const unsigned sleep_delay_ms = 400;
+	static const unsigned max_waiting_time_ms = 60 * 1000;
+	unsigned msecs_waited = 0;
+	for (;;) {
+		if (msecs_waited >= max_waiting_time_ms) {
+			LOG_ER("Timeout in cpd_imm_declare_implementer");
+			exit(EXIT_FAILURE);
+		}
+
+		error = saImmOiImplementerSet(*immOiHandle, implementer_name);
+		while (error == SA_AIS_ERR_TRY_AGAIN && msecs_waited < max_waiting_time_ms) {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			error = saImmOiImplementerSet(*immOiHandle, implementer_name);
+		}
+		if (error == SA_AIS_ERR_TIMEOUT || error == SA_AIS_ERR_BAD_HANDLE) {
+			LOG_WA("saImmOiImplementerSet returned %u", (unsigned) error);
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			saImmOiFinalize(*immOiHandle);
+			*immOiHandle = 0;
+			*imm_sel_obj = -1;
+			if ((error = cpd_imm_init(immOiHandle, imm_sel_obj)) != SA_AIS_OK) {
+				LOG_ER("cpd_imm_init FAILED, rc = %u", (unsigned) error);
+				exit(EXIT_FAILURE);
+			}
+			continue;
+		}
+		if (error != SA_AIS_OK) {
+			LOG_ER("saImmOiImplementerSet FAILED, rc = %u", (unsigned) error);
+			exit(EXIT_FAILURE);
+		}
+		break;
 	}
 	TRACE_LEAVE();
-	return NULL;
 }
 
 
@@ -664,13 +686,17 @@ static void  *cpd_imm_reinit_thread(void * _cb)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	CPD_CB *cb = (CPD_CB *)_cb;
+	SaImmOiHandleT immOiHandle;
+	SaSelectionObjectT imm_sel_obj;
 	TRACE_ENTER();
 	/* Reinitiate IMM */
-	error = cpd_imm_init(cb);
+	error = cpd_imm_init(&immOiHandle, &imm_sel_obj);
 	if (error == SA_AIS_OK) {
 		/* If this is the active server, become implementer again. */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE)
-			_cpd_imm_declare_implementer(cb);
+			cpd_imm_declare_implementer(&immOiHandle, &imm_sel_obj);
+		cb->imm_sel_obj = imm_sel_obj;
+		cb->immOiHandle = immOiHandle;
 	}
 	else
 	{
@@ -741,11 +767,7 @@ SaAisErrorT cpd_clean_checkpoint_objects(CPD_CB *cb)
                goto done;
        }
 
-       rc = immutil_saImmOiImplementerSet(cb->immOiHandle, implementer_name);
-       if (rc != SA_AIS_OK){
-               LOG_ER("cpd immOiImplmenterSet failed with err = %u", rc);
-               goto done;
-       }
+       cpd_imm_declare_implementer(&cb->immOiHandle, &cb->imm_sel_obj);
 
        /* Initialize search for application checkpoint runtime objects
         * Search for all objects of class 'SaCkptCheckpoint'

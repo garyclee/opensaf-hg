@@ -18,7 +18,9 @@
 #ifndef CPD_CB_H
 #define CPD_CB_H
 
+#include <stdbool.h>
 #include <saClm.h>
+#include "cpd_tmr.h"
 
 #define CPSV_CPD_MBCSV_VERSION    1
 
@@ -205,10 +207,12 @@ typedef struct cpd_cb_tag {
 
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for IMM events */
+	SaSelectionObjectT clm_sel_obj;
 
 	CPD_TMR ckpt_update_timer;
 	bool is_ckpt_updating;
 	bool scAbsenceAllowed;
+	bool fully_initialized;
 
 } CPD_CB;
 

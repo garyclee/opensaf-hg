@@ -131,6 +131,16 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 	TRACE_ENTER();
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
 	if (cb) {
+		if ((rc = initialize_for_assignment(cb, haState)) !=
+		    NCSCC_RC_SUCCESS) {
+			LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+			saErr = SA_AIS_ERR_FAILED_OPERATION;
+			saAmfResponse(cb->amf_hdl, invocation, saErr);
+			ncshm_give_hdl(cb->cpd_hdl);
+			m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,
+					"cpd_saf_csi_set_cb: Initialization failed");
+			return;
+		}
 
 		if ((cb->ha_state == SA_AMF_HA_STANDBY) && (haState == SA_AMF_HA_ACTIVE)) {
 			if (cb->cold_or_warm_sync_on == true) {
@@ -163,11 +173,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 
 			/* If this is the active server, become implementer again. */
 			/* If this is the active Director, become implementer */
-			saErr = immutil_saImmOiImplementerSet(cb->immOiHandle, implementer_name);
-			if (saErr != SA_AIS_OK){
-				LOG_ER("cpd immOiImplmenterSet failed with err = %u",saErr);
-				exit(EXIT_FAILURE);
-			}
+			cpd_imm_declare_implementer(&cb->immOiHandle, &cb->imm_sel_obj);
 			/*   anchor   = cb->cpd_anc; */
 		} else if (SA_AMF_HA_QUIESCED == haState) {
 			mds_role = V_DEST_RL_QUIESCED;
