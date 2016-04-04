@@ -289,7 +289,7 @@ void encode_node_config(NCS_UBAID *ub, const AVD_AVND* avnd, uint16_t peer_versi
 	osaf_encode_uint32(ub, avnd->saAmfNodeAdminState);
 	osaf_encode_uint32(ub, avnd->saAmfNodeOperState);
 	osaf_encode_uint32(ub, avnd->node_state);
-	osaf_encode_uint32(ub, avnd->type);
+	osaf_encode_uint32(ub, AVSV_AVND_CARD_SYS_CON);
 	osaf_encode_uint32(ub, avnd->rcv_msg_id);
 	osaf_encode_uint32(ub, avnd->snd_msg_id);
 }

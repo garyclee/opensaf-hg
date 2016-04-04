@@ -995,6 +995,17 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 					su->set_pres_state(static_cast<SaAmfPresenceStateT>(l_val));
 
+					/* In the Quiesced node, ncs 2N SU is the spare SU so it's not assigned.
+					 * After its instantiation, avd_nd_ncs_su_assigned should be called
+					 * to see if all the ncs SUs on this node are ready.
+					 */
+					if (node->node_state == AVD_AVND_STATE_NCS_INIT && node->adest != 0 &&
+							l_val == SA_AMF_PRESENCE_INSTANTIATED &&
+							su->sg_of_su->sg_ncs_spec == true &&
+							su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) {
+						avd_nd_ncs_su_assigned(avd_cb, node);
+					}
+
 					if (su->su_on_node->admin_ng != nullptr)
 						process_su_si_response_for_ng(su, SA_AIS_OK);
 

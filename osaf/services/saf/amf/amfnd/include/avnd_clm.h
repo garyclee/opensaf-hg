@@ -33,6 +33,7 @@
 
 struct avnd_cb_tag;
 
-extern SaAisErrorT avnd_clm_init(void);
+extern SaAisErrorT avnd_clm_init(avnd_cb_tag* cb);
+extern SaAisErrorT avnd_start_clm_init_bg();
 
 #endif

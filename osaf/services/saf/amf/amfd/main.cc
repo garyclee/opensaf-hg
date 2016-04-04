@@ -56,6 +56,8 @@
 #include <sutcomptype.h>
 #include <sutype.h>
 #include <su.h>
+#include "osaf_utility.h"
+#include "base/getenv.h"
 
 static const char* internal_version_id_  __attribute__ ((used)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
 
@@ -455,7 +457,8 @@ static void rda_cb(uint32_t notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_COD
 
 	if (((avd_cb->avail_state_avd == SA_AMF_HA_STANDBY) ||
 	     (avd_cb->avail_state_avd == SA_AMF_HA_QUIESCED)) &&
-	    (cb_info->info.io_role == PCS_RDA_ACTIVE)) {
+	    (cb_info->info.io_role == PCS_RDA_ACTIVE ||
+		cb_info->info.io_role == PCS_RDA_STANDBY)) {
 
 		uint32_t rc;
 		AVD_EVT *evt;
@@ -484,7 +487,6 @@ static uint32_t initialize(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	int rc = NCSCC_RC_FAILURE;
-	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 	SaAmfHAStateT role;
 	char *val;
 
@@ -534,6 +536,10 @@ static uint32_t initialize(void)
 	}
 
 	cb->init_state = AVD_INIT_BGN;
+	cb->mbcsv_sel_obj = -1;
+	cb->imm_sel_obj = -1;
+	cb->clm_sel_obj = -1;
+	cb->fully_initialized = false;
 	cb->swap_switch = false;
 	cb->active_services_exist = true;
 	cb->stby_sync_state = AVD_STBY_IN_SYNC;
@@ -553,50 +559,15 @@ static uint32_t initialize(void)
 			cb->heartbeat_tmr_period = AVSV_DEF_HB_PERIOD;
 		}
 	}
-	node_list_db = new AmfDb<uint32_t, AVD_FAIL_OVER_NODE>;
+        cb->minimum_cluster_size =
+            base::GetEnv("OSAF_AMF_MIN_CLUSTER_SIZE", uint32_t{2});
+
+        node_list_db = new AmfDb<uint32_t, AVD_FAIL_OVER_NODE>;
 	/* get the node id of the node on which the AVD is running. */
 	cb->node_id_avd = m_NCS_GET_NODE_ID;
 
-	if (avd_mds_init(cb) != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_mds_init FAILED");
-		goto done;
-	}
-
-	if (NCSCC_RC_FAILURE == avsv_mbcsv_register(cb)) {
-		LOG_ER("avsv_mbcsv_register FAILED");
-		goto done;
-	}
-
-	if (avd_clm_init() != SA_AIS_OK) {
-		LOG_EM("avd_clm_init FAILED");
-		goto done;
-	}
-
-	if (avd_imm_init(cb) != SA_AIS_OK) {
-		LOG_ER("avd_imm_init FAILED");
-		goto done;
-	}
-
-	if ((rc = saNtfInitialize(&cb->ntfHandle, nullptr, &ntfVersion)) != SA_AIS_OK) {
-		LOG_ER("saNtfInitialize Failed (%u)", rc);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
 	if ((rc = rda_get_role(&role)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("rda_get_role FAILED");
-		goto done;
-	}
-
-	cb->avail_state_avd = role;
-
-	if (NCSCC_RC_SUCCESS != avd_mds_set_vdest_role(cb, role)) {
-		LOG_ER("avd_mds_set_vdest_role FAILED");
-		goto done;
-	}
-
-	if (NCSCC_RC_SUCCESS != avsv_set_ckpt_role(cb, role)) {
-		LOG_ER("avsv_set_ckpt_role FAILED");
 		goto done;
 	}
 
@@ -605,26 +576,10 @@ static uint32_t initialize(void)
 		goto done;
 	}
 
-	if (role == SA_AMF_HA_ACTIVE) {
-		rc = avd_active_role_initialization(cb, role);
-		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER("avd_active_role_initialization FAILED");
-			goto done;
-		}
-
-		/* in a normal cluster start there will be no assignments object found so
-		 * nothing happens. Used to cleanup cached RTAs after SCs recover after
-		 * being headless.
-		 */
-		avd_susi_cleanup();
-		avd_compcsi_cleanup();
-	}
-	else {
-		rc = avd_standby_role_initialization(cb);
-		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER("avd_standby_role_initialization FAILED");
-			goto done;
-		}
+	if ((rc = initialize_for_assignment(cb, role))
+		!= NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		goto done;
 	}
 
 	rc = NCSCC_RC_SUCCESS;
@@ -667,14 +622,13 @@ static void main_loop(void)
 	fds[FD_TERM].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
-	fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
-	fds[FD_CLM].fd = cb->clm_sel_obj;
-	fds[FD_CLM].events = POLLIN;
-	fds[FD_IMM].fd = cb->imm_sel_obj; // IMM fd must be last in array
-	fds[FD_IMM].events = POLLIN;
-
 	while (1) {
+		fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
+		fds[FD_CLM].fd = cb->clm_sel_obj;
+		fds[FD_CLM].events = POLLIN;
+		fds[FD_IMM].fd = cb->imm_sel_obj; // IMM fd must be last in array
+		fds[FD_IMM].events = POLLIN;
 		
 		if (cb->immOiHandle != 0) {
 			fds[FD_IMM].fd = cb->imm_sel_obj;

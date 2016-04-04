@@ -71,7 +71,6 @@ typedef struct avnd_cb_tag {
 	uint32_t su_failover_max;	/* max SU failovers (config) */
 	uint32_t su_failover_cnt;	/* su failover cnt within a probation period */
 	AVND_TMR node_err_esc_tmr;	/* node err esc tmr */
-        AVSV_AVND_CARD type;    /* node type (scxb or payload) */
 	SaNameT amf_nodeName;
         SaClmClusterNodeT_4 node_info;    /* this node's info */
 

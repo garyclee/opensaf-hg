@@ -125,11 +125,6 @@ class AVD_AVND {
   NCS_DB_LINK_LIST pg_csi_list;	/* list of csis for which pg is tracked 
 					 * from this node */
 
-  AVSV_AVND_CARD type;	/* field that describes if this node is sytem
-                         * controller or not.
-                         * Checkpointing - Sent as a one time update.
-                         */
-
   uint32_t rcv_msg_id;	/* The receive message id counter 
                          * Checkpointing - Sent independent update 
                          */

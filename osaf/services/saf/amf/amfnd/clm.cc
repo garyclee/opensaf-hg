@@ -38,6 +38,8 @@
 #include "mds_pvt.h"
 #include "nid_api.h"
 #include "amf_si_assign.h"
+#include "osaf_time.h"
+
 
 static void clm_node_left(SaClmNodeIdT node_id)
 {
@@ -173,7 +175,6 @@ uint32_t avnd_evt_avd_node_up_evh(AVND_CB *cb, AVND_EVT *evt)
 	info = &evt->info.avd->msg_info.d2n_node_up;
 
 	/*** update this node with the supplied parameters ***/
-	cb->type = info->node_type;
 	cb->su_failover_max = info->su_failover_max;
 	cb->su_failover_prob = info->su_failover_prob;
 
@@ -258,37 +259,78 @@ done:
 	return;
 }
 
-static SaVersionT Version = { 'B', 4, 1 };
-
 static const SaClmCallbacksT_4 callbacks = {
         0,
         /*.saClmClusterTrackCallback =*/ clm_track_cb
 };
 
-SaAisErrorT avnd_clm_init(void)
+SaAisErrorT avnd_clm_init(AVND_CB* cb)
 {
         SaAisErrorT error = SA_AIS_OK;
-        SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY;
+        SaUint8T trackFlags = SA_TRACK_CURRENT | SA_TRACK_CHANGES_ONLY;
 
 	TRACE_ENTER();
-	avnd_cb->first_time_up = true;
-	error = saClmInitialize_4(&avnd_cb->clmHandle, &callbacks, &Version);
-        if (SA_AIS_OK != error) {
-                LOG_ER("Failed to Initialize with CLM: %u", error);
-                goto done;
-        }
-	error = saClmSelectionObjectGet(avnd_cb->clmHandle, &avnd_cb->clm_sel_obj);
-        if (SA_AIS_OK != error) {
-                LOG_ER("Failed to get CLM selectionObject: %u", error);
-                goto done;
-        }
-	error = saClmClusterTrack_4(avnd_cb->clmHandle, trackFlags, nullptr);
-        if (SA_AIS_OK != error) {
-                LOG_ER("Failed to start cluster tracking: %u", error);
-                goto done;
-        }
+
+	cb->first_time_up = true;
+	cb->clmHandle = 0;
+	for (;;) {
+		SaVersionT Version = { 'B', 4, 1 };
+		error = saClmInitialize_4(&cb->clmHandle, &callbacks, &Version);
+		if (error == SA_AIS_ERR_TRY_AGAIN ||
+		    error == SA_AIS_ERR_TIMEOUT ||
+                    error == SA_AIS_ERR_UNAVAILABLE) {
+			if (error != SA_AIS_ERR_TRY_AGAIN) {
+				LOG_WA("saClmInitialize_4 returned %u",
+				       (unsigned) error);
+			}
+			osaf_nanosleep(&kHundredMilliseconds);
+			continue;
+		}
+		if (error == SA_AIS_OK) break;
+		LOG_ER("Failed to Initialize with CLM: %u", error);
+		goto done;
+	}
+	error = saClmSelectionObjectGet(cb->clmHandle, &cb->clm_sel_obj);
+	if (SA_AIS_OK != error) {
+		LOG_ER("Failed to get CLM selectionObject: %u", error);
+		goto done;
+	}
+	error = saClmClusterTrack_4(cb->clmHandle, trackFlags, nullptr);
+	if (SA_AIS_OK != error) {
+		LOG_ER("Failed to start cluster tracking: %u", error);
+		goto done;
+	}
 
 done:
 	TRACE_LEAVE();
         return error;
+}
+
+static void* avnd_clm_init_thread(void* arg)
+{
+	TRACE_ENTER();
+	AVND_CB* cb = static_cast<AVND_CB*>(arg);
+
+	avnd_clm_init(cb);
+
+	TRACE_LEAVE();
+	return nullptr;
+}
+
+SaAisErrorT avnd_start_clm_init_bg()
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	if (pthread_create(&thread, &attr, avnd_clm_init_thread, avnd_cb)
+	    != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	pthread_attr_destroy(&attr);
+
+	return SA_AIS_OK;
 }

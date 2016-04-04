@@ -21,8 +21,7 @@
 #include <amfd.h>
 #include <clm.h>
 #include <node.h>
-
-static SaVersionT clmVersion = { 'B', 4, 1 };
+#include "osaf_time.h"
 
 static void clm_node_join_complete(AVD_AVND *node)
 {
@@ -392,9 +391,21 @@ SaAisErrorT avd_clm_init(void)
         SaAisErrorT error = SA_AIS_OK;
 
 	TRACE_ENTER();
-	error = saClmInitialize_4(&avd_cb->clmHandle, &clm_callbacks, &clmVersion);
-	if (SA_AIS_OK != error) {
-		LOG_ER("Failed to initialize with CLM %u", error);
+	for (;;) {
+		SaVersionT Version = { 'B', 4, 1 };
+		error = saClmInitialize_4(&avd_cb->clmHandle, &clm_callbacks, &Version);
+		if (error == SA_AIS_ERR_TRY_AGAIN ||
+		    error == SA_AIS_ERR_TIMEOUT ||
+                    error == SA_AIS_ERR_UNAVAILABLE) {
+			if (error != SA_AIS_ERR_TRY_AGAIN) {
+				LOG_WA("saClmInitialize_4 returned %u",
+				       (unsigned) error);
+			}
+			osaf_nanosleep(&kHundredMilliseconds);
+			continue;
+		}
+		if (error == SA_AIS_OK) break;
+		LOG_ER("Failed to Initialize with CLM: %u", error);
 		goto done;
 	}
 	error = saClmSelectionObjectGet(avd_cb->clmHandle, &avd_cb->clm_sel_obj);

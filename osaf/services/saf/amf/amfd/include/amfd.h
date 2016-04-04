@@ -33,6 +33,7 @@
 #ifndef AVD_H
 #define AVD_H
 
+#include <cstdint>
 #include "logtrace.h"
 
 #include "amf.h"
@@ -65,5 +66,6 @@
 #include "ckpt_msg.h"
 #include "ckpt_edu.h"
 #include "ckpt_updt.h"
+#include "saAmf.h"
 
 #endif

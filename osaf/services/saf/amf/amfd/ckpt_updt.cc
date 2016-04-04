@@ -64,7 +64,6 @@ uint32_t avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE ac
 	node->node_state = ckpt_node->node_state;
 	node->rcv_msg_id = ckpt_node->rcv_msg_id;
 	node->snd_msg_id = ckpt_node->snd_msg_id;
-	node->type = ckpt_node->type;
 	node->node_info.member = ckpt_node->node_info.member;
 	node->node_info.bootTimestamp = ckpt_node->node_info.bootTimestamp;
 	node->node_info.initialViewNumber = ckpt_node->node_info.initialViewNumber;

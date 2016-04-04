@@ -698,7 +698,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	    (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf == SA_AMF_NODE_FAILFAST)) {
 		/* as of now do the same opearation as ncs su failure */
 		su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
-		if ((node->type == AVSV_AVND_CARD_SYS_CON) && (node->node_info.nodeId == cb->node_id_avd)) {
+		if (node->node_info.nodeId == cb->node_id_avd) {
 			TRACE("Component in %s requested FAILFAST", su->name.value);
 		}
 
@@ -1416,7 +1416,16 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					/* Since a NCS SU has been assigned trigger the node FSM. */
 					/* For (ncs_spec == SA_TRUE), su will not be external, so su
 						   will have node attached. */
-					avd_nd_ncs_su_assigned(cb, susi->su->su_on_node);
+					for (AmfDb<uint32_t, AVD_AVND>::const_iterator it = node_id_db->begin();
+						it != node_id_db->end(); it++) {
+						AVD_AVND *node = (*it).second;
+
+						if (node->node_state == AVD_AVND_STATE_NCS_INIT && node->adest != 0) {
+							avd_nd_ncs_su_assigned(cb, node);
+						} else {
+							TRACE("Node_state: %u adest: %" PRIx64 " node not ready for assignments", node->node_state, node->adest);
+						}
+					}
 				}
 			}
 		} else {
