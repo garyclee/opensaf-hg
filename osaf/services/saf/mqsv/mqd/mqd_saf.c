@@ -34,6 +34,8 @@
  */
 #include "mqd.h"
 #include "mqd_imm.h"
+#include "mqd_dl_api.h"
+
 extern MQDLIB_INFO gl_mqdinfo;
 static uint32_t mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, SaAmfHAStateT haState);
 /****************************************************************************
@@ -124,6 +126,15 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
 	if (pMqd) {
 		TRACE_1("CSI SET Called with HaState as %d", haState);
+		if ((rc = initialize_for_assignment(pMqd, haState)) !=
+		    NCSCC_RC_SUCCESS) {
+			LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+			saErr = SA_AIS_ERR_FAILED_OPERATION;
+			saAmfResponse(pMqd->amf_hdl, invocation, saErr);
+			ncshm_give_hdl(pMqd->hdl);
+			return;
+		}
+
 		if ((SA_AMF_HA_QUIESCED == haState) && (pMqd->ha_state == SA_AMF_HA_ACTIVE)) {
 			saErr = immutil_saImmOiImplementerClear(pMqd->immOiHandle);
 			if (saErr != SA_AIS_OK) {

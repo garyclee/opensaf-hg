@@ -31,6 +31,7 @@
 #define MQD_DB_H
 
 /******************** Service Sub part Versions ******************************/
+#include <stdbool.h>
 #include <saClm.h>
 #include <saImmOi.h>
 
@@ -167,6 +168,8 @@ typedef struct mqd_cb {
 	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
 	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for 
 					   IMM events */
+	SaSelectionObjectT clm_sel_obj;
+	bool fully_initialized;
 } MQD_CB;
 
 #define MQD_CB_NULL  ((MQD_CB *)0)

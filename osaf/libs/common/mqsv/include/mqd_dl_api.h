@@ -33,6 +33,9 @@
 #ifndef MQD_DL_API_H
 #define MQD_DL_API_H
 
+#include <stdint.h>
+#include "saAmf.h"
+#include "mqd_db.h"
 #include "ncsgl_defs.h"
 #include "ncs_lib.h"
 
@@ -42,5 +45,6 @@ typedef struct mqdlib_info {
 } MQDLIB_INFO;
 
 uint32_t mqd_lib_req(NCS_LIB_REQ_INFO *);
+uint32_t initialize_for_assignment(MQD_CB *cb, SaAmfHAStateT ha_state);
 
 #endif   /* MQD_DL_API_H */

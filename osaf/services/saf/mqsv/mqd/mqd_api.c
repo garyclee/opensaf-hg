@@ -45,6 +45,7 @@
 #define NCS_2_0 1
 
 #include <poll.h>
+#include <stdlib.h>
 
 #include "mqd.h"
 #include "mqd_imm.h"
@@ -134,8 +135,6 @@ static uint32_t mqd_lib_init(void)
 	SaAmfHealthcheckKeyT healthy;
 	char *health_key = NULL;
 	SaAisErrorT amf_error;
-	SaClmCallbacksT mqd_clm_cbk;
-	SaVersionT clm_version;
 	TRACE_ENTER();
 
 	/* Create the MQD Control Block */
@@ -196,27 +195,6 @@ static uint32_t mqd_lib_init(void)
 		return rc;
 	}
 
-	rc = mqd_mds_init(pMqd);
-	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
-		TRACE_2("MDS Initialization Failed");
-#if NCS_2_0			/* Required for NCS 2.0 */
-		saAmfFinalize(pMqd->amf_hdl);
-#endif
-		mqd_cb_shut(pMqd);
-		return rc;
-	}
-	TRACE_1("MDS Initialization Success");
-
-	/* Register with MBCSV initialise and open a session and do selection object*/
-	rc = mqd_mbcsv_register(pMqd);
-	if (NCSCC_RC_SUCCESS != rc) {
-		TRACE_4("MBCSv registration failed");
-		mqd_mds_shut(pMqd);
-		saAmfFinalize(pMqd->amf_hdl);
-		mqd_cb_shut(pMqd);
-		return rc;
-	}
-
 	strcpy((char *)pMqd->safSpecVer.value, "B.03.01");
 	pMqd->safSpecVer.length = strlen("B.03.01");
 	strcpy((char *)pMqd->safAgtVen.value, "OpenSAF");
@@ -229,10 +207,6 @@ static uint32_t mqd_lib_init(void)
 	rc = mqd_lm_init(pMqd);
 	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
 		TRACE_2("Layer Management Initialization Failed");
-		mqd_mbcsv_finalize(pMqd);
-		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
-			TRACE_2("MDS Deregistration Failed");
-		}
 #if NCS_2_0			/* Required for NCS 2.0 */
 		saAmfFinalize(pMqd->amf_hdl);
 #endif
@@ -252,10 +226,6 @@ static uint32_t mqd_lib_init(void)
 	saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
 	if (SA_AIS_OK != saErr) {	/* Handle failure */
 		LOG_ER("saAmfComponentRegister Failed with error %d", saErr);
-		mqd_mbcsv_finalize(pMqd);
-		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
-			TRACE_2("MDS Deregistration Failed");
-		}
 		saAmfFinalize(pMqd->amf_hdl);
 		ncshm_give_hdl(pMqd->hdl);
 		mqd_cb_shut(pMqd);
@@ -263,39 +233,6 @@ static uint32_t mqd_lib_init(void)
 	}
 #endif
 	TRACE_1("saAmfComponentRegister Success");
-
-	m_MQSV_GET_AMF_VER(clm_version);
-	mqd_clm_cbk.saClmClusterNodeGetCallback = NULL;
-	mqd_clm_cbk.saClmClusterTrackCallback = mqd_clm_cluster_track_callback;
-
-	saErr = saClmInitialize(&pMqd->clm_hdl, &mqd_clm_cbk, &clm_version);
-	if (saErr != SA_AIS_OK) {
-		LOG_ER("saClmInitialize failed with error %u", saErr);
-		mqd_mbcsv_finalize(pMqd);
-		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
-			TRACE_2("MDS Deregistration Failed");
-		}
-		saAmfFinalize(pMqd->amf_hdl);
-		ncshm_give_hdl(pMqd->hdl);
-		mqd_cb_shut(pMqd);
-		return NCSCC_RC_FAILURE;
-	}
-	TRACE_1("saClmInitialize success");
-
-	/* MQD Imm Initialization */
-	saErr = mqd_imm_initialize(pMqd);
-	if (saErr != SA_AIS_OK) {
-		TRACE_2("Imm Initialization Failed %u", saErr);
-		mqd_mbcsv_finalize(pMqd);
-		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
-			TRACE_2("MDS Deregistration Failed");
-		}
-		saClmFinalize(pMqd->clm_hdl);
-		saAmfFinalize(pMqd->amf_hdl);
-		ncshm_give_hdl(pMqd->hdl);
-		mqd_cb_shut(pMqd);
-		return rc;
-	}
 
 	/* Bind with ASAPi Layer */
 	mqd_asapi_bind(pMqd);
@@ -316,24 +253,110 @@ static uint32_t mqd_lib_init(void)
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("saAmfHealthcheckStart Failed with error %d", amf_error);
 		rc = NCSCC_RC_FAILURE;
-		saImmOiFinalize(pMqd->immOiHandle);
 		mqd_asapi_unbind();
-		mqd_mbcsv_finalize(pMqd);
-		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
-			TRACE_2("MDS Deregistration Failed");
-		}
-		saClmFinalize(pMqd->clm_hdl);
 		saAmfFinalize(pMqd->amf_hdl);
 		ncshm_give_hdl(pMqd->hdl);
 		mqd_cb_shut(pMqd);
 		return rc;
 	}
+
+	if ((rc = initialize_for_assignment(pMqd, pMqd->ha_state)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+		exit(EXIT_FAILURE);
+ 	}
+
 	TRACE_1("saAmfHealthcheckStart Success");
 	TRACE_LEAVE();
 	return rc;
 }	/* End of mqd_lib_init() */
 
-/****************************************************************************\
+uint32_t initialize_for_assignment(MQD_CB *cb, SaAmfHAStateT ha_state)
+{
+	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaClmCallbacksT mqd_clm_cbk;
+	SaVersionT clm_version;
+	SaAisErrorT saErr = SA_AIS_OK;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
+		goto done;
+	}
+
+	rc = mqd_mds_init(cb);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+		LOG_ER("MDS Initialization Failed");
+		goto done;
+	}
+	TRACE_1("MDS Initialization Success");
+
+	/* Register with MBCSV initialise and open a session and do selection object*/
+	rc = mqd_mbcsv_register(cb);
+	if (NCSCC_RC_SUCCESS != rc) {
+		LOG_ER("MBCSv registration failed");
+		mqd_mds_shut(cb);
+		goto done;
+	}
+
+	m_MQSV_GET_AMF_VER(clm_version);
+	mqd_clm_cbk.saClmClusterNodeGetCallback = NULL;
+	mqd_clm_cbk.saClmClusterTrackCallback = mqd_clm_cluster_track_callback;
+
+	saErr = saClmInitialize(&cb->clm_hdl, &mqd_clm_cbk, &clm_version);
+	if (saErr != SA_AIS_OK) {
+		LOG_ER("saClmInitialize failed with error %u", (unsigned) saErr);
+		mqd_mbcsv_finalize(cb);
+		if (mqd_mds_shut(cb) != NCSCC_RC_SUCCESS) {
+			TRACE_2("MDS Deregistration Failed");
+		}
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+	TRACE_1("saClmInitialize success");
+
+	saErr = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
+	if (SA_AIS_OK != saErr) {
+		LOG_ER("saClmSelectionObjectGet failed with error %u", (unsigned) saErr);
+		mqd_mbcsv_finalize(cb);
+		if (mqd_mds_shut(cb) != NCSCC_RC_SUCCESS) {
+			TRACE_2("MDS Deregistration Failed");
+		}
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+	TRACE_1("saClmSelectionObjectGet success");
+
+	saErr = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
+	if (SA_AIS_OK != saErr) {
+		LOG_ER("saClmClusterTrack failed with error %u", (unsigned) saErr);
+		mqd_mbcsv_finalize(cb);
+		if (mqd_mds_shut(cb) != NCSCC_RC_SUCCESS) {
+			TRACE_2("MDS Deregistration Failed");
+		}
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+	TRACE_1("saClmClusterTrack success");
+
+	/* MQD Imm Initialization */
+	saErr = mqd_imm_initialize(cb);
+	if (saErr != SA_AIS_OK) {
+		TRACE_2("Imm Initialization Failed %u", saErr);
+		mqd_mbcsv_finalize(cb);
+		if (mqd_mds_shut(cb) != NCSCC_RC_SUCCESS) {
+			TRACE_2("MDS Deregistration Failed");
+		}
+		saClmFinalize(cb->clm_hdl);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	cb->fully_initialized = true;
+done:
+	TRACE_LEAVE2("rc = %u", rc);
+	return rc;
+}
+
+/**************************************************************************** \
   PROCEDURE NAME : mqd_lib_destroy
  
   DESCRIPTION    : This is the function which destroy the MQD libarary.
@@ -425,7 +448,7 @@ void mqd_main_process(uint32_t hdl)
 	MQSV_EVT *pEvt = NULL;
 	SaAisErrorT err = SA_AIS_OK;
 	NCS_MBCSV_ARG mbcsv_arg;
-	SaSelectionObjectT amfSelObj,clmSelObj;
+	SaSelectionObjectT amfSelObj;
 	int term_fd;
 
 	TRACE_ENTER();
@@ -445,37 +468,22 @@ void mqd_main_process(uint32_t hdl)
 		return;
 	}
 
-	err = saClmSelectionObjectGet(pMqd->clm_hdl, &clmSelObj);
-	if (SA_AIS_OK != err) {
-		LOG_ER("saClmSelectionObjectGet failed with error %d", err);
-		ncshm_give_hdl(pMqd->hdl);
-		return;
-	}
-	TRACE_1("saClmSelectionObjectGet success");
-
 	daemon_sigterm_install(&term_fd);
-
-	err = saClmClusterTrack(pMqd->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
-	if (SA_AIS_OK != err) {
-		LOG_ER("saClmClusterTrack failed with error %d", err);
-		ncshm_give_hdl(pMqd->hdl);
-		return;
-	}
-	TRACE_1("saClmClusterTrack success");
 
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
 	fds[FD_AMF].fd = amfSelObj;
 	fds[FD_AMF].events = POLLIN;
-	fds[FD_CLM].fd = clmSelObj;
-	fds[FD_CLM].events = POLLIN;
-	fds[FD_MBCSV].fd = pMqd->mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbxFd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 
 	while (1) {
+		fds[FD_CLM].fd = pMqd->clm_sel_obj;
+		fds[FD_CLM].events = POLLIN;
+		fds[FD_MBCSV].fd = pMqd->mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
+
 		int ret = poll(fds, nfds, -1);
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -579,6 +587,11 @@ static uint32_t mqd_cb_init(MQD_CB *pMqd)
 		return rc;
 	}
 	pMqd->node_db_up = true;
+	pMqd->ha_state = SA_AMF_HA_QUIESCED;
+	pMqd->mbcsv_sel_obj = -1;
+	pMqd->imm_sel_obj = -1;
+	pMqd->clm_sel_obj = -1;
+	pMqd->fully_initialized = false;
 
 	TRACE_LEAVE();
 	return rc;
