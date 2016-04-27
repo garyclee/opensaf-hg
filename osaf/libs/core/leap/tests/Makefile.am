@@ -34,7 +34,8 @@ testleap_LDFLAGS = \
 	-lpthread
 
 testleap_SOURCES = \
-	sysf_ipc_test.cc
+	sysf_ipc_test.cc \
+	sysf_tmr_test.cc
 
 testleap_LDADD = \
 	$(GTEST_DIR)/lib/libgtest.la \
