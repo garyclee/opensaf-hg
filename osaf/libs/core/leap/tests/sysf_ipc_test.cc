@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include <mutex>
+#include <atomic>
 #include <sched.h>
 #include <poll.h>
 #include <cstdlib>
@@ -29,8 +29,6 @@
 
 #include "ncs_main_papi.h"
 #include "gtest/gtest.h"
-
-std::mutex send_ctr_mutex;
 
 typedef struct message_ {
   struct message_ *next;
@@ -61,7 +59,6 @@ class SysfIpcTest : public ::testing::Test {
   SysfIpcTest() {
     // Setup work can be done here for each test.
     no_of_msgs_sent = 0;
-    no_of_msgs_received = 0;
   }
 
   virtual ~SysfIpcTest() {
@@ -138,10 +135,7 @@ class SysfIpcTest : public ::testing::Test {
       rc = m_NCS_IPC_SEND(&mbox, msg, msg->prio);
       EXPECT_EQ(rc, NCSCC_RC_SUCCESS);
 
-      {
-        std::lock_guard<std::mutex> lck(send_ctr_mutex);
-        no_of_msgs_sent++;
-      }
+      no_of_msgs_sent++;
 
       sched_yield();
     }
@@ -150,20 +144,19 @@ class SysfIpcTest : public ::testing::Test {
   // Objects declared here can be used by all tests in the test case.
 
   static SYSF_MBX mbox;
-  static uint32_t no_of_msgs_sent;
-  static uint32_t no_of_msgs_received;
+  static std::atomic<int> no_of_msgs_sent;
 };
 
-SYSF_MBX SysfIpcTest::mbox = 0;
-uint32_t SysfIpcTest::no_of_msgs_sent = 0;
-uint32_t SysfIpcTest::no_of_msgs_received = 0;
+SYSF_MBX SysfIpcTest::mbox {0};
+std::atomic<int> SysfIpcTest::no_of_msgs_sent {0};
 
 void SysfIpcTest::MessageReceiver() {
   NCS_SEL_OBJ mbox_fd;
   pollfd fds;
   bool done = false;
   Message *msg;
-
+  int no_of_msgs_received {0};
+  
   mbox_fd = ncs_ipc_get_sel_obj(&mbox);
 
   fds.fd = mbox_fd.rmv_obj;
@@ -192,10 +185,7 @@ void SysfIpcTest::MessageReceiver() {
     }
   }
 
-  {
-    std::lock_guard<std::mutex> lck(send_ctr_mutex);
-    ASSERT_EQ(no_of_msgs_received, no_of_msgs_sent);
-  }
+  ASSERT_EQ(no_of_msgs_received, no_of_msgs_sent);
 } 
 
 // Tests send and receive
@@ -231,12 +221,12 @@ TEST_F(SysfIpcTest, TestThreadsSendReceiveMessage) {
   std::thread sndr_thread[5];
   srand(time(NULL));
 
-  std::thread msg_receiver(MessageReceiver);
+  std::thread msg_receiver {MessageReceiver};
 
   ASSERT_EQ(msg_receiver.joinable(), true);
 
   for (int i = 0; i < 5; ++i) {
-    sndr_thread[i] = std::thread(MessageSender);
+    sndr_thread[i] = std::thread {MessageSender};
   }
 
   for (int i = 0; i < 5; ++i) {
@@ -245,10 +235,7 @@ TEST_F(SysfIpcTest, TestThreadsSendReceiveMessage) {
 
   sched_yield();
 
-  {
-    std::lock_guard<std::mutex> lck(send_ctr_mutex);
-    no_of_msgs_sent++;
-  }
+  no_of_msgs_sent++;
 
   send_msg(NCS_IPC_PRIORITY_LOW, 4711);
 
