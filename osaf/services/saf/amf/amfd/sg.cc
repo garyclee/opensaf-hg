@@ -722,6 +722,24 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 						goto done;
 					}
 				}
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSU")) {
+				if (value_is_deleted == true)
+					continue;
+				uint32_t max_standby_sis = *static_cast<SaUint32T *>(value);
+
+				if (sg->sg_redundancy_model != SA_AMF_NPM_REDUNDANCY_MODEL) {
+					report_ccb_validation_error(opdata,
+						"%s: saAmfSGMaxStandbySIsperSU for non-N+M model cannot"
+						" be modified when SG is unlocked", __FUNCTION__);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				} else if (max_standby_sis < sg->saAmfSGMaxStandbySIsperSU) {
+					report_ccb_validation_error(opdata,
+						"%s: Cannot decrease saAmfSGMaxStandbySIsperSU while SG"
+						" is unlocked ", __FUNCTION__);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
 			} else {
 				report_ccb_validation_error(opdata,
 					"%s: Attribute '%s' cannot be modified when SG is unlocked",
@@ -991,6 +1009,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			attr_mod = opdata->param.modify.attrMods[i++];
 		}
 	} else {			/* Admin state is UNLOCKED */
+		bool realign = false;
 		i = 0;
 		/* Modifications can be done for the following parameters. */
 		attr_mod = opdata->param.modify.attrMods[i++];
@@ -1071,9 +1090,18 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 					if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
 						/* find an instantiated spare SU */
-						if (sg->realign(avd_cb, sg) != NCSCC_RC_SUCCESS) {
-							osafassert(0);
-						}
+						realign = true;
+					}
+				}
+			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSU")) {
+				if (value_is_deleted) {
+					sg->saAmfSGMaxStandbySIsperSU = -1;
+				} else {
+					sg->saAmfSGMaxStandbySIsperSU = *static_cast<SaUint32T *>(value);
+
+					if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
+						/* any standbys need assignment? */
+						realign = true;
 					}
 				}
 			} else {
@@ -1083,6 +1111,11 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			attr_mod = opdata->param.modify.attrMods[i++];
 		}		/* while (attr_mod != nullptr) */
 
+		if (realign) {
+			if (sg->realign(avd_cb, sg) != NCSCC_RC_SUCCESS) {
+				osafassert(0);
+			}
+		}
 	}			/* Admin state is UNLOCKED */
 }
 
