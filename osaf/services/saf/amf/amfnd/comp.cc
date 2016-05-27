@@ -1608,7 +1608,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	 */
 	if (csi) {
 		if (all_csis_at_rank_assigned(csi->si, csi->rank)) {
-			uint32_t rank = (SA_AMF_HA_ACTIVE == csi->si->curr_state) ?
+			uint32_t rank = (SA_AMF_HA_ACTIVE == csi->si->curr_state || SA_AMF_HA_STANDBY == csi->si->curr_state) ?
 				csi->rank + 1 : csi->rank - 1 ;
 
 			if (find_unassigned_csi_at_rank(csi->si, rank) != nullptr) {
@@ -1634,7 +1634,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 
 		if (all_csis_at_rank_assigned(curr_csi->si, curr_csi->rank)) {
-			uint32_t rank = (SA_AMF_HA_ACTIVE == curr_csi->si->curr_state) ?
+			uint32_t rank = (SA_AMF_HA_ACTIVE == curr_csi->si->curr_state || SA_AMF_HA_STANDBY == curr_csi->si->curr_state) ?
 				curr_csi->rank + 1 : curr_csi->rank - 1 ;
 
 			if (find_unassigned_csi_at_rank(curr_csi->si, rank) != nullptr) {

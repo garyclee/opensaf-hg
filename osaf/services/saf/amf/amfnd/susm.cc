@@ -461,7 +461,7 @@ static uint32_t assign_si_to_su(const AVND_CB *cb, AVND_SU_SI_REC *si, AVND_SU *
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		uint32_t rank;
 
-		if (SA_AMF_HA_ACTIVE == si->curr_state) {
+		if (SA_AMF_HA_ACTIVE == si->curr_state || SA_AMF_HA_STANDBY == si->curr_state) {
 			if (single_csi) {
 				for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list),
 					rank = curr_csi->rank;
@@ -662,7 +662,7 @@ uint32_t avnd_su_si_assign(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 		     curr_si != nullptr;
 			 curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
-			if (SA_AMF_HA_ACTIVE == curr_si->curr_state) {
+			if (SA_AMF_HA_ACTIVE == curr_si->curr_state || SA_AMF_HA_STANDBY == curr_si->curr_state) {
 				for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&curr_si->csi_list),
 					rank = curr_csi->rank;
 					(curr_csi != nullptr) && (curr_csi->rank == rank);
