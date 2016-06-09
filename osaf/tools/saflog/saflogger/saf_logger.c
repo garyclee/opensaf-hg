@@ -37,6 +37,8 @@
 #include <poll.h>
 #include <unistd.h>
 #include <limits.h>
+#include <stdbool.h>
+#include "osaf_extended_name.h"
 
 #include <saAis.h>
 #include <saLog.h>
@@ -83,7 +85,7 @@ static void usage(void)
 	printf("\t%s - write log record to log stream\n", progname);
 
 	printf("\nSYNOPSIS\n");
-	printf("\t%s [options] [message ...]\n", progname);
+	printf("\t%s [options] [-f <FILENAME>] [message ...]\n", progname);
 
 	printf("\nDESCRIPTION\n");
 	printf("\t%s is a SAF LOG client used to write a log record into a specified log stream.\n", progname);
@@ -95,11 +97,16 @@ static void usage(void)
 	printf("\t-n or --notification           write to notification stream\n");
 	printf("\t-y or --system                 write to system stream (default)\n");
 	printf("\t-a NAME or --application=NAME  write to application stream NAME (create it if not exist)\n");
+	printf("\t-f FILENAME                    write log record to FILENAME\n");
 	printf("\t-s SEV or --severity=SEV       use severity SEV, default INFO\n");
 	printf("\t\tvalid severity names: emerg, alert, crit, error, warn, notice, info\n");
+	printf("\nNOTES\n");
+	printf("\t1) -f is only applicable for app stream.\n");
+	printf("\t1) <FILENAME> length must not be longer than 255 characters.\n");
 
 	printf("\nEXAMPLES\n");
 	printf("\tsaflogger -a safLgStrCfg=Test \"Hello world\"\n");
+	printf("\tsaflogger -a safLgStrCfg=Test -f testLogFile \"Hello world\"\n");
 	printf("\tsaflogger -s crit \"I am going down\"\n\n");
 }
 
@@ -230,7 +237,7 @@ static SaLogSeverityT get_severity(char *severity)
 int main(int argc, char *argv[])
 {
 	int c;
-	SaNameT logStreamName = {.length = 0 };
+	SaNameT logStreamName;
 	SaLogFileCreateAttributesT_2 *logFileCreateAttributes = NULL;
 	SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 	SaLogStreamOpenFlagsT logStreamOpenFlags = 0;
@@ -253,6 +260,7 @@ int main(int argc, char *argv[])
 	SaLogStreamHandleT logStreamHandle;
 	SaSelectionObjectT selectionObject;
 	unsigned int wait_time;
+	bool is_appstream = false, f_opt = false;
 
 	srandom(getpid());
 
@@ -261,11 +269,23 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	sprintf((char *)logSvcUsrName.value, "%s.%u@%s", "saflogger", getpid(), hostname);
-	logSvcUsrName.length = strlen((char *)logSvcUsrName.value);
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		fprintf(stderr, "Failed to enable Extended SaNameT");
+		exit(EXIT_FAILURE);
+	}
+
+	/**
+	 * osaf_extended_name_init() is added in case osaf_extended_* APIs
+	 * are used before saLogInitialize().
+	 */
+	osaf_extended_name_init();
+
+	char svcUserName[kOsafMaxDnLength];
+	snprintf(svcUserName, sizeof(svcUserName), "%s.%u@%s", "saflogger", getpid(), hostname);
+	saAisNameLend(svcUserName, &logSvcUsrName);
 
 	/* Setup default values */
-	strcpy((char *)logStreamName.value, SA_LOG_STREAM_SYSTEM);	/* system stream is default */
+	saAisNameLend(SA_LOG_STREAM_SYSTEM, &logStreamName);
 	logRecord.logTimeStamp = SA_TIME_UNKNOWN;	/* LOG service should supply timestamp */
 	logRecord.logHdrType = SA_LOG_GENERIC_HEADER;
 	logRecord.logHeader.genericHdr.notificationClassId = NULL;
@@ -280,32 +300,58 @@ int main(int argc, char *argv[])
 	appLogFileCreateAttributes.maxFilesRotated = DEFAULT_MAX_FILES_ROTATED;
 	/* Use built-in log file format in log server for app stream */
 	appLogFileCreateAttributes.logFileFmt = NULL;
+	appLogFileCreateAttributes.logFileName = NULL;
 
 	while (1) {
-		c = getopt_long(argc, argv, "?hlnya:s:", long_options, NULL);
+		c = getopt_long(argc, argv, "?hlnya:s:f:", long_options, NULL);
 		if (c == -1) {
 			break;
 		}
 		switch (c) {
 		case 'l':
-			strcpy((char *)logStreamName.value, SA_LOG_STREAM_ALARM);
+			saAisNameLend(SA_LOG_STREAM_ALARM, &logStreamName);
 			logRecord.logHdrType = SA_LOG_NTF_HEADER;
 			break;
 		case 'n':
-			strcpy((char *)logStreamName.value, SA_LOG_STREAM_NOTIFICATION);
+			saAisNameLend(SA_LOG_STREAM_NOTIFICATION, &logStreamName);
 			logRecord.logHdrType = SA_LOG_NTF_HEADER;
 			break;
 		case 'y':
-			strcpy((char *)logStreamName.value, SA_LOG_STREAM_SYSTEM);
+			saAisNameLend(SA_LOG_STREAM_SYSTEM, &logStreamName);
 			break;
 		case 'a':
-			if (strstr(optarg, "safLgStr"))
-				strcpy((char *)logStreamName.value, optarg);
-			else
-				sprintf((char *)logStreamName.value, "safLgStr=%s", optarg);
 			logFileCreateAttributes = &appLogFileCreateAttributes;
-			appLogFileCreateAttributes.logFileName = strdup(optarg);
 			logStreamOpenFlags = SA_LOG_STREAM_CREATE;
+
+			char tmpDn[kOsafMaxDnLength + 8 + 1] = {0};
+			if (strstr(optarg, "safLgStr"))
+				strncpy(tmpDn, optarg, sizeof(tmpDn) - 1);
+			else
+				snprintf(tmpDn, sizeof(tmpDn), "safLgStr=%s", optarg);
+
+			if (strlen(tmpDn) > kOsafMaxDnLength) {
+				fprintf(stderr, "Application stream DN is so long (%lu). Max: %d \n",
+					strlen(optarg), kOsafMaxDnLength);
+				fprintf(stderr, "Shut down app. \n");
+				exit(EXIT_FAILURE);
+			}
+			saAisNameLend(tmpDn, &logStreamName);
+			is_appstream = true;
+			if (f_opt == false)
+				appLogFileCreateAttributes.logFileName = strdup(optarg);
+			break;
+		case 'f':
+			if (f_opt == true) {
+				fprintf(stderr, "More than one option -f are given.\n");
+				fprintf(stderr, "Try saflogger -h for more information.\n");
+				exit(EXIT_FAILURE);
+
+			}
+			if (appLogFileCreateAttributes.logFileName != NULL)
+				free(appLogFileCreateAttributes.logFileName);
+
+			appLogFileCreateAttributes.logFileName = strdup(optarg);
+			f_opt = true;
 			break;
 		case 's':
 			logRecord.logHeader.genericHdr.logSeverity = get_severity(optarg);
@@ -319,6 +365,21 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Try saflogger -h for more information.\n");
 			exit(EXIT_FAILURE);
 			break;
+		}
+	}
+
+	if (f_opt == true && is_appstream == false) {
+		fprintf(stderr, "Note: -f is only applicaple for app stream.\n");
+		fprintf(stderr, "Try saflogger -h for more information.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (appLogFileCreateAttributes.logFileName != NULL && is_appstream == true) {
+		size_t len = 0;
+		if ((len = strlen(appLogFileCreateAttributes.logFileName)) > 255) {
+			fprintf(stderr, "FILENAME is too long (%zu) (max: 255 characters).\n", len);
+			fprintf(stderr, "Try saflogger -h for more information.\n");
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -350,8 +411,6 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Try saflogger -h for more information.\n");
 		exit(EXIT_FAILURE);
 	}
-
-	logStreamName.length = strlen((char *)logStreamName.value);
 
 	if (logRecord.logHdrType == SA_LOG_NTF_HEADER) {
 		/* Setup some valid values */
