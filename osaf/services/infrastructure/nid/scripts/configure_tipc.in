@@ -276,16 +276,10 @@ else
         logger -t opensaf -s "TIPC network ID not configured to OpenSAF requirements, exiting..."
         exit 1
     fi
-    configured_net_id=`tipc-config -netid | cut -d: -f2`
-    opensaf_net_id=$CORE_ID
-    if [ $configured_net_id != $opensaf_net_id ]; then
-        logger -t opensaf -s "TIPC network ID not configured to OpenSAF requirements, exiting..."
-        exit 1
-    fi
 
-    configured_bearer=`tipc-config -b | grep -v Bearer | cut -d: -f2`
-    opensaf_bearer=$ETH_NAME
-    if [ $configured_bearer != $opensaf_bearer ]; then
+    configured_bearers=$(${tipc_config} -b | grep -v Bearer | cut -d: -f2 | sort)
+    opensaf_bearers=$(echo "$ETH_NAME" | tr "," "\n" | sort)
+    if [ "$configured_bearers" != "$opensaf_bearers" ]; then
         logger -t opensaf -s "TIPC bearer not configured to OpenSAF requirements, exiting..."
         exit 1
     fi
