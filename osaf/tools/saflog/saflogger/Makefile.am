@@ -22,6 +22,7 @@ MAINTAINERCLEANFILES = Makefile.in
 bin_PROGRAMS = saflogger
 
 saflogger_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
