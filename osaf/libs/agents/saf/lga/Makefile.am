@@ -26,6 +26,7 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = liblga.la
 
 liblga_la_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/logsv/include
 

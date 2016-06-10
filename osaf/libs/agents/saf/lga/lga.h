@@ -44,7 +44,7 @@
 /* Log Stream Handle Definition */
 typedef struct lga_log_stream_hdl_rec {
 	unsigned int log_stream_hdl;	/* Log stream HDL from handle mgr */
-	SaNameT log_stream_name;	/* log stream name mentioned during open log stream */
+	char *log_stream_name;	/* log stream name mentioned during open log stream */
 	unsigned int open_flags;	/* log stream open flags as defined in AIS.02.01 */
 	unsigned int log_header_type;	/* log header type */
 	unsigned int lgs_log_stream_id;	/* server reference for this log stream */
@@ -141,7 +141,7 @@ extern lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *lga_cb, const SaLogCallba
 extern lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_rec,
 							    uint32_t log_stream_id,
 							    uint32_t log_stream_open_flags,
-							    const SaNameT *logStreamName, uint32_t log_header_type);
+							    const char *logStreamName, uint32_t log_header_type);
 extern void lga_hdl_list_del(lga_client_hdl_rec_t **);
 extern uint32_t lga_hdl_rec_del(lga_client_hdl_rec_t **, lga_client_hdl_rec_t *);
 extern uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **, lga_log_stream_hdl_rec_t *);
@@ -150,5 +150,6 @@ extern bool lga_validate_lga_client_hdl(lga_cb_t *lga_cb, lga_client_hdl_rec_t *
 /* lga_util.c */
 extern lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uint32_t client_id);
 extern void lga_msg_destroy(lgsv_msg_t *msg);
+extern bool lga_is_extended_name_valid(const SaNameT* name);
 
 #endif   /* !LGA_H */

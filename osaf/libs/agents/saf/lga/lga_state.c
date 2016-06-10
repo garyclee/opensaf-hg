@@ -24,6 +24,7 @@
 #include <osaf_time.h>
 #include <saf_error.h>
 
+#include "osaf_extended_name.h"
 /***
  * Common data
  */
@@ -137,8 +138,10 @@ static int send_stream_open_msg(uint32_t *lstream_id,
 	const uint32_t sleep_delay_ms = 100;
 
 	TRACE_ENTER();
+	osafassert(p_stream->log_stream_name != NULL && "log_stream_name is NULL");
+
 	TRACE("\t log_stream_name \"%s\", lgs_client_id=%d",
-		p_stream->log_stream_name.value, p_client->lgs_client_id);
+		p_stream->log_stream_name, p_client->lgs_client_id);
 
 	/* Populate a stream open message to the LGS
 	 */
@@ -147,7 +150,7 @@ static int send_stream_open_msg(uint32_t *lstream_id,
 
 	/* Set the open parameters to open a stream for recovery */
 	open_param->client_id = p_client->lgs_client_id;
-	open_param->lstr_name = p_stream->log_stream_name;
+	osaf_extended_name_lend(p_stream->log_stream_name, &open_param->lstr_name);
 	open_param->logFileFmt = NULL;
 	open_param->logFileFmtLength = 0;
 	open_param->maxLogFileSize = 0;
