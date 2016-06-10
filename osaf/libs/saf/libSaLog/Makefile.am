@@ -30,6 +30,7 @@ lib_LTLIBRARIES = libSaLog.la
 libSaLog_la_SOURCES = 
 
 libSaLog_la_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS)
 
 if HAVE_LD_VERSION_SCRIPT

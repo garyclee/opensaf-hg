@@ -18,6 +18,7 @@
 #include <string.h>
 #include <saf_error.h>
 #include "lga.h"
+#include "osaf_extended_name.h"
 
 #include "lga_state.h"
 
@@ -71,17 +72,17 @@ static bool is_lgs_state(lgs_state_t state)
 }
 
 static void populate_open_params(lgsv_stream_open_req_t *open_param,
-				 const SaNameT *logStreamName,
+				 const char *logStreamName,
 				 lga_client_hdl_rec_t *hdl_rec,
 				 SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
 				 SaLogStreamOpenFlagsT logStreamOpenFlags)
 {
 	TRACE_ENTER();
 	open_param->client_id = hdl_rec->lgs_client_id;
-	open_param->lstr_name = *logStreamName;
+	osaf_extended_name_lend(logStreamName, &open_param->lstr_name);
 
 	if (logFileCreateAttributes == NULL ||
-	    is_well_know_stream((const char*)logStreamName->value)) {
+	    is_well_know_stream(logStreamName)) {
 		open_param->logFileFmt = NULL;
 		open_param->logFileFmtLength = 0;
 		open_param->maxLogFileSize = 0;
@@ -575,7 +576,7 @@ SaAisErrorT saLogFinalize(SaLogHandleT logHandle)
  * @return
  */
 static SaAisErrorT validate_open_params(
-	const SaNameT *logStreamName,
+	const char *logStreamName,
 	const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
 	SaLogStreamOpenFlagsT logStreamOpenFlags,
 	SaLogStreamHandleT *logStreamHandle,
@@ -589,38 +590,22 @@ static SaAisErrorT validate_open_params(
 
 	osafassert(header_type != NULL);
 
-	if ((NULL == logStreamName) || (NULL == logStreamHandle)) {
+	if (NULL == logStreamHandle) {
 		TRACE("SA_AIS_ERR_INVALID_PARAM => NULL pointer check");
-		ais_rc = SA_AIS_ERR_INVALID_PARAM;
-		goto done;
-	}
-	
-	/* Note:
-	 * logStreamName is of type SaNameT this means that length normally is not
-	 * allowed to be > SA_MAX_NAME_LENGTH - 1 (255). SaNameT also means that
-	 * value does not have to be '\0' terminated.
-	 * HOWEVER:
-	 * This parameter does not follow these rules. In this case value shall be
-	 * '\0' terminated and length can be 256.
-	 * In order to not break backwards compatibility this should not be changed.
-	 */
-	if (logStreamName->length >= SA_MAX_NAME_LENGTH) {
-		TRACE("SA_AIS_ERR_INVALID_PARAM, logStreamName->length > SA_MAX_NAME_LENGTH");
 		ais_rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
 	/* Check log stream input parameters */
 	/* The well known log streams */
-	if (is_well_know_stream((const char *)logStreamName->value) == true) {
+	if (is_well_know_stream(logStreamName) == true) {
 		/* SA_AIS_ERR_INVALID_PARAM, bullet 3 in SAI-AIS-LOG-A.02.01
 		   Section 3.6.1, Return Values */
 		if ((NULL != logFileCreateAttributes) || (logStreamOpenFlags == SA_LOG_STREAM_CREATE)) {
 			TRACE("SA_AIS_ERR_INVALID_PARAM, logStreamOpenFlags");
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
-		if (strcmp((const char *)logStreamName->value,	/* Well known log streams */
-			   SA_LOG_STREAM_SYSTEM) == 0) {
+		if (strcmp(logStreamName, SA_LOG_STREAM_SYSTEM) == 0) {
 			*header_type = (uint32_t)SA_LOG_GENERIC_HEADER;
 		} else {
 			*header_type = (uint32_t)SA_LOG_NTF_HEADER;
@@ -651,8 +636,8 @@ static SaAisErrorT validate_open_params(
 
 		/* SA_AIS_ERR_INVALID_PARAM, bullet 5 in SAI-AIS-LOG-A.02.01 
 		   Section 3.6.1, Return Values */
-		if (strncmp((const char *)logStreamName->value, "safLgStr=", 9) &&
-				strncmp((const char *)logStreamName->value, "safLgStrCfg=", 12)) {
+		if (strncmp(logStreamName, "safLgStr=", 9) &&
+		    strncmp(logStreamName, "safLgStrCfg=", 12)) {
 			TRACE("\"safLgStr=\" is missing in logStreamName");
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
@@ -764,7 +749,15 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 
 	TRACE_ENTER();
 
-	ais_rc = validate_open_params(logStreamName, logFileCreateAttributes,
+	if (lga_is_extended_name_valid(logStreamName) == false) {
+		TRACE("logStreamName is invalid");
+		ais_rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	SaConstStringT streamName = osaf_extended_name_borrow(logStreamName);
+
+	ais_rc = validate_open_params(streamName, logFileCreateAttributes,
 				  logStreamOpenFlags, logStreamHandle, &log_header_type);
 	if (ais_rc != SA_AIS_OK)
 		goto done;
@@ -842,7 +835,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	open_param->logFilePathName = NULL;
 
 	populate_open_params(open_param,
-			     logStreamName,
+			     streamName,
 			     hdl_rec,
 			     (SaLogFileCreateAttributesT_2 *)logFileCreateAttributes,
 			     logStreamOpenFlags);
@@ -911,7 +904,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	lstr_hdl_rec = lga_log_stream_hdl_rec_add(
 		&hdl_rec,
 		log_stream_id, logStreamOpenFlags,
-		logStreamName, log_header_type
+		streamName, log_header_type
 		);
 	if (lstr_hdl_rec == NULL) {
 		osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
@@ -979,7 +972,7 @@ SaAisErrorT saLogStreamOpenAsync_2(SaLogHandleT logHandle,
  * @return AIS return code
  */
 static SaAisErrorT handle_log_record(const SaLogRecordT *logRecord,
-	SaNameT *logSvcUsrName,
+	char *logSvcUsrName,
 	lgsv_write_log_async_req_t *write_param,
 	SaTimeT *const logTimeStamp)
 {
@@ -1039,51 +1032,41 @@ static SaAisErrorT handle_log_record(const SaLogRecordT *logRecord,
 				ais_rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
-			logSvcUsrName->length = strlen(logSvcUsrChars);
-			if (logSvcUsrName->length >= SA_MAX_NAME_LENGTH) {
+			if (strlen(logSvcUsrName) >= kOsafMaxDnLength) {
 				TRACE("SA_AMF_COMPONENT_NAME is too long");
 				ais_rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
-			strcpy((char *)logSvcUsrName->value, logSvcUsrChars);
-			write_param->logSvcUsrName = logSvcUsrName;
+			strcpy(logSvcUsrName, logSvcUsrChars);
+			osaf_extended_name_lend(logSvcUsrName, write_param->logSvcUsrName);
 		} else {
-			if (logRecord->logHeader.genericHdr.logSvcUsrName->length >=
-				SA_MAX_NAME_LENGTH) {
-				TRACE("logSvcUsrName too long");
+			if (lga_is_extended_name_valid(
+				    logRecord->logHeader.genericHdr.logSvcUsrName
+				    ) == false) {
+				TRACE("Invalid logSvcUsrName");
 				ais_rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
-			logSvcUsrName->length =
-				logRecord->logHeader.genericHdr.logSvcUsrName->length;
-			write_param->logSvcUsrName =
-				(SaNameT *)logRecord->logHeader.genericHdr.logSvcUsrName;
+			osaf_extended_name_lend(
+				osaf_extended_name_borrow(logRecord->logHeader.genericHdr.logSvcUsrName),
+				write_param->logSvcUsrName
+				);
 		}
 	}
 
 	if (logRecord->logHdrType == SA_LOG_NTF_HEADER) {
-		if (logRecord->logHeader.ntfHdr.notificationObject == NULL) {
-			TRACE("notificationObject == NULL");
+		if (lga_is_extended_name_valid(
+			    logRecord->logHeader.ntfHdr.notificationObject
+			    ) == false) {
+			TRACE("Invalid notificationObject");
 			ais_rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
 
-		if (logRecord->logHeader.ntfHdr.notificationObject->length >=
-			SA_MAX_NAME_LENGTH) {
-			TRACE("notificationObject.length >= SA_MAX_NAME_LENGTH");
-			ais_rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-
-		if (logRecord->logHeader.ntfHdr.notifyingObject == NULL) {
-			TRACE("notifyingObject == NULL");
-			ais_rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-
-		if (logRecord->logHeader.ntfHdr.notifyingObject->length >=
-			SA_MAX_NAME_LENGTH) {
-			TRACE("notifyingObject.length >= SA_MAX_NAME_LENGTH");
+		if (lga_is_extended_name_valid(
+			    logRecord->logHeader.ntfHdr.notifyingObject
+			    ) == false) {
+			TRACE("Invalid notifyingObject");
 			ais_rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
@@ -1126,13 +1109,16 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 	lgsv_msg_t msg;
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	lgsv_write_log_async_req_t *write_param;
-	SaNameT logSvcUsrName;
+	char logSvcUsrName[kOsafMaxDnLength] = {0};
 	int rc;
 	bool is_recovery2_locked = false;
+	SaNameT tmpSvcUsrName;
+
+	TRACE_ENTER();
 
 	memset(&(msg), 0, sizeof(lgsv_msg_t));
 	write_param = &msg.info.api_info.param.write_log_async;
-	TRACE_ENTER();
+	write_param->logSvcUsrName = &tmpSvcUsrName;
 
 	if ((ackFlags != 0) && (ackFlags != SA_LOG_RECORD_WRITE_ACK)) {
 		TRACE("SA_AIS_ERR_BAD_FLAGS=> ackFlags");
@@ -1144,7 +1130,7 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 	 * logSvcUsrName from environment variable SA_AMF_COMPONENT_NAME
 	 */
 	SaTimeT logTimeStamp;
-	ais_rc = handle_log_record(logRecord, &logSvcUsrName, write_param, &logTimeStamp);
+	ais_rc = handle_log_record(logRecord, logSvcUsrName, write_param, &logTimeStamp);
 	if (ais_rc != SA_AIS_OK) {
 		TRACE("%s: Validate Log record Fail", __FUNCTION__);
 		goto done;
@@ -1163,7 +1149,7 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 
 	if (logRecord->logBuffer != NULL && logRecord->logBuffer->logBuf != NULL) {
 		SaSizeT size = logRecord->logBuffer->logBufSize;
-		if (is_well_know_stream((const char*)lstr_hdl_rec->log_stream_name.value) == true) {
+		if (is_well_know_stream(lstr_hdl_rec->log_stream_name) == true) {
 			bool sizeOver = size > strlen((char *)logRecord->logBuffer->logBuf) + 1;
 			/* Prevent log client accidently assign too big number to logBufSize. */
 			if (sizeOver == true) {

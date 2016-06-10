@@ -19,6 +19,8 @@
 #include <saf_error.h>
 #include "lga.h"
 #include "lga_state.h"
+#include "osaf_extended_name.h"
+
 
 static MDS_CLIENT_MSG_FORMAT_VER
  LGA_WRT_LGS_MSG_FMT_ARRAY[LGA_WRT_LGS_SUBPART_VER_RANGE] = {
@@ -126,14 +128,17 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		TRACE("p8 NULL!!!");
 		return 0;
 	}
+
+	SaConstStringT value = osaf_extended_name_borrow(&param->lstr_name);
+	size_t length = strlen(value);
 	ncs_encode_32bit(&p8, param->client_id);
-	ncs_encode_16bit(&p8, param->lstr_name.length);
+	ncs_encode_16bit(&p8, length);
 	ncs_enc_claim_space(uba, 6);
 	total_bytes += 6;
 
 	/* Encode log stream name */
-	ncs_encode_n_octets_in_uba(uba, param->lstr_name.value, (uint32_t)param->lstr_name.length);
-	total_bytes += (uint32_t)param->lstr_name.length;
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)value, (uint32_t)length);
+	total_bytes += (uint32_t) length;
 
 	/* Encode logFileName if initiated */
 	p8 = ncs_enc_reserve_space(uba, 2);
@@ -277,6 +282,96 @@ static uint32_t lga_enc_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	return total_bytes;
 }
 
+static uint32_t lga_enc_write_ntf_header(NCS_UBAID *uba, const SaLogNtfLogHeaderT *ntfLogH)
+{
+	uint8_t *p8;
+	uint32_t total_bytes = 0;
+
+	p8 = ncs_enc_reserve_space(uba, 14);
+	if (!p8) {
+		TRACE("Could not reserve space");
+		return 0;
+	}
+	ncs_encode_64bit(&p8, ntfLogH->notificationId);
+	ncs_encode_32bit(&p8, (uint32_t)ntfLogH->eventType);
+
+	SaConstStringT value = osaf_extended_name_borrow(ntfLogH->notificationObject);
+	size_t length = strlen(value);
+
+	ncs_encode_16bit(&p8, length);
+	ncs_enc_claim_space(uba, 14);
+	total_bytes += 14;
+
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)value, (uint32_t)length);
+	total_bytes += (uint32_t)length;
+
+	p8 = ncs_enc_reserve_space(uba, 2);
+	if (!p8) {
+		TRACE("Could not reserve space");
+		return 0;
+	}
+
+	SaConstStringT notifObj = osaf_extended_name_borrow(ntfLogH->notifyingObject);
+	size_t notifLength = strlen(notifObj);
+	ncs_encode_16bit(&p8, notifLength);
+	ncs_enc_claim_space(uba, 2);
+	total_bytes += 2;
+
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)notifObj, (uint32_t)notifLength);
+	total_bytes += (uint32_t)notifLength;
+
+	p8 = ncs_enc_reserve_space(uba, 16);
+	if (!p8) {
+		TRACE("Could not reserve space");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, ntfLogH->notificationClassId->vendorId);
+	ncs_encode_16bit(&p8, ntfLogH->notificationClassId->majorId);
+	ncs_encode_16bit(&p8, ntfLogH->notificationClassId->minorId);
+	ncs_encode_64bit(&p8, ntfLogH->eventTime);
+	ncs_enc_claim_space(uba, 16);
+	total_bytes += 16;
+
+	return total_bytes;
+}
+
+static uint32_t lga_enc_write_gen_header(NCS_UBAID *uba,
+					 const lgsv_write_log_async_req_t *param,
+					 const SaLogGenericLogHeaderT *genLogH)
+{
+	uint8_t *p8;
+	uint32_t total_bytes = 0;
+
+	p8 = ncs_enc_reserve_space(uba, 10);
+	if (!p8) {
+		TRACE("Could not reserve space");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, 0);
+	ncs_encode_16bit(&p8, 0);
+	ncs_encode_16bit(&p8, 0);
+
+	SaConstStringT usrName = osaf_extended_name_borrow(param->logSvcUsrName);
+	size_t nameLength = strlen(usrName) + 1;
+
+	ncs_encode_16bit(&p8, nameLength);
+	ncs_enc_claim_space(uba, 10);
+	total_bytes += 10;
+
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)usrName, (uint32_t)nameLength);
+	total_bytes += (uint32_t)nameLength;
+
+	p8 = ncs_enc_reserve_space(uba, 2);
+	if (!p8) {
+		TRACE("Could not reserve space");
+		return 0;
+	}
+	ncs_encode_16bit(&p8, genLogH->logSeverity);
+	total_bytes += 2;
+
+	return total_bytes;
+}
+
 /****************************************************************************
   Name          : lga_enc_write_log_async_msg
  
@@ -323,77 +418,24 @@ static uint32_t lga_enc_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	total_bytes += 12;
 
 	/* Alarm and application streams so far. */
-
+	uint32_t bytecount = 0;
 	switch (param->logRecord->logHdrType) {
 	case SA_LOG_NTF_HEADER:
 		ntfLogH = &param->logRecord->logHeader.ntfHdr;
-		p8 = ncs_enc_reserve_space(uba, 14);
-		if (!p8) {
-			TRACE("Could not reserve space");
-			return 0;
-		}
-		ncs_encode_64bit(&p8, ntfLogH->notificationId);
-		ncs_encode_32bit(&p8, (uint32_t)ntfLogH->eventType);
-		ncs_encode_16bit(&p8, ntfLogH->notificationObject->length);
-		ncs_enc_claim_space(uba, 14);
-		total_bytes += 14;
 
-		ncs_encode_n_octets_in_uba(uba,
-					   ntfLogH->notificationObject->value,
-					   (uint32_t)ntfLogH->notificationObject->length);
-		total_bytes += ntfLogH->notificationObject->length;
+		bytecount = lga_enc_write_ntf_header(uba, ntfLogH);
+		if (bytecount == 0) return 0;
 
-		p8 = ncs_enc_reserve_space(uba, 2);
-		if (!p8) {
-			TRACE("Could not reserve space");
-			return 0;
-		}
-		ncs_encode_16bit(&p8, ntfLogH->notifyingObject->length);
-		ncs_enc_claim_space(uba, 2);
-		total_bytes += 2;
-
-		ncs_encode_n_octets_in_uba(uba, ntfLogH->notifyingObject->value, ntfLogH->notifyingObject->length);
-		total_bytes += ntfLogH->notifyingObject->length;
-
-		p8 = ncs_enc_reserve_space(uba, 16);
-		if (!p8) {
-			TRACE("Could not reserve space");
-			return 0;
-		}
-		ncs_encode_32bit(&p8, ntfLogH->notificationClassId->vendorId);
-		ncs_encode_16bit(&p8, ntfLogH->notificationClassId->majorId);
-		ncs_encode_16bit(&p8, ntfLogH->notificationClassId->minorId);
-		ncs_encode_64bit(&p8, ntfLogH->eventTime);
-		ncs_enc_claim_space(uba, 16);
-		total_bytes += 16;
+		total_bytes += bytecount;
 		break;
 
 	case SA_LOG_GENERIC_HEADER:
 		genLogH = &param->logRecord->logHeader.genericHdr;
-		p8 = ncs_enc_reserve_space(uba, 10);
-		if (!p8) {
-			TRACE("Could not reserve space");
-			return 0;
-		}
-		ncs_encode_32bit(&p8, 0);
-		ncs_encode_16bit(&p8, 0);
-		ncs_encode_16bit(&p8, 0);
-		ncs_encode_16bit(&p8, param->logSvcUsrName->length);
-		ncs_enc_claim_space(uba, 10);
-		total_bytes += 10;
 
-		ncs_encode_n_octets_in_uba(uba,
-					   (uint8_t *)param->logSvcUsrName->value, (uint32_t)param->logSvcUsrName->length);
-		total_bytes += param->logSvcUsrName->length;
+		bytecount = lga_enc_write_gen_header(uba, param, genLogH);
+		if (bytecount == 0) return 0;
 
-		p8 = ncs_enc_reserve_space(uba, 2);
-		if (!p8) {
-			TRACE("Could not reserve space");
-			return 0;
-		}
-		ncs_encode_16bit(&p8, genLogH->logSeverity);
-		total_bytes += 2;
-
+		total_bytes += bytecount;
 		break;
 
 	default:

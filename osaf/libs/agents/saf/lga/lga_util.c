@@ -20,6 +20,7 @@
 #include "lga.h"
 #include "osaf_poll.h"
 #include "lga_state.h"
+#include "osaf_extended_name.h"
 
 /* Variables used during startup/shutdown only */
 static pthread_mutex_t lga_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -125,10 +126,17 @@ static void lga_log_stream_hdl_rec_list_del(lga_log_stream_hdl_rec_t **plstr_hdl
 	lga_log_stream_hdl_rec_t *lstr_hdl;
 	TRACE_ENTER();
 	while ((lstr_hdl = *plstr_hdl) != NULL) {
+		TRACE("%s stream \"%s\", hdl = %d",__FUNCTION__, lstr_hdl->log_stream_name != NULL ?
+		      (lstr_hdl->log_stream_name) : ("NULL"), lstr_hdl->log_stream_hdl);
 		*plstr_hdl = lstr_hdl->next;
-		TRACE("%s stream \"%s\", hdl = %d",__FUNCTION__,
-			lstr_hdl->log_stream_name.value, lstr_hdl->log_stream_hdl);
 		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, lstr_hdl->log_stream_hdl);
+
+		/* Check NULL to avoid the case: initialize -> finalize */
+		if (lstr_hdl->log_stream_name != NULL) 	{
+			free(lstr_hdl->log_stream_name);
+			lstr_hdl->log_stream_name = NULL;
+		}
+
 		free(lstr_hdl);
 		lstr_hdl = NULL;
 	}
@@ -503,10 +511,15 @@ uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_lo
 	lga_log_stream_hdl_rec_t *list_iter = *list_head;
 
 	/* If the to be removed record is the first record */
-	if (list_iter == rm_node) {
+	if (rm_node != NULL && list_iter == rm_node) {
 		*list_head = rm_node->next;
 	/** remove the association with hdl-mngr 
          **/
+		if (rm_node->log_stream_name != NULL) {
+			free(rm_node->log_stream_name);
+			rm_node->log_stream_name = NULL;
+		}
+
 		ncshm_give_hdl(rm_node->log_stream_hdl);
 		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
 		free(rm_node);
@@ -519,6 +532,11 @@ uint32_t lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_lo
 				list_iter->next = rm_node->next;
 		/** remove the association with hdl-mngr 
                  **/
+				if (rm_node->log_stream_name != NULL) {
+					free(rm_node->log_stream_name);
+					rm_node->log_stream_name = NULL;
+				}
+
 				ncshm_give_hdl(rm_node->log_stream_hdl);
 				ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
 				free(rm_node);
@@ -620,7 +638,7 @@ uint32_t lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t 
 lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_rec,
 						     uint32_t lstr_id,
 						     uint32_t log_stream_open_flags,
-						     const SaNameT *logStreamName, uint32_t log_header_type)
+						     const char *logStreamName, uint32_t log_header_type)
 {
 	lga_log_stream_hdl_rec_t *rec = calloc(1, sizeof(lga_log_stream_hdl_rec_t));
 
@@ -640,9 +658,11 @@ lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_
      **/
 	rec->lgs_log_stream_id = lstr_id;
 	rec->open_flags = log_stream_open_flags;
-	rec->log_stream_name.length = logStreamName->length;
-	memcpy((void *)rec->log_stream_name.value, (void *)logStreamName->value, logStreamName->length);
 	rec->log_header_type = log_header_type;
+
+	/* This allocated memory will be freed when log stream handle is closed/finalized */
+	rec->log_stream_name = calloc(1, strlen(logStreamName) + 1);
+	memcpy(rec->log_stream_name, logStreamName, strlen(logStreamName));
 
 	/***
 	 * Initiate the recovery flag
@@ -788,6 +808,23 @@ SaAisErrorT lga_hdl_cbk_dispatch(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec, Sa
 
 	return rc;
 }
+
+/**
+ * Check if the name is valid or not.
+ */
+bool lga_is_extended_name_valid(const SaNameT* name)
+{
+
+	if (name == NULL) return false;
+	if (osaf_is_extended_name_valid(name) == false) return false;
+
+	SaConstStringT str = osaf_extended_name_borrow(name);
+	if (strlen(str) >= kOsafMaxDnLength) return false;
+
+	return true;
+
+}
+
 
 /*
  * To enable tracing early in saLogInitialize, use a GCC constructor
