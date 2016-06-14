@@ -89,6 +89,7 @@ extern "C" {
 				      const struct ImmsvOmAdminOwnerInitialize *req,
 				      SaUint32T ownerId, SaUint32T conn, unsigned int nodeId);
 	SaAisErrorT immModel_adminOwnerDelete(IMMND_CB *cb, SaUint32T ownerId, SaUint32T hard);
+	void immModel_addDeadAdminOwnerDuringSync(SaUint32T ownerId);
 
 	SaAisErrorT
 	    immModel_ccbCreate(IMMND_CB *cb,
