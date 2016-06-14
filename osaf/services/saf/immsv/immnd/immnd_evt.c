@@ -8174,7 +8174,8 @@ static uint32_t immnd_restricted_ok(IMMND_CB *cb, uint32_t id)
 		    id == IMMND_EVT_D2ND_SYNC_FEVS_BASE ||
 		    id == IMMND_EVT_A2ND_OI_OBJ_MODIFY ||
 		    id == IMMND_EVT_D2ND_IMPLSET_RSP ||
-		    id == IMMND_EVT_D2ND_IMPLSET_RSP_2) {
+		    id == IMMND_EVT_D2ND_IMPLSET_RSP_2 ||
+		    id == IMMND_EVT_D2ND_ADMO_HARD_FINALIZE) {
 			return 1;
 		}
 	}
@@ -9799,7 +9800,7 @@ void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 					      IMMND_EVT *evt,
 					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
-	SaAisErrorT err;
+	SaAisErrorT err = SA_AIS_OK;
 	TRACE_ENTER();
 
 	/* TODO: ABT should really remove any open ccbs owned by this admowner.
@@ -9809,7 +9810,11 @@ void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 
 	osafassert(evt);
 	TRACE("immnd_evt_proc_admo_hard_finalize of adm_owner_id: %u", evt->info.admFinReq.adm_owner_id);
-	err = immModel_adminOwnerDelete(cb, evt->info.admFinReq.adm_owner_id, 1);
+	if (cb->mSync && !cb->mAccepted) { /* Sync client */
+		immModel_addDeadAdminOwnerDuringSync(evt->info.admFinReq.adm_owner_id);
+	} else {
+		err = immModel_adminOwnerDelete(cb, evt->info.admFinReq.adm_owner_id, 1);
+	}
 	if (err != SA_AIS_OK) {
 		if(cb->loaderPid != (-1)) {
 			LOG_WA("Failed in hard remove of admin owner %u", evt->info.admFinReq.adm_owner_id);
@@ -9817,24 +9822,6 @@ void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 			TRACE("Failed in hard remove of admin owner %u. Preload?", evt->info.admFinReq.adm_owner_id);
 		}
 	}
-
-	/* If we receive admo hard finalize in the gap between sending sync-finalize message and
-	 * receiving it back from fevs (mSyncFinalizing == true), we need to re-broadcast the message again.
-	 * The sync-clients need this re-broadcasted message because
-	 * the dead admo are included in sync-finalize message.
-	 * The coord (this) and veterans will also recevie this as duplicated message
-	 * but they will just drop it as the admo id can't be found. */
-	if (cb->mSyncFinalizing) {
-		IMMSV_EVT send_evt;
-		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
-		send_evt.type = IMMSV_EVT_TYPE_IMMD;
-		send_evt.info.immd.type = IMMD_EVT_ND2D_ADMO_HARD_FINALIZE;
-		send_evt.info.immd.info.admoId = evt->info.admFinReq.adm_owner_id;
-		if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt) != NCSCC_RC_SUCCESS) {
-			LOG_ER("Failure to broadcast discard admo id:%u ", evt->info.admFinReq.adm_owner_id);
-		}
-	}
-
 	TRACE_LEAVE();
 }
 

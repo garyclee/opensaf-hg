@@ -534,6 +534,7 @@ static IdVector         sImplsDeadDuringSync; // die after finalizeSync is sent 
                                               // but before it arrives over fevs. 
                                               // This to avoid apparent implementor
                                               // re-create by finalizeSync (at non coord). 
+static IdVector         sAdmosDeadDuringSync; /* Keep track of admo that die during sync */
 
 static DeferredObjUpdatesMap sDeferredObjUpdatesMap;
 
@@ -710,6 +711,16 @@ immModel_adminOwnerDelete(IMMND_CB *cb, SaUint32T ownerId, SaUint32T hard)
         adminOwnerDelete(ownerId, hard, cb->m2Pbe);
 }
 
+void
+immModel_addDeadAdminOwnerDuringSync(SaUint32T ownerId)
+{
+    osafassert(sImmNodeState == IMM_NODE_W_AVAILABLE); /* Sync client */
+    osafassert(sOwnerVector.empty());
+    /* Remember the dead admo during sync.
+     * They will be cleaned up when finalizing sync. */
+    TRACE("Adding admo id=%u to sAdmosDeadDuringSync", ownerId);
+    sAdmosDeadDuringSync.push_back(ownerId);
+}
 
 SaAisErrorT
 immModel_ccbCreate(IMMND_CB *cb, 
@@ -2758,6 +2769,7 @@ ImmModel::abortSync()
             sImmNodeState = IMM_NODE_FULLY_AVAILABLE; 
             sNodesDeadDuringSync.clear(); 
             sImplsDeadDuringSync.clear(); 
+            osafassert(sAdmosDeadDuringSync.empty());
 
             LOG_NO("NODE STATE-> IMM_NODE_FULLY_AVAILABLE (%u)", 
                 __LINE__);
@@ -2823,6 +2835,7 @@ ImmModel::abortSync()
 
             sNodesDeadDuringSync.clear(); 
             sImplsDeadDuringSync.clear(); 
+            sAdmosDeadDuringSync.clear();
             sImplDetachTime.clear();
 
            if(!sImplementerVector.empty()) {
@@ -17982,6 +17995,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
  objectSyncExit:
     sImplsDeadDuringSync.clear();
     sNodesDeadDuringSync.clear();
+    sAdmosDeadDuringSync.clear();
     /* Clear the "tombstones" for Implementers and Nodes for each sync message
        received. The tiny hole that we need to plug only exists after the
        last sync message, when coord sends the finalizeSync message until
@@ -18356,15 +18370,17 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 (unsigned int) sOwnerVector.size());
 
             for(i=sOwnerVector.begin(); i!=sOwnerVector.end();) {
-                if((*i)->mDying) {
-                    if(!((*i)->mReleaseOnFinalize)) {
+                IdVector::iterator ivi;
+                ivi = find(sAdmosDeadDuringSync.begin(), sAdmosDeadDuringSync.end(), (*i)->mId);
+                if((*i)->mDying || ivi != sAdmosDeadDuringSync.end()) {
+                    if((*i)->mDying && !((*i)->mReleaseOnFinalize)) {
                         LOG_ER("finalizeSync client: Admo %u is dying yet releaseOnFinalize is false",
                             (*i)->mId);
                         err = SA_AIS_ERR_FAILED_OPERATION;
                         goto done;
                     }
 
-                    LOG_WA("Removing admin owner %u %s (ROF==TRUE) which is in demise, "
+                    LOG_WA("Removing admin owner %u %s which is in demise, "
                            "AFTER receiving finalize sync message", (*i)->mId,
                         (*i)->mAdminOwnerName.c_str());
                     //This does a lookup of admin owner again.
@@ -18928,6 +18944,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
 
     sImplsDeadDuringSync.clear(); /* for coord, sync-client & veterans. */
     sNodesDeadDuringSync.clear(); /* should only be relevant for sync-client. */
+    sAdmosDeadDuringSync.clear(); /* should only be relevant for sync-client. */
 
     /* De-comment to get a dump of childcounts after each sync
     if(true) {
