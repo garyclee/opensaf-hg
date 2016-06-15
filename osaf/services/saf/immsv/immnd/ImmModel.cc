@@ -13742,7 +13742,6 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     ContinuationMap2::iterator ci2;
     ImplementerEvtMap::iterator iem;
     CcbVector::iterator i3;
-    CcbVector ccbsToGc;
     SaUint32T ccbsStuck=0; /* 0 or 1 */
     SaUint32T pbeRtRegress=0; /* 0 or 2 */
     
@@ -13781,15 +13780,17 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     //Conclusion: I should add cleanup logic here anyway, since it is easy to
     //do and solves the problem. 
 
-    
-    for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
+    i3 = sCcbVector.begin();
+    while (i3 != sCcbVector.end()) {
         if((*i3)->mState > IMM_CCB_CRITICAL) {
             /* Garbage Collect ccbInfo more than five minutes old */
             if((*i3)->mWaitStartTime && (now - (*i3)->mWaitStartTime >= 300)) {
                 TRACE_5("Removing CCB %u terminated more than 5 minutes ago", 
                     (*i3)->mId);
                 (*i3)->mState = IMM_CCB_ILLEGAL;
-                ccbsToGc.push_back(*i3);
+                delete (*i3);
+                i3 = sCcbVector.erase(i3);
+                continue;
             }
         } else if(iAmCoord) {
             //Fetch CcbIds for Ccbs that have waited too long on an implementer
@@ -13861,21 +13862,12 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                 }
             }
         }
+        ++i3;
     }
 
     if(sAbortNonCriticalCcbs) {
         LOG_IN("sAbortNonCriticalCcbs reset to false");
         sAbortNonCriticalCcbs = false; /* Reset. */
-    }
-
-    while((i3 = ccbsToGc.begin()) != ccbsToGc.end()) {
-        CcbInfo* ccb = (*i3);
-        ccbsToGc.erase(i3);
-        i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(),
-            CcbIdIs(ccb->mId));
-        osafassert(i3 != sCcbVector.end());
-        sCcbVector.erase(i3);
-        delete (ccb);
     }
 
     ci2=sPbeRtReqContinuationMap.begin(); 
