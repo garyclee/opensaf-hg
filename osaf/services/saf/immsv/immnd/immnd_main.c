@@ -173,12 +173,12 @@ static uint32_t immnd_initialize(char *progname)
 	immnd_cb->mPbeVeteran = SA_FALSE;
 	immnd_cb->mPbeVeteranB = SA_FALSE;
 
-	if (immnd_cb->mDir == NULL) {
+	if (immnd_cb->mDir == NULL || (strlen(immnd_cb->mDir) == 0)) {
 		LOG_ER("Env var IMMSV_ROOT_DIRECTORY missing");
 		goto done;
 	}
 
-	if (immnd_cb->mFile == NULL) {
+	if (immnd_cb->mFile == NULL || (strlen(immnd_cb->mFile) == 0)) {
 		LOG_ER("Env var IMMSV_LOAD_FILE missing");
 		goto done;
 	}

@@ -413,14 +413,14 @@ uint32_t immnd_introduceMe(IMMND_CB *cb)
 			(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 		TRACE("First immnd_introduceMe, sending pbeEnabled:%u WITH params",
 			send_evt.info.immd.info.ctrl_msg.pbeEnabled);
-		if(cb->mDir) {
-			int len = strlen(cb->mDir);
-			if( cb->mDir[len-1] == '/') {
-				mdirDup = strndup((char *)cb->mDir, len-1);
-			} else {
-				mdirDup = strdup(cb->mDir);
-			}	
+
+		int len = strlen(cb->mDir);
+		if (cb->mDir[len - 1] == '/') {
+			mdirDup = strndup((char *) cb->mDir, len - 1);
+		} else {
+			mdirDup = strdup(cb->mDir);
 		}
+
 		send_evt.info.immd.info.ctrl_msg.dir.size = strlen(mdirDup)+1;
 		send_evt.info.immd.info.ctrl_msg.dir.buf = (char *) mdirDup;
 		send_evt.info.immd.info.ctrl_msg.xmlFile.size = strlen(cb->mFile)+1;
@@ -1448,10 +1448,6 @@ static int immnd_forkLoader(IMMND_CB *cb, bool preLoad)
 	int i, j;
 
 	TRACE_ENTER();
-	if (!cb->mDir && !cb->mFile) {
-		LOG_WA("No directory and no file-name=>IMM coming up empty");
-		return (-1);
-	}
 
 	if ((myAbsLen - myLen + loaderBaseLen) > 1023) {
 		LOG_ER("Pathname too long: %u max is 1023", myAbsLen - myLen + loaderBaseLen);
@@ -1474,8 +1470,7 @@ static int immnd_forkLoader(IMMND_CB *cb, bool preLoad)
 	}
 	if (pid == 0) {		/*Child */
 		/* TODO Should close file-descriptors ... */
-		char *ldrArgs[5] = { loaderName, (char *)(cb->mDir ? cb->mDir : ""),
-				     (char *)(cb->mFile ? cb->mFile : "imm.xml"), 
+		char *ldrArgs[5] = { loaderName, (char *)cb->mDir, (char *)cb->mFile,
 				     (preLoad)?"preload":0, 0
 		};
 
