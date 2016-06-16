@@ -1682,6 +1682,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 				IMMA_EVT_ND2A_SEARCHNEXT_RSP;
 			send_evt.info.imma.info.searchNextRsp = rsp;
 		} else {
+			osafassert(rspList);
 			bundleSearch.resultSize = resultSize;
 			bundleSearch.searchResult = (IMMSV_OM_RSP_SEARCH_NEXT **)
 				malloc(sizeof(IMMSV_OM_RSP_SEARCH_NEXT *) * resultSize);
