@@ -205,8 +205,8 @@ void saLogStreamOpen_2_15(void)
 void saLogStreamOpen_2_16(void)
 {
     SaNameT streamName;
-    streamName.length = sizeof("safLgStr=")+sizeof(__FUNCTION__)-1;
-    sprintf((char*)streamName.value, "safLgStr=%s", __FUNCTION__);
+    SaConstStringT data = "safLgStr=saLogStreamOpen_2_16";
+    saAisNameLend(data, &streamName);
 
     init_file_create_attributes();
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
@@ -222,8 +222,8 @@ void saLogStreamOpen_2_16(void)
 void saLogStreamOpen_2_17(void)
 {
     SaNameT streamName;
-    streamName.length = sizeof("safLgStr=")+sizeof(__FUNCTION__)-1;
-    sprintf((char*)streamName.value, "safLgStr=%s", __FUNCTION__);
+    SaConstStringT data = "safLgStr=saLogStreamOpen_2_17";
+    saAisNameLend(data, &streamName);
 
     init_file_create_attributes();
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
@@ -338,10 +338,9 @@ void saLogStreamOpen_2_23(void)
 void saLogStreamOpen_2_46(void)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    SaNameT logStreamName = {.length = 0 };
+    SaNameT logStreamName;
 
-    strcpy((char *)logStreamName.value, SA_LOG_STREAM_APPLICATION1);
-    logStreamName.length = strlen((char *)logStreamName.value);
+    saAisNameLend(SA_LOG_STREAM_APPLICATION1, &logStreamName);
 
     SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 
@@ -387,10 +386,8 @@ done:
 void saLogStreamOpen_2_47(void)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    SaNameT logStreamName = {.length = 0 };
-
-    strcpy((char *)logStreamName.value, SA_LOG_STREAM_APPLICATION1);
-    logStreamName.length = strlen((char *)logStreamName.value);
+    SaNameT logStreamName;
+    saAisNameLend(SA_LOG_STREAM_APPLICATION1, &logStreamName);
 
     SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 
@@ -440,10 +437,8 @@ done:
 void verFixLogRec_Max_Err(void)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    SaNameT logStreamName = {.length = 0 };
-
-    strcpy((char *)logStreamName.value, SA_LOG_STREAM_APPLICATION1);
-    logStreamName.length = strlen((char *)logStreamName.value);
+    SaNameT logStreamName;
+    saAisNameLend(SA_LOG_STREAM_APPLICATION1, &logStreamName);
 
     SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 
@@ -489,10 +484,8 @@ done:
 void verFixLogRec_Min_Err(void)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    SaNameT logStreamName = {.length = 0 };
-
-    strcpy((char *)logStreamName.value, SA_LOG_STREAM_APPLICATION1);
-    logStreamName.length = strlen((char *)logStreamName.value);
+    SaNameT logStreamName;
+    saAisNameLend(SA_LOG_STREAM_APPLICATION1, &logStreamName);
 
     SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 
@@ -537,14 +530,12 @@ done:
 void saLogStreamOpen_2_48(void)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    SaNameT logStreamName = {.length = 0 };
+    SaNameT logStreamName;
     char fileName[220];
 
     memset(fileName, 'A', 218);
     fileName[219] = '\0';
-
-    strcpy((char *)logStreamName.value, SA_LOG_STREAM_APPLICATION1);
-    logStreamName.length = strlen((char *)logStreamName.value);
+    saAisNameLend(SA_LOG_STREAM_APPLICATION1, &logStreamName);
 
     SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 
@@ -591,10 +582,8 @@ done:
 void saLogStreamOpen_2_49(void)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    SaNameT logStreamName = {.length = 0 };
-
-    strcpy((char *)logStreamName.value, SA_LOG_STREAM_APPLICATION1);
-    logStreamName.length = strlen((char *)logStreamName.value);
+    SaNameT logStreamName;
+    saAisNameLend(SA_LOG_STREAM_APPLICATION1, &logStreamName);
 
     SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 
@@ -756,7 +745,8 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(2, saLogStreamOpen_2_20, "Open app stream with invalid logFileFmt");
     test_case_add(2, saLogStreamOpen_2_21, "Open app stream with unsupported logFullAction");
     test_case_add(2, saLogStreamOpen_2_22, "Open non exist app stream with NULL create attrs");
-    test_case_add(2, saLogStreamOpen_2_23, "Open with stream name length == 256");
+    //This test case is no longer valid when Long DN is supported
+    //test_case_add(2, saLogStreamOpen_2_23, "Open with stream name length == 256");
     test_case_add(2, saLogStreamOpenAsync_2_01, "saLogStreamOpenAsync_2(), Not supported");
     test_case_add(2, saLogStreamOpenCallbackT_01, "saLogStreamOpenCallbackT() OK");
     test_case_add(2, saLogWriteLog_01, "saLogWriteLog(), Not supported");
@@ -773,9 +763,10 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(2, saLogWriteLogAsync_12, "saLogWriteAsyncLog() without logTimeStamp set");
     test_case_add(2, saLogWriteLogAsync_13, "saLogWriteAsyncLog() 1800 bytes logrecord (ticket #203)");
     test_case_add(2, saLogWriteLogAsync_14, "saLogWriteAsyncLog() invalid severity");
-    test_case_add(2, saLogWriteLogAsync_15, "saLogWriteAsyncLog() NTF notificationObject length == 256");
-    test_case_add(2, saLogWriteLogAsync_16, "saLogWriteAsyncLog() NTF notifyingObject length == 256");
-    test_case_add(2, saLogWriteLogAsync_17, "saLogWriteLogAsync() Generic logSvcUsrName length == 256");
+    //These test cases are no longer valid when Long DN is supported
+    //test_case_add(2, saLogWriteLogAsync_15, "saLogWriteAsyncLog() NTF notificationObject length == 256");
+    //test_case_add(2, saLogWriteLogAsync_16, "saLogWriteAsyncLog() NTF notifyingObject length == 256");
+    //test_case_add(2, saLogWriteLogAsync_17, "saLogWriteLogAsync() Generic logSvcUsrName length == 256");
     test_case_add(2, saLogWriteLogAsync_18, "saLogWriteLogAsync() logBufSize > strlen(logBuf) + 1");
     test_case_add(2, saLogWriteLogAsync_19, "saLogWriteLogAsync() logBufSize > SA_LOG_MAX_RECORD_SIZE");
     test_case_add(2, saLogWriteLogCallbackT_01, "saLogWriteLogCallbackT() SA_DISPATCH_ONE");

@@ -24,6 +24,7 @@ noinst_HEADERS = \
 	logtest.h
 
 logtest_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/tests/unit_test_fw/inc \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
@@ -46,7 +47,8 @@ logtest_SOURCES = \
 	tet_LogOiOps.c \
 	tet_Log_misc.c \
 	tet_Log_recov.c \
-	tet_log_runtime_cfgobj.c
+	tet_log_runtime_cfgobj.c \
+	tet_log_longDN.c
 
 logtest_LDADD = \
 	$(top_builddir)/tests/unit_test_fw/src/libutest.la \

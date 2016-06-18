@@ -3331,7 +3331,7 @@ void verLogFileName(void)
 
 	/* Invalid filename with forward slash in */
 	sprintf(command, "immcfg -a saLogStreamFileName='invalidFile/Name' %s 2> /dev/null",
-		alarmStreamName.value);
+		SA_LOG_STREAM_ALARM);
 	rc = system(command);
 
 	rc_validate(WEXITSTATUS(rc), 1);

@@ -46,10 +46,7 @@ void log_rt_cf_obj_compare(void)
 
 	/* Count attributes in configuration object
 	 */
-	sprintf((char *) object_name.value, "%s",
-			LOGTST_IMM_LOG_CONFIGURATION);
-	object_name.length = strlen((char *) object_name.value);
-
+	saAisNameLend(LOGTST_IMM_LOG_CONFIGURATION, &object_name);
 	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, NULL,
 			&attributes);
 	if (ais_rc != SA_AIS_OK) {
@@ -64,9 +61,7 @@ void log_rt_cf_obj_compare(void)
 
 	/* Count attributes in runtime object
 	 */
-	sprintf((char *) object_name.value, "%s",
-			LOGTST_IMM_LOG_RUNTIME);
-	object_name.length = strlen((char *) object_name.value);
+	saAisNameLend(LOGTST_IMM_LOG_RUNTIME, &object_name);
 
 	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, NULL,
 			&attributes);

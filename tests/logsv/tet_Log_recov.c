@@ -242,6 +242,10 @@ static int clear_file(char *filename)
  * - extension .log
  * - two timestamps (other log files has four)
  */
+#ifndef SA_MAX_NAME_LENGTH
+#define SA_MAX_NAME_LENGTH 255
+#endif
+
 static char file_name_find[SA_MAX_NAME_LENGTH];
 static int filter_logfile_name(const struct dirent *finfo)
 {
@@ -389,20 +393,21 @@ static int tst_StreamOpen_app_logtest_sc(
 	int rc = 0;
 	int n;
 	int i;
+	char data[255];
 
 	/* Open num_streams */
 	for (i = 0; i < num_streams; i++) {
 		/* Prepare stream name and attributes for the stream to be opened */
 		SaNameT stream_name;
-		n = sprintf((char *) stream_name.value, "safLgStr=%s_%d",
+		n = sprintf(data, "safLgStr=%s_%d",
 			STREAM_NAME_9, i+1);
+		saAisNameLend(data, &stream_name);
 		if (n < 0) {
 			fprintf(stderr, "\t%s [%d] sprintf Fail\n",
 				__FUNCTION__, __LINE__);
 			rc = -1;
 			break;
 		}
-		stream_name.length = n;
 
 		/* Create log file name */
 		char logfile_name[256];
@@ -1790,13 +1795,11 @@ static SaLogHandleT logHandleRecv;
 void saLogRecov_openRtStream(void)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	SaNameT logStreamName = {.length = 0 };
+	SaNameT logStreamName;
 	char command[300];
 	int sysRc;
-
-	strcpy((char *)logStreamName.value, "safLgStr=rtCleanup");
-	logStreamName.length = strlen((char *)logStreamName.value);
-
+	SaConstStringT data = "safLgStr=rtCleanup";
+	saAisNameLend(data, &logStreamName);
 	SaLogFileCreateAttributesT_2 appLogFileCreateAttributes;
 
 	/* Cleanup the test directory */

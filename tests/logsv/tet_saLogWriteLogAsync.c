@@ -321,11 +321,9 @@ void saLogWriteLogAsync_13(void)
         .logFileFmt = DEFAULT_FORMAT_EXPRESSION
     };
     SaInvocationT invocation = 0;
-    SaNameT appStreamName = {
-        .value = "safLgStr=ticket203",
-        .length = 0
-    };
-	appStreamName.length = strlen((char *) appStreamName.value);
+    SaNameT appStreamName;
+    SaConstStringT data = "safLgStr=ticket203";
+    saAisNameLend(data, &appStreamName);
 
     memset(genLogRecord.logBuffer->logBuf, 'X', 1000);
     genLogRecord.logBuffer->logBufSize = 1000;
