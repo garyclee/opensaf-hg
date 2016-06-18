@@ -29,79 +29,37 @@
 #include <saf_error.h>
 
 #include "logtest.h"
+#include "osaf_extended_name.h"
+#include <saAis.h>
 
 #define LLDTEST
 
-SaNameT systemStreamName =
-{
-	.value = SA_LOG_STREAM_SYSTEM,
-	.length = sizeof(SA_LOG_STREAM_SYSTEM)
-};
+SaNameT systemStreamName;
+SaNameT alarmStreamName;
+SaNameT globalConfig;
+SaNameT notificationStreamName;
+SaNameT app1StreamName;
+SaNameT notifyingObject;
+SaNameT notificationObject;
+SaNameT configurationObject;
 
-SaNameT alarmStreamName =
-{
-	.value = SA_LOG_STREAM_ALARM,
-	.length = sizeof(SA_LOG_STREAM_ALARM)
-};
-
-SaNameT globalConfig =
-{
-	.value = LOGTST_IMM_LOG_GCFG,
-	.length = sizeof(LOGTST_IMM_LOG_GCFG)
-};
-
-
-SaNameT notificationStreamName =
-{
-	.value = SA_LOG_STREAM_NOTIFICATION,
-	.length = sizeof(SA_LOG_STREAM_NOTIFICATION)
-};
-
-SaNameT app1StreamName =
-{
-	.value = SA_LOG_STREAM_APPLICATION1,
-	.length = sizeof(SA_LOG_STREAM_APPLICATION1)
-};
-
-SaNameT notifyingObject =
-{
-	.value = DEFAULT_NOTIFYING_OBJECT,
-	.length = sizeof(DEFAULT_NOTIFYING_OBJECT)
-};
-
-SaNameT notificationObject =
-{
-	.value = DEFAULT_NOTIFICATION_OBJECT,
-	.length = sizeof(DEFAULT_NOTIFICATION_OBJECT)
-};
-
-SaNameT configurationObject =
-{
-	.value = SA_LOG_CONFIGURATION_OBJECT,
-	.length = sizeof(SA_LOG_CONFIGURATION_OBJECT)
-};
-
-SaNameT saNameT_Object_256 =
-{
-	.value = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+SaConstStringT obj256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"bbbbb",
-	.length = 256
-};
+	"bbbbb";
+SaNameT saNameT_Object_256;
 
-SaNameT saNameT_appstream_name_256 =
-{
-	.value = "safLgStr=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+SaConstStringT name256 = "safLgStr=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	"bbbbb",
-	.length = 256
-};
+	"bbbbb";
+
+SaNameT saNameT_appstream_name_256;
 
 static char buf[2048];
 
@@ -123,11 +81,7 @@ static SaLogBufferT genLogBuffer =
 	.logBufSize = 0,
 };
 
-SaNameT logSvcUsrName = 
-{
-	.value = SA_LOG_STREAM_APPLICATION1,
-	.length = sizeof(SA_LOG_STREAM_APPLICATION1)
-};
+SaNameT logSvcUsrName;
 
 SaLogRecordT genLogRecord =
 {
@@ -169,10 +123,8 @@ int tet_system(const char *command) {
 void init_logrootpath(void)
 {
 	SaImmHandleT omHandle;
-	SaNameT objectName = {
-		.value = "logConfig=1,safApp=safLogService",
-		.length = strlen("logConfig=1,safApp=safLogService")
-	};
+	SaConstStringT config = "logConfig=1,safApp=safLogService";
+	SaNameT objectName;
 	SaImmAccessorHandleT accessorHandle;
 	SaImmAttrValuesT_2 *attribute;
 	SaImmAttrValuesT_2 **attributes;
@@ -180,7 +132,8 @@ void init_logrootpath(void)
 	const char logRootDirectory_name[] = "logRootDirectory";
 	SaImmAttrNameT attributeNames[2] = {(char *) logRootDirectory_name, NULL};
 	void *value;
-	
+
+	saAisNameLend(config, &objectName);
 	/* NOTE: immutil init osaf_assert if error */
 	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	(void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
@@ -352,16 +305,15 @@ int get_active_sc(void)
 {
 	int active_sc = 0;
 	SaImmHandleT omHandle;
-	SaNameT objectName1 = { /* Read object for SC-1 */
-		.value = "safSu=SC-1,safSg=2N,safApp=OpenSAF",
-		.length = strlen("safSu=SC-1,safSg=2N,safApp=OpenSAF") + 1
-	};
+	SaConstStringT objname = "safSu=SC-1,safSg=2N,safApp=OpenSAF";
+	SaNameT objectName1;
 	SaImmAccessorHandleT accessorHandle;
 	SaImmAttrValuesT_2 **attributes;
 	const char saAmfSUNumCurrActiveSIs[] = "saAmfSUNumCurrActiveSIs";
 	SaImmAttrNameT attributeNames[2] = {(char *) saAmfSUNumCurrActiveSIs, NULL};
 	SaUint32T curr_act_sis = 0;
-	
+
+	saAisNameLend(objname, &objectName1);
 	/* NOTE: immutil init osaf_assert if error
 	 */
 	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
@@ -485,6 +437,24 @@ int main(int argc, char **argv)
 	int i=0;
 	char *opt_str_ptr;
 	char *tok_str_ptr = NULL;
+
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0 ) {
+		fprintf(stderr, "Failed to set SA_ENABLE_EXTENDED_NAMES (%s)",
+			strerror(errno));
+		exit(0);
+	}
+
+	saAisNameLend(SA_LOG_STREAM_SYSTEM, &systemStreamName);
+	saAisNameLend(SA_LOG_STREAM_ALARM, &alarmStreamName);
+	saAisNameLend(LOGTST_IMM_LOG_GCFG, &globalConfig);
+	saAisNameLend(SA_LOG_STREAM_NOTIFICATION, &notificationStreamName);
+	saAisNameLend(SA_LOG_STREAM_APPLICATION1, &app1StreamName);
+	saAisNameLend(DEFAULT_NOTIFYING_OBJECT, &notifyingObject);
+	saAisNameLend(DEFAULT_NOTIFICATION_OBJECT, &notificationObject);
+	saAisNameLend(SA_LOG_CONFIGURATION_OBJECT, &configurationObject);
+	saAisNameLend(obj256, &saNameT_Object_256);
+	saAisNameLend(name256, &saNameT_appstream_name_256);
+	saAisNameLend(SA_LOG_STREAM_APPLICATION1, &logSvcUsrName);
 
 	init_logrootpath();
 	srandom(getpid());
