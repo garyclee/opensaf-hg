@@ -490,7 +490,6 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 
 	/* initialze the queue handle tree */
 	params.key_size = sizeof(SaMsgQueueHandleT);
-	params.info_size = 0;
 	if ((rc = ncs_patricia_tree_init(&cb->qhndl_db, &params))
 	    != NCSCC_RC_SUCCESS) {
 		TRACE_2("Controlblock Initialization Failed");
@@ -499,7 +498,6 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 	cb->is_qhdl_db_up = true;
 	/* Initialise the queuename tree */
 	params.key_size = sizeof(SaNameT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->qname_db, &params)) != NCSCC_RC_SUCCESS) {
 		TRACE_2("Initialization of Queue database Failed");
 		rc = NCSCC_RC_FAILURE;
@@ -508,7 +506,6 @@ static uint32_t mqnd_cb_db_init(MQND_CB *cb)
 	cb->is_qname_db_up = true;
 	/*Initialize the qevt node tree */
 	params.key_size = sizeof(SaMsgQueueHandleT);
-	params.info_size = 0;
 	if ((rc = ncs_patricia_tree_init(&cb->q_transfer_evt_db, &params))
 	    != NCSCC_RC_SUCCESS) {
 		TRACE_2("Controlblock Initialization Failed");
