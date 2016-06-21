@@ -85,7 +85,7 @@ extern "C" {
 		union {
 			struct {
 				NCS_OS_CB i_entry_point;
-				char *i_name;
+				const char *i_name;
 				unsigned int i_priority;
 				unsigned int i_stack_nbytes;
 				int i_policy;

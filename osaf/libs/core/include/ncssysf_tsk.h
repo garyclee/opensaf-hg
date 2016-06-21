@@ -204,7 +204,7 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	uint32_t ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, int, unsigned int, void **);
+	uint32_t ncs_task_create(NCS_OS_CB, void *, const char *, unsigned int, int, unsigned int, void **);
 	uint32_t ncs_task_release(void *);
 	uint32_t ncs_task_detach(void *);
 	uint32_t ncs_task_start(void *);
