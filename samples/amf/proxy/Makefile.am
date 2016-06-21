@@ -28,6 +28,7 @@ EXTRA_DIST = \
 bin_PROGRAMS = proxy
 
 proxy_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS)
 
 proxy_SOURCES = \

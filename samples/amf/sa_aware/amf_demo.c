@@ -38,7 +38,13 @@
 #include <libgen.h>
 #include <signal.h>
 #include <saAmf.h>
+#include <saAis.h>
+#include <malloc.h>
+#include <ctype.h>
 
+#define MD5_LEN 32
+//extern void saAisNameLend(SaConstStringT value, SaNameT* name);
+//extern SaConstStringT saAisNameBorrow(const SaNameT* name);
 /* Some dummies in place of real service logic */
 int foo_activate(void)
 {
@@ -102,7 +108,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	if (csi_desc.csiFlags == SA_AMF_CSI_ADD_ONE) {
 
 		syslog(LOG_INFO, "CSI Set - add '%s' HAState %s", 
-			csi_desc.csiName.value, ha_state_name[ha_state]);
+			saAisNameBorrow(&csi_desc.csiName), ha_state_name[ha_state]);
 
 		/* For debug log the CSI attributes, they could
 		** define the workload characteristics */
@@ -117,7 +123,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 			ha_state_name[ha_state]);
 	} else {
 		syslog(LOG_INFO, "CSI Set - HAState %s for '%s'", 
-			ha_state_name[ha_state], csi_desc.csiName.value);
+			ha_state_name[ha_state], saAisNameBorrow(&csi_desc.csiName));
 	}
 
 	switch (ha_state) {
@@ -206,7 +212,7 @@ static void amf_csi_remove_callback(SaInvocationT invocation,
 	if (csi_flags == SA_AMF_CSI_TARGET_ALL)
 		syslog(LOG_INFO, "CSI Remove for all CSIs");
 	else if (csi_flags == SA_AMF_CSI_TARGET_ONE)
-		syslog(LOG_INFO, "CSI Remove for '%s'", csi_name->value);
+		syslog(LOG_INFO, "CSI Remove for '%s'", saAisNameBorrow(csi_name));
 	else
 		// A non valid case, see 7.9.3
 		abort();
@@ -332,7 +338,6 @@ static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 	amf_callbacks.saAmfCSIRemoveCallback = amf_csi_remove_callback;
 	amf_callbacks.saAmfHealthcheckCallback = amf_healthcheck_callback;
 	amf_callbacks.saAmfComponentTerminateCallback = amf_comp_terminate_callback;
-
 	rc = saAmfInitialize(&my_amf_hdl, &amf_callbacks, &api_ver);
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, " saAmfInitialize FAILED %u", rc);
@@ -351,7 +356,9 @@ static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 		goto done;
 	}
 
+	syslog(LOG_INFO, "before saAmfComponentRegister [%s]", saAisNameBorrow(&my_comp_name));
 	rc = saAmfComponentRegister(my_amf_hdl, &my_comp_name, 0);
+	syslog(LOG_INFO, "after saAmfComponentRegister ");
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, "saAmfComponentRegister FAILED %u", rc);
 		goto done;
@@ -367,12 +374,33 @@ done:
 	return rc;
 }
 
+static int getMD5Code(const char *str, char *md5_sum) {
+	char cmd[2048];
+	FILE *pipe;
+	int i, ch;
+
+	sprintf(cmd, "echo %s | md5sum | awk '{print $1}' 2>/dev/null", str);
+	pipe = popen(cmd, "r");
+	if (pipe == NULL) return 0;
+
+	for (i = 0; i < MD5_LEN && isxdigit(ch = fgetc(pipe)); i++) {
+		*md5_sum++ = ch;
+	}
+
+	*md5_sum = '\0';
+	pclose(pipe);
+	return i == MD5_LEN;
+}
+
+
 int main(int argc, char **argv)
 {
 	SaAisErrorT rc;
 	SaSelectionObjectT amf_sel_obj;
 	struct pollfd fds[1];
 	char *env_comp_name;
+	char md5[MD5_LEN + 1];
+	size_t comp_name_length = 0;
 
 	/* Environment variable "SA_AMF_COMPONENT_NAME" exist when started by AMF */
 	if ((env_comp_name = getenv("SA_AMF_COMPONENT_NAME")) == NULL) {
@@ -384,7 +412,7 @@ int main(int argc, char **argv)
 	** This important since our start script will hang forever otherwise.
 	** Note daemon() is not LSB but impl by libc so fairly portable...
 	*/
-	if (daemon(0, 0) == -1) {
+	if (daemon(0, 1) == -1) {
 		syslog(LOG_ERR, "daemon failed: %s", strerror(errno));
 		goto done;
 	}
@@ -399,7 +427,20 @@ int main(int argc, char **argv)
 	** Use AMF component name as file name so multiple instances of this
 	** component can be managed by the same script.
 	*/
-	create_pid_file("/tmp", env_comp_name);
+	// This is a temporary solution to overcome the limit of linux in filename length (255)
+	//create_pid_file("/tmp", env_comp_name);
+	if (!getMD5Code(env_comp_name, md5)) {
+		syslog(LOG_ERR, "failed to get the hash code of comp: %s", env_comp_name);
+		goto done;
+	}
+
+	// Create a file with the hashed name
+	create_pid_file("/tmp", md5);
+
+	// Enable long DN
+	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+		syslog(LOG_ERR, "failed to set SA_ENABLE_EXTENDED_NAMES");
+	}
 
 	/* Use syslog for logging */
 	openlog(basename(argv[0]), LOG_PID, LOG_USER);

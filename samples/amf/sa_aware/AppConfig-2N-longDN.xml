@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2009 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson
+ *
+
+- Admin state of SUs is LOCKED-INSTANTIATION which makes it possible to load
+this file using "immcfg -f"
+
+- With only node in the cluster this object needs to be removed:
+"safInstalledSwBundle=safSmfBundle=AmfDemo,safAmfNode=SC-2,safAmfCluster=myAmfCluster"
+from the file before loaded.
+
+-->
+
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<object class="SaAmfAppBaseType">
+		<dn>safAppType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfSGBaseType">
+		<dn>safSgType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfSUBaseType">
+		<dn>safSuType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfSvcBaseType">
+	    <dn>safSvcType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfCSBaseType">
+	    <dn>safCSType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfSvcType">
+	    <dn>safVersion=1,safSvcType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfAppType">
+		<dn>safVersion=1,safAppType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfApptSGTypes</name>
+			<value>safVersion=1,safSgType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+	</object>
+	<object class="SaAmfSGType">
+		<dn>safVersion=1,safSgType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfSgtRedundancyModel</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtValidSuTypes</name>
+			<value>safVersion=1,safSuType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefAutoAdjustProb</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartProb</name>
+			<value>4000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefCompRestartMax</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartProb</name>
+			<value>4000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfSgtDefSuRestartMax</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSUType">
+		<dn>safVersion=1,safSuType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfSutIsExternal</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSutDefSUFailover</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSutProvidesSvcTypes</name>
+			<value>safVersion=1,safSvcType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=1,safCompType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safSmfBundle=AmfDemo</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>amf_demo_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>instantiate</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>amf_demo_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefQuiescingCompleteTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>2</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefDisableRestart</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCmdEnv</name>
+			<value>AMF_DEMO_VAR1=CT_VALUE1</value>
+			<value>AMF_DEMO_VAR2=CT_VALUE2</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=1,safCSType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=1\,safCompType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,safVersion=1,safSuType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+	  <dn>safMemberCSType=safVersion=1\,safCSType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,safVersion=1,safSvcType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=1\,safCSType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,safVersion=1,safCompType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=AmfDemo,safVersion=1,safCompType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>6000000000</value>
+		</attr>
+	</object>
+
+	<object class="SaAmfApplication">
+		<dn>safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=1,safAppType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+	</object>
+	<object class="SaAmfSG">
+		<dn>safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfSGType</name>
+			<value>safVersion=1,safSgType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+		<attr>
+			<name>saAmfSGSuHostNodeGroup</name>
+			<value>safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoRepair</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGAutoAdjust</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefInserviceSUs</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>saAmfSGNumPrefAssignedSUs</name>
+			<value>10</value>
+		</attr>
+	</object>
+	<object class="SaAmfSI">
+		<dn>safSi=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfSvcType</name>
+			<value>safVersion=1,safSvcType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+		<attr>
+			<name>saAmfSIProtectedbySG</name>
+			<value>safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr> 
+	</object>
+	<object class="SaAmfCSI">
+	    <dn>safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	    <attr>
+		<name>saAmfCSType</name>
+		<value>safVersion=1,safCSType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+	    </attr>
+	</object>
+	<object class="SaSmfSwBundle">
+			<dn>safSmfBundle=AmfDemo</dn>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safSmfBundle=AmfDemo,safAmfNode=SC-1,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>/opt/amf_demo</value>
+		</attr>
+	</object>
+	<object class="SaAmfSU">
+		<dn>safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+			<name>saAmfSUType</name>
+			<value>safVersion=1,safSuType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+		<attr>
+			<name>saAmfSURank</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+	</object>
+	<object class="SaAmfComp">
+                <dn>safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	        <attr>
+		        <name>saAmfCompType</name>
+		        <value>safVersion=1,safCompType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+	        </attr>
+	        <attr>
+			<name>saAmfCompCmdEnv</name>
+			<value>AMF_DEMO_VAR2=COMP1_OVERLOAD_VALUE2</value>
+			<value>AMF_DEMO_VAR3=COMP1_VALUE3</value>
+			<value>AMF_DEMO_VAR4=COMP1_VALUE4</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=safSmfBundle=AmfDemo,safAmfNode=SC-2,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>/opt/amf_demo</value>
+		</attr>
+	</object>
+	<object class="SaAmfSU">
+		<dn>safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+		<attr>
+
+			<name>saAmfSUType</name>
+			<value>safVersion=1,safSuType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+		</attr>
+		<attr>
+			<name>saAmfSURank</name>
+			<value>2</value>
+		</attr>
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+	</object>
+	<object class="SaAmfComp">
+	        <dn>safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	        <attr>
+		        <name>saAmfCompType</name>
+		        <value>safVersion=1,safCompType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</value>
+	        </attr>
+	        <attr>
+			<name>saAmfCompCmdEnv</name>
+			<value>AMF_DEMO_VAR2=COMP2_OVERLOAD_VALUE2</value>
+			<value>AMF_DEMO_VAR3=COMP2_VALUE3</value>
+			<value>AMF_DEMO_VAR4=COMP2_VALUE4</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+	    <dn>safSupportedCsType=safVersion=1\,safCSType=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1LongDNTestingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</dn>
+	</object>
+</imm:IMM-contents>
