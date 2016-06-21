@@ -1445,7 +1445,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 		sLastCcbCommit = ccbId;
 	} else {
 		snprintf(buf, sBufsize,
-			"PBE COMMIT of sqlite transaction %llu epoch%u FAILED rc:%u", ccbId, sEpoch, rc);
+			"PBE COMMIT of sqlite transaction %llu epoch%u FAILED rc:%d", ccbId, sEpoch, rc);
 		TRACE("%s", buf);
 		saImmOiCcbSetErrorString(immOiHandle, ccbId, buf);
 	}

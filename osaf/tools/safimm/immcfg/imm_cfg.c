@@ -588,7 +588,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 						"(see: immcfg -h under '--unsafe')\n");
 				}
 				if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
 				}
 			}
 
@@ -736,7 +736,7 @@ int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 						"(see: immcfg -h under '--unsafe')\n");
 				}
 				if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
 				}
 			}
 			goto done;
@@ -808,7 +808,7 @@ int object_delete(const SaNameT **objectNames)
 						"(see: immcfg -h under '--unsafe')\n");
 				}
 				if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
 				}
 			}
 
@@ -1036,7 +1036,7 @@ static int ccb_apply() {
 					++ix;
 				}
 			} else if(rc2 != SA_AIS_OK) {
-				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
 			}
 
 			rc = EXIT_FAILURE;
@@ -1089,7 +1089,7 @@ static int ccb_validate() {
 					++ix;
 				}
 			} else if(rc2 != SA_AIS_OK) {
-				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
 			}
 		}
 	}
@@ -1665,7 +1665,7 @@ static int imm_operation(int argc, char *argv[])
 						++ix;
 					}
 				} else if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %u\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
 				}
 
 				rc = EXIT_FAILURE;
