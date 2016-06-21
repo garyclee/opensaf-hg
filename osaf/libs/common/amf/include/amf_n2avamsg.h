@@ -103,8 +103,10 @@ void avsv_nda_ava_msg_content_free(AVSV_NDA_AVA_MSG *);
 uint32_t avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *, AVSV_NDA_AVA_MSG *);
 
 uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **, AVSV_AMF_CBK_INFO *);
+uint32_t avsv_amf_api_copy(AVSV_AMF_API_INFO *, AVSV_AMF_API_INFO *);
 uint32_t avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *, const SaAmfCSIAttributeListT *);
 void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *);
+void avsv_amf_api_free(AVSV_AMF_API_INFO *);
 void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *);
 
 uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *);

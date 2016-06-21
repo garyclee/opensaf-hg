@@ -25,6 +25,7 @@
 
 #include "amf.h"
 #include "amf_d2nmsg.h"
+#include "osaf_extended_name.h"
 
 /*****************************************************************************
  * Function: free_d2n_su_msg_info
@@ -47,6 +48,7 @@ static void free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
 	while (su_msg->msg_info.d2n_reg_su.su_list != NULL) {
 		su_info = su_msg->msg_info.d2n_reg_su.su_list;
 		su_msg->msg_info.d2n_reg_su.su_list = su_info->next;
+		osaf_extended_name_free(&su_info->name);
 		free(su_info);
 	}
 }
@@ -70,9 +72,6 @@ static uint32_t cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg)
 {
 	AVSV_SU_INFO_MSG *s_su_info, *d_su_info;
 
-	memset(d_su_msg, '\0', sizeof(AVSV_DND_MSG));
-
-	memcpy(d_su_msg, s_su_msg, sizeof(AVSV_DND_MSG));
 	d_su_msg->msg_info.d2n_reg_su.su_list = NULL;
 
 	s_su_info = s_su_msg->msg_info.d2n_reg_su.su_list;
@@ -85,6 +84,7 @@ static uint32_t cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg)
 		}
 
 		memcpy(d_su_info, s_su_info, sizeof(AVSV_SU_INFO_MSG));
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_su_info->name), &d_su_info->name);
 		d_su_info->next = d_su_msg->msg_info.d2n_reg_su.su_list;
 		d_su_msg->msg_info.d2n_reg_su.su_list = d_su_info;
 
@@ -114,14 +114,24 @@ static uint32_t cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg)
 static void free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
 {
 	AVSV_SUSI_ASGN *compcsi_info;
+	uint16_t i;
 
 	while (susi_msg->msg_info.d2n_su_si_assign.list != NULL) {
 		compcsi_info = susi_msg->msg_info.d2n_su_si_assign.list;
 		susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info->next;
 		if (compcsi_info->attrs.list != NULL) {
+			for (i = 0; i < compcsi_info->attrs.number; i++) {
+				osaf_extended_name_free(&compcsi_info->attrs.list[i].name);
+				osaf_extended_name_free(&compcsi_info->attrs.list[i].value);
+				free(compcsi_info->attrs.list[i].string_ptr);
+				compcsi_info->attrs.list[i].string_ptr = NULL;
+			}
 			free(compcsi_info->attrs.list);
 			compcsi_info->attrs.list = NULL;
 		}
+		osaf_extended_name_free(&compcsi_info->active_comp_name);
+		osaf_extended_name_free(&compcsi_info->comp_name);
+		osaf_extended_name_free(&compcsi_info->csi_name);
 		free(compcsi_info);
 	}
 }
@@ -144,10 +154,13 @@ static void free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
 static uint32_t cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg)
 {
 	AVSV_SUSI_ASGN *s_compcsi_info, *d_compcsi_info;
+	uint16_t i;
 
-	memset(d_susi_msg, '\0', sizeof(AVSV_DND_MSG));
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&s_susi_msg->msg_info.d2n_su_si_assign.si_name),
+		&d_susi_msg->msg_info.d2n_su_si_assign.si_name);
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&s_susi_msg->msg_info.d2n_su_si_assign.su_name),
+		&d_susi_msg->msg_info.d2n_su_si_assign.su_name);
 
-	memcpy(d_susi_msg, s_susi_msg, sizeof(AVSV_DND_MSG));
 	d_susi_msg->msg_info.d2n_su_si_assign.list = NULL;
 
 	s_compcsi_info = s_susi_msg->msg_info.d2n_su_si_assign.list;
@@ -160,6 +173,9 @@ static uint32_t cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_
 		}
 
 		memcpy(d_compcsi_info, s_compcsi_info, sizeof(AVSV_SUSI_ASGN));
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_compcsi_info->active_comp_name), &d_compcsi_info->active_comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_compcsi_info->comp_name), &d_compcsi_info->comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_compcsi_info->csi_name), &d_compcsi_info->csi_name);
 
 		if ((s_compcsi_info->attrs.list != NULL) && (s_compcsi_info->attrs.number > 0)) {
 			d_compcsi_info->attrs.list =
@@ -171,6 +187,17 @@ static uint32_t cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_
 			}
 			memcpy(d_compcsi_info->attrs.list, s_compcsi_info->attrs.list,
 			       (s_compcsi_info->attrs.number * sizeof(*d_compcsi_info->attrs.list)));
+			for (i = 0; i < d_compcsi_info->attrs.number; i++) {
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&s_compcsi_info->attrs.list[i].name),
+					&d_compcsi_info->attrs.list[i].name);
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&s_compcsi_info->attrs.list[i].value),
+					&d_compcsi_info->attrs.list[i].value);
+				if (s_compcsi_info->attrs.list[i].string_ptr != NULL) {
+					strcpy(d_compcsi_info->attrs.list[i].string_ptr, s_compcsi_info->attrs.list[i].string_ptr);
+				}
+			}
+
+
 		}
 		d_compcsi_info->next = d_susi_msg->msg_info.d2n_su_si_assign.list;
 		d_susi_msg->msg_info.d2n_su_si_assign.list = d_compcsi_info;
@@ -200,9 +227,14 @@ static uint32_t cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_
 static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
+	uint16_t i;
 
-	if (info->mem_list.numberOfItems)
+	if (info->mem_list.numberOfItems) {
+		for (i = 0; i< info->mem_list.numberOfItems; i++) {
+			osaf_extended_name_free(&info->mem_list.notification[i].member.compName);
+		}
 		free(info->mem_list.notification);
+	}
 
 	info->mem_list.notification = 0;
 	info->mem_list.numberOfItems = 0;
@@ -228,11 +260,10 @@ static uint32_t cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *d_info = &d_pg_msg->msg_info.d2n_pg_track_act_rsp;
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *s_info = &s_pg_msg->msg_info.d2n_pg_track_act_rsp;
+	uint16_t i;
 
-	memset(d_pg_msg, '\0', sizeof(AVSV_DND_MSG));
-
-	/* copy the common contents */
-	memcpy(d_pg_msg, s_pg_msg, sizeof(AVSV_DND_MSG));
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&s_pg_msg->msg_info.d2n_pg_track_act_rsp.csi_name),
+		&d_pg_msg->msg_info.d2n_pg_track_act_rsp.csi_name);
 
 	if (!s_info->mem_list.numberOfItems)
 		return NCSCC_RC_SUCCESS;
@@ -247,6 +278,13 @@ static uint32_t cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
 	/* copy the mem-list */
 	memcpy(d_info->mem_list.notification, s_info->mem_list.notification,
 	       sizeof(SaAmfProtectionGroupNotificationT) * s_info->mem_list.numberOfItems);
+
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&s_info->mem_list.notification->member.compName),
+		&d_info->mem_list.notification->member.compName);
+	for (i = 0; i < d_info->mem_list.numberOfItems; i++){
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_info->mem_list.notification[i].member.compName),
+								 &d_info->mem_list.notification[i].member.compName);
+	}
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -273,9 +311,6 @@ static uint32_t cpy_n2d_nd_sisu_state_info(AVSV_DND_MSG *dst, const AVSV_DND_MSG
 	const AVSV_SU_STATE_MSG *src_su;
 	AVSV_SU_STATE_MSG *dst_su;
 
-	memset(dst, '\0', sizeof(AVSV_DND_MSG));
-
-	memcpy(dst, src, sizeof(AVSV_DND_MSG));
 	dst->msg_info.n2d_nd_sisu_state_info.sisu_list = NULL;
 	dst->msg_info.n2d_nd_sisu_state_info.su_list = NULL;
 
@@ -289,6 +324,12 @@ static uint32_t cpy_n2d_nd_sisu_state_info(AVSV_DND_MSG *dst, const AVSV_DND_MSG
 		// insert at the start
 		dst_sisu->next = dst->msg_info.n2d_nd_sisu_state_info.sisu_list;
 		dst->msg_info.n2d_nd_sisu_state_info.sisu_list = dst_sisu;
+
+		// Copy the SaNameT
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&src_sisu->safSU),
+								 &dst_sisu->safSU);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&src_sisu->safSI),
+								 &dst_sisu->safSI);
 
 		// now go to the next sisu info in source
 		src_sisu = src_sisu->next;
@@ -304,6 +345,10 @@ static uint32_t cpy_n2d_nd_sisu_state_info(AVSV_DND_MSG *dst, const AVSV_DND_MSG
 		// insert at the start
 		dst_su->next = dst->msg_info.n2d_nd_sisu_state_info.su_list;
 		dst->msg_info.n2d_nd_sisu_state_info.su_list = dst_su;
+
+		// Copy SaNameT
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&src_su->safSU),
+								 &dst_su->safSU);
 
 		// now go to the next su info in source
 		src_su = src_su->next;
@@ -333,9 +378,6 @@ static uint32_t cpy_n2d_nd_csicomp_state_info(AVSV_DND_MSG *dst, const AVSV_DND_
 	const AVSV_COMP_STATE_MSG *src_comp;
 	AVSV_COMP_STATE_MSG *dst_comp;
 
-	memset(dst, '\0', sizeof(AVSV_DND_MSG));
-
-	memcpy(dst, src, sizeof(AVSV_DND_MSG));
 	dst->msg_info.n2d_nd_csicomp_state_info.csicomp_list = NULL;
 	dst->msg_info.n2d_nd_csicomp_state_info.comp_list = NULL;
 
@@ -349,6 +391,12 @@ static uint32_t cpy_n2d_nd_csicomp_state_info(AVSV_DND_MSG *dst, const AVSV_DND_
 		// insert at the start
 		dst_csicomp->next = dst->msg_info.n2d_nd_csicomp_state_info.csicomp_list;
 		dst->msg_info.n2d_nd_csicomp_state_info.csicomp_list = dst_csicomp;
+
+		// Copy SaNameT
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&src_csicomp->safComp),
+								 &dst_csicomp->safComp);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&src_csicomp->safCSI),
+								 &dst_csicomp->safCSI);
 
 		// now go to the next csicomp info in source
 		src_csicomp = src_csicomp->next;
@@ -365,8 +413,81 @@ static uint32_t cpy_n2d_nd_csicomp_state_info(AVSV_DND_MSG *dst, const AVSV_DND_
 		dst_comp->next = dst->msg_info.n2d_nd_csicomp_state_info.comp_list;
 		dst->msg_info.n2d_nd_csicomp_state_info.comp_list = dst_comp;
 
+		// Copy SaNameT
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&src_comp->safComp),
+								 &dst_comp->safComp);
+
 		// now go to the next comp info in source
 		src_comp = src_comp->next;
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
+
+/*****************************************************************************
+ * Function: free_d2n_comp_msg_info
+ *
+ * Purpose:  This function frees the d2n COMP message contents.
+ *
+ * Input: comp_msg - Pointer to the COMP message contents to be freed.
+ *
+ * Returns: None
+ *
+ * NOTES: none.
+ *
+ * 
+ **************************************************************************/
+
+static void free_d2n_comp_msg_info(AVSV_DND_MSG *comp_msg)
+{
+	AVSV_COMP_INFO_MSG *comp_info;
+
+	while (comp_msg->msg_info.d2n_reg_comp.list != NULL) {
+		comp_info = comp_msg->msg_info.d2n_reg_comp.list;
+		comp_msg->msg_info.d2n_reg_comp.list = comp_info->next;
+		osaf_extended_name_free(&comp_info->comp_info.name);
+		free(comp_info);
+	}
+}
+
+/*****************************************************************************
+ * Function: cpy_d2n_comp_msg
+ *
+ * Purpose:  This function makes a copy of the d2n COMP message.
+ *
+ * Input: d_comp_msg - Pointer to the COMP message to be copied to.
+ *        s_comp_msg - Pointer to the COMP message to be copied.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * NOTES: none.
+ *
+ * 
+ **************************************************************************/
+
+static uint32_t cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_msg)
+{
+	AVSV_COMP_INFO_MSG *s_comp_info, *d_comp_info;
+
+	d_comp_msg->msg_info.d2n_reg_comp.list = NULL;
+
+	s_comp_info = s_comp_msg->msg_info.d2n_reg_comp.list;
+
+	while (s_comp_info != NULL) {
+		d_comp_info = malloc(sizeof(AVSV_COMP_INFO_MSG));
+		if (d_comp_info == NULL) {
+			free_d2n_comp_msg_info(d_comp_msg);
+			return NCSCC_RC_FAILURE;
+		}
+
+		memcpy(d_comp_info, s_comp_info, sizeof(AVSV_COMP_INFO_MSG));
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_comp_info->comp_info.name),
+								 &d_comp_info->comp_info.name);
+		d_comp_info->next = d_comp_msg->msg_info.d2n_reg_comp.list;
+		d_comp_msg->msg_info.d2n_reg_comp.list = d_comp_info;
+
+		/* go to the next comp info in source */
+		s_comp_info = s_comp_info->next;
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -399,17 +520,71 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 	case AVSV_D2N_REG_SU_MSG:
 		free_d2n_su_msg_info(msg);
 		break;
+	case AVSV_D2N_REG_COMP_MSG:
+		free_d2n_comp_msg_info(msg);
+		break;
 	case AVSV_D2N_INFO_SU_SI_ASSIGN_MSG:
 		free_d2n_susi_msg_info(msg);
+		osaf_extended_name_free(&msg->msg_info.d2n_su_si_assign.si_name);
+		osaf_extended_name_free(&msg->msg_info.d2n_su_si_assign.su_name);
 		break;
 	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
 		free_d2n_pg_msg_info(msg);
+		osaf_extended_name_free(&msg->msg_info.d2n_pg_track_act_rsp.csi_name);
+		break;
+	case AVSV_D2N_PG_UPD_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_pg_upd.csi_name);
+		osaf_extended_name_free(&msg->msg_info.d2n_pg_upd.mem.member.compName);
+		break;
+	case AVSV_D2N_OPERATION_REQUEST_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_op_req.param_info.name);
+		osaf_extended_name_free(&msg->msg_info.d2n_op_req.param_info.name_sec);
+		break;
+	case AVSV_D2N_PRESENCE_SU_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_prsc_su.su_name);
+		break;
+	case AVSV_D2N_COMP_VALIDATION_RESP_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_comp_valid_resp_info.comp_name);
+		break;
+	case AVSV_D2N_ADMIN_OP_REQ_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_admin_op_req_info.dn);
 		break;
 	case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
 		avsv_free_n2d_nd_sisu_state_info(msg);
 		break;
 	case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
 		avsv_free_n2d_nd_csicomp_state_info(msg);
+		break;
+	case AVSV_N2D_NODE_UP_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_node_up.node_name);
+		break;
+	case AVSV_N2D_REG_SU_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_reg_su.su_name);
+		break;
+	case AVSV_N2D_REG_COMP_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_reg_comp.comp_name);
+		break;
+	case AVSV_N2D_OPERATION_STATE_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_opr_state.su_name);
+		break;
+	case AVSV_N2D_INFO_SU_SI_ASSIGN_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_su_si_assign.su_name);
+		osaf_extended_name_free(&msg->msg_info.n2d_su_si_assign.si_name);
+		break;
+	case AVSV_N2D_PG_TRACK_ACT_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_pg_trk_act.csi_name);
+		break;
+	case AVSV_N2D_OPERATION_REQUEST_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_op_req.param_info.name);
+		osaf_extended_name_free(&msg->msg_info.n2d_op_req.param_info.name_sec);	
+		break;
+	case AVSV_N2D_DATA_REQUEST_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_data_req.param_info.name);
+		osaf_extended_name_free(&msg->msg_info.n2d_data_req.param_info.name_sec);	
+		break;
+	case AVSV_N2D_COMP_VALIDATION_MSG:
+		osaf_extended_name_free(&msg->msg_info.n2d_comp_valid_info.comp_name);
+		osaf_extended_name_free(&msg->msg_info.n2d_comp_valid_info.proxy_comp_name);
 		break;
 	default:
 		break;
@@ -441,23 +616,96 @@ uint32_t avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 		return NCSCC_RC_FAILURE;
 	}
 
+	// Copy the raw content
+	memset(dmsg, '\0', sizeof(AVSV_DND_MSG));
+	memcpy(dmsg, smsg, sizeof(AVSV_DND_MSG));
+
 	/* these messages have information list in them copy them
 	 * along with copying the contents.
 	 */
 	switch (smsg->msg_type) {
 	case AVSV_D2N_REG_SU_MSG:
 		return cpy_d2n_su_msg(dmsg, smsg);
+	case AVSV_D2N_REG_COMP_MSG:
+		return cpy_d2n_comp_msg(dmsg, smsg);
 	case AVSV_D2N_INFO_SU_SI_ASSIGN_MSG:
 		return cpy_d2n_susi_msg(dmsg, smsg);
 	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
 		return cpy_d2n_pg_msg(dmsg, smsg);
+	case AVSV_D2N_PG_UPD_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.d2n_pg_upd.csi_name),
+								 &dmsg->msg_info.d2n_pg_upd.csi_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.d2n_pg_upd.mem.member.compName),
+								 &dmsg->msg_info.d2n_pg_upd.mem.member.compName);
+		break;
+	case AVSV_D2N_OPERATION_REQUEST_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.d2n_op_req.param_info.name),
+								 &dmsg->msg_info.d2n_op_req.param_info.name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.d2n_op_req.param_info.name_sec),
+								 &dmsg->msg_info.d2n_op_req.param_info.name_sec);
+		break;
+	case AVSV_D2N_PRESENCE_SU_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.d2n_prsc_su.su_name),
+								 &dmsg->msg_info.d2n_prsc_su.su_name);
+		break;
+	case AVSV_D2N_COMP_VALIDATION_RESP_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.d2n_comp_valid_resp_info.comp_name),
+								 &dmsg->msg_info.d2n_comp_valid_resp_info.comp_name);
+		break;
+	case AVSV_D2N_ADMIN_OP_REQ_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.d2n_admin_op_req_info.dn),
+								 &dmsg->msg_info.d2n_admin_op_req_info.dn);
+		break;
 	case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
 		return cpy_n2d_nd_sisu_state_info(dmsg, smsg);
 	case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
 		return cpy_n2d_nd_csicomp_state_info(dmsg, smsg);
+	case AVSV_N2D_NODE_UP_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_node_up.node_name),
+								 &dmsg->msg_info.n2d_node_up.node_name);
+		break;
+	case AVSV_N2D_REG_SU_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_reg_su.su_name),
+								 &dmsg->msg_info.n2d_reg_su.su_name);
+		break;
+	case AVSV_N2D_REG_COMP_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_reg_comp.comp_name),
+								 &dmsg->msg_info.n2d_reg_comp.comp_name);
+		break;
+	case AVSV_N2D_OPERATION_STATE_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_opr_state.su_name),
+								 &dmsg->msg_info.n2d_opr_state.su_name);
+		break;
+	case AVSV_N2D_INFO_SU_SI_ASSIGN_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_su_si_assign.su_name),
+								 &dmsg->msg_info.n2d_su_si_assign.su_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_su_si_assign.si_name),
+								 &dmsg->msg_info.n2d_su_si_assign.si_name);
+		break;
+	case AVSV_N2D_PG_TRACK_ACT_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_pg_trk_act.csi_name),
+								 &dmsg->msg_info.n2d_pg_trk_act.csi_name);
+		break;
+	case AVSV_N2D_OPERATION_REQUEST_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_op_req.param_info.name),
+								 &dmsg->msg_info.n2d_op_req.param_info.name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_op_req.param_info.name_sec),
+								 &dmsg->msg_info.n2d_op_req.param_info.name_sec);
+		break;
+	case AVSV_N2D_DATA_REQUEST_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_data_req.param_info.name),
+								 &dmsg->msg_info.n2d_data_req.param_info.name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_data_req.param_info.name_sec),
+								 &dmsg->msg_info.n2d_data_req.param_info.name_sec);
+		break;
+	case AVSV_N2D_COMP_VALIDATION_MSG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_comp_valid_info.comp_name),
+								 &dmsg->msg_info.n2d_comp_valid_info.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->msg_info.n2d_comp_valid_info.proxy_comp_name),
+								 &dmsg->msg_info.n2d_comp_valid_info.proxy_comp_name);
+		break;
 	default:
-		/* copy only the contents */
-		memcpy(dmsg, smsg, sizeof(AVSV_DND_MSG));
+		/* Already copied above */
 		break;
 	}
 
@@ -501,7 +749,11 @@ void avsv_free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg)
 	TRACE("%u CSICOMP records to free", info->num_csicomp);
 
 	while (csicomp_ptr != NULL) {
-		TRACE("freeing %s:%s", (char*)csicomp_ptr->safCSI.value, (char*)csicomp_ptr->safComp.value);
+		TRACE("freeing %s:%s", osaf_extended_name_borrow(&csicomp_ptr->safCSI),
+			  osaf_extended_name_borrow(&csicomp_ptr->safComp));
+		// Free SaNameT
+		osaf_extended_name_free(&csicomp_ptr->safCSI);
+		osaf_extended_name_free(&csicomp_ptr->safComp);
 		next_csicomp_ptr = csicomp_ptr->next;
 		free(csicomp_ptr);
 		csicomp_ptr = next_csicomp_ptr;
@@ -516,7 +768,8 @@ void avsv_free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg)
 	TRACE("%u COMP records to free", info->num_comp);
 
 	while (comp_ptr != NULL) {
-		TRACE("freeing %s", (char*)comp_ptr->safComp.value);
+		TRACE("freeing %s", osaf_extended_name_borrow(&comp_ptr->safComp));
+		osaf_extended_name_free(&comp_ptr->safComp);
 		next_comp_ptr = comp_ptr->next;
 		free(comp_ptr);
 		comp_ptr = next_comp_ptr;
@@ -569,7 +822,10 @@ void avsv_free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg)
 	TRACE("%u SISU records to free", info->num_sisu);
 
 	while (sisu_ptr != NULL) {
-		TRACE("freeing %s:%s", (char*)sisu_ptr->safSI.value, (char*)sisu_ptr->safSU.value);
+		TRACE("freeing %s:%s", osaf_extended_name_borrow(&sisu_ptr->safSI),
+			 osaf_extended_name_borrow(&sisu_ptr->safSU));
+		osaf_extended_name_free(&sisu_ptr->safSI);
+		osaf_extended_name_free(&sisu_ptr->safSU);
 		next_sisu_ptr = sisu_ptr->next;
 		free(sisu_ptr);
 		sisu_ptr = next_sisu_ptr;
@@ -584,7 +840,8 @@ void avsv_free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg)
 	TRACE("%u SU records to free", info->num_su);
 
 	while (su_ptr != NULL) {
-		TRACE("freeing %s", (char*)su_ptr->safSU.value);
+		TRACE("freeing %s", osaf_extended_name_borrow(&su_ptr->safSU));
+		osaf_extended_name_free(&su_ptr->safSU);
 		next_su_ptr = su_ptr->next;
 		free(su_ptr);
 		su_ptr = next_su_ptr;

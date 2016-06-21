@@ -630,6 +630,7 @@ int avsv_api_resp_info_test_type_fnc(NCSCONTEXT arg)
 	case AVSV_AMF_SEL_OBJ_GET:
 	case AVSV_AMF_DISPATCH:
 	case AVSV_AMF_COMP_NAME_GET:
+	case AVSV_AMF_COMP_TERM_RSP:
 		return LCL_JMP_OFFSET_AVSV_N2A_OTHER_API_RESP_INFO;
 
 	default:
