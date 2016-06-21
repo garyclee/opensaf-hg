@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 	SaVersionT ver = {.releaseCode = 'B', ver.majorVersion = 0x04, ver.minorVersion = 0x01};
 	SaAisErrorT rc;
 	SaAmfHandleT amf_hdl;
-	SaNameT compName = {0};
+	SaNameT compName;
 	char *prog = basename(argv[0]);
 	SaUint64T processId = 0;
 	bool start = false;
@@ -157,6 +157,8 @@ int main(int argc, char **argv)
 	char *pidfile = NULL;
 	char *dn;
 	SaAmfRecommendedRecoveryT recrec = SA_AMF_NO_RECOMMENDATION;
+	char name[2048];
+	int length;
 
 	while (1) {
 		c = getopt_long(argc, argv, "af:p:hor:", long_options, NULL);
@@ -193,14 +195,13 @@ int main(int argc, char **argv)
 
 	/* DN specified as argument has precendence of env var */
 	if ((argc - optind) == 1) {
-		compName.length = snprintf((char*) compName.value, sizeof(compName.value), "%s", argv[optind]);
-		if (compName.length >=  sizeof(compName.value)) {
+		length = snprintf((char*)name, sizeof(name), "%s", argv[optind]);
+		if (length >=  sizeof(name)) {
 			logerr("too long DN\n");
 			exit(EXIT_FAILURE);
 		}
 	} else if ((dn = getenv("SA_AMF_COMPONENT_NAME")) != NULL) {
-		compName.length = snprintf((char*) compName.value,
-								   sizeof(compName.value), "%s", dn);
+		length = snprintf((char*) name, sizeof(name), "%s", dn);
 
 		/* If AMF component use syslog for errors. */
 		usesyslog = true;
@@ -228,17 +229,18 @@ int main(int argc, char **argv)
 	** by LSB start_daemon (and friends) using basename from DN
 	*/
 	if ((processId == 0) && (pidfile == NULL)) {
-		char basename[64];
+		char basename[2048];
 		char *start, *stop, *p;
 		int i;
+		int pidfilelen;
 	
-		start = strchr((char*)compName.value, '=');
+		start = strchr((char*)name, '=');
 		if (start == NULL) {
 			logerr("invalid component DN\n");
 			exit(EXIT_FAILURE);
 		}
 
-		stop = strchr((char*)compName.value, ',');
+		stop = strchr((char*)name, ',');
 		if (stop == NULL) {
 			logerr("invalid component DN\n");
 			exit(EXIT_FAILURE);
@@ -248,9 +250,10 @@ int main(int argc, char **argv)
 			basename[i] = *p;
 
 		basename[i] = '\0';
+		pidfilelen = strlen(basename) + 15;
 
-		pidfile = malloc(64);
-		snprintf(pidfile, 64, "/var/run/%s.pid", basename);
+		pidfile = malloc(pidfilelen);
+		snprintf(pidfile, pidfilelen, "/var/run/%s.pid", basename);
 	}
 
 	if (processId == 0) {
@@ -262,7 +265,9 @@ int main(int argc, char **argv)
 		logerr("saAmfInitialize FAILED %u\n", rc);
 		exit(EXIT_FAILURE);
 	}
-
+	
+	// Assign the component name
+	saAisNameLend((char *)name, &compName);
 	if (start) {
 		rc = saAmfPmStart_3(amf_hdl, &compName, processId, descendentsTreeDepth,
 							pmErr, recrec);
@@ -276,6 +281,10 @@ int main(int argc, char **argv)
 			logerr("saAmfPmStop FAILED %u\n", rc);
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	if (pidfile != NULL) {
+		free(pidfile);
 	}
 
 	(void) saAmfFinalize(amf_hdl);
