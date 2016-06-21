@@ -316,7 +316,6 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 
 	/* Intialize all the patrica trees */
 	params.key_size = sizeof(uint32_t);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->glnd_details, &params))
 	    != NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree init failed");
@@ -326,7 +325,6 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 	gld_cb->glnd_details_tree_up = true;
 
 	params.key_size = sizeof(uint32_t);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->rsc_info_id, &params))
 	    != NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree init failed");
@@ -336,7 +334,6 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 	gld_cb->rsc_info_id_tree_up = true;
 
 	params.key_size = sizeof(SaNameT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&gld_cb->rsc_map_info, &params))
 	    != NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree init failed");

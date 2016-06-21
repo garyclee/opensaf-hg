@@ -73,7 +73,6 @@ GLND_CB *glnd_cb_create(uint32_t pool_id)
 	/* create the internal strucutures */
 	/* create the client Tree */
 	params.key_size = sizeof(SaLckHandleT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&glnd_cb->glnd_client_tree, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("GLND Client tree init failed mds_dest_id: %" PRIx64, glnd_cb->glnd_mdest_id);
 		goto client_err;
@@ -81,7 +80,6 @@ GLND_CB *glnd_cb_create(uint32_t pool_id)
 
 	/* create the agent tree */
 	params.key_size = sizeof(MDS_DEST);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&glnd_cb->glnd_agent_tree, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("GLND agent tree init failed mds_dest_id: %" PRIx64, glnd_cb->glnd_mdest_id);
 		goto agent_err;
@@ -89,7 +87,6 @@ GLND_CB *glnd_cb_create(uint32_t pool_id)
 
 	/* create the Resource tree */
 	params.key_size = sizeof(SaLckResourceIdT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&glnd_cb->glnd_res_tree, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("GLND Rsc tree init failed mds_dest_id: %" PRIx64, glnd_cb->glnd_mdest_id);
 		goto res_err;
