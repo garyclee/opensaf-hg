@@ -63,7 +63,6 @@ uint32_t ava_hdl_init(AVA_HDL_DB *hdl_db)
 
 	/* init the hdl db tree */
 	param.key_size = sizeof(uint32_t);
-	param.info_size = 0;
 
 	rc = ncs_patricia_tree_init(&hdl_db->hdl_db_anchor, &param);
 	if (NCSCC_RC_SUCCESS == rc)
