@@ -108,7 +108,6 @@ uint32_t plms_db_init()
 	/* Initialize base_he_info tree */
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaNameT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->base_he_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("base_he_info tree init failed");
 		return NCSCC_RC_FAILURE;
@@ -117,7 +116,6 @@ uint32_t plms_db_init()
 	/* Initialize base_ee_info tree */
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaNameT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->base_ee_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("base_ee_info tree init failed");
 		return NCSCC_RC_FAILURE;
@@ -126,7 +124,6 @@ uint32_t plms_db_init()
 	/* Initialize entity_info tree */
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaNameT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->entity_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("entity info tree init failed");
 		return NCSCC_RC_FAILURE;
@@ -135,7 +132,6 @@ uint32_t plms_db_init()
 	/* Initialize  epath_to_entity_map_info tree */
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaHpiEntityPathT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->epath_to_entity_map_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("epath_to_entity_map_info tree init failed");
 		return NCSCC_RC_FAILURE;
@@ -144,7 +140,6 @@ uint32_t plms_db_init()
 	/* Initialize client_info tree */
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaPlmHandleT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->client_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("client info tree init failed");
 		return NCSCC_RC_FAILURE;
@@ -153,7 +148,6 @@ uint32_t plms_db_init()
 	/* Initialize entity_group_info tree */
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaPlmEntityGroupHandleT);
-	params.info_size = 0;
 	if ((ncs_patricia_tree_init(&cb->entity_group_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("entity group info tree init failed");
 		return NCSCC_RC_FAILURE;
