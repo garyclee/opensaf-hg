@@ -37,7 +37,7 @@ static uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **, AVA_HDL_REC **);
 static uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **, AVA_HDL_REC **);
 static uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **, AVA_HDL_REC **);
 
-static void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *, SaAmfCallbacksT *);
+static uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *, SaAmfCallbacksT *);
 
 static void ava_hdl_pend_resp_list_del(AVA_CB *, AVA_PEND_RESP *);
 static bool ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg);
@@ -373,7 +373,7 @@ uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 		ncshm_give_hdl(hdl);
 
 		/* process the callback list record */
-		ava_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
+		rc = ava_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
 
 		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
@@ -444,7 +444,7 @@ uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 		ncshm_give_hdl(hdl);
 
 		/* process the callback list record */
-		ava_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
+		rc = ava_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
 
 		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
@@ -527,7 +527,7 @@ uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 		m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
 		/* process the callback list record */
-		ava_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
+		rc = ava_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
 
 		/* take cb lock, so that any call to SaAmfResponce() will block */
 		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
@@ -577,121 +577,127 @@ uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
  
   Return Values : None
  
-  Notes         : It may so happen that the callbacks that are dispatched may 
+  Notes         : - It may so happen that the callbacks that are dispatched may
                   finalize on the amf handle. Release AMF handle to the handle
                   manager before dispatching. Else Finalize blocks while 
                   destroying the association with handle manager.
+                  - Since AMF supports LongDn, though AMF client still has
+                  not supported LongDn, the callback comes may contain LongDn
+                  SaNameT. AMF Agent needs to drop this callback so that AMF
+                  client will not able to access LongDn SaNameT, otherwise
+                  client could be crashed.
 ******************************************************************************/
-void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
+uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 {
+	uint32_t rc = SA_AIS_OK;
+	uint32_t i;
 	TRACE_ENTER2("CallbackType = %d",info->type);
 
 	/* invoke the corresponding callback */
 	switch (info->type) {
-	case AVSV_AMF_HC:
-		{
+		case AVSV_AMF_HC: {
 			AVSV_AMF_HC_PARAM *hc = &info->param.hc;
-			if (reg_cbk->saAmfHealthcheckCallback) {
-				hc->comp_name.length = hc->comp_name.length;
-				TRACE("Invoking Healthcheck Callback:\
-					InvocationId = %llx, Component Name =  %s, Healthcheck Key = %s",
-					info->inv, hc->comp_name.value, hc->hc_key.key);
-				reg_cbk->saAmfHealthcheckCallback(info->inv, &hc->comp_name, &hc->hc_key);
+			if (!ava_sanamet_is_valid(&hc->comp_name)) {
+				rc = SA_AIS_ERR_NAME_TOO_LONG;
 			}
-		}
-		break;
+			if (rc == SA_AIS_OK && reg_cbk->saAmfHealthcheckCallback) {
+					TRACE("Invoking Healthcheck Callback:"
+						"InvocationId = %llx, Component Name =  %s, Healthcheck Key = %s",
+						info->inv, osaf_extended_name_borrow(&hc->comp_name), hc->hc_key.key);
+					reg_cbk->saAmfHealthcheckCallback(info->inv, &hc->comp_name, &hc->hc_key);
+			}
 
-	case AVSV_AMF_COMP_TERM:
-		{
+			break;
+		}
+		case AVSV_AMF_COMP_TERM: {
 			AVSV_AMF_COMP_TERM_PARAM *comp_term = &info->param.comp_term;
-
-			if (reg_cbk->saAmfComponentTerminateCallback) {
-				comp_term->comp_name.length = comp_term->comp_name.length;
-				TRACE("Invoking component's saAmfComponentTerminateCallback: InvocationId = %llx,\
-					 component name = %s",info->inv, comp_term->comp_name.value);
-				reg_cbk->saAmfComponentTerminateCallback(info->inv, &comp_term->comp_name);
+			if (!ava_sanamet_is_valid(&comp_term->comp_name)) {
+				rc = SA_AIS_ERR_NAME_TOO_LONG;
 			}
+			if (rc == SA_AIS_OK && reg_cbk->saAmfComponentTerminateCallback) {
+					TRACE("Invoking component's saAmfComponentTerminateCallback: InvocationId = %llx,"
+						 "component name = %s",info->inv, osaf_extended_name_borrow(&comp_term->comp_name));
+					reg_cbk->saAmfComponentTerminateCallback(info->inv, &comp_term->comp_name);
+			}
+			break;
 		}
-		break;
-
-	case AVSV_AMF_CSI_SET:
-		{
+		case AVSV_AMF_CSI_SET: {
 			AVSV_AMF_CSI_SET_PARAM *csi_set = &info->param.csi_set;
 
-			if (reg_cbk->saAmfCSISetCallback) {
-				csi_set->comp_name.length = csi_set->comp_name.length;
+			if (!ava_sanamet_is_valid(&csi_set->csi_desc.csiName) ||
+				!ava_sanamet_is_valid(&csi_set->comp_name) ||
+				!ava_sanamet_is_valid(&csi_set->csi_desc.csiStateDescriptor.activeDescriptor.activeCompName) ||
+				!ava_sanamet_is_valid(&csi_set->csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName)) {
+				rc = SA_AIS_ERR_NAME_TOO_LONG;
+			}
 
-				if (SA_AMF_CSI_TARGET_ALL != csi_set->csi_desc.csiFlags) {
-					csi_set->csi_desc.csiName.length = csi_set->csi_desc.csiName.length;
-				}
-
-				TRACE("CSISet: CSIName = %s, CSIFlags = %d, HA state = %d",\
-					csi_set->csi_desc.csiName.value,csi_set->csi_desc.csiFlags,csi_set->ha);
-
-				if ((SA_AMF_HA_ACTIVE == csi_set->ha) &&
-				    (SA_AMF_CSI_NEW_ASSIGN !=
-				     csi_set->csi_desc.csiStateDescriptor.activeDescriptor.transitionDescriptor)) {
-					csi_set->csi_desc.csiStateDescriptor.activeDescriptor.activeCompName.length =
-					    csi_set->csi_desc.csiStateDescriptor.activeDescriptor.activeCompName.length;
-				} else if (SA_AMF_HA_STANDBY == csi_set->ha) {
-					csi_set->csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName.length =
-					    csi_set->csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName.
-					    length;
-				}
-
-				TRACE("CSISet: Active Transition Descriptor = %u, Active Component Name = %s",\
-					csi_set->csi_desc.csiStateDescriptor.activeDescriptor.transitionDescriptor,\
-					csi_set->csi_desc.csiStateDescriptor.activeDescriptor.activeCompName.value);
-				TRACE("CSISet: ActiveCompName = %s, StandbyRank = %u",\
-					csi_set->csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName.value,\
+			if (rc == SA_AIS_OK && reg_cbk->saAmfCSISetCallback) {
+				TRACE("CSISet: CSIName = %s, CSIFlags = %d, HA state = %d",
+					osaf_extended_name_borrow(&csi_set->csi_desc.csiName),csi_set->csi_desc.csiFlags,csi_set->ha);
+				TRACE("CSISet: Active Transition Descriptor = %u, Active Component Name = %s",
+					csi_set->csi_desc.csiStateDescriptor.activeDescriptor.transitionDescriptor,
+					osaf_extended_name_borrow(&csi_set->csi_desc.csiStateDescriptor.activeDescriptor.activeCompName));
+				TRACE("CSISet: ActiveCompName = %s, StandbyRank = %u",
+					osaf_extended_name_borrow(&csi_set->csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName),
 					csi_set->csi_desc.csiStateDescriptor.standbyDescriptor.standbyRank);
-				TRACE("Invoking component's saAmfCSISetCallback: InvocationId = %llx, component name = %s",\
-				info->inv,csi_set->comp_name.value);
+				TRACE("Invoking component's saAmfCSISetCallback: InvocationId = %llx, component name = %s",
+					info->inv,osaf_extended_name_borrow(&csi_set->comp_name));
 				reg_cbk->saAmfCSISetCallback(info->inv,
-						&csi_set->comp_name, csi_set->ha, csi_set->csi_desc);
+					&csi_set->comp_name, csi_set->ha, csi_set->csi_desc);
 			}
-		}
-		break;
 
-	case AVSV_AMF_CSI_REM:
-		{
+			break;
+		}
+		case AVSV_AMF_CSI_REM: {
 			AVSV_AMF_CSI_REM_PARAM *csi_rem = &info->param.csi_rem;
-
-			if (reg_cbk->saAmfCSIRemoveCallback) {
-				csi_rem->comp_name.length = csi_rem->comp_name.length;
-				csi_rem->csi_name.length = csi_rem->csi_name.length;
-				TRACE("Invoking component's saAmfCSIRemoveCallback: InvocationId = %llx, component name = %s,\
-				CSIName = %s",info->inv,csi_rem->comp_name.value,csi_rem->csi_name.value);
-				reg_cbk->saAmfCSIRemoveCallback(info->inv,
-								&csi_rem->comp_name,
-								&csi_rem->csi_name, csi_rem->csi_flags);
+			if (!ava_sanamet_is_valid(&csi_rem->comp_name) ||
+				!ava_sanamet_is_valid(&csi_rem->csi_name)) {
+				rc = SA_AIS_ERR_NAME_TOO_LONG;
 			}
+			if (rc == SA_AIS_OK && reg_cbk->saAmfCSIRemoveCallback) {
+				TRACE("Invoking component's saAmfCSIRemoveCallback: InvocationId = %llx, component name = %s,"
+					"CSIName = %s",info->inv,osaf_extended_name_borrow(&csi_rem->comp_name),
+					osaf_extended_name_borrow(&csi_rem->csi_name));
+				reg_cbk->saAmfCSIRemoveCallback(info->inv,
+									&csi_rem->comp_name,
+									&csi_rem->csi_name, csi_rem->csi_flags);
+			}
+			break;
 		}
-		break;
-
-	case AVSV_AMF_PG_TRACK:
-		{
+		case AVSV_AMF_PG_TRACK:	{
 			AVSV_AMF_PG_TRACK_PARAM *pg_track = &info->param.pg_track;
 
 			if(ava_B4_ver_used(0)) {
 				SaAmfProtectionGroupNotificationBufferT_4 buf ={0};
-
-				if (reg_cbk->saAmfProtectionGroupTrackCallback) {
-					pg_track->csi_name.length = pg_track->csi_name.length;
+				for (i = 0 ; i < pg_track->buf.numberOfItems ; i++) {
+					if (!ava_sanamet_is_valid(&pg_track->buf.notification[i].member.compName)) {
+						rc = SA_AIS_ERR_NAME_TOO_LONG;
+						break;
+					}
+				}
+				if (rc == SA_AIS_OK && reg_cbk->saAmfProtectionGroupTrackCallback) {
 					TRACE("PG track Information: Total number of items in buffer = %d",pg_track->buf.numberOfItems);
-
 					/* copy the contents into a malloced buffer.. appl frees it */
 					buf.numberOfItems = pg_track->buf.numberOfItems;
-
 					buf.notification =
 						static_cast<SaAmfProtectionGroupNotificationT_4*>(malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT_4)));
 					if (buf.notification) {
 						ava_cpy_protection_group_ntf(buf.notification, pg_track->buf.notification,
 								pg_track->buf.numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
-						TRACE("Invoking PGTrack callback for CSIName = %s",pg_track->csi_name.value);
+
+						/* allocate LongDn strings for notification if any
+						 * then client needs to free these LongDn string as well
+						 */
+						for (i=0 ; i < buf.numberOfItems; i++) {
+							osaf_extended_name_alloc(
+								osaf_extended_name_borrow(&pg_track->buf.notification[i].member.compName),
+								&buf.notification[i].member.compName);
+						}
+						TRACE("Invoking PGTrack callback for CSIName = %s", osaf_extended_name_borrow(&pg_track->csi_name));
 						((SaAmfCallbacksT_4*)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
-											   &buf,
-											   pg_track->mem_num, pg_track->err);
+													&buf,
+													  pg_track->mem_num, pg_track->err);
+						free(buf.notification);
 					} else {
 						pg_track->err = SA_AIS_ERR_NO_MEMORY;
 						LOG_CR("Notification is NULL: Invoking PGTrack Callback with error SA_AIS_ERR_NO_MEMORY");
@@ -703,24 +709,38 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 			else /* B01 version is used */
 			{
 				SaAmfProtectionGroupNotificationBufferT buf;
-
-				if (reg_cbk->saAmfProtectionGroupTrackCallback) {
-					pg_track->csi_name.length = pg_track->csi_name.length;
+				for (i = 0 ; i < pg_track->buf.numberOfItems ; i++) {
+					if (!ava_sanamet_is_valid(&pg_track->buf.notification[i].member.compName)) {
+						rc = SA_AIS_ERR_NAME_TOO_LONG;
+						break;
+					}
+				}
+				if (rc == SA_AIS_OK && reg_cbk->saAmfProtectionGroupTrackCallback) {
 					TRACE("PG track Information: Total number of items in buffer = %d",pg_track->buf.numberOfItems);
-
 					/* copy the contents into a malloced buffer.. appl frees it */
 					buf.numberOfItems = pg_track->buf.numberOfItems;
 					buf.notification = 0;
-
 					buf.notification =
 						static_cast<SaAmfProtectionGroupNotificationT*>(malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT)));
 					if (buf.notification) {
 						memcpy(buf.notification, pg_track->buf.notification,
 							   buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
-						TRACE("Invoking PGTrack callback for CSIName = %s",pg_track->csi_name.value);
+						TRACE("Invoking PGTrack callback for CSIName = %s",
+								osaf_extended_name_borrow(&pg_track->csi_name));
+
+						/* allocate LongDn strings for notification if any
+						 * then client needs to free these LongDn string as well
+						 */
+						for (i=0 ; i < buf.numberOfItems; i++) {
+							osaf_extended_name_alloc(
+								osaf_extended_name_borrow(&pg_track->buf.notification[i].member.compName),
+								&buf.notification[i].member.compName);
+						}
+
 						((SaAmfCallbacksT *)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
 											   &buf,
 											   pg_track->mem_num, pg_track->err);
+						free(buf.notification);
 					} else {
 						pg_track->err = SA_AIS_ERR_NO_MEMORY;
 						LOG_CR("Notification is NULL: Invoking PGTrack Callback with error SA_AIS_ERR_NO_MEMORY");
@@ -729,40 +749,40 @@ void ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 					}
 				}
 			}
+			break;
 		}
-		break;
-
-	case AVSV_AMF_PXIED_COMP_INST:
-		{
+		case AVSV_AMF_PXIED_COMP_INST: {
 			AVSV_AMF_PXIED_COMP_INST_PARAM *comp_inst = &info->param.pxied_comp_inst;
-
-			if (reg_cbk->saAmfProxiedComponentInstantiateCallback) {
-				comp_inst->comp_name.length = comp_inst->comp_name.length;
-				TRACE("Invoking proxiedcomponentInstantiateCbk: proxied component name = %s",comp_inst->comp_name.value);
+			if (!ava_sanamet_is_valid(&comp_inst->comp_name)) {
+				rc = SA_AIS_ERR_NAME_TOO_LONG;
+			}
+			if (rc == SA_AIS_OK && reg_cbk->saAmfProxiedComponentInstantiateCallback) {
+				TRACE("Invoking proxiedcomponentInstantiateCbk: proxied component name = %s",
+						osaf_extended_name_borrow(&comp_inst->comp_name));
 				reg_cbk->saAmfProxiedComponentInstantiateCallback(info->inv, &comp_inst->comp_name);
 			}
+			break;
 		}
-		break;
-
-	case AVSV_AMF_PXIED_COMP_CLEAN:
-		{
+		case AVSV_AMF_PXIED_COMP_CLEAN: {
 			AVSV_AMF_PXIED_COMP_CLEAN_PARAM *comp_clean = &info->param.pxied_comp_clean;
-
-			if (reg_cbk->saAmfProxiedComponentCleanupCallback) {
-				comp_clean->comp_name.length = comp_clean->comp_name.length;
-				TRACE("Invoking proxiedcomponentcleanupCbk: proxied component name = %s",comp_clean->comp_name.value);
+			if (!ava_sanamet_is_valid(&comp_clean->comp_name)) {
+				rc = SA_AIS_ERR_NAME_TOO_LONG;
+			}
+			if (rc == SA_AIS_OK && reg_cbk->saAmfProxiedComponentCleanupCallback) {
+				TRACE("Invoking proxiedcomponentcleanupCbk: proxied component name = %s",
+						osaf_extended_name_borrow(&comp_clean->comp_name));
 				reg_cbk->saAmfProxiedComponentCleanupCallback(info->inv, &comp_clean->comp_name);
 			}
-		}
-		break;
 
-	default:
-		osafassert(0);
-		break;
+			break;
+		}
+		default:
+			osafassert(0);
+			break;
 	}			/* switch */
 
 	TRACE_LEAVE();
-	return;
+	return rc;
 }
 
 /****************************************************************************

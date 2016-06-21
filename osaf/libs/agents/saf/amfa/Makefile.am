@@ -25,6 +25,7 @@ noinst_LTLIBRARIES = libava.la
 libava_la_CXXFLAGS = $(AM_CXXFLAGS)
 
 libava_la_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/amf/include \
 	-I$(top_srcdir)/osaf/libs/agents/saf/amfa/include
