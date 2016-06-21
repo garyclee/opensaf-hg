@@ -36,6 +36,7 @@
 #include "amf_amfparam.h"
 #include "amf_n2avamsg.h"
 #include "amf_nd2ndmsg.h"
+#include "osaf_extended_name.h"
 
 /****************************************************************************
   Name          : avsv_nda_ava_msg_free
@@ -78,10 +79,19 @@ void avsv_nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg)
 	if (!msg)
 		return;
 
+	if (osaf_is_an_extended_name(&msg->comp_name)) {
+		osaf_extended_name_free(&msg->comp_name);
+	}
+
 	if (AVND_AVND_AVA_MSG == msg->type) {
 		/* free the message content after all these are AvA content. */
 		avsv_nda_ava_msg_free(msg->info.msg);
+	} else if (AVND_AVND_CBK_DEL == msg->type) {
+		if (osaf_is_an_extended_name(&msg->info.cbk_del.comp_name)) {
+			osaf_extended_name_free(&msg->info.cbk_del.comp_name);
+		}
 	}
+
 	/* free the message */
 	free(msg);
 
@@ -107,7 +117,7 @@ void avsv_nda_ava_msg_content_free(AVSV_NDA_AVA_MSG *msg)
 
 	switch (msg->type) {
 	case AVSV_AVA_API_MSG:
-	case AVSV_AVND_AMF_API_RESP_MSG:
+		avsv_amf_api_free(&msg->info.api_info);
 		break;
 
 	case AVSV_AVND_AMF_CBK_MSG:
@@ -117,6 +127,11 @@ void avsv_nda_ava_msg_content_free(AVSV_NDA_AVA_MSG *msg)
 		}
 		break;
 
+	case AVSV_AVND_AMF_API_RESP_MSG:
+		if (msg->info.api_resp_info.type == AVSV_AMF_HA_STATE_GET) {
+			osaf_extended_name_free(&msg->info.api_resp_info.param.ha_get.comp_name);
+			osaf_extended_name_free(&msg->info.api_resp_info.param.ha_get.csi_name);
+		}
 	default:
 		break;
 	}
@@ -147,8 +162,13 @@ uint32_t avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG 
 
 	/* copy the common fields */
 	memcpy(dmsg, smsg, sizeof(AVSV_ND2ND_AVND_MSG));
-	if (AVND_AVND_AVA_MSG == smsg->type)
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->comp_name), &dmsg->comp_name);
+	if (AVND_AVND_AVA_MSG == smsg->type) {
 		rc = avsv_nda_ava_msg_copy(dmsg->info.msg, smsg->info.msg);
+	} else if (AVND_AVND_CBK_DEL == smsg->type) {
+		if (osaf_is_an_extended_name(&smsg->info.cbk_del.comp_name))
+			osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->info.cbk_del.comp_name), &dmsg->info.cbk_del.comp_name);
+	}
 
  done:
 	return rc;
@@ -180,7 +200,17 @@ uint32_t avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
 
 	switch (smsg->type) {
 	case AVSV_AVA_API_MSG:
+		rc = avsv_amf_api_copy(&dmsg->info.api_info, &smsg->info.api_info);
+		break;
+
 	case AVSV_AVND_AMF_API_RESP_MSG:
+		if (smsg->info.api_resp_info.type == AVSV_AMF_HA_STATE_GET) {
+			osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->info.api_resp_info.param.ha_get.comp_name),
+									 &dmsg->info.api_resp_info.param.ha_get.comp_name);
+			osaf_extended_name_alloc(osaf_extended_name_borrow(&smsg->info.api_resp_info.param.ha_get.csi_name),
+									 &dmsg->info.api_resp_info.param.ha_get.csi_name);
+		}
+
 		break;
 
 	case AVSV_AVND_AMF_CBK_MSG:
@@ -210,6 +240,7 @@ uint32_t avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
 uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	uint16_t i;
 
 	if (!o_dcbk || !scbk)
 		return NCSCC_RC_FAILURE;
@@ -226,13 +257,28 @@ uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 
 	switch (scbk->type) {
 	case AVSV_AMF_HC:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.hc.comp_name), &(*o_dcbk)->param.hc.comp_name);
+		break;
+
 	case AVSV_AMF_COMP_TERM:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.comp_term.comp_name), &(*o_dcbk)->param.comp_term.comp_name);
+		break;
+
 	case AVSV_AMF_CSI_REM:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_rem.comp_name), &(*o_dcbk)->param.csi_rem.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_rem.csi_name), &(*o_dcbk)->param.csi_rem.csi_name);
+		break;
+
 	case AVSV_AMF_PXIED_COMP_INST:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.pxied_comp_inst.comp_name), &(*o_dcbk)->param.pxied_comp_inst.comp_name);
+		break;
+
 	case AVSV_AMF_PXIED_COMP_CLEAN:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.pxied_comp_clean.comp_name), &(*o_dcbk)->param.pxied_comp_clean.comp_name);
 		break;
 
 	case AVSV_AMF_PG_TRACK:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.pg_track.csi_name), &(*o_dcbk)->param.pg_track.csi_name);
 		/* memset notify buffer */
 		memset(&(*o_dcbk)->param.pg_track.buf, 0, sizeof(SaAmfProtectionGroupNotificationBufferT));
 
@@ -248,11 +294,17 @@ uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 			memcpy((*o_dcbk)->param.pg_track.buf.notification,
 			       scbk->param.pg_track.buf.notification,
 			       sizeof(SaAmfProtectionGroupNotificationT) * scbk->param.pg_track.buf.numberOfItems);
+			for (i = 0; i < scbk->param.pg_track.buf.numberOfItems; i++) {
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.pg_track.buf.notification[i].member.compName),
+					&(*o_dcbk)->param.pg_track.buf.notification[i].member.compName);
+			}
 			(*o_dcbk)->param.pg_track.buf.numberOfItems = scbk->param.pg_track.buf.numberOfItems;
 		}
 		break;
 
 	case AVSV_AMF_CSI_SET:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_set.comp_name), &(*o_dcbk)->param.csi_set.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_set.csi_desc.csiName), &(*o_dcbk)->param.csi_set.csi_desc.csiName);
 		/* memset avsv & amf csi attr lists */
 		memset(&(*o_dcbk)->param.csi_set.attrs, 0, sizeof(AVSV_CSI_ATTRS));
 		memset(&(*o_dcbk)->param.csi_set.csi_desc.csiAttr, 0, sizeof(SaAmfCSIAttributeListT));
@@ -268,7 +320,30 @@ uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 
 			memcpy((*o_dcbk)->param.csi_set.attrs.list, scbk->param.csi_set.attrs.list,
 			       sizeof(AVSV_ATTR_NAME_VAL) * scbk->param.csi_set.attrs.number);
+
+			for (i = 0; i < scbk->param.csi_set.attrs.number; i++) {
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_set.attrs.list[i].name),
+										 &(*o_dcbk)->param.csi_set.attrs.list[i].name);
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_set.attrs.list[i].value),
+										 &(*o_dcbk)->param.csi_set.attrs.list[i].value);
+			}
+
 			(*o_dcbk)->param.csi_set.attrs.number = scbk->param.csi_set.attrs.number;
+		}
+
+		/* Copy csi state description */
+		if (scbk->param.csi_set.ha == SA_AMF_HA_ACTIVE) {
+			if (osaf_is_an_extended_name(&scbk->param.csi_set.csi_desc.csiStateDescriptor.activeDescriptor.activeCompName)) {
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_set.csi_desc.csiStateDescriptor.activeDescriptor.activeCompName),
+										 &(*o_dcbk)->param.csi_set.csi_desc.csiStateDescriptor.activeDescriptor.activeCompName);
+			}
+		}
+
+		if (scbk->param.csi_set.ha == SA_AMF_HA_STANDBY) {
+			if (osaf_is_an_extended_name(&scbk->param.csi_set.csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName)) {
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_set.csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName),
+										 &(*o_dcbk)->param.csi_set.csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName);
+			}
 		}
 
 		/* copy the amf csi attr list */
@@ -304,29 +379,65 @@ uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 ******************************************************************************/
 void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 {
+	uint16_t i;
+
 	if (!cbk_info)
 		return;
 
 	switch (cbk_info->type) {
 	case AVSV_AMF_HC:
+		osaf_extended_name_free(&cbk_info->param.hc.comp_name);
+		break;
+
 	case AVSV_AMF_COMP_TERM:
+		osaf_extended_name_free(&cbk_info->param.comp_term.comp_name);
+		break;
+
 	case AVSV_AMF_CSI_REM:
+		osaf_extended_name_free(&cbk_info->param.csi_rem.comp_name);
+		osaf_extended_name_free(&cbk_info->param.csi_rem.csi_name);
+		break;
+
 	case AVSV_AMF_PXIED_COMP_INST:
+		osaf_extended_name_free(&cbk_info->param.pxied_comp_inst.comp_name);
+		break;
+
 	case AVSV_AMF_PXIED_COMP_CLEAN:
+		osaf_extended_name_free(&cbk_info->param.pxied_comp_clean.comp_name);
 		break;
 
 	case AVSV_AMF_PG_TRACK:
+		osaf_extended_name_free(&cbk_info->param.pg_track.csi_name);
 		/* free the notify buffer */
-		if (cbk_info->param.pg_track.buf.numberOfItems)
+		if (cbk_info->param.pg_track.buf.numberOfItems) {
+			for (i = 0; i < cbk_info->param.pg_track.buf.numberOfItems; i++) {
+				osaf_extended_name_free(&cbk_info->param.pg_track.buf.notification[i].member.compName);
+			}
 			free(cbk_info->param.pg_track.buf.notification);
+		}
 		break;
 
 	case AVSV_AMF_CSI_SET:
+		osaf_extended_name_free(&cbk_info->param.csi_set.comp_name);
 		/* free the avsv csi attr list */
-		if (cbk_info->param.csi_set.attrs.number)
+		if (cbk_info->param.csi_set.attrs.number) {
+			if (cbk_info->param.csi_set.attrs.list) {
+				for (i = 0; i < cbk_info->param.csi_set.attrs.number; i++)
+				{
+					osaf_extended_name_free(&cbk_info->param.csi_set.attrs.list[i].name);
+					osaf_extended_name_free(&cbk_info->param.csi_set.attrs.list[i].value);
+				}
+			}
 			free(cbk_info->param.csi_set.attrs.list);
-
+		}
 		/* free the amf csi attr list */
+		osaf_extended_name_free(&cbk_info->param.csi_set.csi_desc.csiName);
+		if (cbk_info->param.csi_set.ha == SA_AMF_HA_ACTIVE) {
+			osaf_extended_name_free(&cbk_info->param.csi_set.csi_desc.csiStateDescriptor.activeDescriptor.activeCompName);
+		}
+		if (cbk_info->param.csi_set.ha == SA_AMF_HA_STANDBY) {
+			osaf_extended_name_free(&cbk_info->param.csi_set.csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName);
+		}
 		avsv_amf_csi_attr_list_free(&cbk_info->param.csi_set.csi_desc.csiAttr);
 		break;
 
@@ -336,8 +447,211 @@ void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 
 	/* free the cbk-info ptr */
 	free(cbk_info);
+	cbk_info = NULL;
 
 	return;
+}
+
+/****************************************************************************
+  Name          : avsv_amf_api_free
+ 
+  Description   : This routine frees api information.
+ 
+  Arguments     : api_info - ptr to the api info
+ 
+  Return Values : None.
+ 
+  Notes         : None.
+******************************************************************************/
+void avsv_amf_api_free(AVSV_AMF_API_INFO *api_info)
+{
+	if (!api_info)
+		return;
+
+	switch (api_info->type) {
+	case AVSV_AMF_FINALIZE:
+		osaf_extended_name_free(&api_info->param.finalize.comp_name);
+		break;
+
+	case AVSV_AMF_COMP_REG:
+		osaf_extended_name_free(&api_info->param.reg.comp_name);
+		osaf_extended_name_free(&api_info->param.reg.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_COMP_UNREG:
+		osaf_extended_name_free(&api_info->param.unreg.comp_name);
+		osaf_extended_name_free(&api_info->param.unreg.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_PM_START:
+		osaf_extended_name_free(&api_info->param.pm_start.comp_name);
+		break;
+
+	case AVSV_AMF_PM_STOP:
+		osaf_extended_name_free(&api_info->param.pm_stop.comp_name);
+		break;
+
+	case AVSV_AMF_HC_START:
+		osaf_extended_name_free(&api_info->param.hc_start.comp_name);
+		osaf_extended_name_free(&api_info->param.hc_start.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_HC_STOP:
+		osaf_extended_name_free(&api_info->param.hc_stop.comp_name);
+		osaf_extended_name_free(&api_info->param.hc_stop.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_HC_CONFIRM:
+		osaf_extended_name_free(&api_info->param.hc_confirm.comp_name);
+		osaf_extended_name_free(&api_info->param.hc_confirm.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_CSI_QUIESCING_COMPLETE:
+		osaf_extended_name_free(&api_info->param.csiq_compl.comp_name);
+		break;
+
+	case AVSV_AMF_HA_STATE_GET:
+		osaf_extended_name_free(&api_info->param.ha_get.comp_name);
+		osaf_extended_name_free(&api_info->param.ha_get.csi_name);
+		break;
+		
+	case AVSV_AMF_PG_START:
+		osaf_extended_name_free(&api_info->param.pg_start.csi_name);
+		break;
+
+	case AVSV_AMF_PG_STOP:
+		osaf_extended_name_free(&api_info->param.pg_stop.csi_name);
+		break;
+
+	case AVSV_AMF_ERR_REP:
+		osaf_extended_name_free(&api_info->param.err_rep.err_comp);
+		break;
+
+	case AVSV_AMF_ERR_CLEAR:
+		osaf_extended_name_free(&api_info->param.err_clear.comp_name);
+		break;
+
+	case AVSV_AMF_RESP:
+		osaf_extended_name_free(&api_info->param.resp.comp_name);
+		break;
+
+	default:
+		break;
+	}
+}
+
+/****************************************************************************
+  Name          : avsv_amf_api_copy
+
+  Description   : This routine copies api information.
+
+  Arguments     : api_info - ptr to the api info
+
+  Return Values : None.
+
+  Notes         : None.
+******************************************************************************/
+uint32_t avsv_amf_api_copy(AVSV_AMF_API_INFO *d_api_info, AVSV_AMF_API_INFO *s_api_info)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	if (!d_api_info || !s_api_info)
+		return NCSCC_RC_FAILURE;
+
+	switch (s_api_info->type) {
+	case AVSV_AMF_FINALIZE:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.finalize.comp_name),
+			&s_api_info->param.finalize.comp_name);
+		break;
+
+	case AVSV_AMF_COMP_REG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.reg.comp_name),
+			&d_api_info->param.reg.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.reg.proxy_comp_name),
+			&d_api_info->param.reg.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_COMP_UNREG:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.unreg.comp_name),
+			&d_api_info->param.unreg.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.unreg.proxy_comp_name),
+			&d_api_info->param.unreg.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_PM_START:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.pm_start.comp_name),
+			&d_api_info->param.pm_start.comp_name);
+		break;
+
+	case AVSV_AMF_PM_STOP:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.pm_stop.comp_name),
+			&d_api_info->param.pm_stop.comp_name);
+		break;
+
+	case AVSV_AMF_HC_START:
+
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.hc_start.comp_name),
+			&d_api_info->param.ha_get.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.hc_start.proxy_comp_name),
+			&d_api_info->param.hc_start.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_HC_STOP:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.hc_stop.comp_name),
+			&d_api_info->param.hc_stop.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.hc_stop.proxy_comp_name),
+			&d_api_info->param.hc_stop.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_HC_CONFIRM:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.hc_confirm.comp_name),
+			&d_api_info->param.hc_confirm.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.hc_confirm.proxy_comp_name),
+			&d_api_info->param.hc_confirm.proxy_comp_name);
+		break;
+
+	case AVSV_AMF_CSI_QUIESCING_COMPLETE:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.csiq_compl.comp_name),
+			&d_api_info->param.csiq_compl.comp_name);
+		break;
+
+	case AVSV_AMF_HA_STATE_GET:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.ha_get.comp_name),
+			&d_api_info->param.ha_get.comp_name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.ha_get.csi_name),
+			&d_api_info->param.ha_get.csi_name);
+		break;
+
+	case AVSV_AMF_PG_START:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.pg_start.csi_name),
+			&d_api_info->param.pg_start.csi_name);
+		break;
+
+	case AVSV_AMF_PG_STOP:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.pg_stop.csi_name),
+			&d_api_info->param.pg_stop.csi_name);
+		break;
+
+	case AVSV_AMF_ERR_REP:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.err_rep.err_comp),
+			&d_api_info->param.err_rep.err_comp);
+		break;
+
+	case AVSV_AMF_ERR_CLEAR:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.err_clear.comp_name),
+			&d_api_info->param.err_clear.comp_name);
+		break;
+
+	case AVSV_AMF_RESP:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&s_api_info->param.resp.comp_name),
+			&d_api_info->param.resp.comp_name);
+		break;
+
+	default:
+		break;
+	}
+
+	return rc;
 }
 
 /****************************************************************************
@@ -462,7 +776,7 @@ uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 
 	for (cnt = 0; cnt < avsv_attrs->number; cnt++) {
 		/* alloc memory for attr name & value */
-		amf_attrs->attr[cnt].attrName = malloc(avsv_attrs->list[cnt].name.length + 1);
+		amf_attrs->attr[cnt].attrName = malloc(osaf_extended_name_length(&avsv_attrs->list[cnt].name) + 1);
 		if (!amf_attrs->attr[cnt].attrName) {
 			free(amf_attrs->attr[cnt].attrName);
 			goto done;
@@ -476,11 +790,11 @@ uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 		}
 
 		/* copy the attr name & value */
-		memcpy(amf_attrs->attr[cnt].attrName, avsv_attrs->list[cnt].name.value,
-		       avsv_attrs->list[cnt].name.length);
+		memcpy(amf_attrs->attr[cnt].attrName, osaf_extended_name_borrow(&avsv_attrs->list[cnt].name),
+		       osaf_extended_name_length(&avsv_attrs->list[cnt].name));
 		memcpy(amf_attrs->attr[cnt].attrValue, avsv_attrs->list[cnt].string_ptr,
 			strlen(avsv_attrs->list[cnt].string_ptr));
-		*(amf_attrs->attr[cnt].attrName + avsv_attrs->list[cnt].name.length) = '\0';
+		*(amf_attrs->attr[cnt].attrName + osaf_extended_name_length(&avsv_attrs->list[cnt].name)) = '\0';
 		*(amf_attrs->attr[cnt].attrValue + strlen(avsv_attrs->list[cnt].string_ptr)) = '\0';
 
 		/* increment the attr name-val pair cnt that is copied */

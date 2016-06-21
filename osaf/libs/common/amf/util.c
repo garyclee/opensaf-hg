@@ -32,149 +32,14 @@
 */
 
 #include "amf.h"
+#include "osaf_extended_name.h"
 
-/*****************************************************************************
- * Function: avsv_cpy_SU_DN_from_DN
- *
- * Purpose:  This function copies the SU DN from the given DN and places
- *           it in the provided buffer.
- *
- * Input: d_su_dn - Pointer to the SaNameT where the SU DN should be copied.
- *        s_dn_name - Pointer to the SaNameT that contains the SU DN.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn, SaNameT *s_dn_name)
+int avsv_cmp_horder_sanamet(const SaNameT* sanamet1, const SaNameT *sanamet2)
 {
-	char *tmp = NULL;
+	size_t len1 = osaf_extended_name_length(sanamet1);
+	size_t len2 = osaf_extended_name_length(sanamet2);
 
-	memset(d_su_dn, 0, sizeof(SaNameT));
-
-	/* SU DN name is  SU name + NODE name */
-
-	/* First get the SU name */
-	tmp = strstr((char*)s_dn_name->value, "safSu");
-
-	/* It might be external SU. */
-	if (NULL == tmp)
-		tmp = strstr((char*)s_dn_name->value, "safEsu");
-
-	if (!tmp)
-		return NCSCC_RC_FAILURE;
-
-	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
-		strcpy((char*)d_su_dn->value, tmp);
-
-		/* Fill the length and return the pointer */
-		d_su_dn->length = strlen((char*)d_su_dn->value);
-	} else
-		return NCSCC_RC_FAILURE;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avsv_cpy_node_DN_from_DN
- *
- * Purpose:  This function copies the node DN from the given DN and places
- *           it in the provided buffer.
- *
- * Input: d_node_dn - Pointer to the SaNameT where the node DN should be copied.
- *        s_dn_name - Pointer to the SaNameT that contains the node DN.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn, SaNameT *s_dn_name)
-{
-	char *tmp = NULL;
-
-	memset(d_node_dn, 0, sizeof(SaNameT));
-
-	/* get the node name */
-	tmp = strstr((char*)s_dn_name->value, "safNode");
-
-	if (!tmp)
-		return NCSCC_RC_FAILURE;
-
-	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
-		strcpy((char*)d_node_dn->value, tmp);
-
-		/* Fill the length and return the pointer */
-		d_node_dn->length = strlen((char*)d_node_dn->value);
-	} else
-		return NCSCC_RC_FAILURE;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avsv_is_external_DN
- *
- * Purpose:  This function verifies if the DN has externalsuname token in it.
- *           If yes it returns true. This routine will be used for identifying
- *           the external SUs and components.
- *
- * Input: dn_name - Pointer to the SaNameT that contains the DN.
- *
- * Returns: false/TRUE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-bool avsv_is_external_DN(SaNameT *dn_name)
-{
-	return false;
-}
-
-/*****************************************************************************
- * Function: avsv_cpy_SI_DN_from_DN
- *
- * Purpose:  This function copies the SI DN from the given DN and places
- *           it in the provided buffer.
- *
- * Input: d_si_dn - Pointer to the SaNameT where the SI DN should be copied.
- *        s_dn_name - Pointer to the SaNameT that contains the SI DN.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uint32_t avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
-{
-	char *tmp = NULL;
-
-	memset(d_si_dn, 0, sizeof(SaNameT));
-
-	/* get the si name */
-	tmp = strstr((char*)s_dn_name->value, "safSi");
-
-	if (!tmp)
-		return NCSCC_RC_FAILURE;
-
-	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
-		strcpy((char*)d_si_dn->value, tmp);
-
-		/* Fill the length and return the pointer */
-		d_si_dn->length = strlen((char*)d_si_dn->value);
-	} else
-		return NCSCC_RC_FAILURE;
-
-	return NCSCC_RC_SUCCESS;
+	return (len1 > len2 ? 1 : len1 < len2 ? -1 : memcmp(osaf_extended_name_borrow(sanamet1), osaf_extended_name_borrow(sanamet2), len1));
 }
 
 /****************************************************************************
@@ -250,7 +115,7 @@ uint32_t avsv_dblist_saname_cmp(uint8_t *key1, uint8_t *key2)
 	name1_net = *((SaNameT *)key1);
 	name2_net = *((SaNameT *)key2);
 
-	i = m_CMP_HORDER_SANAMET(name1_net, name2_net);
+	i = avsv_cmp_horder_sanamet(&name1_net, &name2_net);
 
 	return ((i == 0) ? 0 : ((i > 0) ? 1 : 2));
 }
@@ -298,9 +163,9 @@ bool avsv_sa_name_is_null(SaNameT *name)
 {
 	SaNameT null_name;
 
-	memset(&null_name, 0, sizeof(SaNameT));
+	osaf_extended_name_clear(&null_name);
 
-	if (!m_CMP_HORDER_SANAMET(*name, null_name))
+	if (!avsv_cmp_horder_sanamet(name, &null_name))
 		return true;
 	else
 		return false;
@@ -316,44 +181,58 @@ bool avsv_sa_name_is_null(SaNameT *name)
 void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
 	const char *rdn_tag, SaNameT *dn)
 {
-	char *p = (char*) dn->value;
+	size_t parent_dn_len = 0;
+	size_t child_dn_len = 0;
+	size_t rdn_tag_len = 0;
+	SaConstStringT child_dn_ptr = 0;
+	SaConstStringT parent_dn_ptr = 0;
+	int num_of_commas_in_child_dn = 0;
+	
+	if (child_dn) {
+		child_dn_len = osaf_extended_name_length(child_dn);
+		child_dn_ptr = osaf_extended_name_borrow(child_dn);
+
+		const char* p_tmp = child_dn_ptr;
+		while(*p_tmp) {
+			if(*p_tmp++ == ',') num_of_commas_in_child_dn++;
+		}
+
+	}
+	if (parent_dn) {
+		parent_dn_len = osaf_extended_name_length(parent_dn);
+		parent_dn_ptr = osaf_extended_name_borrow(parent_dn);
+	}
+
+	if (rdn_tag) {
+		rdn_tag_len = strlen(rdn_tag);
+	}
+
+	// The + 3 is for,  1. rdn_tag equal char 2. child parent separation comma char and 3. terminating null char
+	size_t buf_len = child_dn_len + parent_dn_len + rdn_tag_len + num_of_commas_in_child_dn + 3;
+	char *buf = (char*) calloc(1, buf_len);
+	char *p = buf;
 	int i;
 
-	memset(dn, 0, sizeof(SaNameT));
-
-	p += sprintf((char*)dn->value, "%s=", rdn_tag);
+	if (rdn_tag) {
+		p += snprintf(buf, buf_len, "%s=", rdn_tag);
+	}
 
 	/* copy child DN and escape commas */
-	for (i = 0; i < child_dn->length; i++) {
-		if (child_dn->value[i] == ',')
+	for (i = 0; i < child_dn_len; i++) {
+		if (child_dn_ptr[i] == ',')
 			*p++ = 0x5c; /* backslash */
 
-		*p++ = child_dn->value[i];
+		*p++ = child_dn_ptr[i];
 	}
 
 	if (parent_dn != NULL) {
 		*p++ = ',';
-		strcpy(p, (char*)parent_dn->value);
+		strcpy(p, parent_dn_ptr);
 	}
 
-	dn->length = strlen((char*)dn->value);
-}
-
-/**
- * Initialize a DN by searching for needle in haystack
- * @param haystack
- * @param dn
- * @param needle
- */
-void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle)
-{
-	char *p;
-
-	memset(dn, 0, sizeof(SaNameT));
-	p = strstr((char*)haystack->value, needle);
-	osafassert(p);
-	dn->length = strlen(p);
-	memcpy(dn->value, p, dn->length);
+	if (dn) {
+		osaf_extended_name_steal(buf, dn);
+	}
 }
 
 /**
@@ -416,3 +295,30 @@ AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(SaAmfCompCategoryT saf_c
 	return avsv_comp_type;
 }
 
+/****************************************************************************
+  Name          : avsv_dblist_sastring_cmp
+ 
+  Description   : This routine compares the SaStringT keys. It is used by DLL 
+                  library.
+ 
+  Arguments     : key1 - ptr to the 1st key
+                  key2 - ptr to the 2nd key
+ 
+  Return Values : 0, if keys are equal
+                  1, if key1 is greater than key2
+                  2, if key1 is lesser than key2
+ 
+  Notes         : None.
+******************************************************************************/
+uint32_t avsv_dblist_sastring_cmp(uint8_t *key1, uint8_t *key2)
+{
+	int i = 0;
+	SaStringT str1, str2;
+
+	str1 = (SaStringT)key1;
+	str2 = (SaStringT)key2;
+
+	i = strcmp(str1, str2);
+
+	return ((i ==0) ? 0: ((i>0) ? 1 : 2));
+}

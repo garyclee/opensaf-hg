@@ -26,6 +26,7 @@ noinst_HEADERS = \
    amf_eduutil.h \
    amf.h \
    amf_n2avaedu.h \
+   amf_db_template.h \
    amf_n2avamsg.h \
    amf_si_assign.h \
    amf_util.h \

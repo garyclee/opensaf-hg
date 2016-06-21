@@ -48,5 +48,5 @@
 #include "ncs_hdl_pub.h"
 #include "ncs_main_papi.h"
 #include "ncssysf_def.h"
-
+#include "osaf_extended_name.h"
 #endif
