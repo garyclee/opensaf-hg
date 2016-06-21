@@ -15,7 +15,6 @@
  *
  */
 
-#include <configmake.h>
 
 /*****************************************************************************
  ..............................................................................
@@ -32,18 +31,32 @@
 /*
  ** Includes
  */
-#include "rda.h"
-#include <cerrno>
-#include <cstdlib>
+#include "osaf/libs/core/include/rda_papi.h"
 #include <sched.h>
-#include "logtrace.h"
-#include "osaf_poll.h"
-#include "osaf_utility.h"
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include "osaf/libs/agents/infrastructure/rda/rda.h"
+#include "osaf/libs/core/common/include/logtrace.h"
+#include "osaf/libs/core/common/include/osaf_poll.h"
+#include "osaf/libs/core/common/include/osaf_utility.h"
+#include "osaf/libs/core/cplusplus/base/time.h"
+#include "osaf/libs/core/include/ncs_main_papi.h"
+#include "osaf/libs/core/include/ncsgl_defs.h"
+#include "osaf/libs/core/include/ncssysf_def.h"
+#include "osaf/libs/core/include/ncssysf_tsk.h"
+#include "osaf/libs/core/include/ncssysfpool.h"
+#include "osaf/libs/saf/include/saAmf.h"
+#include "osaf/services/infrastructure/rde/include/rde_rda_common.h"
 
 /*
  ** Global data
  */
-static void *pcs_rda_callback_cb = NULL;
+static void *pcs_rda_callback_cb = nullptr;
 
 /*
  ** Static functions
@@ -103,7 +116,7 @@ static PCSRDA_RETURN_CODE rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb) {
      ** Retry if connection with server is lost
      */
     if (conn_lost == true) {
-      m_NCS_TASK_SLEEP(1000);
+      base::Sleep(base::kOneSecond);
       retry_count++;
 
       /*
@@ -189,12 +202,12 @@ static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle,
   PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
   int sockfd = -1;
   bool is_task_spawned = false;
-  RDA_CALLBACK_CB *rda_callback_cb = NULL;
+  RDA_CALLBACK_CB *rda_callback_cb = nullptr;
 
-  if (*task_cb != NULL)
+  if (*task_cb != nullptr)
     return PCSRDA_RC_CALLBACK_ALREADY_REGD;
 
-  *task_cb = (long) 0;
+  *task_cb = nullptr;
 
   /*
    ** Connect
@@ -226,7 +239,7 @@ static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle,
      */
     rda_callback_cb = static_cast<RDA_CALLBACK_CB*>(malloc(
         sizeof(RDA_CALLBACK_CB)));
-    if (rda_callback_cb == NULL) {
+    if (rda_callback_cb == nullptr) {
       rc = PCSRDA_RC_MEM_ALLOC_FAILED;
       break;
     }
@@ -244,10 +257,10 @@ static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle,
     int policy = SCHED_OTHER; /*root defaults */
     int prio_val = sched_get_priority_min(policy);
 
-    if (m_NCS_TASK_CREATE((NCS_OS_CB )rda_callback_task, rda_callback_cb,
-                          (char * )"OSAF_RDA", prio_val, policy,
-                          NCS_STACKSIZE_HUGE,
-                          &rda_callback_cb->task_handle) != NCSCC_RC_SUCCESS) {
+    if (m_NCS_TASK_CREATE(reinterpret_cast<NCS_OS_CB>(rda_callback_task),
+                          rda_callback_cb, "OSAF_RDA", prio_val, policy,
+                          NCS_STACKSIZE_HUGE, &rda_callback_cb->task_handle)
+        != NCSCC_RC_SUCCESS) {
       m_NCS_MEM_FREE(rda_callback_cb, 0, 0, 0);
       rc = PCSRDA_RC_TASK_SPAWN_FAILED;
       break;
@@ -292,7 +305,7 @@ static PCSRDA_RETURN_CODE pcs_rda_reg_callback(uint32_t cb_handle,
  *****************************************************************************/
 static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb) {
   PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
-  RDA_CALLBACK_CB *rda_callback_cb = NULL;
+  RDA_CALLBACK_CB *rda_callback_cb = nullptr;
 
   if (!task_cb)
     return rc;
@@ -361,7 +374,7 @@ static PCSRDA_RETURN_CODE pcs_rda_set_role(PCS_RDA_ROLE role) {
     /*
      ** Send set-role request messgae
      */
-    sprintf(msg, "%d %d", RDE_RDA_SET_ROLE_REQ, role);
+    snprintf(msg, sizeof(msg), "%d %d", RDE_RDA_SET_ROLE_REQ, role);
     rc = rda_write_msg(sockfd, msg);
     if (rc != PCSRDA_RC_SUCCESS) {
       break;
@@ -425,7 +438,7 @@ static PCSRDA_RETURN_CODE pcs_rda_get_role(PCS_RDA_ROLE *role) {
     /*
      ** Send get-role request messgae
      */
-    sprintf(msg, "%d", RDE_RDA_GET_ROLE_REQ);
+    snprintf(msg, sizeof(msg), "%d", RDE_RDA_GET_ROLE_REQ);
     rc = rda_write_msg(sockfd, msg);
     if (rc != PCSRDA_RC_SUCCESS) {
       break;
@@ -518,7 +531,7 @@ static PCSRDA_RETURN_CODE rda_connect(int *sockfd) {
   /*
    ** Connect to the server.
    */
-  if (connect(*sockfd, (struct sockaddr *) &rda_cb->sock_address,
+  if (connect(*sockfd, reinterpret_cast<sockaddr*>(&rda_cb->sock_address),
               sizeof(rda_cb->sock_address)) < 0) {
     close(*sockfd);
     return PCSRDA_RC_IPC_CONNECT_FAILED;
@@ -549,7 +562,7 @@ static PCSRDA_RETURN_CODE rda_disconnect(int sockfd) {
   /*
    ** Format message
    */
-  sprintf(msg, "%d", RDE_RDA_DISCONNECT_REQ);
+  snprintf(msg, sizeof(msg), "%d", RDE_RDA_DISCONNECT_REQ);
 
   if (rda_write_msg(sockfd, msg) != PCSRDA_RC_SUCCESS) {
     /* Nothing to do here */
@@ -586,7 +599,7 @@ static PCSRDA_RETURN_CODE rda_callback_req(int sockfd) {
   /*
    ** Send callback reg request messgae
    */
-  sprintf(msg, "%d", RDE_RDA_REG_CB_REQ);
+  snprintf(msg, sizeof(msg), "%d", RDE_RDA_REG_CB_REQ);
   PCSRDA_RETURN_CODE rc = rda_write_msg(sockfd, msg);
   if (rc != PCSRDA_RC_SUCCESS) {
     return rc;
@@ -720,7 +733,7 @@ static PCSRDA_RETURN_CODE rda_parse_msg(const char *pmsg,
   char msg[64] = { 0 };
   char *ptr;
 
-  strcpy(msg, pmsg);
+  snprintf(msg, sizeof(msg), "%s", pmsg);
   *value = -1;
   *cmd_type = RDE_RDA_UNKNOWN;
 
@@ -728,7 +741,7 @@ static PCSRDA_RETURN_CODE rda_parse_msg(const char *pmsg,
    ** Parse the message for cmd type and value
    */
   ptr = strchr(msg, ' ');
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     *cmd_type = static_cast<RDE_RDA_CMD_TYPE>(atoi(msg));
   } else {
     *ptr = '\0';

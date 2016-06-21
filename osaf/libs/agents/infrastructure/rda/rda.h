@@ -27,49 +27,15 @@
  ******************************************************************************
  */
 
-#ifndef RDA_H
-#define RDA_H
+#ifndef OSAF_LIBS_AGENTS_INFRASTRUCTURE_RDA_RDA_H_
+#define OSAF_LIBS_AGENTS_INFRASTRUCTURE_RDA_RDA_H_
 
-/*
- ** includes
- */
-#include <cstdio>
-#include <sys/types.h>
-#include <cstring>
-#include <stdint.h>
-#include <unistd.h>
-#include <sys/un.h>
 #include <sys/socket.h>
-#include <sys/time.h>
+#include <sys/un.h>
+#include <cstdint>
+#include "osaf/libs/core/include/ncsgl_defs.h"
+#include "osaf/libs/core/include/rda_papi.h"
 
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-
-#include "ncs_svd.h"
-#include "ncs_hdl_pub.h"
-#include "ncssysf_lck.h"
-#include "ncsusrbuf.h"
-#include "ncssysf_def.h"
-#include "ncssysfpool.h"
-#include "ncssysf_tmr.h"
-#include "ncssysf_mem.h"
-#include "ncssysf_ipc.h"
-#include "ncssysf_tsk.h"
-#include "ncspatricia.h"
-
-#include "ncs_queue.h"
-#include "ncssysf_lck.h"
-#include "ncs_main_papi.h"
-
-/*
- **
- */
-#include "rda_papi.h"
-#include "rde_rda_common.h"
-
-/*
- ** Structure declarations
- */
 struct RDA_CALLBACK_CB {
   NCSCONTEXT task_handle;
   bool task_terminate;
@@ -82,4 +48,4 @@ struct RDA_CONTROL_BLOCK {
   sockaddr_un sock_address;
 };
 
-#endif   /* RDA_H */
+#endif  // OSAF_LIBS_AGENTS_INFRASTRUCTURE_RDA_RDA_H_

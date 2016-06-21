@@ -31,12 +31,12 @@
  ******************************************************************************
  */
 
-#ifndef RDE_RDA_H
-#define RDE_RDA_H
+#ifndef OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_RDA_H_
+#define OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_RDA_H_
 
-#include "rde_cb.h"
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <cstdint>
 
 class Role;
 
@@ -101,4 +101,4 @@ uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index,
                                     int *disconnect);
 uint32_t rde_rda_send_role(int role);
 
-#endif   /* RDE_RDA_H */
+#endif  // OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_RDA_H_

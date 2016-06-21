@@ -16,29 +16,27 @@
  *
  */
 
-#include <configmake.h>
-#include <cstdlib>
-#include <poll.h>
-#include <libgen.h>
-#include <cstring>
-#include <cerrno>
-#include <unistd.h>
 #include <limits.h>
+#include <signal.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-
-#include <logtrace.h>
-#include <mds_papi.h>
-#include <nid_api.h>
-#include <daemon.h>
-#include <nid_api.h>
-
-#include "rde_cb.h"
-#include "osaf_time.h"
-#include "osaf_poll.h"
-#include "role.h"
+#include <syslog.h>
+#include <unistd.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include "osaf/libs/core/common/include/daemon.h"
+#include "osaf/libs/core/common/include/logtrace.h"
+#include "osaf/libs/core/common/include/osaf_poll.h"
+#include "osaf/libs/core/include/mds_papi.h"
+#include "osaf/libs/core/include/ncs_main_papi.h"
+#include "osaf/libs/core/include/nid_api.h"
+#include "osaf/libs/saf/include/saAmf.h"
+#include "osaf/services/infrastructure/rde/include/rde_cb.h"
+#include "osaf/services/infrastructure/rde/include/role.h"
 
 #define RDA_MAX_CLIENTS 32
 
@@ -99,7 +97,7 @@ static void handle_mbx_event() {
 
   TRACE_ENTER();
 
-  msg = (struct rde_msg*) ncs_ipc_non_blk_recv(&rde_cb->mbx);
+  msg = reinterpret_cast<rde_msg*>(ncs_ipc_non_blk_recv(&rde_cb->mbx));
   TRACE("Received %s from node 0x%x with state %s. My state is %s",
         rde_msg_name[msg->type], msg->fr_node_id,
         Role::to_string(msg->info.peer_info.ha_role),
@@ -145,7 +143,7 @@ static void CheckForSplitBrain(const rde_msg* msg) {
   PCS_RDA_ROLE own_role = role->role();
   PCS_RDA_ROLE other_role = msg->info.peer_info.ha_role;
   if (own_role == PCS_RDA_ACTIVE && other_role == PCS_RDA_ACTIVE) {
-    opensaf_reboot(0, NULL, "Split-brain detected");
+    opensaf_reboot(0, nullptr, "Split-brain detected");
   }
 }
 
@@ -219,7 +217,7 @@ static int initialize_rde() {
 
 int main(int argc, char *argv[]) {
   nfds_t nfds = FD_CLIENT_START;
-  struct pollfd fds[nfds + RDA_MAX_CLIENTS];
+  pollfd fds[FD_CLIENT_START + RDA_MAX_CLIENTS];
   int ret;
   NCS_SEL_OBJ mbx_sel_obj;
   RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
@@ -318,7 +316,7 @@ int main(int argc, char *argv[]) {
     if (fds[FD_RDA_SERVER].revents & POLLIN) {
       int newsockfd;
 
-      newsockfd = accept(rde_rda_cb->fd, (struct sockaddr*) nullptr, nullptr);
+      newsockfd = accept(rde_rda_cb->fd, nullptr, nullptr);
       if (newsockfd < 0) {
         LOG_ER("accept FAILED %s", strerror(errno));
         goto done;

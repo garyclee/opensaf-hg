@@ -15,13 +15,12 @@
  *
  */
 
-#include "rde_amf.h"
-
-#include <logtrace.h>
-#include <nid_start_util.h>
-
-#include "rde_cb.h"
-#include "role.h"
+#include "osaf/services/infrastructure/rde/include/rde_amf.h"
+#include "osaf/libs/core/common/include/logtrace.h"
+#include "osaf/libs/core/common/include/nid_start_util.h"
+#include "osaf/libs/saf/include/saAis.h"
+#include "osaf/services/infrastructure/rde/include/rde_cb.h"
+#include "osaf/services/infrastructure/rde/include/role.h"
 
 static RDE_AMF_CB *rde_amf_get_cb() {
   RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
@@ -112,8 +111,7 @@ static uint32_t rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb) {
    ** Start the AMF health check
    */
   memset(&SaCompName, 0, sizeof(SaCompName));
-  strcpy((char*) SaCompName.value, rde_amf_cb->comp_name);
-  SaCompName.length = strlen(rde_amf_cb->comp_name);
+  saAisNameLend(rde_amf_cb->comp_name, &SaCompName);
 
   memset(&Healthy, 0, sizeof(Healthy));
   phlth_ptr = getenv("RDE_HA_ENV_HEALTHCHECK_KEY");
@@ -121,12 +119,13 @@ static uint32_t rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb) {
     /*
      ** default health check key
      */
-    strcpy(hlth_str, "BAD10");
+    snprintf(hlth_str, sizeof(hlth_str), "%s", "BAD10");
   } else {
-    strcpy(hlth_str, phlth_ptr);
+    snprintf(hlth_str, sizeof(hlth_str), "%s", phlth_ptr);
   }
-  strcpy((char*) Healthy.key, hlth_str);
-  Healthy.keyLen = strlen((char*) Healthy.key);
+  snprintf(reinterpret_cast<char*>(Healthy.key), sizeof(Healthy.key), "%s",
+           hlth_str);
+  Healthy.keyLen = strlen(reinterpret_cast<char*>(Healthy.key));
 
   amf_error = saAmfHealthcheckStart(rde_amf_cb->amf_hdl, &SaCompName, &Healthy,
                                     SA_AMF_HEALTHCHECK_AMF_INVOKED,
@@ -175,7 +174,8 @@ uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb) {
     return NCSCC_RC_FAILURE;
   }
 
-  strcpy((char*) rde_amf_cb->comp_name, (char*) sname.value);
+  snprintf(rde_amf_cb->comp_name, sizeof(rde_amf_cb->comp_name), "%s",
+           saAisNameBorrow(&sname));
 
   amf_error = saAmfSelectionObjectGet(rde_amf_cb->amf_hdl,
                                       &rde_amf_cb->amf_fd);
@@ -184,8 +184,7 @@ uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb) {
     return NCSCC_RC_FAILURE;
   }
 
-  amf_error = saAmfComponentRegister(rde_amf_cb->amf_hdl, &sname,
-                                     (SaNameT*) nullptr);
+  amf_error = saAmfComponentRegister(rde_amf_cb->amf_hdl, &sname, nullptr);
   if (amf_error != SA_AIS_OK) {
     LOG_ER("saAmfComponentRegister FAILED %u", amf_error);
     return NCSCC_RC_FAILURE;

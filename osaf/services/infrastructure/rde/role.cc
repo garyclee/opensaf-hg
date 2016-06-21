@@ -18,16 +18,14 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include "role.h"
-#include <stdint.h>
-#include <chrono>
-#include "configmake.h"
-#include "logtrace.h"
-#include "ncs_main_papi.h"
-#include "base/getenv.h"
-#include "base/process.h"
-#include "base/time.h"
-#include "rde_cb.h"
+#include "osaf/services/infrastructure/rde/include/role.h"
+#include <cstdint>
+#include "osaf/libs/core/common/include/logtrace.h"
+#include "osaf/libs/core/cplusplus/base/getenv.h"
+#include "osaf/libs/core/cplusplus/base/process.h"
+#include "osaf/libs/core/cplusplus/base/time.h"
+#include "osaf/libs/core/include/ncs_main_papi.h"
+#include "osaf/services/infrastructure/rde/include/rde_cb.h"
 
 const char *const Role::role_names_[] = {
   "Undefined",
@@ -98,8 +96,11 @@ uint32_t Role::SetRole(PCS_RDA_ROLE new_role) {
     LOG_NO("RDE role set to %s", to_string(new_role));
     if (new_role == PCS_RDA_ACTIVE) ExecutePreActiveScript();
     role_ = new_role;
-    if (new_role == PCS_RDA_UNDEFINED) ResetElectionTimer();
-    else rde_rda_send_role(new_role);
+    if (new_role == PCS_RDA_UNDEFINED) {
+      ResetElectionTimer();
+    } else {
+      rde_rda_send_role(new_role);
+    }
   }
   return UpdateMdsRegistration(new_role, old_role);
 }

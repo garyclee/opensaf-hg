@@ -27,15 +27,15 @@
  ******************************************************************************
  */
 
-#ifndef PCS_RDA_PAPI_H
-#define PCS_RDA_PAPI_H
+#ifndef OSAF_LIBS_CORE_INCLUDE_RDA_PAPI_H_
+#define OSAF_LIBS_CORE_INCLUDE_RDA_PAPI_H_
 
 /*
  ** Includes
  */
 #include <stdio.h>
-#include <saAmf.h>
-#include "ncsgl_defs.h"         /* uint32_t */
+#include "osaf/libs/core/include/ncsgl_defs.h"
+#include "osaf/libs/saf/include/saAmf.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -138,4 +138,4 @@ extern uint32_t rda_register_callback(uint32_t cb_handle,
 }
 #endif
 
-#endif   /* PCS_RDA_PAPI_H */
+#endif  // OSAF_LIBS_CORE_INCLUDE_RDA_PAPI_H_

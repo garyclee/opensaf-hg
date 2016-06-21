@@ -35,10 +35,10 @@ interface.
 
 ******************************************************************************/
 
-#include <logtrace.h>
-
-#include "rde_cb.h"
-#include "role.h"
+#include "osaf/services/infrastructure/rde/include/rde_rda.h"
+#include "osaf/libs/core/common/include/logtrace.h"
+#include "osaf/services/infrastructure/rde/include/rde_cb.h"
+#include "osaf/services/infrastructure/rde/include/role.h"
 
 /*****************************************************************************
 
@@ -230,7 +230,7 @@ static uint32_t rde_rda_read_msg(int fd, char *msg, int size) {
     /*
      ** Yes! disconnect client
      */
-    sprintf(msg, "%d", RDE_RDA_DISCONNECT_REQ);
+    snprintf(msg, size, "%d", RDE_RDA_DISCONNECT_REQ);
     LOG_IN("Connection closed by client (orderly shutdown)");
     return NCSCC_RC_SUCCESS;
   }
@@ -260,7 +260,7 @@ static uint32_t rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index) {
   char msg[64] = { 0 };
   TRACE_ENTER();
 
-  sprintf(msg, "%d %d", RDE_RDA_GET_ROLE_RES,
+  snprintf(msg, sizeof(msg), "%d %d", RDE_RDA_GET_ROLE_RES,
           static_cast<int>(rde_rda_cb->role->role()));
   if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg)
       != NCSCC_RC_SUCCESS) {
@@ -297,9 +297,9 @@ static uint32_t rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index,
 
   if (rde_rda_cb->role->SetRole(
       static_cast<PCS_RDA_ROLE>(role)) != NCSCC_RC_SUCCESS)
-    sprintf(msg, "%d", RDE_RDA_SET_ROLE_NACK);
+    snprintf(msg, sizeof(msg), "%d", RDE_RDA_SET_ROLE_NACK);
   else
-    sprintf(msg, "%d", RDE_RDA_SET_ROLE_ACK);
+    snprintf(msg, sizeof(msg), "%d", RDE_RDA_SET_ROLE_ACK);
 
   if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg)
       != NCSCC_RC_SUCCESS) {
@@ -340,7 +340,7 @@ static uint32_t rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index) {
   /*
    ** Format ACK
    */
-  sprintf(msg, "%d", RDE_RDA_REG_CB_ACK);
+  snprintf(msg, sizeof(msg), "%d", RDE_RDA_REG_CB_ACK);
 
   if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg)
       != NCSCC_RC_SUCCESS) {
@@ -492,11 +492,10 @@ uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index,
       *disconnect = 1;
       break;
     default:
-      ;
+      break;
   }
 
   return rc;
-
 }
 
 /*****************************************************************************
@@ -527,7 +526,7 @@ uint32_t rde_rda_send_role(int role) {
   /*
    ** Send role to all async clients
    */
-  sprintf(msg, "%d %d", RDE_RDA_HA_ROLE, role);
+  snprintf(msg, sizeof(msg), "%d %d", RDE_RDA_HA_ROLE, role);
 
   for (index = 0; index < rde_rda_cb->client_count; index++) {
     if (!rde_rda_cb->clients[index].is_async)

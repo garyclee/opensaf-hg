@@ -15,21 +15,20 @@
  *
  */
 
-#ifndef OPENSAF_OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_ROLE_H_
-#define OPENSAF_OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_ROLE_H_
+#ifndef OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_ROLE_H_
+#define OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_ROLE_H_
 
 #include <time.h>
-#include <stdint.h>
-#include "rda_papi.h"
-#include "mds_papi.h"
-#include "base/macros.h"
+#include <cstdint>
+#include "osaf/libs/core/cplusplus/base/macros.h"
+#include "osaf/libs/core/include/mds_papi.h"
+#include "osaf/libs/core/include/rda_papi.h"
 
 namespace base {
 class Process;
 }
 
 class Role {
-  DELETE_COPY_AND_MOVE_OPERATORS(Role);
  public:
   explicit Role(NODE_ID own_node_id);
   void SetPeerState(PCS_RDA_ROLE node_role, NODE_ID node_id);
@@ -54,7 +53,8 @@ class Role {
   uint64_t pre_active_script_timeout_;
   static const char *const role_names_[];
   static const char *const pre_active_script_;
+
+  DELETE_COPY_AND_MOVE_OPERATORS(Role);
 };
 
-#endif /* OPENSAF_OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_ROLE_H_ */
-
+#endif  // OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_ROLE_H_

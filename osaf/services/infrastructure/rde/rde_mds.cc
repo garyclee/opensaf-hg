@@ -15,13 +15,12 @@
  *
  */
 
-#include <thread>
-#include <chrono>
-#include <logtrace.h>
-#include <mds_papi.h>
-#include <ncsencdec_pub.h>
-
-#include <rde_cb.h>
+#include "osaf/libs/core/common/include/logtrace.h"
+#include "osaf/libs/core/cplusplus/base/time.h"
+#include "osaf/libs/core/include/mds_papi.h"
+#include "osaf/libs/core/include/ncs_main_papi.h"
+#include "osaf/libs/core/include/ncsencdec_pub.h"
+#include "osaf/services/infrastructure/rde/include/rde_cb.h"
 
 #define RDE_MDS_PVT_SUBPART_VERSION 1
 
@@ -114,7 +113,7 @@ static int mbx_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id) {
   msg->fr_dest = fr_dest;
   msg->fr_node_id = fr_node_id;
 
-  if (ncs_ipc_send(&cb->mbx, (NCS_IPC_MSG*) msg,
+  if (ncs_ipc_send(&cb->mbx, reinterpret_cast<NCS_IPC_MSG*>(msg),
                    NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
     LOG_ER("ncs_ipc_send FAILED");
     free(msg);
@@ -147,7 +146,8 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info) {
       msg = (struct rde_msg*) info->info.receive.i_msg;
       msg->fr_dest = info->info.receive.i_fr_dest;
       msg->fr_node_id = info->info.receive.i_node_id;
-      if (ncs_ipc_send(&cb->mbx, (NCS_IPC_MSG*) info->info.receive.i_msg,
+      if (ncs_ipc_send(&cb->mbx,
+                       reinterpret_cast<NCS_IPC_MSG*>(info->info.receive.i_msg),
                        NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
         LOG_ER("ncs_ipc_send FAILED");
         free(msg);
@@ -206,8 +206,8 @@ uint32_t rde_mds_register() {
   svc_info.i_op = MDS_INSTALL;
 
   svc_info.info.svc_install.i_yr_svc_hdl = 0;
-  svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE; /* node
-                                                                    specific */
+  // node specific
+  svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
   svc_info.info.svc_install.i_svc_cb = mds_callback; /* callback */
   svc_info.info.svc_install.i_mds_q_ownership = false;
   svc_info.info.svc_install.i_mds_svc_pvt_ver = RDE_MDS_PVT_SUBPART_VERSION;
@@ -278,7 +278,7 @@ uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest) {
     if (NCSCC_RC_FAILURE == rc) {
       LOG_ER("Failed to send %s to %" PRIx64, rde_msg_name[msg->type],
              to_dest);
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      base::Sleep(base::kOneHundredMilliseconds);
     } else {
       break;
     }
