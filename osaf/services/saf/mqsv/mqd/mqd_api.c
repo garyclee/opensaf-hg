@@ -574,7 +574,6 @@ static uint32_t mqd_cb_init(MQD_CB *pMqd)
 
 	/* Initilaze the database tree */
 	params.key_size = sizeof(SaNameT);
-	params.info_size = 0;
 	rc = ncs_patricia_tree_init(&pMqd->qdb, &params);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_2("Initilazation of the database tree failed");
@@ -583,7 +582,6 @@ static uint32_t mqd_cb_init(MQD_CB *pMqd)
 	pMqd->qdb_up = true;
 	/* Initialize the Node database */
 	params_nodedb.key_size = sizeof(NODE_ID);
-	params_nodedb.info_size = 0;
 	rc = ncs_patricia_tree_init(&pMqd->node_db, &params_nodedb);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_2("Initilazation of the Node database failed");
