@@ -24,6 +24,7 @@ osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osafamfwd
 
 osafamfwd_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/saf/include
 
