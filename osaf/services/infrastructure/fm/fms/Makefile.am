@@ -46,4 +46,5 @@ osaffmd_SOURCES = \
 osaffmd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la
+	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la
