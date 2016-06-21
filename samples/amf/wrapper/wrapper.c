@@ -200,7 +200,7 @@ static void csi_set_callback(SaInvocationT invocation,
 	if (csi_desc.csiFlags == SA_AMF_CSI_ADD_ONE) {
 
 		syslog(LOG_DEBUG, "CSI Set - add '%s' HAState %s", 
-			csi_desc.csiName.value, ha_state_name[ha_state]);
+			saAisNameBorrow(&csi_desc.csiName), ha_state_name[ha_state]);
 
 		for (i = 0; i < csi_desc.csiAttr.number; i++) {
 			attr = &csi_desc.csiAttr.attr[i];
@@ -410,6 +410,11 @@ int main(int argc, char **argv)
 	}
 
 	pidfile = getenv("PIDFILE");
+
+	// Enable long DN
+	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+		syslog(LOG_ERR, "failed to set SA_ENABLE_EXTENDED_NAMES");
+	}
 
 	if (amf_initialize(&amf_sel_obj) != SA_AIS_OK)
 		goto done;

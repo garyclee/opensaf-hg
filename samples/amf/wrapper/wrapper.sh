@@ -17,7 +17,7 @@
 #
 
 name=$(basename $0)
-progdir="/usr/local/sbin"
+progdir="/opt/wrapper"
 prog="wrapper"
 
 if [ -z $SA_AMF_COMPONENT_NAME ]; then
@@ -36,7 +36,8 @@ fi
 . /lib/lsb/init-functions
 
 piddir="/tmp"
-pidfile="$piddir/${SA_AMF_COMPONENT_NAME}.pid"
+compname_md5=`echo $SA_AMF_COMPONENT_NAME | md5sum | awk '{print $1}'`
+pidfile="$piddir/${compname_md5}.pid"
 export WRAPPERPIDFILE=$pidfile
 
 RETVAL=0

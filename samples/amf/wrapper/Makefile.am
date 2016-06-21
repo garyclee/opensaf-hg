@@ -27,6 +27,7 @@ EXTRA_DIST = \
 sbin_PROGRAMS = wrapper
 
 wrapper_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS)
 
 wrapper_SOURCES = \
