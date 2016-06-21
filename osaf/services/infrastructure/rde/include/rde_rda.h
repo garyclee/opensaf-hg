@@ -95,9 +95,7 @@ struct RDE_RDA_CB {
 *                                                               *
 \***************************************************************/
 
-const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb);
 uint32_t rde_rda_open(const char *sockname, RDE_RDA_CB *rde_rda_cb);
-uint32_t rde_rda_close(RDE_RDA_CB *rde_rda_cb);
 uint32_t rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb);
 uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index,
                                     int *disconnect);
