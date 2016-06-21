@@ -437,7 +437,6 @@ static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *
 		}
 
 		free(cl_node);
-		cl_node=NULL;
 	}
 
 	TRACE_LEAVE();
@@ -9297,7 +9296,6 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	*locked = false;
-	cl_node = NULL;
 
 	/* Finalize the just resurrected handle ! */
 	memset(&finalize_evt, 0, sizeof(IMMSV_EVT));
