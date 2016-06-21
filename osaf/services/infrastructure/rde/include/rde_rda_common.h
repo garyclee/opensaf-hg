@@ -27,13 +27,13 @@
  ******************************************************************************
  */
 
-#ifndef RDE_RDA_COMMON_H
-#define RDE_RDA_COMMON_H
+#ifndef OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_RDA_COMMON_H_
+#define OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_RDA_COMMON_H_
 
 /*
  ** includes
  */
-#include <configmake.h>
+#include "./configmake.h"
 
 /*
  ** Return/error codes
@@ -59,11 +59,11 @@ enum RDE_RDA_CMD_TYPE {
   RDE_RDA_REG_CB_ACK,
   RDE_RDA_REG_CB_NACK,
   RDE_RDA_DISCONNECT_REQ,
-  RDE_RDA_HA_ROLE,
+  RDE_RDA_HA_ROLE
 };
 
 /*
  ** PDU (Protocol Data Units) for the above
  */
 
-#endif   /* RDE_RDA_COMMON_H */
+#endif  // OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_RDA_COMMON_H_

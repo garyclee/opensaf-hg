@@ -15,22 +15,16 @@
  *
  */
 
-#ifndef RDE_CB_H
-#define RDE_CB_H
+#ifndef OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_CB_H_
+#define OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_CB_H_
 
-#include <configmake.h>
-#include <mds_papi.h>
-
-#include "rde_rda_common.h"
-#include "rde_amf.h"
-#include "rde_rda.h"
-#include "rda_papi.h"
-#include "osaf_utility.h"
-
-/* The value to put in the PATH environment variable when calling the
- SC active script */
-#define SC_ACTIVE_PATH_ENV "/usr/local/sbin:/usr/local/bin:/usr/sbin:" \
-        "/usr/bin:/sbin:/bin"
+#include <cstdint>
+#include "osaf/libs/core/common/include/osaf_utility.h"
+#include "osaf/libs/core/include/mds_papi.h"
+#include "osaf/libs/core/include/rda_papi.h"
+#include "osaf/services/infrastructure/rde/include/rde_amf.h"
+#include "osaf/services/infrastructure/rde/include/rde_rda.h"
+#include "osaf/services/infrastructure/rde/include/rde_rda_common.h"
 
 /*
  **  RDE_CONTROL_BLOCK
@@ -41,11 +35,8 @@
 
 struct RDE_CONTROL_BLOCK {
   SYSF_MBX mbx;
-  const char *prog_name;
   NCSCONTEXT task_handle;
   bool task_terminate;
-  bool fabric_interface;
-  uint32_t select_timeout;
   RDE_RDA_CB rde_rda_cb;
   RDE_AMF_CB rde_amf_cb;
 };
@@ -54,7 +45,7 @@ enum RDE_MSG_TYPE {
   RDE_MSG_PEER_UP = 1,
   RDE_MSG_PEER_DOWN = 2,
   RDE_MSG_PEER_INFO_REQ = 3,
-  RDE_MSG_PEER_INFO_RESP = 4,
+  RDE_MSG_PEER_INFO_RESP = 4
 };
 
 struct rde_peer_info {
@@ -62,12 +53,12 @@ struct rde_peer_info {
 };
 
 struct rde_msg {
-  struct rde_msg *next;
+  rde_msg *next;
   RDE_MSG_TYPE type;
   MDS_DEST fr_dest;
   NODE_ID fr_node_id;
   union {
-    struct rde_peer_info peer_info;
+    rde_peer_info peer_info;
   } info;
 };
 
@@ -82,7 +73,7 @@ extern const char *rde_msg_name[];
 extern RDE_CONTROL_BLOCK *rde_get_control_block();
 extern uint32_t rde_mds_register();
 extern uint32_t rde_mds_unregister();
-extern uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest);
+extern uint32_t rde_mds_send(rde_msg *msg, MDS_DEST to_dest);
 extern uint32_t rde_set_role(PCS_RDA_ROLE role);
 
-#endif   /* RDE_CB_H */
+#endif  // OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_CB_H_

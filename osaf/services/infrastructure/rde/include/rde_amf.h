@@ -29,28 +29,22 @@
  ******************************************************************************
  */
 
-#ifndef RDE_AMF_H
-#define RDE_AMF_H
+#ifndef OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_AMF_H_
+#define OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_AMF_H_
 
 /*
  * Includes
  */
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <cstdarg>
-
-#include "ncs_main_papi.h"
-#include "saAis.h"
-#include "saAmf.h"
+#include <cstdint>
+#include "osaf/libs/saf/include/saAmf.h"
 
 class Role;
 
 /*
  * Macro used to get the AMF version used
  */
-#define m_RDE_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; \
-  amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x00;
+#define m_RDE_GET_AMF_VER(amf_ver) amf_ver.releaseCode = 'B'; \
+  amf_ver.majorVersion = 0x01; amf_ver.minorVersion = 0x00;
 
 /*
  * RDE AMF control information
@@ -68,4 +62,4 @@ extern uint32_t rde_amf_init(RDE_AMF_CB *rde_amf_cb);
 extern SaAisErrorT internal_csi_set_callback(SaInvocationT invocation,
                                              SaAmfHAStateT new_haState);
 
-#endif
+#endif  // OSAF_SERVICES_INFRASTRUCTURE_RDE_INCLUDE_RDE_AMF_H_
