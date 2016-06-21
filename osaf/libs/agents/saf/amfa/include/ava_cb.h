@@ -113,6 +113,7 @@ void ava_cpy_protection_group_ntf(SaAmfProtectionGroupNotificationT_4  *to_ntf,
 				const SaAmfProtectionGroupNotificationT *from_ntf,
 				SaUint32T items,
 				SaAmfHAReadinessStateT ha_read_state);
+bool ava_sanamet_is_valid(const SaNameT* pName);
 
 #ifdef  __cplusplus
 }

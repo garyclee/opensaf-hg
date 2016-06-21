@@ -366,7 +366,7 @@ SaAisErrorT AmfAgent::Finalize(SaAmfHandleT hdl) {
   }
 
   /* populate & send the finalize message */
-  m_AVA_AMF_FINALIZE_MSG_FILL(msg, cb->ava_dest, hdl, cb->comp_name);
+  ava_fill_finalize_msg(&msg, cb->ava_dest, hdl, cb->comp_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, 0));
   if (NCSCC_RC_SUCCESS == rc) {
     ncshm_give_hdl(hdl);
@@ -429,13 +429,12 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
   AVA_HDL_REC *hdl_rec = 0;
   AVSV_NDA_AVA_MSG msg = {};
   AVSV_NDA_AVA_MSG *msg_rsp = 0;
-  SaNameT pcomp_name = {0};
+  SaNameT pcomp_name;
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !(comp_name->length) ||
-      (comp_name->length > SA_MAX_NAME_LENGTH) ||
-      (proxy_comp_name && (!proxy_comp_name->length || proxy_comp_name->length > SA_MAX_NAME_LENGTH))) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
+    (proxy_comp_name && !ava_sanamet_is_valid(proxy_comp_name))) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -461,15 +460,17 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
   }
 
   if (!m_AVA_FLAG_IS_COMP_NAME(cb)) {
-    if (getenv("SA_AMF_COMPONENT_NAME")) {
-      if (strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
-        strcpy((char *)cb->comp_name.value, getenv("SA_AMF_COMPONENT_NAME"));
-        cb->comp_name.length = (uint16_t)strlen((char *)cb->comp_name.value);
-        m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
-      } else {
-        TRACE_2("Length of SA_AMF_COMPONENT_NAME exceeds SA_MAX_NAME_LENGTH bytes");
+    SaConstStringT env_comp_name = getenv("SA_AMF_COMPONENT_NAME");
+    if (env_comp_name) {
+      if (strlen(env_comp_name) > kOsafMaxDnLength) {
+        TRACE_2("Length of SA_AMF_COMPONENT_NAME exceeds "
+            "kOsafMaxDnLength(%d) bytes", kOsafMaxDnLength);
         rc = SA_AIS_ERR_INVALID_PARAM;
         goto done;
+      } else {
+        // @cb->comp_name could be longDN, need to be freed later
+        osaf_extended_name_alloc(env_comp_name, &cb->comp_name);
+        m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
       }
     } else {
       TRACE_2("The SA_AMF_COMPONENT_NAME environment variable is NULL");
@@ -481,26 +482,31 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
     ncshm_give_hdl(gl_ava_hdl);
 
   /* non-proxied, component Length part of component name should be OK */
-  if (!proxy_comp_name && (comp_name->length != cb->comp_name.length)) {
+  if (!proxy_comp_name && (osaf_extended_name_length(comp_name) !=
+            osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* proxy component, Length part of proxy component name should be Ok */
-  if (proxy_comp_name && (proxy_comp_name->length != cb->comp_name.length)) {
+  if (proxy_comp_name && (osaf_extended_name_length(proxy_comp_name) !=
+            osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* non-proxied component should not forge its name while registering */
-  if (!proxy_comp_name && strncmp((char *)comp_name->value, (char *)cb->comp_name.value, comp_name->length)) {
+  if (!proxy_comp_name && strncmp(osaf_extended_name_borrow(comp_name),
+                  osaf_extended_name_borrow(&cb->comp_name),
+                  osaf_extended_name_length(comp_name))) {
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
   }
 
   /* proxy component should not forge its name while registering its proxied */
-  if (proxy_comp_name &&
-      strncmp((char *)proxy_comp_name->value, (char *)cb->comp_name.value, proxy_comp_name->length)) {
+  if (proxy_comp_name && strncmp(osaf_extended_name_borrow(proxy_comp_name),
+                    osaf_extended_name_borrow(&cb->comp_name),
+                    osaf_extended_name_length(proxy_comp_name))) {
     TRACE("proxy component should not forge its name while registering its proxied");
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
@@ -515,8 +521,10 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
 
   /* populate & send the register message */
   if (proxy_comp_name)
-    pcomp_name = *proxy_comp_name;
-  m_AVA_COMP_REG_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
+    osaf_extended_name_lend(osaf_extended_name_borrow(proxy_comp_name),  &pcomp_name);
+  else
+    memset(&pcomp_name, 0, sizeof(SaNameT));
+  ava_fill_comp_reg_msg(&msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -573,13 +581,12 @@ SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_
   AVSV_NDA_AVA_MSG *msg_rsp = 0;
   AVA_CB *cb = 0;
   AVA_HDL_REC *hdl_rec = 0;
-  SaNameT pcomp_name = {0};
+  SaNameT pcomp_name;
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !(comp_name->length) ||
-      (comp_name->length > SA_MAX_NAME_LENGTH) ||
-      (proxy_comp_name && (!proxy_comp_name->length || proxy_comp_name->length > SA_MAX_NAME_LENGTH))) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
+    (proxy_comp_name && !ava_sanamet_is_valid(proxy_comp_name))) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -605,27 +612,31 @@ SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_
   }
 
   /* non-proxied, component Length part of component name should be OK */
-  if (!proxy_comp_name && (comp_name->length != cb->comp_name.length)) {
+  if (!proxy_comp_name && (osaf_extended_name_length(comp_name) !=
+            osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
 
   /* proxy component, Length part of proxy component name should be Ok */
-  if (proxy_comp_name && (proxy_comp_name->length != cb->comp_name.length)) {
+  if (proxy_comp_name && (osaf_extended_name_length(proxy_comp_name) !=
+            osaf_extended_name_length(&cb->comp_name))) {
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
   }
-
-  /* non-proxied component should not forge its name while unregistering */
-  if (!proxy_comp_name && strncmp((char *)comp_name->value, (char *)cb->comp_name.value, comp_name->length)) {
+  /* non-proxied component should not forge its name while registering */
+  if (!proxy_comp_name && strncmp(osaf_extended_name_borrow(comp_name),
+                  osaf_extended_name_borrow(&cb->comp_name),
+                  osaf_extended_name_length(comp_name))) {
     TRACE("non-proxied component should not forge its name while unregistering");
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
   }
 
   /* proxy component should not forge its name while unregistering proxied */
-  if (proxy_comp_name &&
-      strncmp((char *)proxy_comp_name->value, (char *)cb->comp_name.value, proxy_comp_name->length)) {
+  if (proxy_comp_name && strncmp(osaf_extended_name_borrow(proxy_comp_name),
+                    osaf_extended_name_borrow(&cb->comp_name),
+                    osaf_extended_name_length(proxy_comp_name))) {
     TRACE("proxy component should not forge its name while unregistering proxied");
     rc = SA_AIS_ERR_BAD_OPERATION;
     goto done;
@@ -633,8 +644,10 @@ SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_
 
   /* populate & send the unregister message */
   if (proxy_comp_name)
-    pcomp_name = *proxy_comp_name;
-  m_AVA_COMP_UNREG_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
+    osaf_extended_name_lend(osaf_extended_name_borrow(proxy_comp_name),  &pcomp_name);
+  else
+    memset(&pcomp_name, 0, sizeof(SaNameT));
+  ava_fill_comp_unreg_msg(&msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -707,7 +720,7 @@ SaAisErrorT AmfAgent::HealthcheckStart(SaAmfHandleT hdl,
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
-  if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
       !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
@@ -757,7 +770,7 @@ SaAisErrorT AmfAgent::HealthcheckStart(SaAmfHandleT hdl,
   }
 
   /* populate & send the healthcheck start message */
-  m_AVA_HC_START_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, inv, rec_rcvr);
+  ava_fill_hc_start_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, inv, rec_rcvr);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -813,7 +826,7 @@ SaAisErrorT AmfAgent::HealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
       !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
@@ -833,14 +846,14 @@ SaAisErrorT AmfAgent::HealthcheckStop(SaAmfHandleT hdl, const SaNameT *comp_name
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-  /* retrieve hdl rec */
+    /* retrieve hdl rec */
   if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the healthcheck stop message */
-  m_AVA_HC_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key);
+  ava_fill_hc_stop_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -901,7 +914,7 @@ SaAisErrorT AmfAgent::HealthcheckConfirm(SaAmfHandleT hdl,
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
       !hc_key || !(hc_key->keyLen) || (hc_key->keyLen > SA_AMF_HEALTHCHECK_KEY_MAX) ||
       !m_AVA_AMF_RESP_ERR_CODE_IS_VALID(hc_result)) {
     TRACE_LEAVE2("Incorrect arguments");
@@ -929,7 +942,7 @@ SaAisErrorT AmfAgent::HealthcheckConfirm(SaAmfHandleT hdl,
   }
 
   /* populate & send the healthcheck confirm message */
-  m_AVA_HC_CONFIRM_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, hc_result);
+  ava_fill_hc_confirm_msg(&msg, cb->ava_dest, hdl, *comp_name, cb->comp_name, *hc_key, hc_result);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -997,7 +1010,7 @@ SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl,
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* input validation of component name */
-  if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH)) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1056,7 +1069,7 @@ SaAisErrorT AmfAgent::PmStart(SaAmfHandleT hdl,
   }
 
   /* populate & send the passive monitor start message */
-  m_AVA_PM_START_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
+  ava_fill_pm_start_msg(&msg, cb->ava_dest, hdl, *comp_name, processId, desc_TreeDepth, pmErr, rec_Recovery);
 
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
@@ -1122,7 +1135,7 @@ SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl,
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* input validation of component name */
-  if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH)) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name)) {
     TRACE_LEAVE2("Incorrect Arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1169,14 +1182,14 @@ SaAisErrorT AmfAgent::PmStop(SaAmfHandleT hdl,
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-  /* retrieve hdl rec */
+    /* retrieve hdl rec */
   if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the Passive Monitoring stop message */
-  m_AVA_PM_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, stopQual, processId, pmErr);
+  ava_fill_pm_stop_msg(&msg, cb->ava_dest, hdl, *comp_name, stopQual, processId, pmErr);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1234,8 +1247,6 @@ SaAisErrorT AmfAgent::ComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name) {
     return SA_AIS_ERR_INVALID_PARAM;
   }
 
-  memset(o_comp_name, '\0', sizeof(SaNameT));
-
   /* Verifying the input Handle & global handle */
   if(!gl_ava_hdl || hdl > AVSV_UNS32_HDL_MAX) {
     TRACE_2("Invalid SaAmfHandle passed by component: %llx",hdl);
@@ -1258,8 +1269,9 @@ SaAisErrorT AmfAgent::ComponentNameGet(SaAmfHandleT hdl, SaNameT *o_comp_name) {
 
   /* fetch the comp name */
   if (m_AVA_FLAG_IS_COMP_NAME(cb)) {
-    *o_comp_name = cb->comp_name;
-    o_comp_name->length = cb->comp_name.length;
+    /* reuse longDn in @cb->comp_name if any */
+    osaf_extended_name_lend(osaf_extended_name_borrow(&cb->comp_name),
+              o_comp_name);
   } else {
     TRACE_2("component name does not exist");
     rc = SA_AIS_ERR_NOT_EXIST;
@@ -1335,7 +1347,7 @@ SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, 
   /* get the list of pending responses for this handle */
   list_resp = &hdl_rec->pend_resp;
   if (!list_resp) {
-    TRACE_2("No pendingresponses for this handle");
+    TRACE_2("No pending responses for this handle");
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
   }
@@ -1360,7 +1372,7 @@ SaAisErrorT AmfAgent::CSIQuiescingComplete(SaAmfHandleT hdl, SaInvocationT inv, 
   }
 
   /* populate & send the 'Quiescing Complete' message */
-  m_AVA_CSI_QUIESCING_COMPL_MSG_FILL(msg, cb->ava_dest, hdl, inv, error, cb->comp_name);
+  ava_fill_csi_quiescing_complete_msg(&msg, cb->ava_dest, hdl, inv, error, cb->comp_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, 0));
   if (NCSCC_RC_SUCCESS != rc)
     rc = SA_AIS_ERR_TRY_AGAIN;
@@ -1417,8 +1429,8 @@ SaAisErrorT AmfAgent::HAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, con
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH) ||
-      !csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH) || !o_ha) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name) ||
+      !csi_name || !ava_sanamet_is_valid(csi_name) || !o_ha) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1437,14 +1449,14 @@ SaAisErrorT AmfAgent::HAStateGet(SaAmfHandleT hdl, const SaNameT *comp_name, con
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-  /* retrieve hdl rec */
+    /* retrieve hdl rec */
   if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the 'ha state get' message */
-  m_AVA_HA_STATE_GET_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name, *csi_name);
+  ava_fill_ha_state_get_msg(&msg, cb->ava_dest, hdl, *comp_name, *csi_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1515,7 +1527,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH)) {
+  if (!csi_name || !ava_sanamet_is_valid(csi_name)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1577,7 +1589,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack(SaAmfHandleT hdl,
   }
 
   /* populate & send the pg start message */
-  m_AVA_PG_START_MSG_FILL(msg, cb->ava_dest, hdl, *csi_name, flags, is_syn);
+  ava_fill_pg_start_msg(&msg, cb->ava_dest, hdl, *csi_name, flags, is_syn);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     /* the resp may contain only the oper result or the curr pg members */
@@ -1685,7 +1697,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH)) {
+  if (!csi_name || !ava_sanamet_is_valid(csi_name)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1711,7 +1723,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrackStop(SaAmfHandleT hdl, const SaNameT *
   }
 
   /* populate & send the pg stop message */
-  m_AVA_PG_STOP_MSG_FILL(msg, cb->ava_dest, hdl, *csi_name);
+  ava_fill_pg_stop_msg(&msg, cb->ava_dest, hdl, *csi_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1775,7 +1787,7 @@ SaAisErrorT AmfAgent::ComponentErrorReport(SaAmfHandleT hdl,
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
   /* validate the component */
-  if (!err_comp || !(err_comp->length) || (err_comp->length > SA_MAX_NAME_LENGTH)) {
+  if (!err_comp || !ava_sanamet_is_valid(err_comp)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1811,7 +1823,7 @@ SaAisErrorT AmfAgent::ComponentErrorReport(SaAmfHandleT hdl,
   }
 
   /* populate & send the 'error report' message */
-  m_AVA_ERR_REP_MSG_FILL(msg, cb->ava_dest, hdl, *err_comp, err_time, rec_rcvr);
+  ava_fill_error_report_msg(&msg, cb->ava_dest, hdl, *err_comp, err_time, rec_rcvr);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1867,7 +1879,7 @@ SaAisErrorT AmfAgent::ComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_
   SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("SaAmfHandleT passed is %llx", hdl);
 
-  if (!comp_name || !(comp_name->length) || (comp_name->length > SA_MAX_NAME_LENGTH)) {
+  if (!comp_name || !ava_sanamet_is_valid(comp_name)) {
     TRACE_LEAVE2("Incorrect arguments");
     return SA_AIS_ERR_INVALID_PARAM;
   }
@@ -1886,14 +1898,14 @@ SaAisErrorT AmfAgent::ComponentErrorClear(SaAmfHandleT hdl, const SaNameT *comp_
   }
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
-  /* retrieve hdl rec */
+    /* retrieve hdl rec */
   if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
     rc = SA_AIS_ERR_BAD_HANDLE;
     goto done;
   }
 
   /* populate & send the 'error clear' message */
-  m_AVA_ERR_CLEAR_MSG_FILL(msg, cb->ava_dest, hdl, *comp_name);
+  ava_fill_err_clear_msg(&msg, cb->ava_dest, hdl, *comp_name);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -1994,7 +2006,7 @@ SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT 
   }
 
   /* populate & send the 'AMF response' message */
-  m_AVA_AMF_RESP_MSG_FILL(msg, cb->ava_dest, hdl, inv, error, cb->comp_name);
+  ava_fill_response_msg(&msg, cb->ava_dest, hdl, inv, error, cb->comp_name);
 
   if (rec->cbk_info->type == AVSV_AMF_COMP_TERM)
     rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
@@ -2366,7 +2378,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
   /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
   /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
 
-  if (!csi_name || !(csi_name->length) || (csi_name->length > SA_MAX_NAME_LENGTH)) {
+  if (!csi_name || !ava_sanamet_is_valid(csi_name)) {
     TRACE_LEAVE2("Incorrect arguments");
     rc = SA_AIS_ERR_INVALID_PARAM;
     goto done;
@@ -2410,7 +2422,7 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
   }
 
   /* populate & send the pg start message */
-  m_AVA_PG_START_MSG_FILL(msg, cb->ava_dest, hdl, *csi_name, flags, is_syn);
+  ava_fill_pg_start_msg(&msg, cb->ava_dest, hdl, *csi_name, flags, is_syn);
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     /* the resp may contain only the oper result or the curr pg members */
@@ -2438,7 +2450,6 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
           ava_cpy_protection_group_ntf(buf->notification, rsp_buf->notification,
                                        buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
           rc = SA_AIS_ERR_NO_SPACE;
-          buf->numberOfItems = rsp_buf->numberOfItems;
         }
       } else {	/* if(create_memory == false) */
 
@@ -2542,8 +2553,11 @@ SaAisErrorT AmfAgent::ProtectionGroupNotificationFree_4(SaAmfHandleT hdl, SaAmfP
   /* TODO: check if handle is "old", due to node rejoin as member in cluster. If not: SA_AIS_ERR_UNAVAILABLE */
 
   /* free memory */
-  if(notification)
+  if(notification) {
+    // TODO (minhchau): memleak if notification is an array
+    osaf_extended_name_free(&notification->member.compName);
     free(notification);
+  }
   else
     rc = SA_AIS_ERR_INVALID_PARAM;
 

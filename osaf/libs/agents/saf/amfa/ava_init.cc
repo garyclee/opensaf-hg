@@ -120,6 +120,7 @@ uint32_t ava_create(NCS_LIB_CREATE *create_info)
 	AVA_CB *cb = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR err;
+	SaConstStringT env_comp_name = getenv("SA_AMF_COMPONENT_NAME");
 	TRACE_ENTER();
 
 	/* allocate AvA cb */
@@ -129,17 +130,18 @@ uint32_t ava_create(NCS_LIB_CREATE *create_info)
 		goto error;
 	}
 
-	/* fetch the comp name from the env variable */
-	if (getenv("SA_AMF_COMPONENT_NAME")) {
-		if (strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
-			strcpy((char *)cb->comp_name.value, getenv("SA_AMF_COMPONENT_NAME"));
-			cb->comp_name.length = (uint16_t)strlen((char *)cb->comp_name.value);
-			m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
-			TRACE("Component name = %s",cb->comp_name.value);
-		} else {
-			TRACE_2("Length of SA_AMF_COMPONENT_NAME exceeds SA_MAX_NAME_LENGTH bytes");
+	/* check the comp name from the env variable */
+	if (env_comp_name) {
+		if (strlen(env_comp_name) > kOsafMaxDnLength) {
+			TRACE_2("Length of SA_AMF_COMPONENT_NAME exceeds "
+					"kOsafMaxDnLength(%d) bytes", kOsafMaxDnLength);
 			rc = NCSCC_RC_FAILURE;
 			goto error;
+		} else {
+			// @cb->comp_name could be longDN, need to be freed later
+			osaf_extended_name_alloc(env_comp_name, &cb->comp_name);
+			m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
+			TRACE("Component name = %s", osaf_extended_name_borrow(&cb->comp_name));
 		}
 	}
 
@@ -282,6 +284,7 @@ void ava_destroy(NCS_LIB_DESTROY *destroy_info)
 	TRACE_1("Removing association with handle manager failed");
 
 	/* free the control block */
+	osaf_extended_name_free(&cb->comp_name);
 	free(cb);
 
 	/* reset the global cb handle */

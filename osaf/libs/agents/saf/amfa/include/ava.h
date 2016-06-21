@@ -43,6 +43,7 @@
 #include "ava_hdl.h"
 #include "ava_mds.h"
 #include "ava_cb.h"
+#include "osaf_extended_name.h"
 
 #include<logtrace.h>
 

@@ -148,12 +148,29 @@ void ava_cpy_protection_group_ntf(SaAmfProtectionGroupNotificationT_4  *to_ntf,
 	memset(to_ntf, 0, items * sizeof(*to_ntf));
 	for(i = 0; i < items; i++) {
 		to_ntf[i].change = from_ntf[i].change;
-		memcpy(to_ntf[i].member.compName.value, from_ntf[i].member.compName.value,
-				from_ntf[i].member.compName.length);
-		to_ntf[i].member.compName.length = from_ntf[i].member.compName.length;
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&from_ntf[i].member.compName),
+								 &to_ntf[i].member.compName);
 		to_ntf[i].member.haReadinessState = ha_read_state;
 		to_ntf[i].member.haState = from_ntf[i].member.haState;
 		to_ntf[i].member.rank = from_ntf[i].member.rank;
 	}
 }
 
+/**
+ *  @Brief: Check SaNameT is a valid formation
+ *
+ */
+bool ava_sanamet_is_valid(const SaNameT* pName)
+{
+	if (!osaf_is_extended_name_valid(pName)) {
+		LOG_WA("Environment variable SA_ENABLE_EXTENDED_NAMES "
+			"is not set, or not using extended name api");
+		return false;
+	}
+	if (osaf_extended_name_length(pName) > kOsafMaxDnLength) {
+		LOG_ER("Exceeding maximum of extended name length(%u)"
+			,kOsafMaxDnLength);
+		return false;
+	}
+	return true;
+}
