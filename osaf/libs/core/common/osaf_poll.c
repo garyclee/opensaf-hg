@@ -82,7 +82,7 @@ unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
 
 	for (;;) {
 		struct timespec current_time;
-		struct timespec elapsed_time;
+		struct timespec elapsed_time = { .tv_sec = 0, .tv_nsec = 0 };
 		int time_left;
 
 		/* We don't want to time-out too early, so round up to next even
@@ -109,13 +109,6 @@ unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
 		if (osaf_timespec_compare(&current_time, &start_time) >= 0) {
 			osaf_timespec_subtract(&current_time, &start_time,
 				&elapsed_time);
-		} else {
-			/* Handle the unlikely case that the elapsed time is
-			 * negative. Shouldn't happen with a monotonic clock,
-			 * but just to be on the safe side.
-			 */
-			elapsed_time.tv_sec = 0;
-			elapsed_time.tv_nsec = 0;
 		}
 		if (osaf_timespec_compare(&elapsed_time, i_timeout_ts) >= 0) {
 			result = 0;
@@ -129,10 +122,8 @@ unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
 
 int osaf_poll_one_fd(int i_fd, int i_timeout)
 {
-	struct pollfd set;
+	struct pollfd set = { .fd = i_fd, .events = POLLIN, .revents = 0 };
 	unsigned result;
-	set.fd = i_fd;
-	set.events = POLLIN;
 	result = osaf_poll(&set, 1, i_timeout);
 	if (result == 1) {
 		if ((set.revents & (POLLNVAL | POLLERR)) != 0) {

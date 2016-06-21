@@ -19,6 +19,7 @@
 #define _GNU_SOURCE
 #endif
 #include "osaf_timerfd.h"
+#include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <pthread.h>
@@ -181,6 +182,7 @@ int osaf_timerfd_create(clockid_t clock_id, int flags)
 	timer->write_socket = sfd[1];
 
 	struct sigevent event;
+	memset(&event, 0, sizeof(event));
 	event.sigev_notify = SIGEV_THREAD;
 	event.sigev_value.sival_int = timer->sequence_no;
 	event.sigev_notify_function = EventHandler;

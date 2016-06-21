@@ -126,7 +126,6 @@ typedef struct ncs_main_pub_cb {
 	void *lib_hdl;
 
 	NCS_LOCK lock;
-	uint32_t lock_create;
 	bool core_started;
 	uint32_t my_nodeid;
 	uint32_t my_procid;
@@ -175,9 +174,7 @@ static pthread_mutex_t s_leap_core_mutex = PTHREAD_MUTEX_INITIALIZER;
 \***************************************************************************/
 unsigned int ncs_agents_startup(void)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	rc = ncs_core_agents_startup();
+	uint32_t rc = ncs_core_agents_startup();
 	if (rc != NCSCC_RC_SUCCESS)
 		return rc;
 
@@ -312,9 +309,7 @@ unsigned int ncs_mds_startup(void)
 \***************************************************************************/
 uint32_t ncs_non_core_agents_startup(void)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	rc = ncs_mbca_startup();
+	uint32_t rc = ncs_mbca_startup();
 
 	return rc;
 }
@@ -686,11 +681,10 @@ static uint32_t ncs_set_config_root(void)
 uint32_t ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 {
 	char *tmp_ptr;
-	uint32_t res = NCSCC_RC_SUCCESS;
 
 	memset(sys_params, 0, sizeof(NCS_SYS_PARAMS));
 
-	if ((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS) {
+	if (ncs_set_config_root() != NCSCC_RC_SUCCESS) {
 		TRACE_4("Unable to set config root \n");
 		return NCSCC_RC_FAILURE;
 	}
@@ -711,7 +705,6 @@ uint32_t ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 
 void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 {
-	char *p_field;
 	uint32_t tmp_ctr;
 	uint32_t orig_argc;
 	NCS_SYS_PARAMS params;
@@ -728,7 +721,7 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 
 	/* Check argv[argc-1] through argv[1] */
 	for (; argc > 1; argc--) {
-		p_field = strstr(&argv[argc - 1], "NODE_ID=");
+		char* p_field = strstr(&argv[argc - 1], "NODE_ID=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("NODE_ID="), "%d", &params.node_id) == 1)
 				sys_params->node_id = params.node_id;
@@ -791,11 +784,9 @@ uint32_t ncs_update_sys_param_args(void)
 \***************************************************************************/
 char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 {
-	char *tmp;
-
 	/* Check   argv[argc-1] through argv[1] */
 	for (; argc > 1; argc--) {
-		tmp = strstr(argv[argc - 1], arg_prefix);
+		char* tmp = strstr(argv[argc - 1], arg_prefix);
 		if (tmp != NULL)
 			return tmp;
 	}

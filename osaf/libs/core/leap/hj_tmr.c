@@ -386,12 +386,11 @@ uint32_t ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 **************************************************************************/
 uint32_t ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 {
-	NCS_RP_TMR_INFO *tmr_info;
 	uint32_t res = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 	do {
-		tmr_info = (NCS_RP_TMR_INFO *)tmr_id;
+		NCS_RP_TMR_INFO* tmr_info = (NCS_RP_TMR_INFO *)tmr_id;
 		if (tmr_info == NULL) {
 			m_RP_TMR_LOG_MSG("ncs_rp_tmr_delete timer is not started already", tmr_info);
 			res = NCSCC_RC_FAILURE;
@@ -422,7 +421,6 @@ uint32_t ncs_rp_tmr_delete(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 {
 	NCS_RP_TMR_INFO *tmr_info;
-	NCS_RP_TMR_INFO *pres_tmr_info;
 	NCS_RP_TMR_CB *tmr_cb = *pptmr_cb;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
@@ -436,7 +434,7 @@ uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 		m_NCS_TMR_DESTROY(tmr_cb->tmr_id);
 
 		/* remove all the buckets and node */
-		pres_tmr_info = tmr_info;
+		NCS_RP_TMR_INFO* pres_tmr_info = tmr_info;
 		for (; tmr_info != NULL;) {
 			tmr_info = tmr_info->pnext;
 			free(pres_tmr_info);
@@ -468,7 +466,6 @@ uint32_t ncs_rp_tmr_destory(NCS_RP_TMR_CB **pptmr_cb)
 uint32_t ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
 {
 	NCS_RP_TMR_INFO *tmr_list;
-	NCS_RP_TMR_INFO *prev_tmr_info;
 	RP_TMR_CALLBACK call_back;
 	void *arg;
 	uint32_t tmr_diff = 0;
@@ -484,7 +481,7 @@ uint32_t ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
 		m_RP_TMR_LOG_MSG("ncs_rp_tmr_exp received successfully", 0);
 
 		tmr_list = tmr_cb->start_list;
-		prev_tmr_info = tmr_list;
+		NCS_RP_TMR_INFO* prev_tmr_info = tmr_list;
 
 		m_NCS_TMR_STOP(tmr_cb->tmr_id);
 		/* now OS timer is in active */

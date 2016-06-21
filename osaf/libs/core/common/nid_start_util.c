@@ -37,7 +37,7 @@
 unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn)
 {
 	unsigned int rc = NCSCC_RC_FAILURE;
-	char comp_name[SA_MAX_NAME_LENGTH] = { 0 };
+	char comp_name[257] = { 0 };
 	FILE *fp;
 	char *comp_name_file;
 
@@ -51,7 +51,7 @@ unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn)
 		goto done;
 	}
 
-	if (fscanf(fp, "%s", comp_name) != 1) {
+	if (fscanf(fp, "%256s", comp_name) != 1) {
 		(void)fclose(fp);
 		LOG_ER("Unable to retrieve component name from file '%s'", comp_name_file);
 		goto done;

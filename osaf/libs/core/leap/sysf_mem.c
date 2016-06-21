@@ -851,22 +851,20 @@ char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
 
 void sysf_remove_from_end(USRBUF *pb, unsigned int size)
 {
-	USRBUF **pub;
 	USRBUF *ub;
-	unsigned int buflen;
 
 	if (pb != BNULL) {
 		while ((size > 0) && (sysf_get_chain_len(pb))) {
 
 			/* Find the last one in the chain. */
-			pub = (USRBUF **)NULL;
+			USRBUF** pub = (USRBUF**) NULL;
 			ub = pb;
 
 			while (ub->link != (USRBUF *)0) {
 				pub = &ub->link, ub = *pub;
 			}
 
-			buflen = ub->count;
+			unsigned buflen = ub->count;
 			if (buflen > size) {
 				/* We can do the unappand without freeing any buffers. */
 				ub->count -= size;
@@ -941,10 +939,9 @@ char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size)
 void sysf_remove_from_start(USRBUF **ppb, unsigned int size)
 {
 	USRBUF *ub;
-	unsigned int buflen;
 
 	while (((ub = *ppb) != (USRBUF *)0) && (size > 0)) {
-		buflen = ub->count;
+		unsigned buflen = ub->count;
 
 		if (buflen > size) {
 			/* This is, like, simple. */

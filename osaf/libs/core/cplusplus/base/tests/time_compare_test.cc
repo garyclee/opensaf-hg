@@ -22,11 +22,15 @@ static const timespec kZeroDotNineSeconds = { 0, 900000000 };
 static const timespec kOneDotOneSeconds = { 1, 100000000 };
 
 TEST(BaseTimeCompare, ZeroWithZero) {
+  // cppcheck-suppress duplicateExpression
   EXPECT_FALSE(base::kZeroSeconds < base::kZeroSeconds);
+  // cppcheck-suppress duplicateExpression
   EXPECT_TRUE(base::kZeroSeconds <= base::kZeroSeconds);
   EXPECT_TRUE(base::kZeroSeconds == base::kZeroSeconds);
   EXPECT_FALSE(base::kZeroSeconds != base::kZeroSeconds);
+  // cppcheck-suppress duplicateExpression
   EXPECT_TRUE(base::kZeroSeconds >= base::kZeroSeconds);
+  // cppcheck-suppress duplicateExpression
   EXPECT_FALSE(base::kZeroSeconds > base::kZeroSeconds);
 }
 
@@ -67,11 +71,15 @@ TEST(BaseTimeCompare, OneWithZero) {
 }
 
 TEST(BaseTimeCompare, OneWithOne) {
+  // cppcheck-suppress duplicateExpression
   EXPECT_FALSE(base::kOneSecond < base::kOneSecond);
+  // cppcheck-suppress duplicateExpression
   EXPECT_TRUE(base::kOneSecond <= base::kOneSecond);
   EXPECT_TRUE(base::kOneSecond == base::kOneSecond);
   EXPECT_FALSE(base::kOneSecond != base::kOneSecond);
+  // cppcheck-suppress duplicateExpression
   EXPECT_TRUE(base::kOneSecond >= base::kOneSecond);
+  // cppcheck-suppress duplicateExpression
   EXPECT_FALSE(base::kOneSecond > base::kOneSecond);
 }
 
@@ -94,11 +102,15 @@ TEST(BaseTimeCompare, OneDotOneWithOne) {
 }
 
 TEST(BaseTimeCompare, ZeroDotNineWithZeroDotNine) {
+  // cppcheck-suppress duplicateExpression
   EXPECT_FALSE(kZeroDotNineSeconds < kZeroDotNineSeconds);
+  // cppcheck-suppress duplicateExpression
   EXPECT_TRUE(kZeroDotNineSeconds <= kZeroDotNineSeconds);
   EXPECT_TRUE(kZeroDotNineSeconds == kZeroDotNineSeconds);
   EXPECT_FALSE(kZeroDotNineSeconds != kZeroDotNineSeconds);
+  // cppcheck-suppress duplicateExpression
   EXPECT_TRUE(kZeroDotNineSeconds >= kZeroDotNineSeconds);
+  // cppcheck-suppress duplicateExpression
   EXPECT_FALSE(kZeroDotNineSeconds > kZeroDotNineSeconds);
 }
 

@@ -705,7 +705,6 @@ uint32_t ncs_uba_decode_pointer(NCS_UBAID *uba, uint64_t *o_recvd_ptr, uint8_t *
 *****************************************************************************/
 uint32_t ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count)
 {
-	uint8_t *p;
 	uint32_t remaining;
 	uint32_t try_put;
 
@@ -733,7 +732,7 @@ uint32_t ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int co
 		   needs more than PAYLOAD_BUF_SIZE bytes anyway. 
 		 */
 		try_put = remaining;
-		p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uint8_t *);	/* Total=false, i.e. only as much as possible */
+		uint8_t* p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uint8_t *);	/* Total=false, i.e. only as much as possible */
 		if (p != NULL) {
 			/*
 			 * Build the octet string...Remember a NULL pointer

@@ -166,7 +166,6 @@ uint32_t ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 {
 	uint8_t *p8;
 	uint8_t u8 = 0x00;
-	uint16_t len = 0;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 	uint32_t i = 0;
 #endif
@@ -209,7 +208,7 @@ uint32_t ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		{
 			uint8_t *uptr = NULL;
 
-			len = 1;	/* default */
+			uint16_t len = 1;	/* default */
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the Octet-stream first. */
 				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
@@ -349,7 +348,7 @@ uint32_t ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8;
-	uint16_t u16, len = 1, byte_cnt = 0;
+	uint16_t u16;
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
@@ -369,7 +368,7 @@ uint32_t ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 				*ptr_data_len = 1;
 			}
 			/* "*ptr_data_len" instances of "uns16" to be encoded */
-			byte_cnt = (uint16_t)ncs_encode_tlv_n_16bit(&p8, (uint16_t *)ptr, (uint16_t)*ptr_data_len);
+			uint16_t byte_cnt = (uint16_t) ncs_encode_tlv_n_16bit(&p8, (uint16_t*) ptr, (uint16_t) *ptr_data_len);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, byte_cnt);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 			memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
@@ -382,7 +381,7 @@ uint32_t ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		{
 			uint16_t *uptr = NULL;
 
-			len = 1;	/* default */
+			uint16_t len = 1;	/* default */
 			if (!buf_env->is_ubaid) {
 				/* Look into length of the Octet-stream first. */
 				p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
@@ -775,7 +774,7 @@ uint32_t ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		     uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint8_t *p8, *src_p8;
-	uint16_t len = 0, byte_cnt = 0;
+	uint16_t len = 0;
 
 	switch (op) {
 	case EDP_OP_TYPE_ENC:
@@ -794,7 +793,7 @@ uint32_t ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 			}
 		} else {
 			p8 = (uint8_t *)buf_env->info.tlv_env.cur_bufp;
-			byte_cnt = (uint16_t)ncs_encode_tlv_n_octets(&p8, src_p8, (uint8_t)len);
+			uint16_t byte_cnt = (uint16_t) ncs_encode_tlv_n_octets(&p8, src_p8, (uint8_t) len);
 			ncs_edu_skip_space(&buf_env->info.tlv_env, byte_cnt);
 		}
 #if(NCS_EDU_VERBOSE_PRINT == 1)
@@ -1658,7 +1657,7 @@ uint32_t ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		if (*(uint64_t **)ptr == NULL) {
 			/* Since "uns64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(uint64_t **)ptr) = uptr = malloc((sizeof(uint64_t) / sizeof(uint8_t))*sizeof(uint8_t));
+			(*(uint64_t**) ptr) = uptr = malloc(sizeof(uint64_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -1810,7 +1809,7 @@ uint32_t ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 		if (*(int64_t **)ptr == NULL) {
 			/* Since "int64" is the responsibility of LEAP, LEAP
 			   is supposed to malloc this memory. */
-			(*(int64_t **)ptr) = uptr = malloc((sizeof(int64_t) / sizeof(uint8_t))*sizeof(uint8_t));
+			(*(int64_t**) ptr) = uptr = malloc(sizeof(int64_t));
 			if (uptr == NULL) {
 				/* Memory failure. */
 				*o_err = EDU_ERR_MEM_FAIL;

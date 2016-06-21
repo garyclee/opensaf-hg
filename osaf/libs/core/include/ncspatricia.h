@@ -52,9 +52,6 @@ extern "C" {
 
 	typedef struct ncs_patricia_params {
 		int key_size;	/* 1..NCS_PATRICIA_MAX_KEY_SIZE - in OCTETS */
-		int info_size;	/* NOT USED!  Present for backward-compatibility only! */
-		int actual_key_size;	/* NOT USED!  Present for backward-compatibility only! */
-		int node_size;	/* NOT USED!  Present for backward compatibitity only! */
 	} NCS_PATRICIA_PARAMS;
 
 #define NCS_PATRICIA_MAX_KEY_SIZE 600	/* # octets */

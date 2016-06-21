@@ -38,6 +38,7 @@
  ******************************************************************************
  */
 
+#include <string.h>
 #include <ncsgl_defs.h>
 #include "ncs_osprm.h"
 
@@ -48,6 +49,7 @@ ncs_task_create(NCS_OS_CB entry_pt,
 		void *arg, const char *name, unsigned int priority, int policy, unsigned int stack_size_in_bytes, void **task_handle)
 {
 	NCS_OS_TASK task;
+	memset(&task, 0, sizeof(task));
 	uint32_t rc;
 
 	task.info.create.i_entry_point = entry_pt;
@@ -68,6 +70,7 @@ ncs_task_create(NCS_OS_CB entry_pt,
 uint32_t ncs_task_release(void *task_handle)
 {
 	NCS_OS_TASK task;
+	memset(&task, 0, sizeof(task));
 
 	if (task_handle == NULL)
 		return NCSCC_RC_SUCCESS;
@@ -92,6 +95,7 @@ uint32_t ncs_task_join(void *task_handle)
 uint32_t ncs_task_detach(void *task_handle)
 {
 	NCS_OS_TASK task;
+	memset(&task, 0, sizeof(task));
 
 	if (task_handle == NULL)
 		return NCSCC_RC_SUCCESS;
@@ -104,6 +108,7 @@ uint32_t ncs_task_detach(void *task_handle)
 uint32_t ncs_task_start(void *task_handle)
 {
 	NCS_OS_TASK task;
+	memset(&task, 0, sizeof(task));
 
 	if (task_handle == NULL)
 		return NCSCC_RC_SUCCESS;
@@ -116,6 +121,7 @@ uint32_t ncs_task_start(void *task_handle)
 uint32_t ncs_task_stop(void *task_handle)
 {
 	NCS_OS_TASK task;
+	memset(&task, 0, sizeof(task));
 
 	if (task_handle == NULL)
 		return NCSCC_RC_SUCCESS;
@@ -128,6 +134,7 @@ uint32_t ncs_task_stop(void *task_handle)
 uint32_t ncs_task_sleep(unsigned int delay_in_ms)
 {
 	NCS_OS_TASK task;
+	memset(&task, 0, sizeof(task));
 
 	task.info.sleep.i_delay_in_ms = delay_in_ms;
 

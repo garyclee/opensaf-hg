@@ -48,6 +48,9 @@
 #include "logtrace.h"
 #include "include/osaf_secutil.h"
 
+static struct group* osaf_getgrent_r(struct group *gbuf, char** buf,
+				     size_t* buflen);
+
 // singleton (one per process) callback
 static client_auth_data_callback_t client_auth_data_callback;
 
@@ -78,9 +81,7 @@ static void handle_new_connection(int servsock)
 	}
 
 	// wait a while for data to get available on socket
-	struct pollfd fds;
-	fds.fd = client_fd;
-	fds.events = POLLIN;
+	struct pollfd fds = { .fd = client_fd, .events = POLLIN, .revents = 0 };
 	int timeout = 10000;  // TODO allow configuration?
 	int res = osaf_poll(&fds, 1, timeout);
 
@@ -111,7 +112,7 @@ static int server_sock_create(const char *pathname)
 {
 	int server_sockfd;
 	socklen_t addrlen;
-	struct sockaddr_un unaddr;
+	struct sockaddr_un unaddr = { 0 };
 
 	if ((server_sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		LOG_ER("%s: socket failed - %s", __FUNCTION__, strerror(errno));
@@ -161,19 +162,16 @@ static int server_sock_create(const char *pathname)
 static void *auth_server_main(void *_fd)
 {
 	int fd = *((int*) _fd);
-	struct pollfd fds[1];
+	struct pollfd fds = { .fd = fd, .events = POLLIN, .revents = 0 };
 
 	TRACE_ENTER();
 
 	free(_fd);
 
-	fds[0].fd = fd;
-	fds[0].events = POLLIN;
+	for (;;) {
+		osaf_poll(&fds, 1, -1);
 
-	while (1) {
-		(void) osaf_poll(fds, 1, -1);
-
-		if (fds[0].revents & POLLIN) {
+		if (fds.revents & POLLIN) {
 			handle_new_connection(fd);
 		}
 	}
@@ -199,7 +197,7 @@ int osaf_auth_server_create(const char *pathname,
 	client_auth_data_callback = callback;
 
 	// create server socket
-	int *fd = malloc(sizeof(int));
+	int *fd = calloc(1, sizeof(int));
 	*fd = server_sock_create(pathname);
 
 	osafassert(pthread_attr_init(&attr) == 0);
@@ -219,45 +217,80 @@ int osaf_auth_server_create(const char *pathname,
 /* used by server, logging is OK */
 bool osaf_user_is_member_of_group(uid_t uid, const char *groupname)
 {
-	int res;
-	char **member;
-	struct group grp;
-	struct group *result;
-	char grpmembuf[16384]; // can use sysconf(_SC_GETPW_R_SIZE_MAX)
-
-	// get group file entry with list of member user names
-	res = getgrnam_r(groupname, &grp, grpmembuf, sizeof(grpmembuf), &result);
-	if (res > 0) {
-		LOG_ER("%s: get group file entry failed for '%s' - %s",
-			__FUNCTION__, groupname, strerror(res));
+	long grpmembufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
+	if (grpmembufsize < 0) grpmembufsize = 16384;
+	char* grpmembuf = malloc(grpmembufsize);
+	if (grpmembuf == NULL) {
+		LOG_ER("%s: Failed to allocate %ld bytes",
+		       __FUNCTION__, grpmembufsize);
 		return false;
 	}
 
-	if (result == NULL) {
+	long pwdmembufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+	if (pwdmembufsize < 0) pwdmembufsize = 16384;
+	char* pwdmembuf = malloc(pwdmembufsize);
+	if (pwdmembuf == NULL) {
+		LOG_ER("%s: Failed to allocate %ld bytes",
+		       __FUNCTION__, pwdmembufsize);
+		free(grpmembuf);
+		return false;
+	}
+
+	// get group file entry with list of member user names
+	struct group gbuf;
+	struct group *client_grp;
+	int grnam_retval = getgrnam_r(groupname, &gbuf, grpmembuf, grpmembufsize, &client_grp);
+	if (grnam_retval != 0) {
+		LOG_ER("%s: get group file entry failed for '%s' - %s",
+		       __FUNCTION__, groupname, strerror(grnam_retval));
+		free(pwdmembuf);
+		free(grpmembuf);
+		return false;
+	}
+	if (client_grp == NULL) {
 		LOG_ER("%s: group '%s' does not exist", __FUNCTION__, groupname);
+		free(pwdmembuf);
+		free(grpmembuf);
 		return false;
 	}
 
 	// get password file entry for user
-	errno = 0;
-	struct passwd *client_pwd = getpwuid(uid);
+	struct passwd pbuf;
+	struct passwd *client_pwd;
+	int pwuid_retval = getpwuid_r(uid, &pbuf, pwdmembuf, pwdmembufsize, &client_pwd);
+	if (pwuid_retval != 0) {
+		LOG_WA("%s: get password file entry failed for uid=%u - %s",
+		       __FUNCTION__, (unsigned) uid, strerror(pwuid_retval));
+		free(pwdmembuf);
+		free(grpmembuf);
+		return false;
+	}
 	if (client_pwd == NULL) {
-		LOG_WA("%s: get password file entry failed for uid=%d - %s",
-			__FUNCTION__, uid, strerror(errno));
+		LOG_WA("%s: user id %u does not exist", __FUNCTION__, (unsigned) uid);
+		free(pwdmembuf);
+		free(grpmembuf);
 		return false;
 	}
 
 	// check the primary group of the user
-	if (client_pwd->pw_gid == grp.gr_gid)
+	if (client_pwd->pw_gid == client_grp->gr_gid) {
+		free(pwdmembuf);
+		free(grpmembuf);
 		return true;
+	}
 
 	/* loop list of usernames that are members of the group trying find a
 	 * match with the specified user name */
-	for (member = grp.gr_mem; *member != NULL; member++) {
-		if (strcmp(client_pwd->pw_name, *member) == 0)
+	for (char **member = client_grp->gr_mem; *member != NULL; member++) {
+		if (strcmp(client_pwd->pw_name, *member) == 0) {
+			free(pwdmembuf);
+			free(grpmembuf);
 			return true;
+		}
 	}
 
+	free(pwdmembuf);
+	free(grpmembuf);
 	return false;
 }
 
@@ -267,7 +300,7 @@ int osaf_auth_server_connect(const char *path, const void *req_buf,
                              int timeout)
 {
 	int sock_fd, len;
-	struct sockaddr_un remote;
+	struct sockaddr_un remote = { 0 };
 
 	TRACE_ENTER();
 
@@ -291,10 +324,7 @@ int osaf_auth_server_connect(const char *path, const void *req_buf,
 		goto done;
 	}
 
-	struct pollfd fds;
-	fds.fd = sock_fd;
-	fds.events = POLLIN;
-
+	struct pollfd fds = { .fd = sock_fd, .events = POLLIN, .revents = 0 };
 	int res = osaf_poll(&fds, 1, timeout);
 
 	if (res == 0) {
@@ -325,95 +355,54 @@ done:
 	return len;
 }
 
-int osaf_get_group_list(const uid_t uid, const gid_t gid, gid_t *groups, int *ngroups)
+int osaf_getgrouplist(const char* user, gid_t group, gid_t* groups, int* ngroups)
 {
-	int rc = -1;	// Initially set to error
+
+	char* gr_buf = NULL;
+	size_t gr_bufsize = 4096;
+	struct group gbuf;
+	struct group* gr;
 	int size = 0;
-	int max_groups = sysconf(_SC_NGROUPS_MAX);
-	if (max_groups == -1){
-		LOG_ER("Could not get NGROUPS_MAX, %s",strerror(errno));
-	}
 
-	if (!ngroups){
-		LOG_ER("ngroups must not be NULL");
-		return -1;
-	}
+	if (size < *ngroups) groups[size] = group;
+	++size;
 
-	if (*ngroups > max_groups){
-		LOG_ER("nGroups greater than NGROUPS_MAX");
-		return -1;
-	}
-
-	if (groups){
-		groups[size] = gid;
-	}
-	/* User always belong to at least one group */
-	size++;
-
-	struct passwd *pwd = getpwuid(uid);
-	if (!pwd){
-		LOG_ER("Could not getpwnam of user %d, %s", uid, strerror(errno));
-		return -1;
-	}
-
-	/* Reset entry to beginning */
-	errno = 0;
 	setgrent();
-	/* setgrent() sometimes returns ENOENT on UML
-	 * Explicitly treats it as not an error */
-	if (errno != 0 && errno != ENOENT) {
-		LOG_NO("setgrent failed: %s", strerror(errno));
-		return -1;
-	}
-
-	errno = 0;
-	struct group *gr = getgrent();
-	if (errno != 0) {
-		LOG_NO("setgrent failed: %s", strerror(errno));
-		goto done;
-	}
-
-	while (gr){
-		if (gr->gr_gid == gid){
-			errno = 0;
-			gr = getgrent();
-			if (errno != 0) {
-				LOG_NO("setgrent failed: %s", strerror(errno));
-				goto done;
-			}
-			continue;
-		}
-
-		int i = 0;
-		for (i = 0; gr->gr_mem[i]; i++){
-			if(strcmp(gr->gr_mem[i], pwd->pw_name) == 0){
-				/* Found matched group */
-				if ((groups) && (size < *ngroups)){
-					groups[size] = gr->gr_gid;
+	while ((gr = osaf_getgrent_r(&gbuf, &gr_buf, &gr_bufsize)) != NULL) {
+		if (gr->gr_gid != group) {
+			for (int i = 0; gr->gr_mem[i] != NULL; ++i) {
+				if (strcmp(gr->gr_mem[i], user) == 0) {
+					if (size < *ngroups) groups[size] = gr->gr_gid;
+					++size;
+					break;
 				}
-				size++;
-				break;
 			}
 		}
-		errno = 0;
-		gr = getgrent();
-		if (errno != 0) {
-			LOG_NO("setgrent failed: %s", strerror(errno));
-			goto done;
-		}
 	}
-
-	// rc will be set to non-error value
-	if (groups){
-		*ngroups = (size < *ngroups)? size : *ngroups;
-		rc = size;
-	} else {
-		*ngroups = size;
-		rc = 0;
-	}
-
-done:
 	endgrent();
+	free(gr_buf);
 
-	return rc;
+	int result = size <= *ngroups ? size : -1;
+	*ngroups = size;
+	return result;
+}
+
+static struct group* osaf_getgrent_r(struct group *gbuf, char** buf,
+				     size_t* buflen)
+{
+	struct group* gbufp = NULL;
+	if (*buf == NULL) *buf = malloc(*buflen);
+	for (;;) {
+		if (*buf == NULL) {
+			LOG_ER("could not allocate %zu bytes", *buflen);
+			break;
+		}
+		int result = getgrent_r(gbuf, *buf, *buflen, &gbufp);
+		if (result != ERANGE) break;
+		*buflen *= 2;
+		char* new_buf = realloc(*buf, *buflen);
+		if (new_buf == NULL) free(*buf);
+		*buf = new_buf;
+	}
+	return gbufp;
 }
