@@ -12865,18 +12865,14 @@ ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams,
             } else {
                 LOG_WA("The resource type is not present in the requested parameters for displaying IMM resources");
                 err = SA_AIS_ERR_INVALID_PARAM;         
-                int len= strlen("resource type is not present in the requested parameters")+1;
-                errStr = (SaStringT)malloc (len);
-                strcpy(errStr, "resource type is not present in the requested parameters");
+                errStr = strdup("resource type is not present in the requested parameters");
                 goto done;
             }
         }
     } else {
         LOG_WA("The Operation name is not present in the requested parameters for displaying IMM resources");
         err = SA_AIS_ERR_INVALID_PARAM;
-        int len= strlen("Operation name is not present in the requested parameters")+1;
-        errStr = (SaStringT)malloc (len);
-        strcpy(errStr, "Operation name is not present in the requested parameters");
+        errStr = strdup("Operation name is not present in the requested parameters");
         goto done;
     }
 
@@ -12898,9 +12894,7 @@ ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams,
         }else {
             LOG_WA("Display of IMM reources for resourceName %s is unsupported", resourceName);
             err = SA_AIS_ERR_INVALID_PARAM;         
-            int cnt = strlen("Display of IMM reources for resourceName is unsupported")+1;
-            errStr = (SaStringT)malloc (cnt);
-            strcpy(errStr, "Display of IMM reources for resourceName is unsupported");
+            errStr = strdup("Display of IMM reources for resourceName is unsupported")+1;
             free(resparams);
             resparams = NULL;
             goto done;
@@ -12979,9 +12973,7 @@ ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams,
         } else {
             LOG_WA("Verbose display of reourcename %s is unsupported", resourceName);
             err = SA_AIS_ERR_INVALID_PARAM;         
-            int cnt = strlen("verbose display of requested resourceName is unsupported")+1;
-            errStr = (SaStringT)malloc (cnt);
-            strcpy(errStr, "Verbose display of requested resourceName is unsupported");
+            errStr = strdup("verbose display of requested resourceName is unsupported");
             goto done;
         }
     } else if((strcmp(opName,"display-help")==0)) {
@@ -13014,9 +13006,7 @@ ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams,
     }else{
         LOG_WA("OperationName %s is not supported", opName);
         err = SA_AIS_ERR_INVALID_PARAM;
-        int cnt = strlen("OperationName is not supported")+1;
-        errStr = (SaStringT)malloc (cnt);
-        strcpy(errStr, "OperationName is not supported");
+        errStr = strdup("OperationName is not supported");
     }
 
 
