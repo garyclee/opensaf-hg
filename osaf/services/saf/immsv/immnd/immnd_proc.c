@@ -1505,7 +1505,7 @@ static int immnd_forkSync(IMMND_CB *cb)
 		if(!immModel_protocol41Allowed(cb)) {
 			maxSyncBatchSize = 1; /* Revert to old 4.0 behavior */
 		}
-		snprintf(arg4, 16, "%u", maxSyncBatchSize);
+		snprintf(arg4, 16, "%d", maxSyncBatchSize);
 	} else {
 		arg4[0] = 0; /* Will result in default batch size, see immsv_api.h */
 	}

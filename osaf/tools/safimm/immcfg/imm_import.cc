@@ -763,7 +763,7 @@ static void createImmObject(ParserState* state)
 
 			errorCode = immutil_saImmOmAccessorInitialize(state->immHandle, &accessorHandle);
 			if (SA_AIS_OK != errorCode) {
-				fprintf(stderr, "FAILED: saImmOmAccessorInitialize failed: %u\n", errorCode);
+				fprintf(stderr, "FAILED: saImmOmAccessorInitialize failed: %d\n", errorCode);
 				stopParser(state);
 				state->parsingStatus = 1;
 				goto done;
@@ -773,7 +773,7 @@ static void createImmObject(ParserState* state)
 													 NULL, // get all attributes
 													 &existing_attributes);
 			if (SA_AIS_OK != errorCode) {
-				fprintf(stderr, "FAILED: saImmOmAccessorGet_2 failed: %u\n", errorCode);
+				fprintf(stderr, "FAILED: saImmOmAccessorGet_2 failed: %d\n", errorCode);
 				stopParser(state);
 				state->parsingStatus = 1;
 				goto done;
@@ -806,7 +806,7 @@ static void createImmObject(ParserState* state)
 
 			errorCode = immutil_saImmOmAccessorFinalize(accessorHandle);
 			if (SA_AIS_OK != errorCode) {
-				fprintf(stderr, "FAILED: saImmOmAccessorFinalize failed: %u\n", errorCode);
+				fprintf(stderr, "FAILED: saImmOmAccessorFinalize failed: %d\n", errorCode);
 				stopParser(state);
 				state->parsingStatus = 1;
 			}
@@ -942,7 +942,7 @@ static bool attrvalue_is_equal(SaImmValueTypeT valueType, SaImmAttrValueT val1, 
 			break;
 		}
 	default:
-		fprintf(stderr, "FAILED: unknown valuetype %u\n", valueType);
+		fprintf(stderr, "FAILED: unknown valuetype %d\n", valueType);
 		return false; // keep compiler happy
 		break; // keep compiler happy
 	}

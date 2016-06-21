@@ -396,7 +396,7 @@ bool loadClassesFromPbe(void* pbeHandle, SaImmHandleT immHandle, ClassInfoMap* c
 		ClassInfo* class_info =NULL;
 
 		char buf[32];
-		snprintf(buf, 32, "Row(%u): <", r);
+		snprintf(buf, 32, "Row(%d): <", r);
 		std::string rowStr(buf);
 		for(c=0;c<ncols;++c) {
 			rowStr.append("'");
@@ -715,7 +715,7 @@ bool loadObjectsFromPbe(void* pbeHandle, SaImmHandleT immHandle,
 		ClassInfo* class_info=NULL;
 
 		char buf[32];
-		snprintf(buf, 32, "Row(%u): <", r);
+		snprintf(buf, 32, "Row(%d): <", r);
 		std::string rowStr(buf);
 		for(c=0;c<ncols;++c) {
 			rowStr.append("'");
