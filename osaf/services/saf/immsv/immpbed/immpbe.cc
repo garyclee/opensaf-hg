@@ -165,7 +165,6 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'B':
-				pbe2 = true;
 				pbe2BCase = true;
 				// Intentional fall through. 
 
