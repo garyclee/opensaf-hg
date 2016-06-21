@@ -1845,7 +1845,7 @@ SaAisErrorT immutil_saImmOmSearchNext_o2(SaImmSearchHandleT searchHandle,
 		*objectName = (char*) malloc(strlen(obj) + 1);
 		strcpy(*objectName, obj);
 	} else
-		objectName = NULL;
+		*objectName = NULL;
 
 	return rc;
 }
