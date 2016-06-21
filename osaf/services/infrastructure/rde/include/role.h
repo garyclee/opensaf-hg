@@ -31,7 +31,7 @@ class Process;
 class Role {
   DELETE_COPY_AND_MOVE_OPERATORS(Role);
  public:
-  Role(NODE_ID own_node_id);
+  explicit Role(NODE_ID own_node_id);
   void SetPeerState(PCS_RDA_ROLE node_role, NODE_ID node_id);
   timespec* Poll(timespec* ts);
   uint32_t SetRole(PCS_RDA_ROLE new_role);

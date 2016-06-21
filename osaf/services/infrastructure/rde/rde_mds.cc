@@ -237,7 +237,6 @@ uint32_t rde_mds_register() {
 
 uint32_t rde_mds_unregister() {
   NCSMDS_INFO mds_info;
-  uint32_t rc = NCSCC_RC_SUCCESS;
   TRACE_ENTER();
 
   /* Un-install your service into MDS.
@@ -248,7 +247,7 @@ uint32_t rde_mds_unregister() {
   mds_info.i_svc_id = NCSMDS_SVC_ID_RDE;
   mds_info.i_op = MDS_UNINSTALL;
 
-  rc = ncsmds_api(&mds_info);
+  uint32_t rc = ncsmds_api(&mds_info);
   if (rc != NCSCC_RC_SUCCESS) {
     LOG_WA("MDS Unregister Failed");
   }

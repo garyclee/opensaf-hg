@@ -371,14 +371,13 @@ static uint32_t rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index) {
 static uint32_t rde_rda_process_disconnect(RDE_RDA_CB *rde_rda_cb, int index) {
   int rc = 0;
   int iter = 0;
-  int sockfd = -1;
 
   TRACE_ENTER();
 
   /*
    ** Save socket fd
    */
-  sockfd = rde_rda_cb->clients[index].fd;
+  int sockfd = rde_rda_cb->clients[index].fd;
 
   /*
    ** Delete fd from the client list
@@ -395,27 +394,6 @@ static uint32_t rde_rda_process_disconnect(RDE_RDA_CB *rde_rda_cb, int index) {
   }
 
   return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
-
- PROCEDURE NAME:       rde_rda_sock_name
-
- DESCRIPTION:          Return the "name" of this rde_rda_cb interface
- implementation
-
- ARGUMENTS:
-
- RETURNS:
-
- NCSCC_RC_SUCCESS:
- NCSCC_RC_FAILURE:
-
- NOTES:
-
- *****************************************************************************/
-const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb) {
-  return RDE_RDA_SOCK_NAME;
 }
 
 /*****************************************************************************
@@ -450,40 +428,6 @@ uint32_t rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb) {
     rde_rda_sock_close(rde_rda_cb);
     return NCSCC_RC_FAILURE;
   }
-
-  return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
-
- PROCEDURE NAME:       rde_rda_close
-
- DESCRIPTION:          Close the rde_rda_cb Interface
-
- ARGUMENTS:
-
- RETURNS:
-
- NCSCC_RC_SUCCESS:   rde_rda_cb Interface has been successfully destroyed
- NCSCC_RC_FAILURE:   Failure destroying rde_rda_cb Interface
-
- NOTES:
-
- *****************************************************************************/
-uint32_t rde_rda_close(RDE_RDA_CB *rde_rda_cb) {
-  TRACE_ENTER();
-
-  /***************************************************************\
-  *                                                               *
-  *      Close the socket if it is still in use                   *
-  *                                                               *
-  \***************************************************************/
-
-  if (rde_rda_sock_close(rde_rda_cb) != NCSCC_RC_SUCCESS) {
-    return NCSCC_RC_FAILURE;
-  }
-
-  rde_rda_cb->fd = -1;
 
   return NCSCC_RC_SUCCESS;
 }

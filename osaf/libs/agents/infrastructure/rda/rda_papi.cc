@@ -297,7 +297,7 @@ static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb) {
   if (!task_cb)
     return rc;
 
-  rda_callback_cb = (RDA_CALLBACK_CB *) task_cb;
+  rda_callback_cb = static_cast<RDA_CALLBACK_CB*>(task_cb);
   rda_callback_cb->task_terminate = true;
 
   /*
@@ -344,7 +344,6 @@ static PCSRDA_RETURN_CODE pcs_rda_unreg_callback(void *task_cb) {
  * Notes         : None
  *****************************************************************************/
 static PCSRDA_RETURN_CODE pcs_rda_set_role(PCS_RDA_ROLE role) {
-  PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
   int sockfd;
   char msg[64] = { 0 };
   int value = -1;
@@ -353,7 +352,7 @@ static PCSRDA_RETURN_CODE pcs_rda_set_role(PCS_RDA_ROLE role) {
   /*
    ** Connect
    */
-  rc = rda_connect(&sockfd);
+  PCSRDA_RETURN_CODE rc = rda_connect(&sockfd);
   if (rc != PCSRDA_RC_SUCCESS) {
     return rc;
   }
@@ -407,7 +406,6 @@ static PCSRDA_RETURN_CODE pcs_rda_set_role(PCS_RDA_ROLE role) {
  * Notes         : None
  *****************************************************************************/
 static PCSRDA_RETURN_CODE pcs_rda_get_role(PCS_RDA_ROLE *role) {
-  PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
   int sockfd;
   char msg[64] = { 0 };
   int value = -1;
@@ -418,7 +416,7 @@ static PCSRDA_RETURN_CODE pcs_rda_get_role(PCS_RDA_ROLE *role) {
   /*
    ** Connect
    */
-  rc = rda_connect(&sockfd);
+  PCSRDA_RETURN_CODE rc = rda_connect(&sockfd);
   if (rc != PCSRDA_RC_SUCCESS) {
     return rc;
   }
@@ -513,7 +511,7 @@ static PCSRDA_RETURN_CODE rda_connect(int *sockfd) {
    ** Create the socket descriptor
    */
   *sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (sockfd < 0) {
+  if (*sockfd < 0) {
     return PCSRDA_RC_IPC_CREATE_FAILED;
   }
 
@@ -582,7 +580,6 @@ static PCSRDA_RETURN_CODE rda_disconnect(int sockfd) {
  *****************************************************************************/
 static PCSRDA_RETURN_CODE rda_callback_req(int sockfd) {
   char msg[64] = { 0 };
-  PCSRDA_RETURN_CODE rc = PCSRDA_RC_SUCCESS;
   int value = -1;
   RDE_RDA_CMD_TYPE cmd_type = RDE_RDA_UNKNOWN;
 
@@ -590,7 +587,7 @@ static PCSRDA_RETURN_CODE rda_callback_req(int sockfd) {
    ** Send callback reg request messgae
    */
   sprintf(msg, "%d", RDE_RDA_REG_CB_REQ);
-  rc = rda_write_msg(sockfd, msg);
+  PCSRDA_RETURN_CODE rc = rda_write_msg(sockfd, msg);
   if (rc != PCSRDA_RC_SUCCESS) {
     return rc;
   }
