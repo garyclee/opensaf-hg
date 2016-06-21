@@ -3358,8 +3358,10 @@ SaAisErrorT imma_applyCcb(SaImmCcbHandleT ccbHandle, bool onlyValidate)
 		}
 
 		/* Reset the ccb_node flags back to indicate apply is in progress. */
-		ccb_node->mExclusive = true; 
-		ccb_node->mApplying = true;
+		if (ccb_node) {
+			ccb_node->mExclusive = true;
+			ccb_node->mApplying = true;
+		}
 
 		/* Release the CB lock Before MDS Send */
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
