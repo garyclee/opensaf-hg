@@ -26,6 +26,7 @@
 #include "mds_papi.h"
 #include "rda_papi.h"
 #include "fm_amf.h"
+#include "saClm.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -102,6 +103,9 @@ typedef struct fm_cb {
 	uint64_t cluster_size;
 	struct timespec last_well_connected;
 	struct timespec node_isolation_timeout;
+	SaClmHandleT clm_hdl;
+	bool use_remote_fencing;
+	SaNameT peer_clm_node_name;
 } FM_CB;
 
 extern char *role_string[];

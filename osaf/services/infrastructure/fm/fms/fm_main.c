@@ -32,6 +32,13 @@ This file contains the main() routine for FM.
 #include "fm.h"
 #include "osaf_time.h"
 
+#define FM_CLM_API_TIMEOUT 10000000000LL
+
+static 	SaVersionT clm_version = { 'B', 4, 1 };
+static const SaClmCallbacksT_4 clm_callbacks = {
+	0, 0
+};
+
 enum {
 	FD_TERM = 0,
 	FD_AMF = 1,
@@ -54,6 +61,8 @@ static uint32_t fm_get_args(FM_CB *);
 static uint32_t fms_fms_exchange_node_info(FM_CB *);
 static uint32_t fm_nid_notify(uint32_t);
 static uint32_t fm_tmr_start(FM_TMR *, SaTimeT);
+static SaAisErrorT get_peer_clm_node_name(NODE_ID);
+static SaAisErrorT fm_clm_init();
 static void fm_mbx_msg_handler(FM_CB *, FM_EVT *);
 static void fm_evt_proc_rda_callback(FM_CB*, FM_EVT*);
 static void fm_tmr_exp(void *);
@@ -313,6 +322,8 @@ uint32_t initialize_for_assignment(FM_CB *cb, SaAmfHAStateT ha_state)
 		LOG_ER("immd_mds_register FAILED %d", rc);
 		goto done;
 	}
+
+	cb->clm_hdl = 0;
 	cb->fully_initialized = true;
 done:
 	TRACE_LEAVE2("rc = %u", rc);
@@ -383,8 +394,17 @@ static uint32_t fm_agents_startup(void)
 *****************************************************************************/
 static uint32_t fm_get_args(FM_CB *fm_cb)
 {
+	char *use_remote_fencing = NULL;
 	char *value;
 	TRACE_ENTER();
+
+	fm_cb->use_remote_fencing = false;
+	use_remote_fencing = getenv("FMS_USE_REMOTE_FENCING");
+	if (use_remote_fencing != NULL) {
+		fm_cb->use_remote_fencing = true;
+		LOG_NO("Remote fencing is enabled");
+	}
+
 	value = getenv("EE_ID");
 	if (value != NULL) {
 		fm_cb->node_name.length = strlen(value);
@@ -474,6 +494,85 @@ void fm_proc_svc_down(FM_CB *cb, FM_EVT *fm_mbx_evt)
 }
 
 /****************************************************************************
+* Name          : fm_clm_init
+*
+* Description   : Initialize CLM. 
+*
+* Arguments     : None. 
+*
+* Return Values : None.
+* 
+* Notes         : None. 
+*****************************************************************************/
+static SaAisErrorT get_peer_clm_node_name(NODE_ID node_id)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	SaClmClusterNodeT_4 cluster_node;
+
+	if ((rc = fm_clm_init()) != SA_AIS_OK) {
+		LOG_ER("clm init FAILED %d", rc);
+	} else {
+		LOG_NO("clm init OK");
+	}
+
+	if ((rc = saClmClusterNodeGet_4(fm_cb->clm_hdl, node_id, FM_CLM_API_TIMEOUT, &cluster_node)) == SA_AIS_OK) {
+		// Extract peer clm node name, e.g SC-2 from "safNode=SC-2,safCluster=myClmCluster"
+		// The peer clm node name will be passed to opensaf_reboot script to support remote fencing.
+		// The peer clm node name should correspond to the name of the virtual machine for that node.
+		char *node = NULL;
+		strtok((char*) cluster_node.nodeName.value, "=");
+		node = strtok(NULL, ",");
+		strncpy((char*) fm_cb->peer_clm_node_name.value, node, cluster_node.nodeName.length);
+		LOG_NO("Peer clm node name: %s", fm_cb->peer_clm_node_name.value);
+	} else {
+		LOG_WA("saClmClusterNodeGet_4 returned %u", (unsigned) rc);
+	}
+
+	if ((rc = saClmFinalize(fm_cb->clm_hdl)) != SA_AIS_OK) {
+		LOG_ER("clm finalize FAILED %d", rc);
+	}
+	
+	return rc;
+}
+
+/****************************************************************************
+* Name          : fm_clm_init
+*
+* Description   : Initialize CLM. 
+*
+* Arguments     : None. 
+*
+* Return Values : None.
+* 
+* Notes         : None. 
+*****************************************************************************/
+static SaAisErrorT fm_clm_init()
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	for (;;) {
+		rc = saClmInitialize_4(&fm_cb->clm_hdl, &clm_callbacks, &clm_version);
+		if (rc == SA_AIS_ERR_TRY_AGAIN ||
+			rc == SA_AIS_ERR_TIMEOUT ||
+			rc == SA_AIS_ERR_UNAVAILABLE) {
+			LOG_WA("saClmInitialize_4 returned %u", (unsigned) rc);
+
+			if (rc != SA_AIS_ERR_TRY_AGAIN) {
+				LOG_WA("saClmInitialize_4 returned %u",
+					(unsigned) rc);
+			}
+			osaf_nanosleep(&kHundredMilliseconds);
+			continue;
+		}
+		if (rc == SA_AIS_OK) break;
+		LOG_ER("Failed to Initialize with CLM: %u", rc);
+		goto done;
+	}
+done:
+	return rc;
+}
+
+/****************************************************************************
 * Name          : fm_mbx_msg_handler
 *
 * Description   : Processes Mail box messages between FM. 
@@ -517,8 +616,13 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 					 * but just that failover has been trigerred quicker than the
 					 * node_down event has been received.
 					 */
-				opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
-						"Received Node Down for peer controller");
+				if (fm_cb->use_remote_fencing) {
+					opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_clm_node_name.value,
+							"Received Node Down for peer controller");
+				} else {
+					opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
+							"Received Node Down for peer controller");
+				}
 				if (!((fm_cb->role == PCS_RDA_ACTIVE) && (fm_cb->amf_state == (SaAmfHAStateT)PCS_RDA_ACTIVE))) {
 					fm_cb->role = PCS_RDA_ACTIVE;
 					LOG_NO("Controller Failover: Setting role to ACTIVE");
@@ -534,6 +638,10 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 /* Peer fm came up so sending ee_id of this node */
 		if (fm_cb->node_name.length != 0)
 			fms_fms_exchange_node_info(fm_cb);
+
+		if (fm_cb->use_remote_fencing) {
+			get_peer_clm_node_name(fm_mbx_evt->node_id);
+		}
 		break;
 	case FM_EVT_TMR_EXP:
 /* Timer Expiry event posted */
@@ -547,8 +655,16 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 			fm_cb->role = PCS_RDA_ACTIVE;
 
 			LOG_NO("Reseting peer controller node id: %x", fm_cb->peer_node_id);
-			opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
-				       "Received Node Down for Active peer");
+			if (fm_cb->use_remote_fencing) {
+				LOG_NO("saClmClusterNodeGet succeeded node_id 0x%X, clm peer node name %s",
+					fm_mbx_evt->node_id, fm_cb->peer_clm_node_name.value);
+
+				opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_clm_node_name.value,
+						"Received Node Down for peer controller");
+			} else {
+				opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
+					       "Received Node Down for Active peer");
+			}
 			fm_rda_set_role(fm_cb, PCS_RDA_ACTIVE);
 		} else if (fm_mbx_evt->info.fm_tmr->type == FM_TMR_ACTIVATION_SUPERVISION) {
 			opensaf_reboot(0, NULL, "Activation timer supervision "

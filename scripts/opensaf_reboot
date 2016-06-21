@@ -16,6 +16,12 @@
 # Author(s): Emerson Network Power
 #
 
+# Uncomment and update if remote fencing is to be used. Also set FMS_USE_REMOTE_FENCING=1 in fmd.conf file.
+#export FMS_FENCE_CMD="stonith"
+#export FMS_DEVICE_TYPE="external/libvirt"
+#export FMS_HYPERVISOR_URI="qemu+tcp://192.168.122.1/system"
+#export FMS_FENCE_ACTION="reset"
+
 . /etc/opensaf/osafdir.conf
 
 # NOTE: This script is a customization point between OpenSAF and a target
@@ -26,12 +32,30 @@
 # through proprietary mechanisms, i.e. not through PLM. Node_id is (the only 
 # entity) at the disposal of such a mechanism.
 
+if [ -f "$pkgsysconfdir/fmd.conf" ]; then
+  . "$pkgsysconfdir/fmd.conf"
+fi
+
 NODE_ID_FILE=$pkglocalstatedir/node_id
+
 node_id=$1
 ee_name=$2
 
 # Run commands through sudo when not superuser
 test $(id -u) -ne 0 && icmd=$(which sudo 2> /dev/null)
+
+## Use stonith for remote fencing
+opensaf_reboot_with_remote_fencing()
+{
+	"$FMS_FENCE_CMD" -t "$FMS_DEVICE_TYPE" hostlist="node:$ee_name" hypervisor_uri="$FMS_HYPERVISOR_URI" -T "$FMS_FENCE_ACTION" node
+
+	retval=$?
+	if [ $retval != 0 ]; then
+		logger -t "opensaf_reboot" "Rebooting remote node $ee_name using $FMS_FENCE_CMD failed, rc: $retval"
+		exit 1
+	fi
+}
+
 
 #if plm exists in the system,then the reboot is performed using the eename.
 opensaf_reboot_with_plm()
@@ -86,17 +110,22 @@ if [ "$self_node_id" = "$node_id" ] || [ $node_id = 0 ]; then
 	# Reboot (not shutdown) system WITH file system sync
 	$icmd /sbin/reboot -f
 else
-	if [ ":$ee_name" != ":" ]; then
-		plm_node_presence_state=`immlist $ee_name |grep saPlmEEPresenceState|awk '{print $3}'`
-		plm_node_state=`immlist $ee_name |grep saPlmEEAdminState|awk '{print $3}'` 
-		if [ "$plm_node_presence_state" != 3 ] ; then
-			logger -t "opensaf_reboot" "Not rebooting remote node $ee_name as it is not in INSTANTIATED state"
-		elif [ $plm_node_state != 2 ]; then
-			opensaf_reboot_with_plm
-		else	
-			logger -t "opensaf_reboot" "Not rebooting remote node $ee_name as it is already in locked state"
-		fi
+	if [ "$FMS_USE_REMOTE_FENCING" = "1" ]; then
+		opensaf_reboot_with_remote_fencing
 	else
-        	logger -t "opensaf_reboot" "Rebooting remote node in the absence of PLM is outside the scope of OpenSAF"
-	fi	
+		if [ ":$ee_name" != ":" ]; then
+
+			plm_node_presence_state=`immlist $ee_name |grep saPlmEEPresenceState|awk '{print $3}'`
+			plm_node_state=`immlist $ee_name |grep saPlmEEAdminState|awk '{print $3}'`
+			if [ "$plm_node_presence_state" != 3 ] ; then
+				logger -t "opensaf_reboot" "Not rebooting remote node $ee_name as it is not in INSTANTIATED state"
+			elif [ $plm_node_state != 2 ]; then
+				opensaf_reboot_with_plm
+			else	
+				logger -t "opensaf_reboot" "Not rebooting remote node $ee_name as it is already in locked state"
+			fi
+		else
+        		logger -t "opensaf_reboot" "Rebooting remote node in the absence of PLM is outside the scope of OpenSAF"
+		fi
+	fi
 fi	
