@@ -386,8 +386,6 @@ static uint32_t ncs_tmr_engine(struct timeval *tv, uint64_t *next_delay)
  ****************************************************************************/
 static uint32_t ncs_tmr_wait(void)
 {
-
-	unsigned rc;
 	int inds_rmvd;
 
 	uint64_t next_delay = 0;
@@ -408,7 +406,7 @@ static uint32_t ncs_tmr_wait(void)
 		set.fd = m_GET_FD_FROM_SEL_OBJ(gl_tcb.sel_obj);
 		set.events = POLLIN;
 		osaf_timeval_to_timespec(&tv, &ts);
-		rc = osaf_ppoll(&set, 1, next_delay != 0 ? &ts : NULL, NULL);
+		unsigned rc = osaf_ppoll(&set, 1, next_delay != 0 ? &ts : NULL, NULL);
 		m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 
 		if (rc == 1) {
@@ -542,7 +540,6 @@ bool sysfTmrCreate(void)
 bool sysfTmrDestroy(void)
 {
 	SYSF_TMR *tmr;
-	SYSF_TMR *free_tmr;
 	SYSF_TMR_PAT_NODE *tmp = NULL;
 
 	/* There is only ever one timer per instance */
@@ -571,7 +568,7 @@ bool sysfTmrDestroy(void)
 	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 	tmr = &gl_tcb.safe.dmy_keep;
 	while (tmr->keep != NULL) {
-		free_tmr = tmr->keep;
+		SYSF_TMR* free_tmr = tmr->keep;
 		tmr->keep = tmr->keep->keep;
 		m_NCS_MEM_FREE(free_tmr, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_LEAP_TMR, 0);
 	}

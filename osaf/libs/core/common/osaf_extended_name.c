@@ -180,6 +180,7 @@ void osaf_extended_name_alloc(SaConstStringT value, SaNameT* name)
 			pointer = name->_opaque + 1;
 		} else {
 			pointer = malloc(length + 1);
+			// cppcheck-suppress uninitdata
 			set_ptr(pointer, name);
 		}
 		memcpy(pointer, value, length + 1);

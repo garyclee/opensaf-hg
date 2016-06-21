@@ -103,11 +103,13 @@ void saAisNameLend(SaConstStringT value, SaNameT* name)
 SaConstStringT saAisNameBorrow(const SaNameT* name)
 	__attribute__ ((weak, alias ("ais_name_borrow")));
 
+// cppcheck-suppress unusedFunction
 void ais_name_lend(SaConstStringT value, SaNameT* name)
 {
 	osaf_extended_name_lend(value, name);
 }
 
+// cppcheck-suppress unusedFunction
 SaConstStringT ais_name_borrow(const SaNameT* name)
 {
 	SaConstStringT value = osaf_extended_name_borrow(name);

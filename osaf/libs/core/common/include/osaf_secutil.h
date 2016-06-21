@@ -92,18 +92,10 @@ bool osaf_user_is_member_of_group(uid_t uid, const char *groupname);
  * Get list of groups that a user belong to
  * There already is a function in LSB for this purpose (getgrouplist) but it is not standard.
  *
- * @param uid: user to search
- * @oaram gid: default group will be put in the list (pw_gid of user's passwd struct)
- * @param groups: pointer to the array that the result will be returned
- *               When groups is NULL, this function will return 0 on succeeded and
- *               ngroups can be used to allocate space for groups.
- * @param ngroups: when return successfully it always contains the number of groups.
- *
- * @return -1 on failure
- *         0  on succeeded to find number of groups
- *         Otherwise, the number of found groups.
+ * This function provides the same interface as getgrouplist(3) in glibc. Refer to the man
+ * page for the interface description.
  */
-int osaf_get_group_list(const uid_t uid, const gid_t gid, gid_t *groups, int *ngroups);
+int osaf_getgrouplist(const char* user, gid_t group, gid_t* groups, int* ngroups);
 
 #ifdef	__cplusplus
 }

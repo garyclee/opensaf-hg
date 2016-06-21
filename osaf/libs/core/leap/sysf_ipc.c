@@ -451,8 +451,6 @@ static uint32_t ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_
 \************************************************************************/
 static uint32_t ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int active_queue)
 {
-	int inds_rmvd;
-
 	ncs_ipc->no_of_msgs[active_queue]--;
 
 	if (ncs_ipc->usr_counters[active_queue] != NULL)
@@ -461,7 +459,7 @@ static uint32_t ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int active
 	ncs_ipc->msg_count--;
 
 	if (ncs_ipc->msg_count == 0) {
-		inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(&ncs_ipc->sel_obj, true, true);
+		int inds_rmvd = m_NCS_SEL_OBJ_RMV_IND(&ncs_ipc->sel_obj, true, true);
 		if (inds_rmvd <= 0) {
 			if (inds_rmvd != -1) {
 				/* The object has not been destroyed and it has no indication

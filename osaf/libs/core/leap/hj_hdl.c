@@ -176,7 +176,6 @@ uint32_t ncshm_init(void)
 {
 	/* Hdl Mgr does bit-fields; here we do a few exercises up front to make */
 	/* sure YOUR target system can cope with bit-stuff we do............... */
-	HM_HDL ha;
 	HM_HDL hb;
 	HM_HDL *p_hdl;
 	uint32_t *p_temp;
@@ -190,10 +189,12 @@ uint32_t ncshm_init(void)
 
 	assert(sizeof(uint32_t) == sizeof(HM_HDL));	/* must be same size */
 
-	ha.idx1 = 1;		/* make up a fake handle with values */
-	ha.idx2 = 2;
-	ha.idx3 = 3;
-	ha.seq_id = 6;
+	HM_HDL ha = {
+		.seq_id = 6,
+		.idx1 = 1,		/* make up a fake handle with values */
+		.idx2 = 2,
+		.idx3 = 3
+	};
 
 	/* cast to INT PTR, to HDL PTR, deref to HDL; bit-fields still stable ? */
 
@@ -228,7 +229,6 @@ uint32_t ncshm_init(void)
 void ncshm_delete(void)
 {
 	uint32_t i, j;
-	HM_UNIT *unit;
 
 	gl_im_created--;
 	if (gl_im_created > 0)
@@ -242,6 +242,7 @@ void ncshm_delete(void)
 	}
 
 	for (i = 0; i < HM_UNIT_CNT; i++) {
+		HM_UNIT *unit;
 		if ((unit = gl_hm.unit[i]) != NULL) {
 			for (j = 0; j < HM_BANK_CNT; j++) {
 				if (unit->cells[j] != NULL)
@@ -268,7 +269,6 @@ void ncshm_delete(void)
 uint32_t ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 {
 	HM_FREE *free;
-	HM_CELL *cell;
 	uint32_t ret = 0;
 
 	if (pool >= HM_POOL_CNT)
@@ -277,7 +277,7 @@ uint32_t ncshm_create_hdl(uint8_t pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 	m_NCS_LOCK(&gl_hm.lock[pool], NCS_LOCK_WRITE);
 
 	if ((free = hm_alloc_cell(pool)) != NULL) {
-		cell = hm_find_cell(&free->hdl);	/* These two lines are sanity */
+		HM_CELL* cell = hm_find_cell(&free->hdl);	/* These two lines are sanity */
 		assert(((void *)free == (void *)cell));	/* checks that add no value   */
 
 		ret = (*(uint32_t *)&free->hdl);
@@ -544,8 +544,6 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 {
 	HM_UNIT *unit;
 	HM_CELLS *cells;
-	HM_CELL *cell;
-	HM_HDL hdl;
 	uint32_t i;
 
 	unit = gl_hm.unit[pmgr->curr];
@@ -575,15 +573,18 @@ uint32_t hm_make_free_cells(HM_PMGR *pmgr)
 
 	memset(cells, 0, sizeof(HM_CELLS));
 
-	hdl.idx1 = pmgr->curr;	/* set handle conditions */
-	hdl.idx2 = unit->curr;
-	hdl.seq_id = 0;
+	HM_HDL hdl = {
+		.seq_id = 0,
+		.idx1 = pmgr->curr,	/* set handle conditions */
+		.idx2 = unit->curr,
+		.idx3 = 0
+	};
 
 	unit->cells[unit->curr++] = cells;	/* update curr++ for next time */
 
 	for (i = 0; i < HM_CELL_CNT; i++) {	/* carve um up and put in free-po0l */
 		hdl.idx3 = i;
-		cell = &(cells->cell[i]);
+		HM_CELL* cell = &(cells->cell[i]);
 		hm_free_cell(cell, &hdl, false);
 	}
 

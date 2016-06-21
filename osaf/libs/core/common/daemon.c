@@ -208,11 +208,7 @@ static void __parse_options(int argc, char *argv[])
 
 void daemonize(int argc, char *argv[])
 {
-#ifndef RUNASROOT
-	static int (*plibc_prctl) (int option, ...) = NULL;
-#endif
-	pid_t pid, sid;
-	struct sched_param param;
+	struct sched_param param = { 0 };
 	char *thread_prio;
 	char *thread_policy;
 	int policy = SCHED_OTHER; /*root defaults */
@@ -283,7 +279,7 @@ void daemonize(int argc, char *argv[])
 		if (getppid() == 1) return;
 	
 		/* Fork off the parent process */
-		pid = fork();
+		pid_t pid = fork();
 		if (pid < 0) {
 			syslog(LOG_ERR, "fork daemon failed, pid=%d (%s)", pid, strerror(errno));
 			exit(EXIT_FAILURE);
@@ -293,7 +289,7 @@ void daemonize(int argc, char *argv[])
 		if (pid > 0) exit(EXIT_SUCCESS);
 	
 		/* Create a new SID for the child process */
-		sid = setsid();
+		pid_t sid = setsid();
 		if (sid < 0) {
 			syslog(LOG_ERR, "create new session failed, sid=%d (%s)", sid, strerror(errno));
 			exit(EXIT_FAILURE);
@@ -337,13 +333,18 @@ void daemonize(int argc, char *argv[])
 #ifndef RUNASROOT
 	/* Drop privileges to user if there is one, and we were run as root */
 	if (getuid() == 0 || geteuid() == 0) {
-		struct passwd *pw = getpwnam(__runas_username);
-		if (pw) {
+		long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+		char* buffer = (char*) malloc(bufsize >= 0 ? bufsize : 16384);
+		struct passwd pwd;
+		struct passwd* pw;
+		if (buffer != NULL && getpwnam_r(__runas_username, &pwd, buffer, bufsize, &pw) == 0 && pw != NULL) {
 			/* supplementary groups */
-			int ngroups = 0;
-			if (osaf_get_group_list(pw->pw_uid, pw->pw_gid, NULL, &ngroups) == 0) {
-				gid_t * group_ids = (gid_t*) malloc(ngroups * sizeof(gid_t));
-				if (osaf_get_group_list(pw->pw_uid, pw->pw_gid, group_ids, &ngroups) > 0) {
+			int ngroups = 1;
+			gid_t gid;
+			osaf_getgrouplist(__runas_username, pw->pw_gid, &gid, &ngroups);
+			gid_t* group_ids = (gid_t*) malloc(ngroups * sizeof(gid_t));
+			if (group_ids != NULL) {
+				if (osaf_getgrouplist(__runas_username, pw->pw_gid, group_ids, &ngroups) != -1) {
 					// TODO: setgroups() is non POSIX, fix it later
 					if (setgroups(ngroups, group_ids)) {
 						syslog(LOG_INFO, "setgroups failed, uid=%d (%s). Continuing without supplementary groups.", pw->pw_uid, strerror(errno));
@@ -357,14 +358,16 @@ void daemonize(int argc, char *argv[])
 			}
 			if ((pw->pw_gid > 0) && (setgid(pw->pw_gid) < 0)) {
 				syslog(LOG_ERR, "setgid failed, gid=%d (%s)", pw->pw_gid, strerror(errno));
+				free(buffer);
 				exit(EXIT_FAILURE);
 			}
 			if ((pw->pw_uid > 0) && (setuid(pw->pw_uid) < 0)) {
 				syslog(LOG_ERR, "setuid failed, uid=%d (%s)", pw->pw_uid, strerror(errno));
+				free(buffer);
 				exit(EXIT_FAILURE);
 			}
 			// Enable generating core files
-			plibc_prctl = dlsym(RTLD_DEFAULT, "prctl");
+			int (*plibc_prctl) (int option, ...) = dlsym(RTLD_DEFAULT, "prctl");
 			if (plibc_prctl) {
 				if (plibc_prctl(PR_SET_DUMPABLE, 1) < 0) {
 					syslog(LOG_ERR, "prctl failed: %s", strerror(errno));
@@ -372,8 +375,10 @@ void daemonize(int argc, char *argv[])
 			}
 		} else {
 			syslog(LOG_ERR, "invalid user name %s", __runas_username);
+			free(buffer);
 			exit(EXIT_FAILURE);
 		}
+		free(buffer);
 	}
 #endif
 
@@ -502,12 +507,6 @@ done:
  */
 static void install_fatal_signal_handlers(void)
 {
-	size_t bt_filename_size = 0;
-	time_t current_time;
-	char time_string[20];
-
-	struct sigaction action;
-	int i = 0;
 	const int HANDLED_SIGNALS_MAX = 7;
 	static const int handled_signals[] = {
 		SIGHUP,
@@ -523,31 +522,38 @@ static void install_fatal_signal_handlers(void)
 	if (init_backtrace_fptrs() < 0) {
 		syslog(LOG_WARNING, "backtrace symbols not found, no fatal signal handlers will be installed");
 	} else {
-
-		// prepare a filename for backtrace
-		time_string[0] = '\0';
+		char time_string[20] = { 0 };
+		time_t current_time;
 
 		if (time(&current_time) < 0) {
 			syslog(LOG_WARNING, "time failed: %s", strerror(errno));
 		} else {
-			if (strftime(time_string, sizeof(time_string), "%Y%m%d_%T", localtime(&current_time)) == 0) {
-				syslog(LOG_WARNING, "strftime failed");
+			struct tm result;
+			struct tm* local_time = localtime_r(&current_time, &result);
+			if (local_time != NULL) {
+				if (strftime(time_string, sizeof(time_string), "%Y%m%d_%T", local_time) == 0) {
+					syslog(LOG_WARNING, "strftime failed");
+					time_string[0] = '\0';
+				}
+			} else {
+				syslog(LOG_WARNING, "localtime_r failed");
 			}
 		}
 
 		// 16 = "/bt__" (5) + sizeof pid_t (10) + \0 (1)
-		bt_filename_size = strlen(PKGLOGDIR) + strlen(time_string) + 16;
+		size_t bt_filename_size = strlen(PKGLOGDIR) + strlen(time_string) + 16;
 
 		bt_filename = (char *) malloc(bt_filename_size);
 
 		snprintf(bt_filename, bt_filename_size, PKGLOGDIR "/bt_%s_%d", time_string, getpid());
 
+		struct sigaction action;
 		memset(&action, 0, sizeof(action));
 		action.sa_sigaction = fatal_signal_handler;
 		sigfillset(&action.sa_mask);
 		action.sa_flags = SA_RESETHAND | SA_SIGINFO;
 
-		for (i = 0; i < HANDLED_SIGNALS_MAX; ++i) {
+		for (int i = 0; i < HANDLED_SIGNALS_MAX; ++i) {
 			if (sigaction(handled_signals[i], &action, NULL) < 0) {
 				syslog(LOG_WARNING, "sigaction %d failed: %s", handled_signals[i], strerror(errno));
 			}

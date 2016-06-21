@@ -502,7 +502,6 @@ uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 			/* Create logic to-be-made more robust: Phani */
 			/* Create flag to-be-changed from 644 to something better: Phani */
 			/* Check to-be-added to validate NCS_OS_MQ_MAX_PAYLOAD limit: Phani */
-			NCS_OS_MQ_HDL tmp_hdl;
 
 			info->info.create.o_hdl = msgget(*info->info.create.i_key,
 							 NCS_OS_MQ_PROTECTION_FLAGS | IPC_CREAT | IPC_EXCL);
@@ -511,7 +510,7 @@ uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 				/*  Queue already exists. We should start with
 				 **  a fresh queue. So let us delete this queue 
 				 */
-				tmp_hdl = msgget(*info->info.create.i_key, NCS_OS_MQ_PROTECTION_FLAGS);
+				NCS_OS_MQ_HDL tmp_hdl = msgget(*info->info.create.i_key, NCS_OS_MQ_PROTECTION_FLAGS);
 
 				if (msgctl(tmp_hdl, IPC_RMID, NULL) != 0) {
 					/* Queue deletion unsuccessful */
@@ -587,7 +586,7 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 	case NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC:
 		{
 
-			NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_REQ_INFO os_req = { 0 };
 
 			if (req->req == NCS_OS_POSIX_MQ_REQ_MSG_SEND)
 				os_req.req = NCS_OS_MQ_REQ_MSG_SEND;
@@ -608,7 +607,7 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 	case NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC:
 		{
 
-			NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_REQ_INFO os_req = { 0 };
 
 			if (req->req == NCS_OS_POSIX_MQ_REQ_MSG_RECV)
 				os_req.req = NCS_OS_MQ_REQ_MSG_RECV;
@@ -640,9 +639,8 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 		break;
 	case NCS_OS_POSIX_MQ_REQ_OPEN:
 		{
-			NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_REQ_INFO os_req = { 0 };
 			NCS_OS_MQ_KEY key;
-			FILE *file;
 			char filename[264];
 			struct msqid_ds buf;
 
@@ -653,7 +651,7 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 			if (req->info.open.iflags & O_CREAT) {
 				os_req.req = NCS_OS_MQ_REQ_CREATE;
 
-				file = fopen(filename, "w");
+				FILE* file = fopen(filename, "w");
 				if (file == NULL)
 					return NCSCC_RC_FAILURE;
 
@@ -689,7 +687,7 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 		break;
 	case NCS_OS_POSIX_MQ_REQ_RESIZE:
 		{
-			NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_REQ_INFO os_req = { 0 };
 
 			os_req.req = NCS_OS_MQ_REQ_RESIZE;
 			os_req.info.resize.i_hdl = req->info.resize.mqd;
@@ -701,7 +699,7 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 		break;
 	case NCS_OS_POSIX_MQ_REQ_CLOSE:
 		{
-			NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_REQ_INFO os_req = { 0 };
 
 			os_req.req = NCS_OS_MQ_REQ_DESTROY;
 			os_req.info.destroy.i_hdl = req->info.close.mqd;
@@ -770,7 +768,6 @@ static int32_t ncs_shm_prot_flags(uint32_t flags)
 
 uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 {
-	uint32_t prot_flag;
 	int32_t ret_flag;
 	uint64_t shm_size;
 	char shm_name[PATH_MAX];
@@ -807,7 +804,7 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
                                 }
 			}
 
-			prot_flag = ncs_shm_prot_flags(req->info.open.i_flags);
+			uint32_t prot_flag = ncs_shm_prot_flags(req->info.open.i_flags);
 			req->info.open.o_addr =
 			    mmap(req->info.open.o_addr, (size_t)shm_size /* size_t == unsigned long */ ,
 				 prot_flag, req->info.open.i_map_flags, req->info.open.o_fd, req->info.open.i_offset);

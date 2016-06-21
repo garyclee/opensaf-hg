@@ -38,11 +38,10 @@ typedef struct message_ {
 
 bool mbox_clean(NCSCONTEXT arg, NCSCONTEXT msg) {
   Message *curr;
-  Message *temp;
 
   /* clean the entire mailbox */
   for (curr = (Message *)msg; curr;) {
-    temp = curr;
+    Message* temp = curr;
     curr = curr->next;
 
     delete temp;
@@ -68,20 +67,22 @@ class SysfIpcTest : public ::testing::Test {
   // If the constructor and destructor are not enough for setting up
   // and cleaning up each test, you can define the following methods:
 
+  // cppcheck-suppress unusedFunction
   virtual void SetUp() {
     // Code here will be called immediately after the constructor (right
     // before each test).
-    int rc = ncs_leap_startup();
+    ncs_leap_startup();
     // see ticket #1629, return code should be ok
     //ASSERT_EQ(rc, NCSCC_RC_SUCCESS); 
 
-    rc = m_NCS_IPC_CREATE(&mbox);
+    int rc = m_NCS_IPC_CREATE(&mbox);
     ASSERT_EQ(rc, NCSCC_RC_SUCCESS);
 
     rc = m_NCS_IPC_ATTACH(&mbox);
     ASSERT_EQ(rc, NCSCC_RC_SUCCESS);
   }
 
+  // cppcheck-suppress unusedFunction
   virtual void TearDown() {
     // Code here will be called immediately after each test (right
     // before the destructor).
@@ -120,19 +121,16 @@ class SysfIpcTest : public ::testing::Test {
 
   //
   static void MessageSender() {
-    Message *msg;
-    int prio;
     srand(time(NULL));
-    int rc = NCSCC_RC_SUCCESS;
 
     for (int i = 0; i < 60; ++i) {
-      msg = new Message;
+      Message* msg = new Message;
 
-      prio = (random() % 3) + 1;
+      int prio = (random() % 3) + 1;
       msg->prio = (NCS_IPC_PRIORITY) prio;
       msg->seq_no = i;
 
-      rc = m_NCS_IPC_SEND(&mbox, msg, msg->prio);
+      int rc = m_NCS_IPC_SEND(&mbox, msg, msg->prio);
       EXPECT_EQ(rc, NCSCC_RC_SUCCESS);
 
       no_of_msgs_sent++;

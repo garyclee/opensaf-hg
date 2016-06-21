@@ -129,7 +129,6 @@ uint32_t ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba
 {
 	uint32_t rc = NCSCC_RC_SUCCESS, lcl_cnt = 0;
 	EDU_BUF_ENV lcl_edu_buf;
-	va_list arguments;	/* A place to store the list of arguments */
 	int *var_array = NULL;
 
 	/* Error checks done here. */
@@ -194,6 +193,7 @@ uint32_t ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba
 
 		var_array =  malloc(var_cnt*sizeof(int));
 
+		va_list arguments;
 		va_start(arguments, var_cnt);
 		for (x = 0; x < var_cnt; x++) {
 			var_array[x] = va_arg(arguments, int);
@@ -410,9 +410,8 @@ uint32_t ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 {
 	NCSCONTEXT lcl_ptr = NULL;
 	EDU_HDL_NODE *lcl_hdl_node = NULL;
-	uint32_t lcl_rc = NCSCC_RC_SUCCESS, dtype_attrb = 0x00000000;
-	NCS_EDU_ADMIN_OP_INFO admin_op;
-	uint32_t next_offset = 0, cnt = 0;	/* for linked list */
+	uint32_t lcl_rc = NCSCC_RC_SUCCESS;
+	uint32_t next_offset = 0;	/* for linked list */
 	uint8_t *p8, u8 = 0;
 	uint16_t u16 = 0;
 
@@ -434,14 +433,17 @@ uint32_t ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 	    || (optype == EDP_OP_TYPE_PP)
 #endif
 	    ) {
+		uint32_t cnt = 0;
 		/* Lookup data-type attributes, and if it's a linked-list/array,
 		   run the loop here. */
-		dtype_attrb = lcl_hdl_node->attrb;
+		uint32_t dtype_attrb = lcl_hdl_node->attrb;
 
 		/* Now that dtype_attrb got filled, compare it with expected
 		   values. */
 		if ((dtype_attrb & EDQ_LNKLIST) == EDQ_LNKLIST) {
 			/* Get next_offset. */
+			NCS_EDU_ADMIN_OP_INFO admin_op;
+			memset(&admin_op, 0, sizeof(admin_op));
 			admin_op.adm_op_type = NCS_EDU_ADMIN_OP_TYPE_GET_LL_NEXT_OFFSET;
 			admin_op.info.get_ll_offset.o_next_offset = &next_offset;
 			edp(edu_hdl, edu_tkn, (NCSCONTEXT)&admin_op, NULL, NULL, EDP_OP_TYPE_ADMIN, o_err);
@@ -494,9 +496,6 @@ uint32_t ncs_edu_run_edp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET *rule,
 		}
 	} else {
 		/* Encode/Admin operations */
-		if (optype == EDP_OP_TYPE_ADMIN) {
-			admin_op = *((NCS_EDU_ADMIN_OP_INFO *)ptr);
-		}
 		lcl_rc = edp(edu_hdl, edu_tkn, ptr, dcnt, buf_env, optype, o_err);
 	}
 
@@ -2475,7 +2474,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 
 	for (i = 0; ((i != instr_count) && (rules_head[i].instr != EDU_END)); i++) {
 		if (rules_head[i].instr == EDU_TEST) {
-			bool already_added = false, lclfnd = false;
+			bool already_added = false;
 
 			/* If already in the "*head" list, just increment the "refcount"
 			   of that entry. */
@@ -2488,6 +2487,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 				}
 			}
 			if (!already_added) {
+				bool lclfnd = false;
 				/* Verify whether there exists an "EDU_EXEC" instruction
 				   with offset matching "rules_head[i].fld5", and EDP value
 				   matching "rules_head[i].fld1". If yes, then only this
@@ -2525,7 +2525,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 			}	/* if(!already_added) */
 		} /* if(rules_head[i].instr == EDU_TEST) */
 		else if (rules_head[i].instr == EDU_EXEC) {
-			bool already_added = false, lcl_to_be_added = false;
+			bool lcl_to_be_added = false;
 
 			for (j = 0; (((j != instr_count) && rules_head[j].instr != EDU_END)); j++) {
 				if (rules_head[j].instr == EDU_EXEC) {
@@ -2540,6 +2540,7 @@ uint32_t ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
 				}
 			}
 			if (lcl_to_be_added) {
+				bool already_added = false;
 				/* Lookup "fld6" offset in the structure, and store the instruction
 				   as a test-able field */
 				for (tmp = *head; (tmp != NULL); tmp = tmp->next) {
@@ -3241,11 +3242,12 @@ bool ncs_edu_return_builtin_edp_size(EDU_PROG_HANDLER prog, uint32_t *o_size)
 *****************************************************************************/
 uint32_t ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NODE **hdl_node, EDU_ERR *o_err)
 {
-	EDU_HDL_NODE *lcl_hdl_node = NULL, *new_node = NULL;
+	EDU_HDL_NODE *lcl_hdl_node = NULL;
 
 	/* If hdl_node entry not present, add now. */
 	if ((lcl_hdl_node = (EDU_HDL_NODE *)
 	     ncs_patricia_tree_get(&edu_hdl->tree, (uint8_t *)&prog)) == NULL) {
+		EDU_HDL_NODE* new_node;
 		if ((lcl_hdl_node = (new_node = (EDU_HDL_NODE *) malloc(sizeof(EDU_HDL_NODE)))) == NULL) {
 			*o_err = EDU_ERR_MEM_FAIL;
 			return NCSCC_RC_FAILURE;
@@ -3289,12 +3291,8 @@ uint32_t ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog, EDU_HDL_NO
 *****************************************************************************/
 uint32_t ncs_edu_hdl_init(EDU_HDL *edu_hdl)
 {
-	NCS_PATRICIA_PARAMS list_params;
-
 	memset(edu_hdl, '\0', sizeof(EDU_HDL));
-	/* Init the tree first */
-	list_params.key_size = sizeof(EDU_PROG_HANDLER);
-	/*    list_params.info_size = 0;  */
+	NCS_PATRICIA_PARAMS list_params = { .key_size = sizeof(EDU_PROG_HANDLER) };
 	if ((ncs_patricia_tree_init(&edu_hdl->tree, &list_params))
 	    != NCSCC_RC_SUCCESS) {
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -3318,13 +3316,13 @@ uint32_t ncs_edu_hdl_init(EDU_HDL *edu_hdl)
 *****************************************************************************/
 uint32_t ncs_edu_hdl_flush(EDU_HDL *edu_hdl)
 {
-	EDU_PROG_HANDLER lcl_key, *key = NULL;
-	NCS_PATRICIA_NODE *pnode = NULL;
-
 	if (edu_hdl->is_inited == true) {
+		EDU_PROG_HANDLER lcl_key, *key = NULL;
 		for (;;) {
+			NCS_PATRICIA_NODE *pnode;
 			if ((pnode = ncs_patricia_tree_getnext(&edu_hdl->tree, (const uint8_t *)key)) != NULL) {
 				/* Store the key for the next getnext call */
+				// cppcheck-suppress unreadVariable
 				lcl_key = ((EDU_HDL_NODE *)pnode)->edp;
 				key = &lcl_key;
 
@@ -3444,7 +3442,7 @@ uint32_t ncs_encode_tlv_16bit(uint8_t **stream, uint32_t val)
 *****************************************************************************/
 uint32_t ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_count)
 {
-	uint16_t lcnt = 0, len = n_count, val = 0;
+	uint16_t lcnt = 0, len = n_count;
 
 	if (n_count == 0)
 		return 0;
@@ -3453,7 +3451,7 @@ uint32_t ncs_encode_tlv_n_16bit(uint8_t **stream, uint16_t *val_ptr, uint16_t n_
 	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
 	*(*stream)++ = (uint8_t)len;	/* length */
 	for (; lcnt < n_count; lcnt++) {
-		val = *val_ptr;
+		uint16_t val = *val_ptr;
 		*(*stream)++ = (uint8_t)(val >> 8);
 		*(*stream)++ = (uint8_t)(val);
 		val_ptr++;
@@ -3496,7 +3494,6 @@ uint32_t ncs_encode_tlv_32bit(uint8_t **stream, uint32_t val)
 uint32_t ncs_encode_tlv_n_32bit(uint8_t **stream, uint32_t *val_ptr, uint16_t n_count)
 {
 	uint16_t lcnt = 0, len = n_count;
-	uint32_t val = 0;
 
 	if (n_count == 0)
 		return 0;
@@ -3505,7 +3502,7 @@ uint32_t ncs_encode_tlv_n_32bit(uint8_t **stream, uint32_t *val_ptr, uint16_t n_
 	*(*stream)++ = (uint8_t)(len >> 8);	/* length */
 	*(*stream)++ = (uint8_t)len;	/* length */
 	for (; lcnt < n_count; lcnt++) {
-		val = *val_ptr;
+		uint32_t val = *val_ptr;
 		*(*stream)++ = (uint8_t)(val >> 24);
 		*(*stream)++ = (uint8_t)(val >> 16);
 		*(*stream)++ = (uint8_t)(val >> 8);
@@ -3526,7 +3523,6 @@ uint32_t ncs_encode_tlv_n_32bit(uint8_t **stream, uint32_t *val_ptr, uint16_t n_
 *****************************************************************************/
 uint32_t ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
 {
-	int i;
 	uint16_t lcnt = count;
 
 	*(*stream)++ = (uint8_t)(NCS_EDU_FMAT_OCT);	/* type */
@@ -3538,7 +3534,7 @@ uint32_t ncs_encode_tlv_n_octets(uint8_t **stream, uint8_t *val, uint16_t count)
 			return (uint32_t)EDU_TLV_HDR_SIZE;
 		}
 
-		for (i = 0; i < count; i++)
+		for (int i = 0; i < count; i++)
 			*(*stream)++ = *val++;
 	}
 	return (uint32_t)(EDU_TLV_HDR_SIZE + count);
@@ -3623,7 +3619,6 @@ uint32_t ncs_decode_tlv_32bit(uint8_t **stream)
 *****************************************************************************/
 uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uint32_t *dest)
 {
-	uint32_t val = 0;		/* Accumulator */
 	uint16_t lcnt = 0, len = 0;
 
 	(*stream)++;		/* type */
@@ -3632,7 +3627,7 @@ uint16_t ncs_decode_tlv_n_32bit(uint8_t **stream, uint32_t *dest)
 	len |= (uint16_t)*(*stream)++;
 
 	for (; lcnt < len; lcnt++) {
-		val = (uint32_t)*(*stream)++ << 24;
+		uint32_t val = (uint32_t)*(*stream)++ << 24;
 		val |= (uint32_t)*(*stream)++ << 16;
 		val |= (uint32_t)*(*stream)++ << 8;
 		val |= (uint32_t)*(*stream)++;
@@ -3676,7 +3671,6 @@ uint16_t ncs_decode_tlv_16bit(uint8_t **stream)
 *****************************************************************************/
 uint16_t ncs_decode_tlv_n_16bit(uint8_t **stream, uint16_t *dest)
 {
-	uint16_t val = 0;		/* Accumulator */
 	uint16_t lcnt = 0, len = 0;
 
 	(*stream)++;		/* type */
@@ -3685,7 +3679,7 @@ uint16_t ncs_decode_tlv_n_16bit(uint8_t **stream, uint16_t *dest)
 	len |= (uint16_t)*(*stream)++;
 
 	for (; lcnt < len; lcnt++) {
-		val = (uint16_t)((uint16_t)*(*stream)++ << 8);
+		uint16_t val = (uint16_t)((uint16_t)*(*stream)++ << 8);
 		val |= (uint16_t)*(*stream)++;
 		/* Convert to host-order and Write it back */
 		dest[lcnt] = val;

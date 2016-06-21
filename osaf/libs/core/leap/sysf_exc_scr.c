@@ -103,12 +103,12 @@ void ncs_exc_mdl_stop_timer(SYSF_PID_LIST *exec_pid)
 \**************************************************************************/
 void ncs_exec_module_signal_hdlr(int signal)
 {
-	EXEC_MOD_INFO info;
-
 	if (signal == SIGCHLD) {
-		info.pid = 0;
-		info.status = 0;
-		info.type = SYSF_EXEC_INFO_SIG_CHLD;
+		EXEC_MOD_INFO info = {
+			.pid = 0,
+			.status = 0,
+			.type = SYSF_EXEC_INFO_SIG_CHLD
+		};
 
 		/*  printf("\n In  SIGCHLD Handler \n"); */
 
@@ -140,12 +140,11 @@ void ncs_exec_module_signal_hdlr(int signal)
 \**************************************************************************/
 void ncs_exec_module_timer_hdlr(void *uarg)
 {
-	EXEC_MOD_INFO info;
-	int status = 0;
-
-	info.pid = NCS_PTR_TO_INT32_CAST(uarg);
-	info.status = status;
-	info.type = SYSF_EXEC_INFO_TIME_OUT;
+	EXEC_MOD_INFO info = {
+		.pid = NCS_PTR_TO_INT32_CAST(uarg),
+		.status = 0,
+		.type = SYSF_EXEC_INFO_TIME_OUT
+	};
 
 	if(-1 == write(module_cb.write_fd, (const void *)&info,
 				sizeof(EXEC_MOD_INFO))){
@@ -398,10 +397,8 @@ uint32_t init_exec_mod_cb(void)
 \**************************************************************************/
 uint32_t start_exec_mod_cb(void)
 {
-	NCS_PATRICIA_PARAMS pt_params;
+	NCS_PATRICIA_PARAMS pt_params = { .key_size = sizeof(uint32_t) };
 	int spair[2];
-
-	pt_params.key_size = sizeof(uint32_t);
 
 	if (ncs_patricia_tree_init(&module_cb.pid_list, &pt_params) != NCSCC_RC_SUCCESS) {
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -457,7 +454,6 @@ uint32_t start_exec_mod_cb(void)
 \**************************************************************************/
 uint32_t exec_mod_cb_destroy(void)
 {
-	SYSF_PID_LIST *exec_pid = NULL;
 	uint8_t pid = 0;
 
 	if (module_cb.init == true) {
@@ -471,6 +467,7 @@ uint32_t exec_mod_cb_destroy(void)
 
 		m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 
+		SYSF_PID_LIST* exec_pid;
 		while (NULL != (exec_pid = (SYSF_PID_LIST *)ncs_patricia_tree_getnext(&module_cb.pid_list,
 										      (const uint8_t *)&pid))) {
 

@@ -55,7 +55,6 @@
 
 USRBUF *ncs_encode_n_octets(USRBUF *u, uint8_t *os, unsigned int count)
 {
-	uint8_t *p;
 	unsigned int remaining = count;
 	unsigned int offset = 0;
 
@@ -65,6 +64,7 @@ USRBUF *ncs_encode_n_octets(USRBUF *u, uint8_t *os, unsigned int count)
 		count = remaining;
 
 	do {
+		uint8_t *p;
 		if ((p = m_MMGR_RESERVE_AT_END(&u, count, uint8_t *)) != (uint8_t *)0) {
 			/*
 			 * Build the octet string...Remember a NULL pointer

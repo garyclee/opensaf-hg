@@ -15,7 +15,9 @@ class SysfTmrTest : public ::testing::Test {
  public:
  protected:
 
-  SysfTmrTest() : distribution_(1 * 60 * 60 * 100, 2 * 60 * 60 * 100 - 1) {
+  SysfTmrTest() :
+      distribution_(1 * 60 * 60 * 100, 2 * 60 * 60 * 100 - 1),
+      timers_{} {
     // Setup work can be done here for each test.
   }
 
