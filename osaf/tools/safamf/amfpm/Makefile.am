@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 sbin_PROGRAMS = amfpm
 
 amfpm_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS)
 
 amfpm_SOURCES = \
