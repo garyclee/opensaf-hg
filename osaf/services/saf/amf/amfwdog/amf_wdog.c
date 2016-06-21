@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	syslog(LOG_INFO, "'%s' started", comp_name.value);
+	syslog(LOG_INFO, "'%s' started", saAisNameBorrow(&comp_name));
 
 	rc = saAmfComponentRegister(amf_hdl, &comp_name, 0);
 	if (SA_AIS_OK != rc) {
