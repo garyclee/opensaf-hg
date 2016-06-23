@@ -119,9 +119,7 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 	rc = ncs_ipc_send(&ntfs_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_VERY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IPC send failed %d", rc);
-		if (evt != NULL) {
-			free(evt);
-		}
+		free(evt);
 	}
 
 done:
