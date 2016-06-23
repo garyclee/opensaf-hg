@@ -2946,9 +2946,11 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 			osafassert(csi);
 
 			/* allocate additional env_set memory for the CSI attributes */
-			env_set = static_cast<NCS_OS_ENVIRON_SET_NODE*>(realloc(env_set, sizeof(NCS_OS_ENVIRON_SET_NODE) * (env_set_nmemb + 
+			NCS_OS_ENVIRON_SET_NODE* tmp = nullptr;
+			tmp = static_cast<NCS_OS_ENVIRON_SET_NODE*>(realloc(env_set, sizeof(NCS_OS_ENVIRON_SET_NODE) * (env_set_nmemb + 
 						csi->attrs.number)));
-			osafassert(env_set);
+			osafassert(tmp);
+			env_set = tmp;
 
 			/* initialize newly allocated memory */
 			memset(&env_set[env_set_nmemb], 0, sizeof(NCS_OS_ENVIRON_SET_NODE) * csi->attrs.number);

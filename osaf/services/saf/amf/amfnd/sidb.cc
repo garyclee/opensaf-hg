@@ -329,8 +329,8 @@ done1:
 AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 					  AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uint32_t *rc)
 {
-	AVND_COMP_CSI_REC *csi_rec = 0;
-	AVND_COMP *comp = 0;
+	AVND_COMP_CSI_REC *csi_rec = nullptr;
+	AVND_COMP *comp = nullptr;
 
 	TRACE_ENTER2("Comp'%s', Csi'%s' and Rank'%u'",param->csi_name.value, param->comp_name.value, param->csi_rank);
 
@@ -346,7 +346,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 	/* get the comp */
 	comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->comp_name);
 	if (!comp) {
-		/* This could be becasue of NPI components, NPI components are not added in to DB
+		/* This could be because of NPI components, NPI components are not added in to DB
 		   because amfd doesn't send SU presence message to amfnd when SU is unlock-in.
 		   So, add the component into DB now. */
 		if (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS) {
@@ -432,6 +432,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 
  err:
 	if (csi_rec) {
+		osafassert(comp != nullptr);
 		/* remove from comp-csi & si-csi lists */
 		ncs_db_link_list_delink(&si_rec->csi_list, &csi_rec->si_dll_node);
 		m_AVND_COMPDB_REC_CSI_REM(*comp, *csi_rec);

@@ -166,6 +166,7 @@ static uint32_t cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_
 				malloc(s_compcsi_info->attrs.number * sizeof(*d_compcsi_info->attrs.list));
 			if (d_compcsi_info->attrs.list == NULL) {
 				free_d2n_susi_msg_info(d_susi_msg);
+				free(d_compcsi_info);
 				return NCSCC_RC_FAILURE;
 			}
 			memcpy(d_compcsi_info->attrs.list, s_compcsi_info->attrs.list,
