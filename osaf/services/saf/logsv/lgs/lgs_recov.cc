@@ -93,7 +93,7 @@ void log_rtobj_list_free()
  * @param dn_str[in] '\0' terminated string containing a dn
  * @return -1 on error
  */
-int log_rtobj_list_add(char *dn_str)
+int log_rtobj_list_add(const std::string &dn_str)
 {
 	char *str_ptr = NULL;
 	size_t len = 0;
@@ -116,8 +116,8 @@ int log_rtobj_list_add(char *dn_str)
 	}
 
 	/* Save dn string */
-	len = strlen(dn_str) + 1; /* Including '\0' */
-	if (len > SA_MAX_NAME_LENGTH) {
+	len = dn_str.size() + 1; /* Including '\0' */
+	if (len > kOsafMaxDnLength) {
 		/* Should never happen */
 		LOG_WA("%s\tToo long dn string!",__FUNCTION__);
 		rc = -1;
@@ -131,7 +131,7 @@ int log_rtobj_list_add(char *dn_str)
 		goto done;
 	}
 
-	strcpy(str_ptr, dn_str);
+	strcpy(str_ptr, dn_str.c_str());
 
 	/* Add dn to list */
 	rtobj_list[rtobj_cnt] = str_ptr;
@@ -158,12 +158,12 @@ int log_rtobj_list_no()
  * @param dn_str[in] '\0' terminated string with dn to find
  * @return Position of found name or -1 if name not found
  */
-int log_rtobj_list_find(char *dn_str)
+int log_rtobj_list_find(const std::string &dn_str)
 {
 	uint32_t i = 0;
 	int pos = -1;
 
-	TRACE_ENTER2("dn_str \"%s\"", dn_str);
+	TRACE_ENTER2("dn_str \"%s\"", dn_str.c_str());
 
 	if (rtobj_list == NULL) {
 		TRACE("\t No rtobj_list exist");
@@ -173,7 +173,7 @@ int log_rtobj_list_find(char *dn_str)
 	for (i = 0; i < rtobj_list_len; i++) {
 		if (rtobj_list[i] == NULL)
 			continue;
-		if (strcmp(rtobj_list[i], dn_str) == 0) {
+		if (strcmp(rtobj_list[i], dn_str.c_str()) == 0) {
 			/* Found! */
 			pos = (int) i;
 			break;
@@ -339,7 +339,7 @@ static void lgs_remove_stream(uint32_t client_id, log_stream_t *log_stream)
  * @return -1 on error
  */
 int lgs_restore_one_app_stream(
-	char *stream_name, uint32_t client_id,
+	const std::string &stream_name, uint32_t client_id,
 	log_stream_t **o_stream)
 {
 	int int_rc = 0;
@@ -365,31 +365,27 @@ int lgs_restore_one_app_stream(
 	// Make it safe for free
 	par_out.curFileName = NULL;
 
-	TRACE_ENTER2("object_name \"%s\", client_id=%d", stream_name, client_id);
+	TRACE_ENTER2("object_name \"%s\", client_id=%d", stream_name.c_str(), client_id);
 
 	memset(&open_stream_param, 0, sizeof(open_stream_param));
 
 	/* Check and save stream file name */
-	if (stream_name == NULL) {
+	if (stream_name.empty() == true) {
 		TRACE("%s: No object name <NULL>", __FUNCTION__);
 		rc_out = -1;
 		goto done;
 	}
-	n = snprintf(reinterpret_cast<char *>(open_stream_param.lstr_name.value),
-		SA_MAX_NAME_LENGTH, "%s", stream_name);
-
-	open_stream_param.lstr_name.length = strlen(stream_name) + 1;
-	if (n >= SA_MAX_NAME_LENGTH) {
-		TRACE("Log stream name \"%s\" is truncated",
-			open_stream_param.lstr_name.value);
+	if (stream_name.size() >= kOsafMaxDnLength) {
+		TRACE("Log stream name \"%s\" is truncated", stream_name.c_str());
 		rc_out = -1;
 		goto done;
 	}
+	osaf_extended_name_lend(stream_name.c_str(), &open_stream_param.lstr_name);
 
 	/* Check if in found objects list */
 	list_pos = log_rtobj_list_find(stream_name);
 	if (list_pos == -1) {
-		TRACE("%s: No stream \"%s\" found to restore", __FUNCTION__, stream_name);
+		TRACE("%s: No stream \"%s\" found to restore", __FUNCTION__, stream_name.c_str());
 		rc_out = -1;
 		goto done;
 	}
@@ -560,7 +556,7 @@ int lgs_restore_one_app_stream(
 	open_stream_param.logFileName = const_cast<char *>(fileName.c_str());
 	open_stream_param.logFilePathName = const_cast<char *>(pathName.c_str());
 
-	ais_rc = create_new_app_stream(&open_stream_param, &log_stream, 0);
+	ais_rc = create_new_app_stream(&open_stream_param, &log_stream);
 	if ( ais_rc != SA_AIS_OK) {
 		TRACE("%s: create_new_app_stream Fail %s",
 			__FUNCTION__, saf_error(ais_rc));
@@ -726,7 +722,7 @@ int log_stream_open_file_restore(log_stream_t *stream)
 	 */
 	if (par_out.curFileName == NULL) {
 		/* There is no current log file. Consider as logsv starts from scratch */
-		TRACE("\t Create new cfg/logfile for stream (%s)", stream->name);
+		TRACE("\t Create new cfg/logfile for stream (%s)", stream->name.c_str());
 		log_stream_open_fileinit(stream);
 		stream->creationTimeStamp = lgs_get_SaTime();
 		goto done;
@@ -774,7 +770,7 @@ done:
  * @param stream_name[in]  The name of the stream
  * @return -1 on error
  */
-int log_close_rtstream_files(char *stream_name)
+int log_close_rtstream_files(const std::string &stream_name)
 {
 	int int_rc = 0;
 	int rc_out = 0;
@@ -793,10 +789,10 @@ int log_close_rtstream_files(char *stream_name)
 	// Make it safe for free
 	par_out.curFileName = NULL;
 
-	TRACE_ENTER2("object_name \"%s\"", stream_name);
+	TRACE_ENTER2("object_name \"%s\"", stream_name.c_str());
 
 	/* Check and save stream file name */
-	if (stream_name == NULL) {
+	if (stream_name.empty() == true) {
 		TRACE("%s: No object name <NULL>", __FUNCTION__);
 		rc_out = -1;
 		goto done;
@@ -878,7 +874,7 @@ int log_close_rtstream_files(char *stream_name)
 				   current_time, LGS_LOG_FILE_EXT, emptyStr);
 	if (int_rc == -1) {
 		LOG_WA("Failed to rename log file (%s) for stream (%s)",
-		       par_out.curFileName, stream_name);
+		       par_out.curFileName, stream_name.c_str());
 	}
 
 	int_rc = lgs_file_rename_h(rootPath, pathName_bk, fileName,
@@ -886,7 +882,7 @@ int log_close_rtstream_files(char *stream_name)
 
 	if (int_rc == -1) {
 		LOG_WA("Failed to rename configuration file (%s) for stream (%s)",
-		       fileName.c_str(), stream_name);
+		       fileName.c_str(), stream_name.c_str());
 	}
 
 done_free_attr:

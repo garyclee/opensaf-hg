@@ -20,19 +20,19 @@
 
 #include "lgs.h"
 
-int log_rtobj_list_add(char *dn_str);
+int log_rtobj_list_add(const std::string &dn_str);
 int log_rtobj_list_no();
-int log_rtobj_list_find(char *stream_name);
+int log_rtobj_list_find(const std::string &stream_name);
 int log_rtobj_list_getnamepos();
 char *log_rtobj_list_getname(int pos);
 void log_rtobj_list_erase_one_pos(int pos);
 void log_rtobj_list_free();
 int lgs_restore_one_app_stream(
-	char *stream_name,
+	const std::string &stream_name,
 	uint32_t client_id,
 	log_stream_t **o_stream
 	);
 int log_stream_open_file_restore(log_stream_t *log_stream);
-int log_close_rtstream_files(char *stream_name);
+int log_close_rtstream_files(const std::string &stream_name);
 
 #endif	/* LGS_STATE_H */

@@ -45,6 +45,7 @@ osaf_execbin_PROGRAMS = osaflogd
 osaflogd_CXXFLAGS = $(AM_CXXFLAGS)
 
 osaflogd_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/logsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include

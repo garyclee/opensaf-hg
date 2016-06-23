@@ -23,6 +23,7 @@
 #include "lgs_mbcsv_v2.h"
 #include "lgs_recov.h"
 #include "lgs_imm_gcfg.h"
+#include "osaf_extended_name.h"
 
 /* Macro to validate the version */
 #define m_LOG_VER_IS_VALID(ver)   \
@@ -323,11 +324,9 @@ uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest)
 					cb->lga_down_list_head = NULL;  /* Clear head sublist pointer */
 					cb->lga_down_list_tail = NULL;  /* Clear tail sublist pointer */
 				} else {        /* 1st but not only one */
-
 					cb->lga_down_list_head = lga_down_rec->next;    /* Move next one up */
 				}
 			} else {        /* Not 1st in the list */
-
 				if (prev) {
 					if (lga_down_rec->next == NULL)
 						cb->lga_down_list_tail = prev;
@@ -499,7 +498,6 @@ static void lgs_process_lga_down_list()
 		lgs_cb->lga_down_list_head = NULL;
 		lgs_cb->lga_down_list_tail = NULL;
 	}
-
 }
 
 
@@ -542,12 +540,13 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 		lgs_process_lga_down_list();
 
 		/* Check existing streams */
-		stream = log_stream_getnext_by_name(NULL);
+		int num = get_number_of_streams();
+		stream = log_stream_get_by_id(--num);
 		if (!stream)
 			LOG_ER("No streams exist!");
 		while (stream != NULL) {
-			*stream->p_fd = -1; /* Initialize fd */	
-			stream = log_stream_getnext_by_name(stream->name);
+			*stream->p_fd = -1; /* Initialize fd */
+			stream = log_stream_get_by_id(--num);
 		}
 	}
 
@@ -764,7 +763,7 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
 		ckpt_rec_open_ptr->logPath = const_cast<char *>(logStream->pathName.c_str());
 		ckpt_rec_open_ptr->logFileCurrent = const_cast<char *>(logStream->logFileCurrent.c_str());
 		ckpt_rec_open_ptr->fileFmt = logStream->logFileFormat;
-		ckpt_rec_open_ptr->logStreamName = logStream->name;
+		ckpt_rec_open_ptr->logStreamName = const_cast<char *>(logStream->name.c_str());
 
 		ckpt_rec_open_ptr->maxFileSize = logStream->maxLogFileSize;
 		ckpt_rec_open_ptr->maxLogRecordSize = logStream->fixedLogRecordSize;
@@ -790,24 +789,22 @@ static uint32_t lgs_ckpt_stream_open(lgs_cb_t *cb, log_stream_t *logStream,
  *
  * @param open_sync_param[in] Parameters used to create the stream
  * @param o_stream[out]       The created stream
- * @param create_object_f     IMM stream object is created
  *
  * @return AIS return code
  */
-SaAisErrorT create_new_app_stream(
-		lgsv_stream_open_req_t *open_sync_param,
-		log_stream_t **o_stream,
-		int creationFlag)
+SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_stream_t **o_stream)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	log_stream_t *stream;
 	SaBoolT twelveHourModeFlag;
 	SaUint32T logMaxLogrecsize_conf = 0;
+	SaConstStringT str_name;
+	int num, err = 0;
 
 	TRACE_ENTER();
 
-	if (open_sync_param->lstr_name.length > SA_MAX_NAME_LENGTH) {
-		TRACE("Name too long");
+	if (lgs_is_extended_name_valid(&open_sync_param->lstr_name) == false) {
+		TRACE("SaNameT is invalid");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -863,7 +860,8 @@ SaAisErrorT create_new_app_stream(
 	}
 
 	/* Verify that path and file are unique */
-	stream = log_stream_getnext_by_name(NULL);
+	num = get_number_of_streams();
+	stream = log_stream_get_by_id(--num);
 	while (stream != NULL) {
 		if ((stream->fileName == open_sync_param->logFileName) &&
 		    (stream->pathName == open_sync_param->logFilePathName)) {
@@ -871,12 +869,13 @@ SaAisErrorT create_new_app_stream(
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
-		stream = log_stream_getnext_by_name(stream->name);
+		stream = log_stream_get_by_id(--num);
 	}
 
 	/* Verify that the name seems to be a DN */
-	if (strncmp("safLgStr=", (char *)open_sync_param->lstr_name.value, sizeof("safLgStr=") != 0)) {
-		TRACE("'%s' is not a valid stream name => invalid param", open_sync_param->lstr_name.value);
+	str_name = osaf_extended_name_borrow(&open_sync_param->lstr_name);
+	if (strncmp("safLgStr=", str_name, sizeof("safLgStr=") != 0)) {
+		TRACE("'%s' is not a valid stream name => invalid param", str_name);
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
@@ -891,25 +890,32 @@ SaAisErrorT create_new_app_stream(
 		goto done;
 	}
 
-	stream = log_stream_new_1(&open_sync_param->lstr_name,
-				open_sync_param->logFileName,
-				open_sync_param->logFilePathName,
-				open_sync_param->maxLogFileSize,
-				open_sync_param->maxLogRecordSize,
-				open_sync_param->logFileFullAction,
-				open_sync_param->maxFilesRotated,
-				open_sync_param->logFileFmt,
-				STREAM_TYPE_APPLICATION,
-				STREAM_NEW,
-				twelveHourModeFlag,
-				0,
-				creationFlag);
-
-	if (stream == NULL) {
+	*o_stream = log_stream_new(str_name, STREAM_NEW);
+	if (*o_stream == NULL) {
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
-	*o_stream = stream;
+
+	err = lgs_populate_log_stream(
+		open_sync_param->logFileName,
+		open_sync_param->logFilePathName,
+		open_sync_param->maxLogFileSize,
+		open_sync_param->maxLogRecordSize,
+		open_sync_param->logFileFullAction,
+		open_sync_param->maxFilesRotated,
+		open_sync_param->logFileFmt,
+		STREAM_TYPE_APPLICATION,
+		twelveHourModeFlag,
+		0,
+		*o_stream); // output
+	if (err == -1) {
+		log_stream_delete(o_stream);
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done;
+	}
+
+	rc = lgs_create_rt_appstream(*o_stream);
+	if (rc != SA_AIS_OK) log_stream_delete(o_stream);
 
  done:
 	TRACE_LEAVE();
@@ -926,7 +932,7 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param, l
 {
 	SaAisErrorT rs = SA_AIS_OK;
 
-	TRACE_ENTER2("Stream: %s", applicationStream->name);
+	TRACE_ENTER2("Stream: %s", applicationStream->name.c_str());
 
 	if (open_sync_param->maxLogFileSize != applicationStream->maxLogFileSize ||
 	    open_sync_param->maxLogRecordSize != applicationStream->fixedLogRecordSize ||
@@ -983,15 +989,14 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	lgsv_msg_t msg;
 	lgsv_stream_open_req_t *open_sync_param = &(evt->info.msg.info.api_info.param.lstr_open_sync);
 	log_stream_t *logStream;
-	char name[SA_MAX_NAME_LENGTH + 1];
+	std::string name;
 	time_t file_closetime = 0;
 	int i_rc = 0;
 
 	/* Create null-terminated stream name */
-	memcpy(name, open_sync_param->lstr_name.value, open_sync_param->lstr_name.length);
-	memset(&name[open_sync_param->lstr_name.length], 0, SA_MAX_NAME_LENGTH + 1 - open_sync_param->lstr_name.length);
+	name = osaf_extended_name_borrow(&open_sync_param->lstr_name);
 
-	TRACE_ENTER2("stream '%s', client_id %u", name, open_sync_param->client_id);
+	TRACE_ENTER2("stream '%s', client_id %u", name.c_str(), open_sync_param->client_id);
 
 	logStream = log_stream_get_by_name(name);
 	if (logStream != NULL) {
@@ -1036,7 +1041,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 					ais_rv = SA_AIS_ERR_NOT_EXIST;
 					goto snd_rsp;
 				}
-				TRACE("%s Stream %s is recovered", __FUNCTION__, name);
+				TRACE("%s Stream %s is recovered", __FUNCTION__, name.c_str());
 				log_stream_print(logStream); /* TRACE */
 				lstr_id = logStream->streamId;
 				goto snd_rsp;
@@ -1062,7 +1067,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 		 * 
 		 * Note: Files are not created here
 		 */
-		ais_rv = create_new_app_stream(open_sync_param, &logStream, 1);
+		ais_rv = create_new_app_stream(open_sync_param, &logStream);
 		if (ais_rv != SA_AIS_OK) {
 			TRACE("%s create_new_app_stream Fail \"%s\"",
 				__FUNCTION__, saf_error(ais_rv));
@@ -1112,6 +1117,7 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	free(open_sync_param->logFileFmt);
 	free(open_sync_param->logFilePathName);
 	free(open_sync_param->logFileName);
+	osaf_extended_name_free(&open_sync_param->lstr_name);
 
 	TRACE_LEAVE();
 	return rc;
@@ -1365,7 +1371,6 @@ static uint32_t process_api_evt(lgsv_lgs_evt_t *evt)
 	if (evt->info.msg.type >= LGSV_MSG_MAX) {
 		LOG_ER("Invalid event type %d", evt->info.msg.type);
 		goto done;
-
 	}
 
 	api_type = evt->info.msg.info.api_info.type;

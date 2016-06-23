@@ -31,10 +31,9 @@
 #include "lgs_file.h"
 #include "lgs_filehdl.h"
 #include "osaf_time.h"
+#include "immutil.h"
 
 #define DEFAULT_NUM_APP_LOG_STREAMS 64
-
-static NCS_PATRICIA_TREE stream_dn_tree;
 
 static log_stream_t **stream_array;
 /* We have at least the 3 well known streams. */
@@ -101,6 +100,17 @@ static int fileopen_h(const std::string &filepath, int *errno_save)
 done:
 	TRACE_LEAVE();
 	return fd;
+}
+
+/**
+ * Get current number of openning streams
+ *
+ * @param: none
+ * @return current number of opening streams
+ */
+unsigned int get_number_of_streams()
+{
+	return numb_of_streams;
 }
 
 /**
@@ -190,7 +200,6 @@ static int file_unlink_h(const std::string &filepath)
 done:
 	TRACE_LEAVE2("rc = %d", rc);
 	return rc;
-	
 }
 
 /**
@@ -260,48 +269,6 @@ static int rotate_if_needed(log_stream_t *stream)
 	return rc;
 }
 
-static uint32_t log_stream_add(NCS_PATRICIA_NODE *node, const char *key)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	node->key_info = (uint8_t *)key;
-
-	if ( NULL == ncs_patricia_tree_get(&stream_dn_tree,node->key_info)){
-		rc = ncs_patricia_tree_add(&stream_dn_tree, node);
-		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_WA("ncs_patricia_tree_add FAILED for '%s' %u", key, rc);
-			node->key_info = NULL;
-			goto done;
-		}
-	}
-
- done:
-	return rc;
-}
-
-static uint32_t log_stream_remove(const char *key)
-{
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	log_stream_t *stream;
-
-	stream = reinterpret_cast<log_stream_t *>(ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)key));
-	if (stream == NULL) {
-		TRACE_2("ncs_patricia_tree_get FAILED");
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-	
-	if (ncs_patricia_tree_get(&stream_dn_tree,stream->pat_node.key_info)){
-		if ((rc = ncs_patricia_tree_del(&stream_dn_tree, &stream->pat_node)) != NCSCC_RC_SUCCESS) {
-			LOG_WA("ncs_patricia_tree_del FAILED for  '%s' %u",key,rc);
-			goto done;
-		}
-	}
-
- done:
-	return rc;
-}
-
 /**
  * Initiate the files belonging to a stream
  * 
@@ -357,35 +324,11 @@ done:
 	TRACE_LEAVE();
 }
 
-log_stream_t *log_stream_get_by_name(const char *name)
-{
-	char nname[SA_MAX_NAME_LENGTH + 1];
-
-	/* Create null-terminated stream name */
-	strcpy(nname, name);
-	memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
-
-	return reinterpret_cast<log_stream_t *>(ncs_patricia_tree_get(&stream_dn_tree, (uint8_t *)nname));
-}
-
-log_stream_t *log_stream_getnext_by_name(const char *name)
-{
-	char nname[SA_MAX_NAME_LENGTH + 1];
-
-	if (name != NULL) {
-		/* Create SA_MAX_NAME_LENGTH stream name */
-		strcpy(nname, name);
-		memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
-		return reinterpret_cast<log_stream_t *>(ncs_patricia_tree_getnext(&stream_dn_tree, (uint8_t *)nname));
-	} else
-		return reinterpret_cast<log_stream_t *>(ncs_patricia_tree_getnext(&stream_dn_tree, NULL));
-}
-
 void log_stream_print(log_stream_t *stream)
 {
 	osafassert(stream != NULL);
 
-	TRACE_2("******** Stream %s ********", stream->name);
+	TRACE_2("******** Stream %s ********", stream->name.c_str());
 	TRACE_2("  fileName:             %s", stream->fileName.c_str());
 	TRACE_2("  pathName:             %s", stream->pathName.c_str());
 	TRACE_2("  maxLogFileSize:       %llu", stream->maxLogFileSize);
@@ -418,9 +361,6 @@ void log_free_stream_resources(log_stream_t *stream)
 	if (stream->streamId != 0)
 		lgs_stream_array_remove(stream->streamId);
 
-	if (stream->pat_node.key_info != NULL)
-		log_stream_remove(stream->name);
-
 	if (stream->logFileFormat != NULL)
 		free(stream->logFileFormat);
 
@@ -442,29 +382,25 @@ void log_stream_delete(log_stream_t **s)
 	osafassert(s != NULL && *s != NULL);
 	stream = *s;
 
-	TRACE_ENTER2("%s", stream->name);
+	TRACE_ENTER2("%s", stream->name.c_str());
 
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
 		if (stream->streamType == STREAM_TYPE_APPLICATION) {
 			SaAisErrorT rv;
 			TRACE("Stream is closed, I am HA active so remove IMM object");
 			SaNameT objectName;
-			strcpy((char *)objectName.value, stream->name);
-			objectName.length = strlen((char *)objectName.value);
+			osaf_extended_name_lend(stream->name.c_str(), &objectName);
 			rv = saImmOiRtObjectDelete(lgs_cb->immOiHandle, &objectName);
 			if (rv != SA_AIS_OK) {
 				/* no retry; avoid blocking LOG service #1886 */
 				LOG_WA("saImmOiRtObjectDelete returned %u for %s",
-						rv, stream->name);
+				       rv, stream->name.c_str());
 			}
 		}
 	}
 
 	if (stream->streamId != 0)
 		lgs_stream_array_remove(stream->streamId);
-
-	if (stream->pat_node.key_info != NULL)
-		log_stream_remove(stream->name);
 
 	if (stream->logFileFormat != NULL)
 		free(stream->logFileFormat);
@@ -491,33 +427,7 @@ static void init_log_stream_fd(log_stream_t *stream)
 	*stream->p_fd = -1;	
 }
 
-/**
- * Create a new stream object. If HA state active, create the
- * correspronding IMM runtime object.
- * 
- * Note: log_stream_new() is replaced by this function.
- *       The new function is doing the same as the old but the possibility
- *       to create a stream without creating a corresponding runtime object
- *       is added. See creationFlag parameter
- *
- * Stream attributes[in]:
- * @param name
- * @param filename
- * @param pathname
- * @param maxLogFileSize
- * @param fixedLogRecordSize
- * @param logFullAction
- * @param maxFilesRotated
- * @param logFileFormat
- * @param streamType
- * @param stream_id
- * @param twelveHourModeFlag
- * @param logRecordId
- * 
- * @return log_stream_t*
- */
-log_stream_t *log_stream_new_1(
-	SaNameT *dn,
+int lgs_populate_log_stream(
 	const std::string &filename,
 	const std::string &pathname,
 	SaUint64T maxLogFileSize,
@@ -526,76 +436,51 @@ log_stream_t *log_stream_new_1(
 	SaUint32T maxFilesRotated,
 	const char *logFileFormat,
 	logStreamTypeT streamType,
-	int stream_id,
 	SaBoolT twelveHourModeFlag,
 	uint32_t logRecordId,
-	int creationFlag
+	log_stream_t *const o_stream
 	)
 {
-	int rc;
-	log_stream_t *stream = NULL;
+	int rc = 0;
 
-	osafassert(dn != NULL);
-	TRACE_ENTER2("%s, l: %u", dn->value, dn->length);
+	o_stream->fileName = filename;
+	o_stream->pathName = pathname;
+	o_stream->maxLogFileSize = maxLogFileSize;
+	o_stream->fixedLogRecordSize = fixedLogRecordSize;
+	o_stream->haProperty = SA_TRUE;
+	o_stream->logFullAction = logFullAction;
+	o_stream->maxFilesRotated = maxFilesRotated;
+	o_stream->creationTimeStamp = lgs_get_SaTime();
+	o_stream->severityFilter = 0x7f;	/* by default all levels are allowed */
+	o_stream->streamType = streamType;
+	o_stream->twelveHourModeFlag = twelveHourModeFlag;
+	o_stream->logRecordId = logRecordId;
+	o_stream->stb_logRecordId = 0;
 
-	if (lgs_relative_path_check_ts(pathname)) {
-		goto done;
+	o_stream->logFileFormat = strdup(logFileFormat);
+	if (o_stream->logFileFormat == NULL) {
+		LOG_WA("Failed to allocate memory for logFileFormat");
+		rc = -1;
 	}
 
-	stream = new (std::nothrow) log_stream_t();
-	if (stream == NULL) {
-		LOG_WA("log_stream_new calloc FAILED");
-		goto done;
-	}
-	memcpy(stream->name, dn->value, dn->length);
-	stream->name[SA_MAX_NAME_LENGTH] = '\0';
-	stream->fileName = filename;
-	stream->pathName = pathname;
-	stream->maxLogFileSize = maxLogFileSize;
-	stream->fixedLogRecordSize = fixedLogRecordSize;
-	stream->haProperty = SA_TRUE;
-	stream->logFullAction = logFullAction;
-	stream->streamId = stream_id;
-	stream->logFileFormat = strdup(logFileFormat);
-	if (stream->logFileFormat == NULL) {
-		log_stream_delete(&stream);
-		goto done;
-	}
-	stream->maxFilesRotated = maxFilesRotated;
-	stream->creationTimeStamp = lgs_get_SaTime();
-	stream->severityFilter = 0x7f;	/* by default all levels are allowed */
-	stream->streamType = streamType;
-	stream->twelveHourModeFlag = twelveHourModeFlag;
-	stream->logRecordId = logRecordId;
-	stream->stb_logRecordId = 0;
-	
-	/* Initiate local or shared stream file descriptor dependant on shared or
-	 * split file system
-	 */
-	init_log_stream_fd(stream);
+	return rc;
+}
 
-	/* Add stream to tree */
-	if (log_stream_add(&stream->pat_node, stream->name) != NCSCC_RC_SUCCESS) {
-		log_stream_delete(&stream);
-		goto done;
-	}
+/**
+ * Create a new rt app stream object.
+ *
+ * @param stream runtimem app stream
+ * @return SaAisErrorT
+ */
+SaAisErrorT lgs_create_rt_appstream(log_stream_t *const stream)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER2("%s, l: %lu", stream->name.c_str(), stream->name.size());
 
-	/* Add stream to array */
-	if (stream->streamId == kInvalidId)
-		rc = lgs_stream_array_insert_new(stream, &stream->streamId);
-	else
-		rc = lgs_stream_array_insert(stream, stream->streamId);
-
-	if (rc < 0) {
-		LOG_WA("Add stream to array FAILED");
-		log_stream_delete(&stream);
-		goto done;
-	}
-
-	/* Create IMM runtime object for stream (if ACTIVE) */
+	/* Create IMM runtime object for rt (if ACTIVE) */
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
-		char *dndup = strdup(stream->name);
-		char *parent_name = strchr(stream->name, ',');
+		char *dndup = strdup(stream->name.c_str());
+		char *parent_name = strchr(const_cast<char *>(stream->name.c_str()), ',');
 		char *rdnstr;
 		SaNameT parent, *parentName = NULL;
 
@@ -603,10 +488,9 @@ log_stream_t *log_stream_new_1(
 			rdnstr = strtok(dndup, ",");
 			parent_name++;	/* FIX, vulnerable for malformed DNs */
 			parentName = &parent;
-			strcpy((char *)parent.value, parent_name);
-			parent.length = strlen((char *)parent.value);
+			osaf_extended_name_lend(parent_name, &parent);
 		} else
-			rdnstr = stream->name;
+			rdnstr = const_cast<char *>(stream->name.c_str());
 
 		void *arr1[] = { &rdnstr };
 		const SaImmAttrValuesT_2 attr_safLgStr = {
@@ -703,26 +587,25 @@ log_stream_t *log_stream_new_1(
 			NULL
 		};
 
-		/* parentName needs to be configurable? */
 		{
-			SaAisErrorT rv;
-
-			rv = saImmOiRtObjectCreate_2(lgs_cb->immOiHandle,
+			/**
+			 * Have to have retry for Rt creation.
+			 * Rt update could consider removing retry to avoid blocking
+			 */
+			rc = immutil_saImmOiRtObjectCreate_2(lgs_cb->immOiHandle,
 						     const_cast<SaImmClassNameT>("SaLogStream"),
 						     parentName, attrValues);
 			free(dndup);
 
-			if (rv != SA_AIS_OK) {
-				/* no retry; avoid blocking LOG service #1886 */
+			if (rc != SA_AIS_OK) {
 				LOG_WA("saImmOiRtObjectCreate_2 returned %u for %s, parent %s",
-				      rv, stream->name, parent_name);
+				       rc, stream->name.c_str(), parent_name);
 			}
 		}
 	}
 
- done:
-	TRACE_LEAVE();
-	return stream;
+	TRACE_LEAVE2("rc: %s", saf_error(rc));
+	return rc;
 }
 
 /**
@@ -732,21 +615,19 @@ log_stream_t *log_stream_new_1(
  *
  * @return log_stream_t*
  */
-log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
+log_stream_t *log_stream_new(const std::string &name, int stream_id)
 {
-	int rc;
+	int rc = 0;
 	log_stream_t *stream = NULL;
 
-	osafassert(name != NULL);
-	TRACE_ENTER2("%s, l: %u", name->value, (unsigned int)name->length);
+	TRACE_ENTER2("%s, l: %lu", name.c_str(), name.size());
 
 	stream = new (std::nothrow) log_stream_t();
 	if (stream == NULL) {
 		LOG_WA("calloc FAILED");
 		goto done;
 	}
-	memcpy(stream->name, name->value, name->length);
-	stream->name[SA_MAX_NAME_LENGTH] = '\0';
+	stream->name = name;
 	stream->streamId = stream_id;
 	stream->creationTimeStamp = lgs_get_SaTime();
 	stream->severityFilter = 0x7f;	/* by default all levels are allowed */
@@ -755,12 +636,6 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 	 * split file system
 	 */
 	init_log_stream_fd(stream);	
-
-	/* Add stream to tree */
-	if (log_stream_add(&stream->pat_node, stream->name) != NCSCC_RC_SUCCESS) {
-		log_stream_delete(&stream);
-		goto done;
-	}
 
 	/* Add stream to array */
 	if (stream->streamId == kInvalidId)
@@ -774,7 +649,7 @@ log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
 	}
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc: %d", rc);
 	return stream;
 }
 
@@ -834,7 +709,7 @@ int log_file_open(
  */
 void log_stream_open_fileinit(log_stream_t *stream)
 {
-	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
+	TRACE_ENTER2("%s, numOpeners=%u", stream->name.c_str(), stream->numOpeners);
 	osafassert(stream != NULL);
 
 	/* first time open? */
@@ -882,7 +757,7 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr)
 		lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
 	osafassert(stream != NULL);
-	TRACE_ENTER2("%s", stream->name);
+	TRACE_ENTER2("%s", stream->name.c_str());
 	
 	osafassert(stream->numOpeners > 0);
 	stream->numOpeners--;
@@ -979,7 +854,7 @@ int log_stream_file_close(log_stream_t *stream)
 	int errno_ret;
 
 	osafassert(stream != NULL);
-	TRACE_ENTER2("%s", stream->name);
+	TRACE_ENTER2("%s", stream->name.c_str());
 
 	osafassert(stream->numOpeners > 0);
 
@@ -1254,7 +1129,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 	int write_errno=0;
 
 	osafassert(stream != NULL && buf != NULL);
-	TRACE_ENTER2("%s", stream->name);
+	TRACE_ENTER2("%s", stream->name.c_str());
 
 	/* Open files on demand e.g. on new active after fail/switch-over. This
 	 * enables LOG to cope with temporary file system problems. */
@@ -1266,7 +1141,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count)
 		
 		if (*stream->p_fd == -1) {
 			TRACE("%s - Initiating stream files \"%s\" Failed", __FUNCTION__,
-					stream->name);
+			      stream->name.c_str());
 		} else {
 			TRACE("%s - stream files initiated", __FUNCTION__);
 		}
@@ -1371,6 +1246,25 @@ log_stream_t *log_stream_get_by_id(uint32_t id)
 }
 
 /**
+ * Get the stream from database stream_array by its name (dn)
+ *
+ * @param name stream name (dn)
+ * @ret pointer to log_stream_t
+ */
+log_stream_t *log_stream_get_by_name(const std::string &name)
+{
+	log_stream_t *tmp = NULL;
+	uint32_t i = 0;
+
+	for (i = 0; i < stream_array_size; i++) {
+		tmp = stream_array[i];
+		if (tmp != NULL && name == tmp->name) return tmp;
+	}
+
+	return NULL;
+}
+
+/**
  * Insert stream into array at specified position.
  * @param stream
  * @param id
@@ -1466,13 +1360,12 @@ void log_stream_id_print()
 	TRACE("  Current number of streams: %u", numb_of_streams);
 	for (i = 0; i < stream_array_size; i++) {
 		if (stream_array[i] != NULL)
-			TRACE("    Id %u - %s", i, stream_array[i]->name);
+			TRACE("    Id %u - %s", i, stream_array[i]->name.c_str());
 	}
 }
 
 uint32_t log_stream_init()
 {
-	NCS_PATRICIA_PARAMS param;
 	SaUint32T value;
 
 	/* Get configuration of how many application streams we should allow. */
@@ -1486,11 +1379,7 @@ uint32_t log_stream_init()
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-
-	param.key_size = SA_MAX_NAME_LENGTH;
-
-	return ncs_patricia_tree_init(&stream_dn_tree, &param);
+	return NCSCC_RC_SUCCESS;
 }
 
 /**
@@ -1519,7 +1408,7 @@ int log_stream_config_change(bool create_files_f,
 	char *current_time = lgs_get_time(cur_time_in);
 	std::string emptyStr = "";
 
-	TRACE_ENTER2("%s", stream->name);
+	TRACE_ENTER2("%s", stream->name.c_str());
 
 	/* Peer sync needed due to change in logFileCurrent */
 	
@@ -1527,7 +1416,7 @@ int log_stream_config_change(bool create_files_f,
 		/* lgs has not yet recieved any stream operation request after this swtchover/failover.
 		 *  stream shall be opened on-request after a switchover, failover
 		 */	
-		TRACE("log file of the stream: %s does not exist",stream->name);
+		TRACE("log file of the stream: %s does not exist", stream->name.c_str());
 	} else {
 		/* close the existing log file, and only when there is a valid fd */
 

@@ -78,9 +78,6 @@ extern uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest);
 extern void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisErrorT error, MDS_DEST mds_dest);
 extern void lgs_free_write_log(const lgsv_write_log_async_req_t *param);
 
-SaAisErrorT create_new_app_stream(
-		lgsv_stream_open_req_t *open_sync_param,
-		log_stream_t **o_stream,
-		int creationFlag);
+SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_stream_t **o_stream);
 
 #endif   /*!LGS_EVT_H */

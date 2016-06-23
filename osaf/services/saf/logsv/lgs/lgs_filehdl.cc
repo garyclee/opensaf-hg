@@ -539,17 +539,17 @@ static int check_oldest(char *line, char *fname_prefix, int fname_prefix_size, i
 	int date, time, c, d;
 	date = time = c = d = 0;
 	int len = 0;
-	char name_format[SA_MAX_NAME_LENGTH];
+	std::string name_format;
 	char time_stamps[] = "_%d_%d_%d_%d.log";
 
 	len = strlen(time_stamps);
 	len += fname_prefix_size;
 
-	strncpy(name_format, fname_prefix, fname_prefix_size);
-	name_format[fname_prefix_size] = '\0';
-	TRACE_3("fname: %s", name_format);
-	strncat(name_format, time_stamps, SA_MAX_NAME_LENGTH-1);
-	if (sscanf(line, name_format, &date, &time, &c, &d) >= 2) {
+	name_format = std::string(fname_prefix);
+	TRACE_3("fname: %s", name_format.c_str());
+
+	name_format = name_format + time_stamps;
+	if (sscanf(line, name_format.c_str(), &date, &time, &c, &d) >= 2) {
 		TRACE_3("%s: line: arg 1: %d 2: %d 3: %d 4: %d ok", __FUNCTION__,
 				date, time, c, d);
 		if (date < *old_date || *old_date == -1) {

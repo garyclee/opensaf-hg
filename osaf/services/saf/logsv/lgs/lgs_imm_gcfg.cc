@@ -30,7 +30,7 @@
 #include "immutil.h"
 #include "osaf_time.h"
 #include "osaf_poll.h"
-
+#include "osaf_extended_name.h"
 /*
  * Implements an IMM applier for the OpensafConfig class.
  * Used for detecting changes of opensafNetworkName attribute.
@@ -362,7 +362,7 @@ static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, objectName->value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, osaf_extended_name_borrow(objectName));
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -414,6 +414,7 @@ static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 	const SaImmAttrModificationT_2 *attrMod;
 	char *value_str = NULL;
 	int i = 0;
+	SaConstStringT objName;
 
 	TRACE_ENTER2("CCB ID %llu", ccbId);
 
@@ -432,10 +433,9 @@ static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 		goto done;
 	}
 
-	if (strncmp(reinterpret_cast<char *>(opdata->objectName.value),
-		"opensafConfigId", sizeof("opensafConfigId") - 1) != 0) {
-		TRACE("Object \"%s\" not a OpensafConfig object",
-		      reinterpret_cast<char *>(opdata->objectName.value));
+	objName = osaf_extended_name_borrow(&opdata->objectName);
+	if (strncmp(objName, "opensafConfigId", sizeof("opensafConfigId") - 1) != 0) {
+		TRACE("Object \"%s\" not a OpensafConfig object", objName);
 		goto done;
 	}
 
@@ -1009,7 +1009,6 @@ static void *applier_thread(void *info_in)
 
 		/*** Event handling loop ***/
 		while(1) {
-
 			(void) osaf_poll(fds, nfds, -1);
 
 			if (fds[FDA_IMM].revents & POLLIN) {

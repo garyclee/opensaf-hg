@@ -123,7 +123,6 @@ static void *file_hndl_thread(void *noparam)
 			rc = pthread_cond_wait(&request_cv, &lgs_ftcom_mutex); /* -> UNLOCK -> LOCK */
 			if (rc != 0) osaf_abort(rc);
 		} else {
-
 			/* Handle the request.
 			 * A handler is handling file operations that may 'hang'. Therefore
 			 * the mutex cannot be locked since that may cause the main thread
