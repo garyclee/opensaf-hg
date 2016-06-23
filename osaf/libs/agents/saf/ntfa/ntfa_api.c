@@ -2086,7 +2086,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		goto done;
 
 	/* recovery */
-	if (client_hdl_rec != NULL && !client_hdl_rec->valid) {
+	if (!client_hdl_rec->valid) {
 		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
 			recovery_failed = true;
 			goto done;
@@ -3442,7 +3442,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 		goto done_give_client_hdl;
 
 	/* recovery */
-	if (client_hdl_rec != NULL && !client_hdl_rec->valid) {
+	if (!client_hdl_rec->valid) {
 		if ((rc = recoverClient(client_hdl_rec)) != SA_AIS_OK) {
 			recovery_failed = true;
 			goto done_give_client_hdl;
@@ -3511,18 +3511,16 @@ done_give_client_hdl:
 
    if (client_hdl_rec)
 		ncshm_give_hdl(client_hdl_rec->local_hdl);
-	if (notificationFilterHandles) { 
-		if (notificationFilterHandles->attributeChangeFilterHandle)
-			ncshm_give_hdl(notificationFilterHandles->attributeChangeFilterHandle);
-		if (notificationFilterHandles->objectCreateDeleteFilterHandle)
-			ncshm_give_hdl(notificationFilterHandles->objectCreateDeleteFilterHandle);
-		if (notificationFilterHandles->securityAlarmFilterHandle)
-			ncshm_give_hdl(notificationFilterHandles->securityAlarmFilterHandle); 
-		if (notificationFilterHandles->stateChangeFilterHandle)
-			ncshm_give_hdl(notificationFilterHandles->stateChangeFilterHandle);
-		if (notificationFilterHandles->alarmFilterHandle)
-			ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
-	}
+	if (notificationFilterHandles->attributeChangeFilterHandle)
+		ncshm_give_hdl(notificationFilterHandles->attributeChangeFilterHandle);
+	if (notificationFilterHandles->objectCreateDeleteFilterHandle)
+		ncshm_give_hdl(notificationFilterHandles->objectCreateDeleteFilterHandle);
+	if (notificationFilterHandles->securityAlarmFilterHandle)
+		ncshm_give_hdl(notificationFilterHandles->securityAlarmFilterHandle); 
+	if (notificationFilterHandles->stateChangeFilterHandle)
+		ncshm_give_hdl(notificationFilterHandles->stateChangeFilterHandle);
+	if (notificationFilterHandles->alarmFilterHandle)
+		ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
 
 	ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
 	if (recovery_failed && (rc == SA_AIS_ERR_BAD_HANDLE)) {

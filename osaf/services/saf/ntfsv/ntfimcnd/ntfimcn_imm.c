@@ -371,9 +371,8 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
 			goto done;
 		}
 
-		if (ccbUtilCcbData != NULL) {
-			ccbutil_deleteCcbData(ccbUtilCcbData);
-		}
+
+		ccbutil_deleteCcbData(ccbUtilCcbData);
 
 		if (internal_rc != 0) {
 			LOG_ER("%s send_object_create_notification fail",
@@ -452,9 +451,7 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle,
 				ccbUtilOperationData, rdn_attr_name,
 				SA_FALSE);
 
-		if (ccbUtilCcbData != NULL) {
-			ccbutil_deleteCcbData(ccbUtilCcbData);
-		}
+		ccbutil_deleteCcbData(ccbUtilCcbData);
 
 		if (internal_rc != 0) {
 			LOG_ER("%s send_object_create_notification fail",
@@ -519,9 +516,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 				invoker_name_ptr,
 				SA_FALSE);
 
-		if (ccbUtilCcbData != NULL) {
-			ccbutil_deleteCcbData(ccbUtilCcbData);
-		}
+		ccbutil_deleteCcbData(ccbUtilCcbData);
 
 		if (internal_rc != 0) {
 			LOG_ER("%s send_object_modify_notification fail",
