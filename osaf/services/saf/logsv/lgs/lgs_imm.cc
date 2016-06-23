@@ -248,7 +248,7 @@ static uint32_t ckpt_stream_config(log_stream_t *stream)
 		ckpt_v2.header.num_ckpt_records = 1;
 		ckpt_v2.header.data_len = 1;
 
-		ckpt_v2.ckpt_rec.stream_cfg.name = (char *)stream->name;
+		ckpt_v2.ckpt_rec.stream_cfg.name = const_cast<char *>(stream->name.c_str());
 		ckpt_v2.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
 		ckpt_v2.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
 		ckpt_v2.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
@@ -267,7 +267,7 @@ static uint32_t ckpt_stream_config(log_stream_t *stream)
 		ckpt_v1.header.num_ckpt_records = 1;
 		ckpt_v1.header.data_len = 1;
 
-		ckpt_v1.ckpt_rec.stream_cfg.name = (char *)stream->name;
+		ckpt_v1.ckpt_rec.stream_cfg.name = const_cast<char *>(stream->name.c_str());
 		ckpt_v1.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
 		ckpt_v1.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
 		ckpt_v1.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
@@ -389,17 +389,17 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 	const SaImmAdminOperationParamsT_2 *param = params[0];
 	log_stream_t *stream;
 	SaAisErrorT ais_rc = SA_AIS_OK;
+	SaConstStringT objName = osaf_extended_name_borrow(objectName);
 
-	TRACE_ENTER2("%s", objectName->value);
+	TRACE_ENTER2("%s", objName);
 
 	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		LOG_ER("admin op callback in applier");
 		goto done;
 	}
 
-	if ((stream = log_stream_get_by_name((char *)objectName->value)) == NULL) {
-		report_om_error(immOiHandle, invocation, "Stream %s not found",
-				objectName->value);
+	if ((stream = log_stream_get_by_name(objName)) == NULL) {
+		report_om_error(immOiHandle, invocation, "Stream %s not found", objName);
 		goto done;
 	}
 
@@ -467,12 +467,12 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 			goto done;
 		}
 
-		TRACE("Changing severity for stream %s to %u", stream->name, severityFilter);
+		TRACE("Changing severity for stream %s to %u", stream->name.c_str(), severityFilter);
 		stream->severityFilter = severityFilter;
 
 		ais_rc = immutil_update_one_rattr(
 			immOiHandle,
-			reinterpret_cast<const char *>(objectName->value),
+			objName,
 			const_cast<SaImmAttrNameT>("saLogStreamSeverityFilter"),
 			SA_IMM_ATTR_SAUINT32T,
 			&stream->severityFilter);
@@ -505,8 +505,9 @@ static SaAisErrorT ccbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
+	SaConstStringT objName = osaf_extended_name_borrow(objectName);
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, objectName->value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, objName);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -530,9 +531,10 @@ static SaAisErrorT ccbObjectCreateCallback(SaImmOiHandleT immOiHandle,
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
+	SaConstStringT parName = osaf_extended_name_borrow(parentName);
 
 	TRACE_ENTER2("CCB ID %llu, class '%s', parent '%s'",
-			ccbId, className, parentName->value);
+		     ccbId, className, parName);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -565,8 +567,9 @@ static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
+	SaConstStringT objName = osaf_extended_name_borrow(objectName);
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, objectName->value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, objName);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -745,8 +748,8 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 	};
 
 	char oi_err_str[256];
-
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	SaConstStringT objName = osaf_extended_name_borrow(&opdata->objectName);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, objName);
 
 	attrMod = opdata->param.modify.attrMods[i++];
 	while (attrMod != NULL) {
@@ -765,7 +768,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
 			 (attribute->attrValuesNumber == 0)) {
 				report_oi_error(immOiHandle, opdata->ccbId,
 					"deletion of value is not allowed for attribute %s stream %s",
-					attribute->attrName, opdata->objectName.value);
+						attribute->attrName, objName);
 				ais_rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 		}
@@ -1044,6 +1047,7 @@ bool chk_filepath_stream_exist(
 	log_stream_t *i_stream = NULL;
 	std::string i_fileName;
 	std::string i_pathName;
+	int num;
 	bool rc = false;
 
 	TRACE_ENTER();
@@ -1093,15 +1097,17 @@ bool chk_filepath_stream_exist(
 
 	/* Check if any stream has given filename and path */
 	TRACE("Check if any stream has given filename and path");
-	i_stream = log_stream_getnext_by_name(NULL);
+	num = get_number_of_streams();
+	i_stream = log_stream_get_by_id(--num);
 	while (i_stream != NULL) {
-		TRACE("Check stream \"%s\"", i_stream->name);
+		TRACE("Check stream \"%s\"", i_stream->name.c_str());
 		if ((i_stream->fileName == i_fileName) &&
 			(i_stream->pathName == i_pathName)) {
 			rc = true;
 			break;
 		}
-		i_stream = log_stream_getnext_by_name(i_stream->name);
+
+		i_stream = log_stream_get_by_id(--num);
 	}
 
 	TRACE_LEAVE2("rc = %d", rc);
@@ -1317,8 +1323,9 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
 	 */
 	if (opdata->operationType == CCBUTIL_MODIFY) {
 		TRACE("Validate for MODIFY");
-		stream = log_stream_get_by_name(
-				(char *) opdata->param.modify.objectName->value);
+		SaConstStringT objName = osaf_extended_name_borrow(
+			opdata->param.modify.objectName);
+		stream = log_stream_get_by_name(objName);
 		if (stream == NULL) {
 			/* No stream to modify */
 			report_oi_error(immOiHandle, opdata->ccbId,
@@ -1687,7 +1694,8 @@ static SaAisErrorT stream_ccb_completed_modify(SaImmOiHandleT immOiHandle, const
 {
 	SaAisErrorT rc;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId,
+		     osaf_extended_name_borrow(&opdata->objectName));
 	rc = check_attr_validity(immOiHandle, opdata);
 	TRACE_LEAVE2("rc = %u", rc);
 	return rc;
@@ -1703,9 +1711,11 @@ static SaAisErrorT stream_ccb_completed_delete(SaImmOiHandleT immOiHandle, const
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId,
+		     osaf_extended_name_borrow(&opdata->objectName));
 
-	const char *name = (char*) opdata->param.delete_.objectName->value;
+	SaConstStringT name = osaf_extended_name_borrow(
+		opdata->param.delete_.objectName);
 	log_stream_t *stream = log_stream_get_by_name(name);
 
 	if (stream != NULL) {
@@ -1728,8 +1738,7 @@ static SaAisErrorT stream_ccb_completed_delete(SaImmOiHandleT immOiHandle, const
 
 		rc = SA_AIS_OK;
 	} else {
-		report_oi_error(immOiHandle, opdata->ccbId,
-				"stream %s not found", name);
+		report_oi_error(immOiHandle, opdata->ccbId, "stream %s not found", name);
 	}
 
 done:
@@ -1806,7 +1815,9 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 			break;
 		case CCBUTIL_DELETE:
 		case CCBUTIL_MODIFY:
-			if (!strncmp((char*)opdata->objectName.value, "safLgStrCfg", 11)) {
+			if (!strncmp(osaf_extended_name_borrow(
+					    &opdata->objectName),
+				     "safLgStrCfg", 11)) {
 				rc = stream_ccb_completed(immOiHandle, opdata);
 			} else {
 				rc = config_ccb_completed(immOiHandle, opdata);
@@ -1854,10 +1865,12 @@ void logRootDirectory_filemove(
 	TRACE_ENTER();
 	log_stream_t *stream;
 	std::string current_logfile;
+	int num;
 
 	/* Close and rename files at current path
 	 */
-	stream = log_stream_getnext_by_name(NULL);
+	num = get_number_of_streams();
+	stream = log_stream_get_by_id(--num);
 	while (stream != NULL) {
 		TRACE("Handling file %s", stream->logFileCurrent.c_str());
 
@@ -1873,18 +1886,19 @@ void logRootDirectory_filemove(
 				old_logRootDirectory, stream, current_logfile,
 				cur_time_in) != 0) {
 			LOG_ER("Old log files could not be renamed and closed for stream: %s",
-					stream->name);
+			       stream->name.c_str());
 		}
-		stream = log_stream_getnext_by_name(stream->name);
+		stream = log_stream_get_by_id(--num);
 	}
 
 	/* Create new files at new path
 	 */
-	stream = log_stream_getnext_by_name(NULL);
+	num = get_number_of_streams();
+	stream = log_stream_get_by_id(--num);
 	while (stream != NULL) {
 		if (lgs_create_config_file_h(new_logRootDirectory, stream) != 0) {
 			LOG_ER("New config file could not be created for stream: %s",
-					stream->name);
+			       stream->name.c_str());
 		}
 
 		/* Create the new log file based on updated configuration */
@@ -1894,14 +1908,14 @@ void logRootDirectory_filemove(
 		if ((*stream->p_fd = log_file_open(new_logRootDirectory,
 			stream, stream->logFileCurrent, NULL)) == -1) {
 			LOG_ER("New log file could not be created for stream: %s",
-					stream->name);
+			       stream->name.c_str());
 		}
 
 		/* Also update standby current file name
 		 * Used if standby and configured for split file system
 		 */
 		stream->stb_logFileCurrent = stream->logFileCurrent;
-		stream = log_stream_getnext_by_name(stream->name);
+		stream = log_stream_get_by_id(--num);
 	}
 	TRACE_LEAVE();
 }
@@ -1918,6 +1932,7 @@ void logDataGroupname_fileown(const char *new_logDataGroupname)
 {
 	TRACE_ENTER();
 	log_stream_t *stream;
+	int num;
 
 	if (new_logDataGroupname == NULL) {
 		LOG_ER("Data group is NULL");
@@ -1929,10 +1944,11 @@ void logDataGroupname_fileown(const char *new_logDataGroupname)
 		/* Not attribute values deletion
 		 * Change ownership of log files to this new group
 		 */
-		stream = log_stream_getnext_by_name(NULL);
+		num = get_number_of_streams();
+		stream = log_stream_get_by_id(--num);
 		while (stream != NULL) {
 			lgs_own_log_files_h(stream, new_logDataGroupname);
-			stream = log_stream_getnext_by_name(stream->name);
+			stream = log_stream_get_by_id(--num);
 		}
 	}
 	TRACE_LEAVE();
@@ -1957,7 +1973,6 @@ static void apply_conf_logRootDirectory(
 		new_logRootDirectory,
 		old_logRootDirectory,
 		&cur_time);
-
 }
 
 static void apply_conf_logDataGroupname(const char *logDataGroupname)
@@ -1993,7 +2008,8 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	/* Flag set if any of the mailbox limit values have changed */
 	bool mailbox_lim_upd = false;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId,
+		     osaf_extended_name_borrow(&opdata->objectName));
 
 	attrMod = opdata->param.modify.attrMods[i++];
 	while (attrMod != NULL) {
@@ -2135,13 +2151,14 @@ static void config_ccb_apply(const CcbUtilOperationData_t *opdata)
  *
  * @return SaAisErrorT
  */
-static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationData* ccb,
-		log_stream_t** stream)
+static SaAisErrorT stream_create_and_configure1(
+	const struct CcbUtilOperationData* ccb,
+	log_stream_t** stream)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	*stream = NULL;
 	int i = 0;
-	SaNameT objectName;
+	std::string objectName;
 	std::string fileName;
 	std::string pathName;
 
@@ -2150,16 +2167,20 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 	while (ccb->param.create.attrValues[i] != NULL) {
 		if (!strncmp(ccb->param.create.attrValues[i]->attrName, "safLgStrCfg",
 				sizeof("safLgStrCfg"))) {
-			if (ccb->param.create.parentName->length > 0) {
-				objectName.length = snprintf((char*) objectName.value, sizeof(objectName.value),
-						"%s,%s", *(const SaStringT*) ccb->param.create.attrValues[i]->attrValues[0],
-						ccb->param.create.parentName->value);
+			SaConstStringT parentName = osaf_extended_name_borrow(
+				ccb->param.create.parentName);
+			if (strlen(parentName) > 0) {
+				objectName =  std::string(
+					*(const SaStringT*)
+					ccb->param.create.attrValues[i]->attrValues[0])
+					+ "," + parentName ;
 			} else {
-				objectName.length = snprintf((char*) objectName.value, sizeof(objectName.value),
-						"%s", *(const SaStringT*) ccb->param.create.attrValues[i]->attrValues[0]);
+				objectName =  std::string(
+					*(const SaStringT*)
+					ccb->param.create.attrValues[i]->attrValues[0]);
 			}
 
-			if ((*stream = log_stream_new_2(&objectName, STREAM_NEW)) == NULL) {
+			if ((*stream = log_stream_new(objectName, STREAM_NEW)) == NULL) {
 				rc = SA_AIS_ERR_NO_MEMORY;
 				goto done;
 			}
@@ -2203,7 +2224,7 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 				SaBoolT dummy;
 				char *logFileFormat = *((char **) value);
 				if (!lgs_is_valid_format_expression(logFileFormat, (*stream)->streamType, &dummy)) {
-					LOG_WA("Invalid logFileFormat for stream %s, using default", (*stream)->name);
+					LOG_WA("Invalid logFileFormat for stream %s, using default", (*stream)->name.c_str());
 					logFileFormat = const_cast<char *>(static_cast<const char *>(
 						lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT)));
 				}
@@ -2236,16 +2257,16 @@ static SaAisErrorT stream_create_and_configure1(const struct CcbUtilOperationDat
 	}
 
 	/* Update creation timestamp */
-	rc = immutil_update_one_rattr(lgs_cb->immOiHandle, reinterpret_cast<const char *>(objectName.value),
-			const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"), SA_IMM_ATTR_SATIMET,
-			&(*stream)->creationTimeStamp);
+	rc = immutil_update_one_rattr(lgs_cb->immOiHandle, objectName.c_str(),
+				      const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"), SA_IMM_ATTR_SATIMET,
+				      &(*stream)->creationTimeStamp);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("immutil_update_one_rattr failed %s", saf_error(rc));
 		osaf_abort(0);
 	}
 
 	done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc: %s", saf_error(rc));
 	return rc;
 }
 
@@ -2254,7 +2275,8 @@ static void stream_ccb_apply_create(const CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc;
 	log_stream_t *stream;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId,
+		     osaf_extended_name_borrow(&opdata->objectName));
 
 	if ((rc = stream_create_and_configure1(opdata, &stream)) == SA_AIS_OK) {
 		log_stream_open_fileinit(stream);
@@ -2276,10 +2298,10 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata)
 	struct timespec curtime_tspec;
 	std::string fileName;
 	bool modify = false;
+	SaConstStringT objName = osaf_extended_name_borrow(&opdata->objectName);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, objName);
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	stream = log_stream_get_by_name((char*)opdata->objectName.value);
+	stream = log_stream_get_by_name(objName);
 	osafassert(stream);
 
 	current_logfile_name = stream->logFileCurrent;
@@ -2384,10 +2406,11 @@ static void stream_ccb_apply_delete(const CcbUtilOperationData_t *opdata)
 	struct timespec closetime_tspec;
 	osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
 	time_t file_closetime = closetime_tspec.tv_sec;
+	SaConstStringT objName = osaf_extended_name_borrow(&opdata->objectName);
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, objName);
 
-	stream = log_stream_get_by_name((char *) opdata->objectName.value);
+	stream = log_stream_get_by_name(objName);
 
 	/* Checkpoint to standby LOG server */
 	ckpt_stream_close(stream, file_closetime);
@@ -2448,7 +2471,9 @@ static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 			break;
 		case CCBUTIL_DELETE:
 		case CCBUTIL_MODIFY:
-			if (!strncmp((char*)opdata->objectName.value, "safLgStrCfg", 11))
+			if (!strncmp(osaf_extended_name_borrow(
+					     &opdata->objectName),
+				    "safLgStrCfg", 11))
 				stream_ccb_apply(opdata);
 			else
 				config_ccb_apply(opdata);
@@ -2495,8 +2520,8 @@ static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmAttrNameT attributeName;
 	int i = 0;
-
-	TRACE_ENTER2("%s", objectName->value);
+	SaConstStringT objName = osaf_extended_name_borrow(objectName);
+	TRACE_ENTER2("%s", objName);
 
 	if (lgs_cb->ha_state != SA_AMF_HA_ACTIVE) {
 		LOG_ER("admin op callback in applier");
@@ -2504,17 +2529,15 @@ static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	}
 
 	/* Handle configuration runtime object */
-	if (strncmp((char *) objectName->value, LGS_CFG_RUNTIME_OBJECT,
-			objectName->length) == 0) {
+	if (strncmp(objName, LGS_CFG_RUNTIME_OBJECT, strlen(objName)) == 0) {
 		/* Handle Runtome configuration object */
 		conf_runtime_obj_hdl(immOiHandle, attributeNames);
 	} else {
-
 		/* Handle stream object if valid
 		 */
-		log_stream_t *stream = log_stream_get_by_name((char *)objectName->value);
+		log_stream_t *stream = log_stream_get_by_name(objName);
 		if (stream == NULL) {
-			LOG_ER("%s: stream %s not found", __FUNCTION__, objectName->value);
+			LOG_ER("%s: stream %s not found", __FUNCTION__, objName);
 			goto done;
 		}
 
@@ -2523,12 +2546,12 @@ static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			rc = SA_AIS_OK;
 			if (!strcmp(attributeName, "saLogStreamNumOpeners")) {
 				rc = immutil_update_one_rattr(immOiHandle,
-					(char *)objectName->value,
+					objName,
 					attributeName, SA_IMM_ATTR_SAUINT32T,
 					&stream->numOpeners);
 			} else if (!strcmp(attributeName, "logStreamDiscardedCounter")) {
 				rc = immutil_update_one_rattr(immOiHandle,
-					(char *) objectName->value,
+					objName,
 					attributeName, SA_IMM_ATTR_SAUINT64T,
 					&stream->filtered);
 			} else {
@@ -2562,7 +2585,7 @@ done:
  * 
  * @return SaAisErrorT
  */
-static SaAisErrorT stream_create_and_configure(const char *dn,
+static SaAisErrorT stream_create_and_configure(const std::string &dn,
 		log_stream_t **in_stream, int stream_id,
 		SaImmAccessorHandleT accessorHandle)
 {
@@ -2586,23 +2609,22 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 		NULL
 	};
 
-	TRACE_ENTER2("(%s)", dn);
+	TRACE_ENTER2("(%s)", dn.c_str());
 
-	strncpy((char *)objectName.value, dn, SA_MAX_NAME_LENGTH);
-	objectName.length = strlen((char *)objectName.value);
+	osaf_extended_name_lend(dn.c_str(), &objectName);
 
-	*in_stream = stream = log_stream_new_2(&objectName, stream_id);
+	*in_stream = stream = log_stream_new(dn, stream_id);
 
 	if (stream == NULL) {
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done;
 	}
 
-	if (strcmp(dn, SA_LOG_STREAM_ALARM) == 0)
+	if (dn == SA_LOG_STREAM_ALARM)
 		stream->streamType = STREAM_TYPE_ALARM;
-	else if (strcmp(dn , SA_LOG_STREAM_NOTIFICATION) == 0)
+	else if (dn == SA_LOG_STREAM_NOTIFICATION)
 		stream->streamType = STREAM_TYPE_NOTIFICATION;
-	else if (strcmp(dn , SA_LOG_STREAM_SYSTEM) == 0)
+	else if (dn == SA_LOG_STREAM_SYSTEM)
 		stream->streamType = STREAM_TYPE_SYSTEM;
 	else
 		stream->streamType = STREAM_TYPE_APPLICATION;
@@ -2612,7 +2634,7 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 		     accessorHandle,
 		     &objectName,
 		     attribute_names, &attributes)) != SA_AIS_OK) {
-		LOG_ER("Configuration for %s not found: %s", objectName.value, saf_error(rc));
+		LOG_ER("Configuration for %s not found: %s", dn.c_str(), saf_error(rc));
 		rc = SA_AIS_ERR_NOT_EXIST;
 		goto done;
 	}
@@ -2651,7 +2673,7 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 			SaBoolT dummy;
 			char *logFileFormat = *((char **)value);
 			if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
-				LOG_WA("Invalid logFileFormat for stream %s, using default", stream->name);
+				LOG_WA("Invalid logFileFormat for stream %s, using default", stream->name.c_str());
 
 				if (stream->streamType == STREAM_TYPE_APPLICATION) {
 					logFileFormat = const_cast<char *>(static_cast<const char*>(
@@ -2696,7 +2718,7 @@ static SaAisErrorT stream_create_and_configure(const char *dn,
 	}
 
  done:
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc: %s", saf_error(rc));
 	return rc;
 }
 
@@ -2734,7 +2756,7 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 	SaImmAttrValuesT_2 **attributes;
 	int wellknownStreamId = 0;
 	int appStreamId = 3;
-	int streamId = 0;
+	int streamId = 0, num;
 	SaNameT objectName;
 	const char *className = "SaLogStreamConfig";
 
@@ -2753,7 +2775,10 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 	}
 
 	/* Search for all objects of class "SaLogStreamConfig". */
-	/* Should not base on the attribute name `safLgStrCfg` as the user can create any class having that name */
+	/**
+	 * Should not base on the attribute name `safLgStrCfg`
+	 * as the user can create any class having that name
+	 */
 	objectSearch.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
 	objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	objectSearch.searchOneAttr.attrValue = &className;
@@ -2767,7 +2792,6 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 			SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
 			&objectSearch, NULL, /* Get no attributes */
 			&immSearchHandle)) == SA_AIS_OK) {
-
 		while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
 			/**
 			 * With headless mode enabled, when lgsv restarts, there could be other configurable app streams.
@@ -2775,9 +2799,9 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 			 *
 			 * With well-known streams, stream ID is in reserved numbers [0-2].
 			 */
-			streamId = is_well_know_stream((char *)objectName.value)? wellknownStreamId++:appStreamId++;
-			ais_rc = stream_create_and_configure((char*) objectName.value,
-					&stream, streamId, accessorHandle);
+			SaConstStringT name = osaf_extended_name_borrow(&objectName);
+			streamId = is_well_know_stream(name)? wellknownStreamId++:appStreamId++;
+			ais_rc = stream_create_and_configure(name, &stream, streamId, accessorHandle);
 			if (ais_rc != SA_AIS_OK) {
 				LOG_WA("stream_create_and_configure failed %d", ais_rc);
 				goto done;
@@ -2798,7 +2822,8 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 		osaf_abort(0);
 	}
 
-	stream = log_stream_getnext_by_name(NULL);
+	num = get_number_of_streams();
+	stream = log_stream_get_by_id(--num);
 	while (stream != NULL) {
 		if (cb->scAbsenceAllowed != 0) {
 			int_rc = log_stream_open_file_restore(stream);
@@ -2817,7 +2842,7 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 		}
 
 		ais_rc = immutil_update_one_rattr(
-			cb->immOiHandle, stream->name,
+			cb->immOiHandle, stream->name.c_str(),
 			const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
 			SA_IMM_ATTR_SATIMET,
 			&stream->creationTimeStamp);
@@ -2826,27 +2851,27 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb)
 			osaf_abort(0);
 		}
 
-		stream = log_stream_getnext_by_name(stream->name);
+		stream = log_stream_get_by_id(--num);
 	}
 
  done:
 	/* Do not abort if error when finalizing */
 	om_rc = immutil_saImmOmAccessorFinalize(accessorHandle);
 	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmAccessorFinalize() Fail %d",__FUNCTION__, om_rc);
+		LOG_NO("%s immutil_saImmOmAccessorFinalize() Fail %d", __FUNCTION__, om_rc);
 	}
 
 	om_rc = immutil_saImmOmSearchFinalize(immSearchHandle);
 	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmSearchFinalize() Fail %d",__FUNCTION__, om_rc);
+		LOG_NO("%s immutil_saImmOmSearchFinalize() Fail %d", __FUNCTION__, om_rc);
 	}
 
 	om_rc = immutil_saImmOmFinalize(omHandle);
 	if (om_rc != SA_AIS_OK) {
-		LOG_NO("%s immutil_saImmOmFinalize() Fail %d",__FUNCTION__, om_rc);
+		LOG_NO("%s immutil_saImmOmFinalize() Fail %d", __FUNCTION__, om_rc);
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc: %s", saf_error(ais_rc));
 	return ais_rc;
 }
 
@@ -2888,7 +2913,7 @@ void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
 		lgs_exit("saImmOiSelectionObjectGet failed", SA_AMF_COMPONENT_RESTART);
 	}
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc: %s", saf_error(rc));
 }
 
 /**
@@ -2991,8 +3016,8 @@ static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT* immOiHandle,
         }
 
 done:
+	TRACE_LEAVE2("rc: %s", saf_error(rc));
 	return rc;
-	TRACE_LEAVE();
 }
 
 /**
@@ -3136,13 +3161,10 @@ void lgs_search_stream_objects()
 	searchParam.searchOneAttr.attrName = const_cast<char *>("SaImmAttrClassName");
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &class_name;
-	SaNameT root_name;
-	root_name.value[0] = '\0';
-	root_name.length = 1;
 
 	ais_rc = immutil_saImmOmSearchInitialize_2(
 			immOmHandle,
-			&root_name,
+			NULL,
 			SA_IMM_SUBTREE,
 			SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
 			&searchParam,
@@ -3164,13 +3186,13 @@ void lgs_search_stream_objects()
 	}
 
 	while (ais_rc == SA_AIS_OK) {
-		TRACE("\tFound object \"%s\"", reinterpret_cast<char *>(object_name.value));
+		SaConstStringT objName = osaf_extended_name_borrow(&object_name);
+		TRACE("\tFound object \"%s\"", objName);
 		/* Add the string to the list
 		 */
-		rc = log_rtobj_list_add(reinterpret_cast<char *>(object_name.value));
+		rc = log_rtobj_list_add(objName);
 		if (rc == -1) {
-			TRACE("%s Could not add %s to list Fail",
-			      __FUNCTION__, reinterpret_cast<char *>(object_name.value));
+			TRACE("%s Could not add %s to list Fail", __FUNCTION__, objName);
 		}
 
 		/* Get next object */
@@ -3199,33 +3221,29 @@ done_fin_Om:
 	}
 
 done:
-
-	TRACE_LEAVE();
+	TRACE_LEAVE2("rc: %s", saf_error(ais_rc));
 }
 
-void lgs_delete_one_stream_object(char *name_str)
+void lgs_delete_one_stream_object(const std::string &name_str)
 {
 	SaAisErrorT ais_rc = SA_AIS_OK;
 	SaNameT object_name;
 
-	if (name_str == NULL) {
+	if (name_str.empty() == true) {
 		TRACE("%s No object name given", __FUNCTION__);
 		return;
 	}
 
 	/* Copy name to a SaNameT */
-	(void) strncpy(reinterpret_cast<char *>(object_name.value),
-		       name_str, SA_MAX_NAME_LENGTH);
-	object_name.length = strlen(name_str) + 1;
+	osaf_extended_name_lend(name_str.c_str(), &object_name);
 
 	/* and delete the object */
 	ais_rc = immutil_saImmOiRtObjectDelete(lgs_cb->immOiHandle, &object_name);
 	if (ais_rc == SA_AIS_OK) {
-		TRACE("%s Object \"%s\" deleted", __FUNCTION__,
-		      reinterpret_cast<char *>(object_name.value));
+		TRACE("%s Object \"%s\" deleted", __FUNCTION__, name_str.c_str());
 	} else {
 		LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
-		       __FUNCTION__, reinterpret_cast<char *>(object_name.value), ais_rc);
+		       __FUNCTION__, name_str.c_str(), ais_rc);
 	}
 }
 
@@ -3261,19 +3279,14 @@ void lgs_cleanup_abandoned_streams()
 		 */
 		if (name_str != NULL) {
 			/* Copy name to a SaNameT */
-			(void) strncpy(reinterpret_cast<char *>(object_name.value),
-				       name_str, SA_MAX_NAME_LENGTH);
-			object_name.length = strlen(name_str) + 1;
+			osaf_extended_name_lend(name_str, &object_name);
 			/* and delete the object */
-			ais_rc = immutil_saImmOiRtObjectDelete(lgs_cb->immOiHandle,
-				&object_name);
+			ais_rc = immutil_saImmOiRtObjectDelete(lgs_cb->immOiHandle, &object_name);
 			if (ais_rc == SA_AIS_OK) {
-				TRACE("\tObject \"%s\" deleted",
-				      reinterpret_cast<char *>(object_name.value));
+				TRACE("\tObject \"%s\" deleted", name_str);
 			} else {
 				LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
-				       __FUNCTION__,
-				       reinterpret_cast<char *>(object_name.value), ais_rc);
+				       __FUNCTION__, name_str, ais_rc);
 			}
 		} else {
 			/* Should never happen! */
@@ -3297,8 +3310,9 @@ void lgs_cleanup_abandoned_streams()
  * @param immOmHandle[out]
  * @return -1 on error
  */
-int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out, char *object_name_in,
-	SaImmHandleT *immOmHandle)
+int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out,
+			   const std::string &object_name_in,
+			   SaImmHandleT *immOmHandle)
 {
 	int rc = 0;
 	SaAisErrorT ais_rc = SA_AIS_OK;
@@ -3317,10 +3331,10 @@ int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out, char *object_name_i
 		NULL
 	};
 
-	TRACE_ENTER2("object_name_in \"%s\"", object_name_in);
+	TRACE_ENTER2("object_name_in \"%s\"", object_name_in.c_str());
 
 	SaNameT object_name;
-	if (object_name_in == NULL) {
+	if (object_name_in.empty() == true) {
 		TRACE("%s No object name given (NULL)", __FUNCTION__);
 		rc = -1;
 		goto done;
@@ -3345,9 +3359,7 @@ int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out, char *object_name_i
 		goto done;
 	}
 
-	strncpy(reinterpret_cast<char *>(object_name.value),
-		object_name_in, SA_MAX_NAME_LENGTH);
-	object_name.length = strlen(reinterpret_cast<char *>(object_name.value)) + 1;
+	osaf_extended_name_lend(object_name_in.c_str(), &object_name);
 
 	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
 			attribute_names, attrib_out);
@@ -3421,12 +3433,10 @@ SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val)
 		const_cast<char *>("scAbsenceAllowed"),
 		NULL
 	};
-	char object_name_str[] = "opensafImm=opensafImm,safApp=safImmService";
+	std::string object_name_str = "opensafImm=opensafImm,safApp=safImmService";
 
 	SaNameT object_name;
-	strncpy(reinterpret_cast<char *>(object_name.value),
-		object_name_str, SA_MAX_NAME_LENGTH);
-	object_name.length = strlen(reinterpret_cast<char *>(object_name.value)) + 1;
+	osaf_extended_name_lend(object_name_str.c_str(), &object_name);
 
 	/* Default restore handling shall be disabled. Is enabled if the
 	 * scAbsenceAllowed attribute is not empty

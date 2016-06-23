@@ -136,7 +136,6 @@ uint32_t edp_ed_write_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 buf_env, op, o_err);
 
 	return rc;
-
 }	/* End edp_ed_write_rec */
 
 /****************************************************************************
@@ -191,7 +190,6 @@ uint32_t edp_ed_close_stream_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 ckpt_close_stream_msg_ptr, ptr_data_len, buf_env, op, o_err);
 	
 	return rc;
-
 }	/* End edp_ed_close_stream_rec */
 
 /****************************************************************************
@@ -248,7 +246,6 @@ uint32_t edp_ed_finalize_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 buf_env, op, o_err);
 
 	return rc;
-
 }	/* End edp_ed_finalize_rec() */
 
 /****************************************************************************
@@ -315,7 +312,6 @@ uint32_t edp_ed_cfg_stream_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
-
 }
 
 /****************************************************************************
@@ -371,7 +367,6 @@ uint32_t edp_ed_lgs_cfg_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
-
 }
 
 /****************************************************************************
@@ -428,7 +423,6 @@ uint32_t edp_ed_agent_down_rec_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
-
 }
 
 /****************************************************************************
@@ -524,5 +518,4 @@ uint32_t edp_ed_ckpt_msg_v2(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
-
 }	/* End edu_enc_dec_ckpt_msg() */

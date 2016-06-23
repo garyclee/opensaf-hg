@@ -268,6 +268,8 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 {
 	TRACE_ENTER();
 	NCS_MBCSV_ARG mbcsv_arg;
+	int num;
+
 	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
 	/* Set the mbcsv args */
@@ -289,7 +291,8 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 	 */
 	log_stream_t *stream;
 	if (lgs_is_split_file_system()) {
-		stream = log_stream_getnext_by_name(NULL);
+		num = get_number_of_streams();
+		stream = log_stream_get_by_id(--num);
 		while (stream != NULL) { /* Iterate over all streams */
 			if (ha_state == SA_AMF_HA_ACTIVE) {
 				stream->logFileCurrent = stream->stb_logFileCurrent;
@@ -302,13 +305,12 @@ uint32_t lgs_mbcsv_change_HA_state(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 				*stream->p_fd = -1; /* Reopen files */
 			}
 
-			stream = log_stream_getnext_by_name(stream->name);
+			stream = log_stream_get_by_id(--num);
 		}
 	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }	/*End lgs_mbcsv_change_HA_state */
 
 /**
@@ -512,7 +514,6 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	}			/*End switch(io_msg_type) */
 
 	return rc;
-
 }	/*End ckpt_encode_cbk_handler() */
 
 /****************************************************************************
@@ -598,7 +599,7 @@ uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_
 	stream_open->logPath = const_cast<char *>(logStream->pathName.c_str());
 	stream_open->logFileCurrent = const_cast<char *>(logStream->logFileCurrent.c_str());
 	stream_open->fileFmt = logStream->logFileFormat;
-	stream_open->logStreamName = logStream->name;
+	stream_open->logStreamName = const_cast<char *>(logStream->name.c_str());
 	stream_open->maxFileSize = logStream->maxLogFileSize;
 	stream_open->maxLogRecordSize = logStream->fixedLogRecordSize;
 	stream_open->logFileFullAction = logStream->logFullAction;
@@ -625,6 +626,7 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	lgsv_ckpt_header_t ckpt_hdr;
+	int num;
 
 	/* Prepare reg. structure to encode */
 	ckpt_stream_rec = static_cast<lgs_ckpt_stream_open_t *>(malloc(sizeof(lgs_ckpt_stream_open_t)));
@@ -641,8 +643,9 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 		return (rc = EDU_ERR_MEM_FAIL);
 	}
 	ncs_enc_claim_space(uba, sizeof(lgsv_ckpt_header_t));
-	log_stream_rec = log_stream_getnext_by_name(NULL);
 
+	num = get_number_of_streams();
+	log_stream_rec = log_stream_get_by_id(--num);
 	/* Walk through the reg list and encode record by record */
 	while (log_stream_rec != NULL) {
 		lgs_ckpt_stream_open_set(log_stream_rec, ckpt_stream_rec);
@@ -656,7 +659,7 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 			return rc;
 		}
 		++num_rec;
-		log_stream_rec = log_stream_getnext_by_name(log_stream_rec->name);
+		log_stream_rec = log_stream_get_by_id(--num);
 	}			/* End while RegRec */
 
 	/* Encode RegHeader */
@@ -669,7 +672,6 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba)
 	free(ckpt_stream_rec);
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
@@ -747,7 +749,6 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba)
 	free(ckpt_reg_rec);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }	/* End edu_enc_reg_list() */
 
 /****************************************************************************
@@ -900,7 +901,6 @@ static uint32_t ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 	}			/*End switch(io_msg_type) */
 
 	return rc;
-
 }	/*End ckpt_decode_cbk_handler() */
 
 /****************************************************************************
@@ -1581,8 +1581,8 @@ static void insert_localmsg_in_stream(log_stream_t *stream, char *message)
 	
 	/* Construct logSvcUsrName for log service */
 	SaNameT logSvcUsrName;
-	sprintf((char *)logSvcUsrName.value, "%s", "safApp=safLogService");
-	logSvcUsrName.length = strlen((char *)logSvcUsrName.value);
+	SaConstStringT tmpSvcName = "safApp=safLogService";
+	osaf_extended_name_lend(tmpSvcName, &logSvcUsrName);
 
 	/* Create a log header corresponding to type of stream */
 	if ((stream->streamType == STREAM_TYPE_ALARM) ||
@@ -1834,7 +1834,7 @@ static uint32_t ckpt_proc_close_stream(lgs_cb_t *cb, void *data)
 		goto done;
 	}
 	
-	TRACE("close stream %s, id: %u", stream->name, stream->streamId);
+	TRACE("close stream %s, id: %u", stream->name.c_str(), stream->streamId);
 
 	if ((stream->numOpeners > 0) || (clientId < 0)){
 		/* No clients to remove if no openers or if closing a stream opened
@@ -1868,7 +1868,7 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 {
 	lgs_ckpt_stream_open_t *param;
 	log_stream_t *stream;
-	int pos = 0;
+	int pos = 0, err = 0;
 
 	TRACE_ENTER();
 	
@@ -1898,30 +1898,36 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 		 */
 		stream->numOpeners = param->numOpeners;
 	} else {
-		SaNameT name;
-
 		TRACE("\tNew stream %s, id %u", param->logStreamName, param->streamId);
-		strcpy((char *)name.value, param->logStreamName);
-		name.length = strlen(param->logStreamName);
 
-		stream = log_stream_new_1(&name,
-				param->logFile,
-				param->logPath,
-				param->maxFileSize,
-				param->maxLogRecordSize,
-				param->logFileFullAction,
-				param->maxFilesRotated,
-				param->fileFmt,
-				param->streamType,
-				param->streamId,
-				SA_FALSE,	// FIX sync or calculate?
-				param->logRecordId,
-				0);
-
+		SaAisErrorT rc = SA_AIS_OK;
+		stream = log_stream_new(param->logStreamName, param->streamId);
 		if (stream == NULL) {
-			/* Do not allow standby to get out of sync */
-			LOG_ER("%s - Failed to create stream '%s'", __FUNCTION__,
-					param->logStreamName);
+			LOG_ER("Failed to create log stream %s", param->logStreamName);
+			goto done;
+		}
+		err = lgs_populate_log_stream(
+				      param->logFile,
+				      param->logPath,
+				      param->maxFileSize,
+				      param->maxLogRecordSize,
+				      param->logFileFullAction,
+				      param->maxFilesRotated,
+				      param->fileFmt,
+				      param->streamType,
+				      SA_FALSE,	// FIX sync or calculate?
+				      param->logRecordId,
+				      stream  // output
+			);
+
+		if (err == -1) {
+			log_stream_delete(&stream);
+			goto done;
+		}
+
+		rc = lgs_create_rt_appstream(stream);
+		if (rc != SA_AIS_OK) {
+			log_stream_delete(&stream);
 			goto done;
 		}
 
@@ -2133,7 +2139,7 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data)
 		goto done;
 	}
 
-	TRACE("config stream %s, id: %u", stream->name, stream->streamId);
+	TRACE("config stream %s, id: %u", stream->name.c_str(), stream->streamId);
 	stream->act_last_close_timestamp = closetime; /* Not used if ver 1 */
 	stream->fileName = fileName;
 	stream->maxLogFileSize = maxLogFileSize;
@@ -2471,7 +2477,6 @@ uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 buf_env, op, o_err);
 
 	return rc;
-
 }	/* End edp_ed_header_rec() */
 
 /****************************************************************************

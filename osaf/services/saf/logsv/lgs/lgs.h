@@ -123,11 +123,11 @@ extern  SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb);
 
 // Functions for recovery handling
 void lgs_cleanup_abandoned_streams();
-void lgs_delete_one_stream_object(char *name_str);
+void lgs_delete_one_stream_object(const std::string &name_str);
 void lgs_search_stream_objects();
 SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val);
 int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out,
-			   char *object_name,
+			   const std::string &object_name,
 			   SaImmHandleT *immOmHandle);
 int lgs_free_streamobj_attr(SaImmHandleT immHandle);
 

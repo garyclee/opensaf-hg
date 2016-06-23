@@ -24,6 +24,7 @@
 
 #include "lgs_fmt.h"
 #include "lgs.h"
+#include "osaf_extended_name.h"
 
 /* Number of seconds per an hour/minute */
 #define SECOND_PER_HOUR  3600L
@@ -40,19 +41,23 @@
 static SaInt32T checkFieldSize(SaStringT inputString, SaUint16T *numOfDigits)
 {
 	SaInt32T result = 0;
-	SaInt8T dest[SA_MAX_NAME_LENGTH];
+	std::string dest;
 	char **endptr = NULL;
+	int maxDigitsNum = std::to_string(SA_LOG_MAX_RECORD_SIZE).size() + 1;
 
-	(void)strcpy(dest, "");	/* Init dest */
 	*numOfDigits = 0;
+	dest.clear();
 
 	/* Build string of characters */
-	while ((isdigit(*inputString) != 0) && (*numOfDigits < SA_MAX_NAME_LENGTH)) {
+	while ((isdigit(*inputString) != 0) && (*numOfDigits < maxDigitsNum)) {
+		char c = *inputString;
+		dest += c;
+		inputString++;
 		*numOfDigits = *numOfDigits + 1;
-		(void)strncat(dest, inputString++, sizeof(SaInt8T));
 	}
 
-	result = strtol(dest, endptr, 0);
+	result = strtol(dest.c_str(), endptr, 0);
+
 	return result;
 }
 
@@ -661,7 +666,6 @@ static int extractCommonField(char *dest, size_t dest_size,
 		default:
 			(void)strcpy(dest, "");
 			break;
-
 		}
 
 		break;
@@ -767,7 +771,6 @@ static int extractCommonField(char *dest, size_t dest_size,
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
 		stringSize = logRecord->logBuffer->logBufSize + 1;
 		if (fieldSize == 0) {	/* Copy whole body */
-
 			if (stringSize > dest_size)
 				stringSize = dest_size;
 			characters = snprintf(dest, stringSize, "%s", (SaStringT)logRecord->logBuffer->logBuf);
@@ -801,7 +804,6 @@ static int extractCommonField(char *dest, size_t dest_size,
 
 			characters = snprintf(dest, dest_size, "%s", hex_string);
 		} else {
-
 			characters = snprintf(dest, dest_size, "%*.*s", (int)fieldSize, (int)fieldSize, hex_string);
 		}
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
@@ -821,7 +823,6 @@ static int extractCommonField(char *dest, size_t dest_size,
 	default:
 		characters = 0;
 		break;
-
 	}
 
 	/* Error */
@@ -956,7 +957,6 @@ static int extractNotificationField(char *dest, size_t dest_size,
 		default:
 			(void)strcpy(dest, "");
 			break;
-
 		}
 		break;
 
@@ -1031,7 +1031,6 @@ static int extractNotificationField(char *dest, size_t dest_size,
 			characters = snprintf(dest, dest_size, "%#x", logRecord->logHeader.ntfHdr.eventType);
 
 		} else {
-
 			/* TODO!!! Fit hex output to size => two steps for non strings */
                 	/* 0x included in total field size */
 			fieldSize = (fieldSize > 2) ? (fieldSize - 2) : 2;
@@ -1048,12 +1047,13 @@ static int extractNotificationField(char *dest, size_t dest_size,
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
 		if (fieldSize == 0) {
 			characters = snprintf(dest, dest_size, "%s",
-						logRecord->logHeader.ntfHdr.notificationObject->value);
+			      osaf_extended_name_borrow(
+			      logRecord->logHeader.ntfHdr.notificationObject));
 		} else {
-			characters = snprintf(dest, dest_size,
-						"%*.*s",
-						(int) -fieldSize,
-						(int) fieldSize, logRecord->logHeader.ntfHdr.notificationObject->value);
+			characters = snprintf(dest, dest_size, "%*.*s", (int) -fieldSize,
+			      (int) fieldSize,
+			      osaf_extended_name_borrow(
+			      logRecord->logHeader.ntfHdr.notificationObject));
 		}
 
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
@@ -1063,13 +1063,14 @@ static int extractNotificationField(char *dest, size_t dest_size,
 		/* Check field size and trunkate alternative pad with blanks */
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
 		if (fieldSize == 0) {
-			characters = snprintf(dest,
-						dest_size, "%s", logRecord->logHeader.ntfHdr.notifyingObject->value);
+			characters = snprintf(dest, dest_size, "%s",
+			      osaf_extended_name_borrow(
+			      logRecord->logHeader.ntfHdr.notifyingObject));
 		} else {
-			characters = snprintf(dest, dest_size,
-						"%*.*s",
-						(int) -fieldSize,
-						(int) fieldSize, logRecord->logHeader.ntfHdr.notifyingObject->value);
+			characters = snprintf(dest, dest_size, "%*.*s", (int) -fieldSize,
+			     (int) fieldSize,
+			      osaf_extended_name_borrow(
+			      logRecord->logHeader.ntfHdr.notifyingObject));
 		}
 
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
@@ -1112,12 +1113,16 @@ static int extractSystemField(char *dest, size_t dest_size,
 		fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
 		if (fieldSize != 0) {
 			characters = snprintf(dest, dest_size,
-					      "%*.*s",
-					      (int)-fieldSize,
-					      (int)fieldSize, logRecord->logHeader.genericHdr.logSvcUsrName->value);
+			      "%*.*s",
+			      (int)-fieldSize,
+			      (int)fieldSize,
+			      osaf_extended_name_borrow(
+			      logRecord->logHeader.genericHdr.logSvcUsrName));
 		} else {
 			characters = snprintf(dest, dest_size,
-					      "%s", logRecord->logHeader.genericHdr.logSvcUsrName->value);
+			      "%s",
+			      osaf_extended_name_borrow(
+			      logRecord->logHeader.genericHdr.logSvcUsrName));
 		}
 		*fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
 		break;
@@ -1162,7 +1167,6 @@ static int extractSystemField(char *dest, size_t dest_size,
 	default:
 		(void)strcpy(dest, "");
 		break;
-
 	}
 
 	/* Error */
@@ -1335,7 +1339,6 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
 				TRACE("Invalid token %u", *(fmtExpPtrSnabel - 1));
 				i = 0;
 				goto error_exit;
-
 			}
 
 		} else {	/* All chars between tokens */

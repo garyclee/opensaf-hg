@@ -27,13 +27,13 @@
 static void close_all_files()
 {
 	log_stream_t *stream;
-
-	stream = log_stream_getnext_by_name(NULL);
+	int num = get_number_of_streams();
+	stream = log_stream_get_by_id(--num);
 	while (stream != NULL) {
 		if (log_stream_file_close(stream) != 0)
-			LOG_WA("Could not close file for stream %s", stream->name);
+			LOG_WA("Could not close file for stream %s", stream->name.c_str());
 
-		stream = log_stream_getnext_by_name(stream->name);
+		stream = log_stream_get_by_id(--num);
 	}
 }
 
@@ -54,6 +54,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 {
 	log_stream_t *stream;
 	SaAisErrorT error = SA_AIS_OK;
+	int num;
 
 	TRACE_ENTER2("HA ACTIVE request");
 
@@ -67,12 +68,13 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb, SaInvocationT invocati
 	lgs_start_gcfg_applier();
 
 	/* check existing streams */
-	stream = log_stream_getnext_by_name(NULL);
+	num = get_number_of_streams();
+	stream = log_stream_get_by_id(--num);
 	if (!stream)
 		LOG_ER("No streams exist!");
 	while (stream != NULL) {
 		*stream->p_fd = -1; /* First Initialize fd */
-		stream = log_stream_getnext_by_name(stream->name);
+		stream = log_stream_get_by_id(--num);
 	}
 
 done:

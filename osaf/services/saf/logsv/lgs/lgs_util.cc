@@ -420,11 +420,14 @@ void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisE
  */
 void lgs_free_write_log(const lgsv_write_log_async_req_t *param)
 {
+	TRACE_ENTER();
+
 	if (param->logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
 		SaLogGenericLogHeaderT *genLogH = &param->logRecord->logHeader.genericHdr;
 		free(param->logRecord->logBuffer->logBuf);
 		free(param->logRecord->logBuffer);
 		free(genLogH->notificationClassId);
+		osaf_extended_name_free(const_cast<SaNameT *>(genLogH->logSvcUsrName));
 		free((void *)genLogH->logSvcUsrName);
 		free(param->logRecord);
 	} else {
@@ -432,10 +435,14 @@ void lgs_free_write_log(const lgsv_write_log_async_req_t *param)
 		free(param->logRecord->logBuffer->logBuf);
 		free(param->logRecord->logBuffer);
 		free(ntfLogH->notificationClassId);
+		osaf_extended_name_free(ntfLogH->notifyingObject);
 		free(ntfLogH->notifyingObject);
+		osaf_extended_name_free(ntfLogH->notificationObject);
 		free(ntfLogH->notificationObject);
 		free(param->logRecord);
 	}
+
+	TRACE_LEAVE();
 }
 
 /**
@@ -593,7 +600,7 @@ int lgs_own_log_files_h(log_stream_t *stream, const char *groupname)
 	std::string dir_path;
 	olfbgh_t *data_in = static_cast<olfbgh_t *>(malloc(sizeof(olfbgh_t)));
 
-	TRACE_ENTER2("stream %s",stream->name);
+	TRACE_ENTER2("stream %s", stream->name.c_str());
 
 	/* Set in parameter dir_path */
 	const std::string logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
@@ -833,4 +840,18 @@ bool lgs_is_valid_pathlength(const std::string &path,
 	size_t rootlen = rootpath.size() + 1;
 
 	return ((rootlen + pathlen + filelen + LOG_TAIL_MAX) < PATH_MAX);
+}
+
+/**
+ * Check if the name is valid or not.
+ */
+bool lgs_is_extended_name_valid(const SaNameT* name)
+{
+	if (name == NULL) return false;
+	if (osaf_is_extended_name_valid(name) == false) return false;
+
+	SaConstStringT str = osaf_extended_name_borrow(name);
+	if (strlen(str) >= kOsafMaxDnLength) return false;
+
+	return true;
 }

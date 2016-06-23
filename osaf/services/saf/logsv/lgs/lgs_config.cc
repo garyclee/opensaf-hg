@@ -100,7 +100,6 @@ static struct lgs_conf_def_t {
 		logFileIoTimeout = 500;
 		logFileSysConfig = 1;
 	}
-
 } lgs_conf_def;
 
 /**
@@ -175,7 +174,6 @@ typedef struct _lgs_conf_t {
 		logFileIoTimeout = lgs_conf_def.logFileIoTimeout;
 		logFileSysConfig = lgs_conf_def.logFileSysConfig;
 	}
-
 } lgs_conf_t;
 
 static lgs_conf_t lgs_conf;
@@ -464,6 +462,7 @@ int lgs_cfg_verify_root_dir(const std::string &root_str_in)
 	int rc = 0;
 	log_stream_t *stream = NULL;
 	size_t n = root_str_in.size();
+	int num;
 
 	if (n > PATH_MAX) {
 		LOG_NO("verify_root_dir Fail. Path > PATH_MAX");
@@ -475,7 +474,8 @@ int lgs_cfg_verify_root_dir(const std::string &root_str_in)
 	 * Make sure that the path /rootPath/streamPath/<fileName><tail>
 	 * must not be larger than PATH_MAX.
 	 */
-	stream = log_stream_getnext_by_name(NULL);
+	num = get_number_of_streams();
+	stream = log_stream_get_by_id(--num);
 	while (stream != NULL) {
 		if (lgs_is_valid_pathlength(stream->pathName, stream->fileName,
 									root_str_in) == false) {
@@ -483,7 +483,8 @@ int lgs_cfg_verify_root_dir(const std::string &root_str_in)
 			rc = -1;
 			goto done;
 		}
-		stream = log_stream_getnext_by_name(stream->name);
+
+		stream = log_stream_get_by_id(--num);
 	}
 
 	if (lgs_path_is_writeable_dir_h(root_str_in) == false) {
@@ -785,7 +786,6 @@ static int verify_all_init()
  */
 static void read_logsv_config_obj_2() {
 	SaImmHandleT omHandle;
-	SaNameT objectName;
 	SaImmAccessorHandleT accessorHandle;
 	SaImmAttrValuesT_2 *attribute;
 	SaImmAttrValuesT_2 **attributes;
@@ -808,18 +808,15 @@ static void read_logsv_config_obj_2() {
 		osaf_abort(0);
 	}
 
-	n = snprintf((char *) objectName.value, SA_MAX_NAME_LENGTH, "%s",
-			LGS_IMM_LOG_CONFIGURATION);
-	if (n >= SA_MAX_NAME_LENGTH) {
-		LOG_ER("%s: Fail Object name > SA_MAX_NAME_LENGTH", __FUNCTION__);
-		osaf_abort(0); /* Should never happen */
-	}
-	objectName.length = strlen((char *) objectName.value);
+	SaConstStringT objectName = LGS_IMM_LOG_CONFIGURATION;
+
+	SaNameT tmpObjName;
+	osaf_extended_name_lend(objectName, &tmpObjName);
 
 	/* Get all attributes of the object */
 	if ((om_rc = immutil_saImmOmAccessorGet_2(
 		     accessorHandle,
-		     &objectName,
+		     &tmpObjName,
 		     NULL,
 		     &attributes)) != SA_AIS_OK) {
 		LOG_NO("%s immutil_saImmOmAccessorGet_2 Fail: %s",
@@ -1396,15 +1393,14 @@ void conf_runtime_obj_create(SaImmOiHandleT immOiHandle)
 		NULL
 	};
 
-	SaNameT parent_name, *parent_name_p;
-	strcpy((char *) parent_name.value, "safApp=safLogService");
-	parent_name.length = strlen((char *) parent_name.value);
-	parent_name_p = &parent_name;
+	SaNameT parent_name_p;
+	SaConstStringT parent_name = "safApp=safLogService";
+	osaf_extended_name_lend(parent_name, &parent_name_p);
 
 	rc = immutil_saImmOiRtObjectCreate_2(
 		immOiHandle,
 		const_cast<SaImmClassNameT>("OpenSafLogCurrentConfig"),
-		parent_name_p,
+		&parent_name_p,
 		attrValues);
 
 	if (rc == SA_AIS_ERR_EXIST) {

@@ -481,7 +481,12 @@ int main(int argc, char *argv[])
 	const time_t CLEAN_TIMEOUT = 600; /* 10 min */
 
 	daemonize(argc, argv);
-	
+
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0 ) {
+		LOG_ER("Failed to set SA_ENABLE_EXTENDED_NAMES (%s)", strerror(errno));
+		goto done;
+	}
+
 	if (log_initialize() != NCSCC_RC_SUCCESS) {
 		LOG_ER("log_initialize failed");
 		goto done;

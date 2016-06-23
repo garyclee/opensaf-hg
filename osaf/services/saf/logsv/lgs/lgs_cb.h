@@ -100,7 +100,6 @@ typedef struct lgs_cb {
 
 	// Initialize default value in contructor
 	lgs_cb() : lgs_recovery_state(LGS_NORMAL) {};
-
 } lgs_cb_t;
 
 extern uint32_t lgs_cb_init(lgs_cb_t *);

@@ -150,7 +150,6 @@ uint32_t edp_ed_lgs_cfg_rec_v3(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
-
 }
 
 /****************************************************************************
@@ -246,5 +245,4 @@ uint32_t edp_ed_ckpt_msg_v3(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 				 ptr_data_len,
 				 buf_env, op, o_err);
 	return rc;
-
 }	/* End edu_enc_dec_ckpt_msg() */

@@ -81,4 +81,6 @@ bool lgs_is_valid_pathlength(const std::string &path,
 int lgs_init_timer(time_t timeout_s);
 void lgs_close_timer(int ufd);
 
+bool lgs_is_extended_name_valid(const SaNameT* name);
+
 #endif   /* ifndef __LGS_UTIL_H */

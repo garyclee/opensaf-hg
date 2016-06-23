@@ -24,6 +24,7 @@
 #include <limits.h>
 
 #include "lgs_fmt.h"
+#include "osaf_extended_name.h"
 
 #define LGS_LOG_FILE_EXT ".log"
 #define LGS_LOG_FILE_CONFIG_EXT ".cfg"
@@ -34,10 +35,8 @@
  * attributes like file descriptor.
  */
 typedef struct log_stream {
-	NCS_PATRICIA_NODE pat_node;
-
 	/* --- Corresponds to IMM Class SaLogStream/SaLogStreamConfig --- */
-	char name[SA_MAX_NAME_LENGTH + 1];	/* add for null termination */
+	std::string name;
 	std::string fileName;
 	std::string pathName;
 	SaUint64T maxLogFileSize;
@@ -82,8 +81,7 @@ extern uint32_t log_stream_init();
 extern void log_stream_delete(log_stream_t **s);
 
 #define STREAM_NEW -1
-extern log_stream_t *log_stream_new_1(
-	SaNameT *name,
+extern int lgs_populate_log_stream(
 	const std::string &filename,
 	const std::string &pathname,
 	SaUint64T maxLogFileSize,
@@ -92,13 +90,13 @@ extern log_stream_t *log_stream_new_1(
 	SaUint32T maxFilesRotated,
 	const char *logFileFormat,
 	logStreamTypeT streamType,
-	int stream_id,
 	SaBoolT twelveHourModeFlag,
 	uint32_t logRecordId,
-	int creationFlag
+	log_stream_t *const o_stream
 	);
 
-extern log_stream_t *log_stream_new_2(SaNameT *name, int stream_id);
+extern SaAisErrorT lgs_create_rt_appstream(log_stream_t *const rt);
+extern log_stream_t *log_stream_new(const std::string &name, int stream_id);
 
 extern void log_stream_open_fileinit(log_stream_t *stream);
 extern void log_initiate_stream_files(log_stream_t *stream);
@@ -120,11 +118,11 @@ extern int log_file_open(const std::string &root_path,
 			 int *errno_save);
 
 /* Accessor functions */
-extern log_stream_t *log_stream_get_by_name(const char *name);
-extern log_stream_t *log_stream_getnext_by_name(const char *name);
 extern void log_stream_print(log_stream_t *stream);
 extern log_stream_t *log_stream_get_by_id(uint32_t id);
 extern bool check_max_stream();
 void log_free_stream_resources(log_stream_t *stream);
+unsigned int get_number_of_streams();
+extern log_stream_t *log_stream_get_by_name(const std::string &name);
 
 #endif
