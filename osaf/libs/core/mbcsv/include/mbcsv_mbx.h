@@ -18,34 +18,34 @@
 /*****************************************************************************
 ..............................................................................
 
-  
-    
-      
+
+
+
    REVISION HISTORY:
-          
+
    DESCRIPTION:
-            
+
    This module contains the MBCSv MBX list structure and the corresponding functions.
-              
+
 *******************************************************************************/
 
 /*
-* Module Inclusion Control...
-*/
+ * Module Inclusion Control...
+ */
 #ifndef MBCSV_MBX_H
 #define MBCSV_MBX_H
 
 #include "mbcsv.h"
 
 /***********************************************************************************@
-*
-*                        MBCSv MDS registration list
-*
-*    MBCSv maintains the registration information with MDS in a separate data 
-*    structure. This data structure will get updated with each open and close call. 
-*    MBCSv will need this data structure to find out number of user registered on 
-*    the particular PWE.  
-***********************************************************************************/
+ *
+ *                        MBCSv MDS registration list
+ *
+ *    MBCSv maintains the registration information with MDS in a separate data
+ *    structure. This data structure will get updated with each open and close call.
+ *    MBCSv will need this data structure to find out number of user registered on
+ *    the particular PWE.
+ ***********************************************************************************/
 
 /*
  * Related function prototypes.
