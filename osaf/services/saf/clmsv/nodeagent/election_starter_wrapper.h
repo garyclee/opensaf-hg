@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -38,8 +38,8 @@ void ElectionStarterDownEvent(void* instance, uint32_t node_id,
 struct timespec ElectionStarterPoll(void* instance);
 void* ElectionStarterConstructor(bool is_nid_started, uint32_t own_node_id);
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* OPENSAF_SERVICES_SAF_CLMSV_NODEAGENT_ELECTION_STARTER_WRAPPER_H_ */
+#endif  /* OPENSAF_SERVICES_SAF_CLMSV_NODEAGENT_ELECTION_STARTER_WRAPPER_H_ */
