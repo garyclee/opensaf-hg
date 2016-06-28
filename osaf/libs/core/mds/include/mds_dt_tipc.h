@@ -20,8 +20,8 @@
 
   DESCRIPTION:  MDS DT headers
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 #ifndef _MDS_DT_TIPC_H
 #define _MDS_DT_TIPC_H
 
@@ -45,7 +45,7 @@
 /* TIPC Service Name specific */
 /******************************/
 
-#define MDS_TIPC_NM_PREFIX 0x4d44	/* "M" = ASCII 0x4d */
+#define MDS_TIPC_NM_PREFIX 0x4d44       /* "M" = ASCII 0x4d */
 
 #ifndef TIPCIMPORTANCE
 #define TIPCIMPORTANCE TIPC_LOW_IMPORTANCE
@@ -56,35 +56,35 @@
 #endif
 
 typedef enum {
-	MDS_TIPC_NM_TYPE_SVC_INST = 0x01000000,
-	MDS_TIPC_NM_TYPE_VDEST,
-	MDS_TIPC_NM_TYPE_PCON_ID_DETAILS,
-	MDS_TIPC_NM_TYPE_NODE_ID_DETAILS,
+  MDS_TIPC_NM_TYPE_SVC_INST = 0x01000000,
+  MDS_TIPC_NM_TYPE_VDEST,
+  MDS_TIPC_NM_TYPE_PCON_ID_DETAILS,
+  MDS_TIPC_NM_TYPE_NODE_ID_DETAILS,
 } MDS_TIPC_NM_TYPE;
 
 typedef struct mdtm_tipc_tx_info {
-	int blah;
+  int blah;
 } MDTM_TIPC_TX_INFO;
 
 typedef struct mds_dt_tipc_cb {
-	int BSRSockfd;		/* Bind, send, recv socket */
-	int DSockfd;		/* Discovery socket - Do we
-				   need a separate socket */
+  int BSRSockfd;          /* Bind, send, recv socket */
+  int DSockfd;            /* Discovery socket - Do we
+                             need a separate socket */
 } MDS_DT_TIPC_CB;
 
 extern uint32_t mdtm_find_adest(struct tipc_portid id, MDS_DEST *adest);
-				   /* TIPC-ID is given in return adest is provided */
+/* TIPC-ID is given in return adest is provided */
 extern uint32_t mdtm_tipc_init(NODE_ID node_id, uint32_t *mds_tipc_ref);
 extern uint32_t mdtm_tipc_destroy(void);
 
 extern uint32_t mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-				       V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-				       MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
+                                          V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+                                          MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 extern uint32_t mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-					 V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-					 MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
+                                            V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+                                            MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 extern uint32_t mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-					 MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+                                            MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 extern uint32_t mds_mdtm_svc_unsubscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope, MDS_SUBTN_REF_VAL subtn_ref_val);
 extern uint32_t mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id);
 extern uint32_t mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id);
@@ -95,7 +95,7 @@ extern uint32_t mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest);
 
 extern uint32_t mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 
-extern uint32_t mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val); 
-extern uint32_t mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val); 
+extern uint32_t mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+extern uint32_t mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
 
 #endif

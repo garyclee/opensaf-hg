@@ -27,26 +27,26 @@
 #include "sys/poll.h"
 
 /*  mds_indentifire + mds_version   + msg_type + scope_type + server_type +  server_instance_lower +
-server_instance_upper + sub_ref_val + sub_ref_val  + node_id  +process_id */
+    server_instance_upper + sub_ref_val + sub_ref_val  + node_id  +process_id */
 /* 4 + 1 + 1 + 1 + 4 + 4 + 4 + 8 + 4 + 4 */
 #define MDS_MDTM_DTM_SUBSCRIBE_SIZE 35
 
 /*   mds_indentifire + mds_version +   msg_type + sub_ref_val +node_id + process_id*/
-#define MDS_MDTM_DTM_UNSUBSCRIBE_SIZE 22	/*4 + 1 + 1 + 8 + 4 + 4 */
+#define MDS_MDTM_DTM_UNSUBSCRIBE_SIZE 22        /*4 + 1 + 1 + 8 + 4 + 4 */
 
 /*  mds_indentifire + mds_version +   msg_type + sub_ref_val + node_id + process_id*/
-#define MDS_MDTM_DTM_NODE_SUBSCRIBE_SIZE 22	/*4 + 1+ 1 + 8 + 4 + 4 */
+#define MDS_MDTM_DTM_NODE_SUBSCRIBE_SIZE 22     /*4 + 1+ 1 + 8 + 4 + 4 */
 
 /* mds_indentifire + mds_version +   msg_type + sub_ref_val + node_id + process_id*/
-#define MDS_MDTM_DTM_NODE_UNSUBSCRIBE_SIZE 22	/*4 + 1 + 1 + 8 + 4 + 4 */
+#define MDS_MDTM_DTM_NODE_UNSUBSCRIBE_SIZE 22   /*4 + 1 + 1 + 8 + 4 + 4 */
 
 /*  mds_indentifire + mds_version +   msg_type+ install_scope + server_type
-     server_instance_lower + server_instance_upper + node_id + process_id + install_scope */
-#define MDS_MDTM_DTM_SVC_INSTALL_SIZE 27	/*4 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 */
+    server_instance_lower + server_instance_upper + node_id + process_id + install_scope */
+#define MDS_MDTM_DTM_SVC_INSTALL_SIZE 27        /*4 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 */
 
-/* mds_indentifire + mds_version +   msg_type+ install_scope + server_type + server_instance_lower + 
+/* mds_indentifire + mds_version +   msg_type+ install_scope + server_type + server_instance_lower +
    server_instance_upper  + node_id + process_id + install_scope*/
-#define MDS_MDTM_DTM_SVC_UNINSTALL_SIZE 27	/*4 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 */
+#define MDS_MDTM_DTM_SVC_UNINSTALL_SIZE 27      /*4 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 */
 
 /* Send_buffer_size + MDS_MDTM_DTM_SUBSCRIBE_SIZE*/
 #define MDS_MDTM_DTM_SUBSCRIBE_BUFFER_SIZE  (2 + MDS_MDTM_DTM_SUBSCRIBE_SIZE)
@@ -77,63 +77,63 @@ server_instance_upper + sub_ref_val + sub_ref_val  + node_id  +process_id */
 
 
 typedef struct mds_mdtm_bind_msg {
-	uint8_t install_scope;
-	uint32_t server_type;
-	uint32_t server_instance_lower;
-	uint32_t server_instance_upper;
-	NODE_ID node_id;
-	uint32_t process_id;
+  uint8_t install_scope;
+  uint32_t server_type;
+  uint32_t server_instance_lower;
+  uint32_t server_instance_upper;
+  NODE_ID node_id;
+  uint32_t process_id;
 } MDS_MDTM_BIND_MSG;
 
 typedef struct mds_mdtm_unbind_msg {
-	uint8_t install_scope;
-	uint32_t server_type;
-	uint32_t server_instance_lower;
-	uint32_t server_instance_upper;
-	NODE_ID node_id;
-	uint32_t process_id;
+  uint8_t install_scope;
+  uint32_t server_type;
+  uint32_t server_instance_lower;
+  uint32_t server_instance_upper;
+  NODE_ID node_id;
+  uint32_t process_id;
 } MDS_MDTM_UNBIND_MSG;
 
 typedef struct mds_mdtm_subscribe_msg {
-	NCSMDS_SCOPE_TYPE scope_type;
-	uint32_t server_type;
-	uint32_t server_instance_lower;
-	uint32_t server_instance_upper;
-	MDS_SUBTN_REF_VAL sub_ref_val;
-	NODE_ID node_id;
-	uint32_t process_id;
+  NCSMDS_SCOPE_TYPE scope_type;
+  uint32_t server_type;
+  uint32_t server_instance_lower;
+  uint32_t server_instance_upper;
+  MDS_SUBTN_REF_VAL sub_ref_val;
+  NODE_ID node_id;
+  uint32_t process_id;
 } MDS_MDTM_SUBSCRIBE_MSG;
 
 typedef struct mds_mdtm_unsubscribe_msg {
-	NCSMDS_SCOPE_TYPE scope_type;
-	uint32_t server_type;
-	uint32_t server_instance_lower;
-	uint32_t server_instance_upper;
-	MDS_SUBTN_REF_VAL sub_ref_val;
-	NODE_ID node_id;
-	uint32_t process_id;
+  NCSMDS_SCOPE_TYPE scope_type;
+  uint32_t server_type;
+  uint32_t server_instance_lower;
+  uint32_t server_instance_upper;
+  MDS_SUBTN_REF_VAL sub_ref_val;
+  NODE_ID node_id;
+  uint32_t process_id;
 } MDS_MDTM_UNSUBSCRIBE_MSG;
 
 typedef struct mds_mdtm_node_subscribe_msg {
-	NODE_ID node_id;
-	uint32_t process_id;
-	MDS_SUBTN_REF_VAL sub_ref_val;
+  NODE_ID node_id;
+  uint32_t process_id;
+  MDS_SUBTN_REF_VAL sub_ref_val;
 } MDS_MDTM_NODE_SUBSCRIBE_MSG;
 
 typedef struct mds_mdtm_node_unsubscribe_msg {
-	NODE_ID node_id;
-	uint32_t process_id;
-	MDS_SUBTN_REF_VAL sub_ref_val;
+  NODE_ID node_id;
+  uint32_t process_id;
+  MDS_SUBTN_REF_VAL sub_ref_val;
 } MDS_MDTM_NODE_UNSUBSCRIBE_MSG;
 
 uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-			       V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-			       MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
+                                  V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+                                  MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 uint32_t mds_mdtm_svc_uninstall_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-				 V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-				 MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
+                                    V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+                                    MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
 uint32_t mds_mdtm_svc_subscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-				 MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+                                    MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 uint32_t mds_mdtm_svc_unsubscribe_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE subscribe_scope, MDS_SUBTN_REF_VAL subtn_ref_val);
 uint32_t mds_mdtm_vdest_install_tcp(MDS_VDEST_ID vdest_id);
 uint32_t mds_mdtm_vdest_uninstall_tcp(MDS_VDEST_ID vdest_id);

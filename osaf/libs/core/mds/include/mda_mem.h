@@ -20,10 +20,10 @@
 
 ..............................................................................
 
-  DESCRIPTION:  
+  DESCRIPTION:
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 #ifndef MDA_MEM_H
 #define MDA_MEM_H
 
@@ -31,14 +31,14 @@
 
 #define VDS_MEM_NCSVDA_INFO 1
 
-#define m_MMGR_ALLOC_NCSVDA_INFO \
-         (NCSVDA_INFO *)m_NCS_MEM_ALLOC(sizeof(NCSVDA_INFO), \
-                                 NCS_MEM_REGION_TRANSIENT, \
-                                 NCS_SERVICE_ID_VDS, \
+#define m_MMGR_ALLOC_NCSVDA_INFO                                \
+  (NCSVDA_INFO *)m_NCS_MEM_ALLOC(sizeof(NCSVDA_INFO),           \
+                                 NCS_MEM_REGION_TRANSIENT,      \
+                                 NCS_SERVICE_ID_VDS,            \
                                  VDS_MEM_NCSVDA_INFO)
 
 #define m_MMGR_FREE_NCSVDA_INFO(p)  m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
-                                    NCS_SERVICE_ID_VDS, \
-                                    VDS_MEM_NCSVDA_INFO)
+                                                   NCS_SERVICE_ID_VDS,  \
+                                                   VDS_MEM_NCSVDA_INFO)
 
 #endif
