@@ -19,53 +19,53 @@
 #define CLMS_EVT_H
 
 typedef enum clmsv_clms_evt_type {
-	CLMSV_CLMS_CLMSV_MSG = 0,
-	CLMSV_CLMS_CLMA_UP = 1,
-	CLMSV_CLMS_CLMA_DOWN = 2,
-	CLSMV_CLMS_QUIESCED_ACK = 3,
-	CLMSV_CLMS_NODE_LOCK_TMR_EXP = 4,
-	CLMSV_CLMS_MDS_NODE_EVT,
-	CLMSV_CLMS_RDA_EVT,
-	CLMSV_CLMS_RT_UPDATE,
-	CLMSV_AVND_DOWN_EVT,
-	CLMSV_CLMS_EVT_MAX,
+  CLMSV_CLMS_CLMSV_MSG = 0,
+  CLMSV_CLMS_CLMA_UP = 1,
+  CLMSV_CLMS_CLMA_DOWN = 2,
+  CLSMV_CLMS_QUIESCED_ACK = 3,
+  CLMSV_CLMS_NODE_LOCK_TMR_EXP = 4,
+  CLMSV_CLMS_MDS_NODE_EVT,
+  CLMSV_CLMS_RDA_EVT,
+  CLMSV_CLMS_RT_UPDATE,
+  CLMSV_AVND_DOWN_EVT,
+  CLMSV_CLMS_EVT_MAX,
 } CLMSV_CLMS_EVT_TYPE;
 
 typedef struct clmsv_clms_mds_info_t {
-	SaUint32T node_id;
-	MDS_DEST mds_dest_id;
+  SaUint32T node_id;
+  MDS_DEST mds_dest_id;
 } CLMSV_CLMS_MDS_INFO;
 
 typedef struct clmsv_clms_node_mds_info_t {
-	SaUint32T node_id;
-	SaBoolT nodeup;
-	SaClmNodeAddressT addr;
+  SaUint32T node_id;
+  SaBoolT nodeup;
+  SaClmNodeAddressT addr;
 } CLMSV_CLMS_MDS_NODE_INFO;
 
 typedef struct clmsv_clms_rda_info_t {
-	PCS_RDA_ROLE io_role;
+  PCS_RDA_ROLE io_role;
 } CLMSV_CLMS_RDA_INFO;
 
 typedef struct clmsv_clms_rt_node_info_t {
-	CLMS_CLUSTER_NODE *node;
+  CLMS_CLUSTER_NODE *node;
 } CLMSV_CLMS_RT_INFO;
 
 typedef struct clmsv_clms_evt_t {
-	struct clmsv_clms_evt_t *next;	/* For MailBox Processing */
-	SaUint32T cb_hdl;	/* Pointer to the CLMS Control Block */
-	MDS_SYNC_SND_CTXT mds_ctxt;	/* For MDS synch response */
-	MDS_DEST fr_dest;	/* Address of sender from which this event was sent */
-	NODE_ID fr_node_id;	/* Node id from which this event was sent */
-	MDS_SEND_PRIORITY_TYPE rcvd_prio;	/* MDS Priority of the received event */
-	CLMSV_CLMS_EVT_TYPE type;
-	union {
-		CLMSV_MSG msg;	/* Message 'received'/'to be sent' from CLMA */
-		CLMSV_CLMS_MDS_INFO mds_info;	/* CLMA `MDS reachability information */
-		CLMSV_CLMS_MDS_NODE_INFO node_mds_info;
-		CLMSV_CLMS_RDA_INFO rda_info;
-		CLMS_LOCK_TMR tmr_info;
-		CLMSV_CLMS_RT_INFO rt_node_info;
-	} info;
+  struct clmsv_clms_evt_t *next;  /* For MailBox Processing */
+  SaUint32T cb_hdl;       /* Pointer to the CLMS Control Block */
+  MDS_SYNC_SND_CTXT mds_ctxt;     /* For MDS synch response */
+  MDS_DEST fr_dest;       /* Address of sender from which this event was sent */
+  NODE_ID fr_node_id;     /* Node id from which this event was sent */
+  MDS_SEND_PRIORITY_TYPE rcvd_prio;       /* MDS Priority of the received event */
+  CLMSV_CLMS_EVT_TYPE type;
+  union {
+    CLMSV_MSG msg;  /* Message 'received'/'to be sent' from CLMA */
+    CLMSV_CLMS_MDS_INFO mds_info;   /* CLMA `MDS reachability information */
+    CLMSV_CLMS_MDS_NODE_INFO node_mds_info;
+    CLMSV_CLMS_RDA_INFO rda_info;
+    CLMS_LOCK_TMR tmr_info;
+    CLMSV_CLMS_RT_INFO rt_node_info;
+  } info;
 } CLMSV_CLMS_EVT;
 
 /* Function prototype */

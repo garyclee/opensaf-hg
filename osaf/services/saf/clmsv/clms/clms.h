@@ -95,9 +95,9 @@ extern uint32_t clms_mds_finalize(CLMS_CB * cb);
 extern uint32_t clms_mds_change_role(CLMS_CB * cb);
 
 extern uint32_t clms_mds_msg_send(CLMS_CB * cb,
-			       CLMSV_MSG * msg,
-			       MDS_DEST *dest,
-			       MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id);
+                                  CLMSV_MSG * msg,
+                                  MDS_DEST *dest,
+                                  MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id);
 
 extern SaAisErrorT clms_imm_activate(CLMS_CB * cb);
 extern uint32_t clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node);
