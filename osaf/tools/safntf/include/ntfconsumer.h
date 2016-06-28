@@ -17,7 +17,7 @@
 /**
  *   Client header file.
  */
- 
+
 #ifndef NTFCONSUMER_H
 #define NTFCONSUMER_H
 
@@ -28,11 +28,11 @@
 
 int verbose;
 void ntfsv_tools_exitIfFalse(
-	const char *file,
-	unsigned int line, int expression);
+    const char *file,
+    unsigned int line, int expression);
 char *error_output(SaAisErrorT result);
 void saNtfNotificationCallback(
-	SaNtfSubscriptionIdT subscriptionId,
-	const SaNtfNotificationsT *notification);
+    SaNtfSubscriptionIdT subscriptionId,
+    const SaNtfNotificationsT *notification);
 
 #endif

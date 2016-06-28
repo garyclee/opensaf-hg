@@ -39,93 +39,93 @@
 #define MAX_NUMBER_OF_ADDITIONAL_INFO  1
 
 typedef enum {
-	MY_APP_OPER_STATE = 1,
-	MY_APP_USAGE_STATE = 2
+  MY_APP_OPER_STATE = 1,
+  MY_APP_USAGE_STATE = 2
 } saNtfStateIdT;
 
 typedef enum {
-	SA_NTF_DISABLED,
-	SA_NTF_ENABLED,
-	SA_NTF_IDLE,
-	SA_NTF_ACTIVE
+  SA_NTF_DISABLED,
+  SA_NTF_ENABLED,
+  SA_NTF_IDLE,
+  SA_NTF_ACTIVE
 } saNtfStatesT;
 
 /* Internal structs */
 typedef struct {
-	SaUint16T numEventTypes;
-	SaUint16T numNotificationObjects;
-	SaUint16T numNotifyingObjects;
-	SaUint16T numNotificationClassIds;
-	SaUint32T numProbableCauses;
-	SaUint32T numPerceivedSeverities;
-	SaUint32T numTrends;
+  SaUint16T numEventTypes;
+  SaUint16T numNotificationObjects;
+  SaUint16T numNotifyingObjects;
+  SaUint16T numNotificationClassIds;
+  SaUint32T numProbableCauses;
+  SaUint32T numPerceivedSeverities;
+  SaUint32T numTrends;
 } saNotificationFilterAllocationParamsT;
 
 typedef struct {
-	SaUint16T numCorrelatedNotifications;
-	SaUint16T lengthAdditionalText;
-	SaUint16T numAdditionalInfo;
-	SaUint16T numSpecificProblems;
-	SaUint16T numMonitoredAttributes;
-	SaUint16T numProposedRepairActions;
-	SaUint16T numStateChanges;
-	/* Object Create/Delete specific */
-	SaUint16T numObjectAttributes;
+  SaUint16T numCorrelatedNotifications;
+  SaUint16T lengthAdditionalText;
+  SaUint16T numAdditionalInfo;
+  SaUint16T numSpecificProblems;
+  SaUint16T numMonitoredAttributes;
+  SaUint16T numProposedRepairActions;
+  SaUint16T numStateChanges;
+  /* Object Create/Delete specific */
+  SaUint16T numObjectAttributes;
 
-	/* Attribute Change specific */
-	SaUint16T numAttributes;
+  /* Attribute Change specific */
+  SaUint16T numAttributes;
 
-	SaInt16T variableDataSize;
+  SaInt16T variableDataSize;
 } saNotificationAllocationParamsT;
 
 typedef struct {
-	SaNtfElementIdT infoId;
-	SaNtfValueTypeT infoType;
-	SaStringT strInfo;
+  SaNtfElementIdT infoId;
+  SaNtfValueTypeT infoType;
+  SaStringT strInfo;
 } saNotificationAdditionalInfoParamsT;
 
 typedef struct {
-	/* SaNtfSeverityTrendT trend; */
-	SaStringT additionalText;
-	SaNtfProbableCauseT probableCause;
-	SaNtfSeverityT perceivedSeverity;
-	SaNtfStateChangeT changedStates[MAX_NUMBER_OF_STATE_CHANGES];
-	SaNtfEventTypeT eventType;
-	SaNtfEventTypeT alarmEventType;
-	SaNtfEventTypeT stateChangeEventType;
-	SaNtfEventTypeT objectCreateDeleteEventType;
-	SaNtfEventTypeT attributeChangeEventType;
-	SaNtfEventTypeT securityAlarmEventType;
-	SaNtfNotificationTypeT notificationType;
-	SaNameT notificationObject;
-	SaNameT notifyingObject;
-	SaNtfClassIdT notificationClassId;
-	SaTimeT eventTime;
-	SaNtfIdentifierT notificationId;
-	SaNtfSubscriptionIdT subscriptionId;
-	SaNtfSourceIndicatorT stateChangeSourceIndicator;
+  /* SaNtfSeverityTrendT trend; */
+  SaStringT additionalText;
+  SaNtfProbableCauseT probableCause;
+  SaNtfSeverityT perceivedSeverity;
+  SaNtfStateChangeT changedStates[MAX_NUMBER_OF_STATE_CHANGES];
+  SaNtfEventTypeT eventType;
+  SaNtfEventTypeT alarmEventType;
+  SaNtfEventTypeT stateChangeEventType;
+  SaNtfEventTypeT objectCreateDeleteEventType;
+  SaNtfEventTypeT attributeChangeEventType;
+  SaNtfEventTypeT securityAlarmEventType;
+  SaNtfNotificationTypeT notificationType;
+  SaNameT notificationObject;
+  SaNameT notifyingObject;
+  SaNtfClassIdT notificationClassId;
+  SaTimeT eventTime;
+  SaNtfIdentifierT notificationId;
+  SaNtfSubscriptionIdT subscriptionId;
+  SaNtfSourceIndicatorT stateChangeSourceIndicator;
 
-	/* Object Create Delete Specific */
-	SaNtfSourceIndicatorT objectCreateDeleteSourceIndicator;
-	SaNtfAttributeT objectAttributes[MAX_NUMBER_OF_OBJECT_ATTRIBUTES];
-	SaNtfValueTypeT attributeType;
+  /* Object Create Delete Specific */
+  SaNtfSourceIndicatorT objectCreateDeleteSourceIndicator;
+  SaNtfAttributeT objectAttributes[MAX_NUMBER_OF_OBJECT_ATTRIBUTES];
+  SaNtfValueTypeT attributeType;
 
-	/* Attribute Change Specific */
-	SaNtfSourceIndicatorT attributeChangeSourceIndicator;
-	SaNtfAttributeChangeT changedAttributes[
-		MAX_NUMBER_OF_CHANGED_ATTRIBUTES];
+  /* Attribute Change Specific */
+  SaNtfSourceIndicatorT attributeChangeSourceIndicator;
+  SaNtfAttributeChangeT changedAttributes[
+      MAX_NUMBER_OF_CHANGED_ATTRIBUTES];
 
-	/* Security Alarm Specific */
-	SaNtfProbableCauseT securityAlarmProbableCause;
-	SaNtfSeverityT severity;
-	SaNtfSecurityAlarmDetectorT securityAlarmDetector;
-	SaNtfServiceUserT serviceProvider;
-	SaNtfServiceUserT serviceUser;
+  /* Security Alarm Specific */
+  SaNtfProbableCauseT securityAlarmProbableCause;
+  SaNtfSeverityT severity;
+  SaNtfSecurityAlarmDetectorT securityAlarmDetector;
+  SaNtfServiceUserT serviceProvider;
+  SaNtfServiceUserT serviceUser;
 
-	SaInt32T timeout;
-	SaInt32T burstTimeout;
-	unsigned int repeateSends;
-	saNotificationAdditionalInfoParamsT additionalInfo[MAX_NUMBER_OF_ADDITIONAL_INFO];
+  SaInt32T timeout;
+  SaInt32T burstTimeout;
+  unsigned int repeateSends;
+  saNotificationAdditionalInfoParamsT additionalInfo[MAX_NUMBER_OF_ADDITIONAL_INFO];
 } saNotificationParamsT;
 
 typedef SaUint16T saNotificationFlagsT;
@@ -144,27 +144,27 @@ void set_nType_for_eType(SaNtfNotificationTypeT *nType, SaNtfEventTypeT *eType);
 
 /* wrapper of NTF API to handle TRY_AGAIN */
 SaAisErrorT ntftool_saNtfInitialize(
-		SaNtfHandleT *ntfHandle,
-		const SaNtfCallbacksT *ntfCallbacks,
-		SaVersionT *version);
+    SaNtfHandleT *ntfHandle,
+    const SaNtfCallbacksT *ntfCallbacks,
+    SaVersionT *version);
 SaAisErrorT ntftool_saNtfDispatch(
-		SaNtfHandleT ntfHandle,
-		SaDispatchFlagsT dispatchFlags);
+    SaNtfHandleT ntfHandle,
+    SaDispatchFlagsT dispatchFlags);
 SaAisErrorT ntftool_saNtfNotificationSend(
-		SaNtfNotificationHandleT notificationHandle);
+    SaNtfNotificationHandleT notificationHandle);
 SaAisErrorT ntftool_saNtfNotificationSubscribe(
-		const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
-		SaNtfSubscriptionIdT subscriptionId);
+    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+    SaNtfSubscriptionIdT subscriptionId);
 SaAisErrorT ntftool_saNtfNotificationUnsubscribe(
-		SaNtfSubscriptionIdT subscriptionId);
+    SaNtfSubscriptionIdT subscriptionId);
 SaAisErrorT ntftool_saNtfNotificationReadInitialize(
-		SaNtfSearchCriteriaT searchCriteria,
-		const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
-		SaNtfReadHandleT *readHandle);
+    SaNtfSearchCriteriaT searchCriteria,
+    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+    SaNtfReadHandleT *readHandle);
 SaAisErrorT ntftool_saNtfNotificationReadNext(
-		SaNtfReadHandleT readHandle,
-		SaNtfSearchDirectionT searchDirection, SaNtfNotificationsT *notification);
+    SaNtfReadHandleT readHandle,
+    SaNtfSearchDirectionT searchDirection, SaNtfNotificationsT *notification);
 SaAisErrorT ntftool_saNtfNotificationReadFinalize(
-		SaNtfReadHandleT readhandle);
+    SaNtfReadHandleT readhandle);
 
 #endif
