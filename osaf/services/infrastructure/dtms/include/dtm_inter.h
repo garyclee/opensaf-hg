@@ -20,17 +20,17 @@
 
 #define DTM_INTERNODE_RCV_MSG_IDENTIFIER 0x56123456
 
-#define DTM_INTERNODE_RCV_MSG_VER	1
+#define DTM_INTERNODE_RCV_MSG_VER       1
 
 #define DTM_INTERNODE_SND_MSG_IDENTIFIER 0x56123456
 
-#define DTM_INTERNODE_SND_MSG_VER	1
+#define DTM_INTERNODE_SND_MSG_VER       1
 
 typedef enum dtm_msg_types {
-	DTM_CONN_DETAILS_MSG_TYPE = 1,
-	DTM_UP_MSG_TYPE = 2,
-	DTM_DOWN_MSG_TYPE = 3,
-	DTM_MESSAGE_MSG_TYPE = 4,
+  DTM_CONN_DETAILS_MSG_TYPE = 1,
+  DTM_UP_MSG_TYPE = 2,
+  DTM_DOWN_MSG_TYPE = 3,
+  DTM_MESSAGE_MSG_TYPE = 4,
 } DTM_MSG_TYPES;
 
 extern uint32_t dtm_node_up(NODE_ID node_id, char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, SYSF_MBX mbx);

@@ -38,67 +38,67 @@ extern uint8_t initial_discovery_phase;
 #define m_NODE_DISCOVERY_STACKSIZE       NCS_STACKSIZE_HUGE
 
 /* The default value of SO_RCVBUF & SO_SNDBUF , it is set by the rmem_default/wmem_default  */
-#define DTM_MAX_TAG_LEN	256
+#define DTM_MAX_TAG_LEN 256
 
 typedef enum {
-	DTM_MBX_UP_TYPE = 1,
-	DTM_MBX_DOWN_TYPE = 2,
-	DTM_MBX_NODE_UP_TYPE = 3,
-	DTM_MBX_NODE_DOWN_TYPE = 4,
-	DTM_MBX_MSG_TYPE = 5,
+  DTM_MBX_UP_TYPE = 1,
+  DTM_MBX_DOWN_TYPE = 2,
+  DTM_MBX_NODE_UP_TYPE = 3,
+  DTM_MBX_NODE_DOWN_TYPE = 4,
+  DTM_MBX_MSG_TYPE = 5,
 } MBX_POST_TYPES;
 
 typedef struct dtm_rcv_msg_elem {
-	void *next;
-	MBX_POST_TYPES type;
-	uint8_t pri;
-	union {
-		struct {
-			uint16_t len;
-			uint8_t *buffer;
-			uint32_t dst_pid;
-		} data;
+  void *next;
+  MBX_POST_TYPES type;
+  uint8_t pri;
+  union {
+    struct {
+      uint16_t len;
+      uint8_t *buffer;
+      uint32_t dst_pid;
+    } data;
 
-		struct {
-			uint16_t len;
-			uint8_t *buffer;
-			NODE_ID node_id;
-		} svc_event;
+    struct {
+      uint16_t len;
+      uint8_t *buffer;
+      NODE_ID node_id;
+    } svc_event;
 
-		struct {
-			char node_name[255];
-			NODE_ID node_id;
-			SYSF_MBX mbx;
-			DTM_IP_ADDR_TYPE i_addr_family; /* Indicates V4 or V6 */
-			char node_ip[INET6_ADDRSTRLEN];
+    struct {
+      char node_name[255];
+      NODE_ID node_id;
+      SYSF_MBX mbx;
+      DTM_IP_ADDR_TYPE i_addr_family; /* Indicates V4 or V6 */
+      char node_ip[INET6_ADDRSTRLEN];
 
-		} node;
-	} info;
+    } node;
+  } info;
 
 } DTM_RCV_MSG_ELEM;
 
 typedef enum {
-	DTM_MBX_ADD_DISTR_TYPE = 1,
-	DTM_MBX_DEL_DISTR_TYPE = 2,
-	DTM_MBX_DATA_MSG_TYPE = 3,
+  DTM_MBX_ADD_DISTR_TYPE = 1,
+  DTM_MBX_DEL_DISTR_TYPE = 2,
+  DTM_MBX_DATA_MSG_TYPE = 3,
 } MBX_SND_POST_TYPES;
 
 typedef struct dtm_snd_msg_elem {
-	void *next;
-	MBX_SND_POST_TYPES type;
-	uint8_t pri;
-	union {
-		struct {
-			uint32_t server_type;
-			uint32_t server_inst;
-			uint32_t pid;
-		} svc_event;
-		struct {
-			NODE_ID dst_nodeid;
-			uint16_t buff_len;
-			uint8_t *buffer;
-		} data;
-	} info;
+  void *next;
+  MBX_SND_POST_TYPES type;
+  uint8_t pri;
+  union {
+    struct {
+      uint32_t server_type;
+      uint32_t server_inst;
+      uint32_t pid;
+    } svc_event;
+    struct {
+      NODE_ID dst_nodeid;
+      uint16_t buff_len;
+      uint8_t *buffer;
+    } data;
+  } info;
 } DTM_SND_MSG_ELEM;
 
 extern void node_discovery_process(void *arg);

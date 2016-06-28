@@ -20,31 +20,31 @@
 
 /*iden-4 , ver-1, type-1, num_elements-2, type-4, inst-4, pid-4 */
 
-#define DTM_UP_MSG_SIZE		20
-#define DTM_DOWN_MSG_SIZE	DTM_UP_MSG_SIZE
+#define DTM_UP_MSG_SIZE         20
+#define DTM_DOWN_MSG_SIZE       DTM_UP_MSG_SIZE
 
 #define DTM_UP_MSG_SIZE_FULL (DTM_UP_MSG_SIZE + 2)
 #define DTM_DOWN_MSG_SIZE_FULL DTM_UP_MSG_SIZE_FULL
 
 typedef struct dtm_svc_data {
-	struct dtm_svc_data *next;
-	uint32_t type;
-	uint32_t inst;
-	uint32_t pid;
+  struct dtm_svc_data *next;
+  uint32_t type;
+  uint32_t inst;
+  uint32_t pid;
 } DTM_SVC_DATA;
 
 typedef struct dtm_svc_distribution_list {
-	DTM_SVC_DATA *data_ptr_hdr;
-	DTM_SVC_DATA *data_ptr_tail;
-	uint16_t num_elem;
+  DTM_SVC_DATA *data_ptr_hdr;
+  DTM_SVC_DATA *data_ptr_tail;
+  uint16_t num_elem;
 } DTM_SVC_DISTRIBUTION_LIST;
 
 extern DTM_SVC_DISTRIBUTION_LIST *dtm_svc_dist_list;
 
 typedef struct dtm_up_msg {
-	uint32_t type;
-	uint32_t inst;
-	uint32_t process_id;
+  uint32_t type;
+  uint32_t inst;
+  uint32_t process_id;
 } DTM_UP_MSG;
 
 typedef DTM_UP_MSG DTM_DOWN_MSG;
