@@ -22,7 +22,7 @@
 
   DESCRIPTION:
 
- _NCS private_ Message Based checkpointing Server (MBCSV) abstractions and 
+ _NCS private_ Message Based checkpointing Server (MBCSV) abstractions and
           function prototypes
 
 *******************************************************************************/

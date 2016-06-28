@@ -18,20 +18,20 @@
 /*****************************************************************************
 ..............................................................................
 
-  
-    
-      
+
+
+
    REVISION HISTORY:
-          
+
    DESCRIPTION:
-            
+
    This module contains the MBCSv MBX list structure and the corresponding functions.
-              
+
 *******************************************************************************/
 
 /*
-* Module Inclusion Control...
-*/
+ * Module Inclusion Control...
+ */
 #ifndef MBCSV_PWE_ANC_H
 #define MBCSV_PWE_ANC_H
 
@@ -42,8 +42,8 @@
  * for brodcasting the message to all the peers.
  */
 typedef struct {
-        uint32_t pwe_hdl;               /* Handle supplied by application with OPEN call */
-        MBCSV_ANCHOR anchor;
+  uint32_t pwe_hdl;               /* Handle supplied by application with OPEN call */
+  MBCSV_ANCHOR anchor;
 } MBCSV_PEER_KEY;
 
 /*
