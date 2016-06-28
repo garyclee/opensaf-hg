@@ -82,8 +82,8 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
  **                             the argument tod.                           **
  **                                                                         **
  ****************************************************************************/
-#define m_GET_TIME_STAMP(timestamp) \
-    m_NCS_OS_GET_TIME_STAMP(timestamp)
+#define m_GET_TIME_STAMP(timestamp)             \
+  m_NCS_OS_GET_TIME_STAMP(timestamp)
 
 /*****************************************************************************
  **                                                                         **
@@ -102,8 +102,8 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason);
  * under normal conditions, it will call this macro.
  *
  */
-#define m_LEAP_DBG_SINK(r)	(TRACE("IN LEAP_DBG_SINK"), r)
-#define m_LEAP_DBG_SINK_VOID	TRACE("IN LEAP_DBG_SINK")
+#define m_LEAP_DBG_SINK(r)      (TRACE("IN LEAP_DBG_SINK"), r)
+#define m_LEAP_DBG_SINK_VOID    TRACE("IN LEAP_DBG_SINK")
 
 /*****************************************************************************
  **                                                                         **

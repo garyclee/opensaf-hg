@@ -21,12 +21,12 @@
 ..............................................................................
 
   DESCRIPTION:
-  This file containts the structures and prototype declarations usesful for serv 
-  ices to interface with nodeinitd. These definitions are used 
+  This file containts the structures and prototype declarations usesful for serv
+  ices to interface with nodeinitd. These definitions are used
   both by nodeini  td and blladeinit API.
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 
 #ifndef NID_API_H
 #define NID_API_H
@@ -56,9 +56,9 @@ extern "C" {
  *       for communicating initialization status.               *
  ****************************************************************/
 typedef struct nid_fifo_msg {
-	uint32_t nid_magic_no;	/* Magic number */
-	char nid_serv_name[NID_MAXSNAME];	/* Identifies the spawned service uniquely */
-	uint32_t nid_stat_code;	/* Identifies the initialization status */
+  uint32_t nid_magic_no;  /* Magic number */
+  char nid_serv_name[NID_MAXSNAME];       /* Identifies the spawned service uniquely */
+  uint32_t nid_stat_code; /* Identifies the initialization status */
 } NID_FIFO_MSG;
 
 /**********************************************************************

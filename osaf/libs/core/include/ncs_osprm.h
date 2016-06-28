@@ -22,8 +22,8 @@
   This module contains declarations for Operating System Interfaces.
 
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 
 #ifndef NCS_OSPRM_H
 #define NCS_OSPRM_H
@@ -57,8 +57,8 @@ extern "C" {
  ** VR_CB_V  = "Void Returning CallBack Function using Void arg"
  **
  ** ********************************************************************** **/
-	typedef void (*NCS_OS_CB) (void *);
-	typedef void (*VR_CBF_V) (void);
+typedef void (*NCS_OS_CB) (void *);
+typedef void (*VR_CBF_V) (void);
 
 /****************************************************************************
  ****************************************************************************
@@ -81,45 +81,45 @@ extern "C" {
 /****************************************************************************
  * Control Structure Definition
  ***************************************************************************/
-	typedef struct ncs_os_task_tag {
-		union {
-			struct {
-				NCS_OS_CB i_entry_point;
-				const char *i_name;
-				unsigned int i_priority;
-				unsigned int i_stack_nbytes;
-				int i_policy;
-				void *i_ep_arg;
-				void *o_handle;
-			} create;
+typedef struct ncs_os_task_tag {
+  union {
+    struct {
+      NCS_OS_CB i_entry_point;
+      const char *i_name;
+      unsigned int i_priority;
+      unsigned int i_stack_nbytes;
+      int i_policy;
+      void *i_ep_arg;
+      void *o_handle;
+    } create;
 
-			struct {
-				void *i_handle;
-			} release;
+    struct {
+      void *i_handle;
+    } release;
 
-			struct {
-				void *i_handle;
-			} detach;
+    struct {
+      void *i_handle;
+    } detach;
 
-			struct {
-				void *i_handle;
-			} start;
+    struct {
+      void *i_handle;
+    } start;
 
-			struct {
-				void *i_handle;
-			} stop;
+    struct {
+      void *i_handle;
+    } stop;
 
-			struct {
-				unsigned int i_delay_in_ms;
-			} sleep;
+    struct {
+      unsigned int i_delay_in_ms;
+    } sleep;
 
-			struct {
-				void *o_handle;
-			} current_handle;
+    struct {
+      void *o_handle;
+    } current_handle;
 
-		} info;
+  } info;
 
-	} NCS_OS_TASK;
+} NCS_OS_TASK;
 
 /****************************************************************************
  * Supported Operations
@@ -130,17 +130,17 @@ extern "C" {
  *  NCS_OS_TASK_SLEEP   (mandatory) Sleep/delay a NCS_OS_TASK task.
  *  NCS_OS_TASK_CURRENT_HANDLE (mandatory) Return handle of current NCS_OS_TASK task.
  ***************************************************************************/
-	typedef enum {
-		NCS_OS_TASK_CREATE = 1,
-		NCS_OS_TASK_RELEASE,
-		NCS_OS_TASK_DETACH,
-		NCS_OS_TASK_START,
-		NCS_OS_TASK_STOP,
-		NCS_OS_TASK_SLEEP,
-		NCS_OS_TASK_CURRENT_HANDLE,
-		NCS_OS_TASK_JOIN,
-		NCS_OS_TASK_MAX
-	} NCS_OS_TASK_REQUEST;
+typedef enum {
+  NCS_OS_TASK_CREATE = 1,
+  NCS_OS_TASK_RELEASE,
+  NCS_OS_TASK_DETACH,
+  NCS_OS_TASK_START,
+  NCS_OS_TASK_STOP,
+  NCS_OS_TASK_SLEEP,
+  NCS_OS_TASK_CURRENT_HANDLE,
+  NCS_OS_TASK_JOIN,
+  NCS_OS_TASK_MAX
+} NCS_OS_TASK_REQUEST;
 
 /****************************************************************************
  **                                                                        **
@@ -167,13 +167,13 @@ extern "C" {
  *  NCS_OS_LOCK_UNLOCK  (mandatory) Unlock the object.
  *  NCS_OS_LOCK_RELEASE (mandatory) Release resources for this lock object.
  ***************************************************************************/
-	typedef enum {
-		NCS_OS_LOCK_CREATE = 1,
-		NCS_OS_LOCK_RELEASE,
-		NCS_OS_LOCK_LOCK,
-		NCS_OS_LOCK_UNLOCK,
-		NCS_OS_LOCK_REQUEST_MAX
-	} NCS_OS_LOCK_REQUEST;
+typedef enum {
+  NCS_OS_LOCK_CREATE = 1,
+  NCS_OS_LOCK_RELEASE,
+  NCS_OS_LOCK_LOCK,
+  NCS_OS_LOCK_UNLOCK,
+  NCS_OS_LOCK_REQUEST_MAX
+} NCS_OS_LOCK_REQUEST;
 
 /****************************************************************************
  ****************************************************************************
@@ -231,9 +231,9 @@ extern "C" {
  *
  ***************************************************************************/
 
-	typedef void *(*NCS_POOL_MALLOC)(uint32_t nbytes, uint8_t pool_id, uint8_t priority);
+typedef void *(*NCS_POOL_MALLOC)(uint32_t nbytes, uint8_t pool_id, uint8_t priority);
 
-	typedef void (*NCS_POOL_MFREE) (void *data, uint8_t pool_id);
+typedef void (*NCS_POOL_MFREE) (void *data, uint8_t pool_id);
 
 /****************************************************************************
  * User Defined Pool Memory Allocate Primitive definition
@@ -309,7 +309,7 @@ unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
  *   none
  *
  * Macro return codes
- *  void 
+ *  void
  ***************************************************************************/
 #define m_NCS_OS_TASK_PRELUDE   {setbuf(stdin,NULL);setbuf(stdout,NULL);setbuf(stderr,NULL);}
 
@@ -350,79 +350,79 @@ unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
  *
  ***************************************************************************/
 
-	typedef enum {
-		NCS_OS_MQ_REQ_MIN,
-		NCS_OS_MQ_REQ_CREATE,	/* Strictly create */
-		NCS_OS_MQ_REQ_OPEN,	/* Strictly open i.e. do not create */
-		NCS_OS_MQ_REQ_DESTROY,
-		NCS_OS_MQ_REQ_MSG_SEND,
-		NCS_OS_MQ_REQ_MSG_SEND_ASYNC,
-		NCS_OS_MQ_REQ_MSG_RECV,	/* Blocking recv call */
-		NCS_OS_MQ_REQ_MSG_RECV_ASYNC,	/* NonBlocking recv call */
-		NCS_OS_MQ_REQ_RESIZE,
-		NCS_OS_MQ_REQ_MAX
-	} NCS_OS_MQ_REQ_TYPE;
+typedef enum {
+  NCS_OS_MQ_REQ_MIN,
+  NCS_OS_MQ_REQ_CREATE,   /* Strictly create */
+  NCS_OS_MQ_REQ_OPEN,     /* Strictly open i.e. do not create */
+  NCS_OS_MQ_REQ_DESTROY,
+  NCS_OS_MQ_REQ_MSG_SEND,
+  NCS_OS_MQ_REQ_MSG_SEND_ASYNC,
+  NCS_OS_MQ_REQ_MSG_RECV, /* Blocking recv call */
+  NCS_OS_MQ_REQ_MSG_RECV_ASYNC,   /* NonBlocking recv call */
+  NCS_OS_MQ_REQ_RESIZE,
+  NCS_OS_MQ_REQ_MAX
+} NCS_OS_MQ_REQ_TYPE;
 
-	typedef struct ncs_os_mq_msg {
-		/* ll_hdr is filled by the MQ-implementation. A MQ-user is expected
-		   to fill in the "data" portion only.
-		 */
-		NCS_OS_MQ_MSG_LL_HDR ll_hdr;
-		uint8_t data[NCS_OS_MQ_MAX_PAYLOAD];
-	} NCS_OS_MQ_MSG;
-
-/*-----------------------------------*/
-	typedef struct ncs_mq_req_create_info {
-		NCS_OS_MQ_KEY *i_key;
-		NCS_OS_MQ_HDL o_hdl;
-	} NCS_OS_MQ_REQ_CREATE_INFO;
+typedef struct ncs_os_mq_msg {
+  /* ll_hdr is filled by the MQ-implementation. A MQ-user is expected
+     to fill in the "data" portion only.
+  */
+  NCS_OS_MQ_MSG_LL_HDR ll_hdr;
+  uint8_t data[NCS_OS_MQ_MAX_PAYLOAD];
+} NCS_OS_MQ_MSG;
 
 /*-----------------------------------*/
-	typedef NCS_OS_MQ_REQ_CREATE_INFO NCS_OS_MQ_REQ_OPEN_INFO;
+typedef struct ncs_mq_req_create_info {
+  NCS_OS_MQ_KEY *i_key;
+  NCS_OS_MQ_HDL o_hdl;
+} NCS_OS_MQ_REQ_CREATE_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_mq_req_destroy_info {
-		NCS_OS_MQ_HDL i_hdl;
-	} NCS_OS_MQ_REQ_DESTROY_INFO;
+typedef NCS_OS_MQ_REQ_CREATE_INFO NCS_OS_MQ_REQ_OPEN_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_mq_req_msg_send_info {
-		NCS_OS_MQ_HDL i_hdl;
-		NCS_OS_MQ_MSG *i_msg;
-		uint32_t i_len;
-		uint32_t i_mtype;	/* Can be used for priority */
-	} NCS_OS_MQ_REQ_MSG_SEND_INFO;
+typedef struct ncs_mq_req_destroy_info {
+  NCS_OS_MQ_HDL i_hdl;
+} NCS_OS_MQ_REQ_DESTROY_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_mq_req_msg_recv_info {
-		NCS_OS_MQ_HDL i_hdl;
-		NCS_OS_MQ_MSG *i_msg;
-		uint32_t i_max_recv;
-		int32_t i_mtype;	/* the first message on the queue with the 
-				   lowest type less than or equal to the 
-				   absolute value of i_mtype will be read */
-	} NCS_OS_MQ_REQ_MSG_RECV_INFO;
+typedef struct ncs_mq_req_msg_send_info {
+  NCS_OS_MQ_HDL i_hdl;
+  NCS_OS_MQ_MSG *i_msg;
+  uint32_t i_len;
+  uint32_t i_mtype;       /* Can be used for priority */
+} NCS_OS_MQ_REQ_MSG_SEND_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_mq_req_resize_info {
-		NCS_OS_MQ_HDL i_hdl;
-		uint32_t i_newqsize;	/* new queue size */
-	} NCS_OS_MQ_REQ_RESIZE_INFO;
+typedef struct ncs_mq_req_msg_recv_info {
+  NCS_OS_MQ_HDL i_hdl;
+  NCS_OS_MQ_MSG *i_msg;
+  uint32_t i_max_recv;
+  int32_t i_mtype;        /* the first message on the queue with the
+                             lowest type less than or equal to the
+                             absolute value of i_mtype will be read */
+} NCS_OS_MQ_REQ_MSG_RECV_INFO;
+
+/*-----------------------------------*/
+typedef struct ncs_mq_req_resize_info {
+  NCS_OS_MQ_HDL i_hdl;
+  uint32_t i_newqsize;    /* new queue size */
+} NCS_OS_MQ_REQ_RESIZE_INFO;
 
 /*-----------------------------------*/
 
-	typedef struct ncs_mq_req {
-		NCS_OS_MQ_REQ_TYPE req;
+typedef struct ncs_mq_req {
+  NCS_OS_MQ_REQ_TYPE req;
 
-		union {
-			NCS_OS_MQ_REQ_CREATE_INFO create;
-			NCS_OS_MQ_REQ_OPEN_INFO open;
-			NCS_OS_MQ_REQ_DESTROY_INFO destroy;
-			NCS_OS_MQ_REQ_MSG_SEND_INFO send;
-			NCS_OS_MQ_REQ_MSG_RECV_INFO recv;
-			NCS_OS_MQ_REQ_RESIZE_INFO resize;
-		} info;
-	} NCS_OS_MQ_REQ_INFO;
+  union {
+    NCS_OS_MQ_REQ_CREATE_INFO create;
+    NCS_OS_MQ_REQ_OPEN_INFO open;
+    NCS_OS_MQ_REQ_DESTROY_INFO destroy;
+    NCS_OS_MQ_REQ_MSG_SEND_INFO send;
+    NCS_OS_MQ_REQ_MSG_RECV_INFO recv;
+    NCS_OS_MQ_REQ_RESIZE_INFO resize;
+  } info;
+} NCS_OS_MQ_REQ_INFO;
 
 #define m_NCS_OS_MQ ncs_os_mq
 uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
@@ -441,97 +441,97 @@ uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
  *
  ***************************************************************************/
 
-	typedef enum {
-		NCS_OS_POSIX_MQ_REQ_MIN = 1,
-		NCS_OS_POSIX_MQ_REQ_OPEN,	/* Strictly open i.e. do not create */
-		NCS_OS_POSIX_MQ_REQ_CLOSE,
-		NCS_OS_POSIX_MQ_REQ_UNLINK,
-		NCS_OS_POSIX_MQ_REQ_MSG_SEND,
-		NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC,
-		NCS_OS_POSIX_MQ_REQ_MSG_RECV,	/* Blocking recv call */
-		NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC,	/* NonBlocking recv call */
-		NCS_OS_POSIX_MQ_REQ_GET_ATTR,	/* Get attributes */
-		NCS_OS_POSIX_MQ_REQ_RESIZE,
-		NCS_OS_POSIX_MQ_REQ_MAX
-	} NCS_OS_POSIX_MQ_REQ_TYPE;
+typedef enum {
+  NCS_OS_POSIX_MQ_REQ_MIN = 1,
+  NCS_OS_POSIX_MQ_REQ_OPEN,       /* Strictly open i.e. do not create */
+  NCS_OS_POSIX_MQ_REQ_CLOSE,
+  NCS_OS_POSIX_MQ_REQ_UNLINK,
+  NCS_OS_POSIX_MQ_REQ_MSG_SEND,
+  NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC,
+  NCS_OS_POSIX_MQ_REQ_MSG_RECV,   /* Blocking recv call */
+  NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC,     /* NonBlocking recv call */
+  NCS_OS_POSIX_MQ_REQ_GET_ATTR,   /* Get attributes */
+  NCS_OS_POSIX_MQ_REQ_RESIZE,
+  NCS_OS_POSIX_MQ_REQ_MAX
+} NCS_OS_POSIX_MQ_REQ_TYPE;
 
 
-	typedef struct ncs_os_posix_mq_attr {
-		uint32_t mq_flags;
-		uint32_t mq_maxmsg;
-		uint32_t mq_msgsize;
-		uint32_t mq_curmsgs;
-		uint32_t mq_stime;
-	} NCS_OS_POSIX_MQ_ATTR;
+typedef struct ncs_os_posix_mq_attr {
+  uint32_t mq_flags;
+  uint32_t mq_maxmsg;
+  uint32_t mq_msgsize;
+  uint32_t mq_curmsgs;
+  uint32_t mq_stime;
+} NCS_OS_POSIX_MQ_ATTR;
 
 #define NCS_OS_POSIX_MQ_ATTR struct ncs_os_posix_mq_attr
 
 /*-----------------------------------*/
-	typedef struct ncs_mq_req_open_info {
-		char *qname;
-		uint32_t node;
-		uint32_t iflags;
-		NCS_OS_POSIX_MQD o_mqd;
-		NCS_OS_POSIX_MQ_ATTR attr;
-	} NCS_OS_POSIX_MQ_REQ_OPEN_INFO;
+typedef struct ncs_mq_req_open_info {
+  char *qname;
+  uint32_t node;
+  uint32_t iflags;
+  NCS_OS_POSIX_MQD o_mqd;
+  NCS_OS_POSIX_MQ_ATTR attr;
+} NCS_OS_POSIX_MQ_REQ_OPEN_INFO;
 
-	typedef struct ncs_mq_req_attr_info {
-		NCS_OS_POSIX_MQD i_mqd;
-		NCS_OS_POSIX_MQ_ATTR o_attr;
-	} NCS_OS_POSIX_MQ_REQ_ATTR_INFO;
-
-/*-----------------------------------*/
-	typedef struct ncs_mq_req_close_info {
-		NCS_OS_POSIX_MQD mqd;
-	} NCS_OS_POSIX_MQ_REQ_CLOSE_INFO;
+typedef struct ncs_mq_req_attr_info {
+  NCS_OS_POSIX_MQD i_mqd;
+  NCS_OS_POSIX_MQ_ATTR o_attr;
+} NCS_OS_POSIX_MQ_REQ_ATTR_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_mq_req_unlink_info {
-		uint8_t *qname;
-		uint32_t node;
-	} NCS_OS_POSIX_MQ_REQ_UNLINK_INFO;
+typedef struct ncs_mq_req_close_info {
+  NCS_OS_POSIX_MQD mqd;
+} NCS_OS_POSIX_MQ_REQ_CLOSE_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_posix_mq_req_msg_send_info {
-		NCS_OS_POSIX_MQD mqd;
-		uint32_t datalen;
-		uint32_t dataprio;
-		NCS_OS_MQ_MSG *i_msg;
-		uint32_t i_mtype;	/* Can be used for priority */
-	} NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO;
+typedef struct ncs_mq_req_unlink_info {
+  uint8_t *qname;
+  uint32_t node;
+} NCS_OS_POSIX_MQ_REQ_UNLINK_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_posix_mq_req_msg_recv_info {
-		NCS_OS_POSIX_MQD mqd;
-		uint32_t datalen;
-		uint32_t dataprio;
-		NCS_OS_POSIX_TIMESPEC timeout;
-		NCS_OS_MQ_MSG *i_msg;
-		int32_t i_mtype;	/* the first message on the queue with the
-				   lowest type less than or equal to the
-				   absolute value of i_mtype will be read */
-	} NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO;
+typedef struct ncs_posix_mq_req_msg_send_info {
+  NCS_OS_POSIX_MQD mqd;
+  uint32_t datalen;
+  uint32_t dataprio;
+  NCS_OS_MQ_MSG *i_msg;
+  uint32_t i_mtype;       /* Can be used for priority */
+} NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_posix_mq_req_resize_info {
-		NCS_OS_POSIX_MQD mqd;
-		uint32_t i_newqsize;	/* new queue size */
-	} NCS_OS_POSIX_MQ_REQ_RESIZE_INFO;
+typedef struct ncs_posix_mq_req_msg_recv_info {
+  NCS_OS_POSIX_MQD mqd;
+  uint32_t datalen;
+  uint32_t dataprio;
+  NCS_OS_POSIX_TIMESPEC timeout;
+  NCS_OS_MQ_MSG *i_msg;
+  int32_t i_mtype;        /* the first message on the queue with the
+                             lowest type less than or equal to the
+                             absolute value of i_mtype will be read */
+} NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO;
 
 /*-----------------------------------*/
-	typedef struct ncs_posix_mq_req_info {
-		NCS_OS_POSIX_MQ_REQ_TYPE req;
+typedef struct ncs_posix_mq_req_resize_info {
+  NCS_OS_POSIX_MQD mqd;
+  uint32_t i_newqsize;    /* new queue size */
+} NCS_OS_POSIX_MQ_REQ_RESIZE_INFO;
 
-		union {
-			NCS_OS_POSIX_MQ_REQ_OPEN_INFO open;
-			NCS_OS_POSIX_MQ_REQ_CLOSE_INFO close;
-			NCS_OS_POSIX_MQ_REQ_UNLINK_INFO unlink;
-			NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO send;
-			NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO recv;
-			NCS_OS_POSIX_MQ_REQ_ATTR_INFO attr;
-			NCS_OS_POSIX_MQ_REQ_RESIZE_INFO resize;
-		} info;
-	} NCS_OS_POSIX_MQ_REQ_INFO;
+/*-----------------------------------*/
+typedef struct ncs_posix_mq_req_info {
+  NCS_OS_POSIX_MQ_REQ_TYPE req;
+
+  union {
+    NCS_OS_POSIX_MQ_REQ_OPEN_INFO open;
+    NCS_OS_POSIX_MQ_REQ_CLOSE_INFO close;
+    NCS_OS_POSIX_MQ_REQ_UNLINK_INFO unlink;
+    NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO send;
+    NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO recv;
+    NCS_OS_POSIX_MQ_REQ_ATTR_INFO attr;
+    NCS_OS_POSIX_MQ_REQ_RESIZE_INFO resize;
+  } info;
+} NCS_OS_POSIX_MQ_REQ_INFO;
 
 #define m_NCS_OS_POSIX_MQ ncs_os_posix_mq
 uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
@@ -549,79 +549,79 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
  *   NCSCC_RC_FAILURE - interface call failed.
  *
  ***************************************************************************/
-	typedef enum {
+typedef enum {
 
-		NCS_OS_POSIX_SHM_REQ_MIN = 1,
-		NCS_OS_POSIX_SHM_REQ_OPEN,	/* opens and mmaps */
-		NCS_OS_POSIX_SHM_REQ_CLOSE,	/* close is munmap */
-		NCS_OS_POSIX_SHM_REQ_UNLINK,	/* unlink is shm_unlink */
-		NCS_OS_POSIX_SHM_REQ_READ,
-		NCS_OS_POSIX_SHM_REQ_WRITE,
-		NCS_OS_POSIX_SHM_REQ_MAX
-	} NCS_OS_POSIX_SHM_REQ_TYPE;
-	typedef struct ncs_os_posix_shm_req_open_info_tag {
-		char *i_name;
-		uint32_t i_flags;
-		uint32_t i_map_flags;
-		uint64_t i_size;
-		bool ensures_space;
-		uint64_t i_offset;
-		void *o_addr;
-		int32_t o_fd;
-		uint32_t o_hdl;
+  NCS_OS_POSIX_SHM_REQ_MIN = 1,
+  NCS_OS_POSIX_SHM_REQ_OPEN,      /* opens and mmaps */
+  NCS_OS_POSIX_SHM_REQ_CLOSE,     /* close is munmap */
+  NCS_OS_POSIX_SHM_REQ_UNLINK,    /* unlink is shm_unlink */
+  NCS_OS_POSIX_SHM_REQ_READ,
+  NCS_OS_POSIX_SHM_REQ_WRITE,
+  NCS_OS_POSIX_SHM_REQ_MAX
+} NCS_OS_POSIX_SHM_REQ_TYPE;
+typedef struct ncs_os_posix_shm_req_open_info_tag {
+  char *i_name;
+  uint32_t i_flags;
+  uint32_t i_map_flags;
+  uint64_t i_size;
+  bool ensures_space;
+  uint64_t i_offset;
+  void *o_addr;
+  int32_t o_fd;
+  uint32_t o_hdl;
 
-	} NCS_OS_POSIX_SHM_REQ_OPEN_INFO;
-	typedef struct ncs_os_posix_shm_req_close_info_tag {
-		uint32_t i_hdl;
-		void *i_addr;
-		int32_t i_fd;
-		uint64_t i_size;
-	} NCS_OS_POSIX_SHM_REQ_CLOSE_INFO;
+} NCS_OS_POSIX_SHM_REQ_OPEN_INFO;
+typedef struct ncs_os_posix_shm_req_close_info_tag {
+  uint32_t i_hdl;
+  void *i_addr;
+  int32_t i_fd;
+  uint64_t i_size;
+} NCS_OS_POSIX_SHM_REQ_CLOSE_INFO;
 
-	typedef struct ncs_os_posix_shm_req_unlink_info_tag {
-		char *i_name;
-	} NCS_OS_POSIX_SHM_REQ_UNLINK_INFO;
+typedef struct ncs_os_posix_shm_req_unlink_info_tag {
+  char *i_name;
+} NCS_OS_POSIX_SHM_REQ_UNLINK_INFO;
 
-	typedef struct ncs_os_posix_shm_req_read_info {
-		uint32_t i_hdl;
-		void *i_addr;
-		void *i_to_buff;
-		uint64_t i_read_size;
-		uint64_t i_offset;
-	} NCS_OS_POSIX_SHM_REQ_READ_INFO;
+typedef struct ncs_os_posix_shm_req_read_info {
+  uint32_t i_hdl;
+  void *i_addr;
+  void *i_to_buff;
+  uint64_t i_read_size;
+  uint64_t i_offset;
+} NCS_OS_POSIX_SHM_REQ_READ_INFO;
 
-	typedef struct ncs_os_posix_shm_req_write_info {
-		uint32_t i_hdl;
-		void *i_addr;
-		void *i_from_buff;
-		uint64_t i_write_size;
-		uint64_t i_offset;
-	} NCS_OS_POSIX_SHM_REQ_WRITE_INFO;
+typedef struct ncs_os_posix_shm_req_write_info {
+  uint32_t i_hdl;
+  void *i_addr;
+  void *i_from_buff;
+  uint64_t i_write_size;
+  uint64_t i_offset;
+} NCS_OS_POSIX_SHM_REQ_WRITE_INFO;
 
-	typedef struct ncs_shm_req_info {
-		NCS_OS_POSIX_SHM_REQ_TYPE type;
+typedef struct ncs_shm_req_info {
+  NCS_OS_POSIX_SHM_REQ_TYPE type;
 
-		union {
-			NCS_OS_POSIX_SHM_REQ_OPEN_INFO open;
-			NCS_OS_POSIX_SHM_REQ_CLOSE_INFO close;
-			NCS_OS_POSIX_SHM_REQ_UNLINK_INFO unlink;
-			NCS_OS_POSIX_SHM_REQ_READ_INFO read;
-			NCS_OS_POSIX_SHM_REQ_WRITE_INFO write;
-		} info;
+  union {
+    NCS_OS_POSIX_SHM_REQ_OPEN_INFO open;
+    NCS_OS_POSIX_SHM_REQ_CLOSE_INFO close;
+    NCS_OS_POSIX_SHM_REQ_UNLINK_INFO unlink;
+    NCS_OS_POSIX_SHM_REQ_READ_INFO read;
+    NCS_OS_POSIX_SHM_REQ_WRITE_INFO write;
+  } info;
 
-	} NCS_OS_POSIX_SHM_REQ_INFO;
+} NCS_OS_POSIX_SHM_REQ_INFO;
 
-	uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req);
+uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req);
 
 /****************************************************************************\
  * B E G I N  :  S E L E C T I O N - O B J E C T    P R I M I T I V E S     *
 \****************************************************************************/
 
 /****************************************************************************\
-  
+
   m_GET_FD_FROM_SEL_OBJ:A user should not directly access the members of
-                        a "ncs_sel_obj" structure. He is expected to use a 
-                        m_GET_FD_FROM_SEL_OBJ macro to extract a selectable 
+                        a "ncs_sel_obj" structure. He is expected to use a
+                        m_GET_FD_FROM_SEL_OBJ macro to extract a selectable
                         FD from an NCS_SEL_OBJ variable.
 
                         (Motivation - Data type abstraction. Will be useful
@@ -629,33 +629,33 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
                         NCS_SEL_OBJ, without effecting user code)
 
 \****************************************************************************/
-#define m_GET_FD_FROM_SEL_OBJ(sel_obj)           \
-            (sel_obj.rmv_obj)
+#define m_GET_FD_FROM_SEL_OBJ(sel_obj)          \
+  (sel_obj.rmv_obj)
 
 /****************************************************************************\
 
-   ncs_sel_obj_create:  Returns a selection-object pair. It internally may 
+   ncs_sel_obj_create:  Returns a selection-object pair. It internally may
                         involve socket creations etc. The caller is
                         transparent to this.
 
    RETURN VALUE :       NCSCC_RC_SUCCESS on success.
                         NCSCC_RC_FAILURE on failure.
 
-   ARGUMENTS    :  
+   ARGUMENTS    :
 
     o_sel_obj   :       A selection-object which can be used to pass
                         indications from one task to another. It contains
-                        a POSIX style file-descriptor on which a 
-			POSIX poll() can be invoked.
+                        a POSIX style file-descriptor on which a
+                        POSIX poll() can be invoked.
 
                         (This is an OUT argument and is set to a valid value
                         if the return value is success)
 
 \****************************************************************************/
-	uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj);
+uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj);
 #define     m_NCS_SEL_OBJ_CREATE(o_sel_obj) ncs_sel_obj_create(o_sel_obj)
 
-/****************************************************************************\ 
+/****************************************************************************\
 
    ncs_sel_obj_destroy: Destroys a selection-object
 
@@ -668,14 +668,14 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 
     i_sel_obj   :       Frees a selection-object created by the
                         m_NCS_SEL_OBJ_CREATE.
-                        
+
                         (This is an IN argument)
 
 \****************************************************************************/
-	uint32_t ncs_sel_obj_destroy(NCS_SEL_OBJ *i_sel_obj);
+uint32_t ncs_sel_obj_destroy(NCS_SEL_OBJ *i_sel_obj);
 #define     m_NCS_SEL_OBJ_DESTROY(i_sel_obj) ncs_sel_obj_destroy(i_sel_obj)
 
-/****************************************************************************\ 
+/****************************************************************************\
 
    ncs_sel_obj_rmv_operation_shut: Destroys a selection-object rmv fd
 
@@ -686,18 +686,18 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 
    ARGUMENTS    :
 
-    *i_sel_obj   :      Closes  selection-objects rmv fd created by the
+   *i_sel_obj   :      Closes  selection-objects rmv fd created by the
                         m_NCS_SEL_OBJ_CREATE.
-                        
-                        (This is an IN/OUT argument and  rmv fd is set to  -1 
+
+                        (This is an IN/OUT argument and  rmv fd is set to  -1
                         if the return value is success)
 
 \****************************************************************************/
 
-	uint32_t ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_sel_obj);
+uint32_t ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_sel_obj);
 #define     m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(i_sel_obj) ncs_sel_obj_rmv_operation_shut(i_sel_obj)
 
-/****************************************************************************\ 
+/****************************************************************************\
 
    ncs_sel_obj_raise_operation_shut: Destroys a selection-object raise fd
 
@@ -708,25 +708,25 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 
    ARGUMENTS    :
 
-    *i_sel_obj   :      Closes  selection-objects raise fd created by the
+   *i_sel_obj   :      Closes  selection-objects raise fd created by the
                         m_NCS_SEL_OBJ_CREATE.
-                        
-                        (This is an IN/OUT argument and  raise fd is set to  -1 
+
+                        (This is an IN/OUT argument and  raise fd is set to  -1
                         if the return value is success)
 
 \****************************************************************************/
-	uint32_t ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_sel_obj);
+uint32_t ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_sel_obj);
 #define     m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(i_sel_obj) ncs_sel_obj_raise_operation_shut(i_sel_obj)
 
-/****************************************************************************\ 
+/****************************************************************************\
    ncs_sel_obj_ind:     Queues exactly 1 indication on a selection-object. It
                         is a non-blocking call.
 
    RETURN VALUE :       Success: If an indication was successfully queued.
-                        Failure: If and indication could not be queued 
+                        Failure: If and indication could not be queued
                         (FAILURE is expected to be a very rare condition)
 
-   ARGUMENTS    :       
+   ARGUMENTS    :
 
     i_sel_obj   :       ptr to a selection-object created by the
                         m_NCS_SEL_OBJ_CREATE.
@@ -734,50 +734,50 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
                         (This is an IN argument)
 
 \****************************************************************************/
-	uint32_t ncs_sel_obj_ind(NCS_SEL_OBJ *i_sel_obj);
+uint32_t ncs_sel_obj_ind(NCS_SEL_OBJ *i_sel_obj);
 #define     m_NCS_SEL_OBJ_IND(i_sel_obj)  ncs_sel_obj_ind(i_sel_obj)
 
-/****************************************************************************\ 
-   ncs_sel_obj_rmv_ind: Removes 1 or more indications queued on 
-                        selection-object. It supports blocking and 
+/****************************************************************************\
+   ncs_sel_obj_rmv_ind: Removes 1 or more indications queued on
+                        selection-object. It supports blocking and
                         non-blocking option
 
-   RETURN VALUE :       
-      
+   RETURN VALUE :
+
      -1:                The selection-object is no longer valid. This
                         selection-object should no longer be used.
 
-     0:                 There are no indications queued up on the 
+     0:                 There are no indications queued up on the
                         selection-object. (Such a value can be returned
                         only by a non-blocking call)
 
      +ve:               The number of indications on the selection-object
-                        removed by this call.  
-                         
-   ARGUMENTS    :       
-   
+                        removed by this call.
+
+   ARGUMENTS    :
+
     i_sel_obj   :       A selection-object created by m_NCS_SEL_OBJ_CREATE
 
     i_no_blocking_flag: If true, this call returns immediately even if no
                         no indications are queued up. If false, this call
                         blocks until either an indication arrives or
-                        blocks until the selection-object is destroyed, 
-                        whichever happens earlier. 
+                        blocks until the selection-object is destroyed,
+                        whichever happens earlier.
 
     i_rmv_only_one flag:If true, only 1 indication is dequeued. The user
                         is expected to call RMV-IND API again to further
-                        remove indications. 
+                        remove indications.
 
                         If false, _ALL_ inications that are queued up
                         at the time of invocation are dequeued. The number
-                        of indications dequeued is indicated through 
+                        of indications dequeued is indicated through
                         the return value.
- 
-\***************************************************************************/
-	int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_rmv_only_one_flag);
 
-#define     m_NCS_SEL_OBJ_RMV_IND(sel_obj, noblock_flag, rmv_only_one_flag)\
-            ncs_sel_obj_rmv_ind(sel_obj, noblock_flag,  rmv_only_one_flag)
+\***************************************************************************/
+int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_rmv_only_one_flag);
+
+#define     m_NCS_SEL_OBJ_RMV_IND(sel_obj, noblock_flag, rmv_only_one_flag) \
+  ncs_sel_obj_rmv_ind(sel_obj, noblock_flag,  rmv_only_one_flag)
 
 
 /****************************************************************************\
@@ -816,73 +816,73 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 #define m_NCS_OS_HTONS(s)            htons(s)
 
 /*********************************************************\
-   m_NCS_OS_HTONLL_P :  Encodes a  64-bit integer into a 
+   m_NCS_OS_HTONLL_P :  Encodes a  64-bit integer into a
                         byte stream in big-endian format.
 
-   EXAMPLE :   
-               { 
+   EXAMPLE :
+               {
                   SaInt64T  my_long_long;
                   uint8_t      buff_64bit[8];
-      
+
                   ...
                   m_NCS_OS_HTONLL_P(buff_64bit, my_long_long);
                   ...
                }
 
    NOTE :               Since there in no know "htonll()" or
-                        equivalent, the macro has same definition 
-                        irrespective of the 
-                        NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT 
+                        equivalent, the macro has same definition
+                        irrespective of the
+                        NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT
                         flag.
 
 \*********************************************************/
 #ifndef m_NCS_OS_HTONLL_P
-#define m_NCS_OS_HTONLL_P(p8, in_long_long) {    \
-     ((uint8_t*)p8)[0] = (uint8_t)(in_long_long>>56);  \
-     ((uint8_t*)p8)[1] = (uint8_t)(in_long_long>>48);  \
-     ((uint8_t*)p8)[2] = (uint8_t)(in_long_long>>40);  \
-     ((uint8_t*)p8)[3] = (uint8_t)(in_long_long>>32);  \
-     ((uint8_t*)p8)[4] = (uint8_t)(in_long_long>>24);  \
-     ((uint8_t*)p8)[5] = (uint8_t)(in_long_long>>16);  \
-     ((uint8_t*)p8)[6] = (uint8_t)(in_long_long>> 8);  \
-     ((uint8_t*)p8)[7] = (uint8_t)(in_long_long    );  \
-}
+#define m_NCS_OS_HTONLL_P(p8, in_long_long) {           \
+    ((uint8_t*)p8)[0] = (uint8_t)(in_long_long>>56);    \
+    ((uint8_t*)p8)[1] = (uint8_t)(in_long_long>>48);    \
+    ((uint8_t*)p8)[2] = (uint8_t)(in_long_long>>40);    \
+    ((uint8_t*)p8)[3] = (uint8_t)(in_long_long>>32);    \
+    ((uint8_t*)p8)[4] = (uint8_t)(in_long_long>>24);    \
+    ((uint8_t*)p8)[5] = (uint8_t)(in_long_long>>16);    \
+    ((uint8_t*)p8)[6] = (uint8_t)(in_long_long>> 8);    \
+    ((uint8_t*)p8)[7] = (uint8_t)(in_long_long    );    \
+  }
 #endif
 
 /*********************************************************\
-   m_NCS_OS_NTOHLL_P :  Decodes a 64-bit integer from a 
+   m_NCS_OS_NTOHLL_P :  Decodes a 64-bit integer from a
                         big-endian encoded byte stream.
 
-   EXAMPLE :   
-               { 
+   EXAMPLE :
+               {
                   SaInt64T  my_long_long;
                   uint8_t      buff_64bit[8];
-      
+
                   ...
                   my_long_long = m_NCS_OS_NTOHLL_P(buff_64bit);
                   ...
                }
 
    NOTE :               Since there in no know "ntohll()" or
-                        equivalent, the macro has same definition 
-                        irrespective of the 
-                        NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT 
+                        equivalent, the macro has same definition
+                        irrespective of the
+                        NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT
                         flag.
 \*********************************************************/
 #ifndef m_NCS_OS_NTOHLL_P
-#define m_NCS_OS_NTOHLL_P(p8) (               \
-      ((uint64_t)((uint8_t*)(p8))[0] <<56) |        \
-      ((uint64_t)((uint8_t*)(p8))[1] <<48) |        \
-      ((uint64_t)((uint8_t*)(p8))[2] <<40) |        \
-      ((uint64_t)((uint8_t*)(p8))[3] <<32) |        \
-      ((uint64_t)((uint8_t*)(p8))[4] <<24) |        \
-      ((uint64_t)((uint8_t*)(p8))[5] <<16) |        \
-      ((uint64_t)((uint8_t*)(p8))[6] <<8 ) |        \
-      ((uint64_t)((uint8_t*)(p8))[7]     )          \
-     )
+#define m_NCS_OS_NTOHLL_P(p8) (                 \
+((uint64_t)((uint8_t*)(p8))[0] <<56) |          \
+((uint64_t)((uint8_t*)(p8))[1] <<48) |          \
+((uint64_t)((uint8_t*)(p8))[2] <<40) |          \
+((uint64_t)((uint8_t*)(p8))[3] <<32) |          \
+((uint64_t)((uint8_t*)(p8))[4] <<24) |          \
+((uint64_t)((uint8_t*)(p8))[5] <<16) |          \
+((uint64_t)((uint8_t*)(p8))[6] <<8 ) |          \
+((uint64_t)((uint8_t*)(p8))[7]     )            \
+)
 #endif
 
-#if (NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT == 0)	/* no CPU alignment requirement */
+#if (NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT == 0)   /* no CPU alignment requirement */
 
 #ifndef m_NCS_OS_NTOHL_P
 #define m_NCS_OS_NTOHL_P(p8)         ntohl(*(uint32_t*)p8)
@@ -899,11 +899,11 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 #ifndef m_NCS_OS_HTONS_P
 #define m_NCS_OS_HTONS_P(p8,v16)     (*(uns16*)p8 = htons(v16))
 #endif
-#else				/* CPU requires alignment access */
+#else                           /* CPU requires alignment access */
 
 #ifndef m_NCS_OS_NTOHL_P
 #define m_NCS_OS_NTOHL_P(p8) (uint32_t)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
-                           (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
+                                        (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
 #endif
 
 #ifndef m_NCS_OS_NTOHS_P
@@ -911,17 +911,17 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 #endif
 
 #ifndef m_NCS_OS_HTONL_P
-#define m_NCS_OS_HTONL_P(p8,v32) { \
-     *p8     = (uint8_t)(v32>>24); \
-     *(p8+1) = (uint8_t)(v32>>16); \
-     *(p8+2) = (uint8_t)(v32>>8);  \
-     *(p8+3) = (uint8_t)v32; }
+#define m_NCS_OS_HTONL_P(p8,v32) {              \
+    *p8     = (uint8_t)(v32>>24);               \
+    *(p8+1) = (uint8_t)(v32>>16);               \
+    *(p8+2) = (uint8_t)(v32>>8);                \
+    *(p8+3) = (uint8_t)v32; }
 #endif
 
 #ifndef m_NCS_OS_HTONS_P
-#define m_NCS_OS_HTONS_P(p8,v16) { \
-     *p8     = (uint8_t)(v16>>8); \
-     *(p8+1) = (uint8_t)v16; }
+#define m_NCS_OS_HTONS_P(p8,v16) {              \
+    *p8     = (uint8_t)(v16>>8);                \
+    *(p8+1) = (uint8_t)v16; }
 #endif
 #endif   /* CPU alignment */
 
@@ -930,17 +930,17 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
  * a "uns32"-string in network order.
  */
 #ifndef m_NCS_OS_HTONS_UNS32_P
-#define m_NCS_OS_HTONS_UNS32_P(p32, v16)    \
-      {*p32        = (v16 >> 8);           \
-      *(p32 + 1)  =  (v16 & 0x00FF); }
+#define m_NCS_OS_HTONS_UNS32_P(p32, v16)        \
+  {*p32        = (v16 >> 8);                    \
+*(p32 + 1)  =  (v16 & 0x00FF); }
 #endif
 
 #ifndef m_NCS_OS_HTONL_UNS32_P
-#define m_NCS_OS_HTONL_UNS32_P(p32, v32)      \
-      {*p32       = (v32 >>24) & 0x000000ff; \
-      *(p32 + 1)  = (v32 >>16) & 0x000000ff; \
-      *(p32 + 2)  = (v32 >>8) & 0x000000ff;  \
-      *(p32 + 3)  =  v32 & 0x000000ff;}
+#define m_NCS_OS_HTONL_UNS32_P(p32, v32)        \
+  {*p32       = (v32 >>24) & 0x000000ff;        \
+*(p32 + 1)  = (v32 >>16) & 0x000000ff;          \
+*(p32 + 2)  = (v32 >>8) & 0x000000ff;           \
+*(p32 + 3)  =  v32 & 0x000000ff;}
 #endif
 
 /****************************************************************************
@@ -957,51 +957,51 @@ typedef void* NCS_EXEC_USR_HDL;
    set in the newly created process. */
 
 typedef struct ncs_os_environ_set_node_tag {
-	char *name;
-	char *value;
-	int overwrite;	/* zero the value is not overwritten else overwritten */
+  char *name;
+  char *value;
+  int overwrite;  /* zero the value is not overwritten else overwritten */
 } NCS_OS_ENVIRON_SET_NODE;
 
 typedef struct ncs_os_environ_args_tag {
-	unsigned int num_args;
-	NCS_OS_ENVIRON_SET_NODE *env_arg;
+  unsigned int num_args;
+  NCS_OS_ENVIRON_SET_NODE *env_arg;
 } NCS_OS_ENVIRON_ARGS;
 
 typedef enum {
-	/* Exec of script failed (script not readable or path wrong) */
-	NCS_OS_PROC_EXEC_FAIL,
+  /* Exec of script failed (script not readable or path wrong) */
+  NCS_OS_PROC_EXEC_FAIL,
 
-	/* Exec of script success, and script exits with status zero */
-	NCS_OS_PROC_EXIT_NORMAL,
+  /* Exec of script success, and script exits with status zero */
+  NCS_OS_PROC_EXIT_NORMAL,
 
-	/* Script did not exit within time */
-	NCS_OS_PROC_EXIT_WAIT_TIMEOUT,
+  /* Script did not exit within time */
+  NCS_OS_PROC_EXIT_WAIT_TIMEOUT,
 
-	/* Exec of script success, but script exits with non-zero status */
-	NCS_OS_PROC_EXIT_WITH_CODE,
+  /* Exec of script success, but script exits with non-zero status */
+  NCS_OS_PROC_EXIT_WITH_CODE,
 
-	/* Exec of script success, but script exits due to a signal */
-	NCS_OS_PROC_EXIT_ON_SIGNAL
+  /* Exec of script success, but script exits due to a signal */
+  NCS_OS_PROC_EXIT_ON_SIGNAL
 } NCS_OS_PROC_EXEC_STATUS;
 
 typedef struct {
-	NCS_OS_PROC_EXEC_STATUS value;
-	union {
-		struct {
-			uint32_t exit_code;
-		} exit_with_code;
+  NCS_OS_PROC_EXEC_STATUS value;
+  union {
+    struct {
+      uint32_t exit_code;
+    } exit_with_code;
 
-		struct {
-			uint32_t signal_num;
-		} exit_on_signal;
-	} info;
+    struct {
+      uint32_t signal_num;
+    } exit_on_signal;
+  } info;
 } NCS_OS_PROC_EXEC_STATUS_INFO;
 
 /* CALLBACK structure definition */
 typedef struct NCS_OS_PROC_EXECUTE_TIMED_CB_INFO {
-	NCS_EXEC_HDL i_exec_hdl;
-	NCS_EXEC_USR_HDL i_usr_hdl;
-	NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;
+  NCS_EXEC_HDL i_exec_hdl;
+  NCS_EXEC_USR_HDL i_usr_hdl;
+  NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;
 
 } NCS_OS_PROC_EXECUTE_TIMED_CB_INFO;
 
@@ -1010,16 +1010,16 @@ typedef uint32_t (*NCS_OS_PROC_EXECUTE_CB) (NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *)
 
 /* REQUEST structure definition */
 typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO {
-	/* INPUTS */
-	char *i_script;	/* Command  */
-	uint32_t i_argc;
-	char **i_argv;
-	NCS_OS_ENVIRON_ARGS *i_set_env_args;
-	uint32_t i_timeout_in_ms;
-	NCS_EXEC_USR_HDL i_usr_hdl;
-	NCS_OS_PROC_EXECUTE_CB i_cb;
-	/* OUTPUTS */
-	NCS_EXEC_HDL o_exec_hdl;	/*  */
+  /* INPUTS */
+  char *i_script; /* Command  */
+  uint32_t i_argc;
+  char **i_argv;
+  NCS_OS_ENVIRON_ARGS *i_set_env_args;
+  uint32_t i_timeout_in_ms;
+  NCS_EXEC_USR_HDL i_usr_hdl;
+  NCS_OS_PROC_EXECUTE_CB i_cb;
+  /* OUTPUTS */
+  NCS_EXEC_HDL o_exec_hdl;        /*  */
 } NCS_OS_PROC_EXECUTE_TIMED_INFO;
 
 uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);

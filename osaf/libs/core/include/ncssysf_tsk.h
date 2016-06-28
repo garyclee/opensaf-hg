@@ -24,8 +24,8 @@
 
   H&J Tasking Facility.
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 
 /** Module Inclusion Control...
  **/
@@ -41,16 +41,16 @@ extern uint32_t ncs_task_join(void *task_handle);
 extern "C" {
 #endif
 
-/** This typedef is being maintained for backward compatibility 
+/** This typedef is being maintained for backward compatibility
  ** with ech.
  **/
-	typedef void *SYSF_THREAD_CB;
+typedef void *SYSF_THREAD_CB;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-             H&J Tasking Definitions
+  H&J Tasking Definitions
 
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
 /****************************************************************************
  * m_NCS_TASK_CREATE
@@ -75,10 +75,10 @@ extern "C" {
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
 #define m_NCS_TASK_CREATE(entry, arg, name, prio, policy, stack_size, p_t_handle) \
-                                              ncs_task_create(entry, arg, \
-                                                             name, prio, policy, \
-                                                             stack_size, \
-                                                             p_t_handle)
+  ncs_task_create(entry, arg,                                           \
+                  name, prio, policy,                                   \
+                  stack_size,                                           \
+                  p_t_handle)
 
 /****************************************************************************
  * m_NCS_TASK_RELEASE
@@ -100,7 +100,7 @@ extern "C" {
 /****************************************************************************
  * m_NCS_TASK_JOIN
  *
- *  This macro is invoked in order to suspend the execution of  
+ *  This macro is invoked in order to suspend the execution of
  *   the calling thread until the thread identified by `task_handle` terminates.
  * ARGUMENTS:
  *
@@ -114,7 +114,7 @@ extern "C" {
 #define m_NCS_TASK_JOIN(t_handle)           ncs_task_join(t_handle)
 
 /****************************************************************************
- * m_NCS_TASK_DETACH    
+ * m_NCS_TASK_DETACH
  *
  * This macro is invoked in order to make a task thread detachable
  *
@@ -130,7 +130,7 @@ extern "C" {
 #define m_NCS_TASK_DETACH(t_handle)             ncs_task_detach(t_handle)
 
 /****************************************************************************
- * m_NCS_TASK_START      
+ * m_NCS_TASK_START
  *
  * This macro is invoked in order to start a task thread running, i.e., add
  * it to the "ready" list.
@@ -198,20 +198,20 @@ extern "C" {
  */
 #define m_NCS_TASK_CURRENT(p_t_handle) ncs_task_current(p_t_handle)
 
-/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
- 
-               FUNCTION PROTOTYPES
- 
- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+    /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-	uint32_t ncs_task_create(NCS_OS_CB, void *, const char *, unsigned int, int, unsigned int, void **);
-	uint32_t ncs_task_release(void *);
-	uint32_t ncs_task_detach(void *);
-	uint32_t ncs_task_start(void *);
-	uint32_t ncs_task_stop(void *);
-	uint32_t ncs_task_sleep(unsigned int);
-	uint32_t ncs_task_current(void **);
-	int ncs_task_entry(NCS_OS_TASK *task);
+      FUNCTION PROTOTYPES
+
+      @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+
+uint32_t ncs_task_create(NCS_OS_CB, void *, const char *, unsigned int, int, unsigned int, void **);
+uint32_t ncs_task_release(void *);
+uint32_t ncs_task_detach(void *);
+uint32_t ncs_task_start(void *);
+uint32_t ncs_task_stop(void *);
+uint32_t ncs_task_sleep(unsigned int);
+uint32_t ncs_task_current(void **);
+int ncs_task_entry(NCS_OS_TASK *task);
 
 #ifdef  __cplusplus
 }

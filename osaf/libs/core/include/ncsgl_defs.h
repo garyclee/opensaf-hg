@@ -36,12 +36,12 @@ extern "C" {
 #endif
 
 /*****************************************************************************
- 
+
                              BASIC DECLARATIONS
 
- ****************************************************************************/
+****************************************************************************/
 
-	typedef void* NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
+typedef void* NCSCONTEXT;       /* opaque context between svc-usr/svc-provider */
 
 #define NCS_PTR_TO_INT32_CAST(x)   ((int32_t)(long)(x))
 #define NCS_PTR_TO_UNS64_CAST(x)   ((uint64_t)(long)(x))
@@ -53,9 +53,9 @@ extern "C" {
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-                      Generic Function Return Codes                     
+  Generic Function Return Codes
 
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
 #define NCSCC_RC_SUCCESS               1
 #define NCSCC_RC_FAILURE               2
@@ -76,18 +76,18 @@ extern "C" {
  * 256 slots x 16 subslots
  *************************************************/
 enum {
-	kMaxSlotsSubslots = 4096
+  kMaxSlotsSubslots = 4096
 };
 
-	typedef uint64_t MDS_DEST;
-	typedef uint32_t NCS_NODE_ID;
-	typedef uint8_t NCS_CHASSIS_ID;
-	typedef uint32_t SlotSubslotId;
+typedef uint64_t MDS_DEST;
+typedef uint32_t NCS_NODE_ID;
+typedef uint8_t NCS_CHASSIS_ID;
+typedef uint32_t SlotSubslotId;
 
 /* m_NCS_NODE_ID_FROM_MDS_DEST: Returns node-id if the MDS_DEST provided
-                                is an absolute destination. Returns 0
-                                if the MDS_DEST provided is a virtual
-                                destination.
+   is an absolute destination. Returns 0
+   if the MDS_DEST provided is a virtual
+   destination.
 */
 #define m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) ((uint32_t) (((uint64_t)(mdsdest))>>32))
 
@@ -95,17 +95,17 @@ enum {
 }
 #endif
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
-	extern void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion);
-	#define __OSAFASSERT_VOID_CAST static_cast<void>
+extern void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion);
+#define __OSAFASSERT_VOID_CAST static_cast<void>
 }
 #else
-	extern void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion);
-	#define __OSAFASSERT_VOID_CAST (void)
+extern void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion);
+#define __OSAFASSERT_VOID_CAST (void)
 #endif
 
-#define osafassert(expr) \
+#define osafassert(expr)                                                \
   ((expr) ? __OSAFASSERT_VOID_CAST (0) : __osafassert_fail (__FILE__, __LINE__, __FUNCTION__, #expr))
 
 #endif   /* ifndef NCSGL_DEFS_H */

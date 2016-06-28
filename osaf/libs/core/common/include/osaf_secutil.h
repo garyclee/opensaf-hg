@@ -29,7 +29,7 @@
 
 /* Support for building with LSB compiler */
 #ifndef SO_PEERCRED
-#define SO_PEERCRED	17
+#define SO_PEERCRED     17
 struct ucred {
   pid_t pid;
   uid_t uid;
@@ -37,7 +37,7 @@ struct ucred {
 };
 #endif
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -54,11 +54,11 @@ extern "C" {
  * @param timeout timeout to wait (same semantics as for poll timeout)
  *
  * @return on success length of received message, on failure negated errno,
- * 			on timeout 0.
+ *                      on timeout 0.
  */
 int osaf_auth_server_connect(const char *path,
-		const void *req_buf, size_t req_size, void *resp_buf, size_t resp_size,
-		int timeout);
+                             const void *req_buf, size_t req_size, void *resp_buf, size_t resp_size,
+                             int timeout);
 
 /**
  * Type for callback installed on server side
@@ -77,7 +77,7 @@ typedef void (*client_auth_data_callback_t)(int fd,
  *           available on socket
  */
 int osaf_auth_server_create(const char *_pathname,
-		client_auth_data_callback_t callback);
+                            client_auth_data_callback_t callback);
 
 /**
  * Checks if user represented by uid is member of group
@@ -97,8 +97,8 @@ bool osaf_user_is_member_of_group(uid_t uid, const char *groupname);
  */
 int osaf_getgrouplist(const char* user, gid_t group, gid_t* groups, int* ngroups);
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* OPENSAF_CORE_OSAF_SECUTIL_H_ */
+#endif  /* OPENSAF_CORE_OSAF_SECUTIL_H_ */

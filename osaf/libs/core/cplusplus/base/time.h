@@ -103,7 +103,7 @@ constexpr static const timespec kTwentyfiveMinutes{ 25 * 60, 0 };
 constexpr static const timespec kThirtyMinutes{ 30 * 60, 0 };
 constexpr static const timespec kOneHour{ 60 * 60, 0 };
 constexpr static const timespec kTimespecMax{ sizeof(time_t) == 8 ? INT64_MAX :
-  INT32_MAX, 999999999 };
+      INT32_MAX, 999999999 };
 
 /**
  *  Read the current value of the system's real-time clock. For more
