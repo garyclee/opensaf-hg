@@ -20,10 +20,10 @@
 
 ..............................................................................
 
-  DESCRIPTION:  
+  DESCRIPTION:
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 #ifndef MDA_PVT_API_H
 #define MDA_PVT_API_H
 
@@ -34,9 +34,9 @@
 #define VDA_SVC_PVT_VER  1
 #define VDA_WRT_VDS_SUBPART_VER_MIN 1
 #define VDA_WRT_VDS_SUBPART_VER_MAX 1
-#define VDA_WRT_VDS_SUBPART_VER_RANGE             \
-        (VDA_WRT_VDS_SUBPART_VER_MAX - \
-         VDA_WRT_VDS_SUBPART_VER_MIN +1)
+#define VDA_WRT_VDS_SUBPART_VER_RANGE           \
+  (VDA_WRT_VDS_SUBPART_VER_MAX -                \
+   VDA_WRT_VDS_SUBPART_VER_MIN +1)
 
 #define m_NCS_VDA_ENC_MSG_FMT_GET      m_NCS_ENC_MSG_FMT_GET
 #define m_NCS_VDA_MSG_FORMAT_IS_VALID  m_NCS_MSG_FORMAT_IS_VALID
@@ -75,10 +75,10 @@ uint32_t ada_lib_req(NCS_LIB_REQ_INFO *req);
 uint32_t vda_lib_req(NCS_LIB_REQ_INFO *req);
 
 typedef enum {
-	MDA_INST_NAME_TYPE_NULL,
-	MDA_INST_NAME_TYPE_ADEST,
-	MDA_INST_NAME_TYPE_UNNAMED_VDEST,
-	MDA_INST_NAME_TYPE_NAMED_VDEST,
+  MDA_INST_NAME_TYPE_NULL,
+  MDA_INST_NAME_TYPE_ADEST,
+  MDA_INST_NAME_TYPE_UNNAMED_VDEST,
+  MDA_INST_NAME_TYPE_NAMED_VDEST,
 } MDA_INST_NAME_TYPE;
 
 MDA_INST_NAME_TYPE mda_get_inst_name_type(SaNameT *name);

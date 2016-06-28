@@ -22,8 +22,8 @@
 
   DESCRIPTION:  MDS layer initialization and destruction entry points
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 
 #ifndef _MDS_DL_API_H_
 #define _MDS_DL_API_H_
@@ -32,9 +32,9 @@
 
 uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req);
 int mds_auth_server_connect(const char *name, MDS_DEST mds_dest,
-		int svc_id, int timeout);
+                            int svc_id, int timeout);
 int mds_auth_server_disconnect(const char *name, MDS_DEST mds_dest,
-		int svc_id, int timeout);
+                               int svc_id, int timeout);
 int mds_auth_server_create(const char *name);
 
 #endif
