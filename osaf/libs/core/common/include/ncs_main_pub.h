@@ -29,16 +29,16 @@
 
 #define MAX_NCS_CONFIG_ROOTDIR_LEN 200
 #define MAX_NCS_CONFIG_FILENAME_LEN 30
-#define MAX_NCS_CONFIG_FILEPATH_LEN \
-   (MAX_NCS_CONFIG_ROOTDIR_LEN + MAX_NCS_CONFIG_FILENAME_LEN)
+#define MAX_NCS_CONFIG_FILEPATH_LEN                             \
+  (MAX_NCS_CONFIG_ROOTDIR_LEN + MAX_NCS_CONFIG_FILENAME_LEN)
 
 #define NCS_DEF_CONFIG_FILEPATH PKGSYSCONFDIR
 #define NODE_ID_FILE PKGLOCALSTATEDIR "/node_id"
 
 /***********************************************************************\
-****   
-****     Utility APIs defined in  ncs_main_pub.c
-****
+ ****
+ ****     Utility APIs defined in  ncs_main_pub.c
+ ****
 \***********************************************************************/
 char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix);
 uint32_t file_get_word(FILE **fp, char *o_chword);
@@ -47,4 +47,4 @@ uint32_t file_get_string(FILE **fp, char *o_chword);
 char *gl_pargv[NCS_MAIN_MAX_INPUT];
 uint32_t gl_pargc;
 
-#endif	/* NCS_MAIN_PUB_H */
+#endif  /* NCS_MAIN_PUB_H */

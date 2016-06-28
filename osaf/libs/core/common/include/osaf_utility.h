@@ -26,7 +26,7 @@
 
 #include <pthread.h>
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -39,7 +39,7 @@ extern "C" {
  * aborting the process.
  */
 static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex)
-	__attribute__ ((nonnull, nothrow, always_inline));
+    __attribute__ ((nonnull, nothrow, always_inline));
 
 /**
  * @brief Unlock a pthreads mutex and abort the process in case of failure.
@@ -50,7 +50,7 @@ static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex)
  * aborting the process.
  */
 static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex)
-	__attribute__ ((nonnull, nothrow, always_inline));
+    __attribute__ ((nonnull, nothrow, always_inline));
 
 /**
  * @brief Log an error message and abort the process.
@@ -62,26 +62,24 @@ static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex)
  * current value of errno.
  */
 extern void osaf_abort(long i_cause)
-	__attribute__ ((
+    __attribute__ ((
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-		cold,
+        cold,
 #endif
-		nothrow, noreturn));
+        nothrow, noreturn));
 
-static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex)
-{
-	int result = pthread_mutex_lock(io_mutex);
-	if (result != 0) osaf_abort(result);
+static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex) {
+  int result = pthread_mutex_lock(io_mutex);
+  if (result != 0) osaf_abort(result);
 }
 
-static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex)
-{
-	int result = pthread_mutex_unlock(io_mutex);
-	if (result != 0) osaf_abort(result);
+static inline void osaf_mutex_unlock_ordie(pthread_mutex_t* io_mutex) {
+  int result = pthread_mutex_unlock(io_mutex);
+  if (result != 0) osaf_abort(result);
 }
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* OPENSAF_CORE_OSAF_UTILITY_H_ */
+#endif  /* OPENSAF_CORE_OSAF_UTILITY_H_ */

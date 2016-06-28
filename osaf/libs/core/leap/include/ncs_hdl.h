@@ -28,10 +28,10 @@
   that happens to live off another object. It provides that same type of
   protection as the Handle Manager, but does not require the de-coupling
   of handle and object.
- 
 
-******************************************************************************
-*/
+
+  ******************************************************************************
+  */
 
 /*
  * Module Inclusion Control...
@@ -60,30 +60,30 @@
 
   R U L E S :
 
-  - Hdl Mgr will allow any number of take()r threads to have the data at 
+  - Hdl Mgr will allow any number of take()r threads to have the data at
     the same time. This increments a refcount.
 
   - A take()r will fail if the handle referenced has been destroy()ed or is
     in the process of being destroy()ed.
 
-  - A successful take()r must give() back when done. This decriments 
+  - A successful take()r must give() back when done. This decriments
     a refcount.
-  
+
   - A destroy()er thread shall be blocked if the refcount of the handle is
-    greater than one. When the refcount is one, the destroy()er thread 
+    greater than one. When the refcount is one, the destroy()er thread
     is unblocked, the object is removed and the handle is destroyed.
-    
-     WARNING: Failure to give() for every take() will cause an infinite 
+
+     WARNING: Failure to give() for every take() will cause an infinite
               blocking of the remove()r's thread!!!
 
   D E A D L O C K   I S S U E :
 
-  - The general algorythm used to avoid deadlock in a subsystem is as 
+  - The general algorythm used to avoid deadlock in a subsystem is as
     follows:
 
     1) take()   the object using the handle
     2) lock()   access to the object according to subsystem rules.
-    3) unlock() the object 
+    3) unlock() the object
     4) give()   the object (decriment refcnt) using the handle
 
   - This should be no problem for any subsystems that uses the Hdl Mgr from
@@ -100,17 +100,17 @@
     B) destroy() the handle using the lock
 
     If thread dualing causes the sequence to go 1 - A - B - 2...
-    
+
     Then there is deadlock, since:
-    - B will freeze waiting for the the give() which was take()n at 1 and 
+    - B will freeze waiting for the the give() which was take()n at 1 and
     - 2 will freeze waiting to get the lock secured at A.
 
   C O M M O N   H A N D L E S  @ P R I M A R Y   A N D   B A C K U P
 
   Handle Pools
-    
+
     The Handle Manager comes pre-configured with 9 pools. See ncs_hdl.c for
-    table and sizes (other pool numbers and breakdown sizes can be configured). 
+    table and sizes (other pool numbers and breakdown sizes can be configured).
 
     The zeroeth pool is intended for local services such as MDS and has a
     relatively low number of unique handle names at about 2.1 million.
@@ -125,86 +125,86 @@
     1 - The Primary and Backup sides agree to use the same Handle Manager
         pool Ids in both places, scoped by their common VCARD id value.
 
-    2 - Pools with the same ID must be the same shape (have the same name 
+    2 - Pools with the same ID must be the same shape (have the same name
         space) across these two different memory spaces.
 
     3 - The primary side ALWAYS invokes ncshm_create_hdl() to get a handle.
 
     4 - A backup, typically at checkpoint data arrival time shall ALWAYS
-        invoke ncshm_declare_hdl() to DECLARE to the handle manager what 
+        invoke ncshm_declare_hdl() to DECLARE to the handle manager what
         handle value it MUST have for this particular object.
 
     NOTE: A Handle Manager client must have the discipline to keep the
-    correlation between Primary-CREATE-handle-to-object mapping 1-to-1 with 
+    correlation between Primary-CREATE-handle-to-object mapping 1-to-1 with
     the Backup-DECLARE-handle-to-object.
 
     NOTE: By following these rules, the Handle Manager SHOULD NOT run
     into a name clash (declared name already in-use) at ncshm_declare_hdl()
     time.
-  
 
- ***************************************************************************/
 
-/*************************************************************************** 
+***************************************************************************/
+
+/***************************************************************************
  * General handle definition, handed to clients; They don't know or care
  ***************************************************************************/
 
 typedef struct hm_hdl {
-	uint32_t seq_id:4;		/* Sequence ID that must match  'cell' value */
-	uint32_t idx1:8;		/* Navigational marker for first array */
-	uint32_t idx2:8;		/* Navigational marker for second array */
-	uint32_t idx3:12;		/* Navigational marker for third array */
+  uint32_t seq_id:4;              /* Sequence ID that must match  'cell' value */
+  uint32_t idx1:8;                /* Navigational marker for first array */
+  uint32_t idx2:8;                /* Navigational marker for second array */
+  uint32_t idx3:12;               /* Navigational marker for third array */
 
 } HM_HDL;
 
-/*************************************************************************** 
+/***************************************************************************
  * Internal CELL stores private state info and client data mapped to handle
  ***************************************************************************/
 
 typedef struct hm_cell {
-	NCSCONTEXT data;	/* This is the stored data thing */
+  NCSCONTEXT data;        /* This is the stored data thing */
 
-	uint32_t seq_id:4;		/* sequence ID must match for valid key find */
-	uint32_t svc_id:12;	/* Service ID of owning subsystem */
-	uint32_t busy:1;		/* sub-type of datat stored in context */
-	uint32_t use_ct:11;	/* Use Count; Multiple readers, once created */
+  uint32_t seq_id:4;              /* sequence ID must match for valid key find */
+  uint32_t svc_id:12;     /* Service ID of owning subsystem */
+  uint32_t busy:1;                /* sub-type of datat stored in context */
+  uint32_t use_ct:11;     /* Use Count; Multiple readers, once created */
 
 } HM_CELL;
 
-/*************************************************************************** 
+/***************************************************************************
  * When not a CELL, a CELL is on the free-cell list and looks like this
  ***************************************************************************/
 
 typedef struct hm_free {
-	struct hm_free *next;	/* linked list of free/available cells */
-	HM_HDL hdl;		/* The place where this memory lives */
+  struct hm_free *next;   /* linked list of free/available cells */
+  HM_HDL hdl;             /* The place where this memory lives */
 
 } HM_FREE;
 
-/*************************************************************************** 
+/***************************************************************************
  * CELLs are allocated in hunks
  ***************************************************************************/
 
 #define HM_CELL_CNT  4096
 
 typedef struct hm_cells {
-	HM_CELL cell[HM_CELL_CNT];	/* twelve bits of counter */
+  HM_CELL cell[HM_CELL_CNT];      /* twelve bits of counter */
 
 } HM_CELLS;
 
-/*************************************************************************** 
+/***************************************************************************
  * Handle Manager has BANKS of CELLs that emerge dyanamically
  ***************************************************************************/
 
-#define HM_BANK_CNT  256	/* FF  */
+#define HM_BANK_CNT  256        /* FF  */
 
 typedef struct hm_unit {
-	uint8_t curr;		/* next idx to fill in */
-	HM_CELLS *cells[HM_BANK_CNT];	/* when the cell-bank itself */
+  uint8_t curr;           /* next idx to fill in */
+  HM_CELLS *cells[HM_BANK_CNT];   /* when the cell-bank itself */
 
 } HM_UNIT;
 
-/*************************************************************************** 
+/***************************************************************************
 
   H a n d l e   M a n a g e r   P o o l s
 
@@ -216,53 +216,53 @@ typedef struct hm_unit {
   - poolID 0 will be used, when needed, by LEAP basic services like MDS.
   - The other 8 pools are used by various applications
 
- ***************************************************************************/
+***************************************************************************/
 
 #define HM_POOL_CNT  9
 
 typedef struct hm_pool {
-	int32_t min;		/* min name-sapce unit inclusive */
-	int32_t max;		/* max name-space unit inclusive */
+  int32_t min;            /* min name-sapce unit inclusive */
+  int32_t max;            /* max name-space unit inclusive */
 
 } HM_POOL;
 
-/*************************************************************************** 
+/***************************************************************************
  * Handle Manager Pool Manager block.. manage a pool of handles
  ***************************************************************************/
 
 typedef struct hm_pmgr {
-	HM_FREE *free_pool;	/* the free ones go here */
-	uint32_t in_q;		/* current handles in this queue */
-	uint32_t in_use;		/* current handles in world from this pool */
-	uint32_t curr;		/* current unit-id we are working on */
-	uint32_t max;		/* max unit-id that this pool owns */
+  HM_FREE *free_pool;     /* the free ones go here */
+  uint32_t in_q;          /* current handles in this queue */
+  uint32_t in_use;                /* current handles in world from this pool */
+  uint32_t curr;          /* current unit-id we are working on */
+  uint32_t max;           /* max unit-id that this pool owns */
 
 } HM_PMGR;
 
-/*************************************************************************** 
+/***************************************************************************
  * Handle Manager Core data structure manages the works...
  ***************************************************************************/
 
-#define HM_UNIT_CNT  256	/* FF  */
+#define HM_UNIT_CNT  256        /* FF  */
 
 typedef struct hm_core {
-	NCS_LOCK lock[HM_POOL_CNT];	/* Lock for each pool */
-	HM_UNIT *unit[HM_UNIT_CNT];	/* Name space units */
-	HM_PMGR pool[HM_POOL_CNT];	/* pools of name space units */
+  NCS_LOCK lock[HM_POOL_CNT];     /* Lock for each pool */
+  HM_UNIT *unit[HM_UNIT_CNT];     /* Name space units */
+  HM_PMGR pool[HM_POOL_CNT];      /* pools of name space units */
 
-	uint32_t woulda_crashed;	/* # times destroy thread blocked */
+  uint32_t woulda_crashed;        /* # times destroy thread blocked */
 
 } HM_CORE;
 
-/*************************************************************************** 
+/***************************************************************************
 
   H a n d l e   M a n a g e r    M a c r o    A s s i s t s
 
- ***************************************************************************/
+***************************************************************************/
 
-#define HM_STATS   1		/* enable/disable Handle Manager Stats counts */
+#define HM_STATS   1            /* enable/disable Handle Manager Stats counts */
 
-/*************************************************************************** 
+/***************************************************************************
  * Handle Manager Statistic counters
  ***************************************************************************/
 
@@ -328,21 +328,21 @@ void hm_unblock_him(HM_CELL *cell);
 
   R U L E S :
 
-  - LPG will allow any number of take()r threads to have the data at 
+  - LPG will allow any number of take()r threads to have the data at
     the same time. This increments a refcount.
 
   - A take()r will fail if the referenced thing has been destroy()ed or is
     in the process of being destroy()ed.
 
-  - A successful take()r must give() back when done. This decriments 
+  - A successful take()r must give() back when done. This decriments
     a refcount.
-  
+
   - A destroy()er thread shall be blocked if the refcount of the handle is
-    greater than one. When the refcount is one, the destroy()er thread 
+    greater than one. When the refcount is one, the destroy()er thread
     is unblocked, the object not removed, but set to 'closed' state, thus
     assuring that future 'take()rs will not be allowed to enter.
-    
-     WARNING: Failure to give() for every take() will cause an infinite 
+
+     WARNING: Failure to give() for every take() will cause an infinite
               blocking of the remove()r's thread!!!
 
   D E A D L O C K   I S S U E :
@@ -353,9 +353,9 @@ void hm_unblock_him(HM_CELL *cell);
 
   - LPG 'locks' are only ever local. This category of functionality does
     not exist.
-    
-   
 
- ***************************************************************************/
+
+
+***************************************************************************/
 
 #endif

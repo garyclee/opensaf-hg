@@ -18,12 +18,12 @@
 
 /**
  * This file defines APIs for logging and tracing.
- * 
+ *
  * Logging is enabled by default and level based. Current backend for logging is
  * syslog, in the future SAF log could be used for some services (but not all -
  * boot strapping problem). Filtering is done with the mechanisms of the back
  * end e.g. the syslog settings.
- * 
+ *
  * Tracing is disabled by default and category based. Categories are or-ed into
  * the current mask setting and and-ed with the mask during filtering. Current
  * backend for tracing is file, in the future syslog could be used.
@@ -40,27 +40,27 @@ extern "C" {
 #endif
 
 /* Categories */
-	enum logtrace_categories {
-		CAT_LOG = 0,
-		CAT_TRACE,
-		CAT_TRACE1,
-		CAT_TRACE2,
-		CAT_TRACE3,
-		CAT_TRACE4,
-		CAT_TRACE5,
-		CAT_TRACE6,
-		CAT_TRACE7,
-		CAT_TRACE8,
-		CAT_TRACE_ENTER,
-		CAT_TRACE_LEAVE,
-		CAT_MAX
-	};
+enum logtrace_categories {
+  CAT_LOG = 0,
+  CAT_TRACE,
+  CAT_TRACE1,
+  CAT_TRACE2,
+  CAT_TRACE3,
+  CAT_TRACE4,
+  CAT_TRACE5,
+  CAT_TRACE6,
+  CAT_TRACE7,
+  CAT_TRACE8,
+  CAT_TRACE_ENTER,
+  CAT_TRACE_LEAVE,
+  CAT_MAX
+};
 
 #define CATEGORY_ALL    0xffffffff
 
 /**
  * logtrace_init - Initialize the logtrace system.
- * 
+ *
  * @param ident An identity string to be prepended to every message. Typically
  * set to the program name.
  * @param pathname The pathname parameter should contain a valid
@@ -69,14 +69,14 @@ extern "C" {
  * name is not valid, no tracing is performed.
  * @param mask The initial trace mask. Should be set set to zero by
  *             default (trace disabled)
- * 
+ *
  * @return int - 0 if OK, -1 otherwise
  */
 extern int logtrace_init(const char *ident, const char *pathname, unsigned int mask);
 
 /**
  * logtrace_init_daemon - Initialize the logtrace system for daemons
- * 
+ *
  * @param ident An identity string to be prepended to every message. Typically
  * set to the program name.
  * @param pathname The pathname parameter should contain a valid
@@ -86,41 +86,41 @@ extern int logtrace_init(const char *ident, const char *pathname, unsigned int m
  * @param tracemask The initial trace mask. Should be set set to zero by
  *             default (trace disabled)
  * @param logmask The initial log level to be set for log filtering.
- * 
+ *
  * @return int - 0 if OK, -1 otherwise
  */
 extern int logtrace_init_daemon(const char *ident, const char *pathname, unsigned int tracemask, int logmask);
 
 /**
  * trace_category_set - Set the mask used for trace filtering.
- * 
+ *
  * In libraries the category mask is typically set (to all ones) after a
  * library specific environment variable has been examined for the name of a
  * output file. The variable will not exist in a production system hence no
  * tracing will be done.
- * 
+ *
  * In daemons there is no need to call this function during initialization,
  * tracing is disabled by default. In runtime, using e.g. a signal handler the
  * daemon could call this function to enable or change traced categories.
- * 
+ *
  * @param category_mask The mask to set, 0 indicates no tracing.
- * 
+ *
  * @return int - 0 if OK, -1 otherwise
  */
 extern int trace_category_set(unsigned int category_mask);
 
 /**
  * trace_category_get - Get the current mask used for trace filtering.
- * 
+ *
  * @return int - The filtering mask value
  */
 extern unsigned int trace_category_get(void);
 
 /* internal functions, do not use directly */
 extern void _logtrace_log(const char *file, unsigned int line, int priority,
-		  const char *format, ...) __attribute__ ((format(printf, 4, 5)));
+                          const char *format, ...) __attribute__ ((format(printf, 4, 5)));
 extern void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
-		    const char *format, ...) __attribute__ ((format(printf, 4, 5)));
+                            const char *format, ...) __attribute__ ((format(printf, 4, 5)));
 
 /* LOG API. Use same levels as syslog */
 #define LOG_EM(format, args...) _logtrace_log(__FILE__, __LINE__, LOG_EMERG, (format), ##args)

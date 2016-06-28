@@ -17,9 +17,9 @@
 
 /**
  * This file defines APIs for daemon management.
- * 
+ *
  * TODO
- * 
+ *
  */
 
 #ifndef DAEMON_H

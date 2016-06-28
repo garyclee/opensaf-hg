@@ -1,4 +1,4 @@
-/*      OpenSAF 
+/*      OpenSAF
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  *
@@ -29,4 +29,4 @@ extern const char *saf_error(SaAisErrorT error);
 #ifdef  __cplusplus
 }
 #endif
-#endif				/* ifndef SAF_ERROR_H  */
+#endif                          /* ifndef SAF_ERROR_H  */

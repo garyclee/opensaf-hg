@@ -28,7 +28,7 @@
 #include <time.h>
 #include <signal.h>
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -60,7 +60,7 @@ extern unsigned osaf_poll(struct pollfd* io_fds, nfds_t i_nfds, int i_timeout);
  * The return value will always be in the range [0, i_nfds].
  */
 extern unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
-	const struct timespec* i_timeout_ts, const sigset_t* i_sigmask);
+                           const struct timespec* i_timeout_ts, const sigset_t* i_sigmask);
 
 /**
  * @brief Wait for events on a file descriptor
@@ -90,8 +90,8 @@ extern unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
  */
 extern int osaf_poll_one_fd(int i_fd, int i_timeout);
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* OPENSAF_BASE_OSAF_POLL_H_ */
+#endif  /* OPENSAF_BASE_OSAF_POLL_H_ */

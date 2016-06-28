@@ -110,4 +110,4 @@ class Process {
 
 } // namespace base
 
-#endif	/* OPENSAF_OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_ */
+#endif  /* OPENSAF_OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_ */

@@ -41,11 +41,11 @@ extern "C" {
 
 /* Temp Place */
 
-	typedef void
-	 (*ncsCkptCkptArrivalCallbackT) (const SaCkptCheckpointHandleT checkpointHandle,
-					 SaCkptIOVectorElementT *ioVector, SaUint32T numberOfElements);
-	SaAisErrorT
-	 ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT ckptHandle, ncsCkptCkptArrivalCallbackT ckptArrivalCallback);
+typedef void
+(*ncsCkptCkptArrivalCallbackT) (const SaCkptCheckpointHandleT checkpointHandle,
+                                SaCkptIOVectorElementT *ioVector, SaUint32T numberOfElements);
+SaAisErrorT
+ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT ckptHandle, ncsCkptCkptArrivalCallbackT ckptArrivalCallback);
 #ifdef  __cplusplus
 }
 #endif

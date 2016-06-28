@@ -23,9 +23,9 @@
   DESCRIPTION:
 
   This file lists EDP(EDU program) definitions for common SAF data structures.
-  
-******************************************************************************
-*/
+
+  ******************************************************************************
+  */
 
 #ifndef NCS_SAF_EDU_H
 #define NCS_SAF_EDU_H
@@ -37,32 +37,32 @@ extern "C" {
 #endif
 
 /*
-    SYNOPSIS on mapping between SAF-data-type and NCS-data-type.
-        SaUint8T        ->  "unsigned char"
-        SaUint16T       ->  "unsigned short"
-        SaUint32T       ->  "unsigned long"
-        SaUint64T       ->  "uns64"
-        SaInt64T        ->  "int64"
-        SaAmfHealthcheckInvocationT     ->  "uns32"
-        SaAmfErrorImpactAndSeverityT    ->  "uns32"
-        SaAmfRecommendedRecoveryT       ->  "uns32"
-        SaErrorT                        ->  "uns32"
-        SaAmfReadinessStateT            ->  "uns32"
-        SaAmfHAStateT                   ->  "uns32"
-        SaAmfComponentCapabilityModelT  ->  "uns32"
-        SaAmfCSITransitionDescriptorT   ->  "uns32"
-        SaAmfExternalComponentActionT   ->  "uns32"
-        SaAmfHandleT                    ->  SaUint32T
-        SaAmfPendingOperationFlagsT     ->  SaUint32T
-        SaAmfCSIFlagsT                  ->  SaUint32T
-        SaInvocationT                   ->  SaUint64T
-        SaSizeT                         ->  SaUint64T
-        SaClmNodeIdT                    ->  SaUint32T
-        SaAmfPmErrorsT                  ->  SaUint32T
-        SaAmfPmStopQualifierT           ->  "uns32"
-        SaClmHandleT                    ->  SaUint64T
-        SaClmClusterChangesT            ->  "uns32"
-        SaBoolT                         ->  "uns32"
+  SYNOPSIS on mapping between SAF-data-type and NCS-data-type.
+  SaUint8T        ->  "unsigned char"
+  SaUint16T       ->  "unsigned short"
+  SaUint32T       ->  "unsigned long"
+  SaUint64T       ->  "uns64"
+  SaInt64T        ->  "int64"
+  SaAmfHealthcheckInvocationT     ->  "uns32"
+  SaAmfErrorImpactAndSeverityT    ->  "uns32"
+  SaAmfRecommendedRecoveryT       ->  "uns32"
+  SaErrorT                        ->  "uns32"
+  SaAmfReadinessStateT            ->  "uns32"
+  SaAmfHAStateT                   ->  "uns32"
+  SaAmfComponentCapabilityModelT  ->  "uns32"
+  SaAmfCSITransitionDescriptorT   ->  "uns32"
+  SaAmfExternalComponentActionT   ->  "uns32"
+  SaAmfHandleT                    ->  SaUint32T
+  SaAmfPendingOperationFlagsT     ->  SaUint32T
+  SaAmfCSIFlagsT                  ->  SaUint32T
+  SaInvocationT                   ->  SaUint64T
+  SaSizeT                         ->  SaUint64T
+  SaClmNodeIdT                    ->  SaUint32T
+  SaAmfPmErrorsT                  ->  SaUint32T
+  SaAmfPmStopQualifierT           ->  "uns32"
+  SaClmHandleT                    ->  SaUint64T
+  SaClmClusterChangesT            ->  "uns32"
+  SaBoolT                         ->  "uns32"
 
 */
 
@@ -97,31 +97,31 @@ extern "C" {
 #define m_NCS_EDP_SABOOLT                           ncs_edp_uns32
 #define m_NCS_EDP_SACLMCLUSTERCHANGEST              ncs_edp_uns32
 
- uint32_t ncs_edp_sanamet(EDU_HDL *edu_hdl,
-				  EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-				  uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uint32_t ncs_edp_sanamet_net(EDU_HDL *edu_hdl,
-				      EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-				      uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uint32_t ncs_edp_saversiont(EDU_HDL *edu_hdl,
-				     EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-				     uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uint32_t ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl,
-					       EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-					       uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
-					       EDP_OP_TYPE op, EDU_ERR *o_err);
- uint32_t ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl,
-					    EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-					    uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uint32_t ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						      NCSCONTEXT ptr, uint32_t *ptr_data_len,
-						      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
- uint32_t ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-							    NCSCONTEXT ptr, uint32_t *ptr_data_len,
-							    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_sanamet(EDU_HDL *edu_hdl,
+                         EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                         uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_sanamet_net(EDU_HDL *edu_hdl,
+                             EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                             uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saversiont(EDU_HDL *edu_hdl,
+                            EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl,
+                                      EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                                      uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                                      EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl,
+                                   EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                                   uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+                                             NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                             EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+uint32_t ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+                                                   NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                                   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 /* Utility routines to free data structures malloc'ed by EDU */
- void ncs_saf_free_saamfhealthcheckkeyt(SaAmfHealthcheckKeyT *p);
+void ncs_saf_free_saamfhealthcheckkeyt(SaAmfHealthcheckKeyT *p);
 
 #ifdef __cplusplus
 }

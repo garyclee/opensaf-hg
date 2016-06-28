@@ -46,39 +46,39 @@
 /* Fix Ends */
 
 typedef enum sysf_exec_info_type {
-	SYSF_EXEC_INFO_SIG_CHLD,
-	SYSF_EXEC_INFO_TIME_OUT
+  SYSF_EXEC_INFO_SIG_CHLD,
+  SYSF_EXEC_INFO_TIME_OUT
 } SYSF_EXEC_INFO_TYPE;
 
 typedef struct sysf_pid_list {
-	NCS_PATRICIA_NODE pat_node;
-	uint32_t pid;
+  NCS_PATRICIA_NODE pat_node;
+  uint32_t pid;
 
-	NCS_EXEC_USR_HDL usr_hdl;
-	NCS_OS_PROC_EXECUTE_CB exec_cb;
-	NCS_EXEC_HDL exec_hdl;
+  NCS_EXEC_USR_HDL usr_hdl;
+  NCS_OS_PROC_EXECUTE_CB exec_cb;
+  NCS_EXEC_HDL exec_hdl;
 
-	/* Timer Params */
-	tmr_t tmr_id;
-	uint32_t timeout_in_ms;
-	int exec_info_type;
+  /* Timer Params */
+  tmr_t tmr_id;
+  uint32_t timeout_in_ms;
+  int exec_info_type;
 
 } SYSF_PID_LIST;
 
 typedef struct exec_mod_info {
-	int pid;
-	int status;
-	int type;
+  int pid;
+  int status;
+  int type;
 } EXEC_MOD_INFO;
 
 typedef struct sysf_execute_module_cb {
 
-	NCS_LOCK tree_lock;
-	NCSCONTEXT em_task_handle;
-	NCS_PATRICIA_TREE pid_list;
-	int read_fd;
-	int write_fd;
-	bool init;
+  NCS_LOCK tree_lock;
+  NCSCONTEXT em_task_handle;
+  NCS_PATRICIA_TREE pid_list;
+  int read_fd;
+  int write_fd;
+  bool init;
 } SYSF_EXECUTE_MODULE_CB;
 
 

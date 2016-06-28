@@ -37,4 +37,4 @@ T GetEnv(const char* environment_variable, T default_value);
 
 } // namespace base
 
-#endif	/* OPENSAF_OSAF_LIBS_CORE_CPLUSPLUS_BASE_GETENV_H_ */
+#endif  /* OPENSAF_OSAF_LIBS_CORE_CPLUSPLUS_BASE_GETENV_H_ */

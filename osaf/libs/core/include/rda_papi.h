@@ -31,8 +31,8 @@
 #define OSAF_LIBS_CORE_INCLUDE_RDA_PAPI_H_
 
 /*
- ** Includes
- */
+** Includes
+*/
 #include <stdio.h>
 #include "osaf/libs/core/include/ncsgl_defs.h"
 #include "osaf/libs/saf/include/saAmf.h"
@@ -42,8 +42,8 @@ extern "C" {
 #endif
 
 /*
- ** Return/error codes
- */
+** Return/error codes
+*/
 typedef enum {
   PCSRDA_RC_SUCCESS,
   PCSRDA_RC_TIMEOUT,
@@ -63,8 +63,8 @@ typedef enum {
 } PCSRDA_RETURN_CODE;
 
 /*
- ** Structure declarations
- */
+** Structure declarations
+*/
 typedef enum {
   PCS_RDA_LIB_INIT,
   PCS_RDA_LIB_DESTROY,
@@ -95,8 +95,8 @@ typedef struct {
 } PCS_RDA_CB_INFO;
 
 /*
- ** Callback Declaration
- */
+** Callback Declaration
+*/
 typedef void (*PCS_RDA_CB_PTR)(uint32_t callback_handle,
                                PCS_RDA_CB_INFO *cb_info,
                                PCSRDA_RETURN_CODE error_code);
@@ -111,8 +111,8 @@ typedef struct {
 } PCS_RDA_REQ;
 
 /*
- ** API Declaration
- */
+** API Declaration
+*/
 PCSRDA_RETURN_CODE pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
 
 /**
@@ -124,13 +124,13 @@ PCSRDA_RETURN_CODE pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
 extern uint32_t rda_get_role(SaAmfHAStateT *ha_state);
 
 /**
- * Install callback that will be called when role/state of the controller
- * change
- * @param cb_handle passed to callback function
- * @param rda_cb_ptr callback function
- *
- * @return uint32_t NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- */
+* Install callback that will be called when role/state of the controller
+* change
+* @param cb_handle passed to callback function
+* @param rda_cb_ptr callback function
+*
+* @return uint32_t NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+*/
 extern uint32_t rda_register_callback(uint32_t cb_handle,
                                       PCS_RDA_CB_PTR rda_cb_ptr);
 

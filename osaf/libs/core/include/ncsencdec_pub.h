@@ -26,63 +26,63 @@
   -------- -------  ------------  --------------------------------------------
   07-22-97 1.00A    H&J (NSG)     Original
 
- * 
- * 14    4/04/01 10:36a Fengh
- * float to float
- * 
- * 13    10/24/00 11:53a Pseverin
- * 
- * 12    8/02/00 5:20p Stevem
- * Added encode/decode of NCS_KEY stuff.
- * 
- * 11    12/15/99 12:16p Ptutlian
- * remove warnings for the vxworks compiler
- * 
- * 10    12/02/99 5:28p Saula
- * Merge RSVP
- * 
- * 12    12/02/99 5:13p Saula
- * Merge from main line
- * 
- * 7     9/10/98 3:26p Nidhi
- * 
- * 5     9/03/98 5:56p Stevem
- * 
- * 4     8/13/98 6:13p Kchin
- * 
- * 1     6/03/98 3:15p Daha
- * New files for LEC 2.0 and MPC 1.0.
- * 
- * 9     5/21/98 2:54p Nsg
- * changes to compile using gcc without warnings...
- * 
- * 8     5/11/98 6:26p Daha
- * Changes to make gcc compile warning free.
- * 
- * 7     12/10/97 2:43p Bfox
- * Added ncs_cpy_mac_addr()
- * 
- * 6     12/02/97 10:20p Bfox
- * Added prototype for ncs_make_addr_from_string()
- * 
- * 5     11/20/97 7:39a Billh
- * 
- * 4     10/28/97 3:55p Billh
- * 
- * 3     10/24/97 8:16a Billh
- * 
- * 2     10/24/97 7:38a Billh
- * Newly added  common include files.
- * 
- * 1     10/24/97 7:37a Billh
+  *
+  * 14    4/04/01 10:36a Fengh
+  * float to float
+  *
+  * 13    10/24/00 11:53a Pseverin
+  *
+  * 12    8/02/00 5:20p Stevem
+  * Added encode/decode of NCS_KEY stuff.
+  *
+  * 11    12/15/99 12:16p Ptutlian
+  * remove warnings for the vxworks compiler
+  *
+  * 10    12/02/99 5:28p Saula
+  * Merge RSVP
+  *
+  * 12    12/02/99 5:13p Saula
+  * Merge from main line
+  *
+  * 7     9/10/98 3:26p Nidhi
+  *
+  * 5     9/03/98 5:56p Stevem
+  *
+  * 4     8/13/98 6:13p Kchin
+  *
+  * 1     6/03/98 3:15p Daha
+  * New files for LEC 2.0 and MPC 1.0.
+  *
+  * 9     5/21/98 2:54p Nsg
+  * changes to compile using gcc without warnings...
+  *
+  * 8     5/11/98 6:26p Daha
+  * Changes to make gcc compile warning free.
+  *
+  * 7     12/10/97 2:43p Bfox
+  * Added ncs_cpy_mac_addr()
+  *
+  * 6     12/02/97 10:20p Bfox
+  * Added prototype for ncs_make_addr_from_string()
+  *
+  * 5     11/20/97 7:39a Billh
+  *
+  * 4     10/28/97 3:55p Billh
+  *
+  * 3     10/24/97 8:16a Billh
+  *
+  * 2     10/24/97 7:38a Billh
+  * Newly added  common include files.
+  *
+  * 1     10/24/97 7:37a Billh
 
 ..............................................................................
 
   DESCRIPTION:
   Function prototypes for utility encode/decode operations.
 
-******************************************************************************
-*/
+  ******************************************************************************
+  */
 
 /*
  * Module Inclusion Control...
@@ -161,14 +161,14 @@ void osaf_encode_saclmnodeaddresst(NCS_UBAID *ub, const SaClmNodeAddressT *addr)
 void osaf_decode_saclmnodeaddresst(NCS_UBAID *ub, SaClmNodeAddressT *addr);
 
 /* encode float */
-#define m_NCS_ENCODE_FLOAT(f, enc) {\
-          *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f))); \
-         }
+#define m_NCS_ENCODE_FLOAT(f, enc) {                    \
+    *((uint32_t *)(enc)) = htonl(*((uint32_t *)&(f)));  \
+  }
 
 /* decode float */
-#define m_NCS_DECODE_FLOAT(n, dec) {\
-          *((uint32_t *) (dec)) = (n); \
-         }
+#define m_NCS_DECODE_FLOAT(n, dec) {            \
+    *((uint32_t *) (dec)) = (n);                \
+  }
 
 #ifdef  __cplusplus
 }
