@@ -51,24 +51,24 @@
 
 class NtfLogger
 {
-    friend class NtfReader;
-public:
-    NtfLogger();
-//    virtual ~NtfLogger();
+  friend class NtfReader;
+ public:
+  NtfLogger();
+  //    virtual ~NtfLogger();
 
-    void log(NtfSmartPtr& notif, bool isLocal);
-    void checkQueueAndLog(NtfSmartPtr& notif);
-    SaAisErrorT logNotification(NtfSmartPtr& notif);    
-    void queueNotifcation(NtfSmartPtr& notif);
-    void printInfo();
+  void log(NtfSmartPtr& notif, bool isLocal);
+  void checkQueueAndLog(NtfSmartPtr& notif);
+  SaAisErrorT logNotification(NtfSmartPtr& notif);
+  void queueNotifcation(NtfSmartPtr& notif);
+  void printInfo();
 
-private:
-    SaAisErrorT initLog();
+ private:
+  SaAisErrorT initLog();
 
-    readerNotificationListT coll_;
-    unsigned int readCounter;
-    typedef std::list<NtfSmartPtr> QueuedNotificationsList;
-    QueuedNotificationsList queuedNotificationList;
+  readerNotificationListT coll_;
+  unsigned int readCounter;
+  typedef std::list<NtfSmartPtr> QueuedNotificationsList;
+  QueuedNotificationsList queuedNotificationList;
 };
 
 #endif // NTF_LOGGER_HH

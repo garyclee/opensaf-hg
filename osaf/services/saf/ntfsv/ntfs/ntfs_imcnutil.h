@@ -16,13 +16,13 @@
  */
 
 #ifndef NTFS_IMCNUTIL_H
-#define	NTFS_IMCNUTIL_H
+#define NTFS_IMCNUTIL_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -39,9 +39,9 @@ int stop_ntfimcn(void);
 #define stop_ntfimcn() 0
 #endif /* HAVE_NTFIMCN */
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* NTFS_IMCNUTIL_H */
+#endif  /* NTFS_IMCNUTIL_H */
 

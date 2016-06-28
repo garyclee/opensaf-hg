@@ -47,111 +47,111 @@ class NtfCriteriaFilter;
 
 class NtfReader
 {
-	friend class NtfCriteriaFilter;
-public:
-    NtfReader(NtfLogger& ntfLogger, unsigned int readerId);
-	 NtfReader(NtfLogger& ntfLogger,
-		 unsigned int readerId,
-		 SaNtfSearchCriteriaT searchCriteria,
-		 ntfsv_filter_ptrs_t *f_rec);
-    ~NtfReader();
-	 void filterCacheList(NtfLogger& ntfLogger);
-    NtfSmartPtr next(SaNtfSearchDirectionT direction,
-                                           SaAisErrorT* error);
-    unsigned int getId();
+  friend class NtfCriteriaFilter;
+ public:
+  NtfReader(NtfLogger& ntfLogger, unsigned int readerId);
+  NtfReader(NtfLogger& ntfLogger,
+            unsigned int readerId,
+            SaNtfSearchCriteriaT searchCriteria,
+            ntfsv_filter_ptrs_t *f_rec);
+  ~NtfReader();
+  void filterCacheList(NtfLogger& ntfLogger);
+  NtfSmartPtr next(SaNtfSearchDirectionT direction,
+                   SaAisErrorT* error);
+  unsigned int getId();
 
-private:
-    readerNotificationListT coll_;
-    readerNotificationListTIter ffIter;
-	 FilterMap filterMap;
-    unsigned int readerId_;
-	 SaNtfSearchCriteriaT searchCriteria_;
-	 NtfCriteriaFilter* c_filter_;
-	 bool firstRead;
+ private:
+  readerNotificationListT coll_;
+  readerNotificationListTIter ffIter;
+  FilterMap filterMap;
+  unsigned int readerId_;
+  SaNtfSearchCriteriaT searchCriteria_;
+  NtfCriteriaFilter* c_filter_;
+  bool firstRead;
 };
 
-class NtfCriteriaFilter 
+class NtfCriteriaFilter
 {
-public:
-	NtfCriteriaFilter(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	virtual ~NtfCriteriaFilter();
-	static NtfCriteriaFilter* getCriteriaFilter(SaNtfSearchCriteriaT& sc, NtfReader* r);
-	virtual bool filter(NtfSmartPtr& n)=0;
-	void add(NtfSmartPtr& n);
-	void setIndexCurrent();
-	virtual void finalize();
-	void removeTail();
-	void removeHead();
-	void convertToIter();	
-protected:
-	SaNtfSearchCriteriaT searchCriteria_;
-	NtfReader* reader_;
-	int i_; 
-	int startIdx_;
+ public:
+  NtfCriteriaFilter(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  virtual ~NtfCriteriaFilter();
+  static NtfCriteriaFilter* getCriteriaFilter(SaNtfSearchCriteriaT& sc, NtfReader* r);
+  virtual bool filter(NtfSmartPtr& n)=0;
+  void add(NtfSmartPtr& n);
+  void setIndexCurrent();
+  virtual void finalize();
+  void removeTail();
+  void removeHead();
+  void convertToIter();
+ protected:
+  SaNtfSearchCriteriaT searchCriteria_;
+  NtfReader* reader_;
+  int i_;
+  int startIdx_;
 };
 
-class NtfBeforeAtTime:public NtfCriteriaFilter 
+class NtfBeforeAtTime:public NtfCriteriaFilter
 {
-public:
-	NtfBeforeAtTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	bool filter(NtfSmartPtr& n);
-	void finalize();
-	bool eTimeFound_;
+ public:
+  NtfBeforeAtTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  bool filter(NtfSmartPtr& n);
+  void finalize();
+  bool eTimeFound_;
 };
 
-class AtTime:public NtfCriteriaFilter 
+class AtTime:public NtfCriteriaFilter
 {
-public:
-	AtTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	bool filter(NtfSmartPtr& n);
+ public:
+  AtTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  bool filter(NtfSmartPtr& n);
 };
 
-class NtfAtOrAfterTime:public NtfCriteriaFilter 
+class NtfAtOrAfterTime:public NtfCriteriaFilter
 {
-public:
-	NtfAtOrAfterTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	bool filter(NtfSmartPtr& n);
-	void finalize();
-private:
-	bool indexSaved_;
-	bool eTimeFound_;
+ public:
+  NtfAtOrAfterTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  bool filter(NtfSmartPtr& n);
+  void finalize();
+ private:
+  bool indexSaved_;
+  bool eTimeFound_;
 };
 
-class NtfBeforeTime:public NtfCriteriaFilter 
+class NtfBeforeTime:public NtfCriteriaFilter
 {
-public:
-	NtfBeforeTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	bool filter(NtfSmartPtr& n);
-	void finalize();
+ public:
+  NtfBeforeTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  bool filter(NtfSmartPtr& n);
+  void finalize();
 
-private:
-	bool indexSaved_;
-	bool eTimeFound_;
+ private:
+  bool indexSaved_;
+  bool eTimeFound_;
 };
 
-class NtfAfterTime:public NtfCriteriaFilter 
+class NtfAfterTime:public NtfCriteriaFilter
 {
-public:
-	NtfAfterTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	bool filter(NtfSmartPtr& n);
-	void finalize();
-private:
-	bool indexSaved_;
-	bool eTimeFound_;
+ public:
+  NtfAfterTime(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  bool filter(NtfSmartPtr& n);
+  void finalize();
+ private:
+  bool indexSaved_;
+  bool eTimeFound_;
 };
 
-class NtfOnlyFilter:public NtfCriteriaFilter 
+class NtfOnlyFilter:public NtfCriteriaFilter
 {
-public:
-	NtfOnlyFilter(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	bool filter(NtfSmartPtr& n);
+ public:
+  NtfOnlyFilter(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  bool filter(NtfSmartPtr& n);
 };
 
-class NtfIdSearch:public NtfCriteriaFilter 
+class NtfIdSearch:public NtfCriteriaFilter
 {
-public:
-	NtfIdSearch(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
-	bool filter(NtfSmartPtr& n);
+ public:
+  NtfIdSearch(SaNtfSearchCriteriaT& searchCriteria, NtfReader* reader);
+  bool filter(NtfSmartPtr& n);
 };
 
 #endif // NTF_READER_HH

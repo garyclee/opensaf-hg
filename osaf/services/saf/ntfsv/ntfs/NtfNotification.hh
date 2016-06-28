@@ -34,49 +34,49 @@
 
 typedef struct
 {
-    unsigned int clientId;
-    SaNtfSubscriptionIdT subscriptionId;
+  unsigned int clientId;
+  SaNtfSubscriptionIdT subscriptionId;
 } UniqueSubscriptionId;
 
 class NtfNotification{
 
-public:
+ public:
 
-    NtfNotification(SaNtfIdentifierT notificationId,
-                    SaNtfNotificationTypeT notificationType,
-                    ntfsv_send_not_req_t* sendNotInfo);
+  NtfNotification(SaNtfIdentifierT notificationId,
+                  SaNtfNotificationTypeT notificationType,
+                  ntfsv_send_not_req_t* sendNotInfo);
 
-    virtual ~NtfNotification();
-    SaNtfNotificationTypeT getNotificationType() const;
-    SaNtfIdentifierT getNotificationId() const;
-    void storeMatchingSubscription(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
-    void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
-    void notificationLoggedConfirmed();
-    bool loggedOk() const;
-    bool isSubscriptionListEmpty() const;
-    void removeSubscription(unsigned int clientId);
-    void removeSubscription(unsigned int clientId,
-                            SaNtfSubscriptionIdT subscriptionId);
-    ntfsv_send_not_req_t* getNotInfo();
-    void syncRequest(NCS_UBAID *uba);
-    void resetSubscriptionIdList();
-    SaAisErrorT getNextSubscription(UniqueSubscriptionId& subId);
-    void printInfo();
-	 SaNtfNotificationHeaderT* header();
-    ntfsv_send_not_req_t *sendNotInfo_;
-    bool loggFromCallback_;
+  virtual ~NtfNotification();
+  SaNtfNotificationTypeT getNotificationType() const;
+  SaNtfIdentifierT getNotificationId() const;
+  void storeMatchingSubscription(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
+  void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
+  void notificationLoggedConfirmed();
+  bool loggedOk() const;
+  bool isSubscriptionListEmpty() const;
+  void removeSubscription(unsigned int clientId);
+  void removeSubscription(unsigned int clientId,
+                          SaNtfSubscriptionIdT subscriptionId);
+  ntfsv_send_not_req_t* getNotInfo();
+  void syncRequest(NCS_UBAID *uba);
+  void resetSubscriptionIdList();
+  SaAisErrorT getNextSubscription(UniqueSubscriptionId& subId);
+  void printInfo();
+  SaNtfNotificationHeaderT* header();
+  ntfsv_send_not_req_t *sendNotInfo_;
+  bool loggFromCallback_;
 
-private:
-    NtfNotification();
-    NtfNotification(const NtfNotification&);
-    NtfNotification& operator=(const NtfNotification&);
+ private:
+  NtfNotification();
+  NtfNotification(const NtfNotification&);
+  NtfNotification& operator=(const NtfNotification&);
 
-    bool logged;
-    SaNtfIdentifierT notificationId_;
-    SaNtfNotificationTypeT notificationType_;
-    typedef std::list<UniqueSubscriptionId> SubscriptionList;
-    SubscriptionList subscriptionList;
-    SubscriptionList::iterator idListPos;
+  bool logged;
+  SaNtfIdentifierT notificationId_;
+  SaNtfNotificationTypeT notificationType_;
+  typedef std::list<UniqueSubscriptionId> SubscriptionList;
+  SubscriptionList subscriptionList;
+  SubscriptionList::iterator idListPos;
 };
 
 typedef std::tr1::shared_ptr<NtfNotification> NtfSmartPtr;
