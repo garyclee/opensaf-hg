@@ -1,15 +1,15 @@
-This directory tree contains a unit test suite for LOG service. The goal is
-to test the API extensively. Checking all possible error conditions etc.
+This directory tree contains a unit test suite for LOG service. The goal is to
+test the API extensively. Checking all possible error conditions etc.
 
 From the ticket #1181, 3 new TCs have been added to the test suite:
 - CCB Object Modify, data group. Group does not exist. Not allowed
 - CCB Object Modify, data group. Group exists. OK
 - CCB Object Modify, delete data group. OK
 
-The second TC tries to set the data group to "log-data" group.
-In order to help the TC passed, "log-data" group must be existing and be added
-to supplementary group list of the user as which LOGSV is running.
-Otherwise that TC will be skipped.
+The second TC tries to set the data group to "log-data" group.  In order to help
+the TC passed, "log-data" group must be existing and be added to supplementary
+group list of the user as which LOGSV is running.  Otherwise that TC will be
+skipped.
 
 
 
@@ -21,8 +21,8 @@ SET UP A CLUSTER 02 NODES WITH DIFFERENT CKPT VERSIONS
 There was issue when two nodes runs with different ckpt versions.
 Ticket #1459 is an example. How to setup this on UML?
 
-Here is guideline for environment preparing for the case active logsv with version #5,
-standby logsv with version #4.
+Here is guideline for environment preparing for the case active logsv with
+version #5, standby logsv with version #4.
 
 1. Create 02 separate folders, one refers to branch 5.0.x (folder A),
    other one refers to 4.6.x branch (folder B).
@@ -43,6 +43,35 @@ standby logsv with version #4.
 
 8. Observe both nodes if there is any issue (e.g: node is rebooted)
 
-If want to test the case active logsv version #4, standby logsv version #5, reboot above SC-1 (swithover).
+If want to test the case active logsv version #4, standby logsv version #5,
+reboot above SC-1 (swithover).
 
+
+TEST CASES FOR LONG DN (#1315)
+-----------------------------
+New test suite - suite #13 with ten test cases are created to cover minimum
+requirement described at `GENERAL` section.  Including five normal use cases and
+five abnormal use cases.
+
+Each test cases is done with following frame:
+a) Backup data such as current IMM attribute values, so that it can be restored
+   back after test run.
+b) Set up environment such as enabling long DN support in IMM, change log stream
+   attribute values.
+c) Write a log record containing long
+   DN or creating streams with long stream names.
+d) Verify the data if it contains what we expect such as log file contains long
+   DN at specific token or not.
+e) Close all opened handles
+f) Restore the data back to original values.
+
+At verifying step, if the environment variable `LOGTEST_ENABLE_STDOUT` is set,
+user will be able to see the verifying data such as long notifyingObj at
+specific log file name. And when running the test suite #13, user does not have
+to to take care how to set up environment for long DN testing, all precondition
+are set to make sure the long DN work.
+
+Users can refer to these test cases to see how to pass long DN data to LOG APIs,
+and what are precondition settings for using extended SaNameT.
+These test cases are located in the file `~/tests/logsv/tet_log_longDN.c`
 

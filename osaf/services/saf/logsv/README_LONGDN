@@ -1,0 +1,139 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2016 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+I. GENERAL INFORMATION (#1315)
+==============================
+
+The SaNameT type, which is used to pass distinguished stream DNs name in
+saLogStreamOpen_2() API, or in `logSvcUsrName`, `notificationObject` or
+`notifyingObject` which belong to `SaLogRecordT` data structure passed to
+`saLogWriteLogAsync()` API, contains a fixed-size buffer that limits the string
+length to a maximum of 255 bytes.
+
+#1315 ticket was raised for LOG to support long DN. The use cases could be:
+UC1) Write a log record having the long DN at @Sl, @No, @Ng tokens
+     using Log APIs.
+UC2) Create a long app stream name using Log API.
+UC3) Write a log record to a long app stream name using saflogger tool.
+
+The ticket included following parts:
+1) Update saflogger tool - add one more option `-f`
+2) Update LOG agent (API) to support Long DN
+3) Update LOG service to support Long DN
+4) Create test cases
+
+
+II) IMPLEMENTATION (#1315)
+==============================
+
+1) saflogger Tool - Option `-f`
+-------------------------------------------------
+
+Refer to `~/osaf/tools/saflog/saflogger/README` for information.
+
+
+2) LOG Agent
+---------------------------------------------
+
+All internal SaNameT are replaced by SaConstStringT and functions handling
+extended SaNameT are used.
+
+With extended SaNameT, data size now is up to 2048(kOsafMaxDnLength) bytes (not
+limited to 256 bytes any more). All max data size checking against 256 bytes
+are revised - now limited to 2048(kOsafMaxDnLength) bytes.  Due to this point,
+one notice is that, when supported long DN client (e.g: log client running on
+OpenSAF 5.1 or newer versions) sends an record containing long data (e.g:
+`notificationObject` length > 256 bytes) to active Log service which is not
+support long DN (e.g: active log running on OpenSAF 5.0 or older versions), that
+log client will get `SA_AIS_ERR_TRY_AGAIN` always and may cause the log client
+hang. There is no problem with the opposite case (non-support long DN does
+communicate with supported long DN).
+
+Is there any impacts on LOG APIs (except above case)? No.
+
+Note:
+If the application wants to use long DN support, few things have to be
+done. Refer to chapter 4 of OpenSAF_Extensions_PR.odt for details.
+
+
+3) LOG Service
+----------------------------------------
+
+In original code, logsv used NCS PATRICIA TREE as an database to hold all
+existing LOG stream names, and taking stream name as the keyword for
+searching/adding/deleting tree elements.
+
+NCS PATRICIA TREE has a limitation with keyword size. It is only supported the
+key size up to 600 bytes. With long stream name, its length could be up to
+2024(kOsafMaxDnLength) bytes. The existing tree is not applicable for holing
+long stream names.
+
+Beside that tree, logsv is providing other database named `stream_array` which
+is used to hold all LOG existing streams. When there is any new stream created,
+a new `log_stream_t` object is created. It holds information of that stream.
+It later is added to that database. And when the stream is closed and no client
+connects to that stream, it will be removed from the database.
+That database is a two-dimensional array with data format:
+
+	{
+		{ <streamId1>, <pointer to `log_stream_t`> },
+		{ <streamId2>, <pointer to `log_stream_t`> },
+		...
+	}
+
+Logsv is able to query below infos from `stream_array` that logsv used to do
+based on NCS PATRICIA TREE:
+- Is there any current log stream with specific DN in system?
+- Or what are the current log existing streams in system?
+`stream_array` database can play the same role as NCS_PATRICIA_TREE. Therefore,
+NCS PATRICIA TREE is removed from logsv code.
+
+More on `stream_array` database. All rooms in `stream_array` is clean/reset at
+startup. First three rooms are reserved for well-known streams.
+At the moment (OpenSAF 5.1), there are total 67 rooms (64 for app streams + 3
+for well-known streams). Adding/deleting/searching items to/from this database
+is fast.
+
+Besides, all internal SaNameT are replaced by SaConstStringT or C++ strings and
+functions handling extended SaNameT are used.
+
+Notes:
+When active logsv on OpenSAF 5.1 or newer communicates with older version such
+as LOG client on OpenSAF 5.0 (not support Long DN). If there is any operation
+on creating long app stream name and long DN is enabled in IMM, standby node
+will be crashed.  This happens because active logs sends checkpoint data to
+standby node, and standby log copies data using `strcpy()` to non-extended
+SaNameT type (size is limited to 255 bytes). Make the data
+overflowed. `strcpy()` should not be used anywhere in code, `strncpy()` instead.
+
+To avoid this happens, two options:
+a) During upgrade, disable long DN in IMM or make sure there is no long DN
+operation run until the upgrade is finished.
+b) Raise one ticket to fix all
+places using strcpy()
+
+
+4) Test Cases
+-----------------------------
+Refer to `~/tests/logsv/README` for information.
+
+
+III. REFERENCES
+=======================
+
+1) OpenSAF_Extensions_PR.odt
+
