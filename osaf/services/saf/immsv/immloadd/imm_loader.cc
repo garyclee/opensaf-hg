@@ -2859,7 +2859,7 @@ int main(int argc, char* argv[])
                xmldir is writable.
             */
             if(!preload && pbeCorrupted) {/* Should perhaps escalate also if preload or return <0, 0, 0>*/
-                escalatePbe(xmldir, pbeFile.c_str());
+                escalatePbe(xmldir, pbeFile);
             }
             goto err; 
         }

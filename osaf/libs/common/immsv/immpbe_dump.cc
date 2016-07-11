@@ -4042,7 +4042,7 @@ std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
 			exit(1);
 	}
 
-	return ost.str().c_str();
+	return ost.str();
 }
 
 std::list<std::string> getClassNames(SaImmHandleT immHandle)
