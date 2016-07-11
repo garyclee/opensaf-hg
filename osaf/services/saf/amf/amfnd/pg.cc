@@ -112,7 +112,7 @@ static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRAC
 		}		/* while */
 
 		/* delete the pg rec */
-		rc = avnd_pgdb_rec_del(cb, &pg->csi_name);
+		rc = avnd_pgdb_rec_del(cb, pg->csi_name);
 	}
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -160,11 +160,11 @@ uint32_t avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * Update pg db
 	 */
 	/* get the pg rec */
-	pg = m_AVND_PGDB_REC_GET(cb->pgdb, pg_start->csi_name);
+	pg = cb->pgdb.find(Amf::to_string(&pg_start->csi_name));
 
 	/* if not found, add a new pg rec */
 	if (!pg) {
-		pg = avnd_pgdb_rec_add(cb, &pg_start->csi_name, &rc);
+		pg = avnd_pgdb_rec_add(cb, Amf::to_string(&pg_start->csi_name), &rc);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
 		is_fresh_pg = true;
@@ -184,7 +184,7 @@ uint32_t avnd_evt_ava_pg_start_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * If fresh pg is created, send pg-start req to avd 
 	 */
 	if (true == is_fresh_pg) {
-		rc = avnd_di_pg_act_send(cb, &pg_start->csi_name, AVSV_PG_TRACK_ACT_START, false);
+		rc = avnd_di_pg_act_send(cb, Amf::to_string(&pg_start->csi_name), AVSV_PG_TRACK_ACT_START, false);
 		return rc;
 	}
 
@@ -258,7 +258,7 @@ uint32_t avnd_evt_ava_pg_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 	key.req_hdl = pg_stop->hdl;
 
 	/* get the pg & pg-track rec */
-	pg = m_AVND_PGDB_REC_GET(cb->pgdb, pg_stop->csi_name);
+	pg = cb->pgdb.find(Amf::to_string(&pg_stop->csi_name));
 	if (pg)
 		pg_trk = m_AVND_PGDB_TRK_REC_GET(*pg, key);
 
@@ -343,7 +343,7 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 				mem_curr = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_NEXT(&mem_curr->pg_dll_node);
 				continue;
 			} else {
-				pg_mem = avnd_pgdb_mem_rec_rmv(cb, pg, &mem_curr->info.member.compName);
+				pg_mem = avnd_pgdb_mem_rec_rmv(cb, pg, Amf::to_string(&mem_curr->info.member.compName));
 
 				mem_curr =
 				    (mem_prv) ? (AVND_PG_MEM *)m_NCS_DBLIST_FIND_NEXT(&mem_prv->pg_dll_node) :
@@ -373,7 +373,7 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 		}		/* for */
 
 		/* delete pg rec */
-		rc = avnd_pgdb_rec_del(cb, &pg->csi_name);
+		rc = avnd_pgdb_rec_del(cb, pg->csi_name);
 	}
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -413,7 +413,7 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 			avnd_di_msg_ack_process(cb, info->msg_id_ack);
 
 			/* get the pg rec */
-			pg = m_AVND_PGDB_REC_GET(cb->pgdb, info->csi_name);
+			pg = cb->pgdb.find(Amf::to_string(&info->csi_name));
 			TRACE("pg '%p', msg_on_fover '%u'", pg, info->msg_on_fover);
 			if (true == info->msg_on_fover) {
 				if (nullptr != pg) {
@@ -480,7 +480,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 		return rc;
 
 	/* get the pg-rec */
-	pg = m_AVND_PGDB_REC_GET(cb->pgdb, info->csi_name);
+	pg = cb->pgdb.find(Amf::to_string(&info->csi_name));
 	if (!pg)
 		return NCSCC_RC_FAILURE;
 
@@ -500,7 +500,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 		}		/* for */
 
 		/* delete pg rec */
-		rc = avnd_pgdb_rec_del(cb, &pg->csi_name);
+		rc = avnd_pgdb_rec_del(cb, pg->csi_name);
 	} else {
 		/* => this update is for csi updation */
 
@@ -513,7 +513,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 			break;
 
 		case SA_AMF_PROTECTION_GROUP_REMOVED:
-			chg_mem = avnd_pgdb_mem_rec_rmv(cb, pg, &info->mem.member.compName);
+			chg_mem = avnd_pgdb_mem_rec_rmv(cb, pg, Amf::to_string(&info->mem.member.compName));
 			break;
 
 		default:
@@ -563,31 +563,32 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 void avnd_pg_finalize(AVND_CB *cb, SaAmfHandleT hdl, MDS_DEST *dest)
 {
 	AVND_PG_TRK_KEY key;
-	AVND_PG *curr = 0, *prv = 0;
+	AVND_PG *curr = 0;
+	AmfDb<std::string, AVND_PG>::iterator it, next_elem;
 	TRACE_ENTER();
 
 	/* populate the key */
 	key.mds_dest = *dest;
 	key.req_hdl = hdl;
 
-	curr = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uint8_t *)0);
 
 	/* scan the entire pg db & delete the matching track recs */
-	while (curr) {
+
+	it = cb->pgdb.begin();
+	while (it != cb->pgdb.end()) {
+		// This is to avoid the case the an pgdb element is deleted inside
+		// nested functions
+		next_elem = it;
+		next_elem++;
+		curr = it->second;
 		/* delete the matching track recs, if any */
 		avnd_pg_trk_rmv(cb, curr, &key);
-
 		/* if no other appl tracks this pg, stop tracking it */
-		if (!curr->trk_list.n_nodes) {
+		if (curr->trk_list.n_nodes == 0) {
 			avnd_pg_track_stop(cb, curr);
-			curr = (prv) ? m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, prv->csi_name) :
-			    (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uint8_t *)0);
-		} else {
-			prv = curr;
-			curr = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, curr->csi_name);
 		}
-	}			/* while */
-
+		it = next_elem;
+	}
 	TRACE_LEAVE();
 	return;
 }
@@ -697,16 +698,16 @@ uint32_t avnd_pg_track_start(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
 uint32_t avnd_pg_track_stop(AVND_CB *cb, AVND_PG *pg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("%s",  pg->csi_name.value);
+	TRACE_ENTER2("%s",  pg->csi_name.c_str());
 
 	/* send pg-stop req to avd */
-	rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_STOP, false);
+	rc = avnd_di_pg_act_send(cb, pg->csi_name, AVSV_PG_TRACK_ACT_STOP, false);
 	if (NCSCC_RC_SUCCESS != rc) {
-		TRACE("avnd_di_pg_act_send failed for = %s", pg->csi_name.value);
+		TRACE("avnd_di_pg_act_send failed for = %s", pg->csi_name.c_str());
 	}
 
 	/* delete the pg rec */
-	rc = avnd_pgdb_rec_del(cb, &pg->csi_name);
+	rc = avnd_pgdb_rec_del(cb, pg->csi_name);
 
 	TRACE_LEAVE2("rc '%u'", rc);
 	return rc;
@@ -739,14 +740,14 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 	TRACE_ENTER();
 
 	/* allocate cbk-info */
-	cbk_info = new AVSV_AMF_CBK_INFO();
+	cbk_info = static_cast<AVSV_AMF_CBK_INFO*>(calloc(1, sizeof(AVSV_AMF_CBK_INFO)));
 
 	pg_param = &cbk_info->param.pg_track;
 
 	/* fill the common params */
 	cbk_info->hdl = trk->info.key.req_hdl;
 	cbk_info->type = AVSV_AMF_PG_TRACK;
-	pg_param->csi_name = pg->csi_name;
+	osaf_extended_name_alloc(pg->csi_name.c_str(), &pg_param->csi_name);
 	pg_param->mem_num = pg->mem_list.n_nodes;
 	pg_param->err = SA_AIS_OK;	/* default err code */
 	number_of_items = pg->mem_list.n_nodes;
@@ -765,12 +766,15 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 				number_of_items = number_of_items + 1;
 
 			/* allocate the buffer */
-			pg_param->buf.notification = new SaAmfProtectionGroupNotificationT[number_of_items]();
+			pg_param->buf.notification = static_cast<SaAmfProtectionGroupNotificationT*>(calloc(number_of_items,
+																								sizeof(SaAmfProtectionGroupNotificationT)));
 
 			/* fill all the current members */
 			for (curr_mem = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_FIRST(&pg->mem_list), i = 0;
 			     curr_mem; curr_mem = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_NEXT(&curr_mem->pg_dll_node), i++) {
 				pg_param->buf.notification[i] = curr_mem->info;
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&curr_mem->info.member.compName),
+										 &pg_param->buf.notification[i].member.compName);
 				if (chg_mem && (curr_mem != chg_mem))
 					pg_param->buf.notification[i].change = SA_AMF_PROTECTION_GROUP_NO_CHANGE;
 				pg_param->buf.numberOfItems++;
@@ -780,6 +784,8 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 			if (chg_mem && (chg_mem->info.change == SA_AMF_PROTECTION_GROUP_REMOVED)
 			    && m_AVND_PG_TRK_IS_CHANGES(trk)) {
 				pg_param->buf.notification[i] = chg_mem->info;
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&chg_mem->info.member.compName),
+										 &pg_param->buf.notification[i].member.compName);
 				pg_param->buf.numberOfItems++;
 			}
 
@@ -787,9 +793,11 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 
 		if (chg_mem && m_AVND_PG_TRK_IS_CHANGES_ONLY(trk)) {
 	 /*** include only the modified member ***/
-			pg_param->buf.notification = new SaAmfProtectionGroupNotificationT[1];
+			pg_param->buf.notification = static_cast<SaAmfProtectionGroupNotificationT*>(calloc(1, sizeof(SaAmfProtectionGroupNotificationT)));
 
 			*pg_param->buf.notification = chg_mem->info;
+			osaf_extended_name_alloc(osaf_extended_name_borrow(&chg_mem->info.member.compName),
+									 &pg_param->buf.notification->member.compName);
 			pg_param->buf.numberOfItems = 1;
 		}
 	} else
@@ -829,7 +837,7 @@ uint32_t avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* allocate ava message */
-	msg.info.ava = new AVSV_NDA_AVA_MSG();
+	msg.info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 
 	/* populate the msg */
 	msg.type = AVND_MSG_AVA;

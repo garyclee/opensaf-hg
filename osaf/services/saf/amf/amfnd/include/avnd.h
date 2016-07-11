@@ -50,6 +50,7 @@
 #include "amf_d2nmsg.h"
 #include "amf_n2avamsg.h"
 #include "amf_nd2ndmsg.h"
+#include <amf_db_template.h>
 
 /* AvND Files */
 #include "avnd_tmr.h"
@@ -64,8 +65,8 @@
 #include "avnd_di.h"
 #include "avnd_util.h"
 #include "avnd_clm.h"
-#include "avnd_cb.h"
 #include "avnd_proxy.h"
+#include "avnd_cb.h"
 
 extern uint32_t avnd_create(void);
 extern void avnd_sigterm_handler(void);

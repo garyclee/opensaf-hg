@@ -383,15 +383,15 @@ uint32_t avnd_evt_pid_exit_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_ERR_INFO err;
 
 	TRACE_ENTER();
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, evt->info.pm_evt.comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&evt->info.pm_evt.comp_name));
 	if (nullptr == comp) {
-		LOG_NO("Comp '%s' not found ", evt->info.pm_evt.comp_name.value);
+		LOG_NO("Comp '%s' not found ", osaf_extended_name_borrow(&evt->info.pm_evt.comp_name));
 		goto done;
 	}
 	pm_rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, 
 			(uint8_t *)&evt->info.pm_evt.pid);	
 	if (nullptr == pm_rec) {
-		LOG_NO("PID '%llu' not found for Comp '%s'", evt->info.pm_evt.pid, evt->info.pm_evt.comp_name.value);
+		LOG_NO("PID '%llu' not found for Comp '%s'", evt->info.pm_evt.pid, osaf_extended_name_borrow(&evt->info.pm_evt.comp_name));
 		goto done;
 	}
 

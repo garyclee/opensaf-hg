@@ -105,9 +105,9 @@ void ImmReader::ir_process_event(AVND_EVT *evt) {
 	TRACE_ENTER2("Evt type:%u", evt->type);
 
 	/* get the su */
-	su = m_AVND_SUDB_REC_GET(avnd_cb->sudb, evt->info.ir_evt.su_name);
+	su = avnd_sudb_rec_get(avnd_cb->sudb, Amf::to_string(&evt->info.ir_evt.su_name));
 	if (!su) {
-		TRACE("SU'%s', not found in DB", evt->info.ir_evt.su_name.value);
+		TRACE("SU'%s', not found in DB", osaf_extended_name_borrow(&evt->info.ir_evt.su_name));
 		goto done;
 	}
 
@@ -119,8 +119,11 @@ void ImmReader::ir_process_event(AVND_EVT *evt) {
 
 	{
 		AVND_EVT *evt_ir = 0;
+		SaNameT copy_name;
 		TRACE("Sending to main thread.");
-		evt_ir = avnd_evt_create(avnd_cb, AVND_EVT_IR, 0, nullptr, &su->name, 0, 0);
+		osaf_extended_name_alloc(su->name.c_str(), &copy_name);
+		evt_ir = avnd_evt_create(avnd_cb, AVND_EVT_IR, 0, nullptr, &copy_name, 0, 0);
+		osaf_extended_name_free(&copy_name);
 		if (res == NCSCC_RC_SUCCESS)
 			evt_ir->info.ir_evt.status = true;
 		else

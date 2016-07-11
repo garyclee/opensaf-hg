@@ -23,7 +23,7 @@
   FUNCTIONS INCLUDED in this module:
   
 ****************************************************************************/
-#include "avnd.h"
+#include <avnd.h>
 
 /******************************************************************************
   Name          : avnd_nodeid_mdsdest_rec_add
@@ -46,7 +46,7 @@ uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
+	rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
 	if (rec != nullptr) {
 		LOG_ER("nodeid_mdsdest rec already exists, Rec Add Failed: MdsDest:%" PRId64 ", NodeId:%u",
 				    mds_dest, node_id);
@@ -56,10 +56,8 @@ uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 
 		rec->node_id = node_id;
 		rec->mds_dest = mds_dest;
-		rec->tree_node.bit = 0;
-		rec->tree_node.key_info = (uint8_t *)&(rec->node_id);
 
-		res = ncs_patricia_tree_add(&cb->nodeid_mdsdest_db, &rec->tree_node);
+		res = cb->nodeid_mdsdest_db.insert(node_id, rec);
 
 		if (NCSCC_RC_SUCCESS != res) {
 			LOG_ER("Couldn't add nodeid_mdsdest rec, patricia add failed:MdsDest:%" PRId64 ", NodeId:%u",
@@ -95,20 +93,13 @@ uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
+	rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
 	if (rec == nullptr) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec del failed: MdsDest:%" PRId64 " NodeId:%u",
 				    mds_dest, node_id);
 		return NCSCC_RC_FAILURE;
 	} else {
-		res = ncs_patricia_tree_del(&cb->nodeid_mdsdest_db, &rec->tree_node);
-
-		if (NCSCC_RC_SUCCESS != res) {
-			LOG_ER("Couldn't del nodeid_mdsdest rec, patricia del failed: MdsDest:%" PRId64 ",NodeId:%u, res%u",
-			     mds_dest, node_id, res);
-			return res;
-		}
-
+		cb->nodeid_mdsdest_db.erase(rec->node_id);
 	}			/* Else of if(rec == nullptr) */
 
 	delete rec;
@@ -132,69 +123,13 @@ MDS_DEST avnd_get_mds_dest_from_nodeid(AVND_CB *cb, NODE_ID node_id)
 {
 	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
 
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_get(&cb->nodeid_mdsdest_db, (uint8_t *)&(node_id));
+	rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
 	if (rec == nullptr) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec get failed: NodeId:%u",node_id);
 		return 0;
 	}
 
 	return rec->mds_dest;
-}
-
-/****************************************************************************
-  Name          : avnd_nodeid_to_mdsdest_map_db_init
- 
-  Description   : This routine initializes the node_id to mds dest map database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_nodeid_to_mdsdest_map_db_init(AVND_CB *cb)
-{
-	NCS_PATRICIA_PARAMS params;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
-
-	params.key_size = sizeof(NODE_ID);
-	rc = ncs_patricia_tree_init(&cb->nodeid_mdsdest_db, &params);
-
-	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("nodeid_mdsdest_db initialization failed");
-	}
-
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_internode_avail_comp_db_init
- 
-  Description   : This routine initializes the available internode components database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_internode_avail_comp_db_init(AVND_CB *cb)
-{
-	NCS_PATRICIA_PARAMS params;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
-
-	params.key_size = sizeof(SaNameT);
-	rc = ncs_patricia_tree_init(&cb->internode_avail_comp_db, &params);
-
-	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("internode_avail_comp_db initialization failed");
-	}
-
-	return rc;
 }
 
 /******************************************************************************
@@ -216,7 +151,7 @@ uint32_t avnd_internode_avail_comp_db_init(AVND_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
+AVND_COMP *avnd_internode_comp_add(AVND_CB *cb, const std::string& name,
 				   NODE_ID node_id, uint32_t *rc, bool pxy_for_ext_comp, bool comp_is_proxy)
 {
 	AVND_COMP *comp = 0;
@@ -224,12 +159,12 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 	*rc = SA_AIS_OK;
 
 	/* verify if this component is already present in the db */
-	if (nullptr != (comp = m_AVND_COMPDB_REC_GET(*ptree, *name))) {
+	if ((comp = avnd_compdb_rec_get(avnd_cb->internode_avail_comp_db, name)) != nullptr) {
 		/* This is a proxy and already proxying at least one component. 
 		   So, no problem. */
 		*rc = SA_AIS_ERR_EXIST;
 		TRACE_1("avnd_internode_comp_add already exists. %s and NodeId:%u",
-				      name->value, node_id);
+				      name.c_str(), node_id);
 		return comp;
 	}
 
@@ -238,7 +173,7 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 	comp->use_comptype_attr = new std::bitset<NumAttrs>;
 
 	/* update the comp-name (patricia key) */
-	memcpy(&comp->name, name, sizeof(SaNameT));
+	comp->name = name;
 
 	comp->pres = SA_AMF_PRESENCE_UNINSTANTIATED;
 
@@ -264,17 +199,15 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 	/* initialize proxied list */
 	avnd_pxied_list_init(comp);
 
-	/* Add to the patricia tree. */
-	comp->tree_node.bit = 0;
-	comp->tree_node.key_info = (uint8_t *)&comp->name;
-	*rc = ncs_patricia_tree_add(ptree, &comp->tree_node);
+	/* Add to the internode available compdb. */
+	*rc = avnd_cb->internode_avail_comp_db.insert(comp->name, comp);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = SA_AIS_ERR_NO_MEMORY;
 		goto err;
 	}
 
 	TRACE_1("avnd_internode_comp_add:%s nodeid:%u, pxy_for_ext_comp:%u,comp_is_proxy:%u",
-			      comp->name.value, node_id, pxy_for_ext_comp, comp_is_proxy);
+			      comp->name.c_str(), node_id, pxy_for_ext_comp, comp_is_proxy);
 	return comp;
 
  err:
@@ -283,7 +216,7 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 		avnd_comp_delete(comp);
 	}
 
-	LOG_ER("avnd_internode_comp_add failed.%s: NodeId:%u", name->value, node_id);
+	LOG_ER("avnd_internode_comp_add failed.%s: NodeId:%u", name.c_str(), node_id);
 	return 0;
 
 }
@@ -301,21 +234,21 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
  
   Notes         : None
 ******************************************************************************/
-uint32_t avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *name)
+uint32_t avnd_internode_comp_del(AVND_CB *cb, const std::string& name)
 {
 	AVND_COMP *comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CBK *cbk_rec = nullptr, *temp_cbk_ptr = nullptr;
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(*ptree, *name);
+	comp = avnd_compdb_rec_get(cb->internode_avail_comp_db, name);
 	if (!comp) {
 		rc = AVND_ERR_NO_COMP;
-		LOG_ER("internode_comp_del failed. Rec doesn't exist :%s", name->value);
+		LOG_ER("internode_comp_del failed. Rec doesn't exist :%s", name.c_str());
 		goto err;
 	}
 	TRACE("avnd_internode_comp_del:%s: nodeid:%u, comp_type:%u",
-			      comp->name.value, comp->node_id, comp->comp_type);
+			      comp->name.c_str(), comp->node_id, comp->comp_type);
 
 /*  Delete the callbacks if any. */
 	cbk_rec = comp->cbk_list;
@@ -326,13 +259,9 @@ uint32_t avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT 
 	}
 
 	/* 
-	 * Remove from the patricia tree.
+	 * Remove from the internode available comp db
 	 */
-	rc = ncs_patricia_tree_del(ptree, &comp->tree_node);
-	if (NCSCC_RC_SUCCESS != rc) {
-		rc = AVND_ERR_TREE;
-		goto err;
-	}
+	cb->internode_avail_comp_db.erase(comp->name);
 
 	/* free the memory */
 	if (comp)
@@ -345,7 +274,7 @@ uint32_t avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT 
 	if (comp)
 		avnd_comp_delete(comp);
 
-	LOG_ER("internode_comp_del failed: %s ,rc=%u", name->value, rc);
+	LOG_ER("internode_comp_del failed: %s ,rc=%u", name.c_str(), rc);
 
 	return rc;
 

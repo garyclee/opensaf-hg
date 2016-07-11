@@ -24,7 +24,8 @@
   
 ****************************************************************************/
 #include "avnd.h"
-static uint32_t avnd_int_ext_comp_val(AVND_CB *, SaNameT *, AVND_COMP **, SaAisErrorT *);
+#include <osaf_extended_name.h>
+static uint32_t avnd_int_ext_comp_val(AVND_CB *, const std::string&, AVND_COMP **, SaAisErrorT *);
 /******************************************************************************
   Name          : avnd_evt_mds_avnd_up
  
@@ -76,8 +77,10 @@ uint32_t avnd_evt_mds_avnd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Delete node id to mds dest mapping in the data base. */
-	res = avnd_nodeid_mdsdest_rec_del(cb, evt->info.mds.mds_dest);
+	if (cb->term_state != AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED) {
+		/* Delete node id to mds dest mapping in the data base. */
+		res = avnd_nodeid_mdsdest_rec_del(cb, evt->info.mds.mds_dest);
+	}
 
 	TRACE_LEAVE();
 	return res;
@@ -102,14 +105,15 @@ uint32_t avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 	AVND_MSG msg;
 	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
 	AVSV_AMF_COMP_REG_PARAM *reg = &api_info->param.reg;
+	const std::string comp_name = Amf::to_string(&reg->comp_name);
 
 	TRACE_ENTER2("%s,Type=%u,Hdl=%llx",
-			      reg->comp_name.value, api_info->type, reg->hdl);
+			      comp_name.c_str(), api_info->type, reg->hdl);
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_COMP_VALIDATION_MSG;
 	msg.info.avd->msg_info.n2d_comp_valid_info.msg_id = ++(cb->snd_msg_id);
@@ -129,7 +133,7 @@ uint32_t avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 
 		if ((NCSCC_RC_SUCCESS != rc) && rec) {
 			LOG_ER("avnd_diq_rec_send:failed:%s,Type:%u and Hdl%llx",
-					    reg->comp_name.value, api_info->type, reg->hdl);
+					    comp_name.c_str(), api_info->type, reg->hdl);
 			/* pop & delete */
 			m_AVND_DIQ_REC_FIND_POP(cb, rec);
 			avnd_diq_rec_del(cb, rec);
@@ -137,12 +141,12 @@ uint32_t avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 	} else {
 		rc = NCSCC_RC_FAILURE;
 		LOG_ER("avnd_diq_rec_add failed::%s,Type:%u and Hdl%llx",
-					reg->comp_name.value, api_info->type, reg->hdl);
+					comp_name.c_str(), api_info->type, reg->hdl);
 	}
 
 	if (NCSCC_RC_FAILURE == rc) {
 		LOG_ER("avnd_evt_ava_comp_val_req:%s,Type:%u and Hdl%llx",
-						reg->comp_name.value, api_info->type, reg->hdl); 
+						comp_name.c_str(), api_info->type, reg->hdl); 
 	}
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
@@ -174,6 +178,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_COMP *comp = nullptr, *pxy_comp = nullptr;
 	AVSV_N2D_COMP_VALIDATION_INFO comp_valid_info;
 	AVSV_AMF_API_INFO api_info;
+	std::string info_comp_name;
 
 	TRACE_ENTER();
 
@@ -182,18 +187,19 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		goto done;
 
 	info = &evt->info.avd->msg_info.d2n_comp_valid_resp_info;
+	info_comp_name = Amf::to_string(&info->comp_name);
 
 	TRACE("%s:MsgId=%u,NodeId=%u,result:%u",
-			      info->comp_name.value, info->msg_id, info->node_id, info->result);
+			      info_comp_name.c_str(), info->msg_id, info->node_id, info->result);
 
 	m_AVND_DIQ_REC_FIND(cb, info->msg_id, rec);
 
-	if ((nullptr == rec) || (memcmp(&info->comp_name,
-				     &rec->msg.info.avd->msg_info.n2d_comp_valid_info.comp_name,
-				     sizeof(SaNameT)) != 0)) {
+	if ((nullptr == rec) || (memcmp(osaf_extended_name_borrow(&info->comp_name),
+									osaf_extended_name_borrow(&rec->msg.info.avd->msg_info.n2d_comp_valid_info.comp_name),
+									osaf_extended_name_length(&info->comp_name)) != 0)) { 
 		/* Seems the rec was deleted, some problem. */
 		LOG_ER("Valid Rep:Rec is NULL or Name Mismatch:%s:MsgId:%u,NodeId:%u,result:%u",
-				    info->comp_name.value, info->msg_id, info->node_id, info->result);
+				    info_comp_name.c_str(), info->msg_id, info->node_id, info->result);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -208,8 +214,8 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	} else if (AVSV_VALID_SUCC_COMP_NODE_UP == info->result) {
 		/* So, let us add this component in the data base. And send reg req
 		   to the AvND, where proxied comp is running. */
-		comp = avnd_internode_comp_add(&(cb->internode_avail_comp_db),
-					       &(info->comp_name), info->node_id, &rc, false, false);
+		comp = avnd_internode_comp_add(cb, info_comp_name,
+				info->node_id, &rc, false, false);
 		if ((comp) && (SA_AIS_OK == rc)) {
 			/* Fill other informations here */
 			comp->reg_hdl = comp_valid_info.hdl;
@@ -220,15 +226,15 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			comp_valid_info.node_id = info->node_id;
 
 			/* Create proxy-proxied support here */
-			if (0 == (pxy_comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_valid_info.proxy_comp_name))) {
-				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
+			if ((pxy_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&comp_valid_info.proxy_comp_name))) == nullptr) {
+				avnd_internode_comp_del(cb, info_comp_name);
 				rc = NCSCC_RC_FAILURE;
 				amf_rc = SA_AIS_ERR_INVALID_PARAM;
 				goto send_resp;
 			}
 
 			if ((nullptr != pxy_comp) && (!m_AVND_COMP_IS_REG(pxy_comp))) {
-				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
+				avnd_internode_comp_del(cb, info_comp_name);
 				rc = NCSCC_RC_FAILURE;
 				amf_rc = SA_AIS_ERR_NOT_EXIST;
 				goto send_resp;
@@ -244,17 +250,17 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 			/* Send a registration message to the corresponding AvND */
 			memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
-			m_AVND_COMP_REG_MSG_FILL(api_info, comp->reg_dest,
-						 comp->reg_hdl, &comp->name, &comp->pxy_comp->name);
+			avnd_comp_reg_msg_fill(&api_info, comp->reg_dest,
+								   comp->reg_hdl, comp->name, comp->pxy_comp->name);
 			rc = avnd_avnd_msg_send(cb, (uint8_t *)&(api_info), AVSV_AMF_COMP_REG,
 						&comp->mds_ctxt, comp->node_id);
 
 			if (rc != NCSCC_RC_SUCCESS) {
 				LOG_ER("avnd_avnd_msg_send failed:%s:MsgId:%u,NodeId:%u,result:%u",
-						    info->comp_name.value, info->msg_id, info->node_id, rc);
+						    info_comp_name.c_str(), info->msg_id, info->node_id, rc);
 
 				amf_rc = SA_AIS_ERR_TRY_AGAIN;
-				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
+				avnd_internode_comp_del(cb, info_comp_name);
 				goto send_resp;
 			}
 			comp->reg_resp_pending = true;
@@ -295,7 +301,7 @@ uint32_t avnd_evt_avd_comp_validation_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_avd_comp_validation_resp_msg failed:%s:MsgId:%u,NodeId:%u,result:%u",
-				    info->comp_name.value, info->msg_id, info->node_id, info->result);
+				    info_comp_name.c_str(), info->msg_id, info->node_id, info->result);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -331,10 +337,10 @@ uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE ty
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	msg.info.avnd = new AVSV_ND2ND_AVND_MSG();
+	msg.info.avnd = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
 	msg.type = AVND_MSG_AVND;
 
-	nd_nd_ava_msg = new AVSV_NDA_AVA_MSG();
+	nd_nd_ava_msg = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 
 	msg.info.avnd->type = AVND_AVND_AVA_MSG;
 	msg.info.avnd->info.msg = nd_nd_ava_msg;
@@ -413,7 +419,7 @@ uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *o_comp = nullptr;
-	SaNameT comp_name;
+	std::string comp_name;
 	bool send_resp = true;
 	AVND_COMP_CBK *cbk_rec = 0;
 
@@ -423,68 +429,68 @@ uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 	switch (api_info->type) {
 	case AVSV_AMF_COMP_UNREG:
 		{
-			comp_name = api_info->param.unreg.comp_name;
+			comp_name = Amf::to_string(&api_info->param.unreg.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_HC_START:
 		{
-			comp_name = api_info->param.hc_start.comp_name;
+			comp_name = Amf::to_string(&api_info->param.hc_start.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_HC_STOP:
 		{
-			comp_name = api_info->param.hc_stop.comp_name;
+			comp_name = Amf::to_string(&api_info->param.hc_stop.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_HC_CONFIRM:
 		{
-			comp_name = api_info->param.hc_confirm.comp_name;
+			comp_name = Amf::to_string(&api_info->param.hc_confirm.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_PM_START:
 		{
-			comp_name = api_info->param.pm_start.comp_name;
+			comp_name = Amf::to_string(&api_info->param.pm_start.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_PM_STOP:
 		{
-			comp_name = api_info->param.pm_stop.comp_name;
+			comp_name = Amf::to_string(&api_info->param.pm_stop.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_CSI_QUIESCING_COMPLETE:
 		{
-			comp_name = api_info->param.csiq_compl.comp_name;
+			comp_name = Amf::to_string(&api_info->param.csiq_compl.comp_name);
 			send_resp = false;
 			break;
 		}
 
 	case AVSV_AMF_HA_STATE_GET:
 		{
-			comp_name = api_info->param.ha_get.comp_name;
+			comp_name = Amf::to_string(&api_info->param.ha_get.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_ERR_REP:
 		{
-			comp_name = api_info->param.err_rep.err_comp;
+			comp_name = Amf::to_string(&api_info->param.err_rep.err_comp);
 			break;
 		}
 
 	case AVSV_AMF_ERR_CLEAR:
 		{
-			comp_name = api_info->param.err_clear.comp_name;
+			comp_name = Amf::to_string(&api_info->param.err_clear.comp_name);
 			break;
 		}
 
 	case AVSV_AMF_RESP:
 		{
-			comp_name = api_info->param.resp.comp_name;
+			comp_name = Amf::to_string(&api_info->param.resp.comp_name);
 			send_resp = false;
 			break;
 		}
@@ -498,9 +504,9 @@ uint32_t avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 		break;
 	}
 
-	TRACE("%s: Type=%u",comp_name.value,api_info->type);
+	TRACE("%s: Type=%u", comp_name.c_str(), api_info->type);
 
-	rc = avnd_int_ext_comp_val(cb, &comp_name, &o_comp, o_amf_rc);
+	rc = avnd_int_ext_comp_val(cb, comp_name, &o_comp, o_amf_rc);
 	if ((NCSCC_RC_SUCCESS == rc) && (SA_AIS_OK == *o_amf_rc)) {
 		*int_ext_comp = true;
 /*****************************  Section 1 Starts  **********************/
@@ -521,7 +527,7 @@ resp to originator AvND.
 			m_AVND_COMP_CBQ_INV_GET(o_comp, resp->inv, cbk_rec);
 
 			if (!cbk_rec) {
-				LOG_ER("avnd_int_ext_comp_hdlr:Couldn't get cbk_rec:%s,Type:%u,Mds:%" PRId64, comp_name.value,
+				LOG_ER("avnd_int_ext_comp_hdlr:Couldn't get cbk_rec:%s,Type:%u,Mds:%" PRId64, comp_name.c_str(),
 				     api_info->type, api_info->dest);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
@@ -556,7 +562,7 @@ resp to originator AvND.
 			/* We couldn't send this to other AvND, tell user to try again.  */
 			*o_amf_rc = SA_AIS_ERR_TRY_AGAIN;
 			LOG_ER("avnd_int_ext_comp_hdlr:Msg Send Failed:%s:Type:%u,Mds:%" PRId64,
-					    comp_name.value, api_info->type, api_info->dest);
+					    comp_name.c_str(), api_info->type, api_info->dest);
 			goto resp_send;
 		} else {
 			/* Send SUCCESSFULLY. Return. */
@@ -577,7 +583,7 @@ resp to originator AvND.
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_int_ext_comp_hdlr():Failure:%s,Type:%u,Mds Dest:%" PRId64,
-				    comp_name.value, api_info->type, api_info->dest);
+				    comp_name.c_str(), api_info->type, api_info->dest);
 	}
 	return rc;
 }
@@ -596,14 +602,14 @@ resp to originator AvND.
 
   Notes         : None
 ******************************************************************************/
-uint32_t avnd_int_ext_comp_val(AVND_CB *cb, SaNameT *comp_name, AVND_COMP **o_comp, SaAisErrorT *o_amf_rc)
+uint32_t avnd_int_ext_comp_val(AVND_CB *cb, const std::string& comp_name, AVND_COMP **o_comp, SaAisErrorT *o_amf_rc)
 {
 	uint32_t res = NCSCC_RC_SUCCESS;
 	*o_amf_rc = SA_AIS_OK;
 
-	TRACE_ENTER2("%s",comp_name->value);
+	TRACE_ENTER2("%s",comp_name.c_str());
 
-	if (0 == (*o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, *comp_name))) {
+	if ((*o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name)) == nullptr) {
 		return NCSCC_RC_FAILURE;
 	} else {
 		/* This means that this is an internode component. But need to check wether
@@ -633,23 +639,25 @@ uint32_t avnd_int_ext_comp_val(AVND_CB *cb, SaNameT *comp_name, AVND_COMP **o_co
 
   Notes         : None
 ******************************************************************************/
-uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uint32_t *opq_hdl, NODE_ID *node_id)
+uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, const std::string &comp_name, uint32_t *opq_hdl, NODE_ID *node_id)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST i_to_dest = 0;
 	AVND_MSG msg;
+	SaNameT name;
 
 	TRACE_ENTER2("%s,NodeID=%u,opq_hdl=%u",
-			      comp_name->value, *node_id, *opq_hdl);
+				 comp_name.c_str(), *node_id, *opq_hdl);
+	osaf_extended_name_alloc(comp_name.c_str(), &name);
 
 	/* Create a Registration message and send to AvND */
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	msg.info.avnd = new AVSV_ND2ND_AVND_MSG();
+	msg.info.avnd = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
 	msg.type = AVND_MSG_AVND;
 	msg.info.avnd->type = AVND_AVND_CBK_DEL;
-	msg.info.avnd->info.cbk_del.comp_name = *comp_name;
+	msg.info.avnd->info.cbk_del.comp_name = name;
 	msg.info.avnd->info.cbk_del.opq_hdl = *opq_hdl;
 
 	i_to_dest = avnd_get_mds_dest_from_nodeid(cb, *node_id);
@@ -658,7 +666,7 @@ uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uint32_t *opq_h
 
  	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("AvND Send Failure:%s:NodeID:%u,opq_hdl:%u,MdsDest:%" PRId64,
-				    comp_name->value, *node_id, *opq_hdl, i_to_dest);
+			   		comp_name.c_str(), *node_id, *opq_hdl, i_to_dest);
 	}
 
 	/* free the contents of the message */

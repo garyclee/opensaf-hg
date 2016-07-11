@@ -142,7 +142,7 @@ typedef struct avnd_cbk_tag {
 	/* link to other elements */
 	struct avnd_comp_tag *comp;	/* bk ptr to the comp */
 	struct avnd_cbk_tag *next;
-	SaNameT comp_name;	/* For checkpointing */
+	std::string comp_name;	/* For checkpointing */
 } AVND_COMP_CBK;
 
 /*##########################################################################
@@ -166,12 +166,12 @@ typedef AVSV_SUSI_ASGN AVND_COMP_CSI_PARAM;
 typedef struct avnd_comp_csi_rec {
 	NCS_DB_LINK_LIST_NODE si_dll_node;	/* node in the si dll */
 	NCS_DB_LINK_LIST_NODE comp_dll_node;	/* node in the comp-csi dll */
-	SaNameT name;	/* csi name */
+	std::string name;	/* csi name */
 	SaAmfCompCapabilityModelT capability; /* capability for this CSI */
 	uint32_t rank;		/* csi rank */
 
 	/* state info */
-	SaNameT act_comp_name;	/* active comp name */
+	std::string act_comp_name;	/* active comp name */
 	SaAmfCSITransitionDescriptorT trans_desc;	/* transition descriptor */
 	uint32_t standby_rank;	/* standby rank */
 	AVSV_CSI_ATTRS attrs;	/* list of attributes */
@@ -183,9 +183,9 @@ typedef struct avnd_comp_csi_rec {
 	/* links to other entities */
 	struct avnd_comp_tag *comp;	/* bk ptr to the comp */
 	struct avnd_su_si_rec *si;	/* bk ptr to the si record */
-	SaNameT comp_name;	/* For Checkpointing */
-	SaNameT si_name;	/* For Checkpointing */
-	SaNameT su_name;	/* For Checkpointing */
+	std::string comp_name;	/* For Checkpointing */
+	std::string si_name;	/* For Checkpointing */
+	std::string su_name;	/* For Checkpointing */
 	AVSV_SUSI_ACT single_csi_add_rem_in_si; /* To detect whether single csi removal is going on.*/
 
 	bool pending_removal; /*Flag is used when AMFND gets removal of assignments from AMFD
@@ -253,7 +253,7 @@ typedef struct avnd_hc_rec_tag {
 
 	struct avnd_comp_tag *comp;	/* back ptr to the comp */
 	struct avnd_hc_rec_tag *next;
-	SaNameT comp_name;	/* For checkpoiting */
+	std::string comp_name;	/* For checkpoiting */
 } AVND_COMP_HC_REC;
 
 /* Passive Monitoring Info */
@@ -315,11 +315,10 @@ enum UsedComptypeAttrs {
 };
 
 typedef struct avnd_comp_tag {
-	NCS_PATRICIA_NODE tree_node;	/* comp tree node (key is comp name) */
 	NCS_DB_LINK_LIST_NODE su_dll_node;	/* su dll node (key is inst-level) */
 
-	SaNameT name;	/* comp name */
-	SaNameT saAmfCompType;
+	std::string name;	/* comp name */
+	std::string saAmfCompType;
 	uint32_t numOfCompCmdEnv;	    /* number of comp command environment variables */
 	SaStringT *saAmfCompCmdEnv; /* comp command environment variables */
 	uint32_t inst_level;	    /* comp instantiation level */
@@ -390,7 +389,7 @@ typedef struct avnd_comp_tag {
 	MDS_SYNC_SND_CTXT mds_ctxt;
 	bool reg_resp_pending;	/* If the reg resp is pending from 
 					   proxied comp AvND, it true. */
-	SaNameT proxy_comp_name;	/* Used for Checkpointing. */
+	std::string proxy_comp_name;	/* Used for Checkpointing. */
 	bool admin_oper;   /*set to true if undergoing admin operation */
 	int config_is_valid; /* Used to indicate that config has to be refreshed from IMM */
 	bool assigned_flag; /* Used in finding multiple csi for a single comp while csi mod.*/
@@ -588,18 +587,10 @@ typedef struct avnd_comp_tag {
 #define m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(x)  \
             ( (x) ? ((AVND_COMP_CSI_REC *)(((uint8_t *)(x)) - m_AVND_CSI_COMP_DLL_NODE_OFFSET)) : 0 )
 
-/* macro to get a component record from comp-db */
-#define m_AVND_COMPDB_REC_GET(compdb, name) \
-	compdb_rec_get(&(compdb), &(name))
-
-/* macro to get the next component record from comp-db */
-#define m_AVND_COMPDB_REC_GET_NEXT(compdb, name) \
-	compdb_rec_get_next(&(compdb), (uint8_t *)&(name))
-
 /* macro to add a csi record to the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_ADD(comp, csi, rc) \
 { \
-   (csi).comp_dll_node.key = (uint8_t *)&(csi).name; \
+   (csi).comp_dll_node.key = (uint8_t *)(csi).name.c_str(); \
    (rc) = ncs_db_link_list_add(&(comp).csi_list, &(csi).comp_dll_node); \
 };
 
@@ -610,20 +601,11 @@ typedef struct avnd_comp_tag {
 /* macro to get a csi record from the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_GET(comp, csi_name) \
            m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(ncs_db_link_list_find(&(comp).csi_list, \
-                                                 (uint8_t *)&(csi_name)))
+                                                 (uint8_t *)(csi_name)))
 
 /* macro to get the first csi record from the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_GET_FIRST(comp) \
            m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&(comp).csi_list))
-
-/* macro to get the next csi record from the comp-csi list */
-#define m_AVND_COMPDB_REC_CSI_NEXT(comp, csi) \
-           m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET( \
-              m_NCS_DBLIST_FIND_NEXT( \
-                 ncs_db_link_list_find(&(comp).csi_list, \
-                                       (uint8_t *)&((csi).name)) \
-                                    ) \
-                                           )
 
 /* macro to add a healthcheck record to the comp-hc list */
 #define m_AVND_COMPDB_REC_HC_ADD(comp, hc) \
@@ -840,10 +822,8 @@ extern void avnd_comp_cbq_rec_del(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_C
 extern uint32_t avnd_comp_cbq_rec_send(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, bool);
 
 extern uint32_t avnd_compdb_init(struct avnd_cb_tag *);
-extern AVND_COMP *avnd_compdb_rec_add(struct avnd_cb_tag *, AVND_COMP_PARAM *, uint32_t *);
-extern uint32_t avnd_compdb_rec_del(struct avnd_cb_tag *, SaNameT *);
-extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(struct avnd_cb_tag *, SaNameT *, SaNameT *);
-extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get_next(struct avnd_cb_tag *, SaNameT *, SaNameT *);
+extern uint32_t avnd_compdb_rec_del(struct avnd_cb_tag *, const std::string&);
+extern AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(struct avnd_cb_tag *, const std::string&, const std::string&);
 
 extern uint32_t avnd_amf_resp_send(struct avnd_cb_tag *, AVSV_AMF_API_TYPE,
 				  SaAisErrorT, uint8_t *, MDS_DEST *, MDS_SYNC_SND_CTXT *, AVND_COMP *, bool);
@@ -851,7 +831,7 @@ extern uint32_t avnd_amf_resp_send(struct avnd_cb_tag *, AVSV_AMF_API_TYPE,
 extern void avnd_comp_hc_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT, MDS_DEST *);
 extern void avnd_comp_cbq_finalize(struct avnd_cb_tag *, AVND_COMP *, SaAmfHandleT, MDS_DEST *);
 
-extern void avnd_comp_cbq_csi_rec_del(struct avnd_cb_tag *, AVND_COMP *, SaNameT *);
+extern void avnd_comp_cbq_csi_rec_del(struct avnd_cb_tag *, AVND_COMP *, const std::string&);
 
 extern uint32_t avnd_comp_csi_remove(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CSI_REC *);
 
@@ -922,7 +902,32 @@ extern void comp_reset_restart_count(const struct avnd_cb_tag *cb, AVND_COMP *co
 extern void clear_error_report_alarm(AVND_COMP *comp);
 bool nonrestartable(const AVND_COMP *comp);
 uint32_t csi_count(const AVND_COMP *comp);
-extern AVND_COMP *compdb_rec_get(NCS_PATRICIA_TREE *compdb, const SaNameT *name);
-extern AVND_COMP *compdb_rec_get_next(NCS_PATRICIA_TREE *compdb, uint8_t *name);
+extern AVND_COMP *avnd_compdb_rec_get(AmfDb<std::string, AVND_COMP>& compdb, const std::string& name);
+extern AVND_COMP *avnd_compdb_rec_get_next(AmfDb<std::string, AVND_COMP>& compdb, const std::string& name);
+
+void avnd_comp_reg_msg_fill(AVSV_AMF_API_INFO *m,
+							MDS_DEST dst,
+							SaAmfHandleT hd,
+							const std::string& cn,
+							const std::string& pcn);
+uint32_t avnd_comp_oper_state_avd_sync(struct avnd_cb_tag *cb, AVND_COMP *comp);
+uint32_t avnd_comp_proxy_status_avd_sync(struct avnd_cb_tag *cb, AVND_COMP *comp);
+void avnd_amf_hc_cbk_fill(AVSV_AMF_CBK_INFO *cbk, const std::string& cn, SaAmfHealthcheckKeyT hck);
+void avnd_amf_comp_term_cbk_fill(AVSV_AMF_CBK_INFO *cbk, const std::string& cn);
+void avnd_amf_csi_set_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+								const std::string& cn,
+								SaAmfHAStateT has, 
+								SaAmfCSIDescriptorT csid, 
+								AVSV_CSI_ATTRS at);
+void avnd_amf_csi_rem_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+								const std::string& cn,
+								const std::string& csn,
+								SaAmfCSIFlagsT csf);
+void avnd_amf_pxied_comp_inst_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+										const std::string& cn);
+void avnd_amf_pxied_comp_clean_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+										const std::string& cn);
+
+
 
 #endif   /* !AVND_COMP_H */

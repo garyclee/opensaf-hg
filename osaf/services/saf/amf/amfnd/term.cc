@@ -58,14 +58,17 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX];
 void avnd_last_step_clean(AVND_CB *cb)
 {
 	AVND_COMP *comp;
+	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
+	AVND_HCTYPE *hc = nullptr;
 	int cleanup_call_cnt = 0;
 
 	TRACE_ENTER();
 
 	LOG_NO("Terminating all AMF components");
 
-	comp = (AVND_COMP *)compdb_rec_get_next(&cb->compdb, (uint8_t *)0);
-	while (comp != nullptr) {
+	for (comp = avnd_compdb_rec_get_next(cb->compdb, "");
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(cb->compdb, comp->name)) {
 		if (false == comp->su->su_is_external) {
 			/* Don't call cleanup script for PI/NPI components in UNINSTANTIATED state.*/
 			if ((comp->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
@@ -78,15 +81,24 @@ void avnd_last_step_clean(AVND_CB *cb)
 			/* make avnd_err_process() a nop, will be called due to ava mds down */
 			comp->admin_oper = true;
 		}
-
-		comp = (AVND_COMP *)
-		    compdb_rec_get_next(&cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	/* Stop was called early or some other problem */
 	if (cleanup_call_cnt == 0) {
 		LOG_NO("No component to terminate, exiting");
 		exit(0);
+	}
+
+	/* Clean all node id stored in nodeid_mdsdest_db */
+	for (const auto& node: cb->nodeid_mdsdest_db) {
+		rec = node.second;
+		delete rec;
+	}
+
+	/* Clean all hctype stored in cb->hctypedb */
+	for (const auto& hctype: cb->hctypedb) {
+		hc = hctype.second;
+		delete hc;
 	}
 
 	TRACE_LEAVE();
@@ -127,7 +139,7 @@ uint32_t avnd_evt_last_step_term_evh(AVND_CB *cb, AVND_EVT *evt)
 				(si->curr_assign_state == AVND_SU_SI_ASSIGN_STATE_REMOVING) ||
 				((si->prv_assign_state == AVND_SU_SI_ASSIGN_STATE_ASSIGNED) &&
 						(si->curr_assign_state == AVND_SU_SI_ASSIGN_STATE_UNASSIGNED))) {
-			LOG_NO("Waiting for '%s' (state %u)", si->name.value, si->curr_assign_state);
+			LOG_NO("Waiting for '%s' (state %u)", si->name.c_str(), si->curr_assign_state);
 			goto done;
 		}
 	}

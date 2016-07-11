@@ -83,21 +83,21 @@ void avnd_msg_content_free(AVND_CB *cb, AVND_MSG *msg)
 	switch (msg->type) {
 	case AVND_MSG_AVD:
 		if (msg->info.avd) {
-			dnd_msg_free(msg->info.avd);
+			avsv_dnd_msg_free(msg->info.avd);
 			msg->info.avd = 0;
 		}
 		break;
 
 	case AVND_MSG_AVND:
 		if (msg->info.avnd) {
-			nd2nd_avnd_msg_free(msg->info.avnd);
+			avsv_nd2nd_avnd_msg_free(msg->info.avnd);
 			msg->info.avnd = 0;
 		}
 		break;
 
 	case AVND_MSG_AVA:
 		if (msg->info.ava) {
-			nda_ava_msg_free(msg->info.ava);
+			avsv_nda_ava_msg_free(msg->info.ava);
 			msg->info.ava = 0;
 		}
 		break;
@@ -136,17 +136,17 @@ uint32_t avnd_msg_copy(AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
 
 	switch (smsg->type) {
 	case AVND_MSG_AVD:
-		dmsg->info.avd = new AVSV_DND_MSG();
+		dmsg->info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 		rc = avsv_dnd_msg_copy(dmsg->info.avd, smsg->info.avd);
 		break;
 
 	case AVND_MSG_AVND:
-		dmsg->info.avnd = new AVSV_ND2ND_AVND_MSG();
+		dmsg->info.avnd = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
 		rc = avsv_ndnd_avnd_msg_copy(dmsg->info.avnd, smsg->info.avnd);
 		break;
 
 	case AVND_MSG_AVA:
-		dmsg->info.ava = new AVSV_NDA_AVA_MSG();
+		dmsg->info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 		rc = avsv_nda_ava_msg_copy(dmsg->info.ava, smsg->info.ava);
 		break;
 
@@ -193,10 +193,10 @@ void avnd_comp_cleanup_launch(AVND_COMP *comp)
 
 	rc = avnd_comp_clc_fsm_run(avnd_cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("Failed to launch cleanup of '%s'", comp->name.value);
-		snprintf(str, sizeof(str), "Stopping OpenSAF failed due to '%s'", comp->name.value);
+		LOG_ER("Failed to launch cleanup of '%s'", comp->name.c_str());
+		snprintf(str, sizeof(str), "Stopping OpenSAF failed due to '%s'", comp->name.c_str());
 		opensaf_reboot(avnd_cb->node_info.nodeId,
-				(char *)avnd_cb->node_info.executionEnvironment.value, str);
+				osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment), str);
 		LOG_ER("exiting to aid fast reboot");
 		exit(1);
 	}
@@ -710,7 +710,7 @@ void free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg)
 	TRACE("%u csicomp records to free", info->num_csicomp);
 
 	while (ptr != nullptr) {
-		TRACE("freeing %s:%s", (char*)ptr->safCSI.value, (char*)ptr->safComp.value);
+		TRACE("freeing %s:%s", osaf_extended_name_borrow(&ptr->safCSI), osaf_extended_name_borrow(&ptr->safComp));
 		next_ptr = ptr->next;
 		delete ptr;
 		ptr = next_ptr;
@@ -769,7 +769,7 @@ void free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg)
 	TRACE("%u sisu records to free", info->num_sisu);
 
 	while (ptr != nullptr) {
-		TRACE("freeing %s:%s", (char*)ptr->safSI.value, (char*)ptr->safSU.value);
+		TRACE("freeing %s:%s", osaf_extended_name_borrow(&ptr->safSI), osaf_extended_name_borrow(&ptr->safSU));
 		next_ptr = ptr->next;
 		delete ptr;
 		ptr = next_ptr;
@@ -819,9 +819,45 @@ SaAisErrorT saImmOmInitialize_cond(SaImmHandleT *immHandle,
 	return saImmOmInitialize(immHandle, immCallbacks, version);
 }
 
+/*****************************************************************************
+ * Function: avnd_cpy_SU_DN_from_DN
+ *
+ * Purpose:  This function copies the SU DN from the given DN and places
+ *           it in the provided buffer.
+ *
+ * Input: d_su_dn - where the SU DN should be copied.
+ *        s_dn_name - contains the SU DN.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * NOTES: none.
+ *
+ * 
+ **************************************************************************/
+uint32_t avnd_cpy_SU_DN_from_DN(std::string& d_su_dn, const std::string& s_dn_name)
+{
+	std::size_t pos;
+
+	/* SU DN name is  SU name + NODE name */
+	/* First get the SU name */
+	pos = s_dn_name.find("safSu");
+
+	/* It might be external SU. */
+	if (pos == std::string::npos) {
+		pos = s_dn_name.find("safEsu");
+	}
+
+	if (pos == std::string::npos)
+		return NCSCC_RC_FAILURE;
+
+	d_su_dn = s_dn_name.substr(pos);
+
+	return NCSCC_RC_SUCCESS;
+}
+
 SaAisErrorT amf_saImmOmInitialize(SaImmHandleT& immHandle)
 {
-	SaVersionT immVersion = { 'A', 2, 11 };
+	SaVersionT immVersion = { 'A', 2, 15 };
 	return saImmOmInitialize_cond(&immHandle, nullptr, &immVersion);
 }
 
@@ -843,8 +879,8 @@ SaAisErrorT amf_saImmOmAccessorInitialize(SaImmHandleT& immHandle,
 	return rc;
 }
 
-SaAisErrorT amf_saImmOmSearchInitialize_2(SaImmHandleT& immHandle,
-      const SaNameT * rootName,
+SaAisErrorT amf_saImmOmSearchInitialize_o2(SaImmHandleT& immHandle,
+      const std::string& rootName,
       SaImmScopeT scope,
       SaImmSearchOptionsT searchOptions,
       const SaImmSearchParametersT_2 *
@@ -854,8 +890,8 @@ SaAisErrorT amf_saImmOmSearchInitialize_2(SaImmHandleT& immHandle,
       SaImmSearchHandleT& searchHandle)
 {
 	// note: this will handle SA_AIS_ERR_BAD_HANDLE just once
-	SaAisErrorT rc = immutil_saImmOmSearchInitialize_2(immHandle,
-		rootName,
+	SaAisErrorT rc = immutil_saImmOmSearchInitialize_o2(immHandle,
+		rootName.c_str(),
 		scope,
 		searchOptions,
 		searchParam,
@@ -866,10 +902,10 @@ SaAisErrorT amf_saImmOmSearchInitialize_2(SaImmHandleT& immHandle,
 		immutil_saImmOmFinalize(immHandle);
 		rc = amf_saImmOmInitialize(immHandle);
 
-		// re-attempt immutil_saImmOmSearchInitialize_2 once more
+		// re-attempt immutil_saImmOmSearchInitialize_o2 once more
 		if (rc == SA_AIS_OK) {
-			rc = immutil_saImmOmSearchInitialize_2(immHandle,
-				rootName,
+			rc = immutil_saImmOmSearchInitialize_o2(immHandle,
+				rootName.c_str(),
 				scope,
 				searchOptions,
 				searchParam,
@@ -880,15 +916,15 @@ SaAisErrorT amf_saImmOmSearchInitialize_2(SaImmHandleT& immHandle,
 	return rc;
 }
 
-SaAisErrorT amf_saImmOmAccessorGet_2(SaImmHandleT& immHandle,
+SaAisErrorT amf_saImmOmAccessorGet_o2(SaImmHandleT& immHandle,
 	SaImmAccessorHandleT& accessorHandle,
-	const SaNameT * objectName,
+	const std::string& objectName,
 	const SaImmAttrNameT * attributeNames,
 	SaImmAttrValuesT_2 *** attributes)
 {
 	// note: this will handle SA_AIS_ERR_BAD_HANDLE just once
-	SaAisErrorT rc = immutil_saImmOmAccessorGet_2(accessorHandle,
-		objectName, attributeNames, attributes);
+	SaAisErrorT rc = immutil_saImmOmAccessorGet_o2(accessorHandle,
+		objectName.c_str(), attributeNames, attributes);
 	
 	if (rc == SA_AIS_ERR_BAD_HANDLE) {
 		immutil_saImmOmAccessorFinalize(accessorHandle);
@@ -900,8 +936,8 @@ SaAisErrorT amf_saImmOmAccessorGet_2(SaImmHandleT& immHandle,
 		}
 
 		if (rc == SA_AIS_OK) {
-			rc = immutil_saImmOmAccessorGet_2(accessorHandle,
-				objectName, attributeNames, attributes);
+			rc = immutil_saImmOmAccessorGet_o2(accessorHandle,
+				objectName.c_str(), attributeNames, attributes);
 		}
 	}
 

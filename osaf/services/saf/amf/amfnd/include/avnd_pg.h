@@ -66,8 +66,7 @@ typedef struct avnd_pg_mem {
 
 /* pg declaration */
 typedef struct avnd_pg {
-	NCS_PATRICIA_NODE tree_node;	/* pg tree node (key is csi name) */
-	SaNameT csi_name;	/* pg identifier (csi name) */
+	std::string csi_name;	/* pg identifier (csi name) */
 
 	bool is_exist;	/* indicates if this csi exists in the cluster */
 	NCS_DB_LINK_LIST mem_list;	/* current members that belong to this pg */
@@ -93,14 +92,6 @@ typedef struct avnd_pg {
 #define m_AVND_PG_TRK_CHANGES_RESET(x)      (((x)->info.flags) &= ~SA_TRACK_CHANGES)
 #define m_AVND_PG_TRK_CHANGES_ONLY_RESET(x) (((x)->info.flags) &= ~SA_TRACK_CHANGES_ONLY)
 
-/* macro to get the PG record from the PG database */
-#define m_AVND_PGDB_REC_GET(pgdb, csi_name_net) \
-           (AVND_PG *)ncs_patricia_tree_get(&(pgdb), (uint8_t *)&(csi_name_net))
-
-/* macro to get the next PG record from the PG database */
-#define m_AVND_PGDB_REC_GET_NEXT(pgdb, csi_name_net) \
-           (AVND_PG *)ncs_patricia_tree_getnext(&(pgdb), (uint8_t *)&(csi_name_net))
-
 /* macro to get the PG track record from the PG database */
 #define m_AVND_PGDB_TRK_REC_GET(pg, key) \
            (AVND_PG_TRK *)ncs_db_link_list_find(&((pg).trk_list), \
@@ -116,16 +107,16 @@ typedef struct avnd_pg {
  ***************************************************************************/
 
 uint32_t avnd_pgdb_init(struct avnd_cb_tag *);
-AVND_PG *avnd_pgdb_rec_add(struct avnd_cb_tag *, SaNameT *, uint32_t *);
-uint32_t avnd_pgdb_rec_del(struct avnd_cb_tag *, SaNameT *);
+AVND_PG *avnd_pgdb_rec_add(struct avnd_cb_tag *, const std::string&, uint32_t *);
+uint32_t avnd_pgdb_rec_del(struct avnd_cb_tag *, const std::string&);
 
 AVND_PG_TRK *avnd_pgdb_trk_rec_add(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_INFO *);
 void avnd_pgdb_trk_rec_del(struct avnd_cb_tag *, AVND_PG *, AVND_PG_TRK_KEY *);
 void avnd_pgdb_trk_rec_del_all(struct avnd_cb_tag *, AVND_PG *);
 
 AVND_PG_MEM *avnd_pgdb_mem_rec_add(struct avnd_cb_tag *, AVND_PG *, SaAmfProtectionGroupNotificationT *);
-AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(struct avnd_cb_tag *, AVND_PG *, SaNameT *);
-void avnd_pgdb_mem_rec_del(struct avnd_cb_tag *, AVND_PG *, SaNameT *);
+AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(struct avnd_cb_tag *, AVND_PG *, const std::string&);
+void avnd_pgdb_mem_rec_del(struct avnd_cb_tag *, AVND_PG *, const std::string&);
 void avnd_pgdb_mem_rec_del_all(struct avnd_cb_tag *, AVND_PG *);
 
 void avnd_pg_finalize(struct avnd_cb_tag *, SaAmfHandleT, MDS_DEST *);

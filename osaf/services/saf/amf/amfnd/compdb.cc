@@ -39,6 +39,8 @@
 #include <avnd.h>
 #include "osaf_utility.h"
 
+#include <string>
+
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 static pthread_mutex_t compdb_mutex = PTHREAD_MUTEX_INITIALIZER;
 //
@@ -52,7 +54,7 @@ static char *StrDup(const char *s)
 	return c;
 }
 
-static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT attrName, const SaNameT *dn, SaStringT *str);
+static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT attrName, const std::string& dn, SaStringT *str);
 /* AMF Class SaAmfCompGlobalAttributes */
 typedef struct {
 	SaUint32T saAmfNumMaxInstantiateWithoutDelay;
@@ -67,9 +69,9 @@ static amf_comp_global_attr_t comp_global_attrs;
 /* AMF Class SaAmfCompType */
 typedef struct amf_comp_type {
 	NCS_PATRICIA_NODE tree_node;	/* name is key */
-	SaNameT    name;
+	std::string name;
 	SaAmfCompCategoryT saAmfCtCompCategory;
-	SaNameT    saAmfCtSwBundle;
+	std::string saAmfCtSwBundle;
 	SaStringT *saAmfCtDefCmdEnv;
 	SaTimeT    saAmfCtDefClcCliTimeout;
 	SaTimeT    saAmfCtDefCallbackTimeout;
@@ -123,20 +125,18 @@ static SaAisErrorT avnd_compglobalattrs_config_get(SaImmHandleT immOmHandle)
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
-	SaNameT dn = {0, "safRdn=compGlobalAttributes,safApp=safAmfService" };
+	std::string dn = "safRdn=compGlobalAttributes,safApp=safAmfService";
 
 	TRACE_ENTER();
 
-	dn.length = strlen((char *)dn.value);
-
 	amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
-	rc = amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, &dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes);
+	rc = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOmAccessorGet_2 FAILED %u", rc);
 		goto done;
 	}
 
-	TRACE_1("'%s'", dn.value);
+	TRACE_1("'%s'", dn.c_str());
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNumMaxInstantiateWithoutDelay"), attributes, 0,
 			    &comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay) != SA_AIS_OK) {
@@ -185,8 +185,7 @@ done:
 ******************************************************************************/
 uint32_t avnd_compdb_init(AVND_CB *cb)
 {
-	NCS_PATRICIA_PARAMS params = {0};
-	uint32_t rc;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 1 };
 	SaAisErrorT error;
@@ -205,284 +204,11 @@ uint32_t avnd_compdb_init(AVND_CB *cb)
 		goto done;
 	}
 
-	params.key_size = sizeof(SaNameT);
-	rc = ncs_patricia_tree_init(&cb->compdb, &params);
-	if (NCSCC_RC_SUCCESS == rc)
-		TRACE("Component DB init succes");
-	else
-		LOG_CR("Component DB init failed");
-
 done:
 	immutil_saImmOmFinalize(immOmHandle);
 done1:
 	TRACE_LEAVE();
 	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_compdb_rec_add
- 
-  Description   : This routine adds a component record to the component 
-                  database. If a component is already present, nothing is 
-                  done.
- 
-  Arguments     : cb   - ptr to the AvND control block
-                  info - ptr to the component params (comp-name -> nw order)
-                  rc   - ptr to the operation result
- 
-  Return Values : ptr to the component record, if success
-                  0, otherwise
- 
-  Notes         : None.
-******************************************************************************/
-AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uint32_t *rc)
-{
-	AVND_COMP *comp = 0;
-	AVND_SU *su = 0;
-	SaNameT su_name;
-
-	*rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-
-	/* verify if this component is already present in the db */
-	if (0 != m_AVND_COMPDB_REC_GET(cb->compdb, info->name)) {
-		*rc = AVND_ERR_DUP_COMP;
-		goto err;
-	}
-
-	/*
-	 * Determine if the SU is present
-	 */
-	/* extract the su-name from comp dn */
-	memset(&su_name, 0, sizeof(SaNameT));
-	avsv_cpy_SU_DN_from_DN(&su_name, &info->name);
-
-	/* get the su record */
-	su = m_AVND_SUDB_REC_GET(cb->sudb, su_name);
-	if (!su) {
-		*rc = AVND_ERR_NO_SU;
-		goto err;
-	}
-
-	/* a fresh comp... */
-	comp = new AVND_COMP();
-	comp->use_comptype_attr = new std::bitset<NumAttrs>;
-	
-	/*
-	 * Update the config parameters.
-	 */
-	/* update the comp-name (patricia key) */
-	memcpy(&comp->name, &info->name, sizeof(SaNameT));
-
-	/* update the component attributes */
-	comp->inst_level = info->inst_level;
-
-	comp->is_am_en = info->am_enable;
-
-	switch (info->category) {
-	case AVSV_COMP_TYPE_SA_AWARE:
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
-		break;
-
-	case AVSV_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE:
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
-		break;
-
-	case AVSV_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE:
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_SAAWARE);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
-		break;
-
-	case AVSV_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE:
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
-		break;
-
-	case AVSV_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE:
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
-		break;
-
-	case AVSV_COMP_TYPE_NON_SAF:
-		m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
-		break;
-
-	default:
-		break;
-	}			/* switch */
-
-	m_AVND_COMP_RESTART_EN_SET(comp, (info->comp_restart == true) ? false : true);
-
-	comp->cap = info->cap;
-	comp->node_id = cb->node_info.nodeId;
-
-	/* update CLC params */
-	comp->clc_info.inst_retry_max = info->max_num_inst;
-	comp->clc_info.am_start_retry_max = info->max_num_amstart;
-
-	/* instantiate cmd params */
-	memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd, info->init_info, info->init_len);
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len = info->init_len;
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].timeout = info->init_time;
-
-	/* terminate cmd params */
-	memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd, info->term_info, info->term_len);
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len = info->term_len;
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].timeout = info->term_time;
-
-	/* cleanup cmd params */
-	memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, info->clean_info, info->clean_len);
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].len = info->clean_len;
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].timeout = info->clean_time;
-
-	/* am-start cmd params */
-	memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd, info->amstart_info, info->amstart_len);
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].len = info->amstart_len;
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].timeout = info->amstart_time;
-
-	/* am-stop cmd params */
-	memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd, info->amstop_info, info->amstop_len);
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].len = info->amstop_len;
-	comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].timeout = info->amstop_time;
-
-	/* update the callback response time out values */
-	if (info->terminate_callback_timeout)
-		comp->term_cbk_timeout = info->terminate_callback_timeout;
-	else
-		comp->term_cbk_timeout = ((SaTimeT)AVND_COMP_CBK_RESP_TIME) * 1000000;
-
-	if (info->csi_set_callback_timeout)
-		comp->csi_set_cbk_timeout = info->csi_set_callback_timeout;
-	else
-		comp->csi_set_cbk_timeout = ((SaTimeT)AVND_COMP_CBK_RESP_TIME) * 1000000;
-
-	if (info->quiescing_complete_timeout)
-		comp->quies_complete_cbk_timeout = info->quiescing_complete_timeout;
-	else
-		comp->quies_complete_cbk_timeout = ((SaTimeT)AVND_COMP_CBK_RESP_TIME) * 1000000;
-
-	if (info->csi_rmv_callback_timeout)
-		comp->csi_rmv_cbk_timeout = info->csi_rmv_callback_timeout;
-	else
-		comp->csi_rmv_cbk_timeout = ((SaTimeT)AVND_COMP_CBK_RESP_TIME) * 1000000;
-
-	if (info->proxied_inst_callback_timeout)
-		comp->pxied_inst_cbk_timeout = info->proxied_inst_callback_timeout;
-	else
-		comp->pxied_inst_cbk_timeout = ((SaTimeT)AVND_COMP_CBK_RESP_TIME) * 1000000;
-
-	if (info->proxied_clean_callback_timeout)
-		comp->pxied_clean_cbk_timeout = info->proxied_clean_callback_timeout;
-	else
-		comp->pxied_clean_cbk_timeout = ((SaTimeT)AVND_COMP_CBK_RESP_TIME) * 1000000;
-
-	/* update the default error recovery param */
-	comp->err_info.def_rec = info->def_recvr;
-
-	/*
-	 * Update the rest of the parameters with default values.
-	 */
-	if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
-		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-	else
-		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-
-	comp->avd_updt_flag = false;
-
-	/* synchronize comp oper state */
-	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, *rc);
-	if (NCSCC_RC_SUCCESS != *rc)
-		goto err;
-
-	comp->pres = SA_AMF_PRESENCE_UNINSTANTIATED;
-
-	/* create the association with hdl-mngr */
-	if ((0 == (comp->comp_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND, (NCSCONTEXT)comp)))) {
-		*rc = AVND_ERR_HDL;
-		goto err;
-	}
-
-	/* 
-	 * Initialize the comp-hc list.
-	 */
-	comp->hc_list.order = NCS_DBLIST_ANY_ORDER;
-	comp->hc_list.cmp_cookie = avnd_dblist_hc_rec_cmp;
-	comp->hc_list.free_cookie = 0;
-
-	/* 
-	 * Initialize the comp-csi list.
-	 */
-	comp->csi_list.order = NCS_DBLIST_ASSCEND_ORDER;
-	comp->csi_list.cmp_cookie = avsv_dblist_saname_cmp;
-	comp->csi_list.free_cookie = 0;
-
-	/* 
-	 * Initialize the pm list.
-	 */
-	avnd_pm_list_init(comp);
-
-	/*
-	 * initialize proxied list
-	 */
-	avnd_pxied_list_init(comp);
-
-	/*
-	 * Add to the patricia tree.
-	 */
-	comp->tree_node.bit = 0;
-	comp->tree_node.key_info = (uint8_t *)&comp->name;
-	osaf_mutex_lock_ordie(&compdb_mutex);
-	*rc = ncs_patricia_tree_add(&cb->compdb, &comp->tree_node);
-	osaf_mutex_unlock_ordie(&compdb_mutex);
-	if (NCSCC_RC_SUCCESS != *rc) {
-		*rc = AVND_ERR_TREE;
-		goto err;
-	}
-
-	/*
-	 * Add to the comp-list (maintained by su)
-	 */
-	m_AVND_SUDB_REC_COMP_ADD(*su, *comp, *rc);
-	if (NCSCC_RC_SUCCESS != *rc) {
-		*rc = AVND_ERR_DLL;
-		goto err;
-	}
-
-	/*
-	 * Update su bk ptr.
-	 */
-	comp->su = su;
-
-	if (true == su->su_is_external) {
-		m_AVND_COMP_TYPE_SET_EXT_CLUSTER(comp);
-	} else
-		m_AVND_COMP_TYPE_SET_LOCAL_NODE(comp);
-
-	TRACE_LEAVE2("Added record %s to component DB",info->name.value);
-	avnd_hc_config_get(comp);
-	return comp;
-
- err:
-	if (AVND_ERR_DLL == *rc) {
-		osaf_mutex_lock_ordie(&compdb_mutex);
-		ncs_patricia_tree_del(&cb->compdb, &comp->tree_node);
-		osaf_mutex_unlock_ordie(&compdb_mutex);
-	}
-
-	if (comp) {
-		if (comp->comp_hdl)
-			ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, comp->comp_hdl);
-
-		avnd_comp_delete(comp);
-	}
-
-	LOG_CR("Failed to Add record %s to component DB",info->name.value);
-	return 0;
 }
 
 /****************************************************************************
@@ -498,19 +224,19 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uint32_t *rc)
  
   Notes         : This routine expects a NULL comp-csi list.
 ******************************************************************************/
-uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
+uint32_t avnd_compdb_rec_del(AVND_CB *cb, const std::string& name)
 {
 	AVND_COMP *comp;
 	AVND_SU *su = 0;
-	SaNameT su_name;
+	std::string su_name;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s", name->value);
+	TRACE_ENTER2("%s", name.c_str());
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, *name);
+	comp = avnd_compdb_rec_get(cb->compdb, name);
 	if (!comp) {
-		LOG_ER("%s: %s not found", __FUNCTION__, name->value);
+		LOG_ER("%s: %s not found", __FUNCTION__, name.c_str());
 		rc = AVND_ERR_NO_COMP;
 		goto done;
 	}
@@ -522,13 +248,12 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	 * Determine if the SU is present
 	 */
 	/* extract the su-name from comp dn */
-	memset(&su_name, 0, sizeof(SaNameT));
-	avsv_cpy_SU_DN_from_DN(&su_name, name);
+	avnd_cpy_SU_DN_from_DN(su_name, name);
 
 	/* get the su record */
-	su = m_AVND_SUDB_REC_GET(cb->sudb, su_name);
+	su = avnd_sudb_rec_get(cb->sudb, su_name);
 	if (!su) {
-		LOG_ER("%s: %s not found", __FUNCTION__, su_name.value);
+		LOG_ER("%s: %s not found", __FUNCTION__, su_name.c_str());
 		rc = AVND_ERR_NO_SU;
 		goto done;
 	}
@@ -538,22 +263,17 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	 */
 	rc = m_AVND_SUDB_REC_COMP_REM(*su, *comp);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("%s: %s remove failed", __FUNCTION__, name->value);
+		LOG_ER("%s: %s remove failed", __FUNCTION__, name.c_str());
 		rc = AVND_ERR_DLL;
 		goto done;
 	}
 
 	/* 
-	 * Remove from the patricia tree.
+	 * Remove from compdb
 	 */
 	osaf_mutex_lock_ordie(&compdb_mutex);
-	rc = ncs_patricia_tree_del(&cb->compdb, &comp->tree_node);
+	cb->compdb.erase(name);
 	osaf_mutex_unlock_ordie(&compdb_mutex);
-	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("%s: %s tree del failed", __FUNCTION__, name->value);
-		rc = AVND_ERR_TREE;
-		goto done;
-	}
 
 	/* 
 	 * Delete the various lists (hc, pm, pg, cbk etc) maintained by this comp.
@@ -568,7 +288,7 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 	/* comp should not be attached to any hc when it is being deleted */
 	osafassert(comp->hc_list.n_nodes == 0);
 
-	LOG_IN("Deleted '%s'", name->value);
+	LOG_IN("Deleted '%s'", name.c_str());
 	/* free the memory */
 	avnd_comp_delete(comp);
 
@@ -577,9 +297,9 @@ uint32_t avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name)
 
 done:
 	if (rc == NCSCC_RC_SUCCESS)
-		LOG_IN("Deleted '%s'", name->value);
+		LOG_IN("Deleted '%s'", name.c_str());
 	else
-		LOG_ER("Delete of '%s' failed", name->value);
+		LOG_ER("Delete of '%s' failed", name.c_str());
 
 	TRACE_LEAVE();
 	return rc;
@@ -599,90 +319,44 @@ done:
  
   Notes         : None
 ******************************************************************************/
-AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(AVND_CB *cb, SaNameT *comp_name, SaNameT *csi_name)
+AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get(AVND_CB *cb, const std::string& comp_name, const std::string& csi_name)
 {
 	AVND_COMP_CSI_REC *csi_rec = 0;
 	AVND_COMP *comp = 0;
 
 	/* get the comp & csi records */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, *comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, comp_name);
 	if (comp)
-		csi_rec = m_AVND_COMPDB_REC_CSI_GET(*comp, *csi_name);
+		csi_rec = m_AVND_COMPDB_REC_CSI_GET(*comp, csi_name.c_str());
 
 	return csi_rec;
-}
-
-/****************************************************************************
-  Name          : avnd_compdb_csi_rec_get_next
- 
-  Description   : This routine gets the next comp-csi relationship record from 
-                  the csi-list (maintained on comp).
- 
-  Arguments     : cb            - ptr to AvND control block
-                  comp_name - ptr to the comp-name (n/w order)
-                  csi_name      - ptr to the CSI name
- 
-  Return Values : ptr to the comp-csi record (if any)
- 
-  Notes         : None
-******************************************************************************/
-AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get_next(AVND_CB *cb, SaNameT *comp_name, SaNameT *csi_name)
-{
-	AVND_COMP_CSI_REC *csi = 0;
-	AVND_COMP *comp = 0;
-
-	/* get the comp  & the next csi */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, *comp_name);
-	if (comp) {
-		if (csi_name->length)
-			for (csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
-			     csi && !(m_CMP_HORDER_SANAMET(*csi_name, csi->name) < 0);
-			     csi = m_AVND_COMPDB_REC_CSI_NEXT(*comp, *csi)) ;
-		else
-			csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
-	}
-
-	/* found the csi */
-	if (csi)
-		goto done;
-
-	/* find the csi in the remaining comp recs */
-	for (comp = m_AVND_COMPDB_REC_GET_NEXT(cb->compdb, *comp_name); comp;
-	     comp = m_AVND_COMPDB_REC_GET_NEXT(cb->compdb, comp->name)) {
-		csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
-		if (csi)
-			break;
-	}
-
- done:
-	return csi;
 }
 
 uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
+	const std::string param_name = Amf::to_string(&param->name);
 
-	TRACE_ENTER2("Op %u, %s", param->act, param->name.value);
+	TRACE_ENTER2("Op %u, %s", param->act, param_name.c_str());
 
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD: {
 			AVND_COMP *comp = 0;
 			AVND_SU *su = 0;
-			SaNameT su_name;
+			std::string su_name = "";
 
-			comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->name);
+			comp = avnd_compdb_rec_get(cb->compdb, param_name);
 			if (!comp) {
-				LOG_ER("failed to get %s", param->name.value);
+				LOG_ER("failed to get %s", param_name.c_str());
 				goto done;
 			}
 			/* extract the su-name from comp dn */
-			memset(&su_name, 0, sizeof(SaNameT));
-			avsv_cpy_SU_DN_from_DN(&su_name, &param->name);
+			avnd_cpy_SU_DN_from_DN(su_name, param_name);
 			
 			/* get the su record */
-			su = m_AVND_SUDB_REC_GET(cb->sudb, su_name);
+			su = avnd_sudb_rec_get(cb->sudb, su_name);
 			if (!su) {
-				LOG_ER("no su in database for the comp %s", param->name.value);
+				LOG_ER("no su in database for the comp %s", param_name.c_str());
 				goto done;
 			}
 
@@ -767,7 +441,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				/* Remove from the comp-list (maintained by su) */
 				rc = m_AVND_SUDB_REC_COMP_REM(*su, *comp);
 				if (NCSCC_RC_SUCCESS != rc) {
-					LOG_ER("%s: %s remove failed", __FUNCTION__, comp->name.value);
+					LOG_ER("%s: %s remove failed", __FUNCTION__, comp->name.c_str());
 					goto done;
 				}
 				
@@ -809,11 +483,11 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				osafassert(disable_restart <= true);
 				comp->is_restart_en = (disable_restart == true) ? false : true;
 				LOG_NO("saAmfCompDisableRestart changed to %u for '%s'", 
-					   disable_restart, comp->name.value);
+					   disable_restart, comp->name.c_str());
 				break;
 			}
 			case saAmfCompType_ID: {
-				comp->saAmfCompType = param->name_sec;
+				comp->saAmfCompType = Amf::to_string(&param->name_sec);
 				/* 
 				** Indicate that comp config is no longer valid and have to be
 				** refreshed from IMM. We cannot refresh here since it is probably
@@ -821,7 +495,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				*/
 				comp->config_is_valid = 0;
 				LOG_NO("saAmfCompType changed to '%s' for '%s'",
-					comp->saAmfCompType.value, comp->name.value);
+					comp->saAmfCompType.c_str(), comp->name.c_str());
 				break;
 			}
 			default:
@@ -840,11 +514,10 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			   component and delete the record from its data base.
 			   This is kind of automatic termination of a component
 			   when comp is getting deleted. */
-			AVND_COMP *comp = 
-				m_AVND_COMPDB_REC_GET(cb->compdb, param->name);
+			AVND_COMP *comp = avnd_compdb_rec_get(cb->compdb, param_name);
 			if (comp == nullptr) {
 				LOG_ER("%s: Comp '%s' not found", __FUNCTION__,
-						param->name.value);
+						param_name.c_str());
 				goto done;
 			}
 			if (comp->su->is_ncs == true) {
@@ -862,12 +535,12 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				   will be already terminated, so we just want to delete
 				   the comp record.*/
 				if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
-					rc = avnd_compdb_rec_del(cb, &param->name);
+					rc = avnd_compdb_rec_del(cb, param_name);
 					goto done;
 				}
 			}
 			/* Delete the component in case, it is in term failed or so. */
-			rc = avnd_compdb_rec_del(cb, &param->name);
+			rc = avnd_compdb_rec_del(cb, param_name);
 
 		}
 		break;
@@ -889,34 +562,35 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	AVND_COMP * comp;
-	const char* comp_type_name;
+	std::string comp_type_name;
 
-	TRACE_ENTER2("Op %u, %s", param->act, param->name.value);
+	TRACE_ENTER2("Op %u, %s", param->act, osaf_extended_name_borrow(&param->name));
 
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD:
 	{
 		// 1. find component from componentType, 
 		// input example, param->name.value = safVersion=1,safCompType=AmfDemo1	
-		comp_type_name = (char *) param->name.value;
-		TRACE("comp_type_name: %s", comp_type_name);
-		osafassert(comp_type_name);
+		comp_type_name = osaf_extended_name_borrow(&param->name);
+		TRACE("comp_type_name: %s", comp_type_name.c_str());
+		osafassert(comp_type_name.empty() == false);
 		// 2. search each component for a matching compType
 
-		comp = (AVND_COMP *) compdb_rec_get_next(&cb->compdb, (uint8_t *) 0);
-		while (comp != 0) {
-			if (strncmp((const char*) comp->saAmfCompType.value, comp_type_name, comp->saAmfCompType.length) == 0) {
+		for (comp = avnd_compdb_rec_get_next(cb->compdb,  "");
+			 comp != nullptr;
+			 comp = avnd_compdb_rec_get_next(cb->compdb,  comp->name)) {
+			if (comp->saAmfCompType.compare(comp_type_name) == 0) {
 				// 3. comptype found, check if component uses this comptype attribute value or if 
 				// component has specialized this attribute value.
 				
-				AVND_SU *su = m_AVND_SUDB_REC_GET(cb->sudb, comp->su->name);
+				AVND_SU *su = avnd_sudb_rec_get(cb->sudb, comp->su->name);
 				if (!su) {
-					LOG_ER("no su in database for the comp %s", comp->name.value);
+					LOG_ER("no su in database for the comp %s", comp->name.c_str());
 					goto done;
 				}
 
-				TRACE("su name: %s , comp name: %s , comp_type: %s", comp->su->name.value, 
-				      comp->name.value, comp->saAmfCompType.value);
+				TRACE("su name: %s , comp name: %s , comp_type: %s", comp->su->name.c_str(), 
+				      comp->name.c_str(), comp->saAmfCompType.c_str());
 				
 				switch (param->attr_id) {
 				case saAmfCtDefCallbackTimeout_ID: {
@@ -992,7 +666,7 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 						/* Remove from the comp-list (maintained by su) */
 						rc = m_AVND_SUDB_REC_COMP_REM(*su, *comp);
 						if (NCSCC_RC_SUCCESS != rc) {
-							LOG_ER("%s: %s remove failed", __FUNCTION__, comp->name.value);
+							LOG_ER("%s: %s remove failed", __FUNCTION__, comp->name.c_str());
 							goto done;
 						}
 				
@@ -1027,7 +701,6 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 					LOG_WA("Unexpected attribute id: %d", param->attr_id);
 				}
 			}
-			comp = (AVND_COMP *) compdb_rec_get_next(&cb->compdb, (uint8_t *) & comp->name);
 		}
 	}
 	case AVSV_OBJ_OPR_DEL:
@@ -1054,7 +727,7 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 {
 	int arg_counter;
 	char *argv;
-	TRACE_ENTER2("'%s'", compt->name.value);
+	TRACE_ENTER2("'%s'", compt->name.c_str());
 
 	if (!compt) {
 		TRACE_LEAVE();
@@ -1117,30 +790,29 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 	TRACE_LEAVE();
 }
 
-static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaNameT *dn)
+static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const std::string& dn)
 {
 	SaImmAccessorHandleT accessorHandle;
 	amf_comp_type_t *compt;
 	int rc = -1;
-        unsigned int i;
+	unsigned int i;
 	unsigned int j;
 	const char *str;
 	const SaImmAttrValuesT_2 **attributes;
+	SaNameT saAmfCtSwBundle;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	compt = new amf_comp_type_t();
 
 	(void)amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
 
-	if (amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
-		LOG_ER("amf_saImmOmAccessorGet_2 FAILED for '%s'", dn->value);
+	if (amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
+		LOG_ER("amf_saImmOmAccessorGet_o2 FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 
-	memcpy(compt->name.value, dn->value, dn->length);
-	compt->name.length = dn->length;
-	compt->tree_node.key_info = (uint8_t *)&(compt->name);
+	compt->name = dn;
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtCompCategory"), attributes, 0, &compt->saAmfCtCompCategory) != SA_AIS_OK)
 		osafassert(0);
@@ -1148,10 +820,11 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 	if (IS_COMP_LOCAL(compt->saAmfCtCompCategory)) {
 		// Ignore if bundle not found, commands can be absolute path
 		immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtSwBundle"),
-			attributes, 0, &compt->saAmfCtSwBundle);
+			attributes, 0, &saAmfCtSwBundle);
+		compt->saAmfCtSwBundle = Amf::to_string(&saAmfCtSwBundle);
 	}
 
-        immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCtDefCmdEnv"), attributes, &j);
+	immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfCtDefCmdEnv"), attributes, &j);
 	compt->saAmfCtDefCmdEnv = new SaStringT[j + 1]();
 	osafassert(compt->saAmfCtDefCmdEnv);
 	for (i = 0; i < j; i++) {
@@ -1251,7 +924,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 							&compt->saAmfCompQuiescingCompleteTimeout) != SA_AIS_OK)) {
 
 		compt->saAmfCompQuiescingCompleteTimeout = compt->saAmfCtDefCallbackTimeout;
-		LOG_NO("saAmfCtDefQuiescingCompleteTimeout for '%s' initialized with saAmfCtDefCallbackTimeout", dn->value);
+		LOG_NO("saAmfCtDefQuiescingCompleteTimeout for '%s' initialized with saAmfCtDefCallbackTimeout", dn.c_str());
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefRecoveryOnError"), attributes, 0, &compt->saAmfCtDefRecoveryOnError) != SA_AIS_OK)
@@ -1260,7 +933,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 	if (compt->saAmfCtDefRecoveryOnError == SA_AMF_NO_RECOMMENDATION) {
 		compt->saAmfCtDefRecoveryOnError = SA_AMF_COMPONENT_FAILOVER;
 		LOG_NO("COMPONENT_FAILOVER(%u) used instead of NO_RECOMMENDATION(%u) for '%s'",
-			   SA_AMF_COMPONENT_FAILOVER, SA_AMF_NO_RECOMMENDATION, dn->value);
+			   SA_AMF_COMPONENT_FAILOVER, SA_AMF_NO_RECOMMENDATION, dn.c_str());
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefDisableRestart"), attributes, 0, &compt->saAmfCtDefDisableRestart) != SA_AIS_OK)
@@ -1282,7 +955,7 @@ static amf_comp_type_t *avnd_comptype_create(SaImmHandleT immOmHandle, const SaN
 
 static void init_comp_category(AVND_COMP *comp, SaAmfCompCategoryT category)
 {
-	TRACE_ENTER2("'%s', %u", comp->name.value, category);
+	TRACE_ENTER2("'%s', %u", comp->name.c_str(), category);
 	AVSV_COMP_TYPE_VAL comptype = avsv_amfcompcategory_to_avsvcomptype(category);
 
 	osafassert(comptype != AVSV_COMP_TYPE_INVALID);
@@ -1327,7 +1000,7 @@ static void init_comp_category(AVND_COMP *comp, SaAmfCompCategoryT category)
 	TRACE_LEAVE();
 }
 
-static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT attrName, const SaNameT *dn, SaStringT *str)
+static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT attrName, const std::string& dn, SaStringT *str)
 {
 	int rc = -1;
 	const SaImmAttrValuesT_2 **attributes;
@@ -1339,13 +1012,13 @@ static int get_string_attr_from_imm(SaImmOiHandleT immOmHandle, SaImmAttrNameT a
 
 	amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
 
-	if ((error = amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, dn, attributeNames, (SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
-		TRACE("amf_saImmOmAccessorGet FAILED %u for %s", error, dn->value);
+	if ((error = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, attributeNames, (SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
+		TRACE("amf_saImmOmAccessorGet_o2 FAILED %u for %s", error, dn.c_str());
 		goto done;
 	}
 
 	if ((s = immutil_getStringAttr(attributes, attrName, 0)) == nullptr) {
-		TRACE("Get %s FAILED for '%s'", attrName, dn->value);
+		TRACE("Get %s FAILED for '%s'", attrName, dn.c_str());
 		goto done;
 	}
 
@@ -1534,10 +1207,13 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	const char *str;
 	SaStringT env;
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = { 'A', 2, 1 };
+	SaVersionT immVersion = { 'A', 2, 15 };
+	SaNameT node_name;
+	SaNameT saAmfCtSwBundle;
 	SaAisErrorT error;
 
-	TRACE_ENTER2("%s", comp->name.value);
+	TRACE_ENTER2("%s", comp->name.c_str());
+	osaf_extended_name_lend(avnd_cb->amf_nodeName.c_str(), &node_name);
 
 	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 	if (error != SA_AIS_OK) {
@@ -1545,18 +1221,19 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		goto done1;
 	}
 
-	if ((comptype = avnd_comptype_create(immOmHandle, &comp->saAmfCompType)) == nullptr) {
+	if ((comptype = avnd_comptype_create(immOmHandle, comp->saAmfCompType)) == nullptr) {
 		LOG_ER("%s: avnd_comptype_create FAILED for '%s'", __FUNCTION__,
-			comp->saAmfCompType.value);
+			comp->saAmfCompType.c_str());
 		goto done;
 	}
 
-	avsv_create_association_class_dn(&comptype->saAmfCtSwBundle,
-		&avnd_cb->amf_nodeName, "safInstalledSwBundle", &nodeswbundle_name);
+	osaf_extended_name_lend(comptype->saAmfCtSwBundle.c_str(), &saAmfCtSwBundle);
+	avsv_create_association_class_dn(&saAmfCtSwBundle,
+		&node_name, "safInstalledSwBundle", &nodeswbundle_name);
 
 	(void) get_string_attr_from_imm(immOmHandle,
 		const_cast<SaImmAttrNameT>("saAmfNodeSwBundlePathPrefix"),
-		&nodeswbundle_name, &path_prefix);
+		Amf::to_string(&nodeswbundle_name), &path_prefix);
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompInstantiationLevel"), attributes, 0, &comp->inst_level) != SA_AIS_OK) {
 		comp->inst_level = comptype->saAmfCtDefInstantiationLevel;
@@ -1611,7 +1288,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 		if ((SaAmfRecommendedRecoveryT)comp->err_info.def_rec == SA_AMF_NO_RECOMMENDATION) {
 			comp->err_info.def_rec = SA_AMF_COMPONENT_FAILOVER;
 			LOG_NO("COMPONENT_FAILOVER(%u) used instead of NO_RECOMMENDATION(%u) for '%s'",
-				   SA_AMF_COMPONENT_FAILOVER, SA_AMF_NO_RECOMMENDATION, comp->name.value);
+				   SA_AMF_COMPONENT_FAILOVER, SA_AMF_NO_RECOMMENDATION, comp->name.c_str());
 		}
 	}
 
@@ -1633,7 +1310,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
         	env_cntr = 0;
         	while ((env = comp->saAmfCompCmdEnv[env_cntr++]) != nullptr)
         		delete env;
-        	delete comp->saAmfCompCmdEnv;
+        	delete[] comp->saAmfCompCmdEnv;
                 comp->saAmfCompCmdEnv = nullptr;
         }
 
@@ -1680,6 +1357,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 
 done:
 	delete [] path_prefix;
+	osaf_extended_name_free(&nodeswbundle_name);
 	avnd_comptype_delete(comptype);
 	immutil_saImmOmFinalize(immOmHandle);
 done1:
@@ -1721,22 +1399,23 @@ void avnd_comp_delete(AVND_COMP *comp)
  * 
  * @return AVND_COMP*
  */
-static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **attributes, AVND_SU *su)
+static AVND_COMP *avnd_comp_create(const std::string &comp_name, const SaImmAttrValuesT_2 **attributes, AVND_SU *su)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *comp;
 	SaAisErrorT error;
+	SaNameT comp_type;
 
-	TRACE_ENTER2("%s", comp_name->value);
+	TRACE_ENTER2("%s", comp_name.c_str());
 
 	comp = new AVND_COMP();
 	comp->use_comptype_attr = new std::bitset<NumAttrs>;
 
-	memcpy(&comp->name, comp_name, sizeof(comp->name));
-	comp->name.length = comp_name->length;
+	comp->name = comp_name;
 
-	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompType"), attributes, 0, &comp->saAmfCompType);
+	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCompType"), attributes, 0, &comp_type);
 	osafassert(error == SA_AIS_OK);
+	comp->saAmfCompType = Amf::to_string(&comp_type);
 
 	if (comp_init(comp, attributes) != 0)
 		goto done;
@@ -1744,7 +1423,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	/* create the association with hdl-mngr */
 	comp->comp_hdl = ncshm_create_hdl(avnd_cb->pool_id, NCS_SERVICE_ID_AVND, comp);
 	if (0 == comp->comp_hdl) {
-		LOG_ER("%s: ncshm_create_hdl FAILED for '%s'", __FUNCTION__, comp_name->value);
+		LOG_ER("%s: ncshm_create_hdl FAILED for '%s'", __FUNCTION__, comp_name.c_str());
 		goto done;
 	}
 
@@ -1761,7 +1440,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 
 	/* Initialize the comp-csi list. */
 	comp->csi_list.order = NCS_DBLIST_ASSCEND_ORDER;
-	comp->csi_list.cmp_cookie = avsv_dblist_saname_cmp;
+	comp->csi_list.cmp_cookie = avsv_dblist_sastring_cmp;
 	comp->csi_list.free_cookie = 0;
 
 	avnd_pm_list_init(comp);
@@ -1769,11 +1448,11 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	/* initialize proxied list */
 	avnd_pxied_list_init(comp);
 
-	/* Add to the patricia tree. */
-	comp->tree_node.key_info = (uint8_t *)&comp->name;
+	/* Add to compdb. */
 	osaf_mutex_lock_ordie(&compdb_mutex);
-	if(ncs_patricia_tree_add(&avnd_cb->compdb, &comp->tree_node) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_patricia_tree_add FAILED for '%s'", comp_name->value);
+	rc = avnd_cb->compdb.insert(comp->name.c_str(), comp);
+	if(rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_patricia_tree_add FAILED for '%s'", comp_name.c_str());
 		osaf_mutex_unlock_ordie(&compdb_mutex);
 		goto done;
 	}
@@ -1833,27 +1512,28 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 	const char *className = "SaAmfComp";
 	AVND_COMP *comp;
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = { 'A', 2, 11 };
+	SaVersionT immVersion = { 'A', 2, 15 };
 	uint32_t no_of_retries = 0;
 	const uint32_t MAX_NO_RETRIES = immutilWrapperProfile.nTries;
-	TRACE_ENTER2("SU'%s'", su->name.value);
+	TRACE_ENTER2("SU'%s'", su->name.c_str());
 
 	// this loop construct is to handle BAD_HANDLE from immutil_saImmOmSearchNext_2()
 	while (++no_of_retries < MAX_NO_RETRIES) {
 		error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 		if (error != SA_AIS_OK) {
 			LOG_CR("saImmOmInitialize failed: %u", error);
+			rc = NCSCC_RC_OUT_OF_MEM;
 			goto done;
 		}
 		searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
 		searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 		searchParam.searchOneAttr.attrValue = &className;
 
-		if ((error = amf_saImmOmSearchInitialize_2(immOmHandle, &su->name,
+		if ((error = amf_saImmOmSearchInitialize_o2(immOmHandle, su->name,
 			SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_CONFIG_ATTR,
 			&searchParam, nullptr, searchHandle)) != SA_AIS_OK) {
-
-			LOG_ER("amf_saImmOmSearchInitialize_2 failed: %u", error);
+	
+			LOG_ER("amf_saImmOmSearchInitialize_o2 failed: %u", error);
 			goto done1;
 		}
 
@@ -1865,11 +1545,13 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 				break;
 			}
 
-			TRACE_1("'%s'", comp_name.value);
-			if(0 == m_AVND_COMPDB_REC_GET(avnd_cb->compdb, comp_name)) {
-				if ((comp = avnd_comp_create(&comp_name, attributes, su)) == nullptr)
+			const std::string cn = Amf::to_string(&comp_name);
+	
+			TRACE_1("'%s'", cn.c_str());
+			if (avnd_compdb_rec_get(avnd_cb->compdb, cn) == nullptr) {
+				if ((comp = avnd_comp_create(cn, attributes, su)) == nullptr)
 					goto done2;
-
+	
 				avnd_hc_config_get(comp);
 			}
 		}
@@ -1906,10 +1588,10 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = { 'A', 2, 1 };
+	SaVersionT immVersion = { 'A', 2, 15 };
 	SaAisErrorT error;
 
-	TRACE_ENTER2("'%s'", comp->name.value);
+	TRACE_ENTER2("'%s'", comp->name.c_str());
 
 	/*
 	** If the component configuration is not valid (e.g. comptype has been
@@ -1922,7 +1604,7 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 		goto done1;
 	}
 
-	TRACE_1("%s", comp->name.value);
+	TRACE_1("%s", comp->name.c_str());
 
 	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 	/* If this is a case of headless, then proceed without reading the
@@ -1931,32 +1613,32 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 		if (avnd_cb->is_avd_down == true) {
 			LOG_WA("saImmOmInitialize FAILED(error: '%u') for '%s' in"
 					" headless state, continuing with old configuration",
-					error, comp->name.value);
+					error, comp->name.c_str());
 			res = 0;
 			goto done1;
 		} else {
-			LOG_CR("saImmOmInitialize FAILED for '%s', error %u", comp->name.value, error);
+			LOG_CR("saImmOmInitialize FAILED for '%s', error %u", comp->name.c_str(), error);
 			goto done1;
 		}
 	}
 	error = amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
 	if (error != SA_AIS_OK) {
-		LOG_CR("amf_saImmOmAccessorInitialize FAILED for '%s'", comp->name.value);
+		LOG_CR("amf_saImmOmAccessorInitialize FAILED for '%s'", comp->name.c_str());
 		goto done2;
 	}
-	if (amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, &comp->name, nullptr,
+	if (amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, comp->name, nullptr,
 		(SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
 
-		LOG_ER("amf_saImmOmAccessorGet_2 FAILED for '%s'", comp->name.value);
+		LOG_ER("amf_saImmOmAccessorGet_o2 FAILED for '%s'", comp->name.c_str());
 		goto done3;
 	}
 
 	res = comp_init(comp, attributes);
 	if (res == 0)
-		TRACE("'%s' configuration reread from IMM", comp->name.value);
+		TRACE("'%s' configuration reread from IMM", comp->name.c_str());
 
 	/* need to get HC type configuration also if that has been recently created */
-	avnd_hctype_config_get(immOmHandle, &comp->saAmfCompType);
+	avnd_hctype_config_get(immOmHandle, comp->saAmfCompType);
 
 done3:
 	immutil_saImmOmAccessorFinalize(accessorHandle);
@@ -1973,22 +1655,26 @@ done1:
  * @param Pointer to Comp name.
  * @return Pointer to Comp.
  */
-AVND_COMP *compdb_rec_get(NCS_PATRICIA_TREE *compdb, const SaNameT *name) {
+AVND_COMP *avnd_compdb_rec_get(AmfDb<std::string, AVND_COMP>& compdb, const std::string& name) {
 	osaf_mutex_lock_ordie(&compdb_mutex);
-	AVND_COMP *comp = (AVND_COMP *)ncs_patricia_tree_get(compdb, (uint8_t *)(name));
+	AVND_COMP *comp = compdb.find(name);
 	osaf_mutex_unlock_ordie(&compdb_mutex);
 	return comp;
 }
-
-/**
- * This function return next Comp rec.
- * @param Pointer to COMPDB.
- * @param Pointer to COMP name.
- * @return Pointer to COMP.
- */
-AVND_COMP *compdb_rec_get_next(NCS_PATRICIA_TREE *compdb, uint8_t *name) {
+AVND_COMP *avnd_compdb_rec_get_next(AmfDb<std::string, AVND_COMP>& compdb, const std::string& name) {
 	osaf_mutex_lock_ordie(&compdb_mutex);
-	AVND_COMP *comp = (AVND_COMP *)ncs_patricia_tree_getnext(compdb, (uint8_t *)(name));
+	AVND_COMP *comp = nullptr;
+	if (compdb.size() == 0)
+		goto done;
+
+	if (name == "") {
+		std::map<std::string, AVND_COMP*>::iterator it = compdb.begin();
+		comp = it->second;
+	} else {
+		comp = compdb.findNext(name);
+	}
+
+done:
 	osaf_mutex_unlock_ordie(&compdb_mutex);
 	return comp;
 }

@@ -81,7 +81,7 @@ typedef enum avnd_su_si_assign_state {
 typedef struct avnd_su_si_rec {
 	NCS_DB_LINK_LIST_NODE su_dll_node;	/* node in the su-si dll */
 	NCS_DB_LINK_LIST_NODE cb_dll_node;	/* node in the su-si dll */
-	SaNameT name;	/* si name */
+	std::string name;	/* si name */
 	uint32_t rank;
 
 	SaAmfHAStateT curr_state;	/* current si ha state */
@@ -96,7 +96,7 @@ typedef struct avnd_su_si_rec {
 
 	/* links to other entities */
 	struct avnd_su_tag *su;	/* bk ptr to su */
-	SaNameT su_name;	/* For checkpointing su name */
+	std::string su_name;	/* For checkpointing su name */
 	AVSV_SUSI_ACT single_csi_add_rem_in_si; /* To detect whether single csi addition/removal is going on.*/
 } AVND_SU_SI_REC;
 
@@ -113,8 +113,7 @@ typedef struct avnd_su_siq_rec {
 typedef AVSV_SU_INFO_MSG AVND_SU_PARAM;
 
 typedef struct avnd_su_tag {
-	NCS_PATRICIA_NODE tree_node;	/* su tree node (key is su name) */
-	SaNameT name;	/* su name */
+	std::string name;	/* su name */
 
 	uint32_t su_hdl;		/* hdl returned by hdl-mngr */
 
@@ -324,10 +323,6 @@ typedef struct avnd_su_tag {
 
 #define m_AVND_SU_ERR_ESC_LEVEL_SET(x, val)  ((x)->su_err_esc_level = (val))
 
-/* macro to get the SU recrod from the SU database */
-#define m_AVND_SUDB_REC_GET(sudb, name) \
-	sudb_rec_get(&(sudb), &(name))
-
 /* macro to add a component to the su-comp list */
 #define m_AVND_SUDB_REC_COMP_ADD(su, comp, rc) \
 	sudb_rec_comp_add(&su, &comp, &rc)
@@ -339,7 +334,7 @@ typedef struct avnd_su_tag {
 /* macro to add a si record to the su-si list */
 #define m_AVND_SUDB_REC_SI_ADD(su, si, rc) \
 { \
-   (si).su_dll_node.key = (uint8_t *)&(si).name; \
+   (si).su_dll_node.key = (uint8_t *)(si).name.c_str(); \
    (rc) = ncs_db_link_list_add(&(su).si_list, &(si).su_dll_node); \
 };
 
@@ -359,16 +354,15 @@ struct avnd_cb_tag;
 
 uint32_t avnd_su_pres_fsm_run(struct avnd_cb_tag *, AVND_SU *, AVND_COMP *, AVND_SU_PRES_FSM_EV);
 
-uint32_t avnd_sudb_init(struct avnd_cb_tag *);
 AVND_SU *avnd_sudb_rec_add(struct avnd_cb_tag *, AVND_SU_PARAM *, uint32_t *);
-uint32_t avnd_sudb_rec_del(struct avnd_cb_tag *, SaNameT *);
+uint32_t avnd_sudb_rec_del(struct avnd_cb_tag *, const std::string&);
 
 AVND_SU_SI_REC *avnd_su_si_rec_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uint32_t *);
 uint32_t avnd_su_si_all_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
 AVND_SU_SI_REC *avnd_su_si_rec_add(struct avnd_cb_tag *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uint32_t *rc);
-uint32_t avnd_su_si_rec_del(struct avnd_cb_tag *, SaNameT *, SaNameT *);
-uint32_t avnd_su_si_del(struct avnd_cb_tag *, SaNameT *);
-AVND_SU_SI_REC *avnd_su_si_rec_get(struct avnd_cb_tag *, const SaNameT *, const SaNameT *);
+uint32_t avnd_su_si_rec_del(struct avnd_cb_tag *, const std::string&, const std::string&);
+uint32_t avnd_su_si_del(struct avnd_cb_tag *, const std::string&);
+AVND_SU_SI_REC *avnd_su_si_rec_get(struct avnd_cb_tag *, const std::string&, const std::string&);
 uint32_t avnd_su_si_msg_prc(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
 
 AVND_SU_SIQ_REC *avnd_su_siq_rec_add(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uint32_t *);
@@ -417,7 +411,7 @@ bool isFailed(const AVND_SU *su);
 bool isRestartSet(const AVND_SU *su);
 bool su_evaluate_restarting_state(AVND_SU *su);
 bool all_csis_in_restarting_state(const AVND_SU *su, AVND_COMP_CSI_REC * exclude_csi = nullptr);
-extern AVND_SU *sudb_rec_get(NCS_PATRICIA_TREE *sudb, const SaNameT *name);
-extern AVND_SU *sudb_rec_get_next(NCS_PATRICIA_TREE *sudb, uint8_t *name);
+extern AVND_SU *avnd_sudb_rec_get(AmfDb<std::string, AVND_SU>& sudb, const std::string& name);
+extern AVND_SU *avnd_sudb_rec_get_next(AmfDb<std::string, AVND_SU>& sudb, const std::string& name);
 extern void sudb_rec_comp_add(AVND_SU *su, AVND_COMP *comp, uint32_t *rc);
 #endif

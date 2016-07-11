@@ -139,19 +139,19 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaUint64T pid = rec->pid;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/* delete the PM_REC from pm_list */
 	rc = ncs_db_link_list_del(&comp->pm_list, (uint8_t *)&rec->pid);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_NO("PM Rec doesn't exist in Comp '%s' of pid %llu", comp->name.value, pid);
+		LOG_NO("PM Rec doesn't exist in Comp '%s' of pid %llu", comp->name.c_str(), pid);
 	}
 	rec = nullptr;		/* rec is no more, dont use it */
 
 	/* remove the corresponding element from mon_req list */
 	rc = avnd_mon_req_del(cb, pid);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_NO("PM Rec doesn't exist in cb for Comp '%s' of pid %llu", comp->name.value, pid);
+		LOG_NO("PM Rec doesn't exist in cb for Comp '%s' of pid %llu", comp->name.c_str(), pid);
 	}
 
 	TRACE_LEAVE();
@@ -173,7 +173,7 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 void avnd_comp_pm_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_PM_REC *rec = 0;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/* No passive monitoring for external component. */
 	if (true == comp->su->su_is_external)
@@ -432,7 +432,7 @@ uint32_t avnd_evt_ava_pm_start_evh(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_pm_start():%s:Hdl=%llx,pid:%llu,desc_tree_depth:%u, pm_err:%u",\
-				    pm_start->comp_name.value, pm_start->hdl, pm_start->pid,\
+				    osaf_extended_name_borrow(&pm_start->comp_name), pm_start->hdl, pm_start->pid,\
 				    pm_start->desc_tree_depth, pm_start->pm_err);
 	}
 
@@ -492,7 +492,7 @@ uint32_t avnd_evt_ava_pm_stop_evh(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_pm_stop():%s:Hdl=%llx,pid=%llu,stop_qual:%u, pm_err:%u",\
-				    pm_stop->comp_name.value, pm_stop->hdl, pm_stop->pid,\
+				    osaf_extended_name_borrow(&pm_stop->comp_name), pm_stop->hdl, pm_stop->pid,\
 				    pm_stop->stop_qual, pm_stop->pm_err);
 	}
 
@@ -529,7 +529,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 			AVSV_AMF_PM_START_PARAM *pm_start = (AVSV_AMF_PM_START_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_start->comp_name))) {
+			if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&pm_start->comp_name))) == nullptr) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -569,7 +569,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 			AVSV_AMF_PM_STOP_PARAM *pm_stop = (AVSV_AMF_PM_STOP_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_stop->comp_name))) {
+			if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&pm_stop->comp_name))) == nullptr) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -631,7 +631,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
 {
 	AVND_COMP_PM_REC *rec = 0;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/* No passive monitoring for external component. */
 	if (true == comp->su->su_is_external)
