@@ -82,7 +82,7 @@ uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * Get the comp. As comp-name is derived from the AvA lib, it's 
 	 * non-existence is a fatal error.
 	 */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, qsc->comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&qsc->comp_name));
 	osafassert(comp);
 
 	/* Stop the qscing complete timer if started any */
@@ -134,12 +134,13 @@ uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 				/* We need to forward this req to other AvND */
 				/* Before sending api_info, we need to overwrite the component name as
 				   right now, api_info->param.resp.comp_name has proxy comp name. */
-				qsc->comp_name = comp->name;
+				osaf_extended_name_free(&qsc->comp_name);
+				osaf_extended_name_alloc(comp->name.c_str(), &qsc->comp_name);
 				rc = avnd_avnd_msg_send(cb, (uint8_t *)api_info, api_info->type, &evt->mds_ctxt,
 							comp->node_id);
 				if (NCSCC_RC_SUCCESS != rc) {
 					LOG_ER("%s,AvND Send Failure:%s,Type=%u,Hdl=%llu,Inv:%llu, Err:%u",__FUNCTION__,\
-							    comp->name.value, api_info->type, qsc->hdl,\
+							    comp->name.c_str(), api_info->type, qsc->hdl,\
 							    qsc->inv, qsc->err);
 				}
 				goto done;
@@ -160,7 +161,7 @@ uint32_t avnd_evt_ava_csi_quiescing_compl_evh(AVND_CB *cb, AVND_EVT *evt)
 		rc = avnd_err_process(cb, comp, &err_info);
 	} else {
 		if (!m_AVSV_SA_NAME_IS_NULL(cbk_rec->cbk_info->param.csi_set.csi_desc.csiName)) {
-			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk_rec->cbk_info->param.csi_set.csi_desc.csiName);
+			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk_rec->cbk_info->param.csi_set.csi_desc.csiName).c_str());
 			osafassert(csi);
 		}
 
@@ -257,7 +258,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * Get the comp. As comp-name is derived from the AvA lib, it's 
 	 * non-existence is a fatal error.
 	 */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, resp->comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&resp->comp_name));
 	osafassert(comp);
 
 	/* npi comps except for proxied dont interact with amf */
@@ -314,12 +315,12 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 				/* We need to forward this req to other AvND */
 				/* Before sending api_info, we need to overwrite the component name as
 				   right now, api_info->param.resp.comp_name has proxy comp name. */
-				resp->comp_name = comp->name;
+				osaf_extended_name_alloc(comp->name.c_str(), &resp->comp_name);
 				rc = avnd_avnd_msg_send(cb, (uint8_t *)api_info, api_info->type, &evt->mds_ctxt,
 							comp->node_id);
 				if (NCSCC_RC_SUCCESS != rc) {
 					LOG_ER("%s,AvND Send Failure:%s,Type:%u,Hdl:%llu,Inv:%llu, Err:%u",__FUNCTION__,\
-							    comp->name.value, api_info->type, resp->hdl,\
+							    comp->name.c_str(), api_info->type, resp->hdl,\
 							    resp->inv, resp->err);
 				}
 				goto done;
@@ -331,7 +332,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 	/* if (!cbk_rec && comp->pxied_list.n_nodes != 0)  */
 	if (!cbk_rec) {
-		TRACE_LEAVE2("Empty comp callback record comp=%s, callback type=%llx",comp->name.value,resp->inv);
+		TRACE_LEAVE2("Empty comp callback record comp=%s, callback type=%llx", comp->name.c_str(), resp->inv);
 		return rc;
 	}
 
@@ -339,7 +340,6 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 	case AVSV_AMF_HC:
 		{
 			AVND_COMP_HC_REC tmp_hc_rec;
-			memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
 			tmp_hc_rec.key = cbk_rec->cbk_info->param.hc.hc_key;
 			tmp_hc_rec.req_hdl = cbk_rec->cbk_info->hdl;
 			hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
@@ -370,7 +370,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* trigger comp-fsm & delete the record */
 		if (SA_AIS_OK != resp->err) {
 			LOG_NO("TerminateCallback failed for '%s' aisError:%u",
-					comp->name.value, resp->err);
+					comp->name.c_str(), resp->err);
 
 			m_AVND_COMP_TERM_FAIL_SET(comp);
 		}
@@ -415,7 +415,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		/* get csi rec */
 		if (!m_AVSV_SA_NAME_IS_NULL(cbk_rec->cbk_info->param.csi_set.csi_desc.csiName)) {
-			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk_rec->cbk_info->param.csi_set.csi_desc.csiName);
+			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk_rec->cbk_info->param.csi_set.csi_desc.csiName).c_str());
 			osafassert(csi);
 		}
 
@@ -475,7 +475,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 
 		if (!m_AVSV_SA_NAME_IS_NULL(cbk_rec->cbk_info->param.csi_rem.csi_name)) {
-			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk_rec->cbk_info->param.csi_rem.csi_name);
+			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk_rec->cbk_info->param.csi_rem.csi_name).c_str());
 			osafassert(csi);
 		}
 
@@ -721,12 +721,12 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 
 	/* allocate ava message */
         // zero-initialized (new T() POD types are value-initialized, c++98, 03 and 11)
-	msg.info.ava = new AVSV_NDA_AVA_MSG();
+	msg.info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 
 	/* populate the msg */
 	msg.type = AVND_MSG_AVA;
 	msg.info.ava->type = AVSV_AVND_AMF_CBK_MSG;
-	rc = amf_cbk_copy(&msg.info.ava->info.cbk_info, rec->cbk_info);
+	rc = avsv_amf_cbk_copy(&msg.info.ava->info.cbk_info, rec->cbk_info);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -742,9 +742,9 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 		   also. */
 		NODE_ID node_id = 0;
 		MDS_DEST i_to_dest = 0;
-		avnd_msg = new AVSV_ND2ND_AVND_MSG();
+		avnd_msg = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
 
-		avnd_msg->comp_name = comp->name;
+		osaf_extended_name_alloc(comp->name.c_str(), &avnd_msg->comp_name);
 		temp_ptr = msg.info.ava;
 		msg.info.avnd = avnd_msg;
 		/* Hijack the message of AvA and make it a part of AvND. */
@@ -757,7 +757,7 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 		rc = avnd_avnd_mds_send(cb, i_to_dest, &msg);
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("avnd_comp_cbq_rec_send:Msg Send to AvND Failed:%s, %u",\
-					    comp->name.value, node_id);
+					    comp->name.c_str(), node_id);
 		}
 	} else {
 		/* send the message to AvA */
@@ -798,7 +798,7 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, bool send_del_cbk)
 {
 	AVND_COMP_CBK *rec = 0;
 	NODE_ID dest_node_id = 0;
-	TRACE_ENTER2("Comp '%s', send_del_cbk '%u'", comp->name.value, send_del_cbk);
+	TRACE_ENTER2("Comp '%s', send_del_cbk '%u'", comp->name.c_str(), send_del_cbk);
 
 	do {
 		/* pop the record */
@@ -815,7 +815,7 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, bool send_del_cbk)
 				   So, this means that we need to send a del message to the
 				   same AvND as this may remain stale in case we don't sent
 				   and there is no response from AvA. */
-				avnd_avnd_cbk_del_send(cb, &comp->name, &rec->opq_hdl, &dest_node_id);
+				avnd_avnd_cbk_del_send(cb, comp->name, &rec->opq_hdl, &dest_node_id);
 
 			}	/* if(cb->node_info.nodeId != dest_node_id) */
 		}
@@ -863,7 +863,7 @@ void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *
 				   So, this means that we need to send a del message to the
 				   same AvND as this may remain stale in case we don't sent 
 				   and there is no response from AvA. */
-				(void)avnd_avnd_cbk_del_send(cb, &comp->name, &rec->opq_hdl, &dest_node_id);
+				(void)avnd_avnd_cbk_del_send(cb, comp->name, &rec->opq_hdl, &dest_node_id);
 
 			}	/* if(cb->node_info.nodeId != dest_node_id) */
 		}		/* if(true == send_del_cbk) */
@@ -949,7 +949,7 @@ void avnd_comp_cbq_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec)
 
 	/* free the callback info */
 	if (rec->cbk_info)
-		amf_cbk_free(rec->cbk_info);
+		avsv_amf_cbk_free(rec->cbk_info);
 
 	/* free the record */
 	delete rec;
@@ -1012,28 +1012,28 @@ void avnd_comp_cbq_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl, MDS_
  
   Notes         : None.
 ******************************************************************************/
-void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, SaNameT *csi_name)
+void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, const std::string& csi_name)
 {
 	AVND_COMP_CBK *curr = comp->cbk_list, *prv = 0;
 	AVSV_AMF_CBK_INFO *info = 0;
 	bool to_del = false;
 
-	TRACE_ENTER2("'%s', '%s'", comp->name.value, csi_name ? csi_name->value : nullptr);
+	TRACE_ENTER2("'%s', '%s'", comp->name.c_str(), csi_name.c_str());
 
 	/* scan the entire comp-cbk list & delete the matching records */
 	while (curr) {
 		info = curr->cbk_info;
 
-		if (!csi_name) {
+		if (csi_name.empty()) {
 			/* => remove all the csi-set & csi-rem cbks */
 			if ((AVSV_AMF_CSI_SET == info->type) || (AVSV_AMF_CSI_REM == info->type))
 				to_del = true;
 		} else {
 			/* => remove only the matching csi-set & csi-rem cbk */
 			if (((AVSV_AMF_CSI_SET == info->type) &&
-			     (0 == m_CMP_HORDER_SANAMET(info->param.csi_set.csi_desc.csiName, *csi_name))) ||
+				(0 == csi_name.compare(Amf::to_string(&info->param.csi_set.csi_desc.csiName)))) ||
 			    ((AVSV_AMF_CSI_REM == info->type) &&
-			     (0 == m_CMP_HORDER_SANAMET(info->param.csi_rem.csi_name, *csi_name))))
+				(0 == csi_name.compare(Amf::to_string(&info->param.csi_rem.csi_name)))))
 				to_del = true;
 		}
 
@@ -1082,7 +1082,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 				m_AVND_COMP_CBQ_REC_POP(comp, cbk, found);
 
 				if (!found)
-					LOG_NO("%s - '%s' type:%u", __FUNCTION__, comp->name.value,
+					LOG_NO("%s - '%s' type:%u", __FUNCTION__, comp->name.c_str(),
 						   cbk->cbk_info->type);
 
 				cbk->next = nullptr;
@@ -1103,7 +1103,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 
 		case AVSV_AMF_CSI_SET:
 			{
-				csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk->cbk_info->param.csi_set.csi_desc.csiName);
+				csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk->cbk_info->param.csi_set.csi_desc.csiName).c_str());
 
 				/* check, if the older assignment was overriden by new one, if so trash this resp */
 				if (!csi) {
@@ -1128,7 +1128,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 
 		case AVSV_AMF_CSI_REM:
 			{
-				csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk->cbk_info->param.csi_rem.csi_name);
+				csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk->cbk_info->param.csi_rem.csi_name).c_str());
 				if (comp->csi_list.n_nodes) {
 					(void)avnd_comp_csi_remove_done(cb, comp, csi);
 				} else {

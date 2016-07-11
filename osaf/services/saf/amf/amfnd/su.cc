@@ -43,13 +43,13 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
  * @param name
  * @return
  */
-static bool get_su_failover(const SaNameT *name)
+static bool get_su_failover(const std::string& name)
 {
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = { 'A', 2, 1 };
-	SaNameT sutype;
+	SaVersionT immVersion = { 'A', 2, 15 };
+	const char *sutype;
 	SaBoolT sufailover = SA_FALSE;
 	SaImmAttrNameT attributeNames[] = {
 		const_cast<SaImmAttrNameT>("saAmfSUFailover"),
@@ -58,10 +58,10 @@ static bool get_su_failover(const SaNameT *name)
 	};
 	SaAisErrorT error;
 
-	TRACE_ENTER2("'%s'", name->value);
+	TRACE_ENTER2("'%s'", name.c_str());
 
 	// TODO remove, just for test
-	LOG_NO("get_su_failover '%s'", name->value);
+	LOG_NO("get_su_failover '%s'", name.c_str());
 
 	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 	if (error != SA_AIS_OK ) {
@@ -72,21 +72,20 @@ static bool get_su_failover(const SaNameT *name)
 
 	/* Use an attribute name list to avoid reading runtime attributes which
 	 * causes callbacks executed in AMF director. */
-	if (amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, name, attributeNames,
+	if (amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, name, attributeNames,
 		(SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
-		LOG_ER("amf_saImmOmAccessorGet_2 FAILED for '%s'", name->value);
+		LOG_ER("amf_saImmOmAccessorGet_o2 FAILED for '%s'", name.c_str());
 		goto done;
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUFailover"),
 			attributes, 0, &sufailover) != SA_AIS_OK) {
 		/* nothing specified in SU, read type */
-		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSUType"),
-				attributes, 0, &sutype) == SA_AIS_OK) {
+		if ((sutype = immutil_getStringAttr(attributes, "saAmfSUType", 0)) != nullptr) {
 
 			attributeNames[0] = const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover");
 			attributeNames[1] = nullptr;
-			if (amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, &sutype, nullptr,
+			if (amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, sutype, nullptr,
 					(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 				immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover"),
 					attributes, 0, &sufailover);
@@ -145,7 +144,7 @@ uint32_t avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	/* scan the su list & add each su to su-db */
 	for (su_info = info->su_list; su_info; su = 0, su_info = su_info->next) {
-		su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name);
+		su = avnd_sudb_rec_get(cb->sudb, Amf::to_string(&su_info->name));
 		/* This function is common
 		   1. for adding new SU in the data base
 		   2. for adding a new component in the existing su.
@@ -155,7 +154,7 @@ uint32_t avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		/* su_failover included in message version 5 and higher */
 		if (evt->msg_fmt_ver < 5) {
-			su->sufailover = get_su_failover(&su->name);
+			su->sufailover = get_su_failover(su->name);
 		}
 
 		/* add components belonging to this SU */
@@ -183,7 +182,7 @@ uint32_t avnd_evt_avd_reg_su_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/*** send the response to AvD ***/
-	rc = avnd_di_reg_su_rsp_snd(cb, &info->su_list->name, rc);
+	rc = avnd_di_reg_su_rsp_snd(cb, Amf::to_string(&info->su_list->name), rc);
 
 
 done:
@@ -210,23 +209,22 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 	AVND_SU *su = 0;
 	AVND_COMP *comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	SaNameT su_name;
 
 	TRACE_ENTER();
 
 	/* scan the su list & add each su to su-db */
 	for (su_info = info->su_list; su_info; su = 0, su_info = su_info->next) {
-		if (nullptr == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name))) {
+		if ((su = avnd_sudb_rec_get(cb->sudb, Amf::to_string(&su_info->name))) == nullptr) {
 			/* SU is not present so add it */
 			su = avnd_sudb_rec_add(cb, su_info, &rc);
 			if (!su) {
-				avnd_di_reg_su_rsp_snd(cb, &su_info->name, rc);
+				avnd_di_reg_su_rsp_snd(cb, Amf::to_string(&su_info->name), rc);
 				/* Log Error, we are not able to update at this time */
 				LOG_EM("%s, %u, SU update failed",__FUNCTION__,__LINE__);
 				return rc;
 			}
 
-			avnd_di_reg_su_rsp_snd(cb, &su_info->name, rc);
+			avnd_di_reg_su_rsp_snd(cb, Amf::to_string(&su_info->name), rc);
 		} else {
 			/* SU present, so update its contents */
 			/* update error recovery escalation parameters */
@@ -244,9 +242,9 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 	 * Walk through the entire SU table, and remove SU for which 
 	 * updates are not received in the message.
 	 */
-	memset(&su_name, 0, sizeof(SaNameT));
-	while (nullptr != (su = (AVND_SU *)sudb_rec_get_next(&cb->sudb, (uint8_t *)&su_name))) {
-		su_name = su->name;
+	for (su = avnd_sudb_rec_get_next(cb->sudb, "");
+		 su != nullptr;
+		 su = avnd_sudb_rec_get_next(cb->sudb, su->name)) {
 
 		if (false == su->avd_updt_flag) {
 			/* First walk entire comp list of this SU and delete all the
@@ -254,7 +252,7 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 			 */
 			while ((comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list)))) {
 				/* delete the record */
-				rc = avnd_compdb_rec_del(cb, &comp->name);
+				rc = avnd_compdb_rec_del(cb, comp->name);
 				if (NCSCC_RC_SUCCESS != rc) {
 					/* Log error */
 					LOG_EM("%s, %u, SU update failed",__FUNCTION__,__LINE__);
@@ -264,7 +262,7 @@ static uint32_t avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INF
 
 			/* Delete SU from the list */
 			/* delete the record */
-			rc = avnd_sudb_rec_del(cb, &su->name);
+			rc = avnd_sudb_rec_del(cb, su->name);
 			if (NCSCC_RC_SUCCESS != rc) {
 				/* Log error */
 				LOG_EM("%s, %u, SU update failed",__FUNCTION__,__LINE__);
@@ -288,7 +286,7 @@ static void handle_su_si_assign_in_term_state(AVND_CB *cb,
 
 	assert(cb->term_state == AVND_TERM_STATE_NODE_FAILOVER_TERMINATED);
 
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;
@@ -314,18 +312,18 @@ static void handle_su_si_assign_in_term_state(AVND_CB *cb,
  *
  * @return      rank of SI or -1 if not configured for SI
  */
-static uint32_t get_sirank(const SaNameT *dn)
+static uint32_t get_sirank(const std::string& dn)
 {
 	SaAisErrorT error;
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAttrNameT attributeNames[2] = {const_cast<SaImmAttrNameT>("saAmfSIRank"), nullptr};
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = {'A', 2, 1};
+	SaVersionT immVersion = {'A', 2, 15};
 	uint32_t rank = -1; // lowest possible rank if uninitialized
 
 	// TODO remove, just for test
-	LOG_NO("get_sirank %s", dn->value);
+	LOG_NO("get_sirank %s", dn.c_str());
 
 	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 	if (error != SA_AIS_OK ) {
@@ -334,7 +332,7 @@ static uint32_t get_sirank(const SaNameT *dn)
 	}
 	amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
 
-	osafassert((error = amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, dn,
+	osafassert((error = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn,
 		attributeNames, (SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK);
 
 	osafassert((error = immutil_getAttr(attributeNames[0], attributes, 0, &rank)) == SA_AIS_OK);
@@ -372,13 +370,14 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_SU_SIQ_REC *siq = 0;
 	AVND_SU *su = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	const std::string info_su_name = Amf::to_string(&info->su_name);
 
-	TRACE_ENTER2("'%s'", info->su_name.value);
+	TRACE_ENTER2("'%s'", info_su_name.c_str());
 
-	su = m_AVND_SUDB_REC_GET(cb->sudb, info->su_name);
+	su = avnd_sudb_rec_get(cb->sudb, info_su_name);
 	if (!su) {
 		LOG_ER("susi_assign_evh: '%s' not found, action:%u",
-				info->su_name.value, info->msg_act);
+				info_su_name.c_str(), info->msg_act);
 		goto done;
 	}
 
@@ -391,7 +390,7 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 			avnd_last_step_clean(cb);
 		} else {
 			LOG_NO("Shutting started : Ignoring assignment for SU'%s'",
-						info->su_name.value);
+						info_su_name.c_str());
 			goto done;
 		}
 	}
@@ -413,16 +412,16 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 			}
 
 			/* SI rank is uninitialized, read it from IMM */
- 			info->si_rank = get_sirank(&info->si_name);
+ 			info->si_rank = get_sirank(Amf::to_string(&info->si_name));
 		}
 	} else {
-		if (info->si_name.length > 0) {
-			if (avnd_su_si_rec_get(cb, &info->su_name, &info->si_name) == nullptr)
-				LOG_ER("susi_assign_evh: '%s' is not assigned to '%s'",
-						info->si_name.value, su->name.value);
+		if (osaf_extended_name_length(&info->si_name) > 0) {
+			if (avnd_su_si_rec_get(cb, info_su_name, Amf::to_string(&info->si_name)) == nullptr)
+				LOG_WA("susi_assign_evh: '%s' is not assigned to '%s'",
+						osaf_extended_name_borrow(&info->si_name), su->name.c_str());
 		} else {
 			if (m_NCS_DBLIST_FIND_FIRST(&su->si_list) == nullptr) {
-				LOG_WA("susi_assign_evh: '%s' has no assignments", su->name.value);
+				LOG_ER("susi_assign_evh: '%s' has no assignments", su->name.c_str());
 				/* Some times AMFD sends redundant message for removal of assignments.
 				   If removal of assignments is already done for the SU then complete
 				   the assignment process here.
@@ -443,7 +442,7 @@ uint32_t avnd_evt_avd_info_su_si_assign_evh(AVND_CB *cb, AVND_EVT *evt)
 		if ((sufailover_in_progress(su) || sufailover_during_nodeswitchover(su) ||
 			(cb->term_state == AVND_TERM_STATE_NODE_FAILOVER_TERMINATING)) &&
 				(info->msg_act == AVSV_SUSI_ACT_DEL)) {
-			TRACE_2("Discarding assignment deletion for '%s'", su->name.value);
+			TRACE_2("Discarding assignment deletion for '%s'", su->name.c_str());
 			goto done;
 		}
 	}
@@ -491,9 +490,9 @@ uint32_t avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 		goto done;
 	}
 
-	TRACE("'%s'", su->name.value);
+	TRACE("'%s'", su->name.c_str());
 	
-	LOG_NO("'%s' Component or SU restart probation timer expired", su->name.value);
+	LOG_NO("'%s' Component or SU restart probation timer expired", su->name.c_str());
 
 	if (NCSCC_RC_SUCCESS == m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb, su->su_is_external))
 		goto done;
@@ -509,7 +508,7 @@ uint32_t avnd_evt_tmr_su_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 		su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 		cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 		su_reset_restart_count_in_comps(cb, su);
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, &su->name, su->su_restart_cnt);
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, su->name, su->su_restart_cnt);
 		break;
 	case AVND_ERR_ESC_LEVEL_2:
 		cb->su_failover_cnt = 0;
@@ -545,7 +544,7 @@ uint32_t avnd_su_si_reassign(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_SU_SI_REC *si = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE_ENTER2("'%s'", su->name.c_str());
 
 	/* scan the su-si list & reassign the sis */
 	for (si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
@@ -578,7 +577,7 @@ uint32_t avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 {
 	AVND_COMP *comp = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE_ENTER2("'%s'", su->name.c_str());
 
 	/* reset err-esc param & oper state (if su is healthy) */
 	if (!m_AVND_SU_IS_FAILED(su)) {
@@ -586,7 +585,7 @@ uint32_t avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 		su->comp_restart_cnt = 0;
 		su_reset_restart_count_in_comps(cb, su);
 		su->su_restart_cnt = 0;
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, &su->name, su->su_restart_cnt);
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, su->name, su->su_restart_cnt);
 		/* stop su_err_esc_tmr TBD Later */
 	}
 
@@ -605,15 +604,11 @@ uint32_t avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 
 static bool comp_in_term_failed_state(void)
 {
-	AVND_COMP *comp =
-		(AVND_COMP *)compdb_rec_get_next(&avnd_cb->compdb, (uint8_t *)0);
-
-	while (comp != nullptr) {
+	for (AVND_COMP *comp = avnd_compdb_rec_get_next(avnd_cb->compdb, "");
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(avnd_cb->compdb, comp->name)) {
 		if (comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED)
 			return true;
-
-		comp = (AVND_COMP *)
-		    compdb_rec_get_next(&avnd_cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	return false;
@@ -631,12 +626,12 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	AVND_SU *su;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s op=%u", info->dn.value, info->oper_id);
+	TRACE_ENTER2("%s op=%u", osaf_extended_name_borrow(&info->dn), info->oper_id);
 
 	avnd_msgid_assert(info->msg_id);
 	cb->rcv_msg_id = info->msg_id;
 
-	su = m_AVND_SUDB_REC_GET(cb->sudb, info->dn);
+	su = avnd_sudb_rec_get(cb->sudb, Amf::to_string(&info->dn));
 	osafassert(su != nullptr);
 
 	switch(info->oper_id) {
@@ -644,7 +639,7 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 		AVND_COMP *comp;
 
 		/* SU has been repaired. Reset states and update AMF director accordingly. */
-		LOG_NO("Repair request for '%s'", su->name.value);
+		LOG_NO("Repair request for '%s'", su->name.c_str());
 
 		for (comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list));
 		      comp;
@@ -655,7 +650,7 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 			avnd_comp_pres_state_set(cb, comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 			
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompOperState_ID, &comp->name, comp->oper);
+			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompOperState_ID, comp->name, comp->oper);
 		}
 
 		if ((su->pres == SA_AMF_PRESENCE_TERMINATION_FAILED) &&
@@ -666,14 +661,14 @@ uint32_t avnd_evt_su_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 		reset_suRestart_flag(su);
 		m_AVND_SU_STATE_RESET(su);
 		m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_ENABLED);
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUOperState_ID, &su->name, su->oper);
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUOperState_ID, su->name, su->oper);
 		avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_UNINSTANTIATED);
 		rc = avnd_di_oper_send(cb, su, 0);
 
 		break;
 	}
 	case SA_AMF_ADMIN_RESTART: {
-		LOG_NO("Admin Restart request for '%s'", su->name.value);
+		LOG_NO("Admin Restart request for '%s'", su->name.c_str());
 		su->admin_op_Id = SA_AMF_ADMIN_RESTART;
 		set_suRestart_flag(su);
 		if ((su_all_comps_restartable(*su) == true) || 
@@ -709,11 +704,11 @@ done:
 void avnd_su_pres_state_set(const AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT newstate)
 {
 	osafassert(newstate <= SA_AMF_PRESENCE_TERMINATION_FAILED);
-	LOG_NO("'%s' Presence State %s => %s", su->name.value,
+	LOG_NO("'%s' Presence State %s => %s", su->name.c_str(),
 		presence_state[su->pres], presence_state[newstate]);
 	su->pres = newstate;
 	if (cb->is_avd_down == false) {
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUPresenceState_ID, &su->name, su->pres);
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUPresenceState_ID, su->name, su->pres);
 	}
 }
 
@@ -736,21 +731,21 @@ void su_increment_su_restart_count(AVND_SU& su)
 {
 	su.su_restart_cnt++;
 	LOG_NO("Restarting '%s' (SU restart count: %u)",
-		su.name.value, su.su_restart_cnt);	
+		su.name.c_str(), su.su_restart_cnt);	
 }
 
 void su_increment_comp_restart_count(AVND_SU& su)
 {
 	su.comp_restart_cnt++;
 	LOG_NO("Restarting a component of '%s' (comp restart count: %u)",
-		su.name.value, su.comp_restart_cnt);	
+		su.name.c_str(), su.comp_restart_cnt);	
 }
 
 void cb_increment_su_failover_count(AVND_CB& cb, const AVND_SU& su)
 {
 	cb.su_failover_cnt++;
 	LOG_NO("Performing failover of '%s' (SU failover count: %u)",
-		su.name.value, cb.su_failover_cnt);	
+		su.name.c_str(), cb.su_failover_cnt);	
 }
 /**
  * @brief A wrapper function on top of macro to 
@@ -759,7 +754,7 @@ void cb_increment_su_failover_count(AVND_CB& cb, const AVND_SU& su)
  */
 void set_suRestart_flag(AVND_SU *su) 
 {
-	TRACE("suRestart flag set for '%s'",su->name.value);
+	TRACE("suRestart flag set for '%s'",su->name.c_str());
 	m_AVND_SU_RESTART_SET(su);
 	
 }
@@ -771,7 +766,7 @@ void set_suRestart_flag(AVND_SU *su)
  */
 void reset_suRestart_flag(AVND_SU *su) 
 {
-	TRACE("suRestart flag reset for '%s'",su->name.value);
+	TRACE("suRestart flag reset for '%s'",su->name.c_str());
 	m_AVND_SU_RESTART_RESET(su);
 }
 

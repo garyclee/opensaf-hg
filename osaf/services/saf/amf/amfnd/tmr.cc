@@ -182,7 +182,7 @@ uint32_t tmr_comp_err_esc_start(AVND_CB *cb, AVND_SU *su)
 	uint32_t rc;
 
 	LOG_NO("'%s' component restart probation timer started (timeout: %lld ns)",
-		su->name.value,
+		su->name.c_str(),
 		su->comp_restart_prob);
 
 	rc = avnd_start_tmr(cb,
@@ -197,7 +197,7 @@ uint32_t tmr_comp_err_esc_start(AVND_CB *cb, AVND_SU *su)
 void tmr_comp_err_esc_stop(avnd_cb_tag *cb, avnd_su_tag *su)
 {
 	LOG_NO("'%s' component restart probation timer stopped",
-		su->name.value);
+		su->name.c_str());
 
 	avnd_stop_tmr(cb, &su->su_err_esc_tmr);
 }
@@ -207,7 +207,7 @@ uint32_t tmr_su_err_esc_start(avnd_cb_tag *cb, avnd_su_tag *su)
 	uint32_t rc;
 
 	LOG_NO("'%s' SU restart probation timer started (timeout: %lld ns)",
-		su->name.value,
+		su->name.c_str(),
 		su->su_restart_prob);
 
 	rc = avnd_start_tmr(cb,
@@ -222,7 +222,7 @@ uint32_t tmr_su_err_esc_start(avnd_cb_tag *cb, avnd_su_tag *su)
 void tmr_su_err_esc_stop(avnd_cb_tag *cb, avnd_su_tag *su)
 {
 	LOG_NO("'%s' SU restart probation timer stopped",
-		su->name.value);
+		su->name.c_str());
 
 	avnd_stop_tmr(cb, &su->su_err_esc_tmr);
 }

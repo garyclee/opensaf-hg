@@ -40,14 +40,15 @@
 #include "amf_si_assign.h"
 #include "osaf_time.h"
 
+#include <string>
+
 
 static void clm_node_left(SaClmNodeIdT node_id)
 {
 	AVND_COMP *comp = nullptr;
 	uint32_t rc;
-	SaNameT name;
 	AVND_COMP_PXIED_REC *pxd_rec = 0, *curr_rec = 0;
-	memset(&name, 0, sizeof(SaNameT));
+	std::string name = "";
 
 	TRACE_ENTER2("%u", node_id);
 
@@ -57,21 +58,22 @@ static void clm_node_left(SaClmNodeIdT node_id)
 	   
 		LOG_NO("This node has exited the cluster");
 		avnd_cb->node_info.member = SA_FALSE;
-		comp = (AVND_COMP *)compdb_rec_get_next(&avnd_cb->compdb, (uint8_t *)0);
-		while( comp != nullptr ) {
+		for (comp = avnd_compdb_rec_get_next(avnd_cb->compdb, "");
+			 comp != nullptr;
+			 comp = avnd_compdb_rec_get_next(avnd_cb->compdb, comp->name)) {
 			if(comp->su->is_ncs != true ) {
 				avnd_comp_clc_fsm_run(avnd_cb, comp, AVND_COMP_CLC_PRES_FSM_EV_TERM);
 			}
-			comp = (AVND_COMP *)compdb_rec_get_next(&avnd_cb->compdb,(uint8_t *)&comp->name);
 		}
 		goto done;
 	}
 
 	/* We received a node left indication for external node, 
 	   check if any internode component related to this Node exists */
-	for (comp = m_AVND_COMPDB_REC_GET_NEXT(avnd_cb->internode_avail_comp_db, name);
-	     comp; comp = m_AVND_COMPDB_REC_GET_NEXT(avnd_cb->internode_avail_comp_db, name)) {
-		name = comp->name;
+	for (comp = avnd_compdb_rec_get_next(avnd_cb->internode_avail_comp_db, name);
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(avnd_cb->internode_avail_comp_db, name)) {
+		 name = comp->name;
 		/* Check the node id */
 		if (comp->node_id == node_id) {
 			if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
@@ -80,8 +82,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 				/* Remove the proxied component from pxied_list  */
 				avnd_comp_proxied_del(avnd_cb, comp, comp->pxy_comp, false, nullptr);
 				/* Delete the proxied component */
-				avnd_internode_comp_del(avnd_cb, &(avnd_cb->internode_avail_comp_db),
-									     &(comp->name));
+				avnd_internode_comp_del(avnd_cb, comp->name);
 			} /* if(m_AVND_COMP_TYPE_IS_PROXIED(comp)) */
 			else if (m_AVND_COMP_TYPE_IS_PROXY(comp)) {
 				/* We need to delete the proxy component and make
@@ -94,7 +95,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 					rc = avnd_comp_unreg_prc(avnd_cb, curr_rec->pxied_comp, comp);
 
 					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("avnd_evt_avd_node_update_msg:Unreg failed: %s",curr_rec->pxied_comp->name.value);
+						LOG_ER("avnd_evt_avd_node_update_msg:Unreg failed: %s", curr_rec->pxied_comp->name.c_str());
 					}
 				}	/* while */
 			}	/* else if(m_AVND_COMP_TYPE_IS_PROXY(comp)) */
@@ -113,7 +114,7 @@ static void clm_to_amf_node(void)
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfNode";
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = { 'A', 2, 1 };
+	SaVersionT immVersion = { 'A', 2, 15 };
 
 	TRACE_ENTER();
 
@@ -124,11 +125,11 @@ static void clm_to_amf_node(void)
 	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 	if (SA_AIS_OK != error) {
 		LOG_CR("saImmOmInitialize failed. Use previous value of nodeName.");
-		osafassert(avnd_cb->amf_nodeName.length != 0);
+		osafassert(avnd_cb->amf_nodeName.empty() == false);
 		goto done1;
 	}
 
-	error = amf_saImmOmSearchInitialize_2(immOmHandle, nullptr, SA_IMM_SUBTREE,
+	error = amf_saImmOmSearchInitialize_o2(immOmHandle, "", SA_IMM_SUBTREE,
 					SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
 					&searchParam, nullptr, searchHandle);
 
@@ -138,10 +139,13 @@ static void clm_to_amf_node(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &amfdn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNodeClmNode"), attributes, 0, &clmdn) == SA_AIS_OK) && 
-		   (strncmp((char*)avnd_cb->node_info.nodeName.value, (char*)clmdn.value, clmdn.length) == 0)) {
-			memcpy(&(avnd_cb->amf_nodeName), &(amfdn), sizeof(SaNameT));
-			break;
+		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNodeClmNode"), attributes, 0, &clmdn) == SA_AIS_OK) {
+			std::string clm_node(Amf::to_string(&clmdn)); 
+
+			if (clm_node.compare(osaf_extended_name_borrow(&avnd_cb->node_info.nodeName)) == 0) {
+				avnd_cb->amf_nodeName = Amf::to_string(&amfdn);
+				break;
+			}
 		} 
 	}
 
@@ -211,8 +215,8 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
                       
 			TRACE("Node has left the cluster '%s', avnd_cb->first_time_up %u," 
 					"notifItem->clusterNode.nodeId %u, avnd_cb->node_info.nodeId %u",
-					notifItem->clusterNode.nodeName.value,avnd_cb->first_time_up,
-					notifItem->clusterNode.nodeId,avnd_cb->node_info.nodeId);
+					osaf_extended_name_borrow(&notifItem->clusterNode.nodeName), avnd_cb->first_time_up,
+					notifItem->clusterNode.nodeId, avnd_cb->node_info.nodeId);
 			if(false == avnd_cb->first_time_up) {
 				/* When node reboots, we will get an exit cbk, so ignore if avnd_cb->first_time_up
 				   is false. */
@@ -233,7 +237,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 		else if(notifItem->clusterChange == SA_CLM_NODE_JOINED  ||
 		        notifItem->clusterChange == SA_CLM_NODE_NO_CHANGE) {
 			TRACE("Node has joined the Cluster '%s'",
-					 notifItem->clusterNode.nodeName.value);
+					 osaf_extended_name_borrow(&notifItem->clusterNode.nodeName));
 			/* This may be also due to track flags set to 
 			 SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
 			 in saClmClusterTrack call so update the local database */

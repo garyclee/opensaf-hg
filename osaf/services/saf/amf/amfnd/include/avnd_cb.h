@@ -71,16 +71,17 @@ typedef struct avnd_cb_tag {
 	uint32_t su_failover_max;	/* max SU failovers (config) */
 	uint32_t su_failover_cnt;	/* su failover cnt within a probation period */
 	AVND_TMR node_err_esc_tmr;	/* node err esc tmr */
-	SaNameT amf_nodeName;
-        SaClmClusterNodeT_4 node_info;    /* this node's info */
+	std::string amf_nodeName;
+	SaClmClusterNodeT_4 node_info;    /* this node's info */
 
 	/* database declarations */
-	NCS_PATRICIA_TREE sudb;	/* su db */
-	NCS_PATRICIA_TREE compdb;	/* comp db */
-	NCS_PATRICIA_TREE hcdb;	/* healthcheck db */
-	NCS_PATRICIA_TREE pgdb;	/* pg db */
-	NCS_PATRICIA_TREE nodeid_mdsdest_db;	/* pg db */
-	NCS_PATRICIA_TREE internode_avail_comp_db; /* Internode components, whose node is UP */
+	AmfDb<std::string, AVND_SU> sudb;	/* su db */
+	AmfDb<std::string, AVND_COMP> compdb;	/* comp db */
+	AmfDb<std::string, AVND_HC> hcdb;	/* healthcheck db */
+	AmfDb<std::string, AVND_HCTYPE> hctypedb;	/* healthcheck db */
+	AmfDb<std::string, AVND_PG> pgdb;	/* pg db */
+	AmfDb<NODE_ID, AVND_NODEID_TO_MDSDEST_MAP> nodeid_mdsdest_db;	/* pg db */
+	AmfDb<std::string, AVND_COMP> internode_avail_comp_db; /* Internode components, whose node is UP */
 	MDS_DEST cntlr_avnd_vdest;	/* Controller AvND Vdest addr */
 
 	/* srmsv resource request mapping list (res mon hdl is the key) */

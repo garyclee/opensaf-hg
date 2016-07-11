@@ -153,6 +153,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		/* clc event types */
 	case AVND_EVT_CLC_RESP:
 		memcpy(&evt->info.clc, clc, sizeof(AVND_CLC_EVT));
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&clc->comp_name), &evt->info.clc.comp_name);
 		break;
 
 		/* AvND-AvND event types */
@@ -163,6 +164,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		/* internal event types */
 	case AVND_EVT_COMP_PRES_FSM_EV:
 		memcpy(&evt->info.comp_fsm, comp_fsm, sizeof(AVND_COMP_FSM_EVT));
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&comp_fsm->comp_name), &evt->info.comp_fsm.comp_name);
 		break;
 
 	case AVND_EVT_LAST_STEP_TERM:
@@ -171,11 +173,11 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 
 	case AVND_EVT_IR:
 		/* Only SU name to be copied. */
-		memcpy(&evt->info.ir_evt.su_name, info, sizeof(SaNameT));
+		osaf_extended_name_alloc(osaf_extended_name_borrow((SaNameT *)info), &evt->info.ir_evt.su_name);
 		break;
 
 	case AVND_EVT_PID_EXIT:
-		evt->info.pm_evt.comp_name = ((AVND_COMP_PM_REC *)info)->comp->name;
+		osaf_extended_name_alloc(((AVND_COMP_PM_REC *)info)->comp->name.c_str(), &evt->info.pm_evt.comp_name);
 		evt->info.pm_evt.pid = ((AVND_COMP_PM_REC *)info)->pid;
 		evt->info.pm_evt.pm_rec = (AVND_COMP_PM_REC *)info;
 		break;
@@ -287,10 +289,12 @@ void avnd_evt_destroy(AVND_EVT *evt)
 
 		/* clc event types */
 	case AVND_EVT_CLC_RESP:
+		osaf_extended_name_free(&evt->info.clc.comp_name);
 		break;
 
 		/* internal event types */
 	case AVND_EVT_COMP_PRES_FSM_EV:
+		osaf_extended_name_free(&evt->info.comp_fsm.comp_name);
 		break;
 
 		/* last step of termination */
@@ -299,10 +303,12 @@ void avnd_evt_destroy(AVND_EVT *evt)
 
 		/* PID exist event */
 	case AVND_EVT_PID_EXIT:
+		osaf_extended_name_free(&evt->info.pm_evt.comp_name);
 		break;
 
 		/* Imm Reader event */
 	case AVND_EVT_IR:
+		osaf_extended_name_free(&evt->info.ir_evt.su_name);
 		break;
 
 	default:

@@ -97,34 +97,6 @@ typedef struct avnd_dnd_list_tag {
    (m).info.ava->info.api_resp_info.param.ha_get.ha = static_cast<SaAmfHAStateT>((has)); \
 }
 
-/* Macro to populate the 'component register' message */
-#define m_AVND_COMP_REG_MSG_FILL(m, dst, hd, cn, pcn) \
-{ \
-   (m).type = AVSV_AMF_COMP_REG; \
-   (m).dest = (dst); \
-   (m).param.reg.hdl = (hd); \
-   memcpy((m).param.reg.comp_name.value, \
-                   (cn)->value, (cn)->length); \
-   (m).param.reg.comp_name.length = ((cn)->length); \
-   memcpy((m).param.reg.proxy_comp_name.value, \
-                   (pcn)->value, (pcn)->length); \
-   (m).param.reg.proxy_comp_name.length = ((pcn)->length); \
-}
-
-/* Macro to populate the 'component unregister' message */
-#define m_AVND_COMP_UNREG_MSG_FILL(m, dst, hd, cn, pcn) \
-{ \
-   (m).type = AVSV_AMF_COMP_UNREG; \
-   (m).dest = (dst); \
-   (m).param.unreg.hdl = (hd); \
-   memcpy((m).param.unreg.comp_name.value, \
-                   (cn).value, (cn).length); \
-   (m).param.unreg.comp_name.length = (cn).length; \
-   memcpy((m).param.unreg.proxy_comp_name.value, \
-                   (pcn).value, (pcn).length); \
-   (m).param.unreg.proxy_comp_name.length = (pcn).length; \
-}
-
 /*** Extern function declarations ***/
 
 struct avnd_cb_tag;

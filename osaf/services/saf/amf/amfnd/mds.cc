@@ -461,14 +461,22 @@ uint32_t avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 ******************************************************************************/
 uint32_t avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 {
-	AVND_MSG *msg = (AVND_MSG *)cpy_info->i_msg;
+	TRACE_ENTER();
+	AVND_MSG *msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	if (cpy_info->i_msg == nullptr) {
+		LOG_ER("%s: no msg", __FUNCTION__);
+		return NCSCC_RC_FAILURE;
+	}
+
+	msg = new AVND_MSG();
 
 	/* the message may be destined to avd, ava */
 	switch (cpy_info->i_to_svc_id) {
 	case NCSMDS_SVC_ID_AVD:
 		cpy_info->o_msg_fmt_ver = avnd_avd_msg_fmt_map_table[cpy_info->i_rem_svc_pvt_ver - 1];
-
+		avnd_msg_copy(cb, msg, (AVND_MSG *)cpy_info->i_msg);
 		cpy_info->o_cpy = (NCSCONTEXT)msg->info.avd;
 		msg->info.avd = 0;
 		break;
@@ -476,11 +484,13 @@ uint32_t avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 	case NCSMDS_SVC_ID_AVND:
 	case NCSMDS_SVC_ID_AVND_CNTLR:
 		cpy_info->o_msg_fmt_ver = avnd_avnd_msg_fmt_map_table[cpy_info->i_rem_svc_pvt_ver - 1];
+		avnd_msg_copy(cb, msg, (AVND_MSG *)cpy_info->i_msg);
 		cpy_info->o_cpy = (NCSCONTEXT)msg->info.avnd;
 		msg->info.avnd = 0;
 		break;
 
 	case NCSMDS_SVC_ID_AVA:
+		avnd_msg_copy(cb, msg, (AVND_MSG *)cpy_info->i_msg);
 		cpy_info->o_cpy = (NCSCONTEXT)msg->info.ava;
 		msg->info.ava = 0;
 		break;
@@ -490,6 +500,12 @@ uint32_t avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 		break;
 	}
 
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: copy failed", __FUNCTION__);
+		delete msg;
+	}
+
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -821,6 +837,14 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 			switch (cbk_info->type) {
 			case AVSV_AMF_CSI_SET:
+				if (osaf_is_an_extended_name(&cbk_info->param.csi_set.comp_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.csi_set.comp_name);
+				}
+
+				if (osaf_is_an_extended_name(&cbk_info->param.csi_set.csi_desc.csiName)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.csi_set.csi_desc.csiName);
+				}
+
 				if (cbk_info->param.csi_set.attrs.number) {
 					for(i=0; i<cbk_info->param.csi_set.attrs.number; i++) {
 						rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
@@ -828,9 +852,15 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 							sizeof(SaNameT));
 						if (NCSCC_RC_SUCCESS != rc)
 							goto done;
+
+						// This is to make sure the backward compatibility
+						if (osaf_is_an_extended_name(&cbk_info->param.csi_set.attrs.list[i].name)) {
+							osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.csi_set.attrs.list[i].name);
+						}
+						//
 						if(!cbk_info->param.csi_set.attrs.list[i].string_ptr) {
-                                                  value = new char[cbk_info->param.csi_set.attrs.list[i].value.length+1]();
-							strcpy(value, (char *)cbk_info->param.csi_set.attrs.list[i].value.value);
+                                                  value = new char[osaf_extended_name_length(&cbk_info->param.csi_set.attrs.list[i].value) +1]();
+							strcpy(value, osaf_extended_name_borrow(&cbk_info->param.csi_set.attrs.list[i].value));
 						}
 						else {
 							value = cbk_info->param.csi_set.attrs.list[i].string_ptr;
@@ -841,13 +871,38 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 						ncs_enc_claim_space(enc_info->io_uba, 2);
 						rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
 							(uint8_t *)value, (len + 1));
+						// free value
+						if (value != nullptr && value != cbk_info->param.csi_set.attrs.list[i].string_ptr) {
+							delete[] value;
+							value = nullptr;
+						}
+
 						if (NCSCC_RC_SUCCESS != rc)
 							goto done;
 					}
 				}
+
+				if (cbk_info->param.csi_set.ha == SA_AMF_HA_ACTIVE) {
+					if (osaf_is_an_extended_name(&cbk_info->param.csi_set.csi_desc.csiStateDescriptor.activeDescriptor.activeCompName)) {
+						osaf_encode_sanamet(enc_info->io_uba,
+											&cbk_info->param.csi_set.csi_desc.csiStateDescriptor.activeDescriptor.activeCompName);
+					}
+				}
+
+				if (cbk_info->param.csi_set.ha == SA_AMF_HA_STANDBY) {
+					if (osaf_is_an_extended_name(&cbk_info->param.csi_set.csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName)) {
+						osaf_encode_sanamet(enc_info->io_uba,
+											&cbk_info->param.csi_set.csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName);
+					}
+				}
+
 				break;
 
 			case AVSV_AMF_PG_TRACK:
+				if (osaf_is_an_extended_name(&cbk_info->param.pg_track.csi_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.pg_track.csi_name);
+				}
+
 				if (cbk_info->param.pg_track.buf.numberOfItems) {
 					rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
 									(uint8_t *)cbk_info->param.pg_track.
@@ -856,15 +911,46 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 									cbk_info->param.pg_track.buf.numberOfItems);
 					if (NCSCC_RC_SUCCESS != rc)
 						goto done;
+					for (i = 0; i < cbk_info->param.pg_track.buf.numberOfItems; i++) {
+						if (osaf_is_an_extended_name(&cbk_info->param.pg_track.buf.notification[i].member.compName)) {
+							osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.pg_track.buf.notification[i].member.compName);
+						}
+					}
 				}
 				break;
 
 			case AVSV_AMF_HC:
+				if (osaf_is_an_extended_name(&cbk_info->param.hc.comp_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.hc.comp_name);
+				}
+				break;
+
 			case AVSV_AMF_COMP_TERM:
+				if (osaf_is_an_extended_name(&cbk_info->param.comp_term.comp_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.comp_term.comp_name);
+				}
+				break;
+
 			case AVSV_AMF_CSI_REM:
+				if (osaf_is_an_extended_name(&cbk_info->param.csi_rem.comp_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.csi_rem.comp_name);
+				}
+
+				if (osaf_is_an_extended_name(&cbk_info->param.csi_rem.csi_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.csi_rem.csi_name);
+				}
+				break;
+
 			case AVSV_AMF_PXIED_COMP_INST:
+				if (osaf_is_an_extended_name(&cbk_info->param.pxied_comp_inst.comp_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.pxied_comp_inst.comp_name);
+				}
+				break;
+
 			case AVSV_AMF_PXIED_COMP_CLEAN:
-				/* already encoded above */
+				if (osaf_is_an_extended_name(&cbk_info->param.pxied_comp_clean.comp_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.pxied_comp_clean.comp_name);
+				}
 				break;
 
 			default:
@@ -874,7 +960,19 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		break;
 
 	case AVSV_AVND_AMF_API_RESP_MSG:
-		/* already encoded above */
+		{
+			AVSV_AMF_API_RESP_INFO *api_resp_info = &ava->info.api_resp_info;
+
+			if (api_resp_info->type == AVSV_AMF_HA_STATE_GET) {
+				if (osaf_is_an_extended_name(&api_resp_info->param.ha_get.comp_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &api_resp_info->param.ha_get.comp_name);
+				}
+
+				if (osaf_is_an_extended_name(&api_resp_info->param.ha_get.csi_name)) {
+					osaf_encode_sanamet(enc_info->io_uba, &api_resp_info->param.ha_get.csi_name);
+				}
+			}
+		}
 		break;
 
 	case AVSV_AVA_API_MSG:
@@ -1066,14 +1164,6 @@ uint32_t avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	AVSV_NDA_AVA_MSG *ava_msg = 0;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	/* AMF library always sends a fixed size message, verify that size so that
-	 * the decode routine does not read over the edge */
-	if (dec_info->io_uba->max != sizeof(AVSV_NDA_AVA_MSG)) {
-		LOG_NO("%s: wrong number of bytes to decode (%u vs %zu)",
-				__FUNCTION__, dec_info->io_uba->max, sizeof(AVSV_NDA_AVA_MSG));
-		goto err;
-	}
-
 	ava_msg = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 	if (!ava_msg) {
 		rc = NCSCC_RC_FAILURE;
@@ -1084,6 +1174,135 @@ uint32_t avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uint8_t *)ava_msg, sizeof(AVSV_NDA_AVA_MSG));
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
+
+	/* decode individual ava msg (if not decoded above) */
+	switch (ava_msg->type) {
+		case AVSV_AVA_API_MSG:
+			switch (ava_msg->info.api_info.type) {
+				case AVSV_AMF_FINALIZE:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.finalize.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.finalize.comp_name);
+					}
+					break;
+
+				case AVSV_AMF_COMP_REG:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.reg.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.reg.comp_name);
+					}
+
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.reg.proxy_comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.reg.proxy_comp_name);
+					}
+					break;
+
+				case AVSV_AMF_COMP_UNREG:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.unreg.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.unreg.comp_name);
+					}
+
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.unreg.proxy_comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.unreg.proxy_comp_name);
+					}
+					break;
+
+				case AVSV_AMF_PM_START:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.pm_start.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.pm_start.comp_name);
+					}
+					break;
+
+				case AVSV_AMF_PM_STOP:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.pm_stop.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.pm_stop.comp_name);
+					}
+					break;
+
+				case AVSV_AMF_HC_START:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.hc_start.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.hc_start.comp_name);
+					}
+
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.hc_start.proxy_comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.hc_start.proxy_comp_name);
+					}
+
+					break;
+
+				case AVSV_AMF_HC_STOP:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.hc_stop.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.hc_stop.comp_name);
+					}
+
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.hc_stop.proxy_comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.hc_stop.proxy_comp_name);
+					}
+					break;
+
+				case AVSV_AMF_HC_CONFIRM:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.hc_confirm.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.hc_confirm.comp_name);
+					}
+
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.hc_confirm.proxy_comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.hc_confirm.proxy_comp_name);
+					}
+					break;
+
+				case AVSV_AMF_CSI_QUIESCING_COMPLETE:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.csiq_compl.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.csiq_compl.comp_name);
+					}
+					break;
+
+				case AVSV_AMF_HA_STATE_GET:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.ha_get.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.ha_get.comp_name);
+					}
+
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.ha_get.csi_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.ha_get.csi_name);
+					}
+					break;
+
+				case AVSV_AMF_PG_START:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.pg_start.csi_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.pg_start.csi_name);
+					}
+					break;
+
+				case AVSV_AMF_PG_STOP:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.pg_stop.csi_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.pg_stop.csi_name);
+					}
+					break;
+
+				case AVSV_AMF_ERR_REP:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.err_rep.err_comp)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.err_rep.err_comp);
+					}
+					break;
+
+				case AVSV_AMF_ERR_CLEAR:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.err_clear.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.err_clear.comp_name);
+					}
+					break;
+
+				case AVSV_AMF_RESP:
+					if (osaf_is_an_extended_name(&ava_msg->info.api_info.param.resp.comp_name)) {
+						osaf_decode_sanamet(dec_info->io_uba, &ava_msg->info.api_info.param.resp.comp_name);
+					}
+					break;
+
+				default:
+					break;
+			} /* switch */
+			break;
+		case AVSV_AVND_AMF_CBK_MSG:
+		case AVSV_AVND_AMF_API_RESP_MSG:
+		default:
+			osafassert(0);
+	} /* switch */
 
 	/* decode over successfully */
 	dec_info->o_msg = (NCSCONTEXT)ava_msg;

@@ -45,7 +45,7 @@ static void avnd_comp_unreg_val(AVND_CB *, AVSV_AMF_COMP_UNREG_PARAM *, AVND_COM
 static uint32_t avnd_comp_reg_prc(AVND_CB *, AVND_COMP *, AVND_COMP *, AVSV_AMF_COMP_REG_PARAM *, MDS_DEST *);
 
 static void avnd_comp_hdl_finalize(AVND_CB *, AVND_COMP *, AVSV_AMF_FINALIZE_PARAM *, AVSV_AMF_API_INFO *);
-static SaAisErrorT  avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_dn);
+static SaAisErrorT  avnd_validate_comp_and_createdb(AVND_CB *cb, const std::string& comp_dn);
 
 /****************************************************************************
   Name          : avnd_evt_ava_finalize
@@ -81,9 +81,9 @@ uint32_t avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
 	 * See appendix B. Non registered processes can use parts of the API.
 	 * For such processes finalize is OK, AMF has no allocated resources.
 	 */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, fin->comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&fin->comp_name));
 	if (!comp) {
-		TRACE("Comp DB record lookup failed: '%s'", fin->comp_name.value);
+		TRACE("Comp DB record lookup failed: '%s'", osaf_extended_name_borrow(&fin->comp_name));
 		goto done;
 	}
 
@@ -145,7 +145,7 @@ uint32_t avnd_evt_ava_finalize_evh(AVND_CB *cb, AVND_EVT *evt)
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("avnd_evt_ava_finalize():'%s' and Hdl= %llx", fin->comp_name.value, fin->hdl);
+		LOG_ER("avnd_evt_ava_finalize():'%s' and Hdl= %llx", osaf_extended_name_borrow(&fin->comp_name), fin->hdl);
 	}
 
 	TRACE_LEAVE();
@@ -200,9 +200,9 @@ uint32_t avnd_evt_ava_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 		   req has come) is being drived from MDS DEST of proxy 
 		   component */
 		node_id = m_NCS_NODE_ID_FROM_MDS_DEST(api_info->dest);
-		pxy_comp = avnd_internode_comp_add(&(cb->internode_avail_comp_db),
-						   &(reg->proxy_comp_name), node_id, &rc,
-						   comp->su->su_is_external, true);
+		pxy_comp = avnd_internode_comp_add(cb, Amf::to_string(&(reg->proxy_comp_name)),
+						node_id, &rc,
+						comp->su->su_is_external, true);
 
 		if (nullptr == pxy_comp)
 			amf_rc = static_cast<SaAisErrorT>(rc);
@@ -284,7 +284,7 @@ uint32_t avnd_evt_ava_comp_unreg_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_comp_unreg():'%s' and Hdl='%llx'",
-				    unreg->comp_name.value, unreg->hdl);
+				    osaf_extended_name_borrow(&unreg->comp_name), unreg->hdl);
 	}
 
 	TRACE_LEAVE();
@@ -331,9 +331,9 @@ uint32_t avnd_evt_ava_ha_get_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* get the comp & csi records */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, ha_get->comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&ha_get->comp_name));
 	if (comp)
-		csi_rec = m_AVND_COMPDB_REC_CSI_GET(*comp, ha_get->csi_name);
+		csi_rec = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&ha_get->csi_name).c_str());
 
 	/* determine the error code, if any */
 	if (!comp)
@@ -362,7 +362,7 @@ uint32_t avnd_evt_ava_ha_get_evh(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_ha_get():'%s' Hdl:%llx HA:%u",
-				    ha_get->comp_name.value, ha_get->hdl, ha_get->ha);
+				    osaf_extended_name_borrow(&ha_get->comp_name), ha_get->hdl, ha_get->ha);
 	}
 
 	TRACE_LEAVE();
@@ -390,22 +390,24 @@ uint32_t avnd_evt_mds_ava_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVND_MDS_EVT *mds_evt = &evt->info.mds;
 	AVND_ERR_INFO err_info;
 	AVND_COMP *comp = 0;
-	SaNameT name;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	std::string name;
 
 	TRACE_ENTER();
 
-	memset(&name, 0, sizeof(SaNameT));
-
 	/* get the matching registered comp (if any) */
-	for (comp = m_AVND_COMPDB_REC_GET_NEXT(cb->compdb, name);
-	     comp; name = comp->name, comp = m_AVND_COMPDB_REC_GET_NEXT(cb->compdb, name)) {
+	for (comp = avnd_compdb_rec_get_next(cb->compdb, "");
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(cb->compdb, name)) {
+		name = comp->name;
 		if (0 == memcmp(&comp->reg_dest, &mds_evt->mds_dest, sizeof(MDS_DEST))) {
 			/* proxied component can't have mds down event */
 			if (m_AVND_COMP_TYPE_IS_PROXIED(comp))
 				continue;
 			else
 				break;
+		} else {
+			comp = nullptr;
 		}
 	}			/* for */
 
@@ -464,16 +466,16 @@ void avnd_comp_reg_val(AVND_CB *cb,
 *
 ***************************************************************************/
 	/* get the comp */
-	if (0 == (*o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, reg->comp_name))
+	if ((*o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, Amf::to_string(&reg->comp_name))) == nullptr
 	    && (false == msg_from_avnd)) {
 
-		if ((0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name)))) {
+		if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&reg->comp_name))) == nullptr) {
 			/* Proxied Component may belong to the same node but not available right now because they might
 			   not have got instantiated(In SU presence command only we read all comp of SUs).
 			   We need to construct data base if comp belong to the same node for the registration
 			   to proceed.*/
-			if (SA_AIS_OK == avnd_validate_comp_and_createdb(cb, &reg->comp_name)) {
-				*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name);
+			if (SA_AIS_OK == avnd_validate_comp_and_createdb(cb, Amf::to_string(&reg->comp_name))) {
+				*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&reg->comp_name));
 				goto proceed;
 			}
 
@@ -496,14 +498,15 @@ void avnd_comp_reg_val(AVND_CB *cb,
 		}
 	}
 proceed:
-	if ((0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name))) && ((true == msg_from_avnd))) {
+	if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&reg->comp_name))) == nullptr &&
+		msg_from_avnd == true) {
 		/* This is case when msg_from_avnd is true i.e. internode proxied comp.
 		   Proxied Component may belong to this node but not available right now because they might
 		   not have got instantiated(In SU presence command only we read all comp of SUs).
 		   We need to construct data base if comp belong to the node for the registration
 		   to proceed.*/
-		if (SA_AIS_OK == avnd_validate_comp_and_createdb(cb, &reg->comp_name)) {
-			*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name);
+		if (SA_AIS_OK == avnd_validate_comp_and_createdb(cb, Amf::to_string(&reg->comp_name))) {
+			*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&reg->comp_name));
 			goto proceed_next;
 		}
 		/* It might be an internode or external component. */
@@ -536,7 +539,7 @@ proceed_next:
 	}
 
 	/* verify if a non-proxied component has supplied a proxy name */
-	if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp) && reg->proxy_comp_name.length) {
+	if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp) && osaf_extended_name_length(&reg->proxy_comp_name)) {
 		*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
 		return;
 	}
@@ -577,7 +580,7 @@ proceed_next:
 	/* check for proxy, while registering proxied component */
 	if (m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)) {
 		/* get proxy comp */
-		if (0 == (*o_pxy_comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->proxy_comp_name))) {
+		if ((*o_pxy_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&reg->proxy_comp_name))) == nullptr) {
 			/*  Check whether this is proxied registration message from proxy AvND. */
 			if (true == msg_from_avnd) {
 				/* We are returning from here for Internode proxy component and we
@@ -632,7 +635,7 @@ void avnd_comp_unreg_val(AVND_CB *cb,
 	*o_amf_rc = SA_AIS_OK;
 
 	/* get the comp */
-	if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, unreg->comp_name))) {
+	if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&unreg->comp_name))) == nullptr) {
 		*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
 		return;
 	}
@@ -650,7 +653,7 @@ void avnd_comp_unreg_val(AVND_CB *cb,
 	}
 
 	/* verify if the non-proxied comp has supplied proxy-name */
-	if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp) && unreg->proxy_comp_name.length) {
+	if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp) && osaf_extended_name_length(&unreg->proxy_comp_name)) {
 		*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
 		return;
 	}
@@ -680,7 +683,7 @@ void avnd_comp_unreg_val(AVND_CB *cb,
 		}
 
 		/*verify if pxy name maches */
-		if (strcmp((char*)((*o_pxy_comp)->name.value), (char*)unreg->proxy_comp_name.value)) {
+		if ((*o_pxy_comp)->name.compare(Amf::to_string(&unreg->proxy_comp_name))) {
 			*o_amf_rc = SA_AIS_ERR_BAD_OPERATION;
 			return;
 		}
@@ -713,10 +716,10 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 {
 	bool su_is_enabled;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("comp: '%s'", comp->name.value);
+	TRACE_ENTER2("comp: '%s'", comp->name.c_str());
 
 	if (pxy_comp)
-		TRACE("proxy comp = '%s'", pxy_comp->name.value);
+		TRACE("proxy comp = '%s'", pxy_comp->name.c_str());
 
 	/* update the comp reg params */
 	comp->reg_hdl = reg->hdl;
@@ -744,7 +747,7 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 	} else if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) {
 		/* update comp oper state */
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_ENABLED);
-		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+		rc =avnd_comp_oper_state_avd_sync(cb, comp);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
 
@@ -788,7 +791,7 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("comp: '%s' : proxy_comp: '%p'", comp->name.value, pxy_comp);
+	TRACE_ENTER2("comp: '%s' : proxy_comp: '%p'", comp->name.c_str(), pxy_comp);
 
 	/* Check if this component is an internode/ext component. */
 	if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp)) {
@@ -800,7 +803,6 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		MDS_SYNC_SND_CTXT ctxt;
 		SaAisErrorT amf_rc = SA_AIS_OK;
 		bool int_ext_comp = false;
-		SaNameT comp_name;
 
 		memset(&ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
 		memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
@@ -808,12 +810,8 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 		api_info.type = AVSV_AMF_COMP_UNREG;
 		api_info.dest = comp->reg_dest;
 		api_info.param.unreg.hdl = comp->reg_hdl;
-		api_info.param.unreg.comp_name.length = comp->name.length;
-		memcpy(api_info.param.unreg.comp_name.value,
-		       comp->name.value, api_info.param.unreg.comp_name.length);
-		api_info.param.unreg.proxy_comp_name.length = pxy_comp->name.length;
-		memcpy(api_info.param.unreg.proxy_comp_name.value,
-		       pxy_comp->name.value, api_info.param.unreg.proxy_comp_name.length);
+		osaf_extended_name_alloc(comp->name.c_str(), &api_info.param.unreg.comp_name);
+		osaf_extended_name_alloc(pxy_comp->name.c_str(), &api_info.param.unreg.proxy_comp_name);
 
 		rc = avnd_int_ext_comp_hdlr(cb, &api_info, &ctxt, &amf_rc, &int_ext_comp);
 		/* Since there is no Mds Context information being sent so, no response 
@@ -821,7 +819,7 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("avnd_int_ext_comp_hdlr fail:'%s' Type=%u Hdl=%llx Dest=%" PRIu64,
-					    comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
+					    comp->name.c_str(), api_info.type, api_info.param.reg.hdl, api_info.dest);
 			goto err;
 		}
 
@@ -829,15 +827,14 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("avnd_comp_proxied_del fail:'%s' Type=%u Hdl='%llx' Dest=%" PRId64,
-					    comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
+					    comp->name.c_str(), api_info.type, api_info.param.reg.hdl, api_info.dest);
 			goto err;
 		}
-		comp_name = comp->name;
-		rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
+		rc = avnd_internode_comp_del(cb, comp->name);
 
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("avnd_internode_comp_del fail:'%s' Type=%u, Hdl='%llx' Dest=%" PRId64,
-					    comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
+					    comp->name.c_str(), api_info.type, api_info.param.reg.hdl, api_info.dest);
 			goto err;
 		}
 
@@ -852,14 +849,14 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 	if ((comp->su->is_ncs == true) &&
 	    (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) &&
 	    (!m_AVND_COMP_IS_FAILED(comp)) && (!m_AVND_COMP_TYPE_IS_PROXIED(comp))) {
-		syslog(LOG_ERR, "'%s'unregistered", comp->name.value);
+		syslog(LOG_ERR, "'%s'unregistered", comp->name.c_str());
 	}
 
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) {
 			m_AVND_COMP_PROXY_STATUS_SET(comp, SA_AMF_PROXY_STATUS_UNPROXIED);
-			m_AVND_COMP_PROXY_STATUS_AVD_SYNC(cb, comp, rc);
+			rc = avnd_comp_proxy_status_avd_sync(cb, comp);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 		}
@@ -880,7 +877,7 @@ uint32_t avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 
 		/* update comp oper state */
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+		rc = avnd_comp_oper_state_avd_sync(cb, comp);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
 
@@ -923,12 +920,12 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 	AVND_COMP_CLC_PRES_FSM_EV comp_ev = AVND_COMP_CLC_PRES_FSM_EV_MAX;
 	bool mark_csi = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	const char *csiname = csi ? (char*)csi->name.value : "all CSIs";
+	const std::string csiname = csi ? csi->name: "all CSIs";
 
 	curr_csi = (csi) ? csi : m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 
-	TRACE_ENTER2("comp:'%s'", comp->name.value);
-	LOG_IN("Assigning '%s' %s to '%s'", csiname, ha_state[curr_csi->si->curr_state], comp->name.value);
+	TRACE_ENTER2("comp:'%s'", comp->name.c_str());
+	LOG_IN("Assigning '%s' %s to '%s'", csiname.c_str(), ha_state[curr_csi->si->curr_state], comp->name.c_str());
 
 	/* skip assignments to unqualified comp */
 	if (!m_AVND_SU_IS_RESTART(comp->su) &&
@@ -937,7 +934,7 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 		/* dont skip restarting components. wait till restart is complete */
 		if ((comp->pres == SA_AMF_PRESENCE_RESTARTING) && m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {	/* mark the csi(s) assigned */
 			if (csi) {
-				TRACE("'%s'", csi->name.value);
+				TRACE("'%s'", csi->name.c_str());
 				/* after restart we should go ahead with next csi, so mark the curr_csi as assigning */
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
 			} else {
@@ -972,7 +969,7 @@ uint32_t avnd_comp_csi_assign(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 		 */
 		TRACE("In suRestart recovery or admin op context");
 		if (csi) {
-			TRACE("'%s'", csi->name.value);
+			TRACE("'%s'", csi->name.c_str());
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
 		} else {
 			m_AVND_COMP_ALL_CSI_SET(comp);
@@ -1211,10 +1208,10 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	bool is_assigned = false;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	const char *csiname = csi ? (char*)csi->name.value : "all CSIs";
+	const std::string csiname = csi ? csi->name: "all CSIs";
 
-	TRACE_ENTER2("comp: '%s' : csi: '%p'", comp->name.value, csi);
-	LOG_IN("Removing '%s' from '%s'", csiname, comp->name.value);
+	TRACE_ENTER2("comp: '%s' : csi: '%p'", comp->name.c_str(), csi);
+	LOG_IN("Removing '%s' from '%s'", csiname.c_str(), comp->name.c_str());
 
 	/* skip removal from unqualified comp */
 	if (!IsCompQualifiedAssignment(comp)) {
@@ -1339,9 +1336,8 @@ uint32_t avnd_comp_csi_remove(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_REC *c
 uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *curr = 0, *prv = 0;
-	SaNameT csi_name;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	osafassert(m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp));
 
@@ -1352,7 +1348,6 @@ uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 	curr = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 	while (curr) {
 		prv = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_PREV(&curr->comp_dll_node));
-		csi_name = curr->name;
 
 		/*
 		 * csi assign state may be one of the following:
@@ -1388,7 +1383,7 @@ uint32_t avnd_comp_csi_reassign(AVND_CB *cb, AVND_COMP *comp)
 			/* generate csi-remove-done event... csi may be deleted */
 			rc = avnd_comp_csi_remove_done(cb, comp, curr);
 
-		if (0 == m_AVND_COMPDB_REC_CSI_GET(*comp, csi_name)) {
+		if (0 == m_AVND_COMPDB_REC_CSI_GET(*comp, curr->name.c_str())) {
 			curr =
 			    (prv) ? m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&prv->comp_dll_node)) :
 			    m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
@@ -1412,17 +1407,17 @@ bool IsCompQualifiedAssignment(const AVND_COMP *comp)
 	TRACE_ENTER2();
 	if (m_AVND_COMP_IS_FAILED(comp)) {
 		LOG_IN("Ignoring Failed comp:'%s', comp_flag %x",
-				comp->name.value, comp->flag);
+				comp->name.c_str(), comp->flag);
 		rc = false;
 	} else if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
 		if (!m_AVND_COMP_IS_REG(comp) && !m_AVND_COMP_PRES_STATE_IS_ORPHANED(comp)) {
-			LOG_IN("Ignoring Unregistered comp:'%s'", comp->name.value);
+			LOG_IN("Ignoring Unregistered comp:'%s'", comp->name.c_str());
 			rc = false;
 		} else if (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED (comp) &&
 					comp->su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED &&
 					!m_AVND_COMP_PRES_STATE_IS_ORPHANED(comp)) {
 			LOG_IN("Ignoring comp with invalid presence state:'%s', comp_flag %x, comp_pres=%u, su_pres=%u",
-					comp->name.value, comp->flag,
+					comp->name.c_str(), comp->flag,
 					comp->pres, comp->su->pres);
 			rc = false;
 		}
@@ -1441,7 +1436,7 @@ bool IsCompQualifiedAssignment(const AVND_COMP *comp)
 static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uint32_t rank)
 {
 	AVND_COMP_CSI_REC *csi;
-	TRACE_ENTER2("'%s'rank=%u", si->name.value, rank);
+	TRACE_ENTER2("'%s'rank=%u", si->name.c_str(), rank);
 
 	for (csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
 			csi != nullptr;
@@ -1451,11 +1446,11 @@ static bool all_csis_at_rank_assigned(struct avnd_su_si_rec *si, uint32_t rank)
 			/* Ignore unqualified comp. */
 			if (!m_AVND_SU_IS_RESTART(csi->comp->su) && !IsCompQualifiedAssignment(csi->comp)) {
 				LOG_IN("Ignoring comp'%s' which is not qualified for assignment",
-					csi->comp->name.value);
+					csi->comp->name.c_str());
 			} else if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(csi->comp) &&
 					csi->suspending_assignment) {
 				LOG_IN("Ignoring quiescing/quiesced assignment on unassigned comp'%s'",
-						csi->comp->name.value);
+						csi->comp->name.c_str());
 			} else {
 				TRACE_LEAVE2("false");
 				return false;
@@ -1480,7 +1475,7 @@ static int assign_all_csis_at_rank(struct avnd_su_si_rec *si, uint32_t rank, boo
 	AVND_COMP_CSI_REC *csi;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s' rank=%u", si->name.value, rank);
+	TRACE_ENTER2("'%s' rank=%u", si->name.c_str(), rank);
 
 	for (csi = (AVND_COMP_CSI_REC*)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
 		  csi != nullptr;
@@ -1544,20 +1539,20 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 {
 	AVND_COMP_CSI_REC *curr_csi;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	const char *csiname;
+	std::string csiname;
 
-	TRACE_ENTER2("'%s', %p", comp->name.value, csi);
+	TRACE_ENTER2("'%s', %p", comp->name.c_str(), csi);
 
 	if (csi != nullptr) {
 		csi->single_csi_add_rem_in_si = AVSV_SUSI_ACT_BASE;
 		curr_csi = csi;
-		csiname = (char*)csi->name.value;
+		csiname = csi->name;
 	} else {
 		curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 		csiname = "all CSIs";
 	}
 
-	LOG_IN("Assigned '%s' %s to '%s'", csiname, ha_state[curr_csi->si->curr_state], comp->name.value);
+	LOG_IN("Assigned '%s' %s to '%s'", csiname.c_str(), ha_state[curr_csi->si->curr_state], comp->name.c_str());
 
 	/* 
 	 * csi-done indication is only generated for pi su.. 
@@ -1566,7 +1561,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	osafassert(m_AVND_SU_IS_PREINSTANTIABLE(comp->su));
 
 	/* delete any pending cbk rec for csi assignment / removal */
-	avnd_comp_cbq_csi_rec_del(cb, comp, (csi) ? &csi->name : 0);
+	avnd_comp_cbq_csi_rec_del(cb, comp, (csi) ? csi->name : "");
 
 	/* while restarting, we wont use assign all, so csi will not be null */
 	if (csi && m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_RESTARTING(csi)) {
@@ -1675,7 +1670,7 @@ bool all_csis_in_removed_state(const AVND_SU *su)
 	AVND_COMP_CSI_REC *curr_csi;
 	AVND_SU_SI_REC *curr_si;
 	bool all_csi_removed = true;
-	TRACE_ENTER2("'%s'",su->name.value);
+	TRACE_ENTER2("'%s'",su->name.c_str());
 
 	for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 			curr_si && all_csi_removed;
@@ -1714,10 +1709,10 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	const char *csiname = csi ? (char*)csi->name.value : "all CSIs";
+	const std::string csiname = csi ? csi->name: "all CSIs";
 
-	TRACE_ENTER2("'%s' '%s'", comp->name.value, csi ? csi->name.value : nullptr);
-	LOG_IN("Removed '%s' from '%s'", csiname, comp->name.value);
+	TRACE_ENTER2("'%s' '%s'", comp->name.c_str(), csi ? csi->name.c_str(): nullptr);
+	LOG_IN("Removed '%s' from '%s'", csiname.c_str(), comp->name.c_str());
 
 	/* 
 	 * csi-remove indication is only generated for pi su.. 
@@ -1726,7 +1721,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	osafassert(m_AVND_SU_IS_PREINSTANTIABLE(comp->su));
 
 	/* delete any pending cbk rec for csi assignment / removal */
-	avnd_comp_cbq_csi_rec_del(cb, comp, (csi) ? &csi->name : 0);
+	avnd_comp_cbq_csi_rec_del(cb, comp, (csi) ? csi->name : "");
 
 	/* ok, time to reset CSi_ALL flag */
 	if (!csi && m_AVND_COMP_IS_ALL_CSI(comp)) {
@@ -1770,7 +1765,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 					break;
 				else if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_csi)) {
 					TRACE("'%s' is getting assigned, remove it after assignment",
-							curr_csi->name.value);
+							curr_csi->name.c_str());
 					curr_csi->pending_removal = true;	
 					break;
 				}
@@ -1844,7 +1839,7 @@ uint32_t avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/* unmark the previous csi assigned state of this compoonent */
 	for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
@@ -1865,7 +1860,7 @@ uint32_t avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 				(m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(comp) ||
 				m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(comp))) {
 			m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-			m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+			rc = avnd_comp_oper_state_avd_sync(cb, comp);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
 		}
@@ -1915,7 +1910,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 {
 	SaAmfCSIDescriptorT csi_desc;
 	SaAmfCSIFlagsT csi_flag;
-	SaNameT csi_name;
+	std::string csi_name;
 	AVSV_AMF_CBK_INFO *cbk_info = 0;
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	AVSV_CSI_ATTRS attr;
@@ -1924,7 +1919,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 	SaTimeT per = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("'%s' %u", comp->name.value, type);
+	TRACE_ENTER2("'%s' %u", comp->name.c_str(), type);
 	/* 
 	 * callbacks are sent only to registered comps (healtcheck 
 	 * cbk is an exception) 
@@ -1933,17 +1928,17 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 		goto done;
 
 	/* allocate cbk-info memory */
-	cbk_info = new AVSV_AMF_CBK_INFO();
+	cbk_info = static_cast<AVSV_AMF_CBK_INFO*>(calloc(1, sizeof(AVSV_AMF_CBK_INFO)));
 
 	/* fill the callback params */
 	switch (type) {
 	case AVSV_AMF_HC:
-		m_AVND_AMF_HC_CBK_FILL(*cbk_info, comp->name, hc_rec->key);
+		avnd_amf_hc_cbk_fill(cbk_info, comp->name, hc_rec->key);
 		per = hc_rec->max_dur;
 		break;
 
 	case AVSV_AMF_COMP_TERM:
-		m_AVND_AMF_COMP_TERM_CBK_FILL(*cbk_info, comp->name);
+		avnd_amf_comp_term_cbk_fill(cbk_info, comp->name);
 		per = comp->term_cbk_timeout;
 		break;
 
@@ -1967,7 +1962,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 			    ? SA_AMF_CSI_ADD_ONE : SA_AMF_CSI_TARGET_ONE;
 
 			if (csi_rec)
-				csi_desc.csiName = csi_rec->name;
+				osaf_extended_name_alloc(csi_rec->name.c_str(), &csi_desc.csiName);
 
 
 			/* for proxied non-preinstantiable components, we have only one csi and
@@ -1975,7 +1970,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 			if (m_AVND_COMP_TYPE_IS_PROXIED(comp) && !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
 				/* populate the params for the lone csi */
 				csi_desc.csiFlags = SA_AMF_CSI_ADD_ONE;
-				csi_desc.csiName = curr_csi->name;
+				osaf_extended_name_alloc(curr_csi->name.c_str(), &csi_desc.csiName);
 			}
 
 			if (SA_AMF_HA_ACTIVE == curr_csi->si->curr_state) {
@@ -1984,15 +1979,16 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 
 				if (SA_AMF_CSI_NEW_ASSIGN !=
 				    csi_desc.csiStateDescriptor.activeDescriptor.transitionDescriptor)
-					csi_desc.csiStateDescriptor.activeDescriptor.activeCompName =
-					    curr_csi->act_comp_name;
-
+					osaf_extended_name_alloc(curr_csi->act_comp_name.c_str(),
+											&csi_desc.csiStateDescriptor.activeDescriptor.activeCompName);
 			}
 
 			if (SA_AMF_HA_STANDBY == curr_csi->si->curr_state) {
-				csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName =
-				    curr_csi->act_comp_name;
+				osaf_extended_name_alloc(curr_csi->act_comp_name.c_str(), 
+										&csi_desc.csiStateDescriptor.standbyDescriptor.activeCompName);
+
 				csi_desc.csiStateDescriptor.standbyDescriptor.standbyRank = curr_csi->standby_rank;
+				osaf_extended_name_clear(&csi_desc.csiStateDescriptor.activeDescriptor.activeCompName);
 			}
 
 			/* copy the attributes */
@@ -2008,8 +2004,8 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 			}
 
 			/* fill the callback params */
-			m_AVND_AMF_CSI_SET_CBK_FILL(*cbk_info, comp->name,
-						    curr_csi->si->curr_state, csi_desc, attr);
+			avnd_amf_csi_set_cbk_fill(cbk_info, comp->name,
+									  curr_csi->si->curr_state, csi_desc, attr);
 
 			/* reset the attr */
 			attr.number = 0;
@@ -2028,22 +2024,22 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 
 			/* determine csi name */
 			if (SA_AMF_CSI_TARGET_ALL != csi_flag)
-				csi_name = csi_rec->name;
+				csi_name = csi_rec->name.c_str();
 			else
-				memset(&csi_name, 0, sizeof(SaNameT));
+				csi_name = "";
 
 			/* fill the callback params */
-			m_AVND_AMF_CSI_REM_CBK_FILL(*cbk_info, comp->name, csi_name, csi_flag);
+			avnd_amf_csi_rem_cbk_fill(cbk_info, comp->name, csi_name, csi_flag);
 			per = comp->csi_rmv_cbk_timeout;
 		}
 		break;
 
 	case AVSV_AMF_PXIED_COMP_INST:
-		m_AVND_AMF_PXIED_COMP_INST_CBK_FILL(*cbk_info, comp->name);
+		avnd_amf_pxied_comp_inst_cbk_fill(cbk_info, comp->name);
 		per = comp->pxied_inst_cbk_timeout;
 		break;
 	case AVSV_AMF_PXIED_COMP_CLEAN:
-		m_AVND_AMF_PXIED_COMP_CLEAN_CBK_FILL(*cbk_info, comp->name);
+		avnd_amf_pxied_comp_clean_cbk_fill(cbk_info, comp->name);
 		per = comp->pxied_clean_cbk_timeout;
 		break;
 	case AVSV_AMF_PG_TRACK:
@@ -2062,7 +2058,7 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 
  done:
 	if ((NCSCC_RC_SUCCESS != rc) && cbk_info)
-		amf_cbk_free(cbk_info);
+		avsv_amf_cbk_free(cbk_info);
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -2114,7 +2110,7 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
-	msg.info.ava = new AVSV_NDA_AVA_MSG();
+	msg.info.ava = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 
 	/* populate the response */
 	if (AVSV_AMF_HA_STATE_GET == type) {
@@ -2124,9 +2120,9 @@ uint32_t avnd_amf_resp_send(AVND_CB *cb,
 
 	if (true == msg_to_avnd) {
 		/* Fill informations.  */
-		avnd_msg = new AVSV_ND2ND_AVND_MSG();
+		avnd_msg = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
 
-		avnd_msg->comp_name = comp->name;
+		osaf_extended_name_alloc(comp->name.c_str(), &avnd_msg->comp_name);
 		avnd_msg->mds_ctxt = *ctxt;
 		temp_ptr = msg.info.ava;
 		msg.info.avnd = avnd_msg;
@@ -2171,7 +2167,7 @@ void avnd_pxied_list_init(AVND_COMP *comp)
 
 	/* initialize the pm_list dll  */
 	pxied_list->order = NCS_DBLIST_ANY_ORDER;
-	pxied_list->cmp_cookie = avsv_dblist_saname_cmp;
+	pxied_list->cmp_cookie = avsv_dblist_sastring_cmp;
 	pxied_list->free_cookie = 0;
 }
 
@@ -2197,14 +2193,14 @@ uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec;
 	AVSV_PARAM_INFO param;
-	TRACE_ENTER2("'%s' : '%s'", comp->name.value, pxy_comp->name.value);	
+	TRACE_ENTER2("'%s' : '%s'", comp->name.c_str(), pxy_comp->name.c_str());	
 
 	/* allocate memory for rec** */
 	rec = new AVND_COMP_PXIED_REC();
 
 	/* fill the params */
 	rec->pxied_comp = comp;
-	rec->comp_dll_node.key = (uint8_t *)&comp->name;
+	rec->comp_dll_node.key = (uint8_t *)comp->name.c_str();
 
 	/* add rec to link list */
 	rc = ncs_db_link_list_add(&pxy_comp->pxied_list, &rec->comp_dll_node);
@@ -2220,10 +2216,10 @@ uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp
 		memset(&param, 0, sizeof(AVSV_PARAM_INFO));
 		param.class_id = AVSV_SA_AMF_COMP;
 		param.attr_id = saAmfCompCurrProxyName_ID;
-		param.name = comp->name;
+		osaf_extended_name_alloc(comp->name.c_str(), &param.name);
 		param.act = AVSV_OBJ_OPR_MOD;
-		strncpy(param.value, (char*)comp->pxy_comp->name.value, AVSV_MISC_STR_MAX_SIZE - 1);
-		param.value_len = strlen((char*)comp->pxy_comp->name.value);
+		strncpy(param.value, comp->pxy_comp->name.c_str(), AVSV_MISC_STR_MAX_SIZE - 1);
+		param.value_len = comp->pxy_comp->name.length();
 
 		rc = avnd_di_object_upd_send(cb, &param);
 		if (NCSCC_RC_SUCCESS != rc)
@@ -2231,7 +2227,7 @@ uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp
 	}
 	/* change status to SA_AMF_PROXY_STATUS_PROXIED */
 	m_AVND_COMP_PROXY_STATUS_SET(comp, SA_AMF_PROXY_STATUS_PROXIED);
-	m_AVND_COMP_PROXY_STATUS_AVD_SYNC(cb, comp, rc);
+	rc = avnd_comp_proxy_status_avd_sync(cb, comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -2276,13 +2272,13 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 	AVSV_PARAM_INFO param;
 
 	TRACE_ENTER2("'%s': nodeid: %u comp_type: %u",
-			      comp->name.value, comp->node_id, comp->comp_type);
+			      comp->name.c_str(), comp->node_id, comp->comp_type);
 	TRACE("pxy_comp:'%s': nodeid:%u comp_type: %u",
-			      pxy_comp->name.value, pxy_comp->node_id, pxy_comp->comp_type);
+			      pxy_comp->name.c_str(), pxy_comp->node_id, pxy_comp->comp_type);
 
 	if (nullptr == rec_to_be_deleted) {
 		/* unlink the rec */
-		rec = (AVND_COMP_PXIED_REC *)ncs_db_link_list_remove(&pxy_comp->pxied_list, (uint8_t *)&comp->name);
+		rec = (AVND_COMP_PXIED_REC *)ncs_db_link_list_remove(&pxy_comp->pxied_list, (uint8_t *)comp->name.c_str());
 	} else
 		rec = rec_to_be_deleted;
 	/* rec has to be there */
@@ -2290,7 +2286,7 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 
 	/*remove the association between proxy and proxied */
 	comp->pxy_comp = 0;
-	memset(&comp->proxy_comp_name, 0, sizeof(SaNameT));
+	comp->proxy_comp_name = "";
 	/* mark the proxied as unregistered.
 	   No need to send Async Update here as the same thing happens on the STDBY,
 	   as avnd_comp_proxied_del is called on STDBY. */
@@ -2304,7 +2300,7 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 			/* Since this is an internode proxy component and it is not 
 			   serving any proxied comp, so , better remove this from 
 			   the data base. */
-			rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(pxy_comp->name));
+			rc = avnd_internode_comp_del(cb, pxy_comp->name);
 		}
 	}
 
@@ -2313,7 +2309,7 @@ uint32_t avnd_comp_proxied_del(AVND_CB *cb,
 		memset(&param, 0, sizeof(AVSV_PARAM_INFO));
 		param.class_id = AVSV_SA_AMF_COMP;
 		param.attr_id = saAmfCompCurrProxyName_ID;
-		param.name = comp->name;
+		osaf_extended_name_alloc(comp->name.c_str(), &param.name);
 		param.act = AVSV_OBJ_OPR_MOD;
 		strcpy(param.value, "");
 		param.value_len = 0;
@@ -2347,7 +2343,7 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 	uint32_t rc_send = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec = 0;
 	AVND_COMP *pxd_comp = nullptr;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/* parse thru all proxied comp of this proxy */
 	while (0 != (rec = (AVND_COMP_PXIED_REC *)ncs_db_link_list_pop(&comp->pxied_list))) {
@@ -2363,7 +2359,6 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 			MDS_SYNC_SND_CTXT ctxt;
 			SaAisErrorT amf_rc = SA_AIS_OK;
 			bool int_ext_comp = false;
-			SaNameT comp_name;
 
 			memset(&ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
 			memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
@@ -2371,13 +2366,8 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 			api_info.type = AVSV_AMF_COMP_UNREG;
 			api_info.dest = pxd_comp->reg_dest;
 			api_info.param.unreg.hdl = pxd_comp->reg_hdl;
-			api_info.param.unreg.comp_name.length = pxd_comp->name.length;
-			memcpy(api_info.param.unreg.comp_name.value,
-			       pxd_comp->name.value, api_info.param.unreg.comp_name.length);
-			api_info.param.unreg.proxy_comp_name.length =
-			    pxd_comp->pxy_comp->name.length;
-			memcpy(api_info.param.unreg.proxy_comp_name.value,
-			       pxd_comp->pxy_comp->name.value, api_info.param.unreg.proxy_comp_name.length);
+			osaf_extended_name_alloc(pxd_comp->name.c_str(), &api_info.param.unreg.comp_name);
+			osaf_extended_name_alloc(pxd_comp->pxy_comp->name.c_str(), &api_info.param.unreg.proxy_comp_name);
 
 			rc = avnd_int_ext_comp_hdlr(cb, &api_info, &ctxt, &amf_rc, &int_ext_comp);
 			/* Since there is no Mds Context information being sent so, no response 
@@ -2385,7 +2375,7 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 
 			if (NCSCC_RC_SUCCESS != rc) {
 				LOG_ER("avnd_int_ext_comp_hdlr failed:'%s' Type=%u Hdl=%llx Dest=%" PRId64,
-				     pxd_comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
+				     pxd_comp->name.c_str(), api_info.type, api_info.param.reg.hdl, api_info.dest);
 				goto err;
 			}
 
@@ -2393,15 +2383,14 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 
 			if (NCSCC_RC_SUCCESS != rc) {
 				LOG_ER("avnd_comp_proxied_del failed:'%s' Type=%u Hdl=%llx Dest=%" PRId64,
-				     pxd_comp->name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
+				     pxd_comp->name.c_str(), api_info.type, api_info.param.reg.hdl, api_info.dest);
 				goto err;
 			}
-			comp_name = pxd_comp->name;
-			rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
+			rc = avnd_internode_comp_del(cb, pxd_comp->name);
 
 			if (NCSCC_RC_SUCCESS != rc) {
 				LOG_ER("avnd_internode_comp_del failed:'%s' Type=%u Hdl=%llx Dest=%" PRId64,
-				     comp_name.value, api_info.type, api_info.param.reg.hdl, api_info.dest);
+				     pxd_comp->name.c_str(), api_info.type, api_info.param.reg.hdl, api_info.dest);
 				goto err;
 			}
 
@@ -2414,7 +2403,7 @@ uint32_t avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
  /*************************   Section  1 Ends Here **************************/
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(rec->pxied_comp)) {
 			m_AVND_COMP_PROXY_STATUS_SET(rec->pxied_comp, SA_AMF_PROXY_STATUS_UNPROXIED);
-			m_AVND_COMP_PROXY_STATUS_AVD_SYNC(cb, rec->pxied_comp, rc_send);
+			rc_send = avnd_comp_proxy_status_avd_sync(cb, rec->pxied_comp);
 		}
 
 		/* process proxied comp unregistration */
@@ -2498,7 +2487,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 	AVND_COMP_CBK *cbk = 0, *temp_cbk_list = 0, *head = 0;
 	AVND_COMP_CSI_REC *csi = 0, *temp_csi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS, found = 0;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/*
 	 *  su-sis may be in assigning/removing state. signal csi
@@ -2508,7 +2497,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 		cbk = comp->cbk_list;
 
 		if (AVSV_AMF_CSI_SET == cbk->cbk_info->type) {
-			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk->cbk_info->param.csi_set.csi_desc.csiName);
+			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk->cbk_info->param.csi_set.csi_desc.csiName).c_str());
 
 			/* check, if the older assignment was overriden by new one */
 			if (!csi) {
@@ -2539,7 +2528,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 				break;
 
 		} else if (AVSV_AMF_CSI_REM == cbk->cbk_info->type) {
-			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, cbk->cbk_info->param.csi_rem.csi_name);
+			csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk->cbk_info->param.csi_rem.csi_name).c_str());
 			if (comp->csi_list.n_nodes) {
 				rc = avnd_comp_csi_remove_done(cb, comp, csi);
 				if ((!csi) || (NCSCC_RC_SUCCESS != rc))
@@ -2551,7 +2540,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 			/* pop this rec */
 			m_AVND_COMP_CBQ_REC_POP(comp, cbk, found);
 			if (!found) {
-				LOG_ER("Comp callback record not found: '%s'", comp->name.value);
+				LOG_ER("Comp callback record not found: '%s'", comp->name.c_str());
 				break;
 			}
 			cbk->next = nullptr;
@@ -2597,8 +2586,7 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 {
 
 	AVND_COMP_CSI_REC *curr = 0, *prv = 0;
-	SaNameT csi_name;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 	/* go and look for all csi's in assigning state and complete the assignment.
 	 * take care of assign-one and assign-all flags
 	 */
@@ -2615,7 +2603,6 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 		curr = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 		while (curr) {
 			prv = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_PREV(&curr->comp_dll_node));
-			csi_name = curr->name;
 
 			if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr))
 				(void)avnd_comp_csi_assign_done(cb, comp, curr);
@@ -2623,7 +2610,7 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 				/* generate csi-remove-done event... csi may be deleted */
 				(void)avnd_comp_csi_remove_done(cb, comp, curr);
 
-			if (0 == m_AVND_COMPDB_REC_CSI_GET(*comp, csi_name)) {
+			if (0 == m_AVND_COMPDB_REC_CSI_GET(*comp, curr->name.c_str())) {
 				curr =
 				    (prv) ?
 				    m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&prv->comp_dll_node)) :
@@ -2642,7 +2629,7 @@ uint32_t comp_restart_initiate(AVND_COMP *comp)
 	AVND_CB *cb = avnd_cb;
 	uint32_t rc;
 
-	TRACE_ENTER2("%s", comp->name.value);
+	TRACE_ENTER2("%s", comp->name.c_str());
 
 	rc = avnd_comp_curr_info_del(cb, comp);
 	if (NCSCC_RC_SUCCESS != rc)
@@ -2688,13 +2675,14 @@ uint32_t avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
 	AVND_COMP *comp;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	const std::string info_dn = Amf::to_string(&info->dn);
 
-	TRACE_ENTER2("'%s' op=%u", info->dn.value, info->oper_id);
+	TRACE_ENTER2("'%s' op=%u", info_dn.c_str(), info->oper_id);
 
 	avnd_msgid_assert(info->msg_id);
 	cb->rcv_msg_id = info->msg_id;
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, info->dn);
+	comp = avnd_compdb_rec_get(cb->compdb, info_dn);
 	osafassert( comp != nullptr);
 
 	switch(info->oper_id) {
@@ -2702,11 +2690,11 @@ uint32_t avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 		if (comp->pres == SA_AMF_PRESENCE_INSTANTIATED) {
 			/* Now trigger the component admin restart */  
 			comp->admin_oper = true;
-			LOG_NO("Admin restart requested for '%s'", info->dn.value);
+			LOG_NO("Admin restart requested for '%s'", info_dn.c_str());
 			rc = comp_restart_initiate(comp);
 		}
 		else {
-			LOG_NO("Admin restart failed '%s' Presence state '%d'", info->dn.value, comp->pres);
+			LOG_NO("Admin restart failed '%s' Presence state '%d'", info_dn.c_str(), comp->pres);
 		}
 		break;
 	case SA_AMF_ADMIN_EAM_START:
@@ -2729,22 +2717,20 @@ uint32_t avnd_evt_comp_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
  * 
  * @return SaAisErrorT SA_AIS_OK when OK
  */
-static SaAisErrorT avnd_validate_comp_and_createdb(AVND_CB *cb, SaNameT *comp_dn)
+static SaAisErrorT avnd_validate_comp_and_createdb(AVND_CB *cb, const std::string& comp_dn)
 {
-	SaNameT su_dn;
-	char *p;
+	std::string su_dn;
 	AVND_SU *su;
+	std::size_t pos;
 
-	memset(&su_dn, 0, sizeof(SaNameT));
-	p = strstr((char*)comp_dn->value, "safSu");
-	if (p == nullptr)
+	pos = comp_dn.find("safSu");
+	if (pos == std::string::npos)
 		return SA_AIS_ERR_INVALID_PARAM;
 
-	su_dn.length = strlen(p);
-	memcpy(su_dn.value, p, comp_dn->length);
+	su_dn = comp_dn.substr(pos);
 
 	/* We got the name of SU, check whether this SU exists or not in our DB. */
-	if(nullptr == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_dn)))
+	if ((su = avnd_sudb_rec_get(cb->sudb, su_dn)) == nullptr)
 		return SA_AIS_ERR_NOT_EXIST;
 
 	/* We got it, so create comp db. */
@@ -2767,10 +2753,10 @@ void avnd_comp_pres_state_set(const AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceS
 	osafassert(newstate <= SA_AMF_PRESENCE_ORPHANED);
 	if (newstate == SA_AMF_PRESENCE_TERMINATION_FAILED ||
 		newstate == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
-		LOG_WA("'%s' Presence State %s => %s", comp->name.value,
+		LOG_WA("'%s' Presence State %s => %s", comp->name.c_str(),
 				presence_state[comp->pres], presence_state[newstate]);
 	else
-		LOG_IN("'%s' Presence State %s => %s", comp->name.value,
+		LOG_IN("'%s' Presence State %s => %s", comp->name.c_str(),
 				presence_state[comp->pres], presence_state[newstate]);
 	comp->pres = newstate;
 
@@ -2781,7 +2767,7 @@ void avnd_comp_pres_state_set(const AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceS
 	    (!((SA_AMF_PRESENCE_INSTANTIATED == newstate) && (SA_AMF_PRESENCE_ORPHANED == prv_st)))) {
 
 		if (cb->is_avd_down == false) {
-			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompPresenceState_ID, &comp->name, comp->pres);
+			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompPresenceState_ID, comp->name.c_str(), comp->pres);
 		}
 	}
 
@@ -2826,7 +2812,7 @@ void comp_reset_restart_count(const AVND_CB *cb, AVND_COMP *comp)
 		comp->err_info.restart_cnt = 0;
 		if (cb->is_avd_down == false) {
 			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRestartCount_ID,
-				&comp->name, comp->err_info.restart_cnt);
+				comp->name, comp->err_info.restart_cnt);
 		}
 	}
 }
@@ -2842,27 +2828,9 @@ void clear_error_report_alarm(AVND_COMP *comp)
 			 (comp->pres == SA_AMF_PRESENCE_INSTANTIATED)) &&
 			(comp->oper == SA_AMF_OPERATIONAL_ENABLED)) {
 		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRecoveryOnError_ID,
-				&comp->name, 0);
+				comp->name, 0);
 		comp->error_report_sent = false;
 	}
-}
-
-void m_AVND_COMP_OPER_STATE_AVD_SYNC(struct avnd_cb_tag *cb, const AVND_COMP *comp, uint32_t& o_rc)
-{
-	AVSV_PARAM_INFO param;
-	if (cb->is_avd_down == true) {
-		// pretend it's successful
-		o_rc = NCSCC_RC_SUCCESS;
-		return;
-	}
-	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
-	param.class_id = AVSV_SA_AMF_COMP;
-	param.attr_id = saAmfCompOperState_ID;
-	param.name = (comp)->name;
-	param.act = AVSV_OBJ_OPR_MOD;
-	*((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->oper);
-	param.value_len = sizeof(uint32_t);
-	(o_rc) = avnd_di_object_upd_send((cb), &param);
 }
 
 
@@ -2885,5 +2853,113 @@ bool nonrestartable(const AVND_COMP *comp)
 uint32_t csi_count(const AVND_COMP *comp)
 {
         return (comp->csi_list.n_nodes);
+}
+
+// Refactor for macros
+void avnd_comp_reg_msg_fill(AVSV_AMF_API_INFO *m,
+							MDS_DEST dst,
+							SaAmfHandleT hd,
+							const std::string& cn,
+							const std::string& pcn)
+{
+	m->type = AVSV_AMF_COMP_REG;
+	m->dest = dst;
+	m->param.reg.hdl = hd;
+	osaf_extended_name_alloc(cn.c_str(), &m->param.reg.comp_name);
+	osaf_extended_name_alloc(pcn.c_str(), &m->param.reg.proxy_comp_name);
+}
+
+uint32_t avnd_comp_oper_state_avd_sync(AVND_CB *cb, AVND_COMP *comp)
+{
+	AVSV_PARAM_INFO param;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
+	if (cb->is_avd_down == true) {
+		// pretend it's successful
+		return rc;
+	}
+
+	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
+	param.class_id = AVSV_SA_AMF_COMP;
+	param.attr_id = saAmfCompOperState_ID;
+	osaf_extended_name_alloc(comp->name.c_str(), &param.name);
+	param.act = AVSV_OBJ_OPR_MOD;
+	*((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->oper);
+	param.value_len = sizeof(uint32_t);
+	rc = avnd_di_object_upd_send((cb), &param);
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+uint32_t avnd_comp_proxy_status_avd_sync(AVND_CB *cb, AVND_COMP *comp)
+{
+	AVSV_PARAM_INFO param;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
+	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
+	param.class_id = AVSV_SA_AMF_COMP;
+	param.attr_id = saAmfCompProxyStatus_ID;
+	osaf_extended_name_alloc(comp->name.c_str(), &param.name);
+	param.act = AVSV_OBJ_OPR_MOD;
+	*((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->proxy_status);
+	param.value_len = sizeof(uint32_t);
+	rc = avnd_di_object_upd_send((cb), &param);
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+void avnd_amf_hc_cbk_fill(AVSV_AMF_CBK_INFO *cbk, const std::string& cn, SaAmfHealthcheckKeyT hck)
+{
+	cbk->type = AVSV_AMF_HC;
+	osaf_extended_name_alloc(cn.c_str(), &cbk->param.hc.comp_name);
+	cbk->param.hc.hc_key = hck;
+}
+
+void avnd_amf_comp_term_cbk_fill(AVSV_AMF_CBK_INFO *cbk, const std::string& cn)
+{
+	cbk->type = AVSV_AMF_COMP_TERM;
+	osaf_extended_name_alloc(cn.c_str(), &cbk->param.comp_term.comp_name);
+}
+
+void avnd_amf_csi_set_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+								const std::string& cn,
+								SaAmfHAStateT has, 
+								SaAmfCSIDescriptorT csid, 
+								AVSV_CSI_ATTRS at)
+{
+	cbk->type = AVSV_AMF_CSI_SET;
+	osaf_extended_name_alloc(cn.c_str(), &cbk->param.csi_set.comp_name);
+	cbk->param.csi_set.ha = has;
+	cbk->param.csi_set.csi_desc = csid;
+	cbk->param.csi_set.attrs = at;
+}
+
+void avnd_amf_csi_rem_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+								const std::string& cn,
+								const std::string& csn,
+								SaAmfCSIFlagsT csf)
+{
+	cbk->type = AVSV_AMF_CSI_REM;
+	osaf_extended_name_alloc(cn.c_str(), &cbk->param.csi_rem.comp_name);
+	osaf_extended_name_alloc(csn.c_str(), &cbk->param.csi_rem.csi_name);
+	cbk->param.csi_rem.csi_flags = csf;
+}
+
+void avnd_amf_pxied_comp_inst_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+										const std::string& cn)
+{
+	cbk->type = AVSV_AMF_PXIED_COMP_INST;
+	osaf_extended_name_alloc(cn.c_str(), &cbk->param.comp_term.comp_name);
+}
+
+void avnd_amf_pxied_comp_clean_cbk_fill(AVSV_AMF_CBK_INFO *cbk,
+										const std::string& cn)
+{
+	cbk->type = AVSV_AMF_PXIED_COMP_CLEAN;
+	osaf_extended_name_alloc(cn.c_str(), &cbk->param.comp_term.comp_name);
 }
 

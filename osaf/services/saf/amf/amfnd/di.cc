@@ -64,7 +64,7 @@ static uint32_t avnd_node_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s'", param->name.value);
+	TRACE_ENTER2("'%s'", osaf_extended_name_borrow(&param->name));
 
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD:
@@ -106,7 +106,7 @@ static uint32_t avnd_evt_node_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_D2N_ADMIN_OP_REQ_MSG_INFO *info = &evt->info.avd->msg_info.d2n_admin_op_req_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s op=%u", info->dn.value, info->oper_id);
+	TRACE_ENTER2("%s op=%u", osaf_extended_name_borrow(&info->dn), info->oper_id);
 
 	avnd_msgid_assert(info->msg_id);
 	cb->rcv_msg_id = info->msg_id;
@@ -125,16 +125,18 @@ static uint32_t avnd_evt_node_admin_op_req(AVND_CB *cb, AVND_EVT *evt)
 static uint32_t avnd_sg_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
+	const std::string param_name = Amf::to_string(&param->name);
 
-	TRACE_ENTER2("'%s'", param->name.value);
+	TRACE_ENTER2("'%s'", param_name.c_str());
 
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD:	{
 		AVND_SU *su;
 
-		su = m_AVND_SUDB_REC_GET(cb->sudb, param->name);
+		su = avnd_sudb_rec_get(cb->sudb, param_name);
+
 		if (!su) {
-			LOG_ER("%s: failed to get %s", __FUNCTION__, param->name.value);
+			LOG_ER("%s: failed to get %s", __FUNCTION__, param_name.c_str());
 			goto done;
 		}
 
@@ -242,13 +244,17 @@ uint32_t avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 	/* Send the response to avd. */
 	if (info->node_id == cb->node_info.nodeId) {
 		memset(&msg, 0, sizeof(AVND_MSG));
-		msg.info.avd = new AVSV_DND_MSG();
+		msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 		
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_OPERATION_REQUEST_MSG;
 		msg.info.avd->msg_info.n2d_op_req.msg_id = ++(cb->snd_msg_id);
 		msg.info.avd->msg_info.n2d_op_req.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_op_req.param_info = *param;
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&param->name),
+								 &msg.info.avd->msg_info.n2d_op_req.param_info.name);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&param->name_sec),
+								 &msg.info.avd->msg_info.n2d_op_req.param_info.name_sec);
 		msg.info.avd->msg_info.n2d_op_req.error = rc;
 
 		rc = avnd_di_msg_send(cb, &msg);
@@ -279,10 +285,10 @@ done:
 ******************************************************************************/
 void add_sisu_state_info(AVND_MSG *msg, SaAmfSIAssignment *si_assign)
 {
-	AVSV_SISU_STATE_MSG *sisu_state = new AVSV_SISU_STATE_MSG();
+	AVSV_SISU_STATE_MSG *sisu_state = static_cast<AVSV_SISU_STATE_MSG*>(calloc(1, sizeof(AVSV_SISU_STATE_MSG)));
 
-	sisu_state->safSU = si_assign->su;
-	sisu_state->safSI = si_assign->si;
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&si_assign->su), &sisu_state->safSU);
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&si_assign->si), &sisu_state->safSI);
 	sisu_state->saAmfSISUHAState = si_assign->saAmfSISUHAState;
 
 	sisu_state->next = msg->info.avd->msg_info.n2d_nd_sisu_state_info.sisu_list;
@@ -304,9 +310,9 @@ void add_sisu_state_info(AVND_MSG *msg, SaAmfSIAssignment *si_assign)
 ******************************************************************************/
 void add_su_state_info(AVND_MSG *msg, const AVND_SU* su)
 {
-	AVSV_SU_STATE_MSG *su_state = new AVSV_SU_STATE_MSG();
+	AVSV_SU_STATE_MSG *su_state = static_cast<AVSV_SU_STATE_MSG*>(calloc(1, sizeof(AVSV_SU_STATE_MSG)));
 
-	su_state->safSU = su->name;
+	osaf_extended_name_alloc(su->name.c_str(), &su_state->safSU);
 	su_state->su_restart_cnt = su->su_restart_cnt;
 	su_state->su_oper_state = su->oper;
 	su_state->su_pres_state = su->pres;
@@ -331,10 +337,12 @@ void add_su_state_info(AVND_MSG *msg, const AVND_SU* su)
 ******************************************************************************/
 void add_csicomp_state_info(AVND_MSG *msg, SaAmfCSIAssignment *csi_assign)
 {
-	AVSV_CSICOMP_STATE_MSG *csicomp_state = new AVSV_CSICOMP_STATE_MSG();
+	AVSV_CSICOMP_STATE_MSG *csicomp_state = static_cast<AVSV_CSICOMP_STATE_MSG*>(calloc(1, sizeof(AVSV_CSICOMP_STATE_MSG)));
 
-	csicomp_state->safCSI = csi_assign->csi;
-	csicomp_state->safComp = csi_assign->comp;
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&csi_assign->csi),
+							 &csicomp_state->safCSI);
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&csi_assign->comp),
+							 &csicomp_state->safComp);
 	csicomp_state->saAmfCSICompHAState = csi_assign->saAmfCSICompHAState;
 
 	csicomp_state->next = msg->info.avd->msg_info.n2d_nd_csicomp_state_info.csicomp_list;
@@ -357,9 +365,9 @@ void add_csicomp_state_info(AVND_MSG *msg, SaAmfCSIAssignment *csi_assign)
 ******************************************************************************/
 void add_comp_state_info(AVND_MSG *msg, const AVND_COMP *comp)
 {
-	AVSV_COMP_STATE_MSG *comp_state = new AVSV_COMP_STATE_MSG();
+	AVSV_COMP_STATE_MSG *comp_state = static_cast<AVSV_COMP_STATE_MSG*>(calloc(1, sizeof(AVSV_COMP_STATE_MSG)));
 
-	comp_state->safComp = comp->name;
+	osaf_extended_name_alloc(comp->name.c_str(), &comp_state->safComp);
 	comp_state->comp_restart_cnt = comp->err_info.restart_cnt;
 	comp_state->comp_oper_state = comp->oper;
 	comp_state->comp_pres_state = comp->pres;
@@ -462,12 +470,12 @@ void avnd_send_node_up_msg(void)
 		}
 	}
 
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_NODE_UP_MSG;
 	msg.info.avd->msg_info.n2d_node_up.msg_id = ++(cb->snd_msg_id);
 	msg.info.avd->msg_info.n2d_node_up.leds_set = cb->led_state == AVND_LED_STATE_GREEN ? true : false;
-	msg.info.avd->msg_info.n2d_node_up.node_name = cb->amf_nodeName;
+	osaf_extended_name_alloc(cb->amf_nodeName.c_str(), &msg.info.avd->msg_info.n2d_node_up.node_name);
 	msg.info.avd->msg_info.n2d_node_up.node_id = cb->node_info.nodeId;
 	msg.info.avd->msg_info.n2d_node_up.adest_address = cb->avnd_dest;
 
@@ -505,7 +513,7 @@ uint32_t avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 	if ((m_MDS_DEST_IS_AN_ADEST(evt->info.mds.mds_dest) && avnd_cb->cont_reboot_in_progress) &&
 			(evt->info.mds.mds_dest == cb->active_avd_adest)) {
 		cb->reboot_in_progress = true;
-		opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
+		opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 				"Link reset with Act controller");
 		goto done;
 	}
@@ -524,8 +532,8 @@ uint32_t avnd_evt_mds_avd_up_evh(AVND_CB *cb, AVND_EVT *evt)
 	} else {
 		/* Avd is already UP, reboot the node */
 		if (m_AVND_CB_IS_AVD_UP(cb)) {
-                        opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
-                                        "AVD already up");
+			opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
+                           "AVD already up");
 			goto done;
 		}
 
@@ -587,6 +595,7 @@ done:
 uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVND_SU *su;
 
 	TRACE_ENTER();
 
@@ -611,7 +620,7 @@ uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* Don't issue reboot if it has been already issued.*/
 		if (false == cb->reboot_in_progress) {
 			cb->reboot_in_progress = true;
-			opensaf_reboot(avnd_cb->node_info.nodeId, (char *) avnd_cb->node_info.executionEnvironment.value,
+			opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 				"local AVD down(Adest) or both AVD down(Vdest) received");
 		}
 
@@ -642,7 +651,7 @@ uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 
 				cb->reboot_in_progress = true;
 				opensaf_reboot(avnd_cb->node_info.nodeId,
-					       (char *)avnd_cb->node_info.executionEnvironment.value,
+					       osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 					       "local AVD down(Adest) or both AVD down(Vdest) received");
 			}
 		}
@@ -653,9 +662,10 @@ uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	// check for pending messages FROM director
 	// scan all SUs "siq" message list, if anyone is not empty reboot
-	const AVND_SU *su = (AVND_SU *)sudb_rec_get_next(&cb->sudb, (uint8_t *)0);
-	while (su != 0) {
-		LOG_NO("Checking '%s' for pending messages", su->name.value);
+	for (su = avnd_sudb_rec_get_next(cb->sudb, "");
+		 su != nullptr;
+		 su = avnd_sudb_rec_get_next(cb->sudb, su->name)) {
+		LOG_NO("Checking '%s' for pending messages", su->name.c_str());
 
 		const AVND_SU_SIQ_REC *siq =
 			(AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_LAST(&su->siq);
@@ -667,13 +677,10 @@ uint32_t avnd_evt_mds_avd_dn_evh(AVND_CB *cb, AVND_EVT *evt)
 
 				cb->reboot_in_progress = true;
 				opensaf_reboot(avnd_cb->node_info.nodeId,
-					(char *)avnd_cb->node_info.executionEnvironment.value,
+					osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 					"local AVD down(Adest) or both AVD down(Vdest) received");
 			}
 		}
-
-		su = (AVND_SU *)sudb_rec_get_next(
-			&cb->sudb, (uint8_t *)&su->name);
 	}
 	// record we are now 'headless'
 	cb->is_avd_down = true;
@@ -724,7 +731,7 @@ uint32_t avnd_di_oper_send(AVND_CB *cb, const AVND_SU *su, uint32_t rcvr)
 	TRACE_ENTER2("SU '%p', recv '%u'", su, rcvr);
 
 	/* populate the oper msg */
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_OPERATION_STATE_MSG;
 	msg.info.avd->msg_info.n2d_opr_state.msg_id = ++(cb->snd_msg_id);
@@ -732,12 +739,12 @@ uint32_t avnd_di_oper_send(AVND_CB *cb, const AVND_SU *su, uint32_t rcvr)
 	msg.info.avd->msg_info.n2d_opr_state.node_oper_state = cb->oper_state;
 
 	if (su) {
-		msg.info.avd->msg_info.n2d_opr_state.su_name = su->name;
+		osaf_extended_name_alloc(su->name.c_str(), &msg.info.avd->msg_info.n2d_opr_state.su_name);
 		msg.info.avd->msg_info.n2d_opr_state.su_oper_state = su->oper;
-		TRACE("SU '%s, su oper '%u'",  su->name.value, su->oper);
+		TRACE("SU '%s, su oper '%u'",  su->name.c_str(), su->oper);
 
 		if ((su->is_ncs == true) && (su->oper == SA_AMF_OPERATIONAL_DISABLED))
-			TRACE("%s SU Oper state got disabled", su->name.value);
+			TRACE("%s SU Oper state got disabled", su->name.c_str());
 	}
 
 	msg.info.avd->msg_info.n2d_opr_state.rec_rcvr.raw = rcvr;
@@ -816,9 +823,9 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	osafassert(curr_si);
 
-	TRACE_ENTER2("Sending Resp su=%s, si=%s, curr_state=%u, prv_state=%u", su->name.value, curr_si->name.value,curr_si->curr_state,curr_si->prv_state);
+	TRACE_ENTER2("Sending Resp su=%s, si=%s, curr_state=%u, prv_state=%u", su->name.c_str(), curr_si->name.c_str(),curr_si->curr_state,curr_si->prv_state);
 	/* populate the susi resp msg */
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
         msg.type = AVND_MSG_AVD;
         msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;
         msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
@@ -832,9 +839,9 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
                 (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
                  m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) ?
                 ((!curr_si->prv_state) ? AVSV_SUSI_ACT_ASGN : AVSV_SUSI_ACT_MOD) : AVSV_SUSI_ACT_DEL;
-        msg.info.avd->msg_info.n2d_su_si_assign.su_name = su->name;
+		osaf_extended_name_alloc(su->name.c_str(), &msg.info.avd->msg_info.n2d_su_si_assign.su_name);
         if (si) {
-                msg.info.avd->msg_info.n2d_su_si_assign.si_name = si->name;
+				osaf_extended_name_alloc(si->name.c_str(), &msg.info.avd->msg_info.n2d_su_si_assign.si_name);
                 if (AVSV_SUSI_ACT_ASGN == si->single_csi_add_rem_in_si) {
                         TRACE("si->curr_assign_state '%u'", curr_si->curr_assign_state);
                         msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
@@ -854,19 +861,19 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
         /* send the msg to AvD */
         TRACE("Sending. msg_id'%u', node_id'%u', msg_act'%u', su'%s', si'%s', ha_state'%u', error'%u', single_csi'%u'",
-              msg.info.avd->msg_info.n2d_su_si_assign.msg_id,  msg.info.avd->msg_info.n2d_su_si_assign.node_id,
-              msg.info.avd->msg_info.n2d_su_si_assign.msg_act,  msg.info.avd->msg_info.n2d_su_si_assign.su_name.value, 
-              msg.info.avd->msg_info.n2d_su_si_assign.si_name.value, msg.info.avd->msg_info.n2d_su_si_assign.ha_state,
+              msg.info.avd->msg_info.n2d_su_si_assign.msg_id, msg.info.avd->msg_info.n2d_su_si_assign.node_id,
+              msg.info.avd->msg_info.n2d_su_si_assign.msg_act, osaf_extended_name_borrow(&msg.info.avd->msg_info.n2d_su_si_assign.su_name), 
+              osaf_extended_name_borrow(&msg.info.avd->msg_info.n2d_su_si_assign.si_name), msg.info.avd->msg_info.n2d_su_si_assign.ha_state,
               msg.info.avd->msg_info.n2d_su_si_assign.error,  msg.info.avd->msg_info.n2d_su_si_assign.single_csi);
 
         if ((su->si_list.n_nodes > 1) && (si == nullptr)) {
                 if (msg.info.avd->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_DEL)
-                        LOG_NO("Removed 'all SIs' from '%s'", su->name.value);
+                        LOG_NO("Removed 'all SIs' from '%s'", su->name.c_str());
 
                 if (msg.info.avd->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD)
                         LOG_NO("Assigned 'all SIs' %s of '%s'",
                                ha_state[msg.info.avd->msg_info.n2d_su_si_assign.ha_state],
-                               su->name.value);
+                               su->name.c_str());
         }
 
         rc = avnd_di_msg_send(cb, &msg);
@@ -902,7 +909,7 @@ uint32_t avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Comp '%s'", param->name.value);
+	TRACE_ENTER2("Comp '%s'", osaf_extended_name_borrow(&param->name));
 
 	if (cb->is_avd_down == true) {
 		TRACE_LEAVE2("AVD is down. %u", rc);
@@ -912,7 +919,7 @@ uint32_t avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_DATA_REQUEST_MSG;
 	msg.info.avd->msg_info.n2d_data_req.msg_id = ++(cb->snd_msg_id);
@@ -938,19 +945,19 @@ uint32_t avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
  * @param value - ptr to uint32_t value to be sent
  * 
  */
-void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uint32_t value)
+void avnd_di_uns32_upd_send(int class_id, int attr_id, const std::string& dn, uint32_t value)
 {
 	AVSV_PARAM_INFO param = {0};
 
 	param.class_id = class_id;
 	param.attr_id = attr_id;
-	param.name = *dn;
+	osaf_extended_name_alloc(dn.c_str(), &param.name);
 	param.act = AVSV_OBJ_OPR_MOD;
 	*((uint32_t *)param.value) = m_NCS_OS_HTONL(value);
 	param.value_len = sizeof(uint32_t);
 
 	if (avnd_di_object_upd_send(avnd_cb, &param) != NCSCC_RC_SUCCESS)
-		LOG_WA("Could not send update msg for '%s'", dn->value);
+		LOG_WA("Could not send update msg for '%s'", dn.c_str());
 }
 
 /****************************************************************************
@@ -967,21 +974,21 @@ void avnd_di_uns32_upd_send(int class_id, int attr_id, const SaNameT *dn, uint32
  
   Notes         : None.
 ******************************************************************************/
-uint32_t avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn, bool fover)
+uint32_t avnd_di_pg_act_send(AVND_CB *cb, const std::string& csi_name, AVSV_PG_TRACK_ACT actn, bool fover)
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Csi '%s'", csi_name->value);
+	TRACE_ENTER2("Csi '%s'", csi_name.c_str());
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_PG_TRACK_ACT_MSG;
 	msg.info.avd->msg_info.n2d_pg_trk_act.msg_id = ++(cb->snd_msg_id);
 	msg.info.avd->msg_info.n2d_pg_trk_act.node_id = cb->node_info.nodeId;
-	msg.info.avd->msg_info.n2d_pg_trk_act.csi_name = *csi_name;
+	osaf_extended_name_alloc(csi_name.c_str(), &msg.info.avd->msg_info.n2d_pg_trk_act.csi_name);
 	msg.info.avd->msg_info.n2d_pg_trk_act.actn = actn;
 	msg.info.avd->msg_info.n2d_pg_trk_act.msg_on_fover = fover;
 
@@ -1075,7 +1082,7 @@ uint32_t avnd_di_ack_nack_msg_send(AVND_CB *cb, uint32_t rcv_id, uint32_t view_n
    /*** send the response to AvD ***/
 	memset(&msg, 0, sizeof(AVND_MSG));
 
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_VERIFY_ACK_NACK_MSG;
 	msg.info.avd->msg_info.n2d_ack_nack_info.msg_id = (cb->snd_msg_id + 1);
@@ -1111,18 +1118,18 @@ uint32_t avnd_di_ack_nack_msg_send(AVND_CB *cb, uint32_t rcv_id, uint32_t view_n
  
   Notes         : None.
 ******************************************************************************/
-uint32_t avnd_di_reg_su_rsp_snd(AVND_CB *cb, SaNameT *su_name, uint32_t ret_code)
+uint32_t avnd_di_reg_su_rsp_snd(AVND_CB *cb, const std::string& su_name, uint32_t ret_code)
 {
 	AVND_MSG msg;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&msg, 0, sizeof(AVND_MSG));
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_REG_SU_MSG;
 	msg.info.avd->msg_info.n2d_reg_su.msg_id = ++(cb->snd_msg_id);
 	msg.info.avd->msg_info.n2d_reg_su.node_id = cb->node_info.nodeId;
-	msg.info.avd->msg_info.n2d_reg_su.su_name = *su_name;
+	osaf_extended_name_alloc(su_name.c_str(), &msg.info.avd->msg_info.n2d_reg_su.su_name);
 	msg.info.avd->msg_info.n2d_reg_su.error =
                 (NCSCC_RC_SUCCESS == ret_code) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
 
@@ -1388,7 +1395,7 @@ uint32_t avnd_evt_tmr_avd_hb_duration_evh(AVND_CB *cb, AVND_EVT *evt)
 	sleep(1);
 
 	opensaf_reboot(avnd_cb->node_info.nodeId,
-				   (char *)avnd_cb->node_info.executionEnvironment.value,
+				   osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 				   "AMF director heart beat timeout");
 
 	return NCSCC_RC_SUCCESS;
@@ -1480,18 +1487,15 @@ uint32_t avnd_di_resend_pg_start_track(AVND_CB *cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_PG *pg = 0;
-	SaNameT csi_name;
+
 	TRACE_ENTER();
 
-	memset(&csi_name, '\0', sizeof(SaNameT));
-
-	while (nullptr != (pg = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, csi_name))) {
-		rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_START, true);
+	for (const auto& pg_rec : cb->pgdb) {
+		pg = pg_rec.second;
+		rc = avnd_di_pg_act_send(cb, pg->csi_name, AVSV_PG_TRACK_ACT_START, true);
 
 		if (NCSCC_RC_SUCCESS != rc)
 			break;
-
-		csi_name = pg->csi_name;
 	}
 
 	TRACE_LEAVE();
@@ -1512,7 +1516,7 @@ uint32_t avnd_evt_tmr_sc_absence_evh(AVND_CB *cb, AVND_EVT *evt)
 	LOG_ER("AMF director absence timeout");
 
 	opensaf_reboot(avnd_cb->node_info.nodeId,
-				   (char *)avnd_cb->node_info.executionEnvironment.value,
+				   osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 				   "AMF director absence timeout");
 
 	return NCSCC_RC_SUCCESS;
@@ -1536,7 +1540,7 @@ void avnd_sync_csicomp(AVND_CB *cb)
 
 	/* Send the state info to avd. */
 	memset(&msg, 0, sizeof(AVND_MSG));
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG;
@@ -1546,16 +1550,17 @@ void avnd_sync_csicomp(AVND_CB *cb)
 	msg.info.avd->msg_info.n2d_nd_csicomp_state_info.csicomp_list = nullptr;
 
 	// add CSICOMP objects
-	comp = (AVND_COMP *)compdb_rec_get_next(&cb->compdb, (uint8_t *)0);
-	while (comp != nullptr) {
-		TRACE("syncing comp: %s", comp->name.value);
+	for (comp = avnd_compdb_rec_get_next(cb->compdb, "");
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(cb->compdb, comp->name)) {
+		TRACE("syncing comp: %s", comp->name.c_str());
 		for (csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 				csi != nullptr;
 				csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&csi->comp_dll_node))) {
 			osafassert(csi != nullptr);
 
-			csi_assignment.comp = comp->name;
-			csi_assignment.csi = csi->name;
+			osaf_extended_name_alloc(comp->name.c_str(), &csi_assignment.comp);
+			osaf_extended_name_alloc(csi->name.c_str(), &csi_assignment.csi);
 
 			if (csi->si != nullptr) {
 				csi_assignment.saAmfCSICompHAState = csi->si->curr_state;
@@ -1569,7 +1574,6 @@ void avnd_sync_csicomp(AVND_CB *cb)
 		}
 
 		add_comp_state_info(&msg, comp);
-		comp = (AVND_COMP *)compdb_rec_get_next(&cb->compdb, (uint8_t *)&comp->name);
 	}
 
 	LOG_NO("%d CSICOMP states synced", msg.info.avd->msg_info.n2d_nd_csicomp_state_info.num_csicomp);
@@ -1604,7 +1608,7 @@ void avnd_sync_sisu(AVND_CB *cb)
 
 	/* Send the state info to avd. */
 	memset(&msg, 0, sizeof(AVND_MSG));
-	msg.info.avd = new AVSV_DND_MSG();
+	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
 
 	msg.type = AVND_MSG_AVD;
 	msg.info.avd->msg_type = AVSV_N2D_ND_SISU_STATE_INFO_MSG; //AVSV_N2D_ND_ASSIGN_STATES_MSG
@@ -1614,25 +1618,24 @@ void avnd_sync_sisu(AVND_CB *cb)
 	msg.info.avd->msg_info.n2d_nd_sisu_state_info.sisu_list = nullptr;
 
 	// gather SISU states
-	su = (AVND_SU *)sudb_rec_get_next(&cb->sudb, (uint8_t *)0);
-	while (su != nullptr) {
-		TRACE("syncing su: %s", su->name.value);
+	for (su = avnd_sudb_rec_get_next(cb->sudb, "");
+		 su != nullptr;
+		 su = avnd_sudb_rec_get_next(cb->sudb, su->name)) {
+		TRACE("syncing su: %s", su->name.c_str());
 
 		// attach SISUs
 		for (si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 				si != nullptr;
 				si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&si->su_dll_node)) {
 
-			si_assignment.su = su->name;
-			si_assignment.si = si->name;
+			osaf_extended_name_alloc(su->name.c_str(), &si_assignment.su);
+			osaf_extended_name_alloc(si->name.c_str(), &si_assignment.si);
 			si_assignment.saAmfSISUHAState = si->curr_state;
 
 			add_sisu_state_info(&msg, &si_assignment);
 		}
 
 		add_su_state_info(&msg, su);
-
-		su = (AVND_SU *)sudb_rec_get_next(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	LOG_NO("%d SISU states sent", msg.info.avd->msg_info.n2d_nd_sisu_state_info.num_sisu);

@@ -162,7 +162,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 	*rc = NCSCC_RC_SUCCESS;
 
 	/* verify if su-si relationship already exists */
-	if (0 != avnd_su_si_rec_get(cb, &param->su_name, &param->si_name)) {
+	if (0 != avnd_su_si_rec_get(cb, Amf::to_string(&param->su_name), Amf::to_string(&param->si_name))) {
 		*rc = AVND_ERR_DUP_SI;
 		goto err;
 	}
@@ -174,14 +174,14 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 	 * Update the supplied parameters.
 	 */
 	/* update the si-name (key) */
-	memcpy(&si_rec->name, &param->si_name, sizeof(SaNameT));
+	si_rec->name = Amf::to_string(&param->si_name);
 	si_rec->rank = param->si_rank;
 	si_rec->curr_state = param->ha_state;
 
 	/*
 	 * Update the rest of the parameters with default values.
 	 */
-	TRACE("Marking curr assigned state of '%s' unassigned.",si_rec->name.value);
+	TRACE("Marking curr assigned state of '%s' unassigned.", si_rec->name.c_str());
 	m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si_rec, AVND_SU_SI_ASSIGN_STATE_UNASSIGNED);
 
 	/*
@@ -224,8 +224,8 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 		csi_param = csi_param->next;
 	}
 
-	TRACE_1("SU-SI record added, '%s', '%s', rank:%u", param->su_name.value,
-			param->si_name.value, si_rec->rank);
+	TRACE_1("SU-SI record added, '%s', '%s', rank:%u", osaf_extended_name_borrow(&param->su_name),
+			osaf_extended_name_borrow(&param->si_name), si_rec->rank);
 	return si_rec;
 
  err:
@@ -234,52 +234,56 @@ AVND_SU_SI_REC *avnd_su_si_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *p
 		delete si_rec;
 	}
 
-	LOG_CR("SU-SI record addition failed, SU= %s : SI=%s",param->su_name.value,param->si_name.value);
+	LOG_CR("SU-SI record addition failed, SU= %s : SI=%s", osaf_extended_name_borrow(&param->su_name),
+		  osaf_extended_name_borrow(&param->si_name));
 	TRACE_LEAVE();
 	return 0;
 }
 
 static void get_cstype(SaImmHandleT immOmHandle,
 		SaImmAccessorHandleT accessorHandle,
-		const SaNameT *csi_name, SaNameT *cstype)
+		const std::string& csi_name, std::string& cstype)
 {
 	SaAisErrorT error;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAttrNameT attributeNames[2] =
 		{const_cast<SaImmAttrNameT>("saAmfCSType"), nullptr};
+	const char* type;
 
 	// TODO remove, just for test
-	LOG_NO("get_cstype: csi = '%s'", csi_name->value);
+	LOG_NO("get_cstype: csi = '%s'", csi_name.c_str());
 
-	if ((error = amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, csi_name,
+	if ((error = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, csi_name,
 			attributeNames,	(SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
-		LOG_ER("amf_saImmOmAccessorGet FAILED %u for %s", error, csi_name->value);
+		LOG_ER("amf_saImmOmAccessorGet_o2 FAILED %u for %s", error, csi_name.c_str());
 		osafassert(0);
 	}
 
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCSType"), attributes,
-			0, cstype) != SA_AIS_OK)
+	if ((type = immutil_getStringAttr(attributes, "saAmfCSType", 0)) == nullptr)
 		osafassert(0);
+	cstype = type;
 }
 
-static SaAmfCompCapabilityModelT get_comp_capability(const SaNameT *comp_type,
-		const SaNameT *csi_name)
+static SaAmfCompCapabilityModelT get_comp_capability(const std::string& comp_type,
+		const std::string& csi_name)
 {
 	SaAisErrorT error;
-	SaNameT dn;
+	SaNameT dn = {};
 	SaImmAccessorHandleT accessorHandle = 0;
 	const SaImmAttrValuesT_2 **attributes;
 	SaAmfCompCapabilityModelT comp_cap {};
 	SaImmAttrNameT attributeNames[2] =
 		{const_cast<SaImmAttrNameT>("saAmfCtCompCapability"), nullptr};
 	SaImmHandleT immOmHandle = 0;
-	SaVersionT immVersion = { 'A', 2, 1 };
-	SaNameT cs_type;
+	SaVersionT immVersion = { 'A', 2, 15 };
+	std::string cs_type;
+	SaNameT comp_type_sanamet;
+	SaNameT cs_type_sanamet;
 
 	// TODO remove, just for test
-	LOG_NO("get_comp_capability: comptype = '%s' : csi = '%s'", comp_type->value, csi_name->value);
+	LOG_NO("get_comp_capability: comptype = '%s' : csi = '%s'", comp_type.c_str(), csi_name.c_str());
 
-	TRACE_ENTER2("comptype = '%s' : csi = '%s'", comp_type->value, csi_name->value);
+	TRACE_ENTER2("comptype = '%s' : csi = '%s'", comp_type.c_str(), csi_name.c_str());
 
 	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 	if (error != SA_AIS_OK ) {
@@ -289,12 +293,14 @@ static SaAmfCompCapabilityModelT get_comp_capability(const SaNameT *comp_type,
 	}
 	amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
 
-	get_cstype(immOmHandle, accessorHandle, csi_name, &cs_type);
-	avsv_create_association_class_dn(&cs_type, comp_type, "safSupportedCsType", &dn);
+	get_cstype(immOmHandle, accessorHandle, csi_name, cs_type);
+	osaf_extended_name_lend(comp_type.c_str(), &comp_type_sanamet);
+	osaf_extended_name_lend(cs_type.c_str(), &cs_type_sanamet);
+	avsv_create_association_class_dn(&cs_type_sanamet, &comp_type_sanamet, "safSupportedCsType", &dn);
 
-	if ((error = amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, &dn, attributeNames,
+	if ((error = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, osaf_extended_name_borrow(&dn), attributeNames,
 			(SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
-		LOG_ER("amf_saImmOmAccessorGet FAILED %u for'%s'", error, dn.value);
+		LOG_ER("amf_saImmOmAccessorGet_o2 FAILED %u for'%s'", error, osaf_extended_name_borrow(&dn));
 		goto done;
 	}
 
@@ -306,6 +312,7 @@ done:
 	immutil_saImmOmAccessorFinalize(accessorHandle);
 	immutil_saImmOmFinalize(immOmHandle);
 done1:
+	osaf_extended_name_free(&dn);
 	TRACE_LEAVE2("%u", comp_cap);
 	return comp_cap;
 }
@@ -331,20 +338,22 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 {
 	AVND_COMP_CSI_REC *csi_rec = nullptr;
 	AVND_COMP *comp = nullptr;
+	const std::string param_csi_name = Amf::to_string(&param->csi_name);
+	const std::string param_comp_name = Amf::to_string(&param->comp_name);
 
-	TRACE_ENTER2("Comp'%s', Csi'%s' and Rank'%u'",param->csi_name.value, param->comp_name.value, param->csi_rank);
+	TRACE_ENTER2("Comp'%s', Csi'%s' and Rank'%u'", param_csi_name.c_str(), param_comp_name.c_str(), param->csi_rank);
 
 	*rc = NCSCC_RC_SUCCESS;
 
 	/* verify if csi record already exists */
-	if (0 != avnd_compdb_csi_rec_get(cb, &param->comp_name, &param->csi_name)) {
+	if (0 != avnd_compdb_csi_rec_get(cb, param_comp_name, param_csi_name)) {
 		TRACE("csi rec get Failed from compdb");
 		*rc = AVND_ERR_DUP_CSI;
 		goto err;
 	}
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, param_comp_name);
 	if (!comp) {
 		/* This could be because of NPI components, NPI components are not added in to DB
 		   because amfd doesn't send SU presence message to amfnd when SU is unlock-in.
@@ -352,13 +361,13 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 		if (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS) {
 			m_AVND_SU_REG_FAILED_SET(su);
 			/* Will transition to instantiation-failed when instantiated */
-			LOG_ER("su comp config get failed for NPI component:%s",param->comp_name.value);
+			LOG_ER("su comp config get failed for NPI component:%s", param_comp_name.c_str());
 			*rc = AVND_ERR_NO_SU;
 			goto err;
 		}
-		comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->comp_name);
+		comp = avnd_compdb_rec_get(cb->compdb, param_comp_name);
 		if (!comp) {
-			LOG_ER("comp rec get failed component:%s",param->comp_name.value);
+			LOG_ER("comp rec get failed component:%s", param_comp_name.c_str());
 			*rc = AVND_ERR_NO_COMP;
 			osafassert(0);
 			goto err;
@@ -372,18 +381,18 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 	 * Update the supplied parameters.
 	 */
 	/* update the csi-name & csi-rank (keys to comp-csi & si-csi lists resp) */
-	memcpy(&csi_rec->name, &param->csi_name, sizeof(SaNameT));
+	csi_rec->name = param_csi_name;
 	csi_rec->rank = param->csi_rank;
 
 	/* If CSI capability is not valid, read it from IMM */
 	if (param->capability == ~0)
 		csi_rec->capability =
-			get_comp_capability(&comp->saAmfCompType, &csi_rec->name);
+		get_comp_capability(comp->saAmfCompType, csi_rec->name);
 	else
 		csi_rec->capability = param->capability;
 
 	/* update the assignment related parameters */
-	memcpy(&csi_rec->act_comp_name, &param->active_comp_name, sizeof(SaNameT));
+	csi_rec->act_comp_name = Amf::to_string(&param->active_comp_name);
 	csi_rec->trans_desc = param->active_comp_dsc;
 	csi_rec->standby_rank = param->stdby_rank;
 
@@ -396,7 +405,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 	/*
 	 * Update the rest of the parameters with default values.
 	 */
-	TRACE("Marking curr assigned state of '%s' unassigned.",csi_rec->name.value);
+	TRACE("Marking curr assigned state of '%s' unassigned.", csi_rec->name.c_str());
 	m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi_rec, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
 	m_AVND_COMP_CSI_PRV_ASSIGN_STATE_SET(csi_rec, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
 
@@ -439,7 +448,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add(AVND_CB *cb,
 		delete csi_rec;
 	}
 
-	LOG_CR("Comp-CSI record addition failed, Comp=%s : CSI=%s",param->comp_name.value,param->csi_name.value);
+	LOG_CR("Comp-CSI record addition failed, Comp=%s : CSI=%s", param_comp_name.c_str(), param_csi_name.c_str());
 	TRACE_LEAVE();
 	return 0;
 }
@@ -469,7 +478,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM
 	*rc = NCSCC_RC_SUCCESS;
 
 	/* get the su-si relationship record */
-	si_rec = avnd_su_si_rec_get(cb, &param->su_name, &param->si_name);
+	si_rec = avnd_su_si_rec_get(cb, Amf::to_string(&param->su_name), Amf::to_string(&param->si_name));
 	if (!si_rec) {
 		*rc = AVND_ERR_NO_SI;
 		goto err;
@@ -481,7 +490,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM
 
 	/* store the prv assign-state & update the new assign-state */
 	si_rec->prv_assign_state = si_rec->curr_assign_state;
-	TRACE_1("Marking curr assigned state of '%s' unassigned.",si_rec->name.value);
+	TRACE_1("Marking curr assigned state of '%s' unassigned.", si_rec->name.c_str());
 	m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si_rec, AVND_SU_SI_ASSIGN_STATE_UNASSIGNED);
 
 	/* now modify the csi records */
@@ -521,7 +530,7 @@ uint32_t avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_
 	TRACE_ENTER2("%p", param);
 	/* pick up all the csis belonging to the si & modify them */
 	if (!param) {
-		TRACE_1("Marking curr assigned state of all CSIs of '%s' unassigned.",si_rec->name.value);
+		TRACE_1("Marking curr assigned state of all CSIs of '%s' unassigned.", si_rec->name.c_str());
 		for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si_rec->csi_list);
 		     curr_csi; curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_csi->si_dll_node)) {
 			/* store the prv assign-state & update the new assign-state */
@@ -533,20 +542,20 @@ uint32_t avnd_su_si_csi_rec_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_
 	/* pick up the csis belonging to the comps specified in the param-list */
 	for (curr_param = param; curr_param; curr_param = curr_param->next) {
 		/* get the comp & csi */
-		curr_csi = avnd_compdb_csi_rec_get(cb, &curr_param->comp_name, &curr_param->csi_name);
+		curr_csi = avnd_compdb_csi_rec_get(cb, Amf::to_string(&curr_param->comp_name), Amf::to_string(&curr_param->csi_name));
 		if (!curr_csi || (curr_csi->comp->su != su)) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 
 		/* update the assignment related parameters */
-		curr_csi->act_comp_name = curr_param->active_comp_name;
+		curr_csi->act_comp_name = Amf::to_string(&curr_param->active_comp_name);
 		curr_csi->trans_desc = curr_param->active_comp_dsc;
 		curr_csi->standby_rank = curr_param->stdby_rank;
 
 		/* store the prv assign-state & update the new assign-state */
 		curr_csi->prv_assign_state = curr_csi->curr_assign_state;
-		TRACE("Marking curr assigned state of '%s' unassigned.",curr_csi->name.value);
+		TRACE("Marking curr assigned state of '%s' unassigned.", curr_csi->name.c_str());
 		m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
 	}			/* for */
 
@@ -576,7 +585,7 @@ uint32_t avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param
 
 	TRACE_ENTER2();
 	/* modify all the si records */
-	TRACE("Marking curr assigned state all SIs in '%s' unassigned.",su->name.value);
+	TRACE("Marking curr assigned state all SIs in '%s' unassigned.", su->name.c_str());
 	for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 	     curr_si; curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
 		/* store the prv state & update the new state */
@@ -590,7 +599,7 @@ uint32_t avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param
 
 	if (su->si_list.n_nodes > 1)
 		LOG_NO("Assigning 'all (%u) SIs' %s to '%s'", su->si_list.n_nodes,
-				ha_state[param->ha_state], su->name.value);
+				ha_state[param->ha_state], su->name.c_str());
 
 	/* now modify the comp-csi records */
 	rc = avnd_su_si_csi_all_modify(cb, su, 0);
@@ -626,7 +635,7 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 	TRACE_ENTER2("%p", param);
 	/* pick up all the csis belonging to all the sis & modify them */
 	if (!param) {
-		TRACE("Marking curr assigned state all CSIs in SIs of '%s' unassigned.",su->name.value);
+		TRACE("Marking curr assigned state all CSIs in SIs of '%s' unassigned.", su->name.c_str());
 		for (curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
 		     curr_si; curr_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_NEXT(&curr_si->su_dll_node)) {
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&curr_si->csi_list);
@@ -641,7 +650,7 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 	/* pick up all the csis belonging to the comps specified in the param-list */
 	for (curr_param = param; curr_param; curr_param = curr_param->next) {
 		/* get the comp */
-		curr_comp = m_AVND_COMPDB_REC_GET(cb->compdb, curr_param->comp_name);
+		curr_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&curr_param->comp_name));
 		if (!curr_comp || (curr_comp->su != su)) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
@@ -652,20 +661,20 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
 	/* pick up all the csis belonging to the comps specified in the param-list */
 	for (curr_param = param; curr_param; curr_param = curr_param->next) {
 		/* get the comp */
-		curr_comp = m_AVND_COMPDB_REC_GET(cb->compdb, curr_param->comp_name);
+		curr_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&curr_param->comp_name));
 		if (!curr_comp || (curr_comp->su != su)) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 		if (false == curr_comp->assigned_flag) {
 			/* modify all the csi-records */
-			TRACE("Marking curr assigned state all CSIs assigned to '%s' unassigned.",curr_comp->name.value);
+			TRACE("Marking curr assigned state all CSIs assigned to '%s' unassigned.", curr_comp->name.c_str());
 			for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&curr_comp->csi_list));
 					curr_csi;
 					curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_NEXT(&curr_csi->comp_dll_node)))
 			{
 				/* update the assignment related parameters */
-				curr_csi->act_comp_name = curr_param->active_comp_name;
+				curr_csi->act_comp_name = Amf::to_string(&curr_param->active_comp_name);
 				curr_csi->trans_desc = curr_param->active_comp_dsc;
 				curr_csi->standby_rank = curr_param->stdby_rank;
 
@@ -697,15 +706,15 @@ uint32_t avnd_su_si_csi_all_modify(AVND_CB *cb, AVND_SU *su, AVND_COMP_CSI_PARAM
  
   Notes         : None
 ******************************************************************************/
-uint32_t avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
+uint32_t avnd_su_si_rec_del(AVND_CB *cb, const std::string& su_name, const std::string& si_name)
 {
 	AVND_SU *su = 0;
 	AVND_SU_SI_REC *si_rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("'%s' : '%s'", su_name->value, si_name->value);
+	TRACE_ENTER2("'%s' : '%s'", su_name.c_str(), si_name.c_str());
 
 	/* get the su record */
-	su = m_AVND_SUDB_REC_GET(cb->sudb, *su_name);
+	su = cb->sudb.find(su_name);
 	if (!su) {
 		rc = AVND_ERR_NO_SU;
 		goto err;
@@ -735,7 +744,7 @@ uint32_t avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
 	/* remove from global SI list */
 	(void) ncs_db_link_list_delink(&cb->si_list, &si_rec->cb_dll_node);
 
-	TRACE_1("SU-SI record deleted, SU= %s : SI=%s",su_name->value,si_name->value);
+	TRACE_1("SU-SI record deleted, SU= %s : SI=%s", su_name.c_str(), si_name.c_str());
 
 	/* free the memory */
 	delete si_rec;
@@ -743,7 +752,7 @@ uint32_t avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
 	return rc;
 
  err:
-	LOG_CR("SU-SI record deletion failed, SU= %s : SI=%s",su_name->value,si_name->value);
+	LOG_CR("SU-SI record deletion failed, SU= %s : SI=%s", su_name.c_str(), si_name.c_str());
 	return rc;
 }
 
@@ -760,16 +769,16 @@ uint32_t avnd_su_si_rec_del(AVND_CB *cb, SaNameT *su_name, SaNameT *si_name)
  
   Notes         : None
 ******************************************************************************/
-uint32_t avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
+uint32_t avnd_su_si_del(AVND_CB *cb, const std::string& su_name)
 {
 	AVND_SU *su = 0;
 	AVND_SU_SI_REC *si_rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("'%s'", su_name->value);
+	TRACE_ENTER2("'%s'", su_name.c_str());
 
 	/* get the su record */
-	su = m_AVND_SUDB_REC_GET(cb->sudb, *su_name);
+	su = cb->sudb.find(su_name);
 	if (!su) {
 		rc = AVND_ERR_NO_SU;
 		goto err;
@@ -777,7 +786,7 @@ uint32_t avnd_su_si_del(AVND_CB *cb, SaNameT *su_name)
 
 	/* scan & delete each si record */
 	while (0 != (si_rec = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list))) {
-		rc = avnd_su_si_rec_del(cb, su_name, &si_rec->name);
+		rc = avnd_su_si_rec_del(cb, su_name, si_rec->name);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto err;
 	}
@@ -805,7 +814,7 @@ uint32_t avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
 {
 	AVND_COMP_CSI_REC *csi_rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("'%s' : '%s'", su->name.value, si_rec->name.value);
+	TRACE_ENTER2("'%s' : '%s'", su->name.c_str(), si_rec->name.c_str());
 
 	/* scan & delete each csi record */
 	while (0 != (csi_rec = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si_rec->csi_list))) {
@@ -839,7 +848,9 @@ uint32_t avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
 uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("'%s' : '%s' : '%s'", su->name.value, si_rec->name.value, csi_rec->name.value);
+	uint16_t i;
+
+	TRACE_ENTER2("'%s' : '%s' : '%s'", su->name.c_str(), si_rec->name.c_str(), csi_rec->name.c_str());
 
 	/* remove from the comp-csi list */
 	rc = m_AVND_COMPDB_REC_CSI_REM(*(csi_rec->comp), *csi_rec);
@@ -866,10 +877,18 @@ uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
 	// free the csi attributes
 	// use of free() is required as it was
 	// malloc'ed (eg. in avsv_edp_susi_asgn())
+	// Try to free the attributes, in theory, they contain SaNameT
+	// So, it is potential for a leak
+	for (i = 0; i < csi_rec->attrs.number; i++) {
+		osaf_extended_name_free(&csi_rec->attrs.list[i].name);
+		osaf_extended_name_free(&csi_rec->attrs.list[i].value);
+		free(csi_rec->attrs.list[i].string_ptr);
+	}
+	//
 	free(csi_rec->attrs.list);
 	
 	/* free the pg list TBD */
-	TRACE_1("Comp-CSI record deletion success, Comp=%s : CSI=%s",csi_rec->comp->name.value,csi_rec->name.value);
+	TRACE_1("Comp-CSI record deletion success, Comp=%s : CSI=%s", csi_rec->comp->name.c_str(), csi_rec->name.c_str());
 
 	/* finally free this record */
 	delete csi_rec;
@@ -878,7 +897,7 @@ uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
 	return rc;
 
  err:
-	LOG_CR("Comp-CSI record deletion failed, Comp=%s : CSI=%s",csi_rec->comp->name.value,csi_rec->name.value);
+	LOG_CR("Comp-CSI record deletion failed, Comp=%s : CSI=%s", csi_rec->comp->name.c_str(), csi_rec->name.c_str());
 	return rc;
 }
 
@@ -896,19 +915,19 @@ uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec
  
   Notes         : None
 ******************************************************************************/
-AVND_SU_SI_REC *avnd_su_si_rec_get(AVND_CB *cb, const SaNameT *su_name, const SaNameT *si_name)
+AVND_SU_SI_REC *avnd_su_si_rec_get(AVND_CB *cb, const std::string& su_name, const std::string& si_name)
 {
 	AVND_SU_SI_REC *si_rec = 0;
 	AVND_SU *su = 0;
 
-	TRACE_ENTER2("'%s' : '%s'", su_name->value, si_name->value);
+	TRACE_ENTER2("'%s' : '%s'", su_name.c_str(), si_name.c_str());
 	/* get the su record */
-	su = m_AVND_SUDB_REC_GET(cb->sudb, *su_name);
+	su = cb->sudb.find(su_name);
 	if (!su)
 		goto done;
 
 	/* get the si record */
-	si_rec = (AVND_SU_SI_REC *)ncs_db_link_list_find(&su->si_list, (uint8_t *)si_name);
+	si_rec = (AVND_SU_SI_REC *)ncs_db_link_list_find(&su->si_list, (uint8_t *)si_name.c_str());
 
  done:
 	TRACE_LEAVE();
@@ -935,7 +954,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 	AVND_SU_SIQ_REC *siq = 0;
 
 	*rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE_ENTER2("'%s'", su->name.c_str());
 
 	/* alloc the siq rec */
 	siq = new AVND_SU_SIQ_REC();
@@ -981,7 +1000,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM 
 void avnd_su_siq_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SIQ_REC *siq)
 {
 	AVSV_SUSI_ASGN *curr = 0;
-	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE_ENTER2("'%s'", su->name.c_str());
 
 	/* delete the comp-csi info */
 	while ((curr = siq->info.list) != 0) {

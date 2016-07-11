@@ -175,6 +175,12 @@ int main(int argc, char *argv[])
 
 	daemonize_as_user("root", argc, argv);
 
+	// Enable long DN
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		LOG_ER("failed to set SA_ENABLE_EXTENDED_NAMES");
+		exit(EXIT_FAILURE);
+	}
+
 	if (__init_avnd() != NCSCC_RC_SUCCESS) {
 		syslog(LOG_ERR, "__init_avd() failed");
 		goto done;
@@ -187,7 +193,7 @@ int main(int argc, char *argv[])
 	/* should never return */
 	avnd_main_process();
 
-	opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
+	opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 			"avnd_main_proc exited");
 
 	exit(1);
@@ -219,6 +225,8 @@ uint32_t avnd_create(void)
 	AVND_CB *cb = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
+
+	osaf_extended_name_init();
 
 	/* create & initialize AvND cb */
 	cb = avnd_cb_create();
@@ -310,37 +318,18 @@ AVND_CB *avnd_cb_create()
 	cb->sc_absence_tmr.is_active = false;
 	cb->sc_absence_tmr.type = AVND_TMR_SC_ABSENCE;
 
-	memset(&cb->amf_nodeName, 0, sizeof(cb->amf_nodeName));
+	cb->amf_nodeName = "";
 
 	/*** initialize avnd dbs ***/
 
 	avnd_silist_init(cb);
 
-	/* initialize su db */
-	if (NCSCC_RC_SUCCESS != avnd_sudb_init(cb))
-		goto err;
-
 	/* initialize comp db */
 	if (NCSCC_RC_SUCCESS != avnd_compdb_init(cb))
 		goto err;
 
-	/* initialize healthcheck db */
-	avnd_hcdb_init(cb);
-
-	/* initialize pg db */
-	if (NCSCC_RC_SUCCESS != avnd_pgdb_init(cb))
-		goto err;
-
 	/* initialize pid_mon list */
 	avnd_pid_mon_list_init(cb);
-
-	/* initialize nodeid to mdsdest mapping db */
-	if (NCSCC_RC_SUCCESS != avnd_nodeid_to_mdsdest_map_db_init(cb))
-		goto err;
-
-	/* initialize available internode components db */
-	if (NCSCC_RC_SUCCESS != avnd_internode_avail_comp_db_init(cb))
-		goto err;
 
 	TRACE_LEAVE();
 	return cb;
@@ -679,10 +668,10 @@ static void hydra_config_get(AVND_CB *cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	SaImmHandleT immOmHandle;
-	SaVersionT immVersion = { 'A', 2, 1 };
+	SaVersionT immVersion = { 'A', 2, 15 };
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
-	SaNameT dn = {0, "opensafImm=opensafImm,safApp=safImmService"};
+	const std::string dn = "opensafImm=opensafImm,safApp=safImmService";
 	SaImmAttrNameT attrName = const_cast<SaImmAttrNameT>("scAbsenceAllowed");
 	SaImmAttrNameT attributeNames[] = {attrName, nullptr};
 	const SaUint32T *value = nullptr;
@@ -692,21 +681,19 @@ static void hydra_config_get(AVND_CB *cb)
 	/* Set to default value */
 	cb->scs_absence_max_duration = 0;
 
-	dn.length = strlen((char *)dn.value);
-
 	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 	amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
-	rc = amf_saImmOmAccessorGet_2(immOmHandle, accessorHandle, &dn, attributeNames,
+	rc = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, attributeNames,
 		(SaImmAttrValuesT_2 ***)&attributes);
 
 	if (rc != SA_AIS_OK) {
-		LOG_WA("amf_saImmOmAccessorGet_2 FAILED %u for %s", rc, dn.value);
+		LOG_WA("amf_saImmOmAccessorGet_o2 FAILED %u for %s", rc, dn.c_str());
 		goto done;
 	}
 
 	value = immutil_getUint32Attr(attributes, attrName, 0);
 	if (value == nullptr) {
-		LOG_WA("immutil_getUint32Attr FAILED for %s", dn.value);
+		LOG_WA("immutil_getUint32Attr FAILED for %s", dn.c_str());
 		goto done;
 	}
 

@@ -61,10 +61,11 @@ void free_n2d_nd_csicomp_state_info(AVSV_DND_MSG *msg);
 void free_n2d_nd_sisu_state_info(AVSV_DND_MSG *msg);
 SaAisErrorT saImmOmInitialize_cond(SaImmHandleT *immHandle,
 	const SaImmCallbacksT *immCallbacks, SaVersionT *version);
+uint32_t avnd_cpy_SU_DN_from_DN(std::string&, const std::string&);
 SaAisErrorT amf_saImmOmAccessorInitialize(SaImmHandleT& immHandle,
       SaImmAccessorHandleT& accessorHandle);
-SaAisErrorT amf_saImmOmSearchInitialize_2(SaImmHandleT& immHandle,
-      const SaNameT * rootName,
+SaAisErrorT amf_saImmOmSearchInitialize_o2(SaImmHandleT& immHandle,
+      const std::string& rootName,
       SaImmScopeT scope,
       SaImmSearchOptionsT searchOptions,
       const SaImmSearchParametersT_2 *
@@ -72,9 +73,9 @@ SaAisErrorT amf_saImmOmSearchInitialize_2(SaImmHandleT& immHandle,
       const SaImmAttrNameT *
       attributeNames,
       SaImmSearchHandleT& searchHandle);
-SaAisErrorT amf_saImmOmAccessorGet_2(SaImmHandleT& immHandle,
+SaAisErrorT amf_saImmOmAccessorGet_o2(SaImmHandleT& immHandle,
 	SaImmAccessorHandleT& accessorHandle,
-	const SaNameT * objectName,
+	const std::string& objectName,
 	const SaImmAttrNameT * attributeNames,
 	SaImmAttrValuesT_2 *** attributes);
 #endif   /* !AVND_UTIL_H */

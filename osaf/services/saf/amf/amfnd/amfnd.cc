@@ -54,18 +54,21 @@ uint32_t avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 		AVSV_ND2ND_CBK_DEL *del_cbk = nullptr;
 		AVND_COMP *o_comp = nullptr;
 		AVND_COMP_CBK *cbk_rec = nullptr;
+		std::string comp_name;
 
 		del_cbk = &avnd_avnd_msg->info.cbk_del;
-		o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, del_cbk->comp_name);
+		comp_name = Amf::to_string(&del_cbk->comp_name);
+		o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
+
 		if (nullptr == o_comp) {
-			LOG_ER("Comp not in Inter/Ext Comp DB: %s : opq_hdl= %u",del_cbk->comp_name.value,del_cbk->opq_hdl);
+			LOG_ER("Comp not in Inter/Ext Comp DB: %s : opq_hdl= %u", comp_name.c_str(), del_cbk->opq_hdl);
 			return NCSCC_RC_FAILURE;
 		}
 
 		m_AVND_COMP_CBQ_ORIG_INV_GET(o_comp, del_cbk->opq_hdl, cbk_rec);
 
 		if (!cbk_rec) {
-			TRACE_3("No callback record found: %s,opq_hdl=%u",del_cbk->comp_name.value,del_cbk->opq_hdl);
+			TRACE_3("No callback record found: %s, opq_hdl=%u", comp_name.c_str(), del_cbk->opq_hdl);
 			goto done;
 		}
 
@@ -139,7 +142,7 @@ uint32_t avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			SaAisErrorT amf_rc = SA_AIS_OK;
 			bool msg_from_avnd = true;
 
-			comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name);
+			comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&reg->comp_name));
 			if (nullptr == comp)
 				return NCSCC_RC_FAILURE;
 
@@ -185,10 +188,11 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_AMF_API_RESP_INFO *resp_info = &avnd_msg->info.msg->info.api_resp_info;
 	SaAmfHAStateT *ha_state = nullptr;
 	MDS_DEST reg_dest = 0;
+	const std::string comp_name = Amf::to_string(&avnd_msg->comp_name);
 
-	TRACE_ENTER2("%s: Type =%u and rc = %u",avnd_msg->comp_name.value, resp_info->type, resp_info->rc);
+	TRACE_ENTER2("%s: Type =%u and rc = %u", comp_name.c_str(), resp_info->type, resp_info->rc);
 
-	o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
+	o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
 	if (nullptr == o_comp) {
 		LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 		res = NCSCC_RC_FAILURE;
@@ -202,16 +206,16 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	if (AVSV_AMF_COMP_REG == resp_info->type) {
 		if (SA_AIS_OK != resp_info->rc) {
 			/* We got comp reg failure. We need to delete the component.  */
-			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
+			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
 			if (nullptr == o_comp) {
 				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
 				goto done;
 			}
 			reg_dest = o_comp->reg_dest;
-			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(avnd_msg->comp_name));
+			res = avnd_internode_comp_del(cb, comp_name);
 		} else {
-			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
+			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
 			if (nullptr == o_comp) {
 				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
@@ -231,7 +235,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		} else {
 			/* Unreg SUCCESS. We need to delete the component as well as proxy-proxied 
 			   relation */
-			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, avnd_msg->comp_name);
+			o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
 			if (nullptr == o_comp) {
 				LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 				res = NCSCC_RC_FAILURE;
@@ -239,7 +243,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			}
 			reg_dest = o_comp->reg_dest;
 			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, false, nullptr);
-			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(o_comp->name));
+			res = avnd_internode_comp_del(cb, o_comp->name);
 		}
 	}
 
@@ -256,12 +260,12 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 				 &reg_dest, &avnd_msg->mds_ctxt, nullptr, false);
 
 	if (NCSCC_RC_SUCCESS != res) {
-		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u, Dest:%" PRIu64 ,__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc, reg_dest);
+		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u, Dest:%" PRIu64 , __FUNCTION__, comp_name.c_str(), resp_info->type, resp_info->rc, reg_dest);
 	}
 
  done:
 	if (NCSCC_RC_SUCCESS != res) {
-		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u",__FUNCTION__,avnd_msg->comp_name.value, resp_info->type, resp_info->rc);
+		LOG_ER("%s: Msg Send to AvA Failed:Comp:%s ,Type: %u, rc:%u", __FUNCTION__, comp_name.c_str(), resp_info->type, resp_info->rc);
 	}
 	TRACE_LEAVE2("%u", res);
 	return res;
@@ -289,18 +293,19 @@ uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_AMF_CBK_INFO *cbk_info = avnd_msg->info.msg->info.cbk_info;
 	AVSV_AMF_CBK_INFO *cbk_rec = nullptr;
 	AVND_COMP_CBK *rec = nullptr;
+	const std::string comp_name = Amf::to_string(&cbk_info->param.hc.comp_name);
 
 	TRACE_ENTER2("Type:%u, Hdl:%llu, Inv:%llu", cbk_info->type, cbk_info->hdl, cbk_info->inv);
 
 	/* Create a callback record for storing purpose. */
-	rc = amf_cbk_copy(&cbk_rec, cbk_info);
+	rc = avsv_amf_cbk_copy(&cbk_rec, cbk_info);
 
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
 	/* Get the component pointer. */
 
-	if (0 == (comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, cbk_info->param.hc.comp_name))) {
+	if ((comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name)) == nullptr) {
 		/* 
 		   NOTE : The component name has been taken from health check callback structure,
 		   this will not make any difference to other types of callback structures,
@@ -310,10 +315,10 @@ uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		   cbk_info->param.pxied_comp_inst.comp_name.
 		 */
 		rc = NCSCC_RC_FAILURE;
-		LOG_ER("Couldn't find comp %s in Inter/Ext Comp DB",cbk_info->param.hc.comp_name.value);
+		LOG_ER("Couldn't find comp %s in Inter/Ext Comp DB", comp_name.c_str());
 		/* free the callback info */
 		if (cbk_rec)
-			amf_cbk_free(cbk_rec);
+			avsv_amf_cbk_free(cbk_rec);
 
 		goto done;
 	}
@@ -337,11 +342,11 @@ uint32_t avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 		}
 
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("comp %s cbk rec send failed",comp->name.value);
+			LOG_ER("comp %s cbk rec send failed", comp->name.c_str());
 		}
 	} else {
 		rc = NCSCC_RC_FAILURE;
-		LOG_ER("%s Cbk Rec Add Failed:Dest: %" PRIu64, comp->name.value, comp->reg_dest);
+		LOG_ER("%s Cbk Rec Add Failed:Dest: %" PRIu64, comp->name.c_str(), comp->reg_dest);
 	}
 
 	if (NCSCC_RC_SUCCESS != rc && rec) {
@@ -393,25 +398,23 @@ uint32_t avnd_evt_avd_reboot_evh(AVND_CB *cb, AVND_EVT *evt)
 	   TODO: This for loop can be removed if AVD remembers and checkpoints 
 	   alarms sent due to error report.
 	 */
-	for (AVND_COMP *comp = (AVND_COMP *)compdb_rec_get_next(&avnd_cb->compdb, (uint8_t *)0);
-		  comp;
-		  comp = (AVND_COMP *) compdb_rec_get_next(&avnd_cb->compdb, (uint8_t *)&comp->name)) {
-
+	for (AVND_COMP *comp = avnd_compdb_rec_get_next(avnd_cb->compdb, "");
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(avnd_cb->compdb, comp->name)) {
 		/* Skip OpenSAF and external components */
 		if (comp->su->is_ncs || comp->su->su_is_external)
 			continue;
 
 		if (comp->error_report_sent == true) {
 			avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRecoveryOnError_ID,
-					&comp->name, 0);
+					comp->name, 0);
 			comp->error_report_sent = false;
 		}
-
 	}
 
 	LOG_NO("Received reboot order, ordering reboot now!");
 	opensaf_reboot(cb->node_info.nodeId,
-				   (char *)cb->node_info.executionEnvironment.value,
+				   osaf_extended_name_borrow(&cb->node_info.executionEnvironment),
 				   "Received reboot order");
 
 	TRACE_LEAVE();

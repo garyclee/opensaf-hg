@@ -120,7 +120,7 @@ static void log_recovery_escalation(const AVND_COMP& comp,
 {
 	if (esc_rcvr != previous_esc_rcvr) {
 		LOG_NO("'%s' recovery action escalated from '%s' to '%s'",
-			comp.name.value,
+			comp.name.c_str(),
 			g_comp_rcvr[previous_esc_rcvr - 1],
 			g_comp_rcvr[esc_rcvr - 1]);
 	}
@@ -167,8 +167,7 @@ uint32_t avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, err_rep->err_comp);
-
+	comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&err_rep->err_comp));
 	/* determine the error code, if any */
 	if (!comp)
 		amf_rc = SA_AIS_ERR_NOT_EXIST;
@@ -215,7 +214,7 @@ uint32_t avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_err_rep():%s:Hdl=%llx, rec_rcvr:%u",\
-				    err_rep->err_comp.value, err_rep->hdl, err_rep->rec_rcvr.raw);
+				    osaf_extended_name_borrow(&err_rep->err_comp), err_rep->hdl, err_rep->rec_rcvr.raw);
 	}
 
 	TRACE_LEAVE();
@@ -262,7 +261,7 @@ uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, err_clear->comp_name);
+	comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&err_clear->comp_name));
 
 	/* determine the error code, if any */
 	if (!comp || !m_AVND_COMP_IS_REG(comp) ||
@@ -287,7 +286,7 @@ uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_err_clear():%s: Hdl=%llx",
-				    err_clear->comp_name.value, err_clear->hdl);
+				    osaf_extended_name_borrow(&err_clear->comp_name), err_clear->hdl);
 	}
 
 	TRACE_LEAVE();
@@ -314,7 +313,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 {
 	uint32_t esc_rcvr = err_info->rec_rcvr.raw;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Comp:'%s' esc_rcvr:'%u'", comp->name.value, esc_rcvr);
+	TRACE_ENTER2("Comp:'%s' esc_rcvr:'%u'", comp->name.c_str(), esc_rcvr);
 	
 	const uint32_t previous_esc_rcvr = esc_rcvr;
 
@@ -332,7 +331,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 
 	// Handle errors differently when shutdown has started
 	if (AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED == cb->term_state) {
-		LOG_NO("'%s' faulted due to '%s'", comp->name.value, g_comp_err[err_info->src]);
+		LOG_NO("'%s' faulted due to '%s'", comp->name.c_str(), g_comp_err[err_info->src]);
 		avnd_comp_cleanup_launch(comp);
 		goto done;
 	}
@@ -369,11 +368,11 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	if  (m_AVND_COMP_PRES_STATE_IS_TERMINATING(comp)) {
 		// special treat failures while terminating, no escalation just cleanup
 		LOG_NO("'%s' faulted due to '%s' : Recovery is 'cleanup'",
-				comp->name.value, g_comp_err[err_info->src]);
+				comp->name.c_str(), g_comp_err[err_info->src]);
 		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		if (NCSCC_RC_SUCCESS != rc) {
 			// this is bad situation, what can we do?
-			LOG_ER("%s: '%s' termination failed", __FUNCTION__, comp->name.value);
+			LOG_ER("%s: '%s' termination failed", __FUNCTION__, comp->name.c_str());
 		}
 		goto done;
 	}
@@ -387,7 +386,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	else if (comp->error_report_sent == false){
 		/* Inform AMFD to generate ErrorReport() notification */
 		avnd_di_uns32_upd_send(AVSV_SA_AMF_COMP, saAmfCompRecoveryOnError_ID,
-				&comp->name, err_info->rec_rcvr.raw);
+				comp->name, err_info->rec_rcvr.raw);
 		comp->error_report_sent = true;
 	}
 
@@ -400,13 +399,13 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	log_recovery_escalation(*comp, previous_esc_rcvr, esc_rcvr);
 
 	LOG_NO("'%s' faulted due to '%s' : Recovery is '%s'",
-		comp->name.value, g_comp_err[err_info->src], g_comp_rcvr[esc_rcvr - 1]);
+		comp->name.c_str(), g_comp_err[err_info->src], g_comp_rcvr[esc_rcvr - 1]);
 
 	if (((comp->su->is_ncs == true) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) || esc_rcvr == SA_AMF_NODE_FAILFAST) {
 		LOG_ER("%s Faulted due to:%s Recovery is:%s",
-		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
+		       comp->name.c_str(), g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 		/* do the local node reboot for node_failfast or ncs component failure*/
-		opensaf_reboot(avnd_cb->node_info.nodeId, (char *)avnd_cb->node_info.executionEnvironment.value,
+		opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 				"Component faulted: recovery is node failfast");
 	}
 
@@ -416,7 +415,6 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		goto done;
 
  done:
-
 	TRACE_LEAVE2("Return value:'%u'", rc);
 	return rc;
 }
@@ -449,7 +447,7 @@ uint32_t avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t *
 
 	if (*io_esc_rcvr == SA_AMF_COMPONENT_RESTART) {
 		if (m_AVND_COMP_IS_RESTART_DIS(comp) && (!su->is_ncs)) {
-			LOG_NO("saAmfCompDisableRestart is true for '%s'",comp->name.value);
+			LOG_NO("saAmfCompDisableRestart is true for '%s'", comp->name.c_str());
 			LOG_NO("recovery action 'comp restart' escalated to 'comp failover'");
 			*io_esc_rcvr = SA_AMF_COMPONENT_FAILOVER;
 		} else if (comp_has_quiesced_assignment(comp) == true) {
@@ -461,7 +459,7 @@ uint32_t avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t *
 	}
 
 	if ((SA_AMF_COMPONENT_FAILOVER== *io_esc_rcvr) && (su->sufailover) && (!su->is_ncs)) {
-		LOG_NO("saAmfSUFailover is true for '%s'",comp->su->name.value);
+		LOG_NO("saAmfSUFailover is true for '%s'",comp->su->name.c_str());
 		*io_esc_rcvr = AVSV_ERR_RCVR_SU_FAILOVER;
 	}
 
@@ -510,7 +508,7 @@ uint32_t avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t *
 uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rcvr)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("SU:%s Comp:%s",su->name.value,comp->name.value);
+	TRACE_ENTER2("SU:%s Comp:%s", su->name.c_str(), comp->name.c_str());
 
 	if (comp->pres == SA_AMF_PRESENCE_INSTANTIATING) {
 		/* mark the comp failed */
@@ -518,7 +516,7 @@ uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rc
 
 		/* update comp oper state */
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+		rc = avnd_comp_oper_state_avd_sync(cb, comp);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
 
@@ -553,7 +551,7 @@ uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rc
 
 		/* update comp oper state */
 		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
-		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
+		rc = avnd_comp_oper_state_avd_sync(cb, comp);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
 
@@ -661,7 +659,7 @@ uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_co
 	/* change the comp & su oper state to disabled */
 	m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
+	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -744,14 +742,14 @@ uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *failed_comp)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su;
 
-	TRACE_ENTER2("'%s'", failed_comp->name.value);
+	TRACE_ENTER2("'%s'", failed_comp->name.c_str());
 	su = failed_comp->su;
 	/* mark the comp failed */
 	m_AVND_COMP_FAILED_SET(failed_comp);
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
+	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -774,7 +772,7 @@ uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *failed_comp)
 		/* clean the failed comp */
 		rc = avnd_comp_clc_fsm_run(cb, failed_comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("cleanup of '%s' failed", failed_comp->name.value);
+			LOG_ER("cleanup of '%s' failed", failed_comp->name.c_str());
 			goto done;
 		}
 
@@ -783,7 +781,7 @@ uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *failed_comp)
 			AVND_SU_SI_REC *si = 0;
 			AVND_SU_SI_REC *next_si = 0;
 			uint32_t rc = NCSCC_RC_SUCCESS;
-			TRACE("Removing assignments from '%s'", su->name.value);
+			TRACE("Removing assignments from '%s'", su->name.c_str());
 
 			m_AVND_SU_ASSIGN_PEND_SET(su);
 
@@ -793,7 +791,7 @@ uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *failed_comp)
 				rc = avnd_su_si_remove(cb, su, si);
 				if (NCSCC_RC_SUCCESS != rc) {
 					LOG_ER("failed to remove SI assignment from '%s'",
-						su->name.value);
+						su->name.c_str());
 					break;
 				}
 				si = next_si;
@@ -830,7 +828,7 @@ uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 
-	TRACE_ENTER2("'%s' '%s'", su->name.value, failed_comp->name.value);
+	TRACE_ENTER2("'%s' '%s'", su->name.c_str(), failed_comp->name.c_str());
 	m_AVND_COMP_FAILED_SET(failed_comp);
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_SU_FAILED_SET(su);
@@ -850,8 +848,7 @@ uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 
 	//Remember component-failover/su-failover context. 
 	m_AVND_SU_FAILOVER_SET(failed_comp->su);
-
-	LOG_NO("Terminating components of '%s'(abruptly & unordered)",su->name.value);
+	LOG_NO("Terminating components of '%s'(abruptly & unordered)", su->name.c_str());
 	/* Unordered cleanup of components of failed SU */
 	for (comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list));
 			comp;
@@ -861,7 +858,7 @@ uint32_t avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 
 		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("'%s' termination failed", comp->name.value);
+			LOG_ER("'%s' termination failed", comp->name.c_str());
 			goto done;
 		}
 		avnd_su_pres_state_set(cb, comp->su, SA_AMF_PRESENCE_TERMINATING);
@@ -903,7 +900,7 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
+	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -953,7 +950,7 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 		//Remember su-failover context.
 		m_AVND_SU_FAILOVER_SET(failed_comp->su);
 
-		LOG_NO("Terminating components of '%s'(abruptly & unordered)",failed_su->name.value);
+		LOG_NO("Terminating components of '%s'(abruptly & unordered)", failed_su->name.c_str());
 		/* Unordered cleanup of components of failed SU */
 		for (comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&failed_su->comp_list));
 				comp;
@@ -963,7 +960,7 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 
 			rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("'%s' termination failed", comp->name.value);
+				LOG_ER("'%s' termination failed", comp->name.c_str());
 				goto done;
 			}
 			avnd_su_pres_state_set(cb, failed_comp->su, SA_AMF_PRESENCE_TERMINATING);
@@ -1008,7 +1005,7 @@ uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 	AVND_COMP *comp;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("'%s' '%s'", failed_su->name.value, failed_comp->name.value);
+	TRACE_ENTER2("'%s' '%s'", failed_su->name.c_str(), failed_comp->name.c_str());
 
 	LOG_NO("Terminating all application components (abruptly & unordered)");
 
@@ -1029,25 +1026,18 @@ uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 		reset_suRestart_flag(failed_su);
 		failed_su->admin_op_Id = static_cast<SaAmfAdminOperationIdT>(0);
 	}
-	/* If SU faulted during assignments, reset its pending assignment flag. AMFD will perform
-	   fail-over as a part of recovery request or node down.*/
-	if (m_AVND_SU_IS_ALL_SI(failed_su)) {
-		TRACE_1("Reset pending assignment flag in su.");
-		m_AVND_SU_ALL_SI_RESET(failed_su);
-	}
 	/* Unordered cleanup of all local application components */
-	for (comp = (AVND_COMP *)compdb_rec_get_next(&cb->compdb, (uint8_t *)nullptr);
-		  comp != nullptr;
-		  comp = (AVND_COMP *) compdb_rec_get_next(&cb->compdb, (uint8_t *)&comp->name)) {
-
+	for (comp = avnd_compdb_rec_get_next(cb->compdb, "");
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(cb->compdb, comp->name)) {
 		if (comp->su->is_ncs || comp->su->su_is_external)
 			continue;
 
 		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER("'%s' termination failed", comp->name.value);
+			LOG_ER("'%s' termination failed", comp->name.c_str());
 			opensaf_reboot(avnd_cb->node_info.nodeId,
-						   (char *)avnd_cb->node_info.executionEnvironment.value,
+						   osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 						   "Component termination failed at node failover");
 			LOG_ER("Exiting (due to comp term failed) to aid fast node reboot");
 			exit(1);
@@ -1059,7 +1049,7 @@ uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 	// if headless, reboot as we can't perform a failover without amfd
 	if (cb->is_avd_down == true) {
 		opensaf_reboot(avnd_cb->node_info.nodeId,
-			(char *)avnd_cb->node_info.executionEnvironment.value,
+			osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 			"Can't perform node failover while controllers are down. Recovery is node failfast.");
 		LOG_ER("Exiting to aid fast node reboot");
 		exit(1);
@@ -1239,7 +1229,7 @@ uint32_t avnd_err_restart_esc_level_0(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 	/* ok! go to next level */
 	if (su->comp_restart_cnt >= su->comp_restart_max) {
 		LOG_NO("'%s' component restarts have reached configured limit of %u",
-			su->name.value, su->comp_restart_max);
+			su->name.c_str(), su->comp_restart_max);
 
 		/*stop the comp-err-esc-timer */
 		tmr_comp_err_esc_stop(cb, su);
@@ -1327,7 +1317,7 @@ uint32_t avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 	/* reached max count */
 	if (su->su_restart_cnt >= su->su_restart_max) {
 		LOG_NO("'%s' restarts have reached configured limit of %u",
-			su->name.value, su->su_restart_max);
+			su->name.c_str(), su->su_restart_max);
 
 		/* stop timer */
 		tmr_su_err_esc_stop(cb, su);
@@ -1350,7 +1340,7 @@ uint32_t avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEV
 
  done:
 	if (cb->is_avd_down == false) {
-		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, &su->name, su->su_restart_cnt);
+		avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID, su->name, su->su_restart_cnt);
 	}
 	
 	TRACE_LEAVE2("retval=%u", rc);
@@ -1521,18 +1511,18 @@ uint32_t avnd_evt_tmr_node_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 	
 	LOG_NO("SU failover probation timer expired");
 
-	su = (AVND_SU *)sudb_rec_get_next(&cb->sudb, (uint8_t *)0);
-	while (su != 0) {
+	for (su = avnd_sudb_rec_get_next(cb->sudb, "");
+		 su != nullptr;
+		 su = avnd_sudb_rec_get_next(cb->sudb, su->name)) {
 		/* Only reset to those Sus, which have affected the node err esc.*/
 		if (su->su_err_esc_level == AVND_ERR_ESC_LEVEL_2) {
 			su->comp_restart_cnt = 0;
 			su->su_restart_cnt = 0;
 			su_reset_restart_count_in_comps(cb, su);
 			avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSURestartCount_ID,
-					&su->name, su->su_restart_cnt);
+					su->name, su->su_restart_cnt);
 			su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 		}
-		su = (AVND_SU *)sudb_rec_get_next(&cb->sudb, (uint8_t *)&su->name);
 	}
 
 	/* reset all parameters */
@@ -1568,7 +1558,7 @@ uint32_t avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
+	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -1631,18 +1621,18 @@ void cleanup_all_comps_and_reboot(AVND_CB *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Unordered cleanup of all local application components */
-	for (comp = (AVND_COMP *)compdb_rec_get_next(&cb->compdb, (uint8_t *)nullptr);
-		  comp != nullptr;
-		  comp = (AVND_COMP *) compdb_rec_get_next(&cb->compdb, (uint8_t *)&comp->name)) {
+	for (comp = avnd_compdb_rec_get_next(cb->compdb, "");
+		 comp != nullptr;
+		 comp = avnd_compdb_rec_get_next(cb->compdb, comp->name)) {
 
 		if (comp->su->is_ncs || comp->su->su_is_external)
 			continue;
 
 		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER("'%s' termination failed", comp->name.value);
+			LOG_ER("'%s' termination failed", comp->name.c_str());
 			opensaf_reboot(avnd_cb->node_info.nodeId,
-						   (char *)avnd_cb->node_info.executionEnvironment.value,
+						   osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 						   "Component termination failed at node switchover");
 			LOG_ER("Exiting (due to comp term failed) to aid fast node reboot");
 			exit(1);
@@ -1650,7 +1640,7 @@ void cleanup_all_comps_and_reboot(AVND_CB *cb)
 	}
 
 	opensaf_reboot(avnd_cb->node_info.nodeId,
-		(char *)avnd_cb->node_info.executionEnvironment.value,
+		osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 		"Can't perform recovery while controllers are down. Recovery is node failfast.");
 	LOG_ER("Exiting to aid fast node reboot");
 	exit(1);

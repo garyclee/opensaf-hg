@@ -115,7 +115,7 @@ uint32_t avnd_evt_ava_hc_start_evh(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_hc_start():%s:Hdl=%llx,InvType: %u, Err Rcvr:%u",\
-				    hc_start->comp_name.value, hc_start->hdl, hc_start->inv_type, hc_start->rec_rcvr.raw);
+				    osaf_extended_name_borrow(&hc_start->comp_name), hc_start->hdl, hc_start->inv_type, hc_start->rec_rcvr.raw);
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -172,7 +172,7 @@ uint32_t avnd_evt_ava_hc_stop_evh(AVND_CB *cb, AVND_EVT *evt)
 
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("avnd_evt_ava_hc_stop():%s : Hdl:%llx",hc_stop->comp_name.value, hc_stop->hdl);
+		LOG_ER("avnd_evt_ava_hc_stop():%s : Hdl:%llx", osaf_extended_name_borrow(&hc_stop->comp_name), hc_stop->hdl);
 	}
 
 	TRACE_LEAVE();
@@ -232,7 +232,7 @@ uint32_t avnd_evt_ava_hc_confirm_evh(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("avnd_evt_ava_hc_confirm():%s: Hdl=%llx, hc_res=%u",\
-				    hc_confirm->comp_name.value, hc_confirm->hdl, hc_confirm->hc_res);
+				    osaf_extended_name_borrow(&hc_confirm->comp_name), hc_confirm->hdl, hc_confirm->hc_res);
 	}
 
 	TRACE_LEAVE();
@@ -314,7 +314,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			hc_start = (AVSV_AMF_HC_START_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_start->comp_name))) {
+			if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&hc_start->comp_name))) == nullptr) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -329,18 +329,15 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			}
 
 			/* non proxy component should not start/stop/confirm health check for any other component */
-			if (m_CMP_HORDER_SANAMET(hc_start->comp_name, hc_start->proxy_comp_name)) {
+			if (avsv_cmp_horder_sanamet(&hc_start->comp_name, &hc_start->proxy_comp_name)) {
 				if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)
-				    || m_CMP_HORDER_SANAMET((*o_comp)->pxy_comp->name,
-							    hc_start->proxy_comp_name)) {
+					|| (*o_comp)->pxy_comp->name.compare(Amf::to_string(&hc_start->proxy_comp_name))) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
 			}
 			memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-			hlt_chk.comp_name.length = hc_start->comp_name.length;
-			memcpy(hlt_chk.comp_name.value, hc_start->comp_name.value,
-				hlt_chk.comp_name.length);
+			osaf_extended_name_lend(osaf_extended_name_borrow(&hc_start->comp_name), &hlt_chk.comp_name);
 			l_num = hc_start->hc_key.keyLen;
 			hlt_chk.key_len = l_num;
 			memcpy(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
@@ -349,13 +346,12 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			/* get the record from healthcheck database */
 			if (0 == avnd_hcdb_rec_get(cb, &hlt_chk)) {
 				/* HC instance did not exist, look for HC type */
-				if (nullptr == avnd_hctypedb_rec_get(&(*o_comp)->saAmfCompType, &hc_start->hc_key)) {
+				if (nullptr == avnd_hctypedb_rec_get(cb, (*o_comp)->saAmfCompType, &hc_start->hc_key)) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
 			}
 
-			memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
 			tmp_hc_rec.key = hlt_chk.name;
 			tmp_hc_rec.req_hdl = hc_start->hdl;
 			/* determine if this healthcheck is already active */
@@ -373,30 +369,26 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			hc_stop = (AVSV_AMF_HC_STOP_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_stop->comp_name))) {
+			if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&hc_stop->comp_name))) == nullptr) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
 
 			/* non proxy component should not start/stop/confirm health check for any other component */
-			if (m_CMP_HORDER_SANAMET(hc_stop->comp_name, hc_stop->proxy_comp_name)) {
+			if (avsv_cmp_horder_sanamet(&hc_stop->comp_name, &hc_stop->proxy_comp_name)) {
 				if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)
-				    || m_CMP_HORDER_SANAMET((*o_comp)->pxy_comp->name,
-							    hc_stop->proxy_comp_name)) {
+					|| (*o_comp)->pxy_comp->name.compare(Amf::to_string(&hc_stop->proxy_comp_name))) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
 			}
 			memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-			hlt_chk.comp_name.length = hc_stop->comp_name.length;
-			memcpy(hlt_chk.comp_name.value, hc_stop->comp_name.value,
-			       hlt_chk.comp_name.length);
+			osaf_extended_name_lend(osaf_extended_name_borrow(&hc_stop->comp_name), &hlt_chk.comp_name);
 			l_num = hc_stop->hc_key.keyLen;
 			hlt_chk.key_len = l_num;
 			memcpy(hlt_chk.name.key, hc_stop->hc_key.key, hc_stop->hc_key.keyLen);
 			hlt_chk.name.keyLen = hc_stop->hc_key.keyLen;
 
-			memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
 			tmp_hc_rec.key = hlt_chk.name;
 			tmp_hc_rec.req_hdl = hc_stop->hdl;
 			/* get the record from component healthcheck list */
@@ -414,30 +406,26 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			hc_confirm = (AVSV_AMF_HC_CONFIRM_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_confirm->comp_name))) {
+			if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&hc_confirm->comp_name))) == nullptr) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
 
 			/* non proxy component should not start/stop/confirm health check for any other component */
-			if (m_CMP_HORDER_SANAMET(hc_confirm->comp_name, hc_confirm->proxy_comp_name)) {
+			if (avsv_cmp_horder_sanamet(&hc_confirm->comp_name, &hc_confirm->proxy_comp_name)) {
 				if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)
-				    || m_CMP_HORDER_SANAMET((*o_comp)->pxy_comp->name,
-							    hc_confirm->proxy_comp_name)) {
+					|| (*o_comp)->pxy_comp->name.compare(Amf::to_string(&hc_confirm->proxy_comp_name))) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
 			}
 			memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-			hlt_chk.comp_name.length = hc_confirm->comp_name.length;
-			memcpy(hlt_chk.comp_name.value, hc_confirm->comp_name.value,
-			       hlt_chk.comp_name.length);
+			osaf_extended_name_lend(osaf_extended_name_borrow(&hc_confirm->comp_name), &hlt_chk.comp_name);
 			l_num = hc_confirm->hc_key.keyLen;
 			hlt_chk.key_len = l_num;
 			memcpy(hlt_chk.name.key, hc_confirm->hc_key.key, hc_confirm->hc_key.keyLen);
 			hlt_chk.name.keyLen = hc_confirm->hc_key.keyLen;
 
-			memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
 			tmp_hc_rec.key = hlt_chk.name;
 			tmp_hc_rec.req_hdl = hc_confirm->hdl;
 			/* get the record from component healthcheck list */
@@ -497,9 +485,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 		goto err;
 
 	memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-	hlt_chk.comp_name.length = hc_start->comp_name.length;
-	memcpy(hlt_chk.comp_name.value, hc_start->comp_name.value,
-		hlt_chk.comp_name.length);
+	osaf_extended_name_lend(osaf_extended_name_borrow(&hc_start->comp_name), &hlt_chk.comp_name);
 	l_num = hc_start->hc_key.keyLen;
 	hlt_chk.key_len = l_num;
 	memcpy(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
@@ -511,7 +497,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 		rec->max_dur = hc->max_dur;
 	} else {
 		/* HC instance did not exist, look for HC type */
-		AVND_HCTYPE *hctype = avnd_hctypedb_rec_get(&comp->saAmfCompType, &hc_start->hc_key);
+		AVND_HCTYPE *hctype = avnd_hctypedb_rec_get(cb, comp->saAmfCompType, &hc_start->hc_key);
 		if (hctype != nullptr) {
 			rec->period = hctype->saAmfHctDefPeriod;
 			rec->max_dur = hctype->saAmfHctDefMaxDuration;
@@ -606,7 +592,7 @@ void avnd_comp_hc_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 void avnd_comp_hc_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_HC_REC *rec = 0;
-	TRACE_ENTER2("Comp '%s'", comp->name.value);
+	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/* scan & delete each healthcheck record */
 	while (0 != (rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list))) {
@@ -719,14 +705,14 @@ uint32_t avnd_comp_hc_cmd_start(AVND_CB *cb, AVND_COMP *comp)
 	uint32_t rc;
 	AVSV_AMF_HC_START_PARAM hc = {0};
 
-	TRACE_ENTER2("'%s'", comp->name.value);
+	TRACE_ENTER2("'%s'", comp->name.c_str());
 
 	/* create a HC key with a default name */
 	strncpy((char*)hc.hc_key.key, hc_cmd_name, sizeof(hc.hc_key.key)-1);
 
 	hc.hc_key.keyLen = strlen((char*)hc.hc_key.key);
 	hc.inv_type = SA_AMF_HEALTHCHECK_AMF_INVOKED;
-	hc.comp_name = comp->name;
+	osaf_extended_name_alloc(comp->name.c_str(), &hc.comp_name);
 
 	AVND_COMP_HC_REC *rec = avnd_comp_hc_rec_add(cb, comp, &hc, &comp->reg_dest);
 
@@ -740,9 +726,11 @@ uint32_t avnd_comp_hc_cmd_start(AVND_CB *cb, AVND_COMP *comp)
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	} else {
 		LOG_WA("'%s' has HC command configured but no HC named '%s' exist",
-			   comp->name.value, hc.hc_key.key);
+			   comp->name.c_str(), hc.hc_key.key);
 		rc = NCSCC_RC_FAILURE;
 	}
+
+	osaf_extended_name_free(&hc.comp_name);
 
 	TRACE_LEAVE();
 	return rc;
@@ -758,7 +746,7 @@ static AVND_COMP_HC_REC *find_hc_rec(const AVND_COMP *comp)
 {
 	AVND_COMP_HC_REC *rec = nullptr;
 
-	TRACE_ENTER2("'%s'", comp->name.value);
+	TRACE_ENTER2("'%s'", comp->name.c_str());
 
 	for (rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
 		  rec != nullptr;
@@ -797,7 +785,7 @@ void avnd_comp_hc_cmd_restart(AVND_COMP *comp)
 	   take care of comp's fault management.
 	 */
 	if (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) {
-		TRACE_1("'%s' not instantiated, not starting Command based HC timer",comp->name.value);
+		TRACE_1("'%s' not instantiated, not starting Command based HC timer", comp->name.c_str());
 		rec->status = AVND_COMP_HC_STATUS_STABLE;
 		return;
 	}
@@ -924,14 +912,14 @@ uint32_t avnd_comp_hc_rec_tmr_exp(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC
 	AVND_ERR_INFO err_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s - %s, sts: %u", comp->name.value, rec->key.key, rec->status);
+	TRACE_ENTER2("%s - %s, sts: %u", comp->name.c_str(), rec->key.key, rec->status);
 
 	/* There is a chance that the term command has been issued to comp and
 	   the timer has expired and it is in mail box. 
 	   So, if the component is not in healthy state, then don't start HC. */
 
 	if (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp)) {
-		TRACE_1("'%s' not instantiated, not starting HC", comp->name.value);
+		TRACE_1("'%s' not instantiated, not starting HC", comp->name.c_str());
 		rec->status = AVND_COMP_HC_STATUS_STABLE;
 		return rc;
 	}

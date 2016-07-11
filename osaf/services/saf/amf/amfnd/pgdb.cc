@@ -38,34 +38,6 @@
 static uint32_t avnd_pgdb_trk_key_cmp(uint8_t *key1, uint8_t *key2);
 
 /****************************************************************************
-  Name          : avnd_pgdb_init
- 
-  Description   : This routine initializes the PG database.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uint32_t avnd_pgdb_init(AVND_CB *cb)
-{
-	NCS_PATRICIA_PARAMS params;
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
-
-	params.key_size = sizeof(SaNameT);
-	rc = ncs_patricia_tree_init(&cb->pgdb, &params);
-	if (NCSCC_RC_SUCCESS == rc)
-		TRACE("PG DB create success");
-	else
-		LOG_CR("PG DB create failed");
-
-	return rc;
-}
-
-/****************************************************************************
   Name          : avnd_pgdb_rec_add
  
   Description   : This routine adds a record to the PG database.
@@ -79,13 +51,13 @@ uint32_t avnd_pgdb_init(AVND_CB *cb)
  
   Notes         : None.
  ******************************************************************************/
-AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
+AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, const std::string& csi_name, uint32_t *rc)
 {
 	AVND_PG *pg = 0;
-	TRACE_ENTER2("Csi '%s'", csi_name->value);
+	TRACE_ENTER2("Csi '%s'", csi_name.c_str());
 
 	/* verify if this pg is already present in the db */
-	if (0 != m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name)) {
+	if (cb->pgdb.find(csi_name) != nullptr) {
 		*rc = AVND_ERR_DUP_PG;
 		goto err;
 	}
@@ -94,7 +66,7 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
 	pg = new AVND_PG();
 
 	/* update the csi-name (patricia key) */
-	pg->csi_name = *csi_name;
+	pg->csi_name = csi_name;
 
 	/* until avd acknowldges it's presence, it doesn't exit */
 	pg->is_exist = false;
@@ -109,23 +81,21 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
 	pg->trk_list.cmp_cookie = avnd_pgdb_trk_key_cmp;
 	pg->trk_list.free_cookie = 0;
 
-	/* add to the patricia tree */
-	pg->tree_node.bit = 0;
-	pg->tree_node.key_info = (uint8_t *)&pg->csi_name;
-	*rc = ncs_patricia_tree_add(&cb->pgdb, &pg->tree_node);
+	/* add to pgdb */
+	*rc = cb->pgdb.insert(pg->csi_name, pg);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = AVND_ERR_TREE;
 		goto err;
 	}
 
-	TRACE("PG DB record added: CSI = %s",csi_name->value);
+	TRACE("PG DB record added: CSI = %s", csi_name.c_str());
 	return pg;
 
  err:
 	if (pg)
 		delete pg;
 
-	LOG_CR("PG DB record addition failed: CSI = %s",csi_name->value);
+	LOG_CR("PG DB record addition failed: CSI = %s", csi_name.c_str());
 	return 0;
 }
 
@@ -141,14 +111,14 @@ AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name, uint32_t *rc)
  
   Notes         : None.
 ******************************************************************************/
-uint32_t avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
+uint32_t avnd_pgdb_rec_del(AVND_CB *cb, const std::string& csi_name)
 {
 	AVND_PG *pg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* get the pg record */
-	pg = m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name);
+	pg = cb->pgdb.find(csi_name);
 	if (!pg) {
 		rc = AVND_ERR_NO_PG;
 		goto err;
@@ -160,14 +130,14 @@ uint32_t avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
 	/* delete the track-list */
 	avnd_pgdb_trk_rec_del_all(cb, pg);
 
-	/* remove from the patricia tree */
-	rc = ncs_patricia_tree_del(&cb->pgdb, &pg->tree_node);
+	/* remove from the pgdb */
+	cb->pgdb.erase(csi_name);
 	if (NCSCC_RC_SUCCESS != rc) {
 		rc = AVND_ERR_TREE;
 		goto err;
 	}
 
-	TRACE("PG DB record deleted: CSI = %s",csi_name->value);
+	TRACE("PG DB record deleted: CSI = %s", csi_name.c_str());
 
 	/* free the memory */
 	delete pg;
@@ -175,7 +145,7 @@ uint32_t avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name)
 	return rc;
 
  err:
-	LOG_CR("PG DB record deletion failed: CSI = %s",csi_name->value);
+	LOG_CR("PG DB record deletion failed: CSI = %s", csi_name.c_str());
 	return rc;
 }
 
@@ -332,17 +302,21 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGrou
 		pg_mem->info.change = mem_info->change;
 
 		/* update the record key */
-		pg_mem->info.member.compName = mem_info->member.compName;
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&mem_info->member.compName),
+								 &pg_mem->info.member.compName);
 		pg_mem->pg_dll_node.key = (uint8_t *)&pg_mem->info.member.compName;
 
 		/* add to the dll */
 		if (NCSCC_RC_SUCCESS != ncs_db_link_list_add(&pg->mem_list, &pg_mem->pg_dll_node))
 			goto err;
-	} else
+	} else {
 		pg_mem->info.change = SA_AMF_PROTECTION_GROUP_STATE_CHANGE;
+	}
 
 	/* update other params */
-	pg_mem->info.member = mem_info->member;
+	pg_mem->info.member.haState = mem_info->member.haState;
+	pg_mem->info.member.rank = mem_info->member.rank;
+
 	TRACE_LEAVE();
 	return pg_mem;
 
@@ -369,23 +343,27 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGrou
   Notes         : This routine only pops the cooresponding member record. It
                   doesn't delete it.
 ******************************************************************************/
-AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name)
+AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, const std::string& comp_name)
 {
 	AVND_PG_MEM *pg_mem = 0;
+	SaNameT comp;
+
 	TRACE_ENTER();
+	osaf_extended_name_alloc(comp_name.c_str(), &comp);
 
 	/* get the pg mem record */
-	pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, *comp_name);
+	pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, comp);
 	if (!pg_mem)
 		return 0;
 
 	/* remove from the dll */
-	ncs_db_link_list_remove(&pg->mem_list, (uint8_t *)comp_name);
+	ncs_db_link_list_remove(&pg->mem_list, (uint8_t *)&comp);
 
 	/* update the params that are no longer valid */
 	pg_mem->info.change = SA_AMF_PROTECTION_GROUP_REMOVED;
 	pg_mem->info.member.haState = static_cast<SaAmfHAStateT>(0);
 
+	osaf_extended_name_free(&comp);
 	TRACE_LEAVE();
 	return pg_mem;
 }
@@ -404,7 +382,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_pgdb_mem_rec_del(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name)
+void avnd_pgdb_mem_rec_del(AVND_CB *cb, AVND_PG *pg, const std::string& comp_name)
 {
 	AVND_PG_MEM *pg_mem = 0;
 	TRACE_LEAVE();
@@ -440,7 +418,7 @@ void avnd_pgdb_mem_rec_del_all(AVND_CB *cb, AVND_PG *pg)
 	TRACE_LEAVE();
 
 	while (0 != (curr = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_FIRST(&pg->mem_list)))
-		avnd_pgdb_mem_rec_del(cb, pg, &curr->info.member.compName);
+		avnd_pgdb_mem_rec_del(cb, pg, Amf::to_string(&curr->info.member.compName));
 
 	TRACE_LEAVE();
 	return;
