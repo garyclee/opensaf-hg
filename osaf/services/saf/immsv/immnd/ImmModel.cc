@@ -5105,7 +5105,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                         SaUint32T childCount = objectInfo->mChildCount;
                         // Find all sub objects to the root object
                         for (i1 = sObjectMap.begin(); 
-                             i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; i1++){
+                             i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; ++i1){
                             std::string subObjName = i1->first;
                             if (subObjName.length() > objectName.length()) {
                                 size_t pos = 
@@ -7408,7 +7408,7 @@ ImmModel::getAllWritableAttributes(const ImmsvOmCcbObjectModify *req, bool* hasL
     osafassert(hasLongDn);
     ClassInfo* classInfo = afim->mClassInfo;
     ai = classInfo->mAttrMap.begin();
-    for (; ai != classInfo->mAttrMap.end(); ai++) {
+    for (; ai != classInfo->mAttrMap.end(); ++ai) {
         if (ai->second->mFlags & SA_IMM_ATTR_WRITABLE) {
             immsv_attr_mods_list* attrMod = attrValueToAttrMod(afim, (std::string&) ai->first,
                                                                ai->second->mValueType,
@@ -7860,7 +7860,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         // Add attributes to object
         for (i4 = classInfo->mAttrMap.begin(); 
              i4 != classInfo->mAttrMap.end();
-             i4++) {
+             ++i4) {
             AttrInfo* attr = i4->second;
             
             ImmAttrValue* attrValue = NULL;
@@ -8834,7 +8834,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         bool hasNoDanglingAttr = false;
         for(oavi = object->mAttrValueMap.begin(); 
             oavi != object->mAttrValueMap.end();
-            oavi++) {
+            ++oavi) {
             ImmAttrValue* oldValue = oavi->second;
             ImmAttrValue* newValue = NULL;
             
@@ -9789,7 +9789,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
 
         // Find all sub objects to the deleted object and delete them
         for (oi2 = sObjectMap.begin(); 
-             oi2 != sObjectMap.end() && err == SA_AIS_OK && childCount; oi2++) {
+             oi2 != sObjectMap.end() && err == SA_AIS_OK && childCount; ++oi2) {
             std::string subObjName = oi2->first;
             if (subObjName.length() > objectName.length()) {
                 size_t pos = subObjName.length() - objectName.length();
@@ -11392,7 +11392,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         nameToExternal(objectName);
     }
     op.addObject(objectName);
-    for(j = obj->mAttrValueMap.begin(); j != obj->mAttrValueMap.end(); j++) {
+    for(j = obj->mAttrValueMap.begin(); j != obj->mAttrValueMap.end(); ++j) {
         if(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR) {
             bool notFound = true;
             ImmsvAttrNameList* list = req->attributeNames;
@@ -11931,7 +11931,7 @@ ImmModel::searchInitialize(ImmsvOmSearchInit* req, ImmSearchOp& op)
                         bool checkAttribute = false;
                         for (j = obj->mAttrValueMap.begin(); 
                              j != obj->mAttrValueMap.end(); 
-                             j++) {
+                             ++j) {
                             if(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR) {
                                 bool notFound = true;
                                 ImmsvAttrNameList* list = req->attributeNames;
@@ -12189,7 +12189,7 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
     p->attrValuesList = NULL;
 
 
-    for (j = obj->mAttrValueMap.begin(); j != obj->mAttrValueMap.end(); j++) {
+    for (j = obj->mAttrValueMap.begin(); j != obj->mAttrValueMap.end(); ++j) {
         /*SA_IMM_SEARCH_GET_SOME_ATTR must have been set since this is sync. */
         IMMSV_ATTR_VALUES_LIST* attrl = NULL;
         IMMSV_ATTR_VALUES* attr = NULL;
@@ -14702,7 +14702,7 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
             // Find all sub objects to the root object
             //Warning re-using iterator i1 inside this loop!!!
             SaUint32T childCount = rootObj->mChildCount;
-            for (i1 = sObjectMap.begin(); i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; i1++){
+            for (i1 = sObjectMap.begin(); i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; ++i1){
                 std::string subObjName = i1->first;
                 if (subObjName.length() > objectName.length()) {
                     size_t pos = subObjName.length() - objectName.length();
@@ -14812,7 +14812,7 @@ SaAisErrorT ImmModel::objectImplementerRelease(
             // Warning re-using iterator i1 inside this loop
             SaUint32T childCount = rootObj->mChildCount;
             for (i1 = sObjectMap.begin(); 
-                 i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; i1++) {
+                 i1 != sObjectMap.end() && err == SA_AIS_OK && childCount; ++i1) {
                 std::string subObjName = i1->first;
                 if(subObjName.length() > objectName.length()) {
                     size_t pos = subObjName.length() - objectName.length();
@@ -15606,7 +15606,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
         // Add attributes to object
         for (i4 = classInfo->mAttrMap.begin(); 
              i4 != classInfo->mAttrMap.end();
-             i4++) {
+             ++i4) {
             
             AttrInfo* attr = i4->second;
             ImmAttrValue* attrValue = NULL;
@@ -16801,7 +16801,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             // Copy attribute values from existing object version to afim
             for(oavi = object->mAttrValueMap.begin(); 
                 oavi != object->mAttrValueMap.end();
-                oavi++) {
+                ++oavi) {
                 ImmAttrValue* oldValue = oavi->second;
                 ImmAttrValue* newValue = NULL;
 
@@ -17821,7 +17821,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
         
         // Add attributes to object
         for (i4 = classInfo->mAttrMap.begin(); i4 != classInfo->mAttrMap.end();
-             i4++) {
+             ++i4) {
             AttrInfo* attr = i4->second;
             
             ImmAttrValue* attrValue = NULL;
@@ -18475,7 +18475,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             //Attach object implementers using the implementer-name attribute.
             ObjectMap::iterator oi;
             std::string implAttr(SA_IMM_ATTR_IMPLEMENTER_NAME);
-            for(oi = sObjectMap.begin(); oi != sObjectMap.end(); oi++) {
+            for(oi = sObjectMap.begin(); oi != sObjectMap.end(); ++oi) {
                 ObjectInfo* obj = oi->second;
                 //ImmAttrValueMap::iterator j;
                 ImmAttrValue* att = obj->mAttrValueMap[implAttr];
@@ -18974,7 +18974,7 @@ ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
         ImplementerInfo* info = (*i);
         otherNode = info->mNodeId;
         if(otherNode == thisNode || otherNode == 0) {
-            i++;
+            ++i;
         } else {
             info = NULL;
             this->discardNode(otherNode, cv, gv, isAtCoord, true);
@@ -18992,7 +18992,7 @@ ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
         otherNode = ainfo->mNodeId;
         if(otherNode == thisNode || otherNode == 0) {
             /* ??? (otherNode == 0) is that really correct ??? */
-            i2++;
+            ++i2;
         } else {
             ainfo = NULL;
             this->discardNode(otherNode, cv, gv, isAtCoord, true);

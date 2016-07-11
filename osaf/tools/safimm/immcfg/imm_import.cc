@@ -319,7 +319,7 @@ static void free_parserState(ParserState *state) {
 				free(it->attrDefaultValue);
 				it->attrDefaultValue = NULL;
 			}
-			it++;
+			++it;
 		}
 
 		/* Free the attrDefinition array and empty the list */
@@ -330,7 +330,7 @@ static void free_parserState(ParserState *state) {
 		std::list<SaImmAttrValuesT_2>::iterator it;
 		int i;
 
-		for(it = state->attrValues.begin(); it != state->attrValues.end(); it++) {
+		for(it = state->attrValues.begin(); it != state->attrValues.end(); ++it) {
 			free(it->attrName);
 			for(i=0; it->attrValues[i]; i++) {
 				if(it->attrValueType == SA_IMM_ATTR_SASTRINGT
@@ -348,14 +348,14 @@ static void free_parserState(ParserState *state) {
 
 	{
 		std::list<char*>::iterator it;
-		for(it = state->attrValueBuffers.begin(); it != state->attrValueBuffers.end(); it++)
+		for(it = state->attrValueBuffers.begin(); it != state->attrValueBuffers.end(); ++it)
 			free(*it);
 		state->attrValueBuffers.clear();
 	}
 
 	{
 		std::map<std::string, SaImmAttrValuesT_2>::iterator it;
-		for(it = state->classRDNMap.begin(); it != state->classRDNMap.end(); it++)
+		for(it = state->classRDNMap.begin(); it != state->classRDNMap.end(); ++it)
 			free(it->second.attrName);
 		state->classRDNMap.clear();
 	}
@@ -722,7 +722,7 @@ static void createImmObject(ParserState* state)
 			attrValues[i] = &(*it);
 
 			i++;
-			it++;
+			++it;
 		}
 
 		/* Do the actual creation */
@@ -840,7 +840,7 @@ done:
 
 	for (it = state->attrValues.begin();
 		it != state->attrValues.end();
-		it++) {
+		++it) {
 		free(it->attrName);
 		for(i=0; it->attrValues[i]; i++) {
 			if(it->attrValueType == SA_IMM_ATTR_SASTRINGT
@@ -1038,7 +1038,7 @@ static void createImmClass(ParserState* state)
 			new_attrDefinitions[i] = &(*it);
 
 			i++;
-			it++;
+			++it;
 		}
 
 		errorCode = immutil_saImmOmClassCreate_2(state->immHandle,
@@ -1138,7 +1138,7 @@ static void createImmClass(ParserState* state)
 			free(it->attrDefaultValue);
 			it->attrDefaultValue = NULL;
 		}
-		it++;
+		++it;
 	}
 
 	/* Free the attrDefinition array and empty the list */
@@ -2173,7 +2173,7 @@ static void addObjectAttributeDefinition(ParserState* state)
 	}
 
 	std::list<SaImmAttrValuesT_2>::iterator iter;
-	for(iter=state->attrValues.begin(); iter != state->attrValues.end(); iter++) {
+	for(iter=state->attrValues.begin(); iter != state->attrValues.end(); ++iter) {
 		if(!strcmp(state->attrName, (*iter).attrName)) {
 			LOG_ER("Attribute '%s' is defined more than once in object '%s'", state->attrName, state->objectName);
 			stopParser(state);
@@ -2224,7 +2224,7 @@ static void addObjectAttributeDefinition(ParserState* state)
 		}
 
 		i++;
-		it++;
+		++it;
 	}
 
 	/* Assign the name */
@@ -2262,7 +2262,7 @@ static void addObjectAttributeDefinition(ParserState* state)
 	/* Free unneeded data */
 	for (it = state->attrValueBuffers.begin();
 		it != state->attrValueBuffers.end();
-		it++) {
+		++it) {
 		free(*it);
 	}
 
@@ -2394,7 +2394,7 @@ static void addClassAttributeDefinition(ParserState* state)
 	/* Set the name */
 	if (state->attrName != NULL) {
 		std::list<SaImmAttrDefinitionT_2>::iterator it;
-		for(it=state->attrDefinitions.begin(); it != state->attrDefinitions.end(); it++) {
+		for(it=state->attrDefinitions.begin(); it != state->attrDefinitions.end(); ++it) {
 			if(!strcmp(state->attrName, (*it).attrName)) {
 				LOG_ER("Attribute '%s' is defined more than once in class '%s'", state->attrName, state->className);
 				stopParser(state);
@@ -2722,7 +2722,7 @@ int loadImmXML(const char *xmlfile, int strictParse)
 		free(state.className);
 
 	std::map<std::string, SaImmAttrValuesT_2>::iterator it;
-	for(it = state.classRDNMap.begin(); it != state.classRDNMap.end(); it++)
+	for(it = state.classRDNMap.begin(); it != state.classRDNMap.end(); ++it)
 		free(it->second.attrName);
 	state.classRDNMap.clear();
 
@@ -2820,7 +2820,7 @@ int validateImmXML(const char *xmlfile, int verbose, int mode, int strictParse)
 	}
 
 	std::map<std::string, SaImmAttrValuesT_2>::iterator it;
-	for(it = state.classRDNMap.begin(); it != state.classRDNMap.end(); it++)
+	for(it = state.classRDNMap.begin(); it != state.classRDNMap.end(); ++it)
 		free(it->second.attrName);
 	state.classRDNMap.clear();
 

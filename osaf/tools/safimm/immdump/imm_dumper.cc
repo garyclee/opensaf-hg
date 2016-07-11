@@ -415,7 +415,7 @@ static std::map<std::string, std::string>
         /* Avoid memory leaking */
         saImmOmClassDescriptionMemoryFree_2(immHandle, attrs);
 
-        it++;
+        ++it;
     }
 
     return classRDNMap;
@@ -433,10 +433,10 @@ int checkClassNames(SaImmHandleT immHandle, std::list<std::string>& inputList)
                 found = true;
                 break;
             }
-            sub_it++;
+            ++sub_it;
         }
         if (found) {
-            it++;
+            ++it;
         } else {
             printf("Warning: Class '%s' doesn't exist\n", (*it).c_str());
             /* Remove invalid class from list */
