@@ -566,7 +566,7 @@ bool createImmObject(SaImmClassNameT className,
     {
         attrValues[i] = &(*it);
         i++;
-        it++;
+        ++it;
     }
 
     if(classRDNMap) {
@@ -631,7 +631,7 @@ freemem:
 
     for (it = attrValuesList->begin();
         it != attrValuesList->end();
-        it++)
+        ++it)
     {
         free(it->attrName);
         free(it->attrValues);
@@ -678,7 +678,7 @@ bool createImmClass(SaImmHandleT immHandle,
         attrDefinition[i] = &(*it);
 
         i++;
-        it++;
+        ++it;
     }
 
     int retries=0;
@@ -737,7 +737,7 @@ freemem:
         }
         free(it->attrName);
         it->attrName = NULL;
-        it++;
+        ++it;
     }
 
     /* Free the attrDefinition array and empty the list */
@@ -1255,7 +1255,7 @@ static void endElementHandler(void* userData,
         if(state->preloadEpochPtr) {
             if(strcmp(state->objectName, OPENSAF_IMM_OBJECT_DN) == 0) {
                 for(it = state->attrValuesList.begin();
-                    it != state->attrValuesList.end(); it++) {
+                    it != state->attrValuesList.end(); ++it) {
                     if(!strcmp(it->attrName, OPENSAF_IMM_ATTR_EPOCH)) {
                         osafassert(it->attrValuesNumber == 1);
                         osafassert(it->attrValueType == SA_IMM_ATTR_SAUINT32T);
@@ -1266,7 +1266,7 @@ static void endElementHandler(void* userData,
             }
 
             for(it = state->attrValuesList.begin();
-                it != state->attrValuesList.end(); it++) {
+                it != state->attrValuesList.end(); ++it) {
                 free(it->attrName);
                 free(it->attrValues);
             }
@@ -1973,7 +1973,7 @@ void addObjectAttributeDefinition(SaImmClassNameT objectClass,
                            attrValues.attrValueType, 
                            *it);
         i++;
-        it++;
+        ++it;
     }
 
     /* Assign the name */
@@ -1994,7 +1994,7 @@ void addObjectAttributeDefinition(SaImmClassNameT objectClass,
     /* Free unneeded data */
     for (it = attrValueBuffers->begin();
         it != attrValueBuffers->end();
-        it++)
+        ++it)
     {
         free(*it);
     }
@@ -2701,7 +2701,7 @@ int immsync(int maxBatchSize)
     while (it != classNamesList.end())
     {
         syncClassDescription(*it, immHandle);
-        it++;
+        ++it;
     }
     TRACE("Sync'ed %u class-descriptions", nrofClasses);
 
@@ -2713,7 +2713,7 @@ int immsync(int maxBatchSize)
         int objects = syncObjectsOfClass(*it, immHandle, maxBatchSize);
         TRACE("Synced %u objects of class %s", objects, (*it).c_str());
         nrofObjects += objects;
-        it++;
+        ++it;
     }
     LOG_IN("Synced %u objects in total", nrofObjects);
 

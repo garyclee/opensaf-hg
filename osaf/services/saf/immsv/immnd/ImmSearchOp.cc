@@ -96,7 +96,7 @@ ImmSearchOp::testTopResult(void** implInfo, SaBoolT* bRtsToFetch)
 
         // Check for pure runtime attribute
         AttributeList::iterator i;
-        for (i = obj.attributeList.begin(); i != obj.attributeList.end(); i++) {
+        for (i = obj.attributeList.begin(); i != obj.attributeList.end(); ++i) {
             if(bRtsToFetch && obj.implInfo &&
                             ((*i).flags & SA_IMM_ATTR_RUNTIME) &&
                             ! ((*i).flags & SA_IMM_ATTR_CACHED)) {
@@ -134,7 +134,7 @@ ImmSearchOp::nextResult(IMMSV_OM_RSP_SEARCH_NEXT** rsp, void** implInfo,
         
         // Get attribute values
         AttributeList::iterator i;
-        for (i = obj.attributeList.begin(); i != obj.attributeList.end(); i++) {
+        for (i = obj.attributeList.begin(); i != obj.attributeList.end(); ++i) {
             IMMSV_ATTR_VALUES_LIST* attrl = (IMMSV_ATTR_VALUES_LIST *)
                 calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
             IMMSV_ATTR_VALUES* attr = &(attrl->n);

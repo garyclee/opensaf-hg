@@ -248,7 +248,7 @@ void dumpObjectsXMLw(SaImmHandleT immHandle,
         }
 
         /* Next class */
-        it++;
+        ++it;
     }
 
     ObjectSetToXMLw(objectSet, writer);
@@ -275,7 +275,7 @@ void dumpClassesXMLw(SaImmHandleT immHandle, xmlTextWriterPtr writer,
     {
         classToXMLw(*it, immHandle, writer);
 
-        it++;
+        ++it;
     }
     TRACE_LEAVE();
 }
