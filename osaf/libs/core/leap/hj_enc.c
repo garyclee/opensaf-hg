@@ -42,6 +42,9 @@
 
 *******************************************************************************
 */
+#ifndef SA_EXTENDED_NAME_SOURCE
+#define SA_EXTENDED_NAME_SOURCE
+#endif
 
 #include <ncsgl_defs.h>
 #include "ncs_osprm.h"
@@ -49,6 +52,7 @@
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
 #include "ncs_svd.h"
+#include "osaf_extended_name.h"
 
 /** A NULL os implies "count" number of zeros...
  **/
@@ -374,18 +378,49 @@ void osaf_decode_uint64(NCS_UBAID *ub, uint64_t *to)
 
 void osaf_encode_sanamet(NCS_UBAID *ub, const SaNameT *name)
 {
-	int i;
-	osaf_encode_uint16(ub, name->length);
-	for (i = 0; i < SA_MAX_NAME_LENGTH; i++)
-		osaf_encode_uint8(ub, name->value[i]);
+	TRACE_ENTER();
+
+	SaConstStringT str = osaf_extended_name_borrow(name);
+	TRACE("str %s (%zu)", str, osaf_extended_name_length(name));
+	osaf_encode_sanamet_o2(ub, str);
+
+	TRACE_LEAVE();
 }
 
 void osaf_decode_sanamet(NCS_UBAID *ub, SaNameT *name)
 {
-	int i;
-	osaf_decode_uint16(ub, &name->length);
-	for (i = 0; i < SA_MAX_NAME_LENGTH; i++)
-		osaf_decode_uint8(ub, &name->value[i]);
+	TRACE_ENTER();
+
+	SaStringT str;
+	uint16_t len;
+
+	// get the length of the SaNameT
+	osaf_decode_uint16(ub, &len);
+	osafassert(len < 65535);
+	
+	if (len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
+		// string is encoded as a fixed 256 char array
+		str = (SaStringT)malloc(SA_MAX_UNEXTENDED_NAME_LENGTH * sizeof(char));
+		osafassert(str != NULL);
+
+		uint8_t *p8 = decode_flatten_space(ub, (uint8_t*)str, SA_MAX_UNEXTENDED_NAME_LENGTH);
+		memcpy(str, p8, SA_MAX_UNEXTENDED_NAME_LENGTH * sizeof(char));
+		ncs_dec_skip_space(ub, SA_MAX_UNEXTENDED_NAME_LENGTH);	
+	} else {
+		str = (SaStringT)malloc((len + 1) * sizeof(char));
+		osafassert(str != NULL);
+
+		uint8_t *p8 = decode_flatten_space(ub, (uint8_t*)str, len);
+		memcpy(str, p8, len * sizeof(char));
+		ncs_dec_skip_space(ub, len);
+
+		str[len] = '\0';
+	}
+	TRACE("str: %s (%u)", str, len);
+	osaf_extended_name_alloc(str, name);
+	free(str);
+
+	TRACE_LEAVE();
 }
 
 void osaf_encode_saclmnodeaddresst(NCS_UBAID *ub, const SaClmNodeAddressT *addr)
@@ -406,6 +441,55 @@ void osaf_decode_saclmnodeaddresst(NCS_UBAID *ub, SaClmNodeAddressT *addr)
 	for ( i = 0; i < SA_CLM_MAX_ADDRESS_LENGTH; ++i) {
 		osaf_decode_uint8(ub, &addr->value[i]);
 	}
+}
+
+void osaf_encode_sanamet_o2(NCS_UBAID *ub, SaConstStringT name)
+{
+	TRACE_ENTER();
+
+	int i;
+	const size_t len = strlen(name);
+
+	if (len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
+		// encode a fixed 256 char string, to ensure
+		// we are backwards compatible
+		osaf_encode_uint16(ub, len);
+
+		for (i = 0; i < len; i++) {
+			osaf_encode_uint8(ub, name[i]);
+		}
+
+		// need to encode SA_MAX_UNEXTENDED_NAME_LENGTH characters to remain
+		// compatible with legacy osaf_decode_sanamet() [without long DN support]
+		for (i = len; i < SA_MAX_UNEXTENDED_NAME_LENGTH; i++) {
+			osaf_encode_uint8(ub, 0);
+		}
+	} else {
+		// encode as a variable string
+		osaf_encode_saconststring(ub, name);
+	}
+
+	TRACE_LEAVE();
+}
+
+void osaf_encode_saconststring(NCS_UBAID *ub, SaConstStringT str)
+{
+	size_t len = strlen(str);
+
+	TRACE_ENTER2("%s (%zu)", str, len);
+	
+	// len is encoded in 16 bits, max length is 2^16
+	// this is done to remain compatible with ncs_edp_string
+	osafassert(len < 65535);
+	osaf_encode_uint16(ub, len);
+
+	// encode 'str'
+	uint8_t *p8 = encode_reserve_space(ub, len);
+	osafassert(p8);
+	memcpy(p8, str, len * sizeof(char));
+	ncs_enc_claim_space(ub, len);
+	
+	TRACE_LEAVE();
 }
 
 void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time)
