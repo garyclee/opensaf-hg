@@ -153,6 +153,8 @@ void osaf_encode_uint64(NCS_UBAID *ub, uint64_t value);
 void osaf_decode_uint64(NCS_UBAID *ub, uint64_t *to);
 void osaf_encode_sanamet(NCS_UBAID *ub, const SaNameT *name);
 void osaf_decode_sanamet(NCS_UBAID *ub, SaNameT *name);
+void osaf_encode_sanamet_o2(NCS_UBAID *ub, SaConstStringT name);
+void osaf_encode_saconststring(NCS_UBAID *ub, SaConstStringT str);
 void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time);
 void osaf_decode_satimet(NCS_UBAID *ub, SaTimeT *time);
 void osaf_encode_bool(NCS_UBAID *ub, bool value);
