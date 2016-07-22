@@ -376,15 +376,34 @@ void osaf_decode_uint64(NCS_UBAID *ub, uint64_t *to)
 	ncs_dec_skip_space(ub, 8);
 }
 
+void osaf_encode_sanamet_helper(NCS_UBAID *ub, SaConstStringT name, const size_t len)
+{
+	if (len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
+		// encode a fixed 256 char string, to ensure
+		// we are backwards compatible
+		osaf_encode_uint16(ub, len);
+
+		for (size_t i = 0; i < len; i++) {
+			osaf_encode_uint8(ub, name[i]);
+		}
+
+		// need to encode SA_MAX_UNEXTENDED_NAME_LENGTH characters to remain
+		// compatible with legacy osaf_decode_sanamet() [without long DN support]
+		for (size_t i = len; i < SA_MAX_UNEXTENDED_NAME_LENGTH; i++) {
+			osaf_encode_uint8(ub, 0);
+		}
+	} else {
+		// encode as a variable string
+		osaf_encode_saconststring(ub, name);
+	}
+}
+
 void osaf_encode_sanamet(NCS_UBAID *ub, const SaNameT *name)
 {
-	TRACE_ENTER();
-
+	const size_t len = osaf_extended_name_length(name);
 	SaConstStringT str = osaf_extended_name_borrow(name);
-	TRACE("str %s (%zu)", str, osaf_extended_name_length(name));
-	osaf_encode_sanamet_o2(ub, str);
 
-	TRACE_LEAVE();
+	osaf_encode_sanamet_helper(ub, str, len);
 }
 
 void osaf_decode_sanamet(NCS_UBAID *ub, SaNameT *name)
@@ -445,31 +464,8 @@ void osaf_decode_saclmnodeaddresst(NCS_UBAID *ub, SaClmNodeAddressT *addr)
 
 void osaf_encode_sanamet_o2(NCS_UBAID *ub, SaConstStringT name)
 {
-	TRACE_ENTER();
-
-	int i;
 	const size_t len = strlen(name);
-
-	if (len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
-		// encode a fixed 256 char string, to ensure
-		// we are backwards compatible
-		osaf_encode_uint16(ub, len);
-
-		for (i = 0; i < len; i++) {
-			osaf_encode_uint8(ub, name[i]);
-		}
-
-		// need to encode SA_MAX_UNEXTENDED_NAME_LENGTH characters to remain
-		// compatible with legacy osaf_decode_sanamet() [without long DN support]
-		for (i = len; i < SA_MAX_UNEXTENDED_NAME_LENGTH; i++) {
-			osaf_encode_uint8(ub, 0);
-		}
-	} else {
-		// encode as a variable string
-		osaf_encode_saconststring(ub, name);
-	}
-
-	TRACE_LEAVE();
+	osaf_encode_sanamet_helper(ub, name, len);
 }
 
 void osaf_encode_saconststring(NCS_UBAID *ub, SaConstStringT str)
