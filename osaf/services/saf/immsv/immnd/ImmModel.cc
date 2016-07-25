@@ -2791,7 +2791,7 @@ ImmModel::abortSync()
             LOG_NO("Abort sync: Discarding synced objects");
             // Remove all NO_DANGLING references
             sReverseRefsNoDanglingMMap.clear();
-            while(sObjectMap.size()) {
+            while(!sObjectMap.empty()) {
                 ObjectMap::iterator oi = sObjectMap.begin();
                 TRACE("sObjectmap.size:%u delete: %s", 
                     (unsigned int) sObjectMap.size(), oi->first.c_str());
@@ -2799,11 +2799,11 @@ ImmModel::abortSync()
             }
 
             LOG_NO("Abort sync: Discarding synced classes");
-            while(sClassMap.size()) {
+            while(!sClassMap.empty()) {
                 ClassMap::iterator ci = sClassMap.begin();
                 TRACE("Removing Class:%s", ci->first.c_str());
                 osafassert(ci->second->mExtent.empty());
-                while(ci->second->mAttrMap.size()) {
+                while(!ci->second->mAttrMap.empty()) {
                     AttrMap::iterator ai = ci->second->mAttrMap.begin();
                     TRACE("Remove Attr:%s", ai->first.c_str());
                     AttrInfo* ainfo = ai->second;
@@ -3603,7 +3603,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             err = SA_AIS_ERR_INVALID_PARAM;
         }
 
-        while(classInfo->mAttrMap.size()) {
+        while(!classInfo->mAttrMap.empty()) {
             AttrMap::iterator ai = classInfo->mAttrMap.begin();
             AttrInfo* ainfo = ai->second;
             osafassert(ainfo);
@@ -3667,7 +3667,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         }
 
         /* Remove old attr defs. */
-        while(prevClassInfo->mAttrMap.size()) {
+        while(!prevClassInfo->mAttrMap.empty()) {
             ai = prevClassInfo->mAttrMap.begin();
             TRACE_5("Removing old attribute %s:%s", className.c_str(), ai->first.c_str());
             ainfo = ai->second;
@@ -4601,7 +4601,7 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
                 "with same name is already being mutated", className.c_str());
             err = SA_AIS_ERR_BUSY;
         } else {
-            while(i->second->mAttrMap.size()) {
+            while(!i->second->mAttrMap.empty()) {
                 AttrMap::iterator ai = i->second->mAttrMap.begin();
                 AttrInfo* ainfo = ai->second;
                 osafassert(ainfo);
@@ -6415,7 +6415,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
 
         ccb->mMutations.clear();
         ccb->removeAllObjReadLocks();
-        if(ccb->mImplementers.size()) {
+        if(!ccb->mImplementers.empty()) {
             LOG_WA("Ccb destroyed without notifying some implementers from IMMND.");
             CcbImplementerMap::iterator ix;
             for(ix=ccb->mImplementers.begin(); 
@@ -7806,7 +7806,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         goto ccbObjectCreateExit;
     }
     
-    if(parentName.size()) {
+    if(!parentName.empty()) {
         objectName.append(",");
         objectName.append(parentName);
     }
@@ -8221,7 +8221,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
         if((err == SA_AIS_OK) && pbeNodeIdPtr) {
             void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
             if(!pbe) {
-                if(ccb->mMutations.size()) {
+                if(!ccb->mMutations.empty()) {
                     /* ongoing ccb interrupted by PBE down */
                     err = SA_AIS_ERR_FAILED_OPERATION;
                     ccb->mVeto = err;
@@ -9232,7 +9232,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     if((err == SA_AIS_OK) && pbeNodeIdPtr) {
         void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
         if(!pbe) {
-            if(ccb->mMutations.size()) {
+            if(!ccb->mMutations.empty()) {
                 /* ongoing ccb interrupted by PBE down */
                 err = SA_AIS_ERR_FAILED_OPERATION;
                 ccb->mVeto = err;
@@ -9741,7 +9741,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     if((err == SA_AIS_OK) && pbeNodeIdPtr) {
         void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
         if(!pbe) {
-            if(ccb->mMutations.size()) {
+            if(!ccb->mMutations.empty()) {
                 /* ongoing ccb interrupted by PBE down */
                 err = SA_AIS_ERR_FAILED_OPERATION;
                 ccb->mVeto = err;
@@ -12916,7 +12916,7 @@ ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams,
     } else if(strcmp(opName,"displayverbose")==0){
         struct ImmsvAdminOperationParam * result=NULL;
         if((strcmp(resourceName,"implementers")==0)){
-            if(sImplementerVector.size() > 0){
+            if(!sImplementerVector.empty()){
                 if(sImplementerVector.size() < 128){
                     ImplementerVector::iterator i;
                     for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
@@ -12950,7 +12950,7 @@ ImmModel::resourceDisplay(const struct ImmsvAdminOperationParam *reqparams,
                 }
             }
         } else if((strcmp(resourceName,"adminowners")==0)){
-            if(sOwnerVector.size() > 0){
+            if(!sOwnerVector.empty()){
                 if(sOwnerVector.size() < 128){
                     AdminOwnerVector::iterator i;
                     for(i = sOwnerVector.begin(); i != sOwnerVector.end(); ++i) {
@@ -13254,7 +13254,7 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv, IdVector& gv, bool is
         going to be disconnected, because of node down. This is done only at co-ordinator.
 
     */
-    if(isAtCoord && (implv.size()>0)){
+    if(isAtCoord && (!implv.empty())){
         CcbImplementerMap::iterator isi;
         for(i4 = implv.begin(); i4!=implv.end(); ++i4) {
             for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
@@ -17798,7 +17798,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
 
         std::string parentName;
         getParentDn(/*out*/ parentName, /* in */ objectName);
-        if(parentName.size()) { /* There should exist a parent. */
+        if(!parentName.empty()) { /* There should exist a parent. */
             i5 = sObjectMap.find(parentName);
             if(i5 == sObjectMap.end()) { /* Parent apparently not synced yet. */
                 mpm = sMissingParents.find(parentName);

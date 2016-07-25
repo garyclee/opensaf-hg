@@ -350,7 +350,7 @@ int main(int argc, char* argv[])
 	*/
 
 	/* If we allow pbe without prior dump we need to fix classIdMap. */
-	assert(classIdMap.size());
+	assert(!classIdMap.empty());
 	pbeDaemon(immHandle, dbHandle, ownerHandle, &classIdMap, objCount, pbe2, pbe2BCase);
 	TRACE("Exit from pbeDaemon");
 

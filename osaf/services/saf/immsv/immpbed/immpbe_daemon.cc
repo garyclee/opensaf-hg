@@ -444,7 +444,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			++ix;
 		} while (param);
 
-		osafassert(className.size());
+		osafassert(!className.empty());
 
 		if(sPbe2 && !sPbe2B && (sNoStdFlags & OPENSAF_IMM_FLAG_2PBE1_ALLOW)) {
 			LOG_IN("PBE is in 1safe2PBE state. Ignoring class create towards slave PBE");
@@ -660,7 +660,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 			++ix;
 		} while (param);
 
-		osafassert(className.size());
+		osafassert(!className.empty());
 
 		if(sPbe2 && !sPbe2B && (sNoStdFlags & OPENSAF_IMM_FLAG_2PBE1_ALLOW)) {
 			LOG_IN("PBE is in 1safe2PBE state. Ignoring class delete towards slave PBE");

@@ -654,7 +654,7 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 				rc = sqlite3_step(stmt);
 			}
 
-			if(attrValueBuffers.size() > 0)
+			if(!attrValueBuffers.empty())
 				addObjectAttributeDefinition((char *)
 						class_info->className.c_str(),
 						(char *) (*it)->attrName.c_str(),

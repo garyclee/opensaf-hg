@@ -1047,7 +1047,7 @@ static void endElementHandler(void* userData,
     /* </value> */
     if (strcmp((const char*)name, "value") == 0)
     {
-        if (state->attrValueBuffers.size() == 0)
+        if (state->attrValueBuffers.empty())
         {
             char* str = (char*)malloc(1);
 
@@ -1945,7 +1945,7 @@ void addObjectAttributeDefinition(SaImmClassNameT objectClass,
     assert(attrName);
 
     /* The value array can not be empty */
-    assert(attrValueBuffers->size() != 0);
+    assert(!attrValueBuffers->empty());
 
     /* The object class must be set */
     assert(objectClass);
@@ -2000,7 +2000,7 @@ void addObjectAttributeDefinition(SaImmClassNameT objectClass,
     }
 
     attrValueBuffers->clear();
-    assert(attrValueBuffers->size() == 0);
+    assert(attrValueBuffers->empty());
     TRACE_LEAVE();
 }
 
