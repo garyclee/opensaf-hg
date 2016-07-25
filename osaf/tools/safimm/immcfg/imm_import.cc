@@ -1580,7 +1580,7 @@ static void endElementHandler(void* userData,
 
 	/* </value> */
 	if (strcmp((const char*)name, "value") == 0) {
-		if (state->attrValueBuffers.size() == 0) {
+		if (state->attrValueBuffers.empty()) {
 			char* str = (char*)malloc(1);
 
 			str[0] = '\0';
@@ -2157,7 +2157,7 @@ static void addObjectAttributeDefinition(ParserState* state)
 	}
 
 	/* The value array can not be empty */
-	if(!state->attrValueBuffers.size()) {
+	if(state->attrValueBuffers.empty()) {
 		LOG_ER("The value array can not be empty");
 		stopParser(state);
 		state->parsingStatus = 1;
@@ -2269,7 +2269,7 @@ static void addObjectAttributeDefinition(ParserState* state)
 	free(state->attrName);
 	state->attrName = NULL;
 	state->attrValueBuffers.clear();
-	assert(state->attrValueBuffers.size() == 0);
+	assert(state->attrValueBuffers.empty());
 }
 
 /**
