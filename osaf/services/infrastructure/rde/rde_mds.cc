@@ -276,7 +276,7 @@ uint32_t rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest) {
 
     rc = ncsmds_api(&info);
     if (NCSCC_RC_FAILURE == rc) {
-      LOG_ER("Failed to send %s to %" PRIx64, rde_msg_name[msg->type],
+      LOG_WA("Failed to send %s to %" PRIx64, rde_msg_name[msg->type],
              to_dest);
       base::Sleep(base::kOneHundredMilliseconds);
     } else {
