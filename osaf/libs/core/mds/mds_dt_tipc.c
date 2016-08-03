@@ -320,6 +320,15 @@ uint32_t mdtm_tipc_init(NODE_ID nodeid, uint32_t *mds_tipc_ref)
                 m_MDS_LOG_INFO("MDTM: Successfully set default socket option TIPC_IMP = %d", TIPCIMPORTANCE);
         }
 
+        int droppable = 0;
+        if (setsockopt(tipc_cb.BSRsock, SOL_TIPC, TIPC_DEST_DROPPABLE, &droppable, sizeof(droppable)) != 0) {
+                LOG_ER("MDTM: Can't set TIPC_DEST_DROPPABLE to zero err :%s\n", strerror(errno));
+                m_MDS_LOG_ERR("MDTM: Can't set TIPC_DEST_DROPPABLE to zero err :%s\n", strerror(errno));
+                osafassert(0);
+        } else {
+                m_MDS_LOG_NOTIFY("MDTM: Successfully set TIPC_DEST_DROPPABLE to zero");
+        }
+
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -560,9 +569,9 @@ ssize_t recvfrom_connectionless (int sd, void *buf, size_t nbytes, int flags,
 	struct iovec iov;
 	char anc_buf[CMSG_SPACE(8) + CMSG_SPACE(1024) + CMSG_SPACE(12)];
 	struct cmsghdr *anc;
-	unsigned char *cptr;
-	int i;
 	int has_addr;
+	int anc_data[2];
+
 	ssize_t sz;
 
 	has_addr = (from != NULL) && (addrlen != NULL);
@@ -584,26 +593,27 @@ ssize_t recvfrom_connectionless (int sd, void *buf, size_t nbytes, int flags,
 			m_MDS_LOG_DBG("MDTM: size: %d  anc is NULL", (int)sz);
 		}
 		while (anc != NULL) {
-			cptr = CMSG_DATA(anc);
 
 			/* Receipt of a normal data message never creates the TIPC_ERRINFO
 			   and TIPC_RETDATA objects, and only creates the TIPC_DESTNAME object 
 			   if the message was sent using a TIPC name or name sequence as the 
 			   destination rather than a TIPC port ID So abort for TIPC_ERRINFO and TIPC_RETDATA*/
 			if (anc->cmsg_type == TIPC_ERRINFO) {
-				/* TIPC_ERRINFO - TIPC error code associated with a returned data message or a connection termination message  so abort */
-				m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_ERRINFO abort err :%s", strerror(errno) );
-				abort();
-			} else if (anc->cmsg_type == TIPC_RETDATA) {
-				/* If we set TIPC_DEST_DROPPABLE off messge (configure TIPC to return rejected messages to the sender )
-				   we will hit this when we implement MDS retransmit lost messages  abort can be replaced with flow control logic*/
-				for (i = anc->cmsg_len - sizeof(*anc); i > 0; i--) {
-					m_MDS_LOG_DBG("MDTM: returned byte 0x%02x\n", *cptr);
-					cptr++;
+				anc_data[0] = *((unsigned int*)(CMSG_DATA(anc) + 0));
+				if (anc_data[0] == TIPC_ERR_OVERLOAD) {
+					LOG_CR("MDTM: undelivered message condition ancillary data: TIPC_ERR_OVERLOAD");
+					m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_ERR_OVERLOAD");
+				} else {
+					/* TIPC_ERRINFO - TIPC error code associated with a returned data message or a connection termination message  so abort */
+					LOG_CR("MDTM: undelivered message condition ancillary data: TIPC_ERRINFO abort err : %d", anc_data[0]);
+					m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_ERRINFO abort err : %d", anc_data[0]);
 				}
+			} else if (anc->cmsg_type == TIPC_RETDATA) {
+				/* If we set TIPC_DEST_DROPPABLE off message (configure TIPC to return rejected messages to the sender )
+				   we will hit this when we implement MDS retransmit lost messages  abort can be replaced with flow control logic*/
 				/* TIPC_RETDATA -The contents of a returned data message  so abort */
-				m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_RETDATA abort err :%s", strerror(errno) );
-				abort();
+				LOG_CR("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
+				m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
 			} else if (anc->cmsg_type == TIPC_DESTNAME) {
 				if (sz == 0) {
 					m_MDS_LOG_DBG("MDTM: recd bytes=0 on received on sock, abnormal/unknown  condition. Ignoring");
