@@ -16,6 +16,8 @@
 */
 
 #include "fm.h"
+#include "osaf_time.h"
+#include "ncssysf_def.h"
 
 const MDS_CLIENT_MSG_FORMAT_VER fm_fm_msg_fmt_map_table[FM_SUBPART_VER_MAX] = { FM_FM_MSG_FMT_VER_1 };
 
@@ -28,6 +30,8 @@ static uint32_t fm_encode(MDS_CALLBACK_ENC_INFO *enc_info);
 static uint32_t fm_decode(MDS_CALLBACK_DEC_INFO *dec_info);
 static uint32_t fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info);
 static uint32_t fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info);
+static void check_for_node_isolation(FM_CB *cb);
+static bool has_been_well_connected_recently(FM_CB *cb);
 static uint32_t fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_evt);
 static uint32_t fm_fill_mds_evt_post_fm_mbx(FM_CB *cb, FM_EVT *fm_evt, NODE_ID node_id, FM_FSM_EVT_CODE evt_code);
 
@@ -300,6 +304,27 @@ static void fm_send_svc_down_to_mbx(FM_CB *cb, uint32_t node_id, NCSMDS_SVC_ID s
 	return;
 }
 
+static void check_for_node_isolation(FM_CB *cb)
+{
+	bool well_connected = cb->peer_sc_up && cb->cluster_size >= 3;
+	if (cb->well_connected && !well_connected) {
+		osaf_clock_gettime(CLOCK_MONOTONIC, &cb->last_well_connected);
+	}
+	cb->well_connected = well_connected;
+}
+
+static bool has_been_well_connected_recently(FM_CB *cb)
+{
+	if (cb->well_connected) return true;
+	struct timespec current;
+	struct timespec difference;
+	osaf_clock_gettime(CLOCK_MONOTONIC, &current);
+	if (osaf_timespec_compare(&current, &cb->last_well_connected) < 0) return false;
+	osaf_timespec_subtract(&current, &cb->last_well_connected, &difference);
+	if (osaf_timespec_compare(&difference, &cb->node_isolation_timeout) < 0) return true;
+	return false;
+}
+
 /****************************************************************************
 * Name          : fm_mds_node_evt
 *
@@ -318,6 +343,20 @@ static uint32_t fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_e
 
 	switch (node_evt->node_chg) {
 	case NCSMDS_NODE_DOWN:
+		if (cb->cluster_size != 0) {
+			--cb->cluster_size;
+			TRACE("Node down event for node id %x, cluster size is now: %llu",
+			      node_evt->node_id, (unsigned long long) cb->cluster_size);
+			check_for_node_isolation(cb);
+			if (cb->cluster_size == 1 && has_been_well_connected_recently(cb)) {
+				opensaf_reboot(0, NULL,
+						"Self-fencing due to sudden loss of contact with the rest of the cluster");
+			}
+		} else {
+			TRACE("Node down event for node id %x ignored", node_evt->node_id);
+			LOG_ER("Received unexpected node down event for node id %x", node_evt->node_id);
+		}
+
 		if (node_evt->node_id == cb->peer_node_id && cb->control_tipc) {
 			/* Process NODE_DOWN only if OpenSAF is controling TIPC */
 			LOG_NO("Node Down event for node id %x:", node_evt->node_id);
@@ -326,6 +365,10 @@ static uint32_t fm_mds_node_evt(FM_CB *cb, MDS_CALLBACK_NODE_EVENT_INFO * node_e
 		break;
 
 	case NCSMDS_NODE_UP:
+		++cb->cluster_size;
+		TRACE("Node up event for node id %x, cluster size is now: %llu",
+		      node_evt->node_id, (unsigned long long) cb->cluster_size);
+		check_for_node_isolation(cb);
 		break;
 
 	default:
@@ -365,6 +408,10 @@ static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 			/* Depend on service downs if OpenSAF is not controling TIPC */
 			case NCSMDS_SVC_ID_GFM:
 				if (svc_evt->i_node_id == cb->peer_node_id) {
+					TRACE("Peer fm status change: %d -> %d, peer node id is: %x, cluster size is %llu",
+					      (int) cb->peer_sc_up, 0, svc_evt->i_node_id, (unsigned long long) cb->cluster_size);
+					cb->peer_sc_up = false;
+					check_for_node_isolation(cb);
 					cb->peer_adest = 0;
 					if (!cb->control_tipc) {
 						fm_send_svc_down_to_mbx(cb, svc_evt->i_node_id, svc_evt->i_svc_id);
@@ -415,6 +462,10 @@ static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 		switch (svc_evt->i_svc_id) {
 		case NCSMDS_SVC_ID_GFM:
 			if ((svc_evt->i_node_id != cb->node_id) && (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest) == true)) {
+				TRACE("Peer fm status change: %d -> %d, peer node id is: %x, cluster size is %llu",
+				      (int) cb->peer_sc_up, 1, svc_evt->i_node_id, (unsigned long long) cb->cluster_size);
+				cb->peer_sc_up = true;
+				check_for_node_isolation(cb);
 
 				fm_evt = m_MMGR_ALLOC_FM_EVT;
 				if (NULL == fm_evt) {
