@@ -30,7 +30,7 @@ This file contains the main() routine for FM.
 
 #include <nid_api.h>
 #include "fm.h"
-
+#include "osaf_time.h"
 
 enum {
 	FD_TERM = 0,
@@ -411,7 +411,19 @@ static uint32_t fm_get_args(FM_CB *fm_cb)
 	fm_cb->promote_active_tmr.type = FM_TMR_PROMOTE_ACTIVE;
 	fm_cb->activation_supervision_tmr.type = FM_TMR_ACTIVATION_SUPERVISION;
 
-  	TRACE_LEAVE();
+	char* node_isolation_timeout = getenv("FMS_NODE_ISOLATION_TIMEOUT");
+	if (node_isolation_timeout != NULL) {
+		osaf_millis_to_timespec(atoi(node_isolation_timeout),
+					&fm_cb->node_isolation_timeout);
+	} else {
+		fm_cb->node_isolation_timeout.tv_sec = 10;
+		fm_cb->node_isolation_timeout.tv_nsec = 0;
+	}
+	TRACE("NODE_ISOLATION_TIMEOUT = %" PRId64 ".%09ld",
+	      (int64_t) fm_cb->node_isolation_timeout.tv_sec,
+	      fm_cb->node_isolation_timeout.tv_nsec);
+
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

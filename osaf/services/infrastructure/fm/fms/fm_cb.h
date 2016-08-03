@@ -27,6 +27,10 @@
 #include "rda_papi.h"
 #include "fm_amf.h"
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <time.h>
+
 uint32_t gl_fm_hdl;
 
 typedef enum {
@@ -92,6 +96,12 @@ typedef struct fm_cb {
 	bool amfnd_down;
 	bool amfd_down;
 	bool fm_down;
+
+	bool peer_sc_up;
+	bool well_connected;
+	uint64_t cluster_size;
+	struct timespec last_well_connected;
+	struct timespec node_isolation_timeout;
 } FM_CB;
 
 extern char *role_string[];
