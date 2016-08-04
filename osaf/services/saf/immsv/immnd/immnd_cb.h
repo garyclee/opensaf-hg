@@ -153,13 +153,13 @@ typedef struct immnd_cb_tag {
 	int32_t pbePid2;  //Redundant PBE (2PBE) is running if pbePid2 > 0
 	IMMND_SERVER_STATE mState;
 	uint32_t mStep;		//Measures progress in immnd_proc_server
-	time_t mJobStart;       //Start time for major server tasks like start, load, sync.
+	struct timespec mJobStart;       //Start time for major server tasks like start, load, sync.
 	char *mProgName;	//The full path name of the immnd executable.
 	const char *mDir;	//The directory where imm.xml & pbe files reside
 	const char *mFile;	//The imm.xml file to start from
 	const char *mPbeFile;   //Pbe feature is configured (IMMSV_PBE_FILE).
 	SaImmRepositoryInitModeT mRim; 
-	uint32_t mCleanedHouseAt; //When cleanTheHouse was executed (immnd_proc.c)
+	struct timespec mCleanedHouseAt; //When cleanTheHouse was executed (immnd_proc.c)
 
 	uint8_t mExpectedNodes;
 	uint8_t mWaitSecs;

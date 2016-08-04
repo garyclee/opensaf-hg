@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 	int eventCount = 0;	/* Used to regulate progress of background 
 				   server task when we are very bussy. */
 	int maxEvt = 100;
-	int64_t start_time = 0LL;
+	struct timespec start_time;
 	struct pollfd fds[3];
 	int term_fd;
 
@@ -315,20 +315,19 @@ int main(int argc, char *argv[])
 		/* Watch out for performance bug. Possibly change from event-count
 		   to recalculated timer. */
 		/* ABT 13/07 2009 actually using both event-count and recalculated timer now. */
-		uint32_t passed_time = (uint32_t) start_time ? (m_NCS_GET_TIME_MS - start_time) : 0;
+
+		/* calculate new elapsed time */
+		struct timespec now;
+		osaf_clock_gettime(CLOCK_MONOTONIC, &now);
+		struct timespec passed_time;
+		osaf_timespec_subtract(&now, &start_time, &passed_time);
+		uint64_t passed_time_ms = osaf_timespec_to_millis(&passed_time);
+
 
 		maxEvt = (timeout == 100) ? 50 : 100;
 
-		/*
-		   TRACE("timeout:%u adjustedTimeout:%u", timeout, 
-		   (passed_time<timeout) ? (timeout - passed_time) : 0);
-		 */
-
 		/* Wait for events */
-		if (!start_time) {
-			start_time = m_NCS_GET_TIME_MS;
-		}
-		int ret = poll(fds, 3, (passed_time < timeout) ? (timeout - passed_time) : 0);
+		int ret = poll(fds, 3, (passed_time_ms < timeout) ? (timeout - passed_time_ms) : 0);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -388,7 +387,7 @@ int main(int argc, char *argv[])
 					break;
 				}
 				eventCount = 0;
-				start_time = 0LL;
+				osaf_clock_gettime(CLOCK_MONOTONIC, &start_time);
 			}
 		} else {
 			/* Timeout */
@@ -399,7 +398,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 			eventCount = 0;
-			start_time = 0LL;
+			osaf_clock_gettime(CLOCK_MONOTONIC, &start_time);
 		}
 	}
 
