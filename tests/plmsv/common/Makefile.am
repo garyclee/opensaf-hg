@@ -21,7 +21,8 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_LTLIBRARIES = libplmtest.la
 
 libplmtest_la_CPPFLAGS = \
-	$(AM_CPPFLAGS)
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 libplmtest_la_SOURCES = \
 	plmtest.c

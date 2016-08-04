@@ -15,8 +15,6 @@ void saPlmEntityGroupCreate_01(void)
 
 void saPlmEntityGroupCreate_02(void)
 {
-    SaPlmCallbacksT plms_cbks; 
-    plms_cbks.saPlmReadinessTrackCallback = &TrackCallbackT;
     safassert(saPlmInitialize(&plmHandle, NULL , &PlmVersion), SA_AIS_OK);
     rc = saPlmEntityGroupCreate(plmHandle,&entityGroupHandle);
     test_validate(rc, SA_AIS_OK);

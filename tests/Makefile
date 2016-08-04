@@ -58,7 +58,8 @@ SERVICES_DIRS := \
 	glsv \
 	mbcsv \
 	mds \
-	mqsv
+	mqsv \
+	plms
 
 # These are the files required to run the OpenSAF tests
 TET_SUITE_FILES := \

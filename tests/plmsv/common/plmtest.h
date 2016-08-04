@@ -39,8 +39,8 @@ extern  SaPlmHandleT plmHandle;
 extern SaPlmCallbacksT plmCallbacks;
 extern SaPlmEntityGroupHandleT entityGroupHandle;
 
-extern SaNameT f120_slot_1_dn,f120_slot_16_dn,amc_slot_1_dn,amc_slot_16_dn,f120_slot_1_eedn,f120_nonexistent,f120_slot_16_eedn,amc_slot_1_eedn,amc_slot_16_eedn;
-extern entityNamesNumber;
+extern const SaNameT f120_slot_1_dn,f120_slot_16_dn,amc_slot_1_dn,amc_slot_16_dn,f120_slot_1_eedn,f120_nonexistent,f120_slot_16_eedn,amc_slot_1_eedn,amc_slot_16_eedn;
+extern int entityNamesNumber;
 
 
 

@@ -54,8 +54,6 @@ void saPlmEntityGroupRemove_04(void)
 
 void saPlmEntityGroupRemove_05(void)
 {
-    SaPlmCallbacksT plms_cbks;
-    plms_cbks.saPlmReadinessTrackCallback = &TrackCallbackT;
     rc=saPlmEntityGroupRemove(entityGroupHandle , &f120_slot_1_dn , entityNamesNumber);
     test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
@@ -82,7 +80,7 @@ void saPlmEntityGroupRemove_07(void)
     safassert(saPlmEntityGroupCreate(plmHandle,&entityGroupHandle), SA_AIS_OK);
     safassert(saPlmEntityGroupAdd( entityGroupHandle , &f120_slot_1_dn , entityNamesNumber,SA_PLM_GROUP_SINGLE_ENTITY), SA_AIS_OK);
     safassert(saPlmFinalize(plmHandle), SA_AIS_OK);
-    rc=saPlmEntityGroupRemove(NULL, &f120_slot_1_dn , entityNamesNumber);
+    rc=saPlmEntityGroupRemove(0, &f120_slot_1_dn , entityNamesNumber);
     test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
