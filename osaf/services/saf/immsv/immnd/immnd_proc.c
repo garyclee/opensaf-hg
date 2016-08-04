@@ -607,8 +607,7 @@ void immnd_announceDump(IMMND_CB *cb)
 		/* Reset jobStart timer to delay potential start of sync.
 		   Reduces risk of epoch race with dump.
 		 */
-		osaf_clock_gettime_sec(CLOCK_MONOTONIC, &cb->mJobStart);
-		osafassert(cb->mJobStart >= ((time_t) 0));
+		osaf_clock_gettime(CLOCK_MONOTONIC, &cb->mJobStart);
 	}
 }
 
@@ -1663,12 +1662,12 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	int32_t coord, newEpoch;
 	int32_t printFrq = (*timeout > 100) ? 5 : 50;
-	time_t now;
-	osaf_clock_gettime_sec(CLOCK_MONOTONIC, &now);
-	osafassert(now >= ((time_t) 0));
-	uint32_t jobDuration = (uint32_t) now - cb->mJobStart;
+	struct timespec now;
+	osaf_clock_gettime(CLOCK_MONOTONIC, &now);
+	struct timespec jobDurationTs;
+	osaf_timespec_subtract(&now, &cb->mJobStart, &jobDurationTs);
+	SaUint32T jobDurationSec = (SaUint32T) jobDurationTs.tv_sec;
 	SaBoolT pbeImmndDeadlock=SA_FALSE;
-	if(!jobDuration) {++jobDuration;} /* Avoid jobDuraton of zero */
 	/*TRACE_ENTER(); */
 
 	if ((cb->mStep % printFrq) == 0) {
@@ -1707,17 +1706,17 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 		if (coord != (-1)) {	/* (-1) Not ready; (1) coord; (0) non-coord */
 			if (coord) {
 				if ((cb->mNumNodes >= cb->mExpectedNodes) || 
-					(jobDuration >= cb->mWaitSecs)) {
-					TRACE_5("Nodes %u >= %u || Secs %u >= %u", cb->mNumNodes,
-						cb->mExpectedNodes, jobDuration, cb->mWaitSecs);
+					(jobDurationSec >= cb->mWaitSecs)) {
+					TRACE_5("Nodes %u >= %u || Secs %f >= %u", cb->mNumNodes,
+						cb->mExpectedNodes, osaf_timespec_to_double(&jobDurationTs), cb->mWaitSecs);
 					cb->mState = IMM_SERVER_LOADING_PENDING;
 					LOG_NO("SERVER STATE: IMM_SERVER_CLUSTER_WAITING -->"
 					       " IMM_SERVER_LOADING_PENDING");
 					cb->mStep = 0;
 					cb->mJobStart = now;
 				} else {
-					TRACE_5("Nodes %u < %u && %u < %u", cb->mNumNodes,
-						cb->mExpectedNodes, jobDuration, cb->mWaitSecs);
+					TRACE_5("Nodes %u < %u && %f < %u", cb->mNumNodes,
+						cb->mExpectedNodes, osaf_timespec_to_double(&jobDurationTs), cb->mWaitSecs);
 				}
 			} else {
 				/*Non coordinator goes directly to loading pending */
@@ -1731,8 +1730,8 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				if((cb->m2Pbe == 2) && !(cb->preLoadPid)) {
 					cb->preLoadPid = immnd_forkLoader(cb, true);
 				}
-			} else if (!(jobDuration%5)) { /* Every 5 seconds */
-				LOG_WA("Resending introduce-me - problems with MDS ? %u", jobDuration);
+			} else if (!(jobDurationSec%5)) { /* Every 5 seconds */
+				LOG_WA("Resending introduce-me - problems with MDS ? %f", osaf_timespec_to_double(&jobDurationTs));
 				immnd_introduceMe(cb);
 			}
 
@@ -1751,8 +1750,8 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			}
 		}
 
-		if (jobDuration > 50 && jobDuration > cb->mWaitSecs) {	/* No progress in 50 secs */
-			LOG_ER("Failed to load/sync. Giving up after %u seconds, restarting..", jobDuration);
+		if (jobDurationSec > 50 && jobDurationSec > cb->mWaitSecs) {	/* No progress in 50 secs */
+			LOG_ER("Failed to load/sync. Giving up after %f seconds, restarting..", osaf_timespec_to_double(&jobDurationTs));
 			rc = NCSCC_RC_FAILURE;	/*terminate. */
 			immnd_ackToNid(rc);
 		}
@@ -1786,7 +1785,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				   Epoch == -1 means still waiting for coord. 
 				   Be patient, give the coord 30 seconds to come up. */
 
-				if (newEpoch == (-2) || (jobDuration > 30)) {
+				if (newEpoch == (-2) || (jobDurationSec >= 30)) {
 					/*Request to be synched instead. */
 					LOG_IN("REQUESTING SYNC");
 					if (immnd_requestSync(cb)) {
@@ -1838,7 +1837,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			}
 
 			if (!(cb->mStep % 200)) {
-				LOG_IN("This node still waiting to be sync'ed after %u seconds", jobDuration);
+				LOG_IN("This node still waiting to be sync'ed after %f seconds", osaf_timespec_to_double(&jobDurationTs));
 			}
 		}
 		break;
@@ -1848,7 +1847,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 		if (cb->mMyEpoch > cb->mRulingEpoch) {
 			TRACE_5("Wait for permission to start loading "
 				"My epoch:%u Ruling epoch:%u", cb->mMyEpoch, cb->mRulingEpoch);
-			if (jobDuration > 15) {
+			if (jobDurationSec >= 15) {
 				LOG_WA("MDS problem-2, giving up");
 				rc = NCSCC_RC_FAILURE;	/*terminate. */
 				immnd_ackToNid(rc);
@@ -1905,7 +1904,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 
 	case IMM_SERVER_LOADING_CLIENT:
 		TRACE_5("IMM_SERVER_LOADING_CLIENT");
-		if (jobDuration > (cb->mWaitSecs ? (cb->mWaitSecs + 300) : 300)) {
+		if (jobDurationSec >= (cb->mWaitSecs ? (cb->mWaitSecs + 300) : 300)) {
 			LOG_WA("Loading client timed out, waiting to be loaded - terminating");
 			cb->mStep = 0;
 			cb->mJobStart = now;
@@ -1960,7 +1959,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 		break;
 
 	case IMM_SERVER_SYNC_SERVER:
-		if (!immnd_ccbsTerminated(cb, jobDuration, &pbeImmndDeadlock)) {
+		if (!immnd_ccbsTerminated(cb, jobDurationSec, &pbeImmndDeadlock)) {
 			/*Phase 1 */
 			if(pbeImmndDeadlock) {
 				LOG_WA("Apparent deadlock detected between IMMND sync and restarting PBE, "
@@ -1977,11 +1976,11 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			}
 			if (!(cb->mStep % 60)) {
 				LOG_IN("Sync Phase-1, waiting for existing "
-				       "Ccbs to terminate, seconds waited: %u", jobDuration);
+				       "Ccbs to terminate, seconds waited: %f", osaf_timespec_to_double(&jobDurationTs));
 			}
-			if (jobDuration > 20) {
+			if (jobDurationSec >= 20) {
 				LOG_NO("Still waiting for existing Ccbs to terminate "
-				       "after %u seconds. Aborting this sync attempt", jobDuration);
+				       "after %f seconds. Aborting this sync attempt", osaf_timespec_to_double(&jobDurationTs));
 				immnd_abortSync(cb);
 				if(cb->syncPid > 0) {
 					LOG_WA("STOPPING sync process pid %u", cb->syncPid);
@@ -2038,7 +2037,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				if (!(cb->mStep % 60)) {
 					LOG_IN("Sync Phase-3: step:%u", cb->mStep);
 				}
-				if (immnd_syncComplete(cb, true, jobDuration)) {
+				if (immnd_syncComplete(cb, true, jobDurationSec)) {
 					cb->mStep = 0;
 					cb->mJobStart = now;
 					cb->mState = IMM_SERVER_READY;
@@ -2145,9 +2144,9 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			}
 		}
 
-		if((cb->mStep == 0) || (cb->mCleanedHouseAt != jobDuration) || cb->mForceClean) {
+		if((cb->mStep == 0) || (osaf_timespec_compare(&cb->mCleanedHouseAt, &jobDurationTs)) || cb->mForceClean) {
 			immnd_cleanTheHouse(cb, coord == 1);
-			cb->mCleanedHouseAt = jobDuration;
+			cb->mCleanedHouseAt = jobDurationTs;
 			if(cb->mForceClean) {
 				LOG_IN("ABT Cleaned the house: cb->mForceClean reset to false;");
 				cb->mForceClean = false;
@@ -2161,7 +2160,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 				  to coordinator crash. Abort the sync. */
 				LOG_WA("ABORTING UNCOMPLETED SYNC - COORDINATOR MUST HAVE CRASHED");
 				immnd_abortSync(cb);
-			} else if (jobDuration > 3) {
+			} else if (jobDurationSec >= 3) {
 				newEpoch = immnd_syncNeeded(cb);
 				if (newEpoch) {
 					if (cb->syncPid > 0) {
