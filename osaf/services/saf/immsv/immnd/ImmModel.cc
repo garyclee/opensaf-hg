@@ -41,11 +41,11 @@
 
 struct ContinuationInfo2
 {
-    ContinuationInfo2():mCreateTime(0), mConn(0), mTimeout(0), mImplId(0){}
+    ContinuationInfo2():mCreateTime(kZeroSeconds), mConn(0), mTimeout(0), mImplId(0){}
     ContinuationInfo2(SaUint32T conn, SaUint32T timeout):mConn(conn), mTimeout(timeout),
          mImplId(0)
-         {osaf_clock_gettime_sec(CLOCK_MONOTONIC, &mCreateTime);osafassert(mCreateTime >= ((time_t) 0));} 
-    time_t  mCreateTime;
+         {osaf_clock_gettime(CLOCK_MONOTONIC, &mCreateTime);}
+    timespec  mCreateTime;
     SaUint32T mConn;
     SaUint32T mTimeout; //0=> no timeout. Otherwise timeout in SECONDS.
     //Default copy constructor and assignement operator used in ContinuationMap2
@@ -349,7 +349,7 @@ struct CcbInfo
 {
     CcbInfo(): mId(0), mAdminOwnerId(0), mCcbFlags(0), mOriginatingConn(0),
                mOriginatingNode(0), mState(IMM_CCB_ILLEGAL), mVeto(SA_AIS_OK),
-               mWaitStartTime((time_t) 0), mOpCount(0), mPbeRestartId(0),
+               mWaitStartTime(kZeroSeconds), mOpCount(0), mPbeRestartId(0),
                mErrorStrings(NULL), mAugCcbParent(NULL), mPurged(false) {}
     bool isOk() {return mVeto == SA_AIS_OK;}
     bool isActive() {return (mState < IMM_CCB_COMMITTED);}
@@ -369,7 +369,7 @@ struct CcbInfo
     CcbImplementerMap mImplementers;
     ObjectMutationMap mMutations;
     SaAisErrorT       mVeto;  //SA_AIS_OK as long as no "participan" voted error.
-    time_t            mWaitStartTime;
+    timespec          mWaitStartTime;
     SaUint32T         mOpCount;
     SaUint32T         mPbeRestartId; /* ImplId for new PBE to resolve CCBs in critical */
     ImplementerSet    mLocalAppliers;
@@ -1262,11 +1262,10 @@ immModel_cleanTheBasement(IMMND_CB *cb,
         osafassert(ix==(*pbePrtoReqArrSize));
     }
 
-    time_t now;
-    osaf_clock_gettime_sec(CLOCK_MONOTONIC, &now);
-    osafassert(now >= ((time_t) 0));
-    time_t nextSearch = 0;
-    time_t opSearchTime;
+    timespec now;
+    osaf_clock_gettime(CLOCK_MONOTONIC, &now);
+    timespec nextSearch;
+    timespec opSearchTime;
     ImmSearchOp *op;
     IMMND_OM_SEARCH_NODE *searchOp;
     IMMND_OM_SEARCH_NODE **prevSearchOp;
@@ -1275,7 +1274,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
     int clearCounter = 0;
     while(cl_node) {
         if(!cl_node->mIsSync && cl_node->searchOpList
-                && (now - cl_node->mLastSearch > SEARCH_TIMEOUT_SEC)) {
+                && osaf_timer_is_expired_sec(&now, &cl_node->mLastSearch, SEARCH_TIMEOUT_SEC)) {
             nextSearch = now;
             clearCounter = 0;
             searchOp = cl_node->searchOpList;
@@ -1284,7 +1283,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
                 osafassert(searchOp->searchOp);
                 op = (ImmSearchOp *)searchOp->searchOp;
                 opSearchTime = op->getLastSearchTime();
-                if(!op->isSync() && now - opSearchTime > SEARCH_TIMEOUT_SEC) {
+                if(!op->isSync() && osaf_timer_is_expired_sec(&now, &opSearchTime, SEARCH_TIMEOUT_SEC)) {
                     TRACE_2("Clear search result. Timeout %dsec. Search id: %d, OM handle: %llx",
                             SEARCH_TIMEOUT_SEC, searchOp->searchId, cl_node->imm_app_hdl);
                     *prevSearchOp = searchOp->next;
@@ -1293,7 +1292,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
                     searchOp = *prevSearchOp;
                     clearCounter++;
                 } else {
-                    if(opSearchTime < nextSearch) {
+                    if(osaf_timespec_compare(&opSearchTime, &nextSearch) == -1) {
                         nextSearch = opSearchTime;
                     }
                     prevSearchOp = &searchOp->next;
@@ -5346,7 +5345,7 @@ ImmModel::ccbCreate(SaUint32T adminOwnerId,
     info->mOriginatingConn = originatingConn;
     info->mVeto = SA_AIS_OK;
     info->mState = IMM_CCB_EMPTY;
-    info->mWaitStartTime = 0;
+    info->mWaitStartTime = kZeroSeconds;
     info->mOpCount = 0;
     info->mPbeRestartId = 0;
     info->mErrorStrings = NULL;
@@ -5735,9 +5734,8 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 //Wait for ack, possibly remote
                 implAssoc->mWaitForImplAck = true; 
                 implAssoc->mContinuationId = sLastContinuationId;/* incremented above */
-                if(ccb->mWaitStartTime == 0) {
-                    osaf_clock_gettime_sec(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
-                    osafassert(ccb->mWaitStartTime >= ((time_t) 0));
+                if(osaf_timespec_compare(&ccb->mWaitStartTime, &kZeroSeconds) == 0) {
+                    osaf_clock_gettime(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
                     TRACE("Wait timer for completed started for ccb:%u", 
                         ccb->mId);
                 }
@@ -6132,7 +6130,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
         osafassert(ccb->mState == IMM_CCB_CRITICAL);
         TRACE_5("Comitting Ccb %u in IMMND", ccbId);
     }
-    ccb->mWaitStartTime = 0;
+    ccb->mWaitStartTime = kZeroSeconds;
 
     //Do the actual commit!
     ObjectMutationMap::iterator omit;
@@ -6336,7 +6334,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, ConnVector& clVector
             "OI timeout or explicit abort request.");
     }
 
-    ccb->mWaitStartTime = 0;
+    ccb->mWaitStartTime = kZeroSeconds;
     
     CcbImplementerMap::iterator isi;
     for(isi = ccb->mImplementers.begin();
@@ -6586,9 +6584,8 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
         ccb->mLocalAppliers.clear();
         /*  Retain the ccb info to allow ccb result recovery. */
 
-        if(ccb->mWaitStartTime == 0)  {
-            osaf_clock_gettime_sec(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
-            osafassert(ccb->mWaitStartTime >= ((time_t) 0));
+        if(osaf_timespec_compare(&ccb->mWaitStartTime, &kZeroSeconds) == 0)  {
+            osaf_clock_gettime(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
             TRACE_5("Ccb Wait-time for GC set. State: %u/%s", ccb->mState,
                 (ccb->mState == IMM_CCB_COMMITTED)?"COMMITTED":
                 ((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
@@ -6795,7 +6792,7 @@ ImmModel::ccbAugmentInit(immsv_oi_ccb_upcall_rsp* rsp,
         ccb->mState = IMM_CCB_READY;
     }
 
-    ccb->mWaitStartTime = 0;
+    ccb->mWaitStartTime = kZeroSeconds;
     ccb->mErrorStrings = NULL;
 
  done:
@@ -8527,8 +8524,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 TRACE_5("THERE IS AN IMPLEMENTER %u conn:%u node:%x name:%s\n",
                     object->mImplementer->mId, *implConn, *implNodeId,
                     object->mImplementer->mImplementerName.c_str());
-                osaf_clock_gettime_sec(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
-                osafassert(ccb->mWaitStartTime >= ((time_t) 0));
+                osaf_clock_gettime(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
             } else if(className == immMngtClass) {
                 if(sImmNodeState == IMM_NODE_LOADING) {
                     if(objectName != immManagementDn) {
@@ -9828,8 +9824,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 object->mImplementer->mId, *implConn, *implNodeId,
                 object->mImplementer->mImplementerName.c_str());
             
-            osaf_clock_gettime_sec(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
-            osafassert(ccb->mWaitStartTime >= ((time_t) 0));
+            osaf_clock_gettime(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
         } else if(ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI) {
             if((object->mImplementer == NULL) && 
                (ccb->mCcbFlags & SA_IMM_CCB_ALLOW_NULL_OI)) {
@@ -10438,8 +10433,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
 
             SaUint32T implConn = oi->second->mImplementer->mConn;
             
-            osaf_clock_gettime_sec(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
-            osafassert(ccb->mWaitStartTime >= ((time_t) 0));
+            osaf_clock_gettime(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
             /* TODO: Resetting the ccb timer for each deleted object here. 
                Not so efficient. Should set it only when all objects
                are processed.
@@ -10658,7 +10652,7 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err, bool augDel
         }
     }
     
-    ccb->mWaitStartTime = 0;
+    ccb->mWaitStartTime = kZeroSeconds;
     ccb->mState = IMM_CCB_READY;
     TRACE_LEAVE();
     return false;
@@ -10726,7 +10720,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
             *err = SA_AIS_ERR_INTERRUPT;
         }
 
-        ccb->mWaitStartTime = 0;
+        ccb->mWaitStartTime = kZeroSeconds;
         return false;
     }
 
@@ -10743,7 +10737,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
         if((*err) != SA_AIS_OK) {
             ccb->mState = IMM_CCB_PBE_ABORT;
         }
-        ccb->mWaitStartTime = 0;
+        ccb->mWaitStartTime = kZeroSeconds;
         return false;
     }
 
@@ -10780,8 +10774,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
                objects write locked by the ccb) until we know the outcome.
                Restart the timer to catch ccbs hung waiting on PBE.
             */
-             osaf_clock_gettime_sec(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
-             osafassert(ccb->mWaitStartTime >= ((time_t) 0));
+             osaf_clock_gettime(CLOCK_MONOTONIC, &ccb->mWaitStartTime);
             return true; /* Wait for PBE commit*/
         } else {
             /* But there is not any PBE up currently => abort.  */
@@ -11118,7 +11111,7 @@ ImmModel::ccbObjCreateContinuation(SaUint32T ccbId, SaUint32T invocation,
     } else {
         osafassert(omuti->second->mWaitForImplAck);
         omuti->second->mWaitForImplAck = false;
-        ccb->mWaitStartTime = 0;
+        ccb->mWaitStartTime = kZeroSeconds;
     }
     
     if(ccb->mAugCcbParent &&
@@ -11209,7 +11202,7 @@ ImmModel::ccbObjModifyContinuation(SaUint32T ccbId, SaUint32T invocation,
     } else {
         osafassert(omuti->second->mWaitForImplAck);
         omuti->second->mWaitForImplAck = false;
-        ccb->mWaitStartTime = 0;
+        ccb->mWaitStartTime = kZeroSeconds;
     }
     
     if(ccb->mAugCcbParent &&
@@ -13824,13 +13817,12 @@ ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
     *pbeConnPtr = 0;
     *pbeIdPtr = 0;
     CcbVector::iterator i;
-    time_t now;
-    osaf_clock_gettime_sec(CLOCK_MONOTONIC, &now);
-    osafassert(now >= ((time_t) 0));
+    timespec now;
+    osaf_clock_gettime(CLOCK_MONOTONIC, &now);
     for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
         if((*i)->mState == IMM_CCB_CRITICAL && 
-           (((*i)->mWaitStartTime && 
-             now - (*i)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)||/* Should be saImmOiTimeout*/
+           ((osaf_timespec_compare(&(*i)->mWaitStartTime, &kZeroSeconds) &&
+             osaf_timer_is_expired_sec(&now, &(*i)->mWaitStartTime, DEFAULT_TIMEOUT_SEC))||/* Should be saImmOiTimeout*/
              (*i)->mPbeRestartId))
         {
             /* We have a critical ccb that has: timed out OR lived through a PBE restart.
@@ -13887,9 +13879,12 @@ ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
                 continue;
             } 
 
-            if((ccb->mPbeRestartId == 0) && now - ccb->mWaitStartTime < (DEFAULT_TIMEOUT_SEC + addSecs)) {
-                LOG_NO("Ccb %u is old, but also large (%u) will wait secs:%ld", ccb->mId, mutations, 
-                    (DEFAULT_TIMEOUT_SEC + addSecs) - (now - ccb->mWaitStartTime));
+            if((ccb->mPbeRestartId == 0) &&
+                    osaf_timer_is_expired_sec(&now, &ccb->mWaitStartTime, (DEFAULT_TIMEOUT_SEC + addSecs))) {
+                timespec elapsed;
+                osaf_timespec_subtract(&now, &ccb->mWaitStartTime, &elapsed);
+                LOG_NO("Ccb %u is old, but also large (%u) will wait secs:%f", ccb->mId, mutations,
+                    (double) (DEFAULT_TIMEOUT_SEC + addSecs) - osaf_timespec_to_double(&elapsed));
                 continue;
             }
 
@@ -14004,7 +13999,8 @@ ImmModel::purgeSyncRequest(SaUint32T clientId)
     }
 
     for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
-        if(((*i3)->mOriginatingConn == clientId) && ((*i3)->mWaitStartTime > ((time_t) 0))) {
+        if(((*i3)->mOriginatingConn == clientId) &&
+                osaf_timespec_compare(&(*i3)->mWaitStartTime, &kZeroSeconds) == 1) {
             SaUint32T ccbId = (*i3)->mId;
 
             if((*i3)->mState > IMM_CCB_CRITICAL) {
@@ -14044,9 +14040,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     InvocVector& searchReqs, IdVector& ccbs, IdVector& pbePrtoReqs,
     bool iAmCoord)
 {
-    time_t now;
-    osaf_clock_gettime_sec(CLOCK_MONOTONIC, &now);
-    osafassert(now >= ((time_t) 0));
+    timespec now;
+    osaf_clock_gettime(CLOCK_MONOTONIC, &now);
     ContinuationMap2::iterator ci2;
     ImplementerEvtMap::iterator iem;
     CcbVector::iterator i3;
@@ -14056,14 +14051,15 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     for(ci2=sAdmReqContinuationMap.begin(); 
         ci2!=sAdmReqContinuationMap.end();
         ++ci2) {
-        if(ci2->second.mTimeout && 
-            (now - ci2->second.mCreateTime >= (int) ci2->second.mTimeout)) {
+        if(ci2->second.mTimeout &&
+                osaf_timer_is_expired_sec(&now, &ci2->second.mCreateTime, ci2->second.mTimeout)) {
             TRACE_5("Timeout on AdministrativeOp continuation %llu  tmout:%u", 
                 ci2->first, ci2->second.mTimeout);
             admReqs.push_back(ci2->first);
         } else {
-            TRACE_5("Did not timeout now - start < %u(%lu)", ci2->second.mTimeout,
-                now - ci2->second.mCreateTime);
+            timespec elapsed;
+            osaf_timespec_subtract(&now, &ci2->second.mCreateTime, &elapsed);
+            TRACE_5("Did not timeout now - start < %u(%f)", ci2->second.mTimeout, osaf_timespec_to_double(&elapsed));
         }
     }
     
@@ -14077,7 +14073,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     for(ci2=sSearchReqContinuationMap.begin(); 
         ci2!=sSearchReqContinuationMap.end();
         ++ci2) {
-        if(now - ci2->second.mCreateTime >= (int)ci2->second.mTimeout) {
+        if(osaf_timer_is_expired_sec(&now, &ci2->second.mCreateTime, ci2->second.mTimeout)) {
             TRACE_5("Timeout on Search continuation %llu", ci2->first);
             searchReqs.push_back(ci2->first);
         } 
@@ -14092,7 +14088,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     while (i3 != sCcbVector.end()) {
         if((*i3)->mState > IMM_CCB_CRITICAL) {
             /* Garbage Collect ccbInfo more than five minutes old */
-            if((*i3)->mWaitStartTime && (now - (*i3)->mWaitStartTime >= 300)) {
+            if(osaf_timespec_compare(&(*i3)->mWaitStartTime, &kZeroSeconds) &&
+                    osaf_timer_is_expired_sec(&now, &(*i3)->mWaitStartTime, 300)) {
                 TRACE_5("Removing CCB %u terminated more than 5 minutes ago", 
                     (*i3)->mId);
                 (*i3)->mState = IMM_CCB_ILLEGAL;
@@ -14108,8 +14105,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
             //Also handle the case of admin-op requesting abort of all non-critical ccbs.
             TRACE("Checking active ccb %u for deadlock or blocked implementer",
                 (*i3)->mId);
-            TRACE("state:%u waitsart:%u PberestartId:%u",(*i3)->mState, 
-                (unsigned int) (*i3)->mWaitStartTime, (*i3)->mPbeRestartId);
+            TRACE("state:%u waitsart:%f PberestartId:%u",(*i3)->mState,
+                osaf_timespec_to_double(&(*i3)->mWaitStartTime), (*i3)->mPbeRestartId);
 
             CcbImplementerMap::iterator cim;
             uint32_t max_oi_timeout = DEFAULT_TIMEOUT_SEC;
@@ -14126,7 +14123,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
             }
 
             uint32_t oi_timeout = ((*i3)->mState == IMM_CCB_CRITICAL) ? DEFAULT_TIMEOUT_SEC : max_oi_timeout;
-            if(((*i3)->mWaitStartTime && (now - (*i3)->mWaitStartTime >= (int)oi_timeout)) || /* normal timeout */
+            if((osaf_timespec_compare(&(*i3)->mWaitStartTime, &kZeroSeconds) &&
+                    osaf_timer_is_expired_sec(&now, &(*i3)->mWaitStartTime, oi_timeout)) || /* normal timeout */
                ((*i3)->mPbeRestartId) ||  /* CCB was critical when PBE restarted => Must ask new PBE for outcome */
                abortCcb)  /* Request to abort ALL non critical CCBs */
             {
@@ -14135,7 +14133,8 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                     oi_timeout = 0;
                     TRACE_5("PBE restarted id:%u with ccb:%u in critical",
                         (*i3)->mPbeRestartId, (*i3)->mId);
-                } else if((*i3)->mWaitStartTime && (now - (*i3)->mWaitStartTime >= (int)max_oi_timeout)) {
+                } else if(osaf_timespec_compare(&(*i3)->mWaitStartTime, &kZeroSeconds) &&
+                        osaf_timer_is_expired_sec(&now, &(*i3)->mWaitStartTime, oi_timeout)) {
                     oi_timeout = 0;
                     TRACE_5("CCB %u timeout while waiting on implementer reply",
                         (*i3)->mId);
@@ -14157,7 +14156,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
                     if((*i3)->mPbeRestartId) {
                         LOG_WA("Ccb: %u in critical state when PBE restarted", (*i3)->mId);
                         ccbsStuck=1;
-                    } else if(now - (*i3)->mWaitStartTime >= (DEFAULT_TIMEOUT_SEC + addSecs)){
+                    } else if(osaf_timer_is_expired_sec(&now, &(*i3)->mWaitStartTime, (DEFAULT_TIMEOUT_SEC + addSecs))){
                         LOG_WA("Timeout (%d) on transaction in critical state! ccb:%u", 
                             (DEFAULT_TIMEOUT_SEC + addSecs), (*i3)->mId);
                         ccbsStuck=1;
@@ -14184,7 +14183,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
         //It needs to be long to allow reply on larger batch jobs such as a
         //schema/class change with instance migration and slow file system.
         //It can not be infinite as that could cause a memory leak.
-        if(now - ci2->second.mCreateTime >= (DEFAULT_TIMEOUT_SEC * 20)) {
+        if(osaf_timer_is_expired_sec(&now, &ci2->second.mCreateTime, (DEFAULT_TIMEOUT_SEC * 20))) {
             TRACE_5("Timeout on PbeRtReqContinuation %llu", ci2->first);
             pbePrtoReqs.push_back(ci2->second.mConn);
             sPbeRtReqContinuationMap.erase(ci2);
@@ -14197,7 +14196,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     /* Remove old implementer detach times. */
     iem=sImplDetachTime.begin();
     while(iem!=sImplDetachTime.end()) {
-        if(now - iem->second.mCreateTime >= DEFAULT_TIMEOUT_SEC) {
+        if(osaf_timer_is_expired_sec(&now, &iem->second.mCreateTime, DEFAULT_TIMEOUT_SEC)) {
             TRACE_5("Timeout on sImplDetachTime implid:%u", iem->first->mId);
             sImplDetachTime.erase(iem);
             iem=sImplDetachTime.begin();
@@ -14465,8 +14464,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
                                 ccb->mImplementers[info->mId] = oldImplAssoc;
                                 TRACE_7("Replaced implid %u with %u", oldImplId, info->mId);
                                 ccb->mPbeRestartId = info->mId;
-                                osaf_clock_gettime_sec(CLOCK_MONOTONIC, &ccb->mWaitStartTime);/*Reset timer on new impl*/
-                                osafassert(ccb->mWaitStartTime >= ((time_t) 0));
+                                osaf_clock_gettime(CLOCK_MONOTONIC, &ccb->mWaitStartTime);/*Reset timer on new impl*/
                                 /* Can only be one PBE impl asoc*/
                                 break;  /* out of for(isi = ccb->mImplementers....*/
                         }
@@ -18890,13 +18888,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 newCcb->mOriginatingConn = 0;
                 newCcb->mVeto = SA_AIS_OK;
                 newCcb->mState = (ImmCcbState) (prt45allowed ? ol->ccbState : (ol->ccbState + 2));
-                osaf_clock_gettime_sec(CLOCK_MONOTONIC, &newCcb->mWaitStartTime);
-                if(newCcb->mWaitStartTime < ((time_t) 0)) {
-                    LOG_ER("newCcb->mWaitStartTime < 0");
-                    err = SA_AIS_ERR_FAILED_OPERATION;
-                    delete newCcb;
-                    goto done;
-                }
+                osaf_clock_gettime(CLOCK_MONOTONIC, &newCcb->mWaitStartTime);
                 newCcb->mOpCount=0;
                 newCcb->mPbeRestartId=0;
                 newCcb->mErrorStrings=NULL;
