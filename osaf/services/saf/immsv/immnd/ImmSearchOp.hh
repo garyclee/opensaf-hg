@@ -85,8 +85,8 @@ public:
     bool          isSync() {return mIsSync;}
     bool          isAccessor() {return mIsAccessor;}
     bool          isNonExtendedNameSet() {return mNonExtendedName;}
-    time_t        getLastSearchTime() { return mLastSearch; }
-    void          updateSearchTime() { osaf_clock_gettime_sec(CLOCK_MONOTONIC, &mLastSearch); }
+    timespec      getLastSearchTime() { return mLastSearch; }
+    void          updateSearchTime() { osaf_clock_gettime(CLOCK_MONOTONIC, &mLastSearch); }
     void          popLastResult() { mResultList.pop_front(); }
     void*         syncOsi;
     void*         attrNameList;
@@ -98,7 +98,7 @@ private:
     AttributeList mRtsToFetch;
     bool mIsSync;
     bool mIsAccessor;
-    time_t mLastSearch;
+    timespec mLastSearch;
     bool mNonExtendedName;
 };
 

@@ -31,7 +31,6 @@
 #include "immsv.h"
 #include "immnd_cb.h"
 #include "immnd_init.h"
-#include "osaf_time.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -43,20 +42,5 @@
 #define ENABLE_PBE 0
 #endif
 
-
-/*
- * Get the time in seconds
- *
- * This is a wrapper function to get the clocktime in seconds.
- * Output vlaue will be in seconds.
- */
-
-static inline void osaf_clock_gettime_sec(clockid_t i_clk_id,
-        time_t* o_t)
-{
-       struct timespec o_ts;
-       osaf_clock_gettime(i_clk_id, &o_ts) ;
-       *o_t = o_ts.tv_sec;
-}
 
 #endif   /* IMMND_H */

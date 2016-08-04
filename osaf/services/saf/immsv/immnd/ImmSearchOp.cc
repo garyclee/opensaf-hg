@@ -26,7 +26,7 @@ ImmSearchOp::ImmSearchOp()
     syncOsi=NULL;
     attrNameList=NULL;
     classInfo=NULL;
-    mLastSearch = 0;
+    mLastSearch = kZeroSeconds;
     mNonExtendedName = false;
 }
 
