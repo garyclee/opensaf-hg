@@ -6,8 +6,6 @@
 
 void saPlmEntityGroupAdd_01(void)
 {
-    SaPlmCallbacksT plms_cbks; 
-    plms_cbks.saPlmReadinessTrackCallback = &TrackCallbackT;
     safassert(saPlmInitialize(&plmHandle, NULL, &PlmVersion), SA_AIS_OK);
     safassert(saPlmEntityGroupCreate(plmHandle,&entityGroupHandle), SA_AIS_OK);
     rc=saPlmEntityGroupAdd(entityGroupHandle , &f120_slot_1_dn , entityNamesNumber,SA_PLM_GROUP_SINGLE_ENTITY);
@@ -56,7 +54,7 @@ void saPlmEntityGroupAdd_04(void)
 
 void saPlmEntityGroupAdd_05(void)
 {
-    rc=saPlmEntityGroupAdd(&entityGroupHandle , &f120_slot_1_dn , entityNamesNumber,SA_PLM_GROUP_SINGLE_ENTITY);
+    rc=saPlmEntityGroupAdd((SaPlmEntityGroupHandleT)&entityGroupHandle, &f120_slot_1_dn , entityNamesNumber,SA_PLM_GROUP_SINGLE_ENTITY);
     test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
@@ -67,7 +65,7 @@ void saPlmEntityGroupAdd_06(void)
     plms_cbks.saPlmReadinessTrackCallback = &TrackCallbackT;
     safassert(saPlmInitialize(&plmHandle, &plms_cbks, &PlmVersion), SA_AIS_OK);
     safassert(saPlmEntityGroupCreate(plmHandle,&entityGroupHandle),SA_AIS_OK);
-    rc = saPlmEntityGroupAdd(entityGroupHandle , ""  , entityNamesNumber,SA_PLM_GROUP_SUBTREE_EES_ONLY);
+    rc = saPlmEntityGroupAdd(entityGroupHandle , 0, entityNamesNumber,SA_PLM_GROUP_SUBTREE_EES_ONLY);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
     safassert(saPlmFinalize(plmHandle), SA_AIS_OK);
 }
@@ -80,7 +78,7 @@ void saPlmEntityGroupAdd_07(void)
     plms_cbks.saPlmReadinessTrackCallback = &TrackCallbackT;
     safassert(saPlmInitialize(&plmHandle, &plms_cbks, &PlmVersion), SA_AIS_OK);
     safassert(saPlmEntityGroupCreate(plmHandle,&entityGroupHandle), SA_AIS_OK);
-    rc=saPlmEntityGroupAdd(entityGroupHandle , ""  , entityNamesNumber,SA_PLM_GROUP_SUBTREE_HES_ONLY);
+    rc=saPlmEntityGroupAdd(entityGroupHandle , 0, entityNamesNumber,SA_PLM_GROUP_SUBTREE_HES_ONLY);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
     safassert(saPlmFinalize(plmHandle), SA_AIS_OK);
 }
@@ -103,7 +101,7 @@ void saPlmEntityGroupAdd_09(void)
     plms_cbks.saPlmReadinessTrackCallback = &TrackCallbackT;
     safassert(saPlmInitialize(&plmHandle, &plms_cbks, &PlmVersion), SA_AIS_OK);
     safassert(saPlmEntityGroupCreate(plmHandle,&entityGroupHandle),SA_AIS_OK);
-    rc=saPlmEntityGroupAdd(entityGroupHandle , &f120_slot_1_dn  , ""  ,SA_PLM_GROUP_SUBTREE_EES_ONLY);
+    rc=saPlmEntityGroupAdd(entityGroupHandle , &f120_slot_1_dn  , 0  ,SA_PLM_GROUP_SUBTREE_HES_ONLY);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
     safassert(saPlmFinalize(plmHandle), SA_AIS_OK);
 }

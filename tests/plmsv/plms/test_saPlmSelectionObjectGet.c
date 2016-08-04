@@ -5,8 +5,6 @@
 
 void saPlmSelectionObjectGet_01(void)
 {
-    SaPlmCallbacksT plms_cbks; 
-    plms_cbks.saPlmReadinessTrackCallback = &TrackCallbackT;
     safassert(saPlmInitialize(&plmHandle, NULL, &PlmVersion), SA_AIS_OK);
     rc = saPlmSelectionObjectGet(plmHandle, &selectionObject);
     test_validate(rc, SA_AIS_OK); 

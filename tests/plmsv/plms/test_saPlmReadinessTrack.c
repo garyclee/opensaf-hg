@@ -10,10 +10,13 @@ fd_set read_fd;
 char groupaddoption[10];
 SaNameT testDnptr;
 int counter=0;
+
+static void checktrackentval(const SaPlmReadinessTrackedEntitiesT *);
+
 typedef struct
 {
  SaNameT testDnptr;
- char enitytype[2];
+ char enitytype[3];
 }entity_array;
 
 entity_array entarr[10];
@@ -32,7 +35,9 @@ void getDn ( int i ) {
         {
              case 1 :
 		memset(&entarr[0], 0, sizeof(entity_array));
-    		strcpy(entarr[0].testDnptr.value, f120_slot_1_dn.value); 
+    		memcpy(entarr[0].testDnptr.value,
+                       f120_slot_1_dn.value,
+                       f120_slot_1_dn.length); 
     		entarr[0].testDnptr.length =f120_slot_1_dn.length;
                 strcpy(entarr[0].enitytype,"HE");
  		num_elements=1;
@@ -42,17 +47,24 @@ void getDn ( int i ) {
 	     case 2 :
  		num_elements = 4;
 		memset(entarr, 0, 4 * sizeof(entity_array));
-    		strcpy(entarr[0].testDnptr.value, f120_slot_1_dn.value); 
-    		strcpy(entarr[0].testDnptr.value, f120_slot_1_dn.value); 
+    		memcpy(entarr[0].testDnptr.value,
+                       f120_slot_1_dn.value,
+                       f120_slot_1_dn.length); 
     		entarr[0].testDnptr.length =f120_slot_1_dn.length;
                 strcpy(entarr[0].enitytype,"HE");
-    		strcpy(entarr[1].testDnptr.value, amc_slot_1_dn.value); 
+    		memcpy(entarr[1].testDnptr.value,
+                       amc_slot_1_dn.value,
+                       amc_slot_1_dn.length); 
     		entarr[1].testDnptr.length =amc_slot_1_dn.length;
                 strcpy(entarr[1].enitytype,"HE");
-    		strcpy(entarr[2].testDnptr.value, amc_slot_1_eedn.value); 
+    		memcpy(entarr[2].testDnptr.value,
+                       amc_slot_1_eedn.value,
+                       amc_slot_1_eedn.length); 
     		entarr[2].testDnptr.length =amc_slot_1_eedn.length;
                 strcpy(entarr[2].enitytype,"EE");
-    		strcpy(entarr[3].testDnptr.value, f120_slot_1_eedn.value); 
+    		memcpy(entarr[3].testDnptr.value,
+                       f120_slot_1_eedn.value,
+                       f120_slot_1_eedn.length); 
     		entarr[3].testDnptr.length =f120_slot_1_eedn.length;
                 strcpy(entarr[3].enitytype,"EE");
 		no_of_trk_elements=1;
@@ -61,13 +73,19 @@ void getDn ( int i ) {
 	     case 3:
  		num_elements=3;
 		memset(entarr, 0, num_elements * sizeof(entity_array));
-    		strcpy(entarr[0].testDnptr.value, f120_slot_1_dn.value); 
+    		memcpy(entarr[0].testDnptr.value,
+                       f120_slot_1_dn.value,
+                       f120_slot_1_dn.length); 
     		entarr[0].testDnptr.length =f120_slot_1_dn.length;
                 strcpy(entarr[0].enitytype,"HE");
-    		strcpy(entarr[1].testDnptr.value, f120_slot_1_eedn.value); 
+    		memcpy(entarr[1].testDnptr.value,
+                       f120_slot_1_eedn.value,
+                       f120_slot_1_eedn.length); 
     		entarr[1].testDnptr.length = f120_slot_1_eedn.length;
                 strcpy(entarr[1].enitytype,"EE");
-    		strcpy(entarr[2].testDnptr.value, amc_slot_1_eedn.value); 
+    		memcpy(entarr[2].testDnptr.value,
+                       amc_slot_1_eedn.value,
+                       amc_slot_1_eedn.length); 
     		entarr[2].testDnptr.length = amc_slot_1_eedn.length;
                 strcpy(entarr[2].enitytype,"EE");
 		no_of_trk_elements=1;
@@ -76,10 +94,14 @@ void getDn ( int i ) {
 	     case 4:
 		memset(&entarr[0], 0, sizeof(entity_array));
 		memset(&entarr[1], 0, sizeof(entity_array));
-    		strcpy(entarr[0].testDnptr.value, f120_slot_1_dn.value); 
+    		memcpy(entarr[0].testDnptr.value,
+                       f120_slot_1_dn.value,
+                       f120_slot_1_dn.length); 
     		entarr[0].testDnptr.length =f120_slot_1_dn.length;
                 strcpy(entarr[0].enitytype,"HE");
-    		strcpy(entarr[1].testDnptr.value, amc_slot_1_dn.value); 
+    		memcpy(entarr[1].testDnptr.value,
+                       amc_slot_1_dn.value,
+                       amc_slot_1_dn.length); 
     		entarr[1].testDnptr.length =amc_slot_1_dn.length;
                 strcpy(entarr[1].enitytype,"HE");
  		num_elements=2;
@@ -103,7 +125,6 @@ void TrackCallback_01(
             SaPlmChangeStepT step,
             SaAisErrorT error) {
 
-	int i,j;
         rc_from_test=0;
 
 	if ( trackCookie != 121 &&  error == SA_AIS_OK  ) {
@@ -129,7 +150,6 @@ void TrackCallback_02(
             SaPlmChangeStepT step,
             SaAisErrorT error) {
 
-        int i,j;
         rc_from_test=0;
 
         if ( trackCookie != 121 &&  error == SA_AIS_OK  ) {
@@ -160,7 +180,7 @@ void TrackCallback_03(
 }
 
 
-void checktrackentval(SaPlmReadinessTrackedEntitiesT *trackedEntities) {
+static void checktrackentval(const SaPlmReadinessTrackedEntitiesT *trackedEntities) {
 	int i,j; 	
         if ( trackedEntities->numberOfEntities != num_elements   ) {
 		rc_from_test=SA_AIS_INVALID_TRACKENTITY;
@@ -180,13 +200,13 @@ void checktrackentval(SaPlmReadinessTrackedEntitiesT *trackedEntities) {
                                         continue;
                                 }
                             } */	
-                            if ( (strcmp((trackedEntities->entities+i)->entityName.value , entarr[j].testDnptr.value) == 0) \
-                                        &&  ((trackedEntities->entities+i)->entityName.length == entarr[j].testDnptr.length)  ) {
+                            if (((trackedEntities->entities+i)->entityName.length == entarr[j].testDnptr.length) &&
+                                memcmp((trackedEntities->entities+i)->entityName.value , entarr[j].testDnptr.value, entarr[j].testDnptr.length) == 0) {
                 		rc_from_test=SA_AIS_OK;
 				break;
                             } 
                         }
-			if ( rc_from_test == SA_AIS_INVALID_TRACKENTITY ) {
+			if ( (int)rc_from_test == SA_AIS_INVALID_TRACKENTITY ) {
 				return;
 			} 
                 }
@@ -286,13 +306,13 @@ void saPlmReadinessTrack_05(void)
     memset(&ents, 0, sizeof(SaPlmReadinessTrackedEntitiesT));
     memset(&entity_list, 0, 4 * sizeof(SaPlmReadinessTrackedEntityT));
     entity_list[0].entityName.length = f120_slot_1_dn.length;
-    strncpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
+    memcpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
     entity_list[1].entityName.length = amc_slot_1_dn.length;
-    strncpy(entity_list[1].entityName.value, amc_slot_1_dn.value, amc_slot_1_dn.length);
+    memcpy(entity_list[1].entityName.value, amc_slot_1_dn.value, amc_slot_1_dn.length);
     entity_list[2].entityName.length = amc_slot_1_eedn.length;
-    strncpy(entity_list[2].entityName.value, amc_slot_1_eedn.value, amc_slot_1_eedn.length);
+    memcpy(entity_list[2].entityName.value, amc_slot_1_eedn.value, amc_slot_1_eedn.length);
     entity_list[3].entityName.length = f120_slot_1_eedn.length;
-    strncpy(entity_list[3].entityName.value, f120_slot_1_eedn.value, f120_slot_1_eedn.length);
+    memcpy(entity_list[3].entityName.value, f120_slot_1_eedn.value, f120_slot_1_eedn.length);
     ents.numberOfEntities = 4; 
     ents.entities = NULL;
     safassert(saPlmReadinessTrack(entityGroupHandle, SA_TRACK_CURRENT,121, &ents),SA_AIS_OK);
@@ -321,11 +341,11 @@ void saPlmReadinessTrack_06(void)
     memset(&ents, 0, sizeof(SaPlmReadinessTrackedEntitiesT));
     memset(&entity_list, 0, 2 * sizeof(SaPlmReadinessTrackedEntityT));
     entity_list[0].entityName.length = f120_slot_1_dn.length;
-    strncpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
+    memcpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
     entity_list[1].entityName.length = amc_slot_1_dn.length;
-    strncpy(entity_list[1].entityName.value, amc_slot_1_dn.value, amc_slot_1_dn.length);
+    memcpy(entity_list[1].entityName.value, amc_slot_1_dn.value, amc_slot_1_dn.length);
     ents.numberOfEntities = 2;
-    ents.entities = &entity_list;
+    ents.entities = entity_list;
     safassert(saPlmReadinessTrack(entityGroupHandle, SA_TRACK_CURRENT,121, &ents),SA_AIS_OK);
     checktrackentval(&ents);
     test_validate(rc_from_test , SA_AIS_OK);
@@ -352,13 +372,13 @@ void saPlmReadinessTrack_07(void)
     memset(&ents, 0, sizeof(SaPlmReadinessTrackedEntitiesT));
     memset(&entity_list, 0,3 * sizeof(SaPlmReadinessTrackedEntityT));
     entity_list[0].entityName.length = f120_slot_1_dn.length;
-    strncpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
+    memcpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
     entity_list[1].entityName.length = f120_slot_1_eedn.length;
-    strncpy(entity_list[1].entityName.value, f120_slot_1_eedn.value, f120_slot_1_eedn.length);
+    memcpy(entity_list[1].entityName.value, f120_slot_1_eedn.value, f120_slot_1_eedn.length);
     entity_list[2].entityName.length = amc_slot_1_eedn.length;
-    strncpy(entity_list[2].entityName.value, amc_slot_1_eedn.value, amc_slot_1_eedn.length);
+    memcpy(entity_list[2].entityName.value, amc_slot_1_eedn.value, amc_slot_1_eedn.length);
     ents.numberOfEntities = 3;
-    ents.entities = &entity_list;
+    ents.entities = entity_list;
     safassert(saPlmReadinessTrack(entityGroupHandle, SA_TRACK_CURRENT,121, &ents),SA_AIS_OK);
     checktrackentval(&ents);
     test_validate(rc_from_test , SA_AIS_OK);
@@ -384,9 +404,9 @@ void saPlmReadinessTrack_08(void)
     memset(&entity_list[0], 0, sizeof(SaPlmReadinessTrackedEntityT));
     memset(&entity_list[1], 0, sizeof(SaPlmReadinessTrackedEntityT));
     entity_list[0].entityName.length = f120_slot_1_dn.length;
-    strncpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
+    memcpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
     ents.numberOfEntities = 1;
-    ents.entities = &entity_list;
+    ents.entities = entity_list;
     safassert(saPlmReadinessTrack(entityGroupHandle, SA_TRACK_CURRENT,121, &ents),SA_AIS_OK);
     checktrackentval(&ents);
     test_validate(rc_from_test , SA_AIS_OK);
@@ -469,7 +489,7 @@ void saPlmReadinessTrack_13(void)
     SaPlmReadinessTrackedEntitiesT ents;
     SaPlmReadinessTrackedEntityT entity_list[1];
     entity_list[0].entityName.length = f120_slot_1_dn.length;
-    strncpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
+    memcpy(entity_list[0].entityName.value, f120_slot_1_dn.value, f120_slot_1_dn.length);
     plms_cbks.saPlmReadinessTrackCallback = &TrackCallback_01;
     printf ("\nStarting the test case saPlmReadinessTrack_13" );
     safassert(saPlmInitialize(&plmHandle, &plms_cbks, &PlmVersion), SA_AIS_OK);
@@ -551,7 +571,7 @@ void saPlmReadinessTrack_17(void)
     entityGrpHandle=entityGroupHandle;
     safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES ,121, 0),SA_AIS_OK);
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr, no_of_trk_elements,SA_PLM_GROUP_SINGLE_ENTITY), SA_AIS_OK);
-    safassert(saPlmEntityGroupDelete(entityGroupHandle),SA_AIS_OK);
+    //safassert(saPlmEntityGroupDelete(entityGroupHandle),SA_AIS_OK);
     safassert(saPlmFinalize(plmHandle), SA_AIS_OK);
     rc_from_test=saPlmReadinessTrackStop(entityGroupHandle);
     test_validate(rc_from_test , SA_AIS_ERR_BAD_HANDLE);
@@ -603,8 +623,8 @@ void saPlmReadinessTrack_20(void)
     getDn(2);
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr , no_of_trk_elements ,SA_PLM_GROUP_SUBTREE),SA_AIS_OK);
     entityGrpHandle=entityGroupHandle;
-    memset(&ents, 0, sizeof(entity_array));
-    memset(&entity_list[0], 0, sizeof(entity_array));
+    memset(&ents, 0, sizeof(SaPlmReadinessTrackedEntitiesT));
+    memset(&entity_list[0], 0, sizeof(entity_list));
     ents.numberOfEntities = 4;
     ents.entities = entity_list; 
     safassert(saPlmReadinessTrack(entityGroupHandle, SA_TRACK_CURRENT,121, &ents),SA_AIS_OK);
@@ -661,11 +681,11 @@ void saPlmReadinessTrack_22(void)
     safassert(saPlmReadinessTrack(entityGroupHandle, SA_TRACK_CURRENT,121, &ents),SA_AIS_OK);
     memset(&entity_list[0], 0, sizeof(entity_array));
     entity_list[0].entityName.length = f120_slot_16_dn.length;
-    strncpy(entity_list[0].entityName.value, f120_slot_16_dn.value, f120_slot_16_dn.length);
+    memcpy(entity_list[0].entityName.value, f120_slot_16_dn.value, f120_slot_16_dn.length);
     ents.numberOfEntities = 1;
     ents1.entities=ents.entities;
     ents1.numberOfEntities = 1;
-    ents.entities = &entity_list;
+    ents.entities = entity_list;
     rc_from_test=saPlmReadinessNotificationFree(entityGroupHandle,ents.entities);
     test_validate(rc_from_test , SA_AIS_ERR_INVALID_PARAM);
     safassert(saPlmReadinessNotificationFree(entityGroupHandle,ents1.entities),SA_AIS_OK);
@@ -687,7 +707,9 @@ void saPlmReadinessTrack_23(void)
     entityGrpHandle=entityGroupHandle;
     safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES ,121, 0),SA_AIS_OK);
     memset(&entarr[1], 0, sizeof(entity_array));
-    strcpy(entarr[1].testDnptr.value, amc_slot_1_dn.value);
+    memcpy(entarr[1].testDnptr.value,
+           amc_slot_1_dn.value,
+           amc_slot_1_dn.length);
     entarr[1].testDnptr.length =amc_slot_1_dn.length;
     strcpy(entarr[1].enitytype,"HE");   
     num_elements=2;
@@ -728,7 +750,7 @@ void saPlmReadinessTrack_24(void)
     entityGrpHandle=entityGroupHandle;
     safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES ,121, 0),SA_AIS_OK);
     memset(&entarr[4], 0, sizeof(entity_array));
-    strcpy(entarr[4].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[4].testDnptr.value, amc_slot_16_dn.value, amc_slot_16_dn.length);
     entarr[4].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[4].enitytype,"HE");
     num_elements=5;
@@ -772,16 +794,24 @@ void saPlmReadinessTrack_25(void)
     memset(&entarr[2], 0, sizeof(entity_array));
     memset(&entarr[3], 0, sizeof(entity_array));
     memset(&entarr[4], 0, sizeof(entity_array));
-    strcpy(entarr[1].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[1].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[1].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[1].enitytype,"HE");
-    strcpy(entarr[2].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[2].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[2].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[2].enitytype,"HE");
-    strcpy(entarr[3].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[3].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[3].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[3].enitytype,"EE");
-    strcpy(entarr[4].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[4].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[4].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[4].enitytype,"EE");
     num_elements=5;
@@ -825,16 +855,24 @@ void saPlmReadinessTrack_26(void)
     memset(&entarr[5], 0, sizeof(entity_array));
     memset(&entarr[6], 0, sizeof(entity_array));
     memset(&entarr[7], 0, sizeof(entity_array));
-    strcpy(entarr[4].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[4].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[4].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[4].enitytype,"HE");
-    strcpy(entarr[5].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[5].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[5].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[5].enitytype,"HE");
-    strcpy(entarr[6].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[6].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[6].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[6].enitytype,"EE");
-    strcpy(entarr[7].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[7].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[7].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[7].enitytype,"EE");
     num_elements=8;
@@ -875,10 +913,14 @@ void saPlmReadinessTrack_27(void)
     safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES ,121, 0),SA_AIS_OK);
     memset(&entarr[4], 0, sizeof(entity_array));
     memset(&entarr[5], 0, sizeof(entity_array));
-    strcpy(entarr[4].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[4].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[4].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[4].enitytype,"HE");
-    strcpy(entarr[5].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[5].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[5].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[5].enitytype,"HE");
     num_elements=6;
@@ -919,10 +961,14 @@ void saPlmReadinessTrack_28(void)
     safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES ,121, 0),SA_AIS_OK);
     memset(&entarr[2], 0, sizeof(entity_array));
     memset(&entarr[3], 0, sizeof(entity_array));
-    strcpy(entarr[2].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[2].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[2].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[2].enitytype,"HE");
-    strcpy(entarr[3].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[3].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[3].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[3].enitytype,"HE");
     num_elements=4;
@@ -965,13 +1011,19 @@ void saPlmReadinessTrack_29(void)
     memset(&entarr[3], 0, sizeof(entity_array));
     memset(&entarr[4], 0, sizeof(entity_array));
     memset(&entarr[5], 0, sizeof(entity_array));
-    strcpy(entarr[3].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[3].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[3].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[3].enitytype,"HE");
-    strcpy(entarr[4].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[4].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[4].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[4].enitytype,"EE");
-    strcpy(entarr[5].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[5].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[5].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[5].enitytype,"EE");
     num_elements=6;
@@ -1013,13 +1065,19 @@ void saPlmReadinessTrack_30(void)
     memset(&entarr[2], 0, sizeof(entity_array));
     memset(&entarr[3], 0, sizeof(entity_array));
     memset(&entarr[4], 0, sizeof(entity_array));
-    strcpy(entarr[2].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[2].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[2].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[2].enitytype,"HE");
-    strcpy(entarr[3].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[3].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[3].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[3].enitytype,"EE");
-    strcpy(entarr[4].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[4].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[4].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[4].enitytype,"EE");
     num_elements=5;
@@ -1061,13 +1119,19 @@ void saPlmReadinessTrack_31(void)
     memset(&entarr[1], 0, sizeof(entity_array));
     memset(&entarr[2], 0, sizeof(entity_array));
     memset(&entarr[3], 0, sizeof(entity_array));
-    strcpy(entarr[1].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[1].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[1].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[1].enitytype,"HE");
-    strcpy(entarr[2].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[2].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[2].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[2].enitytype,"EE");
-    strcpy(entarr[3].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[3].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[3].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[3].enitytype,"EE");
     num_elements=4;
@@ -1106,7 +1170,9 @@ void saPlmReadinessTrack_32(void)
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr, no_of_trk_elements,SA_PLM_GROUP_SINGLE_ENTITY), SA_AIS_OK);
     entityGrpHandle=entityGroupHandle;
     memset(&entarr[1], 0, sizeof(entity_array));
-    strcpy(entarr[1].testDnptr.value, amc_slot_1_dn.value);
+    memcpy(entarr[1].testDnptr.value,
+           amc_slot_1_dn.value,
+           amc_slot_1_dn.length);
     entarr[1].testDnptr.length =amc_slot_1_dn.length;
     strcpy(entarr[1].enitytype,"HE");
     num_elements=2;
@@ -1150,13 +1216,19 @@ void saPlmReadinessTrack_33(void)
     memset(&entarr[1], 0, sizeof(entity_array));
     memset(&entarr[2], 0, sizeof(entity_array));
     memset(&entarr[3], 0, sizeof(entity_array));
-    strcpy(entarr[1].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[1].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[1].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[1].enitytype,"HE");
-    strcpy(entarr[2].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[2].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[2].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[2].enitytype,"EE");
-    strcpy(entarr[3].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[3].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[3].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[3].enitytype,"EE");
     num_elements=4;
@@ -1188,7 +1260,6 @@ void saPlmReadinessTrack_33(void)
 
 void saPlmReadinessTrack_34(void)
 {
-    entity_array entarr1[1];
     SaPlmCallbacksT plms_cbks;
     plms_cbks.saPlmReadinessTrackCallback = &TrackCallback_02;
     safassert(saPlmInitialize(&plmHandle, &plms_cbks, &PlmVersion), SA_AIS_OK);
@@ -1199,13 +1270,19 @@ void saPlmReadinessTrack_34(void)
     memset(&entarr[2], 0, sizeof(entity_array));
     memset(&entarr[3], 0, sizeof(entity_array));
     memset(&entarr[4], 0, sizeof(entity_array));
-    strcpy(entarr[2].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[2].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[2].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[2].enitytype,"HE");
-    strcpy(entarr[3].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[3].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[3].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[3].enitytype,"EE");
-    strcpy(entarr[4].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[4].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[4].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[4].enitytype,"EE");
     num_elements=5;
@@ -1246,7 +1323,9 @@ void saPlmReadinessTrack_35(void)
     safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES ,121, 0),SA_AIS_OK);
     entityGrpHandle=entityGroupHandle;
     memset(&entarr[4], 0, sizeof(entity_array));
-    strcpy(entarr[4].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[4].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[4].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[4].enitytype,"HE");
     num_elements=5;
@@ -1286,7 +1365,9 @@ void saPlmReadinessTrack_36(void)
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr, no_of_trk_elements,SA_PLM_GROUP_SINGLE_ENTITY), SA_AIS_OK);
     entityGrpHandle=entityGroupHandle;
     memset(&entarr[0], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, amc_slot_1_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           amc_slot_1_dn.value,
+           amc_slot_1_dn.length);
     entarr[0].testDnptr.length =amc_slot_1_dn.length;
     strcpy(entarr[0].enitytype,"HE");
     num_elements=1;
@@ -1328,7 +1409,9 @@ void saPlmReadinessTrack_37(void)
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr, no_of_trk_elements,SA_PLM_GROUP_SINGLE_ENTITY), SA_AIS_OK);
     entityGrpHandle=entityGroupHandle;
     memset(&entarr[0], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, amc_slot_1_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           amc_slot_1_dn.value,
+           amc_slot_1_dn.length);
     entarr[0].testDnptr.length =amc_slot_1_dn.length;
     strcpy(entarr[0].enitytype,"HE");
     num_elements=1;
@@ -1372,20 +1455,26 @@ void saPlmReadinessTrack_38(void)
     memset(&entarr[0], 0, sizeof(entity_array));
     memset(&entarr[1], 0, sizeof(entity_array));
     memset(&entarr[2], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[0].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[0].enitytype,"HE");
-    strcpy(entarr[1].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[1].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[1].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[1].enitytype,"EE");
-    strcpy(entarr[2].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[2].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[2].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[2].enitytype,"EE");
     
     strncpy(groupaddoption,"subtreeEE",strlen("subtreeEE"));	
     num_elements=3;
     no_of_trk_elements=2;
-    (saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES_ONLY ,121, 0),SA_AIS_OK);
+    safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES_ONLY ,121, 0),SA_AIS_OK);
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr, 1 ,SA_PLM_GROUP_SUBTREE_EES_ONLY), SA_AIS_OK);
     safassert(saPlmSelectionObjectGet(plmHandle, &selectionObject),SA_AIS_OK);
 
@@ -1422,20 +1511,26 @@ void saPlmReadinessTrack_39(void)
     memset(&entarr[0], 0, sizeof(entity_array));
     memset(&entarr[1], 0, sizeof(entity_array));
     memset(&entarr[2], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[0].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[0].enitytype,"HE");
-    strcpy(entarr[1].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[1].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[1].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[1].enitytype,"EE");
-    strcpy(entarr[2].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[2].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[2].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[2].enitytype,"EE");
     strncpy(groupaddoption,"subtreeEE",strlen("subtreeEE"));	
     num_elements=3;
     no_of_trk_elements=2;
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr, 1 ,SA_PLM_GROUP_SUBTREE_EES_ONLY), SA_AIS_OK);
-    (saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES_ONLY ,121, 0),SA_AIS_OK);
+    safassert(saPlmReadinessTrack( entityGroupHandle, SA_TRACK_CHANGES_ONLY ,121, 0),SA_AIS_OK);
     safassert(saPlmEntityGroupRemove(entityGroupHandle, &entarr[0].testDnptr , 1 ),SA_AIS_OK);
     safassert(saPlmSelectionObjectGet(plmHandle, &selectionObject),SA_AIS_OK);
 
@@ -1472,13 +1567,19 @@ void saPlmReadinessTrack_40(void)
     memset(&entarr[0], 0, sizeof(entity_array));
     memset(&entarr[1], 0, sizeof(entity_array));
     memset(&entarr[2], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[0].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[0].enitytype,"HE");
-    strcpy(entarr[1].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[1].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[1].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[1].enitytype,"EE");
-    strcpy(entarr[2].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[2].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[2].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[2].enitytype,"EE");
     num_elements=3;
@@ -1521,13 +1622,19 @@ void saPlmReadinessTrack_41(void)
     memset(&entarr[1], 0, sizeof(entity_array));
     memset(&entarr[2], 0, sizeof(entity_array));
     memset(&entarr[3], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, f120_slot_16_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           f120_slot_16_dn.value,
+           f120_slot_16_dn.length);
     entarr[0].testDnptr.length =f120_slot_16_dn.length;
     strcpy(entarr[0].enitytype,"HE");
-    strcpy(entarr[1].testDnptr.value, f120_slot_16_eedn.value);
+    memcpy(entarr[1].testDnptr.value,
+           f120_slot_16_eedn.value,
+           f120_slot_16_eedn.length);
     entarr[1].testDnptr.length =f120_slot_16_eedn.length;
     strcpy(entarr[1].enitytype,"EE");
-    strcpy(entarr[2].testDnptr.value, amc_slot_16_eedn.value);
+    memcpy(entarr[2].testDnptr.value,
+           amc_slot_16_eedn.value,
+           amc_slot_16_eedn.length);
     entarr[2].testDnptr.length =amc_slot_16_eedn.length;
     strcpy(entarr[2].enitytype,"EE");
     num_elements=3;
@@ -1568,8 +1675,12 @@ void saPlmReadinessTrack_42(void)
     safassert(saPlmEntityGroupAdd(entityGroupHandle , &entarr[0].testDnptr, no_of_trk_elements,SA_PLM_GROUP_SUBTREE), SA_AIS_OK);
     entityGrpHandle=entityGroupHandle;
     memset(&entarr[0], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, amc_slot_16_dn.value);
-    strcpy(entarr[1].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
+    memcpy(entarr[1].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[0].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[0].enitytype,"HE");
     num_elements=1;
@@ -1610,7 +1721,9 @@ void saPlmReadinessTrack_43(void)
     entityGrpHandle=entityGroupHandle;
     memset(&entarr[0], 0, sizeof(entity_array));
     memset(&entarr[1], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[0].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[0].enitytype,"HE");
     num_elements=1;
@@ -1654,7 +1767,9 @@ void saPlmReadinessTrack_44(void)
     entityGrpHandle=entityGroupHandle;
     memset(&entarr[0], 0, sizeof(entity_array));
     memset(&entarr[1], 0, sizeof(entity_array));
-    strcpy(entarr[0].testDnptr.value, amc_slot_16_dn.value);
+    memcpy(entarr[0].testDnptr.value,
+           amc_slot_16_dn.value,
+           amc_slot_16_dn.length);
     entarr[0].testDnptr.length =amc_slot_16_dn.length;
     strcpy(entarr[0].enitytype,"HE");
     num_elements=1;

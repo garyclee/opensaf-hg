@@ -21,7 +21,6 @@ void TrackCallbackT(
             const SaPlmReadinessTrackedEntitiesT *trackedEntities,
             SaPlmChangeStepT step,
             SaAisErrorT error) {
-		char ch;
 }
 
 void saPlmInitialize_01(void)
