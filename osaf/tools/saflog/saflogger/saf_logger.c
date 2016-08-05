@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
 				snprintf(tmpDn, sizeof(tmpDn), "safLgStr=%s", optarg);
 
 			if (strlen(tmpDn) > kOsafMaxDnLength) {
-				fprintf(stderr, "Application stream DN is so long (%lu). Max: %d \n",
+				fprintf(stderr, "Application stream DN is so long (%zu). Max: %d \n",
 					strlen(optarg), kOsafMaxDnLength);
 				fprintf(stderr, "Shut down app. \n");
 				exit(EXIT_FAILURE);
