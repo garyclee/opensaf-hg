@@ -316,21 +316,17 @@ unsigned int lga_startup(lga_cb_t *cb)
 	osaf_mutex_lock_ordie(&lga_lock);
 
 	TRACE_ENTER2("lga_use_count: %u", lga_use_count);
-	if (lga_use_count > 0) {
-		/* Already created, just increment the use_count */
-		lga_use_count++;
-		goto done;
-	} else {
+
+	if (cb->mds_hdl == 0) {
 		if ((rc = ncs_agents_startup()) != NCSCC_RC_SUCCESS) {
 			TRACE("ncs_agents_startup FAILED");
 			goto done;
 		}
 
 		if ((rc = lga_create()) != NCSCC_RC_SUCCESS) {
+		        cb->mds_hdl = 0;
 			ncs_agents_shutdown();
 			goto done;
-		} else {
-			lga_use_count = 1;
 		}
 
 		/* Agent has successfully been started including communication
@@ -338,6 +334,9 @@ unsigned int lga_startup(lga_cb_t *cb)
 		 */
 		set_lga_state(LGA_NORMAL);
 	}
+
+	/* Increase the use_count */
+	lga_use_count++;
 
  done:
 	osaf_mutex_unlock_ordie(&lga_lock);
@@ -369,8 +368,6 @@ unsigned int lga_shutdown_after_last_client(void)
 		/* Users still exist, just decrement the use count */
 		lga_use_count--;
 	} else if (lga_use_count == 1) {
-		lga_destroy();
-		rc = ncs_agents_shutdown();
 		lga_use_count = 0;
 	}
 

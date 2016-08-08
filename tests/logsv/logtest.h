@@ -27,6 +27,7 @@
 #include <utest.h>
 #include <util.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include <osaf_time.h>
 #include <logtrace.h>

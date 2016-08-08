@@ -693,6 +693,108 @@ done:
 	}
 }
 
+void *saLogInitialize_1 (void *arg)
+{
+	SaAisErrorT *rt = (SaAisErrorT *)arg;
+	SaLogStreamHandleT logStreamHandle1;
+	SaLogHandleT logHandle1;
+
+	*rt = saLogInitialize(&logHandle1, &logCallbacks, &logVersion);
+	unsigned int nTries = 1;
+	while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
+		usleep(100 * 1000);
+		*rt = saLogInitialize(&logHandle1, &logCallbacks, &logVersion);
+		nTries++;
+	}
+	if (*rt != SA_AIS_OK) {
+		goto done;
+	}
+
+	*rt = saLogStreamOpen_2(logHandle1, &app1StreamName, &appStream1LogFileCreateAttributes,
+				SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
+	nTries = 1;
+	while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
+		usleep(100 * 1000);
+		*rt = saLogStreamOpen_2(logHandle1, &app1StreamName, &appStream1LogFileCreateAttributes,
+					SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
+		nTries++;
+	}
+	if (*rt != SA_AIS_OK) {
+		goto done;
+	}
+
+	*rt = saLogFinalize(logHandle1);
+	nTries = 1;
+	while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
+		usleep(100 * 1000);
+		*rt = saLogFinalize(logHandle1);
+		nTries++;
+	}
+	if (*rt != SA_AIS_OK) {
+		goto done;
+	}
+
+done:
+	pthread_exit(NULL);
+}
+
+/*
+ * Ticket 1396
+ * Verify that saLogInitialize() then saLogFinalize() multiple times OK
+ */
+void saLogMultipleInitialize(void)
+{
+	SaLogStreamHandleT logStreamHandle1;
+	int count = 100;
+	SaAisErrorT rc = SA_AIS_OK;
+
+	while (count--) {
+		rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+		if (rc != SA_AIS_OK)
+			break;
+
+		rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+					SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
+		safassert(rc, SA_AIS_OK);
+
+		rc = saLogFinalize(logHandle);
+		if (rc != SA_AIS_OK)
+			break;
+
+	}
+	test_validate(rc, SA_AIS_OK);
+}
+
+/*
+ * Ticket 1396
+ * Verify that saLogInitialize() then saLogFinalize() multiple times in multiple threads OK
+ */
+void saLogMultiThreadMultiInit(void)
+{
+	int count = 100, i;
+	SaAisErrorT rt[count], rc = SA_AIS_OK;
+	pthread_t threads[count];
+
+	for (i = 0; i < count; i++) {
+		safassert(pthread_create(&threads[i], NULL,
+						saLogInitialize_1, (void *) &rt[i]), 0);
+	}
+
+	/* Wait for all threads terminated */
+	for (i = 0; i < count; i++) {
+		pthread_join(threads[i], NULL);
+	}
+
+	for (i = 0; i < count; i++) {
+		if (rt[i] != SA_AIS_OK) {
+			rc = rt[i];
+			break;
+		}
+	}
+
+	test_validate(rc, SA_AIS_OK);
+}
+
 extern void saLogStreamOpenAsync_2_01(void);
 extern void saLogStreamOpenCallbackT_01(void);
 extern void saLogWriteLog_01(void);
@@ -781,5 +883,7 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(2, verFixLogRec_Max_Err, "saLogStreamOpen_2 with maxLogRecordSize > MAX_RECSIZE, ERR");
     test_case_add(2, verFixLogRec_Min_Err, "saLogStreamOpen_2 with maxLogRecordSize < 150, ERR");
     test_case_add(2, saLogStreamOpen_2_50, "saLogStreamOpen_2 with stream number out of the limitation, ERR");
+    test_case_add(2, saLogMultipleInitialize, "saLogInitialize() then saLogFinalize() multiple times. keep MDS connection, OK");
+    test_case_add(2, saLogMultiThreadMultiInit, "saLogInitialize() then saLogFinalize() multiple times in multiple threads, OK");
 }
 
