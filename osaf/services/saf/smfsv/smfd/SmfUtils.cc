@@ -141,6 +141,7 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest, int *e
                                 }
                         }
                 }
+		LOG_NO("%s: className '%s'",__FUNCTION__, className);
                 return true;
 
 	} else if (strcmp(className, "SaAmfNode") == 0) {
@@ -175,6 +176,7 @@ getNodeDestination(const std::string & i_node, SmfndNodeDest* o_nodeDest, int *e
 	                }
                 }
                 free(nodeName);
+		LOG_NO("%s: className '%s'",__FUNCTION__, className);
         } else {
                 LOG_NO("Unknown class name %s", className);
                 return false;

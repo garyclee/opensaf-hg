@@ -22,6 +22,9 @@
 #include <poll.h>
 #include <sched.h>
 
+#include <atomic>
+#include <string>
+
 #include <ncssysf_def.h>
 #include <ncssysf_ipc.h>
 #include <ncssysf_tsk.h>
@@ -34,6 +37,7 @@
 #include <saf_error.h>
 #include "osaf_time.h"
 #include "osaf_extended_name.h"
+#include "saf_error.h"
 
 #include "SmfUpgradeStep.hh"
 #include "SmfCampaign.hh"
@@ -72,6 +76,8 @@
  *   FUNCTION PROTOTYPES
  * ========================================================================
  */
+
+#define LLDPROTO1 /* The prototype code */
 
 //================================================================================
 // Class SmfUpgradeStep
@@ -655,9 +661,11 @@ SmfUpgradeStep::onlineRemoveNewBundles()
 // onlineRemoveBundlesUserList()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeStep::onlineRemoveBundlesUserList(const std::string & i_node, const std::list < SmfBundleRef > &i_bundleList)
+SmfUpgradeStep::onlineRemoveBundlesUserList(const std::string & i_node,
+					    const std::list < SmfBundleRef > &i_bundleList)
 {
-	TRACE("Online remove bundles supplied by separate list containing %zu items on node %s", i_bundleList.size(), i_node.c_str());
+	TRACE("Online remove bundles supplied by separate list containing %zu items on node %s",
+		i_bundleList.size(), i_node.c_str());
 	return callBundleScript(SMF_STEP_ONLINE_REMOVE, i_bundleList, i_node);
 }
 
@@ -667,9 +675,10 @@ SmfUpgradeStep::onlineRemoveBundlesUserList(const std::string & i_node, const st
 bool 
 SmfUpgradeStep::lockDeactivationUnits()
 {
-	TRACE("lock deactivation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL};
-	return callAdminOperation(SA_AMF_ADMIN_LOCK, params, m_deactivationUnit.m_actedOn);
+	SmfAdminOperation units(&m_deactivationUnit.m_actedOn);
+	bool rc = units.lock();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -678,9 +687,10 @@ SmfUpgradeStep::lockDeactivationUnits()
 bool 
 SmfUpgradeStep::unlockDeactivationUnits()
 {
-	TRACE("unlock deactivation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
-	return callAdminOperation(SA_AMF_ADMIN_UNLOCK, params, m_deactivationUnit.m_actedOn);
+	SmfAdminOperation units(&m_deactivationUnit.m_actedOn);
+	bool rc = units.unlock();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -689,9 +699,10 @@ SmfUpgradeStep::unlockDeactivationUnits()
 bool 
 SmfUpgradeStep::terminateDeactivationUnits()
 {
-	TRACE("terminate deactivation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL};
-	return callAdminOperation(SA_AMF_ADMIN_LOCK_INSTANTIATION, params, m_deactivationUnit.m_actedOn);
+	SmfAdminOperation units(&m_deactivationUnit.m_actedOn);
+	bool rc = units.lock_in();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -700,9 +711,10 @@ SmfUpgradeStep::terminateDeactivationUnits()
 bool 
 SmfUpgradeStep::instantiateDeactivationUnits()
 {
-	TRACE("instantiate deactivation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
-	return callAdminOperation(SA_AMF_ADMIN_UNLOCK_INSTANTIATION, params, m_deactivationUnit.m_actedOn);
+	SmfAdminOperation units(&m_deactivationUnit.m_actedOn);
+	bool rc = units.unlock_in();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -711,9 +723,10 @@ SmfUpgradeStep::instantiateDeactivationUnits()
 bool 
 SmfUpgradeStep::lockActivationUnits()
 {
-	TRACE("lock activation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
-	return callAdminOperation(SA_AMF_ADMIN_LOCK, params, m_activationUnit.m_actedOn);
+	SmfAdminOperation units(&m_activationUnit.m_actedOn);
+	bool rc = units.lock();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -722,9 +735,10 @@ SmfUpgradeStep::lockActivationUnits()
 bool 
 SmfUpgradeStep::unlockActivationUnits()
 {
-	TRACE("unlock activation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
-	return callAdminOperation(SA_AMF_ADMIN_UNLOCK, params, m_activationUnit.m_actedOn);
+	SmfAdminOperation units (&m_activationUnit.m_actedOn);
+	bool rc = units.unlock();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -733,9 +747,10 @@ SmfUpgradeStep::unlockActivationUnits()
 bool 
 SmfUpgradeStep::terminateActivationUnits()
 {
-	TRACE("terminate activation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
-	return callAdminOperation(SA_AMF_ADMIN_LOCK_INSTANTIATION, params, m_activationUnit.m_actedOn);
+	SmfAdminOperation units (&m_activationUnit.m_actedOn);
+	bool rc = units.lock_in();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -744,20 +759,24 @@ SmfUpgradeStep::terminateActivationUnits()
 bool 
 SmfUpgradeStep::instantiateActivationUnits()
 {
-	TRACE("instantiate activation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
-	return callAdminOperation(SA_AMF_ADMIN_UNLOCK_INSTANTIATION, params, m_activationUnit.m_actedOn);
+	SmfAdminOperation units (&m_activationUnit.m_actedOn);
+	bool rc = units.unlock_in();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
 // restartActivationUnits()
+// Not supported for nodes or SUs only for Components. However AIS specfies that
+// Also SU and Node shall be possible to restart. 
 //------------------------------------------------------------------------------
 bool 
 SmfUpgradeStep::restartActivationUnits()
 {
-	TRACE("restart activation units");
-	const SaImmAdminOperationParamsT_2 *params[1] = {NULL}; 
-	return callAdminOperation(SA_AMF_ADMIN_RESTART, params, m_activationUnit.m_actedOn);
+	SmfAdminOperation units (&m_activationUnit.m_actedOn);
+	bool rc = units.restart();
+
+	return rc;
 }
 
 //------------------------------------------------------------------------------
@@ -2297,110 +2316,6 @@ SmfUpgradeStep::waitForBundleCmdResult(std::list<std::string>& i_swNodeList)
 }
 
 //------------------------------------------------------------------------------
-// callAdminOperation()
-//------------------------------------------------------------------------------
-bool
-SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
-                                   const SaImmAdminOperationParamsT_2 ** i_params,
-                                   std::list <unitNameAndState> &i_dnList)
-{
-        //This routine is only used from the upgrade steps
-	std::list < unitNameAndState >::iterator dnit;
-	SmfImmUtils immUtil;
-	bool result = true;
-
-	TRACE_ENTER();
-
-	for (dnit = i_dnList.begin(); dnit != i_dnList.end(); ++dnit) {
-                //The initial deactivation unit(DU) admin state is saved in the given DU list (i_dnList).
-                //The DU admin state is not read from IMM but is known from the result from adminOp.
-                //The saved DU admin state is used in the unlocking phase to avoid the DU to enter a different admin state than it
-                //originally have.
-                //If the admin state is "empty" the unlocking will proceed regardless of original state.
-
-                //If AU/DU original state was SA_AMF_ADMIN_LOCKED, don't unlock
-                if ((i_operation == SA_AMF_ADMIN_UNLOCK) && ((*dnit).initState == SA_AMF_ADMIN_LOCKED)) {
-                        LOG_NO("AU/DU [%s] shall remain SA_AMF_ADMIN_LOCKED, continue", (*dnit).name.c_str());
-                        continue;
-                }
-
-                //If AU/DU original state was SA_AMF_ADMIN_LOCKED_INSTANTIATION don't instantiate or unlock
-                if (((i_operation == SA_AMF_ADMIN_UNLOCK_INSTANTIATION) || (i_operation == SA_AMF_ADMIN_UNLOCK)) &&
-                    ((*dnit).initState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
-                        LOG_NO("AU/DU [%s] shall remain SA_AMF_ADMIN_LOCKED_INSTANTIATION, continue", (*dnit).name.c_str());
-                        continue;
-                }
-
-		SaAisErrorT rc = immUtil.callAdminOperation((*dnit).name, i_operation, i_params, smfd_cb->adminOpTimeout);
-
-		//In case the upgrade step is re-executed the operation may result in the followng result codes
-		//depending on the state of the entity
-		// SA_AIS_ERR_NO_OP, in case the operation is already performed
-		// SA_AIS_ERR_BAD_OPERATION, in case the entity is already in locked-instantiation admin state
-		switch (i_operation) {
-		case SA_AMF_ADMIN_LOCK:
-			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state LOCKED, continue", (*dnit).name.c_str());
-                                //Save the state for act/deact pointed out
-                               (*dnit).initState = SA_AMF_ADMIN_LOCKED;
-			} else if (rc == SA_AIS_ERR_BAD_OPERATION) {
-				TRACE("Entity %s already in state LOCKED-INSTANTIATION, continue", (*dnit).name.c_str());
-			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
-				result = false;
-				goto done;
-			}
-			break;
-		case SA_AMF_ADMIN_UNLOCK:
-			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state UNLOCKED, continue", (*dnit).name.c_str());
-			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
-				result = false;
-				goto done;
-			}
-			break;
-		case SA_AMF_ADMIN_LOCK_INSTANTIATION:
-			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state LOCKED-INSTANTIATED, continue", (*dnit).name.c_str());
-				//Save the state for act/deact pointed out
-				(*dnit).initState = SA_AMF_ADMIN_LOCKED_INSTANTIATION;
-			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
-				result = false;
-				goto done;
-			}
-			break;
-		case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
-			if(rc == SA_AIS_ERR_NO_OP) {
-				TRACE("Entity %s already in state UNLOCKED-INSTANTIATED, continue", (*dnit).name.c_str());
-			} else if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
-				result = false;
-				goto done;
-			}
-			break;
-		case SA_AMF_ADMIN_RESTART:
-			if (rc != SA_AIS_OK) {
-				LOG_NO("Failed to call admin operation %u on %s", i_operation, (*dnit).name.c_str());
-				result = false;
-				goto done;
-			}
-			break;
-		default:
-			LOG_NO("Unknown admin operation %u on %s", i_operation, (*dnit).name.c_str());
-			result = false;
-			goto done;
-			break;
-		}
-	}
-
-done:
-	TRACE_LEAVE();
-	return result;
-}
-
-//------------------------------------------------------------------------------
 // copyDuInitStateToAu()
 //------------------------------------------------------------------------------
 void
@@ -2884,6 +2799,914 @@ bool SmfUpgradeStep::readSmfClusterControllers()
         return true;
 }
 
+//==============================================================================
+// Class SmfAdminOperation methods
+//==============================================================================
+
+// Make m_next_instance_number thread safe
+std::atomic<unsigned int> SmfAdminOperation::m_next_instance_number{1};
+
+SmfAdminOperation::SmfAdminOperation(std::list <unitNameAndState> *i_allUnits)
+	: m_allUnits(i_allUnits)
+{
+	// Note:
+	// smfd_cb->smfKeepDuState is a global but it is never
+	// changed during a campaign. Is not protected by mutex when set
+	if (smfd_cb->smfKeepDuState == 0) {
+		m_smfKeepDuState = false;
+	} else {
+		m_smfKeepDuState = true;
+	}
+
+	// Note:
+	// If any of the following steps fails m_creation_fail is set to true
+	// and an immediate return is done
+	// The public methods shall return fail if m_creation_fail is true
+
+	bool rc = getAllImmHandles();
+	if (rc == false) {
+		LOG_NO("%s: getAllImmHandles Fail", __FUNCTION__);
+		m_creation_fail = true;
+		return;
+	}
+	
+	// Set parent DN for the Node group used for parallel locking
+	rc = setNodeGroupParentDn();
+	if (rc == false) {
+		LOG_NO("%s: setNodeGroupParentDn Fail", __FUNCTION__);
+		m_creation_fail = true;
+		return;
+	}
+
+	// Become (temporary)admin owner of Amf Cluster object
+	SaNameT nodeGroupParentDn;
+	saAisNameLend(m_nodeGroupParentDn.c_str(), &nodeGroupParentDn);
+	const SaNameT *objectNames[2] = {&nodeGroupParentDn, NULL};
+	SaAisErrorT ais_rc = immutil_saImmOmAdminOwnerSet(m_ownerHandle,
+						objectNames, SA_IMM_ONE);
+	if (ais_rc != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmAdminOwnerSet Fail '%s'", __FUNCTION__,
+			saf_error(ais_rc));
+		m_creation_fail = true;
+		return;
+	}
+
+	// Create an instance unique name for a node group IMM object using an
+	// instance number.
+	m_instance_number = m_next_instance_number++;
+	m_instanceNodeGroupName = "safAmfNodeGroup=smfLockAdmNg"+
+	    std::to_string(m_instance_number);
+}
+
+SmfAdminOperation::~SmfAdminOperation()
+{
+	// This frees all IMM handles that's based on the omHandle and
+	// give up admin ownership of Amf Cluster object
+	if (m_omHandle != 0) {
+		(void)immutil_saImmOmFinalize(m_omHandle);
+	}
+}
+
+///
+/// Operates on the i_allUnits list
+/// Using m_nodeList and m_suList
+/// - Save all units state before locking
+/// - Lock all units with admin state unlocked
+/// Return false if Fail
+///
+bool SmfAdminOperation::lock()
+{
+	TRACE_ENTER();
+	bool rc = false;
+
+	if (m_creation_fail) {
+		goto done;
+	}
+
+	rc = saveInitAndCurrentStateForAllUnits();
+
+	if (rc == false) {
+		LOG_NO("%s: saveInitAndCurrentStateForAllUnits() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	createNodeAndSULockLists(SA_AMF_ADMIN_UNLOCKED);
+
+	rc = changeNodeGroupAdminState(SA_AMF_ADMIN_UNLOCKED,
+			SA_AMF_ADMIN_LOCK);
+	if (rc == false) {
+		LOG_NO("%s: changeNodeGroupAdminState() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	rc = adminOperationSerialized(SA_AMF_ADMIN_LOCK, m_suList);
+	if (rc == false) {
+		LOG_NO("%s: setAdminStateSUs() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+	}
+
+	done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+///
+/// Using m_nodeList and m_suList
+/// Lock instantiate all units with admin state locked
+/// Return false if Fail
+///
+bool SmfAdminOperation::lock_in()
+{
+	TRACE_ENTER();
+	bool rc = false;
+	
+	if (m_creation_fail) {
+		goto done;
+	}
+	
+	rc = saveCurrentStateForAllUnits();
+
+	if (rc == false) {
+		LOG_NO("%s: saveCurrentStateForAllUnits() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	createNodeAndSULockLists(SA_AMF_ADMIN_LOCKED);
+
+	rc = changeNodeGroupAdminState(SA_AMF_ADMIN_LOCKED,
+			SA_AMF_ADMIN_LOCK_INSTANTIATION);
+	if (rc == false) {
+		LOG_NO("%s: changeNodeGroupAdminState() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	rc = adminOperationSerialized(SA_AMF_ADMIN_LOCK_INSTANTIATION,
+				 m_suList);
+	if (rc == false) {
+		LOG_NO("%s: setAdminStateSUs() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+	}
+
+	done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+///
+/// Using m_nodeList and m_suList
+/// Unlock instanciate all units with admin state locked in
+/// Return false if Fail
+///
+bool SmfAdminOperation::unlock_in()
+{
+	TRACE_ENTER();
+	bool rc = false;
+
+	if (m_creation_fail) {
+		goto done;
+	}
+	
+	rc = saveCurrentStateForAllUnits();
+
+	if (rc == false) {
+		LOG_NO("%s: saveCurrentStateForAllUnits() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	createNodeAndSUUnlockLists(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+
+	// Note: This actually change state to SA_AMF_ADMIN_LOCKED
+	//       The admin operation is SA_AMF_ADMIN_UNLOCK_INSTANTIATION but
+	//       there is no SA_AMF_ADMIN_UNLOCK_INSTANTIATION state
+	rc = changeNodeGroupAdminState(SA_AMF_ADMIN_LOCKED_INSTANTIATION,
+			SA_AMF_ADMIN_UNLOCK_INSTANTIATION);
+	if (rc == false) {
+		LOG_NO("%s: changeNodeGroupAdminState() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	rc = adminOperationSerialized(SA_AMF_ADMIN_UNLOCK_INSTANTIATION,
+				 m_suList);
+	if (rc == false) {
+		LOG_NO("%s: setAdminStateSUs() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+	}
+
+	done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+///
+/// Using m_nodeList and m_suList
+/// Unlock all units with admin state unlocked in
+/// Return false if Fail
+///
+bool SmfAdminOperation::unlock()
+{
+	TRACE_ENTER();
+	bool rc = false;
+	
+	if (m_creation_fail) {
+		goto done;
+	}
+	
+	rc = saveCurrentStateForAllUnits();
+
+	if (rc == false) {
+		LOG_NO("%s: saveCurrentStateForAllUnits() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	createNodeAndSUUnlockLists(SA_AMF_ADMIN_LOCKED);
+
+	rc = changeNodeGroupAdminState(SA_AMF_ADMIN_LOCKED,
+			SA_AMF_ADMIN_UNLOCK);
+	if (rc == false) {
+		LOG_NO("%s: changeNodeGroupAdminState() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		goto done;
+	}
+
+	rc = adminOperationSerialized(SA_AMF_ADMIN_UNLOCK, m_suList);
+	if (rc == false) {
+		LOG_NO("%s: setAdminStateSUs() Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+	}
+
+	done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// Try to restart all units in the m_allUnits list.
+/// Return false if Fail
+///
+bool SmfAdminOperation::restart()
+{
+	TRACE_ENTER();
+	bool rc = false;
+
+	if (m_creation_fail) {
+		goto done;
+	}
+
+	m_errno = SA_AIS_OK;
+	for (auto& unit : *m_allUnits) {
+		adminOperation(SA_AMF_ADMIN_RESTART, unit.name);
+		rc = isRestartError(m_errno);
+		TRACE("\tais_rc '%s'", saf_error(m_errno));
+		if (rc == false)
+			break;
+	}
+
+	done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// -----------------------------------------------
+/// SmfSetAdminState Private
+/// -----------------------------------------------
+
+/// Get all needed IMM handles. Updates corresponding member variables
+/// Return false if fail
+///
+bool SmfAdminOperation::getAllImmHandles()
+{
+	SaAisErrorT ais_rc = SA_AIS_ERR_TRY_AGAIN;
+	int timeout_try_cnt = 6;
+	bool rc = true;
+
+	TRACE_ENTER();
+	// OM handle
+	while (timeout_try_cnt > 0) {
+		ais_rc = immutil_saImmOmInitialize(&m_omHandle, NULL,
+						 &m_immVersion);
+		if (ais_rc != SA_AIS_ERR_TIMEOUT)
+			break;
+		timeout_try_cnt--;
+	}
+	if (ais_rc != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmInitialize Fail %s",__FUNCTION__,
+			saf_error(ais_rc));
+		rc = false;
+	}
+
+	// Accessors handle
+	if (rc == true) {
+		timeout_try_cnt = 6;
+		while (timeout_try_cnt > 0) {
+			ais_rc = immutil_saImmOmAccessorInitialize(m_omHandle,
+							&m_accessorHandle);
+			if (ais_rc != SA_AIS_ERR_TIMEOUT)
+				break;
+			timeout_try_cnt--;
+		}
+		if (ais_rc != SA_AIS_OK) {
+			LOG_NO("%s: saImmOmAccessorInitialize Fail %s",
+				__FUNCTION__, saf_error(ais_rc));
+			rc = false;
+		}
+	}
+
+	// Admin owner handle
+	if (rc == true) {
+		timeout_try_cnt = 6;
+		while (timeout_try_cnt > 0) {
+			ais_rc = immutil_saImmOmAdminOwnerInitialize(m_omHandle,
+				const_cast<char*> ("smfSetAdminStateOwner"),
+				SA_TRUE, &m_ownerHandle);
+			if (ais_rc != SA_AIS_ERR_TIMEOUT)
+				break;
+			timeout_try_cnt--;
+		}
+		if (ais_rc != SA_AIS_OK) {
+			LOG_NO("%s: saImmOmAdminOwnerInitialize Fail %s",
+				__FUNCTION__, saf_error(ais_rc));
+			rc = false;
+		}
+	}
+
+	// CCB handle
+	if (rc == true) {
+		timeout_try_cnt = 6;
+		while (timeout_try_cnt > 0) {
+			ais_rc = immutil_saImmOmCcbInitialize(m_ownerHandle,
+							 0, &m_ccbHandle);
+			if (ais_rc != SA_AIS_ERR_TIMEOUT)
+				break;
+			timeout_try_cnt--;
+		}
+		if (ais_rc != SA_AIS_OK) {
+			LOG_NO("%s: saImmOmCcbInitialize Fail %s",
+				__FUNCTION__, saf_error(ais_rc));
+			rc = false;
+		}
+	}
+
+	TRACE_LEAVE2("rc = %s", rc? "true": "false");
+	return rc;
+}
+
+/// Check if the AIS return is considered a campaign error
+/// Do not Fail if any of the following AIS codes
+///
+bool SmfAdminOperation::isRestartError(SaAisErrorT ais_rc) {
+	bool rc = true;
+
+	if (ais_rc != SA_AIS_OK && ais_rc != SA_AIS_ERR_BAD_OPERATION) {
+		rc = false;
+	}
+
+	return rc;
+}
+
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::saveInitAndCurrentStateForAllUnits()
+{
+	TRACE_ENTER();
+	bool rc = true;
+
+	for (auto& unit : *m_allUnits) {
+		unit.initState = getAdminState(unit.name);
+		unit.currentState = unit.initState;
+		if (m_errno != SA_AIS_OK) {
+			LOG_NO("%s: getAdminStateForUnit() Fail %s",
+				__FUNCTION__, saf_error(m_errno));
+			rc = false;
+			break;
+		}
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::saveCurrentStateForAllUnits()
+{
+	TRACE_ENTER();
+	bool rc = true;
+
+	for (auto& unit : *m_allUnits) {
+		unit.currentState = getAdminState(unit.name);
+		if (m_errno != SA_AIS_OK) {
+			LOG_NO("%s: getAdminStateForUnit() Fail %s",
+				__FUNCTION__, saf_error(m_errno));
+			rc = false;
+			break;
+		}
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// From the allUnits list create a list of SUs and a
+/// list of Nodes that has given admin state
+/// of the list
+///
+void SmfAdminOperation::createNodeAndSULockLists(SaAmfAdminStateT adminState)
+{
+	createUnitLists(adminState, false);
+}
+
+/// From the allUnits list create a list of SUs and a
+/// list of Nodes that has given admin state
+/// If smfKeepDuState set then nodes that already has the init state shall not
+/// be in list
+///
+void SmfAdminOperation::createNodeAndSUUnlockLists(SaAmfAdminStateT adminState)
+{
+	createUnitLists(adminState, m_smfKeepDuState);
+}
+
+/// From the allUnits list create a list of SUs and a
+/// list of Nodes that has given admin state
+/// If checkInitState is true then nodes  and SUs that are in their init state
+/// shall not be part of the list
+///
+void SmfAdminOperation::createUnitLists(SaAmfAdminStateT adminState,
+					    bool checkInitState)
+{
+	TRACE_ENTER();
+	// The lists are reused. Clean before creating new lists
+	m_suList.clear();
+	m_nodeList.clear();
+
+	for (auto& unit : *m_allUnits) {
+		if (checkInitState == true) {
+			if (unit.currentState == unit.initState)
+				continue;
+		}
+		if (unit.name.find("safSu") != std::string::npos) {
+			if (unit.currentState == adminState)
+				m_suList.push_back(unit);
+		} else if (unit.name.find("safAmfNode") != std::string::npos) {
+			if (unit.currentState == adminState)
+				m_nodeList.push_back(unit);
+		} else if (unit.name.find("safComp") != std::string::npos) {
+			// Shall not be added to list
+			TRACE("safComp found in list");
+		} else {
+			// Should never happen
+			LOG_ER("%s, [%d] Unknown unit %s", __FUNCTION__,
+				__LINE__, unit.name.c_str());
+			abort();
+		}
+	}
+	TRACE_LEAVE();
+}
+
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::changeNodeGroupAdminState(SaAmfAdminStateT fromState,
+					 SaAmfAdminOperationIdT toState)
+{
+	bool rc = true;
+
+	TRACE_ENTER();
+
+	if (!m_nodeList.empty()) {
+		rc = createNodeGroup(fromState);
+		if (rc == false) {
+			LOG_NO("%s: createNodeGroup() Fail %s",
+				__FUNCTION__, saf_error(m_errno));
+		}
+		if (rc == true) {
+			rc = nodeGroupAdminOperation(toState);
+			if (rc == false) {
+				LOG_NO("%s: setNodeGroupAdminState() Fail %s",
+					__FUNCTION__, saf_error(m_errno));
+			}
+			(void) deleteNodeGroup();
+		}
+	} else {
+		TRACE("\tm_nodelist is empty!");
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// Read current state from the IMM object in the given object name (dn)
+/// If the unit is a node or an SU, admin state is fetched. If the unit is a
+/// component presence state is fetched
+/// m_ais_errno is set
+/// NOTE: The return value is undefined if m_ais_errno != SA_AIS_OK
+///
+SaAmfAdminStateT SmfAdminOperation::getAdminState(const std::string&
+						i_objectName)
+{
+	TRACE_ENTER();
+
+	// Holds the returned value
+	SaImmAttrValuesT_2 **attributes;
+	// Gives undefined return value
+	SaAmfAdminStateT *p_adminState = nullptr;
+
+	m_errno = SA_AIS_OK;
+
+	// IMM object from i_unit.name
+	SaNameT objectName;
+	saAisNameLend(i_objectName.c_str(), &objectName);
+
+	// Admin state shall be read from a SU object or a Node object
+	if (i_objectName.find("safSu") != std::string::npos) {
+		SaImmAttrNameT suAdminStateAttr[] = {
+			const_cast<char*> ("saAmfSUAdminState"),
+			NULL
+		};
+		m_errno = immutil_saImmOmAccessorGet_2(m_accessorHandle,
+						 &objectName,
+						 suAdminStateAttr,
+						 &attributes);
+	} else if (i_objectName.find("safAmfNode") != std::string::npos) {
+		SaImmAttrNameT nodeAdminStateAttr[] = {
+			const_cast<char*> ("saAmfNodeAdminState"),
+			NULL
+		};
+		m_errno = immutil_saImmOmAccessorGet_2(m_accessorHandle,
+						 &objectName,
+						 nodeAdminStateAttr,
+						 &attributes);
+	} else {
+		// Should never happen
+		TRACE("\t i_objectName '%s'", i_objectName.c_str());
+		TRACE("\t Not containing 'safSu' or 'safAmfNode'?");
+		LOG_ER("%s, [%d] Unknown object %s", __FUNCTION__, __LINE__,
+			i_objectName.c_str());
+		abort();
+	}
+
+	if (m_errno == SA_AIS_OK) {
+		SaImmAttrValuesT_2 *attribute = attributes[0];
+		if (attribute->attrValuesNumber != 0) {
+			p_adminState =
+			    static_cast<SaAmfAdminStateT *>
+				(attribute->attrValues[0]);
+		} else {
+			// Should never happen
+			LOG_ER("%s: [%d] No Admin State value found",
+			 __FUNCTION__, __LINE__);
+			abort();
+		}
+	} else {
+		LOG_NO("%s saImmOmAccessorGet_2 Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+	}
+
+	SaAmfAdminStateT adminState = SA_AMF_ADMIN_UNLOCKED;
+	if (p_adminState != nullptr)
+		adminState = *p_adminState;
+
+	TRACE_LEAVE();
+	return adminState;
+}
+
+/// Set safAmfCluster to be parent DN for the Node group used for setting admin
+/// state. Fetched from the SaAmfCluster class
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::setNodeGroupParentDn()
+{
+	TRACE_ENTER();
+	bool rc = true;
+	m_errno = SA_AIS_OK;
+
+	SaImmSearchHandleT searchHandle;
+	SaImmAttrValuesT_2 **attributes;  // Not used. Wanted info in objectName
+	SaNameT objectName;  // Out data from IMM search.
+
+	const char* className = "SaAmfCluster";
+	SaImmSearchParametersT_2 searchParam;
+	searchParam.searchOneAttr.attrName = const_cast <char *>
+		("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className; // void *
+
+	m_errno = immutil_saImmOmSearchInitialize_2(m_omHandle, NULL,
+		SA_IMM_SUBTREE,
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
+		&searchParam, NULL, &searchHandle);
+	if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmSearchInitialize_2 Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		rc = false;
+		goto done;
+	}
+
+	m_errno = immutil_saImmOmSearchNext_2(searchHandle, &objectName,
+		&attributes);
+	if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmSearchNext_2 Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		rc = false;
+	}
+
+	m_errno = immutil_saImmOmSearchFinalize(searchHandle);
+	if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmFinalize Fail %s", __FUNCTION__,
+			saf_error(m_errno));
+		rc = false;
+	}
+
+	if (rc != false) {
+		const char *tmp_str = saAisNameBorrow(&objectName);
+		m_nodeGroupParentDn = tmp_str;
+		TRACE("\t Object name is '%s'", tmp_str);
+	}
+
+	TRACE_LEAVE2("m_nodeGroupParentDn '%s'", m_nodeGroupParentDn.c_str());
+	done:
+	return rc;
+}
+
+/// Create a SmfSetAdminState instance node group with the nodes in
+/// the m_nodeList.
+/// The saAmfNGAdminState attribute will be given fromState. The initState
+/// must be set to a state so that a state change to the wanted state for the
+/// nodes can be done.
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::createNodeGroup(SaAmfAdminStateT i_fromState)
+{
+	bool rc = true;
+	m_errno = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	TRACE("\t uniqueNodeName '%s'", m_instanceNodeGroupName.c_str());
+
+	// ------------------------------------
+	// Attribute descriptor for the node name
+	// Attribute: safAmfNodeGroup
+	//
+	SaImmAttrValuesT_2 safAmfNodeGroup;
+	safAmfNodeGroup.attrName =
+	    const_cast<SaImmAttrNameT>("safAmfNodeGroup");
+	safAmfNodeGroup.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	char *nGnodeName = const_cast<char *> (m_instanceNodeGroupName.c_str());
+	safAmfNodeGroup.attrValuesNumber = 1;
+	SaImmAttrValueT nGnodeNames[] = {&nGnodeName};
+	safAmfNodeGroup.attrValues = nGnodeNames;
+
+	TRACE("\t nGnodeName '%s'", nGnodeName);
+
+	// ------------------------------------
+	// Attribute descriptor for the init state
+	// Attribute: saAmfNGAdminState
+	//
+	SaImmAttrValuesT_2 saAmfNGAdminState;
+	saAmfNGAdminState.attrName =
+	    const_cast<SaImmAttrNameT>("saAmfNGAdminState");
+	saAmfNGAdminState.attrValueType = SA_IMM_ATTR_SAUINT32T;
+	SaUint32T fromState = static_cast<SaUint32T>(i_fromState);
+	saAmfNGAdminState.attrValuesNumber = 1;
+	SaImmAttrValueT initStates[] = {&fromState};
+	saAmfNGAdminState.attrValues = initStates;
+
+	TRACE("\t fromState '%d'", fromState);
+
+	// ------------------------------------
+	// Attribute descriptor for node list (list of nodes in node group)
+	// Attrubute: saAmfNGNodeList (multi value))
+	//
+	SaImmAttrValuesT_2 saAmfNGNodeListAttr;
+	saAmfNGNodeListAttr.attrName =
+	    const_cast<SaImmAttrNameT>("saAmfNGNodeList");
+	saAmfNGNodeListAttr.attrValueType = SA_IMM_ATTR_SANAMET;
+
+	// Multivalue saAmfNGNodeList attribute: List of node names in the
+	// node group
+	// Fill in from m_nodeList node names converted to SaNameT
+	// Create the multivalue attribute containing the node names
+	// The list of Node names consisting of void* to nodeName
+	SaUint32T attrValuesNumber = m_nodeList.size();
+	saAmfNGNodeListAttr.attrValuesNumber = attrValuesNumber;
+
+	// SaNameT nodeName[attrValuesNumber];
+	SaNameT *nodeName = reinterpret_cast<SaNameT*>
+		(calloc(1, sizeof(SaNameT) * attrValuesNumber));
+	// SaImmAttrValueT nodeNameList[attrValuesNumber];
+	SaImmAttrValueT *nodeNameList = reinterpret_cast<SaImmAttrValueT*>
+		(calloc(1, sizeof(SaImmAttrValueT) * attrValuesNumber));
+
+	int i = 0;
+	for (auto& node : m_nodeList) {
+		osaf_extended_name_lend(node.name.c_str(), &nodeName[i]);
+		nodeNameList[i] = &nodeName[i];
+		i++;
+	}
+	saAmfNGNodeListAttr.attrValues = nodeNameList;
+
+	// ------------------------------------
+	// NULL terminated array of pointers to the list of attributes.
+	// In this case only one attribute, saAmfNGNodeListAttr
+	const SaImmAttrValuesT_2 *attrValues[] =
+	{
+		&safAmfNodeGroup,
+		&saAmfNGAdminState,
+		&saAmfNGNodeListAttr,
+		NULL
+	};
+
+	SaImmClassNameT className =
+		const_cast<SaImmClassNameT>("SaAmfNodeGroup");
+	SaNameT nodeGroupParentDn;
+	osaf_extended_name_lend(m_nodeGroupParentDn.c_str(), &nodeGroupParentDn);
+
+	// ------------------------------------
+	// Create the node group
+	m_errno = immutil_saImmOmCcbObjectCreate_2(
+	    m_ccbHandle,
+	    className,
+	    &nodeGroupParentDn,
+	    attrValues);
+
+	if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmCcbObjectCreate_2() '%s' Fail %s",
+			__FUNCTION__, nGnodeName, saf_error(m_errno));
+		rc = false;
+	} else {
+		m_errno = saImmOmCcbApply(m_ccbHandle);
+		if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmCcbApply() Fail '%s'",
+			__FUNCTION__, saf_error(m_errno));
+			rc = false;
+		}
+	}
+
+	if (nodeName != NULL)
+		free(nodeName);
+	if (nodeNameList != NULL)
+		free(nodeNameList);
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// Delete the SmfSetAdminState instance specific node group
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::deleteNodeGroup()
+{
+	bool rc = true;
+	m_errno = SA_AIS_OK;
+
+	TRACE_ENTER();
+	std::string nodeGroupName_s =
+		m_instanceNodeGroupName + "," + m_nodeGroupParentDn;
+	SaNameT nodeGroupName;
+	osaf_extended_name_lend(nodeGroupName_s.c_str(),
+		&nodeGroupName);
+
+	TRACE("\t Deleting nodeGroup '%s'", nodeGroupName_s.c_str());
+
+	m_errno = immutil_saImmOmCcbObjectDelete(m_ccbHandle,
+		&nodeGroupName);
+	if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmCcbObjectDelete '%s' Fail %s",
+		 __FUNCTION__, nodeGroupName_s.c_str(),
+		 saf_error(m_errno));
+		rc = false;
+	} else {
+		m_errno = saImmOmCcbApply(m_ccbHandle);
+		if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmCcbApply() Fail '%s'",
+			__FUNCTION__, saf_error(m_errno));
+			rc = false;
+		}
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// Request given admin operation to the SmfSetAdminState instance node group
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::nodeGroupAdminOperation(SaAmfAdminOperationIdT adminOp)
+{
+	bool rc = true;
+	SaAisErrorT oi_rc = SA_AIS_OK;
+	m_errno = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	// Create the object name
+	std::string nodeGroupName_s =
+		m_instanceNodeGroupName + "," + m_nodeGroupParentDn;
+	SaNameT nodeGroupName;
+	osaf_extended_name_lend(nodeGroupName_s.c_str(),
+		&nodeGroupName);
+
+	TRACE("\t Setting '%s' to admin state %d",
+		nodeGroupName_s.c_str(), adminOp);
+
+	// There are no operation parameters
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL};
+
+	int retry = 100;
+	do {
+		TRACE("immutil_saImmOmAdminOperationInvoke_2 %s", __FUNCTION__);
+		m_errno = immutil_saImmOmAdminOperationInvoke_2(
+			m_ownerHandle,
+			&nodeGroupName, 0, adminOp, params,
+			&oi_rc, smfd_cb->adminOpTimeout);
+
+		if (retry <= 0) {
+			LOG_NO("Fail to invoke admin operation, too many OI "
+				"TRY_AGAIN, giving up. %s", __FUNCTION__);
+			break;
+		}
+		sleep(2);
+		retry--;
+	} while (m_errno == SA_AIS_OK && oi_rc == SA_AIS_ERR_TRY_AGAIN);
+
+	if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: saImmOmAdminOperationInvoke_2 Fail %s",
+			__FUNCTION__, saf_error(m_errno));
+		rc = false;
+	}
+
+	if ((m_errno == SA_AIS_OK) && (oi_rc != SA_AIS_OK)){
+		/* IMM om admin operation was ok but amf oi reported an error */
+		LOG_NO("%s: Set adminstate (%d) Fail %s",
+			__FUNCTION__, adminOp, saf_error(oi_rc));
+		m_errno = oi_rc;
+		rc = false;
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// Set given admin state to all units in the given unitList
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::adminOperationSerialized(
+				SaAmfAdminOperationIdT adminState,
+				const std::list <unitNameAndState> &i_unitList)
+{
+	bool rc = true;
+	m_errno = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	if (!i_unitList.empty()) {
+		for (auto& unit : i_unitList) {
+			rc = adminOperation(adminState, unit.name);
+			if (rc == false) {
+				// Failed to set admin state
+				break;
+			}
+		}
+	}
+
+	TRACE_LEAVE();
+	return rc;
+}
+
+/// Set given admin state to one unit
+/// Return false if Fail. m_ais_errno is set
+///
+bool SmfAdminOperation::adminOperation(SaAmfAdminOperationIdT adminOperation,
+				     const std::string &unitName)
+{
+	bool rc = true;
+	m_errno = SA_AIS_OK;
+
+	TRACE_ENTER();
+
+	SmfImmUtils immUtil;
+	const SaImmAdminOperationParamsT_2 *params[1] = {NULL};
+	
+	TRACE("\t Unit name '%s', adminOperation=%d",
+		unitName.c_str(), adminOperation);
+	m_errno = immUtil.callAdminOperation(unitName,
+		adminOperation, params, smfd_cb->adminOpTimeout);
+
+	if (m_errno != SA_AIS_OK) {
+		LOG_NO("%s: immUtil.callAdminOperation()"
+			" Fail %s, Failed unit is '%s'",
+			__FUNCTION__, saf_error(m_errno),
+		 unitName.c_str());
+		rc = false;
+	}
+
+	TRACE_LEAVE2("rc=%d", rc);
+	return rc;
+}
 /*====================================================================*/
 /*  Class SmfNodeSwLoadThread                                               */
 /*====================================================================*/

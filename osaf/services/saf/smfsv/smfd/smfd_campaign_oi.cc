@@ -1146,7 +1146,7 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 	if (keepDuState == NULL) {
 		//Not found, set default value
 		keepDuState = &tmp_keep_du_state;
-		LOG_NO("Attr %s is not available in %s, using default value %d", 
+		LOG_NO("Attr %s is not available in %s, using default value %d",
 		       SMF_KEEP_DU_STATE_ATTR, SMF_CONFIG_OBJECT_DN, *keepDuState);
 	} else {
 		LOG_NO("smfKeepDuState = %d", *keepDuState);
