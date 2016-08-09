@@ -88,7 +88,7 @@ static void proc_mds_info(smfd_cb_t * cb, SMFSV_EVT * evt)
 			if(smfnd_up(mds_info->node_id, mds_info->dest, mds_info->rem_svc_pvt_ver) == SA_AIS_OK)
 				cb->no_of_smfnd++;
 			else
-				LOG_WA("SMFND UP failed");
+				LOG_WA("%s: SMFND UP failed", __FUNCTION__);
 		}
 		break;
 

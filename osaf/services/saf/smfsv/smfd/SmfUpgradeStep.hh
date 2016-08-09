@@ -18,6 +18,8 @@
 #ifndef SMFUPGRADESTEP_HH
 #define SMFUPGRADESTEP_HH
 
+#include "base/macros.h"
+
 /* ========================================================================
  *   INCLUDE FILES
  * ========================================================================
@@ -25,6 +27,7 @@
 #include <semaphore.h>
 #include <ncsgl_defs.h>
 
+#include <atomic>
 #include <string>
 #include <vector>
 #include <list>
@@ -63,6 +66,7 @@ struct SmfNodeUpInfo {
 struct unitNameAndState{
 	  std::string name;
 	  SaAmfAdminStateT initState;
+	  SaAmfAdminStateT currentState;
 };
 
 /* ========================================================================
@@ -738,7 +742,6 @@ class SmfUpgradeStep {
 ///
 	bool setMaintenanceState(SmfActivationUnit& i_units);
 
-
 ///
 /// Purpose:  Create/Delete NodeSwBundle objects.
 ///
@@ -749,14 +752,6 @@ class SmfUpgradeStep {
 	bool deleteOneSaAmfNodeSwBundle(
 		const std::string & i_node,
 		const SmfBundleRef& i_bundle);
-
-///
-/// Purpose:  Call admin operation on all dn in list
-/// @param    -
-/// @return   -
-///
-	bool callAdminOperation(unsigned int i_operation, const SaImmAdminOperationParamsT_2 ** params,
-				std::list < unitNameAndState > &i_dnList);
 
 ///
 /// Purpose:  Set the state in IMM step object and send state change notification
@@ -828,4 +823,90 @@ class SmfNodeSwLoadThread {
 	const std::list < SmfBundleRef > *m_bundleList;
 };
 
+//==============================================================================
+// Operates on the units of an external unitNameAndState list that is provided
+// when an object of this class is created. Nodes admin state is handled in
+// parallel using a node group.
+//
+// The unit initial admin state state is saved in the provided list (initState)
+// when locking.
+// When unlocking, unlock is done until initial admin state is reached if keep
+// flag is true else end state will be unlocked regardless of initial state.
+// Units handled can be Nodes or SUs
+//
+// All methods return bool false if the admin operation fail.
+// An error log is written to inform why the operation failed.
+// All IMM handles needed are created by the constructor. If this fail an
+// error log is created and abort is done.
+//
+//==============================================================================
+class SmfAdminOperation {
+    public:
+	explicit SmfAdminOperation(std::list <unitNameAndState> *i_allUnits);
+	~SmfAdminOperation();
+
+	bool lock();
+	bool lock_in();
+	bool unlock_in();
+	bool unlock();
+	bool restart();
+
+    private:
+	bool getAllImmHandles();
+	bool isRestartError(SaAisErrorT ais_rc);
+
+	// Result in m_nodeList and m_suList
+	void createNodeAndSULockLists(SaAmfAdminStateT adminState);
+	void createNodeAndSUUnlockLists(SaAmfAdminStateT adminState);
+	void createUnitLists(SaAmfAdminStateT adminState, bool checkInitState);
+	// Updates list pointed to by m_allUnits
+	bool saveInitAndCurrentStateForAllUnits();
+	bool saveCurrentStateForAllUnits();
+
+	// Using m_nodeList
+	bool createNodeGroup(SaAmfAdminStateT i_initState);
+
+	bool deleteNodeGroup();
+
+	bool changeNodeGroupAdminState(SaAmfAdminStateT fromState,
+						SaAmfAdminOperationIdT toState);
+	bool nodeGroupAdminOperation(SaAmfAdminOperationIdT adminState);
+	// Using m_suList
+	bool adminOperationSerialized(SaAmfAdminOperationIdT adminState,
+				const std::list <unitNameAndState> &i_nodeList);
+	bool adminOperation(SaAmfAdminOperationIdT adminState,
+					     const std::string &unitName);
+
+	SaAmfAdminStateT getAdminState(const std::string&  i_unit);
+	bool setNodeGroupParentDn();
+
+	std::list <unitNameAndState> *m_allUnits;
+	std::list <unitNameAndState> m_suList;
+	std::list <unitNameAndState> m_nodeList;
+
+	const SaVersionT m_immVersion {'A', 2, 1};
+
+	std::string m_nodeGroupParentDn;
+
+	SaImmHandleT m_omHandle {0};
+	SaImmAdminOwnerHandleT m_ownerHandle {0};
+	SaImmCcbHandleT m_ccbHandle {0};
+	SaImmAccessorHandleT m_accessorHandle {0};
+	// Indicate if creation was succesful
+	bool m_creation_fail {false};
+
+	// This variable will contain the AIS return code after a calling a
+	// method using OpenSAF API. If this variable does not contain
+	// SA_AIS_OK the called method has failed.
+	//
+	SaAisErrorT m_errno {SA_AIS_OK};
+
+	// Count instances of this class
+	static std::atomic<unsigned int> m_next_instance_number;
+	bool m_smfKeepDuState {false};
+	unsigned int m_instance_number {0};
+	std::string m_instanceNodeGroupName {""};
+
+	DELETE_COPY_AND_MOVE_OPERATORS(SmfAdminOperation);
+};
 #endif				// SMFUPGRADESTEP_HH
