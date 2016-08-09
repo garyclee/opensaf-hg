@@ -475,7 +475,7 @@ int lgs_populate_log_stream(
 SaAisErrorT lgs_create_rt_appstream(log_stream_t *const stream)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	TRACE_ENTER2("%s, l: %lu", stream->name.c_str(), stream->name.size());
+	TRACE_ENTER2("%s, l: %zu", stream->name.c_str(), stream->name.size());
 
 	/* Create IMM runtime object for rt (if ACTIVE) */
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -620,7 +620,7 @@ log_stream_t *log_stream_new(const std::string &name, int stream_id)
 	int rc = 0;
 	log_stream_t *stream = NULL;
 
-	TRACE_ENTER2("%s, l: %lu", name.c_str(), name.size());
+	TRACE_ENTER2("%s, l: %zu", name.c_str(), name.size());
 
 	stream = new (std::nothrow) log_stream_t();
 	if (stream == NULL) {
