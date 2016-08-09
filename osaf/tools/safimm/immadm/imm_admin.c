@@ -70,6 +70,7 @@ static void usage(const char *progname)
 	printf("\t-O, --operation-name <name>\n");
 	printf("\t\toperation name (mandatory)\n");
 	printf("\t-a, --admin-owner <admin owner name>\n");
+	printf("\t-r, --release-on-finalize\n");
 	printf("\t-p, --parameter <p>\n");
 	printf("\t\tparameter(s) to admin op\n");
 	printf("\t\tParameter syntax: <name>:<type>:<value>\n");
@@ -246,6 +247,7 @@ int main(int argc, char *argv[])
 		{"operation-id", required_argument, 0, 'o'},
 		{"operation-name", required_argument, 0, 'O'},
 		{"admin-owner", required_argument, 0, 'a'},
+		{"release-on-finalize", no_argument, 0, 'r'},
 		{"help", no_argument, 0, 'h'},
 		{"timeout", required_argument, 0, 't'},
 		{"verbose", no_argument, 0, 'v'},
@@ -254,6 +256,7 @@ int main(int argc, char *argv[])
 	SaAisErrorT error;
 	SaImmHandleT immHandle;
 	SaImmAdminOwnerNameT adminOwnerName = basename(argv[0]);
+	bool explicitRof = false;
 	bool releaseAdmo=true;
 	bool explicitAdmo=false;
 	SaImmAdminOwnerHandleT ownerHandle;
@@ -282,7 +285,7 @@ int main(int argc, char *argv[])
 	SaStringT opName = NULL;
 
 	while (1) {
-		c = getopt_long(argc, argv, "dp:o:O:a:t:hv", long_options, NULL);
+		c = getopt_long(argc, argv, "dp:o:O:a:rt:hv", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -344,6 +347,9 @@ int main(int argc, char *argv[])
 			releaseAdmo=false;
 			explicitAdmo=true;
 			break;
+		case 'r':
+			explicitRof = true;
+			break;
 		case 'h':
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
@@ -356,6 +362,10 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 			break;
 		}
+	}
+
+	if (explicitRof) {
+		releaseAdmo = true;
 	}
 
 	if (operationId == -1) {
