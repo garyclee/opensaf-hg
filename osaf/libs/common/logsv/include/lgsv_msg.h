@@ -45,6 +45,7 @@ typedef enum {
 /* LGSV Callback enums */
 typedef enum {
 	LGSV_WRITE_LOG_CALLBACK_IND = 0,
+	LGSV_CLM_NODE_STATUS_CALLBACK = 1,
 	LGSV_LGS_CBK_MAX
 } lgsv_cbk_msg_type_t;
 
@@ -121,12 +122,20 @@ typedef struct {
 	SaAisErrorT error;
 } lgsv_write_log_callback_ind_t;
 
-/* wrapper structure for all the callbacks */
+/*CLM node status callback structure for LGS*/
+typedef struct logsv_loga_clm_status_param_tag {
+	uint32_t clm_node_status;
+} logsv_lga_clm_status_cbk_t;
+
+/* wrapper structure for all the callbacks */  
 typedef struct {
-	lgsv_cbk_msg_type_t type;	/* callback type */
-	uint32_t lgs_client_id;	/* lgs client_id */
-	SaInvocationT inv;	/* invocation value */
+	lgsv_cbk_msg_type_t type;       /* callback type */
+	uint32_t lgs_client_id; /* lgs client_id */
+	SaInvocationT inv;      /* invocation value */
+	/*      union {*/
 	lgsv_write_log_callback_ind_t write_cbk;
+	logsv_lga_clm_status_cbk_t clm_node_status_cbk;
+	/*      } param; */
 } lgsv_cbk_info_t;
 
 /* API Response parameter definitions */

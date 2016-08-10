@@ -20,7 +20,11 @@
 
 #define LOG_RELEASE_CODE 'A'
 #define LOG_MAJOR_VERSION 2
-#define LOG_MINOR_VERSION 1
+#define LOG_MINOR_VERSION 2
+
+#define LOG_RELEASE_CODE_0 'A'
+#define LOG_MAJOR_VERSION_0 2
+#define LOG_MINOR_VERSION_0 1
 
 // Waiting time in library for sync send, unit 10ms
 #define LGS_WAIT_TIME 1000
