@@ -24,6 +24,7 @@
 #include "lgs_recov.h"
 #include "lgs_imm_gcfg.h"
 #include "osaf_extended_name.h"
+#include "lgs_clm.h"
 
 /* Macro to validate the version */
 #define m_LOG_VER_IS_VALID(ver)   \
@@ -582,6 +583,8 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 	lgs_cb->amfSelectionObject = -1;
 	lgs_cb->immSelectionObject = -1;
 	lgs_cb->mbcsv_sel_obj = -1;
+	lgs_cb->clm_hdl = 0;
+	lgs_cb->clmSelectionObject = -1;
 
 	/* Assign Version. Currently, hardcoded, This will change later */
 	lgs_cb->log_version.releaseCode = LOG_RELEASE_CODE;
@@ -596,6 +599,12 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb)
 	/* Initialize patricia tree for reg list */
 	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&lgs_cb->client_tree, &reg_param))
 		return NCSCC_RC_FAILURE;
+
+	/* Initialize CLM Node map*/
+	if (NCSCC_RC_SUCCESS != lgs_clm_node_map_init(lgs_cb)) {
+		LOG_ER("LGS: CLM Node map_init FAILED");
+		rc = NCSCC_RC_FAILURE;
+	}
 
 	done:
 	TRACE_LEAVE();
@@ -633,6 +642,12 @@ static uint32_t proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	if (!m_LOG_VER_IS_VALID(version)) {
 		ais_rc = SA_AIS_ERR_VERSION;
 		TRACE("version FAILED");
+		goto snd_rsp;
+	}
+
+	if (is_client_clm_member(evt->fr_node_id, version) != true){
+		ais_rc = SA_AIS_ERR_UNAVAILABLE;
+		TRACE("client not a CLM member FAILED");
 		goto snd_rsp;
 	}
 

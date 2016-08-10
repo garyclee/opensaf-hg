@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <saLog.h>
 #include <saImmOi.h>
+#include <saClm.h>
 #include <mbcsv_papi.h>
 #include <ncs_edu_pub.h>
 
@@ -80,6 +81,8 @@ typedef struct lgs_cb {
 	bool is_quiesced_set;
 	SaImmOiHandleT immOiHandle;	/* IMM OI handle                           */
 	SaSelectionObjectT immSelectionObject;	/* Selection Object to wait for IMM events */
+	SaSelectionObjectT clmSelectionObject;  /* Selection Object to wait for clms events */
+	SaClmHandleT clm_hdl;   /* CLM handle, obtained through CLM init        */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	uint32_t last_client_id;	/* Value of last client_id assigned          */
 	uint32_t async_upd_cnt;	/* Async Update Count for Warmsync */
@@ -94,6 +97,7 @@ typedef struct lgs_cb {
                                                    down events Processing */
 	LGA_DOWN_LIST *lga_down_list_tail;
 
+	NCS_SEL_OBJ clm_init_sel_obj; /* Selection object for CLM initialization.*/
 	bool nid_started;	/**< true if started by NID */
 	SaUint32T scAbsenceAllowed; /* OpenSAF global configuration for recovery handling */
 	lgs_state_t lgs_recovery_state; /* Indicate current recovery state for the server */

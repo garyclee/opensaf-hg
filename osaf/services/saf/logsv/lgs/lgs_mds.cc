@@ -845,11 +845,19 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 				goto err;
 			}
 			ncs_encode_32bit(&p8, msg->info.cbk_info.write_cbk.error);
+			TRACE_8("LGSV_WRITE_LOG_CALLBACK_IND");
+		} else if (msg->info.cbk_info.type == LGSV_CLM_NODE_STATUS_CALLBACK) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				TRACE("ncs_enc_reserve_space failed");
+				goto err;
+			}
+			ncs_encode_32bit(&p8, msg->info.cbk_info.clm_node_status_cbk.clm_node_status);
+			TRACE_8("LGSV_CLM_NODE_STATUS_CALLBACK");
 		} else {
 			TRACE("unknown callback type %d", msg->info.cbk_info.type);
 			goto err;
 		}
-		TRACE_8("LGSV_WRITE_LOG_CALLBACK_IND");
 	} else {
 		TRACE("unknown msg type %d", msg->type);
 		goto err;
@@ -1249,6 +1257,16 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 				osafassert(rc == NCSCC_RC_SUCCESS);
 			}
 		}
+	} else if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_AVD) {
+		if (info->info.svc_evt.i_change == NCSMDS_UP) {
+			TRACE_8("MDS UP dest: %" PRIx64 ", node ID: %x, svc_id: %d",
+					info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
+			//Subscribed for only INTRA NODE, only one ADEST will come.
+			if (m_MDS_DEST_IS_AN_ADEST(info->info.svc_evt.i_dest)) {
+				TRACE_8("AVD ADEST UP");
+				ncs_sel_obj_ind(&lgs_cb->clm_init_sel_obj);
+			}
+		}
 	}
 
  done:
@@ -1415,6 +1433,24 @@ uint32_t lgs_mds_init(lgs_cb_t *cb, SaAmfHAStateT ha_state)
 		LOG_ER("MDS subscribe FAILED");
 		return rc;
 	}
+
+
+	svc = NCSMDS_SVC_ID_AVD;
+        /* Now subscribe for AVD events in MDS. This will be 
+           used for CLM registration.*/
+        memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
+        mds_info.i_mds_hdl = cb->mds_hdl;
+        mds_info.i_svc_id = NCSMDS_SVC_ID_LGS;
+        mds_info.i_op = MDS_SUBSCRIBE;
+        mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_INTRANODE;
+        mds_info.info.svc_subscribe.i_num_svcs = 1;
+        mds_info.info.svc_subscribe.i_svc_ids = &svc;
+ 
+        rc = ncsmds_api(&mds_info);
+        if (rc != NCSCC_RC_SUCCESS) {
+                LOG_ER("MDS for AVD subscribe FAILED");
+                return rc;
+        }
 
 	TRACE_LEAVE();
 	return rc;

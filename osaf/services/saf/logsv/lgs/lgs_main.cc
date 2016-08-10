@@ -38,6 +38,7 @@
 #include "osaf_utility.h"
 #include "lgs_recov.h"
 #include "immutil.h"
+#include "lgs_clm.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -49,6 +50,7 @@ enum {
 	FD_MBCSV,
 	FD_MBX,
 	FD_CLTIMER,
+	FD_CLM,
 	FD_IMM,		/* Must be the last in the fds array */
 	FD_NUM
 };
@@ -332,6 +334,13 @@ static uint32_t log_initialize(void)
 		goto done;
 	}
 
+	/* Create a CLM selection object */
+	if ((rc = ncs_sel_obj_create(&lgs_cb->clm_init_sel_obj)) != NCSCC_RC_SUCCESS)
+	{
+		LOG_ER("lgsv: CLM ncs_sel_obj_create failed");
+		goto done;
+        }
+
 	/*
 	 * Initialize a signal handler that will use the selection object.
 	 * The signal is sent from our script when AMF does instantiate.
@@ -506,6 +515,8 @@ int main(int argc, char *argv[])
 	fds[FD_IMM].fd = lgs_cb->immSelectionObject;
 	fds[FD_IMM].events = POLLIN;
 
+	lgs_cb->clmSelectionObject = lgs_cb->clm_init_sel_obj.rmv_obj;
+
 	while (1) {
 		if (cltimer_fd < 0 && log_rtobj_list_no() != 0) {
 			/* Needed only if any "lost" objects are found
@@ -518,6 +529,8 @@ int main(int argc, char *argv[])
 		fds[FD_CLTIMER].events = POLLIN;
 		fds[FD_MBCSV].fd = lgs_cb->mbcsv_sel_obj;
 		fds[FD_MBCSV].events = POLLIN;
+		fds[FD_CLM].fd = lgs_cb->clmSelectionObject;
+		fds[FD_CLM].events = POLLIN;
 
 		/* Protect since the reinit thread may be in the process of
 		 * changing the values
@@ -569,6 +582,21 @@ int main(int argc, char *argv[])
 			if ((rc = lgs_mbcsv_dispatch(lgs_cb->mbcsv_hdl)) != NCSCC_RC_SUCCESS) {
 				LOG_ER("MBCSv Dispatch Failed");
 				break;
+			}
+		}
+
+		if (fds[FD_CLM].revents & POLLIN) {
+			if (lgs_cb->clm_hdl != 0) {
+				if ((error = saClmDispatch(lgs_cb->clm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+					LOG_ER("saClmDispatch failed: %u", error);
+					break;
+				}
+			} else {
+				TRACE("init CLM ");
+				ncs_sel_obj_rmv_ind(&lgs_cb->clm_init_sel_obj, true, true);
+				ncs_sel_obj_destroy(&lgs_cb->clm_init_sel_obj);				
+				lgs_cb->clmSelectionObject = -1;
+				lgs_init_with_clm();
 			}
 		}
 

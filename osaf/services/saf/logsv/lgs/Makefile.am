@@ -37,7 +37,8 @@ noinst_HEADERS = \
 	lgs_mbcsv_v3.h \
 	lgs_mbcsv_v5.h \
 	lgs_recov.h \
-	lgs_imm_gcfg.h
+	lgs_imm_gcfg.h \
+	lgs_clm.h
 
 osaf_execbindir = $(pkglibdir)
 osaf_execbin_PROGRAMS = osaflogd
@@ -68,7 +69,8 @@ osaflogd_SOURCES = \
 	lgs_mbcsv_v3.cc \
 	lgs_mbcsv_v5.cc \
 	lgs_recov.cc \
-	lgs_imm_gcfg.cc
+	lgs_imm_gcfg.cc \
+	lgs_clm.cc
 
 osaflogd_LDADD = \
 	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
@@ -76,4 +78,5 @@ osaflogd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la
