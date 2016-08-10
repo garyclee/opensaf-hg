@@ -93,7 +93,7 @@ SaLogRecordT genLogRecord =
 	.logBuffer = &genLogBuffer
 };
 
-SaVersionT logVersion = {'A', 0x02, 0x01}; 
+SaVersionT logVersion = {'A', 0x02, 0x02}; 
 SaVersionT immVersion = {'A', 2, 11};
 SaAisErrorT rc;
 SaLogHandleT logHandle;
@@ -476,6 +476,7 @@ int main(int argc, char **argv)
 			add_suite_10();
 			add_suite_11();
 			add_suite_12();
+			add_suite_14();
 			test_list();
 			exit(0);
 		case 'e':
@@ -507,6 +508,7 @@ int main(int argc, char **argv)
 			add_suite_10();
 			add_suite_11();
 			add_suite_12();
+			add_suite_14();
 			break;
 		case 'v':
 			if (silent_flg == true) {

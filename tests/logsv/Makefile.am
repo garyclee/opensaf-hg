@@ -48,7 +48,8 @@ logtest_SOURCES = \
 	tet_Log_misc.c \
 	tet_Log_recov.c \
 	tet_log_runtime_cfgobj.c \
-	tet_log_longDN.c
+	tet_log_longDN.c \
+	tet_Log_clm.c
 
 logtest_LDADD = \
 	$(top_builddir)/tests/unit_test_fw/src/libutest.la \

@@ -86,7 +86,7 @@ static inline void time_meas_log(time_meas_t* tm, char *id)
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error);
 
 static SaLogCallbacksT logCallbacks = { 0, 0, logWriteLogCallbackT };
-static SaVersionT logVersion = { 'A', 2, 1 };
+static SaVersionT logVersion = { 'A', 0x02, 0x02 };
 
 static char *progname = "saflogtest";
 static SaInvocationT cb_invocation;

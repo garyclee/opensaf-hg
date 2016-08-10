@@ -86,7 +86,7 @@ static SaNameT notifyingObjLd;
 static SaNameT logStreamNameLd;
 static SaLogBufferT logBufferLd;
 static SaNtfClassIdT notificationClassIdLd = { 1, 2, 3 };
-static SaVersionT logVersionLd = { 'A', 2, 1 };
+static SaVersionT logVersionLd = { 'A', 2, 2 };
 static SaInvocationT invocationLd;
 static SaAisErrorT errorLd;
 
