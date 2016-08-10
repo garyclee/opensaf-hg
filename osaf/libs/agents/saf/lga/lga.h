@@ -21,6 +21,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <saLog.h>
+#include <saClm.h>
 
 #include <ncs_main_papi.h>
 #include <ncssysf_ipc.h>
@@ -77,6 +78,7 @@ typedef struct lga_client_hdl_rec {
 				     * Set when client is initialized an all
 				     * streams are recovered
 				     */
+	bool is_stale_client;  /* Status of client based on the CLM status of node.*/
 } lga_client_hdl_rec_t;
 
 /* States of the server */
@@ -118,6 +120,7 @@ typedef struct {
 	/* LGS LGA sync params */
 	int lgs_sync_awaited;
 	NCS_SEL_OBJ lgs_sync_sel;
+	SaClmClusterChangesT clm_node_state; /*Reflects CLM status of this node(for future use).*/
 } lga_cb_t;
 
 /* lga_saf_api.c */

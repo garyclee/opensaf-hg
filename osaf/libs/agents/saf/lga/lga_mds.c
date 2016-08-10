@@ -518,6 +518,41 @@ static uint32_t lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg, MDS_SEND_PR
 			}
 			break;
 
+		case LGSV_CLM_NODE_STATUS_CALLBACK:
+			{
+				lga_client_hdl_rec_t *lga_hdl_rec;
+
+				TRACE_2("LGSV_CLM_NODE_STATUS_CALLBACK  clm_node_status:%d",
+						lgsv_msg->info.cbk_info.clm_node_status_cbk.clm_node_status);
+
+				/** Lookup the hdl rec by client_id  **/
+				if (NULL == (lga_hdl_rec =
+							lga_find_hdl_rec_by_regid(cb, lgsv_msg->info.cbk_info.lgs_client_id))) {
+					TRACE("regid not found");
+					lga_msg_destroy(lgsv_msg);
+					TRACE_LEAVE();
+					return NCSCC_RC_FAILURE;
+				}
+				cb->clm_node_state = lgsv_msg->info.cbk_info.clm_node_status_cbk.clm_node_status;
+				//A client becomes stale if Node loses CLM Membership.
+				if (cb->clm_node_state != SA_CLM_NODE_JOINED) {
+					/*If the node rejoins the cluster membership, processes executing on the node will be
+					  able to reinitialize new library handles and use the entire set of Log Service APIs that
+					  operate on these new handles; however, invocation of APIs that operate on handles
+					  acquired by any process before the node left the membership will continue to fail with
+					  SA_AIS_ERR_UNAVAILABLE (or with the special treatment described above for
+					  asynchronous calls) with the exception of saLogFinalize(), which is used to free the
+					  library handles and all resources associated with these handles. Hence, it is recommended
+					  for the processes to finalize the library handles as soon as the processes
+					  detect that the node left the membership.*/
+					lga_hdl_rec->is_stale_client = true;
+					TRACE("CLM_NODE callback is_stale_client: %d clm_node_state: %d",
+							lga_hdl_rec->is_stale_client, cb->clm_node_state);
+				}
+				lga_msg_destroy(lgsv_msg);
+			}
+			break;
+
 		default:
 			TRACE("unknown type %d", lgsv_msg->info.cbk_info.type);
 			lga_msg_destroy(lgsv_msg);
@@ -862,6 +897,35 @@ static uint32_t lga_dec_write_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 }
 
 /****************************************************************************
+Name          : lga_dec_clm_node_status_cbk_msg
+
+Description   : This routine decodes  message
+
+Arguments     : NCS_UBAID *msg,
+LGSV_MSG *msg
+
+Return Values : uint32_t
+
+Notes         : None.
+ ******************************************************************************/
+static uint32_t lga_dec_clm_node_status_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
+{
+	uint8_t *p8;
+	uint32_t total_bytes = 0;
+	logsv_lga_clm_status_cbk_t *param = &msg->info.cbk_info.clm_node_status_cbk;
+	uint8_t local_data[100];
+
+	osafassert(uba != NULL);
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->clm_node_status = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
+
+	return total_bytes;
+}
+
+/****************************************************************************
   Name          : lga_dec_lstr_open_sync_rsp_msg
  
   Description   : This routine decodes a log stream open sync response message
@@ -977,6 +1041,11 @@ static uint32_t lga_mds_dec(struct ncsmds_callback_info *info)
 				TRACE_2("decode writelog message, lgs_client_id=%d",
 					msg->info.cbk_info.lgs_client_id);
 				total_bytes += lga_dec_write_cbk_msg(uba, msg);
+				break;
+			case LGSV_CLM_NODE_STATUS_CALLBACK:
+				TRACE_2("decode clm node status message, lgs_client_id=%d",
+						msg->info.cbk_info.lgs_client_id);
+				total_bytes += lga_dec_clm_node_status_cbk_msg(uba, msg);
 				break;
 			default:
 				TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);

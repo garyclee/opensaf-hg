@@ -54,6 +54,7 @@ static unsigned int lga_create(void)
 
 	osaf_mutex_lock_ordie(&lga_cb.cb_lock);
 	lga_cb.lgs_sync_awaited = 0;
+	lga_cb.clm_node_state = SA_CLM_NODE_JOINED;
 	osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
 
 	/* No longer needed */
@@ -719,6 +720,7 @@ lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb, const SaLogCallbacksT *reg_c
      **/
 	rec->lgs_client_id = client_id;
 
+	rec->is_stale_client = false;
 	/***
 	 * Initiate the recovery flags
 	 * The setting means that the client is initialized and that there is

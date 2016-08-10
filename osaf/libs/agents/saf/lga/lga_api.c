@@ -327,6 +327,17 @@ SaAisErrorT saLogSelectionObjectGet(SaLogHandleT logHandle, SaSelectionObjectT *
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
+	
+	osaf_mutex_lock_ordie(&lga_cb.cb_lock);
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
+		ncshm_give_hdl(logHandle);
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done;
+	} 
+	osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
 
 	/* Obtain the selection object from the IPC queue */
 	sel_obj = m_NCS_IPC_GET_SEL_OBJ(&hdl_rec->mbx);
@@ -383,6 +394,17 @@ SaAisErrorT saLogDispatch(SaLogHandleT logHandle, SaDispatchFlagsT dispatchFlags
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
+
+	osaf_mutex_lock_ordie(&lga_cb.cb_lock);
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
+		ncshm_give_hdl(logHandle);
+		TRACE("Node not CLM member or stale client");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done;
+	}
+	osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
 
 	if ((rc = lga_hdl_cbk_dispatch(&lga_cb, hdl_rec, dispatchFlags)) != SA_AIS_OK)
 		TRACE("LGA_DISPATCH_FAILURE");
@@ -771,6 +793,16 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 		ais_rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
+
+	osaf_mutex_lock_ordie(&lga_cb.cb_lock);	
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
+		TRACE("%s Node not CLM member or stale client", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
+	osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
 
 	/***
 	 * Handle states
@@ -1190,6 +1222,16 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 		goto done_give_hdl_stream;
 	}
 
+	osaf_mutex_lock_ordie(&lga_cb.cb_lock);
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
+		TRACE("%s Node not CLM member or stale client", __FUNCTION__);
+		ais_rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl_all;
+	}
+	osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
+
 	if ((hdl_rec->reg_cbk.saLogWriteLogCallback == NULL) && (ackFlags == SA_LOG_RECORD_WRITE_ACK)) {
 		TRACE("%s: Write Callback not registered", __FUNCTION__);
 		ais_rc = SA_AIS_ERR_INIT;
@@ -1337,6 +1379,16 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
 		ais_rc = SA_AIS_ERR_LIBRARY;
 		goto done_give_hdl_stream;
 	}
+
+	osaf_mutex_lock_ordie(&lga_cb.cb_lock);
+	/*Check CLM membership of node.*/
+	if (hdl_rec->is_stale_client == true) {
+		osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
+		TRACE("Node not CLM member or stale client");
+		ais_rc = SA_AIS_ERR_UNAVAILABLE;
+		goto rmv_stream;
+	}
+	osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
 
 	if (is_lga_state(LGA_NO_SERVER)) {
 		/* No server is available. Remove the stream from client database.
