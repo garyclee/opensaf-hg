@@ -747,3 +747,20 @@ a) The network name comes from an attribute, `opensafNetworkName`
 
 b) Regarding node name, LOG service gets this information when decoding messages at MDS layer.
 
+4. Cluster Membership (CLM) integration (#1638)
+-----------------------------------------------
+With this ticket, CLM integration is supported from Log Service A.02.02
+ 
+At-least a A.02.02 LGA client will check CLM membership status of client's
+node. old LGA clients A.02.01 are always clm member.
+ 
+With these changes Log Service API on a Non-Member Node will fail with
+SA_AIS_ERR_UNAVAILABLE on cluster nodes that are not in the cluster membership.
+ 
+Implementation note :
+LGS is a Pre CLM & AMF service and it can have Agents (LGA`s )
+before CLM & AMF service available,so doing CLM initialize based
+on AMF role is unnecessary delay the CLM state of a Node
+(CLM state will available as soon as CLM started), so LGS is a taking
+AVD Up event as trigger to do CLM initialize.
+ 
