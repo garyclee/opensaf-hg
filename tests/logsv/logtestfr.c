@@ -40,7 +40,7 @@
 /*******************************************************************************
  * Global variables and defines
  */
-static SaVersionT logVersion = {'A', 0x02, 0x01}; 
+static SaVersionT logVersion = {'A', 0x02, 0x02}; 
 static SaVersionT immVersion = {'A', 2, 11};
 
 static SaLogHandleT logHandle;

@@ -100,7 +100,7 @@ void add_suite_9(void);
 void add_suite_10(void);
 void add_suite_11(void);
 void add_suite_12(void);
-
+void add_suite_14();
 int get_active_sc(void);
 int get_attr_value(SaNameT *inObjName, char *inAttr, void *outValue);
 
