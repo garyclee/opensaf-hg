@@ -401,8 +401,13 @@ static uint32_t fm_get_args(FM_CB *fm_cb)
 	fm_cb->use_remote_fencing = false;
 	use_remote_fencing = getenv("FMS_USE_REMOTE_FENCING");
 	if (use_remote_fencing != NULL) {
-		fm_cb->use_remote_fencing = true;
-		LOG_NO("Remote fencing is enabled");
+		int use_fencing = strtol(use_remote_fencing, NULL, 10);
+		if (use_fencing == 1) {
+			fm_cb->use_remote_fencing = true;
+			LOG_NO("Remote fencing is enabled");
+		} else {
+			LOG_NO("Remote fencing is disabled");
+		}
 	}
 
 	value = getenv("EE_ID");
