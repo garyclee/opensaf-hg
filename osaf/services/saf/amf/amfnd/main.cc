@@ -177,8 +177,14 @@ int main(int argc, char *argv[])
 
 	// Enable long DN
 	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
-		LOG_ER("failed to set SA_ENABLE_EXTENDED_NAMES");
+		syslog(LOG_ERR, "failed to set SA_ENABLE_EXTENDED_NAMES");
 		exit(EXIT_FAILURE);
+	}
+	osaf_extended_name_init();
+	// Since the long DN flag is enabled, we can unset the environment
+	// variable here to prevent the application to inherit the variable
+	if (unsetenv("SA_ENABLE_EXTENDED_NAMES") != 0) {
+		syslog(LOG_WARNING, "failed to unset SA_ENABLE_EXTENDED_NAMES");
 	}
 
 	if (__init_avnd() != NCSCC_RC_SUCCESS) {
@@ -225,8 +231,6 @@ uint32_t avnd_create(void)
 	AVND_CB *cb = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
-
-	osaf_extended_name_init();
 
 	/* create & initialize AvND cb */
 	cb = avnd_cb_create();
