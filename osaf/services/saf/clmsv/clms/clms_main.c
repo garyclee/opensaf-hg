@@ -446,6 +446,11 @@ int main(int argc, char *argv[])
 
 	daemonize(argc, argv);
 
+	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+		LOG_ER("Failed to set SA_ENABLE_EXTENDED_NAMES");
+		goto done;
+	}
+
 	if (clms_init() != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_init failed");
 		goto done;

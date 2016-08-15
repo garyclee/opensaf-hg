@@ -659,6 +659,13 @@ void clma_msg_destroy(CLMSV_MSG * msg)
 
 	if (msg->evt_type == CLMSV_CLMS_TO_CLMA_API_RESP_MSG) {
 		if (msg->info.api_resp_info.type == CLMSV_TRACK_CURRENT_RESP) {
+			/* TODO: if long DN longer than 255 characters is fully implemented
+			 * then freeing of each SaNameT in notification list must be done
+			 * msg->info.api_resp_info.param.track.notify_info->notification->clusterNode.nodeName
+			 * and
+			 * msg->info.api_resp_info.param.track.notify_info->notification->clusterNode.executionEnvironment
+			 * must be done here
+			 */
 			if (msg->info.api_resp_info.param.track.notify_info->numberOfItems)
 				free(msg->info.api_resp_info.param.track.notify_info->notification);
 
@@ -666,6 +673,13 @@ void clma_msg_destroy(CLMSV_MSG * msg)
 		}
 	} else if (msg->evt_type == CLMSV_CLMS_TO_CLMA_CBK_MSG) {
 		if (msg->info.cbk_info.type == CLMSV_TRACK_CBK) {
+			/* TODO: if long DN longer than 255 characters is fully implemented
+			 * then freeing of each SaNameT in notification list
+			 * msg->info.cbk_info.param.track.buf_info.notification->clusterNode.nodeName
+			 * and
+			 * msg->info.cbk_info.param.track.buf_info.notification->clusterNode.executionEnvironment
+			 * must be done here
+			 */
 			if (msg->info.cbk_info.param.track.buf_info.numberOfItems)
 				free(msg->info.cbk_info.param.track.buf_info.notification);
 

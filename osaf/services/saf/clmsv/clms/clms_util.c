@@ -17,6 +17,7 @@
 
 #include "clms.h"
 #include "osaf_time.h"
+#include "osaf_extended_name.h"
 
 static const SaNameT _clmSvcUsrName = {
 	.value = "safApp=safClmService",
@@ -291,6 +292,12 @@ uint32_t clms_node_dn_chk(SaNameT *objName)
 {
 	char *tmpstr;
 	TRACE_ENTER();
+
+	if(osaf_extended_name_length(objName) >= SA_MAX_NAME_LENGTH) {
+		LOG_ER("Object name is longer than 255: %s", osaf_extended_name_borrow(objName));
+		TRACE_LEAVE();
+		return NCSCC_RC_FAILURE;
+	}
 
 	if (!strncmp((char *)objName->value, "safNode=", 8)) {
 		tmpstr = strchr((char *)objName->value, ',');
