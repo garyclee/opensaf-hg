@@ -31,6 +31,7 @@
 
 #include "clma.h"
 #include "ncs_main_papi.h"
+#include "osaf_extended_name.h"
 
 #define CLMS_WAIT_TIME 1000
 #define CLM_API_MIN_TIMEOUT 10 /* ten milli seconds */
@@ -84,10 +85,7 @@ void clma_fill_node_from_node4(SaClmClusterNodeT *clusterNode, SaClmClusterNodeT
 	clusterNode->nodeAddress.length = clusterNode_4.nodeAddress.length;
 	(void)memcpy(clusterNode->nodeAddress.value, clusterNode_4.nodeAddress.value, clusterNode->nodeAddress.length);
 	clusterNode->nodeName.length = clusterNode_4.nodeName.length;
-	(void)memcpy(clusterNode->nodeName.value, clusterNode_4.nodeName.value, clusterNode->nodeName.length);
-	clusterNode->nodeName.value[clusterNode->nodeName.length <
-		SA_MAX_NAME_LENGTH ? clusterNode->nodeName.length :
-			SA_MAX_NAME_LENGTH - 1] = '\0';
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&clusterNode_4.nodeName), &clusterNode->nodeName);
 	clusterNode->member = clusterNode_4.member;
 	clusterNode->bootTimestamp = clusterNode_4.bootTimestamp;
 	clusterNode->initialViewNumber = clusterNode_4.initialViewNumber;
@@ -119,8 +117,17 @@ static SaAisErrorT clma_validate_flags_buf(clma_client_hdl_rec_t * hdl_rec, SaUi
 
 	/* validate the notify buffer */
 	if ((flags & SA_TRACK_CURRENT) && buf && buf->notification) {
+		uint32_t i;
+
 		if (!buf->numberOfItems)
 			return SA_AIS_ERR_INVALID_PARAM;
+
+		// Check that nodeName is not longer than 255
+		for(i=0; i<buf->numberOfItems; i++) {
+			if(osaf_extended_name_length(&buf->notification[i].clusterNode.nodeName) >= SA_MAX_NAME_LENGTH) {
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+		}
 	}
 
 	/* Validate if flag is TRACK_CURRENT and no callback and no buffer provided */
@@ -160,9 +167,23 @@ static SaAisErrorT clma_validate_flags_buf_4(clma_client_hdl_rec_t * hdl_rec, Sa
 
 	/* validate the notify buffer */
 	if ((flags & SA_TRACK_CURRENT) && buf && buf->notification) {
+		uint32_t i;
+
 		if (!buf->numberOfItems) {
 			TRACE_LEAVE();
 			return SA_AIS_ERR_INVALID_PARAM;
+		}
+
+		// Check that nodeName and EE are not longer than 255
+		for(i=0; i<buf->numberOfItems; i++) {
+			if(osaf_extended_name_length(&buf->notification[i].clusterNode.nodeName) >= SA_MAX_NAME_LENGTH) {
+				TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
+			if(osaf_extended_name_length(&buf->notification[i].clusterNode.executionEnvironment) >= SA_MAX_NAME_LENGTH) {
+				TRACE_LEAVE();
+				return SA_AIS_ERR_INVALID_PARAM;
+			}
 		}
 	}
 
@@ -228,16 +249,18 @@ static SaAisErrorT clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotification
 		return SA_AIS_ERR_NO_MEMORY;
 
 	if (buf_4->notification != NULL &&
-	    (buf_4->numberOfItems >= msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
+			(buf_4->numberOfItems >= msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
 		/* Overwrite the numberOfItems and copy it to buffer */
 		buf_4->numberOfItems = msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems;
 		buf_4->viewNumber = msg_rsp->info.api_resp_info.param.track.notify_info->viewNumber;
 
 		memset(buf_4->notification, 0, sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
 		memcpy(buf_4->notification, msg_rsp->info.api_resp_info.param.track.notify_info->notification,
-		       sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
-        } else if(buf_4->notification != NULL &&
-		(buf_4->numberOfItems < msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
+				sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
+
+		/* TODO: Code for copying long DNs for nodeName and EE when full long DN support is implemented. */
+	} else if(buf_4->notification != NULL &&
+			(buf_4->numberOfItems < msg_rsp->info.api_resp_info.param.track.notify_info->numberOfItems)) {
 		return SA_AIS_ERR_NO_SPACE;
 	} else {
 		/* we need to ignore the numberOfItems and allocate the space
@@ -250,6 +273,7 @@ static SaAisErrorT clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotification
 		memcpy(buf_4->notification, msg_rsp->info.api_resp_info.param.track.notify_info->notification,
 		       sizeof(SaClmClusterNotificationT_4) * buf_4->numberOfItems);
 
+		/* TODO: Code for copying long DNs for nodeName and EE when full long DN support is implemented. */
 	}
 	return SA_AIS_OK;
 }
@@ -470,10 +494,8 @@ void clma_fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf, SaClm
 		(void)memcpy(buf->notification[i].clusterNode.nodeAddress.value,
 			     buf_4->notification[i].clusterNode.nodeAddress.value,
 			     buf->notification[i].clusterNode.nodeAddress.length);
-		buf->notification[i].clusterNode.nodeName.length = buf_4->notification[i].clusterNode.nodeName.length;
-		(void)memcpy(buf->notification[i].clusterNode.nodeName.value,
-			     buf_4->notification[i].clusterNode.nodeName.value,
-			     buf->notification[i].clusterNode.nodeName.length);
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&buf_4->notification[i].clusterNode.nodeName),
+				&buf->notification[i].clusterNode.nodeName);
 		buf->notification[i].clusterNode.member = buf_4->notification[i].clusterNode.member;
 		buf->notification[i].clusterNode.bootTimestamp = buf_4->notification[i].clusterNode.bootTimestamp;
 		buf->notification[i].clusterNode.initialViewNumber =
@@ -1311,11 +1333,11 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 		}
 	}
 
-        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
-                TRACE("Node is unconfigured");
-                rc = SA_AIS_ERR_UNAVAILABLE;
-                goto done_give_hdl; 
-        }
+	if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
+		TRACE("Node is unconfigured");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
 
 	if((hdl_rec->is_member == false) && (!clma_validate_version(hdl_rec->version))) { 
 		TRACE("Node is not a member");
@@ -1351,12 +1373,25 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 	} else
 		rc = SA_AIS_ERR_NO_RESOURCES;
 
+	if (rc == SA_AIS_OK
+			&& osaf_extended_name_length(&o_msg->info.api_resp_info.param.node_get.nodeName) >= SA_MAX_NAME_LENGTH) {
+		TRACE("nodeName is longer than 255");
+		rc = SA_AIS_ERR_NO_RESOURCES;
+	}
+
 	if (rc == SA_AIS_OK) {
 		if (clma_validate_version(hdl_rec->version)) {
 			clma_fill_node_from_node4(cluster_node, o_msg->info.api_resp_info.param.node_get);
-		} else {
+		} else if(osaf_extended_name_length(&o_msg->info.api_resp_info.param.node_get.executionEnvironment) < SA_MAX_NAME_LENGTH) {
 			memset(cluster_node_4, 0, sizeof(SaClmClusterNodeT_4));
 			memcpy(cluster_node_4, &o_msg->info.api_resp_info.param.node_get, sizeof(SaClmClusterNodeT_4));
+			/* TODO: When full long DN support is implemented, remove comment to ensure that long DN is safely copied.
+			 * Now it's overhead for copying the same data. */
+			//osaf_extended_name_alloc(osaf_extended_name_borrow(&o_msg->info.api_resp_info.param.node_get.nodeName), &cluster_node_4->nodeName);
+			//osaf_extended_name_alloc(osaf_extended_name_borrow(&o_msg->info.api_resp_info.param.node_get.executionEnvironment), &cluster_node_4->executionEnvironment);
+		} else {
+			TRACE("executionEnvironment is longer than 255");
+			rc = SA_AIS_ERR_NO_RESOURCES;
 		}
 	}
 
@@ -1512,11 +1547,15 @@ SaAisErrorT saClmClusterNotificationFree_4(SaClmHandleT clmHandle, SaClmClusterN
 		goto done_give_hdl;
 	}
 
-        if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
-                TRACE("Node is unconfigured");
-                rc = SA_AIS_ERR_UNAVAILABLE;
-                goto done_give_hdl; 
-        }
+	if((hdl_rec->is_configured == false) && (!clma_validate_version(hdl_rec->version))) {
+		TRACE("Node is unconfigured");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto done_give_hdl;
+	}
+
+	// Free allocated memory for long DN
+	osaf_extended_name_free(&notification->clusterNode.nodeName);
+	osaf_extended_name_free(&notification->clusterNode.executionEnvironment);
 
 	free(notification);
 

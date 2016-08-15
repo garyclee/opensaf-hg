@@ -18,6 +18,7 @@
 #include <saImmOi.h>
 
 #include "clms.h"
+#include "osaf_extended_name.h"
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
@@ -222,9 +223,17 @@ CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs
 
 		} else if (!strcmp(attr->attrName, "saClmNodeEE")) {
 			SaNameT *name = (SaNameT *)value;
-			TRACE("saClmNodeEE attribute name's length %d", name->length);
+			size_t nameLen = osaf_extended_name_length(name);
 
-			if (name->length != 0) {
+			TRACE("saClmNodeEE attribute name's length %lu", nameLen);
+
+			if (nameLen != 0) {
+				if (nameLen >= SA_MAX_NAME_LENGTH) {
+					LOG_ER("saClmNodeEE attribute name length is longer than 255");
+					free(node);
+					node = NULL;
+					goto done;
+				}
 				if (strncmp((const char *)name->value,"safEE=",6)){
 					LOG_ER("Please provide the saf compliant ee name");
 					free(node);
@@ -1383,8 +1392,19 @@ static SaAisErrorT clms_imm_ccb_obj_create_callback(SaImmOiHandleT immOiHandle,
 	uint32_t rt;
 	CcbUtilCcbData_t *ccb_util_ccb_data;
 	CcbUtilOperationData_t *operation = NULL;
+	size_t parentNameLen = 0;
 
-	TRACE_ENTER2("CCB ID %llu, class %s, parent %s", ccbId, className, parentName->value);
+	TRACE_ENTER2("CCB ID %llu, class %s, parent %s", ccbId, className,
+			parentName ? osaf_extended_name_borrow(parentName) : "(null)");
+
+	if(parentName) {
+		parentNameLen = osaf_extended_name_length(parentName);
+		if(parentNameLen >= SA_MAX_NAME_LENGTH) {
+			LOG_ER("Parent name is longer than 255");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+	}
 
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccbId)) != NULL) {
 		int i = 0;
@@ -1406,17 +1426,30 @@ static SaAisErrorT clms_imm_ccb_obj_create_callback(SaImmOiHandleT immOiHandle,
 			} else if (!strncmp(attrValue->attrName, "safNode", 7)) {
 				if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 					SaStringT rdnVal = *((SaStringT *)attrValue->attrValues[0]);
-					if ((parentName != NULL) && (parentName->length > 0)) {
+					if ((parentName != NULL) && (parentNameLen > 0)
+							&& (strlen(rdnVal) + parentNameLen + 1) < SA_MAX_NAME_LENGTH) {
 						operation->objectName.length =
-						    (SaUint16T)sprintf((char *)operation->objectName.value, "%s,%s",
-								       rdnVal, parentName->value);
+								(SaUint16T)sprintf((char *)operation->objectName.value, "%s,%s",
+										rdnVal, parentName->value);
 					} else {
+						if(!parentName || parentNameLen == 0) {
+							LOG_ER("Node DN name is incorrect. Parent is NULL or empty");
+						} else {
+							LOG_ER("Node DN name is incorrect. DN is longer than 255");
+						}
 						rc = SA_AIS_ERR_BAD_OPERATION;
+						goto done;
 					}
 				}
 
 				TRACE("Operation's object Name %s", operation->objectName.value);
-
+			} else if (!strncmp(attrValue->attrName, "saClmNodeEE", 11) && attrValue->attrValuesNumber == 1) {
+				SaNameT *name = (SaNameT *)attrValue->attrValues[0];
+				if(osaf_extended_name_length(name) >= SA_MAX_NAME_LENGTH) {
+					LOG_ER("saClmNodeEE is longer than 255");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
 			}
 		}
 	}
@@ -1471,17 +1504,37 @@ static SaAisErrorT clms_imm_ccb_obj_modify_callback(SaImmOiHandleT immOiHandle,
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
+	int i = 0;
+	SaImmAttrModificationT_2 *attrMod;
+	SaNameT *name;
 
 	TRACE_ENTER2("CCB ID %llu for object-name:%s ", ccbId, objectName->value);
 
 	if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) != NULL) {
+		/* saClmNodeEE cannot be longer than 255 */
+		while ((attrMod = (SaImmAttrModificationT_2 *)attrMods[i++]) != NULL) {
+			if (strncmp(attrMod->modAttr.attrName, "saClmNodeEE", 11) != 0)
+				continue;
+
+			if(attrMod->modAttr.attrValuesNumber == 0) {
+				break;
+			}
+
+			name = (SaNameT *)attrMod->modAttr.attrValues[0];
+			if(osaf_extended_name_length(name) >= SA_MAX_NAME_LENGTH) {
+				LOG_ER("saClmNodeEE is longer than 255");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				break;
+			}
+		}
+
 		/*memorize the modification request */
 		if (ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods) != 0) {
 			LOG_ER("Failed ccb object modify %s", objectName->value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		}
 	} else {
-		LOG_ER("Failed to get CCB objectfor %llu", ccbId);
+		LOG_ER("Failed to get CCB object for %llu", ccbId);
 		rc = SA_AIS_ERR_NO_MEMORY;
 	}
 
