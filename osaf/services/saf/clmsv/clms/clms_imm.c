@@ -225,7 +225,7 @@ CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs
 			SaNameT *name = (SaNameT *)value;
 			size_t nameLen = osaf_extended_name_length(name);
 
-			TRACE("saClmNodeEE attribute name's length %lu", nameLen);
+			TRACE("saClmNodeEE attribute name's length %zu", nameLen);
 
 			if (nameLen != 0) {
 				if (nameLen >= SA_MAX_NAME_LENGTH) {
