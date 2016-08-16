@@ -55,6 +55,7 @@ SaImmHandleT immHandle = 0;
 SaImmAdminOwnerNameT adminOwnerName = NULL;
 SaImmAdminOwnerHandleT ownerHandle = 0;
 SaImmCcbHandleT ccbHandle = -1;
+bool isAdminOwnerCreated = false;
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 typedef enum {
@@ -129,7 +130,7 @@ static void usage(const char *progname)
 	printf("\t--disable-attr-notify (only valid with --class-name)\n");
 	printf("\t-u, --unsafe\n");
 	printf("\t-L, --validate <imm.xml file>\n");
-	printf("\t-o, --admin-owner <admin owner name>\n");
+	printf("\t-o, --admin-owner <admin owner name> (supported in transaction mode also)\n");
 	printf("\t--admin-owner-clear\n");
 	printf("\t--ccb-apply (only in a transaction mode)\n");
 	printf("\t--ccb-abort (only in a transaction mode)\n");
@@ -1048,6 +1049,15 @@ static int ccb_apply() {
 			rc = EXIT_FAILURE;
 		}
 
+		error = immutil_saImmOmAdminOwnerFinalize(ownerHandle);
+		if (SA_AIS_OK != error) {
+			fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+		}
+		isAdminOwnerCreated = false;
+		if(adminOwnerName)
+			free(adminOwnerName);
+		adminOwnerName = NULL;
 		ccbHandle = -1;
 	}
 
@@ -1064,7 +1074,15 @@ static int ccb_abort() {
 			fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
 			rc = EXIT_FAILURE;
 		}
-
+		error = immutil_saImmOmAdminOwnerFinalize(ownerHandle);
+		if (SA_AIS_OK != error) {
+			fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+		}
+		isAdminOwnerCreated = false;
+		if(adminOwnerName)
+			free(adminOwnerName);
+		adminOwnerName = NULL;
 		ccbHandle = -1;
 	}
 
@@ -1438,12 +1456,12 @@ static int imm_operation(int argc, char *argv[])
 			xmlFilename = optarg;
 			break;
 		case 'o':
-			if(adminOwnerName) {
+			if(adminOwnerName && !transaction_mode) {
 				fprintf(stderr, "Administrative owner name can be set only once\n");
-				if(transaction_mode)
-					return -1;
-				else
-					exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE);
+			} else if (transaction_mode && isAdminOwnerCreated){
+				fprintf(stderr, "Administrative owner name can be set intially, after ccb-apply and ccb-abort\n");
+				return -1;
 			}
 			adminOwnerName = (SaImmAdminOwnerNameT)malloc(strlen(optarg) + 1);
 			strcpy(adminOwnerName, optarg);
@@ -1473,9 +1491,9 @@ static int imm_operation(int argc, char *argv[])
 	if(argc == 1)
 		op = TRANSACTION_MODE;
 
-	if(!transaction_mode && !adminOwnerName)
+	if((op != TRANSACTION_MODE && !adminOwnerName && !transaction_mode ) || (transaction_mode && !adminOwnerName && !isAdminOwnerCreated))
 		adminOwnerName = create_adminOwnerName(basename(argv[0]));
-
+		
 	if(op != TRANSACTION_MODE) {
 		signal(SIGALRM, sigalarmh);
 		alarm(timeoutVal);
@@ -1600,7 +1618,7 @@ static int imm_operation(int argc, char *argv[])
         	        goto done_om_finalize;
 	        }
 
-		if(useAdminOwner) {
+		if(useAdminOwner && op != TRANSACTION_MODE) {
 			error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
 			if (error != SA_AIS_OK) {
 				fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
@@ -1608,6 +1626,14 @@ static int imm_operation(int argc, char *argv[])
 				goto done_om_finalize;
 			}
 		}
+	} else if(transaction_mode && !isAdminOwnerCreated){
+		error = immutil_saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
+		if (error != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
+			rc = EXIT_FAILURE;
+			goto done_om_finalize;
+		}
+		isAdminOwnerCreated = true;
 	}
 
 	switch (op) {
