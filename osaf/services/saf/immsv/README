@@ -2846,6 +2846,49 @@ been bound on the local node by the same applier name.
 Applier name continues to be shared between nodes, while object and class
 applier bindings are kept on the originating node.
 
+IMM Hardcoded limits as config parameters (5.1)
+===============================================================
+http://sourceforge.net/p/opensaf/tickets/195/
+
+The enhancemnets makes IMM limits configurable. The limits like maxClasses,
+maxImplementers, maxAdminowners and maxCcbs are allowed as configurable.
+The limits are added as attributes to the imm object 
+"opensafImm=opensafImm,safApp=safImmService".
+
+The default values configured for these attributes are :
+
+IMMSV_MAX_CLASSES 1000
+IMMSV_MAX_IMPLEMENTERS 3000
+IMMSV_MAX_ADMINOWNERS 2000
+IMMSV_MAX_CCBS 10000
+
+The user can not configure the values less than the default values.
+
+Notes on upgrading from OpenSAF 5.0 to OpenSAF 5.1
+================================================================
+OpenSAF5.1 makes the IMM attributes as configurable (#195).
+During a rolling upgrade from an earlier OpenSAF release to the 5.1 
+release there will be nodes executing the older release concurrently
+with nodes executing OpenSAF 5.0. Nodes executing the earlier release will not
+recognize the new attributes introduced in imm config object from nodes executing 5.0.
+
+Because of this upgrade issue, the new attribute flag added in OpenSAF 5.1 is
+not allowed unless a flag is toggled on in the opensafImmNostdFlags runtime
+attribute in the object:
+
+   opensafImm=opensafImm,safApp=safImmService.
+
+The following shell command must be used once all nodes are upgraded :
+
+        immadm -o 1 -p opensafImmNostdFlags:SA_UINT32_T:256 \
+           opensafImm=opensafImm,safApp=safImmService
+
+This will set bit 9 of the 'opensafImmNostdFlags' runtime attribute inside the immsv.
+Operation-id '1' invoked on the object:
+
+ 'opensafImm=opensafImm,safApp=safImmService'
+
+
 
 ----------------------------------------
 DEPENDENCIES

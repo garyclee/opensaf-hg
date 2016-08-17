@@ -30,11 +30,6 @@
 #include "osaf_extended_name.h"
 #include "saAis.h"
 
-#define IMMSV_MAX_CLASSES 1000
-#define IMMSV_MAX_IMPLEMENTERS 3000
-#define IMMSV_MAX_ADMINOWNERS 2000
-#define IMMSV_MAX_CCBS 10000
-
 #define IMMSV_RSRV_SPACE_ASSERT(P,B,S) P=ncs_enc_reserve_space(B,S);osafassert(P)
 #define IMMSV_FLTN_SPACE_ASSERT(P,M,B,S) P=ncs_dec_flatten_space(B,M,S);osafassert(P)
 
@@ -820,7 +815,6 @@ static void immsv_evt_enc_class(NCS_UBAID *o_ub, IMMSV_CLASS_LIST *r)
 
 static uint32_t immsv_evt_dec_class(NCS_UBAID *i_ub, IMMSV_CLASS_LIST **r)
 {
-	int depth = 1;
 	uint8_t c8;
 
 	do {
@@ -850,13 +844,7 @@ static uint32_t immsv_evt_dec_class(NCS_UBAID *i_ub, IMMSV_CLASS_LIST **r)
 		ncs_dec_skip_space(i_ub, 1);
 
 		r = &((*r)->next);
-		++depth;
-	} while (c8 && (depth < IMMSV_MAX_CLASSES));
-
-	if (depth >= IMMSV_MAX_CLASSES) {
-		LOG_ER("TOO MANY classes line: %u", __LINE__);
-		return NCSCC_RC_OUT_OF_MEM;
-	}
+	} while (c8);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -918,7 +906,6 @@ static void immsv_evt_enc_impl(NCS_UBAID *o_ub, IMMSV_IMPL_LIST *q)
 
 static uint32_t immsv_evt_dec_impl(NCS_UBAID *i_ub, IMMSV_IMPL_LIST **q)
 {
-	int depth = 1;
 	uint8_t c8;
 
 	do {
@@ -950,13 +937,7 @@ static uint32_t immsv_evt_dec_impl(NCS_UBAID *i_ub, IMMSV_IMPL_LIST **q)
 		ncs_dec_skip_space(i_ub, 1);
 
 		q = &((*q)->next);
-		++depth;
-	} while (c8 && (depth < IMMSV_MAX_IMPLEMENTERS));
-
-	if (depth >= IMMSV_MAX_IMPLEMENTERS) {
-		LOG_ER("TOO MANY implementers line:%u", __LINE__);
-		return NCSCC_RC_OUT_OF_MEM;
-	}
+	} while (c8);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1015,7 +996,6 @@ static uint32_t immsv_evt_enc_admo(NCS_UBAID *o_ub, IMMSV_ADMO_LIST *p)
 
 static uint32_t immsv_evt_dec_admo(NCS_UBAID *i_ub, IMMSV_ADMO_LIST **p)
 {
-	int depth = 1;
 	uint8_t c8;
 
 	do {
@@ -1052,13 +1032,7 @@ static uint32_t immsv_evt_dec_admo(NCS_UBAID *i_ub, IMMSV_ADMO_LIST **p)
 		ncs_dec_skip_space(i_ub, 1);
 
 		p = &((*p)->next);
-		++depth;
-	} while (c8 && (depth < IMMSV_MAX_ADMINOWNERS));
-
-	if (depth >= IMMSV_MAX_ADMINOWNERS) {
-		LOG_ER("TOO MANY Admin Owners");
-		return NCSCC_RC_OUT_OF_MEM;
-	}
+	} while (c8 );
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1791,61 +1765,38 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			return immsv_evt_enc_name_list(o_ub, i_evt->info.immnd.info.admReq.objectNames);
 		} else if ((i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE) ||
 			(i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2)) {
-			int depth = 0;
 			uint8_t *p8;
 
 			IMMSV_ADMO_LIST *p = i_evt->info.immnd.info.finSync.adminOwners;
-			while (p && (depth < IMMSV_MAX_ADMINOWNERS)) {
+			while (p ) {
 				if (immsv_evt_enc_admo(o_ub, p) != NCSCC_RC_SUCCESS) {
 					return NCSCC_RC_OUT_OF_MEM;
 				}
 				p = p->next;
-				++depth;
 			}
 
-			if (depth >= IMMSV_MAX_ADMINOWNERS) {
-				LOG_ER("TOO MANY admin owners line:%u", __LINE__);
-				return NCSCC_RC_OUT_OF_MEM;
-			}
-
-			depth = 0;
 			IMMSV_IMPL_LIST *q = i_evt->info.immnd.info.finSync.implementers;
 
-			while (q && (depth < IMMSV_MAX_IMPLEMENTERS)) {
+			while (q ) {
 				immsv_evt_enc_impl(o_ub, q);
 				q = q->next;
-				++depth;
 			}
 
-			if (depth >= IMMSV_MAX_IMPLEMENTERS) {
-				LOG_ER("TOO MANY implementers line:%u", __LINE__);
-				return NCSCC_RC_OUT_OF_MEM;
-			}
-
-			depth = 0;
 			IMMSV_CLASS_LIST *r = i_evt->info.immnd.info.finSync.classes;
-			while (r && (depth < IMMSV_MAX_CLASSES)) {
+			while (r ) {
 				immsv_evt_enc_class(o_ub, r);
 				r = r->next;
-				++depth;
-			}
-
-			if (depth >= IMMSV_MAX_CLASSES) {
-				LOG_ER("TOO MANY classes line: %u", __LINE__);
-				return NCSCC_RC_OUT_OF_MEM;
 			}
 
 			if(i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2) {
 				TRACE("Encoding SUB level for IMMND_EVT_ND2ND_SYNC_FINALIZE_2");
-				depth = 1;
 				IMMSV_CCB_OUTCOME_LIST* ol = i_evt->info.immnd.info.finSync.ccbResults;
 				/*Encode start marker*/
 				IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
 				ncs_encode_8bit(&p8, ol ? 1 : 0);
 				ncs_enc_claim_space(o_ub, 1);
 
-				while(ol && (depth < IMMSV_MAX_CCBS)) {
-					++depth;
+				while(ol ) {
 					IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 4);
 					ncs_encode_32bit(&p8, ol->ccbId);
 					ncs_enc_claim_space(o_ub, 4);
@@ -1856,7 +1807,7 @@ static uint32_t immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 					ol = ol->next;
 					IMMSV_RSRV_SPACE_ASSERT(p8, o_ub, 1);
-					ncs_encode_8bit(&p8, (ol && (depth < IMMSV_MAX_CCBS))? 1 : 0);
+					ncs_encode_8bit(&p8, (ol )? 1 : 0);
 					ncs_enc_claim_space(o_ub, 1);
 				}
 			}
@@ -2374,7 +2325,6 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			}
 
 			if (o_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2) {
-				int depth = 1;
 				uint8_t *p8;
 				uint8_t local_data[8];
 				uint8_t c8;
@@ -2385,7 +2335,7 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				c8 = ncs_decode_8bit(&p8);
 				ncs_dec_skip_space(i_ub, 1);
 
-				while(c8 && (depth < IMMSV_MAX_CCBS)) {
+				while(c8 ) {
 					IMMSV_CCB_OUTCOME_LIST* ol = (IMMSV_CCB_OUTCOME_LIST *) 
 						calloc(1, sizeof(IMMSV_CCB_OUTCOME_LIST));
 
@@ -2404,7 +2354,6 @@ static uint32_t immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 					c8 = ncs_decode_8bit(&p8);
 					ncs_dec_skip_space(i_ub, 1);
 
-					++depth;
 				}
 			}
 		} else if ((o_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) ||
