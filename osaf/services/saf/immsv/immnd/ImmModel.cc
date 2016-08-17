@@ -555,11 +555,16 @@ static const std::string immLongDnsAllowed(OPENSAF_IMM_LONG_DNS_ALLOWED);
 static const std::string immAccessControlMode(OPENSAF_IMM_ACCESS_CONTROL_MODE);
 static const std::string immAuthorizedGroup(OPENSAF_IMM_AUTHORIZED_GROUP);
 static const std::string immScAbsenceAllowed(OPENSAF_IMM_SC_ABSENCE_ALLOWED);
+static const std::string immMaxClasses(OPENSAF_IMM_MAX_CLASSES);
+static const std::string immMaxAdmOwn(OPENSAF_IMM_MAX_ADMINOWNERS);
+static const std::string immMaxCcbs(OPENSAF_IMM_MAX_CCBS);
+static const std::string immMaxImp(OPENSAF_IMM_MAX_IMPLEMENTERS);
 
 static const std::string immMngtClass("SaImmMngt");
 static const std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
 static const std::string saImmRepositoryInit("saImmRepositoryInit");
 static const std::string saImmOiTimeout("saImmOiTimeout");
+
 
 static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
 
@@ -1151,6 +1156,13 @@ SaBoolT
 immModel_protocol50Allowed(IMMND_CB *cb)
 {
     return (ImmModel::instance(&cb->immModel)->protocol50Allowed()) ?
+        SA_TRUE : SA_FALSE;
+}
+
+SaBoolT
+immModel_protocol51Allowed(IMMND_CB *cb)
+{
+    return (ImmModel::instance(&cb->immModel)->protocol51Allowed()) ?
         SA_TRUE : SA_FALSE;
 }
 
@@ -3271,6 +3283,20 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         return SA_AIS_ERR_INVALID_PARAM;
     } 
 
+    ObjectMap::iterator oit = sObjectMap.find(immObjectDn);
+    if(protocol51Allowed() && oit != sObjectMap.end() && !isLoading ){
+        ObjectInfo* immObject =  oit->second;
+        ImmAttrValueMap::iterator avi = immObject->mAttrValueMap.find(immMaxClasses);
+        osafassert(avi != immObject->mAttrValueMap.end());
+        osafassert(!(avi->second->isMultiValued()));
+        ImmAttrValue* valuep = avi->second;
+        unsigned int maxClasses = valuep->getValue_int();
+        if( sClassMap.size() >= maxClasses){
+            LOG_NO("ERR_NO_RESOURCES: maximum class limit %d has been reched for the cluster",
+                          maxClasses);
+            return SA_AIS_ERR_NO_RESOURCES;
+        }
+    }
     ClassMap::iterator i = sClassMap.find(className);
     if (i == sClassMap.end()) {
         /* Class-name is unique case-sensitive.
@@ -3596,6 +3622,8 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             illegal = 1;
         }
     }
+
+    
 
     if(illegal) {
         if(err == SA_AIS_OK) {
@@ -3966,6 +3994,34 @@ ImmModel::protocol50Allowed()
     return noStdFlags & OPENSAF_IMM_FLAG_PRT50_ALLOW;
 }
 
+
+bool
+ImmModel::protocol51Allowed()
+{
+    //TRACE_ENTER();
+    /* Assume that all nodes are running the same version when loading */
+    if (sImmNodeState == IMM_NODE_LOADING) {
+        return true;
+    }
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(oi == sObjectMap.end()) {
+        TRACE_LEAVE();
+        return false;
+    }
+
+    ObjectInfo* immObject =  oi->second;
+    ImmAttrValueMap::iterator avi =
+        immObject->mAttrValueMap.find(immAttrNostFlags);
+    osafassert(avi != immObject->mAttrValueMap.end());
+    osafassert(!(avi->second->isMultiValued()));
+    ImmAttrValue* valuep = avi->second;
+    unsigned int noStdFlags = valuep->getValue_int();
+
+    //TRACE_LEAVE();
+    return noStdFlags & OPENSAF_IMM_FLAG_PRT51_ALLOW;
+}
+
+
 bool
 ImmModel::protocol41Allowed()
 {
@@ -4114,6 +4170,44 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
             verifyFailed = notCompatibleAtt(className, newClassInfo, attName, NULL, newAttr, NULL) || 
                 verifyFailed;
             newAttrs[inew->first] = newAttr;
+            if(!verifyFailed && (className == immClassName)){
+                unsigned int val;
+                if ( attName == immMaxClasses) {
+                    val = newAttr->mDefaultValue.getValue_int(); 
+                    if( sClassMap.size() > val){
+                        LOG_NO("The Number of classes in the cluster %lu greater than the schema change"
+                                 "value %d", sClassMap.size(), val);
+                        verifyFailed = true;
+                     }
+                }
+
+                if ( !verifyFailed && attName == immMaxImp) {
+                    val = newAttr->mDefaultValue.getValue_int();
+                    if( sImplementerVector.size() > val){
+                        LOG_NO("The Number of Implementers in the cluster %lu greater than the schema change"
+                                 "value %d", sImplementerVector.size(), val);
+                        verifyFailed = true;
+                    }
+                }
+
+                if ( !verifyFailed && attName == immMaxAdmOwn) {
+                    val = newAttr->mDefaultValue.getValue_int();
+                    if( sOwnerVector.size() > val){
+                        LOG_NO("The Number of AdminOwners in the cluster %lu greater than the schema change"
+                                 "value %d", sOwnerVector.size(), val);
+                        verifyFailed = true;
+                     }
+                }
+
+                if ( !verifyFailed && attName == immMaxCcbs) {
+                    val = newAttr->mDefaultValue.getValue_int();
+                    if( sCcbVector.size() > val){
+                        LOG_NO("The Number of Ccbs in the cluster %lu greater than the schema change"
+                                 "value %d", sCcbVector.size(), val);
+                        verifyFailed = true;
+                     }
+                }
+            }
         } else {
             TRACE_5("Existing attribute %s", attName.c_str());
             verifyFailed = notCompatibleAtt(className, newClassInfo, attName, iold->second, newAttr,
@@ -4799,6 +4893,8 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
     unsigned int nodeId)
 {
     SaAisErrorT err = SA_AIS_OK;
+    bool isLoading = (sImmNodeState == IMM_NODE_LOADING);
+
     TRACE_ENTER();
     if(immNotWritable()) {
         TRACE_LEAVE();
@@ -4812,7 +4908,23 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
             return SA_AIS_ERR_INVALID_PARAM; 
         }
     }
-    
+
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn );
+    if(protocol51Allowed() && oi != sObjectMap.end() && !isLoading ){
+        ObjectInfo* immObject =  oi->second;
+        ImmAttrValueMap::iterator avi = immObject->mAttrValueMap.find(immMaxAdmOwn);
+        osafassert(avi != immObject->mAttrValueMap.end());
+        osafassert(!(avi->second->isMultiValued()));
+        ImmAttrValue* valuep = avi->second;
+        unsigned int maxAdmOwn= valuep->getValue_int();
+        if( sOwnerVector.size() >= maxAdmOwn ){
+            LOG_NO("ERR_NO_RESOURCES: maximum AdminOwners limit %d has been reached for the cluster",
+                          maxAdmOwn);
+            TRACE_LEAVE();
+            return SA_AIS_ERR_NO_RESOURCES; 
+        }
+    }
+
     AdminOwnerInfo* info = new AdminOwnerInfo;
     
     info->mId = ownerId;
@@ -4899,6 +5011,15 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard, bool pbe2)
                         immObject->mAttrValueMap.find(immAttrNostFlags);
                     osafassert(avi != immObject->mAttrValueMap.end());
                     osafassert(!(avi->second->isMultiValued()));
+                    ImmAttrValueMap::iterator avi1 =
+                        immObject->mAttrValueMap.find(immMaxClasses);
+                    ImmAttrValueMap::iterator avi2 =
+                        immObject->mAttrValueMap.find(immMaxImp);
+                    ImmAttrValueMap::iterator avi3 =
+                        immObject->mAttrValueMap.find(immMaxAdmOwn);
+                    ImmAttrValueMap::iterator avi4 =
+                        immObject->mAttrValueMap.find(immMaxCcbs);
+
                     ImmAttrValue* valuep = (ImmAttrValue *) avi->second;
                     unsigned int noStdFlags = valuep->getValue_int();
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT41_ALLOW;
@@ -4907,6 +5028,16 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard, bool pbe2)
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT46_ALLOW;
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT47_ALLOW;
                     noStdFlags |= OPENSAF_IMM_FLAG_PRT50_ALLOW;
+                    if( (avi1 == immObject->mAttrValueMap.end()) ||
+                        (avi2 == immObject->mAttrValueMap.end()) ||
+                        (avi3 == immObject->mAttrValueMap.end()) ||
+                        (avi4 == immObject->mAttrValueMap.end())){
+                            LOG_NO("protcol51 is not set for opensafImmNostdFlags because"
+                                      "The new OpenSAF 5.1 attributes are not added to OpensafImm class");
+                    } else {
+
+                        noStdFlags |= OPENSAF_IMM_FLAG_PRT51_ALLOW;
+                    }
                     valuep->setValue_int(noStdFlags);
                     LOG_NO("%s changed to: 0x%x", immAttrNostFlags.c_str(), noStdFlags);
                     /* END Temporary code. */
@@ -5174,12 +5305,30 @@ ImmModel::ccbCreate(SaUint32T adminOwnerId,
     SaUint32T originatingConn)
 {
     SaAisErrorT err = SA_AIS_OK;
+    bool isLoading = (sImmNodeState == IMM_NODE_LOADING);
+
     TRACE_ENTER();
     
     if(immNotWritable()) {
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
+
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(protocol51Allowed() && oi != sObjectMap.end() && !isLoading){
+        ObjectInfo* immObject =  oi->second;
+        ImmAttrValueMap::iterator avi = immObject->mAttrValueMap.find(immMaxCcbs);
+        osafassert(avi != immObject->mAttrValueMap.end());
+        osafassert(!(avi->second->isMultiValued()));
+        ImmAttrValue* valuep = avi->second;
+        unsigned int maxCcbs= valuep->getValue_int();
+        if (sCcbVector.size() >= maxCcbs){
+            LOG_NO("ERR_NO_RESOURCES: maximum Ccbs limit %d has been reached for the cluster",
+                          maxCcbs);
+            TRACE_LEAVE();
+            return SA_AIS_ERR_NO_RESOURCES;
+        }
+    } 
     
     CcbInfo* info = new CcbInfo;
     info->mId = ccbId;
@@ -7422,6 +7571,78 @@ ImmModel::getAllWritableAttributes(const ImmsvOmCcbObjectModify *req, bool* hasL
     return result;
 }
 
+SaAisErrorT ImmModel::verifyImmLimits(ObjectInfo* object,
+    std::string objectName){
+
+    SaAisErrorT err = SA_AIS_OK;
+    SaUint32T val;
+
+    TRACE_ENTER();
+    osafassert(objectName == immObjectDn);                    
+    ImmAttrValueMap::iterator class_avmi = object->mAttrValueMap.find(immMaxClasses);
+    if( class_avmi != object->mAttrValueMap.end()){
+        osafassert(class_avmi->second);
+        val = (SaUint32T)class_avmi->second->getValue_int();
+    } else {
+        val = IMMSV_MAX_CLASSES;
+    }
+    if(sClassMap.size() > val){
+        LOG_NO("ERR_NO_RESOURCES: maximum class limit %d has been reched for the cluster",
+                          val);
+        err = SA_AIS_ERR_NO_RESOURCES;
+        TRACE_LEAVE();
+        return err;
+    }
+
+    ImmAttrValueMap::iterator impl_avmi = object->mAttrValueMap.find(immMaxImp);
+    if( impl_avmi != object->mAttrValueMap.end()){
+        osafassert(impl_avmi->second);
+        val = (SaUint32T)impl_avmi->second->getValue_int();
+    } else {
+        val = IMMSV_MAX_IMPLEMENTERS;
+    }
+    if(sImplementerVector.size() > val){
+        LOG_NO("ERR_NO_RESOURCES: maximum implementers limit %d has been reched for the cluster",
+                          val);
+        err = SA_AIS_ERR_NO_RESOURCES;
+        TRACE_LEAVE();
+        return err;
+    }
+
+    ImmAttrValueMap::iterator admi_avmi = object->mAttrValueMap.find(immMaxAdmOwn);
+    if( admi_avmi != object->mAttrValueMap.end()){
+        osafassert(admi_avmi->second);
+        val = (SaUint32T)admi_avmi->second->getValue_int();
+    } else {
+        val = IMMSV_MAX_ADMINOWNERS;
+    }
+    if(sOwnerVector.size() > val){
+        LOG_NO("ERR_NO_RESOURCES: maximum adminownerslimit %d has been reched for the cluster",
+                          val);
+        err = SA_AIS_ERR_NO_RESOURCES;
+        TRACE_LEAVE();
+        return err;
+    }
+
+    ImmAttrValueMap::iterator ccb_avmi = object->mAttrValueMap.find(immMaxCcbs);
+    if( ccb_avmi != object->mAttrValueMap.end()){
+        osafassert(ccb_avmi->second);
+        val = (SaUint32T)ccb_avmi->second->getValue_int();
+    } else {
+        val = IMMSV_MAX_CCBS;
+    }
+    if(sCcbVector.size() > val){
+        LOG_NO("ERR_NO_RESOURCES: maximum ccbs limit %d has been reched for the cluster",
+                          val);
+        err = SA_AIS_ERR_NO_RESOURCES;
+        TRACE_LEAVE();
+        return err;
+    }
+
+    TRACE_LEAVE();
+    return err;
+}
+
 /** 
  * Creates an object
  */
@@ -8342,6 +8563,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                          */
                         sIsLongDnLoaded = true;
                     }
+                    err = verifyImmLimits(object, immObjectDn);
+                    setCcbErrorString(ccb, IMM_RESOURCE_ABORT "Verifying of immLimits failed");
                 } else {
                     setCcbErrorString(ccb,
                         "IMM: ERR_BAD_OPERATION: Imm not allowing creates of instances of class '%s'",
@@ -9379,6 +9602,83 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     }
                 }
             }
+
+            /* From OpenSAF 5.1 immObjectDn has added with attributes maxClasses, maxImplementers,
+               maxAdminowners and maxCcbs */
+
+               
+            ImmAttrValueMap::iterator class_avmi = afim->mAttrValueMap.find(immMaxClasses);
+            ImmAttrValueMap::iterator impl_avmi = afim->mAttrValueMap.find(immMaxImp);
+            ImmAttrValueMap::iterator admi_avmi = afim->mAttrValueMap.find(immMaxAdmOwn);
+            ImmAttrValueMap::iterator ccb_avmi = afim->mAttrValueMap.find(immMaxCcbs);
+
+            if ( !protocol51Allowed() && class_avmi != afim->mAttrValueMap.end()) {
+                LOG_WA("ERR_NOT_EXIST: The attribute %s can not be modified. The cluster is not yet upgraded"
+                        "to OpenSAF 5.1", immMaxClasses.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+                goto bypass_impl;
+            } else if(class_avmi != afim->mAttrValueMap.end()) {
+                osafassert(class_avmi->second);
+                SaUint32T val = (SaUint32T)class_avmi->second->getValue_int();
+                if(val < IMMSV_MAX_CLASSES){
+                    LOG_WA("ERR_BAD_OPERATION: The value %d is less than the minimum supported value %d for" 
+                            " the attribute %s", val,IMMSV_MAX_CLASSES, immMaxClasses.c_str());
+                    err = SA_AIS_ERR_BAD_OPERATION;
+                    goto bypass_impl;
+                }
+           }
+
+           if ( !protocol51Allowed() && impl_avmi != afim->mAttrValueMap.end()) {
+                LOG_WA("ERR_NOT_EXIST: The attribute %s can not be modified. The cluster is not yet upgraded"
+                        " to OpenSAF 5.1", immMaxImp.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+                goto bypass_impl;
+
+            } else if(class_avmi != afim->mAttrValueMap.end()) {
+                osafassert(impl_avmi->second);
+                SaUint32T val = (SaUint32T)impl_avmi->second->getValue_int();
+                if(val < IMMSV_MAX_IMPLEMENTERS){
+                    LOG_WA("ERR_BAD_OPERATION: The value %d is less than the minimum supported value %d for"
+                            " the attribute %s", val, IMMSV_MAX_IMPLEMENTERS, immMaxImp.c_str());
+                    err = SA_AIS_ERR_BAD_OPERATION;
+                    goto bypass_impl;
+                }
+           }
+
+           if ( !protocol51Allowed() && admi_avmi != afim->mAttrValueMap.end()) {
+                LOG_WA("ERR_NOT_EXIST: The attribute %s can not be modified. The cluster is not yet upgraded"
+                        " to OpenSAF 5.1", immMaxAdmOwn.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+                goto bypass_impl;
+
+            } else if(admi_avmi != afim->mAttrValueMap.end()) {
+                osafassert(admi_avmi->second);
+                SaUint32T val = (SaUint32T)admi_avmi->second->getValue_int();
+                if(val < IMMSV_MAX_ADMINOWNERS){
+                    LOG_WA("ERR_BAD_OPERATION: The value %d is less than the minimum supported value %d for"
+                            " the attribute %s", val, IMMSV_MAX_ADMINOWNERS, immMaxAdmOwn.c_str());
+                    err = SA_AIS_ERR_BAD_OPERATION;
+                    goto bypass_impl;
+                }
+           }
+
+           if ( !protocol51Allowed() && ccb_avmi != afim->mAttrValueMap.end()) {
+                LOG_WA("ERR_NOT_EXIST: The attribute %s can not be modified. The cluster is not yet upgraded"
+                        " to OpenSAF 5.1", immMaxCcbs.c_str());
+                err = SA_AIS_ERR_NOT_EXIST;
+                goto bypass_impl;
+
+            } else if(ccb_avmi != afim->mAttrValueMap.end()) {
+                osafassert(ccb_avmi->second);
+                SaUint32T val = (SaUint32T)ccb_avmi->second->getValue_int();
+                if(val < IMMSV_MAX_CCBS){
+                    LOG_WA("ERR_BAD_OPERATION: The value %d is less than the minimum supported value %d for"
+                            " the attribute %s", val, IMMSV_MAX_CCBS, immMaxCcbs.c_str());
+                    err = SA_AIS_ERR_BAD_OPERATION;
+                    goto bypass_impl;
+                }
+           }
+    
 
             /* Pre validate any changes. More efficent here than in apply/completed and
                we need to guard against race on long DN creation allowed. Such long DNs
@@ -13972,6 +14272,8 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
 {
     SaAisErrorT err = SA_AIS_OK;
     CcbVector::iterator i;
+    bool isLoading = (sImmNodeState == IMM_NODE_LOADING);
+
     TRACE_ENTER();
 
     *discardImplementer = SA_FALSE;
@@ -13997,7 +14299,24 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
         return err;
         //This return code not formally allowed here according to IMM standard.
     }
+
+    ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
+    if(protocol51Allowed() && oi != sObjectMap.end() && !isLoading){
+        ObjectInfo* immObject =  oi->second;
+        ImmAttrValueMap::iterator avi = immObject->mAttrValueMap.find(immMaxImp);
+        osafassert(avi != immObject->mAttrValueMap.end());
+        osafassert(!(avi->second->isMultiValued()));
+        ImmAttrValue* valuep = avi->second;
+        unsigned int maxImp = valuep->getValue_int();
+        if( sImplementerVector.size() >= maxImp){
+            LOG_NO("ERR_NO_RESOURCES: maximum Implementers limit %d has been reached for the cluster",
+                          maxImp);
+            TRACE_LEAVE();
+            return SA_AIS_ERR_NO_RESOURCES;
+        }
+    }
     
+
     bool isApplier = (implName.at(0) == '@');
 
     ImplementerInfo* info = findImplementer(implName);

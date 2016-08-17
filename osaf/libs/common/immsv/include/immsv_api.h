@@ -62,6 +62,10 @@ extern "C" {
 #define OPENSAF_IMM_ACCESS_CONTROL_MODE "accessControlMode"
 #define OPENSAF_IMM_AUTHORIZED_GROUP "authorizedGroup"
 #define OPENSAF_IMM_SC_ABSENCE_ALLOWED "scAbsenceAllowed"
+#define OPENSAF_IMM_MAX_CLASSES "maxClasses"
+#define OPENSAF_IMM_MAX_IMPLEMENTERS "maxImplementers"
+#define OPENSAF_IMM_MAX_ADMINOWNERS "maxAdminowners"
+#define OPENSAF_IMM_MAX_CCBS "maxCcbs"
 
 typedef enum {
 	ACCESS_CONTROL_DISABLED = 0,
@@ -80,6 +84,10 @@ typedef enum {
 #define IMMSV_MAX_PARAM_NAME_LENGTH 256
 #define IMMSV_MAX_IMPL_NAME_LENGTH 256
 #define IMMSV_MAX_CLASS_NAME_LENGTH 256
+#define IMMSV_MAX_CLASSES 1000
+#define IMMSV_MAX_IMPLEMENTERS 3000
+#define IMMSV_MAX_ADMINOWNERS 2000
+#define IMMSV_MAX_CCBS 10000
 
 /* The pair of magic names for special appliers (#2873)
    If such an appliers are attached, then the immsv will generate
@@ -139,6 +147,7 @@ typedef enum {
 #define OPENSAF_IMM_FLAG_PRT46_ALLOW 0x00000020
 #define OPENSAF_IMM_FLAG_PRT47_ALLOW 0x00000040
 #define OPENSAF_IMM_FLAG_PRT50_ALLOW 0x00000080
+#define OPENSAF_IMM_FLAG_PRT51_ALLOW 0x00000100
 
 
 #define OPENSAF_IMM_SERVICE_NAME "safImmService"

@@ -116,6 +116,7 @@ public:
     bool                protocol46Allowed();
     bool                protocol47Allowed();
     bool                protocol50Allowed();
+    bool                protocol51Allowed();
     bool                oneSafe2PBEAllowed();
     bool                purgeSyncRequest(SaUint32T clientId);
     bool                verifySchemaChange(const std::string& className,
@@ -661,7 +662,9 @@ public:
                                           ObjectInfo* obj, 
                                           AdminOwnerInfo* adm,
                                           bool doIt);
-    
+   SaAisErrorT          verifyImmLimits(
+                                         ObjectInfo* object,
+                                         std::string objectName); 
     
 private:
     bool               checkSubLevel(
