@@ -4175,7 +4175,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
                 if ( attName == immMaxClasses) {
                     val = newAttr->mDefaultValue.getValue_int(); 
                     if( sClassMap.size() > val){
-                        LOG_NO("The Number of classes in the cluster %lu greater than the schema change"
+                        LOG_NO("The Number of classes in the cluster %zu greater than the schema change"
                                  "value %d", sClassMap.size(), val);
                         verifyFailed = true;
                      }
@@ -4184,7 +4184,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
                 if ( !verifyFailed && attName == immMaxImp) {
                     val = newAttr->mDefaultValue.getValue_int();
                     if( sImplementerVector.size() > val){
-                        LOG_NO("The Number of Implementers in the cluster %lu greater than the schema change"
+                        LOG_NO("The Number of Implementers in the cluster %zu greater than the schema change"
                                  "value %d", sImplementerVector.size(), val);
                         verifyFailed = true;
                     }
@@ -4193,7 +4193,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
                 if ( !verifyFailed && attName == immMaxAdmOwn) {
                     val = newAttr->mDefaultValue.getValue_int();
                     if( sOwnerVector.size() > val){
-                        LOG_NO("The Number of AdminOwners in the cluster %lu greater than the schema change"
+                        LOG_NO("The Number of AdminOwners in the cluster %zu greater than the schema change"
                                  "value %d", sOwnerVector.size(), val);
                         verifyFailed = true;
                      }
@@ -4202,7 +4202,7 @@ ImmModel::verifySchemaChange(const std::string& className, ClassInfo * oldClassI
                 if ( !verifyFailed && attName == immMaxCcbs) {
                     val = newAttr->mDefaultValue.getValue_int();
                     if( sCcbVector.size() > val){
-                        LOG_NO("The Number of Ccbs in the cluster %lu greater than the schema change"
+                        LOG_NO("The Number of Ccbs in the cluster %zu greater than the schema change"
                                  "value %d", sCcbVector.size(), val);
                         verifyFailed = true;
                      }
