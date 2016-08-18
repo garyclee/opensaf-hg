@@ -771,7 +771,8 @@ SaAisErrorT SG_2N::si_swap(AVD_SI *si, SaInvocationT invocation) {
 		goto done;
 	}
 
-	if (si->sg_of_si->sg_ncs_spec) {
+	if ((si->sg_of_si->sg_ncs_spec) && 
+			((avd_cb->node_id_avd_other != 0) && (avd_cb->other_avd_adest != 0))) {
 		if (avd_cb->stby_sync_state == AVD_STBY_OUT_OF_SYNC) {
 			LOG_ER("%s SWAP failed - Cold sync in progress", si->name.value);
 			rc = SA_AIS_ERR_TRY_AGAIN;

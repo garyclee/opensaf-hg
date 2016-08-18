@@ -542,7 +542,7 @@ static uint32_t initialize(void)
 	cb->fully_initialized = false;
 	cb->swap_switch = false;
 	cb->active_services_exist = true;
-	cb->stby_sync_state = AVD_STBY_IN_SYNC;
+	cb->stby_sync_state = AVD_STBY_OUT_OF_SYNC;
 	cb->sync_required = true;
 	
 	cb->heartbeat_tmr.is_active = false;
