@@ -935,7 +935,7 @@ uint32_t mds_send_get_ack(MDS_HDL mds_hdl,
                        MDS_SVC_ID svc_id,
                        MDS_SVC_ID to_svc,
                        MDS_DEST to_dest,
-                       uint32_t time_to_wait,
+                       int64_t time_to_wait,
                        MDS_SEND_PRIORITY_TYPE priority,
                        TET_MDS_MSG *message)
 {
@@ -981,7 +981,7 @@ uint32_t mds_send_get_response(MDS_HDL mds_hdl,
                             MDS_SVC_ID svc_id,
                             MDS_SVC_ID to_svc,
                             MDS_DEST to_dest,
-                            uint32_t time_to_wait,
+                            int64_t time_to_wait,
                             MDS_SEND_PRIORITY_TYPE priority,
                             TET_MDS_MSG *message)
 {
@@ -1042,7 +1042,7 @@ uint32_t mds_send_get_redack(MDS_HDL mds_hdl,
                           MDS_SVC_ID to_svc,
                           MDS_DEST to_vdest,
                           V_DEST_QA to_anc,
-                          uint32_t time_to_wait,
+                          int64_t time_to_wait,
                           MDS_SEND_PRIORITY_TYPE priority,
                           TET_MDS_MSG *message)
 {
@@ -1160,7 +1160,7 @@ uint32_t mds_send_response(MDS_HDL mds_hdl,
 }
 uint32_t mds_sendrsp_getack(MDS_HDL mds_hdl,
                          MDS_SVC_ID svc_id,
-                         uint32_t time_to_wait,
+                         int64_t time_to_wait,
                          TET_MDS_MSG *response)
 {
   uint32_t rs;
@@ -1207,7 +1207,7 @@ uint32_t mds_sendrsp_getack(MDS_HDL mds_hdl,
 
 uint32_t mds_send_redrsp_getack(MDS_HDL mds_hdl,
                              MDS_SVC_ID svc_id,
-                             uint32_t time_to_wait,
+                             int64_t time_to_wait,
                              TET_MDS_MSG *response)
 {
   uint32_t rs;
@@ -1256,7 +1256,7 @@ uint32_t mds_direct_send_message(MDS_HDL mds_hdl,
                               MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver,
                               MDS_SENDTYPES sendtype,
                               MDS_DEST to_dest,
-                              uint32_t time_to_wait,
+                              int64_t time_to_wait,
                               MDS_SEND_PRIORITY_TYPE priority,
                               char *message)
 {
@@ -1359,7 +1359,7 @@ uint32_t mds_direct_response(MDS_HDL mds_hdl,
                           MDS_SVC_ID svc_id,
                           MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver,
                           MDS_SENDTYPES sendtype,
-                          uint32_t time_to_wait)
+                          int64_t time_to_wait)
 {
   uint32_t rs;
   char msg[]="Resp Message";

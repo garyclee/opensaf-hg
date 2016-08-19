@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 	uint8_t send_bcast_buffer[255];
 	int bcast_buf_len = 0;
 	long int dis_time_out_usec = 0;
-	long int dis_elapsed_time_usec = 0;
+	int64_t dis_elapsed_time_usec = 0;
 	DTM_INTERNODE_CB *dtms_cb = dtms_gl_cb;
 
 	TRACE_ENTER();

@@ -2471,7 +2471,7 @@ static void start_mds_down_tmr(MDS_DEST adest, MDS_SVC_ID svc_id)
 	uint32_t tmr_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,
 		NCS_SERVICE_ID_COMMON, (NCSCONTEXT)(tmr_req_info));
 
-	tmr_id = ncs_tmr_start(tmr_id, (uint32_t)(1000), // 10ms unit
+	tmr_id = ncs_tmr_start(tmr_id, 1000, // 10ms unit
 		(TMR_CALLBACK) mds_tmr_callback, (void *)(long)(tmr_hdl), __FILE__, __LINE__);
 	assert(tmr_id != NULL);
 }

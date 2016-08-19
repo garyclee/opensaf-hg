@@ -200,7 +200,7 @@ typedef enum ncsmds_svc_id {
 #define MDS_MAX_PROCESS_NAME_LEN (255 + 32) /* Process Name + PID No/Slot info/Tipc reference */
 
 /*MDS takes  timeout in 10 ms value for sync send() timeout */
-#define MDS_MAX_TIMEOUT_MILLISECOND 42949672950 /*((2^32 -1 * 10) */
+#define MDS_MAX_TIMEOUT_MILLISECOND 9223372036854 /*((2^63 -1) / 10) */
 
 /**************************************************************************
  * SVC_NAME  of Service : A well known name that a service
@@ -261,7 +261,7 @@ typedef struct mds_sendtype_snd_info {
 
 typedef struct mds_sendtype_sndrsp_info {
   MDS_DEST i_to_dest;     /* A virtual or absolute destination */
-  uint32_t i_time_to_wait;        /* Timeout duration in 10ms units */
+  int64_t i_time_to_wait;        /* Timeout duration in 10ms units */
   NCSCONTEXT o_rsp;       /* Place for the response for normal message   */
   MDS_DIRECT_BUFF buff;   /* For response of type direct send */
   uint16_t len;
@@ -270,13 +270,13 @@ typedef struct mds_sendtype_sndrsp_info {
 
 typedef struct mds_sendtype_sndrspack_info {    /* Wait for an ack to the response */
   MDS_DEST i_sender_dest; /* Sender's the one who gets this response */
-  uint32_t i_time_to_wait;        /* Timeout duration in 10ms units */
+  int64_t i_time_to_wait;        /* Timeout duration in 10ms units */
   MDS_SYNC_SND_CTXT i_msg_ctxt;   /* MDS supplied data to identify request */
 } MDS_SENDTYPE_SNDRSPACK_INFO;
 
 typedef struct mds_sendtype_sndack_info {
   MDS_DEST i_to_dest;     /* A virtual or absolute destination */
-  uint32_t i_time_to_wait;        /* Timeout duration in 10ms units */
+  int64_t i_time_to_wait;        /* Timeout duration in 10ms units */
 } MDS_SENDTYPE_SNDACK_INFO;
 
 typedef struct mds_sendtype_rsp_info {
@@ -292,7 +292,7 @@ typedef struct mds_sendtype_red_info {
 typedef struct mds_sendtype_redrsp_info {
   MDS_DEST i_to_vdest;    /* A virtual destination             */
   V_DEST_QA i_to_anc;     /* Anchor within virtual destination */
-  uint32_t i_time_to_wait;        /* in 10ms units                  */
+  int64_t i_time_to_wait;        /* in 10ms units                  */
   NCSCONTEXT o_rsp;       /* Place for the message context  */
   MDS_DIRECT_BUFF buff;   /* For response of type direct send */
   uint16_t len;
@@ -302,14 +302,14 @@ typedef struct mds_sendtype_redrsp_info {
 typedef struct mds_sendtype_redrspack_info {    /* Wait for an ack to the response */
   MDS_DEST i_to_vdest;    /* A virtual destination             */
   V_DEST_QA i_to_anc;     /* Anchor within virtual destination */
-  uint32_t i_time_to_wait;        /* in 10ms units                  */
+  int64_t i_time_to_wait;        /* in 10ms units                  */
   MDS_SYNC_SND_CTXT i_msg_ctxt;   /* MDS supplied data to identify request */
 } MDS_SENDTYPE_REDRSPACK_INFO;
 
 typedef struct mds_sendtype_redack_info {
   MDS_DEST i_to_vdest;    /* A virtual destination             */
   V_DEST_QA i_to_anc;     /* Anchor within virtual destination */
-  uint32_t i_time_to_wait;        /* in 10ms units                */
+  int64_t i_time_to_wait;        /* in 10ms units                */
 } MDS_SENDTYPE_REDACK_INFO;
 
 typedef struct mds_sendtype_rrsp_info {

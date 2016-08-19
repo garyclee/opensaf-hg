@@ -315,7 +315,7 @@ static uint32_t mcm_pvt_process_sndrack_common(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
 					    MDS_SVC_ID to_svc_id, MDS_SEND_INFO *req,
 					    MDS_SEND_PRIORITY_TYPE pri, V_DEST_QA anchor);
 
-static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ *sel_obj, uint32_t time);
+static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ *sel_obj, int64_t time);
 
 static uint32_t mcm_pvt_get_sync_send_entry(MDS_SVC_INFO *svc_cb, MDS_DATA_RECV *recv,
 					 MDS_MCM_SYNC_SEND_QUEUE **sync_queue);
@@ -1756,7 +1756,8 @@ static uint32_t mds_subtn_tbl_add_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, MD
 					  MDS_SVC_ID fr_svc_id, bool time_wait)
 {
 	MDS_AWAIT_DISC_QUEUE *add_ptr = NULL, *mov_ptr = NULL;
-	uint32_t rc = NCSCC_RC_SUCCESS, status = 0, timeout_val = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS, status = 0;
+	int64_t timeout_val = 0;
 
 	if (true == time_wait) {
 		timeout_val = 150; /* This may need a tuning */
@@ -2562,7 +2563,7 @@ static uint32_t mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID f
  *                NCSCC_RC_FAILURE
  ***************************************************************************/
 
-static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ *sel_obj, uint32_t time_val)
+static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ *sel_obj, int64_t time_val)
 {
 	osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 	/* Now wait for the response to come */
