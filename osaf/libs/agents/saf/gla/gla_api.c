@@ -590,7 +590,7 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 	}
 
 	/* send the event */
-	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_open_evt, &out_evt, (uint32_t)gla_timeout)) != NCSCC_RC_SUCCESS) {
+	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_open_evt, &out_evt, gla_timeout)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else
@@ -1026,7 +1026,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 	gla_timeout = gla_timeout + LCK_TIMEOUT_LATENCY;
 
 	/* send the event */
-	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_lock_evt, &out_evt, (uint32_t)gla_timeout)) != NCSCC_RC_SUCCESS) {
+	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_lock_evt, &out_evt, gla_timeout)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT) {
 			/* delete the lock node */
 			gla_lock_tree_delete_node(gla_cb, lock_id_node);
@@ -1338,7 +1338,7 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId, SaTimeT timeout)
 	gla_timeout = gla_timeout + LCK_TIMEOUT_LATENCY;
 
 	/* send the event */
-	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_unlock_evt, &out_evt, (uint32_t)gla_timeout)) != NCSCC_RC_SUCCESS) {
+	if ((ret = gla_mds_msg_sync_send(gla_cb, &res_unlock_evt, &out_evt, gla_timeout)) != NCSCC_RC_SUCCESS) {
 		if (ret == NCSCC_RC_REQ_TIMOUT)
 			rc = SA_AIS_ERR_TIMEOUT;
 		else

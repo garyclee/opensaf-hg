@@ -708,7 +708,7 @@ static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
  
   Notes         : None.
 ******************************************************************************/
-uint32_t gla_mds_msg_sync_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **o_evt, uint32_t timeout)
+uint32_t gla_mds_msg_sync_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **o_evt, SaTimeT timeout)
 {
 	
 	NCSMDS_INFO mds_info;
