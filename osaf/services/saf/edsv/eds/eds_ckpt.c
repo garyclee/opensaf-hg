@@ -827,7 +827,7 @@ uint32_t eds_edu_enc_reten_list(EDS_CB *cb, NCS_UBAID *uba)
 	uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
 	uint8_t *pheader = NULL;
 	EDS_CKPT_HEADER ckpt_hdr;
-	uint32_t remaining_time = 0;
+	int64_t remaining_time = 0;
 	SaUint8T list_iter;
 	EDS_WORKLIST *wp = NULL;
 	TRACE_ENTER();

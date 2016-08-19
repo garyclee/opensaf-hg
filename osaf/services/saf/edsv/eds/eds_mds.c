@@ -1750,7 +1750,7 @@ uint32_t eds_mds_msg_send(EDS_CB *cb,
   Notes         : None.
 ******************************************************************************/
 
-uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, uint32_t timeout, uint32_t prio)
+uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, SaTimeT timeout, uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;

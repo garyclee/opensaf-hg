@@ -48,7 +48,7 @@ uint32_t eds_mds_msg_send(EDS_CB *cb,
 				EDSV_MSG *msg,
 				MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
 
-uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, uint32_t timeout, MDS_SEND_PRIORITY_TYPE prio);
+uint32_t eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, SaTimeT timeout, MDS_SEND_PRIORITY_TYPE prio);
 
 uint32_t eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uint8_t ckpt_flag);
 

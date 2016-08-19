@@ -52,7 +52,7 @@
 *****************************************************************************/
 uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uint32_t uarg)
 {
-	uint32_t tmr_period = (uint32_t)(period / EDSV_NANOSEC_TO_LEAPTM);
+	SaTimeT  tmr_period = (period / EDSV_NANOSEC_TO_LEAPTM);
 
 	if (EDS_TMR_MAX <= tmr->type) {
 		LOG_WA("Unsupported timer type");
@@ -62,7 +62,7 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
 
 	if (tmr->tmr_id == TMR_T_NULL) {
 		tmr->type = type;
-		m_NCS_TMR_CREATE(tmr->tmr_id, (uint32_t)tmr_period, eds_tmr_exp, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, tmr_period, eds_tmr_exp, (void *)tmr);
 	}
 
 	if (tmr->is_active == true) {
@@ -72,12 +72,12 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
 
 	tmr->opq_hdl = uarg;
 	tmr->cb_hdl = cb->my_hdl;
-	m_NCS_TMR_START(tmr->tmr_id, (uint32_t)tmr_period, eds_tmr_exp, (void *)tmr);
+	m_NCS_TMR_START(tmr->tmr_id, tmr_period, eds_tmr_exp, (void *)tmr);
 
 	tmr->is_active = true;
 
 	if (TMR_T_NULL == tmr->tmr_id) {
-		LOG_NO("Timer start failed: type: %u, Id: %p, period: %u", type, tmr->tmr_id, tmr_period);
+		LOG_NO("Timer start failed: type: %u, Id: %p, period: %lld", type, tmr->tmr_id, tmr_period);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
