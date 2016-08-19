@@ -47,7 +47,7 @@ typedef struct cpa_tmr {
 	} info;
 } CPA_TMR;
 
-uint32_t cpa_tmr_start(CPA_TMR *tmr, uint32_t duration);
+uint32_t cpa_tmr_start(CPA_TMR *tmr, SaTimeT duration);
 void cpa_tmr_stop(CPA_TMR *tmr);
 void cpa_cb_dump(void);
 void cpa_timer_expiry(NCSCONTEXT uarg);

@@ -38,7 +38,7 @@ uint32_t cpd_mds_register(CPD_CB *cb);
 void cpd_mds_unregister(CPD_CB *cb);
 uint32_t cpd_mds_callback(struct ncsmds_callback_info *info);
 uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-				     CPSV_EVT *i_evt, CPSV_EVT **o_evt, uint32_t timeout);
+				     CPSV_EVT *i_evt, CPSV_EVT **o_evt, SaTimeT timeout);
 
 uint32_t cpd_mds_msg_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *evt);
 

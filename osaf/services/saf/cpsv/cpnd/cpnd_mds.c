@@ -1044,7 +1044,7 @@ uint32_t cpnd_mds_send_rsp(CPND_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
   Notes         : None.
 ******************************************************************************/
 uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-			     CPSV_EVT *i_evt, CPSV_EVT **o_evt, uint32_t timeout)
+			     CPSV_EVT *i_evt, CPSV_EVT **o_evt, SaTimeT timeout)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
@@ -1203,7 +1203,7 @@ uint32_t cpnd_mds_msg_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t cpnd_mds_msg_sync_ack_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *i_evt, uint32_t timeout)
+uint32_t cpnd_mds_msg_sync_ack_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *i_evt, SaTimeT timeout)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;

@@ -868,7 +868,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 	CPA_CLIENT_NODE *cl_node = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = false;
-	uint32_t time_out=0;
+	SaTimeT time_out=0;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	
 	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
@@ -894,15 +894,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 		TRACE_LEAVE2("API return code = %u", rc);
 		return SA_AIS_ERR_INVALID_PARAM;
 	} else if (timeout > ( SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND)) {
-		/* Unfortunately the current MDS transport support only uint32_t type variable (232-1) for timeout parameter ,
-		   even though  SAF APIS supports SaTimeT (SaInt64T) type (263-1).
-		   So as work around currently if SAF API receives the higher value then  uint32_t (232-1) that it can hold , form now
-		   implicitly set  to max MDS supported value (4294967295 * 10000000) ,  which is already very large  impractical value.
-
-		   In  Future solution : `[ticket:#1658] mds : Opensf transport should adopt the size of the
-		   timeout parameter from 32 bits to 64 bits`  will resolve the issue by matching both MDS transport and SAF API's
-		 */		
-		TRACE_4("Cpa CkptOpen: timeout > MDS_MAX_TIMEOUT setting to MDS max timeout value:%llu,ckptHandle:%llx",
+		TRACE_4("Cpa CkptOpen: timeout > MDS_MAX_TIMEOUT setting to MDS max timeout value:%lld,ckptHandle:%llx",
 				(SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND) , ckptHandle);
                 timeout = (SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND);
         }
@@ -2201,7 +2193,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 	bool gen_sec_flag = false;
 	SaCkptSectionIdT app_ptr;
 	CPA_CLIENT_NODE *cl_node = NULL;
-	uint32_t time_out;
+	SaTimeT time_out;
 
 	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	/* Validate the Input Parameters */
@@ -3402,7 +3394,7 @@ SaAisErrorT saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
 	CPA_CLIENT_NODE *cl_node = NULL;
 	SaSizeT all_ioVector_size = 0;
 	uint32_t err_flag = 0;
-	uint32_t time_out;
+	SaTimeT time_out;
 	
 	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 
@@ -3623,7 +3615,7 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
 	bool add_flag = false;
 	CPA_CLIENT_NODE *cl_node = NULL;
-	uint32_t time_out;
+	SaTimeT time_out;
 
 	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",checkpointHandle);
 	memset(&ckpt_data, '\0', sizeof(CPSV_CKPT_DATA));

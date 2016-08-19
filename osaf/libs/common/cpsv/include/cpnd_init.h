@@ -195,9 +195,9 @@ void cpnd_tmr_stop(CPND_TMR *tmr);
 /* File : --- cpnd_mds.c */
 uint32_t cpnd_mds_send_rsp(CPND_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt);
 uint32_t cpnd_mds_msg_sync_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-			     CPSV_EVT *i_evt, CPSV_EVT **o_evt, uint32_t timeout);
+			     CPSV_EVT *i_evt, CPSV_EVT **o_evt, SaTimeT timeout);
 uint32_t cpnd_mds_msg_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *evt);
-uint32_t cpnd_mds_msg_sync_ack_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *evt, uint32_t timeout);
+uint32_t cpnd_mds_msg_sync_ack_send(CPND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, CPSV_EVT *evt, SaTimeT timeout);
 uint32_t cpnd_mds_register(CPND_CB *cb);
 void cpnd_mds_unregister(CPND_CB *cb);
 uint32_t cpnd_mds_get_handle(CPND_CB *cb);
