@@ -43,7 +43,7 @@ SaUint32T hrb_mds_msg_send(PLMS_HPI_RSP *response, MDS_SYNC_SND_CTXT context);
 SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
                 SaUint32T from_svc,SaUint32T to_svc,
                 MDS_DEST    to_dest,PLMS_HPI_REQ *i_evt,
-		PLMS_HPI_RSP **o_evt,SaUint32T timeout);
+		PLMS_HPI_RSP **o_evt,SaTimeT timeout);
 
 /* MDS callback function declaration */
 SaUint32T hrb_mds_callback (struct ncsmds_callback_info *info);
@@ -452,7 +452,7 @@ SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
                               MDS_DEST    to_dest,
 			      PLMS_HPI_REQ *i_evt,
 			      PLMS_HPI_RSP **o_evt,
-                              SaUint32T	timeout)
+                              SaTimeT timeout)
 {
 	NCSMDS_INFO                mds_info;
 	PLMS_CB			   *cb = plms_cb; 

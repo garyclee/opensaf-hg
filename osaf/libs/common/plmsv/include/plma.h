@@ -117,7 +117,7 @@ uint32_t plma_mds_register();
 void plma_mds_unregister();
 uint32_t plm_mds_msg_sync_send(MDS_HDL mds_hdl, uint32_t from_svc, 
 			uint32_t to_svc, MDS_DEST to_dest, PLMS_EVT *i_evt,
-			PLMS_EVT **o_evt,uint32_t timeout);
+			PLMS_EVT **o_evt,SaTimeT timeout);
 
 uint32_t plms_mds_normal_send (MDS_HDL mds_hdl, NCSMDS_SVC_ID from_svc,
 		NCSCONTEXT evt, MDS_DEST dest, NCSMDS_SVC_ID to_svc);
