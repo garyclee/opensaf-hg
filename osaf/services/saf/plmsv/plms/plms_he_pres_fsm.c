@@ -4197,7 +4197,7 @@ static SaUint32T plms_hrb_req(PLMS_ENTITY *ent,PLMS_HPI_CMD cmd,SaUint32T arg)
 	SaUint32T (* hrb_mds_send_func_ptr)(MDS_HDL mds_hdl, SaUint32T from_svc,
 			                SaUint32T to_svc, MDS_DEST    to_dest,
 					PLMS_HPI_REQ *i_evt, PLMS_HPI_RSP **o_evt,
-					SaUint32T timeout) = NULL;
+					SaTimeT  timeout) = NULL;
 
 	
 	TRACE_ENTER2("Entity: %s, hpi_cmd: %d",ent->dn_name_str,cmd);

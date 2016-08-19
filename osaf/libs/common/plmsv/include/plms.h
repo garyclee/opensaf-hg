@@ -628,7 +628,7 @@ SaUint32T plms_hrb_mds_msg_sync_send(MDS_HDL mds_hdl,
 					MDS_DEST    to_dest,
 					PLMS_HPI_REQ *i_evt,
 					PLMS_HPI_RSP **o_evt,
-					SaUint32T timeout);
+					SaTimeT timeout);
 SaUint32T plms_proc_standby_active_role_change();
 void plms_proc_quiesced_standby_role_change();
 void plms_proc_quiesced_active_role_change();
