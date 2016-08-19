@@ -54,7 +54,7 @@
 *****************************************************************************/
 uint32_t glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT period, uint32_t uarg)
 {
-	uint32_t my_period = (uint32_t)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
+	SaTimeT  my_period = (m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
 
 	if (GLND_TMR_MAX <= type) {
 		LOG_ER("GLND timer start failure: type %d ", type);
@@ -81,7 +81,7 @@ uint32_t glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT 
 		return NCSCC_RC_FAILURE;
 	}
 
-	TRACE("Started GLND Timer for %d @ %d ticks", type, my_period);
+	TRACE("Started GLND Timer for %d @ %lld ticks", type, my_period);
 
 	return NCSCC_RC_SUCCESS;
 }

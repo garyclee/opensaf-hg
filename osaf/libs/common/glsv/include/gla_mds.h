@@ -36,7 +36,7 @@ uint32_t gla_mds_register(struct gla_cb_tag *cb);
 
 void gla_mds_unregister(struct gla_cb_tag *cb);
 
-uint32_t gla_mds_msg_sync_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **o_evt, uint32_t timeout);
+uint32_t gla_mds_msg_sync_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **o_evt, SaTimeT timeout);
 
 uint32_t gla_mds_msg_async_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt);
 

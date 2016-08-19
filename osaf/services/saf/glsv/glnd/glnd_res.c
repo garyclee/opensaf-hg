@@ -1476,7 +1476,7 @@ void glnd_resource_convert_nonmaster_to_master(GLND_CB *glnd_cb, GLND_RESOURCE_I
 {
 	GLND_RES_LOCK_LIST_INFO *lck_list_nm_info;
 	GLND_RES_LOCK_LIST_INFO *lck_list_m_info;
-	uint32_t remaining_time = 0;
+	int64_t remaining_time = 0;
 	SaTimeT time;
 
 	TRACE_ENTER();
