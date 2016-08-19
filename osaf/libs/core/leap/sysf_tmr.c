@@ -673,7 +673,7 @@ tmr_t ncs_tmr_alloc(char *file, uint32_t line)
  * Purpose: Take the passed Timer traits and engage/register with TmrSvc
  *
  ****************************************************************************/
-tmr_t ncs_tmr_start(tmr_t tid, uint32_t tmrDelay,	/* timer period in number of 10ms units */
+tmr_t ncs_tmr_start(tmr_t tid, int64_t tmrDelay,	/* timer period in number of 10ms units */
 		    TMR_CALLBACK tmrCB, void *tmrUarg, char *file, uint32_t line)
 {
 	SYSF_TMR *tmr;
@@ -885,12 +885,12 @@ void ncs_tmr_free(tmr_t tmrID)
  *            particular timer.
  *
  ****************************************************************************/
-uint32_t ncs_tmr_remaining(tmr_t tmrID, uint32_t *p_tleft)
+int64_t ncs_tmr_remaining(tmr_t tmrID, int64_t *p_tleft)
 {
 	SYSF_TMR *tmr;
-	uint32_t total_ticks_left;
-	uint32_t ticks_elapsed;
-	uint32_t ticks_to_expiry;
+	int64_t total_ticks_left;
+	int64_t ticks_elapsed;
+	int64_t ticks_to_expiry;
 
 	if (((tmr = (SYSF_TMR *)tmrID) == NULL) || (tmr_destroying == true) || (p_tleft == NULL))
 		return NCSCC_RC_FAILURE;

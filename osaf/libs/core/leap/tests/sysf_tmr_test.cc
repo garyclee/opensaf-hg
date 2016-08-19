@@ -46,7 +46,7 @@ class SysfTmrTest : public ::testing::Test {
   static steady_clock::duration times[max_counter];
   static std::atomic<bool> finished;
   static std::atomic<bool> first_time_through;
-  void createIntervalTimers(int timeout_in_ms, int no_of_counters);
+  void createIntervalTimers(int64_t timeout_in_ms, int no_of_counters);
   static void TimerCallback(void* arg);
   static void IntervalTimerCallback(void *arg);
   std::mt19937 generator_;
@@ -89,7 +89,7 @@ void SysfTmrTest::TimerCallback(void*) {
 }
 
 //
-void SysfTmrTest::createIntervalTimers(int timeout_in_ms, int no_of_counters) {
+void SysfTmrTest::createIntervalTimers(int64_t timeout_in_ms, int no_of_counters) {
   for (int i = 1; i <= no_of_counters; i++) {
     tmr_t tmr_id = ncs_tmr_alloc((char*) __FILE__, __LINE__);
     ASSERT_NE(tmr_id, nullptr);
@@ -113,7 +113,7 @@ TEST_F(SysfTmrTest, CreateOneMillionTimers) {
   for (uint32_t i = 0; i != 1000000; ++i) {
     tmr_t tmr1 = ncs_tmr_alloc((char*)__FILE__, __LINE__);
     ASSERT_NE(tmr1, TMR_T_NULL);
-    uint32_t timeout = distribution_(generator_);
+    int64_t timeout = distribution_(generator_);
     tmr_t tmr2 = ncs_tmr_start(tmr1, timeout, TimerCallback, nullptr, (char*) __FILE__, __LINE__);
     ASSERT_NE(tmr2, TMR_T_NULL);
     timers_[i] = tmr2;

@@ -385,7 +385,7 @@ uint32_t get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 					NID_PLAT_CONF, NID_MAX_TIMEOUT_LEN);
 				break;
 			}
-			spawninfo->time_out = atoi(q);
+			spawninfo->time_out = atoll(q);
 
 			parse_state = NID_PLATCONF_PRIO;
 			continue;

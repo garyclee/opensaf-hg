@@ -37,21 +37,21 @@
 * Input: *tmr_cb  -  timer CB
 *        tmr_id   -  timer ID
 *  
-* Returns:  uint32_t - timer difference
+* Returns:  int64_t - timer difference
 *
 * Notes:  
 **************************************************************************/
-uint32_t ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
+int64_t ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 {
 	NCS_RP_TMR_INFO *tmr_info;
 	time_t now;
-	uint32_t tmr_left = 0;
+	int64_t tmr_left = 0;
 
 	tmr_info = (NCS_RP_TMR_INFO *)tmr_id;
 	if (tmr_info == NULL)
 		return (0);
 	m_GET_TIME_STAMP(now);
-	tmr_left = (uint32_t)difftime(now, tmr_info->tmr_trig_at);
+	tmr_left = (int64_t)difftime(now, tmr_info->tmr_trig_at);
 	if (tmr_left < tmr_info->tmr_value)
 		tmr_left = (tmr_info->tmr_value - tmr_left);
 	else
@@ -74,13 +74,13 @@ uint32_t ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 *
 * Notes:  
 **************************************************************************/
-uint32_t rp_tmr_time_left_in_sec(time_t tmr_trig_at, uint32_t tmr_value)
+int64_t rp_tmr_time_left_in_sec(time_t tmr_trig_at, int64_t tmr_value)
 {
-	uint32_t tmr_left = 0;
+	int64_t tmr_left = 0;
 	time_t now;
 
 	m_GET_TIME_STAMP(now);
-	tmr_left = (uint32_t)difftime(now, tmr_trig_at);
+	tmr_left = (int64_t)difftime(now, tmr_trig_at);
 	if (tmr_left < tmr_value)
 		tmr_left = (tmr_value - tmr_left);
 	else
@@ -169,12 +169,12 @@ NCS_RP_TMR_HDL ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb)
 * Returns:  NCSCC_RC_SUCCESS/FAILURE
 *
 **************************************************************************/
-uint32_t ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uint32_t period, RP_TMR_CALLBACK callbk, void *arg)
+uint32_t ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, int64_t period, RP_TMR_CALLBACK callbk, void *arg)
 {
 	NCS_RP_TMR_INFO *tmr_info;
 	NCS_RP_TMR_INFO *tmr_list;
 	NCS_RP_TMR_INFO *prev_info;
-	uint32_t left_sec = 0;
+	int64_t left_sec = 0;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
 
@@ -326,7 +326,7 @@ uint32_t ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uint32_t
 uint32_t ncs_rp_tmr_stop(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
 {
 	NCS_RP_TMR_INFO *tmr_info;
-	uint32_t period = 0;
+	int64_t period = 0;
 	uint32_t res = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);
@@ -468,7 +468,7 @@ uint32_t ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb)
 	NCS_RP_TMR_INFO *tmr_list;
 	RP_TMR_CALLBACK call_back;
 	void *arg;
-	uint32_t tmr_diff = 0;
+	int64_t tmr_diff = 0;
 	uint32_t res = NCSCC_RC_SUCCESS;
 
 	m_NCS_LOCK(&tmr_cb->tmr_lock, NCS_LOCK_WRITE);

@@ -1015,7 +1015,7 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO {
   uint32_t i_argc;
   char **i_argv;
   NCS_OS_ENVIRON_ARGS *i_set_env_args;
-  uint32_t i_timeout_in_ms;
+  int64_t i_timeout_in_ms;
   NCS_EXEC_USR_HDL i_usr_hdl;
   NCS_OS_PROC_EXECUTE_CB i_cb;
   /* OUTPUTS */

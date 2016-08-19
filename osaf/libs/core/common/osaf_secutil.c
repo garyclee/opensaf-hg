@@ -82,11 +82,11 @@ static void handle_new_connection(int servsock)
 
 	// wait a while for data to get available on socket
 	struct pollfd fds = { .fd = client_fd, .events = POLLIN, .revents = 0 };
-	int timeout = 10000;  // TODO allow configuration?
+	int64_t timeout = 10000;  // TODO allow configuration?
 	int res = osaf_poll(&fds, 1, timeout);
 
 	if (res == 0) {
-		TRACE_3("poll timeout %d", timeout);
+		TRACE_3("poll timeout % " PRId64 "", timeout);
 		// timeout
 		goto done;
 	}
@@ -297,7 +297,7 @@ bool osaf_user_is_member_of_group(uid_t uid, const char *groupname)
 /* used in libraries, do not log. Only trace */
 int osaf_auth_server_connect(const char *path, const void *req_buf,
                              size_t req_size, void *resp_buf, size_t resp_size,
-                             int timeout)
+                             int64_t timeout)
 {
 	int sock_fd, len;
 	struct sockaddr_un remote = { 0 };
@@ -328,7 +328,7 @@ int osaf_auth_server_connect(const char *path, const void *req_buf,
 	int res = osaf_poll(&fds, 1, timeout);
 
 	if (res == 0) {
-		TRACE_3("poll timeout %d", timeout);
+		TRACE_3("poll timeout %" PRId64 "", timeout);
 		len = 0;
 		goto done;
 	} else if (res == 1) {

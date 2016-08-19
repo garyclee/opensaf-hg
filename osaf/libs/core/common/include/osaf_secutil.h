@@ -58,7 +58,7 @@ extern "C" {
  */
 int osaf_auth_server_connect(const char *path,
                              const void *req_buf, size_t req_size, void *resp_buf, size_t resp_size,
-                             int timeout);
+                             int64_t timeout);
 
 /**
  * Type for callback installed on server side
