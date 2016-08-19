@@ -1302,7 +1302,7 @@ cpnd_proc_update_remote(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_EVT *in_evt,
 	CPSV_CPND_ALL_REPL_EVT_NODE *all_repl_evt = NULL;
 	CPSV_CPND_UPDATE_DEST *new = NULL, *head = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	uint32_t timeout = 0;
+	SaTimeT timeout = 0;
 	SaSizeT datasize = 0;
 
 	TRACE_ENTER();

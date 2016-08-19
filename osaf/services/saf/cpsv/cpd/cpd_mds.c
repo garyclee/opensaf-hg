@@ -684,7 +684,7 @@ uint32_t cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
   Notes         : None.
 ******************************************************************************/
 uint32_t cpd_mds_msg_sync_send(CPD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-			    CPSV_EVT *i_evt, CPSV_EVT **o_evt, uint32_t timeout)
+			    CPSV_EVT *i_evt, CPSV_EVT **o_evt, SaTimeT timeout)
 {
 
 	NCSMDS_INFO mds_info;

@@ -130,11 +130,11 @@ uint32_t cpnd_tmr_start(CPND_TMR *tmr, SaTimeT duration)
 	}
 
 	if (tmr->is_active == false) {
-		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, cpnd_timer_expiry, (void *)tmr);
 		tmr->is_active = true;
 	} else if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, cpnd_timer_expiry, (void *)tmr);
 	}
 
 	return (NCSCC_RC_SUCCESS);

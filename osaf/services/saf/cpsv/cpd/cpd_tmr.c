@@ -88,18 +88,18 @@ void cpd_timer_expiry(NCSCONTEXT uarg)
  * Description   : This function which is used to start the CPD Timer
  *
  *****************************************************************************/
-uint32_t cpd_tmr_start(CPD_TMR *tmr, uint32_t duration)
+uint32_t cpd_tmr_start(CPD_TMR *tmr, SaTimeT duration)
 {
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, cpd_timer_expiry, (void *)tmr);
 	}
 
 	if (tmr->is_active == false) {
-		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, cpd_timer_expiry, (void *)tmr);
 		tmr->is_active = true;
 	} else {
 		m_NCS_TMR_STOP(tmr->tmr_id);
-		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, cpd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, cpd_timer_expiry, (void *)tmr);
 	}
 
 	return (NCSCC_RC_SUCCESS);
