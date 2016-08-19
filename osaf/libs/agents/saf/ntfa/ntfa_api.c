@@ -1768,7 +1768,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 	ntfa_notification_hdl_rec_t *notification_hdl_rec;
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_send_not_req_t *send_param;
-	uint32_t timeout = NTFS_WAIT_TIME;
+	SaTimeT timeout = NTFS_WAIT_TIME;
 	uint32_t mds_rc;
 	SaNtfNotificationHeaderT *ntfHeader;
 
@@ -2071,7 +2071,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_subscribe_req_t *send_param;
-	uint32_t timeout = NTFS_WAIT_TIME;
+	SaTimeT timeout = NTFS_WAIT_TIME;
 	bool recovery_failed = false;
 	TRACE_ENTER();
 
@@ -3269,7 +3269,7 @@ SaAisErrorT saNtfNotificationUnsubscribe(SaNtfSubscriptionIdT subscriptionId)
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_msg_t *async_cbk_msg = NULL, *process = NULL, *cbk_msg = NULL;
 	ntfsv_unsubscribe_req_t *send_param;
-	uint32_t timeout = NTFS_WAIT_TIME;
+	SaTimeT timeout = NTFS_WAIT_TIME;
 
 	/* Check NTF server availability */
 	if (getServerState() == NTFA_NTFSV_NO_ACTIVE) {
@@ -3394,7 +3394,7 @@ SaAisErrorT saNtfNotificationReadInitialize(SaNtfSearchCriteriaT searchCriteria,
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_reader_init_req_2_t *send_param;
-	uint32_t timeout = NTFS_WAIT_TIME;
+	SaTimeT timeout = NTFS_WAIT_TIME;
 
 	bool recovery_failed = false;
 	TRACE_ENTER();
@@ -3545,7 +3545,7 @@ SaAisErrorT saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle)
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_reader_finalize_req_t *send_param;
-	uint32_t timeout = NTFS_WAIT_TIME;
+	SaTimeT timeout = NTFS_WAIT_TIME;
 
 	TRACE_ENTER();
 	/* Check NTF server availability */
@@ -3657,7 +3657,7 @@ SaAisErrorT saNtfNotificationReadNext(SaNtfReadHandleT readHandle,
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_read_next_req_t *send_param;
-	uint32_t timeout = NTFS_WAIT_TIME;
+	SaTimeT timeout = NTFS_WAIT_TIME;
 	ntfsv_send_not_req_t *read_not = NULL;
 	ntfa_notification_hdl_rec_t *notification_hdl_rec = NULL;
 	SaNtfNotificationHeaderT *read_not_header = NULL;

@@ -161,7 +161,7 @@ extern ntfa_subscriber_list_t *subscriberNoList;
 /* ntfa_mds.c */
 extern uint32_t ntfa_mds_init(ntfa_cb_t *cb);
 extern void ntfa_mds_finalize(ntfa_cb_t *cb);
-extern uint32_t ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, uint32_t timeout);
+extern uint32_t ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, SaTimeT timeout);
 extern uint32_t ntfa_mds_msg_async_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, uint32_t prio);
 extern void ntfsv_ntfa_evt_free(struct ntfsv_msg *);
 
