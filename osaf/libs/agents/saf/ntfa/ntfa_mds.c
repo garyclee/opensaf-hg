@@ -1158,7 +1158,7 @@ void ntfa_mds_finalize(ntfa_cb_t *cb)
  
   Notes         : None.
 ******************************************************************************/
-uint32_t ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, uint32_t timeout)
+uint32_t ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_msg, SaTimeT timeout)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
