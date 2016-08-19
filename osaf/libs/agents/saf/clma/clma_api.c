@@ -1288,15 +1288,7 @@ static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	} else if (timeout > ( SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND)) {
-		/* Unfortunately the current MDS transport support only uint32_t type variable (232-1) for timeout parameter ,
-		   even though  SAF APIS supports SaTimeT (SaInt64T) type (263-1).
-		   So as work around currently if SAF API receives the higher value then  uint32_t (232-1) that it can hold , form now
-		   implicitly set  to max MDS supported value (4294967295 * 10000000) ,  which is already very large  impractical value.
-
-		   In  Future solution : `[ticket:#1658] mds : Opensf transport should adopt the size of the
-		   timeout parameter from 32 bits to 64 bits`  will resolve the issue by matching both MDS transport and SAF API's
-		 */		
-		TRACE_4("saClmClusterNodeGet: timeout > MDS_MAX_TIMEOUT setting to MDS max timeout value:%llu, clmHandle:%llx",
+		TRACE_4("saClmClusterNodeGet: timeout>MDS_MAX_TIMEOUT setting to MDS max timeout value:%lld, clmHandle:%llx",
 				(SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND) , clmHandle);
                 timeout = (SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND);
         }

@@ -450,7 +450,7 @@ static int get_node_info(NODE_INFO *node)
 	return 0;
 }
 
-static uint32_t clmna_mds_msg_sync_send(CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uint32_t timeout)
+static uint32_t clmna_mds_msg_sync_send(CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, SaTimeT timeout)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;

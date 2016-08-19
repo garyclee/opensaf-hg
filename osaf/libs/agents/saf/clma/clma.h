@@ -94,7 +94,7 @@ extern clma_cb_t clma_cb;
 extern uint32_t clma_validate_version(SaVersionT *version);
 
 extern uint32_t clma_mds_init(clma_cb_t * cb);
-extern uint32_t clma_mds_msg_sync_send(clma_cb_t * cb, CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uint32_t timeout);
+extern uint32_t clma_mds_msg_sync_send(clma_cb_t * cb, CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, SaTimeT timeout);
 extern uint32_t clma_mds_msg_async_send(clma_cb_t * cb, CLMSV_MSG * i_msg, uint32_t prio);
 
 extern unsigned int clma_startup(void);

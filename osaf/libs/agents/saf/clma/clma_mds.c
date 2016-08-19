@@ -1219,7 +1219,7 @@ void clma_mds_finalize(clma_cb_t * cb)
  
   Notes         : None.
 ******************************************************************************/
-uint32_t clma_mds_msg_sync_send(clma_cb_t * cb, CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, uint32_t timeout)
+uint32_t clma_mds_msg_sync_send(clma_cb_t * cb, CLMSV_MSG * i_msg, CLMSV_MSG ** o_msg, SaTimeT timeout)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
