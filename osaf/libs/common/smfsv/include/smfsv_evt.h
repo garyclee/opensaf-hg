@@ -218,7 +218,7 @@ extern "C" {
 				      MDS_DEST to_dest,
 				      uint32_t fr_svc,
 				      SMFSV_EVT * i_evt,
-				      SMFSV_EVT ** o_evt, uint32_t timeout);
+				      SMFSV_EVT ** o_evt, SaTimeT timeout);
 
 	uint32_t smfsv_mds_msg_send(uint32_t mds_handle,
 				 uint32_t to_svc,

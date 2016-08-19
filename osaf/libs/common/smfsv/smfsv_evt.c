@@ -1382,7 +1382,7 @@ uint32_t smfsv_mds_msg_sync_send (uint32_t       mds_handle,
                                uint32_t       fr_svc, 
                                SMFSV_EVT   *i_evt, 
                                SMFSV_EVT   **o_evt,
-                               uint32_t       timeout)
+                               SaTimeT       timeout)
 {
 
    NCSMDS_INFO                mds_info;
