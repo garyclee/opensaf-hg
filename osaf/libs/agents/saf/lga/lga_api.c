@@ -766,7 +766,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	SaAisErrorT ais_rc;
 	int rc = 0;
 	uint32_t ncs_rc;
-	uint32_t timeout;
+	SaTimeT timeout;
 	uint32_t log_stream_id;
 	uint32_t log_header_type = 0;
 	bool is_locked = false;
@@ -901,7 +901,7 @@ SaAisErrorT saLogStreamOpen_2(SaLogHandleT logHandle,
 	}
 
 	/* Normalize the timeOut value */
-	timeout = (uint32_t)(timeOut / LGSV_NANOSEC_TO_LEAPTM);
+	timeout = (timeOut / LGSV_NANOSEC_TO_LEAPTM);
 
 	if (timeout < NCS_SAF_MIN_ACCEPT_TIME) {
 		TRACE("Timeout");
