@@ -117,7 +117,7 @@ struct nid_spawn_info {
   NID_APP_TYPE app_type;
   char s_name[NID_MAXSFILE];      /* Service name to be spawned */
   char cleanup_file[NID_MAXSFILE];        /* Cleanup for the service spawned */
-  uint32_t time_out;              /* Timeout for spawned service */
+  int64_t time_out;              /* Timeout for spawned service */
   int32_t priority;               /* Process priority& */
   NID_RECOVERY_LIST recovery_matrix[NID_MAXREC];  /* recovery action list */
   char s_parameters[NID_MAXPARMS];        /* Parameters for spawned service */

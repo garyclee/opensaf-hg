@@ -60,7 +60,7 @@ typedef struct sysf_pid_list {
 
   /* Timer Params */
   tmr_t tmr_id;
-  uint32_t timeout_in_ms;
+  int64_t timeout_in_ms;
   int exec_info_type;
 
 } SYSF_PID_LIST;

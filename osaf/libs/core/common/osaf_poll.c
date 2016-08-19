@@ -15,12 +15,13 @@
  *
  */
 
-#include "osaf_poll.h"
 #include <errno.h>
 #include <limits.h>
 #include "osaf_time.h"
 #include "osaf_utility.h"
 #include "logtrace.h"
+#include "osaf_poll.h"
+
 
 static unsigned osaf_poll_no_timeout(struct pollfd* io_fds, nfds_t i_nfds);
 
@@ -35,7 +36,7 @@ static unsigned osaf_poll_no_timeout(struct pollfd* io_fds, nfds_t i_nfds)
 	return result;
 }
 
-unsigned osaf_poll(struct pollfd* io_fds, nfds_t i_nfds, int i_timeout)
+unsigned osaf_poll(struct pollfd* io_fds, nfds_t i_nfds, int64_t i_timeout)
 {
 	struct timespec timeout_ts;
 	if (i_timeout < 0) return osaf_poll_no_timeout(io_fds, i_nfds);
@@ -120,14 +121,14 @@ unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
 	return result;
 }
 
-int osaf_poll_one_fd(int i_fd, int i_timeout)
+int osaf_poll_one_fd(int i_fd, int64_t i_timeout)
 {
 	struct pollfd set = { .fd = i_fd, .events = POLLIN, .revents = 0 };
 	unsigned result;
 	result = osaf_poll(&set, 1, i_timeout);
 	if (result == 1) {
 		if ((set.revents & (POLLNVAL | POLLERR)) != 0) {
-			LOG_ER("osaf_poll_one_fd(%d, %d) called from %p "
+			LOG_ER("osaf_poll_one_fd(%d, %" PRId64 ") called from %p "
 			       "failed: revents=%hd",
 			       i_fd, i_timeout, __builtin_return_address(0),
 			       set.revents);

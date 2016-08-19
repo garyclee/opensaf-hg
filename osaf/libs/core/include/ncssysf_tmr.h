@@ -90,11 +90,11 @@ extern uint32_t gl_tmr_milliseconds;
   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
 tmr_t ncs_tmr_alloc(char *, uint32_t);
-tmr_t ncs_tmr_start(tmr_t, uint32_t, TMR_CALLBACK, void *, char *, uint32_t);
+tmr_t ncs_tmr_start(tmr_t, int64_t, TMR_CALLBACK, void *, char *, uint32_t);
 uint32_t ncs_tmr_stop_v2(tmr_t, void **);
 void ncs_tmr_stop(tmr_t);
 void ncs_tmr_free(tmr_t);
-uint32_t ncs_tmr_remaining(tmr_t, uint32_t *);
+int64_t ncs_tmr_remaining(tmr_t, int64_t *);
 
 /* Keep old names for Create  and Destroy, as many places call these functions */
 

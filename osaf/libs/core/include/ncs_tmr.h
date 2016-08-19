@@ -64,7 +64,7 @@ typedef struct ncs_rp_tmr_info_tag {
   struct ncs_rp_tmr_info_tag *pprev;
   RP_TMR_CALLBACK rp_tmr_callback;        /* this is the timer call back which the RP has to register, which will be invoked when the particular timer expires */
   void *callback_arg;     /* this is the argument, which is used by the above callback */
-  uint32_t tmr_value;     /* this is the tmr value which the RP needs to register for */
+  int64_t tmr_value;     /* this is the tmr value which the RP needs to register for */
   time_t tmr_trig_at;     /* this is the system timer, exactly when it has trigered this timer */
 } NCS_RP_TMR_INFO;
 
@@ -79,7 +79,7 @@ typedef struct ncs_rp_tmr_init_tag {
 
 #undef RP_LOG_ENB
 #ifdef RP_LOG_ENB
-#define m_RP_TMR_LOG_MSG(str, val) printf("%s :: %x\n", str, (uint32_t)val);
+#define m_RP_TMR_LOG_MSG(str, val) printf("%s :: %x\n", str, val);
 #else
 #define m_RP_TMR_LOG_MSG(str, val)
 #endif
@@ -137,7 +137,7 @@ NCS_RP_TMR_HDL
 ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb);
 
 uint32_t
-ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, uint32_t period, RP_TMR_CALLBACK callbk,
+ncs_rp_tmr_start(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id, int64_t period, RP_TMR_CALLBACK callbk,
                  void *arg);
 
 uint32_t
@@ -152,14 +152,14 @@ ncs_rp_tmr_destory(NCS_RP_TMR_CB **tmr_cb);
 uint32_t
 ncs_rp_tmr_exp(NCS_RP_TMR_CB *tmr_cb);
 
-uint32_t
+int64_t
 ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id);
 
 /* This is the utill function which will give the time left by taking in the
  * time at which that particular timer is triggered
  */
-uint32_t
-rp_tmr_time_left_in_sec(time_t tmr_trig_at, uint32_t tmr_val);
+int64_t
+rp_tmr_time_left_in_sec(time_t tmr_trig_at, int64_t tmr_val);
 
 #ifdef  __cplusplus
 }
