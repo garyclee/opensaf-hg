@@ -27,7 +27,7 @@ uint32_t mqnd_mds_send_rsp(MQND_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt);
 uint32_t mqnd_mds_send_rsp_direct(MQND_CB *cb, MQSV_DSEND_INFO *s_info, MQSV_DSEND_EVT *evt);
 
 uint32_t mqnd_mds_msg_sync_send(MQND_CB *cb, uint32_t to_svc,
-				      MDS_DEST to_dest, MQSV_EVT *i_evt, MQSV_EVT **o_evt, uint32_t timeout);
+				      MDS_DEST to_dest, MQSV_EVT *i_evt, MQSV_EVT **o_evt, SaTimeT timeout);
 
 uint32_t mqnd_mds_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest, MQSV_EVT *evt);
 

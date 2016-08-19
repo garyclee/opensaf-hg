@@ -612,7 +612,7 @@ static uint32_t mqa_mds_svc_evt(MQA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
  
   Notes         : None.
 ******************************************************************************/
-uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, uint32_t timeout)
+uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, SaTimeT timeout)
 {
 
 	NCSMDS_INFO mds_info;
@@ -692,7 +692,7 @@ uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV
 ******************************************************************************/
 uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 				   MDS_DEST *destination,
-				   MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, uint32_t timeout, uint32_t length)
+				   MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, SaTimeT timeout, uint32_t length)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
@@ -893,7 +893,7 @@ uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 ******************************************************************************/
 uint32_t mqa_mds_msg_sync_reply_direct(uint32_t mqa_mds_hdl,
 				    MDS_DEST *destination,
-				    MQSV_DSEND_EVT *i_evt, uint32_t timeout, MDS_SYNC_SND_CTXT *context, uint32_t length)
+				    MQSV_DSEND_EVT *i_evt, SaTimeT timeout, MDS_SYNC_SND_CTXT *context, uint32_t length)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;

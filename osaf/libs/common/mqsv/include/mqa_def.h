@@ -91,18 +91,18 @@ uint32_t mqa_hdl_callbk_dispatch_block(MQA_CB *mqa_cb, SaMsgHandleT msgHandle);
 uint32_t mqa_asapi_msghandler(ASAPi_MSG_INFO *asapi_msg);
 
 uint32_t mqa_mds_msg_sync_send(uint32_t mqa_mds_hdl,
-				     MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, uint32_t timeout);
+				     MDS_DEST *destination, MQSV_EVT *i_evt, MQSV_EVT **o_evt, SaTimeT timeout);
 
 uint32_t mqa_mds_msg_async_send(uint32_t mqa_mds_hdl, MDS_DEST *destination, MQSV_EVT *i_evt, uint32_t to_svc);
 
 uint32_t mqa_mds_msg_sync_send_direct(uint32_t mqa_mds_hdl,
 					    MDS_DEST *destination,
-					    MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, uint32_t timeout, uint32_t length);
+					    MQSV_DSEND_EVT *i_evt, MQSV_DSEND_EVT **o_evt, SaTimeT timeout, uint32_t length);
 
 uint32_t mqa_mds_msg_sync_reply_direct(uint32_t mqa_mds_hdl,
 					     MDS_DEST *destination,
 					     MQSV_DSEND_EVT *i_evt,
-					     uint32_t timeout, MDS_SYNC_SND_CTXT *context, uint32_t length);
+					     SaTimeT timeout, MDS_SYNC_SND_CTXT *context, uint32_t length);
 
 uint32_t mqa_mds_msg_async_send_direct(uint32_t mqa_mds_hdl,
 					     MDS_DEST *destination,
