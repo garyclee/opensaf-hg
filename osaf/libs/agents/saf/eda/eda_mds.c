@@ -1589,7 +1589,7 @@ void eda_mds_finalize(EDA_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uint32_t eda_mds_msg_sync_send(EDA_CB *cb, EDSV_MSG *i_msg, EDSV_MSG **o_msg, uint32_t timeout)
+uint32_t eda_mds_msg_sync_send(EDA_CB *cb, EDSV_MSG *i_msg, EDSV_MSG **o_msg, SaTimeT timeout)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;

@@ -522,7 +522,8 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	EDA_CHANNEL_HDL_REC *chan_hdl_rec = 0;
 	EDSV_MSG msg, *o_msg = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	uint32_t chan_id, timeOut;
+	uint32_t chan_id;
+	SaTimeT timeOut;
 	uint32_t chan_open_id;
 	TRACE_ENTER2("event handle: %llx", evtHandle);
 
@@ -572,7 +573,7 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
 	m_EDA_EDSV_CHAN_OPEN_SYNC_MSG_FILL(msg, hdl_rec->eds_reg_id, channelOpenFlags, *channelName);
 
 	/* Normalize the timeOut value */
-	timeOut = (uint32_t)(timeout / EDSV_NANOSEC_TO_LEAPTM);
+	timeOut = (timeout / EDSV_NANOSEC_TO_LEAPTM);
 
 	if (timeOut < NCS_SAF_MIN_ACCEPT_TIME) {
 		rc = SA_AIS_ERR_TIMEOUT;
@@ -596,7 +597,7 @@ saEvtChannelOpen(SaEvtHandleT evtHandle,
    /** Send a sync MDS message to obtain a channel id and an instance 
     ** open id.
     **/
-	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &msg, &o_msg, (uint32_t)timeOut))) {
+	if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_sync_send(eda_cb, &msg, &o_msg, timeOut))) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);

@@ -199,7 +199,7 @@ uint32_t eda_mds_init(EDA_CB *cb);
 void eda_sync_with_eds(EDA_CB *cb);
 void eda_mds_finalize(EDA_CB *cb);
 uint32_t eda_mds_msg_sync_send(struct eda_cb_tag *cb,
-				     struct edsv_msg *i_msg, struct edsv_msg **o_msg, uint32_t timeout);
+				     struct edsv_msg *i_msg, struct edsv_msg **o_msg, SaTimeT timeout);
 
 uint32_t eda_mds_msg_async_send(struct eda_cb_tag *cb, struct edsv_msg *i_msg, uint32_t prio);
 void edsv_eda_evt_free(struct edsv_msg *);
