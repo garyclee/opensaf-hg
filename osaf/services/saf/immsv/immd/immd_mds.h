@@ -23,7 +23,7 @@
 uint32_t immd_mds_register(IMMD_CB *cb, SaAmfHAStateT ha_state);
 void immd_mds_unregister(IMMD_CB *cb);
 uint32_t immd_mds_msg_sync_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-				      IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uint32_t timeout);
+				      IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, SaTimeT timeout);
 
 uint32_t immd_mds_msg_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, IMMSV_EVT *evt);
 

@@ -3225,7 +3225,7 @@ SaAisErrorT imma_proc_check_stale(IMMA_CB *cb,
 SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	IMMSV_EVT *i_evt,
 	IMMSV_EVT **o_evt,
-	uint32_t timeout, SaImmHandleT immHandle, bool *locked, bool checkWritable)
+	SaTimeT timeout, SaImmHandleT immHandle, bool *locked, bool checkWritable)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT fevs_evt;

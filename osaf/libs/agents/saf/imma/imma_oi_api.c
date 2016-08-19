@@ -184,7 +184,7 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 
 	if((timeout_env_value = getenv("IMMA_SYNCR_TIMEOUT"))!=NULL) {
 		cl_node->syncr_timeout = atoi(timeout_env_value);
-		TRACE_2("IMMA library syncronous timeout set to:%u", cl_node->syncr_timeout);
+		TRACE_2("IMMA library syncronous timeout set to:%lld", cl_node->syncr_timeout);
 	}
 
 	if(cl_node->syncr_timeout < NCS_SAF_MIN_ACCEPT_TIME) {
@@ -199,7 +199,7 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 					"OI timeout will be set to the default value");
 			cl_node->oiTimeout = 0;
 		} else {
-			TRACE_2("IMMA library OI timeout set to:%u", cl_node->oiTimeout);
+			TRACE_2("IMMA library OI timeout set to:%lld", cl_node->oiTimeout);
 		}
 	} else {
 		cl_node->oiTimeout = 0;
@@ -666,7 +666,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	bool agent_flag = false; /* flag = false, we should not call agent shutdown */
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 
@@ -1175,7 +1175,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	SaUint32T nameLen = 0;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -2428,7 +2428,7 @@ static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	bool locked = true;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -3336,7 +3336,7 @@ int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked, SaAi
 	osafassert(locked && *locked);
 	osafassert(cl_node && cl_node->stale);
 	SaImmOiHandleT immOiHandle = cl_node->handle;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	*locked = false;
