@@ -97,7 +97,7 @@ void dtm_print_config(DTM_INTERNODE_CB * config)
  	TRACE("  DTM_INI_DIS_TIMEOUT_SECS: ");
  	TRACE("  %d", config->initial_dis_timeout);
  	TRACE("  DTM_BCAST_FRE_MSECS: ");
-	TRACE("  %d", config->bcast_msg_freq);
+	TRACE("  %" PRId64 "", config->bcast_msg_freq);
 	TRACE("  DTM_SOCK_SND_BUF_SIZE: ");
 	TRACE("  %d", config->sock_sndbuf_size);
 	TRACE("  DTM_SOCK_RCV_BUF_SIZE: ");

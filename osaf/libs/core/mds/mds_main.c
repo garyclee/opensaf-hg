@@ -240,7 +240,7 @@ int mds_auth_server_create(const char *name)
  * @param timeout max time to wait for a response in ms unit
  * @return 0 - OK, negated errno otherwise
  */
-int mds_auth_server_connect(const char *name, MDS_DEST mds_dest, int svc_id, int timeout)
+int mds_auth_server_connect(const char *name, MDS_DEST mds_dest, int svc_id, int64_t timeout)
 {
 	uint32_t rc;
 	uint8_t msg[32];
@@ -292,7 +292,7 @@ fail:
  * @param timeout max time to wait for a response in ms unit
  * @return 0 - OK, negated errno otherwise
  */
-int mds_auth_server_disconnect(const char *name, MDS_DEST mds_dest, int svc_id, int timeout)
+int mds_auth_server_disconnect(const char *name, MDS_DEST mds_dest, int svc_id, int64_t timeout)
 {
 	uint32_t rc;
 	uint8_t msg[32];

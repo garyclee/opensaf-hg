@@ -228,12 +228,12 @@ uint32_t mds_send_message(MDS_HDL ,MDS_SVC_ID ,NCSCONTEXT ,MDS_SVC_ID ,
 /* Non Redundant */
 uint32_t mds_just_send(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST,
                     MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG * );
-uint32_t mds_send_get_ack(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST ,uint32_t ,
+uint32_t mds_send_get_ack(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST ,int64_t ,
                        MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG *);
 uint32_t mds_send_get_response(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,MDS_DEST ,
-                            uint32_t ,MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG *);
+                            int64_t ,MDS_SEND_PRIORITY_TYPE,TET_MDS_MSG *);
 uint32_t mds_send_response(MDS_HDL ,MDS_SVC_ID ,TET_MDS_MSG *);
-uint32_t mds_sendrsp_getack(MDS_HDL,MDS_SVC_ID ,uint32_t,TET_MDS_MSG *);
+uint32_t mds_sendrsp_getack(MDS_HDL,MDS_SVC_ID ,int64_t,TET_MDS_MSG *);
 uint32_t mds_broadcast_to_svc(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,
                            NCSMDS_SCOPE_TYPE ,MDS_SEND_PRIORITY_TYPE,
                            TET_MDS_MSG *);
@@ -242,12 +242,12 @@ uint32_t mds_broadcast_to_svc(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,
 /*Direct Send*/
 uint32_t mds_direct_send_message(MDS_HDL,MDS_SVC_ID,MDS_SVC_ID,
                               MDS_CLIENT_MSG_FORMAT_VER,MDS_SENDTYPES,
-                              MDS_DEST,uint32_t,MDS_SEND_PRIORITY_TYPE,char *);
+                              MDS_DEST,int64_t,MDS_SEND_PRIORITY_TYPE,char *);
 uint32_t mds_direct_broadcast_message(MDS_HDL ,MDS_SVC_ID ,MDS_SVC_ID ,
                                    MDS_CLIENT_MSG_FORMAT_VER,
                                    MDS_SENDTYPES ,NCSMDS_SCOPE_TYPE,
                                    MDS_SEND_PRIORITY_TYPE);
-uint32_t mds_direct_response(MDS_HDL ,MDS_SVC_ID, MDS_CLIENT_MSG_FORMAT_VER, MDS_SENDTYPES ,uint32_t );
+uint32_t mds_direct_response(MDS_HDL ,MDS_SVC_ID, MDS_CLIENT_MSG_FORMAT_VER, MDS_SENDTYPES ,int64_t );
 
 /*General Purpose*/
 uint32_t mds_service_retrieve(MDS_HDL ,MDS_SVC_ID ,SaDispatchFlagsT );
@@ -527,12 +527,12 @@ uint32_t mds_send_get_redack(MDS_HDL mds_hdl,
                              MDS_SVC_ID to_svc,
                              MDS_DEST to_vdest,
                              V_DEST_QA to_anc,
-                             uint32_t time_to_wait,
+                             int64_t time_to_wait,
                              MDS_SEND_PRIORITY_TYPE priority,
                              TET_MDS_MSG *message);
 uint32_t mds_send_redrsp_getack(MDS_HDL mds_hdl,
                                 MDS_SVC_ID svc_id,
-                                uint32_t time_to_wait,
+                                int64_t time_to_wait,
                                 TET_MDS_MSG *response);
 uint32_t   tet_sync_point(void);
 
