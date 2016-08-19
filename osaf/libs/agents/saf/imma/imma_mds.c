@@ -574,7 +574,7 @@ static uint32_t imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
   Notes         : None.
 ******************************************************************************/
 uint32_t imma_mds_msg_sync_send(uint32_t imma_mds_hdl,
-			     MDS_DEST *destination, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uint32_t timeout)
+			     MDS_DEST *destination, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, SaTimeT timeout)
 {
 	IMMA_CB *cb = &imma_cb;
 	NCSMDS_INFO mds_info;

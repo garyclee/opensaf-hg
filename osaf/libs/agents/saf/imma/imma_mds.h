@@ -37,7 +37,7 @@ void imma_mds_unregister(IMMA_CB *cb);
 uint32_t imma_mds_callback(struct ncsmds_callback_info *info);
 /* uint32_t imma_mds_msg_sync_send (NCSCONTEXT imma_mds_hdl, */
 uint32_t imma_mds_msg_sync_send(uint32_t imma_mds_hdl,
-				      MDS_DEST *destination, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uint32_t timeout);
+				      MDS_DEST *destination, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, SaTimeT timeout);
 /* uint32_t imma_mds_msg_send (NCSCONTEXT imma_mds_hdl,  */
 uint32_t imma_mds_msg_send(uint32_t imma_mds_hdl, MDS_DEST *destination, IMMSV_EVT *i_evt, uint32_t to_svc);
 

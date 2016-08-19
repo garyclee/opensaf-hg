@@ -662,7 +662,7 @@ uint32_t immd_mds_send_rsp(IMMD_CB *cb, IMMSV_SEND_INFO *s_info, IMMSV_EVT *evt)
   Notes         : None.
 ******************************************************************************/
 uint32_t immd_mds_msg_sync_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-			     IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, uint32_t timeout)
+			     IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, SaTimeT timeout)
 {
 
 	NCSMDS_INFO mds_info;

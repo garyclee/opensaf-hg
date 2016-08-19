@@ -243,7 +243,7 @@ static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *
 
 	if((timeout_env_value = getenv("IMMA_SYNCR_TIMEOUT"))!=NULL) {
 		cl_node->syncr_timeout = atoi(timeout_env_value);
-		TRACE_2("IMMA library syncronous timeout set to:%u", cl_node->syncr_timeout);
+		TRACE_2("IMMA library syncronous timeout set to:%lld", cl_node->syncr_timeout);
 	}
 
 	if(cl_node->syncr_timeout < NCS_SAF_MIN_ACCEPT_TIME) {
@@ -729,7 +729,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	bool agent_flag = false; /* flag = false, we should not call agent shutdown */
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -927,7 +927,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	bool locked = true;
 	bool isLoaderName = false;
 	SaUint32T nameLen = 0;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -1181,7 +1181,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
  *       longer possible with the same ccb_node/ccbHandle. 
  *******************************************************************/
 static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
-	SaUint32T adminOwnerId, bool *locked, SaUint32T timeout)
+	SaUint32T adminOwnerId, bool *locked, SaTimeT timeout)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
@@ -3680,15 +3680,7 @@ static SaAisErrorT admin_op_invoke_common(
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
         } else if (timeout > ( SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND)) {
-		/* Unfortunately the current MDS transport support only uint32_t type variable (232-1) for timeout parameter ,
-		   even though  SAF APIS supports SaTimeT (SaInt64T) type (263-1).
-		   So as work around currently if SAF API receives the higher value then  uint32_t (232-1) that it can hold , form now
-		   implicitly set  to max MDS supported value (4294967295 * 10000000) ,  which is already very large  impractical value.
-
-		   In  Future solution : `[ticket:#1658] mds : Opensf transport should adopt the size of the
-		   timeout parameter from 32 bits to 64 bits`  will resolve the issue by matching both MDS transport and SAF API's
-		 */		
-		TRACE_4("saImmOmAdminOperationInvoke: timeout > MDS_MAX_TIMEOUT setting to MDS max timeout value:%llu,immHandle:%llx",
+		TRACE_4("saImmOmAdminOperationInvoke: timeout>MDS_MAX_TIMEOUT setting to max :%lld, immHandle:%llx",
 				(SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND) , immHandle);
                 timeout = (SA_TIME_ONE_MILLISECOND * MDS_MAX_TIMEOUT_MILLISECOND);
         }
@@ -4998,7 +4990,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -5766,7 +5758,7 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 	IMMA_SEARCH_NODE *search_node = NULL;
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
-	SaUint32T timeout;
+	SaTimeT timeout;
 
 	TRACE_ENTER();
 
@@ -6851,7 +6843,7 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	bool locked = true;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -7026,7 +7018,7 @@ static SaAisErrorT search_init_common(SaImmHandleT immHandle,
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmSearchHandleT tmpSearchHandle=0LL;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -7477,7 +7469,7 @@ static SaAisErrorT search_next_common(SaImmSearchHandleT searchHandle,
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmHandleT immHandle=0LL;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	IMMSV_OM_RSP_SEARCH_NEXT *res_body = NULL;
 	IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT *searchBundle = NULL;
 	bool bFreeSearchBundle = false;
@@ -7807,7 +7799,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T searchId = 0;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -8030,7 +8022,7 @@ static SaAisErrorT admin_owner_set_common(SaImmAdminOwnerHandleT adminOwnerHandl
 	bool locked = true;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -8284,7 +8276,7 @@ static SaAisErrorT admin_owner_release_common(SaImmAdminOwnerHandleT adminOwnerH
 	bool locked = true;
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -8533,7 +8525,7 @@ static SaAisErrorT admin_owner_clear_common(SaImmHandleT immHandle,
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	bool locked = true;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -8693,7 +8685,7 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 	bool locked = false;
 	SaImmHandleT immHandle;
 	SaUint32T adminOwnerId;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -8828,7 +8820,7 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 	SaImmHandleT immHandle = 0LL;
 	SaImmAdminOwnerHandleT adminOwnerHdl = 0LL;
 	SaUint32T adminOwnerId = 0;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	SaImmAccessorHandleT safeReadAccessorHandle=0LL; // Copied from ccb_node later.
 	TRACE_ENTER();
 
@@ -9100,7 +9092,7 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	bool locked = false;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	TRACE_ENTER();
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -9255,7 +9247,7 @@ int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)
 	osafassert(locked && *locked);
 	osafassert(cl_node && cl_node->stale);
 	SaImmHandleT immHandle = cl_node->handle;
-	SaUint32T timeout = 0;
+	SaTimeT timeout = 0;
 	SaAisErrorT err_resurrect=SA_AIS_OK;
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
