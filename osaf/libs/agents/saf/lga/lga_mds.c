@@ -1277,7 +1277,7 @@ void lga_mds_finalize(lga_cb_t *cb)
  
   Notes         : None.
 ******************************************************************************/
-uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, uint32_t timeout, uint32_t prio)
+uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, SaTimeT timeout, uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;

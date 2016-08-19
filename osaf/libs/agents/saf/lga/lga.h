@@ -129,7 +129,7 @@ extern lga_cb_t lga_cb;
 /* lga_mds.c */
 extern uint32_t lga_mds_init(lga_cb_t *cb);
 extern void lga_mds_finalize(lga_cb_t *cb);
-extern uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, uint32_t timeout,uint32_t prio);
+extern uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, SaTimeT timeout,uint32_t prio);
 extern uint32_t lga_mds_msg_async_send(lga_cb_t *cb, lgsv_msg_t *i_msg, uint32_t prio);
 extern void lgsv_lga_evt_free(struct lgsv_msg *);
 

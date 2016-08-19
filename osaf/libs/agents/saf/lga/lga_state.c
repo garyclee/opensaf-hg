@@ -312,7 +312,7 @@ static void *recovery2_thread(void *dummy)
 {
 	int rc = 0;
 	struct timespec seed_ts;
-	int timeout_ms;
+	int64_t timeout_ms;
 
 	TRACE_ENTER();
 
@@ -322,7 +322,7 @@ static void *recovery2_thread(void *dummy)
 	osaf_clock_gettime(CLOCK_MONOTONIC, &seed_ts);
 	srandom((unsigned int) seed_ts.tv_nsec);
 	/* Interval 400 - 500 sec */
-	timeout_ms = (int) (random() % 100 + 400) * 1000;
+	timeout_ms = (int64_t) (random() % 100 + 400) * 1000;
 
 	/* Wait for timeout or a signal to terminate
 	 */
