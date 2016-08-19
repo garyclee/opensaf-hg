@@ -853,7 +853,7 @@ uint32_t mqnd_mds_send_rsp_direct(MQND_CB *cb, MQSV_DSEND_INFO *s_info, MQSV_DSE
   Notes         : None.
 ******************************************************************************/
 uint32_t mqnd_mds_msg_sync_send(MQND_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-			     MQSV_EVT *i_evt, MQSV_EVT **o_evt, uint32_t timeout)
+			     MQSV_EVT *i_evt, MQSV_EVT **o_evt, SaTimeT timeout)
 {
 
 	NCSMDS_INFO mds_info;

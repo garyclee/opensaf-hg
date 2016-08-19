@@ -82,13 +82,13 @@ void mqd_timer_expiry(NCSCONTEXT uarg)
  *****************************************************************************/
 uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration)
 {
-	TRACE_1("The timer started with the duration as %u", (uint32_t)duration);
+	TRACE_1("The timer started with the duration as %lld", duration);
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqd_timer_expiry, (void *)tmr);
 	}
 
 	if (tmr->is_active == false) {
-		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, mqd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, mqd_timer_expiry, (void *)tmr);
 		tmr->is_active = true;
 	}
 

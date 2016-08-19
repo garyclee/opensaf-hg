@@ -779,7 +779,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 
 	/* send the event */
 	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &(mqa_cb->mqnd_mds_dest),
-				       &qopen_evt, &out_evt, (uint32_t)timeout);
+				       &qopen_evt, &out_evt, timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1164,7 +1164,7 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
 
 	/* send the event */
 	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &(mqa_cb->mqnd_mds_dest), &qclose_evt,
-				       &out_evt, (uint32_t)mqa_timeout);
+				       &out_evt, mqa_timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1322,7 +1322,7 @@ SaAisErrorT saMsgQueueStatusGet(SaMsgHandleT msgHandle, const SaNameT *queueName
 
 	mqa_timeout = MQSV_WAIT_TIME;
 
-	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qstatus_evt, &out_evt, (uint32_t)mqa_timeout);
+	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qstatus_evt, &out_evt, mqa_timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1453,7 +1453,7 @@ SaAisErrorT saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *r
 	/* send the event */
 	mds_rc =
 	    mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &(mqa_cb->mqnd_mds_dest), &qret_time_evt, &out_evt,
-				  (uint32_t)mqa_timeout);
+				  mqa_timeout);
 
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
@@ -1604,7 +1604,7 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
 
 	mqa_timeout = MQSV_WAIT_TIME;
 
-	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qunlink_evt, &out_evt, (uint32_t)mqa_timeout);
+	mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqnd_mds_dest, &qunlink_evt, &out_evt, mqa_timeout);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -1678,7 +1678,7 @@ SaAisErrorT mqa_send_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 	mqa_timeout = m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 
 	mds_rc = mqa_mds_msg_sync_send_direct(mqa_cb->mqa_mds_hdl, mqnd_mds_dest, qsend_evt,
-					      &out_evt, (uint32_t)mqa_timeout, length);
+					      &out_evt, mqa_timeout, length);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;
@@ -3111,17 +3111,17 @@ SaAisErrorT mqa_send_receive(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 			     MQSV_DSEND_EVT *qsend_evt, MQSV_DSEND_EVT **qreply_evt, SaTimeT timeout, uint32_t length)
 {
 
-	int64_t mqa_timeout;
+	SaTimeT mqa_timeout;
 	SaAisErrorT rc;
 	uint32_t mds_rc;
 
-	TRACE_ENTER2(" SaTime %u ", (uint32_t)timeout);
+	TRACE_ENTER2(" SaTime %lld", timeout);
 
 	/* convert the timeout to 10 ms value and add it to the sync send timeout */
 	mqa_timeout = m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 
 	mds_rc = mqa_mds_msg_sync_send_direct(mqa_cb->mqa_mds_hdl, mqnd_mds_dest, qsend_evt,
-					      qreply_evt, (uint32_t)mqa_timeout, length);
+					      qreply_evt, mqa_timeout, length);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		rc = SA_AIS_OK;
@@ -3599,7 +3599,7 @@ SaAisErrorT mqa_reply_to_destination(MQA_CB *mqa_cb, MDS_DEST *mqnd_mds_dest,
 	mqa_timeout = m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(timeout);
 
 	mds_rc = mqa_mds_msg_sync_reply_direct(mqa_cb->mqa_mds_hdl, mqnd_mds_dest, qsend_evt,
-					       (uint32_t)mqa_timeout, context, length);
+					       mqa_timeout, context, length);
 	switch (mds_rc) {
 	case NCSCC_RC_SUCCESS:
 		break;

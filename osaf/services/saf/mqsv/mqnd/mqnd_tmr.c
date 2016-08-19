@@ -97,7 +97,7 @@ uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
 	}
 
 	if (tmr->is_active == false) {
-		m_NCS_TMR_START(tmr->tmr_id, (uint32_t)duration, mqnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, mqnd_timer_expiry, (void *)tmr);
 		tmr->is_active = true;
 	}
 
