@@ -3010,7 +3010,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	/* populate the cmd-info */
 	cmd_info.i_script = argv[0];
 	cmd_info.i_argv = argv;
-	cmd_info.i_timeout_in_ms = (uint32_t)((clc_info->cmds[cmd_type - 1].timeout) / 1000000);
+	cmd_info.i_timeout_in_ms = ((clc_info->cmds[cmd_type - 1].timeout) / 1000000);
 	cmd_info.i_cb = comp_clc_resp_callback;
 	cmd_info.i_set_env_args = &arg;
 	cmd_info.i_usr_hdl = (NCS_EXEC_USR_HDL) clc_evt;
@@ -3019,7 +3019,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	for(count=1;count<argc;count++)
 		TRACE_1("CLC CLI command arguments[%d] ='%s'",count, cmd_info.i_argv[count]);
 
-	TRACE_1("CLC CLI command timeout: In nano secs:%llu In milli secs: %u",
+	TRACE_1("CLC CLI command timeout: In nano secs:%lld In milli secs: %" PRId64 "",
 						clc_info->cmds[cmd_type - 1].timeout, cmd_info.i_timeout_in_ms);
 
 	for(count=0;count<cmd_info.i_set_env_args->num_args;count++)
