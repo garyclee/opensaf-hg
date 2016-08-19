@@ -61,11 +61,11 @@
 *****************************************************************************/
 uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 {
-	uint32_t tmr_period;
+	SaTimeT tmr_period;
 
 	TRACE_ENTER2("%u", tmr->type);
 
-	tmr_period = (uint32_t)(period / AVSV_NANOSEC_TO_LEAPTM);
+	tmr_period = (period / AVSV_NANOSEC_TO_LEAPTM);
 
 	if (AVD_TMR_MAX <= tmr->type) {
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
