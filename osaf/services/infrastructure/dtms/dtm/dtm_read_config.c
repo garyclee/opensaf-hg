@@ -15,10 +15,15 @@
  *
  */
 
-#include <net/if.h>
 #include <arpa/inet.h>
-#include <configmake.h>
 #include <ifaddrs.h>
+#include <inttypes.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <sys/socket.h>
+#include <configmake.h>
+#include "logtrace.h"
 #include "ncs_main_papi.h"
 #include "dtm.h"
 #include "dtm_socket.h"
@@ -162,8 +167,31 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 
 				//Bcast  Address
 				if (if_addr->ifa_addr->sa_family == AF_INET) {
-					tmp = &((struct sockaddr_in *)if_addr->ifa_broadaddr)->sin_addr;
-					inet_ntop(if_addr->ifa_addr->sa_family, tmp, config->bcast_addr,sizeof(buf));
+					struct in_addr addr =
+						((struct sockaddr_in*) if_addr->
+						 ifa_addr)->sin_addr;
+					struct in_addr netmask =
+						((struct sockaddr_in*) if_addr->
+						 ifa_netmask)->sin_addr;
+					struct in_addr broadaddr =
+						((struct sockaddr_in*) if_addr->
+						 ifa_broadaddr)->sin_addr;
+					TRACE("DTM: addr=0x%" PRIx32,
+					      ntohl(addr.s_addr));
+					TRACE("DTM: netmask=0x%" PRIx32,
+					      ntohl(netmask.s_addr));
+					TRACE("DTM: broadaddr=0x%" PRIx32,
+					      ntohl(broadaddr.s_addr));
+					if (broadaddr.s_addr == addr.s_addr ||
+					    broadaddr.s_addr ==
+					    htonl(INADDR_ANY)) {
+						broadaddr.s_addr = addr.s_addr |
+							~netmask.s_addr;
+					}
+					inet_ntop(if_addr->ifa_addr->sa_family,
+						  &broadaddr,
+						  config->bcast_addr,
+						  sizeof(buf));
 				} else if (if_addr->ifa_addr->sa_family == AF_INET6) {
 					struct sockaddr_in6 *addr = (struct sockaddr_in6 *)if_addr->ifa_addr;
 					memset(config->bcast_addr, 0, INET6_ADDRSTRLEN);
