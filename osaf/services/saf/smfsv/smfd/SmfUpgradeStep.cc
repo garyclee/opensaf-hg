@@ -3274,26 +3274,31 @@ bool SmfAdminOperation::changeNodeGroupAdminState(SaAmfAdminStateT fromState,
 					 SaAmfAdminOperationIdT toState)
 {
 	bool rc = true;
+	SaAisErrorT ais_errno = SA_AIS_OK;
 
 	TRACE_ENTER();
 
 	if (!m_nodeList.empty()) {
 		rc = createNodeGroup(fromState);
 		if (rc == false) {
+			ais_errno = m_errno;
 			LOG_NO("%s: createNodeGroup() Fail %s",
-				__FUNCTION__, saf_error(m_errno));
+				__FUNCTION__, saf_error(ais_errno));
 		}
 		if (rc == true) {
 			rc = nodeGroupAdminOperation(toState);
 			if (rc == false) {
+				ais_errno = m_errno;
 				LOG_NO("%s: setNodeGroupAdminState() Fail %s",
-					__FUNCTION__, saf_error(m_errno));
+					__FUNCTION__, saf_error(ais_errno));
 			}
 			(void) deleteNodeGroup();
 		}
 	} else {
 		TRACE("\tm_nodelist is empty!");
 	}
+
+	m_errno = ais_errno;
 
 	TRACE_LEAVE();
 	return rc;
