@@ -405,28 +405,21 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 
 	if (opId == SA_LOG_ADMIN_CHANGE_FILTER) {
 		/* Only allowed to update runtime objects (application streams) */
-		/**
-		 * className holds a pointer to an duplicated memory (strdup).
-		 * Must be free after done using.
-		 */
-		SaImmClassNameT className = immutil_get_className(objectName);
+		if (stream->streamType != STREAM_TYPE_APPLICATION) {
+			report_om_error(immOiHandle, invocation,
+					"Admin op change filter for non app stream");
+			goto done;
+		}
 
-		if (!strcmp(className, "SaLogStreamConfig")) {
+		/* Not allow perform adm op on configurable app streams */
+		if (stream->isRtStream != SA_TRUE) {
 			ais_rc = immutil_saImmOiAdminOperationResult(immOiHandle,
-						  invocation, SA_AIS_ERR_NOT_SUPPORTED);
+								     invocation, SA_AIS_ERR_NOT_SUPPORTED);
 			if (ais_rc != SA_AIS_OK) {
 				LOG_ER("immutil_saImmOiAdminOperationResult failed %s", saf_error(ais_rc));
 				osaf_abort(0);
 			}
 
-			free(className);
-			goto done;
-		}
-		free(className);
-
-		if (stream->streamType != STREAM_TYPE_APPLICATION) {
-			report_om_error(immOiHandle, invocation,
-					"Admin op change filter for non app stream");
 			goto done;
 		}
 

@@ -588,6 +588,7 @@ int lgs_restore_one_app_stream(
 	log_stream->creationTimeStamp = restored_creationTimeStamp;
 	log_stream->severityFilter = restored_severityFilter;
 	log_stream->filtered = 0;
+	log_stream->isRtStream = SA_TRUE;
 
 	TRACE("\t Stream obj attributes handled and stream is created");
 
