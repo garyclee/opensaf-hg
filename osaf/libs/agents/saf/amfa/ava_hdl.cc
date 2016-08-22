@@ -697,7 +697,6 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 						((SaAmfCallbacksT_4*)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
 													&buf,
 													  pg_track->mem_num, pg_track->err);
-						free(buf.notification);
 					} else {
 						pg_track->err = SA_AIS_ERR_NO_MEMORY;
 						LOG_CR("Notification is NULL: Invoking PGTrack Callback with error SA_AIS_ERR_NO_MEMORY");
@@ -740,7 +739,6 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 						((SaAmfCallbacksT *)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
 											   &buf,
 											   pg_track->mem_num, pg_track->err);
-						free(buf.notification);
 					} else {
 						pg_track->err = SA_AIS_ERR_NO_MEMORY;
 						LOG_CR("Notification is NULL: Invoking PGTrack Callback with error SA_AIS_ERR_NO_MEMORY");
