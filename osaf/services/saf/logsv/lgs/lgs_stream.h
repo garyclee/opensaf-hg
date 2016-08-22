@@ -61,6 +61,14 @@ typedef struct log_stream {
 	uint32_t logRecordId;	/* log record indentifier increased for each record */
 	SaBoolT twelveHourModeFlag; /* Not used. Can be removed? */ 
 	logStreamTypeT streamType;
+	/**
+	 * This info is cached locally at SCs node when stream is opened.
+	 * Means that it is not checkpointed to standby node (to keep BC).
+	 * Using this variable to avoid cost in sending request to IMM
+	 * to get info whether the app stream is configurable or runtime
+	 * when performing adm op or closing app stream.
+	 */
+	SaBoolT isRtStream; // default value is false
 	
 	/*
 	 *  Checkpointed parameters used by standby in split file mode

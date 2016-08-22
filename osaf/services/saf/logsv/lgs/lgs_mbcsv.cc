@@ -1937,6 +1937,7 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data)
 		stream->logFileCurrent = param->logFileCurrent;
 		stream->stb_prev_actlogFileCurrent = param->logFileCurrent;
 		stream->stb_logFileCurrent = param->logFileCurrent;
+		stream->isRtStream = SA_TRUE;
 	}
 
 	/* If configured for split file system files shall be opened on stand by

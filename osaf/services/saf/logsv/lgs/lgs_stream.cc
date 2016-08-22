@@ -385,7 +385,7 @@ void log_stream_delete(log_stream_t **s)
 	TRACE_ENTER2("%s", stream->name.c_str());
 
 	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
-		if (stream->streamType == STREAM_TYPE_APPLICATION) {
+		if (stream->isRtStream == SA_TRUE) {
 			SaAisErrorT rv;
 			TRACE("Stream is closed, I am HA active so remove IMM object");
 			SaNameT objectName;
@@ -456,6 +456,7 @@ int lgs_populate_log_stream(
 	o_stream->twelveHourModeFlag = twelveHourModeFlag;
 	o_stream->logRecordId = logRecordId;
 	o_stream->stb_logRecordId = 0;
+	o_stream->isRtStream = SA_TRUE;
 
 	o_stream->logFileFormat = strdup(logFileFormat);
 	if (o_stream->logFileFormat == NULL) {
@@ -631,7 +632,8 @@ log_stream_t *log_stream_new(const std::string &name, int stream_id)
 	stream->streamId = stream_id;
 	stream->creationTimeStamp = lgs_get_SaTime();
 	stream->severityFilter = 0x7f;	/* by default all levels are allowed */
-	
+	stream->isRtStream = SA_FALSE;
+
 	/* Initiate local or shared stream file descriptor dependant on shared or
 	 * split file system
 	 */
