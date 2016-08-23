@@ -238,7 +238,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	p_su_si = nullptr;
 	i_su_si = su->list_of_susi;
 	while ((i_su_si != nullptr) &&
-	       i_su_si->si->name.compare(su_si->si->name) < 0) {
+		(compare_sanamet(i_su_si->si->name, su_si->si->name) < 0)) {
 		p_su_si = i_su_si;
 		i_su_si = i_su_si->su_next;
 	}
@@ -287,7 +287,7 @@ AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const std::string& si
 
 	su_si = su->list_of_susi;
 
-	while ((su_si != nullptr) && (su_si->si->name.compare(si_name) < 0)) {
+	while ((su_si != nullptr) && (compare_sanamet(su_si->si->name, si_name) < 0)) {
 		su_si = su_si->su_next;
 	}
 
