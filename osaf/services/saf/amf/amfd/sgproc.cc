@@ -1128,9 +1128,6 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					 * this message, by accepting the receive id and  droping the message.
 					 * message id has already been accepted above.
 					 */
-
-					avsv_dnd_msg_free(n2d_msg);
-					evt->info.avnd_msg = nullptr;
 					goto done;
 				} else if ((susi->state == SA_AMF_HA_QUIESCING)
 					   && (susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
