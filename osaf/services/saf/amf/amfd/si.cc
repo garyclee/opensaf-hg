@@ -393,8 +393,8 @@ void avd_si_db_add(AVD_SI *si)
 AVD_SI *avd_si_get(const std::string& dn)
 {
 	TRACE_ENTER2("%s", dn.c_str());
-	return si_db->find(dn); 
 	TRACE_LEAVE();
+	return si_db->find(dn); 
 }
 
 
