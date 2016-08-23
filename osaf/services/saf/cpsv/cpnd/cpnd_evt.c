@@ -4630,6 +4630,8 @@ uint32_t cpnd_evt_destroy(CPSV_EVT *evt)
 		if (osaf_is_an_extended_name(&evt->info.cpnd.info.ckptListUpdate.ckpt_name))
 			free((void *)osaf_extended_name_borrow(&evt->info.cpnd.info.ckptListUpdate.ckpt_name));
 	} else if (evt->info.cpnd.type == CPND_EVT_D2ND_CKPT_CREATE) {
+		if (evt->info.cpnd.info.ckpt_create.ckpt_info.dest_list != NULL)
+			m_MMGR_FREE_CPSV_SYS_MEMORY(evt->info.cpnd.info.ckpt_create.ckpt_info.dest_list);
 		if (osaf_is_an_extended_name(&evt->info.cpnd.info.ckpt_create.ckpt_name))
 			free((void *)osaf_extended_name_borrow(&evt->info.cpnd.info.ckpt_create.ckpt_name));
 	}
