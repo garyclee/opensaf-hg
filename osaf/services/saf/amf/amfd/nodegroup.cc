@@ -583,16 +583,16 @@ static void ng_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 		rc = immutil_saImmOmAccessorGet_2(accessorHandle, &opdata->objectName,
 				nullptr, (SaImmAttrValuesT_2 ***)&attributes);
 		if (rc != SA_AIS_OK) {
-			LOG_ER("saImmOmAccessorGet_2 FAILED %u for %s", rc, opdata->objectName.value);
+			LOG_ER("saImmOmAccessorGet_2 FAILED %u for %s", rc, osaf_extended_name_borrow(&opdata->objectName));
 			goto done;
 		}
-		TRACE("'%s'", opdata->objectName.value);
-		if ((ng = ng_create(&opdata->objectName, attributes)) == nullptr) {
-			LOG_ER("ng_create failed for %s", opdata->objectName.value);
+		TRACE("'%s'", osaf_extended_name_borrow(&opdata->objectName));
+		if ((ng = ng_create(Amf::to_string(&opdata->objectName), attributes)) == nullptr) {
+			LOG_ER("ng_create failed for %s", osaf_extended_name_borrow(&opdata->objectName));
 			goto done;
 		}
-		nodegroup_db->insert(Amf::to_string(&ng->name), ng);
-		TRACE("ng '%s' created with number_nodes '%u'", ng->name.value,
+		nodegroup_db->insert(ng->name, ng);
+		TRACE("ng '%s' created with number_nodes '%u'", ng->name.c_str(),
 				ng->number_nodes());
 		immutil_saImmOmAccessorFinalize(accessorHandle);
 	}
