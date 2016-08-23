@@ -46,7 +46,7 @@ uint32_t cpd_a2s_ckpt_create(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 
 	cpd_msg.type = CPD_A2S_MSG_CKPT_CREATE;
-	cpd_msg.info.ckpt_create.ckpt_name = ckpt_node->ckpt_name;
+	osaf_extended_name_lend(ckpt_node->ckpt_name, &cpd_msg.info.ckpt_create.ckpt_name);
 	cpd_msg.info.ckpt_create.ckpt_id = ckpt_node->ckpt_id;
 	cpd_msg.info.ckpt_create.ckpt_attrib = ckpt_node->attributes;
 	cpd_msg.info.ckpt_create.is_unlink_set = ckpt_node->is_unlink_set;
@@ -115,12 +115,12 @@ void cpd_a2s_ckpt_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 	memset(&cpd_msg, '\0', sizeof(CPD_MBCSV_MSG));
 	cpd_msg.type = CPD_A2S_MSG_CKPT_UNLINK;
 	cpd_msg.info.ckpt_ulink.is_unlink_set = ckpt_node->is_unlink_set;
-	cpd_msg.info.ckpt_ulink.ckpt_name = ckpt_node->ckpt_name;
+	osaf_extended_name_lend(ckpt_node->ckpt_name, &cpd_msg.info.ckpt_ulink.ckpt_name);
 
 	/* send it to MBCSv  */
 	rc = cpd_mbcsv_async_update(cb, &cpd_msg);
 	if (rc != SA_AIS_OK)
-		TRACE_4("cpd A2S ckpt unlink async failed %s",ckpt_node->ckpt_name.value);
+		LOG_ER("cpd A2S ckpt unlink async failed %s",ckpt_node->ckpt_name);
 	else
 		TRACE_1("cpd A2S ckpt unlink async successfull ");
 	TRACE_LEAVE();

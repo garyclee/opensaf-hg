@@ -26,6 +26,7 @@ osaf_execbin_PROGRAMS = osafckptd
 osafckptd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	-DNCS_CPD=1 \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include

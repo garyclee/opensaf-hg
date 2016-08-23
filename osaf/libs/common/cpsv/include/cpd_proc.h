@@ -75,7 +75,7 @@ uint32_t cpd_proc_retention_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id,
 				      SaTimeT reten_time, CPD_CKPT_INFO_NODE **ckpt_node);
 
 uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node,
-				   CPD_CKPT_MAP_INFO *map_info, SaNameT *ckpt_name);
+				   CPD_CKPT_MAP_INFO *map_info, SaConstStringT ckpt_name);
 
 void cpd_proc_broadcast_rdset_stop(SaCkptCheckpointHandleT ckpt_id, CPD_CB *cb);
 

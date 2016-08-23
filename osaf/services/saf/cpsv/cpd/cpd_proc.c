@@ -44,10 +44,8 @@ uint32_t cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 	CPSV_EVT send_evt;
 	uint32_t rc;
 	CPSV_D2ND_CKPT_INFO *d2nd_info = NULL;
-	SaNameT ckpt_name;
 
 	TRACE_ENTER();
-	memset(&ckpt_name, 0, sizeof(SaNameT));
 
 	/* Update the database with new replica */
 	rc = cpd_ckpt_db_entry_update(cb, cpnd_dest, NULL, &ckpt_node, &map_info);
@@ -65,9 +63,7 @@ uint32_t cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 	send_evt.type = CPSV_EVT_TYPE_CPND;
 	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_CREATE;
 
-	ckpt_name = map_info->ckpt_name;
-	ckpt_name.length = m_NCS_OS_NTOHS(ckpt_name.length);
-	send_evt.info.cpnd.info.ckpt_create.ckpt_name = ckpt_name;
+	osaf_extended_name_lend(map_info->ckpt_name, &send_evt.info.cpnd.info.ckpt_create.ckpt_name);
 
 	d2nd_info = &send_evt.info.cpnd.info.ckpt_create.ckpt_info;
 
@@ -144,13 +140,13 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 	SaClmClusterNodeT cluster_node;
 	NODE_ID key;
 	SaClmNodeIdT node_id;
-	SaNameT ckpt_name;
+	SaConstStringT ckpt_name;
 	CPD_REP_KEY_INFO key_info;
 	bool noncoll_rep_on_payload = false;
 
-	memset(&ckpt_name, 0, sizeof(SaNameT));
 	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
+
 	/* Upfront allocate all the memory required for this ckpt */
 	if (*io_map_info == NULL) {
 		map_info = m_MMGR_ALLOC_CPD_CKPT_MAP_INFO;
@@ -158,11 +154,14 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 			LOG_ER("CPD CPD_CKPT_MAP_INFO alloc failed"); 
 			goto free_mem;
 		}
+		memset(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
+
 		ckpt_node = m_MMGR_ALLOC_CPD_CKPT_INFO_NODE;
 		if (ckpt_node == NULL) {
 			LOG_ER("CPD_CKPT_INFO_NODE alloc failed ");
 			goto free_mem;
 		}
+		memset(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
 	} else {
 		map_info = *io_map_info;
 	}
@@ -177,7 +176,8 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 
 	key = m_NCS_NODE_ID_FROM_MDS_DEST(*cpnd_dest);
 	node_id = key;
-/*   Processing for the Node name , with CLM  */
+
+	/*   Processing for the Node name , with CLM  */
 
 	if (saClmClusterNodeGet(cb->clm_hdl, node_id, CPD_CLM_API_TIMEOUT, &cluster_node) != SA_AIS_OK) {
 		proc_rc = NCSCC_RC_FAILURE;
@@ -185,14 +185,15 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 		goto free_mem;
 	}
 
-	node_info->node_name = cluster_node.nodeName;
+	/* Allocate node_name for node_info */
+	if (node_info->node_name == NULL)
+		node_info->node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
 
-	key_info.node_name = cluster_node.nodeName;
+	key_info.node_name = osaf_extended_name_borrow(&cluster_node.nodeName);
 	if (ckpt_create != NULL) {
-		key_info.ckpt_name = ckpt_create->ckpt_name;
+		key_info.ckpt_name = osaf_extended_name_borrow(&ckpt_create->ckpt_name);
 	} else {
 		ckpt_name = (*io_map_info)->ckpt_name;
-		ckpt_name.length = m_NCS_OS_NTOHS(ckpt_name.length);
 		key_info.ckpt_name = ckpt_name;
 	}
 
@@ -204,10 +205,12 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 
 		memset(reploc_info, 0, sizeof(CPD_CKPT_REPLOC_INFO));
 
-		reploc_info->rep_key.node_name = cluster_node.nodeName;
+		/* Allocate node_name for reploc_info */
+		reploc_info->rep_key.node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
 
 		if ((ckpt_create != NULL) && (ckpt_create->attributes.creationFlags != 0)) {
-			reploc_info->rep_key.ckpt_name = ckpt_create->ckpt_name;
+			/* Allocate ckpt_name for reploc_info */
+			reploc_info->rep_key.ckpt_name = strdup(osaf_extended_name_borrow(&ckpt_create->ckpt_name));
 
 			if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_create->attributes))
 				reploc_info->rep_type = REP_NONCOLL;
@@ -224,10 +227,10 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 					reploc_info->rep_type = REP_NOTACTIVE;
 			}
 		} else {
-			if (ckpt_create != NULL)                    
-				reploc_info->rep_key.ckpt_name = ckpt_create->ckpt_name;
+			if (ckpt_create != NULL) 
+				reploc_info->rep_key.ckpt_name = strdup(osaf_extended_name_borrow(&ckpt_create->ckpt_name));
 			else
-				reploc_info->rep_key.ckpt_name = ckpt_name;
+				reploc_info->rep_key.ckpt_name = strdup(ckpt_name);
 
 			if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&(*io_map_info)->attributes))
 				reploc_info->rep_type = REP_NONCOLL;
@@ -292,21 +295,20 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 	} else {
 		/* Fill the Map Info */
 		memset(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
-		/*   memcpy(&map_info->ckpt_name,&ckpt_create->ckpt_name,sizeof(ckpt_create->ckpt_name.length)); */
-		map_info->ckpt_name = ckpt_create->ckpt_name;
+		map_info->ckpt_name = strdup(osaf_extended_name_borrow(&ckpt_create->ckpt_name));
 		map_info->attributes = ckpt_create->attributes;
 		map_info->client_version = ckpt_create->client_version;
 		map_info->ckpt_id = cb->nxt_ckpt_id++;
 
 		proc_rc = cpd_ckpt_map_node_add(&cb->ckpt_map_tree, map_info);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpd db add failed for ckpt_id:%llx",map_info->ckpt_id);
+			LOG_ER("cpd db add map_node failed for ckpt_id:%llx",map_info->ckpt_id);
 			goto map_node_add_fail;
 		}
 
-		memset(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
+		m_MMGR_ZERO_CPD_CKPT_INFO_NODE(ckpt_node);
 		ckpt_node->ckpt_id = map_info->ckpt_id;
-		ckpt_node->ckpt_name = ckpt_create->ckpt_name;
+		ckpt_node->ckpt_name = strdup(osaf_extended_name_borrow(&ckpt_create->ckpt_name));
 		ckpt_node->is_unlink_set = false;
 		ckpt_node->attributes = ckpt_create->attributes;
 		if (ckpt_node->attributes.maxSections == 1)
@@ -338,7 +340,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 		}
 		proc_rc = cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node, cb->ha_state, cb->immOiHandle);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
-			TRACE_4("cpd db add failed for ckpt_id:%llx",ckpt_node->ckpt_id);
+			LOG_ER("cpd db add ckpt_node failed for ckpt_id:%llx",ckpt_node->ckpt_id);
 			goto ckpt_node_add_fail;
 		}
 		if (reploc_info && create_reploc_node) {
@@ -366,20 +368,26 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 	return NCSCC_RC_SUCCESS;
 
  ckpt_node_add_fail:
- map_node_add_fail:
-	/* This is the unexpected failure case, (Process TBD ) */
-	TRACE("UNEXPECTED FAILURE");
-	TRACE_LEAVE();
-	return proc_rc;
+	cpd_ckpt_map_node_delete(cb, map_info);
+	map_info = NULL;
 
+ map_node_add_fail:
  free_mem:
 	if (*io_map_info == NULL) {
-		if (ckpt_node)
+		if (ckpt_node) {
 			m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);
+		}
 
-		if (map_info)
+		if (map_info) {
 			m_MMGR_FREE_CPD_CKPT_MAP_INFO(map_info);
+		}
 	}
+
+	if (node_info) {
+		m_MMGR_FREE_CPD_CPND_INFO_NODE(node_info);
+
+	}
+
 	TRACE_LEAVE();
 	return proc_rc;
 
@@ -388,7 +396,7 @@ uint32_t cpd_ckpt_db_entry_update(CPD_CB *cb,
 /****************************************************************************
  * Name          : cpd_noncolloc_ckpt_rep_delete
  *
- * Description   : This routine will run the policy to create the non-collacated
+ * Description   : This routine will run the policy to delete the non-collacated
  *                 ckpt replicas.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
@@ -403,13 +411,11 @@ uint32_t cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	bool ckptid_flag = false;
-	SaNameT ckpt_name, node_name;
+	SaConstStringT ckpt_name = NULL, node_name = NULL;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 
 	TRACE_ENTER();
-	memset(&ckpt_name, 0, sizeof(SaNameT));
-	memset(&node_name, 0, sizeof(SaNameT));
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
 
 	/* Only the created replicas are present, need to delete them */
@@ -429,13 +435,11 @@ uint32_t cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node
 				}
 			}
 			memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
-			memset(&ckpt_name, 0, sizeof(SaNameT));
-			memset(&node_name, 0, sizeof(SaNameT));
 
 			ckpt_name = ckpt_node->ckpt_name;
 			key_info.ckpt_name = ckpt_name;
 
-			node_name = node_info->node_name;
+			node_name = strdup(node_info->node_name);
 
 			cpd_a2s_ckpt_dest_del(cb, ckpt_node->ckpt_id, &nref_info->dest, ckptid_flag);
 
@@ -456,11 +460,13 @@ uint32_t cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node
 		}
 
 		key_info.node_name = node_name;
-		/*  key_info.node_name.length = m_NCS_OS_NTOHS(node_name.length); */
 		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
 		if (rep_info) {
 			cpd_ckpt_reploc_node_delete(cb, rep_info, ckpt_node->is_unlink_set);
 		}
+
+		if (node_name != NULL)
+			free((void *)node_name);
 
 		m_MMGR_FREE_CPD_NODE_REF_INFO(nref_info);
 		nref_info = nref_next;
@@ -494,18 +500,16 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPD_CPND_INFO_NODE *node_info = NULL;
 	SaCkptCheckpointCreationAttributesT create_attr;
-	SaNameT ckpt_name, node_name;
+	SaConstStringT ckpt_name = NULL, node_name = NULL;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 
 	TRACE_ENTER();
-	memset(&ckpt_name, 0, sizeof(SaNameT));
-	memset(&node_name, 0, sizeof(SaNameT));
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
 	memset(&create_attr, 0, sizeof(SaCkptCheckpointCreationAttributesT));
 
 	if (ckpt_node->is_unlink_set != true) {
-		cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
+		cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_node->ckpt_name, &map_info);
 		if (map_info == NULL) {
 			TRACE_4("cpd db del failed for ckpt_id:%llu",ckpt_node->ckpt_id);
 			TRACE_LEAVE();
@@ -602,7 +606,7 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 	cpd_cpnd_info_node_get(&cb->cpnd_tree, &sinfo->dest, &node_info);
 
 	if (node_info) {
-		node_name = node_info->node_name;
+		node_name = strdup(node_info->node_name);
 		/* Remove the ckpt reference from the node_info */
 		for (cref_info = node_info->ckpt_ref_list; cref_info != NULL; cref_info = cref_info->next) {
 			if (cref_info->ckpt_node == ckpt_node) {
@@ -632,6 +636,9 @@ uint32_t cpd_process_ckpt_delete(CPD_CB *cb,
 	if (rep_info) {
 		cpd_ckpt_reploc_node_delete(cb, rep_info, ckpt_node->is_unlink_set);
 	}
+
+	if (node_name != NULL)
+		free((void *)node_name);
 
 	if (ckpt_node->dest_cnt == 0) {
 		*o_ckpt_node_deleted = false;
@@ -698,8 +705,8 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 			}
 		}
 
-		key_info.ckpt_name = ckpt_node->ckpt_name;
-		key_info.node_name = cpnd_info->node_name;
+		key_info.ckpt_name = strdup(ckpt_node->ckpt_name);
+		key_info.node_name = strdup(cpnd_info->node_name);
 
 		if (match_found == true) {
 			/* Remove the node reference from the ckpt_node */
@@ -809,7 +816,7 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 			send_evt.info.cpnd.info.ckpt_del.mds_dest = *cpnd_dest;
 			if (ckpt_node->dest_cnt == 0) {
 				TRACE_1("cpd ckpt del success for ckpt_id:%llx",ckpt_node->ckpt_id);
-				cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
+				cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_node->ckpt_name, &map_info);
 
 				/* Remove the ckpt_node */
 				(void)cpd_ckpt_node_delete(cb, ckpt_node);
@@ -878,6 +885,9 @@ uint32_t cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 		if (rep_info) {
 			cpd_ckpt_reploc_node_delete(cb, rep_info, ckpt_node->is_unlink_set);
 		}
+
+		free((void *)key_info.ckpt_name);
+		free((void *)key_info.node_name);
 
 		m_MMGR_FREE_CPD_CKPT_REF_INFO(cref_info);
 
@@ -994,7 +1004,7 @@ uint32_t cpd_proc_retention_set(CPD_CB *cb, SaCkptCheckpointHandleT ckpt_id, SaT
  * Notes         : None
 **************************************************************************************/
 
-uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKPT_MAP_INFO *map_info, SaNameT *ckpt_name)
+uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKPT_MAP_INFO *map_info, SaConstStringT ckpt_name)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 
@@ -1005,7 +1015,7 @@ uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKP
 	if (map_info) {
 		cpd_ckpt_node_get(&cb->ckpt_tree, &map_info->ckpt_id, ckpt_node);
 	} else {
-		TRACE_4("cpd proc unlink set failed for ckpt_name:%s",ckpt_name->value);
+		TRACE_4("cpd proc unlink set failed for ckpt_name:%s",ckpt_name);
 		/* There is no checkpoint opened with this name */
 		return SA_AIS_ERR_NOT_EXIST;
 	}
@@ -1013,7 +1023,7 @@ uint32_t cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKP
 	if ((*ckpt_node) == 0) {
 		/* This should not happen, Incorrect CPD database 
 		   Handling, TBD */
-		TRACE_4("cpd proc unlink set faile for ckpt_name:%s",ckpt_name->value);
+		LOG_ER("cpd proc unlink set failed - there is no ckpt_node for ckpt_name:%s",ckpt_name);
 		return SA_AIS_ERR_NOT_EXIST;
 	}
 
@@ -1128,16 +1138,12 @@ void cpd_cb_dump(void)
 										    (uint8_t *)&prev_ckpt_id);
 
 			while (ckpt_node) {
-				uint32_t i = 0;
 				prev_ckpt_id = ckpt_node->ckpt_id;
 
 				TRACE("------------------------------------------------------");
 				TRACE(" CKPT ID:  = %d", (uint32_t)ckpt_node->ckpt_id);
-				TRACE(" CKPT Name len  = %d", ckpt_node->ckpt_name.length);
-				TRACE(" CKPT Name: ");
-				for (i = 0; i < ckpt_node->ckpt_name.length; i++) {
-					TRACE("%c", ckpt_node->ckpt_name.value[i]);
-				}
+				TRACE(" CKPT Name len  = %lu", strlen(ckpt_node->ckpt_name));
+				TRACE(" CKPT Name: %s", ckpt_node->ckpt_name);
 
 				TRACE(" UNLINK = %d, Active Exists = %d", ckpt_node->is_unlink_set,
 				       ckpt_node->is_active_exists);
@@ -1182,24 +1188,16 @@ void cpd_cb_dump(void)
 		/* Print the CKPT Details */
 		if (cb->ckpt_map_tree.n_nodes > 0) {
 			CPD_CKPT_MAP_INFO *ckpt_map_node = NULL;
-			SaNameT name;
-
-			memset(&name, 0, sizeof(SaNameT));
+			SaConstStringT name;
 
 			/* Get the First Node */
-			ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,
-										       (uint8_t *)name.value);
+			ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree, (uint8_t *)&name);
 			while (ckpt_map_node != NULL) {
-				uint32_t i;
-
 				name = ckpt_map_node->ckpt_name;
 
 				TRACE("------------------------------------------------------");
-				TRACE(" CKPT Name len  = %d", ckpt_map_node->ckpt_name.length);
-				TRACE(" CKPT Name: ");
-				for (i = 0; i < ckpt_map_node->ckpt_name.length; i++) {
-					TRACE("%c", ckpt_map_node->ckpt_name.value[i]);
-				}
+				TRACE(" CKPT Name len  = %lu", strlen(name));
+				TRACE(" CKPT Name: %s", name);
 
 				TRACE(" CKPT ID:  = %d", (uint32_t)ckpt_map_node->ckpt_id);
 
@@ -1212,7 +1210,7 @@ void cpd_cb_dump(void)
 				TRACE(" maxSectionIdSize: %d, ", (uint32_t)ckpt_map_node->attributes.maxSectionIdSize);
 				ckpt_map_node =
 				    (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,
-										   (uint8_t *)name.value);
+										   (uint8_t *)name);
 			}
 			TRACE(" End of CKPT Info");
 		}
@@ -1234,20 +1232,21 @@ void cpd_cb_dump(void)
 uint32_t cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, bool is_unlink_set)
 {
 
-	SaNameT replica_dn, node_name;
-	memset(&replica_dn, 0, sizeof(SaNameT));
-	memset(&node_name, 0, sizeof(SaNameT));
+	char *replica_dn = NULL;
+	SaNameT replica_sanamet;
+
 	/* delete imm runtime object */
 	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (is_unlink_set != true)) {
 		/* escapes rdn's  ',' with '\'   */
-		node_name.length = m_NCS_OS_NTOHS(ckpt_reploc_node->rep_key.node_name.length);
-		strcpy((char *)node_name.value, (char *)ckpt_reploc_node->rep_key.node_name.value);
-		cpd_create_association_class_dn(&node_name,
-						&ckpt_reploc_node->rep_key.ckpt_name, "safReplica", &replica_dn);
-		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &replica_dn) != SA_AIS_OK) {
-			LOG_ER("Deleting run time object %s FAILED", replica_dn.value);
+		cpd_create_association_class_dn(ckpt_reploc_node->rep_key.node_name,
+						ckpt_reploc_node->rep_key.ckpt_name, "safReplica", &replica_dn);
+		osaf_extended_name_lend(replica_dn, &replica_sanamet);
+		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &replica_sanamet) != SA_AIS_OK) {
+			LOG_ER("Deleting run time object %s FAILED", replica_dn);
+			free(replica_dn);
 			return NCSCC_RC_FAILURE;
 		}
+		free(replica_dn);
 	}
 	return NCSCC_RC_SUCCESS;
 }
@@ -1306,7 +1305,7 @@ uint32_t cpd_ckpt_db_update_after_headless(CPD_CB *cb,
 		}
 
 		memset(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
-		map_info->ckpt_name = ckpt_info->ckpt_name;
+		map_info->ckpt_name = strdup(osaf_extended_name_borrow(&ckpt_info->ckpt_name));
 		map_info->attributes = ckpt_info->attributes;
 		map_info->client_version = ckpt_info->client_version;
 		map_info->ckpt_id = ckpt_info->ckpt_id;
@@ -1330,7 +1329,7 @@ uint32_t cpd_ckpt_db_update_after_headless(CPD_CB *cb,
 
 		memset(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
 		ckpt_node->ckpt_id = map_info->ckpt_id;
-		ckpt_node->ckpt_name = ckpt_info->ckpt_name;
+		ckpt_node->ckpt_name = strdup(osaf_extended_name_borrow(&ckpt_info->ckpt_name));
 		ckpt_node->is_unlink_set = ckpt_info->is_unlink;
 		ckpt_node->attributes = ckpt_info->attributes;
 		if (ckpt_node->attributes.maxSections == 1)
@@ -1404,9 +1403,9 @@ uint32_t cpd_ckpt_db_update_after_headless(CPD_CB *cb,
 		goto free_mem;
 	}
 
-	node_info->node_name = cluster_node.nodeName;
-	key_info.node_name = cluster_node.nodeName;
-	key_info.ckpt_name = ckpt_info->ckpt_name;
+	node_info->node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
+	key_info.node_name = osaf_extended_name_borrow(&cluster_node.nodeName);
+	key_info.ckpt_name = osaf_extended_name_borrow(&ckpt_info->ckpt_name);
 
 	/* Create and add the reploc node into ckpt_reploc_tree if it doesn't exist */
 	/* Only create reploc_node for Collocated and Non-collocated active replica */
@@ -1423,8 +1422,8 @@ uint32_t cpd_ckpt_db_update_after_headless(CPD_CB *cb,
 
 		/* Initialize the reploc info node */
 		memset(reploc_info, 0, sizeof(CPD_CKPT_REPLOC_INFO));
-		reploc_info->rep_key.node_name = cluster_node.nodeName;
-		reploc_info->rep_key.ckpt_name = ckpt_info->ckpt_name;
+		reploc_info->rep_key.node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
+		reploc_info->rep_key.ckpt_name = strdup(osaf_extended_name_borrow(&ckpt_info->ckpt_name));
 
 		if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_info->attributes))
 			reploc_info->rep_type = REP_NONCOLL;
@@ -1465,22 +1464,25 @@ uint32_t cpd_ckpt_db_update_after_headless(CPD_CB *cb,
 			cpd_ckpt_node_get(&cb->ckpt_tree, &ckpt_info->ckpt_id, &tmp_ckpt_node);
 			if (tmp_ckpt_node) /* The ckpt_node was added into the tree */
 				cpd_ckpt_node_delete(cb, ckpt_node);
-			else
+			else {
 				m_MMGR_FREE_CPD_CKPT_INFO_NODE(ckpt_node);
+			}
 		}
 
 		if (map_info) {
 			CPD_CKPT_MAP_INFO *tmp_map_info;
-			cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_info->ckpt_name, &tmp_map_info);
+			cpd_ckpt_map_node_get(&cb->ckpt_map_tree, osaf_extended_name_borrow(&ckpt_info->ckpt_name), &tmp_map_info);
 			if (tmp_map_info) /* The map info was added into the tree */
 				cpd_ckpt_map_node_delete(cb, map_info);
-			else
+			else {
 				m_MMGR_FREE_CPD_CKPT_MAP_INFO(map_info);
+			}
 		}
 	}
 
-	if (reploc_info)
+	if (reploc_info) {
 		m_MMGR_FREE_CPD_CKPT_REPLOC_INFO(reploc_info);
+	}
 
 	TRACE_LEAVE();
 	return proc_rc;

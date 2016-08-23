@@ -334,10 +334,10 @@ uint32_t cpd_amf_register(CPD_CB *cpd_cb)
 	}
 
 	if (saAmfComponentRegister(cpd_cb->amf_hdl, &cpd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK) {
-		TRACE_LEAVE2("cpd amf register success for %s",cpd_cb->comp_name.value);
+		TRACE_LEAVE2("cpd amf register success for %s", osaf_extended_name_borrow(&cpd_cb->comp_name));
 		return NCSCC_RC_SUCCESS;
 	} else {
-		TRACE_LEAVE2("cpd Amf component register failed for %s",cpd_cb->comp_name.value);
+		TRACE_LEAVE2("cpd Amf component register failed for %s",osaf_extended_name_borrow(&cpd_cb->comp_name));
 		return NCSCC_RC_FAILURE;
 	}
 }
@@ -355,7 +355,8 @@ uint32_t cpd_amf_register(CPD_CB *cpd_cb)
  *****************************************************************************/
 uint32_t cpd_amf_deregister(CPD_CB *cpd_cb)
 {
-	SaNameT comp_name = { 5, "CPD" };
+	SaNameT comp_name;
+	osaf_extended_name_lend("CPD", &comp_name);
 	if (saAmfComponentUnregister(cpd_cb->amf_hdl, &comp_name, (SaNameT *)NULL) == SA_AIS_OK)
 		return NCSCC_RC_SUCCESS;
 	else

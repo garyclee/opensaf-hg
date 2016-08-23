@@ -33,6 +33,7 @@
 #ifndef CPD_H
 #define CPD_H
 
+#include "osaf_extended_name.h"
 #include "cpsv.h"
 #include "ncssysf_def.h"
 #include "ncs_main_papi.h"
