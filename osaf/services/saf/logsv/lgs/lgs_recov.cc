@@ -309,24 +309,6 @@ static int lgs_get_file_params_h(gfp_in_t *par_in, gfp_out_t *par_out)
 	return rc;
 }
 
-static void lgs_remove_stream(uint32_t client_id, log_stream_t *log_stream)
-{
-	TRACE_ENTER();
-
-	/* Remove the stream handle and
-	 * remove the stream resources
-	 */
-       if (lgs_client_stream_rmv(client_id, log_stream->streamId) < 0) {
-	       TRACE("%s lgs_client_stream_rmv Fail", __FUNCTION__);
-       }
-
-       log_free_stream_resources(log_stream);
-
-       log_stream = NULL;
-
-       TRACE_LEAVE();
-}
-
 /**
  * Restore parameters for a lost runtime (application) stream, create the
  * stream in the local stream list and associate with a client.
@@ -344,7 +326,6 @@ int lgs_restore_one_app_stream(
 {
 	int int_rc = 0;
 	int rc_out = 0;
-	SaAisErrorT ais_rc = SA_AIS_OK;
 	SaImmHandleT immOmHandle;
 	SaImmAttrValuesT_2 *attribute;
 	SaImmAttrValuesT_2 **attributes;
@@ -353,7 +334,7 @@ int lgs_restore_one_app_stream(
 	int list_pos;
 	int n;
 	int i = 0;
-
+	SaBoolT twelveHourModeFlag = SA_FALSE;
 	lgsv_stream_open_req_t open_stream_param;
 	log_stream_t *log_stream = NULL;
 	SaTimeT restored_creationTimeStamp = 0;
@@ -552,15 +533,40 @@ int lgs_restore_one_app_stream(
 	 */
 	open_stream_param.client_id = client_id;
 	open_stream_param.lstr_open_flags = 0; /* Dummy not used here */
-
 	open_stream_param.logFileName = const_cast<char *>(fileName.c_str());
 	open_stream_param.logFilePathName = const_cast<char *>(pathName.c_str());
 
-	ais_rc = create_new_app_stream(&open_stream_param, &log_stream);
-	if ( ais_rc != SA_AIS_OK) {
-		TRACE("%s: create_new_app_stream Fail %s",
-			__FUNCTION__, saf_error(ais_rc));
+	log_stream = log_stream_new(stream_name, STREAM_NEW);
+	if (log_stream == NULL) {
+		TRACE("%s: log_stream_new failed", __FUNCTION__);
 		rc_out = -1;
+		goto done_free_attr;
+	}
+
+	/**
+	 * No need to verify all attributes as
+	 * they have been verified at the time of creation
+	 */
+
+	/* Get twelveHourModeFlag from the logFileFmt */
+	lgs_is_valid_format_expression(open_stream_param.logFileFmt,
+				       STREAM_TYPE_APPLICATION,
+				       &twelveHourModeFlag);
+	rc_out = lgs_populate_log_stream(
+		open_stream_param.logFileName,
+		open_stream_param.logFilePathName,
+		open_stream_param.maxLogFileSize,
+		open_stream_param.maxLogRecordSize,
+		open_stream_param.logFileFullAction,
+		open_stream_param.maxFilesRotated,
+		open_stream_param.logFileFmt,
+		STREAM_TYPE_APPLICATION,
+		twelveHourModeFlag,
+		0,
+		log_stream); // output
+	if (rc_out == -1) {
+		TRACE("%s: lgs_populate_log_stream failed", __FUNCTION__);
+		log_stream_delete(&log_stream);
 		goto done_free_attr;
 	}
 
@@ -568,7 +574,7 @@ int lgs_restore_one_app_stream(
 	int_rc = lgs_client_stream_add(client_id, log_stream->streamId);
 	if (int_rc == -1) {
 		TRACE("%s: lgs_client_stream_add Fail", __FUNCTION__);
-		log_free_stream_resources(log_stream); /* Undo create new stream */
+		log_stream_delete(&log_stream);
 		rc_out = -1;
 		goto done_free_attr;
 	}
@@ -607,7 +613,8 @@ int lgs_restore_one_app_stream(
 		 /* Remove the stream handle and
 		  * remove the stream resources
 		  */
-		lgs_remove_stream(client_id, log_stream);
+		lgs_client_stream_rmv(client_id, log_stream->streamId);
+		log_stream_delete(&log_stream);
 		rc_out = -1;
 		goto done_free_attr;
 	}
