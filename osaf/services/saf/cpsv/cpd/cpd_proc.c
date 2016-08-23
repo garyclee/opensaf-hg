@@ -61,9 +61,9 @@ uint32_t cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
 	/* Send the Replica create info to CPND */
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
 	send_evt.type = CPSV_EVT_TYPE_CPND;
-	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_CREATE;
 
 	osaf_extended_name_lend(map_info->ckpt_name, &send_evt.info.cpnd.info.ckpt_create.ckpt_name);
+	send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_CREATE;
 
 	d2nd_info = &send_evt.info.cpnd.info.ckpt_create.ckpt_info;
 

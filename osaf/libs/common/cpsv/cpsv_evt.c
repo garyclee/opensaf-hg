@@ -2378,6 +2378,7 @@ static uint32_t cpsv_encode_extended_name_flat(NCS_UBAID *uba, SaNameT *name)
 	if(!osaf_is_an_extended_name(name))
 		return NCSCC_RC_SUCCESS;
 
+	TRACE("length = %d", name->length);
 	SaConstStringT value = osaf_extended_name_borrow(name);
 	uint16_t length = osaf_extended_name_length(name);
 

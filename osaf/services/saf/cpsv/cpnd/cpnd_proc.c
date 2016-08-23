@@ -2529,9 +2529,9 @@ void cpnd_proc_ckpt_info_update(CPND_CB *cb)
 		LOG_NO("cpnd_proc_update_cpd_data::ckpt_name = %s[%llu]", (char*)ckpt_node->ckpt_name,
 			ckpt_node->ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPD;
-		send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_INFO_UPDATE;
 		send_evt.info.cpd.info.ckpt_info.ckpt_id = ckpt_node->ckpt_id;
 		osaf_extended_name_lend(ckpt_node->ckpt_name, &send_evt.info.cpd.info.ckpt_info.ckpt_name);
+		send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_INFO_UPDATE;
 		send_evt.info.cpd.info.ckpt_info.attributes = ckpt_node->create_attrib;
 		send_evt.info.cpd.info.ckpt_info.ckpt_flags = ckpt_node->open_flags;
 		send_evt.info.cpd.info.ckpt_info.num_users = ckpt_node->ckpt_lcl_ref_cnt;
