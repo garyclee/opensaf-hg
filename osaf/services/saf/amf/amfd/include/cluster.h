@@ -28,8 +28,8 @@
 #include <node.h>
 
 typedef struct avd_cluster_tag {
-	SaNameT saAmfCluster;
-	SaNameT saAmfClusterClmCluster;
+	std::string saAmfCluster;
+	std::string saAmfClusterClmCluster;
 	SaTimeT saAmfClusterStartupTimeout;
 	SaAmfAdminStateT saAmfClusterAdminState;
 } AVD_CLUSTER;
@@ -37,8 +37,8 @@ typedef struct avd_cluster_tag {
 extern AVD_CLUSTER *avd_cluster;
 
 extern SaAisErrorT avd_cluster_config_get(void);
-extern void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-extern void avd_node_sync_tmr_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+extern void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+extern void avd_node_sync_tmr_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 extern void avd_cluster_constructor(void);
 
 #endif

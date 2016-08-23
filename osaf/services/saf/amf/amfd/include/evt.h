@@ -73,19 +73,21 @@ typedef enum avd_evt_type {
 	AVD_EVT_MAX
 } AVD_EVT_TYPE;
 
+union AVD_EVT_INFO {
+	AVD_DND_MSG *avnd_msg;
+	AVD_D2D_MSG *avd_msg;
+	SaClmNodeIdT node_id;
+	AVD_TMR tmr;
+	AVD_EVT_INFO() {new(&tmr) AVD_TMR();}
+	~AVD_EVT_INFO() {tmr.~AVD_TMR();}
+};
+
 /* AVD top-level event structure */
-typedef struct avd_evt_tag {
+struct AVD_EVT {
 	NCS_IPC_MSG next;
 	AVD_EVT_TYPE rcv_evt;
-
-	union {
-		AVD_DND_MSG *avnd_msg;
-		AVD_D2D_MSG *avd_msg;
-		SaClmNodeIdT node_id;
-		AVD_TMR tmr;
-	} info;
-
-} AVD_EVT;
+	AVD_EVT_INFO info;
+};
 
 #define AVD_EVT_NULL ((AVD_EVT *)0)
 

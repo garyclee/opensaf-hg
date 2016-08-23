@@ -24,11 +24,11 @@
 
 class AVD_SUTYPE {
  public:
-  explicit AVD_SUTYPE(const SaNameT *dn);
-  SaNameT name {};
+  explicit AVD_SUTYPE(const std::string& dn);
+  std::string name {};
   SaUint32T saAmfSutIsExternal {};
   SaUint32T saAmfSutDefSUFailover {};
-  SaNameT *saAmfSutProvidesSvcTypes {}; /* array of DNs, size in number_svc_types */
+  std::vector<std::string> saAmfSutProvidesSvcTypes {}; /* array of DNs, size in number_svc_types */
   unsigned int number_svc_types {};	/* size of array saAmfSutProvidesSvcTypes */
   std::vector<AVD_SU*> list_of_su {};
  private:

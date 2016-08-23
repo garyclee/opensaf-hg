@@ -30,13 +30,13 @@
 #include <include/apptype.h>
 #include <sg.h>
 #include <si.h>
-#include "db_template.h"
+#include <amf_db_template.h>
 
 class AVD_APP {
 
 public:
-	SaNameT name;
-	SaNameT saAmfAppType;
+	std::string name;
+	std::string saAmfAppType;
 	SaAmfAdminStateT saAmfApplicationAdminState;
 	SaUint32T saAmfApplicationCurrNumSGs;
 	AVD_SG *list_of_sg;
@@ -45,7 +45,7 @@ public:
 	AVD_APP_TYPE *app_type;
 	
 	AVD_APP();
-	explicit AVD_APP(const SaNameT *dn);
+	explicit AVD_APP(const std::string& dn);
 	~AVD_APP();
 	
 	void add_si(AVD_SI *si);

@@ -20,8 +20,8 @@
 
 class AVD_SVC_TYPE {
  public:
-  explicit AVD_SVC_TYPE(const SaNameT *dn);
-  SaNameT name {};
+  explicit AVD_SVC_TYPE(const std::string& dn);
+  std::string name {};
   char **saAmfSvcDefActiveWeight {};
   char **saAmfSvcDefStandbyWeight {};
   std::vector<AVD_SI*> list_of_si {};

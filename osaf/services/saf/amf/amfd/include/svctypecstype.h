@@ -18,9 +18,9 @@
 
 class AVD_SVC_TYPE_CS_TYPE {
  public:
-  explicit AVD_SVC_TYPE_CS_TYPE(const SaNameT *dn);
+  explicit AVD_SVC_TYPE_CS_TYPE(const std::string& dn);
 
-  SaNameT name {};
+  std::string name {};
   SaUint32T saAmfSvctMaxNumCSIs {};
 
   SaUint32T curr_num_csis {};
@@ -34,7 +34,7 @@ class AVD_SVC_TYPE_CS_TYPE {
   void operator=(const AVD_SVC_TYPE_CS_TYPE&);
 };
 
-SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
+SaAisErrorT avd_svctypecstypes_config_get(const std::string& svctype_name);
 void avd_svctypecstypes_constructor(void);
 
 extern AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db;

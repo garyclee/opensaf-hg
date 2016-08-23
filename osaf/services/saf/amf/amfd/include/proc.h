@@ -39,8 +39,8 @@
 
 typedef void (*AVD_EVT_HDLR) (AVD_CL_CB *, AVD_EVT *);
 
-void avd_su_oper_state_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_su_si_assign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+void avd_su_oper_state_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_su_si_assign_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 				  SaAmfHAStateT role, bool ckpt, AVD_SU_SI_REL **ret_ptr);
 void su_try_repair(const AVD_SU *su);
@@ -63,29 +63,29 @@ uint32_t avd_count_node_up(AVD_CL_CB *cb);
 uint32_t avd_evt_queue_count(AVD_CL_CB *cb);
 uint32_t avd_count_sync_node_size(AVD_CL_CB *cb);
 void avd_process_state_info_queue(AVD_CL_CB *cb);
-void avd_node_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_reg_su_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_oper_req_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_mds_avnd_up_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+void avd_node_up_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_reg_su_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_oper_req_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_mds_avnd_up_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 void avd_fail_over_event(AVD_CL_CB *cb);
-void avd_mds_avnd_down_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+void avd_mds_avnd_down_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_node_down_func(AVD_CL_CB *cb, AVD_AVND *avnd);
-void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 uint32_t avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id);
 AVD_AVND *avd_msg_sanity_chk(AVD_EVT *evt, SaClmNodeIdT node_id,
 	AVSV_DND_MSG_TYPE msg_typ, uint32_t msg_id);
 void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd);
-void avd_rcv_hb_d_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_process_hb_event(AVD_CL_CB *cb_now, struct avd_evt_tag *evt);
+void avd_rcv_hb_d_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_process_hb_event(AVD_CL_CB *cb_now, struct AVD_EVT *evt);
 extern void avd_node_mark_absent(AVD_AVND *node);
 extern void avd_tmr_snd_hb_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 extern void avd_node_failover(AVD_AVND *node);

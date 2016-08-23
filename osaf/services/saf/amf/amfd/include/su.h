@@ -32,7 +32,7 @@
 #include <amf_defs.h>
 #include <msg.h>
 #include <comp.h>
-#include "include/db_template.h"
+#include <amf_db_template.h>
 
 class AVD_SG;
 class AVD_SUTYPE;
@@ -44,17 +44,17 @@ class AVD_SUTYPE;
 class AVD_SU {
  public:
      	AVD_SU();
-	explicit AVD_SU(const SaNameT *dn);
+	explicit AVD_SU(const std::string& dn);
 	~AVD_SU() {};
 
-	SaNameT name;
-	SaNameT saAmfSUType;
+	std::string name;
+	std::string saAmfSUType;
 	uint32_t saAmfSURank;
-	SaNameT saAmfSUHostNodeOrNodeGroup;
+	std::string saAmfSUHostNodeOrNodeGroup;
 	bool saAmfSUFailover;
 	/* true when user has configured saAmfSUFailover */
 	bool saAmfSUFailover_configured;
-	SaNameT saAmfSUMaintenanceCampaign;
+	std::string saAmfSUMaintenanceCampaign;
 
 	/* runtime attributes */
 	SaBoolT saAmfSUPreInstantiable;  // TODO(hafe) change to bool
@@ -62,7 +62,7 @@ class AVD_SU {
 	SaAmfAdminStateT saAmfSUAdminState;
 	SaAmfReadinessStateT saAmfSuReadinessState;
 	SaAmfPresenceStateT saAmfSUPresenceState;
-	SaNameT saAmfSUHostedByNode;
+	std::string saAmfSUHostedByNode;
 	SaUint32T saAmfSUNumCurrActiveSIs;
 	SaUint32T saAmfSUNumCurrStandbySIs;
 	SaUint32T saAmfSURestartCount;
@@ -120,7 +120,7 @@ class AVD_SU {
 	bool is_in_service(void);
 	bool is_instantiable(void);
 	void reset_all_comps_assign_flag();
-	AVD_COMP *find_unassigned_comp_that_provides_cstype(const SaNameT *cstype);
+	AVD_COMP *find_unassigned_comp_that_provides_cstype(const std::string& cstype);
 	void disable_comps(SaAisErrorT result);
 	void complete_admin_op(SaAisErrorT result);
 	void unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
@@ -167,7 +167,7 @@ extern AmfDb<std::string, AVD_SU> *su_db;
  * 
  * @return SaAisErrorT
  */
-extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg);
+extern SaAisErrorT avd_su_config_get(const std::string& sg_name, AVD_SG *sg);
 
 /**
  * Class constructor, must be called before any other function

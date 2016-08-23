@@ -40,18 +40,18 @@
  */
 typedef struct avd_si_dep_name_list {
 	/* SI name */
-	SaNameT si_name;
+	std::string si_name;
 
 	struct avd_si_dep_name_list *next;
 } AVD_SI_DEP_NAME_LIST;
 
 class AVD_SI_DEP {
 public:
-        SaNameT name;
+        std::string name;
         AVD_SI *spons_si;
-        SaNameT spons_name;
+        std::string spons_name;
         AVD_SI *dep_si;
-        SaNameT dep_name;
+        std::string dep_name;
         SaTimeT saAmfToleranceTime;
         AVD_TMR si_dep_timer;
 };
@@ -69,9 +69,9 @@ typedef struct avd_spons_si_tag {
 extern AmfDb<std::pair<std::string, std::string>, AVD_SI_DEP> *sidep_db;
 void sidep_spons_list_del(AVD_CL_CB *cb, AVD_SI_DEP *si_dep_rec);
 AVD_SI_DEP *avd_sidep_find(AVD_SI *spons_si, AVD_SI *dep_si);
-void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_sidep_assign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-void avd_sidep_unassign_evh(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_sidep_assign_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
+void avd_sidep_unassign_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void sidep_si_screen_si_dependencies(AVD_SI *si);
 void avd_sidep_update_si_dep_state_for_all_sis(AVD_SG *sg);
 void sidep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si);
@@ -93,6 +93,6 @@ extern void sidep_update_si_self_dep_state(AVD_SI *si);
 extern void sidep_update_dependents_states(AVD_SI *si);
 extern void sidep_process_ready_to_unassign_depstate(AVD_SI *dep_si);
 extern void avd_sidep_sg_take_action(AVD_SG *sg);
-extern void get_dependent_si_list(const SaNameT &spons_si_name, std::list<AVD_SI*>& depsi_list);
+extern void get_dependent_si_list(const std::string &spons_si_name, std::list<AVD_SI*>& depsi_list);
 extern void avd_sidep_activ_amfd_tol_timer_expiry(AVD_SI *spons_si, AVD_SI *dep_si);
 #endif
