@@ -1813,7 +1813,6 @@ uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
 	memset(&write_req, '\0', sizeof(write_req));
 	memset(&ckpt_hdr, '\0', sizeof(CPSV_CKPT_HDR));
 	ckpt_hdr.ckpt_id = cp_node->ckpt_id;
-	strncpy(ckpt_hdr.ckpt_name, cp_node->ckpt_name, kOsafMaxDnLength);
 	ckpt_hdr.create_attrib = cp_node->create_attrib;
 	ckpt_hdr.open_flags = cp_node->open_flags;
 	ckpt_hdr.is_unlink = cp_node->is_unlink;

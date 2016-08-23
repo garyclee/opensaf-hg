@@ -74,6 +74,24 @@ typedef struct ckpt_info {
 	int32_t next;
 } CKPT_INFO;
 
+typedef struct ckpt_info_v0 {
+	SaNameT ckpt_name;
+	SaCkptCheckpointHandleT ckpt_id;
+	uint32_t maxSections;
+	SaSizeT maxSecSize;
+	NODE_ID node_id;
+	int32_t offset;
+	uint32_t client_bitmap;
+	int32_t is_valid;
+	uint32_t bm_offset;
+	bool is_unlink;
+	bool is_close;
+	bool cpnd_rep_create;
+	bool is_first;
+	SaTimeT close_time;
+	int32_t next;
+} CKPT_INFO_V0;
+
 typedef struct client_info {
 	SaCkptHandleT ckpt_app_hdl;
 	uint32_t ckpt_open_ref_cnt;
