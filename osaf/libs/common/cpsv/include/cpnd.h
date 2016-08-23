@@ -34,6 +34,7 @@
 #define CPND_H
 
 #include <stdint.h>
+#include "osaf_extended_name.h"
 #include "ncssysf_def.h"
 #include "ncs_main_papi.h"
 #include "ncssysf_tsk.h"
