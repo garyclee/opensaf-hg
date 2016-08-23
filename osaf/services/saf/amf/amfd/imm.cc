@@ -246,8 +246,7 @@ AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
 ImmObjUpdate::~ImmObjUpdate()
 {
 	if (attrValueType_ == SA_IMM_ATTR_SANAMET) {
-		SaImmAttrValueT attrValues[] = {value_};
-		osaf_extended_name_free(static_cast<SaNameT*>(attrValues[0]));
+		osaf_extended_name_free(static_cast<SaNameT*>(value_));
 	}
 	delete [] attributeName_;
 	delete [] static_cast<char*>(value_);
@@ -1685,7 +1684,15 @@ void avd_saImmOiRtObjectUpdate(const std::string& dn, const std::string& attribu
 	ajob->attrValueType_ = attrValueType;
 	ajob->value_ = new char[sz];
 
-	memcpy(ajob->value_, value, sz);
+	if (attrValueType == SA_IMM_ATTR_SANAMET) {
+		osaf_extended_name_alloc(osaf_extended_name_borrow(static_cast<SaNameT *>(value)),
+			static_cast<SaNameT *>(ajob->value_));
+	} else if (attrValueType == SA_IMM_ATTR_SASTRINGT) {
+			delete [] static_cast<char*>(ajob->value_);
+			ajob->value_ = StrDup(static_cast<SaStringT>(value));
+	} else {
+		memcpy(ajob->value_, value, sz);
+	}
 	Fifo::queue(ajob);
 	
 	TRACE_LEAVE();
