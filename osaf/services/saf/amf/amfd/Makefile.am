@@ -26,7 +26,7 @@ osaf_execbin_PROGRAMS = osafamfd
 osafamfd_CXXFLAGS =$(AM_CXXFLAGS)
 
 osafamfd_CPPFLAGS = \
-	-DSA_CLM_B01=1 \
+	-DSA_CLM_B01=1 -DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/amf/include \
 	-I$(top_srcdir)/osaf/services/saf/amf/amfd/include \

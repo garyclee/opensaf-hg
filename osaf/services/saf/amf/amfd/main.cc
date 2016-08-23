@@ -491,6 +491,9 @@ static uint32_t initialize(void)
 	char *val;
 
 	TRACE_ENTER();
+	
+	osaf_extended_name_init();
+	osaf_extended_name_lend("safApp=safAmfService", &_amfSvcUsrName);
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");
@@ -816,6 +819,12 @@ static void process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 int main(int argc, char *argv[])
 {
 	daemonize(argc, argv);
+
+	// Enable long DN
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		LOG_ER("failed to set SA_ENABLE_EXTENDED_NAMES");
+		exit(EXIT_FAILURE);
+	}
 
 	if (initialize() != NCSCC_RC_SUCCESS) {
 		(void) nid_notify(const_cast<char*>("AMFD"), NCSCC_RC_FAILURE, nullptr);
