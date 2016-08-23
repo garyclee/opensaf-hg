@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "saAis.h"
+#include "osaf_extended_name.h"
 #include "test_cpsv.h"
 #include "test_cpsv_conf.h"
 #include "ncs_main_papi.h"
@@ -42,6 +44,10 @@ const char *saf_error_string[] = {
 #define m_TEST_CPSV_PRINTF(...) 
 #endif
 
+#define VALID_EXTENDED_NAME_LENGTH 400
+#define INVALID_EXTENDED_NAME_LENGTH 2049
+
+
 extern int gl_prev_act;
 
 /********** Ultility Functions ************/
@@ -80,6 +86,18 @@ void printResult(int result)
      m_TEST_CPSV_PRINTF("\n ##### TEST CASE UNRESOLVED #####\n\n");
   }
 
+}
+
+bool is_extended_name_enable() {
+
+  char *extended_name_env = getenv("SA_ENABLE_EXTENDED_NAMES");
+  if (extended_name_env == 0) 
+	  return false;
+
+  if (strcmp(extended_name_env, "1") != 0)
+	  return false;
+
+  return true;
 }
 
 void handleAssigner(SaInvocationT invocation, SaCkptCheckpointHandleT checkpointHandle)
@@ -122,8 +140,7 @@ void fill_ckpt_attri(SaCkptCheckpointCreationAttributesT *cr_attr,SaCkptCheckpoi
                                                                                                                                                                       
 void fill_ckpt_name(SaNameT *name,char *string)
 {
-   strcpy((char *)name->value,string);
-   name->length = strlen((char *)name->value);
+   saAisNameLend(string, name);
 }
 
 void fill_sec_attri(SaCkptSectionCreationAttributesT *sec_cr_attr,SaCkptSectionIdT *sec,SaTimeT exp_time)
@@ -278,6 +295,20 @@ void fill_testcase_data()
    fill_ckpt_name(&tcd.active_replica_ckpt_large,"safCkpt=active_replica_large_ckpt,safApp=safCkptService");
    fill_ckpt_name(&tcd.weak_replica_ckpt_large,"safCkpt=weak_replica_large_ckpt,safApp=safCkptService");
    fill_ckpt_name(&tcd.collocated_ckpt_large,"safCkpt=collocated_large_ckpt,safApp=safCkptService");
+
+   char *ckpt_name = malloc(VALID_EXTENDED_NAME_LENGTH);
+   memset(ckpt_name, 0, VALID_EXTENDED_NAME_LENGTH);
+   memset(ckpt_name, '.', VALID_EXTENDED_NAME_LENGTH - 1);
+   int length = sprintf(ckpt_name, "safCkpt=all_replicas_ckpt_with_valid_extended_name_length");
+   *(ckpt_name + length) = '.';
+   saAisNameLend(ckpt_name, &tcd.all_replicas_ckpt_with_valid_extended_name_length);
+
+   ckpt_name = malloc(INVALID_EXTENDED_NAME_LENGTH);
+   memset(ckpt_name, 0, INVALID_EXTENDED_NAME_LENGTH);
+   memset(ckpt_name, '.', INVALID_EXTENDED_NAME_LENGTH - 1);
+   length = sprintf(ckpt_name, "safCkpt=all_replicas_ckpt_with_invalid_extended_name_length");
+   *(ckpt_name + length) = '.';
+   saAisNameLend(ckpt_name, &tcd.all_replicas_ckpt_with_invalid_extended_name_length);
 
    /* Variables for sec create */
    tcd.sec_id1 = (SaUint8T*)"11";
@@ -451,6 +482,9 @@ void test_ckpt_cleanup(CPSV_CLEANUP_CKPT_TC_TYPE tc)
           error = test_ckptUnlink(CKPT_UNLINK_SUCCESS9_T,TEST_CONFIG_MODE);
           break;
 
+     case CPSV_CLEAN_ASYNC_ALL_REPLICAS_CKPT_EXTENDED_NAME:
+          error = test_ckptUnlink(CKPT_UNLINK_ALL_REPLICAS_EXTENDED_NAME_SUCCESS_T,TEST_CONFIG_MODE);
+          break;
   }
 
   if(error != TEST_PASS)
@@ -2278,6 +2312,122 @@ final1:
   test_validate(result, TEST_PASS);
 }
 
+void cpsv_it_open_55()
+{
+  int result;
+  printHead("To verify creating a ckpt with valid extended name length");
+
+  /* Skip the test if Extended Name is not enable */
+  if (is_extended_name_enable() == false)
+	  return test_validate(TEST_PASS, TEST_PASS);
+
+  result = test_ckptInitialize(CKPT_INIT_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final1;
+
+  result = test_ckptOpen(CKPT_OPEN_ALL_CREATE_EXTENDED_NAME_SUCCESS_T,TEST_NONCONFIG_MODE);
+
+  test_cpsv_cleanup(CPSV_CLEAN_INIT_SUCCESS_T);
+
+final1:
+  printResult(result);
+  test_validate(result, TEST_PASS);
+}
+
+void cpsv_it_open_56()
+{
+  int result;
+  printHead("To verify creating a ckpt with invalid extended name length");
+
+  /* Skip the test if Extended Name is not enable */
+  if (is_extended_name_enable() == false)
+	  return test_validate(TEST_PASS, TEST_PASS);
+
+  result = test_ckptInitialize(CKPT_INIT_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final1;
+
+  result = test_ckptOpen(CKPT_OPEN_ALL_CREATE_EXTENDED_NAME_INVALID_PARAM_T,TEST_NONCONFIG_MODE);
+
+  test_cpsv_cleanup(CPSV_CLEAN_INIT_SUCCESS_T);
+
+final1:
+  printResult(result);
+  test_validate(result, TEST_PASS);
+}
+
+void cpsv_it_open_57()
+{
+  int result;
+  fd_set read_fd;
+  struct timeval tv;
+  printHead("To verify openAsync a ckpt with valid extended name length");
+
+  /* Skip the test if Extended Name is not enable */
+  if (is_extended_name_enable() == false)
+	  return test_validate(TEST_PASS, TEST_PASS);
+
+  result = test_ckptInitialize(CKPT_INIT_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final1;
+
+  result = test_ckptSelectionObject(CKPT_SEL_SUCCESS_T,TEST_NONCONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final2;
+                                                                                                                             
+  result = test_ckptOpenAsync(CKPT_OPEN_ASYNC_ALL_CREATE_EXTENDED_NAME_SUCCESS_T,TEST_NONCONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final2;
+
+  tv.tv_sec = 60;
+  tv.tv_usec = 0;
+  FD_ZERO(&read_fd);
+  FD_SET(tcd.selobj, &read_fd);
+  select(tcd.selobj + 1, &read_fd, NULL, NULL, &tv);
+
+  result = test_ckptDispatch(CKPT_DISPATCH_ONE_T,TEST_NONCONFIG_MODE);
+  if(result == TEST_PASS && tcd.open_clbk_invo == 1021 && tcd.open_clbk_err == SA_AIS_OK)
+     result = TEST_PASS;
+  else
+  {
+     result = TEST_FAIL;
+     goto final2;
+  }
+
+  test_ckpt_cleanup(CPSV_CLEAN_ASYNC_ALL_REPLICAS_CKPT_EXTENDED_NAME);
+      
+final2:
+  test_cpsv_cleanup(CPSV_CLEAN_INIT_SUCCESS_T);
+final1:
+  printResult(result);
+  test_validate(result, TEST_PASS);
+}
+
+void cpsv_it_open_58()
+{
+  int result;
+  printHead("To verify openAsync a ckpt with invalid extended name length");
+
+  /* Skip the test if Extended Name is not enable */
+  if (is_extended_name_enable() == false)
+	  return test_validate(TEST_PASS, TEST_PASS);
+
+  result = test_ckptInitialize(CKPT_INIT_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final1;
+
+  result = test_ckptSelectionObject(CKPT_SEL_SUCCESS_T,TEST_NONCONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final2;
+                                                                                                                             
+  result = test_ckptOpenAsync(CKPT_OPEN_ASYNC_ALL_CREATE_EXTENDED_NAME_INVALID_PARAM_T,TEST_NONCONFIG_MODE);
+
+final2:
+  test_cpsv_cleanup(CPSV_CLEAN_INIT_SUCCESS_T);
+final1:
+  printResult(result);
+  test_validate(result, TEST_PASS);
+}
 
 /****** saCkptCheckpointClose *******/
 
@@ -2846,6 +2996,27 @@ void cpsv_it_unlink_11()
      goto final;
 
   result = test_ckptUnlink(CKPT_UNLINK_INVALID_PARAM_T,TEST_NONCONFIG_MODE);
+  test_cpsv_cleanup(CPSV_CLEAN_INIT_SUCCESS_T);
+
+final:
+  printResult(result);
+  test_validate(result, TEST_PASS);
+}
+
+void cpsv_it_unlink_12() 
+{
+  int result;
+  printHead("To test unlink a ckpt with invalid extended name");
+
+  /* Skip the test if Extended Name is not enable */
+  if (is_extended_name_enable() == false)
+	  return test_validate(TEST_PASS, TEST_PASS);
+
+  result = test_ckptInitialize(CKPT_INIT_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TEST_PASS)
+     goto final;
+
+  result = test_ckptUnlink(CKPT_UNLINK_ALL_REPLICAS_EXTENDED_NAME_INVALID_PARAM_T, TEST_NONCONFIG_MODE);
   test_cpsv_cleanup(CPSV_CLEAN_INIT_SUCCESS_T);
 
 final:
@@ -6904,6 +7075,10 @@ __attribute__ ((constructor)) static void ckpt_cpa_test_constructor(void) {
   test_case_add(5, cpsv_it_open_52, "To verify creating a ckpt with invalid creation flags");
   test_case_add(5, cpsv_it_open_53, "To verify creating a ckpt with invalid creation flags");
   test_case_add(5, cpsv_it_open_54, "To verify creating a ckpt with invalid creation flags");
+  test_case_add(5, cpsv_it_open_55, "To verify creating a ckpt with valid extended name length");
+  test_case_add(5, cpsv_it_open_56, "To verify creating a ckpt with invalid extended name length");
+  test_case_add(5, cpsv_it_open_57, "To verify openAsync a ckpt with valid extended name length");
+  test_case_add(5, cpsv_it_open_58, "To verify openAsync a ckpt with invalid extended name length");
 
   test_suite_add(6, "CKPT API saCkptCheckpointClose()");
   test_case_add(6, cpsv_it_close_01, "To verify Closing of the checkpoint designated by checkpointHandle");
@@ -6927,6 +7102,7 @@ __attribute__ ((constructor)) static void ckpt_cpa_test_constructor(void) {
   test_case_add(7, cpsv_it_unlink_09, "To test unlink with uninitialized handle");
   test_case_add(7, cpsv_it_unlink_10, "To test unlink in the child process - NOT SUPPORTED");
   test_case_add(7, cpsv_it_unlink_11, "To test unlink with NULL ckpt name");
+  test_case_add(7, cpsv_it_unlink_12, "To test unlink a ckpt with invalid extended name");
 
   test_suite_add(8, "CKPT API saCkptRetenionDurationSet()");
   test_case_add(8, cpsv_it_rdset_01, "To test that invoking rdset changes the rd for the checkpoint");

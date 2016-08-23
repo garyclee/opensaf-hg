@@ -388,7 +388,10 @@ struct SafCheckpointOpen API_Open[]={
                                           APP_TIMEOUT,&tcd.weak_replica_Createhdl ,SA_AIS_OK,"ckpt with WEAK REPLICA created"},
     [CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T]  = {&tcd.ckptHandle,&tcd.active_replica_ckpt,NULL,(SA_CKPT_CHECKPOINT_WRITE | SA_CKPT_CHECKPOINT_READ),
                                            APP_TIMEOUT,&tcd.active_replica_Writehdl ,SA_AIS_OK,"ckpt with ACTIVE REPLICA opened for writing"},
-
+    [CKPT_OPEN_ALL_CREATE_EXTENDED_NAME_SUCCESS_T] = {&tcd.ckptHandle,&tcd.all_replicas_ckpt_with_valid_extended_name_length,&tcd.all_replicas,SA_CKPT_CHECKPOINT_CREATE,
+                                         APP_TIMEOUT,&tcd.all_replicas_Createhdl,SA_AIS_OK,"ckpt with ALL_REPLICAS and valid extended name created"},
+    [CKPT_OPEN_ALL_CREATE_EXTENDED_NAME_INVALID_PARAM_T] = {&tcd.ckptHandle,&tcd.all_replicas_ckpt_with_invalid_extended_name_length,&tcd.all_replicas,SA_CKPT_CHECKPOINT_CREATE,
+                                         APP_TIMEOUT,&tcd.all_replicas_Createhdl,SA_AIS_ERR_INVALID_PARAM,"ckpt with ALL_REPLICAS and invalid extended name created"},
 
     /* NULL ckptHandle, */
 
@@ -554,7 +557,10 @@ struct SafCheckpointOpenAsync API_OpenAsync[]={
 
     [CKPT_OPEN_ASYNC_INVALID_PARAM7_T]     = {&tcd.ckptHandle,1020,NULL,&tcd.all_replicas,SA_CKPT_CHECKPOINT_CREATE,
                                              SA_AIS_ERR_INVALID_PARAM,"Open Async with invalid param - NUll name"},
-
+    [CKPT_OPEN_ASYNC_ALL_CREATE_EXTENDED_NAME_SUCCESS_T]     = {&tcd.ckptHandle,1021, &tcd.all_replicas_ckpt_with_valid_extended_name_length, &tcd.all_replicas,
+                                                 SA_CKPT_CHECKPOINT_CREATE,SA_AIS_OK,"all replicas ckpt with valid extended name created with invocation 1021"},
+    [CKPT_OPEN_ASYNC_ALL_CREATE_EXTENDED_NAME_INVALID_PARAM_T]     = {&tcd.ckptHandle,0, &tcd.all_replicas_ckpt_with_invalid_extended_name_length, &tcd.all_replicas,
+                                                 SA_CKPT_CHECKPOINT_CREATE,SA_AIS_ERR_INVALID_PARAM,"all replicas ckpt invalid with extended name created"},
 };
 
 int test_ckptOpenAsync(int i,CONFIG_FLAG cfg_flg) 
@@ -1938,7 +1944,11 @@ struct SafCheckpointUnlink API_Unlink[]= {
 
   [CKPT_UNLINK_SUCCESS10_T] = {&tcd.ckptHandle,&tcd.weak_replica_ckpt,SA_AIS_OK,"Unlinked ckpt weak replica"},
 
-#if 0
+  [CKPT_UNLINK_ALL_REPLICAS_EXTENDED_NAME_SUCCESS_T] = {&tcd.ckptHandle,&tcd.all_replicas_ckpt_with_valid_extended_name_length,SA_AIS_OK,"Unlinked ckpt all replicas with extended name length"},
+
+  [CKPT_UNLINK_ALL_REPLICAS_EXTENDED_NAME_INVALID_PARAM_T] = {&tcd.ckptHandle,&tcd.all_replicas_ckpt_with_invalid_extended_name_length,SA_AIS_ERR_INVALID_PARAM,"Unlinked ckpt all replicas with invalid extended name length"},
+
+  #if 0
   [CKPT_UNLINK_NOT_EXIST4_T] = {&tcd.ckptHandle,&tcd.collocated_ckpt,SA_AIS_OK,"Unlinked ckpt collcated replicas"},
 #endif
 

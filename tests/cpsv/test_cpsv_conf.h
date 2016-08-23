@@ -39,6 +39,7 @@ typedef enum {
    CPSV_CLEAN_ASYNC_ACTIVE_REPLICAS_CKPT,
    CPSV_CLEAN_WEAK_REPLICAS_CKPT,
    CPSV_CLEAN_MULTI_VECTOR_CKPT,
+   CPSV_CLEAN_ASYNC_ALL_REPLICAS_CKPT_EXTENDED_NAME,
 }CPSV_CLEANUP_CKPT_TC_TYPE;
 
 
@@ -65,6 +66,8 @@ struct cpsv_testcase_data
   SaNameT all_replicas_ckpt,active_replica_ckpt,weak_replica_ckpt,collocated_ckpt,async_all_replicas_ckpt,async_active_replica_ckpt;
   SaNameT smoketest_ckpt,all_collocated_ckpt,weak_collocated_ckpt,non_existing_ckpt,multi_vector_ckpt;
   SaNameT all_replicas_ckpt_large,active_replica_ckpt_large,weak_replica_ckpt_large,collocated_ckpt_large;
+  SaNameT all_replicas_ckpt_with_valid_extended_name_length;
+  SaNameT all_replicas_ckpt_with_invalid_extended_name_length;
 
   SaCkptSectionIdT section1,section2,section3,section4,section5,section6,section7,invalid_sec,invalidsection,gen_sec,invalidSection,gen_sec_del;
   SaCkptSectionIdT long_section_id;
