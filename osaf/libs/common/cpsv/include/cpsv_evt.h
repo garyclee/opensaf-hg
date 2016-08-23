@@ -897,6 +897,16 @@ uint32_t cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *i
 uint32_t cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba, MDS_CLIENT_MSG_FORMAT_VER i_msg_fmt_ver);
 uint32_t cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data, NCS_UBAID *io_uba);
 uint32_t cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp, NCS_UBAID *io_uba, MDS_CLIENT_MSG_FORMAT_VER o_msg_fmt_ver);
+uint32_t cpsv_d2nd_ckpt_create_2_encode(CPSV_D2ND_CKPT_CREATE *create_data, NCS_UBAID *io_uba);
+uint32_t cpsv_d2nd_ckpt_create_2_decode(CPSV_D2ND_CKPT_CREATE *create_data, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_create_2_encode(CPSV_ND2D_CKPT_CREATE *create_data, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_create_2_decode(CPSV_ND2D_CKPT_CREATE *create_data, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_unlink_2_encode(CPSV_ND2D_CKPT_UNLINK *unlink_info, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_unlink_2_decode(CPSV_ND2D_CKPT_UNLINK *unlink_info, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_destroy_byname_2_encode(CPSV_CKPT_NAME_INFO *ckpt_info, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_destroy_byname_2_decode(CPSV_CKPT_NAME_INFO *ckpt_info, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_info_update_encode(CPSV_ND2D_CKPT_INFO_UPD *update_info, NCS_UBAID *io_uba);
+uint32_t cpsv_nd2d_ckpt_info_update_decode(CPSV_ND2D_CKPT_INFO_UPD *update_info, NCS_UBAID *io_uba);
 void cpsv_evt_trace(char *svc_name, CPSV_EVT_REQUEST request, CPSV_EVT *evt, MDS_DEST mds_dest);
 
 /*

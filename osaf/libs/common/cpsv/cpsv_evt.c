@@ -30,11 +30,14 @@
 
 #include "cpsv.h"
 #include "cpa_tmr.h"
+#include "osaf_extended_name.h"
 
 FUNC_DECLARATION(CPSV_CKPT_DATA);
 static SaCkptSectionIdT *cpsv_evt_dec_sec_id(NCS_UBAID *i_ub, uint32_t svc_id);
 static uint32_t cpsv_evt_enc_sec_id(NCS_UBAID *o_ub, SaCkptSectionIdT *sec_id);
 static void cpsv_convert_sec_id_to_string(char *sec_id_str, SaCkptSectionIdT *section_id);
+static uint32_t cpsv_encode_extended_name_flat(NCS_UBAID *uba, SaNameT *name);
+static uint32_t cpsv_decode_extended_name_flat(NCS_UBAID *uba, SaNameT *name);
 
 const char *cpa_evt_str[] = {
 	"STRING_0",
@@ -254,8 +257,8 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPND_EVT_A2ND_CKPT_OPEN:
 		{
 			CPSV_A2ND_OPEN_REQ *info = &evt->info.cpnd.info.openReq;
-			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_OPEN(hdl=%llu, %s)",
-				info->client_hdl, info->ckpt_name.value);
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_OPEN_2(hdl=%llu, %s)",
+				info->client_hdl, osaf_extended_name_borrow(&info->ckpt_name));
 			break;
 		}
 		case CPND_EVT_A2ND_CKPT_CLOSE:
@@ -268,7 +271,7 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPND_EVT_A2ND_CKPT_UNLINK:
 		{
 			CPSV_A2ND_CKPT_UNLINK *info = &evt->info.cpnd.info.ulinkReq;
-			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_UNLINK(%s)", info->ckpt_name.value);
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_UNLINK_2(%s)", osaf_extended_name_borrow(&info->ckpt_name));
 			break;
 		}
 		case CPND_EVT_A2ND_CKPT_RDSET:
@@ -513,12 +516,22 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPND_EVT_D2ND_CKPT_CREATE:
 		{
 			CPSV_D2ND_CKPT_CREATE *info = &evt->info.cpnd.info.ckpt_create;
-			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_CREATE(%s, create_rep=%s, active=0x%X)",
-				info->ckpt_info.ckpt_id, info->ckpt_name.value,
+			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_CREATE_2(%s, create_rep=%s, is_act=%s, active=0x%X, dest_cnt=%d)",
+				info->ckpt_info.ckpt_id, osaf_extended_name_borrow(&info->ckpt_name),
 			       	info->ckpt_info.ckpt_rep_create ? "true" : "false",
-				m_NCS_NODE_ID_FROM_MDS_DEST(info->ckpt_info.active_dest));
+			       	info->ckpt_info.is_active_exists ? "true" : "false",
+				m_NCS_NODE_ID_FROM_MDS_DEST(info->ckpt_info.active_dest),
+				info->ckpt_info.dest_cnt);
+
+			SaCkptCheckpointCreationAttributesT *attr = &info->ckpt_info.attributes;
+			TRACE("mSecS=%lld, flags=%d, mSec=%d, mSecIdS=%lld, ret=%lld, ckptS=%lld", attr->maxSectionSize, 
+				attr->creationFlags, attr->maxSections, attr->maxSectionIdSize, attr->retentionDuration,
+				attr->checkpointSize);
+			for (int i = 0; i < info->ckpt_info.dest_cnt; i++)
+				TRACE("dest[%d] = 0x%" PRIX64 " ", i, info->ckpt_info.dest_list[i].dest);
 			break;
 		}
+
 		case CPND_EVT_D2ND_CKPT_DESTROY:
 		{
 			snprintf(o_evt_str, len, "[%llu] CPND_EVT_D2ND_CKPT_DESTROY", evt->info.cpnd.info.ckpt_destroy.ckpt_id);
@@ -608,8 +621,8 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPND_EVT_A2ND_CKPT_LIST_UPDATE:
 		{
 			CPSV_A2ND_CKPT_LIST_UPDATE *info = &evt->info.cpnd.info.ckptListUpdate;
-			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_LIST_UPDATE(hdl=%llu, %s)", 
-				info->client_hdl, info->ckpt_name.value);
+			snprintf(o_evt_str, len, "CPND_EVT_A2ND_CKPT_LIST_UPDATE_2(hdl=%llu, %s)", 
+				info->client_hdl, osaf_extended_name_borrow(&info->ckpt_name));
 			break;
 		}
 		case CPND_EVT_A2ND_ARRIVAL_CB_UNREG:
@@ -813,13 +826,20 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPD_EVT_ND2D_CKPT_CREATE:
 		{
 			CPSV_ND2D_CKPT_CREATE *info = &evt->info.cpd.info.ckpt_create;
-			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_CREATE(%s, creationFlags=0x%X)",
-				info->ckpt_name.value, info->attributes.creationFlags);
+			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_CREATE_2(%s, creationFlags=0x%X, release=%d, majorV=%d, minorV=%d)",
+				osaf_extended_name_borrow(&info->ckpt_name), info->attributes.creationFlags, info->client_version.releaseCode, 
+				info->client_version.majorVersion, info->client_version.minorVersion);
+
+			SaCkptCheckpointCreationAttributesT *attr = &info->attributes;
+			TRACE("mSecS=%lld, flags=%d, mSec=%d, mSecIdS=%lld, ret=%lld, ckptS=%lld", attr->maxSectionSize, 
+				attr->creationFlags, attr->maxSections, attr->maxSectionIdSize, attr->retentionDuration,
+				attr->checkpointSize);
 			break;
 		}
+
 		case CPD_EVT_ND2D_CKPT_UNLINK:
 		{
-			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_UNLINK(%s)", evt->info.cpd.info.ckpt_ulink.ckpt_name.value);
+			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_UNLINK_2(%s)", osaf_extended_name_borrow(&evt->info.cpd.info.ckpt_ulink.ckpt_name));
 			break;
 		}
 		case CPD_EVT_ND2D_CKPT_RDSET:
@@ -888,7 +908,7 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPD_EVT_ND2D_CKPT_DESTROY_BYNAME:
 		{
 			CPSV_CKPT_NAME_INFO *info = &evt->info.cpd.info.ckpt_destroy_byname;
-			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_DESTROY_BYNAME(ckpt=%s)", info->ckpt_name.value);
+			snprintf(o_evt_str, len, "CPD_EVT_ND2D_CKPT_DESTROY_BYNAME_2(ckpt=%s)", osaf_extended_name_borrow(&info->ckpt_name));
 			break;
 		}
 		case CPD_EVT_ND2D_CKPT_CREATED_SECTIONS:
@@ -908,9 +928,9 @@ char* cpsv_evt_str(CPSV_EVT *evt, char *o_evt_str, size_t len)
 		case CPD_EVT_ND2D_CKPT_INFO_UPDATE:
 		{
 			CPSV_ND2D_CKPT_INFO_UPD *info = &evt->info.cpd.info.ckpt_info;
-			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_INFO_UPDATE(%s, creationFlags=0x%X, "
+			snprintf(o_evt_str, len, "[%llu] CPD_EVT_ND2D_CKPT_INFO_UPDATE_2(%s, creationFlags=0x%X, "
 				"openFlags=0x%X, numbers[U/W/R]=[%u/%u/%u], active=%s, last=%s)", info->ckpt_id,
-				info->ckpt_name.value, info->attributes.creationFlags, info->ckpt_flags, info->num_users,
+				osaf_extended_name_borrow(&info->ckpt_name), info->attributes.creationFlags, info->ckpt_flags, info->num_users,
 				info->num_writers, info->num_readers, info->is_active ? "true" : "false",
 				info->is_last ? "true" : "false");
 			break;
@@ -1443,6 +1463,7 @@ uint32_t cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 				    i_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_cnt * sizeof(CPSV_CPND_DEST_INFO);
 				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)dest_list, size);
 			}
+			cpsv_encode_extended_name_flat(o_ub, &i_evt->info.cpnd.info.ckpt_create.ckpt_name);
 		} else if (i_evt->info.cpnd.type == CPSV_D2ND_RESTART_DONE) {
 			CPSV_CPND_DEST_INFO *dest_list = i_evt->info.cpnd.info.cpnd_restart_done.dest_list;
 			if (i_evt->info.cpnd.info.cpnd_restart_done.dest_cnt) {
@@ -1455,13 +1476,25 @@ uint32_t cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 				size = i_evt->info.cpnd.info.ckpt_add.dest_cnt * sizeof(CPSV_CPND_DEST_INFO);
 				ncs_encode_n_octets_in_uba(o_ub, (uint8_t *)dest_list, size);
 			}
-		}
-      else if(i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_REFCNTSET)
-      {
-       if(i_evt->info.cpnd.info.refCntsetReq.no_of_nodes)
-           cpsv_ref_cnt_encode(o_ub, &i_evt->info.cpnd.info.refCntsetReq);
-      }
-    }
+		} else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_REFCNTSET) {
+			if (i_evt->info.cpnd.info.refCntsetReq.no_of_nodes)
+				cpsv_ref_cnt_encode(o_ub, &i_evt->info.cpnd.info.refCntsetReq);
+		} else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_OPEN) {
+			cpsv_encode_extended_name_flat(o_ub, &i_evt->info.cpnd.info.openReq.ckpt_name);
+		} else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_UNLINK) {
+			cpsv_encode_extended_name_flat(o_ub, &i_evt->info.cpnd.info.ulinkReq.ckpt_name);
+		} else if (i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_LIST_UPDATE) {
+			cpsv_encode_extended_name_flat(o_ub, &i_evt->info.cpnd.info.ckptListUpdate.ckpt_name);
+		} 
+	} else if (i_evt->type == CPSV_EVT_TYPE_CPD) {
+		if (i_evt->info.cpd.type == CPD_EVT_ND2D_CKPT_CREATE) {
+			cpsv_encode_extended_name_flat(o_ub, &i_evt->info.cpd.info.ckpt_create.ckpt_name);
+		} else if (i_evt->info.cpd.type == CPD_EVT_ND2D_CKPT_UNLINK) {
+			cpsv_encode_extended_name_flat(o_ub, &i_evt->info.cpd.info.ckpt_ulink.ckpt_name);
+		} else if (i_evt->info.cpd.type == CPD_EVT_ND2D_CKPT_DESTROY_BYNAME) {
+			cpsv_encode_extended_name_flat(o_ub, &i_evt->info.cpd.info.ckpt_destroy_byname.ckpt_name);
+		} 
+	}
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2092,6 +2125,7 @@ uint32_t cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 					ncs_decode_n_octets_from_uba(i_ub, (uint8_t *)dest_list, size);
 				o_evt->info.cpnd.info.ckpt_create.ckpt_info.dest_list = dest_list;
 			}
+			cpsv_decode_extended_name_flat(i_ub, &o_evt->info.cpnd.info.ckpt_create.ckpt_name);
 			break;
 
 		case CPSV_D2ND_RESTART_DONE:
@@ -2120,10 +2154,34 @@ uint32_t cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 				o_evt->info.cpnd.info.ckpt_add.dest_list = dest_list;
 			}
 			break;
-      case CPND_EVT_A2ND_CKPT_REFCNTSET:
-         if(o_evt->info.cpnd.info.refCntsetReq.no_of_nodes)
-           cpsv_refcnt_ckptid_decode(&o_evt->info.cpnd.info.refCntsetReq,i_ub ); 
-     break;
+	       	case CPND_EVT_A2ND_CKPT_REFCNTSET:
+		       	if(o_evt->info.cpnd.info.refCntsetReq.no_of_nodes)
+			       	cpsv_refcnt_ckptid_decode(&o_evt->info.cpnd.info.refCntsetReq,i_ub ); 
+			break;
+		case CPND_EVT_A2ND_CKPT_OPEN:
+			cpsv_decode_extended_name_flat(i_ub, &o_evt->info.cpnd.info.openReq.ckpt_name);
+			break;
+		case CPND_EVT_A2ND_CKPT_UNLINK:
+			cpsv_decode_extended_name_flat(i_ub, &o_evt->info.cpnd.info.ulinkReq.ckpt_name);
+			break;
+		case CPND_EVT_A2ND_CKPT_LIST_UPDATE:
+			cpsv_decode_extended_name_flat(i_ub, &o_evt->info.cpnd.info.ckptListUpdate.ckpt_name);
+			break;
+		default:
+			break;
+		}
+	} else if (o_evt->type == CPSV_EVT_TYPE_CPD) {
+		switch (o_evt->info.cpd.type)
+		{
+		case CPD_EVT_ND2D_CKPT_CREATE:
+			cpsv_decode_extended_name_flat(i_ub, &o_evt->info.cpd.info.ckpt_create.ckpt_name);
+			break;
+		case CPD_EVT_ND2D_CKPT_UNLINK:
+			cpsv_decode_extended_name_flat(i_ub, &o_evt->info.cpd.info.ckpt_ulink.ckpt_name);
+			break;
+		case CPD_EVT_ND2D_CKPT_DESTROY_BYNAME:
+			cpsv_decode_extended_name_flat(i_ub, &o_evt->info.cpd.info.ckpt_destroy_byname.ckpt_name);
+			break;
 		default:
 			break;
 		}
@@ -2264,4 +2322,335 @@ void cpsv_convert_sec_id_to_string(char *sec_id_str, SaCkptSectionIdT *section_i
 	} else {
 		strncpy(sec_id_str, "(NULL)", MAX_SEC_ID_LEN);
 	}
+}
+
+uint32_t cpsv_encode_extended_name(NCS_UBAID *uba, SaNameT *name)
+{
+	uint32_t rc;
+
+	if(!osaf_is_an_extended_name(name))
+		return NCSCC_RC_SUCCESS;
+
+	SaConstStringT value = osaf_extended_name_borrow(name);
+	uint16_t length = osaf_extended_name_length(name);
+
+	/* Encode name length */
+	if (length > kOsafMaxDnLength) {
+		LOG_ER("SaNameT length too long: %d", length);
+		return NCSCC_RC_FAILURE;
+	}
+	osaf_encode_uint16(uba, length);
+
+	/* Encode name value */
+	rc = ncs_encode_n_octets_in_uba(uba, (uint8_t*)value, (uint32_t)length);
+	return rc;
+}
+uint32_t cpsv_decode_extended_name(NCS_UBAID *uba, SaNameT *name)
+{
+	uint16_t length = 0;
+	uint32_t rc;
+	if(!osaf_is_an_extended_name(name))
+		return NCSCC_RC_SUCCESS;
+
+	/* Decode name length */
+	osaf_decode_uint16(uba, &length);
+	if (length > kOsafMaxDnLength) {
+		LOG_ER("SaNameT length too long: %d", length);
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* Decode name value */
+	char* value = (char*) malloc(length + 1);
+	if (value == NULL) {
+		LOG_ER("Out of memory");
+		return NCSCC_RC_FAILURE;
+	}
+	rc = ncs_decode_n_octets_from_uba(uba, (uint8_t*) value, (uint32_t) length);
+	value[length] = '\0';
+	osaf_extended_name_steal(value, name);
+	return rc;
+}
+
+static uint32_t cpsv_encode_extended_name_flat(NCS_UBAID *uba, SaNameT *name)
+{
+	uint32_t rc;
+
+	if(!osaf_is_an_extended_name(name))
+		return NCSCC_RC_SUCCESS;
+
+	SaConstStringT value = osaf_extended_name_borrow(name);
+	uint16_t length = osaf_extended_name_length(name);
+
+	/* Encode name length */
+	if (length > kOsafMaxDnLength) {
+		LOG_ER("SaNameT length too long: %d", length);
+		return NCSCC_RC_FAILURE;
+	}
+	rc = ncs_encode_n_octets_in_uba(uba, (uint8_t*)&length, sizeof(length));
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
+
+	/* Encode name value */
+	rc = ncs_encode_n_octets_in_uba(uba, (uint8_t*)value, (uint32_t)length);
+	return rc;
+}
+
+static uint32_t cpsv_decode_extended_name_flat(NCS_UBAID *uba, SaNameT *name)
+{
+	uint16_t length = 0;
+	uint32_t rc;
+	if(!osaf_is_an_extended_name(name))
+		return NCSCC_RC_SUCCESS;
+
+	/* Decode name length */
+	rc = ncs_decode_n_octets_from_uba(uba, (uint8_t*)&length, sizeof(length));
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
+
+	if (length > kOsafMaxDnLength) {
+		LOG_ER("SaNameT length too long: %d", length);
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* Decode name value */
+	char* value = (char*) malloc(length + 1);
+	if (value == NULL) {
+		LOG_ER("Out of memory");
+		return NCSCC_RC_FAILURE;
+	}
+	rc = ncs_decode_n_octets_from_uba(uba, (uint8_t*) value, (uint32_t) length);
+	value[length] = '\0';
+	osaf_extended_name_steal(value, name);
+	return rc;
+}
+
+void cpsv_ckpt_dest_list_encode(NCS_UBAID *io_uba, CPSV_CPND_DEST_INFO *dest_list, uint32_t dest_cnt)
+{
+	TRACE_ENTER();
+
+	if ((dest_list == NULL) || (dest_cnt == 0)) {
+		TRACE_LEAVE();
+		return;
+	}
+
+	int i = 0;
+	for (i = 0; i < dest_cnt; i++) {
+		uint8_t *stream = ncs_enc_reserve_space(io_uba, sizeof(MDS_DEST));
+		ncs_encode_64bit(&stream, dest_list[i].dest);
+		ncs_enc_claim_space(io_uba, sizeof(MDS_DEST));
+	}
+
+	TRACE_LEAVE();
+}
+
+void cpsv_ckpt_dest_list_decode(NCS_UBAID *io_uba, CPSV_CPND_DEST_INFO **o_dest_list, uint32_t dest_cnt)
+{
+	TRACE_ENTER();
+
+	int i = 0;
+
+	if (dest_cnt == 0) {
+		TRACE_LEAVE();
+		return;
+	}
+
+	*o_dest_list = m_MMGR_ALLOC_CPSV_SYS_MEMORY(sizeof(CPSV_CPND_DEST_INFO) * dest_cnt);
+	CPSV_CPND_DEST_INFO *dest_list = *o_dest_list;
+
+	for (i = 0; i < dest_cnt; i++) {
+		CPSV_CPND_DEST_INFO dest_info;
+		uint8_t *stream = ncs_dec_flatten_space(io_uba, (uint8_t *)&dest_info, sizeof(MDS_DEST));
+		dest_list[i].dest = ncs_decode_64bit(&stream);
+		ncs_dec_skip_space(io_uba, sizeof(MDS_DEST));
+	}
+
+	TRACE_LEAVE();
+}
+
+void cpsv_ckpt_creation_attribute_encode(NCS_UBAID *io_uba, SaCkptCheckpointCreationAttributesT *attributes)
+{
+	osaf_encode_uint32(io_uba, attributes->creationFlags);
+	osaf_encode_uint64(io_uba, attributes->checkpointSize);
+	osaf_encode_satimet(io_uba, attributes->retentionDuration);
+	osaf_encode_uint32(io_uba, attributes->maxSections);
+	osaf_encode_uint64(io_uba, attributes->maxSectionSize);
+	osaf_encode_uint64(io_uba, attributes->maxSectionIdSize);
+}
+
+void cpsv_ckpt_creation_attribute_decode(NCS_UBAID *io_uba, SaCkptCheckpointCreationAttributesT *attributes)
+{
+	osaf_decode_uint32(io_uba, &attributes->creationFlags);
+	osaf_decode_uint64(io_uba, (uint64_t *)&attributes->checkpointSize);
+	osaf_decode_satimet(io_uba, &attributes->retentionDuration);
+	osaf_decode_uint32(io_uba, &attributes->maxSections);
+	osaf_decode_uint64(io_uba, (uint64_t *)&attributes->maxSectionSize);
+	osaf_decode_uint64(io_uba, (uint64_t *)&attributes->maxSectionIdSize);
+}
+
+uint32_t cpsv_d2nd_ckpt_create_2_encode(CPSV_D2ND_CKPT_CREATE *create_data, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_encode_sanamet(io_uba, &create_data->ckpt_name);
+
+	osaf_encode_uint32(io_uba, create_data->ckpt_info.error);
+	osaf_encode_uint64(io_uba, create_data->ckpt_info.ckpt_id);
+	osaf_encode_bool(io_uba, create_data->ckpt_info.is_active_exists);
+	cpsv_ckpt_creation_attribute_encode(io_uba, &create_data->ckpt_info.attributes);
+	osaf_encode_uint64(io_uba, create_data->ckpt_info.active_dest);
+	osaf_encode_bool(io_uba, create_data->ckpt_info.ckpt_rep_create);
+	osaf_encode_uint32(io_uba, create_data->ckpt_info.dest_cnt);
+	cpsv_ckpt_dest_list_encode(io_uba, create_data->ckpt_info.dest_list, create_data->ckpt_info.dest_cnt);
+
+	cpsv_encode_extended_name(io_uba, &create_data->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_d2nd_ckpt_create_2_decode(CPSV_D2ND_CKPT_CREATE *create_data, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_decode_sanamet(io_uba, &create_data->ckpt_name);
+
+	osaf_decode_uint32(io_uba, &create_data->ckpt_info.error);
+	osaf_decode_uint64(io_uba, (uint64_t *)&create_data->ckpt_info.ckpt_id);
+	osaf_decode_bool(io_uba, &create_data->ckpt_info.is_active_exists);
+	cpsv_ckpt_creation_attribute_decode(io_uba, &create_data->ckpt_info.attributes);
+	osaf_decode_uint64(io_uba, &create_data->ckpt_info.active_dest);
+	osaf_decode_bool(io_uba, &create_data->ckpt_info.ckpt_rep_create);
+	osaf_decode_uint32(io_uba, &create_data->ckpt_info.dest_cnt);
+	cpsv_ckpt_dest_list_decode(io_uba, &create_data->ckpt_info.dest_list, create_data->ckpt_info.dest_cnt);
+
+	cpsv_decode_extended_name(io_uba, &create_data->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_create_2_encode(CPSV_ND2D_CKPT_CREATE *create_data, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_encode_sanamet(io_uba, &create_data->ckpt_name);
+	cpsv_ckpt_creation_attribute_encode(io_uba, &create_data->attributes);
+	osaf_encode_uint32(io_uba, create_data->ckpt_flags);
+	osaf_encode_uint8(io_uba, create_data->client_version.releaseCode);
+	osaf_encode_uint8(io_uba, create_data->client_version.majorVersion);
+	osaf_encode_uint8(io_uba, create_data->client_version.minorVersion);
+
+	cpsv_encode_extended_name(io_uba, &create_data->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_create_2_decode(CPSV_ND2D_CKPT_CREATE *create_data, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_decode_sanamet(io_uba, &create_data->ckpt_name);
+	cpsv_ckpt_creation_attribute_decode(io_uba, &create_data->attributes);
+	osaf_decode_uint32(io_uba, &create_data->ckpt_flags);
+	osaf_decode_uint8(io_uba, &create_data->client_version.releaseCode);
+	osaf_decode_uint8(io_uba, &create_data->client_version.majorVersion);
+	osaf_decode_uint8(io_uba, &create_data->client_version.minorVersion);
+
+	cpsv_decode_extended_name(io_uba, &create_data->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_unlink_2_encode(CPSV_ND2D_CKPT_UNLINK *unlink_info, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_encode_sanamet(io_uba, &unlink_info->ckpt_name);
+	cpsv_encode_extended_name(io_uba, &unlink_info->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_unlink_2_decode(CPSV_ND2D_CKPT_UNLINK *unlink_info, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_decode_sanamet(io_uba, &unlink_info->ckpt_name);
+	cpsv_decode_extended_name(io_uba, &unlink_info->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_destroy_byname_2_encode(CPSV_CKPT_NAME_INFO *ckpt_info, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_encode_sanamet(io_uba, &ckpt_info->ckpt_name);
+	cpsv_encode_extended_name(io_uba, &ckpt_info->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_destroy_byname_2_decode(CPSV_CKPT_NAME_INFO *ckpt_info, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_decode_sanamet(io_uba, &ckpt_info->ckpt_name);
+	cpsv_decode_extended_name(io_uba, &ckpt_info->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_info_update_encode(CPSV_ND2D_CKPT_INFO_UPD *update_info, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_encode_uint64(io_uba, update_info->ckpt_id);
+	osaf_encode_sanamet(io_uba, &update_info->ckpt_name);
+	cpsv_ckpt_creation_attribute_encode(io_uba, &update_info->attributes);
+	osaf_encode_uint32(io_uba, update_info->ckpt_flags);
+	osaf_encode_uint8(io_uba, update_info->client_version.releaseCode);
+	osaf_encode_uint8(io_uba, update_info->client_version.majorVersion);
+	osaf_encode_uint8(io_uba, update_info->client_version.minorVersion);
+	osaf_encode_bool(io_uba, update_info->is_active);
+	osaf_encode_uint32(io_uba, update_info->num_users);
+	osaf_encode_uint32(io_uba, update_info->num_writers);
+	osaf_encode_uint32(io_uba, update_info->num_readers);
+	osaf_encode_bool(io_uba, update_info->is_last);
+	osaf_encode_bool(io_uba, update_info->is_unlink);
+
+	cpsv_encode_extended_name(io_uba, &update_info->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
+}
+
+uint32_t cpsv_nd2d_ckpt_info_update_decode(CPSV_ND2D_CKPT_INFO_UPD *update_info, NCS_UBAID *io_uba)
+{
+	TRACE_ENTER();
+
+	osaf_decode_uint64(io_uba, (uint64_t *)&update_info->ckpt_id);
+	osaf_decode_sanamet(io_uba, &update_info->ckpt_name);
+	cpsv_ckpt_creation_attribute_decode(io_uba, &update_info->attributes);
+	osaf_decode_uint32(io_uba, &update_info->ckpt_flags);
+	osaf_decode_uint8(io_uba, &update_info->client_version.releaseCode);
+	osaf_decode_uint8(io_uba, &update_info->client_version.majorVersion);
+	osaf_decode_uint8(io_uba, &update_info->client_version.minorVersion);
+	osaf_decode_bool(io_uba, &update_info->is_active);
+	osaf_decode_uint32(io_uba, &update_info->num_users);
+	osaf_decode_uint32(io_uba, &update_info->num_writers);
+	osaf_decode_uint32(io_uba, &update_info->num_readers);
+	osaf_decode_bool(io_uba, &update_info->is_last);
+	osaf_decode_bool(io_uba, &update_info->is_unlink);
+
+	cpsv_decode_extended_name(io_uba, &update_info->ckpt_name);
+
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
