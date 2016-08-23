@@ -66,7 +66,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *node = 0;
 	AVD_CSI *csi = 0;
 
-	TRACE_ENTER2("%s", info->csi_name.value);
+	TRACE_ENTER2("%s", osaf_extended_name_borrow(&info->csi_name));
 
 	/* run sanity check on the msg */
 	if ((node = avd_msg_sanity_chk(evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG,
@@ -170,7 +170,7 @@ uint32_t avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, bool 
 	     csi_node; csi_node = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_NEXT(&csi_node->csi_dll_node)) {
 		rc = avd_snd_pg_upd_msg(cb, csi_node->node, comp_csi,
 					(true == is_rmv) ? SA_AMF_PROTECTION_GROUP_REMOVED :
-					SA_AMF_PROTECTION_GROUP_ADDED, 0);
+					SA_AMF_PROTECTION_GROUP_ADDED, std::string(""));
 	}			/* for */
 	TRACE_LEAVE2("%u", rc);
 	return rc;

@@ -34,14 +34,14 @@ AmfDb<std::string, AVD_COMP_TYPE> *comptype_db = nullptr;
 
 static void comptype_db_add(AVD_COMP_TYPE *compt)
 {
-	unsigned int rc = comptype_db->insert(Amf::to_string(&compt->name),compt);
+	unsigned int rc = comptype_db->insert(compt->name,compt);
 	osafassert (rc == NCSCC_RC_SUCCESS);
 }
 
 static void comptype_delete(AVD_COMP_TYPE *avd_comp_type)
 {
 	osafassert(nullptr == avd_comp_type->list_of_comp);
-	comptype_db->erase(Amf::to_string(&avd_comp_type->name));
+	comptype_db->erase(avd_comp_type->name);
 	delete avd_comp_type;
 }
 
@@ -78,26 +78,27 @@ void avd_comptype_remove_comp(AVD_COMP *comp)
 }
 
 //
-AVD_COMP_TYPE::AVD_COMP_TYPE(const SaNameT *dn) {
-  memcpy(&name.value, dn->value, dn->length);
-  name.length = dn->length;
+AVD_COMP_TYPE::AVD_COMP_TYPE(const std::string& dn) :
+	name(dn)
+{
 }
 
-static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_COMP_TYPE *comptype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_COMP_TYPE *compt;
 	const char *str;
 	SaAisErrorT error;
+	SaNameT ct_sw_bundle;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	compt = new AVD_COMP_TYPE(dn);
 
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtCompCategory"), attributes, 0, &compt->saAmfCtCompCategory);
 	osafassert(error == SA_AIS_OK);
 
-	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtSwBundle"), attributes, 0, &compt->saAmfCtSwBundle);
-
+	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtSwBundle"), attributes, 0, &ct_sw_bundle);
+	compt->saAmfCtSwBundle = Amf::to_string(&ct_sw_bundle);
 	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", 0)) != nullptr)
 		strcpy(compt->saAmfCtDefCmdEnv, str);
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefClcCliTimeout"), attributes, 0, &compt->saAmfCtDefClcCliTimeout);
@@ -139,7 +140,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 	if (compt->saAmfCtDefRecoveryOnError == SA_AMF_NO_RECOMMENDATION) {
 		compt->saAmfCtDefRecoveryOnError = SA_AMF_COMPONENT_FAILOVER;
 		LOG_NO("COMPONENT_FAILOVER(%u) used instead of NO_RECOMMENDATION(%u) for '%s'",
-			   SA_AMF_COMPONENT_FAILOVER, SA_AMF_NO_RECOMMENDATION, dn->value);
+			   SA_AMF_COMPONENT_FAILOVER, SA_AMF_NO_RECOMMENDATION, dn.c_str());
 	}
 
 	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefDisableRestart"), attributes, 0, &compt->saAmfCtDefDisableRestart);
@@ -159,7 +160,7 @@ static inline void report_path_validation_err(CcbUtilOperationData_t *opdata,
 		report_ccb_validation_error(opdata,
 			"%s does not contain an absolute path and "
 			"attribute saAmfCtSwBundle is not configured for '%s'",
-			 attr_name, opdata->objectName.value);
+			 attr_name, osaf_extended_name_borrow(&opdata->objectName));
 	} else {
 		report_ccb_validation_error(opdata,
 			"%s does not contain an absolute path and "
@@ -175,26 +176,26 @@ static inline void report_path_validation_err(CcbUtilOperationData_t *opdata,
  * @param opdata
  * @return true if valid
  */
-static bool config_is_valid(const SaNameT *dn,
+static bool config_is_valid(const std::string& dn,
                             const SaImmAttrValuesT_2 **attributes,
                             CcbUtilOperationData_t *opdata)
 {
 	SaUint32T category;
 	SaUint32T value;
-	char *parent;
 	SaTimeT time;
 	SaAisErrorT rc;
 	const char *cmd;
 	const char *attr_name;
+	std::string::size_type pos;
 
-	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	if ((pos = dn.find(',')) == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
 		return false;
 	}
 
 	/* Should be children to the Comp Base type */
-	if (strncmp(++parent, "safCompType=", 12) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
+	if (dn.compare(pos + 1, 12, "safCompType=") != 0) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(pos + 1).c_str(), dn.c_str());
 		return false;
 	}
 
@@ -204,7 +205,7 @@ static bool config_is_valid(const SaNameT *dn,
 	/* We do not support Proxy, Container and Contained as of now. */
 	if (IS_COMP_PROXY(category) || IS_COMP_CONTAINER(category)|| IS_COMP_CONTAINED(category)) {
 		report_ccb_validation_error(opdata, "Unsupported saAmfCtCompCategory value '%u' for '%s'",
-				category, dn->value);
+				category, dn.c_str());
 		return false;
 	}
 
@@ -215,7 +216,7 @@ static bool config_is_valid(const SaNameT *dn,
 	if (IS_COMP_LOCAL(category) &&
 	    (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefClcCliTimeout"), attributes, 0, &time) != SA_AIS_OK)) {
 		report_ccb_validation_error(opdata, "Required attribute saAmfCtDefClcCliTimeout not configured for '%s'",
-				dn->value);
+				dn.c_str());
 		return false;
 	}
 
@@ -226,7 +227,7 @@ static bool config_is_valid(const SaNameT *dn,
 	if ((IS_COMP_PROXIED(category) || IS_COMP_SAAWARE(category)) &&
 	    (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefCallbackTimeout"), attributes, 0, &time) != SA_AIS_OK)) {
 		report_ccb_validation_error(opdata, "Required attribute saAmfCtDefCallbackTimeout not configured for '%s'",
-				dn->value);
+				dn.c_str());
 		return false;
 	}
 
@@ -237,7 +238,7 @@ static bool config_is_valid(const SaNameT *dn,
 	if ((IS_COMP_SAAWARE(category) || IS_COMP_PROXIED_PI(category)) &&
 	    (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefQuiescingCompleteTimeout"), attributes, 0, &time) != SA_AIS_OK)) {
 		report_ccb_validation_error(opdata, "Required attribute saAmfCtDefQuiescingCompleteTimeout not configured"
-				" for '%s'", dn->value);
+				" for '%s'", dn.c_str());
 
 		// this is OK for backwards compatibility reasons
 	}
@@ -260,7 +261,7 @@ static bool config_is_valid(const SaNameT *dn,
 		if (cmd == nullptr) {
 			report_ccb_validation_error(opdata,
 				"Required attribute %s not configured for '%s'",
-				attr_name, opdata->objectName.value);
+				attr_name, osaf_extended_name_borrow(&opdata->objectName));
 			return false;
 		}
 
@@ -282,7 +283,7 @@ static bool config_is_valid(const SaNameT *dn,
 		if (cmd == nullptr) {
 			report_ccb_validation_error(opdata,
 				"Required attribute %s not configured for '%s'",
-				attr_name, opdata->objectName.value);
+				attr_name, osaf_extended_name_borrow(&opdata->objectName));
 			return false;
 		}
 
@@ -303,7 +304,7 @@ static bool config_is_valid(const SaNameT *dn,
 		if (cmd == nullptr) {
 			report_ccb_validation_error(opdata,
 				"Required attribute %s not configured for '%s'",
-				attr_name, opdata->objectName.value);
+				attr_name, osaf_extended_name_borrow(&opdata->objectName));
 			return false;
 		}
 
@@ -336,18 +337,18 @@ static bool config_is_valid(const SaNameT *dn,
 
 	if ((value < SA_AMF_NO_RECOMMENDATION) || (value > SA_AMF_NODE_FAILFAST)) {
 		report_ccb_validation_error(opdata, "Illegal/unsupported saAmfCtDefRecoveryOnError value %u for '%s'",
-				value, dn->value);
+				value, dn.c_str());
 		return false;
 	}
 
 	if (value == SA_AMF_NO_RECOMMENDATION)
 		LOG_NO("Invalid configuration, saAmfCtDefRecoveryOnError=NO_RECOMMENDATION(%u) for '%s'",
-			   value, dn->value);
+			   value, dn.c_str());
 
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefDisableRestart"), attributes, 0, &value);
 	if ((rc == SA_AIS_OK) && (value > SA_TRUE)) {
 		report_ccb_validation_error(opdata, "Illegal saAmfCtDefDisableRestart value %u for '%s'",
-			   value, dn->value);
+			   value, dn.c_str());
 		return false;
 	}
 
@@ -387,16 +388,16 @@ SaAisErrorT avd_comptype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (config_is_valid(&dn, attributes, nullptr) == false)
+		if (config_is_valid(Amf::to_string(&dn), attributes, nullptr) == false)
 			goto done2;
 		if ((comp_type = comptype_db->find(Amf::to_string(&dn))) == nullptr) {
-			if ((comp_type = comptype_create(&dn, attributes)) == nullptr)
+			if ((comp_type = comptype_create(Amf::to_string(&dn), attributes)) == nullptr)
 				goto done2;
 
 			comptype_db_add(comp_type);
 		}
 
-		if (avd_ctcstype_config_get(&dn, comp_type) != SA_AIS_OK)
+		if (avd_ctcstype_config_get(Amf::to_string(&dn), comp_type) != SA_AIS_OK)
 			goto done2;
 	}
 
@@ -416,13 +417,13 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	AVD_COMP_TYPE *comp_type;
 	SaNameT comp_type_name;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	// input example: opdata.objectName.value, safVersion=1,safCompType=AmfDemo1
 	comp_type_name = opdata->objectName;
 
 	if ((comp_type = comptype_db->find(Amf::to_string(&comp_type_name))) == 0) {
-		LOG_ER("Internal error: %s not found", comp_type_name.value);
+		LOG_ER("Internal error: %s not found", osaf_extended_name_borrow(&comp_type_name));
 		return;
 	}
 
@@ -434,7 +435,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	AVD_COMP *comp = comp_type->list_of_comp;
 	while (comp != nullptr) {
 		node_set.insert(comp->su->su_on_node);
-		TRACE("comp name %s on node %s", comp->comp_info.name.value,  comp->su->su_on_node->name.value);
+		TRACE("comp name %s on node %s", osaf_extended_name_borrow(&comp->comp_info.name),  comp->su->su_on_node->name.c_str());
 		comp = comp->comp_type_list_comp_next;
 	}			
 		
@@ -452,7 +453,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 			if (!strcmp(attribute->attrName, "saAmfCtDefCallbackTimeout")) {
 				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefCallbackTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
-					opdata->objectName.value, (*it)->name.value);
+					osaf_extended_name_borrow(&opdata->objectName), (*it)->name.c_str());
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefCallbackTimeout_ID;
@@ -460,7 +461,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfCtDefClcCliTimeout")) {
 				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefClcCliTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
-					opdata->objectName.value, (*it)->name.value);
+					osaf_extended_name_borrow(&opdata->objectName), (*it)->name.c_str());
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefClcCliTimeout_ID;
@@ -468,7 +469,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfCtDefQuiescingCompleteTimeout")) {
 				SaTimeT *param_val = (SaTimeT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefQuiescingCompleteTimeout to '%llu' for compType '%s' on node '%s'", *param_val, 
-					opdata->objectName.value, (*it)->name.value);
+					osaf_extended_name_borrow(&opdata->objectName), (*it)->name.c_str());
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefQuiescingCompleteTimeout_ID;
@@ -483,7 +484,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 					param_val = *(SaUint32T *)attribute->attrValues[0];
 				}
 				TRACE("saAmfCtDefInstantiationLevel to '%u' for compType '%s' on node '%s'", param_val, 
-					opdata->objectName.value, (*it)->name.value);
+					osaf_extended_name_borrow(&opdata->objectName), (*it)->name.c_str());
 				param.value_len = sizeof(param_val);
 				memcpy(param.value, &param_val, param.value_len);
 				param.attr_id = saAmfCtDefInstantiationLevel_ID;
@@ -493,7 +494,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 			} else if (!strcmp(attribute->attrName, "saAmfCtDefRecoveryOnError")) {
 				SaAmfRecommendedRecoveryT *param_val = (SaAmfRecommendedRecoveryT *)attribute->attrValues[0];
 				TRACE("saAmfCtDefRecoveryOnError to '%u' for compType '%s' on node '%s'", *param_val, 
-					opdata->objectName.value, (*it)->name.value);
+					osaf_extended_name_borrow(&opdata->objectName), (*it)->name.c_str());
 				param.value_len = sizeof(*param_val);
 				memcpy(param.value, param_val, param.value_len);
 				param.attr_id = saAmfCtDefRecoveryOnError_ID;
@@ -508,7 +509,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 					param_val = *(SaBoolT *)attribute->attrValues[0];
 				}
 				TRACE("saAmfCtDefDisableRestart to '%u' for compType '%s' on node '%s'", param_val, 
-					opdata->objectName.value, (*it)->name.value);
+					osaf_extended_name_borrow(&opdata->objectName), (*it)->name.c_str());
 				param.value_len = sizeof(param_val);
 				memcpy(param.value, &param_val, param.value_len);
 				param.attr_id = saAmfCtDefDisableRestart_ID;
@@ -525,11 +526,11 @@ static void comptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_COMP_TYPE *comp_type;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		comp_type = comptype_create(&opdata->objectName,
+		comp_type = comptype_create(Amf::to_string(&opdata->objectName),
 			opdata->param.create.attrValues);
 		osafassert(comp_type);
 		comptype_db_add(comp_type);
@@ -556,7 +557,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *mod;
 	int i = 0;
-	const char *dn = (char*)opdata->objectName.value;
+	const char *dn = (char*)osaf_extended_name_borrow(&opdata->objectName);
 	bool value_is_deleted = false;
 
 	while ((mod = opdata->param.modify.attrMods[i++]) != nullptr) {
@@ -683,11 +684,11 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	bool comp_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (config_is_valid(&opdata->objectName,
+		if (config_is_valid(Amf::to_string(&opdata->objectName),
 				opdata->param.create.attrValues, opdata) == true)
 			rc = SA_AIS_OK;
 		break;
@@ -710,7 +711,7 @@ static SaAisErrorT comptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				comp = comp->comp_type_list_comp_next;
 			}
 			if (comp_exist == true) {
-				report_ccb_validation_error(opdata, "SaAmfCompType '%s' is in use",comp_type->name.value);
+				report_ccb_validation_error(opdata, "SaAmfCompType '%s' is in use",comp_type->name.c_str());
 				goto done;
 			}
 		}
@@ -744,19 +745,17 @@ SaAisErrorT avd_compglobalattrs_config_get(void)
 	SaAisErrorT rc;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
-	SaNameT dn = {0, "safRdn=compGlobalAttributes,safApp=safAmfService" };
-
-	dn.length = strlen((char *)dn.value);
+	const std::string dn{"safRdn=compGlobalAttributes,safApp=safAmfService"};
 
 	immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
-	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes);
+	rc = immutil_saImmOmAccessorGet_o2(accessorHandle, dn.c_str(), nullptr, const_cast<SaImmAttrValuesT_2 ***>(&attributes));
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOmAccessorGet_2 FAILED %u", rc);
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto done;
 	}
 
-	TRACE("'%s'", dn.value);
+	TRACE("'%s'", dn.c_str());
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNumMaxInstantiateWithoutDelay"), attributes, 0,
 			    &avd_comp_global_attrs.saAmfNumMaxInstantiateWithoutDelay) != SA_AIS_OK) {
@@ -797,7 +796,7 @@ static void avd_compglobalattrs_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attrMod;
 	bool value_is_deleted;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_MODIFY:
@@ -891,7 +890,7 @@ static SaAisErrorT avd_compglobalattrs_ccb_completed_cb(CcbUtilOperationData_t *
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:

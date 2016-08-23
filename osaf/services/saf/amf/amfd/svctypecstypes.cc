@@ -26,21 +26,21 @@
 AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db = nullptr;
 static void svctypecstype_db_add(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
 {
-	uint32_t rc = svctypecstypes_db->insert(Amf::to_string(&svctypecstype->name),svctypecstype);
+	uint32_t rc = svctypecstypes_db->insert(svctypecstype->name,svctypecstype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 //
-AVD_SVC_TYPE_CS_TYPE::AVD_SVC_TYPE_CS_TYPE(const SaNameT *dn) {
-  memcpy(&name.value, dn->value, dn->length);
-  name.length = dn->length;
+AVD_SVC_TYPE_CS_TYPE::AVD_SVC_TYPE_CS_TYPE(const std::string& dn) :
+	name(dn)
+{
 }
 
-static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	svctypecstype = new AVD_SVC_TYPE_CS_TYPE(dn);
 
@@ -60,7 +60,7 @@ static AVD_SVC_TYPE_CS_TYPE *svctypecstypes_create(SaNameT *dn, const SaImmAttrV
  * 
  * @return SaAisErrorT 
  */
-SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
+SaAisErrorT avd_svctypecstypes_config_get(const std::string& svctype_name)
 {
 	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
 	SaAisErrorT error;
@@ -74,7 +74,7 @@ SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, svctype_name, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_o2(avd_cb->immOmHandle, svctype_name.c_str(), SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 		nullptr, &searchHandle);
 	
@@ -86,7 +86,7 @@ SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
 		if ((svctypecstype = svctypecstypes_db->find(Amf::to_string(&dn)))== nullptr) {
-			if ((svctypecstype = svctypecstypes_create(&dn, attributes)) == nullptr) {
+			if ((svctypecstype = svctypecstypes_create(Amf::to_string(&dn), attributes)) == nullptr) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
 			}
@@ -113,30 +113,31 @@ static SaAisErrorT svctypecstypes_ccb_completed_cb(CcbUtilOperationData_t *opdat
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE: {
-		SaNameT cstype_dn;
-		const SaNameT *dn = &opdata->objectName;
+		std::string cstype_dn;
+		const std::string dn = Amf::to_string(&opdata->objectName);
 
-		if (get_child_dn_from_ass_dn(dn, &cstype_dn) != 0) {
-			report_ccb_validation_error(opdata, "malformed DN '%s'", dn->value);
+		if (get_child_dn_from_ass_dn(dn, cstype_dn) != 0) {
+			report_ccb_validation_error(opdata, "malformed DN '%s'", dn.c_str());
 			goto done;
 		}
 
-		if (cstype_db->find(Amf::to_string(&cstype_dn)) == nullptr) {
-			if (cstype_db->find(Amf::to_string(&cstype_dn)) == nullptr) {
+		if (cstype_db->find(cstype_dn) == nullptr) {
+			if (cstype_db->find(cstype_dn) == nullptr) {
 				if (opdata == nullptr) {
 					report_ccb_validation_error(opdata,
-						"SaAmfCSType object '%s' does not exist", cstype_dn.value);
+						"SaAmfCSType object '%s' does not exist", cstype_dn.c_str());
 					goto done;
 				}
 
-				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &cstype_dn) == nullptr) {
+				const SaNameTWrapper type_cstype_dn(cstype_dn);
+				if (ccbutil_getCcbOpDataByDN(opdata->ccbId, type_cstype_dn) == nullptr) {
 					report_ccb_validation_error(opdata,
 						"SaAmfCSType object '%s' does not exist in model or in CCB",
-						cstype_dn.value);
+						cstype_dn.c_str());
 					goto done;
 				}
 			}
@@ -172,11 +173,11 @@ static void svctypecstypes_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		svctypecstype = svctypecstypes_create(&opdata->objectName, opdata->param.create.attrValues);
+		svctypecstype = svctypecstypes_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(svctypecstype);
 		svctypecstype_db_add(svctypecstype);
 		break;

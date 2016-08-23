@@ -278,13 +278,13 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	bool act_nd;
 
 	TRACE_ENTER2("from %x, %s", n2d_msg->msg_info.n2d_node_up.node_id,
-				n2d_msg->msg_info.n2d_node_up.node_name.value);
+				osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_node_up.node_name));
 
 	act_nd = n2d_msg->msg_info.n2d_node_up.node_id == cb->node_id_avd;
 	if (cb->scs_absence_max_duration > 0 &&
 		cb->all_nodes_synced == false &&
 		cb->node_sync_window_closed == false) {
-		avnd = avd_node_get(&n2d_msg->msg_info.n2d_node_up.node_name);
+		avnd = avd_node_get(Amf::to_string(&n2d_msg->msg_info.n2d_node_up.node_name));
 		if (avnd == nullptr) {
 			LOG_ER("Invalid node_name. Check node_id");
 
@@ -316,7 +316,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 				TRACE("Received node_up_msg from node:%s. Start/Restart "
 						" NodeSync timer waiting for remaining (%d) node(s)",
-						n2d_msg->msg_info.n2d_node_up.node_name.value,
+						osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_node_up.node_name),
 						sync_nd_size - rc_node_up);
 				goto done;
 			}
@@ -393,7 +393,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		if (cb->node_sync_window_closed == true && avnd->node_up_msg_count == 0) {
 			LOG_WA("Received new node_up_msg from node:%s after node sync window, "
 				"sending node reboot order to target node",
-				n2d_msg->msg_info.n2d_node_up.node_name.value);
+				osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_node_up.node_name));
 				avd_d2n_reboot_snd(avnd);
 				goto done;
 		} else if (avnd->reboot) {
@@ -413,7 +413,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				if (su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) {
 					if (su->sg_of_su->su_insvc(cb, su) == NCSCC_RC_FAILURE) {
-						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
 						su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -466,7 +466,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	avd_node_state_set(avnd, AVD_AVND_STATE_NO_CONFIG);
 
 node_joined:
-	LOG_NO("Node '%s' joined the cluster", avnd->node_name);
+	LOG_NO("Node '%s' joined the cluster", avnd->node_name.c_str());
 
 	/* checkpoint the node. */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_NODE_CONFIG);
@@ -592,7 +592,7 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 	//	"NCS SU failed default recovery NODE_FAILFAST");
 	/* reboot the AvD if the AvND matches self and AVD is quiesced. */
 	if ((avnd->node_info.nodeId == cb->node_id_avd) && (cb->avail_state_avd == SA_AMF_HA_QUIESCED)) {
-		opensaf_reboot(avnd->node_info.nodeId, (char *)avnd->node_info.executionEnvironment.value,
+		opensaf_reboot(avnd->node_info.nodeId, osaf_extended_name_borrow(&avnd->node_info.executionEnvironment),
 				"Node failed in qsd state");
 	}
 
@@ -872,8 +872,8 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					continue;
 
 				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, static_cast<AVSV_SUSI_ACT>(rel_ptr->fsm), false, nullptr) != NCSCC_RC_SUCCESS) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
-									     su_ptr->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su_ptr->name.c_str(),
+									     su_ptr->name.length());
 				}
 			}
 		}
@@ -908,8 +908,8 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					continue;
 
 				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, static_cast<AVSV_SUSI_ACT>(rel_ptr->fsm), false, nullptr) != NCSCC_RC_SUCCESS) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_ptr->name.value,
-									     su_ptr->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su_ptr->name.c_str(),
+									     su_ptr->name.length());
 				}
 			}
 		}
@@ -970,7 +970,7 @@ void avd_node_mark_absent(AVD_AVND *node)
 	avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
 	avd_node_state_set(node, AVD_AVND_STATE_ABSENT);
 
-	LOG_NO("Node '%s' left the cluster", node->node_name);
+	LOG_NO("Node '%s' left the cluster", node->node_name.c_str());
 
 	node->adest = 0;
 	node->rcv_msg_id = 0;

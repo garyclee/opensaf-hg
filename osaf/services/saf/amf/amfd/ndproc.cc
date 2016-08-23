@@ -100,7 +100,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *node;
 
-	TRACE_ENTER2("from %x, '%s'", n2d_msg->msg_info.n2d_reg_su.node_id, n2d_msg->msg_info.n2d_reg_su.su_name.value);
+	TRACE_ENTER2("from %x, '%s'", n2d_msg->msg_info.n2d_reg_su.node_id, osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_reg_su.su_name));
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_reg_su.node_id, AVSV_N2D_REG_SU_MSG,
 		n2d_msg->msg_info.n2d_reg_su.msg_id)) == nullptr) {
@@ -134,7 +134,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		if (n2d_msg->msg_info.n2d_reg_su.error != NCSCC_RC_SUCCESS) {
 			/* Cannot do much, let the operator clean up the mess */
 			LOG_ER("%s: '%s' node=%x FAILED to register", __FUNCTION__,
-			       n2d_msg->msg_info.n2d_reg_su.su_name.value, n2d_msg->msg_info.n2d_reg_su.node_id);
+			      osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_reg_su.su_name), n2d_msg->msg_info.n2d_reg_su.node_id);
 		}
 
 		avsv_dnd_msg_free(n2d_msg);
@@ -271,7 +271,7 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	LOG_ER("Operation request FAILED, sender %x, '%s'",
-		n2d_msg->msg_info.n2d_op_req.node_id, n2d_msg->msg_info.n2d_op_req.param_info.name.value);
+		n2d_msg->msg_info.n2d_op_req.node_id, osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_op_req.param_info.name));
 
  done:
 	avsv_dnd_msg_free(n2d_msg);
@@ -433,7 +433,7 @@ static void comp_admin_op_report_to_imm(AVD_COMP *comp, SaAmfPresenceStateT pres
 	} else {
 		report_admin_op_error(avd_cb->immOiHandle, comp->admin_pend_cbk.invocation,
 				rc, &comp->admin_pend_cbk, "Couldn't restart Comp '%s'",
-				comp->comp_info.name.value);
+				osaf_extended_name_borrow(&comp->comp_info.name));
 	}
 	comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 	comp->admin_pend_cbk.invocation = 0;
@@ -503,7 +503,7 @@ static void surestart_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pre
 	} else {
 		report_admin_op_error(avd_cb->immOiHandle, su->pend_cbk.invocation,
 				rc, &su->pend_cbk, "Couldn't restart su '%s'",
-				su->name.value);
+				su->name.c_str());
 	}
 	su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 	su->pend_cbk.invocation = 0;
@@ -531,7 +531,7 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 			su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 		} else if (pres == SA_AMF_PRESENCE_TERMINATION_FAILED) {
 			report_admin_op_error(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING,
-					&su->pend_cbk, "SU '%s' moved to 'termination failed' state", su->name.value);
+					&su->pend_cbk, "SU '%s' moved to 'termination failed' state", su->name.c_str());
 		}
 		break;
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
@@ -543,7 +543,7 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 			   (pres == SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 			report_admin_op_error(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING,
 					&su->pend_cbk, "SU '%s' moved to 'instantiation/termination failed' state",
-					su->name.value);
+					su->name.c_str());
 		}
 		break;
 	case SA_AMF_ADMIN_UNLOCK:
@@ -553,7 +553,7 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 					SA_AIS_ERR_REPAIR_PENDING,
 					&su->pend_cbk,
 					"SU '%s' moved to 'termination failed' state",
-					su->name.value);
+					su->name.c_str());
 		}
 		break;
 	case SA_AMF_ADMIN_REPAIRED:
@@ -568,7 +568,7 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 		} else {
 			report_admin_op_error(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_BAD_OPERATION,
 					&su->pend_cbk, "Bad presence state %u after '%s' adm repaired", pres,
-					su->name.value);
+					su->name.c_str());
 		}
 		break;
 	case SA_AMF_ADMIN_RESTART:
@@ -609,7 +609,7 @@ static void node_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 		} else if (pres == SA_AMF_PRESENCE_TERMINATION_FAILED) {
 			report_admin_op_error(cb->immOiHandle, su->su_on_node->admin_node_pend_cbk.invocation,
 					SA_AIS_ERR_REPAIR_PENDING, &su->su_on_node->admin_node_pend_cbk,
-					"SU '%s' moved to 'termination failed' state", su->name.value);
+					"SU '%s' moved to 'termination failed' state", su->name.c_str());
 			su->su_on_node->su_cnt_admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 		}		/* else do nothing ::SA_AMF_PRESENCE_TERMINATING update is valid */
 		break;
@@ -629,7 +629,7 @@ static void node_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 				(pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
 			report_admin_op_error(cb->immOiHandle, su->su_on_node->admin_node_pend_cbk.invocation,
 					SA_AIS_ERR_REPAIR_PENDING, &su->su_on_node->admin_node_pend_cbk,
-					"SU '%s' moved to 'instantiation/termination failed' state", su->name.value);
+					"SU '%s' moved to 'instantiation/termination failed' state", su->name.c_str());
 			su->su_on_node->su_cnt_admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 		}		/* else do nothing :: SA_AMF_PRESENCE_INSTANTIATING update is valid */
 		break;
@@ -705,7 +705,7 @@ bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su)
 	if(su == nullptr)
 		goto node_walk;
 
-	TRACE("SU '%s', SUPresenceState '%u'", su->name.value, su->saAmfSUPresenceState);
+	TRACE("SU '%s', SUPresenceState '%u'", su->name.c_str(), su->saAmfSUPresenceState);
 	if (((su->saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) && (su->saAmfSUPresenceState == 
 					SA_AMF_PRESENCE_INSTANTIATED)) ||
 			(su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED)) {
@@ -719,7 +719,7 @@ node_walk:
 	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
 			it != node_name_db->end(); it++) {
 		node = it->second;
-		TRACE("node name '%s', Oper'%u'", node->name.value, node->saAmfNodeOperState);
+		TRACE("node name '%s', Oper'%u'", node->name.c_str(), node->saAmfNodeOperState);
 		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED)
 		{
 			for (const auto& su_ptr : node->list_of_su) {
@@ -846,7 +846,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				   So, when update for presence state comes from
 				   Amfnd, the component doesn't exists in Amfd*/
 				LOG_IN("%s: Invalid Comp '%s'", __FUNCTION__,
-						n2d_msg->msg_info.n2d_data_req.param_info.name.value);
+						osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_data_req.param_info.name));
 				goto done;
 			}
 
@@ -914,11 +914,9 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len ==
 				    strlen((char *)n2d_msg->msg_info.n2d_data_req.param_info.value)) {
 					l_val = n2d_msg->msg_info.n2d_data_req.param_info.value_len;
-					comp->saAmfCompCurrProxyName.length = l_val;
-
-					strncpy((char *)comp->saAmfCompCurrProxyName.value,
-						(char *)n2d_msg->msg_info.n2d_data_req.param_info.value,
-						SA_MAX_NAME_LENGTH - 1);
+					comp->saAmfCompCurrProxyName = std::string(
+						static_cast<char*>(n2d_msg->msg_info.n2d_data_req.param_info.value),
+						l_val);
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVSV_CKPT_COMP_CURR_PROXY_NAME);
 				} else {
 					/* log error that a the  value len is invalid */
@@ -948,7 +946,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				   alarm notification by AMFD.
 				 */ 
 				l_val = ntohl(*((uint32_t*)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
-				avd_send_error_report_ntf(&comp->comp_info.name,
+				avd_send_error_report_ntf(Amf::to_string(&comp->comp_info.name),
 						static_cast<SaAmfRecommendedRecoveryT>(l_val));
 				break;
 			default:
@@ -962,9 +960,9 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	case AVSV_SA_AMF_SU:{
 			/* Find the component record in the database, specified in the message. */
 			if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_data_req.param_info.name))) == nullptr) {
-				LOG_ER("%s: Invalid SU '%s' (%u)", __FUNCTION__,
-					n2d_msg->msg_info.n2d_data_req.param_info.name.value,
-					n2d_msg->msg_info.n2d_data_req.param_info.name.length);
+				LOG_ER("%s: Invalid SU '%s' (%zu)", __FUNCTION__,
+					osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_data_req.param_info.name),
+					osaf_extended_name_length(&n2d_msg->msg_info.n2d_data_req.param_info.name));
 				goto done;
 			}
 
@@ -1016,7 +1014,7 @@ void avd_data_update_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 										SA_AIS_ERR_REPAIR_PENDING,
 										nullptr,
 										"SU '%s' moved to 'termination failed' state",
-										su->name.value);
+										su->name.c_str());
 								si->invocation = 0;
 							}
 						}
@@ -1093,7 +1091,7 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	valid_info = &n2d_msg->msg_info.n2d_comp_valid_info;
 
-	TRACE_ENTER2("%s", valid_info->comp_name.value);
+	TRACE_ENTER2("%s", osaf_extended_name_borrow(&valid_info->comp_name));
 
 	if ((node = avd_msg_sanity_chk(evt, valid_info->node_id, AVSV_N2D_COMP_VALIDATION_MSG,
 		valid_info->msg_id)) == nullptr) {
@@ -1142,7 +1140,7 @@ done:
  */
 void avd_node_failover(AVD_AVND *node)
 {
-	TRACE_ENTER2("'%s'", node->name.value);
+	TRACE_ENTER2("'%s'", node->name.c_str());
 	avd_node_mark_absent(node);
 	avd_pg_node_csi_del_all(avd_cb, node);
 	avd_node_down_mw_susi_failover(avd_cb, node);

@@ -227,13 +227,14 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 	for (i = 0; i < notificationBuffer->numberOfItems; i++)
 	{
 		notifItem = &notificationBuffer->notification[i];
+		const std::string node_name(Amf::to_string(&notifItem->clusterNode.nodeName));
 		switch(step) {
 		case SA_CLM_CHANGE_VALIDATE:
 			if(notifItem->clusterChange == SA_CLM_NODE_LEFT) {
 				node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
 				if (node == nullptr) {
 					LOG_IN("%s: CLM node '%s' is not an AMF cluster member",
-						   __FUNCTION__, notifItem->clusterNode.nodeName.value);
+						   __FUNCTION__, node_name.c_str());
 					goto done;
 				}
 				/* store the invocation for clm response */
@@ -250,7 +251,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
 			if (node == nullptr) {
 				LOG_IN("%s: CLM node '%s' is not an AMF cluster member",
-					   __FUNCTION__, notifItem->clusterNode.nodeName.value);
+					   __FUNCTION__, node_name.c_str());
 				goto done;
 			}
 			if ( notifItem->clusterChange == SA_CLM_NODE_LEFT ||
@@ -258,7 +259,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				/* invocation to be used by pending clm response */ 
 				node->clm_pend_inv = invocation;
 				clm_node_exit_start(node, notifItem->clusterChange);
-				if (strncmp((char *)rootCauseEntity->value, "safNode=", 8) == 0) {
+				if (strncmp(osaf_extended_name_borrow(rootCauseEntity), "safNode=", 8) == 0) {
 					/* We need to differentiate between CLM lock and error scenario.*/
 					node->clm_change_start_preceded = true;
 				}
@@ -273,12 +274,12 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
 				if (node == nullptr) {
 					LOG_IN("%s: CLM node '%s' is not an AMF cluster member",
-						   __FUNCTION__, notifItem->clusterNode.nodeName.value);
+						   __FUNCTION__, node_name.c_str());
 					goto done;
 				}
-				TRACE(" Node Left: rootCauseEntity %s for node %u", rootCauseEntity->value, 
+				TRACE(" Node Left: rootCauseEntity %s for node %u", osaf_extended_name_borrow(rootCauseEntity), 
 						notifItem->clusterNode.nodeId);
-				if(strncmp((char *)rootCauseEntity->value, "safEE=", 6) == 0) {
+				if(strncmp(osaf_extended_name_borrow(rootCauseEntity), "safEE=", 6) == 0) {
 					/* This callback is because of operation on PLM, so we need to mark the node
 					   absent, because PLCD will anyway call opensafd stop.*/
 					AVD_AVND *node = avd_node_find_nodeid(notifItem->clusterNode.nodeId);
@@ -288,7 +289,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 						break;
 					}
 					clm_node_exit_complete(notifItem->clusterNode.nodeId);
-				} else if (strncmp((char *)rootCauseEntity->value, "safNode=", 8) == 0) {
+				} else if (strncmp(osaf_extended_name_borrow(rootCauseEntity), "safNode=", 8) == 0) {
 					/* This callback is because of operation on CLM.*/
 					if(true == node->clm_change_start_preceded) {
 						/* We have got a completed callback with start cbk step before, so 
@@ -308,7 +309,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				}
 				else {
 					/* We shouldn't get into this situation.*/
-					LOG_ER("Wrong rootCauseEntity %s",rootCauseEntity->value);
+					LOG_ER("Wrong rootCauseEntity %s", osaf_extended_name_borrow(rootCauseEntity));
 					osafassert(0);
 				}
 			}
@@ -335,18 +336,17 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
 						it != node_name_db->end(); it++) {
 					node = it->second;
-					if (0 == strncmp((char*)node->saAmfNodeClmNode.value,
-								(char*)notifItem->clusterNode.nodeName.value,
-								notifItem->clusterNode.nodeName.length))
-					break;
+					if (node->saAmfNodeClmNode.compare(node_name) == 0) {
+						break;
+					}
 				}
 				if ( node != nullptr ) {
 					memcpy(&(node->node_info), &(notifItem->clusterNode),
 							sizeof(SaClmClusterNodeT_4));
 					avd_node_add_nodeid(node);
-					TRACE("Node Joined '%s' '%x'", 
-						notifItem->clusterNode.nodeName.value,
-						notifItem->clusterNode.nodeName.length);
+					TRACE("Node Joined '%s' '%zu'", 
+						node_name.c_str(),
+						node_name.length());
 
 					node->node_info.member = SA_TRUE;
 					if (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_4) {
@@ -362,7 +362,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					}
 				} else {
 					LOG_IN("AMF-node not configured on this CLM-node '%s'",
-							notifItem->clusterNode.nodeName.value);
+							node_name.c_str());
 				}
 			}
 			else

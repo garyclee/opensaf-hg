@@ -28,20 +28,19 @@ AmfDb<std::string, AVD_SUTCOMP_TYPE> *sutcomptype_db = nullptr;
 
 static void sutcomptype_db_add(AVD_SUTCOMP_TYPE *sutcomptype)
 {
-	unsigned int rc = sutcomptype_db->insert(Amf::to_string(&sutcomptype->name),sutcomptype);
+	unsigned int rc = sutcomptype_db->insert(sutcomptype->name,sutcomptype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
-static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_SUTCOMP_TYPE *sutcomptype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_SUTCOMP_TYPE *sutcomptype;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	sutcomptype = new AVD_SUTCOMP_TYPE();
 
-	memcpy(sutcomptype->name.value, dn->value, dn->length);
-	sutcomptype->name.length = dn->length;
+	sutcomptype->name = dn;
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutMaxNumComponents"), attributes, 0, &sutcomptype->saAmfSutMaxNumComponents) != SA_AIS_OK)
 		sutcomptype->saAmfSutMaxNumComponents = -1; /* no limit */
@@ -55,17 +54,17 @@ static AVD_SUTCOMP_TYPE *sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_
 
 static void sutcomptype_delete(AVD_SUTCOMP_TYPE *sutcomptype)
 {
-	sutcomptype_db->erase(Amf::to_string(&sutcomptype->name));
+	sutcomptype_db->erase(sutcomptype->name);
 	delete sutcomptype;
 }
 
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
 	// TODO
 	return 1;
 }
 
-SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
+SaAisErrorT avd_sutcomptype_config_get(const std::string& sutype_name, AVD_SUTYPE *sut)
 {
 	AVD_SUTCOMP_TYPE *sutcomptype;
 	SaAisErrorT error;
@@ -81,7 +80,7 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, sutype_name, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_o2(avd_cb->immOmHandle, sutype_name.c_str(), SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 		nullptr, &searchHandle);
 	
@@ -91,10 +90,10 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, nullptr))
+		if (!is_config_valid(Amf::to_string(&dn), attributes, nullptr))
 			goto done2;
 		if ((sutcomptype = sutcomptype_db->find(Amf::to_string(&dn))) == nullptr) {
-			if ((sutcomptype = sutcomptype_create(&dn, attributes)) == nullptr) {
+			if ((sutcomptype = sutcomptype_create(Amf::to_string(&dn), attributes)) == nullptr) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
 			}
@@ -117,11 +116,11 @@ static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SUTCOMP_TYPE *sutcomptype = nullptr;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues, opdata))
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
@@ -146,11 +145,11 @@ static void sutcomptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SUTCOMP_TYPE *sutcomptype = nullptr;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		sutcomptype = sutcomptype_create(&opdata->objectName, opdata->param.create.attrValues);
+		sutcomptype = sutcomptype_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(sutcomptype);
 		sutcomptype_db_add(sutcomptype);
 		break;

@@ -26,7 +26,7 @@
 #include <saflog.h>
 #include <amfd.h>
 #include <cluster.h>
-#include <db_template.h>
+#include <amf_db_template.h>
 
 extern "C" const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[AVSV_CKPT_MSG_MAX];
 
@@ -281,7 +281,7 @@ void encode_node_config(NCS_UBAID *ub, const AVD_AVND* avnd, uint16_t peer_versi
 {
 	osaf_encode_uint32(ub, avnd->node_info.nodeId);
 	osaf_encode_saclmnodeaddresst(ub, &avnd->node_info.nodeAddress);
-	osaf_encode_sanamet(ub, &avnd->name);
+	osaf_encode_sanamet_o2(ub, avnd->name.c_str());
 	osaf_encode_bool(ub, avnd->node_info.member);
 	osaf_encode_satimet(ub, avnd->node_info.bootTimestamp);
 	osaf_encode_uint64(ub, avnd->node_info.initialViewNumber);
@@ -326,7 +326,7 @@ static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, avnd->name.c_str());
 		break;
 	default:
 		osafassert(0);
@@ -338,7 +338,7 @@ static uint32_t enc_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 void encode_app(NCS_UBAID *ub, const AVD_APP *app)
 {
-	osaf_encode_sanamet(ub, &app->name);
+	osaf_encode_sanamet_o2(ub, app->name.c_str());
 	osaf_encode_uint32(ub, app->saAmfApplicationAdminState);
 	osaf_encode_uint32(ub, app->saAmfApplicationCurrNumSGs);
 }
@@ -374,7 +374,7 @@ static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		encode_app(&enc->io_uba, app);	
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		osaf_encode_sanamet(&enc->io_uba, &app->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, app->name.c_str());
 		break;
 	default:
 		osafassert(0);
@@ -386,7 +386,7 @@ static uint32_t enc_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 static void encode_sg(NCS_UBAID *ub, const AVD_SG *sg)
 {
-	osaf_encode_sanamet(ub, &sg->name);
+	osaf_encode_sanamet_o2(ub, sg->name.c_str());
 	osaf_encode_uint32(ub, sg->saAmfSGAdminState);
 	osaf_encode_uint32(ub, sg->saAmfSGNumCurrAssignedSUs);
 	osaf_encode_uint32(ub, sg->saAmfSGNumCurrInstantiatedSpareSUs);
@@ -420,7 +420,7 @@ static uint32_t enc_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		encode_sg(&enc->io_uba, sg);
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		osaf_encode_sanamet(&enc->io_uba, &sg->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 		break;
 	default:
 		osafassert(0);
@@ -432,13 +432,13 @@ static uint32_t enc_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 static void encode_su(NCS_UBAID *ub, AVD_SU *su, uint16_t peer_version)
 {
-	osaf_encode_sanamet(ub, &su->name);
+	osaf_encode_sanamet_o2(ub, su->name.c_str());
 	osaf_encode_bool(ub, (bool)su->saAmfSUPreInstantiable); // TODO(hafe) change to bool
 	osaf_encode_uint32(ub, su->saAmfSUOperState);
 	osaf_encode_uint32(ub, su->saAmfSUAdminState);
 	osaf_encode_uint32(ub, su->saAmfSuReadinessState);
 	osaf_encode_uint32(ub, su->saAmfSUPresenceState);
-	osaf_encode_sanamet(ub, &su->saAmfSUHostedByNode);
+	osaf_encode_sanamet_o2(ub, su->saAmfSUHostedByNode.c_str());
 	osaf_encode_uint32(ub, su->saAmfSUNumCurrActiveSIs);
 	osaf_encode_uint32(ub, su->saAmfSUNumCurrStandbySIs);
 	osaf_encode_uint32(ub, su->saAmfSURestartCount);
@@ -474,7 +474,7 @@ static uint32_t enc_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		break;
 	case NCS_MBCSV_ACT_RMV: {
 		const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-		osaf_encode_sanamet(&enc->io_uba, &su->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 		break;
 	}
 	default:
@@ -499,13 +499,13 @@ static void encode_si(const AVD_CL_CB *cb,
 #endif
 	TRACE_ENTER2("my_version: %u, to_version: %u", ver_compare, peer_version);
 
-	osaf_encode_sanamet(ub, &si->name);
+	osaf_encode_sanamet_o2(ub, si->name.c_str());
 	osaf_encode_uint32(ub, si->saAmfSIAdminState);
 	osaf_encode_uint32(ub, si->saAmfSIAssignmentState);
 	osaf_encode_uint32(ub, si->saAmfSINumCurrActiveAssignments);
 	osaf_encode_uint32(ub, si->saAmfSINumCurrStandbyAssignments);
 	osaf_encode_uint32(ub, si->si_switch);
-	osaf_encode_sanamet(ub, &si->saAmfSIProtectedbySG);
+	osaf_encode_sanamet_o2(ub, si->saAmfSIProtectedbySG.c_str());
 	osaf_encode_bool(ub, si->alarm_sent);
 	
 	if (peer_version >= ver_compare) {
@@ -548,7 +548,7 @@ static uint32_t enc_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		break;
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		osaf_encode_sanamet(&enc->io_uba, &si->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 		break;
 	default:
 		osafassert(0);
@@ -590,7 +590,7 @@ static uint32_t enc_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		/*
 		 * Send SI key.
 		 */
-		osaf_encode_sanamet(&enc->io_uba, &si->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 		break;
 
 	case NCS_MBCSV_ACT_UPDATE:
@@ -610,11 +610,12 @@ void encode_si_trans(NCS_UBAID *ub,
 	const AVD_SG *sg,
 	const uint16_t peer_version)
 {
-	osaf_encode_sanamet(ub, &sg->name);
-	osaf_encode_sanamet(ub, &sg->si_tobe_redistributed->name);
-	osaf_encode_sanamet(ub, &sg->min_assigned_su->name);
-	osaf_encode_sanamet(ub, &sg->max_assigned_su->name);
+	osaf_encode_sanamet_o2(ub, sg->name.c_str());
+	osaf_encode_sanamet_o2(ub, sg->si_tobe_redistributed->name.c_str());
+	osaf_encode_sanamet_o2(ub, sg->min_assigned_su->name.c_str());
+	osaf_encode_sanamet_o2(ub, sg->max_assigned_su->name.c_str());
 }
+
 
 /*********************************************************************
  * @brief encodes si transfer parameters
@@ -634,7 +635,7 @@ static uint32_t enc_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		osaf_encode_sanamet(&enc->io_uba, &sg->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 		break;
 
 	default:
@@ -649,14 +650,14 @@ void encode_siass(NCS_UBAID *ub,
 	const AVD_SU_SI_REL *susi,
 	const uint16_t peer_version)
 {
-	osaf_encode_sanamet(ub, &susi->su->name);
-	osaf_encode_sanamet(ub, &susi->si->name);
+	osaf_encode_sanamet_o2(ub, susi->su->name.c_str());
+	osaf_encode_sanamet_o2(ub, susi->si->name.c_str());
 	osaf_encode_uint32(ub, susi->state);
 	osaf_encode_uint32(ub, susi->fsm);
 	if (peer_version >= AVD_MBCSV_SUB_PART_VERSION_3) {
 		osaf_encode_bool(ub, static_cast<bool>(susi->csi_add_rem));
-		osaf_encode_sanamet(ub, &susi->comp_name);
-		osaf_encode_sanamet(ub, &susi->csi_name);
+		osaf_encode_sanamet_o2(ub, susi->comp_name.c_str());
+		osaf_encode_sanamet_o2(ub, susi->csi_name.c_str());
 	};
 }
 
@@ -725,7 +726,7 @@ void encode_comp(NCS_UBAID *ub, const AVD_COMP *comp) {
   osaf_encode_uint32(ub, comp->saAmfCompReadinessState);
   osaf_encode_uint32(ub, comp->saAmfCompPresenceState);
   osaf_encode_uint32(ub, comp->saAmfCompRestartCount);
-  osaf_encode_sanamet(ub, &comp->saAmfCompCurrProxyName);
+  osaf_encode_sanamet_o2(ub, comp->saAmfCompCurrProxyName.c_str());
 }
 
 /****************************************************************************\
@@ -790,7 +791,7 @@ static uint32_t enc_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_RMV:
-		osaf_encode_sanamet(&enc->io_uba, &su->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 		break;
 	case NCS_MBCSV_ACT_UPDATE:
 	default:
@@ -864,7 +865,7 @@ static uint32_t enc_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, avnd->name.c_str());
 		osaf_encode_uint32(&enc->io_uba, avnd->saAmfNodeAdminState);
 	} else
 		osafassert(0);
@@ -898,7 +899,7 @@ static uint32_t enc_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, avnd->name.c_str());
 		osaf_encode_uint32(&enc->io_uba, avnd->saAmfNodeOperState);
 	} else
 		osafassert(0);
@@ -932,7 +933,7 @@ static uint32_t enc_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	 * error. Call EDU encode to encode this field.
 	 */
 	if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-		osaf_encode_sanamet(&enc->io_uba, &avnd->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, avnd->name.c_str());
 		osaf_encode_uint32(&enc->io_uba, avnd->node_state);
 	} else
 		osafassert(0);
@@ -1028,7 +1029,7 @@ static uint32_t enc_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
-	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGAdminState);
 
 	TRACE_LEAVE();
@@ -1054,7 +1055,7 @@ static uint32_t enc_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
-	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGNumCurrAssignedSUs);
 
 	TRACE_LEAVE();
@@ -1080,7 +1081,7 @@ static uint32_t enc_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
-	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGNumCurrInstantiatedSpareSUs);
 
 	TRACE_LEAVE();
@@ -1106,7 +1107,7 @@ static uint32_t enc_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
-	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 
 	TRACE_LEAVE();
@@ -1132,7 +1133,7 @@ static uint32_t enc_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
-	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, sg->adjust_state);
 
 	TRACE_LEAVE();
@@ -1158,7 +1159,7 @@ static uint32_t enc_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SG *sg = (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl));
-	osaf_encode_sanamet(&enc->io_uba, &sg->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, sg->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, sg->sg_fsm_state);
 
 	TRACE_LEAVE();
@@ -1183,7 +1184,7 @@ static uint32_t enc_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_bool(&enc->io_uba, su->saAmfSUPreInstantiable);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1207,7 +1208,7 @@ static uint32_t enc_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->saAmfSUOperState);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1231,7 +1232,7 @@ static uint32_t enc_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->saAmfSUAdminState);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1255,7 +1256,7 @@ static uint32_t enc_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->saAmfSuReadinessState);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1279,7 +1280,7 @@ static uint32_t enc_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->saAmfSUPresenceState);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1303,7 +1304,7 @@ static uint32_t enc_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->saAmfSUNumCurrActiveSIs);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1327,7 +1328,7 @@ static uint32_t enc_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->saAmfSUNumCurrStandbySIs);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1351,7 +1352,7 @@ static uint32_t enc_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_bool(&enc->io_uba, su->term_state);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1375,7 +1376,7 @@ static uint32_t enc_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->su_switch);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1399,7 +1400,7 @@ static uint32_t enc_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->su_act_state);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1423,7 +1424,7 @@ static uint32_t enc_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SU *su = (AVD_SU *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &su->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, su->saAmfSURestartCount);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1448,7 +1449,7 @@ static uint32_t enc_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SI *si = (AVD_SI *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &si->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, si->saAmfSIAdminState);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1473,7 +1474,7 @@ static uint32_t enc_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SI *si = (AVD_SI *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &si->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, si->saAmfSIAssignmentState);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1492,7 +1493,7 @@ static uint32_t enc_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SI *si = (AVD_SI *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &si->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, si->si_dep_state);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1517,7 +1518,7 @@ static uint32_t enc_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SI *si = (AVD_SI *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &si->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, si->saAmfSINumCurrActiveAssignments);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1542,7 +1543,7 @@ static uint32_t enc_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SI *si = (AVD_SI *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &si->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, si->saAmfSINumCurrStandbyAssignments);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1567,7 +1568,7 @@ static uint32_t enc_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SI *si = (AVD_SI *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &si->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 	osaf_encode_uint32(&enc->io_uba, si->si_switch);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1592,7 +1593,7 @@ static uint32_t enc_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	TRACE_ENTER();
 	osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
 	const AVD_SI *si = (AVD_SI *)enc->io_reo_hdl;
-	osaf_encode_sanamet(&enc->io_uba, &si->name);
+	osaf_encode_sanamet_o2(&enc->io_uba, si->name.c_str());
 	osaf_encode_bool(&enc->io_uba, si->alarm_sent);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -1622,7 +1623,7 @@ static uint32_t enc_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc) {
    */
   if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
     osaf_encode_sanamet(&enc->io_uba, &comp->comp_info.name);
-    osaf_encode_sanamet(&enc->io_uba, &comp->saAmfCompCurrProxyName);
+    osaf_encode_sanamet_o2(&enc->io_uba, comp->saAmfCompCurrProxyName.c_str());
   } else {
     osafassert(0);
   }
@@ -1771,9 +1772,7 @@ static uint32_t enc_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc) {
    * error. Call EDU encode to encode this field.
    */
   if (NCS_MBCSV_ACT_UPDATE == enc->io_action) {
-
     osaf_encode_sanamet(&enc->io_uba, &comp->comp_info.name);
-
     osaf_encode_uint32(&enc->io_uba, comp->saAmfCompRestartCount);
   } else {
     osafassert(0);
@@ -2065,7 +2064,6 @@ static uint32_t enc_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
 	uint32_t status = NCSCC_RC_SUCCESS;
-	SaNameT si_name;
 	TRACE_ENTER();
 
 	/* 
@@ -2076,7 +2074,6 @@ static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 		const AVD_SI *si = it->second;
 		encode_si(cb, &enc->io_uba, si, enc->i_peer_version);
 
-		si_name = si->name;
 		(*num_of_obj)++;
 	}
 
@@ -2113,7 +2110,7 @@ static uint32_t enc_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uin
 		status = enc_su_oper_list(cb, sg, enc);
 
 		if (status != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s: encode failed, %s", __FUNCTION__, sg->name.value);
+			LOG_ER("%s: encode failed, %s", __FUNCTION__, sg->name.c_str());
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -2153,7 +2150,7 @@ static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 		if (nullptr == sg->admin_si) 
 			continue;
 
-		osaf_encode_sanamet(&enc->io_uba, &sg->admin_si->name);
+		osaf_encode_sanamet_o2(&enc->io_uba, sg->admin_si->name.c_str());
 
 		(*num_of_obj)++;
 	}
@@ -2379,7 +2376,7 @@ static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *en
 	 * Now walk through the entire SU operation list and encode it.
 	 */
 	for (const auto& su : sg->su_oper_list) {
-		osaf_encode_sanamet(&enc->io_uba, &(su->name)); 
+		osaf_encode_sanamet_o2(&enc->io_uba, su->name.c_str()); 
 		num_of_opr_su++;
 	}
 
@@ -2398,7 +2395,7 @@ void encode_comp_cs_type_config(NCS_UBAID *ub,
 	const AVD_COMPCS_TYPE *comp_cs_type,
 	const uint16_t peer_version)
 {
-	osaf_encode_sanamet(ub, &comp_cs_type->name);
+	osaf_encode_sanamet_o2(ub, comp_cs_type->name.c_str());
 	osaf_encode_uint32(ub, comp_cs_type->saAmfCompNumCurrActiveCSIs);
 	osaf_encode_uint32(ub, comp_cs_type->saAmfCompNumCurrStandbyCSIs);
 }
@@ -2461,7 +2458,6 @@ static uint32_t enc_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 \**************************************************************************/
 static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	SaNameT dn = {0};
 	TRACE_ENTER();
 
 	/*
@@ -2472,7 +2468,6 @@ static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc,
 		AVD_COMPCS_TYPE *compcstype = it->second;
 		encode_comp_cs_type_config(&enc->io_uba, compcstype, enc->i_peer_version);
 
-		dn = compcstype->name;
 		(*num_of_obj)++;
 	}
 
@@ -2492,7 +2487,7 @@ static uint32_t enc_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
         TRACE_ENTER();
         osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
         const AVD_AMF_NG *ng = (AVD_AMF_NG *)enc->io_reo_hdl;
-        osaf_encode_sanamet(&enc->io_uba, &ng->name);
+        osaf_encode_sanamet_o2(&enc->io_uba, ng->name.c_str());
         osaf_encode_uint32(&enc->io_uba, ng->saAmfNGAdminState);
         TRACE_LEAVE();
         return NCSCC_RC_SUCCESS;

@@ -46,7 +46,7 @@
  * @param su_dn
  */
 static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
-       const SaNameT *si_dn, const SaNameT *su_dn)
+       const std::string& si_dn, const std::string& su_dn)
 {
 	SaNameT dn;
 	SaAmfHAReadinessStateT saAmfSISUHAReadinessState =
@@ -73,8 +73,10 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
 			nullptr
 	};
 
-	avsv_create_association_class_dn(su_dn, nullptr, "safSISU", &dn);
+	const SaNameTWrapper su(su_dn);
+	avsv_create_association_class_dn(su, nullptr, "safSISU", &dn);
 	avd_saImmOiRtObjectCreate("SaAmfSIAssignment", si_dn, attrValues);
+	osaf_extended_name_free(&dn);
 }
 
 /** Delete an SaAmfSIAssignment from IMM
@@ -82,12 +84,15 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
  * @param si_dn
  * @param su_dn
  */
-static void avd_delete_siassignment_from_imm(const SaNameT *si_dn, const SaNameT *su_dn)
+static void avd_delete_siassignment_from_imm(const std::string& si_dn, const std::string& su_dn)
 {
-       SaNameT dn;
+	SaNameT dn;
 
-       avsv_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
-       avd_saImmOiRtObjectDelete(&dn);
+	const SaNameTWrapper si(si_dn);
+	const SaNameTWrapper su(su_dn);
+	avsv_create_association_class_dn(su, si, "safSISU", &dn);
+	avd_saImmOiRtObjectDelete(Amf::to_string(&dn));
+	osaf_extended_name_free(&dn);
 }
 
 /**
@@ -98,27 +103,33 @@ static void avd_delete_siassignment_from_imm(const SaNameT *si_dn, const SaNameT
  */
 void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 {
-       SaNameT dn;
-       AVD_COMP_CSI_REL *compcsi;
+	SaNameT dn;
+	AVD_COMP_CSI_REL *compcsi;
+	const SaNameTWrapper su_name(susi->su->name);
+	const SaNameTWrapper si_name(susi->si->name);
 
-       avsv_create_association_class_dn(&susi->su->name, &susi->si->name, "safSISU", &dn);
+	avsv_create_association_class_dn(su_name, si_name, "safSISU", &dn);
 
-       TRACE("HA State %s of %s for %s", avd_ha_state[ha_state],
-	       susi->su->name.value, susi->si->name.value);
-       saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
-	       avd_ha_state[ha_state], susi->su->name.value, susi->si->name.value);
+	TRACE("HA State %s of %s for %s", avd_ha_state[ha_state],
+	susi->su->name.c_str(), susi->si->name.c_str());
+	saflog(LOG_NOTICE, amfSvcUsrName, "HA State %s of %s for %s",
+		avd_ha_state[ha_state], susi->su->name.c_str(), susi->si->name.c_str());
 
-       avd_saImmOiRtObjectUpdate(&dn, "saAmfSISUHAState",
-    		   SA_IMM_ATTR_SAUINT32T, &ha_state);
+	avd_saImmOiRtObjectUpdate(Amf::to_string(&dn), "saAmfSISUHAState",
+	   SA_IMM_ATTR_SAUINT32T, &ha_state);
+	osaf_extended_name_free(&dn);
 
-       /* Update all CSI assignments */
-       for (compcsi = susi->list_of_csicomp; compcsi != nullptr; compcsi = compcsi->susi_csicomp_next) {
-	       avsv_create_association_class_dn(&compcsi->comp->comp_info.name,
-		       &compcsi->csi->name, "safCSIComp", &dn);
+	/* Update all CSI assignments */
+	for (compcsi = susi->list_of_csicomp; compcsi != nullptr; compcsi = compcsi->susi_csicomp_next) {
+		const SaNameTWrapper csi_name(compcsi->csi->name);
+		avsv_create_association_class_dn(&compcsi->comp->comp_info.name,
+			csi_name, "safCSIComp", &dn);
 
-	       avd_saImmOiRtObjectUpdate(&dn, "saAmfCSICompHAState",
-	    	SA_IMM_ATTR_SAUINT32T, &ha_state);
-       }
+		avd_saImmOiRtObjectUpdate(Amf::to_string(&dn), "saAmfCSICompHAState",
+		SA_IMM_ATTR_SAUINT32T, &ha_state);
+
+		osaf_extended_name_free(&dn);
+	}
 }
 
 /*****************************************************************************
@@ -145,7 +156,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0, *i_su_rank_rec = 0;
 	uint32_t rank1, rank2;
 
-	TRACE_ENTER2("%s %s state=%u", su->name.value, si->name.value, state);
+	TRACE_ENTER2("%s %s state=%u", su->name.c_str(), si->name.c_str(), state);
 
 	/* Allocate a new block structure now
 	 */
@@ -165,9 +176,9 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
 			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
 		su_rank_rec = it->second;
-		if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, si->name) != 0)
+		if (su_rank_rec->indx.si_name.compare(si->name) != 0)
 			continue;
-		curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
+		curr_su = su_db->find(su_rank_rec->su_name);
 		if (curr_su == su)
 			break;
 	}
@@ -186,9 +197,9 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 			for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
 					it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
 				i_su_rank_rec = it->second;
-				if (m_CMP_HORDER_SANAMET(i_su_rank_rec->indx.si_name, si->name) != 0)
+				if (i_su_rank_rec->indx.si_name.compare(si->name) != 0)
 					continue;
-				curr_su = su_db->find(Amf::to_string(&i_su_rank_rec->su_name));
+				curr_su = su_db->find(i_su_rank_rec->su_name);
 				if (curr_su == i_su_si->su)
 					break;
 			}
@@ -227,7 +238,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	p_su_si = nullptr;
 	i_su_si = su->list_of_susi;
 	while ((i_su_si != nullptr) &&
-	       (m_CMP_HORDER_SANAMET(i_su_si->si->name, su_si->si->name) < 0)) {
+	       i_su_si->si->name.compare(su_si->si->name) < 0) {
 		p_su_si = i_su_si;
 		i_su_si = i_su_si->su_next;
 	}
@@ -243,7 +254,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 done:
 	//ADD susi in imm job queue at both standby and active amfd.
 	if (su_si != nullptr)
-		avd_create_susi_in_imm(state, &si->name, &su->name);
+		avd_create_susi_in_imm(state, si->name, su->name);
 	if ((ckpt == false) && (su_si != nullptr)) {
 		avd_susi_update_assignment_counters(su_si, AVSV_SUSI_ACT_ASGN, state, state);
 		avd_gen_su_ha_state_changed_ntf(cb, su_si);
@@ -270,22 +281,17 @@ done:
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_name)
+AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const std::string& si_name)
 {
 	AVD_SU_SI_REL *su_si;
-	SaNameT lsi_name;
 
 	su_si = su->list_of_susi;
 
-	memset((char *)&lsi_name, '\0', sizeof(SaNameT));
-	memcpy(lsi_name.value, si_name->value, si_name->length);
-	lsi_name.length = si_name->length;
-
-	while ((su_si != nullptr) && (m_CMP_HORDER_SANAMET(su_si->si->name, lsi_name) < 0)) {
+	while ((su_si != nullptr) && (su_si->si->name.compare(si_name) < 0)) {
 		su_si = su_si->su_next;
 	}
 
-	if ((su_si != nullptr) && (m_CMP_HORDER_SANAMET(su_si->si->name, lsi_name) == 0)) {
+	if ((su_si != nullptr) && (su_si->si->name.compare(si_name) == 0)) {
 		return su_si;
 	}
 
@@ -309,11 +315,11 @@ AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_nam
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaNameT *si_name)
+AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const std::string& su_name, const std::string& si_name)
 {
 	AVD_SU *su;
 
-	if ((su = su_db->find(Amf::to_string(su_name))) == nullptr)
+	if ((su = su_db->find(su_name)) == nullptr)
 		return nullptr;
 
 	return avd_su_susi_find(cb, su, si_name);
@@ -341,7 +347,7 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 	AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
 	AVD_SU *su = susi->su;
 
-	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
+	TRACE_ENTER2("%s %s", susi->su->name.c_str(), susi->si->name.c_str());
 
 	/* check the SU list to get the prev pointer */
 	i_su_si = susi->su->list_of_susi;
@@ -405,7 +411,7 @@ uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt)
 		}
 	}
 
-	avd_delete_siassignment_from_imm(&susi->si->name, &susi->su->name);
+	avd_delete_siassignment_from_imm(susi->si->name, susi->su->name);
 
 	susi->si = nullptr;
 	susi->su = nullptr;
@@ -421,16 +427,16 @@ void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	SaAmfHAStateT old_state = susi->state;
 
 	osafassert(ha_state <= SA_AMF_HA_QUIESCING);
-	TRACE_ENTER2("'%s' %s => %s", susi->si->name.value, avd_ha_state[susi->state],
+	TRACE_ENTER2("'%s' %s => %s", susi->si->name.c_str(), avd_ha_state[susi->state],
 			avd_ha_state[ha_state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s HA State %s => %s", susi->si->name.value,
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s HA State %s => %s", susi->si->name.c_str(),
 			avd_ha_state[susi->state], avd_ha_state[ha_state]);
 
 	susi->state = ha_state;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
 	/* alarm & notifications */
-	avd_send_su_ha_state_chg_ntf(&susi->su->name, &susi->si->name, old_state, susi->state);
+	avd_send_su_ha_state_chg_ntf(susi->su->name, susi->si->name, old_state, susi->state);
 }
 
 /* This function serves as a wrapper. avd_susi_ha_state_set should be used for state 
@@ -441,13 +447,13 @@ uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 {
 	uint32_t status = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s' assigned to '%s' HA state '%s'", susi->si->name.value, 
-			susi->su->name.value, avd_ha_state[susi->state]);
+	TRACE_ENTER2("'%s' assigned to '%s' HA state '%s'", susi->si->name.c_str(), 
+			susi->su->name.c_str(), avd_ha_state[susi->state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s assigned to %s HA State '%s'", 
-			susi->si->name.value, susi->su->name.value, avd_ha_state[susi->state]);
+			susi->si->name.c_str(), susi->su->name.c_str(), avd_ha_state[susi->state]);
 
 	/* alarm & notifications */
-	avd_send_su_ha_state_chg_ntf(&susi->su->name, &susi->si->name, static_cast<SaAmfHAStateT>(SA_FALSE), susi->state); /*old state not known*/
+	avd_send_su_ha_state_chg_ntf(susi->su->name, susi->si->name, static_cast<SaAmfHAStateT>(SA_FALSE), susi->state); /*old state not known*/
 
 	TRACE_LEAVE();
 	return status;
@@ -483,8 +489,8 @@ AVD_SU_SI_REL * avd_find_preferred_standby_susi(AVD_SI *si)
 					curr_su_act_cnt++;
 			}
 			if (curr_su_act_cnt < si->sg_of_si->saAmfSGMaxActiveSIsperSU) {
-				TRACE("Found preferred sisu SU: '%s' SI: '%s'",curr_sisu->su->name.value,
-					curr_sisu->si->name.value);
+				TRACE("Found preferred sisu SU: '%s' SI: '%s'",curr_sisu->su->name.c_str(),
+					curr_sisu->si->name.c_str());
 				break;
 			}
 		}
@@ -508,7 +514,7 @@ uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	AVD_SU_SI_STATE old_fsm_state;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("SI '%s', SU '%s' ha_state:%d", susi->si->name.value, susi->su->name.value, ha_state);
+	TRACE_ENTER2("SI '%s', SU '%s' ha_state:%d", susi->si->name.c_str(), susi->su->name.c_str(), ha_state);
 
 	old_state = susi->state;
 	old_fsm_state = susi->fsm;
@@ -517,7 +523,7 @@ uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	rc = avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, nullptr);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("role modification msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
-			susi->su->name.value,susi->si->name.value);
+			susi->su->name.c_str(),susi->si->name.c_str());
 		susi->state = old_state;
 		susi->fsm = old_fsm_state;
 		goto done;
@@ -549,7 +555,7 @@ uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi)
 	AVD_SU_SI_STATE old_fsm_state;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("SI '%s', SU '%s' ", susi->si->name.value, susi->su->name.value);
+	TRACE_ENTER2("SI '%s', SU '%s' ", susi->si->name.c_str(), susi->su->name.c_str());
 
 	old_fsm_state = susi->fsm;
 	susi->fsm = AVD_SU_SI_STATE_UNASGN;
@@ -557,7 +563,7 @@ uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi)
 	avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, nullptr);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("susi del msg snd failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
-				susi->su->name.value,susi->si->name.value);
+				susi->su->name.c_str(),susi->si->name.c_str());
 		susi->fsm = old_fsm_state;
 		goto done;
 	}
@@ -590,7 +596,7 @@ void avd_susi_update_assignment_counters(AVD_SU_SI_REL *susi, AVSV_SUSI_ACT acti
 	AVD_SU *su = susi->su;
 
 	TRACE_ENTER2("SI:'%s', SU:'%s' action:%u current_ha_state:%u new_ha_state:%u",
-		susi->si->name.value, susi->su->name.value, action, current_ha_state, new_ha_state); 
+		susi->si->name.c_str(), susi->su->name.c_str(), action, current_ha_state, new_ha_state); 
 
 	switch (action) {
 	case AVSV_SUSI_ACT_ASGN:
@@ -660,7 +666,7 @@ uint32_t avd_susi_role_failover(AVD_SU_SI_REL *sisu, AVD_SU *su)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2(" '%s' '%s'",sisu->si->name.value, sisu->su->name.value);
+	TRACE_ENTER2(" '%s' '%s'",sisu->si->name.c_str(), sisu->su->name.c_str());
 
 	if ((sisu->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) ||
 			(sisu->si->si_dep_state == AVD_SI_READY_TO_UNASSIGN)) {
@@ -713,7 +719,7 @@ AVD_SU_SI_REL *avd_siass_next_susi_to_quiesce(const AVD_SU_SI_REL *susi)
 	AVD_SU_SI_REL *a_susi;
 	AVD_SPONS_SI_NODE *spons_si_node;
 
-	TRACE_ENTER2("'%s' '%s'", susi->si->name.value, susi->su->name.value);
+	TRACE_ENTER2("'%s' '%s'", susi->si->name.c_str(), susi->su->name.c_str());
 
 	for (a_susi = susi->su->list_of_susi; a_susi; a_susi = a_susi->su_next) {
 		if (a_susi->state == SA_AMF_HA_ACTIVE) {
@@ -728,7 +734,7 @@ AVD_SU_SI_REL *avd_siass_next_susi_to_quiesce(const AVD_SU_SI_REL *susi)
 		}
 	}
 done:
-	TRACE_LEAVE2("next_susi: %s",a_susi ? a_susi->si->name.value : nullptr);
+	TRACE_LEAVE2("next_susi: %s",a_susi ? a_susi->si->name.c_str() : nullptr);
 	return a_susi;
 }
 
@@ -743,7 +749,7 @@ bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
 {
 	bool quiesc_role = true;
 
-	TRACE_ENTER2("%s %s", susi->su->name.value, susi->si->name.value);
+	TRACE_ENTER2("%s %s", susi->su->name.c_str(), susi->si->name.c_str());
 
 	if (!susi->si->num_dependents) {
 		/* This SI doesnot have any dependents on it, so quiesced role can be given */
@@ -753,10 +759,10 @@ bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
 		for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 			it != sidep_db->end(); it++) {
 			const AVD_SI_DEP *sidep = it->second;
-			if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, susi->si->name) != 0) 
+			if (sidep->spons_si->name.compare(susi->si->name) != 0) 
 				continue;
 
-			AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+			AVD_SI *dep_si = avd_si_get(sidep->dep_name);
 			osafassert(dep_si != nullptr); 
 
 			for (AVD_SU_SI_REL *sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
@@ -804,7 +810,7 @@ SaAisErrorT avd_susi_cleanup(void)
 	const SaImmAttrValuesT_2 **attributes;
 	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &siass_name,
 					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
-		avd_saImmOiRtObjectDelete(&siass_name);
+		avd_saImmOiRtObjectDelete(Amf::to_string(&siass_name));
 	}
 
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
@@ -857,7 +863,7 @@ SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
 
 		// restart count
 		su->saAmfSURestartCount = su_state->su_restart_cnt;
-		avd_saImmOiRtObjectUpdate(&su->name,
+		avd_saImmOiRtObjectUpdate(su->name,
 					const_cast<SaImmAttrNameT>("saAmfSURestartCount"), SA_IMM_ATTR_SAUINT32T,
 					&su->saAmfSURestartCount);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_RESTART_COUNT);
@@ -866,7 +872,7 @@ SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
 	for (susi_state = info->sisu_list; susi_state != nullptr;
 			susi_state = susi_state->next) {
 
-		assert(susi_state->safSI.length > 0);
+		assert(osaf_extended_name_length(&susi_state->safSI) > 0);
 		AVD_SI *si = si_db->find(Amf::to_string(&susi_state->safSI));
 		osafassert(si);
 
@@ -875,7 +881,7 @@ SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
 
 		SaAmfHAStateT ha_state = susi_state->saAmfSISUHAState;
 
-		susi = avd_su_susi_find(avd_cb, su, &susi_state->safSI);
+		susi = avd_su_susi_find(avd_cb, su, Amf::to_string(&susi_state->safSI));
 		if (susi == nullptr) {
 			susi = avd_susi_create(avd_cb, si, su, ha_state, false);
 			osafassert(susi);
@@ -889,7 +895,7 @@ SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
 			susi->si->inc_curr_act_ass();
 		}
                 su->saAmfSUHostedByNode = node->name;
-                avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUHostedByNode",
+                avd_saImmOiRtObjectUpdate(su->name, "saAmfSUHostedByNode",
                         SA_IMM_ATTR_SANAMET, &su->saAmfSUHostedByNode);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 	}

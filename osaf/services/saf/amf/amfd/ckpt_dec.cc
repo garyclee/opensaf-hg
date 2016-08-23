@@ -22,6 +22,7 @@
 
 ******************************************************************************/
 
+#include <osaf_extended_name.h>
 #include <logtrace.h>
 #include <amfd.h>
 #include <cluster.h>
@@ -208,7 +209,6 @@ void decode_cb(NCS_UBAID *ub,
 	osaf_decode_uint32(ub, &cb->nodes_exit_cnt);
 }
 
-
 /****************************************************************************\
  * Function: dec_cb_config
  *
@@ -263,9 +263,12 @@ void decode_node_config(NCS_UBAID *ub,
 	AVD_AVND *avnd,
 	const uint16_t peer_version)
 {
+	TRACE_ENTER();
+	SaNameT node_name;
 	osaf_decode_uint32(ub, &avnd->node_info.nodeId);
 	osaf_decode_saclmnodeaddresst(ub, &avnd->node_info.nodeAddress);
-	osaf_decode_sanamet(ub, &avnd->name);
+	osaf_decode_sanamet(ub, &node_name);
+	avnd->name = Amf::to_string(&node_name);
 	osaf_decode_bool(ub, reinterpret_cast<bool*>(&avnd->node_info.member));
 	osaf_decode_satimet(ub, &avnd->node_info.bootTimestamp);
 	osaf_decode_uint64(ub, reinterpret_cast<uint64_t*>(&avnd->node_info.initialViewNumber));
@@ -273,10 +276,12 @@ void decode_node_config(NCS_UBAID *ub,
 	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->saAmfNodeAdminState));
 	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->saAmfNodeOperState));
 	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&avnd->node_state));
-        uint32_t node_type;
+	uint32_t node_type;
 	osaf_decode_uint32(ub, &node_type);
 	osaf_decode_uint32(ub, &avnd->rcv_msg_id);
-	osaf_decode_uint32(ub, &avnd->snd_msg_id);	
+	osaf_decode_uint32(ub, &avnd->snd_msg_id);
+	osaf_extended_name_free(&node_name);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************\
@@ -315,7 +320,10 @@ static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		osaf_decode_sanamet(&dec->i_uba, &avnd.name);
+		SaNameT node_name;
+		osaf_decode_sanamet(&dec->i_uba, &node_name);
+		avnd.name = Amf::to_string(&node_name);
+		osaf_extended_name_free(&node_name);
 		break;
 
 	default:
@@ -334,7 +342,11 @@ static uint32_t dec_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 void decode_app(NCS_UBAID *ub, AVD_APP *app)
 {
-	osaf_decode_sanamet(ub, &app->name);
+	SaNameT app_name;
+
+	osaf_decode_sanamet(ub, &app_name);
+	app->name = Amf::to_string(&app_name);
+	osaf_extended_name_free(&app_name);
 	osaf_decode_uint32(ub, (uint32_t*)&app->saAmfApplicationAdminState);
 	osaf_decode_uint32(ub, &app->saAmfApplicationCurrNumSGs);
 }
@@ -372,7 +384,11 @@ static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 static void decode_sg(NCS_UBAID *ub, AVD_SG *sg)
 {
-	osaf_decode_sanamet(ub, &sg->name);
+	SaNameT sg_name;
+
+	osaf_decode_sanamet(ub, &sg_name);
+	sg->name = Amf::to_string(&sg_name);
+	osaf_extended_name_free(&sg_name);
 	osaf_decode_uint32(ub, (uint32_t*)&sg->saAmfSGAdminState);
 	osaf_decode_uint32(ub, &sg->saAmfSGNumCurrAssignedSUs);
 	osaf_decode_uint32(ub, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
@@ -413,13 +429,20 @@ static uint32_t dec_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 static void decode_su(NCS_UBAID *ub, AVD_SU *su, uint16_t peer_version)
 {
-	osaf_decode_sanamet(ub, &su->name);
+	SaNameT su_name;
+	SaNameT node_name;
+
+	osaf_decode_sanamet(ub, &su_name);
+	su->name = Amf::to_string(&su_name);
+	osaf_extended_name_free(&su_name);
 	osaf_decode_bool(ub, (bool*)&su->saAmfSUPreInstantiable);
 	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSUOperState);
 	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSUAdminState);
 	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSuReadinessState);
 	osaf_decode_uint32(ub, (uint32_t*)&su->saAmfSUPresenceState);
-	osaf_decode_sanamet(ub, &su->saAmfSUHostedByNode);
+	osaf_decode_sanamet(ub, &node_name);
+	su->saAmfSUHostedByNode = Amf::to_string(&node_name);
+	osaf_extended_name_free(&node_name);
 	osaf_decode_uint32(ub, &su->saAmfSUNumCurrActiveSIs);
 	osaf_decode_uint32(ub, &su->saAmfSUNumCurrStandbySIs);
 	osaf_decode_uint32(ub, &su->saAmfSURestartCount);
@@ -474,13 +497,20 @@ static void decode_si(NCS_UBAID *ub,
 #endif
 	TRACE_ENTER2("my_version: %u, to_version: %u", ver_compare, peer_version);
 
-	osaf_decode_sanamet(ub, &si->name);
+	SaNameT si_name;
+	SaNameT si_protected_by_sg;
+
+	osaf_decode_sanamet(ub, &si_name);
+	si->name = Amf::to_string(&si_name);
+	osaf_extended_name_free(&si_name);
 	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSIAdminState);
 	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSIAssignmentState);
 	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSINumCurrActiveAssignments);
 	osaf_decode_uint32(ub, (uint32_t*)&si->saAmfSINumCurrStandbyAssignments);
 	osaf_decode_uint32(ub, (uint32_t*)&si->si_switch);
-	osaf_decode_sanamet(ub, &si->saAmfSIProtectedbySG);
+	osaf_decode_sanamet(ub, &si_protected_by_sg);
+	si->saAmfSIProtectedbySG = Amf::to_string(&si_protected_by_sg);
+	osaf_extended_name_free(&si_protected_by_sg);
 	osaf_decode_bool(ub, &si->alarm_sent);
 
 	if (peer_version >= ver_compare) {
@@ -652,6 +682,11 @@ static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	cb->async_updt_cnt.siass_updt++;
 
+	osaf_extended_name_free(&su_si_ckpt.comp_name);
+	osaf_extended_name_free(&su_si_ckpt.csi_name);
+	osaf_extended_name_free(&su_si_ckpt.si_name);
+	osaf_extended_name_free(&su_si_ckpt.su_name);
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -671,12 +706,15 @@ static uint32_t dec_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
 \**************************************************************************/
 void decode_comp(NCS_UBAID *ub, AVD_COMP *comp) {
-  osaf_decode_sanamet(ub, &comp->comp_info.name);
-  osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompOperState));
-  osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompReadinessState));
-  osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompPresenceState));
-  osaf_decode_uint32(ub, &comp->saAmfCompRestartCount);
-  osaf_decode_sanamet(ub, &comp->saAmfCompCurrProxyName);
+	SaNameT proxy_name;
+	osaf_decode_sanamet(ub, &comp->comp_info.name);
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompOperState));
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompReadinessState));
+	osaf_decode_uint32(ub, reinterpret_cast<uint32_t*>(&comp->saAmfCompPresenceState));
+	osaf_decode_uint32(ub, &comp->saAmfCompRestartCount);
+	osaf_decode_sanamet(ub, &proxy_name);
+	comp->saAmfCompCurrProxyName = Amf::to_string(&proxy_name);
+	osaf_extended_name_free(&proxy_name);
 }
 
 /****************************************************************************\
@@ -763,7 +801,8 @@ static uint32_t dec_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		cb->async_updt_cnt.sg_su_oprlist_updt++;
 
 	TRACE_LEAVE2("'%s', status '%u', updt %d",
-		name.value, status, cb->async_updt_cnt.sg_su_oprlist_updt);
+		osaf_extended_name_borrow(&name), status, cb->async_updt_cnt.sg_su_oprlist_updt);
+	osaf_extended_name_free(&name);
 	return status;
 }
 
@@ -839,11 +878,14 @@ static uint32_t dec_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	/* 
 	 * Action in this case is just to update.
 	 */
-	osaf_decode_sanamet(&dec->i_uba, &avnd.name);
+	SaNameT name;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	avnd.name = Amf::to_string(&name);
+	osaf_extended_name_free(&name);
 	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.saAmfNodeAdminState));
 
-	if (nullptr == (avnd_struct = avd_node_get(&avnd.name))) {
-		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.value);
+	if (nullptr == (avnd_struct = avd_node_get(avnd.name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.c_str());
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -880,11 +922,14 @@ static uint32_t dec_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	/* 
 	 * Action in this case is just to update.
 	 */
-	osaf_decode_sanamet(&dec->i_uba, &avnd.name);
+	SaNameT name;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	avnd.name = Amf::to_string(&name);
+	osaf_extended_name_free(&name);
 	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.saAmfNodeOperState));
 
-	if (nullptr == (avnd_struct = avd_node_get(&avnd.name))) {
-		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.value);
+	if (nullptr == (avnd_struct = avd_node_get(avnd.name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.c_str());
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -921,11 +966,14 @@ static uint32_t dec_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	/* 
 	 * Action in this case is just to update.
 	 */
-	osaf_decode_sanamet(&dec->i_uba, &avnd.name);
+	SaNameT name;
+	osaf_decode_sanamet(&dec->i_uba, &name);
+	avnd.name = Amf::to_string(&name);
+	osaf_extended_name_free(&name);
 	osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*>(&avnd.node_state));
 	
-	if (nullptr == (avnd_struct = avd_node_get(&avnd.name))) {
-		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.value);
+	if (nullptr == (avnd_struct = avd_node_get(avnd.name))) {
+		LOG_ER("%s: node not found, nodeid=%s", __FUNCTION__, avnd.name.c_str());
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1040,6 +1088,7 @@ static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
+	osaf_extended_name_free(&name);
 	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->saAmfSGAdminState);
 
@@ -1068,7 +1117,7 @@ static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	TRACE("ng_using_saAmfSGAdminState:%u",sg->ng_using_saAmfSGAdminState);
 
 	TRACE_LEAVE2("'%s', saAmfSGAdminState=%u, sg_updt:%d",
-		sg->name.value, sg->saAmfSGAdminState, cb->async_updt_cnt.sg_updt);
+		sg->name.c_str(), sg->saAmfSGAdminState, cb->async_updt_cnt.sg_updt);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1093,13 +1142,14 @@ static uint32_t dec_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
+	osaf_extended_name_free(&name);
 	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrAssignedSUs);
 
 	cb->async_updt_cnt.sg_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSGNumCurrAssignedSUs=%u, sg_updt:%d",
-		sg->name.value, sg->saAmfSGNumCurrAssignedSUs,
+		sg->name.c_str(), sg->saAmfSGNumCurrAssignedSUs,
 		cb->async_updt_cnt.sg_updt);
 	return NCSCC_RC_SUCCESS;
 }
@@ -1125,13 +1175,14 @@ static uint32_t dec_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
+	osaf_extended_name_free(&name);
 	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
 
 	cb->async_updt_cnt.sg_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSGNumCurrInstantiatedSpareSUs=%u, sg_updt:%d",
-		sg->name.value, sg->saAmfSGNumCurrInstantiatedSpareSUs,
+		sg->name.c_str(), sg->saAmfSGNumCurrInstantiatedSpareSUs,
 		cb->async_updt_cnt.sg_updt);
 	return NCSCC_RC_SUCCESS;
 }
@@ -1157,13 +1208,14 @@ static uint32_t dec_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
+	osaf_extended_name_free(&name);
 	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 
 	cb->async_updt_cnt.sg_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSGNumCurrNonInstantiatedSpareSUs=%u, sg_updt:%d",
-		sg->name.value, sg->saAmfSGNumCurrNonInstantiatedSpareSUs,
+		sg->name.c_str(), sg->saAmfSGNumCurrNonInstantiatedSpareSUs,
 		cb->async_updt_cnt.sg_updt);
 	return NCSCC_RC_SUCCESS;
 }
@@ -1189,13 +1241,14 @@ static uint32_t dec_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
+	osaf_extended_name_free(&name);
 	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->adjust_state);
 
 	cb->async_updt_cnt.sg_updt++;
 
 	TRACE_LEAVE2("'%s', adjust_state=%u, sg_updt:%d",
-		sg->name.value, sg->adjust_state, cb->async_updt_cnt.sg_updt);
+		sg->name.c_str(), sg->adjust_state, cb->async_updt_cnt.sg_updt);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1220,13 +1273,14 @@ static uint32_t dec_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SG *sg = sg_db->find(Amf::to_string(&name));
+	osaf_extended_name_free(&name);
 	osafassert(sg != nullptr);
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&sg->sg_fsm_state);
 
 	cb->async_updt_cnt.sg_updt++;
 
 	TRACE_LEAVE2("'%s', sg_fsm_state=%u, sg_updt:%d",
-		sg->name.value, sg->sg_fsm_state, cb->async_updt_cnt.sg_updt);
+		sg->name.c_str(), sg->sg_fsm_state, cb->async_updt_cnt.sg_updt);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1257,8 +1311,9 @@ static uint32_t dec_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.su_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSUPreInstantiable=%u, su_updt:%d",
-		name.value, su->saAmfSUPreInstantiable, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSUPreInstantiable, cb->async_updt_cnt.su_updt);
 
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1285,20 +1340,21 @@ static uint32_t dec_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	
 	AVD_SU *su = su_db->find(Amf::to_string(&name));
 	if (su == nullptr) {
-		TRACE("'%s' does not exist, creating it", name.value);
-		su = new AVD_SU(&name);
-		unsigned int rc = su_db->insert(Amf::to_string(&su->name), su);
+		TRACE("'%s' does not exist, creating it", osaf_extended_name_borrow(&name));
+		su = new AVD_SU(Amf::to_string(&name));
+		unsigned int rc = su_db->insert(su->name, su);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 	
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&su->saAmfSUOperState);
 
 	cb->async_updt_cnt.su_updt++;
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUOperState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUOperState",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
 
 	TRACE_LEAVE2("'%s', saAmfSUOperState=%u, su_updt:%d",
-		name.value, su->saAmfSUOperState, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSUOperState, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1328,10 +1384,11 @@ static uint32_t dec_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	cb->async_updt_cnt.su_updt++;
 
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUAdminState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUAdminState",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);
 	TRACE_LEAVE2("'%s', saAmfSUAdminState=%u, su_updt:%d",
-		name.value, su->saAmfSUAdminState, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSUAdminState, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1361,10 +1418,11 @@ static uint32_t dec_su_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	cb->async_updt_cnt.su_updt++;
 
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUReadinessState",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
 	TRACE_LEAVE2("'%s', saAmfSuReadinessState=%u, su_updt:%d",
-		name.value, su->saAmfSuReadinessState, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSuReadinessState, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1394,10 +1452,11 @@ static uint32_t dec_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	cb->async_updt_cnt.su_updt++;
 
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUPresenceState",
 		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
 	TRACE_LEAVE2("'%s', saAmfSUPresenceState=%u, su_updt:%d",
-		name.value, su->saAmfSUPresenceState, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSUPresenceState, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1428,7 +1487,8 @@ static uint32_t dec_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.su_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSUNumCurrActiveSIs=%u, su_updt:%d",
-		name.value, su->saAmfSUNumCurrActiveSIs, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSUNumCurrActiveSIs, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1459,7 +1519,8 @@ static uint32_t dec_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.su_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSUNumCurrStandbySIs=%u, su_updt:%d",
-		name.value, su->saAmfSUNumCurrStandbySIs, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSUNumCurrStandbySIs, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1490,7 +1551,8 @@ static uint32_t dec_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.su_updt++;
 
 	TRACE_LEAVE2("'%s', term_state=%u, su_updt:%d",
-		name.value, su->term_state, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->term_state, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1521,7 +1583,8 @@ static uint32_t dec_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.su_updt++;
 
 	TRACE_LEAVE2("'%s', su_switch=%u, su_updt:%d",
-		name.value, su->su_switch, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->su_switch, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1573,7 +1636,8 @@ static uint32_t dec_su_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.su_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSURestartCount=%u, su_updt:%d",
-		name.value, su->saAmfSURestartCount, cb->async_updt_cnt.su_updt);
+		osaf_extended_name_borrow(&name), su->saAmfSURestartCount, cb->async_updt_cnt.su_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1605,7 +1669,8 @@ static uint32_t dec_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.si_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSIAdminState=%u, si_updt:%d",
-		name.value, si->saAmfSIAdminState, cb->async_updt_cnt.si_updt);
+		osaf_extended_name_borrow(&name), si->saAmfSIAdminState, cb->async_updt_cnt.si_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1637,7 +1702,8 @@ static uint32_t dec_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.si_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSIAssignmentState=%u, si_updt:%d",
-		name.value, si->saAmfSIAssignmentState, cb->async_updt_cnt.si_updt);
+		osaf_extended_name_borrow(&name), si->saAmfSIAssignmentState, cb->async_updt_cnt.si_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************
@@ -1658,7 +1724,7 @@ static uint32_t dec_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_SI *si = si_db->find(Amf::to_string(&name));
 	if (si == nullptr) {
-		si = avd_si_new(&name);
+		si = avd_si_new(Amf::to_string(&name));
 		osafassert(si != nullptr);
 		avd_si_db_add(si);		
 	}
@@ -1671,7 +1737,8 @@ static uint32_t dec_si_dep_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.si_updt++;
 
 	TRACE_LEAVE2("'%s', si_dep_state=%u, si_updt:%d",
-		name.value, si->si_dep_state, cb->async_updt_cnt.si_updt);
+		osaf_extended_name_borrow(&name), si->si_dep_state, cb->async_updt_cnt.si_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1703,7 +1770,8 @@ static uint32_t dec_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.si_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSINumCurrActiveAssignments=%u, si_updt:%d",
-		name.value, si->saAmfSINumCurrActiveAssignments, cb->async_updt_cnt.si_updt);
+		osaf_extended_name_borrow(&name), si->saAmfSINumCurrActiveAssignments, cb->async_updt_cnt.si_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1735,7 +1803,8 @@ static uint32_t dec_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.si_updt++;
 
 	TRACE_LEAVE2("'%s', saAmfSINumCurrStandbyAssignments=%u, si_updt:%d",
-		name.value, si->saAmfSINumCurrStandbyAssignments, cb->async_updt_cnt.si_updt);
+		osaf_extended_name_borrow(&name), si->saAmfSINumCurrStandbyAssignments, cb->async_updt_cnt.si_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1767,7 +1836,8 @@ static uint32_t dec_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.si_updt++;
 
 	TRACE_LEAVE2("'%s', si_switch=%u, si_updt:%d",
-		name.value, si->si_switch, cb->async_updt_cnt.si_updt);
+		osaf_extended_name_borrow(&name), si->si_switch, cb->async_updt_cnt.si_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -1799,7 +1869,8 @@ static uint32_t dec_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	cb->async_updt_cnt.si_updt++;
 
 	TRACE_LEAVE2("'%s', alarm_sent=%u, si_updt:%d",
-		name.value, si->alarm_sent, cb->async_updt_cnt.si_updt);
+		osaf_extended_name_borrow(&name), si->alarm_sent, cb->async_updt_cnt.si_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 /****************************************************************************\
@@ -1819,6 +1890,7 @@ static uint32_t dec_si_alarm_sent(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
   AVD_COMP comp;
   AVD_COMP *comp_struct {};
+  SaNameT proxy_name;
 
   TRACE_ENTER();
 
@@ -1826,7 +1898,8 @@ static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
    * Action in this case is just to update.
    */
   osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
-  osaf_decode_sanamet(&dec->i_uba, &comp.saAmfCompCurrProxyName);
+  osaf_decode_sanamet(&dec->i_uba, &proxy_name);
+  comp.saAmfCompCurrProxyName = Amf::to_string(&proxy_name);
 
   if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name))))
     osafassert(0);
@@ -1837,6 +1910,8 @@ static uint32_t dec_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
   cb->async_updt_cnt.comp_updt++;
 
   TRACE_LEAVE();
+  osaf_extended_name_free(&comp.comp_info.name);
+  osaf_extended_name_free(&proxy_name);
   return NCSCC_RC_SUCCESS;
 }
 
@@ -1878,16 +1953,19 @@ static uint32_t dec_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
    */
   osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
   osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*> (&comp.saAmfCompOperState));
+  
+  const std::string comp_name = Amf::to_string(&comp.comp_info.name);
 
-  comp_struct = avd_comp_get_or_create(&comp.comp_info.name);
+  comp_struct = avd_comp_get_or_create(comp_name);
 
   /* Update the fields received in this checkpoint message */
   comp_struct->saAmfCompOperState = comp.saAmfCompOperState;
-  avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompOperState",
+  avd_saImmOiRtObjectUpdate(comp_name, "saAmfCompOperState",
                             SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompOperState);
 
   cb->async_updt_cnt.comp_updt++;
 
+  osaf_extended_name_free(&comp.comp_info.name);
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
 }
@@ -1918,8 +1996,11 @@ static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
   osaf_decode_sanamet(&dec->i_uba, &comp.comp_info.name);
   osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*> (&comp.saAmfCompReadinessState));
 
-  if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name)))) {
-    LOG_ER("%s: comp not found, %s", __FUNCTION__, comp.comp_info.name.value);
+  const std::string comp_name(Amf::to_string(&comp.comp_info.name));
+  osaf_extended_name_free(&comp.comp_info.name);
+
+  if (nullptr == (comp_struct = comp_db->find(comp_name))) {
+    LOG_ER("%s: comp not found, %s", __FUNCTION__, comp_name.c_str());
     return NCSCC_RC_FAILURE;
   }
 
@@ -1928,7 +2009,7 @@ static uint32_t dec_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
 
   cb->async_updt_cnt.comp_updt++;
 
-  avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompReadinessState",
+  avd_saImmOiRtObjectUpdate(comp_name, "saAmfCompReadinessState",
                             SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompReadinessState);
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
@@ -1961,7 +2042,8 @@ static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
   osaf_decode_uint32(&dec->i_uba, reinterpret_cast<uint32_t*> (&comp.saAmfCompPresenceState));
 
   if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name)))) {
-    LOG_ER("%s: comp not found, %s", __FUNCTION__, comp.comp_info.name.value);
+    LOG_ER("%s: comp not found, %s", __FUNCTION__, osaf_extended_name_borrow(&comp.comp_info.name));
+    osaf_extended_name_free(&comp.comp_info.name);
     return NCSCC_RC_FAILURE;
   }
 
@@ -1969,9 +2051,10 @@ static uint32_t dec_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
   comp_struct->saAmfCompPresenceState = comp.saAmfCompPresenceState;
 
   cb->async_updt_cnt.comp_updt++;
-  avd_saImmOiRtObjectUpdate(&comp_struct->comp_info.name, "saAmfCompPresenceState",
+  avd_saImmOiRtObjectUpdate(Amf::to_string(&comp_struct->comp_info.name), "saAmfCompPresenceState",
                             SA_IMM_ATTR_SAUINT32T, &comp_struct->saAmfCompPresenceState);
 
+  osaf_extended_name_free(&comp.comp_info.name);
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
 }
@@ -2003,7 +2086,8 @@ static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
   osaf_decode_uint32(&dec->i_uba, &comp.saAmfCompRestartCount);
 
   if (nullptr == (comp_struct = comp_db->find(Amf::to_string(&comp.comp_info.name)))) {
-    LOG_ER("%s: comp not found, %s", __FUNCTION__, comp.comp_info.name.value);
+    LOG_ER("%s: comp not found, %s", __FUNCTION__, osaf_extended_name_borrow(&comp.comp_info.name));
+    osaf_extended_name_free(&comp.comp_info.name);
     return NCSCC_RC_FAILURE;
   }
 
@@ -2012,6 +2096,7 @@ static uint32_t dec_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
 
   cb->async_updt_cnt.comp_updt++;
 
+  osaf_extended_name_free(&comp.comp_info.name);
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
 }
@@ -2034,7 +2119,6 @@ uint32_t avd_dec_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uint32_t num_of_obj;
 	uint8_t *ptr;
-	char logbuff[SA_MAX_NAME_LENGTH];
 
 	TRACE_ENTER2("dec->i_reo_type '%u'", dec->i_reo_type);
 
@@ -2050,9 +2134,6 @@ uint32_t avd_dec_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Decode data received in the message.
 	 */
 	dec->i_action = NCS_MBCSV_ACT_ADD;
-	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
-	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1, "\n\nReceived reotype = %d num obj = %d --------------------\n",
-		 dec->i_reo_type, num_of_obj);
 
 	if (((dec->i_reo_type >= AVSV_CKPT_AVD_CB_CONFIG) && 
 	     (dec->i_reo_type <= AVSV_CKPT_AVD_SI_CONFIG)) || 
@@ -2189,7 +2270,7 @@ static uint32_t dec_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t
 		status = avd_ckpt_app(cb, &dec_app, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			// perhaps this ckpt came late, after app was deleted
-			LOG_WA("'%s' update failed", dec_app.name.value);
+			LOG_WA("'%s' update failed", dec_app.name.c_str());
 		}
 	}
 
@@ -2223,7 +2304,7 @@ static uint32_t dec_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 		status = avd_ckpt_sg(cb, &dec_sg, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			// perhaps this ckpt came late, after sg was deleted
-			LOG_WA("'%s' update failed", dec_sg.name.value);
+			LOG_WA("'%s' update failed", dec_sg.name.c_str());
 		}
 	}
 
@@ -2257,7 +2338,7 @@ static uint32_t dec_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 		status = avd_ckpt_su(cb, &su, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			// perhaps this ckpt came late, after a su delete
-			LOG_WA("'%s' update failed", su.name.value);
+			LOG_WA("'%s' update failed", su.name.c_str());
 		}
 	}
 
@@ -2294,7 +2375,7 @@ static uint32_t dec_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t 
 		status = avd_ckpt_si(cb, &si, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			// perhaps this ckpt came late, after a si delete
-			LOG_WA("'%s' update failed", si.name.value);
+			LOG_WA("'%s' update failed", si.name.c_str());
 		}
 	}
 
@@ -2425,7 +2506,13 @@ static uint32_t dec_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_
 	 */
 	for (count = 0; count < num_of_obj; count++) {
 		decode_siass(&dec->i_uba, &su_si_ckpt, dec->i_peer_version);
+
 		status = avd_ckpt_siass(cb, &su_si_ckpt, dec);
+
+		osaf_extended_name_free(&su_si_ckpt.comp_name);
+		osaf_extended_name_free(&su_si_ckpt.csi_name);
+		osaf_extended_name_free(&su_si_ckpt.si_name);
+		osaf_extended_name_free(&su_si_ckpt.su_name);
 
 		if (status != NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_FAILURE;
@@ -2724,6 +2811,7 @@ static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		osaf_decode_sanamet(&dec->i_uba, &name);
 
 		status = avd_ckpt_su_oper_list(&name, dec->i_action);
+		osaf_extended_name_free(&name);
 		if (status != NCSCC_RC_SUCCESS) {
 			LOG_ER("%s: avd_ckpt_su_oper_list failed", __FUNCTION__);
 			return status;
@@ -2736,9 +2824,12 @@ static uint32_t dec_cs_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 void decode_comp_cs_type_config(NCS_UBAID *ub, AVD_COMPCS_TYPE* comp_cs_type)
 {
-	osaf_decode_sanamet(ub, &comp_cs_type->name);
+	SaNameT name;
+	osaf_decode_sanamet(ub, &name);
+	comp_cs_type->name = Amf::to_string(&name);
 	osaf_decode_uint32(ub, &comp_cs_type->saAmfCompNumCurrActiveCSIs);
 	osaf_decode_uint32(ub, &comp_cs_type->saAmfCompNumCurrStandbyCSIs);
+	osaf_extended_name_free(&name);
 }
 
 /****************************************************************************\
@@ -2817,7 +2908,7 @@ static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec,
 		status = avd_ckpt_compcstype(cb, &comp_cs_type, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			// perhaps this ckpt came late, after a delete
-			LOG_WA("'%s' update failed", comp_cs_type.name.value);
+			LOG_WA("'%s' update failed", comp_cs_type.name.c_str());
 		}
 	}
 	TRACE_LEAVE2("status '%u'", status);
@@ -2839,15 +2930,16 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	osaf_decode_sanamet(&dec->i_uba, &name);
 	AVD_AMF_NG *ng = nodegroup_db->find(Amf::to_string(&name));
 	if (ng == nullptr) {
-		LOG_WA("Could not find %s in nodegroup_db", name.value);
+		LOG_WA("Could not find %s in nodegroup_db", osaf_extended_name_borrow(&name));
 		cb->async_updt_cnt.ng_updt++;
+		osaf_extended_name_free(&name);
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
 	osaf_decode_uint32(&dec->i_uba, (uint32_t*)&ng->saAmfNGAdminState);
 	cb->async_updt_cnt.ng_updt++;
 
-	TRACE("'%s',saAmfNGAdminState:%d",ng->name.value, ng->saAmfNGAdminState);
+	TRACE("'%s',saAmfNGAdminState:%d",ng->name.c_str(), ng->saAmfNGAdminState);
 	ng->admin_ng_pend_cbk.invocation = 0;
 	ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
@@ -2873,7 +2965,8 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 			node->admin_ng = nullptr;
 	}
 	TRACE_LEAVE2("'%s', saAmfNGAdminState=%u, ng_updt:%d",
-			name.value, ng->saAmfNGAdminState, cb->async_updt_cnt.ng_updt);
+			osaf_extended_name_borrow(&name), ng->saAmfNGAdminState, cb->async_updt_cnt.ng_updt);
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
