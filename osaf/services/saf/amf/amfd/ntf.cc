@@ -552,7 +552,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (avd_cb->ntfHandle == 0) {
 		LOG_ER("NTF handle has not been initialized, alarm notification "
-				"for (%s) will be lost", ntf_object.value);
+				"for (%s) will be lost", ntf_object.c_str());
 		return status;
 	}
 
@@ -650,7 +650,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (avd_cb->ntfHandle == 0) {
 		LOG_WA("NTF handle has not been initialized, state change notification "
-				"for (%s) will be lost", ntf_object.value);
+				"for (%s) will be lost", ntf_object.c_str());
 		return status;
 	}
 
