@@ -1,0 +1,85 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2016 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+I. GENERAL INFORMATION
+======================
+
+The SaNameT type, which is used to pass distinguished names (DNs) in AIS
+functions and structures, contains a fixed-size buffer that limits the string
+length to a maximum of 255 bytes. As a consequence of this, the SAF
+specifications also impose a 64 byte limit for the length of relative
+distinguished names (RDNs). To overcome these limitations, the extended SaNameT
+type has been introduced in OpenSAF. The extended SaNameT type has the same
+size and memory alignment requirements as the original type, and is fully
+backwards compatible as long as the string length does not exceed 255 bytes.
+When the length of the DN name is longer than 255 bytes, the extended SaNameT
+type shall hold a reference to the string, which is stored in a separate memory
+area.
+
+
+II. CONFIGURATION
+=================
+
+In order to utilize the long DNs support in CKPT, the environment variable
+SA_ENABLE_EXTENDED_NAMES is set to "1". This is configured by the support of
+IMM.
+
+The support for IMM objects with DNs longer than 255 bytes and RDNs longer than
+64 bytes is controlled by introduction of the new configuration attribute
+longDnsAllowed that is added to the class OpensafImm. When upgrading from an
+older release of OpenSAF, this class needs to be upgraded. An IMM xml file
+containing the extended class definition for OpensafImm can be found in file:
+	samples/immsv/OpensafImm_Upgrade_4.5.xml
+
+By default, the attribute - longDnsAllowed has the value 0, which means the
+old length limits of 255 bytes for DNs and 64 bytes for RDNs are enforced. To
+allow long DNs and RDNs in IMM, this attribute must be set to 1 for example
+using the following command:
+$ immcfg -a longDnsAllowed=1 opensafImm=opensafImm,safApp=safImmService
+
+To prohibit DNs longer than 255 bytes and RDNs longer than 64 bytes in IMM, do
+the following:
+$ immcfg -a longDnsAllowed=0 opensafImm=opensafImm,safApp=safImmService
+
+The IMM service will reject attempts to set the longDnsAllowed attribute back
+to 0 if the IMM database contains objects with DNs longer than 255 bytes or
+RDNs longer than 64 bytes.
+
+
+III. IMPLEMENTATION NOTE
+========================
+
+1) Checkpoint service only supports Long DN after fully upgraded. Any Long DN
+request from application while processing in-service update might cause system
+unusual behavior occur. It is better to turn off Long DN support before.
+2) Encoding and decoding of SaNameT struct is implemented inside HJ module so
+checkpoint application and service can use the same API for both long and short
+DN cases.
+3) Sharemem structure is keep consistence, just different in size:
+|---------------|----------------------------|-------------|------------------|
+|               |                            |             |                  |
+| CLIENT_HDR    |  CLIENT_INFO               |  CKPT_HDR   |  CKPT_INFO       |
+|               |                            |             |                  |
+------------------------------------------------------------------------------
+Checkpoint service has function to recover sharemem without restarting node.
+4) Checkpoint APIs return SA_AIS_ERR_TOO_BIG when input string length is longer
+than 2048.
+
+IV. REFERENCES
+==============
+1) OpenSAF_Extensions_PR.odt
+2) OpenSAF_CPSv_PR.odt
