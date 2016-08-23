@@ -42,7 +42,7 @@ uint32_t cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt);
 uint32_t cpa_version_validate(SaVersionT *version);
 uint32_t cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
 				      *checkpointCreationAttributes,
-				      SaCkptCheckpointOpenFlagsT checkpointOpenFlags, const SaNameT *checkpointName);
+				      SaCkptCheckpointOpenFlagsT checkpointOpenFlags);
 
 uint32_t cpa_callback_ipc_init(CPA_CLIENT_NODE *client_info);
 void cpa_callback_ipc_destroy(CPA_CLIENT_NODE *client_info);

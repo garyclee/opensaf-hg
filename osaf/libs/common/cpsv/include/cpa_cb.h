@@ -41,7 +41,7 @@ typedef struct cpa_local_ckpt_node {
 	SaCkptHandleT cl_hdl;	/* client handle */
 	SaCkptCheckpointHandleT gbl_ckpt_hdl;	/* globally aware handle */
 	SaCkptCheckpointOpenFlagsT open_flags;
-	SaNameT ckpt_name;
+	SaConstStringT ckpt_name;
 	CPA_TMR async_req_tmr;	/* Timer used for async requests */
 	uint32_t sect_iter_cnt;
 } CPA_LOCAL_CKPT_NODE;

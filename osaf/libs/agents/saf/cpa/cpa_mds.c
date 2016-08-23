@@ -517,7 +517,7 @@ static uint32_t cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 		   evt.type = CPSV_EVT_TYPE_CPND;
 		   evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_LIST_UPDATE;
 		   evt.info.cpnd.info.ckptListUpdate.client_hdl = lc_node->cl_hdl; 
-		   evt.info.cpnd.info.ckptListUpdate.ckpt_name = lc_node->ckpt_name ;
+		   osaf_extended_name_lend(lc_node->ckpt_name, &evt.info.cpnd.info.ckptListUpdate.ckpt_name);
 
 		   proc_rc = cpa_mds_msg_send(cb->cpa_mds_hdl, &cb->cpnd_mds_dest, &evt, NCSMDS_SVC_ID_CPND);
 

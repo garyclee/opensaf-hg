@@ -22,6 +22,7 @@ noinst_LTLIBRARIES = libcpa.la
 
 libcpa_la_CPPFLAGS = \
 	-DNCS_CPA=1 \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include
 

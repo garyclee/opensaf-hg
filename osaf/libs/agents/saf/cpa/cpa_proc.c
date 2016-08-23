@@ -87,7 +87,7 @@ uint32_t cpa_version_validate(SaVersionT *version)
 ******************************************************************************/
 uint32_t cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
 			     *checkpointCreationAttributes,
-			     SaCkptCheckpointOpenFlagsT checkpointOpenFlags, const SaNameT *checkpointName)
+			     SaCkptCheckpointOpenFlagsT checkpointOpenFlags)
 {
 	SaCkptCheckpointCreationFlagsT creationFlags = 0;
 	/* Check the Open Flags is set, it should  */
