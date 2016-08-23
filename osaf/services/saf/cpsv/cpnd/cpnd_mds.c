@@ -330,6 +330,7 @@ static uint32_t cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				ncs_enc_claim_space(io_uba, 8);
 
 				rc = cpsv_data_access_rsp_encode(&pevt->info.cpa.info.sec_data_rsp, io_uba, enc_info->o_msg_fmt_ver);
+				TRACE_LEAVE();
 				return rc;
 			}
 
@@ -347,6 +348,7 @@ static uint32_t cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				ncs_enc_claim_space(io_uba, 12);
 
 				rc = cpsv_ckpt_access_encode(&pevt->info.cpnd.info.ckpt_nd2nd_sync, io_uba);
+				TRACE_LEAVE();
 				return rc;
 
 			case CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_REQ:
@@ -361,6 +363,7 @@ static uint32_t cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				ncs_enc_claim_space(io_uba, 12);
 
 				rc = cpsv_ckpt_access_encode(&pevt->info.cpnd.info.ckpt_nd2nd_data, io_uba);
+				TRACE_LEAVE();
 				return rc;
 
 			case CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP:
@@ -375,14 +378,18 @@ static uint32_t cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				ncs_enc_claim_space(io_uba, 12);
 
 				rc = cpsv_data_access_rsp_encode(&pevt->info.cpnd.info.ckpt_nd2nd_data_rsp, io_uba, enc_info->o_msg_fmt_ver);
+				TRACE_LEAVE();
 				return rc;
+
 			default:
 				break;
 			}
 		}
 		/* For all other Cases Invoke EDU encode */
-		return (m_NCS_EDU_EXEC(&cb->cpnd_edu_hdl, FUNC_NAME(CPSV_EVT),
-				       enc_info->io_uba, EDP_OP_TYPE_ENC, pevt, &ederror));
+		rc = m_NCS_EDU_EXEC(&cb->cpnd_edu_hdl, FUNC_NAME(CPSV_EVT),
+				       enc_info->io_uba, EDP_OP_TYPE_ENC, pevt, &ederror);
+		TRACE_LEAVE();
+		return rc;
 	} else {
 		TRACE_LEAVE();
 		return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "INVALID MSG FORMAT IN ENCODE FULL\n");	/* Drop The Message - Incompatible Message Format Version */
@@ -523,10 +530,16 @@ static uint32_t cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 						dec_info->io_uba,dec_info->i_msg_fmt_ver);
 				goto free;
 				
-				          case CPND_EVT_A2ND_CKPT_REFCNTSET:
-             ncs_dec_skip_space(dec_info->io_uba, 12);
-             rc = cpsv_refcnt_ckptid_decode(&msg_ptr->info.cpnd.info.refCntsetReq,dec_info->io_uba);
-             goto free;
+			case CPND_EVT_A2ND_CKPT_REFCNTSET:
+			       	ncs_dec_skip_space(dec_info->io_uba, 12);
+			       	rc = cpsv_refcnt_ckptid_decode(&msg_ptr->info.cpnd.info.refCntsetReq,dec_info->io_uba);
+			       	goto free;
+
+			case CPND_EVT_D2ND_CKPT_CREATE:
+			       	ncs_dec_skip_space(dec_info->io_uba, 12);
+			       	rc = cpsv_d2nd_ckpt_create_2_decode(&msg_ptr->info.cpnd.info.ckpt_create, dec_info->io_uba);
+			       	goto free;
+
 			default:
 				break;
 			}
@@ -584,6 +597,7 @@ static uint32_t cpnd_mds_enc_flat(CPND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 							    CPND_WRT_CPD_SUBPART_VER_MAX, cpnd_cpd_msg_fmt_table);
 
 	}
+	TRACE("o_msg_fmt_ver=%d, i_rem_svc_pvt_ver=%d", info->o_msg_fmt_ver, info->i_rem_svc_pvt_ver);
 
 	if (info->o_msg_fmt_ver) {
 		evt = (CPSV_EVT *)info->i_msg;

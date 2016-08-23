@@ -309,8 +309,9 @@ uint32_t cpd_mds_callback(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	CPSV_EVT *msg_ptr = NULL;
 	EDU_ERR ederror = 0;
+	NCS_UBAID *io_uba = enc_info->io_uba;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_CPA) {
@@ -327,13 +328,35 @@ static uint32_t cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 	if (enc_info->o_msg_fmt_ver) {
 
-		msg_ptr = (CPSV_EVT *)enc_info->i_msg;
+		CPSV_EVT *pevt = (CPSV_EVT *)enc_info->i_msg;
+		uint8_t *pstream = NULL;
+
+		if (pevt->type == CPSV_EVT_TYPE_CPND) {
+			switch (pevt->info.cpnd.type) {
+			case CPND_EVT_D2ND_CKPT_CREATE:
+
+				pstream = ncs_enc_reserve_space(io_uba, 12);
+				if (!pstream)
+					return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,
+							       "Memory alloc failed in cpnd_mds_enc \n");
+				ncs_encode_32bit(&pstream, pevt->type);	
+				ncs_encode_32bit(&pstream, pevt->info.cpnd.error);
+				ncs_encode_32bit(&pstream, pevt->info.cpnd.type);
+				ncs_enc_claim_space(io_uba, 12);
+
+				rc = cpsv_d2nd_ckpt_create_2_encode(&pevt->info.cpnd.info.ckpt_create, io_uba);
+				return rc;
+
+			default:
+				break;
+			}
+		}
 
 		return (m_NCS_EDU_VER_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT),
-					   enc_info->io_uba, EDP_OP_TYPE_ENC, msg_ptr, &ederror,
+					   enc_info->io_uba, EDP_OP_TYPE_ENC, pevt, &ederror,
 					   enc_info->i_rem_svc_pvt_ver));
 	} else {
-		TRACE_4("INVALID MSG FORMAT IN ENC FULL");	/* Drop The Message,Format Version Invalid */
+		LOG_IN("INVALID MSG FORMAT IN ENC FULL");	/* Drop The Message,Format Version Invalid */
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -358,6 +381,7 @@ static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	EDU_ERR ederror = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	bool is_valid_msg_fmt = false;
+	uint8_t local_data[20];
 
 	if (dec_info->i_fr_svc_id == NCSMDS_SVC_ID_CPND) {
 		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
@@ -371,16 +395,18 @@ static uint32_t cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
 		memset(msg_ptr, 0, sizeof(CPSV_EVT));
 		dec_info->o_msg = (NCSCONTEXT)msg_ptr;
+		uint8_t *pstream = ncs_dec_flatten_space(dec_info->io_uba, local_data, 8);
+		msg_ptr->type = ncs_decode_32bit(&pstream);
 
 		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT),
 				    dec_info->io_uba, EDP_OP_TYPE_DEC, (CPSV_EVT **)&dec_info->o_msg, &ederror);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE_4("cpd mds decode failed ");
+			LOG_ER("cpd mds decode failed ");
 			m_MMGR_FREE_CPSV_EVT(dec_info->o_msg, NCS_SERVICE_ID_CPD);
 		}
 		return rc;
 	} else {
-		TRACE_4("cpd mds dec failed");
+		LOG_ER("cpd mds dec failed - invalid fmr_ver = %d", dec_info->i_msg_fmt_ver);
 		return NCSCC_RC_FAILURE;
 	}
 }
