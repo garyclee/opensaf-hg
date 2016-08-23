@@ -21,6 +21,7 @@
  */
 #include <sys/poll.h>
 
+#include "osaf_utility.h"
 #include "saAis.h"
 #include "saLog.h"
 #include "NtfAdmin.hh"
@@ -232,48 +233,22 @@ SaAisErrorT NtfLogger::logNotification(NtfSmartPtr& notif) {
                                    notif->getNotificationId(),
                                    SA_LOG_RECORD_WRITE_ACK,
                                    &logRecord);
-    if (SA_AIS_OK != errorCode) {
-      LOG_NO("Failed to log an alarm or security alarm notification (%d)", errorCode);
-      if (errorCode == SA_AIS_ERR_LIBRARY || errorCode == SA_AIS_ERR_BAD_HANDLE) {
-        LOG_ER("Fatal error SA_AIS_ERR_LIBRARY or SA_AIS_ERR_BAD_HANDLE; exiting (%d)...", errorCode);
-        exit(EXIT_FAILURE);
-      } else if (errorCode == SA_AIS_ERR_INVALID_PARAM) {
-        /* Retry to log truncated notificationObject/notifyingObject because
-         * LOG Service has not supported long dn in Opensaf 4.5
-         */
-        char short_dn[SA_MAX_UNEXTENDED_NAME_LENGTH];
-        memset(&short_dn, 0, SA_MAX_UNEXTENDED_NAME_LENGTH);
-        SaNameT shortdn_notificationObject, shortdn_notifyingObject;
-        if (osaf_is_an_extended_name(ntfHeader->notificationObject)) {
-          strncpy(short_dn, osaf_extended_name_borrow(ntfHeader->notificationObject)
-                  , SA_MAX_UNEXTENDED_NAME_LENGTH - 1);
-          osaf_extended_name_lend(short_dn, &shortdn_notificationObject);
-          logRecord.logHeader.ntfHdr.notificationObject = &shortdn_notificationObject;
-        }
-        if (osaf_is_an_extended_name(ntfHeader->notifyingObject)) {
-          strncpy(short_dn, osaf_extended_name_borrow(ntfHeader->notifyingObject)
-                  , SA_MAX_UNEXTENDED_NAME_LENGTH - 1);
-          osaf_extended_name_lend(short_dn, &shortdn_notifyingObject);
-          logRecord.logHeader.ntfHdr.notifyingObject = &shortdn_notifyingObject;
-        }
-        if (short_dn[0] != '\0') {
-          LOG_NO("Retry to log the truncated notificationObject/notifyingObject");
-          if ((errorCode = saLogWriteLogAsync(alarmStreamHandle,
-                                              notif->getNotificationId(),
-                                              SA_LOG_RECORD_WRITE_ACK,
-                                              &logRecord)) != SA_AIS_OK) {
-            LOG_ER("Failed to log the truncated notificationObject/notifyingObject (%d)"
-                   , errorCode);
-          }
-        }
-      }
-      goto end;
+    switch (errorCode) {
+    case SA_AIS_OK:
+	    break;
+
+    /* LOGsv is busy. Put the notification to queue and re-send next time */
+    case SA_AIS_ERR_TRY_AGAIN:
+    case SA_AIS_ERR_TIMEOUT:
+	    TRACE("Failed to log notification (ret: %d). Try next time.", errorCode);
+	    break;
+
+    default:
+	    osaf_abort(errorCode);
     }
   }
 
-end:
   TRACE_LEAVE();
-
   return errorCode;
 }
 

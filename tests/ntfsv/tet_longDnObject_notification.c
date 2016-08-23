@@ -19,6 +19,7 @@
  */
 #include <utest.h>
 #include <util.h>
+#include <unistd.h>
 #include "tet_ntf.h"
 #include "tet_ntf_common.h"
 //#include "util.h"
@@ -56,6 +57,192 @@ static SaNtfSecurityAlarmNotificationT mySecAlarmNotification;
 
 extern void saAisNameLend(SaConstStringT value, SaNameT* name);
 extern SaConstStringT saAisNameBorrow(const SaNameT* name);
+
+//>
+// For backup, change, and restore IMM attribute values.
+//<
+
+// As changing LOG IMM attributes are only applied for long DN test suite,
+// we put LOG IMM attributes handling within this file.
+
+#define MAX_DATA 256
+
+// Hold the information for an IMM attribute value
+// Such as name of attribute, its value and its data type.
+typedef struct {
+	char name[MAX_DATA];
+	char val[MAX_DATA];
+	int val_is_num;
+} attrinfo_t;
+
+// Hold list of attributes and its size.
+// Eg: if have 2 attributes, the size should bet set to 2.
+typedef struct {
+	attrinfo_t *attr;
+	size_t size;
+} attrlist_t;
+
+// Hold list of attributes per an DN.
+// The purpose is to make one go for all attributes
+// which belong to one DN.
+typedef struct {
+	attrlist_t *alist;
+	char dn[MAX_DATA];
+} imminfo_t;
+
+// Store the attributes'value.
+static void getVal(imminfo_t *info)
+{
+	FILE *fp = NULL;
+	attrinfo_t *tmp = NULL;
+	char attrValue[MAX_DATA] = {0};
+	char command[MAX_DATA] = {0};
+	size_t s = info->alist->size;
+
+	tmp = info->alist->attr;
+	while (s) {
+		sprintf(command, "immlist -a %s %s "
+			"| awk -F \"=\" '{print $2}' ", tmp->name,
+			info->dn);
+		fp = popen(command, "r");
+		while (fgets(attrValue, sizeof(attrValue) - 1, fp) != NULL) {};
+		pclose(fp);
+		strtok(attrValue, "\n");
+		strncpy(tmp->val, attrValue, MAX_DATA);
+		s--;
+		tmp++;
+
+		/* For Debug only*/
+		if (getenv("NTFTEST_DEBUG")) printf("%s \n", command);
+	}
+}
+
+// Change IMM attributes'value.
+static int setVal(imminfo_t *info)
+{
+	char *f = NULL;
+	attrinfo_t *tmp = NULL;
+	char command[MAX_DATA] = {0};
+	char format[MAX_DATA] = {0};
+	size_t s = info->alist->size;
+	int rc;
+
+	f = format;
+	tmp = info->alist->attr;
+	while (s) {
+		if (tmp->val_is_num) {
+			rc = snprintf(f, MAX_DATA, "-a %s=%s ",
+				      tmp->name,
+				      tmp->val);
+		} else {
+			rc = snprintf(f, MAX_DATA, "-a %s='%s' ",
+				      tmp->name,
+				      tmp->val);
+		}
+		f = f + rc;
+		s--;
+		tmp++;
+	}
+	sprintf(command, "immcfg %s %s", format, info->dn);
+
+	/* For Debug only*/
+	if (getenv("NTFTEST_DEBUG")) printf("%s \n", command);
+
+	rc = system(command);
+	return WEXITSTATUS(rc);
+}
+
+// Going to change `saLogStreamFixedLogRecordSize` and `saLogStreamLogFileFormat`
+// of alarm stream before testing Long DN. Then, need to backup them.
+// Since these attributes belong to alarm stream, put them in one.
+static attrinfo_t g_alarm[] = {
+	{
+		"saLogStreamFixedLogRecordSize",
+		"200", // default val
+		1 // val is num type
+	},
+	{
+		"saLogStreamLogFileFormat",
+		"@Cr @Ct @Nt @Ne6 @No30 @Ng30 \"@Cb\"",
+		0 // val is string type
+	}
+};
+
+// Going to change `logMaxLogrecsize` of config class.
+// Have to backup them before Long DN test.
+static attrinfo_t g_config[] = {
+	{
+		"logMaxLogrecsize",
+		"1024",
+		1
+	}
+};
+
+// Need only change alarm stream and global config class of LOGsv.
+static attrlist_t alarmList = {g_alarm, sizeof(g_alarm)/sizeof(attrinfo_t)};
+static attrlist_t configList = {g_config, sizeof(g_config)/sizeof(attrinfo_t)};
+static imminfo_t alarmInfo = {&alarmList, "safLgStrCfg=saLogAlarm,safApp=safLogService"};
+static imminfo_t configInfo = {&configList, "logConfig=1,safApp=safLogService"};
+
+// Note: can enable the enviroment variable `NTFTEST_DEBUG` to
+//       see what happens to backup/setup/restore env.
+
+// Backup attributes' values of alarm stream and global config class.
+static void backupEnv(void)
+{
+	getVal(&alarmInfo);
+	getVal(&configInfo);
+
+	/* For Debug only*/
+	if (getenv("NTFTEST_DEBUG")) printf("\n");
+}
+
+// Restore back to the previous values.
+static void restoreEnv(void)
+{
+	/* For Debug only*/
+	if (getenv("NTFTEST_DEBUG")) printf("\n");
+
+	setVal(&configInfo);
+	setVal(&alarmInfo);
+
+	/* For Debug only*/
+	if (getenv("NTFTEST_DEBUG")) printf("\n");
+}
+
+// Change the attributes' values of alarm stream and global config class
+// so that full notifications will be logged (without truncation).
+static void setupEnv(void)
+{
+	// -a- prefix means info of -a-larm stream.
+	attrinfo_t aData[2];
+	memcpy(aData, g_alarm, sizeof(g_alarm));
+	strcpy(aData[0].val, "0");
+	strcpy(aData[1].val, "@Cr @Ct @Nt @Ne6 @No @Ng \"@Cb\"");
+
+	// -c- prefix means info of config class
+	attrinfo_t cData[1];
+	memcpy(cData, g_config, sizeof(g_config));
+	strcpy(cData[0].val, "65535");
+
+	attrlist_t aList = {aData, sizeof(aData)/sizeof(attrinfo_t)};
+	attrlist_t cList = {cData, sizeof(cData)/sizeof(attrinfo_t)};
+
+	imminfo_t aInfo;
+	aInfo.alist= &aList;
+	strcpy(aInfo.dn, alarmInfo.dn);
+
+	imminfo_t cInfo;
+	cInfo.alist= &cList;
+	strcpy(cInfo.dn, configInfo.dn);
+
+	setVal(&aInfo);
+	setVal(&cInfo);
+
+	/* For Debug only*/
+	if (getenv("NTFTEST_DEBUG")) printf("\n");
+}
+//<
 
 /**
  * Init default long dn objects
@@ -306,6 +493,7 @@ void extFillHeader(SaNtfNotificationHeaderT *head)
  	int i;
 	SaStringT dest_ptr;
 	SaNameT name1, name2, name3, name4, name5;
+
 	*(head->eventType) = SA_NTF_ALARM_COMMUNICATION;
 	*(head->eventTime) = SA_TIME_UNKNOWN;
 
@@ -390,11 +578,14 @@ void extFillHeader(SaNtfNotificationHeaderT *head)
   */
  void extAdditionalInfoTest(void)
  {
- 	SaNtfAlarmNotificationFilterT		  myAlarmFilter;
+ 	SaNtfAlarmNotificationFilterT myAlarmFilter;
 	subscriptionId = 1;
 	SaNtfNotificationHeaderT *head;
-	
+
 	rc = SA_AIS_OK;
+
+	backupEnv();
+	setupEnv();
 
 	resetCounters();
 
@@ -475,6 +666,7 @@ void extFillHeader(SaNtfNotificationHeaderT *head)
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	rc = check_errors();
 	test_validate(rc, SA_AIS_OK);
+	restoreEnv();
  }
  
 /**
@@ -482,11 +674,14 @@ void extFillHeader(SaNtfNotificationHeaderT *head)
  */
 void extFilterNotificationTest(void)
 {
-	SaNtfAlarmNotificationFilterT		  myAlarmFilter;
+	SaNtfAlarmNotificationFilterT myAlarmFilter;
 	subscriptionId = 1;
 	SaNtfNotificationHeaderT *head;
-	
+
 	rc = SA_AIS_OK;
+
+	backupEnv();
+	setupEnv();
 
 	resetCounters();
 
@@ -586,6 +781,7 @@ void extFilterNotificationTest(void)
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	rc = check_errors();
 	test_validate(rc, SA_AIS_OK);
+	restoreEnv();
 }
 
 /**
@@ -593,10 +789,13 @@ void extFilterNotificationTest(void)
  */
 void extAlarmNotificationTest(void)
 {
-	SaNtfAlarmNotificationFilterT		  myAlarmFilter;
+	SaNtfAlarmNotificationFilterT myAlarmFilter;
 	subscriptionId = 1;
 
 	rc = SA_AIS_OK;
+
+	backupEnv();
+	setupEnv();
 
 	resetCounters();
 
@@ -683,6 +882,7 @@ void extAlarmNotificationTest(void)
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	rc = check_errors();
 	test_validate(rc, SA_AIS_OK);
+	restoreEnv();
 }
 
 /**
@@ -887,6 +1087,9 @@ void extSecurityAlarmNotificationTest(void)
 
 	subscriptionId = 5;
 
+	backupEnv();
+	setupEnv();
+
 	resetCounters();
 	safassert(saNtfInitialize(&ntfHandle, &ntfCbTest, &ntfVersion) , SA_AIS_OK);
 	safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject) , SA_AIS_OK);
@@ -954,6 +1157,7 @@ void extSecurityAlarmNotificationTest(void)
 	safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
 	rc = check_errors();
 	test_validate(rc, SA_AIS_OK);
+	restoreEnv();
 }
 
 __attribute__ ((constructor)) static void longDnObject_notification_constructor(void)
