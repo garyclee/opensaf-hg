@@ -99,4 +99,5 @@ extern void d2n_msg_free(AVSV_DND_MSG *msg);
 extern std::string avd_getparent(const std::string& dn);
 extern bool object_exist_in_imm(const std::string& dn);
 extern const char *admin_op_name(SaAmfAdminOperationIdT opid);
+int compare_sanamet(const std::string& lhs, const std::string& rhs);
 #endif

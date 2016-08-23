@@ -162,7 +162,7 @@ void AVD_SU::add_comp(AVD_COMP *comp) {
 			const std::string c2_name(Amf::to_string(&c2->comp_info.name));
 			if (c1->comp_info.inst_level < c2->comp_info.inst_level) return true;
 			if (c1->comp_info.inst_level == c2->comp_info.inst_level) {
-				if (c1_name.compare(c2_name) < 0) {
+				if (compare_sanamet(c1_name, c2_name) < 0 ){
 					return true;
 				}
 			}	

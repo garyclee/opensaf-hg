@@ -171,7 +171,7 @@ void AVD_SI::add_csi_db(AVD_CSI* csi)
 	i_csi = list_of_csi;
 	while ((i_csi != nullptr) && (csi->rank <= i_csi->rank)) {
 		while ((i_csi != nullptr) && (csi->rank == i_csi->rank)) {
-			if (csi->name.compare(i_csi->name) < 0) {
+			if (compare_sanamet(csi->name, i_csi->name) < 0) {
 				found_pos = true;
 				break;
 			}

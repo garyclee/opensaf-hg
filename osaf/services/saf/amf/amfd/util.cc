@@ -1941,3 +1941,14 @@ void avsv_sanamet_init(const std::string& haystack, std::string& dn, const char 
 	
 	TRACE_LEAVE();
 }
+
+// this function emulates the behaviour of m_CMP_NORDER_SANAMET
+int compare_sanamet(const std::string& lhs, const std::string& rhs)
+{
+	if (lhs.length() > rhs.length())
+		return 1;
+	else if (lhs.length() < rhs.length())
+		return -1;
+	else
+		return lhs.compare(rhs);
+}
