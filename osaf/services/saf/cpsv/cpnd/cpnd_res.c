@@ -482,7 +482,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 				}
 
 				memset(cp_node, '\0', sizeof(CPND_CKPT_NODE));
-				cp_node->ckpt_name = cp_info.ckpt_name;
+				cp_node->ckpt_name = strdup(cp_info.ckpt_name);
 				cp_node->ckpt_id = cp_info.ckpt_id;
 				cp_node->offset = cp_info.offset;
 				cp_node->is_close = cp_info.is_close;
@@ -495,12 +495,10 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 				if (cp_info.cpnd_rep_create) {
 					/* OPEN THE SHARED MEMORY ALREADY CREATED FOR CHECKPOINT REPLICA */
 					/* size=cp_node->ckpt_name.length; */
-					size = cp_node->ckpt_name.length;
-					total_length = size + sizeof(cp_node->ckpt_id) + sizeof(NODE_ID) + 5;
-					buf = m_MMGR_ALLOC_CPND_DEFAULT(total_length);
-					memset(buf, '\0', total_length);
-					strncpy(buf, (char *)cp_node->ckpt_name.value, size);
-					sprintf(buf + size - 1, "_%d_%d", (uint32_t)nodeid, (uint32_t)cp_node->ckpt_id);
+					buf = m_MMGR_ALLOC_CPND_DEFAULT(CPND_MAX_REPLICA_NAME_LENGTH);
+					memset(buf, '\0', CPND_MAX_REPLICA_NAME_LENGTH);
+					strncpy(buf, cp_node->ckpt_name, CPND_REP_NAME_MAX_CKPT_NAME_LENGTH);
+					sprintf(buf + strlen(buf) - 1, "_%u_%llu", (uint32_t)nodeid, cp_node->ckpt_id);
 					rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open, buf, &cp_node, 0, &cp_info, cb->shm_alloc_guaranteed);
 					if (rc != NCSCC_RC_SUCCESS) {
 						/*   assert(0); */
@@ -511,8 +509,10 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 					}
 					cb->num_rep++;
 				}
-				if (cp_node->is_unlink)
-					cp_node->ckpt_name.length = 0;
+				if (cp_node->is_unlink) {
+					free((void *)cp_node->ckpt_name);
+					cp_node->ckpt_name = strdup("");
+				}
 
 				memset(&tmp_cp_info, '\0', sizeof(CKPT_INFO));
 				memcpy(&tmp_cp_info, &cp_info, sizeof(CKPT_INFO));
@@ -1021,7 +1021,7 @@ uint32_t cpnd_write_ckpt_info(CPND_CB *cb, CPND_CKPT_NODE *cp_node, int32_t offs
 
 	TRACE_ENTER();
 	memset(&ckpt_info, 0, sizeof(CKPT_INFO));
-	ckpt_info.ckpt_name = cp_node->ckpt_name;
+	strncpy(ckpt_info.ckpt_name, cp_node->ckpt_name, kOsafMaxDnLength);
 	ckpt_info.ckpt_id = cp_node->ckpt_id;
 	ckpt_info.maxSections = cp_node->create_attrib.maxSections;
 	ckpt_info.maxSecSize = cp_node->create_attrib.maxSectionSize;

@@ -15,6 +15,7 @@
  *
  */
 
+#include <stdlib.h>
 #include <ncssysf_tsk.h>
 
 #include <logtrace.h>
@@ -26,6 +27,12 @@ extern void cpnd_main_process(CPND_CB *cb);
 static int __init_cpnd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
+
+	/* Enable extended SaNameT */
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
+		LOG_ER("Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
 	/* Init LIB_CREATE request for Server */
 	memset(&lib_create, 0, sizeof(lib_create));

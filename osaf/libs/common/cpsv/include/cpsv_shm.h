@@ -18,6 +18,8 @@
 #ifndef CPSV_SHM_H
 #define CPSV_SHM_H
 
+#include "osaf_extended_name.h"
+
 #define MAX_CLIENTS 1000
 #define MAX_CKPTS  2000
 #define MAX_SIZE  30
@@ -29,7 +31,7 @@
 
 typedef struct cpsv_ckpt_hdr {
 	SaCkptCheckpointHandleT ckpt_id;	/* Index for identifying the checkpoint */
-	SaNameT ckpt_name;
+	char ckpt_name[kOsafMaxDnLength];
 	SaCkptCheckpointCreationAttributesT create_attrib;
 	SaCkptCheckpointOpenFlagsT open_flags;
 	uint32_t ckpt_lcl_ref_cnt;
@@ -55,7 +57,7 @@ typedef struct cpsv_sect_hdr {
 } CPSV_SECT_HDR;
 
 typedef struct ckpt_info {
-	SaNameT ckpt_name;
+	char ckpt_name[kOsafMaxDnLength];
 	SaCkptCheckpointHandleT ckpt_id;
 	uint32_t maxSections;
 	SaSizeT maxSecSize;

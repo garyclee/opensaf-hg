@@ -130,6 +130,7 @@ uint32_t cpnd_all_repl_rsp_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info);
 uint32_t cpnd_open_active_sync_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info);
 void cpnd_proc_free_read_data(CPSV_EVT *evt);
 SaUint32T cpnd_get_scAbsenceAllowed_attr();
+SaUint32T cpnd_get_longDnsAllowed_attr();
 /* End cpnd_proc.c */
 
 /* File : ---  cpnd_amf.c */
@@ -163,7 +164,7 @@ void cpnd_evt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPSV_CP
 void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPSV_CPND_ALL_REPL_EVT_NODE **evt_node);
 uint32_t cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 uint32_t cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
-CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name);
+CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaConstStringT ckpt_name);
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, SaTimeT exp_time,
 					  uint32_t gen_flag);
 void cpnd_evt_backup_queue_add(CPND_CKPT_NODE *cp_node, CPND_EVT *evt);

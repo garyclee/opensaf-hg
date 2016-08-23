@@ -34,6 +34,9 @@ extern uint32_t gl_cpnd_cb_hdl;
 #define m_CPND_GIVEUP_CPND_CB    ncshm_give_hdl(gl_cpnd_cb_hdl)
 
 #define CPND_MAX_REPLICAS 1000
+#define CPND_MAX_REPLICA_NAME_LENGTH 255
+#define CPND_REP_NAME_MAX_CKPT_NAME_LENGTH (CPND_MAX_REPLICA_NAME_LENGTH - 32)
+
 #define CPSV_GEN_SECTION_ID_SIZE 4
 #define CPSV_WAIT_TIME  1000
 
@@ -169,7 +172,7 @@ typedef struct cpnd_all_repl_write_evt_node {
 typedef struct cpnd_ckpt_node {
 	NCS_PATRICIA_NODE patnode;
 	SaCkptCheckpointHandleT ckpt_id;	/* index for identifying the checkpoint */
-	SaNameT ckpt_name;
+	SaConstStringT ckpt_name;
 	SaCkptCheckpointCreationAttributesT create_attrib;
 	SaCkptCheckpointOpenFlagsT open_flags;
 	uint32_t ckpt_lcl_ref_cnt;

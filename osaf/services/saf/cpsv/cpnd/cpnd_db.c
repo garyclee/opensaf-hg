@@ -158,6 +158,8 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 
 	cpnd_ckpt_sec_map_destroy(&cp_node->replica_info);
 
+	free((void *)cp_node->ckpt_name);
+
 	m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
 	TRACE_LEAVE();
 
@@ -275,7 +277,7 @@ uint32_t cpnd_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *ckpt_client_no
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name)
+CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaConstStringT ckpt_name)
 {
 	CPND_CKPT_NODE *ckpt_node = NULL;
 	SaCkptCheckpointHandleT prev_ckpt_id;
@@ -284,7 +286,7 @@ CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name)
 
 	while (ckpt_node) {
 		prev_ckpt_id = ckpt_node->ckpt_id;
-		if (memcmp(&ckpt_name, &ckpt_node->ckpt_name, sizeof(SaNameT)) == 0) {
+		if (strcmp(ckpt_name, ckpt_node->ckpt_name) == 0) {
 			return ckpt_node;
 		}
 		cpnd_ckpt_node_getnext(cpnd_cb, prev_ckpt_id, &ckpt_node);

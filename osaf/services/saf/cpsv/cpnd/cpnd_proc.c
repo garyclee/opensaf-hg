@@ -55,6 +55,7 @@ static void cpnd_dump_shm_info(NCS_OS_POSIX_SHM_REQ_INFO *open);
 static void cpnd_dump_ckpt_attri(CPND_CKPT_NODE *cp_node);
 static void cpnd_ckpt_sc_cpnd_mdest_del(CPND_CB *cb);
 static void cpnd_headless_ckpt_node_del(CPND_CB *cb);
+static SaUint32T cpnd_get_imm_attr(char **attribute_names);
 
 /****************************************************************************
  * Name          : cpnd_ckpt_client_add
@@ -455,7 +456,6 @@ uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	char *buf;
-	uint8_t size = 0, total_length;
 	int32_t sec_cnt = 0;
 
 	TRACE_ENTER();
@@ -466,14 +466,11 @@ uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 		return NCSCC_RC_FAILURE;
 	}
 
-	size = cp_node->ckpt_name.length;
-	total_length = size + sizeof(cp_node->ckpt_id) + sizeof(NODE_ID) + 5;
+	buf = m_MMGR_ALLOC_CPND_DEFAULT(CPND_MAX_REPLICA_NAME_LENGTH);
+	memset(buf, '\0', CPND_MAX_REPLICA_NAME_LENGTH);
+	strncpy(buf, cp_node->ckpt_name, CPND_REP_NAME_MAX_CKPT_NAME_LENGTH);
 
-	buf = m_MMGR_ALLOC_CPND_DEFAULT(total_length);
-	memset(buf, '\0', total_length);
-	strncpy(buf, (char *)cp_node->ckpt_name.value, size);
-
-	sprintf(buf + size - 1, "_%d_%llu", (uint32_t)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id), cp_node->ckpt_id);
+	sprintf(buf + strlen(buf) - 1, "_%u_%llu", (uint32_t)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id), cp_node->ckpt_id);
 	/* size of chkpt */
 	memset(&cp_node->replica_info.open, '\0', sizeof(cp_node->replica_info.open));
 
@@ -1816,7 +1813,7 @@ uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
 	memset(&write_req, '\0', sizeof(write_req));
 	memset(&ckpt_hdr, '\0', sizeof(CPSV_CKPT_HDR));
 	ckpt_hdr.ckpt_id = cp_node->ckpt_id;
-	ckpt_hdr.ckpt_name = cp_node->ckpt_name;
+	strncpy(ckpt_hdr.ckpt_name, cp_node->ckpt_name, kOsafMaxDnLength);
 	ckpt_hdr.create_attrib = cp_node->create_attrib;
 	ckpt_hdr.open_flags = cp_node->open_flags;
 	ckpt_hdr.is_unlink = cp_node->is_unlink;
@@ -2122,7 +2119,7 @@ void cpnd_dump_ckpt_info(CPND_CKPT_NODE *ckpt_node)
 	CPSV_CPND_DEST_INFO *cpnd_dest_list = NULL;
 
 	TRACE("++++++++++++++++++++++++++++++++++++++++++++++++++");
-	TRACE("Ckpt_id - %d  Ckpt Name - %.10s ", (uint32_t)ckpt_node->ckpt_id, ckpt_node->ckpt_name.value);
+	TRACE("Ckpt_id - %d  Ckpt Name - %.10s ", (uint32_t)ckpt_node->ckpt_id, ckpt_node->ckpt_name);
 	if (ckpt_node->is_unlink)
 		TRACE("Ckpt Unlinked - ");
 	if (ckpt_node->is_close)
@@ -2529,12 +2526,12 @@ void cpnd_proc_ckpt_info_update(CPND_CB *cb)
 		remaining_node--;
 
 		/* send info to cpd */
-		LOG_NO("cpnd_proc_update_cpd_data::ckpt_name = %s[%llu]", (char*)ckpt_node->ckpt_name.value,
+		LOG_NO("cpnd_proc_update_cpd_data::ckpt_name = %s[%llu]", (char*)ckpt_node->ckpt_name,
 			ckpt_node->ckpt_id);
 		send_evt.type = CPSV_EVT_TYPE_CPD;
 		send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_INFO_UPDATE;
 		send_evt.info.cpd.info.ckpt_info.ckpt_id = ckpt_node->ckpt_id;
-		send_evt.info.cpd.info.ckpt_info.ckpt_name = ckpt_node->ckpt_name;
+		osaf_extended_name_lend(ckpt_node->ckpt_name, &send_evt.info.cpd.info.ckpt_info.ckpt_name);
 		send_evt.info.cpd.info.ckpt_info.attributes = ckpt_node->create_attrib;
 		send_evt.info.cpd.info.ckpt_info.ckpt_flags = ckpt_node->open_flags;
 		send_evt.info.cpd.info.ckpt_info.num_users = ckpt_node->ckpt_lcl_ref_cnt;
@@ -2725,6 +2722,56 @@ void cpnd_proc_active_down_ckpt_node_del(CPND_CB *cb, MDS_DEST mds_dest)
 SaUint32T cpnd_get_scAbsenceAllowed_attr()
 {
 	SaUint32T rc_attr_val = 0;
+	char *attribute_names[] = {
+		"scAbsenceAllowed",
+		NULL
+	};
+
+	TRACE_ENTER();
+
+	rc_attr_val = cpnd_get_imm_attr(attribute_names);
+
+	TRACE_LEAVE();
+	return rc_attr_val;
+}
+
+/****************************************************************************************
+ * Name          : cpnd_get_longDnsAllowed_attr()
+ *
+ * Description   : This function gets scAbsenceAllowed attribute
+ *
+ * Arguments     : -
+ * 
+ * Return Values : scAbsenceAllowed attribute (0 = not allowed)
+ *****************************************************************************************/
+SaUint32T cpnd_get_longDnsAllowed_attr()
+{
+	SaUint32T rc_attr_val = 0;
+	char *attribute_names[] = {
+		"longDnsAllowed",
+		NULL
+	};
+
+	TRACE_ENTER();
+
+	rc_attr_val = cpnd_get_imm_attr(attribute_names);
+
+	TRACE_LEAVE();
+	return rc_attr_val;
+}
+
+/****************************************************************************************
+ * Name          : cpnd_get_imm_attr
+ *
+ * Description   : This function gets IMM attribute
+ *
+ * Arguments     : -
+ * 
+ * Return Values : scAbsenceAllowed attribute (0 = not allowed)
+ *****************************************************************************************/
+static SaUint32T cpnd_get_imm_attr(char **attribute_names)
+{
+	SaUint32T rc_attr_val = 0;
 	SaAisErrorT rc = SA_AIS_OK;
 	SaImmAccessorHandleT accessorHandle;
 	SaImmHandleT immOmHandle;
@@ -2733,15 +2780,10 @@ SaUint32T cpnd_get_scAbsenceAllowed_attr()
 
 	TRACE_ENTER();
 
-	char *attribute_names[] = {
-		"scAbsenceAllowed",
-		NULL
-	};
 	char object_name_str[] = "opensafImm=opensafImm,safApp=safImmService";
 
 	SaNameT object_name;
-	strncpy((char *) object_name.value, object_name_str, SA_MAX_NAME_LENGTH);
-	object_name.length = strlen((char *) object_name.value) + 1;
+	osaf_extended_name_lend(object_name_str, &object_name);
 
 	/* Save immutil settings and reconfigure */
 	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
@@ -2767,7 +2809,6 @@ SaUint32T cpnd_get_scAbsenceAllowed_attr()
 		goto done;
 	}
 
-
 	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, attribute_names, &attributes);
 	if (rc != SA_AIS_OK) {
 		TRACE("%s saImmOmAccessorGet_2 Fail '%s'", __FUNCTION__, saf_error(rc));
@@ -2776,11 +2817,9 @@ SaUint32T cpnd_get_scAbsenceAllowed_attr()
 
 	void *value;
 
-	/* Handle the global scAbsenceAllowed_flag */
 	attribute = attributes[0];
 	TRACE("%s attrName \"%s\"",__FUNCTION__,attribute?attribute->attrName:"");
 	if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
-		/* scAbsenceAllowed has value. Get the value */
 		value = attribute->attrValues[0];
 		rc_attr_val = *((SaUint32T *) value);
 	}
