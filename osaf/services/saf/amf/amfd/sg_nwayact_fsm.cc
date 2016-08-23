@@ -60,7 +60,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	bool l_flag, next_si_tobe_assigned = true;
 	AVD_SU_SI_REL *tmp_rel;
 
-	TRACE_ENTER2("'%s'", sg->name.value);
+	TRACE_ENTER2("'%s'", sg->name.c_str());
 
 	// @todo remove this l_flag??
 	l_flag = true;
@@ -92,12 +92,12 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
 			AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
 			{
-				if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, i_si->name) != 0)
+				if (su_rank_rec->indx.si_name.compare(i_si->name) != 0)
 					continue;
 
 				/* get the su & si */
-				i_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
-				AVD_SI *si = avd_si_get(&su_rank_rec->indx.si_name);
+				i_su = su_db->find(su_rank_rec->su_name);
+				AVD_SI *si = avd_si_get(su_rank_rec->indx.si_name);
 
 				/* validate this entry */
 				if ((si == nullptr) || (i_su == nullptr) || (si->sg_of_si != i_su->sg_of_su))
@@ -121,7 +121,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				continue;
 			}
 
-			if (avd_su_susi_find(cb, i_su, &i_si->name)
+			if (avd_su_susi_find(cb, i_su, i_si->name)
 			    != AVD_SU_SI_REL_NULL) {
 				/* This SU has already a assignment for this SI go to the
 				 * next SU.
@@ -140,8 +140,8 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					break;
 				}
 			} else {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value, i_su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, i_si->name.c_str(), i_si->name.length());
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, i_su->name.c_str(), i_su->name.length());
 			}
 
 		}
@@ -171,7 +171,7 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				continue;
 			}
 
-			if (avd_su_susi_find(cb, i_su, &i_si->name)
+			if (avd_su_susi_find(cb, i_su, i_si->name)
 			    != AVD_SU_SI_REL_NULL) {
 				/* This SU has already a assignment for this SI go to the 
 				 * next SU.
@@ -191,8 +191,8 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 					continue;
 				}
 			} else {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, i_si->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_su->name.value, i_su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, i_si->name.c_str(), i_si->name.length());
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, i_su->name.c_str(), i_su->name.length());
 			}
 
 			/* choose the next SU */
@@ -218,10 +218,10 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 						/* Add the SU to the operation list */
 						avd_sg_su_oper_list_add(cb, qualified_su, false);
 					} else {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, i_si->name.value, 
-								i_si->name.length);
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, qualified_su->name.value, 
-								qualified_su->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, i_si->name.c_str(), 
+								i_si->name.length());
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, qualified_su->name.c_str(), 
+								qualified_su->name.length());
 						l_flag = true; /* Go for next assignment */
 						break;
 					}
@@ -280,7 +280,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 
 		/* change the state for all assignments to quiesced. */
 		if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+			LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -299,12 +299,12 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			 * Stay in same state.
 			 */
 
-			if (avd_su_susi_find(cb, su, &su->sg_of_su->admin_si->name)
+			if (avd_su_susi_find(cb, su, su->sg_of_su->admin_si->name)
 			    != AVD_SU_SI_REL_NULL) {
 				m_AVD_SU_SI_CHK_QSD_ASGN(su, flag);
 				if (flag == false) {
 					if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 						return NCSCC_RC_FAILURE;
 					}
 
@@ -319,7 +319,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 					   avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 					   != AVD_SU_SI_REL_NULL) */
 				if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -343,7 +343,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 							SA_AMF_READINESS_IN_SERVICE) {
 						AVD_SU_SI_REL *i_susi;
 						i_susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
-								&su->sg_of_su->si_tobe_redistributed->name);
+								su->sg_of_su->si_tobe_redistributed->name);
 						osafassert(i_susi);
 
 						if (avd_susi_mod_send(i_susi, SA_AMF_HA_ACTIVE) == NCSCC_RC_FAILURE) {
@@ -367,7 +367,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			m_AVD_SU_SI_CHK_QSD_ASGN(su, flag);
 			if (flag == false) {
 				if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -400,7 +400,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			 */
 			if (su->list_of_susi->state == SA_AMF_HA_QUIESCING) {
 				if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -421,7 +421,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			 */
 
 			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -432,7 +432,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 		break;		/* case AVD_SG_FSM_SU_OPER: */
 	case AVD_SG_FSM_SI_OPER:
 
-		if (avd_su_susi_find(cb, su, &su->sg_of_su->admin_si->name)
+		if (avd_su_susi_find(cb, su, su->sg_of_su->admin_si->name)
 		    != AVD_SU_SI_REL_NULL) {
 			/* The SI admin pointer, SI has assignment only to this SU. If this 
 			 * SI admin is shutdown change to LOCK and send D2N-INFO_SU_SI_ASSIGN 
@@ -443,7 +443,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			m_AVD_SU_SI_CHK_QSD_ASGN(su, flag);
 			if (flag == false) {
 				if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -465,7 +465,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			 * Change the state to SG_realign state.
 			 */
 			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -489,7 +489,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			if ((su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
 			    (su->list_of_susi->fsm == AVD_SU_SI_STATE_MODIFY)) {
 				if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -514,7 +514,7 @@ uint32_t SG_NACV::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 }
 
 uint32_t SG_NACV::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
-	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.c_str(), su->sg_of_su->sg_fsm_state);
 
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */
@@ -574,7 +574,7 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			}
 		}
 		/* log informational error. */
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_REALIGN:
 
@@ -673,7 +673,7 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				 */
 
 				if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -724,7 +724,7 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 						avd_sg_su_oper_list_del(cb, su, false);
 						/* Find the SUSI, which is in Quisced state. */
 						i_susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
-								&su->sg_of_su->si_tobe_redistributed->name);
+								su->sg_of_su->si_tobe_redistributed->name);
 						osafassert(i_susi);
 						if (avd_susi_del_send(i_susi) == NCSCC_RC_FAILURE) {
 							su->sg_of_su->max_assigned_su = su->sg_of_su->min_assigned_su = nullptr;
@@ -763,12 +763,12 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 	case AVD_SG_FSM_SU_OPER:
 		if (act == AVSV_SUSI_ACT_DEL) {
 			if (susi == AVD_SU_SI_REL_NULL) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				su->delete_all_susis();
 
 			} else {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->si->name.c_str(), susi->si->name.length());
 
 				/* free all the CSI assignments  */
 				avd_compcsi_delete(cb, susi, false);
@@ -819,11 +819,11 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 								&tmp_susi) == NCSCC_RC_SUCCESS) {
 					} else {
 						/* log a fatal error */
-						LOG_ER("%s:%u: SU '%s' (%u), SI '%s' (%u)", __FILE__, __LINE__,
-								su->sg_of_su->min_assigned_su->name.value, 
-								su->sg_of_su->min_assigned_su->name.length, 
-								su->sg_of_su->si_tobe_redistributed->name.value, 
-								su->sg_of_su->si_tobe_redistributed->name.length);
+						LOG_ER("%s:%u: SU '%s' (%zu), SI '%s' (%zu)", __FILE__, __LINE__,
+								su->sg_of_su->min_assigned_su->name.c_str(), 
+								su->sg_of_su->min_assigned_su->name.length(), 
+								su->sg_of_su->si_tobe_redistributed->name.c_str(), 
+								su->sg_of_su->si_tobe_redistributed->name.length());
 						/* Act assignment has failed, so let us retrieve back to old state and
 						   send Act assignment to the quisced su and reset the ponters as SI 
 						   transfer has failed.*/
@@ -862,14 +862,14 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				if ((susi == AVD_SU_SI_REL_NULL) ||
 						((su->list_of_susi == susi) && (susi->su_next == AVD_SU_SI_REL_NULL))) {
 					if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 						return NCSCC_RC_FAILURE;
 					}
 
 					if (su_oper_list_front() != su) {
-						LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-						LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->list_of_susi->si->name.value,
-								su->list_of_susi->si->name.length);
+						LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
+						LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->list_of_susi->si->name.c_str(),
+								su->list_of_susi->si->name.length());
 
 						avd_sg_su_oper_list_add(cb, su, false);
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -998,7 +998,7 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			 * removal all for this SU.
 			 */
 			if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -1007,7 +1007,7 @@ uint32_t SG_NACV::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		return NCSCC_RC_FAILURE;
 		break;
 	}			/* switch(su->sg_of_su->sg_fsm_state) */
@@ -1026,7 +1026,7 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 	case AVD_SG_FSM_STABLE:
 
 		/* log fatal error. */
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_REALIGN:
 
@@ -1063,7 +1063,7 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				 */
 
 				if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -1129,14 +1129,14 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					su->sg_of_su->si_tobe_redistributed = nullptr;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su->sg_of_su, AVSV_CKPT_AVD_SI_TRANS);
 					if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 						return NCSCC_RC_FAILURE;
 					}
 
 					if (su_oper_list_front() != su) {
-						LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
-						LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->list_of_susi->si->name.value,
-								su->list_of_susi->si->name.length);
+						LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
+						LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->list_of_susi->si->name.c_str(),
+								su->list_of_susi->si->name.length());
 
 						avd_sg_su_oper_list_add(cb, su, false);
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -1199,7 +1199,7 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			 * removal all for this SU.
 			 */
 			if (avd_sg_su_si_del_snd(cb, su) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -1209,7 +1209,7 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		return NCSCC_RC_FAILURE;
 		break;
 	}			/* switch(su->sg_of_su->sg_fsm_state) */
@@ -1219,7 +1219,7 @@ uint32_t SG_NACV::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 }
 
 uint32_t SG_NACV::realign(AVD_CL_CB *cb, AVD_SG *sg) {
-	TRACE_ENTER2("'%s'", sg->name.value);
+	TRACE_ENTER2("'%s'", sg->name.c_str());
 
 	/* If the SG FSM state is not stable just return success. */
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
@@ -1300,7 +1300,7 @@ void SG_NACV::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 						SA_AMF_READINESS_IN_SERVICE) {
 					AVD_SU_SI_REL *i_susi;
 					i_susi = avd_su_susi_find(avd_cb, su->sg_of_su->max_assigned_su,
-							&su->sg_of_su->si_tobe_redistributed->name);
+							su->sg_of_su->si_tobe_redistributed->name);
 					osafassert(i_susi);
 
 					if (avd_susi_mod_send(i_susi, SA_AMF_HA_ACTIVE) == NCSCC_RC_FAILURE) {
@@ -1499,7 +1499,7 @@ void SG_NACV::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		return;
 		break;
 	}			/* switch(su->sg_of_su->sg_fsm_state) */
@@ -1521,7 +1521,7 @@ uint32_t SG_NACV::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 
 			/* change the state for all assignments to quiesced. */
 			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -1534,7 +1534,7 @@ uint32_t SG_NACV::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 			 ((avnd != nullptr) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN))) {
 			/* change the state for all assignments to quiescing. */
 			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCING) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -1554,14 +1554,14 @@ uint32_t SG_NACV::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 			 */
 			/* change the  assignment to quiesced. */
 			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				return NCSCC_RC_FAILURE;
 			}
 		} else if ((avnd != nullptr) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)) {
 			/* Use case: node lock with two (or more) SUs of the same SG hosted
 			 * by the same node */
 			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s", __FILE__, __LINE__, su->name.value);
+				LOG_ER("%s:%u: %s", __FILE__, __LINE__, su->name.c_str());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -1574,7 +1574,7 @@ uint32_t SG_NACV::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 			/* Use case: node lock with two (or more) SUs of the same SG hosted
 			 * by the same node */
 			if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s", __FILE__, __LINE__, su->name.value);
+				LOG_ER("%s:%u: %s", __FILE__, __LINE__, su->name.c_str());
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -1583,7 +1583,7 @@ uint32_t SG_NACV::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 		break;
 	default:
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
-		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		return NCSCC_RC_FAILURE;
 		break;
 	}			/* switch (su->sg_of_su->sg_fsm_state) */
@@ -1650,7 +1650,7 @@ uint32_t SG_NACV::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 		break;		/* case AVD_SG_FSM_SI_OPER: */
 	default:
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)si->sg_of_si->sg_fsm_state));
-		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, si->name.value, si->name.length);
+		LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, si->name.c_str(), si->name.length());
 		return NCSCC_RC_FAILURE;
 		break;
 	}			/* switch (si->sg_of_si->sg_fsm_state) */
@@ -1725,7 +1725,7 @@ uint32_t SG_NACV::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 		break;		/* case AVD_SG_FSM_SG_ADMIN: */
 	default:
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)sg->sg_fsm_state));
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, sg->name.value, sg->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, sg->name.c_str(), sg->name.length());
 		return NCSCC_RC_FAILURE;
 		break;
 	}			/* switch (sg->sg_fsm_state) */
@@ -1767,7 +1767,7 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 			continue;
 		}
 		l_flag = true;
-		if (avd_su_susi_find(avd_cb, i_su, &i_si->name) != AVD_SU_SI_REL_NULL) {
+		if (avd_su_susi_find(avd_cb, i_su, i_si->name) != AVD_SU_SI_REL_NULL) {
 			/* This SU has already a assignment for this SI go to the
 			 * next SU.
 			 */
@@ -1806,7 +1806,7 @@ static AVD_SU *avd_get_qualified_su(AVD_SG *sg, AVD_SI *i_si,
 	/* Got the Qualified SU return Success.*/
 	*next_si_tobe_assigned = true; 
 	osafassert(pref_su);
-	TRACE_LEAVE2("'%s'", pref_su->name.value);
+	TRACE_LEAVE2("'%s'", pref_su->name.c_str());
 	return pref_su;
 }
 
@@ -1856,8 +1856,8 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 
 	if ((avd_sg->max_assigned_su->saAmfSUNumCurrActiveSIs - avd_sg->min_assigned_su->saAmfSUNumCurrActiveSIs) <= 1) {
 		TRACE("max_assigned_su '%s' no of assignments '%u', min_assigned_su '%s' no of assignments '%u'",
-				avd_sg->max_assigned_su->name.value, avd_sg->max_assigned_su->saAmfSUNumCurrActiveSIs,
-				avd_sg->min_assigned_su->name.value, avd_sg->min_assigned_su->saAmfSUNumCurrActiveSIs);
+				avd_sg->max_assigned_su->name.c_str(), avd_sg->max_assigned_su->saAmfSUNumCurrActiveSIs,
+				avd_sg->min_assigned_su->name.c_str(), avd_sg->min_assigned_su->saAmfSUNumCurrActiveSIs);
 		avd_sg->max_assigned_su = avd_sg->min_assigned_su = nullptr;
 		TRACE("No need for reassignments");
 		goto done; /* No need to change assignments. */
@@ -1870,7 +1870,7 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 		su_si = avd_sg->max_assigned_su->list_of_susi;
 		while (nullptr != su_si) {
 			/* Find if this is assigned to avd_sg->min_assigned_su. */
-			if (avd_su_susi_find(avd_cb, avd_sg->min_assigned_su, &su_si->si->name) != AVD_SU_SI_REL_NULL) {
+			if (avd_su_susi_find(avd_cb, avd_sg->min_assigned_su, su_si->si->name) != AVD_SU_SI_REL_NULL) {
 				/* This SU has already a assignment for this SI go to the
 				 * next SI.
 				 */
@@ -1897,9 +1897,9 @@ void avd_sg_nwayact_screening_for_si_distr(AVD_SG *avd_sg)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, avd_sg, AVSV_CKPT_AVD_SI_TRANS);
 
 	TRACE("max_assigned_su '%s' no of assignments '%u', min_assigned_su '%s' no of assignments '%u',"
-			"si_tobe_redistributed '%s'", avd_sg->max_assigned_su->name.value, avd_sg->max_assigned_su->
-			saAmfSUNumCurrActiveSIs, avd_sg->min_assigned_su->name.value, avd_sg->min_assigned_su->
-			saAmfSUNumCurrActiveSIs, avd_sg->si_tobe_redistributed->name.value);
+			"si_tobe_redistributed '%s'", avd_sg->max_assigned_su->name.c_str(), avd_sg->max_assigned_su->
+			saAmfSUNumCurrActiveSIs, avd_sg->min_assigned_su->name.c_str(), avd_sg->min_assigned_su->
+			saAmfSUNumCurrActiveSIs, avd_sg->si_tobe_redistributed->name.c_str());
 	/* Trigger SI redistribution/transfer here. Only one SI getting shifted from one SU to another SU */
 
 	if (avd_susi_mod_send(i_susi, SA_AMF_HA_QUIESCED) != NCSCC_RC_SUCCESS) {
@@ -1931,7 +1931,7 @@ done:
  */
 void SG_NACV::ng_admin(AVD_SU *su, AVD_AMF_NG *ng) 
 {
-	TRACE_ENTER2("'%s', sg_fsm_state:%u",su->name.value,
+	TRACE_ENTER2("'%s', sg_fsm_state:%u",su->name.c_str(),
 			su->sg_of_su->sg_fsm_state);
 
 	if (su->list_of_susi == nullptr) {
@@ -1946,7 +1946,7 @@ void SG_NACV::ng_admin(AVD_SU *su, AVD_AMF_NG *ng)
 
 	//change the state for all assignments to quiescing/quiesced.
 	if (avd_sg_su_si_mod_snd(avd_cb, su, ha_state) == NCSCC_RC_FAILURE) {
-		LOG_ER("quiescing state transtion failed for '%s'",su->name.value);
+		LOG_ER("quiescing state transtion failed for '%s'",su->name.c_str());
 		return ;
 	}
 
@@ -1955,7 +1955,7 @@ void SG_NACV::ng_admin(AVD_SU *su, AVD_AMF_NG *ng)
 	//Increment node counter for tracking status of ng operation.
 	if (su->any_susi_fsm_in_modify() == true) {
 		su->su_on_node->su_cnt_admin_oper++;
-		TRACE("node:%s, su_cnt_admin_oper:%u", su->su_on_node->name.value,
+		TRACE("node:%s, su_cnt_admin_oper:%u", su->su_on_node->name.c_str(),
 				su->su_on_node->su_cnt_admin_oper);
 	}
 	TRACE_LEAVE();

@@ -51,8 +51,7 @@ void avd_sgtype_remove_sg(AVD_SG *sg) {
 
 static void sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
 {
-	sgtype_db->erase(Amf::to_string(&sg_type->name));
-	delete [] sg_type->saAmfSGtValidSuTypes;
+	sgtype_db->erase(sg_type->name);
 	delete sg_type;
 }
 
@@ -62,7 +61,7 @@ static void sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
  */
 static void sgtype_add_to_model(AVD_AMF_SG_TYPE *sgt)
 {
-	unsigned int rc = sgtype_db->insert(Amf::to_string(&sgt->name),sgt);
+	unsigned int rc = sgtype_db->insert(sgt->name,sgt);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
@@ -75,26 +74,26 @@ static void sgtype_add_to_model(AVD_AMF_SG_TYPE *sgt)
  * 
  * @return int
  */
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
+static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes,
 	const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc;
 	int i = 0;
 	unsigned j = 0;
-	char *parent;
+	std::string::size_type pos;
 	SaUint32T value;
 	SaBoolT abool;
 	AVD_SUTYPE *sut;
 	const SaImmAttrValuesT_2 *attr;
 
-	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	if ((pos = dn.find(',')) == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
 		return 0;
 	}
 
 	/* SGType should be children to SGBaseType */
-	if (strncmp(++parent, "safSgType=", 10) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
+	if (dn.compare(pos + 1, 10, "safSgType=") != 0) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(pos +1).c_str(), dn.c_str());
 		return 0;
 	}
 
@@ -103,7 +102,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if ((value < SA_AMF_2N_REDUNDANCY_MODEL) || (value > SA_AMF_NO_REDUNDANCY_MODEL)) {
 		report_ccb_validation_error(opdata, "Invalid saAmfSgtRedundancyModel %u for '%s'",
-				value, dn->value);
+				value, dn.c_str());
 		return 0;
 	}
 
@@ -119,33 +118,33 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		sut = sutype_db->find(Amf::to_string(name));
 		if (sut == nullptr) {
 			if (opdata == nullptr) {
-				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in model", osaf_extended_name_borrow(name));
 				return 0;
 			}
 			
 			/* SG type does not exist in current model, check CCB */
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
-						name->value);
+						osaf_extended_name_borrow(name));
 				return 0;
 			}
 		}
 	}
 
 	if (j == 0) {
-		report_ccb_validation_error(opdata, "No SU types configured for '%s'", dn->value);
+		report_ccb_validation_error(opdata, "No SU types configured for '%s'", dn.c_str());
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoRepair"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSgtDefAutoRepair %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSgtDefAutoRepair %u for '%s'", abool, dn.c_str());
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjust"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSgtDefAutoAdjust %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSgtDefAutoAdjust %u for '%s'", abool, dn.c_str());
 		return 0;
 	}
 
@@ -153,9 +152,9 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 }
 
 //
-AVD_AMF_SG_TYPE::AVD_AMF_SG_TYPE(const SaNameT *dn) {
-  memcpy(&name.value, dn->value, dn->length);
-  name.length = dn->length;
+AVD_AMF_SG_TYPE::AVD_AMF_SG_TYPE(const std::string& dn) :
+	name(dn)
+{
 }
 
 /**
@@ -165,7 +164,7 @@ AVD_AMF_SG_TYPE::AVD_AMF_SG_TYPE(const SaNameT *dn) {
  * 
  * @return AVD_AMF_SG_TYPE*
  */
-static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_AMF_SG_TYPE *sgtype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int i = 0, rc = -1;
 	unsigned j = 0;
@@ -173,7 +172,7 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 	const SaImmAttrValuesT_2 *attr;
 	SaAisErrorT error;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	sgt = new AVD_AMF_SG_TYPE(dn);
 
@@ -188,9 +187,11 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 	osafassert(attr->attrValuesNumber > 0);
 
 	sgt->number_su_type = attr->attrValuesNumber;
-	sgt->saAmfSGtValidSuTypes = new SaNameT[attr->attrValuesNumber];
-	for (j = 0; j < attr->attrValuesNumber; j++)
-		sgt->saAmfSGtValidSuTypes[j] = *((SaNameT *)attr->attrValues[j]);
+	for (j = 0; j < attr->attrValuesNumber; j++) {
+		sgt->saAmfSGtValidSuTypes.push_back(
+			Amf::to_string(reinterpret_cast<SaNameT*>(attr->attrValues[j]))
+		);
+	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoRepair"), attributes, 0, &sgt->saAmfSgtDefAutoRepair) != SA_AIS_OK) {
 		sgt->saAmfSgtDefAutoRepair = SA_TRUE;
@@ -204,27 +205,27 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjustProb"), attributes, 0, &sgt->saAmfSgtDefAutoAdjustProb) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefAutoAdjustProb FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfSgtDefAutoAdjustProb FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefCompRestartProb"), attributes, 0, &sgt->saAmfSgtDefCompRestartProb) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefCompRestartProb FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfSgtDefCompRestartProb FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefCompRestartMax"), attributes, 0, &sgt->saAmfSgtDefCompRestartMax) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefCompRestartMax FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfSgtDefCompRestartMax FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefSuRestartProb"), attributes, 0, &sgt->saAmfSgtDefSuRestartProb) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefSuRestartProb FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfSgtDefSuRestartProb FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefSuRestartMax"), attributes, 0, &sgt->saAmfSgtDefSuRestartMax) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefSuRestartMax FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfSgtDefSuRestartMax FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 
@@ -232,7 +233,6 @@ static AVD_AMF_SG_TYPE *sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **at
 
  done:
 	if (rc != 0) {
-		delete [] sgt->saAmfSGtValidSuTypes;
 		delete sgt;
 		sgt = nullptr;
 	}
@@ -273,10 +273,10 @@ SaAisErrorT avd_sgtype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, nullptr))
+		if (!is_config_valid(Amf::to_string(&dn), attributes, nullptr))
 			goto done2;
 		if (( sgt = sgtype_db->find(Amf::to_string(&dn))) == nullptr) {
-			if ((sgt = sgtype_create(&dn, attributes)) == nullptr)
+			if ((sgt = sgtype_create(Amf::to_string(&dn), attributes)) == nullptr)
 				goto done2;
 
 			sgtype_add_to_model(sgt);
@@ -306,7 +306,7 @@ static SaAisErrorT sgtype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	int i = 0;
 	AVD_AMF_SG_TYPE *sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		
 		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == nullptr))
@@ -316,7 +316,7 @@ static SaAisErrorT sgtype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 			uint32_t sgt_autorepair = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 			if (sgt_autorepair > SA_TRUE) {
 				report_ccb_validation_error(opdata, "invalid saAmfSgtDefAutoRepair in:'%s'",
-						sgt->name.value);
+						sgt->name.c_str());
 				rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 			}	
@@ -346,11 +346,11 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	bool sg_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues, opdata))
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
@@ -360,7 +360,8 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 
 		for (const auto& sg : sgt->list_of_sg) {
-			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->name);
+			SaNameTWrapper sg_name(sg->name);
+			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, sg_name);
 			if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				sg_exist = true;
 				break;
@@ -368,7 +369,7 @@ static SaAisErrorT sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		}
 
 		if (sg_exist == true) {
-			report_ccb_validation_error(opdata, "SGs exist of this SG type '%s'",sgt->name.value);
+			report_ccb_validation_error(opdata, "SGs exist of this SG type '%s'",sgt->name.c_str());
 				goto done;
 		}
 		opdata->userData = sgt;	/* Save for later use in apply */
@@ -393,7 +394,7 @@ static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	AVD_AMF_SG_TYPE *sgt = sgtype_db->find(Amf::to_string(&opdata->objectName));
 
@@ -417,7 +418,7 @@ static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			}
 			TRACE("Modified saAmfSgtDefAutoRepair is '%u'", sgt->saAmfSgtDefAutoRepair);
 			amflog(LOG_NOTICE, "%s saAmfSgtDefAutoRepair changed to %u",
-				sgt->name.value, sgt->saAmfSgtDefAutoRepair);
+				sgt->name.c_str(), sgt->saAmfSgtDefAutoRepair);
 
 			/* Modify saAmfSGAutoRepair for SGs which had inherited saAmfSgtDefAutoRepair.*/
 			if (old_value != sgt->saAmfSgtDefAutoRepair) {
@@ -427,7 +428,7 @@ static void sgtype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 						sg->saAmfSGAutoRepair = static_cast<SaBoolT>(sgt->saAmfSgtDefAutoRepair);
 						TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
 						amflog(LOG_NOTICE, "%s inherited saAmfSGAutoRepair value changed to %u",
-							sg->name.value, sg->saAmfSGAutoRepair);
+							sg->name.c_str(), sg->saAmfSGAutoRepair);
 					}
 				}
 			}
@@ -448,11 +449,11 @@ static void sgtype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_AMF_SG_TYPE *sgt;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		sgt = sgtype_create(&opdata->objectName, opdata->param.create.attrValues);
+		sgt = sgtype_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(sgt);
 		sgtype_add_to_model(sgt);
 		break;
