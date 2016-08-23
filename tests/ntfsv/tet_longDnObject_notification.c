@@ -20,6 +20,8 @@
 #include <utest.h>
 #include <util.h>
 #include <unistd.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 #include "tet_ntf.h"
 #include "tet_ntf_common.h"
 //#include "util.h"
