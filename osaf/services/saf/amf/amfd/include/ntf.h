@@ -31,7 +31,6 @@
 #include <comp.h>
 #include <susi.h>
 
-#define ADDITION_TEXT_LENGTH 320
 #define AMF_NTF_SENDER "safApp=safAmfService"
 
 /* All states like oper, readiness etc starts from 1, so defining not applicable values */
