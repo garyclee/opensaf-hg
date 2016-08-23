@@ -24,6 +24,7 @@
 ******************************************************************************
 */
 
+#include <algorithm>
 #include <vector>
 #include <string.h>
 
@@ -32,12 +33,8 @@
 #include <logtrace.h>
 #include <amfd.h>
 
-static const SaNameT _amfSvcUsrName = {
-	sizeof("safApp=safAmfService"),
-	"safApp=safAmfService",
-};
-
-const SaNameT *amfSvcUsrName = &_amfSvcUsrName;
+SaNameT _amfSvcUsrName;
+const SaNameT* amfSvcUsrName = &_amfSvcUsrName;
 
 const char *avd_adm_state_name[] = {
 	"INVALID",
@@ -119,11 +116,6 @@ const char *amf_recovery[] = {
     "APPLICATION_RESTART",
     "CONTAINER_RESTART" 
 };
-
-std::string to_string(const SaNameT &s) 
-{
-	return std::string((char*)s.value, s.length);
-}
 
 /*****************************************************************************
  * Function: avd_snd_node_ack_msg
@@ -361,16 +353,18 @@ uint32_t avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, bool term_state)
 	AVD_AVND *node = su->get_node_ptr();
 
 	TRACE_ENTER2("%s '%s'", (term_state == true) ? "Terminate" : "Instantiate",
-		su->name.value);
+		su->name.c_str());
 
 	/* prepare the node update message. */
 	d2n_msg = new AVSV_DND_MSG();
+	SaNameT su_name;
+	osaf_extended_name_alloc(su->name.c_str(), &su_name);
 
 	/* prepare the SU presence state change notification message */
 	d2n_msg->msg_type = AVSV_D2N_PRESENCE_SU_MSG;
 	d2n_msg->msg_info.d2n_prsc_su.msg_id = ++(node->snd_msg_id);
 	d2n_msg->msg_info.d2n_prsc_su.node_id = node->node_info.nodeId;
-	d2n_msg->msg_info.d2n_prsc_su.su_name = su->name;
+	d2n_msg->msg_info.d2n_prsc_su.su_name = su_name;
 	d2n_msg->msg_info.d2n_prsc_su.term_state = term_state;
 
 	TRACE("Sending %u to %x", AVSV_D2N_PRESENCE_SU_MSG, node->node_info.nodeId);
@@ -451,6 +445,9 @@ uint32_t avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *para
 
 	op_req_msg->msg_info.d2n_op_req.msg_id = ++(avnd->snd_msg_id);
 
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&param_info->name),
+		&op_req_msg->msg_info.d2n_op_req.param_info.name);
+
 	/* send the operation request message to the node. */
 	if ((rc = avd_d2n_msg_snd(cb, avnd, op_req_msg)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, avnd->node_info.nodeId);
@@ -473,7 +470,10 @@ static void reg_su_msg_init_su_info(AVD_DND_MSG *su_msg, const AVD_SU *su)
 {
 	AVSV_SU_INFO_MSG *su_info = new AVSV_SU_INFO_MSG();
 
-	su_info->name = su->name;
+	SaNameT su_name;
+	osaf_extended_name_alloc(su->name.c_str(), &su_name);
+
+	su_info->name = su_name;
 	su_info->comp_restart_max = su->sg_of_su->saAmfSGCompRestartMax;
 	su_info->comp_restart_prob = su->sg_of_su->saAmfSGCompRestartProb;
 	su_info->su_restart_max = su->sg_of_su->saAmfSGSuRestartMax;
@@ -508,7 +508,7 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 	AVD_SU *su = nullptr;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s", avnd->node_name);
+	TRACE_ENTER2("%s", avnd->node_name.c_str());
 
 	AVD_DND_MSG *su_msg = new AVSV_DND_MSG();
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
@@ -557,11 +557,11 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 	 * free messages and return error.
 	 */
 
-	TRACE("Sending AVSV_D2N_REG_SU_MSG to %s", avnd->node_name);
+	TRACE("Sending AVSV_D2N_REG_SU_MSG to %s", avnd->node_name.c_str());
 
 	if (avd_d2n_msg_snd(cb, avnd, su_msg) == NCSCC_RC_FAILURE) {
 		--(avnd->snd_msg_id);
-		LOG_ER("%s: snd to %s failed", __FUNCTION__, avnd->node_name);
+		LOG_ER("%s: snd to %s failed", __FUNCTION__, avnd->node_name.c_str());
 		d2n_msg_free(su_msg);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -680,9 +680,12 @@ static SaAmfCompCapabilityModelT get_comp_capability(const AVD_CSI *csi,
 		const AVD_COMP *comp)
 {
 	SaNameT dn;
-	avsv_create_association_class_dn(&csi->cstype->name,
-		&comp->comp_type->name,	"safSupportedCsType", &dn);
+	const SaNameTWrapper cstype_name(csi->cstype->name);
+	const SaNameTWrapper comp_type_name(comp->comp_type->name);
+	avsv_create_association_class_dn(cstype_name,
+		comp_type_name,	"safSupportedCsType", &dn);
 	AVD_CTCS_TYPE *ctcs_type = ctcstype_db->find(Amf::to_string(&dn));
+	osaf_extended_name_free(&dn);
 	return ctcs_type->saAmfCtCompCapability;
 }
 
@@ -734,9 +737,24 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 	/* prepare the SU SI message. */
 	susi_msg = new AVSV_DND_MSG();
 
+	// this needs to be freed later
+	SaNameT su_name;
+	osaf_extended_name_alloc(su->name.c_str(), &su_name);
+
+	// this needs to be freed later
+	SaNameT csi_name;
+
+	// this needs to be freed later
+	SaNameT si_name;
+	
+	if (susi != AVD_SU_SI_REL_NULL) {
+		osaf_extended_name_alloc(susi->si->name.c_str(), &si_name);
+		susi_msg->msg_info.d2n_su_si_assign.si_name = si_name;
+	}
+
 	susi_msg->msg_type = AVSV_D2N_INFO_SU_SI_ASSIGN_MSG;
 	susi_msg->msg_info.d2n_su_si_assign.node_id = avnd->node_info.nodeId;
-	susi_msg->msg_info.d2n_su_si_assign.su_name = su->name;
+	susi_msg->msg_info.d2n_su_si_assign.su_name = su_name;
 	susi_msg->msg_info.d2n_su_si_assign.msg_act = actn;
 
 	if (true == single_csi) {
@@ -748,8 +766,6 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* Means we need to delete only this SU SI assignment for 
 			 * this SU.
 			 */
-			susi_msg->msg_info.d2n_su_si_assign.si_name = susi->si->name;
-
 			/* For only these options fill the comp CSI values. */
 			if (true == single_csi) {
 				osafassert(compcsi);
@@ -757,8 +773,12 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 				compcsi_info = new AVSV_SUSI_ASGN();
 
-				compcsi_info->comp_name = l_compcsi->comp->comp_info.name;
-				compcsi_info->csi_name = l_compcsi->csi->name;
+				SaNameT comp_name;
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&l_compcsi->comp->comp_info.name),
+					&comp_name);
+				compcsi_info->comp_name = comp_name;
+				osaf_extended_name_alloc(l_compcsi->csi->name.c_str(), &csi_name);
+				compcsi_info->csi_name = csi_name;
 				susi_msg->msg_info.d2n_su_si_assign.num_assigns = 1;
 				susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info;
 			}
@@ -806,14 +826,12 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* use this SU SI modification information to fill the message.
 			 */
 
-
 			susi_msg->msg_info.d2n_su_si_assign.ha_state = l_susi->state;
 		} else {	/* if (susi == AVD_SU_SI_REL_NULL) */
 
 			/* for modifications of a SU SI fill the SI name.
 			 */
 
-			susi_msg->msg_info.d2n_su_si_assign.si_name = susi->si->name;
 			susi_msg->msg_info.d2n_su_si_assign.ha_state = susi->state;
 
 			l_susi = susi;
@@ -837,7 +855,6 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		/* for new assignments of a SU SI fill the SI name.
 		 */
 
-		susi_msg->msg_info.d2n_su_si_assign.si_name = susi->si->name;
 		susi_msg->msg_info.d2n_su_si_assign.ha_state = susi->state;
 		susi_msg->msg_info.d2n_su_si_assign.si_rank = susi->si->saAmfSIRank;
 
@@ -901,8 +918,13 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		while (l_compcsi != nullptr) {
 			compcsi_info = new AVSV_SUSI_ASGN();
 
-			compcsi_info->comp_name = l_compcsi->comp->comp_info.name;
-			compcsi_info->csi_name = l_compcsi->csi->name;
+			SaNameT comp_name;
+			osaf_extended_name_alloc(osaf_extended_name_borrow(&l_compcsi->comp->comp_info.name),
+					&comp_name);
+			compcsi_info->comp_name = comp_name;
+			osaf_extended_name_alloc(l_compcsi->csi->name.c_str(), &csi_name);
+				
+			compcsi_info->csi_name = csi_name;
 			compcsi_info->csi_rank = l_compcsi->csi->rank;
 			compcsi_info->active_comp_dsc = trans_dsc;
 			compcsi_info->capability =
@@ -925,8 +947,8 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				if (l_compcsi->csi_csicomp_next == nullptr) {
 					if ((l_compcsi->csi->list_compcsi != nullptr) &&
 					    (l_compcsi->csi->list_compcsi != l_compcsi)) {
-						compcsi_info->active_comp_name =
-						    l_compcsi->csi->list_compcsi->comp->comp_info.name;
+						osaf_extended_name_alloc(osaf_extended_name_borrow(&l_compcsi->csi->list_compcsi->comp->comp_info.name),
+							&compcsi_info->active_comp_name);
 
 						if ((trans_dsc == SA_AMF_CSI_QUIESCED) &&
 						    (l_compcsi->csi->list_compcsi->comp->saAmfCompOperState
@@ -935,8 +957,8 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 						}
 					}
 				} else {
-					compcsi_info->active_comp_name =
-					    l_compcsi->csi_csicomp_next->comp->comp_info.name;
+					osaf_extended_name_alloc(osaf_extended_name_borrow(&l_compcsi->csi->list_compcsi->comp->comp_info.name),
+						&compcsi_info->active_comp_name);
 
 					if ((trans_dsc == SA_AMF_CSI_QUIESCED) &&
 					    (l_compcsi->csi_csicomp_next->comp->saAmfCompOperState
@@ -1007,7 +1029,10 @@ static uint32_t avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectio
 
 		/* copy the contents */
 		for (curr = csi->list_compcsi; curr; curr = curr->csi_csicomp_next, i++) {
-			mem_list->notification[i].member.compName = curr->comp->comp_info.name;
+			SaNameT comp_name;
+			osaf_extended_name_alloc(osaf_extended_name_borrow(&curr->comp->comp_info.name),
+				&comp_name);
+			mem_list->notification[i].member.compName = comp_name;
 			mem_list->notification[i].member.haState = curr->susi->state;
 			mem_list->notification[i].member.rank = curr->comp->su->saAmfSURank;
 			mem_list->notification[i].change = SA_AMF_PROTECTION_GROUP_NO_CHANGE;
@@ -1049,7 +1074,9 @@ uint32_t avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N
 	/* fill the common fields */
 	pg_msg->msg_type = AVSV_D2N_PG_TRACK_ACT_RSP_MSG;
 	pg_msg_info->actn = n2d_msg->actn;
-	pg_msg_info->csi_name = n2d_msg->csi_name;
+	SaNameT csi_name;
+	osaf_extended_name_alloc(osaf_extended_name_borrow(&n2d_msg->csi_name), &csi_name);
+	pg_msg_info->csi_name = csi_name;
 	pg_msg_info->msg_id_ack = n2d_msg->msg_id;
 	pg_msg_info->node_id = n2d_msg->node_id;
 	pg_msg_info->msg_on_fover = n2d_msg->msg_on_fover;
@@ -1108,12 +1135,13 @@ uint32_t avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N
  **************************************************************************/
 uint32_t avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 			 AVD_AVND *node,
-			 AVD_COMP_CSI_REL *comp_csi, SaAmfProtectionGroupChangesT change, SaNameT *csi_name)
+			 AVD_COMP_CSI_REL *comp_csi, SaAmfProtectionGroupChangesT change, const std::string& csi_name)
 {
 	AVD_DND_MSG *pg_msg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_D2N_PG_UPD_MSG_INFO *pg_msg_info = 0;
-
+	SaNameT temp_csi_name;
+	SaNameT comp_name;
 	TRACE_ENTER();
 
 	/* alloc the update msg */
@@ -1124,16 +1152,20 @@ uint32_t avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 	/* populate the msg */
 	pg_msg->msg_type = AVSV_D2N_PG_UPD_MSG;
 	pg_msg_info->node_id = node->node_info.nodeId;
-	pg_msg_info->is_csi_del = (csi_name) ? true : false;
+	pg_msg_info->is_csi_del = (csi_name.empty() == false) ? true : false;
 	if (false == pg_msg_info->is_csi_del) {
-		pg_msg_info->csi_name = comp_csi->csi->name;
-		pg_msg_info->mem.member.compName = comp_csi->comp->comp_info.name;
+		osaf_extended_name_alloc(comp_csi->csi->name.c_str(), &temp_csi_name);
+		pg_msg_info->csi_name = temp_csi_name;
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&comp_csi->comp->comp_info.name),
+			&comp_name);
+		pg_msg_info->mem.member.compName = comp_name;
 		pg_msg_info->mem.member.haState = comp_csi->susi->state;
 		pg_msg_info->mem.member.rank = comp_csi->comp->su->saAmfSURank;
 		pg_msg_info->mem.change = change;
-	} else
-		pg_msg_info->csi_name = *csi_name;
-
+	} else {
+		osaf_extended_name_alloc(csi_name.c_str(), &temp_csi_name);
+		pg_msg_info->csi_name = temp_csi_name;
+	}
 	/* send the msg to avnd */
 	TRACE("Sending %u to %x", AVSV_D2N_PG_UPD_MSG, node->node_info.nodeId);
 
@@ -1285,77 +1317,6 @@ int avd_admin_state_is_valid(SaAmfAdminStateT state, const CcbUtilOperationData_
 	}
 }
 
-/*****************************************************************************
- * Function: avd_object_name_create
- *
- * Purpose: This routine generates obj name using class name and parent name.
- *
- *
- * Input  : Rdn Attribute Value, Parent Name.
- *
- * Output  : Object name.
- *
- * Returns: Ok/Failure.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name)
-{
-	SaAisErrorT rc = SA_AIS_OK;
-	uint32_t name_length = 0;
-
-	memset(object_name, 0, sizeof(SaNameT));
-	object_name->length = rdn_attr_value->length;
-
-	if (object_name->length > SA_MAX_NAME_LENGTH)
-		return SA_AIS_ERR_INVALID_PARAM;
-
-	strcat((char *)&object_name->value[0], (char *)&rdn_attr_value->value[0]);
-	strcat((char *)&object_name->value[0], ",");
-
-	name_length = strlen((char *)&parentName->value[0]);
-	object_name->length += name_length;
-
-	if (object_name->length > SA_MAX_NAME_LENGTH)
-		return SA_AIS_ERR_INVALID_PARAM;
-
-	strncat((char *)&object_name->value[0], (char *)&parentName->value[0], name_length);
-
-	return rc;
-}
-
-void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
-	const char *needle, const char *parent)
-{
-	char *p;
-	char *pp;
-	int i = 0;
-
-	memset(dn, 0, sizeof(SaNameT));
-
-	/* find what we actually are looking for */
-	p = strstr((char*)haystack->value, needle);
-	osafassert(p);
-
-	/* find the parent */
-	pp = strstr((char*)haystack->value, parent);
-	osafassert(pp);
-
-	/* position at parent separtor */
-	pp--;
-
-	/* copy the value upto parent but skip escape chars */
-	while (p != pp) {
-		if (*p != '\\')
-			dn->value[i++] = *p;
-		p++;
-	}
-
-	dn->length = strlen((char*)dn->value);
-}
-
 /**
  * Dumps the director state to file
  * This can be done using an admin command:
@@ -1418,7 +1379,7 @@ int amfd_file_dump(const char *filename)
 	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
 			it != node_id_db->end(); it++) {
 		AVD_AVND *node = it->second;
-		fprintf(f, "  dn: %s\n", node->name.value);
+		fprintf(f, "  dn: %s\n", node->name.c_str());
 		fprintf(f, "    saAmfNodeAdminState: %s\n",
 				avd_adm_state_name[node->saAmfNodeAdminState]);
 		fprintf(f, "    saAmfNodeOperState: %s\n",
@@ -1434,7 +1395,7 @@ int amfd_file_dump(const char *filename)
 	for (std::map<std::string, AVD_APP*>::const_iterator it = app_db->begin();
 			it != app_db->end(); it++) {
 		const AVD_APP *app = it->second;
-		fprintf(f, "  dn: %s\n", app->name.value);
+		fprintf(f, "  dn: %s\n", app->name.c_str());
 		fprintf(f, "    saAmfApplicationAdminState: %s\n",
 				avd_adm_state_name[app->saAmfApplicationAdminState]);
 		fprintf(f, "    saAmfApplicationCurrNumSGs: %u\n",
@@ -1445,9 +1406,9 @@ int amfd_file_dump(const char *filename)
 	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
 			it != si_db->end(); it++) {
 		si = it->second;
-		fprintf(f, "  dn: %s\n", si->name.value);
+		fprintf(f, "  dn: %s\n", si->name.c_str());
 		fprintf(f, "    saAmfSIProtectedbySG: %s\n",
-				si->saAmfSIProtectedbySG.value);
+				si->saAmfSIProtectedbySG.c_str());
 		fprintf(f, "    saAmfSIAdminState: %s\n",
 				avd_adm_state_name[si->saAmfSIAdminState]);
 		fprintf(f, "    saAmfSIAssignmentState: %s\n",
@@ -1462,7 +1423,7 @@ int amfd_file_dump(const char *filename)
 		fprintf(f, "    alarm_sent: %u\n", si->alarm_sent);
 		fprintf(f, "    assigned_to_sus:\n");
 		for (susi = si->list_of_sisu; susi; susi = susi->si_next) {
-			fprintf(f, "      dn: %s\n", susi->su->name.value);
+			fprintf(f, "      dn: %s\n", susi->su->name.c_str());
 			fprintf(f, "        hastate: %s\n", avd_ha_state[susi->state]);
 			fprintf(f, "        fsm: %u\n", susi->fsm);
 		}
@@ -1472,18 +1433,18 @@ int amfd_file_dump(const char *filename)
 	for (std::map<std::string, AVD_CSI*>::const_iterator it = csi_db->begin();
 			it != csi_db->end(); it++) {
 		csi = it->second;
-		fprintf(f, "  dn: %s\n", csi->name.value);
+		fprintf(f, "  dn: %s\n", csi->name.c_str());
 		fprintf(f, "    rank: %u\n", csi->rank);
 		fprintf(f, "    depends:\n");
 		AVD_CSI_DEPS *dep;
 		for (dep = csi->saAmfCSIDependencies; dep; dep = dep->csi_dep_next)
-			fprintf(f, "      %s", dep->csi_dep_name_value.value);
+			fprintf(f, "      %s", dep->csi_dep_name_value.c_str());
 		if (csi->saAmfCSIDependencies)
 			fprintf(f, "\n");
 		fprintf(f, "    assigned_to_components:\n");
 		AVD_COMP_CSI_REL *compcsi;
 		for (compcsi = csi->list_compcsi; compcsi; compcsi = compcsi->csi_csicomp_next) {
-			fprintf(f, "      dn: %s\n", compcsi->comp->comp_info.name.value);
+			fprintf(f, "      dn: %s\n", osaf_extended_name_borrow(&compcsi->comp->comp_info.name));
 		}
 	}
 
@@ -1491,7 +1452,7 @@ int amfd_file_dump(const char *filename)
 	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
 			it != sg_db->end(); it++) {
 		const AVD_SG *sg = it->second;
-		fprintf(f, "  dn: %s\n", sg->name.value);
+		fprintf(f, "  dn: %s\n", sg->name.c_str());
 		fprintf(f, "    saAmfSGAdminState: %s\n",
 				avd_adm_state_name[sg->saAmfSGAdminState]);
 		fprintf(f, "    saAmfSGNumCurrAssignedSUs: %u\n",
@@ -1508,7 +1469,7 @@ int amfd_file_dump(const char *filename)
 	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
 			it != su_db->end(); it++) {
 		const AVD_SU *su = it->second;
-		fprintf(f, "  dn: %s\n", su->name.value);
+		fprintf(f, "  dn: %s\n", su->name.c_str());
 		fprintf(f, "    saAmfSUPreInstantiable: %u\n", su->saAmfSUPreInstantiable);
 		fprintf(f, "    saAmfSUOperState: %s\n",
 				avd_oper_state_name[su->saAmfSUOperState]);
@@ -1518,7 +1479,7 @@ int amfd_file_dump(const char *filename)
 				avd_readiness_state_name[su->saAmfSuReadinessState]);
 		fprintf(f, "    saAmfSUPresenceState: %s\n",
 				avd_pres_state_name[su->saAmfSUPresenceState]);
-		fprintf(f, "    saAmfSUHostedByNode: %s\n", su->saAmfSUHostedByNode.value);
+		fprintf(f, "    saAmfSUHostedByNode: %s\n", su->saAmfSUHostedByNode.c_str());
 		fprintf(f, "    saAmfSUNumCurrActiveSIs: %u\n", su->saAmfSUNumCurrActiveSIs);
 		fprintf(f, "    saAmfSUNumCurrStandbySIs: %u\n", su->saAmfSUNumCurrStandbySIs);
 		fprintf(f, "    saAmfSURestartCount: %u\n", su->saAmfSURestartCount);
@@ -1526,7 +1487,7 @@ int amfd_file_dump(const char *filename)
 		fprintf(f, "    su_switch: %u\n", su->su_switch);
 		fprintf(f, "    assigned_SIs:\n");
 		for (susi = su->list_of_susi; susi != nullptr; susi = susi->su_next) {
-			fprintf(f, "      dn: %s\n", susi->si->name.value);
+			fprintf(f, "      dn: %s\n", susi->si->name.c_str());
 			fprintf(f, "      hastate: %s\n", avd_ha_state[susi->state]);
 			fprintf(f, "      fsm: %u\n", susi->fsm);
 		}
@@ -1536,7 +1497,7 @@ int amfd_file_dump(const char *filename)
 	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
 			it != comp_db->end(); it++) {
 		const AVD_COMP *comp  = it->second;
-		fprintf(f, "  dn: %s\n", comp->comp_info.name.value);
+		fprintf(f, "  dn: %s\n", osaf_extended_name_borrow(&comp->comp_info.name));
 		fprintf(f, "    saAmfCompOperState: %s\n",
 				avd_oper_state_name[comp->saAmfCompOperState]);
 		fprintf(f, "    saAmfCompReadinessState: %s\n",
@@ -1544,15 +1505,15 @@ int amfd_file_dump(const char *filename)
 		fprintf(f, "    saAmfCompPresenceState: %s\n",
 				avd_pres_state_name[comp->saAmfCompPresenceState]);
 		fprintf(f, "    saAmfCompRestartCount: %u\n", comp->saAmfCompRestartCount);
-		if (comp->saAmfCompCurrProxyName.length)
-			fprintf(f, "    saAmfCompCurrProxyName: %s\n", comp->saAmfCompCurrProxyName.value);
+		if (comp->saAmfCompCurrProxyName.empty() == false)
+			fprintf(f, "    saAmfCompCurrProxyName: %s\n", comp->saAmfCompCurrProxyName.c_str());
 	}
 
         fprintf(f, "COMPCS_TYPE:\n");
         for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
                         it != compcstype_db->end(); it++) {
                 const AVD_COMPCS_TYPE *compcs_type  = it->second;
-                fprintf(f, "  dn: %s\n", compcs_type->name.value);
+                fprintf(f, "  dn: %s\n", compcs_type->name.c_str());
                 fprintf(f, "    saAmfCompNumMaxActiveCSIs: %u\n",
                                 compcs_type->saAmfCompNumMaxActiveCSIs);
                 fprintf(f, "    saAmfCompNumMaxStandbyCSIs: %u\n",
@@ -1568,7 +1529,7 @@ int amfd_file_dump(const char *filename)
 	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
                         it != nodegroup_db->end(); it++) {
 		AVD_AMF_NG *ng = it->second;
-		fprintf(f, "  dn: %s\n", ng->name.value);
+		fprintf(f, "  dn: %s\n", ng->name.c_str());
 		fprintf(f, "    saAmfNGAdminState: %s\n",avd_adm_state_name[ng->saAmfNGAdminState]);
 	}
 
@@ -1585,20 +1546,23 @@ int amfd_file_dump(const char *filename)
  * 
  * @return int
  */
-int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
+int avd_admin_op_msg_snd(const std::string& dn, AVSV_AMF_CLASS_ID class_id,
 	SaAmfAdminOperationIdT opId, AVD_AVND *node)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 	AVD_DND_MSG *d2n_msg;
 	unsigned int rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2(" '%s' %u", dn->value, opId);
+	SaNameT temp_dn;
+	osaf_extended_name_alloc(dn.c_str(), &temp_dn);
+
+	TRACE_ENTER2(" '%s' %u", dn.c_str(), opId);
 
 	d2n_msg = new AVSV_DND_MSG();
 
 	d2n_msg->msg_type = AVSV_D2N_ADMIN_OP_REQ_MSG;
 	d2n_msg->msg_info.d2n_admin_op_req_info.msg_id = ++(node->snd_msg_id);
-	d2n_msg->msg_info.d2n_admin_op_req_info.dn = *dn;
+	d2n_msg->msg_info.d2n_admin_op_req_info.dn = temp_dn;
 	d2n_msg->msg_info.d2n_admin_op_req_info.class_id = class_id;
 	d2n_msg->msg_info.d2n_admin_op_req_info.oper_id = opId;
 
@@ -1620,22 +1584,24 @@ int avd_admin_op_msg_snd(const SaNameT *dn, AVSV_AMF_CLASS_ID class_id,
  *
  * @param dn
  */
-const char* avd_getparent(const char* dn)
+std::string avd_getparent(const std::string& dn)
 {
-	const char* parent = dn;
-	const char* tmp_parent;
+	std::string::size_type start_pos;
+	std::string::size_type parent_pos;
 
 	/* Check if there exist any escaped RDN in the DN */
-	tmp_parent = strrchr(dn, '\\');
-	if (tmp_parent != nullptr) {
-		parent = tmp_parent + 2;
+	start_pos = dn.find_last_of('\\');
+	if (start_pos == std::string::npos) {
+		start_pos = 0;
+	} else {
+		++start_pos;
+		if (dn[start_pos] == ',') {
+			++start_pos;
+		}
 	}
-
-	if ((parent = strchr((char*)parent, ',')) != nullptr) {
-		parent++;
-	}
-
-	return parent;
+	
+	parent_pos = dn.find(',', start_pos);
+	return dn.substr(parent_pos + 1);
 }
 
 /**
@@ -1644,17 +1610,18 @@ const char* avd_getparent(const char* dn)
  * 
  * @return bool
  */
-bool object_exist_in_imm(const SaNameT *dn)
+bool object_exist_in_imm(const std::string& dn)
 {
 	bool rc = false;
+	const SaNameTWrapper temp_dn(dn);
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAttrNameT attributeNames[] = {const_cast<SaImmAttrNameT>("SaImmAttrClassName"), nullptr};
 
 	immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
 
-	if (immutil_saImmOmAccessorGet_2(accessorHandle, dn, attributeNames,
-									 (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK)
+	if (immutil_saImmOmAccessorGet_2(accessorHandle, temp_dn, attributeNames,
+		 (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK)
 		rc = true;
 
 	immutil_saImmOmAccessorFinalize(accessorHandle);
@@ -1692,6 +1659,7 @@ static void free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
 	while (su_msg->msg_info.d2n_reg_su.su_list != nullptr) {
 		su_info = su_msg->msg_info.d2n_reg_su.su_list;
 		su_msg->msg_info.d2n_reg_su.su_list = su_info->next;
+		osaf_extended_name_free(&su_info->name);
 		delete su_info;
 	}
 }
@@ -1714,17 +1682,27 @@ static void free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
 
 static void free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
 {
+	TRACE_ENTER();
 	AVSV_SUSI_ASGN *compcsi_info;
 
+	osaf_extended_name_free(&susi_msg->msg_info.d2n_su_si_assign.si_name);
+	osaf_extended_name_free(&susi_msg->msg_info.d2n_su_si_assign.su_name);
+	
 	while (susi_msg->msg_info.d2n_su_si_assign.list != nullptr) {
 		compcsi_info = susi_msg->msg_info.d2n_su_si_assign.list;
 		susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info->next;
 		if (compcsi_info->attrs.list != nullptr) {
+			osaf_extended_name_free(&compcsi_info->attrs.list->name);
+			osaf_extended_name_free(&compcsi_info->attrs.list->value);
 			delete [] (compcsi_info->attrs.list);
 			compcsi_info->attrs.list = nullptr;
 		}
+		osaf_extended_name_free(&compcsi_info->active_comp_name);
+		osaf_extended_name_free(&compcsi_info->comp_name);
+		osaf_extended_name_free(&compcsi_info->csi_name);
 		delete compcsi_info;
 	}
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -1746,6 +1724,7 @@ static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
 
 	if (info->mem_list.numberOfItems)
+		osaf_extended_name_free(&info->mem_list.notification->member.compName);
 		delete [] info->mem_list.notification;
 
 	info->mem_list.notification = 0;
@@ -1784,7 +1763,19 @@ void d2n_msg_free(AVSV_DND_MSG *msg)
 		break;
 	case AVSV_D2N_PG_TRACK_ACT_RSP_MSG:
 		free_d2n_pg_msg_info(msg);
+		osaf_extended_name_free(&msg->msg_info.d2n_pg_track_act_rsp.csi_name);
 		break;
+	case AVSV_D2N_PG_UPD_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_pg_upd.csi_name);
+		osaf_extended_name_free(&msg->msg_info.d2n_pg_upd.mem.member.compName);
+		break;
+	case AVSV_D2N_OPERATION_REQUEST_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_op_req.param_info.name);
+		osaf_extended_name_free(&msg->msg_info.d2n_op_req.param_info.name_sec);
+	case AVSV_D2N_ADMIN_OP_REQ_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_admin_op_req_info.dn);
+	case AVSV_D2N_PRESENCE_SU_MSG:
+		osaf_extended_name_free(&msg->msg_info.d2n_prsc_su.su_name);
 	default:
 		break;
 	}
@@ -1882,45 +1873,71 @@ bool admin_op_is_valid(SaImmAdminOperationIdT opId, AVSV_AMF_CLASS_ID class_id)
  
  /**
   * Gets child DN from an association DN
-  *   "safDepend=safSi=SC2-NoRed\,safApp=OpenSAF,safSi=SC-2N,safApp=OpenSAF"
+  *   "safDepend=safSi=SC2-NoRed\\,safApp=OpenSAF,safSi=SC-2N,safApp=OpenSAF"
+  *   child DN is "safSi=SC2-NoRed,safApp=OpenSAF"
   * @param ass_dn association DN [in]
   * @param child_dn [out]
   * @return 0 at success
   */
- int get_child_dn_from_ass_dn(const SaNameT *ass_dn, SaNameT *child_dn)
+ int get_child_dn_from_ass_dn(const std::string& ass_dn, std::string& child_dn)
  {
- 	SaNameT _ass_dn = *ass_dn;
- 
+	std::string::size_type comma_pos;
+	std::string::size_type equal_pos;
+
  	/* find first comma and step past it */
- 	char *p = strchr((char *)_ass_dn.value, ',');
- 	if (p == nullptr)
+	comma_pos = ass_dn.find(',');
+ 	if (comma_pos == std::string::npos)
  		return -1;
- 
- 	p++;
- 
+
  	/* find second comma, an error if not found */
- 	p = strchr(p, ',');
- 	if (p == nullptr)
+	comma_pos = ass_dn.find(',', comma_pos + 1);
+ 	if (comma_pos == std::string::npos)
  		return -1;
- 
- 	*p = '\0';  /* null terminate at comma before parent */
  
  	/* Skip past the RDN tag */
- 	p = strchr((char *)_ass_dn.value, '=');
- 	if (p == nullptr)
+	equal_pos = ass_dn.find('=');
+ 	if (equal_pos == std::string::npos)
  		return -1;
  
- 	p++;
- 
  	/* copy and skip back slash */
- 	int i = 0;
- 	while (*p) {
- 		if (*p != '\\')
- 			child_dn->value[i++] = *p;
- 		p++;
- 	}
- 
- 	child_dn->value[i] = '\0';
- 	child_dn->length = i;
- 	return 0;
+	child_dn = ass_dn.substr(equal_pos + 1, comma_pos - equal_pos - 1);
+	child_dn.erase(std::remove(child_dn.begin(), child_dn.end(), '\\'), child_dn.end());
+
+	return 0;
  }
+
+int get_parent_dn_from_ass_dn(const std::string& ass_dn, std::string& parent_dn)
+{
+	std::string::size_type comma_pos;
+
+ 	/* find first comma and step past it */
+	comma_pos = ass_dn.find(',');
+ 	if (comma_pos == std::string::npos)
+ 		return -1;
+
+ 	/* find second comma and step past it */
+	comma_pos = ass_dn.find(',', comma_pos + 1);
+ 	if (comma_pos == std::string::npos)
+ 		return -1;
+	
+	parent_dn = ass_dn.substr(comma_pos + 1);
+
+	return 0;
+}
+
+/**
+ * Initialize a DN by searching for needle in haystack
+ * @param haystack
+ * @param dn
+ * @param needle
+ */
+void avsv_sanamet_init(const std::string& haystack, std::string& dn, const char *needle)
+{
+	TRACE_ENTER();
+
+	std::string::size_type pos = haystack.find(needle);
+	dn = haystack.substr(pos);
+	TRACE("dn %s", dn.c_str());
+	
+	TRACE_LEAVE();
+}
