@@ -894,9 +894,10 @@ SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
 			susi->su->inc_curr_act_si();
 			susi->si->inc_curr_act_ass();
 		}
-                su->saAmfSUHostedByNode = node->name;
-                avd_saImmOiRtObjectUpdate(su->name, "saAmfSUHostedByNode",
-                        SA_IMM_ATTR_SANAMET, &su->saAmfSUHostedByNode);
+		su->saAmfSUHostedByNode = node->name;
+		const SaNameTWrapper hosted_by_node(su->saAmfSUHostedByNode);
+		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUHostedByNode",
+			SA_IMM_ATTR_SANAMET, (void*)static_cast<const SaNameT*>(hosted_by_node));
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 	}
 

@@ -1772,10 +1772,13 @@ void d2n_msg_free(AVSV_DND_MSG *msg)
 	case AVSV_D2N_OPERATION_REQUEST_MSG:
 		osaf_extended_name_free(&msg->msg_info.d2n_op_req.param_info.name);
 		osaf_extended_name_free(&msg->msg_info.d2n_op_req.param_info.name_sec);
+		break;
 	case AVSV_D2N_ADMIN_OP_REQ_MSG:
 		osaf_extended_name_free(&msg->msg_info.d2n_admin_op_req_info.dn);
+		break;
 	case AVSV_D2N_PRESENCE_SU_MSG:
 		osaf_extended_name_free(&msg->msg_info.d2n_prsc_su.su_name);
+		break;
 	default:
 		break;
 	}
