@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 bin_PROGRAMS = ckpttest
 
 ckpttest_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/tests/unit_test_fw/inc \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \

@@ -315,6 +315,8 @@ typedef enum {
     CKPT_OPEN_SUCCESS_EXIST2_T,
     CKPT_OPEN_WEAK_CREATE_READ_SUCCESS_T,
     CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,
+    CKPT_OPEN_ALL_CREATE_EXTENDED_NAME_SUCCESS_T,
+    CKPT_OPEN_ALL_CREATE_EXTENDED_NAME_INVALID_PARAM_T
 }CKPT_OPEN_TC_TYPE;
                                                                                                                                                                      
 typedef enum {
@@ -340,6 +342,8 @@ typedef enum {
     CKPT_OPEN_ASYNC_ALL_MODES_SUCCESS_T,
     CKPT_OPEN_ASYNC_NULL_INVOCATION,
     CKPT_OPEN_ASYNC_ERR_EXIST_T,
+    CKPT_OPEN_ASYNC_ALL_CREATE_EXTENDED_NAME_SUCCESS_T,
+    CKPT_OPEN_ASYNC_ALL_CREATE_EXTENDED_NAME_INVALID_PARAM_T
 }CKPT_OPEN_ASYNC_TC_TYPE;
  
                                                                                                                                                                      
@@ -584,6 +588,8 @@ typedef enum {
     CKPT_UNLINK_SUCCESS10_T,
     CKPT_UNLINK_NOT_EXIST2_T,
     CKPT_UNLINK_NOT_EXIST3_T,
+    CKPT_UNLINK_ALL_REPLICAS_EXTENDED_NAME_SUCCESS_T,
+    CKPT_UNLINK_ALL_REPLICAS_EXTENDED_NAME_INVALID_PARAM_T,
 }CKPT_UNLINK_TC_TYPE;
 
                                                                                                                                                                      
