@@ -532,7 +532,7 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		nref_info = ckpt_node->node_list;
 
 		/* Populate the A2S_CKPT_CREATE structure */
-		ckpt_create.ckpt_name = ckpt_node->ckpt_name;
+		osaf_extended_name_lend(ckpt_node->ckpt_name, &ckpt_create.ckpt_name);
 		ckpt_create.ckpt_id = ckpt_node->ckpt_id;
 		ckpt_create.ckpt_attrib = ckpt_node->attributes;
 		ckpt_create.is_unlink_set = ckpt_node->is_unlink_set;
@@ -790,6 +790,10 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			TRACE_4("cpd standby create evt failed");
 			goto end;
 		}
+
+		if (osaf_is_an_extended_name(&ckpt_create->ckpt_name))
+			free((void *)osaf_extended_name_borrow(&ckpt_create->ckpt_name));
+
 		if (ckpt_create->dest_list)
 			m_MMGR_FREE_CPSV_SYS_MEMORY(ckpt_create->dest_list);
 		m_MMGR_FREE_CPD_A2S_CKPT_CREATE(ckpt_create);
@@ -811,6 +815,9 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			TRACE_4("cpd standby unlink evt failed");
 			goto end;
 		}
+
+		if (osaf_is_an_extended_name(&ckpt_unlink->ckpt_name))
+			free((void *)osaf_extended_name_borrow(&ckpt_unlink->ckpt_name));
 
 		break;
 

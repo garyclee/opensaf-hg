@@ -78,7 +78,7 @@ typedef struct cpsv_node_ref_info {
 typedef struct cpd_ckpt_info_node {
 	NCS_PATRICIA_NODE patnode;
 	SaCkptCheckpointHandleT ckpt_id;
-	SaNameT ckpt_name;
+	SaConstStringT ckpt_name;
 	uint32_t dest_cnt;
 	CPD_NODE_REF_INFO *node_list;
 	bool is_unlink_set;
@@ -123,8 +123,7 @@ typedef struct cpd_cpnd_info_node {
 	uint32_t timer_state;
 	bool ckpt_cpnd_scxb_exist;
 	/* for imm */
-	SaNameT node_name;
-	SaNameT ckpt_name;
+	SaConstStringT node_name;
 	uint32_t rep_type;
 } CPD_CPND_INFO_NODE;
 
@@ -132,15 +131,15 @@ typedef struct cpd_cpnd_info_node {
 
 typedef struct cpd_ckpt_map_info {
 	NCS_PATRICIA_NODE patnode;
-	SaNameT ckpt_name;
+	SaConstStringT ckpt_name;
 	SaCkptCheckpointHandleT ckpt_id;
 	SaCkptCheckpointCreationAttributesT attributes;
 	SaVersionT client_version;
 } CPD_CKPT_MAP_INFO;
 
 typedef struct cpd_rep_key_info {
-	SaNameT ckpt_name;
-	SaNameT node_name;
+  SaConstStringT ckpt_name;
+  SaConstStringT node_name;
 } CPD_REP_KEY_INFO;
 
 typedef struct cpd_ckpt_reploc_info {
@@ -219,7 +218,7 @@ typedef struct cpd_cb_tag {
 #define CPD_CB_NULL  ((CPD_CB *)0)
 
 /* Function Declarations */
-CPD_CKPT_INFO_NODE *cpd_find_add_ckpt_name(CPD_CB *cpd_cb, SaNameT ckpt_name);
+CPD_CKPT_INFO_NODE *cpd_find_add_ckpt_name(CPD_CB *cpd_cb, SaConstStringT ckpt_name);
 
 void cpd_free_ckpt_node(CPD_CB *gld_cb, CPD_CKPT_INFO_NODE *ckpt_info);
 
@@ -248,9 +247,9 @@ void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb);
 
 uint32_t cpd_ckpt_map_tree_init(CPD_CB *cb);
 uint32_t cpd_ckpt_map_node_get(NCS_PATRICIA_TREE *ckpt_map_tree,
-				     SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
+				     SaConstStringT ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
 void cpd_ckpt_map_node_getnext(NCS_PATRICIA_TREE *ckpt_map_tree,
-					SaNameT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
+					SaConstStringT *ckpt_name, CPD_CKPT_MAP_INFO **ckpt_map_node);
 
 uint32_t cpd_ckpt_map_node_add(NCS_PATRICIA_TREE *ckpt_map_tree, CPD_CKPT_MAP_INFO *ckpt_map_node);
 uint32_t cpd_ckpt_map_node_delete(CPD_CB *cb, CPD_CKPT_MAP_INFO *ckpt_map_node);

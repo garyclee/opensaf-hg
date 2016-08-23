@@ -41,7 +41,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
 static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
 static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
-static void  ckpt_replica_extract_node_name(SaNameT *nodeName, char *src);
+static void extract_node_name_from_replica_name(const char *replica_name, const char *ckpt_name, char **node_name);
 
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
@@ -83,16 +83,9 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	const SaImmAttrModificationT_2 *attrMods[10];
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 	CPD_REP_KEY_INFO key_info;
-	SaNameT replica_dn, ckptName, clm_node_name, nodeName;
-	char *ckpt_name, *node_name;
+	char *replica_dn = NULL, *ckpt_name = NULL, *node_name = NULL; 
+	SaConstStringT object_name;
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
-
-	TRACE_ENTER();
-	memset(&replica_dn, 0, sizeof(SaNameT));
-	memset(&ckptName, 0, sizeof(ckptName));
-	memset(&nodeName, 0, sizeof(SaNameT));
-	strcpy((char *)ckptName.value, (char *)objectName->value);
-	ckptName.length = objectName->length;
 
 	SaImmAttrValueT ckptSizeUpdateValue[] = { &ckpt_size };
 	SaImmAttrValueT ckptUsedSizeUpdateValue[] = { &ckpt_used_size };
@@ -103,8 +96,9 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	SaImmAttrValueT ckptNumReplicasUpdateValue[] = { &num_replicas };
 	SaImmAttrValueT ckptNumSectionsUpdateValue[] = { &num_sections };
 	SaImmAttrValueT ckptNumCorruptSectionsUpdateValue[] = { &num_corrupt_sections };
-
 	SaImmAttrValueT ckptReplicaIsActiveUpdateValue[] = { &replicaIsActive };
+
+	TRACE_ENTER();
 
 	/* Get CPD CB Handle. */
 	m_CPD_RETRIEVE_CB(cb);
@@ -112,47 +106,50 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
-	if (strncmp((char *)objectName->value, "safReplica=", 11) == 0) {
-		ckpt_name = strchr((char *)objectName->value, ',');
-		if (ckpt_name) {
-			ckpt_name++;	/*escaping first ',' of the associated class DN name */
-			ckpt_name = strchr((char *)ckpt_name, ',');
-			if (ckpt_name) {
-				ckpt_name++;
-				memset(&ckptName, 0, sizeof(ckptName));
-				strcpy((char *)ckptName.value, ckpt_name);
-				ckptName.length = strlen(ckpt_name);
+	object_name = osaf_extended_name_borrow(objectName);
+
+	/* Extract ckpt_name and node_name */
+	if (strncmp(object_name, "safReplica=", 11) == 0) {
+		/* Extract ckpt_name */
+		char *p_char = strchr(object_name, ',');
+		if (p_char) {
+			p_char++;	/* escaping first ',' of the associated class DN name */
+			p_char = strchr(p_char, ',');
+			if (p_char) {
+				p_char++;
+				ckpt_name = malloc(strlen(p_char) + 1); /*1 extra byte for \0 char*/
+				strcpy(ckpt_name, p_char);
 			}
 		}
-	node_name = (char*)malloc((objectName->length-ckptName.length)*sizeof(char));
-	memset(node_name,0,(objectName->length-ckptName.length));
-	node_name = (char*)memcpy(node_name,(char*)objectName->value,objectName->length-ckptName.length-1);
 
-	ckpt_replica_extract_node_name(&nodeName, node_name);
-	free(node_name);
+		/* Extract node_name */
+		extract_node_name_from_replica_name(object_name, ckpt_name, &node_name);
+	} else {
+		ckpt_name = strdup(object_name);
 	}
 
-	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckptName, &map_info);
+	TRACE_4("ckpt_name: %s", ckpt_name);
+	TRACE_4("node_name: %s", node_name);
+
+	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_name, &map_info);
 
 	if (map_info) {
 
 		cpd_ckpt_node_get(&cb->ckpt_tree, &map_info->ckpt_id, &ckpt_node);
 
 		if (ckpt_node) {
-				key_info.ckpt_name = ckpt_node->ckpt_name;
-				key_info.node_name = nodeName;
-				cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
+			key_info.ckpt_name = ckpt_node->ckpt_name;
+			key_info.node_name = node_name;
+			cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
 	                
              		if (rep_info) {
-				clm_node_name.length = m_NCS_OS_NTOHS(rep_info->rep_key.node_name.length);
-				strncpy((char *)clm_node_name.value, (char *)rep_info->rep_key.node_name.value,
-					clm_node_name.length);
 				/* escapes rdn's  ',' with '\'   */
-				cpd_create_association_class_dn(&clm_node_name,
-								&rep_info->rep_key.ckpt_name, "safReplica",
+				cpd_create_association_class_dn(rep_info->rep_key.node_name, 
+								rep_info->rep_key.ckpt_name, "safReplica",
 								&replica_dn);
 
-				if (m_CMP_HORDER_SANAMET(*objectName, replica_dn) == 0) {
+				TRACE("replica_dn: %s", replica_dn);
+				if (strcmp(object_name, replica_dn) == 0){
 
 					/* Walk through the attribute Name list */
 					while ((attributeName = attributeNames[i]) != NULL) {
@@ -189,7 +186,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 
 			}
 
-			if (m_CMP_HORDER_SANAMET(*objectName, ckpt_node->ckpt_name) == 0) {
+			if (strcmp(object_name, ckpt_node->ckpt_name) == 0){
 				/* Walk through the attribute Name list */
 				while ((attributeName = attributeNames[i]) != NULL) {
 					if (strcmp(attributeName, "saCkptCheckpointSize") == 0) {
@@ -313,6 +310,15 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	}
 	
 done:
+	if (ckpt_name != NULL)
+		free(ckpt_name);
+
+	if (node_name != NULL)
+		free(node_name);
+
+	if (replica_dn != NULL)
+		free(replica_dn);
+
 	ncshm_give_hdl(cb->cpd_hdl);
 	TRACE_LEAVE();
 	return rc;
@@ -337,13 +343,16 @@ SaAisErrorT create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node
 	SaImmAttrValuesT_2 replica_dn;
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrValuesT_2 *attrValues[2];
+	char* replica_name = NULL;
 	SaNameT replica_rdn;
 	SaNameT ckpt_name;
 	memset(&ckpt_name, 0, sizeof(SaNameT));
 
 	TRACE_ENTER();
 	/* escapes rdn's  ',' with '\'   */
-	cpd_create_association_class_dn(&ckpt_reploc_node->rep_key.node_name, NULL, "safReplica", &replica_rdn);
+	cpd_create_association_class_dn(ckpt_reploc_node->rep_key.node_name, NULL, "safReplica", &replica_name);
+
+	osaf_extended_name_lend(replica_name, &replica_rdn);
 
 	dn[0] = &replica_rdn;
 	replica_dn.attrName = "safReplica";
@@ -354,14 +363,51 @@ SaAisErrorT create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node
 	attrValues[0] = &replica_dn;
 	attrValues[1] = NULL;
 
-	strcpy((char *)ckpt_name.value, (char *)ckpt_reploc_node->rep_key.ckpt_name.value);
-	ckpt_name.length = strlen((char *)ckpt_name.value);
+	osaf_extended_name_lend(ckpt_reploc_node->rep_key.ckpt_name, &ckpt_name);
 
 	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptReplica", &ckpt_name, attrValues);
+	if (rc != SA_AIS_OK)
+		LOG_ER("create_runtime_replica_object - saImmOiRtObjectCreate_2 failed with error = %u", rc);
+
+	free(replica_name);
 	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 }
 
+/****************************************************************************
+ * Name          : delete_runtime_replica_object
+ *
+ * Description   : This function is invoked to delete a replica runtime object 
+ *
+ * Arguments     : ckpt_reploc_node - Checkpoint reploc node 
+ *                 immOiHandle      - IMM handle
+ *
+ * Return Values : SaAisErrorT 
+ *
+ * Notes         : None.
+ *****************************************************************************/
+SaAisErrorT delete_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaImmOiHandleT immOiHandle)
+{
+	SaNameT replica_name;
+	char* replica_dn = NULL;
+	SaAisErrorT rc;
+
+	TRACE_ENTER();
+
+	cpd_create_association_class_dn(ckpt_reploc_node->rep_key.node_name,
+					ckpt_reploc_node->rep_key.ckpt_name, "safReplica", &replica_dn);
+
+	osaf_extended_name_lend(replica_dn, &replica_name);
+	rc = immutil_saImmOiRtObjectDelete(immOiHandle, &replica_name); 
+	if (rc != SA_AIS_OK) {
+		LOG_ER("Deleting run time object %s Failed - rc = %d",replica_dn, rc);
+	}
+
+	free(replica_dn);
+
+	TRACE_LEAVE();
+	return rc;
+}
 /****************************************************************************
  * Name          : create_runtime_ckpt_object
  *
@@ -379,8 +425,8 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 {
 	SaNameT parentName;
 	SaAisErrorT rc = SA_AIS_OK;
-	char *dndup = strdup((char *)ckpt_node->ckpt_name.value);
-	char *parent_name = strchr((char *)ckpt_node->ckpt_name.value, ',');
+	char *dndup = strdup(ckpt_node->ckpt_name);
+	char *parent_name = strchr(ckpt_node->ckpt_name, ',');
 	char *rdnstr;
 	const SaImmAttrValuesT_2 *attrValues[7];
 	SaImmAttrValueT dn[1], create_time[1], creat_flags[1], max_sections[1],
@@ -395,10 +441,10 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 	if (parent_name != NULL) {
 		rdnstr = strtok(dndup, ",");
 		parent_name++;
-		strcpy((char *)parentName.value, parent_name);
-		parentName.length = strlen((char *)parent_name);
+
+		osaf_extended_name_lend(parent_name, &parentName);
 	} else
-		rdnstr = (char *)ckpt_node->ckpt_name.value;
+		rdnstr = (char *)ckpt_node->ckpt_name;
 
 	dn[0] = &rdnstr;
 	create_time_sec = ckpt_node->create_time * SA_TIME_ONE_SECOND;
@@ -448,13 +494,39 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 
 	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptCheckpoint", &parentName, attrValues);
 	if (rc != SA_AIS_OK)
-		LOG_ER("saImmOiRtObjectCreate_2 failed with error = %u", rc);
+		LOG_ER("create_runtime_ckpt_object - saImmOiRtObjectCreate_2 failed with error = %u", rc);
 
 	free(dndup);
 	TRACE_LEAVE2("Ret val %d",rc);
 	return rc;
 
 }	/* End create_runtime_object() */
+
+/****************************************************************************
+ * Name          : delete_runtime_ckpt_object
+ *
+ * Description   : This function is invoked to delete a checkpoint runtime object 
+ *
+ * Arguments     : ckpt_node        - Checkpoint Node 
+ *                 immOiHandle      - IMM handle
+ *
+ * Return Values : SaAisErrorT 
+ *
+ * Notes         : None.
+ *****************************************************************************/
+SaAisErrorT delete_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHandleT immOiHandle)
+{
+	SaNameT ckpt_name;
+	SaAisErrorT rc;
+
+	osaf_extended_name_lend(ckpt_node->ckpt_name, &ckpt_name);
+
+	rc =  immutil_saImmOiRtObjectDelete(immOiHandle, &ckpt_name);
+	if (rc != SA_AIS_OK)
+		LOG_ER("Deleting run time object %s failed - rc = %d", ckpt_node->ckpt_name, rc);
+
+	return rc;
+}
 
 /****************************************************************************
  * Name          : cpd_imm_init
@@ -532,31 +604,60 @@ void cpd_imm_declare_implementer(SaImmOiHandleT* immOiHandle, SaSelectionObjectT
 	TRACE_LEAVE();
 }
 
-
-void cpd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
-				     const char *rdn_tag, SaNameT *dn)
+/****************************************************************************
+ * Name          : cpd_create_association_class_dn
+ *
+ * Description   : This function is invoked to create a 
+ *                 dn = rdn_tag + '=' + child_dn + parent_dn 
+ *                 User must free() the dn after using
+ *
+ * Arguments     : 
+ *
+ * Return Values : SaAisErrorT 
+ *
+ * Notes         : None.
+ *****************************************************************************/
+void cpd_create_association_class_dn(const char *child_dn, const char *parent_dn,
+				     const char *rdn_tag, char **dn)
 {
-	char *p = (char *)dn->value;
 	int i;
+	size_t child_dn_length = 0;
+	size_t parent_dn_length = 0;
+	size_t rdn_tag_length = 0;
+	size_t class_dn_length = 0;
 
-	memset(dn, 0, sizeof(SaNameT));
+	if (child_dn != NULL)
+		child_dn_length = strlen(child_dn);
 
-	p += sprintf((char *)dn->value, "%s=", rdn_tag);
+	if (parent_dn != NULL)
+		parent_dn_length = strlen(parent_dn);
+
+	if (rdn_tag != NULL)
+		rdn_tag_length = strlen(rdn_tag);
+
+	class_dn_length = child_dn_length + parent_dn_length + rdn_tag_length + 10;
+
+	char *class_dn = malloc(class_dn_length);
+	memset(class_dn, 0, class_dn_length);
+
+	char *p = class_dn;
+
+	p += sprintf(class_dn, "%s=", rdn_tag);
 
 	/* copy child DN and escape commas */
-	for (i = 0; i < child_dn->length; i++) {
-		if (child_dn->value[i] == ',')
+	for (i = 0; i < child_dn_length; i++) {
+		if (child_dn[i] == ',')
 			*p++ = 0x5c;	/* backslash */
 
-		*p++ = child_dn->value[i];
+		*p++ = child_dn[i];
 	}
 
 	if (parent_dn != NULL) {
 		*p++ = ',';
-		strcpy(p, (char *)parent_dn->value);
+		strcpy(p, parent_dn);
 	}
 
-	dn->length = strlen((char *)dn->value);
+	*dn = class_dn;
 }
 
 static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
@@ -648,30 +749,41 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
 	return rc;
 }
 
-
-
-static void ckpt_replica_extract_node_name(SaNameT *nodeName, char *src)
+/****************************************************************************
+ * Name          : extract_node_name_from_replica_name
+ *
+ * Description   : This function extract node_name without '/' from replica
+ *                 name. The user must free() the node_name after using
+ *
+ * Arguments     : 
+ *
+ * Return Values : SaAisErrorT 
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static void extract_node_name_from_replica_name(const char *replica_name, const char *ckpt_name, char **node_name)
 {
-	char *dest = NULL, *dest_name;
-	SaUint32T len_src = 0;
+	char *dest = NULL;
 	SaUint32T i = 0, k = 0;
+	
+	if (replica_name == NULL || ckpt_name == NULL)
+		return;
 
-	len_src = strlen(src);
-	dest = (char *) malloc(sizeof(char) * len_src + 1);
-	memset(dest, 0, sizeof(char) * len_src + 1);
-	for (i = 0; i < len_src; i++) {
+	/* Remove slash '/' , the ',' right before the ckpt_name and ckpt_name */ 
+	int node_name_length = strlen(replica_name) - strlen(ckpt_name) - strlen("safReplica=") - 1;
+	dest = malloc(node_name_length);
+	memset(dest, 0, node_name_length);
+
+	const char* src = replica_name + strlen("safReplica=");
+
+	for (i = 0; i < node_name_length; i++) {
 		if (src[i] != '\\') {
 			dest[k] = src[i];
 			k++;
 		}
 	}
 
-	/* 11 is the length of "safReplica=" */
-	dest_name = dest + 11;	
-	strcpy((char*)nodeName->value, dest_name);
-	nodeName->length = strlen(dest_name);
-
-	free(dest);
+	*node_name = dest;
 
 	return;
 }
@@ -780,8 +892,7 @@ SaAisErrorT cpd_clean_checkpoint_objects(CPD_CB *cb)
        searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
        searchParam.searchOneAttr.attrValue = &class_name;
        SaNameT root_name;
-       root_name.value[0] = '\0';
-       root_name.length = 1;
+       osaf_extended_name_lend("\0", &root_name);
 
        rc = immutil_saImmOmSearchInitialize_2(
                        immOmHandle,
@@ -806,10 +917,10 @@ SaAisErrorT cpd_clean_checkpoint_objects(CPD_CB *cb)
                /* Delete the runtime object and its children. */
                rc = immutil_saImmOiRtObjectDelete(cb->immOiHandle, &object_name);
                if (rc == SA_AIS_OK) {
-                       TRACE("Object \"%s\" deleted", (char *) object_name.value);
+                       TRACE("Object \"%s\" deleted", (char *) osaf_extended_name_borrow(&object_name));
                } else {
                        LOG_ER("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
-                                       __FUNCTION__, (char *) object_name.value, rc);
+                                       __FUNCTION__, (char *) osaf_extended_name_borrow(&object_name), rc);
                }
        }
 
@@ -866,8 +977,7 @@ SaUint32T cpd_get_scAbsenceAllowed_attr()
 	char object_name_str[] = "opensafImm=opensafImm,safApp=safImmService";
 
 	SaNameT object_name;
-	strncpy((char *) object_name.value, object_name_str, SA_MAX_NAME_LENGTH);
-	object_name.length = strlen((char *) object_name.value) + 1;
+	osaf_extended_name_lend(object_name_str, &object_name);
 
 	/* Save immutil settings and reconfigure */
 	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;

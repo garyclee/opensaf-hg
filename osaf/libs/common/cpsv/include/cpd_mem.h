@@ -79,10 +79,16 @@ typedef enum {
                                                 NCS_SERVICE_ID_CPD,           \
                                                 CPD_SVC_SUB_ID_CPD_CKPT_INFO_NODE)
 
-#define m_MMGR_FREE_CPD_CKPT_INFO_NODE(p) m_NCS_MEM_FREE(p,\
+#define m_MMGR_FREE_CPD_CKPT_INFO_NODE(p) 									\
+							if(p->ckpt_name != 0) free((void*)p->ckpt_name);\
+							m_NCS_MEM_FREE(p,								\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CKPT_INFO_NODE)
+
+#define m_MMGR_ZERO_CPD_CKPT_INFO_NODE(p)					\
+			if(p->ckpt_name != 0) free((void*)p->ckpt_name);\
+			memset(p, 0, sizeof(CPD_CKPT_INFO_NODE))
 
 #define m_MMGR_ALLOC_CPD_CKPT_MAP_INFO  (CPD_CKPT_MAP_INFO*)                  \
                                    m_NCS_MEM_ALLOC(sizeof(CPD_CKPT_MAP_INFO), \
@@ -90,7 +96,10 @@ typedef enum {
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CKPT_MAP_INFO)
 
-#define m_MMGR_FREE_CPD_CKPT_MAP_INFO(p) m_NCS_MEM_FREE(p,\
+#define m_MMGR_FREE_CPD_CKPT_MAP_INFO(p) 						\
+								if (p->ckpt_name != NULL)		\
+									free((void *)p->ckpt_name);	\
+								m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CKPT_MAP_INFO)
@@ -101,7 +110,12 @@ typedef enum {
                                         NCS_SERVICE_ID_CPD, \
                                         CPD_SVC_SUB_ID_CPD_CKPT_REPLOC_INFO)
 
-#define m_MMGR_FREE_CPD_CKPT_REPLOC_INFO(p)  m_NCS_MEM_FREE(p, \
+#define m_MMGR_FREE_CPD_CKPT_REPLOC_INFO(p)								\
+								if (p->rep_key.node_name != 0)			\
+									free((void *)p->rep_key.node_name);	\
+								if (p->rep_key.ckpt_name != 0)			\
+									free((void *)p->rep_key.ckpt_name);	\
+								m_NCS_MEM_FREE(p, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_CPD, \
                                             CPD_SVC_SUB_ID_CPD_CKPT_REPLOC_INFO)
@@ -112,7 +126,10 @@ typedef enum {
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CPND_INFO_NODE)
 
-#define m_MMGR_FREE_CPD_CPND_INFO_NODE(p) m_NCS_MEM_FREE(p,\
+#define m_MMGR_FREE_CPD_CPND_INFO_NODE(p)								\
+								if (p->node_name != 0)			\
+									free((void *)p->node_name);	\
+								m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CPND_INFO_NODE)

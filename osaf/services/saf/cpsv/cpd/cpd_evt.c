@@ -26,6 +26,7 @@
 
 #include "cpd.h"
 #include "immutil.h"
+#include "cpd_imm.h"
 
 uint32_t cpd_evt_proc_cb_dump(CPD_CB *cb);
 static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
@@ -41,6 +42,7 @@ static uint32_t cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_IN
 static uint32_t cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uint32_t cpd_evt_proc_timer_expiry(CPD_CB *cb, CPD_EVT *evt);
 static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt);
+static void cpd_evt_free(CPSV_EVT *evt);
 
 static uint32_t cpd_evt_mds_quiesced_ack_rsp(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uint32_t cpd_evt_proc_ckpt_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
@@ -150,7 +152,7 @@ void cpd_process_evt(CPSV_EVT *evt)
 	ncshm_give_hdl(cb_hdl);
 
 	/* Free the Event */
-	m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
+	cpd_evt_free(evt);
 	TRACE_LEAVE();
 	return;
 }
@@ -177,6 +179,7 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPSV_ND2D_CKPT_CREATE *ckpt_create = &evt->info.ckpt_create;
 	bool is_first_rep = false, is_new_noncol = false;
+	SaConstStringT ckpt_name = osaf_extended_name_borrow(&ckpt_create->ckpt_name);
 	
 	TRACE_ENTER();
 
@@ -187,21 +190,20 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 		goto send_rsp;
 	}
 
-	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_create->ckpt_name, &map_info);
+	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_name, &map_info);
 	if (map_info) {
 
-		/*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length);  */
 		if (m_CPA_VER_IS_ABOVE_B_1_1(&ckpt_create->client_version)) {
 			if ((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
 			    (!m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &map_info->attributes))) {
-				TRACE_4("cpd ckpt create failure ckpt name,dest :%s,%"PRIu64,ckpt_create->ckpt_name.value, sinfo->dest);
+				TRACE_4("cpd ckpt create failure ckpt name,dest :%s,%"PRIu64, ckpt_name, sinfo->dest);
 				rc = SA_AIS_ERR_EXIST;
 				goto send_rsp;
 			}
 		} else {
 			if ((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
 			    (!m_COMPARE_CREATE_ATTR_B_1_1(&ckpt_create->attributes, &map_info->attributes))) {
-				TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64,ckpt_create->ckpt_name.value, sinfo->dest);
+				TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64, ckpt_name, sinfo->dest);
 				rc = SA_AIS_ERR_EXIST;
 				goto send_rsp;
 			}
@@ -209,13 +211,12 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 	} else {
 		SaCkptCheckpointCreationAttributesT ckpt_local_attrib;
 		memset(&ckpt_local_attrib, 0, sizeof(SaCkptCheckpointCreationAttributesT));
-		/* ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length); */
 		is_first_rep = true;
 		if (m_CPA_VER_IS_ABOVE_B_1_1(&ckpt_create->client_version)) {
 			if (!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
 			    (m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &ckpt_local_attrib))) {
 
-				TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64,ckpt_create->ckpt_name.value, sinfo->dest);
+				TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64, ckpt_name, sinfo->dest);
 				rc = SA_AIS_ERR_NOT_EXIST;
 				goto send_rsp;
 			}
@@ -223,7 +224,7 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 			if (!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
 			    (m_COMPARE_CREATE_ATTR_B_1_1(&ckpt_create->attributes, &ckpt_local_attrib))) {
 
-				TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64,ckpt_create->ckpt_name.value, sinfo->dest);
+				TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64, ckpt_name, sinfo->dest);
 				rc = SA_AIS_ERR_NOT_EXIST;
 				goto send_rsp;
 			}
@@ -233,12 +234,12 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 	/* Add/Update the entries in ckpt DB, ckpt_map DB, ckpt_node DB */
 	proc_rc = cpd_ckpt_db_entry_update(cb, &sinfo->dest, ckpt_create, &ckpt_node, &map_info);
 	if (proc_rc == NCSCC_RC_OUT_OF_MEM) {
-		TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64,ckpt_create->ckpt_name.value, sinfo->dest);
+		TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64, ckpt_name, sinfo->dest);
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto send_rsp;
 	} else if (proc_rc != NCSCC_RC_SUCCESS) {
 
-		TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64,ckpt_create->ckpt_name.value, sinfo->dest);
+		TRACE_4("cpd ckpt create failure ckpt name,dest :  %s, %"PRIu64, ckpt_name, sinfo->dest);
 		rc = SA_AIS_ERR_LIBRARY;
 		goto send_rsp;
 	}
@@ -273,9 +274,9 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 		    && (!m_CPND_IS_ON_SCXB(cb->cpd_self_id, cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))) {
 			proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->loc_cpnd_dest, ckpt_node, map_info);
 			if (proc_rc == NCSCC_RC_SUCCESS)
-				TRACE_1("cpd non coloc ckpt create success ckpt name %s, loc_cpnd_dest:%"PRIu64,ckpt_create->ckpt_name.value, cb->loc_cpnd_dest);
+				TRACE_1("cpd non coloc ckpt create success ckpt name %s, loc_cpnd_dest:%"PRIu64, ckpt_name, cb->loc_cpnd_dest);
 			else
-				TRACE_2("cpd non coloc ckpt create failure ckpt name %s, loc_cpnd_dest:%"PRIu64,ckpt_create->ckpt_name.value, cb->loc_cpnd_dest);
+				TRACE_2("cpd non coloc ckpt create failure ckpt name %s, loc_cpnd_dest:%"PRIu64, ckpt_name, cb->loc_cpnd_dest);
 
 		}
 		/*  if(cb->is_rem_cpnd_up && (cpd_get_slot_sub_id_from_mds_dest(sinfo->dest) != ckpt_node->ckpt_on_scxb2)) */
@@ -283,9 +284,9 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 		    && (!m_CPND_IS_ON_SCXB(cb->cpd_remote_id, cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))) {
 			proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->rem_cpnd_dest, ckpt_node, map_info);
 			if (proc_rc == NCSCC_RC_SUCCESS)
-				TRACE_1("cpd non coloc ckpt create success ckpt_name %s and rem_cpnd %"PRIu64,ckpt_create->ckpt_name.value,cb->rem_cpnd_dest);
+				TRACE_1("cpd non coloc ckpt create success ckpt_name %s and rem_cpnd %"PRIu64, ckpt_name,cb->rem_cpnd_dest);
 			else
-				TRACE_4("cpd non coloc ckpt create failure ckpt_name %s and rem_cpnd %"PRIu64,ckpt_create->ckpt_name.value,cb->rem_cpnd_dest);
+				TRACE_4("cpd non coloc ckpt create failure ckpt_name %s and rem_cpnd %"PRIu64, ckpt_name,cb->rem_cpnd_dest);
 		}
 		/* ND on SCXB has created the same checkpoint, so is_new_noncol must be made to true */
 		is_new_noncol = true;
@@ -346,7 +347,7 @@ static uint32_t cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 		m_MMGR_FREE_CPSV_CPND_DEST_INFO(send_evt.info.cpnd.info.ckpt_info.dest_list);
 
 	if (proc_rc != NCSCC_RC_SUCCESS)
-		TRACE_4("cpd ckpt create failure for ckpt_name :%s,dest :%"PRIu64,ckpt_create->ckpt_name.value,sinfo->dest);
+		TRACE_4("cpd ckpt create failure for ckpt_name :%s,dest :%"PRIu64, ckpt_name,sinfo->dest);
 
 	if ((proc_rc != NCSCC_RC_SUCCESS) || (rc != SA_AIS_OK))
 		return proc_rc;
@@ -554,7 +555,7 @@ static uint32_t cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
-	SaNameT *ckpt_name = &evt->info.ckpt_ulink.ckpt_name;
+	SaConstStringT ckpt_name = osaf_extended_name_borrow(&evt->info.ckpt_ulink.ckpt_name);
 	SaAisErrorT rc = SA_AIS_OK;
 	SaAisErrorT proc_rc = SA_AIS_OK;
 	CPSV_EVT send_evt;
@@ -585,15 +586,11 @@ static uint32_t cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INF
 		send_evt.info.cpnd.info.ckpt_ulink.ckpt_id = ckpt_node->ckpt_id;
 
 		proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-		TRACE_2("cpd evt unlink success for ckpt_name:%s,dest :%"PRIu64,evt->info.ckpt_ulink.ckpt_name.value, sinfo->dest);
+		TRACE_2("cpd evt unlink success for ckpt_name:%s,dest :%"PRIu64, ckpt_name, sinfo->dest);
 
 		/* delete imm ckpt runtime object */
-		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &ckpt_node->ckpt_name) != SA_AIS_OK) {
-				TRACE_4("Deleting run time object %s failed",ckpt_node->ckpt_name.value);
-				/* Free the Client Node */
-			}
-		}
+		if (cb->ha_state == SA_AMF_HA_ACTIVE) 
+			delete_runtime_ckpt_object(ckpt_node, cb->immOiHandle);
 	}
 	   
 	memset(&send_evt, 0, sizeof(CPSV_EVT));
@@ -840,7 +837,7 @@ static uint32_t cpd_evt_proc_ckpt_destroy(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_IN
 static uint32_t cpd_evt_proc_ckpt_destroy_byname(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
 	CPD_CKPT_MAP_INFO *map_info = NULL;
-	SaNameT *ckpt_name = &evt->info.ckpt_destroy_byname.ckpt_name;
+	SaConstStringT ckpt_name = osaf_extended_name_borrow(&evt->info.ckpt_destroy_byname.ckpt_name);
 	CPD_EVT destroy_evt;
 	CPSV_EVT send_evt;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
@@ -1202,12 +1199,10 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	SaCkptCheckpointHandleT prev_ckpt_hdl;
 	bool flag = false;
-	SaNameT ckpt_name;
 	uint32_t phy_slot_sub_slot;
 	bool add_flag = true;
 
 	TRACE_ENTER();
-	memset(&ckpt_name, 0, sizeof(SaNameT));
 	mds_info = &evt->info.mds_info;
 
 	memset(&phy_slot_sub_slot, 0, sizeof(uint32_t));
@@ -1263,7 +1258,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 										}
 										if (flag == false) {
 											cpd_ckpt_map_node_get(&cb->ckpt_map_tree,
-													&ckpt_node->ckpt_name, &map_info);
+													ckpt_node->ckpt_name, &map_info);
 											if (map_info) {
 												cpd_noncolloc_ckpt_rep_create(cb,
 														&cb->
@@ -1325,7 +1320,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 							}
 							if (flag == false) {
 								cpd_ckpt_map_node_get(&cb->ckpt_map_tree,
-										      &ckpt_node->ckpt_name, &map_info);
+										      ckpt_node->ckpt_name, &map_info);
 								if (map_info) {
 									cpd_noncolloc_ckpt_rep_create(cb,
 												      &cb->
@@ -1362,7 +1357,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 							}
 							if (flag == false) {
 								cpd_ckpt_map_node_get(&cb->ckpt_map_tree,
-										      &ckpt_node->ckpt_name, &map_info);
+										      ckpt_node->ckpt_name, &map_info);
 								if (map_info) {
 									cpd_noncolloc_ckpt_rep_create(cb,
 												      &cb->
@@ -1476,6 +1471,39 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 }
 
 /****************************************************************************
+ * Name          : cpd_evt_free
+ *
+ * Description   : Function to free data allocated for event
+ *
+ * Arguments     : CPSV_EVT *evt - Received Event structure
+ *
+ * Return Values : None.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static void cpd_evt_free(CPSV_EVT *evt)
+{
+	switch (evt->info.cpd.type) {
+	case CPD_EVT_ND2D_CKPT_CREATE:
+		if (osaf_is_an_extended_name(&evt->info.cpd.info.ckpt_create.ckpt_name))
+			free((void *)osaf_extended_name_borrow(&evt->info.cpd.info.ckpt_create.ckpt_name));
+		break;
+	case CPD_EVT_ND2D_CKPT_UNLINK:
+		if (osaf_is_an_extended_name(&evt->info.cpd.info.ckpt_ulink.ckpt_name))
+			free((void *)osaf_extended_name_borrow(&evt->info.cpd.info.ckpt_ulink.ckpt_name));
+		break;
+	case CPD_EVT_ND2D_CKPT_DESTROY_BYNAME:
+		if (osaf_is_an_extended_name(&evt->info.cpd.info.ckpt_destroy_byname.ckpt_name))
+			free((void *)osaf_extended_name_borrow(&evt->info.cpd.info.ckpt_destroy_byname.ckpt_name));
+		break;
+	default:
+		break;
+	}
+
+	m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPD);
+}
+
+/****************************************************************************
  * Name          : cpd_evt_proc_ckpt_info_upd
  *
  * Description   : Function to process update ckpt info receiving from CPND.
@@ -1496,6 +1524,7 @@ static uint32_t cpd_evt_proc_ckpt_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_I
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPSV_ND2D_CKPT_INFO_UPD *ckpt_info = &evt->info.ckpt_info;
 	bool is_first_rep = false, is_new_noncol = false;
+	SaConstStringT ckpt_name = osaf_extended_name_borrow(&ckpt_info->ckpt_name);
 	
 	TRACE_ENTER();
 
@@ -1507,12 +1536,12 @@ static uint32_t cpd_evt_proc_ckpt_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_I
 	}
 
 	/* Verify if the checkpoint exist in the database */
-	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_info->ckpt_name, &map_info);
+	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_name, &map_info);
 	if (map_info) {
 		if (!m_COMPARE_CREATE_ATTR(&ckpt_info->attributes, &map_info->attributes)) {
 			/* TODO: There is difference in checkpoint attribute betweent replicas.
 			 * This should never happen */
-			LOG_ER("cpd ckpt update - Difference in checkpoint attribute, ckpt name,dest :%s,%"PRIu64,ckpt_info->ckpt_name.value, sinfo->dest);
+			LOG_ER("cpd ckpt update - Difference in checkpoint attribute, ckpt name,dest :%s,%"PRIu64 ,ckpt_name, sinfo->dest);
 			rc = SA_AIS_ERR_EXIST;
 			goto send_rsp;
 		}
@@ -1523,11 +1552,11 @@ static uint32_t cpd_evt_proc_ckpt_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_I
 	/* Add/Update the entries in ckpt DB, ckpt_map DB, ckpt_node DB */
 	proc_rc = cpd_ckpt_db_update_after_headless(cb, &sinfo->dest, ckpt_info, &ckpt_node, &map_info);
 	if (proc_rc == NCSCC_RC_OUT_OF_MEM) {
-		LOG_ER("cpd ckpt update failure ckpt name,dest :  %s, %"PRIu64,ckpt_info->ckpt_name.value, sinfo->dest);
+		LOG_ER("cpd ckpt update failure ckpt name,dest :  %s, %"PRIu64, ckpt_name, sinfo->dest);
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto send_rsp;
 	} else if (proc_rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("cpd ckpt update failure ckpt name,dest :  %s, %"PRIu64,ckpt_info->ckpt_name.value, sinfo->dest);
+		LOG_ER("cpd ckpt update failure ckpt name,dest :  %s, %"PRIu64, ckpt_name, sinfo->dest);
 		rc = SA_AIS_ERR_LIBRARY;
 		goto send_rsp;
 	}
@@ -1570,18 +1599,18 @@ static uint32_t cpd_evt_proc_ckpt_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_I
 		    && (!m_CPND_IS_ON_SCXB(cb->cpd_self_id, cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))) {
 			proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->loc_cpnd_dest, ckpt_node, map_info);
 			if (proc_rc == NCSCC_RC_SUCCESS)
-				LOG_IN("cpd non coloc ckpt update success ckpt name %s, loc_cpnd_dest:%"PRIu64,ckpt_info->ckpt_name.value, cb->loc_cpnd_dest);
+				LOG_IN("cpd non coloc ckpt update success ckpt name %s, loc_cpnd_dest:%"PRIu64, ckpt_name, cb->loc_cpnd_dest);
 			else 
-				LOG_ER("cpd non coloc ckpt update failure ckpt name %s, loc_cpnd_dest:%"PRIu64,ckpt_info->ckpt_name.value, cb->loc_cpnd_dest);
+				LOG_ER("cpd non coloc ckpt update failure ckpt name %s, loc_cpnd_dest:%"PRIu64, ckpt_name, cb->loc_cpnd_dest);
 		}
 		/*  if(cb->is_rem_cpnd_up && (cpd_get_slot_sub_id_from_mds_dest(sinfo->dest) != ckpt_node->ckpt_on_scxb2)) */
 		if (cb->is_rem_cpnd_up
 		    && (!m_CPND_IS_ON_SCXB(cb->cpd_remote_id, cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))) {
 			proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->rem_cpnd_dest, ckpt_node, map_info);
 			if (proc_rc == NCSCC_RC_SUCCESS)
-				LOG_IN("cpd non coloc ckpt update success ckpt_name %s and rem_cpnd %"PRIu64,ckpt_info->ckpt_name.value,cb->rem_cpnd_dest);
+				LOG_IN("cpd non coloc ckpt update success ckpt_name %s and rem_cpnd %"PRIu64, ckpt_name,cb->rem_cpnd_dest);
 			else
-				LOG_ER("cpd non coloc ckpt update failure ckpt_name %s and rem_cpnd %"PRIu64,ckpt_info->ckpt_name.value,cb->rem_cpnd_dest);
+				LOG_ER("cpd non coloc ckpt update failure ckpt_name %s and rem_cpnd %"PRIu64, ckpt_name,cb->rem_cpnd_dest);
 		}
 		/* ND on SCXB has created the same checkpoint, so is_new_noncol must be made to true */
 		is_new_noncol = true;

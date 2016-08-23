@@ -22,6 +22,7 @@
 
 ******************************************************************************/
 
+#include <string.h>
 #include "cpd.h"
 
      /* This is the function prototype for event handling */
@@ -103,8 +104,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
 
 	/* 1. check if the checkpoint already exist  (this should not happen ) */
-	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &msg->info.ckpt_create.ckpt_name, &map_info);
-/*  msg->info.ckpt_create.ckpt_name.length = m_NCS_OS_NTOHS(msg->info.ckpt_create.ckpt_name.length);     */
+	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, osaf_extended_name_borrow(&msg->info.ckpt_create.ckpt_name), &map_info);
 	if (map_info == NULL) {	/* Checkpoint does not exist, so allocate memory */
 		map_info = m_MMGR_ALLOC_CPD_CKPT_MAP_INFO;
 		if (map_info == NULL) {
@@ -127,7 +127,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 
 	/* Fill the Map info structure  */
 	memset(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
-	map_info->ckpt_name = msg->info.ckpt_create.ckpt_name;
+	map_info->ckpt_name = strdup(osaf_extended_name_borrow(&msg->info.ckpt_create.ckpt_name));
 	map_info->ckpt_id = msg->info.ckpt_create.ckpt_id;
 	map_info->attributes = msg->info.ckpt_create.ckpt_attrib;
 	cb->nxt_ckpt_id = map_info->ckpt_id + 1;
@@ -142,7 +142,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	/*  Fill the CKPT_NODE structure  */
 	memset(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
 	ckpt_node->ckpt_id = msg->info.ckpt_create.ckpt_id;
-	ckpt_node->ckpt_name = msg->info.ckpt_create.ckpt_name;
+	ckpt_node->ckpt_name = strdup(osaf_extended_name_borrow(&msg->info.ckpt_create.ckpt_name));
 	dest_cnt = msg->info.ckpt_create.dest_cnt;
 	ckpt_node->is_unlink_set = msg->info.ckpt_create.is_unlink_set;
 	ckpt_node->attributes = msg->info.ckpt_create.ckpt_attrib;
@@ -175,18 +175,18 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 			goto cluster_node_get_fail;
 		}
 
-		node_info->node_name = cluster_node.nodeName;
+		node_info->node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
 
-		key_info.ckpt_name = msg->info.ckpt_create.ckpt_name;
-		key_info.node_name = cluster_node.nodeName;
+		key_info.ckpt_name = osaf_extended_name_borrow(&msg->info.ckpt_create.ckpt_name);
+		key_info.node_name = osaf_extended_name_borrow(&cluster_node.nodeName);
 		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &reploc_info);
 		if (reploc_info == NULL) {
 			reploc_info = m_MMGR_ALLOC_CPD_CKPT_REPLOC_INFO;
 
 			memset(reploc_info, 0, sizeof(CPD_CKPT_REPLOC_INFO));
 
-			reploc_info->rep_key.node_name = cluster_node.nodeName;
-			reploc_info->rep_key.ckpt_name = msg->info.ckpt_create.ckpt_name;
+			reploc_info->rep_key.node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
+			reploc_info->rep_key.ckpt_name = strdup(osaf_extended_name_borrow(&msg->info.ckpt_create.ckpt_name));
 
 			if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&msg->info.ckpt_create.ckpt_attrib))
 				reploc_info->rep_type = REP_NONCOLL;
@@ -218,7 +218,7 @@ uint32_t cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		goto cpd_ckpt_node_add_fail;
 	}
 
-	TRACE_1("cpd ckpt node added successfully  ckpt name:%s, ckpt_id:%llx ",map_info->ckpt_name.value,map_info->ckpt_id);
+	TRACE_1("cpd ckpt node added successfully  ckpt name:%s, ckpt_id:%llx ",map_info->ckpt_name, map_info->ckpt_id);
 
 	goto end;
 
@@ -269,14 +269,11 @@ uint32_t cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	CPD_NODE_REF_INFO *nref_info = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
-	SaNameT ckpt_name, node_name;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 
 	TRACE_ENTER();
 	memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
-	memset(&ckpt_name, 0, sizeof(SaNameT));
-	memset(&node_name, 0, sizeof(SaNameT));
 
 	/* IF CPND IS DOWN THEN CKPT_ID = 0 , DELETE THAT NODE INFO */
 	if (msg->info.dest_del.ckpt_id == 0) {
@@ -292,8 +289,7 @@ uint32_t cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	}
 
 	if (ckpt_node->is_unlink_set != true) {
-		cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
-		/*    ckpt_node->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_node->ckpt_name.length); */
+		cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_node->ckpt_name, &map_info);
 		if (map_info == NULL) {
 			TRACE_4("cpd standby dest del evt failed");
 			return NCSCC_RC_FAILURE;
@@ -308,20 +304,17 @@ uint32_t cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 			}
 		}
 
-		ckpt_name = ckpt_node->ckpt_name;
-		key_info.ckpt_name = ckpt_name;
-		node_name = node_info->node_name;
+		key_info.ckpt_name = ckpt_node->ckpt_name;
+		key_info.node_name = node_info->node_name;
+
+		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
+		if (rep_info) {
+			cpd_ckpt_reploc_node_delete(cb, rep_info,ckpt_node->is_unlink_set);
+		}
 
 		/* No check point ref in this node */
 		if (node_info->ckpt_cnt == 0) {
 			cpd_cpnd_info_node_delete(cb, node_info);
-		}
-
-		key_info.node_name = node_name;
-		/*  key_info.node_name.length = m_NCS_OS_NTOHS(node_name.length); */
-		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
-		if (rep_info) {
-			cpd_ckpt_reploc_node_delete(cb, rep_info,ckpt_node->is_unlink_set);
 		}
 	} else {
 		TRACE_4("cpd standby dest del evt failed for mdsdest: %"PRIu64,msg->info.dest_del.mds_dest);
@@ -366,16 +359,16 @@ uint32_t cpd_sb_proc_ckpt_unlink(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 {
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
-	SaNameT *ckpt_name = &msg->info.ckpt_ulink.ckpt_name;
+	SaConstStringT ckpt_name = osaf_extended_name_borrow(&msg->info.ckpt_ulink.ckpt_name);
 	uint32_t proc_rc = SA_AIS_OK;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	proc_rc = cpd_proc_unlink_set(cb, &ckpt_node, map_info, ckpt_name);
 	if (proc_rc != SA_AIS_OK) {
-		TRACE_4("cpd standby unlink evt failed");
+		LOG_ER("cpd standby unlink evt failed");
 		rc = NCSCC_RC_FAILURE;
 	}
-	TRACE_1("cpd evt unlink success ckpt_name: %s ",msg->info.ckpt_ulink.ckpt_name.value);
+	TRACE_1("cpd evt unlink success ckpt_name: %s ", ckpt_name);
 	return rc;
 }
 
@@ -492,9 +485,9 @@ uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		goto free_mem;
 	}
 
-	node_info->node_name = cluster_node.nodeName;
+	node_info->node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
 
-	key_info.node_name = cluster_node.nodeName;
+	key_info.node_name = osaf_extended_name_borrow(&cluster_node.nodeName);
 	key_info.ckpt_name = ckpt_node->ckpt_name;
 	cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &reploc_info);
 	if (reploc_info == NULL) {
@@ -502,8 +495,8 @@ uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 
 		memset(reploc_info, 0, sizeof(CPD_CKPT_REPLOC_INFO));
 
-		reploc_info->rep_key.node_name = cluster_node.nodeName;
-		reploc_info->rep_key.ckpt_name = ckpt_node->ckpt_name;
+		reploc_info->rep_key.node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
+		reploc_info->rep_key.ckpt_name = strdup(ckpt_node->ckpt_name);
 		if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes))
 			reploc_info->rep_type = REP_NONCOLL;
 		else {
