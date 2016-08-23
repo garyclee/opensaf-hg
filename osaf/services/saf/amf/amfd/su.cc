@@ -608,7 +608,6 @@ static void su_add_to_model(AVD_SU *su)
 			/* This is an external SU and we need to create the 
 			   supporting info. */
 			avd_cb->ext_comp_info.ext_comp_hlt_check = new AVD_AVND;
-			memset(avd_cb->ext_comp_info.ext_comp_hlt_check, 0, sizeof(AVD_AVND));
 			avd_cb->ext_comp_info.local_avnd_node = avd_node_find_nodeid(avd_cb->node_id_avd);
 
 			if (nullptr == avd_cb->ext_comp_info.local_avnd_node) {
