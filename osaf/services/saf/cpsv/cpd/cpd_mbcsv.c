@@ -23,6 +23,8 @@
 ******************************************************************************/
 
 #include "cpd.h"
+extern uint32_t cpsv_encode_extended_name(NCS_UBAID *uba, SaNameT *name);
+extern uint32_t cpsv_decode_extended_name(NCS_UBAID *uba, SaNameT *name);
 
 /**********************************************************************************************
  * Name                   : cpd_mbcsv_async_update
@@ -385,6 +387,9 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			TRACE_4("edu exec async create failed");
 			rc = NCSCC_RC_FAILURE;
 		}
+
+		cpsv_encode_extended_name(&arg->info.encode.io_uba, &cpd_msg->info.ckpt_create.ckpt_name); 
+
 		break;
 
 	case CPD_A2S_MSG_CKPT_UNLINK:
@@ -395,6 +400,9 @@ uint32_t cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			TRACE_4("edu exec async unlink failed");
 			rc = NCSCC_RC_FAILURE;
 		}
+
+		cpsv_encode_extended_name(&arg->info.encode.io_uba, &cpd_msg->info.ckpt_ulink.ckpt_name); 
+
 		break;
 
 	case CPD_A2S_MSG_CKPT_RDSET:
@@ -573,6 +581,8 @@ uint32_t cpd_mbcsv_enc_msg_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			TRACE_LEAVE();
 			return rc;
 		}
+		
+		cpsv_encode_extended_name(&arg->info.encode.io_uba, &ckpt_create.ckpt_name);
 
 		if (ckpt_create.dest_list)
 			m_MMGR_FREE_CPSV_CPND_DEST_INFO(ckpt_create.dest_list);
@@ -783,6 +793,9 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
+
+		cpsv_decode_extended_name(&arg->info.decode.i_uba, &ckpt_create->ckpt_name);
+
 		cpd_msg->type = evt_type;
 		cpd_msg->info.ckpt_create = *ckpt_create;
 		rc = cpd_process_sb_msg(cb, cpd_msg);
@@ -808,6 +821,9 @@ uint32_t cpd_mbcsv_dec_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
+
+		cpsv_decode_extended_name(&arg->info.decode.i_uba, &ckpt_unlink->ckpt_name);
+
 		cpd_msg->type = evt_type;
 		cpd_msg->info.ckpt_ulink = *ckpt_unlink;
 		rc = cpd_process_sb_msg(cb, cpd_msg);
@@ -998,6 +1014,9 @@ uint32_t cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			TRACE_LEAVE();
 			return rc;
 		}
+
+		cpsv_decode_extended_name(&arg->info.decode.i_uba, &ckpt_data->ckpt_name);
+
 		mbcsv_msg.info.ckpt_create = *ckpt_data;
 		proc_rc = cpd_sb_proc_ckpt_create(cb, &mbcsv_msg);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
@@ -1006,6 +1025,9 @@ uint32_t cpd_mbcsv_dec_sync_resp(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		count++;
 		if (ckpt_data->dest_list)
 			m_MMGR_FREE_CPSV_SYS_MEMORY(ckpt_data->dest_list);
+
+		if (osaf_is_an_extended_name(&ckpt_data->ckpt_name))
+			free((void *)osaf_extended_name_borrow(&ckpt_data->ckpt_name));
 
 		memset(ckpt_data, 0, sizeof(CPD_A2S_CKPT_CREATE));
 		memset(&mbcsv_msg, 0, sizeof(CPD_MBCSV_MSG));
