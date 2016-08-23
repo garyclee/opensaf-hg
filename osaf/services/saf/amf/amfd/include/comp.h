@@ -40,7 +40,7 @@
 #include <saImm.h>
 #include <amf_d2nmsg.h>
 #include <cb.h>
-#include "db_template.h"
+#include <amf_db_template.h>
 
 class AVD_SU;
 class AVD_COMP_TYPE;
@@ -58,7 +58,8 @@ typedef struct {
 class AVD_COMP {
  public:
   AVD_COMP();
-  explicit AVD_COMP(const SaNameT* dn );
+  explicit AVD_COMP(const std::string& dn);
+  ~AVD_COMP();
 
 /**
  * Set the presence state of the specified component, log, update IMM & check point to peer
@@ -93,7 +94,7 @@ bool is_preinstantiable() const;
 bool is_comp_assigned_any_csi() const;
 SaAisErrorT check_comp_stability() const;
 
-  SaNameT saAmfCompType;
+  std::string saAmfCompType;
 
   /* Detailed as in data structure definition */
   AVSV_COMP_INFO comp_info;	/* component name field with 
@@ -136,16 +137,16 @@ SaAisErrorT check_comp_stability() const;
                                  * been assigned standby to this component
                                  * Checkpointing - Sent update independently.
                                  */
-  SaNameT comp_proxy_csi;
-  SaNameT comp_container_csi;
+  std::string comp_proxy_csi;
+  std::string comp_container_csi;
 
   /* runtime attributes */
   SaAmfOperationalStateT saAmfCompOperState;	
   SaAmfReadinessStateT   saAmfCompReadinessState;
   SaAmfPresenceStateT    saAmfCompPresenceState;
   SaUint32T              saAmfCompRestartCount;
-  SaNameT                saAmfCompCurrProxyName;
-  SaNameT              **saAmfCompCurrProxiedNames;
+  std::string            saAmfCompCurrProxyName;
+  std::vector<std::string> saAmfCompCurrProxiedNames;
 
   bool assign_flag;	/* Flag used while assigning. to mark this
                          * comp has been assigned a CSI from
@@ -172,10 +173,10 @@ extern AmfDb<std::string, AVD_COMP> *comp_db;
 /* AMF Class SaAmfCompType */
 class AVD_COMP_TYPE {
  public:
-  explicit AVD_COMP_TYPE(const SaNameT *dn);
-  SaNameT name {};
+  explicit AVD_COMP_TYPE(const std::string& dn);
+  std::string name {};
   SaUint32T saAmfCtCompCategory {};
-  SaNameT saAmfCtSwBundle {};
+  std::string saAmfCtSwBundle {};
   char saAmfCtDefCmdEnv[AVSV_MISC_STR_MAX_SIZE] {};
   SaTimeT saAmfCtDefClcCliTimeout {};
   SaTimeT saAmfCtDefCallbackTimeout {};
@@ -208,14 +209,14 @@ class AVD_COMPCS_TYPE {
 public:
 	AVD_COMPCS_TYPE();
 
-	explicit AVD_COMPCS_TYPE(const SaNameT *dn);
+	explicit AVD_COMPCS_TYPE(const std::string& dn);
 
-	SaNameT name {};
+	std::string name {};
 	SaUint32T saAmfCompNumMaxActiveCSIs {};
 	SaUint32T saAmfCompNumMaxStandbyCSIs {};
 	SaUint32T saAmfCompNumCurrActiveCSIs {};
 	SaUint32T saAmfCompNumCurrStandbyCSIs {};
-	std::vector<SaNameT> saAmfCompAssignedCsi {};
+	std::vector<std::string> saAmfCompAssignedCsi {};
 	AVD_COMP *comp {};
 private:
 	// disallow copy and assign
@@ -227,9 +228,9 @@ extern  AmfDb<std::string, AVD_COMPCS_TYPE> *compcstype_db;
 /* AMF Class SaAmfCtCsType */
 class AVD_CTCS_TYPE {
  public:
-  explicit AVD_CTCS_TYPE(const SaNameT *dn);
+  explicit AVD_CTCS_TYPE(const std::string& dn);
 
-  SaNameT name {};
+  std::string name {};
   SaAmfCompCapabilityModelT saAmfCtCompCapability {};
   SaUint32T saAmfCtDefNumMaxActiveCSIs {};
   SaUint32T saAmfCtDefNumMaxStandbyCSIs {};
@@ -247,14 +248,14 @@ extern AVD_COMP_GLOBALATTR avd_comp_global_attrs;
 
 extern void avd_comp_db_add(AVD_COMP *comp);
 
-extern AVD_COMP *avd_comp_new(const SaNameT *dn);
+extern AVD_COMP *avd_comp_new(const std::string& dn);
 extern void avd_comp_delete(AVD_COMP *comp);
 extern void avd_su_remove_comp(AVD_COMP* comp);
-extern SaAisErrorT avd_comp_config_get(const SaNameT* su_name, AVD_SU *su);
+extern SaAisErrorT avd_comp_config_get(const std::string& su_name, AVD_SU *su);
 extern void avd_comp_constructor(void);
 
 extern SaAisErrorT avd_comptype_config_get(void);
-extern AVD_COMP_TYPE *avd_comptype_get(const SaNameT *comp_type_name);
+extern AVD_COMP_TYPE *avd_comptype_get(const std::string& comp_type_name);
 extern void avd_comptype_add_comp(AVD_COMP *comp);
 extern void avd_comptype_remove_comp(AVD_COMP *comp);
 extern void avd_comptype_constructor(void);
@@ -262,19 +263,22 @@ extern void avd_comptype_constructor(void);
 extern SaAisErrorT avd_compglobalattrs_config_get(void);
 extern void avd_compglobalattrs_constructor(void);
 
-extern SaAisErrorT avd_ctcstype_config_get(const SaNameT *comp_type_dn, AVD_COMP_TYPE *comp_type);
+extern SaAisErrorT avd_ctcstype_config_get(const std::string& comp_type_dn, AVD_COMP_TYPE *comp_type);
 extern void avd_ctcstype_constructor(void);
 
-extern AVD_COMPCS_TYPE *avd_compcstype_new(const SaNameT *dn);
+extern AVD_COMPCS_TYPE *avd_compcstype_new(const std::string& dn);
 extern void avd_compcstype_delete(AVD_COMPCS_TYPE **cst);
 extern void avd_compcstype_db_add(AVD_COMPCS_TYPE *cst);
-extern SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp);
-extern AVD_COMPCS_TYPE *avd_compcstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
-extern AVD_COMPCS_TYPE *avd_compcstype_get(const SaNameT *dn);
-extern AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn);
-extern AVD_COMPCS_TYPE * avd_compcstype_find_match(const SaNameT *csi, const AVD_COMP *comp);
+extern SaAisErrorT avd_compcstype_config_get(const std::string& comp_name, AVD_COMP *comp);
+extern AVD_COMPCS_TYPE *avd_compcstype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes);
+extern AVD_COMPCS_TYPE *avd_compcstype_get(const std::string& dn);
+extern AVD_COMPCS_TYPE *avd_compcstype_getnext(const std::string& dn);
+extern AVD_COMPCS_TYPE * avd_compcstype_find_match(const std::string& csi, const AVD_COMP *comp);
 extern void avd_compcstype_constructor(void);
-extern AVD_COMP *avd_comp_get_or_create(const SaNameT *dn);
-extern AVD_CTCS_TYPE *get_ctcstype(const SaNameT *comptype_name, const SaNameT *cstype_name);
+extern AVD_COMP *avd_comp_get_or_create(const std::string& dn);
+bool comp_is_preinstantiable(const AVD_COMP *comp);
+extern bool is_comp_assigned_any_csi(AVD_COMP *comp);
+extern SaAisErrorT check_comp_stability(const AVD_COMP*);
+extern AVD_CTCS_TYPE *get_ctcstype(const std::string& comptype_name, const std::string& cstype_name);
 extern void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata);
 #endif

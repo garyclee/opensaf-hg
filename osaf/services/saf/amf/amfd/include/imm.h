@@ -26,6 +26,7 @@
 
 #include <immutil.h>
 #include <queue>
+#include <string>
 
 typedef void (*AvdImmOiCcbApplyCallbackT) (CcbUtilOperationData_t *opdata);
 typedef SaAisErrorT (*AvdImmOiCcbCompletedCallbackT) (CcbUtilOperationData_t *opdata);
@@ -59,7 +60,7 @@ public:
 class ImmObjCreate : public Job {
 public:
 	SaImmClassNameT className_;
-	SaNameT parentName_;
+	std::string parentName_;
 	const SaImmAttrValuesT_2 **attrValues_;
 	
 	AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle);
@@ -70,7 +71,7 @@ public:
 //
 class ImmObjUpdate : public Job {
 public:
-	SaNameT dn_;
+	std::string dn;
 	SaImmAttrNameT attributeName_;
 	SaImmValueTypeT attrValueType_;
 	void *value_;
@@ -83,11 +84,11 @@ public:
 //
 class ImmObjDelete : public Job {
 public:
-	SaNameT dn_;
+	std::string dn;
 	
 	AvdJobDequeueResultT exec(SaImmOiHandleT immOiHandle);
 	
-	~ImmObjDelete() {}
+	~ImmObjDelete();
 };
 
 class ImmAdminResponse : public Job {
@@ -135,7 +136,7 @@ private:
  * @param ccb_apply_cb
  * @param ccb_abort_cb
  */
-void avd_class_impl_set(const char *className,
+void avd_class_impl_set(const std::string& className,
 	SaImmOiRtAttrUpdateCallbackT rtattr_cb, SaImmOiAdminOperationCallbackT_2 adminop_cb,
 	AvdImmOiCcbCompletedCallbackT ccb_compl_cb, AvdImmOiCcbApplyCallbackT ccb_apply_cb);
 /**
@@ -149,13 +150,13 @@ void avd_class_impl_set(const char *className,
 SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata);
 
 extern unsigned int avd_imm_config_get(void);
-extern SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn,
+extern SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn,
 	SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value);
-extern void avd_saImmOiRtObjectUpdate(const SaNameT* dn, const char *attributeName,
+extern void avd_saImmOiRtObjectUpdate(const std::string& dn, const std::string& attributeName,
      SaImmValueTypeT attrValueType, void* value);
-extern void avd_saImmOiRtObjectCreate(const char *className,
-	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues);
-extern void avd_saImmOiRtObjectDelete(const SaNameT* objectName);
+extern void avd_saImmOiRtObjectCreate(const std::string& lassName,
+	const std::string& parentName, const SaImmAttrValuesT_2 **attrValues);
+extern void avd_saImmOiRtObjectDelete(const std::string& objectName);
 
 extern void avd_imm_reinit_bg(void);
 extern void avd_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,

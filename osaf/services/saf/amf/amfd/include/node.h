@@ -41,9 +41,10 @@
 #include <su.h>
 #include <amf_d2nmsg.h>
 #include <timer.h>
-#include <db_template.h>
+#include <amf_db_template.h>
 #include <set>
 #include <vector>
+#include <string>
 
 class AVD_SU;
 struct avd_cluster_tag;
@@ -76,12 +77,12 @@ class AVD_AMF_NG;
 class AVD_AVND {
  public:
   AVD_AVND();
-  explicit AVD_AVND(const SaNameT* dn);
+  explicit AVD_AVND(const std::string& dn);
   ~AVD_AVND();
 
   bool is_node_lock();
-  SaNameT name; /* DN */ 
-  char *node_name;    /* RDN value, normally the short host name */
+  std::string name; /* DN */ 
+  std::string node_name;    /* RDN value, normally the short host name */
   SaClmClusterNodeT_4 node_info;	/* the node information of the node on
 					 * which this AvND exists. The length
 					 * field of nodeName structure is in
@@ -95,7 +96,7 @@ class AVD_AVND {
 				 * Checkpointing - Sent on node up.
 				 */
   /************ AMF B.04 **************************************************/
-  SaNameT saAmfNodeClmNode;
+  std::string saAmfNodeClmNode;
   char *saAmfNodeCapacity;
   SaTimeT saAmfNodeSuFailOverProb;
   SaUint32T saAmfNodeSuFailoverMax;
@@ -165,7 +166,7 @@ class AVD_AMF_NG {
 public:
 	AVD_AMF_NG();
 
-	SaNameT name;
+	std::string name;
 	std::set<std::string> saAmfNGNodeList;
 	
 	/* number of element in saAmfNGNodeList */
@@ -198,16 +199,14 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
 }
 
 /* AMF Node */
-extern AVD_AVND *avd_node_new(const SaNameT *dn);
+extern AVD_AVND *avd_node_new(const std::string& dn);
 extern void avd_node_delete(AVD_AVND *avnd);
 extern void avd_node_db_add(AVD_AVND *node);
-extern AVD_AVND *avd_node_get(const SaNameT *node_name);
 extern AVD_AVND *avd_node_get(const std::string& node_name);
-extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);
+extern AVD_AVND *avd_node_getnext(const std::string& node_name);
 extern uint32_t avd_node_add_nodeid(AVD_AVND *avnd);
 extern void avd_node_delete_nodeid(AVD_AVND *node);
 extern AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id);
-extern AVD_AVND *avd_node_get(const SaNameT *dn);
 extern SaAisErrorT avd_node_config_get(void);
 extern void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state);
 extern void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state);
@@ -222,7 +221,7 @@ extern void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 extern void node_reset_su_try_inst_counter(const AVD_AVND *node);
 /* AMF Node group */
 extern SaAisErrorT avd_ng_config_get(void);
-extern AVD_AMF_NG *avd_ng_get(const SaNameT *dn);
+extern AVD_AMF_NG *avd_ng_get(const std::string& dn);
 extern void avd_ng_constructor(void);
 extern bool node_in_nodegroup(const std::string& node, const AVD_AMF_NG *ng);
 

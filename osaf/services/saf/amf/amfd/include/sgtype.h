@@ -26,18 +26,18 @@
 #define AVD_SGTYPE_H
 
 #include <saAmf.h>
-#include <include/db_template.h>
+#include <amf_db_template.h>
 #include <vector>
 
 class AVD_SG;
 
 class AVD_AMF_SG_TYPE {
  public:
-  explicit AVD_AMF_SG_TYPE(const SaNameT *dn);
-  SaNameT name {};
+  explicit AVD_AMF_SG_TYPE(const std::string& dn);
+  std::string name {};
   bool saAmfSgtDefAutoRepair_configured {}; /* True when user configures saAmfSGDefAutoRepair else false */
    /******************** B.04 model *************************************************/
-  SaNameT *saAmfSGtValidSuTypes {};	/* array of DNs, size in number_su_type */
+  std::vector<std::string> saAmfSGtValidSuTypes {};	/* array of DNs, size in number_su_type */
   SaAmfRedundancyModelT saAmfSgtRedundancyModel {};
   SaBoolT saAmfSgtDefAutoRepair {};
   SaBoolT saAmfSgtDefAutoAdjust {};
@@ -61,7 +61,7 @@ class AVD_AMF_SG_TYPE {
 
 extern AmfDb<std::string, AVD_AMF_SG_TYPE> *sgtype_db;
 SaAisErrorT avd_sgtype_config_get(void);
-AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn);
+AVD_AMF_SG_TYPE *avd_sgtype_get(const std::string& dn);
 void avd_sgtype_add_sg(AVD_SG *sg);
 void avd_sgtype_remove_sg(AVD_SG *sg);
 void avd_sgtype_constructor(void);

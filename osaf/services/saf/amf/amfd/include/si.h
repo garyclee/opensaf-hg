@@ -71,11 +71,11 @@ typedef enum {
 class AVD_SI {
 public:
 	AVD_SI();
-	SaNameT name;
+	std::string name;
 
 	/******************** B.04 model *************************************************/
-	SaNameT saAmfSvcType;
-	SaNameT saAmfSIProtectedbySG;
+	std::string saAmfSvcType;
+	std::string saAmfSIProtectedbySG;
 	uint32_t saAmfSIRank;
 	std::vector<std::string> saAmfSIActiveWeight;
 	std::vector<std::string> saAmfSIStandbyWeight;
@@ -120,7 +120,7 @@ public:
 
 	void set_admin_state(SaAmfAdminStateT state);
 
-	void add_rankedsu(const SaNameT *suname, uint32_t saAmfRank);
+	void add_rankedsu(const std::string& suname, uint32_t saAmfRank);
 	void remove_rankedsu(const std::string &suname);
 	
 	void set_si_switch(AVD_CL_CB *cb, const SaToggleState state);
@@ -154,10 +154,10 @@ private:
 extern AmfDb<std::string, AVD_SI> *si_db;
 #define AVD_SI_NULL ((AVD_SI *)0)
 
-extern AVD_SI *avd_si_new(const SaNameT *dn);
+extern AVD_SI *avd_si_new(const std::string& dn);
 extern void avd_si_delete(AVD_SI *si);
 extern void avd_si_db_add(AVD_SI *si);
-extern AVD_SI *avd_si_get(const SaNameT *si_name);
+extern AVD_SI *avd_si_get(const std::string& si_name);
 extern SaAisErrorT avd_si_config_get(AVD_APP *app);
 extern void avd_si_constructor(void);
 

@@ -40,7 +40,6 @@
 #include <sgtype.h>
 #include <amf_defs.h>
 #include <amf_d2nmsg.h>
-#include "db_template.h"
 #include "node.h"
 #include <list>
 
@@ -70,14 +69,14 @@ public:
 	AVD_SG();
 	virtual ~AVD_SG() {};
 
-	SaNameT name;		/* the service group DN used as the index.
+	std::string name;		/* the service group DN used as the index.
 				 * Checkpointing - Sent as a one time update.
 				 */
 
 	bool saAmfSGAutoRepair_configured; /* True when user configures saAmfSGAutoRepair else false */
    /******************** B.04 model *************************************************/
-	SaNameT saAmfSGType;	/* Network order. */
-	SaNameT saAmfSGSuHostNodeGroup;	/* Network order. */
+	std::string saAmfSGType;	/* Network order. */
+	std::string saAmfSGSuHostNodeGroup;	/* Network order. */
 	SaBoolT saAmfSGAutoRepair;
 	SaBoolT saAmfSGAutoAdjust;
 
@@ -578,7 +577,7 @@ private:
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);
-extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app);
+extern SaAisErrorT avd_sg_config_get(const std::string& app_dn, AVD_APP *app);
 extern void avd_sg_add_su(AVD_SU *su);
 extern void avd_sg_remove_su(AVD_SU *su);
 extern void avd_sg_constructor(void);

@@ -67,14 +67,14 @@ typedef struct avd_su_si_rel_tag {
 	struct avd_su_si_rel_tag *si_next;	/* The next element in the list w.r.t to SI */
 	/* To check which comp-csi is being added/removed. */
 	SaBoolT csi_add_rem;
-	SaNameT comp_name;
-	SaNameT csi_name;
+	std::string comp_name;
+	std::string csi_name;
 } AVD_SU_SI_REL;
 
 /* SusperSiRank table index structure */
 typedef struct avd_sus_per_si_rank_index_tag {
 
-	SaNameT si_name;
+	std::string si_name;
 	uint32_t su_rank;	/* The rank of the SU */
 
 } AVD_SUS_PER_SI_RANK_INDX;
@@ -84,7 +84,7 @@ typedef struct avd_sus_per_si_rank_index_tag {
  */
 typedef struct avd_sus_per_si_rank_tag {
 	AVD_SUS_PER_SI_RANK_INDX indx;	/* Table index */
-	SaNameT su_name;	/* name of the SU as SaNameT */
+	std::string su_name;	/* name of the SU as std::string */
 	AVD_SI *sus_per_si_rank_on_si;
 	struct avd_sus_per_si_rank_tag *sus_per_si_rank_list_si_next;
 
@@ -137,12 +137,12 @@ extern AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK> *sirankedsu_
 }
 
 AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, bool ckpt);
-AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaNameT *si_name);
+AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const std::string& su_name, const std::string& si_name);
 extern void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 
-AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_name);
+AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const std::string& si_name);
 uint32_t avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, bool ckpt);
-extern SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si);
+extern SaAisErrorT avd_sirankedsu_config_get(const std::string& si_name, AVD_SI *si);
 extern void avd_sirankedsu_constructor(void);
 extern void avd_susi_ha_state_set(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 uint32_t avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);

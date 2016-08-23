@@ -94,7 +94,7 @@ typedef struct avd_ext_comp_info {
  * during fail over.
  */
 typedef struct avd_evt_queue {
-	struct avd_evt_tag *evt;
+	struct AVD_EVT *evt;
 	struct avd_evt_queue *next;
 } AVD_EVT_QUEUE;
 
@@ -241,6 +241,6 @@ typedef struct cl_cb_tag {
 
 extern AVD_CL_CB *avd_cb;
 
-struct avd_evt_tag;
+struct AVD_EVT;
 
 #endif

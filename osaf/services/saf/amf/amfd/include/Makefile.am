@@ -31,7 +31,6 @@ noinst_HEADERS = \
    comp.h \
    clm.h \
    csi.h \
-   db_template.h \
    def.h \
    evt.h \
    amfd.h \

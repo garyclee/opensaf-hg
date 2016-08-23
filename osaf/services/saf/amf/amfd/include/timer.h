@@ -35,6 +35,7 @@
 
 #include <saflog.h>
 #include <ncssysf_tmr.h>
+#include <string>
 
 /* timer type enums */
 typedef enum avd_tmr_type {
@@ -53,8 +54,8 @@ typedef struct avd_tmr_tag {
 	tmr_t tmr_id;
 	AVD_TMR_TYPE type;
 	SaClmNodeIdT node_id;
-	SaNameT spons_si_name;
-	SaNameT dep_si_name;
+	std::string spons_si_name;
+	std::string dep_si_name;
 	bool is_active;
 } AVD_TMR;
 

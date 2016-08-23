@@ -45,7 +45,7 @@ typedef struct avd_csi_attr_tag {
 } AVD_CSI_ATTR;
 
 typedef struct avd_csi_deps_tag {
-	SaNameT csi_dep_name_value; /* CSI dependency name and value */
+	std::string csi_dep_name_value; /* CSI dependency name and value */
 	struct avd_csi_deps_tag *csi_dep_next; /* the next CSI dependency in the list */
 } AVD_CSI_DEPS;
 
@@ -57,10 +57,10 @@ class AVD_CS_TYPE;
  */
 class AVD_CSI {
  public:
-  explicit AVD_CSI(const SaNameT* csi_name);
+  explicit AVD_CSI(const std::string& csi_name);
 
-  SaNameT name {};
-  SaNameT saAmfCSType {};
+  std::string name {};
+  std::string saAmfCSType {};
   AVD_CSI_DEPS *saAmfCSIDependencies {}; /* list of all CSI dependencies for this CSI */
   /* Rank is calculated based on CSI dependency. If no dependency configured then rank will be 1. 
      Else rank will one more than rank of saAmfCSIDependencies. */
@@ -85,7 +85,7 @@ class AVD_CSI {
   bool assign_flag = false;   /* Flag used while assigning. to mark this csi has been assigned a Comp
                          from * current SI being assigned */
 
-  static AVD_COMP* find_assigned_comp(const SaNameT *cstype, const AVD_SU_SI_REL *sisu, const std::vector<AVD_COMP*> &list_of_comp);
+  static AVD_COMP* find_assigned_comp(const std::string& cstype, const AVD_SU_SI_REL *sisu, const std::vector<AVD_COMP*> &list_of_comp);
 
  private:
   AVD_CSI();
@@ -98,9 +98,9 @@ extern AmfDb<std::string, AVD_CSI> *csi_db;
 
 class AVD_CS_TYPE {
  public:
-  explicit AVD_CS_TYPE(const SaNameT *dn);
-  SaNameT name {};		/* name of the CSType */
-  SaStringT *saAmfCSAttrName {};
+  explicit AVD_CS_TYPE(const std::string& dn);
+  std::string name {};		/* name of the CSType */
+  std::vector<std::string> saAmfCSAttrName {};
   AVD_CSI *list_of_csi {};
 
  private:
@@ -135,7 +135,7 @@ typedef struct avd_comp_csi_rel_tag {
  * 
  * @return AVD_CSI*
  */
-extern AVD_CSI *avd_csi_get(const SaNameT *csi_name);
+extern AVD_CSI *avd_csi_get(const std::string& csi_name);
 
 /**
  * Create a AVD_COMP_CSI_REL and link it with the specified SUSI & CSI.
@@ -164,23 +164,23 @@ extern AVD_COMP_CSI_REL *avd_compcsi_create(struct avd_su_si_rel_tag *susi, AVD_
 extern uint32_t avd_compcsi_delete(AVD_CL_CB *cb, struct avd_su_si_rel_tag *susi, bool ckpt);
 
 extern SaAisErrorT avd_cstype_config_get(void);
-extern SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si);
+extern SaAisErrorT avd_csi_config_get(const std::string& si_name, AVD_SI *si);
 
 extern void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr);
 extern void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr);
 extern void avd_csi_constructor(void);
 
-extern AVD_CS_TYPE *avd_cstype_get(const SaNameT *dn);
+extern AVD_CS_TYPE *avd_cstype_get(const std::string& dn);
 extern void avd_cstype_add_csi(AVD_CSI *csi);
 extern void avd_cstype_remove_csi(AVD_CSI *csi);
 extern void avd_cstype_constructor(void);
 
-extern SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi);
+extern SaAisErrorT avd_csiattr_config_get(const std::string& csi_name, AVD_CSI *csi);
 extern void avd_csiattr_constructor(void);
 extern void avd_compcsi_from_csi_and_susi_delete(struct avd_su_si_rel_tag *susi, struct avd_comp_csi_rel_tag *comp_csi, bool ckpt);
 extern void avd_csi_delete(AVD_CSI *csi);
 extern void csi_cmplt_delete(AVD_CSI *csi, bool ckpt);
-extern AVD_CSI *csi_create(const SaNameT *csi_name);
+extern AVD_CSI *csi_create(const std::string& csi_name);
 extern bool csi_assignment_validate(AVD_SG *sg);
 extern SaAisErrorT csi_assign_hdlr(AVD_CSI *csi);
 extern bool are_sponsor_csis_assigned_in_su(AVD_CSI *dep_csi, AVD_SU *su);

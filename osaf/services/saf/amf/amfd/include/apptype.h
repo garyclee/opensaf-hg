@@ -29,16 +29,16 @@
 
 #include <sg.h>
 #include <si.h>
-#include "db_template.h"
+#include <amf_db_template.h>
 
 class AVD_APP;
 
 class AVD_APP_TYPE {
  public:
-  explicit AVD_APP_TYPE(const SaNameT* dn);
+  explicit AVD_APP_TYPE(const std::string& dn);
   ~AVD_APP_TYPE();
-  SaNameT name {};
-  std::vector<SaNameT> sgAmfApptSGTypes {};
+  std::string name {};
+  std::vector<std::string> sgAmfApptSGTypes {};
   AVD_APP *list_of_app {};
  private:
   AVD_APP_TYPE();
@@ -47,7 +47,7 @@ class AVD_APP_TYPE {
   void operator=(const AVD_APP_TYPE&);
 };
 
-extern AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn);
+extern AVD_APP_TYPE *avd_apptype_get(const std::string& dn);
 extern void avd_apptype_add_app(AVD_APP *app);
 extern void avd_apptype_remove_app(AVD_APP *app);
 extern SaAisErrorT avd_apptype_config_get(void);
