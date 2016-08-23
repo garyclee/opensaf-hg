@@ -618,7 +618,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				goto done;
 				
 			}
-            const std::string required_dn(Amf::to_string(static_cast<SaNameT *>(attr_mod->modAttr.attrValues[0])));
+			const std::string required_dn(Amf::to_string(static_cast<SaNameT *>(attr_mod->modAttr.attrValues[0])));
 			const AVD_CSI *required_csi = csi_db->find(required_dn);
 
 			// Required CSI must exist in current model
@@ -629,7 +629,9 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 
 			// Required CSI must be contained in the same SI
-			if (object_name.find(required_dn) == std::string::npos) {
+			std::string si_name;
+			avsv_sanamet_init(required_dn, si_name, "safSi");
+			if (object_name.find(si_name) == std::string::npos) {
 				report_ccb_validation_error(opdata,
 						"'%s' is not in the same SI as '%s'",
 						object_name.c_str(), required_dn.c_str());

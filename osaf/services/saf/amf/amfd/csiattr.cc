@@ -156,12 +156,13 @@ static AVD_CSI_ATTR *csi_name_value_pair_find_last_entry(const AVD_CSI *csi, con
  **************************************************************************/
 static AVD_CSI_ATTR * csi_name_value_pair_find(const AVD_CSI *csi, const std::string& csiattr_name, const char *value)
 {
-        AVD_CSI_ATTR *i_attr = csi->list_attributes;
+	AVD_CSI_ATTR *i_attr = csi->list_attributes;
 	TRACE_ENTER();
 
         while (i_attr != nullptr) {
 		if ((csiattr_name.compare(Amf::to_string(&i_attr->name_value.name)) == 0) &&
 				(strncmp((char *)i_attr->name_value.string_ptr, value, strlen(value)) == 0)) {
+			TRACE_LEAVE();
 			return i_attr;
 		}
                 i_attr = i_attr->attr_next;
@@ -182,6 +183,7 @@ static AVD_CSI_ATTR * is_csiattr_exists(const AVD_CSI *csi, const std::string& c
 
 	while (i_attr != nullptr) {
 		if (dn.compare(Amf::to_string(&i_attr->name_value.name)) == 0) {
+			TRACE_LEAVE();
 			return i_attr;
 		}
 		i_attr = i_attr->attr_next;
@@ -534,7 +536,7 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 					i_attr->attr_next = csiattr;
 					csiattr = i_attr;
 
-					osaf_extended_name_alloc(csi_attr_name.c_str(), &csiattr->name_value.value);
+					osaf_extended_name_alloc(csi_attr_name.c_str(), &csiattr->name_value.name);
 					csiattr->name_value.string_ptr = new char[strlen(value)+1]();
 					memcpy(csiattr->name_value.string_ptr, value, strlen(value)+1 );
 				} /* for  */
