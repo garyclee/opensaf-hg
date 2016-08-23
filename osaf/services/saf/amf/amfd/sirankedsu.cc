@@ -107,7 +107,6 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, const AVD_SUS_PER
 	AVD_SUS_PER_SI_RANK *ranked_su_per_si = nullptr;
 	AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
-	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 	rank_indx.si_name = indx.si_name;
 	rank_indx.su_rank = indx.su_rank;
 
@@ -171,7 +170,6 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
 	avd_susi_namet_init(Amf::to_string(dn), su_name, si_name);
 
 	/* Find the avd_sus_per_si_rank name. */
-	memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 	indx.si_name = si_name;
 	indx.su_rank = rank;
 
