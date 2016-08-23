@@ -1439,7 +1439,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 					/* No Checkpoints on this node, */
 					TRACE_LEAVE();
 					return NCSCC_RC_SUCCESS;
-				} else if (node_info && (node_info->ckpt_ref_list == NULL)) {
+				} else if (node_info->ckpt_ref_list == NULL) {
 					cpd_cpnd_info_node_delete(cb, node_info);
 					TRACE_LEAVE();
 					return NCSCC_RC_SUCCESS;
@@ -1453,7 +1453,7 @@ static uint32_t cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 					/* No Checkpoints on this node, */
 					return NCSCC_RC_SUCCESS;
 				}
-				else if (node_info && (node_info->ckpt_ref_list == NULL)) {
+				else if (node_info->ckpt_ref_list == NULL) {
 					cpd_cpnd_info_node_delete(cb, node_info);
 					TRACE_LEAVE();
 					return NCSCC_RC_SUCCESS;

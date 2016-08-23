@@ -904,7 +904,7 @@ SaUint32T cpd_get_scAbsenceAllowed_attr()
 
 	/* Handle the global scAbsenceAllowed_flag */
 	attribute = attributes[0];
-	TRACE("%s attrName \"%s\"",__FUNCTION__,attribute->attrName);
+	TRACE("%s attrName \"%s\"",__FUNCTION__,attribute?attribute->attrName:"");
 	if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
 		/* scAbsenceAllowed has value. Get the value */
 		value = attribute->attrValues[0];

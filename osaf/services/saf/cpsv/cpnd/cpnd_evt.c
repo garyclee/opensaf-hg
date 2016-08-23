@@ -753,7 +753,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_MEMORY;
 		goto agent_rsp;
 	}
-	if (out_evt && out_evt->info.cpnd.info.ckpt_info.error != SA_AIS_OK) {
+	if (out_evt->info.cpnd.info.ckpt_info.error != SA_AIS_OK) {
 		send_evt.info.cpa.info.openRsp.error = out_evt->info.cpnd.info.ckpt_info.error;
 		goto agent_rsp;
 	}
@@ -866,10 +866,8 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 				goto ckpt_shm_node_free_error;
 			}
 		}
-		if (out_evt) {
-			cpnd_evt_destroy(out_evt);
-			out_evt = NULL;
-		}
+		cpnd_evt_destroy(out_evt);
+		out_evt = NULL;
 
 		/* if not the first collocated replica, response will come from REP_ADD processing */
 
@@ -2509,20 +2507,18 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 
 		/* Send the arrival callback */
 		memset(&ckpt_data, '\0', sizeof(CPSV_CKPT_DATA));
-		if (sec_info) {
-			ckpt_data.sec_id = sec_info->sec_id;
-			ckpt_data.data = NULL;
-			ckpt_data.dataSize = 0;
-			ckpt_data.dataOffset = 0;
+		ckpt_data.sec_id = sec_info->sec_id;
+		ckpt_data.data = NULL;
+		ckpt_data.dataSize = 0;
+		ckpt_data.dataOffset = 0;
 
-			memset(&ckpt_access, '\0', sizeof(CPSV_CKPT_ACCESS));
-			ckpt_access.ckpt_id = cp_node->ckpt_id;
-			ckpt_access.lcl_ckpt_id = evt->info.sec_delReq.lcl_ckpt_id;
-			ckpt_access.agent_mdest = evt->info.sec_delReq.agent_mdest;
-			ckpt_access.num_of_elmts = 1;
-			ckpt_access.data = &ckpt_data;
-			cpnd_proc_ckpt_arrival_info_ntfy(cb, cp_node, &ckpt_access, sinfo);
-		}
+		memset(&ckpt_access, '\0', sizeof(CPSV_CKPT_ACCESS));
+		ckpt_access.ckpt_id = cp_node->ckpt_id;
+		ckpt_access.lcl_ckpt_id = evt->info.sec_delReq.lcl_ckpt_id;
+		ckpt_access.agent_mdest = evt->info.sec_delReq.agent_mdest;
+		ckpt_access.num_of_elmts = 1;
+		ckpt_access.data = &ckpt_data;
+		cpnd_proc_ckpt_arrival_info_ntfy(cb, cp_node, &ckpt_access, sinfo);
 
 		if (cp_node->cpnd_dest_list != NULL) {
 			/* yes ,go trough cp_node->cpnd_dest_list(sync send) */
@@ -3969,11 +3965,7 @@ static uint32_t cpnd_proc_cpd_new_active(CPND_CB *cb)
 			break;
 		}
 
-		if (node)
-			m_MMGR_FREE_CPND_CPD_DEFERRED_REQ_NODE(node);
-
-		node = NULL;
-
+		m_MMGR_FREE_CPND_CPD_DEFERRED_REQ_NODE(node);
 		node = (CPND_CPD_DEFERRED_REQ_NODE *)ncs_dequeue(&cb->cpnd_cpd_deferred_reqs_list);
 	}
 	TRACE_LEAVE();
@@ -4679,7 +4671,7 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 
 	while (1) {
 
-		if (((tmp_sec_info) && ((size + tmp_sec_info->sec_size) > MAX_SYNC_TRANSFER_SIZE))
+		if (((size + tmp_sec_info->sec_size) > MAX_SYNC_TRANSFER_SIZE)
 		    || (total_num == cp_node->replica_info.n_secs)) {
 
 			send_evt.info.cpnd.info.ckpt_nd2nd_sync.num_of_elmts = num;
@@ -4737,6 +4729,13 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 		total_num++;
 
 		tmp_sec_info = cpnd_ckpt_sec_get_next(&cp_node->replica_info, tmp_sec_info);
+		if (tmp_sec_info == NULL) {
+			rc = NCSCC_RC_FAILURE;
+			TRACE_4("cpnd ckpt memory get next allocation failed");
+			send_evt.info.cpnd.info.ckpt_nd2nd_sync.data = sec_data;
+			cpnd_proc_free_cpsv_ckpt_data(send_evt.info.cpnd.info.ckpt_nd2nd_sync.data);
+			return rc;
+		}
 	}
 
 	TRACE_LEAVE();
