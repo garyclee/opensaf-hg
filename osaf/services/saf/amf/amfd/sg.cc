@@ -39,8 +39,8 @@ void avd_sg_db_add(AVD_SG *sg)
 {
 	unsigned int rc;
 
-	if (sg_db->find(Amf::to_string(&sg->name)) == nullptr) {
-		rc = sg_db->insert(Amf::to_string(&sg->name),sg);
+	if (sg_db->find(sg->name) == nullptr) {
+		rc = sg_db->insert(sg->name,sg);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -52,9 +52,9 @@ void avd_sg_db_add(AVD_SG *sg)
  */
 static void sg_add_to_model(AVD_SG *sg)
 {
-	SaNameT dn;
+	std::string dn;
 
-	TRACE_ENTER2("%s", sg->name.value);
+	TRACE_ENTER2("%s", sg->name.c_str());
 
 	/* Check parent link to see if it has been added already */
 	if (sg->app != nullptr) {
@@ -62,17 +62,18 @@ static void sg_add_to_model(AVD_SG *sg)
 		goto done;
 	}
 
-	avsv_sanamet_init(&sg->name, &dn, "safApp");
-	sg->app = app_db->find(Amf::to_string(&dn));
+	avsv_sanamet_init(sg->name, dn, "safApp");
+	sg->app = app_db->find(dn);
+	osafassert(sg->app != nullptr);
 
 	avd_sg_db_add(sg);
-	sg->sg_type = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
+	sg->sg_type = sgtype_db->find(sg->saAmfSGType);
 	osafassert(sg->sg_type);
 	avd_sgtype_add_sg(sg);
 	sg->app->add_sg(sg);
 
 	/* SGs belonging to a magic app will be NCS, TODO Better name! */
-	if (!strcmp((char *)dn.value, "safApp=OpenSAF"))
+	if (dn.compare("safApp=OpenSAF") == 0)
 		sg->sg_ncs_spec = true;
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
@@ -88,13 +89,16 @@ static void sg_remove_from_model(AVD_SG *sg)
 {
 	avd_sgtype_remove_sg(sg);
 	sg->app->remove_sg(sg);
-	sg_db->erase(Amf::to_string(&sg->name));
+	sg_db->erase(sg->name);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
 }
 
 AVD_SG::AVD_SG():
+		name(""),
 		saAmfSGAutoRepair_configured(false),
+		saAmfSGType(""),
+		saAmfSGSuHostNodeGroup(""),
 		saAmfSGAutoRepair(SA_FALSE),
 		saAmfSGAutoAdjust(SA_FALSE),
 		saAmfSGNumPrefActiveSUs(0),
@@ -127,14 +131,11 @@ AVD_SG::AVD_SG():
 		try_inst_counter(0)
 {
 	adminOp = static_cast<SaAmfAdminOperationIdT>(0);
-	memset(&name, 0, sizeof(SaNameT));
-	memset(&saAmfSGType, 0, sizeof(SaNameT));
-	memset(&saAmfSGSuHostNodeGroup, 0, sizeof(SaNameT));
 	adminOp_invocationId = 0;
 	ng_using_saAmfSGAdminState = false;
 }
 
-static AVD_SG *sg_new(const SaNameT *dn, SaAmfRedundancyModelT redundancy_model)
+static AVD_SG *sg_new(const std::string& dn, SaAmfRedundancyModelT redundancy_model)
 {
 	AVD_SG *sg = nullptr;
 
@@ -151,8 +152,7 @@ static AVD_SG *sg_new(const SaNameT *dn, SaAmfRedundancyModelT redundancy_model)
 	else
 		assert(0);
 
-	memcpy(sg->name.value, dn->value, dn->length);
-	sg->name.length = dn->length;
+	sg->name = dn;
 
 	return sg;
 }
@@ -195,21 +195,22 @@ void AVD_SG::remove_si(AVD_SI* si)
  * 
  * @return int
  */
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const std::string& dn,
+	const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc;
 	SaNameT aname;
 	SaBoolT abool;
 	SaAmfAdminStateT admstate;
-	char *parent;
+	std::string::size_type pos;
 
-	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	if ((pos = dn.find(',')) == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
 		return 0;
 	}
 
-	if (strncmp(++parent, "safApp=", 7) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
+	if (dn.compare(pos + 1, 7, "safApp=") != 0) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(pos +1).c_str(), dn.c_str());
 		return 0;
 	}
 
@@ -218,52 +219,53 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if (sgtype_db->find(Amf::to_string(&aname)) == nullptr) {
 		if (opdata == nullptr) {
-			report_ccb_validation_error(opdata, "'%s' does not exist in model", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", osaf_extended_name_borrow(&aname));
 			return 0;
 		}
 
 		/* SG type does not exist in current model, check CCB */
 		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == nullptr) {
-			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", aname.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB", osaf_extended_name_borrow(&aname));
 			return 0;
 		}
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAutoRepair"), attributes, 0, &abool) == SA_AIS_OK) &&
 			(abool > SA_TRUE)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSGAutoRepair %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSGAutoRepair %u for '%s'", abool, dn.c_str());
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAutoAdjust"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSGAutoAdjust %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSGAutoAdjust %u for '%s'", abool, dn.c_str());
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAdminState"), attributes, 0, &admstate) == SA_AIS_OK) &&
 	    !avd_admin_state_is_valid(admstate, opdata)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSGAdminState %u for '%s'", admstate, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSGAdminState %u for '%s'", admstate, dn.c_str());
 		return 0;
 	}
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGSuHostNodeGroup"), attributes, 0, &aname) == SA_AIS_OK) &&
-	    (avd_ng_get(&aname) == nullptr)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSGSuHostNodeGroup '%s' for '%s'", aname.value, dn->value);
+	    (avd_ng_get(Amf::to_string(&aname)) == nullptr)) {
+		report_ccb_validation_error(opdata, "Invalid saAmfSGSuHostNodeGroup '%s' for '%s'", osaf_extended_name_borrow(&aname), dn.c_str());
 		return 0;
 	}
 
 	return 1;
 }
 
-static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attributes)
+static AVD_SG *sg_create(const std::string& sg_name, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
 	AVD_SG *sg;
 	AVD_AMF_SG_TYPE *sgt;
 	SaAisErrorT error;
+	SaNameT temp_name;
 
-	TRACE_ENTER2("'%s'", sg_name->value);
+	TRACE_ENTER2("'%s'", sg_name.c_str());
 
 	SaNameT sgtype_dn;
 	error = immutil_getAttr("saAmfSGType", attributes, 0, &sgtype_dn);
@@ -271,11 +273,12 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 	sgt = sgtype_db->find(Amf::to_string(&sgtype_dn));
 	osafassert(sgt);
 	sg = sg_new(sg_name, sgt->saAmfSgtRedundancyModel);
-	sg->saAmfSGType = sgtype_dn;
+	sg->saAmfSGType = Amf::to_string(&sgtype_dn);
 	sg->sg_type = sgt;
 
-	(void)immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGSuHostNodeGroup"), attributes, 0, &sg->saAmfSGSuHostNodeGroup);
-
+	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGSuHostNodeGroup"), attributes, 0, &temp_name) == SA_AIS_OK) {
+		sg->saAmfSGSuHostNodeGroup = Amf::to_string(&temp_name);
+	}
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAutoRepair"), attributes, 0, &sg->saAmfSGAutoRepair) != SA_AIS_OK) {
 		sg->saAmfSGAutoRepair = sgt->saAmfSgtDefAutoRepair;
 		sg->saAmfSGAutoRepair_configured = false;
@@ -330,7 +333,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 		SaUint32T tmp;
 		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGMaxActiveSIsperSU"), attributes, 0, &tmp) == SA_AIS_OK) {
 			LOG_NO("'%s' attribute saAmfSGMaxActiveSIsperSU ignored, not valid for red model",
-				sg->name.value);
+				sg->name.c_str());
 		}
 	}
 
@@ -344,7 +347,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
 		SaUint32T tmp;
 		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGMaxStandbySIsperSU"), attributes, 0, &tmp) == SA_AIS_OK) {
 			LOG_NO("'%s' attribute saAmfSGMaxStandbySIsperSU ignored, not valid for red model",
-				sg->name.value);
+				sg->name.c_str());
 		}
 	}
 
@@ -393,7 +396,7 @@ static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attr
  * 
  * @return int
  */
-SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
+SaAisErrorT avd_sg_config_get(const std::string& app_dn, AVD_APP *app)
 {
 	AVD_SG *sg;
 	SaAisErrorT error, rc;
@@ -428,8 +431,7 @@ SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, app_dn, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_o2(avd_cb->immOmHandle, app_dn.c_str(), SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
 		configAttributes, &searchHandle);
 
@@ -441,19 +443,19 @@ SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
 	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &dn,
 		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 
-		if (!is_config_valid(&dn, attributes, nullptr)) {
+		if (!is_config_valid(Amf::to_string(&dn), attributes, nullptr)) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if ((sg = sg_create(&dn, attributes)) == nullptr) {
+		if ((sg = sg_create(Amf::to_string(&dn), attributes)) == nullptr) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
 		sg_add_to_model(sg);
 
-		if (avd_su_config_get(&dn, sg) != SA_AIS_OK) {
+		if (avd_su_config_get(Amf::to_string(&dn), sg) != SA_AIS_OK) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
@@ -476,7 +478,7 @@ done1:
  * @param supername
  * @return true/false
  */
-static bool ng_is_subset(const SaNameT *ngname, const AVD_AMF_NG *superng)
+static bool ng_is_subset(const std::string& ngname, const AVD_AMF_NG *superng)
 {
 	const AVD_AMF_NG *ng = avd_ng_get(ngname);
 
@@ -498,10 +500,10 @@ static bool ng_is_subset(const SaNameT *ngname, const AVD_AMF_NG *superng)
  * @param opdata
  * @return true/false
  */
-static bool ng_change_is_valid(const AVD_SG *sg, const SaNameT *ng_name,
+static bool ng_change_is_valid(const AVD_SG *sg, const std::string& ng_name,
 		const CcbUtilOperationData_t *opdata)
 {
-	if (sg->saAmfSGSuHostNodeGroup.length > 0) {
+	if (sg->saAmfSGSuHostNodeGroup.length() > 0) {
 		// A node group is currently configured for SG. A user wants
 		// to change it. Validate that the old node group is subset
 		// of the new one.
@@ -509,14 +511,14 @@ static bool ng_change_is_valid(const AVD_SG *sg, const SaNameT *ng_name,
 		const AVD_AMF_NG *ng = avd_ng_get(ng_name);
 		if (ng == nullptr) {
 			report_ccb_validation_error(opdata,
-					"Node Group '%s' not found", ng_name->value);
+					"Node Group '%s' not found", ng_name.c_str());
 			return false;
 		}
 
-		if (ng_is_subset(&sg->saAmfSGSuHostNodeGroup, ng) == false) {
+		if (ng_is_subset(sg->saAmfSGSuHostNodeGroup, ng) == false) {
 			report_ccb_validation_error(opdata,
 				"'%s' is not a subset of '%s'",
-				sg->saAmfSGSuHostNodeGroup.value, ng_name->value);
+				sg->saAmfSGSuHostNodeGroup.c_str(), ng_name.c_str());
 			return false;
 		}
 	} else {
@@ -538,7 +540,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 	int i = 0;
 	bool value_is_deleted = false;
 
-	TRACE_ENTER2("'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", osaf_extended_name_borrow(&opdata->objectName));
 
 	sg = sg_db->find(Amf::to_string(&opdata->objectName));
 	osafassert(sg != nullptr);
@@ -577,7 +579,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 
 				if (sgtype_db->find(Amf::to_string(&sg_type_name)) == nullptr) {
 					report_ccb_validation_error(opdata,
-						"SG Type '%s' not found", sg_type_name.value);
+						"SG Type '%s' not found", osaf_extended_name_borrow(&sg_type_name));
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -589,7 +591,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
-				if (ng_change_is_valid(sg, (SaNameT *)value, opdata) == false) {
+				if (ng_change_is_valid(sg, Amf::to_string(static_cast<SaNameT*>(value)), opdata) == false) {
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -625,7 +627,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
 				if (sg_autorepair > true ) {
 					report_ccb_validation_error(opdata,
-						"Invalid saAmfSGAutoRepair SG:'%s'", sg->name.value);
+						"Invalid saAmfSGAutoRepair SG:'%s'", sg->name.c_str());
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -678,7 +680,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
 				if (sg_autorepair > SA_TRUE) {
 					report_ccb_validation_error(opdata,
-						"Invalid saAmfSGAutoRepair SG:'%s'", sg->name.value);
+						"Invalid saAmfSGAutoRepair SG:'%s'", sg->name.c_str());
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -689,7 +691,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
-				if (ng_change_is_valid(sg, (SaNameT *)value, opdata) == false) {
+				if (ng_change_is_valid(sg, Amf::to_string(static_cast<SaNameT*>(value)), opdata) == false) {
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -818,10 +820,12 @@ static void sg_nd_attribute_update(AVD_SG *sg, uint32_t attrib_id)
 		su_node_ptr = su->get_node_ptr();
 
 		if ((su_node_ptr) && (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT)) {
-			param.name = su->name;
+			SaNameT su_name;
+			osaf_extended_name_lend(su->name.c_str(), &su_name);
+			param.name = su_name;
 
 			if (avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) != NCSCC_RC_SUCCESS) {
-				LOG_ER("%s::failed for %s",__FUNCTION__, su_node_ptr->name.value);
+				LOG_ER("%s::failed for %s",__FUNCTION__, su_node_ptr->name.c_str());
 			}
 		}
 	}
@@ -837,12 +841,12 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	void *value = nullptr;
 	bool value_is_deleted;
 
-	TRACE_ENTER2("'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", osaf_extended_name_borrow(&opdata->objectName));
 
 	sg = sg_db->find(Amf::to_string(&opdata->objectName));
 	assert(sg != nullptr);
 
-	sg_type = sgtype_db->find(Amf::to_string(&sg->saAmfSGType));
+	sg_type = sgtype_db->find(sg->saAmfSGType);
 	osafassert(nullptr != sg_type);
 
 	if (sg->saAmfSGAdminState != SA_AMF_ADMIN_UNLOCKED) {
@@ -861,8 +865,8 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 			if (!strcmp(attribute->attrName, "saAmfSGType")) {
 				SaNameT sg_type_name = *((SaNameT *)value);
-				TRACE("saAmfSGType modified from '%s' to '%s' of Sg'%s'", sg->saAmfSGType.value, 
-						sg_type_name.value, sg->name.value);
+				TRACE("saAmfSGType modified from '%s' to '%s' of Sg'%s'", sg->saAmfSGType.c_str(), 
+						osaf_extended_name_borrow(&sg_type_name), sg->name.c_str());
 
 				sg_type = sgtype_db->find(Amf::to_string(&sg_type_name));
 				osafassert(nullptr != sg_type);
@@ -870,7 +874,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				/* Remove from old type */
 				avd_sgtype_remove_sg(sg);
 
-				sg->saAmfSGType = sg_type_name;
+				sg->saAmfSGType = Amf::to_string(&sg_type_name);
 
 				/* Fill the relevant values from sg_type. */
 				sg->saAmfSGAutoRepair = sg_type->saAmfSgtDefAutoRepair;
@@ -902,7 +906,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				}
 				TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
 				amflog(LOG_NOTICE, "%s saAmfSGAutoRepair changed to %u",
-					sg->name.value, sg->saAmfSGAutoRepair);
+					sg->name.c_str(), sg->saAmfSGAutoRepair);
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
 				TRACE("Old saAmfSGAutoAdjust is '%u'", sg->saAmfSGAutoAdjust);
 				if (value_is_deleted)
@@ -948,7 +952,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					} else {
 						LOG_NO("'%s' attribute saAmfSGMaxActiveSIsperSU not modified,"
 								" not valid for Nored/2N Redundancy models",
-								sg->name.value);
+								sg->name.c_str());
 					}
 				}
 			} else if (!strcmp(attribute->attrName, "saAmfSGMaxStandbySIsperSU")) {
@@ -963,7 +967,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 					} else {
 						LOG_NO("'%s' attribute saAmfSGMaxStandbySIsperSU not modified,"
 								" not valid for Nored/2N/NwayAct Redundancy models",
-								sg->name.value);
+								sg->name.c_str());
 					}
 				}
 			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjustProb")) {
@@ -1001,7 +1005,7 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				TRACE("Modified saAmfSGSuRestartMax is '%u'", sg->saAmfSGSuRestartMax);
 				sg_nd_attribute_update(sg, saAmfSGSuRestartMax_ID);
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
-				sg->saAmfSGSuHostNodeGroup = *((SaNameT *)value);
+				sg->saAmfSGSuHostNodeGroup = Amf::to_string(static_cast<SaNameT *>(value));
 			} else {
 				osafassert(0);
 			}
@@ -1078,9 +1082,9 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				}
 				TRACE("Modified saAmfSGAutoRepair is '%u'", sg->saAmfSGAutoRepair);
 				amflog(LOG_NOTICE, "%s saAmfSGAutoRepair changed to %u",
-					sg->name.value, sg->saAmfSGAutoRepair);
+					sg->name.c_str(), sg->saAmfSGAutoRepair);
 			} else if (!strcmp(attribute->attrName, "saAmfSGSuHostNodeGroup")) {
-				sg->saAmfSGSuHostNodeGroup = *((SaNameT *)value);
+				sg->saAmfSGSuHostNodeGroup = Amf::to_string(static_cast<SaNameT*>(value));
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefActiveSUs")) {
 				if (value_is_deleted) {
 					/* TODO: This really should be handled in ccb_completed_modify_hdlr */
@@ -1128,10 +1132,10 @@ uint32_t AVD_SG::term_su_list_in_reverse()
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU *su;
 
-	TRACE_ENTER2("sg: %s", this->name.value);
+	TRACE_ENTER2("sg: %s", this->name.c_str());
 	for (auto iter = list_of_su.rbegin(); iter != list_of_su.rend(); ++iter) {
 		su = *iter;
-		TRACE("terminate su:'%s'", su ? su->name.value : nullptr);
+		TRACE("terminate su:'%s'", su ? su->name.c_str() : nullptr);
 
 		if ((su->saAmfSUPreInstantiable == true) &&
 			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
@@ -1142,7 +1146,7 @@ uint32_t AVD_SG::term_su_list_in_reverse()
 				su->set_term_state(true);
 			} else {
 				rc = NCSCC_RC_FAILURE;
-				LOG_WA("Failed Termination '%s'", su->name.value);
+				LOG_WA("Failed Termination '%s'", su->name.c_str());
 			}
 		}
 	}
@@ -1160,7 +1164,7 @@ static uint32_t sg_app_sg_admin_lock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s", sg->name.value);
+	TRACE_ENTER2("%s", sg->name.c_str());
 
 	/* terminate all the SUs on this Node */
 	if (sg->list_of_su.empty() == false)
@@ -1180,7 +1184,7 @@ static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	uint32_t su_try_inst;
 
-	TRACE_ENTER2("%s", sg->name.value);
+	TRACE_ENTER2("%s", sg->name.c_str());
 
 	/* Instantiate the SUs in this SG */
 	su_try_inst = 0;
@@ -1196,7 +1200,7 @@ static void sg_app_sg_admin_unlock_inst(AVD_CL_CB *cb, AVD_SG *sg)
 					if (su->sg_of_su->saAmfSGNumPrefInserviceSUs > su_try_inst) {
 						if (avd_snd_presence_msg(cb, su, false) != NCSCC_RC_SUCCESS) {
 							LOG_NO("%s: Failed to send Instantiation order of '%s' to %x",
-									__FUNCTION__, su->name.value,
+									__FUNCTION__, su->name.c_str(),
 									su->su_on_node->node_info.nodeId);
 						} else {
 							su_try_inst++;
@@ -1224,7 +1228,7 @@ bool sg_is_tolerance_timer_running_for_any_si(AVD_SG *sg)
 {
 	for (const auto& si : sg->list_of_si) {
 		if (si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING) {
-			TRACE("Tolerance timer running for si: %s",si->name.value);
+			TRACE("Tolerance timer running for si: %s",si->name.c_str());
 			return true;
 		}
 	}
@@ -1239,7 +1243,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	SaAmfAdminStateT adm_state;
 	AVD_AVND *node;
 
-	TRACE_ENTER2("'%s', %llu", object_name->value, op_id);
+	TRACE_ENTER2("'%s', %llu", osaf_extended_name_borrow(object_name), op_id);
 	sg = sg_db->find(Amf::to_string(object_name));
 
 	if (sg->sg_ncs_spec == true) {
@@ -1250,7 +1254,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
-				"SG not in STABLE state (%s)", sg->name.value);
+				"SG not in STABLE state (%s)", sg->name.c_str());
 		goto done;
 	}
 
@@ -1260,12 +1264,12 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		if (su->pend_cbk.invocation != 0) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"Admin operation'%u' is already going on su'%s' belonging to the same SG",
-					su->pend_cbk.admin_oper, su->name.value);
+					su->pend_cbk.admin_oper, su->name.c_str());
 			goto done;
 		} else if (node->admin_node_pend_cbk.admin_oper != 0) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"Node'%s' hosting SU'%s' belonging to the same SG, undergoing admin"
-					" operation'%u'", node->name.value, su->name.value,
+					" operation'%u'", node->name.c_str(), su->name.c_str(),
 					node->admin_node_pend_cbk.admin_oper);
 			goto done;
 		}
@@ -1273,13 +1277,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 	if ((sg->adminOp_invocationId  != 0) || (sg->adminOp != 0))  {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
-				"Admin operation is going on (%s)", sg->name.value);
+				"Admin operation is going on (%s)", sg->name.c_str());
 		goto done;
 	}
         /* Avoid if any single Csi assignment is undergoing on SG. */
         if (csi_assignment_validate(sg) == true) {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
-				"Single Csi assignment undergoing on (sg'%s')", sg->name.value);
+				"Single Csi assignment undergoing on (sg'%s')", sg->name.c_str());
                 goto done;
         }
 
@@ -1287,20 +1291,20 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	if (sg_is_tolerance_timer_running_for_any_si(sg)) {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"Tolerance timer is running for some of the SI's in the SG '%s',"
-				" so differing admin opr", sg->name.value);
+				" so differing admin opr", sg->name.c_str());
 		goto done;
 	}
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					"%s is already unlocked", object_name->value);
+					"%s is already unlocked", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
-					"%s is locked instantiation", object_name->value);
+					"%s is locked instantiation", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
@@ -1326,13 +1330,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	case SA_AMF_ADMIN_LOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					"%s is already locked", object_name->value);
+					"%s is already locked", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
-					"%s is locked instantiation", object_name->value);
+					"%s is locked instantiation", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
@@ -1358,14 +1362,14 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					"%s is shutting down", object_name->value);
+					"%s is shutting down", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
 		if ((sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) ||
 		    (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
-					"%s is locked (instantiation)", object_name->value);
+					"%s is locked (instantiation)", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
@@ -1382,13 +1386,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					"%s is already locked-instantiation", object_name->value);
+					"%s is already locked-instantiation", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
-					"%s is not locked", object_name->value);
+					"%s is not locked", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
@@ -1407,13 +1411,13 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					"%s is already locked", object_name->value);
+					"%s is already locked", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
-					"%s is not in locked instantiation state", object_name->value);
+					"%s is not in locked instantiation state", osaf_extended_name_borrow(object_name));
 			goto done;
 		}
 
@@ -1425,7 +1429,7 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 				report_admin_op_error(immOiHandle, invocation,
 						SA_AIS_ERR_TRY_AGAIN, nullptr,
 						"su'%s' in terminating state",
-						su->name.value);
+						su->name.c_str());
 				goto done;
 			}
 		}
@@ -1469,27 +1473,28 @@ done:
 }
 
 static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
-	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+	const SaNameT *objName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_SG *sg = sg_db->find(Amf::to_string(objectName));
+	const std::string object_name(Amf::to_string(objName));
+	AVD_SG *sg = sg_db->find(object_name);
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
-	TRACE_ENTER2("'%s'", objectName->value);
+	TRACE_ENTER2("'%s'", object_name.c_str());
 	osafassert(sg != nullptr);
 
 	while ((attributeName = attributeNames[i++]) != nullptr) {
 		if (!strcmp("saAmfSGNumCurrAssignedSUs", attributeName)) {
 			sg->saAmfSGNumCurrAssignedSUs = sg->curr_assigned_sus();
-			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+			avd_saImmOiRtObjectUpdate_sync(object_name, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrAssignedSUs);
 		} else if (!strcmp("saAmfSGNumCurrNonInstantiatedSpareSUs", attributeName)) {
 			sg->saAmfSGNumCurrNonInstantiatedSpareSUs = sg->curr_non_instantiated_spare_sus();
-			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+			avd_saImmOiRtObjectUpdate_sync(object_name, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
 		} else if (!strcmp("saAmfSGNumCurrInstantiatedSpareSUs", attributeName)) {
 			sg->saAmfSGNumCurrInstantiatedSpareSUs = sg->curr_instantiated_spare_sus();
-			avd_saImmOiRtObjectUpdate_sync(objectName, attributeName,
+			avd_saImmOiRtObjectUpdate_sync(object_name, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGNumCurrInstantiatedSpareSUs);
 		} else {
 			LOG_ER("Ignoring unknown attribute '%s'", attributeName);
@@ -1512,11 +1517,11 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	bool si_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues, opdata))
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
@@ -1526,13 +1531,15 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		sg = sg_db->find(Amf::to_string(&opdata->objectName));
 		if (sg->list_of_si.empty() == false) {
 			/* check whether there is parent app delete */
-			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg->app->name);
+			const SaNameTWrapper app_name(sg->app->name);
+			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, app_name);
 			if (t_opData == nullptr || t_opData->operationType != CCBUTIL_DELETE) {
 				/* check whether there exists a delete operation for 
 				 * each of the SIs in the SG's list in the current CCB
 				 */
 				for (const auto& si : sg->list_of_si) {
-					t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
+					const SaNameTWrapper si_name(si->name);
+					t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, si_name);
 					if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 						si_exist = true;
 						break;
@@ -1540,7 +1547,7 @@ static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				}
 			}
 			if (si_exist == true) {
-				report_ccb_validation_error(opdata, "SIs still exist in SG '%s'", sg->name.value);
+				report_ccb_validation_error(opdata, "SIs still exist in SG '%s'", sg->name.c_str());
 				goto done;
 			}
 		}
@@ -1566,11 +1573,11 @@ static void sg_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SG *sg;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		sg = sg_create(&opdata->objectName, opdata->param.create.attrValues);
+		sg = sg_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(sg);
 		sg_add_to_model(sg);
 		break;
@@ -1636,17 +1643,17 @@ void avd_sg_admin_state_set(AVD_SG* sg, SaAmfAdminStateT state)
 	SaAmfAdminStateT old_state = sg->saAmfSGAdminState;
 	
 	osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	TRACE_ENTER2("%s AdmState %s => %s", sg->name.value,
+	TRACE_ENTER2("%s AdmState %s => %s", sg->name.c_str(),
 			avd_adm_state_name[old_state], avd_adm_state_name[state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", sg->name.value,
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", sg->name.c_str(),
                   avd_adm_state_name[old_state], avd_adm_state_name[state]);      
 	sg->saAmfSGAdminState = state;
-	avd_saImmOiRtObjectUpdate(&sg->name,
-				  const_cast<SaImmAttrNameT>("saAmfSGAdminState"), SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGAdminState);
+	avd_saImmOiRtObjectUpdate(sg->name,
+		const_cast<SaImmAttrNameT>("saAmfSGAdminState"), SA_IMM_ATTR_SAUINT32T, &sg->saAmfSGAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sg, AVSV_CKPT_SG_ADMIN_STATE);
 
 	/* Notification */ 
-	avd_send_admin_state_chg_ntf(&sg->name,
+	avd_send_admin_state_chg_ntf(sg->name,
 					SA_AMF_NTFID_SG_ADMIN_STATE,
 					old_state,
 					sg->saAmfSGAdminState);
@@ -1656,17 +1663,17 @@ void AVD_SG::set_admin_state(SaAmfAdminStateT state) {
 	SaAmfAdminStateT old_state = saAmfSGAdminState;
 
 	osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	TRACE_ENTER2("%s AdmState %s => %s", name.value,
+	TRACE_ENTER2("%s AdmState %s => %s", name.c_str(),
 			avd_adm_state_name[old_state], avd_adm_state_name[state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", name.value,
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", name.c_str(),
                   avd_adm_state_name[old_state], avd_adm_state_name[state]);
 	saAmfSGAdminState = state;
-	avd_saImmOiRtObjectUpdate(&name,
+	avd_saImmOiRtObjectUpdate(name,
 		  const_cast<SaImmAttrNameT>("saAmfSGAdminState"), SA_IMM_ATTR_SAUINT32T,
 		  &saAmfSGAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SG_ADMIN_STATE);
 
-	avd_send_admin_state_chg_ntf(&name, SA_AMF_NTFID_SG_ADMIN_STATE, old_state,
+	avd_send_admin_state_chg_ntf(name, SA_AMF_NTFID_SG_ADMIN_STATE, old_state,
 		saAmfSGAdminState);
 	TRACE_LEAVE();
 }
@@ -1675,7 +1682,7 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 	TRACE_ENTER();
 
 	if (sg_fsm_state != state) {
-		TRACE("%s sg_fsm_state %u => %u", name.value, sg_fsm_state, state);
+		TRACE("%s sg_fsm_state %u => %u", name.c_str(), sg_fsm_state, state);
 		sg_fsm_state = state;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SG_FSM_STATE);
 	}
@@ -1683,14 +1690,14 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 	if (state == AVD_SG_FSM_STABLE) {
 		osafassert(su_oper_list.empty() == true);
 		if (adminOp_invocationId != 0) {
-			TRACE("Admin operation finishes on SG:'%s'",name.value);
+			TRACE("Admin operation finishes on SG:'%s'",name.c_str());
 			avd_saImmOiAdminOperationResult(avd_cb->immOiHandle, adminOp_invocationId, SA_AIS_OK);
 			adminOp_invocationId = 0;
 			adminOp = static_cast<SaAmfAdminOperationIdT>(0);
 		}
 		for (const auto& si : list_of_si) {
 			if (si->invocation != 0) {
-				TRACE("Admin operation finishes on SI:'%s'",si->name.value);
+				TRACE("Admin operation finishes on SI:'%s'",si->name.c_str());
 				avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
 						si->invocation, SA_AIS_OK);
 				si->invocation = 0;
@@ -1702,20 +1709,20 @@ void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
 }
 
 void AVD_SG::set_adjust_state(SaAdjustState state) {
-	TRACE("%s adjust_state %u => %u", name.value, adjust_state, state);
+	TRACE("%s adjust_state %u => %u", name.c_str(), adjust_state, state);
 	adjust_state = state;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SG_ADJUST_STATE);
 }
 
 void AVD_SG::set_admin_si(AVD_SI *si) {
-	TRACE("%s admin_si set to %s", name.value, si->name.value);
+	TRACE("%s admin_si set to %s", name.c_str(), si->name.c_str());
 	admin_si = si;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, this, AVSV_CKPT_AVD_SG_ADMIN_SI);
 }
 
 void AVD_SG::clear_admin_si() {
 	if (admin_si != nullptr) {
-		TRACE("%s admin_si cleared", name.value);
+		TRACE("%s admin_si cleared", name.c_str());
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, this, AVSV_CKPT_AVD_SG_ADMIN_SI);
 		admin_si = nullptr;
 	}
@@ -1730,11 +1737,11 @@ void AVD_SG::for_all_su_set_readiness_state(SaAmfReadinessStateT state) {
 bool AVD_SG::in_su_oper_list(const AVD_SU *i_su) {
 	if (std::find(su_oper_list.begin(), su_oper_list.end(), i_su) !=
 		su_oper_list.end()) {
-		TRACE("%s found in %s", i_su->name.value, name.value);
+		TRACE("%s found in %s", i_su->name.c_str(), name.c_str());
 		return true;
 	}
 
-	TRACE("%s not found in %s", i_su->name.value, name.value);
+	TRACE("%s not found in %s", i_su->name.c_str(), name.c_str());
 	return false;
 }
 
@@ -1751,7 +1758,7 @@ uint32_t AVD_SG::su_oper_list_del(AVD_SU *su) {
 }
 
 void AVD_SG::su_oper_list_clear() {
-	TRACE_ENTER2("%s", name.value);
+	TRACE_ENTER2("%s", name.c_str());
 	for (auto it = su_oper_list.begin(); it != su_oper_list.end();) {
 		osafassert(this == (*it)->sg_of_su);
 		su_oper_list_del(*it++);
@@ -1815,13 +1822,13 @@ void avd_sg_adjust_config(AVD_SG *sg)
 		// NPI SUs can only be assigned one SI, see 3.2.1.1
 		if ((sg->saAmfSGMaxActiveSIsperSU != static_cast<SaUint32T>(-1)) && (sg->saAmfSGMaxActiveSIsperSU > 1)) {
 			LOG_WA("invalid saAmfSGMaxActiveSIsperSU (%u) for NPI SU '%s', adjusting...",
-					sg->saAmfSGMaxActiveSIsperSU, sg->name.value);
+					sg->saAmfSGMaxActiveSIsperSU, sg->name.c_str());
 		}
 		sg->saAmfSGMaxActiveSIsperSU = 1;
 
 		if ((sg->saAmfSGMaxStandbySIsperSU != static_cast<SaUint32T>(-1)) && (sg->saAmfSGMaxStandbySIsperSU > 1)) {
 			LOG_WA("invalid saAmfSGMaxStandbySIsperSU (%u) for NPI SU '%s', adjusting...",
-					sg->saAmfSGMaxStandbySIsperSU, sg->name.value);
+					sg->saAmfSGMaxStandbySIsperSU, sg->name.c_str());
 		}
 		sg->saAmfSGMaxStandbySIsperSU = 1;
 		/* saAmfSUFailover must be true for a NPI SU sec 3.11.1.3.2 AMF-B.04.01 spec */
@@ -1840,7 +1847,7 @@ void avd_sg_adjust_config(AVD_SG *sg)
 				(sg->sg_type->saAmfSgtRedundancyModel == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL))) {
 		sg->saAmfSGNumPrefAssignedSUs = sg->saAmfSGNumPrefInserviceSUs;
 		LOG_NO("'%s' saAmfSGNumPrefAssignedSUs adjusted to %u",
-				sg->name.value, sg->saAmfSGNumPrefAssignedSUs);
+				sg->name.c_str(), sg->saAmfSGNumPrefAssignedSUs);
 	}
 }
 
@@ -1857,7 +1864,7 @@ uint32_t sg_instantiated_su_count(const AVD_SG *sg)
 
 	TRACE_ENTER();
 	for (const auto& su : sg->list_of_su) {
-		TRACE_1("su'%s', pres state'%u', in_serv'%u', PrefIn'%u'", su->name.value,
+		TRACE_1("su'%s', pres state'%u', in_serv'%u', PrefIn'%u'", su->name.c_str(),
 				su->saAmfSUPresenceState, su->saAmfSuReadinessState, sg->saAmfSGNumPrefInserviceSUs);
 		if (((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) ||
 					(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) ||
@@ -1967,7 +1974,7 @@ bool AVD_SG::is_sg_assigned_only_in_ng(const AVD_AMF_NG *ng)
 		if (su->list_of_susi == nullptr)
 			continue;
 		//Return if this assigned su is not in this ng.
-		if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false)
+		if (node_in_nodegroup(su->su_on_node->name, ng) == false)
 			return false;
 	}
 	return true;
@@ -1982,7 +1989,7 @@ bool AVD_SG::is_sg_serviceable_outside_ng(const AVD_AMF_NG *ng)
 {
 	for (const auto& su : list_of_su) {
 		//Check if any su exists outside nodegroup for this sg. 
-		if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false) {
+		if (node_in_nodegroup(su->su_on_node->name, ng) == false) {
 			/* 
 			   During lock or shutdown operation on Node or SU, AMF
 			   instantiates new SUs or it will switch-over existing 
@@ -2009,23 +2016,23 @@ SaAisErrorT AVD_SG::check_sg_stability()
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	if (sg_fsm_state != AVD_SG_FSM_STABLE) {
-		LOG_NO("'%s' is in unstable/transition state", name.value);
+		LOG_NO("'%s' is in unstable/transition state", name.c_str());
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
 	if ((adminOp_invocationId != 0) || (adminOp != 0))  {
-		LOG_NO("Admin operation is already going on '%s' ", name.value);
+		LOG_NO("Admin operation is already going on '%s' ", name.c_str());
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
         }
 	if (sg_is_tolerance_timer_running_for_any_si(this)) {
 		LOG_NO("Tolerance timer is running for some of the SI's in the SG '%s',"
-				" so differing admin opr", name.value);
+				" so differing admin opr", name.c_str());
 		rc = SA_AIS_ERR_TRY_AGAIN;
                 goto done;
         }
 	if (csi_assignment_validate(this) == true) {
-                LOG_NO("Single Csi assignment undergoing in '%s'", name.value);
+                LOG_NO("Single Csi assignment undergoing in '%s'", name.c_str());
 		rc = SA_AIS_ERR_TRY_AGAIN;
                 goto done;
         }

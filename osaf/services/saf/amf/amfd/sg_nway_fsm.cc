@@ -77,7 +77,7 @@ static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu);
 uint32_t SG_NWAY::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	
-	TRACE_ENTER2(" SI '%s'",si->name.value);
+	TRACE_ENTER2(" SI '%s'",si->name.c_str());
 
 	/* If the SG FSM state is not stable just return success. */
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
@@ -119,7 +119,7 @@ uint32_t avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SU_SI_REL *curr_susi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2(" SI '%s' sg_fsm_state:%d",si->name.value,si->sg_of_si->sg_fsm_state);
+	TRACE_ENTER2(" SI '%s' sg_fsm_state:%d",si->name.c_str(),si->sg_of_si->sg_fsm_state);
 
 	/* Switch operation is not allowed on NCS SGs, when the AvD is not in
 	 * application state, if si has no SU assignments and If the SG FSM state is
@@ -144,8 +144,8 @@ uint32_t avd_sg_nway_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
 	     curr_susi && (curr_susi->state != SA_AMF_HA_ACTIVE); curr_susi = curr_susi->si_next) ;
 
 	if (!curr_susi) {
-		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
-		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
+		LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_susi->su->name.c_str(), curr_susi->su->name.length());
+		LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_susi->si->name.c_str(), curr_susi->si->name.length());
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -170,7 +170,7 @@ done:
 uint32_t SG_NWAY::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2(" SU '%s' sg_fsm_state %u", su->name.value, su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2(" SU '%s' sg_fsm_state %u", su->name.c_str(), su->sg_of_su->sg_fsm_state);
 
 	if (!su->list_of_susi) {
 		TRACE("No assignments on this SU");
@@ -212,7 +212,7 @@ done:
 uint32_t SG_NWAY::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.c_str(), su->sg_of_su->sg_fsm_state);
 
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */
@@ -310,7 +310,7 @@ uint32_t SG_NWAY::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* send remove all msg for all sis for this su */
 			rc = avd_sg_su_si_del_snd(cb, susi->su);
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->su->name.c_str(), susi->su->name.length());
 				goto done;
 			}
 		}
@@ -352,7 +352,7 @@ uint32_t SG_NWAY::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				/* delete the quiesced assignment on the max su  and let su failure
 				 * handling take care of assigning the standby to active */
 				/* find the susi with max assigned su which should be by now quiesced */
-				t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->max_assigned_su, &susi->si->name);
+				t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->max_assigned_su, susi->si->name);
 				osafassert(t_susi->state == SA_AMF_HA_QUIESCED);
 
 				if (avd_susi_del_send(t_susi) == NCSCC_RC_SUCCESS) {
@@ -366,7 +366,7 @@ uint32_t SG_NWAY::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			sg->max_assigned_su = nullptr;
 			sg->min_assigned_su = nullptr;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SI_TRANS);
-			TRACE ("SI transfer FAILED '%s'", susi->si->name.value);
+			TRACE ("SI transfer FAILED '%s'", susi->si->name.c_str());
 		}
 		break;
 
@@ -391,7 +391,7 @@ uint32_t SG_NWAY::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					/* => now remove all can be sent */
 					rc = avd_sg_su_si_del_snd(cb, su);
 					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 						goto done;
 					}
 				}
@@ -413,8 +413,8 @@ uint32_t SG_NWAY::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 					/* send remove all msg for all sis for this su */
 					rc = avd_sg_su_si_del_snd(cb, susi->su);
 					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value,
-										 susi->su->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->su->name.c_str(),
+										 susi->su->name.length());
 						goto done;
 					}
 				}
@@ -431,7 +431,7 @@ uint32_t SG_NWAY::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 	default:
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		rc = NCSCC_RC_FAILURE; 
 	}			/* switch */
 done:
@@ -440,7 +440,7 @@ done:
 }
 
 uint32_t SG_NWAY::realign(AVD_CL_CB *cb, AVD_SG *sg) {
-	TRACE_ENTER2("'%s'", sg->name.value);
+	TRACE_ENTER2("'%s'", sg->name.c_str());
 
 	/* If the SG FSM state is not stable just return success. */
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == false)) {
@@ -499,7 +499,7 @@ void SG_NWAY::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 
 	default:
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 		goto done;
 	}			/* switch */
 
@@ -527,7 +527,7 @@ uint32_t SG_NWAY::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 	bool is_all_stdby = true;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("su '%s' sg_fsm_state:%u",su->name.value, su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("su '%s' sg_fsm_state:%u",su->name.c_str(), su->sg_of_su->sg_fsm_state);
 
 	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == false)) {
 		goto done;
@@ -569,7 +569,7 @@ uint32_t SG_NWAY::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 			if (true == is_all_stdby) {
 				rc = avd_sg_su_si_del_snd(cb, su);
 				if (NCSCC_RC_SUCCESS != rc) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					goto done;
 				}
 
@@ -605,7 +605,7 @@ uint32_t SG_NWAY::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 
 	default:
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)su->sg_of_su->sg_fsm_state));
-		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+		LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 	}			/* switch */
 
 done:
@@ -637,8 +637,8 @@ uint32_t SG_NWAY::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 			     curr_susi && (curr_susi->state != SA_AMF_HA_ACTIVE); curr_susi = curr_susi->si_next) ;
 
 			if (!curr_susi) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_susi->su->name.c_str(), curr_susi->su->name.length());
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_susi->si->name.c_str(), curr_susi->si->name.length());
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -663,8 +663,8 @@ uint32_t SG_NWAY::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 			     curr_susi && (curr_susi->state != SA_AMF_HA_QUIESCING); curr_susi = curr_susi->si_next) ;
 
 			if (!curr_susi) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.value, curr_susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->si->name.value, curr_susi->si->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_susi->su->name.c_str(), curr_susi->su->name.length());
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_susi->si->name.c_str(), curr_susi->si->name.length());
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
@@ -678,7 +678,7 @@ uint32_t SG_NWAY::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 
 	default:
 		LOG_ER("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)si->sg_of_si->sg_fsm_state));
-		LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, si->name.value, si->name.length);
+		LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, si->name.c_str(), si->name.length());
 		rc = NCSCC_RC_FAILURE;
 	}			/* switch */
 
@@ -728,8 +728,8 @@ uint32_t SG_NWAY::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 					/* send remove all msg for all sis for this su */
 					rc = avd_sg_su_si_del_snd(cb, curr_su);
 					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_su->name.value,
-										 curr_su->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_su->name.c_str(),
+										 curr_su->name.length());
 						goto done;
 					}
 				}
@@ -766,7 +766,7 @@ uint32_t SG_NWAY::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 
 	default:
 		LOG_EM("%s:%u: %u", __FILE__, __LINE__, ((uint32_t)sg->sg_fsm_state));
-		LOG_EM("%s:%u: %s (%u)", __FILE__, __LINE__, sg->name.value, sg->name.length);
+		LOG_EM("%s:%u: %s (%zu)", __FILE__, __LINE__, sg->name.c_str(), sg->name.length());
 		rc = NCSCC_RC_FAILURE;
 	}			/* switch */
 done:
@@ -794,13 +794,13 @@ static void avd_sg_nway_swap_si_redistr(AVD_SG *sg)
 	osafassert(sg->max_assigned_su != nullptr);
 	osafassert(sg->min_assigned_su != nullptr);
 
-	TRACE_ENTER2("'%s' from '%s' to '%s'", sg->si_tobe_redistributed->name.value,
-                sg->max_assigned_su->name.value, sg->min_assigned_su->name.value);
+	TRACE_ENTER2("'%s' from '%s' to '%s'", sg->si_tobe_redistributed->name.c_str(),
+                sg->max_assigned_su->name.c_str(), sg->min_assigned_su->name.c_str());
 	/* check point the SI transfer parameters with STANDBY*/
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SI_TRANS);
 
 	/* get the susi that is to be transferred */
-	susi = avd_su_susi_find(avd_cb, sg->max_assigned_su, &sg->si_tobe_redistributed->name); 
+	susi = avd_su_susi_find(avd_cb, sg->max_assigned_su, sg->si_tobe_redistributed->name); 
 	osafassert(susi != nullptr);
 
 
@@ -857,7 +857,7 @@ static uint32_t su_has_any_non_ranked_assignment_with_state(AVD_SU *su, SaAmfHAS
 	AVD_SU_SI_REL *susi;
 	bool found = false;
 
-	TRACE_ENTER2("'%s' for state '%u'",su->name.value,ha_state);
+	TRACE_ENTER2("'%s' for state '%u'",su->name.c_str(),ha_state);
 
 	for (susi = su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 		if (susi->state == ha_state) {
@@ -867,7 +867,7 @@ static uint32_t su_has_any_non_ranked_assignment_with_state(AVD_SU *su, SaAmfHAS
                                 break;
                         } else {
                                 /* Check whether the susi assignment is based on SIRankedSU */
-                                if (susi->si->get_si_ranked_su(Amf::to_string(&susi->su->name)) == nullptr) {
+                                if (susi->si->get_si_ranked_su(susi->su->name) == nullptr) {
                                         TRACE("NON sirankedsu_assignment");
                                         found = true;
                                         break;
@@ -904,7 +904,7 @@ static AVD_SI * find_the_si_to_transfer(AVD_SG *sg, SaAmfHAStateT ha_state)
 		if (susi->state == ha_state) {
 			if (SA_AMF_HA_STANDBY == ha_state) {
 				/* Find if this is assigned to avd_sg->min_assigned_su. */
-				if (avd_su_susi_find(avd_cb, sg->min_assigned_su, &susi->si->name) != AVD_SU_SI_REL_NULL) {
+				if (avd_su_susi_find(avd_cb, sg->min_assigned_su, susi->si->name) != AVD_SU_SI_REL_NULL) {
 					/* min_assigned_su already has a assignment for this SI go to the
 					 * next SI.
 					 */
@@ -912,7 +912,7 @@ static AVD_SI * find_the_si_to_transfer(AVD_SG *sg, SaAmfHAStateT ha_state)
 				}
 			}
 			/* Check whether this assignment is based on SIRankedSU, if so dont consider this SI for transfer */
-			if (susi->si->get_si_ranked_su(Amf::to_string(&susi->su->name)) != nullptr) {
+			if (susi->si->get_si_ranked_su(susi->su->name) != nullptr) {
 				continue;
 			}
 			if (si_to_transfer == nullptr)
@@ -922,7 +922,7 @@ static AVD_SI * find_the_si_to_transfer(AVD_SG *sg, SaAmfHAStateT ha_state)
 		}
 	}
 done:
-        TRACE_LEAVE2(" '%s'",si_to_transfer ? (char *)si_to_transfer->name.value:"Not found");
+        TRACE_LEAVE2(" '%s'",si_to_transfer ? (char *)si_to_transfer->name.c_str():"Not found");
         return si_to_transfer;
 }
 /**
@@ -990,8 +990,8 @@ void avd_sg_nway_screen_si_distr_equal(AVD_SG *sg)
 	if ((sg->max_assigned_su->saAmfSUNumCurrActiveSIs - sg->min_assigned_su->saAmfSUNumCurrActiveSIs) > 1) {
 		TRACE("Redistribution of active assignments initiated");
 		TRACE("max_assigned_su '%s' no of act assignments '%u', min_assigned_su '%s' no of act assignments '%u'", 
-				sg->max_assigned_su->name.value, sg->max_assigned_su->saAmfSUNumCurrActiveSIs, 
-				sg->min_assigned_su->name.value, sg->min_assigned_su->saAmfSUNumCurrActiveSIs);
+				sg->max_assigned_su->name.c_str(), sg->max_assigned_su->saAmfSUNumCurrActiveSIs, 
+				sg->min_assigned_su->name.c_str(), sg->min_assigned_su->saAmfSUNumCurrActiveSIs);
 		
 		/* Now find the SI whose active assignment needs to be transferred, find the SI whose  assignment
 		 * has to be changed, figure out less ranked SI if SU has more than one assignments.
@@ -1014,8 +1014,8 @@ void avd_sg_nway_screen_si_distr_equal(AVD_SG *sg)
 
 	TRACE("No redistribution of active assignments needed");
 	TRACE("max_assigned_su '%s' no of act assignments '%u', min_assigned_su '%s' no of act assignments '%u'", 
-			sg->max_assigned_su->name.value, sg->max_assigned_su->saAmfSUNumCurrActiveSIs, 
-			sg->min_assigned_su->name.value, sg->min_assigned_su->saAmfSUNumCurrActiveSIs);
+			sg->max_assigned_su->name.c_str(), sg->max_assigned_su->saAmfSUNumCurrActiveSIs, 
+			sg->min_assigned_su->name.c_str(), sg->min_assigned_su->saAmfSUNumCurrActiveSIs);
 
 screen_standby_assignments:
 	/* do screening for standby assignments */
@@ -1049,8 +1049,8 @@ screen_standby_assignments:
 	if ((sg->max_assigned_su->saAmfSUNumCurrStandbySIs - sg->min_assigned_su->saAmfSUNumCurrStandbySIs) > 1) {
 		TRACE("Redistribution of standby assignments initiated");
 		TRACE("max_assigned_su '%s' no of std assignments '%u', min_assigned_su '%s' no of std assignments '%u'", 
-				sg->max_assigned_su->name.value, sg->max_assigned_su->saAmfSUNumCurrStandbySIs, 
-				sg->min_assigned_su->name.value, sg->min_assigned_su->saAmfSUNumCurrStandbySIs);
+				sg->max_assigned_su->name.c_str(), sg->max_assigned_su->saAmfSUNumCurrStandbySIs, 
+				sg->min_assigned_su->name.c_str(), sg->min_assigned_su->saAmfSUNumCurrStandbySIs);
 
 		/* Now find the SI whose standby assignment needs to be transferred, find the SI whose  assignment
 		 * has to be changed, figure out less ranked SI if SU has more than one assignments. Do check that
@@ -1075,8 +1075,8 @@ screen_standby_assignments:
 	 * active and standby SI assignments */
 	TRACE("No redistribution of standby assignments needed");
 	TRACE("max_assigned_su '%s' no of std assignments '%u', min_assigned_su '%s' no of std assignments '%u'", 
-			sg->max_assigned_su->name.value, sg->max_assigned_su->saAmfSUNumCurrStandbySIs, 
-			sg->min_assigned_su->name.value, sg->min_assigned_su->saAmfSUNumCurrStandbySIs);
+			sg->max_assigned_su->name.c_str(), sg->max_assigned_su->saAmfSUNumCurrStandbySIs, 
+			sg->min_assigned_su->name.c_str(), sg->min_assigned_su->saAmfSUNumCurrStandbySIs);
 done:
 	TRACE_LEAVE();
 }
@@ -1098,7 +1098,7 @@ AVD_SU *avd_sg_nway_get_su_std_equal(AVD_SG *sg, AVD_SI *curr_si)
 	SaUint32T curr_su_stdby_cnt = 0;
 	SaUint32T pref_su_stdby_cnt = 0;
 
-	TRACE_ENTER2("SI to be assigned : %s", curr_si->name.value);
+	TRACE_ENTER2("SI to be assigned : %s", curr_si->name.c_str());
 
 	for (const auto& curr_su : sg->list_of_su) {
 
@@ -1128,7 +1128,7 @@ AVD_SU *avd_sg_nway_get_su_std_equal(AVD_SG *sg, AVD_SI *curr_si)
                                 ((curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU == 0) ||
                                  (curr_su_stdby_cnt < curr_su->sg_of_su->saAmfSGMaxStandbySIsperSU)) &&
                                 (!pref_su || pref_su_stdby_cnt > curr_su_stdby_cnt) &&
-                                (avd_su_susi_find(avd_cb, curr_su, &curr_si->name) == AVD_SU_SI_REL_NULL)) {
+                                (avd_su_susi_find(avd_cb, curr_su, curr_si->name) == AVD_SU_SI_REL_NULL)) {
                         /* mark this as the preferred SU */
                         pref_su = curr_su;
                         pref_su_stdby_cnt = curr_su_stdby_cnt;
@@ -1157,7 +1157,7 @@ AVD_SU *avd_sg_nway_si_find_highest_sirankedsu(AVD_CL_CB *cb, AVD_SI *si, AVD_SU
   AVD_SU *ranked_su;
   AVD_SIRANKEDSU *sirankedsu = nullptr;
 
-  TRACE_ENTER2("for SI '%s'", si->name.value);
+  TRACE_ENTER2("for SI '%s'", si->name.c_str());
 
   /* Find the SU for which Active role is assigned for this SI */
   for (sisu = si->list_of_sisu; sisu; sisu = sisu->si_next) {
@@ -1168,7 +1168,7 @@ AVD_SU *avd_sg_nway_si_find_highest_sirankedsu(AVD_CL_CB *cb, AVD_SI *si, AVD_SU
   }
   /* Find the corresponding sirankedsu */
   if (sisu)
-    assigned_sirankedsu = si->get_si_ranked_su(Amf::to_string(&sisu->su->name));
+    assigned_sirankedsu = si->get_si_ranked_su(sisu->su->name);
   else {
     /* Atleast one Active assignment should be there */
     LOG_ER("Not able to find the Active assignment");
@@ -1200,7 +1200,7 @@ AVD_SU *avd_sg_nway_si_find_highest_sirankedsu(AVD_CL_CB *cb, AVD_SI *si, AVD_SU
     }
   }
 done:
-  TRACE_LEAVE2(" '%s'", pref_sirankedsu ? (char *) pref_sirankedsu->name.value : "assigned to highest SIRankedSU");
+  TRACE_LEAVE2(" '%s'", pref_sirankedsu ? (char *) pref_sirankedsu->name.c_str() : "assigned to highest SIRankedSU");
   return pref_sirankedsu;
 }
 
@@ -1231,7 +1231,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU_SI_REL *tmp_susi;
 
-	TRACE_ENTER2("%s", sg->name.value);
+	TRACE_ENTER2("%s", sg->name.c_str());
 
 	m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
 
@@ -1256,7 +1256,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 			AVD_SU *assigned_su = nullptr;
 			preferred_su  = avd_sg_nway_si_find_highest_sirankedsu(cb, curr_si, &assigned_su);
 			if ((preferred_su && assigned_su) && preferred_su != assigned_su) {
-				TRACE("Move SI '%s' to su '%s'",curr_si->name.value, preferred_su->name.value);
+				TRACE("Move SI '%s' to su '%s'",curr_si->name.c_str(), preferred_su->name.c_str());
 				sg->si_tobe_redistributed = curr_si;
 				sg->max_assigned_su = assigned_su;
 				sg->min_assigned_su = preferred_su;
@@ -1285,13 +1285,13 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
 			AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
 			{
-				if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, curr_si->name) != 0) {
+				if (su_rank_rec->indx.si_name.compare(curr_si->name) != 0) {
 					continue;
 				}
 
 				/* get the su & si */
-				curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
-				AVD_SI *si = avd_si_get(&su_rank_rec->indx.si_name);
+				curr_su = su_db->find(su_rank_rec->su_name);
+				AVD_SI *si = avd_si_get(su_rank_rec->indx.si_name);
 
 				/* validate this entry */
 				if ((si == nullptr) || (curr_su == nullptr) || (si->sg_of_si != curr_su->sg_of_su))
@@ -1329,7 +1329,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 							 * it for this SI's active assignment
 							 */
 							pref_su = iter;
-							TRACE("set %s as pref_su", pref_su->name.value);
+							TRACE("set %s as pref_su", pref_su->name.c_str());
 							break;
 						}
 						/* else try to select an SU with least active assignments */
@@ -1340,7 +1340,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 								(!pref_su || pref_su->saAmfSUNumCurrActiveSIs > iter->saAmfSUNumCurrActiveSIs)) { 
 								/* mark this as the preferred SU */
 								pref_su = iter;
-								TRACE("set %s as pref_su", pref_su->name.value);
+								TRACE("set %s as pref_su", pref_su->name.c_str());
 							}
 						}
 					}
@@ -1348,7 +1348,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 						  (iter->saAmfSUNumCurrActiveSIs <
 						   iter->sg_of_su->saAmfSGMaxActiveSIsperSU))) {
 						curr_su = iter;
-						TRACE("no pref_su set, curr_su is %s", curr_su->name.value);
+						TRACE("no pref_su set, curr_su is %s", curr_su->name.c_str());
 						break;
 					}
 				}
@@ -1367,7 +1367,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 		/* if found, send active assignment */
 		if (curr_su) {
 
-			TRACE("send active assignment to %s", curr_su->name.value);
+			TRACE("send active assignment to %s", curr_su->name.c_str());
 
 			rc = avd_new_assgn_susi(cb, curr_su, curr_si, SA_AMF_HA_ACTIVE, false, &tmp_susi);
 			if (NCSCC_RC_SUCCESS == rc) {
@@ -1376,7 +1376,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 				is_act_ass_sent = true;
 			} else {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_si->name.c_str(), curr_si->name.length());
 			}
 		} else
 			break;
@@ -1410,12 +1410,12 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
 			AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
 			{
-				if (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, curr_si->name) != 0)
+				if (su_rank_rec->indx.si_name.compare(curr_si->name) != 0)
 					continue;
 
 				/* get the su & si */
-				curr_su = su_db->find(Amf::to_string(&su_rank_rec->su_name));
-				AVD_SI *si = avd_si_get(&su_rank_rec->indx.si_name);
+				curr_su = su_db->find(su_rank_rec->su_name);
+				AVD_SI *si = avd_si_get(su_rank_rec->indx.si_name);
 
 				/* validate this entry */
 				if ((si == nullptr) || (curr_su == nullptr) || (si->sg_of_si != curr_su->sg_of_su))
@@ -1429,7 +1429,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				continue;
 
 			/* verify if this su does not have this assignment */
-			if (avd_su_susi_find(cb, curr_su, &curr_si->name) != AVD_SU_SI_REL_NULL)
+			if (avd_su_susi_find(cb, curr_su, curr_si->name) != AVD_SU_SI_REL_NULL)
 				continue;
 
 			/* send the standby assignment */
@@ -1443,7 +1443,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 					break;
 			} else {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_si->name.c_str(), curr_si->name.length());
 			}
 		}
 
@@ -1471,7 +1471,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 					if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 						break;
 				} else {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_si->name.c_str(), curr_si->name.length());
 				}
 			}
 			/* skip to the next SI to be assigned */
@@ -1496,7 +1496,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 			su_found = true;
 
 			/* verify if this su does not have this assignment */
-			if (avd_su_susi_find(cb, curr_su, &curr_si->name) != AVD_SU_SI_REL_NULL) 
+			if (avd_su_susi_find(cb, curr_su, curr_si->name) != AVD_SU_SI_REL_NULL) 
 				continue;
 
 			/* send the standby assignment */
@@ -1510,7 +1510,7 @@ uint32_t avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				if (curr_si->curr_standby_assignments() == curr_si->pref_standby_assignments())
 					break;
 			} else {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_si->name.value, curr_si->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_si->name.c_str(), curr_si->name.length());
 			}
 		}		/* for */
 	}			/* for */
@@ -1539,7 +1539,7 @@ uint32_t avd_sg_nway_su_fault_stable(AVD_CL_CB *cb, AVD_SU *su)
 	bool is_all_stdby = true;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	if (!su->list_of_susi) {
 		TRACE("No assignments on this SU");
@@ -1566,7 +1566,7 @@ uint32_t avd_sg_nway_su_fault_stable(AVD_CL_CB *cb, AVD_SU *su)
 	if (true == is_all_stdby) {
 		rc = avd_sg_su_si_del_snd(cb, su);
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+			LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 			goto done;
 		}
 
@@ -1604,7 +1604,7 @@ uint32_t avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = nullptr;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	/* check if su is present in the su-oper list */
 	m_AVD_CHK_OPLIST(su, is_su_present);
@@ -1774,7 +1774,7 @@ uint32_t SG_NWAY::su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = nullptr;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	if (su_oper_list_front() == su) {
 		su_node_ptr = su->get_node_ptr();
@@ -1819,7 +1819,7 @@ uint32_t SG_NWAY::su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 		if (true == is_all_stdby) {
 			rc = avd_sg_su_si_del_snd(cb, su);
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 				goto done;
 			}
 		}
@@ -1856,7 +1856,7 @@ uint32_t SG_NWAY::su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SI *si = sg->admin_si;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	/* process the failure of su while there is an si transfer 
 	 * going in this SG */
@@ -1880,7 +1880,7 @@ uint32_t SG_NWAY::su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 				/* delete the quiesced assignment to max assigned su */
 				curr_susi = avd_su_susi_find(cb, su->sg_of_su->max_assigned_su,
-						&su->sg_of_su->si_tobe_redistributed->name);
+						su->sg_of_su->si_tobe_redistributed->name);
 				osafassert(curr_susi->state == SA_AMF_HA_QUIESCED);
 
 				if (avd_susi_del_send(curr_susi) == NCSCC_RC_SUCCESS) {
@@ -1918,7 +1918,7 @@ uint32_t SG_NWAY::su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 		su->sg_of_su->max_assigned_su = nullptr;
 		su->sg_of_su->min_assigned_su = nullptr;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su->sg_of_su, AVSV_CKPT_AVD_SI_TRANS);
-		TRACE("SI transfer aborted '%s'", su->name.value);
+		TRACE("SI transfer aborted '%s'", su->name.c_str());
 		goto process_remaining;
 	}
 
@@ -2131,7 +2131,7 @@ uint32_t avd_sg_nway_su_fault_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU_SI_REL *curr_susi = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	/* if already locked, do nothing */
 	if (SA_AMF_ADMIN_LOCKED == su->sg_of_su->saAmfSGAdminState)
@@ -2237,10 +2237,8 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 							/* send remove all msg for all sis for this su */
 							rc = avd_sg_su_si_del_snd(cb, curr_susi->su);
 							if (NCSCC_RC_SUCCESS != rc) {
-								LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, curr_susi->su->name.
-												 value,
-												 curr_susi->su->name.
-												 length);
+								LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, curr_susi->su->name.c_str(),
+												 curr_susi->su->name.length());
 								goto done;
 							}
 
@@ -2329,8 +2327,8 @@ uint32_t avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB *cb,
 						/* send remove all msg for all sis for this su */
 						rc = avd_sg_su_si_del_snd(cb, su);
 						if (NCSCC_RC_SUCCESS != rc) {
-							LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value,
-											 su->name.length);
+							LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(),
+											 su->name.length());
 							goto done;
 						}
 
@@ -2496,8 +2494,8 @@ static AVD_SU_SI_REL * find_pref_standby_susi(AVD_SU_SI_REL *sisu)
 				curr_susi = curr_susi->su_next;
 			}
 			if (curr_su_act_cnt < sisu->su->sg_of_su->saAmfSGMaxActiveSIsperSU) {
-				TRACE("Found preferred sisu SU: '%s' SI: '%s'",curr_sisu->su->name.value,
-										curr_sisu->si->name.value);
+				TRACE("Found preferred sisu SU: '%s' SI: '%s'",curr_sisu->su->name.c_str(),
+										curr_sisu->si->name.c_str());
 				break;
 			}
 		}
@@ -2533,7 +2531,7 @@ uint32_t SG_NWAY::susi_success_su_oper(AVD_CL_CB *cb,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = nullptr;
 	SaAmfHAStateT hastate = SA_AMF_HA_QUIESCED;
-	TRACE_ENTER2("SU '%s'  ",su->name.value);
+	TRACE_ENTER2("SU '%s'  ",su->name.c_str());
 
 	if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		/* => single quiesced assignment success */
@@ -2545,7 +2543,7 @@ uint32_t SG_NWAY::susi_success_su_oper(AVD_CL_CB *cb,
 		while (curr_susi) {
 			rc = avd_susi_mod_send(curr_susi, hastate);
 			if (rc == NCSCC_RC_FAILURE) {
-				LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
+				LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.c_str());
 				goto done;
 			}
 			curr_susi = avd_siass_next_susi_to_quiesce(susi);
@@ -2579,7 +2577,7 @@ uint32_t SG_NWAY::susi_success_su_oper(AVD_CL_CB *cb,
 				/* send remove all msg for all sis for this su */
 				rc = avd_sg_su_si_del_snd(cb, su);
 				if (NCSCC_RC_SUCCESS != rc) {
-					LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.value);
+					LOG_ER("%s:%u: %s ", __FILE__, __LINE__, su->name.c_str());
 					goto done;
 				}
 
@@ -2618,8 +2616,8 @@ uint32_t SG_NWAY::susi_success_su_oper(AVD_CL_CB *cb,
 			/* send remove all msg for all sis for this su */
 			rc = avd_sg_su_si_del_snd(cb, su_oper_list.front());
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su_oper_list.front()->name.value,
-					 su_oper_list.front()->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su_oper_list.front()->name.c_str(),
+					 su_oper_list.front()->name.length());
 				goto done;
 			}
 
@@ -2726,8 +2724,8 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 
 	if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act)) {
 		if (sg->admin_si != susi->si && susi->si->sg_of_si->si_tobe_redistributed != susi->si ) {
-			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
+			LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->su->name.c_str(), susi->su->name.length());
+			LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->si->name.c_str(), susi->si->name.length());
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -2778,24 +2776,24 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 			}
 		} else if (susi->si->sg_of_si->si_tobe_redistributed == susi->si) {
-			TRACE("SI transfer '%s'", susi->si->name.value);
+			TRACE("SI transfer '%s'", susi->si->name.c_str());
 
 			osafassert(susi->su == susi->si->sg_of_si->max_assigned_su);
 
 			/* check if the min SU is still in-service */
 			if (susi->si->sg_of_si->min_assigned_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
 				AVD_SU_SI_REL *t_susi = nullptr;
-				t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->min_assigned_su, &susi->si->name);
+				t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->min_assigned_su, susi->si->name);
 				if (t_susi == nullptr) {
 					/* initiate new active assignment for this SI */
 					rc = avd_new_assgn_susi(avd_cb, susi->si->sg_of_si->min_assigned_su,
 							susi->si->sg_of_si->si_tobe_redistributed, 
 							SA_AMF_HA_ACTIVE, false, &t_susi);
 					if (NCSCC_RC_SUCCESS != rc) {
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, t_susi->su->name.value,
-								t_susi->su->name.length);
-						LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, t_susi->si->name.value,
-								t_susi->si->name.length);
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, t_susi->su->name.c_str(),
+								t_susi->su->name.length());
+						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, t_susi->si->name.c_str(),
+								t_susi->si->name.length());
 						susi->si->sg_of_si->max_assigned_su = nullptr;
 						susi->si->sg_of_si->min_assigned_su = nullptr;
 						susi->si->sg_of_si->si_tobe_redistributed = nullptr;
@@ -2817,7 +2815,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 				}
 			} else {
 				TRACE("Min assigned SU out of service '%s'",
-						susi->si->sg_of_si->min_assigned_su->name.value);
+						susi->si->sg_of_si->min_assigned_su->name.c_str());
 
 				/* reset the min, max SUs and si_tobe_redistributed of the sg to nullptr*/
 				susi->si->sg_of_si->max_assigned_su = nullptr;
@@ -2849,7 +2847,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 					rc = avd_susi_mod_send(curr_susi, SA_AMF_HA_STANDBY);
 				} else {
 					TRACE_2("'%s' cannot accomodate more standby, remove quiesced",
-							curr_susi->su->name.value);
+							curr_susi->su->name.c_str());
 					rc = avd_susi_del_send(curr_susi);
 				}
 				if (NCSCC_RC_SUCCESS != rc)
@@ -2859,8 +2857,8 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 				avd_sg_su_oper_list_add(cb, curr_susi->su, false);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 			} else {
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-				LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->su->name.c_str(), susi->su->name.length());
+				LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->si->name.c_str(), susi->si->name.length());
 			}
 		} else if (susi->si->sg_of_si->si_tobe_redistributed == susi->si) { 
 			AVD_SU_SI_REL *t_susi = nullptr;
@@ -2871,7 +2869,7 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 			osafassert(susi->su == susi->si->sg_of_si->min_assigned_su);
 
 			/* find the susi with max assigned su which should be by now quiesced */
-			t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->max_assigned_su, &susi->si->name);
+			t_susi = avd_su_susi_find(avd_cb, susi->si->sg_of_si->max_assigned_su, susi->si->name);
 			osafassert(t_susi->state == SA_AMF_HA_QUIESCED);
 
 			rc = avd_susi_del_send(t_susi);
@@ -2883,11 +2881,11 @@ uint32_t avd_sg_nway_susi_succ_si_oper(AVD_CL_CB *cb,
 			t_susi->si->sg_of_si->min_assigned_su = nullptr;
 			t_susi->si->sg_of_si->si_tobe_redistributed = nullptr;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, t_susi->si->sg_of_si, AVSV_CKPT_AVD_SI_TRANS);
-			TRACE ("SI transfer completed '%s'", t_susi->si->name.value);
+			TRACE ("SI transfer completed '%s'", t_susi->si->name.c_str());
 		}
 	       	else {
-			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->su->name.value, susi->su->name.length);
-			LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, susi->si->name.value, susi->si->name.length);
+			LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->su->name.c_str(), susi->su->name.length());
+			LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, susi->si->name.c_str(), susi->si->name.length());
 			rc = NCSCC_RC_FAILURE;
 		}
 	}
@@ -2938,7 +2936,7 @@ uint32_t avd_sg_nway_susi_succ_sg_admin(AVD_CL_CB *cb,
 				/* => now remove all can be sent */
 				rc = avd_sg_su_si_del_snd(cb, su);
 				if (NCSCC_RC_SUCCESS != rc) {
-					LOG_ER("%s:%u: %s (%u)", __FILE__, __LINE__, su->name.value, su->name.length);
+					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 					goto done;
 				}
 			}
@@ -2989,7 +2987,7 @@ void avd_sg_nway_node_fail_stable(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi
 	AVD_SU_SI_REL *curr_susi = 0, *curr_sisu = 0;
 	AVD_SG *sg = su->sg_of_su;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.c_str(), su->sg_of_su->sg_fsm_state);
 
 	if (!su->list_of_susi) {
 		TRACE("No assignments on this su");
@@ -3078,7 +3076,7 @@ void SG_NWAY::node_fail_su_oper(AVD_SU *su)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *su_node_ptr = nullptr;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	/* check if su is present in the su-oper list */
 	m_AVD_CHK_OPLIST(su, is_su_present);
@@ -3192,7 +3190,7 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 	AVD_SG *sg = su->sg_of_su;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	/* process the failure of su while there is an si transfer 
 	 * going in this SG */
@@ -3202,14 +3200,14 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 			/* find whether the min_assigned su is already
 			 * in the process of taking active assignment */	
 			susi = avd_su_susi_find(avd_cb, sg->min_assigned_su,
-					&sg->si_tobe_redistributed->name);
+					sg->si_tobe_redistributed->name);
 
 			if (susi != nullptr && susi->state == SA_AMF_HA_ACTIVE) {
 				/* identify the quiesced assigning assignment
 				 * for the si_tobe_redistributed with max_su */
 
 				curr_sisu = avd_su_susi_find(avd_cb, sg->max_assigned_su,
-						&sg->si_tobe_redistributed->name);
+						sg->si_tobe_redistributed->name);
 				/* if already ACTIVE assignment under process then
 				 * remove the quiesced assignment */
 				if (curr_sisu) {
@@ -3223,7 +3221,7 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 				 * to max su and assign back the active assignment */
 				 
 				curr_sisu = avd_su_susi_find(avd_cb, sg->max_assigned_su,
-						&sg->si_tobe_redistributed->name);
+						sg->si_tobe_redistributed->name);
 				if (curr_sisu) {
 					rc = avd_susi_mod_send(curr_sisu, SA_AMF_HA_ACTIVE);
 					if (NCSCC_RC_SUCCESS != rc)
@@ -3250,7 +3248,7 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 		su->sg_of_su->max_assigned_su = nullptr;
 		su->sg_of_su->min_assigned_su = nullptr;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su->sg_of_su, AVSV_CKPT_AVD_SI_TRANS);
-		TRACE("SI transfer aborted '%s'", su->name.value);
+		TRACE("SI transfer aborted '%s'", su->name.c_str());
 	}
 
 	if (!sg->admin_si) {
@@ -3340,7 +3338,7 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 		} else {
 			/* relationship exists between SU with the SI undergoing si-swap.*/
 			TRACE("For susi, su:'%s', si:'%s', state:%u, fsm:%u"
-					,susi->su->name.value,susi->si->name.value,susi->state,susi->fsm);
+					,susi->su->name.c_str(),susi->si->name.c_str(),susi->state,susi->fsm);
 			if (((SA_AMF_HA_QUIESCED == susi->state) && (AVD_SU_SI_STATE_MODIFY == susi->fsm)) ||
 			    ((SA_AMF_HA_ACTIVE == susi->state) && (AVD_SU_SI_STATE_ASGN == susi->fsm)) ||
 			    ((SA_AMF_HA_ACTIVE == susi->state) && (AVD_SU_SI_STATE_MODIFY == susi->fsm)) ||
@@ -3369,8 +3367,8 @@ void SG_NWAY::node_fail_si_oper(AVD_SU *su)
 							(AVD_SU_SI_STATE_MODIFY == susi->fsm))
 						if (SA_AMF_HA_QUIESCED == curr_sisu->state) {
 							TRACE("For curr_sisu, su:'%s', si:'%s', state:%u, fsm:%u",
-									curr_sisu->su->name.value,
-									curr_sisu->si->name.value,
+									curr_sisu->su->name.c_str(),
+									curr_sisu->si->name.c_str(),
 									curr_sisu->state,curr_sisu->fsm);
 							break;
 						}
@@ -3429,7 +3427,7 @@ void avd_sg_nway_node_fail_sg_admin(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SG *sg = su->sg_of_su;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	/* delete the si assignments to this su */
 	su->delete_all_susis();
@@ -3469,7 +3467,7 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 	bool is_su_present;
 	AVD_AVND *su_node_ptr = nullptr;
 
-	TRACE_ENTER2("SU '%s'",su->name.value);
+	TRACE_ENTER2("SU '%s'",su->name.c_str());
 
 	if (sg->admin_si) {
 		/* process as in si-oper state */
@@ -3510,47 +3508,47 @@ SaAisErrorT SG_NWAY::si_swap(AVD_SI *si, SaInvocationT invocation) {
 	AVD_SU_SI_REL *actv_susi = nullptr, *stdby_susi = nullptr;
 	AVD_SG *sg = si->sg_of_si;
 
-	TRACE_ENTER2("'%s' sg_fsm_state=%u", si->name.value, si->sg_of_si->sg_fsm_state);
+	TRACE_ENTER2("'%s' sg_fsm_state=%u", si->name.c_str(), si->sg_of_si->sg_fsm_state);
 
 	if (si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) {
-		LOG_NO("%s SWAP failed - wrong admin state=%u", si->name.value,
+		LOG_NO("%s SWAP failed - wrong admin state=%u", si->name.c_str(),
 			si->saAmfSIAdminState);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
 
 	if (avd_cb->init_state != AVD_APP_STATE) {
-		LOG_NO("%s SWAP failed - not in app state (%u)", si->name.value,
+		LOG_NO("%s SWAP failed - not in app state (%u)", si->name.c_str(),
 			avd_cb->init_state);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
 
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		LOG_NO("%s SWAP failed - SG not stable (%u)", si->name.value,
+		LOG_NO("%s SWAP failed - SG not stable (%u)", si->name.c_str(),
 			si->sg_of_si->sg_fsm_state);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
 
 	if (si->list_of_sisu == nullptr) {
-		LOG_NO("%s SWAP failed - no assignments to swap", si->name.value);
+		LOG_NO("%s SWAP failed - no assignments to swap", si->name.c_str());
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 
 	if ((sg->equal_ranked_su == true) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
-		LOG_NO("%s Equal distribution is enabled, si-swap not allowed", si->name.value);
+		LOG_NO("%s Equal distribution is enabled, si-swap not allowed", si->name.c_str());
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 	if ((si->rankedsu_list.empty() == false) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
-		LOG_NO("%s SIRankedSU configured and autoadjust enabled, si-swap not allowed", si->name.value);
+		LOG_NO("%s SIRankedSU configured and autoadjust enabled, si-swap not allowed", si->name.c_str());
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 	if (si->list_of_sisu->si_next == nullptr) {
-		LOG_NO("%s SWAP failed - only one assignment", si->name.value);
+		LOG_NO("%s SWAP failed - only one assignment", si->name.c_str());
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
@@ -3565,7 +3563,7 @@ SaAisErrorT SG_NWAY::si_swap(AVD_SI *si, SaInvocationT invocation) {
 	stdby_susi = find_pref_standby_susi(actv_susi);
 	if (stdby_susi == nullptr) {
 		LOG_NO("%s SWAP not allowed, it will violate saAmfSGMaxActiveSIsperSU",
-				si->name.value);
+				si->name.c_str());
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
@@ -3578,7 +3576,7 @@ SaAisErrorT SG_NWAY::si_swap(AVD_SI *si, SaInvocationT invocation) {
 		(si->sg_of_si->saAmfSGMaxStandbySIsperSU < 
 		 static_cast<SaUint32T>(actv_susi->su->hastate_assignments_count(SA_AMF_HA_STANDBY)+1))) {
 		LOG_NO("%s SWAP not allowed as it will leave SI without standby assignment.",
-				si->name.value);
+				si->name.c_str());
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}

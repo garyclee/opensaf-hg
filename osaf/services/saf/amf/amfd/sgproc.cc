@@ -59,8 +59,8 @@ static void verify_csi_deps_and_delete_invalid_compcsi(AVD_SU_SI_REL *susi)
 				if (compcsi->csi == csi) {
 					TRACE("sponsor csi unassigned: delete compcsi "
 							"between '%s' and '%s'",
-							compcsi->comp->comp_info.name.value,
-							compcsi->csi->name.value);
+							osaf_extended_name_borrow(&compcsi->comp->comp_info.name),
+							compcsi->csi->name.c_str());
 					compcsi->csi->assign_flag = false;
 					compcsi->comp->set_assigned(false);
 					avd_compcsi_from_csi_and_susi_delete(susi, compcsi, true);
@@ -103,7 +103,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	AVD_CSI *l_csi;
 	AVD_COMPCS_TYPE *cst;
 
-	TRACE_ENTER2("'%s' '%s' state=%u", su->name.value, si->name.value, ha_state);
+	TRACE_ENTER2("'%s' '%s' state=%u", su->name.c_str(), si->name.c_str(), ha_state);
 
 	if (ckpt == false)
 		/* on Active AMFD empty SI should never be tried for assignments.
@@ -113,7 +113,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt)) == nullptr) {
 		LOG_ER("%s: Could not create SUSI '%s' '%s'", __FUNCTION__,
-			su->name.value, si->name.value);
+			su->name.c_str(), si->name.c_str());
 		goto done;
 	}
 
@@ -132,7 +132,7 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	l_csi = si->list_of_csi;
 	while (l_csi != nullptr) {
 		/* find a component that can be assigned this CSI */
-		l_comp = su->find_unassigned_comp_that_provides_cstype(&l_csi->saAmfCSType);
+		l_comp = su->find_unassigned_comp_that_provides_cstype(l_csi->saAmfCSType);
 
 		if (l_comp == nullptr) {
 			/* This means either - 1. l_csi cann't be assigned to any comp or 2. some comp got assigned 
@@ -172,10 +172,10 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			/* Assign to only those comps, which have assignment. Those comps, which could not have assignment 
 			   before, cann't find compcsi here also.*/
 			for (const auto& comp_ : su->list_of_comp) {
-				AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&comp_->saAmfCompType));
+				AVD_COMP_TYPE *comptype = comptype_db->find(comp_->saAmfCompType);
 				osafassert(comptype);
 				if ((true == comp_->assigned()) && (comptype->saAmfCtCompCategory != SA_AMF_COMP_LOCAL)) {
-					if (nullptr != (cst = avd_compcstype_find_match(&l_csi->saAmfCSType, comp_))) {
+					if (nullptr != (cst = avd_compcstype_find_match(l_csi->saAmfCSType, comp_))) {
 						if (SA_AMF_HA_ACTIVE == ha_state) {
 							if (cst->saAmfCompNumCurrActiveCSIs < cst->saAmfCompNumMaxActiveCSIs) {
 							} else { /* We cann't assign this csi to this comp, so check for another comp */
@@ -217,8 +217,8 @@ npisu_done:
 				LOG_WA("Invalid configuration: More than one CSI" 
 						" cannot be assigned to same"
 						" component for NPI SU");
-			LOG_ER("%s: Component type missing for SU '%s'", __FUNCTION__, su->name.value);
-			LOG_ER("%s: Either component type or component is missing for CSI '%s'", __FUNCTION__, l_csi->name.value);
+			LOG_ER("%s: Component type missing for SU '%s'", __FUNCTION__, su->name.c_str());
+			LOG_ER("%s: Either component type or component is missing for CSI '%s'", __FUNCTION__, l_csi->name.c_str());
 		}
 		l_csi = l_csi->si_list_of_csi_next;
 	}
@@ -229,7 +229,7 @@ npisu_done:
 	 */
 
 	if (susi->list_of_csicomp == nullptr) {
-		TRACE("Couldn't add any compcsi to Si'%s'", susi->si->name.value);
+		TRACE("Couldn't add any compcsi to Si'%s'", susi->si->name.c_str());
 		avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_DEL, static_cast<SaAmfHAStateT>(0), 
 				static_cast<SaAmfHAStateT>(0));
 		avd_susi_delete(cb, susi, true);
@@ -244,9 +244,9 @@ npisu_done:
 						(node->admin_ng->admin_ng_pend_cbk.invocation !=0))) {
 				node->su_cnt_admin_oper++;
 				TRACE("node:'%s', su_cnt_admin_oper:%u", 
-						node->name.value, node->su_cnt_admin_oper);
+						node->name.c_str(), node->su_cnt_admin_oper);
 				if (node->admin_ng != nullptr) {
-					node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+					node->admin_ng->node_oper_list.insert(node->name);
 					TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
 				}
 			}
@@ -280,7 +280,7 @@ done:
  **/
 void su_try_repair(const AVD_SU *su)
 {
-	TRACE_ENTER2("Repair for SU:'%s'", su->name.value);
+	TRACE_ENTER2("Repair for SU:'%s'", su->name.c_str());
 
 	if ((su->sg_of_su->saAmfSGAutoRepair) && (su->saAmfSUFailover) &&
 			(su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED) &&
@@ -288,11 +288,11 @@ void su_try_repair(const AVD_SU *su)
 			(su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 
 		saflog(LOG_NOTICE, amfSvcUsrName, "Ordering Auto repair of '%s' as sufailover repair action",
-				su->name.value);
-		avd_admin_op_msg_snd(&su->name, AVSV_SA_AMF_SU,
+				su->name.c_str());
+		avd_admin_op_msg_snd(su->name, AVSV_SA_AMF_SU,
 				static_cast<SaAmfAdminOperationIdT>(SA_AMF_ADMIN_REPAIRED), su->su_on_node); 
 	} else {
-		saflog(LOG_NOTICE, amfSvcUsrName, "Autorepair not done for '%s'", su->name.value);
+		saflog(LOG_NOTICE, amfSvcUsrName, "Autorepair not done for '%s'", su->sg_of_su->name.c_str());
 	}
 
 	TRACE_LEAVE();
@@ -329,7 +329,7 @@ static void node_complete_admin_op(AVD_AVND *node, SaAisErrorT result)
  */
 void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
 {
-	TRACE_ENTER2("'%s'",su->name.value);
+	TRACE_ENTER2("'%s'",su->name.c_str());
 	AVD_AMF_NG *ng = su->su_on_node->admin_ng;
 	AVD_AVND *node = su->su_on_node;
 	bool flag = false;
@@ -372,7 +372,7 @@ void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
 				flag = false;
 		}
 		if (flag == true) {
-			TRACE("Move '%s' to locked state as all nodes are locked.", ng->name.value);
+			TRACE("Move '%s' to locked state as all nodes are locked.", ng->name.c_str());
 			avd_ng_admin_state_set(ng, SA_AMF_ADMIN_LOCKED);
 		}
 	}
@@ -381,7 +381,7 @@ void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
 			(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 				su->su_on_node->su_cnt_admin_oper--;
 				TRACE("node:'%s', su_cnt_admin_oper:%u",
-						su->su_on_node->name.value,su->su_on_node->su_cnt_admin_oper);
+						su->su_on_node->name.c_str(),su->su_on_node->su_cnt_admin_oper);
 		}
 	} 
 	if ((ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED) && 
@@ -391,13 +391,13 @@ void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
 				su->su_on_node->su_cnt_admin_oper--;
 				TRACE("node:'%s', su_cnt_admin_oper:%u", 
-						su->su_on_node->name.value,su->su_on_node->su_cnt_admin_oper);
+						su->su_on_node->name.c_str(),su->su_on_node->su_cnt_admin_oper);
 		}
 	}
 	/*If no futher SU is undergoing assignment changes, erase node from
 	   nodgroup operation tracking list.*/
 	if (node->su_cnt_admin_oper == 0) {
-		ng->node_oper_list.erase(Amf::to_string(&node->name));
+		ng->node_oper_list.erase(node->name);
 		TRACE("node_oper_list size:%u",ng->oper_list_size());
 	}
 
@@ -418,7 +418,7 @@ void process_su_si_response_for_ng(AVD_SU *su, SaAisErrorT res)
 		  response of assignments as it has set node->admin_ng. So this pointer should be
 		  cleared only when NG is marked LOCKED. And in that case we will not be in this if block. 
 		 */
-		TRACE_1("'%s' in shutting_down state after failover.",ng->name.value);
+		TRACE_1("'%s' in shutting_down state after failover.",ng->name.c_str());
 		goto done;
 	}
 	/*If assignment changes are done on all the SUs on each node of nodegroup
@@ -439,10 +439,10 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 	uint32_t rc = NCSCC_RC_FAILURE;
 	SaAisErrorT res = SA_AIS_OK;
 
-	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.c_str(), su->sg_of_su->sg_fsm_state);
 
 	if (su->list_of_susi == AVD_SU_SI_REL_NULL) {
-		TRACE("'%s' has no assignments", su->name.value);
+		TRACE("'%s' has no assignments", su->name.c_str());
 		rc =  NCSCC_RC_SUCCESS;
 		goto done;
 	}
@@ -493,7 +493,7 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 		   counters for those SUSIs which are in quiescing state in the SU.
 		 */ 
 		TRACE("Reassign SUSI assignments for %s, init_state %u",
-			su->name.value, avd_cb->init_state);
+			su->name.c_str(), avd_cb->init_state);
 
 		for (AVD_SU_SI_REL *susi = su->list_of_susi; susi; susi = susi->su_next) {
 			if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
@@ -568,21 +568,21 @@ static uint32_t su_recover_from_fault(AVD_SU *su)
 
 static void node_try_repair(AVD_AVND *node)
 {
-	TRACE_ENTER2("'%s'", node->name.value);
+	TRACE_ENTER2("'%s'", node->name.c_str());
 
 	if (node->saAmfNodeAutoRepair) {
 		LOG_NO("Ordering reboot of '%s' as node fail/switch-over repair action",
-				node->name.value);
+				node->name.c_str());
 		saflog(LOG_NOTICE, amfSvcUsrName,
 			"Ordering reboot of '%s' as node fail/switch-over repair action",
-			node->name.value);
+			node->name.c_str());
 		avd_d2n_reboot_snd(node);
 	} else {
 		LOG_NO("NodeAutorepair disabled for '%s', no reboot ordered",
-				node->name.value);
+				node->name.c_str());
 		saflog(LOG_NOTICE, amfSvcUsrName,
 			"NodeAutorepair disabled for '%s', NO reboot ordered",
-			node->name.value);
+			node->name.c_str());
 
 	}
 	TRACE_LEAVE();
@@ -597,7 +597,7 @@ static void node_try_repair(AVD_AVND *node)
 static void perform_nodeswitchover_recovery(AVD_AVND *node)
 {
 	bool node_reboot = true;
-	TRACE_ENTER2("'%s'", node->name.value);
+	TRACE_ENTER2("'%s'", node->name.c_str());
 
 	for (const auto& su : node->list_of_su) {
 		su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
@@ -606,7 +606,7 @@ static void perform_nodeswitchover_recovery(AVD_AVND *node)
 			continue;
 
 		if (su_recover_from_fault(su) == NCSCC_RC_FAILURE) {
-			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
 			goto done;
 		}
 
@@ -614,7 +614,7 @@ static void perform_nodeswitchover_recovery(AVD_AVND *node)
 			node_reboot = false;
 
 		if (avd_sg_app_su_inst_func(avd_cb, su->sg_of_su) == NCSCC_RC_FAILURE) {
-			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
 			goto done;
 		}
 	}
@@ -651,7 +651,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	TRACE_ENTER2("id:%u, node:%x, '%s' state:%u", n2d_msg->msg_info.n2d_opr_state.msg_id,
 				 n2d_msg->msg_info.n2d_opr_state.node_id,
-				 n2d_msg->msg_info.n2d_opr_state.su_name.value,
+				 osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_opr_state.su_name),
 				 n2d_msg->msg_info.n2d_opr_state.su_oper_state);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG,
@@ -680,16 +680,16 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* get the SU from the tree */
 
 	if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_opr_state.su_name))) == nullptr) {
-		LOG_ER("%s: %s not found", __FUNCTION__, n2d_msg->msg_info.n2d_opr_state.su_name.value);
+		LOG_ER("%s: %s not found", __FUNCTION__, osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_opr_state.su_name));
 		goto done;
 	}
 
 	if (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf == SA_AMF_NODE_SWITCHOVER) {
 		saflog(LOG_NOTICE, amfSvcUsrName, "Node Switch-Over requested by '%s'",
-			   node->name.value);
+			   node->name.c_str());
 	} else if (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf == SA_AMF_NODE_FAILOVER) {
 		saflog(LOG_NOTICE, amfSvcUsrName, "Node Fail-Over requested by '%s'",
-			   node->name.value);
+			   node->name.c_str());
 	}
 
 	/* Verify that the SU and node oper state is diabled and rcvr is failfast */
@@ -699,7 +699,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* as of now do the same opearation as ncs su failure */
 		su->set_oper_state(SA_AMF_OPERATIONAL_DISABLED);
 		if (node->node_info.nodeId == cb->node_id_avd) {
-			TRACE("Component in %s requested FAILFAST", su->name.value);
+			TRACE("Component in %s requested FAILFAST", su->name.c_str());
 		}
 
 		avd_nd_ncs_su_failed(cb, node);
@@ -720,7 +720,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	   Thus PI applications modeled on  NWay and Nway Active modelthis is spec deviation.
 	 */
 	if (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.raw == AVSV_ERR_RCVR_SU_RESTART) {
-		TRACE("surestart recovery request for '%s'", su->name.value);
+		TRACE("surestart recovery request for '%s'", su->name.c_str());
 		su->set_surestart(true);
 		/*Readiness is temporarliy kept OOS so as to reuse sg_fsm.
 		  It will not be updated to IMM and thus not visible to user.
@@ -786,7 +786,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						saflog(LOG_NOTICE, amfSvcUsrName,
 								"Ordering reboot of '%s' as node fail/switch-over"
 								" repair action",
-								node->name.value);
+								node->name.c_str());
 						avd_d2n_reboot_snd(node);
 
 						/* Finish as many IMM jobs as possible because active 
@@ -827,14 +827,14 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					switch (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.raw) {
 					case SA_AMF_COMPONENT_FAILOVER:
 						if (su->sg_of_su->su_fault(cb, su) == NCSCC_RC_FAILURE) {
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
 							goto done;
 						}
 						break;
 					case 0: /* Support for older releases. */
 					case AVSV_ERR_RCVR_SU_FAILOVER:
 						if (sg_su_failover_func(su) == NCSCC_RC_FAILURE) {
-							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+							LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
 							goto done;
 						}
 						break;
@@ -856,7 +856,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					 * receive id was not processed the event will again
 					 * comeback which we can then process.
 					 */
-					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->sg_of_su->name.value);
+					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->sg_of_su->name.c_str());
 					goto done;
 				}
 
@@ -879,7 +879,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					 * receive id was not processed the event will again
 					 * comeback which we can then process.
 					 */
-					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+					LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
 					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 					goto done;
 				}
@@ -894,7 +894,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				// when it failed to instantiate while headless
 
 				if (cb->init_state == AVD_APP_STATE) {
-					LOG_NO("Setting NPI SU '%s' to OOS after headless state", su->name.value);
+					LOG_NO("Setting NPI SU '%s' to OOS after headless state", su->name.c_str());
 					su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
 				}
 			}
@@ -915,7 +915,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 						 * receive id was not processed the event will again
 						 * comeback which we can then process.
 						 */
-						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.value);
+						LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, su->name.c_str());
 						goto done;
 					}
 				}
@@ -934,8 +934,8 @@ static void susi_assign_msg_dump(const char *func, unsigned int line,
 {
 	LOG_ER("%s:%d %u %u %u %u %x", func, line, info->error,
 		info->ha_state, info->msg_act, info->msg_id, info->node_id);
-	LOG_ER("%s:%d %s", func, line, info->si_name.value);
-	LOG_ER("%s:%d %s", func, line, info->su_name.value);
+	LOG_ER("%s:%d %s", func, line, osaf_extended_name_borrow(&info->si_name));
+	LOG_ER("%s:%d %s", func, line, osaf_extended_name_borrow(&info->su_name));
 }
 
 /**
@@ -956,7 +956,7 @@ void process_su_si_response_for_comp(AVD_SU *su)
 		return;
 	}
 	AVD_COMP *comp = su->su_get_comp_undergoing_restart_admin_op();
-	AVD_COMP_TYPE *comptype = comptype_db->find(Amf::to_string(&comp->saAmfCompType));
+	AVD_COMP_TYPE *comptype = comptype_db->find(comp->saAmfCompType);
 	osafassert(comptype);
 	if ((comp->su->saAmfSUPreInstantiable == true) &&
 			(comptype->saAmfCtCompCategory != SA_AMF_COMP_SA_AWARE) &&
@@ -972,12 +972,12 @@ void process_su_si_response_for_comp(AVD_SU *su)
 		TRACE_LEAVE();
 		return;
 	}
-	uint32_t rc = avd_admin_op_msg_snd(&comp->comp_info.name, AVSV_SA_AMF_COMP,
+	uint32_t rc = avd_admin_op_msg_snd(Amf::to_string(&comp->comp_info.name), AVSV_SA_AMF_COMP,
 			SA_AMF_ADMIN_RESTART, comp->su->su_on_node);
 	if (rc != NCSCC_RC_SUCCESS) {
 		report_admin_op_error(avd_cb->immOiHandle, comp->admin_pend_cbk.invocation,
 				SA_AIS_ERR_TIMEOUT, nullptr,
-				"Admin op request send failed '%s'", comp->comp_info.name.value);
+				"Admin op request send failed '%s'", osaf_extended_name_borrow(&comp->comp_info.name));
 		comp->admin_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 		comp->admin_pend_cbk.invocation = 0;
 	}
@@ -1000,19 +1000,19 @@ void process_su_si_response_for_surestart_admin_op(AVD_SU *su)
 	if (su->list_of_susi != nullptr) {
 		if ((su->saAmfSUPreInstantiable == false) && (su->su_all_comps_restartable() == false) &&
 				(su->list_of_susi->state == SA_AMF_HA_QUIESCED)) {
-			TRACE("For NPI '%s' RESTART admin op ends.",su->name.value);
+			TRACE("For NPI '%s' RESTART admin op ends.",su->name.c_str());
 			su->complete_admin_op(SA_AIS_OK);
 		}
 		TRACE_LEAVE();
 		return;
 	}
 
-	uint32_t rc = avd_admin_op_msg_snd(&su->name, AVSV_SA_AMF_SU, SA_AMF_ADMIN_RESTART,
+	uint32_t rc = avd_admin_op_msg_snd(su->name, AVSV_SA_AMF_SU, SA_AMF_ADMIN_RESTART,
                                         su->su_on_node);
 	if (rc != NCSCC_RC_SUCCESS)  {
 		report_admin_op_error(avd_cb->immOiHandle, su->pend_cbk.invocation, 
 				SA_AIS_ERR_TIMEOUT, nullptr,
-				"Admin op request send failed '%s'", su->name.value);
+				"Admin op request send failed '%s'", su->name.c_str());
 		su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 		su->pend_cbk.invocation = 0;
 	}
@@ -1046,15 +1046,13 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	TRACE_ENTER2("id:%u, node:%x, act:%u, '%s', '%s', ha:%u, err:%u, single:%u",
 			n2d_msg->msg_info.n2d_su_si_assign.msg_id, n2d_msg->msg_info.n2d_su_si_assign.node_id,
-			n2d_msg->msg_info.n2d_su_si_assign.msg_act,  n2d_msg->msg_info.n2d_su_si_assign.su_name.value, 
-			n2d_msg->msg_info.n2d_su_si_assign.si_name.value,  n2d_msg->msg_info.n2d_su_si_assign.ha_state,
+			n2d_msg->msg_info.n2d_su_si_assign.msg_act, osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.su_name), 
+			osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.si_name),  n2d_msg->msg_info.n2d_su_si_assign.ha_state,
 			n2d_msg->msg_info.n2d_su_si_assign.error, n2d_msg->msg_info.n2d_su_si_assign.single_csi);
 
 	if ((node = avd_msg_sanity_chk(evt, n2d_msg->msg_info.n2d_su_si_assign.node_id, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG,
 	     n2d_msg->msg_info.n2d_su_si_assign.msg_id)) == nullptr) {
 		/* sanity failed return */
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = nullptr;
 		goto done;
 	}
 
@@ -1079,16 +1077,16 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		case AVSV_SUSI_ACT_ASGN:
 			LOG_NO("Failed to assign '%s' HA state to '%s'",
 					avd_ha_state[n2d_msg->msg_info.n2d_su_si_assign.ha_state],
-					n2d_msg->msg_info.n2d_su_si_assign.su_name.value);
+					osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.su_name));
 			break;
 		case AVSV_SUSI_ACT_MOD:
 			LOG_NO("Failed to modify '%s' assignment to '%s'", 
-					n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
+					osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.su_name),
 					avd_ha_state[n2d_msg->msg_info.n2d_su_si_assign.ha_state]);
 			break;
 		case AVSV_SUSI_ACT_DEL:
 			LOG_NO("Failed to delete assignment from '%s'",
-					n2d_msg->msg_info.n2d_su_si_assign.su_name.value);
+					osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.su_name));
 			break;
 		default:
 			LOG_WA("%s: unknown action %u", __FUNCTION__,
@@ -1097,14 +1095,14 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	}
 
-	if (n2d_msg->msg_info.n2d_su_si_assign.si_name.length == 0) {
+	if (osaf_extended_name_length(&n2d_msg->msg_info.n2d_su_si_assign.si_name) == 0) {
 
 		/* get the SU from the tree since this is across the
 		 * SU operation. 
 		 */
 
 		if ((su = su_db->find(Amf::to_string(&n2d_msg->msg_info.n2d_su_si_assign.su_name))) == nullptr) {
-			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, n2d_msg->msg_info.n2d_su_si_assign.su_name.value);
+			LOG_ER("%s:%d %s", __FUNCTION__, __LINE__, osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.su_name));
 			goto done;
 		}
 
@@ -1186,13 +1184,13 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		/* Single SU SI assignment find the SU SI structure */
 
-		if ((susi = avd_susi_find(cb, &n2d_msg->msg_info.n2d_su_si_assign.su_name,
-			&n2d_msg->msg_info.n2d_su_si_assign.si_name)) == AVD_SU_SI_REL_NULL) {
+		if ((susi = avd_susi_find(cb, Amf::to_string(&n2d_msg->msg_info.n2d_su_si_assign.su_name),
+			Amf::to_string(&n2d_msg->msg_info.n2d_su_si_assign.si_name))) == AVD_SU_SI_REL_NULL) {
 
 			/* Acknowledgement for a deleted SU SI ignore the message */
 			LOG_IN("%s: avd_susi_find failed for %s %s", __FUNCTION__,
-				n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
-				n2d_msg->msg_info.n2d_su_si_assign.si_name.value);
+				osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.su_name),
+				osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.si_name));
 			goto done;
 		}
 
@@ -1216,9 +1214,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV (avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
 				susi->csi_add_rem = static_cast<SaBoolT>(false);
-				comp = comp_db->find(Amf::to_string(&susi->comp_name));
+				comp = comp_db->find(susi->comp_name);
 				osafassert(comp);
-				csi = csi_db->find(Amf::to_string(&susi->csi_name));
+				csi = csi_db->find(susi->csi_name);
 				osafassert(csi);
 
 				for (t_comp_csi = susi->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) { 
@@ -1238,9 +1236,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				while(t_sisu) {
 					if (true == t_sisu->csi_add_rem) {
 						all_csi_rem = false;
-						comp = comp_db->find(Amf::to_string(&t_sisu->comp_name));
+						comp = comp_db->find(t_sisu->comp_name);
 						osafassert(comp);
-						csi = csi_db->find(Amf::to_string(&t_sisu->csi_name));
+						csi = csi_db->find(t_sisu->csi_name);
 						osafassert(csi);
 
 						for (t_comp_csi = t_sisu->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) {
@@ -1277,9 +1275,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 				osafassert(susi->csi_add_rem);
 				susi->csi_add_rem = static_cast<SaBoolT>(false);
-				comp = comp_db->find(Amf::to_string(&susi->comp_name));
+				comp = comp_db->find(susi->comp_name);
 				osafassert(comp);
-				csi = csi_db->find(Amf::to_string(&susi->csi_name));
+				csi = csi_db->find(susi->csi_name);
 				osafassert(csi);
 
 				for (t_comp_csi = susi->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) {
@@ -1294,9 +1292,9 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				while(t_sisu) {
 					if (true == t_sisu->csi_add_rem) {
 						/* Find the comp csi relationship. */
-						comp = comp_db->find(Amf::to_string(&t_sisu->comp_name));
+						comp = comp_db->find(t_sisu->comp_name);
 						osafassert(comp);
-						csi = csi_db->find(Amf::to_string(&t_sisu->csi_name));
+						csi = csi_db->find(t_sisu->csi_name);
 						osafassert(csi);
 
 						for (t_comp_csi = t_sisu->list_of_csicomp; t_comp_csi; t_comp_csi = t_comp_csi->susi_csicomp_next) { 
@@ -1337,7 +1335,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				LOG_IN("%s: assign susi not in proper state %u %u %u", __FUNCTION__,
 					susi->fsm, susi->state, n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 				LOG_IN("%s: %s %s", __FUNCTION__,
-					susi->su->name.value, susi->si->name.value);
+					susi->su->name.c_str(), susi->si->name.c_str());
 				goto done;
 			}
 
@@ -1365,7 +1363,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				LOG_IN("%s: mod susi not in proper state %u %u %u", __FUNCTION__,
 					susi->fsm, susi->state, n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 				LOG_IN("%s: %s %s", __FUNCTION__,
-					susi->su->name.value, susi->si->name.value);
+					susi->su->name.c_str(), susi->si->name.c_str());
 				goto done;
 			}
 
@@ -1513,7 +1511,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					(ng->admin_ng_pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK))) {
 				su->su_on_node->su_cnt_admin_oper--;
 				TRACE("node:'%s', su_cnt_admin_oper:%u", 
-					su->su_on_node->name.value,su->su_on_node->su_cnt_admin_oper);
+					su->su_on_node->name.c_str(),su->su_on_node->su_cnt_admin_oper);
 			}
 			process_su_si_response_for_ng(su, SA_AIS_OK);
 		} else if (su->su_any_comp_undergoing_restart_admin_op() == true) { 
@@ -1572,11 +1570,11 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			node_try_repair(node);
 		}
 	}
+
+ done:
 	/* Free the messages */
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = nullptr;
-
- done:
 	TRACE_LEAVE();
 }
 
@@ -1604,7 +1602,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	TRACE_ENTER2("'%s'", avnd->name.value);
+	TRACE_ENTER2("'%s'", avnd->name.c_str());
 
 	if (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 		TRACE("Node is in SA_AMF_ADMIN_LOCKED_INSTANTIATION state, can't instantiate");
@@ -1666,7 +1664,7 @@ done:
 AVD_SU* su_to_instantiate(AVD_SG *sg)
 {
 	for (const auto& i_su : sg->list_of_su) {
-		TRACE("%s", i_su->name.value);
+		TRACE("%s", i_su->name.c_str());
 		if (i_su->is_instantiable())
 			return i_su;
 	}
@@ -1684,19 +1682,19 @@ AVD_SU* su_to_terminate(AVD_SG *sg)
 	AmfDb<std::string, AVD_SU> *su_rank = nullptr;
 	su_rank = new  AmfDb<std::string, AVD_SU>;
 	for (const auto& i_su : sg->list_of_su) {
-		TRACE("In Seq %s, %u", i_su->name.value, i_su->saAmfSURank);
-		su_rank->insert(Amf::to_string(&i_su->name), i_su);
+		TRACE("In Seq %s, %u", i_su->name.c_str(), i_su->saAmfSURank);
+		su_rank->insert(i_su->name, i_su);
 	}
 	for (std::map<std::string, AVD_SU*>::const_reverse_iterator rit = su_rank->rbegin();
 			rit != su_rank->rend(); ++rit) {
 		AVD_SU *su = rit->second;
-		TRACE("Rev %s, %u, %u, %u", su->name.value, su->saAmfSURank,
+		TRACE("Rev %s, %u, %u, %u", su->name.c_str(), su->saAmfSURank,
 				su->saAmfSuReadinessState, su->saAmfSUPresenceState);
 	}
 	for (std::map<std::string, AVD_SU*>::const_reverse_iterator rit = su_rank->rbegin();
 			rit != su_rank->rend(); ++rit) {
 		AVD_SU *su = rit->second;
-		TRACE("Rev 2 %s, %u, %u, %u", su->name.value, su->saAmfSURank,
+		TRACE("Rev 2 %s, %u, %u, %u", su->name.c_str(), su->saAmfSURank,
 				su->saAmfSuReadinessState, su->saAmfSUPresenceState);
 		if ((su->saAmfSuReadinessState == SA_AMF_READINESS_OUT_OF_SERVICE) &&
 				(su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
@@ -1720,9 +1718,9 @@ uint32_t in_serv_su(AVD_SG *sg)
 	TRACE_ENTER();
 	uint32_t in_serv = 0;
 	for (const auto& i_su : sg->list_of_su) {
-		TRACE_ENTER2("%s", i_su->name.value);
+		TRACE_ENTER2("%s", i_su->name.c_str());
 		if (i_su->is_in_service()) {
-			TRACE_ENTER2(" in_serv_su %s", i_su->name.value);
+			TRACE_ENTER2(" in_serv_su %s", i_su->name.c_str());
 			in_serv ++;
 		}
 	}
@@ -1761,10 +1759,10 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 	uint32_t num_try_insvc_su = 0;
 	AVD_AVND *su_node_ptr = nullptr;
 
-	TRACE_ENTER2("'%s'", sg->name.value);
+	TRACE_ENTER2("'%s'", sg->name.c_str());
 
 	for (const auto& i_su : sg->list_of_su) {
-		TRACE("Checking '%s'", i_su->name.value);
+		TRACE("Checking '%s'", i_su->name.c_str());
 
 		TRACE("saAmfSuReadinessState: %u", i_su->saAmfSuReadinessState);
 		TRACE("saAmfSUPreInstantiable: %u", i_su->saAmfSUPreInstantiable);
@@ -1792,7 +1790,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			    (any_ng_in_locked_in_state(su_node_ptr) == false)) {
 
 				if (i_su->is_in_service() == true) {
-					TRACE("Calling su_insvc() for '%s'", i_su->name.value);
+					TRACE("Calling su_insvc() for '%s'", i_su->name.c_str());
 					i_su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 					i_su->sg_of_su->su_insvc(cb, i_su);
 
@@ -1829,7 +1827,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 						AVD_SU* su_term = su_to_terminate(sg);
 						TRACE("%p, %p", su_inst, su_term);
 						if (su_inst && su_term) {
-							TRACE("%s, %s", su_inst->name.value, su_term->name.value);
+							TRACE("%s, %s", su_inst->name.c_str(), su_term->name.c_str());
 							/* Try to Instantiate this SU */
 							if (avd_snd_presence_msg(cb, su_inst, false) == NCSCC_RC_SUCCESS) {
 								/* Don't increment num_try_insvc_su as we are any way
@@ -1847,7 +1845,7 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 					}
 				}
 			} else
-				TRACE("nop for %s", i_su->name.value);
+				TRACE("nop for %s", i_su->name.c_str());
 		}
 	}			/* while (i_su != AVD_SU_NULL) */
 
@@ -1887,7 +1885,7 @@ uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s'", sg->name.value);
+	TRACE_ENTER2("'%s'", sg->name.c_str());
 
 	/* Based on the admin operation that is been done call the corresponding.
 	 * Redundancy model specific functionality for the SG.
@@ -1970,7 +1968,7 @@ done:
 
 void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	TRACE_ENTER2("'%s'", avnd->name.value);
+	TRACE_ENTER2("'%s'", avnd->name.c_str());
 
 	/* run through all the MW SUs, make all of them O.O.S. Set
 	 * assignments for the MW SGs of which the SUs are members. Also
@@ -2027,7 +2025,7 @@ void avd_node_down_mw_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
  **/
 void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-	TRACE_ENTER2("'%s'", avnd->name.value);
+	TRACE_ENTER2("'%s'", avnd->name.c_str());
 
 	/* Run through the list of application SUs make all of them O.O.S. 
 	 */
@@ -2128,7 +2126,7 @@ uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE_ENTER2("'%s'", su->name.c_str());
 
 	std::list<AVD_SU*>& su_oper_list = su->sg_of_su->su_oper_list;
 	
@@ -2138,7 +2136,7 @@ uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 		goto done;
 	}
 	
-	TRACE("added %s to %s", su->name.value, su->sg_of_su->name.value);
+	TRACE("added %s to %s", su->name.c_str(), su->sg_of_su->name.c_str());
 	
 	su_oper_list.push_back(su);
 
@@ -2174,7 +2172,7 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 	std::list<AVD_SU*>& su_oper_list = su->sg_of_su->su_oper_list;
 	std::list<AVD_SU*>::iterator elem = std::find(su_oper_list.begin(), su_oper_list.end(), su);
 
-	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE_ENTER2("'%s'", su->name.c_str());
 
 	if (su_oper_list.empty() == true) {
 		LOG_WA("%s: su_oper_list empty", __FUNCTION__);
@@ -2222,7 +2220,7 @@ uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 	SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
-	TRACE_ENTER2("'%s', state %u", su->name.value, state);
+	TRACE_ENTER2("'%s', state %u", su->name.c_str(), state);
 
 	/* change the state for all assignments to the specified state. */
 	i_susi = su->list_of_susi;
@@ -2253,7 +2251,7 @@ uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 	 * the AvND for all the SIs assigned to the SU.
 	 */
 	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD, false, nullptr) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
+		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.c_str());
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {
 
@@ -2290,14 +2288,14 @@ uint32_t avd_sg_susi_mod_snd_honouring_si_dependency(AVD_SU *su, SaAmfHAStateT s
 	AVD_SU_SI_REL *susi;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s', state %u", su->name.value, state);
+	TRACE_ENTER2("'%s', state %u", su->name.c_str(), state);
 
 	for (susi = su->list_of_susi; susi; susi = susi->su_next) {
 		if (susi->state != SA_AMF_HA_QUIESCED) {
 			if (avd_susi_quiesced_canbe_given(susi)) {
 				rc = avd_susi_mod_send(susi, state);
 				if (rc == NCSCC_RC_FAILURE) {
-					LOG_ER("%s:%u: %s", __FILE__, __LINE__, susi->su->name.value);
+					LOG_ER("%s:%u: %s", __FILE__, __LINE__, susi->su->name.c_str());
 					break;
 				}
 			}
@@ -2331,7 +2329,7 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU_SI_REL *i_susi;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
-	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE_ENTER2("'%s'", su->name.c_str());
 
 	/* change the state for all assignments to the specified state. */
 	i_susi = su->list_of_susi;
@@ -2350,7 +2348,7 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	 * the AvND for all the SIs assigned to the SU.
 	 */
 	if (avd_snd_susi_msg(cb, su, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_DEL, false, nullptr) != NCSCC_RC_SUCCESS) {
-		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.value);
+		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.c_str());
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {
 			i_susi->fsm = old_state;
@@ -2384,7 +2382,7 @@ void avd_su_role_failover(AVD_SU *su, AVD_SU *stdby_su)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	bool flag;
 
-	TRACE_ENTER2(" from SU:'%s' to SU:'%s'",su->name.value,stdby_su->name.value);
+	TRACE_ENTER2(" from SU:'%s' to SU:'%s'",su->name.c_str(),stdby_su->name.c_str());
 
 	/* Check if role failover can be performed for this SU */
 	flag = avd_sidep_is_su_failover_possible(su);
