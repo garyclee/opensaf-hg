@@ -25,7 +25,7 @@
 #include <set>
 
 AmfDb<std::string, AVD_AMF_NG> *nodegroup_db = 0;
-static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
+static AVD_AMF_NG *ng_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes);
 //TODO: Make  below function members.
 static void ng_admin_unlock_inst(AVD_AMF_NG *ng);
 static void ng_unlock(AVD_AMF_NG *ng);
@@ -36,9 +36,9 @@ static void ng_unlock(AVD_AMF_NG *ng);
  * 
  * @return AVD_AMF_NG*
  */
-AVD_AMF_NG *avd_ng_get(const SaNameT *dn)
+AVD_AMF_NG *avd_ng_get(const std::string& dn)
 {
-	return nodegroup_db->find(Amf::to_string(dn));
+	return nodegroup_db->find(dn);
 }
 
 /**
@@ -48,21 +48,24 @@ AVD_AMF_NG *avd_ng_get(const SaNameT *dn)
  * 
  * @return int
  */
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
 	int i = 0;
 	unsigned j = 0;
-	char *p;
+	std::string::size_type pos;
 	const SaImmAttrValuesT_2 *attr;
 
-	p = strchr((char *)dn->value, ',');
-	if (p == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	TRACE_ENTER2("%s", dn.c_str());
+
+	if ((pos = dn.find(',')) == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
+		TRACE_LEAVE();
 		return 0;
 	}
 
-	if (strncmp(++p, "safAmfCluster=", 14) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", p, dn->value);
+	if (dn.compare(pos + 1, 14, "safAmfCluster=") != 0) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(pos + 1).c_str(), dn.c_str());
+		TRACE_LEAVE();
 		return 0;
 	}
 
@@ -74,18 +77,20 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
-		SaNameT *name = (SaNameT *)attr->attrValues[j];
-		AVD_AVND *node = avd_node_get(name);
+		SaNameT *name = static_cast<SaNameT *>(attr->attrValues[j]);
+		AVD_AVND *node = avd_node_get(Amf::to_string(name));
 		if (node == nullptr) {
 			if (opdata == nullptr) {
-				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in model", osaf_extended_name_borrow(name));
+				TRACE_LEAVE();
 				return 0;
 			}
 
 			/* Node does not exist in current model, check CCB */
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
-						name->value);
+						osaf_extended_name_borrow(name));
+				TRACE_LEAVE();
 				return 0;
 			}
 		}
@@ -96,23 +101,29 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	   -when AMFD is reading the configuration from IMM at OpenSAF start or
 	   -nodegroup creation using CCB operation.
 	 */
-	
-	AVD_AMF_NG *tmp_ng = ng_create((SaNameT *)dn, attributes);
-	if (tmp_ng == nullptr)
+
+	AVD_AMF_NG *tmp_ng = ng_create(dn, attributes);
+	if (tmp_ng == nullptr) {
+		TRACE_LEAVE();
 		return 0;
+	}
+
 	if (attr->attrValuesNumber != tmp_ng->number_nodes()) {
-		LOG_ER("Duplicate nodes in saAmfNGNodeList of '%s'",tmp_ng->name.value);
+		LOG_ER("Duplicate nodes in saAmfNGNodeList of '%s'",tmp_ng->name.c_str());
 		delete tmp_ng;
+		TRACE_LEAVE();
 		return 0;
 	}
 	//Check if admin state is valid or not.
 	if (!avd_admin_state_is_valid(tmp_ng->saAmfNGAdminState, opdata)) {
 		LOG_ER("Incorrect saAmfNGAdminState:'%u' for '%s'",tmp_ng->saAmfNGAdminState,
-				tmp_ng->name.value);
+				tmp_ng->name.c_str());
 		delete tmp_ng;
+		TRACE_LEAVE();
 		return 0;
 	}
 	delete tmp_ng;
+	TRACE_LEAVE();
 	return 1;
 }
 
@@ -124,7 +135,6 @@ AVD_AMF_NG::AVD_AMF_NG() :
 	ng_on_cluster(0),
 	saAmfNGAdminState(SA_AMF_ADMIN_UNLOCKED)
 {
-	memset(&name, 0, sizeof(SaNameT));
 	admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 	admin_ng_pend_cbk.invocation = 0;
 }
@@ -136,19 +146,18 @@ AVD_AMF_NG::AVD_AMF_NG() :
  * 
  * @return AVD_AVND*
  */
-static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_AMF_NG *ng_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
 	unsigned int i, values_number;
 	AVD_AMF_NG *ng;
 	const SaNameT *node_name;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	ng = new AVD_AMF_NG();
 
-	memcpy(ng->name.value, dn->value, dn->length);
-	ng->name.length = dn->length;
+	ng->name = dn;
 
 	if ((immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("saAmfNGNodeList"), attributes,
 		&values_number) == SA_AIS_OK) && (values_number > 0)) {
@@ -160,7 +169,7 @@ static AVD_AMF_NG *ng_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 		}
 	}
 	else {
-		LOG_ER("Node groups must contian at least one node");
+		LOG_ER("Node groups must contain at least one node");
 		goto done;
 	}
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNGAdminState"),
@@ -175,7 +184,8 @@ done:
 		ng = nullptr;
 	}
 
-	TRACE_LEAVE();
+	osafassert(ng != nullptr);
+	TRACE_LEAVE2("%u", rc);
 	return ng;
 }
 
@@ -186,7 +196,7 @@ done:
  */
 static void ng_delete(AVD_AMF_NG *ng)
 {
-	nodegroup_db->erase(Amf::to_string(&ng->name));
+	nodegroup_db->erase(ng->name);
 	delete ng;
 }
 
@@ -210,7 +220,6 @@ SaAisErrorT avd_ng_config_get(void)
 
 	/* Could be here as a consequence of a fail/switch-over. Delete the DB
 	** since it is anyway not synced and needs to be rebuilt. */
-	dn.length = 0;
 	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
 			it != nodegroup_db->end(); it++) {
 		AVD_AMF_NG *ng = it->second;
@@ -231,15 +240,18 @@ SaAisErrorT avd_ng_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, nullptr)) {
+
+		if (is_config_valid(Amf::to_string(&dn), attributes, nullptr) == false) {
+			TRACE("%s config is invalid", osaf_extended_name_borrow(&dn));
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if ((ng = ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == nullptr)
+		if ((ng = ng_create(Amf::to_string(&dn), (const SaImmAttrValuesT_2 **)attributes)) == nullptr) {
 			goto done2;
+		}
 
-		nodegroup_db->insert(Amf::to_string(&ng->name), ng);
+		nodegroup_db->insert(ng->name, ng);
 	}
 
 	rc = SA_AIS_OK;
@@ -260,10 +272,9 @@ done1:
  */
 static bool su_is_mapped_to_node_via_nodegroup(const AVD_SU *su, const AVD_AMF_NG *ng)
 {
-	if ((memcmp(&ng->name, &su->saAmfSUHostNodeOrNodeGroup, sizeof(SaNameT)) == 0) ||
-	    (memcmp(&ng->name, &su->sg_of_su->saAmfSGSuHostNodeGroup, sizeof(SaNameT)) == 0)) {
-		
-		TRACE("SU '%s' mapped using '%s'", su->name.value, ng->name.value);
+	if (ng->name.compare(su->saAmfSUHostNodeOrNodeGroup) == 0 ||
+		ng->name.compare(su->sg_of_su->saAmfSGSuHostNodeGroup) == 0) {
+		TRACE("SU '%s' mapped using '%s'", su->name.c_str(), ng->name.c_str());
 		return true;
 	}
 
@@ -309,7 +320,7 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 	TRACE_ENTER();
 
-	ng = avd_ng_get(&opdata->objectName);
+	ng = avd_ng_get(Amf::to_string(&opdata->objectName));
 	if (ng == nullptr) {
 		report_ccb_validation_error(opdata, "ng modify: nodegroup cannot be found");
 		goto done;
@@ -330,19 +341,19 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			delete_found = 1;
 
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
-				node = avd_node_get((SaNameT *)mod->modAttr.attrValues[j]);
+				const std::string node_name(Amf::to_string(static_cast<SaNameT *>(mod->modAttr.attrValues[j])));
+				node = avd_node_get(node_name);
 				if (node == nullptr) {
 					report_ccb_validation_error(opdata, "Node '%s' does not exist",
-							((SaNameT *)mod->modAttr.attrValues[j])->value);
+							node_name.c_str());
 					goto done;
 				}
 
-				TRACE("DEL %s", ((SaNameT *)mod->modAttr.attrValues[j])->value);
+				TRACE("DEL %s", node_name.c_str());
 
-				if (node_in_nodegroup(Amf::to_string((SaNameT *)mod->modAttr.attrValues[j]),
-						ng) == false) {
+				if (node_in_nodegroup(node_name, ng) == false) {
 					report_ccb_validation_error(opdata, "ng modify: node '%s' does not exist in node group",
-						((SaNameT *)mod->modAttr.attrValues[j])->value);
+						node_name.c_str());
 					goto done;
 				}
 				
@@ -350,12 +361,13 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				/* for all OpenSAF SUs hosted by this node */
 				for (const auto& su : node->list_of_ncs_su) {
+					const SaNameTWrapper su_name(su->name);
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
-						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
+						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, su_name);
 						if (t_opData == nullptr || t_opData->operationType != CCBUTIL_DELETE) {
 							report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
 								" An SU is mapped using node group",
-								node->name.value, ng->name.value);
+								node->name.c_str(), ng->name.c_str());
 								goto done;
 						}
 					}
@@ -363,12 +375,13 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 
 				/* for all application SUs hosted by this node */
 				for (const auto& su : node->list_of_su) {
+					const SaNameTWrapper su_name(su->name);
 					if (su_is_mapped_to_node_via_nodegroup(su, ng)) {
-						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
+						t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, su_name);
 						if (t_opData == nullptr || t_opData->operationType != CCBUTIL_DELETE) {
 							report_ccb_validation_error(opdata, "Cannot delete '%s' from '%s'."
 							" An SU is mapped using node group",
-							node->name.value, ng->name.value);
+							node->name.c_str(), ng->name.c_str());
 							goto done;
 						}
 					}
@@ -393,24 +406,24 @@ static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			add_found = 1;
 
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
-				node = avd_node_get((SaNameT *)mod->modAttr.attrValues[j]);
+				node = avd_node_get(Amf::to_string(static_cast<SaNameT *>(mod->modAttr.attrValues[j])));
 				if ((node == nullptr) &&
 					(ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)mod->modAttr.attrValues[j]) == nullptr)) {
 
 					report_ccb_validation_error(opdata, "'%s' does not exist in model or CCB",
-							((SaNameT *)mod->modAttr.attrValues[j])->value);
+							osaf_extended_name_borrow((SaNameT *)mod->modAttr.attrValues[j]));
 					goto done;
 				}
 
-				TRACE("ADD %s", ((SaNameT *)mod->modAttr.attrValues[j])->value);
+				TRACE("ADD %s", osaf_extended_name_borrow(static_cast<SaNameT *>(mod->modAttr.attrValues[j])));
 			}
 
 			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
-				if (node_in_nodegroup(Amf::to_string((SaNameT *)mod->modAttr.attrValues[j])
+				if (node_in_nodegroup(Amf::to_string(static_cast<SaNameT *>(mod->modAttr.attrValues[j]))
 							, ng) == true) {
 					report_ccb_validation_error(opdata, "'%s' already exists in"
 							" the nodegroup",
-							((SaNameT *)mod->modAttr.attrValues[j])->value);
+							osaf_extended_name_borrow(static_cast<SaNameT *>(mod->modAttr.attrValues[j])));
 					goto done;
 				}
 			}
@@ -431,9 +444,10 @@ done:
  * 
  * @return bool
  */
-static bool is_deleted_in_ccb(SaImmOiCcbIdT ccbId, const SaNameT *dn)
+static bool is_deleted_in_ccb(SaImmOiCcbIdT ccbId, const std::string& dn)
 {
-	CcbUtilOperationData_t *opdata = ccbutil_getCcbOpDataByDN(ccbId, dn);
+	const SaNameTWrapper dn_name(dn);
+	CcbUtilOperationData_t *opdata = ccbutil_getCcbOpDataByDN(ccbId, dn_name);
 
 	if ((opdata != nullptr) && (opdata->operationType == CCBUTIL_DELETE))
 		return true;
@@ -451,10 +465,10 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_AVND *node;
-	AVD_AMF_NG *ng = avd_ng_get(&opdata->objectName);
+	AVD_AMF_NG *ng = avd_ng_get(Amf::to_string(&opdata->objectName));
 
         if (ng == nullptr) {
-		LOG_WA("Could not find %s in nodegroup_db", opdata->objectName.value);
+		LOG_WA("Could not find %s in nodegroup_db", osaf_extended_name_borrow(&opdata->objectName));
 		TRACE_LEAVE();
 		return SA_AIS_OK;
         }
@@ -465,7 +479,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 			(ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED) && 
 			(ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
 		report_ccb_validation_error(opdata, "'%s' can be deleted in locked," 
-				"lock-in or unlocked admin state", ng->name.value);
+				"lock-in or unlocked admin state", ng->name.c_str());
 		goto done;
 	}
 	for (iter = ng->saAmfNGNodeList.begin();
@@ -476,7 +490,7 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		if (node == nullptr)
 			continue;
 		
-		TRACE("%s", node->name.value);
+		TRACE("%s", node->name.c_str());
 
 		/*
 		** for all SUs hosted by this node, if any SU is mapped using
@@ -487,18 +501,18 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 		*/
 		for (const auto& su : node->list_of_ncs_su) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
-				is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
+				is_deleted_in_ccb(opdata->ccbId, su->name) == false) {
 				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
-					ng->name.value, su->name.value);
+					ng->name.c_str(), su->name.c_str());
 				goto done;
 			}
 		}
 
 		for (const auto& su : node->list_of_su) {
 			if (su_is_mapped_to_node_via_nodegroup(su, ng) &&
-				is_deleted_in_ccb(opdata->ccbId, &su->name) == false) {
+				is_deleted_in_ccb(opdata->ccbId, su->name) == false) {
 				report_ccb_validation_error(opdata, "Cannot delete '%s' because '%s' is mapped using it",
-					ng->name.value, su->name.value);
+					ng->name.c_str(), su->name.c_str());
 				goto done;
 			}
 		}
@@ -519,11 +533,11 @@ static SaAisErrorT ng_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues, opdata))
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
@@ -556,7 +570,7 @@ static void ng_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	SaImmAccessorHandleT accessorHandle;
 	TRACE_ENTER();
 
-	ng = avd_ng_get(&opdata->objectName);
+	ng = avd_ng_get(Amf::to_string(&opdata->objectName));
 	if (ng == nullptr) {
 		TRACE("%p", ng);
 		/* During Standby cold sync, there may be chance that
@@ -613,9 +627,9 @@ done:
 static void ng_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	TRACE_ENTER();
-	AVD_AMF_NG *ng = avd_ng_get(&opdata->objectName);
+	AVD_AMF_NG *ng = avd_ng_get(Amf::to_string(&opdata->objectName));
 	if (ng == nullptr) {
-		LOG_WA("Could not find %s in nodegroup_db", opdata->objectName.value);
+		LOG_WA("Could not find %s in nodegroup_db", osaf_extended_name_borrow(&opdata->objectName));
 		TRACE_LEAVE();
 		return;
 	}
@@ -661,7 +675,7 @@ static void ng_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 	ng->node_oper_list.clear();
 	ng_delete(ng);
 done:
-	TRACE_LEAVE2("deleted %s", opdata->objectName.value);
+	TRACE_LEAVE2("deleted %s", osaf_extended_name_borrow(&opdata->objectName));
 }
 /**
  * Callback for CCB apply
@@ -671,13 +685,13 @@ static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_AMF_NG *ng;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		ng = ng_create(&opdata->objectName, opdata->param.create.attrValues);
+		ng = ng_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(ng);
-		nodegroup_db->insert(Amf::to_string(&ng->name), ng);
+		nodegroup_db->insert(ng->name, ng);
 		break;
 	case CCBUTIL_MODIFY:
 		ng_ccb_apply_modify_hdlr(opdata);
@@ -702,16 +716,16 @@ void avd_ng_admin_state_set(AVD_AMF_NG* ng, SaAmfAdminStateT state)
 	SaAmfAdminStateT old_state = ng->saAmfNGAdminState;
 	
 	osafassert(state <= SA_AMF_ADMIN_SHUTTING_DOWN);
-	TRACE_ENTER2("%s AdmState %s => %s", ng->name.value,
+	TRACE_ENTER2("%s AdmState %s => %s", ng->name.c_str(),
 			avd_adm_state_name[old_state], avd_adm_state_name[state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", ng->name.value,
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s AdmState %s => %s", ng->name.c_str(),
                   avd_adm_state_name[old_state], avd_adm_state_name[state]);      
 	ng->saAmfNGAdminState = state;
-	avd_saImmOiRtObjectUpdate(&ng->name,
+	avd_saImmOiRtObjectUpdate(ng->name,
 			const_cast<SaImmAttrNameT>("saAmfNGAdminState"), 
 			SA_IMM_ATTR_SAUINT32T, &ng->saAmfNGAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, ng, AVSV_CKPT_NG_ADMIN_STATE);
-	avd_send_admin_state_chg_ntf(&ng->name,
+	avd_send_admin_state_chg_ntf(ng->name,
 			(SaAmfNotificationMinorIdT)SA_AMF_NTFID_NG_ADMIN_STATE,
 			old_state, ng->saAmfNGAdminState);
 }
@@ -726,12 +740,12 @@ static SaAisErrorT check_node_stability(const AVD_AVND *node, const AVD_AMF_NG *
 	SaAisErrorT rc = SA_AIS_OK;
 
 	if (node->admin_node_pend_cbk.admin_oper != 0) {
-		LOG_NO("'%s' undergoing admin operation", node->name.value);
+		LOG_NO("'%s' undergoing admin operation", node->name.c_str());
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
 	if (node->clm_pend_inv != 0) {
-		LOG_NO("'%s' Clm operation going on", node->name.value);
+		LOG_NO("'%s' Clm operation going on", node->name.c_str());
 		rc = SA_AIS_ERR_TRY_AGAIN;
                 goto done;
         }
@@ -761,7 +775,7 @@ static SaAisErrorT check_red_model_service_outage(const AVD_AMF_NG *ng)
 		AVD_AVND *node = avd_node_get(*iter);
 		for (const auto& su : node->list_of_su) {
 			//Make a temorary list_of_SG for later verification of service outage.
-			tmp_sg_list.insert(Amf::to_string(&su->sg_of_su->name));
+			tmp_sg_list.insert(su->sg_of_su->name);
 		}
 	}
 	for (std::set<std::string>::const_iterator iter =  tmp_sg_list.begin();
@@ -774,12 +788,12 @@ static SaAisErrorT check_red_model_service_outage(const AVD_AMF_NG *ng)
 		//As of now, AMF will throw only warning, but operation will continue.	
 		if (sg->is_sg_serviceable_outside_ng(ng) == true)
 			LOG_NO("service outage for '%s' because of shutdown/lock "
-					"on '%s'",sg->name.value,ng->name.value);
+					"on '%s'",sg->name.c_str(),ng->name.c_str());
 
 		if ((sg->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) ||
 				(sg->sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL)) { 
 			LOG_NO("Admin op on '%s'  hosting SUs of '%s' with redundancy '%u' "
-					"is not supported",ng->name.value, sg->name.value,
+					"is not supported",ng->name.c_str(), sg->name.c_str(),
 					sg->sg_redundancy_model);
 			rc = SA_AIS_ERR_NOT_SUPPORTED;
 			tmp_sg_list.clear();
@@ -802,7 +816,7 @@ static SaAisErrorT check_ng_stability(const AVD_AMF_NG *ng)
 	SaAisErrorT rc = SA_AIS_OK;
 		
 	if (ng->admin_ng_pend_cbk.admin_oper != 0) {
-		LOG_NO("'%s' is already undergoing admin operation", ng->name.value);
+		LOG_NO("'%s' is already undergoing admin operation", ng->name.c_str());
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
@@ -826,7 +840,7 @@ done:
 void ng_complete_admin_op(AVD_AMF_NG *ng, SaAisErrorT result)
 {
 	if (ng->admin_ng_pend_cbk.invocation != 0) {
-		TRACE("Replying to IMM for admin op on '%s'", ng->name.value);
+		TRACE("Replying to IMM for admin op on '%s'", ng->name.c_str());
 		avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
 				ng->admin_ng_pend_cbk.invocation, result);
 		ng->admin_ng_pend_cbk.invocation = 0;
@@ -889,10 +903,10 @@ void AVD_AMF_NG::assign_unlocked_nodes() const
  */
 void ng_node_lock_and_shutdown(AVD_AVND *node)
 {
-	TRACE_ENTER2("'%s'",node->name.value);
+	TRACE_ENTER2("'%s'",node->name.c_str());
 	if (node->node_info.member == false) {
 		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
-		LOG_NO("%s' LOCK: CLM node is not member", node->name.value);
+		LOG_NO("%s' LOCK: CLM node is not member", node->name.c_str());
 		return;
 	}
 	if (avd_cb->init_state == AVD_INIT_DONE) {
@@ -909,7 +923,7 @@ void ng_node_lock_and_shutdown(AVD_AVND *node)
 		su->sg_of_su->ng_admin(su, node->admin_ng);
 	}
 	if (node->su_cnt_admin_oper > 0)
-		node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+		node->admin_ng->node_oper_list.insert(node->name);
 	TRACE_LEAVE2("node_oper_list size:%u",node->admin_ng->oper_list_size());
 }
 /*
@@ -923,7 +937,7 @@ void ng_node_lock_and_shutdown(AVD_AVND *node)
  */
 static void ng_unlock(AVD_AMF_NG *ng)
 {
-	TRACE_ENTER2("'%s'",ng->name.value);
+	TRACE_ENTER2("'%s'",ng->name.c_str());
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
@@ -932,7 +946,7 @@ static void ng_unlock(AVD_AMF_NG *ng)
 			continue;
 		node_admin_state_set(node, SA_AMF_ADMIN_UNLOCKED);
 		if (node->node_info.member == false) {
-			LOG_NO("'%s' UNLOCK: CLM node is not member", node->name.value);
+			LOG_NO("'%s' UNLOCK: CLM node is not member", node->name.c_str());
 			continue;
 		}
 		node->admin_ng = ng;
@@ -967,7 +981,7 @@ static void ng_unlock(AVD_AMF_NG *ng)
 			avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
 		}
 		if (node->su_cnt_admin_oper > 0)
-			node->admin_ng->node_oper_list.insert(Amf::to_string(&node->name));
+			node->admin_ng->node_oper_list.insert(node->name);
 	}
 	TRACE_LEAVE2("node_oper_list size:%u",ng->oper_list_size());
 }
@@ -982,21 +996,21 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 {
 	uint32_t su_try_inst;
 	std::set<std::string> tmp_sg_list;
-	TRACE_ENTER2("%s", ng->name.value);
+	TRACE_ENTER2("%s", ng->name.c_str());
 
 	for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 			iter != ng->saAmfNGNodeList.end(); ++iter) {
 		AVD_AVND *node = avd_node_get(*iter);
 		if (node->node_info.member == false) {
-			LOG_NO("'%s' UNLOCK_INSTANTIATION: CLM node is not member", node->name.value);
+			LOG_NO("'%s' UNLOCK_INSTANTIATION: CLM node is not member", node->name.c_str());
 			continue;
 		}
 		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) {
-			LOG_NO("'%s' UNLOCK_INSTANTIATION: AMF node oper state disabled", node->name.value);
+			LOG_NO("'%s' UNLOCK_INSTANTIATION: AMF node oper state disabled", node->name.c_str());
 			continue;
 		}
 		if (any_ng_in_locked_in_state(node) == true) {
-			LOG_NO("One of the node group of '%s' is in locked-in", node->name.value);
+			LOG_NO("One of the node group of '%s' is in locked-in", node->name.c_str());
 			continue;
 		}
 		for (const auto& node_su : node->list_of_su) {
@@ -1006,7 +1020,7 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 			AVD_SG *sg = node_su->sg_of_su;
 
 			std::set<std::string>::const_iterator iter1 ;
-			iter1 = tmp_sg_list.find(Amf::to_string(&sg->name));
+			iter1 = tmp_sg_list.find(sg->name);
 			if (iter1 != tmp_sg_list.end())
 				continue;
 
@@ -1014,7 +1028,7 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 			avd_sg_adjust_config(sg);
 			for (const auto& su : sg->list_of_su) {
 				//Continue if this SU is not hosted on the Node of NG.
-				if (node_in_nodegroup(Amf::to_string(&su->su_on_node->name), ng) == false)
+				if (node_in_nodegroup(su->su_on_node->name, ng) == false)
 					continue;
 
 				if ((su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
@@ -1028,7 +1042,7 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 
 					if (sg->saAmfSGNumPrefInserviceSUs > su_try_inst) {
 						if (avd_snd_presence_msg(avd_cb, su, false) != NCSCC_RC_SUCCESS) {
-							LOG_NO("Failed to send Instantiation of '%s'", su->name.value);
+							LOG_NO("Failed to send Instantiation of '%s'", su->name.c_str());
 						} else {
 							su->su_on_node->su_cnt_admin_oper++;
 							su_try_inst++;
@@ -1036,12 +1050,12 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 					}
 				}
 			}
-			tmp_sg_list.insert(Amf::to_string(&sg->name));
+			tmp_sg_list.insert(sg->name);
 		}
 		TRACE("node:'%s', su_cnt_admin_oper:%u",
-				node->name.value, node->su_cnt_admin_oper);
+				node->name.c_str(), node->su_cnt_admin_oper);
 		if (node->su_cnt_admin_oper > 0)
-			ng->node_oper_list.insert(Amf::to_string(&node->name));
+			ng->node_oper_list.insert(node->name);
 	}
 	TRACE("node_oper_list size:%u",ng->oper_list_size());
 	TRACE_LEAVE();
@@ -1061,8 +1075,8 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	AVD_AMF_NG *ng = avd_ng_get(ng_name);	
-	TRACE_ENTER2("'%s', inv:'%llu', op:'%llu'",ng_name->value,invocation,op_id);
+	AVD_AMF_NG *ng = avd_ng_get(Amf::to_string(ng_name));	
+	TRACE_ENTER2("'%s', inv:'%llu', op:'%llu'",osaf_extended_name_borrow(ng_name),invocation,op_id);
 
 	switch(op_id) {
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
@@ -1072,19 +1086,19 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 					      rc, nullptr,
 					      "Some entity is unstable, Operation cannot "
 					      "be performed on '%s'"
-					      "Check syslog for entity details", ng_name->value);
+					      "Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
 					      "'%s' Invalid Admin Operation LOCK INSTANTIATION in state %s",
-					      ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+					      ng->name.c_str(), avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
 		}
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					      "'%s' Invalid Admin Operation LOCK_INSTANTIATION in state %s",
-					      ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+					      ng->name.c_str(), avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
 		}
 		rc = check_red_model_service_outage(ng);
@@ -1092,7 +1106,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 			report_admin_op_error(avd_cb->immOiHandle, invocation,
 					      SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					      "SUs of unsupported red models hosted on '%s'"
-					      "Check syslog for entity details", ng_name->value);
+					      "Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		ng->admin_ng_pend_cbk.invocation = invocation;
@@ -1114,22 +1128,22 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 		     iter != ng->saAmfNGNodeList.end(); ++iter) {
 			AVD_AVND *node = avd_node_get(*iter);
 			if (node->node_info.member == false) {
-				LOG_NO("'%s' LOCK_INSTANTIATION: CLM node is not member", node->name.value);
+				LOG_NO("'%s' LOCK_INSTANTIATION: CLM node is not member", node->name.c_str());
 				continue;
 			}
 			if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) {
-				LOG_NO("'%s' LOCK_INSTANTIATION: AMF node oper state disabled", node->name.value);
+				LOG_NO("'%s' LOCK_INSTANTIATION: AMF node oper state disabled", node->name.c_str());
 				continue;
 			}
 			if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-				LOG_NO("'%s' LOCK_INSTANTIATION: AMF node admin state is not LOCKED", node->name.value);
+				LOG_NO("'%s' LOCK_INSTANTIATION: AMF node admin state is not LOCKED", node->name.c_str());
 				continue;
 			}
 			avd_node_admin_lock_instantiation(node);
 			TRACE("node:'%s', su_cnt_admin_oper:%u",
-					node->name.value, node->su_cnt_admin_oper);
+					node->name.c_str(), node->su_cnt_admin_oper);
 			if (node->su_cnt_admin_oper > 0)
-				ng->node_oper_list.insert(Amf::to_string(&node->name));
+				ng->node_oper_list.insert(node->name);
 		}
 		TRACE("node_oper_list size:%u",ng->oper_list_size());
 		if (ng->node_oper_list.empty())
@@ -1142,19 +1156,19 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 					      rc, nullptr,
 					      "Some entity is unstable, Operation cannot "
 					      "be performed on '%s'"
-					      "Check syslog for entity details", ng_name->value);
+					      "Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					      "'%s' Already in LOCKED state", ng->name.value);
+					      "'%s' Already in LOCKED state", ng->name.c_str());
 			goto done;
 		}
 
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					      "'%s' Invalid Admin Operation UNLOCK_INSTANTIATION in state %s",
-					      ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+					      ng->name.c_str(), avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
 		}
 		rc = check_red_model_service_outage(ng);
@@ -1162,7 +1176,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 			report_admin_op_error(avd_cb->immOiHandle, invocation,
 					      SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					      "SUs of unsupported red models hosted on '%s'"
-					      "Check syslog for entity details", ng_name->value);
+					      "Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 
@@ -1192,18 +1206,18 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 					rc, nullptr,
 					"Some entity is unstable, Operation cannot "
 					"be performed on '%s'"
-					"Check syslog for entity details", ng_name->value);
+					"Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED) {
                         report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-                                        "'%s' Already in LOCKED state", ng->name.value);
+                                        "'%s' Already in LOCKED state", ng->name.c_str());
                         goto done;
                 }
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation LOCK in state %s",
-					ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+					ng->name.c_str(), avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
 		}
 		rc = check_red_model_service_outage(ng);
@@ -1211,7 +1225,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 			report_admin_op_error(avd_cb->immOiHandle, invocation, 
 					SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					"SUs of unsupported red models hosted on '%s'"
-					"Check syslog for entity details", ng_name->value);
+					"Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		ng->admin_ng_pend_cbk.invocation = invocation;
@@ -1245,18 +1259,18 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 					rc, nullptr,
 					"Some entity is unstable, Operation cannot "
 					"be performed on '%s'"
-					"Check syslog for entity details", ng_name->value);
+					"Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					"'%s' Already in SHUTTING DOWN state", ng->name.value);
+					"'%s' Already in SHUTTING DOWN state", ng->name.c_str());
 			goto done;
 		}
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation SHUTDOWN in state %s",
-					ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+					ng->name.c_str(), avd_adm_state_name[ng->saAmfNGAdminState]);
 			goto done;
 		}
 		rc = check_red_model_service_outage(ng);
@@ -1264,7 +1278,7 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 			report_admin_op_error(avd_cb->immOiHandle, invocation, 
 					SA_AIS_ERR_NOT_SUPPORTED, nullptr,
 					"SUs of unsupported red models hosted on '%s'"
-					"Check syslog for entity details", ng_name->value);
+					"Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		ng->admin_ng_pend_cbk.invocation = invocation;
@@ -1309,18 +1323,18 @@ static void ng_admin_op_cb(SaImmOiHandleT immoi_handle, SaInvocationT invocation
 					rc, nullptr,
 					"Some entity is unstable, Operation cannot "
 					"be performed on '%s'"
-					"Check syslog for entity details", ng_name->value);
+					"Check syslog for entity details", osaf_extended_name_borrow(ng_name));
 			goto done;
 		}
 		if (ng->saAmfNGAdminState == SA_AMF_ADMIN_UNLOCKED) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_NO_OP, nullptr,
-					"'%s' Already in UNLOCKED state", ng->name.value);
+					"'%s' Already in UNLOCKED state", ng->name.c_str());
                         goto done;
 		}
 		if (ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) {
 			report_admin_op_error(avd_cb->immOiHandle, invocation, SA_AIS_ERR_BAD_OPERATION, nullptr,
 					"'%s' Invalid Admin Operation UNLOCK in state %s",
-                                        ng->name.value, avd_adm_state_name[ng->saAmfNGAdminState]);
+                                        ng->name.c_str(), avd_adm_state_name[ng->saAmfNGAdminState]);
                         goto done;
                 }
 		ng->admin_ng_pend_cbk.invocation = invocation;

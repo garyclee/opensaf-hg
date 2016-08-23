@@ -15,10 +15,8 @@
  *
  */
 
-#include <string>
-#include <set>
-#include <string.h>
 #include "util.h"
+#include <set>
 #include "node.h"
 #include <logtrace.h>
 #include <immutil.h>
@@ -34,14 +32,14 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *mod;
 	int i = 0;
-	const char *dn = (char*)opdata->objectName.value;
+	const std::string dn(Amf::to_string(&opdata->objectName));
 
 	while ((mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		if (strcmp(mod->modAttr.attrName, "saAmfHctDefPeriod") == 0) {
 			SaTimeT value = *((SaTimeT *)mod->modAttr.attrValues[0]);
 			if (value < SA_TIME_ONE_SECOND) {
 				report_ccb_validation_error(opdata,
-					"Invalid saAmfHctDefPeriod for '%s'", dn);
+					"Invalid saAmfHctDefPeriod for '%s'", dn.c_str());
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -49,7 +47,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 			SaTimeT value = *((SaTimeT *)mod->modAttr.attrValues[0]);
 			if (value < 100 * SA_TIME_ONE_MILLISECOND) {
 				report_ccb_validation_error(opdata,
-					"Invalid saAmfHctDefMaxDuration for '%s'", dn);
+					"Invalid saAmfHctDefMaxDuration for '%s'", dn.c_str());
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -65,15 +63,16 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i;
 	const AVD_COMP_TYPE *comp_type;
-	SaNameT comp_type_name;
+	std::string comp_type_name;
+	const std::string object_name(Amf::to_string(&opdata->objectName));
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, object_name.c_str());
 
 	// input example: opdata.objectName.value, safHealthcheckKey=AmfDemo,safVersion=1,safCompType=AmfDemo1
-	avsv_sanamet_init(&opdata->objectName, &comp_type_name, "safVersion=");
+	avsv_sanamet_init(object_name, comp_type_name, "safVersion=");
 
-	if ((comp_type = comptype_db->find(Amf::to_string(&comp_type_name))) == 0) {
-		LOG_ER("Internal error: %s not found", comp_type_name.value);
+	if ((comp_type = comptype_db->find(comp_type_name)) == 0) {
+		LOG_ER("Internal error: %s not found", comp_type_name.c_str());
 		return;
 	}
 
@@ -85,7 +84,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 	AVD_COMP *comp = comp_type->list_of_comp;
 	while (comp != nullptr) {
 		node_set.insert(comp->su->su_on_node);
-		TRACE("comp name %s on node %s", comp->comp_info.name.value,  comp->su->su_on_node->name.value);
+		TRACE("comp name %s on node %s", osaf_extended_name_borrow(&comp->comp_info.name),  comp->su->su_on_node->name.c_str());
 		comp = comp->comp_type_list_comp_next;
 	}			
 		
@@ -106,11 +105,11 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 
 			if (!strcmp(attribute->attrName, "saAmfHctDefPeriod")) {
 				TRACE("saAmfHctDefPeriod modified to '%llu' for CompType '%s' on node '%s'", *param_val, 
-				      opdata->objectName.value, (*it)->name.value);
+				      object_name.c_str(), (*it)->name.c_str());
 				param.attr_id = saAmfHctDefPeriod_ID;
 			} else if (!strcmp(attribute->attrName, "saAmfHctDefMaxDuration")) {
 				TRACE("saAmfHctDefMaxDuration modified to '%llu' for CompType '%s' on node '%s", *param_val, 
-				      opdata->objectName.value, (*it)->name.value);
+				      object_name.c_str(), (*it)->name.c_str());
 				param.attr_id = saAmfHctDefMaxDuration_ID;
 			} else
 				LOG_WA("Unexpected attribute name: %s", attribute->attrName);
@@ -124,7 +123,7 @@ static SaAisErrorT hct_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
@@ -146,7 +145,7 @@ static SaAisErrorT hct_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 static void hct_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:

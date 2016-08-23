@@ -44,14 +44,14 @@ static char *StrDup(const char *s)
 
 static void svctype_db_add(AVD_SVC_TYPE *svct)
 {
-	unsigned int rc = svctype_db->insert(Amf::to_string(&svct->name),svct);
+	unsigned int rc = svctype_db->insert(svct->name,svct);
 	osafassert (rc == NCSCC_RC_SUCCESS);
 }
 
 
 static void svctype_delete(AVD_SVC_TYPE *svc_type)
 {
-	svctype_db->erase(Amf::to_string(&svc_type->name));
+	svctype_db->erase(svc_type->name);
 
 	if (svc_type->saAmfSvcDefActiveWeight != nullptr) {
 		unsigned int i = 0;
@@ -74,18 +74,18 @@ static void svctype_delete(AVD_SVC_TYPE *svc_type)
 }
 
 //
-AVD_SVC_TYPE::AVD_SVC_TYPE(const SaNameT *dn) {
-  memcpy(&name.value, dn->value, dn->length);
-  name.length = dn->length;
+AVD_SVC_TYPE::AVD_SVC_TYPE(const std::string& dn) :
+	name(dn)
+{
 }
 
-static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_SVC_TYPE *svctype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	unsigned int i;
 	AVD_SVC_TYPE *svct;
 	SaUint32T attrValuesNumber;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	svct = new AVD_SVC_TYPE(dn);
 
@@ -116,18 +116,18 @@ static AVD_SVC_TYPE *svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 
 	return svct;
 }
 
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
-	char *parent;
+	std::string::size_type pos;
 
-	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	if ((pos = dn.find(',')) == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
 		return 0;
 	}
 
 	/* Should be children to the SvcBasetype */
-	if (strncmp(++parent, "safSvcType=", 11) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
+	if (dn.compare(pos + 1, 11, "safSvcType=") != 0) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(pos +1).c_str(), dn.c_str());
 		return 0;
 	}
 
@@ -142,11 +142,11 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	bool si_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues, opdata))
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
@@ -159,7 +159,8 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		 * each of the SI in the svc_type list in the current CCB
 		 */
 		for (const auto& si : svc_type->list_of_si) {
-			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &si->name);
+			const SaNameTWrapper si_name(si->name);
+			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, si_name);
 			if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				si_exist = true;
 				break;
@@ -167,7 +168,7 @@ static SaAisErrorT svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		}
 
 		if (si_exist == true) {
-			report_ccb_validation_error(opdata, "SaAmfSvcType '%s' is in use",svc_type->name.value);
+			report_ccb_validation_error(opdata, "SaAmfSvcType '%s' is in use",svc_type->name.c_str());
 			goto done;
 		}
 		opdata->userData = svc_type;
@@ -186,11 +187,11 @@ static void svctype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SVC_TYPE *svc_type;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		svc_type = svctype_create(&opdata->objectName, opdata->param.create.attrValues);
+		svc_type = svctype_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(svc_type);
 		svctype_db_add(svc_type);
 		break;
@@ -239,17 +240,18 @@ SaAisErrorT avd_svctype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, nullptr))
+		const std::string temp_dn(Amf::to_string(&dn));
+		if (!is_config_valid(temp_dn, attributes, nullptr))
 			goto done2;
 
-		if ((svc_type = svctype_db->find(Amf::to_string(&dn))) == nullptr) {
-			if ((svc_type = svctype_create(&dn, attributes)) == nullptr)
+		if ((svc_type = svctype_db->find(temp_dn)) == nullptr) {
+			if ((svc_type = svctype_create(temp_dn, attributes)) == nullptr)
 				goto done2;
 
 			svctype_db_add(svc_type);
 		}
 
-		if (avd_svctypecstypes_config_get(&dn) != SA_AIS_OK)
+		if (avd_svctypecstypes_config_get(temp_dn) != SA_AIS_OK)
 			goto done2;
 	}
 

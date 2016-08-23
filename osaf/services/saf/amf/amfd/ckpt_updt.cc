@@ -49,12 +49,12 @@ uint32_t avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE ac
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *node;
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->name.value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->name.c_str());
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (nullptr == (node = avd_node_get(&ckpt_node->name))) {
-		LOG_ER("avd_node_get FAILED for '%s'", ckpt_node->name.value);
+	if (nullptr == (node = avd_node_get(ckpt_node->name))) {
+		LOG_WA("avd_node_get FAILED for '%s'", ckpt_node->name.c_str());
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -97,15 +97,15 @@ uint32_t avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE actio
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_app->name.value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_app->name.c_str());
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	AVD_APP *app = app_db->find(Amf::to_string(&ckpt_app->name));
+	AVD_APP *app = app_db->find(ckpt_app->name);
 	if (app == nullptr) {
-		TRACE("'%s' does not exist, creating it", ckpt_app->name.value);
-		app = new AVD_APP(&ckpt_app->name);
-		rc = app_db->insert(Amf::to_string(&app->name), app);
+		TRACE("'%s' does not exist, creating it", ckpt_app->name.c_str());
+		app = new AVD_APP(ckpt_app->name);
+		app_db->insert(app->name, app);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 		goto done;
 	}
@@ -139,12 +139,12 @@ uint32_t avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SG *sg;
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_sg->name.value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_sg->name.c_str());
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (nullptr == (sg = sg_db->find(Amf::to_string(&ckpt_sg->name)))) {
-		LOG_WA("sg_db->find() FAILED for '%s'", ckpt_sg->name.value);
+	if (nullptr == (sg = sg_db->find(ckpt_sg->name))) {
+		LOG_WA("sg_db->find() FAILED for '%s'", ckpt_sg->name.c_str());
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -182,12 +182,12 @@ uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_SU *su;
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_su->name.value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_su->name.c_str());
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (nullptr == (su = su_db->find(Amf::to_string(&ckpt_su->name)))) {
-		LOG_WA("su_db->find FAILED for '%s'", ckpt_su->name.value);
+	if (nullptr == (su = su_db->find(ckpt_su->name))) {
+		LOG_WA("su_db->find FAILED for '%s'", ckpt_su->name.c_str());
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -199,18 +199,18 @@ uint32_t avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 	su->saAmfSUPresenceState = ckpt_su->saAmfSUPresenceState;
 	su->saAmfSUNumCurrActiveSIs = ckpt_su->saAmfSUNumCurrActiveSIs;
 	su->saAmfSUNumCurrStandbySIs = ckpt_su->saAmfSUNumCurrStandbySIs;
-	memcpy(&su->saAmfSUHostedByNode, &ckpt_su->saAmfSUHostedByNode, sizeof(SaNameT));
+	su->saAmfSUHostedByNode = ckpt_su->saAmfSUHostedByNode;
 	su->term_state = ckpt_su->term_state;
 	su->su_switch = ckpt_su->su_switch;
 	su->saAmfSURestartCount = ckpt_su->saAmfSURestartCount;
 
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUOperState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUOperState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUAdminState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUAdminState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSUAdminState);
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUReadinessState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
-	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
+	avd_saImmOiRtObjectUpdate(su->name, "saAmfSUPresenceState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
 done:
 	TRACE_LEAVE2("%u", rc);
@@ -237,11 +237,11 @@ uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_SI *si;
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_si->name.value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_si->name.c_str());
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (nullptr == (si = avd_si_get(&ckpt_si->name))) {
+	if (nullptr == (si = avd_si_get(ckpt_si->name))) {
 		LOG_WA("%s: avd_si_get FAILED", __FUNCTION__);
 		goto done;
 	}
@@ -253,7 +253,7 @@ uint32_t avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 	si->saAmfSIAssignmentState = ckpt_si->saAmfSIAssignmentState;
 	si->saAmfSIProtectedbySG = ckpt_si->saAmfSIProtectedbySG;
 	si->alarm_sent = ckpt_si->alarm_sent;
-	si->sg_of_si = sg_db->find(Amf::to_string(&si->saAmfSIProtectedbySG));
+	si->sg_of_si = sg_db->find(si->saAmfSIProtectedbySG);
 
 	rc = NCSCC_RC_SUCCESS;
 done:
@@ -277,7 +277,7 @@ done:
 \**************************************************************************/
 uint32_t avd_ckpt_su_oper_list(const SaNameT *name, NCS_MBCSV_ACT_TYPE action)
 {
-	TRACE_ENTER2("'%s'", name->value);
+	TRACE_ENTER2("'%s'", osaf_extended_name_borrow(name));
 
 	AVD_SU *su = su_db->find(Amf::to_string(name));
 	osafassert(su);
@@ -328,7 +328,8 @@ uint32_t avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE 
 		osafassert(0);
 	}
 
-	TRACE_LEAVE2("'%s'", name.value);
+	TRACE_LEAVE2("'%s'", osaf_extended_name_borrow(&name));
+	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -343,14 +344,14 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_SG *sg_ptr;
 
-	TRACE_ENTER2("'%s'", si_trans_ckpt->sg_name.value);
+	TRACE_ENTER2("'%s'", osaf_extended_name_borrow(&si_trans_ckpt->sg_name));
 
 	sg_ptr = sg_db->find(Amf::to_string(&si_trans_ckpt->sg_name));
 	osafassert(sg_ptr);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
-		sg_ptr->si_tobe_redistributed = avd_si_get(&si_trans_ckpt->si_name); 
+		sg_ptr->si_tobe_redistributed = avd_si_get(Amf::to_string(&si_trans_ckpt->si_name)); 
 		sg_ptr->min_assigned_su = su_db->find(Amf::to_string(&si_trans_ckpt->min_su_name)); 
 		sg_ptr->max_assigned_su = su_db->find(Amf::to_string(&si_trans_ckpt->max_su_name)); 
 		break;
@@ -364,6 +365,11 @@ uint32_t avd_ckpt_si_trans(AVD_CL_CB *cb, AVSV_SI_TRANS_CKPT_MSG *si_trans_ckpt,
 	default:
 		osafassert(0);
 	}
+
+	osaf_extended_name_free(&si_trans_ckpt->sg_name);
+	osaf_extended_name_free(&si_trans_ckpt->si_name);
+	osaf_extended_name_free(&si_trans_ckpt->min_su_name);
+	osaf_extended_name_free(&si_trans_ckpt->max_su_name);
 
 	TRACE_LEAVE2("status '%u'", status);
 	return status;
@@ -396,13 +402,13 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 	AVD_CSI *csi_ptr;
 	NCS_MBCSV_ACT_TYPE action = dec->i_action;
 
-	TRACE_ENTER2("'%s' '%s'", su_si_ckpt->si_name.value, su_si_ckpt->su_name.value);
+	TRACE_ENTER2("'%s' '%s'", osaf_extended_name_borrow(&su_si_ckpt->si_name), osaf_extended_name_borrow(&su_si_ckpt->su_name));
 
-	su_si_rel_ptr = avd_susi_find(cb, &su_si_ckpt->su_name, &su_si_ckpt->si_name);
+	su_si_rel_ptr = avd_susi_find(cb, Amf::to_string(&su_si_ckpt->su_name), Amf::to_string(&su_si_ckpt->si_name));
 
 	su_ptr = su_db->find(Amf::to_string(&su_si_ckpt->su_name));
 	osafassert(su_ptr);
-	si_ptr_up = avd_si_get(&su_si_ckpt->si_name);
+	si_ptr_up = avd_si_get(Amf::to_string(&su_si_ckpt->si_name));
 	osafassert(si_ptr_up);
 
 	/* Since csi_add_rem flag is not memset in older versions, make sure it is set here. */
@@ -430,29 +436,29 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 			su_si_rel_ptr->state = su_si_ckpt->state;
 			su_si_rel_ptr->csi_add_rem = su_si_ckpt->csi_add_rem;
 			if (su_si_rel_ptr->csi_add_rem) {
-				su_si_rel_ptr->comp_name = su_si_ckpt->comp_name;
-				su_si_rel_ptr->csi_name = su_si_ckpt->csi_name;
-				TRACE("compcsi create for '%s' '%s'", su_si_rel_ptr->comp_name.value, su_si_rel_ptr->csi_name.value);
-				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_rel_ptr->comp_name)))) == nullptr) {
-					LOG_ER("comp_db->find() FAILED for '%s'", su_si_rel_ptr->comp_name.value);
+				su_si_rel_ptr->comp_name = Amf::to_string(&su_si_ckpt->comp_name);
+				su_si_rel_ptr->csi_name = Amf::to_string(&su_si_ckpt->csi_name);
+				TRACE("compcsi create for '%s' '%s'", su_si_rel_ptr->comp_name.c_str(), su_si_rel_ptr->csi_name.c_str());
+				if ((comp_ptr = comp_db->find(su_si_rel_ptr->comp_name)) == nullptr) {
+					LOG_ER("comp_db->find() FAILED for '%s'", su_si_rel_ptr->comp_name.c_str());
 					return NCSCC_RC_FAILURE;
 				}
-				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_rel_ptr->csi_name)))) == nullptr) {
+				if ((csi_ptr = csi_db->find(su_si_rel_ptr->csi_name)) == nullptr) {
 					/* This condition will arise if there is some delay in the ccb apply callback
 					 * So create csi and add it to the csi_db here, later in the ccb apply callback
 					 * attributes will be updated and csi will be added to the model
 					 */
-					csi_ptr = csi_create(&su_si_rel_ptr->csi_name);
+					csi_ptr = csi_create(su_si_rel_ptr->csi_name);
 					osafassert(csi_ptr);
 				}
 				if ((avd_compcsi_create(su_si_rel_ptr, csi_ptr, comp_ptr, false)) == nullptr) {
 					LOG_ER("avd_compcsi_create FAILED for csi '%s' comp '%s'",
-						su_si_rel_ptr->csi_name.value,su_si_rel_ptr->comp_name.value);
+						su_si_rel_ptr->csi_name.c_str(),su_si_rel_ptr->comp_name.c_str());
 					return NCSCC_RC_FAILURE;
 				}	
 			} else {
-				memset(&(su_si_rel_ptr->comp_name),0,sizeof(SaNameT));
-				memset(&(su_si_rel_ptr->csi_name),0,sizeof(SaNameT));
+				su_si_rel_ptr->comp_name = "";
+				su_si_rel_ptr->csi_name = "";
 			}
 		} else {
 			LOG_ER("%s:%u", __FUNCTION__, __LINE__);
@@ -462,14 +468,14 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 	case NCS_MBCSV_ACT_RMV:
 		if (nullptr != su_si_rel_ptr) {
 			if(su_si_ckpt->csi_add_rem) {
-				TRACE("compcsi remove for '%s' '%s'", su_si_ckpt->comp_name.value, su_si_ckpt->csi_name.value);
+				TRACE("compcsi remove for '%s' '%s'", osaf_extended_name_borrow(&su_si_ckpt->comp_name), osaf_extended_name_borrow(&su_si_ckpt->csi_name));
 				if ((comp_ptr = comp_db->find(Amf::to_string(&(su_si_ckpt->comp_name)))) == nullptr) {
-					LOG_ER("comp_db->find() FAILED for '%s'",su_si_ckpt->comp_name.value);
+					LOG_ER("comp_db->find() FAILED for '%s'",osaf_extended_name_borrow(&su_si_ckpt->comp_name));
 					return NCSCC_RC_FAILURE;
 				}
 
 				if ((csi_ptr = csi_db->find(Amf::to_string(&(su_si_ckpt->csi_name)))) == nullptr) {
-					LOG_ER("csi_db->find() FAILED for '%s'",su_si_ckpt->csi_name.value);
+					LOG_ER("csi_db->find() FAILED for '%s'",osaf_extended_name_borrow(&su_si_ckpt->csi_name));
 					return NCSCC_RC_FAILURE;
 				}
 				/* Find the relevant comp-csi to send susi delete. */
@@ -479,7 +485,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 						break;
 				}
 				if (!t_csicomp) {
-					LOG_ER("csicomp not found csi:'%s' comp:'%s'",su_si_ckpt->csi_name.value,su_si_ckpt->comp_name.value);
+					LOG_ER("csicomp not found csi:'%s' comp:'%s'",osaf_extended_name_borrow(&su_si_ckpt->csi_name),osaf_extended_name_borrow(&su_si_ckpt->comp_name));
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -499,7 +505,7 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 			}
 		} else {
 			LOG_ER("%s: %s %s does not exist", __FUNCTION__,
-				su_si_ckpt->su_name.value, su_si_ckpt->si_name.value);
+				osaf_extended_name_borrow(&su_si_ckpt->su_name), osaf_extended_name_borrow(&su_si_ckpt->si_name));
 			return NCSCC_RC_FAILURE;
 		}
 		break;
@@ -531,14 +537,14 @@ uint32_t avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE ac
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_COMP *comp;
-	const SaNameT *dn = &ckpt_comp->comp_info.name;
+	const std::string& dn = Amf::to_string(&ckpt_comp->comp_info.name);
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], dn.c_str());
 
-	osafassert (action == NCS_MBCSV_ACT_UPDATE);
+	osafassert(action == NCS_MBCSV_ACT_UPDATE);
 
-	if (nullptr == (comp = comp_db->find(Amf::to_string(dn)))) {
-		LOG_ER("comp_db->find() FAILED for '%s'", dn->value);
+	if (nullptr == (comp = comp_db->find(dn))) {
+		LOG_ER("comp_db->find() FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 	comp->saAmfCompOperState = ckpt_comp->saAmfCompOperState;
@@ -547,15 +553,16 @@ uint32_t avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE ac
 	comp->saAmfCompReadinessState = ckpt_comp->saAmfCompReadinessState;
 	/* SaNameT struct copy */
 	comp->saAmfCompCurrProxyName = ckpt_comp->saAmfCompCurrProxyName;
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompOperState",
+	avd_saImmOiRtObjectUpdate(dn, "saAmfCompOperState",
 			SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
+	avd_saImmOiRtObjectUpdate(dn, "saAmfCompReadinessState",
 			SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
-	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompPresenceState",
+	avd_saImmOiRtObjectUpdate(dn, "saAmfCompPresenceState",
 			SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 
 	rc = NCSCC_RC_SUCCESS;
 done:
+	osaf_extended_name_free(&ckpt_comp->comp_info.name);
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -580,14 +587,14 @@ uint32_t avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NC
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 	AVD_COMPCS_TYPE *ccst;
-	const SaNameT *dn = &ckpt_compcstype->name;
+	const std::string& dn = ckpt_compcstype->name;
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], dn.c_str());
 
 	osafassert (action == NCS_MBCSV_ACT_UPDATE);
 
-	if (nullptr == (ccst = compcstype_db->find(Amf::to_string(dn)))) {
-		LOG_WA("compcstype_db->find()FAILED for '%s'", dn->value);
+	if (nullptr == (ccst = compcstype_db->find(dn))) {
+		LOG_WA("compcstype_db->find()FAILED for '%s'", dn.c_str());
 		goto done;
 	}
 	ccst->saAmfCompNumCurrActiveCSIs = ckpt_compcstype->saAmfCompNumCurrActiveCSIs;

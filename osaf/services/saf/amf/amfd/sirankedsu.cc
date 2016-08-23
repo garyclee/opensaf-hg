@@ -34,26 +34,28 @@
 #include <imm.h>
 #include <csi.h>
 #include <logtrace.h>
+#include <algorithm>
+#include <string>
 
 AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK> *sirankedsu_db= nullptr;
-static void avd_susi_namet_init(const SaNameT *object_name, SaNameT *su_name, SaNameT *si_name);
+static void avd_susi_namet_init(const std::string& object_name, std::string& su_name, std::string& si_name);
 
 static void avd_sirankedsu_db_add(AVD_SUS_PER_SI_RANK *sirankedsu)
 {
-        AVD_SI *avd_si = nullptr;
-	unsigned int rc = sirankedsu_db->insert(make_pair(Amf::to_string(&(sirankedsu->indx.si_name)),
-				sirankedsu->indx.su_rank), sirankedsu);
-        osafassert(rc == NCSCC_RC_SUCCESS);
+	AVD_SI *avd_si = nullptr;
+	unsigned int rc = sirankedsu_db->insert(make_pair(sirankedsu->indx.si_name,
+		sirankedsu->indx.su_rank), sirankedsu);
+	osafassert(rc == NCSCC_RC_SUCCESS);
 
-        /* Find the si name. */
-        avd_si = avd_si_get(&(sirankedsu->indx.si_name));
-	avd_si->add_rankedsu(&sirankedsu->su_name, sirankedsu->indx.su_rank);
+	/* Find the si name. */
+	avd_si = avd_si_get(sirankedsu->indx.si_name);
+	avd_si->add_rankedsu(sirankedsu->su_name, sirankedsu->indx.su_rank);
 
-        /* Add sus_per_si_rank to si */
-        sirankedsu->sus_per_si_rank_on_si = avd_si;
-        sirankedsu->sus_per_si_rank_list_si_next =
-            sirankedsu->sus_per_si_rank_on_si->list_of_sus_per_si_rank;
-        sirankedsu->sus_per_si_rank_on_si->list_of_sus_per_si_rank = sirankedsu;
+	/* Add sus_per_si_rank to si */
+	sirankedsu->sus_per_si_rank_on_si = avd_si;
+	sirankedsu->sus_per_si_rank_list_si_next =
+	sirankedsu->sus_per_si_rank_on_si->list_of_sus_per_si_rank;
+	sirankedsu->sus_per_si_rank_on_si->list_of_sus_per_si_rank = sirankedsu;
 }
 
 /*****************************************************************************
@@ -78,10 +80,7 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, const AVD_SUS_P
 
 	ranked_su_per_si = new AVD_SUS_PER_SI_RANK();
 
-	ranked_su_per_si->indx.si_name.length = indx.si_name.length;
-	memcpy(ranked_su_per_si->indx.si_name.value, indx.si_name.value,
-		ranked_su_per_si->indx.si_name.length);
-
+	ranked_su_per_si->indx.si_name = indx.si_name;
 	ranked_su_per_si->indx.su_rank = indx.su_rank;
 
 	return ranked_su_per_si;
@@ -109,11 +108,10 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, const AVD_SUS_PER
 	AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
 	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-	rank_indx.si_name.length = indx.si_name.length;
-	memcpy(rank_indx.si_name.value, indx.si_name.value, indx.si_name.length);
+	rank_indx.si_name = indx.si_name;
 	rank_indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si = sirankedsu_db->find(make_pair(Amf::to_string(&(rank_indx.si_name)),
+	ranked_su_per_si = sirankedsu_db->find(make_pair(rank_indx.si_name,
 				rank_indx.su_rank));
 
 	return ranked_su_per_si;
@@ -139,7 +137,7 @@ static uint32_t avd_sirankedsu_delete(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *ranked
 	if (ranked_su_per_si == nullptr)
 		return NCSCC_RC_FAILURE;
 
-	sirankedsu_db->erase(make_pair(Amf::to_string(&(ranked_su_per_si->indx.si_name)),
+	sirankedsu_db->erase(make_pair(ranked_su_per_si->indx.si_name,
 				ranked_su_per_si->indx.su_rank));
 	delete ranked_su_per_si;
 	return NCSCC_RC_SUCCESS;
@@ -164,16 +162,13 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
 {
         uint32_t rank = 0;
 	AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank = nullptr;
-	SaNameT su_name;
-	SaNameT si_name;
+	std::string su_name;
+	std::string si_name;
 	AVD_SUS_PER_SI_RANK_INDX indx;
 
 	immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfRank"), attributes, 0, &rank);
-	
 
-	memset(&su_name, 0, sizeof(SaNameT));
-	memset(&si_name, 0, sizeof(SaNameT));
-	avd_susi_namet_init(dn, &su_name, &si_name);
+	avd_susi_namet_init(Amf::to_string(dn), su_name, si_name);
 
 	/* Find the avd_sus_per_si_rank name. */
 	memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
@@ -217,7 +212,7 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 
 		if (i_sus_per_si_rank != sus_per_si_rank) {
 			LOG_CR("SI '%s' having SU '%s' with rank %u, does not exist in sirankedsu link list", 
-					sus_per_si_rank->indx.si_name.value, sus_per_si_rank->su_name.value,
+					sus_per_si_rank->indx.si_name.c_str(), sus_per_si_rank->su_name.c_str(),
 					sus_per_si_rank->indx.su_rank);
 		} else {
 			if (prev_sus_per_si_rank == nullptr) {
@@ -228,7 +223,7 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 				    sus_per_si_rank->sus_per_si_rank_list_si_next;
 			}
 		}
-		sus_per_si_rank->sus_per_si_rank_on_si->remove_rankedsu(Amf::to_string(&sus_per_si_rank->su_name));
+		sus_per_si_rank->sus_per_si_rank_on_si->remove_rankedsu(sus_per_si_rank->su_name);
 
 		sus_per_si_rank->sus_per_si_rank_list_si_next = nullptr;
 		sus_per_si_rank->sus_per_si_rank_on_si = nullptr;
@@ -237,54 +232,54 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 	return;
 }
 
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
         AVD_SI *avd_si = nullptr;
-	SaNameT su_name;
-	SaNameT si_name;
+	std::string su_name;
+	std::string si_name;
         uint32_t rank = 0;
 	AVD_SUS_PER_SI_RANK_INDX indx;
 	AVD_SU *avd_su = nullptr;
 
-        memset(&su_name, 0, sizeof(SaNameT));
-        memset(&si_name, 0, sizeof(SaNameT));
-        avd_susi_namet_init(dn, &su_name, &si_name);
+        avd_susi_namet_init(dn, su_name, si_name);
 
         /* Find the si name. */
-        avd_si = avd_si_get(&si_name);
+        avd_si = avd_si_get(si_name);
 
         if (avd_si == nullptr) {
                 /* SI does not exist in current model, check CCB */
                 if (opdata == nullptr) {
-                        report_ccb_validation_error(opdata, "'%s' does not exist in model", si_name.value);
+                        report_ccb_validation_error(opdata, "'%s' does not exist in model", si_name.c_str());
                         return 0;
                 }
 
-                if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == nullptr) {
+				const SaNameTWrapper tmp_si_name(si_name);
+                if (ccbutil_getCcbOpDataByDN(opdata->ccbId, tmp_si_name) == nullptr) {
                         report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
-					si_name.value);
+					si_name.c_str());
                         return 0;
                 }
         }
 
 	/* Find the su name. */
-	avd_su = su_db->find(Amf::to_string(&su_name));
+	avd_su = su_db->find(su_name);
 	if (avd_su == nullptr) {
 		/* SU does not exist in current model, check CCB */
 		if (opdata == nullptr) {
-			report_ccb_validation_error(opdata, "'%s' does not exist in model", su_name.value);
+			report_ccb_validation_error(opdata, "'%s' does not exist in model", su_name.c_str());
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &su_name) == nullptr) {
+		const SaNameTWrapper tmp_su_name(su_name);
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, tmp_su_name) == nullptr) {
 			report_ccb_validation_error(opdata, "'%s' does not exist in existing model or in CCB",
-					su_name.value);
+					su_name.c_str());
 			return 0;
 		}
 	}
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfRank"), attributes, 0, &rank) != SA_AIS_OK) {
-		report_ccb_validation_error(opdata, "saAmfRank not found for %s", dn->value);
+		report_ccb_validation_error(opdata, "saAmfRank not found for %s", dn.c_str());
 		return 0;  
 	}
 
@@ -293,7 +288,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	if ((avd_sirankedsu_find(avd_cb, indx)) != nullptr ) {
 		if (opdata != nullptr) {
 			report_ccb_validation_error(opdata, "saAmfRankedSu exists %s, si'%s', rank'%u'",
-					dn->value, si_name.value, rank);
+					dn.c_str(), si_name.c_str(), rank);
 			return 0;
 		}
 		return SA_AIS_OK;  
@@ -302,50 +297,29 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
         return SA_AIS_OK;
 }
 
-static void avd_susi_namet_init(const SaNameT *object_name, SaNameT *su_name, SaNameT *si_name)
+static void avd_susi_namet_init(const std::string& object_name, std::string& su_name, std::string& si_name)
 {
-	char *p = nullptr;
+	std::string::size_type pos;
+	std::string::size_type equal_pos;
 
-	if (su_name) {
-		SaNameT temp_name;
-		int i;
+	// DN looks like: safRankedSu=safSu=SuName\,safSg=SgName\,
+	//	safApp=AppName,safSi=SiName,safApp=AppName */
 
-		/* Take out Su Name. safRankedSu=safSu=SuName\,safSg=SgName\,
-		safApp=AppName,safSi=SiName,safApp=AppName */
-		temp_name = *object_name;
-		p = strstr((char *)temp_name.value, "safSi=");
-		*(--p) = '\0';	/* null terminate at comma before si name */
+	// set si_name
+	pos = object_name.find("safSi=");
+	si_name = object_name.substr(pos);
 
-		/* Skip past the RDN tag */
-		p = strchr((char *)temp_name.value, '=') + 1;
-		osafassert(p);
-		memset(su_name, 0, sizeof(SaNameT));
-		/* Copy the RDN value which is a DN with escaped commas */
-		i = 0;
-		while (*p) {
-			if (*p != '\\')
-				su_name->value[i++] = *p;
-
-			p++;
-		}
-		/* i Points just after SU name ends, so it will give the name length
-		as it starts with zero. */
-		su_name->length = i;
-	}
-
-	if (si_name) {
-		memset(si_name, 0, sizeof(SaNameT));
-		p = strstr((char *)object_name->value, "safSi=");
-		si_name->length = strlen(p);
-		memcpy(si_name->value, p, si_name->length);
-	}
+	// set su_name
+	equal_pos = object_name.find('=');
+	su_name = object_name.substr(equal_pos + 1, pos - equal_pos - 2);
+	su_name.erase(std::remove(su_name.begin(), su_name.end(), '\\'), su_name.end());
 }
 
 static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SUS_PER_SI_RANK *avd_sirankedsu = nullptr;
 
-        TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+        TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
@@ -368,47 +342,44 @@ static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_SI *si = nullptr;
-	SaNameT su_name;
-	SaNameT si_name;
+	std::string su_name;
+	std::string si_name;
 	AVD_SUS_PER_SI_RANK *su_rank_rec = 0;
 	bool found = false;
 
-        TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
-	memset(&su_name, 0, sizeof(SaNameT));
-	memset(&si_name, 0, sizeof(SaNameT));
-	avd_susi_namet_init(opdata->param.delete_.objectName, &su_name, &si_name);
+	avd_susi_namet_init(Amf::to_string(opdata->param.delete_.objectName), su_name, si_name);
 
 	/* determine if the su is ranked per si */
 	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
 			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
 		su_rank_rec = it->second;
-		if ((memcmp(&(su_rank_rec->indx.si_name), &si_name, sizeof(SaNameT))
-					== 0) &&
-				(memcmp(&su_rank_rec->su_name.value, 
-					&su_name.value, su_name.length) == 0)) {
+
+		if (su_rank_rec->indx.si_name.compare(si_name) == 0 &&
+			su_rank_rec->su_name.compare(su_name) == 0) {
 			found = true;
 			break;
 		}
 	}
 
 	if (false == found) {
-		LOG_ER("'%s' not found", opdata->objectName.value);
+		LOG_ER("'%s' not found", osaf_extended_name_borrow(&opdata->objectName));
 		goto error;
 	}
 
 	/* Find the si name. */
-	si = avd_si_get(&si_name);
+	si = avd_si_get(si_name);
 
 	if (si == nullptr) {
-		LOG_ER("SI '%s' not found", si_name.value);
+		LOG_ER("SI '%s' not found", si_name.c_str());
 		goto error;
 	}
 
 	if (si != nullptr) {
 		/* SI should not be assigned while SI ranked SU needs to be deleted */
 		if (si->list_of_sisu != nullptr) {
-			TRACE("Parent SI is in assigned state '%s'", si->name.value);
+			TRACE("Parent SI is in assigned state '%s'", si->name.c_str());
 			goto error;
 		}
 	}
@@ -426,11 +397,11 @@ static SaAisErrorT sirankedsu_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-        TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues, opdata))
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
@@ -451,7 +422,7 @@ static SaAisErrorT sirankedsu_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	return rc;
 }
 
-SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
+SaAisErrorT avd_sirankedsu_config_get(const std::string& si_name, AVD_SI *si)
 {
 	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmSearchHandleT searchHandle;
@@ -468,7 +439,7 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, si_name, SA_IMM_SUBTREE,
+	if (immutil_saImmOmSearchInitialize_o2(avd_cb->immOmHandle, si_name.c_str(), SA_IMM_SUBTREE,
 	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 	      nullptr, &searchHandle) != SA_AIS_OK) {
 
@@ -478,15 +449,15 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		LOG_NO("'%s'", dn.value);
+		LOG_NO("'%s'", osaf_extended_name_borrow(&dn));
 
-		indx.si_name = *si_name;
+		indx.si_name = si_name;
 		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfRank"), attributes, 0, &indx.su_rank) != SA_AIS_OK) {
-			LOG_ER("Get saAmfRank FAILED for '%s'", dn.value);
+			LOG_ER("Get saAmfRank FAILED for '%s'", osaf_extended_name_borrow(&dn));
 			goto done1;
 		}
 
-                if (!is_config_valid(&dn, attributes, nullptr))
+                if (!is_config_valid(Amf::to_string(&dn), attributes, nullptr))
 			goto done2;
 
 		if ((avd_sirankedsu = avd_sirankedsu_find(avd_cb, indx)) == nullptr) {

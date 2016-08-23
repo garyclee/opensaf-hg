@@ -40,22 +40,23 @@
 
   Notes         :
 *****************************************************************************/
-void avd_send_comp_inst_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name)
+void avd_send_comp_inst_failed_alarm(const std::string& comp_name, const std::string& node_name)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
+	const SaNameTWrapper node(node_name);
 
 	TRACE_ENTER();
 
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "Instantiation of Component %s failed",
-			comp_name->value);
+			comp_name.c_str());
 	sendAlarmNotificationAvd(avd_cb,
-				 *comp_name,
+				 comp_name,
 				 (SaUint8T*)add_text,
 				 SA_SVC_AMF,
 				 SA_AMF_NTFID_COMP_INSTANTIATION_FAILED,
 				 SA_NTF_SOFTWARE_ERROR,
 				 SA_NTF_SEVERITY_MAJOR,
-				 (NCSCONTEXT)node_name,
+				 (NCSCONTEXT)(static_cast<const SaNameT*>(node)),
 				 true /* add_info is node_name */); 
 }
 
@@ -72,22 +73,23 @@ void avd_send_comp_inst_failed_alarm(const SaNameT *comp_name, const SaNameT *no
 
   Notes         :
 *****************************************************************************/
-void avd_send_comp_clean_failed_alarm(const SaNameT *comp_name, const SaNameT *node_name)
+void avd_send_comp_clean_failed_alarm(const std::string& comp_name, const std::string& node_name)
 {
 	char  add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "Cleanup of Component %s failed", 
-			comp_name->value);
+			comp_name.c_str());
+	const SaNameTWrapper node(node_name);
 	sendAlarmNotificationAvd(avd_cb,
-				 *comp_name,
+				 comp_name,
 				 (SaUint8T*)add_text,
 				 SA_SVC_AMF,
 				 SA_AMF_NTFID_COMP_CLEANUP_FAILED,
 				 SA_NTF_SOFTWARE_ERROR,
 				 SA_NTF_SEVERITY_MAJOR,
-				 (NCSCONTEXT)node_name,
+				 (NCSCONTEXT)static_cast<const SaNameT*>(node),
 				 true /* add_info is node_name */); 
 
 }
@@ -106,16 +108,16 @@ void avd_send_comp_clean_failed_alarm(const SaNameT *comp_name, const SaNameT *n
 
   Notes         :
 *****************************************************************************/
-void avd_send_cluster_reset_alarm(const SaNameT *comp_name)
+void avd_send_cluster_reset_alarm(const std::string& comp_name)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "Failure of Component %s triggered"
-			" cluster reset", comp_name->value);
+			" cluster reset", comp_name.c_str());
 	sendAlarmNotificationAvd(avd_cb,
-				 *comp_name,
+				 comp_name,
 				 (SaUint8T*)add_text,
 				 SA_SVC_AMF,
 				 SA_AMF_NTFID_CLUSTER_RESET,
@@ -137,16 +139,16 @@ void avd_send_cluster_reset_alarm(const SaNameT *comp_name)
 
   Notes         :
 *****************************************************************************/
-void avd_send_si_unassigned_alarm(const SaNameT *si_name)
+void avd_send_si_unassigned_alarm(const std::string& si_name)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 	
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "SI designated by %s has no current "
-			"active assignments to any SU", si_name->value);
+			"active assignments to any SU", si_name.c_str());
 	sendAlarmNotificationAvd(avd_cb,
-				 *si_name,
+				 si_name,
 				 (SaUint8T*)add_text,
 				 SA_SVC_AMF,
 				 SA_AMF_NTFID_SI_UNASSIGNED,
@@ -169,16 +171,16 @@ void avd_send_si_unassigned_alarm(const SaNameT *si_name)
 
   Notes         :
 *****************************************************************************/
-void avd_send_comp_proxy_status_unproxied_alarm(const SaNameT *comp_name)
+void avd_send_comp_proxy_status_unproxied_alarm(const std::string& comp_name)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "Component %s become orphan",
-			comp_name->value);
+			comp_name.c_str());
 	sendAlarmNotificationAvd(avd_cb,
-				 *comp_name,
+				 comp_name,
 				 (SaUint8T*)add_text,
 				 SA_SVC_AMF,
 				 SA_AMF_NTFID_COMP_UNPROXIED,
@@ -203,16 +205,16 @@ void avd_send_comp_proxy_status_unproxied_alarm(const SaNameT *comp_name)
 
   Notes         :
 *****************************************************************************/
-void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id,
+void avd_send_admin_state_chg_ntf(const std::string& name, SaAmfNotificationMinorIdT minor_id,
 		SaAmfAdminStateT old_state, SaAmfAdminStateT new_state)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 
-	snprintf(add_text, ADDITION_TEXT_LENGTH, "Admin state of %s changed", name->value);
+	snprintf(add_text, ADDITION_TEXT_LENGTH, "Admin state of %s changed", name.c_str());
 	sendStateChangeNotificationAvd(avd_cb,
-					*name,
+					name,
 					(SaUint8T*)add_text,
 					SA_SVC_AMF,
 					minor_id,
@@ -240,16 +242,16 @@ void avd_send_admin_state_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT
 
   Notes         :
 *****************************************************************************/
-void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_id,
+void avd_send_oper_chg_ntf(const std::string& name, SaAmfNotificationMinorIdT minor_id,
 		SaAmfOperationalStateT old_state, SaAmfOperationalStateT new_state)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 
-	snprintf(add_text, ADDITION_TEXT_LENGTH, "Oper state %s changed", name->value);
+	snprintf(add_text, ADDITION_TEXT_LENGTH, "Oper state %s changed", name.c_str());
 	sendStateChangeNotificationAvd(avd_cb,
-					*name,
+					name,
 					(SaUint8T*)add_text,
 					SA_SVC_AMF,
 					minor_id,
@@ -275,7 +277,7 @@ void avd_send_oper_chg_ntf(const SaNameT *name, SaAmfNotificationMinorIdT minor_
 
   Notes         :
 *****************************************************************************/
-void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name, 
+void avd_send_su_pres_state_chg_ntf(const std::string& su_name, 
 		SaAmfPresenceStateT old_state, SaAmfPresenceStateT new_state)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
@@ -283,9 +285,9 @@ void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name,
 	TRACE_ENTER();
 
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "Presence state of SU %s changed",
-			su_name->value);
+			su_name.c_str());
 	sendStateChangeNotificationAvd(avd_cb,
-					*su_name,
+					su_name,
 					(SaUint8T*)add_text,
 					SA_SVC_AMF,
 					SA_AMF_NTFID_SU_PRESENCE_STATE,
@@ -313,19 +315,20 @@ void avd_send_su_pres_state_chg_ntf(const SaNameT *su_name,
 
   Notes         :  
 *****************************************************************************/
-void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name, 
-		const SaNameT *si_name, 
+void avd_send_su_ha_state_chg_ntf(const std::string& su_name, 
+		const std::string& si_name, 
 		SaAmfHAStateT old_state, 
 		SaAmfHAStateT new_state)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
+	const SaNameTWrapper si(si_name);
 
 	TRACE_ENTER();
 
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "The HA state of SI %s assigned to SU %s changed",
-			si_name->value, su_name->value);
+			si_name.c_str(), su_name.c_str());
 	sendStateChangeNotificationAvd(avd_cb,
-					*su_name,
+					su_name,
 					(SaUint8T*)add_text,
 					SA_SVC_AMF,
 					SA_AMF_NTFID_SU_SI_HA_STATE,
@@ -333,7 +336,7 @@ void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name,
 					SA_AMF_HA_STATE,
 					old_state,
 					new_state,
-					(NCSCONTEXT)si_name,
+					(NCSCONTEXT)static_cast<const SaNameT*>(si),
 					true /* Si_name */);
 
 	TRACE_LEAVE();
@@ -354,7 +357,7 @@ void avd_send_su_ha_state_chg_ntf(const SaNameT *su_name,
 
   Notes         :  
 *****************************************************************************/
-void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaNameT *si_name, 
+void avd_send_su_ha_readiness_state_chg_ntf(const std::string& su_name, const std::string& si_name, 
 		SaAmfHAReadinessStateT old_state, SaAmfHAReadinessStateT new_state)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
@@ -362,9 +365,10 @@ void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaName
 	TRACE_ENTER();
 
 	snprintf(add_text, ADDITION_TEXT_LENGTH, "The HA readiness state of SI %s assigned"
-			" to SU %s changed", si_name->value, su_name->value);
+			" to SU %s changed", si_name.c_str(), su_name.c_str());
+	const SaNameTWrapper si(si_name);
 	sendStateChangeNotificationAvd(avd_cb,
-					*su_name,
+					su_name,
 					(SaUint8T*)add_text,
 					SA_SVC_AMF,
 					SA_AMF_NTFID_SU_SI_HA_READINESS_STATE,
@@ -372,7 +376,7 @@ void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaName
 					SA_AMF_HA_READINESS_STATE,
 					old_state,
 					new_state,
-					(NCSCONTEXT)si_name,
+					(NCSCONTEXT)static_cast<const SaNameT*>(si),
 					true /* Si_name */);
 
 }
@@ -390,16 +394,16 @@ void avd_send_su_ha_readiness_state_chg_ntf(const SaNameT *su_name, const SaName
 
   Notes         :  
 *****************************************************************************/
-void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_state,
+void avd_send_si_assigned_ntf(const std::string& si_name, SaAmfAssignmentStateT old_state,
 		SaAmfAssignmentStateT new_state)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 
-	snprintf(add_text, ADDITION_TEXT_LENGTH, "The Assignment state of SI %s changed", si_name->value);
+	snprintf(add_text, ADDITION_TEXT_LENGTH, "The Assignment state of SI %s changed", si_name.c_str());
 	sendStateChangeNotificationAvd(avd_cb,
-					*si_name,
+					si_name,
 					(SaUint8T*)add_text,
 					SA_SVC_AMF,
 					SA_AMF_NTFID_SI_ASSIGNMENT_STATE,
@@ -427,17 +431,17 @@ void avd_send_si_assigned_ntf(const SaNameT *si_name, SaAmfAssignmentStateT old_
 
   Notes         :
 *****************************************************************************/
-void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
+void avd_send_comp_proxy_status_proxied_ntf(const std::string& comp_name,
 		SaAmfProxyStatusT old_status, SaAmfProxyStatusT new_status)
 {
 	char add_text[ADDITION_TEXT_LENGTH];
 
 	TRACE_ENTER();
 
-	snprintf(add_text, ADDITION_TEXT_LENGTH, "Component %s is now proxied", comp_name->value);
+	snprintf(add_text, ADDITION_TEXT_LENGTH, "Component %s is now proxied", comp_name.c_str());
 
 	sendStateChangeNotificationAvd(avd_cb,
-					*comp_name,
+					comp_name,
 					(SaUint8T*)add_text,
 					SA_SVC_AMF,
 					SA_AMF_NTFID_COMP_PROXY_STATUS,
@@ -464,15 +468,15 @@ void avd_send_comp_proxy_status_proxied_ntf(const SaNameT *comp_name,
 
   Notes         :
 *****************************************************************************/
-void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uint32_t probableCause)
+void avd_alarm_clear(const std::string& name, SaUint16T minorId, uint32_t probableCause)
 {
        char add_text[ADDITION_TEXT_LENGTH];
 
        TRACE_ENTER();
-       snprintf(add_text, ADDITION_TEXT_LENGTH, "Previous raised alarm of %s is now cleared", name->value);
+       snprintf(add_text, ADDITION_TEXT_LENGTH, "Previous raised alarm of %s is now cleared", name.c_str());
 
        sendAlarmNotificationAvd(avd_cb,
-	       *name,
+	       name,
 	       (SaUint8T*)add_text,
 	       SA_SVC_AMF,
 	       minorId,
@@ -484,7 +488,7 @@ void avd_alarm_clear(const SaNameT *name, SaUint16T minorId, uint32_t probableCa
 
 SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeader,
 			      SaNtfEventTypeT eventType,
-			      const SaNameT &comp_name,
+			      const std::string &comp_name,
 			      SaUint8T *add_text,
 			      SaUint16T majorId,
 			      SaUint16T minorId,
@@ -497,11 +501,8 @@ SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeade
 	*notificationHeader->eventType = eventType;
 	*notificationHeader->eventTime = (SaTimeT)SA_TIME_UNKNOWN;
 
-	notificationHeader->notificationObject->length = comp_name.length;
-	(void)memcpy(notificationHeader->notificationObject->value, comp_name.value, comp_name.length);
-
-	notificationHeader->notifyingObject->length = strlen(avd_name);
-	(void)memcpy(notificationHeader->notifyingObject->value, avd_name, strlen(avd_name));
+	osaf_extended_name_alloc(comp_name.c_str(), notificationHeader->notificationObject);
+	osaf_extended_name_alloc(avd_name, notificationHeader->notifyingObject);
 
 	notificationHeader->notificationClassId->vendorId = SA_NTF_VENDOR_ID_SAF;
 	notificationHeader->notificationClassId->majorId = majorId;
@@ -553,7 +554,7 @@ SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeade
 }
 
 uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
-			       const SaNameT &ntf_object,
+			       const std::string& ntf_object,
 			       SaUint8T *add_text,
 			       SaUint16T majorId,
 			       SaUint16T minorId,
@@ -569,7 +570,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (!avd_cb->active_services_exist) {
 		// TODO #3051
-		LOG_ER("Alarm lost for %s", ntf_object.value);
+		LOG_ER("Alarm lost for %s", ntf_object.c_str());
 		return status;
 	}
 
@@ -627,6 +628,9 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 
 	status = saNtfNotificationSend(myAlarmNotification.notificationHandle);
 
+	osaf_extended_name_free(myAlarmNotification.notificationHeader.notificationObject);
+	osaf_extended_name_free(myAlarmNotification.notificationHeader.notifyingObject);
+
 	if (status != SA_AIS_OK) {
 		saNtfNotificationFree(myAlarmNotification.notificationHandle);
 		LOG_ER("%s: saNtfNotificationSend Failed (%u)", __FUNCTION__, status);
@@ -645,7 +649,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 }
 
 uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
-				     const SaNameT &ntf_object,
+				     const std::string& ntf_object,
 				     SaUint8T *add_text,
 				     SaUint16T majorId,
 				     SaUint16T minorId,
@@ -664,7 +668,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (!avd_cb->active_services_exist) {
 		// TODO #3051
-		LOG_WA("State change notification lost for '%s'", ntf_object.value);
+		LOG_WA("State change notification lost for '%s'", ntf_object.c_str());
 		return status;
 	}
 
@@ -732,6 +736,9 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 
 	status = saNtfNotificationSend(myStateNotification.notificationHandle);
 
+	osaf_extended_name_free(myStateNotification.notificationHeader.notificationObject);
+	osaf_extended_name_free(myStateNotification.notificationHeader.notifyingObject);
+
 	if (status != SA_AIS_OK) {
 		saNtfNotificationFree(myStateNotification.notificationHandle);
 		LOG_ER("%s: saNtfNotificationSend Failed (%u)", __FUNCTION__, status);
@@ -750,7 +757,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 }
 
 
-void avd_send_error_report_ntf(const SaNameT *name, SaAmfRecommendedRecoveryT recovery)
+void avd_send_error_report_ntf(const std::string& name, SaAmfRecommendedRecoveryT recovery)
 {
 
 	TRACE_ENTER();
@@ -759,18 +766,18 @@ void avd_send_error_report_ntf(const SaNameT *name, SaAmfRecommendedRecoveryT re
 	bool additional_info_is_present;
 
 	if ((recovery >= SA_AMF_NO_RECOMMENDATION) && (recovery < SA_AMF_CONTAINER_RESTART)) {
-		snprintf(add_text, ADDITION_TEXT_LENGTH, "Error reported on %s with recovery %s", name->value,
+		snprintf(add_text, ADDITION_TEXT_LENGTH, "Error reported on %s with recovery %s", name.c_str(),
 				amf_recovery[recovery]);
 		minorid = SA_AMF_NTFID_ERROR_REPORT;
 		additional_info_is_present = true;
 	} else {
-		snprintf(add_text, ADDITION_TEXT_LENGTH, "Error reported on %s is now cleared", name->value);
+		snprintf(add_text, ADDITION_TEXT_LENGTH, "Error reported on %s is now cleared", name.c_str());
 		minorid = SA_AMF_NTFID_ERROR_CLEAR;
 		additional_info_is_present = false;
 	}
 
 	sendStateChangeNotificationAvd(avd_cb,
-			*name,
+			name,
 			(SaUint8T*)add_text,
 			SA_SVC_AMF,
 			minorid,

@@ -174,7 +174,7 @@ static SaAisErrorT cluster_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
@@ -199,7 +199,7 @@ static SaAisErrorT cluster_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 static void cluster_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_MODIFY:
@@ -264,15 +264,15 @@ SaAisErrorT avd_cluster_config_get(void)
 		goto done;
 	}
 
-	avd_cluster->saAmfCluster = dn;
+	avd_cluster->saAmfCluster = Amf::to_string(&dn);
 
 	/* Cluster should be root object */
-	if (strchr((char *)dn.value, ',') != nullptr) {
-		LOG_ER("Parent to '%s' is not root", dn.value);
+	if (avd_cluster->saAmfCluster.find(',') != std::string::npos) {
+		LOG_ER("Parent to '%s' is not root", avd_cluster->saAmfCluster.c_str());
 		return static_cast<SaAisErrorT>(-1);
 	}
 
-	TRACE("'%s'", dn.value);
+	TRACE("'%s'", avd_cluster->saAmfCluster.c_str());
 
 	if (immutil_getAttr( const_cast<SaImmAttrNameT>("saAmfClusterStartupTimeout"), attributes,
 			    0, &avd_cluster->saAmfClusterStartupTimeout) == SA_AIS_OK) {
@@ -280,7 +280,7 @@ SaAisErrorT avd_cluster_config_get(void)
 		if (avd_cluster->saAmfClusterStartupTimeout == 0)
 			avd_cluster->saAmfClusterStartupTimeout = AVSV_CLUSTER_INIT_INTVL;
 	} else {
-		LOG_ER("Get saAmfClusterStartupTimeout FAILED for '%s'", dn.value);
+		LOG_ER("Get saAmfClusterStartupTimeout FAILED for '%s'", avd_cluster->saAmfCluster.c_str());
 		goto done;
 	}
 

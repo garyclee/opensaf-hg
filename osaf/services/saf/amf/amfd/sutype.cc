@@ -32,12 +32,12 @@
 AmfDb<std::string, AVD_SUTYPE> *sutype_db = nullptr;
 
 //
-AVD_SUTYPE::AVD_SUTYPE(const SaNameT *dn) {
-  memcpy(&name.value, dn->value, dn->length);
-  name.length = dn->length;
+AVD_SUTYPE::AVD_SUTYPE(const std::string& dn) :
+	name(dn)
+{
 }
 
-static AVD_SUTYPE *sutype_new(const SaNameT *dn)
+static AVD_SUTYPE *sutype_new(const std::string& dn)
 {
 	AVD_SUTYPE *sutype = new AVD_SUTYPE(dn);
 
@@ -47,18 +47,17 @@ static AVD_SUTYPE *sutype_new(const SaNameT *dn)
 static void sutype_delete(AVD_SUTYPE **sutype)
 {
 	osafassert(true == (*sutype)->list_of_su.empty());
-	delete [] (*sutype)->saAmfSutProvidesSvcTypes;
 	delete *sutype;
 	*sutype = nullptr;
 }
 
 static void sutype_db_add(AVD_SUTYPE *sutype)
 {
-	unsigned int rc = sutype_db->insert(Amf::to_string(&sutype->name),sutype);
+	unsigned int rc = sutype_db->insert(sutype->name,sutype);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
-static AVD_SUTYPE *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_SUTYPE *sutype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	const SaImmAttrValuesT_2 *attr;
 	AVD_SUTYPE *sutype;
@@ -66,7 +65,7 @@ static AVD_SUTYPE *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **a
 	unsigned i = 0;
 	SaAisErrorT error;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	if ((sutype = sutype_new(dn)) == nullptr) {
 		LOG_ER("avd_sutype_new failed");
@@ -87,14 +86,16 @@ static AVD_SUTYPE *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **a
 	osafassert(attr->attrValuesNumber > 0);
 
 	sutype->number_svc_types = attr->attrValuesNumber;
-	sutype->saAmfSutProvidesSvcTypes = new SaNameT[sutype->number_svc_types];
+	osafassert(sutype->saAmfSutProvidesSvcTypes.empty() == true);
 
 	for (i = 0; i < sutype->number_svc_types; i++) {
-		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutProvidesSvcTypes"), attributes, i, &sutype->saAmfSutProvidesSvcTypes[i]) != SA_AIS_OK) {
-			LOG_ER("Get saAmfSutProvidesSvcTypes FAILED for '%s'", dn->value);
+		SaNameT svc_type;
+		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutProvidesSvcTypes"), attributes, i, &svc_type) != SA_AIS_OK) {
+			LOG_ER("Get saAmfSutProvidesSvcTypes FAILED for '%s'", dn.c_str());
 			osafassert(0);
 		}
-		TRACE("%s", sutype->saAmfSutProvidesSvcTypes[i].value);
+		sutype->saAmfSutProvidesSvcTypes.push_back(Amf::to_string(&svc_type));
+		TRACE("%s", sutype->saAmfSutProvidesSvcTypes.back().c_str());
 	}
 
 	rc = 0;
@@ -107,23 +108,21 @@ static AVD_SUTYPE *sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **a
 	return sutype;
 }
 
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc;
 	SaBoolT abool;
 	/* int i = 0; */
-	char *parent;
+	std::string::size_type pos;
 
-	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	if ((pos = dn.find(',')) == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
 		return 0;
 	}
 
-	parent++;
-
 	/* Should be children to the SU Base type */
-	if (strncmp(parent, "safSuType=", 10) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
+	if (dn.compare(pos + 1, 10, "safSuType=") != 0) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(pos +1).c_str(), dn.c_str());
 		return 0;
 	}
 #if 0
@@ -152,7 +151,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover"), attributes, 0, &abool) == SA_AIS_OK) &&
 	    (abool > SA_TRUE)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSutDefSUFailover %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSutDefSUFailover %u for '%s'", abool, dn.c_str());
 		return 0;
 	}
 
@@ -161,7 +160,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 
 	if ((immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutIsExternal"), attributes, 0, &abool) == SA_AIS_OK) &&
 			(abool > SA_TRUE)) {
-		report_ccb_validation_error(opdata, "Invalid saAmfSutIsExternal %u for '%s'", abool, dn->value);
+		report_ccb_validation_error(opdata, "Invalid saAmfSutIsExternal %u for '%s'", abool, dn.c_str());
 		return 0;
 	}
 
@@ -194,12 +193,13 @@ SaAisErrorT avd_sutype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, nullptr))
+		const std::string temp_dn(Amf::to_string(&dn));
+		if (!is_config_valid(temp_dn, attributes, nullptr))
 		    goto done2;
 
-		if (( sut = sutype_db->find(Amf::to_string(&dn))) == nullptr) {
+		if (( sut = sutype_db->find(temp_dn)) == nullptr) {
 
-			if ((sut = sutype_create(&dn, attributes)) == nullptr) {
+			if ((sut = sutype_create(temp_dn, attributes)) == nullptr) {
 				error = SA_AIS_ERR_FAILED_OPERATION;
 				goto done2;
 			}
@@ -207,7 +207,7 @@ SaAisErrorT avd_sutype_config_get(void)
 			sutype_db_add(sut);
 		}
 
-		if (avd_sutcomptype_config_get(&dn, sut) != SA_AIS_OK) {
+		if (avd_sutcomptype_config_get(temp_dn, sut) != SA_AIS_OK) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
@@ -231,7 +231,7 @@ static void sutype_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 	AVD_SUTYPE *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
@@ -261,11 +261,11 @@ static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SUTYPE *sut;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		sut = sutype_create(&opdata->objectName, opdata->param.create.attrValues);
+		sut = sutype_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(sut);
 		sutype_db_add(sut);
 		break;
@@ -274,7 +274,7 @@ static void sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 	case CCBUTIL_DELETE:
 		sut = sutype_db->find(Amf::to_string(&opdata->objectName));
-		sutype_db->erase(Amf::to_string(&sut->name));
+		sutype_db->erase(sut->name);
 		sutype_delete(&sut);
 		break;
 	default:
@@ -297,7 +297,7 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	int i = 0;
 	AVD_SUTYPE *sut = sutype_db->find(Amf::to_string(&opdata->objectName));
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 		
 		if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) || (attr_mod->modAttr.attrValues == nullptr)) {
@@ -310,7 +310,7 @@ static SaAisErrorT sutype_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 			uint32_t sut_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 
 			if (sut_failover > SA_TRUE) {
-				report_ccb_validation_error(opdata, "invalid saAmfSutDefSUFailover in:'%s'", sut->name.value);
+				report_ccb_validation_error(opdata, "invalid saAmfSutDefSUFailover in:'%s'", sut->name.c_str());
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}	
@@ -349,11 +349,11 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	bool su_exist = false;
 	CcbUtilOperationData_t *t_opData;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues, opdata))
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
@@ -367,7 +367,8 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		 */                      
 
 		for (const auto& su : sut->list_of_su) {
-			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su->name);
+			const SaNameTWrapper su_name(su->name);
+			t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, su_name);
 			if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 				su_exist = true;
 				break;
@@ -375,7 +376,7 @@ static SaAisErrorT sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		}
 
 		if (su_exist == true) {
-			report_ccb_validation_error(opdata, "SaAmfSUType '%s'is in use",sut->name.value);
+			report_ccb_validation_error(opdata, "SaAmfSUType '%s'is in use",sut->name.c_str());
 			goto done;
 		}
 		rc = SA_AIS_OK;

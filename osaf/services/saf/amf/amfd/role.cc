@@ -481,7 +481,7 @@ static uint32_t avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 done:
 	if (NCSCC_RC_SUCCESS != status)
 		opensaf_reboot(my_node != nullptr ? my_node->node_info.nodeId : 0,
-				my_node != nullptr ? (char *)my_node->node_info.executionEnvironment.value : nullptr,
+				my_node != nullptr ? osaf_extended_name_borrow(&my_node->node_info.executionEnvironment) : nullptr,
 				"FAILOVER failed");
 
 

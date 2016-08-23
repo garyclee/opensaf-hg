@@ -24,35 +24,24 @@
 
 AmfDb<std::string, AVD_CS_TYPE> *cstype_db = nullptr;
 
-//
-// TODO(HANO) Temporary use this function instead of strdup which uses malloc.
-// Later on remove this function and use std::string instead
-#include <cstring>
-static char *StrDup(const char *s)
-{
-	char *c = new char[strlen(s) + 1];
-	std::strcpy(c,s);
-	return c;
-}
-
 static void cstype_add_to_model(AVD_CS_TYPE *cst)
 {
-	uint32_t rc = cstype_db->insert(Amf::to_string(&cst->name),cst);
+	uint32_t rc = cstype_db->insert(cst->name,cst);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
 //
-AVD_CS_TYPE::AVD_CS_TYPE(const SaNameT *dn) {
-  memcpy(&name.value, dn->value, dn->length);
-  name.length = dn->length;
+AVD_CS_TYPE::AVD_CS_TYPE(const std::string& dn) :
+	name(dn)
+{
 }
 
-static AVD_CS_TYPE *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_CS_TYPE *cstype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_CS_TYPE *cst;
 	SaUint32T values_number;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	cst = new AVD_CS_TYPE(dn);
 
@@ -60,9 +49,9 @@ static AVD_CS_TYPE *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **
 	    (values_number > 0)) {
 		unsigned int i;
 
-		cst->saAmfCSAttrName = new SaStringT[values_number + 1]();
-		for (i = 0; i < values_number; i++)
-			cst->saAmfCSAttrName[i] = StrDup(immutil_getStringAttr(attributes, "saAmfCSAttrName", i));
+		for (i = 0; i < values_number; i++) {
+			cst->saAmfCSAttrName.push_back(immutil_getStringAttr(attributes, "saAmfCSAttrName", i));
+		}
 	}
 
 	TRACE_LEAVE();
@@ -75,24 +64,17 @@ static AVD_CS_TYPE *cstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **
  */
 static void cstype_delete(AVD_CS_TYPE *cst)
 {
-	char *p;
-	int i = 0;
-
-	cstype_db->erase(Amf::to_string(&cst->name));
-
-	if (cst->saAmfCSAttrName != nullptr) {
-		while ((p = cst->saAmfCSAttrName[i++]) != nullptr) {
-			delete [] p;
-		}
-	}
-	delete [] cst->saAmfCSAttrName;
+	cstype_db->erase(cst->name);
+	cst->saAmfCSAttrName.clear();
 	delete cst;
 }
 
 void avd_cstype_add_csi(AVD_CSI *csi)
 {
+	TRACE_ENTER();
 	csi->csi_list_cs_type_next = csi->cstype->list_of_csi;
 	csi->cstype->list_of_csi = csi;
+	TRACE_LEAVE();
 }
 
 void avd_cstype_remove_csi(AVD_CSI *csi)
@@ -124,18 +106,18 @@ void avd_cstype_remove_csi(AVD_CSI *csi)
 	}
 }
 
-static int is_config_valid(const SaNameT *dn, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const std::string& dn, CcbUtilOperationData_t *opdata)
 {
-	char *parent;
+	std::string::size_type parent;
 
-	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	if ((parent = dn.find(',')) == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
 		return 0;
 	}
 
 	/* Should be children to the Comp Base type */
-	if (strncmp(++parent, "safCSType=", 10) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
+	if (dn.compare(parent + 1, 10, "safCSType=")) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(parent + 1).c_str(), dn.c_str());
 		return 0;
 	}
 
@@ -171,11 +153,11 @@ SaAisErrorT avd_cstype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, nullptr))
+		if (!is_config_valid(Amf::to_string(&dn), nullptr))
 			goto done2;
 
 		if ((cst = cstype_db->find(Amf::to_string(&dn))) == nullptr){
-			if ((cst = cstype_create(&dn, attributes)) == nullptr)
+			if ((cst = cstype_create(Amf::to_string(&dn), attributes)) == nullptr)
 				goto done2;
 
 			cstype_add_to_model(cst);
@@ -204,26 +186,28 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_CSI *csi; 
 	bool csi_exist = false;
 	CcbUtilOperationData_t *t_opData;
+	const std::string object_name(Amf::to_string(&opdata->objectName));
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, object_name.c_str());
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata))
+		if (is_config_valid(object_name, opdata))
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
 		report_ccb_validation_error(opdata, "Modification of SaAmfCSType not supported");
 		break;
 	case CCBUTIL_DELETE:
-		cst = cstype_db->find(Amf::to_string(&opdata->objectName));
+		cst = cstype_db->find(object_name);
 		if (cst->list_of_csi != nullptr) {
 			/* check whether there exists a delete operation for 
 			 * each of the CSI in the cs_type list in the current CCB 
 			 */                      
 			csi = cst->list_of_csi;
-			while (csi != nullptr) {  
-				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &csi->name);
+			while (csi != nullptr) {
+				const SaNameTWrapper csi_name(csi->name);
+				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, csi_name);
 				if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 					csi_exist = true;   
 					break;                  
@@ -231,7 +215,7 @@ static SaAisErrorT cstype_ccb_completed_hdlr(CcbUtilOperationData_t *opdata)
 				csi = csi->csi_list_cs_type_next;
 			}                       
 			if (csi_exist == true) {
-				report_ccb_validation_error(opdata, "SaAmfCSType '%s' is in use", cst->name.value);
+				report_ccb_validation_error(opdata, "SaAmfCSType '%s' is in use", cst->name.c_str());
 				goto done;
 			}
 		}
@@ -251,11 +235,11 @@ static void cstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_CS_TYPE *cst;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		cst = cstype_create(&opdata->objectName, opdata->param.create.attrValues);
+		cst = cstype_create(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		osafassert(cst);
 		cstype_add_to_model(cst);
 		break;

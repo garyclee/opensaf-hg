@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <string.h>
+#include <cstring>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -51,6 +51,8 @@
 
 #include "osaf_time.h"
 #include <stdint.h>
+#include <unordered_map>
+#include <string>
 
 /* ========================================================================
  *   DEFINITIONS
@@ -63,6 +65,57 @@ pthread_mutex_t imm_reinit_mutex = PTHREAD_MUTEX_INITIALIZER;
    imm_reinit_mutex and then proceeds for initialization. */
 static pthread_mutex_t imm_reinit_thread_startup_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t imm_reinit_thread_startup_cond = PTHREAD_COND_INITIALIZER;
+
+typedef std::unordered_map<std::string, AVSV_AMF_CLASS_ID> type_map;
+
+type_map amf_type_map = {
+	/* Cluster and Node Class Related */
+	{"safAmfCluster",AVSV_SA_AMF_CLUSTER},
+	{"safAmfNode",AVSV_SA_AMF_NODE},
+	{"safAmfNodeGroup",AVSV_SA_AMF_NODE_GROUP},
+	{"safInstalledSwBundle",AVSV_SA_AMF_NODE_SW_BUNDLE},
+	/* Application Class Related */
+	{"safApp",AVSV_SA_AMF_APP},
+	{"safAppType",AVSV_SA_AMF_APP_BASE_TYPE},
+	/* Service Group Class Related */
+	{"safSg",AVSV_SA_AMF_SG},
+	{"safSgType",AVSV_SA_AMF_SG_BASE_TYPE},
+	/* Service Unit Class Related */
+	{"safSu",AVSV_SA_AMF_SU},
+	{"safSuType",AVSV_SA_AMF_SU_BASE_TYPE},
+	{"safMemberCompType",AVSV_SA_AMF_SUT_COMP_TYPE},
+	/* Service Instance Class Related */
+	{"safSi",AVSV_SA_AMF_SI},
+	{"safSvcType",AVSV_SA_AMF_SVC_BASE_TYPE},
+	{"safDepend",AVSV_SA_AMF_SI_DEPENDENCY},
+	{"safRankedSu",AVSV_SA_AMF_SI_RANKED_SU},
+	{"safSISU",AVSV_SA_AMF_SI_ASSIGNMENT},
+	{"safMemberCSType",AVSV_SA_AMF_SVC_TYPE_CS_TYPES},
+	/* Component Service Instance Class Related */
+	{"safCsi",AVSV_SA_AMF_CSI},
+	{"safCSType",AVSV_SA_AMF_CS_BASE_TYPE},
+	{"safCsiAttr",AVSV_SA_AMF_CSI_ATTRIBUTE},
+	{"safCSIComp",AVSV_SA_AMF_CSI_ASSIGNMENT},
+	/* Component and component types Related */
+	{"safCompType",AVSV_SA_AMF_COMP_BASE_TYPE},
+	{"safSupportedCsType",AVSV_SA_AMF_CLASS_INVALID},
+	{"safComp",AVSV_SA_AMF_COMP},
+	/* Global Component Attributes and Health Check Related */
+	{"safRdn",AVSV_SA_AMF_COMP_GLOBAL_ATTR},
+	{"safHealthcheckKey",AVSV_SA_AMF_CLASS_INVALID},
+	/* Common Version Related */
+	{"safVersion",AVSV_SA_AMF_CLASS_INVALID}
+};
+
+type_map versioned_types = {
+	{"safAppType",AVSV_SA_AMF_APP_TYPE},
+	{"safSgType",AVSV_SA_AMF_SG_TYPE},
+	{"safSuType",AVSV_SA_AMF_SU_TYPE},
+	{"safSvcType",AVSV_SA_AMF_SVC_TYPE},
+	{"safCSType",AVSV_SA_AMF_CS_TYPE},
+	{"safCompType",AVSV_SA_AMF_COMP_TYPE}
+};
+
 //
 // TODO(HANO) Temporary use this function instead of strdup which uses malloc.
 // Later on remove this function and use std::string instead
@@ -86,10 +139,11 @@ AvdJobDequeueResultT ImmObjCreate::exec(SaImmOiHandleT immOiHandle)
 	SaAisErrorT rc;
 	AvdJobDequeueResultT res;
 	
-	TRACE_ENTER2("Create %s", parentName_.value);
+	TRACE_ENTER2("Create %s", parentName_.c_str());
 
+	const SaNameTWrapper parent_name(parentName_);
 	rc = saImmOiRtObjectCreate_2(immOiHandle, className_,
-				     &parentName_, attrValues_);
+				     parent_name, attrValues_);
 
 	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_EXIST)) {
 		delete Fifo::dequeue();
@@ -129,6 +183,11 @@ ImmObjCreate::~ImmObjCreate()
 				char *p = *((char**) attrValue->attrValues[j]);
 				delete [] p;
 			}
+		} else if (attrValue->attrValueType == SA_IMM_ATTR_SANAMET) {
+			for (j = 0; j < attrValue->attrValuesNumber; j++) {
+				SaNameT* name = reinterpret_cast<SaNameT*>(attrValue->attrValues[i]);
+				osaf_extended_name_free(name);
+			}
 		}
 		delete [] attrValue->attrName;
 		delete [] static_cast<char*>(attrValue->attrValues[0]); // free blob shared by all values
@@ -150,7 +209,7 @@ AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
 	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
 	SaImmAttrValueT attrValues[] = {value_};
 
-	TRACE_ENTER2("Update '%s' %s", dn_.value, attributeName_);
+	TRACE_ENTER2("Update '%s' %s", dn.c_str(), attributeName_);
 
 	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
 	attrMod.modAttr.attrName = attributeName_;
@@ -158,7 +217,7 @@ AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
 	attrMod.modAttr.attrValueType = attrValueType_;
 	attrMod.modAttr.attrValues = attrValues;
 
-	rc = saImmOiRtObjectUpdate_2(immOiHandle, &dn_, attrMods);
+	rc = saImmOiRtObjectUpdate_o3(immOiHandle, dn.c_str(), attrMods);
 
 	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_NOT_EXIST)) {
 		delete Fifo::dequeue();
@@ -186,6 +245,10 @@ AvdJobDequeueResultT ImmObjUpdate::exec(SaImmOiHandleT immOiHandle)
 //
 ImmObjUpdate::~ImmObjUpdate()
 {
+	if (attrValueType_ == SA_IMM_ATTR_SANAMET) {
+		SaImmAttrValueT attrValues[] = {value_};
+		osaf_extended_name_free(static_cast<SaNameT*>(attrValues[0]));
+	}
 	delete [] attributeName_;
 	delete [] static_cast<char*>(value_);
 }
@@ -196,9 +259,9 @@ AvdJobDequeueResultT ImmObjDelete::exec(SaImmOiHandleT immOiHandle)
 	SaAisErrorT rc;
 	AvdJobDequeueResultT res;
 
-	TRACE_ENTER2("Delete %s", dn_.value);
+	TRACE_ENTER2("Delete %s", dn.c_str());
 
-	rc = saImmOiRtObjectDelete(immOiHandle, &dn_);
+	rc = saImmOiRtObjectDelete_o3(immOiHandle, dn.c_str());
 
 	if ((rc == SA_AIS_OK) || (rc == SA_AIS_ERR_NOT_EXIST)) {
 		delete Fifo::dequeue();
@@ -221,6 +284,10 @@ AvdJobDequeueResultT ImmObjDelete::exec(SaImmOiHandleT immOiHandle)
 	
 	TRACE_LEAVE();
 	return res;
+}
+
+ImmObjDelete::~ImmObjDelete()
+{
 }
 
 //
@@ -370,7 +437,7 @@ static const SaImmOiImplementerNameT implementerName =
 	(SaImmOiImplementerNameT)"safAmfService";
 static const SaImmOiImplementerNameT applierNamePrefix =
 	(SaImmOiImplementerNameT)"@safAmfService";
-static SaVersionT immVersion = { 'A', 2, 11 };
+static SaVersionT immVersion = { 'A', 2, 15 };
 
 /* This string array must match the AVSV_AMF_CLASS_ID enum */
 static const char *avd_class_names[] = {
@@ -501,6 +568,11 @@ static void copySaImmAttrValuesT(SaImmAttrValuesT_2 *copy, const SaImmAttrValues
 			char *cporig = *((char **)original->attrValues[i]);
 			char **cpp = (char **)databuffer;
 			*cpp = StrDup(cporig);
+		} else if ( original->attrValueType == SA_IMM_ATTR_SANAMET) {
+			SaNameT* orig = reinterpret_cast<SaNameT*>(original->attrValues[i]);
+			SaNameT* dest = reinterpret_cast<SaNameT*>(databuffer);
+			osaf_extended_name_alloc(osaf_extended_name_borrow(orig),
+				dest);
 		} else {
 			memcpy(databuffer, original->attrValues[i], valueSize);
 		}
@@ -535,13 +607,14 @@ static const SaImmAttrValuesT_2 **dupSaImmAttrValuesT_array(const SaImmAttrValue
 	return copy;
 }
 
-static AVSV_AMF_CLASS_ID class_name_to_class_type(const char *className)
+static AVSV_AMF_CLASS_ID class_name_to_class_type(const std::string& className)
 {
 	int i;
 
 	for (i = 0; i < AVSV_SA_AMF_CLASS_MAX; i++) {
-		if (strcmp(className, avd_class_names[i]) == 0)
+		if (className.compare(avd_class_names[i]) == 0) {
 			return static_cast<AVSV_AMF_CLASS_ID>(i);
+		}
 	}
 
 	osafassert(0);
@@ -560,111 +633,49 @@ static AVSV_AMF_CLASS_ID class_name_to_class_type(const char *className)
  * NOTES: None.
  *
  **************************************************************************/
-static AVSV_AMF_CLASS_ID object_name_to_class_type(const SaNameT *obj_name)
+static AVSV_AMF_CLASS_ID object_name_to_class_type(const std::string& obj_name)
 {
+	TRACE_ENTER2("%s", obj_name.c_str());
 	AVSV_AMF_CLASS_ID class_type = AVSV_SA_AMF_CLASS_INVALID;
 
-	/* Cluster and Node Class Related */
-	if (strncmp((char *)&obj_name->value, "safAmfCluster=", 14) == 0) {
-		class_type = AVSV_SA_AMF_CLUSTER;
-	} else if (strncmp((char *)&obj_name->value, "safAmfNode=", 11) == 0) {
-		class_type = AVSV_SA_AMF_NODE;
-	} else if (strncmp((char *)&obj_name->value, "safAmfNodeGroup=", 16) == 0) {
-		class_type = AVSV_SA_AMF_NODE_GROUP;
-	} else if (strncmp((char *)&obj_name->value, "safInstalledSwBundle=", 21) == 0) {
-		class_type = AVSV_SA_AMF_NODE_SW_BUNDLE;
+	const std::string::size_type first_equal = obj_name.find('=');
+	const std::string prefix(obj_name.substr(0, first_equal));
+
+	if (first_equal != std::string::npos) {
+		// prefix contains all the chars before the first comma
+		class_type = amf_type_map[prefix];
+	} else {
+		LOG_NO("unknown type: %s", obj_name.c_str());
+		osafassert(false);
 	}
 
-	/* Application Class Related */
-	else if (strncmp((char *)&obj_name->value, "safApp=", 7) == 0) {
-		class_type = AVSV_SA_AMF_APP;
-	} else if (strncmp((char *)&obj_name->value, "safAppType=", 11) == 0) {
-		class_type = AVSV_SA_AMF_APP_BASE_TYPE;
-	}
-
-	/* Service Group Class Related */
-	else if (strncmp((char *)&obj_name->value, "safSg=", 6) == 0) {
-		class_type = AVSV_SA_AMF_SG;
-	} else if (strncmp((char *)&obj_name->value, "safSgType=", 10) == 0) {
-		class_type = AVSV_SA_AMF_SG_BASE_TYPE;
-	}
-
-	/* Service Unit Class Related */
-	else if (strncmp((char *)&obj_name->value, "safSu=", 6) == 0) {
-		class_type = AVSV_SA_AMF_SU;
-	} else if (strncmp((char *)&obj_name->value, "safSuType=", 10) == 0) {
-		class_type = AVSV_SA_AMF_SU_BASE_TYPE;
-	} else if (strncmp((char *)&obj_name->value, "safMemberCompType=", 18) == 0) {
-		class_type = AVSV_SA_AMF_SUT_COMP_TYPE;
-	}
-
-	/* Service Instance Class Related */
-	else if (strncmp((char *)&obj_name->value, "safSi=", 6) == 0) {
-		class_type = AVSV_SA_AMF_SI;
-	} else if (strncmp((char *)&obj_name->value, "safSvcType=", 11) == 0) {
-		class_type = AVSV_SA_AMF_SVC_BASE_TYPE;
-	} else if (strncmp((char *)&obj_name->value, "safDepend=", 10) == 0) {
-		class_type = AVSV_SA_AMF_SI_DEPENDENCY;
-	} else if (strncmp((char *)&obj_name->value, "safRankedSu=", 12) == 0) {
-		class_type = AVSV_SA_AMF_SI_RANKED_SU;
-	} else if (strncmp((char *)&obj_name->value, "safSISU=", 8) == 0) {
-		class_type = AVSV_SA_AMF_SI_ASSIGNMENT;
-	} else if (strncmp((char *)&obj_name->value, "safMemberCSType=", 16) == 0) {
-		class_type = AVSV_SA_AMF_SVC_TYPE_CS_TYPES;
-	}
-
-	/* Component Service Instance Class Related */
-	else if (strncmp((char *)&obj_name->value, "safCsi=", 7) == 0) {
-		class_type = AVSV_SA_AMF_CSI;
-	} else if (strncmp((char *)&obj_name->value, "safCSType=", 10) == 0) {
-		class_type = AVSV_SA_AMF_CS_BASE_TYPE;
-	} else if (strncmp((char *)&obj_name->value, "safCsiAttr=", 11) == 0) {
-		class_type = AVSV_SA_AMF_CSI_ATTRIBUTE;
-	} else if (strncmp((char *)&obj_name->value, "safCSIComp=", 11) == 0) {
-		class_type = AVSV_SA_AMF_CSI_ASSIGNMENT;
-	}
-
-	/* Component and component types Related */
-	else if (strncmp((char *)&obj_name->value, "safCompType=", 12) == 0) {
-		class_type = AVSV_SA_AMF_COMP_BASE_TYPE;
-	} else if (strncmp((char *)&obj_name->value, "safSupportedCsType=", 19) == 0) {
-		if (strstr((char *)&obj_name->value, "safCompType=") != 0) {
-			class_type = AVSV_SA_AMF_CT_CS_TYPE;
-		} else if (strstr((char *)&obj_name->value, "safComp=") != 0) {
-			class_type = AVSV_SA_AMF_COMP_CS_TYPE;
-		}
-	} else if (strncmp((char *)&obj_name->value, "safComp=", 8) == 0) {
-		class_type = AVSV_SA_AMF_COMP;
-	}
-
-	/* Global Component Attributes and Health Check Related */
-	else if (strncmp((char *)&obj_name->value, "safRdn=", 7) == 0) {
-		class_type = AVSV_SA_AMF_COMP_GLOBAL_ATTR;
-	} else if (strncmp((char *)&obj_name->value, "safHealthcheckKey=", 18) == 0) {
-		if (strstr((char *)&obj_name->value, "safVersion=") != 0) {
-			class_type = AVSV_SA_AMF_HEALTH_CHECK_TYPE;
-		} else if (strstr((char *)&obj_name->value, "safComp=") != 0) {
-			class_type = AVSV_SA_AMF_HEALTH_CHECK;
+	if (class_type == AVSV_SA_AMF_CLASS_INVALID) {
+		// we weren't able to do a simple lookup
+		if (prefix.compare("safSupportedCsType") == 0) {
+			if (obj_name.find("safCompType=") != std::string::npos) {
+				class_type = AVSV_SA_AMF_CT_CS_TYPE;
+			} else if (obj_name.find("safComp=") != std::string::npos) {
+				 class_type = AVSV_SA_AMF_COMP_CS_TYPE;
+			}
+		} else if (prefix.compare("safHealthcheckKey") == 0) {
+			if (obj_name.find("safVersion=") != std::string::npos) {
+				class_type = AVSV_SA_AMF_HEALTH_CHECK_TYPE;
+			} else if (obj_name.find("safComp=") != std::string::npos) {
+				class_type = AVSV_SA_AMF_HEALTH_CHECK;
+			} 
+		} else if (prefix.compare("safVersion") == 0) {
+			// eg safVersion=4.0.0,safAppType=OpenSafApplicationType
+			const std::string::size_type first_comma = obj_name.find(',');
+			const std::string::size_type second_equal = obj_name.find('=', first_comma + 1);
+			const std::string type(obj_name.substr(first_comma + 1,
+				second_equal - first_comma - 1));
+			
+			TRACE("versioned type %s", type.c_str());
+			
+			class_type = versioned_types[type];
 		}
 	}
-
-	/* Common Version Related */
-	else if (strncmp((char *)&obj_name->value, "safVersion=", 11) == 0) {
-		if (strstr((char *)&obj_name->value, "safAppType=") != 0) {
-			class_type = AVSV_SA_AMF_APP_TYPE;
-		} else if (strstr((char *)&obj_name->value, "safSgType=") != 0) {
-			class_type = AVSV_SA_AMF_SG_TYPE;
-		} else if (strstr((char *)&obj_name->value, "safSuType=") != 0) {
-			class_type = AVSV_SA_AMF_SU_TYPE;
-		} else if (strstr((char *)&obj_name->value, "safSvcType=") != 0) {
-			class_type = AVSV_SA_AMF_SVC_TYPE;
-		} else if (strstr((char *)&obj_name->value, "safCSType=") != 0) {
-			class_type = AVSV_SA_AMF_CS_TYPE;
-		} else if (strstr((char *)&obj_name->value, "safCompType=") != 0) {
-			class_type = AVSV_SA_AMF_COMP_TYPE;
-		}
-	}
-
+	TRACE_LEAVE2("%u", class_type);
 	return class_type;
 }
 
@@ -681,16 +692,17 @@ static AVSV_AMF_CLASS_ID object_name_to_class_type(const SaNameT *obj_name)
  *
  **************************************************************************/
 static void admin_operation_cb(SaImmOiHandleT immoi_handle,
-	SaInvocationT invocation, const SaNameT *object_name,
+	SaInvocationT invocation, const SaNameT *obj_name,
 	SaImmAdminOperationIdT op_id, const SaImmAdminOperationParamsT_2 **params)
 {
+	const std::string object_name(Amf::to_string(obj_name));
 	AVSV_AMF_CLASS_ID type = object_name_to_class_type(object_name);
 
- 	TRACE_ENTER2("'%s', invocation: %llu, op: %llu", object_name->value, invocation, op_id);
+ 	TRACE_ENTER2("'%s', invocation: %llu, op: %llu", object_name.c_str(), invocation, op_id);
 
- 	if ((strcmp((char*)object_name->value, implementerName) == 0) ||
- 			(strncmp((char*)object_name->value, applierNamePrefix, strlen(applierNamePrefix)) == 0)) {
- 		// admin op targeted at the AMF implementer itself
+	if (object_name.compare(implementerName) == 0 ||
+		object_name.compare(0, strlen(applierNamePrefix), applierNamePrefix) == 0) {
+		// admin op targeted at the AMF implementer itself
  		if (op_id == 99) {
  	 		char *filename = nullptr;
  	 		if (params[0] != nullptr) {
@@ -707,7 +719,7 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
  	 				SA_AIS_ERR_INVALID_PARAM, nullptr,	"%s", strerror(rc));
  		} else
  			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, nullptr,
- 				"Admin operation not supported for %s (%u)", object_name->value, type);
+ 				"Admin operation not supported for %s (%u)", object_name.c_str(), type);
  		goto done;
 	}
 
@@ -719,21 +731,21 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 	}
 
 	saflog(LOG_NOTICE, amfSvcUsrName, "Admin op \"%s\" initiated for '%s', invocation: %llu",
-	       admin_op_name(static_cast<SaAmfAdminOperationIdT>(op_id)), object_name->value, invocation);
+	       admin_op_name(static_cast<SaAmfAdminOperationIdT>(op_id)), object_name.c_str(), invocation);
 
 	if (admin_op_callback[type] != nullptr) {
 		if (admin_op_is_valid(op_id, type) == false) {
 			report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 					"AMF (state %u) is not available for admin op'%llu' on '%s'",
-					avd_cb->init_state, op_id, object_name->value);
+					avd_cb->init_state, op_id, object_name.c_str());
 			goto done;
 		} else {
-			admin_op_callback[type](immoi_handle, invocation, object_name, op_id, params);
+			admin_op_callback[type](immoi_handle, invocation, obj_name, op_id, params);
 		}
 	} else {
-		LOG_ER("Admin operation not supported for %s (%u)", object_name->value, type);
+		LOG_ER("Admin operation not supported for %s (%u)", object_name.c_str(), type);
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, nullptr,
-			"Admin operation not supported for %s (%u)", object_name->value, type);
+			"Admin operation not supported for %s (%u)", object_name.c_str(), type);
 	}
 
 done:
@@ -756,9 +768,9 @@ static SaAisErrorT rt_attr_update_cb(SaImmOiHandleT immoi_handle,
 	const SaNameT *object_name, const SaImmAttrNameT *attribute_names)
 {
 	SaAisErrorT error;
-	AVSV_AMF_CLASS_ID type = object_name_to_class_type(object_name);
+	AVSV_AMF_CLASS_ID type = object_name_to_class_type(Amf::to_string(object_name));
 
-	TRACE_ENTER2("%s", object_name->value);
+	TRACE_ENTER2("%s", osaf_extended_name_borrow(object_name));
 	osafassert(rtattr_update_callback[type] != nullptr);
 	error = rtattr_update_callback[type](immoi_handle, object_name, attribute_names);
 	TRACE_LEAVE2("%u", error);
@@ -790,7 +802,7 @@ static SaAisErrorT ccb_object_create_cb(SaImmOiHandleT immoi_handle,
 	AVSV_AMF_CLASS_ID id_from_class_name, id_from_dn;
 	char err_str[] = "Ccb create failed, m/w role switch going on";
 
-	TRACE_ENTER2("CCB ID %llu, class %s, parent '%s'", ccb_id, class_name, parent_name->value);
+	TRACE_ENTER2("CCB ID %llu, class %s, parent '%s'", ccb_id, class_name, osaf_extended_name_borrow(parent_name));
 
 	/* Reject adm ops if we are in the middle of a role switch. */
 	if (avd_cb->swap_switch == SA_TRUE) {
@@ -819,39 +831,44 @@ static SaAisErrorT ccb_object_create_cb(SaImmOiHandleT immoi_handle,
 	/* Find the RDN attribute and store the object DN */
 	while ((attrValue = attr[i++]) != nullptr) {
 		if (!strncmp(attrValue->attrName, "saf", 3)) {
+			std::string object_name;
 			if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 				SaStringT rdnVal = *((SaStringT *)attrValue->attrValues[0]);
-				if ((parent_name != nullptr) && (parent_name->length > 0)) {
-					operation->objectName.length = sprintf((char *)operation->objectName.value,
-						"%s,%s", rdnVal, parent_name->value);
+				if (parent_name != nullptr && osaf_extended_name_length(parent_name) > 0) {
+					object_name = rdnVal;
+					object_name += ",";
+					object_name += Amf::to_string(parent_name);
 				} else {
-					operation->objectName.length = sprintf((char *)operation->objectName.value,
-						"%s", rdnVal);
+					object_name = rdnVal;
 				}
 			} else {
 				SaNameT *rdnVal = ((SaNameT *)attrValue->attrValues[0]);
-				operation->objectName.length = sprintf((char *)operation->objectName.value,
-					"%s,%s", rdnVal->value, parent_name->value);
+				object_name = Amf::to_string(rdnVal);
+				object_name += ",";
+				object_name += Amf::to_string(parent_name);
 			}
-			
-			TRACE("%s(%u)", operation->objectName.value, operation->objectName.length);
+
+			osaf_extended_name_alloc(object_name.c_str(), &operation->objectName);
+			TRACE("%s(%zu)", object_name.c_str(), object_name.length());
+			break;
 		}
 	}
-	
-	if (operation->objectName.length == 0) {
+
+	if (osaf_extended_name_length(&operation->objectName) == 0) {
 		LOG_ER("Malformed DN %llu", ccb_id);
 		rc = SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	/* Verify that DN is valid for class */
 	id_from_class_name = class_name_to_class_type(class_name);
-	id_from_dn = object_name_to_class_type(&operation->objectName);
+	id_from_dn = object_name_to_class_type(Amf::to_string(&operation->objectName));
 	if (id_from_class_name != id_from_dn) {
-		LOG_ER("Illegal DN '%s' for class '%s'", operation->objectName.value, class_name);
+		LOG_ER("Illegal DN '%s' for class '%s'", osaf_extended_name_borrow(&operation->objectName), class_name);
 		rc = SA_AIS_ERR_INVALID_PARAM;
 	}
 
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -874,7 +891,7 @@ static SaAisErrorT ccb_object_delete_cb(SaImmOiHandleT immoi_handle,
 	struct CcbUtilCcbData *ccb_util_ccb_data;
 	char err_str[] = "Ccb delete failed, m/w role switch going on";
 
-	TRACE_ENTER2("CCB ID %llu, %s", ccb_id, object_name->value);
+	TRACE_ENTER2("CCB ID %llu, %s", ccb_id, osaf_extended_name_borrow(object_name));
 
 	/* Reject adm ops if we are in the middle of a role switch. */
 	if (avd_cb->swap_switch == SA_TRUE) {
@@ -918,7 +935,7 @@ static SaAisErrorT ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
 	struct CcbUtilCcbData *ccb_util_ccb_data;
 	char err_str[] = "Ccb modify failed, m/w role switch going on";
 
-	TRACE_ENTER2("CCB ID %llu, %s", ccb_id, object_name->value);
+	TRACE_ENTER2("CCB ID %llu, %s", ccb_id, osaf_extended_name_borrow(object_name));
 
 	/* Reject adm ops if we are in the middle of a role switch. */
 	if (avd_cb->swap_switch == SA_TRUE) {
@@ -933,7 +950,7 @@ static SaAisErrorT ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != nullptr) {
 		/* "memorize the request" */
 		if (ccbutil_ccbAddModifyOperation(ccb_util_ccb_data, object_name, attr_mods) != 0) {
-			LOG_ER("Failed '%s'", object_name->value);
+			LOG_ER("Failed '%s'", osaf_extended_name_borrow(object_name));
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		}
 	} else {
@@ -974,7 +991,7 @@ static SaAisErrorT ccb_completed_cb(SaImmOiHandleT immoi_handle,
 	   are applied." */
 
 	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != nullptr) {
-		type = object_name_to_class_type(&opdata->objectName);
+		type = object_name_to_class_type(Amf::to_string(&opdata->objectName));
 
 		/* Standby AMFD should process CCB completed callback only for CCB_DELETE. */
 		if ((avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) &&
@@ -982,7 +999,7 @@ static SaAisErrorT ccb_completed_cb(SaImmOiHandleT immoi_handle,
 			continue;
 		if (ccb_completed_callback[type] == nullptr) {
 			/* this can happen for malformed DNs */
-			LOG_ER("Class implementer for '%s' not found", opdata->objectName.value);
+			LOG_ER("Class implementer for '%s' not found", osaf_extended_name_borrow(&opdata->objectName));
 			goto done;
 		}
 		rc = ccb_completed_callback[type](opdata);
@@ -1019,8 +1036,9 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
 	/* ccb_util_ccb_data may be nullptr when first create/modify/delete cbk
 	   was rejected before adding the ccb information in the data base.*/
-	if (ccb_util_ccb_data)
+	if (ccb_util_ccb_data) {
 		ccbutil_deleteCcbData(ccb_util_ccb_data);
+	}
 
 	TRACE_LEAVE();
 }
@@ -1164,7 +1182,8 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 	TRACE_ENTER2("CCB ID %llu", ccb_id);
 
 	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != nullptr) {
-		type = object_name_to_class_type(&opdata->objectName);
+		const std::string object_name(Amf::to_string(&opdata->objectName));
+		type = object_name_to_class_type(object_name);
 		/* Base types will not have an apply callback, skip empty ones */
 		if (ccb_apply_callback[type] != nullptr) {
 			/* insert the apply callback into the sorted list
@@ -1180,15 +1199,15 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 			switch (opdata->operationType) {
 			case CCBUTIL_CREATE:
 				saflog(LOG_NOTICE, amfSvcUsrName, "CCB %llu Created %s",
-						ccb_id, opdata->objectName.value);
+						ccb_id, object_name.c_str());
 				break;
 			case CCBUTIL_MODIFY:
 				saflog(LOG_NOTICE, amfSvcUsrName, "CCB %llu Modified %s",
-						ccb_id, opdata->objectName.value);
+						ccb_id, object_name.c_str());
 				break;
 			case CCBUTIL_DELETE:
 				saflog(LOG_NOTICE, amfSvcUsrName, "CCB %llu Deleted %s",
-						ccb_id, opdata->objectName.value);
+						ccb_id, object_name.c_str());
 				break;
 			default:
 				osafassert(0);
@@ -1208,7 +1227,7 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 	next = ccb_apply_list;
 	while (next != nullptr) {
 		// TODO: would be more elegant with yet another function pointer
-		type = object_name_to_class_type(&next->opdata->objectName);
+		type = object_name_to_class_type(Amf::to_string(&next->opdata->objectName));
 		if ((type == AVSV_SA_AMF_SG) && (next->opdata->operationType == CCBUTIL_CREATE)) {
 			AVD_SG *sg = sg_db->find(Amf::to_string(&next->opdata->objectName));
 			avd_sg_adjust_config(sg);
@@ -1264,27 +1283,25 @@ static SaAisErrorT hydra_config_get(void)
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
-	SaNameT dn = {0, "opensafImm=opensafImm,safApp=safImmService"};
+	const std::string dn = "opensafImm=opensafImm,safApp=safImmService";
 	SaImmAttrNameT attrName = const_cast<SaImmAttrNameT>("scAbsenceAllowed");
 	SaImmAttrNameT attributeNames[] = {attrName, nullptr};
 	const SaUint32T *value = nullptr;
 
 	TRACE_ENTER();
 
-	dn.length = strlen((char *)dn.value);
-
 	immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
-	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &dn, attributeNames,
+	rc = immutil_saImmOmAccessorGet_o2(accessorHandle, dn.c_str(), attributeNames,
 				(SaImmAttrValuesT_2 ***)&attributes);
 
 	if (rc != SA_AIS_OK) {
-		LOG_WA("saImmOmAccessorGet_2 FAILED %u for %s", rc, dn.value);
+		LOG_WA("saImmOmAccessorGet_2 FAILED %u for %s", rc, dn.c_str());
 		goto done;
 	}
 
 	value = immutil_getUint32Attr(attributes, attrName, 0);
 	if (value == nullptr) {
-		LOG_WA("immutil_getUint32Attr FAILED for %s", dn.value);
+		LOG_WA("immutil_getUint32Attr FAILED for %s", dn.c_str());
 		goto done;
 	}
 
@@ -1399,10 +1416,10 @@ SaAisErrorT avd_imm_applier_set(void)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	uint32_t i;
-	char applier_name[SA_MAX_NAME_LENGTH] = {0};
+	char applier_name[SA_MAX_UNEXTENDED_NAME_LENGTH] = {0};
 
 	TRACE_ENTER();
-	snprintf(applier_name, SA_MAX_NAME_LENGTH, "%s%x", applierNamePrefix, avd_cb->node_id_avd);
+	snprintf(applier_name, SA_MAX_UNEXTENDED_NAME_LENGTH, "%s%x", applierNamePrefix, avd_cb->node_id_avd);
 
 	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, applier_name)) != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet failed %u", rc);
@@ -1471,7 +1488,7 @@ void avd_imm_impl_set_task_create(void)
 	}
 }
 
-void avd_class_impl_set(const char *className,
+void avd_class_impl_set(const std::string& className,
 	SaImmOiRtAttrUpdateCallbackT rtattr_cb, SaImmOiAdminOperationCallbackT_2 adminop_cb,
 	AvdImmOiCcbCompletedCallbackT ccb_compl_cb, AvdImmOiCcbApplyCallbackT ccb_apply_cb)
 {
@@ -1486,7 +1503,7 @@ void avd_class_impl_set(const char *className,
 
 SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata)
 {
-	TRACE_ENTER2("'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", osaf_extended_name_borrow(&opdata->objectName));
 
 	/* Only create and delete operations are OK */
 	if (opdata->operationType != CCBUTIL_MODIFY) {
@@ -1587,7 +1604,7 @@ done:
  * @param attrValueType
  * @param value
  */
-SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT attributeName,
+SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn, SaImmAttrNameT attributeName,
 	SaImmValueTypeT attrValueType, void *value)
 {
 	SaAisErrorT rc;
@@ -1595,7 +1612,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT att
 	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
 	SaImmAttrValueT attrValues[] = {value};
 
-	TRACE_ENTER2("'%s' %s", dn->value, attributeName);
+	TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName);
 
 	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
 	attrMod.modAttr.attrName = attributeName;
@@ -1603,10 +1620,10 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT att
 	attrMod.modAttr.attrValueType = attrValueType;
 	attrMod.modAttr.attrValues = attrValues;
 
-	rc = saImmOiRtObjectUpdate_2(avd_cb->immOiHandle, dn, attrMods);
+	rc = saImmOiRtObjectUpdate_o3(avd_cb->immOiHandle, dn.c_str(), attrMods);
 	if (rc != SA_AIS_OK) {
 		LOG_WA("saImmOiRtObjectUpdate of '%s' %s failed with %u", 
-			dn->value, attributeName, rc);
+			dn.c_str(), attributeName, rc);
 	}
 	return rc;
 }
@@ -1618,7 +1635,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const SaNameT *dn, SaImmAttrNameT att
  * @param  dn (ptr to SaNameT)
  * @return true/false
  */
-bool check_to_create_immjob_at_standby_amfd(const SaNameT *dn)
+bool check_to_create_immjob_at_standby_amfd(const std::string& dn)
 {
 
 	AVSV_AMF_CLASS_ID class_type = AVSV_SA_AMF_CLASS_INVALID;
@@ -1648,10 +1665,10 @@ bool check_to_create_immjob_at_standby_amfd(const SaNameT *dn)
  * @param attrValueType
  * @param value
  */
-void avd_saImmOiRtObjectUpdate(const SaNameT *dn, const char *attributeName,
+void avd_saImmOiRtObjectUpdate(const std::string& dn, const std::string& attributeName,
 	SaImmValueTypeT attrValueType, void *value)
 {
-	TRACE_ENTER2("'%s' %s", dn->value, attributeName);
+	TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName.c_str());
 	
 	size_t sz;
 
@@ -1663,8 +1680,8 @@ void avd_saImmOiRtObjectUpdate(const SaNameT *dn, const char *attributeName,
 
 	sz = value_size(attrValueType);
 
-	ajob->dn_= *dn;
-	ajob->attributeName_= StrDup(attributeName);
+	ajob->dn = dn;
+	ajob->attributeName_= StrDup(attributeName.c_str());
 	ajob->attrValueType_ = attrValueType;
 	ajob->value_ = new char[sz];
 
@@ -1680,10 +1697,10 @@ void avd_saImmOiRtObjectUpdate(const SaNameT *dn, const char *attributeName,
  * @param parentName
  * @param attrValues
  */
-void avd_saImmOiRtObjectCreate(const char *className,
-	const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
+void avd_saImmOiRtObjectCreate(const std::string& className,
+	const std::string& parentName, const SaImmAttrValuesT_2 **attrValues)
 {
-	TRACE_ENTER2("%s %s", className, parentName->value);
+	TRACE_ENTER2("%s %s", className.c_str(), parentName.c_str());
 
 	if ((avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) &&
 			(check_to_create_immjob_at_standby_amfd(parentName) == false))
@@ -1691,9 +1708,9 @@ void avd_saImmOiRtObjectCreate(const char *className,
 
 	ImmObjCreate* ajob = new ImmObjCreate;
 
-	ajob->className_ = StrDup(className);
+	ajob->className_ = StrDup(className.c_str());
 	osafassert(ajob->className_ != nullptr);
-	ajob->parentName_ = *parentName;
+	ajob->parentName_ = parentName;
 	ajob->attrValues_ = dupSaImmAttrValuesT_array(attrValues);
 	Fifo::queue(ajob);
 	
@@ -1704,9 +1721,9 @@ void avd_saImmOiRtObjectCreate(const char *className,
  * Queue an IM object delete to be executed later, non blocking
  * @param dn
  */
-void avd_saImmOiRtObjectDelete(const SaNameT* dn)
+void avd_saImmOiRtObjectDelete(const std::string& dn)
 {
-	TRACE_ENTER2("%s", dn->value);
+	TRACE_ENTER2("%s", dn.c_str());
 	
 	if ((avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) &&
 			(check_to_create_immjob_at_standby_amfd(dn) == false))
@@ -1714,7 +1731,7 @@ void avd_saImmOiRtObjectDelete(const SaNameT* dn)
 
 	ImmObjDelete *ajob = new ImmObjDelete;
 
-	ajob->dn_ = *dn;
+	ajob->dn = dn;
 	Fifo::queue(ajob);
 	
 	TRACE_LEAVE();
@@ -1729,19 +1746,23 @@ void avd_imm_update_runtime_attrs(void)
 	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
 			it != su_db->end(); it++) {
 		AVD_SU *su = it->second;
-		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
+		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUPreInstantiable",
 			SA_IMM_ATTR_SAUINT32T,  &su->saAmfSUPreInstantiable);
 
-		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUHostedByNode",
-			SA_IMM_ATTR_SANAMET, &su->saAmfSUHostedByNode);
+		SaNameT hosted_by_node;
+		// we could use borrow, but seems safer this way in case the SU is moved?
+		// hosted_by_node needs to be freed after the job is completed!
+		osaf_extended_name_alloc(su->saAmfSUHostedByNode.c_str(), &hosted_by_node);
+		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUHostedByNode",
+			SA_IMM_ATTR_SANAMET, (void*)&hosted_by_node);
 
-		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
+		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUPresenceState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
 
-		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUOperState",
+		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUOperState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSUOperState);
 
-		avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
+		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUReadinessState",
 			SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
 
 	}
@@ -1750,15 +1771,15 @@ void avd_imm_update_runtime_attrs(void)
 	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
 			it != comp_db->end(); it++) {
 		AVD_COMP *comp  = it->second;
-		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+		avd_saImmOiRtObjectUpdate(Amf::to_string(&comp->comp_info.name),
 			"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T,
 			&comp->saAmfCompReadinessState);
 
-		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+		avd_saImmOiRtObjectUpdate(Amf::to_string(&comp->comp_info.name),
 			"saAmfCompOperState", SA_IMM_ATTR_SAUINT32T,
 			&comp->saAmfCompOperState);
 
-		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+		avd_saImmOiRtObjectUpdate(Amf::to_string(&comp->comp_info.name),
 			"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T,
 			&comp->saAmfCompPresenceState);
 
@@ -1768,7 +1789,7 @@ void avd_imm_update_runtime_attrs(void)
 	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
 			it != node_name_db->end(); it++) {
 		AVD_AVND *node = it->second;
-		avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
+		avd_saImmOiRtObjectUpdate(node->name, "saAmfNodeOperState",
 				SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 	}
 
@@ -1776,7 +1797,7 @@ void avd_imm_update_runtime_attrs(void)
 	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
 			it != si_db->end(); it++) {
 		AVD_SI *si = it->second;
-		avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
+		avd_saImmOiRtObjectUpdate(si->name, "saAmfSIAssignmentState",
 			SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 	}
 }

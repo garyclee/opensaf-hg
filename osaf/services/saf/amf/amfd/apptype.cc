@@ -27,23 +27,23 @@
 AmfDb<std::string, AVD_APP_TYPE> *app_type_db = 0;
 
 //
-AVD_APP_TYPE::AVD_APP_TYPE(const SaNameT* dn) {
-	memcpy(name.value, dn->value, dn->length);
-	name.length = dn->length;
+AVD_APP_TYPE::AVD_APP_TYPE(const std::string& dn) :
+	name(dn)
+{
 }
 
 //
 AVD_APP_TYPE::~AVD_APP_TYPE() {
 }
 
-AVD_APP_TYPE *avd_apptype_get(const SaNameT *dn)
+AVD_APP_TYPE *avd_apptype_get(const std::string& dn)
 {
-	return app_type_db->find(Amf::to_string(dn));
+	return app_type_db->find(dn);
 }
 
 static void apptype_delete(AVD_APP_TYPE **apptype)
 {
-	app_type_db->erase(Amf::to_string(&(*apptype)->name));
+	app_type_db->erase((*apptype)->name);
 
 	(*apptype)->sgAmfApptSGTypes.clear();
 	delete *apptype;
@@ -54,29 +54,30 @@ static void apptype_add_to_model(AVD_APP_TYPE *app_type)
 {
 	unsigned int rc;
 	osafassert(app_type != nullptr);
-	TRACE("'%s'", app_type->name.value);
+	TRACE("'%s'", app_type->name.c_str());
 
-	rc = app_type_db->insert(Amf::to_string(&app_type->name), app_type);
+	rc = app_type_db->insert(app_type->name, app_type);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 }
 
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
+static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes,
 	const CcbUtilOperationData_t *opdata)
 {
 	int i = 0;
 	unsigned j;
-	char *parent;
+	std::string::size_type parent;
 	AVD_AMF_SG_TYPE *sg_type;
 	const SaImmAttrValuesT_2 *attr;
 
-	if ((parent = strchr((char*)dn->value, ',')) == nullptr) {
-		report_ccb_validation_error(opdata, "No parent to '%s' ", dn->value);
+	parent = dn.find(',');
+	if (parent == std::string::npos) {
+		report_ccb_validation_error(opdata, "No parent to '%s' ", dn.c_str());
 		return 0;
 	}
 
 	/* AppType should be children to AppBaseType */
-	if (strncmp(++parent, "safAppType=", 11) != 0) {
-		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", parent, dn->value);
+	if (dn.compare(parent + 1, 11, "safAppType=") != 0) {
+		report_ccb_validation_error(opdata, "Wrong parent '%s' to '%s' ", dn.substr(0, parent).c_str(), dn.c_str());
 		return 0;
 	}
 
@@ -92,14 +93,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		sg_type = sgtype_db->find(Amf::to_string(name));
 		if (sg_type == nullptr) {
 			if (opdata == nullptr) {
-				report_ccb_validation_error(opdata, "'%s' does not exist in model", name->value);
+				report_ccb_validation_error(opdata, "'%s' does not exist in model", osaf_extended_name_borrow(name));
 				return 0;
 			}
 
 			/* SG type does not exist in current model, check CCB */
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, name) == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist either in model or CCB",
-						name->value);
+					osaf_extended_name_borrow(name));
 				return 0;
 			}
 		}
@@ -108,7 +109,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	return 1;
 }
 
-static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_APP_TYPE *apptype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int i = 0;
 	unsigned int j;
@@ -116,7 +117,7 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 	AVD_APP_TYPE *app_type;
 	const SaImmAttrValuesT_2 *attr;
 
-	TRACE_ENTER2("'%s'", dn->value);
+	TRACE_ENTER2("'%s'", dn.c_str());
 
 	app_type = new AVD_APP_TYPE(dn);
 
@@ -128,7 +129,7 @@ static AVD_APP_TYPE *apptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attr
 	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
-		app_type->sgAmfApptSGTypes.push_back(*((SaNameT *)attr->attrValues[j]));
+		app_type->sgAmfApptSGTypes.push_back(Amf::to_string(static_cast<SaNameT*>(attr->attrValues[j])));
 	}
 
 	rc = 0;
@@ -148,26 +149,28 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	AVD_APP *app;
 	bool app_exist = false;
 	CcbUtilOperationData_t *t_opData;
+	const std::string object_name(Amf::to_string(&opdata->objectName));
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, object_name.c_str());
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(object_name, opdata->param.create.attrValues, opdata))
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
 		report_ccb_validation_error(opdata, "Modification of SaAmfAppType not supported");
 		break;
 	case CCBUTIL_DELETE:
-		app_type = avd_apptype_get(&opdata->objectName);
+		app_type = avd_apptype_get(object_name);
 		if (nullptr != app_type->list_of_app) {
 			/* check whether there exists a delete operation for 
 			 * each of the App in the app_type list in the current CCB
 			 */
 			app = app_type->list_of_app;
 			while (app != nullptr) {
-				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, &app->name);
+				const SaNameTWrapper app_name(app->name);
+				t_opData = ccbutil_getCcbOpDataByDN(opdata->ccbId, app_name);
 				if ((t_opData == nullptr) || (t_opData->operationType != CCBUTIL_DELETE)) {
 					app_exist = true;
 					break;
@@ -175,7 +178,7 @@ static SaAisErrorT apptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 				app = app->app_type_list_app_next;
 			}
 			if (app_exist == true) {
-				report_ccb_validation_error(opdata, "SaAmfAppType '%s' is in use", app_type->name.value);
+				report_ccb_validation_error(opdata, "SaAmfAppType '%s' is in use", app_type->name.c_str());
 				goto done;
 			}
 		}
@@ -194,11 +197,12 @@ static void apptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_APP_TYPE *app_type;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		app_type = apptype_create(&opdata->objectName, opdata->param.create.attrValues);
+		app_type = apptype_create(Amf::to_string(&opdata->objectName),
+			opdata->param.create.attrValues);
 		osafassert(app_type);
 		apptype_add_to_model(app_type);
 		break;
@@ -217,7 +221,7 @@ SaAisErrorT avd_apptype_config_get(void)
 	SaAisErrorT rc = SA_AIS_ERR_INVALID_PARAM, error;
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
+	SaNameT dn_name;
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfAppType";
 	AVD_APP_TYPE *app_type;
@@ -237,12 +241,13 @@ SaAisErrorT avd_apptype_config_get(void)
 		goto done1;
 	}
 
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, nullptr))
+	while (immutil_saImmOmSearchNext_2(searchHandle, &dn_name, const_cast<SaImmAttrValuesT_2 ***>(&attributes)) == SA_AIS_OK) {
+		std::string dn(Amf::to_string(&dn_name));
+		if (!is_config_valid(dn, attributes, nullptr))
 			goto done2;
 
-		if ((app_type = avd_apptype_get(&dn)) == nullptr ) {
-			if ((app_type = apptype_create(&dn, attributes)) == nullptr)
+		if ((app_type = avd_apptype_get(dn)) == nullptr ) {
+			if ((app_type = apptype_create(dn, attributes)) == nullptr)
 				goto done2;
 
 			apptype_add_to_model(app_type);

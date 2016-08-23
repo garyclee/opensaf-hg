@@ -148,6 +148,7 @@
  * Module Inclusion Control...
  */
 
+#include "util.h"
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
@@ -201,7 +202,7 @@ void avd_sidep_si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state)
 	if (old_state == state)
 		return;
 	si->si_dep_state = state;
-	TRACE("'%s' si_dep_state %s => %s", si->name.value, depstatename[old_state], depstatename[state]);
+	TRACE("'%s' si_dep_state %s => %s", si->name.c_str(), depstatename[old_state], depstatename[state]);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_SI_DEP_STATE);
 
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
@@ -236,7 +237,7 @@ void avd_sidep_si_dep_state_set(AVD_SI *si, AVD_SI_DEP_STATE state)
 					avd_cb->sis_in_Tolerance_Timer_state.erase(it1);
 					TRACE_1("Deleted '%s' from tol timer list,"
 							" size after deletion:%zu",
-							si->name.value,
+							si->name.c_str(),
 							avd_cb->sis_in_Tolerance_Timer_state.size());
 					break;
 				}
@@ -266,7 +267,7 @@ bool sidep_is_si_active(AVD_SI *si)
 	AVD_SU_SI_REL *susi = nullptr;
 	bool si_active = false;
 
-	TRACE_ENTER2("'%s'", si->name.value);
+	TRACE_ENTER2("'%s'", si->name.c_str());
 
 	for (susi = si->list_of_sisu; susi != AVD_SU_SI_REL_NULL; susi = susi->si_next) {
 		if (((susi->state == SA_AMF_HA_ACTIVE) || (susi->state == SA_AMF_HA_QUIESCING)) &&
@@ -304,7 +305,7 @@ void sidep_spons_list_del(AVD_SI_DEP *si_dep_rec)
 	TRACE_ENTER();
 
 	/* Dependent SI should be active, if not return error */
-	dep_si = avd_si_get(&si_dep_rec->dep_name);
+	dep_si = avd_si_get(si_dep_rec->dep_name);
 	osafassert(dep_si != nullptr); 
 
 	/* SI doesn't depend on any other SIs */
@@ -313,15 +314,14 @@ void sidep_spons_list_del(AVD_SI_DEP *si_dep_rec)
 	spons_si_node = dep_si->spons_si_list;
 
 	/* Check if the sponsor is the first node of the list */
-	if (m_CMP_HORDER_SANAMET(dep_si->spons_si_list->si->name, si_dep_rec->spons_si->name) == 0) {
+	if (dep_si->spons_si_list->si->name.compare(si_dep_rec->spons_si->name) == 0) {
 		dep_si->spons_si_list = spons_si_node->next;
 		/* decrement the dependent SI count in sponsor SI */
 		spons_si_node->si->num_dependents --;
 		delete spons_si_node;
 	} else {
 		while (spons_si_node->next != nullptr) {
-			if (m_CMP_HORDER_SANAMET(spons_si_node->next->si->name,
-						 si_dep_rec->spons_si->name) != 0) {
+			if (spons_si_node->next->si->name.compare(si_dep_rec->spons_si->name) != 0) {
 				spons_si_node = spons_si_node->next;
 				continue;
 			}
@@ -379,9 +379,9 @@ void avd_si_dep_spons_list_add(AVD_SI *dep_si, AVD_SI *spons_si, AVD_SI_DEP *rec
 	dep_si->spons_si_list = spons_si_node;
 }
 
-static AVD_SI_DEP *sidep_db_find(SaNameT *sponsor, SaNameT *dependent)
+static AVD_SI_DEP *sidep_db_find(const std::string& sponsor, const std::string& dependent)
 {
-	return	sidep_db->find(make_pair(Amf::to_string(sponsor), Amf::to_string(dependent)));
+	return sidep_db->find(make_pair(sponsor, dependent));
 }
 
 
@@ -406,10 +406,10 @@ void sidep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *dep_si)
 	AVD_SPONS_SI_NODE *spons_si_node = dep_si->spons_si_list;
 
 	while (spons_si_node) {
-		if ((rec = sidep_db_find(&spons_si_node->si->name, &dep_si->name)) != nullptr) {
+		if ((rec = sidep_db_find(spons_si_node->si->name, dep_si->name)) != nullptr) {
 			if (rec->si_dep_timer.is_active == true) {
 				avd_stop_tmr(cb, &rec->si_dep_timer);
-				TRACE("Tolerance timer stopped for '%s'", dep_si->name.value);
+				TRACE("Tolerance timer stopped for '%s'", dep_si->name.c_str());
 
 				if (dep_si->tol_timer_count > 0) {
 					dep_si->tol_timer_count--;
@@ -442,7 +442,7 @@ uint32_t sidep_unassign_dependent(AVD_CL_CB *cb, AVD_SI *si)
 	AVD_SU_SI_REL *susi = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s'", si->name.value);
+	TRACE_ENTER2("'%s'", si->name.c_str());
 
 	susi = si->list_of_sisu;
 	while (susi != AVD_SU_SI_REL_NULL && susi->fsm != AVD_SU_SI_STATE_UNASGN) {
@@ -485,16 +485,16 @@ uint32_t sidep_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("'%s'", si->name.value);
+	TRACE_ENTER2("'%s'", si->name.c_str());
 
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		TRACE("sg unstable, so defering sidep action on si:'%s'",si->name.value);
+		TRACE("sg unstable, so defering sidep action on si:'%s'",si->name.c_str());
 		goto done;
 	}
 
 	if ((si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 		(cb->init_state == AVD_APP_STATE)) {
-		LOG_NO("Assigning due to dep '%s'",si->name.value);
+		LOG_NO("Assigning due to dep '%s'",si->name.c_str());
 		if (si->sg_of_si->si_assign(cb, si) != NCSCC_RC_SUCCESS) {
 			goto done;
 		}
@@ -532,7 +532,7 @@ uint32_t sidep_si_dep_state_evt_send(AVD_CL_CB *cb, AVD_SI *si, AVD_EVT_TYPE evt
 	AVD_EVT *evt = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER2("si:'%s' evt_type:%u", si->name.value, evt_type);
+	TRACE_ENTER2("si:'%s' evt_type:%u", si->name.c_str(), evt_type);
 
 	evt = new AVD_EVT();
 
@@ -580,7 +580,7 @@ void avd_sidep_stdby_amfd_tol_timer_expiry(AVD_SI *spons_si, AVD_SI *dep_si)
 	if (dep_si->si_dep_state == AVD_SI_TOL_TIMER_RUNNING) {
 		avd_cb->sis_in_Tolerance_Timer_state.push_back(dep_si);
 		TRACE_1("Added '%s' to tol_timer list, size after addition:%zu",
-				dep_si->name.value,avd_cb->sis_in_Tolerance_Timer_state.size());
+				dep_si->name.c_str(),avd_cb->sis_in_Tolerance_Timer_state.size());
 	}
 	TRACE_LEAVE();
 }
@@ -602,8 +602,8 @@ void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	osafassert(evt->info.tmr.type == AVD_TMR_SI_DEP_TOL);
 
-	si = avd_si_get(&evt->info.tmr.dep_si_name);
-	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
+	si = avd_si_get(evt->info.tmr.dep_si_name);
+	spons_si = avd_si_get(evt->info.tmr.spons_si_name);
 
 	if ((si == nullptr) || (spons_si == nullptr)) {
 		/* Nothing to do here as SI/spons-SI itself lost their existence */
@@ -611,7 +611,7 @@ void avd_sidep_tol_tmr_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	LOG_NO("expiry of tolerance timer '%s'", si->name.value);
+	LOG_NO("expiry of tolerance timer '%s'", si->name.c_str());
 
 	/* Since the tol-timer is been expired, can decrement tol_timer_count of 
 	 * the SI. 
@@ -647,7 +647,7 @@ void avd_sidep_activ_amfd_tol_timer_expiry(AVD_SI *spons_si, AVD_SI *dep_si)
 	   si_dep_state action is taken.
 	 */
 	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		TRACE("sg unstable, so defering sidep action on si:'%s'",si->name.value);
+		TRACE("sg unstable, so defering sidep action on si:'%s'",si->name.c_str());
 		goto done;
 	}
 
@@ -670,7 +670,7 @@ void avd_sidep_activ_amfd_tol_timer_expiry(AVD_SI *spons_si, AVD_SI *dep_si)
 		  mark its dep state to SPONSOR_UNASSGINED otherwise unassign it.
 		 */
 		if (sidep_is_si_active(si)) { 
-			LOG_NO("Unassigning due to dep'%s'",si->name.value);
+			LOG_NO("Unassigning due to dep'%s'",si->name.c_str());
 			sidep_unassign_dependent(cb, si);
 		}
 		else  
@@ -700,7 +700,7 @@ bool avd_sidep_all_sponsors_active(AVD_SI *si)
 	bool spons_state = true;
 	AVD_SPONS_SI_NODE *spons_si_node = nullptr;
 
-	TRACE_ENTER2("'%s'", si->name.value);
+	TRACE_ENTER2("'%s'", si->name.c_str());
 
 	for (spons_si_node = si->spons_si_list; spons_si_node != nullptr;
 			spons_si_node = spons_si_node->next) {
@@ -728,7 +728,7 @@ bool avd_sidep_all_sponsors_active(AVD_SI *si)
  **************************************************************************/
 void avd_sidep_update_si_dep_state_for_all_sis(AVD_SG *sg)
 {
-	TRACE_ENTER2("'%s'", sg->name.value);
+	TRACE_ENTER2("'%s'", sg->name.c_str());
 
 	for (const auto& si : sg->list_of_si) {
 
@@ -758,7 +758,7 @@ void avd_sidep_update_si_dep_state_for_all_sis(AVD_SG *sg)
  **************************************************************************/
 void sidep_si_screen_si_dependencies(AVD_SI *si)
 {
-	TRACE_ENTER2("%s", si->name.value);
+	TRACE_ENTER2("%s", si->name.c_str());
 
 	/*update the si_dep_state of si based on assignement states of its sponsors*/	
 	sidep_update_si_self_dep_state(si);
@@ -794,7 +794,7 @@ void avd_sidep_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	osafassert(evt->rcv_evt == AVD_EVT_ASSIGN_SI_DEP_STATE);
 
-	dep_si = avd_si_get(&evt->info.tmr.dep_si_name);
+	dep_si = avd_si_get(evt->info.tmr.dep_si_name);
 	if (dep_si == nullptr)
 		goto done;
 
@@ -802,7 +802,7 @@ void avd_sidep_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	   stable, based on updated si_dep_state action is taken.
 	 */
 	if (dep_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) { 
-		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.value);
+		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.c_str());
 		goto done;
 	}
 
@@ -857,7 +857,7 @@ void sidep_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	TRACE_ENTER();
 
-	si = avd_si_get(&evt->info.tmr.dep_si_name);
+	si = avd_si_get(evt->info.tmr.dep_si_name);
 
 	if (!si) {
 		LOG_ER("Received si nullptr");
@@ -865,7 +865,7 @@ void sidep_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if (si->si_dep_state != AVD_SI_UNASSIGNING_DUE_TO_DEP) {
-		LOG_ER("wrong si_dep_state:%u of si:'%s'", si->si_dep_state, si->name.value);
+		LOG_ER("wrong si_dep_state:%u of si:'%s'", si->si_dep_state, si->name.c_str());
 		goto done;
 	}
 
@@ -887,7 +887,7 @@ void sidep_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if (sidep_unassign_dependent(cb, si) != NCSCC_RC_SUCCESS) {
-		LOG_ER("'%s' unassignment failed",si->name.value);
+		LOG_ER("'%s' unassignment failed",si->name.c_str());
 	}
 
 done:
@@ -914,9 +914,9 @@ void sidep_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si,
 {
 	AVD_SI *spons_si = nullptr;
 
-	TRACE_ENTER2("si:'%s', si_dep_state:'%s'",dep_si->name.value,depstatename[dep_si->si_dep_state]);
+	TRACE_ENTER2("si:'%s', si_dep_state:'%s'",dep_si->name.c_str(),depstatename[dep_si->si_dep_state]);
 
-	spons_si = avd_si_get(&si_dep_rec->spons_name);
+	spons_si = avd_si_get(si_dep_rec->spons_name);
 	osafassert(spons_si != nullptr);
 
 	/* Take action only when both sponsor and dependent belongs to same sg 
@@ -925,7 +925,7 @@ void sidep_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si,
 	 */
 	if ((dep_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) && 
 		(dep_si->sg_of_si != spons_si->sg_of_si)) {
-		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.value);
+		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.c_str());
 		goto done;
 	}
 
@@ -938,7 +938,7 @@ void sidep_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si,
 			 */
 			dep_si->tol_timer_count++;
 			LOG_NO("Tolerance timer started, sponsor si:'%s', dependent si:%s", 
-					spons_si->name.value, dep_si->name.value);
+					spons_si->name.c_str(), dep_si->name.c_str());
 		}
 		avd_sidep_si_dep_state_set(dep_si, AVD_SI_TOL_TIMER_RUNNING);
 	} else if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
@@ -981,7 +981,7 @@ void sidep_take_action_on_dependents(AVD_SI *si)
 		if (sidep->spons_si != si)
 			continue;
 
-		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+		AVD_SI *dep_si = avd_si_get(sidep->dep_name);
 		osafassert(dep_si != nullptr);
 
 		/* Take action only when both sponsor and dependent belongs to same sg 
@@ -1024,7 +1024,7 @@ AVD_SI_DEP *get_sidep_with_same_dep(AVD_SI_DEP *sidep)
 		AVD_SI_DEP *tmp_sidep = it->second;
 		if (sidep == tmp_sidep)
 			continue;
-		if (m_CMP_HORDER_SANAMET(tmp_sidep->dep_name, sidep->dep_name) == 0)
+		if (tmp_sidep->dep_name.compare(sidep->dep_name) == 0)
 			return tmp_sidep;
 	}
 	return nullptr;
@@ -1055,7 +1055,7 @@ uint32_t sidep_cyclic_dep_find(AVD_SI_DEP *sidep)
 
 	TRACE_ENTER();
 
-	if (m_CMP_HORDER_SANAMET(sidep->spons_name, sidep->dep_name) == 0) {
+	if (sidep->spons_name.compare(sidep->dep_name) == 0) {
 		/* dependent SI and Sponsor SI can not be same 
 		   Cyclic dependency found return sucess
 		 */
@@ -1067,19 +1067,19 @@ uint32_t sidep_cyclic_dep_find(AVD_SI_DEP *sidep)
 	start->si_name = sidep->spons_name;
 	start->next = nullptr;
 	last = start;
-	LOG_NO("got si :%s",start->si_name.value);
+	LOG_NO("got si :%s",start->si_name.c_str());
 	
 
 	while (last) {
 		for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 				it != sidep_db->end(); it++) {
 			tmp_sidep = it->second;
-			if (m_CMP_HORDER_SANAMET(tmp_sidep->dep_name, last->si_name) == 0)
+			if (tmp_sidep->dep_name.compare(last->si_name) == 0)
 				break;
 		}
 
-		while ((tmp_sidep != nullptr) && (m_CMP_HORDER_SANAMET(tmp_sidep->dep_name, last->si_name) == 0)) { 
-			if (m_CMP_HORDER_SANAMET(sidep->dep_name, tmp_sidep->spons_name) == 0) {
+		while ((tmp_sidep != nullptr) && (tmp_sidep->dep_name.compare(last->si_name) == 0)) { 
+			if (sidep->dep_name.compare(tmp_sidep->spons_name) == 0) {
 				/* Cyclic dependency found */
 				rc = NCSCC_RC_SUCCESS;
 				break;
@@ -1087,9 +1087,9 @@ uint32_t sidep_cyclic_dep_find(AVD_SI_DEP *sidep)
 
 			/* Search if this SI name already exist in the list */
 			temp = start;
-			if (m_CMP_HORDER_SANAMET(temp->si_name, tmp_sidep->spons_name) != 0) {
+			if (temp->si_name.compare(tmp_sidep->spons_name) != 0) {
 				while ((temp->next != nullptr) &&
-						(m_CMP_HORDER_SANAMET(temp->next->si_name, tmp_sidep->spons_name) != 0)) {
+						(temp->next->si_name.compare(tmp_sidep->spons_name) != 0)) {
 					temp = temp->next;
 				}
 
@@ -1123,57 +1123,19 @@ done:
 	return rc;
 }
 
-static int avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_DEP *sidep_obj)
+static int avd_sidep_indx_init(const std::string& sidep_name, AVD_SI_DEP *sidep_obj)
 {
-        char *p;
-        SaNameT tmp;
-        int i = 0;
+	get_child_dn_from_ass_dn(sidep_name, sidep_obj->spons_name);
+	get_parent_dn_from_ass_dn(sidep_name, sidep_obj->dep_name);
 
-        memset(&tmp, 0, sizeof(SaNameT));
-        tmp.length = sidep_name->length;
-        memcpy(&tmp.value, &sidep_name->value, tmp.length);
-
-        memset(sidep_obj, 0, sizeof(AVD_SI_DEP));
-	memcpy(sidep_obj->name.value, &sidep_name->value, sidep_name->length);
-
-        /* find first occurence and step past it */
-        p = strstr((char *)tmp.value, "safSi=") + 1;
-        if (p == nullptr) return false;
-
-        /* find second occurence, an error if not found */
-        p = strstr(p, "safSi=");
-        if (p == nullptr) return false;
-
-        *(p - 1) = '\0';        /* null terminate at comma before SI */
-
-	sidep_obj->dep_name.length = snprintf((char *)sidep_obj->dep_name.value, SA_MAX_NAME_LENGTH, "%s", p);
-
-        /* Skip past the RDN tag */
-        p = strchr((char *)tmp.value, '=') + 1;
-        if (p == nullptr) return false;
-
-        /*
-         ** Example DN, need to copy to get rid of back slash escaped commas.
-         ** 'safDepend=safSi=SC2-NoRed\,safApp=OpenSAF,safSi=SC-2N,safApp=OpenSAF'
-         */
-
-        /* Copy the RDN value which is a DN with escaped commas */
-	i = 0;
-        while (*p) {
-                if (*p != '\\')
-                        sidep_obj->spons_name.value[i++] = *p;
-                p++;
-        }
-	sidep_obj->spons_name.length = strlen((char *)sidep_obj->spons_name.value);
-	
 	/* Set SI pointers */
-        sidep_obj->spons_si =  si_db->find(Amf::to_string(&sidep_obj->spons_name));
-        sidep_obj->dep_si =  si_db->find(Amf::to_string(&sidep_obj->dep_name));
+        sidep_obj->spons_si =  si_db->find(sidep_obj->spons_name);
+        sidep_obj->dep_si =  si_db->find(sidep_obj->dep_name);
 
         return true;
 }
 
-static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opdata)
+static uint32_t is_config_valid(const std::string& sidep_name, CcbUtilOperationData_t *opdata)
 {
 	AVD_SI_DEP sidep;
 	AVD_SI *spons_si, *dep_si;
@@ -1186,23 +1148,26 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 	
 	if( !avd_sidep_indx_init(sidep_name, &sidep)) {
 		report_ccb_validation_error(opdata, "SI dep validation: Bad DN for SI Dependency");
-		goto done;
+		return false;
 	}
+	
+	const SaNameTWrapper sponsor(sidep.spons_name);
+	const SaNameTWrapper dependent(sidep.dep_name);
 
 	/* Sponsor SI need to exist */
-	if ((spons_si = avd_si_get(&sidep.spons_name)) == nullptr) {
+	if ((spons_si = avd_si_get(sidep.spons_name)) == nullptr) {
 		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in model and '%s'"
 					" depends on it",
-					sidep.spons_name.value, sidep.dep_name.value);
+					sidep.spons_name.c_str(), sidep.dep_name.c_str());
 			goto done;
 		}
 
 		/* SI does not exist in current model, check CCB */
-		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sidep.spons_name)) == nullptr) {
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, sponsor)) == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in existing model or"
 					" in CCB and '%s' depends on it",
-					 sidep.spons_name.value, sidep.dep_name.value);
+					 sidep.spons_name.c_str(), sidep.dep_name.c_str());
 			goto done;
 		}
 
@@ -1217,17 +1182,17 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 	if (spons_saAmfSIRank == 0)
 		spons_saAmfSIRank = ~0U; /* zero means lowest possible rank */
 
-	if ((dep_si = avd_si_get(&sidep.dep_name)) == nullptr) {
+	if ((dep_si = avd_si_get(sidep.dep_name)) == nullptr) {
 		if (opdata == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in model",
-					sidep.dep_name.value);
+					sidep.dep_name.c_str());
 			goto done;
 		}
 
 		/* SI does not exist in current model, check CCB */
-		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sidep.dep_name)) == nullptr) {
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, dependent)) == nullptr) {
 			report_ccb_validation_error(opdata, "SI dep validation: '%s' does not exist in existing"
-					" model or in CCB", sidep.dep_name.value);
+					" model or in CCB", sidep.dep_name.c_str());
 			goto done;
 		}
 
@@ -1245,7 +1210,7 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 	if ((opdata != nullptr) && dependent_si_is_assigned) {
 		report_ccb_validation_error(opdata, "SI dep validation: adding dependency from existing SI '%s'"
 				" to SI '%s' is not allowed",
-				sidep.spons_name.value, sidep.dep_name.value);
+				sidep.spons_name.c_str(), sidep.dep_name.c_str());
 		goto done;
 	}
 
@@ -1255,13 +1220,13 @@ static uint32_t is_config_valid(SaNameT *sidep_name, CcbUtilOperationData_t *opd
 	/* higher number => lower rank, see 3.8.1.1 */
 	if (spons_saAmfSIRank > dep_saAmfSIRank) {
 		report_ccb_validation_error(opdata, "SI dep validation: Sponsor SI '%s' has lower rank than"
-				" dependent SI '%s'", sidep.spons_name.value, sidep.dep_name.value);
+				" dependent SI '%s'", sidep.spons_name.c_str(), sidep.dep_name.c_str());
 		goto done;
 	}
 
 	if (sidep_cyclic_dep_find(&sidep) == NCSCC_RC_SUCCESS) {
 		/* Return value that record cannot be added due to cyclic dependency */
-		report_ccb_validation_error(opdata, "SI dep validation: cyclic dependency for '%s'", sidep.dep_name.value);
+		report_ccb_validation_error(opdata, "SI dep validation: cyclic dependency for '%s'", sidep.dep_name.c_str());
 		goto done;
 	}
 
@@ -1272,14 +1237,14 @@ done:
 	return rc;
 } 
  
-static AVD_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **attributes)
+static AVD_SI_DEP *sidep_new(const std::string& sidep_name, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_SI_DEP tmp_sidep, *sidep = nullptr;
 
-	TRACE_ENTER2("%s", sidep_name->value);
+	TRACE_ENTER2("%s", sidep_name.c_str());
 
 	avd_sidep_indx_init(sidep_name, &tmp_sidep);
-	if ((sidep = sidep_db_find(&tmp_sidep.spons_name,&tmp_sidep.dep_name)) != nullptr) {
+	if ((sidep = sidep_db_find(tmp_sidep.spons_name,tmp_sidep.dep_name)) != nullptr) {
 		TRACE("SI dependency already exists");
 	}
 
@@ -1287,7 +1252,7 @@ static AVD_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **att
 	avd_sidep_indx_init(sidep_name, sidep);
 	osafassert(sidep->dep_si != nullptr);
 	osafassert(sidep->spons_si != nullptr);
-	sidep_db->insert(make_pair(Amf::to_string(&sidep->spons_name), Amf::to_string(&sidep->dep_name)), sidep);
+	sidep_db->insert(make_pair(sidep->spons_name, sidep->dep_name), sidep);
 
         /* Allocate a new block structure for imm rec now */
 
@@ -1325,7 +1290,6 @@ SaAisErrorT avd_sidep_config_get(void)
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
 	SaNameT sidep_name;
-	SaNameT sidep_validate;
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfSIDependency";
 
@@ -1335,7 +1299,7 @@ SaAisErrorT avd_sidep_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_o2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 		nullptr, &searchHandle);
 
@@ -1345,13 +1309,12 @@ SaAisErrorT avd_sidep_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &sidep_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		/* validate the configuration before adding the object */
-		memcpy(&sidep_validate, &sidep_name, sizeof(SaNameT));
-		if (!is_config_valid(&sidep_name, nullptr)) {
+		const std::string sidep(Amf::to_string(&sidep_name));
+		if (!is_config_valid(sidep, nullptr)) {
 			error = SA_AIS_ERR_BAD_OPERATION;
 			goto done2;
 		}
-		if(sidep_new(&sidep_name, attributes) == nullptr) {
+		if(sidep_new(sidep, attributes) == nullptr) {
 			error = SA_AIS_ERR_BAD_OPERATION;
 			goto done2;
 		}
@@ -1369,19 +1332,19 @@ SaAisErrorT avd_sidep_config_get(void)
 static SaAisErrorT sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
+	AVD_SI_DEP sidep;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (!is_config_valid(&opdata->objectName, opdata))
+		if (!is_config_valid(Amf::to_string(&opdata->objectName), opdata))
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		break;
 	case CCBUTIL_DELETE:
 	case CCBUTIL_MODIFY:
-		AVD_SI_DEP sidep;
-		avd_sidep_indx_init(&opdata->objectName, &sidep);
-		if (sidep_db_find(&sidep.spons_name, &sidep.dep_name) == nullptr)
+		avd_sidep_indx_init(Amf::to_string(&opdata->objectName), &sidep);
+		if (sidep_db_find(sidep.spons_name, sidep.dep_name) == nullptr)
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		break;
 	default:
@@ -1400,17 +1363,17 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		sidep = sidep_new(&opdata->objectName, opdata->param.create.attrValues);
+		sidep = sidep_new(Amf::to_string(&opdata->objectName), opdata->param.create.attrValues);
 		break;
 
 	case CCBUTIL_DELETE:
-		avd_sidep_indx_init(&opdata->objectName, &tmp_sidep);
-		sidep = sidep_db_find(&tmp_sidep.spons_name, &tmp_sidep.dep_name);
-		dep_si = avd_si_get(&sidep->dep_name);
+		avd_sidep_indx_init(Amf::to_string(&opdata->objectName), &tmp_sidep);
+		sidep = sidep_db_find(tmp_sidep.spons_name, tmp_sidep.dep_name);
+		dep_si = avd_si_get(sidep->dep_name);
 		osafassert(dep_si != nullptr);
 		/* If SI is in tolerance timer running state because of this
 		 * SI-SI dep cfg, then stop the tolerance timer.
@@ -1423,7 +1386,7 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 				dep_si->tol_timer_count--;
 		}
 		sidep_spons_list_del(sidep);
-		sidep_db->erase(make_pair(Amf::to_string(&sidep->spons_name), Amf::to_string(&sidep->dep_name)));
+		sidep_db->erase(make_pair(sidep->spons_name, sidep->dep_name));
 		delete sidep;
 		if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE)  {
 			/* Update the SI according to its existing sponsors state */
@@ -1433,8 +1396,8 @@ static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		break;
 
 	case CCBUTIL_MODIFY:
-		avd_sidep_indx_init(&opdata->objectName, &tmp_sidep);
-		sidep = sidep_db_find(&tmp_sidep.spons_name, &tmp_sidep.dep_name);
+		avd_sidep_indx_init(Amf::to_string(&opdata->objectName), &tmp_sidep);
+		sidep = sidep_db_find(tmp_sidep.spons_name, tmp_sidep.dep_name);
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			if (!strcmp(attr_mod->modAttr.attrName, "saAmfToleranceTime")) {
 				TRACE("saAmfToleranceTime modified from '%llu' to '%llu'", sidep->saAmfToleranceTime,
@@ -1463,9 +1426,9 @@ void avd_sidep_start_tolerance_timer_for_dependant(AVD_SI *dep_si, AVD_SI *spons
 {
 	AVD_SI_DEP *si_dep_rec;
 
-	TRACE("dep_si:%s spons_si:%s",dep_si->name.value,spons_si->name.value);
+	TRACE("dep_si:%s spons_si:%s",dep_si->name.c_str(),spons_si->name.c_str());
 
-	si_dep_rec = sidep_db_find(&spons_si->name, &dep_si->name);
+	si_dep_rec = sidep_db_find(spons_si->name, dep_si->name);
 	if (si_dep_rec != nullptr) {
 		sidep_update_si_dep_state_for_spons_unassign(avd_cb, dep_si, si_dep_rec);
 	} else {
@@ -1500,15 +1463,15 @@ void avd_sidep_unassign_dependents(AVD_SI *si, AVD_SU *su)
 	AVD_SI *dep_si;
 	AVD_SU_SI_REL *sisu;
 
-	TRACE_ENTER2(": '%s'",si->name.value);
+	TRACE_ENTER2(": '%s'",si->name.c_str());
 
 	for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 			it != sidep_db->end(); it++) {
 		const AVD_SI_DEP *sidep = it->second;
-		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, si->name) != 0)
+		if (sidep->spons_si->name.compare(si->name) != 0)
 			continue;
 
-		dep_si = si_db->find(Amf::to_string(&sidep->dep_name));
+		dep_si = si_db->find(sidep->dep_name);
 		osafassert(dep_si != nullptr); 
 
 		/* Get the Active susi */
@@ -1606,7 +1569,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 	bool assignmemt_status = false;
 	bool valid_standby = false;
 
-	TRACE_ENTER2("SI: '%s', SU %s",si->name.value, su->name.value);
+	TRACE_ENTER2("SI: '%s', SU %s",si->name.c_str(), su->name.c_str());
 
 	/* Role fail-over triggered because of node going down or role switch-over because 
 	   of node lock.*/
@@ -1696,7 +1659,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 			failover_possible = false;
 			valid_standby = false;
 			for (sisu = spons_si_node->si->list_of_sisu;sisu;sisu = sisu->si_next) {
-				TRACE("sisu->si:%s state:%u fsm:%u",sisu->si->name.value,sisu->state,sisu->fsm);
+				TRACE("sisu->si:%s state:%u fsm:%u",sisu->si->name.c_str(),sisu->state,sisu->fsm);
 				if (((sisu->state == SA_AMF_HA_ACTIVE) || (sisu->state == SA_AMF_HA_QUIESCING)) &&
 					(sisu->fsm != AVD_SU_SI_STATE_UNASGN)) {
 					failover_possible = true;
@@ -1704,7 +1667,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 						sponsor_in_modify_state = true;
 					if ((sisu->su == su) && (sisu->fsm == AVD_SU_SI_STATE_ASGND)) {
 						sponsor_in_modify_state = true;
-						TRACE("Sponsor '%s' active in same SU",sisu->si->name.value);
+						TRACE("Sponsor '%s' active in same SU",sisu->si->name.c_str());
 					}
 					break;
 				} else if ((sisu->state == SA_AMF_HA_QUIESCED) &&
@@ -1714,7 +1677,7 @@ bool avd_sidep_is_si_failover_possible(AVD_SI *si, AVD_SU *su)
 					   any other SU, it means failover of sponsor is still pending.
 					 */
 					sponsor_in_modify_state = true;
-					TRACE("Sponsor '%s' quiescd assigned in same SU",sisu->si->name.value);
+					TRACE("Sponsor '%s' quiescd assigned in same SU",sisu->si->name.c_str());
 
 				} else if ((spons_si_node->si->sg_of_si == si->sg_of_si) && (sisu->su != su) &&
 					(!valid_standby)) {
@@ -1763,11 +1726,11 @@ bool avd_sidep_is_su_failover_possible(AVD_SU *su)
 	AVD_SU_SI_REL *susi;
 	bool flag = true;
 
-	TRACE_ENTER2("SU:'%s' node_state:%d",su->name.value,su->su_on_node->node_state);
+	TRACE_ENTER2("SU:'%s' node_state:%d",su->name.c_str(),su->su_on_node->node_state);
 
 	for (susi = su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 		if (susi->si->spons_si_list) {
-			TRACE(":susi:%s si_dep_state:%u state:%u fsm:%u",susi->si->name.value,susi->si->si_dep_state, susi->state,susi->fsm);
+			TRACE(":susi:%s si_dep_state:%u state:%u fsm:%u",susi->si->name.c_str(),susi->si->si_dep_state, susi->state,susi->fsm);
 			if (susi->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
 				TRACE("Role failover is deferred as sponsors role failover is under going");
 				flag = false;
@@ -1829,19 +1792,19 @@ void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 {
 	AVD_SPONS_SI_NODE *spons_si_node;
 
-	TRACE_ENTER2("si:%s",si->name.value);
+	TRACE_ENTER2("si:%s",si->name.c_str());
 
 	for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 			it != sidep_db->end(); it++) {
 		const AVD_SI_DEP *sidep = it->second;
-		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, si->name) != 0) 
+		if (sidep->spons_si->name.compare(si->name) != 0) 
 			continue;
 
-		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+		AVD_SI *dep_si = avd_si_get(sidep->dep_name);
 		osafassert(dep_si != nullptr); 
 
 		for (AVD_SU_SI_REL *sisu = dep_si->list_of_sisu;sisu;sisu = sisu->si_next) {
-			TRACE("sisu si:%s su:%s state:%d fsm_state:%d",sisu->si->name.value,sisu->su->name.value,sisu->state,sisu->fsm);
+			TRACE("sisu si:%s su:%s state:%d fsm_state:%d",sisu->si->name.c_str(),sisu->su->name.c_str(),sisu->state,sisu->fsm);
 			if (((sisu->state == SA_AMF_HA_ACTIVE) || (sisu->state == SA_AMF_HA_QUIESCING)
 						|| (sisu->state == SA_AMF_HA_QUIESCED))
 					&& (sisu->fsm != AVD_SU_SI_STATE_UNASGN)) {
@@ -1883,7 +1846,7 @@ void avd_sidep_update_depstate_si_failover(AVD_SI *si, AVD_SU *su)
 							if (spons_si_node->si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
 								continue;
 							for (sisu = spons_si_node->si->list_of_sisu;sisu;sisu = sisu->si_next) {
-								TRACE("sisu->si:%s state:%u fsm:%u",sisu->si->name.value,sisu->state,sisu->fsm);
+								TRACE("sisu->si:%s state:%u fsm:%u",sisu->si->name.c_str(),sisu->state,sisu->fsm);
 								if (((sisu->state == SA_AMF_HA_ACTIVE) || (sisu->state == SA_AMF_HA_QUIESCING) ||
 										(sisu->state == SA_AMF_HA_QUIESCED)) &&
 										(sisu->fsm != AVD_SU_SI_STATE_UNASGN)){
@@ -1927,7 +1890,7 @@ void avd_sidep_update_depstate_su_rolefailover(AVD_SU *su)
 {
 	AVD_SU_SI_REL *susi;
 
-	TRACE_ENTER2(" for su '%s'", su->name.value);
+	TRACE_ENTER2(" for su '%s'", su->name.c_str());
 
 	for (susi = su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 		if (susi->si->num_dependents > 0) {
@@ -1952,7 +1915,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 	AVD_SU_SI_REL *susi, *std_susi = nullptr;
 	uint32_t curr_pref_active_sus = 0;
 
-	TRACE_ENTER2(" for SI '%s'", si->name.value);
+	TRACE_ENTER2(" for SI '%s'", si->name.c_str());
 
 	switch (si->sg_of_si->sg_redundancy_model) {
 	case SA_AMF_2N_REDUNDANCY_MODEL:
@@ -1967,7 +1930,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 				for (susi = stdby_su->list_of_susi;susi != nullptr;susi = susi->su_next) {
 					if (actv_su && avd_susi_role_failover(susi, actv_su) == NCSCC_RC_FAILURE) {
 						LOG_NO(" %s: %u: Active role modification failed for  %s ",
-								__FILE__, __LINE__, susi->su->name.value);
+								__FILE__, __LINE__, susi->su->name.c_str());
 						goto done;
 					}
 				}
@@ -2029,7 +1992,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 				/* Send a D2N-INFO_SU_SI_ASSIGN with remove all to the standby SU */
 				if (avd_sg_su_si_del_snd(avd_cb, stdby_su) == NCSCC_RC_FAILURE) {
 					LOG_ER("SU del failed :%s :%u :%s", __FILE__, __LINE__,
-							stdby_su->name.value);
+							stdby_su->name.c_str());
 					goto done;
 				}
 			} else {
@@ -2088,16 +2051,16 @@ done:
  **/
 void avd_sidep_reset_dependents_depstate_in_sufault(AVD_SI *si)
 {
-	TRACE_ENTER2(" SI: '%s'",si->name.value);
+	TRACE_ENTER2(" SI: '%s'",si->name.c_str());
 
 	for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 			it != sidep_db->end(); it++) {
 		const AVD_SI_DEP *sidep = it->second;
 
-		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, si->name) != 0) 
+		if (sidep->spons_si->name.compare(si->name) != 0) 
 			continue;
 
-		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+		AVD_SI *dep_si = avd_si_get(sidep->dep_name);
 		osafassert(dep_si != nullptr); 
 
 		if (dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS)
@@ -2151,7 +2114,7 @@ void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 	AVD_SU_SI_REL *sisu;
 	AVD_SU *active_su  = nullptr;
 
-	TRACE_ENTER2(": '%s'",si->name.value);
+	TRACE_ENTER2(": '%s'",si->name.c_str());
 
 	/* determine the active su */
 	for (sisu = si->list_of_sisu;sisu != nullptr;sisu = sisu->si_next) {
@@ -2165,13 +2128,13 @@ void avd_sidep_send_active_to_dependents(const AVD_SI *si)
 	for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 			it != sidep_db->end(); it++) {
 		const AVD_SI_DEP *sidep = it->second;
-		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, si->name) != 0) 
+		if (sidep->spons_si->name.compare(si->name) != 0) 
 			continue;
 
-		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+		AVD_SI *dep_si = avd_si_get(sidep->dep_name);
 		osafassert(dep_si != nullptr); 
 
-		TRACE("dependent si:%s dep_si->si_dep_state:%d",dep_si->name.value,dep_si->si_dep_state);
+		TRACE("dependent si:%s dep_si->si_dep_state:%d",dep_si->name.c_str(),dep_si->si_dep_state);
 		if(dep_si->si_dep_state == AVD_SI_FAILOVER_UNDER_PROGRESS) {
 			if (!avd_sidep_all_sponsors_active(dep_si)) 
 				/* Some of the sponsors are not yet in Active state */
@@ -2224,15 +2187,15 @@ bool avd_sidep_quiesced_done_for_all_dependents(const AVD_SI *si, const AVD_SU *
 {
 	bool quiesced = true; 
 
-	TRACE_ENTER2(": '%s'",si->name.value);
+	TRACE_ENTER2(": '%s'",si->name.c_str());
 
 	for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 			it != sidep_db->end(); it++) {
 		const AVD_SI_DEP *sidep = it->second;
-		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, si->name) != 0) 
+		if (sidep->spons_si->name.compare(si->name) != 0) 
 			continue;
 
-		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+		AVD_SI *dep_si = avd_si_get(sidep->dep_name);
 		osafassert(dep_si != nullptr); 
 
 		for (AVD_SU_SI_REL *sisu = dep_si->list_of_sisu; sisu ; sisu = sisu->si_next) {
@@ -2264,7 +2227,7 @@ bool avd_sidep_sponsors_assignment_states(AVD_SI *si)
 	bool all_assigned_active = true;
 	AVD_SPONS_SI_NODE *spons_si;
 
-	TRACE_ENTER2("SI:%s",si->name.value);
+	TRACE_ENTER2("SI:%s",si->name.c_str());
 
 	if (si->spons_si_list == nullptr) {
 		goto done;
@@ -2300,15 +2263,15 @@ void sidep_update_dependents_states(AVD_SI *si)
 	/* Update the si_dep_state for all dependents  
 	 * SIs of the sponsor SI.
 	 */
-	TRACE("sponsor si:'%s', dep state:'%s'", si->name.value, depstatename[si->si_dep_state]);
+	TRACE("sponsor si:'%s', dep state:'%s'", si->name.c_str(), depstatename[si->si_dep_state]);
 
 	for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
 			it != sidep_db->end(); it++) {
 		const AVD_SI_DEP *sidep = it->second;
-		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, si->name) != 0) 
+		if (sidep->spons_si->name.compare(si->name) != 0) 
 			continue;
 
-		AVD_SI *dep_si = avd_si_get(&sidep->dep_name);
+		AVD_SI *dep_si = avd_si_get(sidep->dep_name);
 		osafassert(dep_si != nullptr); 
 
 		/* update si_dep_state of dependent if its SG fsm is 
@@ -2334,7 +2297,7 @@ void sidep_update_si_self_dep_state(AVD_SI *si)
 {
 	bool all_sponsors_assgnd = false;	
 
-	TRACE_ENTER2("sponsor si:'%s'", si->name.value);
+	TRACE_ENTER2("sponsor si:'%s'", si->name.c_str());
 
 	/*Any dependent SI is never expcted in this state when screening is going on.
 	In such situation do not update si_dep_state. It will be taken care during failover*/
@@ -2403,7 +2366,7 @@ done:
  **/
 void sidep_si_take_action(AVD_SI *si)
 {
-	TRACE_ENTER2("si:'%s', si_dep_state:'%s'",si->name.value, depstatename[si->si_dep_state]);
+	TRACE_ENTER2("si:'%s', si_dep_state:'%s'",si->name.c_str(), depstatename[si->si_dep_state]);
 	
 	switch (si->si_dep_state) {
 		case AVD_SI_ASSIGNED:
@@ -2480,7 +2443,7 @@ void sidep_si_take_action(AVD_SI *si)
  **/
 void avd_sidep_sg_take_action(AVD_SG *sg)
 {
-	TRACE_ENTER2("'%s'", sg->name.value);
+	TRACE_ENTER2("'%s'", sg->name.c_str());
 
 	for (const auto& si : sg->list_of_si) {
 		if ((si->spons_si_list != nullptr) || (si->num_dependents > 0)) 
@@ -2506,14 +2469,14 @@ void sidep_process_ready_to_unassign_depstate(AVD_SI *dep_si)
 	AVD_SPONS_SI_NODE *temp_spons_list = nullptr;
 	bool all_spon_assigned = true;
 
-	TRACE_ENTER2("dep si:'%s'", dep_si->name.value);
+	TRACE_ENTER2("dep si:'%s'", dep_si->name.c_str());
 
 	for (temp_spons_list = dep_si->spons_si_list; temp_spons_list != nullptr;
 			temp_spons_list = temp_spons_list->next) {
 		spons_si = temp_spons_list->si;
-		TRACE("spons si:'%s'",spons_si->name.value);
+		TRACE("spons si:'%s'",spons_si->name.c_str());
 
-		si_dep_rec = sidep_db_find(&spons_si->name, &dep_si->name);
+		si_dep_rec = sidep_db_find(spons_si->name, dep_si->name);
 		if (si_dep_rec == nullptr)
 			goto done;
 
@@ -2554,12 +2517,12 @@ done:
  * @param [in] @spons_si_name: Name of sponsor si
  * @param [out] @depsi_list: list of dependent si
  */
-void get_dependent_si_list(const SaNameT &spons_si_name, std::list<AVD_SI*>& depsi_list)
+void get_dependent_si_list(const std::string& spons_si_name, std::list<AVD_SI*>& depsi_list)
 {
 	std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it;
 	for (it = sidep_db->begin(); it != sidep_db->end(); it++) {
 		const AVD_SI_DEP *sidep = it->second;
-		if (m_CMP_HORDER_SANAMET(sidep->spons_si->name, spons_si_name) != 0)
+		if (sidep->spons_si->name.compare(spons_si_name) != 0)
 			continue;
 		depsi_list.push_back(sidep->dep_si);
 	}
@@ -2588,7 +2551,7 @@ void avd_sidep_unassign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	osafassert(evt->rcv_evt == AVD_EVT_UNASSIGN_SI_DEP_STATE);
 
-	dep_si = avd_si_get(&evt->info.tmr.dep_si_name);
+	dep_si = avd_si_get(evt->info.tmr.dep_si_name);
 	osafassert(dep_si != nullptr); 
 
 	avd_sidep_si_dep_state_set(dep_si, AVD_SI_UNASSIGNING_DUE_TO_DEP);
@@ -2597,12 +2560,12 @@ void avd_sidep_unassign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	   stable, based on updated si_dep_state action is taken.
 	 */
 	if (dep_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) { 
-		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.value);
+		TRACE("sg unstable, so defering sidep action on si:'%s'",dep_si->name.c_str());
 		goto done;
 	}
 
 	/* Process UNASSIGN evt */
-	LOG_NO("Unassigning due to dep'%s'",dep_si->name.value);
+	LOG_NO("Unassigning due to dep'%s'",dep_si->name.c_str());
 	sidep_si_dep_start_unassign(cb, evt);
 
 done:
