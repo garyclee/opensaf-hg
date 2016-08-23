@@ -870,19 +870,24 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 	bool locked = false;
 	SaTimeT time_out=0;
 	CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
+	SaConstStringT ckpt_name = NULL;
 	
 	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
-	if ((checkpointName == NULL) || (checkpointHandle == NULL) || (checkpointName->length == 0)) {
+	if ((checkpointName == NULL) || (checkpointHandle == NULL) || (osaf_extended_name_length(checkpointName) == 0)) {
 		TRACE_4("Cpa CkptOpen Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
-		TRACE_LEAVE2("API return code = %u", rc);
+		TRACE_LEAVE2("API return code = %u", SA_AIS_ERR_INVALID_PARAM);
 		return SA_AIS_ERR_INVALID_PARAM;
+	} else if (osaf_extended_name_length(checkpointName) > kOsafMaxDnLength) {
+		TRACE_4("Cpa CkptOpen Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_TOO_BIG, ckptHandle);
+		TRACE_LEAVE2("API return code = %u", SA_AIS_ERR_TOO_BIG);
+		return SA_AIS_ERR_TOO_BIG;
 	}
 
-	m_CPSV_SET_SANAMET(checkpointName);
+	ckpt_name = osaf_extended_name_borrow(checkpointName);
 
 	/* SA_AIS_ERR_INVALID_PARAM, bullet 4 in SAI-AIS-CKPT-B.02.02 
            Section 3.6.1 saCkptCheckpointOpen() and saCkptCheckpointOpenAsync(), Return Values */
-        if (strncmp((const char *)checkpointName->value, "safCkpt=", 8) != 0) {
+        if (strncmp(ckpt_name, "safCkpt=", 8) != 0) {
                 TRACE_4("Cpa CkptOpen:DN failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
 		TRACE_LEAVE2("API return code = %u", rc);
                 return SA_AIS_ERR_INVALID_PARAM;
@@ -901,7 +906,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 
 	
 	/* Draft Validations */
-	rc = cpa_open_attr_validate(checkpointCreationAttributes, checkpointOpenFlags, checkpointName);
+	rc = cpa_open_attr_validate(checkpointCreationAttributes, checkpointOpenFlags);
 	if (rc != SA_AIS_OK) {
 		/* No need to log, already logged inside the cpa_open_attr_validate */
 		goto done;
@@ -957,7 +962,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 	lc_node->cl_hdl = ckptHandle;
 	lc_node->open_flags = checkpointOpenFlags;
 
-	lc_node->ckpt_name = *checkpointName;
+	lc_node->ckpt_name = strdup(ckpt_name);
 
 	/* Add CPA_LOCAL_CKPT_NODE to lcl_ckpt_hdl_tree */
 	proc_rc = cpa_lcl_ckpt_node_add(&cb->lcl_ckpt_tree, lc_node);
@@ -976,7 +981,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 	evt.info.cpnd.info.openReq.client_hdl = ckptHandle;
 	evt.info.cpnd.info.openReq.lcl_ckpt_hdl = lc_node->lcl_ckpt_hdl;
 
-	evt.info.cpnd.info.openReq.ckpt_name = *checkpointName;
+	osaf_extended_name_lend(ckpt_name, &evt.info.cpnd.info.openReq.ckpt_name);
 
 	if (checkpointCreationAttributes) {
 		evt.info.cpnd.info.openReq.ckpt_attrib = *checkpointCreationAttributes;
@@ -1120,6 +1125,7 @@ gl_node_add_fail:
 
  lc_node_add_fail:
 	if (lc_node != NULL) {
+		free((void *)lc_node->ckpt_name);
 		m_MMGR_FREE_CPA_LOCAL_CKPT_NODE(lc_node);
 	}
 
@@ -1171,28 +1177,31 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 	CPA_LOCAL_CKPT_NODE *lc_node = NULL;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
+	SaConstStringT ckpt_name = NULL;
 	
 	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
 	
 	if (checkpointName == NULL) {
 		TRACE_4("cpa CkptOpenAsync Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
-		TRACE_LEAVE2("API return code = %u", rc);
+		TRACE_LEAVE2("API return code = %u", SA_AIS_ERR_INVALID_PARAM);
 		return SA_AIS_ERR_INVALID_PARAM;
+	} else if (osaf_extended_name_length(checkpointName) > kOsafMaxDnLength) {
+		TRACE_4("Cpa CkptOpenAsync Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_TOO_BIG, ckptHandle);
+		TRACE_LEAVE2("API return code = %u", SA_AIS_ERR_TOO_BIG);
+		return SA_AIS_ERR_TOO_BIG;
 	}
 
-	/* Draft Validations */
-
-	m_CPSV_SET_SANAMET(checkpointName);
+	ckpt_name = osaf_extended_name_borrow(checkpointName);
 
 	/* SA_AIS_ERR_INVALID_PARAM, bullet 4 in SAI-AIS-CKPT-B.02.02 
            Section 3.6.1 saCkptCheckpointOpen() and saCkptCheckpointOpenAsync(), Return Values */
-        if (strncmp((const char *)checkpointName->value, "safCkpt=", 8) != 0) {
+        if (strncmp(ckpt_name, "safCkpt=", 8) != 0) {
                 TRACE_4("cpa CkptOpen:DN Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_INVALID_PARAM, ckptHandle);
 		TRACE_LEAVE2("API return code = %u", rc);
                 return SA_AIS_ERR_INVALID_PARAM;
         }
 
-	rc = cpa_open_attr_validate(checkpointCreationAttributes, checkpointOpenFlags, checkpointName);
+	rc = cpa_open_attr_validate(checkpointCreationAttributes, checkpointOpenFlags);
 	if (rc != SA_AIS_OK) {
 		/* No need to log, it is already logged inside */
 		goto done;
@@ -1253,7 +1262,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 	lc_node->lcl_ckpt_hdl = NCS_PTR_TO_UNS64_CAST(lc_node);
 	lc_node->cl_hdl = ckptHandle;
 	lc_node->open_flags = checkpointOpenFlags;
-	lc_node->ckpt_name = *checkpointName;
+	lc_node->ckpt_name = strdup(ckpt_name);
 
 	/* Add CPA_LOCAL_CKPT_NODE to lcl_ckpt_hdl_tree */
 	proc_rc = cpa_lcl_ckpt_node_add(&cb->lcl_ckpt_tree, lc_node);
@@ -1272,7 +1281,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 	evt.info.cpnd.info.openReq.client_hdl = ckptHandle;
 	evt.info.cpnd.info.openReq.lcl_ckpt_hdl = lc_node->lcl_ckpt_hdl;
 
-	evt.info.cpnd.info.openReq.ckpt_name = *checkpointName;
+	osaf_extended_name_lend(ckpt_name, &evt.info.cpnd.info.openReq.ckpt_name);
 
 	if (checkpointCreationAttributes) {
 		evt.info.cpnd.info.openReq.ckpt_attrib = *checkpointCreationAttributes;
@@ -1357,6 +1366,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 
  lc_node_add_fail:
 	if (lc_node != NULL) {
+		free((void *)lc_node->ckpt_name);
 		m_MMGR_FREE_CPA_LOCAL_CKPT_NODE(lc_node);
 	}
 
@@ -1575,17 +1585,22 @@ SaAisErrorT saCkptCheckpointUnlink(SaCkptHandleT ckptHandle, const SaNameT *chec
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	CPA_CLIENT_NODE *cl_node = NULL;
 	CPA_CB *cb = NULL;
+	SaConstStringT ckpt_name = NULL;
 
 	TRACE_ENTER2("SaCkptCheckpointHandleT passed is %llx",ckptHandle);
 	/* For unlink CPA will not perform any operation other than passing
 	   the request to CPND */
 	if (checkpointName == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
-		TRACE_4("Cpa CkptUnlink  api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
+		TRACE_4("Cpa CkptUnlink Api failed with return value:%d,ckptHandle:%llx", rc, ckptHandle);
 		return rc;
+	} else if (osaf_extended_name_length(checkpointName) > kOsafMaxDnLength) {
+		TRACE_4("Cpa CkptUnlink Api failed with return value:%d,ckptHandle:%llx", SA_AIS_ERR_TOO_BIG, ckptHandle);
+		TRACE_LEAVE2("API return code = %u", SA_AIS_ERR_TOO_BIG);
+		return SA_AIS_ERR_TOO_BIG;
 	}
 
-	m_CPSV_SET_SANAMET(checkpointName);
+	ckpt_name = osaf_extended_name_borrow(checkpointName);
 
 	/* retrieve CPA CB */
 	m_CPA_RETRIEVE_CB(cb);
@@ -1626,10 +1641,7 @@ SaAisErrorT saCkptCheckpointUnlink(SaCkptHandleT ckptHandle, const SaNameT *chec
 	evt.type = CPSV_EVT_TYPE_CPND;
 	evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_UNLINK;
 
-	/*  evt.info.cpnd.info.ulinkReq.ckpt_name.length = checkpointName->length;
-	   memcpy(evt.info.cpnd.info.ulinkReq.ckpt_name.value,checkpointName->value,checkpointName->length);   */
-
-	evt.info.cpnd.info.ulinkReq.ckpt_name = *checkpointName;
+	osaf_extended_name_lend(ckpt_name, &evt.info.cpnd.info.ulinkReq.ckpt_name);
 
 	/* IF CPND IS DOWN  */
 	if (false == cb->is_cpnd_up) {

@@ -267,6 +267,8 @@ uint32_t cpa_lcl_ckpt_node_delete(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node)
 			ncshm_destroy_hdl(NCS_SERVICE_ID_CPA, lc_node->async_req_tmr.uarg);
 		}
 
+		free((void *)lc_node->ckpt_name);
+
 		m_MMGR_FREE_CPA_LOCAL_CKPT_NODE(lc_node);
 	}
 

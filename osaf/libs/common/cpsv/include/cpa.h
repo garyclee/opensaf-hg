@@ -33,6 +33,7 @@
 #ifndef CPA_H
 #define CPA_H
 
+#include "osaf_extended_name.h"
 #include "cpsv.h"
 #include "cpa_dl_api.h"
 #include "cpsv_papi.h"
