@@ -843,12 +843,10 @@ uint32_t cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_nod
 	}
 
 	/* Free the Client Node */
-	if (cpnd_info_node) {
-		if (cpnd_info_node->cpnd_ret_timer.uarg)
-			ncshm_destroy_hdl(NCS_SERVICE_ID_CPD, cpnd_info_node->cpnd_ret_timer.uarg);
+	if (cpnd_info_node->cpnd_ret_timer.uarg)
+		ncshm_destroy_hdl(NCS_SERVICE_ID_CPD, cpnd_info_node->cpnd_ret_timer.uarg);
 
-		m_MMGR_FREE_CPD_CPND_INFO_NODE(cpnd_info_node);
-	}
+	m_MMGR_FREE_CPD_CPND_INFO_NODE(cpnd_info_node);
 
 	return rc;
 

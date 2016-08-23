@@ -42,7 +42,7 @@ void cpd_timer_expiry(NCSCONTEXT uarg)
 	CPSV_EVT *evt = NULL;
 	uint32_t cpd_hdl = m_CPD_GET_CB_HDL;
 
-	TRACE("cpd_timer_expiry(uarg=%p, type=%u)", uarg, tmr->type);
+	TRACE("cpd_timer_expiry(uarg=%p, type=%u)", uarg, tmr ? tmr->type : 0);
 
 	/* post a message to the corresponding component */
 	if ((cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, cpd_hdl)) == NULL)
