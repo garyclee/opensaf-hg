@@ -16,7 +16,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "db_template.h"
+#include "amf_db_template.h"
 
 class TEST_APP {
 };

@@ -39,12 +39,6 @@ class CkptEncDecTest : public ::testing::Test {
   virtual void TearDown() {
   }
 
-  const SaNameT* asSaNameT(const std::string& name) {
-    sa_name_t.length = name.size();
-    memcpy((char*)sa_name_t.value, name.c_str(), sa_name_t.length);
-    return &sa_name_t;
-  }
-
   bool isLittleEndian() const {
     union {
       int i;
@@ -58,7 +52,6 @@ class CkptEncDecTest : public ::testing::Test {
     }
   }
 
-  SaNameT sa_name_t {};
   NCS_MBCSV_CB_DEC dec {};
   NCS_MBCSV_CB_ENC enc {};
   NCS_UBAID uba {};
@@ -67,7 +60,7 @@ class CkptEncDecTest : public ::testing::Test {
 TEST_F(CkptEncDecTest, testEncDecAvdApp) {
   int rc = 0;
   std::string app_name {"AppName"};
-  AVD_APP app(asSaNameT(app_name));
+  AVD_APP app(app_name);
   app.saAmfApplicationAdminState = SA_AMF_ADMIN_LOCKED;
   app.saAmfApplicationCurrNumSGs = 0x44332211;
 
@@ -81,7 +74,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdApp) {
   enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_3;
 
   encode_app(&enc.io_uba, &app);
-
+ 
   // retrieve saAmfApplicationCurrNumSGs encoded from the USR buf
   int32_t size = enc.io_uba.ttl;
   char *tmpData = new char[size];
@@ -99,11 +92,10 @@ TEST_F(CkptEncDecTest, testEncDecAvdApp) {
   }
 
   delete [] tmpData;
-
-  memset(&app, '\0', sizeof(AVD_APP));
+ 
   decode_app(&enc.io_uba, &app);
 
-  ASSERT_EQ(Amf::to_string(&app.name), "AppName");
+  ASSERT_EQ(app.name, "AppName");
   ASSERT_EQ(app.saAmfApplicationAdminState, SA_AMF_ADMIN_LOCKED);
   ASSERT_EQ(app.saAmfApplicationCurrNumSGs, static_cast<uint32_t>(0x44332211));
 }
@@ -112,13 +104,13 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
   int rc = 0;
   std::string comp_name{"CompName"};
   std::string comp_proxy_name{"CompProxyName"};
-  AVD_COMP comp(asSaNameT(comp_name));
+  AVD_COMP comp(comp_name);
 
   comp.saAmfCompOperState = static_cast<SaAmfOperationalStateT>(0x44332211);
   comp.saAmfCompReadinessState = static_cast<SaAmfReadinessStateT>(0x55443322);
   comp.saAmfCompPresenceState = static_cast<SaAmfPresenceStateT>(0x66554433);
   comp.saAmfCompRestartCount = 0x77665544;
-  comp.saAmfCompCurrProxyName = *(asSaNameT(comp_proxy_name));
+  comp.saAmfCompCurrProxyName = comp_proxy_name;
 
   rc = ncs_enc_init_space(&enc.io_uba);
   ASSERT_TRUE(rc == NCSCC_RC_SUCCESS);
@@ -130,7 +122,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
   enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_3;
 
   encode_comp(&enc.io_uba, &comp);
-  
+ 
   // retrieve AVD_COMP encoded data from the USR buf
   int32_t size = enc.io_uba.ttl;
   char *tmpData = new char[size];
@@ -157,7 +149,6 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
 
   delete [] tmpData;
 
-  memset(&comp, '\0', sizeof (AVD_COMP));
   decode_comp(&enc.io_uba, &comp);
 
   ASSERT_EQ(Amf::to_string(&comp.comp_info.name), "CompName");
@@ -165,7 +156,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdComp) {
   ASSERT_EQ(comp.saAmfCompReadinessState, static_cast<SaAmfReadinessStateT>(0x55443322));
   ASSERT_EQ(comp.saAmfCompPresenceState, static_cast<SaAmfPresenceStateT>(0x66554433));
   ASSERT_EQ(comp.saAmfCompRestartCount, static_cast<uint32_t>(0x77665544));
-  ASSERT_EQ(Amf::to_string(&comp.saAmfCompCurrProxyName), "CompProxyName");
+  ASSERT_EQ(comp.saAmfCompCurrProxyName, "CompProxyName");
 }
 
 TEST_F(CkptEncDecTest, testEncDecAvdSiAss) {
@@ -182,15 +173,15 @@ TEST_F(CkptEncDecTest, testEncDecAvdSiAss) {
   rc = ncs_enc_init_space(&enc.io_uba);
   ASSERT_TRUE(rc == NCSCC_RC_SUCCESS);
 
-  su.name = *(asSaNameT(su_name));
-  si.name = *(asSaNameT(si_name));
+  su.name = su_name;
+  si.name = si_name;
   susi.su = &su;
   susi.si = &si;
   susi.state = SA_AMF_HA_ACTIVE;
   susi.fsm = AVD_SU_SI_STATE_ABSENT;
   susi.csi_add_rem = SA_FALSE; 
-  susi.comp_name = *(asSaNameT(comp_name));
-  susi.csi_name = *(asSaNameT(csi_name));
+  susi.comp_name = comp_name;
+  susi.csi_name = csi_name;
 
   enc.io_msg_type = NCS_MBCSV_MSG_ASYNC_UPDATE;
   enc.io_action = NCS_MBCSV_ACT_UPDATE;
@@ -281,10 +272,10 @@ TEST_F(CkptEncDecTest, testEncDecAvdSiTrans) {
   std::string max_name("max_name");
   AVSV_SI_TRANS_CKPT_MSG msg;
 
-  min_assigned_su.name = *(asSaNameT(min_name));
-  max_assigned_su.name = *(asSaNameT(max_name));
-  tobe_redistributed.name = *(asSaNameT(si_name));
-  sg.name = *(asSaNameT(sg_name));
+  min_assigned_su.name = min_name;
+  max_assigned_su.name = max_name;
+  tobe_redistributed.name = si_name;
+  sg.name = sg_name;
   sg.si_tobe_redistributed = &tobe_redistributed;
   sg.min_assigned_su = &min_assigned_su;
   sg.max_assigned_su = &max_assigned_su;
@@ -333,7 +324,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
   avnd.node_info.member = SA_TRUE;
   avnd.node_info.bootTimestamp = 0x3322118877665544;
   avnd.node_info.initialViewNumber = 0x8877665544332211;
-  avnd.name = *(asSaNameT(name));
+  avnd.name = name;
   avnd.adest = 0x4433221188776655;
   avnd.saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
   avnd.saAmfNodeOperState = SA_AMF_OPERATIONAL_ENABLED;
@@ -351,7 +342,6 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
   enc.i_peer_version = AVD_MBCSV_SUB_PART_VERSION_4;
 
   encode_node_config(&enc.io_uba, &avnd, enc.i_peer_version);
-  memset(&avnd, '\0', sizeof(AVD_AVND));
   decode_node_config(&enc.io_uba, &avnd, enc.i_peer_version);
 
   // convert decoded address to string
@@ -368,7 +358,7 @@ TEST_F(CkptEncDecTest, testEncDecAvdNodeConfig) {
   ASSERT_EQ(avnd.node_info.member, SA_TRUE);
   ASSERT_EQ(avnd.node_info.bootTimestamp, 0x3322118877665544);
   ASSERT_EQ(avnd.node_info.initialViewNumber, 0x8877665544332211);
-  ASSERT_EQ(Amf::to_string(&avnd.name), name);
+  ASSERT_EQ(avnd.name, name);
   ASSERT_EQ(avnd.adest, 0x4433221188776655);
   ASSERT_EQ(avnd.saAmfNodeAdminState, SA_AMF_ADMIN_UNLOCKED);
   ASSERT_EQ(avnd.saAmfNodeOperState, SA_AMF_OPERATIONAL_ENABLED);
