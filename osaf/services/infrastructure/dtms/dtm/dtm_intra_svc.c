@@ -136,7 +136,7 @@ uint32_t dtm_intranode_process_pid_down(int fd)
 		LOG_ER("DTM INTRA: PID info coressponding to fd doesnt exist, database mismatch. fd :%d",fd);		
 		osafassert(0);	/* This condition should never come,database mismatch */
 	} else {
-		DTM_PID_SVC_INSTALLED_INFO *svc_list = pid_node->svc_installed_list, *del_ptr = NULL;
+		DTM_PID_SVC_INSTALLED_INFO *svc_list = pid_node->svc_installed_list;
 		DTM_INTRANODE_PID_INFO *pid_node1 = NULL;
 		DTM_PID_SVC_SUSBCR_INFO *subscr_data = pid_node->subscr_list;
 		DTM_NODE_SUBSCR_INFO *node_subscr = NULL;
@@ -224,7 +224,7 @@ uint32_t dtm_intranode_process_pid_down(int fd)
 					subscr_list = subscr_list->next;
 				}
 			}
-			del_ptr = svc_list;
+			DTM_PID_SVC_INSTALLED_INFO* del_ptr = svc_list;
 
 			svc_list = svc_list->next;
 			dtm_intranode_del_svclist_from_pid_tree(pid_node, del_ptr);
@@ -240,9 +240,8 @@ uint32_t dtm_intranode_process_pid_down(int fd)
 		m_NCS_IPC_RELEASE(&pid_node->mbx, NULL);
 
 		close(pid_node->mbx_fd);
-		DTM_INTRANODE_UNSENT_MSGS  *tmp = NULL;
 		while(pid_node->msgs_hdr != NULL) {
-			tmp = pid_node->msgs_hdr;
+			DTM_INTRANODE_UNSENT_MSGS* tmp = pid_node->msgs_hdr;
 			if (tmp->buffer != NULL)
 				free(tmp->buffer);
 			pid_node->msgs_hdr = pid_node->msgs_hdr->next;
@@ -317,6 +316,7 @@ uint32_t dtm_intranode_process_bind_msg(uint8_t *buff, int fd)
 		if (NULL == (svc_list = calloc(1, sizeof(DTM_SVC_LIST)))) {
 			TRACE("DTM :calloc failed for DTM_SVC_LIST");
 			dtm_intranode_del_svclist_from_pid_tree(pid_node, svc_install_info);
+			// cppcheck-suppress memleak
 			return NCSCC_RC_FAILURE;
 		}
 		svc_list->server_inst_lower = svc_install_info->server_instance_lower;
@@ -509,10 +509,12 @@ uint32_t dtm_intranode_process_subscribe_msg(uint8_t *buff, int fd)
 
 		if (NULL == (subscr_info = calloc(1, sizeof(DTM_SUBSCRIBER_LIST)))) {
 			TRACE("DTM :calloc failed for DTM_SUBSCRIBER_LIST");
+			// cppcheck-suppress memleak
 			return NCSCC_RC_FAILURE;
 		}
 		if (NULL == (subscr_data = calloc(1, sizeof(DTM_PID_SVC_SUSBCR_INFO)))) {
 			TRACE("DTM :calloc failed for DTM_PID_SVC_SUSBCR_INFO");
+			free(subscr_info);
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -707,7 +709,7 @@ uint32_t dtm_intranode_process_node_unsubscribe_msg(uint8_t *buff, int fd)
 		NODE_ID node_id = ncs_decode_32bit(&data);
 		uint32_t process_id = ncs_decode_32bit(&data);
 		uint64_t ref_val = ncs_decode_64bit(&data);
-		node_id = node_id;	/* Just to avoid compilation error */
+		(void) node_id;
 		TRACE_1("DTM: INTRA: node unsubscribe pid=%d", pid_node->pid);
 		dtm_del_from_node_subscr_list(process_id, ref_val);
 	}
@@ -1725,6 +1727,7 @@ uint32_t dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len, NOD
 			}
 
 			if (NULL == (svc_list = calloc(1, sizeof(DTM_SVC_LIST)))) {
+				// cppcheck-suppress memleak
 				return NCSCC_RC_FAILURE;
 			}
 			svc_list->server_inst_lower = ncs_decode_32bit(&data);
@@ -1751,6 +1754,7 @@ uint32_t dtm_process_internode_service_up_msg(uint8_t *buffer, uint16_t len, NOD
 			}
 
 			if (NULL == (svc_list_local = calloc(1, sizeof(DTM_SVC_LIST)))) {
+				// cppcheck-suppress memleak
 				return NCSCC_RC_FAILURE;
 			}
 			svc_list_local->server_inst_lower = svc_list->server_inst_lower;
@@ -1833,7 +1837,7 @@ uint32_t dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, N
 
 		while (0 != num_of_elements) {
 
-			DTM_SVC_INSTALL_INFO *svc_info = NULL, *local_svc_node = NULL;
+			DTM_SVC_INSTALL_INFO *svc_info = NULL;
 			DTM_SVC_LIST svc_list = { 0 };
 			DTM_SVC_SUBSCR_INFO *subscr_node = NULL;
 
@@ -1853,7 +1857,7 @@ uint32_t dtm_process_internode_service_down_msg(uint8_t *buffer, uint16_t len, N
 				dtm_internode_del_svclist_from_svc_tree(node_info, svc_info, &svc_list);
 
 				/* local node delete */
-				local_svc_node = dtm_intranode_get_svc_node(server_type);
+				DTM_SVC_INSTALL_INFO* local_svc_node = dtm_intranode_get_svc_node(server_type);
 				if (NULL == local_svc_node) {
 					LOG_ER("DTM INTRA:  Data base mismatch, local_svc_node doesn't exist \n");
 					osafassert(0);

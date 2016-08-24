@@ -144,95 +144,6 @@ uint32_t dtm_process_node_info(DTM_INTERNODE_CB * dtms_cb, int stream_sock, uint
 }
 
 /**
- * Function to add self node
- *
- * @param dtms_cb
- *
- * @return NCSCC_RC_SUCCESS
- * @return NCSCC_RC_FAILURE
- *
- */
-uint32_t add_self_node(DTM_INTERNODE_CB * dtms_cb)
-{
-
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	DTM_NODE_DB tmp_node;
-	DTM_NODE_DB *node;
-
-	memset(&tmp_node, 0, sizeof(DTM_NODE_DB));
-
-	tmp_node.cluster_id = dtms_cb->cluster_id;
-	tmp_node.node_id = dtms_cb->node_id;
-	memcpy(tmp_node.node_ip, (uint8_t *)dtms_cb->ip_addr, INET6_ADDRSTRLEN);
-	tmp_node.i_addr_family = dtms_cb->i_addr_family;
-	strncpy(tmp_node.node_name, dtms_cb->node_name, strlen(dtms_cb->node_name));
-	tmp_node.comm_status = true;
-	tmp_node.comm_socket = 0;
-
-	node = dtm_node_new(&tmp_node);
-
-	if (node == NULL) {
-		LOG_ER("DTM:  dtm_node_new failed .node_ip : %s ", tmp_node.node_ip);
-		goto node_fail;
-	}
-
-	rc = dtm_node_add(node, 0);
-	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: dtm_node_add fail  rc : %d node->node_id : %d node->node_ip : %s", rc, node->node_id,
-		       node->node_ip);
-		rc = NCSCC_RC_FAILURE;
-		free(node);
-		goto done;
-	}
-
-	rc = dtm_node_add(node, 1);
-	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: dtm_node_add fail  rc : %d node->node_id : %d node->node_ip : %s", rc, node->node_id,
-		       node->node_ip);
-		if (dtm_node_delete(node, 0) != NCSCC_RC_SUCCESS) {
-			LOG_ER("DTM :dtm_node_delete failed ");
-			rc = NCSCC_RC_FAILURE;
-			free(node);
-			goto done;
-		}
-
-	}
-
-	rc = dtm_node_add(node, 2);
-	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: dtm_node_add fail  rc : %d node->node_id : %d node->node_ip : %s", rc, node->node_id,
-		       node->node_ip);
-		if (dtm_node_delete(node, 0) != NCSCC_RC_SUCCESS) {
-			LOG_ER("DTM :dtm_node_delete failed ");
-		}
-		if (dtm_node_delete(node, 1) != NCSCC_RC_SUCCESS) {
-			LOG_ER("DTM :dtm_node_delete failed");
-		}
-		free(node);
-		rc = NCSCC_RC_FAILURE;
-	}
-
- done:
- node_fail:
-	return rc;
-
-}
-
-/**
- * Function to take dump of datagram
- *
- * @param buff len max
- *
- * @return NCSCC_RC_SUCCESS
- * @return NCSCC_RC_FAILURE
- *
- */
-void datagram_buff_dump(uint8_t *buff, uint32_t len, uint32_t max)
-{
-	/* TBD */
-}
-
-/**
  * Function to process node up and down
  *
  * @param node_id node_name comm_status
@@ -552,13 +463,6 @@ void node_discovery_process(void *arg)
 		LOG_ER("DTM: Set up the initial stream nonblocking serv  failed");
 		exit(1);
 	}
-#if 0
-
-	if (add_self_node(dtms_cb) != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: add_self_node  failed");
-		exit(1);
-	}
-#endif
 
 	/*************************************************************/
 	/* Initialize the pollfd structure */

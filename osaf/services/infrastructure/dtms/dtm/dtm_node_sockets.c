@@ -18,6 +18,9 @@
 #include <netdb.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string.h>
 #include "ncsencdec_pub.h"
 #include "usrbuf.h"
 #include "dtm.h"
@@ -51,7 +54,6 @@ uint32_t dtm_sockdesc_close(int sock_desc)
 		LOG_ER("DTM : dtm_sockdesc_close err :%s", strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
-	sock_desc = -1;
 
 	TRACE_LEAVE2("rc :%d", NCSCC_RC_SUCCESS);
 	return NCSCC_RC_SUCCESS;
@@ -71,7 +73,6 @@ static uint32_t set_keepalive(DTM_INTERNODE_CB * dtms_cb, int sock_desc)
 {
 
 	TRACE_ENTER();
-	socklen_t optlen;
 	int comm_keepidle_time, comm_keepalive_intvl, comm_keepalive_probes;
 	int so_keepalive;
 	int smode = 1;
@@ -83,6 +84,8 @@ static uint32_t set_keepalive(DTM_INTERNODE_CB * dtms_cb, int sock_desc)
 	comm_keepalive_probes = dtms_cb->comm_keepalive_probes;
 
 	if (so_keepalive == true) {
+		socklen_t optlen;
+
 		/* Set SO_KEEPALIVE */
 		optlen = sizeof(so_keepalive);
 		if (setsockopt(sock_desc, SOL_SOCKET, SO_KEEPALIVE, &so_keepalive, optlen) < 0) {
@@ -188,6 +191,7 @@ static uint32_t dgram_join_mcast_group(DTM_INTERNODE_CB * dtms_cb, struct addrin
 
 		/* Now join the mcast "group" */
 		struct ip_mreq join_request;
+		memset(&join_request, 0, sizeof(join_request));
 		join_request.imr_multiaddr = ((struct sockaddr_in *)mcast_receiver_addr->ai_addr)->sin_addr;
 		join_request.imr_interface.s_addr =  inet_addr(dtms_cb->ip_addr);
 		TRACE("DTM :Joining IPv4 mcast group...");
@@ -410,55 +414,6 @@ uint32_t dtm_comm_socket_send(int sock_desc, const void *buffer, int buffer_len)
 }
 
 /**
- * Rcv the message from the socket
- *
- * @param sock_desc buffer buffer_len
- *
- * @return NCSCC_RC_SUCCESS
- * @return NCSCC_RC_FAILURE
- *
- */
-uint32_t dtm_comm_socket_recv(int sock_desc, void *buffer, int buffer_len)
-{
-	int rtn = 0, err = 0;
-	int rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-	if ((rtn = recv(sock_desc, (raw_type *) buffer, buffer_len, 0)) < 0) {
-		err = errno;
-		LOG_ER("DTM :dtm_comm_socket_recv failed err :%s", strerror(err));
-		rc = NCSCC_RC_FAILURE;
-	}
-	TRACE_LEAVE2("rc : %d", rc);
-	return rc;
-}
-
-#if 0
-/*********************************************************
-
-  Function NAME: 
-  DESCRIPTION:
-
-  ARGUMENTS:
-
-  RETURNS: 
-
-*********************************************************/
-static char *comm_get_foreign_address(int sock_desc)
-{
-	struct addrinfo addr;
-	unsigned int addr_len = sizeof(addr);
-	TRACE_ENTER();
-
-	if (getpeername(sock_desc, (sockaddr *) & addr, (socklen_t *)&addr_len) < 0) {
-		LOG_ER("DTM :Fetch of foreign address failed (getpeername()) err :%s", strerror(errno));
-		return NULL;
-	}
-	TRACE_LEAVE();
-	return inet_ntoa(addr.ai_addr);
-}
-#endif
-
-/**
  * Setup the new communication socket
  *
  * @param dtms_cb foreign_address foreign_port ip_addr_type
@@ -614,7 +569,6 @@ uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	struct addrinfo *addr_list = NULL, *p;;	/* List of serv addresses */
 	int sndbuf_size = dtms_cb->sock_sndbuf_size, rcvbuf_size = dtms_cb->sock_rcvbuf_size; 
 	int rv;
-	char ip_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	dtms_cb->stream_sock = -1;
 	TRACE_ENTER();
 	/* Construct the serv address structure */
@@ -632,6 +586,7 @@ uint32_t dtm_stream_nonblocking_listener(DTM_INTERNODE_CB * dtms_cb)
 	/* For link-local address, need to set sin6_scope_id to match the
 	   device index of the network device on it has to connecct */
 	if (dtms_cb->scope_link == true) {
+		char ip_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 		memset(ip_addr_eth, 0, (INET6_ADDRSTRLEN + IFNAMSIZ));
 		sprintf(ip_addr_eth,"%s%s%s", dtms_cb->ip_addr, "%", dtms_cb->ifname);
 		rv = getaddrinfo(ip_addr_eth, local_port_str, &addr_criteria, &addr_list);
@@ -717,7 +672,6 @@ uint32_t dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	char local_port_str[INET6_ADDRSTRLEN];
 	int rv;
 	struct addrinfo *addr_list;	/* Holder serv address */
-	char mcast_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	TRACE_ENTER();
 
 	TRACE("DTM :dgram_port_rcvr :%d", dtms_cb->dgram_port_rcvr);
@@ -734,6 +688,7 @@ uint32_t dtm_dgram_mcast_listener(DTM_INTERNODE_CB * dtms_cb)
 	/* For link-local address, need to set sin6_scope_id to match the
 	   device index of the network device on it has to connecct */
 	if (dtms_cb->scope_link == true) {
+		char mcast_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 		memset(mcast_addr_eth, 0, (INET6_ADDRSTRLEN + IFNAMSIZ));
 		sprintf(mcast_addr_eth,"%s%s%s", dtms_cb->mcast_addr, "%", dtms_cb->ifname);
 		rv = getaddrinfo(mcast_addr_eth, local_port_str, &addr_criteria, &addr_list);
@@ -809,7 +764,6 @@ uint32_t dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 	struct addrinfo addr_criteria, *p;	// Criteria for address match
 	char local_port_str[INET6_ADDRSTRLEN];
 	int rv;
-	char mcast_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 	TRACE_ENTER();
 
 	dtms_cb->dgram_sock_sndr = -1;
@@ -826,6 +780,7 @@ uint32_t dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 	/* For link-local address, need to set sin6_scope_id to match the
 	   device index of the network device on it has to connecct */
 	if (dtms_cb->scope_link == true) {
+		char mcast_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
 		memset(mcast_addr_eth, 0, (INET6_ADDRSTRLEN + IFNAMSIZ));
 		sprintf(mcast_addr_eth,"%s%s%s",dtms_cb->mcast_addr,"%",dtms_cb->ifname);
 		rv = getaddrinfo(mcast_addr_eth, local_port_str, &addr_criteria, &mcast_sender_addr);
@@ -875,24 +830,6 @@ uint32_t dtm_dgram_mcast_sender(DTM_INTERNODE_CB * dtms_cb, int mcast_ttl)
 }
 
 /**
- * Function to get the address
- *
- * @param sa
- *
- * @return NCSCC_RC_SUCCESS
- * @return NCSCC_RC_FAILURE
- *
- */
-void *get_in_addr(struct sockaddr *sa)
-{
-	if (sa->sa_family == AF_INET) {
-		return &(((struct sockaddr_in *)sa)->sin_addr);
-	}
-
-	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
-}
-
-/**
  * Function to listen to the bcast message
  *
  * @param dtms_cb
@@ -904,7 +841,7 @@ void *get_in_addr(struct sockaddr *sa)
 uint32_t dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 {
 
-	struct addrinfo addr_criteria, *addr_list, *p;	// Criteria for address
+	struct addrinfo addr_criteria, *addr_list = NULL, *p;	// Criteria for address
 	char local_port_str[INET6_ADDRSTRLEN];
 	int rv;
 	char bcast_addr_eth[INET6_ADDRSTRLEN + IFNAMSIZ];
@@ -1011,6 +948,7 @@ uint32_t dtm_dgram_bcast_listener(DTM_INTERNODE_CB * dtms_cb)
 
 			struct ipv6_mreq maddr;
 			struct sockaddr_in6 *ipv6_mr = (struct sockaddr_in6 *)p->ai_addr;
+			memset(&maddr, 0, sizeof(maddr));
 			maddr.ipv6mr_multiaddr =  ipv6_mr->sin6_addr;
 			maddr.ipv6mr_interface = if_nametoindex(dtms_cb->ifname);
 			if (setsockopt(dtms_cb->dgram_sock_rcvr, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &maddr,
@@ -1141,6 +1079,7 @@ uint32_t dtm_dgram_bcast_sender(DTM_INTERNODE_CB * dtms_cb)
 		}
 
 		struct ipv6_mreq maddr;
+		memset(&maddr, 0, sizeof(maddr));
 		maddr.ipv6mr_multiaddr = bcast_sender_addr_in6->sin6_addr;
 		maddr.ipv6mr_interface = if_nametoindex(dtms_cb->ifname);
 		if (setsockopt (dtms_cb->dgram_sock_sndr, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &maddr, sizeof maddr) < 0) {
@@ -1425,8 +1364,6 @@ int dtm_process_accept(DTM_INTERNODE_CB * dtms_cb, int stream_sock)
 int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *buffer, int buffer_len)
 {
 	struct sockaddr_storage clnt_addr;
-	void *numericAddress = NULL;	/* Pointer to binary address */
-	char addrBuffer[INET6_ADDRSTRLEN];
 	socklen_t addrLen = sizeof(clnt_addr);
 	int rtn;
 	TRACE_ENTER();
@@ -1440,6 +1377,7 @@ int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *b
 
 	} else {
 		const struct sockaddr *clnt_addr1 = (struct sockaddr *)&clnt_addr;
+		void *numericAddress = NULL;	/* Pointer to binary address */
 
 		if (clnt_addr1->sa_family == AF_INET) {
 			numericAddress = &((struct sockaddr_in *)clnt_addr1)->sin_addr;
@@ -1454,6 +1392,7 @@ int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *b
 		}
 
 		/* Convert binary to printable address */
+		char addrBuffer[INET6_ADDRSTRLEN];
 		if (inet_ntop(clnt_addr1->sa_family, numericAddress, addrBuffer, sizeof(addrBuffer)) == NULL) {
 			TRACE("DTM: invalid address :%s", addrBuffer);
 		} else {
@@ -1464,150 +1403,3 @@ int dtm_dgram_recvfrom_bmcast(DTM_INTERNODE_CB * dtms_cb, char *node_ip, void *b
 	TRACE_LEAVE2("rc :%d", rtn);
 	return rtn;
 }
-
-#if 0
-/*********************************************************
-
-  Function NAME: 
-DESCRIPTION:
-
-ARGUMENTS:
-
-RETURNS: 
-
- *********************************************************/
-
-uint32_t dtm_get_sa_family(DTM_INTERNODE_CB * dtms_cb)
-{
-
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	char local_port_str[INET6_ADDRSTRLEN];
-	struct addrinfo addr_criteria;	/* Criteria for address match */
-
-	TRACE_ENTER();
-
-	char *addr_string = dtms_cb->ip_addr;	/* Server address/name */
-
-	TRACE("DTM :stream_port :%d", dtms_cb->stream_port);
-	snprintf(local_port_str, sizeof(local_port_str), "%d", (dtms_cb->stream_port));
-
-	/* Tell the system what kind(s) of address info we want */
-	memset(&addr_criteria, 0, sizeof(addr_criteria));	/* Zero out structure */
-	addr_criteria.ai_family = AF_UNSPEC;	/* Any address family */
-	addr_criteria.ai_socktype = SOCK_STREAM;	/* Only stream sockets */
-	addr_criteria.ai_protocol = IPPROTO_TCP;	/* Only TCP protocol */
-	addr_criteria.ai_flags |= AI_NUMERICHOST;
-
-	/* Get address(es) associated with the specified name/service */
-	struct addrinfo *addr_list;	/* Holder for list of addresses returned */
-	/* Modify servAddr contents to reference linked list of addresses */
-	TRACE("DTM :addr_string : %s local_port_str :%s", addr_string, local_port_str);
-	int rtn_val = getaddrinfo(addr_string, local_port_str, &addr_criteria, &addr_list);
-	if (rtn_val != 0)
-		LOG_ER("getaddrinfo() failed %d", rtn_val);
-
-	/* Display returned addresses */
-	struct addrinfo *addr;
-	for (addr = addr_list; addr != NULL; addr = addr->ai_next) {
-
-		if (addr->ai_addr->sa_family == AF_INET) {
-			dtms_cb->i_addr_family = DTM_IP_ADDR_TYPE_IPV4;
-			TRACE("DTM :dtms_cb->i_addr_family :%d", dtms_cb->i_addr_family);
-			goto done;
-		} else if (addr->ai_addr->sa_family == AF_INET6) {
-			dtms_cb->i_addr_family = DTM_IP_ADDR_TYPE_IPV6;
-			TRACE("DTM :dtms_cb->i_addr_family :%d", dtms_cb->i_addr_family);
-			goto done;
-		}
-
-		else
-			continue;
-
-	}
-
-	rc = NCSCC_RC_FAILURE;
- done:
-	/* Free address structure(s) allocated by getaddrinfo() */
-	freeaddrinfo(addr_list);
-	TRACE_LEAVE2("rc :%d", rc);
-	return rc;
-
-}
-
-/*********************************************************
-
-  Function NAME: 
-DESCRIPTION:
-
-ARGUMENTS:
-
-RETURNS: 
-
- *********************************************************/
-
-char *get_local_address(int sock_desc)
-{
-	TRACE_ENTER();
-	struct addrinfo addr;
-	unsigned int addr_len = sizeof(addr);
-
-	if (getsockname(sock_desc, (sockaddr *) & addr, (socklen_t *)&addr_len) < 0) {
-		LOG_ER("DTM :Fetch of local address failed (getsockname())");
-		return NULL;
-	}
-	TRACE_LEAVE();
-	return inet_ntoa(addr.sin_addr);
-}
-
-unsigned short get_local_port(int sock_desc)
-{
-	TRACE_ENTER();
-	struct addrinfo addr;
-	unsigned int addr_len = sizeof(addr);
-
-	if (getsockname(sock_desc, (sockaddr *) & addr, (socklen_t *)&addr_len) < 0) {
-		LOG_ER("DTM :Fetch of local port failed (getsockname())");
-		return 0;
-	}
-	TRACE_LEAVE();
-	return ntohs(addr.sin_port);
-}
-
-/*********************************************************
-
-  Function NAME: 
-DESCRIPTION:
-
-ARGUMENTS:
-
-RETURNS: 
-
- *********************************************************/
-uint32_t dgram_set_mcastloop(bool x)
-{
-
-	TRACE_ENTER();
-	if (mcast_sender_addr->ai_family == AF_INET6) {
-		int val = x ? 1 : 0;
-		if (setsockopt(dtms_cb->dgram_sock_rcvr, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (char *)&val, sizeof(int))
-		    == -1) {
-			LOG_ER("DTM:SetMulticastLoop(ipv6)");
-		}
-		return;
-	} else if (mcast_sender_addr->ai_family == AF_INET) {
-
-		int val = x ? 1 : 0;
-		if (setsockopt(dtms_cb->dgram_sock_rcvr, SOL_IP, IP_MULTICAST_LOOP, (char *)&val, sizeof(int)) == -1) {
-			LOG_ER("DTM:SetMulticastLoop(ipv4)");
-		}
-
-	} else {
-		LOG_ER("DTM:Unable to set set_mcastloop invalid address family");
-	}
-
-	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
-
-}
-
-#endif

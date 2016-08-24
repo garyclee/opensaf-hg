@@ -391,21 +391,3 @@ int main(int argc, char *argv[])
 	exit(1);
 
 }
-
-/**
- *  DTMS CB dump
- *
- *
- * @return NCSCC_RC_SUCCESS
- * @return NCSCC_RC_FAILURE
- *
- */
-void dtms_cb_dump(void)
-{
-
-	TRACE("DTM : ***************************************************************************************");
-
-	TRACE("DTM: My DB Snapshot ");
-
-	TRACE("DTM : ***********************************************************************************");
-}

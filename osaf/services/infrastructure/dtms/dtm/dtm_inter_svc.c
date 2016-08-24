@@ -15,6 +15,7 @@
  *
  */
 
+#include <stdlib.h>
 #include "usrbuf.h"
 #include "dtm.h"
 #include "dtm_cb.h"
@@ -339,7 +340,6 @@ uint32_t dtm_internode_add_to_svc_dist_list(uint32_t server_type, uint32_t serve
  */
 uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t server_inst, uint32_t pid)
 {
-	uint8_t *buffer = NULL;
 	DTM_SVC_DATA *back = NULL, *mov_ptr = NULL;
 	int check_val = 0;
 	TRACE_ENTER();
@@ -380,7 +380,8 @@ uint32_t dtm_internode_del_from_svc_dist_list(uint32_t server_type, uint32_t ser
 	}
 
 	if (1 == check_val) {
-		if (NULL == (buffer = calloc(1, DTM_DOWN_MSG_SIZE_FULL))) {
+		uint8_t *buffer = calloc(1, DTM_DOWN_MSG_SIZE_FULL);
+		if (buffer == NULL) {
 			TRACE("DTM :CALLOC FAILED FOR buffer, unable to send down to all nodes");
 			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
