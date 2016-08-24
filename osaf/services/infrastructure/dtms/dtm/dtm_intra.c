@@ -25,6 +25,7 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <configmake.h>
 
 #include "ncs_main_papi.h"
@@ -92,9 +93,7 @@ uint32_t dtm_service_discovery_init(DTM_INTERNODE_CB *dtms_cb)
 uint32_t dtm_intra_processing_init(char *node_name, char *node_ip, DTM_IP_ADDR_TYPE i_addr_family, int32_t sndbuf_size, int32_t rcvbuf_size)
 {
 
-	int servlen;	/* For socket fd and server len */
 	struct sockaddr_un serv_addr;	/* For Unix Sock address */
-	char server_ux_name[255];
 	NCS_PATRICIA_PARAMS pat_tree_params;
 	struct sockaddr_in serveraddr;
 	struct sockaddr_in6 serveraddr6;
@@ -152,18 +151,19 @@ uint32_t dtm_intra_processing_init(char *node_name, char *node_ip, DTM_IP_ADDR_T
 
 	dtm_intranode_cb->nodeid = m_NCS_GET_NODE_ID;
 
-	bzero((char *)&serv_addr, sizeof(serv_addr));
+	memset((char *)&serv_addr, 0, sizeof(serv_addr));
 
 	if (dtm_socket_domain == AF_UNIX) {
 #define UX_SOCK_NAME_PREFIX PKGLOCALSTATEDIR "/osaf_dtm_intra_server"
 
+		char server_ux_name[255];
 		sprintf(server_ux_name, "%s", UX_SOCK_NAME_PREFIX);
 		serv_addr.sun_family = AF_UNIX;
 		strcpy(serv_addr.sun_path, server_ux_name);
 
 		unlink(serv_addr.sun_path);
 
-		servlen = strlen(serv_addr.sun_path) + sizeof(serv_addr.sun_family);
+		int servlen = strlen(serv_addr.sun_path) + sizeof(serv_addr.sun_family);
 
 		/* Bind the created socket here with the address  NODEID, 
 		 *  if bind fails return error by the closing the
@@ -204,7 +204,7 @@ uint32_t dtm_intra_processing_init(char *node_name, char *node_ip, DTM_IP_ADDR_T
  		} else {
  			memset(&serveraddr6, 0, sizeof(serveraddr6));
  			serveraddr6.sin6_family      = AF_INET6;
- 			serveraddr.sin_port        = htons(DTM_INTRA_SERVER_PORT);
+ 			serveraddr6.sin6_port        = htons(DTM_INTRA_SERVER_PORT);
  			inet_pton(AF_INET6, "localhost", &serveraddr6.sin6_addr);
  
  			if (bind(dtm_intranode_cb->server_sockfd, (struct sockaddr *)&serveraddr6, sizeof(serveraddr6) ) < 0) {

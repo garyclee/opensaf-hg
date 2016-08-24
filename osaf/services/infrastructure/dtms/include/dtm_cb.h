@@ -37,7 +37,7 @@ typedef struct dtm_internode_unsent_msgs {
 typedef struct node_list {
   uint16_t cluster_id;
   NODE_ID node_id;
-  char node_name[_POSIX_HOST_NAME_MAX];
+  char node_name[256];
   char node_ip[INET6_ADDRSTRLEN];
   DTM_IP_ADDR_TYPE i_addr_family; /* Indicates V4 or V6 */
   int comm_socket;

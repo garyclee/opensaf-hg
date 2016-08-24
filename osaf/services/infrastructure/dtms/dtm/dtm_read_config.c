@@ -22,6 +22,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
+#include <stdio.h>
 #include <configmake.h>
 #include "logtrace.h"
 #include "ncs_main_papi.h"
@@ -136,8 +137,6 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 {
 	struct ifaddrs *if_addrs = NULL;
 	struct ifaddrs *if_addr = NULL;
-	void *tmp = NULL;
-	char buf[INET6_ADDRSTRLEN];
 	memset(match_ip, 0, INET6_ADDRSTRLEN);
 
 	if (0 == getifaddrs(&if_addrs)) {
@@ -149,6 +148,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 				continue;
 
 			// Address
+			void *tmp = NULL;
 			if (if_addr->ifa_addr->sa_family == AF_INET) {
 				tmp = &((struct sockaddr_in *)if_addr->ifa_addr)->sin_addr;
 			} else if (if_addr->ifa_addr->sa_family == AF_INET6)  {
@@ -191,7 +191,7 @@ char *dtm_validate_listening_ip_addr(DTM_INTERNODE_CB * config)
 					inet_ntop(if_addr->ifa_addr->sa_family,
 						  &broadaddr,
 						  config->bcast_addr,
-						  sizeof(buf));
+						  sizeof(config->bcast_addr));
 				} else if (if_addr->ifa_addr->sa_family == AF_INET6) {
 					struct sockaddr_in6 *addr = (struct sockaddr_in6 *)if_addr->ifa_addr;
 					memset(config->bcast_addr, 0, INET6_ADDRSTRLEN);
@@ -268,7 +268,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 		LOG_ER("DTM: Could not open file  node_name ");
 		return errno;
 	}
-	if (EOF == fscanf(fp, "%s", config->node_name)) {
+	if (EOF == fscanf(fp, "%255s", config->node_name)) {
 		fclose(fp);
 		LOG_ER("DTM: Could not get node name ");
 		return errno;
@@ -324,6 +324,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->cluster_id = atoi(&line[tag_len]);
 				if (config->cluster_id < 1) {
 					LOG_ER("DTM:cluster_id must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 				tag = 0;
@@ -335,6 +336,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				strncpy(config->ip_addr, &line[tag_len], INET6_ADDRSTRLEN - 1);	/* ipv4 ipv6 addrBuffer */
 				if (strlen(config->ip_addr) == 0) {
 					LOG_ER("DTM:ip_addr Shouldn't  be NULL");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -360,6 +362,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 
 				if (config->stream_port < 1) {
 					LOG_ER("DTM:stream_port  must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -372,6 +375,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->dgram_port_sndr = ((in_port_t)atoi(&line[tag_len]));
 				if (config->dgram_port_sndr < 1) {
 					LOG_ER("DTM:dgram_port_sndr  must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -385,6 +389,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				TRACE("DTM:dgram_port_rcvr  :%d", config->dgram_port_rcvr);
 				if (config->dgram_port_rcvr < 1) {
 					LOG_ER("DTM:dgram_port_rcvr t must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -397,6 +402,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->bcast_msg_freq = atoi(&line[tag_len]);
 				if (config->bcast_msg_freq < 1) {
 					LOG_ER("DTM:bcast_msg_freq  must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -409,6 +415,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->initial_dis_timeout = atoi(&line[tag_len]);
 				if (config->initial_dis_timeout < 1) {
 					LOG_ER("DTM:initial_dis_timeout must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -421,6 +428,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->so_keepalive = atoi(&line[tag_len]);
 				if (config->so_keepalive < 0 || config->so_keepalive > 1) {
 					LOG_ER("DTM: so_keepalive needs to be 0 or 1");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -433,6 +441,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->comm_keepidle_time = atoi(&line[tag_len]);
 				if (config->comm_keepidle_time < 1) {
 					LOG_ER("DTM:comm_keepidle_time must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -445,6 +454,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->comm_keepalive_intvl = atoi(&line[tag_len]);
 				if (config->comm_keepalive_intvl < 1) {
 					LOG_ER("DTM:comm_keepalive_intvl must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -457,6 +467,7 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 				config->comm_keepalive_probes = atoi(&line[tag_len]);
 				if (config->comm_keepalive_probes < 1) {
 					LOG_ER("DTM:comm_keepalive_probes must be a positive integer");
+					fclose(dtm_conf_file);
 					return -1;
 				}
 
@@ -554,25 +565,3 @@ int dtm_read_config(DTM_INTERNODE_CB * config, char *dtm_config_file)
 	TRACE_LEAVE();
 	return (err);
 }
-
-#if 0
-static int checkfile(char *buf)
-{
-	struct stat statbuf;
-	int ii;
-	char cmd[DTM_MAX_TAG_LEN];
-
-	strncpy(cmd, buf, DTM_MAX_TAG_LEN - 1);
-	for (ii = 0; ii < strlen(cmd); ii++)
-		if (cmd[ii] == ' ')
-			cmd[ii] = '\0';
-
-	if (stat(cmd, &statbuf) == -1) {
-		LOG_ER("DTM: dtm_read_config: File does not exsist: %s", cmd);
-		return -1;
-	}
-
-	return 0;
-}
-
-#endif
