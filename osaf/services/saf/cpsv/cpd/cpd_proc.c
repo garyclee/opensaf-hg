@@ -1142,7 +1142,7 @@ void cpd_cb_dump(void)
 
 				TRACE("------------------------------------------------------");
 				TRACE(" CKPT ID:  = %d", (uint32_t)ckpt_node->ckpt_id);
-				TRACE(" CKPT Name len  = %lu", strlen(ckpt_node->ckpt_name));
+				TRACE(" CKPT Name len  = %zu", strlen(ckpt_node->ckpt_name));
 				TRACE(" CKPT Name: %s", ckpt_node->ckpt_name);
 
 				TRACE(" UNLINK = %d, Active Exists = %d", ckpt_node->is_unlink_set,
@@ -1196,7 +1196,7 @@ void cpd_cb_dump(void)
 				name = ckpt_map_node->ckpt_name;
 
 				TRACE("------------------------------------------------------");
-				TRACE(" CKPT Name len  = %lu", strlen(name));
+				TRACE(" CKPT Name len  = %zu", strlen(name));
 				TRACE(" CKPT Name: %s", name);
 
 				TRACE(" CKPT ID:  = %d", (uint32_t)ckpt_map_node->ckpt_id);
