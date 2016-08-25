@@ -4700,8 +4700,8 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 
 	while (1) {
 
-		if (((size + tmp_sec_info->sec_size) > MAX_SYNC_TRANSFER_SIZE)
-		    || (total_num == cp_node->replica_info.n_secs)) {
+		if ((total_num == cp_node->replica_info.n_secs) ||
+		((size + tmp_sec_info->sec_size) > MAX_SYNC_TRANSFER_SIZE)) {
 
 			send_evt.info.cpnd.info.ckpt_nd2nd_sync.num_of_elmts = num;
 			send_evt.info.cpnd.info.ckpt_nd2nd_sync.data = sec_data;
@@ -4758,13 +4758,6 @@ static uint32_t cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCk
 		total_num++;
 
 		tmp_sec_info = cpnd_ckpt_sec_get_next(&cp_node->replica_info, tmp_sec_info);
-		if (tmp_sec_info == NULL) {
-			rc = NCSCC_RC_FAILURE;
-			TRACE_4("cpnd ckpt memory get next allocation failed");
-			send_evt.info.cpnd.info.ckpt_nd2nd_sync.data = sec_data;
-			cpnd_proc_free_cpsv_ckpt_data(send_evt.info.cpnd.info.ckpt_nd2nd_sync.data);
-			return rc;
-		}
 	}
 
 	TRACE_LEAVE();
