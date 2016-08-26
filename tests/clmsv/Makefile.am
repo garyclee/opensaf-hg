@@ -41,9 +41,11 @@ clmtest_SOURCES = \
 	tet_ClmOiOps.c \
 	tet_saClmDispatch.c \
 	tet_saClmSelectionObjectGet.c \
-	tet_saClmFinalize.c
+	tet_saClmFinalize.c \
+	tet_ClmLongRdn.c
 
 clmtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/tests/unit_test_fw/src/libutest.la
