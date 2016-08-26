@@ -198,6 +198,11 @@ else:
 			"""
 			super(SaNameT, self).__init__(len(name), name)
 
+		def __str__(self):
+			"""Returns the content of SaNameT
+			"""
+			return self.value
+
 
 class SaVersionT(Structure):
 	"""Contain software versions of area implementation.
