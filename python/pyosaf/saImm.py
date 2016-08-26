@@ -71,7 +71,7 @@ def unmarshalSaImmValue(void_ptr, value_type):
 	val_ptr = SaImmValueTypeMap.get(value_type)
 	if val_ptr and void_ptr:
 		if val_ptr == SaNameT:
-			return cast(void_ptr, POINTER(val_ptr))[0].value
+			return str(cast(void_ptr, POINTER(val_ptr))[0])
 		return cast(void_ptr, POINTER(val_ptr))[0]
 	return None
 
