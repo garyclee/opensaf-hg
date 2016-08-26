@@ -1,0 +1,72 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2016 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+GENERAL
+-------
+
+This is a description of how the AMF service supports long DNs.
+Ticket: https://sourceforge.net/p/opensaf/tickets/1642
+This enhancement is part of the general enhancement for supporting long
+DNs in OpenSAF introduced by ticket: #191. Ticket #1642 adds support for
+long DNs to AMF.
+
+CONFIGURATION
+-------------
+
+To enable support for long DNs/RDNs in IMM, the longDnsAllowed
+attribute must be enabled using the following command:
+
+immcfg -a longDnsAllowed=1 opensafImm=opensafImm,safApp=safImmService
+
+The IMM service will reject attempts to set the longDnsAllowed attribute
+back to 0 if the IMM database contains objects with DNs longer than 255 bytes
+or RDNs longer than 64 bytes.
+
+To enable long DN support, an application must follow these things:
+- Compile the application with the SA_EXTENDED_NAME_SOURCE preprocessor 
+macro defined.
+- Set the environment variable SA_ENABLE_EXTENDED_NAMES to 1 before 
+the first call to any SAF API.
+- Treat the SaNameT type as opaque and use the SaNameT tunnelling primitives
+saAisNameLend(), saAisNameBorrow() to manipulate SaNameT variables.
+
+IMPLEMENTATION DETAILS
+----------------------
+
+The implementation has been adapted to the "tunnelling" solution provided
+by the OpenSAF generic patch (#191).
+Please see the document below on how to use the SaNameT tunnelling primitives:
+    OpenSAF_Extensions_PR.odt
+
+This implementation also includes following enhancements:
+1) Replace internal SaNameT variables with std::string variables in amfd, amfnd.
+2) Replace patricia trees with std::map in amfnd.
+
+saAmfDispatch() may return SA_AIS_ERR_NAME_TOO_LONG if an application which
+does not support long DN, receives an AMF callback containing a long DN entity.
+An application should not be configured with long DN entities until long DN
+support has been added.
+
+In AMF B.01.01 spec, the application can free extended SaNameT variables in
+SaAmfProtectionGroupNotificationBufferT using the example below:
+    SaAmfProtectionGroupNotificationBufferT buff;
+    ...
+    for ( i=0; i<buff.numOfItems; i++) {
+        if (strlen(saAisNameBorrow(buff.notification[i].member.comp_name)) > 
+            SA_MAX_UNEXTENDED_NAME_LENGTH)
+            free(saAisNameBorrow(buff.notification[i].member.comp_name));
+    }
