@@ -68,9 +68,6 @@ and any long DNs notification will be invisible to the consumer.
 The support long DNs in IMM (#886) must also be enabled so that the NTF IMCN can send notification 
 when long DNs objects are created, deleted, or their attributes are changed. 
 
-Since LOG service has not (yet) supported long DNs in OpenSAF 4.5, so any Alarm Log having either 
-notificationObject or notifyingObject as long DN will be truncated to at most 255 bytes length.
-
 Using SA_NTF_VALUE_LDAP_NAME as long DNs, please see "IMPLEMENTATION NOTES"
 
 DEPENDENCIES
