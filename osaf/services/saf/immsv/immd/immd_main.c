@@ -234,10 +234,12 @@ uint32_t initialize_for_assignment(IMMD_CB *cb, SaAmfHAStateT ha_state)
 
 	if (cb->mScAbsenceAllowed && cb->ha_state == SA_AMF_HA_ACTIVE) {
 		/* If this IMMD has active role, wait for veteran payloads.
-		 * Give up after 3 seconds if there's no veteran payloads. */
-		LOG_NO("Waiting 3 seconds to allow IMMND MDS attachments to get processed.");
+		 * Give up after mScAbsenceVeteranMaxWait if there's no veteran payloads. */
+		uint32_t timeout_sec = immd_cb->mScAbsenceVeteranMaxWait;
+		int sel_obj = m_GET_FD_FROM_SEL_OBJ(immd_cb->veteran_sync_sel);
+		LOG_NO("Waiting %u seconds to allow IMMND MDS attachments to get processed.", timeout_sec);
 
-		if (osaf_poll_one_fd(m_GET_FD_FROM_SEL_OBJ(immd_cb->veteran_sync_sel), 3000) != 1) {
+		if (osaf_poll_one_fd(sel_obj, timeout_sec * 1000) != 1) {
 			TRACE("osaf_poll_one_fd on veteran_sync_sel failed or timed out");
 		} else {
 			LOG_NO("Received intro message from veteran payload, stop waiting");
@@ -268,6 +270,7 @@ int main(int argc, char *argv[])
 	const int peerMaxWaitMin = 5; /*5 sec*/
 	const char * peerWaitStr = getenv("IMMSV_2PBE_PEER_SC_MAX_WAIT");
 	const char * absentScStr = getenv("IMMSV_SC_ABSENCE_ALLOWED");
+	const char * veteranWaitStr = getenv("IMMSV_SC_ABSENCE_VETERAN_MAX_WAIT");
 	int32_t timeout = (-1);
 	int32_t total_wait = (-1);
 	int64_t start_time = 0LL;
@@ -282,6 +285,15 @@ int main(int argc, char *argv[])
 		if(!scAbsenceAllowed) {
 			LOG_WA("SC_ABSENCE_ALLOWED malconfigured: '%s'", absentScStr);
 		}
+	}
+
+	if (veteranWaitStr) {
+		immd_cb->mScAbsenceVeteranMaxWait = atoi(veteranWaitStr);
+		if(!immd_cb->mScAbsenceVeteranMaxWait) {
+			LOG_WA("IMMSV_SC_ABSENCE_VETERAN_MAX_WAIT malconfigured: '%s'", veteranWaitStr);
+		}
+	} else {
+		immd_cb->mScAbsenceVeteranMaxWait = 3; /* Default is 3 seconds */
 	}
 
 	if(peerWaitStr) {
