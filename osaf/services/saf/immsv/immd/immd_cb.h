@@ -142,6 +142,7 @@ typedef struct immd_cb_tag {
 	SaUint16T mScAbsenceAllowed; /* Non zero if SC absence is allowed (loss of both IMMDs/SCs).
 				       Value is number of seconds of SC absence tolerated. */
 	MDS_DEST payload_coord_dest; /* IMMND coord may be at payload if mScAbsenceAllowed is nonzero */
+	uint32_t mScAbsenceVeteranMaxWait; /* Amount of seconds IMMD waits for veteran IMMDs after sc absence */
 
 	NCS_LOCK veteran_sync_lock;   /* Sync up with veteran payload after headless */
 	NCS_SEL_OBJ veteran_sync_sel; /* Sync up with veteran payload after headless */
