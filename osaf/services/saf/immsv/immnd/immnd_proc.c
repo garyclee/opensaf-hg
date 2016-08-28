@@ -1668,6 +1668,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 	osaf_timespec_subtract(&now, &cb->mJobStart, &jobDurationTs);
 	SaUint32T jobDurationSec = (SaUint32T) jobDurationTs.tv_sec;
 	SaBoolT pbeImmndDeadlock=SA_FALSE;
+	if(!jobDurationSec) {++jobDurationSec;} /* Avoid jobDurationSec of zero */
 	/*TRACE_ENTER(); */
 
 	if ((cb->mStep % printFrq) == 0) {
