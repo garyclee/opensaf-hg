@@ -400,6 +400,20 @@ uint32_t avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, avsv_edp_comp_state_info_msg, EDQ_POINTER, 0, EDU_EXIT,
 			 (long)&((AVSV_DND_MSG *)0)->msg_info.n2d_nd_csicomp_state_info.comp_list, 0, NULL},
 
+		/*AVSV_D2N_COMPCSI_ASSIGN_MSG_INFO*/
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+                 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_compcsi_assign_msg_info.msg_id, 0, NULL},
+                {EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0,
+                 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_compcsi_assign_msg_info.node_id, 0, NULL},
+                {EDU_EXEC, ncs_edp_int, 0, 0, 0,
+                 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_compcsi_assign_msg_info.msg_act, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, 
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_compcsi_assign_msg_info.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, 
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_compcsi_assign_msg_info.csi_name, 0, NULL},
+		{EDU_EXEC, avsv_edp_csi_attr_info, 0, 0, 0,
+		 (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_compcsi_assign_msg_info.info.attrs, 0, NULL},
+
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -467,7 +481,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		LCL_JMP_OFFSET_AVSV_D2N_HEARTBEAT_MSG = 122,
 		LCL_JMP_OFFSET_AVSV_D2N_REBOOT_MSG = 123,
 		LCL_JMP_OFFSET_AVSV_N2D_ND_SISU_STATE_INFO_MSG = 125,
-		LCL_JMP_OFFSET_AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG = 131
+		LCL_JMP_OFFSET_AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG = 131,
+		LCL_JMP_OFFSET_AVSV_D2N_COMPCSI_ASSIGN_MSG = 137
 	};
 	AVSV_DND_MSG_TYPE type;
 
@@ -537,6 +552,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		return LCL_JMP_OFFSET_AVSV_N2D_ND_SISU_STATE_INFO_MSG ;
 	case AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG:
 		return LCL_JMP_OFFSET_AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG ;
+	case AVSV_D2N_COMPCSI_ASSIGN_MSG:
+		return LCL_JMP_OFFSET_AVSV_D2N_COMPCSI_ASSIGN_MSG;
 
 	default:
 		break;

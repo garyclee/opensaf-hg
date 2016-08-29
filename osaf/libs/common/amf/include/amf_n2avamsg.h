@@ -40,6 +40,7 @@ extern "C" {
     
 /* Message format versions */
 #define AVSV_AVND_AVA_MSG_FMT_VER_1    1
+#define AVSV_AVND_AVA_MSG_FMT_VER_2    2
 
 /* AMF API enums */
 typedef enum avsv_nda_ava_msg_type {
@@ -110,6 +111,8 @@ void avsv_amf_api_free(AVSV_AMF_API_INFO *);
 void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *);
 
 uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *);
+uint32_t avsv_attrs_to_amf_attrs (SaAmfCSIAttributeListT *amf_attrs, AVSV_CSI_ATTRS *avsv_attrs);
+
 
 #ifdef __cplusplus
 }

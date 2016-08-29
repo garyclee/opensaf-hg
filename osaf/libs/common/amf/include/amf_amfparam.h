@@ -64,6 +64,7 @@ typedef enum avsv_amf_cbk_type {
 	AVSV_AMF_PG_TRACK,
 	AVSV_AMF_PXIED_COMP_INST,
 	AVSV_AMF_PXIED_COMP_CLEAN,
+	AVSV_AMF_CSI_ATTR_CHANGE,
 	AVSV_AMF_CBK_MAX
 } AVSV_AMF_CBK_TYPE;
 
@@ -103,6 +104,7 @@ typedef struct avsv_amf_comp_reg_param_tag {
 	SaAmfHandleT hdl;	/* AMF handle */
 	SaNameT comp_name;	/* comp name */
 	SaNameT proxy_comp_name;	/* proxy comp name */
+	SaVersionT version; //SAF VERSION of component.
 } AVSV_AMF_COMP_REG_PARAM;
 
 /* component unregister */
@@ -245,6 +247,13 @@ typedef struct avsv_amf_csi_set_param_tag {
 	AVSV_CSI_ATTRS attrs;	/* contains the csi-attr list */
 } AVSV_AMF_CSI_SET_PARAM;
 
+//CSI Attribute callback msg structure from AMFND to AMF agent.
+typedef struct avsv_amf_csi_attr_change_param_tag {
+	SaNameT csi_name;			/* comp name */
+	AVSV_CSI_ATTRS attrs;			/* contains the csi-attr list internal*/
+	SaAmfCSIAttributeListT   csiAttr;	/* contains the csi-attr list SAF compliant*/
+} AVSV_AMF_CSI_ATTR_CHANGE_PARAM;
+
 /* csi remove */
 typedef struct avsv_amf_csi_rem_param_tag {
 	SaNameT comp_name;	/* comp name */
@@ -283,6 +292,7 @@ typedef struct avsv_amf_cbk_info_tag {
 		AVSV_AMF_PG_TRACK_PARAM pg_track;
 		AVSV_AMF_PXIED_COMP_INST_PARAM pxied_comp_inst;
 		AVSV_AMF_PXIED_COMP_CLEAN_PARAM pxied_comp_clean;
+		AVSV_AMF_CSI_ATTR_CHANGE_PARAM csi_attr_change;
 	} param;
 } AVSV_AMF_CBK_INFO;
 
