@@ -1464,6 +1464,10 @@ static AVND_COMP *avnd_comp_create(const std::string &comp_name, const SaImmAttr
 	comp->su = su;
 	comp->error_report_sent = false;
 	comp->admin_oper = false;
+	//Default SAF version.
+	comp->version.releaseCode = 'B';
+	comp->version.majorVersion = 0x01; 
+	comp->version.minorVersion = 0x01; 
 
 	if (true == su->su_is_external) {
 		m_AVND_COMP_TYPE_SET_EXT_CLUSTER(comp);

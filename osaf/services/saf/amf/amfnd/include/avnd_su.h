@@ -49,6 +49,7 @@ struct avnd_cb_tag;
  * not a part of SU-SI parameters. Concealing those params thru this typedef.
  */
 typedef AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO AVND_SU_SI_PARAM;
+typedef AVSV_D2N_COMPCSI_ASSIGN_MSG_INFO AVND_COMP_CSI_PARAMS_INFO;
 
 /* declaration clc event handler */
 typedef uint32_t (*AVND_SU_PRES_FSM_FN) (struct avnd_cb_tag *, struct avnd_su_tag *, AVND_COMP *);
@@ -414,4 +415,5 @@ bool all_csis_in_restarting_state(const AVND_SU *su, AVND_COMP_CSI_REC * exclude
 extern AVND_SU *avnd_sudb_rec_get(AmfDb<std::string, AVND_SU>& sudb, const std::string& name);
 extern AVND_SU *avnd_sudb_rec_get_next(AmfDb<std::string, AVND_SU>& sudb, const std::string& name);
 extern void sudb_rec_comp_add(AVND_SU *su, AVND_COMP *comp, uint32_t *rc);
+uint32_t avnd_evt_avd_compcsi_evh(struct avnd_cb_tag *cb, struct avnd_evt_tag *evt);
 #endif

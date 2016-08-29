@@ -724,6 +724,9 @@ uint32_t avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AV
 	/* update the comp reg params */
 	comp->reg_hdl = reg->hdl;
 	comp->reg_dest = *dest;
+	comp->version = reg->version;
+	TRACE("SAF version '%c'.'%u'.'%u'",comp->version.releaseCode,
+			comp->version.majorVersion, comp->version.minorVersion);
 	m_AVND_COMP_REG_SET(comp);
 
 	/* if proxied comp, do add to the pxied_list of pxy */
@@ -1888,6 +1891,40 @@ uint32_t avnd_comp_curr_info_del(AVND_CB *cb, AVND_COMP *comp)
 	return rc;
 }
 
+/**
+ * @brief Prepares CSI attribute change callback message for amfa with updated values.
+ *	  Values are updated in csi_rec when AMFND gets it from AMFD.
+ * 
+ * @param  cbk_info (ptr to AVSV_AMF_CBK_INFO) 
+ * @param  comp (ptr to AVND_COMP) 
+ * @param  csi_rec(ptr to AVND_COMP_CSI_REC) 
+ *
+ * @return true/false
+ */
+static void set_params_for_csi_attr_change_cbk(AVSV_AMF_CBK_INFO *cbk_info, AVND_COMP *comp, AVND_COMP_CSI_REC *csi_rec) {
+  AVSV_CSI_ATTRS attr;
+  SaNameT csi_name;
+
+  /* copy the attributes */
+  memset(&attr, 0, sizeof(AVSV_CSI_ATTRS));
+  if (csi_rec->attrs.number != 0) {
+    attr.list = static_cast<AVSV_ATTR_NAME_VAL*>(calloc(csi_rec->attrs.number,
+      sizeof(AVSV_ATTR_NAME_VAL)));
+    osafassert(attr.list != nullptr);
+    memcpy(attr.list, csi_rec->attrs.list,
+      sizeof(AVSV_ATTR_NAME_VAL)*csi_rec->attrs.number);
+    attr.number = csi_rec->attrs.number;
+  }
+  /* fill the callback params */
+  cbk_info->type = AVSV_AMF_CSI_ATTR_CHANGE;
+  osaf_extended_name_alloc(csi_rec->name.c_str(), &csi_name);
+  cbk_info->param.csi_attr_change.csi_name = csi_name;
+  cbk_info->param.csi_attr_change.attrs = attr;
+  /* reset the attr */
+  attr.number = 0;
+  attr.list = 0;
+}
+
 /****************************************************************************
   Name          : avnd_comp_cbk_send
  
@@ -2042,6 +2079,10 @@ uint32_t avnd_comp_cbk_send(AVND_CB *cb,
 		avnd_amf_pxied_comp_clean_cbk_fill(cbk_info, comp->name);
 		per = comp->pxied_clean_cbk_timeout;
 		break;
+	case AVSV_AMF_CSI_ATTR_CHANGE:
+		set_params_for_csi_attr_change_cbk(cbk_info, comp, csi_rec);
+		per = comp->csi_set_cbk_timeout;
+		break;	
 	case AVSV_AMF_PG_TRACK:
 	default:
 		osafassert(0);
