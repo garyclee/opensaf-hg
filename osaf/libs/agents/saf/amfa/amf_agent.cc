@@ -2457,11 +2457,18 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
         /* create_momory is true, so let us create the memory for the Use, User has to free it. */
         buf->numberOfItems = rsp_buf->numberOfItems;
         if (buf->numberOfItems != 0) {
+            /*
+             * NOTE: This buf->notification is allocated by Agent, it's
+             * added sentinel element at the end so that it helps
+             * to free LongDn in saAmfProtectionGroupNotificationFree_4
+             * Sentinel element has @.change = 0
+             */
           buf->notification =
-              static_cast<SaAmfProtectionGroupNotificationT_4*>(malloc(buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT_4)));
+              static_cast<SaAmfProtectionGroupNotificationT_4*>(malloc((buf->numberOfItems + 1) * sizeof(SaAmfProtectionGroupNotificationT_4)));
           if (buf->notification != NULL) {
             ava_cpy_protection_group_ntf(buf->notification, rsp_buf->notification,
                                          buf->numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
+            buf->notification[buf->numberOfItems].change = static_cast<SaAmfProtectionGroupChangesT>(0);
           } else {
             rc = SA_AIS_ERR_NO_MEMORY;
             buf->numberOfItems = 0;
@@ -2555,8 +2562,12 @@ SaAisErrorT AmfAgent::ProtectionGroupNotificationFree_4(SaAmfHandleT hdl, SaAmfP
 
   /* free memory */
   if(notification) {
-    // TODO (minhchau): memleak if notification is an array
-    osaf_extended_name_free(&notification->member.compName);
+    // Free LongDn until reach sentinel element
+    int i = 0;
+    while (notification[i].change != 0) {
+        osaf_extended_name_free(&notification[i].member.compName);
+        i++;
+    }
     free(notification);
   }
   else
