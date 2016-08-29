@@ -791,17 +791,8 @@ static SaAisErrorT check_red_model_service_outage(const AVD_AMF_NG *ng)
 			LOG_NO("service outage for '%s' because of shutdown/lock "
 					"on '%s'",sg->name.c_str(),ng->name.c_str());
 
-		if (sg->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) { 
-			LOG_NO("Admin op on '%s'  hosting SUs of '%s' with redundancy '%u' "
-					"is not supported",ng->name.c_str(), sg->name.c_str(),
-					sg->sg_redundancy_model);
-			rc = SA_AIS_ERR_NOT_SUPPORTED;
-			tmp_sg_list.clear();
-			goto done;
-		}
 	}
 	tmp_sg_list.clear();
-done:
 	return rc;
 }
 /**

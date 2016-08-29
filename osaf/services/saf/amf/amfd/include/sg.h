@@ -561,6 +561,7 @@ public:
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
 	void node_fail_si_oper(AVD_SU *su);
 	SaAisErrorT si_swap(AVD_SI *si, SaInvocationT invocation);
+	void ng_admin(AVD_SU *su, AVD_AMF_NG *ng);
 
 private:
 	uint32_t susi_success_su_oper(AVD_CL_CB *cb, AVD_SU *su, struct avd_su_si_rel_tag *susi,
