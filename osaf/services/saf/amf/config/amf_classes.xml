@@ -320,6 +320,20 @@
 			<type>SA_UINT32_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
+  		<attr>
+			<name>osafAmfSGSuOperationList</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_MULTI_VALUE</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+  		<attr>
+			<name>osafAmfSGFsmState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+			<default-value>0</default-value>
+		</attr>
 	</class>
 	<class name="SaAmfSGType">
 		<category>SA_CONFIG</category>
@@ -500,6 +514,13 @@
 			<name>saAmfSURestartCount</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_RUNTIME</category>
+		</attr>
+  		<attr>
+			<name>osafAmfSUSwitch</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+			<default-value>0</default-value>
 		</attr>
 	</class>
 	<class name="SaAmfSUType">
@@ -732,6 +753,13 @@
 			<type>SA_UINT32_T</type>
 			<category>SA_RUNTIME</category>
 			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>osafAmfSISUFsmState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+			<default-value>0</default-value>
 		</attr>
 	</class>
 	<class name="SaAmfSvcTypeCSTypes">

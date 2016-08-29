@@ -290,6 +290,7 @@ void add_sisu_state_info(AVND_MSG *msg, SaAmfSIAssignment *si_assign)
 	osaf_extended_name_alloc(osaf_extended_name_borrow(&si_assign->su), &sisu_state->safSU);
 	osaf_extended_name_alloc(osaf_extended_name_borrow(&si_assign->si), &sisu_state->safSI);
 	sisu_state->saAmfSISUHAState = si_assign->saAmfSISUHAState;
+	sisu_state->assignmentAct = si_assign->assignmentAct;
 
 	sisu_state->next = msg->info.avd->msg_info.n2d_nd_sisu_state_info.sisu_list;
 	msg->info.avd->msg_info.n2d_nd_sisu_state_info.sisu_list = sisu_state;
@@ -1631,6 +1632,18 @@ void avnd_sync_sisu(AVND_CB *cb)
 			osaf_extended_name_alloc(su->name.c_str(), &si_assignment.su);
 			osaf_extended_name_alloc(si->name.c_str(), &si_assignment.si);
 			si_assignment.saAmfSISUHAState = si->curr_state;
+
+			if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(si)) {
+				si_assignment.assignmentAct =  static_cast<uint32_t>(AVSV_SUSI_ACT_ASGND);
+			} else if (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(si)) {
+				if (si->prv_state) {
+					si_assignment.assignmentAct =  static_cast<uint32_t>(AVSV_SUSI_ACT_MOD);
+				} else {
+					si_assignment.assignmentAct =  static_cast<uint32_t>(AVSV_SUSI_ACT_ASGN);
+				}
+			} else {
+				si_assignment.assignmentAct =  static_cast<uint32_t>(AVSV_SUSI_ACT_DEL);
+			}
 
 			add_sisu_state_info(&msg, &si_assignment);
 		}

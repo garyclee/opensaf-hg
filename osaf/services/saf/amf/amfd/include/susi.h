@@ -39,7 +39,8 @@
 #include <ntf.h>
 
 typedef enum {
-	AVD_SU_SI_STATE_ABSENT = 1,
+	AVD_SU_SI_STATE_BASE = AVSV_SUSI_ACT_BASE,
+	AVD_SU_SI_STATE_ABSENT,
 	AVD_SU_SI_STATE_ASGN,
 	AVD_SU_SI_STATE_ASGND,
 	AVD_SU_SI_STATE_UNASGN,
@@ -136,8 +137,12 @@ extern AmfDb<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK> *sirankedsu_
    avd_susi_delete(cb,susi,false);\
 }
 
-AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, bool ckpt);
+AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state,
+								bool ckpt, AVSV_SUSI_ACT default_act = AVSV_SUSI_ACT_BASE,
+								AVD_SU_SI_STATE default_fsm = AVD_SU_SI_STATE_ABSENT);
 AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const std::string& su_name, const std::string& si_name);
+void avd_susi_update_fsm(AVD_SU_SI_REL *susi, AVD_SU_SI_STATE new_fsm_state);
+void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb);
 extern void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state);
 
 AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const std::string& si_name);
@@ -157,7 +162,6 @@ extern bool si_assignment_state_check(AVD_SI *si);
 extern SaAmfHAStateT avd_su_state_determine(AVD_SU *su);
 extern AVD_SU_SI_REL *avd_siass_next_susi_to_quiesce(const AVD_SU_SI_REL *susi);
 extern bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi);
-SaAisErrorT avd_susi_cleanup(void);
 SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO*);
 
 #endif

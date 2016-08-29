@@ -227,12 +227,6 @@ uint32_t initialize_for_assignment(cl_cb_tag* cb, SaAmfHAStateT ha_state)
 			goto done;
 		}
 
-		/* in a normal cluster start there will be no assignments object found so
-		 * nothing happens. Used to cleanup cached RTAs after SCs recover after
-		 * being headless.
-		 */
-		avd_susi_cleanup();
-		avd_compcsi_cleanup();
 	} else if (ha_state == SA_AMF_HA_STANDBY) {
 		rc = avd_standby_role_initialization(cb);
 		if (rc != NCSCC_RC_SUCCESS) {

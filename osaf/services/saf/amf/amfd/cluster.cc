@@ -83,6 +83,10 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			continue;
 		}
 
+		if (i_sg->any_assignment_in_progress() == false) {
+			i_sg->set_fsm_state(AVD_SG_FSM_STABLE);
+		}
+
 		if (i_sg->sg_fsm_state == AVD_SG_FSM_STABLE)
 			i_sg->realign(cb, i_sg);
 	}

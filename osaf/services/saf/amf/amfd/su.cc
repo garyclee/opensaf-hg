@@ -1254,7 +1254,11 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			/* This means that shutdown was going on and lock has
 			   been issued.  In this case, response to shutdown
 			   and then allow lock operation to proceed. */
-			report_admin_op_error(immoi_handle, su->pend_cbk.invocation,
+			SaInvocationT invoc = su->pend_cbk.invocation;
+			if (invoc == 0)
+				invoc = invocation;
+
+			report_admin_op_error(immoi_handle, invoc,
 					SA_AIS_ERR_INTERRUPT, &su->pend_cbk,
 					"SU lock has been issued '%s'", su->name.c_str());
 		}
@@ -2114,7 +2118,7 @@ void AVD_SU::set_all_susis_assigned_quiesced(void) {
 	for (; susi != nullptr; susi = susi->su_next) {
 		if (susi->fsm != AVD_SU_SI_STATE_UNASGN) {
 			susi->state = SA_AMF_HA_QUIESCED;
-			susi->fsm = AVD_SU_SI_STATE_ASGND;
+			avd_susi_update_fsm(susi, AVD_SU_SI_STATE_ASGND);
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 			avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
 			avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD,
@@ -2133,7 +2137,7 @@ void AVD_SU::set_all_susis_assigned(void) {
 
 	for (; susi != nullptr; susi = susi->su_next) {
 		if (susi->fsm != AVD_SU_SI_STATE_UNASGN) {
-			susi->fsm = AVD_SU_SI_STATE_ASGND;
+			avd_susi_update_fsm(susi, AVD_SU_SI_STATE_ASGND);
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 			avd_pg_susi_chg_prc(avd_cb, susi);
 		}
@@ -2148,9 +2152,14 @@ void AVD_SU::set_term_state(bool state) {
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_TERM_STATE);
 }
 
-void AVD_SU::set_su_switch(SaToggleState state) {
+void AVD_SU::set_su_switch(SaToggleState state, bool wrt_to_imm) {
 	su_switch = state;
 	TRACE("%s su_switch %u", name.c_str(), su_switch);
+	if (avd_cb->scs_absence_max_duration > 0 && wrt_to_imm) {
+		avd_saImmOiRtObjectUpdate_sync(name,
+				const_cast<SaImmAttrNameT>("osafAmfSUSwitch"),
+				SA_IMM_ATTR_SAUINT32T, &su_switch);
+	}
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SWITCH);
 }
 
@@ -2194,6 +2203,56 @@ bool AVD_SU::is_in_service(void) {
             		(saAmfSUOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 			(are_all_ngs_in_unlocked_state(node));
     }
+}
+
+void avd_su_read_headless_cached_rta(AVD_CL_CB *cb)
+{
+	SaAisErrorT rc;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+
+	SaNameT su_dn;
+	AVD_SU *su;
+	const SaImmAttrValuesT_2 **attributes;
+	SaToggleState su_toggle;
+	const char *className = "SaAmfSU";
+	const SaImmAttrNameT searchAttributes[] = {
+		const_cast<SaImmAttrNameT>("osafAmfSUSwitch"),
+		NULL
+	};
+
+	TRACE_ENTER();
+
+	osafassert(cb->scs_absence_max_duration > 0);
+
+	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if ((rc = immutil_saImmOmSearchInitialize_2(cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
+		  searchAttributes, &searchHandle)) != SA_AIS_OK) {
+
+		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
+		goto done;
+	}
+
+	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &su_dn,
+					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
+		su = su_db->find(Amf::to_string(&su_dn));
+		if (su && su->sg_of_su->sg_ncs_spec == false) {
+			// Read sg fsm state
+			rc = immutil_getAttr(const_cast<SaImmAttrNameT>("osafAmfSUSwitch"),
+					attributes, 0, &su_toggle);
+			osafassert(rc == SA_AIS_OK);
+			su->set_su_switch(su_toggle, false);
+		}
+	}
+
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+
+done:
+    TRACE_LEAVE();
 }
 
 
@@ -2341,28 +2400,30 @@ void AVD_SU::complete_admin_op(SaAisErrorT result)
 	}
 }
 /**
- * @brief    Checks if modification of assignment is sent for any SUSI in SU.
- * @result   true/false  
+ * @brief    Checks if assignment is under specific fsm state
+ *           . If any assignment's fsm is AVD_SU_SI_STATE_UNASGN,
+ *           deletion of assignment has sent to amfnd.
+ *           . If any assignment's fsm is AVD_SU_SI_STATE_MODIFY,
+ *           modification of assignment has sent to amfnd.
+ *           . If any assignment's fsm is AVD_SU_SI_STATE_ASGN,
+ *           creation of assignment has sent to amfnd.
+ * @param    @check_fsm: to-be-check fsm state
+ * @result   true/false
  */
-bool AVD_SU::any_susi_fsm_in_modify()
+bool AVD_SU::any_susi_fsm_in(uint32_t check_fsm)
 {
-        for (AVD_SU_SI_REL *susi = list_of_susi; susi; susi = susi->su_next) {
-                if (susi->fsm == AVD_SU_SI_STATE_MODIFY)
-                        return true;
-        }
-        return false;
-}
-/**
- * @brief    Checks if deletion of assignment is sent for any SUSI in SU.
- * @result   true/false  
- */
-bool AVD_SU::any_susi_fsm_in_unasgn()
-{
-        for (AVD_SU_SI_REL *susi = list_of_susi; susi; susi = susi->su_next) {
-                if (susi->fsm == AVD_SU_SI_STATE_UNASGN)
-                        return true;
-        }
-        return false;
+	TRACE_ENTER2("SU:'%s'", name.c_str());
+	bool rc = false;
+	for (AVD_SU_SI_REL *susi = list_of_susi; susi && rc == false;
+			susi = susi->su_next) {
+		if (susi->fsm == check_fsm) {
+			rc = true;
+			TRACE("SUSI:'%s,%s', fsm:'%d'", susi->su->name.c_str(),
+					susi->si->name.c_str(), susi->fsm);
+		}
+	}
+	TRACE_LEAVE();
+	return rc;
 }
 /**
  * @brief  Verify if SU is stable for admin operation on any higher 

@@ -45,15 +45,23 @@
  * @param si_dn
  * @param su_dn
  */
-static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
-       const std::string& si_dn, const std::string& su_dn)
+//static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
+//       const std::string& si_dn, const std::string& su_dn)
+static void avd_create_susi_in_imm(AVD_SU_SI_REL* susi)
 {
 	SaNameT dn;
 	SaAmfHAReadinessStateT saAmfSISUHAReadinessState =
 			SA_AMF_HARS_READY_FOR_ASSIGNMENT;
 	void *arr1[] = { &dn };
-	void *arr2[] = { &ha_state };
+	void *arr2[] = { &susi->state };
 	void *arr3[] = { &saAmfSISUHAReadinessState };
+
+	uint32_t fsm = 0;
+	if (avd_cb->scs_absence_max_duration > 0)
+		fsm = susi->fsm;
+
+	void *arr4[] = { &fsm };
+
 	const SaImmAttrValuesT_2 attr_safSISU = {
 			const_cast<SaImmAttrNameT>("safSISU"),
 			SA_IMM_ATTR_SANAMET, 1, arr1
@@ -66,16 +74,23 @@ static void avd_create_susi_in_imm(SaAmfHAStateT ha_state,
 			const_cast<SaImmAttrNameT>("saAmfSISUHAReadinessState"),
 			SA_IMM_ATTR_SAUINT32T, 1, arr3
 	};
+
+	const SaImmAttrValuesT_2 attr_osafAmfSISUFsmState = {
+			const_cast<SaImmAttrNameT>("osafAmfSISUFsmState"),
+			SA_IMM_ATTR_SAUINT32T, 1, arr4
+	};
+
 	const SaImmAttrValuesT_2 *attrValues[] = {
 			&attr_safSISU,
 			&attr_saAmfSISUHAState,
 			&attr_saAmfSISUHAReadinessState,
+			&attr_osafAmfSISUFsmState,
 			nullptr
 	};
 
-	const SaNameTWrapper su(su_dn);
+	const SaNameTWrapper su(susi->su->name);
 	avsv_create_association_class_dn(su, nullptr, "safSISU", &dn);
-	avd_saImmOiRtObjectCreate("SaAmfSIAssignment", si_dn, attrValues);
+	avd_saImmOiRtObjectCreate("SaAmfSIAssignment", susi->si->name, attrValues);
 	osaf_extended_name_free(&dn);
 }
 
@@ -132,6 +147,134 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	}
 }
 
+/**
+ * Update an osafAmfSISUFsmState runtime object in IMM.
+ * @param susi
+ * @param new_fsm_state
+ */
+void avd_susi_update_fsm(AVD_SU_SI_REL *susi, AVD_SU_SI_STATE new_fsm_state)
+{
+    SaNameT dn;
+	const SaNameTWrapper su_name(susi->su->name);
+	const SaNameTWrapper si_name(susi->si->name);
+    avsv_create_association_class_dn(su_name, si_name, "safSISU", &dn);
+    TRACE_ENTER2("SISU:'%s', old fsm state: %d, new fsm state: %d",
+    		Amf::to_string(&dn).c_str(), susi->fsm, new_fsm_state);
+    if (susi->fsm != new_fsm_state) {
+    	susi->fsm = new_fsm_state;
+		if (avd_cb->scs_absence_max_duration > 0) {
+			avd_saImmOiRtObjectUpdate(Amf::to_string(&dn),
+					const_cast<SaImmAttrNameT>("osafAmfSISUFsmState"),
+					SA_IMM_ATTR_SAUINT32T, &susi->fsm);
+		}
+    }
+    TRACE_LEAVE();
+}
+
+/**
+ * Read an osafAmfSISUFsmState runtime object from IMM.
+ * @param susi
+ */
+void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
+{
+
+	SaAisErrorT rc;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+
+	SaNameT dn;
+	const SaImmAttrValuesT_2 **attributes;
+	AVD_SU_SI_REL *susi = nullptr;
+	AVD_SU_SI_STATE imm_susi_fsm;
+	const char *className = "SaAmfSIAssignment";
+	const SaImmAttrNameT siass_attributes[] = {
+		const_cast<SaImmAttrNameT>("safSISU"),
+		const_cast<SaImmAttrNameT>("saAmfSISUHAState"),
+		const_cast<SaImmAttrNameT>("osafAmfSISUFsmState"),
+		NULL
+	};
+
+	TRACE_ENTER();
+
+	osafassert(cb->scs_absence_max_duration > 0);
+
+	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if ((rc = immutil_saImmOmSearchInitialize_2(cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
+		  siass_attributes, &searchHandle)) != SA_AIS_OK) {
+
+		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
+		goto done;
+	}
+
+	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &dn,
+					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
+		std::string si_name = std::string(strstr(osaf_extended_name_borrow(&dn), "safSi"));
+		assert(si_name.empty() == false);
+		AVD_SI *si = si_db->find(si_name);
+		osafassert(si);
+		SaNameT su_name;
+		avsv_sanamet_init_from_association_dn(&dn, &su_name, "safSu", si->name.c_str());
+		AVD_SU *su = su_db->find(Amf::to_string(&su_name));
+		osaf_extended_name_free(&su_name);
+		osafassert(su);
+		susi = avd_su_susi_find(cb, su, si->name);
+		rc = immutil_getAttr("osafAmfSISUFsmState", attributes, 0, &imm_susi_fsm);
+		osafassert(rc == SA_AIS_OK);
+
+		if (susi) {
+			TRACE("SISU:'%s', old(imm) fsm state: %d, new(sync) fsm state: %d",
+				Amf::to_string(&dn).c_str(), imm_susi_fsm, susi->fsm);
+
+#if 1
+			// If remove the below line in this #if block, AMFD will use
+			// the synced fsm state, which is latest. That means, in
+			// case of CSI completion during headless period, AMFD has to
+			// self trigger susi_success() in order to continue the admin
+			// operation.
+
+			// Currently, AMFD uses the fsm state read from IMM, which is
+			// the last fsm state when AMFD was before headless. This needs
+			// AMFND to resend susi_resp message if CSI completes during
+			// headless period.
+			susi->fsm = imm_susi_fsm;
+#endif
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
+			// restore assignment counter
+			if (susi->fsm == AVD_SU_SI_STATE_ASGN || susi->fsm == AVD_SU_SI_STATE_ASGND ||
+				susi->fsm == AVD_SU_SI_STATE_MODIFY) {
+				if (susi->state == SA_AMF_HA_ACTIVE || susi->state == SA_AMF_HA_QUIESCING) {
+					su->inc_curr_act_si();
+					susi->si->inc_curr_act_ass();
+				} else if (susi->state == SA_AMF_HA_STANDBY) {
+					su->inc_curr_stdby_si();
+					susi->si->inc_curr_stdby_ass();
+				}
+			}
+			if (susi->si->saAmfSIAdminState == SA_AMF_ADMIN_LOCKED ||
+				susi->si->saAmfSIAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+				if (susi->fsm == AVD_SU_SI_STATE_MODIFY &&
+					(susi->state == SA_AMF_HA_QUIESCED || susi->state == SA_AMF_HA_QUIESCING)) {
+						m_AVD_SET_SG_ADMIN_SI(cb, si);
+				}
+			}
+
+		} else {
+			// This susi does not exist after headless, but it's still in IMM
+			// delete it for now
+			avd_saImmOiRtObjectDelete(Amf::to_string(&dn));
+		}
+	}
+
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+
+done:
+    TRACE_LEAVE();
+
+}
 /*****************************************************************************
  * Function: avd_susi_create
  *
@@ -149,7 +292,8 @@ void avd_susi_update(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state, bool ckpt)
+AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state,
+					bool ckpt, AVSV_SUSI_ACT default_act, AVD_SU_SI_STATE default_fsm)
 {
 	AVD_SU_SI_REL *su_si, *p_su_si, *i_su_si;
 	AVD_SU *curr_su = 0;
@@ -163,7 +307,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	su_si = new AVD_SU_SI_REL();
 
 	su_si->state = state;
-	su_si->fsm = AVD_SU_SI_STATE_ABSENT;
+	su_si->fsm = default_fsm;
 	su_si->list_of_csicomp = nullptr;
 	su_si->si = si;
 	su_si->su = su;
@@ -254,9 +398,9 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 done:
 	//ADD susi in imm job queue at both standby and active amfd.
 	if (su_si != nullptr)
-		avd_create_susi_in_imm(state, si->name, su->name);
-	if ((ckpt == false) && (su_si != nullptr)) {
-		avd_susi_update_assignment_counters(su_si, AVSV_SUSI_ACT_ASGN, state, state);
+		avd_create_susi_in_imm(su_si);
+	if ((ckpt == false) && (su_si != nullptr) && default_act != AVSV_SUSI_ACT_BASE) {
+		avd_susi_update_assignment_counters(su_si, default_act, state, state);
 		avd_gen_su_ha_state_changed_ntf(cb, su_si);
 	}
 
@@ -519,13 +663,13 @@ uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	old_state = susi->state;
 	old_fsm_state = susi->fsm;
 	susi->state = ha_state;
-	susi->fsm = AVD_SU_SI_STATE_MODIFY;
+	avd_susi_update_fsm(susi, AVD_SU_SI_STATE_MODIFY);
 	rc = avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_MOD, false, nullptr);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("role modification msg send failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
 			susi->su->name.c_str(),susi->si->name.c_str());
 		susi->state = old_state;
-		susi->fsm = old_fsm_state;
+		avd_susi_update_fsm(susi, old_fsm_state);
 		goto done;
 	}
 	/* Update the assignment counters */
@@ -558,13 +702,12 @@ uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi)
 	TRACE_ENTER2("SI '%s', SU '%s' ", susi->si->name.c_str(), susi->su->name.c_str());
 
 	old_fsm_state = susi->fsm;
-	susi->fsm = AVD_SU_SI_STATE_UNASGN;
-
+	avd_susi_update_fsm(susi, AVD_SU_SI_STATE_UNASGN);
 	avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, nullptr);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("susi del msg snd failed %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
 				susi->su->name.c_str(),susi->si->name.c_str());
-		susi->fsm = old_fsm_state;
+		avd_susi_update_fsm(susi, old_fsm_state);
 		goto done;
 	}
 	/* Update the assignment counters */
@@ -783,44 +926,6 @@ done:
 }
 
 /**
- * Clean up SUSI objects by searching for SaAmfSIAssignment instances in IMM
- * @return SA_AIS_OK when OK
- */
-SaAisErrorT avd_susi_cleanup(void)
-{
-	SaAisErrorT rc;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	const char *className = "SaAmfSIAssignment";
-
-	TRACE_ENTER();
-
-	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	if ((rc = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
-	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam,
-		  nullptr, &searchHandle)) != SA_AIS_OK) {
-		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
-		goto done;
-	}
-
-	SaNameT siass_name;
-	const SaImmAttrValuesT_2 **attributes;
-	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &siass_name,
-					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
-		avd_saImmOiRtObjectDelete(Amf::to_string(&siass_name));
-	}
-
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
-
-done:
-	TRACE_LEAVE();
-	return SA_AIS_OK;
-}
-
-/**
  * Recreates SUSI objects by with information retrieved from node directors.
  * Update relevant runtime attributes
  * @return SA_AIS_OK when OK
@@ -888,12 +993,8 @@ SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
 		} else {
 			avd_susi_ha_state_set(susi, ha_state);
 		}
-		susi->fsm = AVD_SU_SI_STATE_ASGND;
-
-		if (susi->state == SA_AMF_HA_QUIESCING) {
-			susi->su->inc_curr_act_si();
-			susi->si->inc_curr_act_ass();
-		}
+		susi->fsm = static_cast<AVD_SU_SI_STATE>(susi_state->assignmentAct);
+		TRACE("synced fsm:%u", susi->fsm);
 		su->saAmfSUHostedByNode = node->name;
 		const SaNameTWrapper hosted_by_node(su->saAmfSUHostedByNode);
 		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUHostedByNode",

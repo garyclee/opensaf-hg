@@ -184,7 +184,7 @@ public:
 	 */
 	std::vector<AVD_SU*> list_of_su;
 	AVD_SU* first_su();
-
+	AVD_SU* get_su_by_name(SaNameT su_name);
 	/* the list of service instances in 
 	 * this group in the descending order 
 	 * of the rank.
@@ -221,7 +221,7 @@ public:
 	 * Set FSM state
 	 * @param sg_fsm_state
 	 */
-	void set_fsm_state(AVD_SG_FSM_STATE sg_fsm_state);
+	void set_fsm_state(AVD_SG_FSM_STATE sg_fsm_state, bool wrt_to_imm = true);
 
 	/**
 	 * Set adjust state
@@ -413,6 +413,7 @@ public:
          */
 	bool is_sg_serviceable_outside_ng(const AVD_AMF_NG *ng);
 	SaAisErrorT check_sg_stability();
+	bool any_assignment_in_progress();
 	bool ng_using_saAmfSGAdminState;
 	
 	uint32_t term_su_list_in_reverse();
@@ -573,6 +574,8 @@ private:
 #define m_AVD_SET_SG_ADMIN_SI(cb,si) (si)->sg_of_si->set_admin_si((si))
 #define m_AVD_CLEAR_SG_ADMIN_SI(cb,sg) (sg)->clear_admin_si()
 #define m_AVD_CHK_OPLIST(i_su,flag) (flag) = (i_su)->sg_of_su->in_su_oper_list(i_su)
+
+void avd_sg_read_headless_cached_rta(AVD_CL_CB *cb);
 
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);

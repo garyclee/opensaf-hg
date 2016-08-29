@@ -1678,13 +1678,18 @@ void AVD_SG::set_admin_state(SaAmfAdminStateT state) {
 	TRACE_LEAVE();
 }
 
-void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state) {
+void AVD_SG::set_fsm_state(AVD_SG_FSM_STATE state, bool wrt_to_imm) {
 	TRACE_ENTER();
 
 	if (sg_fsm_state != state) {
 		TRACE("%s sg_fsm_state %u => %u", name.c_str(), sg_fsm_state, state);
 		sg_fsm_state = state;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SG_FSM_STATE);
+		if (avd_cb->scs_absence_max_duration > 0 && wrt_to_imm) {
+			avd_saImmOiRtObjectUpdate_sync(name,
+						const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
+						SA_IMM_ATTR_SAUINT32T, &sg_fsm_state);
+		}
 	}
 
 	if (state == AVD_SG_FSM_STABLE) {
@@ -2050,6 +2055,16 @@ AVD_SU* AVD_SG::first_su()
 	}
 }
 
+AVD_SU* AVD_SG::get_su_by_name(SaNameT su_name)
+{
+	for (const auto& su : list_of_su) {
+		if (Amf::to_string(const_cast<SaNameT*>(&su_name)) == su->name) {
+			return su;
+		}
+	}
+	return nullptr;
+}
+
 uint32_t AVD_SG::curr_assigned_sus() const
 {
 	return (std::count_if (list_of_su.cbegin(), list_of_su.cend(),
@@ -2067,3 +2082,86 @@ uint32_t AVD_SG::curr_non_instantiated_spare_sus() const
 		[](AVD_SU *su) -> bool { return ((su->list_of_susi == nullptr) &&
 			(su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED));}));	
 }
+
+void avd_sg_read_headless_cached_rta(AVD_CL_CB *cb)
+{
+
+	SaAisErrorT rc;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+
+	SaNameT sg_dn;
+	AVD_SG *sg;
+	unsigned int num_of_values = 0;
+	const SaImmAttrValuesT_2 **attributes;
+	AVD_SG_FSM_STATE imm_sg_fsm_state;
+	const char *className = "SaAmfSG";
+	const SaImmAttrNameT searchAttributes[] = {
+		const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
+		const_cast<SaImmAttrNameT>("osafAmfSGSuOperationList"),
+		NULL
+	};
+
+	TRACE_ENTER();
+
+	osafassert(cb->scs_absence_max_duration > 0);
+
+	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if ((rc = immutil_saImmOmSearchInitialize_2(cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
+		  searchAttributes, &searchHandle)) != SA_AIS_OK) {
+
+		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
+		goto done;
+	}
+
+	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &sg_dn,
+					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
+		sg = sg_db->find(Amf::to_string(&sg_dn));
+		if (sg && sg->sg_ncs_spec == false) {
+			// Read sg fsm state
+			rc = immutil_getAttr(const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
+					attributes, 0, &imm_sg_fsm_state);
+			osafassert(rc == SA_AIS_OK);
+			sg->set_fsm_state(imm_sg_fsm_state, false);
+			// Read sg operation list
+			if (immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("osafAmfSGSuOperationList"), attributes, &num_of_values) == SA_AIS_OK) {
+				unsigned int i;
+				for (i = 0; i < num_of_values; i++) {
+					const SaNameT *su_name = immutil_getNameAttr(attributes, "osafAmfSGSuOperationList", i);
+					AVD_SU* op_su = sg->get_su_by_name(*su_name);
+					if (op_su) {
+						if (op_su->sg_of_su->any_assignment_in_progress()) {
+							avd_sg_su_oper_list_add(avd_cb, op_su, false, false);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+
+done:
+	TRACE_LEAVE();
+
+}
+
+bool AVD_SG::any_assignment_in_progress() {
+	bool pending = false;
+	TRACE_ENTER2("SG:'%s'", name.c_str());
+	for (const auto& su : list_of_su) {
+		if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ASGN) ||
+			su->any_susi_fsm_in(AVD_SU_SI_STATE_UNASGN) ||
+			su->any_susi_fsm_in(AVD_SU_SI_STATE_MODIFY)){
+			pending = true;
+			break;
+		}
+	}
+	TRACE_LEAVE();
+	return pending;
+}
+

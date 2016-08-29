@@ -184,7 +184,7 @@ extern AVD_CSI *csi_create(const std::string& csi_name);
 extern bool csi_assignment_validate(AVD_SG *sg);
 extern SaAisErrorT csi_assign_hdlr(AVD_CSI *csi);
 extern bool are_sponsor_csis_assigned_in_su(AVD_CSI *dep_csi, AVD_SU *su);
-SaAisErrorT avd_compcsi_cleanup(void);
 SaAisErrorT avd_compcsi_recreate(AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO *info);
+void avd_compcsi_cleanup_imm_object(AVD_CL_CB *cb);
 
 #endif

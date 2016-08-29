@@ -53,7 +53,7 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 	AVD_EVT_QUEUE *queue_evt = nullptr;
 	/* Counter for Act Amfnd node up message.*/
 	static int act_amfnd_node_up_count = 0;
-
+	bool found_state_info = false;
 	TRACE_ENTER();
 
 	TRACE("queue_size before processing: %lu", (unsigned long) queue_size);
@@ -72,7 +72,7 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 			AVD_DND_MSG* n2d_msg = queue_evt->evt->info.avnd_msg;
 
 			TRACE("msg_type: %u", n2d_msg->msg_type);
-
+			found_state_info = true;
 			switch(n2d_msg->msg_type) {
 				case AVSV_N2D_ND_SISU_STATE_INFO_MSG:
 					avd_susi_recreate(&n2d_msg->msg_info.n2d_nd_sisu_state_info);
@@ -123,6 +123,15 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 				si->update_alarm_state(true);
 			}
 		}
+	}
+
+	// Read cached rta from Imm
+	// Reading sg must be after reading susi
+	if (found_state_info == true) {
+		avd_compcsi_cleanup_imm_object(cb);
+		avd_susi_read_headless_cached_rta(cb);
+		avd_sg_read_headless_cached_rta(cb);
+		avd_su_read_headless_cached_rta(cb);
 	}
 done:
 	TRACE("queue_size after processing: %lu", (unsigned long) cb->evt_queue.size());
