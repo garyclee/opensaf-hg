@@ -1,0 +1,51 @@
+/*      -*- OpenSAF -*-
+ *
+ * (C) Copyright 2016 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Oracle
+ *
+ */
+High Level Implementation Notes for LOCK and SHUTDOWN operation on NG: 
+===========================================================
+
+In 2N model, there are broadly two cases for LOCK and SHUTDOWN operation on NG:
+A) Whole 2N SG is mapped in NG which means all assigned SU are hosted on the 
+   nodes of NG. Or
+B) SG is partially mapped in NG i.e either active SU or standby SU is hosted 
+   on one of the nodes of NG. 
+
+Currently 2N model supports SI dep with in SU. So in LOCK and SHUTDOWN operations 
+quiesced and quiescing HA states, should be given honoring SI deps respectively.
+In case A), AVD_SG_FSM_SG_ADMIN is used in case A) as it honors si dep while 
+giving quiesced or quiescing assignments.
+Case B) becomes the case of either lock of standby Node/SU or active
+Node/Su which still needs to be handled honoring SI dep. Here AVD_SG_FSM_SU_OPER fsm
+state is used via internal function su_admin_down() as it handles SI dep.
+So in 2N model, AMFD always uses internal FSM functions by calling
+them inside the wrapper function ng_admin().
+
+Other red models do not support SI deps within SU as of now. So in these 
+models, AMFD uses AVD_SG_FSM_SG_REALIGN by keeping multiple SUs in operation
+list while performing LOCK and SHUTDOWN operation on NG. Once SI dep is fully 
+supported in these modles, AMFD can use internal SG FSM state like 2N.
+
+However there is one case, where AMFD can still use AVD_SG_FSM_SG_ADMIN 
+state for these red models when whole SG is mapped in NG (all assigned 
+SUs are hosted on on the nodes of NG). But possibility of such a case 
+is more in 2N model where only two SUs can be assigned anytime. In other 
+red models, there can be many assigned SUs so possibility of whole SG is 
+mapped in NG is very less. So, as of now, in other models AVD_SG_FSM_SG_REALIGN
+states is used by keeping multiple SUs in oper list for this case also. 
+But when SI deps, is completely supported with in SU in these models, 
+then AMFD cannot use realign state and it will have to use internal FSM code 
+as it will be enhanced for that.
+
