@@ -213,10 +213,6 @@ def fill_in_header(notification_handle,
     header.numCorrelatedNotifications = 0
     header.lengthAdditionalText = len(additional_text)
 
-    ##
-    ## FIXME: this fails to copy the value of the additional_text variable into
-    ##        header.additionalText.
-
     ctypes.memmove(header.additionalText,
                    additional_text,
                    len(additional_text))

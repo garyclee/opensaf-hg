@@ -15,7 +15,7 @@
 #
 ############################################################################
 
-from ctypes import POINTER, CFUNCTYPE, Structure, Union, CDLL
+from ctypes import POINTER, CFUNCTYPE, Structure, Union, CDLL, c_char
 from pyosaf.saAis import SaUint64T, SaEnumT, Enumeration, Const, BYREF, \
         SaUint32T, SaUint16T, SaBoolT, SaStringT, SaNameT, SaTimeT, SaDoubleT, \
         SaInt64T, SaUint8T, SaInt8T, SaInt16T, SaInt32T, SaFloatT, SaAnyT
@@ -253,7 +253,7 @@ class SaNtfNotificationHeaderT(Structure):
 		('numAdditionalInfo', SaUint16T),
 		('notificationId', POINTER(SaNtfIdentifierT)),
 		('correlatedNotifications', POINTER(SaNtfIdentifierT)),
-		('additionalText', SaStringT),
+		('additionalText', POINTER(c_char)),
 		('additionalInfo', POINTER(SaNtfAdditionalInfoT))]
 
 SaNtfSourceIndicatorT = SaEnumT
