@@ -626,4 +626,7 @@ saAmfResponse_4(
 #ifdef  __cplusplus
 }
 #endif
+
+#include <saAmf_B_04_02.h>
+
 #endif  /* _SA_AMF_H */
