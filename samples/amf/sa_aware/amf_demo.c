@@ -114,7 +114,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		** define the workload characteristics */
 		for (i = 0; i < csi_desc.csiAttr.number; i++) {
 			attr = &csi_desc.csiAttr.attr[i];
-			syslog(LOG_DEBUG, "\tname: %s, value: %s",
+			syslog(LOG_DEBUG, "    name: %s, value: %s",
 				attr->attrName, attr->attrValue);
 		}
 
@@ -158,9 +158,9 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 	else
 		error = SA_AIS_ERR_FAILED_OPERATION;
 
-	rc = saAmfResponse(my_amf_hdl, invocation, error);
+	rc = saAmfResponse_4(my_amf_hdl, invocation, 0, error);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse_4 FAILED - %u", rc);
 		exit(1);
 	}
 
@@ -220,9 +220,9 @@ static void amf_csi_remove_callback(SaInvocationT invocation,
 	/* Reset the HA state */
 	my_ha_state = 0;
 
-	rc = saAmfResponse(my_amf_hdl, invocation, SA_AIS_OK);
+	rc = saAmfResponse_4(my_amf_hdl, invocation, 0, SA_AIS_OK);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse_4 FAILED - %u", rc);
 		exit(1);
 	}
 }
@@ -257,9 +257,9 @@ static void amf_healthcheck_callback(SaInvocationT inv,
 		status = SA_AIS_ERR_FAILED_OPERATION;
 	}
 
-	rc = saAmfResponse(my_amf_hdl, inv, status);
+	rc = saAmfResponse_4(my_amf_hdl, inv, 0, status);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse_4 FAILED - %u", rc);
 		exit(1);
 	}
 }
@@ -278,13 +278,44 @@ static void amf_comp_terminate_callback(SaInvocationT inv,
 
 	syslog(LOG_NOTICE, "Terminating");
 
-	rc = saAmfResponse(my_amf_hdl, inv, SA_AIS_OK);
+	rc = saAmfResponse_4(my_amf_hdl, inv, 0, SA_AIS_OK);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
+		syslog(LOG_ERR, "saAmfResponse_4 FAILED - %u", rc);
 		exit(1);
 	}
 
 	exit(0);
+}
+
+
+/**
+ * AMF invokes this callback as a consequence of change in
+ * csi attribute value.
+ * @param inv
+ * @param csi_name
+ * @param csiAttr
+ */
+static void amf_csi_attr_change_callback(SaInvocationT invocation, const SaNameT *csi_name,
+                                                             SaAmfCSIAttributeListT csiAttr)
+{
+        SaAisErrorT rc, error;
+        SaAmfCSIAttributeT *attr;
+        static int i ;
+        syslog(LOG_INFO, "=====CSI Attr Change====>");
+
+        syslog(LOG_INFO, "CSI----->:'%s'", saAisNameBorrow(csi_name));
+        for (i = 0; i < csiAttr.number; i++) {
+                attr = &csiAttr.attr[i];
+                syslog(LOG_INFO, "CSIATTR--->: %s, val--->: %s",
+                                attr->attrName, 
+				attr->attrValue);
+        }
+        rc = saAmfResponse_4(my_amf_hdl, invocation, 0, SA_AIS_OK);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfResponse_4 FAILED - %u", rc);
+		exit(1);
+	}
+        syslog(LOG_INFO, "<=================");
 }
 
 /**
@@ -329,16 +360,17 @@ static void sigterm_handler(int sig)
 static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 {
 	SaAisErrorT rc;
-	SaAmfCallbacksT amf_callbacks = {0};
+	SaAmfCallbacksT_o4 amf_callbacks = {0};
 	SaVersionT api_ver =
-		{.releaseCode = 'B', api_ver.majorVersion = 0x01, api_ver.minorVersion = 0x01};
+		{.releaseCode = 'B', api_ver.majorVersion = 0x04, api_ver.minorVersion = 0x02};
 
 	/* Initialize our callbacks */
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;
 	amf_callbacks.saAmfCSIRemoveCallback = amf_csi_remove_callback;
 	amf_callbacks.saAmfHealthcheckCallback = amf_healthcheck_callback;
 	amf_callbacks.saAmfComponentTerminateCallback = amf_comp_terminate_callback;
-	rc = saAmfInitialize(&my_amf_hdl, &amf_callbacks, &api_ver);
+	amf_callbacks.osafCsiAttributeChangeCallback = amf_csi_attr_change_callback;
+	rc = saAmfInitialize_o4(&my_amf_hdl, &amf_callbacks, &api_ver);
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, " saAmfInitialize FAILED %u", rc);
 		goto done;

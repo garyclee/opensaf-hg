@@ -312,4 +312,12 @@ from the file before loaded.
 	<object class="SaAmfCompCsType">
 	    <dn>safSupportedCsType=safVersion=1\,safCSType=AmfDemo1,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1</dn>
 	</object>
+	<object class="SaAmfCSIAttribute">
+                <dn>safCsiAttr=AmfDemo1,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1</dn>
+                <attr>
+                        <name>saAmfCSIAttriValue</name>
+                        <value>AAAA</value>
+                        <value>BBBB</value>
+                </attr>
+        </object>
 </imm:IMM-contents>
