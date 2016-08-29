@@ -24,6 +24,8 @@
 ****************************************************************************/
 #include "avnd.h"
 
+//Remember MDS install version of Agents. It can be used to send msg to Agent based on their versions.
+std::map<MDS_DEST, MDS_SVC_PVT_SUB_PART_VER> agent_mds_ver_db;
 extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX];
 
 static uint32_t avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt);

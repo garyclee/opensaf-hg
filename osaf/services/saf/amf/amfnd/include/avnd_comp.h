@@ -400,7 +400,7 @@ typedef struct avnd_comp_tag {
 
 	std::bitset<NumAttrs> *use_comptype_attr;
 	SaInvocationT term_cbq_inv_value; /* invocation value for termination callback. */
-
+	SaVersionT version; //SAF version of comp.
 } AVND_COMP;
 
 #define AVND_COMP_NULL ((AVND_COMP *)0)

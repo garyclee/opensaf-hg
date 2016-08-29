@@ -398,6 +398,23 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 		break;
 
+	case AVSV_AMF_CSI_ATTR_CHANGE:
+		 csi = m_AVND_COMPDB_REC_CSI_GET(*comp, Amf::to_string(&cbk_rec->cbk_info->param.csi_attr_change.csi_name).c_str());
+
+		if (!csi)
+			LOG_ER("'%s', not found", osaf_extended_name_borrow(&cbk_rec->cbk_info->param.csi_attr_change.csi_name));
+		avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec, false);
+		if (m_AVND_TMR_IS_ACTIVE(cbk_rec->resp_tmr)) {
+			m_AVND_TMR_COMP_CBK_RESP_STOP(cb, *cbk_rec)
+		}
+                if (SA_AIS_OK != resp->err) {
+			//generate a failure report.
+                        err_info.src = AVND_ERR_SRC_CBK_CSI_ATTR_CHANGE_FAILED;
+                        err_info.rec_rcvr.avsv_ext = static_cast<AVSV_ERR_RCVR>(comp->err_info.def_rec);
+                        rc = avnd_err_process(cb, comp, &err_info);
+                } 
+
+		break;
 	case AVSV_AMF_CSI_SET:
 
 		if (m_AVND_COMP_TYPE_IS_PROXIED(comp) && !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
@@ -591,6 +608,9 @@ uint32_t avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 			break;
 		case AVSV_AMF_CSI_REM:
 			err_info.src = AVND_ERR_SRC_CBK_CSI_REM_TIMEOUT;
+			break;
+		case AVSV_AMF_CSI_ATTR_CHANGE:
+			err_info.src = AVND_ERR_SRC_CBK_CSI_ATTR_CHANGE_TIMEOUT;
 			break;
 		default:
 			LOG_ER("%s,%u,type=%u",__FUNCTION__,__LINE__,rec->cbk_info->type);
@@ -1033,7 +1053,10 @@ void avnd_comp_cbq_csi_rec_del(AVND_CB *cb, AVND_COMP *comp, const std::string& 
 			if (((AVSV_AMF_CSI_SET == info->type) &&
 				(0 == csi_name.compare(Amf::to_string(&info->param.csi_set.csi_desc.csiName)))) ||
 			    ((AVSV_AMF_CSI_REM == info->type) &&
-				(0 == csi_name.compare(Amf::to_string(&info->param.csi_rem.csi_name)))))
+			     	(0 == csi_name.compare(Amf::to_string(&info->param.csi_rem.csi_name)))) ||
+			    ((AVSV_AMF_CSI_ATTR_CHANGE == info->type) &&
+			     	(0 == csi_name.compare(Amf::to_string(&info->param.csi_attr_change.csi_name)))))
+
 				to_del = true;
 		}
 

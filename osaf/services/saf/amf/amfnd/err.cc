@@ -96,7 +96,9 @@ static const char *g_comp_err[] = {
 	"csiRemovecallbackTimeout",
 	"csiSetcallbackFailed",
 	"csiRemovecallbackFailed",
-	"qscingCompleteTimeout"
+	"qscingCompleteTimeout",
+	"csiAttributeChangeCallbackTimeout",
+	"csiAttributeChangeCallbackFailed"
 };
 
 static const char *g_comp_rcvr[] = {

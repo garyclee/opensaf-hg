@@ -875,3 +875,154 @@ bool isRestartSet(const AVND_SU *su)
 {
 	return (m_AVND_SU_IS_RESTART(su));
 }
+
+/**
+ * @brief  Processes compcsi msg based on the action (msg_type). 
+ *		As of now only try to send csi attribute change callback.
+ * @param  comp (ptr to AVND_COMP)
+ * @param  csi_rec (ptr to AVND_COMP_CSI_REC)
+ * @param  param (ptr to AVND_COMP_CSI_PARAMS_INFO)
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+static uint32_t avnd_process_comp_csi_msg (AVND_COMP *comp, AVND_COMP_CSI_REC *csi_rec,
+  AVND_COMP_CSI_PARAMS_INFO *param) {
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  std::map<MDS_DEST, MDS_SVC_PVT_SUB_PART_VER>::iterator iter;	
+
+  /*
+     Callback is sent in the following cases:
+     -a PI comp: CSI is assigned to this component.
+     -a proxied PI comp: callback is sent to its proxy.
+     -a proxied NPI:callback is sent to its proxy.
+     For a Non-proxied NPI comp, INSANTIATE command (CLC-CLI) will be invoked.
+     Callback can be sent only when Agent version is B.04.02 in which case 
+     minimum MDS install version must be AVSV_AVND_AVA_MSG_FMT_VER_2.
+   */
+  if ((m_AVND_COMP_TYPE_IS_SAAWARE(comp)) || 
+    (m_AVND_COMP_TYPE_IS_PROXIED(comp) &&
+    m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))) {
+    iter = agent_mds_ver_db.find(csi_rec->comp->reg_dest);
+    if (iter == agent_mds_ver_db.end()) {
+      TRACE("Component is not registered");
+      rc = NCSCC_RC_FAILURE;
+      goto done;
+    }
+    if ((iter->second < AVSV_AVND_AVA_MSG_FMT_VER_2) ||
+      (comp->version.releaseCode != 'B') ||
+      (comp->version.majorVersion != 0x04) || 
+      (comp->version.minorVersion != 0x02)) {
+      TRACE("Component version is not B.04.02");
+      rc = NCSCC_RC_SUCCESS;
+      goto done;
+    }
+  }
+
+  switch (param->msg_act) {
+    case AVSV_COMPCSI_ATTR_CHANGE_AND_NO_ACK: {
+      //Free ealrliar allocated memory by EDP utils. 
+      if (csi_rec->attrs.list != nullptr)
+	free (csi_rec->attrs.list);
+      csi_rec->attrs.number = param->info.attrs.number;
+      csi_rec->attrs.list = param->info.attrs.list;
+      param->info.attrs.number = 0;
+      param->info.attrs.list = 0;
+      //do not take any action if comp is failed.
+      if (m_AVND_COMP_IS_FAILED(comp)) {
+	      TRACE_2("Failed comp, not sending csi attrbute change cbk.");
+	      goto done;
+      }
+      //Do not issue callback if csi is being removed. 
+      if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVING(csi_rec) || 
+        m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVED(csi_rec)) {
+	TRACE_2("CSI removing or removed, not sending csi attrbute change cbk.");
+	goto done;
+      }
+
+      if (m_AVND_COMP_TYPE_IS_PROXIED(comp) || m_AVND_COMP_TYPE_IS_SAAWARE(comp)) {
+	TRACE_2("Proxied (NPI or PI) or a SA-Aware component.");
+	rc = avnd_comp_cbk_send(avnd_cb, comp, AVSV_AMF_CSI_ATTR_CHANGE, 0, csi_rec);
+      } else {
+        //A NPI comp is terminated in quiesced and quiecing state.
+	if (!m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNED(csi_rec) &&
+           (csi_rec->si->curr_state != SA_AMF_HA_ACTIVE)) {
+	   TRACE_2("NPI comp in improper state, not running inst command.");
+	   goto done;
+	}
+	if (true) {
+	  TRACE_2("Values will come into effect in next instantiation");
+	  goto done;
+	}
+	//ToDo for a NonProxied NPI component: Fine tuning of success case and failure handling..	
+	rc = avnd_comp_clc_cmd_execute(avnd_cb, comp, AVND_COMP_CLC_CMD_TYPE_INSTANTIATE);
+	if (NCSCC_RC_SUCCESS == rc)
+	  m_GET_TIME_STAMP(comp->clc_info.inst_cmd_ts);
+      }	
+      if (NCSCC_RC_SUCCESS != rc)
+        goto done;
+      break;
+    }
+    default: {
+      TRACE_LEAVE();
+      rc = NCSCC_RC_FAILURE;
+      break;
+    }
+  }
+done:
+  return rc;
+}
+
+/**
+ * @brief  Processes compcsi message from AMFD.
+ *	   As of now expects only message for CSI attribute change.
+ * @param  cb (ptr to AVND_CB)
+ * @param  evt(ptr to AVND_EVT)
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+uint32_t avnd_evt_avd_compcsi_evh(AVND_CB *cb, AVND_EVT *evt) {
+  AVND_COMP_CSI_PARAMS_INFO *compcsi_info = &evt->info.avd->msg_info.d2n_compcsi_assign_msg_info;
+  AVND_COMP_CSI_REC *csi_rec = nullptr;
+  AVND_COMP *comp = nullptr;
+  //AVND_SU_SIQ_REC *siq = 0;
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  const std::string comp_name = Amf::to_string(&compcsi_info->comp_name);
+  const std::string csi_name = Amf::to_string(&compcsi_info->csi_name);
+
+  TRACE_ENTER2("'%s', '%s', act:%u", comp_name.c_str(), csi_name.c_str(), compcsi_info->msg_act);
+  comp = avnd_compdb_rec_get(cb->compdb, comp_name);
+  if (!comp) {
+    LOG_ER("compcsi_evh: '%s' not found, action:%u",
+      comp_name.c_str(), compcsi_info->msg_act);
+    goto done;
+  }
+
+  if ((cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_INITIATED) ||
+    (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED)) {
+    LOG_NO("Shutting started : Ignoring re-assignment for comp'%s'",comp->name.c_str());
+    goto done;
+  }
+
+  avnd_msgid_assert(compcsi_info->msg_id);
+  cb->rcv_msg_id = compcsi_info->msg_id;
+
+  csi_rec = avnd_compdb_csi_rec_get(cb, comp_name, csi_name);
+  if (csi_rec == nullptr) {
+    TRACE("csi rec get Failed.");
+    rc = NCSCC_RC_FAILURE;
+    goto done;
+  }
+  if (cb->term_state == AVND_TERM_STATE_NODE_FAILOVER_TERMINATED) {
+    if (compcsi_info->msg_act == AVSV_COMPCSI_ATTR_CHANGE_AND_NO_ACK)
+    //A message witn no ack, no need to respond to AFMD.
+    TRACE_2("AVND is in failover escalation, not sending csi attrbute change cbk.");
+    goto done;
+  } else {
+    rc = avnd_process_comp_csi_msg(comp, csi_rec, compcsi_info);
+  }
+done:
+  TRACE_LEAVE2("%u", rc);
+  return rc;
+}
+
+

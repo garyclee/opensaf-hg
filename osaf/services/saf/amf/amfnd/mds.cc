@@ -58,7 +58,7 @@ const MDS_CLIENT_MSG_FORMAT_VER avnd_avnd_msg_fmt_map_table[] = {
 };
 
 const MDS_CLIENT_MSG_FORMAT_VER avnd_ava_msg_fmt_map_table[] = {
-	AVSV_AVND_AVA_MSG_FMT_VER_1
+	AVSV_AVND_AVA_MSG_FMT_VER_1, AVSV_AVND_AVA_MSG_FMT_VER_2
 };
 
 /* static function declarations */
@@ -401,8 +401,11 @@ uint32_t avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	/* determine the event type */
 	switch (msg.type) {
 	case AVND_MSG_AVD:
-                type = static_cast<AVND_EVT_TYPE>((msg.info.avd->msg_type - AVSV_D2N_NODE_UP_MSG) + AVND_EVT_AVD_NODE_UP_MSG);
 
+		if (msg.info.avd->msg_type == AVSV_D2N_COMPCSI_ASSIGN_MSG)
+			type = AVND_EVT_AVD_COMPCSI_ASSIGN_MSG;
+		else 
+			type = static_cast<AVND_EVT_TYPE>((msg.info.avd->msg_type - AVSV_D2N_NODE_UP_MSG) + AVND_EVT_AVD_NODE_UP_MSG);
 		break;
 
 	case AVND_MSG_AVA:
@@ -555,6 +558,7 @@ uint32_t avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 
 		case NCSMDS_SVC_ID_AVA:
 			/*  New AvA has come up. Dont do anything now */
+			agent_mds_ver_db[evt_info->i_dest] = (MDS_SVC_PVT_SUB_PART_VER)evt_info->i_rem_svc_pvt_ver;
 			break;
 
 		case NCSMDS_SVC_ID_AVND:
@@ -601,6 +605,7 @@ uint32_t avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			break;
 
 		case NCSMDS_SVC_ID_AVA:
+			agent_mds_ver_db.erase(evt_info->i_dest);
 			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVA_DN, 0, &evt_info->i_dest, 0, 0, 0);
 			break;
 
@@ -797,7 +802,52 @@ uint32_t avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 	return rc;
 }
+/**
+ * @brief  Encodes CSI attribute change callback msg.
+ *
+ * @param  uba (ptr to NCS_UBAID).
+ * @param  msg (ptr to AVSV_NDA_AVA_MSG).
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+static uint32_t enc_csi_attr_change_cbk(NCS_UBAID *uba, AVSV_NDA_AVA_MSG *msg) {
+  AVSV_AMF_CSI_ATTR_CHANGE_PARAM *csi_attr_change = &msg->info.cbk_info->param.csi_attr_change;
+  uint8_t *p8;
+  uint16_t len;
+  uint32_t rc = NCSCC_RC_SUCCESS, i;
+  SaStringT value = nullptr;
+  if (csi_attr_change->attrs.number == 0)
+    goto done;
+  if (osaf_is_an_extended_name(&csi_attr_change->csi_name)) {
+    osaf_encode_sanamet(uba, &csi_attr_change->csi_name);
+  }
 
+  for (i=0; i<csi_attr_change->attrs.number; i++) {
+    rc = ncs_encode_n_octets_in_uba(uba,
+      (uint8_t *)&csi_attr_change->attrs.list[i].name, sizeof(SaNameT));
+    if (NCSCC_RC_SUCCESS != rc)
+      goto done;
+    if (osaf_is_an_extended_name(&csi_attr_change->attrs.list[i].name)) {
+      osaf_encode_sanamet(uba, &csi_attr_change->attrs.list[i].name);
+    }
+
+    if (!csi_attr_change->attrs.list[i].string_ptr) {
+      value = new char[osaf_extended_name_length(&csi_attr_change->attrs.list[i].value)+1]();
+      strcpy(value, osaf_extended_name_borrow(&csi_attr_change->attrs.list[i].value));
+    } else {
+      value = csi_attr_change->attrs.list[i].string_ptr;
+    }
+    len = strlen(value);
+    p8 = ncs_enc_reserve_space(uba, 2);
+    ncs_encode_16bit(&p8, len);
+    ncs_enc_claim_space(uba, 2);
+    rc = ncs_encode_n_octets_in_uba(uba, (uint8_t *)value, (len + 1));
+    if (NCSCC_RC_SUCCESS != rc)
+      goto done;
+  }
+done:
+  return rc;
+}
 /****************************************************************************
   Name          : avnd_mds_flat_ava_enc
  
@@ -838,6 +888,9 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				goto done;
 
 			switch (cbk_info->type) {
+			case AVSV_AMF_CSI_ATTR_CHANGE:
+				rc = enc_csi_attr_change_cbk(enc_info->io_uba, ava);
+				break;	
 			case AVSV_AMF_CSI_SET:
 				if (osaf_is_an_extended_name(&cbk_info->param.csi_set.comp_name)) {
 					osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.csi_set.comp_name);
