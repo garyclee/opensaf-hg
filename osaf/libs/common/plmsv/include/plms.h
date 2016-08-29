@@ -24,6 +24,10 @@
 #ifndef PLMS_H
 #define PLMS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include "ncsgl_defs.h"
 
@@ -281,7 +285,7 @@ typedef struct plms_cb
         SaNameT                   comp_name;     /* Component name - "PLMS"               */
 	SaStringT                 my_entity_path;
         SaAmfHAStateT             ha_state;      /* present AMF HA state of the component */
-	bool                  csi_assigned;
+	bool                      fully_initialized;
 	SaHpiDomainIdT     	  domain_id;
 	PLMS_HPI_CONFIG           hpi_cfg;
 	SaUint8T		  hpi_intf_up;
@@ -555,9 +559,9 @@ typedef struct plms_epath_to_entity_map_info
 
 
 
-PLMS_CB *plms_cb;
-HSM_HA_STATE hsm_ha_state;
-HRB_HA_STATE hrb_ha_state;
+extern PLMS_CB *plms_cb;
+extern HSM_HA_STATE hsm_ha_state;
+extern HRB_HA_STATE hrb_ha_state;
 
 typedef SaUint32T (*PLMS_ADM_FUNC_PTR) (PLMS_EVT *);
 typedef SaUint32T (*PLMS_PRES_FUNC_PTR) (PLMS_EVT *);
@@ -578,10 +582,32 @@ SaUint32T plms_ee_reboot(PLMS_ENTITY *,SaUint32T,SaUint32T);
 SaUint32T plms_ee_instantiate(PLMS_ENTITY *,SaUint32T,SaUint32T);
 SaUint32T plms_mbx_tmr_handler(PLMS_EVT *);
 SaUint32T plms_plmc_mbx_evt_process(PLMS_EVT *);
+SaUint32T plms_plmc_terminating_process(PLMS_ENTITY *);
 SaUint32T plms_isolate_and_mngt_lost_clear(PLMS_ENTITY *);
 int32_t plms_plmc_error_cbk(plmc_lib_error *);
 int32_t plms_plmc_connect_cbk(char *,char *);
 int32_t plms_plmc_udp_cbk(udp_msg *);
+
+/* Function declaration from plms_virt.cc */
+void plms_ee_vm_save(const SaNameT *);
+void plms_create_vmm_obj(const SaNameT *, SaImmAttrValuesT_2 **attrs);
+void plms_create_vm_obj(const SaNameT *, SaImmAttrValuesT_2 **attrs);
+void plms_modify_vmm_obj(const SaNameT *, SaImmAttrModificationT_2 **attrs);
+void plms_modify_vm_obj(const SaNameT *, SaImmAttrModificationT_2 **attrs);
+void plms_delete_vmm_obj(const SaNameT *);
+void plms_delete_vm_obj(const SaNameT *);
+SaAisErrorT plms_validate_modify_vmm_obj(SaImmOiCcbIdT,
+                                         const SaNameT *,
+                                         const SaImmAttrModificationT_2 **);
+SaAisErrorT plms_validate_modify_vm_obj(SaImmOiCcbIdT,
+                                        const SaNameT *,
+                                        const SaImmAttrModificationT_2 **);
+SaAisErrorT plms_validate_delete_vmm_obj(const SaNameT *);
+SaAisErrorT plms_validate_delete_vm_obj(const SaNameT *);
+SaUint32T plms_ee_instantiate_vm(const PLMS_ENTITY *);
+SaUint32T plms_ee_hypervisor_instantiated(const PLMS_ENTITY *);
+SaUint32T plms_ee_restart_vm(const PLMS_ENTITY *);
+SaUint32T plms_ee_isolate_vm(const PLMS_ENTITY *);
 
 /* Function declaration from plms_adm_fsm.c*/
 SaUint32T plms_cbk_call(PLMS_TRACK_INFO *,SaUint8T);
@@ -598,12 +624,14 @@ SaUint32T plms_timer_stop(PLMS_ENTITY *);
 
 /* Function declaration from plms_imm.c */
 void plms_get_str_from_dn_name(SaNameT *, SaStringT);
+SaAisErrorT plms_imm_init(void);
 
 /* Function Declarations */
 extern uint32_t plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                         NCSCONTEXT ptr, uint32_t *ptr_data_len,
 	                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
 			         EDU_ERR *o_err);
+uint32_t initialize_for_assignment(PLMS_CB *, SaAmfHAStateT);
 SaUint32T plms_amf_register();
 SaUint32T plms_mds_register();
 void plms_mds_unregister();
@@ -652,4 +680,9 @@ SaUint64T  plm_handle_pool;
 SaUint64T  entity_grp_hdl_pool;
 void plm_imm_reinit_bg(PLMS_CB *cb);
 SaUint32T plms_build_epath_to_entity_map_tree();
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif   /* PLMS_H */

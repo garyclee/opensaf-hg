@@ -75,7 +75,7 @@ plms_cb_dump_routine ()
 		else
 			fprintf(fp,"\n HA STATE: Invalid.");
 
-	fprintf(fp,"\n CSI Assigned: %u.", (unsigned int )cb->csi_assigned);
+	fprintf(fp,"\n Fully Initialized: %u.", (unsigned int )cb->fully_initialized);
 	fprintf(fp,"\n PLMS Shelf ID: %u.",(unsigned int )cb->plms_self_id);	
 	fprintf(fp,"\n PLMS Remote ID: %u.",(unsigned int )cb->plms_remote_id);
 	fprintf(fp,"\n MDS Handle: %u.", (unsigned int )cb->mds_hdl);

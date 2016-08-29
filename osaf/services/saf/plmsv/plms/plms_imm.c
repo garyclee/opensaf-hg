@@ -41,6 +41,8 @@ typedef enum {
 	PLMS_HE_OBJ_TYPE,
 	PLMS_EE_OBJ_TYPE,
 	PLMS_DEPENDENCY_OBJ_TYPE,
+	PLMS_VMM_OBJ_TYPE,
+	PLMS_VM_OBJ_TYPE
 }PLMS_OBJ_TYPE;
 
 #define PLMS_MAX_IMM_API_RETRY_CNT 5 
@@ -48,7 +50,6 @@ typedef enum {
 static const SaImmOiImplementerNameT impl_name =
 	(SaImmOiImplementerNameT)"safPlmService";
 static SaVersionT imm_version = { 'A', 2, 1 };
-static SaImmOiCallbacksT_2 imm_oi_cbks;
 static SaImmCallbacksT imm_om_cbks;
 
 extern PLMS_CB *plms_cb;
@@ -57,11 +58,7 @@ static void plms_reg_with_imm_as_oi();
 static void plms_reg_with_imm_as_om();
 static void plms_unreg_with_imm_as_om();
 static void plms_get_imm_objects();
-static void plms_handle_oi_init_try_again_err (SaImmOiHandleT *);
-static void plms_handle_oi_sel_obj_get_try_again_err(SaSelectionObjectT *);
-static void plms_handle_oi_impl_set_try_again_err();
 static void plms_oi_class_impl_set(SaImmClassNameT); 
-static void plms_handle_class_impl_set_try_again_err(SaImmClassNameT);
 static void plms_handle_om_init_try_again_err (SaImmHandleT *);
 static void plms_oi_class_impl_rel(SaImmClassNameT);
 static void plms_unreg_with_imm_as_oi();
@@ -161,71 +158,61 @@ SaUint32T plms_read_hpi_config()
 	return NCSCC_RC_SUCCESS;
 }
 
-static void plms_reg_with_imm_as_oi()
+static void plms_reg_with_imm_as_oi(void)
 {
-	SaImmOiHandleT imm_oi_hdl;
-	SaImmOiCallbacksT_2 imm_oi_cbks;
-	SaAisErrorT error=SA_AIS_OK;
-	SaSelectionObjectT sel_obj;
+    TRACE_ENTER();
 
-	TRACE_ENTER();
+    do {
+        int retry_cnt = 0;
+        SaAisErrorT rc = SA_AIS_OK;
 
-	imm_oi_cbks.saImmOiAdminOperationCallback = plms_imm_admin_op_cbk;
-	imm_oi_cbks.saImmOiCcbAbortCallback = plms_imm_ccb_abort_cbk;
-	imm_oi_cbks.saImmOiCcbApplyCallback = plms_imm_ccb_apply_cbk;
-	imm_oi_cbks.saImmOiCcbCompletedCallback = plms_imm_ccb_completed_cbk;
-	imm_oi_cbks.saImmOiCcbObjectCreateCallback= plms_imm_ccb_obj_create_cbk;
-	imm_oi_cbks.saImmOiCcbObjectDeleteCallback= plms_imm_ccb_obj_delete_cbk;
-	imm_oi_cbks.saImmOiCcbObjectModifyCallback= plms_imm_ccb_obj_modify_cbk;
-	imm_oi_cbks.saImmOiRtAttrUpdateCallback = NULL;
-	error = saImmOiInitialize_2(&imm_oi_hdl, &imm_oi_cbks, &imm_version);
-	if (error != SA_AIS_OK) {
-		LOG_ER("ImmOiInit returned error %u", error);
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			LOG_CR("asserting here");
-			assert(0);
-		}
-		else { /* try_again */
-			plms_handle_oi_init_try_again_err(&imm_oi_hdl);
-		}
-	}
-	plms_cb->oi_hdl = imm_oi_hdl;
-	TRACE_2("ImmOiInit successful");
-	error = saImmOiSelectionObjectGet(imm_oi_hdl, &sel_obj);
-	if (error != SA_AIS_OK) {
-		LOG_ER("ImmOiSelObjGet returned error %u", error);
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			LOG_CR("asserting here");
-			assert(0);
-		}
-		else { /* try_again */
-			plms_handle_oi_sel_obj_get_try_again_err(&sel_obj);
-		}
-	}
-	plms_cb->imm_sel_obj = sel_obj;
-	TRACE_2("ImmOiSelObjGet successful");
-	error = saImmOiImplementerSet(imm_oi_hdl, impl_name);
-	if (error != SA_AIS_OK) {
-		LOG_ER("ImmOiImplSet returned error %u", error);
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			LOG_CR("asserting here");
-			assert(0);
-		}
-		else { /* try_again */
-			plms_handle_oi_impl_set_try_again_err();
-		}
-	}
-	plms_oi_class_impl_set("SaPlmDomain");
-	plms_oi_class_impl_set("SaHpiConfig");
-	plms_oi_class_impl_set("SaPlmHEBaseType");
-	plms_oi_class_impl_set("SaPlmHEType");
-	plms_oi_class_impl_set("SaPlmHE");
-	plms_oi_class_impl_set("SaPlmEEBaseType");
-	plms_oi_class_impl_set("SaPlmEEType");
-	plms_oi_class_impl_set("SaPlmEE");
-	plms_oi_class_impl_set("SaPlmDependency");
-	TRACE_LEAVE();
+        /* Update IMM */
+        while (true) {
+            if (retry_cnt++ == PLMS_MAX_IMM_API_RETRY_CNT) {
+                LOG_ER("Timeout in plms_reg_with_imm_as_oi");
+                break;
+            }
+
+            rc = immutil_saImmOiImplementerSet(plms_cb->oi_hdl, impl_name);
+
+            if (rc == SA_AIS_ERR_TIMEOUT ||
+                rc == SA_AIS_ERR_BAD_HANDLE) {
+                LOG_WA("saImmOiImplementerSet returned %u", rc);
+                sleep(1);
+                saImmOiFinalize(plms_cb->oi_hdl);
+                plms_cb->oi_hdl = 0;
+                plms_cb->imm_sel_obj = -1;
+                if ((rc = plms_imm_init()) != SA_AIS_OK) {
+                    LOG_ER("plms_imm_init FAILED");
+                    break;
+                }
+                continue;
+            } else if (rc != SA_AIS_OK) {
+                LOG_ER("saImmOiImplementerSet failed rc: %u", rc);
+            }
+
+            break;
+        }
+
+        if (rc != SA_AIS_OK)
+            break;
+
+        plms_oi_class_impl_set("OpenSafPlmVirtualMachineMonitorConfig");
+        plms_oi_class_impl_set("OpenSafPlmVirtualMachineConfig");
+        plms_oi_class_impl_set("SaPlmDomain");
+        plms_oi_class_impl_set("SaHpiConfig");
+        plms_oi_class_impl_set("SaPlmHEBaseType");
+        plms_oi_class_impl_set("SaPlmHEType");
+        plms_oi_class_impl_set("SaPlmHE");
+        plms_oi_class_impl_set("SaPlmEEBaseType");
+        plms_oi_class_impl_set("SaPlmEEType");
+        plms_oi_class_impl_set("SaPlmEE");
+        plms_oi_class_impl_set("SaPlmDependency");
+    } while (false);
+
+    TRACE_LEAVE();
 }
+
 static void plms_reg_with_imm_as_om()
 {
 	SaAisErrorT error;
@@ -261,6 +248,8 @@ static void plms_get_imm_objects()
         plms_get_objects_from_imm("safHE", PLMS_HE_OBJ_TYPE);
         plms_get_objects_from_imm("safEE", PLMS_EE_OBJ_TYPE);
         plms_get_objects_from_imm("safDependency", PLMS_DEPENDENCY_OBJ_TYPE);
+        plms_get_objects_from_imm("plmVmmConfig", PLMS_VMM_OBJ_TYPE);
+        plms_get_objects_from_imm("plmVmConfig", PLMS_VM_OBJ_TYPE);
 	plms_cb->is_initialized = true;
 	TRACE_LEAVE();
 }
@@ -275,129 +264,50 @@ static void plms_unreg_with_imm_as_om()
 	plms_cb->imm_hdl = 0;
 	TRACE_LEAVE();
 }
-static void plms_handle_oi_init_try_again_err (SaImmOiHandleT *imm_oi_hdl)
-{
-	SaUint8T retry_cnt = 0;
-	SaAisErrorT error;
-	TRACE_ENTER();
-	do {
-		if (retry_cnt == PLMS_MAX_IMM_API_RETRY_CNT) {
-			LOG_CR("OiInit retry count reached max, asserting now");
-			assert(0);
-		}
-		sleep(1);
-		error = saImmOiInitialize_2(imm_oi_hdl, &imm_oi_cbks, 
-			&imm_version);
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			break; /* from the do while */
-		}
-		++retry_cnt;
-		LOG_IN("OiInit Retry count %u", retry_cnt);
-	}while (1);
-	if (error != SA_AIS_OK) {
-		LOG_CR("OiInit returned error %u, so asserting now", error);
-		assert(0);
-	}
-	TRACE_LEAVE2("OiInit successful");
-}
-static void plms_handle_oi_sel_obj_get_try_again_err(SaSelectionObjectT 
-							*sel_obj)
-{
-	SaUint8T retry_cnt = 0;
-	SaAisErrorT error;
-	TRACE_ENTER();
-	do {
-		if (retry_cnt == PLMS_MAX_IMM_API_RETRY_CNT) {
-			LOG_CR("OiSelObjGet retry count reached max, asserting \
-				now");
-			assert(0);
-		}
-		sleep(1);
-		error = saImmOiSelectionObjectGet(plms_cb->oi_hdl, sel_obj);
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			break; /* from the do while */
-		}
-		++retry_cnt;
-		LOG_IN("OiSelObjGet Retry count %u", retry_cnt);
-	}while (1);
-	if (error != SA_AIS_OK) {
-		LOG_CR("OiSelObjGet returned error %u, asserting now", error);
-		assert(0);
-	}
-	TRACE_LEAVE2("OiSelObjGet successful");
-}
-static void plms_handle_oi_impl_set_try_again_err()
-{
-	SaUint8T retry_cnt = 0;
-	SaAisErrorT error;
-	TRACE_ENTER();
-	do {
-		if (retry_cnt == PLMS_MAX_IMM_API_RETRY_CNT) {
-			LOG_CR("OiImplSet retry count reached max, asserting \
-			now");
-			assert(0);
-		}
-		sleep(1);
-		error = saImmOiImplementerSet(plms_cb->oi_hdl, impl_name);
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			break; /* from the do while */
-		}
-		++retry_cnt;
-		LOG_IN("OiImplSet Retry count %u", retry_cnt);
-	}while (1);
-	if (error != SA_AIS_OK) {
-		LOG_CR("OiImplSet returned error %u, so asserting now", error);
-		assert(0);
-	}
-	TRACE_LEAVE2("OiImplSet successful with impl_name %s", impl_name);
-}
 static void plms_oi_class_impl_set(SaImmClassNameT class_name) 
 {
-	SaAisErrorT error;
-	TRACE_ENTER();
-	error = saImmOiClassImplementerSet(plms_cb->oi_hdl, class_name);
-	if (error != SA_AIS_OK) {
-		LOG_ER("ImmOiClassImplSet for class %s returned error %u", 
-						class_name, error);
-		if (error == SA_AIS_ERR_NOT_EXIST) {
-			return;
-		}
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			LOG_CR("asserting here");
-			assert(0);
-		}
-		else { /* try_again error */
-			plms_handle_class_impl_set_try_again_err(class_name);
-		}
-	}
-	TRACE_LEAVE2("ImmOiClassImplSet successful for class_name %s", 
-			class_name);
+    int retry_cnt = 0;
+
+    TRACE_ENTER();
+
+    while (true) {
+        SaAisErrorT rc = SA_AIS_OK;
+
+        if (retry_cnt++ == PLMS_MAX_IMM_API_RETRY_CNT) {
+            LOG_ER("Timeout in plms_oi_class_impl_set");
+            break;
+        }
+
+        rc = saImmOiClassImplementerSet(plms_cb->oi_hdl, class_name);
+
+        if (rc == SA_AIS_ERR_NOT_EXIST) {
+            break;
+        } else if (rc == SA_AIS_ERR_TIMEOUT ||
+                   rc == SA_AIS_ERR_BAD_HANDLE) {
+            LOG_WA("saImmOiClassImplementerSet returned %u", rc);
+            sleep(1);
+            saImmOiFinalize(plms_cb->oi_hdl);
+            plms_cb->oi_hdl = 0;
+            plms_cb->imm_sel_obj = -1;
+            if ((rc = plms_imm_init()) != SA_AIS_OK) {
+              LOG_ER("plms_imm_init FAILED");
+              break;
+            }
+            continue;
+        } else if (rc == SA_AIS_ERR_TRY_AGAIN) {
+            sleep(1);
+            continue;
+        } else if (rc != SA_AIS_OK) {
+            LOG_ER("saImmOiClassImplementerSet failed for "
+                   "class %s rc: %u", class_name, rc);
+        }
+
+        break;
+     }
+
+    TRACE_LEAVE();
 }
-static void plms_handle_class_impl_set_try_again_err(SaImmClassNameT class_name)
-{
-	SaAisErrorT error;
-	SaUint8T retry_cnt = 0;
-	TRACE_ENTER();
-	do {
-		if (retry_cnt == PLMS_MAX_IMM_API_RETRY_CNT) {
-			LOG_CR("OiClassImplSet retry count reached max, \
-				asserting now");
-			assert(0);
-		}
-		sleep(1);
-		error = saImmOiClassImplementerSet(plms_cb->oi_hdl, class_name);
-		if (error != SA_AIS_ERR_TRY_AGAIN) {
-			break; /* from the do while */
-		}
-		++retry_cnt;
-		LOG_IN("OiClassImplSet Retry count %u", retry_cnt);
-	}while (1);
-	if (error != SA_AIS_OK) {
-		LOG_CR("OiClassImplSet returned error %u, asserting now",error);
-		assert(0);
-	}
-	TRACE_LEAVE();
-}
+
 static void plms_handle_om_init_try_again_err (SaImmHandleT *imm_om_hdl)
 {
 	SaUint8T retry_cnt = 0;
@@ -448,6 +358,8 @@ static void plms_unreg_with_imm_as_oi()
 	plms_oi_class_impl_rel("SaPlmHEBaseType");
 	plms_oi_class_impl_rel("SaPlmDomain");
 	plms_oi_class_impl_rel("SaHpiConfig");
+	plms_oi_class_impl_rel("OpenSafPlmVirtualMachineConfig");
+	plms_oi_class_impl_rel("OpenSafPlmVirtualMachineMonitorConfig");
 	error = saImmOiImplementerClear(plms_cb->oi_hdl);
 	if (error != SA_AIS_OK) {
 		LOG_ER("OiImplClear returned error %u", error);
@@ -619,6 +531,12 @@ static void plms_create_objects(SaUint8T obj_type, SaNameT *obj_name,
 	case PLMS_EE_OBJ_TYPE:
 		plms_create_ee_obj(obj_name, attrs);
 		break;
+	case PLMS_VMM_OBJ_TYPE:
+		plms_create_vmm_obj(obj_name, attrs);
+		break;
+	case PLMS_VM_OBJ_TYPE:
+		plms_create_vm_obj(obj_name, attrs);
+		break;
 	}
 	TRACE_LEAVE();
 }
@@ -662,6 +580,14 @@ void plms_modify_objects(SaInt32T obj_type, SaNameT *obj_name,
 
 	case PLMS_EE_OBJ_TYPE:
 		plms_modify_ee_obj(obj_name, attr_mods);
+		break;
+
+	case PLMS_VMM_OBJ_TYPE:
+		plms_modify_vmm_obj(obj_name, attr_mods);
+		break;
+
+	case PLMS_VM_OBJ_TYPE:
+		plms_modify_vm_obj(obj_name, attr_mods);
 		break;
 	}
 	TRACE_LEAVE();
@@ -748,6 +674,12 @@ static void plms_delete_objects(SaInt32T obj_type, SaNameT *obj_name)
 		break;
 	case PLMS_HPI_CFG_OBJ_TYPE:
 		plms_delete_hpi_cfg_obj();
+		break;
+	case PLMS_VMM_OBJ_TYPE:
+		plms_delete_vmm_obj(obj_name);
+		break;
+	case PLMS_VM_OBJ_TYPE:
+		plms_delete_vm_obj(obj_name);
 		break;
 	}
 	TRACE_LEAVE();
@@ -1088,6 +1020,24 @@ static SaAisErrorT plms_imm_ccb_obj_delete_cbk(SaImmOiHandleT imm_oi_hdl,
 	}
 	else if (strncmp((SaInt8T *)obj_name->value, "safDependency", 13)==0) {
 		/* This can be allowed to go through, log the same if reqd */
+	} else if (memcmp(obj_name->value,
+			"plmVmmConfig",
+			sizeof("plmVmmConfig") - 1) == 0) {
+		rc = plms_validate_delete_vmm_obj(obj_name);
+		if (rc != SA_AIS_OK) {
+			TRACE_LEAVE2("validation of plmVmmConfig obj failed "
+					"with error %u", rc);
+			return rc;
+		}
+	} else if (memcmp(obj_name->value,
+                          "plmVmConfig",
+                          sizeof("plmVmConfig") - 1) == 0) {
+		rc = plms_validate_delete_vm_obj(obj_name);
+		if (rc != SA_AIS_OK) {
+			TRACE_LEAVE2("validation of plmVmConfig obj failed "
+					"with error %u", rc);
+			return rc;
+		}
 	}
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
 		/* memorize the request */
@@ -1386,7 +1336,26 @@ static SaAisErrorT plms_imm_ccb_obj_modify_cbk(SaImmOiHandleT imm_oi_hdl,
 			num_dep_names: %u", dep_min_num, dep_names_num);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
+	} else if (memcmp(obj_name->value,
+			"plmVmmConfig",
+			sizeof("plmVmmConfig") - 1) == 0) {
+		rc = plms_validate_modify_vmm_obj(ccb_id, obj_name, attr_mods);
+		if (rc != SA_AIS_OK) {
+			TRACE_LEAVE2("validation of plmVmmConfig obj failed "
+					"with error %u", rc);
+			return rc;
+		}
+	} else if (memcmp(obj_name->value,
+                          "plmVmConfig",
+                          sizeof("plmVmConfig") - 1) == 0) {
+		rc = plms_validate_modify_vm_obj(ccb_id, obj_name, attr_mods);
+		if (rc != SA_AIS_OK) {
+			TRACE_LEAVE2("validation of plmVmConfig obj failed "
+					"with error %u", rc);
+			return rc;
+		}
 	}
+
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
 		/* "memorize the request" */
 		if(ccbutil_ccbAddModifyOperation(ccb_util_ccb_data, 
@@ -2116,6 +2085,10 @@ static SaInt32T get_obj_type_from_obj_name(SaUint8T *str)
 		obj_type = PLMS_DOMAIN_OBJ_TYPE;
 	else if (memcmp(str, "safHpiCfg", 9) == 0) 
 		obj_type = PLMS_HPI_CFG_OBJ_TYPE;
+	else if (memcmp(str, "plmVmmConfig", sizeof("plmVmmConfig") - 1) == 0) 
+		obj_type = PLMS_VMM_OBJ_TYPE;
+	else if (memcmp(str, "plmVmConfig", sizeof("plmVmConfig") - 1) == 0) 
+		obj_type = PLMS_VM_OBJ_TYPE;
 	return obj_type;
 }
 static void plms_create_domain_obj(SaNameT *obj_name, 
@@ -2842,15 +2815,23 @@ static void plms_create_ee_obj(SaNameT *obj_name, SaImmAttrValuesT_2 **attrs)
 		memcpy(key_dn.value, parent_dn, key_dn.length);
 		parent_ent=(PLMS_ENTITY *)ncs_patricia_tree_get(
 		&plms_cb->entity_info, (SaUint8T *)&key_dn);
-		if (parent_ent->leftmost_child == NULL) {
-			parent_ent->leftmost_child = ee;
+
+		if (parent_ent) {
+			if (parent_ent->leftmost_child == NULL) {
+				parent_ent->leftmost_child = ee;
+			}
+			else {
+				tmp = parent_ent->leftmost_child;
+				while(tmp->right_sibling != NULL) {
+					tmp = tmp->right_sibling;
+				}
+				tmp->right_sibling = ee;
+			}
 		}
 		else {
-			tmp = parent_ent->leftmost_child;
-			while(tmp->right_sibling != NULL) {
-				tmp = tmp->right_sibling;
-			}
-			tmp->right_sibling = ee;
+			/* for virtualization we may not have seen parent yet */
+			TRACE("no parent yet for %s", obj_name->value);
+			plms_ee_vm_save(obj_name);
 		}
 		ee->parent = parent_ent;
 	}
@@ -4369,54 +4350,53 @@ static void free_plms_group_entity_list(PLMS_GROUP_ENTITY_ROOT_LIST *grp_ent)
 	TRACE_LEAVE();
 }
 
+SaAisErrorT plms_imm_init(void) {
+  SaAisErrorT rc = SA_AIS_OK;
 
-static void *plm_imm_reinit_thread(void *_cb)
-{
-	SaImmOiCallbacksT_2 imm_oi_cbks;
-	SaAisErrorT error=SA_AIS_OK;
+  TRACE_ENTER();
 
-	TRACE_ENTER();
+  do {
+    SaImmOiCallbacksT_2 imm_oi_cbks;
 
-	imm_oi_cbks.saImmOiAdminOperationCallback = plms_imm_admin_op_cbk;
-	imm_oi_cbks.saImmOiCcbAbortCallback = plms_imm_ccb_abort_cbk;
-	imm_oi_cbks.saImmOiCcbApplyCallback = plms_imm_ccb_apply_cbk;
-	imm_oi_cbks.saImmOiCcbCompletedCallback = plms_imm_ccb_completed_cbk;
-	imm_oi_cbks.saImmOiCcbObjectCreateCallback= plms_imm_ccb_obj_create_cbk;
-	imm_oi_cbks.saImmOiCcbObjectDeleteCallback= plms_imm_ccb_obj_delete_cbk;
-	imm_oi_cbks.saImmOiCcbObjectModifyCallback= plms_imm_ccb_obj_modify_cbk;
-	imm_oi_cbks.saImmOiRtAttrUpdateCallback = NULL;
+    imm_oi_cbks.saImmOiAdminOperationCallback = plms_imm_admin_op_cbk;
+    imm_oi_cbks.saImmOiCcbAbortCallback = plms_imm_ccb_abort_cbk;
+    imm_oi_cbks.saImmOiCcbApplyCallback = plms_imm_ccb_apply_cbk;
+    imm_oi_cbks.saImmOiCcbCompletedCallback = plms_imm_ccb_completed_cbk;
+    imm_oi_cbks.saImmOiCcbObjectCreateCallback= plms_imm_ccb_obj_create_cbk;
+    imm_oi_cbks.saImmOiCcbObjectDeleteCallback= plms_imm_ccb_obj_delete_cbk;
+    imm_oi_cbks.saImmOiCcbObjectModifyCallback= plms_imm_ccb_obj_modify_cbk;
+    imm_oi_cbks.saImmOiRtAttrUpdateCallback = NULL;
 
+    if ((rc = immutil_saImmOiInitialize_2(&plms_cb->oi_hdl,
+                                          &imm_oi_cbks,
+                                          &imm_version)) != SA_AIS_OK) {
+        LOG_ER("saImmOiInitialize_2 failed %u", rc);
+        break;
+    }
 
-	if ((error = immutil_saImmOiInitialize_2(&plms_cb->oi_hdl, &imm_oi_cbks, &imm_version)) != SA_AIS_OK) {
-		LOG_ER("saImmOiInitialize_2 failed %u", error);
-		exit(EXIT_FAILURE);
-	}
+    if ((rc = immutil_saImmOiSelectionObjectGet(plms_cb->oi_hdl,
+                                                &plms_cb->imm_sel_obj)) !=
+        SA_AIS_OK) {
+      LOG_ER("saImmOiSelectionObjectGet failed %u", rc);
+      break;
+    }
+  } while (false);
 
-	if ((error = immutil_saImmOiSelectionObjectGet(plms_cb->oi_hdl, &plms_cb->imm_sel_obj)) != SA_AIS_OK) {
-		LOG_ER("saImmOiSelectionObjectGet failed %u", error);
-		exit(EXIT_FAILURE);
-	}
-	if (plms_cb->ha_state == SA_AMF_HA_ACTIVE) {
-		/* Update IMM */
-		if ((error = immutil_saImmOiImplementerSet(plms_cb->oi_hdl,impl_name )) != SA_AIS_OK) {
+  TRACE_LEAVE();
 
-			LOG_ER("saImmOiImplementerSet failed %u", error);
-			exit(EXIT_FAILURE);
-		}
+  return rc;
+}
 
-		plms_oi_class_impl_set("SaPlmDomain");
-		plms_oi_class_impl_set("SaHpiConfig");
-		plms_oi_class_impl_set("SaPlmHEBaseType");
-		plms_oi_class_impl_set("SaPlmHEType");
-		plms_oi_class_impl_set("SaPlmHE");
-		plms_oi_class_impl_set("SaPlmEEBaseType");
-		plms_oi_class_impl_set("SaPlmEEType");
-		plms_oi_class_impl_set("SaPlmEE");
-		plms_oi_class_impl_set("SaPlmDependency");
-	}
-	TRACE_LEAVE();
-	return NULL;
-}	
+static void *plm_imm_reinit_thread(void *_cb) {
+    TRACE_ENTER();
+
+    plms_imm_init();
+
+    plms_reg_with_imm_as_oi();
+
+    TRACE_LEAVE();
+    return NULL;
+}
 
 
 /**                     

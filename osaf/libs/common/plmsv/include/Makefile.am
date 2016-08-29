@@ -28,4 +28,5 @@ noinst_HEADERS = \
 	plms_hsm.h \
 	plms_hrb.h \
 	plms_hpi.h \
-	plms_mbcsv.h
+	plms_mbcsv.h \
+	plms_virt.h

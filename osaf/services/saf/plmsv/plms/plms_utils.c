@@ -1701,14 +1701,17 @@ void plms_inv_to_trk_list_free(PLMS_INVOCATION_TO_TRACK_INFO *inv_list)
 ******************************************************************************/
 void plms_ent_list_free(PLMS_GROUP_ENTITY *ent_list)
 {
-	PLMS_GROUP_ENTITY *free_node;
+	TRACE_ENTER();
 	while (ent_list){
-		free_node = ent_list;
+		PLMS_GROUP_ENTITY *free_node = ent_list;
+		TRACE("freeing %s from list",
+			free_node->plm_entity->dn_name.value);
 		ent_list = ent_list->next;
 		free_node->plm_entity = NULL;
 		free_node->next = NULL;
 		free(free_node);
 	}
+	TRACE_LEAVE();
 	return;
 }
 
@@ -1738,13 +1741,20 @@ void plms_ent_grp_list_free(PLMS_ENTITY_GROUP_INFO_LIST *grp_list)
 void plms_aff_ent_flag_mark_unmark(PLMS_GROUP_ENTITY *ent_list,
 						SaBoolT mark_unmark)
 {
+	TRACE_ENTER();
+
 	PLMS_GROUP_ENTITY *head;
 
 	head = ent_list;
 	while(head){
+		TRACE("setting %s to %i",
+			head->plm_entity->dn_name.value,
+			mark_unmark);
 		head->plm_entity->am_i_aff_ent = mark_unmark;
 		head = head->next;
 	}
+
+	TRACE_LEAVE();
 	return;
 }
 /******************************************************************************
@@ -2699,6 +2709,7 @@ SaUint32T plms_attr_sastring_imm_update(PLMS_ENTITY *ent,
 ******************************************************************************/
 void plms_aff_ent_mark_unmark(PLMS_GROUP_ENTITY *ent_list, SaBoolT flag)
 {
+	TRACE_ENTER();
 	PLMS_GROUP_ENTITY *head;
 
 	head = ent_list;
@@ -2706,6 +2717,7 @@ void plms_aff_ent_mark_unmark(PLMS_GROUP_ENTITY *ent_list, SaBoolT flag)
 		head->plm_entity->am_i_aff_ent = flag;
 		head = head->next;
 	}
+	TRACE_LEAVE();
 	return;
 }
 /******************************************************************************
@@ -2876,6 +2888,13 @@ SaUint32T plms_move_ent_to_insvc(PLMS_ENTITY *chld_ent, SaUint8T *is_flag_aff)
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	
+	if (PLMS_EE_ENTITY == chld_ent->entity_type &&
+            chld_ent->leftmost_child)
+	{
+		/* This is a hypervisor */
+		plms_ee_hypervisor_instantiated(chld_ent);
+	}
+
 	TRACE("Ent %s is moved to insvc.",chld_ent->dn_name_str);
 	return NCSCC_RC_SUCCESS;
 }
@@ -4442,9 +4461,9 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 	if (PLMS_EE_ENTITY == ent->entity_type){
 		/* Terminate the EE.*/
 		ret_err = plms_ee_term(ent,adm_op,0);
-		/* If termination fails, then reset assert the parent HE.*/
+		/* If termination fails, then try it via parent */
 		if (NCSCC_RC_SUCCESS != ret_err){
-			LOG_ER("EE Isolation(term) FAILED. Try reset assert of parent.Ent: %s",ent->dn_name_str);
+			LOG_ER("EE Isolation(term) FAILED. Trying parent.Ent: %s",ent->dn_name_str);
 			/* See any other children of the HE other than myself, 
 			 * is insvc.*/
 			if (ent->parent){
@@ -4476,65 +4495,82 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 				plms_ent_list_free(chld_list);
 			
 			if (can_isolate){
-				/* assert reset state on parent HE,
-				(parent is HE as no virtualization). */
-				ret_err = plms_he_reset(ent->parent,0, 1,SAHPI_RESET_ASSERT);
+				if (ent->parent->entity_type == PLMS_EE_ENTITY) {
+					/* Virtualization. Tell hypervisor to isolate the EE */
+					ret_err = plms_ee_isolate_vm(ent);
 
-				if( NCSCC_RC_SUCCESS != ret_err){
-					LOG_ER("EE isolation (Reset assert of parent HE) FAILED. Deactivate the \
-					parent HE.  Ent: %s",ent->dn_name_str);
-
-					/* Deactivate the HE.*/
-					ret_err = plms_he_deactivate(ent->parent,0,1);
-
-					if(NCSCC_RC_SUCCESS != ret_err){
-						/* Isolation failed.*/
-						LOG_ER("Deactivation of parent HE FAILED ==> Isolation of the\
-						EE failed. Ent: %s",
-						ent->dn_name_str);
-
+					if (NCSCC_RC_SUCCESS != ret_err) {
+						LOG_ER("EE isolation using hypervisor failed");
 						plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_MANAGEMENT_LOST,1,
-						NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+							NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,1,
-						NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+							NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 						
 						if (mngt_cbk)
 							plms_mngt_lost_clear_cbk_call(ent, 1);
-						/* ent->mngt_lost_tri = PLMS_MNGT_EE_ISOLATE; */
-								
-					}else{
-						TRACE("EE isolation (deactivate the parent) SUCCESSFUL. Ent: %s",
-						ent->dn_name_str);
+					}
+				}
+				else if (ent->parent->entity_type == PLMS_HE_ENTITY){
+					/* assert reset state on parent HE */
+					ret_err = plms_he_reset(ent->parent,0, 1,SAHPI_RESET_ASSERT);
 
-						ent->iso_method = PLMS_ISO_HE_DEACTIVATED;
+					if( NCSCC_RC_SUCCESS != ret_err){
+						LOG_ER("EE isolation (Reset assert of parent HE) FAILED. Deactivate the \
+						parent HE.  Ent: %s",ent->dn_name_str);
+
+						/* Deactivate the HE.*/
+						ret_err = plms_he_deactivate(ent->parent,0,1);
+
+						if(NCSCC_RC_SUCCESS != ret_err){
+							/* Isolation failed.*/
+							LOG_ER("Deactivation of parent HE FAILED ==> Isolation of the\
+							EE failed. Ent: %s",
+							ent->dn_name_str);
+
+							plms_readiness_flag_mark_unmark(ent,SA_PLM_RF_MANAGEMENT_LOST,1,
+							NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+							plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,1,
+							NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 						
+							if (mngt_cbk)
+								plms_mngt_lost_clear_cbk_call(ent, 1);
+							/* ent->mngt_lost_tri = PLMS_MNGT_EE_ISOLATE; */
+								
+						}else{
+							TRACE("EE isolation (deactivate the parent) SUCCESSFUL. Ent: %s",
+							ent->dn_name_str);
+
+							ent->iso_method = PLMS_ISO_HE_DEACTIVATED;
+						
+							plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
+							NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+							/* Clear admin pending  for the EE.*/	
+							plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ADMIN_OPERATION_PENDING,
+							0, NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+							/* Clear management lost for the EE.*/
+							plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_MANAGEMENT_LOST,0,
+							NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+						}
+					}else{
+						TRACE("EE isolation(reset assert of parent) SUCCESSFUL. Ent: %s",
+						ent->dn_name_str);
+						ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+						/* Clear isolate pending flag.*/
 						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
 						NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-						/* Clear admin pending  for the EE.*/	
-						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ADMIN_OPERATION_PENDING,
-						0, NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 					
-						/* Clear management lost for the EE.*/
-						plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_MANAGEMENT_LOST,0,
+						/* Clear admin pending */	
+						plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
 						NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+						/* Clear management lost.*/
+						plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+						SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 					}
-				}else{
-					TRACE("EE isolation(reset assert of parent) SUCCESSFUL. Ent: %s",
-					ent->dn_name_str);
-					ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
-					/* Clear isolate pending flag.*/
-					plms_readiness_flag_mark_unmark( ent,SA_PLM_RF_ISOLATE_PENDING,0,
-					NULL,SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
-					
-					/* Clear admin pending */	
-					plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
-					NULL, SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
-					
-					/* Clear management lost.*/
-					plms_readiness_flag_mark_unmark(ent, SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
-					SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
 				}
 			}else{
 				LOG_ER("EE isolation FAILED. Ent: %s", ent->dn_name_str);

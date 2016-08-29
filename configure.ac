@@ -492,6 +492,7 @@ PKG_CHECK_MODULES([XML2], [libxml-2.0])
 
 if test "$enable_ais_plm" = yes; then
     PKG_CHECK_MODULES([HPI], [openhpi])
+    PKG_CHECK_MODULES([LIBVIRT], [libvirt])
 
     if test "$with_hpi_interface" = check; then
        if test "$cross_compiling" = no; then
@@ -983,6 +984,8 @@ echo " Dependencies Options:"
 if test "$enable_ais_plm" = yes; then
         echo "${ECHO_T}  HPI_CFLAGS: ${HPI_CFLAGS}"
         echo "${ECHO_T}  HPI_LIBS: ${HPI_LIBS}"
+        echo "${ECHO_T}  LIBVIRT_CFLAGS: ${LIBVIRT_CFLAGS}"
+        echo "${ECHO_T}  LIBVIRT_LIBS: ${LIBVIRT_LIBS}"
 fi
 
 if test "$enable_imm_pbe" = yes; then

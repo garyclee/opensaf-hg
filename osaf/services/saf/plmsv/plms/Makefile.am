@@ -32,6 +32,7 @@ osafplmd_CPPFLAGS = \
 	-I$(top_srcdir)/contrib/plmc/include
 
 osafplmd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+osafplmd_CXXFLAGS = $(AM_CXXFLAGS) @HPI_CFLAGS@
 
 osafplmd_SOURCES = \
 	plms_main.c \
@@ -46,10 +47,12 @@ osafplmd_SOURCES = \
 	plms_plmc.c \
 	plms_proc.c \
 	plms_stdby.c \
-	plms_dbg_utils.c
+	plms_dbg_utils.c \
+	plms_virt.cc
 
 osafplmd_LDADD = \
 	@HPI_LIBS@ \
+	@LIBVIRT_LIBS@ \
 	$(top_builddir)/osaf/tools/safimm/src/libimmutil.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/plmsv/plmc/libplmc.la \

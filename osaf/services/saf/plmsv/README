@@ -151,6 +151,14 @@ example,
    HPI_CFLAGS="-I/path/to/openhpi/headers" \
    HPI_LIBS="-L/path/to/openhpi/lib -lopenhpimarshal -lopenhpiutils -lopenhpi"
 
+PLMSv also does management of virtualized EEs, and for this plmsv interfaces
+with libvirt. Normally, the path to libvirt headers and libraries will be found
+automatically by the configure script, using the pkg-config tool. If you need
+to build and link against custom libvirt headers and libraries that pkg-config
+does not know about, you may use the LIBVIRT_LIBS and LIBVIRT_CFLAGS variables,
+either exported in your environment or passed as options to the configure
+script.
+
 RUNNING OPENSAF WITH PLMSv
 --------------------------
 Currently there is a dependency on the environment variable LD_LIBRARY_PATH 
@@ -313,6 +321,50 @@ for example:
 
 
 Please read README in plmc directory for further details. 
+
+
+PLM and VIRTUALIZATION
+----------------------
+PLM also supports virtualization of EEs using libvirt. To use virtualization
+support in PLM, you will need to do the following:
+
+1) Configure access to the hypervisor. This is done by adding an XML object of
+   type OpenSafPlmVirtualMachineMonitorConfig. "saPlmEE" should point to the EE
+   you have defined elsewhere for the hypervisor, and "libVirtSession" should
+   be the URI libvirt should use to connect to the hypervisor. For KVM, this
+   should be something like "qemu+<transport>://<hostname>/system". Please see
+   the libvirt documentation for your connection specifics.
+
+        <object class="OpenSafPlmVirtualMachineMonitorConfig">
+                <dn>plmVmmConfig=1,safApp=safPlmService</dn>
+                <attr>
+                        <name>saPlmEE</name>
+                        <value>safEE=VirtualMachineMonitor,safHE=myHardwareHE,safDomain=mySafDomain</value>
+                </attr>
+                <attr>
+                        <name>libVirtSession</name>
+                        <value>qemu:///system</value>
+                </attr>
+        </object>
+
+2) Map the virtual machine EE to the libvirt domain name. This is done by adding
+   an XML object of type OpenSafPlmVirtualMachineConfig. "saPlmEE" should point
+   to the EE you have defined elsewhere for the virtual machine, and
+   "libVirtDomainName" should point to the libvirt name of the domain.
+
+        <object class="OpenSafPlmVirtualMachineConfig">
+                <dn>plmVmConfig=1,safApp=safPlmService</dn>
+                <attr>
+                        <name>saPlmEE</name>
+                        <value>safEE=VirtualMachine1,safEE=VirtualMachineMonitor,safHE=myHardwareHE,safDomain=mySafDomain</value>
+                </attr>
+                <attr>
+                        <name>libVirtDomainName</name>
+                        <value>EE_test_1</value>
+                </attr>
+        </object>
+
+3) libvirtd must be started in some fashion.
 
 
 IMPLEMENTATION NOTES

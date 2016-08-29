@@ -218,6 +218,13 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 
 	prev_haState = cb->ha_state;
 
+	if ((rc = initialize_for_assignment(plms_cb, new_haState)) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", rc);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		goto response;
+	}
+
 	/* Invoke the appropriate state handler routine */
 	switch (new_haState) {
 
@@ -333,8 +340,8 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 	/* Update control block */
 	cb->ha_state = new_haState;
 
-	if (cb->csi_assigned == false) {
-		cb->csi_assigned = true;
+	if (cb->fully_initialized == false) {
+		cb->fully_initialized = true;
 		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
 	} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
 	/* check if this step is required */
@@ -354,15 +361,6 @@ plms_amf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
 			 LOG_ER("plms_mds_change_role FAILED");
 			 error = SA_AIS_ERR_FAILED_OPERATION;
 		         goto response;
-		} else {
-			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-				/* FIXME: Is there any overhead to be done on New Active */
-//				if (plms_imm_declare_implementer(cb->immOiHandle) != SA_AIS_OK)
-//					printf("ClassImplementer Set Failed\n");
-			}
-			if (cb->ha_state == SA_AMF_HA_STANDBY) {
-				/* FIXME : Do the over head processing needed to be done for standby state */
-			}
 		}
 		TRACE_5("Inform MBCSV of HA state change to %s",
                         (new_haState == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
