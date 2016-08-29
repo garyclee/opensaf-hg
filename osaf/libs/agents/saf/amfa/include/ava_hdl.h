@@ -62,13 +62,31 @@ typedef struct ava_resp_cbk {
 	AVA_PEND_RESP_REC *tail;
 } AVA_PEND_RESP;
 
+/*
+  Common structure for different initialize API versions(B.01.01, B.04.01 and B.04.2) 
+  to remember callbacks passed by user application. This is for internal use only.
+*/
+typedef struct osaf_amf_cbk {
+        SaAmfHealthcheckCallbackT                   saAmfHealthcheckCallback;
+        SaAmfComponentTerminateCallbackT            saAmfComponentTerminateCallback;
+        SaAmfCSISetCallbackT                        saAmfCSISetCallback;
+        SaAmfCSIRemoveCallbackT                     saAmfCSIRemoveCallback;
+        SaAmfProtectionGroupTrackCallbackT          saAmfProtectionGroupTrackCallback;
+        SaAmfProtectionGroupTrackCallbackT_4        saAmfProtectionGroupTrackCallback_4; //Only in B.04.01
+        SaAmfProxiedComponentInstantiateCallbackT   saAmfProxiedComponentInstantiateCallback;
+        SaAmfProxiedComponentCleanupCallbackT       saAmfProxiedComponentCleanupCallback;
+        SaAmfContainedComponentInstantiateCallbackT saAmfContainedComponentInstantiateCallback;
+        SaAmfContainedComponentCleanupCallbackT     saAmfContainedComponentCleanupCallback;
+        OsafCsiAttributeChangeCallbackT             osafCsiAttributeChangeCallback; //OpenSAF implementation and not from any spec.
+} OsafAmfCallbacksT;
+
 /* AvA handle database records */
 typedef struct ava_hdl_rec_tag {
 	NCS_PATRICIA_NODE hdl_node;	/* hdl-db tree node */
 
 	uint32_t hdl;		/* AMF handle (derived from hdl-mngr) */
 
-	SaAmfCallbacksT reg_cbk;	/* callbacks registered by the application */
+	struct osaf_amf_cbk reg_cbk;	/* callbacks registered by the application */
 
 	SYSF_MBX callbk_mbx;       /* mailbox to hold the callback messages */ 
 	AVA_PEND_RESP pend_resp;	/* list of pending AvSv Response */
@@ -189,7 +207,7 @@ void ava_hdl_del(struct ava_cb_tag *);
 
 void ava_hdl_rec_del(struct ava_cb_tag *, AVA_HDL_DB *, AVA_HDL_REC **);
 
-AVA_HDL_REC *ava_hdl_rec_add(struct ava_cb_tag *, AVA_HDL_DB *, const SaAmfCallbacksT *);
+AVA_HDL_REC *ava_hdl_rec_add(struct ava_cb_tag *, AVA_HDL_DB *, const OsafAmfCallbacksT *);
 
 uint32_t ava_hdl_cbk_dispatch(struct ava_cb_tag **, AVA_HDL_REC **, SaDispatchFlagsT);
 

@@ -35,10 +35,10 @@ extern "C" {
 #endif
 
 /* In Service upgrade support */
-#define AVA_MDS_SUB_PART_VERSION   1
+#define AVA_MDS_SUB_PART_VERSION   2
 
 #define AVA_AVND_SUBPART_VER_MIN   1
-#define AVA_AVND_SUBPART_VER_MAX   1
+#define AVA_AVND_SUBPART_VER_MAX   2
 
 /*****************************************************************************
                  Function to fill the MDS message structure
@@ -46,7 +46,8 @@ extern "C" {
 void ava_fill_finalize_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
 		SaAmfHandleT hdl, SaNameT comp_name);
 void ava_fill_comp_reg_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
-		SaAmfHandleT hdl, SaNameT comp_name, SaNameT proxy_comp_name);
+		SaAmfHandleT hdl, SaNameT comp_name, SaNameT proxy_comp_name,
+		SaVersionT *version);
 void ava_fill_comp_unreg_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
 		SaAmfHandleT hdl, SaNameT comp_name, SaNameT proxy_comp_name);
 void ava_fill_hc_start_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,

@@ -114,6 +114,13 @@ void ava_cpy_protection_group_ntf(SaAmfProtectionGroupNotificationT_4  *to_ntf,
 				SaUint32T items,
 				SaAmfHAReadinessStateT ha_read_state);
 bool ava_sanamet_is_valid(const SaNameT* pName);
+void amf_copy_from_SaAmfCallbacksT_to_OsafAmfCallbacksT(OsafAmfCallbacksT *osaf_cbk,
+                                const SaAmfCallbacksT *cbk);
+void amf_copy_from_SaAmfCallbacksT_4_to_OsafAmfCallbacksT(OsafAmfCallbacksT *osaf_cbk,
+               const SaAmfCallbacksT_4 *cbk);
+void amf_copy_from_SaAmfCallbacksT_o4_to_OsafAmfCallbacksT(OsafAmfCallbacksT *osaf_cbk,
+               const SaAmfCallbacksT_o4 *cbk);
+
 
 #ifdef  __cplusplus
 }

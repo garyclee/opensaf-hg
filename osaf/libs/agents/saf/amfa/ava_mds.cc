@@ -53,8 +53,10 @@ static uint32_t ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info);
 
 static uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info);
 
+static uint32_t dec_csi_attr_change_msg(NCS_UBAID *uba, AVSV_NDA_AVA_MSG *msg);
+
 static const MDS_CLIENT_MSG_FORMAT_VER ava_avnd_msg_fmt_map_table[AVA_AVND_SUBPART_VER_MAX] =
-    { AVSV_AVND_AVA_MSG_FMT_VER_1 };
+    { AVSV_AVND_AVA_MSG_FMT_VER_1, AVSV_AVND_AVA_MSG_FMT_VER_2};
 
 /**
  * function called when MDS down for avnd (AMF) is received
@@ -698,6 +700,11 @@ uint32_t ava_mds_flat_dec(AVA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 			}
 
 			switch (msg->info.cbk_info->type) {
+			case AVSV_AMF_CSI_ATTR_CHANGE:
+				{
+					rc = dec_csi_attr_change_msg(dec_info->io_uba, msg);
+				}
+				break;
 			case AVSV_AMF_CSI_SET:
 				{
 					AVSV_AMF_CSI_SET_PARAM *csi_set = &msg->info.cbk_info->param.csi_set;
@@ -1144,7 +1151,8 @@ void ava_fill_finalize_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
 }
 
 void ava_fill_comp_reg_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
-		SaAmfHandleT hdl, SaNameT comp_name, SaNameT proxy_comp_name)
+		SaAmfHandleT hdl, SaNameT comp_name, SaNameT proxy_comp_name,
+		SaVersionT *version)
 {
 	msg->type = AVSV_AVA_API_MSG;
 	msg->info.api_info.type = AVSV_AMF_COMP_REG;
@@ -1154,6 +1162,8 @@ void ava_fill_comp_reg_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
 			&msg->info.api_info.param.reg.comp_name);
 	osaf_extended_name_alloc(osaf_extended_name_borrow(&proxy_comp_name),
 			&msg->info.api_info.param.reg.proxy_comp_name);
+	msg->info.api_info.param.reg.version = *version; 
+
 }
 
 void ava_fill_comp_unreg_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
@@ -1341,4 +1351,56 @@ void ava_fill_csi_quiescing_complete_msg(AVSV_NDA_AVA_MSG* msg, MDS_DEST dst,
 	msg->info.api_info.param.csiq_compl.err = error;
 	osaf_extended_name_alloc(osaf_extended_name_borrow(&comp_name),
 			&msg->info.api_info.param.csiq_compl.comp_name);
+}
+/**
+ * @brief  Decodes CSI attribute change callback msg.
+ *
+ * @param  uba (ptr to NCS_UBAID).
+ * @param  msg (ptr to AVSV_NDA_AVA_MSG).
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+static uint32_t dec_csi_attr_change_msg(NCS_UBAID *uba, AVSV_NDA_AVA_MSG *msg) {
+  AVSV_AMF_CSI_ATTR_CHANGE_PARAM *csi_attr_change = &msg->info.cbk_info->param.csi_attr_change;
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  uint16_t len, i;
+  uint8_t *p8;
+
+  if (osaf_is_an_extended_name(&csi_attr_change->csi_name))
+    osaf_decode_sanamet(uba, &csi_attr_change->csi_name);
+
+  if (csi_attr_change->attrs.number == 0) 
+    goto done;
+  csi_attr_change->attrs.list = 0;
+  csi_attr_change->attrs.list = static_cast<AVSV_ATTR_NAME_VAL*>(calloc(1, csi_attr_change->attrs.number * sizeof(AVSV_ATTR_NAME_VAL)));
+  if (!csi_attr_change->attrs.list) {
+    rc = NCSCC_RC_FAILURE;
+    LOG_CR("Calloc failed");
+    goto done;
+  }
+  for (i=0; i<csi_attr_change->attrs.number; i++) {
+    rc = ncs_decode_n_octets_from_uba(uba,
+      (uint8_t *)&csi_attr_change->attrs.list[i].name, sizeof(SaNameT));
+    if (NCSCC_RC_SUCCESS != rc) {
+      LOG_CR("ncs_decode_n_octets_from_uba failed with rc= %d", rc);
+      goto done;
+    }
+    // Backward compatibility.
+    if (osaf_is_an_extended_name(&csi_attr_change->attrs.list[i].name))
+      osaf_decode_sanamet(uba, &csi_attr_change->attrs.list[i].name);
+
+    p8 = ncs_dec_flatten_space(uba, (uint8_t *)&len, 2);
+    len = ncs_decode_16bit(&p8);
+    ncs_dec_skip_space(uba, 2);
+    csi_attr_change->attrs.list[i].string_ptr =  static_cast<SaStringT>(calloc(1, len+1));
+    osafassert(csi_attr_change->attrs.list[i].string_ptr);
+    rc = ncs_decode_n_octets_from_uba(uba,
+           (uint8_t *)csi_attr_change->attrs.list[i].string_ptr, (len+1));
+    if (NCSCC_RC_SUCCESS != rc) {
+      LOG_CR("ncs_decode_n_octets_from_uba failed with rc = %d", rc);
+      goto done;
+    }
+  }
+done:
+  return rc;
 }
