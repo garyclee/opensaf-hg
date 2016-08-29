@@ -1604,7 +1604,8 @@ done:
  * @param value
  */
 SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn, SaImmAttrNameT attributeName,
-	SaImmValueTypeT attrValueType, void *value)
+		SaImmValueTypeT attrValueType, void *value,
+		SaImmAttrModificationTypeT modifyType)
 {
 	SaAisErrorT rc;
 	SaImmAttrModificationT_2 attrMod;
@@ -1613,7 +1614,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn, SaImmAttrNameT
 
 	TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName);
 
-	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod.modType = modifyType;
 	attrMod.modAttr.attrName = attributeName;
 	attrMod.modAttr.attrValuesNumber = 1;
 	attrMod.modAttr.attrValueType = attrValueType;

@@ -235,6 +235,46 @@ void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNameT *pa
 	}
 }
 
+void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
+       const char *needle, const char *parent)
+{
+       char *p;
+       char *pp;
+       int i = 0;
+
+       osaf_extended_name_clear(dn);
+       /* find what we actually are looking for */
+       p = strstr(osaf_extended_name_borrow(haystack), needle);
+       osafassert(p);
+
+       /* find the parent */
+       pp = strstr(osaf_extended_name_borrow(haystack), parent);
+       osafassert(pp);
+
+       /* position at parent separtor */
+       pp--;
+
+       /* copy the value upto parent but skip escape chars */
+       int size = 0;
+       char* p1 = p;
+       char* pp1 = pp;
+       while (p != pp) {
+               if (*p != '\\')
+                       size++;
+               p++;
+       }
+       char *buf = (char*) calloc(1, size+1);
+       while (p1 != pp1) {
+               if (*p1 != '\\')
+            	   buf[i++] = *p1;
+               p1++;
+       }
+       buf[i] = '\0';
+
+       if (dn)
+    	   osaf_extended_name_steal(buf, dn);
+}
+
 /**
  * Convert a SAF AMF Component category bit field to a AVSV Comp type value.
  * @param saf_comp_category

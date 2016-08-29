@@ -111,14 +111,12 @@ uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		 * checkpointed dynamically */
 		osafassert (si->list_of_csi != nullptr);
 
-	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt)) == nullptr) {
+	if ((susi = avd_susi_create(cb, si, su, ha_state, ckpt,
+				AVSV_SUSI_ACT_ASGN, AVD_SU_SI_STATE_ASGN)) == nullptr) {
 		LOG_ER("%s: Could not create SUSI '%s' '%s'", __FUNCTION__,
 			su->name.c_str(), si->name.c_str());
 		goto done;
 	}
-
-	susi->fsm = AVD_SU_SI_STATE_ASGN;
-	susi->state = ha_state;
 
 	/* Mark csi to be unassigned to detect duplicate assignment.*/
 	l_csi = si->list_of_csi;
@@ -710,6 +708,10 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	if ((cb->amf_init_tmr.is_active == true) &&
 			(cluster_su_instantiation_done(cb, su) == true)) {
 		avd_stop_tmr(cb, &cb->amf_init_tmr);
+
+		if (su->sg_of_su->any_assignment_in_progress() == false) {
+			su->sg_of_su->sg_fsm_state = AVD_SG_FSM_STABLE;
+		}
 		cluster_startup_expiry_event_generate(cb);
 	}
 
@@ -870,6 +872,9 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* if the SU is NCS SU, mark the SU readiness state as in service and call
 		 * the SG FSM.
 		 */
+		if (su->sg_of_su->any_assignment_in_progress() == false) {
+			su->sg_of_su->sg_fsm_state = AVD_SG_FSM_STABLE;
+		}
 		if (su->sg_of_su->sg_ncs_spec == true) {
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) { 
 				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
@@ -1164,9 +1169,12 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Now process the acknowledge message based on
 		 * Success or failure.
 		 */
+		/*
+		 * Continue waiting for all pending assignment from headless to complete
+		 */
 		if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 			if (q_flag == false) {
-				su->sg_of_su->susi_success(cb, su, AVD_SU_SI_REL_NULL,
+					su->sg_of_su->susi_success(cb, su, AVD_SU_SI_REL_NULL,
 						n2d_msg->msg_info.n2d_su_si_assign.msg_act,
 						n2d_msg->msg_info.n2d_su_si_assign.ha_state);
 			}
@@ -1337,7 +1345,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			}
 
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
-				susi->fsm = AVD_SU_SI_STATE_ASGND;
+				avd_susi_update_fsm(susi, AVD_SU_SI_STATE_ASGND);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
 				/* trigger pg upd */
@@ -1367,7 +1375,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				if (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_QUIESCING) {
 					q_flag = true;
-					susi->fsm = AVD_SU_SI_STATE_ASGND;
+					avd_susi_update_fsm(susi, AVD_SU_SI_STATE_ASGND);
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				} else {
 					if (susi->state == SA_AMF_HA_QUIESCING) {
@@ -1378,7 +1386,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					}
 
 					/* set the assigned in the SUSIs. */
-					susi->fsm = AVD_SU_SI_STATE_ASGND;
+					avd_susi_update_fsm(susi, AVD_SU_SI_STATE_ASGND);
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				}
 
@@ -2038,59 +2046,51 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 	 * reassign all the SUSI assignments for the SG of which the SU is a member
 	 */
 
-	if (cb->init_state == AVD_APP_STATE) {
-		for (const auto& i_su : avnd->list_of_su) {
-
-			/* Unlike active, quiesced and standby HA states, assignment counters
-			   in quiescing HA state are updated when AMFD receives assignment 
-			   response from AMFND. During nodefailover amfd will not receive 
-			   assignment response from AMFND. 
-			   So if any SU is under going modify operation then update assignment 
-			   counters for those SUSIs which are in quiescing state in the SU.
-			 */ 
-			for (AVD_SU_SI_REL *susi = i_su->list_of_susi; susi; susi = susi->su_next) {
-				if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
-						(susi->state == SA_AMF_HA_QUIESCING)) {
-					avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD,
-							SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
-				}
-				else if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
-						(susi->state == SA_AMF_HA_ACTIVE)) {
-					/* SUSI is undergoing active modification. For active state
-					   saAmfSINumCurrActiveAssignments was increased when active
-					   assignment had been sent. So decrement the count in SI before
-					   deleting the SUSI. */
-					susi->si->dec_curr_act_ass();
-				}
-				else if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
-						(susi->state == SA_AMF_HA_STANDBY)) {
-					/* SUSI is undergoing standby modification. For standby state
-					   saAmfSINumCurrStandbyAssignments was increased when standby 
-					   assignment had been sent. So decrement the count in SI before
-					   deleting the SUSI. */
-					susi->si->dec_curr_stdby_ass();
-				}
-
-
+	TRACE("cb->init_state: %d", cb->init_state);
+	for (const auto& i_su : avnd->list_of_su) {
+		/* Unlike active, quiesced and standby HA states, assignment counters
+		   in quiescing HA state are updated when AMFD receives assignment
+		   response from AMFND. During nodefailover amfd will not receive
+		   assignment response from AMFND.
+		   So if any SU is under going modify operation then update assignment
+		   counters for those SUSIs which are in quiescing state in the SU.
+		 */
+		for (AVD_SU_SI_REL *susi = i_su->list_of_susi; susi; susi = susi->su_next) {
+			if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
+					(susi->state == SA_AMF_HA_QUIESCING)) {
+				avd_susi_update_assignment_counters(susi, AVSV_SUSI_ACT_MOD,
+						SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
+			}
+			else if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
+					(susi->state == SA_AMF_HA_ACTIVE)) {
+				/* SUSI is undergoing active modification. For active state
+				   saAmfSINumCurrActiveAssignments was increased when active
+				   assignment had been sent. So decrement the count in SI before
+				   deleting the SUSI. */
+				susi->si->dec_curr_act_ass();
+			}
+			else if ((susi->fsm == AVD_SU_SI_STATE_MODIFY) &&
+					(susi->state == SA_AMF_HA_STANDBY)) {
+				/* SUSI is undergoing standby modification. For standby state
+				   saAmfSINumCurrStandbyAssignments was increased when standby
+				   assignment had been sent. So decrement the count in SI before
+				   deleting the SUSI. */
+				susi->si->dec_curr_stdby_ass();
 			}
 
-			/* Now analyze the service group for the new HA state
-			 * assignments and send the SU SI assign messages
-			 * accordingly.
-			 */
-			i_su->sg_of_su->node_fail(cb, i_su);
-
-			/* Free all the SU SI assignments*/ 
-			i_su->delete_all_susis();
-
-			/* Since a SU has gone out of service relook at the SG to
-			 * re instatiate and terminate SUs if needed.
-			 */
-			avd_sg_app_su_inst_func(cb, i_su->sg_of_su);
-
-		}		/* for (const auto& i_su : avnd->list_of_su) */
-
-	}
+		}
+		/* Now analyze the service group for the new HA state
+		 * assignments and send the SU SI assign messages
+		 * accordingly.
+		 */
+		i_su->sg_of_su->node_fail(cb, i_su);
+		/* Free all the SU SI assignments*/
+		i_su->delete_all_susis();
+		/* Since a SU has gone out of service relook at the SG to
+		 * re instatiate and terminate SUs if needed.
+		 */
+		avd_sg_app_su_inst_func(cb, i_su->sg_of_su);
+	}	/* for (const auto& i_su : avnd->list_of_su) */
 
 	/* If this node-failover/nodereboot occurs dueing nodegroup operation then check 
 	   if this leads to completion of operation and try to reply to imm.*/
@@ -2119,7 +2119,7 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
+uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt, bool wrt_to_imm)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -2137,8 +2137,18 @@ uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 	
 	su_oper_list.push_back(su);
 
-	if (!ckpt)
+	if (!ckpt) {
+		// Update to IMM if headless is enabled
+		if (cb->scs_absence_max_duration > 0 && wrt_to_imm) {
+			const SaNameTWrapper su_name(su->name);
+			avd_saImmOiRtObjectUpdate_sync(su->sg_of_su->name,
+					const_cast<SaImmAttrNameT>("osafAmfSGSuOperationList"),
+					SA_IMM_ATTR_SANAMET,
+					(void*)static_cast<const SaNameT*>(su_name),
+					SA_IMM_ATTR_VALUES_ADD);
+		}
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
+	}
 
 done:
 	TRACE_LEAVE();
@@ -2163,7 +2173,7 @@ done:
  * 
  **************************************************************************/
 
-uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
+uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt, bool wrt_to_imm)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	std::list<AVD_SU*>& su_oper_list = su->sg_of_su->su_oper_list;
@@ -2183,8 +2193,19 @@ uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt)
 	}	
 
 	su_oper_list.erase(elem);
-	if (!ckpt)
+	if (!ckpt) {
+		// Update to IMM if headless is enabled
+		if (cb->scs_absence_max_duration > 0 && wrt_to_imm) {
+			const SaNameTWrapper su_name(su->name);
+			avd_saImmOiRtObjectUpdate_sync(su->sg_of_su->name,
+				const_cast<SaImmAttrNameT>("osafAmfSGSuOperationList"),
+				SA_IMM_ATTR_SANAMET,
+				(void*)static_cast<const SaNameT*>(su_name),
+				SA_IMM_ATTR_VALUES_DELETE);
+		}
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
+	}
+
 	
 done:
 	TRACE_LEAVE2("rc:%u", rc);
@@ -2237,7 +2258,7 @@ uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 		old_state = i_susi->fsm;
 
 		i_susi->state = state;
-		i_susi->fsm = AVD_SU_SI_STATE_MODIFY;
+		avd_susi_update_fsm(i_susi, AVD_SU_SI_STATE_MODIFY);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 		avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_MOD, old_ha_state, state);
 
@@ -2259,7 +2280,7 @@ uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 			}
 
 			i_susi->state = old_ha_state;
-			i_susi->fsm = old_state;
+			avd_susi_update_fsm(i_susi, old_state);
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 			i_susi = i_susi->su_next;
 		}
@@ -2333,7 +2354,7 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	while (i_susi != AVD_SU_SI_REL_NULL) {
 		old_state = i_susi->fsm;
 		if (i_susi->fsm != AVD_SU_SI_STATE_UNASGN) {
-			i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
+			avd_susi_update_fsm(i_susi, AVD_SU_SI_STATE_UNASGN);
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 			/* Update the assignment counters */
 			avd_susi_update_assignment_counters(i_susi, AVSV_SUSI_ACT_DEL, static_cast<SaAmfHAStateT>(0), static_cast<SaAmfHAStateT>(0));
@@ -2348,7 +2369,7 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 		LOG_ER("%s: avd_snd_susi_msg failed, %s", __FUNCTION__, su->name.c_str());
 		i_susi = su->list_of_susi;
 		while (i_susi != AVD_SU_SI_REL_NULL) {
-			i_susi->fsm = old_state;
+			avd_susi_update_fsm(i_susi, old_state);
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 			i_susi = i_susi->su_next;
 		}

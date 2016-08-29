@@ -2066,7 +2066,7 @@ uint32_t SG_NPM::susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 				i_susi = su->sg_of_su->admin_si->list_of_sisu;
 
 			if ((i_susi != AVD_SU_SI_REL_NULL) && (i_susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
-				i_susi->fsm = AVD_SU_SI_STATE_UNASGN;
+				avd_susi_update_fsm(i_susi, AVD_SU_SI_STATE_UNASGN);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_susi, AVSV_CKPT_AVD_SI_ASS);
 				avd_susi_del_send(i_susi);
 				avd_sg_su_oper_list_add(cb, i_susi->su, false);

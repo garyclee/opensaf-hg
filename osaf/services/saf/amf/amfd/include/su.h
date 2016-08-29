@@ -115,7 +115,7 @@ class AVD_SU {
 	void set_all_susis_assigned(void);
 	void set_term_state(bool state);
 	void remove_from_model();
-	void set_su_switch(SaToggleState state);
+	void set_su_switch(SaToggleState state, bool wrt_to_imm = true);
 	AVD_AVND *get_node_ptr(void);
 	bool is_in_service(void);
 	bool is_instantiable(void);
@@ -133,8 +133,7 @@ class AVD_SU {
 	void shutdown(SaImmOiHandleT immoi_handle, SaInvocationT invocation);
 	void lock(SaImmOiHandleT immoi_handle, SaInvocationT invocation,
 		SaAmfAdminStateT adm_state);
-	bool any_susi_fsm_in_unasgn();
-	bool any_susi_fsm_in_modify();
+	bool any_susi_fsm_in(uint32_t check_fsm);
 	SaAisErrorT check_su_stability();
 	uint32_t curr_num_standby_sis();
 	uint32_t curr_num_active_sis();
@@ -174,4 +173,5 @@ extern SaAisErrorT avd_su_config_get(const std::string& sg_name, AVD_SG *sg);
  */
 extern void avd_su_constructor(void);
 extern void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata);
+void avd_su_read_headless_cached_rta(AVD_CL_CB *cb);
 #endif

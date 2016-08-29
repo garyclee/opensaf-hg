@@ -78,7 +78,8 @@ extern bool avsv_sa_name_is_null(SaNameT *);
 
 extern void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
 	const char *rdn_tag, SaNameT *dn);
-
+extern void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
+	       const char *needle, const char *parent);
 extern AVSV_COMP_TYPE_VAL avsv_amfcompcategory_to_avsvcomptype(SaAmfCompCategoryT saf_comp_category);
 
 #ifdef __cplusplus

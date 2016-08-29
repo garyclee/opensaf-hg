@@ -1953,7 +1953,7 @@ void SG_NACV::ng_admin(AVD_SU *su, AVD_AMF_NG *ng)
 	avd_sg_su_oper_list_add(avd_cb, su, false);
 	su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 	//Increment node counter for tracking status of ng operation.
-	if (su->any_susi_fsm_in_modify() == true) {
+	if (su->any_susi_fsm_in(AVD_SU_SI_STATE_MODIFY) == true) {
 		su->su_on_node->su_cnt_admin_oper++;
 		TRACE("node:%s, su_cnt_admin_oper:%u", su->su_on_node->name.c_str(),
 				su->su_on_node->su_cnt_admin_oper);

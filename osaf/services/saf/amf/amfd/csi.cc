@@ -1451,40 +1451,6 @@ bool are_sponsor_csis_assigned_in_su(AVD_CSI *csi, AVD_SU *su)
  * Clean up COMPCSI objects by searching for SaAmfCSIAssignment instances in IMM
  * @return SA_AIS_OK when OK
  */
-SaAisErrorT avd_compcsi_cleanup(void)
-{
-	SaAisErrorT rc;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	const char *className = "SaAmfCSIAssignment";
-
-	TRACE_ENTER();
-
-	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	if ((rc = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
-	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam,
-		  nullptr, &searchHandle)) != SA_AIS_OK) {
-		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
-		goto done;
-	}
-
-	SaNameT csiass_name;
-	const SaImmAttrValuesT_2 **attributes;
-	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &csiass_name,
-				(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
-		avd_saImmOiRtObjectDelete(Amf::to_string(&csiass_name));
-	}
-
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
-
-done:
-	TRACE_LEAVE();
-	return SA_AIS_OK;
-}
-
 /**
  * Re-create csi assignment and update comp related states, which are
  * collected after headless
@@ -1552,3 +1518,61 @@ SaAisErrorT avd_compcsi_recreate(AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO *info)
 	return SA_AIS_OK;
 }
 
+void avd_compcsi_cleanup_imm_object(AVD_CL_CB *cb)
+{
+
+	SaAisErrorT rc;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+
+	SaNameT dn;
+	const SaImmAttrValuesT_2 **attributes;
+	AVD_SU_SI_REL *susi;
+
+	const char *className = "SaAmfCSIAssignment";
+	const SaImmAttrNameT siass_attributes[] = {
+		const_cast<SaImmAttrNameT>("safCSIComp"),
+		NULL
+	};
+
+	TRACE_ENTER();
+
+	osafassert(cb->scs_absence_max_duration > 0);
+
+	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if ((rc = immutil_saImmOmSearchInitialize_2(cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
+		  siass_attributes, &searchHandle)) != SA_AIS_OK) {
+
+		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
+		goto done;
+	}
+
+	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &dn,
+					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
+		AVD_SI *si = si_db->find(strstr(osaf_extended_name_borrow(&dn), "safSi"));
+		osafassert(si);
+
+		AVD_CSI *csi = csi_db->find(strstr(osaf_extended_name_borrow(&dn), "safCsi"));
+		osafassert(csi);
+		SaNameT comp_name;
+		avsv_sanamet_init_from_association_dn(&dn, &comp_name, "safComp", csi->name.c_str());
+		AVD_COMP *comp = comp_db->find(Amf::to_string(&comp_name));
+		osaf_extended_name_free(&comp_name);
+		osafassert(comp);
+
+		susi = avd_susi_find(avd_cb, comp->su->name, si->name);
+		if (susi == nullptr || (susi->fsm == AVD_SU_SI_STATE_ABSENT)) {
+			avd_saImmOiRtObjectDelete(Amf::to_string(&dn));
+		}
+	}
+
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+
+done:
+    TRACE_LEAVE();
+
+}

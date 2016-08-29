@@ -1089,7 +1089,7 @@ uint32_t SG_2N::su_fault_si_oper(AVD_SU *su) {
 				 * Add the SU to the SU operation list.Change SG fsm to su_oper.
 				 */
 				l_susi->state = SA_AMF_HA_QUIESCED; 
-				l_susi->fsm = AVD_SU_SI_STATE_ASGND;
+				avd_susi_update_fsm(l_susi, AVD_SU_SI_STATE_ASGND);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, l_susi, AVSV_CKPT_AVD_SI_ASS);
 				avd_gen_su_ha_state_changed_ntf(avd_cb, l_susi);
 				avd_susi_update_assignment_counters(l_susi, AVSV_SUSI_ACT_MOD, SA_AMF_HA_QUIESCING, SA_AMF_HA_QUIESCED);
@@ -2959,7 +2959,7 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 					 * *a_susi->su* starts active assignment.
 					 */
 					su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
-					if (a_susi->su->any_susi_fsm_in_modify() == true) {
+					if (a_susi->su->any_susi_fsm_in(AVD_SU_SI_STATE_MODIFY) == true) {
 						avd_sg_su_oper_list_add(cb, a_susi->su, false);
 						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 					}
@@ -4049,8 +4049,8 @@ void SG_2N::ng_admin(AVD_SU *su, AVD_AMF_NG *ng)
 		if (sg_fsm_state == AVD_SG_FSM_STABLE) {
 			su_admin_down(avd_cb, su, node);
 			//Increment node counter for tracking status of ng operation.
-			if ((su->any_susi_fsm_in_modify() == true) ||
-					(su->any_susi_fsm_in_unasgn() == true)) {
+			if ((su->any_susi_fsm_in(AVD_SU_SI_STATE_MODIFY) == true) ||
+					(su->any_susi_fsm_in(AVD_SU_SI_STATE_UNASGN) == true)) {
 				node->su_cnt_admin_oper++;
 				TRACE("node:%s, su_cnt_admin_oper:%u", node->name.c_str(),
 						node->su_cnt_admin_oper);
