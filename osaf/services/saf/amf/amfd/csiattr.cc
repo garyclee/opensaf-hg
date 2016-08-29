@@ -495,6 +495,44 @@ static void csiattr_create_apply(CcbUtilOperationData_t *opdata)
 	avd_csi_add_csiattr(csi, csiattr);
 }
 
+/**
+ * @brief       Sends CSI attribute list to AMFNDs where this CSI is assigned.
+ *	        On receving this message AMFND passes this changed values to comps.
+		For PI comp AMFND will issue csi attribute change callback to comp.
+ *
+ * @param[in]   csi - Pointer to CSI.
+ */
+static void csiattr_change_send_msg(AVD_CSI *csi) {
+//  std::map<SaClmNodeIdT, MDS_SVC_PVT_SUB_PART_VER>::iterator it;
+
+  for (AVD_COMP_CSI_REL *compcsi = csi->list_compcsi; compcsi != nullptr;
+    compcsi = compcsi->csi_csicomp_next) {
+    auto it = nds_mds_ver_db.find(compcsi->comp->su->su_on_node->node_info.nodeId);
+
+    //Check if this amfnd is capable of this functionality.
+    if (it->second < AVSV_AVD_AVND_MSG_FMT_VER_7) {
+      TRACE_3("not sending to '%s' on :%x with mds version:'%u'",
+        osaf_extended_name_borrow(&compcsi->comp->comp_info.name),	
+        compcsi->comp->su->su_on_node->node_info.nodeId,
+        it->second);
+      continue;
+    }
+    //For a NPI component check osafAmfCSICommunicateCsiAttributeChange is enabled or not.
+    if (((compcsi->csi->osafAmfCSICommunicateCsiAttributeChange == true) &&
+      (compcsi->comp->saaware() == false)) || 
+      (compcsi->comp->saaware()== true) || 
+      (compcsi->comp->proxied_pi() == true) ||
+      (compcsi->comp->proxied_npi() == true)) {
+      TRACE_3("sending to '%s' on :%x with mds version:'%u'",
+        osaf_extended_name_borrow(&compcsi->comp->comp_info.name),	
+        compcsi->comp->su->su_on_node->node_info.nodeId,
+        it->second);
+      avd_snd_compcsi_msg(compcsi->comp, compcsi->csi, compcsi, 
+         AVSV_COMPCSI_ATTR_CHANGE_AND_NO_ACK);
+    }
+  }
+}
+
 static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
@@ -590,6 +628,9 @@ static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 		}
 	} /* while */
 
+	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+		csiattr_change_send_msg(csi);
+	}
 }
 
 /*****************************************************************************

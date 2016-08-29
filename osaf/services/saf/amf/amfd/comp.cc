@@ -1794,4 +1794,20 @@ bool AVD_COMP::saaware() const
         AVD_COMP_TYPE *comptype = comptype_db->find(saAmfCompType);
         return (IS_COMP_SAAWARE(comptype->saAmfCtCompCategory));
 }
+/**
+ * @brief  Checks if component is proxied pi. 
+ * @Return true/false.
+ */
+bool AVD_COMP::proxied_pi() const {
+  AVD_COMP_TYPE *comptype = comptype_db->find(saAmfCompType);
+  return (IS_COMP_PROXIED_PI(comptype->saAmfCtCompCategory));
+}
+/**
+ * @brief  Checks if component is proxied npi. 
+ * @Return true/false.
+ */
+bool AVD_COMP::proxied_npi() const {
+  AVD_COMP_TYPE *comptype = comptype_db->find(saAmfCompType);
+  return (IS_COMP_PROXIED_NPI(comptype->saAmfCtCompCategory));
+}
 

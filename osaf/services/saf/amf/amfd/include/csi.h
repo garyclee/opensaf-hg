@@ -67,6 +67,8 @@ class AVD_CSI {
   uint32_t rank {};		/* The rank of the CSI in the SI
 				 * Checkpointing - Sent as a one time update.
 				 */
+  bool osafAmfCSICommunicateCsiAttributeChange = false; /*To control invocation of INSTANTIATE script of NON PROXIED NPI comp
+							upon modification of CSIAttributes of assigned csi.*/
 
   AVD_SI *si {};		/* SI encompassing this csi */
 
