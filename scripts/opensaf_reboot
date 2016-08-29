@@ -64,15 +64,20 @@ opensaf_reboot_with_plm()
 	immadm -o 7 $ee_name
 	retval=$?
 	if [ $retval != 0 ]; then
-		if [ "$self_node_id" = "$node_id" ];then
-			sudo /sbin/reboot -f
-		else
-			logger -t "opensaf_reboot" "Rebooting remote node failed"
-			exit 1
-		fi
-	fi 
+		logger -t "opensaf_reboot" "graceful restart failed for $ee_name: attempting abrupt restart"
+		immadm -o 7 -p restartOption:SA_STRING_T:abrupt $ee_name
+		retval=$?
+
+		if [ $retval != 0 ]; then
+			if [ "$self_node_id" = "$node_id" ];then
+				sudo /sbin/reboot -f
+			else
+				logger -t "opensaf_reboot" "abrupt restart failed for $ee_name: unable to restart remote node"
+				exit 1
+			fi
+		fi 
+	fi
 #Note: Operation Id SA_PLM_ADMIN_RESTART=7
-#No Parameter option specified, which signifies gracefull reboot
 #In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
 }
 

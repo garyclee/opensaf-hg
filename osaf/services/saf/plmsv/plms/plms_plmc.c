@@ -2281,9 +2281,9 @@ SaUint32T plms_ee_reboot(PLMS_ENTITY *ent, SaUint32T is_adm_op,SaUint32T mngt_cb
 ******************************************************************************/
 SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_cbk)
 {
-	SaUint32T ret_err,cbk = 0;
+	SaUint32T ret_err = NCSCC_RC_SUCCESS,cbk = 0;
 	PLMS_CB *cb = plms_cb;
-	PLMS_ENTITY *parent_he;
+	PLMS_ENTITY *parent;
 
 	if (PLMS_EE_ENTITY != ent->entity_type)
 		return NCSCC_RC_SUCCESS;
@@ -2291,11 +2291,9 @@ SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mng
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 
-	/* As we are not supporting virtualization, the parent of the EE
-	will be HE or domain.*/
-	parent_he = ent->parent; 
+	parent = ent->parent; 
 	
-	if (NULL == parent_he){
+	if (NULL == parent){
 		/*TODO: The EE is direct child of domain. How to
 		instantiate the EE??*/
 		LOG_ER("Entity %s is direct child of domain. Instantiate\
@@ -2303,30 +2301,36 @@ SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mng
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-	/* TODO: Virtualization is not taken into consideration.*/
-	if (NULL == parent_he->entity.he_entity.saPlmHECurrEntityPath){
-		/* TODO: HE is not present.*/
-		LOG_ER("Parent HE of this EE %s is not present.",
+	if (parent->entity_type == PLMS_EE_ENTITY) {
+		/* Virtualization */
+		TRACE("instantiate request for virtualized EE - parent EE is %s", parent->dn_name_str);
+		ret_err = plms_ee_instantiate_vm(ent);
+	}
+	else if (parent->entity_type == PLMS_HE_ENTITY) {
+		if (NULL == parent->entity.he_entity.saPlmHECurrEntityPath){
+			/* TODO: HE is not present.*/
+			LOG_ER("Parent HE of this EE %s is not present.",
 						ent->dn_name_str);
-		ret_err = NCSCC_RC_FAILURE; 
-	}else{
-		/* don't reset if this is myself -- obviously we are already
-		running; just return success.  PLMCD message will handle
-		EE */
-		if (parent_he->entity_type == PLMS_HE_ENTITY &&
-			cb->my_entity_path &&
-			!strcmp(parent_he->entity.he_entity.saPlmHECurrEntityPath,
-				cb->my_entity_path))
-		{
-			TRACE("not resetting myself");
-			return NCSCC_RC_SUCCESS;
-		}
+			ret_err = NCSCC_RC_FAILURE; 
+		}else{
+			/* don't reset if this is myself -- obviously we are already
+			running; just return success.  PLMCD message will handle
+			EE */
+			if (parent->entity_type == PLMS_HE_ENTITY &&
+				cb->my_entity_path &&
+				!strcmp(parent->entity.he_entity.saPlmHECurrEntityPath,
+					cb->my_entity_path))
+			{
+				TRACE("not resetting myself");
+				return NCSCC_RC_SUCCESS;
+			}
 
-		/* Reset the parent_he.*/
-		TRACE("Reset the parent HE %s(ee_inst).",
-						parent_he->dn_name_str);
-		ret_err = plms_he_reset(parent_he,1/*adm_op*/,1/*mngt_cbk*/,
-							SAHPI_COLD_RESET);
+			/* Reset the parent_he.*/
+			TRACE("Reset the parent HE %s(ee_inst).",
+							parent->dn_name_str);
+			ret_err = plms_he_reset(parent,1/*adm_op*/,1/*mngt_cbk*/,
+								SAHPI_COLD_RESET);
+		}
 	}
 
 	/* EE instantiation operation failed.*/
@@ -2588,6 +2592,8 @@ SaUint32T plms_inst_term_failed_isolate(PLMS_ENTITY *ent)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS, can_isolate = 1;
 	PLMS_GROUP_ENTITY *head = NULL, *chld_list = NULL;
+	PLMS_ENTITY *parent = ent->parent; 
+
 	/* Isolate the EE by "assert reset state on parent HE" or taking the
 	"paretn HE to inactive".*/
 
@@ -2618,23 +2624,37 @@ SaUint32T plms_inst_term_failed_isolate(PLMS_ENTITY *ent)
 		return NCSCC_RC_FAILURE;
 	}
 	if (can_isolate){
-		/* assert reset state on parent HE,
-		(parent is HE as no virtualization). */
-		ret_err = plms_he_reset(ent->parent,0/*adm_op*/,1/*mngt_cbk*/, SAHPI_RESET_ASSERT);
-		if( NCSCC_RC_SUCCESS != ret_err){
-			/* Deactivate the HE.*/
-			ret_err = plms_he_deactivate(ent->parent,false/*adm_op*/,true/*mngt_cbk*/);
-			if(NCSCC_RC_SUCCESS != ret_err){
-				/* Isolation failed.*/
+		if (parent->entity_type == PLMS_EE_ENTITY) {
+			/* tell the hypervisor to terminate the EE */
+			ret_err = plms_ee_isolate_vm(ent);
+
+			if (NCSCC_RC_SUCCESS != ret_err) {
 				can_isolate = 0;
-				LOG_ER("EE %s Isolation FAILED.", ent->dn_name_str);
-			}else{
-				TRACE("Isolated the ent %s, Deactivate parent HE successfull.",ent->dn_name_str);
-				ent->iso_method = PLMS_ISO_HE_DEACTIVATED;
+				LOG_ER("EE %s isolation failed unable to terminate virtual machine", ent->dn_name_str);
 			}
-		}else{
-			TRACE("Isolate the ent %s, Reset assert parent HE successfull.",ent->dn_name_str);
-			ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+			else {
+				TRACE("Isolated the ent %s, Terminating virtual machine successful", ent->dn_name_str);
+				ent->iso_method = PLMS_ISO_EE_TERMINATED;
+			}
+		}
+		else if (parent->entity_type == PLMS_HE_ENTITY) {
+			/* assert reset state on parent HE */
+			ret_err = plms_he_reset(ent->parent,0/*adm_op*/,1/*mngt_cbk*/, SAHPI_RESET_ASSERT);
+			if( NCSCC_RC_SUCCESS != ret_err){
+				/* Deactivate the HE.*/
+				ret_err = plms_he_deactivate(ent->parent,false/*adm_op*/,true/*mngt_cbk*/);
+				if(NCSCC_RC_SUCCESS != ret_err){
+					/* Isolation failed.*/
+					can_isolate = 0;
+					LOG_ER("EE %s Isolation FAILED.", ent->dn_name_str);
+				}else{
+					TRACE("Isolated the ent %s, Deactivate parent HE successfull.",ent->dn_name_str);
+					ent->iso_method = PLMS_ISO_HE_DEACTIVATED;
+				}
+			}else{
+				TRACE("Isolate the ent %s, Reset assert parent HE successfull.",ent->dn_name_str);
+				ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+			}
 		}
 	}else {
 		LOG_ER("EE's siblings are insvc and, hence the EE cannot be isolated.");

@@ -52,10 +52,10 @@ PLMS_CB *plms_cb = &_plms_cb;
 
 HSM_HA_STATE hsm_ha_state = {PTHREAD_MUTEX_INITIALIZER, 
 			     PTHREAD_COND_INITIALIZER,
-			     SA_AMF_HA_ACTIVE};
+			     SA_AMF_HA_QUIESCED};
 HRB_HA_STATE hrb_ha_state = {PTHREAD_MUTEX_INITIALIZER, 
 			     PTHREAD_COND_INITIALIZER,
-			     SA_AMF_HA_ACTIVE};
+			     SA_AMF_HA_QUIESCED};
 
 PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[SA_PLM_HE_PRES_STATE_MAX]
                                                 [SA_PLM_HPI_HE_PRES_STATE_MAX];
@@ -237,8 +237,6 @@ static uint32_t plms_init()
 {
 	PLMS_CB *cb;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	SaVersionT ntf_version = { 'A', 0x01, 0x01 };
-	SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
 
 	TRACE_ENTER();
 	
@@ -251,6 +249,9 @@ static uint32_t plms_init()
 		return NCSCC_RC_FAILURE;
 	}
 	memset(cb,0,sizeof(PLMS_CB));
+
+        cb->mbcsv_sel_obj = -1;
+        cb->imm_sel_obj   = -1;
 
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
@@ -296,44 +297,6 @@ static uint32_t plms_init()
 		goto done;
 	}
 
-        if ((rc = plms_mds_register()) != NCSCC_RC_SUCCESS) {
-                LOG_ER("plms_mds_register FAILED %d", rc);
-                rc = NCSCC_RC_FAILURE;
-		goto done;
-        }
-        /* Initialise with the MBCSV service  */
-        if ((rc = plms_mbcsv_register()) != NCSCC_RC_SUCCESS) {
-                LOG_ER("plms_mbcsv_register FAILED %d", rc);
-                rc = NCSCC_RC_FAILURE;
-		goto done;
-        }
-
-        if ((rc = plms_mbcsv_chgrole()) != NCSCC_RC_SUCCESS) {
-                LOG_ER("plms_mbcsv_chgrole FAILED %d", rc);
-		rc = NCSCC_RC_FAILURE;
-                goto done;
-        }
-
-	/* Initialize the IMM stuff */
-	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-		if ((plms_imm_intf_initialize()) != NCSCC_RC_SUCCESS) {
-			LOG_ER("imm_intf initialization failed");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-	}
-	else if (cb->ha_state == SA_AMF_HA_STANDBY) {
-		if ((plms_read_hpi_config()) != NCSCC_RC_SUCCESS) {
-			LOG_ER("reading HPI config failed");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-
-		/* don't need mutex because we haven't started thread */
-		hsm_ha_state.state = SA_AMF_HA_STANDBY;
-		hrb_ha_state.state = SA_AMF_HA_STANDBY;
-	}
-
 	if( cb->hpi_cfg.hpi_support ) {
 		rc = plms_hsm_hrb_init();
 		if(NCSCC_RC_FAILURE == rc)
@@ -345,26 +308,6 @@ static uint32_t plms_init()
 	plms_he_pres_fsm_init(plms_HE_pres_state_op);
 	plms_he_adm_fsm_init(plm_HE_adm_state_op);
 	plms_ee_adm_fsm_init(plm_EE_adm_state_op);
-
-	/* PLMC initialize */
-	if ( !cb->hpi_cfg.hpi_support && cb->ha_state == SA_AMF_HA_ACTIVE) {
-		rc = plmc_initialize(plms_plmc_connect_cbk,plms_plmc_udp_cbk,
-		plms_plmc_error_cbk);
-		if (rc) {
-			LOG_ER("PLMC initialize failed.");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		cb->plmc_initialized = true;
-	}
-
-	/* NTF Initialization */
-        rc = saNtfInitialize(&cb->ntf_hdl, &ntf_callbacks, &ntf_version);
-        if (rc != SA_AIS_OK) {
-                /* log the error code here */
-		LOG_ER("NTF Initialization failed");
-                goto done;
-        }
 
 	/* Create a selection object. This is used for amf initialization*/
 	if (cb->nid_started &&
@@ -398,6 +341,13 @@ static uint32_t plms_init()
 		goto done;
 	}
 
+        if ((rc = initialize_for_assignment(plms_cb, plms_cb->ha_state)) !=
+                NCSCC_RC_SUCCESS) {
+                LOG_ER("initialize_for_assignment FAILED %u", rc);
+                goto done;
+        }
+
+
         syslog(LOG_INFO, "Initialization Success, role %s",
                (cb->ha_state == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
 
@@ -412,6 +362,89 @@ done:
 	return rc;
 }
 
+uint32_t initialize_for_assignment(PLMS_CB *cb, SaAmfHAStateT ha_state)
+{
+    TRACE_ENTER2("ha_state = %d", (int) ha_state);
+    uint32_t rc = NCSCC_RC_SUCCESS;
+
+    do {
+	SaVersionT ntf_version = { 'A', 0x01, 0x01 };
+	SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
+
+        if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) break;
+        cb->ha_state = ha_state;
+        if ((rc = plms_mds_register()) != NCSCC_RC_SUCCESS) {
+                LOG_ER("plms_mds_register FAILED %d", rc);
+                break;
+        }
+
+        if ((rc = plms_mbcsv_register()) != NCSCC_RC_SUCCESS) {
+                LOG_ER("plms_mbcsv_register FAILED %d", rc);
+                break;
+        }
+
+        if ((rc = plms_mbcsv_chgrole()) != NCSCC_RC_SUCCESS) {
+                LOG_ER("plms_mbcsv_chgrole FAILED %d", rc);
+		rc = NCSCC_RC_FAILURE;
+                break;
+        }
+
+        if ((rc = plms_imm_init()) != SA_AIS_OK) {
+                LOG_ER("plms_imm_init FAILED %d", rc);
+		rc = NCSCC_RC_FAILURE;
+                break;
+        }
+
+	/* Initialize the IMM stuff */
+	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+		if ((plms_imm_intf_initialize()) != NCSCC_RC_SUCCESS) {
+			LOG_ER("imm_intf initialization failed");
+			rc = NCSCC_RC_FAILURE;
+			break;
+		}
+	}
+	else if (cb->ha_state == SA_AMF_HA_STANDBY) {
+		if ((plms_read_hpi_config()) != NCSCC_RC_SUCCESS) {
+			LOG_ER("reading HPI config failed");
+			rc = NCSCC_RC_FAILURE;
+			break;
+		}
+
+                pthread_mutex_lock(&hrb_ha_state.mutex);
+		hrb_ha_state.state = SA_AMF_HA_STANDBY;
+                pthread_mutex_unlock(&hrb_ha_state.mutex);
+
+                pthread_mutex_lock(&hsm_ha_state.mutex);
+		hsm_ha_state.state = SA_AMF_HA_STANDBY;
+                pthread_mutex_unlock(&hsm_ha_state.mutex);
+	}
+
+	/* PLMC initialize */
+	if ( !cb->hpi_cfg.hpi_support && cb->ha_state == SA_AMF_HA_ACTIVE) {
+		rc = plmc_initialize(plms_plmc_connect_cbk,plms_plmc_udp_cbk,
+		plms_plmc_error_cbk);
+		if (rc) {
+			LOG_ER("PLMC initialize failed.");
+			rc = NCSCC_RC_FAILURE;
+			break;
+		}
+		cb->plmc_initialized = true;
+	}
+
+	/* NTF Initialization */
+        rc = saNtfInitialize(&cb->ntf_hdl, &ntf_callbacks, &ntf_version);
+        if (rc != SA_AIS_OK) {
+                /* log the error code here */
+		LOG_ER("NTF Initialization failed");
+                break;
+        }
+
+        cb->fully_initialized = true;
+    } while (false);
+
+    TRACE_LEAVE2("rc = %u", rc);
+    return rc;
+}
 
 /****************************************************************************
  * Name          : plms_main

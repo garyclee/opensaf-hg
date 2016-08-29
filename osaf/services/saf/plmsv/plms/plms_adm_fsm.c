@@ -5315,14 +5315,13 @@ PLMS_GROUP_ENTITY *aff_ent_list)
 		return ret_err;
 	}
 	
-	/* Restart the EE by resetting the parent. Not cosidering
-	the virtualization.
-	TODO: Should we check whether the siblings of the target
-	EE is affected?? Actually not required. A HE can have only
-	one child EE. And child HEs are not affected by the reset
-	of parent HE.
-	*/
 	if ( PLMS_HE_ENTITY == ent->parent->entity_type){
+		/* Restart the EE by resetting the parent.
+		TODO: Should we check whether the siblings of the target
+		EE is affected?? Actually not required. A HE can have only
+		one child EE. And child HEs are not affected by the reset
+		of parent HE.
+		*/
 		ret_err = plms_he_reset(ent->parent,0/*adm_op*/,
 					1/*mngt_cbk*/,SAHPI_COLD_RESET);
 		if (NCSCC_RC_SUCCESS != ret_err){
@@ -5358,8 +5357,44 @@ PLMS_GROUP_ENTITY *aff_ent_list)
 			return ret_err;
 		}
 
-	}else{
-		/* TODO: Virtualization.Not required for this release.*/
+	}else if (PLMS_EE_ENTITY == ent->parent->entity_type){
+		/* Virtualization. Tell the hypervisor to reset the VM. */
+		ret_err = plms_ee_restart_vm(ent);
+
+		if (NCSCC_RC_SUCCESS != ret_err){
+			LOG_ER("Reset of vm %s failed.", ent->dn_name_str);
+			
+			/* Set admin pending and management lost flag fot the entity.*/
+			if (!plms_rdness_flag_is_set(ent, SA_PLM_RF_MANAGEMENT_LOST)){
+				
+				/* Set management lost flag.*/
+				plms_readiness_flag_mark_unmark(ent,
+					SA_PLM_RF_MANAGEMENT_LOST,1/*mark*/,
+					NULL,SA_NTF_MANAGEMENT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				
+				plms_readiness_flag_mark_unmark(ent,
+					SA_PLM_RF_ADMIN_OPERATION_PENDING,1/*mark*/,
+					NULL,SA_NTF_MANAGEMENT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+				plms_mngt_lost_clear_cbk_call(ent,1/*mark*/);
+			}
+
+			ret_err= saImmOiAdminOperationResult(cb->oi_hdl,
+				evt->req_evt.admin_op.inv_id,
+				SA_AIS_ERR_FAILED_OPERATION);
+
+			plms_ent_list_free(aff_ent_list);
+			aff_ent_list = NULL;
+
+			TRACE_LEAVE2("ret_err: %d",ret_err);
+			return ret_err;
+		}
+	}
+	else {
+		LOG_ER("unknown entity type: %i", ent->parent->entity_type);
+		assert(0);
 	}
 	
 	/* Admin operation started. */ 
@@ -5479,8 +5514,26 @@ PLMS_EVT *evt,PLMS_GROUP_ENTITY *aff_ent_list)
 	PLMS_GROUP_ENTITY *head;
 	PLMS_CB *cb = plms_cb;	
 	
-	TRACE_ENTER2("Entity: %s. Op: Admin restart variant: Abrupt.",
-	ent->dn_name_str);
+	TRACE_ENTER2("Entity: %s. Op: Admin restart variant: graceful.",
+		ent->dn_name_str);
+
+	/* Before initiating restart set the presence state to TERMINATING */
+	ret_err = plms_plmc_terminating_process(ent);
+
+	if (NCSCC_RC_SUCCESS != ret_err){
+		LOG_ER("EE %s presence state cannot be set to TERMINATING",
+			ent->dn_name_str);
+		ret_err = saImmOiAdminOperationResult(cb->oi_hdl,
+			evt->req_evt.admin_op.inv_id,
+			SA_AIS_ERR_NO_RESOURCES);
+
+		plms_ent_list_free(aff_ent_list);
+		aff_ent_list = NULL;
+
+		TRACE_LEAVE2("ret_err: %d",ret_err);
+		return ret_err;
+	}
+
 	/* Graceful restart. Reboot the EE itself.*/
 	ret_err = plms_ee_reboot(ent,true,1/*mngt_cbk*/);
 	if (NCSCC_RC_SUCCESS != ret_err){
@@ -5515,12 +5568,24 @@ PLMS_EVT *evt,PLMS_GROUP_ENTITY *aff_ent_list)
 	while(head){
 		ret_err = plms_ee_reboot(head->plm_entity,false,true);
 		if (NCSCC_RC_SUCCESS == ret_err){
+			plms_presence_state_set(head->plm_entity,
+					SA_PLM_EE_PRESENCE_UNINSTANTIATED,ent,
+					SA_NTF_MANAGEMENT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_DEP);
 			head->plm_entity->trk_info = trk_info;	
 			count++;	
 		}else{
 			LOG_ER("EE reset failed. Ent: %s",
 			head->plm_entity->dn_name_str);
 		}
+		plms_readiness_state_set(head->plm_entity,
+					SA_PLM_READINESS_OUT_OF_SERVICE,ent,
+					SA_NTF_MANAGEMENT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_DEP);
+		plms_readiness_flag_mark_unmark(head->plm_entity,
+					SA_PLM_RF_DEPENDENCY,1/* mark */,ent,
+					SA_NTF_MANAGEMENT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_DEP);	
 		head = head->next;
 	}
 	
@@ -5530,6 +5595,7 @@ PLMS_EVT *evt,PLMS_GROUP_ENTITY *aff_ent_list)
 	trk_info->track_cause = SA_PLM_CAUSE_EE_RESTART;
 	trk_info->root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
 	trk_info->grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
+	trk_info->aff_ent_list = aff_ent_list;
 	trk_info->root_entity = ent;
 	trk_info->track_count = count;
 

@@ -18,6 +18,52 @@
  *
 -->
 <imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.02.13.xsd">
+	<class name="OpenSafPlmVirtualMachineMonitorConfig">
+		<category>SA_CONFIG</category> 
+		<rdn>
+			<name>plmVmmConfig</name> 
+			<type>SA_STRING_T</type> 
+			<category>SA_CONFIG</category> 
+			<flag>SA_INITIALIZED</flag> 
+		</rdn>
+		<attr>
+		      	<name>safEE</name> 
+		      	<type>SA_NAME_T</type> 
+			<category>SA_CONFIG</category> 
+			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+		      	<name>libVirtSession</name> 
+		      	<type>SA_STRING_T</type> 
+			<category>SA_CONFIG</category> 
+			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+	</class>
+	<class name="OpenSafPlmVirtualMachineConfig">
+		<category>SA_CONFIG</category> 
+		<rdn>
+			<name>plmVmConfig</name> 
+			<type>SA_STRING_T</type> 
+			<category>SA_CONFIG</category> 
+			<flag>SA_INITIALIZED</flag> 
+		</rdn>
+		<attr>
+		      	<name>safEE</name> 
+		      	<type>SA_NAME_T</type> 
+			<category>SA_CONFIG</category> 
+			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+		      	<name>libVirtDomainName</name> 
+		      	<type>SA_STRING_T</type> 
+			<category>SA_CONFIG</category> 
+			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+	</class>
 	<class name="SaPlmDomain">
 		<category>SA_CONFIG</category> 
 	<rdn>
