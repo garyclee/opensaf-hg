@@ -42,7 +42,7 @@ additionalText = "%s"''' % (
     class_id.vendorId,
     class_id.majorId,
     class_id.minorId,
-    p_char_to_string(header.additionalText, header.lengthAdditionalText)
+    header.additionalText[0:header.lengthAdditionalText]
 )
 
 
