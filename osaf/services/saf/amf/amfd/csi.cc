@@ -407,6 +407,12 @@ static void csi_get_attr_and_add_to_model(AVD_CSI *csi, const SaImmAttrValuesT_2
 		TRACE_ENTER2("DEP not configured, marking rank 1. Csi'%s', Rank'%u'",csi->name.c_str(),csi->rank);
 	}
 
+	if ((immutil_getAttrValuesNumber(const_cast<SaImmAttrNameT>("osafAmfCSICommunicateCsiAttributeChange"),
+					attributes, &values_number) != SA_AIS_OK)) {
+		TRACE("Default for osafAmfCSICommunicateCsiAttributeChange set to false");
+		csi->osafAmfCSICommunicateCsiAttributeChange = false; //Default value is always 0.
+	}
+
 	TRACE("find %s", csi->saAmfCSType.c_str());
 	csi->cstype = cstype_db->find(csi->saAmfCSType);
 	csi->si = avd_si_get(si_name);
@@ -609,6 +615,20 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				report_ccb_validation_error(opdata, "CS Type not found '%s'", osaf_extended_name_borrow(&cstype_name));
 				goto done;
 			}
+		} else if (!strcmp(attr_mod->modAttr.attrName, "osafAmfCSICommunicateCsiAttributeChange")) {
+			if ((attr_mod->modType == SA_IMM_ATTR_VALUES_DELETE) ||
+                                (attr_mod->modAttr.attrValues == nullptr)) {
+                                report_ccb_validation_error(opdata,
+                                     "Invalid modification of osafAmfCSICommunicateCsiAttributeChange, valid (0 or 1)");
+                                goto done;
+			}
+                        uint32_t val = static_cast<uint32_t>(*(uint32_t*)attr_mod->modAttr.attrValues[0]);
+                        if ((val != true) && (val != false)) {
+                                report_ccb_validation_error(opdata,
+                                      "Modification of osafAmfCSICommunicateCsiAttributeChange fails," 
+				      " Invalid Input %d",val);
+                                goto done;
+                        }
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSIDependencies")) {
 			//Reject replacement of CSI deps, only deletion and addition are supported.	
 			if (attr_mod->modType == SA_IMM_ATTR_VALUES_REPLACE) {
@@ -917,6 +937,10 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			csi->saAmfCSType = Amf::to_string(&cstype_name);
 			csi->cstype = csi_type;
 			avd_cstype_add_csi(csi);
+		} else if (!strcmp(attr_mod->modAttr.attrName, "osafAmfCSICommunicateCsiAttributeChange")) {
+			csi->osafAmfCSICommunicateCsiAttributeChange = static_cast<bool>(*((bool*)attr_mod->modAttr.attrValues[0]));
+			LOG_NO("Modified osafAmfCSICommunicateCsiAttributeChange for '%s' to '%u'",
+					csi->name.c_str(), csi->osafAmfCSICommunicateCsiAttributeChange);
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfCSIDependencies")) {
 			if (attr_mod->modType == SA_IMM_ATTR_VALUES_ADD) {
 				assert(attr_mod->modAttr.attrValuesNumber == 1);

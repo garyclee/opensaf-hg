@@ -100,4 +100,7 @@ extern std::string avd_getparent(const std::string& dn);
 extern bool object_exist_in_imm(const std::string& dn);
 extern const char *admin_op_name(SaAmfAdminOperationIdT opid);
 int compare_sanamet(const std::string& lhs, const std::string& rhs);
+uint32_t avd_snd_compcsi_msg(AVD_COMP *comp, AVD_CSI *csi,
+		avd_comp_csi_rel_tag *compcsi, AVSV_COMPCSI_ACT act);
+
 #endif

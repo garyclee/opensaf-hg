@@ -29,6 +29,9 @@
 AmfDb<std::string, AVD_AVND> *node_name_db = 0;	/* SaNameT index */
 AmfDb<uint32_t, AVD_AVND> *node_id_db = 0;	/* SaClmNodeIdT index */
 
+//Remember MDS install version of AMFNDs. It can be used to send msg to AMFNDs based on their versions.
+std::map<SaClmNodeIdT, MDS_SVC_PVT_SUB_PART_VER> nds_mds_ver_db;
+
 bool operator<(const AVD_AVND &lhs, const AVD_AVND &rhs) {
 	if (lhs.name.compare(rhs.name) < 0) {
 		return true;

@@ -799,6 +799,12 @@
 			<flag>SA_WRITABLE</flag>
 			<flag>SA_MULTI_VALUE</flag>
 		</attr>
+		<attr>
+                        <name>osafAmfCSICommunicateCsiAttributeChange</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+		</attr>
 	</class>
 	<class name="SaAmfCSType">
 		<category>SA_CONFIG</category>

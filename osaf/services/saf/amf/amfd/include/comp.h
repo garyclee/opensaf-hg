@@ -160,6 +160,8 @@ SaAisErrorT check_comp_stability() const;
   void set_assigned(bool assigned) {assign_flag = assigned;}
   bool assigned() const {return assign_flag;}
   bool saaware() const;
+  bool proxied_pi() const;
+  bool proxied_npi() const;
  private:
   void initialize();
   // disallow copy and assign

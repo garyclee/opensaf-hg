@@ -1731,6 +1731,17 @@ static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 	info->mem_list.numberOfItems = 0;
 }
 
+static void free_d2n_compcsi_info(AVSV_DND_MSG *compcsi_msg) {
+  AVSV_D2N_COMPCSI_ASSIGN_MSG_INFO *compcsi = &compcsi_msg->msg_info.d2n_compcsi_assign_msg_info;
+
+  osaf_extended_name_free(&compcsi->comp_name);
+  osaf_extended_name_free(&compcsi->csi_name);
+
+  if (compcsi->info.attrs.list != nullptr) {
+    delete [] (compcsi->info.attrs.list);
+    compcsi->info.attrs.list = nullptr;
+  }
+}
 /****************************************************************************
   Name          : d2n_msg_free
  
@@ -1778,6 +1789,9 @@ void d2n_msg_free(AVSV_DND_MSG *msg)
 		break;
 	case AVSV_D2N_PRESENCE_SU_MSG:
 		osaf_extended_name_free(&msg->msg_info.d2n_prsc_su.su_name);
+		break;
+	case AVSV_D2N_COMPCSI_ASSIGN_MSG:
+		free_d2n_compcsi_info(msg);
 		break;
 	default:
 		break;
@@ -1955,3 +1969,98 @@ int compare_sanamet(const std::string& lhs, const std::string& rhs)
 	else
 		return lhs.compare(rhs);
 }
+
+/**
+ * @brief    Sends a message to AMFND for a COMPCSI.
+ *           As of now sends modified list of CSI's attributes to
+ *           the AMFND which host assigned component(compcsi).
+ * @param    ptr to comp 
+ * @param    ptr to csi 
+ * @param    ptr to compcsi 
+ * @param    act(action of type AVSV_COMPCSI_ACT) 
+ * @return   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
+ */
+uint32_t avd_snd_compcsi_msg(AVD_COMP *comp, AVD_CSI *csi, AVD_COMP_CSI_REL *compcsi, AVSV_COMPCSI_ACT act) {
+  AVD_DND_MSG *compcsi_msg = nullptr;
+  AVSV_CSI_ATTRS *ptr_csiattr_msg = nullptr;
+  AVSV_ATTR_NAME_VAL *i_ptr_msg = nullptr;
+  AVD_CSI_ATTR *attr_ptr_db = nullptr;
+  AVD_AVND *avnd = nullptr;
+
+  TRACE_ENTER2("'%s', '%s', act:%u",
+    osaf_extended_name_borrow(&compcsi->comp->comp_info.name),
+    csi->name.c_str(), act);
+
+  //Depending upon the message sub type retrieve node from eligible entity.
+  if (act == AVSV_COMPCSI_ATTR_CHANGE_AND_NO_ACK) {
+    avnd = comp->su->get_node_ptr();
+  }
+  if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+    (avnd->node_state == AVD_AVND_STATE_GO_DOWN)) {
+    TRACE_LEAVE();
+    return NCSCC_RC_SUCCESS;
+  }
+
+  //Will be freed in free_d2n_compcsi_info().
+  SaNameT comp_name;
+  osaf_extended_name_alloc(osaf_extended_name_borrow(&compcsi->comp->comp_info.name),
+    &comp_name);
+  //Will be freed in free_d2n_compcsi_info().
+  SaNameT csi_name;
+  osaf_extended_name_alloc(csi->name.c_str(), &csi_name);
+
+  /* prepare the COMP CSI message. */
+  compcsi_msg = new AVSV_DND_MSG();
+  compcsi_msg->msg_type = AVSV_D2N_COMPCSI_ASSIGN_MSG;
+  compcsi_msg->msg_info.d2n_compcsi_assign_msg_info.node_id = avnd->node_info.nodeId;
+  compcsi_msg->msg_info.d2n_compcsi_assign_msg_info.msg_act = act;
+  compcsi_msg->msg_info.d2n_compcsi_assign_msg_info.comp_name = comp_name;
+  compcsi_msg->msg_info.d2n_compcsi_assign_msg_info.csi_name = csi_name;
+  switch (act) {
+    case AVSV_COMPCSI_ATTR_CHANGE_AND_NO_ACK: {
+      ptr_csiattr_msg = &compcsi_msg->msg_info.d2n_compcsi_assign_msg_info.info.attrs;
+      ptr_csiattr_msg->list = new AVSV_ATTR_NAME_VAL[compcsi->csi->num_attributes];
+      /* initilize both the message pointer and the database pointer. Also init the
+       * message content.
+       */
+      i_ptr_msg = ptr_csiattr_msg->list;
+      attr_ptr_db = compcsi->csi->list_attributes;
+      ptr_csiattr_msg->number = 0;
+
+      /* Scan the list of attributes for the CSI and add it to the message */
+      while ((attr_ptr_db != nullptr) &&
+		      (ptr_csiattr_msg->number < compcsi->csi->num_attributes)) {
+	      memcpy(i_ptr_msg, &attr_ptr_db->name_value, sizeof(AVSV_ATTR_NAME_VAL));
+	      ptr_csiattr_msg->number++;
+	      i_ptr_msg = i_ptr_msg + 1;
+	      attr_ptr_db = attr_ptr_db->attr_next;
+      }
+      break;
+    }
+    default: {
+      d2n_msg_free(compcsi_msg);
+      TRACE_LEAVE();
+      return NCSCC_RC_FAILURE;
+      break;
+    }
+  }
+
+  //Generate new msg_id.
+  compcsi_msg->msg_info.d2n_compcsi_assign_msg_info.msg_id = ++(avnd->snd_msg_id);
+
+  //Send COMP CSI message*/
+  TRACE("Sending %u to %x", AVSV_D2N_COMPCSI_ASSIGN_MSG, avnd->node_info.nodeId);
+  if (avd_d2n_msg_snd(avd_cb, avnd, compcsi_msg) != NCSCC_RC_SUCCESS) {
+    LOG_ER("Send to %x failed",avnd->node_info.nodeId);
+    --(avnd->snd_msg_id);
+    d2n_msg_free(compcsi_msg);
+    TRACE_LEAVE();
+    return NCSCC_RC_FAILURE;
+  }
+  //Checkpoint to standby AMFD.
+  m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
+
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
+}
+

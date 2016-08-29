@@ -428,7 +428,9 @@ static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 					LOG_ER("%s: ncs_ipc_send failed", __FUNCTION__);
 					delete evt;
 				}
-			}
+			} 
+			nds_mds_ver_db[evt_info->i_node_id] = evt_info->i_rem_svc_pvt_ver;
+
 			break;
 
 		default:
@@ -449,7 +451,7 @@ static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 		case NCSMDS_SVC_ID_AVND:
 			{
 				AVD_EVT *evt = new AVD_EVT();
-                                
+				nds_mds_ver_db.erase(evt_info->i_node_id);
 				evt->rcv_evt = AVD_EVT_MDS_AVND_DOWN;
 				evt->info.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt_info->i_dest);
 				TRACE("avnd %" PRIx64 " down", evt_info->i_dest);
