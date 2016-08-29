@@ -680,19 +680,18 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 					/* copy the contents into a malloced buffer.. appl frees it */
 					buf.numberOfItems = pg_track->buf.numberOfItems;
 					buf.notification =
-						static_cast<SaAmfProtectionGroupNotificationT_4*>(malloc(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT_4)));
+						static_cast<SaAmfProtectionGroupNotificationT_4*>(malloc((buf.numberOfItems+1) * sizeof(SaAmfProtectionGroupNotificationT_4)));
 					if (buf.notification) {
 						ava_cpy_protection_group_ntf(buf.notification, pg_track->buf.notification,
 								pg_track->buf.numberOfItems, SA_AMF_HARS_READY_FOR_ASSIGNMENT);
 
-						/* allocate LongDn strings for notification if any
-						 * then client needs to free these LongDn string as well
+						/*
+						 * NOTE: This buf->notification is allocated by Agent, it's
+						 * added sentinel element at the end so that it helps
+						 * to free LongDn in saAmfProtectionGroupNotificationFree_4
+						 * Sentinel element has @.change = 0
 						 */
-						for (i=0 ; i < buf.numberOfItems; i++) {
-							osaf_extended_name_alloc(
-								osaf_extended_name_borrow(&pg_track->buf.notification[i].member.compName),
-								&buf.notification[i].member.compName);
-						}
+						buf.notification[buf.numberOfItems].change = static_cast<SaAmfProtectionGroupChangesT>(0);
 						TRACE("Invoking PGTrack callback for CSIName = %s", osaf_extended_name_borrow(&pg_track->csi_name));
 						((SaAmfCallbacksT_4*)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
 													&buf,
