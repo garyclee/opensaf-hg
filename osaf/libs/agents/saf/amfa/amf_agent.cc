@@ -63,6 +63,7 @@ SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg
   AVA_HDL_DB *hdl_db = 0;
   AVA_HDL_REC *hdl_rec = 0;
   SaAisErrorT rc = SA_AIS_OK;
+  OsafAmfCallbacksT osaf_cbks;
   TRACE_ENTER();
 
   if (!o_hdl || !io_ver) {
@@ -115,9 +116,12 @@ SaAisErrorT AmfAgent::Initialize(SaAmfHandleT *o_hdl, const SaAmfCallbacksT *reg
 
   /* get the ptr to the hdl db */
   hdl_db = &cb->hdl_db;
+  memset(&osaf_cbks, 0, sizeof(OsafAmfCallbacksT));
+  if (reg_cbks != NULL)
+    amf_copy_from_SaAmfCallbacksT_to_OsafAmfCallbacksT(&osaf_cbks, reg_cbks);
 
   /* create the hdl record & store the callbacks */
-  if (!(hdl_rec = ava_hdl_rec_add(cb, hdl_db, reg_cbks))) {
+  if (!(hdl_rec = ava_hdl_rec_add(cb, hdl_db, &osaf_cbks))) {
     rc = SA_AIS_ERR_NO_MEMORY;
     goto done;
   }
@@ -519,12 +523,22 @@ SaAisErrorT AmfAgent::ComponentRegister(SaAmfHandleT hdl, const SaNameT *comp_na
     goto done;
   }
 
+  /* For B.04.02 init, check OsafCsiAttributeChangeCallbackT was supplied during saAmfInitialize_o4 */
+  if ((cb->version.releaseCode == 'B') &&
+    (cb->version.majorVersion == 0x04) && (cb->version.minorVersion == 0x02) &&
+    (hdl_rec->reg_cbk.osafCsiAttributeChangeCallback == NULL)) {
+    TRACE("Required osafCsiAttributeChangeCallback was not specified in saAmfInitialize_o4");
+    rc = SA_AIS_ERR_INIT;
+    goto done;
+  }
+
   /* populate & send the register message */
   if (proxy_comp_name)
     osaf_extended_name_lend(osaf_extended_name_borrow(proxy_comp_name),  &pcomp_name);
   else
     memset(&pcomp_name, 0, sizeof(SaNameT));
-  ava_fill_comp_reg_msg(&msg, cb->ava_dest, hdl, *comp_name, pcomp_name);
+  ava_fill_comp_reg_msg(&msg, cb->ava_dest, hdl, *comp_name, pcomp_name, &cb->version);
+
   rc = static_cast<SaAisErrorT>(ava_mds_send(cb, &msg, &msg_rsp));
   if (NCSCC_RC_SUCCESS == rc) {
     osafassert(AVSV_AVND_AMF_API_RESP_MSG == msg_rsp->type);
@@ -2102,6 +2116,7 @@ SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 
   AVA_HDL_DB *hdl_db = 0;
   AVA_HDL_REC *hdl_rec = 0;
   SaAisErrorT rc = SA_AIS_OK;
+  OsafAmfCallbacksT osaf_cbks;
   TRACE_ENTER();
 
   /* TODO: check cluster membership, if node is not a member answer back with SA_AIS_ERR_UNAVAILABLE */
@@ -2173,8 +2188,11 @@ SaAisErrorT AmfAgent::Initialize_4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_4 
     goto done;
   }
 
+  memset(&osaf_cbks, 0, sizeof(OsafAmfCallbacksT));
+  if (reg_cbks != NULL)
+    amf_copy_from_SaAmfCallbacksT_4_to_OsafAmfCallbacksT(&osaf_cbks, reg_cbks);
   /* create the hdl record & store the callbacks */
-  if (!(hdl_rec = ava_hdl_rec_add(cb, hdl_db, (SaAmfCallbacksT*)reg_cbks))) {
+  if (!(hdl_rec = ava_hdl_rec_add(cb, hdl_db, &osaf_cbks))) {
     rc = SA_AIS_ERR_NO_MEMORY;
     goto done;
   }
@@ -2394,8 +2412,8 @@ SaAisErrorT AmfAgent::ProtectionGroupTrack_4(SaAmfHandleT hdl,
      and
      check if track flag is TRACK_CURRENT and neither buffer nor callback is provided */
   if ((((flags & SA_TRACK_CHANGES) || (flags & SA_TRACK_CHANGES_ONLY)) &&
-       (!m_AVA_HDL_IS_PG_CBK_PRESENT(hdl_rec))) ||
-      ((flags & SA_TRACK_CURRENT) && (!buf) && (!m_AVA_HDL_IS_PG_CBK_PRESENT(hdl_rec)))) {
+       (!hdl_rec->reg_cbk.saAmfProtectionGroupTrackCallback_4)) ||
+      ((flags & SA_TRACK_CURRENT) && (!buf) && (!hdl_rec->reg_cbk.saAmfProtectionGroupTrackCallback_4))) {
     TRACE_2("PG tracking callback for CHANGES-ONLY and CHANGES was not registered during saAmfInitialize");
     rc = SA_AIS_ERR_INIT;
     goto done;
@@ -2787,6 +2805,121 @@ SaAisErrorT AmfAgent::Response_4(SaAmfHandleT hdl, SaInvocationT inv, SaNtfCorre
   rc = saAmfResponse(hdl, inv, error);
 
 done:
+  TRACE_LEAVE2("rc:%u", rc);
+  return rc;
+}
+
+/**
+ * @brief: Implements new version of saAmfInitialize to enable application to 
+ *	   register for new callback OsafCsiAttributeChangeCallbackT along with 
+ *         old ones. This version of initialize API implements saAmfInitialize_o4()
+ *	   with SAF version updated to B.04.02.
+ *
+ * @param  o_hdl (ptr to SaAmfHandleT).
+ * @param  reg_cbks (ptr to SaAmfCallbacksT_o4)
+ * @param  io_ver (ptr to SaVersionT).
+ *
+ * Return Values : Refer to SAI-AIS specification for various return values.
+ */
+SaAisErrorT saAmfInitialize_o4(SaAmfHandleT *o_hdl, const SaAmfCallbacksT_o4 *reg_cbks, SaVersionT *io_ver)
+{
+  AVA_CB *cb = 0;
+  AVA_HDL_DB *hdl_db = 0;
+  AVA_HDL_REC *hdl_rec = 0;
+  SaAisErrorT rc = SA_AIS_OK;
+  OsafAmfCallbacksT osaf_cbks;
+  TRACE_ENTER();
+
+  if (!o_hdl || !io_ver) {
+    TRACE_2("NULL arguments being passed: SaAmfHandleT and SaVersionT arguments should be non NULL");
+    rc = SA_AIS_ERR_INVALID_PARAM;
+    goto done;
+  }
+
+  if((io_ver->releaseCode != 'B') || (io_ver->majorVersion != 0x04) || (io_ver->minorVersion != 0x02)) {
+    TRACE_2("Invalid AMF version specified, supported version is: ReleaseCode = 'B', \
+						majorVersion = 0x04, minorVersion = 0x02");
+    rc = SA_AIS_ERR_VERSION;
+  }
+
+  io_ver->releaseCode = 'B';
+  io_ver->majorVersion = 4;
+  io_ver->minorVersion = 2;
+
+  if (SA_AIS_OK != rc)
+    goto done;
+
+  /* Initialize the environment */
+  if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+    TRACE_2("Agents startup failed");
+    rc = SA_AIS_ERR_LIBRARY;
+    goto done;
+  }
+
+  /* Create AVA/CLA  CB */
+  if (ncs_ava_startup() != NCSCC_RC_SUCCESS) {
+    ncs_agents_shutdown();
+    rc = SA_AIS_ERR_LIBRARY;
+    goto done;
+  }
+
+  /* retrieve AvA CB */
+  if (!(cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl))) {
+    TRACE_4("SA_AIS_ERR_LIBRARY: Unable to retrieve cb handle");
+    rc = SA_AIS_ERR_LIBRARY;
+    goto done;
+  }
+  m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
+
+  cb->version.releaseCode = io_ver->releaseCode;
+  cb->version.majorVersion = io_ver->majorVersion;
+  cb->version.minorVersion = io_ver->minorVersion;
+
+  hdl_db = &cb->hdl_db;
+
+  if ((reg_cbks != NULL) &&
+      ((reg_cbks->saAmfContainedComponentCleanupCallback != 0) ||
+       (reg_cbks->saAmfContainedComponentInstantiateCallback != 0))) {
+    TRACE_4("SA_AIS_ERR_NOT_SUPPORTED: unsupported callbacks");
+    rc = SA_AIS_ERR_NOT_SUPPORTED;
+    goto done;
+  }
+
+  memset(&osaf_cbks, 0, sizeof(OsafAmfCallbacksT));
+  if (reg_cbks != NULL)
+	  amf_copy_from_SaAmfCallbacksT_o4_to_OsafAmfCallbacksT(&osaf_cbks, reg_cbks);
+  /* create the hdl record & store the callbacks */
+  if (!(hdl_rec = ava_hdl_rec_add(cb, hdl_db, &osaf_cbks))) {
+    rc = SA_AIS_ERR_NO_MEMORY;
+    goto done;
+  }
+
+  /* Initialize the ipc mailbox for the client for processing pending callbacks */
+  if (NCSCC_RC_SUCCESS != ava_callback_ipc_init(hdl_rec)) {
+    rc = SA_AIS_ERR_LIBRARY;
+    goto done;
+  }
+
+  /* pass the handle value to the appl */
+  if (SA_AIS_OK == rc) {
+    TRACE_1("saAmfHandle returned to application is: %llx", *o_hdl);
+    *o_hdl = hdl_rec->hdl;
+  }
+
+done:
+  if (hdl_rec && SA_AIS_OK != rc)
+    ava_hdl_rec_del(cb, hdl_db, &hdl_rec);
+
+  if (cb) {
+    m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
+    ncshm_give_hdl(gl_ava_hdl);
+  }
+
+  if (SA_AIS_OK != rc) {
+    ncs_ava_shutdown();
+    ncs_agents_shutdown();
+  }
+
   TRACE_LEAVE2("rc:%u", rc);
   return rc;
 }

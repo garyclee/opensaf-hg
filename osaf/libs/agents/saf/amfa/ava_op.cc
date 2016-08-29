@@ -71,6 +71,15 @@ uint32_t ava_avnd_msg_prc(AVA_CB *cb, AVSV_NDA_AVA_MSG *msg)
 			goto done;
 		}
 	}
+	/* For CSI attribute change callback, convert AVSV_CSI_ATTRS to SaAmfCSIAttributeListT. */
+	if (cbk_info->type == AVSV_AMF_CSI_ATTR_CHANGE) {
+		rc = avsv_attrs_to_amf_attrs(&cbk_info->param.csi_attr_change.csiAttr,
+				&cbk_info->param.csi_attr_change.attrs);
+		if (NCSCC_RC_SUCCESS != rc) {
+			TRACE_2("csi attributes convertion failed in CSI_ATTR_CHANGE_CBK failed");
+			goto done;
+		}
+	}
 
 	/* retrieve the handle record */
 	hdl = cbk_info->hdl;
@@ -173,4 +182,63 @@ bool ava_sanamet_is_valid(const SaNameT* pName)
 		return false;
 	}
 	return true;
+}
+
+/**
+ * @brief  Copies callbacks passed by application in saAmfInitialize() API into
+	   AMF internal callback strucutre OsafAmfCallbacksT.
+ *
+ * @param  osaf_cbk  (ptr to OsafAmfCallbacksT).
+ * @param  cbk (ptr to SaAmfCallbacksT).
+ *
+ */
+void amf_copy_from_SaAmfCallbacksT_to_OsafAmfCallbacksT(OsafAmfCallbacksT *osaf_cbk,
+       const SaAmfCallbacksT *cbk) {
+  osaf_cbk->saAmfHealthcheckCallback = cbk->saAmfHealthcheckCallback;
+  osaf_cbk->saAmfComponentTerminateCallback = cbk->saAmfComponentTerminateCallback;
+  osaf_cbk->saAmfCSISetCallback = cbk->saAmfCSISetCallback;
+  osaf_cbk->saAmfCSIRemoveCallback = cbk->saAmfCSIRemoveCallback;
+  osaf_cbk->saAmfProtectionGroupTrackCallback = cbk->saAmfProtectionGroupTrackCallback;
+  osaf_cbk->saAmfProxiedComponentInstantiateCallback = cbk->saAmfProxiedComponentInstantiateCallback;
+  osaf_cbk->saAmfProxiedComponentCleanupCallback = cbk->saAmfProxiedComponentCleanupCallback; 
+}
+
+/*
+ * @brief  Copies callbacks passed by application in saAmfInitialize_4() API into
+           AMF internal callback strucutre OsafAmfCallbacksT.
+ *
+ * @param  osaf_cbk  (ptr to OsafAmfCallbacksT).
+ * @param  cbk (ptr to SaAmfCallbacksT_4).
+ */
+void amf_copy_from_SaAmfCallbacksT_4_to_OsafAmfCallbacksT(OsafAmfCallbacksT *osaf_cbk, const SaAmfCallbacksT_4 *cbk) {
+  osaf_cbk->saAmfHealthcheckCallback = cbk->saAmfHealthcheckCallback;
+  osaf_cbk->saAmfComponentTerminateCallback = cbk->saAmfComponentTerminateCallback;
+  osaf_cbk->saAmfCSISetCallback = cbk->saAmfCSISetCallback;
+  osaf_cbk->saAmfCSIRemoveCallback = cbk->saAmfCSIRemoveCallback;
+  osaf_cbk->saAmfProtectionGroupTrackCallback_4 = cbk->saAmfProtectionGroupTrackCallback;
+  osaf_cbk->saAmfProxiedComponentInstantiateCallback = cbk->saAmfProxiedComponentInstantiateCallback;
+  osaf_cbk->saAmfProxiedComponentCleanupCallback = cbk->saAmfProxiedComponentCleanupCallback; 
+  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
+  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
+}
+
+/*
+ * @brief  Copies callbacks passed by application in saAmfInitialize_5() API into
+           AMF internal callback strucutre OsafAmfCallbacksT.
+ *
+ * @param  osaf_cbk  (ptr to OsafAmfCallbacksT).
+ * @param  cbk (ptr to SaAmfCallbacksT_o4).
+ */
+void amf_copy_from_SaAmfCallbacksT_o4_to_OsafAmfCallbacksT(OsafAmfCallbacksT *osaf_cbk, const SaAmfCallbacksT_o4 *cbk) {
+  osaf_cbk->saAmfHealthcheckCallback = cbk->saAmfHealthcheckCallback;
+  osaf_cbk->saAmfComponentTerminateCallback = cbk->saAmfComponentTerminateCallback;
+  osaf_cbk->saAmfCSISetCallback = cbk->saAmfCSISetCallback;
+  osaf_cbk->saAmfCSIRemoveCallback = cbk->saAmfCSIRemoveCallback;
+  osaf_cbk->saAmfProtectionGroupTrackCallback_4 = cbk->saAmfProtectionGroupTrackCallback;
+  osaf_cbk->saAmfProxiedComponentInstantiateCallback = cbk->saAmfProxiedComponentInstantiateCallback;
+  osaf_cbk->saAmfProxiedComponentCleanupCallback = cbk->saAmfProxiedComponentCleanupCallback; 
+  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
+  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
+  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
+  osaf_cbk->osafCsiAttributeChangeCallback = cbk->osafCsiAttributeChangeCallback;
 }

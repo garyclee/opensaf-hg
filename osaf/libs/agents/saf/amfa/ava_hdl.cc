@@ -37,7 +37,7 @@ static uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **, AVA_HDL_REC **);
 static uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **, AVA_HDL_REC **);
 static uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **, AVA_HDL_REC **);
 
-static uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *, SaAmfCallbacksT *);
+static uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *, OsafAmfCallbacksT *);
 
 static void ava_hdl_pend_resp_list_del(AVA_CB *, AVA_PEND_RESP *);
 static bool ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg);
@@ -216,7 +216,7 @@ static bool ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg)
  
   Notes         : None
 ******************************************************************************/
-AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallbacksT *reg_cbks)
+AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const OsafAmfCallbacksT *reg_cbks)
 {
 	AVA_HDL_REC *rec = 0;
 	TRACE_ENTER();
@@ -235,8 +235,7 @@ AVA_HDL_REC *ava_hdl_rec_add(AVA_CB *cb, AVA_HDL_DB *hdl_db, const SaAmfCallback
 
 	/* store the registered callbacks */
 	if (reg_cbks)
-		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaAmfCallbacksT));
-
+		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(OsafAmfCallbacksT));
 	/* add the record to the hdl db */
 	rec->hdl_node.key_info = (uint8_t *)&rec->hdl;
 	if (ncs_patricia_tree_add(&hdl_db->hdl_db_anchor, &rec->hdl_node)
@@ -350,12 +349,12 @@ uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	AVA_PEND_CBK_REC *rec = 0;
 	uint32_t hdl = (*hdl_rec)->hdl;
-	SaAmfCallbacksT reg_cbk;
+	OsafAmfCallbacksT reg_cbk;
 	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
-	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
-	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaAmfCallbacksT));
+	memset(&reg_cbk, 0, sizeof(OsafAmfCallbacksT));
+	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(OsafAmfCallbacksT));
 
 	/* pop the rec from the mailbox queue */
 	rec = (AVA_PEND_CBK_REC *)m_NCS_IPC_NON_BLK_RECEIVE(&(*hdl_rec)->callbk_mbx, NULL);
@@ -420,12 +419,12 @@ uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	AVA_PEND_CBK_REC *rec = 0;
 	uint32_t hdl = (*hdl_rec)->hdl;
-	SaAmfCallbacksT reg_cbk;
+	OsafAmfCallbacksT reg_cbk;
 	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
-	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
-	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaAmfCallbacksT));
+	memset(&reg_cbk, 0, sizeof(OsafAmfCallbacksT));
+	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(OsafAmfCallbacksT));
 
 	/* pop all the records from the mailbox & process them */
 	do {
@@ -491,12 +490,12 @@ uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
 	uint32_t hdl = (*hdl_rec)->hdl;
 	AVA_PEND_CBK_REC *rec = 0;
-	SaAmfCallbacksT reg_cbk;
+	OsafAmfCallbacksT reg_cbk;
 	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
-	memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
-	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaAmfCallbacksT));
+	memset(&reg_cbk, 0, sizeof(OsafAmfCallbacksT));
+	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(OsafAmfCallbacksT));
 
 	/* release all lock and handle - we are abt to go into deep sleep */
 	m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
@@ -587,7 +586,7 @@ uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
                   client will not able to access LongDn SaNameT, otherwise
                   client could be crashed.
 ******************************************************************************/
-uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
+uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, OsafAmfCallbacksT *reg_cbk)
 {
 	uint32_t rc = SA_AIS_OK;
 	uint32_t i;
@@ -675,7 +674,7 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 						break;
 					}
 				}
-				if (rc == SA_AIS_OK && reg_cbk->saAmfProtectionGroupTrackCallback) {
+				if (rc == SA_AIS_OK && reg_cbk->saAmfProtectionGroupTrackCallback_4) {
 					TRACE("PG track Information: Total number of items in buffer = %d",pg_track->buf.numberOfItems);
 					/* copy the contents into a malloced buffer.. appl frees it */
 					buf.numberOfItems = pg_track->buf.numberOfItems;
@@ -693,7 +692,7 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 						 */
 						buf.notification[buf.numberOfItems].change = static_cast<SaAmfProtectionGroupChangesT>(0);
 						TRACE("Invoking PGTrack callback for CSIName = %s", osaf_extended_name_borrow(&pg_track->csi_name));
-						((SaAmfCallbacksT_4*)reg_cbk)->saAmfProtectionGroupTrackCallback(&pg_track->csi_name,
+						reg_cbk->saAmfProtectionGroupTrackCallback_4(&pg_track->csi_name,
 													&buf,
 													  pg_track->mem_num, pg_track->err);
 					} else {
@@ -773,6 +772,19 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
 
 			break;
 		}
+		case AVSV_AMF_CSI_ATTR_CHANGE: {
+		       AVSV_AMF_CSI_ATTR_CHANGE_PARAM *csi_attr_change = &info->param.csi_attr_change;
+		       if (!ava_sanamet_is_valid(&csi_attr_change->csi_name)) {
+			 rc = SA_AIS_ERR_NAME_TOO_LONG;
+		       }
+                       if ((rc == SA_AIS_OK) && (reg_cbk->osafCsiAttributeChangeCallback)) {
+                         TRACE("Invoking osafCsiAttributeChangeCallback : InvocationId = %llx,\
+                           csi = %s",info->inv, osaf_extended_name_borrow(&csi_attr_change->csi_name));
+			 reg_cbk->osafCsiAttributeChangeCallback(info->inv, &csi_attr_change->csi_name, csi_attr_change->csiAttr);
+                       }
+               }
+               break;
+
 		default:
 			osafassert(0);
 			break;
