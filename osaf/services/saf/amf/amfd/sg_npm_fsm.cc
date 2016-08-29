@@ -120,16 +120,16 @@ static AVD_SU_SI_REL *avd_sg_npm_su_othr(AVD_CL_CB *cb, AVD_SU *su)
 		if (i_susi->si->list_of_sisu != i_susi) {
 			o_susi = i_susi->si->list_of_sisu;
 			if (o_susi->fsm != AVD_SU_SI_STATE_UNASGN)
-				return o_susi;
+				break;
 		} else if (i_susi->si->list_of_sisu->si_next != AVD_SU_SI_REL_NULL) {
 			o_susi = i_susi->si->list_of_sisu->si_next;
 			if (o_susi->fsm != AVD_SU_SI_STATE_UNASGN)
-				return o_susi;
+				break;
 		}
 
 		i_susi = i_susi->su_next;
 	}
-
+	TRACE_LEAVE2("o_susi:'%p'",o_susi);
 	return o_susi;
 }
 
@@ -4450,6 +4450,62 @@ uint32_t SG_NPM::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 	}			/* switch (sg->sg_fsm_state) */
 
 	return NCSCC_RC_SUCCESS;
+}
+
+/*
+ * @brief      Handles modification of assignments in SU of NpM SG
+ *             because of lock or shutdown operation on Node group.
+ *             If SU does not have any SIs assigned to it, AMF will try
+ *             to instantiate new SUs in the SG. If SU has assignments,
+ *             then depending upon lock or shutdown operation, quiesced
+ *             or quiescing state will be sent for active SIs in SU.
+ *	       If SU has only standby assignments then remove the assignments.
+ *
+ * @param[in]  ptr to SU
+ * @param[in]  ptr to nodegroup AVD_AMF_NG.
+ */
+void SG_NPM::ng_admin(AVD_SU *su, AVD_AMF_NG *ng) 
+{
+  SaAmfHAStateT ha_state;
+
+  TRACE_ENTER2("'%s', sg_fsm_state:%u",su->name.c_str(),
+    su->sg_of_su->sg_fsm_state);
+
+  if (su->list_of_susi == nullptr) {
+    avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
+    return;
+  }
+
+  if (ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN)
+    ha_state = SA_AMF_HA_QUIESCING;
+  else
+    ha_state = SA_AMF_HA_QUIESCED;
+
+  if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
+    if (avd_sg_su_si_mod_snd(avd_cb, su, ha_state) == NCSCC_RC_FAILURE) {
+      LOG_ER("quiescing/quiesced state transtion failed for '%s'",su->name.c_str());
+      goto done;
+    }
+  } else {
+    if (avd_sg_su_si_del_snd(avd_cb, su) == NCSCC_RC_FAILURE) {
+      LOG_ER("removal of standby assignment failed for '%s'",su->name.c_str());
+      goto done;
+    }
+  }
+
+  avd_sg_su_oper_list_add(avd_cb, su, false);
+  su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
+
+  //Increment node counter for tracking status of ng operation.
+  if ((su->any_susi_fsm_in_modify() == true) ||
+       (su->any_susi_fsm_in_unasgn() == true)) {
+    su->su_on_node->su_cnt_admin_oper++;
+    TRACE("node:%s, su_cnt_admin_oper:%u", su->su_on_node->name.c_str(),
+      su->su_on_node->su_cnt_admin_oper);
+  }
+done:
+  TRACE_LEAVE();
+  return;
 }
 
 SG_NPM::~SG_NPM() {
