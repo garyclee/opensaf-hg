@@ -31,4 +31,6 @@ Some steps to follow:
 5. Unlock:
 	amf-adm unlock safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1
 	amf-adm unlock safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1
+6. Run below command for invocation of CSI Attribute Change Callback :
+	immcfg -a saAmfCSIAttriValue+=CCCC safCsiAttr=AmfDemo1,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1
 
