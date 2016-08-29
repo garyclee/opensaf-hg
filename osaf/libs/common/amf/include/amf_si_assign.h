@@ -26,7 +26,6 @@
 #ifndef AMF_SI_ASSIGN_H
 #define AMF_SI_ASSIGN_H
 
-#include <string>
 #include <saAmf.h>
 
 struct SaAmfSIAssignment {
@@ -35,6 +34,7 @@ struct SaAmfSIAssignment {
 		SaNameT si;
 		SaAmfHAStateT saAmfSISUHAState;
 		uint32_t saAmfSISUHAReadinessState;
+		uint32_t assignmentAct;
 };
 
 struct SaAmfCSIAssignment {
