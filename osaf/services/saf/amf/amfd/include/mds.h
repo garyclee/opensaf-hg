@@ -33,10 +33,10 @@
 
 /* In Service upgrade support */
 #define AVD_MDS_SUB_PART_VERSION_4 4
-#define AVD_MDS_SUB_PART_VERSION   6
+#define AVD_MDS_SUB_PART_VERSION   7
 
 #define AVD_AVND_SUBPART_VER_MIN   1
-#define AVD_AVND_SUBPART_VER_MAX   6
+#define AVD_AVND_SUBPART_VER_MAX   7
 
 #define AVD_AVD_SUBPART_VER_MIN    1
 #define AVD_AVD_SUBPART_VER_MAX    6

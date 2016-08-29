@@ -50,6 +50,7 @@ extern "C" {
 #define AVSV_AVD_AVND_MSG_FMT_VER_4    4
 #define AVSV_AVD_AVND_MSG_FMT_VER_5    5
 #define AVSV_AVD_AVND_MSG_FMT_VER_6    6
+#define AVSV_AVD_AVND_MSG_FMT_VER_7    7
 
 /* Internode/External Components Validation result */
 typedef enum {
@@ -325,7 +326,9 @@ typedef struct avsv_param_info {
  * Tese values are mapped to SU_SI fsm states */
 typedef enum {
 	AVSV_SUSI_ACT_BASE = 0,	
+	//AVSV_SUSI_ACT_ABSENT = 1, /*AVD_SU_SI_STATE_ABSENT */
 	AVSV_SUSI_ACT_ASGN = 2,	/*AVD_SU_SI_STATE_ASGN */
+	AVSV_SUSI_ACT_ASGND = 3, /*AVD_SU_SI_STATE_ASGND */
 	AVSV_SUSI_ACT_DEL = 4,	/* AVD_SU_SI_STATE_UNASGN */
 	AVSV_SUSI_ACT_MOD = 5,	/* AVD_SU_SI_STATE_MODIFY */
 } AVSV_SUSI_ACT;
@@ -438,6 +441,7 @@ typedef struct avsv_sisu_state_msg_tag {
 	SaNameT safSU;
 	SaNameT safSI;
 	SaAmfHAStateT saAmfSISUHAState;
+	uint32_t assignmentAct;
 	struct avsv_sisu_state_msg_tag *next;
 } AVSV_SISU_STATE_MSG;
 

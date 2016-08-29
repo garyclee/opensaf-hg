@@ -865,6 +865,7 @@ uint32_t avsv_edp_sisu_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_SISU_STATE_MSG *struct_ptr = NULL, **d_ptr = NULL;
+	uint16_t ver7 = AVSV_AVD_AVND_MSG_FMT_VER_7;
 
 	EDU_INST_SET avsv_sisu_state_msg_rules[] = {
 		{EDU_START, avsv_edp_sisu_state_info_msg, EDQ_LNKLIST, 0, 0,
@@ -876,7 +877,9 @@ uint32_t avsv_edp_sisu_state_info_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_SISU_STATE_MSG *)0)->safSI, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
 		 (long)&((AVSV_SISU_STATE_MSG *)0)->saAmfSISUHAState, 0, NULL},
-
+		{EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uint16_t *)(&(ver7)))},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_SISU_STATE_MSG *)0)->assignmentAct, 0, NULL},
 		{EDU_TEST_LL_PTR, avsv_edp_sisu_state_info_msg, 0, 0, 0,
 		 (long)&((AVSV_SISU_STATE_MSG *)0)->next, 0, NULL},
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
