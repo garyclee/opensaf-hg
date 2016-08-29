@@ -812,11 +812,6 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	if (cb->term_state == AVND_TERM_STATE_OPENSAF_SHUTDOWN_STARTED)
 		return rc;
 
-	if (cb->is_avd_down == true) {
-        m_AVND_SU_ALL_SI_RESET(su);
-		return rc;
-	}
-
 	// should be in assignment pending state to be here
 	osafassert(m_AVND_SU_IS_ASSIGN_PEND(su));
 
@@ -829,7 +824,6 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 	msg.info.avd = static_cast<AVSV_DND_MSG*>(calloc(1, sizeof(AVSV_DND_MSG)));
         msg.type = AVND_MSG_AVD;
         msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;
-        msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
         msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->node_info.nodeId;
         if (si) {
                 msg.info.avd->msg_info.n2d_su_si_assign.single_csi =
@@ -877,14 +871,27 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
                                su->name.c_str());
         }
 
-        rc = avnd_di_msg_send(cb, &msg);
-        if (NCSCC_RC_SUCCESS == rc)
-                msg.info.avd = 0;
-
-        /* we have completed the SU SI msg processing */
-        if (su_assign_state_is_stable(su))
-                m_AVND_SU_ASSIGN_PEND_RESET(su);
-        m_AVND_SU_ALL_SI_RESET(su);
+        if (cb->is_avd_down == true) {
+        	// We are in headless, buffer this msg
+        	msg.info.avd->msg_info.n2d_su_si_assign.msg_id = 0;
+        	if (avnd_diq_rec_add(cb, &msg) == nullptr) {
+        		rc = NCSCC_RC_FAILURE;
+        	}
+        	m_AVND_SU_ALL_SI_RESET(su);
+        	LOG_NO("avnd_di_susi_resp_send() deferred as AMF director is offline");
+        } else {
+        	// We are in normal cluster, send msg to director
+        	msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
+        	/* send the msg to AvD */
+        	rc = avnd_di_msg_send(cb, &msg);
+        	if (NCSCC_RC_SUCCESS == rc)
+        		msg.info.avd = 0;
+        	/* we have completed the SU SI msg processing */
+        	if (su_assign_state_is_stable(su)) {
+        		m_AVND_SU_ASSIGN_PEND_RESET(su);
+        	}
+        	m_AVND_SU_ALL_SI_RESET(su);
+        }
 
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
@@ -1263,14 +1270,7 @@ void avnd_diq_rec_del(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 	/* stop the AvD msg response timer */
 	if (m_AVND_TMR_IS_ACTIVE(rec->resp_tmr)) {
 		m_AVND_TMR_MSG_RESP_STOP(cb, *rec);
-		// Resend msgs from queue because amfd dropped during sync
-		if ((cb->dnd_list.head != nullptr)) {
-			TRACE("retransmit message to amfd");
-			AVND_DND_MSG_LIST *pending_rec = 0;
-			for (pending_rec = cb->dnd_list.head; pending_rec != nullptr; pending_rec = pending_rec->next) {
-				avnd_diq_rec_send(cb, pending_rec);
-			}
-		}
+		avnd_diq_rec_send_buffered_msg(cb);
 		/* resend pg start track */
 		avnd_di_resend_pg_start_track(cb);
 	}
@@ -1280,6 +1280,73 @@ void avnd_diq_rec_del(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 
 	/* free the record */
 	delete rec;
+	TRACE_LEAVE();
+	return;
+}
+/****************************************************************************
+  Name          : avnd_diq_rec_send_buffered_msg
+
+  Description   : Resend buffered msg
+
+  Arguments     : cb  - ptr to the AvND control block
+
+  Return Values : None.
+
+  Notes         : None.
+******************************************************************************/
+void avnd_diq_rec_send_buffered_msg(AVND_CB *cb)
+{
+	TRACE_ENTER();
+	// Resend msgs from queue because amfnd dropped during headless
+	// or headless-synchronization
+	if ((cb->dnd_list.head != nullptr)) {
+		AVND_DND_MSG_LIST *pending_rec = 0;
+		TRACE("Attach msg_id of buffered msg");
+		bool found = true;
+		while (found) {
+			found = false;
+			for (pending_rec = cb->dnd_list.head; pending_rec != nullptr; pending_rec = pending_rec->next) {
+				if (pending_rec->msg.type == AVND_MSG_AVD) {
+					// At this moment, only oper_state msg needs to report to director
+					if (pending_rec->msg.info.avd->msg_type == AVSV_N2D_INFO_SU_SI_ASSIGN_MSG &&
+						pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_id == 0) {
+						m_AVND_DIQ_REC_POP(cb, pending_rec);
+#if 0
+						// only resend if this SUSI does exist
+						AVND_SU *su = m_AVND_SUDB_REC_GET(cb->sudb,
+								pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.su_name);
+						if (su != nullptr && su->si_list.n_nodes > 0) {
+#endif
+							pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
+							m_AVND_DIQ_REC_PUSH(cb, pending_rec);
+							LOG_NO("Found and resend buffered su_si_assign msg for SU:'%s', "
+									"SI:'%s', ha_state:'%u', msg_act:'%u', single_csi:'%u', "
+									"error:'%u', msg_id:'%u'",
+									osaf_extended_name_borrow(&pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.su_name),
+									osaf_extended_name_borrow(&pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.si_name),
+									pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.ha_state,
+									pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_act,
+									pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.single_csi,
+									pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.error,
+									pending_rec->msg.info.avd->msg_info.n2d_su_si_assign.msg_id);
+
+#if 0
+						} else {
+							avnd_msg_content_free(cb, &pending_rec->msg);
+							delete pending_rec;
+							pending_rec = cb->dnd_list.head;
+						}
+#endif
+						found = true;
+					}
+				}
+			}
+		}
+		TRACE("retransmit message to amfd");
+ 		for (pending_rec = cb->dnd_list.head; pending_rec != nullptr; pending_rec = pending_rec->next) {
+ 			avnd_diq_rec_send(cb, pending_rec);
+ 		}
+	}
 	TRACE_LEAVE();
 	return;
 }

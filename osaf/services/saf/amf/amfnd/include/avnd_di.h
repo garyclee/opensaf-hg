@@ -79,6 +79,7 @@ void avnd_di_msg_ack_process(struct avnd_cb_tag *, uint32_t);
 void avnd_diq_del(struct avnd_cb_tag *);
 AVND_DND_MSG_LIST *avnd_diq_rec_add(struct avnd_cb_tag *cb, AVND_MSG *msg);
 void avnd_diq_rec_del(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec);
+void avnd_diq_rec_send_buffered_msg(struct avnd_cb_tag *cb);
 uint32_t avnd_diq_rec_send(struct avnd_cb_tag *cb, AVND_DND_MSG_LIST *rec);
 uint32_t avnd_di_reg_su_rsp_snd(struct avnd_cb_tag *cb, const std::string& su_name, uint32_t ret_code);
 uint32_t avnd_di_ack_nack_msg_send(struct avnd_cb_tag *cb, uint32_t rcv_id, uint32_t view_num);
