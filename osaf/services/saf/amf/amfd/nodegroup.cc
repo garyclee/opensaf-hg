@@ -728,6 +728,7 @@ void avd_ng_admin_state_set(AVD_AMF_NG* ng, SaAmfAdminStateT state)
 	avd_send_admin_state_chg_ntf(ng->name,
 			(SaAmfNotificationMinorIdT)SA_AMF_NTFID_NG_ADMIN_STATE,
 			old_state, ng->saAmfNGAdminState);
+	TRACE_LEAVE();
 }
 /**
  * @brief  Verify if Node is stable for admin operation on Nodegroup etc.
@@ -790,8 +791,7 @@ static SaAisErrorT check_red_model_service_outage(const AVD_AMF_NG *ng)
 			LOG_NO("service outage for '%s' because of shutdown/lock "
 					"on '%s'",sg->name.c_str(),ng->name.c_str());
 
-		if ((sg->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) ||
-				(sg->sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL)) { 
+		if (sg->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) { 
 			LOG_NO("Admin op on '%s'  hosting SUs of '%s' with redundancy '%u' "
 					"is not supported",ng->name.c_str(), sg->name.c_str(),
 					sg->sg_redundancy_model);

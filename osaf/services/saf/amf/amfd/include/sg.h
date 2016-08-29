@@ -507,6 +507,7 @@ public:
 	uint32_t susi_failed(AVD_CL_CB *cb, AVD_SU *su,
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
         void node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su);
+	void ng_admin(AVD_SU *su, AVD_AMF_NG *ng);
         
 private:
         uint32_t su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su);
