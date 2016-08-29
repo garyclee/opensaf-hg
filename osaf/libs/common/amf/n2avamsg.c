@@ -354,7 +354,38 @@ uint32_t avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 				goto done;
 		}
 		break;
+	case AVSV_AMF_CSI_ATTR_CHANGE:
+		osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_attr_change.csi_name),
+				 &(*o_dcbk)->param.csi_attr_change.csi_name);
+                /* memset avsv & amf csi attr lists */
+                memset(&(*o_dcbk)->param.csi_attr_change.attrs, 0, sizeof(AVSV_CSI_ATTRS));
+                /* copy the avsv csi attr list */
+                if (scbk->param.csi_attr_change.attrs.number > 0) {
+                        (*o_dcbk)->param.csi_attr_change.attrs.list = 
+				malloc(sizeof(AVSV_ATTR_NAME_VAL) * scbk->param.csi_attr_change.attrs.number);
 
+			if (!(*o_dcbk)->param.csi_attr_change.attrs.list) {
+				rc = NCSCC_RC_FAILURE;
+				goto done;
+			}
+			memcpy((*o_dcbk)->param.csi_attr_change.attrs.list,
+					scbk->param.csi_attr_change.attrs.list,
+					sizeof(AVSV_ATTR_NAME_VAL) * scbk->param.csi_attr_change.attrs.number);
+			for (i = 0; i < scbk->param.csi_set.attrs.number; i++) {
+				osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_attr_change.attrs.list[i].name),
+                                                                                 &(*o_dcbk)->param.csi_attr_change.attrs.list[i].name);
+                                osaf_extended_name_alloc(osaf_extended_name_borrow(&scbk->param.csi_attr_change.attrs.list[i].value),
+                                                                                 &(*o_dcbk)->param.csi_attr_change.attrs.list[i].value);
+                        }
+
+                        (*o_dcbk)->param.csi_attr_change.attrs.number = scbk->param.csi_attr_change.attrs.number;
+                }
+		/* copy the amf csi attr list */
+		if (scbk->param.csi_attr_change.csiAttr.number > 0) {
+                       avsv_amf_csi_attr_list_copy(&(*o_dcbk)->param.csi_attr_change.csiAttr,
+                                &scbk->param.csi_attr_change.csiAttr);
+                }
+		break;
 	default:
 		osafassert(0);
 	}
@@ -440,7 +471,22 @@ void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 		}
 		avsv_amf_csi_attr_list_free(&cbk_info->param.csi_set.csi_desc.csiAttr);
 		break;
-
+	case AVSV_AMF_CSI_ATTR_CHANGE:
+		osaf_extended_name_free(&cbk_info->param.csi_attr_change.csi_name);
+		/* free the avsv csi attr list */
+		if (cbk_info->param.csi_attr_change.attrs.number) {
+			if (cbk_info->param.csi_attr_change.attrs.list) {
+				for (i = 0; i < cbk_info->param.csi_attr_change.attrs.number; i++)
+				{
+					osaf_extended_name_free(&cbk_info->param.csi_attr_change.attrs.list[i].name);
+					osaf_extended_name_free(&cbk_info->param.csi_attr_change.attrs.list[i].value);
+				}
+			}
+			free(cbk_info->param.csi_attr_change.attrs.list);
+		}
+		/* free the amf csi attr list */
+		avsv_amf_csi_attr_list_free(&cbk_info->param.csi_attr_change.csiAttr);
+		break;
 	default:
 		break;
 	}
@@ -755,7 +801,7 @@ uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 {
 	SaAmfCSIAttributeListT *amf_attrs = 0;
 	AVSV_CSI_ATTRS *avsv_attrs = 0;
-	uint32_t cnt, rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	if ((!cbk_info) || (AVSV_AMF_CSI_SET != cbk_info->type) ||
 	    (SA_AMF_CSI_ADD_ONE != cbk_info->param.csi_set.csi_desc.csiFlags))
@@ -767,6 +813,25 @@ uint32_t avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 
 	if (!avsv_attrs->number)
 		goto done;
+
+	rc = avsv_attrs_to_amf_attrs(amf_attrs, avsv_attrs);
+done:
+	return rc;
+}
+
+/**
+ * @brief  Copies csi attributes from internal structure AVSV_CSI_ATTRS 
+ *         to SaAmfCSIAttributeListT. Application understands SaAmfCSIAttributeListT.
+ *         All memory allocation will be done here.
+ *
+ * @param  amf_attrs (ptr to SaAmfCSIAttributeListT).
+ * @param  avsv_attrs (ptr to AVSV_CSI_ATTRS).
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+uint32_t avsv_attrs_to_amf_attrs (SaAmfCSIAttributeListT *amf_attrs, AVSV_CSI_ATTRS *avsv_attrs)
+{
+	uint32_t cnt, rc = NCSCC_RC_SUCCESS;
 
 	amf_attrs->attr = malloc(sizeof(SaAmfCSIAttributeT) * avsv_attrs->number);
 	if (!amf_attrs->attr) {

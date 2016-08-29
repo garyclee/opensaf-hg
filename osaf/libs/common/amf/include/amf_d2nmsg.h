@@ -62,6 +62,18 @@ typedef enum {
 	AVSV_VALID_MAX
 } AVSV_COMP_VALIDATION_RESULT_TYPE;
 
+//Msg type for compcsi msg.
+typedef enum {
+        AVSV_COMPCSI_ATTR_CHANGE_AND_NO_ACK = 1,
+        AVSV_COMPCSI_ASSIGN_AND_ACK = 2,
+        AVSV_COMPCSI_ASSIGN_AND_NO_ACK = 3 ,
+        AVSV_COMPCSI_MODIFY_AND_ACK = 4,
+        AVSV_COMPCSI_MODIFY_AND_NO_ACK = 5,
+        AVSV_COMPCSI_REMOVE_AND_ACK = 6,
+        AVSV_COMPCSI_REMOVE_AND_NO_ACK = 7,
+        AVSV_COMPCSI_MAX,
+} AVSV_COMPCSI_ACT;
+
 typedef enum {
 	AVSV_N2D_NODE_UP_MSG = 1,
 	AVSV_N2D_REG_SU_MSG,
@@ -95,6 +107,7 @@ typedef enum {
 	AVSV_D2D_CHANGE_ROLE_RSP, // to maintain backwards compatibility
 	AVSV_N2D_ND_SISU_STATE_INFO_MSG,
 	AVSV_N2D_ND_CSICOMP_STATE_INFO_MSG,
+	AVSV_D2N_COMPCSI_ASSIGN_MSG,
 	AVSV_DND_MSG_MAX
 } AVSV_DND_MSG_TYPE;
 
@@ -620,6 +633,20 @@ typedef struct avsv_d2n_role_change_info_tag {
 	uint32_t role;
 } AVSV_D2N_ROLE_CHANGE_INFO;
 
+/*
+	Message structure to send comp csi related information to AMFND.
+*/
+typedef struct avsv_d2n_compcsi_assign_msg {
+	uint32_t msg_id;
+	SaClmNodeIdT node_id;
+	AVSV_COMPCSI_ACT msg_act;
+	SaNameT comp_name;
+	SaNameT csi_name;
+	union {
+		AVSV_CSI_ATTRS attrs;
+	} info; 
+} AVSV_D2N_COMPCSI_ASSIGN_MSG_INFO;
+
 typedef struct avsv_dnd_msg {
 	AVSV_DND_MSG_TYPE msg_type;
 	union {
@@ -653,6 +680,7 @@ typedef struct avsv_dnd_msg {
 		AVSV_D2N_ADMIN_OP_REQ_MSG_INFO d2n_admin_op_req_info;
 		AVSV_D2N_HB_MSG_INFO d2n_hb_info;
 		AVSV_D2N_REBOOT_MSG_INFO d2n_reboot_info;
+		AVSV_D2N_COMPCSI_ASSIGN_MSG_INFO d2n_compcsi_assign_msg_info;
 	} msg_info;
 } AVSV_DND_MSG;
 
