@@ -1,0 +1,161 @@
+/*      -*- OpenSAF -*-
+ *
+ * (C) Copyright 2016 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Oracle 
+ *
+ */
+General:
+=================================
+Current AMF implementation conforms to B.04.01 spec version.
+No version of AMF spec talks about any feature, using which a user
+can pass some information to a running component without loss of service.
+However, there is a class "SaAmfCSIAttribute" which can be used 
+to pass some information in the form of name-value pair by configuring 
+the object of this class for a CSI. When configured, CSI attribute information
+is passed to component whenever it is assigned some workload (CSI). But in this case also,
+AMF spec allows dynamic modification of CSI attribute values, but spec does not clearly states
+that it should result in CSI set callback againi with same HA state but with modified values 
+of CSI Attributes. 
+
+For OpenSAF release 5.1, enhancement ticket https://sourceforge.net/p/opensaf/tickets/1553/
+is intended to provide this functionality of passing CSI attrbiute values to a running
+component whenever it is modified dynamically.
+
+Implementation Notes for "CSI Attribute Change Callback":
+======================================================
+As a part of \#1553, minor version (SAF) of AMF service is updated 
+to 02 because of introduction of new resources:
+-saAmfInitialize_5() API,
+-callback structure SaAmfCallbacksT_5 and
+-CSI Attribute Change callback OsafCsiAttributeChangeCallbackT.
+-new attribute osafAmfCSICommunicateCsiAttributeChange in class SaAmfCSI.
+So highest supported version now becomes B.04.02.
+About the new resources at Agent:
+-OsafCsiAttributeChangeCallbackT
+	AMF will use this callback to communicate to a running component
+	any runtime change in the assigned CSI Attribute value.
+	A component can register this callback using new API saAmfInitialize_5().
+	Callback Characteristics:
+		-Arguments:
+		 typedef void (*OsafCsiAttributeChangeCalbackT)( SaInvocationT invocation,
+				const SaNameT *csiName, SaAmfCSIAttributeListT csiAttr);
+		-After receving this callback, a component will have to respond to AMFND
+		  using saAmfResponse() API with the same invocation number.
+		-Callback will be invoked in the context of registered process.
+		-Callback is meant for SA-Aware component, PROXIED PI component and 
+		 PROXIED NPI component.
+		-Callback timeout will be same as saAmfCompCSISetCallbackTimeout or 
+		 saAmfCtDefCallbackTimeout.
+-SaAmfCallbacksT_5 (structure)
+	typedef struct {
+		SaAmfHealthcheckCallbackT                   saAmfHealthcheckCallback;
+		SaAmfComponentTerminateCallbackT            saAmfComponentTerminateCallback;
+		SaAmfCSISetCallbackT                        saAmfCSISetCallback;
+		SaAmfCSIRemoveCallbackT                     saAmfCSIRemoveCallback;
+		SaAmfProtectionGroupTrackCallbackT_4        saAmfProtectionGroupTrackCallback;
+		SaAmfProxiedComponentInstantiateCallbackT   saAmfProxiedComponentInstantiateCallback;
+		SaAmfProxiedComponentCleanupCallbackT       saAmfProxiedComponentCleanupCallback;
+		SaAmfContainedComponentInstantiateCallbackT saAmfContainedComponentInstantiateCallback;
+		SaAmfContainedComponentCleanupCallbackT     saAmfContainedComponentCleanupCallback;
+		OsafCsiAttributeChangeCallbackT             osafCsiAttributeChangeCallback;
+	} SaAmfCallbacksT_5;
+	This is new callback structure consisting of all B.04.01 callbacks and newly
+	introduced OsafCsiAttributeChangeCallbackT. A component can register all 
+	callbacks including new one with new API saAmfInitialize_5().
+-API SaAisErrorT saAmfInitialize_5( SaAmfHandleT *amfHandle, const SaAmfCallbacksT_5
+		*amfCallbacks, SaVersionT *version)
+	Applicable return codes are same as valid for saAmfInitialize_4().
+	New API for initializing with AMF service for all callbacks including the new one.
+        New saf version for this is B.04.02. A user will have to compulsory register 
+	OsafCsiAttributeChangeCallbackT callback along with other mandatory callbacks to
+	initialize with AMF service using this API.
+-Attribute osafAmfCSICommunicateCsiAttributeChange in class SaAmfCSI.
+	A NON Proxied NPI component neither registers with AMF nor it is registered via
+	any Proxy component. AMF manages only Life Cycle of this component through
+	CLC-CLI scripts. All CLC-CLI scripts are idempotents. For such a component, AMF
+	passes name-value pairs of CSI as environment variables to each CLC-CLI command.
+	If there is a change in CSI attribute value for a CSI assigned to NON PROXIED NPI 
+	component, the change will be passed to the component as environment variables by 
+	executing INSTANTIATED command provided osafAmfCSICommunicateCsiAttributeChange is 
+	marked true for the assigned CSI.
+Changes at AMFD (CSI Attribute Change Callback):
+===============================================
+1)Support for new attribute osafAmfCSICommunicateCsiAttributeChange in class SaAmfCSI.
+  Dynamic modification of this attribute is supported. Default value will be 0.
+2)New message AVSV_D2N_COMPCSI_ASSIGN_MSG from AMFD to AMFND for compcsi related 
+  information. As of now only CSI attribute list will be sent to AMFND. 
+  In future it can be used in the context of tickets like \#538 (TERM_FAILED state) and \#83.
+3)Upon modification of CSI attribute value for a object of class "SaAmfCSIAttribute",
+  AMFD will send a message to AMFND with new list. For a NON PROXIED NPI component,
+  message will not be sent if osafAmfCSICommunicateCsiAttributeChange is false. 
+  For such a component, change will come into effect only when its SI is locked
+  and unlocked or other such ways.
+4)AMFD now also maintains MDS install version of all AMFNDs in 
+  std::map<SaClmNodeIdT, MDS_SVC_PVT_SUB_PART_VER> nds_mds_ver_db.
+  It will be updated whenever AMFD gets MDS_UP and MDS_DOWN for AMFND. 
+  Using this AMFD can decide whether message is meant for particular AMFND much
+  before encode callback given by MDS.
+
+Changes at AMFND (CSI Attribute Change Callback):
+=================================================
+1)New internal AMF callback from AMFND to AMF agent corresponding to 
+  OsafCsiAttributeChangeCallbackT for giving modified CSI Attribute 
+  Name value pairs to component (AVSV_AMF_CSI_ATTR_CHANGE_PARAM).
+2)AMFND processes AVSV_D2N_COMPCSI_ASSIGN_MSG from AMFD. Upong receving 
+  CSI attribute list, it updates its databae with modified information.
+  If compoent has registered with new callback OsafCsiAttributeChangeCallbackT, 
+  then it will send this modification through internal callback AVSV_AMF_CSI_ATTR_CHANGE_PARAM
+  to AMF agent. 
+3)AMFND now maintains MDS install version of AMF AGENTs in
+	std::map<MDS_DEST, MDS_SVC_PVT_SUB_PART_VER> agent_mds_ver_db.
+  It will be updated whenever AMFND gets MDS_UP and MDS_DOWN for AMF Agent.
+  Using this AMFND can decide whether message is meant for particular Agent much
+  before encode callback given by MDS.
+4)AMFND maintains now SAF version for each registered component. 
+  AMFND will get it from Agent through existing component registeration message.
+
+Changes at AMF Agent (CSI Attribute Change Callback):
+=====================================================
+1)Because of different AMF callback struture correponding to each of B.01.01
+  B.04.01, introduced an internal callback structure OsafAmfCallbacksT.
+  It consists of callback from each AMF version. Since callback for each 
+  intialization needs to be maintained internally in AVA_HDL_REC. With this
+  internal structure, same handle can used internally for any initialization
+  of AMF service. Here it is:
+	typedef struct osaf_amf_cbk {
+		SaAmfHealthcheckCallbackT                   saAmfHealthcheckCallback;
+		SaAmfComponentTerminateCallbackT            saAmfComponentTerminateCallback;
+		SaAmfCSISetCallbackT                        saAmfCSISetCallback;
+		SaAmfCSIRemoveCallbackT                     saAmfCSIRemoveCallback;
+		SaAmfProtectionGroupTrackCallbackT          saAmfProtectionGroupTrackCallback;
+		SaAmfProtectionGroupTrackCallbackT_4        saAmfProtectionGroupTrackCallback_4; //Only in B.04.01
+		SaAmfProxiedComponentInstantiateCallbackT   saAmfProxiedComponentInstantiateCallback;
+		SaAmfProxiedComponentCleanupCallbackT       saAmfProxiedComponentCleanupCallback;
+		SaAmfContainedComponentInstantiateCallbackT saAmfContainedComponentInstantiateCallback;
+		SaAmfContainedComponentCleanupCallbackT     saAmfContainedComponentCleanupCallback;
+		OsafCsiAttributeChangeCallbackT             osafCsiAttributeChangeCallback; //OpenSAF implementation.
+	} OsafAmfCallbacksT;
+  Also added utility function to copy callbacks from AMF callbacks structure to this internal one. 
+  AMF agent will use OsafAmfCallbacksT internally instead of SaAmfCallbacksT_<#x>.
+2)Implementation of saAmfInitialize_5() in ava_api.c. 
+3)Now saAmfRegister() also sends SAF version to AMFND.
+
+TODOs: (CSI Attribute Change Callback):
+=====================================================
+1)Invocation of INSTANTIATE command for a Non Proxied NPI component.
+2)These are old patches submitted in 5.0. Refactor them for C++. 
+3)Introduce saAmf_B_04_02.h for new resources at agent.
+4)These patches are old (work done in 5.0), so 
+	re-base over #1642(AMF long dn) and other C++ refactoring.
+
+
