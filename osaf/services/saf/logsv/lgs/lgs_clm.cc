@@ -11,7 +11,7 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Oracle 
+ * Author(s): Oracle
  *
  */
 #include "osaf/services/saf/logsv/lgs/lgs.h"
@@ -21,14 +21,14 @@ static bool clm_initialized;
 static void *clm_node_db = NULL;       /* used for C++ STL map */
 typedef std::map<NODE_ID, lgs_clm_node_t *> ClmNodeMap;
 
-/**     
- * @brief Checks if LGSV has already initialized with CLM service. 
- *      
+/**
+ * @brief Checks if LGSV has already initialized with CLM service.
+ *
  * @return true/false.
- */     
+ */
 static bool is_clm_init() {
   return (((lgs_cb->clm_hdl != 0)
-        && (clm_initialized == true)) ? true : false);
+           && (clm_initialized == true)) ? true : false);
 }
 
 /**
@@ -52,7 +52,7 @@ uint32_t lgs_clm_node_map_init(lgs_cb_t *lgs_cb) {
 
 
 /**
- * Name     : lgs_clm_node_find 
+ * Name     : lgs_clm_node_find
  * Description   : This routine finds the clm_node .
  * Arguments     : clm_node_id - CLM Node id
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
@@ -63,7 +63,7 @@ static uint32_t lgs_clm_node_find(NODE_ID clm_node_id) {
   uint32_t rc;
 
   ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>
-      (clm_node_db));
+                         (clm_node_db));
 
   if (clmNodeMap) {
     ClmNodeMap::iterator it(clmNodeMap->find(clm_node_id));
@@ -89,7 +89,7 @@ static uint32_t lgs_clm_node_find(NODE_ID clm_node_id) {
  * Description   : This routine adds the new node to clm_node_map.
  * Arguments     : clm_node_id - CLM Node id
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- * Notes    : None 
+ * Notes    : None
  */
 static uint32_t lgs_clm_node_add(NODE_ID clm_node_id) {
   TRACE_ENTER();
@@ -101,15 +101,15 @@ static uint32_t lgs_clm_node_add(NODE_ID clm_node_id) {
   clm_node->clm_node_id = clm_node_id;
 
   ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>
-      (clm_node_db));
+                         (clm_node_db));
 
   if (clmNodeMap) {
     std::pair<ClmNodeMap::iterator, bool> p(clmNodeMap->insert(
-          std::make_pair(clm_node->clm_node_id, clm_node)));
+        std::make_pair(clm_node->clm_node_id, clm_node)));
 
     if (!p.second) {
       TRACE("unable to add clm node info map - the id %x already existed",
-          clm_node->clm_node_id);
+            clm_node->clm_node_id);
       rc = NCSCC_RC_FAILURE;
     }
   } else {
@@ -124,7 +124,7 @@ static uint32_t lgs_clm_node_add(NODE_ID clm_node_id) {
  * Name     : lgs_clm_node_del
  * Description   : Function to Delete the clm_node.
  * Arguments     : clm_node_id - CLM Node id
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE 
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  * Notes    : None.
  */
 static uint32_t lgs_clm_node_del(NODE_ID clm_node_id) {
@@ -133,7 +133,7 @@ static uint32_t lgs_clm_node_del(NODE_ID clm_node_id) {
   lgs_clm_node_t *clm_node;
 
   ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>
-      (clm_node_db));
+                         (clm_node_db));
 
   if (clmNodeMap) {
     auto it = (clmNodeMap->find(clm_node_id));
@@ -158,15 +158,15 @@ static uint32_t lgs_clm_node_del(NODE_ID clm_node_id) {
 
 /**
  * @brief  Send Membership status of node to a lib on that node.
- *  
- * @param SaClmClusterChangesT (CLM status of node) 
- * @param client_id 
+ *
+ * @param SaClmClusterChangesT (CLM status of node)
+ * @param client_id
  * @param mdsDest of client
  *
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
 static uint32_t send_clm_node_status_lib(SaClmClusterChangesT clusterChange,
-    unsigned int client_id, MDS_DEST mdsDest) {
+                                         unsigned int client_id, MDS_DEST mdsDest) {
   uint32_t rc;
   NCSMDS_INFO mds_info = {0};
   lgsv_msg_t msg;
@@ -196,13 +196,13 @@ static uint32_t send_clm_node_status_lib(SaClmClusterChangesT clusterChange,
   return rc;
 }
 
-/**         
+/**
  * @brief  Sends CLM membership status of the node to all the clients
  *         on the node except A11 clients.
  * @param  clusterChange (CLM membership status of node).
  * @param  NCS clm_node_id.
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- */         
+ */
 static uint32_t send_cluster_membership_msg_to_clients(
     SaClmClusterChangesT clusterChange, NODE_ID clm_node_id) {
   uint32_t rc = NCSCC_RC_SUCCESS;
@@ -213,7 +213,7 @@ static uint32_t send_cluster_membership_msg_to_clients(
   TRACE_3("clm_node_id: %x, change:%u", clm_node_id, clusterChange);
 
   rp = reinterpret_cast<log_client_t *>
-    (ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL));
+      (ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL));
 
   while (rp != NULL) {
     /** Store the client_id_net for get Next  */
@@ -222,10 +222,10 @@ static uint32_t send_cluster_membership_msg_to_clients(
     //  Do not send to A11 client. Send only to specific Node
     if (tmp_clm_node_id == clm_node_id)
       rc = send_clm_node_status_lib(clusterChange, rp->client_id,
-          rp->mds_dest);
+                                    rp->mds_dest);
 
     rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(
-          &lgs_cb->client_tree, reinterpret_cast<uint8_t *>(&client_id_net)));
+        &lgs_cb->client_tree, reinterpret_cast<uint8_t *>(&client_id_net)));
   }
 
   TRACE_LEAVE();
@@ -233,11 +233,11 @@ static uint32_t send_cluster_membership_msg_to_clients(
 }
 
 static uint32_t send_clm_node_status_change(SaClmClusterChangesT clusterChange,
-    NODE_ID clm_node_id) {
+                                            NODE_ID clm_node_id) {
   return (send_cluster_membership_msg_to_clients(clusterChange, clm_node_id));
 }
 
-/**     
+/**
  * @brief  Checks CLM membership status of a client.
  *         A.02.01 clients are always CLM member.
  * @param  Client MDS_DEST
@@ -250,17 +250,17 @@ bool is_client_clm_member(NODE_ID clm_node_id, SaVersionT *ver) {
     return true;
 
   TRACE("client Version: %d.%d.%d", ver->releaseCode,
-      ver->majorVersion, ver->minorVersion);
+        ver->majorVersion, ver->minorVersion);
   //  CLM integration is supported from A.02.02.
   //  So old clients A.02.01 are always clm member.
   if ((ver->releaseCode == LOG_RELEASE_CODE_0) &&
       (ver->majorVersion == LOG_MAJOR_VERSION_0) &&
       (ver->minorVersion == LOG_MINOR_VERSION_0))
     return true;
-  /*    
+  /*
         It means CLM initialization is successful and this is atleast a A.02.02 client.
         So check CLM membership status of client's node.
-   */            
+  */
   if (lgs_clm_node_find(clm_node_id) != NCSCC_RC_SUCCESS)
     return false;
   else
@@ -269,13 +269,13 @@ bool is_client_clm_member(NODE_ID clm_node_id, SaVersionT *ver) {
 
 /*
  * @brief  CLM callback for tracking node membership status.
- *     Depending upon the membership status (joining/leaving cluster) 
+ *     Depending upon the membership status (joining/leaving cluster)
  *     of a node, LGS will add or remove node from its data base.
  *     A node is added when it is part of the cluster and is removed
- *     when it leaves the cluster membership. An update of status is 
- *     sent to the clients on that node. Based on this status LGA 
+ *     when it leaves the cluster membership. An update of status is
+ *     sent to the clients on that node. Based on this status LGA
  *     will decide return code for different API calls.
- *     
+ *
  */
 static void lgs_clm_track_cbk(
     const SaClmClusterNotificationBufferT_4 *notificationBuffer,
@@ -340,9 +340,9 @@ static const SaClmCallbacksT_4 clm_callbacks = {
 };
 
 /*
- * @brief   Registers with the CLM service (B.04.01). 
+ * @brief   Registers with the CLM service (B.04.01).
  *
- * @return  SaAisErrorT 
+ * @return  SaAisErrorT
  */
 void *lgs_clm_init_thread(void *cb) {
   static SaVersionT clmVersion = { 'B', 0x04, 0x01 };
@@ -364,7 +364,7 @@ void *lgs_clm_init_thread(void *cb) {
 
   /* TODO:subscribe for SA_TRACK_START_STEP also. */
   rc = saClmClusterTrack_4(_lgs_cb->clm_hdl,
-      (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
+                           (SA_TRACK_CURRENT | SA_TRACK_CHANGES), NULL);
   if (rc != SA_AIS_OK) {
     LOG_ER("saClmClusterTrack failed with error: %d", rc);
     TRACE_LEAVE();
@@ -376,7 +376,7 @@ void *lgs_clm_init_thread(void *cb) {
 }
 
 /*
- * @brief  Creates a thread to initialize with CLM. 
+ * @brief  Creates a thread to initialize with CLM.
  */
 void lgs_init_with_clm(void) {
   pthread_t thread;

@@ -71,11 +71,11 @@
 #define LGS_IPC_PRIO_SYS_STREAM NCS_IPC_PRIORITY_NORMAL
 #define LGS_IPC_PRIO_APP_STREAM NCS_IPC_PRIORITY_LOW
 
-/* The name of log service config object */    
-#define LGS_IMM_LOG_CONFIGURATION	"logConfig=1,safApp=safLogService"
+/* The name of log service config object */
+#define LGS_IMM_LOG_CONFIGURATION       "logConfig=1,safApp=safLogService"
 
 /* The possible configurations for LGS_IMM_LOG_FILESYS_CFG */
-#define LGS_LOG_SHARED_FILESYSTEM 1		/* Use shared filesystem. Default */
+#define LGS_LOG_SHARED_FILESYSTEM 1             /* Use shared filesystem. Default */
 #define LGS_LOG_SPLIT_FILESYSTEM  2     /* Store logs on local file system on
                                            each node */
 
@@ -101,16 +101,16 @@ extern uint32_t lgs_mds_init(lgs_cb_t *cb, SaAmfHAStateT ha_state);
 extern uint32_t lgs_mds_finalize(lgs_cb_t *cb);
 extern uint32_t lgs_mds_change_role(lgs_cb_t *cb);
 extern uint32_t lgs_mds_msg_send(lgs_cb_t *cb,
-				 lgsv_msg_t *msg,
-				 MDS_DEST *dest,
-				 MDS_SYNC_SND_CTXT *mds_ctxt,
-				 MDS_SEND_PRIORITY_TYPE prio);
+                                 lgsv_msg_t *msg,
+                                 MDS_DEST *dest,
+                                 MDS_SYNC_SND_CTXT *mds_ctxt,
+                                 MDS_SEND_PRIORITY_TYPE prio);
 
 extern SaAisErrorT lgs_imm_create_configStream(lgs_cb_t *cb);
 extern void logRootDirectory_filemove(
-	const std::string &new_logRootDirectory,
-	const std::string &old_logRootDirectory,
-	time_t *cur_time_in);
+    const std::string &new_logRootDirectory,
+    const std::string &old_logRootDirectory,
+    time_t *cur_time_in);
 extern void logDataGroupname_fileown(const char *new_logDataGroupname);
 
 
@@ -127,8 +127,8 @@ void lgs_delete_one_stream_object(const std::string &name_str);
 void lgs_search_stream_objects();
 SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val);
 int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out,
-			   const std::string &object_name,
-			   SaImmHandleT *immOmHandle);
+                           const std::string &object_name,
+                           SaImmHandleT *immOmHandle);
 int lgs_free_streamobj_attr(SaImmHandleT immHandle);
 
 #endif   /* ifndef __LGS_H */

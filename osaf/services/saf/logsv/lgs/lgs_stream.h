@@ -35,54 +35,54 @@
  * attributes like file descriptor.
  */
 typedef struct log_stream {
-	/* --- Corresponds to IMM Class SaLogStream/SaLogStreamConfig --- */
-	std::string name;
-	std::string fileName;
-	std::string pathName;
-	SaUint64T maxLogFileSize;
-	SaUint32T fixedLogRecordSize;
-	SaBoolT haProperty;	/* app log stream only */
-	SaLogFileFullActionT logFullAction;
-	SaUint32T logFullHaltThreshold;	/* !app log stream */
-	SaUint32T maxFilesRotated;
-	char *logFileFormat;
-	SaUint32T severityFilter;
-	SaTimeT creationTimeStamp;
-	SaUint32T numOpeners;
-	SaUint64T filtered;	/* discarded by server due to filtering */
-	/* --- end correspond to IMM Class --- */
+  /* --- Corresponds to IMM Class SaLogStream/SaLogStreamConfig --- */
+  std::string name;
+  std::string fileName;
+  std::string pathName;
+  SaUint64T maxLogFileSize;
+  SaUint32T fixedLogRecordSize;
+  SaBoolT haProperty;     /* app log stream only */
+  SaLogFileFullActionT logFullAction;
+  SaUint32T logFullHaltThreshold; /* !app log stream */
+  SaUint32T maxFilesRotated;
+  char *logFileFormat;
+  SaUint32T severityFilter;
+  SaTimeT creationTimeStamp;
+  SaUint32T numOpeners;
+  SaUint64T filtered;     /* discarded by server due to filtering */
+  /* --- end correspond to IMM Class --- */
 
-	uint32_t streamId;	/* The unique stream id for this stream */
-	int32_t fd_shared;	/* Checkpointed stream file descriptor for shared fs */
-	int32_t fd_local;	/* Local stream file descriptor for split fs */
-	int32_t *p_fd;      /* Points to shared or local fd depending on fs config */
-	std::string logFileCurrent;	/* Current file name */
-	uint32_t curFileSize;	/* Bytes written to current log file */
-	uint32_t logRecordId;	/* log record indentifier increased for each record */
-	SaBoolT twelveHourModeFlag; /* Not used. Can be removed? */ 
-	logStreamTypeT streamType;
-	/**
-	 * This info is cached locally at SCs node when stream is opened.
-	 * Means that it is not checkpointed to standby node (to keep BC).
-	 * Using this variable to avoid cost in sending request to IMM
-	 * to get info whether the app stream is configurable or runtime
-	 * when performing adm op or closing app stream.
-	 */
-	SaBoolT isRtStream; // default value is false
-	
-	/*
-	 *  Checkpointed parameters used by standby in split file mode
-	 */
-	/* Time when latest file close time stamp was created on active.
-	 * Seconds since Epoch.
-	 */
-	time_t act_last_close_timestamp;
-	
-	/* Not checkpointed parameters. Used by standby in split file mode */
-	uint32_t stb_logRecordId; /* Last written Id. For checking Id inconsistency */
-	std::string stb_logFileCurrent;	/* Current file name used on standby */
-	std::string stb_prev_actlogFileCurrent;	/* current file name on active when previous record was written */
-	uint32_t stb_curFileSize;	/* Bytes written to current log file */
+  uint32_t streamId;      /* The unique stream id for this stream */
+  int32_t fd_shared;      /* Checkpointed stream file descriptor for shared fs */
+  int32_t fd_local;       /* Local stream file descriptor for split fs */
+  int32_t *p_fd;      /* Points to shared or local fd depending on fs config */
+  std::string logFileCurrent;     /* Current file name */
+  uint32_t curFileSize;   /* Bytes written to current log file */
+  uint32_t logRecordId;   /* log record indentifier increased for each record */
+  SaBoolT twelveHourModeFlag; /* Not used. Can be removed? */
+  logStreamTypeT streamType;
+  /**
+   * This info is cached locally at SCs node when stream is opened.
+   * Means that it is not checkpointed to standby node (to keep BC).
+   * Using this variable to avoid cost in sending request to IMM
+   * to get info whether the app stream is configurable or runtime
+   * when performing adm op or closing app stream.
+   */
+  SaBoolT isRtStream; // default value is false
+
+  /*
+   *  Checkpointed parameters used by standby in split file mode
+   */
+  /* Time when latest file close time stamp was created on active.
+   * Seconds since Epoch.
+   */
+  time_t act_last_close_timestamp;
+
+  /* Not checkpointed parameters. Used by standby in split file mode */
+  uint32_t stb_logRecordId; /* Last written Id. For checking Id inconsistency */
+  std::string stb_logFileCurrent; /* Current file name used on standby */
+  std::string stb_prev_actlogFileCurrent; /* current file name on active when previous record was written */
+  uint32_t stb_curFileSize;       /* Bytes written to current log file */
 } log_stream_t;
 
 extern uint32_t log_stream_init();
@@ -90,18 +90,18 @@ extern void log_stream_delete(log_stream_t **s);
 
 #define STREAM_NEW -1
 extern int lgs_populate_log_stream(
-	const std::string &filename,
-	const std::string &pathname,
-	SaUint64T maxLogFileSize,
-	SaUint32T fixedLogRecordSize,
-	SaLogFileFullActionT logFullAction,
-	SaUint32T maxFilesRotated,
-	const char *logFileFormat,
-	logStreamTypeT streamType,
-	SaBoolT twelveHourModeFlag,
-	uint32_t logRecordId,
-	log_stream_t *const o_stream
-	);
+    const std::string &filename,
+    const std::string &pathname,
+    SaUint64T maxLogFileSize,
+    SaUint32T fixedLogRecordSize,
+    SaLogFileFullActionT logFullAction,
+    SaUint32T maxFilesRotated,
+    const char *logFileFormat,
+    logStreamTypeT streamType,
+    SaBoolT twelveHourModeFlag,
+    uint32_t logRecordId,
+    log_stream_t *const o_stream
+                                   );
 
 extern SaAisErrorT lgs_create_rt_appstream(log_stream_t *const rt);
 extern log_stream_t *log_stream_new(const std::string &name, int stream_id);
@@ -116,14 +116,14 @@ extern void log_stream_id_print();
 
 #define LGS_STREAM_CREATE_FILES true
 int log_stream_config_change(bool create_files_f,
-			     const std::string &root_path,
-			     log_stream_t *stream,
-			     const std::string &current_logfile_name,
-			     time_t *cur_time_in);
+                             const std::string &root_path,
+                             log_stream_t *stream,
+                             const std::string &current_logfile_name,
+                             time_t *cur_time_in);
 extern int log_file_open(const std::string &root_path,
-			 log_stream_t *stream,
-			 const std::string &filename,
-			 int *errno_save);
+                         log_stream_t *stream,
+                         const std::string &filename,
+                         int *errno_save);
 
 /* Accessor functions */
 extern void log_stream_print(log_stream_t *stream);

@@ -75,7 +75,7 @@ size_t lgs_max_nlength();
 bool lgs_is_valid_filelength(const std::string &fileName);
 bool lgs_is_valid_pathlength(const std::string &path,
                              const std::string &fileName,
-			     const std::string &rootPath = "");
+                             const std::string &rootPath = "");
 
 /* Timer functions */
 int lgs_init_timer(time_t timeout_s);
