@@ -298,7 +298,7 @@ static void amf_comp_terminate_callback(SaInvocationT inv,
 static void amf_csi_attr_change_callback(SaInvocationT invocation, const SaNameT *csi_name,
                                                              SaAmfCSIAttributeListT csiAttr)
 {
-        SaAisErrorT rc, error;
+        SaAisErrorT rc;
         SaAmfCSIAttributeT *attr;
         static int i ;
         syslog(LOG_INFO, "=====CSI Attr Change====>");
@@ -432,7 +432,6 @@ int main(int argc, char **argv)
 	struct pollfd fds[1];
 	char *env_comp_name;
 	char md5[MD5_LEN + 1];
-	size_t comp_name_length = 0;
 
 	/* Environment variable "SA_AMF_COMPONENT_NAME" exist when started by AMF */
 	if ((env_comp_name = getenv("SA_AMF_COMPONENT_NAME")) == NULL) {
