@@ -1723,9 +1723,10 @@ static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
 
-	if (info->mem_list.numberOfItems)
+	if (info->mem_list.numberOfItems) {
 		osaf_extended_name_free(&info->mem_list.notification->member.compName);
 		delete [] info->mem_list.notification;
+	}
 
 	info->mem_list.notification = 0;
 	info->mem_list.numberOfItems = 0;
