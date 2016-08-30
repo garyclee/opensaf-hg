@@ -1457,6 +1457,7 @@ fi
 %{_includedir}/saAis.h
 %{_includedir}/saAis_B_5_14.h
 %{_includedir}/saAmf.h
+%{_includedir}/saAmf_B_04_02.h
 %{_includedir}/saCkpt.h
 %{_includedir}/saCkpt_B_02_03.h
 %{_includedir}/saClm.h
