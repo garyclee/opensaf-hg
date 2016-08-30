@@ -619,8 +619,7 @@ uint32_t avnd_evt_tmr_cbk_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 		}
 		/* treat it as comp failure (determine the recommended recovery) */
 		if (AVSV_AMF_HC == rec->cbk_info->type) {
-			AVND_COMP_HC_REC tmp_hc_rec;
-			memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
+			AVND_COMP_HC_REC tmp_hc_rec = {};
 			tmp_hc_rec.key = rec->cbk_info->param.hc.hc_key;
 			tmp_hc_rec.req_hdl = rec->cbk_info->hdl;
 			hc_rec = m_AVND_COMPDB_REC_HC_GET(*(rec->comp), tmp_hc_rec);
