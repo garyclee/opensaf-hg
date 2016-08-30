@@ -2214,7 +2214,7 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 		su = it->second;
 
 		for (rel = su->list_of_susi; rel != nullptr; rel = rel->su_next) {
-			memcpy(&copy, rel, sizeof(AVD_SU_SI_REL));
+			copy = *rel;
 			copy.csi_add_rem = SA_FALSE;
 			encode_siass(&enc->io_uba, &copy, enc->i_peer_version);
 			(*num_of_obj)++;

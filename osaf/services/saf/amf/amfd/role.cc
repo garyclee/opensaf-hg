@@ -550,8 +550,7 @@ static uint32_t avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 			 * Post an evt on mailbox to set active role to all NCS SU 
 			 * 
 			 */
-			AVD_EVT evt;
-			memset(&evt, '\0', sizeof(AVD_EVT));
+			AVD_EVT evt = {};
 			evt.rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
 			/* set cb state to active */

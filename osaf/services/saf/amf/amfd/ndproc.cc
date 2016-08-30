@@ -310,8 +310,8 @@ void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if (cb->node_sync_window_closed == false) {
 		state_info_evt = new AVD_EVT_QUEUE();
-		state_info_evt->evt = new AVD_EVT();
-		memcpy(state_info_evt->evt, evt, sizeof(AVD_EVT));
+		state_info_evt->evt = new AVD_EVT{};
+		state_info_evt->evt->rcv_evt = evt->rcv_evt;
 		state_info_evt->evt->info.avnd_msg = n2d_msg;
 		cb->evt_queue.push(state_info_evt);
 	}
@@ -354,8 +354,8 @@ void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if (cb->node_sync_window_closed == false) {
 		state_info_evt = new AVD_EVT_QUEUE();
-		state_info_evt->evt = new AVD_EVT();
-		memcpy(state_info_evt->evt, evt, sizeof(AVD_EVT));
+		state_info_evt->evt = new AVD_EVT{};
+		state_info_evt->evt->rcv_evt = evt->rcv_evt;
 		state_info_evt->evt->info.avnd_msg = n2d_msg;
 		cb->evt_queue.push(state_info_evt);
 	}
