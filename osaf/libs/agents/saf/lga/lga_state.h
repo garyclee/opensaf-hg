@@ -16,9 +16,9 @@
  */
 
 #ifndef LGA_STATE_H
-#define	LGA_STATE_H
+#define LGA_STATE_H
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -42,25 +42,23 @@ bool is_lga_state(lga_state_t state);
  * Unlock must be done just before returning from function. It is allowed to
  * call lga_recovery2_unlock() also if no previous call to lock is done
  */
-static inline void recovery2_lock(bool *is_locked)
-{
-	if (is_lga_state(LGA_RECOVERY1) || is_lga_state(LGA_RECOVERY2)) {
-		lga_recovery2_lock();
-		*is_locked = true;
-	}
+static inline void recovery2_lock(bool *is_locked) {
+  if (is_lga_state(LGA_RECOVERY1) || is_lga_state(LGA_RECOVERY2)) {
+    lga_recovery2_lock();
+    *is_locked = true;
+  }
 }
 
-static inline void recovery2_unlock(bool *is_locked)
-{
-	if (*is_locked) {
-		*is_locked = false;
-		lga_recovery2_unlock();
-	}
+static inline void recovery2_unlock(bool *is_locked) {
+  if (*is_locked) {
+    *is_locked = false;
+    lga_recovery2_unlock();
+  }
 }
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* LGA_STATE_H */
+#endif  /* LGA_STATE_H */
 

@@ -16,7 +16,7 @@
  */
 
 #ifndef LGS_STATE_H
-#define	LGS_STATE_H
+#define LGS_STATE_H
 
 #include "lgs.h"
 
@@ -28,11 +28,11 @@ char *log_rtobj_list_getname(int pos);
 void log_rtobj_list_erase_one_pos(int pos);
 void log_rtobj_list_free();
 int lgs_restore_one_app_stream(
-	const std::string &stream_name,
-	uint32_t client_id,
-	log_stream_t **o_stream
-	);
+    const std::string &stream_name,
+    uint32_t client_id,
+    log_stream_t **o_stream
+                               );
 int log_stream_open_file_restore(log_stream_t *log_stream);
 int log_close_rtstream_files(const std::string &stream_name);
 
-#endif	/* LGS_STATE_H */
+#endif  /* LGS_STATE_H */

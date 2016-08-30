@@ -16,7 +16,7 @@
  */
 
 #ifndef LGS_IMM_CLM_H
-#define	LGS_IMM_CLM_H
+#define LGS_IMM_CLM_H
 
 #include <string>
 
@@ -24,5 +24,5 @@ void lgs_start_gcfg_applier();
 void lgs_stop_gcfg_applier();
 std::string lgs_get_networkname();
 
-#endif	/* LGS_IMM_CLM_H */
+#endif  /* LGS_IMM_CLM_H */
 
