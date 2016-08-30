@@ -188,19 +188,20 @@ static SaClmCallbacksT_4 clmCallback4 = { nodeGetCallBack4, clmTrackCallback4 };
 static SaClmCallbacksT clmCallback = { nodeGetCallBack, clmTrackCallback };
 
 static void unlock_node(char *nodename) {
+	int rc;
 	char command[1024];
 
 	// Unlock the node
 	sprintf(command, "immadm -o 1 %s", nodename);
-	system(command);
+	assert(rc = system(command) != -1);
 }
 
 static void lock_node(char *nodename) {
+	int rc;
 	char command[1024];
-
 	// Lock the node
 	sprintf(command, "immadm -o 2 %s", nodename);
-	system(command);
+	assert(rc = system(command) != -1);
 }
 
 static void remove_node(char *nodename) {
@@ -209,7 +210,7 @@ static void remove_node(char *nodename) {
 
 	// Lock the node
 	sprintf(command, "immadm -o 2 %s", nodename);
-	system(command);
+	assert(rc = system(command) != -1);
 
 	// Remove the node
 	sprintf(command, "immcfg -d %s", nodename);
