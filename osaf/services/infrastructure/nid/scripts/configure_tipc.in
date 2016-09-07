@@ -43,6 +43,12 @@ TIPC_MAX_NODES=4095
 # at Opensaf start-up , it is per-verified whether any duplicate node
 # exist in the cluster, set TIPC_DUPLICATE_NODE_DETECT set to NO to disable
 # per-verification of duplicate node.
+#
+# Note: In OS like Montavista where TIPC is built in kernel module,
+#       once TIPC has joined a network with a network id & address
+#       it cannot change node address once assigned, until node reboots,
+#       so duplicate node verification is not possible and enable disable
+#       duplicate node verification has NO effect.
 DUPLICATE_NODE_DETECT=${TIPC_DUPLICATE_NODE_DETECT:-"NO"}
 
 # constants
@@ -258,31 +264,34 @@ function tipc_configure ()
 # Consider that TIPC could be statically linked
 if ! grep TIPC /proc/net/protocols >& /dev/null; then
     if [ "$DUPLICATE_NODE_DETECT" = "YES" ]; then
-       tipc_duplicate_node_detect 
+        tipc_duplicate_node_detect
     fi
     tipc_configure
 else
     # TIPC is already present, is it configured properly?
-    configured_tipc_addr=`tipc-config -addr | tr -s '<>' % | cut -d% -f2`
-    opensaf_tipc_addr=1.1.$TIPC_NODEID
-    if [ $configured_tipc_addr != $opensaf_tipc_addr ]; then
-        logger -t opensaf -s "TIPC node address not configured to OpenSAF requirements, exiting..."
-        exit 1
-    fi
-
-    configured_net_id=`tipc-config -netid | cut -d: -f2`
-    opensaf_net_id=$TIPC_NETID
-    if [ $configured_net_id != $opensaf_net_id ]; then
-        logger -t opensaf -s "TIPC network ID not configured to OpenSAF requirements, exiting..."
-        exit 1
-    fi
-
-    configured_bearers=$(${tipc_config} -b | grep -v Bearer | cut -d: -f2 | sort)
-    opensaf_bearers=$(echo "$ETH_NAME" | tr "," "\n" | sort)
-    if [ "$configured_bearers" != "$opensaf_bearers" ]; then
-        logger -t opensaf -s "TIPC bearer not configured to OpenSAF requirements, exiting..."
-        exit 1
+    configured_tipc_addr=$(${tipc_config} -addr | tr -s '<>' % | cut -d% -f2)
+    opensaf_tipc_addr=1.1."$TIPC_NODEID"
+    if [ "$configured_tipc_addr" != "$opensaf_tipc_addr" ]; then
+        if [ "$configured_tipc_addr" != "0.0.0" ]; then
+            logger -t opensaf -s "TIPC node address not configured to OpenSAF requirements, Exiting..."
+            exit 1
+        else
+            logger -t opensaf -s "TIPC node address not yet configured , Configuring..."
+            tipc_configure
+        fi
+    else
+        configured_net_id=$(${tipc_config} -netid | cut -d: -f2)
+        opensaf_net_id="$TIPC_NETID"
+        if [ "$configured_net_id" -ne "$opensaf_net_id" ]; then
+            logger -t opensaf -s "TIPC network ID not configured to OpenSAF requirements, exiting..."
+            exit 1
+        fi
+        configured_bearers=$(${tipc_config} -b | grep -v Bearer | cut -d: -f2 | sort)
+        opensaf_bearers=$(echo "$ETH_NAME" | tr "," "\n" | sort)
+        if [ "$configured_bearers" != "$opensaf_bearers" ]; then
+            logger -t opensaf -s "TIPC bearer not configured to OpenSAF requirements, exiting..."
+            exit 1
+        fi
     fi
 fi
-
 
