@@ -1585,8 +1585,12 @@ void avd_compcsi_cleanup_imm_object(AVD_CL_CB *cb)
 		SaNameT comp_name;
 		avsv_sanamet_init_from_association_dn(&dn, &comp_name, "safComp", csi->name.c_str());
 		AVD_COMP *comp = comp_db->find(Amf::to_string(&comp_name));
+		if (comp == nullptr) {
+			LOG_WA("Component %s not found in comp_db", osaf_extended_name_borrow(&comp_name));
+			osaf_extended_name_free(&comp_name);
+			continue;
+		}
 		osaf_extended_name_free(&comp_name);
-		osafassert(comp);
 
 		susi = avd_susi_find(avd_cb, comp->su->name, si->name);
 		if (susi == nullptr || (susi->fsm == AVD_SU_SI_STATE_ABSENT)) {
