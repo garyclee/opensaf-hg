@@ -597,21 +597,20 @@ ssize_t recvfrom_connectionless (int sd, void *buf, size_t nbytes, int flags,
 			/* Receipt of a normal data message never creates the TIPC_ERRINFO
 			   and TIPC_RETDATA objects, and only creates the TIPC_DESTNAME object 
 			   if the message was sent using a TIPC name or name sequence as the 
-			   destination rather than a TIPC port ID So abort for TIPC_ERRINFO and TIPC_RETDATA*/
+			   destination rather than a TIPC port ID*/
 			if (anc->cmsg_type == TIPC_ERRINFO) {
 				anc_data[0] = *((unsigned int*)(CMSG_DATA(anc) + 0));
 				if (anc_data[0] == TIPC_ERR_OVERLOAD) {
 					LOG_CR("MDTM: undelivered message condition ancillary data: TIPC_ERR_OVERLOAD");
 					m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_ERR_OVERLOAD");
 				} else {
-					/* TIPC_ERRINFO - TIPC error code associated with a returned data message or a connection termination message  so abort */
-					LOG_CR("MDTM: undelivered message condition ancillary data: TIPC_ERRINFO abort err : %d", anc_data[0]);
-					m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_ERRINFO abort err : %d", anc_data[0]);
+					/* TIPC_ERRINFO - TIPC error code associated with a returned data message or a connection termination message */
+					m_MDS_LOG_DBG("MDTM: undelivered message condition ancillary data: TIPC_ERRINFO err : %d", anc_data[0]);
 				}
 			} else if (anc->cmsg_type == TIPC_RETDATA) {
 				/* If we set TIPC_DEST_DROPPABLE off message (configure TIPC to return rejected messages to the sender )
-				   we will hit this when we implement MDS retransmit lost messages  abort can be replaced with flow control logic*/
-				/* TIPC_RETDATA -The contents of a returned data message  so abort */
+				   we will hit this when we implement MDS retransmit lost messages, can be replaced with flow control logic */
+				/* TIPC_RETDATA -The contents of a returned data message */
 				LOG_CR("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
 				m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
 			} else if (anc->cmsg_type == TIPC_DESTNAME) {
