@@ -33,7 +33,7 @@ public:
 
 class SaNameTWrapper {
 public:
-  SaNameTWrapper(const std::string& str) {
+  explicit SaNameTWrapper(const std::string& str) {
     osaf_extended_name_alloc(str.c_str(), &name);
   };
   ~SaNameTWrapper() {
@@ -146,7 +146,7 @@ T * AmfDb<Key, T>::findNext(const Key &key) {
     return 0;
   }
 
-  it++;
+  ++it;
   if (it == db.end())
     return 0;
   else {
