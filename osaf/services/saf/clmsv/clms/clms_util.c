@@ -1200,3 +1200,15 @@ bool ip_matched(uint16_t family1, uint8_t *ip1, uint16_t family2, uint8_t *ip2)
 	return true;	
 }
 
+//
+void clms_cluster_reboot(void)
+{
+	CLMSV_MSG bcast_msg;
+	bcast_msg.evt_type = CLMSV_CLMS_TO_CLMNA_REBOOT_MSG;
+	bcast_msg.info.reboot_info.node_id = clms_cb->node_id;
+	if (clms_mds_msg_bcast(clms_cb, &bcast_msg) == NCSCC_RC_SUCCESS) {
+		LOG_NO("Sending cluster reboot broadcast message succeeded");
+	} else {
+		LOG_ER("Sending cluster reboot broadcast message failed");
+	}
+}

@@ -114,6 +114,18 @@ static uint32_t clmna_mds_dec(struct ncsmds_callback_info *info)
 	total_bytes += 4;
 
 	switch (msg->evt_type) {
+	case CLMSV_CLMS_TO_CLMNA_REBOOT_MSG:
+		{
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			msg->info.reboot_info.node_id = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+			total_bytes += 4;
+			// Reboot will be performed by CLMS for this node.
+			if (clmna_cb->node_info.node_id != msg->info.reboot_info.node_id) {
+				osaf_safe_reboot();
+			}
+			break;
+		}
 	case CLMSV_CLMS_TO_CLMA_API_RESP_MSG:
 		{
 			p8 = ncs_dec_flatten_space(uba, local_data, 8);

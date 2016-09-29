@@ -72,7 +72,8 @@ typedef enum {
 typedef enum {
     SA_CLM_ADMIN_UNLOCK = 1,
     SA_CLM_ADMIN_LOCK = 2,
-    SA_CLM_ADMIN_SHUTDOWN = 3
+    SA_CLM_ADMIN_SHUTDOWN = 3,
+    SA_CLM_ADMIN_CLUSTER_RESET = 4
 } SaClmAdminOperationIdT;
 
 typedef enum {
