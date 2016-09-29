@@ -99,6 +99,7 @@ extern uint32_t clms_mds_msg_send(CLMS_CB * cb,
                                   MDS_DEST *dest,
                                   MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio, NCSMDS_SVC_ID svc_id);
 
+extern uint32_t clms_mds_msg_bcast(CLMS_CB *cb, CLMSV_MSG *bcast_msg);
 extern SaAisErrorT clms_imm_activate(CLMS_CB * cb);
 extern uint32_t clms_node_trackresplist_empty(CLMS_CLUSTER_NODE * op_node);
 extern uint32_t clms_send_cbk_start_sub(CLMS_CB * cb, CLMS_CLUSTER_NODE * node);
@@ -125,5 +126,5 @@ extern void clms_cb_dump(void);
 extern uint32_t clms_send_is_member_info(CLMS_CB * cb, SaClmNodeIdT node_id,  SaBoolT member, SaBoolT is_configured);
 extern void clm_imm_reinit_bg(CLMS_CB * cb);
 extern void proc_downs_during_rolechange (void);
-
+extern void clms_cluster_reboot(void);
 #endif   /* ifndef CLMS_H */

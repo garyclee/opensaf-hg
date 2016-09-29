@@ -30,6 +30,10 @@
 extern "C" {
 #endif
 
+enum {
+  kOsafUseSafeReboot = 1
+};
+
 /**
  * @brief Lock a pthreads mutex and abort the process in case of failure.
  *
@@ -67,6 +71,9 @@ extern void osaf_abort(long i_cause)
         cold,
 #endif
         nothrow, noreturn));
+
+extern void osaf_safe_reboot(void)
+    __attribute__ ((nothrow));
 
 static inline void osaf_mutex_lock_ordie(pthread_mutex_t* io_mutex) {
   int result = pthread_mutex_lock(io_mutex);

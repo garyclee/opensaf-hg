@@ -19,6 +19,8 @@
 
 #include "clms.h"
 #include "osaf_extended_name.h"
+#include "osaf_utility.h"
+#include "osaf_time.h"
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
@@ -885,6 +887,23 @@ static void clms_imm_admin_op_callback(SaImmOiHandleT immOiHandle,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("Admin callback for nodename:%s, opId:%llu", objectName->value, opId);
+
+	// E.g. immadm -o 4 safCluster=myClmCluster
+	if (strncmp(osaf_extended_name_borrow(objectName),
+                  osaf_extended_name_borrow(&osaf_cluster->name),
+                  osaf_extended_name_length(objectName)) == 0) {
+		if (opId == SA_CLM_ADMIN_CLUSTER_RESET) {
+			LOG_WA("Cluster reboot requested. Ordering cluster reboot");
+			// MDS broadcast/multi cast call is synchronous
+			clms_cluster_reboot();
+			osaf_nanosleep(&kOneSecond);
+			osaf_safe_reboot();
+		} else {
+			LOG_ER("Admin Operation not supported for %s", osaf_extended_name_borrow(objectName));
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+		}
+		goto done;
+	}
 
 	/*Lookup by the node_name and get the cluster node for CLM Admin oper */
 	nodeop = clms_node_get_by_name(objectName);

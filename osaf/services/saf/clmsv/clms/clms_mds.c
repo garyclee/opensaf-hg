@@ -659,7 +659,17 @@ uint32_t clms_mds_enc(struct ncsmds_callback_info *info)
 	ncs_enc_claim_space(uba, 4);
 	total_bytes += 4;
 
-	if (CLMSV_CLMS_TO_CLMA_API_RESP_MSG == msg->evt_type) {
+	if (CLMSV_CLMS_TO_CLMNA_REBOOT_MSG == msg->evt_type) {
+		/* encode the reboot msg **/
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8) {
+			TRACE("ncs_enc_reserve_space failed");
+			goto err;
+		}
+		ncs_encode_32bit(&p8, msg->info.reboot_info.node_id);
+		ncs_enc_claim_space(uba, 4);
+		total_bytes += 4;
+	} else if (CLMSV_CLMS_TO_CLMA_API_RESP_MSG == msg->evt_type) {
 	/** encode the API RSP msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
@@ -1516,4 +1526,38 @@ uint32_t clms_mds_msg_send(CLMS_CB * cb,
 
 	TRACE_LEAVE();
 	return rc;
+}
+
+/****************************************************************************
+  Name          : clms_mds_msg_bcast
+
+  Description   : This routine sends a broadcast message to CLMNA.
+
+  Arguments     : cb  - ptr to the CLMA CB
+                  bcast_msg - ptr to the CLMSv broadcast message
+
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         : None.
+******************************************************************************/
+uint32_t clms_mds_msg_bcast(CLMS_CB *cb, CLMSV_MSG *bcast_msg)
+{
+	NCSMDS_INFO snd_mds = {0};
+	uint32_t rc;
+
+	snd_mds.i_mds_hdl = cb->mds_hdl;
+	snd_mds.i_svc_id = NCSMDS_SVC_ID_CLMS;
+	snd_mds.i_op = MDS_SEND;
+	snd_mds.info.svc_send.i_msg = (NCSCONTEXT)bcast_msg;
+	snd_mds.info.svc_send.i_to_svc = NCSMDS_SVC_ID_CLMNA;
+	snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+	snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_BCAST;
+	snd_mds.info.svc_send.info.bcast.i_bcast_scope = NCSMDS_SCOPE_NONE;
+
+	if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("%s: ncsmds_api MDS_SEND failed %u", __FUNCTION__ ,rc);
+		return rc;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
