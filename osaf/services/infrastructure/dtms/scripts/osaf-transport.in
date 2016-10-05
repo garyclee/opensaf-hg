@@ -13,7 +13,9 @@
 ### END INIT INFO
 
 osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
- 
+osafprog="osaftransportd"
+initscript=$(basename "$0")
+
 # Source LSB functions library
 . /lib/lsb/init-functions
  
@@ -29,12 +31,16 @@ NIDSERV=TRANSPORT
 MANAGE_TIPC=${OPENSAF_MANAGE_TIPC:="yes"}
 RETVAL=0
 
-if [ ! "$MDS_TRANSPORT" = "TIPC" ] ; then
-	osafprog="osafdtmd"
-fi
+binary=$pkglibdir/$osafprog
+pidfile=$pkgpiddir/$osafprog.pid
+lockfile=$lockdir/$initscript
 
 start() {
 	[ -p $NIDFIFO ] || return 1
+	if [ ! -x "$binary" ]; then
+		echo "$NID_MAGIC:$NIDSERV:$DAEMON_NOT_FND" > "$NIDFIFO"
+		exit 5
+	fi
 	if [ "$MDS_TRANSPORT" = "TIPC" ]; then
 		if [ $MANAGE_TIPC = "yes" ]; then
 			$pkglibdir/configure_tipc start $TIPC_ETH_IF $TIPC_NET_ID
@@ -47,14 +53,14 @@ start() {
 			lsmod | grep tipc
 			RETVAL=$?
 			if [ $RETVAL -ne 0 ]; then
-				logger -t osaf-transport  -s "TIPC module not loaded  to OpenSAF requirements, returning..."
+				logger -t $osafprog -s "TIPC module not loaded  to OpenSAF requirements, returning..."
 				echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
 				return $RETVAL
 			else
 				ls $pkglocalstatedir/node_id
 				RETVAL=$?
 				if [ $RETVAL -ne 0 ]; then
-					logger -t osaf-transport -s "$pkglocalstatedir/node_id not available whic is OpenSAF requirements, returning..."
+					logger -t $osafprog -s "$pkglocalstatedir/node_id not available whic is OpenSAF requirements, returning..."
 					echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
 					return $RETVAL
 				fi	 
@@ -64,9 +70,11 @@ start() {
 		RETVAL=0
 		echo "$NID_MAGIC:$NIDSERV:$DAEMON_STARTED" > $NIDFIFO
 
-		$pkgclcclidir/osaf-transport-monitor &
+		start_daemon -p "$pidfile" "$binary" $args
 		RETVAL=$?
-		if [ $RETVAL -ne 0 ]; then
+		if [ "$RETVAL" -eq 0 ]; then
+			touch "$lockfile"
+		else
 			echo "Unable to start running Permanent loop to clean MDS Logs..."
 		fi
 
@@ -76,22 +84,31 @@ start() {
 		if [ $RETVAL -ne 0 ]; then
 			echo "$NID_MAGIC:$NIDSERV:$DAEMON_START_FAILED" > $NIDFIFO
 		fi
-		#Fot TCP osaf-transport-monitor start will be moved to osaf-dtm process to make this script restart on fault
-		$pkgclcclidir/osaf-transport-monitor &
+		#Fot TCP osaftransportd start will be moved to osaf-dtm process to make this script restart on fault
+		start_daemon -p "$pidfile" "$binary" $args
 		RETVAL=$?
-		if [ $RETVAL -ne 0 ]; then
+		if [ "$RETVAL" -eq 0 ]; then
+			touch "$lockfile"
+		else
 			echo "Unable to start running Permanent loop to clean MDS Logs..."
 		fi
 	fi
-
+	return "$RETVAL"
 }
 
 stop() {
-	if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
-		killall -s KILL osaf-transport-monitor >/dev/null 2>&1
-		$pkgclcclidir/osaf-dtm stop
-	fi
+	killproc -p "$pidfile" "$osafprog"
 	RETVAL=$?
+	if [ "$RETVAL" -eq 0 ] || [ "$RETVAL" -eq 7 ]; then
+		rm -f "$lockfile"
+		RETVAL=0
+	fi
+	if [ ! "$MDS_TRANSPORT" = "TIPC" ]; then
+		$pkgclcclidir/osaf-dtm stop
+		if [ "$RETVAL" -eq 0 ]; then
+			RETVAL=$?
+		fi
+	fi
 	return $RETVAL
 }
 

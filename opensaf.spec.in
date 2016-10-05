@@ -1384,9 +1384,9 @@ fi
 %{_pkglibdir}/osaffmd
 %{_pkgclcclidir}/osaf-fmd
 %{_pkglibdir}/osafdtmd
+%{_pkglibdir}/osaftransportd
 %{_pkgclcclidir}/osaf-dtm
 %{_pkgclcclidir}/osaf-transport
-%{_pkgclcclidir}/osaf-transport-monitor
 %{_bindir}/rdegetrole
 %if %is_immxml
 %{_pkgimmxml_svcdir}/common_pl_template.xml
@@ -1406,9 +1406,9 @@ fi
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
 %config(noreplace) %{_pkgsysconfdir}/dtmd.conf
 %{_pkglibdir}/osafdtmd
+%{_pkglibdir}/osaftransportd
 %{_pkgclcclidir}/osaf-dtm
 %{_pkgclcclidir}/osaf-transport
-%{_pkgclcclidir}/osaf-transport-monitor
 
 %files libs
 %defattr(-,root,root)
