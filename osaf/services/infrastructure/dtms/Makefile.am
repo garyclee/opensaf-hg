@@ -18,5 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS =  config  dtm  include  scripts 
-
+SUBDIRS =  config  dtm  transport include  scripts

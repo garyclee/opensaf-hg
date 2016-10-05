@@ -784,10 +784,11 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/Makefile
         osaf/services/infrastructure/dtms/Makefile
         osaf/services/infrastructure/dtms/dtm/Makefile
+        osaf/services/infrastructure/dtms/transport/Makefile
+        osaf/services/infrastructure/dtms/transport/tests/Makefile
         osaf/services/infrastructure/dtms/scripts/Makefile
         osaf/services/infrastructure/dtms/scripts/osaf-dtm
         osaf/services/infrastructure/dtms/scripts/osaf-transport
-        osaf/services/infrastructure/dtms/scripts/osaf-transport-monitor
         osaf/services/infrastructure/dtms/config/Makefile
         osaf/services/infrastructure/dtms/include/Makefile
         osaf/services/infrastructure/fm/Makefile
