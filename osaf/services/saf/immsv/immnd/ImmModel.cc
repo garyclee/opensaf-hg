@@ -8079,6 +8079,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 TRACE_7("ERR_EXIST: object '%s' is already registered "
                     "for creation in a ccb, but not applied yet",
                     objectName.c_str());
+                setCcbErrorString(ccb, "IMM: ERR_EXIST: object is already registered for creation in a ccb");
             }
         } else {
             TRACE_7("ERR_EXIST: object '%s' exists", objectName.c_str());
