@@ -51,15 +51,15 @@ struct file_communicate {
   size_t outdata_size;
   void *outdata_ptr;      /* Out data from handlers */
 
-  file_communicate() {
-    answer_f = false;
-    request_f = false;
-    timeout_f = false;
-    request_code = LGSF_NOREQ;
-    return_code = LGSF_NORETC;
-    indata_ptr = NULL;
-    outdata_ptr = NULL;
-    outdata_size = 0;
+  file_communicate() :
+    request_f(false),
+    answer_f(false),
+    timeout_f(false),
+    request_code(LGSF_NOREQ),
+    return_code(LGSF_NORETC),
+    indata_ptr(NULL),
+    outdata_size(0),
+    outdata_ptr(NULL) {
   }
 };
 

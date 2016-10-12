@@ -137,32 +137,24 @@ typedef struct _lgs_conf_t {
   lgs_conf_flg_t logDataGroupname_cnfflag;
   lgs_conf_flg_t logStreamFileFormat_cnfflag;
 
-  _lgs_conf_t() {
-    /*
-     * For the following flags, LGS_CNF_DEF means that no external
-     * configuration exists and the corresponding attributes hard-coded
-     * default value is used.Is set to false if configuration is found in
-     * IMM object or environment variable.
-     * See function lgs_logconf_get() for more info.
-     */
+  _lgs_conf_t() :
+    logRootDirectory(lgs_conf_def.logRootDirectory),
+    logRootDirectory_cnfflag(LGS_CNF_DEF),
+    logMaxLogrecsize_cnfflag(LGS_CNF_DEF),
+    logStreamSystemHighLimit_cnfflag(LGS_CNF_DEF),
+    logStreamSystemLowLimit_cnfflag(LGS_CNF_DEF),
+    logStreamAppHighLimit_cnfflag(LGS_CNF_DEF),
+    logStreamAppLowLimit_cnfflag(LGS_CNF_DEF),
+    logMaxApplicationStreams_cnfflag(LGS_CNF_DEF),
+    logFileIoTimeout_cnfflag(LGS_CNF_DEF),
+    logFileSysConfig_cnfflag(LGS_CNF_DEF),
+    logDataGroupname_cnfflag(LGS_CNF_DEF),
+    logStreamFileFormat_cnfflag(LGS_CNF_DEF) {
     OpenSafLogConfig_object_exist = false;
-    logRootDirectory_cnfflag = LGS_CNF_DEF;
-    logStreamSystemHighLimit_cnfflag = LGS_CNF_DEF;
-    logStreamSystemLowLimit_cnfflag = LGS_CNF_DEF;
-    logStreamAppHighLimit_cnfflag = LGS_CNF_DEF;
-    logStreamAppLowLimit_cnfflag = LGS_CNF_DEF;
-    logDataGroupname_cnfflag = LGS_CNF_DEF;
     /*
      * The following attributes cannot be configured in the config file
      * Will be set to false if the attribute exists in the IMM config object
      */
-    logMaxLogrecsize_cnfflag = LGS_CNF_DEF;
-    logMaxApplicationStreams_cnfflag = LGS_CNF_DEF;
-    logFileIoTimeout_cnfflag = LGS_CNF_DEF;
-    logFileSysConfig_cnfflag = LGS_CNF_DEF;
-    logStreamFileFormat_cnfflag = LGS_CNF_DEF;
-
-    logRootDirectory = lgs_conf_def.logRootDirectory;
     (void) strcpy(logDataGroupname, lgs_conf_def.logDataGroupname);
     (void) strcpy(logStreamFileFormat, lgs_conf_def.logStreamFileFormat);
     logMaxLogrecsize = lgs_conf_def.logMaxLogrecsize;
