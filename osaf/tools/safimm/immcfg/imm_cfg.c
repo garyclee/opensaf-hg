@@ -589,7 +589,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 						"(see: immcfg -h under '--unsafe')\n");
 				}
 				if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %s\n", saf_error(rc2));
 				}
 			}
 
@@ -737,7 +737,7 @@ int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 						"(see: immcfg -h under '--unsafe')\n");
 				}
 				if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %s\n", saf_error(rc2));
 				}
 			}
 			goto done;
@@ -809,7 +809,7 @@ int object_delete(const SaNameT **objectNames)
 						"(see: immcfg -h under '--unsafe')\n");
 				}
 				if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %s\n", saf_error(rc2));
 				}
 			}
 
@@ -904,7 +904,7 @@ static int class_change(SaImmHandleT immHandle, const SaImmClassNameT className,
 	 * and in that case, the schema change is enabled by default (isSchemaChangeEnabled = 2)
 	 */
 	if((error = immutil_saImmOmAccessorInitialize(immHandle, &accessorHandle)) != SA_AIS_OK) {
-		fprintf(stderr, "Failed to initialize accessor handle. Error: %d\n", error);
+		fprintf(stderr, "Failed to initialize accessor handle. Error: %s\n", saf_error(error));
 		return EXIT_FAILURE;
 	}
 
@@ -916,7 +916,7 @@ static int class_change(SaImmHandleT immHandle, const SaImmClassNameT className,
 
 	/* Check for the existence of attributes */
 	if((error = immutil_saImmOmClassDescriptionGet_2(immHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK) {
-		fprintf(stderr, "Cannot get class definition for '%s'. Error: %d\n", className, error);
+		fprintf(stderr, "Cannot get class definition for '%s'. Error: %s\n", className, saf_error(error));
 		return EXIT_FAILURE;
 	}
 
@@ -972,7 +972,7 @@ static int class_change(SaImmHandleT immHandle, const SaImmClassNameT className,
 		}
 
 		if((error = immutil_saImmOmAdminOperationInvoke_2(ownerHandle1, &opensafImmObjectName, 1, 1, params, &err, SA_TIME_ONE_SECOND * 60)) != SA_AIS_OK) {
-			fprintf(stderr, "Failed to enable schema changes. Error: %d\n", error);
+			fprintf(stderr, "Failed to enable schema changes. Error: %s\n", saf_error(error));
 			rc = EXIT_FAILURE;
 			goto done;
 		}
@@ -981,12 +981,12 @@ static int class_change(SaImmHandleT immHandle, const SaImmClassNameT className,
 	if((error = immutil_saImmOmClassCreate_2(immHandle, className, classCategory, (const SaImmAttrDefinitionT_2 **)attrDefinitions)) != SA_AIS_OK) {
 		rc = EXIT_FAILURE;
 		if(isSchemaChangeEnabled == 2)
-			fprintf(stderr, "Cannot change the class. Probable cause is that PBE is disabled. Try to turn on schema changes manually. Error: %d\n", error);
+			fprintf(stderr, "Cannot change the class. Probable cause is that PBE is disabled. Try to turn on schema changes manually. Error: %s\n", saf_error(error));
 		else {
 			if(error == SA_AIS_ERR_EXIST)
-				fprintf(stderr, "No change in the class. Error: %d\n", error);
+				fprintf(stderr, "No change in the class. Error: %s\n", saf_error(error));
 			else
-				fprintf(stderr, "Failed to change the class flags. Error: %d\n", error);
+				fprintf(stderr, "Failed to change the class flags. Error: %s\n", saf_error(error));
 		}
 	}
 
@@ -997,7 +997,7 @@ static int class_change(SaImmHandleT immHandle, const SaImmClassNameT className,
 		const SaImmAdminOperationParamsT_2 *params[2] = { &param, NULL };
 
 		if((error = immutil_saImmOmAdminOperationInvoke_2(ownerHandle1, &opensafImmObjectName, 0, 2, params, &err, SA_TIME_ONE_SECOND * 60)) != SA_AIS_OK) {
-			fprintf(stderr, "Failed to disable schema changes. Error: %d\n", error);
+			fprintf(stderr, "Failed to disable schema changes. Error: %s\n", saf_error(error));
 			rc = EXIT_FAILURE;
 		}
 	}
@@ -1037,7 +1037,7 @@ static int ccb_apply() {
 					++ix;
 				}
 			} else if(rc2 != SA_AIS_OK) {
-				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
+				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %s\n", saf_error(rc2));
 			}
 
 			rc = EXIT_FAILURE;
@@ -1107,7 +1107,7 @@ static int ccb_validate() {
 					++ix;
 				}
 			} else if(rc2 != SA_AIS_OK) {
-				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
+				fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %s\n", saf_error(rc2));
 			}
 		}
 	}
@@ -1691,7 +1691,7 @@ static int imm_operation(int argc, char *argv[])
 						++ix;
 					}
 				} else if(rc2 != SA_AIS_OK) {
-					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %d\n", rc2);
+					fprintf(stderr, "saImmOmCcbGetErrorStrings failed: %s\n", saf_error(rc2));
 				}
 
 				rc = EXIT_FAILURE;

@@ -36,6 +36,7 @@
 #include <saAis.h>
 #include <saImmOm.h>
 #include <immutil.h>
+#include <saf_error.h>
 
 #include "osaf_extended_name.h"
 
@@ -533,12 +534,12 @@ void setAdminOwnerHelper(ParserState* state, SaNameT *parentOfObject)
 
 	if(!state->validation) {
 		LOG_IN("  Calling saImmOmAdminOwnerSet on parent '%s'", tmpStr);
-		int errorCode = immutil_saImmOmAdminOwnerSet(state->ownerHandle,
+		SaAisErrorT errorCode = immutil_saImmOmAdminOwnerSet(state->ownerHandle,
 											 (const SaNameT**) objectNames,
 											 SA_IMM_ONE);
 
 		if (SA_AIS_OK != errorCode) {
-			LOG_ER("Failed to call saImmOmAdminOwnerSet on parent: '%s' , rc =  %d", tmpStr, errorCode);
+			LOG_ER("Failed to call saImmOmAdminOwnerSet on parent: '%s' , rc =  %s", tmpStr, saf_error(errorCode));
 			stopParser(state);
 			state->parsingStatus = 1;
 			return;
@@ -763,7 +764,7 @@ static void createImmObject(ParserState* state)
 
 			errorCode = immutil_saImmOmAccessorInitialize(state->immHandle, &accessorHandle);
 			if (SA_AIS_OK != errorCode) {
-				fprintf(stderr, "FAILED: saImmOmAccessorInitialize failed: %d\n", errorCode);
+				fprintf(stderr, "FAILED: saImmOmAccessorInitialize failed: %s\n", saf_error(errorCode));
 				stopParser(state);
 				state->parsingStatus = 1;
 				goto done;
@@ -773,7 +774,7 @@ static void createImmObject(ParserState* state)
 													 NULL, // get all attributes
 													 &existing_attributes);
 			if (SA_AIS_OK != errorCode) {
-				fprintf(stderr, "FAILED: saImmOmAccessorGet_2 failed: %d\n", errorCode);
+				fprintf(stderr, "FAILED: saImmOmAccessorGet_2 failed: %s\n", saf_error(errorCode));
 				stopParser(state);
 				state->parsingStatus = 1;
 				goto done;
@@ -806,14 +807,14 @@ static void createImmObject(ParserState* state)
 
 			errorCode = immutil_saImmOmAccessorFinalize(accessorHandle);
 			if (SA_AIS_OK != errorCode) {
-				fprintf(stderr, "FAILED: saImmOmAccessorFinalize failed: %d\n", errorCode);
+				fprintf(stderr, "FAILED: saImmOmAccessorFinalize failed: %s\n", saf_error(errorCode));
 				stopParser(state);
 				state->parsingStatus = 1;
 			}
 
 		} else {
-			fprintf(stderr, "FAILED to create object of class '%s', rc = %d\n",
-					className, errorCode);
+			fprintf(stderr, "FAILED to create object of class '%s', rc = %s\n",
+					className, saf_error(errorCode));
 			stopParser(state);
 			state->parsingStatus = 1;
 		}
@@ -1063,8 +1064,8 @@ static void createImmClass(ParserState* state)
 																 &existing_classCategory,
 																 &existing_attrDefinitions);
 				if (SA_AIS_OK != errorCode) {
-					fprintf(stderr, "FAILED to get IMM class description for '%s', rc = %d\n",
-							className, errorCode);
+					fprintf(stderr, "FAILED to get IMM class description for '%s', rc = %s\n",
+							className, saf_error(errorCode));
 					stopParser(state);
 					state->parsingStatus = 1;
 				} else {
@@ -1111,7 +1112,7 @@ static void createImmClass(ParserState* state)
 															   existing_attrDefinitions);
 				}
 			} else {
-				fprintf(stderr, "FAILED to create class '%s', rc = %d\n", className, errorCode);
+				fprintf(stderr, "FAILED to create class '%s', rc = %s\n", className, saf_error(errorCode));
 				stopParser(state);
 				state->parsingStatus = 1;
 			}
@@ -1687,8 +1688,8 @@ static void endElementHandler(void* userData,
 				SA_TRUE,
 				&state->ownerHandle);
 			if (errorCode != SA_AIS_OK) {
-				LOG_ER("Failed on saImmOmAdminOwnerInitialize %d",
-					   errorCode);
+				LOG_ER("Failed on saImmOmAdminOwnerInitialize %s",
+					   saf_error(errorCode));
 				stopParser(state);
 				state->parsingStatus = 1;
 				return;
@@ -1700,7 +1701,7 @@ static void endElementHandler(void* userData,
 				imm_import_ccb_safe?(SA_IMM_CCB_REGISTERED_OI|SA_IMM_CCB_ALLOW_NULL_OI):0x0,
 				&state->ccbHandle);
 			if (errorCode != SA_AIS_OK) {
-				LOG_ER("Failed to initialize ImmOmCcb %d", errorCode);
+				LOG_ER("Failed to initialize ImmOmCcb %s", saf_error(errorCode));
 				stopParser(state);
 				state->parsingStatus = 1;
 				return;
@@ -1720,7 +1721,7 @@ static void endElementHandler(void* userData,
 			if (state->ccbInit) {
 				errorCode = immutil_saImmOmCcbApply(state->ccbHandle);
 				if (SA_AIS_OK != errorCode) {
-					LOG_ER("Failed to apply object creations %d", errorCode);
+					LOG_ER("Failed to apply object creations %s", saf_error(errorCode));
 					stopParser(state);
 					state->parsingStatus = 1;
 					return;
@@ -2612,14 +2613,14 @@ int loadImmXML(const char *xmlfile, int strictParse)
 	if(!transaction_mode) {
 		errorCode = immutil_saImmOmInitialize(&(state.immHandle), NULL, &version);
 		if (SA_AIS_OK != errorCode) {
-			LOG_ER("Failed to initialize the IMM OM interface (%d)", errorCode);
+			LOG_ER("Failed to initialize the IMM OM interface (%s)", saf_error(errorCode));
 			return 1;
 		}
 	} else {
 		if(!(*imm_import_immHandle)) {
 			errorCode = immutil_saImmOmInitialize(&state.immHandle, NULL, &version);
 			if (SA_AIS_OK != errorCode) {
-				fprintf(stderr, "Failed to initialize the IMM OM interface (%d)\n", errorCode);
+				fprintf(stderr, "Failed to initialize the IMM OM interface (%s)\n", saf_error(errorCode));
 				return 1;
 			}
 		} else
@@ -2686,8 +2687,8 @@ int loadImmXML(const char *xmlfile, int strictParse)
 		if (state.ccbInit) {
 			errorCode = immutil_saImmOmCcbFinalize(state.ccbHandle);
 			if (SA_AIS_OK != errorCode) {
-				LOG_WA("Failed to finalize the ccb object connection %d",
-						errorCode);
+				LOG_WA("Failed to finalize the ccb object connection %s",
+						saf_error(errorCode));
 			}
 		}
 
@@ -2695,7 +2696,7 @@ int loadImmXML(const char *xmlfile, int strictParse)
 		if (state.adminInit) {
 			errorCode = immutil_saImmOmAdminOwnerFinalize(state.ownerHandle);
 			if (SA_AIS_OK != errorCode) {
-				LOG_WA("Failed on saImmOmAdminOwnerFinalize (%d)", errorCode);
+				LOG_WA("Failed on saImmOmAdminOwnerFinalize (%s)", saf_error(errorCode));
 			}
 		}
 
@@ -2703,7 +2704,7 @@ int loadImmXML(const char *xmlfile, int strictParse)
 		if (state.immInit) {
 			errorCode = immutil_saImmOmFinalize(state.immHandle);
 			if (SA_AIS_OK != errorCode) {
-				LOG_WA("Failed on saImmOmFinalize (%d)", errorCode);
+				LOG_WA("Failed on saImmOmFinalize (%s)", saf_error(errorCode));
 			}
 		}
 	} else {
