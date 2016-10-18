@@ -23,10 +23,15 @@ DEFAULT_INCLUDES =
 SUBDIRS = tests
 
 noinst_HEADERS = \
+	buffer.h \
 	getenv.h \
+	log_message.h \
 	macros.h \
 	process.h \
-	time.h
+	time.h \
+	unix_client_socket.h \
+	unix_server_socket.h \
+	unix_socket.h
 
 noinst_LTLIBRARIES = libbase.la
 
@@ -39,4 +44,8 @@ libbase_la_LDFLAGS = -static
 
 libbase_la_SOURCES = \
 	getenv.cc \
-	process.cc
+	log_message.cc \
+	process.cc \
+	unix_client_socket.cc \
+	unix_server_socket.cc \
+	unix_socket.cc

@@ -32,17 +32,19 @@ libbase_test_CPPFLAGS = \
 libbase_test_LDFLAGS = \
 	-pthread -lrt \
 	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-getenv.o \
+	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-log_message.o \
 	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-process.o
 
 libbase_test_SOURCES = \
+	getenv_test.cc \
+	log_message_test.cc \
+	mock_logtrace.cc \
+	mock_osaf_abort.cc \
+	mock_osafassert.cc \
 	time_add_test.cc \
-	time_subtract_test.cc \
 	time_compare_test.cc \
 	time_convert_test.cc \
-	getenv_test.cc \
-	mock_logtrace.cc \
-	mock_osafassert.cc \
-	mock_osaf_abort.cc
+	time_subtract_test.cc
 
 libbase_test_LDADD = \
 	$(GTEST_DIR)/lib/libgtest.la \
