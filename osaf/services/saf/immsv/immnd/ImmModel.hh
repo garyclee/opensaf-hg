@@ -493,7 +493,7 @@ public:
                                       struct ImmsvAdminOperationParam **rparams,
                                       SaUint64T searchcount);
 
-    void              setScAbsenceAllowed(SaUint16T scAbsenceAllowed);
+    void              setScAbsenceAllowed(SaUint32T scAbsenceAllowed);
     
     SaAisErrorT       objectSync(const ImmsvOmObjectSync* req);
     bool              fetchRtUpdate(ImmsvOmObjectSync* syncReq,

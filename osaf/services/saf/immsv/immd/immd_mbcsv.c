@@ -770,11 +770,19 @@ static uint32_t mbcsv_enc_msg_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ncs_encode_8bit(&uns8_ptr, cb->mIs2Pbe);
 	}
 
-	if (peer_version >= 6) {
+	/* See ticket #2130 */
+	if (peer_version == 6) {
 		uns16_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint16_t));
 		osafassert(uns16_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint16_t));
-		ncs_encode_16bit(&uns16_ptr, cb->mScAbsenceAllowed);
+		ncs_encode_16bit(&uns16_ptr, (uint16_t) cb->mScAbsenceAllowed);
+	}
+
+	if (peer_version >= 7) {
+		uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+		osafassert(uns32_ptr);
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+		ncs_encode_32bit(&uns32_ptr, cb->mScAbsenceAllowed);
 	}
 
 	/* Alter this to follow same pattern as logsv */
@@ -1184,16 +1192,32 @@ static uint32_t mbcsv_dec_sync_resp(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		}
 	}
 
-	if (peer_version >= 6) {
+	/* See ticket #2130 */
+	if (peer_version == 6) {
 		uint16_t scAbsenceAllowed;
 
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint16_t));
 		scAbsenceAllowed = ncs_decode_16bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint16_t));
 
+		if((uint16_t) cb->mScAbsenceAllowed != scAbsenceAllowed) {
+			LOG_ER("SC absence allowed in not the same as on active IMMD. "
+					"Active: %u, Standby: %u. Exiting.",
+					scAbsenceAllowed, (uint16_t) cb->mScAbsenceAllowed);
+			exit(1);
+		}
+	}
+
+	if (peer_version >= 7) {
+		uint32_t scAbsenceAllowed;
+
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uint32_t));
+		scAbsenceAllowed = ncs_decode_32bit(&ptr);
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
+
 		if(cb->mScAbsenceAllowed != scAbsenceAllowed) {
 			LOG_ER("SC absence allowed in not the same as on active IMMD. "
-					"Active: %u, Standby: %d. Exiting.",
+					"Active: %u, Standby: %u. Exiting.",
 					scAbsenceAllowed, cb->mScAbsenceAllowed);
 			exit(1);
 		}

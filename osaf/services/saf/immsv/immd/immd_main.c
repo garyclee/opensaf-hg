@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 	int64_t start_time = 0LL;
 	uint32_t print_at_secs = 1LL;
 	int term_fd;
-	uint16_t scAbsenceAllowed = 0;
+	uint32_t scAbsenceAllowed = 0;
 
 	daemonize(argc, argv);
 

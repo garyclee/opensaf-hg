@@ -132,7 +132,7 @@ typedef struct immnd_cb_tag {
 	bool mIsOtherScUp; //If set & this is an SC then other SC is up(2pbe).
 	           //False=> *allow* 1safe 2pbe. May err conservatively (true) 
 	bool mForceClean; //true => Force cleanTheHouse to run once *now*.
-	SaUint16T mScAbsenceAllowed; /* Non zero if SC absence is allowed (loss of both IMMDs/SCs).
+	SaUint32T mScAbsenceAllowed; /* Non zero if SC absence is allowed (loss of both IMMDs/SCs).
 				       Value is number of seconds of SC absence tolerated. */
 
 	/* Information about the IMMD */
