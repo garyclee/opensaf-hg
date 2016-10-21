@@ -39,7 +39,7 @@
          IMMD_WRT_IMMND_SUBPART_VER_MIN + 1 )
 
 #define IMMSV_IMMD_MBCSV_VERSION_MIN 4
-#define IMMSV_IMMD_MBCSV_VERSION 6
+#define IMMSV_IMMD_MBCSV_VERSION 7
 
 typedef struct immd_saved_fevs_msg {
 	IMMSV_FEVS fevsMsg;
@@ -139,7 +139,7 @@ typedef struct immd_cb_tag {
 	bool m2PbeExtraWait;    /* true => Used only to prolong wait if both SCs
 				   have been introduced but one has not yet replied. */
 	bool nid_started;	/* true if started by NID */
-	SaUint16T mScAbsenceAllowed; /* Non zero if SC absence is allowed (loss of both IMMDs/SCs).
+	SaUint32T mScAbsenceAllowed; /* Non zero if SC absence is allowed (loss of both IMMDs/SCs).
 				       Value is number of seconds of SC absence tolerated. */
 	MDS_DEST payload_coord_dest; /* IMMND coord may be at payload if mScAbsenceAllowed is nonzero */
 	uint32_t mScAbsenceVeteranMaxWait; /* Amount of seconds IMMD waits for veteran IMMDs after sc absence */

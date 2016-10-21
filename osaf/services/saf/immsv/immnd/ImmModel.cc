@@ -18425,7 +18425,7 @@ ImmModel::getParentDn(std::string& parentName, const std::string& objectName)
 }
 
 void
-ImmModel::setScAbsenceAllowed(SaUint16T scAbsenceAllowed)
+ImmModel::setScAbsenceAllowed(SaUint32T scAbsenceAllowed)
 {
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     osafassert(oi != sObjectMap.end());
