@@ -131,9 +131,22 @@ void saImmOmAccessorGet_2_04(void)
     safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
     rc = saImmOmAccessorGet_2(accessorHandle, &objectName, accessorGetConfigAttrsToken, &attributes);
+    /* Count the number of config attributes of the class */
+    SaImmClassCategoryT category;
+    SaImmAttrDefinitionT_2** classAttributes;
+    safassert(saImmOmClassDescriptionGet_2(immOmHandle, "OpensafImm", &category, &classAttributes), SA_AIS_OK);
+    int configAttrCount = 0;
+    SaImmAttrDefinitionT_2** currentAttr = classAttributes;
+    while(*currentAttr) {
+        if ((*currentAttr)->attrFlags & SA_IMM_ATTR_CONFIG) {
+            ++configAttrCount;
+        }
+        ++currentAttr;
+    }
+    safassert(saImmOmClassDescriptionMemoryFree_2(immOmHandle, classAttributes), SA_AIS_OK);
     /* Verify the number of config attributes */
     cnt = print_SaImmAttrValuesT_2(attributes);
-    assert(cnt == 12);
+    assert(cnt == configAttrCount);
     test_validate(rc, SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
