@@ -1378,6 +1378,7 @@ fi
 %config(noreplace) %{_pkgsysconfdir}/fmd.conf
 %config(noreplace) %{_pkgsysconfdir}/rde.conf
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
+%config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
 %config(noreplace) %{_pkgsysconfdir}/dtmd.conf
 %{_pkglibdir}/osafrded
 %{_pkgclcclidir}/osaf-rded
