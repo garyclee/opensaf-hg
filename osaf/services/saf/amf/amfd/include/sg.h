@@ -416,6 +416,7 @@ public:
 	SaAisErrorT check_sg_stability();
 	bool any_assignment_in_progress();
 	bool any_assignment_absent();
+	bool any_assignment_assigned();
 	void failover_absent_assignment();
 	bool ng_using_saAmfSGAdminState;
 	bool headless_validation;

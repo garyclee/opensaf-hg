@@ -2138,6 +2138,10 @@ void avd_sg_read_headless_fsm_state_cached_rta(AVD_CL_CB *cb)
 			if (sg->headless_validation == false) {
 				continue;
 			}
+			if (sg->any_assignment_in_progress() == false &&
+				sg->any_assignment_assigned() == false) {
+				continue;
+			}
 			// Read sg fsm state
 			rc = immutil_getAttr(const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
 					attributes, 0, &imm_sg_fsm_state);
@@ -2197,9 +2201,7 @@ void avd_sg_read_headless_su_oper_list_cached_rta(AVD_CL_CB *cb)
 					const SaNameT *su_name = immutil_getNameAttr(attributes, "osafAmfSGSuOperationList", i);
 					AVD_SU* op_su = sg->get_su_by_name(*su_name);
 					if (op_su) {
-						if (op_su->sg_of_su->any_assignment_in_progress()) {
-							avd_sg_su_oper_list_add(avd_cb, op_su, false, false);
-						}
+						avd_sg_su_oper_list_add(avd_cb, op_su, false, false);
 					}
 				}
 			}
@@ -2304,4 +2306,18 @@ bool AVD_SG::any_assignment_in_progress() {
 	TRACE_LEAVE();
 	return pending;
 }
+
+bool AVD_SG::any_assignment_assigned() {
+	bool pending = false;
+	TRACE_ENTER2("SG:'%s'", name.c_str());
+	for (const auto& su : list_of_su) {
+		if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ASGND)){
+			pending = true;
+			break;
+		}
+	}
+	TRACE_LEAVE();
+	return pending;
+}
+
 

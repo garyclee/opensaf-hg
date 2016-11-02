@@ -279,7 +279,10 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 			if (susi->su->su_on_node->admin_ng == nullptr)
 				avd_ng_restore_headless_states(cb, susi);
 		} else { // For ABSENT SUSI
-			if (su->sg_of_su->sg_ncs_spec == false) {
+			if (su->sg_of_su->sg_ncs_spec == false &&
+				(su->sg_of_su->any_assignment_in_progress() == true ||
+				su->sg_of_su->any_assignment_assigned() == true)) {
+
 				TRACE("Absent SUSI, ha_state:'%u', fsm_state:'%u'", imm_ha_state, imm_susi_fsm);
 				if (imm_susi_fsm != AVD_SU_SI_STATE_UNASGN) {
 					absent_susi = avd_susi_create(avd_cb, si, su, imm_ha_state, false, AVSV_SUSI_ACT_BASE);
