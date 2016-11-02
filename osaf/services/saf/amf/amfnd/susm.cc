@@ -740,8 +740,13 @@ uint32_t avnd_su_si_remove(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
 	/* if no si is specified, the action is aimed at all the sis... pick up any si */
 	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-	if (!curr_si)
+	if (!curr_si) {
+		// after headless, we may have a buffered susi remove msg
+		// if the susi can't be found (already removed), reset flag
+		LOG_NO("no SI found in '%s'", su->name.c_str());
+		m_AVND_SU_ALL_SI_RESET(su);
 		goto done;
+	}
 
 	/* initiate the si removal for pi su */
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
