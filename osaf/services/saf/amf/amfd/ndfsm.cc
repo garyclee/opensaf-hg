@@ -460,10 +460,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			
 			for (const auto& su :avnd->list_of_su) {
 				if (su->is_in_service()) {
-					if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT))
-						su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
-					else
-						su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
 				}
 			}
 			// Start/Restart cluster init timer to wait for all node becomes PRESENT
