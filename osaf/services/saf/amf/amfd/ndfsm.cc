@@ -132,11 +132,23 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 	// Read cached rta from Imm
 	// Reading sg must be after reading susi
 	if (found_state_info == true) {
+		LOG_NO("Enter restore headless cached RTAs from IMM");
+		// Read SG Fsm state to recover nodegroup operation
 		avd_sg_read_headless_fsm_state_cached_rta(cb);
+		// Read all cached susi, includes ABSENT SUSI with IMM fsm state
 		avd_susi_read_headless_cached_rta(cb);
+		// Read SUOperationList, set ABSENT fsm state for ABSENT SUSI
 		avd_sg_read_headless_su_oper_list_cached_rta(cb);
-		avd_compcsi_cleanup_imm_object(cb);
+		// Read SUSwitch of SU, validate toggle depends on SUSI fsm state
 		avd_su_read_headless_cached_rta(cb);
+		// Clean compcsi object of ABSENT SUSI
+		avd_compcsi_cleanup_imm_object(cb);
+		// Last, validate all
+		bool valid = avd_sg_validate_headless_cached_rta(cb);
+		if (valid)
+			LOG_NO("Leave reading headless cached RTAs from IMM: SUCCESS");
+		else
+			LOG_ER("Leave reading headless cached RTAs from IMM: FAILED");
 	}
 done:
 	TRACE("queue_size after processing: %lu", (unsigned long) cb->evt_queue.size());
