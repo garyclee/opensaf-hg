@@ -27,6 +27,8 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = libimmaOm.la libimmaOi.la
 
+libimmaOm_la_CXXFLAGS = $(AM_CXXFLAGS)
+
 libimmaOm_la_CPPFLAGS = \
 	-DIMMA_OM -DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS) \
@@ -35,11 +37,13 @@ libimmaOm_la_CPPFLAGS = \
 libimmaOm_la_LDFLAGS = -static
 
 libimmaOm_la_SOURCES = \
-	imma_om_api.c \
-	imma_db.c \
-	imma_init.c \
-	imma_mds.c \
-	imma_proc.c
+	imma_om_api.cc \
+	imma_db.cc \
+	imma_init.cc \
+	imma_mds.cc \
+	imma_proc.cc
+
+libimmaOi_la_CXXFLAGS = $(AM_CXXFLAGS)
 
 libimmaOi_la_CPPFLAGS = \
 	-DIMMA_OI -DSA_EXTENDED_NAME_SOURCE \
@@ -49,8 +53,8 @@ libimmaOi_la_CPPFLAGS = \
 libimmaOi_la_LDFLAGS = -static
 
 libimmaOi_la_SOURCES = \
-	imma_oi_api.c \
-	imma_db.c \
-	imma_init.c \
-	imma_mds.c \
-	imma_proc.c
+	imma_oi_api.cc \
+	imma_db.cc \
+	imma_init.cc \
+	imma_mds.cc \
+	imma_proc.cc
