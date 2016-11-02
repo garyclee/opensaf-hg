@@ -842,6 +842,12 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		goto done;
 	}
 
+	if (si->sg_of_si->any_assignment_absent() == true ) {
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
+				"SG has absent assignment (%s)", si->sg_of_si->name.c_str());
+		goto done;
+	}
+
 	switch (operationId) {
 	case SA_AMF_ADMIN_UNLOCK:
 		if (SA_AMF_ADMIN_UNLOCKED == si->saAmfSIAdminState) {

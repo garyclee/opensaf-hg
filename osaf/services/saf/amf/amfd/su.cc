@@ -825,16 +825,23 @@ void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
  * @param readiness_state
  */
 void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
-	if (saAmfSuReadinessState == readiness_state)
-		return;
-
-	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
 	TRACE_ENTER2("'%s' %s", name.c_str(),
 		avd_readiness_state_name[readiness_state]);
 	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s",
 		name.c_str(),
 		avd_readiness_state_name[saAmfSuReadinessState],
 		avd_readiness_state_name[readiness_state]);
+
+	if (saAmfSuReadinessState == readiness_state) {
+		goto done;
+	}
+	if (any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT)) {
+		TRACE("Can not set readiness state, this SU is under absent failover");
+		goto done;
+	}
+
+	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
+
 	saAmfSuReadinessState = readiness_state;
 	if (get_surestart() == false)
 		avd_saImmOiRtObjectUpdate(name, "saAmfSUReadinessState",
@@ -857,7 +864,7 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 
 		comp->avd_comp_readiness_state_set(saAmfCompReadinessState);
 	}
-
+done:
 	TRACE_LEAVE();
 }
 
@@ -1223,6 +1230,12 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 			(cb->node_id_avd == su->su_on_node->node_info.nodeId)) {
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_NOT_SUPPORTED, nullptr, 
 				"Admin operation on Active middleware SU is not allowed");
+		goto done;
+	}
+
+	if (su->sg_of_su->any_assignment_absent() == true ) {
+		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
+				"SG has absent assignment (%s)", su->sg_of_su->name.c_str());
 		goto done;
 	}
 
@@ -2412,14 +2425,15 @@ void AVD_SU::complete_admin_op(SaAisErrorT result)
  */
 bool AVD_SU::any_susi_fsm_in(uint32_t check_fsm)
 {
-	TRACE_ENTER2("SU:'%s'", name.c_str());
+	TRACE_ENTER2("SU:'%s', check_fsm:%u", name.c_str(), check_fsm);
 	bool rc = false;
 	for (AVD_SU_SI_REL *susi = list_of_susi; susi && rc == false;
 			susi = susi->su_next) {
+		TRACE("SUSI:'%s,%s', fsm:'%d'", susi->su->name.c_str(),
+				susi->si->name.c_str(), susi->fsm);
 		if (susi->fsm == check_fsm) {
 			rc = true;
-			TRACE("SUSI:'%s,%s', fsm:'%d'", susi->su->name.c_str(),
-					susi->si->name.c_str(), susi->fsm);
+			TRACE("Found");
 		}
 	}
 	TRACE_LEAVE();

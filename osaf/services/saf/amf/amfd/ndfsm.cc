@@ -132,10 +132,10 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 	// Read cached rta from Imm
 	// Reading sg must be after reading susi
 	if (found_state_info == true) {
-		avd_compcsi_cleanup_imm_object(cb);
 		avd_sg_read_headless_fsm_state_cached_rta(cb);
 		avd_susi_read_headless_cached_rta(cb);
 		avd_sg_read_headless_su_oper_list_cached_rta(cb);
+		avd_compcsi_cleanup_imm_object(cb);
 		avd_su_read_headless_cached_rta(cb);
 	}
 done:
@@ -447,8 +447,12 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			}
 			
 			for (const auto& su :avnd->list_of_su) {
-				if (su->is_in_service())
-					su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+				if (su->is_in_service()) {
+					if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT))
+						su->set_readiness_state(SA_AMF_READINESS_OUT_OF_SERVICE);
+					else
+						su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+				}
 			}
 			// Start/Restart cluster init timer to wait for all node becomes PRESENT
 			// and all SUs are IN-SERVICE

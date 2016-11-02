@@ -424,7 +424,11 @@ uint32_t avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_
 				LOG_ER("%s: avd_new_assgn_susi failed", __FUNCTION__);
 				return NCSCC_RC_FAILURE;
 			}
+			// update fsm
+			TRACE("Update fsm: %u", su_si_ckpt->fsm);
+			su_si_rel_ptr->fsm = static_cast<AVD_SU_SI_STATE>(su_si_ckpt->fsm);
 		}
+
 		/* 
 		 * Don't break...continue updating data of this SU SI Relation 
 		 * as done during normal update request.

@@ -70,6 +70,7 @@ typedef struct avd_su_si_rel_tag {
 	SaBoolT csi_add_rem;
 	std::string comp_name;
 	std::string csi_name;
+	bool absent;
 } AVD_SU_SI_REL;
 
 /* SusperSiRank table index structure */

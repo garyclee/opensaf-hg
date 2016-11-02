@@ -36,7 +36,7 @@
 #include <su.h>
 #include <clm.h>
 #include <si_dep.h>
-
+#include <cluster.h>
 
 /**
  * @brief       While creating compcsi relationship in SUSI, AMF may assign
@@ -709,8 +709,9 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			(cluster_su_instantiation_done(cb, su) == true)) {
 		avd_stop_tmr(cb, &cb->amf_init_tmr);
 
-		if (su->sg_of_su->any_assignment_in_progress() == false) {
-			su->sg_of_su->sg_fsm_state = AVD_SG_FSM_STABLE;
+		if (su->sg_of_su->any_assignment_in_progress() == false &&
+			su->sg_of_su->any_assignment_absent() == false) {
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 		}
 		cluster_startup_expiry_event_generate(cb);
 	}
@@ -872,8 +873,9 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* if the SU is NCS SU, mark the SU readiness state as in service and call
 		 * the SG FSM.
 		 */
-		if (su->sg_of_su->any_assignment_in_progress() == false) {
-			su->sg_of_su->sg_fsm_state = AVD_SG_FSM_STABLE;
+		if (su->sg_of_su->any_assignment_in_progress() == false &&
+			su->sg_of_su->any_assignment_absent() == false) {
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 		}
 		if (su->sg_of_su->sg_ncs_spec == true) {
 			if (su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) { 
@@ -1031,7 +1033,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *node;
-	AVD_SU *su;
+	AVD_SU *su = nullptr;
 	AVD_SU_SI_REL *susi;
 	bool q_flag = false, qsc_flag = false, all_su_unassigned = true, all_csi_rem = true;
 
@@ -1566,6 +1568,15 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Free the messages */
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = nullptr;
+
+	if (su != nullptr) {
+		if (su->sg_of_su->sg_ncs_spec == false) {
+			if (su->sg_of_su->any_assignment_absent() == true) {
+				su->sg_of_su->failover_absent_assignment();
+			}
+		}
+	}
+
 	TRACE_LEAVE();
 }
 
@@ -2072,6 +2083,10 @@ void avd_node_down_appl_susi_failover(AVD_CL_CB *cb, AVD_AVND *avnd)
 		i_su->sg_of_su->node_fail(cb, i_su);
 		/* Free all the SU SI assignments*/
 		i_su->delete_all_susis();
+
+		if (i_su->sg_of_su->any_assignment_absent() == true) {
+			i_su->sg_of_su->failover_absent_assignment();
+		}
 		/* Since a SU has gone out of service relook at the SG to
 		 * re instatiate and terminate SUs if needed.
 		 */
@@ -2226,6 +2241,12 @@ uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 
 	TRACE_ENTER2("'%s', state %u", su->name.c_str(), state);
 
+	// No action on ABSENT SUSI
+	if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT)) {
+		rc = NCSCC_RC_SUCCESS;
+		goto done;
+	}
+
 	/* change the state for all assignments to the specified state. */
 	i_susi = su->list_of_susi;
 	while (i_susi != AVD_SU_SI_REL_NULL) {
@@ -2334,6 +2355,12 @@ uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
 	TRACE_ENTER2("'%s'", su->name.c_str());
+
+	// No action on ABSENT SUSI
+	if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT)) {
+		rc = NCSCC_RC_SUCCESS;
+		goto done;
+	}
 
 	/* change the state for all assignments to the specified state. */
 	i_susi = su->list_of_susi;

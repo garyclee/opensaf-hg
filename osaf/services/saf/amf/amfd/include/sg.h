@@ -415,6 +415,8 @@ public:
 	bool is_sg_serviceable_outside_ng(const AVD_AMF_NG *ng);
 	SaAisErrorT check_sg_stability();
 	bool any_assignment_in_progress();
+	bool any_assignment_absent();
+	void failover_absent_assignment();
 	bool ng_using_saAmfSGAdminState;
 	
 	uint32_t term_su_list_in_reverse();

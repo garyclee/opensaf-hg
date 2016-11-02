@@ -166,6 +166,11 @@ void avd_susi_update_fsm(AVD_SU_SI_REL *susi, AVD_SU_SI_STATE new_fsm_state)
 			avd_saImmOiRtObjectUpdate(Amf::to_string(&dn),
 					const_cast<SaImmAttrNameT>("osafAmfSISUFsmState"),
 					SA_IMM_ATTR_SAUINT32T, &susi->fsm);
+			// Need to write to IMM HA state, otherwise the ABSENT SUSI read from IMM
+			// will have wrong HA state, which lead to incorrect failover of ABSENT SUSI
+			avd_saImmOiRtObjectUpdate(Amf::to_string(&dn),
+					const_cast<SaImmAttrNameT>("saAmfSISUHAState"),
+					SA_IMM_ATTR_SAUINT32T, &susi->state);
 		}
     }
     TRACE_LEAVE();
@@ -185,7 +190,9 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 	SaNameT dn;
 	const SaImmAttrValuesT_2 **attributes;
 	AVD_SU_SI_REL *susi = nullptr;
+	AVD_SU_SI_REL *absent_susi = nullptr;
 	AVD_SU_SI_STATE imm_susi_fsm;
+	SaAmfHAStateT imm_ha_state;
 	const char *className = "SaAmfSIAssignment";
 	const SaImmAttrNameT siass_attributes[] = {
 		const_cast<SaImmAttrNameT>("safSISU"),
@@ -225,7 +232,7 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 		rc = immutil_getAttr("osafAmfSISUFsmState", attributes, 0, &imm_susi_fsm);
 		osafassert(rc == SA_AIS_OK);
 
-		if (susi) {
+		if (susi) { // FOR PRESENT SUSI found in AMFND(s)
 			TRACE("SISU:'%s', old(imm) fsm state: %d, new(sync) fsm state: %d",
 				Amf::to_string(&dn).c_str(), imm_susi_fsm, susi->fsm);
 
@@ -242,6 +249,7 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 			// headless period.
 			susi->fsm = imm_susi_fsm;
 #endif
+			//Checkpoint to add this SUSI
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, susi, AVSV_CKPT_AVD_SI_ASS);
 			// restore assignment counter
 			if (susi->fsm == AVD_SU_SI_STATE_ASGN || susi->fsm == AVD_SU_SI_STATE_ASGND ||
@@ -264,10 +272,33 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 			// only restore if not done
 			if (susi->su->su_on_node->admin_ng == nullptr)
 				avd_ng_restore_headless_states(cb, susi);
-		} else {
-			// This susi does not exist after headless, but it's still in IMM
-			// delete it for now
-			avd_saImmOiRtObjectDelete(Amf::to_string(&dn));
+		} else { // For ABSENT SUSI
+			if (su->sg_of_su->sg_ncs_spec == false) {
+				rc = immutil_getAttr("saAmfSISUHAState", attributes, 0, &imm_ha_state);
+				osafassert(rc == SA_AIS_OK);
+				TRACE("Absent SUSI, ha_state:'%u', fsm_state:'%u'", imm_ha_state, imm_susi_fsm);
+				if (imm_susi_fsm != AVD_SU_SI_STATE_UNASGN) {
+					absent_susi = avd_susi_create(avd_cb, si, su, imm_ha_state, false, AVSV_SUSI_ACT_BASE);
+					// Restore the fsm of this absent SUSI, which is used to determine
+					// whether a SU should be added in SG's SUOperationList
+					// Memorize it in temporary var @absent
+					// The fsm of this SUSI will be changed to AVD_SU_SI_STATE_ABSENT
+					// after restoring SUOperationList
+					absent_susi->fsm = imm_susi_fsm;
+					absent_susi->absent = true;
+					if (absent_susi->si->saAmfSIAdminState == SA_AMF_ADMIN_LOCKED ||
+							absent_susi->si->saAmfSIAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+						if (absent_susi->fsm == AVD_SU_SI_STATE_MODIFY &&
+								(absent_susi->state == SA_AMF_HA_QUIESCED || absent_susi->state == SA_AMF_HA_QUIESCING)) {
+							m_AVD_SET_SG_ADMIN_SI(cb, si);
+						}
+					}
+				} else {
+					avd_saImmOiRtObjectDelete(Amf::to_string(&dn));
+				}
+			} else {
+				avd_saImmOiRtObjectDelete(Amf::to_string(&dn));
+			}
 		}
 	}
 
@@ -661,7 +692,11 @@ uint32_t avd_susi_mod_send(AVD_SU_SI_REL *susi, SaAmfHAStateT ha_state)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("SI '%s', SU '%s' ha_state:%d", susi->si->name.c_str(), susi->su->name.c_str(), ha_state);
-
+	// No action on ABSENT SUSI
+	if (susi->fsm == AVD_SU_SI_STATE_ABSENT) {
+		rc = NCSCC_RC_SUCCESS;
+		goto done;
+	}
 	old_state = susi->state;
 	old_fsm_state = susi->fsm;
 	susi->state = ha_state;
@@ -702,7 +737,11 @@ uint32_t avd_susi_del_send(AVD_SU_SI_REL *susi)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("SI '%s', SU '%s' ", susi->si->name.c_str(), susi->su->name.c_str());
-
+	// No action on ABSENT SUSI
+	if (susi->fsm == AVD_SU_SI_STATE_ABSENT) {
+		rc = NCSCC_RC_SUCCESS;
+		goto done;
+	}
 	old_fsm_state = susi->fsm;
 	avd_susi_update_fsm(susi, AVD_SU_SI_STATE_UNASGN);
 	avd_snd_susi_msg(avd_cb, susi->su, susi, AVSV_SUSI_ACT_DEL, false, nullptr);

@@ -1251,6 +1251,12 @@ static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		goto done;
 	}
 
+	if (sg->any_assignment_absent() == true ) {
+		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
+				"SG has absent assignment (%s)", sg->name.c_str());
+		goto done;
+	}
+
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
 		report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
 				"SG not in STABLE state (%s)", sg->name.c_str());
@@ -2045,6 +2051,10 @@ SaAisErrorT AVD_SG::check_sg_stability()
 		rc = SA_AIS_ERR_TRY_AGAIN;
                 goto done;
         }
+	if (any_assignment_absent() == true ) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
 done:
 	return rc;
 
@@ -2189,6 +2199,23 @@ void avd_sg_read_headless_su_oper_list_cached_rta(AVD_CL_CB *cb)
 					}
 				}
 			}
+
+			// Move fsm state of absent SUSI to AVD_SU_SI_STATE_ABSENT
+			for (const auto& su : sg->list_of_su) {
+				for (AVD_SU_SI_REL *susi = su->list_of_susi; susi;
+						susi = susi->su_next) {
+					TRACE("SUSI:'%s,%s', fsm:'%d'", susi->su->name.c_str(),
+							susi->si->name.c_str(), susi->fsm);
+					if (susi->absent == true) {
+						avd_susi_update_fsm(susi, AVD_SU_SI_STATE_ABSENT);
+						//Checkpoint to add this SUSI only after absent SUSI fsm
+						//moves to AVD_SU_SI_STATE_ABSENT, so var @absent is safe
+						//at standby side
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, susi, AVSV_CKPT_AVD_SI_ASS);
+						susi->absent = false;
+					}
+				}
+			}
 		}
 	}
 
@@ -2197,6 +2224,35 @@ void avd_sg_read_headless_su_oper_list_cached_rta(AVD_CL_CB *cb)
 done:
 	TRACE_LEAVE();
 
+}
+
+void AVD_SG::failover_absent_assignment() {
+
+	TRACE_ENTER2("SG:'%s'", name.c_str());
+	for (const auto& su : list_of_su) {
+		if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT)){
+			node_fail(avd_cb, su);
+			if (su->is_in_service())
+				su->set_readiness_state(SA_AMF_READINESS_IN_SERVICE);
+			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_STABLE)
+				su->sg_of_su->realign(avd_cb, this);
+			break;
+		}
+	}
+	TRACE_LEAVE();
+}
+
+bool AVD_SG::any_assignment_absent() {
+	bool pending = false;
+	TRACE_ENTER2("SG:'%s'", name.c_str());
+	for (const auto& su : list_of_su) {
+		if (su->any_susi_fsm_in(AVD_SU_SI_STATE_ABSENT)){
+			pending = true;
+			break;
+		}
+	}
+	TRACE_LEAVE();
+	return pending;
 }
 
 bool AVD_SG::any_assignment_in_progress() {

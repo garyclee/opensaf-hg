@@ -1277,6 +1277,11 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 					su->sg_of_su->name.c_str(), su->name.c_str());
 			goto done;
 		}
+		if (su->sg_of_su->any_assignment_absent() == true ) {
+			report_admin_op_error(immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
+					"SG has absent assignment (%s)", su->sg_of_su->name.c_str());
+			goto done;
+		}
 	}
 
 	if (node->clm_pend_inv != 0) {
