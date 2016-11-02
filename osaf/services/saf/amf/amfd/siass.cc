@@ -231,11 +231,17 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 		susi = avd_su_susi_find(cb, su, si->name);
 		rc = immutil_getAttr("osafAmfSISUFsmState", attributes, 0, &imm_susi_fsm);
 		osafassert(rc == SA_AIS_OK);
+		rc = immutil_getAttr("saAmfSISUHAState", attributes, 0, &imm_ha_state);
+		osafassert(rc == SA_AIS_OK);
 
 		if (susi) { // FOR PRESENT SUSI found in AMFND(s)
 			TRACE("SISU:'%s', old(imm) fsm state: %d, new(sync) fsm state: %d",
 				Amf::to_string(&dn).c_str(), imm_susi_fsm, susi->fsm);
 
+			if (avd_susi_validate_headless_cached_rta(susi, imm_ha_state,
+					imm_susi_fsm) == false) {
+				continue;
+			}
 #if 1
 			// If remove the below line in this #if block, AMFD will use
 			// the synced fsm state, which is latest. That means, in
@@ -274,8 +280,6 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 				avd_ng_restore_headless_states(cb, susi);
 		} else { // For ABSENT SUSI
 			if (su->sg_of_su->sg_ncs_spec == false) {
-				rc = immutil_getAttr("saAmfSISUHAState", attributes, 0, &imm_ha_state);
-				osafassert(rc == SA_AIS_OK);
 				TRACE("Absent SUSI, ha_state:'%u', fsm_state:'%u'", imm_ha_state, imm_susi_fsm);
 				if (imm_susi_fsm != AVD_SU_SI_STATE_UNASGN) {
 					absent_susi = avd_susi_create(avd_cb, si, su, imm_ha_state, false, AVSV_SUSI_ACT_BASE);
@@ -307,6 +311,57 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 done:
     TRACE_LEAVE();
 
+}
+/**
+ * Validate cached RTA read from IMM
+ * @param present_susi
+ * @param ha_fr_imm: Ha state of @present_susi read from IMM
+ * @param fsm_fr_imm: Fsm state of @present susi read from IMM
+ * @return: true of valid, false otherwise
+ */
+bool avd_susi_validate_headless_cached_rta(AVD_SU_SI_REL *present_susi,
+		SaAmfHAStateT ha_fr_imm, AVD_SU_SI_STATE fsm_fr_imm) {
+	std::string dn = present_susi->si->name + "," +
+					present_susi->su->name;
+	TRACE_ENTER2("SISU:'%s'", dn.c_str());
+	bool valid = true;
+	// rule 1: valid ha state
+	if (ha_fr_imm != present_susi->state) {
+		if (ha_fr_imm == SA_AMF_HA_QUIESCING ||
+			ha_fr_imm == SA_AMF_HA_QUIESCED) {
+			// That's fine
+			;
+		} else {
+			LOG_ER("SISU:'%s', old(imm) ha state: %d, new(sync) ha state: %d",
+			dn.c_str(),	ha_fr_imm, present_susi->state);
+			valid = false;
+			goto done;
+		}
+	}
+	// rule 2: if ha_fr_imm is QUIESCING, one of relevant entities must
+	// have adminState is SHUTTINGDOWN
+	if (ha_fr_imm == SA_AMF_HA_QUIESCING) {
+		if (present_susi->su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN ||
+			present_susi->si->saAmfSIAdminState == SA_AMF_ADMIN_SHUTTING_DOWN ||
+			present_susi->su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN ||
+			present_susi->su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+			// That's fine
+			;
+		} else {
+			LOG_ER("SISU:'%s', ha:'%u', but one of [node/sg/su/si] is not in SHUTTING_DOWN",
+					dn.c_str(), ha_fr_imm);
+			valid = false;
+			goto done;
+		}
+	}
+	// TODO: more rules to be added when issue is found in reality due to writing
+	// cached RTA to IMM
+done:
+	if (valid == false)
+		present_susi->su->sg_of_su->headless_validation = valid;
+
+	TRACE_LEAVE2("%u, %u", valid, present_susi->su->sg_of_su->headless_validation);
+	return present_susi->su->sg_of_su->headless_validation;
 }
 /*****************************************************************************
  * Function: avd_susi_create

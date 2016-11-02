@@ -418,7 +418,7 @@ public:
 	bool any_assignment_absent();
 	void failover_absent_assignment();
 	bool ng_using_saAmfSGAdminState;
-	
+	bool headless_validation;
 	uint32_t term_su_list_in_reverse();
        //Runtime calculates value of saAmfSGNumCurrAssignedSUs;
 	uint32_t curr_assigned_sus() const;
@@ -581,7 +581,7 @@ private:
 #define m_AVD_CHK_OPLIST(i_su,flag) (flag) = (i_su)->sg_of_su->in_su_oper_list(i_su)
 void avd_sg_read_headless_fsm_state_cached_rta(AVD_CL_CB *cb);
 void avd_sg_read_headless_su_oper_list_cached_rta(AVD_CL_CB *cb);
-
+bool avd_sg_validate_headless_cached_rta(AVD_CL_CB *cb);
 extern void avd_sg_delete(AVD_SG *sg);
 extern void avd_sg_db_add(AVD_SG *sg);
 extern void avd_sg_db_remove(AVD_SG *sg);

@@ -128,7 +128,8 @@ AVD_SG::AVD_SG():
 		max_assigned_su(nullptr),
 		min_assigned_su(nullptr),
 		si_tobe_redistributed(nullptr),
-		try_inst_counter(0)
+		try_inst_counter(0),
+		headless_validation(true)
 {
 	adminOp = static_cast<SaAmfAdminOperationIdT>(0);
 	adminOp_invocationId = 0;
@@ -2134,6 +2135,9 @@ void avd_sg_read_headless_fsm_state_cached_rta(AVD_CL_CB *cb)
 					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 		sg = sg_db->find(Amf::to_string(&sg_dn));
 		if (sg && sg->sg_ncs_spec == false) {
+			if (sg->headless_validation == false) {
+				continue;
+			}
 			// Read sg fsm state
 			rc = immutil_getAttr(const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
 					attributes, 0, &imm_sg_fsm_state);
@@ -2224,6 +2228,37 @@ void avd_sg_read_headless_su_oper_list_cached_rta(AVD_CL_CB *cb)
 done:
 	TRACE_LEAVE();
 
+}
+
+/**
+ * @brief  Validate all cached RTAs read from IMM after headless.
+           This validation is necessary. If AMFD doesn't have this
+           validation routine and the cached RTAs are invalid,
+           that would lead into *unpredictably* wrong states, which
+           is hard to debug (harder if no trace)
+ * @param  Control block (AVD_CL_CB).
+ * @Return true if valid, false otherwise.
+*/
+bool avd_sg_validate_headless_cached_rta(AVD_CL_CB *cb) {
+	TRACE_ENTER();
+	bool valid = true;
+	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
+			it != sg_db->end(); it++) {
+		AVD_SG *i_sg = it->second;
+		if (i_sg->sg_ncs_spec == true) {
+			continue;
+		}
+
+		if (i_sg->headless_validation == false) {
+			//TODO: AMFD should make all SUs of this SG faulty to remove
+			//all assignments, clean up IMM headless cached RTA.
+			//Just assert for now
+			//osafassert(false);
+			valid = false;
+		}
+	}
+	TRACE_LEAVE2("%u", valid);
+	return valid;
 }
 
 void AVD_SG::failover_absent_assignment() {
