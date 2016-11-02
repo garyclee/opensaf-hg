@@ -75,6 +75,7 @@ static void complete_siswap(AVD_SU *su, SaAisErrorT status)
 AVD_SU_SI_STATE avd_su_fsm_state_determine(AVD_SU *su) {
 	AVD_SU_SI_REL *temp_susi;
 	bool assigning_flag = false, assigned_flag = false, modify_flag = false, unassingned_flag = false;
+	bool absent_flag = false;
 	AVD_SU_SI_STATE fsm_state = AVD_SU_SI_STATE_ABSENT;
 
 	TRACE_ENTER2("SU '%s'", su->name.c_str());
@@ -98,16 +99,20 @@ AVD_SU_SI_STATE avd_su_fsm_state_determine(AVD_SU *su) {
 		} else if (AVD_SU_SI_STATE_ASGND == temp_susi->fsm) {
 			assigned_flag =  true;
 			TRACE("Assigned su'%s', si'%s'", temp_susi->su->name.c_str(), temp_susi->si->name.c_str());
+		} else if (AVD_SU_SI_STATE_ABSENT == temp_susi->fsm) {
+			absent_flag =  true;
+			TRACE("Absent su'%s', si'%s'", temp_susi->su->name.c_str(), temp_susi->si->name.c_str());
 		} else {
 			osafassert(0);
 		}
 		temp_susi = temp_susi->su_next;
 	}
 
-	TRACE("assigning_flag'%u', unassingned_flag'%u', assigned_flag'%u', modify_flag'%u'", assigning_flag, 
-			unassingned_flag, assigned_flag, modify_flag);
-
-	if (true == modify_flag) {
+	TRACE("assigning_flag'%u', unassingned_flag'%u', assigned_flag'%u', modify_flag'%u', absent_flag'%u'",
+			assigning_flag, unassingned_flag, assigned_flag, modify_flag, absent_flag);
+	if (absent_flag == true) {
+		fsm_state = AVD_SU_SI_STATE_ABSENT;
+	} else if (true == modify_flag) {
 		/* Rule 1. => If any one of the SUSI is Mod, then SU will be said to be modified. The other SUSI can 
 		   be in assigning/assigned state in transition.*/
 		fsm_state = AVD_SU_SI_STATE_MODIFY;
