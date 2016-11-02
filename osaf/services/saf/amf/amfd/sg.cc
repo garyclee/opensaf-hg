@@ -2201,7 +2201,9 @@ void avd_sg_read_headless_su_oper_list_cached_rta(AVD_CL_CB *cb)
 					const SaNameT *su_name = immutil_getNameAttr(attributes, "osafAmfSGSuOperationList", i);
 					AVD_SU* op_su = sg->get_su_by_name(*su_name);
 					if (op_su) {
-						avd_sg_su_oper_list_add(avd_cb, op_su, false, false);
+						if (op_su->sg_of_su->any_assignment_in_progress()) {
+							avd_sg_su_oper_list_add(avd_cb, op_su, false, false);
+						}
 					}
 				}
 			}
