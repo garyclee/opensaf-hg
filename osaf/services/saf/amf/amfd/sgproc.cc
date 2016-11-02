@@ -547,12 +547,13 @@ done:
 static uint32_t su_recover_from_fault(AVD_SU *su)
 {
 	uint32_t rc;
-
+	TRACE_ENTER2("SU:'%s'", su->name.c_str());
 	if ((su->saAmfSUFailover) && (su->saAmfSUOperState == SA_AMF_OPERATIONAL_DISABLED)) {
 		rc = sg_su_failover_func(su);
 	} else {
 		rc = su->sg_of_su->su_fault(avd_cb, su);
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
