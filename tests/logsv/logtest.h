@@ -32,6 +32,7 @@
 
 #include <osaf_time.h>
 #include <logtrace.h>
+#include <logutil.h>
 
 #define SA_LOG_CONFIGURATION_OBJECT "logConfig=1,safApp=safLogService"
 #define SA_LOG_STREAM_APPLICATION1 "safLgStr=saLogApplication1"
@@ -69,15 +70,13 @@ extern SaAisErrorT rc;
 extern SaLogHandleT logHandle;
 extern SaLogStreamHandleT logStreamHandle;
 extern SaLogCallbacksT logCallbacks;
+extern SaInvocationT invocation;
 extern SaLogBufferT alarmStreamBuffer;
 extern SaLogBufferT notificationStreamBuffer;
 extern SaSelectionObjectT selectionObject;
 extern SaNameT logSvcUsrName;
 extern SaLogRecordT genLogRecord;
 extern char log_root_path[];
-
-/* Same as system() but returns WEXITSTATUS if not -1 */
-int tet_system(const char *command);
 
 /* Vebose mode. If set some test cases will print extra information */
 bool verbose_flg;
@@ -113,6 +112,7 @@ typedef struct {
   struct timespec end_time;
   struct timespec diff_time;
 } time_meas_t;
+
 /**
  *
  * @param tm[out]
@@ -136,10 +136,5 @@ static inline void time_meas_print_v(time_meas_t* tm, char *id) {
   printf_v("\n%s. Elapsed time %ld.%09ld sec\n", id,
            tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
 }
-
-// Common interfaces
-const char *hostname(void);
-bool is_test_done_on_pl(void);
-void cond_check(void);
 
 #endif

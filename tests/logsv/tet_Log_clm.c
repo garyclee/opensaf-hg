@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <stdarg.h>
 
+#include "logtest.h"
+
 /* Test cases for CLM Member Node.
  * NOTE1: For the moment these test cases need interaction with the tester and
  * cannot be run fully automatic.
@@ -58,8 +60,8 @@ void saLogInitializ_14_01(void)
 	cond_check();
 	lockNode();
 	printf_s(" to saLogInitialize(). ");
-	rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
-	saLogFinalize(logHandle);
+	rc = logInitialize();
+	logFinalize();
 	unlockNode();
 	test_validate(rc, SA_AIS_ERR_UNAVAILABLE);
 }
@@ -71,7 +73,7 @@ void saLogInitializ_14_02(void)
 	lockNode();
 	printf_s(" to saLogInitialize(). ");
 	rc = saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion);
-	saLogFinalize(logHandle);
+	logFinalize();
 	unlockNode();
 	test_validate(rc, SA_AIS_OK);
 }
@@ -82,8 +84,8 @@ void saLogInitializ_14_03(void)
 	lockNode();
 	unlockNode();
 	printf_s(" to saLogInitialize(). ");
-	rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
-	saLogFinalize(logHandle);
+	rc = logInitialize();
+	logFinalize();
 	test_validate(rc, SA_AIS_OK);
 }
 
@@ -95,20 +97,23 @@ void saLogInitializ_14_04(void)
 	unlockNode();
 	printf_s(" to saLogInitialize(). ");
 	rc = saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion);
-	saLogFinalize(logHandle);
+	logFinalize();
 	test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_14_05(void)
 {
 	cond_check();
-	safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+	rc = logInitialize();
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		return;
+	}
 	lockNode();
 	printf_s(" to saLogStreamOpen_2(). ");
-	rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-			SA_TIME_ONE_SECOND, &logStreamHandle);
-	saLogStreamClose(logStreamHandle);
-	safassert(saLogFinalize(logHandle), SA_AIS_OK);
+	rc = logStreamOpen(&systemStreamName);
+	logStreamClose();
+	logFinalize();
 	unlockNode();
 	test_validate(rc, SA_AIS_ERR_UNAVAILABLE);
 }
@@ -116,47 +121,55 @@ void saLogStreamOpen_14_05(void)
 void saLogStreamOpen_14_06(void)
 {
 	cond_check();
-	safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+	rc = logInitialize();
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		return;
+	}
 	lockNode();
 	unlockNode();
 	printf_s(" to saLogStreamOpen_2(). ");
-	rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-			SA_TIME_ONE_SECOND, &logStreamHandle);
-	saLogStreamClose(logStreamHandle);
-	safassert(saLogFinalize(logHandle), SA_AIS_OK);
+	rc = logStreamOpen(&systemStreamName);
+	logStreamClose();
+	logFinalize();
 	test_validate(rc, SA_AIS_ERR_UNAVAILABLE);
 
 }
 
 void saLogStreamOpen_14_07(void)
 {
-        cond_check();
+	cond_check();
 	SaVersionT logPreviousVersion = { 'A', 0x02, 0x01 };
-        safassert(saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion), SA_AIS_OK);
-        lockNode();
-        printf_s(" to saLogStreamOpen_2(). ");
-        rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                        SA_TIME_ONE_SECOND, &logStreamHandle);
-        saLogStreamClose(logStreamHandle);
-        safassert(saLogFinalize(logHandle), SA_AIS_OK);
-        unlockNode();
-        test_validate(rc, SA_AIS_OK);
+	rc = saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion);
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		return;
+	}
+	lockNode();
+	printf_s(" to saLogStreamOpen_2(). ");
+	rc = logStreamOpen(&systemStreamName);
+	logStreamClose();
+	logFinalize();
+	unlockNode();
+	test_validate(rc, SA_AIS_OK);
 }
         
 void saLogStreamOpen_14_08(void)
 {       
-        cond_check();
+	cond_check();
 	SaVersionT logPreviousVersion = { 'A', 0x02, 0x01 };
-        safassert(saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion), SA_AIS_OK);
-        lockNode();
-        unlockNode();
-        printf_s(" to saLogStreamOpen_2(). ");
-        rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                        SA_TIME_ONE_SECOND, &logStreamHandle);
-        saLogStreamClose(logStreamHandle);
-        safassert(saLogFinalize(logHandle), SA_AIS_OK);
-        test_validate(rc, SA_AIS_OK);
- 
+	rc = saLogInitialize(&logHandle, &logCallbacks, &logPreviousVersion);
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+	        return;
+	}
+	lockNode();
+	unlockNode();
+	printf_s(" to saLogStreamOpen_2(). ");
+	rc = logStreamOpen(&systemStreamName);
+	logStreamClose();
+	logFinalize();
+	test_validate(rc, SA_AIS_OK);
 }
 
 void add_suite_14(void) 

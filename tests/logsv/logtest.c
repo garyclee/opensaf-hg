@@ -62,7 +62,6 @@ SaConstStringT name256 = "safLgStr=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 SaNameT saNameT_appstream_name_256;
 
 static char buf[2048];
-static char host_name[_POSIX_HOST_NAME_MAX] = {0};
 
 SaLogBufferT alarmStreamBuffer =
 {
@@ -100,26 +99,9 @@ SaAisErrorT rc;
 SaLogHandleT logHandle;
 SaLogStreamHandleT logStreamHandle;
 SaLogCallbacksT logCallbacks = {NULL, NULL, NULL};
+SaInvocationT invocation = 0;
 SaSelectionObjectT selectionObject;
 char log_root_path[PATH_MAX];
-
-/**
- * Same as system() but returns WEXITSTATUS
- * 
- * @param command[in] Same as system()
- * @return -1 on system error else return WEXITSTATUS return code
- *
- */
-int tet_system(const char *command) {
-	
-	rc = system(command);
-	if (rc == -1) {
-		fprintf(stderr, "system() retuned -1 Fail");
-	} else {
-		rc = WEXITSTATUS(rc);
-	}
-	return rc;
-}
 
 void init_logrootpath(void)
 {
@@ -348,25 +330,6 @@ int get_active_sc(void)
 	
 	(void) immutil_saImmOmFinalize(omHandle);
 	return active_sc;
-}
-
-const char *hostname(void)
-{
-	gethostname(host_name, _POSIX_HOST_NAME_MAX);
-	return host_name;
-}
-
-bool is_test_done_on_pl(void)
-{
-	return (strncmp(hostname(), "PL-", strlen("PL-")) == 0);
-}
-
-void cond_check(void)
-{
-	if (is_test_done_on_pl() == false) {
-		fprintf(stderr, "Test must be done on payload node \n");
-		exit(EXIT_FAILURE);
-	}
 }
 
 /**

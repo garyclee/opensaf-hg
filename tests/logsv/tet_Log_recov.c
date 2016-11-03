@@ -976,7 +976,7 @@ void saLogRecov_clean_tstdir(void)
 	printf_v("Clean test dir \"%s\"\n", tstpath);
 
 	sprintf(command, "rm -rf %s/", tstpath);
-	rc = tet_system(command);
+	rc = systemCall(command);
 	if (rc != 0) {
 		printf_v("%s system(%s) Fail %s\n",
 			__FUNCTION__, command, strerror(errno));

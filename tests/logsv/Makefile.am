@@ -31,6 +31,7 @@ logtest_CPPFLAGS = \
 
 logtest_SOURCES = \
 	logtest.c \
+	logutil.c \
 	tet_saLogInitialize.c \
 	tet_saLogSelectionObjectGet.c \
 	tet_saLogDispatch.c \

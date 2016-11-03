@@ -19,14 +19,15 @@
 
 void saLogFinalize_01(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogFinalize(logHandle);
-    test_validate(rc, SA_AIS_OK);
+	rc = logInitialize();
+	if (rc == SA_AIS_OK)
+		rc = logFinalize();
+	test_validate(rc, SA_AIS_OK);
 }
 
 void saLogFinalize_02(void)
 {
-    rc = saLogFinalize(0);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	rc = saLogFinalize(0);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
