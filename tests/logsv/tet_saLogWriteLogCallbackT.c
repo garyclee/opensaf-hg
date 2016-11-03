@@ -17,6 +17,7 @@
 
 #include <poll.h>
 #include <unistd.h>
+#include <saf_error.h>
 
 #include "logtest.h"
 
@@ -31,6 +32,22 @@ static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error)
     cb_index++;
 }
 
+
+SaAisErrorT logWrite(SaInvocationT invocation, SaLogAckFlagsT ackFlags, const SaLogRecordT *logRecord)
+{
+        SaAisErrorT rc = saLogWriteLogAsync(logStreamHandle, invocation, ackFlags, logRecord);
+        unsigned int nTries = 1;
+        while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < logProfile.nTries) {
+                usleep(logProfile.retryInterval * 1000);
+                rc = saLogWriteLogAsync(logStreamHandle, invocation, ackFlags, logRecord);
+                nTries++;
+        }
+
+        if (rc != SA_AIS_OK)
+        	fprintf(stderr, " saLogWriteLogAsync FAILED: %s\n", saf_error(rc));
+        return rc;
+}
+
 void saLogWriteLogCallbackT_01(void)
 {
     SaInvocationT invocation;
@@ -39,27 +56,53 @@ void saLogWriteLogCallbackT_01(void)
 
     invocation = random();
     logCallbacks.saLogWriteLogCallback = logWriteLogCallbackT;
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogSelectionObjectGet(logHandle, &selectionObject), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = saLogSelectionObjectGet(logHandle, &selectionObject);
+    if (rc != SA_AIS_OK) {
+        fprintf(stderr, " saLogSelectionObjectGet failed: %d \n", (int)rc);
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+    rc = logStreamOpen(&systemStreamName);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
     cb_index = 0;
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    safassert(saLogWriteLogAsync(logStreamHandle, invocation,
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
+    rc = logWrite(invocation, SA_LOG_RECORD_WRITE_ACK, &genLogRecord);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
 
     fds[0].fd = (int) selectionObject;
     fds[0].events = POLLIN;
     ret = poll(fds, 1, 1000);
-    assert(ret == 1);
-    safassert(saLogDispatch(logHandle, SA_DISPATCH_ONE), SA_AIS_OK);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    if (ret != 1) {
+        fprintf(stderr, " poll log callback failed: %d \n", ret);
+        test_validate(ret, 1);
+        goto done;
+    }
+    rc = saLogDispatch(logHandle, SA_DISPATCH_ONE);
+    if (rc != SA_AIS_OK) {
+        fprintf(stderr, " saLogDispatch failed: %d \n", (int)rc);
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
 
     if (cb_invocation[0] == invocation)
         test_validate(cb_error[0], SA_AIS_OK);
     else
         test_validate(SA_AIS_ERR_LIBRARY, SA_AIS_OK);
+
+done:
+    logFinalize();
 }
 
 void saLogWriteLogCallbackT_02(void)
@@ -72,27 +115,53 @@ void saLogWriteLogCallbackT_02(void)
     invocation[1] = random();
     invocation[2] = random();
     logCallbacks.saLogWriteLogCallback = logWriteLogCallbackT;
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogSelectionObjectGet(logHandle, &selectionObject), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        fprintf(stderr, " logInitialize failed: %d \n", (int)rc);
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = saLogSelectionObjectGet(logHandle, &selectionObject);
+    if (rc != SA_AIS_OK) {
+        fprintf(stderr, " saLogSelectionObjectGet failed: %d \n", (int)rc);
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+    rc = logStreamOpen(&systemStreamName);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+
     cb_index = 0;
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    safassert(saLogWriteLogAsync(logStreamHandle, invocation[0],
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
-    safassert(saLogWriteLogAsync(logStreamHandle, invocation[1],
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
-    safassert(saLogWriteLogAsync(logStreamHandle, invocation[2],
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
+    rc = logWrite(invocation[0], SA_LOG_RECORD_WRITE_ACK, &genLogRecord);
+    if (rc == SA_AIS_OK)
+        rc = logWrite(invocation[1], SA_LOG_RECORD_WRITE_ACK, &genLogRecord);
+    if (rc == SA_AIS_OK)
+        rc = logWrite(invocation[2], SA_LOG_RECORD_WRITE_ACK, &genLogRecord);
+
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
 
     sleep(1); /* Let the writes make it to disk and back */
     fds[0].fd = (int) selectionObject;
     fds[0].events = POLLIN;
     ret = poll(fds, 1, 1000);
-    assert(ret == 1);
-    safassert(saLogDispatch(logHandle, SA_DISPATCH_ALL), SA_AIS_OK);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    if (ret != 1) {
+        fprintf(stderr, " poll log callback failed: %d \n", ret);
+        test_validate(ret, 1);
+        goto done;
+    }
+    rc = saLogDispatch(logHandle, SA_DISPATCH_ALL);
+    if (rc != SA_AIS_OK) {
+        fprintf(stderr, " saLogDispatch failed: %d \n", (int)rc);
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
 
     if (cb_index != 3)
     {
@@ -112,5 +181,8 @@ void saLogWriteLogCallbackT_02(void)
     }
 
     test_validate(SA_AIS_OK, SA_AIS_OK);
+
+done:
+    logFinalize();
 }
 

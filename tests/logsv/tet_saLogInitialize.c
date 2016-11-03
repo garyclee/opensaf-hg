@@ -20,7 +20,7 @@
 void saLogInitialize_01(void)
 {
     rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
@@ -33,7 +33,7 @@ void saLogInitialize_02(void)
 void saLogInitialize_03(void)
 {
     rc = saLogInitialize(&logHandle, NULL, &logVersion);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
@@ -70,8 +70,8 @@ void saLogInitialize_08(void)
     SaVersionT version = {'A', 2, 1};
 
     rc = saLogInitialize(&logHandle, &logCallbacks, &version);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 }
 
 void saLogInitialize_09(void)
@@ -101,7 +101,7 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(1, saLogInitialize_08, "saLogInitialize() with minor version set to 1");
     test_case_add(1, saLogInitialize_09, "saLogInitialize() with major version set to 3");
     test_case_add(1, saLogSelectionObjectGet_01, "saLogSelectionObjectGet() OK");
-    test_case_add(1, saLogSelectionObjectGet_01, "saLogSelectionObjectGet() with NULL log handle");
+    test_case_add(1, saLogSelectionObjectGet_02, "saLogSelectionObjectGet() with NULL log handle");
     test_case_add(1, saLogDispatch_01, "saLogDispatch() OK");
     test_case_add(1, saLogFinalize_01, "saLogFinalize() OK");
     test_case_add(1, saLogFinalize_02, "saLogFinalize() with NULL log handle");

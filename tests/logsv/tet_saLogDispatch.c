@@ -19,9 +19,10 @@
 
 void saLogDispatch_01(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogDispatch(logHandle, SA_DISPATCH_ALL);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(rc, SA_AIS_OK);
+	rc = logInitialize();
+	if (rc == SA_AIS_OK)
+		rc = saLogDispatch(logHandle, SA_DISPATCH_ALL);
+	test_validate(rc, SA_AIS_OK);
+	logFinalize();
 }
 

@@ -19,15 +19,16 @@
 
 void saLogSelectionObjectGet_01(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogSelectionObjectGet(logHandle, &selectionObject);
-    test_validate(rc, SA_AIS_OK);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+	rc = logInitialize();
+	if (rc == SA_AIS_OK)
+		rc = saLogSelectionObjectGet(logHandle, &selectionObject);
+	test_validate(rc, SA_AIS_OK);
+	logFinalize();
 }
 
 void saLogSelectionObjectGet_02(void)
 {
-    rc = saLogSelectionObjectGet(0, &selectionObject);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	rc = saLogSelectionObjectGet(0, &selectionObject);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 

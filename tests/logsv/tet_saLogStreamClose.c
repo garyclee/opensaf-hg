@@ -19,11 +19,20 @@
 
 void saLogStreamClose_01(void)
 {
-    safassert(saLogInitialize(&logHandle, NULL, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                           SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
-    rc = saLogStreamClose(logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
-    test_validate(rc, SA_AIS_OK);
+	rc = logInitialize();
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		return;
+	}
+	rc = logStreamOpen(&systemStreamName);
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		goto done;
+	}
+	rc = logStreamClose();
+	test_validate(rc, SA_AIS_OK);
+
+done:
+	logFinalize();
 }
 

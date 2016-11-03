@@ -17,6 +17,8 @@
 
 #include "logtest.h"
 
+extern struct LogProfile logProfile;
+
 static SaLogFileCreateAttributesT_2 appStream1LogFileCreateAttributes =
 {
     .logFilePathName = DEFAULT_APP_FILE_PATH_NAME,
@@ -43,162 +45,249 @@ static void init_file_create_attributes(void)
 
 void saLogStreamOpen_2_01(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                           SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logStreamOpen(&systemStreamName);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_02(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogStreamOpen_2(logHandle, &notificationStreamName, NULL, 0,
-                           SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logStreamOpen(&notificationStreamName);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_03(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogStreamOpen_2(logHandle, &alarmStreamName, NULL, 0,
-                           SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logStreamOpen(&alarmStreamName);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_04(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                           SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_05(void)
 {
-    SaLogStreamHandleT logStreamHandle1, logStreamHandle2;
+//    SaLogStreamHandleT logStreamHandle1, logStreamHandle2;
 
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK)
+        goto done;
     /* Reopen with NULL create attrs and CREATE flag not set */
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, NULL, 0, SA_TIME_ONE_SECOND, &logStreamHandle2);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logStreamOpen(&app1StreamName);
+
+done:
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_06(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
     rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                           SA_TIME_ONE_SECOND, NULL);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+			   SA_TIME_ONE_SECOND, NULL);
+    logFinalize();
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_08(void)
 {
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
     rc = saLogStreamOpen_2(logHandle, NULL, NULL, 0,
-                           SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+			   SA_TIME_ONE_SECOND, &logStreamHandle);
+    logFinalize();
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_09(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+
     appStream1LogFileCreateAttributes.logFileName = "changed_filename";
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
     test_validate(rc, SA_AIS_ERR_EXIST);
+
+done:
+    logFinalize();
+
 }
 
 void saLogStreamOpen_2_10(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+
     appStream1LogFileCreateAttributes.logFilePathName = "/new_file/path";
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
     test_validate(rc, SA_AIS_ERR_EXIST);
+
+done:
+    logFinalize();
 }
 
 void saLogStreamOpen_2_11(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+
     appStream1LogFileCreateAttributes.logFileFmt = "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sl @Sv\"@Cb\"";
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
     test_validate(rc, SA_AIS_ERR_EXIST);
+
+done:
+    logFinalize();
 }
 
 void saLogStreamOpen_2_12(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+
     appStream1LogFileCreateAttributes.maxLogFileSize++;
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
     test_validate(rc, SA_AIS_ERR_EXIST);
+
+done:
+    logFinalize();
 }
 
 void saLogStreamOpen_2_13(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
+
     appStream1LogFileCreateAttributes.maxLogRecordSize++;
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
     test_validate(rc, SA_AIS_ERR_EXIST);
+
+done:
+    logFinalize();
 }
 
 void saLogStreamOpen_2_14(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
-    appStream1LogFileCreateAttributes.maxFilesRotated++;
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        goto done;
+    }
 
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    appStream1LogFileCreateAttributes.maxFilesRotated++;
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
     test_validate(rc, SA_AIS_ERR_EXIST);
+
+done:
+    logFinalize();
 }
 
 void saLogStreamOpen_2_15(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK)
+        goto done;
+
     appStream1LogFileCreateAttributes.haProperty = SA_FALSE;
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
 	/* haProperty value is not checked by logsv */
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+
+done:
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
@@ -209,13 +298,16 @@ void saLogStreamOpen_2_16(void)
     saAisNameLend(data, &streamName);
 
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
     appStream1LogFileCreateAttributes.logFileFmt = NULL;
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
-    rc = saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
-        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    rc = logAppStreamOpen(&streamName, &appStream1LogFileCreateAttributes);
 
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
@@ -226,15 +318,20 @@ void saLogStreamOpen_2_17(void)
     saAisNameLend(data, &streamName);
 
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
     appStream1LogFileCreateAttributes.logFileFmt = NULL;
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
-    safassert(saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
-    rc = saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    rc = logAppStreamOpen(&streamName, &appStream1LogFileCreateAttributes);
+    if (rc != SA_AIS_OK)
+        goto done;
+    rc = logAppStreamOpen(&streamName, &appStream1LogFileCreateAttributes);
 
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+done:
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
@@ -243,10 +340,14 @@ void saLogStreamOpen_2_18(void)
     init_file_create_attributes();
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
     appStream1LogFileCreateAttributes.logFilePathName = NULL;
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                           SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
@@ -255,10 +356,14 @@ void saLogStreamOpen_2_19(void)
     init_file_create_attributes();
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
     appStream1LogFileCreateAttributes.logFilePathName = ".";
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                           SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+    logFinalize();
     test_validate(rc, SA_AIS_OK);
 }
 
@@ -267,10 +372,15 @@ void saLogStreamOpen_2_20(void)
     init_file_create_attributes();
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
     appStream1LogFileCreateAttributes.logFileFmt = "@Cr @Ch:@Cn:@Cs @Ni @Cm/@Cd/@CY @Sv @Sl \"@Cb\"";
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                           SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    logFinalize();
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
@@ -279,23 +389,37 @@ void saLogStreamOpen_2_21(void)
     init_file_create_attributes();
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
     appStream1LogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_HALT;
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_ERR_NOT_SUPPORTED);
+
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
+    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    if (rc != SA_AIS_ERR_NOT_SUPPORTED)
+        goto done;
+
     appStream1LogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_WRAP;
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+
+done:
+    logFinalize();
     test_validate(rc, SA_AIS_ERR_NOT_SUPPORTED);
 }
 
 void saLogStreamOpen_2_22(void)
 {
     init_file_create_attributes();
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    rc = logInitialize();
+    if (rc != SA_AIS_OK) {
+        test_validate(rc, SA_AIS_OK);
+        return;
+    }
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, NULL,
-        0, SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+			   0, SA_TIME_ONE_SECOND, &logStreamHandle);
+    logFinalize();
     test_validate(rc, SA_AIS_ERR_NOT_EXIST);
 }
 
@@ -304,16 +428,18 @@ void saLogStreamOpen_2_22(void)
  */
 void saLogStreamOpen_2_23(void)
 {
-	SaAisErrorT rc_17 = SA_AIS_OK;
-
-    strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
-    genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
+	strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
+	genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
 	genLogRecord.logHeader.genericHdr.logSvcUsrName = &saNameT_appstream_name_256;
     
-    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
-    rc_17 = saLogStreamOpen_2(logHandle, &saNameT_appstream_name_256, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle);
-    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+	rc = logInitialize();
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		return;
+	}
+	rc = saLogStreamOpen_2(logHandle, &saNameT_appstream_name_256, NULL, 0,
+			       SA_TIME_ONE_SECOND, &logStreamHandle);
+	logFinalize();
 
 	/* restore genLogRecord */
 	genLogRecord.logHeader.genericHdr.logSvcUsrName = &logSvcUsrName;
@@ -325,7 +451,7 @@ void saLogStreamOpen_2_23(void)
 	 * Note that normally the API is checking length. But if testing with this
 	 * check disabled the server shall not crash.
 	 */
-	test_validate(rc_17, SA_AIS_ERR_INVALID_PARAM);
+	test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 /**
@@ -354,9 +480,8 @@ void saLogStreamOpen_2_46(void)
     appLogFileCreateAttributes.maxFilesRotated = 0;
     appLogFileCreateAttributes.logFileFmt = NULL;
 
-    rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+    rc = logInitialize();
     if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed at saLogInitialize: %d\n ", (int)rc);
         test_validate(rc, SA_AIS_OK);
         return;
     }
@@ -369,14 +494,11 @@ void saLogStreamOpen_2_46(void)
     }
 
     rc = saLogStreamOpen_2(logHandle, &logStreamName, &appLogFileCreateAttributes,
-                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
 done:
-    rc = saLogFinalize(logHandle);
-    if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed to call salogFinalize: %d\n", (int) rc);
-    }
+    logFinalize();
 }
 
 /**
@@ -401,9 +523,8 @@ void saLogStreamOpen_2_47(void)
     appLogFileCreateAttributes.maxFilesRotated = 128;
     appLogFileCreateAttributes.logFileFmt = NULL;
 
-    rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+    rc = logInitialize();
     if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed at saLogInitialize: %d\n ", (int)rc);
         test_validate(rc, SA_AIS_OK);
         return;
     }
@@ -416,14 +537,11 @@ void saLogStreamOpen_2_47(void)
     }
 
     rc = saLogStreamOpen_2(logHandle, &logStreamName, &appLogFileCreateAttributes,
-                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
 done:
-    rc = saLogFinalize(logHandle);
-    if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed to call salogFinalize: %d\n", (int) rc);
-    }
+    logFinalize();
 }
 
 /**
@@ -452,9 +570,8 @@ void verFixLogRec_Max_Err(void)
     appLogFileCreateAttributes.maxFilesRotated = 4;
     appLogFileCreateAttributes.logFileFmt = NULL;
 
-    rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+    rc = logInitialize();
     if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed at saLogInitialize: %d\n ", (int)rc);
         test_validate(rc, SA_AIS_OK);
         return;
     }
@@ -467,14 +584,11 @@ void verFixLogRec_Max_Err(void)
     }
 
     rc = saLogStreamOpen_2(logHandle, &logStreamName, &appLogFileCreateAttributes,
-                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
 done:
-    rc = saLogFinalize(logHandle);
-    if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed to call salogFinalize: %d\n", (int) rc);
-    }
+    logFinalize();
 }
 
 
@@ -499,9 +613,8 @@ void verFixLogRec_Min_Err(void)
     appLogFileCreateAttributes.maxFilesRotated = 4;
     appLogFileCreateAttributes.logFileFmt = NULL;
 
-    rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+    rc = logInitialize();
     if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed at saLogInitialize: %d\n ", (int)rc);
         test_validate(rc, SA_AIS_OK);
         return;
     }
@@ -514,14 +627,11 @@ void verFixLogRec_Min_Err(void)
     }
 
     rc = saLogStreamOpen_2(logHandle, &logStreamName, &appLogFileCreateAttributes,
-                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
 done:
-    rc = saLogFinalize(logHandle);
-    if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed to call salogFinalize: %d\n", (int) rc);
-    }
+    logFinalize();
 }
 
 /**
@@ -549,9 +659,8 @@ void saLogStreamOpen_2_48(void)
     appLogFileCreateAttributes.maxFilesRotated = 128;
     appLogFileCreateAttributes.logFileFmt = NULL;
 
-    rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+    rc = logInitialize();
     if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed at saLogInitialize: %d\n ", (int)rc);
         test_validate(rc, SA_AIS_OK);
         return;
     }
@@ -564,14 +673,11 @@ void saLogStreamOpen_2_48(void)
     }
 
     rc = saLogStreamOpen_2(logHandle, &logStreamName, &appLogFileCreateAttributes,
-                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
 done:
-    rc = saLogFinalize(logHandle);
-    if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed to call salogFinalize: %d\n", (int) rc);
-    }
+    logFinalize();
 }
 
 
@@ -597,9 +703,8 @@ void saLogStreamOpen_2_49(void)
     appLogFileCreateAttributes.maxFilesRotated = 4;
     appLogFileCreateAttributes.logFileFmt = NULL;
 
-    rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+    rc = logInitialize();
     if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed at saLogInitialize: %d \n", (int)rc);
         test_validate(rc, SA_AIS_OK);
         return;
     }
@@ -612,14 +717,11 @@ void saLogStreamOpen_2_49(void)
     }
 
     rc = saLogStreamOpen_2(logHandle, &logStreamName, &appLogFileCreateAttributes,
-                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+			   SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 
 done:
-    rc = saLogFinalize(logHandle);
-    if (rc != SA_AIS_OK) {
-        fprintf(stderr, "Failed to call salogFinalize: %d \n", (int) rc);
-    }
+    logFinalize();
 }
 
 /*
@@ -669,21 +771,17 @@ void saLogStreamOpen_2_50(void)
 		}
 	}
 
-	rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+	rc = logInitialize();
 	if (rc != SA_AIS_OK) {
-		fprintf(stderr, "Failed at saLogInitialize: %d \n", (int)rc);
 		test_validate(rc, SA_AIS_OK);
 		goto done;
 	}
 
 	rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-	                       SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+			       SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
 	test_validate(rc, SA_AIS_ERR_NO_RESOURCES);
 
-	rc = saLogFinalize(logHandle);
-	if (rc != SA_AIS_OK) {
-		fprintf(stderr, "Failed to call salogFinalize: %d \n", (int) rc);
-	}
+	logFinalize();
 
 done:
 	/* Delete app stream  */
@@ -695,103 +793,110 @@ done:
 
 void *saLogInitialize_1 (void *arg)
 {
-	SaAisErrorT *rt = (SaAisErrorT *)arg;
-	SaLogStreamHandleT logStreamHandle1;
-	SaLogHandleT logHandle1;
+        SaAisErrorT *rt = (SaAisErrorT *)arg;
+        SaLogStreamHandleT logStreamHandle1;
+        SaLogHandleT logHandle1;
 
-	*rt = saLogInitialize(&logHandle1, &logCallbacks, &logVersion);
-	unsigned int nTries = 1;
-	while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
-		usleep(100 * 1000);
-		*rt = saLogInitialize(&logHandle1, &logCallbacks, &logVersion);
-		nTries++;
-	}
-	if (*rt != SA_AIS_OK) {
-		goto done;
-	}
+        *rt = saLogInitialize(&logHandle1, &logCallbacks, &logVersion);
+        unsigned int nTries = 1;
+        while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
+                usleep(100 * 1000);
+                *rt = saLogInitialize(&logHandle1, &logCallbacks, &logVersion);
+                nTries++;
+        }
+        if (*rt != SA_AIS_OK) {
+                goto done;
+        }
 
-	*rt = saLogStreamOpen_2(logHandle1, &app1StreamName, &appStream1LogFileCreateAttributes,
-				SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
-	nTries = 1;
-	while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
-		usleep(100 * 1000);
-		*rt = saLogStreamOpen_2(logHandle1, &app1StreamName, &appStream1LogFileCreateAttributes,
-					SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
-		nTries++;
-	}
-	if (*rt != SA_AIS_OK) {
-		goto done;
-	}
+        *rt = saLogStreamOpen_2(logHandle1, &app1StreamName, &appStream1LogFileCreateAttributes,
+                                SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
+        nTries = 1;
+        while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
+                usleep(100 * 1000);
+                *rt = saLogStreamOpen_2(logHandle1, &app1StreamName, &appStream1LogFileCreateAttributes,
+                                        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
+                nTries++;
+        }
+        if (*rt != SA_AIS_OK) {
+                goto done;
+        }
 
-	*rt = saLogFinalize(logHandle1);
-	nTries = 1;
-	while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
-		usleep(100 * 1000);
-		*rt = saLogFinalize(logHandle1);
-		nTries++;
-	}
-	if (*rt != SA_AIS_OK) {
-		goto done;
-	}
+        *rt = saLogFinalize(logHandle1);
+        nTries = 1;
+        while (*rt == SA_AIS_ERR_TRY_AGAIN && nTries < 50) {
+                usleep(100 * 1000);
+                *rt = saLogFinalize(logHandle1);
+                nTries++;
+        }
+        if (*rt != SA_AIS_OK) {
+                goto done;
+        }
 
 done:
-	pthread_exit(NULL);
+        pthread_exit(NULL);
 }
 
 /*
  * Ticket 1396
- * Verify that saLogInitialize() then saLogFinalize() multiple times OK
+ * Verify that logInitialize then logFinalize multiple times OK
  */
 void saLogMultipleInitialize(void)
 {
-	SaLogStreamHandleT logStreamHandle1;
 	int count = 100;
 	SaAisErrorT rc = SA_AIS_OK;
 
 	while (count--) {
-		rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
+		rc = logInitialize();
+		if (rc != SA_AIS_OK) {
+			break;
+		}
+
+		rc = logAppStreamOpen(&app1StreamName, &appStream1LogFileCreateAttributes);
+		if (rc != SA_AIS_OK) {
+			break;
+		}
+
+		rc = logFinalize();
 		if (rc != SA_AIS_OK)
 			break;
-
-		rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-					SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
-		safassert(rc, SA_AIS_OK);
-
-		rc = saLogFinalize(logHandle);
-		if (rc != SA_AIS_OK)
-			break;
-
 	}
 	test_validate(rc, SA_AIS_OK);
 }
 
 /*
  * Ticket 1396
- * Verify that saLogInitialize() then saLogFinalize() multiple times in multiple threads OK
+ * Verify that logInitialize then logFinalize multiple times in multiple threads OK
  */
 void saLogMultiThreadMultiInit(void)
 {
-	int count = 100, i;
-	SaAisErrorT rt[count], rc = SA_AIS_OK;
-	pthread_t threads[count];
+	int i, errno, nThreads = 100;
+	SaAisErrorT rt[nThreads], rc = SA_AIS_OK;
+	pthread_t threads[nThreads];
 
-	for (i = 0; i < count; i++) {
-		safassert(pthread_create(&threads[i], NULL,
-						saLogInitialize_1, (void *) &rt[i]), 0);
+	logProfile.nTries = 50;
+	for (i = 0; i < nThreads; i++) {
+		errno = pthread_create(&threads[i], NULL, saLogInitialize_1, (void *) &rt[i]);
+		if (errno == EAGAIN) {
+			nThreads = i;
+			fprintf(stderr, " Insufficient resource or limited system-imposed to create"
+					" no more than %d threads \n", nThreads);
+			break;
+		}
 	}
 
 	/* Wait for all threads terminated */
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < nThreads; i++) {
 		pthread_join(threads[i], NULL);
 	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < nThreads; i++) {
 		if (rt[i] != SA_AIS_OK) {
 			rc = rt[i];
 			break;
 		}
 	}
 
+	logProfile.nTries = 25;
 	test_validate(rc, SA_AIS_OK);
 }
 
