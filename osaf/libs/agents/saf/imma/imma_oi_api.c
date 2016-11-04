@@ -3562,7 +3562,7 @@ extern SaAisErrorT immsv_om_admo_handle_initialize(
 				  const SaImmAdminOwnerNameT adminOwnerName,
 				  SaImmAdminOwnerHandleT *adminOwnerHandle) __attribute__((weak));
 
-extern SaAisErrorT immsv_om_handle_finalize(
+extern void immsv_om_handle_finalize(
 				 SaImmHandleT privateOmHandle) __attribute__((weak));
 
 static SaAisErrorT
