@@ -24,6 +24,7 @@ SUBDIRS = tests
 
 noinst_HEADERS = \
 	buffer.h \
+	file_notify.h \
 	getenv.h \
 	log_message.h \
 	macros.h \
@@ -43,6 +44,7 @@ libbase_la_CPPFLAGS = \
 libbase_la_LDFLAGS = -static
 
 libbase_la_SOURCES = \
+	file_notify.cc \
 	getenv.cc \
 	log_message.cc \
 	process.cc \
