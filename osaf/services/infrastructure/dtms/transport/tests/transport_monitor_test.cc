@@ -82,14 +82,14 @@ class TransportMonitorTest : public ::testing::Test {
 TEST_F(TransportMonitorTest, WaitForNonexistentDaemonName) {
   pid_t pid = monitor_->WaitForDaemon("name_does_not_exist", 17);
   EXPECT_EQ(pid, pid_t{-1});
-  EXPECT_EQ(mock_osaf_poll.invocations, 17);
+  EXPECT_EQ(mock_osaf_poll.invocations, 0);
 }
 
 TEST_F(TransportMonitorTest, WaitForNonexistentDaemonPid) {
   CreatePidFile("pid_does_not_exist", 1234567890, false);
   pid_t pid = monitor_->WaitForDaemon("pid_does_not_exist", 1);
   EXPECT_EQ(pid, pid_t{-1});
-  EXPECT_EQ(mock_osaf_poll.invocations, 1);
+  EXPECT_EQ(mock_osaf_poll.invocations, 0);
 }
 
 TEST_F(TransportMonitorTest, WaitForExistingPid) {

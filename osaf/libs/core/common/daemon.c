@@ -56,12 +56,14 @@ static const char* internal_version_id_;
 
 extern  void __gcov_flush(void) __attribute__((weak));
 
+static char fifo_file[NAME_MAX];
 static char __pidfile[NAME_MAX];
 static char __tracefile[NAME_MAX];
 static char __runas_username[UT_NAMESIZE];
 static unsigned int __tracemask;
 static unsigned int __nofork = 0;
 static int __logmask;
+static int fifo_fd = -1;
 
 static void install_fatal_signal_handlers(void);
 
@@ -118,6 +120,35 @@ static int __create_pidfile(const char* pidfile)
 	return rc;
 }
 
+static void create_fifofile(const char* fifofile)
+{
+	mode_t mask;
+
+	mask = umask(0);
+
+	if (mkfifo(fifofile, 0666) == -1) {
+		if (errno == EEXIST ) {
+			syslog(LOG_INFO, "mkfifo already exists: %s %s", fifofile, strerror(errno));
+		} else {
+			syslog(LOG_WARNING, "mkfifo failed: %s %s", fifofile, strerror(errno));
+			umask(mask);
+			return;
+		}
+	}
+
+	do {
+		fifo_fd = open(fifofile, O_NONBLOCK|O_RDONLY);
+
+	} while (fifo_fd == -1 && errno == EINTR);
+
+	if (fifo_fd == -1) {
+		syslog(LOG_WARNING, "open fifo failed: %s %s", fifofile, strerror(errno));
+	}
+
+	umask(mask);
+	return;
+}
+
 static int level2mask(const char *level)
 {
 	if (strncmp("notice", level, 6) == 0) {
@@ -133,6 +164,7 @@ static int level2mask(const char *level)
 static void __set_default_options(const char *progname)
 {
 	/* Set the default option values */
+	snprintf(fifo_file, sizeof(fifo_file), PKGLOCALSTATEDIR "/%s.fifo", progname);
 	snprintf(__pidfile, sizeof(__pidfile), PKGPIDDIR "/%s.pid", progname);
 	snprintf(__tracefile, sizeof(__tracefile), PKGLOGDIR "/%s", progname);
 	if (strlen(__runas_username) == 0) {
@@ -316,6 +348,8 @@ void daemonize(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	create_fifofile(fifo_file);
+
 	/* Create the process PID file */
 	if (__create_pidfile(__pidfile) != 0)
 		exit(EXIT_FAILURE);
@@ -424,6 +458,11 @@ static void sigterm_handler(int sig)
 void daemon_exit(void)
 {
 	syslog(LOG_NOTICE, "exiting for shutdown");
+
+	close(fifo_fd);
+
+	/* Lets remove any such file if it already exists */
+	unlink(fifo_file);
 
 	if (__gcov_flush) {
 		__gcov_flush();

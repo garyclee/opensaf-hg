@@ -42,4 +42,5 @@ transport_test_SOURCES = \
 
 transport_test_LDADD = \
 	$(GTEST_DIR)/lib/libgtest.la \
-	$(GTEST_DIR)/lib/libgtest_main.la
+	$(GTEST_DIR)/lib/libgtest_main.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la

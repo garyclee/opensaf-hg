@@ -20,11 +20,17 @@
 #endif
 #include "osaf/services/infrastructure/dtms/transport/transport_monitor.h"
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include <cstdio>
 #include <fstream>
-#include "./configmake.h"
+#include <vector>
+#include "logtrace.h"
+#include "osaf_time.h"
 #include "osaf/libs/core/common/include/osaf_poll.h"
 #include "osaf/libs/core/cplusplus/base/getenv.h"
+#include "osaf/libs/core/cplusplus/base/file_notify.h"
+
 
 TransportMonitor::TransportMonitor(int term_fd)
     : term_fd_{term_fd},
@@ -41,21 +47,26 @@ TransportMonitor::~TransportMonitor() {
 
 pid_t TransportMonitor::WaitForDaemon(const std::string& daemon_name,
                                       int64_t seconds_to_wait) {
+  std::vector<int> user_fds {term_fd_};
   std::string pidfile = pkgpiddir_ + "/" + daemon_name + ".pid";
   pid_t pid = pid_t{-1};
-  for (int64_t count = 0; count != seconds_to_wait; ++count) {
-    if (!(std::ifstream{pidfile} >> pid).fail()
-        && IsDir(proc_path_ + std::to_string(pid)))
-      break;
-    pid = pid_t{-1};
-    if (Sleep(1))
-      return pid_t{-1};
+  base::FileNotify file_notify;
+  base::FileNotify::FileNotifyErrors rc =
+      file_notify.WaitForFileCreation(pidfile, user_fds,
+                                      seconds_to_wait * kMillisPerSec);
+
+  if (rc == base::FileNotify::FileNotifyErrors::kOK) {
+    if (!(std::ifstream{pidfile} >> pid).fail()) {
+      if (IsDir(proc_path_ + std::to_string(pid))) {
+        return pid;
+      }
+    }
   }
-  return pid;
+  return pid_t{-1};
 }
 
 bool TransportMonitor::Sleep(int64_t seconds_to_wait) {
-  return osaf_poll_one_fd(term_fd_, seconds_to_wait * 1000) != 0;
+  return osaf_poll_one_fd(term_fd_, seconds_to_wait * kMillisPerSec) != 0;
 }
 
 bool TransportMonitor::IsDir(const std::string& path) {
@@ -65,20 +76,43 @@ bool TransportMonitor::IsDir(const std::string& path) {
 }
 
 void TransportMonitor::RotateMdsLogs(pid_t pid_to_watch) {
+  int fifo_fd{-1};
+  std::vector<int> user_fds {term_fd_};
+  base::FileNotify file_notify;
   std::string pid_path{proc_path_ + std::to_string(pid_to_watch)};
+
+  if (pid_to_watch != pid_t{0}) {
+    do {
+      fifo_fd = open(fifo_file_.c_str(), O_WRONLY|O_NONBLOCK);
+    } while (fifo_fd == -1 && errno == EINTR);
+
+    if (fifo_fd == -1) {
+      LOG_WA("open fifo file failed");
+    } else {
+      user_fds.emplace_back(fifo_fd);
+    }
+  }
+
   for (;;) {
     if (FileSize(mds_log_file_) > kMaxFileSize) {
       unlink(old_mds_log_file());
       rename(mds_log_file(), old_mds_log_file());
     }
     if (pid_to_watch != pid_t{0}) {
-      for (int64_t i = 0; i != kLogRotationIntervalInSeconds; ++i) {
-        if (!IsDir(pid_path) || Sleep(1))
-          return;
+      base::FileNotify::FileNotifyErrors rc =
+          file_notify.WaitForFileDeletion(
+              pid_path,
+              user_fds, kLogRotationIntervalInSeconds * kMillisPerSec);
+      if (rc != base::FileNotify::FileNotifyErrors::kTimeOut) {
+        close(fifo_fd);
+        return;
+      } else {
+        TRACE("Timeout received, continuing...");
       }
     } else {
-      if (Sleep(kLogRotationIntervalInSeconds))
+      if (Sleep(kLogRotationIntervalInSeconds)) {
         return;
+      }
     }
   }
 }
