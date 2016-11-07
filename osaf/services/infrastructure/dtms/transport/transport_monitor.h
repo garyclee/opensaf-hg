@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <cstdint>
 #include <string>
+#include "./configmake.h"
 #include "osaf/libs/core/cplusplus/base/macros.h"
 
 // This class is responsible for monitoring the osafdtmd process and rotating
@@ -80,6 +81,7 @@ class TransportMonitor {
   static uint64_t FileSize(const std::string& path);
 
   int term_fd_;
+  const std::string fifo_file_ {PKGLOCALSTATEDIR "/osafdtmd.fifo"};
   const std::string pkgpiddir_;
   const std::string proc_path_;
   const std::string mds_log_file_;
