@@ -33,7 +33,8 @@ libbase_test_LDFLAGS = \
 	-pthread -lrt \
 	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-getenv.o \
 	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-log_message.o \
-	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-process.o
+	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-process.o \
+	$(top_builddir)/osaf/libs/core/cplusplus/base/libbase_la-file_notify.o
 
 libbase_test_SOURCES = \
 	getenv_test.cc \
@@ -44,8 +45,10 @@ libbase_test_SOURCES = \
 	time_add_test.cc \
 	time_compare_test.cc \
 	time_convert_test.cc \
+	file_notify_test.cc \
 	time_subtract_test.cc
 
 libbase_test_LDADD = \
 	$(GTEST_DIR)/lib/libgtest.la \
-	$(GTEST_DIR)/lib/libgtest_main.la
+	$(GTEST_DIR)/lib/libgtest_main.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la
