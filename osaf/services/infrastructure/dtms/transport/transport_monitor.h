@@ -24,8 +24,7 @@
 #include "./configmake.h"
 #include "osaf/libs/core/cplusplus/base/macros.h"
 
-// This class is responsible for monitoring the osafdtmd process and rotating
-// the MDS logs.
+// This class is responsible for monitoring the osafdtmd process.
 class TransportMonitor {
  public:
   // @a term_fd is a file descriptor that will become readable when the program
@@ -39,12 +38,11 @@ class TransportMonitor {
   // SIGTERM signal and should exit.
   pid_t WaitForDaemon(const std::string& daemon_name, int64_t seconds_to_wait);
 
-  // Run in a loop, rotating the MDS logs every kLogRotationIntervalInSeconds
-  // seconds if the MDS log file size is larger than kMaxFileSize. If @a
-  // pid_to_watch is non-zero, watch the process with that process id. Return if
-  // the process dies, or if we have received the SIGTERM signal and should
-  // exit.
-  void RotateMdsLogs(pid_t pid_to_watch);
+  // If @a pid_to_watch is non-zero, run in a loop watching the process with
+  // that process id. Return if the process dies, or if we have received the
+  // SIGTERM signal and should exit. If @a pid_to_watch is zero, return
+  // immediately.
+  void SuperviseDaemon(pid_t pid_to_watch);
 
   // Sleep for @a seconds_to_wait seconds, or until we have received the SIGTERM
   // signal and should exit, whichever happens first. Return true if the SIGTERM
@@ -58,9 +56,6 @@ class TransportMonitor {
   }
 
  private:
-  constexpr static const uint64_t kMaxFileSize = 5000 * uint64_t{1024};
-  constexpr static const int64_t kLogRotationIntervalInSeconds = 15;
-
   const char* pkgpiddir() const {
     return pkgpiddir_.c_str();
   }
