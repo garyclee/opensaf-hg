@@ -31,6 +31,7 @@
 #include "ncssysf_tsk.h"
 #include "ncssysf_mem.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sched.h>
@@ -1107,12 +1108,12 @@ static uint32_t mdtm_process_discovery_events(uint32_t discovery_event, struct t
 				m_MDS_LOG_INFO("MDTM: Raising the NODE UP event for NODE id = %d", node_id);
 				uint32_t up_node_id;
 				if ((up_node_id = m_MDS_GET_NODE_ID_FROM_ADEST(m_MDS_GET_ADEST)) == node_id) {
-					m_MDS_LOG_INFO("MDTM:NODE_UP for subtn_ref_val:%lu node_name:%s, node_id:%u addr_family:%d ",
+					m_MDS_LOG_INFO("MDTM:NODE_UP for subtn_ref_val:%" PRIu64 " node_name:%s, node_id:%u addr_family:%d ",
 							(uint64_t)subtn_ref_val,gl_mds_mcm_cb->node_name, node_id, AF_TIPC);
 					return mds_mcm_node_up(svc_hdl, node_id, NULL, AF_TIPC, gl_mds_mcm_cb->node_name);
 				} else {
 
-					m_MDS_LOG_INFO("MDTM:NODE_UP for subtn_ref_val:%lu node_name:%s, node_id:%u addr_family:%d ",
+					m_MDS_LOG_INFO("MDTM:NODE_UP for subtn_ref_val:%" PRIu64 " node_name:%s, node_id:%u addr_family:%d ",
                                                         (uint64_t)subtn_ref_val, "REMOTE_NODE", node_id, AF_TIPC);
 					return mds_mcm_node_up(svc_hdl, node_id, NULL, AF_TIPC, "REMOTE_NODE");
 				}

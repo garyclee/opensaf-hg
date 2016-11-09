@@ -22,39 +22,50 @@
   ******************************************************************************
   */
 
-#ifndef _MDS_LOG_H
-#define _MDS_LOG_H
+#ifndef OSAF_LIBS_CORE_MDS_INCLUDE_MDS_LOG_H_
+#define OSAF_LIBS_CORE_MDS_INCLUDE_MDS_LOG_H_
 
-#include <ncsgl_defs.h>
-#include "ncs_lib.h"
+#include <stdint.h>
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 /* Logging utility functions  - Phani */
 
-extern uint32_t gl_mds_log_level;
+extern int gl_mds_log_level;
 
-#define NCSMDS_LC_CRITICAL       1
-#define NCSMDS_LC_ERR            2
-#define NCSMDS_LC_NOTIFY         3
-#define NCSMDS_LC_INFO           4
-#define NCSMDS_LC_DBG            5
+enum {
+  NCSMDS_LC_CRITICAL = 1,
+  NCSMDS_LC_ERR = 2,
+  NCSMDS_LC_NOTIFY = 3,
+  NCSMDS_LC_INFO = 4,
+  NCSMDS_LC_DBG = 5
+};
 
-#define m_MDS_LOG_CRITICAL  if (gl_mds_log_level < NCSMDS_LC_CRITICAL) {} else log_mds_critical
-
-#define m_MDS_LOG_ERR if (gl_mds_log_level < NCSMDS_LC_ERR) {} else log_mds_err
-
-#define m_MDS_LOG_NOTIFY if (gl_mds_log_level < NCSMDS_LC_NOTIFY) {} else log_mds_notify
-
-#define m_MDS_LOG_INFO if (gl_mds_log_level < NCSMDS_LC_INFO) {} else log_mds_info
-
-#define m_MDS_LOG_DBG if (gl_mds_log_level < NCSMDS_LC_DBG) {} else log_mds_dbg
+#define m_MDS_LOG_CRITICAL log_mds_critical
+#define m_MDS_LOG_ERR log_mds_err
+#define m_MDS_LOG_NOTIFY log_mds_notify
+#define m_MDS_LOG_INFO log_mds_info
+#define m_MDS_LOG_DBG log_mds_dbg
 
 #define m_MDS_ENTER() m_MDS_LOG_DBG(">> %s", __FUNCTION__)
 #define m_MDS_LEAVE() m_MDS_LOG_DBG("<< %s", __FUNCTION__)
 
-extern void log_mds_dbg(char *fmt, ...);
-extern void log_mds_info(char *fmt, ...);
-extern void log_mds_notify(char *fmt, ...);
-extern void log_mds_err(char *fmt, ...);
-extern void log_mds_critical(char *fmt, ...);
+uint32_t mds_log_init(const char *log_file_name);
+void log_mds_dbg(const char *fmt, ...)
+    __attribute__ ((format(printf, 1, 2)));
+void log_mds_info(const char *fmt, ...)
+    __attribute__ ((format(printf, 1, 2)));
+void log_mds_notify(const char *fmt, ...)
+    __attribute__ ((format(printf, 1, 2)));
+void log_mds_err(const char *fmt, ...)
+    __attribute__ ((format(printf, 1, 2)));
+void log_mds_critical(const char *fmt, ...)
+    __attribute__ ((format(printf, 1, 2)));
 
+#ifdef  __cplusplus
+}
 #endif
+
+#endif  // OSAF_LIBS_CORE_MDS_INCLUDE_MDS_LOG_H_

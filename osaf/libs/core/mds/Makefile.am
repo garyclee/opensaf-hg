@@ -37,7 +37,7 @@ libmds_la_SOURCES = \
 	mds_papi.c \
 	mds_c_sndrcv.c \
 	mds_c_api.c \
-	mds_log.c \
+	mds_log.cc \
 	ncs_ada.c \
 	ncs_mda.c \
 	ncs_vda.c

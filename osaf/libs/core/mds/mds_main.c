@@ -102,7 +102,6 @@ static void mds_mutex_init_once(void)
 }
 
 /* global Log level variable */
-uint32_t gl_mds_log_level = 3;
 uint32_t gl_mds_checksum = 0;
 
 uint32_t MDS_QUIESCED_TMR_VAL = 80;
@@ -555,10 +554,9 @@ uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req)
 
 		/* Initialize logging */
 		{
-			char buff[50], pref[50];
+			char buff[50];
 			snprintf(buff, sizeof(buff), PKGLOGDIR "/mds.log");
-			memset(pref, 0 ,sizeof(pref));
-			mds_log_init(buff, pref);
+			mds_log_init(buff);
 		}
 
 		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);

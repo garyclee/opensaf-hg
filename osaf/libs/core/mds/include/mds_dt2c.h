@@ -316,9 +316,6 @@ typedef struct mds_mbx_evt_info {
 /* ******************************************** */
 /* ******************************************** */
 
-/* Initialize Logging */
-extern uint32_t mds_log_init(char *log_file_name, char *line_prefix);
-
 /* extern gl_mds_checksum */
 extern uint32_t gl_mds_checksum;
 
