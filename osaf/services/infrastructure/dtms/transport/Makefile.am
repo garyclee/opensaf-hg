@@ -23,6 +23,8 @@ DEFAULT_INCLUDES =
 SUBDIRS = tests
 
 noinst_HEADERS = \
+	log_server.h \
+	log_writer.h \
 	transport_monitor.h
 
 osaf_execbindir = $(pkglibdir)
@@ -34,6 +36,8 @@ osaftransportd_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
 osaftransportd_SOURCES = \
+	log_server.cc \
+	log_writer.cc \
 	transport_monitor.cc \
 	main.cc
 

@@ -34,6 +34,7 @@ RETVAL=0
 binary=$pkglibdir/$osafprog
 pidfile=$pkgpiddir/$osafprog.pid
 lockfile=$lockdir/$initscript
+sockfile=$pkglocalstatedir/mds_log.sock
 
 start() {
 	[ -p $NIDFIFO ] || return 1
@@ -100,6 +101,7 @@ stop() {
 	killproc -p "$pidfile" "$osafprog"
 	RETVAL=$?
 	if [ "$RETVAL" -eq 0 ] || [ "$RETVAL" -eq 7 ]; then
+		rm -f "$sockfile"
 		rm -f "$lockfile"
 		RETVAL=0
 	fi
