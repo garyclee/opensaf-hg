@@ -2497,7 +2497,7 @@ static uint32_t mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_port
 {
 	/* Can be made as macro even */
 	struct sockaddr_tipc server_addr;
-	int send_len = 0;
+	ssize_t send_len = 0;
 #ifdef MDS_CHECKSUM_ENABLE_FLAG
 	uint16_t checksum = 0;
 #endif
@@ -2524,8 +2524,11 @@ static uint32_t mdtm_sendto(uint8_t *buffer, uint16_t buff_len, struct tipc_port
 	if (send_len == buff_len) {
 		m_MDS_LOG_INFO("MDTM: Successfully sent message");
 		return NCSCC_RC_SUCCESS;
-	} else {
+	} else if (send_len == -1) {
 		m_MDS_LOG_ERR("MDTM: Failed to send message err :%s", strerror(errno));
+		return NCSCC_RC_FAILURE;
+	} else {
+		m_MDS_LOG_ERR("MDTM: Failed to send message send_len :%zd", send_len);
 		return NCSCC_RC_FAILURE;
 	}
 }
