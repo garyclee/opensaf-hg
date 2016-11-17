@@ -16,6 +16,7 @@
  */
 
 #include "ntfs_com.h"
+#include "osaf_time.h"
 
 /*
  * @brief  CLM callback for tracking node membership status.
@@ -101,13 +102,20 @@ void *ntfs_clm_init_thread(void *cb)
 {
 	ntfs_cb_t *_ntfs_cb = (ntfs_cb_t *) cb;
 	SaAisErrorT rc = SA_AIS_OK;
+
 	TRACE_ENTER();
+
 	rc = saClmInitialize_4(&_ntfs_cb->clm_hdl, &clm_callbacks, &clmVersion);
+	while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_TIMEOUT)) {
+		osaf_nanosleep(&kHundredMilliseconds);
+		rc = saClmInitialize_4(&_ntfs_cb->clm_hdl, &clm_callbacks, &clmVersion);
+	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saClmInitialize failed with error: %d", rc);
 		TRACE_LEAVE();
-                exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
+
 	rc = saClmSelectionObjectGet(_ntfs_cb->clm_hdl, &ntfs_cb->clmSelectionObject);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saClmSelectionObjectGet failed with error: %d", rc);
