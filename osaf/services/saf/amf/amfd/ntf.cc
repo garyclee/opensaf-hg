@@ -546,19 +546,19 @@ SaAisErrorT avd_try_send_notification(NtfSend *job) {
   SaNtfNotificationsT *myntf = &job->myntf;
   SaAisErrorT rc = SA_AIS_OK;	
   SaNtfNotificationHeaderT *header = nullptr;
-  SaNtfNotificationHandleT notificationHandle = 0;
+  SaNtfNotificationHandleT *notificationHandle = nullptr;
 
   if (myntf->notificationType == SA_NTF_TYPE_STATE_CHANGE) {
     header = &myntf->notification.stateChangeNotification.notificationHeader;
-    notificationHandle = myntf->notification.stateChangeNotification.notificationHandle;
+    notificationHandle = &myntf->notification.stateChangeNotification.notificationHandle;
   } else if (myntf->notificationType == SA_NTF_TYPE_ALARM) { 
     header = &myntf->notification.alarmNotification.notificationHeader;
-    notificationHandle = myntf->notification.alarmNotification.notificationHandle;
+    notificationHandle = &myntf->notification.alarmNotification.notificationHandle;
   }
 
   //Try to send the notification if not sent.
   if (job->already_sent == false) {
-    rc = saNtfNotificationSend(notificationHandle);
+    rc = saNtfNotificationSend(*notificationHandle);
     if ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_TIMEOUT)) {
       TRACE("Notification Send unsuccesful TRY_AGAIN or TIMEOUT rc:%u",rc);
       goto done;
@@ -570,9 +570,11 @@ SaAisErrorT avd_try_send_notification(NtfSend *job) {
     osaf_extended_name_free(header->notifyingObject);
   }
   
-  rc = saNtfNotificationFree(notificationHandle);
+  rc = saNtfNotificationFree(*notificationHandle);
   if ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_TIMEOUT)) {
     TRACE("Notification Free unsuccesful TRY_AGAIN or TIMEOUT rc:%u", rc);
+  } else {
+    *notificationHandle = 0;
   }
 
 done:
@@ -887,4 +889,15 @@ AvdJobDequeueResultT NtfSend::exec(const AVD_CL_CB *cb) {
 }
 
 NtfSend::~NtfSend() {
+  SaAisErrorT rc = SA_AIS_OK;
+  if (myntf.notificationType == SA_NTF_TYPE_STATE_CHANGE) {
+    if (myntf.notification.stateChangeNotification.notificationHandle != 0)
+      rc = saNtfNotificationFree(myntf.notification.stateChangeNotification.notificationHandle);
+  } else if (myntf.notificationType == SA_NTF_TYPE_ALARM) {
+    if (myntf.notification.alarmNotification.notificationHandle != 0)
+      rc = saNtfNotificationFree(myntf.notification.alarmNotification.notificationHandle);
+  }
+  if (rc != SA_AIS_OK) {
+    TRACE("Notification Free failed rc:%u", rc);
+  }
 }
