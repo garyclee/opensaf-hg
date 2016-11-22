@@ -2602,11 +2602,11 @@ This enhancement removes the restriction of not allowing the removal of a
 default value if this new flag is set. The effect of this flag is that
 when/if an object of the class is created with no value assigned to the
 attribute that used to have a default but no longer has a default; then a
-syslog message is generated noting that this attribute used to have a default
+trace message is generated noting that this attribute used to have a default
 but no longer has a default and will in this case have no value.
 
 This is to assist users or troubleshooters if they get some form of problem
-by the removal of the default. The syslog message should speed up
+by the removal of the default. The trace message should speed up
 troubleshooting and prevent the creation of unnecessary tickets or trouble
 reports.
 
