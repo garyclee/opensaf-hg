@@ -8321,7 +8321,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
 
             if ((attr->mFlags & SA_IMM_ATTR_DEFAULT_REMOVED) &&
                 attrValue->empty()) {
-                LOG_NO("Attribute %s has a removed default, the value will be empty",
+                TRACE("Attribute %s has a removed default, the value will be empty",
                    attrName.c_str());
             }
 
