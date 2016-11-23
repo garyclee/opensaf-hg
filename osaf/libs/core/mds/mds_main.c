@@ -182,7 +182,7 @@ static void mds_register_callback(int fd, const struct ucred *creds)
 		uint32_t sz = ncs_encode_32bit(&p, MDS_REGISTER_RESP);
 		sz += ncs_encode_32bit(&p, 0); // result OK
 
-		if ((n = send(fd, buf, sz, 0)) == -1)
+		if ((n = send(fd, buf, sz, MSG_NOSIGNAL)) == -1)
 			syslog(LOG_ERR, "MDS: %s: send to pid %d failed - %s",
 					__FUNCTION__, creds->pid, strerror(errno));
 	} else if (type == MDS_UNREGISTER_REQ) {
@@ -199,7 +199,7 @@ static void mds_register_callback(int fd, const struct ucred *creds)
 		uint32_t sz = ncs_encode_32bit(&p, MDS_UNREGISTER_RESP);
 		sz += ncs_encode_32bit(&p, 0);  // result OK
 
-		if ((n = send(fd, buf, sz, 0)) == -1)
+		if ((n = send(fd, buf, sz, MSG_NOSIGNAL)) == -1)
 			syslog(LOG_ERR, "MDS: %s: send to pid %d failed - %s",
 					__FUNCTION__, creds->pid, strerror(errno));
 	} else {
