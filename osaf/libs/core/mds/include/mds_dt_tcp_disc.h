@@ -126,6 +126,8 @@ typedef struct mds_mdtm_node_unsubscribe_msg {
   MDS_SUBTN_REF_VAL sub_ref_val;
 } MDS_MDTM_NODE_UNSUBSCRIBE_MSG;
 
+extern uint16_t mdtm_num_subscriptions;
+
 uint32_t mds_mdtm_svc_install_tcp(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
                                   V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
                                   MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver);
