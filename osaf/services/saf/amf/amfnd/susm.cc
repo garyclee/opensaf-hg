@@ -1426,6 +1426,7 @@ static void perform_pending_nodeswitchover()
 		if (su->sufailover == false) {
 			uint32_t rc = avnd_di_oper_send(avnd_cb, su, SA_AMF_NODE_SWITCHOVER);
 			osafassert(NCSCC_RC_SUCCESS == rc);
+			avnd_cb->failed_su = nullptr;
 		}
 	}
 
@@ -1491,7 +1492,7 @@ uint32_t avnd_su_pres_fsm_run(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVND_SU
 		goto done;
         } else if ((cb->term_state == AVND_TERM_STATE_NODE_SWITCHOVER_STARTED) &&
 			(cb->oper_state == SA_AMF_OPERATIONAL_DISABLED) && 
-			(su->sufailover == false)) {
+			(su->sufailover == false) && (cb->failed_su != nullptr)) {
 		perform_pending_nodeswitchover();
 	}
 		
