@@ -61,9 +61,8 @@ enum {
 #define MDS_MDTM_DTM_PID_BUFFER_SIZE (2 + MDS_MDTM_DTM_PID_SIZE)
 
 /* The default value is set by the rmem_default/wmem_default  */
-#define MDS_SOCK_SND_RCV_BUF_SIZE 65536  
- 
-extern uint32_t mdtm_num_subscriptions;
+#define MDS_SOCK_SND_RCV_BUF_SIZE 65536
+
 extern MDS_SUBTN_REF_VAL mdtm_handle;
 extern uint32_t mdtm_global_frag_num_tcp;
 
