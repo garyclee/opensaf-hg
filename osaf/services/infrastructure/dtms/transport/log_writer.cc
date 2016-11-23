@@ -78,6 +78,7 @@ void LogWriter::Write(size_t size) {
 
 void LogWriter::Flush() {
   size_t size = current_buffer_size_;
+  current_buffer_size_ = 0;
   if (size == 0) return;
   if (fd_ < 0) Open();
   if (fd_ < 0) return;
@@ -95,7 +96,6 @@ void LogWriter::Flush() {
     }
     bytes_written += result;
   }
-  current_buffer_size_ = 0;
   current_file_size_ += bytes_written;
 }
 
