@@ -733,7 +733,7 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
 				report_ccb_validation_error(opdata, "SG'%s' is not stable (%u)", si->sg_of_si->name.value,
 						si->sg_of_si->sg_fsm_state);
-				rc = SA_AIS_ERR_BAD_OPERATION;
+				rc = SA_AIS_ERR_NO_RESOURCES;
 				break;
 			}
 			if (si->sg_of_si->sg_redundancy_model != SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL) {
@@ -747,7 +747,7 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
 				report_ccb_validation_error(opdata, "SG'%s' is not stable (%u)", si->sg_of_si->name.value,
 						si->sg_of_si->sg_fsm_state);
-				rc = SA_AIS_ERR_BAD_OPERATION;
+				rc = SA_AIS_ERR_NO_RESOURCES;
 				break;
 			}
 			if( si->sg_of_si->sg_redundancy_model != SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
@@ -771,7 +771,7 @@ static SaAisErrorT si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
 				report_ccb_validation_error(opdata, "SG'%s' is not stable (%u)", si->sg_of_si->name.value,
 						si->sg_of_si->sg_fsm_state);
-				rc = SA_AIS_ERR_BAD_OPERATION;
+				rc = SA_AIS_ERR_NO_RESOURCES;
 				break;
 			}
 		} else {
