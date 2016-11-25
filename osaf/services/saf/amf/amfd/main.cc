@@ -552,6 +552,7 @@ static uint32_t initialize(void)
 	cb->all_nodes_synced = false;
 	cb->node_sync_window_closed = false;
 	cb->scs_absence_max_duration = 0;
+	cb->avd_imm_status = AVD_IMM_INIT_BASE;
 
 	if ((val = getenv("AVSV_HB_PERIOD")) != nullptr) {
 		cb->heartbeat_tmr_period = strtoll(val, nullptr, 0);
@@ -677,6 +678,7 @@ static void main_loop(void)
 			}
 
 			if (evt->rcv_evt == AVD_IMM_REINITIALIZED) {
+				cb->avd_imm_status = AVD_IMM_INIT_DONE;
 				TRACE("Received IMM reinit msg");
 				polltmo = retval_to_polltmo(Fifo::execute(cb));
 				continue;

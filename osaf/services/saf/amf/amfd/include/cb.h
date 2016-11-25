@@ -59,6 +59,11 @@ typedef enum {
 	AVD_APP_STATE  /* Cluster startup timer has expired */
 } AVD_INIT_STATE;
 
+typedef enum {
+	AVD_IMM_INIT_BASE = 1,
+	AVD_IMM_INIT_ONGOING = 2,
+	AVD_IMM_INIT_DONE = 3,
+} AVD_IMM_INIT_STATUS;
 /*
  * Sync state of the Standby.
  */
@@ -237,6 +242,7 @@ typedef struct cl_cb_tag {
 
 	/* The duration that amfd should tolerate the absence of SCs */
 	uint32_t scs_absence_max_duration;
+	AVD_IMM_INIT_STATUS avd_imm_status;
 } AVD_CL_CB;
 
 extern AVD_CL_CB *avd_cb;
