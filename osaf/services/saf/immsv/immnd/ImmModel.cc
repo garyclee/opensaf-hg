@@ -6323,7 +6323,8 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, ConnVector& clVector
     }
 
     if(ccb->mAugCcbParent && ccb->mAugCcbParent->mOriginatingConn) {
-        if(ccb->mOriginatingConn && !ccb->mPurged) {
+        if(ccb->mOriginatingConn && !ccb->mPurged && ccb->mState != IMM_CCB_EMPTY
+                && ccb->mState != IMM_CCB_READY && ccb->mState != IMM_CCB_VALIDATED) {
             /* Case where augumented client and Augumented parent
                are originated from ths node. Send the client response
                to both clients. */
@@ -6333,7 +6334,9 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, ConnVector& clVector
                and Augumented parent is originated from this node.
                Send the response to the Augumented parent. */
             *nodeId = ccb->mAugCcbParent->mOriginatingNode;  
-            clVector.pop_back();
+            if (!clVector.empty()) {
+                clVector.pop_back();
+            }
         }
         clVector.push_back(ccb->mAugCcbParent->mOriginatingConn);
     }   
