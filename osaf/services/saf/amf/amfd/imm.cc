@@ -411,6 +411,10 @@ AvdJobDequeueResultT Fifo::execute(const AVD_CL_CB *cb)
 		return JOB_EINVH;
 	}
 
+	if (avd_cb->avd_imm_status == AVD_IMM_INIT_ONGOING) {
+		TRACE("Already IMM init is going, try again after sometime");
+		return JOB_ETRYAGAIN;
+	}
 	if ((ajob = peek()) == nullptr)
 		return JOB_ENOTEXIST;
 
@@ -1368,6 +1372,7 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 	immutilWrapperProfile.nTries = 180;
 
 
+	cb->avd_imm_status = AVD_IMM_INIT_ONGOING;
 	if ((error = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize failed %u", error);
 		goto done;
@@ -1383,6 +1388,7 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 		goto done;
 	}
 
+	cb->avd_imm_status = AVD_IMM_INIT_DONE;
 	TRACE("Successfully initialized IMM");
 
 done:
@@ -1639,6 +1645,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn, SaImmAttrNameT
 	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
 	SaImmAttrValueT attrValues[] = {value};
 
+	const std::string attribute_name(attributeName);
 	TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName);
 
 	attrMod.modType = modifyType;
@@ -1651,6 +1658,9 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn, SaImmAttrNameT
 	if (rc != SA_AIS_OK) {
 		LOG_WA("saImmOiRtObjectUpdate of '%s' %s failed with %u", 
 			dn.c_str(), attributeName, rc);
+		//Now it will be updated through job queue. 
+		avd_saImmOiRtObjectUpdate(dn, attribute_name, attrValueType, value);
+
 	}
 	return rc;
 }
@@ -1954,15 +1964,15 @@ void avd_imm_reinit_bg(void)
 	int rc = 0;
 
 	TRACE_ENTER();
+	if (avd_cb->avd_imm_status == AVD_IMM_INIT_ONGOING) {
+		TRACE("Already IMM init is going in another thread");
+		return;
+	}
+	avd_cb->avd_imm_status = AVD_IMM_INIT_ONGOING;
 
 	LOG_NO("Re-initializing with IMM");
 
 	osaf_mutex_lock_ordie(&imm_reinit_thread_startup_mutex);
-
-	(void) saImmOiFinalize(avd_cb->immOiHandle);
-
-	avd_cb->immOiHandle = 0;
-	avd_cb->is_implementer = false;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
