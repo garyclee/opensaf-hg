@@ -16,6 +16,7 @@
  */
 #include "osaf/services/saf/logsv/lgs/lgs.h"
 #include "osaf/services/saf/logsv/lgs/lgs_clm.h"
+#include "osaf/libs/core/cplusplus/base/time.h"
 
 static bool clm_initialized;
 static void *clm_node_db = NULL;       /* used for C++ STL map */
@@ -348,13 +349,25 @@ void *lgs_clm_init_thread(void *cb) {
   static SaVersionT clmVersion = { 'B', 0x04, 0x01 };
   lgs_cb_t *_lgs_cb = reinterpret_cast<lgs_cb_t *> (cb);
   SaAisErrorT rc;
+
   TRACE_ENTER();
+
   rc = saClmInitialize_4(&_lgs_cb->clm_hdl, &clm_callbacks, &clmVersion);
+  while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_TIMEOUT)) {
+    if (_lgs_cb->clm_hdl != 0) {
+      saClmFinalize(_lgs_cb->clm_hdl);
+      _lgs_cb->clm_hdl = 0;
+    }
+
+    base::Sleep(base::kOneHundredMilliseconds);
+    rc = saClmInitialize_4(&_lgs_cb->clm_hdl, &clm_callbacks, &clmVersion);
+  }
   if (rc != SA_AIS_OK) {
     LOG_ER("saClmInitialize failed with error: %d", rc);
     TRACE_LEAVE();
     exit(EXIT_FAILURE);
   }
+
   rc = saClmSelectionObjectGet(_lgs_cb->clm_hdl, &lgs_cb->clmSelectionObject);
   if (rc != SA_AIS_OK) {
     LOG_ER("saClmSelectionObjectGet failed with error: %d", rc);
