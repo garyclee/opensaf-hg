@@ -145,3 +145,6 @@ def get_members():
         cluster_nodes.append(node)
 
     return cluster_nodes
+
+def dispatch(dispatchFlags):
+    saClmDispatch(HANDLE, dispatchFlags)
