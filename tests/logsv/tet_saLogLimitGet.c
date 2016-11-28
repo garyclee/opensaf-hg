@@ -28,7 +28,7 @@ void saLogLimitGet_01(void)
 		return;
 	}
 	rc = saLogLimitGet(logHandle, SA_LOG_MAX_NUM_CLUSTER_APP_LOG_STREAMS_ID, &limitValue);
-	logFinalize(logHandle);
+	logFinalize();
 	test_validate(rc, SA_AIS_ERR_NOT_SUPPORTED);
 }
 

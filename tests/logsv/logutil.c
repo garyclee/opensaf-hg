@@ -66,7 +66,7 @@ int systemCall(const char *command)
 /*
  * Wrapper function for 'saLogInitialize'
  */
-SaAisErrorT logInitialize()
+SaAisErrorT logInitialize(void)
 {
 	SaAisErrorT rc = saLogInitialize(&logHandle, &logCallbacks, &logVersion);
 	unsigned int nTries = 1;
@@ -82,7 +82,7 @@ SaAisErrorT logInitialize()
 /*
  * Wrapper function for 'saLogFinalize'
  */
-SaAisErrorT logFinalize()
+SaAisErrorT logFinalize(void)
 {
 	SaAisErrorT rc = saLogFinalize(logHandle);
 	unsigned int nTries = 1;
@@ -152,7 +152,7 @@ SaAisErrorT logWriteAsync(const SaLogRecordT *logRecord)
 /*
  * Wrapper function for 'saLogStreamClose'
  */
-SaAisErrorT logStreamClose()
+SaAisErrorT logStreamClose(void)
 {
 	SaAisErrorT rc = saLogStreamClose(logStreamHandle);
 	unsigned int nTries = 1;

@@ -565,7 +565,7 @@ void saLogOi_22(void)
 	rc_validate(WEXITSTATUS(rc), 1);
 
 done:
-	logFinalize(logHandle);
+	logFinalize();
 }
 
 /**

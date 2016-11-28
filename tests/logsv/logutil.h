@@ -48,12 +48,12 @@ const char *hostname(void);
 bool is_test_done_on_pl(void);
 void cond_check(void);
 
-SaAisErrorT logInitialize();
-SaAisErrorT logFinalize();
+SaAisErrorT logInitialize(void);
+SaAisErrorT logFinalize(void);
 SaAisErrorT logStreamOpen(const SaNameT *logStreamName);
 SaAisErrorT logAppStreamOpen(const SaNameT *logStreamName,
 			     const SaLogFileCreateAttributesT_2 *logFileCreateAttributes);
-SaAisErrorT logStreamClose();
+SaAisErrorT logStreamClose(void);
 SaAisErrorT logWriteAsync(const SaLogRecordT *logRecord);
 
 #endif  /* LOG_UTIL_H_ */
