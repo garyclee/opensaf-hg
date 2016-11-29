@@ -318,7 +318,9 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		cb->node_sync_window_closed == false) {
 		avnd = avd_node_get(Amf::to_string(&n2d_msg->msg_info.n2d_node_up.node_name));
 		if (avnd == nullptr) {
-			LOG_ER("Invalid node_name. Check node_id");
+			LOG_ER("Invalid node_name '%s'. Check node_id '%x'",
+					osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_node_up.node_name),
+					n2d_msg->msg_info.n2d_node_up.node_id);
 
 			// perhaps this is a node_up from an old version of amfnd without headless support
 			// let's check if the node_id is valid

@@ -60,7 +60,8 @@ static void clm_node_join_complete(AVD_AVND *node)
 							su->set_term_state(false);
 							su->sg_of_su->try_inst_counter++;
 						} else {
-							LOG_ER("Internal error, could not send message to avnd");
+							LOG_ER("Internal error, could not send SU'%s' pres message to avnd '%x'",
+									su->name.c_str(), su->su_on_node->node_info.nodeId);
 						}
 					}
 				}

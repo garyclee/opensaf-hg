@@ -1053,7 +1053,8 @@ void AVD_SU::lock_instantiation(SaImmOiHandleT immoi_handle,
 			goto done;
 		}
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
-				"Internal error, could not send message to avnd");
+				"Internal error, could not send SU'%s' pres message to avnd '%x'",
+				name.c_str(), node->node_info.nodeId);
 		goto done;
 	} else {
 		set_admin_state(SA_AMF_ADMIN_LOCKED_INSTANTIATION);
@@ -1114,7 +1115,8 @@ void AVD_SU::unlock_instantiation(SaImmOiHandleT immoi_handle,
 			goto done;
 		}
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_TRY_AGAIN, nullptr,
-				"Internal error, could not send message to avnd");
+				"Internal error, could not send SU'%s' pres message to avnd '%x'",
+				name.c_str(), node->node_info.nodeId);
 	} else {
 		set_admin_state(SA_AMF_ADMIN_LOCKED);
 		avd_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_OK);

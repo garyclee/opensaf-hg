@@ -111,7 +111,7 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		LOG_ER("%s: invalid node state %u for node id '%u'", __FUNCTION__, node->node_state, n2d_msg->msg_info.n2d_reg_su.node_id);
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = nullptr;
 		goto done;
@@ -244,7 +244,7 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		LOG_ER("%s: invalid node state %u for node id '%u'", __FUNCTION__, node->node_state, n2d_msg->msg_info.n2d_op_req.node_id);
 		goto done;
 	}
 
@@ -1098,7 +1098,7 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		LOG_ER("%s: invalid node state %u for node id '%u'", __FUNCTION__, node->node_state, valid_info->node_id);
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = nullptr;
 		goto done;
