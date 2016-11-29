@@ -261,7 +261,7 @@ uint32_t avnd_evt_avd_operation_request_evh(AVND_CB *cb, AVND_EVT *evt)
 		if (NCSCC_RC_SUCCESS == rc)
 			msg.info.avd = 0; // TODO Mem leak?
 		else
-			LOG_ER("avnd_di_msg_send FAILED");
+			LOG_ER("avnd_di_msg_send FAILED for msg type '%u'", msg.info.avd->msg_type);
 
 		avnd_msg_content_free(cb, &msg);
 	}

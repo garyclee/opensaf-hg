@@ -662,7 +662,7 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) ||(node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		LOG_ER("%s: invalid node state %u for node id '%u'", __FUNCTION__, node->node_state, n2d_msg->msg_info.n2d_opr_state.node_id);
 		goto done;
 	}
 
@@ -1053,7 +1053,7 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		LOG_ER("%s: invalid node state %u for node id '%u'", __FUNCTION__, node->node_state, n2d_msg->msg_info.n2d_su_si_assign.node_id);
 		goto done;
 	}
 
@@ -1103,7 +1103,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 
 		if (su->list_of_susi == AVD_SU_SI_REL_NULL) {
-			LOG_WA("%s: no susis", __FUNCTION__);
+			LOG_WA("%s: SU'%s' has no susis", __FUNCTION__,
+					osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_su_si_assign.su_name));
 			goto done;
 		}
 

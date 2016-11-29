@@ -1403,7 +1403,7 @@ uint32_t SG_2N::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */
 	if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_ADMIN) {
-		LOG_ER("Wrong sg fsm state %u", su->sg_of_su->sg_fsm_state);
+		LOG_ER("Wrong sg fsm state %u for sg '%s'", su->sg_of_su->sg_fsm_state, su->sg_of_su->name.c_str());
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}

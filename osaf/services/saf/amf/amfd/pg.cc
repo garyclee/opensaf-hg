@@ -77,7 +77,7 @@ void avd_pg_trk_act_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	m_AVD_SET_AVND_RCV_ID(cb, node, (n2d_msg->msg_info.n2d_reg_su.msg_id));
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
-		LOG_ER("%s: invalid node state %u", __FUNCTION__, node->node_state);
+		LOG_ER("%s: invalid node state %u for node id '%u'", __FUNCTION__, node->node_state, info->node_id);
 		goto done;
 	}
 
