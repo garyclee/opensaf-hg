@@ -646,7 +646,7 @@ static void main_loop(void)
 			fds[FD_CLM].events = POLLIN;
 		}
 	
-		if (cb->immOiHandle != 0) {
+		if (cb->immOiHandle != 0 && cb->avd_imm_status == AVD_IMM_INIT_DONE) {
 			fds[FD_IMM].fd = cb->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
 			nfds = FD_IMM + 1;
