@@ -169,7 +169,7 @@ cpnd_ckpt_sec_find(const CPND_CKPT_NODE *cp_node, const SaCkptSectionIdT *id)
  * Notes         : None.
  *****************************************************************************/
 CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
+cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
 {
   CPND_CKPT_SECTION_INFO *sectionInfo(0);
 
@@ -211,15 +211,15 @@ cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
     cp_node->replica_info.mem_used = cp_node->replica_info.mem_used - (sectionInfo->sec_size);
 
     // UPDATE THE SECTION HEADER
-    uint32_t rc(cpnd_sec_hdr_update(sectionInfo, cp_node));
+    uint32_t rc(cpnd_sec_hdr_update(cb, sectionInfo, cp_node));
     if (rc == NCSCC_RC_FAILURE) {
-      TRACE_4("cpnd sect hdr update failed");
+	    LOG_ER("cpnd sect hdr update failed");
     }
 
     // UPDATE THE CHECKPOINT HEADER
-    rc = cpnd_ckpt_hdr_update(cp_node);
+    rc = cpnd_ckpt_hdr_update(cb, cp_node);
     if (rc == NCSCC_RC_FAILURE) {
-      TRACE_4("cpnd ckpt hdr update failed");
+	    LOG_ER("cpnd ckpt hdr update failed");
     }
   }
 

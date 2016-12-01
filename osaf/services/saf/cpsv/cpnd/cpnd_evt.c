@@ -834,10 +834,12 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 			}
 
 			/* UPDATE THE CHECKPOINT HEADER */
-			rc = cpnd_ckpt_hdr_update(cp_node);
+			rc = cpnd_ckpt_hdr_update(cb, cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				TRACE_4("cpnd ckpt hdr update failed ckpt_name:%s,client_hdl:%llx",
+				LOG_ER("cpnd ckpt hdr update failed ckpt_name:%s,client_hdl:%llx",
 						ckpt_name, client_hdl);
+				send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_RESOURCES;
+				goto ckpt_shm_node_free_error;
 			}
 		}
 
@@ -861,7 +863,7 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 		    cp_node->create_attrib.maxSections == 1) {
 
 			SaCkptSectionIdT sec_id = SA_CKPT_DEFAULT_SECTION_ID;
-			if(cpnd_ckpt_sec_add(cp_node, &sec_id, 0, 0) == NULL) {
+			if(cpnd_ckpt_sec_add(cb, cp_node, &sec_id, 0, 0) == NULL) {
 				TRACE_4("cpnd ckpt rep create failed with rc:%d",rc);
 				goto ckpt_shm_node_free_error;
 			}
@@ -1275,7 +1277,12 @@ static uint32_t cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_
 		cp_node->ckpt_name = strdup("");
 
 		if (cp_node->cpnd_rep_create) {
-			rc = cpnd_ckpt_hdr_update(cp_node);
+			rc = cpnd_ckpt_hdr_update(cb, cp_node);
+			if (rc == NCSCC_RC_FAILURE) {
+				error = SA_AIS_ERR_NO_RESOURCES;
+				LOG_ER("cpnd ckpt hdr update failed for ckpt_id:%llx,rc:%d",cp_node->ckpt_id, rc);
+				goto agent_rsp;
+                        }
 
 		}
 		TRACE_4("cpnd proc ckpt unlink set for ckpt_id:%llx",cp_node->ckpt_id);
@@ -1484,7 +1491,11 @@ static uint32_t cpnd_evt_proc_ckpt_rdset(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 	cp_node->is_rdset = true;
 	/*Non-collocated which does not have replica */
 	if (cp_node->cpnd_rep_create)
-		cpnd_ckpt_hdr_update(cp_node);
+		 if (cpnd_ckpt_hdr_update(cb, cp_node) == NCSCC_RC_FAILURE) {
+			 LOG_ER("cpnd sect hdr update failed");
+			 send_evt.info.cpa.info.rdsetRsp.error = SA_AIS_ERR_NO_RESOURCES;
+			 goto out_evt_free;
+		 }
 
 	send_evt.info.cpa.info.rdsetRsp.error = SA_AIS_OK;
 
@@ -1631,10 +1642,13 @@ static uint32_t cpnd_evt_proc_ckpt_arep_set(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
 		}
 	}
 
-	rc = cpnd_ckpt_hdr_update(cp_node);
-
+	rc = cpnd_ckpt_hdr_update(cb, cp_node);
+	if (rc == NCSCC_RC_FAILURE) {
+		LOG_ER("cpnd  ckpt hdr update failed");
+		send_evt.info.cpa.info.arsetRsp.error = SA_AIS_ERR_NO_RESOURCES;
+		goto agent_rsp;
+	} 
 	send_evt.info.cpa.info.arsetRsp.error = SA_AIS_OK;
-	goto agent_rsp;
 
  agent_rsp:
 	send_evt.type = CPSV_EVT_TYPE_CPA;
@@ -2082,7 +2096,11 @@ static uint32_t cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb, CPND_EVT *evt, CPSV
 			sec_info->ckpt_sec_exptmr.uarg = cb->cpnd_cb_hdl_id;
 			sec_info->ckpt_sec_exptmr.lcl_sec_id = sec_info->lcl_sec_id;
 
-			cpnd_sec_hdr_update(sec_info, cp_node);
+			if (cpnd_sec_hdr_update(cb, sec_info, cp_node) == NCSCC_RC_FAILURE) {
+				LOG_ER("cpnd sect hdr update failed");
+				send_evt.info.cpa.info.sec_exptmr_rsp.error = SA_AIS_ERR_NO_RESOURCES;
+				goto agent_rsp;
+			}
 
 			cpnd_tmr_start(&sec_info->ckpt_sec_exptmr,
 				       m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(sec_info->exp_tmr));
@@ -2108,7 +2126,11 @@ static uint32_t cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb, CPND_EVT *evt, CPSV
 		}
 		if (cp_node->cpnd_rep_create) {
 			sec_info->exp_tmr = evt->info.sec_expset.exp_time;
-			cpnd_sec_hdr_update(sec_info, cp_node);
+			if (cpnd_sec_hdr_update(cb, sec_info, cp_node) == NCSCC_RC_FAILURE) {
+				LOG_ER("cpnd sect hdr update failed");
+				send_evt.info.cpa.info.sec_exptmr_rsp.error = SA_AIS_ERR_NO_RESOURCES;
+				goto agent_rsp;
+			}
 		}
 	}
 
@@ -2237,11 +2259,11 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 
 	if (cp_node->cpnd_rep_create) {
 		if (gen_sec_id)
-			sec_info = cpnd_ckpt_sec_add(cp_node, evt->info.sec_creatReq.sec_attri.sectionId,
+			sec_info = cpnd_ckpt_sec_add(cb, cp_node, evt->info.sec_creatReq.sec_attri.sectionId,
 						     evt->info.sec_creatReq.sec_attri.expirationTime, 1);
 
 		else
-			sec_info = cpnd_ckpt_sec_add(cp_node, evt->info.sec_creatReq.sec_attri.sectionId,
+			sec_info = cpnd_ckpt_sec_add(cb, cp_node, evt->info.sec_creatReq.sec_attri.sectionId,
 						     evt->info.sec_creatReq.sec_attri.expirationTime, 0);
 
 		if (sec_info == NULL) {
@@ -2255,10 +2277,11 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 
 		if ((evt->info.sec_creatReq.init_data != NULL) && (evt->info.sec_creatReq.init_size != 0)) {
 
-			rc = cpnd_ckpt_sec_write(cp_node, sec_info, evt->info.sec_creatReq.init_data,
+			rc = cpnd_ckpt_sec_write(cb, cp_node, sec_info, evt->info.sec_creatReq.init_data,
 						 evt->info.sec_creatReq.init_size, 0, 1);
 			if (rc == NCSCC_RC_FAILURE) {
-				TRACE_4("cpnd ckpt sect write failed for section_is:%s,ckpt_id:%llx",sec_info->sec_id.id, cp_node->ckpt_id);
+				TRACE_4("cpnd ckpt sect write failed for section_is:%s,ckpt_id:%llx",
+						sec_info->sec_id.id, cp_node->ckpt_id);
 				send_evt.type = CPSV_EVT_TYPE_CPA;
 				send_evt.info.cpa.type = CPA_EVT_ND2A_SEC_CREATE_RSP;
 				send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_NO_RESOURCES;
@@ -2357,10 +2380,10 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 								/* delete the section */
 								if (gen_sec_id)
 									tmp_sec_info =
-								    	cpnd_ckpt_sec_del(cp_node, &sec_info->sec_id);
+								    	cpnd_ckpt_sec_del(cb, cp_node, &sec_info->sec_id);
 								else
 									tmp_sec_info =
-								    	cpnd_ckpt_sec_del(cp_node,
+								    	cpnd_ckpt_sec_del(cb, cp_node,
 										      	evt->info.sec_creatReq.
 										      	sec_attri.sectionId);
 
@@ -2494,7 +2517,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	rc = cpnd_ckpt_sec_find(cp_node, &evt->info.sec_delReq.sec_id);
 	if (rc == NCSCC_RC_SUCCESS) {
 
-		sec_info = cpnd_ckpt_sec_del(cp_node, &evt->info.sec_delReq.sec_id);
+		sec_info = cpnd_ckpt_sec_del(cb, cp_node, &evt->info.sec_delReq.sec_id);
 		/* resetting lcl_sec_id mapping */
 		if (sec_info == NULL) {
 			rc = NCSCC_RC_FAILURE;
@@ -2639,7 +2662,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt,
 	}
 
 	if (cp_node->cpnd_rep_create) {
-		sec_info = cpnd_ckpt_sec_add(cp_node, evt->info.active_sec_creat.sec_attri.sectionId,
+		sec_info = cpnd_ckpt_sec_add(cb, cp_node, evt->info.active_sec_creat.sec_attri.sectionId,
 					     evt->info.active_sec_creat.sec_attri.expirationTime, 0);
 		if (sec_info == NULL) {
 			TRACE_4("cpnd ckpt sect add failed for sect_id:%s,ckpt_id:%llx",
@@ -2649,7 +2672,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt,
 		}
 
 		if (evt->info.active_sec_creat.init_data != NULL) {
-			rc = cpnd_ckpt_sec_write(cp_node, sec_info, evt->info.active_sec_creat.init_data,
+			rc = cpnd_ckpt_sec_write(cb, cp_node, sec_info, evt->info.active_sec_creat.init_data,
 						 evt->info.active_sec_creat.init_size, 0, 1);
 			if (rc == NCSCC_RC_FAILURE) {
 				TRACE_4("cpnd ckpt sect write failed ");
@@ -2774,7 +2797,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt,
 		send_evt.info.cpnd.info.sec_delete_rsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto nd_rsp;
 	}
-	sec_info = cpnd_ckpt_sec_del(cp_node, &evt->info.sec_delete_req.sec_id);
+	sec_info = cpnd_ckpt_sec_del(cb, cp_node, &evt->info.sec_delete_req.sec_id);
 	if (sec_info == NULL) {
 		if (m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
 			TRACE_4("cpnd ckpt sect del failed for sec_id:%s,ckpt_id:%llx",
@@ -2883,7 +2906,13 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_exptmr_req(CPND_CB *cb, CPND_EVT *
 			sec_info->ckpt_sec_exptmr.ckpt_id = cp_node->ckpt_id;
 
 			if (cp_node->cpnd_rep_create) {
-				cpnd_sec_hdr_update(sec_info, cp_node);
+				if ((cpnd_sec_hdr_update(cb, sec_info, cp_node)) == NCSCC_RC_FAILURE) {
+					LOG_ER("cpnd sect hdr update failed");
+					send_evt.type = CPSV_EVT_TYPE_CPND;
+					send_evt.info.cpnd.type = CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_RSP;
+					send_evt.info.cpnd.info.sec_exp_rsp.error = SA_AIS_ERR_NO_RESOURCES;
+					goto nd_rsp;
+				}
 			}
 			cpnd_tmr_start(&sec_info->ckpt_sec_exptmr, sec_info->exp_tmr);
 		}
@@ -4073,6 +4102,7 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	CPND_CKPT_NODE *cp_node = NULL;
 	SaCkptHandleT client_hdl = 0;
 	CPSV_EVT send_evt;
+	SaAisErrorT error;
 
 	TRACE_ENTER();
 	/* Check if this ckpt is created by someone on this node */
@@ -4144,17 +4174,18 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 				TRACE_4("cpnd ckpt rep create failed for ckpt_id:%llx,rc:%d",cp_node->ckpt_id, rc);
 				goto ckpt_replica_create_failed;
 			}
-			rc = cpnd_ckpt_hdr_update(cp_node);
+			rc = cpnd_ckpt_hdr_update(cb, cp_node);
 			if (rc == NCSCC_RC_FAILURE) {
-				TRACE_4("cpnd ckpt hdr update failed for ckpt_id:%llx,rc:%d",cp_node->ckpt_id, rc);
+				LOG_ER("cpnd ckpt hdr update failed for ckpt_id:%llx,rc:%d",cp_node->ckpt_id, rc);
+				goto cpnd_ckpt_replica_destroy;
 			}
 
 		}
 		if (evt->info.ckpt_create.ckpt_info.ckpt_rep_create == true && cp_node->create_attrib.maxSections == 1) {
 			SaCkptSectionIdT sec_id = SA_CKPT_DEFAULT_SECTION_ID;
-			if (cpnd_ckpt_sec_add(cp_node, &sec_id, 0, 0) == NULL) {
+			if (cpnd_ckpt_sec_add(cb, cp_node, &sec_id, 0, 0) == NULL) {
 				TRACE_4("cpnd ckpt rep create failed with rc:%d",rc);
-				goto ckpt_replica_create_failed;
+				goto cpnd_ckpt_replica_destroy;
 			}
 				
 		}
@@ -4167,9 +4198,10 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 			TRACE_4("cpnd ckpt rep create failed with rc:%d",rc);
 			goto ckpt_replica_create_failed;
 		}
-		rc = cpnd_ckpt_hdr_update(cp_node);
+		rc = cpnd_ckpt_hdr_update(cb, cp_node);
 		if (rc == NCSCC_RC_FAILURE) {
 			TRACE_4("CPND - Ckpt Header Update Failed with rc:%d",rc);
+			goto cpnd_ckpt_replica_destroy;
 		}
 	}
 
@@ -4185,7 +4217,8 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	rc = cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_4("cpnd remote to active mds send failed for cpnd_mdest_id:%"PRIu64",active_mds_dest:%"PRIu64",ckpt_id:%llx,rc%d",cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id, rc);
+		TRACE_4("cpnd remote to active mds send failed for :%"PRIu64",active_mds_dest:%"PRIu64",ckpt_id:%llx,rc%d",
+				cb->cpnd_mdest_id, cp_node->active_mds_dest, cp_node->ckpt_id, rc);
 
 		goto ckpt_replica_create_failed;
 	}
@@ -4194,6 +4227,9 @@ static uint32_t cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_
 	TRACE_LEAVE();
 	return rc;
 
+ cpnd_ckpt_replica_destroy:
+	cpnd_ckpt_replica_destroy(cb, cp_node, &error);
+	TRACE_4("cpnd ckpt rep destroy  failed with rc:%d", error);
  ckpt_replica_create_failed:
 	cpnd_ckpt_node_destroy(cb, cp_node);
 
