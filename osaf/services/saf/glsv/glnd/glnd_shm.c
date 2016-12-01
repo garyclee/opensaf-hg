@@ -71,7 +71,7 @@ static uint32_t glnd_shm_open(GLND_CB *cb, char *shm_name)
 
 	glnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	glnd_open_req.info.open.i_size = shm_size;
-	glnd_open_req.info.open.ensures_space = false;
+	glnd_open_req.ensures_space = false;
 	glnd_open_req.info.open.i_offset = 0;
 	glnd_open_req.info.open.i_name = shm_name;
 	glnd_open_req.info.open.i_map_flags = MAP_SHARED;
