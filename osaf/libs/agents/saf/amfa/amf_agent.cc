@@ -617,8 +617,16 @@ SaAisErrorT AmfAgent::ComponentUnregister(SaAmfHandleT hdl, const SaNameT *comp_
     rc = SA_AIS_ERR_LIBRARY;
     goto done;
   }
+
   /* acquire cb read lock */
   m_NCS_LOCK(&cb->lock, NCS_LOCK_READ);
+  /* Version is previously set in in initialize function */
+  if (ava_B4_ver_used(cb)) {
+	  TRACE_2("Invalid AMF version, B 4.1");
+	  rc = SA_AIS_ERR_VERSION;
+	  goto done;
+  }
+
   /* retrieve hdl rec */
   if ( !(hdl_rec = (AVA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, hdl)) ) {
     rc = SA_AIS_ERR_BAD_HANDLE;
