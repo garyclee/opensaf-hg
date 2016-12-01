@@ -2014,9 +2014,12 @@ SaAisErrorT AmfAgent::Response(SaAmfHandleT hdl, SaInvocationT inv, SaAisErrorT 
   /* get the pending response rec from list */
   m_AVA_HDL_PEND_RESP_GET(list_resp, rec, inv);
   if (!rec) {
-    TRACE_2("No pending response records found for this handle");
-    rc = SA_AIS_ERR_INVALID_PARAM;
-    goto done;
+	  TRACE_2("No pending response records found for this handle");
+	  if (ava_B4_ver_used(cb))
+		  rc = SA_AIS_ERR_NOT_EXIST;
+	  else
+		  rc = SA_AIS_ERR_INVALID_PARAM;
+	  goto done;
   }
 
   /* populate & send the 'AMF response' message */
