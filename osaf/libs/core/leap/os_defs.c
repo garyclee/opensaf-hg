@@ -38,6 +38,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <time.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -771,6 +772,7 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 	int32_t ret_flag;
 	uint64_t shm_size;
 	char shm_name[PATH_MAX];
+	struct statvfs statsvfs;
 
 	switch (req->type) {
 	case NCS_OS_POSIX_SHM_REQ_OPEN:	/* opens and mmaps */
@@ -792,7 +794,7 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 		if (req->info.open.o_fd < 0) {
 			return NCSCC_RC_FAILURE;
 		} else {
-			if (req->info.open.ensures_space == true) {
+			if (req->ensures_space == true) {
 				if (posix_fallocate(req->info.open.o_fd, 0, shm_size) != 0) {
 					LOG_ER("posix_shm:posix_fallocate failed() with errno: %d \n", errno);
 					return NCSCC_RC_FAILURE;
@@ -855,8 +857,24 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 		break;
 
 	case NCS_OS_POSIX_SHM_REQ_WRITE:
+		if (req->ensures_space == false) {
+			/* Check for the available shared memory space */
+			if (statvfs("/dev/shm", &statsvfs) != 0) {
+				syslog(LOG_ERR, "statvfs failed to get file system statistics with errno value %d\n",
+						errno);
+				return NCSCC_RC_FAILURE;
+			}
+
+			/* Checking whether sufficient shared memory is available to
+			   write the data, to be safer side ffree reduced to 1 block size */
+			if (req->info.write.i_write_size > ((statsvfs.f_bfree - 1) * statsvfs.f_frsize)) {
+				syslog(LOG_ERR, "Insufficient shared memory (%ld) to write the data of size: %ld \n",
+						(statsvfs.f_bfree * statsvfs.f_frsize), req->info.write.i_write_size);
+				return NCSCC_RC_FAILURE;
+			}
+		}
 		memcpy((void *)((char *)req->info.write.i_addr + req->info.write.i_offset), req->info.write.i_from_buff,
-		       req->info.write.i_write_size);
+				req->info.write.i_write_size);
 		break;
 
 	default:
