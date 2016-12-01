@@ -1550,7 +1550,7 @@ uint32_t cpnd_proc_sec_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	cpnd_ckpt_sec_del(cb, cp_node, &pSec_info->sec_id);
+	cpnd_ckpt_sec_del(cb, cp_node, &pSec_info->sec_id, true);
 	cp_node->replica_info.shm_sec_mapping[pSec_info->lcl_sec_id] = 1;
 
 	/* send out destory to all cpnd's maintaining this ckpt */

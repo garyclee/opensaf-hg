@@ -391,6 +391,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CB *cb, CPND_CKPT_NODE *cp_node, 
 	int32_t lcl_sec_id = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t value = 0, i = 0, j = 0;
+	bool hdr_update = true;
 
 	TRACE_ENTER();
 	/* get the lcl_sec_id */
@@ -469,8 +470,9 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CB *cb, CPND_CKPT_NODE *cp_node, 
 	return pSecPtr;
 
  section_hdr_update_fails:
+	hdr_update = false;
  ckpt_hdr_update_fails:
-	cpnd_ckpt_sec_del(cb, cp_node, id);
+	cpnd_ckpt_sec_del(cb, cp_node, id, hdr_update);
 
  section_add_fails:
 	if (pSecPtr->sec_id.id != NULL) 
