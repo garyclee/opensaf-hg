@@ -183,6 +183,13 @@ extern unsigned int avd_imm_config_get(void);
 extern SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn,
 		SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value,
 		SaImmAttrModificationTypeT modifyType = SA_IMM_ATTR_VALUES_REPLACE);
+extern SaAisErrorT avd_saImmOiRtObjectUpdate_multival_sync(const std::string& dn,
+		SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, SaImmAttrValueT *value,
+		uint32_t assigned_si,
+		SaImmAttrModificationTypeT modifyType = SA_IMM_ATTR_VALUES_REPLACE);
+extern SaAisErrorT avd_saImmOiRtObjectUpdate_replace_sync(const std::string& dn,
+		SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType, void *value,
+		SaImmAttrModificationTypeT modifyType = SA_IMM_ATTR_VALUES_REPLACE);
 extern void avd_saImmOiRtObjectUpdate(const std::string& dn, const std::string& attributeName,
      SaImmValueTypeT attrValueType, void* value);
 extern void avd_saImmOiRtObjectCreate(const std::string& lassName,

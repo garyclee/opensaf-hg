@@ -1688,6 +1688,69 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_sync(const std::string& dn, SaImmAttrNameT
 }
 
 /**
+ * IM object update, BLOCKING. It updates multivalue attributes.
+ * @param dn
+ * @param attributeName
+ * @param attrValueType
+ * @param attrValues
+ * @param assigned_si
+ */
+SaAisErrorT avd_saImmOiRtObjectUpdate_multival_sync(const std::string& dn, SaImmAttrNameT attributeName,
+		SaImmValueTypeT attrValueType, SaImmAttrValueT *attrValues, uint32_t assigned_si,
+		SaImmAttrModificationTypeT modifyType)
+{
+	SaAisErrorT rc;
+	SaImmAttrModificationT_2 attrMod;
+	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
+
+	TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName);
+
+	attrMod.modType = modifyType;
+	attrMod.modAttr.attrName = attributeName;
+	attrMod.modAttr.attrValuesNumber = assigned_si;
+	attrMod.modAttr.attrValueType = attrValueType;
+	attrMod.modAttr.attrValues = attrValues;
+
+	rc = saImmOiRtObjectUpdate_o3(avd_cb->immOiHandle, dn.c_str(), attrMods);
+	if (rc != SA_AIS_OK) {
+		LOG_WA("saImmOiRtObjectUpdate of '%s' %s failed with %u",
+				dn.c_str(), attributeName, rc);
+	}
+	return rc;
+}
+
+
+/**
+ * IM object update, BLOCKING. It replaces the attr values to null.
+ * @param dn
+ * @param attributeName
+ * @param attrValueType
+ * @param value
+ */
+SaAisErrorT avd_saImmOiRtObjectUpdate_replace_sync(const std::string& dn, SaImmAttrNameT attributeName,
+		SaImmValueTypeT attrValueType, void *value,
+		SaImmAttrModificationTypeT modifyType)
+{
+	SaAisErrorT rc;
+	SaImmAttrModificationT_2 attrMod;
+	const SaImmAttrModificationT_2 *attrMods[] = {&attrMod, nullptr};
+
+	TRACE_ENTER2("'%s' %s", dn.c_str(), attributeName);
+
+	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod.modAttr.attrName = attributeName;
+	attrMod.modAttr.attrValuesNumber = 0;
+	attrMod.modAttr.attrValueType = attrValueType;
+
+	rc = saImmOiRtObjectUpdate_o3(avd_cb->immOiHandle, dn.c_str(), attrMods);
+	if (rc != SA_AIS_OK) {
+		LOG_WA("saImmOiRtObjectUpdate of '%s' %s failed with %u",
+				dn.c_str(), attributeName, rc);
+	}
+	return rc;
+}
+
+/**
  * @brief   As of now standby AMFD will maintain immjobs for object of few classes.
  *          This function checks if immjobs for this object can be maintained at standby. 
  *

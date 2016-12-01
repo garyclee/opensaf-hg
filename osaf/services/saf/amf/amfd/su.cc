@@ -1403,12 +1403,32 @@ static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
 
 	while ((attributeName = attributeNames[i++]) != nullptr) {
 		if (!strcmp("saAmfSUAssignedSIs", attributeName)) {
-#if 0
-			/*  TODO */
-			SaUint32T saAmfSUAssignedSIs = su->saAmfSUNumCurrActiveSIs + su->saAmfSUNumCurrStandbySIs;
-			avd_saImmOiRtObjectUpdate_sync(immOiHandle, objectName,
-				attributeName, SA_IMM_ATTR_SAUINT32T, &saAmfSUAssignedSIs);
-#endif
+			if (su->list_of_susi != nullptr) {
+				uint32_t assigned_si = su->saAmfSUNumCurrActiveSIs + su->saAmfSUNumCurrStandbySIs;
+				//int size = (sizeof(SaImmAttrValueT *) * (assigned_si));
+				SaImmAttrValueT *attrValues = new SaImmAttrValueT[assigned_si];
+				SaNameT *siName = (SaNameT *) new SaNameT[assigned_si];
+				SaImmAttrValueT *temp = attrValues;
+				int j = 0;
+				for (AVD_SU_SI_REL *susi = su->list_of_susi; susi != nullptr; susi = susi->su_next) {
+					osaf_extended_name_alloc(susi->si->name.c_str(), (siName + j));
+					attrValues[j] = (void *)(siName + j);
+					j = j + 1;
+				}
+				rc = avd_saImmOiRtObjectUpdate_multival_sync(obj_name, attributeName,
+						SA_IMM_ATTR_SANAMET, temp, assigned_si);
+				for (AVD_SU_SI_REL *susi = su->list_of_susi; susi != nullptr; susi = susi->su_next) {
+					j = 0;
+					osaf_extended_name_free(siName + j);
+				}
+				delete [] siName;
+				delete [] attrValues;
+			} else {
+				SaNameT siName;
+				memset(((uint8_t *)&siName), '\0', sizeof(siName));
+				rc = avd_saImmOiRtObjectUpdate_replace_sync(obj_name, attributeName,
+						SA_IMM_ATTR_SANAMET, nullptr);
+			}
 		} else if (!strcmp("saAmfSUNumCurrActiveSIs", attributeName)) {
 			rc = avd_saImmOiRtObjectUpdate_sync(obj_name, attributeName,
 				SA_IMM_ATTR_SAUINT32T, &su->saAmfSUNumCurrActiveSIs);
