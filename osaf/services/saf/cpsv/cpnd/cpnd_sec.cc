@@ -163,13 +163,14 @@ cpnd_ckpt_sec_find(const CPND_CKPT_NODE *cp_node, const SaCkptSectionIdT *id)
  *
  * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
  *               : SaCkptSectionIdT id - Section Identifier
+ *               : hdr_update - UPDATE THE SECTION/CHECKPOINT HEADER or NOT
  *                 
  * Return Values :  ptr to CPND_CKPT_SECTION_INFO/NULL;
  *
  * Notes         : None.
  *****************************************************************************/
 CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
+cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, bool hdr_update)
 {
   CPND_CKPT_SECTION_INFO *sectionInfo(0);
 
@@ -207,20 +208,22 @@ cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id)
   }
 
   if (sectionInfo) {
-    cp_node->replica_info.n_secs--;
-    cp_node->replica_info.mem_used = cp_node->replica_info.mem_used - (sectionInfo->sec_size);
+	  cp_node->replica_info.n_secs--;
+	  cp_node->replica_info.mem_used = cp_node->replica_info.mem_used - (sectionInfo->sec_size);
+	  if (hdr_update == true) {
 
-    // UPDATE THE SECTION HEADER
-    uint32_t rc(cpnd_sec_hdr_update(cb, sectionInfo, cp_node));
-    if (rc == NCSCC_RC_FAILURE) {
-	    LOG_ER("cpnd sect hdr update failed");
-    }
+		  // UPDATE THE SECTION HEADER
+		  uint32_t rc(cpnd_sec_hdr_update(cb, sectionInfo, cp_node));
+		  if (rc == NCSCC_RC_FAILURE) {
+			  LOG_ER("cpnd sect hdr update failed");
+		  }
 
-    // UPDATE THE CHECKPOINT HEADER
-    rc = cpnd_ckpt_hdr_update(cb, cp_node);
-    if (rc == NCSCC_RC_FAILURE) {
-	    LOG_ER("cpnd ckpt hdr update failed");
-    }
+		  // UPDATE THE CHECKPOINT HEADER
+		  rc = cpnd_ckpt_hdr_update(cb, cp_node);
+		  if (rc == NCSCC_RC_FAILURE) {
+			  LOG_ER("cpnd ckpt hdr update failed");
+		  }
+	  }
   }
 
   TRACE_LEAVE();

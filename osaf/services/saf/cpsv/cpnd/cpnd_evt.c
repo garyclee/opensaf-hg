@@ -2380,12 +2380,12 @@ static uint32_t cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb, CPND_EVT *evt, CPSV_
 								/* delete the section */
 								if (gen_sec_id)
 									tmp_sec_info =
-								    	cpnd_ckpt_sec_del(cb, cp_node, &sec_info->sec_id);
+								    	cpnd_ckpt_sec_del(cb, cp_node, &sec_info->sec_id, true);
 								else
 									tmp_sec_info =
 								    	cpnd_ckpt_sec_del(cb, cp_node,
 										      	evt->info.sec_creatReq.
-										      	sec_attri.sectionId);
+										      	sec_attri.sectionId, true);
 
 								if (tmp_sec_info == sec_info) {
 									cp_node->replica_info.
@@ -2517,7 +2517,7 @@ static uint32_t cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt, CPSV_
 	rc = cpnd_ckpt_sec_find(cp_node, &evt->info.sec_delReq.sec_id);
 	if (rc == NCSCC_RC_SUCCESS) {
 
-		sec_info = cpnd_ckpt_sec_del(cb, cp_node, &evt->info.sec_delReq.sec_id);
+		sec_info = cpnd_ckpt_sec_del(cb, cp_node, &evt->info.sec_delReq.sec_id, true);
 		/* resetting lcl_sec_id mapping */
 		if (sec_info == NULL) {
 			rc = NCSCC_RC_FAILURE;
@@ -2797,7 +2797,7 @@ static uint32_t cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb, CPND_EVT *evt,
 		send_evt.info.cpnd.info.sec_delete_rsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto nd_rsp;
 	}
-	sec_info = cpnd_ckpt_sec_del(cb, cp_node, &evt->info.sec_delete_req.sec_id);
+	sec_info = cpnd_ckpt_sec_del(cb, cp_node, &evt->info.sec_delete_req.sec_id, true);
 	if (sec_info == NULL) {
 		if (m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
 			TRACE_4("cpnd ckpt sect del failed for sec_id:%s,ckpt_id:%llx",
