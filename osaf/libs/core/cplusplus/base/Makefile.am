@@ -28,6 +28,8 @@ noinst_HEADERS = \
 	getenv.h \
 	log_message.h \
 	macros.h \
+	mutex.h \
+	condition_variable.h \
 	process.h \
 	time.h \
 	unix_client_socket.h \
@@ -48,6 +50,8 @@ libbase_la_SOURCES = \
 	getenv.cc \
 	log_message.cc \
 	process.cc \
+	mutex.cc \
+	condition_variable.cc \
 	unix_client_socket.cc \
 	unix_server_socket.cc \
 	unix_socket.cc
