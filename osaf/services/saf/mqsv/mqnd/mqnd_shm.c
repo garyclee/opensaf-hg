@@ -66,7 +66,7 @@ uint32_t mqnd_shm_create(MQND_CB *cb)
 	mqnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	mqnd_open_req.info.open.i_size =
 	    sizeof(MQND_SHM_VERSION) + (sizeof(MQND_QUEUE_CKPT_INFO) * cb->mqnd_shm.max_open_queues);
-	mqnd_open_req.info.open.ensures_space = false;
+	mqnd_open_req.ensures_space = false;
 	mqnd_open_req.info.open.i_offset = 0;
 	mqnd_open_req.info.open.i_name = shm_name;
 	mqnd_open_req.info.open.i_map_flags = MAP_SHARED;
