@@ -362,6 +362,28 @@ AvdJobDequeueResultT Fifo::execute(const AVD_CL_CB *cb)
 	return ret;
 }
 
+AvdJobDequeueResultT Fifo::executeAdminResp(const AVD_CL_CB *cb)
+{
+	Job *ajob;
+	AvdJobDequeueResultT ret = JOB_EXECUTED;
+
+	TRACE_ENTER();
+
+	while ((ajob = peek()) != nullptr) {
+		if (dynamic_cast<ImmAdminResponse *>(ajob) != nullptr) {
+			ret = ajob->exec(cb);
+		} else {
+			ajob = dequeue();
+			delete ajob;
+			ret = JOB_EXECUTED;
+		}
+	}
+
+	TRACE_LEAVE2("%d", ret);
+
+	return ret;
+}
+
 //
 void Fifo::empty()
 {

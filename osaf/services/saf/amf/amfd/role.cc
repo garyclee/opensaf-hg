@@ -773,6 +773,11 @@ void avd_mds_qsd_role_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 try_again:
+	/* Execute admin op jobs before calling saImmOiImplementerClear to avoid
+	 * SA_AIS_ERR_TIMEOUT
+	 */
+	Fifo::executeAdminResp(cb);
+
 	/* Take mutex here to sync with imm reinit thread.*/
 	osaf_mutex_lock_ordie(&imm_reinit_mutex);
 	/* Give up IMM OI implementer role */
