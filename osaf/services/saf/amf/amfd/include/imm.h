@@ -146,6 +146,8 @@ public:
     
         static AvdJobDequeueResultT execute(const AVD_CL_CB *cb);
 
+        static AvdJobDequeueResultT executeAdminResp(const AVD_CL_CB *cb);
+
         static void empty();
     
 	static uint32_t size();
