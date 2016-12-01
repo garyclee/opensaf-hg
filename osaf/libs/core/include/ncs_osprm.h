@@ -564,7 +564,6 @@ typedef struct ncs_os_posix_shm_req_open_info_tag {
   uint32_t i_flags;
   uint32_t i_map_flags;
   uint64_t i_size;
-  bool ensures_space;
   uint64_t i_offset;
   void *o_addr;
   int32_t o_fd;
@@ -600,6 +599,7 @@ typedef struct ncs_os_posix_shm_req_write_info {
 
 typedef struct ncs_shm_req_info {
   NCS_OS_POSIX_SHM_REQ_TYPE type;
+  bool ensures_space;
 
   union {
     NCS_OS_POSIX_SHM_REQ_OPEN_INFO open;

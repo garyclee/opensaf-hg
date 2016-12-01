@@ -478,10 +478,7 @@ uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	cp_node->replica_info.open.info.open.i_size =
 	    sizeof(CPSV_CKPT_HDR) + cp_node->create_attrib.maxSections * (sizeof(CPSV_SECT_HDR) +
 									  cp_node->create_attrib.maxSectionSize);
-	if (cb->shm_alloc_guaranteed == true)
-		cp_node->replica_info.open.info.open.ensures_space = true;
-	else
-		cp_node->replica_info.open.info.open.ensures_space = false;
+	cp_node->replica_info.open.ensures_space = cb->shm_alloc_guaranteed;
 
 	cp_node->replica_info.open.info.open.i_offset = 0;
 	cp_node->replica_info.open.info.open.i_name = buf;
@@ -642,7 +639,7 @@ int32_t cpnd_ckpt_get_lck_sec_id(CPND_CKPT_NODE *cp_node)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
+uint32_t cpnd_ckpt_sec_write(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 			  *sec_info, const void *data, uint64_t size, uint64_t offset, uint32_t type)
 {				/* for sync type=2 */
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -674,8 +671,11 @@ uint32_t cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 	write_req.info.write.i_offset = offset;
 
 	write_req.info.write.i_write_size = size;
-
-	ncs_os_posix_shm(&write_req);
+	write_req.ensures_space = cb->shm_alloc_guaranteed;
+	if (ncs_os_posix_shm(&write_req) == NCSCC_RC_FAILURE) {
+		LOG_ER("shm write failed for cpnd_ckpt_sec_write");
+		return NCSCC_RC_FAILURE;
+	}
 
 	m_GET_TIME_STAMP(sec_info->lastUpdate);
 
@@ -687,13 +687,19 @@ uint32_t cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 		}
 
 		/* SECTION HEADER UPDATE */
-		cpnd_sec_hdr_update(sec_info, cp_node);
+		if (cpnd_sec_hdr_update(cb, sec_info, cp_node) == NCSCC_RC_FAILURE) {
+                    LOG_ER("cpnd sect hdr update failed");
+		    rc = NCSCC_RC_FAILURE;
+                }
 
 	} else if ((type == 1) || (type == 3)) {
 		cp_node->replica_info.mem_used -= sec_info->sec_size;
 		sec_info->sec_size = size;
 		cp_node->replica_info.mem_used += size;
-		cpnd_sec_hdr_update(sec_info, cp_node);
+		if ((cpnd_sec_hdr_update(cb, sec_info, cp_node)) == NCSCC_RC_FAILURE) {
+			LOG_ER("cpnd sect hdr update failed");
+			rc = NCSCC_RC_FAILURE;
+		}
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -958,7 +964,7 @@ uint32_t cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
 		sec_info = cpnd_ckpt_sec_get_create(cp_node, &data->sec_id);
 		if (sec_info == NULL) {
 			if (type == CPSV_CKPT_ACCESS_SYNC) {
-				sec_info = cpnd_ckpt_sec_add(cp_node, &data->sec_id, data->expirationTime, 0);
+				sec_info = cpnd_ckpt_sec_add(cb, cp_node, &data->sec_id, data->expirationTime, 0);
 
 				if (sec_info == NULL) {
 					TRACE_4("cpnd - ckpt sect add failed , sec_id:%s ckpt_id:%llx",data->sec_id.id,cp_node->ckpt_id);
@@ -975,7 +981,7 @@ uint32_t cpnd_ckpt_update_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
 			}
 		}
 
-		rc = cpnd_ckpt_sec_write(cp_node, sec_info, data->data, data->dataSize,
+		rc = cpnd_ckpt_sec_write(cb, cp_node, sec_info, data->data, data->dataSize,
 					 data->dataOffset, write_data->type);
 		if (rc == NCSCC_RC_FAILURE) {
 			TRACE("cpnd ckpt sect write failed for sec_id:%s",data->sec_id.id);
@@ -1544,7 +1550,7 @@ uint32_t cpnd_proc_sec_expiry(CPND_CB *cb, CPND_TMR_INFO *tmr_info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	cpnd_ckpt_sec_del(cp_node, &pSec_info->sec_id);
+	cpnd_ckpt_sec_del(cb, cp_node, &pSec_info->sec_id);
 	cp_node->replica_info.shm_sec_mapping[pSec_info->lcl_sec_id] = 1;
 
 	/* send out destory to all cpnd's maintaining this ckpt */
@@ -1804,7 +1810,7 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,
  * Return Values : Success / Error
 ****************************************************************************/
 
-uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_ckpt_hdr_update(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 {
 	CPSV_CKPT_HDR ckpt_hdr;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -1830,6 +1836,7 @@ uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
 	write_req.info.write.i_from_buff = (CPSV_CKPT_HDR *)&ckpt_hdr;
 	write_req.info.write.i_offset = 0;
 	write_req.info.write.i_write_size = sizeof(CPSV_CKPT_HDR);
+	write_req.ensures_space = cb->shm_alloc_guaranteed;
 	rc = ncs_os_posix_shm(&write_req);
 
 	return rc;
@@ -1846,7 +1853,7 @@ uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
  * Return Values : Success / Error
 ***********************************************************************************/
 
-uint32_t cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info, CPND_CKPT_NODE *cp_node)
+uint32_t cpnd_sec_hdr_update(CPND_CB *cb, CPND_CKPT_SECTION_INFO *sec_info, CPND_CKPT_NODE *cp_node)
 {
 	CPSV_SECT_HDR sec_hdr;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -1872,6 +1879,7 @@ uint32_t cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info, CPND_CKPT_NODE *c
 	write_req.info.write.i_offset =
 	    sec_info->lcl_sec_id * (sizeof(CPSV_SECT_HDR) + cp_node->create_attrib.maxSectionSize);
 	write_req.info.write.i_write_size = sizeof(CPSV_SECT_HDR);
+	write_req.ensures_space = cb->shm_alloc_guaranteed;
 	rc = ncs_os_posix_shm(&write_req);
 
 	return rc;

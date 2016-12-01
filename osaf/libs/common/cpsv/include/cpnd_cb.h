@@ -341,8 +341,8 @@ uint32_t cpnd_amf_register(CPND_CB *cpnd_cb);
 uint32_t cpnd_amf_deregister(CPND_CB *cpnd_cb);
 uint32_t cpnd_client_extract_bits(uint32_t bitmap_value, uint32_t *bit_position);
 uint32_t cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node);
-uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
-					    uint32_t ref_cnt, CKPT_INFO *cp_info, bool shm_alloc_guaranteed);
+uint32_t cpnd_ckpt_replica_create_res(CPND_CB *cb, NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
+					    uint32_t ref_cnt, CKPT_INFO *cp_info);
 int32_t cpnd_find_free_loc(CPND_CB *cb, CPND_TYPE_INFO type);
 uint32_t cpnd_ckpt_write_header(CPND_CB *cb, uint32_t nckpts);
 uint32_t cpnd_cli_info_write_header(CPND_CB *cb, int32_t n_clients);
