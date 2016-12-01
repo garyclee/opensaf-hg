@@ -268,6 +268,9 @@ uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
 	    (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && !m_AVND_COMP_TYPE_IS_PROXIED(comp)))
 		amf_rc = SA_AIS_ERR_BAD_OPERATION;
 
+	if (m_AVND_COMP_OPER_STATE_IS_ENABLED(comp))
+		amf_rc = SA_AIS_ERR_NO_OP;
+
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_ERR_CLEAR, amf_rc, 0,
 				&api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
