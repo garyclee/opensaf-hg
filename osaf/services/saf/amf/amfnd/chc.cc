@@ -315,6 +315,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 
 			/* get the comp */
 			if ((*o_comp = avnd_compdb_rec_get(cb->compdb, Amf::to_string(&hc_start->comp_name))) == nullptr) {
+				LOG_ER("Component '%s' doesn't exist in DB", osaf_extended_name_borrow(&hc_start->comp_name));
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -324,6 +325,8 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			    m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(*o_comp) ||
 			    m_AVND_COMP_PRES_STATE_IS_TERMINATING(*o_comp) ||
 			    m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(*o_comp)) {
+				LOG_ER("Component '%s' is not healthy (pres state '%u')", osaf_extended_name_borrow(&hc_start->comp_name),
+						(*o_comp)->pres);
 				*o_amf_rc = SA_AIS_ERR_TRY_AGAIN;
 				return;
 			}
@@ -332,6 +335,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			if (avsv_cmp_horder_sanamet(&hc_start->comp_name, &hc_start->proxy_comp_name)) {
 				if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)
 					|| (*o_comp)->pxy_comp->name.compare(Amf::to_string(&hc_start->proxy_comp_name))) {
+					LOG_ER("Component '%s' is not a proxy", osaf_extended_name_borrow(&hc_start->proxy_comp_name));
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
@@ -347,6 +351,8 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			if (0 == avnd_hcdb_rec_get(cb, &hlt_chk)) {
 				/* HC instance did not exist, look for HC type */
 				if (nullptr == avnd_hctypedb_rec_get(cb, (*o_comp)->saAmfCompType, &hc_start->hc_key)) {
+					LOG_ER("Health check is not configured for component '%s'",
+							osaf_extended_name_borrow(&hc_start->comp_name));
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
@@ -356,6 +362,8 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			tmp_hc_rec.req_hdl = hc_start->hdl;
 			/* determine if this healthcheck is already active */
 			if (0 != m_AVND_COMPDB_REC_HC_GET(**o_comp, tmp_hc_rec)) {
+				LOG_ER("Health check is already active for component '%s'",
+						osaf_extended_name_borrow(&hc_start->comp_name));
 				*o_amf_rc = SA_AIS_ERR_EXIST;
 				return;
 			}
