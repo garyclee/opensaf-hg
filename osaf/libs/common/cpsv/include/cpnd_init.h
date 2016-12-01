@@ -90,7 +90,7 @@ uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 uint32_t cpnd_ckpt_remote_cpnd_add(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info);
 uint32_t cpnd_ckpt_remote_cpnd_del(CPND_CKPT_NODE *cp_node, MDS_DEST mds_info);
 int32_t cpnd_ckpt_get_lck_sec_id(CPND_CKPT_NODE *cp_node);
-uint32_t cpnd_ckpt_sec_write(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
+uint32_t cpnd_ckpt_sec_write(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 			  *sec_info, const void *data, uint64_t size, uint64_t offset, uint32_t type);
 uint32_t cpnd_ckpt_sec_read(CPND_CKPT_NODE *cp_node, CPND_CKPT_SECTION_INFO
 			 *sec_info, void *data, uint64_t size, uint64_t offset);
@@ -164,7 +164,7 @@ void cpnd_evt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT lcl_ckpt_id, CPS
 uint32_t cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 uint32_t cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 CPND_CKPT_NODE *cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaConstStringT ckpt_name);
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, SaTimeT exp_time,
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id, SaTimeT exp_time,
 					  uint32_t gen_flag);
 void cpnd_evt_backup_queue_add(CPND_CKPT_NODE *cp_node, CPND_EVT *evt);
 uint32_t cpnd_ckpt_node_tree_init(CPND_CB *cb);
@@ -176,8 +176,8 @@ void cpnd_client_node_tree_cleanup(CPND_CB *cb);
 void cpnd_client_node_tree_destroy(CPND_CB *cb);
 void cpnd_allrepl_write_evt_node_tree_cleanup(CPND_CB *cb);
 void cpnd_allrepl_write_evt_node_tree_destroy(CPND_CB *cb);
-uint32_t cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node);
-uint32_t cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node);
+uint32_t cpnd_sec_hdr_update(CPND_CB *cb, CPND_CKPT_SECTION_INFO *pSecPtr, CPND_CKPT_NODE *cp_node);
+uint32_t cpnd_ckpt_hdr_update(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 uint32_t cpnd_get_slot_sub_slot_id_from_mds_dest(MDS_DEST dest);
 uint32_t cpnd_get_slot_sub_slot_id_from_node_id(NCS_NODE_ID i_node_id);

@@ -384,7 +384,7 @@ uint32_t cpnd_evt_node_del(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node)
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id,
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptSectionIdT *id,
 					  SaTimeT exp_time, uint32_t gen_flag)
 {
 	CPND_CKPT_SECTION_INFO *pSecPtr = NULL;
@@ -453,15 +453,15 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 	cp_node->replica_info.n_secs++;
 
 	/* UPDATE THE SECTION HEADER */
-	rc = cpnd_sec_hdr_update(pSecPtr, cp_node);
+	rc = cpnd_sec_hdr_update(cb, pSecPtr, cp_node);
 	if (rc == NCSCC_RC_FAILURE) {
-		LOG_NO("cpnd sect hdr update failed");
+		LOG_ER("cpnd sect hdr update failed");
 		goto section_hdr_update_fails;
 	}
 	/* UPDATE THE CHECKPOINT HEADER */
-	rc = cpnd_ckpt_hdr_update(cp_node);
+	rc = cpnd_ckpt_hdr_update(cb, cp_node);
 	if (rc == NCSCC_RC_FAILURE) {
-		LOG_NO("cpnd ckpt hdr update failed");
+		LOG_ER("cpnd ckpt hdr update failed");
 		goto ckpt_hdr_update_fails;
 	}
 
@@ -470,7 +470,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_add(CPND_CKPT_NODE *cp_node, SaCkptSection
 
  section_hdr_update_fails:
  ckpt_hdr_update_fails:
-	cpnd_ckpt_sec_del(cp_node, id);
+	cpnd_ckpt_sec_del(cb, cp_node, id);
 
  section_add_fails:
 	if (pSecPtr->sec_id.id != NULL) 
