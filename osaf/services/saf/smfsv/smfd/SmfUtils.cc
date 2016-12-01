@@ -581,19 +581,23 @@ SmfImmUtils::callAdminOperation(const std::string & i_dn, unsigned int i_operati
 	}
 
 	/* Call the admin operation */
-	do {
-		TRACE("call immutil_saImmOmAdminOperationInvoke_2");
-		rc = immutil_saImmOmAdminOperationInvoke_2(m_ownerHandle, &objectName, 0, i_operationId, i_params,
-							   &returnValue, i_timeout);
-		if (retry <= 0) {
-			LOG_NO("Fail to invoke admin operation, too many SA_AIS_ERR_TRY_AGAIN, giving up. dn=[%s], opId=[%u]",
-			       i_dn.c_str(), i_operationId);
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
-		}
+	
+	TRACE("call immutil_saImmOmAdminOperationInvoke_2");
+	rc = immutil_saImmOmAdminOperationInvoke_2(m_ownerHandle, &objectName, 0, i_operationId, i_params,
+			&returnValue, i_timeout);
+	while ((rc == SA_AIS_OK) && (returnValue == SA_AIS_ERR_TRY_AGAIN) && (retry > 0) ){
 		sleep(2);
+		rc = immutil_saImmOmAdminOperationInvoke_2(m_ownerHandle, &objectName, 0, i_operationId, i_params,
+				&returnValue, i_timeout);
 		retry--;
-	} while ((rc == SA_AIS_OK) && (returnValue == SA_AIS_ERR_TRY_AGAIN));
+	} 
+	
+	if (retry <= 0) {
+		LOG_NO("Fail to invoke admin operation, too many SA_AIS_ERR_TRY_AGAIN, giving up. dn=[%s], opId=[%u]",
+				i_dn.c_str(), i_operationId);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
 
 	if ( rc != SA_AIS_OK) {
 		LOG_NO("Fail to invoke admin operation, rc=%s. dn=[%s], opId=[%u]",saf_error(rc), i_dn.c_str(), i_operationId);
