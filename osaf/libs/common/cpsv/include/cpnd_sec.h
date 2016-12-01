@@ -39,7 +39,7 @@ CPND_CKPT_SECTION_INFO *
 cpnd_ckpt_sec_get_create(const CPND_CKPT_NODE *, const SaCkptSectionIdT *);
 
 CPND_CKPT_SECTION_INFO *
-cpnd_ckpt_sec_del(CPND_CKPT_NODE *, SaCkptSectionIdT *);
+cpnd_ckpt_sec_del(CPND_CB *cb, CPND_CKPT_NODE *, SaCkptSectionIdT *);
 
 CPND_CKPT_SECTION_INFO *
 cpnd_get_sect_with_id(const CPND_CKPT_NODE *, uint32_t lcl_sec_id);

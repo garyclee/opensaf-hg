@@ -149,8 +149,8 @@ uint32_t cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node)
  |-----------|----------|-----------|--------|----------|------------ |----------|---------|        
 */
 
-uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
-				   uint32_t ref_cnt, CKPT_INFO *cp_info, bool shm_alloc_guaranteed)
+uint32_t cpnd_ckpt_replica_create_res(CPND_CB *cb, NCS_OS_POSIX_SHM_REQ_INFO *open_req, char *buf, CPND_CKPT_NODE **cp_node,
+				   uint32_t ref_cnt, CKPT_INFO *cp_info)
 {
 /*   NCS_OS_POSIX_SHM_REQ_INFO read_req,shm_read; */
 	CPSV_CKPT_HDR ckpt_hdr;
@@ -165,15 +165,12 @@ uint32_t cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req, char 
 	open_req->type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	open_req->info.open.i_size =
 	    sizeof(CPSV_CKPT_HDR) + (cp_info->maxSections * ((sizeof(CPSV_SECT_HDR) + cp_info->maxSecSize)));
-	if (shm_alloc_guaranteed == true)
-		open_req->info.open.ensures_space = true;
-	else
-		open_req->info.open.ensures_space = false;
 	open_req->info.open.i_offset = 0;
 	open_req->info.open.i_name = buf;
 	open_req->info.open.i_map_flags = MAP_SHARED;
 	open_req->info.open.o_addr = NULL;
 	open_req->info.open.i_flags = O_RDWR;
+	open_req->ensures_space = cb->shm_alloc_guaranteed;
 	rc = ncs_os_posix_shm(open_req);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpnd shm open request failed %s",buf);
@@ -362,10 +359,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	cpnd_open_req->info.open.i_size = sizeof(CPND_SHM_VERSION) +
 	    sizeof(CLIENT_HDR) + (MAX_CLIENTS * sizeof(CLIENT_INFO)) + sizeof(CKPT_HDR) +
 	    (MAX_CKPTS * sizeof(CKPT_INFO));
-	if (cb->shm_alloc_guaranteed == true)
-		cpnd_open_req->info.open.ensures_space = true;
-	else
-		cpnd_open_req->info.open.ensures_space = false; 
+	cpnd_open_req->ensures_space = cb->shm_alloc_guaranteed; 
 	cpnd_open_req->info.open.i_offset = 0;
 	cpnd_open_req->info.open.i_name = buffer;
 	cpnd_open_req->info.open.i_map_flags = MAP_SHARED;
@@ -529,7 +523,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 					memset(buf, '\0', CPND_MAX_REPLICA_NAME_LENGTH);
 					strncpy(buf, cp_node->ckpt_name, CPND_REP_NAME_MAX_CKPT_NAME_LENGTH);
 					sprintf(buf + strlen(buf) - 1, "_%u_%llu", (uint32_t)nodeid, cp_node->ckpt_id);
-					rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open, buf, &cp_node, 0, &cp_info, cb->shm_alloc_guaranteed);
+					rc = cpnd_ckpt_replica_create_res(cb, &ckpt_rep_open, buf, &cp_node, 0, &cp_info);
 					if (rc != NCSCC_RC_SUCCESS) {
 						/*   assert(0); */
 						TRACE_4("cpnd ckpt replica create failed with return value %d",rc);
@@ -1170,6 +1164,7 @@ uint32_t cpnd_restart_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_nod
 	}
 	clinfo_write.info.write.i_offset = cl_node->offset * sizeof(CLIENT_INFO);
 	clinfo_write.info.write.i_write_size = sizeof(CLIENT_INFO);
+	clinfo_write.ensures_space = cb->shm_alloc_guaranteed;
 	rc = ncs_os_posix_shm(&clinfo_write);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpnd ckpt info write failed"); 
@@ -1582,10 +1577,7 @@ static uint32_t cpnd_shm_extended_open(CPND_CB *cb, uint32_t flag)
 
 	cpnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	cpnd_open_req.info.open.i_size = MAX_CKPTS * sizeof(CKPT_EXTENDED_INFO);
-	if (cb->shm_alloc_guaranteed == true)
-		cpnd_open_req.info.open.ensures_space = true;
-	else
-		cpnd_open_req.info.open.ensures_space = false;
+	cpnd_open_req.ensures_space = cb->shm_alloc_guaranteed;
 	cpnd_open_req.info.open.i_offset = 0;
 	cpnd_open_req.info.open.i_name = buffer;
 	cpnd_open_req.info.open.i_map_flags = MAP_SHARED;
