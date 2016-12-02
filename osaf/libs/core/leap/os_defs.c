@@ -868,7 +868,7 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 			/* Checking whether sufficient shared memory is available to
 			   write the data, to be safer side ffree reduced to 1 block size */
 			if (req->info.write.i_write_size > ((statsvfs.f_bfree - 1) * statsvfs.f_frsize)) {
-				syslog(LOG_ERR, "Insufficient shared memory (%ld) to write the data of size: %ld \n",
+				syslog(LOG_ERR, "Insufficient shared memory (%ld) to write the data of size: %"PRId64 "\n",
 						(statsvfs.f_bfree * statsvfs.f_frsize), req->info.write.i_write_size);
 				return NCSCC_RC_FAILURE;
 			}
