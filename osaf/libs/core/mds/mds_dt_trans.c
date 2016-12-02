@@ -781,7 +781,7 @@ uint32_t mdtm_process_recv_events_tcp(void)
 	   if discovery events are received , process the discovery events
 	 */
 	while (1) {
-		unsigned int pollres;
+		int pollres;
 
 		pfd[0].events = POLLIN;
 		pfd[1].events = POLLIN;
