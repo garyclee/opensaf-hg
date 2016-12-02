@@ -649,7 +649,7 @@ static uint32_t mdtm_process_recv_events(void)
 	 */
 
 	while (1) {
-		unsigned int pollres;
+		int pollres;
 		struct pollfd pfd[3];
 		struct tipc_event event;
 
