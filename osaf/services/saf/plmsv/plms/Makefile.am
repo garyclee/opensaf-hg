@@ -48,6 +48,7 @@ osafplmd_SOURCES = \
 	plms_proc.c \
 	plms_stdby.c \
 	plms_dbg_utils.c \
+	plms_scale.cc \
 	plms_virt.cc
 
 osafplmd_LDADD = \
