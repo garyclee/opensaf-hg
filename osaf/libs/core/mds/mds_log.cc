@@ -24,10 +24,10 @@
 
 #include "osaf/libs/core/mds/include/mds_log.h"
 #include <inttypes.h>
-#include <pthread.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include <atomic>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -51,15 +51,12 @@ class MdsLog {
  private:
   MdsLog(const char* host_name, const char* app_name,
             uint32_t proc_id, const char* socket_name);
-  ~MdsLog();
   void LogInternal(base::LogMessage::Severity severity, const char *str);
   static MdsLog* instance_;
-  pthread_mutex_t mutex_;
-  base::LogMessage::HostName host_name_;
-  base::LogMessage::AppName app_name_;
-  base::LogMessage::ProcId proc_id_;
-  uint64_t msg_id_;
-  base::Buffer<512> buffer_;
+  const base::LogMessage::HostName host_name_;
+  const base::LogMessage::AppName app_name_;
+  const base::LogMessage::ProcId proc_id_;
+  std::atomic<uint64_t> msg_id_;
   base::UnixClientSocket log_socket_;
 
   DELETE_COPY_AND_MOVE_OPERATORS(MdsLog);
@@ -70,27 +67,11 @@ MdsLog* MdsLog::instance_ = nullptr;
 
 MdsLog::MdsLog(const char* host_name, const char* app_name,
                      uint32_t proc_id, const char* socket_name) :
-    mutex_{},
     host_name_{base::LogMessage::HostName{host_name}},
     app_name_{base::LogMessage::AppName{app_name}},
     proc_id_{base::LogMessage::ProcId{std::to_string(proc_id)}},
     msg_id_{0},
-    buffer_{},
     log_socket_{socket_name} {
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
-  if (result != 0) osaf_abort(result);
-  result = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
-  if (result != 0) osaf_abort(result);
-  result = pthread_mutex_init(&mutex_, &attr);
-  if (result != 0) osaf_abort(result);
-  result = pthread_mutexattr_destroy(&attr);
-  if (result != 0) osaf_abort(result);
-}
-
-MdsLog::~MdsLog() {
-  int result = pthread_mutex_destroy(&mutex_);
-  if (result != 0) osaf_abort(result);
 }
 
 /*****************************************************
@@ -145,9 +126,8 @@ void MdsLog::Log(base::LogMessage::Severity severity, const char *str) {
 }
 
 void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *str) {
-  osaf_mutex_lock_ordie(&mutex_);
   uint64_t id = msg_id_++;
-  buffer_.clear();
+  base::Buffer<256> buffer;
   base::LogMessage::Write(base::LogMessage::Facility::kLocal0,
                           severity,
                           base::ReadRealtimeClock(),
@@ -157,9 +137,8 @@ void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *str) {
                           base::LogMessage::MsgId{std::to_string(id)},
                           {},
                           str,
-                          &buffer_);
-  log_socket_.Send(buffer_.data(), buffer_.size());
-  osaf_mutex_unlock_ordie(&mutex_);
+                          &buffer);
+  log_socket_.Send(buffer.data(), buffer.size());
 }
 
 /*******************************************************************************

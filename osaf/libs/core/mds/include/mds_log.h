@@ -54,15 +54,15 @@ enum {
 
 uint32_t mds_log_init(const char *log_file_name);
 void log_mds_dbg(const char *fmt, ...)
-    __attribute__ ((format(printf, 1, 2)));
+    __attribute__((format(printf, 1, 2)));
 void log_mds_info(const char *fmt, ...)
-    __attribute__ ((format(printf, 1, 2)));
+    __attribute__((format(printf, 1, 2)));
 void log_mds_notify(const char *fmt, ...)
-    __attribute__ ((format(printf, 1, 2)));
+    __attribute__((format(printf, 1, 2)));
 void log_mds_err(const char *fmt, ...)
-    __attribute__ ((format(printf, 1, 2)));
+    __attribute__((format(printf, 1, 2)));
 void log_mds_critical(const char *fmt, ...)
-    __attribute__ ((format(printf, 1, 2)));
+    __attribute__((format(printf, 1, 2)));
 
 #ifdef  __cplusplus
 }
