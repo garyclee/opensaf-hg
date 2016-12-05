@@ -29,23 +29,12 @@ UnixServerSocket::UnixServerSocket(const std::string& path) :
 UnixServerSocket::~UnixServerSocket() {
 }
 
-void UnixServerSocket::Open() {
-  if (fd() < 0) {
-    UnixSocket::Open();
-    if (fd() >= 0) {
-      int result = bind(fd(), addr(), addrlen());
-      if (result != 0) Close();
-    }
-  }
+bool UnixServerSocket::OpenHook(int sock) {
+  return bind(sock, addr(), addrlen()) == 0;
 }
 
-void UnixServerSocket::Close() {
-  if (fd() >= 0) {
-    int e = errno;
-    UnixSocket::Close();
-    unlink(path());
-    errno = e;
-  }
+void UnixServerSocket::CloseHook() {
+  unlink(path());
 }
 
 }  // namespace base

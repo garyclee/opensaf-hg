@@ -29,24 +29,18 @@ UnixClientSocket::UnixClientSocket(const std::string& path) :
 UnixClientSocket::~UnixClientSocket() {
 }
 
-void UnixClientSocket::Open() {
-  if (fd() < 0) {
-    UnixSocket::Open();
-    if (fd() >= 0) {
-      int result;
-      int e;
-      do {
-        result = connect(fd(), addr(), addrlen());
-        e = errno;
-        if (result != 0 && (e == EALREADY || e == EINPROGRESS)) {
-          struct timespec delay{0, 10000000};
-          clock_nanosleep(CLOCK_MONOTONIC, 0, &delay, nullptr);
-        }
-      } while (result != 0 && (e == EINTR || e == EALREADY
-                               || e == EINPROGRESS));
-      if (result != 0) Close();
+bool UnixClientSocket::OpenHook(int sock) {
+  int result;
+  int e;
+  do {
+    result = connect(sock, addr(), addrlen());
+    e = errno;
+    if (result != 0 && (e == EALREADY || e == EINPROGRESS)) {
+      struct timespec delay{0, 10000000};
+      clock_nanosleep(CLOCK_MONOTONIC, 0, &delay, nullptr);
     }
-  }
+  } while (result != 0 && (e == EINTR || e == EALREADY || e == EINPROGRESS));
+  return result == 0;
 }
 
 }  // namespace base

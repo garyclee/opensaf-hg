@@ -18,6 +18,7 @@
 #ifndef OSAF_LIBS_CORE_CPLUSPLUS_BASE_UNIX_SOCKET_H_
 #define OSAF_LIBS_CORE_CPLUSPLUS_BASE_UNIX_SOCKET_H_
 
+#include <pthread.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <cerrno>
@@ -36,11 +37,12 @@ class UnixSocket {
   // handled by retrying the send() call in a loop. In case of other errors, the
   // socket will be closed.
   ssize_t Send(const void* buffer, size_t length) {
-    if (fd_ < 0) Open();
+    int sock = fd_;
+    if (sock < 0) sock = Open();
     ssize_t result = -1;
-    if (fd_ >= 0) {
+    if (sock >= 0) {
       do {
-        result = send(fd_, buffer, length, MSG_NOSIGNAL);
+        result = send(sock, buffer, length, MSG_NOSIGNAL);
       } while (result < 0 && errno == EINTR);
       if (result < 0 && errno != EAGAIN && errno != EWOULDBLOCK) Close();
     }
@@ -51,11 +53,12 @@ class UnixSocket {
   // is handled by retrying the recv() call in a loop. In case of other errors,
   // the socket will be closed.
   ssize_t Recv(void* buffer, size_t length) {
-    if (fd_ < 0) Open();
+    int sock = fd_;
+    if (sock < 0) sock = Open();
     ssize_t result = -1;
-    if (fd_ >= 0) {
+    if (sock >= 0) {
       do {
-        result = recv(fd_, buffer, length, 0);
+        result = recv(sock, buffer, length, 0);
       } while (result < 0 && errno == EINTR);
       if (result < 0 && errno != EAGAIN && errno != EWOULDBLOCK) Close();
     }
@@ -69,8 +72,10 @@ class UnixSocket {
 
  protected:
   explicit UnixSocket(const std::string& path);
-  virtual void Open();
-  virtual void Close();
+  int Open();
+  void Close();
+  virtual bool OpenHook(int sock);
+  virtual void CloseHook();
   const struct sockaddr* addr() const {
     return reinterpret_cast<const struct sockaddr*>(&addr_);
   }
@@ -80,6 +85,7 @@ class UnixSocket {
  private:
   int fd_;
   struct sockaddr_un addr_;
+  pthread_mutex_t mutex_;
 
   DELETE_COPY_AND_MOVE_OPERATORS(UnixSocket);
 };
