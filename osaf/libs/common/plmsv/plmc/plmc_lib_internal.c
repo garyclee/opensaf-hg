@@ -38,6 +38,10 @@ static pthread_mutex_t td_list_lock;        /* List-wide lock */
 
 FILE *plmc_lib_debug;
 
+char *plmc_config_file = 0;
+PLMC_config_data config;
+pthread_t tcp_listener_id = 0, udp_listener_id = 0, plmc_connection_mgr_id = 0;
+
 cb_functions callbacks;
 
 

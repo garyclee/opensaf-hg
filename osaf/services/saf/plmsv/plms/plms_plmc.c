@@ -1485,21 +1485,30 @@ SaUint32T plms_plmc_mbx_evt_process(PLMS_EVT *evt)
 {
 	SaUint32T ret_err = NCSCC_RC_FAILURE;
 	PLMS_ENTITY *ent = NULL;
-	SaUint8T tmp[SA_MAX_NAME_LENGTH+1];
 	PLMS_CB *cb = plms_cb;
 
 	if (evt->req_evt.plms_plmc_evt.ee_id.length){
 		ent = (PLMS_ENTITY *)ncs_patricia_tree_get(&(cb->entity_info),
 			(SaUint8T *)&(evt->req_evt.plms_plmc_evt.ee_id));
 		if (NULL == ent){
-			memcpy(tmp,evt->req_evt.plms_plmc_evt.ee_id.value,
-				 evt->req_evt.plms_plmc_evt.ee_id.length);
-			tmp[evt->req_evt.plms_plmc_evt.ee_id.length] = '\0';
+			/* don't know about this EE; notify for possible scale event */
+			ret_err = plms_scale(&evt->req_evt.plms_plmc_evt);
 
-			LOG_ER (" Entity not found for PLMC event. ee_id: %s \
-			,evt_type: %d",
-			tmp,evt->req_evt.plms_plmc_evt.plmc_evt_type);
-			return ret_err;
+      if (ret_err == NCSCC_RC_SUCCESS) {
+        if (evt->req_evt.plms_plmc_evt.plmc_evt_type == PLMS_PLMC_EE_TCP_CONCTED)
+        {
+          TRACE("sending plmcd restart to %s for scaling",
+                evt->req_evt.plms_plmc_evt.ee_id.value);
+
+          ret_err = plmc_plmcd_restart((char *)evt->req_evt.plms_plmc_evt.ee_id.value,
+                                       plms_plmc_tcp_cbk);
+        }
+      } else {
+        LOG_IN("scaling not enabled: ignoring unknown EE: %s",
+               evt->req_evt.plms_plmc_evt.ee_id.value);
+      }
+
+      return ret_err;
 		}
 	}else {
 		LOG_ER("evt->req_evt.plms_plmc_evt.ee_id.length is ZERO");

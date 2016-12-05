@@ -764,9 +764,8 @@ static SaAisErrorT plms_imm_ccb_obj_create_cbk(SaImmOiHandleT imm_oi_hdl,
 	for (j=0; attr[j] != NULL; j++) {
 		if ( ((attr[j])->attrValues == NULL ) || (*((attr[j])->attrValues) == NULL) ) {
 			/* Log the error */
-			TRACE_LEAVE2("attr_val is null for attr_name %s", 
-				(*attr)->attrName);
-			return SA_AIS_ERR_BAD_OPERATION;
+			TRACE("attr_val is null for attr_name %s", attr[j]->attrName);
+			continue;
 		}
 		if (strcmp((attr[j])->attrName, "saPlmHEBaseHEType")== 0) {
 			rc = validate_he_base_type_attr_val(ccb_id, attr[j]);

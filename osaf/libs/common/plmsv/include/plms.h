@@ -416,7 +416,7 @@ typedef struct plms_track_info
 } PLMS_TRACK_INFO;
 
 /* Data structure to map invocation to trackinfo */
-struct plms_invocation_to_track_info
+extern struct plms_invocation_to_track_info
 {
 	SaInvocationT               invocation;
 	PLMS_TRACK_INFO              *track_info;
@@ -609,6 +609,9 @@ SaUint32T plms_ee_hypervisor_instantiated(const PLMS_ENTITY *);
 SaUint32T plms_ee_restart_vm(const PLMS_ENTITY *);
 SaUint32T plms_ee_isolate_vm(const PLMS_ENTITY *);
 
+/* Function declaration from plms_scale.cc */
+SaUint32T plms_scale(const PLMS_PLMC_EVT *);
+
 /* Function declaration from plms_adm_fsm.c*/
 SaUint32T plms_cbk_call(PLMS_TRACK_INFO *,SaUint8T);
 SaUint32T plms_imm_adm_op_req_process(PLMS_EVT *);
@@ -676,8 +679,8 @@ void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
 SaUint32T plms_tmr_handler_install();
 SaUint32T plms_hsm_hrb_init();
 
-SaUint64T  plm_handle_pool;
-SaUint64T  entity_grp_hdl_pool;
+extern SaUint64T  plm_handle_pool;
+extern SaUint64T  entity_grp_hdl_pool;
 void plm_imm_reinit_bg(PLMS_CB *cb);
 SaUint32T plms_build_epath_to_entity_map_tree();
 

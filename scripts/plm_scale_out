@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2016 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Genband
+#
+
+# NOTE 1: This script is a customization point between OpenSAF and a target
+# system and should be changed according to the needs of such system.
+
+# NOTE 2: The script must be idempotent, i.e. it must be harmless to call it
+# more than one time with the same parameters. The second call should do nothing
+# since the nodes were added to the cluster the first time the script was
+# called.
+
+# Remove the following line when customizing this script.
+exit 0
+
+for ee in "$@"; do
+  # if it already exists continue
+  immlist $ee
+  ret=$?
+
+  if [ $ret == 0 ]; then
+    continue
+  fi
+
+  for retries in $(seq 1 10); do
+    immcfg -c SaPlmEE -a saPlmEEType=safVersion=myVersion,safEEType=myEEtype $ee
+    ret=$?
+
+    if [ $ret != 0 ]; then
+      if [ $retries == 10 ]; then
+        exit $ret
+      else
+        sleep 1
+      fi
+    else
+      break
+    fi
+  done
+done
+
+exit 0

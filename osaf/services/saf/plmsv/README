@@ -367,6 +367,30 @@ support in PLM, you will need to do the following:
 3) libvirtd must be started in some fashion.
 
 
+SCALE OUT
+---------
+
+The scale-out feature makes it possible to run a customizable script when an EE
+which is not configured in IMM tries to join the cluster. The intention is that
+the script will check if the new EE is eligible to be added to the cluster,
+and, if so, add the necessary IMM objects so that the EE will be able to join
+the next time it tries. The script will be called with one or more command-line
+arguments, where each argument is a comma-separated list of properties of an EE
+that wishes to join the cluster. Currently, the comma-separated list in each
+command-line argument contains only one entry, but the script should be
+forwards compatible with future extensions where more entries may be added to
+the comma-separated list. The first entry in the list is the EE rdn.
+
+NOTE: the script must be idempotent, i.e. it must be harmless to call it more
+than one time with the same parameters. The second call should do nothing since
+the nodes were added to the cluster the first time the script was called.
+
+To enable the scale-out feature in PLM, set the variable
+OPENSAF_PLMS_CLUSTERAUTO_SCALE in plmd.conf to the full path of the script you
+want called. This script should add the IMM objects needed necessary for the
+node to join the cluster.
+
+
 IMPLEMENTATION NOTES
 ---------------------
 

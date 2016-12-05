@@ -31,9 +31,9 @@ typedef struct cb_functions_struct {
 	int( *err_cb)( plmc_lib_error*);
 } cb_functions;
 
-char *plmc_config_file;
-PLMC_config_data config;
-pthread_t tcp_listener_id, udp_listener_id, plmc_connection_mgr_id;
+extern char *plmc_config_file;
+extern PLMC_config_data config;
+extern pthread_t tcp_listener_id, udp_listener_id, plmc_connection_mgr_id;
 
 /********************************************************************
 * This struct is used for the data entry that a client_mgr thread
