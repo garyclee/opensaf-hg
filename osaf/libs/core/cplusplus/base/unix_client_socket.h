@@ -33,7 +33,7 @@ class UnixClientSocket : public UnixSocket {
   // from the file system.
   virtual ~UnixClientSocket();
  protected:
-  virtual void Open();
+  virtual bool OpenHook(int sock);
 };
 
 }  // namespace base

@@ -33,8 +33,8 @@ class UnixServerSocket : public UnixSocket {
   // file system.
   virtual ~UnixServerSocket();
  protected:
-  virtual void Open();
-  virtual void Close();
+  virtual bool OpenHook(int sock);
+  virtual void CloseHook();
 };
 
 }  // namespace base
