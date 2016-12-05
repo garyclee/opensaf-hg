@@ -32,19 +32,10 @@ UnixSocket::UnixSocket(const std::string& path) :
   } else {
     addr_.sun_path[0] = '\0';
   }
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
-  if (result != 0) osaf_abort(result);
-  result = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
-  if (result != 0) osaf_abort(result);
-  result = pthread_mutex_init(&mutex_, &attr);
-  if (result != 0) osaf_abort(result);
-  result = pthread_mutexattr_destroy(&attr);
-  if (result != 0) osaf_abort(result);
 }
 
 int UnixSocket::Open() {
-  osaf_mutex_lock_ordie(&mutex_);
+  Lock lock(mutex_);
   int sock = fd_;
   if (sock < 0) {
     if (addr_.sun_path[0] != '\0') {
@@ -60,18 +51,15 @@ int UnixSocket::Open() {
       errno = ENAMETOOLONG;
     }
   }
-  osaf_mutex_unlock_ordie(&mutex_);
   return sock;
 }
 
 UnixSocket::~UnixSocket() {
   Close();
-  int result = pthread_mutex_destroy(&mutex_);
-  if (result != 0) osaf_abort(result);
 }
 
 void UnixSocket::Close() {
-  osaf_mutex_lock_ordie(&mutex_);
+  Lock lock(mutex_);
   int sock = fd_;
   if (sock >= 0) {
     int e = errno;
@@ -80,7 +68,6 @@ void UnixSocket::Close() {
     CloseHook();
     errno = e;
   }
-  osaf_mutex_unlock_ordie(&mutex_);
 }
 
 bool UnixSocket::OpenHook(int) {
