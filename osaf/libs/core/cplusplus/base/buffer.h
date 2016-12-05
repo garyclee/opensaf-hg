@@ -25,18 +25,13 @@
 
 namespace base {
 
-// An output buffer that can be used to build e.g. a message to be sent over a
-// network.
+// An output buffer with enough space to store @a Capacity bytes of data. It can
+// be used to build e.g. a message to be sent over a network.
+template <size_t Capacity>
 class Buffer {
  public:
-  // Allocate a buffer with enough space to store @a capacity bytes of data.
-  explicit Buffer(size_t capacity) :
-      buffer_{new char[capacity]},
-      capacity_{capacity},
+  Buffer() :
       size_{0} {
-  }
-  ~Buffer() {
-    delete [] buffer_;
   }
   // Reset the write position to the start of the buffer.
   void clear() { size_ = 0; }
@@ -45,16 +40,18 @@ class Buffer {
   // Returns a pointer to the start of the buffer.
   const char* data() const { return buffer_; }
   // Returns a pointer to the end of the buffer where new data can be appended.
-  char* end() const { return buffer_ + size_; }
+  char* end() { return buffer_ + size_; }
+  // Returns a read-only pointer to the end of the buffer.
+  const char* end() const { return buffer_ + size_; }
   // Returns the number of bytes that have been written to the buffer.
   size_t size() const { return size_; }
   // Set new size of the buffer (e.g. after manually adding data at the end).
   void set_size(size_t s) { size_ = s; }
   // Returns the maximum number of bytes that can be stored in this buffer.
-  size_t capacity() const { return capacity_; }
+  static size_t capacity() { return Capacity; }
   // Append a single character to the end of the buffer.
   void AppendChar(char c) {
-    if (size_ != capacity_) buffer_[size_++] = c;
+    if (size_ != Capacity) buffer_[size_++] = c;
   }
   // This function is similar to AppendNumber(), except that leading zeros will
   // be printed - i.e. this method implements a fixed field width.
@@ -77,7 +74,7 @@ class Buffer {
   }
   // Append a string of @a size characters to the end of the buffer.
   void AppendString(const char* str, size_t size) {
-    size_t bytes_to_copy = capacity_ - size_;
+    size_t bytes_to_copy = Capacity - size_;
     if (size < bytes_to_copy) bytes_to_copy = size;
     memcpy(buffer_ + size_, str, bytes_to_copy);
     size_ += bytes_to_copy;
@@ -88,9 +85,8 @@ class Buffer {
   }
 
  private:
-  char* buffer_;
-  size_t capacity_;
   size_t size_;
+  char buffer_[Capacity];
 
   DELETE_COPY_AND_MOVE_OPERATORS(Buffer);
 };
