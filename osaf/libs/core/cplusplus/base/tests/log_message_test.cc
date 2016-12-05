@@ -39,7 +39,7 @@ static const char null_text[] = "<0>1 - - - - - -";
 TEST(LogMessageTest, WriteHelloWorld1) {
   setenv("TZ", "Europe/Stockholm", 1);
   tzset();
-  base::Buffer buf{256};
+  base::Buffer<256> buf{};
   base::LogMessage::Write(
       base::LogMessage::Facility::kLocal0,
       base::LogMessage::Severity::kNotice,
@@ -66,7 +66,7 @@ TEST(LogMessageTest, WriteHelloWorld1) {
 TEST(LogMessageTest, WriteHelloWorld2) {
   setenv("TZ", "Europe/Stockholm", 1);
   tzset();
-  base::Buffer buf{256};
+  base::Buffer<256> buf{};
   base::LogMessage::Write(
       base::LogMessage::Facility::kLocal7,
       base::LogMessage::Severity::kDebug,
@@ -93,7 +93,7 @@ TEST(LogMessageTest, WriteHelloWorld2) {
 TEST(LogMessageTest, WriteNullMessage) {
   setenv("TZ", "Europe/Stockholm", 1);
   tzset();
-  base::Buffer buf(256);
+  base::Buffer<256> buf{};
   base::LogMessage::Write(
       base::LogMessage::Facility::kKern,
       base::LogMessage::Severity::kEmerg,
@@ -116,7 +116,7 @@ TEST(LogMessageTest, WriteNullMessage) {
 TEST(LogMessageTimeTest, WriteBCTime) {
   setenv("TZ", "Europe/Stockholm", 1);
   tzset();
-  base::Buffer buf(256);
+  base::Buffer<256> buf{};
   base::LogMessage::WriteTime({-62188992000, 0}, &buf);
   EXPECT_EQ(buf.size(), 1);
   EXPECT_EQ(memcmp(buf.data(), "-", 1), 0);
@@ -125,7 +125,7 @@ TEST(LogMessageTimeTest, WriteBCTime) {
 TEST(LogMessageTimeTest, WriteFarFutureTime) {
   setenv("TZ", "Europe/Stockholm", 1);
   tzset();
-  base::Buffer buf(256);
+  base::Buffer<256> buf{};
   base::LogMessage::WriteTime({253423296000, 0}, &buf);
   EXPECT_EQ(buf.size(), 1);
   EXPECT_EQ(memcmp(buf.data(), "-", 1), 0);
@@ -136,7 +136,7 @@ TEST(LogMessageTimeTest, WriteTimeInSmallBuffer) {
   static const char expected_result[] = "2016-10-10T16:24:02.505489";
   setenv("TZ", "Europe/Stockholm", 1);
   tzset();
-  base::Buffer buf(30);
+  base::Buffer<30> buf{};
   base::LogMessage::WriteTime({1476109442, 505489184}, &buf);
   EXPECT_EQ(buf.size(), sizeof(expected_result) - 1);
   EXPECT_EQ(memcmp(buf.data(), expected_result, buf.size()), 0);
@@ -146,7 +146,7 @@ TEST(LogMessageTimeTest, WriteTimeWithUtcTimeZone) {
   static const char expected_result[] = "2016-10-10T14:33:32.82328Z";
   setenv("TZ", "UTC", 1);
   tzset();
-  base::Buffer buf(256);
+  base::Buffer<256> buf{};
   base::LogMessage::WriteTime({1476110012, 823280288}, &buf);
   EXPECT_EQ(buf.size(), sizeof(expected_result) - 1);
   EXPECT_EQ(memcmp(buf.data(), expected_result, buf.size()), 0);

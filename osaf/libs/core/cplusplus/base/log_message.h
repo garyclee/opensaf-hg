@@ -18,13 +18,19 @@
 #ifndef OSAF_LIBS_CORE_CPLUSPLUS_BASE_LOG_MESSAGE_H_
 #define OSAF_LIBS_CORE_CPLUSPLUS_BASE_LOG_MESSAGE_H_
 
+#include <time.h>
+#include <cstddef>
+#include <cstdint>
 #include <list>
 #include <set>
 #include <string>
+#include "osaf/libs/core/common/include/osaf_time.h"
+#include "osaf/libs/core/cplusplus/base/buffer.h"
+#include "osaf/libs/core/cplusplus/base/time.h"
 
 namespace base {
 
-class Buffer;
+template <size_t Capacity> class Buffer;
 
 // The LogMessage class implements support for formatting log records according
 // to RFC 5424
@@ -135,7 +141,8 @@ class LogMessage {
     Parameter(const SdName& name, const std::string& value) :
         name_{name},
         value_{value} {}
-    void Write(Buffer* buffer) const;
+    template <size_t Capacity>
+    void Write(Buffer<Capacity>* buffer) const;
     bool operator==(const Parameter& param) const {
       return name_ == param.name_ && value_ == param.value_;
     }
@@ -153,7 +160,8 @@ class LogMessage {
             const ParameterList& parameter_list) :
         id_{id},
         parameter_list_{parameter_list} {}
-    void Write(Buffer* buffer) const;
+    template <size_t Capacity>
+    void Write(Buffer<Capacity>* buffer) const;
     bool operator<(const Element& elem) const { return id_ < elem.id_; }
     bool operator==(const Element& elem) const {
       return id_ == elem.id_ && parameter_list_ == elem.parameter_list_;
@@ -169,6 +177,7 @@ class LogMessage {
   static const struct timespec kNullTime;
   // Format a log record according to rfc5424 and write it to the provided
   // buffer.
+  template <size_t Capacity>
   static void Write(Facility facility, Severity severity,
                     const struct timespec& time_stamp,
                     const HostName& host_name,
@@ -177,9 +186,116 @@ class LogMessage {
                     const MsgId& msg_id,
                     const StructuredElements& structured_elements,
                     const std::string& message,
-                    Buffer* buffer);
-  static void WriteTime(const struct timespec& ts, Buffer* buffer);
+                    Buffer<Capacity>* buffer);
+  template <size_t Capacity>
+  static void WriteTime(const struct timespec& ts, Buffer<Capacity>* buffer);
 };
+
+template <size_t Capacity>
+void LogMessage::Write(Facility facility, Severity severity,
+                       const struct timespec& time_stamp,
+                       const HostName& host_name,
+                       const AppName& app_name,
+                       const ProcId& proc_id,
+                       const MsgId& msg_id,
+                       const StructuredElements& structured_elements,
+                       const std::string& message,
+                       Buffer<Capacity>* buffer) {
+  uint32_t priority = static_cast<uint32_t>(facility) * uint32_t{8}
+      + static_cast<uint32_t>(severity);
+  buffer->AppendChar('<');
+  buffer->AppendNumber(priority, 100);
+  buffer->AppendString(">1 ", 3);
+  WriteTime(time_stamp, buffer);
+  buffer->AppendChar(' ');
+  buffer->AppendString(host_name.data(), host_name.size());
+  buffer->AppendChar(' ');
+  buffer->AppendString(app_name.data(), app_name.size());
+  buffer->AppendChar(' ');
+  buffer->AppendString(proc_id.data(), proc_id.size());
+  buffer->AppendChar(' ');
+  buffer->AppendString(msg_id.data(), msg_id.size());
+  buffer->AppendChar(' ');
+  if (structured_elements.empty()) {
+    buffer->AppendChar('-');
+  } else {
+    for (const auto& elem : structured_elements) elem.Write(buffer);
+  }
+  if (!message.empty()) {
+    buffer->AppendChar(' ');
+    buffer->AppendString(message.data(), message.size());
+  }
+}
+
+template <size_t Capacity>
+void LogMessage::WriteTime(const struct timespec& ts,
+                           Buffer<Capacity>* buffer) {
+  struct tm local_time;
+  struct tm* local_ptr = localtime_r(&ts.tv_sec, &local_time);
+  if (local_ptr != nullptr && local_ptr->tm_year >= -1900
+      && local_ptr->tm_year <= (9999 - 1900)
+      && ts.tv_nsec >= 0 && ts.tv_nsec < kNanosPerSec) {
+    buffer->AppendFixedWidthNumber(local_ptr->tm_year + 1900, 1000);
+    buffer->AppendChar('-');
+    buffer->AppendFixedWidthNumber(local_ptr->tm_mon + 1, 10);
+    buffer->AppendChar('-');
+    buffer->AppendFixedWidthNumber(local_ptr->tm_mday, 10);
+    buffer->AppendChar('T');
+    buffer->AppendFixedWidthNumber(local_ptr->tm_hour, 10);
+    buffer->AppendChar(':');
+    buffer->AppendFixedWidthNumber(local_ptr->tm_min, 10);
+    buffer->AppendChar(':');
+    buffer->AppendFixedWidthNumber(local_ptr->tm_sec, 10);
+    uint32_t decimals = ts.tv_nsec / 1000;
+    if (decimals != 0) {
+      uint32_t power = 100000;
+      while (decimals % 10 == 0) {
+        decimals /= 10;
+        power /= 10;
+      }
+      buffer->AppendChar('.');
+      buffer->AppendFixedWidthNumber(decimals, power);
+    }
+    char* buf = buffer->end();
+    if ((buffer->capacity() - buffer->size()) >= 6 &&
+        strftime(buf, 6, "%z", local_ptr) == 5) {
+      if (buf[1] != '0' || buf[2] != '0' ||
+          buf[3] != '0' || buf[4] != '0') {
+        buf[5] = buf[4];
+        buf[4] = buf[3];
+        buf[3] = ':';
+        buffer->set_size(buffer->size() + 6);
+      } else {
+        buffer->AppendChar('Z');
+      }
+    }
+  } else {
+    buffer->AppendChar('-');
+  }
+}
+
+template <size_t Capacity>
+void LogMessage::Element::Write(Buffer<Capacity>* buffer) const {
+  buffer->AppendChar('[');
+  buffer->AppendString(id_.data(), id_.size());
+  for (const Parameter& param : parameter_list_) {
+    buffer->AppendChar(' ');
+    param.Write(buffer);
+  }
+  buffer->AppendChar(']');
+}
+
+template <size_t Capacity>
+void LogMessage::Parameter::Write(Buffer<Capacity>* buffer) const {
+  buffer->AppendString(name_.data(), name_.size());
+  buffer->AppendChar('=');
+  buffer->AppendChar('"');
+  for (const char& c : value_) {
+    if (c == '"' || c == '\\' || c == ']') buffer->AppendChar('\\');
+    buffer->AppendChar(c);
+  }
+  buffer->AppendChar('"');
+}
 
 }  // namespace base
 

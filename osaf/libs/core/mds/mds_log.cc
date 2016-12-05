@@ -59,7 +59,7 @@ class MdsLog {
   base::LogMessage::AppName app_name_;
   base::LogMessage::ProcId proc_id_;
   uint64_t msg_id_;
-  base::Buffer buffer_;
+  base::Buffer<512> buffer_;
   base::UnixClientSocket log_socket_;
 
   DELETE_COPY_AND_MOVE_OPERATORS(MdsLog);
@@ -75,7 +75,7 @@ MdsLog::MdsLog(const char* host_name, const char* app_name,
     app_name_{base::LogMessage::AppName{app_name}},
     proc_id_{base::LogMessage::ProcId{std::to_string(proc_id)}},
     msg_id_{0},
-    buffer_{512},
+    buffer_{},
     log_socket_{socket_name} {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);
