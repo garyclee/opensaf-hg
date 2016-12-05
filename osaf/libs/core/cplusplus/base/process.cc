@@ -50,10 +50,12 @@ Process::~Process() {
 }
 
 void Process::Kill(int sig_no, const Duration& wait_time) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  pid_t pgid = process_group_id_;
-  process_group_id_ = 0;
-  lock.unlock();
+  pid_t pgid;
+  {
+    Lock lock(mutex_);
+    pgid = process_group_id_;
+    process_group_id_ = 0;
+  }
   if (pgid > 1) KillProc(-pgid, sig_no, wait_time);
 }
 
@@ -119,20 +121,23 @@ void Process::Execute(int argc, char *argv[], const Duration& timeout) {
       LOG_WA("setpgid(%u, 0) failed: %s",
              (unsigned) child_pid, strerror(errno));
     }
-    std::unique_lock<std::mutex> lock(mutex_);
-    process_group_id_ = child_pid;
-    StartTimer(timeout);
-    lock.unlock();
+    {
+      Lock lock(mutex_);
+      process_group_id_ = child_pid;
+      StartTimer(timeout);
+    }
     int status;
     pid_t wait_pid;
     do {
       wait_pid = waitpid(child_pid, &status, 0);
     } while (wait_pid == (pid_t) -1 && errno == EINTR);
-    lock.lock();
-    StopTimer();
-    bool killed = process_group_id_ == 0;
-    process_group_id_ = 0;
-    lock.unlock();
+    bool killed;
+    {
+      Lock lock(mutex_);
+      StopTimer();
+      killed = process_group_id_ == 0;
+      process_group_id_ = 0;
+    }
     bool successful = false;
     if (!killed && wait_pid != (pid_t) -1) {
       if (!WIFEXITED(status)) {

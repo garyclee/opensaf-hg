@@ -15,20 +15,19 @@
  *
  */
 
-#ifndef OPENSAF_OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_
-#define OPENSAF_OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_
+#ifndef OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_
+#define OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_
 
+#include <chrono>
 #include <csignal>
 #include <cstdint>
 #include <ctime>
-#include <chrono>
-#include <mutex>
-#include "base/macros.h"
+#include "osaf/libs/core/cplusplus/base/macros.h"
+#include "osaf/libs/core/cplusplus/base/mutex.h"
 
 namespace base {
 
 class Process {
-  DELETE_COPY_AND_MOVE_OPERATORS(Process);
  public:
   using Duration = std::chrono::steady_clock::duration;
   Process();
@@ -96,18 +95,20 @@ class Process {
    * processes in the process group have terminated.
    */
   static void KillProc(pid_t pid, int sig_no, const Duration& wait_time);
+
  private:
   using Clock = std::chrono::steady_clock;
   using TimePoint = std::chrono::steady_clock::time_point;
   void StartTimer(const Duration& timeout);
   void StopTimer();
   static void TimerExpirationEvent(sigval notification_data);
-  std::mutex mutex_;
+  Mutex mutex_;
   timer_t timer_id_;
   bool is_timer_created_;
   pid_t process_group_id_;
+  DELETE_COPY_AND_MOVE_OPERATORS(Process);
 };
 
-} // namespace base
+}  // namespace base
 
-#endif  /* OPENSAF_OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_ */
+#endif  // OSAF_LIBS_CORE_CPLUSPLUS_BASE_PROCESS_H_

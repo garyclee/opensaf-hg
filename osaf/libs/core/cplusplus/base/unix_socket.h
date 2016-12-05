@@ -24,6 +24,7 @@
 #include <cerrno>
 #include <string>
 #include "osaf/libs/core/cplusplus/base/macros.h"
+#include "osaf/libs/core/cplusplus/base/mutex.h"
 
 namespace base {
 
@@ -85,7 +86,7 @@ class UnixSocket {
  private:
   int fd_;
   struct sockaddr_un addr_;
-  pthread_mutex_t mutex_;
+  Mutex mutex_;
 
   DELETE_COPY_AND_MOVE_OPERATORS(UnixSocket);
 };
