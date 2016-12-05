@@ -46,12 +46,14 @@
 class MdsLog {
  public:
   static bool Init();
-  static void Log(base::LogMessage::Severity severity, const char *str);
+  static void Log(base::LogMessage::Severity severity, const char *fmt,
+                  va_list ap);
 
  private:
   MdsLog(const char* host_name, const char* app_name,
             uint32_t proc_id, const char* socket_name);
-  void LogInternal(base::LogMessage::Severity severity, const char *str);
+  void LogInternal(base::LogMessage::Severity severity, const char *fmt,
+                   va_list ap);
   static MdsLog* instance_;
   const base::LogMessage::HostName host_name_;
   const base::LogMessage::AppName app_name_;
@@ -121,11 +123,13 @@ bool MdsLog::Init() {
   return instance_ != nullptr;
 }
 
-void MdsLog::Log(base::LogMessage::Severity severity, const char *str) {
-  if (instance_ != nullptr) instance_->LogInternal(severity, str);
+void MdsLog::Log(base::LogMessage::Severity severity, const char *fmt,
+                 va_list ap) {
+  if (instance_ != nullptr) instance_->LogInternal(severity, fmt, ap);
 }
 
-void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *str) {
+void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *fmt,
+                         va_list ap) {
   uint64_t id = msg_id_++;
   base::Buffer<256> buffer;
   base::LogMessage::Write(base::LogMessage::Facility::kLocal0,
@@ -136,7 +140,8 @@ void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *str) {
                           proc_id_,
                           base::LogMessage::MsgId{std::to_string(id)},
                           {},
-                          str,
+                          fmt,
+                          ap,
                           &buffer);
   log_socket_.Send(buffer.data(), buffer.size());
 }
@@ -167,13 +172,10 @@ uint32_t mds_log_init(const char*) {
  *******************************************************************************/
 void log_mds_critical(const char *fmt, ...) {
   if (gl_mds_log_level < NCSMDS_LC_CRITICAL) return;
-  char str[256];
   va_list ap;
-
   va_start(ap, fmt);
-  vsnprintf(str, sizeof(str), fmt, ap);
+  MdsLog::Log(base::LogMessage::Severity::kCrit, fmt, ap);
   va_end(ap);
-  MdsLog::Log(base::LogMessage::Severity::kCrit, str);
 }
 
 /*******************************************************************************
@@ -186,13 +188,10 @@ void log_mds_critical(const char *fmt, ...) {
  *******************************************************************************/
 void log_mds_err(const char *fmt, ...) {
   if (gl_mds_log_level < NCSMDS_LC_ERR) return;
-  char str[256];
   va_list ap;
-
   va_start(ap, fmt);
-  vsnprintf(str, sizeof(str), fmt, ap);
+  MdsLog::Log(base::LogMessage::Severity::kErr, fmt, ap);
   va_end(ap);
-  MdsLog::Log(base::LogMessage::Severity::kErr, str);
 }
 
 /*******************************************************************************
@@ -205,13 +204,10 @@ void log_mds_err(const char *fmt, ...) {
  *******************************************************************************/
 void log_mds_notify(const char *fmt, ...) {
   if (gl_mds_log_level < NCSMDS_LC_NOTIFY) return;
-  char str[256];
   va_list ap;
-
   va_start(ap, fmt);
-  vsnprintf(str, sizeof(str), fmt, ap);
+  MdsLog::Log(base::LogMessage::Severity::kNotice, fmt, ap);
   va_end(ap);
-  MdsLog::Log(base::LogMessage::Severity::kNotice, str);
 }
 
 /*******************************************************************************
@@ -224,13 +220,10 @@ void log_mds_notify(const char *fmt, ...) {
  *******************************************************************************/
 void log_mds_info(const char *fmt, ...) {
   if (gl_mds_log_level < NCSMDS_LC_INFO) return;
-  char str[256];
   va_list ap;
-
   va_start(ap, fmt);
-  vsnprintf(str, sizeof(str), fmt, ap);
+  MdsLog::Log(base::LogMessage::Severity::kInfo, fmt, ap);
   va_end(ap);
-  MdsLog::Log(base::LogMessage::Severity::kInfo, str);
 }
 
 /*******************************************************************************
@@ -244,11 +237,8 @@ void log_mds_info(const char *fmt, ...) {
  *******************************************************************************/
 void log_mds_dbg(const char *fmt, ...) {
   if (gl_mds_log_level < NCSMDS_LC_DBG) return;
-  char str[256];
   va_list ap;
-
   va_start(ap, fmt);
-  vsnprintf(str, sizeof(str), fmt, ap);
+  MdsLog::Log(base::LogMessage::Severity::kDebug, fmt, ap);
   va_end(ap);
-  MdsLog::Log(base::LogMessage::Severity::kDebug, str);
 }
