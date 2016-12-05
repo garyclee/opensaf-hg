@@ -19,8 +19,10 @@
 #define OSAF_LIBS_CORE_CPLUSPLUS_BASE_LOG_MESSAGE_H_
 
 #include <time.h>
+#include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <list>
 #include <set>
 #include <string>
@@ -188,6 +190,17 @@ class LogMessage {
                     const std::string& message,
                     Buffer<Capacity>* buffer);
   template <size_t Capacity>
+  static void Write(Facility facility, Severity severity,
+                    const struct timespec& time_stamp,
+                    const HostName& host_name,
+                    const AppName& app_name,
+                    const ProcId& proc_id,
+                    const MsgId& msg_id,
+                    const StructuredElements& structured_elements,
+                    const char* format,
+                    va_list ap,
+                    Buffer<Capacity>* buffer);
+  template <size_t Capacity>
   static void WriteTime(const struct timespec& ts, Buffer<Capacity>* buffer);
 };
 
@@ -224,6 +237,49 @@ void LogMessage::Write(Facility facility, Severity severity,
   if (!message.empty()) {
     buffer->AppendChar(' ');
     buffer->AppendString(message.data(), message.size());
+  }
+}
+
+template <size_t Capacity>
+void LogMessage::Write(Facility facility, Severity severity,
+                       const struct timespec& time_stamp,
+                       const HostName& host_name,
+                       const AppName& app_name,
+                       const ProcId& proc_id,
+                       const MsgId& msg_id,
+                       const StructuredElements& structured_elements,
+                       const char* format,
+                       va_list ap,
+                       Buffer<Capacity>* buffer) {
+  uint32_t priority = static_cast<uint32_t>(facility) * uint32_t{8}
+      + static_cast<uint32_t>(severity);
+  buffer->AppendChar('<');
+  buffer->AppendNumber(priority, 100);
+  buffer->AppendString(">1 ", 3);
+  WriteTime(time_stamp, buffer);
+  buffer->AppendChar(' ');
+  buffer->AppendString(host_name.data(), host_name.size());
+  buffer->AppendChar(' ');
+  buffer->AppendString(app_name.data(), app_name.size());
+  buffer->AppendChar(' ');
+  buffer->AppendString(proc_id.data(), proc_id.size());
+  buffer->AppendChar(' ');
+  buffer->AppendString(msg_id.data(), msg_id.size());
+  buffer->AppendChar(' ');
+  if (structured_elements.empty()) {
+    buffer->AppendChar('-');
+  } else {
+    for (const auto& elem : structured_elements) elem.Write(buffer);
+  }
+  if (format[0] != '\0') {
+    buffer->AppendChar(' ');
+    char* buf = buffer->end();
+    size_t size = buffer->capacity() - buffer->size();
+    int n = vsnprintf(buf, size, format, ap);
+    if (n >= 0) {
+      if (static_cast<size_t>(n) < size) size = n;
+      buffer->set_size(buffer->size() + size);
+    }
   }
 }
 
