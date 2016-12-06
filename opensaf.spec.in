@@ -948,6 +948,7 @@ fi
 %{_pkglibdir}/opensafd
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/opensaf_scale_out
+%{_pkglibdir}/plm_scale_out
 %{_pkglibdir}/opensaf_sc_active
 %{_pkglibdir}/configure_tipc
 
