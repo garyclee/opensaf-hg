@@ -188,7 +188,8 @@ osaf_execbindir = $(pkglibdir)
 dist_osaf_execbin_SCRIPTS = \
 	$(top_srcdir)/scripts/opensaf_reboot \
 	$(top_srcdir)/scripts/opensaf_scale_out \
-	$(top_srcdir)/scripts/opensaf_sc_active
+	$(top_srcdir)/scripts/opensaf_sc_active \
+	$(top_srcdir)/scripts/plm_scale_out
 
 if ENABLE_RPM_TARGET
 
