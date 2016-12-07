@@ -59,6 +59,7 @@ char *role_string[] = { "UNDEFINED", "ACTIVE", "STANDBY", "QUIESCED",
 static uint32_t fm_agents_startup(void);
 static uint32_t fm_get_args(FM_CB *);
 static uint32_t fms_fms_exchange_node_info(FM_CB *);
+static uint32_t fms_fms_inform_terminating(FM_CB *fm_cb);
 static uint32_t fm_nid_notify(uint32_t);
 static uint32_t fm_tmr_start(FM_TMR *, SaTimeT);
 static SaAisErrorT get_peer_clm_node_name(NODE_ID);
@@ -280,6 +281,7 @@ int main(int argc, char *argv[])
 		}
 
 		if (fds[FD_TERM].revents & POLLIN) {
+			fms_fms_inform_terminating(fm_cb);
 			daemon_exit();
 		}
 
@@ -622,8 +624,12 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 					 * node_down event has been received.
 					 */
 				if (fm_cb->use_remote_fencing) {
-					opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_clm_node_name.value,
-							"Received Node Down for peer controller");
+					if (fm_cb->peer_node_terminated == false) {
+						opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_clm_node_name.value,
+								"Received Node Down for peer controller");
+					} else {
+						LOG_NO("Peer node %s is terminated, fencing will not be performed", fm_cb->peer_clm_node_name.value);
+					}
 				} else {
 					opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
 							"Received Node Down for peer controller");
@@ -661,11 +667,12 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
 			LOG_NO("Reseting peer controller node id: %x", fm_cb->peer_node_id);
 			if (fm_cb->use_remote_fencing) {
-				LOG_NO("saClmClusterNodeGet succeeded node_id 0x%X, clm peer node name %s",
-					fm_mbx_evt->node_id, fm_cb->peer_clm_node_name.value);
-
-				opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_clm_node_name.value,
-						"Received Node Down for peer controller");
+				if (fm_cb->peer_node_terminated == false) {
+					opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_clm_node_name.value,
+							"Received Node Down for peer controller");
+				} else {
+					LOG_NO("Peer node %s is terminated, fencing will not be performed", fm_cb->peer_clm_node_name.value);
+				}
 			} else {
 				opensaf_reboot(fm_cb->peer_node_id, (char *)fm_cb->peer_node_name.value,
 					       "Received Node Down for Active peer");
@@ -856,6 +863,39 @@ static uint32_t fms_fms_exchange_node_info(FM_CB *fm_cb)
 
 		if (NCSCC_RC_SUCCESS != fm_mds_async_send(fm_cb, (NCSCONTEXT)&gfm_msg,
 							  NCSMDS_SVC_ID_GFM, MDS_SEND_PRIORITY_MEDIUM,
+							  0, fm_cb->peer_adest, 0)) {
+			syslog(LOG_ERR, "Sending node-info message to peer fms failed");
+			return NCSCC_RC_FAILURE;
+		}
+
+		return NCSCC_RC_SUCCESS;
+	}
+	TRACE_LEAVE();
+	return NCSCC_RC_FAILURE;
+}
+
+/****************************************************************************
+* Name          : fms_fms_inform_terminating
+*
+* Description   : sends information to peer that terminating is undergoing.
+*
+* Arguments     : Pointer to Control Block.
+*
+* Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+*
+* Notes         : None.
+*****************************************************************************/
+static uint32_t fms_fms_inform_terminating(FM_CB *fm_cb)
+{
+	GFM_GFM_MSG gfm_msg;
+	TRACE_ENTER();
+	if (fm_cb->peer_adest != 0) {
+/* peer fms present */
+		memset(&gfm_msg, 0, sizeof(GFM_GFM_MSG));
+		gfm_msg.msg_type = GFM_GFM_EVT_PEER_IS_TERMINATING;
+
+		if (NCSCC_RC_SUCCESS != fm_mds_async_send(fm_cb, (NCSCONTEXT)&gfm_msg,
+							  NCSMDS_SVC_ID_GFM, MDS_SEND_PRIORITY_VERY_HIGH,
 							  0, fm_cb->peer_adest, 0)) {
 			syslog(LOG_ERR, "Sending node-info message to peer fms failed");
 			return NCSCC_RC_FAILURE;
