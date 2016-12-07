@@ -474,6 +474,7 @@ static uint32_t fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 				}
 				cb->peer_adest = svc_evt->i_dest;
 				cb->peer_node_id = svc_evt->i_node_id;
+				cb->peer_node_terminated = false;
 				return_val = fm_fill_mds_evt_post_fm_mbx(cb, fm_evt, cb->peer_node_id, FM_EVT_PEER_UP);
 
 				if (NCSCC_RC_FAILURE == return_val) {
@@ -533,7 +534,9 @@ static uint32_t fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 			       cb->peer_node_name.length);
 			LOG_IN("Peer Node_id  %u : EE_ID %s", cb->peer_node_id, cb->peer_node_name.value);
 			break;
-
+		case GFM_GFM_EVT_PEER_IS_TERMINATING:
+			fm_cb->peer_node_terminated = true;
+			break;
 		default:
 			syslog(LOG_INFO, "Wrong MDS event from GFM.");
 			return_val = NCSCC_RC_FAILURE;
@@ -768,7 +771,8 @@ static uint32_t fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 		ncs_encode_n_octets_in_uba(uba, msg->info.node_info.node_name.value,
 					   (uint32_t)msg->info.node_info.node_name.length);
 		break;
-
+	case GFM_GFM_EVT_PEER_IS_TERMINATING:
+		break;
 	default:
 		syslog(LOG_INFO, "fm_fm_mds_enc: Invalid msg type for encode.");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -829,6 +833,8 @@ static uint32_t fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 
 		ncs_decode_n_octets_from_uba(uba, msg->info.node_info.node_name.value,
 					     msg->info.node_info.node_name.length);
+		break;
+	case GFM_GFM_EVT_PEER_IS_TERMINATING:
 		break;
 	default:
 		syslog(LOG_INFO, "fm_fm_mds_dec: Invalid msg for decoding.");

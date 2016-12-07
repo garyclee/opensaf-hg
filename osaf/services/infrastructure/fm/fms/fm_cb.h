@@ -106,6 +106,7 @@ typedef struct fm_cb {
 	SaClmHandleT clm_hdl;
 	bool use_remote_fencing;
 	SaNameT peer_clm_node_name;
+	bool peer_node_terminated;
 } FM_CB;
 
 extern char *role_string[];
