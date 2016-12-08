@@ -56,7 +56,7 @@ static void imma_proc_free_callback(IMMA_CALLBACK_INFO *callback);
  
   Notes         : None
 ******************************************************************************/
-uint32_t imma_version_validate(SaVersionT *version)
+SaAisErrorT imma_version_validate(SaVersionT *version)
 {
 	SaAisErrorT retCode = SA_AIS_OK;
 
@@ -253,7 +253,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 	imma_proc_decrement_pending_reply(cl_node, false);
 
 	/* Allocate the Callback info */
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OM_ADMIN_OP_RSP;
@@ -306,16 +306,16 @@ SaImmAdminOperationParamsT_2 **imma_proc_get_params(IMMSV_ADMIN_OPERATION_PARAM 
 		IMMSV_ADMIN_OPERATION_PARAM *prev = p;
 		out_params[i] = (SaImmAdminOperationParamsT_2 *)
 		    malloc(sizeof(SaImmAdminOperationParamsT_2));	/*alloc-2 */
-		out_params[i]->paramName = malloc(p->paramName.size + 1);	/*alloc-3 */
+		out_params[i]->paramName = (char *) malloc(p->paramName.size + 1);	/*alloc-3 */
 		strncpy(out_params[i]->paramName, p->paramName.buf, p->paramName.size + 1);
 		out_params[i]->paramName[p->paramName.size] = 0;	/*string too long=>truncate */
 		free(p->paramName.buf);
 		p->paramName.buf = NULL;
 		p->paramName.size = 0;
 		out_params[i]->paramType = (SaImmValueTypeT)p->paramType;
-		out_params[i]->paramBuffer = imma_copyAttrValue3(p->paramType,	/*alloc-4 */
+		out_params[i]->paramBuffer = imma_copyAttrValue3((SaImmValueTypeT) p->paramType,	/*alloc-4 */
 								 &(p->paramBuffer));
-		immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);
+		immsv_evt_free_att_val(&(p->paramBuffer), (SaImmValueTypeT) p->paramType);
 		p = p->next;
 		prev->next = NULL;
 		free(prev);
@@ -336,7 +336,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT isPbeAdmOp=(evt->type == IMMA_EVT_ND2A_IMM_PBE_ADMOP);
+	bool isPbeAdmOp = (evt->type == IMMA_EVT_ND2A_IMM_PBE_ADMOP);
 
 	/*TODO: correct this, ugly use of continuationId */
 	SaImmOiHandleT implHandle = evt->info.admOpReq.continuationId;
@@ -366,7 +366,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Allocate the Callback info */
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
 		if(isPbeAdmOp) {
@@ -552,7 +552,7 @@ void imma_proc_terminate_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 			err = SA_AIS_ERR_FAILED_OPERATION;
 		}
 
-		IMMA_CALLBACK_INFO *callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+		IMMA_CALLBACK_INFO *callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 		osafassert(callback);
 		if (err == SA_AIS_OK) {
 			callback->type = IMMA_CALLBACK_OI_CCB_APPLY;
@@ -604,7 +604,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 		struct imma_oi_ccb_record *oiCcb = cl_node->activeOiCcbs;
 
 		/* Send the stale handle triggering ipc-message */
-		callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+		callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 		osafassert(callback);
 		callback->type = IMMA_CALLBACK_STALE_HANDLE;
 		callback->lcl_imm_hdl = 0LL;
@@ -639,7 +639,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 			/* Non critical & stale CCB must have been aborted by server side. 
 			   Generate abort upcall immediately, i.e. no need to wait for resurrect. 
 			 */
-			callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+			callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 			osafassert(callback);
 			callback->type = IMMA_CALLBACK_OI_CCB_ABORT;
 			callback->lcl_imm_hdl = cl_node->handle;
@@ -768,7 +768,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Allocate the Callback info */
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OI_RT_ATTR_UPDATE;
@@ -811,7 +811,7 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT isPrtObj=(evt->info.ccbCompl.ccbId == 0);
+	bool isPrtObj = (evt->info.ccbCompl.ccbId == 0);
 
 	SaImmOiHandleT implHandle = evt->info.ccbCompl.immHandle;
 
@@ -854,7 +854,7 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 	} 
 
 	/* Allocate the Callback info */
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
 		if(isPrtObj) {
@@ -903,7 +903,7 @@ static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		callback->type = IMMA_CALLBACK_OI_CCB_APPLY;
 		callback->lcl_imm_hdl = implHandle;
@@ -946,7 +946,7 @@ static void imma_proc_ccb_abort(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		callback->type = IMMA_CALLBACK_OI_CCB_ABORT;
 		callback->lcl_imm_hdl = implHandle;
@@ -979,8 +979,8 @@ static void imma_proc_obj_delete(IMMA_CB *cb, bool hasLongDn, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT isPrtObj=((evt->info.objDelete.ccbId == 0) && (evt->info.objDelete.adminOwnerId != 0));
-	SaBoolT isSpApplRto=((evt->info.objDelete.ccbId == 0) && (evt->info.objDelete.adminOwnerId == 0));
+	bool isPrtObj = ((evt->info.objDelete.ccbId == 0) && (evt->info.objDelete.adminOwnerId != 0));
+	bool isSpApplRto = ((evt->info.objDelete.ccbId == 0) && (evt->info.objDelete.adminOwnerId == 0));
 	if(isSpApplRto) {TRACE_3("imma_proc_obj_delete CCBID==0 admoId=0  SPECIAL applier RTO delete");}
 
 	SaImmOiHandleT implHandle = evt->info.objDelete.immHandle;
@@ -1007,7 +1007,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, bool hasLongDn, IMMA_EVT *evt)
 		}
 	}
 
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		if(isPrtObj) {
 			callback->type = IMMA_CALLBACK_PBE_PRT_OBJ_DELETE;
@@ -1113,7 +1113,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, bool dnOrRdnIsLong, IMMA_EVT *evt)
 	}
 
 	/* Allocate the Callback info */
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
 		if(isPrtObj) {
@@ -1174,8 +1174,8 @@ static void imma_proc_obj_modify(IMMA_CB *cb, bool hasLongDNs, IMMA_EVT *evt)
 {
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	SaBoolT isPrtAttrs=((evt->info.objModify.ccbId == 0) && (evt->info.objModify.adminOwnerId != 0));
-	SaBoolT isSpApplRtu = ((evt->info.objModify.ccbId == 0) && (evt->info.objModify.adminOwnerId == 0));
+	bool isPrtAttrs = ((evt->info.objModify.ccbId == 0) && (evt->info.objModify.adminOwnerId != 0));
+	bool isSpApplRtu = ((evt->info.objModify.ccbId == 0) && (evt->info.objModify.adminOwnerId == 0));
 	/* Can be a PRTO or a config obj with PRTAttrs. */
 	TRACE_ENTER();
         if(isSpApplRtu) {TRACE_3("imma_proc_obj_modify CCBID==0 admoId=0  SPECIAL applier RTA modify");}
@@ -1209,7 +1209,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, bool hasLongDNs, IMMA_EVT *evt)
 
 
 	/* Allocate the Callback info */
-	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+	callback = (IMMA_CALLBACK_INFO *) calloc(1, sizeof(IMMA_CALLBACK_INFO));
 	if (callback) {
 		/* Fill the Call Back Info */
 		if(isPrtAttrs) {
@@ -1273,7 +1273,7 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 					p->paramName.buf = NULL;
 					p->paramName.size = 0;
 				}
-				immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);/*free-4 */
+				immsv_evt_free_att_val(&(p->paramBuffer), (SaImmValueTypeT) p->paramType);/*free-4 */
 				p->next = NULL;
 				free(p);  /*free-2 */
 			}
@@ -1289,7 +1289,7 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 					p->paramName.buf = NULL;
 					p->paramName.size = 0;
 				}
-				immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);/*free-4 */
+				immsv_evt_free_att_val(&(p->paramBuffer), (SaImmValueTypeT) p->paramType);/*free-4 */
 				p->next = NULL;
 				free(p);  /*free-2 */
 			}
@@ -1631,11 +1631,11 @@ uint32_t imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, bool is
   Arguments     : cb      - ptr to the IMMA control block
                   immHandle - IMM OM service handle
  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Return Values : SA_AIS_OK/SA_AIS_ERR_<ERROR>
  
   Notes         : None
 ******************************************************************************/
-uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
+SaAisErrorT imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
 {
 	IMMA_CALLBACK_INFO *callback = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
@@ -1697,11 +1697,11 @@ uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
   Arguments     : cb      - ptr to the IMMA control block
                   immHandle - IMM OM service handle
  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Return Values : SA_AIS_OK/SA_AIS_ERR_<ERROR>
  
   Notes         : None
 ******************************************************************************/
-uint32_t imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
+SaAisErrorT imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 {
 	IMMA_CALLBACK_INFO *callback = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
@@ -1775,11 +1775,11 @@ uint32_t imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
   Arguments     : cb      - ptr to the IMMA control block
                   immHandle - immsv handle
  
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Return Values : SA_AIS_OK/SA_AIS_ERR_<ERROR>
  
   Notes         : None
 ******************************************************************************/
-uint32_t imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
+SaAisErrorT imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 {
 	IMMA_CALLBACK_INFO *callback = NULL;
 	SYSF_MBX *callbk_mbx = NULL;
@@ -1918,21 +1918,21 @@ static void imma_proc_ccbaug_setup(IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO
 		}
 
 		attrDataSize = sizeof(SaImmAttrValuesT_2 *) * (noOfAttributes + 1);
-		attr = calloc(1, attrDataSize); /*alloc-1 */
+		attr = (SaImmAttrValuesT_2 **) calloc(1, attrDataSize);	/*alloc-1 */
 		for (; i < noOfAttributes && p; i++, p = p->next) {
 			IMMSV_ATTR_VALUES *q = &(p->n);
-			attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));        /*alloc-2 */
-			attr[i]->attrName = malloc(q->attrName.size + 1);       /*alloc-3 */
+			attr[i] = (SaImmAttrValuesT_2 *) calloc(1, sizeof(SaImmAttrValuesT_2));	/*alloc-2 */
+			attr[i]->attrName = (char *) malloc(q->attrName.size + 1);	/*alloc-3 */
 			strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
 			attr[i]->attrName[q->attrName.size] = 0;        /*redundant. */
 			attr[i]->attrValuesNumber = q->attrValuesNumber;
 			attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
 			if (q->attrValuesNumber) {
 				attr[i]->attrValues =
-					calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));   /*alloc-4 */
+					(SaImmAttrValueT *) calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
 				/*alloc-5 */
 				attr[i]->attrValues[0] =
-					imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
+					imma_copyAttrValue3((SaImmValueTypeT) q->attrValueType, &(q->attrValue));
 
 				if (q->attrValuesNumber > 1) {
 					int ix;
@@ -1940,7 +1940,7 @@ static void imma_proc_ccbaug_setup(IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO
 					for (ix = 1; ix < q->attrValuesNumber; ++ix) {
 						osafassert(r);
 						attr[i]->attrValues[ix] = /*alloc-5 */
-							imma_copyAttrValue3(q->attrValueType, &(r->n));
+							imma_copyAttrValue3((SaImmValueTypeT) q->attrValueType, &(r->n));
 						r = r->next;
 					}//for
 				}//if
@@ -2090,7 +2090,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							callback->params);
 				}
 			} else {
-				SaAisErrorT error = IMMSV_IMPOSSIBLE_ERROR;
+				SaAisErrorT error = (SaAisErrorT) IMMSV_IMPOSSIBLE_ERROR;
 				if(!isExtendedNameValid) {
 					if (osaf_is_extended_names_enabled()) {
 						TRACE_3("Object name is too long: %s", osaf_extended_name_borrow(&callback->name));
@@ -2771,12 +2771,12 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					}
 
 					/*alloc-1 */
-					attr = calloc(noOfAttrMods + 1, sizeof(SaImmAttrModificationT_2 *));
+					attr = (SaImmAttrModificationT_2 **) calloc(noOfAttrMods + 1, sizeof(SaImmAttrModificationT_2 *));
 					p = callback->attrMods;
 					for (; i < noOfAttrMods; i++, p = p->next) {
 
-						attr[i] = calloc(1, sizeof(SaImmAttrModificationT_2));	/*alloc-2 */
-						attr[i]->modType = p->attrModType;
+						attr[i] = (SaImmAttrModificationT_2 *) calloc(1, sizeof(SaImmAttrModificationT_2));	/*alloc-2 */
+						attr[i]->modType = (SaImmAttrModificationTypeT) p->attrModType;
 
 						attr[i]->modAttr.attrName = p->attrValue.attrName.buf;	/* steal/alloc-3 */
 						p->attrValue.attrName.buf = NULL;
@@ -2786,10 +2786,10 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 							p->attrValue.attrValueType;
 						if (p->attrValue.attrValuesNumber) {
 							attr[i]->modAttr.attrValues =
-								calloc(p->attrValue.attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
+								(SaImmAttrValueT *) calloc(p->attrValue.attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
 							/*alloc-5 */
 							attr[i]->modAttr.attrValues[0] =
-								imma_copyAttrValue3(p->attrValue.attrValueType, &(p->attrValue.attrValue));
+								imma_copyAttrValue3((SaImmValueTypeT) p->attrValue.attrValueType, &(p->attrValue.attrValue));
 
 							if (p->attrValue.attrValuesNumber > 1) {
 								int ix;
@@ -2797,7 +2797,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 								for (ix = 1; ix < p->attrValue.attrValuesNumber; ++ix) {
 									osafassert(r);
 									attr[i]->modAttr.attrValues[ix] =
-										imma_copyAttrValue3(p->attrValue.attrValueType, &(r->n));/*alloc-5 */
+										imma_copyAttrValue3((SaImmValueTypeT) p->attrValue.attrValueType, &(r->n));/*alloc-5 */
 
 									r = r->next;
 								}//for all extra values
@@ -3027,7 +3027,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						p = p->next;
 					}
 					osafassert(noOfAttrNames);	/*alloc-1 */
-					attributeNames = calloc(noOfAttrNames + 1, sizeof(SaImmAttrNameT));
+					attributeNames = (SaImmAttrNameT *) calloc(noOfAttrNames + 1, sizeof(SaImmAttrNameT));
 					p = callback->attrNames;
 					for (; i < noOfAttrNames; i++, p = p->next) {
 						attributeNames[i] = p->name.buf;
@@ -3264,9 +3264,9 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	}
 
 	/* Encode non-flat since we broadcast to unknown receivers. */
-	rc = immsv_evt_enc(i_evt, &uba);
+	proc_rc = immsv_evt_enc(i_evt, &uba);
 
-	if (rc != NCSCC_RC_SUCCESS) {
+	if (proc_rc != NCSCC_RC_SUCCESS) {
 		TRACE_2("ERR_LIBRARY: Failed to pre-pack");
 		rc = SA_AIS_ERR_LIBRARY;
 		goto fail;
@@ -3275,7 +3275,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	size = uba.ttl;
 	/*NOTE: should check against "payload max-size" */
 
-	tmpData = malloc(size);
+	tmpData = (char *) malloc(size);
 	data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));

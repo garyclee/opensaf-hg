@@ -184,7 +184,6 @@ static uint32_t imma_create(NCSMDS_SVC_ID sv_id)
 	imma_mds_unregister(cb);
 
  mds_reg_fail:
-	cb->sv_id = 0;
 	imma_db_destroy(cb);
 
  db_init_fail:
@@ -226,7 +225,6 @@ static uint32_t imma_destroy(NCSMDS_SVC_ID sv_id)
 
 	/* Destroy the IMMA database */
 	osafassert(cb->sv_id == sv_id);
-	cb->sv_id = 0;
 	imma_db_destroy(cb);
 
 	/* destroy the lock */
@@ -455,7 +453,7 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueTy
 	}
 
 	p->val.x.size = valueSize;
-	p->val.x.buf = (valueSize) ? malloc(valueSize) : NULL;
+	p->val.x.buf = (valueSize) ? (char *) malloc(valueSize) : NULL;
 
 	if (attrValue && valueSize) {
 		switch (attrValueType) {

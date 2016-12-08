@@ -72,7 +72,7 @@ typedef struct imma_callback_info {
 } IMMA_CALLBACK_INFO;
 
 void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt);
-uint32_t imma_version_validate(SaVersionT *version);
+SaAisErrorT imma_version_validate(SaVersionT *version);
 
 uint32_t imma_callback_ipc_init(IMMA_CLIENT_NODE *client_info);
 void imma_callback_ipc_destroy(IMMA_CLIENT_NODE *client_info);
@@ -98,9 +98,9 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt);
 
 /* callback prototypes */
 IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *clnd);
-uint32_t imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);
-uint32_t imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle);
-uint32_t imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle);
+SaAisErrorT imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);
+SaAisErrorT imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle);
+SaAisErrorT imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle);
 
 /* Admin operation continuation functions */
 int imma_popAsyncAdmOpContinuation(IMMA_CB *cb,
