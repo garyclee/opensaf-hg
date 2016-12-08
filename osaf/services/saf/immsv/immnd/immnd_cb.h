@@ -230,4 +230,8 @@ void immnd_client_node_tree_destroy(IMMND_CB *cb);
         (IMMND_WRT_IMMD_SUBPART_VER_MAX - \
          IMMND_WRT_IMMD_SUBPART_VER_MIN + 1 )
 
+/* IMMND - Prefix in IMM error strings for SA_AIS_ERR_NO_RESOURCE */
+#define IMM_VALIDATION_ABORT    "IMM: Validation abort: "
+#define IMM_RESOURCE_ABORT      "IMM: Resource abort: "
+
 #endif
