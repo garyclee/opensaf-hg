@@ -10,12 +10,14 @@ OPENSAF_IMM_A.02.01 {
 		saImmOm*;
 		immsv_finalize_sync;	# FIXME immsv* should be in libimmsv_common.so
 		immsv_sync;
-		immsv_om_augment_ccb_initialize;
-		immsv_om_augment_ccb_get_result;
-		immsv_om_augment_ccb_get_admo_name;
-		immsv_om_handle_initialize;
-		immsv_om_admo_handle_initialize;
-		immsv_om_handle_finalize;
+		extern "C++" {
+			"immsv_om_handle_initialize(unsigned long long*, SaVersionT*)";
+			"immsv_om_handle_finalize(unsigned long long)";
+			"immsv_om_admo_handle_initialize(unsigned long long, char*, unsigned long long*)";
+			"immsv_om_augment_ccb_initialize(unsigned long long, unsigned int, unsigned int, unsigned long long*, unsigned long long*)";
+			"immsv_om_augment_ccb_get_admo_name(unsigned long long, char*, char**)";
+			"immsv_om_augment_ccb_get_result(unsigned long long, unsigned int)"
+		};
 	local:
 		*;
 };

@@ -35,7 +35,7 @@ libSaImmOi_la_CPPFLAGS = \
 if HAVE_LD_VERSION_SCRIPT
 libSaImmOi_la_LDFLAGS = \
 	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOi.map \
-	-version-number $(OILIB_VERSION)
+	-version-number $(OILIB_VERSION) -lstdc++
 else
 libSaImmOi_la_LDFLAGS = \
 	-version-number $(OILIB_VERSION)
@@ -56,7 +56,7 @@ libSaImmOm_la_CPPFLAGS = \
 if HAVE_LD_VERSION_SCRIPT
 libSaImmOm_la_LDFLAGS = \
 	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.map \
-	-version-number $(OMLIB_VERSION)
+	-version-number $(OMLIB_VERSION) -lstdc++
 else
 libSaImmOm_la_LDFLAGS = \
 	-version-number $(OMLIB_VERSION)

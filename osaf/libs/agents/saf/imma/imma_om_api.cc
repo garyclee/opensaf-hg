@@ -36,7 +36,6 @@
  TRACE_4 library errors ERR_LIBRARY   - aproximates ERROR
 *****************************************************************************/
 
-#define _GNU_SOURCE
 #include <string.h>
 #include <stdlib.h>
 

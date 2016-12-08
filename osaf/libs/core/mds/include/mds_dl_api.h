@@ -30,11 +30,20 @@
 
 #include "ncs_lib.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 uint32_t mds_lib_req(NCS_LIB_REQ_INFO *req);
 int mds_auth_server_connect(const char *name, MDS_DEST mds_dest,
                             int svc_id, int64_t timeout);
 int mds_auth_server_disconnect(const char *name, MDS_DEST mds_dest,
                                int svc_id, int64_t timeout);
 int mds_auth_server_create(const char *name);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
