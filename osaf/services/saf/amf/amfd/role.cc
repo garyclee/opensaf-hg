@@ -1055,9 +1055,7 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 	/*  Mark AVD as Quiesced. */
 	cb->avail_state_avd = SA_AMF_HA_QUIESCED;
 	
-	if (avd_clm_track_stop() != SA_AIS_OK) {
-		LOG_ER("ClmTrack stop failed");
-	}
+	avd_clm_track_stop();
 
 	/* Go ahead and set mds role as already the NCS SU has been switched */
 	if (NCSCC_RC_SUCCESS != (rc = avd_mds_set_vdest_role(cb, SA_AMF_HA_QUIESCED))) {
@@ -1134,6 +1132,12 @@ uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 			it != node_id_db->end(); it++) {
 		AVD_AVND *avnd = it->second;
 		avd_pg_node_csi_del_all(cb, avnd);
+	}
+
+	if (cb->is_clm_track_started == true) {
+		if (avd_clm_track_stop() != SA_AIS_OK) {
+			LOG_ER("Failed to stop cluster tracking after switch over");
+		}
 	}
 
 	LOG_NO("Controller switch over done");

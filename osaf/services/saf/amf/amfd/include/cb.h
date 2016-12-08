@@ -215,6 +215,7 @@ typedef struct cl_cb_tag {
 	/* Clm stuff */
 	std::atomic<SaClmHandleT> clmHandle;
 	std::atomic<SaSelectionObjectT> clm_sel_obj;
+	bool is_clm_track_started;
 
 	bool fully_initialized;
 	bool swap_switch; /* true - In middle of role switch. */
