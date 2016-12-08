@@ -16,7 +16,7 @@
  */
 
 #include "osaf/libs/core/cplusplus/base/mutex.h"
-#include "./config.h"
+#include "config.h"
 
 namespace base {
 
