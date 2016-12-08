@@ -1028,7 +1028,7 @@ static SaAisErrorT admin_op_result_common(
 		for (i = 0; returnParams[i]; ++i) {
 			param = returnParams[i];
 			/*alloc-a */
-			IMMSV_ADMIN_OPERATION_PARAM *p = malloc(sizeof(IMMSV_ADMIN_OPERATION_PARAM));
+			IMMSV_ADMIN_OPERATION_PARAM *p = (IMMSV_ADMIN_OPERATION_PARAM *) malloc(sizeof(IMMSV_ADMIN_OPERATION_PARAM));
 			memset(p, 0, sizeof(IMMSV_ADMIN_OPERATION_PARAM));
 			TRACE("PARAM:%s \n", param->paramName);
 
@@ -1066,7 +1066,7 @@ static SaAisErrorT admin_op_result_common(
 				goto mds_send_fail;
 			}
 			/*alloc-b */
-			p->paramName.buf = malloc(p->paramName.size);
+			p->paramName.buf = (char *) malloc(p->paramName.size);
 			strncpy(p->paramName.buf, param->paramName, p->paramName.size);
 
 			p->paramType = param->paramType;
@@ -1123,7 +1123,7 @@ static SaAisErrorT admin_op_result_common(
 			free(p->paramName.buf);
 			p->paramName.buf = NULL;
 		}
-		immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);	/*free-c */
+		immsv_evt_free_att_val(&(p->paramBuffer), (SaImmValueTypeT) p->paramType);	/*free-c */
 		p->next = NULL;
 		free(p);	/*free-a */
 	}
@@ -1418,7 +1418,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 			rc = out_evt->info.imma.info.implSetRsp.error;
 			if (rc == SA_AIS_OK) {
 				cl_node->mImplementerId = out_evt->info.imma.info.implSetRsp.implId;
-				cl_node->mImplementerName = calloc(1, nameLen);
+				cl_node->mImplementerName = (char *) calloc(1, nameLen);
 				strncpy(cl_node->mImplementerName, implementerName, nameLen);
 			}
 		}
@@ -2563,12 +2563,12 @@ static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
 		}
 
 		/*alloc-2 */
-		p = calloc(1, sizeof(IMMSV_ATTR_MODS_LIST));
+		p = (IMMSV_ATTR_MODS_LIST *) calloc(1, sizeof(IMMSV_ATTR_MODS_LIST));
 		p->attrModType = attrMod->modType;
 		p->attrValue.attrName.size = strlen(attrMod->modAttr.attrName) + 1;
 
 		/* alloc 3 */
-		p->attrValue.attrName.buf = malloc(p->attrValue.attrName.size);
+		p->attrValue.attrName.buf = (char *) malloc(p->attrValue.attrName.size);
 		strncpy(p->attrValue.attrName.buf, attrMod->modAttr.attrName, p->attrValue.attrName.size);
 
 		p->attrValue.attrValuesNumber = attrMod->modAttr.attrValuesNumber;
@@ -2584,7 +2584,7 @@ static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
 				unsigned int i;
 				for (i = 1; i <= numAdded; ++i) {
 					/*alloc-5 */
-					IMMSV_EDU_ATTR_VAL_LIST *al = calloc(1, sizeof(IMMSV_EDU_ATTR_VAL_LIST));
+					IMMSV_EDU_ATTR_VAL_LIST *al = (IMMSV_EDU_ATTR_VAL_LIST *) calloc(1, sizeof(IMMSV_EDU_ATTR_VAL_LIST));
 					/*alloc-6 */
 					imma_copyAttrValue(&(al->n), attrMod->modAttr.attrValueType, avarr[i]);
 					al->next = p->attrValue.attrMoreValues;	/*NULL initially */
@@ -2692,13 +2692,13 @@ static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
 
 		if (p->attrValue.attrValuesNumber) {
 			immsv_evt_free_att_val(&(p->attrValue.attrValue),	/*free-4 */
-					       p->attrValue.attrValueType);
+					(SaImmValueTypeT) p->attrValue.attrValueType);
 
 			while (p->attrValue.attrMoreValues) {
 				IMMSV_EDU_ATTR_VAL_LIST *al = p->attrValue.attrMoreValues;
 				p->attrValue.attrMoreValues = al->next;
 				al->next = NULL;
-				immsv_evt_free_att_val(&(al->n), p->attrValue.attrValueType);	/*free-6 */
+				immsv_evt_free_att_val(&(al->n), (SaImmValueTypeT) p->attrValue.attrValueType);	/*free-6 */
 				free(al);	/*free-5 */
 			}
 		}
@@ -2853,7 +2853,7 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 	evt.info.immnd.info.objCreate.className.size = strlen(className) + 1;
 
 	/*alloc-1 */
-	evt.info.immnd.info.objCreate.className.buf = malloc(evt.info.immnd.info.objCreate.className.size);
+	evt.info.immnd.info.objCreate.className.buf = (char *) malloc(evt.info.immnd.info.objCreate.className.size);
 	strncpy(evt.info.immnd.info.objCreate.className.buf, className, evt.info.immnd.info.objCreate.className.size);
 
 	if(objectName) {
@@ -2922,7 +2922,7 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 			} else if(attr->attrValueType == SA_IMM_ATTR_SANAMET) {
 				int n;
 				for(n=0; n<attr->attrValuesNumber; n++) {
-					if(!osaf_is_extended_name_valid(attr->attrValues[n])) {
+					if(!osaf_is_extended_name_valid((SaNameT*) attr->attrValues[n])) {
 						rc = SA_AIS_ERR_INVALID_PARAM;
 						TRACE_2("ERR_INVALID_PARAM: Attribute '%s' value is not valid", attr->attrName);
 						goto mds_send_fail;
@@ -2931,7 +2931,7 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 			}
 
 			/*alloc-3 */
-			p = calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
+			p = (IMMSV_ATTR_VALUES_LIST *) calloc(1, sizeof(IMMSV_ATTR_VALUES_LIST));
 
 			p->n.attrName.size = strlen(attr->attrName) + 1;
 			if (p->n.attrName.size >= IMMSV_MAX_ATTR_NAME_LENGTH) {
@@ -2942,7 +2942,7 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 			}
 
 			/*alloc-4 */
-			p->n.attrName.buf = malloc(p->n.attrName.size);
+			p->n.attrName.buf = (char *) malloc(p->n.attrName.size);
 			strncpy(p->n.attrName.buf, attr->attrName, p->n.attrName.size);
 
 			p->n.attrValuesNumber = attr->attrValuesNumber;
@@ -2957,7 +2957,7 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 				unsigned int i;
 				for (i = 1; i <= numAdded; ++i) {
 					/*alloc-6 */
-					IMMSV_EDU_ATTR_VAL_LIST *al = calloc(1, sizeof(IMMSV_EDU_ATTR_VAL_LIST));
+					IMMSV_EDU_ATTR_VAL_LIST *al = (IMMSV_EDU_ATTR_VAL_LIST *) calloc(1, sizeof(IMMSV_EDU_ATTR_VAL_LIST));
 
 					/*alloc-7 */
 					imma_copyAttrValue(&(al->n), attr->attrValueType, avarr[i]);
@@ -3036,13 +3036,13 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 			p->n.attrName.buf = NULL;
 		}
 
-		immsv_evt_free_att_val(&(p->n.attrValue), p->n.attrValueType);	/*free-5 */
+		immsv_evt_free_att_val(&(p->n.attrValue), (SaImmValueTypeT) p->n.attrValueType);	/*free-5 */
 
 		while (p->n.attrMoreValues) {
 			IMMSV_EDU_ATTR_VAL_LIST *al = p->n.attrMoreValues;
 			p->n.attrMoreValues = al->next;
 			al->next = NULL;
-			immsv_evt_free_att_val(&(al->n), p->n.attrValueType);	/*free-7 */
+			immsv_evt_free_att_val(&(al->n), (SaImmValueTypeT) p->n.attrValueType);	/*free-7 */
 			free(al);	/*free-6 */
 		}
 
@@ -3567,7 +3567,7 @@ static SaAisErrorT
 getAdmoName(SaImmHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaStringT object, SaStringT *admOwnerOut)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    const SaImmAttrNameT admoNameAttr = SA_IMM_ATTR_ADMIN_OWNER_NAME;
+    const SaImmAttrNameT admoNameAttr = (char *) SA_IMM_ATTR_ADMIN_OWNER_NAME;
     TRACE_ENTER();
 
     /* modify or delete => fetch admo attribute for object from server. */

@@ -229,7 +229,7 @@ void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, SaUi
 		return;
 	}
 
-	new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
+	new_ccb = (imma_oi_ccb_record *) calloc(1, sizeof(imma_oi_ccb_record));
 	new_ccb->ccbId = ccbId;
 
 	if(!inv) {/* zero inv =>PBE or Applier => count ops. */
@@ -552,7 +552,7 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 	 */
 
 	int rs = 0;
-	const SaImmAttrNameT admoNameAttr = SA_IMM_ATTR_ADMIN_OWNER_NAME;
+	const SaImmAttrNameT admoNameAttr = (char *) SA_IMM_ATTR_ADMIN_OWNER_NAME;
 	SaImmAttrValuesT_2 *attrVal = NULL;
 
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
@@ -1247,7 +1247,7 @@ uint32_t imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
 	}
 
 	if (search_node->mLastAttributes) {
-		imma_freeSearchAttrs(search_node->mLastAttributes);
+		imma_freeSearchAttrs((SaImmAttrValuesT_2 **) search_node->mLastAttributes);
 		search_node->mLastAttributes = NULL;
 	}
 
@@ -1395,7 +1395,7 @@ SaStringT* imma_getErrorStrings(IMMSV_SAERR_INFO* errRsp)
 		errStrs = errStrs->next;
 	}
 
-	errStringArr = calloc(listSize + 1, sizeof(SaStringT));
+	errStringArr = (SaStringT *) calloc(listSize + 1, sizeof(SaStringT));
 
 	errStrs = errRsp->errStrings;
         listSize = 0;
@@ -1434,7 +1434,6 @@ void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr)
 		free(att->attrValues);  /*free-4 */
 		att->attrValues = NULL;
 		att->attrValuesNumber = 0; 
-		att->attrValueType = 0; 
 
 		free(att);      /*free-2 */
 		attr[ix] = NULL;

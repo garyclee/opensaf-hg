@@ -542,7 +542,7 @@ static uint32_t imma_mds_dec(IMMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 	}
 #endif   /*ABT DOES NOT WORK */
 
-	evt = calloc(1, sizeof(IMMSV_EVT));	/* calloc zeroes memory */
+	evt = (IMMSV_EVT *) calloc(1, sizeof(IMMSV_EVT));	/* calloc zeroes memory */
 	if (!evt)
 		return NCSCC_RC_FAILURE;
 
@@ -604,7 +604,7 @@ uint32_t imma_mds_msg_sync_send(uint32_t imma_mds_hdl,
 	rc = ncsmds_api(&mds_info);
 
 	if (rc == NCSCC_RC_SUCCESS)
-		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
+		*o_evt = (IMMSV_EVT *) mds_info.info.svc_send.info.sndrsp.o_rsp;
 
 	return rc;
 }
