@@ -127,7 +127,7 @@ typedef struct imma_search_node {
 } IMMA_SEARCH_NODE;
 
 typedef struct imma_continuation_record {
-	SaUint32T invocation;
+	SaInt32T invocation;
 	SaInvocationT userInvoc;
 	SaImmHandleT immHandle;
 	struct imma_continuation_record *next;
