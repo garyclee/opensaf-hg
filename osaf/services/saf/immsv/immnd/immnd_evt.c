@@ -38,10 +38,6 @@
 #define IMMND_SEARCH_BUNDLE_SIZE ((MDS_DIRECT_BUF_MAXSIZE / 100) * 90)   
 #define IMMND_MAX_SEARCH_RESULT (IMMND_SEARCH_BUNDLE_SIZE / 300)  
 
-// Same strings exists in ImmModel.cc
-#define IMM_VALIDATION_ABORT	"IMM: Validation abort: "
-#define IMM_RESOURCE_ABORT		"IMM: Resource abort: "
-
 static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq, const IMMSV_SEND_INFO *sinfo);
 static uint32_t immnd_evt_proc_cb_dump(IMMND_CB *cb);
 static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);

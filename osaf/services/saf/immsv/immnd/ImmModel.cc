@@ -35,10 +35,6 @@
 #define CCB_CRIT_THRESHOLD 8 /* See ImmModel::immNotPbeWritable */
 #define SEARCH_TIMEOUT_SEC 600 /* Search timeout */
 
-// Same strings exists in immnd_evt.c
-#define IMM_VALIDATION_ABORT  "IMM: Validation abort: "
-#define IMM_RESOURCE_ABORT    "IMM: Resource abort: "
-
 struct ContinuationInfo2
 {
     ContinuationInfo2():mCreateTime(0), mConn(0), mTimeout(0), mImplId(0){}
