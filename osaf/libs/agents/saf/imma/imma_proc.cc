@@ -2479,7 +2479,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						free(attr[i]->attrName);	/*free-3 */
 						attr[i]->attrName = 0;
 						if (attr[i]->attrValuesNumber) {
-							int j;
+							SaUint32T j;
 							for (j = 0; j < attr[i]->attrValuesNumber; ++j) {
 								imma_freeAttrValue3(attr[i]->attrValues[j], attr[i]->attrValueType);/*free-5 */
 								attr[i]->attrValues[j] = 0;
@@ -2872,7 +2872,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						free(attr[i]->modAttr.attrName);	/*free-3 */
 						attr[i]->modAttr.attrName = 0;
 						if (attr[i]->modAttr.attrValuesNumber) {
-							int j;
+							SaUint32T j;
 							for (j = 0; j < attr[i]->modAttr.attrValuesNumber; ++j) {
 								imma_freeAttrValue3(attr[i]->modAttr.attrValues[j],
 									attr[i]->modAttr.attrValueType);	/*free-5 */

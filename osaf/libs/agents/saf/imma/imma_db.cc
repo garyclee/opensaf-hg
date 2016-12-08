@@ -1421,7 +1421,7 @@ void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr)
 	SaImmAttrValuesT_2 *att = NULL;
 	int ix;
 	for (ix = 0; attr[ix]; ++ix) {
-		int ix2; 
+		SaUint32T ix2;
 
 		att = attr[ix];
 		free(att->attrName);    /*free-3 */

@@ -2920,7 +2920,7 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 				TRACE("RtObjectCreate ignoring attribute %s with no values", attr->attrName);
 				continue;
 			} else if(attr->attrValueType == SA_IMM_ATTR_SANAMET) {
-				int n;
+				SaUint32T n;
 				for(n=0; n<attr->attrValuesNumber; n++) {
 					if(!osaf_is_extended_name_valid((SaNameT*) attr->attrValues[n])) {
 						rc = SA_AIS_ERR_INVALID_PARAM;
