@@ -219,7 +219,11 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 		LOG_ER("ClmTrackCallback received in error");
 		goto done;
 	}
-
+	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) {
+		LOG_WA("Receive clm track cb with AMFD state(%d)", avd_cb->avail_state_avd);
+		saClmResponse_4(avd_cb->clmHandle, invocation, SA_CLM_CALLBACK_RESPONSE_OK);
+		goto done;
+	}
 	/*
 	** The CLM cluster can be larger than the AMF cluster thus it is not an
 	** error if the corresponding AMF node cannot be found.
@@ -394,6 +398,7 @@ SaAisErrorT avd_clm_init(AVD_CL_CB* cb)
 
 	cb->clmHandle = 0;
 	cb->clm_sel_obj = 0;
+	cb->is_clm_track_started = false;
 	TRACE_ENTER();
 	/*
 	 * TODO: This CLM initialization thread can be re-factored
@@ -453,6 +458,8 @@ SaAisErrorT avd_clm_track_start(void)
 		} else {
 			LOG_ER("Failed to start cluster tracking %u", error);
 		}
+	} else {
+		avd_cb->is_clm_track_started = true;
 	}
 	TRACE_LEAVE();
 	return error;
@@ -460,17 +467,23 @@ SaAisErrorT avd_clm_track_start(void)
 
 SaAisErrorT avd_clm_track_stop(void)
 {
-        SaAisErrorT error = SA_AIS_OK;
-
-        TRACE_ENTER();
+	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER();
 	error = saClmClusterTrackStop(avd_cb->clmHandle);
-        if (SA_AIS_OK != error) 
-                LOG_ER("Failed to stop cluster tracking %u", error);
-	else
+	if (error != SA_AIS_OK) {
+		if (error == SA_AIS_ERR_TRY_AGAIN || error == SA_AIS_ERR_TIMEOUT ||
+				error == SA_AIS_ERR_UNAVAILABLE) {
+			LOG_WA("Failed to stop cluster tracking %u", error);
+		} else {
+			LOG_ER("Failed to stop cluster tracking %u", error);
+		}
+	} else {
 		TRACE("Sucessfully stops cluster tracking");
+		avd_cb->is_clm_track_started = false;
+	}
 
-        TRACE_LEAVE();
-        return error;
+	TRACE_LEAVE();
+	return error;
 }
 
 void clm_node_terminate(AVD_AVND *node)
