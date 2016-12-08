@@ -3249,8 +3249,10 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	IMMSV_EVT fevs_evt;
 	uint32_t proc_rc;
 	char *tmpData = NULL;
+	char *data = NULL;
 	NCS_UBAID uba;
 	uba.start = NULL;
+	int32_t size;
 
 	osafassert(locked && (*locked));
 	/*Pack the message for sending over multiple hops. */
@@ -3270,11 +3272,11 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 		goto fail;
 	}
 
-	int32_t size = uba.ttl;
+	size = uba.ttl;
 	/*NOTE: should check against "payload max-size" */
 
 	tmpData = malloc(size);
-	char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
+	data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
 	memset(&fevs_evt, 0, sizeof(IMMSV_EVT));
 	fevs_evt.type = IMMSV_EVT_TYPE_IMMND;
