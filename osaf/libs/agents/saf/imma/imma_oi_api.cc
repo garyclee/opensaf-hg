@@ -895,6 +895,9 @@ static SaAisErrorT admin_op_result_common(
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	bool errStringPar = false;
+	/* Note NOT unsigned since negative means async invoc. */
+	SaInt32T inv = m_IMMSV_UNPACK_HANDLE_LOW(invocation);
+	SaInt32T owner = m_IMMSV_UNPACK_HANDLE_HIGH(invocation);
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -971,10 +974,6 @@ static SaAisErrorT admin_op_result_common(
 		goto stale_handle;
 
 	}
-
-	/* Note NOT unsigned since negative means async invoc. */
-	SaInt32T inv = m_IMMSV_UNPACK_HANDLE_LOW(invocation);
-	SaInt32T owner = m_IMMSV_UNPACK_HANDLE_HIGH(invocation);
 
 	/* populate the structure */
 	memset(&adminOpRslt_evt, 0, sizeof(IMMSV_EVT));
@@ -3643,6 +3642,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	SaVersionT version = {'A', 2, 17};
 	SaUint32T adminOwnerId = 0;
 	SaUint32T ccbId = 0;
+	struct imma_oi_ccb_record *ccb_oi_record = NULL;
 
 	TRACE_ENTER();
 
@@ -3712,7 +3712,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		goto done;
 	}
 
-	struct imma_oi_ccb_record *ccb_oi_record = imma_oi_ccb_record_find(cl_node, ccbId);
+	ccb_oi_record = imma_oi_ccb_record_find(cl_node, ccbId);
 	cbi = imma_oi_ccb_record_ok_augment(cl_node, ccbId, &privateOmHandle, &privateAoHandle);
 	if(!cbi) {
 		TRACE_2("ERR_BAD_OPERATION: Ccb %u, is not in a state that "

@@ -1387,9 +1387,8 @@ SaStringT* imma_getErrorStrings(IMMSV_SAERR_INFO* errRsp)
 {
 	unsigned int listSize = 0;
 	SaStringT* errStringArr=NULL;
-	if(errRsp->errStrings == NULL) {goto done;}
-
 	IMMSV_ATTR_NAME_LIST* errStrs = errRsp->errStrings;
+	if(errRsp->errStrings == NULL) {goto done;}
 
 	while(errStrs) {
 		++listSize;

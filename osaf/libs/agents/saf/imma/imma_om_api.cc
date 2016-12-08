@@ -1605,6 +1605,7 @@ static SaAisErrorT ccb_object_create_common(SaImmCcbHandleT ccbHandle,
 	SaImmHandleT immHandle=0LL;
 	SaUint32T adminOwnerId = 0;
 	SaStringT *newErrorStrings = NULL;
+	size_t parentNameLength = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -1840,7 +1841,6 @@ static SaAisErrorT ccb_object_create_common(SaImmCcbHandleT ccbHandle,
 	}
 	strncpy(evt.info.immnd.info.objCreate.className.buf, className, evt.info.immnd.info.objCreate.className.size);
 
-	size_t parentNameLength = 0;
 	if(parentName) {
 		if(!osaf_is_extended_name_valid(parentName)) {
 			rc = SA_AIS_ERR_INVALID_PARAM;
@@ -3827,10 +3827,9 @@ static SaAisErrorT admin_op_invoke_common(
 	evt.info.immnd.info.admOpReq.objectName.buf = (char *)objectName;
 
 	osafassert(evt.info.immnd.info.admOpReq.params == NULL);
-	const SaImmAdminOperationParamsT_2 *param = NULL;
 	int i;
 	for (i = 0; params[i]; ++i) {
-		param = params[i];
+		const SaImmAdminOperationParamsT_2 *param = params[i];
 		/*alloc-2 */
 		IMMSV_ADMIN_OPERATION_PARAM *p = malloc(sizeof(IMMSV_ADMIN_OPERATION_PARAM));
 		memset(p, 0, sizeof(IMMSV_ADMIN_OPERATION_PARAM));
@@ -4599,6 +4598,10 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	IMMSV_ATTR_DEF_LIST *sysattr = NULL;
 	const SaImmAttrDefinitionT_2 *attr;
 	int i;
+	int persistent = 0;
+	int attrClNameExist = 0;
+	int attrAdmNameExist = 0;
+	int attrImplNameExist = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -4751,11 +4754,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 	evt.info.immnd.info.classDescr.classCategory = classCategory;
 	TRACE("name: %s category:%u", className, classCategory);
-	int persistent = 0;
 	attr = attrDefinitions[0];
-	int attrClNameExist = 0;
-	int attrAdmNameExist = 0;
-	int attrImplNameExist = 0;
 	for (i = 0; attr != 0; attr = attrDefinitions[++i]) {
 		/* Ignore system attribute definitions that are
 		   loaded since they are indistinguishable from being set
@@ -5759,6 +5758,8 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 	IMMSV_EVT evt;
 	IMMSV_EVT *out_evt = NULL;
 	SaTimeT timeout;
+	IMMSV_OM_SEARCH_INIT *req = NULL;
+	SaImmHandleT immHandle;
 
 	TRACE_ENTER();
 
@@ -5810,7 +5811,7 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 		goto release_lock;
 	}
 
-	SaImmHandleT immHandle = search_node->mImmHandle;
+	immHandle = search_node->mImmHandle;
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
@@ -5869,7 +5870,7 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
 	evt.info.immnd.type = (ccbId)?IMMND_EVT_A2ND_OBJ_SAFE_READ:IMMND_EVT_A2ND_ACCESSOR_GET;
-	IMMSV_OM_SEARCH_INIT *req = &(evt.info.immnd.info.searchInit);
+	req = &(evt.info.immnd.info.searchInit);
 	req->client_hdl = immHandle;
 	req->rootName.size = strlen(objectName) + 1;
 	req->rootName.buf = (char *)objectName;
@@ -7017,8 +7018,10 @@ static SaAisErrorT search_init_common(SaImmHandleT immHandle,
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	IMMA_SEARCH_NODE *search_node = NULL;
+	IMMSV_OM_SEARCH_INIT *req = NULL;
 	SaImmSearchHandleT tmpSearchHandle=0LL;
 	SaTimeT timeout = 0;
+	int rootNameLength = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -7198,10 +7201,9 @@ static SaAisErrorT search_init_common(SaImmHandleT immHandle,
 	memset(&evt, 0, sizeof(IMMSV_EVT));
 	evt.type = IMMSV_EVT_TYPE_IMMND;
 	evt.info.immnd.type = IMMND_EVT_A2ND_SEARCHINIT;
-	IMMSV_OM_SEARCH_INIT *req = &(evt.info.immnd.info.searchInit);
+	req = &(evt.info.immnd.info.searchInit);
 	req->client_hdl = immHandle;
 
-	int rootNameLength = 0;
 	if(rootName) {
 		if(!(osaf_is_extended_names_enabled()
 				|| strlen(rootName) < SA_MAX_UNEXTENDED_NAME_LENGTH)) {
