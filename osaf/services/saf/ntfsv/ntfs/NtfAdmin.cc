@@ -578,7 +578,7 @@ void NtfAdmin::discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscrip
     }
     else
     {
-        LOG_ER("client %u not found", clientId);
+        LOG_WA("client %u not found", clientId);
     }
 }
 

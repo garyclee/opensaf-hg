@@ -41,6 +41,7 @@ public:
 	 void sendNotification(NtfSmartPtr& notification, NtfClient *client);	 
 	 void discardedAdd(SaNtfIdentifierT n_id);
 	 void discardedClear();
+	 unsigned int discardedListSize();
 	 void syncRequest(NCS_UBAID *uba);
 private:
 	FilterMap filterMap;

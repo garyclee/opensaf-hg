@@ -291,3 +291,10 @@ void NtfSubscription::printInfo()
     TRACE("Subscription information");
     TRACE("  subscriptionId %u", subscriptionId_);
 }
+/**
+ *  Returns size of discarded list.
+ */
+unsigned int NtfSubscription::discardedListSize() {
+  return discardedNotificationIdList.size();
+}
+

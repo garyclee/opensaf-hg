@@ -305,7 +305,8 @@ int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uint32_t client_id
 			       MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
 		discarded = NTFS_NOTIFICATION_DISCARDED;
-		LOG_ER("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
+		//This notification will be sent again as a discarded notification.
+		TRACE_1("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
 	} 
 	/* Allways confirm if not success notification will be put in discarded list. */
 	notificationSentConfirmed(client_id, dispatchInfo->subscriptionId, *header->notificationId, discarded);
