@@ -58,6 +58,8 @@ NtfClient::~NtfClient()
     for (pos = subscriptionMap.begin(); pos != subscriptionMap.end(); pos++)
     {
         NtfSubscription* subscription = pos->second;
+	TRACE("For subscription:'%u', num of discarded Notifications: '%u'",
+	  subscription->getSubscriptionId(), subscription->discardedListSize());
         delete subscription;
     }
     // delete all readers
