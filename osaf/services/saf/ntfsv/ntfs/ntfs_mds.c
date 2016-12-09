@@ -938,7 +938,7 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 			evt->info.mds_info.mds_dest_id = info->info.svc_evt.i_dest;
 
 			/* Push the event and we are done */
-			if (m_NCS_IPC_SEND(&ntfs_cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
+			if (m_NCS_IPC_SEND(&ntfs_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 				TRACE("ipc send failed");
 				ntfs_evt_destroy(evt);
 				rc = NCSCC_RC_FAILURE;
@@ -1287,7 +1287,7 @@ uint32_t ntfs_mds_msg_send(ntfs_cb_t *cb,
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("ntfs_mds_msg_send FAILED");
+		LOG_WA("ntfs_mds_msg_send FAILED:%u",rc);
 	}
 	return rc;
 }
