@@ -2786,6 +2786,7 @@ ImmModel::pbePrtoPurgeMutations(unsigned int nodeId, ConnVector& connVector)
 void
 ImmModel::abortSync()
 {
+    ClassMap::iterator ci;
     switch(sImmNodeState){ 
         
         case IMM_NODE_R_AVAILABLE:
@@ -2822,38 +2823,46 @@ ImmModel::abortSync()
             }
 
             LOG_NO("Abort sync: Discarding synced classes");
-            while(!sClassMap.empty()) {
-                ClassMap::iterator ci = sClassMap.begin();
+            ci = sClassMap.begin();
+            while (ci != sClassMap.end()) {
                 TRACE("Removing Class:%s", ci->first.c_str());
                 osafassert(ci->second->mExtent.empty());
-                while(!ci->second->mAttrMap.empty()) {
-                    AttrMap::iterator ai = ci->second->mAttrMap.begin();
+
+                AttrMap::iterator ai = ci->second->mAttrMap.begin();
+                while (ai != ci->second->mAttrMap.end()) {
                     TRACE("Remove Attr:%s", ai->first.c_str());
                     AttrInfo* ainfo = ai->second;
                     osafassert(ainfo);
                     delete(ainfo);
-                    ci->second->mAttrMap.erase(ai);
+                    ++ai;
                 }
+                ci->second->mAttrMap.clear();
+
                 delete ci->second;
                 updateImmObject(ci->first, true);
-                sClassMap.erase(ci);
+                ++ci;
             }
+            sClassMap.clear();
 
             if(!sDeferredObjUpdatesMap.empty()) {
-                DeferredObjUpdatesMap::iterator doumIter;
                 LOG_NO("Abort sync: discarding deferred RTA updates");
 
-                while(!sDeferredObjUpdatesMap.empty()) {
-                    doumIter = sDeferredObjUpdatesMap.begin();
+                DeferredObjUpdatesMap::iterator doumIter = sDeferredObjUpdatesMap.begin();
+                while (doumIter != sDeferredObjUpdatesMap.end()) {
                     DeferredRtAUpdateList* attrUpdList = doumIter->second;
-                    while(!attrUpdList->empty()) {
-                        DeferredRtAUpdate& dRtAU = attrUpdList->front();
-                        immsv_free_attrmods(dRtAU.attrModsList);
-                        dRtAU.attrModsList = NULL;
-                        attrUpdList->pop_front();
+
+                    DeferredRtAUpdateList::iterator drtauIter = attrUpdList->begin();
+                    while (drtauIter != attrUpdList->end()) {
+                        immsv_free_attrmods(drtauIter->attrModsList);
+                        drtauIter->attrModsList = NULL;
+                        ++drtauIter;
                     }
-                    sDeferredObjUpdatesMap.erase(doumIter);
+                    attrUpdList->clear();
+
+                    delete attrUpdList;
+                    ++doumIter;
                 }
+                sDeferredObjUpdatesMap.clear();
             }
 
             sNodesDeadDuringSync.clear(); 
@@ -3642,13 +3651,14 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             err = SA_AIS_ERR_INVALID_PARAM;
         }
 
-        while(!classInfo->mAttrMap.empty()) {
-            AttrMap::iterator ai = classInfo->mAttrMap.begin();
+        AttrMap::iterator ai = classInfo->mAttrMap.begin();
+        while (ai != classInfo->mAttrMap.end()) {
             AttrInfo* ainfo = ai->second;
             osafassert(ainfo);
             delete(ainfo);
-            classInfo->mAttrMap.erase(ai);
+            ++ai;
         }
+        classInfo->mAttrMap.clear();
 
         if(!schemaChange) {
             delete classInfo;
@@ -3706,14 +3716,15 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
         }
 
         /* Remove old attr defs. */
-        while(!prevClassInfo->mAttrMap.empty()) {
-            ai = prevClassInfo->mAttrMap.begin();
+        ai = prevClassInfo->mAttrMap.begin();
+        while (ai != prevClassInfo->mAttrMap.end()) {
             TRACE_5("Removing old attribute %s:%s", className.c_str(), ai->first.c_str());
             ainfo = ai->second;
             osafassert(ainfo);
             delete(ainfo);
-            prevClassInfo->mAttrMap.erase(ai);
+            ++ai;
         }
+        prevClassInfo->mAttrMap.clear();
 
         /* Move new attr defs from dummyClass to existing ClassInfo object. 
            This leaves references from existing instances to the ClassInfo intact.
@@ -4706,13 +4717,14 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
                 "with same name is already being mutated", className.c_str());
             err = SA_AIS_ERR_BUSY;
         } else {
-            while(!i->second->mAttrMap.empty()) {
-                AttrMap::iterator ai = i->second->mAttrMap.begin();
+            AttrMap::iterator ai = i->second->mAttrMap.begin();
+            while (ai != i->second->mAttrMap.end()) {
                 AttrInfo* ainfo = ai->second;
                 osafassert(ainfo);
                 delete(ainfo);
-                i->second->mAttrMap.erase(ai);
+                ++ai;
             }
+            i->second->mAttrMap.clear();
             delete i->second;
             sClassMap.erase(i);
             updateImmObject(className, true);
