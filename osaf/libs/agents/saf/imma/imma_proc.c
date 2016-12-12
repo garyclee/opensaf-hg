@@ -1890,6 +1890,76 @@ int imma_popAsyncAdmOpContinuation(IMMA_CB *cb,	//in
 
 static void imma_proc_ccbaug_setup(IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO *callback)
 {
+	if(callback->type == IMMA_CALLBACK_OI_CCB_CREATE || callback->type == IMMA_CALLBACK_PBE_PRT_OBJ_CREATE){
+		SaImmAttrValuesT_2 **attr = NULL;
+		size_t attrDataSize = 0;
+
+		int noOfAttributes = 0;
+
+		/* NOTE: The code below is practically a copy of the code
+		   in immOm searchNext, for serving the attrValues structure.
+		   This code should be factored out into some common function.
+		 */
+		IMMSV_ATTR_VALUES_LIST *p = callback->attrValues;
+		int i = 0;
+		while (p) {
+			++noOfAttributes;
+			p = p->next;
+		}
+
+		p = callback->attrValues;
+
+
+		if(cl_node->isImmA2fCbk) {
+			if(noOfAttributes) {
+				p = p->next;  // Skip RDN. RDN is the first attribute
+				noOfAttributes--;
+			}
+		}
+
+		attrDataSize = sizeof(SaImmAttrValuesT_2 *) * (noOfAttributes + 1);
+		attr = calloc(1, attrDataSize); /*alloc-1 */
+		for (; i < noOfAttributes && p; i++, p = p->next) {
+			IMMSV_ATTR_VALUES *q = &(p->n);
+			attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));        /*alloc-2 */
+			attr[i]->attrName = malloc(q->attrName.size + 1);       /*alloc-3 */
+			strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
+			attr[i]->attrName[q->attrName.size] = 0;        /*redundant. */
+			attr[i]->attrValuesNumber = q->attrValuesNumber;
+			attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
+			if (q->attrValuesNumber) {
+				attr[i]->attrValues =
+					calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));   /*alloc-4 */
+				/*alloc-5 */
+				attr[i]->attrValues[0] =
+					imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
+
+				if (q->attrValuesNumber > 1) {
+					int ix;
+					IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
+					for (ix = 1; ix < q->attrValuesNumber; ++ix) {
+						osafassert(r);
+						attr[i]->attrValues[ix] = /*alloc-5 */
+							imma_copyAttrValue3(q->attrValueType, &(r->n));
+						r = r->next;
+					}//for
+				}//if
+			}//if
+		}//for
+		attr[i] = NULL; /*redundant */
+
+
+		/* Save a copy of the attrvals pointer in the callback to allow
+		   saImmOiAugmentCcbInitialize to get access to the ccbCreateContext.
+		   We cant use callback->attrValues because it is partially stolen
+		   from (caused to be incomplete) in the loop above (see imma_copyAttrValue3).
+		   The callback->attrValsForCreateUc will be freed at IMMA_CALLBACK_OI_CCB_CREATE 
+		   or IMMA_CALLBACK_PBE_PRT_OBJ_CREATE in imma_process_callback_info.
+		 */
+
+		callback->attrValsForCreateUc = (const SaImmAttrValuesT_2 **)attr;
+	}
+
 	if(cl_node->isApplier) {return;}
 
 	/* Locked on entry */
@@ -2285,7 +2355,6 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				IMMSV_EVT ccbObjCrRpl;
 				bool locked = false;
 				SaImmAttrValuesT_2 **attr = NULL;
-				size_t attrDataSize = 0;
 				int i = 0;
 				/* No need to check for o.iCallbkA2f.saImmOiCcbObjectCreateCallback
 				 * "o" is union and o.iCallbk.saImmOiCcbObjectCreateCallback is same
@@ -2308,62 +2377,11 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 					const SaImmClassNameT className = callback->className;	/*0 */
 					callback->className = NULL;
-					int noOfAttributes = 0;
 
-					/* NOTE: The code below is practically a copy of the code
-					   in immOm searchNext, for serving the attrValues structure.
-					   This code should be factored out into some common function.
-					*/
-					IMMSV_ATTR_VALUES_LIST *p = callback->attrValues;
-					while (p) {
-						++noOfAttributes;
-						p = p->next;
-					}
-
-					p = callback->attrValues;
-
-					if(cl_node->isImmA2fCbk) {
-						if(noOfAttributes) {
-							p = p->next;  // Skip RDN. RDN is the first attribute
-							noOfAttributes--;
-						} else {
-							/* There must be at least one attribute value */
-							localEr = SA_AIS_ERR_BAD_OPERATION;
-							clientCapable = false;
-						}
-					}
-
-					if(localEr == SA_AIS_OK) {
-						attrDataSize = sizeof(SaImmAttrValuesT_2 *) * (noOfAttributes + 1);
-						attr = calloc(1, attrDataSize);	/*alloc-1 */
-						for (; i < noOfAttributes && p; i++, p = p->next) {
-							IMMSV_ATTR_VALUES *q = &(p->n);
-							attr[i] = calloc(1, sizeof(SaImmAttrValuesT_2));	/*alloc-2 */
-							attr[i]->attrName = malloc(q->attrName.size + 1);	/*alloc-3 */
-							strncpy(attr[i]->attrName, (const char *)q->attrName.buf, q->attrName.size + 1);
-							attr[i]->attrName[q->attrName.size] = 0;	/*redundant. */
-							attr[i]->attrValuesNumber = q->attrValuesNumber;
-							attr[i]->attrValueType = (SaImmValueTypeT)q->attrValueType;
-							if (q->attrValuesNumber) {
-								attr[i]->attrValues =
-									calloc(q->attrValuesNumber, sizeof(SaImmAttrValueT));	/*alloc-4 */
-								/*alloc-5 */
-								attr[i]->attrValues[0] =
-									imma_copyAttrValue3(q->attrValueType, &(q->attrValue));
-
-								if (q->attrValuesNumber > 1) {
-									int ix;
-									IMMSV_EDU_ATTR_VAL_LIST *r = q->attrMoreValues;
-									for (ix = 1; ix < q->attrValuesNumber; ++ix) {
-										osafassert(r);
-										attr[i]->attrValues[ix] = /*alloc-5 */
-											imma_copyAttrValue3(q->attrValueType, &(r->n));
-										r = r->next;
-									}//for
-								}//if
-							}//if
-						}//for
-						attr[i] = NULL;	/*redundant */
+					if(cl_node->isImmA2fCbk && !callback->attrValsForCreateUc) {
+						/* There must be at least one attribute value */
+						localEr = SA_AIS_ERR_BAD_OPERATION;
+						clientCapable = false;
 					}
 
 					if(localEr == SA_AIS_OK && cl_node->isImmA2fCbk) {
@@ -2388,7 +2406,6 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					   We cant use callback->attrValues because it is partially stolen
 					   from (caused to be incomplete) in the loop above (see imma_copyAttrValue3).
 					 */
-					callback->attrValsForCreateUc = (const SaImmAttrValuesT_2 **)attr;
 
 					if (localEr == SA_AIS_OK
 							&& !osaf_is_extended_names_enabled()
@@ -2457,6 +2474,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 					free(className);	/*free-0 */
 					free(objectName);	/*free-6 */
+					attr = (SaImmAttrValuesT_2 **) callback->attrValsForCreateUc;
 					for (i = 0; attr[i]; ++i) {
 						free(attr[i]->attrName);	/*free-3 */
 						attr[i]->attrName = 0;
