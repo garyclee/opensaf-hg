@@ -1361,6 +1361,44 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 		}
 	}
 
+	// For forAddRemove AU/DU the node level AU/DU will be optimized with other rolling/formodify proceduers.
+	// Because node will never be optimized away.
+	// But AU/DU at SU/Comp will not be optimized for AddRemove and will be as is, because there is a chance that 
+	// Su/comp can be removed if they are in the scope of the node/Su.
+
+	std::list < unitNameAndState >::iterator addRemoveUnit_iter, nodeLevel_iter;
+	for (addRemoveUnit_iter = forAddRemoveAU.begin(); addRemoveUnit_iter != forAddRemoveAU.end(); ) {
+		for (nodeLevel_iter = nodeLevelDU.begin(); nodeLevel_iter!= nodeLevelDU.end(); nodeLevel_iter++) {
+			if ((*addRemoveUnit_iter).name == (*nodeLevel_iter).name){
+				//if item is already presented in nodeLevelDU, erase it from the forAddRemove list
+				LOG_NO("[%s] is already presented in the merged DU list, remove it from forAddRemoveAU list",
+						(*addRemoveUnit_iter).name.c_str());
+				addRemoveUnit_iter = forAddRemoveAU.erase(addRemoveUnit_iter);
+				break;
+			}
+		}
+		if(nodeLevel_iter == nodeLevelDU.end()){
+			addRemoveUnit_iter++;
+		}
+	}
+
+
+	for (addRemoveUnit_iter = forAddRemoveDU.begin(); addRemoveUnit_iter != forAddRemoveDU.end(); ) {
+		for (nodeLevel_iter = nodeLevelDU.begin(); nodeLevel_iter != nodeLevelDU.end(); nodeLevel_iter++) {
+			if ((*addRemoveUnit_iter).name == (*nodeLevel_iter).name){
+				//if item is already presented in nodeLevelDU, erase it from the forAddRemove list
+				LOG_NO("[%s] is already presented in the merged DU list, remove it from forAddRemoveDU list",
+						(*addRemoveUnit_iter).name.c_str());
+				addRemoveUnit_iter = forAddRemoveDU.erase(addRemoveUnit_iter);
+				break;
+			}
+		}
+		if(nodeLevel_iter == nodeLevelDU.end()){
+			addRemoveUnit_iter++;
+		}
+	}
+
+
         newStep->addDeactivationUnits(nodeLevelDU);  //Add the node level DU
 	newStep->addDeactivationUnits(suLevelDU);    //Add the SU level DU
 	newStep->addDeactivationUnits(tmpDU);        //Add the comp level DU
@@ -1368,7 +1406,7 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
         newStep->addActivationUnits(suLevelDU);      //Rolling and forModify are symetric, Add the SU level DU
         newStep->addActivationUnits(tmpDU);          //Rolling and forModify are symetric, Add the comp level DU
 
-        //Copy the forAddRemove AU/DU into the lists as is. They must be run as specified in the campaign.
+        //Copy the forAddRemove AU/DU(except the optimized nodes) into the lists as is. They must be run as specified in the campaign.
         newStep->addDeactivationUnits(forAddRemoveDU);
         newStep->addActivationUnits(forAddRemoveAU);
 
