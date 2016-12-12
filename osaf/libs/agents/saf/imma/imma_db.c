@@ -24,6 +24,8 @@
 *****************************************************************************/
 
 #include "imma.h"
+#include "osaf_extended_name.h"
+
 /****************************************************************************
   Name          : imma_client_tree_init
   Description   : This routine is used to initialize the client tree
@@ -271,6 +273,15 @@ int imma_oi_ccb_record_delete(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId)
 		if (to_delete->mCcbErrorString) {
 			free(to_delete->mCcbErrorString);
 			to_delete->mCcbErrorString = NULL;
+		}
+
+		if(to_delete->object){
+			free(to_delete->object);
+			to_delete->object = NULL;
+		}
+		if(to_delete->adminOwner){
+			free(to_delete->adminOwner);
+			to_delete->adminOwner = NULL;
 		}
 
 		free(to_delete);
@@ -541,6 +552,9 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 	 */
 
 	int rs = 0;
+	const SaImmAttrNameT admoNameAttr = SA_IMM_ATTR_ADMIN_OWNER_NAME;
+	SaImmAttrValuesT_2 *attrVal = NULL;
+
 	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
 
 	if(tmp && !(tmp->isAborted)) {
@@ -553,7 +567,34 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 			rs = 1;
 		}
 	}
+	if(callback){
+		if(callback->type == IMMA_CALLBACK_OI_CCB_CREATE && !(tmp->adminOwner)) {	
+			SaImmAttrValuesT_2 **attributes = NULL;
+			attributes = (SaImmAttrValuesT_2 **) callback->attrValsForCreateUc;
+			int i=0;
+			while((attrVal = attributes[i++]) != NULL) {
+				if(strcmp(admoNameAttr, attrVal->attrName)==0) {
+					TRACE("Found %s attribute in object create upcall", admoNameAttr);
+					break;
+				}
+			}
 
+			if(!attrVal || strcmp(attrVal->attrName, admoNameAttr) || (attrVal->attrValuesNumber!=1) ||
+					(attrVal->attrValueType != SA_IMM_ATTR_SASTRINGT)) {
+				LOG_ER("imma_oi_ccb_record_note_callback:Missmatch on attribute %s", admoNameAttr);
+				abort();
+			}
+			tmp->adminOwner = (SaStringT) malloc(strlen(*(SaConstStringT*) attrVal->attrValues[0])+1); 
+			strcpy(tmp->adminOwner, *(SaConstStringT*) attrVal->attrValues[0]);
+
+		} else if (((callback->type == IMMA_CALLBACK_OI_CCB_DELETE) || (callback->type == IMMA_CALLBACK_OI_CCB_MODIFY)) 
+				&& !(tmp->object) && !(tmp->adminOwner)){
+			SaConstStringT tmpStr = osaf_extended_name_borrow(&(callback->name));
+			tmp->object= (SaStringT) malloc(strlen(tmpStr)+1); 
+			strcpy(tmp->object, tmpStr);
+		}
+	}
+		
 	return rs;
 }
 
