@@ -36,6 +36,10 @@ struct imma_oi_ccb_record {
 	struct imma_callback_info* ccbCallback;
 	SaImmHandleT privateAugOmHandle; 
 	SaImmAdminOwnerHandleT privateAoHandle;
+	SaStringT object;/* The  Object string from the modify/delete ccb operation. The object is used to obtain
+			adminOwner when saImmOiAugmentCcbInitialize is called in completed-callback*/
+	SaStringT adminOwner; /* adminowner of the ccb id, assigned at ccb-create-callback. The adminOwner used in 
+                        saImmOiAugmentCcbInitialize is called in completed-callback*/
 };
 
 typedef struct imma_client_node {
@@ -197,6 +201,7 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccb
 int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 int imma_oi_ccb_record_abort(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 int imma_oi_ccb_record_exists(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
+struct imma_oi_ccb_record * imma_oi_ccb_record_find(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 int imma_oi_ccb_record_set_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId, const SaStringT errorString);
 SaStringT imma_oi_ccb_record_get_error(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);
 void imma_oi_ccb_allow_error_string(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT ccbId);

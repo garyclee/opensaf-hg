@@ -3550,8 +3550,8 @@ extern SaAisErrorT immsv_om_augment_ccb_initialize(
 
 extern SaAisErrorT immsv_om_augment_ccb_get_admo_name(
 				 SaImmHandleT privateOmHandle,
-				 SaNameT* objectName,
-				 SaNameT* admoNameOut) __attribute__((weak));
+				 SaStringT object,
+				 SaStringT * admOwnerOut) __attribute__((weak));
 
 
 extern SaAisErrorT immsv_om_handle_initialize(SaImmHandleT *privateOmHandle, SaVersionT* version) __attribute__((weak));
@@ -3566,52 +3566,30 @@ extern void immsv_om_handle_finalize(
 				 SaImmHandleT privateOmHandle) __attribute__((weak));
 
 static SaAisErrorT
-getAdmoName(SaImmHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaNameT* admoNameOut)
+getAdmoName(SaImmHandleT privateOmHandle, IMMA_CALLBACK_INFO * cbi, SaStringT object, SaStringT *admOwnerOut)
 {
     SaAisErrorT rc = SA_AIS_OK;
     const SaImmAttrNameT admoNameAttr = SA_IMM_ATTR_ADMIN_OWNER_NAME;
-    SaImmAttrValuesT_2 **attributes = NULL;
-    SaImmAttrValuesT_2 *attrVal = NULL;
     TRACE_ENTER();
 
-    if(cbi->type == IMMA_CALLBACK_OI_CCB_CREATE) {
-	    /* Admo attribute for created object should be in attr list.*/
-	    int i=0;
-	    attributes = (SaImmAttrValuesT_2 **) cbi->attrValsForCreateUc;
-	    while((attrVal = attributes[i++]) != NULL) {
-		    if(strcmp(admoNameAttr, attrVal->attrName)==0) {
-			    TRACE("Found %s attribute in object create upcall", admoNameAttr);
-			    break;
-		    }
-	    }
+    /* modify or delete => fetch admo attribute for object from server. */
+    if((cbi->type != IMMA_CALLBACK_OI_CCB_DELETE) &&
+		    (cbi->type != IMMA_CALLBACK_OI_CCB_MODIFY) && 
+		    (cbi->type != IMMA_CALLBACK_OI_CCB_COMPLETED)) {
+	    LOG_ER("Inconsistency in callback type:%u", cbi->type);
+	    abort();
+    }
 
-	    if(!attrVal || strcmp(attrVal->attrName, admoNameAttr) || (attrVal->attrValuesNumber!=1) ||
-		    (attrVal->attrValueType != SA_IMM_ATTR_SASTRINGT)) {
-		    LOG_ER("Missmatch on attribute %s", admoNameAttr);
-		    abort();
-	    }
-
-	    osaf_extended_name_alloc(*(SaStringT*) attrVal->attrValues[0], admoNameOut);
-
-    } else {
-	    /* modify or delete => fetch admo attribute for object from server. */
-	    if((cbi->type != IMMA_CALLBACK_OI_CCB_DELETE) &&
-		    (cbi->type != IMMA_CALLBACK_OI_CCB_MODIFY)) {
-		    LOG_ER("Inconsistency in callback type:%u", cbi->type);
-		    abort();
-	    }
-
-	    osafassert(immsv_om_augment_ccb_get_admo_name);
-	    rc = immsv_om_augment_ccb_get_admo_name(privateOmHandle, &(cbi->name), admoNameOut);
-	    if(rc == SA_AIS_ERR_LIBRARY) {
-		    LOG_ER("Missmatch on attribute %s for delete or modify", admoNameAttr);
-    	    }
+    osafassert(immsv_om_augment_ccb_get_admo_name);
+    rc = immsv_om_augment_ccb_get_admo_name(privateOmHandle, object, admOwnerOut);
+    if(rc == SA_AIS_ERR_LIBRARY) {
+	    LOG_ER("Missmatch on attribute %s for delete or modify", admoNameAttr);
     }
 
     /* attrVal found either in create callback, or fetched from server. */
 
     if(rc == SA_AIS_OK) {
-	    TRACE("Obtained AdmoName:%s", osaf_extended_name_borrow(admoNameOut));
+	    TRACE("Obtained AdmoOwner:%s", *admOwnerOut);
     }
     TRACE_LEAVE();
     return rc;
@@ -3735,6 +3713,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		goto done;
 	}
 
+	struct imma_oi_ccb_record *ccb_oi_record = imma_oi_ccb_record_find(cl_node, ccbId);
 	cbi = imma_oi_ccb_record_ok_augment(cl_node, ccbId, &privateOmHandle, &privateAoHandle);
 	if(!cbi) {
 		TRACE_2("ERR_BAD_OPERATION: Ccb %u, is not in a state that "
@@ -3849,34 +3828,43 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 
 		if(!privateAoHandle) {
 			TRACE("AugCcbinit: Admo has ReleaseOnFinalize FALSE "
-				"=> init separate admo => must fetch admo-name first");
+					"=> init separate admo => must fetch admo-name first");
 			osafassert(locked == false);
-			SaNameT admName;/* Used to get admo string name copied to stack.*/
+			SaStringT adminOwner = NULL;/* Used to get admo string name copied to stack.*/
 
-			rc = getAdmoName(privateOmHandle, cbi, &admName);
-			if(rc != SA_AIS_OK) {
-				TRACE("ERR_TRY_AGAIN: failed to obtain SaImmAttrAdminOwnerName %u", rc);
-				if(rc != SA_AIS_ERR_TRY_AGAIN) {
-					rc = SA_AIS_ERR_TRY_AGAIN;
-				}
-				osaf_extended_name_free(&admName);
-				goto done;
-			}
-			TRACE("Obtaned AdminOwnerName:%s", osaf_extended_name_borrow(&admName));
-			/* Allocate private admowner with ReleaseOnFinalize as TRUE */
 			osafassert(immsv_om_admo_handle_initialize);
-			rc = immsv_om_admo_handle_initialize(privateOmHandle,
-				(SaImmAdminOwnerNameT) osaf_extended_name_borrow(&admName), &privateAoHandle);
+			if(ccb_oi_record->adminOwner){
+				rc = immsv_om_admo_handle_initialize(privateOmHandle, ccb_oi_record->adminOwner, 
+						&privateAoHandle);
+			} else {
+				rc = getAdmoName(privateOmHandle, cbi, ccb_oi_record->object, &adminOwner);
+
+				if(rc != SA_AIS_OK) {
+					TRACE("ERR_TRY_AGAIN: failed to obtain SaImmAttrAdminOwnerName %u", rc);
+					if(rc != SA_AIS_ERR_TRY_AGAIN) {
+						rc = SA_AIS_ERR_TRY_AGAIN;
+					}
+					goto done;
+				}
+				/* Allocate private admowner with ReleaseOnFinalize as TRUE */
+				rc = immsv_om_admo_handle_initialize(privateOmHandle, adminOwner, &privateAoHandle);
+			}
 
 			if(rc != SA_AIS_OK) {
 				TRACE("ERR_TRY_AGAIN: failed to obtain internal admo handle rc:%u", rc);
 				if(rc != SA_AIS_ERR_TRY_AGAIN) {
 					rc = SA_AIS_ERR_TRY_AGAIN;
 				}
-				osaf_extended_name_free(&admName);
+				if(adminOwner){
+					free(adminOwner);
+					adminOwner = NULL;
+				}
 				goto done;
 			}
-			osaf_extended_name_free(&admName);
+			if(adminOwner){
+				free(adminOwner);
+				adminOwner = NULL;
+			}
 		}
 	} else {TRACE("AugCcbinit: Admo has ROF == TRUE");}
 
@@ -3889,8 +3877,8 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	/* Now dip into the OM library & create mockup ccb-node & admo-node for use by OI */
 	osafassert(immsv_om_augment_ccb_initialize);
 	rc = immsv_om_augment_ccb_initialize(privateOmHandle, ccbId, adminOwnerId,
-		ccbHandle, &privateAoHandle);
- done:
+			ccbHandle, &privateAoHandle);
+done:
 
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
