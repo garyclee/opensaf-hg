@@ -9690,8 +9690,8 @@ SaAisErrorT immsv_om_augment_ccb_get_result(
 
 SaAisErrorT immsv_om_augment_ccb_get_admo_name(
 			       SaImmHandleT privateOmHandle,
-			       SaNameT* objectName,
-			       SaNameT* admoNameOut)
+			       SaStringT object,
+			       SaStringT * admoNameOut)
 
 {
 	SaAisErrorT rc = SA_AIS_OK;
@@ -9701,12 +9701,11 @@ SaAisErrorT immsv_om_augment_ccb_get_admo_name(
 	SaImmAttrValuesT_2 *attrVal = NULL;
 	SaImmAccessorHandleT acHdl=0LL;
 	TRACE_ENTER();	
-	osaf_extended_name_clear(admoNameOut);
 
 	rc = saImmOmAccessorInitialize(privateOmHandle, &acHdl);
 	if(rc != SA_AIS_OK) {goto done;}
 
-	rc = saImmOmAccessorGet_2(acHdl, objectName, attributeNames, &attributes);
+	rc = saImmOmAccessorGet_o3(acHdl, (SaConstStringT)object, attributeNames, &attributes);
 	if(rc != SA_AIS_OK) {goto finalize;}
 
 	attrVal = attributes[0];
@@ -9714,8 +9713,8 @@ SaAisErrorT immsv_om_augment_ccb_get_admo_name(
 		rc = SA_AIS_ERR_LIBRARY;
 		goto finalize;
 	}
-
-	osaf_extended_name_alloc(*(SaStringT*) attrVal->attrValues[0], admoNameOut);
+	*admoNameOut = (SaStringT) malloc(strlen(*(SaStringT*) attrVal->attrValues[0])+1);
+	strcpy(*admoNameOut, *(SaStringT*) attrVal->attrValues[0]);
 
  finalize:
     if(acHdl) {
