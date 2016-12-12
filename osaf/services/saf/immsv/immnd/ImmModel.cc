@@ -5864,11 +5864,7 @@ ImmModel::removeNoDanglingRefs(ObjectInfo *object, ObjectInfo *afim, bool remove
     }
 
     if(removeRefsToObject) {
-        ommi = sReverseRefsNoDanglingMMap.find(object);
-        while(ommi != sReverseRefsNoDanglingMMap.end()) {
-            sReverseRefsNoDanglingMMap.erase(ommi);
-            ommi = sReverseRefsNoDanglingMMap.find(object);
-        }
+        sReverseRefsNoDanglingMMap.erase(object);
     }
 
     TRACE_LEAVE();
