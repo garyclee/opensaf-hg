@@ -13713,8 +13713,7 @@ ImmModel::discardContinuations(SaUint32T dead)
         ci2!=sAdmReqContinuationMap.end();) {
         if(ci2->second.mConn == dead) {
             TRACE_5("Discarding Adm Req continuation %llu", ci2->first);
-            sAdmReqContinuationMap.erase(ci2);
-            ci2=sAdmReqContinuationMap.begin(); 
+            ci2 = sAdmReqContinuationMap.erase(ci2);
         } else { ++ci2;}
     }
     
@@ -13725,8 +13724,7 @@ ImmModel::discardContinuations(SaUint32T dead)
             //TODO Should send fevs message to terminate call that caused
             //the implementer continuation to be created.
             //I can only do this if I check that IMMD is up first. 
-            sAdmImplContinuationMap.erase(ci3);
-            ci3=sAdmImplContinuationMap.begin();
+            ci3 = sAdmImplContinuationMap.erase(ci3);
         } else {++ci3;}
     }
     
@@ -13737,8 +13735,7 @@ ImmModel::discardContinuations(SaUint32T dead)
             //TODO: Should send fevs message to terminate call that caused
             //the implementer continuation to be created.
             //I can only do this if I check that IMMD is up first. 
-            sSearchImplContinuationMap.erase(ci3);
-            ci3=sSearchImplContinuationMap.begin();
+            ci3 = sSearchImplContinuationMap.erase(ci3);
         } else {++ci3;}
     }
     
@@ -13746,8 +13743,7 @@ ImmModel::discardContinuations(SaUint32T dead)
         ci2!=sSearchReqContinuationMap.end();) {
         if(ci2->second.mConn == dead) {
             TRACE_5("Discarding Search Req continuation %llu", ci2->first);
-            sSearchReqContinuationMap.erase(ci2);
-            ci2=sSearchReqContinuationMap.begin();
+            ci2 = sSearchReqContinuationMap.erase(ci2);
         } else {++ci2;}
     }
     
@@ -14231,8 +14227,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
         if(osaf_timer_is_expired_sec(&now, &ci2->second.mCreateTime, (DEFAULT_TIMEOUT_SEC * 20))) {
             TRACE_5("Timeout on PbeRtReqContinuation %llu", ci2->first);
             pbePrtoReqs.push_back(ci2->second.mConn);
-            sPbeRtReqContinuationMap.erase(ci2);
-            ci2=sPbeRtReqContinuationMap.begin();
+            ci2 = sPbeRtReqContinuationMap.erase(ci2);
         } else {
             ++ci2;
         }
@@ -14243,8 +14238,7 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
     while(iem!=sImplDetachTime.end()) {
         if(osaf_timer_is_expired_sec(&now, &iem->second.mCreateTime, DEFAULT_TIMEOUT_SEC)) {
             TRACE_5("Timeout on sImplDetachTime implid:%u", iem->first->mId);
-            sImplDetachTime.erase(iem);
-            iem=sImplDetachTime.begin();
+            iem = sImplDetachTime.erase(iem);
         } else {
             ++iem;
         }
@@ -16641,8 +16635,7 @@ SaInt32T ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
 
         oMut->mAfterImage = NULL;
         delete oMut;
-        sPbeRtMutations.erase(i2);
-        i2 = sPbeRtMutations.begin();
+        i2 = sPbeRtMutations.erase(i2);
     } //for
 
     if(nrofDeletes == 0) {
