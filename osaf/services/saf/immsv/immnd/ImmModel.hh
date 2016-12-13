@@ -224,7 +224,7 @@ public:
 						   SaUint32T clientId,
 						   ImmsvOmCcbObjectModify* req);
 
-    SaBoolT             isSpecialAndAddModify(SaUint32T clientId, SaUint32T ccbId);
+    bool             isSpecialAndAddModify(SaUint32T clientId, SaUint32T ccbId);
     void                genSpecialModify(ImmsvOmCcbObjectModify* req);
 
     void                getLocalAppliersForObj(
@@ -410,7 +410,7 @@ public:
                                        SaUint32T ownerId,
                                        SaUint64T mds_dest,
                                        SaUint32T implTimeout,
-                                       SaBoolT *discardImplementer);
+                                       bool *discardImplementer);
     
     SaAisErrorT         classImplementerSet(
                                             const struct ImmsvOiImplSetReq* req,

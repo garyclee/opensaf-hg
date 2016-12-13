@@ -193,8 +193,8 @@ static uint32_t immnd_initialize(char *progname)
 	fclose(fp);
 
 	immnd_cb->mRim = SA_IMM_INIT_FROM_FILE;
-	immnd_cb->mPbeVeteran = SA_FALSE;
-	immnd_cb->mPbeVeteranB = SA_FALSE;
+	immnd_cb->mPbeVeteran = false;
+	immnd_cb->mPbeVeteranB = false;
 
 	if (immnd_cb->mDir == NULL || (strlen(immnd_cb->mDir) == 0)) {
 		LOG_ER("Env var IMMSV_ROOT_DIRECTORY missing");

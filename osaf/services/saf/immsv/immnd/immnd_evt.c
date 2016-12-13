@@ -40,10 +40,10 @@
 
 static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq, const IMMSV_SEND_INFO *sinfo);
 static uint32_t immnd_evt_proc_cb_dump(IMMND_CB *cb);
-static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
-static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
-static uint32_t immnd_evt_proc_imm_resurrect(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
-static uint32_t immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
+static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, bool isOm);
+static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, bool isOm);
+static uint32_t immnd_evt_proc_imm_resurrect(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, bool isOm);
+static uint32_t immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, bool isOm);
 static uint32_t immnd_evt_proc_recover_ccb_result(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uint32_t	immnd_evt_proc_cl_imma_timeout(IMMND_CB *cb, IMMND_EVT *evt);
 
@@ -57,132 +57,132 @@ static uint32_t immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 
 static void immnd_evt_proc_discard_impl(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 //static void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 //					      IMMND_EVT *evt,
-//					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+//					      bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_admo_set(IMMND_CB *cb,
 				    IMMND_EVT *evt,
-				    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_admo_release(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_admo_clear(IMMND_CB *cb,
 				      IMMND_EVT *evt,
-				      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				      bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_impl_clr(IMMND_CB *cb,
 				    IMMND_EVT *evt,
-				    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_obj_impl_rel(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_ccb_augment_init(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_ccb_augment_admo(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_admop(IMMND_CB *cb,
 				 IMMND_EVT *evt,
-				 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_class_create(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_object_create(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 					    IMMND_EVT *evt,
-					    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
-	IMMND_EVT *evt,	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaUint64T msgNo);
+	IMMND_EVT *evt,	bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaUint64T msgNo);
 
 static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 					    IMMND_EVT *evt,
-					    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 
 static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb,
 				    IMMND_EVT *evt,
-				    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+				    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 
 static void immnd_evt_proc_object_sync(IMMND_CB *cb,
-	IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaUint64T msgNo);
+	IMMND_EVT *evt, bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaUint64T msgNo);
 
-static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT originatedAtThisNd,
-	                             SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaBoolT validateOnly);
+static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, bool originatedAtThisNd,
+	                             SaImmHandleT clnt_hdl, MDS_DEST reply_dest, bool validateOnly);
 
 static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
 
 static uint32_t immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
-				      IMMSV_SEND_INFO *sinfo, SaBoolT async, SaBoolT local);
+				      IMMSV_SEND_INFO *sinfo, bool async, bool local);
 
 static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, 
-	SaBoolT onStack, SaBoolT newMsg);
+	bool onStack, bool newMsg);
 static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
@@ -270,14 +270,14 @@ static void printImmValue(SaImmValueTypeT t, IMMSV_EDU_ATTR_VAL *v)
  *                 from Applications. 
  *
  * Arguments     : IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT onheap - false => dont deallocate root
+ *                 bool onheap - false => dont deallocate root
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  * Notes         : None.
  *****************************************************************************/
 
-uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
+uint32_t immnd_evt_destroy(IMMSV_EVT *evt, bool onheap, uint32_t line)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -286,7 +286,7 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (evt->info.immnd.dont_free_me == true)
+	if (evt->info.immnd.dont_free_me)
 		return NCSCC_RC_SUCCESS;
 
 	if (evt->type != IMMSV_EVT_TYPE_IMMND)
@@ -415,7 +415,7 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 		(evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_SYNC_2)) {
 		IMMSV_OM_OBJECT_SYNC* obj_sync = &(evt->info.immnd.info.obj_sync);
 		IMMSV_OM_OBJECT_SYNC* tmp = NULL;
-		SaBoolT top=SA_TRUE;
+		bool top = true;
 
 		while(obj_sync) {
 			free(obj_sync->className.buf);
@@ -436,7 +436,7 @@ uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line)
 				obj_sync = obj_sync->next;
 				tmp->next = NULL;
 				if(top) { /* Top object resides in evt on stack. */
-					top = SA_FALSE;
+					top = false;
 				} else {
 					free(tmp);
 				}
@@ -501,7 +501,7 @@ void immnd_process_evt(void)
 
 	if (evt->type != IMMSV_EVT_TYPE_IMMND) {
 		LOG_ER("IMMND - Unknown Event");
-		immnd_evt_destroy(evt, SA_TRUE, __LINE__);
+		immnd_evt_destroy(evt, true, __LINE__);
 		return;
 	}
 
@@ -520,19 +520,19 @@ void immnd_process_evt(void)
 
 		/* Agent to ND */
 	case IMMND_EVT_A2ND_IMM_INIT:
-		rc = immnd_evt_proc_imm_init(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE);
+		rc = immnd_evt_proc_imm_init(cb, &evt->info.immnd, &evt->sinfo, true);
 		break;
 
 	case IMMND_EVT_A2ND_IMM_OI_INIT:
-		rc = immnd_evt_proc_imm_init(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
+		rc = immnd_evt_proc_imm_init(cb, &evt->info.immnd, &evt->sinfo, false);
 		break;
 
 	case IMMND_EVT_A2ND_IMM_FINALIZE:
-		rc = immnd_evt_proc_imm_finalize(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE);
+		rc = immnd_evt_proc_imm_finalize(cb, &evt->info.immnd, &evt->sinfo, true);
 		break;
 
 	case IMMND_EVT_A2ND_IMM_OI_FINALIZE:
-		rc = immnd_evt_proc_imm_finalize(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
+		rc = immnd_evt_proc_imm_finalize(cb, &evt->info.immnd, &evt->sinfo, false);
 		break;
 
 	case IMMND_EVT_A2ND_CL_TIMEOUT:
@@ -540,11 +540,11 @@ void immnd_process_evt(void)
 		break;
 
 	case IMMND_EVT_A2ND_IMM_OM_RESURRECT:
-		rc = immnd_evt_proc_imm_resurrect(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE);
+		rc = immnd_evt_proc_imm_resurrect(cb, &evt->info.immnd, &evt->sinfo, true);
 		break;
 
 	case IMMND_EVT_A2ND_IMM_OI_RESURRECT:
-		rc = immnd_evt_proc_imm_resurrect(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
+		rc = immnd_evt_proc_imm_resurrect(cb, &evt->info.immnd, &evt->sinfo, false);
 		break;
 
 	case IMMND_EVT_A2ND_IMM_CLIENTHIGH:
@@ -552,11 +552,11 @@ void immnd_process_evt(void)
 		break;
 
 	case IMMND_EVT_A2ND_IMM_OM_CLIENTHIGH:
-		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE);
+		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd, &evt->sinfo, true);
 		break;
 
 	case IMMND_EVT_A2ND_IMM_OI_CLIENTHIGH:
-		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
+		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd, &evt->sinfo, false);
 		break;
 
 	case IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME:
@@ -586,7 +586,7 @@ void immnd_process_evt(void)
 
 	case IMMND_EVT_A2ND_IMM_FEVS:
 	case IMMND_EVT_A2ND_IMM_FEVS_2:
-		rc = immnd_evt_proc_fevs_forward(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE, SA_TRUE);
+		rc = immnd_evt_proc_fevs_forward(cb, &evt->info.immnd, &evt->sinfo, false, true);
 		break;
 
 	case IMMND_EVT_A2ND_CLASS_DESCR_GET:
@@ -619,22 +619,22 @@ void immnd_process_evt(void)
 
 	case IMMND_EVT_A2ND_ADMOP_RSP:
 	case IMMND_EVT_A2ND_ADMOP_RSP_2:
-		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE, SA_TRUE);
+		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, false, true);
 		break;
 
 	case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP:
 	case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP_2:
-		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE, SA_TRUE);
+		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, true, true);
 		break;
 
 	case IMMND_EVT_ND2ND_ADMOP_RSP:
 	case IMMND_EVT_ND2ND_ADMOP_RSP_2:
-		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE, SA_FALSE);
+		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, false, false);
 		break;
 
 	case IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP:
 	case IMMND_EVT_ND2ND_ASYNC_ADMOP_RSP_2:
-		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE, SA_FALSE);
+		rc = immnd_evt_proc_admop_rsp(cb, &evt->info.immnd, &evt->sinfo, true, false);
 		break;
 
 	case IMMND_EVT_ND2ND_SEARCH_REMOTE:
@@ -696,7 +696,7 @@ void immnd_process_evt(void)
 	}
 
 	/* Free the Event */
-	immnd_evt_destroy(evt, SA_TRUE, __LINE__);
+	immnd_evt_destroy(evt, true, __LINE__);
 
 	return;
 }
@@ -710,13 +710,13 @@ void immnd_process_evt(void)
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMND_EVT *evt - Received Event structure
  *                 IMMSV_SEND_INFO *sinfo - sender info
- *                 SaBoolT isOm - true => OM, false => OI
+ *                 bool isOm - true => OM, false => OI
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm)
+static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, bool isOm)
 {
 	IMMSV_EVT send_evt;
 	SaAisErrorT error;
@@ -762,7 +762,7 @@ static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		} else {
 			const char *authorized_group = immModel_authorizedGroup(immnd_cb);
 			if ((authorized_group != NULL) &&
-				(osaf_user_is_member_of_group(sinfo->uid, authorized_group) == true)) {
+				(osaf_user_is_member_of_group(sinfo->uid, authorized_group))) {
 				TRACE("configured group");
 			} else {
 				if (mode == ACCESS_CONTROL_PERMISSIVE) {
@@ -870,12 +870,12 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	uint16_t searchOpCount=0;
 
 	/* Official DUMP/BACKUP assumed when search is global for only persistent attrs and done at SC. */
-        SaBoolT officialDump = cb->mCanBeCoord &&
+        bool officialDump = cb->mCanBeCoord &&
 		(((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & SA_IMM_SEARCH_PERSISTENT_ATTRS) &&
 		(evt->info.searchInit.searchParam.present == ImmOmSearchParameter_PR_NOTHING) &&
 		(evt->info.searchInit.rootName.size == 0);
 
-	SaBoolT isSync = cb->mIsCoord && (cb->syncPid > 0) &&
+	bool isSync = cb->mIsCoord && (cb->syncPid > 0) &&
 		(((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & 
 			SA_IMM_SEARCH_SYNC_CACHED_ATTRS);
 
@@ -951,7 +951,7 @@ static uint32_t immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		goto agent_rsp;
 	}
 
-	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, isSync, SA_FALSE);
+	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, isSync, false);
 
 	if((error == SA_AIS_OK) && isSync) {
 		/* Special processing only for sync iterator. */
@@ -1020,8 +1020,8 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	IMMSV_ATTR_VALUES_LIST *oldRsp, *fetchedRsp;
 	IMMND_OM_SEARCH_NODE *sn = NULL;
 	SaAisErrorT err = reply->result;
-	SaBoolT isAccessor = SA_FALSE;
-	SaBoolT nonExtendedName = SA_FALSE;
+	bool isAccessor = false;
+	bool nonExtendedName = false;
 	TRACE_ENTER();
 	osafassert(reply->requestNodeId == cb->node_id);
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -1080,7 +1080,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	/* Iterate through reply->runtimeAttrs.attrValuesList */
 	/* Update value in rsp->attrValuesList */
 
-	if(nonExtendedName == SA_TRUE) {
+	if(nonExtendedName) {
 		IMMSV_ATTR_VALUES *att;
 		IMMSV_EDU_ATTR_VAL_LIST *attrList;
 
@@ -1238,7 +1238,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 	IMMSV_EVT send_evt;
 	SaAisErrorT err;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	SaBoolT isLocal;
+	bool isLocal;
 	void *searchOp = NULL;
 	TRACE_ENTER();
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -1273,11 +1273,11 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 		reqo.attributeNames = evt->info.rtAttUpdRpl.sr.attributeNames;	/*borrowing. */
 
 		TRACE_2("oi_att_pull_rpl Before searchInit");
-		err = immModel_searchInitialize(cb, &reqo, &searchOp, SA_FALSE, SA_TRUE);
+		err = immModel_searchInitialize(cb, &reqo, &searchOp, false, true);
 		if (err == SA_AIS_OK) {
 			TRACE_2("oi_att_pull_rpl searchInit returned OK, calling searchNext");
 			IMMSV_OM_RSP_SEARCH_NEXT *rsp = 0;
-			err = immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, SA_FALSE, NULL);
+			err = immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, false, NULL);
 			if (err == SA_AIS_OK) {
 				rspo->runtimeAttrs.attrValuesList = rsp->attrValuesList;
 				/*STEALING*/ rsp->attrValuesList = NULL;
@@ -1351,7 +1351,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 
  deleteSearchOp:
 	if (searchOp) {
-		/* immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, SA_FALSE); */
+		/* immModel_nextResult(cb, searchOp, &rsp, NULL, NULL, NULL, NULL, false); */
 		immModel_deleteSearchOp(searchOp);
 	}
 
@@ -1365,7 +1365,7 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 	return rc;
 }
 
-void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, SaBoolT freeTop)
+void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, bool freeTop)
 {
 	IMMSV_ATTR_VALUES_LIST *al = NULL;
 	TRACE_ENTER();
@@ -1482,13 +1482,13 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	IMMSV_OM_RSP_SEARCH_NEXT *rsp1 = NULL;
 	IMMSV_OM_RSP_SEARCH_NEXT **rspList = NULL;
 	MDS_DEST implDest = 0LL;
-	SaBoolT retardSync = 
+	bool retardSync =
 		((cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) && 
 			cb->mIsCoord && (cb->syncPid > 0));
 	SaUint32T resultSize = 0;
 	IMMSV_OM_RSP_SEARCH_BUNDLE_NEXT bundleSearch = {0, NULL};
 	int ix;
-	SaBoolT isAccessor = SA_FALSE;
+	bool isAccessor = false;
 	SaUint32T oiTimeout = 0;
 
 	TRACE_ENTER();
@@ -1633,7 +1633,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 	} else if(!rtAttrsToFetch) {	/*Case A */
 		IMMSV_ATTR_NAME_LIST *rtAttrs;
 		SaAisErrorT err;
-		SaBoolT bRtAttrs;
+		bool bRtAttrs;
 		uint32_t size = search_result_size(rsp);
 		resultSize = 1;
 		isAccessor = immModel_isSearchOpAccessor(sn->searchOp);
@@ -1643,7 +1643,7 @@ static uint32_t immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 		 * or till the object with at least one pure runtime attribute */
 		while(resultSize < IMMND_MAX_SEARCH_RESULT && size < IMMND_SEARCH_BUNDLE_SIZE) {
 			err = immModel_testTopResult(sn->searchOp, &implNodeId, &bRtAttrs);
-			if ((err != SA_AIS_OK) || (bRtAttrs == SA_TRUE))
+			if ((err != SA_AIS_OK) || bRtAttrs)
 				break;
 
 			err = immModel_nextResult(cb, sn->searchOp, &rsp1, &implConn, &implNodeId, &rtAttrs,
@@ -1923,7 +1923,7 @@ static uint32_t immnd_evt_proc_accessor_get(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 		goto search_init_err;
 	}
 
-	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, SA_FALSE, SA_TRUE);
+	error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp, false, true);
 
 	if (error != SA_AIS_OK) {
 		goto search_init_err;
@@ -2040,13 +2040,13 @@ static uint32_t immnd_evt_proc_class_desc_get(IMMND_CB *cb, IMMND_EVT *evt, IMMS
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT isOm - true=> OM finalize, false => OI finalize.
+ *                 bool isOm - true=> OM finalize, false => OI finalize.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm)
+static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, bool isOm)
 {
 	/* Note: parameter isOm is ignored, should be noted in cl_node */
 	IMMSV_EVT send_evt;
@@ -2098,7 +2098,7 @@ static uint32_t immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT isOm - true=> OM finalize, false => OI finalize.
+ *                 bool isOm - true=> OM finalize, false => OI finalize.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
@@ -2151,7 +2151,7 @@ static uint32_t	immnd_evt_proc_cl_imma_timeout(IMMND_CB *cb, IMMND_EVT *evt)
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT isOm - true=> OM resurrect, false => OI resurrect.
+ *                 bool isOm - true=> OM resurrect, false => OI resurrect.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
@@ -2159,7 +2159,7 @@ static uint32_t	immnd_evt_proc_cl_imma_timeout(IMMND_CB *cb, IMMND_EVT *evt)
  *****************************************************************************/
 static uint32_t immnd_evt_proc_imm_resurrect(IMMND_CB *cb,
     IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo,
-    SaBoolT isOm)
+    bool isOm)
 {
     /* Note: parameter isOm is ignored, should be noted in cl_node*/
     IMMSV_EVT               send_evt;
@@ -2265,7 +2265,7 @@ static uint32_t immnd_evt_proc_imm_resurrect(IMMND_CB *cb,
  *
  *****************************************************************************/
 static uint32_t immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt, 
-	IMMSV_SEND_INFO *sinfo, SaBoolT isOm)
+	IMMSV_SEND_INFO *sinfo, bool isOm)
 {
     SaUint32T clientHigh = evt->info.initReq.client_pid;
     IMMND_IMM_CLIENT_NODE *cl_node = NULL;
@@ -2899,9 +2899,9 @@ static void dump_usrbuf(USRBUF *ub)
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
  *                 sinfo    - Reply address for syncronous call.
- *                 onStack - SA_TRUE => Message resides on stack. 
- *                           SA_FALSE => message resides on heap.
- *                 newMsg  - SA_TRUE => If the fevs out-queue is not empty,
+ *                 onStack - true => Message resides on stack.
+ *                           false => message resides on heap.
+ *                 newMsg  - true => If the fevs out-queue is not empty,
  *                                      New messages can be forced to go via
  *                                      the out-queue even when there is no 
  *                                      fevs overflow. This to maintain sender
@@ -2910,20 +2910,20 @@ static void dump_usrbuf(USRBUF *ub)
  *                                      finalizeSync when the finalizeSync has
  *                                      been sent from coord, until it has been
  *                                      received (cb->mSyncFinalizing is true).
- *                           SA_FALSE =>Message has already passed queue.
+ *                           false =>Message has already passed queue.
  *                                      Fevs order through IMMD is enough.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *****************************************************************************/
-static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT onStack,
-	SaBoolT newMsg)
+static uint32_t immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, bool onStack,
+	bool newMsg)
 {
 	IMMSV_EVT send_evt;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT error;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	SaImmHandleT client_hdl;
-        SaBoolT asyncReq = (!sinfo || sinfo->stype != MDS_SENDTYPE_SNDRSP);
+        bool asyncReq = (!sinfo || sinfo->stype != MDS_SENDTYPE_SNDRSP);
 
 	TRACE_2("sender_count: %llu size: %u ", evt->info.fevsReq.sender_count, evt->info.fevsReq.msg.size);
 
@@ -3684,7 +3684,7 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 			frwrd_evt.info.immnd.type, error);
 	}
 
-	immnd_evt_destroy(&frwrd_evt, SA_FALSE, __LINE__); 
+	immnd_evt_destroy(&frwrd_evt, false, __LINE__);
 
  client_down:
 
@@ -3709,7 +3709,7 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
  *****************************************************************************/
 static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
 					      IMMND_EVT *evt,
-					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					      bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -3788,7 +3788,7 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
 					      IMMND_EVT *evt,
-					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					      bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -3867,7 +3867,7 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
 					      IMMND_EVT *evt,
-					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					      bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -3934,7 +3934,7 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -4071,8 +4071,8 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 					   We can not continue using any existing db-file because
 					   we would get a gap in the persistent history.
 					 */
-					cb->mPbeVeteran = SA_FALSE; 
-					cb->mPbeVeteranB = SA_FALSE; 
+					cb->mPbeVeteran = false;
+					cb->mPbeVeteranB = false;
 					
 					TRACE_2("Repository init mode changed to: %s",
 						(cb->mRim == SA_IMM_INIT_FROM_FILE)?
@@ -4233,7 +4233,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
 	IMMND_EVT *evt,
-	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -4252,7 +4252,7 @@ static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
 	if(evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
 		/* If 2PBE-slave restarts in close proximity to PRT problems,
 		   then it should regenerate the pbe-file.*/
-		cb->mPbeVeteranB = SA_FALSE;
+		cb->mPbeVeteranB = false;
 	}
 
 	if(spApplConn) {
@@ -4334,7 +4334,7 @@ static void immnd_evt_pbe_rt_obj_create_rsp(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_pbe_rt_attr_update_rsp(IMMND_CB *cb,
 	IMMND_EVT *evt,
-	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -4353,7 +4353,7 @@ static void immnd_evt_pbe_rt_attr_update_rsp(IMMND_CB *cb,
 	if(evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
 		/* If 2PBE-slave restarts in close proximity to PRT problems,
 		   then it should regenerate the pbe-file.*/
-		cb->mPbeVeteranB = SA_FALSE;
+		cb->mPbeVeteranB = false;
 	}
 
 	if(spApplConn) {
@@ -4432,7 +4432,7 @@ static void immnd_evt_pbe_rt_attr_update_rsp(IMMND_CB *cb,
  *
  *****************************************************************************/
 static void immnd_evt_sync_fevs_base(IMMND_CB *cb, IMMND_EVT *evt,
-       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	TRACE_ENTER2("Received syncFevsBase: %llu", evt->info.syncFevsBase);
 	if(cb->mSync) {
@@ -4442,7 +4442,7 @@ static void immnd_evt_sync_fevs_base(IMMND_CB *cb, IMMND_EVT *evt,
 }
 
 static void immnd_evt_safe_read_lock(IMMND_CB *cb, IMMND_EVT *evt,
-       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
@@ -4508,7 +4508,7 @@ static void immnd_evt_safe_read_lock(IMMND_CB *cb, IMMND_EVT *evt,
  *
  *****************************************************************************/
 static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
-       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -4585,7 +4585,7 @@ static void immnd_evt_pbe_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
  *****************************************************************************/
 static void immnd_evt_pbe_rt_obj_deletes_rsp(IMMND_CB *cb,
 	IMMND_EVT *evt,
-	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -4607,7 +4607,7 @@ static void immnd_evt_pbe_rt_obj_deletes_rsp(IMMND_CB *cb,
 	if(evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
 		/* If 2PBE-slave restarts in close proximity to PRT problems,
 		   then it should regenerate the pbe-file.*/
-		cb->mPbeVeteranB = SA_FALSE;
+		cb->mPbeVeteranB = false;
 	}
 
 	if(pbe2BConn && (evt->info.ccbUpcallRsp.result==SA_AIS_OK)) {
@@ -4862,15 +4862,15 @@ static uint32_t immnd_evt_proc_remote_search_rsp(IMMND_CB *cb, IMMND_EVT *evt, I
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT  async - true=> original client call was async
- *                 SaBoolT  local - true=>local upcall from OI,
+ *                 bool  async - true=> original client call was async
+ *                 bool  local - true=>local upcall from OI,
  *                                  false=>remote forward ND->ND.
  *
  * Return Values : NCSCC_RC_SUCCESS/Error.
  *
  *****************************************************************************/
 static uint32_t immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
-				      IMMSV_SEND_INFO *sinfo, SaBoolT async, SaBoolT local)
+				      IMMSV_SEND_INFO *sinfo, bool async, bool local)
 {
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *oi_cl_node = NULL;
@@ -5079,7 +5079,7 @@ static void immnd_extract_preload_params(IMMND_CB *cb, const struct ImmsvOmAdmin
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -5089,7 +5089,7 @@ static void immnd_extract_preload_params(IMMND_CB *cb, const struct ImmsvOmAdmin
  *
  *****************************************************************************/
 static void immnd_evt_proc_admop(IMMND_CB *cb,
-				 IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				 IMMND_EVT *evt, bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -5100,13 +5100,13 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
 	SaUint32T implConn = 0;
 	NCS_NODE_ID implNodeId = 0;
-	SaBoolT async = SA_FALSE;
+	bool async = false;
 	/*displayRes is used for admin-operation which has OperationName as display 
 	  and directed towards opensafImm=opensafImm,safApp=safImmService object. 
 	  SA_AIS_ERR_REPAIR_PENDING will be returned if there is no PBE and OperationName is display.
 	*/
 	bool displayRes=false;
-	SaBoolT pbeExpected = cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+	bool pbeExpected = cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	async = (evt->type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC);
 	osafassert(evt->type == IMMND_EVT_A2ND_IMM_ADMOP || async);
@@ -5201,7 +5201,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 				   a PBE crash. This will also cover the case of slave PBE crashing in
 				   prepare and then a failover. 
 				*/
-				cb->mPbeVeteranB = SA_FALSE;
+				cb->mPbeVeteranB = false;
 			}
 		}
 	}
@@ -5219,8 +5219,8 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 			   We can not continue using any existing db-file because
 			   we would get a gap in the persistent history.
 			*/
-			cb->mPbeVeteran = SA_FALSE; 
-			cb->mPbeVeteranB = SA_FALSE;
+			cb->mPbeVeteran = false;
+			cb->mPbeVeteranB = false;
 
 			TRACE_2("Repository init mode changed to: %s",
 				(cb->mRim == SA_IMM_INIT_FROM_FILE)?
@@ -5358,7 +5358,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -5369,7 +5369,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_class_create(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -5378,7 +5378,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 	SaImmOiHandleT implHandle = 0LL;
 	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
@@ -5415,7 +5415,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 
 	if(pbeNodeId && error == SA_AIS_OK) {
 		/*The persistent back-end is present => wait for reply. */
-		delayedReply = SA_TRUE;
+		delayedReply = true;
 		if(pbeConn) {
 			const char* osafImmDn = OPENSAF_IMM_OBJECT_DN;
 			/*The persistent back-end is executing at THIS node. */
@@ -5518,7 +5518,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -5529,7 +5529,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -5538,7 +5538,7 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 	SaImmOiHandleT implHandle = 0LL;
 	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
@@ -5561,7 +5561,7 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 
 	if(pbeNodeId && error == SA_AIS_OK) {
 		/*The persistent back-end is present => wait for reply. */
-		delayedReply = SA_TRUE;
+		delayedReply = true;
 		if(pbeConn) {
 			const char* osafImmDn = OPENSAF_IMM_OBJECT_DN;
 			/*The persistent back-end is executing at THIS node. */
@@ -5690,7 +5690,7 @@ static uint32_t immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 		} else
 #endif
 
-			err = immModel_finalizeSync(cb, &send_evt.info.immnd.info.finSync, SA_TRUE, SA_FALSE);
+			err = immModel_finalizeSync(cb, &send_evt.info.immnd.info.finSync, true, false);
 
 		if (err != SA_AIS_OK) {
 			LOG_ER("Failed to encode IMMND finalize sync message");
@@ -5721,7 +5721,7 @@ static uint32_t immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 			osafassert(tmpData);
 			char *data = m_MMGR_DATA_AT_START(uba.start, size, tmpData);
 
-			immnd_evt_destroy(&send_evt, SA_FALSE, __LINE__);
+			immnd_evt_destroy(&send_evt, false, __LINE__);
 
 			memset(&send_evt, 0, sizeof(IMMSV_EVT));	/*No pointers=>no leak */
 			send_evt.type = IMMSV_EVT_TYPE_IMMND;
@@ -5731,7 +5731,7 @@ static uint32_t immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
 			send_evt.info.immnd.info.fevsReq.msg.size = size;
 			send_evt.info.immnd.info.fevsReq.msg.buf = data;
 
-			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, NULL, SA_TRUE, SA_TRUE);
+			proc_rc = immnd_evt_proc_fevs_forward(cb, &send_evt.info.immnd, NULL, true, true);
 			if (proc_rc != NCSCC_RC_SUCCESS) {
 				TRACE_2("Failed send fevs message");	/*Error already logged in fevs_fo */
 				err = SA_AIS_ERR_NO_RESOURCES;
@@ -5772,7 +5772,7 @@ static uint32_t immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMND_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -5782,7 +5782,7 @@ static uint32_t immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV
  *
  *****************************************************************************/
 static void immnd_evt_proc_object_sync(IMMND_CB *cb,
-	IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl,
+	IMMND_EVT *evt, bool originatedAtThisNd, SaImmHandleT clnt_hdl,
 	MDS_DEST reply_dest, SaUint64T msgNo)
 {
 	SaAisErrorT err = SA_AIS_OK;
@@ -5840,7 +5840,7 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -5851,7 +5851,7 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 					    IMMND_EVT *evt,
-					    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -5860,7 +5860,7 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 	SaImmOiHandleT implHandle = 0LL;
 	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T pbeConn = 0;
 	SaUint32T pbe2BConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
@@ -5889,7 +5889,7 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 
 	if(pbeNodeId && err == SA_AIS_OK) {
 		/*The persistent back-end is present => wait for reply. */		
-		delayedReply = SA_TRUE; 
+		delayedReply = true;
 		if(pbeConn) {
 			/*The persistent back-end is executing at THIS node. */
 			osafassert(!pbe2BConn);
@@ -6061,7 +6061,7 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -6072,7 +6072,7 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_object_create(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -6083,7 +6083,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	SaUint32T implConn = 0;
 	NCS_NODE_ID implNodeId = 0;
 	SaUint32T continuationId = 0;
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
@@ -6173,7 +6173,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 
 	if (err == SA_AIS_OK && implNodeId) {
 		/*We have an implementer (somewhere) */
-		delayedReply = SA_TRUE;
+		delayedReply = true;
 		if (implConn) {
 			/*The implementer is local, make the up-call */
 			osafassert(implNodeId == cb->node_id);
@@ -6184,7 +6184,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 			if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
 				LOG_WA("Client died");
 				err = SA_AIS_ERR_FAILED_OPERATION;
-				delayedReply = SA_FALSE;
+				delayedReply = false;
 				immModel_setCcbErrorString(cb, evt->info.objCreate.ccbId,
 						IMM_RESOURCE_ABORT "Client died");
 			} else {
@@ -6219,7 +6219,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		int ix = 0;
 		SaUint32T arrSize =
 			immModel_getLocalAppliersForObj(cb, &objName,
-				evt->info.objCreate.ccbId, &applConnArr, SA_FALSE);
+				evt->info.objCreate.ccbId, &applConnArr, false);
 
 		if(arrSize) {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -6301,7 +6301,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -6312,7 +6312,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -6320,7 +6320,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
 	IMMND_IMM_CLIENT_NODE *oi_cl_node = NULL;
 	SaImmOiHandleT implHandle = 0LL;
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T implConn = 0;
 	NCS_NODE_ID implNodeId = 0;
 	SaUint32T continuationId = 0;
@@ -6424,7 +6424,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
 	if (err == SA_AIS_OK && implNodeId) {
 		/*We have an implementer (somewhere) */
-		delayedReply = SA_TRUE;
+		delayedReply = true;
 		if (implConn) {
 			/*The implementer is local, make the up-call */
 			osafassert(implNodeId == cb->node_id);
@@ -6436,7 +6436,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			if (oi_cl_node->mIsStale) {
 				LOG_WA("OI Client went down so no modify upcall");
 				err = SA_AIS_ERR_FAILED_OPERATION;
-				delayedReply = SA_FALSE;
+				delayedReply = false;
 				immModel_setCcbErrorString(cb, evt->info.objModify.ccbId,
 						IMM_RESOURCE_ABORT "OI client went down");
 			} else {
@@ -6485,7 +6485,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 		int ix = 0;
 		SaUint32T arrSize =
 			immModel_getLocalAppliersForObj(cb, &objName,
-				evt->info.objModify.ccbId, &applConnArr, SA_FALSE);
+				evt->info.objModify.ccbId, &applConnArr, false);
 		SaUint32T pbeApplierConn = immModel_getPbeApplierConn(cb); /* 0 if not local or not exist */
 
 		if(arrSize) {
@@ -6608,7 +6608,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -6618,7 +6618,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
  *
  *****************************************************************************/
 static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
-	IMMND_EVT *evt, SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl,
+	IMMND_EVT *evt, bool originatedAtThisNd, SaImmHandleT clnt_hdl,
 	MDS_DEST reply_dest, SaUint64T msgNo)
 {
 	SaAisErrorT err = SA_AIS_OK;
@@ -6628,7 +6628,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 	SaImmOiHandleT implHandle = 0LL;
 	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T pbeConn = 0;
 	SaUint32T pbe2BConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
@@ -6729,7 +6729,7 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 
 	if(pbeNodeId && err == SA_AIS_OK) {
 		/*The persistent back-end is present => wait for reply. */		
-		delayedReply = SA_TRUE; 
+		delayedReply = true;
 		if(pbeConn) {
 			/*The persistent back-end is executing at THIS node. */
 			osafassert(!pbe2BConn);
@@ -7062,7 +7062,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T **clien
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -7073,7 +7073,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaUint32T **clien
  *****************************************************************************/
 static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -7087,7 +7087,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	SaUint32T *invocArr = NULL;
 	SaStringT *objNameArr = NULL;
 	SaUint32T arrSize = 0;
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
@@ -7199,7 +7199,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					continue;
 				}
 
-				delayedReply = SA_TRUE;
+				delayedReply = true;
 				/*Look up the client node for the implementer, using implConn */
 				implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
@@ -7210,7 +7210,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 					LOG_WA("Client went down so no delete upcall to one client");
 					/* This should cause the ccb-operation to timeout on wait for the reply. */
 					err = SA_AIS_ERR_FAILED_OPERATION;
-					delayedReply = SA_FALSE;
+					delayedReply = false;
 					immModel_setCcbErrorString(cb, evt->info.objDelete.ccbId,
 							IMM_RESOURCE_ABORT "Client went down");
 				} else {
@@ -7233,7 +7233,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 						LOG_ER("Immnd upcall over MDS for ccbObjectDelete failed");
 						/* This should cause the ccb-operation to timeout. */
 						err = SA_AIS_ERR_FAILED_OPERATION;
-						delayedReply = SA_FALSE;
+						delayedReply = false;
 						immModel_setCcbErrorString(cb, evt->info.objDelete.ccbId,
 								IMM_RESOURCE_ABORT "Upcall over MDS failed");
 					}
@@ -7271,7 +7271,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
 			
 			SaUint32T arrSize2 = immModel_getLocalAppliersForObj(cb, &objName,
-				evt->info.objDelete.ccbId, &applConnArr, SA_TRUE);
+				evt->info.objDelete.ccbId, &applConnArr, true);
 
 			int ix2 = 0;
 			for (; ix2 < arrSize2 && err == SA_AIS_OK; ++ix2) { /* Iterate over applier connections for object */
@@ -7395,7 +7395,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -7406,7 +7406,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 					    IMMND_EVT *evt,
-					    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -7415,7 +7415,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 	SaImmOiHandleT implHandle = 0LL;
 	SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T pbeConn = 0;
 	SaUint32T pbe2BConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
@@ -7446,7 +7446,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 
 	if(pbeNodeId && (err == SA_AIS_OK)) {
 		/*The persistent back-end is present & PRTOs deleted in subtree => wait for reply. */		
-		delayedReply = SA_TRUE; 
+		delayedReply = true;
 		if(pbeConn && arrSize) {
 			TRACE("PBE at this node arrSize:%u", arrSize);
 			/*The persistent back-end is executing at THIS node. */
@@ -7660,7 +7660,7 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -7670,14 +7670,14 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	SaUint32T clArrSize = 0, nodeId = 0, ix = 0;
 	SaUint32T *clientArr = NULL;
-	SaBoolT internalCcbAbort = SA_FALSE;
+	bool internalCcbAbort = false;
 	IMMSV_ATTR_NAME_LIST * errStrings = NULL;
 	TRACE_ENTER();
 
@@ -7689,8 +7689,8 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 		   and the error response forwarded to client will be ERR_FAILED_OPERATION.
 		*/
 
-		originatedAtThisNd = SA_TRUE;
-		internalCcbAbort = SA_TRUE;
+		originatedAtThisNd = true;
+		internalCcbAbort = true;
 		err = SA_AIS_ERR_FAILED_OPERATION;
 	} else {
 		TRACE_2("ccb aborted and finalized");
@@ -7754,18 +7754,18 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
  *                                         is to be sent (only relevant if
  *                                         originatedAtThisNode is false).
- *                 SaBoolT validateOnly - SA_TRUE => only do validation, not commit/apply.
+ *                 bool validateOnly - true => only do validation, not commit/apply.
  * Return Values : None
  *
  *****************************************************************************/
-static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT originatedAtThisNd,
-                                     SaImmHandleT clnt_hdl, MDS_DEST reply_dest, SaBoolT validateOnly)
+static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, bool originatedAtThisNd,
+                                     SaImmHandleT clnt_hdl, MDS_DEST reply_dest, bool validateOnly)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	IMMSV_EVT send_evt;
@@ -7778,7 +7778,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 	SaUint32T *implIdArr = NULL;
 	SaUint32T *ctnArr = NULL;
 	SaUint32T arrSize = 0;
-	SaBoolT delayedReply = SA_FALSE;
+	bool delayedReply = false;
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
 	NCS_NODE_ID *pbeNodeIdPtr = NULL;
@@ -7818,7 +7818,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 	if (err == SA_AIS_OK) {
 		if (arrSize) {
 			TRACE_2("THERE ARE LOCAL IMPLEMENTERS in ccb:%u sending completed upcall", evt->info.ccbId);
-			delayedReply = SA_TRUE;
+			delayedReply = true;
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
 			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC;
@@ -7833,7 +7833,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 				if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
 					LOG_WA("IMMND - Client went down so no response");
 					err = SA_AIS_ERR_FAILED_OPERATION;
-					delayedReply = SA_FALSE;
+					delayedReply = false;
 					immModel_setCcbErrorString(cb, evt->info.ccbId,
 							IMM_RESOURCE_ABORT "Client went down");
 				} else {
@@ -7849,7 +7849,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 						LOG_ER("IMMND CCB APPLY: CCB COMPLETED UPCALL SEND FAILED");
 						err = SA_AIS_ERR_FAILED_OPERATION;
 						/* should abort the entire ccb */
-						delayedReply = SA_FALSE;
+						delayedReply = false;
 						immModel_setCcbErrorString(cb, evt->info.ccbId,
 								IMM_RESOURCE_ABORT "Upcall over MDS failed");
 					} else {
@@ -7860,7 +7860,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 		} else if (immModel_ccbWaitForCompletedAck(cb, evt->info.ccbId, &err,
 				   &pbeConn, pbeNodeIdPtr, &pbeId, &pbeCtn)) {
 			TRACE_2("No local regular implementers but wait for remote and/or PBE ccb: %u", evt->info.ccbId);
-			delayedReply = SA_TRUE;
+			delayedReply = true;
 			if(pbeNodeId) {
 				/* There is be a PBE. */
 				osafassert(err == SA_AIS_OK); /* If not OK then we should not be waiting. */
@@ -8018,8 +8018,8 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, SaBoolT origi
 					   because we would get a gap in the persistent
 					   history.
 					 */
-					cb->mPbeVeteran = SA_FALSE; 
-					cb->mPbeVeteranB = SA_FALSE; 
+					cb->mPbeVeteran = false;
+					cb->mPbeVeteranB = false;
 
 					TRACE_2("Repository init mode changed to: %s",
 						(cb->mRim == SA_IMM_INIT_FROM_FILE)?
@@ -8159,7 +8159,7 @@ static uint32_t immnd_restricted_ok(IMMND_CB *cb, uint32_t id)
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_OCTET_STRING *msg - Message to unpack and dispatch
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 MDS_DEST reply_dest - The dest of the ND where reply is to
@@ -8171,7 +8171,7 @@ static uint32_t immnd_restricted_ok(IMMND_CB *cb, uint32_t id)
  *****************************************************************************/
 static SaAisErrorT
 immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
-	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl,
+	bool originatedAtThisNd, SaImmHandleT clnt_hdl,
 	MDS_DEST reply_dest, SaUint64T msgNo)
 {
 	SaAisErrorT error = SA_AIS_OK;
@@ -8302,11 +8302,11 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	case IMMND_EVT_A2ND_CCB_APPLY:
-		immnd_evt_proc_ccb_apply(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, SA_FALSE);
+		immnd_evt_proc_ccb_apply(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, false);
 		break;
 
 	case IMMND_EVT_A2ND_CCB_VALIDATE:
-		immnd_evt_proc_ccb_apply(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, SA_TRUE);
+		immnd_evt_proc_ccb_apply(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest, true);
 		break;
 
 	case IMMND_EVT_A2ND_CCB_FINALIZE:
@@ -8315,7 +8315,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 
 	case IMMND_EVT_D2ND_ABORT_CCB:
 		immnd_evt_proc_ccb_finalize(cb, &frwrd_evt.info.immnd,
-					    /*originatedAtThisNd */ SA_FALSE,
+					    /*originatedAtThisNd */ false,
 					    clnt_hdl, reply_dest);
 		break;
 
@@ -8444,7 +8444,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 	if (uba.start) {
 		m_MMGR_FREE_BUFR_LIST(uba.start);
 	}
-	immnd_evt_destroy(&frwrd_evt, SA_FALSE, __LINE__);
+	immnd_evt_destroy(&frwrd_evt, false, __LINE__);
 	if ((error != SA_AIS_OK) && (error != SA_AIS_ERR_ACCESS)) {
 		TRACE_2("Could not process FEVS message, ERROR:%u", error);
 	}
@@ -8488,7 +8488,7 @@ static uint32_t immnd_evt_proc_dump_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 			}
 
 			if (immnd_is_immd_up(cb)) {
-				immnd_adjustEpoch(cb, SA_TRUE);
+				immnd_adjustEpoch(cb, true);
 			} else {
 				/* Not critical to increment epoch for dump */
 				LOG_ER("Dump-ok failed to adjust epoch, IMMD DOWN:");
@@ -8547,7 +8547,7 @@ uint32_t immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO
 				LOG_WA("IMMND can not adjust epoch because IMMD is DOWN %u", retryCount);
 				sleep(1);
 			}
-			immnd_adjustEpoch(cb, SA_TRUE); /* will osafassert if immd is down. */
+			immnd_adjustEpoch(cb, true); /* will osafassert if immd is down. */
 		}
 		immModel_abortSync(cb);
 	}
@@ -8590,8 +8590,8 @@ uint32_t immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt,
 		/* This should be redundant at coord. It is mainly for the 
 		   noncoord immnd, in case it gets elected coord later.
 		*/
-		cb->mPbeVeteran = SA_FALSE;
-		cb->mPbeVeteranB = SA_FALSE;
+		cb->mPbeVeteran = false;
+		cb->mPbeVeteranB = false;
 	}
 
 	if(cb->pbePid2 != 0) {
@@ -8649,7 +8649,7 @@ uint32_t immnd_evt_proc_pbe_prto_purge_mutations(IMMND_CB *cb, IMMND_EVT *evt,
 static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	if ((cb->mState == IMM_SERVER_LOADING_CLIENT) && (immModel_getLoader(cb) == 0)) {
-		immnd_adjustEpoch(cb, SA_TRUE);
+		immnd_adjustEpoch(cb, true);
 		immnd_ackToNid(NCSCC_RC_SUCCESS);
 		cb->mState = IMM_SERVER_READY;
 		LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY (materialized by start sync)");
@@ -8662,7 +8662,7 @@ static uint32_t immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		   Search for "ticket:#598" in immnd_proc.c
 		 */
 		immModel_setScAbsenceAllowed(cb);
-	} else if ((cb->mState == IMM_SERVER_SYNC_CLIENT) && (immnd_syncComplete(cb, SA_FALSE, cb->mStep))) {
+	} else if ((cb->mState == IMM_SERVER_SYNC_CLIENT) && (immnd_syncComplete(cb, false, cb->mStep))) {
 		cb->mStep = 0;
 		osaf_clock_gettime(CLOCK_MONOTONIC, &cb->mJobStart);
 		cb->mState = IMM_SERVER_READY;
@@ -8939,7 +8939,7 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 				LOG_NO("This IMMND is now the NEW Coord");
 				if(cb->m2Pbe) {
 					cb->mPbeVeteran = cb->mPbeVeteranB; /* switch of role. */
-					cb->mPbeVeteranB = SA_FALSE;
+					cb->mPbeVeteranB = false;
 				} else if(cb->mPbeVeteran && !immModel_pbeIsInSync(cb, true)) {
 					/* Note: This is to avoid a race between the old 
 					   PBE at other SC terminating and the new PBE at this SC
@@ -8952,7 +8952,7 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 					*/
 					LOG_NO("PBE writing when new coord elected => "
 						"force PBE to regenerate db file");
-					cb->mPbeVeteran = SA_FALSE;
+					cb->mPbeVeteran = false;
 				}
 				
 			}
@@ -9018,7 +9018,7 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 
 				/* A *fake* fake-evs. */
 				LOG_NO("****Normalizing from 1-safe 2PBE to 2-safe 2PBE****");
-				immnd_evt_proc_admop(cb, &(fake_evt.info.immnd), SA_FALSE, 0LL, 0LL);
+				immnd_evt_proc_admop(cb, &(fake_evt.info.immnd), false, 0LL, 0LL);
 			}
 		}
 	}
@@ -9040,7 +9040,7 @@ void dequeue_outgoing(IMMND_CB *cb)
 		unsigned int backlog = 
 			immnd_dequeue_outgoing_fevs_msg(cb, &dummy_evt.info.fevsReq.msg, &dummy_evt.info.fevsReq.client_hdl);
 
-		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL, SA_FALSE, SA_FALSE) != NCSCC_RC_SUCCESS) {
+		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL, false, false) != NCSCC_RC_SUCCESS) {
 			LOG_WA("Failed to process delayed asyncronous fevs message - discarded");
 		}
 		--space;
@@ -9094,7 +9094,7 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		return NCSCC_RC_FAILURE;	/*TODO: ensure evt is discarded by invoker */
 	}
 
-	SaBoolT originatedAtThisNd = (m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl) == cb->node_id);
+	bool originatedAtThisNd = (m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl) == cb->node_id);
 
 	if (originatedAtThisNd) {
 		osafassert(!reply_dest || (reply_dest == cb->immnd_mdest_id) || isObjSync );
@@ -9165,7 +9165,7 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9174,14 +9174,14 @@ static uint32_t immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
  *****************************************************************************/
 static void immnd_evt_proc_discard_impl(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
         SaUint32T *globIdArr = NULL;
         SaUint32T globArrSize = 0;
 	TRACE_ENTER();
 	osafassert(evt);
 	TRACE_2("Global discard implementer for id:%u", evt->info.implSet.impl_id);
-	immModel_discardImplementer(cb, evt->info.implSet.impl_id, SA_TRUE, &globArrSize, &globIdArr);
+	immModel_discardImplementer(cb, evt->info.implSet.impl_id, true, &globArrSize, &globIdArr);
         if(globArrSize) {
                 SaUint32T ix;
                 for (ix = 0; ix < globArrSize; ++ix) {
@@ -9205,7 +9205,7 @@ static void immnd_evt_proc_discard_impl(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9214,7 +9214,7 @@ static void immnd_evt_proc_discard_impl(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaUint32T *idArr = NULL;
 	SaUint32T arrSize = 0;
@@ -9278,7 +9278,7 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9287,7 +9287,7 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -9354,7 +9354,7 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9363,7 +9363,7 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 *****************************************************************************/
 static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	TRACE_ENTER();
 	TRACE_2("**********immnd_evt_proc_finalize_sync***********");
@@ -9373,7 +9373,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 		unsigned int count = 0;
 		IMMSV_EVT send_evt;
 		TRACE_2("FinalizeSync for sync client");
-		SaAisErrorT err = immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_TRUE);
+		SaAisErrorT err = immModel_finalizeSync(cb, &(evt->info.finSync), false, true);
 		if(err != SA_AIS_OK) {
 			immnd_ackToNid(NCSCC_RC_FAILURE);
 			if(err == SA_AIS_ERR_BAD_OPERATION) {
@@ -9385,7 +9385,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 				abort();
 			}
 		}
-		cb->mAccepted = SA_TRUE;	/*Accept ALL fevs messages after this one! */
+		cb->mAccepted = true;	/*Accept ALL fevs messages after this one! */
 		cb->syncFevsBase = 0LL;
 		cb->mMyEpoch++;
 		/*This must bring the epoch of the joiner up to the ruling epoch */
@@ -9397,7 +9397,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 			TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
 				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 		}
-		immnd_adjustEpoch(cb, SA_TRUE);
+		immnd_adjustEpoch(cb, true);
 
 		/* Sync completed for client => trigger active resurrect. */
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -9449,20 +9449,20 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 				sleep(1);
 			}
 			/*This adjust-epoch will persistify the new epoch for: coord. */
-			immnd_adjustEpoch(cb, SA_TRUE); /* Will osafassert if immd is down. */
+			immnd_adjustEpoch(cb, true); /* Will osafassert if immd is down. */
 			cb->mSyncFinalizing = 0x0;
 		} else {
 			TRACE_2("FinalizeSync for veteran node that is non coord");
 			/* In this case we use the sync message to verify the state 
 			   instad of syncing. */
-			osafassert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, SA_FALSE) == SA_AIS_OK);
+			osafassert(immModel_finalizeSync(cb, &(evt->info.finSync), false, false) == SA_AIS_OK);
 			int retryCount = 0;
 			for (; !immnd_is_immd_up(cb) && retryCount < 16; ++retryCount) {
 				LOG_WA("IMMND blocked in adjust Epoch because IMMD is DOWN");
 				sleep(1);
 			}
 			/*This adjust-epoch will persistify the new epoch for: veterans. */
-			immnd_adjustEpoch(cb, SA_TRUE); /* Will osafassert if immd is down. */
+			immnd_adjustEpoch(cb, true); /* Will osafassert if immd is down. */
 		}
 
 		if(cb->mScAbsenceAllowed) {/* Coord and veteran nodes. */
@@ -9516,7 +9516,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9525,7 +9525,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_admo_set(IMMND_CB *cb,
 				    IMMND_EVT *evt,
-				    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -9534,7 +9534,7 @@ static void immnd_evt_proc_admo_set(IMMND_CB *cb,
 
 	osafassert(evt);
 	if (evt->info.admReq.adm_owner_id != 0) {
-		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), SA_FALSE);
+		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), false);
 	} else {
 		LOG_ER("adminOwnerSet can not have 0 admin owner id");
 		err = SA_AIS_ERR_LIBRARY;
@@ -9569,7 +9569,7 @@ static void immnd_evt_proc_admo_set(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9578,7 +9578,7 @@ static void immnd_evt_proc_admo_set(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_admo_release(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -9587,7 +9587,7 @@ static void immnd_evt_proc_admo_release(IMMND_CB *cb,
 
 	osafassert(evt);
 	if (evt->info.admReq.adm_owner_id != 0) {
-		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), SA_TRUE);
+		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), true);
 	} else {
 		LOG_ER("adminOwnerRelease can not have 0 admin owner id");
 		err = SA_AIS_ERR_LIBRARY;
@@ -9622,7 +9622,7 @@ static void immnd_evt_proc_admo_release(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9631,7 +9631,7 @@ static void immnd_evt_proc_admo_release(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_admo_clear(IMMND_CB *cb,
 				      IMMND_EVT *evt,
-				      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				      bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -9640,7 +9640,7 @@ static void immnd_evt_proc_admo_clear(IMMND_CB *cb,
 
 	osafassert(evt);
 	if (evt->info.admReq.adm_owner_id == 0) {
-		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), SA_TRUE);
+		err = immModel_adminOwnerChange(cb, &(evt->info.admReq), true);
 	} else {
 		LOG_ER("adminOwnerClear can not have non ZERO admin owner id");
 		err = SA_AIS_ERR_LIBRARY;
@@ -9675,7 +9675,7 @@ static void immnd_evt_proc_admo_clear(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9684,7 +9684,7 @@ static void immnd_evt_proc_admo_clear(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 					 IMMND_EVT *evt,
-					 SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					 bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -9717,7 +9717,7 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 			}
 
 			TRACE("Adjusting epoch directly after loading has completed");
-			immnd_adjustEpoch(cb, SA_TRUE); /* Moved to here from immnd_proc.c #1987 */
+			immnd_adjustEpoch(cb, true); /* Moved to here from immnd_proc.c #1987 */
 		}
 	}
 
@@ -9750,7 +9750,7 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9759,7 +9759,7 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
  *****************************************************************************/
 void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
 					      IMMND_EVT *evt,
-					      SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					      bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	TRACE_ENTER();
@@ -9793,7 +9793,7 @@ void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9802,7 +9802,7 @@ void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -9811,7 +9811,7 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 	NCS_NODE_ID nodeId;
 	SaUint32T conn;
 	SaUint32T implId = 0;
-	SaBoolT discardImplementer = SA_FALSE;
+	bool discardImplementer = false;
 
 	osafassert(evt);
 	osafassert(!originatedAtThisNd || reply_dest == cb->immnd_mdest_id);
@@ -9835,7 +9835,7 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
-		if ((cl_node == NULL) || (discardImplementer == SA_TRUE)) {
+		if ((cl_node == NULL) || discardImplementer) {
 			/* Client was down */
 			TRACE_5("Discarding implementer id:%u for connection: %u", implId, conn);
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -9847,7 +9847,7 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 			}
 			/* Mark the implementer as dying to make sure no upcall is sent to the client.
 			   The implementer will be really discarded when global-discard message comes */
-			immModel_discardImplementer(cb, implId, SA_FALSE, NULL, NULL);
+			immModel_discardImplementer(cb, implId, false, NULL, NULL);
 
 			if(cl_node == NULL) {
 				return;
@@ -9888,7 +9888,7 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9897,7 +9897,7 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
  ***************************************************************************/
 static void immnd_evt_proc_impl_clr(IMMND_CB *cb,
 				    IMMND_EVT *evt,
-				    SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				    bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -9951,7 +9951,7 @@ static void immnd_evt_proc_impl_clr(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -9960,7 +9960,7 @@ static void immnd_evt_proc_impl_clr(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -10010,7 +10010,7 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 
 	if((err == SA_AIS_OK) && (strcmp(OPENSAF_IMM_CLASS_NAME, evt->info.implSet.impl_name.buf)==0)) {
 		TRACE("PBE class implementer set, send initial epoch to implementer");
-		immnd_adjustEpoch(cb, SA_FALSE); /*No increment, just inform PBE of current epoch. */
+		immnd_adjustEpoch(cb, false); /*No increment, just inform PBE of current epoch. */
 	}
 }
 
@@ -10021,7 +10021,7 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -10030,7 +10030,7 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -10078,7 +10078,7 @@ static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -10087,7 +10087,7 @@ static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -10145,7 +10145,7 @@ static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -10154,7 +10154,7 @@ static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_obj_impl_rel(IMMND_CB *cb,
 					IMMND_EVT *evt,
-					SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+					bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -10199,7 +10199,7 @@ static void immnd_evt_proc_obj_impl_rel(IMMND_CB *cb,
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 IMMSV_EVT *evt - Received Event structure
- *                 SaBoolT originatedAtThisNode - Did it come from this node?
+ *                 bool originatedAtThisNode - Did it come from this node?
  *                 SaImmHandleT clnt_hdl - The client handle (only relevant if
  *                                         originatedAtThisNode is true).
  *                 IMM_DEST reply_dest - The dest of the ND to where reply
@@ -10210,7 +10210,7 @@ static void immnd_evt_proc_obj_impl_rel(IMMND_CB *cb,
  *****************************************************************************/
 static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 				       IMMND_EVT *evt,
-				       SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+				       bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -10273,7 +10273,7 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 }
 
 void immnd_evt_ccb_augment_init(IMMND_CB *cb, IMMND_EVT *evt,
-	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
@@ -10314,7 +10314,7 @@ void immnd_evt_ccb_augment_init(IMMND_CB *cb, IMMND_EVT *evt,
 }
 
 void immnd_evt_ccb_augment_admo(IMMND_CB *cb, IMMND_EVT *evt,
-	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
+	bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest)
 {
 	osafassert(evt);
 	TRACE_ENTER2("AdminOwner %u ccbId:%u", evt->info.objDelete.adminOwnerId, evt->info.objDelete.ccbId);

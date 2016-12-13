@@ -865,7 +865,7 @@ immModel_specialApplierTrimModify(IMMND_CB *cb, SaUint32T clientId,
         specialApplierTrimModify(clientId, req);
 }
 
-SaBoolT
+bool
 immModel_isSpecialAndAddModify(IMMND_CB *cb, SaUint32T clientId, SaUint32T ccbId)
 {
     return ImmModel::instance(&cb->immModel)->
@@ -896,14 +896,14 @@ immModel_getLocalAppliersForObj(IMMND_CB *cb,
     const SaNameT* objName,
     SaUint32T ccbId,
     SaUint32T **aplConnArr,
-    SaBoolT externalRep)
+    bool externalRep)
 {
     ConnVector cv;
     ConnVector::iterator cvi;
     unsigned int ix = 0;
 
     ImmModel::instance(&cb->immModel)->
-        getLocalAppliersForObj(objName, ccbId, cv, externalRep==SA_TRUE);
+        getLocalAppliersForObj(objName, ccbId, cv, externalRep);
 
     SaUint32T arrSize = (SaUint32T) cv.size();
 
@@ -1107,60 +1107,52 @@ immModel_pbeBSlaveExists(IMMND_CB *cb)
     return 0;
 }
 
-SaBoolT
+bool
 immModel_protocol41Allowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->protocol41Allowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->protocol41Allowed();
 }
 
-SaBoolT
+bool
 immModel_protocol43Allowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->protocol43Allowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->protocol43Allowed();
 }
 
-SaBoolT
+bool
 immModel_oneSafe2PBEAllowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->oneSafe2PBEAllowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->oneSafe2PBEAllowed();
 }
 
-SaBoolT
+bool
 immModel_protocol45Allowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->protocol45Allowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->protocol45Allowed();
 }
 
-SaBoolT
+bool
 immModel_protocol46Allowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->protocol46Allowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->protocol46Allowed();
 }
 
-SaBoolT
+bool
 immModel_protocol47Allowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->protocol47Allowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->protocol47Allowed();
 }
 
-SaBoolT
+bool
 immModel_protocol50Allowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->protocol50Allowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->protocol50Allowed();
 }
 
-SaBoolT
+bool
 immModel_protocol51Allowed(IMMND_CB *cb)
 {
-    return (ImmModel::instance(&cb->immModel)->protocol51Allowed()) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->protocol51Allowed();
 }
 
 OsafImmAccessControlModeT
@@ -1175,11 +1167,10 @@ immModel_authorizedGroup(IMMND_CB *cb)
     return ImmModel::instance(&cb->immModel)->authorizedGroup();
 }
 
-SaBoolT
+bool
 immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId)
 {
-    return (ImmModel::instance(&cb->immModel)->purgeSyncRequest(clientId)) ?
-        SA_TRUE : SA_FALSE;
+    return ImmModel::instance(&cb->immModel)->purgeSyncRequest(clientId);
 }
 
 SaUint32T
@@ -1192,7 +1183,7 @@ immModel_cleanTheBasement(IMMND_CB *cb,
     SaUint32T* ccbIdArrSize,
     SaUint32T** pbePrtoReqArr,
     SaUint32T* pbePrtoReqArrSize,
-    SaBoolT iAmCoordNow)
+    bool iAmCoordNow)
 {
     InvocVector admReqs;
     InvocVector searchReqs;
@@ -1473,7 +1464,7 @@ immModel_adminOperationInvoke(IMMND_CB *cb,
     SaInvocationT inv,
     SaUint32T* implConn,
     SaClmNodeIdT* implNodeId,
-    SaBoolT pbeExpected,
+    bool pbeExpected,
     bool* displayRes)
 {
     bool wasAbortNonCritical = sAbortNonCriticalCcbs;
@@ -1529,7 +1520,7 @@ immModel_findConnForImplementerOfObject(IMMND_CB *cb,
         findConnForImplementerOfObject(objectDn);
 }
 
-SaBoolT
+bool
 immModel_ccbWaitForCompletedAck(IMMND_CB *cb, 
     SaUint32T ccbId,
     SaAisErrorT* err,
@@ -1538,22 +1529,22 @@ immModel_ccbWaitForCompletedAck(IMMND_CB *cb,
     SaUint32T* pbeId,
     SaUint32T* pbeCtn)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->
+    return ImmModel::instance(&cb->immModel)->
         ccbWaitForCompletedAck(ccbId, err, pbeConn, pbeNodeId, pbeId, pbeCtn);
 }
 
-SaBoolT
+bool
 immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, 
     SaUint32T ccbId,
     SaAisErrorT* err,
     bool augDelete)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->
+    return ImmModel::instance(&cb->immModel)->
         ccbWaitForDeleteImplAck(ccbId, err, augDelete);
 }
 
 
-SaBoolT
+bool
 immModel_ccbCommit(IMMND_CB *cb, 
     SaUint32T ccbId,
     SaUint32T* arrSize,
@@ -1563,8 +1554,7 @@ immModel_ccbCommit(IMMND_CB *cb,
     ConnVector::iterator cvi;
     unsigned int ix=0;
     
-    SaBoolT pbeModeChange = (SaBoolT) 
-        ImmModel::instance(&cb->immModel)->ccbCommit(ccbId, cv);
+    bool pbeModeChange = ImmModel::instance(&cb->immModel)->ccbCommit(ccbId, cv);
     
     *arrSize = (SaUint32T) cv.size();
     if(*arrSize) {
@@ -1616,7 +1606,7 @@ immModel_ccbReadLockObject(IMMND_CB *cb, struct ImmsvOmSearchInit* req)
 
 SaAisErrorT
 immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req, 
-    void** searchOp, SaBoolT isSync, SaBoolT isAccessor)
+    void** searchOp, bool isSync, bool isAccessor)
 {
     SaAisErrorT err = SA_AIS_OK;
     ImmSearchOp* op = new ImmSearchOp();
@@ -1644,7 +1634,7 @@ immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit* req,
 }
 
 SaAisErrorT
-immModel_testTopResult(void* searchOp, SaUint32T* implNodeId, SaBoolT* bRtAttrsToFetch)
+immModel_testTopResult(void* searchOp, SaUint32T* implNodeId, bool* bRtAttrsToFetch)
 {
     SaAisErrorT err;
     ImplementerInfo *implInfo = NULL;
@@ -1661,7 +1651,7 @@ immModel_nextResult(IMMND_CB *cb, void* searchOp,
     IMMSV_OM_RSP_SEARCH_NEXT** rsp,
     SaUint32T* implConn, SaUint32T* implNodeId,
     struct ImmsvAttrNameList** rtAttrsToFetch,
-    MDS_DEST* implDest, SaBoolT retardSync, SaUint32T *implTimeout)
+    MDS_DEST* implDest, bool retardSync, SaUint32T *implTimeout)
 {
     AttributeList* rtAttrs = NULL;
     SaAisErrorT err = SA_AIS_OK;
@@ -1782,18 +1772,18 @@ immModel_clearLastResult(void* searchOp)
     op->clearLastResult();
 }
 
-SaBoolT
+bool
 immModel_isSearchOpAccessor(void* searchOp)
 {
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
-    return op->isAccessor() ? SA_TRUE : SA_FALSE;
+    return op->isAccessor();
 }
 
-SaBoolT
+bool
 immModel_isSearchOpNonExtendedNameSet(void* searchOp)
 {
     ImmSearchOp* op = (ImmSearchOp *) searchOp;
-    return op->isNonExtendedNameSet() ? SA_TRUE : SA_FALSE;
+    return op->isNonExtendedNameSet();
 }
 
 void
@@ -1823,7 +1813,7 @@ SaAisErrorT
 immModel_implementerSet(IMMND_CB *cb, const IMMSV_OCTET_STRING* implName,
     SaUint32T implConn, SaUint32T implNodeId,
     SaUint32T implId, MDS_DEST mds_dest,
-    SaUint32T implTimeout, SaBoolT *discardImplementer)
+    SaUint32T implTimeout, bool *discardImplementer)
 {
     return 
         ImmModel::instance(&cb->immModel)->implementerSet(implName, 
@@ -1871,7 +1861,7 @@ immModel_getImplementerId(IMMND_CB* cb, SaUint32T deadConn)
 
 void
 immModel_discardImplementer(IMMND_CB* cb, SaUint32T implId, 
-    SaBoolT reallyDiscard, SaUint32T* globArrSize, SaUint32T** globccbIdArr)
+    bool reallyDiscard, SaUint32T* globArrSize, SaUint32T** globccbIdArr)
 {
     ConnVector gv;
     ConnVector::iterator gvi;
@@ -2076,7 +2066,7 @@ immModel_classDescriptionGet(IMMND_CB *cb, const IMMSV_OCTET_STRING* clName,
 
 void
 immModel_fetchAdmOpContinuations(IMMND_CB *cb, SaInvocationT inv, 
-    SaBoolT local, SaUint32T* implConn, 
+    bool local, SaUint32T* implConn,
     SaUint32T* reqConn, SaUint64T* reply_dest)
 {
     if(local) {
@@ -2111,10 +2101,10 @@ immModel_prepareForLoading(IMMND_CB *cb)
 }
 
 
-SaBoolT 
+bool
 immModel_readyForLoading(IMMND_CB *cb)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->readyForLoading();
+    return ImmModel::instance(&cb->immModel)->readyForLoading();
 }
 
 SaInt32T
@@ -2135,26 +2125,26 @@ immModel_recognizedIsolated(IMMND_CB *cb)
     ImmModel::instance(&cb->immModel)->recognizedIsolated();
 }
 
-SaBoolT 
+bool
 immModel_syncComplete(IMMND_CB *cb)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->syncComplete(0);
+    return ImmModel::instance(&cb->immModel)->syncComplete(false);
 }
 
-SaBoolT 
+bool
 immModel_ccbsTerminated(IMMND_CB *cb, bool allowEmpty)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->ccbsTerminated(allowEmpty);
+    return ImmModel::instance(&cb->immModel)->ccbsTerminated(allowEmpty);
 }
 
-SaBoolT
+bool
 immModel_immNotWritable(IMMND_CB *cb)
 {
     if(cb->preLoadPid > 0) {
         TRACE("immModel_immNotWritable: WRITABLE in preload");
-        return SA_FALSE;
+        return false;
     }
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->immNotWritable();
+    return ImmModel::instance(&cb->immModel)->immNotWritable();
 }
 
 bool
@@ -2165,10 +2155,10 @@ immModel_pbeNotWritable(IMMND_CB *cb) {
     return ImmModel::instance(&cb->immModel)->immNotPbeWritable(false);
 }
 
-SaBoolT
+bool
 immModel_pbeIsInSync(IMMND_CB *cb, bool checkCriticalCcbs)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->pbeIsInSync(checkCriticalCcbs);
+    return ImmModel::instance(&cb->immModel)->pbeIsInSync(checkCriticalCcbs);
 }
 
 SaImmRepositoryInitModeT
@@ -2185,7 +2175,7 @@ immModel_getMaxSyncBatchSize(IMMND_CB *cb)
 }
 
 void
-immModel_prepareForSync(IMMND_CB *cb, SaBoolT isJoining)
+immModel_prepareForSync(IMMND_CB *cb, bool isJoining)
 {
     ImmModel::instance(&cb->immModel)->prepareForSync(isJoining);
 }
@@ -2206,7 +2196,7 @@ immModel_objectSync(IMMND_CB *cb,
 SaAisErrorT
 immModel_finalizeSync(IMMND_CB *cb, 
     struct ImmsvOmFinalizeSync* req,
-    SaBoolT isCoord, SaBoolT isSyncClient)
+    bool isCoord, bool isSyncClient)
 {
     return ImmModel::instance(&cb->immModel)->finalizeSync(req, 
         isCoord,
@@ -2217,7 +2207,7 @@ SaUint32T
 immModel_adjustEpoch(IMMND_CB *cb, SaUint32T suggestedEpoch,
     SaUint32T* continuationId,
     SaUint32T* pbeConn,
-    SaClmNodeIdT* pbeNodeId, SaBoolT increment)
+    SaClmNodeIdT* pbeNodeId, bool increment)
 {
     return ImmModel::instance(&cb->immModel)->adjustEpoch(suggestedEpoch,
         continuationId, pbeConn, pbeNodeId, increment);
@@ -2226,7 +2216,7 @@ immModel_adjustEpoch(IMMND_CB *cb, SaUint32T suggestedEpoch,
 SaUint32T
 immModel_adminOwnerChange(IMMND_CB *cb, 
     const struct immsv_a2nd_admown_set* req,
-    SaBoolT isRelease)
+    bool isRelease)
 {
     return ImmModel::instance(&cb->immModel)->adminOwnerChange(req, isRelease);
 }
@@ -2241,7 +2231,7 @@ immModel_rtObjectCreate(IMMND_CB *cb,
     SaClmNodeIdT* pbeNodeId,
     SaUint32T* spApplConn,
     SaUint32T* pbe2BConn,
-    SaBoolT isObjectDnUsed)
+    bool isObjectDnUsed)
 
 {
     if(req->attrValues
@@ -2366,14 +2356,14 @@ immModel_deferRtUpdate(IMMND_CB *cb,
     ImmModel::instance(&cb->immModel)->deferRtUpdate(req, msgNo);
 }
 
-SaBoolT
+bool
 immModel_fetchRtUpdate(IMMND_CB *cb, 
     struct ImmsvOmObjectSync *syncReq,
     struct ImmsvOmCcbObjectModify *rtModReq,
     SaUint64T syncFevsBase)
 {
     return ImmModel::instance(&cb->immModel)->
-        fetchRtUpdate(syncReq, rtModReq, syncFevsBase)?SA_TRUE:SA_FALSE;
+        fetchRtUpdate(syncReq, rtModReq, syncFevsBase);
 }
 
 
@@ -7016,7 +7006,7 @@ SaUint32T ImmModel::getPbeApplierConn()
   If this function returns true then it signals the need for generating a fake
   modify-callback only containing the system attribute SaImmAttrAdminOwnerName.
  */
-SaBoolT
+bool
 ImmModel::isSpecialAndAddModify(SaUint32T clientId, SaUint32T ccbId)
 {
     ImplementerInfo* specialApplier = getSpecialApplier();
@@ -7028,13 +7018,13 @@ ImmModel::isSpecialAndAddModify(SaUint32T clientId, SaUint32T ccbId)
         osafassert(ccb->isActive());
         if(!(ccb->mCcbFlags & OPENSAF_IMM_CCB_ADMO_PROVIDED)) {
             TRACE("isSpecialAndAddModify returns TRUE");
-            return SA_TRUE;
+            return true;
         }
     }
 
     /* Admo already provided, no need for fake modify. */
     TRACE("isSpecialAndAddModify returns FALSE");
-    return SA_FALSE;
+    return false;
 }
 
 /*
@@ -14330,7 +14320,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     SaUint32T implementerId,
     SaUint64T mds_dest,
     SaUint32T implTimeout,
-    SaBoolT *discardImplementer)
+    bool *discardImplementer)
 {
     SaAisErrorT err = SA_AIS_OK;
     CcbVector::iterator i;
@@ -14338,7 +14328,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
 
     TRACE_ENTER();
 
-    *discardImplementer = SA_FALSE;
+    *discardImplementer = false;
 
     if(immNotWritable() && !protocol43Allowed()) {
         TRACE_LEAVE();
@@ -14429,7 +14419,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
                                     TRACE("TRY_AGAIN: ccb %u is active on object '%s' "
                                        "bound to class applier '%s'. Can not re-attach applier",
                                        ccb->mId, omit->first.c_str(), implName.c_str());
-                                    *discardImplementer = SA_TRUE;
+                                    *discardImplementer = true;
                                     err = SA_AIS_ERR_TRY_AGAIN;
                                     goto done;
                                 }
@@ -14443,7 +14433,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
                                 TRACE("TRY_AGAIN: ccb %u is active on object '%s' "
                                       "bound to object applier '%s'. Can not re-attach applier",
                                        ccb->mId, omit->first.c_str(), implName.c_str());
-                                *discardImplementer = SA_TRUE;
+                                *discardImplementer = true;
                                 err = SA_AIS_ERR_TRY_AGAIN;
                                 goto done;
                             }
@@ -19031,7 +19021,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             
             this->setLoader(0); 
             //Opens for OM and OI connections to this node.
-            //immnd must also set cb->mAccepted=SA_TRUE
+            //immnd must also set cb->mAccepted=true
 
             if(!sNodesDeadDuringSync.empty()) {
                 IdVector::iterator ivi = sNodesDeadDuringSync.begin();
