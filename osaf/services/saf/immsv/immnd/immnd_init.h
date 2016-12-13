@@ -50,7 +50,7 @@ void immnd_proc_immd_down(IMMND_CB *cb);
 
 void immnd_proc_imma_up(IMMND_CB *cb, MDS_DEST dest);
 void immnd_proc_app_status(IMMND_CB *cb);
-void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment);
+void immnd_adjustEpoch(IMMND_CB *cb, bool increment);
 uint32_t immnd_introduceMe(IMMND_CB *cb);
 void immnd_announceDump(IMMND_CB *cb);
 uint32_t immnd_is_immd_up(IMMND_CB *cb);
@@ -60,7 +60,7 @@ IMMSV_ADMIN_OPERATION_PARAM * immnd_getOsafImmPbeAdmopParam(
 	    IMMSV_ADMIN_OPERATION_PARAM * param);
 void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint32T reqConn);
 void immnd_ackToNid(uint32_t rc);
-SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step);
+bool immnd_syncComplete(IMMND_CB *cb, bool coordinator, SaUint32T step);
 
 void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId);
 void immnd_abortSync(IMMND_CB *cb);
@@ -106,7 +106,7 @@ extern "C" {
 					  SaUint32T reqConn,
 					  SaUint64T reply_dest,
 					  SaInvocationT inv, SaUint32T *implConn,
-		                          SaClmNodeIdT *implNodeId, SaBoolT pbeExpected, bool* displayRes);
+		                          SaClmNodeIdT *implNodeId, bool pbeExpected, bool* displayRes);
 
 	SaAisErrorT immModel_classCreate(IMMND_CB *cb, 
 		const struct ImmsvOmClassDescr *req,
@@ -136,7 +136,7 @@ extern "C" {
 		SaUint32T *ccbIdArrSize, 
 		SaUint32T **pbePrtoReqIdArr,
 		SaUint32T *pbePrtoReqArrSize, 
-		SaBoolT iAmCoordNow);
+		bool iAmCoordNow);
 
 	void immModel_getNonCriticalCcbs(IMMND_CB *cb, SaUint32T **ccbIdArr, SaUint32T *ccbIdArrSize);
 
@@ -174,7 +174,7 @@ extern "C" {
 		    SaNameT* objName, bool* dnOrRdnIsLong, bool isObjectDnUsed);
 
 	SaUint32T immModel_getLocalAppliersForObj(IMMND_CB *cb, const SaNameT* objName, SaUint32T ccbId,
-                SaUint32T **aplConnArr, SaBoolT externalRep);
+                SaUint32T **aplConnArr, bool externalRep);
 	SaUint32T immModel_getLocalAppliersForCcb(IMMND_CB *cb, SaUint32T ccbId, SaUint32T **aplConnArr,
 		SaUint32T* applCtnPtr);
 	SaUint32T immModel_getPbeApplierConn(IMMND_CB *cb);
@@ -192,28 +192,28 @@ extern "C" {
 					    struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn,
                                             bool* augDelete);
 
-	SaBoolT immModel_ccbWaitForCompletedAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err, 
+	bool immModel_ccbWaitForCompletedAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err,
                                             SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, 
                                             SaUint32T *pbeId, SaUint32T *pbeCtn);
 
-	SaBoolT immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err, bool augDelete);
+	bool immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err, bool augDelete);
 
-	SaBoolT immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
+	bool immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
 	SaAisErrorT immModel_ccbFinalize(IMMND_CB *cb, SaUint32T ccbId);
 
-	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp, SaBoolT isSync, SaBoolT isAccessor);
+	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp, bool isSync, bool isAccessor);
 
 	SaAisErrorT immModel_objectIsLockedByCcb(IMMND_CB *cb, struct ImmsvOmSearchInit *req);
 	SaAisErrorT immModel_ccbReadLockObject(IMMND_CB *cb, struct ImmsvOmSearchInit *req);
 
-	SaAisErrorT immModel_testTopResult(void *searchOp, SaUint32T *implNodeId, SaBoolT *bRtAttrsToFetch);
+	SaAisErrorT immModel_testTopResult(void *searchOp, SaUint32T *implNodeId, bool *bRtAttrsToFetch);
 
 	SaAisErrorT
 	    immModel_nextResult(IMMND_CB *cb, void *searchOp,
 				IMMSV_OM_RSP_SEARCH_NEXT **rsp,
 				SaUint32T *implConn, SaUint32T *implNodeId,
 				struct ImmsvAttrNameList **rtAttrsToFetch,
-				MDS_DEST *implDest, SaBoolT retardSync,
+				MDS_DEST *implDest, bool retardSync,
 				SaUint32T *implTimeout);
 
 	void immModel_deleteSearchOp(void *searchOp);
@@ -224,9 +224,9 @@ extern "C" {
 
 	void immModel_popLastResult(void *searchOp);
 
-	SaBoolT immModel_isSearchOpAccessor(void* searchOp);
+	bool immModel_isSearchOpAccessor(void* searchOp);
 
-	SaBoolT immModel_isSearchOpNonExtendedNameSet(void* searchOp);
+	bool immModel_isSearchOpNonExtendedNameSet(void* searchOp);
 
 	void immModel_setAdmReqContinuation(IMMND_CB *cb, SaInvocationT invoc, SaUint32T reqCon);
 
@@ -238,7 +238,7 @@ extern "C" {
 	SaAisErrorT
 	    immModel_implementerSet(IMMND_CB *cb, const IMMSV_OCTET_STRING *implName,
 				    SaUint32T implConn, SaUint32T implNodeId, SaUint32T implId,
-				    MDS_DEST mds_dest, SaUint32T implTimeout, SaBoolT *discardImplementer);
+				    MDS_DEST mds_dest, SaUint32T implTimeout, bool *discardImplementer);
 
 	SaAisErrorT
 	    immModel_implementerClear(IMMND_CB *cb, const struct ImmsvOiImplSetReq *req,
@@ -269,11 +269,11 @@ extern "C" {
 					      SaUint32T implConn, SaUint32T implNodeId);
 	SaUint32T immModel_getImplementerId(IMMND_CB *cb, SaUint32T implConn);
 
-	void immModel_discardImplementer(IMMND_CB *cb, SaUint32T implId, SaBoolT reallyDiscard,
+	void immModel_discardImplementer(IMMND_CB *cb, SaUint32T implId, bool reallyDiscard,
 						SaUint32T* globArrSize, SaUint32T** globccbIdArr);
 
 	void immModel_fetchAdmOpContinuations(IMMND_CB *cb, SaInvocationT inv,
-					      SaBoolT local, SaUint32T *implConn,
+					      bool local, SaUint32T *implConn,
 					      SaUint32T *reqConn, SaUint64T *reply_dest);
 
 	void immModel_fetchSearchReqContinuation(IMMND_CB *cb, SaInvocationT inv, SaUint32T *reqConn);
@@ -284,7 +284,7 @@ extern "C" {
 
 	void immModel_prepareForLoading(IMMND_CB *cb);
 
-	SaBoolT immModel_readyForLoading(IMMND_CB *cb);
+	bool immModel_readyForLoading(IMMND_CB *cb);
 
 	SaInt32T immModel_getLoader(IMMND_CB *cb);
 
@@ -306,7 +306,7 @@ extern "C" {
 	struct immsv_attr_mods_list * 
 	immModel_specialApplierTrimModify(IMMND_CB *cb, SaUint32T clientId, struct ImmsvOmCcbObjectModify *req);
 
-	SaBoolT immModel_isSpecialAndAddModify(IMMND_CB *cb, SaUint32T clientId, SaUint32T ccbId);
+	bool immModel_isSpecialAndAddModify(IMMND_CB *cb, SaUint32T clientId, SaUint32T ccbId);
 
 	void immModel_genSpecialModify(IMMND_CB *cb, struct ImmsvOmCcbObjectModify *req);
 
@@ -316,36 +316,36 @@ extern "C" {
 	struct immsv_attr_mods_list*
 	immModel_getAllWritableAttributes(IMMND_CB *cb, const struct ImmsvOmCcbObjectModify *req, bool* hasLongDn);
 
-	SaBoolT immModel_protocol41Allowed(IMMND_CB *cb);
-	SaBoolT immModel_protocol43Allowed(IMMND_CB *cb);
-	SaBoolT immModel_protocol45Allowed(IMMND_CB *cb);
-	SaBoolT immModel_protocol46Allowed(IMMND_CB *cb);
-	SaBoolT immModel_protocol47Allowed(IMMND_CB *cb);
-	SaBoolT immModel_protocol50Allowed(IMMND_CB *cb);
-	SaBoolT immModel_oneSafe2PBEAllowed(IMMND_CB *cb);
+	bool immModel_protocol41Allowed(IMMND_CB *cb);
+	bool immModel_protocol43Allowed(IMMND_CB *cb);
+	bool immModel_protocol45Allowed(IMMND_CB *cb);
+	bool immModel_protocol46Allowed(IMMND_CB *cb);
+	bool immModel_protocol47Allowed(IMMND_CB *cb);
+	bool immModel_protocol50Allowed(IMMND_CB *cb);
+	bool immModel_oneSafe2PBEAllowed(IMMND_CB *cb);
 	OsafImmAccessControlModeT immModel_accessControlMode(IMMND_CB *cb);
 	const char *immModel_authorizedGroup(IMMND_CB *cb);
 
-	SaBoolT immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId);
+	bool immModel_purgeSyncRequest(IMMND_CB *cb, SaUint32T clientId);
 
 	void immModel_recognizedIsolated(IMMND_CB *cb);
 
-	SaBoolT immModel_syncComplete(IMMND_CB *cb);
+	bool immModel_syncComplete(IMMND_CB *cb);
 
-	SaBoolT immModel_ccbsTerminated(IMMND_CB *cb, bool allowEmpty);
+	bool immModel_ccbsTerminated(IMMND_CB *cb, bool allowEmpty);
 
-	void immModel_prepareForSync(IMMND_CB *cb, SaBoolT isJoining);
+	void immModel_prepareForSync(IMMND_CB *cb, bool isJoining);
 
 	SaAisErrorT immModel_objectSync(IMMND_CB *cb, const struct ImmsvOmObjectSync *req);
 
 	SaAisErrorT
-	    immModel_finalizeSync(IMMND_CB *cb, struct ImmsvOmFinalizeSync *req, SaBoolT isCoord, SaBoolT isSyncClient);
+	    immModel_finalizeSync(IMMND_CB *cb, struct ImmsvOmFinalizeSync *req, bool isCoord, bool isSyncClient);
 
 	SaUint32T immModel_adjustEpoch(IMMND_CB *cb, SaUint32T suggestedEpoch,
 		SaUint32T *continuationId, SaUint32T *pbeConn,
-		SaClmNodeIdT *pbeNodeId, SaBoolT increment);
+		SaClmNodeIdT *pbeNodeId, bool increment);
 
-	SaUint32T immModel_adminOwnerChange(IMMND_CB *cb, const struct immsv_a2nd_admown_set *req, SaBoolT isRelease);
+	SaUint32T immModel_adminOwnerChange(IMMND_CB *cb, const struct immsv_a2nd_admown_set *req, bool isRelease);
 	void immModel_getAdminOwnerIdsForCon(IMMND_CB *cb, SaUint32T conn, SaUint32T *arrSize, SaUint32T **ccbIdArr);
 
 	void immModel_ccbObjCreateContinuation(IMMND_CB *cb,
@@ -383,9 +383,9 @@ extern "C" {
 
 	void immModel_discardContinuations(IMMND_CB *cb, SaUint32T deadConn);
 
-	SaBoolT immModel_immNotWritable(IMMND_CB *cb);
+	bool immModel_immNotWritable(IMMND_CB *cb);
 
-	SaBoolT immModel_pbeIsInSync(IMMND_CB *cb, bool checkCriticalCcbs);
+	bool immModel_pbeIsInSync(IMMND_CB *cb, bool checkCriticalCcbs);
 
 	SaImmRepositoryInitModeT immModel_getRepositoryInitMode(IMMND_CB *cb);
 
@@ -396,7 +396,7 @@ extern "C" {
 		    struct ImmsvOmCcbObjectCreate *req,
 		    SaUint32T implConn, SaClmNodeIdT implNodeId, SaUint32T *continuationId,
 		    SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, SaUint32T *spAplConn,
-		    SaUint32T *pbe2BConn, SaBoolT isObjectDnUsed);
+		    SaUint32T *pbe2BConn, bool isObjectDnUsed);
 
 	SaAisErrorT
 	    immModel_rtObjectDelete(IMMND_CB *cb,
@@ -422,7 +422,7 @@ extern "C" {
 		struct ImmsvOmCcbObjectModify *req,
 		SaUint64T msgNo);
 
-	SaBoolT immModel_fetchRtUpdate(IMMND_CB *cb, 
+	bool immModel_fetchRtUpdate(IMMND_CB *cb,
 		struct ImmsvOmObjectSync *syncReq,
 		struct ImmsvOmCcbObjectModify *rtModReq,
 		SaUint64T syncFevsBase);
@@ -491,10 +491,10 @@ uint32_t immnd_mds_get_handle(IMMND_CB *cb);
 
 /* File : ----  immnd_evt.c */
 void immnd_process_evt(void);
-uint32_t immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uint32_t line);
+uint32_t immnd_evt_destroy(IMMSV_EVT *evt, bool onheap, uint32_t line);
 void immnd_evt_proc_admo_hard_finalize(IMMND_CB *cb, IMMND_EVT *evt,
-	SaBoolT originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
-void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, SaBoolT freeTop);
+	bool originatedAtThisNd, SaImmHandleT clnt_hdl, MDS_DEST reply_dest);
+void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, bool freeTop);
 
 /* End : ----  immnd_evt.c  */
 

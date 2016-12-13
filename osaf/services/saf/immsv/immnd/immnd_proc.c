@@ -150,7 +150,7 @@ uint32_t immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE 
 		/*Discard the local implementer directly and redundantly to avoid 
 		   race conditions using this implementer (ccb's causing abort upcalls).
 		 */
-		//immModel_discardImplementer(cb, implId, SA_FALSE, NULL, NULL);
+		//immModel_discardImplementer(cb, implId, false, NULL, NULL);
 		immModel_discardImplementer(cb, implId, scAbsence, NULL, NULL);
 	}
 
@@ -392,7 +392,7 @@ uint32_t immnd_introduceMe(IMMND_CB *cb)
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
 	if(cb->mIntroduced) {
-		send_evt.info.immd.info.ctrl_msg.refresh = SA_TRUE;
+		send_evt.info.immd.info.ctrl_msg.refresh = true;
 		send_evt.info.immd.info.ctrl_msg.pbeEnabled = /*see immsv_d2nd_control in immsv_ev.h*/
 			(cb->mPbeFile)?((cb->mRim == SA_IMM_KEEP_REPOSITORY)?4:3):2;
 		TRACE("Refresher immnd_introduceMe pbeEnabled:%u NOT with file params",
@@ -702,7 +702,7 @@ immnd_getOsafImmPbeAdmopParam(SaImmAdminOperationIdT operationId, void* evt,
 }
 
 
-void immnd_adjustEpoch(IMMND_CB *cb, SaBoolT increment)
+void immnd_adjustEpoch(IMMND_CB *cb, bool increment)
 {
 	SaUint32T pbeConn = 0;
 	NCS_NODE_ID pbeNodeId = 0;
@@ -817,7 +817,7 @@ static void immnd_abortLoading(IMMND_CB *cb)
 	}
 }
 
-SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T jobDuration)
+bool immnd_syncComplete(IMMND_CB *cb, bool coordinator, SaUint32T jobDuration)
 {				/*Invoked by sync-coordinator and sync-clients.
 				   Other old-member nodes do not invoke.
 				*/
@@ -830,15 +830,15 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T jobDurat
 	}
 #endif
 
-	SaBoolT completed;
+	bool completed;
 	osafassert(cb->mSync || coordinator);
 	osafassert(!(cb->mSync) || !coordinator);
 	completed = immModel_syncComplete(cb);
 	if (completed) {
 		if (cb->mSync) {
-			cb->mSync = SA_FALSE;
+			cb->mSync = false;
 
-			/*cb->mAccepted = SA_TRUE; */
+			/*cb->mAccepted = true; */
 			/*BUGFIX this is too late! We arrive here not on fevs basis, 
 			   but on timing basis from immnd_proc. */
 			osafassert(cb->mAccepted);
@@ -853,7 +853,7 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T jobDurat
 				   to avoid the start of a new sync before the
 				   current sync is cleared form the system.
 				 */
-				completed = SA_FALSE;
+				completed = false;
 			}
 		}
 	} else if(jobDuration > 300) { /* Five minutes! */
@@ -918,7 +918,7 @@ void immnd_abortSync(IMMND_CB *cb)
 		sleep(1);
 	}
 
-	immnd_adjustEpoch(cb, SA_TRUE);
+	immnd_adjustEpoch(cb, true);
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
 	send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_ABORT;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
@@ -963,8 +963,8 @@ static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
 		   be restarted, then we are forced to restart with regeneration
 		   of the DB file and abortion of the non completed PRTO ops.
 		 */
-		cb->mPbeVeteran = SA_FALSE;
-		cb->mPbeVeteranB = SA_FALSE;
+		cb->mPbeVeteran = false;
+		cb->mPbeVeteranB = false;
 	}
 
 
@@ -983,7 +983,7 @@ static void immnd_pbePrtoPurgeMutations(IMMND_CB *cb)
 	TRACE_LEAVE();
 }
 
-static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
+static void immnd_cleanTheHouse(IMMND_CB *cb, bool iAmCoordNow)
 {
 	SaInvocationT *admReqArr = NULL;
 	SaUint32T admReqArrSize = 0;
@@ -1002,8 +1002,8 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 	SaImmHandleT tmp_hdl = 0LL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	SaBoolT ccbsStuckInCritical=SA_FALSE;
-	SaBoolT pbePrtoStuck=SA_FALSE;
+	bool ccbsStuckInCritical=false;
+	bool pbePrtoStuck=false;
 	SaUint32T stuck=0;
 	/*TRACE_ENTER(); */
 
@@ -1054,7 +1054,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 					LOG_NO("PBE slave established on %s SC. "
 						"Dumping incrementally to file %s", 
 						(cb->mIsCoord)?"other":"this", 	cb->mPbeFile);
-					cb->mPbeOldVeteranB = SA_TRUE;
+					cb->mPbeOldVeteranB = true;
 					if(cb->mIsCoord) {
 						cb->other_sc_node_id = pbeSlaveNodeId;
 						if(!(cb->mIsOtherScUp)) {
@@ -1092,7 +1092,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 		iAmCoordNow);
 
 	if(stuck > 1) {
-		pbePrtoStuck = SA_TRUE;
+		pbePrtoStuck = true;
 		stuck-=2;
 	}
 	ccbsStuckInCritical = stuck;
@@ -1105,7 +1105,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 		for (ix = 0; ix < admReqArrSize; ++ix) {
 			inv = admReqArr[ix];
 			reqConn = 0;
-			immModel_fetchAdmOpContinuations(cb, inv, SA_FALSE, &dummyImplConn, &reqConn, &reply_dest);
+			immModel_fetchAdmOpContinuations(cb, inv, false, &dummyImplConn, &reqConn, &reply_dest);
 			osafassert(reqConn);
 			tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
@@ -1332,31 +1332,31 @@ void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId)
 }
 
 
-static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, SaBoolT* pbeImmndDeadlock)
+static bool immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, bool* pbeImmndDeadlock)
 {
 	if (cb->mIntroduced == 2) {
 		/* Return true to enter phase 2 or phase 3 of SYNC_SERVER */
-		return SA_TRUE;
+		return true;
 	}
 	osafassert(cb->mIsCoord);
 	osafassert(pbeImmndDeadlock);
-	(*pbeImmndDeadlock) = SA_FALSE;
+	(*pbeImmndDeadlock) = false;
 	if (cb->mPendSync) {
 		TRACE("ccbsTerminated false because cb->mPendSync is still true");
-		return SA_FALSE;
+		return false;
 	}
 
 	if(!immModel_immNotWritable(cb)) {
 		/* Immmodel is writable. => sync completed here at coord. */
-		return SA_TRUE;
+		return true;
 	}
 
-	SaBoolT ccbsTerminated = immModel_ccbsTerminated(cb, false);
-	SaBoolT pbeIsInSync = immModel_pbeIsInSync(cb, false);
+	bool ccbsTerminated = immModel_ccbsTerminated(cb, false);
+	bool pbeIsInSync = immModel_pbeIsInSync(cb, false);
 	SaUint32T largeAdmoId = immModel_getIdForLargeAdmo(cb);
 
 	if (ccbsTerminated && pbeIsInSync && (!largeAdmoId)) {
-		return SA_TRUE;
+		return true;
 	}
 
 	if(!(duration % 2) && !pbeIsInSync) { /* Every two seconds check on pbe */
@@ -1382,11 +1382,11 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, SaBoolT* p
 	if(!ccbsTerminated && cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY) && 
 		!immModel_pbeOiExists(cb) && !immModel_pbeIsInSync(cb, true)) {
 		/* Started sync is blocked by critical ccbs while PBE is being restarted, See (#556) */
-		(*pbeImmndDeadlock) = SA_TRUE;
+		(*pbeImmndDeadlock) = true;
 	}
 
 	if (duration % 5) {/* Wait 5 secs for non critical ccbs to terminate */
-		return SA_FALSE;
+		return false;
 	}
 
 	if(!ccbsTerminated) {//Preemtively abort non critical Ccbs. 
@@ -1407,7 +1407,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, SaBoolT* p
 				LOG_ER("Failure to broadcast abort Ccb for ccbId:%u",
 					ccbIdArr[ix]);
 				break;	/* out of forloop to free ccbIdArr & 
-					   return SA_FALSE */
+					   return false */
 			}
 		}
 		free(ccbIdArr);
@@ -1433,7 +1433,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T duration, SaBoolT* p
 		}
 	}
 
-	return SA_FALSE;
+	return false;
 }
 
 static int immnd_forkLoader(IMMND_CB *cb, bool preLoad)
@@ -1598,8 +1598,8 @@ static int immnd_forkPbe(IMMND_CB *cb)
 		   be restarted, then we are forced to restart with regeneration
 		   of the DB file and abortion of the non completed PRTO ops.
 		 */
-		cb->mPbeVeteran = SA_FALSE;
-		cb->mPbeVeteranB = SA_FALSE;
+		cb->mPbeVeteran = false;
+		cb->mPbeVeteranB = false;
 	}
 
 	pid = fork();
@@ -1632,12 +1632,12 @@ static int immnd_forkPbe(IMMND_CB *cb)
 	TRACE_5("Parent %s, successfully forked %s, pid:%d", base, dbFilePath, pid);
 	cb->mPbeKills = 0; /* Rest kill count when we just created a new PBE. */
 	if(cb->mIsCoord && cb->mPbeVeteran) {
-		cb->mPbeVeteran = SA_FALSE;
+		cb->mPbeVeteran = false;
 		/* If pbe crashes again before succeeding to attach as PBE implementer
 		   then dont try to re-attach the DB file, instead regenerate it.
 		 */
 	} else if(cb->m2Pbe && cb->mPbeVeteranB) {
-		cb->mPbeVeteranB = SA_FALSE;
+		cb->mPbeVeteranB = false;
 	}
 
 	TRACE_LEAVE();
@@ -1667,7 +1667,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 	struct timespec jobDurationTs;
 	osaf_timespec_subtract(&now, &cb->mJobStart, &jobDurationTs);
 	SaUint32T jobDurationSec = (SaUint32T) jobDurationTs.tv_sec;
-	SaBoolT pbeImmndDeadlock=SA_FALSE;
+	bool pbeImmndDeadlock = false;
 	if(!jobDurationSec) {++jobDurationSec;} /* Avoid jobDurationSec of zero */
 	/*TRACE_ENTER(); */
 
@@ -1935,7 +1935,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 
 	case IMM_SERVER_SYNC_CLIENT:
 		TRACE_5("IMM_SERVER_SYNC_CLIENT");
-		if (immnd_syncComplete(cb, SA_FALSE, 0)) {
+		if (immnd_syncComplete(cb, false, 0)) {
 			cb->mStep = 0;
 			cb->mJobStart = now;
 			cb->mState = IMM_SERVER_READY;
@@ -2247,7 +2247,7 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 						}
 					} else if(cb->pbePid2 <= 0) {
 						LOG_IN("Postponing start of SLAVE PBE until primary PBE has atached.");
-						cb->mPbeVeteranB = SA_FALSE;
+						cb->mPbeVeteranB = false;
 					}
 				} else if(cb->pbePid2 > 0) { 
 					/* PBE disabled, yet SLAVE PBE is running => STOP it. */
@@ -2364,6 +2364,6 @@ void immnd_proc_discard_other_nodes(IMMND_CB *cb)
 
 	immModel_isolateThisNode(cb);
 	immModel_abortNonCriticalCcbs(cb);
-	cb->mPbeVeteran = SA_FALSE;
+	cb->mPbeVeteran = false;
 	TRACE_LEAVE();
 }

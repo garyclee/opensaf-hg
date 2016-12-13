@@ -69,7 +69,7 @@ public:
 
     SaAisErrorT   testTopResult(
                                 void** implInfo,
-                                SaBoolT* bRtsToFetch);
+                                bool* bRtsToFetch);
 
     SaAisErrorT   nextResult(
                              IMMSV_OM_RSP_SEARCH_NEXT** rsp,

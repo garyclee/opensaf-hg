@@ -85,14 +85,14 @@ ImmSearchOp::setImplementer(void *implInfo)
 }
 
 SaAisErrorT
-ImmSearchOp::testTopResult(void** implInfo, SaBoolT* bRtsToFetch)
+ImmSearchOp::testTopResult(void** implInfo, bool* bRtsToFetch)
 {
     SaAisErrorT err = SA_AIS_ERR_NOT_EXIST;
 
     if (!mResultList.empty()) {
         SearchObject& obj = mResultList.front();
         err = SA_AIS_OK;
-        *bRtsToFetch = SA_FALSE;
+        *bRtsToFetch = false;
 
         // Check for pure runtime attribute
         AttributeList::iterator i;
@@ -100,7 +100,7 @@ ImmSearchOp::testTopResult(void** implInfo, SaBoolT* bRtsToFetch)
             if(bRtsToFetch && obj.implInfo &&
                             ((*i).flags & SA_IMM_ATTR_RUNTIME) &&
                             ! ((*i).flags & SA_IMM_ATTR_CACHED)) {
-                *bRtsToFetch = SA_TRUE;
+                *bRtsToFetch = true;
                 *implInfo = obj.implInfo;
                 break;
             }
