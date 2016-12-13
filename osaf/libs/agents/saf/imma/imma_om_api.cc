@@ -2139,7 +2139,7 @@ static SaAisErrorT ccb_object_modify_common(SaImmCcbHandleT ccbHandle,
 SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 				     const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
-	SaBoolT freeMemory = SA_FALSE;
+	bool freeMemory = false;
 	SaStringT objectNameStr = NULL;
 	SaAisErrorT rc;
 
@@ -2154,7 +2154,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			objectNameStr = (SaStringT)malloc(len + 1);
 			memcpy(objectNameStr, osaf_extended_name_borrow(objectName), len);
 			objectNameStr[len] = 0;
-			freeMemory = SA_TRUE;
+			freeMemory = true;
 		} else {
 			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
 		}
@@ -2162,7 +2162,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 
 	rc = ccb_object_modify_common(ccbHandle, objectNameStr, attrMods, false);
 
-	if(freeMemory == SA_TRUE) {
+	if(freeMemory) {
 		free(objectNameStr);
 	}
 
@@ -2633,7 +2633,7 @@ static SaAisErrorT ccb_object_delete_common(SaImmCcbHandleT ccbHandle, SaConstSt
 
 SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *objectName)
 {
-	SaBoolT freeMemory = SA_FALSE;
+	bool freeMemory = false;
 	SaStringT objectNameStr = NULL;
 	SaAisErrorT rc;
 
@@ -2648,7 +2648,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			objectNameStr = (SaStringT)malloc(len + 1);
 			memcpy(objectNameStr, osaf_extended_name_borrow(objectName), len);
 			objectNameStr[len] = 0;
-			freeMemory = SA_TRUE;
+			freeMemory = true;
 		} else {
 			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
 		}
@@ -2656,7 +2656,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 
 	rc = ccb_object_delete_common(ccbHandle, objectNameStr, false);
 
-	if(freeMemory == SA_TRUE) {
+	if(freeMemory) {
 		free(objectNameStr);
 	}
 
@@ -3563,7 +3563,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 					  SaAisErrorT *operationReturnValue, 
 					  SaTimeT timeout)
 {
-	SaBoolT freeMemory = SA_FALSE;
+	bool freeMemory = false;
 	SaStringT objectNameStr = NULL;
 	SaAisErrorT rc;
 
@@ -3578,7 +3578,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 			objectNameStr = (SaStringT)malloc(len + 1);
 			memcpy(objectNameStr, osaf_extended_name_borrow(objectName), len);
 			objectNameStr[len] = 0;
-			freeMemory = SA_TRUE;
+			freeMemory = true;
 		} else {
 			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
 		}
@@ -3587,7 +3587,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	rc = admin_op_invoke_common(ownerHandle, objectNameStr, continuationId,
 		operationId, params, operationReturnValue, timeout, NULL, false, false);
 
-	if(freeMemory == SA_TRUE) {
+	if(freeMemory) {
 		free(objectNameStr);
 	}
 
@@ -3604,7 +3604,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 					   SaTimeT timeout,
 					   SaImmAdminOperationParamsT_2 ***returnParams)
 {
-	SaBoolT freeMemory = SA_FALSE;
+	bool freeMemory = false;
 	SaStringT objectNameStr = NULL;
 	SaAisErrorT rc;
 
@@ -3619,7 +3619,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 			objectNameStr = (SaStringT)malloc(len + 1);
 			memcpy(objectNameStr, osaf_extended_name_borrow(objectName), len);
 			objectNameStr[len] = 0;
-			freeMemory = SA_TRUE;
+			freeMemory = true;
 		} else {
 			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
 		}
@@ -3628,7 +3628,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_o2(SaImmAdminOwnerHandleT ownerHandle,
 	rc = admin_op_invoke_common(ownerHandle, objectNameStr, continuationId,
 		operationId, params, operationReturnValue, timeout, returnParams, true, false);
 
-	if(freeMemory == SA_TRUE) {
+	if(freeMemory) {
 		free(objectNameStr);
 	}
 
@@ -4174,7 +4174,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 					       SaImmAdminOperationIdT operationId,
 					       const SaImmAdminOperationParamsT_2 **params)
 {
-	SaBoolT freeMemory = SA_FALSE;
+	bool freeMemory = false;
 	SaStringT objectNameStr = NULL;
 	SaAisErrorT rc;
 
@@ -4189,7 +4189,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 			objectNameStr = (SaStringT)malloc(len + 1);
 			memcpy(objectNameStr, osaf_extended_name_borrow(objectName), len);
 			objectNameStr[len] = 0;
-			freeMemory = SA_TRUE;
+			freeMemory = true;
 		} else {
 			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
 		}
@@ -4198,7 +4198,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	rc = admin_op_invoke_async_common(ownerHandle, userInvocation,
 			objectNameStr, continuationId, operationId, params, false);
 
-	if(freeMemory == SA_TRUE) {
+	if(freeMemory) {
 		free(objectNameStr);
 	}
 
@@ -5704,7 +5704,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 				 const SaNameT *objectName,
 				 const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes)
 {
-	SaBoolT freeMemory = SA_FALSE;
+	bool freeMemory = false;
 	SaStringT objectNameStr = NULL;
 	SaAisErrorT rc;
 
@@ -5719,7 +5719,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 			objectNameStr = (SaStringT)malloc(len + 1);
 			memcpy(objectNameStr, osaf_extended_name_borrow(objectName), len);
 			objectNameStr[len] = 0;
-			freeMemory = SA_TRUE;
+			freeMemory = true;
 		} else {
 			objectNameStr = (SaStringT)osaf_extended_name_borrow(objectName);
 		}
@@ -5727,7 +5727,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 
 	rc = accessor_get_common(accessorHandle, objectNameStr, attributeNames, attributes, false, 0);
 
-	if(freeMemory == SA_TRUE) {
+	if(freeMemory) {
 		free(objectNameStr);
 	}
 
@@ -6956,7 +6956,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 				      const SaImmSearchParametersT_2 *searchParam,
 				      const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle)
 {
-	SaBoolT freeMemory = SA_FALSE;
+	bool freeMemory = false;
 	SaStringT rootNameStr = NULL;
 	SaAisErrorT rc;
 
@@ -6971,7 +6971,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 			rootNameStr = (SaStringT)malloc(len + 1);
 			memcpy(rootNameStr, osaf_extended_name_borrow(rootName), len);
 			rootNameStr[len] = 0;
-			freeMemory = SA_TRUE;
+			freeMemory = true;
 		} else {
 			rootNameStr = (SaStringT)osaf_extended_name_borrow(rootName);
 		}
@@ -6980,7 +6980,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	rc = search_init_common(immHandle, rootNameStr, scope,
 			searchOptions, searchParam, attributeNames, searchHandle, false);
 
-	if(freeMemory == SA_TRUE) {
+	if(freeMemory) {
 		free(rootNameStr);
 	}
 
@@ -9079,7 +9079,7 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 
    cb must NOT be locked on entry.
 */
-static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHandle)
+static bool imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHandle)
 {
 	SaUint32T proc_rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT err = SA_AIS_OK;
@@ -9232,13 +9232,13 @@ static SaBoolT imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHand
 	if (locked) {m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);}
 	if (out_evt) {free(out_evt);}
 	TRACE_LEAVE();
-	return SA_TRUE;
+	return true;
 
  fail:
 	if (locked) {m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);}
 	if (out_evt) {free(out_evt);}
 	TRACE_LEAVE();
-	return SA_FALSE;
+	return false;
 }
 
 int imma_om_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked)

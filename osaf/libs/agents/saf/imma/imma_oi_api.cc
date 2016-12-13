@@ -3263,7 +3263,7 @@ static SaAisErrorT rt_object_delete_common(SaImmOiHandleT immOiHandle,
 
   cb_lock must NOT be locked on entry.
 */
-static SaBoolT imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
+static bool imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
 {
 	SaAisErrorT err = SA_AIS_OK;
 	unsigned int sleep_delay_ms = 200;
@@ -3328,12 +3328,12 @@ static SaBoolT imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
  success:
 	osafassert(!locked);
 	TRACE_LEAVE();
-	return SA_TRUE;
+	return true;
 
  fail:
 	if (locked) {m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);}
 	TRACE_LEAVE();
-	return SA_FALSE;
+	return false;
 }
 
 int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, bool *locked, SaAisErrorT * err_cli_res)
