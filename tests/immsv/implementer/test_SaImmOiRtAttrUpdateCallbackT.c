@@ -48,7 +48,7 @@ static SaImmAttrValuesT_2** attributes;
 static SaImmHandleT localImmHandle;
 static SaImmAdminOwnerHandleT localOwnerHandle;
 static SaImmCcbHandleT localCcbHandle;
-static SaBoolT  classCreated=SA_FALSE;
+static bool classCreated = false;
 
 static void setup(SaImmAdminOwnerNameT admoName)
 {
@@ -82,7 +82,7 @@ static void setup(SaImmAdminOwnerNameT admoName)
     err = saImmOmClassCreate_2(localImmHandle, className, SA_IMM_CLASS_CONFIG, attrDefs);
     if(err == SA_AIS_OK) 
     {
-        classCreated = SA_TRUE;
+        classCreated = true;
     } else if(err == SA_AIS_ERR_EXIST)
     {
         err = SA_AIS_OK;

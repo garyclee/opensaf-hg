@@ -26,12 +26,12 @@ static SaNameT rdn =
 static SaAisErrorT saImmOiAdminOperationCallback_response = SA_AIS_OK;
 static SaImmAdminOperationIdT operationId = 0xdead;
 static SaUint64T value = 0xbad;
-static SaBoolT objectImplementerIsSet;
+static bool objectImplementerIsSet;
 static SaAisErrorT immReturnValue;
 static SaAisErrorT operationReturnValue;
 static SaInvocationT userInvocation = 0xdead;
 
-static SaBoolT useImplementerNameAsTarget = SA_FALSE;
+static bool useImplementerNameAsTarget = false;
 static SaImmOiImplementerNameT implementerName = NULL;;
 
 /* SaImmAdminOperationError */
@@ -193,7 +193,7 @@ static void *objectImplementerThreadMain(void *arg)
     TRACE("Setting implementer %s for object %s", implementerName, objectName->value);
     safassert(saImmOiObjectImplementerSet(handle, objectName, SA_IMM_ONE), SA_AIS_OK);
     safassert(saImmOiSelectionObjectGet(handle, &selObj), SA_AIS_OK);
-    objectImplementerIsSet = SA_TRUE;
+    objectImplementerIsSet = true;
 
     fds[0].fd = (int) selObj;
     fds[0].events = POLLIN;
@@ -299,7 +299,7 @@ void SaImmOiAdminOperation_01(void)
 
     /* Set admin operation callback to use saImmOiAdminOperationResult */
     callbacks = &oiCallbacks;
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
 
@@ -320,7 +320,7 @@ void SaImmOiAdminOperation_01(void)
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
-    useImplementerNameAsTarget = SA_FALSE;
+    useImplementerNameAsTarget = false;
 
     if(imm_rc != SA_AIS_OK) {rc = imm_rc;}
     test_validate(rc, SA_AIS_OK);
@@ -407,7 +407,7 @@ void SaImmOiAdminOperation_03(void)
     if (imm_rc != SA_AIS_ERR_INVALID_PARAM)
         goto done;
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
 
@@ -466,7 +466,7 @@ void SaImmOiAdminOperation_04(void)
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerRelease(ownerHandle, nameValues, SA_IMM_ONE), SA_AIS_OK);
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
 
@@ -515,7 +515,7 @@ void SaImmOiAdminOperation_05(void)
     safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
 
@@ -611,7 +611,7 @@ void SaImmOiAdminOperation_07(void)
     safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
     while (!objectImplementerIsSet)
@@ -689,7 +689,7 @@ void SaImmOiAdminOperation_08(void)
     safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
     while (!objectImplementerIsSet)
@@ -756,7 +756,7 @@ void SaImmOiAdminOperation_09(void)
     safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
     while (!objectImplementerIsSet)
@@ -841,7 +841,7 @@ void SaImmOiAdminOperation_10(void)
     safassert(saImmOmCcbObjectCreate_2(ccbHandle, "TestClassConfig", NULL, attrValues), SA_AIS_OK);
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
     while (!objectImplementerIsSet)
@@ -925,7 +925,7 @@ void SaImmOiAdminOperation_11(void)
 
     callbacks = &oiCallbacks_o2_copyParams;
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
     while (!objectImplementerIsSet)
@@ -1010,7 +1010,7 @@ void SaImmOiAdminOperation_12(void)
 
     callbacks = &oiCallbacks_o2_copyParams;
 
-    objectImplementerIsSet = SA_FALSE;
+    objectImplementerIsSet = false;
     ret = pthread_create(&thread, NULL, objectImplementerThreadMain, &rdn);
     assert(ret == 0);
     while (!objectImplementerIsSet)
@@ -1051,7 +1051,7 @@ done:
 
 void SaImmOiAdminOperation_13(void)
 {
-	useImplementerNameAsTarget = SA_TRUE;
+	useImplementerNameAsTarget = true;
 	SaImmOiAdminOperation_01();
 }
 

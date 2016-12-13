@@ -799,14 +799,14 @@ void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str)
 	}
 	case SA_IMM_ATTR_SAANYT:{
 		char *endMark;
-		SaBoolT even = SA_TRUE;
+		bool even = true;
 		char byte[5];
 		unsigned int i;
 
 		len = strlen(str);
 		if (len % 2) {
 			len = len / 2 + 1;
-			even = SA_FALSE;
+			even = false;
 		} else {
 			len = len / 2;
 		}

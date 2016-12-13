@@ -473,7 +473,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	SaImmClassCategoryT classCategory;
 	SaImmAttrDefinitionT_2 **attrDefinitions = NULL;
 	SaImmAttrFlagsT flags=0;
-	SaBoolT attrAdded = SA_FALSE;
+	bool attrAdded = false;
 
 	if((error = saImmOmClassDescriptionGet_2(immHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmClassDescriptionGet_2. FAILED: %s\n", saf_error(error));
@@ -495,7 +495,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 							(attrValues[j]->attrValuesNumber+1) * sizeof(SaImmAttrValueT *));
 					attrValues[j]->attrValues[attrValues[j]->attrValuesNumber] = attrValue->attrValues[0]; 
 					attrValues[j]->attrValuesNumber++;
-					attrAdded = SA_TRUE;
+					attrAdded = true;
 
 					free(attrValue->attrName);
 					free(attrValue->attrValues);
@@ -512,7 +512,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 			attrValues[attr_len] = NULL;
 			attr_len++;
 		}
-		attrAdded = SA_FALSE;
+		attrAdded = false;
 	}
 
 	attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
@@ -646,7 +646,7 @@ int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 	SaImmAttrModificationT_2 **attrMods = NULL;
 	const SaStringT* errStrings=NULL;
 	SaImmAttrFlagsT flags=0;
-	SaBoolT attrAdded = SA_FALSE;
+	bool attrAdded = false;
 
 
 	for (i = 0; i < optargs_len; i++) {
@@ -674,7 +674,7 @@ int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 								attrMod->modAttr.attrValues[0];
 
 							attrMods[j]->modAttr.attrValuesNumber++;
-							attrAdded = SA_TRUE;
+							attrAdded = true;
 
 							free(attrMod->modAttr.attrName);
 							free(attrMod->modAttr.attrValues);
@@ -698,7 +698,7 @@ int object_modify(const SaNameT **objectNames, char **optargs, int optargs_len)
 			attrMods[attr_len] = NULL;
 			attr_len++;
 		}
-		attrAdded = SA_FALSE;
+		attrAdded = false;
 	}
 
 	if ((error = immutil_saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
