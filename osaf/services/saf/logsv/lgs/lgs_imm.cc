@@ -1849,7 +1849,7 @@ void logRootDirectory_filemove(
     if (log_stream_config_change(!LGS_STREAM_CREATE_FILES,
                                  old_logRootDirectory, stream, current_logfile,
                                  cur_time_in) != 0) {
-      LOG_ER("Old log files could not be renamed and closed for stream: %s",
+      LOG_WA("Old log files could not be renamed and closed for stream: %s",
              stream->name.c_str());
     }
   }
@@ -1865,7 +1865,7 @@ void logRootDirectory_filemove(
   while ((stream = iterate_all_streams(endloop, jstart)) && !endloop) {
     jstart = SA_FALSE;
     if (lgs_create_config_file_h(new_logRootDirectory, stream) != 0) {
-      LOG_ER("New config file could not be created for stream: %s",
+      LOG_WA("New config file could not be created for stream: %s",
              stream->name.c_str());
     }
 
@@ -1875,7 +1875,7 @@ void logRootDirectory_filemove(
 
     if ((*stream->p_fd = log_file_open(new_logRootDirectory,
                                        stream, stream->logFileCurrent, NULL)) == -1) {
-      LOG_ER("New log file could not be created for stream: %s",
+      LOG_WA("New log file could not be created for stream: %s",
              stream->name.c_str());
     }
 
@@ -2325,13 +2325,13 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
     if ((rc = log_stream_config_change(!LGS_STREAM_CREATE_FILES,
                                        root_path, stream, current_logfile_name, &cur_time))
         != 0) {
-      LOG_ER("log_stream_config_change failed: %d", rc);
+      LOG_WA("log_stream_config_change failed: %d", rc);
     }
 
     stream->fileName = fileName;
 
     if ((rc = lgs_create_config_file_h(root_path, stream)) != 0) {
-      LOG_ER("lgs_create_config_file_h failed: %d", rc);
+      LOG_WA("lgs_create_config_file_h failed: %d", rc);
     }
 
     char *current_time = lgs_get_time(&cur_time);
@@ -2340,7 +2340,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
     // Create the new log file based on updated configuration
     if ((*stream->p_fd = log_file_open(root_path,
                                        stream, stream->logFileCurrent, NULL)) == -1)
-      LOG_ER("New log file could not be created for stream: %s",
+      LOG_WA("New log file could not be created for stream: %s",
              stream->name.c_str());
   } else if (new_cfg_file_needed) {
     int rc;
@@ -2348,7 +2348,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
                                        root_path, stream,
                                        current_logfile_name, &cur_time))
         != 0) {
-      LOG_ER("log_stream_config_change failed: %d", rc);
+      LOG_WA("log_stream_config_change failed: %d", rc);
     }
   }
 
