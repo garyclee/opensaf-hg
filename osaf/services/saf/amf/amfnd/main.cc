@@ -31,11 +31,15 @@
 #include "immutil.h"
 #include "logtrace.h"
 #include "nid_api.h"
+#include "osaf_time.h"
 #include <imm.h>
 
-#define FD_MBX   0
-#define FD_TERM  1
-#define FD_CLM   2 
+enum {
+  FD_MBX = 0,
+  FD_TERM = 1,
+  FD_CLM = 2,
+  FD_AMFD_FIFO = 3
+};
 
 static const char* internal_version_id_  __attribute__ ((used)) = "@(#) $Id: " INTERNAL_VERSION_ID " $";
 
@@ -496,6 +500,30 @@ static void sigterm_handler(int sig)
 	signal(SIGTERM, SIG_IGN);
 }
 
+static int open_amfd_fifo() {
+  const std::string fifo_dir = PKGLOCALSTATEDIR;
+  std::string fifo_file = fifo_dir + "/" + "osafamfd.fifo";
+  int fifo_fd = -1;
+  int retry_cnt = 0;
+
+  if (access(fifo_file.c_str(), F_OK ) != -1 ) {
+    do {
+      if (retry_cnt > 0) {
+        osaf_nanosleep(&kHundredMilliseconds);
+      }
+      fifo_fd = open(fifo_file.c_str(), O_WRONLY|O_NONBLOCK);
+    } while ((fifo_fd == -1) &&
+            (retry_cnt++ < 5 && (errno == EINTR || errno == ENXIO)));
+    if (fifo_fd == -1) {
+      LOG_ER("Failed to open %s, error: %s", fifo_file.c_str(),
+             strerror(errno));
+    } else {
+      LOG_NO("Start monitoring AMFD using %s", fifo_file.c_str());
+    }
+  }
+  return fifo_fd;
+}
+
 /****************************************************************************
   Name          : avnd_main_process
  
@@ -509,9 +537,10 @@ static void sigterm_handler(int sig)
 ******************************************************************************/
 void avnd_main_process(void)
 {
+	int amfd_fifo_fd = -1;
 	NCS_SEL_OBJ mbx_fd;
-	struct pollfd fds[4];
-	nfds_t nfds = 3;
+	struct pollfd fds[5];
+	nfds_t nfds = 4;
 	AVND_EVT *evt;
 	SaAisErrorT result = SA_AIS_OK;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -542,6 +571,10 @@ void avnd_main_process(void)
 	fds[FD_CLM].fd = avnd_cb->clm_sel_obj;
 	fds[FD_CLM].events = POLLIN;
 
+	amfd_fifo_fd = open_amfd_fifo();
+	fds[FD_AMFD_FIFO].fd = amfd_fifo_fd;
+	fds[FD_AMFD_FIFO].events = POLLIN;
+
 	/* now wait forever */
 	while (1) {
 		int ret = poll(fds, nfds, -1);
@@ -553,6 +586,14 @@ void avnd_main_process(void)
 
 			LOG_ER("%s: poll failed - %s", __FUNCTION__, strerror(errno));
 			break;
+		}
+
+		if (fds[FD_AMFD_FIFO].revents & POLLERR) {
+			LOG_ER("AMFD has unexpectedly crashed. Rebooting node");
+			opensaf_reboot(avnd_cb->node_info.nodeId,
+						osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
+						"AMFD has unexpectedly crashed. Rebooting node");
+			exit(0);
 		}
 
 		if (avnd_cb->clmHandle && (fds[FD_CLM].revents & POLLIN)) {
