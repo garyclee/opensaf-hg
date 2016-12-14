@@ -2128,7 +2128,7 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data) {
     if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES,
                                        root_path, stream,
                                        stream->stb_logFileCurrent, &closetime)) != 0) {
-      LOG_ER("log_stream_config_change failed: %d", rc);
+      LOG_WA("log_stream_config_change failed: %d", rc);
     }
 
     /* When modifying old files are closed and new are opened meaning that
