@@ -729,11 +729,11 @@ int log_file_open(
  * @param stream
  */
 void log_stream_open_fileinit(log_stream_t *stream) {
-  TRACE_ENTER2("%s, numOpeners=%u", stream->name.c_str(), stream->numOpeners);
   osafassert(stream != NULL);
+  TRACE_ENTER2("%s, numOpeners=%u", stream->name.c_str(), stream->numOpeners);
 
   /* first time open? */
-  if (stream->numOpeners == 0) {
+  if ((stream->numOpeners == 0) || (*stream->p_fd == -1)) {
     /* Create and save current log file name */
     stream->logFileCurrent = stream->fileName + "_" + lgs_get_time(NULL);
     log_initiate_stream_files(stream);
@@ -1415,7 +1415,7 @@ int log_stream_config_change(bool create_files_f,
                              log_stream_t *stream,
                              const std::string &current_logfile_name,
                              time_t *cur_time_in) {
-  int rc;
+  int rc, ret = 0;
   int errno_ret;
   char *current_time = lgs_get_time(cur_time_in);
   std::string emptyStr = "";
@@ -1433,28 +1433,32 @@ int log_stream_config_change(bool create_files_f,
     /* close the existing log file, and only when there is a valid fd */
 
     if ((rc = fileclose_h(*stream->p_fd, &errno_ret)) == -1) {
-      LOG_NO("log_stream log file close  FAILED: %s", strerror(errno_ret));
-      goto done;
+      LOG_WA("log_stream log file close  FAILED: %s", strerror(errno_ret));
+      ret = -1;
     }
     *stream->p_fd = -1;
 
     rc = lgs_file_rename_h(root_path, stream->pathName, current_logfile_name,
                            current_time, LGS_LOG_FILE_EXT, emptyStr);
     if (rc == -1) {
-      goto done;
+      LOG_WA("log file (%s) is renamed  FAILED: %d", current_logfile_name.c_str(), rc);
+      ret = -1;
     }
 
     rc = lgs_file_rename_h(root_path, stream->pathName, stream->fileName,
                            current_time, LGS_LOG_FILE_CONFIG_EXT, emptyStr);
     if (rc == -1) {
-      goto done;
+      LOG_WA("cfg file (%s) is renamed  FAILED: %d", stream->fileName.c_str(), rc);
+      ret = -1;
     }
   }
 
   /* Creating the new config file */
   if (create_files_f == LGS_STREAM_CREATE_FILES) {
-    if ((rc = lgs_create_config_file_h(root_path, stream)) != 0)
-      goto done;
+    if ((rc = lgs_create_config_file_h(root_path, stream)) != 0) {
+      LOG_WA("lgs_create_config_file_h (%s) failed: %d", stream->fileName.c_str(), rc);
+      ret = -1;
+    }
 
     stream->logFileCurrent = stream->fileName + "_" +  current_time;
 
@@ -1463,20 +1467,15 @@ int log_stream_config_change(bool create_files_f,
                                   stream,
                                   stream->logFileCurrent,
                                   NULL);
+    if (*stream->p_fd == -1) {
+      LOG_WA("New log file could not be created for stream: %s",
+             stream->name.c_str());
+      ret = -1;
+    }
   }
 
-  /* Fix bug - this function makes return (-1) when create_files_f = false */
-  if (create_files_f == !LGS_STREAM_CREATE_FILES) {
-    rc = 0;
-  } else if (*stream->p_fd == -1) {
-    rc = -1;
-  } else {
-    rc = 0;
-  }
-
-done:
   TRACE_LEAVE();
-  return rc;
+  return ret;
 }
 
 /*
