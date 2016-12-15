@@ -17,6 +17,7 @@
 
 #include <pthread.h>
 #include <sched.h>
+#include <signal.h>
 #include <syslog.h>
 #include <cerrno>
 #include <cstdlib>
@@ -45,6 +46,15 @@ static void* LogServerStartFunction(void* instance) {
   LogServer* log_server = static_cast<LogServer*>(instance);
   log_server->Run();
   return nullptr;
+}
+
+static void StopLogServerThread() {
+  if (raise(SIGTERM) != 0) syslog(LOG_ERR, "raise(SIGTERM) failed: %d", errno);
+}
+
+static void JoinLogServerThread(pthread_t thread_id) {
+  int result = pthread_join(thread_id, nullptr);
+  if (result != 0) syslog(LOG_ERR, "pthread_join() failed: %d", result);
 }
 
 Result MainFunction(int term_fd) {
@@ -86,17 +96,28 @@ Result MainFunction(int term_fd) {
     return Result{kExit, "pthread_create() failed", result};
   }
   result = pthread_attr_destroy(&attr);
-  if (result != 0) return Result{kExit, "pthread_attr_destroy() failed", result};
+  if (result != 0) {
+    StopLogServerThread();
+    JoinLogServerThread(thread_id);
+    return Result{kExit, "pthread_attr_destroy() failed", result};
+  }
   TransportMonitor monitor{term_fd};
   if (!monitor.use_tipc()) {
     pid_t pid = monitor.WaitForDaemon("osafdtmd", kDaemonStartWaitTimeInSeconds);
-    if (pid == pid_t{-1}) return Result{kReboot, "osafdtmd failed to start", 0};
+    if (pid == pid_t{-1}) {
+      StopLogServerThread();
+      JoinLogServerThread(thread_id);
+      return Result{kReboot, "osafdtmd failed to start", 0};
+    }
     monitor.SuperviseDaemon(pid);
-    if (!monitor.Sleep(0)) return Result{kReboot,
-                                 "osafdtmd Process down, Rebooting the node", 0};
+    if (!monitor.Sleep(0)) {
+      StopLogServerThread();
+      JoinLogServerThread(thread_id);
+      return Result{kReboot,
+            "osafdtmd Process down, Rebooting the node", 0};
+    }
   }
-  result = pthread_join(thread_id, nullptr);
-  if (result != 0) syslog(LOG_ERR, "pthread_join() failed: %d", result);
+  JoinLogServerThread(thread_id);
   return Result{kDaemonExit, "SIGTERM received, exiting", 0};
 }
 
