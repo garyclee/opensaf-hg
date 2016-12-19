@@ -18,6 +18,13 @@
 #ifndef SMFD_EVT_H
 #define SMFD_EVT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void smfd_process_mbx(SYSF_MBX * mbx);
 
+#ifdef __cplusplus
+}
+#endif
 #endif				/* SMFD_EVT_H */

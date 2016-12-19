@@ -194,13 +194,6 @@ class SmfImmUtils {
 /// @return  True if successful, otherwise false
 ///
   bool nodeToClmNode(const std::string& i_node, std::string& o_clmNode);
-  
-///
-/// Purpose: Read long DN information from IMM
-/// @param   cb is the SMF control block
-/// @return  True if successful, otherwise false
-///
-  bool read_IMM_long_DN_config_and_set_control_block(smfd_cb_t * cb);
 
  private:
 	bool initialize(void);
