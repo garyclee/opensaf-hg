@@ -56,6 +56,7 @@ typedef struct clmna_cb_t {
 	NODE_INFO node_info;
 	tmr_t scale_out_retry_tmr;
 	bool is_scale_out_retry_tmr_running;
+	bool try_again_received;
 	bool nid_started;	/**< true if started by NID */
 	void* election_starter;
 } CLMNA_CB;
