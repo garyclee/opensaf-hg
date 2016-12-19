@@ -3046,11 +3046,14 @@ bool SmfAdminOperation::restart()
 
 	m_errno = SA_AIS_OK;
 	for (auto& unit : *m_allUnits) {
-		adminOperation(SA_AMF_ADMIN_RESTART, unit.name);
-		rc = isRestartError(m_errno);
-		TRACE("\tais_rc '%s'", saf_error(m_errno));
-		if (rc == false)
-			break;
+		if (unit.name.find("safComp") != std::string::npos) {
+			// Only if the unit is a component
+			adminOperation(SA_AMF_ADMIN_RESTART, unit.name);
+			rc = isRestartError(m_errno);
+			TRACE("\tais_rc '%s'", saf_error(m_errno));
+			if (rc == false)
+				break;
+		}
 	}
 
 	done:
@@ -3199,6 +3202,7 @@ bool SmfAdminOperation::isRestartError(SaAisErrorT ais_rc) {
 }
 
 /// Return false if Fail. m_ais_errno is set
+/// Only SU and Node
 ///
 bool SmfAdminOperation::saveInitAndCurrentStateForAllUnits()
 {
@@ -3206,6 +3210,10 @@ bool SmfAdminOperation::saveInitAndCurrentStateForAllUnits()
 	bool rc = true;
 
 	for (auto& unit : *m_allUnits) {
+		if (unit.name.find("safComp") != std::string::npos) {
+			// A component has no admin state
+			continue;
+		}
 		unit.initState = getAdminState(unit.name);
 		unit.currentState = unit.initState;
 		if (m_errno != SA_AIS_OK) {
@@ -3221,6 +3229,7 @@ bool SmfAdminOperation::saveInitAndCurrentStateForAllUnits()
 }
 
 /// Return false if Fail. m_ais_errno is set
+/// Only SU and Node
 ///
 bool SmfAdminOperation::saveCurrentStateForAllUnits()
 {
@@ -3228,6 +3237,10 @@ bool SmfAdminOperation::saveCurrentStateForAllUnits()
 	bool rc = true;
 
 	for (auto& unit : *m_allUnits) {
+		if (unit.name.find("safComp") != std::string::npos) {
+			// A component has no admin state
+			continue;
+		}
 		unit.currentState = getAdminState(unit.name);
 		if (m_errno != SA_AIS_OK) {
 			LOG_NO("%s: getAdminStateForUnit() Fail %s",
