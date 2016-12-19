@@ -51,7 +51,10 @@ noinst_HEADERS = \
 	SmfCallback.hh \
 	SmfCbkUtil.hh \
 	SmfExecControl.h \
-	SmfExecControlHdl.h
+	SmfExecControlHdl.h \
+	SmfLongDnApplier.hh \
+	SmfImmApplierHdl.hh \
+	smfd_long_dn.hh
 
 osafsmfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
@@ -63,9 +66,9 @@ osafsmfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/tools/saflog/include
 
 osafsmfd_SOURCES = \
-	smfd_amf.c \
+	smfd_amf.cc \
 	smfd_evt.c \
-	smfd_main.c \
+	smfd_main.cc \
 	smfd_smfnd.c \
 	smfd_mds.c \
 	SmfCampaignThread.cc \
@@ -91,7 +94,9 @@ osafsmfd_SOURCES = \
 	SmfCallback.cc \
 	SmfCbkUtil.cc \
 	SmfExecControl.cc \
-	SmfExecControlHdl.cc
+	SmfExecControlHdl.cc \
+	SmfLongDnApplier.cc \
+	SmfImmApplierHdl.cc
 
 osafsmfd_LDFLAGS = \
 	$(AM_LDFLAGS) \
