@@ -76,7 +76,7 @@ extern "C" {
 	extern const SaNameT *smfApplDN;
 	extern uint32_t initialize_for_assignment(smfd_cb_t *cb,
 		SaAmfHAStateT ha_state);
-	extern uint32_t smfd_amf_init(smfd_cb_t *);
+	extern SaAisErrorT smfd_amf_init(smfd_cb_t *cb);
 	extern uint32_t smfd_mds_init(smfd_cb_t *);
 	extern uint32_t smfd_mds_finalize(smfd_cb_t *);
 	extern uint32_t smfd_mds_change_role(smfd_cb_t *);

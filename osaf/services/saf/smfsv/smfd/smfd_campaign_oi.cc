@@ -84,16 +84,6 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle, SaInvocati
 		goto done;
 	}
 
-       //Read IMM configuration for long DNs and set cb data structure
-       //There is chance that long DN is configured in IMM not in SMF config object
-        TRACE("2. %s: read_IMM_long_DN_config_and_set_control_block()",__FUNCTION__);
-        if (!immutil.read_IMM_long_DN_config_and_set_control_block(smfd_cb)) {
-                LOG_ER("read_IMM_long_DN_config_and_set_control_block FAIL");
-		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
-		goto done;
-        }
-
-
 	/* Call admin operation and return result */
 	rc = campaign->adminOperation(opId, params);
 
@@ -906,14 +896,6 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
 	TRACE_ENTER();
 	SmfImmUtils immutil;
 	SaImmAttrValuesT_2 **attributes;
-
-	//Read IMM configuration for long DNs and set cb data structure
-        //The long DN info is configured in IMM not in SMF config object
-        TRACE("1. %s: read_IMM_long_DN_config_and_set_control_block()",__FUNCTION__);
-	if (!immutil.read_IMM_long_DN_config_and_set_control_block(cb)) {
-		LOG_ER("read_IMM_long_DN_config_and_set_control_block FAIL");
-		return NCSCC_RC_FAILURE;
-	}
 
 	if (immutil.getObject(SMF_CONFIG_OBJECT_DN, &attributes) == false) {
 		LOG_ER("Could not get SMF config object from IMM %s", SMF_CONFIG_OBJECT_DN);
