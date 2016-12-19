@@ -34,6 +34,7 @@
 #include <saImm.h>
 #include <saf_error.h>
 #include "osaf_extended_name.h"
+#include "smfd_long_dn.hh"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -391,9 +392,9 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 
 	const char *className = m_className.c_str();
 
-	if (m_parentDn.length() > smfd_cb->maxDnLength) {
+	if (m_parentDn.length() > GetSmfMaxDnLength()) {
 		LOG_NO("Object create op failed, parent name too long [%zu] max=[%zu], parent=[%s]",
-                        m_parentDn.length(), static_cast<size_t>(smfd_cb->maxDnLength),
+                        m_parentDn.length(), static_cast<size_t>(GetSmfMaxDnLength()),
                         m_parentDn.c_str());
 		TRACE_LEAVE();
 		return SA_AIS_ERR_NAME_TOO_LONG;
@@ -629,7 +630,7 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
-	if (m_dn.length() > smfd_cb->maxDnLength) {
+	if (m_dn.length() > GetSmfMaxDnLength()) {
 		LOG_NO("SmfImmDeleteOperation::execute: failed Too long dn %zu",
 		       m_dn.length());
                 TRACE_LEAVE();
@@ -1005,7 +1006,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 		return SA_AIS_ERR_UNAVAILABLE;
 	}
 
-	if (m_dn.length() > smfd_cb->maxDnLength) {
+	if (m_dn.length() > GetSmfMaxDnLength()) {
 		LOG_NO("SmfImmModifOperation::execute: failed Too long dn %zu",
 		       m_dn.length());
                 TRACE_LEAVE();
@@ -1290,7 +1291,7 @@ SmfImmRTCreateOperation::execute()
 
 	const char *className = m_className.c_str();
 
-	if (m_parentDn.length() > smfd_cb->maxDnLength) {
+	if (m_parentDn.length() > GetSmfMaxDnLength()) {
 		LOG_NO("SmfImmRTCreateOperation::execute, createObject failed Too long parent name %zu",
 		       m_parentDn.length());
                 TRACE_LEAVE();
@@ -1483,9 +1484,9 @@ SmfImmRTUpdateOperation::execute()
 		goto exit;
 	}
 
-	if (m_dn.length() > smfd_cb->maxDnLength) {
+	if (m_dn.length() > GetSmfMaxDnLength()) {
 		LOG_NO("SmfImmRTUpdateOperation::execute, too long DN [%zu], max=[%zu], dn=[%s]",
-                 m_dn.length(), static_cast<size_t>(smfd_cb->maxDnLength), m_dn.c_str());
+                 m_dn.length(), static_cast<size_t>(GetSmfMaxDnLength()), m_dn.c_str());
 		result = SA_AIS_ERR_NAME_TOO_LONG;
 		goto exit;
 	}

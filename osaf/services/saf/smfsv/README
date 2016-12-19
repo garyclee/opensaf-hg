@@ -251,6 +251,38 @@ directory "samples/smfsv"
 CONTRIBUTORS/MAINTAINERS
 ========================
 Bertil Engelholm <bertil.engelholm@ericsson.com>
-Ingvar Bergström <ingvar.bergstrom@ericsson.com>
+Ingvar Bergstrï¿½m <ingvar.bergstrom@ericsson.com>
 
 The SMF service was originally cloned from the immsv and log services.
+
+MAINTAINER NOTES
+================
+
+Applier for monitoring long Dn allowed setting
+----------------------------------------------
+SMF is dependent on knowing the longDnsAllowed setting in the IMM configuration
+object. This setting may change at any time and to monitor changes an IMM
+applier is used.
+
+SmfImmApplierHdl:
+Contains a wrapper for the IMM APIs and callback functions used with an applier.
+A C++ class is used to create an interface for handling an applier e.g. create,
+start (initialize and set), stop (clear), get value etc.
+See SmfImmApplierHdl.hh for more information.
+
+SmfLongDnApplier:
+Runs an applier in a thread using the SmfImmApplierHdl.
+A C++ class is used to create an interface for running an applier.
+See SmfLongDnApplier.hh for more information.
+
+Installation in SMF:
+
+In smfd_main.cc the applier is constructed and created. A pointer to the applier
+object is stored in a global variable. The applier is started and stopped in the
+same place as the SMF object implementer when SMF gets a CSI set callback, see
+smfd_amf.cc. In previous versions of SMF a global variable in the smfd_cb struct
+, maxDnLength, was used to store the maximum allowed length of a Dn depending on
+the IMM config long Dn setting. This length information is used in many places
+in the SMF code. The global variable is replaced by a function call to
+GetSmfMaxDnLength() which returns the same length information. This function
+can be found in smfd_long_dn.hh

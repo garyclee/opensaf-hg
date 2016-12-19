@@ -20,6 +20,7 @@
  */
 
 #include "smfd.h"
+#include "smfd_long_dn.hh"
 
 /****************************************************************************
  * Name          : amf_active_state_handler
@@ -58,6 +59,10 @@ static SaAisErrorT amf_active_state_handler(smfd_cb_t * cb,
 		LOG_ER("amf_active_state_handler oi activate FAIL");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 	}
+
+        // Start the long Dn monotoring applier
+	TRACE("%s: SmfLongDnInfo->Start()", __FUNCTION__);
+	SmfLongDnInfo->Start();
 
 	TRACE_LEAVE();
 	return rc;
@@ -130,12 +135,17 @@ static SaAisErrorT amf_quiesced_state_handler(smfd_cb_t * cb,
 {
 	TRACE_ENTER();
 	V_DEST_RL mds_role;
-	SaAisErrorT rc = SA_AIS_OK;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+        uint32_t ncscc_rc = NCSCC_RC_SUCCESS;
 
 	/* Terminate threads and finalize the OI handle */
 	if (campaign_oi_deactivate(cb) != NCSCC_RC_SUCCESS) {
 		LOG_NO("amf_quiesced_state_handler oi deactivate FAILED, continue");
 	}
+
+	// Stop the long Dn monitoring applier
+	TRACE("%s: SmfLongDnInfo->Stop()", __FUNCTION__);
+	SmfLongDnInfo->Stop();
 
 	/*
 	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
@@ -143,9 +153,9 @@ static SaAisErrorT amf_quiesced_state_handler(smfd_cb_t * cb,
 	 */
 	mds_role = cb->mds_role;
 	cb->mds_role = V_DEST_RL_QUIESCED;
-	if ((rc = smfd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
+	if ((ncscc_rc = smfd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("smfd_mds_change_role [V_DEST_RL_QUIESCED] FAILED");
-		rc = SA_AIS_ERR_FAILED_OPERATION;
+		ais_rc = SA_AIS_ERR_FAILED_OPERATION;
 		cb->mds_role = mds_role;
 		goto done;
 	}
@@ -154,7 +164,7 @@ static SaAisErrorT amf_quiesced_state_handler(smfd_cb_t * cb,
 	cb->is_quiesced_set = true;
 done:
 	TRACE_LEAVE();
-	return rc;
+	return ais_rc;
 }
 
 /****************************************************************************
@@ -405,7 +415,7 @@ static SaAisErrorT amf_healthcheck_start(smfd_cb_t * cb)
            SA_AIS_ERR_* - failure
 
 **************************************************************************/
-SaAisErrorT smfd_amf_init(smfd_cb_t * cb)
+SaAisErrorT smfd_amf_init(smfd_cb_t *cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;

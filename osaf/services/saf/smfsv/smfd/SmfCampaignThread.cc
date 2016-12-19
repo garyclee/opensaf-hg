@@ -37,6 +37,7 @@
 #include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
 #include "SmfUtils.hh"
+#include "smfd_long_dn.hh"
 
 SmfCampaignThread *SmfCampaignThread::s_instance = NULL;
 
@@ -492,10 +493,10 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
 
 	/* Notifying object */
 	size_t length = sizeof(SMF_NOTIFYING_OBJECT);
-	if (length > static_cast<size_t>(smfd_cb->maxDnLength)) {
+	if (length > static_cast<size_t>(GetSmfMaxDnLength())) {
 		TRACE("notifyingObject length was %zu, truncated to %zu",
-                length, static_cast<size_t>(smfd_cb->maxDnLength));
-		length = smfd_cb->maxDnLength;
+                length, static_cast<size_t>(GetSmfMaxDnLength()));
+		length = GetSmfMaxDnLength();
 	}
         char* value = (char*) malloc(length + 1);
 	if (value == NULL) {
@@ -509,10 +510,10 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uint32_t cl
 
 	/* Notification object */
 	length = dn.length();
-	if (length > static_cast<size_t>(smfd_cb->maxDnLength)) {
+	if (length > static_cast<size_t>(GetSmfMaxDnLength())) {
 		TRACE("notificationHeader length was %zu, truncated to %zu",
-                length, static_cast<size_t>(smfd_cb->maxDnLength));
-		length = smfd_cb->maxDnLength;
+                length, static_cast<size_t>(GetSmfMaxDnLength()));
+		length = GetSmfMaxDnLength();
 	}
         value = (char*) malloc(length + 1);
 	if (value == NULL) {

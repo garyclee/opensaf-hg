@@ -23,7 +23,7 @@
 
 #include <configmake.h>
 
-#define _GNU_SOURCE
+//#define _GNU_SOURCE
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +43,7 @@
 #include "smfd.h"
 #include "smfsv_defs.h"
 #include "smfd_evt.h"
+#include "smfd_long_dn.hh"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -62,6 +63,9 @@ extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 static smfd_cb_t smfd_cb_instance;
 smfd_cb_t *smfd_cb = &smfd_cb_instance;
+
+/* Store for Long Dn monitoring applier object */
+SmfLongDnApplier *SmfLongDnInfo;
 
 static SaNameT smfApplDN_instance;
 
@@ -284,6 +288,12 @@ static uint32_t initialize_smfd(void)
  		goto done;
  	}
 
+        /* Create a long dn monitoring applier */
+        SmfLongDnInfo = new SmfLongDnApplier(IMM_CONFIG_OBJECT_DN,
+                                             IMM_LONG_DN_CONFIG_ATTRIBUTE_NAME);
+        TRACE("%s: Create applier for long Dn setting", __FUNCTION__);
+        SmfLongDnInfo->Create();
+
  done:
 	TRACE_LEAVE();
 	return (rc);
@@ -360,7 +370,6 @@ static void main_process(void)
 	fds[SMFD_COI_FD].events = POLLIN;
 
 	while (1) {
-
 		if (smfd_cb->campaignOiHandle != 0) {
 			fds[SMFD_COI_FD].fd = smfd_cb->campaignSelectionObject;
 			fds[SMFD_COI_FD].events = POLLIN;

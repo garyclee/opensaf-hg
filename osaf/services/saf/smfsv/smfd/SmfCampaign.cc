@@ -34,6 +34,7 @@
 #include "SmfUpgradeAction.hh"
 #include "SmfUtils.hh"
 #include "SmfExecControl.h"
+#include "smfd_long_dn.hh"
 
 #include "saAis.h"
 #include <saSmf.h>
@@ -713,10 +714,10 @@ SmfCampaign::startProcedureThreads()
                 while (iter != procedures.end()) {
                         //Set the DN of the procedure
                         std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
-                        if (dn.length() > static_cast<size_t>(smfd_cb->maxDnLength - OSAF_STEP_ACT_LENGTH)) {
+                        if (dn.length() > static_cast<size_t>(GetSmfMaxDnLength() - OSAF_STEP_ACT_LENGTH)) {
                                 std::string error = "Procedure dn too long " + dn;
                                 LOG_ER("Procedure dn too long (max %zu) %s",
-                                       static_cast<size_t>(smfd_cb->maxDnLength - OSAF_STEP_ACT_LENGTH),
+                                       static_cast<size_t>(GetSmfMaxDnLength() - OSAF_STEP_ACT_LENGTH),
                                        dn.c_str());
                                 SmfCampaignThread::instance()->campaign()->setError(error);
                                 delete p_uc; // To terminate and remove any previously started procedure threads
