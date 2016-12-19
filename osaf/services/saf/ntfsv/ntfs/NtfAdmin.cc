@@ -696,10 +696,11 @@ void NtfAdmin::checkNotificationList()
     TRACE_ENTER();
     NotificationMap::iterator posNot;
     for (posNot = notificationMap.begin();
-        posNot != notificationMap.end();
-        posNot++)
+        posNot != notificationMap.end();)
     {
         NtfSmartPtr notification = posNot->second;
+        NotificationMap::iterator deleteNot = posNot++;
+
         if (notification->loggedOk() == false)
         {
             /* When reader API works check if already logged */
@@ -723,7 +724,7 @@ void NtfAdmin::checkNotificationList()
                     TRACE_2("Client: %u not exist", uSubId.clientId);
                 }
             }
-            deleteConfirmedNotification(notification, posNot);
+            deleteConfirmedNotification(notification, deleteNot);
         }
     }
     TRACE_LEAVE();
