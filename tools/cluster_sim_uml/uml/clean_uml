@@ -17,9 +17,12 @@
 #
 #
 
-cd uml
-rm -rf root linux* tipcutils* uml_utilities* busybox* tools-*
-rm -f bin/tipc-config bin/busybox bin/uml_switch bin/uml_mconsole bin/uml_net
+dir=$(dirname "$0"); dir=$(cd "$dir"; pwd)
+build=${OSAF_UML_BUILD:-$dir}
+
+cd "$build"
+rm -rf root linux* iproute2-* uml_utilities* busybox* tools-*
+rm -f bin/tipc bin/busybox bin/uml_switch bin/uml_mconsole bin/uml_net
 rm -f bin/tunctl bin/port-helper bin/linux
 cd - > /dev/null
 
