@@ -21,11 +21,11 @@ function errquit() {
     exit 1
 }
 
-
-test -n "$CLUSTER_SIM_UML_DIR" || errquit "$CLUSTER_SIM_UML_DIR is not set"
+test -n "$CLUSTER_SIM_UML_DIR" || errquit "CLUSTER_SIM_UML_DIR is not set"
+test -n "$OSAF_UML_BUILD" || errquit "OSAF_UML_BUILD is not set"
 UML_DIR=$CLUSTER_SIM_UML_DIR/uml
 
-umlx="$UML_DIR/bin/linux"
+umlx="$OSAF_UML_BUILD/bin/linux"
 test -x "$umlx" || errquit "$umlx not executable"
 test -n "$1" || errquit "No processor number specified"
 

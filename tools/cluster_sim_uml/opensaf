@@ -34,8 +34,13 @@ wait_for_pid_to_die() {
 }
 
 test -f "$PWD/$0" || die "Must execute $0 from directory where it is located"
+
+dir=$(dirname "$0"); dir=$(cd "$dir"; pwd)
+build=${OSAF_UML_BUILD:-$dir/uml}
+export OSAF_UML_BUILD=$build
+
 export CLUSTER_SIM_UML_DIR=$PWD
-export PATH=${PWD}/uml/bin:${PATH}
+export PATH=$build/bin:${PWD}/uml/bin:${PATH}
 test \( \! -d ./rootfs \) -a \( "$1" != "stop" -a "$1" != "clean" \) && die "No shadow root at [./rootfs]"
 
 UML_DIR=$CLUSTER_SIM_UML_DIR/uml
@@ -56,7 +61,7 @@ uid=$(id -u)
 
 check_binaries() {
     for i in tipc busybox linux uml_switch port-helper tunctl uml_mconsole uml_net; do
-	test -x "$UML_DIR/bin/$i" || die "Not executable [$UML_DIR/bin/$i]"
+	test -x "$build/bin/$i" || die "Not executable [$build/bin/$i]"
     done
 }
 
@@ -86,7 +91,7 @@ cluster_start() {
 
 		rm -f /tmp/uml-${uid}.ctl
 		xterm -iconic -geometry 60x8-0+5 \
-			-T UML-network -e $UML_DIR/bin/uml_switch -unix /tmp/uml-${uid}.ctl $tap &
+			-T UML-network -e $build/bin/uml_switch -unix /tmp/uml-${uid}.ctl $tap &
 		echo $! > $PIDFILEDIR/uml_switch
 		while [ ! -S /tmp/uml-${uid}.ctl ]; do
 			sleep 0.1
@@ -136,7 +141,7 @@ cluster_stop() {
  	nodes=$(ls -1 "$HOME/.uml")
 	for node in $nodes; do
 		pid=$(cat $HOME/.uml/$node/pid)
-		"$UML_DIR/bin/uml_mconsole" "$node" halt > /dev/null 2>&1
+		"$build/bin/uml_mconsole" "$node" halt > /dev/null 2>&1
 		wait_for_pid_to_die $pid
 	done
 	for node in $nodes; do
@@ -177,7 +182,7 @@ node_stop() {
 	pid=$(cat $HOME/.uml/$node/pid)
 
 	# halt the uml vm
-	$UML_DIR/bin/uml_mconsole $node halt > /dev/null 2>&1
+	$build/bin/uml_mconsole $node halt > /dev/null 2>&1
 	wait_for_pid_to_die $pid
 	rm -rf $HOME/.uml/$node
 
@@ -218,7 +223,7 @@ node_start() {
 	if ! pgrep -U $uid uml_switch > /dev/null; then
 		rm -f /tmp/uml-${uid}.ctl
 		xterm -iconic -geometry 60x8-0+5 \
-			-T UML-network -e $UML_DIR/bin/uml_switch -unix /tmp/uml-${uid}.ctl $tap &
+			-T UML-network -e $build/bin/uml_switch -unix /tmp/uml-${uid}.ctl $tap &
 		echo $! > $PIDFILEDIR/uml_switch
 		while [ ! -S /tmp/uml-${uid}.ctl ]; do
 			sleep 0.1
