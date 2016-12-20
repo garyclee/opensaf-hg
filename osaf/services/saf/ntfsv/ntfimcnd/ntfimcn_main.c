@@ -40,11 +40,9 @@
 
 enum {
 	FD_IMM = 0,
-	FD_TERM,
 	SIZE_FDS
 } NTFIMCN_FDS;
 
-static NCS_SEL_OBJ term_sel_obj; /* Selection object for TERM signal events */
 
 /*
  * Global parameters
@@ -55,14 +53,11 @@ static struct pollfd fds[SIZE_FDS];
 static nfds_t nfds = SIZE_FDS;
 static unsigned int category_mask=0;
 
-/**
- * Clear special applier name and exit
- * 
- * @param status
- */
 void imcn_exit(int status)
 {
-	ntfimcn_special_applier_clear();
+	// No need to clear OI Applier name
+	// as IMM will do that if the owning
+	// process no longer exist.
 	_Exit(status);
 }
 
@@ -95,16 +90,7 @@ static void sigterm_handler(int sig)
 {
 	(void) sig;
 	signal(SIGTERM, SIG_IGN);
-	ncs_sel_obj_ind(&term_sel_obj);
-}
-
-/**
- * TERM event handler
- */
-static void handle_sigterm_event(void)
-{
-	LOG_NO("exiting on signal %d", SIGTERM);
-	imcn_exit(EXIT_SUCCESS);
+	_Exit(EXIT_SUCCESS);
 }
 
 /*
@@ -115,6 +101,12 @@ int main(int argc, char** argv)
 	const char* logPath;
 	const char* trace_label = "osafntfimcnd";
 	SaAisErrorT ais_error = SA_AIS_OK;
+
+	// To make sure the SIGTERM is not lost during init phase
+	if (signal(SIGTERM, sigterm_handler) == SIG_ERR) {
+		LOG_ER("signal TERM failed: %s", strerror(errno));
+		_Exit(EXIT_FAILURE);
+	}
 
 	/*
 	 * Activate Log Trace
@@ -131,7 +123,7 @@ int main(int argc, char** argv)
 		syslog(LOG_ERR, "osafntfimcnd logtrace_init FAILED");
 		/* We allow to execute anyway. */
 	}
-	
+
 	/*
 	 * Initiate HA state
 	 */
@@ -166,24 +158,11 @@ int main(int argc, char** argv)
 		imcn_exit(EXIT_FAILURE);
 	}
 
-	/* Termination signal with handler */
-	if (ncs_sel_obj_create(&term_sel_obj) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_sel_obj_create failed");
-		_Exit(EXIT_FAILURE);
-	}
-
-	if (signal(SIGTERM, sigterm_handler) == SIG_ERR) {
-		LOG_ER("signal TERM failed: %s", strerror(errno));
-		_Exit(EXIT_FAILURE);
-	}
-	
 	/*
 	 * Initiate polling
 	 */
 	fds[FD_IMM].fd = ntfimcn_cb.immSelectionObject;
 	fds[FD_IMM].events = POLLIN;
-	fds[FD_TERM].fd = term_sel_obj.rmv_obj;
-	fds[FD_TERM].events = POLLIN;
 
 	LOG_NO("Started");
 
@@ -195,10 +174,6 @@ int main(int argc, char** argv)
 
 			LOG_ER("poll Fail - %s", strerror(errno));
 			imcn_exit(EXIT_FAILURE);
-		}
-
-		if (fds[FD_TERM].revents & POLLIN) {
-			handle_sigterm_event();
 		}
 
 		if (fds[FD_IMM].revents & POLLIN) {
