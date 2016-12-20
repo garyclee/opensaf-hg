@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# User Mode Linux/x86 4.8.0 Kernel Configuration
+# User Mode Linux/x86 4.9.0 Kernel Configuration
 #
 CONFIG_UML=y
 CONFIG_MMU=y
@@ -227,6 +227,7 @@ CONFIG_MODULES_USE_ELF_RELA=y
 # CONFIG_HAVE_ARCH_HASH is not set
 # CONFIG_ISA_BUS_API is not set
 # CONFIG_CPU_NO_EFFICIENT_FFS is not set
+# CONFIG_HAVE_ARCH_VMAP_STACK is not set
 
 #
 # GCOV-based kernel profiling
@@ -315,6 +316,7 @@ CONFIG_EXTRA_FIRMWARE=""
 CONFIG_ALLOW_DEV_COREDUMP=y
 # CONFIG_DEBUG_DRIVER is not set
 # CONFIG_DEBUG_DEVRES is not set
+# CONFIG_DEBUG_TEST_DRIVER_REMOVE is not set
 # CONFIG_SYS_HYPERVISOR is not set
 CONFIG_GENERIC_CPU_DEVICES=y
 # CONFIG_DMA_SHARED_BUFFER is not set
@@ -430,6 +432,7 @@ CONFIG_TUN=m
 # Distributed Switch Architecture drivers
 #
 CONFIG_ETHERNET=y
+CONFIG_NET_VENDOR_AMAZON=y
 CONFIG_NET_VENDOR_ARC=y
 # CONFIG_NET_VENDOR_AURORA is not set
 CONFIG_NET_VENDOR_EZCHIP=y
@@ -488,7 +491,6 @@ CONFIG_WLAN_VENDOR_ZYDAS=y
 # Enable WiMAX (Networking options) to see the WiMAX drivers
 #
 # CONFIG_WAN is not set
-# CONFIG_NVM is not set
 
 #
 # Character devices
@@ -531,9 +533,9 @@ CONFIG_UML_RANDOM=y
 # Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
 #
 # CONFIG_GPIOLIB is not set
-# CONFIG_POWER_SUPPLY is not set
-# CONFIG_POWER_RESET is not set
 # CONFIG_POWER_AVS is not set
+# CONFIG_POWER_RESET is not set
+# CONFIG_POWER_SUPPLY is not set
 # CONFIG_THERMAL is not set
 # CONFIG_WATCHDOG is not set
 # CONFIG_REGULATOR is not set
@@ -716,6 +718,7 @@ CONFIG_BQL=y
 # CONFIG_BT is not set
 # CONFIG_AF_RXRPC is not set
 # CONFIG_AF_KCM is not set
+# CONFIG_STREAM_PARSER is not set
 CONFIG_WIRELESS=y
 # CONFIG_CFG80211 is not set
 # CONFIG_LIB80211 is not set
@@ -1092,6 +1095,7 @@ CONFIG_NLATTR=y
 # CONFIG_SG_SPLIT is not set
 # CONFIG_SG_POOL is not set
 # CONFIG_ARCH_HAS_SG_CHAIN is not set
+CONFIG_SBITMAP=y
 
 #
 # Kernel hacking
@@ -1201,6 +1205,7 @@ CONFIG_TRACING_SUPPORT=y
 CONFIG_FTRACE=y
 # CONFIG_IRQSOFF_TRACER is not set
 # CONFIG_SCHED_TRACER is not set
+# CONFIG_HWLAT_TRACER is not set
 # CONFIG_ENABLE_DEFAULT_TRACERS is not set
 # CONFIG_TRACER_SNAPSHOT is not set
 CONFIG_BRANCH_PROFILE_NONE=y
@@ -1234,6 +1239,7 @@ CONFIG_BRANCH_PROFILE_NONE=y
 # CONFIG_TEST_UDELAY is not set
 # CONFIG_TEST_STATIC_KEYS is not set
 # CONFIG_SAMPLES is not set
+# CONFIG_ARCH_WANTS_UBSAN_NO_NULL is not set
 # CONFIG_UBSAN is not set
 # CONFIG_GPROF is not set
 # CONFIG_GCOV is not set
