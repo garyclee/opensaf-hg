@@ -871,28 +871,3 @@ done:
 	TRACE_LEAVE();
 	return internal_rc;
 }
-
-/**
- * Clears the special applier name
- * 
- */
-void ntfimcn_special_applier_clear(void)
-{
-	SaAisErrorT rc;
-	int msecs_waited;
-
-	msecs_waited = 0;
-	rc = saImmOiImplementerClear(ntfimcn_cb.immOiHandle);
-	while (((rc == SA_AIS_ERR_TRY_AGAIN) ||
-			(rc == SA_AIS_ERR_TIMEOUT))	&& 
-			(msecs_waited < max_waiting_time_3s)) {
-		usleep(sleep_delay_ms * 1000);
-		msecs_waited += sleep_delay_ms;
-		rc = saImmOiImplementerClear(ntfimcn_cb.immOiHandle);
-	}
-	if (rc != SA_AIS_OK) {
-		if (rc == SA_AIS_ERR_BAD_HANDLE) {
-			TRACE("%s saImmOiImplementerClear failed %s",__FUNCTION__,saf_error(rc));
-		}
-	}
-}
