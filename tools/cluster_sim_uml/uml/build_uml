@@ -21,9 +21,9 @@
 ## build_uml --
 ##   Build script for the User Mode Linux (UML) for OpenSAF.
 ##
-##   Files such as the Linux kernel archive will be downloaded
-##   automatically with "wget". The files will be stored in the
-##   directory defined by the $ARCHIVE variable.
+##   Files such as the Linux kernel archive will be downloaded automatically
+##   with "wget". The files will be stored in the directory defined by the
+##   $OSAF_UML_ARCHIVE variable.
 ##
 ## Syntax:
 ##
@@ -33,13 +33,15 @@
 ##
 ##   All environment settings are optional.
 ##
-##   $ARCHIVE - Should point to a directory where dowloaded files are
-##              stored.
-##   $CONFIGD - Contains configurations for different kernel and
-##              busybox versions (default ./config).
-##   $KVER -    The Linux kernel version to use.
-##   $BBVER -   The BusyBox version to use.
-##   $IPROUTE2VER - The iproute2 version to use.
+##   $OSAF_UML_ARCHIVE - Should point to a directory where dowloaded files are
+##                       stored.
+##   $OSAF_UML_BUILD   - Should point to a directory where UML packages are
+##                       built.
+##   $OSAF_UML_CONFIGD - Contains configurations for different kernel and
+##                       busybox versions (default ./config).
+##   $OSAF_UML_KVER    - The Linux kernel version to use.
+##   $OSAF_UML_BBVER   - The BusyBox version to use.
+##   $OSAF_UML_IPRVER  - The iproute2 version to use.
 ##
 ## Sub-commands:
 ##
@@ -64,25 +66,27 @@ help() {
 }
 test -n "$1" || help
 cd "$dir"
-archive=${ARCHIVE:-$dir/archive}
-configd=${CONFIGD:-$dir/config}
+archive=${OSAF_UML_ARCHIVE:-$dir/archive}
+build=${OSAF_UML_BUILD:-$dir}
+configd=${OSAF_UML_CONFIGD:-$dir/config}
 
-kver=${KVER:-4.8}
+kver=${OSAF_UML_KVER:-4.9}
 kbasedir=$(echo "$kver" | cut -d. -f1).x
 #kurlbase=${KURLBASE:-"https://www.kernel.org/pub/linux/kernel/v$kbasedir"}
 kurlbase=${KURLBASE:-"http://ftp.funet.fi/pub/mirrors/ftp.kernel.org/pub/linux/kernel/v$kbasedir"}
+#kurlbase=${KURLBASE:-"http://ftp.funet.fi/pub/mirrors/ftp.kernel.org/pub/linux/kernel/v$kbasedir/testing"}
 kernel_decompress=xz
 kurl="$kurlbase/linux-$kver.tar.xz"
-kernel_sha1sum='e375f93600a7b96191498af39e5a2416b6666e59  linux-4.8.tar.xz'
+kernel_sha1sum='fa46da077c077467776cdc45a7b50d327a081ab4  linux-4.9.tar.xz'
 
-iproute2ver=${IPROUTE2VER:-4.7.0}
+iproute2ver=${OSAF_UML_IPRVER:-4.9.0}
 iproute2url="https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-$iproute2ver.tar.xz"
 #iproute2url="http://ftp.funet.fi/pub/mirrors/ftp.kernel.org/pub/linux/utils/net/iproute2/iproute2-$iproute2ver.tar.xz"
-iproute2_sha1sum='eafdefb9ebe7c840fa4ea8ea111554e3650a3c5a  iproute2-4.7.0.tar.xz'
+iproute2_sha1sum='fc28f956a7a9695473312d0ed35dc24a7ef9d7f6  iproute2-4.9.0.tar.xz'
 
-bbver=${BBVER:-1.24.2}
+bbver=${OSAF_UML_BBVER:-1.25.1}
 bburl="http://busybox.net/downloads/busybox-$bbver.tar.bz2"
-bb_sha1sum='03e6cfc8ddb2f709f308719a9b9f4818bc0a28d0  busybox-1.24.2.tar.bz2'
+bb_sha1sum='8b227b3efdb4c4aa94750f80cc63429aec6daa0b  busybox-1.25.1.tar.bz2'
 
 umlutilsver=20070815
 umlutilsurl="http://user-mode-linux.sourceforge.net/uml_utilities_$umlutilsver.tar.bz2"
@@ -97,12 +101,17 @@ else
     lib_dir=lib
 fi
 
+test -d "$build" || mkdir -p "$build"
+test -d "$build" || die "Invalid build directory [$build]"
+cd "$build"
+
 ##   info
 ##     Printout general info.
 ##
 cmd_info() {
     echo "Base dir: $dir"
     echo "Archive: $archive"
+    echo "Build: $build"
     echo "Linux kernel $kver:"
     f=$archive/$(basename "$kurl")
     test -r "$f" && exists="(exists)"
@@ -113,7 +122,7 @@ cmd_info() {
     test -r "$f" && exists="(exists)"
     echo "    $f $exists"
     echo "    $bburl"
-    echo "iproute2  $iproute2ver:"
+    echo "iproute2 $iproute2ver:"
     f=$archive/$(basename $iproute2url)
     test -r "$f" && exists="(exists)"
     echo "    $f $exists"
@@ -132,7 +141,7 @@ cmd_info() {
 cmd_gen_initramfs_list() {
     chmod +x linux-$kver/scripts/gen_initramfs_list.sh
     ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
-        $dir/root $dir/root/dev/initramfs_list \
+        "$build/root" "$build/root/dev/initramfs_list" \
         > linux-$kver/initramfs_list
     rm -f linux-$kver/usr/initramfs_data.cpio.gz
     sed -ie '/^file \/usr\/bin\/busybox /s/ [0-7][0-7]* 0 0$/ 4755 0 0/' linux-$kver/initramfs_list
@@ -172,7 +181,7 @@ cmd_download() {
 ##     Clean up built binaries if any tool version has changed.
 ##
 cmd_clean_if_needed() {
-    cd $dir
+    cd "$build"
     clean_needed=0
     test -d linux-$kver || clean_needed=1
     test -d busybox-$bbver || clean_needed=1
@@ -181,7 +190,7 @@ cmd_clean_if_needed() {
     if [ "$clean_needed" -eq "1" ]; then
 	cd "$dir/.."
 	./uml/clean_uml
-	cd "$dir"
+	cd "$build"
     fi
 }
 
@@ -212,7 +221,7 @@ cmd_refresh_root() {
     cmd_create_initramfs
 
     # Install modules into initramfs and rebuild Linux kernel
-    INSTALL_MOD_PATH=$dir/root make -C linux-$kver ARCH=um modules_install
+    INSTALL_MOD_PATH=$build/root make -C linux-$kver ARCH=um modules_install
     rm -f root/$lib_dir/modules/$kver/build \
         root/$lib_dir/modules/$kver/source \
         linux-$kver/initramfs_list
@@ -224,8 +233,8 @@ cmd_refresh_root() {
 }
 
 cmd_patch_tipc_tolerance() {
-    tipc_cfg=$dir/linux-$kver/include/uapi/linux/tipc_config.h
-    test -e "$tipc_cfg" || tipc_cfg=$dir/linux-$kver/include/linux/tipc_config.h
+    tipc_cfg=$build/linux-$kver/include/uapi/linux/tipc_config.h
+    test -e "$tipc_cfg" || tipc_cfg=$build/linux-$kver/include/linux/tipc_config.h
     grep -q 'TIPC_DEF_LINK_TOL 1500' $tipc_cfg || return 0
     mv -f $tipc_cfg $tipc_cfg.orig
     sed -e 's,TIPC_DEF_LINK_TOL 1500,TIPC_DEF_LINK_TOL 3500,' \
@@ -243,10 +252,10 @@ cmd_build_linux()
 	echo "Already built [bin/linux]"
         return 0
     fi
-    test -r $dir/root/dev/initramfs_list || die "Root-fs not built"
+    test -r $build/root/dev/initramfs_list || die "Root-fs not built"
 
     cfg=$configd/linux-$kver-$arch
-    test -r $cfg || cfg=config/linux-config-$arch
+    test -r $cfg || cfg=$dir/config/linux-config-$arch
     cp -L $cfg linux-$kver/.config
     cmd_gen_initramfs_list
 
@@ -272,9 +281,10 @@ cmd_build_busybox()
     rm -rf busybox-$bbver
     tar xjf $f
 
-    mkdir -p bin
+    test -f bin && rm -f bin
+    test -d bin || mkdir -p bin
     cfg=$configd/busybox-$bbver
-    test -r $cfg || cfg=config/busybox-config
+    test -r $cfg || cfg=$dir/config/busybox-config
     cp -L $cfg busybox-$bbver/.config
     make -C busybox-$bbver -j$no_of_processors
     cp busybox-$bbver/busybox bin || die "Could not build busybox"
@@ -293,7 +303,7 @@ cmd_create_initramfs()
     fi
 
     rm -rf root
-    cp -rL root_template root
+    cp -rL $dir/root_template root
     if [ $(uname -m) = x86_64 ]; then
       rm -Rf root/lib root/usr/lib
       ln -s lib64 root/lib
@@ -360,13 +370,15 @@ cmd_build_iproute2()
     test -r $f || die "Not downloaded [$f]"
     rm -rf iproute2-$iproute2ver
     tar Jxf $f
+    test -f bin && rm -f bin
+    test -d bin || mkdir -p bin
     cd iproute2-$iproute2ver
     ./configure
     cd tipc
     mkdir linux
-    cp $dir/linux-$kver/include/uapi/linux/tipc*.h linux
-    make -j$no_of_processors CFLAGS="-s -O2 -I." tipc
-    cd $dir
+    cp $build/linux-$kver/include/uapi/linux/tipc*.h linux
+    make -j$no_of_processors CFLAGS="-s -pipe -O2 -I." tipc
+    cd $build
     cp iproute2-$iproute2ver/tipc/tipc bin || die "Could not build tipc"
 }
 
@@ -404,4 +416,3 @@ cmd_$cmd "$@"
 rc=$?
 rm -rf $tmp
 exit $rc
-

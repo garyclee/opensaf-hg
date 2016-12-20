@@ -28,6 +28,7 @@
 
 prg=$(basename "$0")
 dir=$(dirname "$0"); dir=$(cd "$dir"; pwd)
+build=${OSAF_UML_BUILD:-$dir/uml}
 tmp=$(mktemp -d /tmp/"${prg}"$$.XXXXXXXXXX)
 no_of_processors=$(find /sys/devices/system/cpu -name 'cpu[0-9]*' -print | wc -l)
 if [ "$no_of_processors" -le 0 ]; then
@@ -55,6 +56,7 @@ top=$(pwd)
 archive=$top/archive
 scripts=$archive/scripts
 root=$top/rootfs
+build=${OSAF_UML_BUILD:-$top/uml}
 
 appconfig=${APPCONFIG:-"${opensaf_home}/samples/amf/sa_aware/AppConfig-2N.xml"}
 
@@ -71,9 +73,9 @@ cmd_getlibs() {
 
 cmd_build_testprog() {
     src=$opensaf_home/samples/amf/sa_aware
-    libd=$top/rootfs/usr/local/$lib_dir
-    installd=$top/rootfs/opt/amf_demo
-    immxml=$top/rootfs/etc/opensaf/imm.xml
+    libd=$root/usr/local/$lib_dir
+    installd=$root/opt/amf_demo
+    immxml=$root/etc/opensaf/imm.xml
 
     mkdir -p "$installd"
     cp $src/amf_demo_script $installd
@@ -94,9 +96,9 @@ cmd_build_testprog() {
 ##
 cmd_install_testprog() {
     src=$opensaf_home/samples/amf/sa_aware
-    libd=$top/rootfs/usr/local/$lib_dir
-    installd=$top/rootfs/opt/amf_demo
-    immxml=$top/rootfs/etc/opensaf/imm.xml
+    libd=$root/usr/local/$lib_dir
+    installd=$root/opt/amf_demo
+    immxml=$root/etc/opensaf/imm.xml
 
     mkdir -p $installd
     cp $src/amf_demo_script $installd
@@ -296,7 +298,7 @@ cmd_installibs() {
 	$(find . -name osafimmloadd -or -name libopensaf_core.so) ./usr/bin/* ./usr/sbin/* |\
 	grep -v -e 'libSa\|libimmsv\|libsaf' \
 	-e "^/$lib_dir/ld-\|^/$lib_dir/libc.so" > $deplib
-    local all_dirs=`ldd $top/uml/bin/busybox | tr -s ' \t' '\n' | grep /lib | sed -e 's,/tls,,' | sed -e 's:/[^/]*$::'`
+    local all_dirs=`ldd $build/bin/busybox | tr -s ' \t' '\n' | grep /lib | sed -e 's,/tls,,' | sed -e 's:/[^/]*$::'`
     for d in $all_dirs; do
 	if [ -e $d/libnss_files.so.? ]; then
 	    echo $d/libnss_files.so.? >> $deplib
@@ -334,24 +336,24 @@ cmd_installextra() {
     if [ -n "$OSAF_UML_EXTRA" -a -d "$OSAF_UML_EXTRA" ]
     then
         echo "Installing extra files..."
-        for archive in $OSAF_UML_EXTRA/*
+        for package in $OSAF_UML_EXTRA/*
         do
-            base=$(basename "$archive")
-            gzbase=$(basename "$archive" gz)
-            bz2base=$(basename "$archive" bz2)
-            xzbase=$(basename "$archive" xz)
+            base=$(basename "$package")
+            gzbase=$(basename "$package" gz)
+            bz2base=$(basename "$package" bz2)
+            xzbase=$(basename "$package" xz)
             if [ "$base" != "$gzbase" ]
             then
                 echo "  Extracting $base..."
-                gzip -dc "$archive" | tar -C "$root" -xpf -
+                gzip -dc "$package" | tar -C "$root" -xpf -
             elif [ "$base" != "$bz2base" ]
             then
                 echo "  Extracting $base..."
-                bzip2 -dc "$archive" | tar -C "$root" -xpf -
+                bzip2 -dc "$package" | tar -C "$root" -xpf -
             elif [ "$base" != "$xzbase" ]
             then
                 echo "  Extracting $base..."
-                xz -dc "$archive" | tar -C "$root" -xpf -
+                xz -dc "$package" | tar -C "$root" -xpf -
             else
                 echo "  Skipping $base"
             fi
@@ -365,11 +367,11 @@ cmd_installextra() {
 cmd_mklndircpio() {
     test -n "$1" -a -n "$2" || die "Missing param"
     test -d "$1" || die "Not a directory [$1]"
-    archive=$2
+    cpio_archive=$2
     prefix=${3:-/hostfs/rootfs}
     tmpd=$tmp/mklndircpio$$
-    echo $archive | grep -q "^/" || $archive=$top/$archive
-    rm -f $archive
+    echo $cpio_archive | grep -q "^/" || cpio_archive=$top/$cpio_archive
+    rm -f $cpio_archive
     cd $1
     lndirs=$(find ./usr/include ./usr/lib ./usr/lib64 -mindepth 1 -maxdepth 1 -type d)
     excludedirs=
@@ -390,7 +392,7 @@ cmd_mklndircpio() {
 	rm -rf $tmpd/$n
 	ln -s $prefix/$n $tmpd/$n || die "Can't create link [$tmpd/$n]"
     done
-    echo $items | tr ' ' '\n' | cpio -o -H newc > $archive
+    echo $items | tr ' ' '\n' | cpio -o -H newc > $cpio_archive
 }
 
 ##   mkcpio
@@ -409,6 +411,7 @@ cmd_default() {
     if find rootfs -name opensafd >& /dev/null; then
 	echo "OpenSAF seems to be installed already, cowardly refusing..."
 	echo "   Remove directory 'rootfs' if a fresh install is needed"
+	rm -rf "$tmp"
 	exit 0
     fi
 
@@ -443,6 +446,7 @@ cmd_generate_immxml() {
 
     if test ! -d rootfs ; then
 	echo "   This command requires an existing 'rootfs' directory"
+	rm -rf "$tmp"
 	exit 0
     fi
 
@@ -456,7 +460,7 @@ cmd_generate_immxml() {
     then
 	die "Failed to generate immxml"
     fi
-    cp -f imm_generated.xml $top/rootfs/etc/opensaf/imm.xml
+    cp -f imm_generated.xml $root/etc/opensaf/imm.xml
     cd $top
     echo "generate_immxml complete."
 }
