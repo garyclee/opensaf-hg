@@ -135,7 +135,7 @@ extern "C" {
 
 	typedef struct ImmsvOmAdminOwnerInitialize {
 		SaNameT adminOwnerName;
-		SaBoolT releaseOwnershipOnFinalize;
+		bool releaseOwnershipOnFinalize;
 	} IMMSV_OM_ADMIN_OWNER_INITIALIZE;
 
 	typedef struct ImmsvOmCcbInitialize {
@@ -236,8 +236,8 @@ extern "C" {
 		SaUint32T id;
 		SaUint32T nodeId;
 		IMMSV_OCTET_STRING adminOwnerName;
-		SaBoolT releaseOnFinalize;
-		SaBoolT isDying;
+		bool releaseOnFinalize;
+		bool isDying;
 		IMMSV_OBJ_NAME_LIST *touchedObjects;
 		struct ImmsvAdmoList *next;
 	} IMMSV_ADMO_LIST;

@@ -18514,10 +18514,10 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             ImmsvAdmoList* ai = (ImmsvAdmoList *) 
                 calloc(1, sizeof(ImmsvAdmoList));
             ai->id = (*i)->mId;
-            ai->releaseOnFinalize = (SaBoolT) (*i)->mReleaseOnFinalize;
+            ai->releaseOnFinalize = (*i)->mReleaseOnFinalize;
 
             if(ai->releaseOnFinalize) {
-                ai->isDying = (SaBoolT) (*i)->mDying;
+                ai->isDying = (*i)->mDying;
             } else {
                 osafassert(!(*i)->mDying);
             }
