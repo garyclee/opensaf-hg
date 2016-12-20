@@ -1071,10 +1071,6 @@ uint32_t amfd_switch_actv_qsd(AVD_CL_CB *cb)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (NCSCC_RC_SUCCESS != avd_rde_set_role(SA_AMF_HA_QUIESCED)) {
-		LOG_ER("rde role change failed from actv -> qsd");
-	}
-
 	/* We need to send the role to AvND. */
 	rc = avd_avnd_send_role_change(cb, cb->node_id_avd, cb->avail_state_avd);
 	if (NCSCC_RC_SUCCESS != rc) {
@@ -1128,10 +1124,6 @@ uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 	if (NCSCC_RC_SUCCESS != (status = avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))) {
 		LOG_ER("Switch Quiesced --> StandBy, MBCSv dispatch failed");
 		return NCSCC_RC_FAILURE;
-	}
-
-	if (NCSCC_RC_SUCCESS != avd_rde_set_role(SA_AMF_HA_STANDBY)) {
-		LOG_ER("rde role change failed from qsd -> stdby");
 	}
 
 	/* Walk through all the nodes and  free PG records. */
