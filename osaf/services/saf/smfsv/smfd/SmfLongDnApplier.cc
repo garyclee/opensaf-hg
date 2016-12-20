@@ -419,7 +419,7 @@ void SmfLongDnApplier::SendCommandToThread(th_cmd command) {
       cmd_str = CMD_REMOVE;
       break;
     default:
-      LOG_ER("%s: Unknown command %d", __FUNCTION__, command);
+      LOG_ER("%s: Unknown command", __FUNCTION__);
       osaf_abort(0);
   }
 
