@@ -1019,7 +1019,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	osaf_extended_name_alloc(adminOwnerName,
 			&evt.info.immnd.info.adminitReq.i.adminOwnerName);
 	if (releaseOwnershipOnFinalize) {
-		evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = SA_TRUE;
+		evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = true;
 		/* Release on finalize can not be undone in case of IMMND crash.
 		   The om-handle can then not be resurrected unless this admin-owner
 		   has been finalized before the IMMND crash.
@@ -9152,7 +9152,7 @@ static bool imma_re_initialize_admin_owners(IMMA_CB *cb, SaImmHandleT immHandle)
 	evt.info.immnd.info.adminitReq.client_hdl = immHandle;
 	osaf_extended_name_alloc(adm_found_node->mAdminOwnerName,
 			&evt.info.immnd.info.adminitReq.i.adminOwnerName);
-	evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = SA_FALSE;
+	evt.info.immnd.info.adminitReq.i.releaseOwnershipOnFinalize = false;
 	
 	temp_hdl = adm_found_node->admin_owner_hdl;
 	timeout = cl_node->syncr_timeout;
