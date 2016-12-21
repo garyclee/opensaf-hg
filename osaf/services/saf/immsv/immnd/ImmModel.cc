@@ -2862,6 +2862,7 @@ ImmModel::abortSync()
                         dRtAU.attrModsList = NULL;
                         attrUpdList->pop_front();
                     }
+                    delete attrUpdList;
                     sDeferredObjUpdatesMap.erase(doumIter);
                 }
             }
