@@ -31,7 +31,7 @@ opensafd_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
 opensafd_SOURCES = \
-	nodeinit.c
+	nodeinit.cc
 
 opensafd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la

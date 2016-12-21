@@ -63,10 +63,17 @@
 #include <configmake.h>
 #include <rda_papi.h>
 #include <logtrace.h>
+
+#include <string>
+#include <vector>
+#include <cerrno>
+#include <cstdio>
+
 #include "osaf_poll.h"
 #include "osaf_time.h"
 
 #include "nodeinit.h"
+#include "osaf/libs/core/cplusplus/base/file_notify.h"
 
 #define SETSIG(sa, sig, fun, flags) \
 	do { \
@@ -111,11 +118,46 @@ static uint32_t recovery_action(NID_SPAWN_INFO *, char *, int);
 static uint32_t spawn_services(char *);
 static void nid_sleep(uint32_t);
 
+/* Functions used for service monitoring */
+static uint32_t create_svc_monitor_thread(void);
+static void* svc_monitor_thread(void *fd);
+static int handle_data_request(struct pollfd *fds, const std::string &nid_name);
+static void handle_svc_exit(int fd);
+static std::string get_svc_name(int fd);
+static int start_monitor_svc(const char *svc);
+
+/* Data declarations for service monitoring */
+static int svc_mon_fd = -1;
+static int next_svc_fds_slot = 0;
+
+struct SvcMap {
+  std::string nid_name;
+  std::string fifo_file;
+  int fifo_fd;
+};
+
+static std::vector<SvcMap> svc_map = {
+  {"AMFD", "osafamfd.fifo", -1},
+  {"TRANSPORT", "osaftransportd.fifo", -1},
+  {"CLMNA", "osafclmna.fifo", -1},
+  {"RDED", "osafrded.fifo", -1},
+  {"HLFM", "osaffmd.fifo", -1},
+  {"IMMD", "osafimmd.fifo", -1},
+  {"IMMND", "osafimmnd.fifo", -1},
+  {"LOGD", "osaflogd.fifo", -1},
+  {"NTFD", "osafntfd.fifo", -1},
+  {"PLMD", "osafplmd.fifo", -1},
+  {"CLMD", "osafclmd.fifo", -1}
+};
+static const std::string fifo_dir = PKGLOCALSTATEDIR;
+const int kMaxNumOfFds = 40;
+const int kTenSecondsInMilliseconds = 10000;
+
 /* List of recovery strategies */
 NID_FUNC recovery_funcs[] = { spawn_wait  };
 NID_FORK_FUNC fork_funcs[] = { fork_process, fork_script, fork_daemon };
 
-char *nid_recerr[NID_MAXREC][4] = {
+const char *nid_recerr[NID_MAXREC][4] = {
 	{"Trying To RESPAWN", "Could Not RESPAWN", "Succeeded To RESPAWN", "FAILED TO RESPAWN"},
 	{"Trying To RESET", "Faild to RESET", "suceeded To RESET", "FAILED AFTER RESTART"}
 };
@@ -167,10 +209,10 @@ char *gettoken(char **str, uint32_t tok)
 		return (NULL);
 	}
 
-	while ((*p != tok) && (*p != '\n') && *p)
+	while ((*p != static_cast<int>(tok)) && (*p != '\n') && *p)
 		p++;
 
-	if ((*p == tok) || (*p == '\n')) {
+	if ((*p == static_cast<int>(tok)) || (*p == '\n')) {
 		*p++ = 0;
 		*str = p;
 	}
@@ -522,7 +564,7 @@ uint32_t parse_nodeinit_conf(char *strbuf)
 	NID_SPAWN_INFO *childinfo;
 	char buff[256], sbuf[200], *ch, *ch1, tmp[30], nidconf[256];
 	uint32_t lineno = 0, retry = 0;
-	struct nid_resetinfo info = { {""}, -1 };
+	struct nid_resetinfo info = { {""}, static_cast<uint32_t>(-1) };
 	FILE *file, *ntfile;
 
 	TRACE_ENTER();
@@ -565,7 +607,7 @@ uint32_t parse_nodeinit_conf(char *strbuf)
 		}
 
 		/* Allocate mem for new child info */
-		while ((childinfo = malloc(sizeof(NID_SPAWN_INFO))) == NULL) {
+		while ((childinfo = reinterpret_cast<NID_SPAWN_INFO*>(malloc(sizeof(NID_SPAWN_INFO)))) == nullptr) {
 			if (retry++ == 5) {
 				sprintf(strbuf, "FAILURE: Out of memory\n");
 				return NCSCC_RC_FAILURE;
@@ -994,6 +1036,8 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 		break;
 	}
 
+	waitpid(pid, nullptr, WNOHANG);
+
 	/* Read the message from FIFO and fill in structure. */
 	while ((n = read(select_fd, buff1, sizeof(buff1))) <= 0) {
 		if (errno == EINTR) {
@@ -1263,7 +1307,7 @@ uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff, int reason)
 		if (service->recovery_matrix[opt].retry_count == 0) {
 			if (count != 0)
 				LOG_ER("%s", nid_recerr[opt][3]);
-			opt++;
+			opt = static_cast<NID_RECOVERY_OPT>(static_cast<int>(opt) + 1);
 			continue;
 		}
 	}
@@ -1285,8 +1329,7 @@ uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff, int reason)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-uint32_t spawn_services(char *strbuf)
-{
+uint32_t spawn_services(char *strbuf) {
 	NID_SPAWN_INFO *service;
 	NID_CHILD_LIST sp_list = spawn_list;
 	char sbuff[100];
@@ -1322,12 +1365,240 @@ uint32_t spawn_services(char *strbuf)
 		if (strlen(sbuff) > 0)
 			LOG_NO("%s", sbuff);
 
+		if (start_monitor_svc(service->serv_name) != NCSCC_RC_SUCCESS) {
+			exit(EXIT_FAILURE);
+		}
+
 		sp_list.head = sp_list.head->next;
 	}
 
 	TRACE_LEAVE();
 	
 	return NCSCC_RC_SUCCESS;
+}
+
+int start_monitor_svc(const char *svc) {
+  int rc = NCSCC_RC_SUCCESS;
+  char svc_name[NID_MAXSNAME];
+
+  TRACE_ENTER2("service: %s", svc);
+
+  snprintf(svc_name, sizeof(svc_name), "%s", svc);
+
+  while (true) {
+    ssize_t write_rc = write(svc_mon_fd, svc_name, strlen(svc_name));
+    if (write_rc == -1) {
+      if (errno == EINTR) {
+        continue;
+      } else {
+        LOG_ER("Failed to start sevice %s, error: %s",
+               svc_name, strerror(errno));
+        rc = NCSCC_RC_FAILURE;
+        break;
+      }
+    }
+    break;
+  }
+  TRACE_LEAVE();
+  return rc;
+}
+
+int handle_data_request(struct pollfd *fds, const std::string &nid_name) {
+  base::FileNotify file_notify;
+  base::FileNotify::FileNotifyErrors notify_rc;
+  int rc = NCSCC_RC_SUCCESS;
+  int fifo_fd = -1;
+
+  TRACE_ENTER2("service: %s", nid_name.c_str());
+
+  for (auto &svc : svc_map) {
+    if (nid_name == svc.nid_name) {
+      std::string fifo_file = fifo_dir + "/" + svc.fifo_file;
+      notify_rc = file_notify.WaitForFileCreation(fifo_file,
+                                                  kTenSecondsInMilliseconds);
+      if (notify_rc != base::FileNotify::FileNotifyErrors::kOK) {
+        LOG_ER("fifo file %s does not exist, notify rc: %d",
+               fifo_file.c_str(), notify_rc);
+        rc = NCSCC_RC_FAILURE;
+        break;
+      }
+      int retry_cnt = 0;
+      do {
+        if (retry_cnt > 0) {
+          osaf_nanosleep(&kHundredMilliseconds);
+        }
+        fifo_fd = open(fifo_file.c_str(), O_WRONLY | O_NONBLOCK);
+      } while ((fifo_fd == -1) &&
+               (retry_cnt++ < 5 && (errno == EINTR || errno == ENXIO)));
+
+      if (fifo_fd == -1) {
+        LOG_ER("Failed to open %s, error: %s", fifo_file.c_str(),
+               strerror(errno));
+        rc = NCSCC_RC_FAILURE;
+        break;
+      } else {
+        if (next_svc_fds_slot >= kMaxNumOfFds) {
+          LOG_ER("File descriptor table full");
+          rc = NCSCC_RC_FAILURE;
+          break;
+        } else {
+          svc.fifo_fd = fifo_fd;
+          fds[next_svc_fds_slot].fd = fifo_fd;
+          fds[next_svc_fds_slot].events = POLLIN;
+          next_svc_fds_slot++;
+          LOG_NO("Monitoring of %s started", nid_name.c_str());
+          break;
+        }
+      }
+    }
+  }
+  TRACE_LEAVE();
+  return rc;
+}
+
+std::string get_svc_name(int fd) {
+  std::string svc_name;
+
+  for (auto const& svc : svc_map) {
+    if (fd == svc.fifo_fd) {
+      svc_name = svc.nid_name;
+      break;
+    }
+  }
+  return svc_name;
+}
+
+void handle_svc_exit(int fd) {
+  const std::string &svc_name = get_svc_name(fd);
+
+  if (svc_name.size() != 0) {
+    LOG_ER("Service %s has unexpectedly crashed. Unable to continue, exiting",
+           svc_name.c_str());
+    exit(EXIT_FAILURE);
+  } else {
+    LOG_NO("fd %d was not found in service map", fd);
+  }
+}
+
+/****************************************************************************
+ * Name          : svc_monitor_thread                                       *
+ *                                                                          *
+ * Description   : creates the service monitor thread                       *
+ *                                                                          *
+ * Arguments     : -                                                        *
+ *                                                                          *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
+ *                                                                          *
+ ***************************************************************************/
+void* svc_monitor_thread(void *fd) {
+  char nid_name[NID_MAXSNAME];
+  int svc_mon_thr_fd = *(reinterpret_cast<int*>(fd));
+  enum {
+    FD_SVC_MON_THR = 0
+  };
+
+  struct pollfd *fds;
+
+  fds = new pollfd[kMaxNumOfFds];
+  osafassert(fds != nullptr);
+  ssize_t read_rc = -1;
+
+  fds[FD_SVC_MON_THR].fd = svc_mon_thr_fd;
+  fds[FD_SVC_MON_THR].events = POLLIN;
+  next_svc_fds_slot++;
+  
+  while (true) {
+    unsigned rc = osaf_poll(fds, next_svc_fds_slot, -1);
+    if (rc > 0) {
+      // check if any monitored service has exit
+      for (int i = next_svc_fds_slot - 1; i > 0; --i) {
+        if ((fds[i].revents & POLLIN) ||
+            (fds[i].revents & POLLHUP) ||
+            (fds[i].revents & POLLERR)) {
+          handle_svc_exit(fds[i].fd);
+        }
+      }
+
+      if (fds[FD_SVC_MON_THR].revents & POLLIN) {
+        while (true) {
+          read_rc = read(svc_mon_thr_fd, nid_name, NID_MAXSNAME);
+          if (read_rc == -1) {
+            if (errno == EINTR) {
+              continue;
+            } else {
+              LOG_ER("Failed to read on socketpair descriptor: %s",
+                     strerror(errno));
+              exit(EXIT_FAILURE);
+            }
+          }
+          osafassert(read_rc < NID_MAXSNAME);
+          nid_name[read_rc] = '\0';
+          break;
+        }
+        if (handle_data_request(fds, nid_name) != NCSCC_RC_SUCCESS) {
+          LOG_ER("Failed to start monitoring for service %s, exiting",
+                 nid_name);
+          exit(EXIT_FAILURE);
+        }
+      }
+    } else {
+      LOG_ER("osaf_poll timed out and no descriptors are ready, exiting");
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
+/****************************************************************************
+ * Name          : create_svc_monitor_thread                                *
+ *                                                                          *
+ * Description   : creates the service monitor thread                       *
+ *                                                                          *
+ * Arguments     : -                                                        *
+ *                                                                          *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
+ *                                                                          *
+ ***************************************************************************/
+uint32_t create_svc_monitor_thread(void) {
+  int s_pair[2];
+  int svc_mon_thr_fd = -1;
+  pthread_t thread;
+  pthread_attr_t attr;
+
+  TRACE_ENTER();
+
+  if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, s_pair) == -1) {
+    LOG_ER("socketpair FAILED: %s", strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
+
+  svc_mon_fd = s_pair[0];
+  svc_mon_thr_fd = s_pair[1];
+
+  TRACE("sd1: %d sd2: %d", svc_mon_fd, svc_mon_thr_fd);
+
+  if (pthread_attr_init(&attr) != 0) {
+    LOG_ER("pthread_attr_init FAILED: %s", strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
+
+  if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
+    LOG_ER("pthread_setdetachstate FAILED: %s", strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
+
+  if (pthread_create(&thread, &attr, svc_monitor_thread,
+  reinterpret_cast<void*>(&svc_mon_thr_fd)) != 0) {
+    LOG_ER("pthread_create FAILED: %s", strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
+
+  if (pthread_attr_destroy(&attr) != 0) {
+    LOG_ER("pthread_attr_destroy FAILED: %s", strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
+
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1362,6 +1633,11 @@ int main(int argc, char *argv[])
 
 	if (logtrace_init(basename(argv[0]), tracefile, 0) != 0) {
 		LOG_ER("Failed to init logtrace, exiting");
+		exit(EXIT_FAILURE);
+	}
+
+	if (create_svc_monitor_thread() != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed to create service monitor thread, exiting");
 		exit(EXIT_FAILURE);
 	}
 
