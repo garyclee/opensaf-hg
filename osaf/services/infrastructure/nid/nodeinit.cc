@@ -1418,7 +1418,7 @@ int handle_data_request(struct pollfd *fds, const std::string &nid_name) {
                                                   kTenSecondsInMilliseconds);
       if (notify_rc != base::FileNotify::FileNotifyErrors::kOK) {
         LOG_ER("fifo file %s does not exist, notify rc: %d",
-               fifo_file.c_str(), notify_rc);
+               fifo_file.c_str(), static_cast<int>(notify_rc));
         rc = NCSCC_RC_FAILURE;
         break;
       }
