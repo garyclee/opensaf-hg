@@ -35,14 +35,23 @@ export LD_LIBRARY_PATH=$libdir:$LD_LIBRARY_PATH
 # Remove the following line when customizing this script.
 exit 0
 
-cd "$pkgimmxmldir"
-immfind -c SaClmNode | sed -e 's/^[^=]*=//;s/,.*$//' > nodes.cfg.tmp
+tmpdir=$(mktemp -d -t opensaf_scale_out.XXXXXXXXXX)
+destructor() {
+  rm -rf "$tmpdir"
+}
+trap destructor EXIT
+
+nodes_cfg=$tmpdir/nodes.cfg
+nodes_cfg_tmp=$tmpdir/nodes.cfg.tmp
+imm_xml=$tmpdir/imm.xml
+
+immfind -c SaClmNode | sed -e 's/^[^=]*=//;s/,.*$//' > "$nodes_cfg_tmp"
 for node in "$@"; do
     node_name=$(echo "$node" | cut -d, -f2)
-    echo "$node_name" >> nodes.cfg.tmp
+    echo "$node_name" >> "$nodes_cfg_tmp"
 done
-rm -f nodes.cfg
-for node in $(sort < nodes.cfg.tmp | uniq); do
+rm -f "$nodes_cfg"
+for node in $(sort < "$nodes_cfg_tmp" | uniq); do
     case "$node" in
     PL*)
 	node_type=PL
@@ -51,7 +60,7 @@ for node in $(sort < nodes.cfg.tmp | uniq); do
 	node_type=SC
 	;;
     esac
-    echo "$node_type $node $node" >> nodes.cfg
+    echo "$node_type $node $node" >> "$nodes_cfg"
 done
-rm -f nodes.cfg.tmp imm_generated.xml
-./immxml-configure imm_generated.xml && immcfg -f imm_generated.xml
+cd "$pkgimmxmldir" || exit
+./immxml-configure -c "$nodes_cfg" "$imm_xml" && immcfg -f "$imm_xml"
