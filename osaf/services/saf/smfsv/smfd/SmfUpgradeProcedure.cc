@@ -2002,9 +2002,13 @@ SmfUpgradeProcedure::addStepModificationsNode(SmfUpgradeStep * i_newStep, const 
 	SaImmAttrValuesT_2 **attributes;
 	std::list < std::string > objectList;
 	std::list < std::string >::const_iterator objit;
-	const std::string & auNodeName = i_newStep->getActivationUnitList().front().name;
+	std::string auNodeName = "";
 	std::multimap<std::string, objectInst>::iterator iter;
 	std::pair<std::multimap<std::string, objectInst>::iterator, std::multimap<std::string, objectInst>::iterator> nodeName_mm;
+
+        if (i_newStep->getActivationUnitList().size() > 0) {
+                auNodeName = i_newStep->getActivationUnitList().front().name;
+        }
 
 	nodeName_mm = i_objects.equal_range(auNodeName);
 
