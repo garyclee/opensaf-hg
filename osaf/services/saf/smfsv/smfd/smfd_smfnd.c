@@ -151,11 +151,11 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 	rc = saClmClusterNodeGet(clmHandle, i_node_id,
 				 10000000000LL, &clmInfo);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saClmClusterNodeGet failed, rc=%s", saf_error(rc));
+		LOG_WA("saClmClusterNodeGet failed, rc=%s", saf_error(rc));
 		if (newNode) free(smfnd);
 		rc = saClmFinalize(clmHandle);
 		if (rc != SA_AIS_OK) {
-			LOG_ER("saClmFinalize failed, rc=%s", saf_error(rc));
+			LOG_WA("saClmFinalize failed, rc=%s", saf_error(rc));
 		}
 		pthread_mutex_unlock(&smfnd_list_lock);
 		return NCSCC_RC_FAILURE;
@@ -163,7 +163,7 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 
 	rc = saClmFinalize(clmHandle);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("saClmFinalize failed, rc=%s", saf_error(rc));
+		LOG_WA("saClmFinalize failed, rc=%s", saf_error(rc));
 	}
 
 	/* Store cluster node info */
@@ -225,7 +225,7 @@ uint32_t smfnd_down(SaClmNodeIdT i_node_id)
         }
 
         pthread_mutex_unlock(&smfnd_list_lock);
-        LOG_ER("node id [%x] not found for state update DOWN", i_node_id);
+        LOG_WA("node id [%x] not found for state update DOWN", i_node_id);
         return NCSCC_RC_FAILURE;
 }
 
