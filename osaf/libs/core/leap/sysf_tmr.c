@@ -472,10 +472,9 @@ bool sysfTmrCreate(void)
 {
 	NCS_PATRICIA_PARAMS pat_param;
 	uint32_t rc = NCSCC_RC_SUCCESS;
+	bool prev_tmr_destroying;
 
-	if (ncs_tmr_create_done == false)
-		ncs_tmr_create_done = true;
-	else
+	if (ncs_tmr_create_done == true)
 		return true;
 
 	/* Empty Timer Service control block. */
@@ -494,14 +493,19 @@ bool sysfTmrCreate(void)
 
 	rc = ncs_patricia_tree_init(&gl_tcb.tmr_pat_tree, &pat_param);
 	if (rc != NCSCC_RC_SUCCESS) {
-		return NCSCC_RC_FAILURE;
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.enter_lock);
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.free_lock);
+		return false;
 	}
 
 	rc = m_NCS_SEL_OBJ_CREATE(&gl_tcb.sel_obj);
 	if (rc != NCSCC_RC_SUCCESS) {
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
-		return NCSCC_RC_FAILURE;
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.enter_lock);
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.free_lock);
+		return false;
 	}
+	prev_tmr_destroying = tmr_destroying;
 	tmr_destroying = false;
 
 	/* create expiry thread */
@@ -515,17 +519,26 @@ bool sysfTmrCreate(void)
 			      0,
 			      (char *)"OSAF_TMR",
 			      prio_val, policy, NCS_TMR_STACKSIZE, &gl_tcb.p_tsk_hdl) != NCSCC_RC_SUCCESS) {
+		tmr_destroying = prev_tmr_destroying;
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 		m_NCS_SEL_OBJ_DESTROY(&gl_tcb.sel_obj);
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.enter_lock);
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.free_lock);
 		return false;
 	}
 
 	if (m_NCS_TASK_START(gl_tcb.p_tsk_hdl) != NCSCC_RC_SUCCESS) {
+		tmr_destroying = prev_tmr_destroying;
 		m_NCS_TASK_RELEASE(gl_tcb.p_tsk_hdl);
 		ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 		m_NCS_SEL_OBJ_DESTROY(&gl_tcb.sel_obj);
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.enter_lock);
+		m_NCS_LOCK_DESTROY(&gl_tcb.safe.free_lock);
 		return false;
 	}
+
+	ncs_tmr_create_done = true;
+
 	return true;
 }
 
