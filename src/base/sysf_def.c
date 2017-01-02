@@ -95,7 +95,7 @@ uint32_t leap_env_init(void)
 
 #if (NCSL_ENV_INIT_TMR == 1)
 	/* initialize LEAP Timer Service */
-	if (sysfTmrCreate() != NCSCC_RC_SUCCESS) {
+	if (!sysfTmrCreate()) {
 		printf("\nleap_env_init: FAILED to initialize Timer Service\n");
 		return NCSCC_RC_FAILURE;
 	}
