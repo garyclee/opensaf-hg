@@ -178,76 +178,245 @@ Linux environment:
 Source Tree Structure
 =====================
 
-   |+-contrib/
-   |  | +-plmc/         (The PLM coordinator implementation)
-   +-java/              (Java AIS API mapping Implementation for AMF,CLM)
-   |  |+-ais_api/
-   |  |+-ais_api_impl/
-   |  |+-ais_api_impl_native/
-   |  |+-ais_api_test/
-   +-m4/                (Extra M4 macros for the build)
-   +-osaf/      (OpenSAF Sources)
-   |  +-libs/   (Sources of OpenSAF Libraries)
-   |  |    |+-agents/ (sources for OpenSAF agents)
-   |  |    |    |+-infrastructure/ (Agents of Infrastructure services)
-   |  |    |    |       |+-rda/
-   |  |    |    |+-saf/ (Agents of SAF services)
-   |  |    |            |+-amfa/
-   |  |    |            |+-clma/
-   |  |    |            |+-cpa/
-   |  |    |            |+-eda/
-   |  |    |            |+-gla/
-   |  |    |            |+-imma/
-   |  |    |            |+-lga/
-   |  |    |            |+-mqa/
-   |  |    |            |+-ntfa/
-   |  |    |            |+-plma/
-   |  |    |+-common/ (Common sources for OpenSAF services)
-   |  |    |+-core/ (OpenSAF core library)
-   |  |    |            |+-common/
-   |  |    |            |+-include/
-   |  |    |            |+-leap/
-   |  |    |            |+-mbcsv/
-   |  |    |            |+-mds/
-   |  |    |+-saf/ (SAF Libraries)
-   |  |                 |+-include/
-   |  |                 |+-libSaAmf/
-   |  |                 |+-libSaCkpt/
-   |  |                 |+-libSaEvt/
-   |  |                 |+-libSaImm/
-   |  |                 |+-libSaLck/
-   |  |                 |+-libSaLog/
-   |  |                 |+-libSaMsg/
-   |  |                 |+-libSaNtf/
-   |  |                 |+-libSaPlm/
-   |  |+-services/ (Sources, Config files for Directors/ND/Servers of OpenSAF
-   |  |         |   services)
-   |  |         |+-infrastructure/ (Infrastructure services)
-   |  |         |       |+-dtms/
-   |  |         |       |+-fm/
-   |  |         |       |+-nid/
-   |  |         |       |+-rde/
-   |  |         |+-saf/ (SAF services)
-   |  |                 |+-amf/
-   |  |                 |+-clmsv/
-   |  |                 |+-cpsv/
-   |  |                 |+-edsv/
-   |  |                 |+-glsv/
-   |  |                 |+-immsv/
-   |  |                 |+-logsv/
-   |  |                 |+-mqsv/
-   |  |                 |+-ntfsv/
-   |  |                 |+-plmsv/
-   |  |                 |+-smfsv/
-   |  |+-tools/
-   |           |+-safimm (IMM commandline utilities and IMM XML merge tool)
-   |           |+-saflog (SAFLOG command line utility)
-   |           |+-safntf (SAFNTF command line utility)
-   |+-pkgconfig/ (OpenSAF Pkgconfig file)
-   |+-samples/ (OpenSAF sample applications for SAF services)
-   |+-scripts/ (OpenSAF scripts)
-   |+-tests/ (OpenSAF Test suites)
-   |+-tools (OpenSAF developer tools and UML devel environment)
+.
++-- bin  (Built executables)
++-- java  (Java source code)
+|   +-- ais_api
+|   |   +-- src
+|   |       +-- org
+|   |           +-- saforum
+|   |               +-- ais
+|   |                   +-- amf
+|   |                   +-- clm
+|   +-- ais_api_impl  (Java AIS API mapping Implementation for AMF,CLM)
+|   |   +-- src
+|   |       +-- org
+|   |           +-- opensaf
+|   |               +-- ais
+|   |                   +-- amf
+|   |                   +-- clm
+|   +-- am4j_sailfin
+|   |   +-- amf-configuration
+|   |   +-- clc-cli-scripts
+|   +-- amf_agent
+|   |   +-- src
+|   |       +-- com
+|   |           +-- ericsson
+|   |               +-- saf
+|   |                   +-- amf
+|   +-- apitest  (OpenSAF Test suites)
+|       +-- configandscript
+|       +-- src
+|           +-- org
+|               +-- opensaf
+|                   +-- ais
+|                       +-- amf
+|                       |   +-- test
+|                       +-- clm
+|                       |   +-- test
+|                       +-- test
++-- lib  (Built libraries)
++-- m4  (Extra M4 macros for the build)
++-- pkgconfig  (OpenSAF Pkgconfig file)
++-- python  (Python source code)
+|   +-- pyosaf
+|   |   +-- utils
+|   |       +-- clm
+|   |       +-- immoi
+|   |       +-- immom
+|   |       +-- log
+|   |       +-- ntf
+|   +-- samples
++-- rpms  (Built RPMs)
++-- samples  (OpenSAF sample applications for SAF services)
+|   +-- amf
+|   |   +-- campaigns
+|   |   +-- non_sa_aware
+|   |   +-- proxy
+|   |   +-- sa_aware
+|   |   +-- wrapper
+|   +-- cpsv
+|   |   +-- ckpt_demo
+|   |   +-- ckpt_track_demo
+|   +-- edsv
+|   +-- glsv
+|   +-- immsv
+|   |   +-- immom_python
+|   |   +-- immutils
+|   +-- m4
+|   +-- mqsv
+|   +-- smfsv
+|       +-- campaigns
++-- scripts  (OpenSAF scripts)
++-- src  (C and C++ source code)
+|   +-- amf
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- amfd
+|   |   |   +-- tests
+|   |   +-- amfnd
+|   |   +-- amfwd
+|   |   +-- common
+|   |   +-- config
+|   |   +-- saf
+|   |   +-- tools
+|   +-- base  (OpenSAF base library)
+|   |   +-- tests
+|   +-- ckpt
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- ckptd
+|   |   +-- ckptnd
+|   |   +-- common
+|   |   +-- config
+|   |   +-- saf
+|   +-- clm
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- clmd
+|   |   +-- clmnd
+|   |   +-- common
+|   |   +-- config
+|   |   +-- saf
+|   +-- dtm
+|   |   +-- dtmnd
+|   |   +-- transport
+|   |       +-- tests
+|   +-- evt
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- common
+|   |   +-- config
+|   |   +-- evtd
+|   |   +-- saf
+|   +-- fm
+|   |   +-- config
+|   |   +-- fmd
+|   +-- imm
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   |   +-- implementer
+|   |   |   +-- management
+|   |   +-- common
+|   |   +-- config
+|   |   +-- immd
+|   |   +-- immloadd
+|   |   +-- immnd
+|   |   +-- immpbed
+|   |   +-- saf
+|   |   +-- tools  (IMM commandline utilities and IMM XML merge tool)
+|   +-- lck
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- common
+|   |   +-- config
+|   |   +-- lckd
+|   |   +-- lcknd
+|   |   +-- saf
+|   +-- libjava
+|   +-- log
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- common
+|   |   +-- config
+|   |   +-- logd
+|   |   +-- saf
+|   |   +-- tools  (SAFLOG command line utility)
+|   +-- mbc
+|   |   +-- apitest  (OpenSAF Test suites)
+|   +-- mds
+|   |   +-- apitest  (OpenSAF Test suites)
+|   +-- msg
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- common
+|   |   +-- config
+|   |   +-- msgd
+|   |   +-- msgnd
+|   |   +-- saf
+|   +-- nid
+|   |   +-- agent  (sources for OpenSAF agents)
+|   +-- ntf
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- common
+|   |   +-- config
+|   |   +-- ntfd
+|   |   +-- ntfimcnd
+|   |   +-- saf
+|   |   +-- tools  (SAFNTF command line utility)
+|   +-- osaf
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- config
+|   |   +-- immutil
+|   |   +-- saf
+|   |   +-- saflog
+|   +-- plm
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- apitest  (OpenSAF Test suites)
+|   |   +-- common
+|   |   +-- config
+|   |   +-- plmcd
+|   |   +-- plmd
+|   |   +-- saf
+|   +-- rde
+|   |   +-- agent  (sources for OpenSAF agents)
+|   |   +-- common
+|   |   +-- config
+|   |   +-- rded
+|   |   +-- tools
+|   +-- smf
+|       +-- agent  (sources for OpenSAF agents)
+|       +-- common
+|       +-- config
+|       +-- saf
+|       +-- scripts
+|       +-- smfd
+|       +-- smfnd
+|       +-- tools
++-- tools  (OpenSAF developer tools and UML devel environment)
+    +-- cluster_sim_uml
+    |   +-- archive
+    |   |   +-- scripts
+    |   +-- etc
+    |   |   +-- init.d
+    |   +-- uml
+    |       +-- bin
+    |       +-- config
+    |       +-- root_template
+    |           +-- bin
+    |           +-- dev
+    |           |   +-- pts
+    |           |   +-- shm
+    |           +-- etc
+    |           |   +-- init.d
+    |           +-- home
+    |           +-- lib
+    |           |   +-- modules
+    |           +-- lib64
+    |           +-- opt
+    |           +-- proc
+    |           +-- root
+    |           |   +-- www
+    |           |       +-- cgi-bin
+    |           +-- sbin
+    |           +-- sys
+    |           +-- tmp
+    |           +-- usr
+    |           |   +-- bin
+    |           |   +-- sbin
+    |           +-- var
+    |               +-- lib
+    |               |   +-- opensaf
+    |               +-- log
+    |               |   +-- opensaf
+    |               +-- run
+    |                   +-- opensaf
+    +-- devel
+        +-- dot
+        +-- doxygen
+        +-- indent
+        +-- model
+        +-- review
 
 Prerequisites
 =============
@@ -256,10 +425,10 @@ The following software is required to build OpenSAF:
 
     * libc6-dev (2.11 or later)
     * libxml2-dev (2.7 or later)
-    * automake
+    * automake (1.11.1 or later)
     * m4
-    * autoconf (2.61 or later)
-    * libtool
+    * autoconf (2.64 or later)
+    * libtool (2.2.6 or later)
     * pkg-config
     * gcc/g++ (4.8.1 or later)
     * GNU make
@@ -273,7 +442,7 @@ The following software is required to build OpenSAF:
         * When IMM PBE feature is enabled, libsqlite3-dev (3.6 or later)
 
     If enabling optional Java support:
-        - A Java 1.5+ capable JDK (e.g. OpenJDK 1.6)
+        - A Java 1.5+ capable JDK (e.g. OpenJDK 1.7)
         - Apache Ant
 
 If a specific prerequisite package revision isn't working for you, please let us
