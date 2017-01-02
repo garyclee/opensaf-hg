@@ -1,6 +1,0 @@
-AM_CPPFLAGS = $(all_includes)
-AM_CFLAGS = -fPIC -Wall
-#AM_CFLAGS = -fPIC -Wall -Werror
-
-systemddir = $(systemdsystemunitdir)
-lsbinitdir = $(initscriptdir)
