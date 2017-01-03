@@ -57,6 +57,7 @@ Source: http://download.opensaf.org/releases/%{name}-%{version}.tar.gz
 Packager: @OPENSAF_BUGREPORT@
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if %use_systemd
+BuildRequires: systemd
 %systemd_requires
 %endif
 Requires(pre): /usr/bin/getent /usr/sbin/groupadd /usr/sbin/useradd
@@ -278,6 +279,7 @@ various objects of the SA Forum Information Model.
 %package imm-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
+BuildRequires: libxml2-devel
 Requires: libxml2
 Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
@@ -374,6 +376,7 @@ running on the System Controller nodes only.
 %package plm-libs
 Group: System Environment/Libraries
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
+BuildRequires: openhpi-devel
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name}-libs = %{version}-%{release}
@@ -390,6 +393,7 @@ process must be bound with the libSaPlm.so library.
 %package plm-server
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
+BuildRequires: openhpi-devel
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: /lib/lsb/init-functions
@@ -408,6 +412,7 @@ running on the System Controller nodes only.
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
 %if %use_systemd
+BuildRequires: systemd-devel
 %systemd_requires
 %endif
 Requires(post): /sbin/ldconfig
@@ -421,6 +426,7 @@ running on any nodes that need Execution Environment (EE) integration with PLM.
 %package plm-hpi
 Group: System Environment/Libraries
 Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
+BuildRequires: openhpi-devel
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: openhpi
@@ -531,6 +537,7 @@ changes cause no (or only minimal) loss of service.
 %package smf-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
+BuildRequires: libxml2-devel
 Requires: libxml2
 Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
@@ -632,6 +639,7 @@ Requires: %{name}-smf-libs = %{version}-%{release}
 %package devel
 Group: Development/Libraries
 Summary: The development environment for the OpenSAF project
+BuildRequires: pkgconfig
 Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
@@ -677,6 +685,7 @@ Requires: %{name}-devel = %{version}-%{release}
 %package java
 Group: Development/Libraries
 Summary: The Java AIS interface mapping for AMF and CLM
+BuildRequires: ant java-devel
 Requires: java
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
@@ -691,6 +700,7 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 %package python
 Group: Development/Libraries
 Summary: The Python AIS Bindings for SAF Services
+BuildRequires: python-devel
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
@@ -946,6 +956,7 @@ fi
 %files amf-libs
 %defattr(-,root,root)
 %{_libdir}/libSaAmf.so.*
+%{_pkglibdir}/libamf_common.so.*
 
 %files amf-director
 %defattr(-,root,root)
@@ -990,6 +1001,7 @@ fi
 %files ckpt-libs
 %defattr(-,root,root)
 %{_libdir}/libSaCkpt.so.*
+%{_pkglibdir}/libckpt_common.so.*
 
 %files ckpt-director
 %defattr(-,root,root)
@@ -1026,6 +1038,7 @@ fi
 %files clm-libs
 %defattr(-,root,root)
 %{_libdir}/libSaClm.so.*
+%{_pkglibdir}/libclm_common.so.*
 
 %files clm-server
 %defattr(-,root,root)
@@ -1066,6 +1079,7 @@ fi
 %files evt-libs
 %defattr(-,root,root)
 %{_libdir}/libSaEvt.so.*
+%{_pkglibdir}/libevt_common.so.*
 
 %files evt-server
 %defattr(-,root,root)
@@ -1093,6 +1107,8 @@ fi
 %defattr(-,root,root)
 %{_libdir}/libSaImmOi.so.*
 %{_libdir}/libSaImmOm.so.*
+%{_pkglibdir}/libimm_common.so.*
+%{_pkglibdir}/libimmpbe_dump.so.*
 
 %files imm-director
 %defattr(-,root,root)
@@ -1141,6 +1157,8 @@ fi
 %files plm-libs
 %defattr(-,root,root)
 %{_libdir}/libSaPlm.so.*
+%{_pkglibdir}/libplm_common.so.*
+%{_pkglibdir}/libplmc.so.*
 
 %files plm-server
 %defattr(-,root,root)
@@ -1188,6 +1206,7 @@ fi
 %files lck-libs
 %defattr(-,root,root)
 %{_libdir}/libSaLck.so.*
+%{_pkglibdir}/liblck_common.so.*
 
 %files lck-director
 %defattr(-,root,root)
@@ -1250,6 +1269,7 @@ fi
 %files msg-libs
 %defattr(-,root,root)
 %{_libdir}/libSaMsg.so.*
+%{_pkglibdir}/libmsg_common.so.*
 
 %files msg-director
 %defattr(-,root,root)
@@ -1286,6 +1306,8 @@ fi
 %files ntf-libs
 %defattr(-,root,root)
 %{_libdir}/libSaNtf.so.*
+%{_pkglibdir}/libntf_common.so.*
+%{_pkglibdir}/libntfclient.so.*
 
 %files ntf-server
 %defattr(-,root,root)
@@ -1315,6 +1337,7 @@ fi
 %defattr(-,root,root)
 %{_libdir}/libSaSmf.so.*
 %dir %{_pkglibdir}
+%{_pkglibdir}/libsmf_common.so.*
 
 %files smf-director
 %defattr(-,root,root)
@@ -1404,7 +1427,8 @@ fi
 %files libs
 %defattr(-,root,root)
 %dir %{_pkglibdir}
-%{_libdir}/libopensaf_core.so.*
+%{_pkglibdir}/libopensaf_core.so.*
+%{_pkglibdir}/libosaf_common.so.*
 
 %files tools
 %defattr(-,root,root)
@@ -1429,25 +1453,22 @@ fi
 
 %files devel
 %defattr(-,root,root)
-%dir %{_includedir}/%{name}
 %if %is_java
 %dir %{_javadocdir}/%{name}
 %{_javadocdir}/%{name}/*
 %{_libdir}/libjava_ais_api_native.so
-%{_libdir}/libjava_ais_api_native.a
 %endif
 %if %is_ais_plm
 %{_libdir}/libplmc_utils.so
-%{_libdir}/libplmc_utils.a
 %endif
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libSa*.so
-%{_libdir}/libSa*.a
 %{_includedir}/saAis.h
 %{_includedir}/saAis_B_5_14.h
 %{_includedir}/saAmf.h
 %{_includedir}/saAmf_B_04_02.h
 %if %is_ais_ckpt
+%dir %{_includedir}/%{name}
 %{_includedir}/saCkpt.h
 %{_includedir}/saCkpt_B_02_03.h
 %{_includedir}/%{name}/cpsv_papi.h
@@ -1512,6 +1533,7 @@ fi
 %endif
 %if %is_ais_plm
 %{_bindir}/plmtest
+%{_pkglibdir}/libplmtest.so.*
 %endif
 %endif
 
