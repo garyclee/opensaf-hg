@@ -736,6 +736,7 @@ tmr_t ncs_tmr_start(tmr_t tid, uint32_t tmrDelay,	/* timer period in number of 1
 	if (rc == NCSCC_RC_FAILURE) {
 		/* Free the timer created */
 		m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
+		ncslpg_give(&gl_tcb.persist, 0);
 		return NULL;
 	}
 #if ENABLE_SYSLOG_TMR_STATS
@@ -751,6 +752,7 @@ tmr_t ncs_tmr_start(tmr_t tid, uint32_t tmrDelay,	/* timer period in number of 1
 			/* We would never reach here! */
 			m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 			m_LEAP_DBG_SINK_VOID;
+			ncslpg_give(&gl_tcb.persist, 0);
 			return NULL;
 		}
 	}
@@ -920,6 +922,7 @@ uint32_t ncs_tmr_remaining(tmr_t tmrID, uint32_t *p_tleft)
 	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
 	if (!TMR_TEST_STATE(tmr, TMR_STATE_START)) {
 		m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
+		ncslpg_give(&gl_tcb.persist, 0);
 		return NCSCC_RC_FAILURE;
 	}
 	m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
