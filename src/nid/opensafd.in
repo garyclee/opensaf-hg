@@ -14,6 +14,7 @@
 
 osafdirfile=@sysconfdir@/@PACKAGE_NAME@/osafdir.conf
 osafprog="opensafd"
+osafprog_inprogress="opensafd_inprogress"
 
 # Source LSB functions library
 . /lib/lsb/init-functions
@@ -28,6 +29,7 @@ fi
 
 binary=$pkglibdir/$osafprog
 lockfile=$lockdir/$osafprog
+lockfile_inprogress=$lockdir/$osafprog_inprogress
 amfnd_bin=$pkglibdir/osafamfnd
 amfnd_pid=$pkgpiddir/osafamfnd.pid
 
@@ -216,21 +218,31 @@ start() {
 	#enable_coredump
 
 	echo -n "Starting OpenSAF Services (Using $MDS_TRANSPORT):"
-	start_daemon $binary $args
-	RETVAL=$?
-	if [ $RETVAL -eq 0 ]; then
-		logger -t $osafprog "OpenSAF($osafversion - $osafcshash) services successfully started"
-		touch $lockfile
-		log_success_msg
+	if [ -e "$lockfile_inprogress" ]; then
+		RETVAL=1
+		log_warning_msg "opensafd start/stop already in progress. Unable to continue"
+		logger -t $osafprog "opensafd start/stop already in progress. Unable to continue"
+		log_warning_msg "To forcefully start/stop OpenSAF remove $lockfile_inprogress"
+		logger -t $osafprog "To forcefully start/stop OpenSAF remove $lockfile_inprogress"
 	else
-		final_clean
-		log_failure_msg
-		if [ $REBOOT_ON_FAIL_TIMEOUT -ne 0 ]; then
-			logger -t $osafprog "Starting OpenSAF failed, rebooting..." 
-			sleep $REBOOT_ON_FAIL_TIMEOUT
-			/sbin/reboot &
+		touch "$lockfile_inprogress"
+		start_daemon $binary $args
+		RETVAL=$?
+		rm -f "$lockfile_inprogress"
+		if [ $RETVAL -eq 0 ]; then
+			logger -t $osafprog "OpenSAF($osafversion - $osafcshash) services successfully started"
+			touch $lockfile
+			log_success_msg
 		else
-			logger -t $osafprog "Starting OpenSAF failed"
+			final_clean
+			log_failure_msg
+			if [ $REBOOT_ON_FAIL_TIMEOUT -ne 0 ]; then
+				logger -t $osafprog "Starting OpenSAF failed, rebooting..." 
+				sleep $REBOOT_ON_FAIL_TIMEOUT
+				/sbin/reboot &
+			else
+				logger -t $osafprog "Starting OpenSAF failed"
+			fi
 		fi
 	fi
 	return $RETVAL
@@ -239,40 +251,51 @@ start() {
 stop() {
 	logger -t $osafprog "Stopping OpenSAF Services"
 
-	amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
-	echo -n "Stopping OpenSAF Services: "
-	if [ -n "$amfpid" ]; then
-		kill $amfpid
-		timeout=$TERMTIMEOUT
-		while [ $timeout -gt 0 ]; do
-			sleep 1
-			[ -d /proc/$amfpid ] || break
-			timeout=$((timeout-1))
-		done
-		[ -d /proc/$amfpid ] && RETVAL=1
-		if [ $RETVAL -eq 1 ]; then
-			logger -t $osafprog "amfnd has not yet exited, killing it forcibly."
-			kill -9 $amfpid 
-		fi
+	if [ -e "$lockfile_inprogress" ]; then
+		RETVAL=1
+		log_warning_msg "opensafd start/stop already in progress. Unable to continue"
+		logger -t $osafprog "opensafd start/stop already in progress. Unable to continue"
+		log_warning_msg "To forcefully start/stop OpenSAF remove $lockfile_inprogress"
+		logger -t $osafprog "To forcefully start/stop OpenSAF remove $lockfile_inprogress"
 	else
-		pkill -9 osaf* >/dev/null 2>&1
-	fi
-
-	final_clean
-
-	if [ $RETVAL -eq 0 ]; then
-		logger -t $osafprog "OpenSAF services successfully stopped"
-		log_success_msg
-	else
-		log_failure_msg
-		# If AMF fails to terminate its components,
-		# this system is out of control, reboot it now!
-		if [ $REBOOT_ON_FAIL_TIMEOUT -ne 0 ]; then
-			logger -t $osafprog "Stopping OpenSAF failed, rebooting..."
-			sleep $REBOOT_ON_FAIL_TIMEOUT
-			/sbin/shutdown -r now "OpenSAF termination failed (timeout)"
+		touch "$lockfile_inprogress"
+		amfpid=`pidofproc -p $amfnd_pid $amfnd_bin`
+		echo -n "Stopping OpenSAF Services: "
+		if [ -n "$amfpid" ]; then
+			kill $amfpid
+			timeout=$TERMTIMEOUT
+			while [ $timeout -gt 0 ]; do
+				sleep 1
+				[ -d /proc/$amfpid ] || break
+				timeout=$((timeout-1))
+			done
+			[ -d /proc/$amfpid ] && RETVAL=1
+			if [ $RETVAL -eq 1 ]; then
+				logger -t $osafprog "amfnd has not yet exited, killing it forcibly."
+				kill -9 $amfpid 
+			fi
 		else
-			logger -t $osafprog "Stoping OpenSAF failed"
+			pkill -9 osaf* >/dev/null 2>&1
+		fi
+
+		final_clean
+
+		rm -f "$lockfile_inprogress"
+
+		if [ $RETVAL -eq 0 ]; then
+			logger -t $osafprog "OpenSAF services successfully stopped"
+			log_success_msg
+		else
+			log_failure_msg
+			# If AMF fails to terminate its components,
+			# this system is out of control, reboot it now!
+			if [ $REBOOT_ON_FAIL_TIMEOUT -ne 0 ]; then
+				logger -t $osafprog "Stopping OpenSAF failed, rebooting..."
+				sleep $REBOOT_ON_FAIL_TIMEOUT
+				/sbin/shutdown -r now "OpenSAF termination failed (timeout)"
+			else
+				logger -t $osafprog "Stoping OpenSAF failed"
+			fi
 		fi
 	fi
 	return $RETVAL
