@@ -55,7 +55,9 @@ int UnixSocket::Open() {
 }
 
 UnixSocket::~UnixSocket() {
-  Close();
+  if (fd_ >= 0) close(fd_);
+  fd_ = -1;
+  addr_.sun_path[0] = '\0';
 }
 
 void UnixSocket::Close() {
