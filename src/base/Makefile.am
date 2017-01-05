@@ -175,12 +175,15 @@ bin_libbase_test_CPPFLAGS = \
 
 bin_libbase_test_LDFLAGS = \
 	$(AM_LDFLAGS) \
+	src/base/lib_libopensaf_core_la-unix_socket.lo \
+	src/base/lib_libopensaf_core_la-unix_server_socket.lo \
 	src/base/lib_libopensaf_core_la-getenv.lo \
 	src/base/lib_libopensaf_core_la-log_message.lo \
 	src/base/lib_libopensaf_core_la-process.lo \
 	src/base/lib_libopensaf_core_la-file_notify.lo
 
 bin_libbase_test_SOURCES = \
+	src/base/tests/unix_socket_test.cc \
 	src/base/tests/getenv_test.cc \
 	src/base/tests/log_message_test.cc \
 	src/base/tests/mock_logtrace.cc \
