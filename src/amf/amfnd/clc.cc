@@ -1803,6 +1803,14 @@ static bool is_failed_comp_eligible_for_instantiation(AVND_COMP *comp) {
 		 /*A failed component is eligible for instantiation 
                    in the context of comp-restart recovery.*/ 
 		return true;
+	 } else {//SU is failed.
+		 /*As a part of repair comp instantiation failed
+		   and it was cleaned up again.*/
+		 if (m_AVND_COMP_IS_FAILED(comp) && !comp->csi_list.n_nodes &&
+			 (!m_AVND_SU_IS_ADMN_TERM(comp->su)) &&
+			 (avnd_cb->oper_state == SA_AMF_OPERATIONAL_ENABLED) && 
+			 (!m_AVND_IS_SHUTTING_DOWN(avnd_cb)) && !sufailover_in_progress(comp->su))
+			return true;
 	 }
   }
 
