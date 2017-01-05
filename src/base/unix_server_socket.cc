@@ -27,6 +27,7 @@ UnixServerSocket::UnixServerSocket(const std::string& path) :
 }
 
 UnixServerSocket::~UnixServerSocket() {
+  if (fd() >= 0) UnixServerSocket::CloseHook();
 }
 
 bool UnixServerSocket::OpenHook(int sock) {
