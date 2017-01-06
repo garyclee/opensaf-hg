@@ -1565,3 +1565,192 @@ bool AVD_SI::is_active() const
 	return false;
 }
 
+/*
+ * @brief This function does generic validation for admin op SI_SWAP.
+ * @return int
+ */
+SaAisErrorT AVD_SI::si_swap_validate()
+{
+	AVD_AVND *node;
+	SaAisErrorT rc = SA_AIS_OK;
+	if (saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) {
+		LOG_ER("%s SWAP failed - wrong admin state=%u", name.c_str(),
+				saAmfSIAdminState);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	if (avd_cb->init_state != AVD_APP_STATE) {
+		LOG_ER("%s SWAP failed - not in app state (%u)", name.c_str(),
+				avd_cb->init_state);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+		LOG_ER("%s SWAP failed - SG not stable (%u)", name.c_str(),
+				sg_of_si->sg_fsm_state);
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		goto done;
+	}
+
+	if (is_assigned() == false) {
+		LOG_ER("%s SWAP failed - no assignments to swap", name.c_str());
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	/* First check for another node for M/w. */
+	/* Since middleware components can still have si->list_of_sisu->si_next as not NULL, but we need to check
+	   whether it is unlocked. We need to reject si_swap on controllers when stdby controller is locked. */
+	if (sg_of_si->is_middleware() == true) {
+		/* Check if the Standby is there in unlocked state. */
+		node = avd_node_find_nodeid(avd_cb->node_id_avd_other);
+		if (node == nullptr) {
+			LOG_NO("SI Swap not possible, node %x is not available", avd_cb->node_id_avd_other);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+		if (SA_FALSE == node->node_info.member) {
+			LOG_NO("SI Swap not possible, node %x is locked", avd_cb->node_id_avd_other);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		/* Check whether Amfd is in sync if node is illigible to join. */
+		if ((avd_cb->node_id_avd_other != 0) && (avd_cb->other_avd_adest != 0) &&
+				(avd_cb->stby_sync_state == AVD_STBY_OUT_OF_SYNC)) {
+			LOG_ER("%s SWAP failed - Cold sync in progress", name.c_str());
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			goto done;
+		}
+	}
+
+	if (list_of_sisu->si_next == nullptr) {
+		LOG_ER("%s SWAP failed - only one assignment", name.c_str());
+		if (sg_of_si->is_middleware() == true) {
+			/* Another M/w SU will come anyway because of two controller,
+			   so wait to come back.*/
+			TRACE("M/w SI");
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			goto done;
+		}
+
+		/* Check whether one assignment is because of configuration. */
+		if (sg_of_si->list_of_su.size() == 1) {
+			LOG_ER("Only one SU configured");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		} else {
+			/* The validation logic has been written into many sub-logics of 'for loop',
+			   because of
+			   a. keeping the code simple. If we combine them, then the code
+			   becomes complex to understand and dificult to fix any further bug.
+			   b. these code not being executed frequently as these scenarios are rare.*/
+			bool any_su_unlocked = false;
+			/* 1. If more than one SU configured, check if any other are unlocked.*/
+			for (const auto& su : sg_of_si->list_of_su) {
+				if ((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+						(su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+						(list_of_sisu->su != su)) {
+					any_su_unlocked = true;
+					break;
+				}
+			}
+			/* All other SUs are unlocked, so return BAD OP. */
+			if (any_su_unlocked == false) {
+				LOG_ER("All other SUs and their hosting nodes are not in UNLOCKED state");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+
+			/* 2. If the containing nodes (hosting all other SUs) absent:
+			   return BAD OP.*/
+			bool all_nodes_absent = true;
+			for (const auto& su : sg_of_si->list_of_su) {
+				if ((su->su_on_node->node_state != AVD_AVND_STATE_ABSENT) &&
+						(list_of_sisu->su != su)) {
+					all_nodes_absent = false;
+					break;
+				}
+			}
+			/* all other nodes absent, so return BAD OP. */
+			if (all_nodes_absent == true) {
+				LOG_ER("All other nodes hosting SUs are down");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+
+			/* 3. If node (hosting any other SUs) is joining(A case of Temporary degeneration):
+			   return TRY_AGAIN. */
+			bool any_nodes_joining = false;
+			for (const auto& su : sg_of_si->list_of_su) {
+				if ((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
+						((su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+						 (su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT)) &&
+						(list_of_sisu->su != su)) {
+					any_nodes_joining = true;
+					break;
+				}
+			}
+			/* Any other node hosting unlocked SUs are joining, so return TRY AGAIN. */
+			if (any_nodes_joining == true) {
+				LOG_ER("All other nodes hosting SUs are joining.");
+				rc = SA_AIS_ERR_TRY_AGAIN;
+				goto done;
+			}
+
+			/* If the containing nodes have joined: If any one of the SUs is in
+			   instantiating/restarting/terminating state(A case of Temporary degeneration):
+			   return TRY_AGAIN.*/
+			bool any_su_on_nodes_in_trans = false, any_su_on_nodes_failed = false;
+			for (const auto& su : sg_of_si->list_of_su) {
+				if ((su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) &&
+						(list_of_sisu->su != su)) {
+					/* */
+					if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATING) ||
+							(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATING) ||
+							(su->saAmfSUPresenceState == SA_AMF_PRESENCE_RESTARTING)) {
+						any_su_on_nodes_in_trans = true;
+					} else if ((su->saAmfSUPresenceState == SA_AMF_PRESENCE_INSTANTIATION_FAILED) ||
+							(su->saAmfSUPresenceState == SA_AMF_PRESENCE_TERMINATION_FAILED) ||
+							(su->saAmfSuReadinessState == SA_AMF_READINESS_OUT_OF_SERVICE)) {
+						/* If any one of the SUs is in Disabled/OutOfService/
+						   Instantiation failed/Termination failed:
+						   return BAD OP.*/
+						any_su_on_nodes_failed = true;
+					}
+				}
+			}
+			/* Any other SUs are in instantiating/restarting/terminating, so return TRY AGAIN. */
+			if (any_su_on_nodes_in_trans == true) {
+				LOG_ER("Other SUs are in INSTANTIATING/TERMINATING/RESTARTING state.");
+				rc = SA_AIS_ERR_TRY_AGAIN;
+				goto done;
+			} else if (any_su_on_nodes_failed == true) {
+				/* Nothing in inst/rest/term and others are in failed state, so reutrn BAD OP.*/
+				LOG_ER("Other SUs are in INSTANTIATION/TERMINATION failed state/ Out of Service.");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+		}
+		/* Still the SUs may be in Uninstantiated or Instantiated, but might not have got
+		   assignment because of other configurations like PrefInServiceSUs, etc, so return
+		   BAD_OP for them. */
+		LOG_ER("Other SUs are not instantiated or assigned because of configurations.");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	/* If the swap is on m/w si, then check whether any ccb was going on. */
+	if (sg_of_si->is_middleware() == true) {
+		if (ccbutil_EmptyCcbExists() == false) {
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			LOG_NO("%s SWAP failed - Ccb going on", name.c_str());
+			goto done;
+		}
+	}
+
+done:
+	return rc;
+}
