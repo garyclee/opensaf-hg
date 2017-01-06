@@ -423,6 +423,7 @@ public:
 	uint32_t curr_instantiated_spare_sus() const;
 	//Runtime calculates value of saAmfSGNumCurrNonInstantiatedSpareSUs;
 	uint32_t curr_non_instantiated_spare_sus() const;
+	bool is_middleware() const {return sg_ncs_spec ? true : false;}
 
 private:
 	// disallow copy and assign, TODO(hafe) add common macro for this

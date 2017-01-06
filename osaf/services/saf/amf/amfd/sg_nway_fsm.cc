@@ -3522,32 +3522,8 @@ SaAisErrorT SG_NWAY::si_swap(AVD_SI *si, SaInvocationT invocation) {
 
 	TRACE_ENTER2("'%s' sg_fsm_state=%u", si->name.value, si->sg_of_si->sg_fsm_state);
 
-	if (si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) {
-		LOG_NO("%s SWAP failed - wrong admin state=%u", si->name.value,
-			si->saAmfSIAdminState);
-		rc = SA_AIS_ERR_TRY_AGAIN;
+	if ((rc = si->si_swap_validate()) != SA_AIS_OK)
 		goto done;
-	}
-
-	if (avd_cb->init_state != AVD_APP_STATE) {
-		LOG_NO("%s SWAP failed - not in app state (%u)", si->name.value,
-			avd_cb->init_state);
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done;
-	}
-
-	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		LOG_NO("%s SWAP failed - SG not stable (%u)", si->name.value,
-			si->sg_of_si->sg_fsm_state);
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done;
-	}
-
-	if (si->list_of_sisu == nullptr) {
-		LOG_NO("%s SWAP failed - no assignments to swap", si->name.value);
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		goto done;
-	}
 
 	if ((sg->equal_ranked_su == true) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
 		LOG_NO("%s Equal distribution is enabled, si-swap not allowed", si->name.value);
@@ -3556,11 +3532,6 @@ SaAisErrorT SG_NWAY::si_swap(AVD_SI *si, SaInvocationT invocation) {
 	}
 	if ((si->rankedsu_list.empty() == false) && (sg->saAmfSGAutoAdjust == SA_TRUE)) {
 		LOG_NO("%s SIRankedSU configured and autoadjust enabled, si-swap not allowed", si->name.value);
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		goto done;
-	}
-	if (si->list_of_sisu->si_next == nullptr) {
-		LOG_NO("%s SWAP failed - only one assignment", si->name.value);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
