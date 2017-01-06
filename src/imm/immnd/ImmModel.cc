@@ -962,12 +962,18 @@ immModel_ccbObjectModify(IMMND_CB *cb,
 {
     std::string objectName;
     bool pbeFile = (cb->mPbeFile != NULL);
+    bool changeRim = false;
     SaAisErrorT err = ImmModel::instance(&cb->immModel)->
         ccbObjectModify(req, implConn, implNodeId, continuationId,
-        pbeConn, pbeNodeId, objectName, hasLongDns, pbeFile);
+        pbeConn, pbeNodeId, objectName, hasLongDns, pbeFile, &changeRim);
 
     if(err == SA_AIS_OK) {
         osaf_extended_name_alloc(objectName.c_str(), objName);
+    }
+
+    if (err == SA_AIS_OK && changeRim){
+        cb->mPbeDisableCcbId = req->ccbId;
+       TRACE("The mPbeDisableCcbId is set to ccbid:%u", cb->mPbeDisableCcbId);
     }
 
     return err;
@@ -1361,6 +1367,12 @@ immModel_ccbAbort(IMMND_CB *cb,
     unsigned int ix=0;
 
     bool aborted = ImmModel::instance(&cb->immModel)->ccbAbort(ccbId, cv, cl, nodeId, pbeNodeId);
+
+    if ( aborted && (cb->mPbeDisableCcbId == ccbId)){
+         TRACE("PbeDisableCcbId %u has been aborted", ccbId);
+         cb->mPbeDisableCcbId = 0;
+         cb->mPbeDisableCritical = false;
+    }
     
     *arrSize = (SaUint32T) cv.size();
     if(*arrSize) {
@@ -1530,7 +1542,7 @@ immModel_ccbWaitForCompletedAck(IMMND_CB *cb,
     SaUint32T* pbeCtn)
 {
     return ImmModel::instance(&cb->immModel)->
-        ccbWaitForCompletedAck(ccbId, err, pbeConn, pbeNodeId, pbeId, pbeCtn);
+        ccbWaitForCompletedAck(ccbId, err, pbeConn, pbeNodeId, pbeId, pbeCtn, cb->mPbeDisableCritical);
 }
 
 bool
@@ -8860,7 +8872,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     unsigned int* pbeNodeIdPtr,
     std::string& objectName,
     bool* hasLongDns,
-    bool pbeFile)
+    bool pbeFile,
+    bool * changeRim)
 {
     TRACE_ENTER();
     osafassert(hasLongDns);
@@ -9342,6 +9355,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 }
 
                 if (modifiedRim) {
+                    SaImmRepositoryInitModeT oldRim = getRepositoryInitMode();
                     SaImmRepositoryInitModeT newRim = (SaImmRepositoryInitModeT) attrValue->getValue_int();
                     if((newRim != SA_IMM_INIT_FROM_FILE) && (newRim != SA_IMM_KEEP_REPOSITORY)) {
                         TRACE_7("ERR_BAD_OPERATION: attr '%s' in IMM object %s can not have value %u",
@@ -9352,9 +9366,13 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                         err = SA_AIS_ERR_BAD_OPERATION;
                         break;
                     }
+
+                    if((oldRim == SA_IMM_KEEP_REPOSITORY) && (newRim == SA_IMM_INIT_FROM_FILE)){
+                        LOG_NO("Request for rim change is arrived in ccb%u", ccbId);
+                        * changeRim = true;
+                    }
+
                 }
-
-
 
                 if(p->attrValue.attrValuesNumber > 1) {
                     if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
@@ -10680,7 +10698,8 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err, bool augDel
 bool
 ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
                                  SaUint32T* pbeConnPtr, unsigned int* pbeNodeIdPtr,
-                                 SaUint32T* pbeIdPtr, SaUint32T* pbeCtnPtr)
+                                 SaUint32T* pbeIdPtr, SaUint32T* pbeCtnPtr,
+                                 bool mPbeDisableCritical)
 {
     TRACE_ENTER();
     if(pbeNodeIdPtr) {
@@ -10768,7 +10787,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
     if(((*err) == SA_AIS_OK) && pbeNodeIdPtr) {
         /* There should be a PBE */
         ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(pbeConnPtr, pbeNodeIdPtr);
-        if(pbeImpl) {
+        if(pbeImpl && !mPbeDisableCritical) {
             /* There is in fact a PBE (up) */
             osafassert(ccb->mState == IMM_CCB_PREPARE);
             LOG_IN("GOING FROM IMM_CCB_PREPARE to IMM_CCB_CRITICAL Ccb:%u", ccbId);

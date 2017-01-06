@@ -254,7 +254,8 @@ public:
                                         unsigned int* pbeNodeId,
                                         std::string& objectName,
                                         bool* hasLongDns,
-                                        bool pbeFile);
+                                        bool pbeFile,
+                                        bool* changeRim);
     
     SaAisErrorT         ccbObjectDelete(
                                         const ImmsvOmCcbObjectDelete* req,
@@ -303,7 +304,8 @@ public:
                                                SaUint32T* pbeConn,
                                                unsigned int* pbeNodeId,
                                                SaUint32T* pbeId,
-                                               SaUint32T* pbeCtn);
+                                               SaUint32T* pbeCtn,
+                                               bool mPbeDisableCritical);
     
     void                ccbObjDelContinuation(
                                               immsv_oi_ccb_upcall_rsp* rsp,
