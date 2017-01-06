@@ -745,68 +745,11 @@ done:
 SaAisErrorT SG_2N::si_swap(AVD_SI *si, SaInvocationT invocation) {
 	AVD_SU_SI_REL *susi;
 	SaAisErrorT rc = SA_AIS_OK;
-        AVD_AVND *node;
 
 	TRACE_ENTER2("'%s' sg_fsm_state=%u", si->name.c_str(), si->sg_of_si->sg_fsm_state);
 
-	if (si->saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) {
-		LOG_NO("%s SWAP failed - wrong admin state=%u", si->name.c_str(),
-			si->saAmfSIAdminState);
-		rc = SA_AIS_ERR_TRY_AGAIN;
+	if ((rc = si->si_swap_validate()) != SA_AIS_OK)
 		goto done;
-	}
-
-	if (avd_cb->init_state != AVD_APP_STATE) {
-		LOG_NO("%s SWAP failed - not in app state (%u)", si->name.c_str(),
-			avd_cb->init_state);
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done;
-	}
-
-	if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		LOG_NO("%s SWAP failed - SG not stable (%u)", si->name.c_str(),
-			si->sg_of_si->sg_fsm_state);
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done;
-	}
-
-	if (si->list_of_sisu == nullptr) {
-		LOG_ER("%s SWAP failed - no assignments to swap", si->name.c_str());
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		goto done;
-	}
-
-	if ((si->sg_of_si->sg_ncs_spec) && 
-			((avd_cb->node_id_avd_other != 0) && (avd_cb->other_avd_adest != 0))) {
-		if (avd_cb->stby_sync_state == AVD_STBY_OUT_OF_SYNC) {
-			LOG_NO("%s SWAP failed - Cold sync in progress", si->name.c_str());
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			goto done;
-		}
-	}
-
-	if (si->list_of_sisu->si_next == nullptr) {
-		LOG_NO("%s SWAP failed - only one assignment", si->name.c_str());
-		rc = SA_AIS_ERR_TRY_AGAIN;
-		goto done;
-	}
-
-	/* Since middleware components can still have si->list_of_sisu->si_next as not nullptr, but we need to check
-	whether it is unlocked. We need to reject si_swap on controllers when stdby controller is locked. */
-	if (si->sg_of_si->sg_ncs_spec) {
-		/* Check if the Standby is there in unlocked state. */
-		node = avd_node_find_nodeid(avd_cb->node_id_avd_other);
-		if (node == nullptr) {
-			LOG_NO("SI Swap not possible, node %x is not available", avd_cb->node_id_avd_other);
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-		if (SA_FALSE == node->node_info.member) {
-			LOG_NO("SI Swap not possible, node %x is locked", avd_cb->node_id_avd_other);
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-	}
 
 	/* Identify the active susi rel */
 	if (si->list_of_sisu->state == SA_AMF_HA_ACTIVE) {
@@ -817,15 +760,6 @@ SaAisErrorT SG_2N::si_swap(AVD_SI *si, SaInvocationT invocation) {
 		LOG_ER("%s SWAP failed - no active assignment", si->name.c_str());
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
-	}
-
-	/* If the swap is on m/w si, then check whether any ccb was going on. */
-	if (si->sg_of_si->sg_ncs_spec) {
-		if (ccbutil_EmptyCcbExists() == false) {
-			rc = SA_AIS_ERR_TRY_AGAIN;
-			LOG_NO("%s SWAP failed - Ccb going on", si->name.c_str());
-			goto done;
-		}
 	}
 
 	/* Check if there is dependency between SI's within SU */
