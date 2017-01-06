@@ -145,7 +145,9 @@ public:
 	bool si_dep_states_check();
         const AVD_SIRANKEDSU *get_si_ranked_su(const std::string &su_name) const;
 	bool is_active() const;
+	SaAisErrorT si_swap_validate();
 private:
+	bool is_assigned() const {return list_of_sisu ? true : false;}
 	AVD_SI(const AVD_SI&);
 	AVD_SI& operator=(const AVD_SI&);
 
