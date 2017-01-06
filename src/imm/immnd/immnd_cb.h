@@ -129,6 +129,9 @@ typedef struct immnd_cb_tag {
 	uint8_t mBlockPbeEnable;  //Current PBE has not completed shutdown yet.
 	uint8_t mPbeKills;        //If != 0 then immnd has tried to kill Pbe.
 	uint8_t m2Pbe;            //If!=0 => 2PBE, 2 => fetch PBE file info.
+        SaUint32T mPbeDisableCcbId; // CcbId, operation of the Disable PBE.
+        bool mPbeDisableCritical; //If true then PBE disable is sent to PBE for ACK.
+
 	bool mIsOtherScUp; //If set & this is an SC then other SC is up(2pbe).
 	           //False=> *allow* 1safe 2pbe. May err conservatively (true) 
 	bool mForceClean; //true => Force cleanTheHouse to run once *now*.

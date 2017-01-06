@@ -3322,6 +3322,11 @@ static SaAisErrorT immnd_fevs_local_checks(IMMND_CB *cb, IMMSV_FEVS *fevsReq,
 		}
 		/* intentional fallthrough. */
 	case IMMND_EVT_A2ND_CCB_APPLY:
+		if(cb->mPbeDisableCritical){
+			LOG_WA("ERR_TRY_AGAIN: Disable of PBE has been initiated, waiting for the reply from the PBE");
+			error = SA_AIS_ERR_TRY_AGAIN;
+			break;
+		}
 		if(immModel_pbeNotWritable(cb) || (cb->fevs_replies_pending >= IMMSV_DEFAULT_FEVS_MAX_PENDING) 
 			|| !immnd_is_immd_up(cb)) {
 			/* NO_RESOURCES is here imm internal proxy for TRY_AGAIN.
@@ -4011,6 +4016,10 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 						evt->info.ccbUpcallRsp.ccbId);
 				}
 			}
+			if(cb->mPbeDisableCcbId == evt->info.ccbUpcallRsp.ccbId){
+				TRACE(" Disable of PBE is sent to PBE for ACK, in ccb:%u",  evt->info.ccbId);
+				cb->mPbeDisableCritical = true;
+			}
 			skip_send:
 			reqConn = 0; /* Ensure we dont reply to OM client yet. */
 		}
@@ -4062,6 +4071,9 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			SaUint32T arrSize = 0;
 
 			if(immModel_ccbCommit(cb, evt->info.ccbUpcallRsp.ccbId, &arrSize, &implConnArr)) {
+				osafassert(cb->mPbeDisableCcbId == evt->info.ccbUpcallRsp.ccbId);
+				cb->mPbeDisableCcbId = 0;
+				cb->mPbeDisableCritical = false;
 				SaImmRepositoryInitModeT oldRim = cb->mRim;
 				cb->mRim = immModel_getRepositoryInitMode(cb);
 				if(oldRim != cb->mRim) {
@@ -7791,6 +7803,12 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, bool originat
 		abort();
 	}
 #endif
+	if(cb->mPbeDisableCritical && !validateOnly){
+		LOG_WA("Disable of PBE has been initiated, waiting for the reply from the PBE");
+		err = SA_AIS_ERR_TRY_AGAIN;
+		goto immediate_reply;
+	}
+
 	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
 		if(immModel_pbeNotWritable(cb)) {
 			/* NO_RESOURCES is here imm internal proxy for TRY_AGAIN.
@@ -7910,6 +7928,10 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb, IMMND_EVT *evt, bool originat
 						TRACE_5("IMMND UPCALL TO PBE for ccb %u, SEND SUCCEEDED", 
 							evt->info.ccbId);
 					}
+				}
+				if(cb->mPbeDisableCcbId == evt->info.ccbId){
+					TRACE(" Disable of PBE is sent to PBE for ACK, in ccb:%u",  evt->info.ccbId);
+					cb->mPbeDisableCritical = true;
 				}
 			}
 		} else {
