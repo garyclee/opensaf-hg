@@ -151,6 +151,8 @@ public:
         static void empty();
     
 	static uint32_t size();
+	
+	static void trim_to_size(const uint32_t size);
 private:
         static std::queue<Job*> job_;
 };
