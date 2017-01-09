@@ -827,10 +827,6 @@ void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
 void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 	TRACE_ENTER2("'%s' %s", name.c_str(),
 		avd_readiness_state_name[readiness_state]);
-	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s",
-		name.c_str(),
-		avd_readiness_state_name[saAmfSuReadinessState],
-		avd_readiness_state_name[readiness_state]);
 
 	if (saAmfSuReadinessState == readiness_state) {
 		goto done;
@@ -839,6 +835,11 @@ void AVD_SU::set_readiness_state(SaAmfReadinessStateT readiness_state) {
 		TRACE("Can not set readiness state, this SU is under absent failover");
 		goto done;
 	}
+
+	saflog(LOG_NOTICE, amfSvcUsrName, "%s ReadinessState %s => %s",
+		name.c_str(),
+		avd_readiness_state_name[saAmfSuReadinessState],
+		avd_readiness_state_name[readiness_state]);
 
 	osafassert(readiness_state <= SA_AMF_READINESS_STOPPING);
 

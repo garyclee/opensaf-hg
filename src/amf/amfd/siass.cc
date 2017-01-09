@@ -281,6 +281,8 @@ void avd_susi_read_headless_cached_rta(AVD_CL_CB *cb)
 				avd_ng_restore_headless_states(cb, susi);
 		} else { // For ABSENT SUSI
 			if (su->sg_of_su->sg_ncs_spec == false &&
+				su->sg_of_su->sg_redundancy_model != SA_AMF_NO_REDUNDANCY_MODEL &&
+				su->sg_of_su->sg_redundancy_model != SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL &&
 				(su->sg_of_su->any_assignment_in_progress() == true ||
 				su->sg_of_su->any_assignment_assigned() == true)) {
 
