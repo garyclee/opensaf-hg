@@ -73,7 +73,7 @@ static char *StrDup(const char *s)
 	std::strcpy(c,s);
 	return c;
 }
-uint32_t const MAX_JOB_SIZE_AT_STANDBY = 200;
+uint32_t const MAX_JOB_SIZE_AT_STANDBY = 500;
 
 //
 Job::~Job()
@@ -325,10 +325,15 @@ Job* Fifo::dequeue()
  */
 void check_and_flush_job_queue_standby_amfd(void)
 {
-        if (Fifo::size() >= MAX_JOB_SIZE_AT_STANDBY) {
-		TRACE("Emptying imm job queue of size:%u",Fifo::size());
-		Fifo::empty();
-        }
+	TRACE_ENTER();
+
+	if (Fifo::size() >= MAX_JOB_SIZE_AT_STANDBY) {
+		const uint32_t new_size = MAX_JOB_SIZE_AT_STANDBY / 2;
+		LOG_WA("Reducing job queue of size:%u to %u",Fifo::size(),new_size);
+		Fifo::trim_to_size(new_size);
+	}
+
+	TRACE_LEAVE();
 }
 
 //
@@ -401,6 +406,19 @@ void Fifo::empty()
 uint32_t Fifo::size()
 {
        return job_.size();
+}
+
+void Fifo::trim_to_size(const uint32_t size)
+{
+	Job *ajob;
+
+	TRACE_ENTER();
+
+	while (job_.size() > size && (ajob = dequeue()) != nullptr) {
+		delete ajob;
+	}
+
+	TRACE_LEAVE();
 }
 
 //
