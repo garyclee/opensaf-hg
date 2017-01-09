@@ -186,14 +186,26 @@ bool SmfExecControlObjHandler::smfProtectExecControlDuringInit(
  * @return
  */
 bool SmfExecControlObjHandler::getValuesFromImmCopy() {
+  TRACE_ENTER();
   bool errinfo = true;
 
-  TRACE_ENTER();
-    if (readExecControlObject(c_openSafSmfExecControl_copy) == false) {
-      LOG_NO("%s readExecControlObject(c_openSafSmfExecControl_copy) Fail",
-             __FUNCTION__);
+  std::string copydn = c_openSafSmfExecControl_copy;
+  SaImmAttrValuesT_2 **attributes;
+  if (!p_immutil_object->getObject(copydn, &attributes)) {
+    // We do not have a copy so create it. This can happen when upgrading from
+    // an earlier version of SMF. SMF will only read the copy when it has been
+    // restarted.
+    LOG_NO("No copy existing for execControl, read execControl and create it");
+    if (!install()) {
       errinfo = false;
     }
+  }
+
+  if (readExecControlObject(c_openSafSmfExecControl_copy) == false) {
+    LOG_NO("%s readExecControlObject(c_openSafSmfExecControl_copy) Fail",
+           __FUNCTION__);
+    errinfo = false;
+  }
 
   TRACE_LEAVE();
   return errinfo;
