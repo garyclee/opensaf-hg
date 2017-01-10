@@ -339,5 +339,8 @@ void cpd_a2s_ckpt_usr_info(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
 		TRACE_4("cpd A2S ckpt user info async update failed");
 	else
 		TRACE_1("cpd A2S ckpt user info async update success");
+
+	free(cpd_msg.info.usr_info_2.node_list);
+
 	TRACE_LEAVE();
 }
