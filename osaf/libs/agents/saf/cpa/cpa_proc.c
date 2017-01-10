@@ -1124,11 +1124,13 @@ uint32_t cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
 				     SaSizeT maxSectionSize, SaUint32T *errflag, CPSV_CKPT_DATA **ckpt_data)
 {
 	CPSV_CKPT_DATA *tmp_ckpt_data = NULL;
+	*ckpt_data = NULL;
 	if (numberOfElements > 0) {
 		while (numberOfElements > 0) {
 			tmp_ckpt_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
-			if (tmp_ckpt_data == NULL)
-				return NCSCC_RC_FAILURE;
+			if (tmp_ckpt_data == NULL) {
+				goto free_mem;
+			}
 			memset(tmp_ckpt_data, '\0', sizeof(CPSV_CKPT_DATA));
 
 			switch (data_access_type) {
@@ -1150,7 +1152,7 @@ uint32_t cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
 						ioVector[numberOfElements - 1].dataSize) > maxSectionSize) {
 						if (errflag != NULL)
 							*errflag = (numberOfElements - 1);
-						return NCSCC_RC_FAILURE;
+						goto free_mem;
 					} else
 					tmp_ckpt_data->dataSize = ioVector[numberOfElements - 1].dataSize;
 				}
@@ -1159,7 +1161,7 @@ uint32_t cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
 				break;
 
 			default:
-				return NCSCC_RC_FAILURE;
+				goto free_mem;
 			}
 
 			if (*ckpt_data == NULL)
@@ -1171,9 +1173,17 @@ uint32_t cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector,
 			numberOfElements--;
 		}
 		return NCSCC_RC_SUCCESS;
-	} else {
-		return NCSCC_RC_FAILURE;
 	}
+
+free_mem:
+	free(tmp_ckpt_data);
+	while(*ckpt_data) {
+		tmp_ckpt_data = *ckpt_data;
+		*ckpt_data = tmp_ckpt_data->next;
+		m_MMGR_FREE_CPSV_CKPT_DATA(tmp_ckpt_data);
+	}
+
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
