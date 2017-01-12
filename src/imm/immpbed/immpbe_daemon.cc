@@ -1119,9 +1119,9 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 				resparams = (SaImmAdminOperationParamsT_2 *) malloc(sizeof(SaImmAdminOperationParamsT_2));
 				opName=(*(SaStringT *)params[i]->paramBuffer);
 				resparams->paramName = strdup(SA_IMM_PARAM_ADMOP_NAME);
-        	               	resparams->paramType = SA_IMM_ATTR_SASTRINGT;
-                	      	resparams->paramBuffer = malloc(sizeof(SaStringT));
-                 		*((SaStringT *)(resparams->paramBuffer)) = strdup(opName);
+				resparams->paramType = SA_IMM_ATTR_SASTRINGT;
+				resparams->paramBuffer = malloc(sizeof(SaStringT));
+				*((SaStringT *)(resparams->paramBuffer)) = strdup(opName);
 				rparams[param_len -1]=resparams;
 				rparams[param_len]=NULL;
 				break;
@@ -1130,22 +1130,22 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		}
 		i=0;
 		while (params[i]) {
-                        if ((strcmp(params[i]->paramName, "resource"))==0){
+			if ((strcmp(params[i]->paramName, "resource"))==0){
 				param_len++;
 				rparams = (SaImmAdminOperationParamsT_2 **) realloc (rparams, 
 						(param_len+1) * sizeof(SaImmAdminOperationParamsT_2 *));
 				resparams = (SaImmAdminOperationParamsT_2 *) malloc(sizeof(SaImmAdminOperationParamsT_2));
-                                res=(*(SaStringT *)params[i]->paramBuffer);
-                                resparams->paramName = strdup("resource");
-                                resparams->paramType = SA_IMM_ATTR_SASTRINGT;
-                                resparams->paramBuffer = malloc(sizeof(SaStringT));
-                                *((SaStringT *)(resparams->paramBuffer)) = strdup(res);
+				res=(*(SaStringT *)params[i]->paramBuffer);
+				resparams->paramName = strdup("resource");
+				resparams->paramType = SA_IMM_ATTR_SASTRINGT;
+				resparams->paramBuffer = malloc(sizeof(SaStringT));
+				*((SaStringT *)(resparams->paramBuffer)) = strdup(res);
 				rparams[param_len -1]=resparams;
 				rparams[param_len]=NULL;
-                                break;
-                        }
-                        i++;
-                }
+				break;
+			}
+			i++;
+		}
 		
 		if (opName) {
 			if ((strcmp(opName,"display")==0) || (strcmp(opName,"displayverbose")==0)||
@@ -1165,9 +1165,11 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 		while (rparams[i]) {
 			resparams = rparams[i];
 			if(resparams->paramName)
-					free(resparams->paramName);
-			if(resparams->paramBuffer) 
-					free(resparams->paramBuffer);
+				free(resparams->paramName);
+			if(resparams->paramBuffer) {
+				free(*((SaStringT *)(resparams->paramBuffer)));
+				free(resparams->paramBuffer);
+			}
 			free(resparams);
 			i++;
 		}
