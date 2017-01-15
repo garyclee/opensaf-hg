@@ -98,13 +98,11 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			continue;
 		}
 
-		if (i_sg->any_assignment_in_progress() == false) {
-			if (i_sg->any_assignment_absent() == false) {
-				i_sg->set_fsm_state(AVD_SG_FSM_STABLE);
-			} else {
-				// failover with ABSENT SUSI, which had already been removed during headless
-				i_sg->failover_absent_assignment();
-			}
+		if (i_sg->any_assignment_absent()) {
+			// failover with ABSENT SUSI, which had already been removed during headless
+			i_sg->failover_absent_assignment();
+		} else if (i_sg->any_assignment_in_progress() == false) {
+			i_sg->set_fsm_state(AVD_SG_FSM_STABLE);
 		}
 
 		if (i_sg->sg_fsm_state == AVD_SG_FSM_STABLE)
