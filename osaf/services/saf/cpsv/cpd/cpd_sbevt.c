@@ -456,6 +456,7 @@ uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	SaClmClusterNodeT cluster_node;
 	CPD_REP_KEY_INFO key_info;
 	CPD_NODE_REF_INFO *nref_info;
+	bool noncoll_rep_on_payload = false;
 
 	TRACE_ENTER();
 
@@ -497,9 +498,21 @@ uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 
 		reploc_info->rep_key.node_name = strdup(osaf_extended_name_borrow(&cluster_node.nodeName));
 		reploc_info->rep_key.ckpt_name = strdup(ckpt_node->ckpt_name);
-		if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes))
+		if (!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes)) {
 			reploc_info->rep_type = REP_NONCOLL;
-		else {
+			if ((cpd_get_slot_sub_id_from_mds_dest(msg->info.dest_add.mds_dest) == cb->cpd_remote_id) ||
+					(cpd_get_slot_sub_id_from_mds_dest(msg->info.dest_add.mds_dest) == cb->cpd_self_id) ) {
+				TRACE_4(" reploc node add for non-collocated on controller ckpt_id:%llx", msg->info.dest_add.ckpt_id);
+				proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
+				if (proc_rc != NCSCC_RC_SUCCESS) {
+					TRACE_4("cpd standby dest add evt failed ");
+					goto free_mem;
+				}
+			} else {
+				TRACE_4(" reploc node add for non-collocated on payload ckpt_id:%llx",msg->info.dest_add.ckpt_id);
+				noncoll_rep_on_payload = true;
+			}
+		} else {
 			if ((ckpt_node->attributes.creationFlags & SA_CKPT_WR_ALL_REPLICAS) &&
 			    (m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes)))
 				reploc_info->rep_type = REP_SYNCUPD;
@@ -511,17 +524,18 @@ uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 			if ((ckpt_node->attributes.creationFlags & SA_CKPT_WR_ACTIVE_REPLICA_WEAK) &&
 			    (m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes)))
 				reploc_info->rep_type = REP_NOTACTIVE;
-		}
 
-		proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
-		if (proc_rc != NCSCC_RC_SUCCESS) {
-			TRACE_4("cpd standby dest add evt failed ");
-			/*  goto free_mem; */
+			proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
+			if (proc_rc != NCSCC_RC_SUCCESS) {
+				TRACE_4("cpd standby dest add evt failed ");
+				goto free_mem;
+			}
 		}
 	}
 
-	cpd_ckpt_ref_info_add(node_info, ckpt_node);
-	
+	if (noncoll_rep_on_payload != true) {
+		cpd_ckpt_ref_info_add(node_info, ckpt_node);
+	}
 	TRACE_1("cpd standby destadd evt success ckpt_id %llx mdsdest: %"PRIu64, msg->info.dest_add.ckpt_id, msg->info.dest_add.mds_dest);
 
 	TRACE_LEAVE();
@@ -535,6 +549,9 @@ uint32_t cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		}
 	}
 
+	if (reploc_info) {
+		m_MMGR_FREE_CPD_CKPT_REPLOC_INFO(reploc_info);
+	}  
 	TRACE_LEAVE();
 	return proc_rc;
 }
