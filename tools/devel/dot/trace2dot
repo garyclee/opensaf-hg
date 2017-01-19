@@ -2,6 +2,7 @@
 #
 #
 # (C) Copyright 2015 The OpenSAF Foundation
+# Copyright Ericsson AB 2015, 2016, 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -97,10 +98,10 @@ def process_infile(infile, from_function, outfile):
 
                 if len(function_names) > 1:
                     outfile.write(
-                        func_enter + ' [color=grey, shape=box, label="' + func_enter + '"];\n')
+                        func_enter + ' [ordering=out, color=grey, shape=box, label="' + func_enter + '"];\n')
                 else:
                     outfile.write(
-                        func_enter + ' [color=red, shape=box, label="' + func_enter + '"];\n')
+                        func_enter + ' [ordering=out, color=red, shape=box, label="' + func_enter + '"];\n')
 
             if items[5] == '<<':
                 func_leave = items[6].rstrip(':')
