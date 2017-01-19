@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -106,6 +107,7 @@ lib_libSaImmOi_la_LDFLAGS += \
 	-version-number 0:3:0
 
 lib_libSaImmOi_la_LIBADD = \
+	lib/libimm_common.la \
 	lib/libais.la \
 	lib/libopensaf_core.la
 
