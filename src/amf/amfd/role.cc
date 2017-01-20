@@ -676,7 +676,7 @@ void avd_role_switch_ncs_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			} else {
 				avd_sg_su_oper_list_add(cb, i_su, false);
 				i_su->set_su_switch(AVSV_SI_TOGGLE_SWITCH);
-				m_AVD_SET_SG_FSM(cb, (i_su->sg_of_su), AVD_SG_FSM_SU_OPER);
+				i_su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
 			}
 		}
 	}
