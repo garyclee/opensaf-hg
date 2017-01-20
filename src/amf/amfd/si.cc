@@ -1580,21 +1580,21 @@ SaAisErrorT AVD_SI::si_swap_validate()
 	AVD_AVND *node;
 	SaAisErrorT rc = SA_AIS_OK;
 	if (saAmfSIAdminState != SA_AMF_ADMIN_UNLOCKED) {
-		LOG_ER("%s SWAP failed - wrong admin state=%u", name.c_str(),
+		LOG_NO("%s SWAP failed - wrong admin state=%u", name.c_str(),
 				saAmfSIAdminState);
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 
 	if (avd_cb->init_state != AVD_APP_STATE) {
-		LOG_ER("%s SWAP failed - not in app state (%u)", name.c_str(),
+		LOG_NO("%s SWAP failed - not in app state (%u)", name.c_str(),
 				avd_cb->init_state);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
 	}
 
 	if (sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		LOG_ER("%s SWAP failed - SG not stable (%u)", name.c_str(),
+		LOG_NO("%s SWAP failed - SG not stable (%u)", name.c_str(),
 				sg_of_si->sg_fsm_state);
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done;
@@ -1626,14 +1626,14 @@ SaAisErrorT AVD_SI::si_swap_validate()
 		/* Check whether Amfd is in sync if node is illigible to join. */
 		if ((avd_cb->node_id_avd_other != 0) && (avd_cb->other_avd_adest != 0) &&
 				(avd_cb->stby_sync_state == AVD_STBY_OUT_OF_SYNC)) {
-			LOG_ER("%s SWAP failed - Cold sync in progress", name.c_str());
+			LOG_NO("%s SWAP failed - Cold sync in progress", name.c_str());
 			rc = SA_AIS_ERR_TRY_AGAIN;
 			goto done;
 		}
 	}
 
 	if (list_of_sisu->si_next == nullptr) {
-		LOG_ER("%s SWAP failed - only one assignment", name.c_str());
+		LOG_NO("%s SWAP failed - only one assignment", name.c_str());
 		if (sg_of_si->is_middleware() == true) {
 			/* Another M/w SU will come anyway because of two controller,
 			   so wait to come back.*/
@@ -1644,7 +1644,7 @@ SaAisErrorT AVD_SI::si_swap_validate()
 
 		/* Check whether one assignment is because of configuration. */
 		if (sg_of_si->list_of_su.size() == 1) {
-			LOG_ER("Only one SU configured");
+			LOG_WA("Only one SU configured");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		} else {
@@ -1665,7 +1665,7 @@ SaAisErrorT AVD_SI::si_swap_validate()
 			}
 			/* All other SUs are unlocked, so return BAD OP. */
 			if (any_su_unlocked == false) {
-				LOG_ER("All other SUs and their hosting nodes are not in UNLOCKED state");
+				LOG_WA("All other SUs and their hosting nodes are not in UNLOCKED state");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1682,7 +1682,7 @@ SaAisErrorT AVD_SI::si_swap_validate()
 			}
 			/* all other nodes absent, so return BAD OP. */
 			if (all_nodes_absent == true) {
-				LOG_ER("All other nodes hosting SUs are down");
+				LOG_WA("All other nodes hosting SUs are down");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1701,7 +1701,7 @@ SaAisErrorT AVD_SI::si_swap_validate()
 			}
 			/* Any other node hosting unlocked SUs are joining, so return TRY AGAIN. */
 			if (any_nodes_joining == true) {
-				LOG_ER("All other nodes hosting SUs are joining.");
+				LOG_NO("All other nodes hosting SUs are joining.");
 				rc = SA_AIS_ERR_TRY_AGAIN;
 				goto done;
 			}
@@ -1730,12 +1730,12 @@ SaAisErrorT AVD_SI::si_swap_validate()
 			}
 			/* Any other SUs are in instantiating/restarting/terminating, so return TRY AGAIN. */
 			if (any_su_on_nodes_in_trans == true) {
-				LOG_ER("Other SUs are in INSTANTIATING/TERMINATING/RESTARTING state.");
+				LOG_NO("Other SUs are in INSTANTIATING/TERMINATING/RESTARTING state.");
 				rc = SA_AIS_ERR_TRY_AGAIN;
 				goto done;
 			} else if (any_su_on_nodes_failed == true) {
 				/* Nothing in inst/rest/term and others are in failed state, so reutrn BAD OP.*/
-				LOG_ER("Other SUs are in INSTANTIATION/TERMINATION failed state/ Out of Service.");
+				LOG_WA("Other SUs are in INSTANTIATION/TERMINATION failed state/ Out of Service.");
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1743,7 +1743,7 @@ SaAisErrorT AVD_SI::si_swap_validate()
 		/* Still the SUs may be in Uninstantiated or Instantiated, but might not have got
 		   assignment because of other configurations like PrefInServiceSUs, etc, so return
 		   BAD_OP for them. */
-		LOG_ER("Other SUs are not instantiated or assigned because of configurations.");
+		LOG_WA("Other SUs are not instantiated or assigned because of configurations.");
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
