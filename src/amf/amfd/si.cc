@@ -1063,7 +1063,7 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 			if ( avd_sg_nacvred_su_chose_asgn(avd_cb, sg_of_si ) != nullptr ) {
 				/* New assignments are been done in the SG.
                                    change the SG FSM state to AVD_SG_FSM_SG_REALIGN */
-				m_AVD_SET_SG_FSM(avd_cb, sg_of_si, AVD_SG_FSM_SG_REALIGN);
+				sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			} else {
 				/* No New assignments are been done in the SG
 				   reason might be no more inservice SUs to take new assignments or
@@ -1095,7 +1095,7 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 				sisu = sisu->si_next;
 			}
 			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN SG to Stable state */
-			m_AVD_SET_SG_FSM(avd_cb,  sg_of_si, AVD_SG_FSM_SG_REALIGN);
+			sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
 	} 
 	if( sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
@@ -1129,7 +1129,7 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 				sisu = sisu->si_next;
 			}
 			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN */ 
-			m_AVD_SET_SG_FSM(avd_cb, sg_of_si, AVD_SG_FSM_SG_REALIGN);
+			sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
 	}
 	TRACE_LEAVE();	

@@ -735,7 +735,7 @@ uint32_t SG_2N::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 	/* Add the SU to the list and change the FSM state */
 	avd_sg_su_oper_list_add(cb, l_su, false);
 
-	m_AVD_SET_SG_FSM(cb, (si->sg_of_si), AVD_SG_FSM_SG_REALIGN);
+	si->sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
 done:
 	TRACE_LEAVE();
@@ -778,7 +778,7 @@ SaAisErrorT SG_2N::si_swap(AVD_SI *si, SaInvocationT invocation) {
 
 	/* Add the SU to the operation list and change the SG state to SU_operation. */
 	avd_sg_su_oper_list_add(avd_cb, susi->su, false);
-	m_AVD_SET_SG_FSM(avd_cb, susi->su->sg_of_su, AVD_SG_FSM_SU_OPER);
+	susi->su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
 	susi->su->set_su_switch(AVSV_SI_TOGGLE_SWITCH);
 	si->invocation = invocation;
 
@@ -867,7 +867,7 @@ uint32_t SG_2N::su_fault_su_oper(AVD_SU *su) {
 
 			/* add the SU to the operation list and change the SG FSM to SG realign. */
 			avd_sg_su_oper_list_add(cb, su, false);
-			m_AVD_SET_SG_FSM(cb, this, AVD_SG_FSM_SG_REALIGN);
+			set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
 			/* if the other SUs switch field is true, it is in service, 
 			 * having quiesced assigning state Send D2N-INFO_SU_SI_ASSIGN modify 
@@ -925,7 +925,7 @@ uint32_t SG_2N::su_fault_su_oper(AVD_SU *su) {
 
 			/* add the SU to the operation list and change the SG FSM to SG realign. */
 			avd_sg_su_oper_list_add(cb, su, false);
-			m_AVD_SET_SG_FSM(cb, this, AVD_SG_FSM_SG_REALIGN);
+			set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
 			/* If the other SUs switch field is true, it is in service, 
 			 * having quiesced assigned state Change switch field to false.
@@ -996,7 +996,7 @@ uint32_t SG_2N::su_fault_si_oper(AVD_SU *su) {
 				
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_oper_list_add(cb, su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
 			} else {
 				/* The SU has standby assignments. Send D2N-INFO_SU_SI_ASSIGN
 				 * with remove all to the SU. 
@@ -1052,7 +1052,7 @@ uint32_t SG_2N::su_fault_si_oper(AVD_SU *su) {
 					su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_oper_list_add(cb, su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
 			} else {
 				/* The SU has standby assignments. Change the SI admin state to
 				 * unlock. Remove the SI from the SI admin pointer. 
@@ -1069,7 +1069,7 @@ uint32_t SG_2N::su_fault_si_oper(AVD_SU *su) {
 				avd_sg_su_si_del_snd(cb, su);
 				avd_sg_su_oper_list_add(cb, su, false);
 				avd_sg_su_oper_list_add(cb, o_susi->su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 		} else {	/* if (l_susi != AVD_SU_SI_REL_NULL) */
 
@@ -1089,7 +1089,7 @@ uint32_t SG_2N::su_fault_si_oper(AVD_SU *su) {
 			avd_sg_su_si_del_snd(cb, su);
 			avd_sg_su_oper_list_add(cb, su, false);
 			avd_sg_su_oper_list_add(cb, o_susi->su, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}		/* else (l_susi != AVD_SU_SI_REL_NULL) */
 
 	} else {
@@ -1137,7 +1137,7 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 
 			/* add the SU to the operation list and change the SG FSM to SU operation. */
 			avd_sg_su_oper_list_add(cb, su, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
 		} else {
 
 			/* means standby */
@@ -1149,7 +1149,7 @@ uint32_t SG_2N::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 
 			/* add the SU to the operation list and change the SG FSM to SG realign. */
 			avd_sg_su_oper_list_add(cb, su, false);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_REALIGN:
@@ -1361,7 +1361,7 @@ uint32_t SG_2N::su_insvc(AVD_CL_CB *cb, AVD_SU *su) {
 	/* Add the SU to the list and change the FSM state */
 	avd_sg_su_oper_list_add(cb, l_su, false);
 
-	m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+	su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
  done:
 	TRACE_LEAVE2("%u", rc);
@@ -1463,7 +1463,7 @@ uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
 					
 					if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == nullptr) {
 						/* all the assignments have already been done in the SG. */
-						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 						avd_sidep_sg_take_action(su->sg_of_su); 
 						avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					} else {
@@ -1523,7 +1523,7 @@ uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
 
 						if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == nullptr) {
 							/* all the assignments have already been done in the SG. */
-							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 							avd_sidep_sg_take_action(su->sg_of_su); 
 							avd_sg_app_su_inst_func(cb, su->sg_of_su);
 						} else {
@@ -1568,7 +1568,7 @@ uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
 
 					if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == nullptr) {
 						/* all the assignments have already been done in the SG. */
-						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 						avd_sidep_sg_take_action(su->sg_of_su); 
 						avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					} else {
@@ -1597,7 +1597,7 @@ uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
 				if (all_assignments_done(o_su)) {
 					if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == nullptr) {
 						/* all the assignments have already been done in the SG. */
-						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 						avd_sidep_sg_take_action(su->sg_of_su);
 					} else {
 						avd_sg_su_oper_list_add(cb, l_su, true);
@@ -1631,7 +1631,7 @@ uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
 
 					if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == nullptr) {
 						/* all the assignments have already been done in the SG. */
-						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 						avd_sidep_sg_take_action(su->sg_of_su);
 						avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					} else {
@@ -1679,7 +1679,7 @@ uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
 
 					if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == nullptr) {
 						/* all the assignments have already been done in the SG. */
-						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+						su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 						avd_sidep_sg_take_action(su->sg_of_su); 
 						avd_sg_app_su_inst_func(cb, su->sg_of_su);
 					} else {
@@ -1741,7 +1741,7 @@ uint32_t SG_2N::susi_success_sg_realign(AVD_SU *su, AVD_SU_SI_REL *susi,
 					} else {
 						if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == nullptr) {
 							/* all the assignments have already been done in the SG. */
-							m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+							su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 							avd_sidep_sg_take_action(su->sg_of_su); 
 							avd_sg_app_su_inst_func(cb, su->sg_of_su);
 						} else {
@@ -1842,7 +1842,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 						LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
 						goto done;
 					}
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 			} else {
 				n_susi = avd_siass_next_susi_to_quiesce(susi);
@@ -1917,7 +1917,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 					goto done;
 				}
 
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 		}
 
@@ -1994,7 +1994,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 				goto done;
 			}
 
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			complete_siswap(su, SA_AIS_OK);
 
 		}
@@ -2011,7 +2011,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 		AVD_SU *su_at_head = su_oper_list.front();
 		su_at_head->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 		avd_sg_su_oper_list_del(cb, su_at_head, false);
-		m_AVD_SET_SG_FSM(cb, su->sg_of_su, AVD_SG_FSM_STABLE);
+		su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 		/*As sg is stable, screen for si dependencies and take action on whole sg*/
 		avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
 		avd_sidep_sg_take_action(su->sg_of_su); 
@@ -2080,7 +2080,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 				}
 				/* Add that SU to operation list and Change state to SG_realign state. */ 
 				avd_sg_su_oper_list_add(cb, s_susi->su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}	/* if ((s_susi != AVD_SU_SI_REL_NULL) && 
 				   (avd_su_state_determine(s_susi->su) == SA_AMF_HA_STANDBY) &&
 				   (s_susi->su->readiness_state == NCS_IN_SERVICE)) */
@@ -2090,13 +2090,13 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 				 */
 				avd_sg_su_oper_list_add(cb, a_susi->su, false);
 
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			} /* if((avd_su_state_determine(a_susi->su) == SA_AMF_HA_ACTIVE) && (a_susi->su != su)) */
 			else {
 				/* single SU that failed while taking quiesced or 
 				 * quiescing assignmenents. 
 				 */
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
 				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
 				avd_sidep_sg_take_action(su->sg_of_su); 
@@ -2139,7 +2139,7 @@ uint32_t SG_2N::susi_success_su_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 			/* Add the SU to the list and change the FSM state */
 			avd_sg_su_oper_list_add(cb, l_su, false);
 
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
 
 	} else {
@@ -2186,7 +2186,7 @@ uint32_t SG_2N::susi_success_si_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 				avd_sg_su_oper_list_add(cb, susi->si->list_of_sisu->su, false);
 			}
 
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}		/* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED)
 				   && (susi->si == su->sg_of_su->admin_si)
 				   && (susi->si->admin_state == NCS_ADMIN_STATE_LOCK)) */
@@ -2221,7 +2221,7 @@ uint32_t SG_2N::susi_success_si_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}		/* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED)
 				   && (susi->si == su->sg_of_su->admin_si)
 				   && (susi->si->admin_state == NCS_ADMIN_STATE_SHUTDOWN)) */
@@ -2255,7 +2255,7 @@ uint32_t SG_2N::susi_success_si_oper(AVD_SU *su, AVD_SU_SI_REL *susi,
 				su->sg_of_su->admin_si->set_si_switch(cb, AVSV_SI_TOGGLE_STABLE);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_oper_list_add(cb, su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 
 		} /* if ((act == AVSV_SUSI_ACT_DEL) && (susi->state == SA_AMF_HA_QUIESCED)) */
@@ -2336,7 +2336,7 @@ uint32_t SG_2N::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 				if (all_unassigned == true) {
 					/* the SG doesnt have any SI assignments.Change state to stable. */
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 					/*As sg is stable, screen for si dependencies and take action on whole sg*/
 					avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -2549,7 +2549,7 @@ uint32_t SG_2N::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 			}
 
 			su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			complete_siswap(su, SA_AIS_ERR_BAD_OPERATION);
 
 		} else if ((act == AVSV_SUSI_ACT_MOD) &&
@@ -2627,7 +2627,7 @@ uint32_t SG_2N::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				avd_sg_su_oper_list_add(cb, o_susi->su, false);
 			}
 
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}		/* if ((susi != AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
 				   (state == SA_AMF_HA_QUIESCED) && (susi->si == su->sg_of_su->admin_si)
 				   && (susi->si->admin_state == NCS_ADMIN_STATE_LOCK)) */
@@ -2664,7 +2664,7 @@ uint32_t SG_2N::susi_failed(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 
-			m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+			su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
 		} else {
 			/* message with remove for a SU SI relationship having standby value.
@@ -2769,7 +2769,7 @@ uint32_t SG_2N::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 	avd_sg_su_oper_list_add(cb, l_su, false);
 
 	set_adjust_state(AVSV_SG_STABLE);
-	m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
+	sg->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
  done:
 	TRACE_LEAVE();
@@ -2820,16 +2820,16 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 
 				avd_sg_su_oper_list_del(cb, su, false);
 				su->delete_all_susis();
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			} else {	/* if (s_susi != AVD_SU_SI_REL_NULL) */
 
 				avd_sg_su_oper_list_del(cb, su, false);
 				su->delete_all_susis();
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 				if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 					/* add the SU to the operation list and change the SG FSM to SG realign. */
 					avd_sg_su_oper_list_add(cb, o_su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 				else
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -2870,7 +2870,7 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 				avd_sg_su_oper_list_del(cb, su, false);
 				su->delete_all_susis();
 				su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
 				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
 				avd_sidep_sg_take_action(su->sg_of_su);
@@ -2885,13 +2885,13 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
 					avd_sg_su_oper_list_add(cb, a_susi->su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					if (su_node_ptr->is_node_lock() == true) {
 						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 					avd_sg_su_oper_list_add(cb, a_susi->su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				} else if (su->su_switch == AVSV_SI_TOGGLE_SWITCH) {
 					/* During si-swap, NodeFailover or SuFailover got escalated
 					 * while the *su* just finishes quiesced assignment and
@@ -2900,11 +2900,11 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 					su->set_su_switch(AVSV_SI_TOGGLE_STABLE);
 					if (a_susi->su->any_susi_fsm_in(AVD_SU_SI_STATE_MODIFY) == true) {
 						avd_sg_su_oper_list_add(cb, a_susi->su, false);
-						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+						su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 					}
 				} else {
 					avd_sg_su_oper_list_add(cb, a_susi->su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 				
 			}
@@ -2936,12 +2936,12 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 
 				avd_sg_su_oper_list_del(cb, su, false);
 				su->delete_all_susis();
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			} else {	/* if (s_susi != AVD_SU_SI_REL_NULL) */
 
 				avd_sg_su_oper_list_del(cb, su, false);
 				su->delete_all_susis();
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
 				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
 				avd_sidep_sg_take_action(su->sg_of_su); 
@@ -2975,7 +2975,7 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 					avd_su_role_failover(su, su_oper_list.front());
 				}
 
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 
 			AVD_SU *su_at_head = su_oper_list.front();
@@ -3009,10 +3009,10 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 					avd_su_role_failover(su, su_oper_list.front());
 				}
 
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			} else {
 				avd_sg_su_si_del_snd(cb, su_oper_list.front());
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 
 			AVD_SU *su_at_head = su->sg_of_su->su_oper_list.front();
@@ -3075,7 +3075,7 @@ void SG_2N::node_fail_si_oper(AVD_SU *su) {
 				}
 					avd_sg_su_oper_list_add(cb, s_susi->su, false);
 
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
@@ -3084,12 +3084,12 @@ void SG_2N::node_fail_si_oper(AVD_SU *su) {
 			else {
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				su->delete_all_susis();
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 
 				if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 					/* add the SU to the operation list and change the SG FSM to SG realign. */
 					avd_sg_su_oper_list_add(cb, o_su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 				else
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3146,7 +3146,7 @@ void SG_2N::node_fail_si_oper(AVD_SU *su) {
 					}
 					avd_sg_su_oper_list_add(cb, s_susi->su, false);
 
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 
 				su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
@@ -3157,12 +3157,12 @@ void SG_2N::node_fail_si_oper(AVD_SU *su) {
 				su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				su->delete_all_susis();
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 
 				if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 					/* add the SU to the operation list and change the SG FSM to SG realign. */
 					avd_sg_su_oper_list_add(cb, o_su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 				else 
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3242,7 +3242,7 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 					}
 					avd_sg_su_oper_list_add(cb, s_susi->su, false);
 				}
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				su->delete_all_susis();
 			} /* if (s_susi != AVD_SU_SI_REL_NULL) */
 			else {
@@ -3251,7 +3251,7 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 				if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 					/* add the SU to the operation list and change the SG FSM to SG realign. */
 					avd_sg_su_oper_list_add(cb, o_su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 				else
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3271,7 +3271,7 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(cb, o_su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 			else
 				avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3363,11 +3363,11 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 				su->delete_all_susis();
 				avd_sg_su_oper_list_del(cb, su, false);
 				if (su_oper_list.empty() == true) {
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 					if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 						/* add the SU to the operation list and change the SG FSM to SG realign. */
 						avd_sg_su_oper_list_add(cb, o_su, false);
-						m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+						su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 					}
 					else
 						avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3384,11 +3384,11 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			su->delete_all_susis();
 			avd_sg_su_oper_list_del(cb, su, false);
 			if (su_oper_list.empty() == true) {
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 				if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 					/* add the SU to the operation list and change the SG FSM to SG realign. */
 					avd_sg_su_oper_list_add(cb, o_su, false);
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				}
 				else
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3420,7 +3420,7 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 
 			if (found_assigned == false) {
 				/* the SG doesnt have any SI assignments.Change state to stable. */
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 				/*As sg is stable, screen for si dependencies and take action on whole sg*/
 				avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
 				avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3452,7 +3452,7 @@ void SG_2N::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 							TRACE("node_oper_list size:%u",node->admin_ng->oper_list_size());
 						}
 				} else {
-					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_STABLE);
+					su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
 					/*As sg is stable, screen for si dependencies and take action on whole sg*/
 					avd_sidep_update_si_dep_state_for_all_sis(su->sg_of_su);
 					avd_sidep_sg_take_action(su->sg_of_su); 
@@ -3524,7 +3524,7 @@ uint32_t SG_2N::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 
 				/* add the SU to the operation list and change the SG FSM to SU operation. */
 				avd_sg_su_oper_list_add(cb, su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
 
 			} else {	/* if (avd_su_state_determine(su) == SA_AMF_HA_ACTIVE) */
 
@@ -3537,7 +3537,7 @@ uint32_t SG_2N::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(cb, su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}	/* else (avd_su_state_determine(su) == SA_AMF_HA_ACTIVE) */
 		}		/* if ((su->admin_state == NCS_ADMIN_STATE_LOCK) ||
 				   ((avnd != AVD_AVND_NULL) && (avnd->su_admin_state == NCS_ADMIN_STATE_LOCK))) */
@@ -3561,7 +3561,7 @@ uint32_t SG_2N::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 
 				/* add the SU to the operation list and change the SG FSM to SU operation. */
 				avd_sg_su_oper_list_add(cb, su, false);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SU_OPER);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
 			} else {	/* if (avd_su_state_determine(su) == SA_AMF_HA_ACTIVE) */
 
 				/* means standby */
@@ -3575,7 +3575,7 @@ uint32_t SG_2N::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 				avd_sg_su_oper_list_add(cb, su, false);
 				if (su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN)
 					su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-				m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
+				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}	/* else (avd_su_state_determine(su) == SA_AMF_HA_ACTIVE) */
 		}		/* if ((su->admin_state == NCS_ADMIN_STATE_SHUTDOWN) ||
 				   ((avnd != AVD_AVND_NULL) && (avnd->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN))) */
@@ -3658,7 +3658,7 @@ uint32_t SG_2N::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 
 			/* add the SI to the admin list and change the SG FSM to SI operation. */
 			m_AVD_SET_SG_ADMIN_SI(cb, si);
-			m_AVD_SET_SG_FSM(cb, (si->sg_of_si), AVD_SG_FSM_SI_OPER);
+			si->sg_of_si->set_fsm_state(AVD_SG_FSM_SI_OPER);
 		} /* if (si->admin_state == NCS_ADMIN_STATE_LOCK) */
 		else if (si->saAmfSIAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			/* SI shutdown. Identify the SU that is active 
@@ -3680,7 +3680,7 @@ uint32_t SG_2N::si_admin_down(AVD_CL_CB *cb, AVD_SI *si) {
 
 			/* add the SI to the admin list and change the SG FSM to SI operation. */
 			m_AVD_SET_SG_ADMIN_SI(cb, si);
-			m_AVD_SET_SG_FSM(cb, (si->sg_of_si), AVD_SG_FSM_SI_OPER);
+			si->sg_of_si->set_fsm_state(AVD_SG_FSM_SI_OPER);
 		}		/* if (si->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SI_OPER:
@@ -3740,7 +3740,7 @@ uint32_t SG_2N::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 		a_susi = avd_sg_2n_act_susi(cb, sg, &s_susi);
 		if (a_susi == AVD_SU_SI_REL_NULL) {
 			avd_sg_admin_state_set(sg, SA_AMF_ADMIN_LOCKED);
-			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_STABLE);
+			sg->set_fsm_state(AVD_SG_FSM_STABLE);
 			/*As sg is stable, screen for si dependencies and take action on whole sg*/
 			avd_sidep_update_si_dep_state_for_all_sis(sg);
 			avd_sidep_sg_take_action(sg); 
@@ -3772,7 +3772,7 @@ uint32_t SG_2N::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 				avd_sg_su_si_del_snd(cb, s_susi->su);
 			}
 
-			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_ADMIN);
+			sg->set_fsm_state(AVD_SG_FSM_SG_ADMIN);
 		} /* if (sg->admin_state == NCS_ADMIN_STATE_LOCK) */
 		else if (sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			/* SG shutdown. Identify the SU that is active 
@@ -3794,7 +3794,7 @@ uint32_t SG_2N::sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg) {
 				}
 			}
 
-			m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_ADMIN);
+			sg->set_fsm_state(AVD_SG_FSM_SG_ADMIN);
 		}		/* if (sg->admin_state == NCS_ADMIN_STATE_SHUTDOWN) */
 		break;		/* case AVD_SG_FSM_STABLE: */
 	case AVD_SG_FSM_SG_ADMIN:

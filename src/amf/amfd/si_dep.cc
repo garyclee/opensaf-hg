@@ -460,7 +460,7 @@ uint32_t sidep_unassign_dependent(AVD_CL_CB *cb, AVD_SI *si)
 		avd_sidep_si_dep_state_set(si, AVD_SI_SPONSOR_UNASSIGNED);
 
 	/* transition to sg-realign state */
-	m_AVD_SET_SG_FSM(cb, si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
+	si->sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
 done:
 	TRACE_LEAVE2("rc:%u", rc);
@@ -1958,7 +1958,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 			if (si->sg_of_si->su_oper_list.empty() == true) {
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(avd_cb, stdby_su, false);
-				m_AVD_SET_SG_FSM(avd_cb, stdby_su->sg_of_su, AVD_SG_FSM_SG_REALIGN);
+				stdby_su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 		}
 		break;
@@ -2014,13 +2014,13 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 			avd_sg_su_oper_list_add(avd_cb, stdby_su, false);
 
 			/*Change state to SG_realign. */
-			m_AVD_SET_SG_FSM(avd_cb, stdby_su->sg_of_su, AVD_SG_FSM_SG_REALIGN);
+			stdby_su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
 			avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
 			if (si->sg_of_si->su_oper_list.empty() == true) {
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(avd_cb, stdby_su, false);
-				m_AVD_SET_SG_FSM(avd_cb, stdby_su->sg_of_su, AVD_SG_FSM_SG_REALIGN);
+				stdby_su->sg_of_su->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 			}
 		}
 		break;
@@ -2030,7 +2030,7 @@ static void sidep_dependentsi_role_failover(AVD_SI *si)
 			susi = avd_find_preferred_standby_susi(si);
 			if (susi) {
 				avd_susi_mod_send(susi, SA_AMF_HA_ACTIVE);
-				m_AVD_SET_SG_FSM(avd_cb, si->sg_of_si, AVD_SG_FSM_SG_REALIGN);
+				si->sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 				avd_sidep_si_dep_state_set(si, AVD_SI_ASSIGNED);
 			}
 		}

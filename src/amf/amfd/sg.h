@@ -577,7 +577,6 @@ private:
 };
 
 // TODO(hafe) remove when all code has been changed
-#define m_AVD_SET_SG_FSM(cb,sg,state) (sg)->set_fsm_state(state)
 #define m_AVD_SET_SG_ADMIN_SI(cb,si) (si)->sg_of_si->set_admin_si((si))
 #define m_AVD_CLEAR_SG_ADMIN_SI(cb,sg) (sg)->clear_admin_si()
 #define m_AVD_CHK_OPLIST(i_su,flag) (flag) = (i_su)->sg_of_su->in_su_oper_list(i_su)
