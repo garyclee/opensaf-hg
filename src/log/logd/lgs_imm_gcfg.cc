@@ -531,6 +531,8 @@ static const SaImmOiCallbacksT_2 callbacks = {
 static void save_network_name(char* new_name) {
   uint32_t name_len = 0;
 
+  TRACE_ENTER();
+  
   osaf_mutex_lock_ordie(&lgs_gcfg_applier_mutex);
 
   /* Delete old name */

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008-2010 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -80,7 +81,7 @@ static void sighup_handler(int sig)
 	setlogmask(logmask);
 }
 
-static void output(const char *file, unsigned int line, int priority, int category, const char *format, va_list ap)
+void output_(const char *file, unsigned int line, int priority, int category, const char *format, va_list ap)
 {
 	int i;
 	struct timeval tv;
@@ -162,23 +163,28 @@ void _logtrace_log(const char *file, unsigned int line, int priority, const char
 	if (!(category_mask & (1 << CAT_LOG)))
 		goto done;
 
-	output(file, line, priority, CAT_LOG, format, ap2);
+	output_(file, line, priority, CAT_LOG, format, ap2);
 
 done:
 	va_end(ap);
 	va_end(ap2);
 }
 
+bool is_trace_enabled_(unsigned int category)
+{
+	/* Filter on category */
+	return (category_mask & (1 << category)) != 0; 
+}
+
 void _logtrace_trace(const char *file, unsigned int line, unsigned int category, const char *format, ...)
 {
 	va_list ap;
 
-	/* Filter on category */
-	if (!(category_mask & (1 << category)))
+	if (is_trace_enabled_(category) == false)
 		return;
 
 	va_start(ap, format);
-	output(file, line, LOG_DEBUG, category, format, ap);
+	output_(file, line, LOG_DEBUG, category, format, ap);
 	va_end(ap);
 }
 

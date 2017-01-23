@@ -1426,6 +1426,7 @@ void avd_sidep_start_tolerance_timer_for_dependant(AVD_SI *dep_si, AVD_SI *spons
 {
 	AVD_SI_DEP *si_dep_rec;
 
+	TRACE_ENTER();
 	TRACE("dep_si:%s spons_si:%s",dep_si->name.c_str(),spons_si->name.c_str());
 
 	si_dep_rec = sidep_db_find(spons_si->name, dep_si->name);

@@ -831,6 +831,7 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 	bool first_sisu = true;
 
+	TRACE_ENTER();
 	if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE) { 
 		/* A double check whether csi has been deleted from DB or not and whether pointer stored userData 
 		   is still valid. */
@@ -851,7 +852,7 @@ static void ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 		goto done;
 	}
 
-        TRACE_ENTER2("'%s'", csi ? csi->name.c_str() : nullptr);
+        TRACE("'%s'", csi ? csi->name.c_str() : nullptr);
 
 	/* Check whether si has been assigned to any SU. */
 	if ((nullptr != csi->si->list_of_sisu) && 
@@ -992,6 +993,8 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
  **************************************************************************/
 static void csi_ccb_apply_create_hdlr(struct CcbUtilOperationData *opdata)
 {
+	TRACE_ENTER();
+
 	AVD_CSI *csi = nullptr;
 	if ((csi = csi_db->find(Amf::to_string(&opdata->objectName))) == nullptr) {
 		/* this check is added because, some times there is
@@ -1026,6 +1029,8 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 	bool first_sisu = true;
 	AVD_COMP_CSI_REL *compcsi;
 	SaAisErrorT rc = SA_AIS_ERR_NO_OP;
+
+	TRACE_ENTER();
 
 	/* Check whether csi assignment is already in progress and if yes, then return.
 	   This csi will be assigned after the undergoing csi assignment gets over.*/

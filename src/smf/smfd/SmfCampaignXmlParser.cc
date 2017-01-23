@@ -2016,6 +2016,7 @@ SmfCampaignXmlParser::parseAppType(
 {
 	xmlNsPtr ns = 0;
 	std::string dn;
+        TRACE_ENTER();
 	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfAppType", i_node, "safVersion", dn);
 	if (ico == NULL) {
 		LOG_NO("SmfCampaignXmlParser::parseAppType: Fail to prepare create IMM Create Operation");
@@ -2083,6 +2084,7 @@ SmfCampaignXmlParser::parseSGType(
 {
 	xmlNsPtr ns = 0;
 	std::string dn;
+        TRACE_ENTER();
 	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfSGType", i_node, "safVersion", dn);
 	if (ico == NULL) {
 		LOG_NO("SmfCampaignXmlParser::parseSGType: Fail to prepare create IMM Create Operation");
@@ -2154,6 +2156,7 @@ SmfCampaignXmlParser::parseSUType(
 {
 	xmlNsPtr ns = 0;
 	std::string dn;
+        TRACE_ENTER();
 	SmfImmCreateOperation* ico = prepareCreateOperation(parent, "SaAmfSUType", i_node, "safVersion", dn);
 	if (ico == NULL) {
 		LOG_NO("SmfCampaignXmlParser::parseSUType: Fail to prepare create IMM Create Operation");

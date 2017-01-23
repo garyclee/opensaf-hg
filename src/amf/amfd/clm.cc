@@ -83,6 +83,8 @@ static void clm_node_exit_validate(AVD_AVND *node)
 	bool reject = false;
 	SaAisErrorT rc = SA_AIS_OK;
 
+	TRACE_ENTER();
+
 	/*
 	 * Reject validate step on self node as this is active controller 
 	 */

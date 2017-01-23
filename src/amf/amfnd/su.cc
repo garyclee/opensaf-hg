@@ -907,6 +907,8 @@ static uint32_t avnd_process_comp_csi_msg (AVND_COMP *comp, AVND_COMP_CSI_REC *c
   uint32_t rc = NCSCC_RC_SUCCESS;
   std::map<MDS_DEST, MDS_SVC_PVT_SUB_PART_VER>::iterator iter;	
 
+  TRACE_ENTER();
+  
   /*
      Callback is sent in the following cases:
      -a PI comp: CSI is assigned to this component.

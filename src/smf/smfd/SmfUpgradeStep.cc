@@ -2574,6 +2574,9 @@ bool SmfUpgradeStep::checkAndInvokeCallback (const std::list < SmfCallback * > &
 	SaAisErrorT rc = SA_AIS_OK;
 
 	std::vector < SmfUpgradeStep * >::const_iterator iter;
+
+	TRACE_ENTER();
+
 	const std::vector <SmfUpgradeStep *>& procSteps = m_procedure->getProcSteps();
 
 	cbkiter = callbackList.begin();
