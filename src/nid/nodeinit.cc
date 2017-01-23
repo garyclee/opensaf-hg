@@ -1124,12 +1124,13 @@ uint32_t check_process(NID_SPAWN_INFO *service)
 	TRACE_ENTER();
 
 	sprintf(buf, "/proc/%d", service->pid);
-	if (stat(buf, &sb) != 0)
+	if (stat(buf, &sb) != 0) {
+		TRACE_LEAVE();
 		return 0;
-	else
+	} else {
+		TRACE_LEAVE();
 		return 1;
-
-	TRACE_LEAVE();
+	}
 }
 
 

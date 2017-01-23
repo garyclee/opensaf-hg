@@ -243,8 +243,8 @@ done:
 AVD_AVND *avd_node_get(const std::string& dn)
 {
 	TRACE_ENTER2("%s", dn.c_str());
-	return node_name_db->find(dn);
 	TRACE_LEAVE();
+	return node_name_db->find(dn);
 }
 
 AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)

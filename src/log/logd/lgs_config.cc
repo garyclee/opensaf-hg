@@ -429,8 +429,8 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data) {
     free(allocmem_ptr);
 
 done:
-  return rc;
   TRACE_LEAVE();
+  return rc;
 }
 
 /******************************************************************************
