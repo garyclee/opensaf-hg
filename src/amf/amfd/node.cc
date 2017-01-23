@@ -891,7 +891,9 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 {
 	SaAmfAdminStateT old_state  = node->saAmfNodeAdminState;
-	
+
+	TRACE_ENTER();
+
 	if (old_state == admin_state)
 		return;
 	osafassert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);

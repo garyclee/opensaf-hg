@@ -385,7 +385,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, const std::string& 
 void avnd_pgdb_mem_rec_del(AVND_CB *cb, AVND_PG *pg, const std::string& comp_name)
 {
 	AVND_PG_MEM *pg_mem = 0;
-	TRACE_LEAVE();
+	TRACE_ENTER();
 
 	/* remove the pg mem record */
 	pg_mem = avnd_pgdb_mem_rec_rmv(cb, pg, comp_name);
@@ -415,7 +415,7 @@ void avnd_pgdb_mem_rec_del(AVND_CB *cb, AVND_PG *pg, const std::string& comp_nam
 void avnd_pgdb_mem_rec_del_all(AVND_CB *cb, AVND_PG *pg)
 {
 	AVND_PG_MEM *curr = 0;
-	TRACE_LEAVE();
+	TRACE_ENTER();
 
 	while (0 != (curr = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_FIRST(&pg->mem_list)))
 		avnd_pgdb_mem_rec_del(cb, pg, Amf::to_string(&curr->info.member.compName));

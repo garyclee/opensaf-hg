@@ -261,6 +261,8 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 
+        TRACE_ENTER();
+
 	int pt_err = pthread_mutex_lock(&imma_agent_lock);
 	if(pt_err) {
 		TRACE_4("Could not obtain mutex lock error(%u):%s", 
@@ -269,7 +271,7 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 		goto done_nolock;
 	}
 
-	TRACE_ENTER2("use count %u", imma_use_count);
+	TRACE("use count %u", imma_use_count);
 
 	if (imma_use_count > 0) {
 		/* Already created, so just increment the use_count */
@@ -321,6 +323,7 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
+        TRACE_ENTER();
 	int pt_err = pthread_mutex_lock(&imma_agent_lock);
 	if(pt_err) {
 		TRACE_4("Could not obtain mutex lock error(%u):%s", 
@@ -329,7 +332,7 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 		goto done_nolock;
 	}
 
-	TRACE_ENTER2("use count %u", imma_use_count);
+	TRACE("use count %u", imma_use_count);
 
 	if (imma_use_count > 1) {
 		/* Users still exist, just decrement the use count */

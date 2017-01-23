@@ -4989,7 +4989,6 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 	IMMSV_EVT *out_evt = NULL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	SaTimeT timeout = 0;
-	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
@@ -9375,7 +9374,6 @@ SaAisErrorT saImmOmCcbGetErrorStrings(SaImmCcbHandleT ccbHandle,
 	IMMA_CCB_NODE *ccb_node = NULL;
 	SaImmHandleT immHandle=0LL;
 	IMMA_CLIENT_NODE *cl_node = NULL;
-	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
 		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");

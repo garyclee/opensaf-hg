@@ -350,7 +350,7 @@ void NtfClient::readNextResponse(SaAisErrorT* error,
   } else {
     read_next_res_lib(*error, NULL, mdsDest_, mdsCtxt);
   }
-  TRACE_ENTER();
+  TRACE_LEAVE();
 }
 
 void NtfClient::deleteReaderResponse(SaAisErrorT* error,

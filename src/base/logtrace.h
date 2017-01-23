@@ -2,6 +2,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -34,6 +35,7 @@
 #define BASE_LOGTRACE_H_
 
 #include <syslog.h>
+#include <stdarg.h>
 #include "base/ncsgl_defs.h"
 #ifdef  __cplusplus
 extern "C" {
@@ -122,6 +124,9 @@ extern void _logtrace_log(const char *file, unsigned int line, int priority,
 extern void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
                             const char *format, ...) __attribute__ ((format(printf, 4, 5)));
 
+extern bool is_trace_enabled_(unsigned int category);
+extern void output_(const char *file, unsigned int line, int priority, int category, const char *format, va_list ap);
+
 /* LOG API. Use same levels as syslog */
 #define LOG_EM(format, args...) _logtrace_log(__FILE__, __LINE__, LOG_EMERG, (format), ##args)
 #define LOG_AL(format, args...) _logtrace_log(__FILE__, __LINE__, LOG_ALERT, (format), ##args)
@@ -141,10 +146,54 @@ extern void _logtrace_trace(const char *file, unsigned int line, unsigned int ca
 #define TRACE_6(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE6, (format), ##args)
 #define TRACE_7(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE7, (format), ##args)
 #define TRACE_8(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE8, (format), ##args)
+
+#ifdef  __cplusplus
+class Trace {
+ public:
+  Trace() {}
+  ~Trace() {
+    if (!trace_leave_called && is_trace_enabled_(CAT_TRACE_LEAVE)) {
+      va_list ap;
+      output_(file_, 0, LOG_DEBUG, CAT_TRACE_LEAVE, function_, ap);
+    }
+  }
+  void trace(const char *file, const char *function, unsigned int line, unsigned int category, const char *format, ...) {
+    va_list ap;
+    if (is_trace_enabled_(category)) {
+      file_ = file;
+      function_ = function;
+      va_start(ap, format);
+      output_(file, line, LOG_DEBUG, category, format, ap);
+      va_end(ap);
+    }
+  }
+
+  void trace_leave(const char *file, unsigned int line, unsigned int category, const char *format, ...) {
+    va_list ap;
+    if (is_trace_enabled_(category)) {
+      va_start(ap, format);
+      trace_leave_called = true;
+      output_(file, line, LOG_DEBUG, category, format, ap);
+      va_end(ap);
+    }
+  }
+ private:
+  bool trace_leave_called {false};
+  const char* file_{nullptr};
+  const char* function_{nullptr};
+};
+
+#define TRACE_ENTER()                 Trace t_; t_.trace(__FILE__, __FUNCTION__, __LINE__, CAT_TRACE_ENTER, "%s ", __FUNCTION__)
+#define TRACE_ENTER2(format, args...) Trace t_; t_.trace(__FILE__, __FUNCTION__, __LINE__, CAT_TRACE_ENTER, "%s: " format, __FUNCTION__, ##args)
+
+#define TRACE_LEAVE()                 t_.trace_leave(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s ", __FUNCTION__)
+#define TRACE_LEAVE2(format, args...) t_.trace_leave(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s: " format, __FUNCTION__, ##args)
+#else
 #define TRACE_ENTER()                 _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_ENTER, "%s ", __FUNCTION__)
 #define TRACE_ENTER2(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_ENTER, "%s: " format, __FUNCTION__, ##args)
 #define TRACE_LEAVE()                 _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s ", __FUNCTION__)
 #define TRACE_LEAVE2(format, args...) _logtrace_trace(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s: " format, __FUNCTION__, ##args)
+#endif
 
 #ifdef  __cplusplus
 }

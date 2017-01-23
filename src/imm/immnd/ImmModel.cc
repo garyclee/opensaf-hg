@@ -3898,7 +3898,7 @@ ImmModel::oneSafe2PBEAllowed()
     //TRACE_ENTER();
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 
@@ -3920,7 +3920,7 @@ ImmModel::protocol43Allowed()
     //TRACE_ENTER();
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 
@@ -3942,7 +3942,7 @@ ImmModel::protocol45Allowed()
     //TRACE_ENTER();
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 
@@ -3964,7 +3964,7 @@ ImmModel::protocol46Allowed()
     //TRACE_ENTER();
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 
@@ -3986,7 +3986,7 @@ ImmModel::protocol47Allowed()
     //TRACE_ENTER();
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 
@@ -4012,7 +4012,7 @@ ImmModel::protocol50Allowed()
     }
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 
@@ -4039,7 +4039,7 @@ ImmModel::protocol51Allowed()
     }
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 
@@ -4062,7 +4062,7 @@ ImmModel::protocol41Allowed()
     //TRACE_ENTER();
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     if(oi == sObjectMap.end()) {
-        TRACE_LEAVE();
+        //TRACE_LEAVE();
         return false;
     }
 

@@ -1563,6 +1563,8 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 	unsigned int msecs_waited = 0;
         std::string objectDn;
 
+	TRACE_ENTER();
+
 	if(parentName != NULL && !osaf_is_extended_name_empty(parentName)) {
 		TRACE_ENTER2("CREATE CALLBACK CCB:%llu class:%s parent:%s", ccbId, className, osaf_extended_name_borrow(parentName));
 	} else {
@@ -2221,7 +2223,7 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, SaImmAdminOwnerHandleT ow
 	immutilWrapperProfile.retryInterval = 400;
 	immutilWrapperProfile.nTries = 5;
 
-
+	TRACE_ENTER();
 	LOG_NO("pbeDaemon starting with obj-count:%u", sObjCount);
 
 	/* Restore also sClassCount. */

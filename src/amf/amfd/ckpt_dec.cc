@@ -370,6 +370,8 @@ static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_APP app;
 	
+	TRACE_ENTER();
+
 	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
 	decode_app(&dec->i_uba, &app);
 	

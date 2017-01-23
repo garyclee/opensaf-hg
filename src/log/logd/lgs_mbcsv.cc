@@ -2176,6 +2176,8 @@ uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, void *ckpt_rec, uint32_t action) {
   NCS_MBCSV_ARG mbcsv_arg;
   lgsv_ckpt_msg_type_t ckpt_rec_type;
 
+  TRACE_ENTER();
+
   if (lgs_is_peer_v5()) {
     lgsv_ckpt_msg_v5_t *ckpt_rec_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(ckpt_rec);
     ckpt_rec_type = ckpt_rec_v5->header.ckpt_rec_type;

@@ -480,6 +480,8 @@ int main(int argc, char *argv[]) {
    */
   const time_t CLEAN_TIMEOUT = 600; /* 10 min */
 
+  TRACE_ENTER();
+
   daemonize(argc, argv);
 
   if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0 ) {

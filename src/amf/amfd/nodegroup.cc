@@ -467,13 +467,15 @@ static SaAisErrorT ng_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_AVND *node;
 	AVD_AMF_NG *ng = avd_ng_get(Amf::to_string(&opdata->objectName));
 
+	TRACE_ENTER();
+
         if (ng == nullptr) {
 		LOG_WA("Could not find %s in nodegroup_db", osaf_extended_name_borrow(&opdata->objectName));
 		TRACE_LEAVE();
 		return SA_AIS_OK;
         }
 
-	TRACE_ENTER2("%u", ng->number_nodes());
+	TRACE("%u", ng->number_nodes());
 	std::set<std::string>::const_iterator iter;
 	if ((ng->saAmfNGAdminState != SA_AMF_ADMIN_LOCKED) &&
 			(ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED) && 
