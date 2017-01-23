@@ -589,8 +589,8 @@ uint32_t avnd_evt_tmr_clc_pxied_comp_reg_evh(AVND_CB *cb, AVND_EVT *evt)
 done:
 	if (comp)
 		ncshm_give_hdl(tmr->opq_hdl);
-	return rc;
 	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************

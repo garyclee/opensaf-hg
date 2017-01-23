@@ -1105,8 +1105,8 @@ SaAisErrorT csi_assign_hdlr(AVD_CSI *csi)
 		csi->si->sg_of_si->si_assign(avd_cb, csi->si);
 	}
 done:
-	return rc;
 	TRACE_LEAVE();
+	return rc;
 }
 
 static void csi_ccb_apply_cb(CcbUtilOperationData_t *opdata)

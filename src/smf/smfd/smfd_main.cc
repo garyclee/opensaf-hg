@@ -114,8 +114,8 @@ int smfd_imm_trylock()
                         abort();
                 }
         }
+	TRACE_LEAVE();
         return err;
-        TRACE_LEAVE();
 }
 
 void smfd_imm_lock()

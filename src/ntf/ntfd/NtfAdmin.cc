@@ -811,8 +811,8 @@ NtfSmartPtr NtfAdmin::getNotificationById(SaNtfIdentifierT id) {
     return tmp;
   }
 
-  return(posNot->second);
   TRACE_LEAVE();
+  return(posNot->second);
 }
 
 /**
