@@ -153,7 +153,7 @@ class Trace {
   Trace() {}
   ~Trace() {
     if (!trace_leave_called && is_trace_enabled_(CAT_TRACE_LEAVE)) {
-      va_list ap;
+      va_list ap{};
       output_(file_, 0, LOG_DEBUG, CAT_TRACE_LEAVE, function_, ap);
     }
   }
