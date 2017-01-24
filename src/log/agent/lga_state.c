@@ -376,6 +376,8 @@ static void *recovery2_thread(void *dummy)
 			 * Remove (handle invalidated)
 			 */
 			(void) lga_hdl_rec_del(&lga_cb.client_list, p_client);
+			p_client = lga_cb.client_list;
+			continue;
 		}
 
 		/* Next client */
