@@ -180,6 +180,7 @@ static struct timespec ts_start;
 static uint32_t ncs_tmr_add_pat_node(SYSF_TMR *tmr)
 {
 	SYSF_TMR_PAT_NODE *temp_tmr_pat_node = NULL;
+	int rc;
 
 	temp_tmr_pat_node = (SYSF_TMR_PAT_NODE *)ncs_patricia_tree_get(&gl_tcb.tmr_pat_tree, (uint8_t *)&tmr->key);
 
@@ -190,7 +191,11 @@ static uint32_t ncs_tmr_add_pat_node(SYSF_TMR *tmr)
 		memset(temp_tmr_pat_node, '\0', sizeof(SYSF_TMR_PAT_NODE));
 		temp_tmr_pat_node->key = tmr->key;
 		temp_tmr_pat_node->pat_node.key_info = (uint8_t *)&temp_tmr_pat_node->key;
-		ncs_patricia_tree_add(&gl_tcb.tmr_pat_tree, (NCS_PATRICIA_NODE *)&temp_tmr_pat_node->pat_node);
+		rc = ncs_patricia_tree_add(&gl_tcb.tmr_pat_tree, (NCS_PATRICIA_NODE *)&temp_tmr_pat_node->pat_node);
+		if(rc != NCSCC_RC_SUCCESS) {
+			m_NCS_MEM_FREE(temp_tmr_pat_node, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_LEAP_TMR, 0);
+			return NCSCC_RC_FAILURE;
+		}
 	}
 
 	if (temp_tmr_pat_node->tmr_list_start == NULL) {
@@ -747,10 +752,7 @@ tmr_t ncs_tmr_start(tmr_t tid, int64_t tmrDelay,	/* timer period in number of 10
 		   on the "sel_obj".  */
 		if (m_NCS_SEL_OBJ_IND(&gl_tcb.sel_obj) != NCSCC_RC_SUCCESS) {
 			/* We would never reach here! */
-			m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
-			m_LEAP_DBG_SINK_VOID;
-			ncslpg_give(&gl_tcb.persist, 0);
-			return NULL;
+			osaf_abort(NCSCC_RC_FAILURE);
 		}
 	}
 	gl_tcb.msg_count++;
