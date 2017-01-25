@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2009, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -4598,9 +4599,6 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	const SaImmAttrDefinitionT_2 *attr;
 	int i;
 	int persistent = 0;
-	int attrClNameExist = 0;
-	int attrAdmNameExist = 0;
-	int attrImplNameExist = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -4835,85 +4833,79 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 	}
 
 	/* Add system attribute class-name  */
-	if (!attrClNameExist) {
-		/*TRACE("Creating class name attribute def"); */
-		sysattr =	/*alloc-2 */
-			(IMMSV_ATTR_DEF_LIST *) malloc(sizeof(IMMSV_ATTR_DEF_LIST));
-		memset(sysattr, 0, sizeof(IMMSV_ATTR_DEF_LIST));
+	/*TRACE("Creating class name attribute def"); */
+	sysattr =	/*alloc-2 */
+		(IMMSV_ATTR_DEF_LIST *) malloc(sizeof(IMMSV_ATTR_DEF_LIST));
+	memset(sysattr, 0, sizeof(IMMSV_ATTR_DEF_LIST));
 
-		sysattr->d.attrName.size = strlen(sysaClName) + 1;
-		sysattr->d.attrName.buf = (char *) malloc(sysattr->d.attrName.size);	/*alloc-3 */
-		strncpy(sysattr->d.attrName.buf, sysaClName, sysattr->d.attrName.size);
-		sysattr->d.attrValueType = SA_IMM_ATTR_SASTRINGT;
-		if (classCategory == SA_IMM_CLASS_CONFIG) {
-			sysattr->d.attrFlags |= SA_IMM_ATTR_CONFIG;
-		} else if (classCategory == SA_IMM_CLASS_RUNTIME) {
-			sysattr->d.attrFlags |= (persistent) ?
-			    (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED |
-			     SA_IMM_ATTR_PERSISTENT) : (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED);
-		}
-		sysattr->d.attrNtfId = 0;	/*alloc-4.1 */
-		sysattr->d.attrDefaultValue = (IMMSV_EDU_ATTR_VAL *) malloc(sizeof(IMMSV_EDU_ATTR_VAL));
-		memset(sysattr->d.attrDefaultValue, 0, sizeof(IMMSV_EDU_ATTR_VAL));
-		/*alloc-4.2 */
-		imma_copyAttrValue(sysattr->d.attrDefaultValue, SA_IMM_ATTR_SASTRINGT, (SaImmAttrValueT)&className);
-		sysattr->next = evt.info.immnd.info.classDescr.attrDefinitions;
-		evt.info.immnd.info.classDescr.attrDefinitions = sysattr;
+	sysattr->d.attrName.size = strlen(sysaClName) + 1;
+	sysattr->d.attrName.buf = (char *) malloc(sysattr->d.attrName.size);	/*alloc-3 */
+	strncpy(sysattr->d.attrName.buf, sysaClName, sysattr->d.attrName.size);
+	sysattr->d.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	if (classCategory == SA_IMM_CLASS_CONFIG) {
+		sysattr->d.attrFlags |= SA_IMM_ATTR_CONFIG;
+	} else if (classCategory == SA_IMM_CLASS_RUNTIME) {
+		sysattr->d.attrFlags |= (persistent) ?
+			(SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED |
+			 SA_IMM_ATTR_PERSISTENT) : (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED);
 	}
+	sysattr->d.attrNtfId = 0;	/*alloc-4.1 */
+	sysattr->d.attrDefaultValue = (IMMSV_EDU_ATTR_VAL *) malloc(sizeof(IMMSV_EDU_ATTR_VAL));
+	memset(sysattr->d.attrDefaultValue, 0, sizeof(IMMSV_EDU_ATTR_VAL));
+	/*alloc-4.2 */
+	imma_copyAttrValue(sysattr->d.attrDefaultValue, SA_IMM_ATTR_SASTRINGT, (SaImmAttrValueT)&className);
+	sysattr->next = evt.info.immnd.info.classDescr.attrDefinitions;
+	evt.info.immnd.info.classDescr.attrDefinitions = sysattr;
 
 	/* Add system attribute admin-owner */
-	if (!attrAdmNameExist) {
-		/*TRACE("Creating admin-owner name attribute def"); */
-		sysattr =	/*alloc-2 */
-			(IMMSV_ATTR_DEF_LIST *) malloc(sizeof(IMMSV_ATTR_DEF_LIST));
-		memset(sysattr, 0, sizeof(IMMSV_ATTR_DEF_LIST));
+	/*TRACE("Creating admin-owner name attribute def"); */
+	sysattr =	/*alloc-2 */
+		(IMMSV_ATTR_DEF_LIST *) malloc(sizeof(IMMSV_ATTR_DEF_LIST));
+	memset(sysattr, 0, sizeof(IMMSV_ATTR_DEF_LIST));
 
-		sysattr->d.attrName.size = strlen(sysaAdmName) + 1;
-		sysattr->d.attrName.buf = (char *) malloc(sysattr->d.attrName.size);	/*alloc-3 */
-		strncpy(sysattr->d.attrName.buf, sysaAdmName, sysattr->d.attrName.size);
-		sysattr->d.attrValueType = SA_IMM_ATTR_SASTRINGT;
-		/* Should this attribute really be a config attribute ?
-		   Should it really be allowed to be persistent ? */
-		if (classCategory == SA_IMM_CLASS_CONFIG) {
-			sysattr->d.attrFlags |= SA_IMM_ATTR_CONFIG;
-		} else if (classCategory == SA_IMM_CLASS_RUNTIME) {
-			sysattr->d.attrFlags |= (persistent) ?
-			    (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED |
-			     SA_IMM_ATTR_PERSISTENT) : (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED);
-		}
-		sysattr->d.attrNtfId = 0;
-		sysattr->d.attrDefaultValue = NULL;
-		sysattr->next = evt.info.immnd.info.classDescr.attrDefinitions;
-		evt.info.immnd.info.classDescr.attrDefinitions = sysattr;
+	sysattr->d.attrName.size = strlen(sysaAdmName) + 1;
+	sysattr->d.attrName.buf = (char *) malloc(sysattr->d.attrName.size);	/*alloc-3 */
+	strncpy(sysattr->d.attrName.buf, sysaAdmName, sysattr->d.attrName.size);
+	sysattr->d.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	/* Should this attribute really be a config attribute ?
+	   Should it really be allowed to be persistent ? */
+	if (classCategory == SA_IMM_CLASS_CONFIG) {
+		sysattr->d.attrFlags |= SA_IMM_ATTR_CONFIG;
+	} else if (classCategory == SA_IMM_CLASS_RUNTIME) {
+		sysattr->d.attrFlags |= (persistent) ?
+			(SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED |
+			 SA_IMM_ATTR_PERSISTENT) : (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED);
 	}
+	sysattr->d.attrNtfId = 0;
+	sysattr->d.attrDefaultValue = NULL;
+	sysattr->next = evt.info.immnd.info.classDescr.attrDefinitions;
+	evt.info.immnd.info.classDescr.attrDefinitions = sysattr;
 
 	/* Add system attribute implementer-name */
-	if (!attrImplNameExist) {
-		/*TRACE("Creating implementer name attribute def"); */
-		sysattr =	/*alloc-2 */
-			(IMMSV_ATTR_DEF_LIST *) malloc(sizeof(IMMSV_ATTR_DEF_LIST));
-		memset(sysattr, 0, sizeof(IMMSV_ATTR_DEF_LIST));
+	/*TRACE("Creating implementer name attribute def"); */
+	sysattr =	/*alloc-2 */
+		(IMMSV_ATTR_DEF_LIST *) malloc(sizeof(IMMSV_ATTR_DEF_LIST));
+	memset(sysattr, 0, sizeof(IMMSV_ATTR_DEF_LIST));
 
-		sysattr->d.attrName.size = strlen(sysaImplName) + 1;
-		sysattr->d.attrName.buf = (char *) malloc(sysattr->d.attrName.size);	/*alloc-3 */
-		strncpy(sysattr->d.attrName.buf, sysaImplName, sysattr->d.attrName.size);
-		sysattr->d.attrValueType = SA_IMM_ATTR_SASTRINGT;
-		/* Should this attribute really be a config attribute ?
-		   Should it really be allowed to be persistent ? 
-		   Config=> persistent but Runtime => can be changed by implementer.
-		 */
-		if (classCategory == SA_IMM_CLASS_CONFIG) {
-			sysattr->d.attrFlags |= SA_IMM_ATTR_CONFIG;
-		} else if (classCategory == SA_IMM_CLASS_RUNTIME) {
-			sysattr->d.attrFlags |= (persistent) ?
-			    (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED |
-			     SA_IMM_ATTR_PERSISTENT) : (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED);
-		}
-		sysattr->d.attrNtfId = 0;
-		sysattr->d.attrDefaultValue = NULL;
-		sysattr->next = evt.info.immnd.info.classDescr.attrDefinitions;
-		evt.info.immnd.info.classDescr.attrDefinitions = sysattr;
+	sysattr->d.attrName.size = strlen(sysaImplName) + 1;
+	sysattr->d.attrName.buf = (char *) malloc(sysattr->d.attrName.size);	/*alloc-3 */
+	strncpy(sysattr->d.attrName.buf, sysaImplName, sysattr->d.attrName.size);
+	sysattr->d.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	/* Should this attribute really be a config attribute ?
+	   Should it really be allowed to be persistent ?
+	   Config=> persistent but Runtime => can be changed by implementer.
+	 */
+	if (classCategory == SA_IMM_CLASS_CONFIG) {
+		sysattr->d.attrFlags |= SA_IMM_ATTR_CONFIG;
+	} else if (classCategory == SA_IMM_CLASS_RUNTIME) {
+		sysattr->d.attrFlags |= (persistent) ?
+			(SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED |
+			 SA_IMM_ATTR_PERSISTENT) : (SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED);
 	}
+	sysattr->d.attrNtfId = 0;
+	sysattr->d.attrDefaultValue = NULL;
+	sysattr->next = evt.info.immnd.info.classDescr.attrDefinitions;
+	evt.info.immnd.info.classDescr.attrDefinitions = sysattr;
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, timeout, cl_node->handle, &locked, true);
 	cl_node = NULL;
