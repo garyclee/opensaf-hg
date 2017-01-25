@@ -4564,8 +4564,12 @@ ImmModel::notCompatibleAtt(const std::string& className, ClassInfo* newClassInfo
 
         /* "changedAttrs != NULL" ensures that this check is only for the schema update */
         if(checkNoDanglingRefs && changedAttrs) {
-            if(newAttr->mValueType != SA_IMM_ATTR_SANAMET)
+            if (newAttr->mValueType != SA_IMM_ATTR_SANAMET &&
+                    !(newAttr->mValueType == SA_IMM_ATTR_SASTRINGT && (newAttr->mFlags & SA_IMM_ATTR_DN))) {
+                LOG_NO("Impossible upgrade, attribute %s:%s adds/removes SA_IMM_ATTR_NO_DANGLING flag, ",
+                       className.c_str(), attName.c_str());
                 return true;
+            }
 
             ClassMap::iterator cmi = sClassMap.find(className);
             osafassert(cmi != sClassMap.end());
@@ -9779,8 +9783,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                                             goto bypass_impl;
                                         }
                                     }
-                                } else if((i4->second->mValueType == SA_IMM_ATTR_SANAMET) && 
-                                             !(i4->second->mFlags & SA_IMM_ATTR_NO_DANGLING))
+                                } else if ((i4->second->mValueType == SA_IMM_ATTR_SANAMET ||
+                                        (i4->second->mValueType == SA_IMM_ATTR_SASTRINGT && (i4->second->mFlags & SA_IMM_ATTR_DN))) &&
+                                        !(i4->second->mFlags & SA_IMM_ATTR_NO_DANGLING))
                                 {
                                     /* DN limit check for attribute that is:
                                        not the RDN attribute (else branch here)
@@ -15898,7 +15903,7 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
             objectName.append((const char*)attrValues->n.attrValue.val.x.buf, 
                 strnlen((const char*)attrValues->n.attrValue.val.x.buf,
                     (size_t)attrValues->n.attrValue.val.x.size));
-        } else if (attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET
+        } else if ((attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET || attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT)
                 && !longDnsPermitted) {
             AttrMap::iterator it = classInfo->mAttrMap.find(attrName);
             if(it == classInfo->mAttrMap.end()) {
@@ -15907,24 +15912,27 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                 err = SA_AIS_ERR_INVALID_PARAM;
                 goto rtObjectCreateExit;
             }
-            if(attrValues->n.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
-                LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
-                    "Not allowed by IMM service or extended names are disabled",
-                    attrName.c_str());
-                err = SA_AIS_ERR_NAME_TOO_LONG;
-                goto rtObjectCreateExit;
-            }
 
-            IMMSV_EDU_ATTR_VAL_LIST *value = attrValues->n.attrMoreValues;
-            while(value) {
-                if(value->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+            if (attrValues->n.attrValueType == SA_IMM_ATTR_SANAMET || (it->second->mFlags & SA_IMM_ATTR_DN)) {
+                if(attrValues->n.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
                     LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
                         "Not allowed by IMM service or extended names are disabled",
                         attrName.c_str());
                     err = SA_AIS_ERR_NAME_TOO_LONG;
                     goto rtObjectCreateExit;
                 }
-                value = value->next;
+
+                IMMSV_EDU_ATTR_VAL_LIST *value = attrValues->n.attrMoreValues;
+                while(value) {
+                    if(value->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                        LOG_NO("ERR_NAME_TOO_LONG: Attribute '%s' has long DN. "
+                            "Not allowed by IMM service or extended names are disabled",
+                            attrName.c_str());
+                        err = SA_AIS_ERR_NAME_TOO_LONG;
+                        goto rtObjectCreateExit;
+                    }
+                    value = value->next;
+                }
             }
         }
         attrValues = attrValues->next;
@@ -17282,33 +17290,35 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                 break; //out of while-loop
             }
 
-            if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
-                if(!longDnsPermitted) {
-                    if(p->attrValue.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
-                        LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
-                            "Not allowed by IMM service or extended names are disabled",
-                            attrName.c_str());
-                        err = SA_AIS_ERR_BAD_OPERATION;
-                        break;
+            if((attr->mValueType == SA_IMM_ATTR_SANAMET ||
+                    (attr->mValueType == SA_IMM_ATTR_SASTRINGT && (attr->mFlags & SA_IMM_ATTR_DN))) &&
+                    !longDnsPermitted) {
+                if(p->attrValue.attrValue.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                    LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
+                        "Not allowed by IMM service or extended names are disabled",
+                        attrName.c_str());
+                    err = SA_AIS_ERR_BAD_OPERATION;
+                    break; //out of while-loop
+                }
+                if((attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) && p->attrValue.attrValuesNumber > 1) {
+                    IMMSV_EDU_ATTR_VAL_LIST *values = p->attrValue.attrMoreValues;
+                    while(values) {
+                        if(values->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
+                            LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
+                                "Not allowed by IMM service or extended names are disabled",
+                                attrName.c_str());
+                            err = SA_AIS_ERR_BAD_OPERATION;
+                            break; //out of while-loop
+                        }
+                        values = values->next;
                     }
-                    if((attr->mFlags & SA_IMM_ATTR_MULTI_VALUE) && p->attrValue.attrValuesNumber > 1) {
-                        IMMSV_EDU_ATTR_VAL_LIST *values = p->attrValue.attrMoreValues;
-                        while(values) {
-                            if(values->n.val.x.size >= SA_MAX_UNEXTENDED_NAME_LENGTH) {
-                                LOG_NO("ERR_BAD_OPERATION: Attribute '%s' has long DN. "
-                                    "Not allowed by IMM service or extended names are disabled",
-                                    attrName.c_str());
-                                err = SA_AIS_ERR_BAD_OPERATION;
-                                break;
-                            }
-                            values = values->next;
-                        }
-                        if(err != SA_AIS_OK) {
-                            break;
-                        }
+                    if(err != SA_AIS_OK) {
+                        break; //out of while-loop
                     }
                 }
+            }
 
+            if(attr->mValueType == SA_IMM_ATTR_SANAMET) {
                 if (p->attrValue.attrValue.val.x.size > kOsafMaxDnLength) {
                     LOG_NO("ERR_LIBRARY: attr '%s' of type SaNameT is too long:%u",
                         attrName.c_str(), p->attrValue.attrValue.val.x.size - 1);
