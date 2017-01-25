@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2009, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -3014,9 +3015,10 @@ ImmModel::adjustEpoch(int suggestedEpoch,
            immnd_abortSync().
         */
 
-        *continuationIdPtr = ++sLastContinuationId;
-        if(sLastContinuationId >= 0xfffffffe)
-        {sLastContinuationId = 1;}
+        if (++sLastContinuationId >= 0xfffffffe) {
+            sLastContinuationId = 1;
+        }
+        *continuationIdPtr = sLastContinuationId;
         TRACE("continuation generated: %u", *continuationIdPtr);
 
         if(getPbeOi(pbeConnPtr, pbeNodeIdPtr)) {
@@ -3801,8 +3803,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req,
             LOG_ER("Pbe is not available, can not happen here");
             abort();
         }
-        ++sLastContinuationId;
-        if(sLastContinuationId >= 0xfffffffe) {
+        if (++sLastContinuationId >= 0xfffffffe) {
             sLastContinuationId = 1;
         }
         (*continuationIdPtr) = sLastContinuationId;
@@ -4747,9 +4748,8 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req,
                     LOG_ER("Pbe is not available, can not happen here");
                     abort();
                 }
-                ++sLastContinuationId;
-                if(sLastContinuationId >= 0xfffffffe) {
-                        sLastContinuationId = 1;
+                if (++sLastContinuationId >= 0xfffffffe) {
+                    sLastContinuationId = 1;
                 }
                 (*continuationIdPtr) = sLastContinuationId;
 
@@ -5736,8 +5736,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 ImplementerCcbAssociation* implAssoc = isi->second;
                 ImplementerInfo* impInfo = implAssoc->mImplementer;
                 osafassert(impInfo);
-                ++sLastContinuationId; 
-                if(sLastContinuationId >= 0xfffffffe) {
+                if (++sLastContinuationId >= 0xfffffffe) {
                     sLastContinuationId = 1;
                 }
                 /* incremented sLastContinuationId unconditionally before
@@ -8530,9 +8529,10 @@ SaAisErrorT ImmModel::ccbObjectCreate(ImmsvOmCcbObjectCreate* req,
                 oMut->mWaitForImplAck = true;
                 
                 //Increment even if we dont invoke locally
-                oMut->mContinuationId = (++sLastContinuationId);
-                if(sLastContinuationId >= 0xfffffffe) 
-                {sLastContinuationId = 1;}
+                if (++sLastContinuationId >= 0xfffffffe) {
+                    sLastContinuationId = 1;
+                }
+                oMut->mContinuationId = sLastContinuationId;
 
                 if(*implConn) {
                     if(object->mImplementer->mDying) {
@@ -9838,8 +9838,10 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             oMut->mWaitForImplAck = true;
             
             //Increment even if we dont invoke locally
-            oMut->mContinuationId = (++sLastContinuationId);
-            if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
+            if (++sLastContinuationId >= 0xfffffffe) {
+                sLastContinuationId = 1;
+            }
+            oMut->mContinuationId = sLastContinuationId;
 
             if(*implConn) {
                 if(object->mImplementer->mDying) {
@@ -10460,8 +10462,10 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             
             oMut->mWaitForImplAck = true; //Wait for an ack from implementer
             //Increment even if we dont invoke locally
-            oMut->mContinuationId = (++sLastContinuationId);
-            if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
+            if (++sLastContinuationId >= 0xfffffffe) {
+                sLastContinuationId = 1;
+            }
+            oMut->mContinuationId = sLastContinuationId;
 
             if(ccb->mAugCcbParent) {
                 oMut->mIsAugDelete = true;
@@ -16307,9 +16311,10 @@ ImmModel::rtObjectCreate(struct ImmsvOmCcbObjectCreate* req,
                 object->mObjFlags |= IMM_CREATE_LOCK;
                 /* Dont overwrite IMM_DN_INTERNAL_REP*/
 
-                *continuationId = ++sLastContinuationId;
-                if(sLastContinuationId >= 0xfffffffe)
-                {sLastContinuationId = 1;}
+                if (++sLastContinuationId >= 0xfffffffe) {
+                    sLastContinuationId = 1;
+                }
+                *continuationId = sLastContinuationId;
 
                 ObjectMutation* oMut = new ObjectMutation(IMM_CREATE);
                 oMut->mContinuationId = (*continuationId);
@@ -17161,9 +17166,10 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             /* If 2PBE then not both PBEs on same processor. */
             osafassert(!((*pbeConnPtr) && (*pbe2BConnPtr)));
 
-            *continuationIdPtr = ++sLastContinuationId;
-            if(sLastContinuationId >= 0xfffffffe)
-            {sLastContinuationId = 1;}
+            if (++sLastContinuationId >= 0xfffffffe) {
+                sLastContinuationId = 1;
+            }
+            *continuationIdPtr = sLastContinuationId;
             TRACE("continuation generated: %u", *continuationIdPtr);
 
             if(conn) {
@@ -17728,9 +17734,10 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
             /* If the subtree to delete includes PRTOs then we use a continuationId
                as a common pseudo ccbId for all the RTOs in the subtree.
             */
-            *continuationIdPtr = ++sLastContinuationId;
-            if(sLastContinuationId >= 0xfffffffe)
-            {sLastContinuationId = 1;}
+            if (++sLastContinuationId >= 0xfffffffe) {
+                sLastContinuationId = 1;
+            }
+            *continuationIdPtr = sLastContinuationId;
             TRACE("continuation generated: %u", *continuationIdPtr);
 
             if(reqConn) {
