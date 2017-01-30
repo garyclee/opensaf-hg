@@ -540,7 +540,7 @@ uint32_t send_clm_node_status_lib(SaClmClusterChangesT cluster_change, unsigned 
 	msg.info.cbk_info.param.clm_node_status_cbk.clm_node_status = cluster_change;
 	rc = ntfs_mds_msg_send(ntfs_cb, &msg, &mdsDest, NULL, MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
+		TRACE_1("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
 	} 
 
 	TRACE_LEAVE();
