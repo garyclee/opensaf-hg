@@ -616,7 +616,8 @@ static uint32_t cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_IN
 	cpnd_client_node_get(cb, client_hdl, &cl_node);
 	if (cl_node == NULL) {
 		TRACE_4("cpnd client hdl get failed for client hdl:%llx",client_hdl);
-		return rc;
+		send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_BAD_HANDLE;
+		goto agent_rsp;
 	}
 
 	if (((cp_node = cpnd_ckpt_node_find_by_name(cb, ckpt_name)) != NULL) && cp_node->is_unlink == false) {
