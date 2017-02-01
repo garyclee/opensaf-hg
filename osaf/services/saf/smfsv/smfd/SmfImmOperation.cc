@@ -1032,11 +1032,26 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 //   objectName.length = (SaUint16T) objectLen;
 //   memcpy(objectName.value, object, objectLen);
 
+	const SaStringT * errStrings = NULL;
 	result = immutil_saImmOmCcbObjectModify_2(m_ccbHandle, &objectName, (const SaImmAttrModificationT_2 **)
-						  m_immAttrMods);
-	if (result != SA_AIS_OK) {
+			m_immAttrMods);
+	if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
+		result = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
+		if (errStrings){
+			TRACE("Received error string is %s", errStrings[0]);
+			char * type = NULL;
+			type = strstr(errStrings[0], "IMM: Resource abort: ");
+			if(type != NULL) {
+				TRACE("SA_AIS_ERR_FAILED_OPERATION is modified to SA_AIS_ERR_TRY_AGAIN because of ccb resourse abort" );
+				result = SA_AIS_ERR_TRY_AGAIN;
+				TRACE_LEAVE();
+				return result;
+			}
+		}
+	} 
+	if (result != SA_AIS_OK){
 		LOG_NO("SmfImmModifyOperation::execute, saImmOmCcbObjectModify failed %s", saf_error(result));
-                TRACE_LEAVE();
+		TRACE_LEAVE();
 		return result;
 	}
 
