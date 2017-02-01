@@ -46,7 +46,6 @@
 /* Release code, major version, minor version */
 static SaVersionT imm_version = { 'A', 2, 12 };
 static const unsigned int sleep_delay_ms = 500;
-static const unsigned int max_waiting_time_3s = (3 * 1000);	/* 60 sec */
 static const unsigned int max_waiting_time_7s = (7 * 1000);	/* 7 sec */
 static const unsigned int max_waiting_time_60s = (60 * 1000);	/* 60 sec */
 static const SaImmOiImplementerNameT applier_nameA =

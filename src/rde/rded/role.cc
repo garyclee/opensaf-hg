@@ -18,6 +18,8 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+#include <cinttypes>
+
 #include "rde/rded/role.h"
 #include <cstdint>
 #include "base/logtrace.h"

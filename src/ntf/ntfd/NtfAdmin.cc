@@ -25,6 +25,7 @@
  *   INCLUDE FILES
  * ========================================================================
  */
+#include <cinttypes>
 
 #include "ntf/ntfd/NtfAdmin.h"
 #include "base/logtrace.h"

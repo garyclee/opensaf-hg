@@ -18,6 +18,7 @@
  *   This object handles information about NTF clients.
  *
  */
+#include <cinttypes>
 
 #include "ntf/ntfd/NtfClient.h"
 #include "base/logtrace.h"

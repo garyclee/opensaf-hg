@@ -31,6 +31,7 @@
   
 ******************************************************************************
 */
+#include <cinttypes>
 
 #include "amf/amfnd/avnd.h"
 #include "osaf/immutil/immutil.h"

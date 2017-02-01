@@ -39,6 +39,7 @@
 /*
  * Module Inclusion Control...
  */
+#include <cinttypes>
 #include "amf/amfd/msg.h"
 #include "amf/amfd/amfd.h"
 

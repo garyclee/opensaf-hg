@@ -18,6 +18,8 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+#include <cinttypes>
+
 #include "election_starter.h"
 #include <cassert>
 #include <cerrno>

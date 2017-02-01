@@ -30,6 +30,7 @@
   
 ******************************************************************************
 */
+#include <cinttypes>
 
 #include "base/logtrace.h"
 #include "amf/amfnd/avnd.h"
