@@ -1058,6 +1058,7 @@ SmfUpgradeCampaign::resetMaintenanceState()
         std::list < std::string > objectList;
 	SmfImmUtils immUtil;
         (void)immUtil.getChildren("", objectList, SA_IMM_SUBTREE, "SaAmfSU");
+	SaAisErrorT rc = SA_AIS_OK;
 
         //Reset saAmfSUMaintenanceCampaign for all found SUs
         const std::string campDn = SmfCampaignThread::instance()->campaign()->getDn();
@@ -1088,9 +1089,22 @@ SmfUpgradeCampaign::resetMaintenanceState()
 		}
         }
 
-        if (immUtil.doImmOperations(operations) != SA_AIS_OK) {
-                LOG_NO("SmfUpgradeStep::setMaintenanceState(), fails to reset all saAmfSUMaintenanceCampaign attr");
+	const uint32_t MAX_NO_RETRIES = 2;
+	uint32_t retry_cnt = 0;
+	while (++retry_cnt <= MAX_NO_RETRIES) {
+		rc = immUtil.doImmOperations(operations); 
+		if (rc != SA_AIS_OK && rc == SA_AIS_ERR_TRY_AGAIN) {
+			/*
+			 * TRY_AGAIN is returned only when ccb is aborted 
+			 *  with Resource abort in error string. Resource abort in
+			 *  error string is checked presently for modify operation.
+			 */
+			continue;
+		}
         }
+	if (rc != SA_AIS_OK){
+		LOG_NO("SmfUpgradeStep::setMaintenanceState(), fails to reset all saAmfSUMaintenanceCampaign attr");
+	}
 
         //Delete the created SmfImmModifyOperation instances
         std::list < SmfImmOperation * > ::iterator operIter;
