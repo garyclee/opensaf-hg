@@ -16,6 +16,8 @@
  */
 
 #include <stdlib.h>
+#include <cinttypes>
+
 #include "base/osaf_time.h"
 #include "base/saf_error.h"
 

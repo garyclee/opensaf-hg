@@ -14,6 +14,7 @@
  * Author(s): Oracle
  *
  */
+#include <cinttypes>
 
 #include "log/logd/lgs.h"
 #include "log/logd/lgs_clm.h"

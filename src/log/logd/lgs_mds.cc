@@ -14,6 +14,7 @@
  * Author(s): Ericsson AB
  *
  */
+#include <cinttypes>
 
 #include "base/ncsencdec_pub.h"
 

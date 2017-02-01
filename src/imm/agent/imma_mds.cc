@@ -22,6 +22,7 @@
   This file contains routines used by IMMA library for MDS Interface.
 
 *****************************************************************************/
+#include <cinttypes>
 
 #include "osaf/configmake.h"
 

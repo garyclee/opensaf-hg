@@ -21,6 +21,7 @@
  */
 #include <poll.h>
 #include <sched.h>
+#include <cinttypes>
 
 #include <atomic>
 #include <string>

@@ -26,6 +26,7 @@
  * Examples can be found in file lgs_stream.c, e.g. function fileopen(...)
  */
 
+#include <cinttypes>
 #include "log/logd/lgs_util.h"
 
 #include <stdlib.h>

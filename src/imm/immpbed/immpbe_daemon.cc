@@ -14,6 +14,7 @@
  * Author(s): Ericsson AB
  *
  */
+#include <cinttypes>
 
 #include "imm/immpbed/immpbe.h"
 #include <errno.h>

@@ -22,8 +22,8 @@
   ******************************************************************************
   */
 
+#include <cinttypes>
 #include "mds/mds_log.h"
-#include <inttypes.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>

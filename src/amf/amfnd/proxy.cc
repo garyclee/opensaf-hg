@@ -23,6 +23,8 @@
   FUNCTIONS INCLUDED in this module:
   
 ****************************************************************************/
+#include <cinttypes>
+
 #include "amf/amfnd/avnd.h"
 #include "base/osaf_extended_name.h"
 static uint32_t avnd_int_ext_comp_val(AVND_CB *, const std::string&, AVND_COMP **, SaAisErrorT *);

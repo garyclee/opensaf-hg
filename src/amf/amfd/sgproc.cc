@@ -25,6 +25,7 @@
 /*
  * Module Inclusion Control...
  */
+#include <cinttypes>
 
 #include "osaf/immutil/immutil.h"
 #include "base/logtrace.h"

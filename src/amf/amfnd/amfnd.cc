@@ -22,6 +22,8 @@
   FUNCTIONS INCLUDED in this module:
   
 ****************************************************************************/
+#include <cinttypes>
+
 #include "amf/amfnd/avnd.h"
 
 //Remember MDS install version of Agents. It can be used to send msg to Agent based on their versions.
