@@ -609,7 +609,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 	if (0 == tcp_cb->bytes_tb_read) {
 		if (0 == tcp_cb->num_by_read_for_len_buff) {
 			uint8_t *data;
-			int recd_bytes = 0;
+			ssize_t recd_bytes = 0;
 
 			/*******************************************************/
 			/* Receive all incoming data on this socket */
@@ -617,9 +617,9 @@ void mdtm_process_poll_recv_data_tcp(void)
 
 			recd_bytes = recv(tcp_cb->DBSRsock, tcp_cb->len_buff, 2, MSG_NOSIGNAL);
 			if (0 == recd_bytes) {
-				syslog(LOG_ERR, "MDTM:SOCKET recd_bytes :%d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+				syslog(LOG_ERR, "MDTM:SOCKET recd_bytes :%zd, conn lost with dh server", recd_bytes);
 				close(tcp_cb->DBSRsock);
-				exit(0);
+				return;
 			} else if (2 == recd_bytes) {
 				uint16_t local_len_buf = 0;
 
@@ -638,12 +638,12 @@ void mdtm_process_poll_recv_data_tcp(void)
 				if (recd_bytes < 0) {
 					return;
 				} else if (0 == recd_bytes) {
-					syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+					syslog(LOG_ERR, "MDTM:SOCKET = %zd, conn lost with dh server", recd_bytes);
 					close(tcp_cb->DBSRsock);
-					exit(0);
+					return;
 				} else if (local_len_buf > recd_bytes) {
 					/* can happen only in two cases, system call interrupt or half data, */
-					TRACE("MDTM:SOCKET less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+					TRACE("MDTM:SOCKET less data recd, recd bytes = %zd, actual len = %d", recd_bytes,
 					       local_len_buf);
 					tcp_cb->bytes_tb_read = tcp_cb->buff_total_len - recd_bytes;
 					return;
@@ -672,7 +672,7 @@ void mdtm_process_poll_recv_data_tcp(void)
 				}
 			}
 		} else if (1 == tcp_cb->num_by_read_for_len_buff) {
-			int recd_bytes = 0;
+			ssize_t recd_bytes = 0;
 
 			recd_bytes = recv(tcp_cb->DBSRsock, &tcp_cb->len_buff[1], 1, 0);
 			if (recd_bytes < 0) {
@@ -685,14 +685,14 @@ void mdtm_process_poll_recv_data_tcp(void)
 				tcp_cb->buff_total_len = ncs_decode_16bit(&data);
 				return;
 			} else if (0 == recd_bytes) {
-				syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+				syslog(LOG_ERR, "MDTM:SOCKET = %zd, conn lost with dh server", recd_bytes);
 				close(tcp_cb->DBSRsock);
-				exit(0);
+				return;
 			} else {
 				assert(0);	/* This should never occur */
 			}
 		} else if (2 == tcp_cb->num_by_read_for_len_buff) {
-			int recd_bytes = 0;
+			ssize_t recd_bytes = 0;
 
 			if (NULL == (tcp_cb->buffer = calloc(1, (tcp_cb->buff_total_len + 1)))) {
 				/* Length + 2 is done to reuse the same buffer 
@@ -704,12 +704,12 @@ void mdtm_process_poll_recv_data_tcp(void)
 			if (recd_bytes < 0) {
 				return;
 			} else if (0 == recd_bytes) {
-				syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+				syslog(LOG_ERR, "MDTM:SOCKET = %zd, conn lost with dh server", recd_bytes);
 				close(tcp_cb->DBSRsock);
-				exit(0);
+				return;
 			} else if (tcp_cb->buff_total_len > recd_bytes) {
 				/* can happen only in two cases, system call interrupt or half data, */
-				TRACE("MDTM:SOCKET less data recd, recd bytes = %d, actual len = %d", recd_bytes,
+				TRACE("MDTM:SOCKET less data recd, recd bytes = %zd, actual len = %d", recd_bytes,
 				       tcp_cb->buff_total_len);
 				tcp_cb->bytes_tb_read = tcp_cb->buff_total_len - recd_bytes;
 				return;
@@ -731,19 +731,19 @@ void mdtm_process_poll_recv_data_tcp(void)
 
 	} else {
 		/* Partial data already read */
-		int recd_bytes = 0;
+		ssize_t recd_bytes = 0;
 
 		recd_bytes =
 		    recv(tcp_cb->DBSRsock, &tcp_cb->buffer[(tcp_cb->buff_total_len - tcp_cb->bytes_tb_read)], tcp_cb->bytes_tb_read, 0);
 		if (recd_bytes < 0) {
 			return;
 		} else if (0 == recd_bytes) {
-			syslog(LOG_ERR, "MDTM:SOCKET = %d, conn lost with dh server, exiting library err :%s", recd_bytes, strerror(errno));
+			syslog(LOG_ERR, "MDTM:SOCKET = %zd, conn lost with dh server", recd_bytes);
 			close(tcp_cb->DBSRsock);
-			exit(0);
+			return;
 		} else if (tcp_cb->bytes_tb_read > recd_bytes) {
 			/* can happen only in two cases, system call interrupt or half data, */
-			TRACE("MDTM:SOCKET less data recd, recd bytes = %d, actual len = %d", recd_bytes, tcp_cb->bytes_tb_read);
+			TRACE("MDTM:SOCKET less data recd, recd bytes = %zd, actual len = %d", recd_bytes, tcp_cb->bytes_tb_read);
 			tcp_cb->bytes_tb_read = tcp_cb->bytes_tb_read - recd_bytes;
 			return;
 		} else if (tcp_cb->bytes_tb_read == recd_bytes) {
