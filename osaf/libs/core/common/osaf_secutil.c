@@ -285,7 +285,7 @@ int osaf_auth_server_connect(const char *path, const void *req_buf,
 		goto done;
 	}
 
-	if (send(sock_fd, req_buf, req_size, 0) == -1) {
+	if (send(sock_fd, req_buf, req_size, MSG_NOSIGNAL) == -1) {
 		TRACE_3("send failed - %s", strerror(errno));
 		len = -errno;
 		goto done;
