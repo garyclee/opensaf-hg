@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2012, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -838,12 +839,15 @@ void log_stream_open_fileinit(log_stream_t *stream)
 	TRACE_ENTER2("%s, numOpeners=%u", stream->name, stream->numOpeners);
 
 	/* first time open? */
-	if ((stream->numOpeners == 0) || (*stream->p_fd == -1)) {
+	if (stream->numOpeners == 0) {
 		/* Create and save current log file name */
 		stream->logFileCurrent = stream->fileName + "_" + lgs_get_time(NULL);
 		log_initiate_stream_files(stream);
+	} else if (*stream->p_fd == -1) {
+		/* Open cfg/log file due to previous failure or after si-swap */
+		log_initiate_stream_files(stream);
 	}
-	
+
 	/* Opening a stream will always succeed. If file system problem a new
 	 * attempt to open the files is done when trying to write to the stream
 	 */
