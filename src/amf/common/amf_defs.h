@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -247,7 +248,8 @@ typedef enum
    saAmfCompCurrProxyName_ID = 37,
    saAmfCompAMEnable_ID = 38,
    saAmfCompProxyStatus_ID = 39,
-   saAmfCompType_ID,
+   saAmfCompType_ID = 40,
+   saAmfCompCmdEnv_ID,
 } AVSV_AMF_COMP_ATTR_ID; 
 
 /* Attribute ID enum for the saAmfCompType class */

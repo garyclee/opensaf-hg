@@ -1056,6 +1056,7 @@
 			<name>saAmfCompCmdEnv</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 			<flag>SA_MULTI_VALUE</flag>
 		</attr>
 		<attr>

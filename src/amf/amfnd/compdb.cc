@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -366,6 +367,7 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			case saAmfCompCleanupCmd_ID:
 			case saAmfCompAmStartCmd_ID:
 			case saAmfCompAmStopCmd_ID:
+			case saAmfCompCmdEnv_ID:
 				comp->config_is_valid = 0;
 				break;
 			case saAmfCompInstantiateTimeout_ID:
