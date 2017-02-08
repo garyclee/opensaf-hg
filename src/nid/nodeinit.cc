@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008-2010 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -130,26 +131,31 @@ static int start_monitor_svc(const char *svc);
 static int svc_mon_fd = -1;
 static int next_svc_fds_slot = 0;
 
-struct SvcMap {
-  std::string nid_name;
-  std::string fifo_file;
-  int fifo_fd;
+struct SAFServices {
+  const std::string fifo_dir = PKGLOCALSTATEDIR;
+  struct SvcMap {
+    const std::string nid_name;
+    const std::string fifo_file;
+    int fifo_fd;
+  };
+
+  std::vector<SvcMap> svc_map = {
+    {"AMFD", "osafamfd.fifo", -1},
+    {"TRANSPORT", "osaftransportd.fifo", -1},
+    {"CLMNA", "osafclmna.fifo", -1},
+    {"RDED", "osafrded.fifo", -1},
+    {"HLFM", "osaffmd.fifo", -1},
+    {"IMMD", "osafimmd.fifo", -1},
+    {"IMMND", "osafimmnd.fifo", -1},
+    {"LOGD", "osaflogd.fifo", -1},
+    {"NTFD", "osafntfd.fifo", -1},
+    {"PLMD", "osafplmd.fifo", -1},
+    {"CLMD", "osafclmd.fifo", -1}
+  };
 };
 
-static std::vector<SvcMap> svc_map = {
-  {"AMFD", "osafamfd.fifo", -1},
-  {"TRANSPORT", "osaftransportd.fifo", -1},
-  {"CLMNA", "osafclmna.fifo", -1},
-  {"RDED", "osafrded.fifo", -1},
-  {"HLFM", "osaffmd.fifo", -1},
-  {"IMMD", "osafimmd.fifo", -1},
-  {"IMMND", "osafimmnd.fifo", -1},
-  {"LOGD", "osaflogd.fifo", -1},
-  {"NTFD", "osafntfd.fifo", -1},
-  {"PLMD", "osafplmd.fifo", -1},
-  {"CLMD", "osafclmd.fifo", -1}
-};
-static const std::string fifo_dir = PKGLOCALSTATEDIR;
+static SAFServices *services_ = nullptr;
+
 const int kMaxNumOfFds = 40;
 const int kTenSecondsInMilliseconds = 10000;
 
@@ -1412,9 +1418,9 @@ int handle_data_request(struct pollfd *fds, const std::string &nid_name) {
 
   TRACE_ENTER2("service: %s", nid_name.c_str());
 
-  for (auto &svc : svc_map) {
+  for (auto &svc : services_->svc_map) {
     if (nid_name == svc.nid_name) {
-      std::string fifo_file = fifo_dir + "/" + svc.fifo_file;
+      std::string fifo_file = services_->fifo_dir + "/" + svc.fifo_file;
       notify_rc = file_notify.WaitForFileCreation(fifo_file,
                                                   kTenSecondsInMilliseconds);
       if (notify_rc != base::FileNotify::FileNotifyErrors::kOK) {
@@ -1460,7 +1466,7 @@ int handle_data_request(struct pollfd *fds, const std::string &nid_name) {
 std::string get_svc_name(int fd) {
   std::string svc_name;
 
-  for (auto const& svc : svc_map) {
+  for (auto const& svc : services_->svc_map) {
     if (fd == svc.fifo_fd) {
       svc_name = svc.nid_name;
       break;
@@ -1498,7 +1504,10 @@ void* svc_monitor_thread(void *fd) {
     FD_SVC_MON_THR = 0
   };
 
-  struct pollfd *fds;
+  struct pollfd *fds {nullptr};
+
+  services_ = new SAFServices;
+  osafassert(services_ != nullptr);
 
   fds = new pollfd[kMaxNumOfFds];
   osafassert(fds != nullptr);
