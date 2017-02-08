@@ -58,7 +58,7 @@ unload_tipc() {
 
 check_tipc() {
 	# Exit if tipc-config is not installed
-	if [ ! -x /sbin/tipc-config ]; then
+	if [ "$MANAGE_TIPC" = "yes" ] && [ ! -x /sbin/tipc-config ]; then
 		which tipc-config >/dev/null 2>&1
 		if [ $? -eq 1 ] ; then
 			logger -s -t $osafprog "Can't find tipc-config in the PATH, exiting."
