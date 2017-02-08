@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -375,6 +376,15 @@ static AVD_SG *sg_create(const std::string& sg_name, const SaImmAttrValuesT_2 **
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSGAdminState"), attributes, 0, &sg->saAmfSGAdminState) != SA_AIS_OK) {
 		sg->saAmfSGAdminState = SA_AMF_ADMIN_UNLOCKED;
 	}
+	// only read SG FSM State for non-ncs SG
+	if (sg_name.find("safApp=OpenSAF") == std::string::npos) {
+		if (immutil_getAttr(const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
+				attributes, 0, &sg->sg_fsm_state) != SA_AIS_OK) {
+			sg->sg_fsm_state = AVD_SG_FSM_STABLE;
+		}
+		TRACE("sg_fsm_state(%u) read from osafAmfSGFsmState", sg->sg_fsm_state);
+	}
+
 	/*  TODO use value in type instead? */
 	sg->sg_redundancy_model = sgt->saAmfSgtRedundancyModel;
 
@@ -422,6 +432,7 @@ SaAisErrorT avd_sg_config_get(const std::string& app_dn, AVD_APP *app)
 		const_cast<SaImmAttrNameT>("saAmfSGSuRestartProb"),
 		const_cast<SaImmAttrNameT>("saAmfSGSuRestartMax"),
 		const_cast<SaImmAttrNameT>("saAmfSGAdminState"),
+		const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
 		nullptr
 	};
 
@@ -2098,66 +2109,7 @@ uint32_t AVD_SG::curr_non_instantiated_spare_sus() const
 			(su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED));}));	
 }
 
-void avd_sg_read_headless_fsm_state_cached_rta(AVD_CL_CB *cb)
-{
-
-	SaAisErrorT rc;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-
-	SaNameT sg_dn;
-	AVD_SG *sg;
-	const SaImmAttrValuesT_2 **attributes;
-	AVD_SG_FSM_STATE imm_sg_fsm_state;
-	const char *className = "SaAmfSG";
-	const SaImmAttrNameT searchAttributes[] = {
-		const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
-		NULL
-	};
-
-	TRACE_ENTER();
-
-	osafassert(cb->scs_absence_max_duration > 0);
-
-	searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	if ((rc = immutil_saImmOmSearchInitialize_2(cb->immOmHandle, NULL, SA_IMM_SUBTREE,
-	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
-		  searchAttributes, &searchHandle)) != SA_AIS_OK) {
-
-		LOG_ER("%s: saImmOmSearchInitialize_2 failed: %u", __FUNCTION__, rc);
-		goto done;
-	}
-
-	while ((rc = immutil_saImmOmSearchNext_2(searchHandle, &sg_dn,
-					(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
-		sg = sg_db->find(Amf::to_string(&sg_dn));
-		if (sg && sg->sg_ncs_spec == false) {
-			if (sg->headless_validation == false) {
-				continue;
-			}
-			if (sg->any_assignment_in_progress() == false &&
-				sg->any_assignment_assigned() == false) {
-				continue;
-			}
-			// Read sg fsm state
-			rc = immutil_getAttr(const_cast<SaImmAttrNameT>("osafAmfSGFsmState"),
-					attributes, 0, &imm_sg_fsm_state);
-			osafassert(rc == SA_AIS_OK);
-			sg->set_fsm_state(imm_sg_fsm_state, false);
-		}
-	}
-
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
-
-done:
-	TRACE_LEAVE();
-
-}
-
-void avd_sg_read_headless_su_oper_list_cached_rta(AVD_CL_CB *cb)
+void avd_sg_read_headless_cached_rta(AVD_CL_CB *cb)
 {
 
 	SaAisErrorT rc;
