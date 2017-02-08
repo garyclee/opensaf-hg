@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -963,6 +964,15 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 					}
 				}
 			}
+                } else if (!strcmp(attribute->attrName, "saAmfCompCmdEnv")) {
+                        if (value_is_deleted == true)
+                                continue;
+                        char *param_val = *(static_cast<char **>(value));
+                        if (nullptr == param_val) {
+                                report_ccb_validation_error(opdata,
+                                                "Modification of saAmfCompCmdEnv failed, nullptr arg");
+                                goto done;
+                        }
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
 			if (value_is_deleted == true)
 				continue;
@@ -1314,6 +1324,10 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompType_ID;
 			param.name_sec = *dn;
 
+		} else if (!strcmp(attribute->attrName, "saAmfCompCmdEnv")) {
+			/* Node director will reread configuration from IMM */
+			param.attr_id = saAmfCompCmdEnv_ID;
+			TRACE("saAmfCompCmdEnv modified.");
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
 
 			/* Node director will reread configuration from IMM */

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -270,7 +271,7 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	LOG_ER("Operation request FAILED, sender %x, '%s'",
+	LOG_WA("Operation request FAILED, sender %x, '%s'",
 		n2d_msg->msg_info.n2d_op_req.node_id, osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_op_req.param_info.name));
 
  done:
