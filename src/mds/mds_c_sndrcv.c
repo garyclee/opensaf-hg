@@ -2466,7 +2466,7 @@ static uint32_t mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				return NCSCC_RC_SUCCESS;
 			}
 
-			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured on sndrsp message\n");
+			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or error occured on sndrsp message\n");
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
 						       to_svc_id, m_MDS_GET_INTERNAL_VDEST_ID_FROM_MDS_DEST(to_dest),
@@ -2565,15 +2565,23 @@ static uint32_t mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID f
 
 static uint32_t mds_mcm_time_wait(NCS_SEL_OBJ *sel_obj, int64_t time_val)
 {
+	int errnum;
+
 	osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 	/* Now wait for the response to come */
 	int count = osaf_poll_one_fd(sel_obj->rmv_obj,
 		time_val == 0 ? -1 : (time_val * 10));
 
+	errnum = errno;
+
 	osaf_mutex_lock_ordie(&gl_mds_library_mutex);
-	if ((count == 0) || (count == -1)) {
-		/* Both for Timeout and Error Case */
-		m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or Error occured\n");
+	if (count == 0) {
+		/* Timeout Case */
+		m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured\n");
+		return NCSCC_RC_FAILURE;
+	} else if (count == -1) {
+		/* Error Case */
+		m_MDS_LOG_ERR("MDS_SND_RCV: Error occured(%d): %s\n", errnum, strerror(errnum));
 		return NCSCC_RC_FAILURE;
 	} else if (count == 1) {	/* Success case */
 		m_NCS_SEL_OBJ_RMV_IND(sel_obj, true, true);
@@ -2817,7 +2825,7 @@ static uint32_t mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id
 				m_MDS_LOG_INFO("MDS_SND_RCV: Successfully recd the ack also\n");
 				return NCSCC_RC_SUCCESS;
 			}
-			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured on sndrack message\n");
+			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or error occured on sndrack message\n");
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			m_MDS_ERR_PRINT_ANCHOR(msg_dest_adest);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
@@ -3050,7 +3058,7 @@ static uint32_t mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				m_MDS_LOG_INFO("MDS_SND_RCV: Successfully recd the ack also\n");
 				return NCSCC_RC_SUCCESS;
 			}
-			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured on sndack message from svc_id = %s(%d), to svc_id = %s(%d)",
+			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or error occured on sndack message from svc_id = %s(%d), to svc_id = %s(%d)",
 				      get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
@@ -3263,7 +3271,7 @@ static uint32_t mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				m_MDS_LOG_INFO("MDS_SND_RCV: Successfully recd the response also\n");
 				return NCSCC_RC_SUCCESS;
 			}
-			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured on red sndrsp message from svc_id = %s(%d), to svc_id = %s(%d)",
+			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or error occured on red sndrsp message from svc_id = %s(%d), to svc_id = %s(%d)",
 				      get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			m_MDS_ERR_PRINT_ANCHOR(anchor);
@@ -3404,7 +3412,7 @@ static uint32_t mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				m_MDS_LOG_INFO("MDS_SND_RCV: Successfully recd the response also\n");
 				return NCSCC_RC_SUCCESS;
 			}
-			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured on red sndrack message\n");
+			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or error occured on red sndrack message\n");
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			m_MDS_ERR_PRINT_ANCHOR(anchor);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
@@ -3531,7 +3539,7 @@ static uint32_t mcm_pvt_red_svc_sndack(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_id,
 				m_MDS_LOG_INFO("MDS_SND_RCV: Successfully recd the ack also\n");
 				return NCSCC_RC_SUCCESS;
 			}
-			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured on red sndack message\n");
+			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or error occured on red sndack message\n");
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			m_MDS_ERR_PRINT_ANCHOR(anchor);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
@@ -5113,7 +5121,7 @@ static uint32_t mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_
 				return NCSCC_RC_SUCCESS;
 			}
 			m_MDS_LOG_ERR
-			    ("MDS_SND_RCV: Timeout occured on  Direct sndrsp direct message From svc_id = %s(%d) to svc_id = %s(%d)",
+			    ("MDS_SND_RCV: Timeout or error occured on  Direct sndrsp direct message From svc_id = %s(%d) to svc_id = %s(%d)",
 			     get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
@@ -5195,7 +5203,7 @@ static uint32_t mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_
 				return NCSCC_RC_SUCCESS;
 			}
 			m_MDS_LOG_ERR
-			    ("MDS_SND_RCV: Timeout occured on sndack direct message from svc_id = %s(%d) to svc_id = %s(%d)",
+			    ("MDS_SND_RCV: Timeout or error occured on sndack direct message from svc_id = %s(%d) to svc_id = %s(%d)",
 			     get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
@@ -5285,7 +5293,7 @@ static uint32_t mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr
 				return NCSCC_RC_SUCCESS;
 			}
 			m_MDS_LOG_ERR
-			    ("MDS_SND_RCV: Timeout occured on Normal sndrack direct messagefrom svc_id = %s(%d) to svc_id = %s(%d)",
+			    ("MDS_SND_RCV: Timeout or error occured on Normal sndrack direct messagefrom svc_id = %s(%d) to svc_id = %s(%d)",
 			     get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			mds_await_active_tbl_del_entry((MDS_PWE_HDL)env_hdl, fr_svc_id, xch_id,
@@ -5412,7 +5420,7 @@ static uint32_t mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
 				return NCSCC_RC_SUCCESS;
 			}
 			m_MDS_LOG_ERR
-			    ("MDS_SND_RCV: Timeout occured on RED sndrsp direct message Failed from svc_id = %s(%d) to svc_id = %s(%d)",
+			    ("MDS_SND_RCV: Timeout or error occured on RED sndrsp direct message Failed from svc_id = %s(%d) to svc_id = %s(%d)",
 			     get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			m_MDS_ERR_PRINT_ANCHOR(anchor);
@@ -5506,7 +5514,7 @@ static uint32_t mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_sv
 				return NCSCC_RC_SUCCESS;
 			}
 			m_MDS_LOG_ERR
-			    ("MDS_SND_RCV: Timeout occured on  RED sndrack direct message Failed from svc_id = %s(%d) to svc_id = %s(%d)",
+			    ("MDS_SND_RCV: Timeout or error occured on  RED sndrack direct message Failed from svc_id = %s(%d) to svc_id = %s(%d)",
 			     get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			m_MDS_ERR_PRINT_ANCHOR(anchor);
@@ -5587,7 +5595,7 @@ static uint32_t mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl, MDS_SVC_ID fr_svc
 				m_MDS_LOG_INFO("MDS_SND_RCV: Successfully recd the ack also\n");
 				return NCSCC_RC_SUCCESS;
 			}
-			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout occured on RED sndack direct  message from svc_id = %s(%d) to svc_id = %s(%d)",
+			m_MDS_LOG_ERR("MDS_SND_RCV: Timeout or error occured on RED sndack direct  message from svc_id = %s(%d) to svc_id = %s(%d)",
 			     get_svc_names(fr_svc_id), fr_svc_id, get_svc_names(to_svc_id), to_svc_id);
 			m_MDS_ERR_PRINT_ADEST(to_dest);
 			m_MDS_ERR_PRINT_ANCHOR(anchor);
