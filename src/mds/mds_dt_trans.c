@@ -799,6 +799,11 @@ uint32_t mdtm_process_recv_events_tcp(void)
 				mdtm_process_poll_recv_data_tcp();
 			}
 
+			if ((pfd[0].revents & (POLLNVAL | POLLERR)) != 0) {
+				m_MDS_LOG_INFO("MDTM: poll failed, revents = %hd\n", pfd[0].revents);
+				pfd[0].fd = -1;
+			}
+
 			if (pfd[1].revents & POLLIN) {
 				m_MDS_LOG_INFO("MDTM: Processing Timer mailbox events\n");
 
