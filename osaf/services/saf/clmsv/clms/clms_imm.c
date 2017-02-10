@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1732,7 +1733,14 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t * opdata)
 	clms_node_reconfigured_ntf(clms_cb, node);
 	node->change = SA_CLM_NODE_NO_CHANGE;
 
-	ckpt_node_rec(node);
+	/*
+	   If node is also created through CCB when standby 
+	   is coming up then standby may not read this node from IMM. Also Standby
+	   will not get node information from COLD sync also (active shares
+	   only node_id based db during cold sync).
+	   So send full node record.
+	 */
+	send_async_update_for_node_rec(node);
 	ckpt_cluster_rec();
 
 	TRACE_LEAVE();
@@ -1782,19 +1790,8 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 
 		/* Need to discuss - if need to send Clmtrack callback with node 
 		   join from here as node create might not imply node member */
-		if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
-
-			memset(&ckpt, 0, sizeof(CLMS_CKPT_REC));
-			ckpt.header.type = CLMS_CKPT_NODE_REC;
-			ckpt.header.num_ckpt_records = 1;
-			ckpt.header.data_len = 1;
-			prepare_ckpt_node(&ckpt.param.node_csync_rec, opdata->userData);
-
-			rc = clms_send_async_update(clms_cb, &ckpt, NCS_MBCSV_ACT_ADD);
-			if (rc != NCSCC_RC_SUCCESS)
-				TRACE("send_async_update FAILED rc = %u", (unsigned int)rc);
-		}
-
+		if (clms_cb->ha_state == SA_AMF_HA_ACTIVE)
+			send_async_update_for_node_rec(opdata->userData);
 		break;
 	case CCBUTIL_MODIFY:
 		saflog(LOG_NOTICE, clmSvcUsrName, "%s MODIFIED", opdata->objectName.value);
