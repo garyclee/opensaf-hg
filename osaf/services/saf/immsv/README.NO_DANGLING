@@ -9,7 +9,8 @@ A new attribute definition flag has been defined:
 #define SA_IMM_ATTR_NO_DANGLING   0x0000000004000000
 
 This flag can only be set for attribute definitions where the attribute data
-type is SaNameT and the attribute is a CONFIG attribute.
+type is SaNameT or SaStringT with SA_IMM_ATTR_DN flag and the attribute is a
+CONFIG attribute.
 
 The SaNameT type signifies that the value is a reference to an IMM object,
 i.e. the value is a DN. The IMM spec does not define any general consistency
