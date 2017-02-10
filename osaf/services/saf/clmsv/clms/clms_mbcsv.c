@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -2718,4 +2719,27 @@ static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 	/* Currently nothing to be done. */
 	return NCSCC_RC_SUCCESS;
+}
+
+/**
+ * @brief Sends async update for node record. It assumes that
+ *	  standby does not have this record.
+ * @param  ptr to cluster_node( CLMS_CLUSTER_NODE).
+ */
+void send_async_update_for_node_rec(CLMS_CLUSTER_NODE *cluster_node)
+{
+	TRACE_ENTER();
+	CLMS_CKPT_REC ckpt;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+
+	memset(&ckpt, 0, sizeof(CLMS_CKPT_REC));
+	ckpt.header.type = CLMS_CKPT_NODE_REC;
+	ckpt.header.num_ckpt_records = 1;
+	ckpt.header.data_len = 1;
+	prepare_ckpt_node(&ckpt.param.node_csync_rec, cluster_node);
+
+	rc = clms_send_async_update(clms_cb, &ckpt, NCS_MBCSV_ACT_ADD);
+	if (rc != NCSCC_RC_SUCCESS)
+		TRACE("send_async_update FAILED rc = %u", (unsigned int)rc);
+	TRACE_LEAVE();
 }
