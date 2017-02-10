@@ -84,7 +84,7 @@ cmd_build_testprog() {
 	-I$opensaf_home/src/osaf/saf \
 	-DSA_EXTENDED_NAME_SOURCE \
 	-o $installd/amf_demo $src/amf_demo.c \
-	-L$libd -lSaAmf -lamf_common -L$libd/opensaf -lopensaf_core
+	-Wl,--as-needed "-Wl,-rpath-link,$libd:$libd/opensaf" "-L$libd" -lSaAmf
 
     echo "Creating [$root/root.cpio] ..."
     cmd_mkcpio
@@ -110,7 +110,7 @@ cmd_install_testprog() {
 	-I$opensaf_home/src/osaf/saf \
 	-DSA_EXTENDED_NAME_SOURCE \
 	-o $installd/amf_demo $src/amf_demo.c \
-	-L$libd -lSaAmf -lamf_common -L$libd/opensaf -lopensaf_core
+	-Wl,--as-needed "-Wl,-rpath-link,$libd:$libd/opensaf" "-L$libd" -lSaAmf
 
     test -r $immxml.orig || cp $immxml $immxml.orig
     $opensaf_home/src/imm/tools/immxml-merge \
