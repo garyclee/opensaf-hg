@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2008 The OpenSAF Foundation
+# Copyright Ericsson AB 2009, 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -54,7 +55,7 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS = -pipe -std=gnu11 @OSAF_HARDEN_FLAGS@ -Wall -Wformat=2 -Werror
 AM_CXXFLAGS = -pipe -std=gnu++11 @OSAF_HARDEN_FLAGS@ -Wall -Wformat=2 -Werror
-AM_LDFLAGS = @OSAF_HARDEN_FLAGS@ -ldl -lrt -pthread -rdynamic
+AM_LDFLAGS = @OSAF_HARDEN_FLAGS@ -Wl,--as-needed -ldl -lrt -pthread -rdynamic
 ACLOCAL_AMFLAGS = -I m4
 OSAF_LIB_FLAGS =
 

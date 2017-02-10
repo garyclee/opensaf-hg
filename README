@@ -824,6 +824,7 @@ installed with the other system `*.pc' files in `$(libdir)/pkgconfig':
 There are two easy ways to use `pkgconfig'. The first one is to call it directly
 from a `Makefile' and assign its content to make variables e.g.:
 
+   AMF_LDFLAGS=-Wl,--as-needed
    AMF_LIBS=`pkg-config opensaf-amf --libs`
    AMF_CFLAGS=`pkg-config opensaf-amf --cflags`
 
@@ -837,7 +838,14 @@ It will then provides two special variables available to `automake':
 
    -- in Makefile.am --
    mumble_CFLAGS = @AMF_CFLAGS@
+   mumble_LDFLAGS = -Wl,--as-needed
    mumble_LDADD = @AMF_LIBS@
+
+The --as-needed ld flag is enabled by default on many modern Linux
+distributions, but just to be on the safe side please make sure to add
+-Wl,--as-needed to your LDFLAGS when linking application programs with the
+OpenSAF AIS libraries. Otherwise the resulting binary may not be compatible with
+other versions of OpenSAF.
 
 
 How to Configure `OpenSAF'
@@ -918,13 +926,13 @@ The `Makefile' looks for installed `SAF AIS' headers and `OpenSAF' libs in
 standard system wide locations (e.g. /usr/include/ & /usr/lib/):
 
     INCLUDES = -I.
-    LDFLAGS = -lSaAmf
+    LDFLAGS = -Wl,--as-needed -lSaAmf
 
 If you have `OpenSAF' development packages installed somewhere else, override
 the default values e.g.:
 
     % make INCLUDES="-I. -I/tmp/usr/local/include" \
-        LDFLAGS="-L/tmp/usr/local/lib -lSaAmf -lopensaf_core"
+        LDFLAGS="-Wl,--as-needed -L/tmp/usr/local/lib -lSaAmf -lopensaf_core"
 
 To run an application you will need a configured `OpenSAF' node running.
 

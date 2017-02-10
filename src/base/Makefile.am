@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -14,7 +15,7 @@
 # Author(s): Ericsson AB
 #
 
-osaf_lib_LTLIBRARIES += lib/libopensaf_core.la
+lib_LTLIBRARIES += lib/libopensaf_core.la
 
 lib_libopensaf_core_la_CFLAGS = $(OSAF_LIB_FLAGS) -fno-strict-aliasing $(AM_CFLAGS)
 

@@ -1,5 +1,6 @@
 AM_CPPFLAGS = $(all_includes)
 AM_CFLAGS = -fPIC -Wall
+AM_LDFLAGS = -Wl,--as-needed
 #AM_CFLAGS = -fPIC -Wall -Werror
 
 lsbinitdir = $(initscriptdir)

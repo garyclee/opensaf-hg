@@ -1427,7 +1427,7 @@ fi
 %files libs
 %defattr(-,root,root)
 %dir %{_pkglibdir}
-%{_pkglibdir}/libopensaf_core.so.*
+%{_libdir}/libopensaf_core.so.*
 %{_pkglibdir}/libosaf_common.so.*
 
 %files tools
