@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -126,7 +127,6 @@ static char *StrDup(const char *s)
 	std::strcpy(c,s);
 	return c;
 }
-uint32_t const MAX_JOB_SIZE_AT_STANDBY = 500;
 
 //
 Job::~Job()
@@ -381,24 +381,11 @@ Job* Fifo::dequeue()
 	
 	return tmp;
 }
-
-/**
- * @brief   As of now standby AMFD will maintain immjobs for object of few classes.
- *          Flush all the jobs without updating to imm if MAX_JOB_SIZE_AT_STANDBY is 
- *	    reached. 
- *
- */
-void check_and_flush_job_queue_standby_amfd(void)
-{
-	TRACE_ENTER();
-
-	if (Fifo::size() >= MAX_JOB_SIZE_AT_STANDBY) {
-		const uint32_t new_size = MAX_JOB_SIZE_AT_STANDBY / 2;
-		LOG_WA("Reducing job queue of size:%u to %u",Fifo::size(),new_size);
-		Fifo::trim_to_size(new_size);
-	}
-
-	TRACE_LEAVE();
+void ckpt_job_queue_size() {
+  uint32_t size = Fifo::size();
+  TRACE_ENTER2("Fifo size:%u", size);
+  m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, &size, AVSV_CKPT_AVD_IMM_JOB_QUEUE_STATUS);
+  TRACE_LEAVE();
 }
 
 //
@@ -412,7 +399,6 @@ AvdJobDequeueResultT Fifo::execute(const AVD_CL_CB *cb)
 		return JOB_ETRYAGAIN;
 
 	if ((!avd_cb->is_implementer) && (avd_cb->avail_state_avd == SA_AMF_HA_STANDBY)) {
-		check_and_flush_job_queue_standby_amfd();
 		return JOB_EINVH;
 	}
 
@@ -426,6 +412,10 @@ AvdJobDequeueResultT Fifo::execute(const AVD_CL_CB *cb)
 	TRACE_ENTER();
 
 	ret = ajob->exec(cb);
+
+	//If no jobs then send a ckpt update to standby to flush its job queue.
+	if (((ajob = peek()) == nullptr) && (cb->stby_sync_state == AVD_STBY_IN_SYNC))
+		ckpt_job_queue_size();
 	
 	TRACE_LEAVE2("%d", ret);
 
@@ -477,7 +467,7 @@ void Fifo::trim_to_size(const uint32_t size)
 {
 	Job *ajob;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("My Fifo size:%lu, trim to size:%u", job_.size(), size);
 
 	while (job_.size() > size && (ajob = dequeue()) != nullptr) {
 		delete ajob;

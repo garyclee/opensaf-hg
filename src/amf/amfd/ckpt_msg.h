@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -111,6 +112,7 @@ typedef enum avsv_ckpt_msg_reo_type {
 	AVSV_CKPT_SU_RESTART_COUNT,
 	AVSV_CKPT_SI_DEP_STATE,
 	AVSV_CKPT_NG_ADMIN_STATE,
+	AVSV_CKPT_AVD_IMM_JOB_QUEUE_STATUS,
 	AVSV_CKPT_MSG_MAX
 } AVSV_CKPT_MSG_REO_TYPE;
 

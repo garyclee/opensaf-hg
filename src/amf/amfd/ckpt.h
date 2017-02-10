@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -34,9 +35,10 @@
 #define AMF_AMFD_CKPT_H_
 
 // current version
-#define AVD_MBCSV_SUB_PART_VERSION      7
+#define AVD_MBCSV_SUB_PART_VERSION      8
 
 // supported versions
+#define AVD_MBCSV_SUB_PART_VERSION_8    8
 #define AVD_MBCSV_SUB_PART_VERSION_7    7
 #define AVD_MBCSV_SUB_PART_VERSION_6    6
 #define AVD_MBCSV_SUB_PART_VERSION_5    5
