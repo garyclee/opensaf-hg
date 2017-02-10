@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -197,6 +198,16 @@ SaAisErrorT NtfLogger::logNotification(NtfSmartPtr& notif) {
 
   sendNotInfo = notif->getNotInfo();
   ntfsv_get_ntf_header(sendNotInfo, &ntfHeader);
+
+  // Workaround to fix with failed upgrade
+  // Auto correction if there is inconsistent b/w lengthAdditionalText and additionalText
+  // TODO: This workaround should be removed when Opensaf 5.0 is no longer supported
+  if (ntfHeader->additionalText != NULL &&
+      ntfHeader->lengthAdditionalText > strlen(ntfHeader->additionalText) + 1) {
+    LOG_WA("Mismatch b/w lengthAdditionalText and additionalText. Re-Adjust!");
+    ntfHeader->lengthAdditionalText = strlen(ntfHeader->additionalText) + 1;
+  }
+
   logBuffer.logBufSize = ntfHeader->lengthAdditionalText;
   logBuffer.logBuf = (SaUint8T*)&addTextBuf[0];
 
