@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -208,5 +209,6 @@ void report_admin_op_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 		struct admin_oper_cbk *pend_cbk,
 		const char *format, ...) __attribute__ ((format(printf, 5, 6)));
 extern void check_and_flush_job_queue_standby_amfd(void);
+void ckpt_job_queue_size();
 
 #endif  // AMF_AMFD_IMM_H_

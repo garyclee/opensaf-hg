@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1051,7 +1052,13 @@ uint32_t avsv_send_ckpt_data(AVD_CL_CB *cb, uint32_t action, MBCSV_REO_HDL reo_h
 		}
 		cb->async_updt_cnt.ng_updt++;
 		break;
-
+	case AVSV_CKPT_AVD_IMM_JOB_QUEUE_STATUS:
+		if ((avd_cb->other_avd_adest != 0) && (avd_cb->avd_peer_ver < AVD_MBCSV_SUB_PART_VERSION_8)) {
+			TRACE("No ckpt for  AVSV_CKPT_AVD_IMM_JOB_QUEUE_STATUS as peer AMFD has"
+					" lower version:%d", avd_cb->avd_peer_ver);
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 	default:
 		return NCSCC_RC_SUCCESS;
 	}

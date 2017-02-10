@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -100,6 +101,7 @@ static uint32_t dec_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_
 static uint32_t dec_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
 static uint32_t dec_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
 static uint32_t dec_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uint32_t num_of_obj);
+static uint32_t dec_avd_to_avd_job_queue_status(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
 /*
  * Function list for decoding the async data.
@@ -175,7 +177,9 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avd_dec_data_func_list[] = {
 	nullptr,			/* AVSV_SYNC_COMMIT */
 	dec_su_restart_count,
 	dec_si_dep_state,
-	dec_ng_admin_state
+	dec_ng_admin_state,
+	dec_avd_to_avd_job_queue_status
+
 };
 
 /*
@@ -2971,4 +2975,14 @@ static uint32_t dec_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	osaf_extended_name_free(&name);
 	return NCSCC_RC_SUCCESS;
 }
+
+static uint32_t dec_avd_to_avd_job_queue_status(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec) {
+  TRACE_ENTER();
+  uint32_t size = 1;
+  osaf_decode_uint32(&dec->i_uba, &size);
+  Fifo::trim_to_size(size);
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
+}
+
 

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -621,6 +622,7 @@ static void main_loop(void)
 	AVD_EVT *evt;
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
+	AVD_STBY_SYNC_STATE old_sync_state = cb->stby_sync_state;
 	int polltmo = -1;
 	int term_fd;
 
@@ -703,6 +705,7 @@ static void main_loop(void)
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
+			old_sync_state = cb->stby_sync_state;
 			if (NCSCC_RC_SUCCESS != avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))
 				LOG_ER("avsv_mbcsv_dispatch FAILED");
 		}
@@ -750,7 +753,13 @@ static void main_loop(void)
 				avd_d2n_msg_dequeue(cb);
 			}
 		}
-
+		
+		// Standby COLD_SYNC completed. Ask STANDBY to flush its job queue if size is 0 on active.
+		if ((Fifo::size() == 0) && (old_sync_state == AVD_STBY_OUT_OF_SYNC)
+			&& (cb->stby_sync_state == AVD_STBY_IN_SYNC)) {
+			ckpt_job_queue_size();
+			old_sync_state = cb->stby_sync_state;
+		}
 		// submit some jobs (if any)
 		polltmo = retval_to_polltmo(Fifo::execute(cb));
 	}

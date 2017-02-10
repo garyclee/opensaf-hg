@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -99,6 +100,7 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
 static uint32_t enc_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
 static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj);
+static uint32_t enc_avd_to_avd_job_queue_status(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc);
 
 static uint32_t enc_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_ENC *enc);
 /*
@@ -175,7 +177,8 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avd_enc_ckpt_data_func_list[] = {
 	nullptr,			/* AVSV_SYNC_COMMIT */
 	enc_su_restart_count,
 	enc_si_dep_state,
-	enc_ng_admin_state
+	enc_ng_admin_state,
+	enc_avd_to_avd_job_queue_status
 };
 
 /*
@@ -2491,6 +2494,15 @@ static uint32_t enc_ng_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
         osaf_encode_uint32(&enc->io_uba, ng->saAmfNGAdminState);
         TRACE_LEAVE();
         return NCSCC_RC_SUCCESS;
+}
+
+static uint32_t enc_avd_to_avd_job_queue_status(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc) {
+  TRACE_ENTER();
+  osafassert(NCS_MBCSV_ACT_UPDATE == enc->io_action);
+  const uint32_t *size = reinterpret_cast<uint32_t*>(enc->io_reo_hdl);
+  osaf_encode_uint32(&enc->io_uba, *size);
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 
