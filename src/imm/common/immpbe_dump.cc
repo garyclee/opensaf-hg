@@ -72,7 +72,7 @@ void pbeClosePrepareTrans()
 #include <sqlite3.h> 
 #define STRINT_BSZ 32
 
-static std::string sPbeFileName;
+static std::string *sPbeFileName;
 
 #define SQL_STMT_SIZE		31
 
@@ -598,6 +598,10 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 		};
 	TRACE_ENTER();
 
+	if(!sPbeFileName) {
+		sPbeFileName = new std::string;
+	}
+
 	if(!create) {goto re_attach;}
 
 	/* Create a fresh Pbe-repository by dumping current imm contents to (local or global)
@@ -707,7 +711,7 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 
 	prepareSqlStatements(dbHandle);
 
-	sPbeFileName = std::string(filePath); 
+	*sPbeFileName = std::string(filePath);
 	if (localTmpDir) free(localTmpDir);
 	TRACE_LEAVE();
 	return (void *) dbHandle;
@@ -799,7 +803,7 @@ void* pbeRepositoryInit(const char* filePath, bool create, std::string& localTmp
 	TRACE("Successfully executed %s", sql_tr[0]);
 	
 
-	sPbeFileName = std::string(filePath); /* Avoid apend to presumed empty string */
+	*sPbeFileName = std::string(filePath); /* Avoid apend to presumed empty string */
 
 	prepareSqlStatements(dbHandle);
 
@@ -826,6 +830,11 @@ void pbeRepositoryClose(void* dbHandle)
 {
 	finalizeSqlStatements();
 	sqlite3_close((sqlite3 *) dbHandle);
+
+	if(sPbeFileName) {
+		delete sPbeFileName;
+		sPbeFileName = NULL;
+	}
 }
 
 void pbeCleanTmpFiles(std::string localTmpFilename)
@@ -1537,7 +1546,7 @@ void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objNam
 	TRACE_LEAVE();
 	sqlite3_close((sqlite3 *) dbHandle);
 	if(badfile) {
-		discardPbeFile(sPbeFileName);
+		discardPbeFile(*sPbeFileName);
 	}
 	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
@@ -1783,7 +1792,7 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 	TRACE_LEAVE();
 	sqlite3_close((sqlite3 *) dbHandle);
 	if(badfile) {
-		discardPbeFile(sPbeFileName);
+		discardPbeFile(*sPbeFileName);
 	}
  
 	LOG_ER("Exiting (line:%u)", __LINE__);
@@ -1974,7 +1983,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
  bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
 	if(badfile) {
-		discardPbeFile(sPbeFileName);
+		discardPbeFile(*sPbeFileName);
 	}
 	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
@@ -2301,7 +2310,7 @@ void objectDeleteToPBE(std::string objectNameString, void* db_handle)
  bailout:
 	sqlite3_close((sqlite3 *) dbHandle);
 	if(badfile) {
-		discardPbeFile(sPbeFileName);
+		discardPbeFile(*sPbeFileName);
 	}
 	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
@@ -2584,7 +2593,7 @@ int verifyPbeState(SaImmHandleT immHandle, ClassMap *classIdMap, void* db_handle
 	sqlite3_free_table(result);
 	sqlite3_close(dbHandle);
 	if(badfile) {
-		discardPbeFile(sPbeFileName);
+		discardPbeFile(*sPbeFileName);
 	}
 	LOG_WA("verifyPbeState failed!");
 	return 0;
@@ -3103,7 +3112,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
  bailout:
 	sqlite3_close(dbHandle);
 	if(badfile) {
-		discardPbeFile(sPbeFileName);
+		discardPbeFile(*sPbeFileName);
 	}
 	LOG_ER("Exiting (line:%u)", __LINE__);
 	exit(1);
@@ -3112,7 +3121,7 @@ SaAisErrorT getCcbOutcomeFromPbe(void* db_handle, SaUint64T ccbId, SaUint32T cur
 void fsyncPbeJournalFile()
 {
 	int fd=(-1);
-	std::string globalJournalFilename(sPbeFileName);
+	std::string globalJournalFilename(*sPbeFileName);
 	globalJournalFilename.append("-journal");
 	fd = open(globalJournalFilename.c_str(), O_RDWR);
 	if(fd != (-1)) {

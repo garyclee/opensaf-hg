@@ -2287,6 +2287,8 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, SaImmAdminOwnerHandleT ow
 				continue;
 
 			LOG_ER("poll failed - %s", strerror(errno));
+			pbeRepositoryClose(sDbHandle);
+			sDbHandle = NULL;
 			break;
 		}
 
