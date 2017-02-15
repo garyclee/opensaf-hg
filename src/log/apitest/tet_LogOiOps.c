@@ -1993,7 +1993,7 @@ void check_logRecordDestinationConfigurationAdd(void) {
 	do {
 		// Add values
 		for (int i = 0; i < num_values; i++) {
-			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(set_values[i], "Name%d;UNIX_SOCKET;Setting%d", i, i);
 			sprintf(command, "immcfg "
 				"-a logRecordDestinationConfiguration+="
 				"'%s' "
@@ -2049,7 +2049,7 @@ void check_logRecordDestinationConfigurationDelete(void) {
 	do {
 		// Add values
 		for (int i = 0; i < num_values; i++) {
-			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(set_values[i], "Name%d;UNIX_SOCKET;Setting%d", i, i);
 			sprintf(command, "immcfg "
 				"-a logRecordDestinationConfiguration+="
 				"'%s' "
@@ -2137,7 +2137,7 @@ void check_logRecordDestinationConfigurationReplace(void) {
 	do {
 		// Add values that will be replaced
 		for (int i = 0; i < num_values; i++) {
-			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(set_values[i], "Name%d;UNIX_SOCKET;Setting%d", i, i);
 			sprintf(command, "immcfg "
 				"-a logRecordDestinationConfiguration+="
 				"'%s' "
@@ -2164,7 +2164,7 @@ void check_logRecordDestinationConfigurationReplace(void) {
 		int num_new_values = 3;
 		for (int i = 0; i < num_new_values; i++) {
 			sprintf(set_values[i],
-				"NewName%d;NewType%d;NewSetting%d", i, i, i);
+				"NewName%d;UNIX_SOCKET;NewSetting%d", i, i);
 		}
 		sprintf(command, "immcfg "
 			"-a logRecordDestinationConfiguration='%s' "
@@ -2231,7 +2231,7 @@ void check_logRecordDestinationConfigurationEmpty(void) {
 	do {
 		// Add values that will be replaced
 		for (int i = 0; i < num_values; i++) {
-			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(set_values[i], "Name%d;UNIX_SOCKET;Setting%d", i, i);
 			sprintf(command, "immcfg "
 				"-a logRecordDestinationConfiguration+="
 				"'%s' "

@@ -190,7 +190,9 @@ bin_logtest_SOURCES = \
 	src/log/apitest/tet_Log_recov.c \
 	src/log/apitest/tet_log_runtime_cfgobj.c \
 	src/log/apitest/tet_log_longDN.c \
-	src/log/apitest/tet_Log_clm.c
+	src/log/apitest/tet_Log_clm.c \
+	src/log/apitest/tet_cfg_destination.c
+
 
 bin_logtest_LDADD = \
 	lib/libapitest.la \
