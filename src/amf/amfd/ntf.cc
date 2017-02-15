@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -630,6 +631,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (status != SA_AIS_OK) {
 		LOG_ER("%s: saNtfAlarmNotificationAllocate Failed (%u)", __FUNCTION__, status);
+		delete job;
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -647,6 +649,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 	if (status != SA_AIS_OK) {
 		LOG_ER("%s: fill_ntf_header_part_avd Failed (%u)", __FUNCTION__, status);
 		saNtfNotificationFree(job->myntf.notification.alarmNotification.notificationHandle);
+		delete job;
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -718,6 +721,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 
 	if (status != SA_AIS_OK) {
 		LOG_ER("%s: saNtfStateChangeNotificationAllocate Failed (%u)", __FUNCTION__, status);
+		delete job;
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -735,6 +739,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 	if (status != SA_AIS_OK) {
 		LOG_ER("%s: fill_ntf_header_part_avd Failed (%u)", __FUNCTION__, status);
 		saNtfNotificationFree(job->myntf.notification.stateChangeNotification.notificationHandle);
+		delete job;
 		return NCSCC_RC_FAILURE;
 	}
 
