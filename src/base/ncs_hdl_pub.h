@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2016, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -93,27 +94,6 @@ NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uint32_t hdl);
 NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uint32_t hdl);
 
 void ncshm_give_hdl(uint32_t hdl);
-
-/************************************************************************/
-/* NCSLPG_OBJ - this structure is embedded in known, persistent thing    */
-/************************************************************************/
-
-typedef struct ncslpg_obj {
-  bool open;      /* Is the object (still) open/available     */
-  uint32_t inhere;        /* use-count of clients 'inside' object now */
-
-} NCSLPG_OBJ;           /* Local Persistence Guard */
-
-/***************************************************************************
- *
- * P u b l i c    L o c a l  P e r s i s t e n c e  G u a r d   A P I s
- *
- ***************************************************************************/
-
-bool ncslpg_take(NCSLPG_OBJ *pg);
-uint32_t ncslpg_give(NCSLPG_OBJ *pg, uint32_t ret);
-uint32_t ncslpg_create(NCSLPG_OBJ *pg);
-bool ncslpg_destroy(NCSLPG_OBJ *pg);
 
 #ifdef  __cplusplus
 }

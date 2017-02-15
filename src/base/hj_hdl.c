@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2012, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -24,15 +25,6 @@
   use-safe means to fetch and use fleeting and/or volitile objects.
   See ncs_hdl.h for brief write-up of issues/capabilities. See the
   ncshm_ calls.
-
-  This file also contains an implementation for a 'Local Persistence Guard',
-  which is a cheap (in CPU cycles) persistence guard scheme (for read
-  only object access, like the handle manager) that can be used when an object 
-  that is known to exist needs a guard for some object that hangs off of this 
-  object. For example, the LEAP sysfpool has a global struct that always exists.
-  What we need to know and be assured of is that when we access memory, that 
-  the structures managed will persist (destroy() could be called after all)
-  while we are in the middle of an operation. See the ncslpg_ calls.
 
 ******************************************************************************
 */
@@ -717,90 +709,4 @@ void hm_unblock_him(HM_CELL *cell)
 {
 	int rc = sem_post((sem_t*)cell->data);	/* unblock that destroy thread */
 	osafassert(rc == 0);
-}
-
-/***************************************************************************
- *
- *
- *
- * P u b l i c    L o c a l   P e r s i s t e n c e   G u a r d  
- *
- *                         A P I s (prefix 'ncslpg_')
- *
- *
- *
- ***************************************************************************/
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncslpg_take
-
-   DESCRIPTION:      If all validation stuff is in order return true, which
-                     means this thread can enter this object.
-
-*****************************************************************************/
-
-bool ncslpg_take(NCSLPG_OBJ *pg)
-{
-	m_NCS_OS_ATOMIC_INC(&(pg->inhere));	/* set first, ask later.. to beat 'closing' */
-	if (pg->open == true)
-		return true;	/* its open, lets go in */
-	else
-		m_NCS_OS_ATOMIC_DEC(&(pg->inhere));
-	return false;		/* its closed */
-}
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncslpg_give
-
-   DESCRIPTION:      decriment the refcount, as this thread is leaving now.
-
-*****************************************************************************/
-
-uint32_t ncslpg_give(NCSLPG_OBJ *pg, uint32_t ret)
-{
-	m_NCS_OS_ATOMIC_DEC(&(pg->inhere));
-	return ret;
-}
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncslpg_create
-
-   DESCRIPTION:      Put the passed NCSLPG_OBJ in start state. If its already
-                     in start state, return FAILURE.
-
-*****************************************************************************/
-
-uint32_t ncslpg_create(NCSLPG_OBJ *pg)
-{
-	if (pg->open == true)
-		m_LEAP_DBG_SINK_VOID;
-	pg->open = true;
-	pg->inhere = 0;
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncslpg_destroy
-
-   DESCRIPTION:      Close this LPG. Wait for all other threads to leave before
-                     returning to the invoker, allowing her to proceed. Note
-                     that if this object is already closed, this function
-                     returns false (invoker should not proceed, as the object is
-                     already destroyed or being destoyed.
-
-*****************************************************************************/
-
-bool ncslpg_destroy(NCSLPG_OBJ *pg)
-{
-	if (pg->open == false)
-		return false;	/* already closed            */
-	pg->open = false;	/* stop others from entering */
-	while (pg->inhere != 0)	/* Anybody inhere??          */
-		m_NCS_TASK_SLEEP(1);	/* OK, I'll wait; could do semaphore I suppose */
-
-	return true;		/* Invoker can proceed to get rid of protected thing */
 }

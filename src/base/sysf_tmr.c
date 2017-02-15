@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2009, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -160,7 +161,6 @@ typedef struct tmr_safe {
 typedef struct sysf_tmr_cb {
 	uint32_t tick;		/* Times TmrExpiry has been called     */
 
-	NCSLPG_OBJ persist;	/* guard against fleeting destruction */
 	TMR_SAFE safe;		/* critical region stuff              */
 	NCS_PATRICIA_TREE tmr_pat_tree;
 	TMR_STATS stats;
@@ -239,16 +239,9 @@ static bool sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
 	/* get these guys one behind to start as well */
 	dead_tmr->next = NULL;
 
-	/* Confirm and secure tmr service is/will persist */
-	if (ncslpg_take(&gl_tcb.persist) == false)
-		return false;	/* going or gone away.. Lets leave */
-
 	if (tmr_destroying == true) {
 		/* Raise An indication */
 		m_NCS_SEL_OBJ_IND(&tmr_destroy_syn_obj);
-
-		/*If thread canceled here, It had no effect on timer thread destroy */
-		ncslpg_give(&gl_tcb.persist, 0);
 
 		/* returns true if thread is going to be  destroyed otherwise return false(normal flow) */
 		return true;
@@ -308,7 +301,6 @@ static bool sysfTmrExpiry(SYSF_TMR_PAT_NODE *tmp)
 	ncs_patricia_tree_del(&gl_tcb.tmr_pat_tree, (NCS_PATRICIA_NODE *)tmp);
 	m_NCS_MEM_FREE(tmp, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_LEAP_TMR, 0);
 
-	ncslpg_give(&gl_tcb.persist, 0);
 	return false;
 }
 
@@ -485,9 +477,6 @@ bool sysfTmrCreate(void)
 	/* Empty Timer Service control block. */
 	memset(&gl_tcb, '\0', sizeof(SYSF_TMR_CB));
 
-	/* put local persistent guard in start state */
-	ncslpg_create(&gl_tcb.persist);
-
 	/* Initialize the locks */
 	m_NCS_LOCK_INIT(&gl_tcb.safe.enter_lock);
 	m_NCS_LOCK_INIT(&gl_tcb.safe.free_lock);
@@ -641,9 +630,6 @@ tmr_t ncs_tmr_alloc(char *file, uint32_t line)
 	if (tmr_destroying == true)
 		return NULL;
 
-	if (ncslpg_take(&gl_tcb.persist) == false)	/* guarentee persistence */
-		return NULL;
-
 	m_NCS_LOCK(&gl_tcb.safe.free_lock, NCS_LOCK_WRITE);
 
 	back = &gl_tcb.safe.dmy_free;	/* see if we have a free one */
@@ -681,7 +667,6 @@ tmr_t ncs_tmr_alloc(char *file, uint32_t line)
 		TMR_DBG_SET(tmr->dbg, file, line);
 	}
 
-	ncslpg_give(&gl_tcb.persist, 0);
 	return (tmr_t)tmr;
 }
 
@@ -707,13 +692,9 @@ tmr_t ncs_tmr_start(tmr_t tid, int64_t tmrDelay,	/* timer period in number of 10
 
 	TMR_DBG_ASSERT_STATE(tmr, (TMR_STATE_DORMANT | TMR_STATE_CREATE));
 
-	if (ncslpg_take(&gl_tcb.persist) == false)	/* guarentee persistence */
-		return NULL;
-
 	if (TMR_TEST_STATE(tmr, TMR_STATE_DORMANT)) {	/* If client is re-using timer */
 		m_NCS_TMR_CREATE(new_tmr, tmrDelay, tmrCB, tmrUarg);	/* get a new one */
 		if (new_tmr == NULL) {
-			ncslpg_give(&gl_tcb.persist, 0);
 			return NULL;
 		}
 
@@ -738,7 +719,6 @@ tmr_t ncs_tmr_start(tmr_t tid, int64_t tmrDelay,	/* timer period in number of 10
 	if (rc == NCSCC_RC_FAILURE) {
 		/* Free the timer created */
 		m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
-		ncslpg_give(&gl_tcb.persist, 0);
 		return NULL;
 	}
 #if ENABLE_SYSLOG_TMR_STATS
@@ -778,8 +758,6 @@ tmr_t ncs_tmr_start(tmr_t tid, int64_t tmrDelay,	/* timer period in number of 10
 
 	m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 	TMR_DBG_SET(tmr->dbg, file, line);
-
-	ncslpg_give(&gl_tcb.persist, 0);
 
 	return tmr;
 }
@@ -915,13 +893,9 @@ int64_t ncs_tmr_remaining(tmr_t tmrID, int64_t *p_tleft)
 	*p_tleft = 0;
 	TMR_DBG_ASSERT_ISA(tmr->dbg);	/* confirm that its timer memory */
 
-	if (ncslpg_take(&gl_tcb.persist) == false)	/* guarentee persistence */
-		return NCSCC_RC_FAILURE;
-
 	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
 	if (!TMR_TEST_STATE(tmr, TMR_STATE_START)) {
 		m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
-		ncslpg_give(&gl_tcb.persist, 0);
 		return NCSCC_RC_FAILURE;
 	}
 	m_NCS_UNLOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);	/* critical region START */
@@ -931,7 +905,7 @@ int64_t ncs_tmr_remaining(tmr_t tmrID, int64_t *p_tleft)
 
 	*p_tleft = total_ticks_left * NCS_MILLISECONDS_PER_TICK;
 
-	return ncslpg_give(&gl_tcb.persist, NCSCC_RC_SUCCESS);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -969,7 +943,7 @@ uint32_t ncs_tmr_whatsout(void)
 	printf("|  #|    | line|           |            |                |\n");
 	printf("|---|----+-----+-----------+------------+----------------|\n");
 
-	if ((ncslpg_take(&gl_tcb.persist) == false) || (tmr_destroying == true)) {
+	if (tmr_destroying == true) {
 		printf("< . . . TMR SVC DESTROYED: .CLEANUP ALREADY DONE..>\n");
 		return NCSCC_RC_FAILURE;	/* going or gone away.. Lets leave */
 	}
@@ -990,7 +964,7 @@ uint32_t ncs_tmr_whatsout(void)
 		free = free->keep;
 	}
 	m_NCS_UNLOCK(&gl_tcb.safe.free_lock, NCS_LOCK_WRITE);	/* critical region END */
-	return ncslpg_give(&gl_tcb.persist, NCSCC_RC_SUCCESS);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
