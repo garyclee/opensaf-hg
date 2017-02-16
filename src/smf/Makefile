@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -15,4 +16,4 @@
 #
 
 all:
-	$(MAKE) -C ../.. lib/libsmf_common.la lib/libSaSmf.la bin/osafsmfd bin/osafsmfnd
+	$(MAKE) -C ../.. lib/libsmfsv_common.la lib/libSaSmf.la bin/osafsmfd bin/osafsmfnd
