@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1345,6 +1346,12 @@ uint32_t avnd_evt_avd_su_pres_evh(AVND_CB *cb, AVND_EVT *evt)
 				goto done;
 		}
 	} else { /* => instantiate the su */
+		// No need to wait for headless sync if there is no application SUs
+		// initiated. This is known because we are receiving su_pres message
+		// for NCS SUs
+		if (su->is_ncs == true)
+			cb->amfd_sync_required = false;
+
 		AVND_EVT *evt_ir = 0;
 		TRACE("Sending to Imm thread.");
 		evt_ir = avnd_evt_create(cb, AVND_EVT_IR, 0, nullptr, &info->su_name, 0, 0);
