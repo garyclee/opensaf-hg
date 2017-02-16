@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -748,7 +749,10 @@ uint32_t avnd_di_oper_send(AVND_CB *cb, const AVND_SU *su, uint32_t rcvr)
 		if (avnd_diq_rec_add(cb, &msg) == nullptr) {
 			rc = NCSCC_RC_FAILURE;
 		}
-		LOG_NO("avnd_di_oper_send() deferred as AMF director is offline");
+		LOG_NO("avnd_di_oper_send() deferred as AMF director is offline(%d),"
+			" or sync is required(%d)",
+			cb->is_avd_down,
+			cb->amfd_sync_required);
 	} else {
 		// We are in normal cluster, send msg to director
 		msg.info.avd->msg_info.n2d_opr_state.msg_id = ++(cb->snd_msg_id);
@@ -881,7 +885,11 @@ uint32_t avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
         		rc = NCSCC_RC_FAILURE;
         	}
         	m_AVND_SU_ALL_SI_RESET(su);
-        	LOG_NO("avnd_di_susi_resp_send() deferred as AMF director is offline");
+                LOG_NO("avnd_di_susi_resp_send() deferred as AMF director is offline(%d)," 
+                        " or sync is required(%d)",
+                        cb->is_avd_down,
+                        cb->amfd_sync_required);
+
         } else {
         	// We are in normal cluster, send msg to director
         	msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
