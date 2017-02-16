@@ -1,7 +1,7 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2016 The OpenSAF Foundation
-# Copyright Ericsson AB 2016, 2017 - All Rights Reserved.
+# (C) Copyright 2017 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -15,9 +15,6 @@
 # Author(s): Ericsson AB
 #
 
-all:
-	$(MAKE) -C ../.. lib/libSaLog.la bin/saflogger bin/osaflogd
-
 check:
-	$(MAKE) -C ../.. bin/testlogd
-	../../bin/testlogd
+	$(MAKE) -C ../../.. bin/testlogd
+	../../../bin/testlogd
