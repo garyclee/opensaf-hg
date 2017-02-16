@@ -85,6 +85,7 @@ noinst_HEADERS += \
 bin_PROGRAMS += bin/saflogger
 osaf_execbin_PROGRAMS += bin/osaflogd
 CORE_INCLUDES += -I$(top_srcdir)/src/log/saf
+TESTS += bin/testlogd
 pkgconfig_DATA += src/log/saf/opensaf-log.pc
 
 nodist_pkgclccli_SCRIPTS += \
@@ -224,5 +225,29 @@ bin_logtestfr_LDADD = \
 	lib/libSaImmOi.la \
 	lib/libSaImmOm.la \
 	lib/libopensaf_core.la
+
+bin_testlogd_CXXFLAGS =$(AM_CXXFLAGS)
+
+bin_testlogd_CPPFLAGS = \
+	-DSA_EXTENDED_NAME_SOURCE \
+	$(AM_CPPFLAGS) \
+	-I$(GTEST_DIR)/include
+
+bin_testlogd_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-lcrypto
+
+
+bin_testlogd_SOURCES = \
+	src/log/tests/lgs_dest_test.cc
+
+
+bin_testlogd_LDADD = \
+	lib/libopensaf_core.la \
+	$(GTEST_DIR)/lib/libgtest.la \
+	$(GTEST_DIR)/lib/libgtest_main.la \
+	src/log/logd/bin_osaflogd-lgs_unixsock_dest.o \
+	src/log/logd/bin_osaflogd-lgs_dest.o \
+	src/log/logd/bin_osaflogd-lgs_nildest.o
 
 endif
