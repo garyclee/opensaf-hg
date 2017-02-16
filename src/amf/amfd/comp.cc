@@ -760,7 +760,7 @@ SaAisErrorT avd_comp_config_get(const std::string& su_name, AVD_SU *su)
 
 	/* If there are no component in the SU, we treat it as invalid configuration. */
 	if (0 == num_of_comp_in_su) {
-		LOG_ER("There is no component configured for SU '%s'", su_name.c_str());
+		LOG_NO("There is no component configured for SU '%s'", su_name.c_str());
 		goto done2;
 	}
 

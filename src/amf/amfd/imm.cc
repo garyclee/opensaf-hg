@@ -803,7 +803,7 @@ static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 			admin_op_callback[type](immoi_handle, invocation, obj_name, op_id, params);
 		}
 	} else {
-		LOG_ER("Admin operation not supported for %s (%u)", object_name.c_str(), type);
+		LOG_NO("Admin operation not supported for %s (%u)", object_name.c_str(), type);
 		report_admin_op_error(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM, nullptr,
 			"Admin operation not supported for %s (%u)", object_name.c_str(), type);
 	}
