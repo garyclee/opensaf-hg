@@ -109,14 +109,14 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
 	}
 
 	if (attr->attrValuesNumber != tmp_ng->number_nodes()) {
-		LOG_ER("Duplicate nodes in saAmfNGNodeList of '%s'",tmp_ng->name.c_str());
+		LOG_NO("Duplicate nodes in saAmfNGNodeList of '%s'",tmp_ng->name.c_str());
 		delete tmp_ng;
 		TRACE_LEAVE();
 		return 0;
 	}
 	//Check if admin state is valid or not.
 	if (!avd_admin_state_is_valid(tmp_ng->saAmfNGAdminState, opdata)) {
-		LOG_ER("Incorrect saAmfNGAdminState:'%u' for '%s'",tmp_ng->saAmfNGAdminState,
+		LOG_NO("Incorrect saAmfNGAdminState:'%u' for '%s'",tmp_ng->saAmfNGAdminState,
 				tmp_ng->name.c_str());
 		delete tmp_ng;
 		TRACE_LEAVE();
@@ -169,7 +169,7 @@ static AVD_AMF_NG *ng_create(const std::string& dn, const SaImmAttrValuesT_2 **a
 		}
 	}
 	else {
-		LOG_ER("Node groups must contain at least one node");
+		LOG_NO("Node groups must contain at least one node");
 		goto done;
 	}
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfNGAdminState"),
