@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,23 +19,23 @@ EXTRA_DIST += src/smf/saf/libSaSmf.map
 
 if ENABLE_AIS_SMF
 
-osaf_lib_LTLIBRARIES += lib/libsmf_common.la
+osaf_lib_LTLIBRARIES += lib/libsmfsv_common.la
 
-lib_libsmf_common_la_CFLAGS = $(OSAF_LIB_FLAGS) $(AM_CFLAGS)
+lib_libsmfsv_common_la_CFLAGS = $(OSAF_LIB_FLAGS) $(AM_CFLAGS)
 
-lib_libsmf_common_la_CXXFLAGS = $(OSAF_LIB_FLAGS) $(AM_CXXFLAGS)
+lib_libsmfsv_common_la_CXXFLAGS = $(OSAF_LIB_FLAGS) $(AM_CXXFLAGS)
 
-lib_libsmf_common_la_CPPFLAGS = \
+lib_libsmfsv_common_la_CPPFLAGS = \
 	-DSA_EXTENDED_NAME_SOURCE \
 	$(AM_CPPFLAGS)
 
-lib_libsmf_common_la_LDFLAGS = \
+lib_libsmfsv_common_la_LDFLAGS = \
 	$(AM_LDFLAGS)
 
-lib_libsmf_common_la_SOURCES = \
+lib_libsmfsv_common_la_SOURCES = \
 	src/smf/common/smfsv_evt.c
 
-nodist_EXTRA_lib_libsmf_common_la_SOURCES = dummy.cc
+nodist_EXTRA_lib_libsmfsv_common_la_SOURCES = dummy.cc
 
 lib_LTLIBRARIES += lib/libSaSmf.la
 
@@ -66,7 +67,7 @@ lib_libSaSmf_la_LDFLAGS += \
 	-version-number 0:0:0
 
 lib_libSaSmf_la_LIBADD = \
-	lib/libsmf_common.la \
+	lib/libsmfsv_common.la \
 	lib/libais.la \
 	lib/libopensaf_core.la
 
@@ -188,7 +189,7 @@ bin_osafsmfd_LDFLAGS = \
 	@XML2_LIBS@
 
 bin_osafsmfd_LDADD = \
-	lib/libsmf_common.la \
+	lib/libsmfsv_common.la \
 	lib/libosaf_common.la \
 	lib/libosaf_common.la \
 	lib/libSaSmf.la \
@@ -211,7 +212,7 @@ bin_osafsmfnd_SOURCES = \
 	src/smf/smfnd/smfnd_mds.c
 
 bin_osafsmfnd_LDADD = \
-	lib/libsmf_common.la \
+	lib/libsmfsv_common.la \
 	lib/libSaAmf.la \
 	lib/libopensaf_core.la
 

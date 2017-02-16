@@ -1337,7 +1337,7 @@ fi
 %defattr(-,root,root)
 %{_libdir}/libSaSmf.so.*
 %dir %{_pkglibdir}
-%{_pkglibdir}/libsmf_common.so.*
+%{_pkglibdir}/libsmfsv_common.so.*
 
 %files smf-director
 %defattr(-,root,root)
