@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1570,17 +1571,33 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
  done:
-	/* Free the messages */
-	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = nullptr;
-
 	if (su != nullptr) {
 		if (su->sg_of_su->sg_ncs_spec == false) {
 			if (su->sg_of_su->any_assignment_absent() == true) {
 				su->sg_of_su->failover_absent_assignment();
 			}
+		} else {
+			// Running at this code line, that means 2N-MW SU has been assigned
+			// to ACTIVE (from STANDBY).
+			if (n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD &&
+				n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_ACTIVE) {
+				// The cb->init_state must be AVD_INIT_DONE or AVD_APP_STATE
+				// If AVD_INIT_DONE, there was a SC failover before cluster
+				// instantiation phase completes. Continue to start cluster
+				// startup timer.
+				if (cb->init_state == AVD_INIT_DONE) {
+					if (cluster_su_instantiation_done(cb, nullptr) == true) {
+						cluster_startup_expiry_event_generate(cb);
+					} else {
+						m_AVD_CLINIT_TMR_START(cb);
+					}
+				}
+			}
 		}
 	}
+        /* Free the messages */
+        avsv_dnd_msg_free(n2d_msg);
+        evt->info.avnd_msg = nullptr;
 
 	TRACE_LEAVE();
 }
