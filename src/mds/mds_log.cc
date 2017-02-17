@@ -27,7 +27,6 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
-#include <atomic>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -35,6 +34,7 @@
 #include "base/buffer.h"
 #include "base/log_message.h"
 #include "base/macros.h"
+#include "base/mutex.h"
 #include "base/ncsgl_defs.h"
 #include "base/osaf_utility.h"
 #include "base/time.h"
@@ -54,12 +54,14 @@ class MdsLog {
             uint32_t proc_id, const char* socket_name);
   void LogInternal(base::LogMessage::Severity severity, const char *fmt,
                    va_list ap);
+  static constexpr const uint32_t kMaxSequenceId = uint32_t{0x7fffffff};
   static MdsLog* instance_;
   const base::LogMessage::HostName host_name_;
   const base::LogMessage::AppName app_name_;
   const base::LogMessage::ProcId proc_id_;
-  std::atomic<uint64_t> msg_id_;
+  uint32_t sequence_id_;
   base::UnixClientSocket log_socket_;
+  base::Mutex mutex_;
 
   DELETE_COPY_AND_MOVE_OPERATORS(MdsLog);
 };
@@ -72,8 +74,9 @@ MdsLog::MdsLog(const char* host_name, const char* app_name,
     host_name_{base::LogMessage::HostName{host_name}},
     app_name_{base::LogMessage::AppName{app_name}},
     proc_id_{base::LogMessage::ProcId{std::to_string(proc_id)}},
-    msg_id_{0},
-    log_socket_{socket_name} {
+    sequence_id_{1},
+    log_socket_{socket_name},
+    mutex_{} {
 }
 
 /*****************************************************
@@ -130,16 +133,21 @@ void MdsLog::Log(base::LogMessage::Severity severity, const char *fmt,
 
 void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *fmt,
                          va_list ap) {
-  uint64_t id = msg_id_++;
+  base::Lock lock(mutex_);
+  uint32_t id = sequence_id_;
+  sequence_id_ = id < kMaxSequenceId ? id + 1 : 1;
   base::Buffer<256> buffer;
-  base::LogMessage::Write(base::LogMessage::Facility::kLocal0,
+  base::LogMessage::Write(base::LogMessage::Facility::kLocal1,
                           severity,
                           base::ReadRealtimeClock(),
                           host_name_,
                           app_name_,
                           proc_id_,
-                          base::LogMessage::MsgId{std::to_string(id)},
-                          {},
+                          base::LogMessage::MsgId{""},
+                          {{base::LogMessage::SdName{"meta"},
+                              {base::LogMessage::Parameter{
+                                  base::LogMessage::SdName{"sequenceId"},
+                                      std::to_string(id)}}}},
                           fmt,
                           ap,
                           &buffer);
