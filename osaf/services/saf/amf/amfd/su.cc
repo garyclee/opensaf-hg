@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1787,7 +1788,16 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				su->saAmfSUMaintenanceCampaign.length = 0;
 				TRACE("saAmfSUMaintenanceCampaign cleared for '%s'", su->name.value);
 			} else {
-				osafassert(su->saAmfSUMaintenanceCampaign.length == 0);
+				const std::string tmp_campaign = Amf::to_string(
+					reinterpret_cast<SaNameT*>(attr_mod->modAttr.attrValues[0]));
+				// there is a check in completed callback to ensure saAmfSUMaintenanceCampaign is empty
+				// before allowing modification but saAmfSUMaintenanceCampaign could be changed
+				// multiple times in a CCB
+				if (su->saAmfSUMaintenanceCampaign.length > 0 &&
+					tmp_campaign.compare(reinterpret_cast<char*>(su->saAmfSUMaintenanceCampaign.value)) != 0) {
+					LOG_WA("saAmfSUMaintenanceCampaign set multiple times in CCB for '%s'",
+						 su->name.value);
+				}
 				su->saAmfSUMaintenanceCampaign = *((SaNameT *)attr_mod->modAttr.attrValues[0]);
 				TRACE("saAmfSUMaintenanceCampaign set to '%s' for '%s'",
 					  su->saAmfSUMaintenanceCampaign.value, su->name.value);
