@@ -2015,14 +2015,9 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 			/*Phase 2 */
 			if (cb->syncPid <= 0) {
 				/*Fork sync-agent */
-				/* When SC are absent, we don't fork to trigger abortSync */
-				if (cb->mIntroduced != 2) {
-					cb->syncPid = immnd_forkSync(cb);
-				}
+				cb->syncPid = immnd_forkSync(cb);
 				if (cb->syncPid <= 0) {
-					if (cb->mIntroduced != 2) {
-						LOG_ER("Failed to fork sync process");
-					}
+					LOG_ER("Failed to fork sync process");
 					cb->syncPid = 0;
 					cb->mStep = 0;
 					cb->mJobStart = now;
@@ -2084,19 +2079,6 @@ uint32_t immnd_proc_server(uint32_t *timeout)
 
 		if(cb->mIntroduced == 2) {
 			immnd_introduceMe(cb);
-			if(cb->pbePid > 0) {
-				/* Check if pbe process is terminated.
-				 * Will send SIGKILL if it's not terminated. */
-				int status = 0;
-				if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
-					cb->pbePid = 0;
-					LOG_NO("PBE has terminated due to SC absence");
-				} else {
-					LOG_WA("SC were absent and PBE appears hung, sending SIGKILL");
-					kill(cb->pbePid, SIGKILL);
-					cb->pbePid = 0;
-				}
-			}
 			break;
 		}
 
