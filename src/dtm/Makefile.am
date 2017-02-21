@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -82,12 +83,14 @@ bin_transport_test_CPPFLAGS = \
 bin_transport_test_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	src/base/lib_libopensaf_core_la-getenv.lo \
+	src/dtm/transport/bin_osaftransportd-log_writer.o \
 	src/dtm/transport/bin_osaftransportd-transport_monitor.o
 
 bin_transport_test_SOURCES = \
-	src/dtm/transport/tests/transport_monitor_test.cc \
+	src/dtm/transport/tests/log_writer_test.cc \
 	src/dtm/transport/tests/mock_logtrace.cc \
-	src/dtm/transport/tests/mock_osaf_poll.cc
+	src/dtm/transport/tests/mock_osaf_poll.cc \
+	src/dtm/transport/tests/transport_monitor_test.cc
 
 bin_transport_test_LDADD = \
 	$(GTEST_DIR)/lib/libgtest.la \
