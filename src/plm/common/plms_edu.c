@@ -111,7 +111,7 @@ uint32_t plms_edp_agent_grp_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr
 		 {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((PLMS_AGENT_GRP_OP *)0)->plm_handle, 0, NULL},
 		 {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((PLMS_AGENT_GRP_OP *)0)->grp_handle, 0, NULL},
 		 {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((PLMS_AGENT_GRP_OP *)0)->entity_names_number, 0, NULL},
-		 {EDU_EXEC, ncs_edp_sanamet, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, (long)&((PLMS_AGENT_GRP_OP *)0)->entity_names,
+		 {EDU_EXEC, ncs_edp_sanamet_old, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, (long)&((PLMS_AGENT_GRP_OP *)0)->entity_names,
 		 (long)&((PLMS_AGENT_GRP_OP *)0)->entity_names_number, NULL},
 		 {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_PLMS, NULL, 0, 
 		 1, 0, NULL},
