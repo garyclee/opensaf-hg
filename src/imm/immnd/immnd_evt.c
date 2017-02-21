@@ -10386,15 +10386,29 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 					cb->mSyncRequested = false;
 
 				} else if (cb->mState == IMM_SERVER_SYNC_SERVER && cb->mPendSync) {
-					/* Sent out sync-start msg but sync didn't start yet, revert the state to IMM_SERVER_READY */
+					/* Sent out ND2D_SYNC_START msg but sync didn't start yet, revert the state to IMM_SERVER_READY */
 					cb->mPendSync = false;
 					cb->mState = IMM_SERVER_READY;
 					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
 
+				} else if (cb->mState == IMM_SERVER_SYNC_SERVER && (cb->syncPid <= 0)) {
+					/* Received D2ND_SYNC_START msg but sync process wasn't forked yet, revert the state to IMM_SERVER_READY */
+					cb->mState = IMM_SERVER_READY;
+					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
+					immnd_abortSync(cb);
+
 				} else if (cb->mState == IMM_SERVER_SYNC_SERVER && (cb->syncPid > 0)) {
-					/* Sync started, kill sync process to trigger sync abort in immnd_proc_server() */
+					/* Sync started, force kill sync process */
 					osafassert(!cb->mPendSync);
-					kill(cb->syncPid, SIGTERM);
+
+					LOG_NO("Force kill sync process and abort sync");
+					kill(cb->syncPid, SIGKILL);
+					waitpid(cb->syncPid, NULL, 0);
+					cb->syncPid = 0;
+
+					cb->mState = IMM_SERVER_READY;
+					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
+					immnd_abortSync(cb);
 				}
 
 			} else if(cb->mState <= IMM_SERVER_LOADING_PENDING) {
@@ -10430,6 +10444,21 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 			LOG_ER("FAILURE IN REGISTERING IMMND WITH MDS - exiting");
 			exit(1);
 		}
+
+		if(cb->pbePid > 0) {
+			/* Check if pbe process is terminated.
+			 * Will send SIGKILL if it's not terminated. */
+			int status = 0;
+			if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
+				LOG_NO("PBE has terminated due to SC absence");
+			} else {
+				LOG_WA("SC were absent and PBE appears hung, sending SIGKILL");
+				kill(cb->pbePid, SIGKILL);
+				waitpid(cb->pbePid, NULL, 0);
+			}
+			cb->pbePid = 0;
+		}
+
 	} else if ((evt->info.mds_info.change == NCSMDS_UP) && (evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMD)) {
 		LOG_NO("IMMD service is UP ... ScAbsenseAllowed?:%u introduced?:%u",
 			   cb->mScAbsenceAllowed, cb->mIntroduced);
