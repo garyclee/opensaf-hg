@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1050,9 +1051,17 @@ uint32_t SG_2N::su_fault_si_oper(AVD_SU *su) {
 					su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 				else
 					su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
+				AVD_SI *si_tmp = su->sg_of_su->admin_si;
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				avd_sg_su_oper_list_add(cb, su, false);
 				su->sg_of_su->set_fsm_state(AVD_SG_FSM_SU_OPER);
+				if ((si_tmp->invocation != 0) && (si_tmp->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED)) {
+					TRACE("Admin operation fails on SI:'%s'", si_tmp->name.c_str());
+					avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
+							si_tmp->invocation, SA_AIS_ERR_TRY_AGAIN);
+					si_tmp->invocation = 0;
+				}
+
 			} else {
 				/* The SU has standby assignments. Change the SI admin state to
 				 * unlock. Remove the SI from the SI admin pointer. 
@@ -3150,8 +3159,16 @@ void SG_2N::node_fail_si_oper(AVD_SU *su) {
 				}
 
 				su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_UNLOCKED);
+				AVD_SI *si_tmp = su->sg_of_su->admin_si;
 				m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 				su->delete_all_susis();
+				if (si_tmp->invocation != 0) {
+					TRACE("Admin operation fails on SI:'%s'", si_tmp->name.c_str());
+					avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
+							si_tmp->invocation, SA_AIS_ERR_TRY_AGAIN);
+					si_tmp->invocation = 0;
+				}
+
 			} /* if (s_susi != AVD_SU_SI_REL_NULL) */
 			else {
 				su->sg_of_su->admin_si->set_admin_state(SA_AMF_ADMIN_LOCKED);
