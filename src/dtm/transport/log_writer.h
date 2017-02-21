@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2016 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -32,6 +33,7 @@ class LogWriter {
   virtual ~LogWriter();
 
   char* current_buffer_position() { return buffer_ + current_buffer_size_; }
+  bool empty() const { return current_buffer_size_ == 0; }
 
   // Write @a size bytes of log message data in the memory pointed to by @a
   // buffer to the MDS log file. After the log message has been written, the
@@ -42,7 +44,6 @@ class LogWriter {
  private:
   constexpr static const size_t kBufferSize = 128 * size_t{1024};
   constexpr static const size_t kMaxFileSize = 5000 * size_t{1024};
-  static size_t FileSize(int fd);
   void Open();
   void Close();
   void RotateLog();

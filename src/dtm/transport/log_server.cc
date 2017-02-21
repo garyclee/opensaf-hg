@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2016 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -36,8 +37,9 @@ void LogServer::Run() {
     {term_fd_, POLLIN, 0},
     {log_socket_.fd(), POLLIN, 0}
   };
-  struct timespec last_flush = base::ReadMonotonicClock();
+  struct timespec last_flush{};
   do {
+    if (log_writer_.empty()) last_flush = base::ReadMonotonicClock();
     for (int i = 0; i < 256; ++i) {
       char* buffer = log_writer_.current_buffer_position();
       ssize_t result = log_socket_.Recv(buffer, LogWriter::kMaxMessageSize);
@@ -57,6 +59,6 @@ void LogServer::Run() {
     }
     struct timespec timeout = (last_flush + base::kFifteenSeconds) - current;
     pfd[1].fd = log_socket_.fd();
-    osaf_ppoll(pfd, 2, &timeout, nullptr);
+    osaf_ppoll(pfd, 2, log_writer_.empty() ? nullptr : &timeout, nullptr);
   } while ((pfd[0].revents & POLLIN) == 0);
 }

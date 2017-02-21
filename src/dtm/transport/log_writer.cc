@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2016 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -48,8 +49,9 @@ void LogWriter::Open() {
                 S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     } while (fd == -1 && errno == EINTR);
     if (fd >= 0) {
+      off_t seek_result = lseek(fd, 0, SEEK_END);
+      if (seek_result >= 0) current_file_size_ = seek_result;
       fd_ = fd;
-      current_file_size_ = FileSize(fd);
     }
   }
 }
@@ -97,15 +99,4 @@ void LogWriter::Flush() {
     bytes_written += result;
   }
   current_file_size_ += bytes_written;
-}
-
-size_t LogWriter::FileSize(int fd) {
-  struct stat stat_buf;
-  size_t file_size;
-  if (fstat(fd, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode) != 0) {
-    file_size = static_cast<size_t>(stat_buf.st_blocks) * 512;
-  } else {
-    file_size = 0;
-  }
-  return file_size;
 }
