@@ -116,36 +116,39 @@ uint32_t mqd_lib_req(NCS_LIB_REQ_INFO *info)
 static SaAisErrorT mqd_clm_init (MQD_CB *cb)
 {
 	SaAisErrorT saErr = SA_AIS_OK;
-	SaVersionT clm_version;
-	SaClmCallbacksT mqd_clm_cbk;
 
-	m_MQSV_GET_AMF_VER(clm_version);
-	mqd_clm_cbk.saClmClusterNodeGetCallback = NULL;
-	mqd_clm_cbk.saClmClusterTrackCallback = mqd_clm_cluster_track_callback;
+  do {
+	  SaVersionT clm_version;
+	  SaClmCallbacksT mqd_clm_cbk;
 
-	saErr = saClmInitialize(&cb->clm_hdl, &mqd_clm_cbk, &clm_version);
-	if (saErr != SA_AIS_OK) {
-		LOG_ER("saClmInitialize failed with error %u", (unsigned) saErr);
-		return saErr;
-	}
-	TRACE_1("saClmInitialize success");
+	  m_MQSV_GET_AMF_VER(clm_version);
+	  mqd_clm_cbk.saClmClusterNodeGetCallback = NULL;
+	  mqd_clm_cbk.saClmClusterTrackCallback = mqd_clm_cluster_track_callback;
 
-	saErr = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
-	if (SA_AIS_OK != saErr) {
-		LOG_ER("saClmSelectionObjectGet failed with error %u", (unsigned) saErr);
-		goto done;
-	}
-	TRACE_1("saClmSelectionObjectGet success");
+	  saErr = saClmInitialize(&cb->clm_hdl, &mqd_clm_cbk, &clm_version);
+	  if (saErr != SA_AIS_OK) {
+		  LOG_ER("saClmInitialize failed with error %u", (unsigned) saErr);
+		  break;
+	  }
+	  TRACE_1("saClmInitialize success");
 
-	saErr = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
-	if (SA_AIS_OK != saErr) {
-		LOG_ER("saClmClusterTrack failed with error %u", (unsigned) saErr);
-		goto done;
-	}
-	TRACE_1("saClmClusterTrack success");
+	  saErr = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj);
+	  if (SA_AIS_OK != saErr) {
+		  LOG_ER("saClmSelectionObjectGet failed with error %u", (unsigned) saErr);
+		  break;
+	  }
+	  TRACE_1("saClmSelectionObjectGet success");
 
-done:
-	saClmFinalize(cb->clm_hdl);
+	  saErr = saClmClusterTrack(cb->clm_hdl, SA_TRACK_CHANGES_ONLY, NULL);
+	  if (SA_AIS_OK != saErr) {
+		  LOG_ER("saClmClusterTrack failed with error %u", (unsigned) saErr);
+		  break;
+	  }
+	  TRACE_1("saClmClusterTrack success");
+  } while (false);
+
+  if (saErr != SA_AIS_OK && !cb->clm_hdl)
+	  saClmFinalize(cb->clm_hdl);
 
 	return saErr;
 }
