@@ -54,6 +54,52 @@
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
+uint32_t ncs_edp_sanamet_old(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+		      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+{
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	SaNameT *struct_ptr = NULL, **d_ptr = NULL;
+
+	EDU_INST_SET saname_rules[] = {
+		{EDU_START, ncs_edp_sanamet_old, 0, 0, 0, sizeof(SaNameT), 0, NULL},
+		{EDU_EXEC, m_NCS_EDP_SAUINT16T, 0, 0, 0,
+		 (long)&((SaNameT *)0)->length, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0,
+		 (long)&((SaNameT *)0)->value, SA_MAX_NAME_LENGTH, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (SaNameT *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (SaNameT **)ptr;
+		if (*d_ptr == NULL) {
+			*d_ptr = m_MMGR_ALLOC_EDP_SANAMET;
+			if (*d_ptr == NULL) {
+				*o_err = EDU_ERR_MEM_FAIL;
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		memset(*d_ptr, '\0', sizeof(SaNameT));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, saname_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+	return rc;
+}
+
+/*****************************************************************************
+
+  PROCEDURE NAME:   ncs_edp_sanamet
+
+  DESCRIPTION:      EDU program handler for "SaNameT" data. This function
+                    is invoked by EDU for performing encode/decode operation
+                    on "SaNameT" data.
+
+  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+*****************************************************************************/
 uint32_t ncs_edp_sanamet(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		      NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
