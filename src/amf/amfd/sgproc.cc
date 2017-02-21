@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -519,9 +520,15 @@ static uint32_t sg_su_failover_func(AVD_SU *su)
 
 			/* Reply to IMM for admin operation on SI */
 			if (susi->si->invocation != 0) {
-				avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
-						susi->si->invocation, SA_AIS_OK);
-				susi->si->invocation = 0;
+				if ((susi->su->sg_of_su->admin_si != nullptr) &&
+						(susi->su->sg_of_su->admin_si->saAmfSIAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) &&
+						(susi->su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)) {
+					TRACE("Do nothing.");
+				} else {
+					avd_saImmOiAdminOperationResult(avd_cb->immOiHandle,
+							susi->si->invocation, SA_AIS_OK);
+					susi->si->invocation = 0;
+				}
 			}
 		}
 		su->sg_of_su->node_fail(avd_cb, su);
