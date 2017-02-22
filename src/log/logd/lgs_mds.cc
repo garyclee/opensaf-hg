@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -808,6 +809,7 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info) {
         rc = enc_lstr_close_rsp_msg(uba, msg);
         break;
       default:
+        rc = NCSCC_RC_FAILURE;
         TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
         break;
     }
@@ -825,26 +827,44 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info) {
     ncs_encode_32bit(&p8, msg->info.cbk_info.lgs_client_id);
     ncs_encode_64bit(&p8, msg->info.cbk_info.inv);
     ncs_enc_claim_space(uba, 16);
-    if (msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND) {
-      p8 = ncs_enc_reserve_space(uba, 4);
-      if (!p8) {
-        TRACE("ncs_enc_reserve_space failed");
-        goto err;
-      }
-      ncs_encode_32bit(&p8, msg->info.cbk_info.write_cbk.error);
-      TRACE_8("LGSV_WRITE_LOG_CALLBACK_IND");
-    } else if (msg->info.cbk_info.type == LGSV_CLM_NODE_STATUS_CALLBACK) {
-      p8 = ncs_enc_reserve_space(uba, 4);
-      if (!p8) {
-        TRACE("ncs_enc_reserve_space failed");
-        goto err;
-      }
-      ncs_encode_32bit(&p8, msg->info.cbk_info.clm_node_status_cbk.clm_node_status);
-      TRACE_8("LGSV_CLM_NODE_STATUS_CALLBACK");
-    } else {
-      TRACE("unknown callback type %d", msg->info.cbk_info.type);
-      goto err;
+
+    switch (msg->info.cbk_info.type) {
+      case LGSV_WRITE_LOG_CALLBACK_IND:
+        p8 = ncs_enc_reserve_space(uba, 4);
+        if (!p8) {
+          TRACE("ncs_enc_reserve_space failed");
+          goto err;
+        }
+        ncs_encode_32bit(&p8, msg->info.cbk_info.write_cbk.error);
+        TRACE_8("LGSV_WRITE_LOG_CALLBACK_IND");
+        break;
+      case LGSV_CLM_NODE_STATUS_CALLBACK:
+        p8 = ncs_enc_reserve_space(uba, 4);
+        if (!p8) {
+          TRACE("ncs_enc_reserve_space failed");
+          goto err;
+        }
+        ncs_encode_32bit(&p8, msg->info.cbk_info.clm_node_status_cbk.clm_node_status);
+        TRACE_8("LGSV_CLM_NODE_STATUS_CALLBACK");
+        break;
+      case LGSV_SEVERITY_FILTER_CALLBACK:
+        p8 = ncs_enc_reserve_space(uba, 6);
+        if (!p8) {
+          TRACE("ncs_enc_reserve_space failed");
+          goto err;
+        }
+        ncs_encode_32bit(&p8, msg->info.cbk_info.lgs_stream_id);
+        ncs_encode_16bit(&p8, msg->info.cbk_info.serverity_filter_cbk.log_severity);
+        TRACE_8("LGSV_SEVERITY_FILTER_CALLBACK");
+        break;
+      default:
+        rc = NCSCC_RC_FAILURE;
+        TRACE("unknown callback type %d", msg->info.cbk_info.type);
+        break;
     }
+    if (rc == NCSCC_RC_FAILURE)
+      goto err;
+
   } else {
     TRACE("unknown msg type %d", msg->type);
     goto err;

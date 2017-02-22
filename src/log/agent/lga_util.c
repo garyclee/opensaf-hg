@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -171,6 +172,22 @@ static void lga_hdl_cbk_rec_prc(lga_cb_t *cb, lgsv_msg_t *msg, SaLogCallbacksT *
 				reg_cbk->saLogWriteLogCallback(cbk_info->inv, cbk_info->write_cbk.error);
 		}
 		break;
+
+	case LGSV_SEVERITY_FILTER_CALLBACK:
+		{
+			osaf_mutex_lock_ordie(&cb->cb_lock);
+			if (reg_cbk->saLogFilterSetCallback) {
+				lga_log_stream_hdl_rec_t *lga_str_hdl_rec =
+					lga_find_stream_hdl_rec_by_regid(cb, cbk_info->lgs_client_id,
+									 cbk_info->lgs_stream_id);
+				if (lga_str_hdl_rec != NULL)
+					reg_cbk->saLogFilterSetCallback(lga_str_hdl_rec->log_stream_hdl,
+								cbk_info->serverity_filter_cbk.log_severity);
+			}
+			osaf_mutex_unlock_ordie(&cb->cb_lock);
+		}
+		break;
+
 	default:
 		TRACE("unknown callback type: %d", cbk_info->type);
 		break;
@@ -197,7 +214,8 @@ static SaAisErrorT lga_hdl_cbk_dispatch_one(lga_cb_t *cb, lga_client_hdl_rec_t *
 	/* Nonblk receive to obtain the message from priority queue */
 	while (NULL != (cbk_msg = (lgsv_msg_t *)
 			m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
-		if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND) {
+		if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND ||
+				cbk_msg->info.cbk_info.type == LGSV_SEVERITY_FILTER_CALLBACK) {
 			lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
 			lga_msg_destroy(cbk_msg);
 			break;
@@ -232,7 +250,8 @@ static uint32_t lga_hdl_cbk_dispatch_all(lga_cb_t *cb, lga_client_hdl_rec_t *hdl
 	do {
 		if (NULL == (cbk_msg = (lgsv_msg_t *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
 			break;
-		if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND) {
+		if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND ||
+				cbk_msg->info.cbk_info.type == LGSV_SEVERITY_FILTER_CALLBACK) {
 			TRACE_2("LGSV_LGS_DELIVER_EVENT");
 			lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
 		} else {
@@ -268,7 +287,8 @@ static uint32_t lga_hdl_cbk_dispatch_block(lga_cb_t *cb, lga_client_hdl_rec_t *h
 		if (NULL != (cbk_msg = (lgsv_msg_t *)
 			     m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
 
-			if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND) {
+			if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND ||
+					cbk_msg->info.cbk_info.type == LGSV_SEVERITY_FILTER_CALLBACK) {
 				TRACE_2("LGSV_LGS_DELIVER_EVENT");
 				lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
 			} else {
@@ -457,6 +477,44 @@ lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uint32_t clien
 			return lga_hdl_rec;
 	}
 
+	return NULL;
+}
+
+/****************************************************************************
+  Name          : lga_find_stream_hdl_rec_by_regid
+
+  Description   : This routine looks up a lga_log_stream_hdl_rec by client_id
+  	  	  and stream_id
+
+  Arguments     : cb
+                  client_id
+                  stream_id
+
+  Return Values : LGA_LOG_STREAM_HDL_REC * or NULL
+
+  Notes         : The lga_cb in-parameter is most likely pointing to the global
+                  lga_cb structure and that is not thread safe. If that is the
+                  case the lga_cb data must be protected by a mutex before
+                  calling this function.
+
+******************************************************************************/
+lga_log_stream_hdl_rec_t *lga_find_stream_hdl_rec_by_regid(lga_cb_t *lga_cb,
+						uint32_t client_id, uint32_t stream_id)
+{
+	TRACE_ENTER();
+	lga_client_hdl_rec_t *lga_hdl_rec = lga_find_hdl_rec_by_regid(lga_cb, client_id);
+
+	if (lga_hdl_rec != NULL) {
+		lga_log_stream_hdl_rec_t *lga_str_hdl_rec = lga_hdl_rec->stream_list;
+
+		while (lga_str_hdl_rec != NULL) {
+			if (lga_str_hdl_rec->lgs_log_stream_id == stream_id)
+				return lga_str_hdl_rec;
+			lga_str_hdl_rec = lga_str_hdl_rec->next;
+		}
+	}
+
+	TRACE_LEAVE();
 	return NULL;
 }
 

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2014 The OpenSAF Foundation
+ * Copyright Ericsson AB 2014, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -40,7 +41,7 @@
 /*******************************************************************************
  * Global variables and defines
  */
-static SaVersionT logVersion = {'A', 0x02, 0x02}; 
+static SaVersionT logVersion = {'A', 0x02, 0x03};
 static SaVersionT immVersion = {'A', 2, 11};
 
 static SaLogHandleT logHandle;

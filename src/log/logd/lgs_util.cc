@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -834,4 +835,99 @@ bool lgs_is_extended_name_valid(const SaNameT* name) {
   if (strlen(str) >= kOsafMaxDnLength) return false;
 
   return true;
+}
+
+/**
+ * Check if severity filter is supported for client
+ *
+ * @param client_ver
+ * @return: true if severity filter is supported for client
+ */
+static bool is_filter_supported(SaVersionT client_ver) {
+  bool rc = true;
+  if (client_ver.releaseCode == LOG_RELEASE_CODE_1 &&
+      client_ver.majorVersion == LOG_MAJOR_VERSION_1 &&
+      client_ver.minorVersion < LOG_MINOR_VERSION_1)
+    rc = false;
+  return rc;
+}
+
+/**
+ * Send a severity callback callback message to a client
+ *
+ * @param client_id
+ * @param stream_id
+ * @param severityFilter
+ * @param mds_dest
+ */
+static void lgs_send_filter_msg(uint32_t client_id, uint32_t stream_id,
+                           SaLogSeverityFlagsT severity_filter, MDS_DEST mds_dest) {
+  uint32_t rc;
+  NCSMDS_INFO mds_info = {0};
+  lgsv_msg_t msg;
+
+  TRACE_ENTER();
+  TRACE_3("client_id: %u, stream_id: %u, modified severity filter: %u",
+          client_id, stream_id, severity_filter);
+
+  msg.type = LGSV_LGS_CBK_MSG;
+  msg.info.cbk_info.type = LGSV_SEVERITY_FILTER_CALLBACK;
+  msg.info.cbk_info.lgs_client_id = client_id;
+  msg.info.cbk_info.lgs_stream_id = stream_id;
+  msg.info.cbk_info.inv = 0;
+  msg.info.cbk_info.serverity_filter_cbk.log_severity = severity_filter;
+
+  mds_info.i_mds_hdl = lgs_cb->mds_hdl;
+  mds_info.i_svc_id = NCSMDS_SVC_ID_LGS;
+  mds_info.i_op = MDS_SEND;
+  mds_info.info.svc_send.i_msg = &msg;
+  mds_info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_LGA;
+  mds_info.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+  mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+  mds_info.info.svc_send.info.snd.i_to_dest = mds_dest;
+
+  rc = ncsmds_api(&mds_info);
+  if (rc != NCSCC_RC_SUCCESS)
+    LOG_NO("Failed (%u) to send of severity filter callback to: %" PRIx64, rc, mds_dest);
+
+  TRACE_LEAVE();
+}
+
+/**
+ * Send a changed severity filter to a client
+ *
+ * @param stream_id
+ * @param severityFilter
+ */
+void lgs_send_severity_filter_to_clients(uint32_t stream_id,
+                                  SaLogSeverityFlagsT severity_filter) {
+  log_client_t *rp = NULL;
+  uint32_t client_id_net;
+  lgs_stream_list_t *stream;
+
+  TRACE_ENTER();
+  TRACE_3("stream_id: %u, severity filter:%u", stream_id, severity_filter);
+
+  rp = reinterpret_cast<log_client_t *>
+        (ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL));
+  while (rp != NULL) {
+    /* Store the client_id_net for getting next  */
+    client_id_net = rp->client_id_net;
+    /* Do not send to all client. Send to clients that need filter
+        callback and associate with this stream */
+    stream = rp->stream_list_root;
+    if (is_filter_supported(rp->client_ver)) {
+      while (stream != NULL) {
+        if (stream->stream_id == stream_id) {
+          lgs_send_filter_msg(rp->client_id, stream_id, severity_filter, rp->mds_dest);
+          break;
+        }
+        stream = stream->next;
+      }
+    }
+    rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(
+          &lgs_cb->client_tree, reinterpret_cast<uint8_t *>(&client_id_net)));
+  }
+
+  TRACE_LEAVE();
 }

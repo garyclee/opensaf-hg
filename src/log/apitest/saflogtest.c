@@ -2,6 +2,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2011 The OpenSAF Foundation
+ * Copyright Ericsson AB 2011, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -86,7 +87,7 @@ static inline void time_meas_log(time_meas_t* tm, char *id)
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error);
 
 static SaLogCallbacksT logCallbacks = { 0, 0, logWriteLogCallbackT };
-static SaVersionT logVersion = { 'A', 0x02, 0x02 };
+static SaVersionT logVersion = { 'A', 0x02, 0x03 };
 
 static char *progname = "saflogtest";
 static SaInvocationT cb_invocation;

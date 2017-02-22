@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -472,6 +473,8 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
       osaf_abort(0);
     }
 
+    /* Send changed severity filter to clients */
+    lgs_send_severity_filter_to_clients(stream->streamId, severityFilter);
 
     /* Checkpoint to standby LOG server */
     ckpt_stream_config(stream);
@@ -2307,6 +2310,11 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
     } else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
       SaUint32T severityFilter = *((SaUint32T *)value);
       stream->severityFilter = severityFilter;
+
+      /* Send changed severity filter to clients */
+      if (stream->streamType != STREAM_TYPE_ALARM &&
+                stream->streamType != STREAM_TYPE_NOTIFICATION)
+        lgs_send_severity_filter_to_clients(stream->streamId, severityFilter);
     } else {
       LOG_ER("Error: Unknown attribute name");
       osafassert(0);
