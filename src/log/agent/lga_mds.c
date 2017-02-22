@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -559,6 +560,39 @@ static uint32_t lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg, MDS_SEND_PR
 			}
 			break;
 
+		case LGSV_SEVERITY_FILTER_CALLBACK:
+			{
+				lga_client_hdl_rec_t *lga_hdl_rec;
+				/** Lookup the hdl rec by client_id  **/
+				lga_hdl_rec = lga_find_hdl_rec_by_regid(cb, lgsv_msg->info.cbk_info.lgs_client_id);
+				if (lga_hdl_rec == NULL) {
+					TRACE("regid not found");
+					lga_msg_destroy(lgsv_msg);
+					TRACE_LEAVE();
+					return NCSCC_RC_FAILURE;
+				}
+
+				/* Check if client did not set filter callback */
+				if(lga_hdl_rec->reg_cbk.saLogFilterSetCallback == NULL) {
+					lga_msg_destroy(lgsv_msg);
+					break;
+				}
+
+				TRACE_2("LGSV_SEVERITY_FILTER_CALLBACK: client_id = %d, stream_id %d, severity=%d",
+					(int)lgsv_msg->info.cbk_info.lgs_client_id,
+					(int)lgsv_msg->info.cbk_info.lgs_stream_id,
+					(int)lgsv_msg->info.cbk_info.serverity_filter_cbk.log_severity);
+
+				/** enqueue this message  **/
+				if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&lga_hdl_rec->mbx, lgsv_msg, prio)) {
+					TRACE("IPC SEND FAILED");
+					lga_msg_destroy(lgsv_msg);
+					TRACE_LEAVE();
+					return NCSCC_RC_FAILURE;
+				}
+			}
+			break;
+
 		default:
 			TRACE("unknown type %d", lgsv_msg->info.cbk_info.type);
 			lga_msg_destroy(lgsv_msg);
@@ -932,6 +966,36 @@ static uint32_t lga_dec_clm_node_status_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 }
 
 /****************************************************************************
+Name          : lga_dec_serverity_cbk_msg
+
+Description   : This routine decodes message
+
+Arguments     : NCS_UBAID *uba,
+                LGSV_MSG *msg
+
+Return Values : uint32_t
+
+Notes         : None.
+******************************************************************************/
+static uint32_t lga_dec_serverity_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
+{
+	uint8_t *p8;
+	uint32_t total_bytes = 0;
+	lgsv_cbk_info_t *cbk_infos = &msg->info.cbk_info;
+	uint8_t local_data[100];
+
+	osafassert(uba != NULL);
+
+	p8 = ncs_dec_flatten_space(uba, local_data, 6);
+	cbk_infos->lgs_stream_id = ncs_decode_32bit(&p8);
+	cbk_infos->serverity_filter_cbk.log_severity = ncs_decode_16bit(&p8);
+	ncs_dec_skip_space(uba, 6);
+	total_bytes += 6;
+
+	return total_bytes;
+}
+
+/****************************************************************************
   Name          : lga_dec_lstr_open_sync_rsp_msg
  
   Description   : This routine decodes a log stream open sync response message
@@ -1052,6 +1116,13 @@ static uint32_t lga_mds_dec(struct ncsmds_callback_info *info)
 				TRACE_2("decode clm node status message, lgs_client_id=%d",
 						msg->info.cbk_info.lgs_client_id);
 				total_bytes += lga_dec_clm_node_status_cbk_msg(uba, msg);
+				break;
+			case LGSV_SEVERITY_FILTER_CALLBACK:
+				total_bytes += lga_dec_serverity_cbk_msg(uba, msg);
+				TRACE_2("decode severity filter message, lgs_client_id=%d"
+						" lgs_stream_id=%d",
+						msg->info.cbk_info.lgs_client_id,
+						msg->info.cbk_info.lgs_stream_id);
 				break;
 			default:
 				TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);

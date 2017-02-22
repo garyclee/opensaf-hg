@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -20,11 +21,15 @@
 
 #define LOG_RELEASE_CODE 'A'
 #define LOG_MAJOR_VERSION 2
-#define LOG_MINOR_VERSION 2
+#define LOG_MINOR_VERSION 3
 
 #define LOG_RELEASE_CODE_0 'A'
 #define LOG_MAJOR_VERSION_0 2
 #define LOG_MINOR_VERSION_0 1
+
+#define LOG_RELEASE_CODE_1 'A'
+#define LOG_MAJOR_VERSION_1 2
+#define LOG_MINOR_VERSION_1 3
 
 // Waiting time in library for sync send, unit 10ms
 #define LGS_WAIT_TIME 1000

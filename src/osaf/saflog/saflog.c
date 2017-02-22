@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * Copyright Ericsson AB 2010, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -31,7 +32,7 @@ void saflog_init(void)
 	SaAisErrorT error;
 
 	if (!initialized) {
-		SaVersionT logVersion = { 'A', 2, 1 };
+		SaVersionT logVersion = { 'A', 2, 3 };
 		SaNameT stream_name;
 		saAisNameLend(SA_LOG_STREAM_SYSTEM, &stream_name);
 
@@ -65,7 +66,7 @@ void saflog(int priority, const SaNameT *logSvcUsrName, const char *format, ...)
 	va_end(ap);
 
 	if (!initialized) {
-		SaVersionT logVersion = { 'A', 2, 1 };
+		SaVersionT logVersion = { 'A', 2, 3 };
 		SaNameT stream_name;
 		saAisNameLend(SA_LOG_STREAM_SYSTEM, &stream_name);
 

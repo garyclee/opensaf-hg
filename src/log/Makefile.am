@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2016, 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -71,6 +72,7 @@ noinst_HEADERS += \
 	src/log/logd/lgs_mbcsv_v2.h \
 	src/log/logd/lgs_mbcsv_v3.h \
 	src/log/logd/lgs_mbcsv_v5.h \
+	src/log/logd/lgs_mbcsv_v6.h \
 	src/log/logd/lgs_recov.h \
 	src/log/logd/lgs_stream.h \
 	src/log/logd/lgs_util.h
@@ -117,6 +119,7 @@ bin_osaflogd_SOURCES = \
 	src/log/logd/lgs_mbcsv_v2.cc \
 	src/log/logd/lgs_mbcsv_v3.cc \
 	src/log/logd/lgs_mbcsv_v5.cc \
+	src/log/logd/lgs_mbcsv_v6.cc \
 	src/log/logd/lgs_mds.cc \
 	src/log/logd/lgs_recov.cc \
 	src/log/logd/lgs_stream.cc \

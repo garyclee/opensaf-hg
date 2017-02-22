@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1052,7 +1053,6 @@ extern void saLogWriteLogAsync_19(void);
 extern void saLogWriteLogCallbackT_01(void);
 extern void saLogWriteLogCallbackT_02(void);
 extern void saLogWriteLogCallbackT_03(void);
-extern void saLogFilterSetCallbackT_01(void);
 extern void saLogStreamClose_01(void);
 
 __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
@@ -1105,7 +1105,6 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(2, saLogWriteLogAsync_19, "saLogWriteLogAsync() logBufSize > SA_LOG_MAX_RECORD_SIZE");
     test_case_add(2, saLogWriteLogCallbackT_01, "saLogWriteLogCallbackT() SA_DISPATCH_ONE");
     test_case_add(2, saLogWriteLogCallbackT_02, "saLogWriteLogCallbackT() SA_DISPATCH_ALL");
-    test_case_add(2, saLogFilterSetCallbackT_01, "saLogFilterSetCallbackT OK");
     test_case_add(2, saLogStreamClose_01, "saLogStreamClose OK");
     test_case_add(2, saLogStreamOpen_2_46, "saLogStreamOpen_2 with maxFilesRotated = 0, ERR");
     test_case_add(2, saLogStreamOpen_2_47, "saLogStreamOpen_2 with maxFilesRotated = 128, ERR");

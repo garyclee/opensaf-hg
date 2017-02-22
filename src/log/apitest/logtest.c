@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -93,7 +94,7 @@ SaLogRecordT genLogRecord =
 	.logBuffer = &genLogBuffer
 };
 
-SaVersionT logVersion = {'A', 0x02, 0x02}; 
+SaVersionT logVersion = {'A', 0x02, 0x03};
 SaVersionT immVersion = {'A', 2, 11};
 SaAisErrorT rc;
 SaLogHandleT logHandle;

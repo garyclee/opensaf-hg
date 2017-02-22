@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -82,5 +83,7 @@ int lgs_init_timer(time_t timeout_s);
 void lgs_close_timer(int ufd);
 
 bool lgs_is_extended_name_valid(const SaNameT* name);
+void lgs_send_severity_filter_to_clients(uint32_t stream_id,
+                                         SaLogSeverityFlagsT serverity);
 
 #endif  // LOG_LOGD_LGS_UTIL_H_

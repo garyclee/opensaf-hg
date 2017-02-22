@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -82,6 +83,27 @@ void saLogInitialize_09(void)
     test_validate(rc, SA_AIS_ERR_VERSION);
 }
 
+void saLogInitialize_10(void)
+{
+    SaVersionT version = logVersion;
+
+    version.minorVersion = logVersion.minorVersion + 1;
+    rc = saLogInitialize(&logHandle, &logCallbacks, &version);
+    logFinalize();
+
+    test_validate(rc, SA_AIS_ERR_VERSION);
+}
+
+void saLogInitialize_11(void)
+{
+    SaVersionT version = {'A', 2};
+
+    rc = saLogInitialize(&logHandle, &logCallbacks, &version);
+    logFinalize();
+
+    test_validate(rc, SA_AIS_OK);
+}
+
 extern void saLogSelectionObjectGet_01(void);
 extern void saLogSelectionObjectGet_02(void);
 extern void saLogFinalize_01(void);
@@ -100,6 +122,8 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(1, saLogInitialize_07, "saLogInitialize() with too high release level");
     test_case_add(1, saLogInitialize_08, "saLogInitialize() with minor version set to 1");
     test_case_add(1, saLogInitialize_09, "saLogInitialize() with major version set to 3");
+    test_case_add(1, saLogInitialize_10, "saLogInitialize() with minor version is set bigger than supported version");
+    test_case_add(1, saLogInitialize_11, "saLogInitialize() with minor version is not set");
     test_case_add(1, saLogSelectionObjectGet_01, "saLogSelectionObjectGet() OK");
     test_case_add(1, saLogSelectionObjectGet_02, "saLogSelectionObjectGet() with NULL log handle");
     test_case_add(1, saLogDispatch_01, "saLogDispatch() OK");

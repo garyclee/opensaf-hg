@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -59,6 +60,7 @@ typedef struct {
   NCS_PATRICIA_NODE pat_node;
   uint32_t client_id;
   uint32_t client_id_net;
+  SaVersionT client_ver;
   MDS_DEST mds_dest;
   lgs_stream_list_t *stream_list_root;
 } log_client_t;

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -155,5 +156,8 @@ extern bool lga_validate_lga_client_hdl(lga_cb_t *lga_cb, lga_client_hdl_rec_t *
 extern lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uint32_t client_id);
 extern void lga_msg_destroy(lgsv_msg_t *msg);
 extern bool lga_is_extended_name_valid(const SaNameT* name);
+extern lga_log_stream_hdl_rec_t *lga_find_stream_hdl_rec_by_regid(lga_cb_t *lga_cb,
+								  uint32_t client_id,
+								  uint32_t stream_id);
 
 #endif  // LOG_AGENT_LGA_H_

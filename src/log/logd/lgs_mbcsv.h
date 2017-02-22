@@ -2,6 +2,7 @@
  * File:   lgs_mbcsv.h
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -38,9 +39,10 @@
 #define LGS_MBCSV_VERSION_2 2
 #define LGS_MBCSV_VERSION_4 4
 #define LGS_MBCSV_VERSION_5 5
+#define LGS_MBCSV_VERSION_6 6
 
 /* Current version */
-#define LGS_MBCSV_VERSION 5
+#define LGS_MBCSV_VERSION 6
 #define LGS_MBCSV_VERSION_MIN 1
 
 /* Checkpoint message types(Used as 'reotype' w.r.t mbcsv)  */
@@ -106,6 +108,7 @@ bool lgs_is_peer_v2();
 bool lgs_is_peer_v3();
 bool lgs_is_peer_v4();
 bool lgs_is_peer_v5();
+bool lgs_is_peer_v6();
 bool lgs_is_split_file_system();
 uint32_t lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 void lgs_free_edu_mem(char *ptr);
@@ -115,6 +118,10 @@ uint32_t edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                            NCSCONTEXT ptr, uint32_t *ptr_data_len,
                            EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 int32_t ckpt_msg_test_type(NCSCONTEXT arg);
+
+uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+                            NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                            EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uint32_t edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                         NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
                         EDP_OP_TYPE op, EDU_ERR *o_err);

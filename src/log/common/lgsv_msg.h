@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -46,6 +47,7 @@ typedef enum {
 typedef enum {
   LGSV_WRITE_LOG_CALLBACK_IND = 0,
   LGSV_CLM_NODE_STATUS_CALLBACK = 1,
+  LGSV_SEVERITY_FILTER_CALLBACK = 2,
   LGSV_LGS_CBK_MAX
 } lgsv_cbk_msg_type_t;
 
@@ -127,12 +129,18 @@ typedef struct logsv_loga_clm_status_param_tag {
   uint32_t clm_node_status;
 } logsv_lga_clm_status_cbk_t;
 
+typedef struct {
+  SaLogSeverityFlagsT log_severity;
+} lgsv_severity_filter_callback_t;
+
 /* wrapper structure for all the callbacks */
 typedef struct {
   lgsv_cbk_msg_type_t type;       /* callback type */
   uint32_t lgs_client_id; /* lgs client_id */
+  uint32_t lgs_stream_id;
   SaInvocationT inv;      /* invocation value */
   /*      union {*/
+  lgsv_severity_filter_callback_t serverity_filter_cbk;
   lgsv_write_log_callback_ind_t write_cbk;
   logsv_lga_clm_status_cbk_t clm_node_status_cbk;
   /*      } param; */

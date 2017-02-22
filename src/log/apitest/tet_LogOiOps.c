@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1378,6 +1379,76 @@ void saLogOi_51(void)
 		sevType++;
 	}
 	rc_validate(WEXITSTATUS(rc), 0);
+
+done:
+	logFinalize();
+}
+
+void verFilterOut(void)
+{
+	int ret;
+	SaAisErrorT rc;
+	char command[MAX_DATA];
+	const unsigned int serverity_filter = 31;
+	FILE *fp = NULL;
+	char fileSize_c[10];
+	int fileSize = 0;
+
+	rc = logInitialize();
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		return;
+	}
+
+	rc = logAppStreamOpen(&app1StreamName, &appStreamLogFileCreateAttributes);
+	if (rc != SA_AIS_OK) {
+		test_validate(rc, SA_AIS_OK);
+		goto done;
+	}
+
+	/* Set severity filter to enable log records have sev: emerg, alert, crit, error, warn */
+	sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:%u %s",
+		serverity_filter, SA_LOG_STREAM_APPLICATION1);
+	ret = systemCall(command);
+	if (ret != 0) {
+		test_validate(ret, 0);
+		goto done;
+	}
+
+	/* saflogtest sends messages */
+	sprintf(command, "saflogtest -a saLogApplication1 --count=2 --interval=20 --severity=notice"
+		" \"Test filter out, log records are not writen to log file\"");
+	rc = system(command);
+	if (rc == -1) {
+		test_validate(rc, 0);
+		goto done;
+	}
+
+	/* Check if log file is empty or not*/
+	sprintf(command, "find %s/saflogtest -type f -mmin -1 "
+		"| egrep \"%s_([0-9]{8}_[0-9]{6}\\.log$)\" "
+		"| xargs wc -c | awk '{printf $1}'",
+		log_root_path, DEFAULT_APP_FILE_NAME);
+
+	fp = popen(command, "r");
+
+	if (fp == NULL) {
+		/* Fail to read size of log file. Report test failed. */
+		fprintf(stderr, "Failed to run command = %s\n", command);
+		test_validate(1, 0);
+		goto done;
+	}
+	/* Get file size in chars */
+	while (fgets(fileSize_c, sizeof(fileSize_c) - 1, fp) != NULL) {};
+	pclose(fp);
+
+	/* Convert chars to number */
+	fileSize = atoi(fileSize_c);
+
+	if (fileSize != 0) {
+		fprintf(stderr, "Log file has log records\n");
+	}
+	rc_validate(fileSize, 0);
 
 done:
 	logFinalize();
@@ -4298,6 +4369,7 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(4, verNetworkName_01, "CCB Object Modify, saLogStreamLogFileFormat, network name token (@Cp)");
 	test_case_add(4, verDefaultLogFileFmt, "Application stream with default log file format");
 	test_case_add(4, verLogFileName, "CCB Object Modify, saLogStreamFileName with special character. ER");
+	test_case_add(4, verFilterOut, "CCB Object Modify, saLogStreamSeverityFilter, filtering out log record that aren't written to log file");
 
 	/* Configuration object */
 	test_suite_add(5, "LOG OI tests, Service configuration object");

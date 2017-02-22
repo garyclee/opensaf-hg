@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -23,15 +24,11 @@
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
+#include "lgs_mbcsv_v6.h"
 #include "lgs_recov.h"
 #include "lgs_imm_gcfg.h"
 #include "base/osaf_extended_name.h"
 #include "lgs_clm.h"
-
-/* Macro to validate the version */
-#define m_LOG_VER_IS_VALID(ver)                                         \
-  ( (ver->releaseCode == LOG_RELEASE_CODE) &&                           \
-    (ver->majorVersion == LOG_MAJOR_VERSION || ver->minorVersion == LOG_MINOR_VERSION))
 
 static uint32_t process_api_evt(lgsv_lgs_evt_t *evt);
 static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt);
@@ -58,6 +55,18 @@ LGSV_LGS_LGA_API_MSG_HANDLER lgs_lga_api_msg_dispatcher[] = {
   proc_stream_close_msg,
   proc_write_log_async_msg,
 };
+
+/**
+ * Check if the log version is valid
+ * @param version
+ *
+ * @return true if log version is valid
+ */
+static bool is_log_version_valid(const SaVersionT *version) {
+  return ((version->releaseCode == LOG_RELEASE_CODE) &&
+          (version->majorVersion <= LOG_MAJOR_VERSION) &&
+          (version->minorVersion <= LOG_MINOR_VERSION));
+}
 
 /**
  * Get client record from client ID
@@ -607,6 +616,58 @@ done:
 }
 
 /**
+ * Initialized client checkpointing
+ * @param cb
+ * @param mds_dest
+ * @param client
+ * @return
+ */
+static uint32_t lgs_ckpt_initialized_client(lgs_cb_t *cb, MDS_DEST mds_dest,
+                                    log_client_t *client) {
+  uint32_t async_rc = NCSCC_RC_SUCCESS;
+  lgsv_ckpt_msg_v1_t ckpt_v1;
+  lgsv_ckpt_msg_v6_t ckpt_v6;
+  void *ckpt_ptr = NULL;
+  lgsv_ckpt_header_t *header_ptr = NULL;
+
+  TRACE_ENTER();
+
+  if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+    if (lgs_is_peer_v6()) {
+      lgs_ckpt_initialize_msg_v6_t *ckpt_rec_ptr;
+      memset(&ckpt_v6, 0, sizeof(ckpt_v6));
+      header_ptr = &ckpt_v6.header;
+      ckpt_rec_ptr = &ckpt_v6.ckpt_rec.initialize_client;
+      ckpt_ptr = &ckpt_v6;
+
+      ckpt_rec_ptr->client_id = client->client_id;
+      ckpt_rec_ptr->mds_dest = mds_dest;
+      ckpt_rec_ptr->client_ver = client->client_ver;
+    } else {
+      lgs_ckpt_initialize_msg_t *ckpt_rec_ptr;
+      memset(&ckpt_v1, 0, sizeof(ckpt_v1));
+      header_ptr = &ckpt_v1.header;
+      ckpt_rec_ptr = &ckpt_v1.ckpt_rec.initialize_client;
+      ckpt_ptr = &ckpt_v1;
+
+      ckpt_rec_ptr->client_id = client->client_id;
+      ckpt_rec_ptr->mds_dest = mds_dest;
+    }
+
+    header_ptr->ckpt_rec_type = LGS_CKPT_CLIENT_INITIALIZE;
+    header_ptr->num_ckpt_records = 1;
+    header_ptr->data_len = 1;
+    async_rc = lgs_ckpt_send_async(cb, ckpt_ptr, NCS_MBCSV_ACT_ADD);
+    if (async_rc == NCSCC_RC_SUCCESS) {
+      TRACE_4("ASYNC UPDATE SEND SUCCESS for INITIALIZE ..");
+    }
+  }
+
+  TRACE_LEAVE2("async_rc = %d",async_rc);
+  return async_rc;
+}
+
+/**
  * Handle a initialize message
  * @param cb
  * @param evt
@@ -619,21 +680,12 @@ static uint32_t proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   SaVersionT *version;
   lgsv_msg_t msg;
   log_client_t *client = NULL;
-  lgsv_ckpt_msg_v1_t ckpt_v1;
-  void *ckpt_ptr;
-  lgsv_ckpt_header_t *header_ptr;
-  lgs_ckpt_initialize_msg_t *ckpt_rec_ptr;
 
   TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
-  memset(&ckpt_v1, 0, sizeof(ckpt_v1));
-  header_ptr = &ckpt_v1.header;
-  ckpt_rec_ptr = &ckpt_v1.ckpt_rec.initialize_client;
-  ckpt_ptr = &ckpt_v1;
-
   /* Validate the version */
   version = &(evt->info.msg.info.api_info.param.init.version);
-  if (!m_LOG_VER_IS_VALID(version)) {
+  if (!is_log_version_valid(version)) {
     ais_rc = SA_AIS_ERR_VERSION;
     TRACE("version FAILED");
     goto snd_rsp;
@@ -650,15 +702,10 @@ static uint32_t proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
     goto snd_rsp;
   }
 
+  client->client_ver = *version;
+
   /* Checkpoint */
-  if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-    header_ptr->ckpt_rec_type = LGS_CKPT_CLIENT_INITIALIZE;
-    header_ptr->num_ckpt_records = 1;
-    header_ptr->data_len = 1;
-    ckpt_rec_ptr->client_id = cb->last_client_id;
-    ckpt_rec_ptr->mds_dest = evt->fr_dest;
-    (void)lgs_ckpt_send_async(cb, ckpt_ptr, NCS_MBCSV_ACT_ADD);
-  }
+  lgs_ckpt_initialized_client(cb, evt->fr_dest, client);
 
 snd_rsp:
   msg.type = LGSV_LGA_API_RESP_MSG;

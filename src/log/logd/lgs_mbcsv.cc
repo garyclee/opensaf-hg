@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -20,6 +21,7 @@
 #include "base/ncssysf_mem.h"
 #include "base/osaf_time.h"
 
+#include "lgs_mbcsv_v6.h"
 #include "lgs_mbcsv_v5.h"
 #include "lgs_mbcsv_v3.h"
 #include "lgs_mbcsv_v2.h"
@@ -53,11 +55,10 @@
  *
  * Version 5: Was introduced to avoid creating new checkpoint version if any added/changed configuration parameters.
  *
+ * Version 6: Added client version to initialized message data structure. A new data structure is lgsv_ckpt_msg_v6_t
+ *            which is used for checkpoint.
+ *
  */
-
-static uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                                   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static uint32_t ckpt_proc_initialize_client(lgs_cb_t *cb, void *data);
 static uint32_t ckpt_proc_finalize_client(lgs_cb_t *cb, void *data);
@@ -353,6 +354,18 @@ bool lgs_is_peer_v4() {
  */
 bool lgs_is_peer_v5() {
   if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_5) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Check if peer is version 6 (or later)
+ * @return bool
+ */
+bool lgs_is_peer_v6() {
+  if (lgs_cb->mbcsv_peer_version >= LGS_MBCSV_VERSION_6) {
     return true;
   } else {
     return false;
@@ -674,26 +687,21 @@ static uint32_t edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba) {
 
 static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
   log_client_t *client = NULL;
-  lgs_ckpt_initialize_msg_t *ckpt_reg_rec;
+  lgs_ckpt_initialize_msg_t ckpt_reg_rec ;
+  lgs_ckpt_initialize_msg_v6_t ckpt_reg_rec_v6;
+  void *ckpt_client_reg;
   EDU_ERR ederror;
   uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
   uint8_t *pheader = NULL;
   lgsv_ckpt_header_t ckpt_hdr;
+  EDU_PROG_HANDLER edp_function_reg = NULL;
 
   TRACE_ENTER();
-
-  /* Prepare reg. structure to encode */
-  ckpt_reg_rec = static_cast<lgs_ckpt_initialize_msg_t *>(malloc(sizeof(lgs_ckpt_initialize_msg_t)));
-  if (ckpt_reg_rec == NULL) {
-    LOG_WA("malloc FAILED");
-    return (NCSCC_RC_FAILURE);
-  }
 
   /*Reserve space for "Checkpoint Header" */
   pheader = ncs_enc_reserve_space(uba, sizeof(lgsv_ckpt_header_t));
   if (pheader == NULL) {
     TRACE("  ncs_enc_reserve_space FAILED");
-    free(ckpt_reg_rec);
     return (rc = EDU_ERR_MEM_FAIL);
   }
   ncs_enc_claim_space(uba, sizeof(lgsv_ckpt_header_t));
@@ -702,16 +710,26 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
 
   /* Walk through the reg list and encode record by record */
   while (client != NULL) {
-    ckpt_reg_rec->client_id = client->client_id;
-    ckpt_reg_rec->mds_dest = client->mds_dest;
-    ckpt_reg_rec->stream_list = client->stream_list_root;
+    if (lgs_is_peer_v6()) {
+      ckpt_reg_rec_v6.client_id = client->client_id;
+      ckpt_reg_rec_v6.mds_dest = client->mds_dest;
+      ckpt_reg_rec_v6.stream_list = client->stream_list_root;
+      ckpt_reg_rec_v6.client_ver = client->client_ver;
+      ckpt_client_reg = &ckpt_reg_rec_v6;
+      edp_function_reg = edp_ed_reg_rec_v6;
+    } else {
+      ckpt_reg_rec.client_id = client->client_id;
+      ckpt_reg_rec.mds_dest = client->mds_dest;
+      ckpt_reg_rec.stream_list = client->stream_list_root;
+      ckpt_client_reg = &ckpt_reg_rec;
+      edp_function_reg = edp_ed_reg_rec;
+    }
 
-    rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_reg_rec, uba, EDP_OP_TYPE_ENC, ckpt_reg_rec, &ederror);
+    rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_function_reg, uba, EDP_OP_TYPE_ENC, ckpt_client_reg, &ederror);
 
     if (rc != NCSCC_RC_SUCCESS) {
       m_NCS_EDU_PRINT_ERROR_STRING(ederror);
       TRACE("  m_NCS_EDU_EXEC FAILED");
-      free(ckpt_reg_rec);
       return rc;
     }
     ++num_rec;
@@ -728,7 +746,6 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
 
   enc_ckpt_header(pheader, ckpt_hdr);
 
-  free(ckpt_reg_rec);
   TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
 }       /* End edu_enc_reg_list() */
@@ -750,6 +767,7 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
  ****************************************************************************/
 
 static uint32_t ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg) {
+  lgsv_ckpt_msg_v6_t *data_v6 = NULL;
   lgsv_ckpt_msg_v5_t *data_v5 = NULL;
   lgsv_ckpt_msg_v3_t *data_v3 = NULL;
   lgsv_ckpt_msg_v2_t *data_v2 = NULL;
@@ -761,7 +779,12 @@ static uint32_t ckpt_encode_async_update(lgs_cb_t *lgs_cb, EDU_HDL edu_hdl, NCS_
 
   TRACE_ENTER();
   /* Set reo_hdl from callback arg to ckpt_rec */
-  if (lgs_is_peer_v5()) {
+  if (lgs_is_peer_v6()) {
+    data_v6 = reinterpret_cast<lgsv_ckpt_msg_v6_t *>(
+        static_cast<long>(cbk_arg->info.encode.io_reo_hdl));
+    vdata = data_v6;
+    edp_function = edp_ed_ckpt_msg_v6;
+  } else if (lgs_is_peer_v5()) {
     data_v5 = reinterpret_cast<lgsv_ckpt_msg_v5_t *>(
         static_cast<long>(cbk_arg->info.encode.io_reo_hdl));
     vdata = data_v5;
@@ -1111,11 +1134,14 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
   lgsv_ckpt_msg_v3_t *ckpt_msg_v3 = &msg_v3;
   lgsv_ckpt_msg_v5_t msg_v5;
   lgsv_ckpt_msg_v5_t *ckpt_msg_v5 = &msg_v5;
+  lgsv_ckpt_msg_v6_t msg_v6;
+  lgsv_ckpt_msg_v6_t *ckpt_msg_v6 = &msg_v6;
   void *ckpt_msg;
   lgsv_ckpt_header_t hdr, *hdr_ptr = &hdr;
 
+  void *reg_rec;
+  EDU_PROG_HANDLER edp_function_reg = NULL;
   /* Same in all versions */
-  lgs_ckpt_initialize_msg_t *reg_rec;
   lgs_ckpt_stream_open_t *stream_open;
 
   TRACE_ENTER();
@@ -1130,7 +1156,10 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 
   TRACE_2("\tckpt_rec_type: %d ", (int)hdr_ptr->ckpt_rec_type);
 
-  if (lgs_is_peer_v5()) {
+  if (lgs_is_peer_v6()) {
+    ckpt_msg_v6->header = hdr;
+    ckpt_msg = ckpt_msg_v6;
+  } else   if (lgs_is_peer_v5()) {
     ckpt_msg_v5->header = hdr;
     ckpt_msg = ckpt_msg_v5;
   } else if (lgs_is_peer_v4()) {
@@ -1148,17 +1177,24 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
   switch (hdr_ptr->ckpt_rec_type) {
     case LGS_CKPT_CLIENT_INITIALIZE:
       TRACE_2("\tINITIALIZE REC: UPDATE");
-      if (lgs_is_peer_v5()) {
+      if (lgs_is_peer_v6()) {
+        reg_rec = &ckpt_msg_v6->ckpt_rec.initialize_client;
+        edp_function_reg = edp_ed_reg_rec_v6;
+      }  else if (lgs_is_peer_v5()) {
         reg_rec = &ckpt_msg_v5->ckpt_rec.initialize_client;
+        edp_function_reg = edp_ed_reg_rec;
       } else if (lgs_is_peer_v4()) {
         reg_rec = &ckpt_msg_v3->ckpt_rec.initialize_client;
+        edp_function_reg = edp_ed_reg_rec;
       } else if (lgs_is_peer_v2()) {
         reg_rec = &ckpt_msg_v2->ckpt_rec.initialize_client;
+        edp_function_reg = edp_ed_reg_rec;
       } else {
         reg_rec = &ckpt_msg_v1->ckpt_rec.initialize_client;
+        edp_function_reg = edp_ed_reg_rec;
       }
 
-      rc = ckpt_decode_log_struct(cb, cbk_arg, ckpt_msg, reg_rec, edp_ed_reg_rec);
+      rc = ckpt_decode_log_struct(cb, cbk_arg, ckpt_msg, reg_rec, edp_function_reg);
       if (rc != NCSCC_RC_SUCCESS) {
         goto done;
       }
@@ -1173,7 +1209,9 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
 
     case LGS_CKPT_OPEN_STREAM: /* 4 */
       TRACE_2("\tSTREAM OPEN: UPDATE");
-      if (lgs_is_peer_v5()) {
+      if (lgs_is_peer_v6()) {
+        stream_open = &ckpt_msg_v6->ckpt_rec.stream_open;
+      } else if (lgs_is_peer_v5()) {
         stream_open = &ckpt_msg_v5->ckpt_rec.stream_open;
       } else if (lgs_is_peer_v4()) {
         stream_open = &ckpt_msg_v3->ckpt_rec.stream_open;
@@ -1267,19 +1305,21 @@ static uint32_t ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg) {
   EDU_ERR ederror;
   lgsv_ckpt_msg_v1_t msg_v1;
   lgsv_ckpt_msg_v2_t msg_v2;
+  lgsv_ckpt_msg_v6_t msg_v6;
   uint32_t num_rec = 0;
-  lgs_ckpt_initialize_msg_t *reg_rec = NULL;
+  void *reg_rec = NULL;
   lgs_ckpt_stream_open_t *stream_rec = NULL;
   uint32_t num_of_async_upd;
   uint8_t *ptr;
   uint8_t data_cnt[16];
 
   lgsv_ckpt_header_t *header;
-  lgs_ckpt_initialize_msg_t *initialize_client_rec_ptr;
+  void *initialize_client_rec_ptr;
   lgs_ckpt_stream_open_t *stream_open_rec_ptr;
   void *vckpt_rec;
   size_t ckpt_rec_size;
   void *vdata;
+  EDU_PROG_HANDLER edp_function_reg = edp_ed_reg_rec;
 
   TRACE_ENTER();
   /*
@@ -1288,7 +1328,16 @@ static uint32_t ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg) {
      -------------------------------------------------
   */
 
-  if (lgs_is_peer_v2()) {
+  if (lgs_is_peer_v6()) {
+    lgsv_ckpt_msg_v6_t *data_v6 = &msg_v6;
+    header = &data_v6->header;
+    initialize_client_rec_ptr = &data_v6->ckpt_rec.initialize_client;
+    stream_open_rec_ptr = &data_v6->ckpt_rec.stream_open;
+    vdata = data_v6;
+    vckpt_rec = &data_v6->ckpt_rec;
+    ckpt_rec_size = sizeof(data_v6->ckpt_rec);
+    edp_function_reg = edp_ed_reg_rec_v6;
+  } else if (lgs_is_peer_v2()) {
     lgsv_ckpt_msg_v2_t *data_v2 = &msg_v2;
     header = &data_v2->header;
     initialize_client_rec_ptr = &data_v2->ckpt_rec.initialize_client;
@@ -1324,7 +1373,7 @@ static uint32_t ckpt_decode_cold_sync(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg) {
   TRACE("regid: num_rec = %u", num_rec);
   while (num_rec) {
     reg_rec = initialize_client_rec_ptr;
-    rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_reg_rec, &cbk_arg->info.decode.i_uba,
+    rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_function_reg, &cbk_arg->info.decode.i_uba,
                         EDP_OP_TYPE_DEC, &reg_rec, &ederror);
 
     if (rc != NCSCC_RC_SUCCESS) {
@@ -1417,13 +1466,17 @@ static uint32_t process_ckpt_data(lgs_cb_t *cb, void *data) {
   lgsv_ckpt_msg_v2_t *data_v2;
   lgsv_ckpt_msg_v3_t *data_v3;
   lgsv_ckpt_msg_v5_t *data_v5;
+  lgsv_ckpt_msg_v6_t *data_v6;
 
   if ((!cb) || (data == NULL)) {
     TRACE("%s - FAILED: (!cb) || (data == NULL)", __FUNCTION__);
     return (rc = NCSCC_RC_FAILURE);
   }
 
-  if (lgs_is_peer_v5()) {
+  if (lgs_is_peer_v6()) {
+    data_v6 = static_cast<lgsv_ckpt_msg_v6_t *>(data);
+    lgsv_ckpt_msg_type = data_v6->header.ckpt_rec_type;
+  } else if (lgs_is_peer_v5()) {
     data_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(data);
     lgsv_ckpt_msg_type = data_v5->header.ckpt_rec_type;
   } else if (lgs_is_peer_v4()) {
@@ -1471,30 +1524,49 @@ static uint32_t process_ckpt_data(lgs_cb_t *cb, void *data) {
 
 static uint32_t ckpt_proc_initialize_client(lgs_cb_t *cb, void *data) {
   log_client_t *client;
-  lgs_ckpt_initialize_msg_t *param;
 
-  if (lgs_is_peer_v2()) {
-    lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
-    param = &data_v2->ckpt_rec.initialize_client;
-  } else {
-    lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
-    param = &data_v1->ckpt_rec.initialize_client;
-  }
+  TRACE_ENTER();
+  if (lgs_is_peer_v6()) {
+    lgs_ckpt_initialize_msg_v6_t *param;
+    lgsv_ckpt_msg_v6_t *data_v6 = static_cast<lgsv_ckpt_msg_v6_t *>(data);
+    param = &data_v6->ckpt_rec.initialize_client;
 
-  TRACE_ENTER2("client ID: %d", param->client_id);
-
-  client = lgs_client_get_by_id(param->client_id);
-  if (client == NULL) {
-    /* Client does not exist, create new one */
-    if ((client = lgs_client_new(param->mds_dest, param->client_id, param->stream_list)) == NULL) {
-      /* Do not allow standby to get out of sync */
-      lgs_exit("Could not create new client", SA_AMF_COMPONENT_RESTART);
+    TRACE("client ID: %d", param->client_id);
+    client = lgs_client_get_by_id(param->client_id);
+    if (client == NULL) {
+      /* Client does not exist, create new one */
+      if ((client = lgs_client_new(param->mds_dest, param->client_id, param->stream_list)) == NULL) {
+        /* Do not allow standby to get out of sync */
+        lgs_exit("Could not create new client", SA_AMF_COMPONENT_RESTART);
+      } else {
+        client->client_ver = param->client_ver;
+      }
+    } else {
+      /* Client with ID already exist, check other attributes */
+      if (client->mds_dest != param->mds_dest) {
+        /* Do not allow standby to get out of sync */
+        lgs_exit("Client attributes differ", SA_AMF_COMPONENT_RESTART);
+      }
     }
   } else {
-    /* Client with ID already exist, check other attributes */
-    if (client->mds_dest != param->mds_dest) {
-      /* Do not allow standby to get out of sync */
-      lgs_exit("Client attributes differ", SA_AMF_COMPONENT_RESTART);
+    lgs_ckpt_initialize_msg_t *param;
+    lgsv_ckpt_msg_v1_t *data_v1 = static_cast<lgsv_ckpt_msg_v1_t *>(data);
+    param = &data_v1->ckpt_rec.initialize_client;
+
+    TRACE("client ID: %d", param->client_id);
+    client = lgs_client_get_by_id(param->client_id);
+    if (client == NULL) {
+      /* Client does not exist, create new one */
+      if ((client = lgs_client_new(param->mds_dest, param->client_id, param->stream_list)) == NULL) {
+        /* Do not allow standby to get out of sync */
+        lgs_exit("Could not create new client", SA_AMF_COMPONENT_RESTART);
+      }
+    } else {
+      /* Client with ID already exist, check other attributes */
+      if (client->mds_dest != param->mds_dest) {
+        /* Do not allow standby to get out of sync */
+        lgs_exit("Client attributes differ", SA_AMF_COMPONENT_RESTART);
+      }
     }
   }
 
@@ -2178,7 +2250,10 @@ uint32_t lgs_ckpt_send_async(lgs_cb_t *cb, void *ckpt_rec, uint32_t action) {
 
   TRACE_ENTER();
 
-  if (lgs_is_peer_v5()) {
+  if (lgs_is_peer_v6()) {
+    lgsv_ckpt_msg_v6_t *ckpt_rec_v6 = static_cast<lgsv_ckpt_msg_v6_t *>(ckpt_rec);
+    ckpt_rec_type = ckpt_rec_v6->header.ckpt_rec_type;
+  } else if (lgs_is_peer_v5()) {
     lgsv_ckpt_msg_v5_t *ckpt_rec_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(ckpt_rec);
     ckpt_rec_type = ckpt_rec_v5->header.ckpt_rec_type;
   } else if (lgs_is_peer_v4()) {
@@ -2234,7 +2309,7 @@ static uint32_t ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg) {
 
   lgs_cb->mbcsv_peer_version = arg->info.peer.i_peer_version;
   if (lgs_cb->mbcsv_peer_version < LGS_MBCSV_VERSION_MIN) {
-    TRACE("peer_version not correct!!\n");
+    TRACE("peer_version (%d) not correct!!\n", lgs_cb->mbcsv_peer_version);
     return NCSCC_RC_FAILURE;
   }
   TRACE("%s - peer_version = %d",__FUNCTION__, lgs_cb->mbcsv_peer_version);
@@ -2306,8 +2381,8 @@ static uint32_t ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg) {
  * @param o_err
  * @return
  */
-static uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err) {
+uint32_t edp_ed_stream_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+                            NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err) {
   uint32_t rc = NCSCC_RC_SUCCESS;
   lgs_stream_list_t *ckpt_stream_list_msg_ptr = NULL, **ckpt_stream_list_msg_dec_ptr;
 

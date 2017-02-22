@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2016 The OpenSAF Foundation
+ * Copyright Ericsson AB 2016, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -87,7 +88,7 @@ static SaNameT notifyingObjLd;
 static SaNameT logStreamNameLd;
 static SaLogBufferT logBufferLd;
 static SaNtfClassIdT notificationClassIdLd = { 1, 2, 3 };
-static SaVersionT logVersionLd = { 'A', 2, 2 };
+static SaVersionT logVersionLd = { 'A', 2, 3 };
 static SaInvocationT invocationLd;
 static SaAisErrorT errorLd;
 

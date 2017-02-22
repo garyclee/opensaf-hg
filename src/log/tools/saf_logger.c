@@ -2,6 +2,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -58,7 +59,7 @@
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error);
 
 static SaLogCallbacksT logCallbacks = { 0, 0, logWriteLogCallbackT };
-static SaVersionT logVersion = { 'A', 2, 1 };
+static SaVersionT logVersion = { 'A', 2, 3 };
 
 static char *progname = "saflogger";
 static SaInvocationT cb_invocation;

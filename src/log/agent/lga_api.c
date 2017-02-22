@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -70,6 +71,24 @@ static bool is_lgs_state(lgs_state_t state)
 		rc = true;
 	osaf_mutex_unlock_ordie(&lga_cb.cb_lock);
 
+	return rc;
+}
+
+/**
+ * Check if the log version is valid
+ * @param version
+ * @param client_ver
+ *
+ * @return true if log version is valid
+ */
+static bool is_log_version_valid(const SaVersionT *ver) {
+	bool rc = false;
+	if ((ver->releaseCode == LOG_RELEASE_CODE) &&
+	    (ver->majorVersion <= LOG_MAJOR_VERSION) &&
+	    (ver->majorVersion > 0) &&
+	    (ver->minorVersion <= LOG_MINOR_VERSION)) {
+		rc = true;
+	}
 	return rc;
 }
 
@@ -151,6 +170,7 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 	int rc;
 	uint32_t client_id = 0;
 	bool is_locked = false;
+	SaVersionT client_ver;
 
 	TRACE_ENTER();
 
@@ -161,11 +181,18 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 		goto done;
 	}
 
-	/* validate the version */
-	if ((version->releaseCode == LOG_RELEASE_CODE) && (version->majorVersion <= LOG_MAJOR_VERSION)) {
+	/***
+	 * Validate the version
+	 * Store client version that will be sent to log server. In case minor
+	 * version has not set, it is set to 1
+	 * Update the [out] version to highest supported version in log agent
+	 */
+	if (is_log_version_valid(version)) {
+		client_ver = *version;
+		if (version->minorVersion < LOG_MINOR_VERSION_0)
+			client_ver.minorVersion = LOG_MINOR_VERSION_0;
 		version->majorVersion = LOG_MAJOR_VERSION;
-		if (version->minorVersion != LOG_MINOR_VERSION_0)
-			version->minorVersion = LOG_MINOR_VERSION;
+		version->minorVersion = LOG_MINOR_VERSION;
 	} else {
 		TRACE("version FAILED, required: %c.%u.%u, supported: %c.%u.%u\n",
 		      version->releaseCode, version->majorVersion, version->minorVersion,
@@ -230,7 +257,7 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 	memset(&i_msg, 0, sizeof(lgsv_msg_t));
 	i_msg.type = LGSV_LGA_API_MSG;
 	i_msg.info.api_info.type = LGSV_INITIALIZE_REQ;
-	i_msg.info.api_info.param.init.version = *version;
+	i_msg.info.api_info.param.init.version = client_ver;
 
 	/* Send a message to LGS to obtain a client_id/server ref id which is cluster
 	 * wide unique.
@@ -242,10 +269,23 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 		goto done;
 	}
 
-    /** Make sure the LGS return status was SA_AIS_OK 
-     **/
+	/*
+	 * Make sure the LGS return status was SA_AIS_OK
+	 * If the returned status was SA_AIS_ERR_VERSION, the [out] version is
+	 * updated to highest supported version in log server. But now the log
+	 * server has not returned the highest version in the response. Here is
+	 * temporary updating [out] version to A.02.03.
+	 * TODO: This may be fixed to update the highest version when log server
+	 * return the response with version.
+	 */
 	ais_rc = o_msg->info.api_resp_info.rc;
-	if (SA_AIS_OK != ais_rc) {
+	if (ais_rc == SA_AIS_ERR_VERSION) {
+		TRACE("%s LGS error response %s", __FUNCTION__, saf_error(ais_rc));
+		version->releaseCode = LOG_RELEASE_CODE_1;
+		version->majorVersion = LOG_RELEASE_CODE_1;
+		version->minorVersion = LOG_RELEASE_CODE_1;
+		goto err;
+	} else if (SA_AIS_OK != ais_rc) {
 		TRACE("%s LGS error response %s", __FUNCTION__, saf_error(ais_rc));
 		goto err;
 	}
@@ -265,7 +305,7 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *call
 
 	/* pass the handle value to the appl */
 	*logHandle = lga_hdl_rec->local_hdl;
-	lga_hdl_rec->version = *version;
+	lga_hdl_rec->version = client_ver;
 
  err:
 	/* free up the response message */
