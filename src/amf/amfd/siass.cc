@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -346,19 +347,49 @@ bool avd_susi_validate_headless_cached_rta(AVD_SU_SI_REL *present_susi,
 		}
 	}
 	// rule 2: if ha_fr_imm is QUIESCING, one of relevant entities must
-	// have adminState is SHUTTINGDOWN
+	// have adminState is SHUTTINGDOWN, otherwise re-adjust if possible
 	if (ha_fr_imm == SA_AMF_HA_QUIESCING) {
-		if (present_susi->su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN ||
-			present_susi->si->saAmfSIAdminState == SA_AMF_ADMIN_SHUTTING_DOWN ||
-			present_susi->su->sg_of_su->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN ||
-			present_susi->su->su_on_node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			// That's fine
-			;
-		} else {
-			LOG_ER("SISU:'%s', ha:'%u', but one of [node/sg/su/si] is not in SHUTTING_DOWN",
+		if (present_susi->su->saAmfSUAdminState != SA_AMF_ADMIN_SHUTTING_DOWN &&
+			present_susi->si->saAmfSIAdminState != SA_AMF_ADMIN_SHUTTING_DOWN &&
+			present_susi->su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_SHUTTING_DOWN &&
+			present_susi->su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) {
+			LOG_WA("SISU:'%s', ha:'%u', but one of [node/sg/su/si] is not in SHUTTING_DOWN",
 					dn.c_str(), ha_fr_imm);
-			valid = false;
-			goto done;
+			if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER)
+				present_susi->su->set_admin_state(SA_AMF_ADMIN_SHUTTING_DOWN);
+			else if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER)
+				present_susi->si->set_admin_state(SA_AMF_ADMIN_SHUTTING_DOWN);
+			else if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_ADMIN)
+				present_susi->su->sg_of_su->set_admin_state(SA_AMF_ADMIN_SHUTTING_DOWN);
+			else {
+				LOG_ER("Failed to adjust the Admin State of [sg/su/si] with sg fsm state:'%u'",
+						present_susi->su->sg_of_su->sg_fsm_state);
+				valid = false;
+				goto done;
+			}
+		}
+	}
+	// rule 3: if ha_fr_imm is QUIESCED, one of relevant entities must
+	// have adminState is LOCKED, otherwise re-adjust if possible
+	if (ha_fr_imm == SA_AMF_HA_QUIESCED) {
+		if (present_susi->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED &&
+			present_susi->si->saAmfSIAdminState != SA_AMF_ADMIN_LOCKED &&
+			present_susi->su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED &&
+			present_susi->su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
+			LOG_WA("SISU:'%s', ha:'%u', but one of [node/sg/su/si] is not in LOCKED",
+					dn.c_str(), ha_fr_imm);
+			if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER)
+				present_susi->su->set_admin_state(SA_AMF_ADMIN_LOCKED);
+			else if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER)
+				present_susi->si->set_admin_state(SA_AMF_ADMIN_LOCKED);
+			else if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_ADMIN)
+				present_susi->su->sg_of_su->set_admin_state(SA_AMF_ADMIN_LOCKED);
+			else {
+				LOG_ER("Failed to adjust the Admin State of [sg/su/si] with sg fsm state:'%u'",
+						present_susi->su->sg_of_su->sg_fsm_state);
+				valid = false;
+				goto done;
+			}
 		}
 	}
 	// TODO: more rules to be added when issue is found in reality due to writing
