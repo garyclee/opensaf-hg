@@ -19028,16 +19028,21 @@ ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
         IdVector cv, gv;
         ImplementerInfo* info = (*i);
         otherNode = info->mNodeId;
-        if(otherNode == thisNode || otherNode == 0) {
-            i++;
+        if (otherNode == 0) {
+            /* The implementer was already discarded */
+        } else if (otherNode == thisNode) {
+            LOG_WA("Local implementer %u <%u, %x> (%s) was not globally discarded, discarding it...",
+                   info->mId, info->mConn, info->mNodeId, info->mImplementerName.c_str());
+            ConnVector cv;
+            this->discardImplementer(info->mId, true, cv, isAtCoord);
         } else {
             info = NULL;
             this->discardNode(otherNode, cv, gv, isAtCoord, true);
             LOG_NO("Impl Discarded node %x", otherNode);
-            /* Discard ccbs. */
-
-            i = sImplementerVector.begin(); /* restart iteration. */
         }
+        /* Discarding implementer doesn't remove the implementer from sImplementerVector,
+         * so we don't have to restart the iteration */
+        ++i;
     }
 
     i2 = sOwnerVector.begin();
@@ -19045,17 +19050,17 @@ ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
         IdVector cv, gv;
         AdminOwnerInfo* ainfo = (*i2);
         otherNode = ainfo->mNodeId;
-        if(otherNode == thisNode || otherNode == 0) {
-            /* ??? (otherNode == 0) is that really correct ??? */
-            i2++;
+        osafassert(otherNode);
+        if (otherNode == thisNode) {
+            LOG_WA("Local admin owner %u (%s) was not hard finalized, finalizing it...",
+                   ainfo->mId, ainfo->mAdminOwnerName.c_str());
+            this->adminOwnerDelete(ainfo->mId, true, false);
         } else {
             ainfo = NULL;
             this->discardNode(otherNode, cv, gv, isAtCoord, true);
             LOG_NO("Admo Discarded node %x", otherNode);
-            /* Discard ccbs */
-
-            i2 =  sOwnerVector.begin(); /* restart iteration. */
         }
+        i2 =  sOwnerVector.begin(); /* restart iteration. */
     }
 
     /* Verify that all noncritical CCBs are aborted.
