@@ -28,7 +28,7 @@
 LogWriter::LogWriter()
     : mds_log_file_{base::GetEnv<std::string>("pkglogdir", PKGLOGDIR)
           + "/mds.log"},
-      old_mds_log_file_{mds_log_file_ + ".old"},
+      old_mds_log_file_{mds_log_file_ + ".1"},
       fd_{-1},
       current_file_size_{0},
       current_buffer_size_{0},
