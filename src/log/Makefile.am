@@ -75,7 +75,12 @@ noinst_HEADERS += \
 	src/log/logd/lgs_mbcsv_v6.h \
 	src/log/logd/lgs_recov.h \
 	src/log/logd/lgs_stream.h \
-	src/log/logd/lgs_util.h
+	src/log/logd/lgs_util.h \
+	src/log/logd/lgs_dest.h \
+	src/log/logd/lgs_nildest.h \
+	src/log/logd/lgs_unixsock_dest.h \
+	src/log/logd/lgs_common.h
+
 
 bin_PROGRAMS += bin/saflogger
 osaf_execbin_PROGRAMS += bin/osaflogd
@@ -123,9 +128,13 @@ bin_osaflogd_SOURCES = \
 	src/log/logd/lgs_mds.cc \
 	src/log/logd/lgs_recov.cc \
 	src/log/logd/lgs_stream.cc \
-	src/log/logd/lgs_util.cc
+	src/log/logd/lgs_util.cc \
+	src/log/logd/lgs_dest.cc \
+	src/log/logd/lgs_nildest.cc \
+	src/log/logd/lgs_unixsock_dest.cc
 
 bin_osaflogd_LDADD = \
+	-lcrypto \
 	lib/libosaf_common.la \
 	lib/libSaAmf.la \
 	lib/libSaImmOm.la \

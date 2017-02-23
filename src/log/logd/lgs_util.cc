@@ -835,6 +835,40 @@ bool lgs_is_extended_name_valid(const SaNameT* name) {
   return true;
 }
 
+//==============================================================================
+// logutil namespace
+//==============================================================================
+namespace logutil {
+
+// Split a string @str with delimiter @delimiter
+// and return an vector of strings.
+std::vector<std::string> Parser(const std::string& str,
+                                const std::string& delimiter) {
+  std::vector<std::string> temp;
+  std::string s{str};
+  size_t pos = 0;
+  while ((pos = s.find(delimiter)) != std::string::npos) {
+    temp.push_back(s.substr(0, pos));
+    s.erase(0, pos + delimiter.length());
+  }
+  temp.push_back(s);
+  return temp;
+}
+
+bool isValidName(const std::string& name) {
+  // Valid name if @name not contain any characters outside
+  // of below strings.
+  const std::string validChar = "abcdefghijklmnopqrstuvwxyz"
+                                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                "01234567890_-";
+  if (name.find_first_not_of(validChar) != std::string::npos)
+    return false;
+
+  return true;
+}
+
+};  // namespace logutil
+
 /**
  * Check if severity filter is supported for client
  *

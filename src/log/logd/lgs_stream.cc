@@ -27,6 +27,9 @@
  * Examples can be found in this file, e.g. function fileopen(...) below
  */
 
+#include "log/logd/lgs_stream.h"
+#include <algorithm>
+
 #include "log/logd/lgs.h"
 #include "lgs_config.h"
 #include "log/logd/lgs_file.h"
@@ -398,6 +401,8 @@ void log_stream_print(log_stream_t *stream) {
   TRACE_2("  logRecordId:          %u", stream->logRecordId);
   TRACE_2("  streamType:           %u", stream->streamType);
   TRACE_2("  filtered:             %llu", stream->filtered);
+  TRACE_2("  stb_dest_names:       %s", stream->stb_dest_names.c_str());
+  TRACE_2("  isRtStream:           %d", stream->isRtStream);
 }
 
 /**
@@ -502,7 +507,6 @@ int lgs_populate_log_stream(
   o_stream->logRecordId = logRecordId;
   o_stream->stb_logRecordId = 0;
   o_stream->isRtStream = SA_TRUE;
-
   o_stream->logFileFormat = strdup(logFileFormat);
   if (o_stream->logFileFormat == NULL) {
     LOG_WA("Failed to allocate memory for logFileFormat");
@@ -676,6 +680,7 @@ log_stream_t *log_stream_new(const std::string &name, int stream_id) {
   stream->creationTimeStamp = lgs_get_SaTime();
   stream->severityFilter = 0x7f;  /* by default all levels are allowed */
   stream->isRtStream = SA_FALSE;
+  stream->dest_names.clear();
 
   /* Initiate local or shared stream file descriptor dependant on shared or
    * split file system
@@ -1564,3 +1569,58 @@ bool check_max_stream() {
   return (numb_of_streams < stream_array_size ? false:true);
 }
 
+void log_stream_add_dest_name(log_stream_t *stream,
+                              const std::vector<std::string>& names) {
+  osafassert(stream != nullptr);
+  for (const auto& it : names) {
+    stream->dest_names.push_back(it);
+  }
+
+  // Prepare stb_dest_names for checkingpoint to standby
+  log_stream_form_dest_names(stream);
+}
+
+void log_stream_replace_dest_name(log_stream_t *stream,
+                                  const std::vector<std::string>& names) {
+  osafassert(stream != nullptr);
+  stream->dest_names = names;
+  // Prepare stb_dest_names for checkingpoint to standby
+  log_stream_form_dest_names(stream);
+}
+
+void log_stream_delete_dest_name(log_stream_t *stream,
+                                 const std::vector<std::string>& names) {
+  osafassert(stream != nullptr);
+  if (names.size() != 0) {
+    for (const auto& it : names) {
+      // Remove deleted destination from internal database
+      stream->dest_names.erase(std::remove(stream->dest_names.begin(),
+                                           stream->dest_names.end(), it),
+                               stream->dest_names.end());
+    }
+  } else {
+    // Delete all destination names
+    stream->dest_names.clear();
+  }
+
+  // Prepare stb_dest_names for checkingpoint to standby
+  log_stream_form_dest_names(stream);
+}
+
+void log_stream_form_dest_names(log_stream_t* stream) {
+  osafassert(stream != nullptr);
+  std::string output{""};
+  bool addSemicolon = false;
+  // Form stb_dest_names before checking point to standby
+  // under format "name1;name2;etc".
+  for (const auto& it : stream->dest_names) {
+    output += it + ";";
+    addSemicolon = true;
+  }
+  if (addSemicolon == true) {
+    osafassert(output.length() > 0);
+    // Remove last semicolon(;)
+    output[output.length() - 1] = '\0';
+  }
+  stream->stb_dest_names = output;
+}

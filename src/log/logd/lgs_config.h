@@ -304,7 +304,8 @@ int lgs_cfg_verify_mbox_limit(uint32_t high, uint32_t low);
 int lgs_cfg_verify_max_application_streams(uint32_t max_app_streams);
 int lgs_cfg_verify_file_io_timeout(uint32_t log_file_io_timeout);
 int lgs_cfg_verify_log_record_destination_configuration(
-                std::vector<std::string>& log_record_destination_configuration);
+    std::vector<std::string>& vdest,
+    SaImmAttrModificationTypeT type);
 /*
  * Functions for updating some parameters. Used to support check-point before
  * version 5

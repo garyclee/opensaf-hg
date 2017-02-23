@@ -98,6 +98,7 @@ typedef struct {
   uint64_t creationTimeStamp;
   uint32_t numOpeners;
   char *logFileCurrent;
+  char *dest_names;
   logStreamTypeT streamType;
   uint32_t logRecordId;   /* log record identifier increased for each record */
 } lgs_ckpt_stream_open_t;

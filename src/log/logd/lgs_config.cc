@@ -40,6 +40,7 @@
 #include "osaf/immutil/immutil.h"
 #include "log/logd/lgs_file.h"
 #include "log/logd/lgs.h"
+#include "log/logd/lgs_common.h"
 
 static SaVersionT immVersion = { 'A', 2, 11 };
 
@@ -709,35 +710,153 @@ static int lgs_cfg_verify_log_filesys_config(uint32_t log_filesys_config) {
   return rc;
 }
 
+//>
+// Utility functions to validate destination configuration format
+//<
+
+// Tokens seperator
+const char kSemicolon[] = ";";
+
+// The format of destination must be one of followings:
+// 1) "name;type;"
+// 2) "name;type;value"
+// So, in destination configuration, must have 02 semiconlons
+// no more, no less.
+//
+bool is_right_destination_fmt(const VectorString& vdest) {
+  int nl_cnt = 0;
+  // Check each single destination
+  for (const auto& it : vdest) {
+    nl_cnt = std::count(it.begin(), it.end(), ';');
+    if (nl_cnt != 2) {
+      TRACE("%s wrong destination format", __func__);
+      return false;
+    }
+  }
+  return true;
+}
+
+// Return false if "name" token is invalid
+bool is_name_valid(const VectorString& vdest) {
+  // Check each single destination
+  for (const auto& it : vdest) {
+    const VectorString sdes = logutil::Parser(it, kSemicolon);
+    if (sdes[kName].length() == 0) {
+      TRACE("%s wrong name format (name is empty value)", __func__);
+      return false;
+    }
+    // invalid name if having special characters in
+    if (logutil::isValidName(sdes[kName]) == false) {
+      TRACE("%s wrong name format (has special chars in)", __func__);
+      return false;
+    }
+
+    if (sdes[kName].length() > kNameMaxLength) {
+      TRACE("%s too long name", __func__);
+      return false;
+    }
+  }
+  return true;
+}
+
+// Return false if "type" token is invalid
+bool is_type_valid(const VectorString& vdest) {
+  // Check each single destination
+  for (const auto& it : vdest) {
+    const VectorString sdes = logutil::Parser(it, kSemicolon);
+    if (sdes[kType].length() == 0) {
+      TRACE("%s wrong type format (type is empty value)", __func__);
+      return false;
+    }
+    // Only support type = "UNIX_SOCKET"
+    if (sdes[kType] != "UNIX_SOCKET" && sdes[kType] != "NILDEST") {
+      TRACE("%s wrong type format. Only UNIX_SOCKET and NILDEST supported",
+            __func__);
+      return false;
+    }
+  }
+  return true;
+}
+
+// Return true if no dulicated info, otherwise false.
+bool is_no_config_duplicated(const VectorString& vdest,
+                                 const VectorString& vdes2) {
+  // Compare values of each pair of destinations.
+  for (const auto& it : vdest) {
+    const VectorString sdes = logutil::Parser(it, kSemicolon);
+    for (const auto& it2 : vdes2) {
+      if (it == it2) continue;
+      const VectorString sdes2 = logutil::Parser(it2, kSemicolon);
+      // Duplicate name
+      if (sdes2[kName] == sdes[kName]) {
+        TRACE("%s name is duplicated", __func__);
+        return false;
+      }
+      // Ignore nildest
+      if ((sdes[kValue].length() == 0) || (sdes2[kValue].length() == 0))
+        continue;
+      // Duplicate "value"
+      if (sdes2[kValue] == sdes[kValue]) {
+        TRACE("%s value is duplicated", __func__);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// Check whether there is duplicated "name" or "value"
+// in provided @vdest and existing destinations
+bool check_configuration_duplicated(const VectorString& vdest,
+                                    SaImmAttrModificationTypeT type) {
+  if (type == SA_IMM_ATTR_VALUES_DELETE) return true;
+  // No checking duplicated if replacing to one value
+  if (type == SA_IMM_ATTR_VALUES_REPLACE && vdest.size() < 2) return true;
+  // Check in all replace values if any duplicated name/value
+  if (type == SA_IMM_ATTR_VALUES_REPLACE)  {
+    // Check whethere there is duplicated "name" or "value"
+    // in list of provided destination configurations.
+    return is_no_config_duplicated(vdest, vdest);
+  } else {
+    // Check whethere there is duplicated "name" or "value"
+    // in adding destination configurations and existing ones.
+    // Firstly, check if any duplicate in added items.
+    if (vdest.size() > 1) {
+      bool isNoDuplicated = true;
+      isNoDuplicated = is_no_config_duplicated(vdest, vdest);
+      if (isNoDuplicated == false) return false;
+    }
+    // Secondly, check if any duplicate in added items with existing list.
+    return is_no_config_duplicated(
+        vdest, lgs_conf.logRecordDestinationConfiguration);
+  }
+}
+
 /**
  * Verify all values of log_record_destination_configuration
  * Rules:
  * - Empty string is Ok else
- * - String shall have at least three fields separated by '\n'
- * - First and second field cannot be empty
+ * - The destination configiration must be in right format
+ * - "name" token must be valid
+ * - "type" token must be valid
+ * - Must no duplicated info
  *
  * @param log_record_destination_configuration[in]
  * @return -1 on error
  */
 int lgs_cfg_verify_log_record_destination_configuration(
-  std::vector<std::string>& log_record_destination_configuration) {
-  int rc = 0;
-  TRACE_ENTER();
-
-  int nl_cnt = 0;
-  for (auto& config : log_record_destination_configuration) {
-    // Verify that the string contains at least 2 ';'
-    nl_cnt = std::count(config.begin(), config.end(), ';');
-    if (nl_cnt < 2) {
-      rc = -1;
-      break;
-    }
-  }
-
-  TRACE_LEAVE2("rc = %s", rc == -1? "Fail": "Pass");
-  return rc;
+    std::vector<std::string>& vdest,
+    SaImmAttrModificationTypeT type) {
+  // Allow deleting all destinations.
+  if (vdest.size() == 0) return true;
+  // It is important to keep the check in order
+  bool result = (is_right_destination_fmt(vdest) &&
+                 is_name_valid(vdest) &&
+                 is_type_valid(vdest) &&
+                 check_configuration_duplicated(vdest, type)
+                 );
+  return (result == true) ? (0) : (-1);
 }
-
 
 /**
  * Verify logRootDirectory; path to be used as log root directory
@@ -846,7 +965,8 @@ static int verify_all_init() {
   }
 
   if (lgs_cfg_verify_log_record_destination_configuration(
-      lgs_conf.logRecordDestinationConfiguration) == -1) {
+          lgs_conf.logRecordDestinationConfiguration,
+          SA_IMM_ATTR_VALUES_ADD) == -1) {
     lgs_conf.logRecordDestinationConfiguration.clear();
     lgs_conf.logRecordDestinationConfiguration_cnfflag = LGS_CNF_DEF;
     rc = -1;

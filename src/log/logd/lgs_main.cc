@@ -1,6 +1,7 @@
-/*      -*- OpenSAF  -*-
+ /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008-2010 The OpenSAF Foundation
+ * Copyright Ericsson AB 2018, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -39,6 +40,7 @@
 #include "lgs_recov.h"
 #include "osaf/immutil/immutil.h"
 #include "lgs_clm.h"
+#include "log/logd/lgs_dest.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -371,6 +373,7 @@ done:
 uint32_t initialize_for_assignment(lgs_cb_t *cb, SaAmfHAStateT ha_state) {
   const char *logsv_root_dir = NULL;
   const char *logsv_data_groupname = NULL;
+  const std::vector<std::string> *vdest = nullptr;
   TRACE_ENTER2("ha_state = %d", (int) ha_state);
   uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -393,6 +396,12 @@ uint32_t initialize_for_assignment(lgs_cb_t *cb, SaAmfHAStateT ha_state) {
   logsv_data_groupname = static_cast<const char *>(lgs_cfg_get(LGS_IMM_DATA_GROUPNAME));
   LOG_NO("LOG root directory is: \"%s\"", logsv_root_dir);
   LOG_NO("LOG data group is: \"%s\"", logsv_data_groupname);
+  vdest = reinterpret_cast<const std::vector<std::string>*>(
+      lgs_cfg_get(LGS_IMM_LOG_RECORD_DESTINATION_CONFIGURATION));
+  osafassert(vdest != nullptr);
+  if (vdest->size() > 0) {
+    CfgDestination(*vdest, ModifyType::kAdd);
+  }
 
   /* Initialize file handling thread
    * Configuration must have been initialized
