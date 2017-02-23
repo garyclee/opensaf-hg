@@ -77,6 +77,72 @@ uint32_t edp_ed_reg_rec_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 }       /* End edp_ed_reg_rec */
 
 /****************************************************************************
+ * Name          : edp_ed_cfg_stream_rec
+ *
+ * Description   : This function is an EDU program for encoding/decoding
+ *                 lgsv checkpoint cfg_update_stream log rec.
+ *
+ * Arguments     : EDU_HDL - pointer to edu handle,
+ *                 EDU_TKN - internal edu token to help encode/decode,
+ *                 POINTER to the structure to encode/decode from/to,
+ *                 data length specifying number of structures,
+ *                 EDU_BUF_ENV - pointer to buffer for encoding/decoding.
+ *                 op - operation type being encode/decode.
+ *                 EDU_ERR - out param to indicate errors in processing.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+uint32_t edp_ed_cfg_stream_rec_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+                                  NCSCONTEXT ptr, uint32_t *ptr_data_len,
+                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err) {
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  lgs_ckpt_stream_cfg_v3_t *ckpt_stream_cfg_msg_ptr = NULL, **ckpt_stream_cfg_msg_dec_ptr;
+
+  EDU_INST_SET ckpt_stream_cfg_rec_ed_rules[] = {
+    {EDU_START, edp_ed_cfg_stream_rec_v6, 0, 0, 0, sizeof(lgs_ckpt_stream_cfg_v3_t), 0, NULL},
+    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->name, 0, NULL},
+    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->fileName, 0, NULL},
+    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->pathName, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->maxLogFileSize, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->fixedLogRecordSize, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->haProperty, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->logFullAction, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->logFullHaltThreshold, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->maxFilesRotated, 0, NULL},
+    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->logFileFormat, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->severityFilter, 0, NULL},
+    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->logFileCurrent, 0, NULL},
+    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->dest_names, 0, NULL},
+    {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_v3_t *)0)->c_file_close_time_stamp, 0, NULL},
+    {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+  };
+
+  if (op == EDP_OP_TYPE_ENC) {
+    ckpt_stream_cfg_msg_ptr = static_cast<lgs_ckpt_stream_cfg_v3_t *>(ptr);
+  } else if (op == EDP_OP_TYPE_DEC) {
+    ckpt_stream_cfg_msg_dec_ptr = static_cast<lgs_ckpt_stream_cfg_v3_t **>(ptr);
+    if (*ckpt_stream_cfg_msg_dec_ptr == NULL) {
+      *o_err = EDU_ERR_MEM_FAIL;
+      return NCSCC_RC_FAILURE;
+    }
+    memset(*ckpt_stream_cfg_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_cfg_v3_t));
+    ckpt_stream_cfg_msg_ptr = *ckpt_stream_cfg_msg_dec_ptr;
+  } else {
+    ckpt_stream_cfg_msg_ptr = static_cast<lgs_ckpt_stream_cfg_v3_t *>(ptr);
+  }
+
+  rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,
+                           ckpt_stream_cfg_rec_ed_rules,
+                           ckpt_stream_cfg_msg_ptr,
+                           ptr_data_len,
+                           buf_env, op, o_err);
+  return rc;
+}
+
+/****************************************************************************
  * Name          : edp_ed_ckpt_msg_v6
  *
  * Description   : This function is an EDU program for encoding/decoding
@@ -137,7 +203,7 @@ uint32_t edp_ed_ckpt_msg_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
      (long)&((lgsv_ckpt_msg_v6_t *)0)->ckpt_rec.stream_cfg, 0, NULL},
 
     /* Cfg stream */
-    {EDU_EXEC, edp_ed_cfg_stream_rec_v2, 0, 0, static_cast<int>(EDU_EXIT),
+    {EDU_EXEC, edp_ed_cfg_stream_rec_v6, 0, 0, static_cast<int>(EDU_EXIT),
      (long)&((lgsv_ckpt_msg_v6_t *)0)->ckpt_rec.stream_cfg, 0, NULL},
 
     /* Lgs cfg */
@@ -166,4 +232,4 @@ uint32_t edp_ed_ckpt_msg_v6(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
   return rc;
 
-}       /* End edu_enc_dec_ckpt_msg() */
+}

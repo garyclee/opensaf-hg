@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -22,6 +23,7 @@
 #include "base/ncspatricia.h"
 #include <time.h>
 #include <limits.h>
+#include <vector>
 
 #include "lgs_fmt.h"
 #include "base/osaf_extended_name.h"
@@ -83,6 +85,12 @@ typedef struct log_stream {
   std::string stb_logFileCurrent; /* Current file name used on standby */
   std::string stb_prev_actlogFileCurrent; /* current file name on active when previous record was written */
   uint32_t stb_curFileSize;       /* Bytes written to current log file */
+
+  // Hold vector of destname string {"name1", "name2", etc.}
+  std::vector<std::string> dest_names;
+  // Hold a list of strings separated by semicolon "name1;name2;etc"
+  // This data is used to checkpoint to standby
+  std::string stb_dest_names;
 } log_stream_t;
 
 extern uint32_t log_stream_init();
@@ -132,5 +140,13 @@ extern bool check_max_stream();
 void log_free_stream_resources(log_stream_t *stream);
 log_stream_t *iterate_all_streams(SaBoolT &end, SaBoolT jstart);
 extern log_stream_t *log_stream_get_by_name(const std::string &name);
+
+void log_stream_add_dest_name(log_stream_t *stream,
+                              const std::vector<std::string>& names);
+void log_stream_replace_dest_name(log_stream_t *stream,
+                                  const std::vector<std::string>& names);
+void log_stream_delete_dest_name(log_stream_t *stream,
+                                 const std::vector<std::string>& names);
+void log_stream_form_dest_names(log_stream_t* stream);
 
 #endif  // LOG_LOGD_LGS_STREAM_H_

@@ -29,6 +29,7 @@
 #include "lgs_imm_gcfg.h"
 #include "base/osaf_extended_name.h"
 #include "lgs_clm.h"
+#include "lgs_dest.h"
 
 void *client_db = nullptr;       /* used for C++ STL map */
 
@@ -1323,6 +1324,8 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   void *ckpt_ptr;
   uint32_t max_logrecsize = 0;
   char node_name[_POSIX_HOST_NAME_MAX];
+  RecordData data;
+  timespec time;
 
   memset(node_name, 0, _POSIX_HOST_NAME_MAX);
   strncpy(node_name, evt->node_name, _POSIX_HOST_NAME_MAX);
@@ -1382,6 +1385,35 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
     goto done;
   }
 
+  //>
+  // Has successfully written log record to file.
+  // Now, send to destination if any destination name set.
+  //<
+
+  // Streaming not support on alarm/notif streams.
+  if ((stream->name == SA_LOG_STREAM_ALARM) ||
+      (stream->name == SA_LOG_STREAM_NOTIFICATION)) {
+    goto checkpoint;
+  }
+
+  // Packing Record data that carry necessary information
+  // to form RFC5424 syslog msg, then send to destination name(s).
+  data.name = stream->name.c_str();
+  data.logrec = logOutputString;
+  data.hostname = node_name;
+  data.networkname = lgs_get_networkname().c_str();
+  data.appname = osaf_extended_name_borrow(
+      param->logRecord->logHeader.genericHdr.logSvcUsrName);
+  data.isRtStream = stream->isRtStream;
+  data.recordId = stream->logRecordId;
+  data.sev = param->logRecord->logHeader.genericHdr.logSeverity;
+  time.tv_sec = (param->logRecord->logTimeStamp / (SaTimeT)SA_TIME_ONE_SECOND);
+  time.tv_nsec = (param->logRecord->logTimeStamp % (SaTimeT)SA_TIME_ONE_SECOND);
+  data.time = time;
+
+  WriteToDestination(data, stream->dest_names);
+
+checkpoint:
   /* TODO: send fail back if ack is wanted, Fix counter for application stream!! */
   if (cb->ha_state == SA_AMF_HA_ACTIVE) {
     if (lgs_is_peer_v2()) {

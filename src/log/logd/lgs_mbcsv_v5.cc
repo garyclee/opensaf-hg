@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2015 The OpenSAF Foundation
+ * Copyright Ericsson AB 2015, 2017 - All Rights Reserved.
  * File:   lgs_mbcsv_v5.c
  *
  * This program is distributed in the hope that it will be useful, but
@@ -22,6 +23,7 @@
  */
 
 #include "lgs_mbcsv_v5.h"
+#include "log/logd/lgs_dest.h"
 
 /****************************************************************************
  * Name          : ckpt_proc_lgs_cfg
@@ -131,6 +133,15 @@ uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data) {
   if (mailbox_lim_upd == true) {
     TRACE("\tUpdating mailbox limits");
     (void) lgs_configure_mailbox();
+  }
+
+  // Only support destination configuration since V6
+  if (lgs_is_peer_v6()) {
+    const VectorString *vdest;
+    vdest = reinterpret_cast<const VectorString*>(
+        lgs_cfg_get(LGS_IMM_LOG_RECORD_DESTINATION_CONFIGURATION));
+    osafassert(vdest != nullptr);
+    CfgDestination(*vdest, ModifyType::kReplace);
   }
 
   /* Free buffer allocated by the EDU encoder */

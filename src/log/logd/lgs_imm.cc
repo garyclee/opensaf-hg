@@ -45,12 +45,14 @@
 #include "log/logd/lgs_file.h"
 #include "log/logd/lgs_recov.h"
 #include "log/logd/lgs_config.h"
+#include "log/logd/lgs_dest.h"
 #include "base/saf_error.h"
 
 #include "lgs_mbcsv_v1.h"
 #include "lgs_mbcsv_v2.h"
 #include "lgs_mbcsv_v3.h"
 #include "lgs_mbcsv_v5.h"
+#include "lgs_mbcsv_v6.h"
 
 /* TYPE DEFINITIONS
  * ----------------
@@ -234,11 +236,33 @@ static uint32_t ckpt_stream_config(log_stream_t *stream) {
   uint32_t rc;
   lgsv_ckpt_msg_v1_t ckpt_v1;
   lgsv_ckpt_msg_v2_t ckpt_v2;
+  lgsv_ckpt_msg_v6_t ckpt_v3;
+
   void *ckpt_ptr;
 
   TRACE_ENTER();
 
-  if (lgs_is_peer_v2()) {
+  if (lgs_is_peer_v6()) {
+    memset(&ckpt_v3, 0, sizeof(ckpt_v3));
+    ckpt_v3.header.ckpt_rec_type = LGS_CKPT_CFG_STREAM;
+    ckpt_v3.header.num_ckpt_records = 1;
+    ckpt_v3.header.data_len = 1;
+
+    ckpt_v3.ckpt_rec.stream_cfg.name = const_cast<char *>(stream->name.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
+    ckpt_v3.ckpt_rec.stream_cfg.fixedLogRecordSize = stream->fixedLogRecordSize;
+    ckpt_v3.ckpt_rec.stream_cfg.logFullAction = stream->logFullAction;
+    ckpt_v3.ckpt_rec.stream_cfg.logFullHaltThreshold = stream->logFullHaltThreshold;
+    ckpt_v3.ckpt_rec.stream_cfg.maxFilesRotated = stream->maxFilesRotated;
+    ckpt_v3.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
+    ckpt_v3.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
+    ckpt_v3.ckpt_rec.stream_cfg.logFileCurrent = const_cast<char *>(stream->logFileCurrent.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.dest_names = const_cast<char *>(stream->stb_dest_names.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.c_file_close_time_stamp = stream->act_last_close_timestamp;
+    ckpt_ptr = &ckpt_v3;
+  } else if (lgs_is_peer_v2()) {
     memset(&ckpt_v2, 0, sizeof(ckpt_v2));
     ckpt_v2.header.ckpt_rec_type = LGS_CKPT_CFG_STREAM;
     ckpt_v2.header.num_ckpt_records = 1;
@@ -856,13 +880,14 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
       // Note: Multi value attribute
       TRACE("logRecordDestinationConfiguration. Values number = %d",
             attribute->attrValuesNumber);
-      std::vector<std::string> values_vector;
+      std::vector<std::string> values_vector{};
       for (uint32_t i=0; i < attribute->attrValuesNumber; i++) {
         value = attribute->attrValues[i];
         char *value_str = *(reinterpret_cast<char **>(value));
         values_vector.push_back(value_str);
       }
-      rc = lgs_cfg_verify_log_record_destination_configuration(values_vector);
+      rc = lgs_cfg_verify_log_record_destination_configuration(
+          values_vector, attrMod->modType);
       if (rc == -1) {
         report_oi_error(immOiHandle, opdata->ccbId,
                         "%s value is NOT accepted", attribute->attrName);
@@ -1270,6 +1295,31 @@ done:
   return rc;
 }
 
+static bool is_valid_dest_names(const std::vector<std::string>& names) {
+  // Stream has no destination name
+  if (names.size() == 0) return true;
+  for (const auto& name : names) {
+    // Empty destination name is invalid
+    if (name.empty() == true || name.size() == 0) {
+      TRACE("%s name is empty", __func__);
+      return false;
+    }
+
+    // Contain special characters is not allowed
+    if (logutil::isValidName(name) == false) {
+      TRACE("%s name has special chars in", __func__);
+      return false;
+    }
+
+    // Name is too long
+    if (name.length() > kNameMaxLength) {
+      TRACE("%s too long name", __func__);
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Validate input parameters creation and modify of a persistent stream
  * i.e. a stream that has a configuration object.
@@ -1368,12 +1418,16 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
     if (attribute->attrValuesNumber > 0) {
       value = attribute->attrValues[0];
     } else if (opdata->operationType == CCBUTIL_MODIFY) {
-      /* An attribute without a value is never valid if modify */
-      report_oi_error(immOiHandle, opdata->ccbId,
-                      "Attribute %s has no value",attribute->attrName);
-      TRACE("Modify: Attribute %s has no value",attribute->attrName);
-      rc = SA_AIS_ERR_BAD_OPERATION;
-      goto done;
+      if (!strcmp(attribute->attrName, "saLogRecordDestination")) {
+        // do nothing
+      } else {
+        /* An attribute without a value is never valid if modify */
+        report_oi_error(immOiHandle, opdata->ccbId,
+                        "Attribute %s has no value",attribute->attrName);
+        TRACE("Modify: Attribute %s has no value",attribute->attrName);
+        rc = SA_AIS_ERR_BAD_OPERATION;
+        goto done;
+      }
     } else {
       /* If create all attributes will be present also the ones without
        * any value.
@@ -1428,7 +1482,23 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
       i_severityFilter_mod = true;
       TRACE("Saved attribute \"%s\" = %d", attribute->attrName,
             i_severityFilter);
+    } else if (!strcmp(attribute->attrName,"saLogRecordDestination")) {
+      std::vector<std::string> vstring{};
+      for (unsigned i = 0; i < attribute->attrValuesNumber; i++) {
+        value = attribute->attrValues[i];
+        char *value_str = *(reinterpret_cast<char **>(value));
+        vstring.push_back(value_str);
+      }
+      if (is_valid_dest_names(vstring) == false) {
+        /* Report failed if has special character in file name */
+        rc = SA_AIS_ERR_BAD_OPERATION;
+        report_oi_error(immOiHandle, opdata->ccbId,
+                        "Invalid saLogRecordDestination value");
+        TRACE("Invalid saLogRecordDestination value");
+        goto done;
+      }
     }
+
 
     /* Get next attribute or detect no more attributes */
  next:
@@ -1976,6 +2046,41 @@ static void apply_conf_logDataGroupname(const char *logDataGroupname) {
   logDataGroupname_fileown(value_ptr);
 }
 
+static void apply_config_destinations_change(
+    const std::vector<std::string>& vdestcfg,
+    SaImmAttrModificationTypeT type,
+    lgs_config_chg_t* config_data) {
+  switch (type) {
+    case SA_IMM_ATTR_VALUES_ADD:
+      // Configure destinations
+      CfgDestination(vdestcfg, ModifyType::kAdd);
+      lgs_cfgupd_multival_add(LOG_RECORD_DESTINATION_CONFIGURATION,
+                              vdestcfg,
+                              config_data);
+      break;
+
+    case SA_IMM_ATTR_VALUES_DELETE:
+      // Configure destinations
+      CfgDestination(vdestcfg, ModifyType::kDelete);
+      lgs_cfgupd_multival_delete(LOG_RECORD_DESTINATION_CONFIGURATION,
+                                 vdestcfg,
+                                 config_data);
+      break;
+
+    case SA_IMM_ATTR_VALUES_REPLACE:
+      CfgDestination(vdestcfg, ModifyType::kReplace);
+      lgs_cfgupd_mutival_replace(LOG_RECORD_DESTINATION_CONFIGURATION,
+                                 vdestcfg,
+                                 config_data);
+      break;
+
+    default:
+      // Shall never happen
+      LOG_ER("%s: Unknown modType %d", __FUNCTION__, type);
+      osafassert(0);
+  };
+}
+
 /**
  * Apply changes. Validation is not needed here since all validation is done in
  * the complete callback
@@ -2090,28 +2195,9 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
         char *value_str = *(reinterpret_cast<char **>(value));
         values_vector.push_back(value_str);
       }
-
-      switch (attrMod->modType) {
-        case SA_IMM_ATTR_VALUES_ADD:
-          lgs_cfgupd_multival_add(LOG_RECORD_DESTINATION_CONFIGURATION,
-                                  values_vector,
-                                  &config_data);
-          break;
-        case SA_IMM_ATTR_VALUES_DELETE:
-          lgs_cfgupd_multival_delete(LOG_RECORD_DESTINATION_CONFIGURATION,
-                                  values_vector,
-                                  &config_data);
-          break;
-        case SA_IMM_ATTR_VALUES_REPLACE:
-          lgs_cfgupd_mutival_replace(LOG_RECORD_DESTINATION_CONFIGURATION,
-                                  values_vector,
-                                  &config_data);
-          break;
-        default:
-          // Shall never happen
-          LOG_ER("%s: Unknown modType %d", __FUNCTION__, attrMod->modType);
-          osafassert(0);
-      };
+      apply_config_destinations_change(values_vector,
+                                       attrMod->modType,
+                                       &config_data);
     }
 
     attrMod = opdata->param.modify.attrMods[i++];
@@ -2252,6 +2338,15 @@ static SaAisErrorT stream_create_and_configure1(
       } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamSeverityFilter")) {
         (*stream)->severityFilter = *((SaUint32T *) value);
         TRACE("severityFilter: %u", (*stream)->severityFilter);
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                          "saLogRecordDestination")) {
+        std::vector<std::string> vstring{};
+        for (unsigned ii = 0; ii < ccb->param.create.attrValues[i]->attrValuesNumber; ii++) {
+          value = ccb->param.create.attrValues[i]->attrValues[ii];
+          char *value_str = *(reinterpret_cast<char **>(value));
+          vstring.push_back(value_str);
+        }
+        log_stream_add_dest_name(*stream, vstring);
       }
     }
     i++;
@@ -2306,6 +2401,30 @@ static void stream_ccb_apply_create(const CcbUtilOperationData_t *opdata) {
   TRACE_LEAVE();
 }
 
+static void apply_destination_names_change(
+    log_stream_t* stream,
+    const std::vector<std::string>& destname,
+    SaImmAttrModificationTypeT type) {
+  switch (type) {
+    case SA_IMM_ATTR_VALUES_ADD:
+      log_stream_add_dest_name(stream, destname);
+      break;
+
+    case SA_IMM_ATTR_VALUES_DELETE:
+      log_stream_delete_dest_name(stream, destname);
+      break;
+
+    case SA_IMM_ATTR_VALUES_REPLACE:
+      log_stream_replace_dest_name(stream, destname);
+      break;
+
+    default:
+      // Shall never happen
+      LOG_ER("%s: Unknown modType %d", __FUNCTION__, type);
+      osafassert(0);
+  }
+}
+
 static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
   const SaImmAttrModificationT_2 *attrMod;
   int i = 0;
@@ -2325,12 +2444,21 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
 
   attrMod = opdata->param.modify.attrMods[i++];
   while (attrMod != NULL) {
-    void *value;
+    void *value = nullptr;
     const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
 
     TRACE("attribute %s", attribute->attrName);
-
-    value = attribute->attrValues[0];
+    if (attribute->attrValuesNumber != 0) {
+      value = attribute->attrValues[0];
+    } else {
+      if (!strcmp(attribute->attrName, "saLogRecordDestination")) {
+        const std::vector<std::string> dname{};
+        LOG_NO("%s deleted", __func__);
+        log_stream_delete_dest_name(stream, dname);
+        attrMod = opdata->param.modify.attrMods[i++];
+        continue;
+      }
+    }
 
     if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
       fileName = *((char **)value);
@@ -2369,6 +2497,14 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
       if (stream->streamType != STREAM_TYPE_ALARM &&
                 stream->streamType != STREAM_TYPE_NOTIFICATION)
         lgs_send_severity_filter_to_clients(stream->streamId, severityFilter);
+    } else if (!strcmp(attribute->attrName, "saLogRecordDestination")) {
+      std::vector<std::string> vstring{};
+      for (unsigned i = 0; i < attribute->attrValuesNumber; i++) {
+        value = attribute->attrValues[i];
+        char *value_str = *(reinterpret_cast<char **>(value));
+        vstring.push_back(value_str);
+      }
+      apply_destination_names_change(stream, vstring, attrMod->modType);
     } else {
       LOG_ER("Error: Unknown attribute name");
       osafassert(0);
@@ -2620,6 +2756,7 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
     const_cast<char *>("saLogStreamLogFullHaltThreshold"),
     const_cast<char *>("saLogStreamMaxFilesRotated"),
     const_cast<char *>("saLogStreamLogFileFormat"),
+    const_cast<char *>("saLogRecordDestination"),
     const_cast<char *>("saLogStreamSeverityFilter"),
     const_cast<char *>("saLogStreamCreationTimestamp"),
     NULL
@@ -2703,6 +2840,14 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
     } else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
       stream->severityFilter = *((SaUint32T *)value);
       TRACE("severityFilter: %u", stream->severityFilter);
+    } else if (!strcmp(attribute->attrName, "saLogRecordDestination")) {
+      std::vector<std::string> vstring{};
+      for (unsigned i = 0; i < attribute->attrValuesNumber; i++) {
+        value = attribute->attrValues[i];
+        char *value_str = *(reinterpret_cast<char **>(value));
+        vstring.push_back(value_str);
+      }
+      log_stream_add_dest_name(stream, vstring);
     } else if (!strcmp(attribute->attrName, "saLogStreamCreationTimestamp")) {
       if (attribute->attrValuesNumber != 0) {
         /* Restore creation timestamp if exist

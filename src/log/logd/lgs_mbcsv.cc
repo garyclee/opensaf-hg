@@ -21,12 +21,14 @@
 #include "base/ncssysf_mem.h"
 #include "base/osaf_time.h"
 
-#include "lgs_mbcsv_v6.h"
-#include "lgs_mbcsv_v5.h"
-#include "lgs_mbcsv_v3.h"
-#include "lgs_mbcsv_v2.h"
-#include "lgs_mbcsv_v1.h"
-#include "lgs_recov.h"
+#include "osaf/immutil/immutil.h"
+#include "log/logd/lgs_dest.h"
+#include "log/logd/lgs_mbcsv_v6.h"
+#include "log/logd/lgs_mbcsv_v5.h"
+#include "log/logd/lgs_mbcsv_v3.h"
+#include "log/logd/lgs_mbcsv_v2.h"
+#include "log/logd/lgs_mbcsv_v1.h"
+#include "log/logd/lgs_recov.h"
 
 /*
   LGS_CKPT_DATA_HEADER
@@ -125,43 +127,83 @@ uint32_t edp_ed_open_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                                 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err) {
   uint32_t rc = NCSCC_RC_SUCCESS;
   lgs_ckpt_stream_open_t *ckpt_open_stream_msg_ptr = NULL, **ckpt_open_stream_msg_dec_ptr;
+  if (lgs_is_peer_v6()) {
+    EDU_INST_SET ckpt_open_stream_rec_ed_rules[] = {
+      {EDU_START, edp_ed_open_stream_rec, 0, 0, 0, sizeof(lgs_ckpt_stream_open_t), 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->streamId, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->clientId, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFile, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logPath, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFileCurrent, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->dest_names, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxFileSize, 0, NULL},
+      {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxLogRecordSize, 0, NULL},
+      {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFileFullAction, 0, NULL},
+      {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxFilesRotated, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->fileFmt, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logStreamName, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->creationTimeStamp, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->numOpeners, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->streamType, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logRecordId, 0, NULL},
+      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+    };
 
-  EDU_INST_SET ckpt_open_stream_rec_ed_rules[] = {
-    {EDU_START, edp_ed_open_stream_rec, 0, 0, 0, sizeof(lgs_ckpt_stream_open_t), 0, NULL},
-    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->streamId, 0, NULL},
-    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->clientId, 0, NULL},
-    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFile, 0, NULL},
-    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logPath, 0, NULL},
-    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFileCurrent, 0, NULL},
-    {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxFileSize, 0, NULL},
-    {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxLogRecordSize, 0, NULL},
-    {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFileFullAction, 0, NULL},
-    {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxFilesRotated, 0, NULL},
-    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->fileFmt, 0, NULL},
-    {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logStreamName, 0, NULL},
-    {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->creationTimeStamp, 0, NULL},
-    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->numOpeners, 0, NULL},
-    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->streamType, 0, NULL},
-    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logRecordId, 0, NULL},
-    {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-  };
-
-  if (op == EDP_OP_TYPE_ENC) {
-    ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
-  } else if (op == EDP_OP_TYPE_DEC) {
-    ckpt_open_stream_msg_dec_ptr = static_cast<lgs_ckpt_stream_open_t **>(ptr);
-    if (*ckpt_open_stream_msg_dec_ptr == NULL) {
-      *o_err = EDU_ERR_MEM_FAIL;
-      return NCSCC_RC_FAILURE;
+    if (op == EDP_OP_TYPE_ENC) {
+      ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
+    } else if (op == EDP_OP_TYPE_DEC) {
+      ckpt_open_stream_msg_dec_ptr = static_cast<lgs_ckpt_stream_open_t **>(ptr);
+      if (*ckpt_open_stream_msg_dec_ptr == NULL) {
+        *o_err = EDU_ERR_MEM_FAIL;
+        return NCSCC_RC_FAILURE;
+      }
+      memset(*ckpt_open_stream_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_open_t));
+      ckpt_open_stream_msg_ptr = *ckpt_open_stream_msg_dec_ptr;
+    } else {
+      ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
     }
-    memset(*ckpt_open_stream_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_open_t));
-    ckpt_open_stream_msg_ptr = *ckpt_open_stream_msg_dec_ptr;
+
+    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_open_stream_rec_ed_rules, ckpt_open_stream_msg_ptr,
+                             ptr_data_len, buf_env, op, o_err);
   } else {
-    ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
+    EDU_INST_SET ckpt_open_stream_rec_ed_rules[] = {
+      {EDU_START, edp_ed_open_stream_rec, 0, 0, 0, sizeof(lgs_ckpt_stream_open_t), 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->streamId, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->clientId, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFile, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logPath, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFileCurrent, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxFileSize, 0, NULL},
+      {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxLogRecordSize, 0, NULL},
+      {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logFileFullAction, 0, NULL},
+      {EDU_EXEC, ncs_edp_int32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->maxFilesRotated, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->fileFmt, 0, NULL},
+      {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logStreamName, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->creationTimeStamp, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->numOpeners, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->streamType, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_open_t *)0)->logRecordId, 0, NULL},
+      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+    };
+
+    if (op == EDP_OP_TYPE_ENC) {
+      ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
+    } else if (op == EDP_OP_TYPE_DEC) {
+      ckpt_open_stream_msg_dec_ptr = static_cast<lgs_ckpt_stream_open_t **>(ptr);
+      if (*ckpt_open_stream_msg_dec_ptr == NULL) {
+        *o_err = EDU_ERR_MEM_FAIL;
+        return NCSCC_RC_FAILURE;
+      }
+      memset(*ckpt_open_stream_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_open_t));
+      ckpt_open_stream_msg_ptr = *ckpt_open_stream_msg_dec_ptr;
+    } else {
+      ckpt_open_stream_msg_ptr = static_cast<lgs_ckpt_stream_open_t *>(ptr);
+    }
+
+    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_open_stream_rec_ed_rules, ckpt_open_stream_msg_ptr,
+                             ptr_data_len, buf_env, op, o_err);
   }
 
-  rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_open_stream_rec_ed_rules, ckpt_open_stream_msg_ptr,
-                           ptr_data_len, buf_env, op, o_err);
   return rc;
 }       /* End edp_ed_open_stream_rec */
 /* End of EDU encode/decode functions */
@@ -598,6 +640,7 @@ uint32_t lgs_ckpt_stream_open_set(log_stream_t *logStream, lgs_ckpt_stream_open_
   stream_open->logFileCurrent = const_cast<char *>(logStream->logFileCurrent.c_str());
   stream_open->fileFmt = logStream->logFileFormat;
   stream_open->logStreamName = const_cast<char *>(logStream->name.c_str());
+  stream_open->dest_names = const_cast<char *>(logStream->stb_dest_names.c_str());
   stream_open->maxFileSize = logStream->maxLogFileSize;
   stream_open->maxLogRecordSize = logStream->fixedLogRecordSize;
   stream_open->logFileFullAction = logStream->logFullAction;
@@ -1068,7 +1111,11 @@ static uint32_t ckpt_decode_log_cfg_stream(lgs_cb_t *cb, void *ckpt_msg,
   void *stream_cfg;
   EDU_PROG_HANDLER edp_function;
 
-  if (lgs_is_peer_v2()) {
+  if (lgs_is_peer_v6()) {
+    lgsv_ckpt_msg_v6_t *ckpt_msg_v6 = static_cast<lgsv_ckpt_msg_v6_t *>(ckpt_msg);
+    stream_cfg = &ckpt_msg_v6->ckpt_rec.stream_cfg;
+    edp_function = edp_ed_cfg_stream_rec_v6;
+  } else if (lgs_is_peer_v2()) {
     lgsv_ckpt_msg_v2_t *ckpt_msg_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(ckpt_msg);
     stream_cfg = &ckpt_msg_v2->ckpt_rec.stream_cfg;
     edp_function = edp_ed_cfg_stream_rec_v2;
@@ -1090,11 +1137,16 @@ static uint32_t ckpt_decode_log_cfg(lgs_cb_t *cb, void *ckpt_msg,
   uint32_t rc = NCSCC_RC_SUCCESS;
   void *lgs_cfg = NULL;
   EDU_PROG_HANDLER edp_function = NULL;
+  lgsv_ckpt_msg_v6_t *ckpt_msg_v6;
   lgsv_ckpt_msg_v5_t *ckpt_msg_v5;
   lgsv_ckpt_msg_v3_t *ckpt_msg_v3;
   lgsv_ckpt_msg_v2_t *ckpt_msg_v2;
 
-  if (lgs_is_peer_v5()) {
+  if (lgs_is_peer_v6()) {
+    ckpt_msg_v6 = static_cast<lgsv_ckpt_msg_v6_t *>(ckpt_msg);
+    lgs_cfg = &ckpt_msg_v6->ckpt_rec.lgs_cfg;
+    edp_function = edp_ed_lgs_cfg_rec_v5;
+  } else if (lgs_is_peer_v5()) {
     ckpt_msg_v5 = static_cast<lgsv_ckpt_msg_v5_t *>(ckpt_msg);
     lgs_cfg = &ckpt_msg_v5->ckpt_rec.lgs_cfg;
     edp_function = edp_ed_lgs_cfg_rec_v5;
@@ -1157,7 +1209,7 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
   if (lgs_is_peer_v6()) {
     ckpt_msg_v6->header = hdr;
     ckpt_msg = ckpt_msg_v6;
-  } else   if (lgs_is_peer_v5()) {
+  } else if (lgs_is_peer_v5()) {
     ckpt_msg_v5->header = hdr;
     ckpt_msg = ckpt_msg_v5;
   } else if (lgs_is_peer_v4()) {
@@ -1178,7 +1230,7 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
       if (lgs_is_peer_v6()) {
         reg_rec = &ckpt_msg_v6->ckpt_rec.initialize_client;
         edp_function_reg = edp_ed_reg_rec_v6;
-      }  else if (lgs_is_peer_v5()) {
+      } else if (lgs_is_peer_v5()) {
         reg_rec = &ckpt_msg_v5->ckpt_rec.initialize_client;
         edp_function_reg = edp_ed_reg_rec;
       } else if (lgs_is_peer_v4()) {
@@ -1904,10 +1956,14 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data) {
   lgs_ckpt_stream_open_t *param;
   log_stream_t *stream;
   int pos = 0, err = 0;
+  SaNameT objectName;
 
   TRACE_ENTER();
 
-  if (lgs_is_peer_v2()) {
+  if (lgs_is_peer_v6()) {
+    lgsv_ckpt_msg_v6_t *data_v6 = static_cast<lgsv_ckpt_msg_v6_t *>(data);
+    param = &data_v6->ckpt_rec.stream_open;
+  } else if (lgs_is_peer_v2()) {
     lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
     param = &data_v2->ckpt_rec.stream_open;
   } else {
@@ -1972,7 +2028,27 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data) {
     stream->logFileCurrent = param->logFileCurrent;
     stream->stb_prev_actlogFileCurrent = param->logFileCurrent;
     stream->stb_logFileCurrent = param->logFileCurrent;
-    stream->isRtStream = SA_TRUE;
+
+    osaf_extended_name_lend(param->logStreamName, &objectName);
+    SaImmClassNameT className = immutil_get_className(&objectName);
+    if (className != nullptr && strcmp(className, "SaLogStreamConfig") == 0) {
+      stream->isRtStream = SA_FALSE;
+    } else {
+      stream->isRtStream = SA_TRUE;
+    }
+    if (className != nullptr) free(className);
+
+    // Only update destination names if peer is v6 or upper.
+    if (lgs_is_peer_v6()) {
+      if (param->dest_names != nullptr && strlen(param->dest_names) != 0) {
+        TRACE("Dest_name %s", param->dest_names);
+        stream->stb_dest_names = std::string{param->dest_names};
+        stream->dest_names = logutil::Parser(stream->stb_dest_names, ";");
+      } else {
+        stream->stb_dest_names = "";
+        stream->dest_names.clear();
+      }
+    }
   }
 
   /* If configured for split file system files shall be opened on stand by
@@ -2131,12 +2207,28 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data) {
   SaUint32T logFullHaltThreshold; /* !app log stream */
   SaUint32T maxFilesRotated;
   char *logFileFormat;
+  char *dest_names = nullptr;
   SaUint32T severityFilter;
   char *logFileCurrent;
 
   TRACE_ENTER();
 
-  if (lgs_is_peer_v2()) {
+  if (lgs_is_peer_v6()) {
+    lgsv_ckpt_msg_v6_t *data_v6 = static_cast<lgsv_ckpt_msg_v6_t *>(data);
+    name = data_v6->ckpt_rec.stream_cfg.name;
+    fileName = data_v6->ckpt_rec.stream_cfg.fileName;
+    pathName = data_v6->ckpt_rec.stream_cfg.pathName;
+    maxLogFileSize = data_v6->ckpt_rec.stream_cfg.maxLogFileSize;
+    fixedLogRecordSize = data_v6->ckpt_rec.stream_cfg.fixedLogRecordSize;
+    logFullAction = data_v6->ckpt_rec.stream_cfg.logFullAction;
+    logFullHaltThreshold = data_v6->ckpt_rec.stream_cfg.logFullHaltThreshold;
+    maxFilesRotated = data_v6->ckpt_rec.stream_cfg.maxFilesRotated;
+    logFileFormat = data_v6->ckpt_rec.stream_cfg.logFileFormat;
+    severityFilter = data_v6->ckpt_rec.stream_cfg.severityFilter;
+    logFileCurrent = data_v6->ckpt_rec.stream_cfg.logFileCurrent;
+    dest_names = data_v6->ckpt_rec.stream_cfg.dest_names;
+    closetime = data_v6->ckpt_rec.stream_cfg.c_file_close_time_stamp;
+  } else if (lgs_is_peer_v2()) {
     lgsv_ckpt_msg_v2_t *data_v2 = static_cast<lgsv_ckpt_msg_v2_t *>(data);
     name = data_v2->ckpt_rec.stream_cfg.name;
     fileName = data_v2->ckpt_rec.stream_cfg.fileName;
@@ -2189,6 +2281,17 @@ static uint32_t ckpt_proc_cfg_stream(lgs_cb_t *cb, void *data) {
   strcpy(stream->logFileFormat, logFileFormat);
   stream->severityFilter = severityFilter;
   stream->logFileCurrent = logFileCurrent;
+  // Only update destination name if peer is v6 or upper.
+  if (lgs_is_peer_v6()) {
+    if (dest_names != nullptr && strlen(dest_names) != 0) {
+      TRACE("dest_names: %s", dest_names);
+      stream->stb_dest_names = std::string{dest_names};
+      stream->dest_names = logutil::Parser(stream->stb_dest_names, ";");
+    } else {
+      stream->stb_dest_names = "";
+      stream->dest_names.clear();
+    }
+  }
 
   /* If split file mode, update standby files */
   if (lgs_is_split_file_system()) {

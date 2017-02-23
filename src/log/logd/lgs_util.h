@@ -27,7 +27,7 @@
 
 #include "osaf/saf/saAis.h"
 #include "amf/saf/saAmf.h"
-
+#include <vector>
 #include "lgs_stream.h"
 #include "lgs_evt.h"
 
@@ -85,5 +85,14 @@ void lgs_close_timer(int ufd);
 bool lgs_is_extended_name_valid(const SaNameT* name);
 void lgs_send_severity_filter_to_clients(uint32_t stream_id,
                                          SaLogSeverityFlagsT serverity);
+
+namespace logutil {
+// Parse string format "a;b;c" to vector of string {a, b, c}
+// In generic, this function could be used to split a string
+// separated by delimiter to a vector of strings.
+std::vector<std::string> Parser(const std::string&, const std::string&);
+// Check if @name contain special characters in.
+bool isValidName(const std::string& name);
+};  // namespace logutil
 
 #endif  // LOG_LOGD_LGS_UTIL_H_
