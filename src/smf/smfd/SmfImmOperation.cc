@@ -34,6 +34,7 @@
 #include "imm/saf/saImm.h"
 #include "base/saf_error.h"
 #include "base/osaf_extended_name.h"
+#include "base/osaf_time.h"
 #include "smf/smfd/smfd_long_dn.h"
 
 /* ========================================================================
@@ -440,7 +441,25 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 		const SaNameT *objectNames[2];
 		objectNames[0] = &objectName;
 		objectNames[1] = NULL;
-		result = immutil_saImmOmAdminOwnerSet(m_immOwnerHandle, objectNames, SA_IMM_ONE);
+
+                // We are taking admin owner on the parent DN of this object.
+                // This can be conflicting with other threads which also want
+                // to create objects. Specifically SmfUpgradeStep takes admin
+                // owner when creating node groups. Retry if object has admin
+                // owner already.
+                int timeout_try_cnt = 6;
+                while (timeout_try_cnt > 0) {
+                        TRACE("%s: calling adminOwnerSet", __FUNCTION__);
+                        result = immutil_saImmOmAdminOwnerSet(m_immOwnerHandle,
+                                                              objectNames,
+                                                              SA_IMM_ONE);
+                        if (result != SA_AIS_ERR_EXIST)
+                                break;
+
+                        timeout_try_cnt--;
+                        TRACE("%s: adminOwnerSet returned SA_AIS_ERR_EXIST, sleep 1 second and retry", __FUNCTION__);
+                        osaf_nanosleep(&kOneSecond);
+                }
 		if (result != SA_AIS_OK) {
 			TRACE("SmfImmCreateOperation::execute:saImmOmAdminOwnerSet failed %s\n", saf_error(result));
                         TRACE_LEAVE();
@@ -645,8 +664,22 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
 	objectNames[0] = &objectName;
 	objectNames[1] = NULL;
 
-	//Set IMM ownership
-	result = immutil_saImmOmAdminOwnerSet(m_immOwnerHandle, objectNames, SA_IMM_ONE);
+        // We are taking admin owner on the parent DN of this object. This can
+        // be conflicting with other threads which also want to create objects.
+        // Retry if object has admin owner already.
+        int timeout_try_cnt = 6;
+        while (timeout_try_cnt > 0) {
+                TRACE("%s: calling adminOwnerSet", __FUNCTION__);
+                result = immutil_saImmOmAdminOwnerSet(m_immOwnerHandle,
+                                                      objectNames,
+                                                      SA_IMM_ONE);
+                if (result != SA_AIS_ERR_EXIST)
+                        break;
+
+                timeout_try_cnt--;
+                TRACE("%s: adminOwnerSet returned SA_AIS_ERR_EXIST, sleep 1 second and retry", __FUNCTION__);
+                osaf_nanosleep(&kOneSecond);
+        }
 	if (result != SA_AIS_OK) {
 		TRACE("SmfImmDeleteOperation::execute, saImmOmAdminOwnerSet failed rc=%s", saf_error(result));
                 TRACE_LEAVE();
