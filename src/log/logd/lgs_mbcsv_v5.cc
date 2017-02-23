@@ -48,6 +48,7 @@ uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data) {
   char *saved_buf = NULL;
   int rc = 0;
 
+  TRACE_ENTER();
   /* Flag set if any of the mailbox limit values have changed */
   bool mailbox_lim_upd = false;
 
@@ -140,6 +141,7 @@ uint32_t ckpt_proc_lgs_cfg_v5(lgs_cb_t *cb, void *data) {
 
   lgs_trace_config();
 
+  TRACE_LEAVE();
   return NCSCC_RC_SUCCESS;
 }
 

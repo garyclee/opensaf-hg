@@ -148,6 +148,13 @@
 			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
+			<name>saLogRecordDestination</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+                        <flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
 			<name>saLogStreamCreationTimestamp</name>
 			<type>SA_TIME_T</type>
 			<category>SA_RUNTIME</category>
@@ -250,6 +257,14 @@ to ensure that default global values in the implementation are also changed acco
 			<category>SA_CONFIG</category>
 			<flag>SA_WRITABLE</flag>
 		</attr>
+		<attr>
+			<name>logRecordDestinationConfiguration</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+                        <flag>SA_MULTI_VALUE</flag>
+                        <flag>SA_NO_DUPLICATES</flag>
+		</attr>
 	</class>
 	<class name="OpenSafLogCurrentConfig">
 		<category>SA_RUNTIME</category>
@@ -313,6 +328,18 @@ to ensure that default global values in the implementation are also changed acco
 			<name>logDataGroupname</name>
 			<type>SA_STRING_T</type>
 			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>logRecordDestinationConfiguration</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+                        <flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>logRecordDestinationStatus</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+                        <flag>SA_MULTI_VALUE</flag>
 		</attr>
 	</class>
 </imm:IMM-contents>

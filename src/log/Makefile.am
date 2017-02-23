@@ -150,7 +150,8 @@ bin_PROGRAMS += bin/logtest bin/saflogtest bin/logtestfr
 
 noinst_HEADERS += \
 	src/log/apitest/logtest.h \
-	src/log/apitest/logutil.h
+	src/log/apitest/logutil.h \
+	src/log/apitest/imm_tstutil.h
 
 bin_logtest_CFLAGS = $(AM_CFLAGS) -Wformat=1
 
@@ -161,6 +162,7 @@ bin_logtest_CPPFLAGS = \
 bin_logtest_SOURCES = \
 	src/log/apitest/logtest.c \
 	src/log/apitest/logutil.c \
+	src/log/apitest/imm_tstutil.c \
 	src/log/apitest/tet_saLogInitialize.c \
 	src/log/apitest/tet_saLogSelectionObjectGet.c \
 	src/log/apitest/tet_saLogDispatch.c \

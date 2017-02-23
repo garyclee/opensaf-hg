@@ -420,7 +420,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in) {
   if (rc != 0) osaf_abort(rc);
 
   /* Wait for an answer */
-  max_waittime_ms = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT));
+  max_waittime_ms = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILE_IO_TIMEOUT));
   get_timeout_time(&timeout_time, max_waittime_ms);
 
   while (lgs_com_data.answer_f == false) {

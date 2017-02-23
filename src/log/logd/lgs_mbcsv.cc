@@ -380,7 +380,7 @@ bool lgs_is_peer_v6() {
  */
 bool lgs_is_split_file_system() {
   SaUint32T lgs_file_config;
-  lgs_file_config = *static_cast<const SaUint32T*>(lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG));
+  lgs_file_config = *static_cast<const SaUint32T*>(lgs_cfg_get(LGS_IMM_LOG_FILE_SYS_CONFIG));
 
   if ((lgs_file_config == LGS_LOG_SPLIT_FILESYSTEM) && lgs_is_peer_v2()) {
     return true;

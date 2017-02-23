@@ -74,7 +74,7 @@
 /* The name of log service config object */
 #define LGS_IMM_LOG_CONFIGURATION       "logConfig=1,safApp=safLogService"
 
-/* The possible configurations for LGS_IMM_LOG_FILESYS_CFG */
+/* The possible configurations for LGS_IMM_LOG_FILE_SYS_CONFIG */
 #define LGS_LOG_SHARED_FILESYSTEM 1             /* Use shared filesystem. Default */
 #define LGS_LOG_SPLIT_FILESYSTEM  2     /* Store logs on local file system on
                                            each node */

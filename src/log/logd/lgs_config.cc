@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2015 The OpenSAF Foundation
+ * Copyright Ericsson AB [2015, 2017] - All Rights Reserved
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -27,6 +28,10 @@
 #include <string.h>
 #include <utmp.h>
 
+#include <string>
+#include <vector>
+#include <algorithm>
+
 #include "osaf/configmake.h"
 #include "base/saf_error.h"
 #include "base/osaf_secutil.h"
@@ -40,15 +45,6 @@ static SaVersionT immVersion = { 'A', 2, 11 };
 
 /* Mutex for making read and write of configuration data thread safe */
 pthread_mutex_t lgs_config_data_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-/***
- * This file contains handling of Log service configuration including:
- *  - Configuration object
- *  - Environment variables
- *  - Default values
- *  - Verification of attribute values
- *  - Check-pointing
- */
 
 /* The name of log service config object */
 #define LGS_IMM_LOG_CONFIGURATION       "logConfig=1,safApp=safLogService"
@@ -118,7 +114,12 @@ typedef struct _lgs_conf_t {
   SaUint32T logMaxApplicationStreams;
   SaUint32T logFileIoTimeout;
   SaUint32T logFileSysConfig;
+  std::vector<std::string> logRecordDestinationConfiguration; // Default empty
   /* --- end correspond to IMM Class --- */
+
+  /* --- Used with OpenSafLogCurrentConfig runtime object only --- */
+  /* Note: Has no cnfflag */
+  std::vector<std::string> logRecordDestinationStatus; // Default empty
 
   /* Used for checkpointing time when files are closed */
   time_t chkp_file_close_time;
@@ -136,20 +137,22 @@ typedef struct _lgs_conf_t {
   lgs_conf_flg_t logFileSysConfig_cnfflag;
   lgs_conf_flg_t logDataGroupname_cnfflag;
   lgs_conf_flg_t logStreamFileFormat_cnfflag;
+  lgs_conf_flg_t logRecordDestinationConfiguration_cnfflag;
 
   _lgs_conf_t() :
-    logRootDirectory(lgs_conf_def.logRootDirectory),
-    logRootDirectory_cnfflag(LGS_CNF_DEF),
-    logMaxLogrecsize_cnfflag(LGS_CNF_DEF),
-    logStreamSystemHighLimit_cnfflag(LGS_CNF_DEF),
-    logStreamSystemLowLimit_cnfflag(LGS_CNF_DEF),
-    logStreamAppHighLimit_cnfflag(LGS_CNF_DEF),
-    logStreamAppLowLimit_cnfflag(LGS_CNF_DEF),
-    logMaxApplicationStreams_cnfflag(LGS_CNF_DEF),
-    logFileIoTimeout_cnfflag(LGS_CNF_DEF),
-    logFileSysConfig_cnfflag(LGS_CNF_DEF),
-    logDataGroupname_cnfflag(LGS_CNF_DEF),
-    logStreamFileFormat_cnfflag(LGS_CNF_DEF) {
+    logRootDirectory {PKGLOGDIR},
+    logRootDirectory_cnfflag {LGS_CNF_DEF},
+    logMaxLogrecsize_cnfflag {LGS_CNF_DEF},
+    logStreamSystemHighLimit_cnfflag {LGS_CNF_DEF},
+    logStreamSystemLowLimit_cnfflag {LGS_CNF_DEF},
+    logStreamAppHighLimit_cnfflag {LGS_CNF_DEF},
+    logStreamAppLowLimit_cnfflag {LGS_CNF_DEF},
+    logMaxApplicationStreams_cnfflag {LGS_CNF_DEF},
+    logFileIoTimeout_cnfflag {LGS_CNF_DEF},
+    logFileSysConfig_cnfflag {LGS_CNF_DEF},
+    logDataGroupname_cnfflag {LGS_CNF_DEF},
+    logStreamFileFormat_cnfflag {LGS_CNF_DEF},
+    logRecordDestinationConfiguration_cnfflag {LGS_CNF_DEF} {
     OpenSafLogConfig_object_exist = false;
     /*
      * The following attributes cannot be configured in the config file
@@ -170,41 +173,10 @@ typedef struct _lgs_conf_t {
 
 static lgs_conf_t lgs_conf;
 
-/******************************************************************************
- * Internal functions
- ******************************************************************************/
-
 static char *cnfflag_str(lgs_conf_flg_t cnfflag);
 static int verify_all_init();
 
-/******************************************************************************
- * Utility functions
- */
 
-/******************************************************************************
- * Check-pointing handling of configuration
- */
-
-/**
- * Create configuration data buffer
- * Creates a buffer containing all configuration data to be updated.
- * Each time the function is called a configuration parameter is added.
- *
- * The buffer structure can be sent as a check-point message and the updating
- * is done on the Standby. It can also be used in the OI to create an update
- * buffer in the apply callback. Use lgs_cfg_update() for updating the
- * configuration.
- *
- * NOTE1: Parameter name and value is not validated
- * NOTE2: This function allocates memory pointed to by config_data in the
- *        lgs_config_chg_t structure. This memory has to bee freed after usage
- *
- * @param name_str[in]  String containing the parameter name
- * @param value_str[in] Parmeter value as a string
- * @param config_data[out] Filled in config data structure
- *                         NOTE! Must be initiated before first call {NULL, 0}
- *
- */
 void lgs_cfgupd_list_create(const char *name_str, char *value_str,
                             lgs_config_chg_t *config_data) {
   char *tmp_char_ptr = NULL;
@@ -241,7 +213,7 @@ void lgs_cfgupd_list_create(const char *name_str, char *value_str,
     tmp_char_ptr = static_cast<char *>(realloc(
         config_data->ckpt_buffer_ptr, alloc_size));
     if (tmp_char_ptr == NULL) {
-      TRACE("%s: malloc Fail Aborted", __FUNCTION__);
+      LOG_ER("%s: malloc Fail Aborted", __FUNCTION__);
       osaf_abort(0);
     }
 
@@ -256,27 +228,120 @@ void lgs_cfgupd_list_create(const char *name_str, char *value_str,
   TRACE_LEAVE();
 }
 
-/**
- * Read a config update buffer and get parameter name and value.
- * The first time the function is called next_param_ptr shall be
- * a pointer to the buffer containing the config data.
- * See ckpt_buffer_ptr in lgs_config_chg_t.
- * To get the next parameter the next_param_ptr[in] shall be set to the
- * return value from the previous call. NULL is returned when the last parameter
- * is read.
- * The last parameter cfgupd_ptr shall be a pointer to the buffer structure to
- * read
+/*******************************************************************************
+ * Help functions for handling multi value attributes with the cfgupd list.
+ * Multi values can be handled in three ways Add, Delete and Replace
+ * In the configuration handler multi values will always be replaced. These
+ * help functions will always create a complete list of values and add them
+ * to the cfgupd list. Multiple values will be added to the list by adding
+ * the same attribute multiple times with different values.
+ * When reading a list using lgs_cfgupd_list_read() a multi value will be given
+ * by returning the same attribute multiple times with different values
  *
- * NOTE: The string pointed to by cfgupd_ptr->ckpt_buffer_ptr is changed in
- *       this function! See strtok_r()
+ * All functions takes the following parameters:
  *
- * @param name_str[out]
- * @param value_str[out]
- * @param next_param_ptr[in]
- * @param cfgupd_ptr[in]
+ * @param attribute_name:
+ * The name of the multi value attribute
  *
- * @return next_param_ptr
+ * @param value_list:
+ * A list of strings where each string represents a value
+ *
+ * @param config_data
+ * See lgs_cfgupd_list_create()
  */
+
+void lgs_cfgupd_multival_add(const std::string& attribute_name,
+                             const std::vector<std::string>& value_list,
+                             lgs_config_chg_t *config_data) {
+  TRACE_ENTER();
+  // Get the existing multi-values and add them to the config data list
+  lgs_logconfGet_t param_id = param_name_to_id(attribute_name);
+  const std::vector<std::string> *exist_list =
+      reinterpret_cast<const std::vector<std::string>*>(lgs_cfg_get(param_id));
+
+  for (const auto& value : *exist_list) {
+    lgs_cfgupd_list_create(attribute_name.c_str(),
+                           const_cast<char *>(value.c_str()),
+                           config_data);
+  }
+
+  // Add the new values in the value-list to the config data list
+  for (const auto& value : value_list) {
+    lgs_cfgupd_list_create(attribute_name.c_str(),
+                           const_cast<char *>(value.c_str()),
+                           config_data);
+  }
+  TRACE_LEAVE();
+}
+
+/**
+ * Delete the values given in the list from the multi value attribute
+ * 
+ */
+static bool is_value_in_vector(const std::vector<std::string>& search_vector,
+                        const std::string& searched_value) {
+  // Check if value is in vector
+  bool rc = false;
+  for (const auto& value : search_vector) {
+    if (value == searched_value) {
+      rc = true;
+      break;
+    }
+  }
+  return rc;
+}
+void lgs_cfgupd_multival_delete(const std::string attribute_name,
+                                const std::vector<std::string> value_list,
+                                lgs_config_chg_t *config_data) {
+  TRACE_ENTER();
+  // Get the existing multi-values
+  lgs_logconfGet_t param_id = param_name_to_id(attribute_name);
+  const std::vector<std::string> *exist_list =
+      reinterpret_cast<const std::vector<std::string>*>(lgs_cfg_get(param_id));
+
+  // Iterate over the exist_list and create a new list containing the
+  // existing values except the values in the given value-list
+  std::vector<std::string> result_list;
+  for (const auto& exist_value: *exist_list) {
+    if (is_value_in_vector(value_list, exist_value) == false) {
+      result_list.push_back(exist_value);
+    }
+  }
+  
+  // Add this new list to the config data list
+  for (const auto& value : result_list) {
+    lgs_cfgupd_list_create(attribute_name.c_str(),
+                           const_cast<char *>(value.c_str()),
+                           config_data);
+  }
+  TRACE_LEAVE();
+}
+
+/**
+ * Replace all existing values in the multi value attribute with the values in
+ * the list
+ */
+void lgs_cfgupd_mutival_replace(const std::string attribute_name,
+                                const std::vector<std::string> value_list,
+                                lgs_config_chg_t *config_data) {
+  TRACE_ENTER();
+
+  // Add given value-list to the config data list
+  if (value_list.empty()) {
+    // Special case. Create config_data with empty value
+    lgs_cfgupd_list_create(attribute_name.c_str(), const_cast<char *>(""),
+                           config_data);
+  } else {
+    for (const auto& value : value_list) {
+      lgs_cfgupd_list_create(attribute_name.c_str(),
+                             const_cast<char *>(value.c_str()),
+                             config_data);
+    }
+  }
+
+  TRACE_LEAVE();
+}
+
 char *lgs_cfgupd_list_read(char **name_str, char **value_str,
                            char *next_param_ptr, lgs_config_chg_t *cfgupd_ptr) {
   char *bufend_ptr = NULL;
@@ -306,23 +371,6 @@ done:
   return next_ptr;
 }
 
-/**
- * Parse a configuration data buffer and update the configuration structure.
- * Used on Standby when receiving configuration check-point data and by OI
- * to update configuration at modify apply.
- *
- * NOTE1: Operates on a static data structure. Is not thread safe
- * NOTE2: Validation is done here. If validation fails we will be out of
- *        sync. A warning is logged to syslog
- * Comment: Check-pointed configuration data is always sent when the
- *          configuration object is updated or when applying cahnges in IO.
- *          This means that the corresponding cnfflag is set to LGS_CNF_OBJ
- *
- * @param config_data[in] Pointer to structure containing configuration
- *        data buffer
- *
- * @return -1 if validation error
- */
 int lgs_cfg_update(const lgs_config_chg_t *config_data) {
   char *bufend_ptr = NULL;
   char *allocmem_ptr = NULL;
@@ -332,6 +380,8 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data) {
   char *value_str = NULL;
   char *saveptr = NULL;
   int rc = 0;
+  bool logRecordDestinationConfiguration_list_clear = true;
+  bool logRecordDestinationStatus_list_clear = true;
 
   TRACE_ENTER();
   /* Validate config_data */
@@ -403,6 +453,28 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data) {
     } else if (strcmp(name_str, LOG_FILE_SYS_CONFIG) == 0) {
       lgs_conf.logFileSysConfig = (SaUint32T)
           strtoul(value_str, NULL, 0);
+    } else if (strcmp(name_str, LOG_RECORD_DESTINATION_CONFIGURATION) == 0) {
+      if (logRecordDestinationConfiguration_list_clear) {
+        lgs_conf.logRecordDestinationConfiguration.clear();
+        logRecordDestinationConfiguration_list_clear = false;
+      }
+      if (strlen(value_str) == 0) {
+        // The attribute has no values
+        lgs_conf.logRecordDestinationConfiguration.clear();
+      } else {
+        lgs_conf.logRecordDestinationConfiguration.push_back(value_str);
+      }
+    } else if (strcmp(name_str, LOG_RECORD_DESTINATION_STATUS) == 0) {
+      if (logRecordDestinationStatus_list_clear) {
+        lgs_conf.logRecordDestinationStatus.clear();
+        logRecordDestinationStatus_list_clear = false;
+      }
+      if (strlen(value_str) == 0) {
+        // The attribute has no values
+        lgs_conf.logRecordDestinationStatus.clear();
+      } else {
+        lgs_conf.logRecordDestinationStatus.push_back(value_str);
+      }
     }
 
     param_ptr = next_ptr;
@@ -412,8 +484,6 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data) {
 
   /* Config data is written. Mutex can be unlocked */
   osaf_mutex_unlock_ordie(&lgs_config_data_mutex);
-
-  lgs_trace_config();
 
   /* Validate the configuration structure data
    * For the moment Log a warning and do nothing.
@@ -639,6 +709,35 @@ static int lgs_cfg_verify_log_filesys_config(uint32_t log_filesys_config) {
   return rc;
 }
 
+/**
+ * Verify all values of log_record_destination_configuration
+ * Rules:
+ * - Empty string is Ok else
+ * - String shall have at least three fields separated by '\n'
+ * - First and second field cannot be empty
+ *
+ * @param log_record_destination_configuration[in]
+ * @return -1 on error
+ */
+int lgs_cfg_verify_log_record_destination_configuration(
+  std::vector<std::string>& log_record_destination_configuration) {
+  int rc = 0;
+  TRACE_ENTER();
+
+  int nl_cnt = 0;
+  for (auto& config : log_record_destination_configuration) {
+    // Verify that the string contains at least 2 ';'
+    nl_cnt = std::count(config.begin(), config.end(), ';');
+    if (nl_cnt < 2) {
+      rc = -1;
+      break;
+    }
+  }
+
+  TRACE_LEAVE2("rc = %s", rc == -1? "Fail": "Pass");
+  return rc;
+}
+
 
 /**
  * Verify logRootDirectory; path to be used as log root directory
@@ -743,6 +842,13 @@ static int verify_all_init() {
   if (lgs_cfg_verify_log_filesys_config(lgs_conf.logFileSysConfig) == -1) {
     lgs_conf.logFileSysConfig = lgs_conf_def.logFileSysConfig;
     lgs_conf.logFileSysConfig_cnfflag = LGS_CNF_DEF;
+    rc = -1;
+  }
+
+  if (lgs_cfg_verify_log_record_destination_configuration(
+      lgs_conf.logRecordDestinationConfiguration) == -1) {
+    lgs_conf.logRecordDestinationConfiguration.clear();
+    lgs_conf.logRecordDestinationConfiguration_cnfflag = LGS_CNF_DEF;
     rc = -1;
   }
   TRACE_LEAVE();
@@ -883,6 +989,18 @@ static void read_logsv_config_obj_2() {
       lgs_conf.logFileSysConfig = *((SaUint32T *) value);
       lgs_conf.logFileSysConfig_cnfflag = LGS_CNF_OBJ;
       TRACE("Conf obj; logFileSysConfig: %u", lgs_conf.logFileSysConfig);
+    } else if (!strcmp(attribute->attrName,
+                       LOG_RECORD_DESTINATION_CONFIGURATION)) {
+      // Note: Multi value
+      char *value_string;
+      for (uint32_t i = 0; i < attribute->attrValuesNumber; i++) {
+        value = attribute->attrValues[i];
+        value_string = *(reinterpret_cast<char **>(value));
+        lgs_conf.logRecordDestinationConfiguration.push_back(value_string);
+        TRACE("Conf obj; logRecordDestinationConfiguration: '%s'",
+              lgs_conf.logRecordDestinationConfiguration.back().c_str());
+      }
+      lgs_conf.logRecordDestinationConfiguration_cnfflag = LGS_CNF_OBJ;
     }
   }
 
@@ -1125,10 +1243,6 @@ static void read_log_config_environ_var_2() {
  * Public functions for handling configuration information
  ******************************************************************************/
 
-/**
- * Read the log service configuration data verify and update configuration
- * data structure
- */
 void lgs_cfg_init(SaImmOiHandleT immOiHandle, SaAmfHAStateT ha_state) {
   TRACE_ENTER2("immOiHandle = %lld", immOiHandle);
 
@@ -1208,14 +1322,20 @@ const void *lgs_cfg_get(lgs_logconfGet_t param) {
     case LGS_IMM_LOG_MAX_APPLICATION_STREAMS:
       value_ptr = &lgs_conf.logMaxApplicationStreams;
       break;
-    case LGS_IMM_FILEHDL_TIMEOUT:
+    case LGS_IMM_FILE_IO_TIMEOUT:
       value_ptr = &lgs_conf.logFileIoTimeout;
       break;
-    case LGS_IMM_LOG_FILESYS_CFG:
+    case LGS_IMM_LOG_FILE_SYS_CONFIG:
       value_ptr = &lgs_conf.logFileSysConfig;
       break;
     case LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST:
       value_ptr = &lgs_conf.OpenSafLogConfig_object_exist;
+      break;
+    case LGS_IMM_LOG_RECORD_DESTINATION_CONFIGURATION:
+      value_ptr = &lgs_conf.logRecordDestinationConfiguration;
+      break;
+    case LGS_IMM_LOG_RECORD_DESTINATION_STATUS:
+      value_ptr = &lgs_conf.logRecordDestinationStatus;
       break;
 
     case LGS_IMM_LOG_NUMBER_OF_PARAMS:
@@ -1385,6 +1505,152 @@ void conf_runtime_obj_create(SaImmOiHandleT immOiHandle) {
 }
 
 /**
+ * Same as immutil_update_one_rattr() except that
+ *
+ * All parameters are input parameters
+ *
+ */
+SaAisErrorT update_multival_rattr(SaImmOiHandleT immOiHandle,
+				     const char *dn,
+				     SaImmAttrNameT attributeName,
+				     SaImmValueTypeT attrValueType,
+                                     SaUint32T attrValuesNumber,
+                                     void **values)
+{
+	SaImmAttrModificationT_2 attrMod;
+	const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+	SaImmAttrValueT *attrValues = values;
+	SaNameT objectName;
+
+	saAisNameLend(dn, &objectName);
+
+	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod.modAttr.attrName = attributeName;
+	attrMod.modAttr.attrValuesNumber = attrValuesNumber;
+	attrMod.modAttr.attrValueType = attrValueType;
+	attrMod.modAttr.attrValues = attrValues;
+	return immutil_saImmOiRtObjectUpdate_2(immOiHandle, &objectName,
+					       attrMods);
+}
+
+/**
+ * Creates a list of type void ** containing pointers to the
+ * strings in a C++ vector of strings
+ * Note: The attrValues C array is allocated and must be freed after use
+ *
+ * @param strings_in[in] C++ vector of strings
+ * @param attrValues[out] A C array with void pointers to C strings in
+ *                        strings_in
+ * @return attrValuesNumber
+ */
+static SaUint32T vector_of_strings_to_attrValues(
+          const std::vector<std::string>* strings_in, void ***attrValues_out) {
+  TRACE_ENTER();
+
+  SaUint32T attrValuesNumber = strings_in->size();
+
+  char **values_array = (char **) calloc(attrValuesNumber, sizeof(void **));
+  if (values_array == nullptr) {
+    LOG_ER("%s: calloc Fail, Aborted", __FUNCTION__);
+    osaf_abort(0);
+  }
+  *attrValues_out = (void **) values_array;
+
+  SaUint32T i = 0;
+  for (auto& conf_string : *strings_in) {
+    values_array[i] = const_cast<char *>(conf_string.c_str());
+    i++;
+  }
+
+  TRACE_LEAVE();
+  return attrValuesNumber;
+}
+
+/**
+ * Update one runtime attribute of the specified object.
+ * Same as immutil_update_one_rattr() but updates a list of values (multi value)
+ *
+ * @param immOiHandle[in]
+ * @param dn[in]
+ * @param attributeName[in]
+ * @param attrValueType[in]
+ * @param valuesNumber[in]
+ * @param values[in]
+ * @return Return value from immutil_saImmOiRtObjectUpdate_2()
+ */
+static SaAisErrorT update_runtime_attrValues(SaImmOiHandleT immOiHandle,
+				     const char *dn,
+				     SaImmAttrNameT attributeName,
+				     SaImmValueTypeT attrValueType,
+                                     SaUint32T valuesNumber,
+                                     void **values)
+{
+  TRACE_ENTER();
+	SaImmAttrModificationT_2 attrMod;
+	const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
+	SaNameT objectName;
+        SaAisErrorT ais_rc = SA_AIS_OK;
+
+    void **values_array = (void **) calloc(valuesNumber, sizeof(void *));
+    if (values_array == nullptr) {
+      LOG_ER("%s: calloc Fail, Aborted", __FUNCTION__);
+      osaf_abort(0);
+    }
+
+    for (SaUint32T i = 0; i < valuesNumber; i++) {
+      values_array[i] = &values[i];
+    }
+
+	saAisNameLend(dn, &objectName);
+
+	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod.modAttr.attrName = attributeName;
+	attrMod.modAttr.attrValuesNumber = valuesNumber;
+	attrMod.modAttr.attrValueType = attrValueType;
+	attrMod.modAttr.attrValues = values_array;
+	ais_rc = immutil_saImmOiRtObjectUpdate_2(immOiHandle, &objectName,
+                                                 attrMods);
+        free(values_array);
+        TRACE_LEAVE();
+        return ais_rc;
+}
+
+static SaAisErrorT update_lgs_cfg_runtime_multivalue(
+                                              SaImmOiHandleT immOiHandle,
+                                              SaImmAttrNameT attributeName,
+                                              SaImmValueTypeT valueType) {
+  TRACE_ENTER();
+  // Get the multi value stored as C++ vector
+  lgs_logconfGet_t attribute_id = param_name_to_id(attributeName);
+  const std::vector<std::string> *multi_value_list =
+      reinterpret_cast<const std::vector<std::string>*>
+      (lgs_cfg_get(attribute_id));
+
+  // Convert the multi value C++ vector to a void C array
+  void **attrValues = nullptr;
+  SaUint32T attrValuesNumber = vector_of_strings_to_attrValues(
+      multi_value_list, &attrValues);
+
+  // Give the multi value to IMM client
+  SaAisErrorT ais_rc = update_runtime_attrValues(immOiHandle,
+                                     LGS_CFG_RUNTIME_OBJECT,
+                                     attributeName, valueType,
+                                     attrValuesNumber, attrValues);
+  if (ais_rc != SA_AIS_OK) {
+    LOG_NO("%s: update_runtime_attrValues Fail %s",
+           __FUNCTION__, saf_error(ais_rc));
+  }
+
+  // Free the memory allocated by vector_of_strings_to_attrValues()
+  if (attrValues) {
+    free(attrValues);
+  }
+
+  TRACE_LEAVE();
+  return ais_rc;
+}
+
+/**
  * Handler for updating runtime configuration object attributes
  * Called from the SaImmOiRtAttrUpdateCallbackT type function
  *
@@ -1401,7 +1667,6 @@ void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attr
   TRACE_ENTER();
 
   while ((attributeName = attributeNames[i++]) != NULL) {
-    TRACE("Attribute %s", attributeName);
     if (!strcmp(attributeName, LOG_ROOT_DIRECTORY)) {
       str_val = (char *)
           lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY);
@@ -1467,18 +1732,26 @@ void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attr
                                          &u32_val);
     } else if (!strcmp(attributeName, LOG_FILE_IO_TIMEOUT)) {
       u32_val = *(SaUint32T *)
-          lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT);
+          lgs_cfg_get(LGS_IMM_FILE_IO_TIMEOUT);
       ais_rc =  immutil_update_one_rattr(immOiHandle,
                                          LGS_CFG_RUNTIME_OBJECT,
                                          attributeName, SA_IMM_ATTR_SAUINT32T,
                                          &u32_val);
     } else if (!strcmp(attributeName, LOG_FILE_SYS_CONFIG)) {
       u32_val = *(SaUint32T *)
-          lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG);
+          lgs_cfg_get(LGS_IMM_LOG_FILE_SYS_CONFIG);
       ais_rc =  immutil_update_one_rattr(immOiHandle,
                                          LGS_CFG_RUNTIME_OBJECT,
                                          attributeName, SA_IMM_ATTR_SAUINT32T,
                                          &u32_val);
+    } else if (!strcmp(attributeName, LOG_RECORD_DESTINATION_CONFIGURATION)) {
+      ais_rc = update_lgs_cfg_runtime_multivalue(immOiHandle,
+                                                 attributeName,
+                                                 SA_IMM_ATTR_SASTRINGT);
+    } else if (!strcmp(attributeName, LOG_RECORD_DESTINATION_STATUS)) {
+      ais_rc = update_lgs_cfg_runtime_multivalue(immOiHandle,
+                                                 attributeName,
+                                                 SA_IMM_ATTR_SASTRINGT);
     } else {
       TRACE("%s: unknown attribute %s",
             __FUNCTION__, attributeName);
@@ -1490,7 +1763,6 @@ void conf_runtime_obj_hdl(SaImmOiHandleT immOiHandle, const SaImmAttrNameT *attr
       osaf_abort(0);
     }
   }
-
   TRACE_LEAVE();
 }
 
@@ -1552,6 +1824,22 @@ void lgs_trace_config() {
   TRACE("logFileSysConfig\t\t %u,\t %s",
         lgs_conf.logFileSysConfig,
         cnfflag_str(lgs_conf.logFileSysConfig_cnfflag));
+  
+  // Multivalue:
+  for (auto& conf_str : lgs_conf.logRecordDestinationConfiguration) {
+    TRACE("logRecordDestinationConfiguration '%s', %s", conf_str.c_str(),
+          cnfflag_str(lgs_conf.logRecordDestinationConfiguration_cnfflag));
+  }
+  if (lgs_conf.logRecordDestinationConfiguration.empty()) {
+    TRACE("logRecordDestinationConfiguration <empty>");
+  }
+  for (auto& conf_str : lgs_conf.logRecordDestinationStatus) {
+    TRACE("logRecordDestinationStatus '%s'", conf_str.c_str());
+  }
+  if (lgs_conf.logRecordDestinationStatus.empty()) {
+    TRACE("logRecordDestinationStatus <empty>");
+  }
+  
   TRACE("OpenSafLogConfig_object_exist\t %s",
         lgs_conf.OpenSafLogConfig_object_exist ? "True": "False");
   TRACE("===== LOG Configuration End =====");
@@ -1584,8 +1872,21 @@ void lgs_cfg_read_trace() {
   TRACE("logMaxApplicationStreams\t %u",
         *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS)));
   TRACE("logFileIoTimeout\t\t %u",
-        *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILEHDL_TIMEOUT)));
+        *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILE_IO_TIMEOUT)));
   TRACE("logFileSysConfig\t\t %u",
-        *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_FILESYS_CFG)));
+        *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_FILE_SYS_CONFIG)));
+  // Multi value
+  const std::vector<std::string> *dest_config =
+      reinterpret_cast<const std::vector<std::string> *>
+      (lgs_cfg_get(LGS_IMM_LOG_RECORD_DESTINATION_CONFIGURATION));
+  for (auto& conf_str : *dest_config) {
+    TRACE("logRecordDestinationConfiguration '%s'", conf_str.c_str());
+  }
+  const std::vector<std::string> *dest_status =
+      reinterpret_cast<const std::vector<std::string> *>
+      (lgs_cfg_get(LGS_IMM_LOG_RECORD_DESTINATION_STATUS));
+  for (auto& conf_str : *dest_status) {
+    TRACE("logRecordDestinationStatus '%s'", conf_str.c_str());
+  }
   TRACE("##### LOG Configuration parameter read done  #####");
 }

@@ -43,8 +43,8 @@
 #include "log/logd/lgs.h"
 #include "log/logd/lgs_util.h"
 #include "log/logd/lgs_file.h"
-#include "lgs_recov.h"
-#include "lgs_config.h"
+#include "log/logd/lgs_recov.h"
+#include "log/logd/lgs_config.h"
 #include "base/saf_error.h"
 
 #include "lgs_mbcsv_v1.h"
@@ -743,10 +743,12 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
     /**
      *  Ignore deletion of attributes
      *  except for logDataGroupname,
-     *  and logStreamFileFormat
+     *  logStreamFileFormat and
+     *  logRecordDestinationConfiguration
      */
     if ((strcmp(attribute->attrName, LOG_DATA_GROUPNAME) != 0) &&
         (strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT) != 0) &&
+        (strcmp(attribute->attrName, LOG_RECORD_DESTINATION_CONFIGURATION) != 0) &&
         (attribute->attrValuesNumber == 0)) {
       report_oi_error(immOiHandle, opdata->ccbId,
                       "deletion of value is not allowed for attribute %s stream %s",
@@ -849,6 +851,24 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
                       "%s cannot be changed", attribute->attrName);
       ais_rc = SA_AIS_ERR_FAILED_OPERATION;
       goto done;
+    } else if (!strcmp(attribute->attrName,
+                       LOG_RECORD_DESTINATION_CONFIGURATION)) {
+      // Note: Multi value attribute
+      TRACE("logRecordDestinationConfiguration. Values number = %d",
+            attribute->attrValuesNumber);
+      std::vector<std::string> values_vector;
+      for (uint32_t i=0; i < attribute->attrValuesNumber; i++) {
+        value = attribute->attrValues[i];
+        char *value_str = *(reinterpret_cast<char **>(value));
+        values_vector.push_back(value_str);
+      }
+      rc = lgs_cfg_verify_log_record_destination_configuration(values_vector);
+      if (rc == -1) {
+        report_oi_error(immOiHandle, opdata->ccbId,
+                        "%s value is NOT accepted", attribute->attrName);
+        ais_rc = SA_AIS_ERR_INVALID_PARAM;
+        goto done;
+      }
     } else {
       report_oi_error(immOiHandle, opdata->ccbId,
                       "attribute %s not recognized", attribute->attrName);
@@ -866,7 +886,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
   }
 
 done:
-  TRACE_LEAVE2("rc=%u", ais_rc);
+  TRACE_LEAVE2("ais_rc='%s'", saf_error(ais_rc));
   return ais_rc;
 }
 
@@ -1975,8 +1995,7 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
   /* Flag set if any of the mailbox limit values have changed */
   bool mailbox_lim_upd = false;
 
-  TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId,
-               osaf_extended_name_borrow(&opdata->objectName));
+  TRACE_ENTER();
 
   attrMod = opdata->param.modify.attrMods[i++];
   while (attrMod != NULL) {
@@ -2061,6 +2080,39 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
       lgs_cfgupd_list_create(LOG_FILE_IO_TIMEOUT,
                              uint32_str, &config_data);
     }
+    else if (!strcmp(attribute->attrName,
+                       LOG_RECORD_DESTINATION_CONFIGURATION)) {
+      // Note: Multi value attribute
+      TRACE("logRecordDestinationConfiguration");
+      std::vector<std::string> values_vector;
+      for (uint32_t i=0; i < attribute->attrValuesNumber; i++) {
+        value = attribute->attrValues[i];
+        char *value_str = *(reinterpret_cast<char **>(value));
+        values_vector.push_back(value_str);
+      }
+
+      switch (attrMod->modType) {
+        case SA_IMM_ATTR_VALUES_ADD:
+          lgs_cfgupd_multival_add(LOG_RECORD_DESTINATION_CONFIGURATION,
+                                  values_vector,
+                                  &config_data);
+          break;
+        case SA_IMM_ATTR_VALUES_DELETE:
+          lgs_cfgupd_multival_delete(LOG_RECORD_DESTINATION_CONFIGURATION,
+                                  values_vector,
+                                  &config_data);
+          break;
+        case SA_IMM_ATTR_VALUES_REPLACE:
+          lgs_cfgupd_mutival_replace(LOG_RECORD_DESTINATION_CONFIGURATION,
+                                  values_vector,
+                                  &config_data);
+          break;
+        default:
+          // Shall never happen
+          LOG_ER("%s: Unknown modType %d", __FUNCTION__, attrMod->modType);
+          osafassert(0);
+      };
+    }
 
     attrMod = opdata->param.modify.attrMods[i++];
   }
@@ -2088,10 +2140,12 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
   /* Cleanup and free cfg buffer */
   if (config_data.ckpt_buffer_ptr != NULL)
     free(config_data.ckpt_buffer_ptr);
+
+  TRACE_LEAVE();
 }
 
 static void config_ccb_apply(const CcbUtilOperationData_t *opdata) {
-  TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
+  TRACE_ENTER();
 
   switch (opdata->operationType) {
     case CCBUTIL_CREATE:

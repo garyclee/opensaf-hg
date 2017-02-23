@@ -25,6 +25,7 @@
 #include "base/saf_error.h"
 
 #include "logtest.h"
+#include "log/apitest/imm_tstutil.h"
 
 #define MAX_DATA 256
 #define opensaf_user "opensaf"
@@ -1913,6 +1914,407 @@ void saLogOi_515(void)
 		" logConfig=1,safApp=safLogService 2> /dev/null",2);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
+}
+
+/**
+ * Help function for test of logRecordDestinationConfiguration
+ *
+ * @param set_values[in] Array of values to compare
+ * @param num_values[in] Number of values in set_values array
+ * @return false if compare fail
+ */
+static bool read_and_compare(SaConstStringT objectName,
+			char set_values[][MAX_DATA],
+			int num_values) {
+	char **read_values;
+	char* attr_name = "logRecordDestinationConfiguration";
+	SaImmHandleT omHandle;
+	bool result = true;
+
+	do {
+		// Read the values in logRecordDestinationConfiguration from IMM
+		bool rc = get_multivalue_type_string_from_imm(&omHandle,
+						LOGTST_IMM_LOG_CONFIGURATION,
+						attr_name,
+						&read_values);
+		if (rc == false) {
+			printf("Read values Fail\n");
+			result = false;
+			break;
+		}
+
+		// Special case if no values
+		if (num_values == 0) {
+			if (read_values == NULL) {
+				result = true;
+			} else {
+				result = false;
+			}
+			break;
+		}
+
+		// Compare values
+		// Note: the order of the read values is not guaranteed meaning
+		//       that it must be checked if any of the read values
+		//       match a set value
+		bool match = false;
+		for (int i = 0; i < num_values; i++) {
+			for (int j = 0; j < num_values; j++) {
+				if (read_values[i] == NULL) {
+					match = false;
+					break;
+				}
+				if (strcmp(read_values[i], set_values[j]) == 0) {
+					match = true;
+					break;
+				}
+			}
+			if (match == false) {
+				result = false;
+				break;
+			}
+		}
+
+		free_multivalue(omHandle, &read_values);
+	} while(0);
+
+	return result;
+}
+
+/**
+ * Test adding values. Check configuration object and current config object
+ */
+void check_logRecordDestinationConfigurationAdd(void) {
+	char command[MAX_DATA];
+	const int num_values = 5;
+	char set_values[num_values][MAX_DATA];
+	int test_result = 0; /* -1 if Fail */
+
+	do {
+		// Add values
+		for (int i = 0; i < num_values; i++) {
+			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(command, "immcfg "
+				"-a logRecordDestinationConfiguration+="
+				"'%s' "
+				"logConfig=1,safApp=safLogService 2> /dev/null",
+				set_values[i]);
+			int rc = system(command);
+			if (rc != 0) {
+				printf("Set values Fail\n");
+				test_result = 1;
+				break;
+			}
+		}
+
+		// Check that all added values exist
+		bool result = read_and_compare(LOGTST_IMM_LOG_CONFIGURATION,
+						set_values, num_values);
+		if (result == false) {
+			test_result = 1;
+			printf("Check OpenSafLogConfig Fail\n");
+			break;
+		}
+
+		// Same check for current config object
+		result = read_and_compare(LOGTST_IMM_LOG_RUNTIME,
+					set_values, num_values);
+		if (result == false) {
+			test_result = 1;
+			printf("Check OpenSafLogCurrentConfig Fail\n");
+			break;
+		}
+	} while(0);
+
+	// Cleanup by removing all values
+	sprintf(command, "immcfg -a logRecordDestinationConfiguration='' "
+		"logConfig=1,safApp=safLogService 2> /dev/null");
+	int rc = system(command);
+	if (rc != 0) {
+		printf("Cleanup Failed\n");
+	}
+
+	rc_validate(test_result, 0);
+}
+
+/**
+ * Test deleting values. Check configuration object and current config object
+ */
+void check_logRecordDestinationConfigurationDelete(void) {
+	char command[MAX_DATA];
+	const int num_values = 5;
+	char set_values[num_values][MAX_DATA];
+	int test_result = 0; /* -1 if Fail */
+
+	do {
+		// Add values
+		for (int i = 0; i < num_values; i++) {
+			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(command, "immcfg "
+				"-a logRecordDestinationConfiguration+="
+				"'%s' "
+				"logConfig=1,safApp=safLogService 2> /dev/null",
+				set_values[i]);
+			int rc = system(command);
+			if (rc != 0) {
+				printf("Add values Fail\n");
+				test_result = 1;
+				break;
+			}
+		}
+
+		// Delete last 2 values
+		for (int i = num_values - 2; i < num_values; i++) {
+			sprintf(command, "immcfg "
+				"-a logRecordDestinationConfiguration-="
+				"'%s' "
+				"logConfig=1,safApp=safLogService 2> /dev/null",
+				set_values[i]);
+			int rc = system(command);
+			if (rc != 0) {
+				printf("Delete values Fail\n");
+				test_result = 1;
+				break;
+			}
+		}
+
+		// Check that all not deleted values exist
+		bool result = read_and_compare(LOGTST_IMM_LOG_CONFIGURATION,
+						set_values, num_values - 2);
+		if (result == false) {
+			test_result = 1;
+			printf("Check values not deleted Fail\n");
+			break;
+		}
+
+		// Check that deleted values do not exist
+		result = read_and_compare(LOGTST_IMM_LOG_CONFIGURATION,
+						set_values, num_values);
+		if (result == true) {
+			test_result = 1;
+			printf("Check values deleted Fail\n");
+			break;
+		}
+
+		// Same checks for current config object
+		result = read_and_compare(LOGTST_IMM_LOG_RUNTIME,
+						set_values, num_values - 2);
+		if (result == false) {
+			test_result = 1;
+			printf("Check values not deleted Fail\n");
+			break;
+		}
+
+		result = read_and_compare(LOGTST_IMM_LOG_RUNTIME,
+						set_values, num_values);
+		if (result == true) {
+			test_result = 1;
+			printf("Check values deleted Fail\n");
+			break;
+		}
+	} while(0);
+
+	// Cleanup by removing all values
+	sprintf(command, "immcfg -a logRecordDestinationConfiguration='' "
+		"logConfig=1,safApp=safLogService 2> /dev/null");
+	int rc = system(command);
+	if (rc != 0) {
+		printf("Cleanup Failed\n");
+	}
+	
+	rc_validate(test_result, 0);
+}
+
+/**
+ * Test replacing values. Check configuration object and current config object
+ */
+void check_logRecordDestinationConfigurationReplace(void) {
+	char command[MAX_DATA*2];
+	const int num_values = 5;
+	char set_values[num_values][MAX_DATA];
+	int test_result = 0; /* 1 if Fail */
+
+	do {
+		// Add values that will be replaced
+		for (int i = 0; i < num_values; i++) {
+			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(command, "immcfg "
+				"-a logRecordDestinationConfiguration+="
+				"'%s' "
+				"logConfig=1,safApp=safLogService 2> /dev/null",
+				set_values[i]);
+			int rc = system(command);
+			if (rc != 0) {
+				printf("Add values Fail\n");
+				test_result = 1;
+				break;
+			}
+		}
+
+		// Check that values exist
+		bool result = read_and_compare(LOGTST_IMM_LOG_CONFIGURATION,
+						set_values, num_values);
+		if (result == false) {
+			test_result = 1;
+			printf("Check OpenSafLogConfig Fail\n");
+			break;
+		}
+
+		// Replace the values
+		int num_new_values = 3;
+		for (int i = 0; i < num_new_values; i++) {
+			sprintf(set_values[i],
+				"NewName%d;NewType%d;NewSetting%d", i, i, i);
+		}
+		sprintf(command, "immcfg "
+			"-a logRecordDestinationConfiguration='%s' "
+			"-a logRecordDestinationConfiguration='%s' "
+			"-a logRecordDestinationConfiguration='%s' "
+			"logConfig=1,safApp=safLogService 2> /dev/null",
+			set_values[0], set_values[1], set_values[2]);
+		int rc = system(command);
+		if (rc != 0) {
+			printf("Add values Fail\n");
+			test_result = 1;
+			break;
+		}
+
+		// Check that new values exist in configuration object
+		result = read_and_compare(LOGTST_IMM_LOG_CONFIGURATION,
+						set_values, num_new_values);
+		if (result == false) {
+			test_result = 1;
+			printf("Check OpenSafLogConfig Fail\n");
+			break;
+		}
+
+		// Check that new values exist in current config object
+		result = read_and_compare(LOGTST_IMM_LOG_RUNTIME,
+					set_values, num_new_values);
+		if (result == false) {
+			test_result = 1;
+			printf("Check OpenSafLogCurrentConfig Fail\n");
+			break;
+		}
+
+		// Check that no old values exist in current config object
+		result = read_and_compare(LOGTST_IMM_LOG_RUNTIME,
+					set_values, num_new_values+1);
+		if (result == true) {
+			test_result = 1;
+			printf("Check OpenSafLogCurrentConfig Fail\n");
+			break;
+		}
+
+	} while(0);
+
+	// Cleanup by removing all values
+	sprintf(command, "immcfg -a logRecordDestinationConfiguration='' "
+		"logConfig=1,safApp=safLogService 2> /dev/null");
+	int rc = system(command);
+	if (rc != 0) {
+		printf("Cleanup Failed\n");
+	}
+
+	rc_validate(test_result, 0);
+}
+
+/**
+ * Test to clear all values (make <empty>
+ */
+void check_logRecordDestinationConfigurationEmpty(void) {
+	char command[MAX_DATA*2];
+	const int num_values = 5;
+	char set_values[num_values][MAX_DATA];
+	int test_result = 0; /* 1 if Fail */
+
+	do {
+		// Add values that will be replaced
+		for (int i = 0; i < num_values; i++) {
+			sprintf(set_values[i], "Name%d;Type%d;Setting%d", i, i, i);
+			sprintf(command, "immcfg "
+				"-a logRecordDestinationConfiguration+="
+				"'%s' "
+				"logConfig=1,safApp=safLogService 2> /dev/null",
+				set_values[i]);
+			int rc = system(command);
+			if (rc != 0) {
+				printf("Add values Fail\n");
+				test_result = 1;
+				break;
+			}
+		}
+
+		// Check that values exist
+		bool result = read_and_compare(LOGTST_IMM_LOG_CONFIGURATION,
+						set_values, num_values);
+		if (result == false) {
+			test_result = 1;
+			printf("Check OpenSafLogConfig Fail\n");
+			break;
+		}
+
+		// Clear the values
+		sprintf(command, "immcfg "
+			"-a logRecordDestinationConfiguration='' "
+			"logConfig=1,safApp=safLogService 2> /dev/null");
+		int rc = system(command);
+		if (rc != 0) {
+			printf("Clear values Fail\n");
+			test_result = 1;
+			break;
+		}
+
+		// Check that new values cleared in configuration object
+		result = read_and_compare(LOGTST_IMM_LOG_CONFIGURATION,
+						set_values, 0);
+		if (result == false) {
+			test_result = 1;
+			printf("Clear OpenSafLogConfig Fail\n");
+			break;
+		}
+
+		// Check that new values cleared in current config object
+		result = read_and_compare(LOGTST_IMM_LOG_RUNTIME,
+					set_values, 0);
+		if (result == false) {
+			test_result = 1;
+			printf("Clear OpenSafLogCurrentConfig Fail\n");
+			break;
+		}
+
+	} while(0);
+
+	// Cleanup by removing all values
+	sprintf(command, "immcfg -a logRecordDestinationConfiguration='' "
+		"logConfig=1,safApp=safLogService 2> /dev/null");
+	int rc = system(command);
+	if (rc != 0) {
+		printf("Cleanup Failed\n");
+	}
+
+	rc_validate(test_result, 0);
+}
+
+/**
+ * Test setting an invalid value
+ */
+void check_logRecordDestinationConfigurationInvalid(void) {
+	char command[MAX_DATA];
+	int test_result = 0; /* 1 if Fail */
+
+	// Set invalid value
+	sprintf(command, "immcfg "
+	"-a logRecordDestinationConfiguration+="
+	"'Invalid value' "
+	"logConfig=1,safApp=safLogService 2> /dev/null");
+
+	int rc = system(command);
+	if (rc != 0) {
+		test_result = 1;
+	}
+
+	rc_validate(test_result, 1);
 }
 
 /* =============================================================================
@@ -4389,6 +4791,11 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(5, saLogOi_514, "CCB Object Modify, logMaxApplicationStreams. Not allowed");
 	test_case_add(5, saLogOi_515, "CCB Object Modify, logFileSysConfig. Not allowed");
 	test_case_add(5, change_root_path, "CCB Object Modify, change root directory. Path exist. OK");
+	test_case_add(5, check_logRecordDestinationConfigurationAdd, "Add logRecordDestinationConfiguration. OK");
+	test_case_add(5, check_logRecordDestinationConfigurationDelete, "Delete logRecordDestinationConfiguration. OK");
+	test_case_add(5, check_logRecordDestinationConfigurationReplace, "Replace logRecordDestinationConfiguration. OK");
+	test_case_add(5, check_logRecordDestinationConfigurationEmpty, "Clear logRecordDestinationConfiguration. OK");
+	test_case_add(5, check_logRecordDestinationConfigurationInvalid, "Invalid logRecordDestinationConfiguration. ERR");
 
 	/* Add test cases to test #1288 */
 	test_case_add(5, verLogFileIoTimeout, "CCB Object Modify: logFileIoTimeout is in range [500 - 5000], OK");

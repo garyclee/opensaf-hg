@@ -47,35 +47,6 @@
 #include "osaf/saf/saAis.h"
 #include "log/saf/saLog.h"
 
-#if 1 /*LLDTEST1 Test inline functions */
-#include "base/osaf_time.h"
-#include "base/logtrace.h"
-
-typedef struct {
-    struct timespec start_time;
-    struct timespec end_time;
-    struct timespec diff_time;
-} time_meas_t;
-/**
- *
- * @param tm[out]
- */
-static inline void time_meas_start(time_meas_t* tm)
-{
-    osaf_clock_gettime(CLOCK_REALTIME, &tm->start_time);
-}
-
-
-static inline void time_meas_log(time_meas_t* tm, char *id)
-{
-    osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
-    osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
-    LOG_NO("LLDTEST3 %s [%s]\t Elapsed time %ld sec, %ld nsec",
-	    __FUNCTION__, id,
-	    tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
-}
-#endif
-
 #define DEFAULT_FORMAT_EXPRESSION "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\""
 #define DEFAULT_APP_LOG_REC_SIZE 150
 #define DEFAULT_APP_LOG_FILE_SIZE 1024 * 1024
