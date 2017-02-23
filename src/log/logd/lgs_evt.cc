@@ -1272,7 +1272,7 @@ snd_rsp:
  *****************************************************************************/
 static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   lgsv_write_log_async_req_t *param = &(evt->info.msg.info.api_info.param).write_log_async;
-  log_stream_t *stream;
+  log_stream_t *stream = NULL;
   SaAisErrorT error = SA_AIS_OK;
   SaStringT logOutputString = NULL;
   SaUint32T buf_size;

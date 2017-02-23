@@ -124,7 +124,7 @@ static inline void time_meas_start(time_meas_t* tm) {
 static inline void time_meas_log(time_meas_t* tm, char *id) {
   osaf_clock_gettime(CLOCK_REALTIME, &tm->end_time);
   osaf_timespec_subtract(&tm->end_time, &tm->start_time, &tm->diff_time);
-  LOG_NO("LLDTEST3 %s [%s]\t Elapsed time %ld sec, %ld nsec",
+  LOG_NO("%s [%s]\t Elapsed time %ld sec, %ld nsec",
          __FUNCTION__, id,
          tm->diff_time.tv_sec, tm->diff_time.tv_nsec);
 }

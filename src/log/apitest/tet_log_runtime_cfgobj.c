@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2015 The OpenSAF Foundation
+ * Copyright Ericsson AB [2015, 2017] - All Rights Reserved
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -27,7 +28,9 @@ static SaVersionT immVersion = { 'A', 2, 11 };
  * Log configuration config obj <=> runtime obj
  *
  * Verfy that the configuration and runtime object for log server configuration
- * data contains the same number of attributes
+ * data contains the same number of attributes.
+ * Note: The runtime object contains 1 more attribute than the configuration
+ *       object
  */
 void log_rt_cf_obj_compare(void)
 {
@@ -75,8 +78,10 @@ void log_rt_cf_obj_compare(void)
 	r_cnt = 0;
 	while (attributes[r_cnt++] != NULL); /* Count the attributes */
 
-	/* Compare number of attributes. Test pass if the same number
+	/* Compare number of attributes. Test pass if the runtime object has
+	 * 1 more attribute than the configuration object
 	 */
+	r_cnt--;
 	if (c_cnt != r_cnt) {
 		tst_res = 1;
 		fprintf(stderr, "Found %d configuration attributes and"

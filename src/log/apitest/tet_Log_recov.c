@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2015 The OpenSAF Foundation
+ * Copyright Ericsson AB [2015, 2017] - All Rights Reserved
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -853,7 +854,7 @@ typedef struct {
  */
 static void log_write_callback(SaInvocationT invocation, SaAisErrorT error)
 {
-	printf_v(">> LLDTEST %s\n",__FUNCTION__);
+	printf_v(">> %s\n",__FUNCTION__);
 	if (error != SA_AIS_OK) {
 		fprintf(stderr,"\t%s: error = %s\n",__FUNCTION__, saf_error(error));
 	}
@@ -872,7 +873,7 @@ static void log_write_callback(SaInvocationT invocation, SaAisErrorT error)
 	lgt_cb.ais_errno = error;
 	lgt_cb.invocation_out = invocation;
 	osaf_mutex_unlock_ordie(&write_mutex);
-	printf_v("<< LLDTEST %s\n",__FUNCTION__);
+	printf_v("<< %s\n",__FUNCTION__);
 }
 
 /**
@@ -1355,7 +1356,7 @@ void saLogRecov_prepare_client1_8streams(void)
 
 	rc = tst_StreamOpen_app_logtest_sc(g_client[0].glob_logHandle,
 		g_client[0].glob_logStreamHandle,
-		8); /* LLDTEST shall be 8 */
+		8);
 	if (rc != 0) {
 		fprintf(stderr, "\t%s Failed to open log stream\n",
 			__FUNCTION__);
