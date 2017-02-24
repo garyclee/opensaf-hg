@@ -531,7 +531,7 @@ int delete_file_hdl(void *indata, void *outdata, size_t max_outsize) {
 /******************************************************************************
  * Utility functions for get_number_of_log_files_hdl
  */
-static int check_oldest(char *line, char *fname_prefix, int fname_prefix_size, int *old_date, int *old_time) {
+static int check_log_oldest(char *line, char *fname_prefix, int fname_prefix_size, int *old_date, int *old_time) {
   int date, time, c, d;
   date = time = c = d = 0;
   int len = 0;
@@ -558,21 +558,64 @@ static int check_oldest(char *line, char *fname_prefix, int fname_prefix_size, i
       return 1;
     }
   } else {
-    TRACE_3("no match");
+    TRACE_3("no log_oldest match");
   }
   return 0;
 }
 
-/* Filter function used by scandir. */
+/******************************************************************************
+ * Utility functions for get_number_of_cfg_files_hdl
+ */
+static int check_cfg_oldest(char *line, char *fname_prefix, int fname_prefix_size, int *old_date, int *old_time) {
+  int date, time;
+  date = time = 0;
+  std::string name_format;
+  char time_stamps[] = "_%d_%d.cfg";
+
+ 
+  name_format = std::string(fname_prefix);
+  TRACE_3("fname: %s", name_format.c_str());
+ 
+  name_format = name_format + time_stamps;
+  if (sscanf(line, name_format.c_str(), &date, &time) >= 1) {
+    TRACE_3("%s: line: arg 1: %d 2: %d ok", __FUNCTION__,
+            date, time);
+    if (date < *old_date || *old_date == -1) {
+      *old_date = date;
+      *old_time = time;
+      return 1;
+    } else if ((date == *old_date) && (time < *old_time)) {
+      *old_date = date;
+      *old_time = time;
+      return 1;
+    }
+  } else {
+    TRACE_3("no cfg_oldest match");
+  }
+  return 0;
+}
+
+/* Log Filter function used by scandir. */
 static std::string file_prefix;
 
-static int filter_func(const struct dirent *finfo) {
+static int log_filter_func(const struct dirent *finfo) {
   int ret;
   int filenameLen = strlen(finfo->d_name) - strlen(".log");
 
   ret = strncmp(file_prefix.c_str(), finfo->d_name, file_prefix.size())
       || strcmp(finfo->d_name + filenameLen, ".log");
 
+  return !ret;
+}
+
+/* Cfg Filter function used by scandir. */
+static int cfg_filter_func(const struct dirent *finfo) {
+  int ret;
+  int filenameLen = strlen(finfo->d_name) - strlen(".cfg");
+ 
+  ret = strncmp(file_prefix.c_str(), finfo->d_name, file_prefix.size())
+      || strcmp(finfo->d_name + filenameLen, ".cfg");
+ 
   return !ret;
 }
 
@@ -602,7 +645,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
   path = std::string(params_in->logsv_root_dir) + "/" + params_in->pathName;
 
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-  files = n = scandir(path.c_str(), &namelist, filter_func, alphasort);
+  files = n = scandir(path.c_str(), &namelist, log_filter_func, alphasort);
   osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
 
   if (n == -1 && errno == ENOENT) {
@@ -623,7 +666,7 @@ int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize)
 
   while (n--) {
     TRACE_3("%s", namelist[n]->d_name);
-    if (check_oldest(namelist[n]->d_name, params_in->file_name,
+    if (check_log_oldest(namelist[n]->d_name, params_in->file_name,
                      strlen(params_in->file_name), &old_date, &old_time)) {
       old_ind = n;
     } else {
@@ -657,6 +700,128 @@ done_exit:
 }
 
 /**
+ * Return number of cfg files in a dir and the name of the oldest file.
+ * @param indata, see gnolfh_in_t
+ * @param outdata, char *oldest_file
+ * @param max_outsize, Max size for oldest_file string
+ *
+ * @return int, number of cfgfiles or -1 if error
+ */
+int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize) {
+  struct dirent **cfg_namelist;
+  struct dirent **log_namelist;
+  int n, cfg_old_date = -1, cfg_old_time = -1, old_ind = -1, cfg_files = 0, i, failed = 0;
+  int log_old_date = -1, log_old_time = -1 , log_files = 0;
+  std::string path;
+  gnolfh_in_t *params_in;
+  char *oldest_file;
+  int rc = 0;
+ 
+  TRACE_ENTER();
+ 
+  params_in = static_cast<gnolfh_in_t *>(indata);
+  oldest_file = static_cast<char *>(outdata);
+  /* Initialize the filter */
+  file_prefix = params_in->file_name;
+  path = std::string(params_in->logsv_root_dir) + "/" + params_in->pathName;
+
+  osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
+  log_files = n = scandir(path.c_str(), &log_namelist, log_filter_func, alphasort);
+  osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
+ 
+  if (n == -1 && errno == ENOENT) {
+    rc = 0;
+    goto done_exit;
+  }
+ 
+  if (n < 0) {
+    LOG_WA("scandir:%s - %s", strerror(errno), path.c_str());
+    rc = -1;
+    goto done_exit;
+  }
+ 
+  if (n == 0) {
+    rc = log_files;
+    goto done_exit;
+  }
+ 
+  while (n--) {
+    TRACE_3("%s", log_namelist[n]->d_name);
+    if (check_log_oldest(log_namelist[n]->d_name, params_in->file_name,
+                     strlen(params_in->file_name), &log_old_date, &log_old_time)) {
+      old_ind = n;
+    } else {
+      failed++;       /* wrong format */
+    }
+  }
+
+  if (old_ind != -1) {
+    n = 0;
+    old_ind = -1;
+    failed = 0;
+    osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
+    cfg_files = n = scandir(path.c_str(), &cfg_namelist, cfg_filter_func, alphasort);
+    osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK after critical section */
+
+    if (n == -1 && errno == ENOENT) {
+      rc = 0;
+      goto done_log_free;
+    }
+
+    if (n < 0) {
+      LOG_WA("scandir:%s - %s", strerror(errno), path.c_str());
+      rc = -1;
+      goto done_log_free;
+    }
+
+    if (n == 0) {
+      rc = cfg_files;
+      goto done_log_free;
+    }
+
+    while (n--) {
+      if (check_cfg_oldest(cfg_namelist[n]->d_name, params_in->file_name,
+                     strlen(params_in->file_name), &cfg_old_date, &cfg_old_time)) {
+      old_ind = n;
+      } else {
+        failed++;       /* wrong format */
+      }
+    }
+
+    if ((old_ind != -1) && (cfg_old_date == log_old_date) && (cfg_old_time <= log_old_time)) {
+      TRACE_1(" (cfg_old_date:%d == log_old_date:%d) && (cfg_old_time:%d <= log_old_time:%d )", cfg_old_date, log_old_date, cfg_old_time, log_old_time);
+      TRACE_1("oldest: %s", cfg_namelist[old_ind]->d_name);
+      n = snprintf(oldest_file, max_outsize, "%s/%s",
+                     path.c_str(), cfg_namelist[old_ind]->d_name);
+
+      if (n < 0 || static_cast<uint32_t>(n) >= max_outsize) {
+        LOG_WA("oldest_file > max_outsize");
+        rc = -1;
+        goto done_cfg_free;
+      } else {
+        rc = (cfg_files - failed);
+      }
+    } 
+  }
+
+done_cfg_free:
+  /* Free scandir allocated memory */
+  for (i = 0; i < cfg_files; i++)
+    free(cfg_namelist[i]);
+  free(cfg_namelist);
+
+done_log_free:
+  /* Free scandir allocated memory */
+  for (i = 0; i < log_files; i++)
+    free(log_namelist[i]);
+  free(log_namelist);
+ 
+done_exit:
+  TRACE_LEAVE();
+  return rc;
+}
+
+/**
  * Change the ownership of all log files to a new group.
  * The input directory will be scanned and any file suffixed by ".log"
  * and prefixed by input file_name will be marked as log files.
@@ -681,7 +846,7 @@ int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize) 
   file_prefix = params_in->file_name;
 
   osaf_mutex_unlock_ordie(&lgs_ftcom_mutex); /* UNLOCK critical section */
-  files = n = scandir(params_in->dir_path, &namelist, filter_func, alphasort);
+  files = n = scandir(params_in->dir_path, &namelist, log_filter_func, alphasort);
 
   if (n == -1 && errno == ENOENT) {
     rc = 0;
