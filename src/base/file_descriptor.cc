@@ -1,6 +1,5 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2016 The OpenSAF Foundation
  * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
@@ -12,29 +11,17 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Ericsson AB
- *
  */
 
-#include "base/unix_client_socket.h"
-#include <sys/socket.h>
-#include <cerrno>
+#include "base/file_descriptor.h"
+#include <fcntl.h>
+#include <unistd.h>
 
 namespace base {
 
-UnixClientSocket::UnixClientSocket(const std::string& path) :
-    UnixSocket{path} {
-}
-
-UnixClientSocket::~UnixClientSocket() {
-}
-
-bool UnixClientSocket::OpenHook(int sock) {
-  int result;
-  do {
-    result = connect(sock, addr(), addrlen());
-  } while (result != 0 && errno == EINTR);
-  return result == 0;
+bool MakeFdNonblocking(int fd) {
+  int flags = fcntl(fd, F_GETFL);
+  return flags != -1 && fcntl(fd, F_SETFL, flags | O_NONBLOCK) != -1;
 }
 
 }  // namespace base

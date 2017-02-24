@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2016 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -27,10 +28,19 @@ UnixServerSocket::UnixServerSocket(const std::string& path) :
 }
 
 UnixServerSocket::~UnixServerSocket() {
-  if (fd() >= 0) UnixServerSocket::CloseHook();
+  if (get_fd() >= 0) UnixServerSocket::CloseHook();
 }
 
 bool UnixServerSocket::OpenHook(int sock) {
+  int tmp_sock = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+  int connect_result;
+  int connect_errno;
+  do {
+    connect_result = connect(tmp_sock, addr(), addrlen());
+    connect_errno = errno;
+  } while (connect_result != 0 && connect_errno == EINTR);
+  close(tmp_sock);
+  if (connect_result != 0 && connect_errno == ECONNREFUSED) unlink(path());
   return bind(sock, addr(), addrlen()) == 0;
 }
 

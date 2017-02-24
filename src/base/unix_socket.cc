@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2016 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -19,14 +20,17 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
+#include "base/file_descriptor.h"
 #include "base/osaf_utility.h"
+#include "base/time.h"
 
 namespace base {
 
 UnixSocket::UnixSocket(const std::string& path) :
     fd_{-1},
     addr_{AF_UNIX, {}},
-    mutex_{} {
+    last_failed_open_{},
+    saved_errno_{} {
   if (path.size() < sizeof(addr_.sun_path)) {
     memcpy(addr_.sun_path, path.c_str(), path.size() + 1);
   } else {
@@ -35,18 +39,27 @@ UnixSocket::UnixSocket(const std::string& path) :
 }
 
 int UnixSocket::Open() {
-  Lock lock(mutex_);
   int sock = fd_;
   if (sock < 0) {
     if (addr_.sun_path[0] != '\0') {
-      sock = socket(AF_UNIX, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
-      if (sock >= 0 && !OpenHook(sock)) {
-        int e = errno;
-        close(sock);
-        sock = -1;
-        errno = e;
+      struct timespec current_time = ReadMonotonicClock();
+      if (TimespecToMillis(current_time - last_failed_open_) != 0) {
+        sock = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+        if (sock >= 0 && !OpenHook(sock)) {
+          int e = errno;
+          close(sock);
+          sock = -1;
+          errno = e;
+        }
+        fd_ = sock;
+        if (sock >=0 && MakeFdNonblocking(sock) == false) Close();
+        if (fd_ < 0) {
+          last_failed_open_ = current_time;
+          saved_errno_ = errno;
+        }
+      } else {
+        errno = saved_errno_;
       }
-      fd_ = sock;
     } else {
       errno = ENAMETOOLONG;
     }
@@ -61,7 +74,6 @@ UnixSocket::~UnixSocket() {
 }
 
 void UnixSocket::Close() {
-  Lock lock(mutex_);
   int sock = fd_;
   if (sock >= 0) {
     int e = errno;
