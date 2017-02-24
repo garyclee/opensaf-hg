@@ -3167,8 +3167,27 @@ bool SmfAdminOperation::becomeAdminOwnerOfAmfClusterObj() {
 	SaNameT nodeGroupParentDn;
 	saAisNameLend(m_nodeGroupParentDn.c_str(), &nodeGroupParentDn);
 	const SaNameT *objectNames[2] = {&nodeGroupParentDn, NULL};
-	SaAisErrorT ais_rc = immutil_saImmOmAdminOwnerSet(m_ownerHandle,
-						objectNames, SA_IMM_SUBTREE);
+
+        // We are taking admin owner on the parent DN of this object. This can
+        // be conflicting with other threads which also want to create objects.
+        // Specifically SmfImmOperation takes admin owner when creating IMM
+        // objects. Retry if object has admin owner already.
+        int timeout_try_cnt = 6;
+        SaAisErrorT ais_rc = SA_AIS_OK;
+        while (timeout_try_cnt > 0) {
+                TRACE("%s: calling adminOwnerSet", __FUNCTION__);
+                ais_rc = immutil_saImmOmAdminOwnerSet(m_ownerHandle,
+                                                      objectNames,
+                                                      SA_IMM_SUBTREE);
+                if (ais_rc != SA_AIS_ERR_EXIST)
+                        break;
+
+                timeout_try_cnt--;
+                TRACE("%s: adminOwnerSet returned SA_AIS_ERR_EXIST, "
+                      "sleep 1 second and retry", __FUNCTION__);
+                osaf_nanosleep(&kOneSecond);
+        }
+
 	bool rc = true;
 	if (ais_rc != SA_AIS_OK) {
 		LOG_NO("%s: saImmOmAdminOwnerSet owner name '%s' Fail '%s'",
