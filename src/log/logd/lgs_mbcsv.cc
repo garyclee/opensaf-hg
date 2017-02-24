@@ -705,11 +705,12 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
     return (rc = EDU_ERR_MEM_FAIL);
   }
   ncs_enc_claim_space(uba, sizeof(lgsv_ckpt_header_t));
+   /* Loop through Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
+  ClientMap::iterator pos;
+  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
+    client = pos->second;
 
-  client = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&cb->client_tree, NULL));
-
-  /* Walk through the reg list and encode record by record */
-  while (client != NULL) {
     if (lgs_is_peer_v6()) {
       ckpt_reg_rec_v6.client_id = client->client_id;
       ckpt_reg_rec_v6.mds_dest = client->mds_dest;
@@ -734,9 +735,6 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
     }
     ++num_rec;
 
-    /* length+=lgs_edp_ed_reg_rec(reg_rec,o_ub); */
-    client = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&cb->client_tree,
-                                                                        reinterpret_cast<uint8_t *>(&client->client_id_net)));
   } /* End while RegRec */
 
   /* Encode RegHeader */

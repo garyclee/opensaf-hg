@@ -30,6 +30,8 @@
 #include "base/osaf_extended_name.h"
 #include "lgs_clm.h"
 
+void *client_db = nullptr;       /* used for C++ STL map */
+
 static uint32_t process_api_evt(lgsv_lgs_evt_t *evt);
 static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt);
 static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt);
@@ -69,19 +71,47 @@ static bool is_log_version_valid(const SaVersionT *version) {
 }
 
 /**
+ * Name     : lgs_client_map_init
+ * Description   : This routine is used to initialize the client_map
+ * Arguments     : lgs_cb - pointer to the lgs Control Block
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ * Notes    : None
+ */
+uint32_t lgs_client_map_init() {
+  TRACE_ENTER();
+  if (client_db) {
+    TRACE("Client Map already exists");
+    return NCSCC_RC_FAILURE;
+  }
+  /*Client DB */ 
+  client_db = new ClientMap;
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
+}
+
+/**
  * Get client record from client ID
  * @param client_id
  *
  * @return log_client_t*
  */
 log_client_t *lgs_client_get_by_id(uint32_t client_id) {
-  uint32_t client_id_net;
-  log_client_t *rec;
+  log_client_t *rec = nullptr;
 
-  client_id_net = m_NCS_OS_HTONL(client_id);
-  rec = reinterpret_cast<log_client_t *>(
-      ncs_patricia_tree_get(&lgs_cb->client_tree,
-                            reinterpret_cast<uint8_t *>(&client_id_net)));
+  /* Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>
+                         (client_db));
+  if (clientMap) {
+    auto it = (clientMap->find(client_id));
+ 
+    if (it != clientMap->end()) {
+      rec = it->second;
+    } else {
+      TRACE("clm_node_id delete  failed : %x", client_id);
+    }
+  } else {
+    TRACE("clm_node_id delete to map not exist failed : %x", client_id);
+  }
   if (NULL == rec)
     TRACE("client_id: %u lookup failed", client_id);
 
@@ -100,14 +130,16 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_l
   log_client_t *client;
 
   TRACE_ENTER2("MDS dest %" PRIx64, mds_dest);
-
+  /* Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>
+                         (client_db));
   if (client_id == 0) {
     lgs_cb->last_client_id++;
     if (lgs_cb->last_client_id == 0)
       lgs_cb->last_client_id++;
   }
 
-  client = static_cast<log_client_t *>(calloc(1, sizeof(log_client_t)));
+  client = new log_client_t(); 
 
   if (NULL == client) {
     LOG_WA("lgs_client_new calloc FAILED");
@@ -119,18 +151,22 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_l
     lgs_cb->last_client_id = client_id;
   client->client_id = lgs_cb->last_client_id;
   client->mds_dest = mds_dest;
-  client->client_id_net = m_NCS_OS_HTONL(client->client_id);
-  client->pat_node.key_info = (uint8_t *)&client->client_id_net;
   client->stream_list_root = stream_list;
-
-  /** Insert the record into the patricia tree **/
-  if (NULL == ncs_patricia_tree_get(&lgs_cb->client_tree,client->pat_node.key_info)){
-    if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&lgs_cb->client_tree, &client->pat_node)) {
-      LOG_WA("FAILED: ncs_patricia_tree_add, client_id %u", client_id);
+ 
+  if (clientMap) {
+    std::pair<ClientMap::iterator, bool> p(clientMap->insert(
+        std::make_pair(client->client_id, client)));
+ 
+    if (!p.second) {
+      TRACE("unable to add clm node info map - the id %x already existed",
+            client->client_id);
       free(client);
       client = NULL;
-      goto done;
     }
+  } else {
+    TRACE("can't find local sec map in lgs_clm_node_add");
+    free(client);
+    client = nullptr;
   }
 
 done:
@@ -152,9 +188,12 @@ int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr) {
   lgs_stream_list_t *cur_rec;
   time_t closetime = 0;
   struct timespec closetime_tspec;
+  log_client_t *client_rec;
 
   TRACE_ENTER2("client_id %u", client_id);
-
+  /* Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>
+                         (client_db));
   /* Initiate close time value if not provided via closetime_ptr */
   if (closetime_ptr == NULL) {
     osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
@@ -182,15 +221,22 @@ int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr) {
     cur_rec = tmp_rec;
   }
 
-  if (ncs_patricia_tree_get(&lgs_cb->client_tree,client->pat_node.key_info)){
-    if (NCSCC_RC_SUCCESS != ncs_patricia_tree_del(&lgs_cb->client_tree, &client->pat_node)) {
-      LOG_WA("ncs_patricia_tree_del FAILED,client_id %u",client_id);
-      status = -2;
-      goto done;
+   if (clientMap) {
+    auto it = (clientMap->find(client_id));
+ 
+    if (it != clientMap->end()) {
+      client_rec = it->second;
+      clientMap->erase(it);
+      delete client_rec;
+    } else {
+      TRACE("clm_node_id delete  failed : %x", client_id);
+      status = -2; 
     }
-
-    free(client);
+  } else {
+    TRACE("clm_node_id delete to map not exist failed : %x", client_id);
+    status = -2;
   }
+
 done:
   TRACE_LEAVE();
   return status;
@@ -289,19 +335,17 @@ done:
 int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest, time_t *closetime_ptr) {
   uint32_t rc = 0;
   log_client_t *rp = NULL;
-  uint32_t client_id_net;
 
   TRACE_ENTER2("mds_dest %" PRIx64, mds_dest);
-  rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL));
+  /* Loop through Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>
+                         (client_db));
+  ClientMap::iterator pos;
+  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
+    rp = pos->second;    
 
-  while (rp != NULL) {
-    /** Store the client_id_net for get Next  */
-    client_id_net = rp->client_id_net;
     if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest))
       rc = lgs_client_delete(rp->client_id, closetime_ptr);
-
-    rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(
-        &lgs_cb->client_tree, reinterpret_cast<uint8_t *>(&client_id_net)));
   }
 
   TRACE_LEAVE();
@@ -564,7 +608,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt) {
  * Name          : lgs_cb_init
  *
  * Description   : This function initializes the LGS_CB including the
- *                 Patricia trees.
+ *                 Maps.
  *
  *
  * Arguments     : lgs_cb * - Pointer to the LGS_CB.
@@ -574,14 +618,9 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt) {
  * Notes         : None.
  *****************************************************************************/
 uint32_t lgs_cb_init(lgs_cb_t *lgs_cb) {
-  NCS_PATRICIA_PARAMS reg_param;
   uint32_t rc = NCSCC_RC_SUCCESS;
 
   TRACE_ENTER();
-
-  memset(&reg_param, 0, sizeof(NCS_PATRICIA_PARAMS));
-
-  reg_param.key_size = sizeof(uint32_t);
 
   lgs_cb->fully_initialized = false;
   lgs_cb->amfSelectionObject = -1;
@@ -600,9 +639,11 @@ uint32_t lgs_cb_init(lgs_cb_t *lgs_cb) {
     goto done;
   }
 
-  /* Initialize patricia tree for reg list */
-  if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&lgs_cb->client_tree, &reg_param))
-    return NCSCC_RC_FAILURE;
+  /* Initialize CLM Node map*/
+  if (NCSCC_RC_SUCCESS != lgs_client_map_init()) {
+    LOG_ER("LGS: CLM Client map_init FAILED");
+    rc = NCSCC_RC_FAILURE;
+  }
 
   /* Initialize CLM Node map*/
   if (NCSCC_RC_SUCCESS != lgs_clm_node_map_init(lgs_cb)) {
