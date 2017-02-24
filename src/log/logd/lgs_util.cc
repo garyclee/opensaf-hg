@@ -347,7 +347,7 @@ void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr) {
  *
  * lgs_lga_entry_valid
  *
- *  Searches the cb->client_tree for an reg_id entry whos MDS_DEST equals
+ *  Searches the ClientMap an reg_id entry whos MDS_DEST equals
  *  that passed DEST and returns true if itz found.
  *
  * This routine is typically used to find the validity of the lga down rec from standby
@@ -356,17 +356,15 @@ void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr) {
  ****************************************************************************/
 bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest) {
   log_client_t *rp = NULL;
-
-  rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(&cb->client_tree, NULL));
-
-  while (rp != NULL) {
+  /* Loop through Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>
+                         (client_db));
+  ClientMap::iterator pos;
+  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
+    rp = pos->second;
     if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest)) {
       return true;
     }
-
-    rp = reinterpret_cast<log_client_t *>(
-        ncs_patricia_tree_getnext(&cb->client_tree,
-                                  reinterpret_cast<uint8_t *>(&rp->client_id_net)));
   }
 
   return false;
@@ -902,17 +900,17 @@ static void lgs_send_filter_msg(uint32_t client_id, uint32_t stream_id,
 void lgs_send_severity_filter_to_clients(uint32_t stream_id,
                                   SaLogSeverityFlagsT severity_filter) {
   log_client_t *rp = NULL;
-  uint32_t client_id_net;
   lgs_stream_list_t *stream;
 
   TRACE_ENTER();
   TRACE_3("stream_id: %u, severity filter:%u", stream_id, severity_filter);
 
-  rp = reinterpret_cast<log_client_t *>
-        (ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL));
-  while (rp != NULL) {
-    /* Store the client_id_net for getting next  */
-    client_id_net = rp->client_id_net;
+  /* Loop through Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>
+                         (client_db));
+  ClientMap::iterator pos;
+  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
+    rp = pos->second;
     /* Do not send to all client. Send to clients that need filter
         callback and associate with this stream */
     stream = rp->stream_list_root;
@@ -925,8 +923,6 @@ void lgs_send_severity_filter_to_clients(uint32_t stream_id,
         stream = stream->next;
       }
     }
-    rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(
-          &lgs_cb->client_tree, reinterpret_cast<uint8_t *>(&client_id_net)));
   }
 
   TRACE_LEAVE();

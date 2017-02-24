@@ -18,6 +18,8 @@
 #ifndef LOG_LOGD_LGS_EVT_H_
 #define LOG_LOGD_LGS_EVT_H_
 
+#include <map>
+#include <utility>
 #include "rde/agent/rda_papi.h"
 #include "mds/mds_papi.h"
 #include "log/common/lgsv_msg.h"
@@ -62,6 +64,10 @@ typedef struct lgsv_lgs_evt {
   } info;
 } lgsv_lgs_evt_t;
 
+/* Client DB */
+extern void *client_db;       /* used for C++ STL map */
+typedef std::map<NODE_ID, log_client_t *> ClientMap;
+
 /* These are the function prototypes for event handling */
 typedef uint32_t (*LGSV_LGS_LGA_API_MSG_HANDLER) (lgs_cb_t *, lgsv_lgs_evt_t *evt);
 typedef uint32_t (*LGSV_LGS_EVT_HANDLER) (lgsv_lgs_evt_t *evt);
@@ -80,4 +86,5 @@ extern void lgs_free_write_log(const lgsv_write_log_async_req_t *param);
 
 SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_stream_t **o_stream);
 
+uint32_t lgs_client_map_init();
 #endif  // LOG_LOGD_LGS_EVT_H_

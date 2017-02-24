@@ -66,10 +66,10 @@ lgs uses the following data structures:
 pointer variable.
 
 - Stream descriptors. Dynamically created, many instances. Accessed using
-stream name or ID. Stored in patricia tree and array.
+stream name or ID. Stored in Map and array.
 
 - Client descriptors. Dynamically created, many instances. Accessed using a
-client ID. Stored in patricia tree. Contains the MDS address of the client.
+client ID. Stored in Map. Contains the MDS address of the client.
 Also contains a list of Client-Stream association objects, see below.
 
 - Client-Stream association object. Dynamically created, many instances. One

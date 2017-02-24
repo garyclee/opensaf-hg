@@ -73,16 +73,12 @@ done. Refer to chapter 4 of OpenSAF_Extensions_PR.odt for details.
 3) LOG Service
 ----------------------------------------
 
-In original code, logsv used NCS PATRICIA TREE as an database to hold all
+Logsv used Maps as an database to hold all
 existing LOG stream names, and taking stream name as the keyword for
-searching/adding/deleting tree elements.
+searching/adding/deleting elements.
 
-NCS PATRICIA TREE has a limitation with keyword size. It is only supported the
-key size up to 600 bytes. With long stream name, its length could be up to
-2024(kOsafMaxDnLength) bytes. The existing tree is not applicable for holing
-long stream names.
 
-Beside that tree, logsv is providing other database named `stream_array` which
+Beside that map, logsv is providing other database named `stream_array` which
 is used to hold all LOG existing streams. When there is any new stream created,
 a new `log_stream_t` object is created. It holds information of that stream.
 It later is added to that database. And when the stream is closed and no client
@@ -96,11 +92,10 @@ That database is a two-dimensional array with data format:
 	}
 
 Logsv is able to query below infos from `stream_array` that logsv used to do
-based on NCS PATRICIA TREE:
+based on Maps:
 - Is there any current log stream with specific DN in system?
 - Or what are the current log existing streams in system?
-`stream_array` database can play the same role as NCS_PATRICIA_TREE. Therefore,
-NCS PATRICIA TREE is removed from logsv code.
+`stream_array` database can play the same role as Maps. 
 
 More on `stream_array` database. All rooms in `stream_array` is clean/reset at
 startup. First three rooms are reserved for well-known streams.

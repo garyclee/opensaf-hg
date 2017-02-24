@@ -57,7 +57,6 @@ typedef struct lgs_stream_list {
 } lgs_stream_list_t;
 
 typedef struct {
-  NCS_PATRICIA_NODE pat_node;
   uint32_t client_id;
   uint32_t client_id_net;
   SaVersionT client_ver;
@@ -75,7 +74,6 @@ typedef struct lgs_cb {
   V_DEST_RL mds_role;     /* Current MDS role - ACTIVE/STANDBY         */
   MDS_DEST vaddr;         /* My identification in MDS                  */
   SaVersionT log_version; /* The version currently supported           */
-  NCS_PATRICIA_TREE client_tree;  /* LGA/Library/Client instantiation pat. tree */
   SaNameT comp_name;      /* Components's name LGS                     */
   SaAmfHandleT amf_hdl;   /* AMF handle, obtained thru AMF init        */
   SaSelectionObjectT amfSelectionObject;  /* Selection Object to wait for AMF events */

@@ -17,6 +17,7 @@
 #include <cinttypes>
 
 #include "log/logd/lgs.h"
+#include "log/logd/lgs_evt.h"
 #include "log/logd/lgs_clm.h"
 #include "base/time.h"
 
@@ -209,26 +210,20 @@ static uint32_t send_clm_node_status_lib(SaClmClusterChangesT clusterChange,
 static uint32_t send_cluster_membership_msg_to_clients(
     SaClmClusterChangesT clusterChange, NODE_ID clm_node_id) {
   uint32_t rc = NCSCC_RC_SUCCESS;
-  log_client_t *rp = NULL;
-  uint32_t client_id_net;
+  log_client_t *rec = nullptr;
 
   TRACE_ENTER();
   TRACE_3("clm_node_id: %x, change:%u", clm_node_id, clusterChange);
-
-  rp = reinterpret_cast<log_client_t *>
-      (ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL));
-
-  while (rp != NULL) {
-    /** Store the client_id_net for get Next  */
-    client_id_net = rp->client_id_net;
-    NODE_ID tmp_clm_node_id = m_LGS_GET_NODE_ID_FROM_ADEST(rp->mds_dest);
+  /* Loop through Client DB */
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
+  ClientMap::iterator pos;
+  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
+    rec = pos->second; 
+    NODE_ID tmp_clm_node_id = m_LGS_GET_NODE_ID_FROM_ADEST(rec->mds_dest);
     //  Do not send to A11 client. Send only to specific Node
     if (tmp_clm_node_id == clm_node_id)
-      rc = send_clm_node_status_lib(clusterChange, rp->client_id,
-                                    rp->mds_dest);
-
-    rp = reinterpret_cast<log_client_t *>(ncs_patricia_tree_getnext(
-        &lgs_cb->client_tree, reinterpret_cast<uint8_t *>(&client_id_net)));
+      rc = send_clm_node_status_lib(clusterChange, rec->client_id,
+                                    rec->mds_dest);
   }
 
   TRACE_LEAVE();
