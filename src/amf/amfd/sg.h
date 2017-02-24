@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -429,6 +430,7 @@ public:
 	//Runtime calculates value of saAmfSGNumCurrNonInstantiatedSpareSUs;
 	uint32_t curr_non_instantiated_spare_sus() const;
 	bool is_middleware() const {return sg_ncs_spec ? true : false;}
+	uint32_t pref_assigned_sus() const;
 
 private:
 	// disallow copy and assign, TODO(hafe) add common macro for this

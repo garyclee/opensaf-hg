@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1094,8 +1095,9 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 				}
 				sisu = sisu->si_next;
 			}
-			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN SG to Stable state */
-			sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
+			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN if assignment is sent.*/
+			if (i > 0)
+				sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
 	} 
 	if( sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
@@ -1296,8 +1298,7 @@ void AVD_SI::update_ass_state()
 			newState = SA_AMF_ASSIGNMENT_UNASSIGNED;
 		} else {
 			osafassert(saAmfSINumCurrStandbyAssignments == 0);
-			osafassert(saAmfSINumCurrActiveAssignments <= saAmfSIPrefActiveAssignments);
-			if (saAmfSINumCurrActiveAssignments == saAmfSIPrefActiveAssignments)
+			if (saAmfSINumCurrActiveAssignments == pref_active_assignments())
 				newState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 			else
 				newState = SA_AMF_ASSIGNMENT_PARTIALLY_ASSIGNED;
@@ -1435,9 +1436,13 @@ void AVD_SI::set_si_switch(AVD_CL_CB *cb, const SaToggleState state)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, this, AVSV_CKPT_SI_SWITCH);
 }
 
-uint32_t AVD_SI::pref_active_assignments() const
-{
-	return saAmfSIPrefActiveAssignments;
+uint32_t AVD_SI::pref_active_assignments() const {
+  if (saAmfSIPrefActiveAssignments == 0) {
+    /* Return default value which is preferred number of assigned SUs,
+       saAmfSGNumPrefAssignedSUs.*/
+    return sg_of_si->pref_assigned_sus();
+  } else
+    return saAmfSIPrefActiveAssignments;
 }
 
 uint32_t AVD_SI::curr_active_assignments() const
