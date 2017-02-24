@@ -48,6 +48,7 @@ static int lgs_stream_array_insert(log_stream_t *stream, uint32_t id);
 static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id);
 static int lgs_stream_array_remove(int id);
 static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file);
+static int get_number_of_cfg_files_h(log_stream_t *logStream, char *oldest_file);
 
 /**
  * Open/create a file for append in non blocking mode.
@@ -265,31 +266,52 @@ static int delete_config_file(log_stream_t *stream) {
  * @return -1 on error
  */
 static int rotate_if_needed(log_stream_t *stream) {
-  char oldest_file[PATH_MAX];
+  char oldest_log_file[PATH_MAX];
+  char oldest_cfg_file[PATH_MAX];
   int rc = 0;
-  int file_cnt;
+  int log_file_cnt, cfg_file_cnt;
+  bool oldest_cfg = false;
 
   TRACE_ENTER();
 
-  /* Rotate out files from previous lifes */
-  if ((file_cnt = get_number_of_log_files_h(stream, oldest_file)) == -1) {
+  /* Rotate out log files from previous lifes */
+  if ((log_file_cnt = get_number_of_log_files_h(stream, oldest_log_file)) == -1) {
     rc = -1;
     goto done;
   }
+
+  /* Rotate out cfg files from previous lifes */
+  if (!((cfg_file_cnt = get_number_of_cfg_files_h(stream, oldest_cfg_file)) == -1)) {
+      oldest_cfg = true;
+  }
+  
+  TRACE("delete oldest_cfg_file: %s oldest_log_file %s", oldest_cfg_file, oldest_log_file);
 
   /*
   ** Remove until we have one less than allowed, we are just about to
   ** create a new one again.
   */
-  while (file_cnt >= static_cast<int>(stream->maxFilesRotated)) {
-    if ((rc = file_unlink_h(oldest_file)) == -1) {
-      LOG_NO("Could not delete: %s - %s", oldest_file, strerror(errno));
+  while (log_file_cnt >= static_cast<int>(stream->maxFilesRotated)) {
+    if ((rc = file_unlink_h(oldest_log_file)) == -1) {
+      LOG_NO("Could not log delete: %s - %s", oldest_log_file, strerror(errno));
       goto done;
     }
 
-    if ((file_cnt = get_number_of_log_files_h(stream, oldest_file)) == -1) {
+    if (oldest_cfg == true) {
+      oldest_cfg = false;
+      if ((rc = file_unlink_h(oldest_cfg_file)) == -1) {
+        LOG_NO("Could not cfg  delete: %s - %s", oldest_cfg_file, strerror(errno));
+        goto done;
+      }
+    }
+
+    if ((log_file_cnt = get_number_of_log_files_h(stream, oldest_log_file)) == -1) {
       rc = -1;
       goto done;
+    }
+
+    if (!((cfg_file_cnt = get_number_of_cfg_files_h(stream, oldest_cfg_file)) == -1)) {
+      oldest_cfg = true;
     }
   }
 
@@ -938,6 +960,56 @@ static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
     rc = apipar.hdl_ret_code_out;
   }
 
+done:
+  TRACE_LEAVE();
+  return rc;
+}
+/**
+ * Return number of cfg files in a dir and the name of the oldest file.
+ * @param logStream[in]
+ * @param oldest_file[out]
+ *
+ * @return -1 if error else number of log files
+ */
+static int get_number_of_cfg_files_h(log_stream_t *logStream, char *oldest_file) {
+  lgsf_apipar_t apipar;
+  lgsf_retcode_t api_rc;
+  gnolfh_in_t parameters_in;
+  size_t path_len;
+  int rc = 0;
+ 
+  TRACE_ENTER();
+ 
+  std::string logsv_root_dir = static_cast<const char *>(
+      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+ 
+  parameters_in.file_name = const_cast<char *>(logStream->fileName.c_str());
+  parameters_in.logsv_root_dir = const_cast<char *>(logsv_root_dir.c_str());
+  parameters_in.pathName = const_cast<char *>(logStream->pathName.c_str());
+ 
+  path_len = strlen(parameters_in.file_name) +
+      strlen(parameters_in.logsv_root_dir) +
+      strlen(parameters_in.pathName);
+  if (path_len > PATH_MAX) {
+    LOG_WA("Path to cfg files > PATH_MAX");
+    rc = -1;
+    goto done;
+  }
+ 
+  /* Fill in API structure */
+  apipar.req_code_in = LGSF_GET_NUM_CFGFILES;
+  apipar.data_in_size = sizeof(gnolfh_in_t);
+  apipar.data_in = &parameters_in;
+  apipar.data_out_size = PATH_MAX;
+  apipar.data_out = oldest_file;
+  api_rc = log_file_api(&apipar);
+  if (api_rc != LGSF_SUCESS) {
+    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    rc = -1;
+  } else {
+    rc = apipar.hdl_ret_code_out;
+  }
+ 
 done:
   TRACE_LEAVE();
   return rc;

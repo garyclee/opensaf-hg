@@ -44,6 +44,7 @@ typedef enum {
   LGSF_CHECKDIR,
   LGSF_OWN_LOGFILES,
   LGSF_GET_FILE_PAR,
+  LGSF_GET_NUM_CFGFILES,
   LGSF_NOREQ
 }lgsf_treq_t;
 

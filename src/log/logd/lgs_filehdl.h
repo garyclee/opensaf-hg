@@ -73,6 +73,7 @@ typedef struct {
 
 /*
  * get_number_of_log_files_hdl(..)
+ * get_number_of_cfg_files_hdl(..)
  */
 typedef struct {
   /* File name prefix (name part before time stamps) */
@@ -185,6 +186,7 @@ int fileopen_hdl(void *indata, void *outdata, size_t max_outsize, bool *timeout_
 int fileclose_hdl(void *indata, void *outdata, size_t max_outsize);
 int delete_file_hdl(void *indata, void *outdata, size_t max_outsize);
 int get_number_of_log_files_hdl(void *indata, void *outdata, size_t max_outsize);
+int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize);
 int own_log_files_by_group_hdl(void *indata, void *outdata, size_t max_outsize);
 int lgs_get_file_params_hdl(void *indata, void *outdata, size_t max_outsize);
 

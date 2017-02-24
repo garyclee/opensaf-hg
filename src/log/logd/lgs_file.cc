@@ -152,6 +152,10 @@ static void *file_hndl_thread(void *noparam) {
           hndl_rc = get_number_of_log_files_hdl(lgs_com_data.indata_ptr,
                                                 lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
           break;
+        case LGSF_GET_NUM_CFGFILES:
+          hndl_rc = get_number_of_cfg_files_hdl(lgs_com_data.indata_ptr,
+                                                lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+          break;
         case LGSF_MAKELOGDIR:
           hndl_rc = make_log_dir_hdl(lgs_com_data.indata_ptr,
                                      lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
