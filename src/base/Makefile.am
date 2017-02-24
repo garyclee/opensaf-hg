@@ -33,6 +33,7 @@ lib_libopensaf_core_la_LDFLAGS += \
 lib_libopensaf_core_la_SOURCES += \
 	src/base/condition_variable.cc \
 	src/base/daemon.c \
+	src/base/file_descriptor.cc \
 	src/base/file_notify.cc \
 	src/base/getenv.cc \
 	src/base/hj_dec.c \
@@ -77,6 +78,7 @@ noinst_HEADERS += \
 	src/base/buffer.h \
 	src/base/condition_variable.h \
 	src/base/daemon.h \
+	src/base/file_descriptor.h \
 	src/base/file_notify.h \
 	src/base/getenv.h \
 	src/base/log_message.h \
@@ -181,6 +183,7 @@ bin_libbase_test_LDFLAGS = \
 	src/base/lib_libopensaf_core_la-getenv.lo \
 	src/base/lib_libopensaf_core_la-log_message.lo \
 	src/base/lib_libopensaf_core_la-process.lo \
+	src/base/lib_libopensaf_core_la-file_descriptor.lo \
 	src/base/lib_libopensaf_core_la-file_notify.lo
 
 bin_libbase_test_SOURCES = \
