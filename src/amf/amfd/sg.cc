@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -2274,4 +2275,8 @@ bool AVD_SG::any_assignment_assigned() {
 	return pending;
 }
 
+uint32_t AVD_SG::pref_assigned_sus() const {
+  //If not configured, AMFD has already adjusted to default value in avd_sg_adjust_config().
+  return saAmfSGNumPrefAssignedSUs;
+}
 
