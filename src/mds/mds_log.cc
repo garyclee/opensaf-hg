@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -32,6 +33,7 @@
 #include <cstring>
 #include <string>
 #include "base/buffer.h"
+#include "base/conf.h"
 #include "base/log_message.h"
 #include "base/macros.h"
 #include "base/mutex.h"
@@ -50,17 +52,18 @@ class MdsLog {
                   va_list ap);
 
  private:
-  MdsLog(const char* host_name, const char* app_name,
-            uint32_t proc_id, const char* socket_name);
+  MdsLog(const std::string& fqdn, const char* app_name,
+         uint32_t proc_id, const char* socket_name);
   void LogInternal(base::LogMessage::Severity severity, const char *fmt,
                    va_list ap);
   static constexpr const uint32_t kMaxSequenceId = uint32_t{0x7fffffff};
   static MdsLog* instance_;
-  const base::LogMessage::HostName host_name_;
+  const base::LogMessage::HostName fqdn_;
   const base::LogMessage::AppName app_name_;
   const base::LogMessage::ProcId proc_id_;
   uint32_t sequence_id_;
   base::UnixClientSocket log_socket_;
+  base::Buffer<512> buffer_;
   base::Mutex mutex_;
 
   DELETE_COPY_AND_MOVE_OPERATORS(MdsLog);
@@ -69,13 +72,14 @@ class MdsLog {
 int gl_mds_log_level = 3;
 MdsLog* MdsLog::instance_ = nullptr;
 
-MdsLog::MdsLog(const char* host_name, const char* app_name,
-                     uint32_t proc_id, const char* socket_name) :
-    host_name_{base::LogMessage::HostName{host_name}},
+MdsLog::MdsLog(const std::string& fqdn, const char* app_name,
+               uint32_t proc_id, const char* socket_name) :
+    fqdn_{base::LogMessage::HostName{fqdn}},
     app_name_{base::LogMessage::AppName{app_name}},
     proc_id_{base::LogMessage::ProcId{std::to_string(proc_id)}},
     sequence_id_{1},
     log_socket_{socket_name},
+    buffer_{},
     mutex_{} {
 }
 
@@ -86,12 +90,10 @@ MdsLog::MdsLog(const char* host_name, const char* app_name,
 bool MdsLog::Init() {
   if (instance_ != nullptr) return false;
   char app_name[MDS_MAX_PROCESS_NAME_LEN];
-  char node_name[256];
   char pid_path[1024];
   uint32_t process_id = getpid();
   char *token, *saveptr;
   char *pid_name = nullptr;
-  const char *node_name_file = PKGSYSCONFDIR "/node_name";
 
   snprintf(pid_path, sizeof(pid_path), "/proc/%" PRIu32 "/cmdline", process_id);
   FILE* f = fopen(pid_path, "r");
@@ -114,14 +116,9 @@ bool MdsLog::Init() {
   if (snprintf(app_name, sizeof(app_name), "%s", pid_name) < 0) {
     app_name[0] = '\0';
   }
-  FILE* fp = fopen(node_name_file, "r");
-  if (fp != nullptr) {
-    if (fscanf(fp, "%255s", node_name) != 1) node_name[0] = '\0';
-    fclose(fp);
-  } else {
-    node_name[0] = '\0';
-  }
-  instance_ = new MdsLog{node_name, app_name, process_id,
+  base::Conf::InitFullyQualifiedDomainName();
+  const std::string& fqdn = base::Conf::FullyQualifiedDomainName();
+  instance_ = new MdsLog{fqdn, app_name, process_id,
                          PKGLOCALSTATEDIR "/mds_log.sock"};
   return instance_ != nullptr;
 }
@@ -136,22 +133,22 @@ void MdsLog::LogInternal(base::LogMessage::Severity severity, const char *fmt,
   base::Lock lock(mutex_);
   uint32_t id = sequence_id_;
   sequence_id_ = id < kMaxSequenceId ? id + 1 : 1;
-  base::Buffer<256> buffer;
+  buffer_.clear();
   base::LogMessage::Write(base::LogMessage::Facility::kLocal1,
                           severity,
                           base::ReadRealtimeClock(),
-                          host_name_,
+                          fqdn_,
                           app_name_,
                           proc_id_,
-                          base::LogMessage::MsgId{""},
+                          base::LogMessage::MsgId{"mds.log"},
                           {{base::LogMessage::SdName{"meta"},
                               {base::LogMessage::Parameter{
                                   base::LogMessage::SdName{"sequenceId"},
                                       std::to_string(id)}}}},
                           fmt,
                           ap,
-                          &buffer);
-  log_socket_.Send(buffer.data(), buffer.size());
+                          &buffer_);
+  log_socket_.Send(buffer_.data(), buffer_.size());
 }
 
 /*******************************************************************************
