@@ -115,7 +115,6 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SUTYPE *sut)
 static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_SUTCOMP_TYPE *sutcomptype = nullptr;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -128,11 +127,7 @@ static SaAisErrorT sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		report_ccb_validation_error(opdata, "Modification of SaAmfSUType not supported");
 		break;
 	case CCBUTIL_DELETE:
-		sutcomptype = sutcomptype_db->find(Amf::to_string(&opdata->objectName));
-		if (sutcomptype->curr_num_components == 0) {
-			rc = SA_AIS_OK;
-			opdata->userData = sutcomptype;	/* Save for later use in apply */
-		}
+		rc = SA_AIS_OK;
 		break;
 	default:
 		osafassert(0);
@@ -155,7 +150,10 @@ static void sutcomptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		sutcomptype_db_add(sutcomptype);
 		break;
 	case CCBUTIL_DELETE:
-		sutcomptype_delete(static_cast<AVD_SUTCOMP_TYPE*>(opdata->userData));
+		sutcomptype = sutcomptype_db->find(Amf::to_string(&opdata->objectName));
+		if (sutcomptype != nullptr) {
+			sutcomptype_delete(sutcomptype);
+		}
 		break;
 	default:
 		osafassert(0);
