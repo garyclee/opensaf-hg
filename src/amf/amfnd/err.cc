@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -189,11 +190,15 @@ uint32_t avnd_evt_ava_err_rep_evh(AVND_CB *cb, AVND_EVT *evt)
 			amf_rc = SA_AIS_ERR_INVALID_PARAM;
 	}
 
-	if(comp && ((err_rep->rec_rcvr.saf_amf == SA_AMF_CLUSTER_RESET) || 
-			(err_rep->rec_rcvr.saf_amf == SA_AMF_APPLICATION_RESTART)|| 
+	if(comp && ((err_rep->rec_rcvr.saf_amf == SA_AMF_APPLICATION_RESTART)|| 
 			(err_rep->rec_rcvr.saf_amf == SA_AMF_CONTAINER_RESTART)))
 		amf_rc = SA_AIS_ERR_NOT_SUPPORTED;
 
+	if (comp && (comp->su->is_ncs == true) &&
+			(err_rep->rec_rcvr.saf_amf == SA_AMF_CLUSTER_RESET)) {
+		LOG_NO("Cluster Reset recovery not supported for MW components '%s'", comp->name.c_str());
+		amf_rc = SA_AIS_ERR_NOT_SUPPORTED;
+	}
 	/* send the response back to AvA */
 	rc = avnd_amf_resp_send(cb, AVSV_AMF_ERR_REP, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
@@ -294,6 +299,45 @@ uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	TRACE_LEAVE();
 	return rc;
+}
+
+/**
+ * @brief Performs cluster reset recovery action.
+ *
+ * @param cb: ptr to AvND control block.
+ * @param su: ptr to the SU which contains the failed component.
+ * @param comp: ptr to failed component.
+ *
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ */
+static uint32_t avnd_err_rcvr_cluster_reset(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp) {
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  TRACE_ENTER();
+
+  m_AVND_COMP_FAILED_SET(failed_comp);
+  m_AVND_SU_FAILED_SET(failed_su);
+
+  m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
+  rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
+  if (NCSCC_RC_SUCCESS != rc)
+    goto done;
+
+  rc = avnd_comp_curr_info_del(cb, failed_comp);
+  if (NCSCC_RC_SUCCESS != rc)
+    goto done;
+
+  //AMFD will not send any assignments, so clean up PI/NPI comp.
+  rc = avnd_comp_clc_fsm_run(cb, failed_comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
+  if (NCSCC_RC_SUCCESS != rc)
+    goto done;
+
+  cb->oper_state = SA_AMF_OPERATIONAL_DISABLED;
+  m_AVND_SU_OPER_STATE_SET(failed_su, SA_AMF_OPERATIONAL_DISABLED);
+  rc = avnd_di_oper_send(cb, failed_su, SA_AMF_CLUSTER_RESET);
+
+done:
+  TRACE_LEAVE2("%u", rc);
+  return rc;
 }
 
 /****************************************************************************
@@ -532,20 +576,6 @@ uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rc
 		return rc;
 	}
 
-	/* if we are already inst-failed,  do nothing */
-	if ((su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
-	    (comp->pres == SA_AMF_PRESENCE_TERMINATING) && (rcvr != SA_AMF_NODE_FAILOVER)
-	    && (rcvr != SA_AMF_NODE_FAILFAST)) {
-		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
-		return rc;
-	}
-
-	/* if we are already terminating do nothing */
-	if ((comp->pres == SA_AMF_PRESENCE_TERMINATING) && (rcvr == SA_AMF_COMPONENT_RESTART)) {
-		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
-		return rc;
-	}
-
 	/* When SU is in TERMINATING state, higher level recovery (SA_AMF_NODE_FAILOVER, 
 	   SA_AMF_NODE_FAILFAST and SA_AMF_NODE_SWITCHOVER) should be processed because higher 
 	   level recovery will terminate the component. If the faulted component has recovery 
@@ -595,7 +625,7 @@ uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rc
 		break;
 
 	case SA_AMF_CLUSTER_RESET:
-		/* not supported */
+		rc = avnd_err_rcvr_cluster_reset(cb, su, comp);
 		break;
 
 	case AVSV_ERR_RCVR_SU_RESTART:
