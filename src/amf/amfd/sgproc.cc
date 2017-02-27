@@ -634,6 +634,46 @@ static void perform_nodeswitchover_recovery(AVD_AVND *node)
 done:
 	TRACE_LEAVE();
 }
+
+/**
+ * @brief       Performs Cluster reset recovery.
+ **/
+static void perform_cluster_reset_recovery() {
+  TRACE_ENTER();
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  AVD_AVND *node = nullptr;
+  for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
+    it != node_id_db->end(); it++) {
+    node = it->second;
+    //First reboot payloads.
+    if ((node->node_info.nodeId == avd_cb->node_id_avd) ||
+		    (node->node_info.nodeId == avd_cb->node_id_avd_other))
+      continue;
+    TRACE_1("node:'%s', nodeId:%x", node->name.c_str(), node->node_info.nodeId);
+    rc = avd_send_reboot_msg_directly(node);
+    if (rc != NCSCC_RC_SUCCESS)
+      TRACE_1("Send failed fpr Reboot msg to payload.");
+  }
+
+  //Send for standby.
+  node = nullptr;
+  node = avd_node_find_nodeid(avd_cb->node_id_avd_other);
+  if (node != nullptr) {
+    rc = avd_send_reboot_msg_directly(node);
+    if (rc != NCSCC_RC_SUCCESS)
+      TRACE_1("Send failed for Reboot msg to standby.");
+  }
+
+  //Send for self.
+  node = nullptr;
+  node = avd_node_find_nodeid(avd_cb->node_id_avd);
+  osafassert(node != nullptr);
+  rc = avd_send_reboot_msg_directly(node);
+  if (rc != NCSCC_RC_SUCCESS)
+    TRACE_1("Send failed for Reboot msg to active.");
+
+  TRACE_LEAVE();
+}
 /*****************************************************************************
  * Function: avd_su_oper_state_func
  *
@@ -700,6 +740,8 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	} else if (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf == SA_AMF_NODE_FAILOVER) {
 		saflog(LOG_NOTICE, amfSvcUsrName, "Node Fail-Over requested by '%s'",
 			   node->name.c_str());
+	} else if (n2d_msg->msg_info.n2d_opr_state.rec_rcvr.saf_amf == SA_AMF_CLUSTER_RESET) {
+		saflog(LOG_NOTICE, amfSvcUsrName, "Cluster reset requested by '%s'", node->name.c_str());
 	}
 
 	/* Verify that the SU and node oper state is diabled and rcvr is failfast */
@@ -826,6 +868,12 @@ void avd_su_oper_state_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 				case SA_AMF_NODE_SWITCHOVER:
 					perform_nodeswitchover_recovery(su->su_on_node);
 					goto done;
+					break;
+				case SA_AMF_CLUSTER_RESET:
+					perform_cluster_reset_recovery();
+					LOG_WA("Wait for reboot");
+					for (;;) 
+						sleep(1);
 					break;
 				default :
 					break;

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -104,5 +105,6 @@ extern const char *admin_op_name(SaAmfAdminOperationIdT opid);
 int compare_sanamet(const std::string& lhs, const std::string& rhs);
 uint32_t avd_snd_compcsi_msg(AVD_COMP *comp, AVD_CSI *csi,
 		avd_comp_csi_rel_tag *compcsi, AVSV_COMPCSI_ACT act);
+uint32_t avd_send_reboot_msg_directly(AVD_AVND *node);
 
 #endif  // AMF_AMFD_UTIL_H_

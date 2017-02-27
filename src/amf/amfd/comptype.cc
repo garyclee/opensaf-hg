@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -335,7 +336,7 @@ static bool config_is_valid(const std::string& dn,
 	rc = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfCtDefRecoveryOnError"), attributes, 0, &value);
 	osafassert(rc == SA_AIS_OK);
 
-	if ((value < SA_AMF_NO_RECOMMENDATION) || (value > SA_AMF_NODE_FAILFAST)) {
+	if ((value < SA_AMF_NO_RECOMMENDATION) || (value > SA_AMF_CLUSTER_RESET)) {
 		report_ccb_validation_error(opdata, "Illegal/unsupported saAmfCtDefRecoveryOnError value %u for '%s'",
 				value, dn.c_str());
 		return false;
@@ -646,7 +647,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 				goto done;
 			}
 			uint32_t value = *((SaUint32T *)mod->modAttr.attrValues[0]);
-			if ((value < SA_AMF_COMPONENT_RESTART) || (value > SA_AMF_NODE_FAILFAST)) {
+			if ((value < SA_AMF_COMPONENT_RESTART) || (value > SA_AMF_CLUSTER_RESET)) {
 				report_ccb_validation_error(opdata,
 					"Invalid saAmfCtDefRecoveryOnError for '%s'", dn);
 				rc = SA_AIS_ERR_BAD_OPERATION;

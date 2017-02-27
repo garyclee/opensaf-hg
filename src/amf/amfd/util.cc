@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -2125,3 +2126,42 @@ void avd_association_namet_init(const std::string& associate_dn, std::string& ch
   child.erase(std::remove(child.begin(), child.end(), '\\'), child.end());
 }
 
+/**
+ * @brief  Sends reboot msg to node directly without queueing it up in
+ *	   AMFD message queue.
+ * @param  ptr to AVD_AVND.
+ * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE. 
+ **/
+uint32_t avd_send_reboot_msg_directly(AVD_AVND *node) {
+  NCSMDS_INFO snd_mds = {0};
+  uint32_t rc = NCSCC_RC_SUCCESS;
+  AVD_DND_MSG *d2n_msg = new AVD_DND_MSG();
+
+  d2n_msg->msg_type = AVSV_D2N_REBOOT_MSG;
+  d2n_msg->msg_info.d2n_reboot_info.node_id = node->node_info.nodeId;
+
+  if (node->adest == 0) {
+    LOG_WA("Invalid adest for %x, msg type %u",
+      node->node_info.nodeId, d2n_msg->msg_type);
+    rc = NCSCC_RC_FAILURE;
+    goto done;
+  }
+  d2n_msg->msg_info.d2n_reboot_info.msg_id = ++(node->snd_msg_id);
+
+  TRACE("Sending REBOOT MSG to %x", node->node_info.nodeId);
+
+  snd_mds.i_mds_hdl = avd_cb->adest_hdl;
+  snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
+  snd_mds.i_op = MDS_SEND;
+  snd_mds.info.svc_send.i_msg = (NCSCONTEXT)d2n_msg;
+  snd_mds.info.svc_send.i_to_svc = NCSMDS_SVC_ID_AVND;
+  snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+  snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+  snd_mds.info.svc_send.info.snd.i_to_dest = node->adest;
+  if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS) {
+    LOG_ER("ncsmds_api failed %u", rc);
+  }
+done:
+  delete d2n_msg;
+  return rc;
+}
