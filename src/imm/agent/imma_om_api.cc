@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * Copyright Ericsson AB 2009, 2017 - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -136,6 +137,10 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 					cl_node->isImmA2x10 = true;
 					if (requested_version.minorVersion >= 0x11) {
 						cl_node->isImmA2x11 = true;
+						if (requested_version.minorVersion >= 0x12) {
+							cl_node->isImmA2x12 = true;
+							TRACE("DBG: version A.2.18 is set");
+						}
 					}
 				}
 			}
@@ -196,6 +201,10 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 							cl_node->isImmA2x10 = true;
 							if (requested_version.minorVersion >= 0x11) {
 								cl_node->isImmA2x11 = true;
+								if (requested_version.minorVersion >= 0x12) {
+									cl_node->isImmA2x12 = true;
+									TRACE("DBG: version A.2.18 is set");
+								}
 							}
 						}
 					}
@@ -239,6 +248,12 @@ static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *
 		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto end;
+	}
+
+	if(cl_node->isImmA2x12 && !cb->clmMemberNode){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if((timeout_env_value = getenv("IMMA_SYNCR_TIMEOUT"))!=NULL) {
@@ -310,6 +325,12 @@ static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *
 
 	if (out_evt) {
 		rc = out_evt->info.imma.info.initRsp.error;
+		if (rc == SA_AIS_ERR_UNAVAILABLE && cl_node->isImmA2x12){
+			cb->clmMemberNode = false;
+			TRACE(" Node left the CLM membership");
+			goto rsp_not_ok;
+		}
+
 		if (rc != SA_AIS_OK) {
 			goto rsp_not_ok;
 		}
@@ -403,6 +424,7 @@ static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *
 			out_evt1 =NULL;
 		}
 	}
+	TRACE("OM client version A.2.%u", version->minorVersion);
 
  rsp_not_ok:
  mds_fail:
@@ -426,6 +448,7 @@ static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *
 		*immHandle = cl_node->handle;
 	}
 
+ clm_left:
  end:
 	if (rc != SA_AIS_OK) {
 		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OM)) {
@@ -514,7 +537,12 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle, SaSelectionObjectT
 			goto no_callback;
 		}
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+		
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -543,6 +571,7 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle, SaSelectionObjectT
 
 	cl_node->selObjUsable = true;
 
+ clm_left:
  no_callback:
  stale_handle:
  node_not_found:
@@ -599,6 +628,11 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 		TRACE_2("ERR_BAD_HANDLE: client-node_get failed");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto fail;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -688,6 +722,7 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
    	pend_dis = cb->pend_dis;
    	pend_fin = cb->pend_fin;
 
+ clm_left:
  fail:
 	if (locked) 
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -974,6 +1009,11 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		goto bad_handle;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immHandle);
@@ -1155,6 +1195,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
  ao_node_alloc_fail:
 	/* Do Nothing */
 
+ clm_left:
  bad_handle:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1378,6 +1419,12 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		goto done;
 	}
 
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -1536,6 +1583,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		ccb_node = NULL;
 	}
 
+ clm_left:
  done:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1686,6 +1734,11 @@ static SaAisErrorT ccb_object_create_common(SaImmCcbHandleT ccbHandle,
 		TRACE_2("ERR_VERSION: saImmOmCcbObjectCreate_o3 only supported for "
 			"A.02.15 and above");
 		goto done;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -2106,7 +2159,7 @@ static SaAisErrorT ccb_object_create_common(SaImmCcbHandleT ccbHandle,
 		ccb_node->mAborted = true;
 	}
 
-
+ clm_left:
  done:
 	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
 
@@ -2278,6 +2331,11 @@ static SaAisErrorT ccb_object_modify_common(SaImmCcbHandleT ccbHandle,
 		TRACE_2("ERR_VERSION: saImmOmCcbObjectModify_o3 only supported for "
 			"A.02.15 and above");
 		goto done;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -2604,6 +2662,7 @@ static SaAisErrorT ccb_object_modify_common(SaImmCcbHandleT ccbHandle,
 		ccb_node->mAborted = true;
 	}
 
+ clm_left:
  done:
 	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
 
@@ -2755,6 +2814,11 @@ static SaAisErrorT ccb_object_delete_common(SaImmCcbHandleT ccbHandle, SaConstSt
 		TRACE_2("ERR_VERSION: saImmOmCcbObjectDelete_o3 only supported for "
 			"A.02.15 and above");
 		goto done;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -2988,6 +3052,7 @@ static SaAisErrorT ccb_object_delete_common(SaImmCcbHandleT ccbHandle, SaConstSt
 		ccb_node->mAborted = true;
 	}
 
+ clm_left:
  done:
 	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
 
@@ -3114,6 +3179,11 @@ SaAisErrorT imma_applyCcb(SaImmCcbHandleT ccbHandle, bool onlyValidate)
 		TRACE_4("ERR_LIBRARY: SaImmHandleT associated with Ccb %u is not valid",
 			ccb_node->mCcbId);
 		goto done;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale || !(cb->is_immnd_up)) {
@@ -3425,7 +3495,7 @@ SaAisErrorT imma_applyCcb(SaImmCcbHandleT ccbHandle, bool onlyValidate)
 		ccb_node->mAborted = true;
 	}
 
-
+ clm_left:
  done:
 	imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
 
@@ -3759,6 +3829,11 @@ static SaAisErrorT admin_op_invoke_common(
 			"A.02.15 and above");
 		goto client_not_found;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
@@ -3998,7 +4073,7 @@ static SaAisErrorT admin_op_invoke_common(
 	}
 
 	
-
+ clm_left:
  ao_not_found:
  client_not_found:
  stale_handle:
@@ -4070,6 +4145,11 @@ SaAisErrorT saImmOmAdminOperationMemoryFree(SaImmAdminOwnerHandleT ownerHandle,
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale - ignoring", immHandle);
@@ -4100,6 +4180,7 @@ SaAisErrorT saImmOmAdminOperationMemoryFree(SaImmAdminOwnerHandleT ownerHandle,
 		free(returnParams);
 	}
 
+ clm_left:
  done:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -4301,6 +4382,11 @@ static SaAisErrorT admin_op_invoke_async_common(SaImmAdminOwnerHandleT ownerHand
 			"A.02.15 and above");
 		goto client_not_found;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
@@ -4486,6 +4572,7 @@ static SaAisErrorT admin_op_invoke_async_common(SaImmAdminOwnerHandleT ownerHand
 	/* Note the imma_proc_decrement_pending_reply is done in the OM upcall
 	   with the reply for the asyncronous operation. 
 	 */
+ clm_left:
  ao_not_found:
  client_not_found:
  stale_handle:
@@ -4701,6 +4788,11 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto client_not_found;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -4957,6 +5049,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 		cl_node->exposed = true;
 	}
 
+ clm_left:
  client_not_found:
  stale_handle:
  bad_sync:
@@ -5010,6 +5103,11 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto client_not_found;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -5285,6 +5383,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 		cl_node->exposed = true;
 	}
 
+ clm_left:
  client_not_found:
  stale_handle:
  bad_sync:
@@ -5341,6 +5440,13 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAtt
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE_LEAVE();
+		return SA_AIS_ERR_UNAVAILABLE;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale - ignoring", immHandle);
 		/*return SA_AIS_ERR_BAD_HANDLE;*/
@@ -5405,6 +5511,11 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto client_not_found;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -5494,6 +5605,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 		cl_node->exposed = true;
 	}
 
+ clm_left:
  stale_handle:
  client_not_found:
  bad_sync:
@@ -5544,7 +5656,12 @@ SaAisErrorT saImmOmAccessorInitialize(SaImmHandleT immHandle, SaImmAccessorHandl
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -5606,6 +5723,7 @@ SaAisErrorT saImmOmAccessorInitialize(SaImmHandleT immHandle, SaImmAccessorHandl
 	*accessorHandle = search_node->search_hdl;
 	cl_node->searchHandleSize++;
 
+ clm_left:
  release_lock:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -5657,6 +5775,13 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 	search_node->mLastObjectName = NULL;
 
 	immHandle = search_node->mImmHandle;
+	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	proc_rc = imma_search_node_delete(cb, search_node);
 	search_node = NULL;
 	if (proc_rc != NCSCC_RC_SUCCESS) {
@@ -5664,7 +5789,6 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 		rc = SA_AIS_ERR_LIBRARY;
 	} else {
 		/* Decrease number of search handles per IMM handle */
-		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node && cl_node->isOm) {	/* TODO: Is osafassert(cl_node && cl_node->isOm) better solution */
 			osafassert(cl_node->searchHandleSize);
 			cl_node->searchHandleSize--;
@@ -5674,6 +5798,7 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 		}
 	}
 
+ clm_left:
  release_lock:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -5827,7 +5952,12 @@ static SaAisErrorT accessor_get_common(SaImmAccessorHandleT accessorHandle,
 	if(ccbId) {
 		TRACE_2("This is a SAFE read, ccbId:%u", ccbId);
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -6073,6 +6203,7 @@ mds_send_fail:
 	}
 
 	/*error cases only */
+ clm_left:
  release_lock:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -6293,7 +6424,12 @@ SaAisErrorT saImmOmCcbObjectRead(SaImmCcbHandleT ccbHandle, SaConstStringT objec
 		TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
 		goto done;
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if(!cl_node->isImmA2x11) {
 		rc = SA_AIS_ERR_VERSION;
 		TRACE_2("ERR_VERSION: saImmOmCcbObjectRead only supported for "
@@ -6532,6 +6668,7 @@ SaAisErrorT saImmOmCcbObjectRead(SaImmCcbHandleT ccbHandle, SaConstStringT objec
 		rc = accessor_get_common(accessorHandle, objectName, attributeNames, attributes, true, ccbId);
 	}
 
+ clm_left:
  done:
 	//imma_free_errorStrings(newErrorStrings); /* In case of failed resurrect only */
 
@@ -7066,7 +7203,12 @@ static SaAisErrorT search_init_common(SaImmHandleT immHandle,
 			"A.02.15 and above");
 		goto release_lock;
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -7402,12 +7544,12 @@ static SaAisErrorT search_init_common(SaImmHandleT immHandle,
 		/*Node never added to tree */
 		free(search_node);
 	}
-
+ clm_left:
  release_lock:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	}
-lock_fail:
+ lock_fail:
 	if(out_evt) {
 		free(out_evt);
 		out_evt=NULL;
@@ -7532,6 +7674,12 @@ static SaAisErrorT search_next_common(SaImmSearchHandleT searchHandle,
 		goto release_lock;
 	}
 
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		error = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_3("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
 		cl_node->exposed = true;
@@ -7770,6 +7918,7 @@ searchresult:
 		free(searchBundle);
 	}
 
+ clm_left:
  release_lock:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -7848,7 +7997,12 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 		TRACE_4("ERR_LIBRARY: Invalid SaImmHandleT related to search handle");
 		goto release_lock;
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		error = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		error = SA_AIS_OK;	/*Dont punish the client for closing stale handle */
@@ -7943,6 +8097,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 		}
 	}
 
+ clm_left:
  mds_failed:
  release_lock:
 	if (locked) {
@@ -8098,7 +8253,12 @@ static SaAisErrorT admin_owner_set_common(SaImmAdminOwnerHandleT adminOwnerHandl
 			"A.02.15 and above");
 		goto done;
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -8197,6 +8357,7 @@ static SaAisErrorT admin_owner_set_common(SaImmAdminOwnerHandleT adminOwnerHandl
 
 	/* Ignore possibly stale handle, will be discovered in next op. */
 
+ clm_left:
  done:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -8563,7 +8724,12 @@ static SaAisErrorT admin_owner_clear_common(SaImmHandleT immHandle,
 			"A.02.15 and above");
 		goto done;
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		bool resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -8655,6 +8821,7 @@ static SaAisErrorT admin_owner_clear_common(SaImmHandleT immHandle,
 
 	/* Ignore possibly stale handle */
 
+ clm_left:
  done:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -8718,6 +8885,11 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 
 		TRACE_4("ERR_LIBRARY: Admin owner associated with closed client");
 		goto done;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -8788,6 +8960,7 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 		}
 	}
 
+ clm_left:
  done:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -8888,7 +9061,12 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 		TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
 		goto done;
 	}
-
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+	
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 		rc = SA_AIS_OK;	/*Dont punish the client for closing stale handle */
@@ -9033,7 +9211,8 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 			 */
 		}
 	}
-
+ 
+ clm_left:
  done:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -136,6 +137,7 @@ static uint32_t imma_create(NCSMDS_SVC_ID sv_id)
 		TRACE_4("Failed to get cb lock");
 		goto lock_init_fail;
 	}
+	imma_cb.clmMemberNode = true;
 
 	/* Initalize the IMMA Trees & Linked lists */
 	rc = imma_db_init(cb);

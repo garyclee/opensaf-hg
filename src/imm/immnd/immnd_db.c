@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -170,6 +171,130 @@ void immnd_client_node_tree_destroy(IMMND_CB *cb)
 	ncs_patricia_tree_destroy(&cb->client_info_db);
 
 	return;
+}
+
+/****************************************************************************
+  Name          : immnd_clm_node_list_init
+  Description   : This routine is used to initialize the IMMND clm node list init
+  Arguments     : cb - pointer to the IMMND Control Block
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Notes         : None
+*****************************************************************************/
+uint32_t immnd_clm_node_list_init(IMMND_CB *cb)
+{
+        NCS_PATRICIA_PARAMS param;
+        memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+
+        param.key_size = sizeof(NODE_ID);
+        if (ncs_patricia_tree_init(&cb->immnd_clm_list, &param) != NCSCC_RC_SUCCESS) {
+                return NCSCC_RC_FAILURE;
+        }
+        return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+ * Name          : immnd_clm_node_get
+ * Description   : Function to get the clm node from the clm list.
+ * Arguments     : IMMND_CB *cb, - IMMND Control Block
+ *               : NODE_ID  - CLM nodeid.
+ * Return Values : IMMND_CLM_NODE_LIST ** immnd_clm_node_list
+ * Notes         : None.
+ *****************************************************************************/
+void immnd_clm_node_get(IMMND_CB *cb, NODE_ID node, IMMND_CLM_NODE_LIST **imm_clm_node)
+{
+        *imm_clm_node = (IMMND_CLM_NODE_LIST*)
+            ncs_patricia_tree_get(&cb->immnd_clm_list, (uint8_t *)&node);
+        return;
+}
+
+/****************************************************************************
+  Name          : immnd_clm_node_add
+  Description   : This routine adds the new node to immnd_clm_node_list
+  Arguments     : immnd_tree - IMMND Tree.
+                  NODE_ID -  CLM  Node.
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+  Notes         : The caller takes the cb lock before calling this function
+*****************************************************************************/
+uint32_t immnd_clm_node_add(IMMND_CB *cb,  NODE_ID key)
+{
+        IMMND_CLM_NODE_LIST *immnd_clm_node = calloc(1, sizeof(IMMND_CLM_NODE_LIST));
+        immnd_clm_node->node_id = key;
+        immnd_clm_node->patnode.key_info = (uint8_t *)&immnd_clm_node->node_id;
+
+        if (ncs_patricia_tree_add(&cb->immnd_clm_list, &immnd_clm_node->patnode) != NCSCC_RC_SUCCESS) {
+                LOG_ER("IMMND - ncs_patricia_tree_add failed in immnd_clm_node_add");
+                free(immnd_clm_node);
+                return NCSCC_RC_FAILURE;
+        }
+
+        return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+  Name          : immnd_clm_node_delete
+  Description   : This routine deletes the node from immnd_clm_node_list
+  Arguments     : IMMD_CB *cb - IMMD Control Block.
+                : NODE_ID -  CLM  Node.
+  Return Values : None
+*****************************************************************************/
+uint32_t immnd_clm_node_delete(IMMND_CB *cb, IMMND_CLM_NODE_LIST *immnd_clm_node)
+{
+        uint32_t rc = NCSCC_RC_SUCCESS;
+
+        /* Remove the Node from the client tree */
+        if (ncs_patricia_tree_del(&cb->immnd_clm_list, (NCS_PATRICIA_NODE *)&immnd_clm_node->patnode) != NCSCC_RC_SUCCESS) {
+                LOG_WA("IMMND CLM NODE DELETE FROM PAT TREE FAILED");
+                rc = NCSCC_RC_FAILURE;
+        }
+
+        /* Free the Client Node */
+        if (immnd_clm_node) {
+                free(immnd_clm_node);
+        }
+        return rc;
+}
+
+/****************************************************************************
+  Name          : immnd_clm_node_cleanup
+  Description   : This routine Free all the nodes in clm_node_list.
+  Arguments     : IMMD_CB *cb - IMMD Control Block.
+  Return Values : None
+****************************************************************************/
+void immnd_clm_node_cleanup(IMMND_CB *cb)
+{
+        IMMND_CLM_NODE_LIST *immnd_clm_node;
+        NODE_ID key;
+        memset(&key, 0, sizeof(NODE_ID));
+
+        /* Get the First Node */
+        immnd_clm_node = (IMMND_CLM_NODE_LIST*)
+            ncs_patricia_tree_getnext(&cb->immnd_clm_list, (uint8_t *)&key);
+        while (immnd_clm_node) {
+                key = immnd_clm_node->node_id;
+                immnd_clm_node_delete(cb, immnd_clm_node);
+
+                immnd_clm_node = (IMMND_CLM_NODE_LIST*)
+                    ncs_patricia_tree_getnext(&cb->immnd_clm_list, (uint8_t *)&key);
+        }
+
+        return;
+}
+
+/****************************************************************************
+  Name          : immnd_clm_node_destroy
+  Description   : This routine destroys the IMMND clm node list.
+  Arguments     : IMMD_CB *cb - IMMD Control Block.
+  Return Values : None
+*****************************************************************************/
+void immnd_clm_node_destroy(IMMND_CB *cb)
+{
+        /* cleanup the clm list */
+        immnd_clm_node_cleanup(cb);
+
+        /* destroy the tree */
+        ncs_patricia_tree_destroy(&cb->immnd_clm_list);
+
+        return;
 }
 
 /* FEVS MESSAGE QUEUEING */

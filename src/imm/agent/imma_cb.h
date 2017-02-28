@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -60,6 +61,7 @@ typedef struct imma_client_node {
 					  will set this to true for the 
 					  connection. A resurrect can remove it.*/
 	bool exposed;    /* Exposed => stale is irreversible */
+	bool clmExposed; /* True ==> then handle is unavailable, due to clm leaving the cluster*/
 	bool selObjUsable; /* Active resurrect possible for this client */
 	bool isPbe;  /* True => This is the PBE-OI */
 	bool isImmA2b;       /* Version A.02.11 */
@@ -70,6 +72,7 @@ typedef struct imma_client_node {
 	bool isImmA2fCbk;    /* Version A.02.15 callback*/
 	bool isImmA2x10;     /* Version A.02.16 */
 	bool isImmA2x11;     /* Version A.02.17 */
+	bool isImmA2x12;     /* Version A.02.18 */
 	bool isApplier; /* True => This is an Applier-OI */
 	bool isAug;     /* True => handle internal to OI augmented CCB */
 	bool isBusy;	/* True => handle is locked by a thread until a function execution is done */
@@ -170,9 +173,10 @@ typedef struct imma_cb {
 	IMMA_CONTINUATION_RECORD *imma_continuations;
 
 	/* Sync up with IMMND ( MDS ) see imma_sync_with_immnd() in imma_init.c */
-    NCS_LOCK             immnd_sync_lock;
-    bool                 immnd_sync_awaited;
-    NCS_SEL_OBJ          immnd_sync_sel; 
+	NCS_LOCK             immnd_sync_lock;
+	bool                 immnd_sync_awaited;
+	NCS_SEL_OBJ          immnd_sync_sel; 
+	bool  clmMemberNode; /* True if the node is CLM Member node */
 } IMMA_CB;
 
 #define m_IMMSV_SET_SANAMET(name) \
@@ -248,6 +252,7 @@ void imma_process_stale_clients(IMMA_CB *cb);
 void imma_free_errorStrings(SaStringT* errorStrings);
 SaStringT* imma_getErrorStrings(IMMSV_SAERR_INFO* errRsp);
 
+void imma_client_tree_mark_clmexposed(IMMA_CB *cb);
 
 /*30B Versioning Changes */
 #define IMMA_MDS_PVT_SUBPART_VERSION 1

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -2798,6 +2799,13 @@ static uint32_t immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			   case IMMA_EVT_ND2A_IMM_SYNC_RSP:
 			   break;
 			 */
+
+		case IMMA_EVT_ND2A_IMM_CLM_NODE_LEFT:
+		case IMMA_EVT_ND2A_IMM_CLM_NODE_JOINED:
+			/* Noinformation is shared because of these evevts
+			   encoding/decoding is not required */
+			break;
+
 		default:
 			LOG_ER("Illegal IMMA message type:%u", immaevt->type);
 			rc = NCSCC_RC_OUT_OF_MEM;
@@ -4203,6 +4211,13 @@ static uint32_t immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			   case IMMA_EVT_ND2A_IMM_SYNC_RSP:
 			   break;
 			 */
+
+		case IMMA_EVT_ND2A_IMM_CLM_NODE_LEFT:
+		case IMMA_EVT_ND2A_IMM_CLM_NODE_JOINED:
+			/* Noinformation is shared because of these evevts
+			   encoding/decoding is not required */
+			break;
+
 		default:
 			LOG_ER("Illegal IMMA message type:%u", immaevt->type);
 			rc = NCSCC_RC_FAILURE;

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -42,6 +43,11 @@ typedef struct immnd_om_search_node {
 	void *searchOp;
 	struct immnd_om_search_node *next;
 } IMMND_OM_SEARCH_NODE;
+
+typedef struct immnd_clm_node_list {
+	NCS_PATRICIA_NODE patnode;
+	NCS_NODE_ID node_id;
+} IMMND_CLM_NODE_LIST;
 
 typedef struct immnd_immom_client_node {
 	NCS_PATRICIA_NODE patnode;
@@ -181,6 +187,10 @@ typedef struct immnd_cb_tag {
 	SaSelectionObjectT amf_sel_obj;	/* Selection Object for AMF events */
 	int nid_started;	/* true if started by NID */
 	bool isNodeTypeController; // true node type is controller
+	SaSelectionObjectT clmSelectionObject; /* Selection object to wait for clms events*/
+        NCS_SEL_OBJ clm_init_sel_obj; /* Selection object wait for  clms intialization*/
+        bool isClmNodeJoined; /* True => If clm joined the cluster*/
+	NCS_PATRICIA_TREE immnd_clm_list;       /* IMMND_IMM_CLIENT_NODE - node */
 } IMMND_CB;
 
 /* CB prototypes */
@@ -199,6 +209,13 @@ uint32_t immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node);
 uint32_t immnd_client_node_tree_init(IMMND_CB *cb);
 void immnd_client_node_tree_cleanup(IMMND_CB *cb);
 void immnd_client_node_tree_destroy(IMMND_CB *cb);
+
+uint32_t immnd_clm_node_list_init(IMMND_CB *cb);
+void immnd_clm_node_get(IMMND_CB *cb, NODE_ID node, IMMND_CLM_NODE_LIST **imm_clm_node);
+uint32_t immnd_clm_node_add(IMMND_CB *cb,  NODE_ID key);
+uint32_t immnd_clm_node_delete(IMMND_CB *cb, IMMND_CLM_NODE_LIST *immnd_clm_node);
+void immnd_clm_node_cleanup(IMMND_CB *cb);
+void immnd_clm_node_destroy(IMMND_CB *cb);
 
 /*
   #define m_IMMSV_CONVERT_EXPTIME_TEN_MILLI_SEC(t) \

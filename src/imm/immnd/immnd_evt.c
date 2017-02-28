@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -786,6 +787,16 @@ static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 		}
 	}
 
+	if (evt->info.initReq.version.minorVersion >= 0x12 &&
+			evt->info.initReq.version.majorVersion == 0x2 &&
+			evt->info.initReq.version.releaseCode == 'A') {
+		if ( !cb->isClmNodeJoined && cb->mIntroduced != 2) {
+			error = SA_AIS_ERR_UNAVAILABLE;
+			LOG_ER("CLM node went down nodeJoined=%x", cb->isClmNodeJoined);
+			goto clm_left;
+		}
+	}
+
 	cl_node = calloc(1, sizeof(IMMND_IMM_CLIENT_NODE));
 	if (cl_node == NULL) {
 		LOG_ER("IMMND - Client Alloc Failed");
@@ -835,6 +846,7 @@ static uint32_t immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 	send_evt.info.imma.info.initRsp.immHandle = cl_node->imm_app_hdl;
 	error = SA_AIS_OK;
 
+ clm_left:
  agent_rsp:
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
 	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_INIT_RSP;
@@ -9419,6 +9431,14 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 		}
 		immnd_adjustEpoch(cb, true);
+		/* If the node is payload give the indication to clm_init_sel_obj
+		 *  because payload nodes are not subscribing for AVD up
+		 */
+		if(!immnd_cb->isNodeTypeController && !cb->clm_hdl){
+			TRACE_8("clm_init_sel_obj indication is given at payload");
+			ncs_sel_obj_ind(&immnd_cb->clm_init_sel_obj);
+
+                }
 
 		/* Sync completed for client => trigger active resurrect. */
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -9429,25 +9449,25 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 			prev_hdl = cl_node->imm_app_hdl;
 			if(!(cl_node->mIsResurrect)) {
 				LOG_WA("Found active client id: %llx version:%c %u %u, after sync, should not happen",
-					 cl_node->imm_app_hdl, cl_node->version.releaseCode,
-					cl_node->version.majorVersion,
-					cl_node->version.minorVersion);
+						cl_node->imm_app_hdl, cl_node->version.releaseCode,
+						cl_node->version.majorVersion,
+						cl_node->version.minorVersion);
 				immnd_client_node_getnext(cb, prev_hdl, &cl_node);
 				continue;
 			}
 			/* Send resurrect message. */
 			if (immnd_mds_msg_send(cb, cl_node->sv_id,
-				    cl_node->agent_mds_dest, &send_evt)!=NCSCC_RC_SUCCESS) 
+						cl_node->agent_mds_dest, &send_evt)!=NCSCC_RC_SUCCESS) 
 			{
 				LOG_WA("Failed to send active resurrect message");
 
 			}
+			++count;
 			/* Remove the temporary client node. */
 			immnd_client_node_del(cb, cl_node);
 			memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
 			free(cl_node);
 			cl_node = NULL;
-			++count;
 			immnd_client_node_getnext(cb, 0, &cl_node);
 		}
 		TRACE_2("Triggered %u active resurrects", count);
@@ -10431,6 +10451,7 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 			}
 		}
 		LOG_NO("IMMD SERVICE IS DOWN, HYDRA IS CONFIGURED => UNREGISTERING IMMND form MDS");
+
 		immnd_mds_unregister(cb);
 		/* Discard local clients ...  */
 		immnd_proc_discard_other_nodes(cb); /* Isolate from the rest of cluster */
