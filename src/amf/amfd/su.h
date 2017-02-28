@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -147,6 +148,7 @@ class AVD_SU {
 	bool all_comps_in_presence_state(SaAmfPresenceStateT pres) const;
 	void set_surestart(bool state);
 	bool get_surestart() const;
+	void update_susis_in_imm_and_ntf(SaAmfHAStateT ha_state) const;
 
  private:
 	void initialize();

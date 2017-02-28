@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -2628,3 +2629,13 @@ void AVD_SU::set_surestart(bool value)
 bool AVD_SU::get_surestart() const
 { return surestart; }
 
+/**
+ * @brief  Updates HA state of all SUSIs of this SU in IMM and sends a
+ *          notification for each SUSI. 
+ */
+void AVD_SU::update_susis_in_imm_and_ntf(SaAmfHAStateT ha_state) const {
+  for (AVD_SU_SI_REL *susi = list_of_susi; susi != nullptr; susi = susi->su_next) {
+    avd_susi_update(susi, ha_state);
+    avd_gen_su_ha_state_changed_ntf(avd_cb, susi);
+  }
+}

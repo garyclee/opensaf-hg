@@ -2280,3 +2280,14 @@ uint32_t AVD_SG::pref_assigned_sus() const {
   return saAmfSGNumPrefAssignedSUs;
 }
 
+/*
+ * @brief  Checks if si_equal_distribution is configured for the SG.
+ * @return true/false.
+*/
+bool AVD_SG::is_equal() const {
+  return(((sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL) ||
+         (sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) ||
+         (sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL)) &&
+         (equal_ranked_su == true) && (saAmfSGAutoAdjust == SA_TRUE));
+}
+
