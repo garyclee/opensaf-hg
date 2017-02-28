@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * Copyright Ericsson AB 2009, 2017 - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -673,10 +674,10 @@ immModel_pbePrtoPurgeMutations(IMMND_CB *cb, SaUint32T nodeId, SaUint32T *reqArr
     ImmModel::instance(&cb->immModel)->pbePrtoPurgeMutations(nodeId, cv);
     *reqArrSize = (SaUint32T) cv.size();
     if(*reqArrSize) {
-            *reqConnArr = (SaUint32T *) malloc((*reqArrSize)* sizeof(SaUint32T));
-             for(cvi = cv.begin(); cvi!= cv.end();++cvi,++ix) {
-                 (*reqConnArr)[ix] = (*cvi);
-             }
+        *reqConnArr = (SaUint32T *) malloc((*reqArrSize)* sizeof(SaUint32T));
+        for(cvi = cv.begin(); cvi!= cv.end();++cvi,++ix) {
+            (*reqConnArr)[ix] = (*cvi);
+        }
     }
 }
 
@@ -4055,7 +4056,6 @@ ImmModel::protocol51Allowed()
     //TRACE_LEAVE();
     return noStdFlags & OPENSAF_IMM_FLAG_PRT51_ALLOW;
 }
-
 
 bool
 ImmModel::protocol41Allowed()

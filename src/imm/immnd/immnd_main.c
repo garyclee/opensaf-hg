@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008-2010 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -41,6 +42,8 @@
 #define FD_TERM 0
 #define FD_AMF 1
 #define FD_MBX 2
+#define FD_CLM_INIT 3
+#define FD_CLM 4
 
 static IMMND_CB _immnd_cb;
 IMMND_CB *immnd_cb = &_immnd_cb;
@@ -86,6 +89,7 @@ static uint32_t immnd_cb_db_init(IMMND_CB *cb)
 	if (rc == NCSCC_RC_FAILURE)
 		LOG_ER("client node tree init failed");
 
+	rc = immnd_clm_node_list_init(cb);
 	return (rc);
 }
 
@@ -144,6 +148,12 @@ static uint32_t immnd_initialize(char *progname)
 	immnd_cb->mProgName = progname;
 	immnd_cb->mDir = getenv("IMMSV_ROOT_DIRECTORY");
 	immnd_cb->mFile = getenv("IMMSV_LOAD_FILE");
+	immnd_cb->clm_hdl = 0;
+	immnd_cb->clmSelectionObject = -1;
+	/* isClmNodeJoined will be intially set to true, untill CLMS service is up.
+	   from there isClmNodeJoined will be controlled by CLM membership join/left.
+	*/
+	immnd_cb->isClmNodeJoined = true;
 	if ((envVar = getenv("IMMSV_NUM_NODES"))) {
 		int numNodes = atoi(envVar);
 		if(numNodes > 255) {
@@ -224,6 +234,12 @@ static uint32_t immnd_initialize(char *progname)
 		LOG_ER("m_NCS_IPC_ATTACH FAILED");
 		goto done;
 	}
+	
+	/* Create a selection object for clm intialization*/
+	if ((rc = ncs_sel_obj_create(&immnd_cb->clm_init_sel_obj)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_sel_obj_create failed for clm intialization");
+		goto done;
+	}
 
 	if ((rc = immnd_mds_register(immnd_cb)) != NCSCC_RC_SUCCESS) {
 		TRACE("immnd_mds_register FAILED %u", rc);
@@ -278,8 +294,8 @@ int main(int argc, char *argv[])
 				   server task when we are very bussy. */
 	int maxEvt = 100;
 	struct timespec start_time;
-	struct pollfd fds[3];
-	int term_fd;
+	struct pollfd fds[5];
+	int term_fd, nfds=4;;
 
 	daemonize(argc, argv);
 
@@ -310,6 +326,8 @@ int main(int argc, char *argv[])
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
+	fds[FD_CLM_INIT].fd = immnd_cb->clm_init_sel_obj.rmv_obj;
+        fds[FD_CLM_INIT].events = POLLIN;
 
 	while (1) {
 		/* Watch out for performance bug. Possibly change from event-count
@@ -327,7 +345,7 @@ int main(int argc, char *argv[])
 		maxEvt = (timeout == 100) ? 50 : 100;
 
 		/* Wait for events */
-		int ret = poll(fds, 3, (passed_time_ms < timeout) ? (timeout - passed_time_ms) : 0);
+		int ret = poll(fds, nfds, (passed_time_ms < timeout) ? (timeout - passed_time_ms) : 0);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -373,6 +391,29 @@ int main(int argc, char *argv[])
 					eventCount = maxEvt;
 					if(immnd_cb->mForceClean) {
 						LOG_IN("ABT immnd-main caught mForceClean");
+					}
+				}
+			}
+
+			if (fds[FD_CLM_INIT].revents & POLLIN && !immnd_cb->clm_hdl) {
+				TRACE("Initalize CLM ");
+				ncs_sel_obj_rmv_ind(&immnd_cb->clm_init_sel_obj, true, true);
+				immnd_init_with_clm();
+				nfds=5;
+				fds[FD_CLM].fd = immnd_cb->clmSelectionObject;
+				fds[FD_CLM].events = POLLIN;
+			}
+
+			if (fds[FD_CLM].revents & POLLIN) {
+				if ((error = saClmDispatch(immnd_cb->clm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+					LOG_ER("saClmDispatch failed: %u", error);
+					if(error == SA_AIS_ERR_BAD_HANDLE){
+						LOG_NO("Re-initializing with CLMS");
+						saClmFinalize(immnd_cb->clm_hdl);
+						immnd_clm_node_cleanup(immnd_cb);
+						immnd_init_with_clm();
+					} else {
+						break;
 					}
 				}
 			}

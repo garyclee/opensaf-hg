@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -501,5 +502,10 @@ void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, bool freeTop);
 /* File : ----  immnd_proc.c */
 uint32_t immnd_proc_server(uint32_t *timeout);
 /* End : ----  immnd_proc.c  */
+
+/* File : ----  immnd_clm.c */
+uint32_t immnd_clm_node_change(bool left);
+void immnd_init_with_clm();
+/* Ebd : ----  immnd_clm.c */
 
 #endif  // IMM_IMMND_IMMND_INIT_H_

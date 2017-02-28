@@ -2934,7 +2934,26 @@ Operation-id '1' invoked on the object:
 
  'opensafImm=opensafImm,safApp=safImmService'
 
+Integrate IMM service with CLM (5.2)
+=======================================================
+https://sourceforge.net/p/opensaf/tickets/1640/
 
+with this enhancement IMM is integrated with CLM.
+
+The IMM agent has to register with A.02.18 to integrate with CLM and receive 
+CLM memebership information of the node. 
+
+The IMMND registers with CLMS and receives notification about the node leaves 
+and joins the CLM membership. The CLM membership information will be sent to 
+IMM agents which registers with A.02.18.
+
+IMMD is not yet integrated, as the IMMND has to services to clients with lesser versions.
+IMMND has to be UP even if the CLM node is down. The IMMD integration has to be done along 
+with Enhanced cluster management(#439).
+
+In case of CLM node lock, and HEADLESS is triggered after CLM node lock, then CLM locked 
+node is nullified. The node is considered as HEADLESS and all other agent functions 
+supported in HEADLESS are supported.
 
 ----------------------------------------
 DEPENDENCIES

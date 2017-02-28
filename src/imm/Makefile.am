@@ -2,6 +2,7 @@
 #
 # (C) Copyright 2016 The OpenSAF Foundation
 # Copyright Ericsson AB 2017 - All Rights Reserved.
+# Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -352,6 +353,7 @@ bin_osafimmnd_SOURCES = \
 	src/imm/immnd/immnd_main.c \
 	src/imm/immnd/immnd_mds.c \
 	src/imm/immnd/immnd_proc.c \
+	src/imm/immnd/immnd_clm.c \
 	src/imm/immnd/ImmAttrValue.cc \
 	src/imm/immnd/ImmSearchOp.cc \
 	src/imm/immnd/ImmModel.cc
@@ -359,7 +361,8 @@ bin_osafimmnd_SOURCES = \
 bin_osafimmnd_LDADD = \
 	lib/libimm_common.la \
 	lib/libSaAmf.la \
-	lib/libopensaf_core.la
+	lib/libopensaf_core.la \
+	lib/libSaClm.la
 
 bin_osafimmpbed_CXXFLAGS = $(AM_CXXFLAGS)
 

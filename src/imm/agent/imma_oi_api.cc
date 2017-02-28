@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -174,6 +175,10 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 							cl_node->isImmA2x10 = true;
 							if (requested_version.minorVersion >= 0x11) {
 								cl_node->isImmA2x11 = true;
+								if (requested_version.minorVersion >= 0x12) {
+									cl_node->isImmA2x12 = true;
+								}
+
 							}
 						}
 					}
@@ -249,6 +254,11 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto mds_fail;
 	}
+	if(cl_node->isImmA2x12 && !cb->clmMemberNode){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	/* send the request to the IMMND */
 	proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &init_evt, &out_evt, 
@@ -269,6 +279,12 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 
 	if (out_evt) {
 		rc = out_evt->info.imma.info.initRsp.error;
+		if (rc == SA_AIS_ERR_UNAVAILABLE && cl_node->isImmA2x12){
+                        cb->clmMemberNode = false;
+                        TRACE(" Node left the CLM membership");
+                        goto rsp_not_ok;
+                }
+
 		if (rc != SA_AIS_OK) {
 			goto rsp_not_ok;
 		}
@@ -347,7 +363,9 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 			free(out_evt1);
 		}
 	}
+	TRACE_2("OI client version A.2.%u", requested_version.minorVersion);
 
+ clm_left:
  rsp_not_ok:
  mds_fail:
 
@@ -445,6 +463,11 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSelectionObj
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto node_not_found;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
@@ -479,6 +502,7 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSelectionObj
 
 	cl_node->selObjUsable = true;
 
+ clm_left:
  node_not_found:
  resurrect_failed:
 	if (locked)
@@ -533,6 +557,12 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto fail;
+	}
+
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -625,6 +655,7 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
    	pend_dis = cb->pend_dis;
    	pend_fin = cb->pend_fin;
 
+ clm_left:
  fail:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -934,6 +965,11 @@ static SaAisErrorT admin_op_result_common(
 		LOG_IN("ERR_BAD_HANDLE: client_node_get failed");
 		goto node_not_found;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
@@ -1128,9 +1164,9 @@ static SaAisErrorT admin_op_result_common(
 		free(p);	/*free-a */
 	}
 
+ clm_left: 
  stale_handle:
  node_not_found:
-	
 
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1213,6 +1249,11 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		goto bad_handle;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->mImplementerId) {
@@ -1437,6 +1478,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 		cl_node->isPbe = 0x0;
 	}
 
+ clm_left:
  bad_handle:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1496,6 +1538,11 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto bad_handle;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -1587,6 +1634,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 			cl_node->isApplier = 0;
 	}
 
+ clm_left:
  bad_handle:
 	if (locked) 
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1659,6 +1707,11 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto bad_handle;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -1769,6 +1822,7 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 
  fevs_error:
  bad_handle:
+ clm_left:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -1839,6 +1893,11 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 	if (!cl_node || cl_node->isOm) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto bad_handle;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -1937,7 +1996,7 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
-
+ clm_left:
  fevs_error:
  bad_handle:
 	if (locked)
@@ -2484,6 +2543,11 @@ static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
 		TRACE_2("ERR_VERSION: saImmOiRtObjectUpdate_o3 is supported from A.2.15");
 		goto bad_handle;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
@@ -2674,6 +2738,7 @@ static SaAisErrorT rt_object_update_common(SaImmOiHandleT immOiHandle,
 		}
 	}
 
+ clm_left:
  skip_over_send:
  bad_sync:
  bad_handle1:
@@ -2802,6 +2867,11 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 		rc = SA_AIS_ERR_VERSION;
 		TRACE_2("ERR_VERSION: saImmOiRtObjectCreate_o3 is supported from A.2.15");
 		goto bad_handle;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -3049,7 +3119,7 @@ static SaAisErrorT rt_object_create_common(SaImmOiHandleT immOiHandle,
 		p->next = NULL;
 		free(p);	/*free-3 */
 	}
-
+ clm_left:
  bad_handle:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -3146,6 +3216,11 @@ static SaAisErrorT rt_object_delete_common(SaImmOiHandleT immOiHandle,
 		rc = SA_AIS_ERR_VERSION;
 		TRACE_2("ERR_VERSION: saImmOiRtObjectDelete_o3 is supported from A.2.15");
 		goto bad_handle;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -3244,6 +3319,7 @@ static SaAisErrorT rt_object_delete_common(SaImmOiHandleT immOiHandle,
 	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
+ clm_left:
  fevs_error:
  bad_handle:
 	if (locked)
@@ -3487,6 +3563,11 @@ SaAisErrorT saImmOiCcbSetErrorString(
 		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		goto bad_handle;
 	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
 
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
@@ -3529,6 +3610,7 @@ SaAisErrorT saImmOiCcbSetErrorString(
 		goto bad_handle;
 	}
 
+ clm_left:
  bad_handle:
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -3695,6 +3777,11 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 		TRACE_2("ERR_BAD_HANDLE: Bad handle %llx", immOiHandle);
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
+	}
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
 	}
 
 	if (cl_node->stale) {
@@ -3877,6 +3964,7 @@ SaAisErrorT saImmOiAugmentCcbInitialize(
 	osafassert(immsv_om_augment_ccb_initialize);
 	rc = immsv_om_augment_ccb_initialize(privateOmHandle, ccbId, adminOwnerId,
 			ccbHandle, &privateAoHandle);
+clm_left:
 done:
 
 	if (locked) {

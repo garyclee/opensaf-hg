@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1350,6 +1351,31 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 }
 
 /****************************************************************************
+  Name          : imma_proc_clm_status_changed
+  Description   : This function will process the clm state changes.
+  Arguments     : cb - IMMA CB.
+                  evt - IMMA_EVT.
+  Return Values : None
+******************************************************************************/
+static void imma_proc_clm_status_changed(IMMA_CB *cb, IMMA_EVT *evt)
+{
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_3("Lock failure");
+		return;
+	}
+
+	if(evt->type == IMMA_EVT_ND2A_IMM_CLM_NODE_LEFT){
+		cb->clmMemberNode = false;
+		LOG_NO("CLM node left the cluster");
+		imma_client_tree_mark_clmexposed(cb);
+	} else if ( evt->type == IMMA_EVT_ND2A_IMM_CLM_NODE_JOINED){
+		cb->clmMemberNode = true;
+		TRACE("CLM node join the cluster");
+	}
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+}
+
+/****************************************************************************
   Name          : imma_process_evt
   Description   : This routine will process the callback event received from
                   IMMND.
@@ -1415,6 +1441,11 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
 		case IMMA_EVT_ND2A_PROC_STALE_CLIENTS:
 			LOG_IN("Received PROC_STALE_CLIENTS");
 			imma_process_stale_clients(cb);
+			break;
+
+		case IMMA_EVT_ND2A_IMM_CLM_NODE_LEFT:
+		case IMMA_EVT_ND2A_IMM_CLM_NODE_JOINED:
+			imma_proc_clm_status_changed(cb, &evt->info.imma);
 			break;
 
 		default:

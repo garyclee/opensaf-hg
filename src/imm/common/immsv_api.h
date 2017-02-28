@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -148,7 +149,6 @@ typedef enum {
 #define OPENSAF_IMM_FLAG_PRT47_ALLOW 0x00000040
 #define OPENSAF_IMM_FLAG_PRT50_ALLOW 0x00000080
 #define OPENSAF_IMM_FLAG_PRT51_ALLOW 0x00000100
-
 
 #define OPENSAF_IMM_SERVICE_NAME "safImmService"
 

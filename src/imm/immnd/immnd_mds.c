@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -187,6 +188,23 @@ uint32_t immnd_mds_register(IMMND_CB *cb)
 		LOG_WA("MDS Subscription Failed");
 		goto error1;
 	}
+
+	if(cb->isNodeTypeController){
+
+		/* STEP 6: Subscribe to AVD events in MDS. This will be
+		   used for CLM registration at controllers.*/
+
+		svc_id[0]  = NCSMDS_SVC_ID_AVD;
+		svc_info.i_op = MDS_SUBSCRIBE;
+		svc_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_INTRANODE;
+		svc_info.info.svc_subscribe.i_num_svcs = 1;
+		svc_info.info.svc_subscribe.i_svc_ids = svc_id;
+
+		if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
+			LOG_WA("MDS AVD Subscription Failed");
+			goto error1;
+		}
+	} 
 
 	cb->node_id = m_NCS_GET_NODE_ID;
 	TRACE_2("cb->node_id:%x", cb->node_id);
@@ -601,7 +619,17 @@ static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc
 		priority = NCS_IPC_PRIORITY_VERY_HIGH;
 
 		m_NCS_UNLOCK(&cb->immnd_immd_up_lock, NCS_LOCK_WRITE);
-	}
+	} else if (svc_evt->i_svc_id == NCSMDS_SVC_ID_AVD) {
+		if (svc_evt->i_change == NCSMDS_UP) {
+			TRACE_8("MDS UP dest: %" PRIx64 ", node ID: %x, svc_id: %d",
+					svc_evt->i_dest, svc_evt->i_node_id, svc_evt->i_svc_id);
+			//Subscribed for only INTRA NODE, only one ADEST will come.
+			if (m_MDS_DEST_IS_AN_ADEST(svc_evt->i_dest) ) {
+				TRACE_8("AVD ADEST UP");
+				ncs_sel_obj_ind(&immnd_cb->clm_init_sel_obj);
+			}
+		}
+	} 
 
 	/* IMMA events from other nodes can not happen */
 	if ((svc_evt->i_svc_id == NCSMDS_SVC_ID_IMMA_OM) || (svc_evt->i_svc_id == NCSMDS_SVC_ID_IMMA_OI))

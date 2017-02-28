@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -118,6 +119,37 @@ uint32_t imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 
 	return rc;
 }
+
+/****************************************************************************
+Name          : imma_client_tree_mark_clmexposed
+Description   : This routine marks the clmexposed in IMMA client tree.
+Arguments     : IMMA_CB *cb - IMMA Control Block.
+Return Values : None
+Notes         : None
+******************************************************************************/
+void imma_client_tree_mark_clmexposed(IMMA_CB *cb)
+{
+	IMMA_CLIENT_NODE *clnode;
+	SaImmHandleT *temp_ptr = 0;
+	SaImmHandleT temp_hdl = 0;
+	TRACE_ENTER();
+
+	/* scan the entire handle and mark clmexposed in each record */
+	while ((clnode = (IMMA_CLIENT_NODE *)
+				ncs_patricia_tree_getnext(&cb->client_tree, (uint8_t *)temp_ptr))) {
+		/* mark the client info as clmexposed*/
+		if (clnode->isImmA2x12 && !cb->clmMemberNode){
+			clnode->clmExposed = true;
+			TRACE(" Marking clinet %llx as clmExposed", clnode->handle);
+		}
+		temp_hdl = clnode->handle;
+		temp_ptr = &temp_hdl;
+	}
+
+	TRACE_LEAVE();
+	return;
+}
+
 
 /****************************************************************************
   Name          : imma_client_tree_destroy
@@ -681,7 +713,10 @@ void imma_mark_clients_stale(IMMA_CB *cb, bool mark_exposed)
 		if(mark_exposed) {
 			clnode->exposed = true;
 			LOG_WA("marking handle as exposed");
-		}
+		}else if (clnode->isImmA2x12 && clnode->clmExposed){
+                        clnode->exposed = true;
+                        LOG_WA("marking handle as exposed, CLM node left cluster membership");
+                }
 
 		clnode->stale = true;
 		TRACE("Stale marked client cl:%u node:%x",
