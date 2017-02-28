@@ -431,6 +431,8 @@ public:
 	uint32_t curr_non_instantiated_spare_sus() const;
 	bool is_middleware() const {return sg_ncs_spec ? true : false;}
 	uint32_t pref_assigned_sus() const;
+	//Checks if si_equal_distribution is configured for the SG.
+	bool is_equal() const;
 
 private:
 	// disallow copy and assign, TODO(hafe) add common macro for this
@@ -516,6 +518,7 @@ public:
 		struct avd_su_si_rel_tag *susi, AVSV_SUSI_ACT act, SaAmfHAStateT state);
         void node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su);
 	void ng_admin(AVD_SU *su, AVD_AMF_NG *ng);
+	SaAisErrorT si_swap(AVD_SI *si, SaInvocationT invocation);
         
 private:
         uint32_t su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su);

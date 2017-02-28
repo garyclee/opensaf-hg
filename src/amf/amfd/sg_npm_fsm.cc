@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -170,7 +171,10 @@ static uint32_t avd_sg_npm_su_chk_snd(AVD_CL_CB *cb, AVD_SU *s_su, AVD_SU *q_su)
 		}
 	}
 
+	/*Do not send delete for a susi of s_su if other sisu of same si is in q_su.
+	  In this case s_su can become active for this SI.*/
 	for (i_susi = s_su->list_of_susi; i_susi != AVD_SU_SI_REL_NULL; i_susi = i_susi->su_next) {
+		
 		if ((i_susi->si->list_of_sisu != i_susi) && (i_susi->si->list_of_sisu->su == q_su))
 			continue;
 
@@ -962,34 +966,6 @@ uint32_t SG_NPM::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 	si->sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 
 	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avd_sg_npm_siswitch_func
- *
- * Purpose:  This function is called when a operator does a SI switch on
- * a SI that belongs to N+M redundancy model SG. 
- * This will trigger a role change action as described in the SG FSM design.
- *
- * Input: cb - the AVD control block
- *        si - The pointer to the SI that needs to be switched.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a N+M redundancy model specific function. The initial 
- * functionality of N+M SI switch is same as 2N switch so it just calls that
- * function.
- *
- * 
- **************************************************************************/
-
-uint32_t avd_sg_npm_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
-{
-	TRACE_ENTER2("%u", si->sg_of_si->sg_fsm_state);
-	osafassert(0);
-//	return avd_sg_2n_siswitch_func(cb, si);
-	return 0;
 }
 
  /*****************************************************************************
@@ -1847,6 +1823,7 @@ uint32_t SG_NPM::susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 			/* if (i_susi == AVD_SU_SI_REL_NULL) */
 		} /* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) */
 		else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_STANDBY)) {
+			su->update_susis_in_imm_and_ntf(state);
 			/* standby all for a SU. remove the SU from the SU oper list. */
 			avd_sg_su_oper_list_del(cb, su, false);
 
@@ -2676,6 +2653,8 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 {
 	AVD_SU_SI_REL *i_susi, *o_susi;
 
+	TRACE_ENTER2("'%s', act:%u, state:%u", su->name.c_str(), act, state);
+
 	if (susi != AVD_SU_SI_REL_NULL) {
 		/* assign single SUSI */
 		if (act == AVSV_SUSI_ACT_DEL) {
@@ -2763,6 +2742,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 		    (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
 		    ((i_susi = avd_su_susi_find(cb, su, su->sg_of_su->admin_si->name))
 		     != AVD_SU_SI_REL_NULL)) {
+			su->update_susis_in_imm_and_ntf(state);
 			/* message with modified quiesced all and an SI is in the admin
 			 * pointer with switch value true
 			 */
@@ -2801,6 +2781,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 				   ((i_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name,false))
 				   != AVD_SU_SI_REL_NULL)) */
 		else if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_ACTIVE)) {
+			su->update_susis_in_imm_and_ntf(state);
 			for (i_susi = su->list_of_susi;
 			     (i_susi != AVD_SU_SI_REL_NULL) && (i_susi->fsm == AVD_SU_SI_STATE_ASGND);
 			     i_susi = i_susi->su_next) ;
@@ -2841,7 +2822,7 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 			LOG_EM("%s:%u: %u", __FILE__, __LINE__, su->sg_of_su->sg_fsm_state);
 		}
 	}			/* else (susi != AVD_SU_SI_REL_NULL) */
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -3870,6 +3851,7 @@ void SG_NPM::node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					}
 				}
 
+				avd_sg_su_oper_list_del(cb, su, false);
 				/* Free all the SI assignments to this SU. */
 				su->delete_all_susis();
 
@@ -4506,6 +4488,111 @@ void SG_NPM::ng_admin(AVD_SU *su, AVD_AMF_NG *ng)
 done:
   TRACE_LEAVE();
   return;
+}
+
+/*
+ * @brief  Returns sisu of the SI other than the passed one. 
+ * @return ptr to SUSI. 
+*/
+static AVD_SU_SI_REL *avd_npm_other_sisu(AVD_SU_SI_REL *susi) {
+  if (susi == susi->si->list_of_sisu)
+    return susi->si->list_of_sisu->si_next;
+  else
+    return susi->si->list_of_sisu;
+}
+
+SaAisErrorT SG_NPM::si_swap(AVD_SI *si, SaInvocationT invocation) {
+  SaAisErrorT rc = SA_AIS_OK;
+  AVD_SU_SI_REL *actv_susi = nullptr, *stdby_susi = nullptr;
+  AVD_SG *sg = si->sg_of_si;
+  AVD_SU *actv_su = nullptr, *stdby_su = nullptr;
+  uint32_t count = 0; 
+
+  TRACE_ENTER2("'%s' sg_fsm_state=%u", si->name.c_str(), si->sg_of_si->sg_fsm_state);
+
+  //Validate for designated SI.
+  if ((rc = si->si_swap_validate()) != SA_AIS_OK)
+    goto done;
+
+  //Check for equal distribution feature.
+  if (sg->is_equal() == true) {
+    LOG_NO("%s Equal distribution is enabled, si-swap not allowed", si->name.c_str());
+    rc = SA_AIS_ERR_BAD_OPERATION;
+    goto done;
+  }
+
+  //Identify active and standby SUs for this SI. 
+  if (si->list_of_sisu->state == SA_AMF_HA_ACTIVE) {
+    actv_susi = si->list_of_sisu;
+    stdby_susi = si->list_of_sisu->si_next;
+  } else if (si->list_of_sisu->si_next->state == SA_AMF_HA_ACTIVE) {
+    actv_susi = si->list_of_sisu->si_next;
+    stdby_susi = si->list_of_sisu;
+  }
+  actv_su = actv_susi->su;
+  stdby_su = stdby_susi->su;
+
+  //Since all SIs of active SU will be swapped, validate for all SIs. 
+  for (AVD_SU_SI_REL *susi = actv_su->list_of_susi; susi != nullptr; susi = susi->su_next) {
+    if (susi->si == si)
+      continue;
+    if ((rc = susi->si->si_swap_validate()) != SA_AIS_OK)
+      goto done;
+  }
+
+  /* After completion of operation, active SU will become standby. As a standby SU, it should 
+     not cross saAmfSGMaxStandbySIsperSU.
+   */
+  if (sg->saAmfSGMaxStandbySIsperSU <
+    static_cast<SaUint32T>(actv_su->hastate_assignments_count(SA_AMF_HA_ACTIVE))) {
+    LOG_NO("%s SWAP not allowed as it will violate saAmfSGMaxStandbySIsperSU in '%s'.",
+      si->name.c_str(), actv_su->name.c_str());
+    rc = SA_AIS_ERR_BAD_OPERATION;
+    goto done;
+  }
+
+  /* Check 2: In ideal situation if same SU is standby for all SIs then there will not 
+     be any change in number of active SUs and number of standby SUs in SG. 
+     But if all SIs of active SU have their standbys on different standby SUs, then
+     si-swap may increase number of active SUs in SG. Check for saAmfSGNumPrefActiveSUs.
+   */
+  for (AVD_SU_SI_REL *susi = actv_su->list_of_susi; susi != nullptr; susi = susi->su_next) {
+    AVD_SU_SI_REL *tmp_stdby_susi = avd_npm_other_sisu(susi);
+    if (tmp_stdby_susi->su != stdby_su)
+	count++;
+
+    //TODO: Will remove this check in the second version for the case when all actives do 
+    //not have standbys on same SU. 
+    if (count > 0) {
+      LOG_NO("SWAP not allowed, SIs of SU in which '%s' is active, do not have standbys in same SU.",
+        si->name.c_str());
+    }
+    if (saAmfSGNumPrefActiveSUs < (count + avd_sg_get_curr_act_cnt(sg))) {
+      LOG_NO("%s SWAP not allowed as it will violate saAmfSGNumPrefActiveSUs.",
+        si->name.c_str());
+      rc = SA_AIS_ERR_BAD_OPERATION;
+      goto done;
+    }
+  }
+
+  if (avd_sg_su_si_mod_snd(avd_cb, actv_su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
+    LOG_WA("quiesced state transtion failed for '%s'", actv_su->name.c_str());
+    rc = SA_AIS_ERR_BAD_OPERATION;
+    goto done;
+  }
+
+  avd_sg_su_oper_list_add(avd_cb, actv_su, false);
+  actv_su->sg_of_su->set_fsm_state(AVD_SG_FSM_SI_OPER);
+  si->set_si_switch(avd_cb, AVSV_SI_TOGGLE_SWITCH);
+  si->sg_of_si->set_admin_si(si);
+  si->invocation = invocation;
+
+  LOG_NO("%s Swap initiated", si->name.c_str());
+  saflog(LOG_NOTICE, amfSvcUsrName, "%s Swap initiated", si->name.c_str());
+
+done:
+  TRACE_LEAVE2("sg_fsm_state=%u", si->sg_of_si->sg_fsm_state);
+  return rc;
 }
 
 SG_NPM::~SG_NPM() {
