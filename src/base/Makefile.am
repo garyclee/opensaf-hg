@@ -37,6 +37,7 @@ lib_libopensaf_core_la_SOURCES += \
 	src/base/file_descriptor.cc \
 	src/base/file_notify.cc \
 	src/base/getenv.cc \
+	src/base/hash.cc \
 	src/base/hj_dec.c \
 	src/base/hj_edp.c \
 	src/base/hj_edu.c \
@@ -83,6 +84,7 @@ noinst_HEADERS += \
 	src/base/file_descriptor.h \
 	src/base/file_notify.h \
 	src/base/getenv.h \
+	src/base/hash.h \
 	src/base/log_message.h \
 	src/base/logtrace.h \
 	src/base/macros.h \
@@ -180,17 +182,19 @@ bin_libbase_test_CPPFLAGS = \
 
 bin_libbase_test_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	src/base/lib_libopensaf_core_la-unix_socket.lo \
-	src/base/lib_libopensaf_core_la-unix_server_socket.lo \
+	-lcrypto \
+	src/base/lib_libopensaf_core_la-file_descriptor.lo \
+	src/base/lib_libopensaf_core_la-file_notify.lo \
 	src/base/lib_libopensaf_core_la-getenv.lo \
+	src/base/lib_libopensaf_core_la-hash.lo \
 	src/base/lib_libopensaf_core_la-log_message.lo \
 	src/base/lib_libopensaf_core_la-process.lo \
-	src/base/lib_libopensaf_core_la-file_descriptor.lo \
-	src/base/lib_libopensaf_core_la-file_notify.lo
+	src/base/lib_libopensaf_core_la-unix_server_socket.lo \
+	src/base/lib_libopensaf_core_la-unix_socket.lo
 
 bin_libbase_test_SOURCES = \
-	src/base/tests/unix_socket_test.cc \
 	src/base/tests/getenv_test.cc \
+	src/base/tests/hash_test.cc \
 	src/base/tests/log_message_test.cc \
 	src/base/tests/mock_logtrace.cc \
 	src/base/tests/mock_osaf_abort.cc \
@@ -198,8 +202,8 @@ bin_libbase_test_SOURCES = \
 	src/base/tests/time_add_test.cc \
 	src/base/tests/time_compare_test.cc \
 	src/base/tests/time_convert_test.cc \
-	src/base/tests/file_notify_test.cc \
-	src/base/tests/time_subtract_test.cc
+	src/base/tests/time_subtract_test.cc \
+	src/base/tests/unix_socket_test.cc
 
 bin_libbase_test_LDADD = \
 	$(GTEST_DIR)/lib/libgtest.la \
