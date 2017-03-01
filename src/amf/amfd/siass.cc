@@ -378,9 +378,14 @@ bool avd_susi_validate_headless_cached_rta(AVD_SU_SI_REL *present_susi,
 			present_susi->su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
 			LOG_WA("SISU:'%s', ha:'%u', but one of [node/sg/su/si] is not in LOCKED",
 					dn.c_str(), ha_fr_imm);
-			if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER)
-				present_susi->su->set_admin_state(SA_AMF_ADMIN_LOCKED);
-			else if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER)
+			if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER) {
+				// ambiguous between si-swap and su-lock both are
+				// using AVD_SG_FSM_SU_OPER.
+				// Prioritize si-swap, do not set saAmfSUAdminState
+				// to LOCKED to avoid out of service.
+				// TODO: Need a better solution to solve the ambiguity
+				TRACE("No adjustment for saAmfSUAdminState");
+			} else if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SI_OPER)
 				present_susi->si->set_admin_state(SA_AMF_ADMIN_LOCKED);
 			else if (present_susi->su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_ADMIN)
 				present_susi->su->sg_of_su->set_admin_state(SA_AMF_ADMIN_LOCKED);
