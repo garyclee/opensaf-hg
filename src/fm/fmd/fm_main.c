@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
 *
 * (C) Copyright 2008 The OpenSAF Foundation
+* Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
 *
 * This program is distributed in the hope that it will be useful, but
 * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -31,6 +32,7 @@ This file contains the main() routine for FM.
 #include "nid/agent/nid_api.h"
 #include "fm.h"
 #include "base/osaf_time.h"
+#include "base/osaf_poll.h"
 
 #define FM_CLM_API_TIMEOUT 10000000000LL
 
@@ -71,7 +73,6 @@ void handle_mbx_event(void);
 extern uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb);
 uint32_t gl_fm_hdl;
 static NCS_SEL_OBJ usr1_sel_obj;
-void fm_proc_svc_down(FM_CB *cb, FM_EVT *fm_mbx_evt);
 
 /**
  * USR1 signal is used when AMF wants instantiate us as a
@@ -176,6 +177,11 @@ int main(int argc, char *argv[])
 	 */
 	fm_cb->control_tipc = true; /* Default behaviour */
 
+	fm_cb->immd_down = true; 
+	fm_cb->immnd_down = true; 
+	fm_cb->amfnd_down = true; 
+	fm_cb->amfd_down = true;
+
 	/* Create CB handle */
 	gl_fm_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_GFM, (NCSCONTEXT)fm_cb);
 
@@ -194,7 +200,7 @@ int main(int argc, char *argv[])
 		goto fm_init_failed;
 	}
 
-/* Attach MBX */
+	/* Attach MBX */
 	if (m_NCS_IPC_ATTACH(&fm_cb->mbx) != NCSCC_RC_SUCCESS) {
 		syslog(LOG_ERR, "m_NCS_IPC_ATTACH() failed.");
 		goto fm_init_failed;
@@ -268,7 +274,7 @@ int main(int argc, char *argv[])
  
 	/* notify the NID */
 	if (nid_started)
-		fm_nid_notify(NCSCC_RC_SUCCESS);
+		fm_nid_notify((uint32_t) NCSCC_RC_SUCCESS);
 
 	while (1) {
 		ret = poll(fds, nfds, -1);
@@ -454,52 +460,6 @@ static uint32_t fm_get_args(FM_CB *fm_cb)
 	return NCSCC_RC_SUCCESS;
 }
 
-void fm_proc_svc_down(FM_CB *cb, FM_EVT *fm_mbx_evt)
-{
-	switch (fm_mbx_evt->svc_id) {
-		case NCSMDS_SVC_ID_IMMND:
-			cb->immnd_down = true;
-			LOG_NO("IMMND down on: %x", cb->peer_node_id);
-			break;
-		case NCSMDS_SVC_ID_AVND:
-			cb->amfnd_down = true;
-			LOG_NO("AMFND down on: %x", cb->peer_node_id);
-			break;
-		case NCSMDS_SVC_ID_IMMD:
-			cb->immd_down = true;
-			LOG_NO("IMMD down on: %x", cb->peer_node_id);
-			break;
-		case NCSMDS_SVC_ID_AVD:
-			cb->amfd_down = true;
-			LOG_NO("AVD down on: %x", cb->peer_node_id);
-			break;
-		case NCSMDS_SVC_ID_GFM:
-			cb->fm_down = true;
-			LOG_NO("FM down on: %x", cb->peer_node_id);
-			break;
-		default:
-			break;
-	}
-
-	/* Processing only for alternate node.
-	* Service downs of AMFND, IMMD, IMMND is the same as NODE_DOWN from 4.4 onwards.
-	* This is required to handle the usecase involving
-	* '/etc/init.d/opensafd stop' without an OS reboot cycle
-	* Process service downs only if OpenSAF is not controlling TIPC.
-	* If OpenSAF is controlling TIPC, just wait for NODE_DOWN to trigger failover.
-	*/
-	if (cb->immd_down && cb->immnd_down && cb->amfnd_down && cb->amfd_down && cb->fm_down) {
-		LOG_NO("Core services went down on node_id: %x", fm_mbx_evt->node_id);
-		fm_send_node_down_to_mbx(cb, fm_mbx_evt->node_id);
-		/* Reset peer downs, because we've made MDS RED subscriptions */
-		cb->immd_down = false;
-		cb->immnd_down = false;
-		cb->amfnd_down = false;
-		cb->amfd_down = false;
-		cb->fm_down = false;
-	}
-}
-
 /****************************************************************************
 * Name          : fm_clm_init
 *
@@ -642,11 +602,18 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 			}
 		}
 		break;
-	case FM_EVT_SVC_DOWN:
-		fm_proc_svc_down(fm_cb, fm_mbx_evt);
-		break;
+
 	case FM_EVT_PEER_UP:
-/* Peer fm came up so sending ee_id of this node */
+		/* Weird situation in a cluster, where the new-Active controller node founds the peer node
+		 * (old-Active) is still in the progress of shutdown (i.e., amfd/immd is still alive). 
+		 */
+		if ((fm_cb->role == PCS_RDA_ACTIVE) && (fm_cb->csi_assigned == false)) {
+			LOG_ER("Two active controllers observed in a cluster, newActive: %x and old-Active: %x", fm_cb->node_id, fm_cb->peer_node_id);
+			opensaf_reboot(0, NULL,
+			"Received svc up from peer node (old-active is not fully DOWN), hence rebooting the new Active");
+		}
+
+		/* Peer fm came up so sending ee_id of this node */
 		if (fm_cb->node_name.length != 0)
 			fms_fms_exchange_node_info(fm_cb);
 
@@ -654,8 +621,9 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 			get_peer_clm_node_name(fm_mbx_evt->node_id);
 		}
 		break;
+
 	case FM_EVT_TMR_EXP:
-/* Timer Expiry event posted */
+		/* Timer Expiry event posted */
 		if (fm_mbx_evt->info.fm_tmr->type == FM_TMR_PROMOTE_ACTIVE) {
 			/* Check whether node(AMF) initialization is done */
 			if (fm_cb->csi_assigned == false) {
@@ -684,9 +652,11 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 				       "within the time limit");
 		}
 		break;
+
 	case FM_EVT_RDA_ROLE:
 		fm_evt_proc_rda_callback(fm_cb, fm_mbx_evt);
 		break;
+
 	default:
 		break;
 	}

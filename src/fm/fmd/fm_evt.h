@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
 *
 * (C) Copyright 2008 The OpenSAF Foundation
+* Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
 *
 * This program is distributed in the hope that it will be useful, but
 * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -49,7 +50,6 @@ typedef enum {
 	FM_EVT_NODE_DOWN,
 	FM_EVT_PEER_UP,
 	FM_EVT_RDA_ROLE,
-	FM_EVT_SVC_DOWN,
 	FM_FSM_EVT_MAX
 } FM_FSM_EVT_CODE;
 
