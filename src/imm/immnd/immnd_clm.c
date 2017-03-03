@@ -160,7 +160,7 @@ static const SaClmCallbacksT_4 clm_callbacks = {
  *  Return Values : None.
  *
  ****************************************************************************/
-void immnd_init_with_clm(void)
+void *immnd_clm_init_thread(void *cb)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 
@@ -192,7 +192,31 @@ void immnd_init_with_clm(void)
         }
         TRACE("CLM Initialization SUCCESS......");
         TRACE_LEAVE();
-        //return NULL;
-        return ;
+        return NULL;
+}
+/****************************************************************************
+ * Name : immnd_init_with_clm
+ *
+ * Description :
+ *      initialize clm thread
+ *
+ * Return Values : None.
+ *
+****************************************************************************/
+void immnd_init_with_clm(void)
+{
+        pthread_t thread;
+        pthread_attr_t attr;
+        TRACE_ENTER();
+
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+        if (pthread_create(&thread, &attr, immnd_clm_init_thread, immnd_cb) != 0) {
+                LOG_ER("pthread_create FAILED: %s", strerror(errno));
+                exit(EXIT_FAILURE);
+        }
+        pthread_attr_destroy(&attr);
+        TRACE_LEAVE();
 }
 
