@@ -1613,7 +1613,7 @@ uint32_t avnd_comp_csi_assign_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 
 			if (find_unassigned_csi_at_rank(csi->si, rank) != nullptr) {
 				rc = assign_all_csis_at_rank(csi->si, rank, true);
-			} else {
+			} else if (csi->pending_removal == false) {
 				/* all csis belonging to the si are assigned */
 				rc = avnd_su_si_oper_done(cb, comp->su, m_AVND_SU_IS_ALL_SI(comp->su) ? nullptr : csi->si);
 			}
@@ -1725,9 +1725,6 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	 */
 	osafassert(m_AVND_SU_IS_PREINSTANTIABLE(comp->su));
 
-	/* delete any pending cbk rec for csi assignment / removal */
-	avnd_comp_cbq_csi_rec_del(cb, comp, (csi) ? csi->name : "");
-
 	/* ok, time to reset CSi_ALL flag */
 	if (!csi && m_AVND_COMP_IS_ALL_CSI(comp)) {
 		m_AVND_COMP_ALL_CSI_RESET(comp);
@@ -1754,6 +1751,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 	 */
 	if (csi) {
 		if (AVSV_SUSI_ACT_DEL == csi->single_csi_add_rem_in_si) {
+			avnd_comp_cbq_csi_rec_del(cb, comp, csi->name);
 			/* csi belonging to the si are removed */
 			rc = avnd_su_si_oper_done(cb, comp->su, csi->si);
 
@@ -1761,6 +1759,11 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 				goto done;
 		}
 		else {
+			/* Delete cbk info if csi is not ASSIGNING state, @pending_removal will be true */
+			if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(csi) == false) {
+				avnd_comp_cbq_csi_rec_del(cb, comp, csi->name);
+			}
+
 			for (curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_LAST(&csi->si->csi_list);
 				curr_csi;
 				curr_csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_PREV(&curr_csi->si_dll_node)) {
@@ -1769,7 +1772,7 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 				else if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_REMOVING(curr_csi)) 
 					break;
 				else if (m_AVND_COMP_CSI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_csi)) {
-					TRACE("'%s' is getting assigned, remove it after assignment",
+					LOG_WA("'%s' is getting assigned, remove it after assignment",
 							curr_csi->name.c_str());
 					curr_csi->pending_removal = true;	
 					break;
@@ -1786,7 +1789,8 @@ uint32_t avnd_comp_csi_remove_done(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CSI_R
 				rc = avnd_su_si_oper_done(cb, comp->su,
 						m_AVND_SU_IS_ALL_SI(comp->su) ? nullptr : csi->si);
 		}
-	} else {		
+	} else {
+		avnd_comp_cbq_csi_rec_del(cb, comp, "");
 		/* Issue remove callback with TARGET_ALL for CSIs belonging to prv rank.*/
 		for (curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 			curr_csi;
