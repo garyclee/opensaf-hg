@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * (C) Copyright 2010, 2017 Ericsson AB. All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -56,11 +57,18 @@ void saflog(int priority, const SaNameT *logSvcUsrName, const char *format, ...)
 	SaLogRecordT logRecord;
 	SaLogBufferT logBuffer;
 	va_list ap;
-	char str[256];
+	char str[SA_LOG_MAX_RECORD_SIZE + 1];
+	/* SA_LOG_MAX_RECORD_SIZE = 65535
+	 * This will allow logging of record containing long dns */
 
 	va_start(ap, format);
 	logBuffer.logBufSize = vsnprintf(str, sizeof(str), format, ap);
 	va_end(ap);
+
+	if (logBuffer.logBufSize > SA_LOG_MAX_RECORD_SIZE) {
+		syslog(LOG_INFO, "saflog write FAILED: log record size > %u max limit", SA_LOG_MAX_RECORD_SIZE);
+		return;
+	}
 
 	if (!initialized) {
 		SaVersionT logVersion = { 'A', 2, 1 };
