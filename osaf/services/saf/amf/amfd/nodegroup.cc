@@ -1009,6 +1009,10 @@ static void ng_admin_unlock_inst(AVD_AMF_NG *ng)
 			   Also honor saAmfSURank while instantating.
 			 */
 			AVD_SG *sg = node_su->sg_of_su;
+			if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+				TRACE("SG of '%s' SU is in locked-in, skip it", node_su->name.c_str());
+				continue;
+			}
 
 			std::set<std::string>::const_iterator iter1 ;
 			iter1 = tmp_sg_list.find(sg->name);
