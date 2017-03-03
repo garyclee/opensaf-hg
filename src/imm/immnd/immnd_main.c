@@ -340,6 +340,8 @@ int main(int argc, char *argv[])
 		struct timespec passed_time;
 		osaf_timespec_subtract(&now, &start_time, &passed_time);
 		uint64_t passed_time_ms = osaf_timespec_to_millis(&passed_time);
+		fds[FD_CLM].fd = immnd_cb->clmSelectionObject;
+		fds[FD_CLM].events = POLLIN;
 
 
 		maxEvt = (timeout == 100) ? 50 : 100;
@@ -395,13 +397,12 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			if (fds[FD_CLM_INIT].revents & POLLIN && !immnd_cb->clm_hdl) {
+			if (fds[FD_CLM_INIT].revents & POLLIN ) {
+				osafassert(!immnd_cb->clm_hdl);
 				TRACE("Initalize CLM ");
 				ncs_sel_obj_rmv_ind(&immnd_cb->clm_init_sel_obj, true, true);
 				immnd_init_with_clm();
 				nfds=5;
-				fds[FD_CLM].fd = immnd_cb->clmSelectionObject;
-				fds[FD_CLM].events = POLLIN;
 			}
 
 			if (fds[FD_CLM].revents & POLLIN) {
@@ -411,6 +412,7 @@ int main(int argc, char *argv[])
 						LOG_NO("Re-initializing with CLMS");
 						saClmFinalize(immnd_cb->clm_hdl);
 						immnd_clm_node_cleanup(immnd_cb);
+						immnd_cb->clmSelectionObject = -1;
 						immnd_init_with_clm();
 					} else {
 						break;
