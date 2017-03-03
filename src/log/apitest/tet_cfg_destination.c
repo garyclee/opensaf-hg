@@ -47,99 +47,100 @@ const char nilname[] = "destc";
 
 // Configure destination command
 const char cfgObjDn[] = "logConfig=1,safApp=safLogService";
-const char cmd[] = "immcfg -a logRecordDestinationConfiguration";
+const char kSetDestConf[] = "immcfg -a logRecordDestinationConfiguration";
 
 // Verify it is OK to set an valid destination.
 void cfgOneValidDest(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", cmd, validDest, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-	}
-	rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	rc = systemCall(command);
+
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	systemCall(command);
+
+	rc_validate(rc, 0);
 }
 
 // Verify it is OK to set multi valid destinations.
 void cfgMultiValidDest(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", cmd, multiDest1, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
 	// Multiple configuration
-	sprintf(command,"%s+=\"%s\" %s", cmd, multiDest2, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-	}
-	rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s+=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
+	rc = systemCall(command);
+
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	systemCall(command);
+
+	rc_validate(rc, 0);
 }
 
 // Verify it is OK to delete one destination.
 void delOneDest(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", cmd, multiDest1, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
 	// Add multiple configuration
-	sprintf(command,"%s+=\"%s\" %s", cmd, multiDest2, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s+=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
 	// Delete one configuration
-	sprintf(command,"%s-=\"%s\" %s", cmd, multiDest2, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-	}
-	rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s-=\"%s\" %s", kSetDestConf, multiDest2, cfgObjDn);
+	rc = systemCall(command);
+
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	systemCall(command);
+
+	rc_validate(rc, 0);
 }
 
 // Verify it is OK to delete destinations
 void delCfgDest(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=  %s", cmd, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-	}
-	rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=  %s", kSetDestConf, cfgObjDn);
+	rc = systemCall(command);
+
+	rc_validate(rc, 0);
 }
 
 // Verify it is NOK to set type different from "unix"
 void invalidTypeDestFn(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
 	sprintf(command,"%s=\"%s\" %s 2> /dev/null",
-		cmd, invalidTypeDest, cfgObjDn);
+		kSetDestConf, invalidTypeDest, cfgObjDn);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -148,11 +149,11 @@ void invalidTypeDestFn(void)
 // Note: right format is one that have at least "name" and "type"
 void invalidFmtDestFn(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
 	sprintf(command,"%s=\"%s\" %s 2> /dev/null",
-		cmd, invalidFmtDest, cfgObjDn);
+		kSetDestConf, invalidFmtDest, cfgObjDn);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -160,11 +161,11 @@ void invalidFmtDestFn(void)
 // Verify it is NOK to set configuration with name contain special character
 void invalidNameDestFn(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
 	sprintf(command,"%s=\"%s\" %s 2> /dev/null",
-		cmd, invalidNameDest, cfgObjDn);
+		kSetDestConf, invalidNameDest, cfgObjDn);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -173,20 +174,24 @@ void invalidNameDestFn(void)
 // The rule is same "name" must go with same "value", and vice versa.
 void duplicatedDestFn(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", cmd, multiDest1, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestConf, multiDest1, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
 	sprintf(command,"%s+=\"%s\" %s 2> /dev/null",
-		cmd, invalidDuplicatedDest, cfgObjDn);
+		kSetDestConf, invalidDuplicatedDest, cfgObjDn);
 	rc = system(command);
+
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	systemCall(command);
+
 	rc_validate(WEXITSTATUS(rc), 1);
 }
 
@@ -201,53 +206,57 @@ const char invalidName[] = "te?st";
 
 // Configure destination name command
 const char systemDN[] = "safLgStrCfg=saLogSystem,safApp=safLogService";
-const char cmdName[] = "immcfg -a saLogRecordDestination";
+const char kSetDestStreamConf[] = "immcfg -a saLogRecordDestination";
 
 // Verify it is OK to set an valid destination name
 void cfgOneDestName(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", cmdName, validName, systemDN);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-	}
-	rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, validName, systemDN);
+	rc = systemCall(command);
+
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	systemCall(command);
+
+	rc_validate(rc, 0);
 }
 
 // Verify it is OK to set multiple destination names
 void cfgMultiDestName(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s", cmdName, validName, systemDN);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, validName, systemDN);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
-	sprintf(command,"%s+=\"%s\" %s", cmdName, multiName, systemDN);
-	rc = system(command);
-	rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s+=\"%s\" %s", kSetDestStreamConf, multiName, systemDN);
+	rc = systemCall(command);
+
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	systemCall(command);
+
+	rc_validate(rc, 0);
 }
 
 // Verify it is OK to clear destination name
 void delDestName(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 
-	sprintf(command,"%s= %s", cmdName, systemDN);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-	}
-	rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s= %s", kSetDestStreamConf, systemDN);
+	rc = systemCall(command);
+
+	rc_validate(rc, 0);
 }
 
 // Verify it is NOK to set an invalid destination name
@@ -257,7 +266,7 @@ void invalidDestName(void)
 	SaAisErrorT rc;
 	char command[1000];
 
-	sprintf(command,"%s=\"%s\" %s 2>/dev/null", cmdName, invalidName, systemDN);
+	sprintf(command,"%s=\"%s\" %s 2>/dev/null", kSetDestStreamConf, invalidName, systemDN);
 	rc = system(command);
 	rc_validate(WEXITSTATUS(rc), 1);
 }
@@ -288,7 +297,7 @@ bool is_executed_on_active_node()
 // Verify if the record comes to destination or not
 void writeToDest(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 	bool disable_stdout = true;
 	SaConstStringT s_stdout = "1> /dev/null";
@@ -302,21 +311,19 @@ void writeToDest(void)
 	if (getenv("LOGTEST_ENABLE_STDOUT")) disable_stdout = false;
 
 	// 1) Configure an valid destination
-	sprintf(command,"%s=\"%s\" %s", cmd, validDest, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
 	// 2) Configure an valid destination name
-	sprintf(command,"%s=\"%s\" %s", cmdName, validName, systemDN);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
-		return;
+	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, validName, systemDN);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto clear_attr;
 	}
 
 	// Avoid getting old msg
@@ -324,11 +331,10 @@ void writeToDest(void)
 
 	// 3) Send an log record to system log stream
 	sprintf(command,"%s \"%s_%d\"", sendCmd, sendMsg, r);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
-		return;
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto clear_attr;
 	}
 
 	// 5) Verify if that sent msg comes to the end
@@ -346,7 +352,16 @@ tryagain:
 			fprintf(stderr, "Failed to perform cmd %s\n", command);
 		}
 	}
+
 	rc_validate(WEXITSTATUS(rc), 0);
+
+clear_attr:
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	systemCall(command);
+
+	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	systemCall(command);
 }
 
 // Verify if the record comes to destination or not
@@ -354,7 +369,7 @@ tryagain:
 const char sendMsgNoDest[] = "[No dest name set] writing a record to destination";
 void writeToNoDestName(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 	bool disable_stdout = true;
 	SaConstStringT s_stdout = "1> /dev/null";
@@ -368,21 +383,19 @@ void writeToNoDestName(void)
 	if (getenv("LOGTEST_ENABLE_STDOUT")) disable_stdout = false;
 
 	// 1) Configure an valid destination
-	sprintf(command,"%s=\"%s\" %s", cmd, validDest, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
 	// 2) Delete Destination name
-	sprintf(command,"%s= %s", cmdName, systemDN);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
-		return;
+	sprintf(command,"%s= %s", kSetDestStreamConf, systemDN);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto clear_attr;
 	}
 
 	// Avoid getting old msg
@@ -390,11 +403,10 @@ void writeToNoDestName(void)
 
 	// 3) Send an log record to system log stream
 	sprintf(command,"%s \"%s_%d\"", sendCmd, sendMsg, r);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
-		return;
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto clear_attr;
 	}
 
 	// 4) Sleep for a while (5s) as mds log server could busy
@@ -408,7 +420,13 @@ void writeToNoDestName(void)
 	if (WEXITSTATUS(rc) == 0) {
 		fprintf(stderr, "log record is written to  local file\n");
 	}
+
 	rc_validate(WEXITSTATUS(rc), 1);
+
+clear_attr:
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	systemCall(command);
 }
 
 // Verify if the record comes to destination or not
@@ -416,7 +434,7 @@ void writeToNoDestName(void)
 const char sendMsgNil[] = "[Dest name with nil configuration] writing a record to destination";
 void writeToNilDestCfg(void)
 {
-	SaAisErrorT rc;
+	int rc;
 	char command[1000];
 	bool disable_stdout = true;
 	SaConstStringT s_stdout = "1> /dev/null";
@@ -430,30 +448,27 @@ void writeToNilDestCfg(void)
 	if (getenv("LOGTEST_ENABLE_STDOUT")) disable_stdout = false;
 
 	// 1) Configure an valid destination
-	sprintf(command,"%s=\"%s\" %s", cmd, validDest, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
+	sprintf(command,"%s=\"%s\" %s", kSetDestConf, validDest, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
 		return;
 	}
 
 	// 2) Add a nil destination
-	sprintf(command,"%s+=\"%s\" %s", cmd, nildest, cfgObjDn);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
-		return;
+	sprintf(command,"%s+=\"%s\" %s", kSetDestConf, nildest, cfgObjDn);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto clear_attr;
 	}
 
 	// 3) Add destination name with nil destination configuation.
-	sprintf(command,"%s=\"%s\" %s", cmdName, nilname, systemDN);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
-		return;
+	sprintf(command,"%s=\"%s\" %s", kSetDestStreamConf, nilname, systemDN);
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto clear_attr;
 	}
 
 	// Avoid getting old msg
@@ -461,11 +476,10 @@ void writeToNilDestCfg(void)
 
 	// 4) Send an log record to system log stream
 	sprintf(command,"%s \"%s_%d\"", sendCmd, sendMsg, r);
-	rc = system(command);
-	if (WEXITSTATUS(rc) != 0) {
-		fprintf(stderr, "Failed to perform cmd %s\n", command);
-		rc_validate(WEXITSTATUS(rc), 0);
-		return;
+	rc = systemCall(command);
+	if (rc != 0) {
+		rc_validate(rc, 0);
+		goto clear_attr;
 	}
 
 	// 4) Sleep for a while (2s) as mds log server could busy
@@ -479,7 +493,16 @@ void writeToNilDestCfg(void)
 	if (WEXITSTATUS(rc) == 0) {
 		fprintf(stderr, "log record is written to  local file\n");
 	}
+
 	rc_validate(WEXITSTATUS(rc), 1);
+
+clear_attr:
+	// Cleanup by removing all values
+	sprintf(command,"%s='' %s", kSetDestConf, cfgObjDn);
+	systemCall(command);
+
+	sprintf(command,"%s='' %s", kSetDestStreamConf, systemDN);
+	systemCall(command);
 }
 
 __attribute__ ((constructor)) static void cfgDest_constructor(void)
