@@ -184,6 +184,10 @@ void DestinationHandler::UpdateRtDestStatus() {
   if (ret == -1) {
     LOG_WA("%s lgs_cfg_update Fail", __func__);
   }
+
+  // Free memory allocated for the config_data buffer
+  if (config_data.ckpt_buffer_ptr != nullptr)
+    free(config_data.ckpt_buffer_ptr);
 }
 
 void DestinationHandler::FormCfgDestMsg(
