@@ -738,7 +738,8 @@ void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
 	else if ((pres_state == SA_AMF_PRESENCE_TERMINATION_FAILED) &&
 			(su_on_node->saAmfNodeFailfastOnTerminationFailure == true) &&
 			(sg_of_su->saAmfSGAutoRepair == true) &&
-			(su_on_node->saAmfNodeAutoRepair == true)) 
+			(su_on_node->saAmfNodeAutoRepair == true) &&
+			(saAmfSUMaintenanceCampaign.empty()))
 		/* According to AMF B.04.01 Section 4.8 Page 214 if user configures
 		   saAmfNodeFailfastOnTerminationFailure = true, AMF has to perform
 		   node failfast recovery action. So mark SU to SA_AMF_PRESENCE_TERMINATION_FAILED 
@@ -748,7 +749,8 @@ void AVD_SU::set_pres_state(SaAmfPresenceStateT pres_state) {
 	else if ((pres_state == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
 			(su_on_node->saAmfNodeFailfastOnInstantiationFailure == true) &&
 			(sg_of_su->saAmfSGAutoRepair == true) &&
-			(su_on_node->saAmfNodeAutoRepair == true)) 
+			(su_on_node->saAmfNodeAutoRepair == true) &&
+			(saAmfSUMaintenanceCampaign.empty())) 
 		/* According to AMF B.04.01 Section 4.6 Page 212 if user configures
 		   saAmfNodeFailfastOnInstantiationFailure = true, AMF has to perform
 		   node failfast recovery action. So mark SU to SA_AMF_PRESENCE_INSTANTIATION_FAILED
@@ -812,7 +814,7 @@ void AVD_SU::set_oper_state(SaAmfOperationalStateT oper_state) {
 	saAmfSUOperState = oper_state;
 
 	avd_send_oper_chg_ntf(name, SA_AMF_NTFID_SU_OP_STATE, old_state,
-		saAmfSUOperState);
+		saAmfSUOperState, &saAmfSUMaintenanceCampaign);
 
 	avd_saImmOiRtObjectUpdate(name, "saAmfSUOperState",
 		SA_IMM_ATTR_SAUINT32T, &saAmfSUOperState);
@@ -1885,6 +1887,7 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				TRACE("saAmfSUMaintenanceCampaign set to '%s' for '%s'",
 					  su->saAmfSUMaintenanceCampaign.c_str(), su->name.c_str());
 			}
+			su->set_su_maintenance_campaign();
 		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUType")) {
 			AVD_SUTYPE *sut;
 			SaNameT sutype_name = *(SaNameT*) attr_mod->modAttr.attrValues[0];
@@ -2119,6 +2122,13 @@ void AVD_SU::send_attribute_update(AVSV_AMF_SU_ATTR_ID attrib_id) {
 			memcpy(&param.value[0], &sufailover, param.value_len);
 			break;
 		}
+		case saAmfSUMaintenanceCampaign_ID:
+		{
+			param.attr_id = saAmfSUMaintenanceCampaign_ID;
+			param.value_len = saAmfSUMaintenanceCampaign.length();
+			memcpy(&param.value[0], saAmfSUMaintenanceCampaign.data(), param.value_len);
+			break;
+		}
 		default:
 			osafassert(0);
 		}
@@ -2136,6 +2146,10 @@ void AVD_SU::set_su_failover(bool value) {
 	TRACE("Modified saAmfSUFailover to '%u' for '%s'",
 		saAmfSUFailover, name.c_str());
 	send_attribute_update(saAmfSUFailOver_ID);
+}
+
+void AVD_SU::set_su_maintenance_campaign(void) {
+	send_attribute_update(saAmfSUMaintenanceCampaign_ID);
 }
 
 /**
@@ -2210,7 +2224,7 @@ void AVD_SU::set_su_switch(SaToggleState state, bool wrt_to_imm) {
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, this, AVSV_CKPT_SU_SWITCH);
 }
 
-AVD_AVND *AVD_SU::get_node_ptr(void) {
+AVD_AVND *AVD_SU::get_node_ptr(void) const {
 	 if (su_is_external == true)
 		 return avd_cb->ext_comp_info.local_avnd_node;
 	 else

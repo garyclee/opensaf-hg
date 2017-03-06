@@ -204,6 +204,7 @@ typedef enum
    saAmfSUParentSGName_ID = 12,
    saAmfSUIsExternal_ID = 13,
    saAmfSURestartCount_ID = 14,
+   saAmfSUMaintenanceCampaign_ID = 15,
 } AVSV_AMF_SU_ATTR_ID; 
 
 /* Attribute ID enum for the saAmfComp class */

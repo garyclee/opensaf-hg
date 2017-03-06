@@ -2832,8 +2832,14 @@ uint32_t avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_
 
 	if (true == su->is_ncs) {
 		std::string reason = "SU '" + su->name + "' Termination-failed";
-		opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
-				reason.c_str());
+		if (su->suMaintenanceCampaign.empty()) {
+			opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
+				  reason.c_str());
+		} else {
+			LOG_ER("%s", reason.c_str());
+			LOG_NO("not rebooting because su maintenance campaign is set: %s",
+				su->suMaintenanceCampaign.c_str());
+		}
 	}
 
  done:

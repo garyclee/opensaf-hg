@@ -29,6 +29,28 @@
 #include "base/osaf_time.h"
 #include <queue>
 
+static uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
+			       const std::string& ntf_object,
+			       SaUint8T *add_text,
+			       SaUint16T majorId,
+			       SaUint16T minorId,
+			       uint32_t probableCause,
+			       uint32_t perceivedSeverity,
+			       NCSCONTEXT add_info,
+			       bool add_info_is_present);
+
+static uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
+				     const std::string& ntf_object,
+				     SaUint8T *add_text,
+				     SaUint16T majorId,
+				     SaUint16T minorId,
+				     uint32_t sourceIndicator,
+				     SaUint16T stateId,
+				     SaUint16T oldstate,
+				     SaUint16T newState,
+				     NCSCONTEXT add_info,
+				     bool additional_info_is_present);
+
 /*****************************************************************************
   Name          :  avd_send_comp_inst_failed_alarm
 
@@ -231,9 +253,11 @@ void avd_send_admin_state_chg_ntf(const std::string& name, SaAmfNotificationMino
   Notes         :
 *****************************************************************************/
 void avd_send_oper_chg_ntf(const std::string& name, SaAmfNotificationMinorIdT minor_id,
-		SaAmfOperationalStateT old_state, SaAmfOperationalStateT new_state)
+		SaAmfOperationalStateT old_state, SaAmfOperationalStateT new_state,
+		const std::string *maintenanceCampaign)
 {
 	const std::string add_text("Oper state " + name + " changed");
+	const SaNameTWrapper mc(maintenanceCampaign ? *maintenanceCampaign : "");
 
 	TRACE_ENTER();
 
@@ -246,8 +270,8 @@ void avd_send_oper_chg_ntf(const std::string& name, SaAmfNotificationMinorIdT mi
 					SA_AMF_OP_STATE,
 					old_state,
 					new_state,
-					nullptr,
-					false);
+					(NCSCONTEXT)static_cast<const SaNameT*>(mc),
+					maintenanceCampaign ? !maintenanceCampaign->empty() : false);
 	TRACE_LEAVE();
 }
 
@@ -464,7 +488,7 @@ void avd_alarm_clear(const std::string& name, SaUint16T minorId, uint32_t probab
        TRACE_LEAVE();
 }
 
-SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeader,
+static SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeader,
 			      SaNtfEventTypeT eventType,
 			      const std::string &comp_name,
 			      SaUint8T *add_text,
@@ -472,7 +496,7 @@ SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeade
 			      SaUint16T minorId,
 			      SaInt8T *avd_name,
 			      NCSCONTEXT add_info,
-			      int additional_info_is_present,
+			      bool additional_info_is_present,
 			      SaNtfNotificationHandleT notificationHandle)
 {
 
@@ -512,7 +536,11 @@ SaAisErrorT fill_ntf_header_part_avd(SaNtfNotificationHeaderT *notificationHeade
 				notificationHeader->additionalInfo[0].infoId = SA_AMF_SI_NAME;
 				notificationHeader->additionalInfo[0].infoType = SA_NTF_VALUE_LDAP_NAME;
 
-			}
+			} else if (minorId == SA_AMF_NTFID_SU_OP_STATE) {
+				/* maintenance campaign */
+				notificationHeader->additionalInfo[0].infoId   = SA_AMF_MAINTENANCE_CAMPAIGN_DN;
+				notificationHeader->additionalInfo[0].infoType = SA_NTF_VALUE_LDAP_NAME;
+      }
 
 			ret = saNtfPtrValAllocate(notificationHandle,
 					sizeof (SaNameT) + 1,
@@ -590,7 +618,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 			       uint32_t probableCause,
 			       uint32_t perceivedSeverity,
 			       NCSCONTEXT add_info,
-			       int type)
+			       bool add_info_is_present)
 {
 	uint32_t status = NCSCC_RC_FAILURE;
 	SaUint16T add_info_items = 0;
@@ -608,7 +636,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 	}
 	NtfSend *job = new NtfSend{};
 
-	if (type != 0) {
+	if (add_info_is_present) {
 		add_info_items = 1;
 		allocation_size = SA_NTF_ALLOC_SYSTEM_LIMIT;
 	}
@@ -643,7 +671,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 				 minorId,
 				 const_cast<SaInt8T*>(AMF_NTF_SENDER),
 				 add_info,
-				 type,
+				 add_info_is_present,
 				 job->myntf.notification.alarmNotification.notificationHandle);
 	
 	if (status != SA_AIS_OK) {
@@ -665,7 +693,7 @@ uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 
 }
 
-uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
+static uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 				     const std::string& ntf_object,
 				     SaUint8T *add_text,
 				     SaUint16T majorId,
@@ -675,7 +703,7 @@ uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
 				     SaUint16T oldstate,
 				     SaUint16T newState,
 				     NCSCONTEXT add_info,
-				     int additional_info_is_present)
+				     bool additional_info_is_present)
 {
 	uint32_t status = NCSCC_RC_FAILURE;
 	SaUint16T add_info_items = 0;
