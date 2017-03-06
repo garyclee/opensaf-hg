@@ -190,9 +190,24 @@ class SmfCampaignThread {
 
 	SaAisErrorT createImmHandle(SmfCampaign * i_campaign);
 	SaAisErrorT deleteImmHandle();
+  SaAisErrorT initNtfSubscriptions(void);
+
+  void handleStateChangeNotification(const SaNtfStateChangeNotificationT&);
+
+  void handleObjectStateChangeNotification(
+    const SaNtfStateChangeNotificationT&);
+
+  void handleAmfObjectStateChangeNotification(
+    const SaNtfStateChangeNotificationT&);
+
+  bool isAMFOperState(const SaNtfClassIdT&) const;
+
+  static void ntfNotificationCallback(SaNtfSubscriptionIdT,
+                                      const SaNtfNotificationsT *);
 
 	static void main(NCSCONTEXT info);
 	static SmfCampaignThread *s_instance;
+  static SaNtfSubscriptionIdT operStateSubId;
 
 	NCSCONTEXT m_task_hdl;
 	SYSF_MBX m_mbx;		/* mailbox */

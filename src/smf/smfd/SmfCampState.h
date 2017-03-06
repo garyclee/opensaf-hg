@@ -72,6 +72,8 @@ class SmfCampState {
 
 	virtual SmfCampResultT commit(SmfUpgradeCampaign * i_camp);
 
+	virtual SmfCampResultT asyncFailure(SmfUpgradeCampaign * i_camp);
+
 	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
                                           SmfUpgradeProcedure * i_procedure,
                                           SmfProcResultT        i_result);
@@ -132,6 +134,8 @@ class SmfCampStateExecuting:public SmfCampState {
 
 	virtual SmfCampResultT suspend(SmfUpgradeCampaign * i_camp);
 
+	virtual SmfCampResultT asyncFailure(SmfUpgradeCampaign * i_camp);
+
 	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
                                           SmfUpgradeProcedure * i_procedure,
                                           SmfProcResultT        i_result);
@@ -181,6 +185,8 @@ class SmfCampStateSuspendingExec:public SmfCampState {
 	virtual void toString(std::string & io_str) const;
 
 	virtual SmfCampResultT execute(SmfUpgradeCampaign * i_camp);
+
+	virtual SmfCampResultT asyncFailure(SmfUpgradeCampaign * i_camp);
 
 	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
                                           SmfUpgradeProcedure * i_procedure,
@@ -345,6 +351,7 @@ class SmfCampRollingBack:public SmfCampState {
 	virtual SmfCampResultT rollbackSingleMergeProc(SmfUpgradeCampaign * i_camp);
 	virtual SmfCampResultT rollbackInit(SmfUpgradeCampaign * i_camp);
 	virtual SmfCampResultT suspend(SmfUpgradeCampaign * i_camp);
+	virtual SmfCampResultT asyncFailure(SmfUpgradeCampaign * i_camp);
 	virtual SmfCampResultT procResult(SmfUpgradeCampaign *  i_camp,
                                           SmfUpgradeProcedure * i_procedure,
                                           SmfProcResultT        i_result);

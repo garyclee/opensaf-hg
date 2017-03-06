@@ -191,6 +191,18 @@ SmfCampState::commit(SmfUpgradeCampaign * i_camp)
 }
 
 //------------------------------------------------------------------------------
+// asyncFailure()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampState::asyncFailure(SmfUpgradeCampaign *  i_camp)
+{
+	TRACE_ENTER();
+	LOG_NO("SmfCampState::asyncFailure default implementation. No state change");
+	TRACE_LEAVE();
+        return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
 // procResult()
 //------------------------------------------------------------------------------
 SmfCampResultT 
@@ -926,6 +938,37 @@ SmfCampStateExecuting::suspend(SmfUpgradeCampaign * i_camp)
 }
 
 //------------------------------------------------------------------------------
+// asyncFailure()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampStateExecuting::asyncFailure(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampStateExecuting::asyncFailure implementation");
+
+	/* Send suspend message to all procedures */
+        std::vector<SmfUpgradeProcedure*> procedures = i_camp->getProcedures();
+
+	std::vector < SmfUpgradeProcedure * >::iterator iter;
+
+	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+                TRACE("SmfCampStateExecuting::Procedure %s, send suspend",
+                      (*iter)->getProcName().c_str());
+                SmfProcedureThread *procThread = (*iter)->getProcThread();
+                PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+                evt->type = PROCEDURE_EVT_SUSPEND;
+                procThread->send(evt);
+	}
+
+        i_camp->m_noOfProcResponses = 0;
+        changeState(i_camp, SmfCampStateErrorDetected::instance());
+        /* Wait for suspend responses from all procedures (SmfCampStateSuspendingExec::procResult) */
+
+	TRACE_LEAVE();
+        return SMF_CAMP_SUSPENDING; 
+}
+
+//------------------------------------------------------------------------------
 // procResult()
 //------------------------------------------------------------------------------
 SmfCampResultT 
@@ -1210,6 +1253,19 @@ SmfCampStateSuspendingExec::execute(SmfUpgradeCampaign * i_camp)
 		TRACE("SmfCampStateSuspendingExec::execute this is the last procedure, changing camp state to executing");
 		changeState(i_camp, SmfCampStateExecuting::instance());
 	}
+	TRACE_LEAVE();
+	return SMF_CAMP_DONE;
+}
+
+//------------------------------------------------------------------------------
+// asyncFailure()
+//------------------------------------------------------------------------------
+SmfCampResultT
+SmfCampStateSuspendingExec::asyncFailure(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampStateSuspendingExec::asyncFailure implementation");
+	changeState(i_camp, SmfCampStateErrorDetectedInSuspending::instance());
 	TRACE_LEAVE();
 	return SMF_CAMP_DONE;
 }
@@ -1988,6 +2044,18 @@ SmfCampRollingBack::suspend(SmfUpgradeCampaign * i_camp)
 
 	TRACE_LEAVE();
         return SMF_CAMP_SUSPENDING; 
+}
+
+//------------------------------------------------------------------------------
+// asyncFailure()
+//------------------------------------------------------------------------------
+SmfCampResultT 
+SmfCampRollingBack::asyncFailure(SmfUpgradeCampaign * i_camp)
+{
+	TRACE_ENTER();
+	TRACE("SmfCampRollingBack::asyncFailure implementation");
+
+  return SmfCampRollingBack::suspend(i_camp);
 }
 
 //------------------------------------------------------------------------------
