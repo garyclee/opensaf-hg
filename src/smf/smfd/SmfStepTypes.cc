@@ -1247,8 +1247,8 @@ SmfStepTypeNodeReboot::execute()
                 return false;
         }
 
-        /* Modify information model and set maintenance status */
-        LOG_NO("STEP: Modify information model and set maintenance status");
+        /* Modify information model */
+        LOG_NO("STEP: Modify information model");
         if (m_step->modifyInformationModel() != SA_AIS_OK) {
                 LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
                 return false;
@@ -1260,11 +1260,6 @@ SmfStepTypeNodeReboot::execute()
                 LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
                 return false;
 	}
-
-        if (m_step->setMaintenanceStateActUnits() == false) {
-                LOG_ER("Failed to set maintenance state in step=%s",m_step->getRdn().c_str());
-                return false;
-        }
 
         /* The action below is an add on to SMF.---------------------------------------*/
         /* See if any of the software bundles installed at online installation has the */
@@ -1371,6 +1366,13 @@ SmfStepTypeNodeReboot::execute()
         /* Copy the initial states of the DUs to AUs, so the activation phase will leave */
         /* the units in the same state as before locking                                 */
         m_step->copyDuInitStateToAu();
+
+        /* Now that the node is up, set the maintenance status */
+        LOG_NO("STEP: Set Maintenance Status");
+        if (m_step->setMaintenanceStateActUnits() == false) {
+                LOG_ER("Failed to set maintenance state in step=%s",m_step->getRdn().c_str());
+                return false;
+        }
 
         /* Instantiate activation units */
         LOG_NO("STEP: Instantiate activation units");
@@ -1685,8 +1687,8 @@ SmfStepTypeNodeRebootAct::execute()
                 return false;
         }
 
-        /* Modify information model and set maintenance status */
-        LOG_NO("STEP: Modify information model and set maintenance status");
+        /* Modify information model */
+        LOG_NO("STEP: Modify information model");
         if (m_step->modifyInformationModel() != SA_AIS_OK) {
                 LOG_ER("Failed to Modify information model in step=%s",m_step->getRdn().c_str());
                 return false;
@@ -1698,11 +1700,6 @@ SmfStepTypeNodeRebootAct::execute()
                 LOG_ER("checkAndInvokeCallback returned false for list cbksAfterImmModify, step=%s",m_step->getRdn().c_str());
                 return false;
 	}
-
-        if (m_step->setMaintenanceStateActUnits() == false) {
-                LOG_ER("Failed to set maintenance state in step=%s",m_step->getRdn().c_str());
-                return false;
-        }
 
         /* Offline installation of new software */
         LOG_NO("STEP: Offline installation of new software");
@@ -1745,6 +1742,13 @@ SmfStepTypeNodeRebootAct::execute()
         /* Copy the initial states of the DUs to AUs, so the activation phase will leave */
         /* the units in the same state as before locking                                 */
         m_step->copyDuInitStateToAu();
+
+        /* Now that the node is up, set the maintenance status */
+        LOG_NO("STEP: Set Maintenance Status");
+        if (m_step->setMaintenanceStateActUnits() == false) {
+                LOG_ER("Failed to set maintenance state in step=%s",m_step->getRdn().c_str());
+                return false;
+        }
 
         /* Instantiate activation units */
         LOG_NO("STEP: Instantiate activation units");

@@ -942,6 +942,26 @@ SmfUpgradeCampaign::commit()
 }
 
 //------------------------------------------------------------------------------
+// asyncFailure()
+//------------------------------------------------------------------------------
+void 
+SmfUpgradeCampaign::asyncFailure()
+{
+	TRACE_ENTER();
+        SmfCampResultT campResult;
+
+        while (1) {
+                campResult = m_state->asyncFailure(this);
+
+                if (campResult != SMF_CAMP_CONTINUE) {
+                        break;
+                }
+        }
+
+	TRACE_LEAVE();
+}
+
+//------------------------------------------------------------------------------
 // procResult()
 //------------------------------------------------------------------------------
 void 

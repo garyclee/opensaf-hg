@@ -354,6 +354,13 @@ void verify();
 	void commit();
 
 ///
+/// Purpose: Report Async failure
+/// @param   None.
+/// @return  None.
+///
+	void asyncFailure();
+
+///
 /// Purpose: Procedure result.
 /// @param   None.
 /// @return  None.

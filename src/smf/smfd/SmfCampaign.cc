@@ -415,6 +415,7 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 
                         m_adminOpBusy = true; /* reset by campaign thread when admin op taken care of */
 
+			setError("");
 			TRACE("Sending rollback event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
 			evt->type = CAMPAIGN_EVT_ROLLBACK;
