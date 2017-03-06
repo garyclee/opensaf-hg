@@ -2679,6 +2679,21 @@ uint32_t comp_restart_initiate(AVND_COMP *comp)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
+  if (!comp->su->suMaintenanceCampaign.empty() && !comp->admin_oper) {
+    LOG_NO("not restarting comp because maintenance campaign is set: %s",
+    comp->su->suMaintenanceCampaign.c_str());
+
+    m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
+    rc = avnd_comp_oper_state_avd_sync(cb, comp);
+
+    /* update su oper state */
+    if (m_AVND_SU_OPER_STATE_IS_ENABLED(comp->su)) {
+      m_AVND_SU_OPER_STATE_SET(comp->su, SA_AMF_OPERATIONAL_DISABLED);
+      avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUOperState_ID, comp->su->name, comp->su->oper);
+    }
+    goto done;
+  }
+
 	rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_RESTART);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;

@@ -143,6 +143,8 @@ typedef struct avnd_su_tag {
 	uint32_t si_active_cnt;	/* no of active SIs assigned to this su */
 	uint32_t si_standby_cnt;	/* no of standby SIs assigned to this su */
 
+	std::string suMaintenanceCampaign;
+
 	/* 
 	 * Ordered comp list (based on inst level). Note that as the 
 	 * lexicographic key (comp-name) & the keys used for 

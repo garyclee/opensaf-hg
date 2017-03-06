@@ -55,7 +55,8 @@ void avd_send_comp_proxy_status_unproxied_alarm(const std::string& comp_name);
 void avd_send_admin_state_chg_ntf(const std::string& name, SaAmfNotificationMinorIdT minor_id,
 					SaAmfAdminStateT old_state, SaAmfAdminStateT new_state);
 void avd_send_oper_chg_ntf(const std::string& name, SaAmfNotificationMinorIdT minor_id, 
-					SaAmfOperationalStateT old_state, SaAmfOperationalStateT new_state);
+					SaAmfOperationalStateT old_state, SaAmfOperationalStateT new_state,
+					const std::string *maintenanceCampaign = 0);
 void avd_send_su_pres_state_chg_ntf(const std::string& su_name, SaAmfPresenceStateT old_state,
 					SaAmfPresenceStateT new_state);
 void avd_send_su_ha_state_chg_ntf(const std::string& su_name, const std::string& si_name,
@@ -66,39 +67,6 @@ void avd_send_si_assigned_ntf(const std::string& si_name, SaAmfAssignmentStateT 
 					SaAmfAssignmentStateT new_state);
 void avd_send_comp_proxy_status_proxied_ntf(const std::string& comp_name,
 					SaAmfProxyStatusT old_state, SaAmfProxyStatusT new_state);
-
-/* general functions */
-SaAisErrorT fill_ntf_header_part(SaNtfNotificationHeaderT *notificationHeader,
-				   SaNtfEventTypeT eventType,
-				   const std::string& comp_name,
-				   SaUint8T *add_text,
-				   SaUint16T majorId,
-				   SaUint16T minorId,
-				   SaInt8T *avnd_name,
-				   NCSCONTEXT add_info,
-				   int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
-
-uint32_t sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
-					const std::string& comp_name,
-					SaUint8T *add_text,
-					SaUint16T majorId,
-					SaUint16T minorId,
-					uint32_t probableCause,
-					uint32_t perceivedSeverity,
-					NCSCONTEXT add_info,
-					int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
-
-uint32_t sendStateChangeNotificationAvd(AVD_CL_CB *avd_cb,
-					      const std::string& comp_name,
-					      SaUint8T *add_text,
-					      SaUint16T majorId,
-					      SaUint16T minorId,
-					      uint32_t sourceIndicator,
-					      SaUint16T stateId,
-					      SaUint16T oldState,
-					      SaUint16T newState,
-					      NCSCONTEXT add_info,
-					      int type); /* add_info 0 --> no,  1--> node_name, 2--> si_name*/
 
 /* Clearing of alarms */
 void avd_alarm_clear(const std::string& name, SaUint16T minorId, uint32_t probableCause);

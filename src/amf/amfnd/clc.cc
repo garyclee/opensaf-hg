@@ -971,19 +971,29 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 	if (comp->su->is_ncs == true) {
 		if(SA_AMF_PRESENCE_INSTANTIATION_FAILED == final_st) {
 			LOG_ER("'%s'got Inst failed", comp->name.c_str());
-			opensaf_reboot(avnd_cb->node_info.nodeId,
-							osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
-							"NCS component Instantiation failed");
-			LOG_ER("Amfnd is exiting (due to ncs comp inst failed) to aid fast reboot");
-			exit(0);
+			if (comp->su->suMaintenanceCampaign.empty()) {
+			  opensaf_reboot(avnd_cb->node_info.nodeId,
+					  osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
+					  "NCS component Instantiation failed");
+			  LOG_ER("Amfnd is exiting (due to ncs comp inst failed) to aid fast reboot");
+			  exit(0);
+			} else {
+				LOG_NO("not rebooting as maintenance campaign is ongoing");
+				goto done;
+			}
 		}
 		if(SA_AMF_PRESENCE_TERMINATION_FAILED == final_st) {
 			LOG_ER("'%s'got Term failed", comp->name.c_str());
-			opensaf_reboot(avnd_cb->node_info.nodeId,
+			if (comp->su->suMaintenanceCampaign.empty()) {
+				opensaf_reboot(avnd_cb->node_info.nodeId,
 							osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 							"NCS component Termination failed");
-			LOG_ER("Amfnd is exiting (due to ncs comp term failed) to aid fast reboot");
-			exit(0);
+				LOG_ER("Amfnd is exiting (due to ncs comp term failed) to aid fast reboot");
+				exit(0);
+			} else {
+				LOG_NO("not rebooting as maintenance campaign is ongoing");
+				goto done;
+			}
 		}
 	}
 

@@ -143,7 +143,7 @@ class AVD_AVND {
   AVD_AMF_NG *admin_ng; /* points to the nodegroup on which admin operation is going on.*/
   uint16_t node_up_msg_count; /* to count of node_up msg that director had received from this node */
   bool reboot;
-
+  bool is_campaign_set_for_all_sus() const;
   //Member functions.
   void node_sus_termstate_set(bool term_state) const;
  private:

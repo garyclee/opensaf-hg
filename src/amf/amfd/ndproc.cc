@@ -152,6 +152,20 @@ void avd_reg_su_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* the node has been successfully updated with SU information */
 		avd_node_state_set(node, AVD_AVND_STATE_NCS_INIT);
 
+		//Before any SU gets instantiated, send Maintenance campaign update.
+		for (const auto& su : node->list_of_ncs_su) {
+			if (su->saAmfSUMaintenanceCampaign.empty() == false) {
+				TRACE("Sending Maintenance campaign info for '%s'",su->name.c_str());
+				su->set_su_maintenance_campaign();
+			}
+		}
+		for (const auto& su : node->list_of_su) {
+                        if (su->saAmfSUMaintenanceCampaign.empty() == false) {
+                                TRACE("Sending Maintenance campaign info for '%s'",su->name.c_str());
+                                su->set_su_maintenance_campaign();
+                        }
+                }
+
 		/* Instantiate all OpenSAF SUs on this node */
 		for (const auto& su : node->list_of_ncs_su) {
 			if ((su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) ||

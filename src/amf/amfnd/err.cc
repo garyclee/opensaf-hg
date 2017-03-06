@@ -457,8 +457,14 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		LOG_ER("%s Faulted due to:%s Recovery is:%s",
 		       comp->name.c_str(), g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 		/* do the local node reboot for node_failfast or ncs component failure*/
-		opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
+		if (comp->su->suMaintenanceCampaign.empty()) {
+			opensaf_reboot(avnd_cb->node_info.nodeId, osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 				"Component faulted: recovery is node failfast");
+		} else {
+			LOG_NO("not rebooting because maintenance campaign is set: %s",
+			comp->su->suMaintenanceCampaign.c_str());
+			goto done;
+		}
 	}
 
 	/* execute the recovery */
@@ -701,6 +707,8 @@ uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_co
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
+	avnd_di_uns32_upd_send(AVSV_SA_AMF_SU, saAmfSUOperState_ID, su->name, su->oper);
+
 	set_suRestart_flag(su);
 
 	if (su_all_comps_restartable(*su) == true) {
@@ -724,6 +732,13 @@ uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_co
 		rc = avnd_su_si_unmark(cb, su);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
+
+		if (!su->suMaintenanceCampaign.empty()) {
+			LOG_NO("not restarting su because maintenance campaign is set: %s",
+				su->suMaintenanceCampaign.c_str());
+			goto done;
+		}
+
 		rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_RESTART);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto done;
@@ -747,6 +762,12 @@ uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_co
 		TODO:In future when AMF supports comp-failover in spec compliance then this 
 			case should be alligned with that.
 		*/
+		if (!su->suMaintenanceCampaign.empty()) {
+			LOG_NO("not restarting su because maintenance campaign is set: %s",
+				su->suMaintenanceCampaign.c_str());
+			goto done;
+		}
+
 		if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 			if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(failed_comp))
 				rc = avnd_comp_clc_fsm_run(cb, failed_comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
@@ -1056,11 +1077,17 @@ uint32_t avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("'%s' termination failed", comp->name.c_str());
-			opensaf_reboot(avnd_cb->node_info.nodeId,
+			if (comp->su->suMaintenanceCampaign.empty()) {
+				opensaf_reboot(avnd_cb->node_info.nodeId,
 						   osaf_extended_name_borrow(&avnd_cb->node_info.executionEnvironment),
 						   "Component termination failed at node failover");
-			LOG_ER("Exiting (due to comp term failed) to aid fast node reboot");
-			exit(1);
+				LOG_ER("Exiting (due to comp term failed) to aid fast node reboot");
+				exit(1);
+			} else {
+				LOG_NO("not rebooting because maintenance campaign is set: %s",
+					comp->su->suMaintenanceCampaign.c_str());
+				continue;
+			}
 		}
 		avnd_su_pres_state_set(cb, comp->su, SA_AMF_PRESENCE_TERMINATING);
 	}

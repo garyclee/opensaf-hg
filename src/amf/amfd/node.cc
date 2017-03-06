@@ -1587,4 +1587,16 @@ void avd_node_constructor(void)
 	avd_class_impl_set("SaAmfNode", nullptr, node_admin_op_cb,
 			node_ccb_completed_cb, node_ccb_apply_cb);
 }
-
+bool AVD_AVND::is_campaign_set_for_all_sus() const {
+  if (std::all_of(list_of_ncs_su.begin(), list_of_ncs_su.end(),
+    [&](AVD_SU *su) -> bool {return su->saAmfSUMaintenanceCampaign.empty() == false;})) {
+    if (std::all_of(list_of_su.begin(), list_of_su.end(),
+      [&](AVD_SU *su) -> bool {return su->saAmfSUMaintenanceCampaign.empty() == false;})) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}

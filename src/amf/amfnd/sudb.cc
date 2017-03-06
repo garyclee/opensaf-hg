@@ -226,6 +226,12 @@ uint32_t avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			osafassert(sizeof(uint32_t) == param->value_len);
 			su->sufailover = m_NCS_OS_NTOHL(*(uint32_t *)(param->value));
 			break;
+		case saAmfSUMaintenanceCampaign_ID:
+			su->suMaintenanceCampaign = std::string(param->value, param->value_len);
+			if (su->suMaintenanceCampaign.length() > 0)
+				TRACE("suMaintenanceCampaign for '%s' changed to '%s'",
+						su->name.c_str(), su->suMaintenanceCampaign.c_str());
+			break;
 		default:
 			LOG_NO("%s: Unsupported attribute %u", __FUNCTION__, param->attr_id);
 			goto done;

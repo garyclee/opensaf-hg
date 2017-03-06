@@ -97,6 +97,7 @@ class AVD_SU {
 	AVD_SU *su_list_su_type_next;
 
 	void set_su_failover(bool value);
+	void set_su_maintenance_campaign(void);
 	void dec_curr_stdby_si();
 	void inc_curr_stdby_si();
 	void inc_curr_act_si();
@@ -117,7 +118,7 @@ class AVD_SU {
 	void set_term_state(bool state);
 	void remove_from_model();
 	void set_su_switch(SaToggleState state, bool wrt_to_imm = true);
-	AVD_AVND *get_node_ptr(void);
+	AVD_AVND *get_node_ptr(void) const;
 	bool is_in_service(void);
 	bool is_instantiable(void);
 	void reset_all_comps_assign_flag();
