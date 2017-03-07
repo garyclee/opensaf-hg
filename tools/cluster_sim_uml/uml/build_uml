@@ -70,27 +70,27 @@ archive=${OSAF_UML_ARCHIVE:-$dir/archive}
 build=${OSAF_UML_BUILD:-$dir}
 configd=${OSAF_UML_CONFIGD:-$dir/config}
 
-kver=${OSAF_UML_KVER:-4.9}
+kver=${OSAF_UML_KVER:-4.10.1}
 kbasedir=$(echo "$kver" | cut -d. -f1).x
 #kurlbase=${KURLBASE:-"https://www.kernel.org/pub/linux/kernel/v$kbasedir"}
 kurlbase=${KURLBASE:-"http://ftp.funet.fi/pub/mirrors/ftp.kernel.org/pub/linux/kernel/v$kbasedir"}
 #kurlbase=${KURLBASE:-"http://ftp.funet.fi/pub/mirrors/ftp.kernel.org/pub/linux/kernel/v$kbasedir/testing"}
 kernel_decompress=xz
 kurl="$kurlbase/linux-$kver.tar.xz"
-kernel_sha1sum='fa46da077c077467776cdc45a7b50d327a081ab4  linux-4.9.tar.xz'
+kernel_sha256sum='6ca06bb5faf5f83600d7388bb623dae41df2a257de85ad5d1792e03302bc3543  linux-4.10.1.tar.xz'
 
-iproute2ver=${OSAF_UML_IPRVER:-4.9.0}
+iproute2ver=${OSAF_UML_IPRVER:-4.10.0}
 iproute2url="https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-$iproute2ver.tar.xz"
 #iproute2url="http://ftp.funet.fi/pub/mirrors/ftp.kernel.org/pub/linux/utils/net/iproute2/iproute2-$iproute2ver.tar.xz"
-iproute2_sha1sum='fc28f956a7a9695473312d0ed35dc24a7ef9d7f6  iproute2-4.9.0.tar.xz'
+iproute2_sha256sum='22b1e1c1fc704ad35837e5a66103739727b8b48ac90b48c13f79b7367ff0a9a8  iproute2-4.10.0.tar.xz'
 
-bbver=${OSAF_UML_BBVER:-1.25.1}
+bbver=${OSAF_UML_BBVER:-1.26.2}
 bburl="http://busybox.net/downloads/busybox-$bbver.tar.bz2"
-bb_sha1sum='8b227b3efdb4c4aa94750f80cc63429aec6daa0b  busybox-1.25.1.tar.bz2'
+bb_sha256sum='da3e44913fc1a9c9b7c5337ea5292da518683cbff32be630777f565d6036af16  busybox-1.26.2.tar.bz2'
 
 umlutilsver=20070815
 umlutilsurl="http://user-mode-linux.sourceforge.net/uml_utilities_$umlutilsver.tar.bz2"
-umlutils_sha1sum='4e10de8e0f5bf681fa295572009518b77fd8a1dd  uml_utilities_20070815.tar.bz2'
+umlutils_sha256sum='f815f591a1c177729546969acf720958c5fd72b8d4d36bae26fdc5b64669b60e  uml_utilities_20070815.tar.bz2'
 
 arch=$(uname -m)
 gid=$(id -g)
@@ -143,7 +143,7 @@ cmd_gen_initramfs_list() {
     ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
         "$build/root" "$build/root/dev/initramfs_list" \
         > linux-$kver/initramfs_list
-    rm -f linux-$kver/usr/initramfs_data.cpio.gz
+    rm -f linux-$kver/usr/initramfs_data.cpio*
     sed -ie '/^file \/usr\/bin\/busybox /s/ [0-7][0-7]* 0 0$/ 4755 0 0/' linux-$kver/initramfs_list
     sed -ie '/^dir \/var\/lib\/opensaf /s/ [0-7][0-7]* 0 0$/ 755 '"$UID $gid/" linux-$kver/initramfs_list
     sed -ie '/^dir \/var\/log\/opensaf /s/ [0-7][0-7]* 0 0$/ 755 '"$UID $gid/" linux-$kver/initramfs_list
@@ -167,12 +167,12 @@ cmd_download() {
 	mv -f "$archive/$f.part" "$archive/$f"
     done
     if [ ! -e $archive/.checksum_ok ]; then
-	: > $archive/SHA1SUMS
-	echo "$iproute2_sha1sum" >> $archive/SHA1SUMS
-	echo "$bb_sha1sum" >> $archive/SHA1SUMS
-	echo "$umlutils_sha1sum" >> $archive/SHA1SUMS
-	echo "$kernel_sha1sum" >> $archive/SHA1SUMS
-	(cd $archive; sha1sum -c SHA1SUMS) || die "Bad file checksum(s)"
+	: > $archive/SHA256SUMS
+	echo "$iproute2_sha256sum" >> $archive/SHA256SUMS
+	echo "$bb_sha256sum" >> $archive/SHA256SUMS
+	echo "$umlutils_sha256sum" >> $archive/SHA256SUMS
+	echo "$kernel_sha256sum" >> $archive/SHA256SUMS
+	(cd $archive; sha256sum -c SHA256SUMS) || die "Bad file checksum(s)"
 	touch $archive/.checksum_ok
     fi
 }
@@ -344,16 +344,16 @@ cmd_build_umlutils()
     rm -rf tools-$umlutilsver
     tar xjf $f
 
-    make -C tools-$umlutilsver/lib
-    make -C tools-$umlutilsver/uml_switch
+    make CFLAGS="-s -O3" -C tools-$umlutilsver/lib
+    make CFLAGS="-s -O3" -C tools-$umlutilsver/uml_switch
     cp tools-${umlutilsver}/uml_switch/uml_switch bin || die "Could not build uml_switch"
-    make -C tools-$umlutilsver/port-helper
+    make CFLAGS="-s -O3" -C tools-$umlutilsver/port-helper
     cp tools-${umlutilsver}/port-helper/port-helper bin || die "Could not build port-helper"
-    make -C tools-$umlutilsver/tunctl
+    make CFLAGS="-s -O3" -C tools-$umlutilsver/tunctl
     cp tools-${umlutilsver}/tunctl/tunctl bin || die "Could not build tunctl"
-    make -C tools-$umlutilsver/mconsole
+    make CFLAGS="-s -O3" -C tools-$umlutilsver/mconsole
     cp tools-${umlutilsver}/mconsole/uml_mconsole bin || die "Could not build uml_mconsole"
-    make -C tools-$umlutilsver/uml_net
+    make CFLAGS="-s -O3" -C tools-$umlutilsver/uml_net
     cp tools-${umlutilsver}/uml_net/uml_net bin || die "Could not build uml_net"
 }
 
