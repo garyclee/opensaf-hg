@@ -9431,14 +9431,6 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 				"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 		}
 		immnd_adjustEpoch(cb, true);
-		/* If the node is payload give the indication to clm_init_sel_obj
-		 *  because payload nodes are not subscribing for AVD up
-		 */
-		if(!immnd_cb->isNodeTypeController && !cb->clm_hdl){
-			TRACE_8("clm_init_sel_obj indication is given at payload");
-			ncs_sel_obj_ind(&immnd_cb->clm_init_sel_obj);
-
-                }
 
 		/* Sync completed for client => trigger active resurrect. */
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
