@@ -2654,6 +2654,10 @@ void avnd_comp_cmplete_all_csi_rec(AVND_CB *cb, AVND_COMP *comp)
 				/* generate csi-remove-done event... csi may be deleted */
 				(void)avnd_comp_csi_remove_done(cb, comp, curr);
 
+			/* Avoid nullptr access. */
+			if (curr == nullptr)
+				break;
+
 			if (0 == m_AVND_COMPDB_REC_CSI_GET(*comp, curr->name.c_str())) {
 				curr =
 				    (prv) ?
