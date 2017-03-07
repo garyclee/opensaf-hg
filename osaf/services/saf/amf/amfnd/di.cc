@@ -1410,12 +1410,7 @@ uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	TRACE_ENTER();
 
-	/* dont process unless AvD is up */
-	if (!m_AVND_CB_IS_AVD_UP(cb)){
-		LOG_IN("AVD is not up yet");
-		return NCSCC_RC_FAILURE;
-	}
-
+	/* Correct the counters first. */
 	info = &evt->info.avd->msg_info.d2n_role_change_info;
 
 	TRACE("MsgId: %u,NodeId:%u, role rcvd:%u role present:%u",\
@@ -1423,6 +1418,12 @@ uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	avnd_msgid_assert(info->msg_id);
 	cb->rcv_msg_id = info->msg_id;
+
+	/* dont process unless AvD is up */
+	if (!m_AVND_CB_IS_AVD_UP(cb)){
+		LOG_IN("AVD is not up yet");
+		return NCSCC_RC_FAILURE;
+	}
 
 	prev_ha_state = cb->avail_state_avnd;
 
