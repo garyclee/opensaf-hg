@@ -844,6 +844,7 @@ void AVD_SU::set_admin_state(SaAmfAdminStateT admin_state) {
 
 void AVD_SU::unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {
 	bool is_oper_successful = true;
+	AVD_AVND *avnd = get_node_ptr();
 
 	TRACE_ENTER2("'%s'", name.value);
 	set_admin_state(SA_AMF_ADMIN_UNLOCKED);
@@ -856,7 +857,8 @@ void AVD_SU::unlock(SaImmOiHandleT immoi_handle, SaInvocationT invocation) {
 		goto done;
 	}
 
-	if ((is_in_service() == true) || (sg_of_su->sg_ncs_spec == true)) {
+	if ((is_in_service() == true) || ((sg_of_su->sg_ncs_spec == true) &&
+				((avnd) && (avnd->node_state != AVD_AVND_STATE_ABSENT)))) {
 		/* Reason for checking for MW component is that node oper state and
 		 * SU oper state are marked enabled after they gets assignments.
 		 * So, we can't check compatibility with is_in_service() for them.
