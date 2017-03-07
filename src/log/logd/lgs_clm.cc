@@ -134,7 +134,6 @@ static uint32_t lgs_clm_node_add(NODE_ID clm_node_id) {
 static uint32_t lgs_clm_node_del(NODE_ID clm_node_id) {
   TRACE_ENTER();
   uint32_t rc;
-  lgs_clm_node_t *clm_node;
 
   ClmNodeMap *clmNodeMap(reinterpret_cast<ClmNodeMap *>
                          (clm_node_db));
@@ -143,7 +142,7 @@ static uint32_t lgs_clm_node_del(NODE_ID clm_node_id) {
     auto it = (clmNodeMap->find(clm_node_id));
 
     if (it != clmNodeMap->end()) {
-      clm_node = it->second;
+      lgs_clm_node_t *clm_node = it->second;
       clmNodeMap->erase(it);
       delete clm_node;
       rc = NCSCC_RC_SUCCESS;
@@ -216,9 +215,8 @@ static uint32_t send_cluster_membership_msg_to_clients(
   TRACE_3("clm_node_id: %x, change:%u", clm_node_id, clusterChange);
   /* Loop through Client DB */
   ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
-  ClientMap::iterator pos;
-  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
-    rec = pos->second; 
+  for (const auto& value : *clientMap) {
+    rec =  value.second; 
     NODE_ID tmp_clm_node_id = m_LGS_GET_NODE_ID_FROM_ADEST(rec->mds_dest);
     //  Do not send to A11 client. Send only to specific Node
     if (tmp_clm_node_id == clm_node_id)

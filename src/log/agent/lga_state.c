@@ -409,7 +409,6 @@ done:
 static int start_recovery2_thread(void)
 {
 	int rc = 0;
-	uint32_t ncs_rc = NCSCC_RC_SUCCESS;
 	pthread_attr_t attr;
 
 	TRACE_ENTER();
@@ -418,7 +417,7 @@ static int start_recovery2_thread(void)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	/* Create a selection object for signaling the recovery2 thread */
-	ncs_rc = ncs_sel_obj_create(&state2_terminate_sel_obj);
+	uint32_t ncs_rc = ncs_sel_obj_create(&state2_terminate_sel_obj);
 	if (ncs_rc != NCSCC_RC_SUCCESS) {
 		TRACE("%s ncs_sel_obj_create Fail", __FUNCTION__);
 		rc = -1;

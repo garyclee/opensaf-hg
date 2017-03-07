@@ -161,12 +161,12 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_l
     if (!p.second) {
       TRACE("unable to add clm node info map - the id %x already existed",
             client->client_id);
-      free(client);
+      delete client;
       client = NULL;
     }
   } else {
     TRACE("can't find local sec map in lgs_clm_node_add");
-    free(client);
+    delete client;
     client = nullptr;
   }
 
@@ -341,9 +341,8 @@ int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest, time_t *closetime_ptr) {
   /* Loop through Client DB */
   ClientMap *clientMap(reinterpret_cast<ClientMap *>
                          (client_db));
-  ClientMap::iterator pos;
-  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
-    rp = pos->second;    
+  for (const auto& value : *clientMap) {
+    rp =  value.second;    
 
     if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest))
       rc = lgs_client_delete(rp->client_id, closetime_ptr);
@@ -414,7 +413,6 @@ uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest) {
 static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt) {
   lgsv_ckpt_msg_v1_t ckpt_v1;
   lgsv_ckpt_msg_v2_t ckpt_v2;
-  void *ckpt_ptr;
   uint32_t async_rc = NCSCC_RC_SUCCESS;
   struct timespec closetime_tspec;
 
@@ -432,9 +430,9 @@ static uint32_t proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt) {
         osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
         time_t closetime = closetime_tspec.tv_sec;
         (void)lgs_client_delete_by_mds_dest(evt->fr_dest, &closetime);
-
         /*Send an async checkpoint update to STANDBY EDS peer */
         if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+          void *ckpt_ptr;
           if (lgs_is_peer_v2()) {
             memset(&ckpt_v2, 0, sizeof(ckpt_v2));
             ckpt_v2.header.ckpt_rec_type = LGS_CKPT_CLIENT_DOWN;
@@ -529,12 +527,11 @@ static uint32_t proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt) {
 static void lgs_process_lga_down_list() {
   struct timespec closetime_tspec;
   if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
-    LGA_DOWN_LIST *lga_down_rec = NULL;
     LGA_DOWN_LIST *temp_lga_down_rec = NULL;
     osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
     time_t closetime = closetime_tspec.tv_sec;
 
-    lga_down_rec = lgs_cb->lga_down_list_head;
+    LGA_DOWN_LIST *lga_down_rec = lgs_cb->lga_down_list_head;
     while (lga_down_rec) {
       /*Remove the LGA DOWN REC from the LGA_DOWN_LIST */
       /* Free the LGA_DOWN_REC */
@@ -551,7 +548,6 @@ static void lgs_process_lga_down_list() {
 
 
 static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt) {
-  log_stream_t *stream;
   uint32_t rc = NCSCC_RC_SUCCESS;
 
   TRACE_ENTER2("%d", (int) evt->info.rda_info.io_role);
@@ -590,6 +586,7 @@ static uint32_t proc_rda_cb_msg(lgsv_lgs_evt_t *evt) {
     /* Check existing streams */
     // Iterate all existing log streams in cluster.
     uint32_t count = 0;
+    log_stream_t *stream;
     SaBoolT endloop = SA_FALSE, jstart = SA_TRUE;
     while ((stream = iterate_all_streams(endloop, jstart)) && !endloop) {
       jstart = SA_FALSE;

@@ -1000,13 +1000,12 @@ static uint32_t mds_enc_flat(struct ncsmds_callback_info *info) {
  *****************************************************************************/
 
 static uint32_t mds_dec_flat(struct ncsmds_callback_info *info) {
-  uint32_t rc = NCSCC_RC_SUCCESS;
   /* Retrieve info from the dec_flat */
   MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
   /* Modify the MDS_INFO to populate dec */
   info->info.dec = dec;
   /* Invoke the regular mds_dec routine */
-  rc = mds_dec(info);
+  uint32_t rc = mds_dec(info);
   if (rc != NCSCC_RC_SUCCESS) {
     TRACE("mds_dec FAILED ");
   }

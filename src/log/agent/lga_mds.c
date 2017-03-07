@@ -1216,7 +1216,6 @@ static uint32_t lga_mds_cpy(struct ncsmds_callback_info *info)
 
 static uint32_t lga_mds_callback(struct ncsmds_callback_info *info)
 {
-	uint32_t rc;
 
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
 		lga_mds_cpy,	/* MDS_CALLBACK_COPY      0 */
@@ -1229,7 +1228,7 @@ static uint32_t lga_mds_callback(struct ncsmds_callback_info *info)
 	};
 
 	if (info->i_op <= MDS_CALLBACK_SVC_EVENT) {
-		rc = (*cb_set[info->i_op]) (info);
+		uint32_t rc = (*cb_set[info->i_op]) (info);
 		if (rc != NCSCC_RC_SUCCESS)
 			TRACE("MDS_CALLBACK_SVC_EVENT not in range");
 
@@ -1405,7 +1404,6 @@ uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_m
 uint32_t lga_mds_msg_async_send(lga_cb_t *cb, struct lgsv_msg *i_msg, uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 	osafassert(cb != NULL && i_msg != NULL);
@@ -1425,7 +1423,7 @@ uint32_t lga_mds_msg_async_send(lga_cb_t *cb, struct lgsv_msg *i_msg, uint32_t p
 	mds_info.info.svc_send.info.snd.i_to_dest = cb->lgs_mds_dest;
 
 	/* send the message */
-	rc = ncsmds_api(&mds_info);
+	uint32_t rc = ncsmds_api(&mds_info);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("%s: async send failed", __FUNCTION__);
 	}

@@ -253,7 +253,7 @@ uint32_t lgs_mbcsv_init(lgs_cb_t *cb, SaAmfHAStateT ha_state) {
   arg.info.open.i_pwe_hdl = (uint32_t)cb->mds_hdl;
   arg.info.open.i_client_hdl = 0;
 
-  if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
+  if ((rc = ncs_mbcsv_svc(&arg)) != NCSCC_RC_SUCCESS) {
     LOG_ER("NCS_MBCSV_OP_OPEN FAILED");
     goto done;
   }
@@ -580,7 +580,6 @@ static uint32_t ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg) {
  *****************************************************************************/
 
 static uint32_t ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_arg, bool data_req) {
-  uint32_t rc = NCSCC_RC_SUCCESS;
   /* asynsc Update Count */
   uint8_t *async_upd_cnt = NULL;
 
@@ -590,7 +589,7 @@ static uint32_t ckpt_enc_cold_sync_data(lgs_cb_t *lgs_cb, NCS_MBCSV_CB_ARG *cbk_
    */
   TRACE_2("COLD SYNC ENCODE START........");
   /* Encode Registration list */
-  rc = edu_enc_reg_list(lgs_cb, &cbk_arg->info.encode.io_uba);
+  uint32_t rc = edu_enc_reg_list(lgs_cb, &cbk_arg->info.encode.io_uba);
   if (rc != NCSCC_RC_SUCCESS) {
     TRACE("  edu_enc_reg_list FAILED");
     return NCSCC_RC_FAILURE;
@@ -735,14 +734,13 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
   void *ckpt_client_reg;
   EDU_ERR ederror;
   uint32_t rc = NCSCC_RC_SUCCESS, num_rec = 0;
-  uint8_t *pheader = NULL;
   lgsv_ckpt_header_t ckpt_hdr;
   EDU_PROG_HANDLER edp_function_reg = NULL;
 
   TRACE_ENTER();
 
   /*Reserve space for "Checkpoint Header" */
-  pheader = ncs_enc_reserve_space(uba, sizeof(lgsv_ckpt_header_t));
+  uint8_t *pheader = ncs_enc_reserve_space(uba, sizeof(lgsv_ckpt_header_t));
   if (pheader == NULL) {
     TRACE("  ncs_enc_reserve_space FAILED");
     return (rc = EDU_ERR_MEM_FAIL);
@@ -750,9 +748,8 @@ static uint32_t edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba) {
   ncs_enc_claim_space(uba, sizeof(lgsv_ckpt_header_t));
    /* Loop through Client DB */
   ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
-  ClientMap::iterator pos;
-  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
-    client = pos->second;
+  for (const auto& value : *clientMap) {
+    client = value.second;
 
     if (lgs_is_peer_v6()) {
       ckpt_reg_rec_v6.client_id = client->client_id;
@@ -978,10 +975,9 @@ static uint32_t ckpt_decode_log_struct(
     void *struct_ptr,               /* Checkpointed structure */
     EDU_PROG_HANDLER edp_function)  /* EDP function for decoding */
 {
-  uint32_t rc = NCSCC_RC_SUCCESS;
   EDU_ERR ederror;
 
-  rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_function, &cbk_arg->info.decode.i_uba,
+  uint32_t rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_function, &cbk_arg->info.decode.i_uba,
                       EDP_OP_TYPE_DEC, &struct_ptr, &ederror);
 
   if (rc != NCSCC_RC_SUCCESS) {
@@ -1174,7 +1170,6 @@ static uint32_t ckpt_decode_log_cfg(lgs_cb_t *cb, void *ckpt_msg,
 /* END ckpt_decode_async_update helper functions */
 
 static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg) {
-  uint32_t rc = NCSCC_RC_SUCCESS;
   EDU_ERR ederror;
   lgsv_ckpt_msg_v1_t msg_v1;
   lgsv_ckpt_msg_v1_t *ckpt_msg_v1 = &msg_v1;
@@ -1197,7 +1192,7 @@ static uint32_t ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg
   TRACE_ENTER();
 
   /* Decode the message header */
-  rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_header_rec, &cbk_arg->info.decode.i_uba,
+  uint32_t rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_header_rec, &cbk_arg->info.decode.i_uba,
                       EDP_OP_TYPE_DEC, &hdr_ptr, &ederror);
   if (rc != NCSCC_RC_SUCCESS) {
     m_NCS_EDU_PRINT_ERROR_STRING(ederror);
@@ -1924,7 +1919,7 @@ static uint32_t ckpt_proc_close_stream(lgs_cb_t *cb, void *data) {
 
   TRACE("close stream %s, id: %u", stream->name.c_str(), stream->streamId);
 
-  if ((stream->numOpeners > 0) || (clientId < 0)){
+  if ((stream->numOpeners > 0) || (clientId == 0)) {
     /* No clients to remove if no openers or if closing a stream opened
      * by log service itself
      */

@@ -123,7 +123,7 @@ typedef struct _lgs_conf_t {
   std::vector<std::string> logRecordDestinationStatus; // Default empty
 
   /* Used for checkpointing time when files are closed */
-  time_t chkp_file_close_time;
+  time_t chkp_file_close_time = 0;
 
   bool OpenSafLogConfig_object_exist;
 
@@ -181,14 +181,12 @@ static int verify_all_init();
 void lgs_cfgupd_list_create(const char *name_str, char *value_str,
                             lgs_config_chg_t *config_data) {
   char *tmp_char_ptr = NULL;
-  size_t prev_size = 0;
-  char *cfg_param_str = NULL;
   size_t cfg_size = 0;
 
   TRACE_ENTER2("name_str '%s', value_str \"%s\"", name_str, value_str);
 
   cfg_size = strlen(name_str) + strlen(value_str) + 2;
-  cfg_param_str = static_cast<char *>(malloc(cfg_size));
+  char *cfg_param_str = static_cast<char *>(malloc(cfg_size));
   if (cfg_param_str == NULL) {
     TRACE("%s: malloc Fail Aborted", __FUNCTION__);
     osaf_abort(0);
@@ -218,7 +216,7 @@ void lgs_cfgupd_list_create(const char *name_str, char *value_str,
       osaf_abort(0);
     }
 
-    prev_size = config_data->ckpt_buffer_size;
+    size_t prev_size = config_data->ckpt_buffer_size;
     config_data->ckpt_buffer_ptr = tmp_char_ptr;
     config_data->ckpt_buffer_size = alloc_size;
     /* Add config data directly after the previous data */
@@ -291,8 +289,8 @@ static bool is_value_in_vector(const std::vector<std::string>& search_vector,
   }
   return rc;
 }
-void lgs_cfgupd_multival_delete(const std::string attribute_name,
-                                const std::vector<std::string> value_list,
+void lgs_cfgupd_multival_delete(const std::string& attribute_name,
+                                const std::vector<std::string>& value_list,
                                 lgs_config_chg_t *config_data) {
   TRACE_ENTER();
   // Get the existing multi-values
@@ -322,8 +320,8 @@ void lgs_cfgupd_multival_delete(const std::string attribute_name,
  * Replace all existing values in the multi value attribute with the values in
  * the list
  */
-void lgs_cfgupd_mutival_replace(const std::string attribute_name,
-                                const std::vector<std::string> value_list,
+void lgs_cfgupd_mutival_replace(const std::string& attribute_name,
+                                const std::vector<std::string>& value_list,
                                 lgs_config_chg_t *config_data) {
   TRACE_ENTER();
 
@@ -398,6 +396,11 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data) {
    * original config_data must not be changed.
    */
   allocmem_ptr = static_cast<char *>(calloc(1,config_data->ckpt_buffer_size));
+  if (allocmem_ptr == nullptr) {
+    LOG_ER("%s: calloc Fail, Aborted", __FUNCTION__);
+    osaf_abort(0);
+  }
+
   param_ptr = allocmem_ptr;
   (void) memcpy(param_ptr, config_data->ckpt_buffer_ptr, config_data->ckpt_buffer_size);
 
@@ -496,8 +499,7 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data) {
     rc = -1;
   }
 
-  if (allocmem_ptr != NULL)
-    free(allocmem_ptr);
+  free(allocmem_ptr);
 
 done:
   TRACE_LEAVE();
@@ -724,10 +726,9 @@ const char kSemicolon[] = ";";
 // no more, no less.
 //
 bool is_right_destination_fmt(const VectorString& vdest) {
-  int nl_cnt = 0;
   // Check each single destination
   for (const auto& it : vdest) {
-    nl_cnt = std::count(it.begin(), it.end(), ';');
+    int nl_cnt = std::count(it.begin(), it.end(), ';');
     if (nl_cnt != 2) {
       TRACE("%s wrong destination format", __func__);
       return false;
@@ -822,8 +823,7 @@ bool check_configuration_duplicated(const VectorString& vdest,
     // in adding destination configurations and existing ones.
     // Firstly, check if any duplicate in added items.
     if (vdest.size() > 1) {
-      bool isNoDuplicated = true;
-      isNoDuplicated = is_no_config_duplicated(vdest, vdest);
+      bool isNoDuplicated = is_no_config_duplicated(vdest, vdest);
       if (isNoDuplicated == false) return false;
     }
     // Secondly, check if any duplicate in added items with existing list.
@@ -1112,10 +1112,9 @@ static void read_logsv_config_obj_2() {
     } else if (!strcmp(attribute->attrName,
                        LOG_RECORD_DESTINATION_CONFIGURATION)) {
       // Note: Multi value
-      char *value_string;
       for (uint32_t i = 0; i < attribute->attrValuesNumber; i++) {
         value = attribute->attrValues[i];
-        value_string = *(reinterpret_cast<char **>(value));
+        char *value_string = *(reinterpret_cast<char **>(value));
         lgs_conf.logRecordDestinationConfiguration.push_back(value_string);
         TRACE("Conf obj; logRecordDestinationConfiguration: '%s'",
               lgs_conf.logRecordDestinationConfiguration.back().c_str());
@@ -1151,7 +1150,6 @@ done:
 static void read_log_config_environ_var_2() {
   char *val_str;
   unsigned long int val_uint;
-  int n;
 
   TRACE_ENTER();
 
@@ -1181,7 +1179,7 @@ static void read_log_config_environ_var_2() {
    */
   if (lgs_conf.logDataGroupname_cnfflag == LGS_CNF_DEF) {
     if ((val_str = getenv("LOGSV_DATA_GROUPNAME")) != NULL) {
-      n = snprintf(lgs_conf.logDataGroupname, UT_NAMESIZE, "%s", val_str);
+      int n = snprintf(lgs_conf.logDataGroupname, UT_NAMESIZE, "%s", val_str);
       if (n >= UT_NAMESIZE) {
         /* Fail */
         LOG_WA("LOG data group name read from config file is > UT_NAMESIZE");

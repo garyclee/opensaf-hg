@@ -359,9 +359,8 @@ bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest) {
   /* Loop through Client DB */
   ClientMap *clientMap(reinterpret_cast<ClientMap *>
                          (client_db));
-  ClientMap::iterator pos;
-  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
-    rp = pos->second;
+  for (const auto& value : *clientMap) {
+    rp = value.second;
     if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest)) {
       return true;
     }
@@ -942,9 +941,8 @@ void lgs_send_severity_filter_to_clients(uint32_t stream_id,
   /* Loop through Client DB */
   ClientMap *clientMap(reinterpret_cast<ClientMap *>
                          (client_db));
-  ClientMap::iterator pos;
-  for (pos = clientMap->begin(); pos != clientMap->end(); pos++) {
-    rp = pos->second;
+  for (const auto& value : *clientMap) {
+    rp = value.second;
     /* Do not send to all client. Send to clients that need filter
         callback and associate with this stream */
     stream = rp->stream_list_root;

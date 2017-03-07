@@ -318,7 +318,7 @@ static uint32_t log_initialize(void) {
   }
 
   /* Attach mailbox to this thread */
-  if ((rc = m_NCS_IPC_ATTACH(&lgs_mbx) != NCSCC_RC_SUCCESS)) {
+  if ((rc = m_NCS_IPC_ATTACH(&lgs_mbx)) != NCSCC_RC_SUCCESS) {
     LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
     goto done;
   }
