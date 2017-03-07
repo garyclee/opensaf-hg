@@ -529,7 +529,6 @@ static const SaImmOiCallbacksT_2 callbacks = {
  * @param new_name[in]
  */
 static void save_network_name(char* new_name) {
-  uint32_t name_len = 0;
 
   TRACE_ENTER();
   
@@ -543,7 +542,7 @@ static void save_network_name(char* new_name) {
   if (new_name == NULL) {
     network_name = NULL;
   } else {
-    name_len = strlen(new_name) + 1;
+     uint32_t name_len = strlen(new_name) + 1;
     network_name = static_cast<char *>(calloc(1, name_len));
     if (network_name == NULL) {
       LOG_ER("%s: calloc Fail", __FUNCTION__);
@@ -854,9 +853,8 @@ static void applier_finalize(SaImmOiHandleT imm_appl_hdl) {
  * @return true if cancellation is active
  */
 static bool th_do_cancel() {
-  bool rc = false;
   osaf_mutex_lock_ordie(&lgs_gcfg_applier_mutex);
-  rc = cancel_flg;
+  bool rc = cancel_flg;
   cancel_flg = false;
   osaf_mutex_unlock_ordie(&lgs_gcfg_applier_mutex);
   return rc;
@@ -937,8 +935,6 @@ static void *applier_thread(void *info_in) {
 
   static struct pollfd fds[2];
   static nfds_t nfds = 1; /* We have no IMM selection object yet */
-  int rc = 0;
-  SaAisErrorT ais_rc = SA_AIS_OK;
   static SaImmOiHandleT imm_appl_hdl = 0;
   static SaSelectionObjectT imm_appl_selobj = 0;
 
@@ -953,8 +949,7 @@ static void *applier_thread(void *info_in) {
     /* Initiate applier */
     th_state_set(TH_STARTING);
 
-    rc = applier_init(&imm_appl_hdl, &imm_appl_selobj);
-    if (rc == -1) {
+    if (applier_init(&imm_appl_hdl, &imm_appl_selobj) == -1) {
       /* Some error handling */
       LOG_WA("applier_init Fail. Exit the appiler thread");
       return NULL;
@@ -962,8 +957,7 @@ static void *applier_thread(void *info_in) {
 
     nfds = FDA_IMM + 1; /* IMM selection object is valid */
 
-    rc = applier_set_name_class(imm_appl_hdl);
-    if (rc == -1) {
+    if (applier_set_name_class(imm_appl_hdl) == -1) {
       /* Some error handling */
       LOG_WA("applier_set_name_class Fail. Exit the appier thread");
       return NULL;
@@ -983,8 +977,7 @@ static void *applier_thread(void *info_in) {
     std::string tmp_networkname;
     tmp_networkname = lgs_get_networkname();
     if (tmp_networkname.empty() == true) {
-      rc = read_network_name();
-      if (rc == -1) {
+      if (read_network_name() == -1) {
         LOG_WA("read_network_name() Fail");
       }
     }
@@ -995,8 +988,7 @@ static void *applier_thread(void *info_in) {
 
       if (fds[FDA_IMM].revents & POLLIN) {
         TRACE("%s: IMM event", __FUNCTION__);
-        ais_rc = saImmOiDispatch(imm_appl_hdl, SA_DISPATCH_ALL);
-        if (ais_rc == SA_AIS_ERR_BAD_HANDLE) {
+        if (saImmOiDispatch(imm_appl_hdl, SA_DISPATCH_ALL) == SA_AIS_ERR_BAD_HANDLE) {
           /* Handle is lost. We must initialize again */
           th_state_set(TH_STARTING);
           break;
@@ -1007,6 +999,7 @@ static void *applier_thread(void *info_in) {
         TRACE("%s: COM event", __FUNCTION__);
         /* Handle start and stop requests */
         char cmd_str[256] = {0};
+		int rc = 0;
         while (1) {
           rc = read(com_fd, cmd_str, 256);
           if ((rc == -1) && ((errno == EINTR) ||

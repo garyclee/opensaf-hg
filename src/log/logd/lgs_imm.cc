@@ -985,7 +985,6 @@ static lgs_stream_defval_t *get_SaLogStreamConfig_default() {
   SaImmClassCategoryT cc;
   SaImmAttrDefinitionT_2 **attributes = NULL;
   SaImmAttrDefinitionT_2 *attribute = NULL;
-  int i = 0;
 
   TRACE_ENTER();
   if (lgs_stream_defval_updated_flag == false) {
@@ -1004,6 +1003,7 @@ static lgs_stream_defval_t *get_SaLogStreamConfig_default() {
     }
 
     if (rc == SA_AIS_OK) {
+      int i = 0;
       while ((attribute = attributes[i++]) != NULL) {
         if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
           TRACE("Got saLogStreamMaxLogFileSize");
@@ -1952,7 +1952,6 @@ void logRootDirectory_filemove(
 
   /* Create new files at new path
    */
-  char *current_time;
   endloop = SA_FALSE;
   jstart = SA_TRUE;
   while ((stream = iterate_all_streams(endloop, jstart)) && !endloop) {
@@ -1963,7 +1962,7 @@ void logRootDirectory_filemove(
     }
 
     /* Create the new log file based on updated configuration */
-    current_time = lgs_get_time(cur_time_in);
+    char *current_time = lgs_get_time(cur_time_in);
     stream->logFileCurrent = stream->fileName + "_" + current_time;
 
     if ((*stream->p_fd = log_file_open(new_logRootDirectory,
@@ -1991,7 +1990,6 @@ void logRootDirectory_filemove(
  */
 void logDataGroupname_fileown(const char *new_logDataGroupname) {
   TRACE_ENTER();
-  log_stream_t *stream;
 
   if (new_logDataGroupname == NULL) {
     LOG_ER("Data group is NULL");
@@ -2005,6 +2003,7 @@ void logDataGroupname_fileown(const char *new_logDataGroupname) {
      */
     // Iterate all existing log streams in cluster.
     SaBoolT endloop = SA_FALSE, jstart = SA_TRUE;
+    log_stream_t *stream;
     while ((stream = iterate_all_streams(endloop, jstart)) && !endloop) {
       jstart = SA_FALSE;
       lgs_own_log_files_h(stream, new_logDataGroupname);
@@ -3406,7 +3405,6 @@ void lgs_delete_one_stream_object(const std::string &name_str) {
 void lgs_cleanup_abandoned_streams() {
   SaAisErrorT ais_rc = SA_AIS_OK;
   int pos = 0;
-  char *name_str;
   SaNameT object_name;
 
   TRACE_ENTER();
@@ -3419,7 +3417,7 @@ void lgs_cleanup_abandoned_streams() {
   pos = log_rtobj_list_getnamepos();
   while (pos != -1) {
     /* Get found name */
-    name_str = log_rtobj_list_getname(pos);
+    char *name_str = log_rtobj_list_getname(pos);
 
     /* Append the close time to log file and configuration file */
     (void) log_close_rtstream_files(name_str);
@@ -3616,16 +3614,17 @@ SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val) {
     goto done_fin_Om;
   }
 
-  void *value;
 
   /* Handle the global scAbsenceAllowed_flag */
   attribute = attributes[0];
-  TRACE("%s\t attrName \"%s\"", __FUNCTION__, attribute->attrName);
-  if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
-    /* scAbsenceAllowed has value. Get the value */
-    value = attribute->attrValues[0];
-    *attr_val = *(static_cast<SaUint32T *>(value));
-    rc_attr_val = attr_val;
+  if (attribute != NULL) {
+    TRACE("%s\t attrName \"%s\"", __FUNCTION__, attribute->attrName);
+    if (attribute->attrValuesNumber != 0) {
+      /* scAbsenceAllowed has value. Get the value */
+      void *value = attribute->attrValues[0];
+      *attr_val = *(static_cast<SaUint32T *>(value));
+      rc_attr_val = attr_val;
+    }
   }
 
 done_fin_Om:

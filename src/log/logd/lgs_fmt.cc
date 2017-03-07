@@ -557,7 +557,6 @@ static int extractCommonField(char *dest, size_t dest_size,
   SaUint16T fieldSizeOffset = 0;
   int characters = 0;
   char *hex_string = NULL, *hex_string_ptr = NULL;
-  int no_ch = 0;
   SaTimeT ms;
   long gmtOffset = 0, uGmtOffset = 0;
 
@@ -790,7 +789,7 @@ static int extractCommonField(char *dest, size_t dest_size,
       hex_string_ptr = hex_string;
 
       for (i = 0; i < stringSize; i++) {
-        no_ch = sprintf(hex_string_ptr, "%x", (int)logRecord->logBuffer->logBuf[i]);
+        int no_ch = sprintf(hex_string_ptr, "%x", (int)logRecord->logBuffer->logBuf[i]);
         hex_string_ptr = hex_string_ptr + no_ch;
       }
       *hex_string_ptr = '\0';

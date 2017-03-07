@@ -534,12 +534,8 @@ int delete_file_hdl(void *indata, void *outdata, size_t max_outsize) {
 static int check_log_oldest(char *line, char *fname_prefix, int fname_prefix_size, int *old_date, int *old_time) {
   int date, time, c, d;
   date = time = c = d = 0;
-  int len = 0;
   std::string name_format;
   char time_stamps[] = "_%d_%d_%d_%d.log";
-
-  len = strlen(time_stamps);
-  len += fname_prefix_size;
 
   name_format = std::string(fname_prefix);
   TRACE_3("fname: %s", name_format.c_str());

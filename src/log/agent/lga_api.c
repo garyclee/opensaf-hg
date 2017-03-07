@@ -1101,9 +1101,8 @@ static SaAisErrorT handle_log_record(const SaLogRecordT *logRecord,
 	   Section 3.6.3, Return Values */
 	if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER) {
 		if (logRecord->logHeader.genericHdr.logSvcUsrName == NULL) {
-			char *logSvcUsrChars = NULL;
 			TRACE("logSvcUsrName == NULL");
-			logSvcUsrChars = getenv("SA_AMF_COMPONENT_NAME");
+			char *logSvcUsrChars = getenv("SA_AMF_COMPONENT_NAME");
 			if (logSvcUsrChars == NULL) {
 				ais_rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;

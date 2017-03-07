@@ -418,7 +418,6 @@ void log_free_stream_resources(log_stream_t *stream) {
     free(stream->logFileFormat);
 
   delete stream;
-  stream = NULL;
 }
 
 /**
@@ -666,11 +665,10 @@ SaAisErrorT lgs_create_rt_appstream(log_stream_t *const stream) {
  */
 log_stream_t *log_stream_new(const std::string &name, int stream_id) {
   int rc = 0;
-  log_stream_t *stream = NULL;
 
   TRACE_ENTER2("%s, l: %zu", name.c_str(), name.size());
 
-  stream = new (std::nothrow) log_stream_t();
+  log_stream_t *stream = new (std::nothrow) log_stream_t();
   if (stream == NULL) {
     LOG_WA("calloc FAILED");
     goto done;
@@ -1339,7 +1337,7 @@ done:
 log_stream_t *log_stream_get_by_id(uint32_t id) {
   log_stream_t *stream = NULL;
 
-  if (0 <= id && id < stream_array_size)
+  if (id < stream_array_size)
     stream = stream_array[id];
 
   return stream;

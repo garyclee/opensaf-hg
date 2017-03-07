@@ -87,7 +87,7 @@ typedef enum {
   LGS_IMM_LOG_NUMEND
 } lgs_logconfGet_t;
 
-static inline lgs_logconfGet_t param_name_to_id(std::string param_name) {
+static inline lgs_logconfGet_t param_name_to_id(const std::string& param_name) {
   if (param_name == LOG_ROOT_DIRECTORY) {
     return LGS_IMM_LOG_ROOT_DIRECTORY;
   } else if (param_name == LOG_DATA_GROUPNAME) {
@@ -227,16 +227,16 @@ void lgs_cfgupd_multival_add(const std::string& attribute_name,
  * Note: The attribute shall have the NO_DUPLICATES flag
  *
  */
-void lgs_cfgupd_multival_delete(const std::string attribute_name,
-                                const std::vector<std::string> value_list,
+void lgs_cfgupd_multival_delete(const std::string& attribute_name,
+                                const std::vector<std::string>& value_list,
                                 lgs_config_chg_t *config_data);
 
 /**
  * Replace all existing values in the multi value attribute with the values in
  * the list
  */
-void lgs_cfgupd_mutival_replace(const std::string attribute_name,
-                                const std::vector<std::string> value_list,
+void lgs_cfgupd_mutival_replace(const std::string& attribute_name,
+                                const std::vector<std::string>& value_list,
                                 lgs_config_chg_t *config_data);
 
 /**

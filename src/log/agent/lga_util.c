@@ -309,12 +309,10 @@ static uint32_t lga_hdl_cbk_dispatch_block(lga_cb_t *cb, lga_client_hdl_rec_t *h
  */
 static void lga_free_client_hdl(lga_client_hdl_rec_t **p_client_hdl)
 {
-	lga_client_hdl_rec_t *client_hdl = NULL;
-
 	/* Synchronize b/w client & mds thread */
 	osaf_mutex_lock_ordie(&lga_cb.cb_lock);
 
-	client_hdl = *p_client_hdl;
+	lga_client_hdl_rec_t *client_hdl = *p_client_hdl;
 	if (client_hdl == NULL) goto done;
 
 	free(client_hdl);
