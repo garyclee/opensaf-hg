@@ -405,14 +405,15 @@ int main(int argc, char *argv[])
 
 			if (fds[FD_CLM].revents & POLLIN) {
 				if ((error = saClmDispatch(immnd_cb->clm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-					LOG_ER("saClmDispatch failed: %u", error);
 					if(error == SA_AIS_ERR_BAD_HANDLE){
+						LOG_WA("saClmDispatch failed: %u", error);
 						LOG_NO("Re-initializing with CLMS");
 						saClmFinalize(immnd_cb->clm_hdl);
 						immnd_clm_node_cleanup(immnd_cb);
 						immnd_cb->clmSelectionObject = -1;
 						immnd_init_with_clm();
 					} else {
+						LOG_ER("saClmDispatch failed: %u", error);
 						break;
 					}
 				}
