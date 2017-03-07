@@ -133,7 +133,7 @@ static void amf_comp_terminate_callback(SaInvocationT inv, const SaNameT *comp_n
 		exit(1);
 	}
 
-	exit(0);
+	daemon_exit();
 }
 
 static void amf_down_cb(void)
@@ -153,12 +153,13 @@ int main(int argc, char *argv[])
 	SaVersionT         ver = {.releaseCode = 'B', .majorVersion = 0x01, .minorVersion = 0x01};
 	SaAisErrorT        rc;
 	SaSelectionObjectT amf_sel_obj;
-	struct pollfd fds[1];
+	struct pollfd fds[2];
 	int poll_timeout = 60000; 	/* Default timeout is 60s */
 	const char *env_value = getenv("AMFWDOG_TIMEOUT_MS");
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
+	int term_fd;
 	
 	opensaf_reboot_prepare();
 	daemonize(argc, argv);
@@ -181,9 +182,11 @@ int main(int argc, char *argv[])
 		syslog(LOG_ERR, "saAmfSelectionObjectGet FAILED %u", rc);
 		goto done;
 	}
-
+	daemon_sigterm_install(&term_fd);
 	fds[0].fd = amf_sel_obj;
 	fds[0].events = POLLIN;
+	fds[1].fd = term_fd;
+	fds[1].events = POLLIN;
 
 	rc = saAmfComponentNameGet(amf_hdl, &comp_name);
 	if (SA_AIS_OK != rc) {
@@ -222,7 +225,7 @@ int main(int argc, char *argv[])
 	}
 
 	while (1) {
-		int res = poll(fds, 1, poll_timeout);
+		int res = poll(fds, 2, poll_timeout);
 
 		if (res == -1) {
 			if (errno == EINTR)
@@ -262,6 +265,10 @@ int main(int argc, char *argv[])
 				syslog(LOG_ERR, "saAmfDispatch FAILED %u", rc);
 				goto done;
 			}
+		}
+
+		if (fds[1].revents & POLLIN) {
+			daemon_exit();
 		}
 	}
 
