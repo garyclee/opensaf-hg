@@ -204,7 +204,23 @@ uint32_t immnd_mds_register(IMMND_CB *cb)
 			LOG_WA("MDS AVD Subscription Failed");
 			goto error1;
 		}
-	} 
+	} else if(cb->mIntroduced != 2){
+
+		/* STEP 6: Subscribe to CLMS events in MDS. This will be
+		   used for CLM registration at Payloads.IMMND is not
+		   in headless state*/
+
+		svc_id[0]  = NCSMDS_SVC_ID_CLMS;
+		svc_info.i_op = MDS_SUBSCRIBE;
+		svc_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
+		svc_info.info.svc_subscribe.i_num_svcs = 1;
+		svc_info.info.svc_subscribe.i_svc_ids = svc_id;
+
+		if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
+			LOG_WA("MDS CLMS Subscription Failed");
+			goto error1;
+		}
+	}
 
 	cb->node_id = m_NCS_GET_NODE_ID;
 	TRACE_2("cb->node_id:%x", cb->node_id);
@@ -629,7 +645,14 @@ static uint32_t immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc
 				ncs_sel_obj_ind(&immnd_cb->clm_init_sel_obj);
 			}
 		}
-	} 
+	} else if(!cb->isNodeTypeController && svc_evt->i_svc_id == NCSMDS_SVC_ID_CLMS){
+		if (svc_evt->i_change == NCSMDS_UP) {
+			TRACE_8("MDS UP dest: %" PRIx64 ", node ID: %x, svc_id: %d",
+					svc_evt->i_dest, svc_evt->i_node_id, svc_evt->i_svc_id);
+			TRACE_8("CLMS is UP");
+			ncs_sel_obj_ind(&immnd_cb->clm_init_sel_obj);
+		}
+	}
 
 	/* IMMA events from other nodes can not happen */
 	if ((svc_evt->i_svc_id == NCSMDS_SVC_ID_IMMA_OM) || (svc_evt->i_svc_id == NCSMDS_SVC_ID_IMMA_OI))

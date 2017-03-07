@@ -139,7 +139,6 @@ SaAisErrorT saImmOmInitialize_o2(SaImmHandleT *immHandle, const SaImmCallbacksT_
 						cl_node->isImmA2x11 = true;
 						if (requested_version.minorVersion >= 0x12) {
 							cl_node->isImmA2x12 = true;
-							TRACE("DBG: version A.2.18 is set");
 						}
 					}
 				}
@@ -203,7 +202,6 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 								cl_node->isImmA2x11 = true;
 								if (requested_version.minorVersion >= 0x12) {
 									cl_node->isImmA2x12 = true;
-									TRACE("DBG: version A.2.18 is set");
 								}
 							}
 						}
