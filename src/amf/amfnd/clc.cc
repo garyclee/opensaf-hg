@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "base/logtrace.h"
+#include "base/daemon.h"
 
 #include "amf/amfnd/avnd.h"
 #include "amf/amfnd/avnd_su.h"
@@ -818,7 +819,7 @@ uint32_t avnd_comp_clc_fsm_run(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_PRES_
 					LOG_NO("Shutdown completed, exiting");
 					cb->nodeid_mdsdest_db.deleteAll();
 					cb->hctypedb.deleteAll();
-					exit(0);
+					daemon_exit();
 				} else {
 					TRACE("Do nothing");
 					goto done;
@@ -2379,7 +2380,7 @@ uint32_t avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 			LOG_NO("Shutdown completed, exiting");
 			cb->nodeid_mdsdest_db.deleteAll();
 			cb->hctypedb.deleteAll();
-			exit(0);
+			daemon_exit();
 		}
 	}
 	/*
@@ -2442,7 +2443,7 @@ uint32_t avnd_comp_clc_terming_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 		LOG_NO("Shutdown completed, exiting");
 		cb->nodeid_mdsdest_db.deleteAll();
 		cb->hctypedb.deleteAll();
-		exit(0);
+		daemon_exit();
 	}
 
 	TRACE_LEAVE();
