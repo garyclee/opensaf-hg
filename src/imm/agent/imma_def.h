@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ *  Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -22,7 +23,7 @@
 /* Macros for Validating Version */
 #define IMMA_RELEASE_CODE 'A'
 #define IMMA_MAJOR_VERSION 0x02
-#define IMMA_MINOR_VERSION 0x11
+#define IMMA_MINOR_VERSION 0x12
 
 #define IMMSV_WAIT_TIME  1000 /* Default MDS wait time in 10ms units =>10 sec*/
 
