@@ -33,8 +33,8 @@ int lgs_cfg_update(const lgs_config_chg_t *config_data) {
   return 0;
 }
 
-void lgs_cfgupd_mutival_replace(const std::string attribute_name,
-                                const std::vector<std::string> value_list,
+void lgs_cfgupd_mutival_replace(const std::string& attribute_name,
+                                const std::vector<std::string>& value_list,
                                 lgs_config_chg_t *config_data) {
 }
 
@@ -91,7 +91,7 @@ TEST(CfgDestination, AddMultipleDestination) {
 }
 
 // Verify it is Ok to add NIL destination
-TEST(CfgDestination, AddNilDestination) {
+TEST(CfgDestination, AddEmptyDestination) {
   const std::vector<std::string> vdest {
     "test;UNIX_SOCKET;/tmp/sock.sock",
     "test1;UNIX_SOCKET;/tmp/sock1.sock",
@@ -308,6 +308,7 @@ TEST(GetDestinationStatus, AddMultipleDestination) {
 // Verify the destination connection status is reflected correctly
 // in case of adding multiple destinations including NILDEST type.
 TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest) {
+  // Expected destination status
   const VectorString vstatus {
     "test,FAILED",
     "test1,FAILED",
@@ -322,6 +323,7 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest) {
 }
 
 TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest02) {
+  // Expected destination status
   const VectorString vstatus {
     "test,FAILED",
     "test1,FAILED",
@@ -341,6 +343,7 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest02) {
 // in case of adding multiple destinations including NILDEST type.
 // and have destination receiver.
 TEST(GetDestinationStatus, AddMultipleDestinationWithDestReceiver) {
+  // Expected destination status
   const VectorString vstatus {
     "test,CONNECTED",
     "test1,FAILED",
@@ -365,6 +368,7 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithDestReceiver) {
 // multiple destinations including NILDEST type.
 // and have destination receiver.
 TEST(GetDestinationStatus, RemoveDestFromMultipleDestinationWithDestReceiver) {
+  // Expected destination status
   const VectorString vstatus {
     "test,CONNECTED",
     "test2,NOT_CONNECTED"
@@ -378,6 +382,8 @@ TEST(GetDestinationStatus, RemoveDestFromMultipleDestinationWithDestReceiver) {
   // Create the server listen to the local socket
   static base::UnixServerSocket server{"/tmp/test.sock"};
   server.Open();
+
+  // Add destination configurations, then delete one.
   CfgDestination(vdest, ModifyType::kReplace);
   CfgDestination({"test1;UNIX_SOCKET;"}, ModifyType::kDelete);
 
