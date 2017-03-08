@@ -93,22 +93,32 @@ void UnixSocketHandler::FormRfc5424(
 ErrCode UnixSocketHandler::Send(const DestinationHandler::RecordInfo& msg) {
   TRACE_ENTER();
   RfcBuffer buffer;
+  ErrCode ret = ErrCode::kOk;
 
   FormRfc5424(msg, &buffer);
 
   ssize_t length = buffer.size();
   ssize_t len = sock_.Send(buffer.data(), length);
   // Resend as probably receiver has just been restarted.
-  // Retry only once, if not succesfully, leave it to upper layer decision.
+  // If it is the case, the holding file descriptor could be invalid
+  // and it will get failed to send log record to destination even the receiver
+  // is up already. If we do re-send once, the file descriptor will be renew
+  // within the UnixSocket::Send() and probably get successful to send
+  // log record to the destination.
   if (len != length) {
-    LOG_NO("Failed to send log record to socket destination. Resent.");
+    TRACE("The receiver might be just restarted");
     len = sock_.Send(buffer.data(), length);
   }
 
   FlushStatus();
 
+  if (len != length) {
+    LOG_NO("Failed to send log record to socket destination.");
+    ret = ErrCode::kErr;
+  }
+
   TRACE_LEAVE();
-  return ((len != length) ? (ErrCode::kErr) : (ErrCode::kOk));
+  return ret;
 }
 
 void UnixSocketHandler::Close() {
