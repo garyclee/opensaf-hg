@@ -1436,7 +1436,7 @@ int handle_data_request(struct pollfd *fds, const std::string &nid_name) {
         }
         fifo_fd = open(fifo_file.c_str(), O_WRONLY | O_NONBLOCK);
       } while ((fifo_fd == -1) &&
-               (retry_cnt++ < 5 && (errno == EINTR || errno == ENXIO)));
+               (retry_cnt++ < 50 && (errno == EINTR || errno == ENXIO)));
 
       if (fifo_fd == -1) {
         LOG_ER("Failed to open %s, error: %s", fifo_file.c_str(),
