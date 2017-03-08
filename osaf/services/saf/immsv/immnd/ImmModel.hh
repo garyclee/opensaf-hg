@@ -503,7 +503,7 @@ public:
 
     SaAisErrorT       finalizeSync(
                                    ImmsvOmFinalizeSync* req,
-                                   bool isCoord, bool isSyncClient);
+                                   bool isCoord, bool isSyncClient, SaUint32T* latestCcbId);
     
     void              eduAtValToOs(
                                    immsv_octet_string* tmpos,
