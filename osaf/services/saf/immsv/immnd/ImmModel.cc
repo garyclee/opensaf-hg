@@ -2211,7 +2211,8 @@ immModel_finalizeSync(IMMND_CB *cb,
 {
     return ImmModel::instance(&cb->immModel)->finalizeSync(req, 
         isCoord,
-        isSyncClient);
+        isSyncClient,
+        &cb->mLatestCcbId);
 }
 
 SaUint32T
@@ -18463,7 +18464,7 @@ ImmModel::setScAbsenceAllowed(SaUint16T scAbsenceAllowed)
 
 SaAisErrorT
 ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord, 
-    bool isSyncClient)
+    bool isSyncClient, SaUint32T* latestCcbId)
 {
     TRACE_ENTER();
     SaAisErrorT err=SA_AIS_OK;
@@ -18685,7 +18686,15 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             ol->next = req->ccbResults;
             req->ccbResults = ol;
         }
-        
+
+        /* Latest ccb-id is sent to sync-client as a ccb with ccb-id being zero.
+         * The veteran will simply ignore this ccb because ccb-id never be zero. */
+        ImmsvCcbOutcomeList* ol = (ImmsvCcbOutcomeList *) calloc(1, sizeof(ImmsvCcbOutcomeList));
+        ol->ccbId = 0;
+        ol->ccbState = *latestCcbId; /* This is a hack */
+        ol->next = req->ccbResults;
+        req->ccbResults = ol;
+
     } else {
         //SyncFinalize received by all cluster members, old and new-joining.
         //Joiners will copy the finalize state.
@@ -18951,6 +18960,12 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
 
             ImmsvCcbOutcomeList* ol = req->ccbResults;
             while(ol) {
+                if (!ol->ccbId) {
+                    *latestCcbId = ol->ccbState; /* This is a hack */
+                    ol = ol->next;
+                    continue;
+                }
+
                 CcbInfo* newCcb = new CcbInfo;
                 newCcb->mId = ol->ccbId;
                 newCcb->mAdminOwnerId = 0;
@@ -19298,7 +19313,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
                     sCcbVector.end(), CcbIdIs(ol->ccbId));
                 if(i1 == sCcbVector.end()) {
-                    ++gone;
+                    if (ol->ccbId) ++gone;
                 } else {
                     CcbInfo* ccb = *i1;
                     if(ccb->mState != (ImmCcbState) (prt45allowed ? ol->ccbState : (ol->ccbState + 2))) {
