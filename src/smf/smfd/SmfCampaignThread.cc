@@ -463,7 +463,7 @@ void SmfCampaignThread::handleAmfObjectStateChangeNotification(
 
         if (!strcmp(maintenanceCampaign,
                     s_instance->m_campaign->getDn().c_str())) {
-          LOG_ER("SU: %s failed after upgrade in campaign",
+          LOG_WA("SU: %s failed after upgrade in campaign",
                  saAisNameBorrow(stateChangeNotification.notificationHeader.notificationObject));
           s_instance->m_campaign->getUpgradeCampaign()->asyncFailure();
 
