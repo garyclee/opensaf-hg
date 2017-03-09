@@ -41,7 +41,6 @@ static int immd_silence_count = 0;
 uint32_t immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 {
 	NCS_MBCSV_ARG arg;
-	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	/* populate the arg structure */
@@ -56,7 +55,7 @@ uint32_t immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 	arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_UPDATE;
 
 	/*send the message using MBCSv */
-	rc = ncs_mbcsv_svc(&arg);
+	uint32_t rc = ncs_mbcsv_svc(&arg);
 	if (rc != SA_AIS_OK) {
 		LOG_WA("IMMD - MBCSv Sync Update Send Failed");
 	}
@@ -79,7 +78,6 @@ uint32_t immd_mbcsv_sync_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 uint32_t immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 {
 	NCS_MBCSV_ARG arg;
-	uint32_t rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	/* populate the arg structure */
@@ -95,7 +93,7 @@ uint32_t immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 	arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_UPDATE;
 
 	/*send the message using MBCSv */
-	rc = ncs_mbcsv_svc(&arg);
+	uint32_t rc = ncs_mbcsv_svc(&arg);
 	if (rc != SA_AIS_OK) {
 		LOG_WA("IMMD - MBCSv Async Update Send Failed");
 	}
@@ -118,10 +116,9 @@ uint32_t immd_mbcsv_async_update(IMMD_CB *cb, IMMD_MBCSV_MSG *msg)
 *****************************************************************************/
 uint32_t immd_mbcsv_register(IMMD_CB *cb)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	rc = immd_mbcsv_init(cb);
+	uint32_t rc = immd_mbcsv_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_LEAVE();
 		return rc;

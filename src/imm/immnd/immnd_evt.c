@@ -1037,8 +1037,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 	osafassert(reply->requestNodeId == cb->node_id);
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 	send_evt.type = IMMSV_EVT_TYPE_IMMA;
-	SaImmHandleT tmp_hdl = 0LL;
-	tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
+	SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
 	/*Look up client-node */
 	immnd_client_node_get(cb, tmp_hdl, &cl_node);
@@ -1378,14 +1377,13 @@ static uint32_t immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb, IMMND_EVT *evt, IMM
 
 void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, bool freeTop)
 {
-	IMMSV_ATTR_VALUES_LIST *al = NULL;
 	TRACE_ENTER();
 
 	TRACE_2("objectName:%s", rsp->objectName.buf);
 	free(rsp->objectName.buf);
 	rsp->objectName.buf = NULL;
 
-	al = rsp->attrValuesList;
+	IMMSV_ATTR_VALUES_LIST *al = rsp->attrValuesList;
 	while (al) {
 		free(al->n.attrName.buf);
 		al->n.attrName.buf = NULL;
@@ -4469,10 +4467,9 @@ static void immnd_evt_safe_read_lock(IMMND_CB *cb, IMMND_EVT *evt,
 {
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
-	SaAisErrorT err = SA_AIS_OK;
 	TRACE_ENTER();
 
-	err = immModel_objectIsLockedByCcb(cb, &(evt->info.searchInit));
+	SaAisErrorT err = immModel_objectIsLockedByCcb(cb, &(evt->info.searchInit));
 
 	switch (err) {
 		case SA_AIS_OK:
@@ -5123,7 +5120,6 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
 	SaUint32T implConn = 0;
 	NCS_NODE_ID implNodeId = 0;
-	bool async = false;
 	/*displayRes is used for admin-operation which has OperationName as display 
 	  and directed towards opensafImm=opensafImm,safApp=safImmService object. 
 	  SA_AIS_ERR_REPAIR_PENDING will be returned if there is no PBE and OperationName is display.
@@ -5131,7 +5127,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 	bool displayRes=false;
 	bool pbeExpected = cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
-	async = (evt->type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC);
+	bool async = (evt->type == IMMND_EVT_A2ND_IMM_ADMOP_ASYNC);
 	osafassert(evt->type == IMMND_EVT_A2ND_IMM_ADMOP || async);
 	TRACE_ENTER();
 	TRACE_1(async ? "ASYNC ADMOP" : "SYNC ADMOP");
@@ -5489,7 +5485,6 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 					/* See comment **** above. */
 				}
 			}
-			implHandle = 0LL;
 			pbe_cl_node = NULL;
 		}
 	}
@@ -5635,7 +5630,6 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 					/* See comment **** above. */
 				}
 			}
-			implHandle = 0LL;
 			pbe_cl_node = NULL;
 		}
 	}
@@ -6239,7 +6233,6 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	if (!osaf_is_extended_name_empty(&objName) && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object create */
 		SaUint32T *applConnArr = NULL;
-		int ix = 0;
 		SaUint32T arrSize =
 			immModel_getLocalAppliersForObj(cb, &objName,
 				evt->info.objCreate.ccbId, &applConnArr, false);
@@ -6253,7 +6246,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 			send_evt.info.imma.info.objCreate.adminOwnerId = 0;
 			/* Re-use the adminOwner member of the ccbCreate message to hold the 
 			  invocation id. In this case, 0 => no reply is expected. */
-
+			int ix = 0;
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 				implHandle = m_IMMSV_PACK_HANDLE(applConnArr[ix], cb->node_id);
 				send_evt.info.imma.info.objCreate.immHandle = implHandle;
@@ -6505,7 +6498,6 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	if (!osaf_is_extended_name_empty(&objName) && (err == SA_AIS_OK)) {
 		/* Generate applier upcalls for the object modify */
 		SaUint32T *applConnArr = NULL;
-		int ix = 0;
 		SaUint32T arrSize =
 			immModel_getLocalAppliersForObj(cb, &objName,
 				evt->info.objModify.ccbId, &applConnArr, false);
@@ -6518,7 +6510,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 			send_evt.info.imma.info.objModify.adminOwnerId = 0;
 			/* Re-use the adminOwner member of the ccbModify message to hold the 
 			  invocation id. In this case, 0 => no reply is expected. */
-
+			int ix = 0;
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 				bool isSpecialApplier = false;
 				send_evt.info.imma.info.objModify.attrMods = evt->info.objModify.attrMods;
@@ -7765,7 +7757,7 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 	free(clientArr);
 	immsv_evt_free_attrNames(errStrings);
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
-	TRACE_LEAVE();
+	TRACE_LEAVE2("err:%d",err);
 }
 
 /****************************************************************************
@@ -8945,9 +8937,9 @@ static uint32_t immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 		}
 
 		if(cb->m2Pbe && cb->mCanBeCoord) {
-			char pbeFileSuffix[64];
 			const char* pbe_file_suffix = getenv("IMMSV_PBE_FILE_SUFFIX");
 			if(!pbe_file_suffix) {
+				char pbeFileSuffix[64];
 				snprintf(pbeFileSuffix, 64, ".%x", cb->node_id);
 				osafassert(setenv("IMMSV_PBE_FILE_SUFFIX", pbeFileSuffix, 0)==0);
 			}
@@ -10311,14 +10303,13 @@ void immnd_evt_ccb_augment_init(IMMND_CB *cb, IMMND_EVT *evt,
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT send_evt;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
-	SaAisErrorT err = SA_AIS_OK;
 	NCS_NODE_ID nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 	SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 	osafassert(evt);
 	SaUint32T adminOwnerId = 0;
 	TRACE_ENTER();
 
-	err = immModel_ccbAugmentInit(cb, &(evt->info.ccbUpcallRsp), nodeId, 
+	SaAisErrorT err = immModel_ccbAugmentInit(cb, &(evt->info.ccbUpcallRsp), nodeId, 
 		(originatedAtThisNd) ? conn : 0, &adminOwnerId);
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
@@ -10479,7 +10470,7 @@ static uint32_t immnd_evt_proc_mds_evt(IMMND_CB *cb, IMMND_EVT *evt)
 			LOG_WA("IMMND re-introduceMe after IMMD restart failed, will retry");
 		}
 	} else if ((evt->info.mds_info.change == NCSMDS_UP) &&
-		   (evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMA_OM ||
+		   (evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMA_OI ||
 		    evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMA_OM)) {
 		TRACE_2("IMMA UP EVENT");
 	} else if ((evt->info.mds_info.change == NCSMDS_RED_UP) &&

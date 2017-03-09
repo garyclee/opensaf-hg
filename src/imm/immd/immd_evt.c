@@ -527,7 +527,6 @@ static int immd_dump_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_INFO_NODE
 
 static void immd_announce_load_ok(IMMD_CB *cb, SaUint32T rulingEpoch)
 {
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT load_evt;
 	TRACE_ENTER();
 
@@ -544,7 +543,7 @@ static void immd_announce_load_ok(IMMD_CB *cb, SaUint32T rulingEpoch)
 	load_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
 
 	/*Use fevs instead !! */
-	proc_rc = immd_mds_bcast_send(cb, &load_evt, NCSMDS_SVC_ID_IMMND);
+	uint32_t proc_rc = immd_mds_bcast_send(cb, &load_evt, NCSMDS_SVC_ID_IMMND);
 
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		LOG_WA("Failed to send message to IMMNDs");
@@ -642,7 +641,6 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 
 static void immd_kill_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 {
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT kill_evt;
 	TRACE_ENTER();
 	memset(&kill_evt, 0, sizeof(IMMSV_EVT));
@@ -652,7 +650,7 @@ static void immd_kill_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 	kill_evt.info.immnd.type = IMMND_EVT_D2ND_INTRO_RSP;
 	kill_evt.info.immnd.info.ctrl.nodeId = node_info->immnd_key;
 
-	proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, node_info->immnd_dest, &kill_evt);
+	uint32_t proc_rc = immd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, node_info->immnd_dest, &kill_evt);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		LOG_WA("Failed to send INTRO_RSP to IMMND %x", node_info->immnd_key);
 	}	
@@ -671,7 +669,6 @@ static uint16_t accepted_nodes = 0;
 
 static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool doReply, bool knownVeteran)
 {
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_EVT accept_evt;
 	IMMD_MBCSV_MSG mbcp_msg;
 	bool isOnController = node_info->isOnController;
@@ -761,7 +758,7 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, bool 
 
 	/*Checkpoint the message to standby director. 
 	   Syncronous call=>wait for ack */
-	proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);
+	uint32_t proc_rc = immd_mbcsv_sync_update(cb, &mbcp_msg);
 
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		if(fsParamMbcp) {cb->mFsParamMbcp = false;}
@@ -1313,12 +1310,13 @@ static uint32_t immd_evt_proc_immnd_req_sync(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_S
 {
 	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMD_IMMND_INFO_NODE *node_info = NULL;
-	int oldPid, newPid;
-	int oldEpoch, newEpoch;
 	TRACE_ENTER();
 
 	immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
 	if (node_info) {
+		int oldPid, newPid;
+		int oldEpoch, newEpoch;
+
 		oldPid = node_info->immnd_execPid;
 		oldEpoch = node_info->epoch;
 		newPid = evt->info.ctrl_msg.ndExecPid;
@@ -2060,7 +2058,6 @@ static uint32_t immd_evt_proc_2pbe_preload(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
 	uba.start = NULL;
@@ -2074,7 +2071,7 @@ static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_S
 	fevs_evt.info.immnd.type = IMMND_EVT_D2ND_SYNC_FEVS_BASE;
 	fevs_evt.info.immnd.info.syncFevsBase = evt->info.syncFevsBase.fevsBase;
 
-	proc_rc = ncs_enc_init_space(&uba);
+	uint32_t proc_rc = ncs_enc_init_space(&uba);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		LOG_WA("Failed init ubaid");
 		goto fail;
@@ -2130,7 +2127,6 @@ static uint32_t immd_evt_proc_sync_fevs_base(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_S
 static uint32_t immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMSV_OI_IMPLSET_REQ *impl_req = &evt->info.impl_set.r;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -2145,7 +2141,7 @@ static uint32_t immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 	fevs_evt.info.immnd.type = IMMND_EVT_D2ND_DISCARD_IMPL;
 	fevs_evt.info.immnd.info.implSet.impl_id = impl_req->impl_id;
 
-	proc_rc = ncs_enc_init_space(&uba);
+	uint32_t proc_rc = ncs_enc_init_space(&uba);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		LOG_WA("Failed init ubaid");
 		goto fail;
@@ -2199,7 +2195,6 @@ static uint32_t immd_evt_proc_discard_impl(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEN
 static uint32_t immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaUint32T ccbId = evt->info.ccbId;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -2214,7 +2209,7 @@ static uint32_t immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
 	fevs_evt.info.immnd.type = IMMND_EVT_D2ND_ABORT_CCB;
 	fevs_evt.info.immnd.info.ccbId = ccbId;
 
-	proc_rc = ncs_enc_init_space(&uba);
+	uint32_t proc_rc = ncs_enc_init_space(&uba);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		LOG_WA("Failed init ubaid");
 		goto fail;
@@ -2268,7 +2263,6 @@ static uint32_t immd_evt_proc_abort_ccb(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_I
 static uint32_t immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo)
 {
 	IMMSV_EVT fevs_evt;
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	SaUint32T admoId = evt->info.admoId;
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -2283,7 +2277,7 @@ static uint32_t immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMM
 	fevs_evt.info.immnd.type = IMMND_EVT_D2ND_ADMO_HARD_FINALIZE;
 	fevs_evt.info.immnd.info.admFinReq.adm_owner_id = admoId;
 
-	proc_rc = ncs_enc_init_space(&uba);
+	uint32_t proc_rc = ncs_enc_init_space(&uba);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		LOG_WA("Failed init ubaid");
 		goto fail;
@@ -2441,7 +2435,6 @@ static uint32_t immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SE
 {
 	IMMSV_EVT fevs_evt;
 	IMMSV_OM_CCB_OBJECT_MODIFY *objModifyReq = &evt->info.objModify;
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 
 	NCS_UBAID uba;
 	char *tmpData = NULL;
@@ -2469,7 +2462,7 @@ static uint32_t immd_evt_proc_rt_modify_req(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SE
 	fevs_evt.info.immnd.info.objModify = *objModifyReq;
 	/* Borrow pointer structures. */
 
-	proc_rc = ncs_enc_init_space(&uba);
+	uint32_t proc_rc = ncs_enc_init_space(&uba);
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		LOG_WA("Failed init ubaid");
 		goto fail;

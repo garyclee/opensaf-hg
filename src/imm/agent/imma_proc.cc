@@ -1468,10 +1468,8 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
 ******************************************************************************/
 IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
 {
-	IMMA_CALLBACK_INFO *cb_info = NULL;
-
 	/* remove it to the queue */
-	cb_info = (IMMA_CALLBACK_INFO *)
+	IMMA_CALLBACK_INFO *cb_info = (IMMA_CALLBACK_INFO *)
 		m_NCS_IPC_NON_BLK_RECEIVE(&cl_node->callbk_mbx, NULL);
 
 	return cb_info;
@@ -2386,7 +2384,6 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				IMMSV_EVT ccbObjCrRpl;
 				bool locked = false;
 				SaImmAttrValuesT_2 **attr = NULL;
-				int i = 0;
 				/* No need to check for o.iCallbkA2f.saImmOiCcbObjectCreateCallback
 				 * "o" is union and o.iCallbk.saImmOiCcbObjectCreateCallback is same
 				 * as o.iCallbkA2f.saImmOiCcbObjectCreateCallback */
@@ -2506,7 +2503,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					free(className);	/*free-0 */
 					free(objectName);	/*free-6 */
 					attr = (SaImmAttrValuesT_2 **) callback->attrValsForCreateUc;
-					for (i = 0; attr[i]; ++i) {
+					for (int i = 0; attr[i]; ++i) {
 						free(attr[i]->attrName);	/*free-3 */
 						attr[i]->attrName = 0;
 						if (attr[i]->attrValuesNumber) {
@@ -2777,7 +2774,6 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				IMMSV_EVT ccbObjModRpl;
 				bool locked = false;
 				SaImmAttrModificationT_2 **attr = NULL;
-				int i = 0;
 				if (cl_node->o.iCallbk.saImmOiCcbObjectModifyCallback) {
 					/* Anoying type diff for ccbid between OM and OI */
 					SaImmOiCcbIdT ccbid = 0LL;
@@ -2804,7 +2800,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 					/*alloc-1 */
 					attr = (SaImmAttrModificationT_2 **) calloc(noOfAttrMods + 1, sizeof(SaImmAttrModificationT_2 *));
 					p = callback->attrMods;
-					for (; i < noOfAttrMods; i++, p = p->next) {
+					for (int i = 0; i < noOfAttrMods; i++, p = p->next) {
 
 						attr[i] = (SaImmAttrModificationT_2 *) calloc(1, sizeof(SaImmAttrModificationT_2));	/*alloc-2 */
 						attr[i]->modType = (SaImmAttrModificationTypeT) p->attrModType;
@@ -2899,7 +2895,7 @@ static bool imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 						localEr = SA_AIS_ERR_FAILED_OPERATION;
 					}
 
-					for (i = 0; attr[i]; ++i) {
+					for (int i = 0; attr[i]; ++i) {
 						free(attr[i]->modAttr.attrName);	/*free-3 */
 						attr[i]->modAttr.attrName = 0;
 						if (attr[i]->modAttr.attrValuesNumber) {

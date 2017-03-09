@@ -601,8 +601,7 @@ int imma_oi_ccb_record_note_callback(IMMA_CLIENT_NODE *cl_node, SaImmOiCcbIdT cc
 	}
 	if(callback){
 		if(callback->type == IMMA_CALLBACK_OI_CCB_CREATE && !(tmp->adminOwner)) {	
-			SaImmAttrValuesT_2 **attributes = NULL;
-			attributes = (SaImmAttrValuesT_2 **) callback->attrValsForCreateUc;
+			SaImmAttrValuesT_2 **attributes = (SaImmAttrValuesT_2 **) callback->attrValsForCreateUc;
 			int i=0;
 			while((attrVal = attributes[i++]) != NULL) {
 				if(strcmp(admoNameAttr, attrVal->attrName)==0) {
@@ -1294,10 +1293,7 @@ uint32_t imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
 		rc = NCSCC_RC_FAILURE;
 	}
 
-	/* Free the Node */
-	if (search_node) {
-		free(search_node);
-	}
+	free(search_node);
 
 	return rc;
 }

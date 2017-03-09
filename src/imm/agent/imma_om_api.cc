@@ -228,14 +228,13 @@ static SaAisErrorT initialize_common(SaImmHandleT *immHandle, IMMA_CLIENT_NODE *
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT init_evt;
 	IMMSV_EVT *out_evt = NULL;
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	bool locked = true;
 	char *timeout_env_value = NULL;
 	char *value;
 	TRACE_ENTER();
 	osafassert(immHandle && cl_node);
 
-	proc_rc = imma_startup(NCSMDS_SVC_ID_IMMA_OM);
+	uint32_t proc_rc = imma_startup(NCSMDS_SVC_ID_IMMA_OM);
 	if (NCSCC_RC_SUCCESS != proc_rc) {
 		TRACE_4("ERR_LIBRARY: imma startup failed:%u", proc_rc);
 		rc = SA_AIS_ERR_LIBRARY;
@@ -5774,7 +5773,13 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 
 	immHandle = search_node->mImmHandle;
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
-	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+	if (cl_node == nullptr) {
+		TRACE_2("SA_AIS_ERR_BAD_HANDLE: imma CLM node left the cluster");
+                rc = SA_AIS_ERR_BAD_HANDLE;
+                goto release_lock;
+        }
+
+	if((cl_node->isImmA2x12) && (cl_node->clmExposed)){
 		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
 		rc = SA_AIS_ERR_UNAVAILABLE;
 		goto clm_left;
@@ -5787,7 +5792,7 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 		rc = SA_AIS_ERR_LIBRARY;
 	} else {
 		/* Decrease number of search handles per IMM handle */
-		if (cl_node && cl_node->isOm) {	/* TODO: Is osafassert(cl_node && cl_node->isOm) better solution */
+		if (cl_node->isOm) {	/* TODO: Is osafassert(cl_node && cl_node->isOm) better solution */
 			osafassert(cl_node->searchHandleSize);
 			cl_node->searchHandleSize--;
 		} else {
@@ -9824,14 +9829,12 @@ SaAisErrorT immsv_om_augment_ccb_get_result(
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
-	bool locked = false;
 	IMMA_CCB_NODE *ccb_node = NULL;
 	SaImmCcbHandleT ccbHandle = privateOmHandle; /* Same value */
 	TRACE_ENTER();
 
 	osafassert(cb->sv_id != 0);
 	osafassert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-	locked = true;
 
 	/* Get the CCB info */
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
@@ -9848,9 +9851,7 @@ SaAisErrorT immsv_om_augment_ccb_get_result(
 	}
 
  done:
-	if (locked) {
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	}
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	TRACE_LEAVE();
 	return rc;

@@ -162,11 +162,9 @@ static const SaClmCallbacksT_4 clm_callbacks = {
  ****************************************************************************/
 void *immnd_clm_init_thread(void *cb)
 {
-	SaAisErrorT rc = SA_AIS_OK;
-
 	TRACE_ENTER();
 
-	rc = saClmInitialize_4(&immnd_cb->clm_hdl, &clm_callbacks, &clmVersion);
+	SaAisErrorT rc = saClmInitialize_4(&immnd_cb->clm_hdl, &clm_callbacks, &clmVersion);
 	while ((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_TIMEOUT) ||
 			(rc == SA_AIS_ERR_UNAVAILABLE)) {
 		osaf_nanosleep(&kHundredMilliseconds);
