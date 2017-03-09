@@ -82,9 +82,7 @@ static void sigusr1_handler(int sig)
  *****************************************************************************/
 static uint32_t immnd_cb_db_init(IMMND_CB *cb)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	rc = immnd_client_node_tree_init(cb);
+	uint32_t rc = immnd_client_node_tree_init(cb);
 
 	if (rc == NCSCC_RC_FAILURE)
 		LOG_ER("client node tree init failed");

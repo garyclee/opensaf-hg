@@ -247,9 +247,7 @@ void immd_immnd_info_tree_destroy(IMMD_CB *cb)
 *****************************************************************************/
 uint32_t immd_cb_db_init(IMMD_CB *cb)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
-	rc = immd_immnd_info_tree_init(cb);
+	uint32_t rc = immd_immnd_info_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IMMD - IMMND INFO TREE INIT FAILED");
 		return rc;
@@ -314,8 +312,6 @@ uint32_t immd_get_slot_and_subslot_id_from_node_id(NCS_NODE_ID node_id)
 
 void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 {
-	uint16_t nrof_msgs = 1;
-	IMMD_SAVED_FEVS_MSG *prior = NULL;
 	IMMD_SAVED_FEVS_MSG *new_msg = calloc(1, sizeof(IMMD_SAVED_FEVS_MSG));
 	TRACE_ENTER();
 	osafassert(new_msg);
@@ -328,8 +324,9 @@ void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 	fevs_msg->msg.buf = NULL;	/* steal the message */
 	fevs_msg->msg.size = 0;
 
-	prior = cb->saved_msgs;
+	IMMD_SAVED_FEVS_MSG *prior = cb->saved_msgs;
 	if (prior) {
+		uint16_t nrof_msgs = 1;
 		while (prior->next) {
 			++nrof_msgs;
 			prior = prior->next;

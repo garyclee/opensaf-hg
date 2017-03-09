@@ -745,13 +745,11 @@ void immnd_adjustEpoch(IMMND_CB *cb, bool increment)
 
 	if(pbeNodeId && pbeConn) {
 		IMMND_IMM_CLIENT_NODE *pbe_cl_node = NULL;
-		SaImmOiHandleT implHandle = 0LL;
-
 
 		/*The persistent back-end is executing at THIS node. */
 		osafassert(cb->mIsCoord);
 		osafassert(pbeNodeId == cb->node_id);
-		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+		SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
 
 		/*Fetch client node for PBE */
 		immnd_client_node_get(cb, implHandle, &pbe_cl_node);
@@ -1154,7 +1152,6 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, bool iAmCoordNow)
 				 */
 				NCS_NODE_ID pbeNodeId = 0;
 				SaUint32T pbeId = 0;
-				int ix;
 				SaUint32T *ccbIdArr = NULL;
 				SaUint32T ccbIdArrSize = 0;
 				immModel_getOldCriticalCcbs(cb, &ccbIdArr, &ccbIdArrSize,
@@ -1175,7 +1172,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, bool iAmCoordNow)
 					immnd_client_node_get(cb, implHandle, &oi_cl_node);
 					osafassert(oi_cl_node);
 					osafassert(!(oi_cl_node->mIsStale));
-					for (ix = 0; ix < ccbIdArrSize; ++ix) {
+					for (int ix = 0; ix < ccbIdArrSize; ++ix) {
 						TRACE_2("Fetch ccb outcome for ccb%u, nodeId:%u, conn:%u implId:%u",
 							ccbIdArr[ix], pbeNodeId, pbeConn, pbeId);
 						/* Generate a IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC towards pbeOi

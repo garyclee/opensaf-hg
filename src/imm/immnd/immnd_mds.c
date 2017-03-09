@@ -121,14 +121,13 @@ uint32_t immnd_mds_get_handle(IMMND_CB *cb)
 
 uint32_t immnd_mds_register(IMMND_CB *cb)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_IMMD };
 	/*NCS_PHY_SLOT_ID phy_slot; */
 	TRACE_ENTER();
 
 	/* STEP1: Get the MDS Handle */
-	rc = immnd_mds_get_handle(cb);
+	uint32_t rc = immnd_mds_get_handle(cb);
 
 	if (rc != NCSCC_RC_SUCCESS)
 		return rc;
@@ -339,8 +338,6 @@ uint32_t immnd_mds_callback(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uint32_t immnd_mds_enc(IMMND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	IMMSV_EVT *evt;
-
 	/* Get the Msg Format version from the SERVICE_ID & 
 	   RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OM) {
@@ -375,7 +372,7 @@ static uint32_t immnd_mds_enc(IMMND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 	}
 
 	if (1 /*enc_info->o_msg_fmt_ver */ ) {	/*TODO: ABT Does not work */
-		evt = (IMMSV_EVT *)enc_info->i_msg;
+		IMMSV_EVT *evt = (IMMSV_EVT *)enc_info->i_msg;
 
 		return immsv_evt_enc( /*&cb->immnd_edu_hdl, */ evt, enc_info->io_uba);
 	}
@@ -435,7 +432,6 @@ static uint32_t immnd_mds_dec(IMMND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 ******************************************************************************/
 static uint32_t immnd_mds_enc_flat(IMMND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
-	IMMSV_EVT *evt;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
 
@@ -474,7 +470,7 @@ static uint32_t immnd_mds_enc_flat(IMMND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *inf
 	}
 
 	if (1 /*info->o_msg_fmt_ver */ ) {	/* TODO: ABT Does not work */
-		evt = (IMMSV_EVT *)info->i_msg;
+		IMMSV_EVT *evt = (IMMSV_EVT *)info->i_msg;
 		rc = immsv_evt_enc_flat( /*&cb->immnd_edu_hdl, */ evt, uba);
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_WA("MDS Encode Flat Failed");

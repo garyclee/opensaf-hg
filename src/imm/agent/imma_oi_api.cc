@@ -117,7 +117,6 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMSV_EVT init_evt;
 	IMMSV_EVT *out_evt = NULL;
-	uint32_t proc_rc = NCSCC_RC_SUCCESS;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	bool locked = true;
 	SaVersionT requested_version;
@@ -127,7 +126,7 @@ SaAisErrorT initialize_common(SaImmOiHandleT *immOiHandle,
 
 	*client_node = NULL;
 
-	proc_rc = imma_startup(NCSMDS_SVC_ID_IMMA_OI);
+	uint32_t proc_rc = imma_startup(NCSMDS_SVC_ID_IMMA_OI);
 	if (NCSCC_RC_SUCCESS != proc_rc) {
 		TRACE_4("ERR_LIBRARY: Agents_startup failed");
 		TRACE_LEAVE();

@@ -82,11 +82,9 @@ void immnd_client_node_getnext(IMMND_CB *cb, SaImmHandleT imm_client_hdl, IMMND_
  *****************************************************************************/
 uint32_t immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
 {
-	uint32_t rc = NCSCC_RC_FAILURE;
-
 	cl_node->patnode.key_info = (uint8_t *)&cl_node->imm_app_hdl;
 
-	rc = ncs_patricia_tree_add(&cb->client_info_db, (NCS_PATRICIA_NODE *)&cl_node->patnode);
+	uint32_t rc = ncs_patricia_tree_add(&cb->client_info_db, (NCS_PATRICIA_NODE *)&cl_node->patnode);
 	return rc;
 }
 
@@ -104,9 +102,8 @@ uint32_t immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl_node)
  *****************************************************************************/
 uint32_t immnd_client_node_del(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_client_node)
 {
-	uint32_t rc = NCSCC_RC_FAILURE;
 
-	rc = ncs_patricia_tree_del(&cb->client_info_db, (NCS_PATRICIA_NODE *)&imm_client_node->patnode);
+	uint32_t rc = ncs_patricia_tree_del(&cb->client_info_db, (NCS_PATRICIA_NODE *)&imm_client_node->patnode);
 	return rc;
 }
 

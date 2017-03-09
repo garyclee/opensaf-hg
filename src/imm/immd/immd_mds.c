@@ -56,7 +56,6 @@ MDS_CLIENT_MSG_FORMAT_VER immd_immnd_msg_fmt_table[IMMD_WRT_IMMND_SUBPART_VER_RA
 uint32_t immd_mds_vdest_create(IMMD_CB *cb)
 {
 	NCSVDA_INFO arg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, 0, sizeof(arg));
 
@@ -69,7 +68,7 @@ uint32_t immd_mds_vdest_create(IMMD_CB *cb)
 	arg.info.vdest_create.info.specified.i_vdest = cb->immd_dest_id;
 
 	/* Create VDEST */
-	rc = ncsvda_api(&arg);
+	uint32_t rc = ncsvda_api(&arg);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_WA("NCSVDA_VDEST_CREATE failed");
 		return rc;
@@ -93,13 +92,12 @@ uint32_t immd_mds_vdest_create(IMMD_CB *cb)
 ****************************************************************************/
 uint32_t immd_mds_register(IMMD_CB *cb, SaAmfHAStateT ha_state)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_IMMND };
 	MDS_SVC_ID immd_id[1] = { NCSMDS_SVC_ID_IMMD };
 
 	/* Create the virtual Destination for  IMMD */
-	rc = immd_mds_vdest_create(cb);
+	uint32_t rc = immd_mds_vdest_create(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("IMMD - VDEST CREATE FAILED");
 		return rc;
@@ -330,8 +328,6 @@ uint32_t immd_mds_callback(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uint32_t immd_mds_enc(IMMD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	IMMSV_EVT *evt;
-
 	/* Get the Msg Format version from the SERVICE_ID & 
 	   RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMND) {
@@ -347,7 +343,7 @@ static uint32_t immd_mds_enc(IMMD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 	if (1 /*enc_info->o_msg_fmt_ver */ ) {	/*Does not work. */
 
-		evt = (IMMSV_EVT *)enc_info->i_msg;
+		IMMSV_EVT *evt = (IMMSV_EVT *)enc_info->i_msg;
 
 		return immsv_evt_enc( /*&cb->edu_hdl, */ evt, enc_info->io_uba);
 
@@ -538,13 +534,10 @@ static uint32_t immd_mds_rcv(IMMD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  *****************************************************************************/
 static uint32_t immd_mds_svc_evt(IMMD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-	IMMSV_EVT *evt = NULL;
-	uint32_t rc;
-
 	LOG_NO("MDS event from svc_id %u (change:%d, dest:%" PRIu64 ")",
 			svc_evt->i_svc_id, svc_evt->i_change, svc_evt->i_dest);
 
-	evt = calloc(1, sizeof(IMMSV_EVT));
+	IMMSV_EVT *evt = calloc(1, sizeof(IMMSV_EVT));
 
 	if (!evt) {
 		LOG_ER("IMMD - Evt calloc Failed");
@@ -561,7 +554,7 @@ static uint32_t immd_mds_svc_evt(IMMD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 	evt->info.immd.info.mds_info.node_id = svc_evt->i_node_id;
 
 	/* Put it in IMMD's Event Queue */
-	rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_VERY_HIGH);
+	uint32_t rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_VERY_HIGH);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_WA("IMMD - IPC SEND FAILED");
 		free(evt);

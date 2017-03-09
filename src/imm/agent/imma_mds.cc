@@ -157,7 +157,6 @@ uint32_t imma_mds_register(IMMA_CB *cb)
 void imma_mds_unregister(IMMA_CB *cb)
 {
 	NCSMDS_INFO arg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Un-install your service into MDS. 
 	   No need to cancel the services that are subscribed */
@@ -167,7 +166,7 @@ void imma_mds_unregister(IMMA_CB *cb)
 	arg.i_svc_id = cb->sv_id;
 	arg.i_op = MDS_UNINSTALL;
 
-	rc = ncsmds_api(&arg);
+	uint32_t rc = ncsmds_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_3("MDS unregister failed");
@@ -265,7 +264,6 @@ uint32_t imma_mds_callback(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uint32_t imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
-	IMMSV_EVT *evt;
 	NCS_UBAID *uba = info->io_uba;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -283,7 +281,7 @@ static uint32_t imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 #endif   /*ABT DOES NOT WORK */
 
 		/* as all the event structures are flat */
-		evt = (IMMSV_EVT *)info->i_msg;
+		IMMSV_EVT *evt = (IMMSV_EVT *)info->i_msg;
 		rc = immsv_evt_enc_flat( /*&cb->edu_hdl, */ evt, uba);
 		if (rc != NCSCC_RC_SUCCESS) {
 			TRACE_3("Mds encode flat failed rc:%u", rc);

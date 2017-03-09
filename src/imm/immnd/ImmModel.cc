@@ -101,7 +101,7 @@ typedef std::map<ImplementerInfo*, ContinuationInfo2> ImplementerEvtMap;
 
 struct ImplementerCcbAssociation
 {
-    ImplementerCcbAssociation(ImplementerInfo* impl) : mImplementer(impl),
+    explicit ImplementerCcbAssociation(ImplementerInfo* impl) : mImplementer(impl),
                                                        mContinuationId(0),
                                                        mWaitForImplAck(false){}
     ImplementerInfo* mImplementer;
@@ -115,7 +115,7 @@ typedef std::set<ObjectInfo*> ObjectSet;
 
 struct ClassInfo
 {
-    ClassInfo(SaUint32T category) : mCategory(category),
+    explicit ClassInfo(SaUint32T category) : mCategory(category),
                                     mImplementer(NULL) { }
     ~ClassInfo() { mCategory = 0; mImplementer=NULL;}
     
@@ -266,7 +266,7 @@ typedef enum {
 
 struct ObjectMutation
 {
-    ObjectMutation(ImmMutationType opType) : mOpType(opType), 
+    explicit ObjectMutation(ImmMutationType opType) : mOpType(opType), 
                                              mAfterImage(NULL), 
                                              mContinuationId(0),
                                              mAugmentAdmo(0),
@@ -573,7 +573,7 @@ static SaUint32T sTerminatedCcbcount = 0; /* Terminated ccbs count. calculated a
 
 struct AttrFlagIncludes
 {
-    AttrFlagIncludes(SaImmAttrFlagsT attrFlag) : mFlag(attrFlag) { }
+    explicit AttrFlagIncludes(SaImmAttrFlagsT attrFlag) : mFlag(attrFlag) { }
 
     bool operator() (AttrMap::value_type& item) const {
         return (item.second->mFlags & mFlag) != 0;
@@ -584,7 +584,7 @@ struct AttrFlagIncludes
 
 struct IdIs
 {
-    IdIs(SaUint32T id) : mId(id) { }
+    explicit IdIs(SaUint32T id) : mId(id) { }
 
     bool operator() (AdminOwnerInfo*& item) const {
         return item->mId == mId;
@@ -595,7 +595,7 @@ struct IdIs
 
 struct CcbIdIs
 {
-    CcbIdIs(SaUint32T id) : mId(id) { }
+    explicit CcbIdIs(SaUint32T id) : mId(id) { }
 
     bool operator() (CcbInfo*& item) const {
         return item->mId == mId;
@@ -670,10 +670,10 @@ immModel_pbePrtoPurgeMutations(IMMND_CB *cb, SaUint32T nodeId, SaUint32T *reqArr
 {
     ConnVector cv;
     ConnVector::iterator cvi;
-    unsigned int ix = 0;
     ImmModel::instance(&cb->immModel)->pbePrtoPurgeMutations(nodeId, cv);
     *reqArrSize = (SaUint32T) cv.size();
     if(*reqArrSize) {
+        unsigned int ix = 0;
         *reqConnArr = (SaUint32T *) malloc((*reqArrSize)* sizeof(SaUint32T));
         for(cvi = cv.begin(); cvi!= cv.end();++cvi,++ix) {
             (*reqConnArr)[ix] = (*cvi);
@@ -902,7 +902,6 @@ immModel_getLocalAppliersForObj(IMMND_CB *cb,
 {
     ConnVector cv;
     ConnVector::iterator cvi;
-    unsigned int ix = 0;
 
     ImmModel::instance(&cb->immModel)->
         getLocalAppliersForObj(objName, ccbId, cv, externalRep);
@@ -910,6 +909,7 @@ immModel_getLocalAppliersForObj(IMMND_CB *cb,
     SaUint32T arrSize = (SaUint32T) cv.size();
 
     if(arrSize) {
+        unsigned int ix = 0;
         *aplConnArr = (SaUint32T *) malloc((arrSize) * sizeof(SaUint32T));
 
         for(cvi = cv.begin(); cvi!=cv.end(); ++cvi, ++ix) {
@@ -928,7 +928,6 @@ immModel_getLocalAppliersForCcb(IMMND_CB *cb,
 {
     ConnVector cv;
     ConnVector::iterator cvi;
-    unsigned int ix = 0;
 
     ImmModel::instance(&cb->immModel)->
         getLocalAppliersForCcb(ccbId, cv, applCtnPtr);
@@ -936,6 +935,7 @@ immModel_getLocalAppliersForCcb(IMMND_CB *cb,
     SaUint32T arrSize = (SaUint32T) cv.size();
 
     if(arrSize) {
+        unsigned int ix = 0;
         *aplConnArr = (SaUint32T *) malloc((arrSize) * sizeof(SaUint32T));
 
         for(cvi = cv.begin(); cvi!=cv.end(); ++cvi, ++ix) {
@@ -1038,11 +1038,11 @@ immModel_getNonCriticalCcbs(IMMND_CB *cb,
 {
     IdVector ccbs;
     IdVector::iterator ix2;
-    unsigned int ix;
     
     ImmModel::instance(&cb->immModel)->getNonCriticalCcbs(ccbs);
     *ccbIdArrSize = (SaUint32T) ccbs.size();
     if(*ccbIdArrSize) {
+        unsigned int ix;
         *ccbIdArr = (SaUint32T *) malloc((*ccbIdArrSize) * sizeof(SaUint32T));
         
         for(ix2=ccbs.begin(), ix=0;
@@ -1071,13 +1071,13 @@ immModel_getOldCriticalCcbs(IMMND_CB *cb,
 {
     IdVector ccbs;
     IdVector::iterator ix2;
-    unsigned int ix;
 
     if(ImmModel::instance(&cb->immModel)->getPbeOi(pbeConn, pbeNodeId, false)) {
         ImmModel::instance(&cb->immModel)->getOldCriticalCcbs(ccbs, pbeConn,
             pbeNodeId, pbeId);
         *ccbIdArrSize = (SaUint32T) ccbs.size();
         if(*ccbIdArrSize) {
+            unsigned int ix;
             *ccbIdArr = (SaUint32T *)
                 malloc((*ccbIdArrSize) * sizeof(SaUint32T));
         
@@ -1879,13 +1879,12 @@ immModel_discardImplementer(IMMND_CB* cb, SaUint32T implId,
 {
     ConnVector gv;
     ConnVector::iterator gvi;
-    unsigned int ix=0;
     ImmModel::instance(&cb->immModel)->discardImplementer(implId, reallyDiscard, 
         gv, cb->mIsCoord);
 
     if (globArrSize && globccbIdArr) {
         *globArrSize = (SaUint32T) gv.size();
-        ix=0;
+        unsigned int ix=0;
         if(*globArrSize) {
             *globccbIdArr = (SaUint32T *) malloc((*globArrSize)* sizeof(SaUint32T));
             for(gvi = gv.begin(); gvi!=gv.end(); ++gvi, ++ix) {
@@ -2028,7 +2027,6 @@ int immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
 {
     ObjectNameVector ov;
     ObjectNameVector::iterator oni;
-    unsigned int ix = 0;
     int numOps=0;
     osafassert(arrSizePtr);
 
@@ -2037,6 +2035,7 @@ int immModel_pbePrtObjDeletesContinuation(IMMND_CB *cb,
 
     (*arrSizePtr) = (SaUint32T) ov.size();
     if(*arrSizePtr) {
+       unsigned int ix = 0;
        *objNameArr = (SaStringT *) malloc((*arrSizePtr)* sizeof(SaStringT));
 
        for(oni=ov.begin(); oni != ov.end(); ++oni, ++ix) {
@@ -2978,11 +2977,11 @@ ImmModel::adjustEpoch(int suggestedEpoch,
 {
     int restoredEpoch = 0;
     ImmAttrValueMap::iterator avi;
-    ObjectInfo* immObject = NULL;
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     osafassert(oi != sObjectMap.end() && oi->second);
 
-    immObject = oi->second;
+    ObjectInfo* immObject = oi->second;
+    osafassert(immObject != nullptr);
     avi = immObject->mAttrValueMap.find(immAttrEpoch);
     osafassert(avi != immObject->mAttrValueMap.end());
     osafassert(!avi->second->isMultiValued());
@@ -3000,7 +2999,7 @@ ImmModel::adjustEpoch(int suggestedEpoch,
         }
     }
     
-    if(increment && immObject && avi != immObject->mAttrValueMap.end()) {
+    if((increment) && (avi != immObject->mAttrValueMap.end())) {
         avi->second->setValue_int(suggestedEpoch);
         LOG_NO("Epoch set to %u in ImmModel", suggestedEpoch);
     }
@@ -4860,7 +4859,7 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr,
 
 struct AttrDescriptionGet
 {
-    AttrDescriptionGet(ImmsvOmClassDescr*& s) : classDescription(s) { }
+    explicit AttrDescriptionGet(ImmsvOmClassDescr*& s) : classDescription(s) { }
     
     AttrMap::value_type operator() (const AttrMap::value_type& item) {
         ImmsvAttrDefList* p = (ImmsvAttrDefList*)
@@ -5460,9 +5459,7 @@ ImmModel::ccbResult(SaUint32T ccbId)
 bool ImmModel::validateNoDanglingRefsModify(CcbInfo* ccb, ObjectMutationMap::iterator &omit) {
     ClassInfo *classInfo = omit->second->mAfterImage->mClassInfo;
     AttrMap::iterator amit;
-    AttrInfo *ai;
     ImmAttrValueMap::iterator  avit;
-    ImmAttrValue *av;
     ObjectMap::iterator omi;
 
 
@@ -5474,10 +5471,10 @@ bool ImmModel::validateNoDanglingRefsModify(CcbInfo* ccb, ObjectMutationMap::ite
     }
 
     for(amit=classInfo->mAttrMap.begin(); amit!=classInfo->mAttrMap.end(); ++amit) {
-        ai = amit->second;
+        AttrInfo *ai = amit->second;
         if(ai->mFlags & SA_IMM_ATTR_NO_DANGLING) {
             if((avit = omit->second->mAfterImage->mAttrValueMap.find(amit->first)) != omit->second->mAfterImage->mAttrValueMap.end()) {
-                av = avit->second;
+                ImmAttrValue *av = avit->second;
 
                 while(av) {
                     /* Empty attribute */
@@ -7139,7 +7136,6 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
         }
         int x=0;
         immsv_attr_mods_list** head = &attrMods;
-        immsv_attr_mods_list* current = attrMods;
         bool processAdmoAttr=false; /* AdminOwner attribute added for regular ccbs */
         bool processImplAttr=false; /* Implementer attribute added for RTA updates (ccbId ==0) */
         bool processClassAttr=true; /* Allways add class name attribute */
@@ -7152,7 +7148,7 @@ ImmModel::specialApplierTrimModify(SaUint32T clientId, ImmsvOmCcbObjectModify* r
         tmp->attrValue.attrValueType = SA_IMM_ATTR_SASTRINGT;
         /* All other members zeroed in calloc above. */
         tmp->next = attrMods;
-        current = attrMods = tmp;
+        immsv_attr_mods_list* current = attrMods = tmp;
         tmp = NULL;
         /* Prepend fake class-name attribute modification done */
 
@@ -7443,22 +7439,20 @@ ObjectInfo*
 ImmModel::getObjectAfterImageInCcb(const std::string& objName, SaUint32T ccbId)
 {
     CcbVector::iterator ci;
-    CcbInfo* ccb = NULL;
     ObjectInfo* afim = NULL;
     ObjectMutationMap::iterator omuti;
-    ObjectMutation* oMut = NULL;
 
     osafassert(!objName.empty());
 
     /* Get ccb info */
     ci = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     osafassert(ci != sCcbVector.end());
-    ccb = *ci;
+    CcbInfo* ccb = *ci;
 
     /* Get object mutation */
     omuti = ccb->mMutations.find(objName);
     osafassert(omuti != ccb->mMutations.end());
-    oMut = omuti->second;
+    ObjectMutation* oMut = omuti->second;
 
     /* Get after image */
     if (oMut->mOpType == IMM_CREATE || oMut->mOpType == IMM_MODIFY) {
@@ -7548,8 +7542,7 @@ ImmModel::canonicalizeAttrModification(const ImmsvOmCcbObjectModify *req)
     osafassert(!objectName.empty());
 
     /* Get after image */
-    afim = getObjectAfterImageInCcb(objectName, req->ccbId);
-    osafassert(afim);
+    osafassert(afim = getObjectAfterImageInCcb(objectName, req->ccbId));
 
     /* Build canonicalized attr-mod list */
     immsv_attr_mods_list* reqAttrMods = req->attrMods;
@@ -7587,8 +7580,7 @@ ImmModel::getAllWritableAttributes(const ImmsvOmCcbObjectModify *req, bool* hasL
     osafassert(!objectName.empty());
 
     /* Get after image */
-    afim = getObjectAfterImageInCcb(objectName, req->ccbId);
-    osafassert(afim);
+    osafassert(afim = getObjectAfterImageInCcb(objectName, req->ccbId));
 
     /* Build attr-mod list for all writable attributes */
     osafassert(hasLongDn);
@@ -10554,7 +10546,13 @@ ImmModel::setCcbErrorString(CcbInfo *ccb, const char *errorString, va_list vl) {
     osafassert(len >= 0);
     len++;     /* Reserve one byte for null-terminated sign '\0' */
     if(len > errLen) {
-        fmtError = (char *)realloc(fmtError, len);
+        char *newFmtError = (char *)realloc(fmtError, len);
+        if (newFmtError == nullptr) {
+          TRACE_5("realloc error ,No memory ");
+          return;
+        } else {
+          fmtError = newFmtError;
+        }
         osafassert(vsnprintf(fmtError, len, errorString, vl) >= 0);
     }
 
@@ -10796,7 +10794,7 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
 
     if(((*err) == SA_AIS_OK) && pbeNodeIdPtr) {
         /* There should be a PBE */
-        ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+        ImplementerInfo* pbeImpl = reinterpret_cast<ImplementerInfo *> (getPbeOi(pbeConnPtr, pbeNodeIdPtr));
         if(pbeImpl && !mPbeDisableCritical) {
             /* There is in fact a PBE (up) */
             osafassert(ccb->mState == IMM_CCB_PREPARE);
@@ -11025,7 +11023,7 @@ ImmModel::ccbCompletedContinuation(immsv_oi_ccb_upcall_rsp* rsp,
             /* Verify that it is the PBE that is replying. */
             SaUint32T dummyConn;
             unsigned int dummyNodeId;
-            ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(&dummyConn, &dummyNodeId);
+            ImplementerInfo* pbeImpl = reinterpret_cast<ImplementerInfo *> (getPbeOi(&dummyConn, &dummyNodeId));
             if(!pbeImpl || (pbeImpl->mId != rsp->implId)) {
                 LOG_WA("Received commit/abort decision on ccb %u from terminated PBE", ccbId);
                 TRACE_LEAVE();
@@ -12508,7 +12506,7 @@ SaAisErrorT ImmModel::nextSyncResult(ImmsvOmRspSearchNext** rsp, ImmSearchOp& op
     ObjectSet::iterator *osip = (ObjectSet::iterator *) op.syncOsi;
     if(!osip) { return SA_AIS_ERR_NOT_EXIST;}
     ImmsvAttrNameList* theAttList = (ImmsvAttrNameList *) op.attrNameList;
-    ClassInfo* classInfo = (ClassInfo *) op.classInfo;
+    ClassInfo* classInfo = reinterpret_cast<ClassInfo *> (op.classInfo);
     osafassert(classInfo != NULL);
     ObjectInfo* obj = NULL;
     std::string objectName;
@@ -13919,8 +13917,8 @@ ImmModel::getOldCriticalCcbs(IdVector& cv, SaUint32T *pbeConnPtr,
             }
 
             TRACE("CCB %u is waiting on PBE commit", ccb->mId);
-            ImplementerInfo* impInfo = (ImplementerInfo *)
-                getPbeOi(pbeConnPtr, pbeNodeIdPtr, false);
+            ImplementerInfo* impInfo = reinterpret_cast<ImplementerInfo *>
+                (getPbeOi(pbeConnPtr, pbeNodeIdPtr, false));
             /* Unsafe getPbeOI OK here because getOldCriticalCcbs is only a cleanup function.
                It is also only executed at coord and PBE can only be colocated with coord.
             */
@@ -14142,11 +14140,10 @@ ImmModel::cleanTheBasement(InvocVector& admReqs,
 
     i3 = sCcbVector.begin();
     int terminatedCcbTime = 300, val;
-    ObjectInfo* immObject = NULL;
     ImmAttrValueMap::iterator avi;
     ObjectMap::iterator oi = sObjectMap.find(immObjectDn);
     osafassert(oi != sObjectMap.end() && oi->second);
-    immObject = oi->second;
+    ObjectInfo* immObject = oi->second;
 
     avi = immObject->mAttrValueMap.find(immMaxCcbs);
 
@@ -16543,11 +16540,11 @@ SaInt32T ImmModel::pbePrtObjDeletesContinuation(SaUint32T invocation,
     unsigned int slaveNodeId=0;
     unsigned int nrofDeletes=0;
     bool deleteRootFound=false;
-    bool sendCompletedToSlave=false;
     SaInvocationT inv = m_IMMSV_PACK_HANDLE(invocation, nodeId);
 
     ObjectMutationMap::iterator i2 = sPbeRtMutations.begin();
     if(getPbeBSlave(pbe2BConnPtr, &slaveNodeId)) {
+        bool sendCompletedToSlave=false;
         /* slave exists check if reply was from primary or slave.*/
         for(;i2!=sPbeRtMutations.end(); ++i2) {
             if(i2->second->mContinuationId != invocation) {
@@ -19375,7 +19372,6 @@ ImmModel::isolateThisNode(unsigned int thisNode, bool isAtCoord)
      */
     ImplementerVector::iterator i;
     AdminOwnerVector::iterator i2;
-    CcbVector::iterator i3;
     unsigned int otherNode;
 
     if((sImmNodeState != IMM_NODE_FULLY_AVAILABLE) && (sImmNodeState != IMM_NODE_R_AVAILABLE)) {
