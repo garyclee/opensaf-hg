@@ -600,8 +600,8 @@ ssize_t recvfrom_connectionless (int sd, void *buf, size_t nbytes, int flags,
 					/* If we set TIPC_DEST_DROPPABLE off message (configure TIPC to return rejected messages to the sender )
 					   we will hit this when we implement MDS retransmit lost messages, can be replaced with flow control logic */
 					/* TIPC_RETDATA -The contents of a returned data message */
-					LOG_ER("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
-					m_MDS_LOG_CRITICAL("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
+					LOG_IN("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
+					m_MDS_LOG_INFO("MDTM: undelivered message condition ancillary data: TIPC_RETDATA");
 				} else if (anc->cmsg_type == TIPC_DESTNAME) {
 					if (sz == 0) {
 						m_MDS_LOG_DBG("MDTM: recd bytes=0 on received on sock, abnormal/unknown  condition. Ignoring");
