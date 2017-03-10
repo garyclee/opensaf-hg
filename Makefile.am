@@ -355,14 +355,14 @@ cppcheck_includes.txt:
 cppcheck.xml: cppcheck_includes.txt
 	@builddir=$$(cd $(top_builddir); pwd; cd - > /dev/null); \
 	srcdir=$$(cd $(top_srcdir); pwd; cd - > /dev/null); \
-	cd "$$srcdir"; cppcheck -DSA_EXTENDED_NAME_SOURCE -D__USE_GNU -D__cplusplus=201103L -DIMMA_OI -DIMMA_OM -DASAPi_DEBUG=1 -DHAVE_CONFIG_H -DNCS_CPD=1 -DNCS_CPND=1 -DNCSL_ENV_INIT_HM=1 -DNCSL_ENV_INIT_TMR=1 -DNCS_MQD=1 -DNCS_MQND=1 -DRLIMIT_RTPRIO -DTIPC_SUB_CANCEL -DENABLE_AIS_PLM -DLIBXML_SAX1_ENABLED -DLIBXML_XPATH_ENABLED --enable=all --includes-file="$$builddir/cppcheck_includes.txt" --inline-suppr --library=gnu.cfg --library=posix.cfg --xml-version=2 src cppcheck_append.cc 2> "$$builddir/cppcheck.xml"
+	cd "$$srcdir"; cppcheck -DSA_EXTENDED_NAME_SOURCE -D__USE_GNU -DIMMA_OI -DIMMA_OM -DASAPi_DEBUG=1 -DHAVE_CONFIG_H -DNCS_CPD=1 -DNCS_CPND=1 -DNCSL_ENV_INIT_HM=1 -DNCSL_ENV_INIT_TMR=1 -DNCS_MQD=1 -DNCS_MQND=1 -DRLIMIT_RTPRIO -DTIPC_SUB_CANCEL -DENABLE_AIS_PLM -DLIBXML_SAX1_ENABLED -DLIBXML_XPATH_ENABLED --enable=all --includes-file="$$builddir/cppcheck_includes.txt" --inline-suppr --library=gnu.cfg --library=posix.cfg --xml-version=2 src cppcheck_append.cc 2> "$$builddir/cppcheck.xml"
 	@echo "The result can be found in the file cppcheck.xml"
 	@echo "Use the follwing command to view it: cppcheck-gui cppcheck.xml"
 
 cppcheck: cppcheck_includes.txt
 	@builddir=$$(cd $(top_builddir); pwd; cd - > /dev/null); \
 	srcdir=$$(cd $(top_srcdir); pwd; cd - > /dev/null); \
-	cd "$$srcdir"; cppcheck -DSA_EXTENDED_NAME_SOURCE -D__USE_GNU -D__cplusplus=201103L -DIMMA_OI -DIMMA_OM -DASAPi_DEBUG=1 -DHAVE_CONFIG_H -DNCS_CPD=1 -DNCS_CPND=1 -DNCSL_ENV_INIT_HM=1 -DNCSL_ENV_INIT_TMR=1 -DNCS_MQD=1 -DNCS_MQND=1 -DRLIMIT_RTPRIO -DTIPC_SUB_CANCEL -DENABLE_AIS_PLM -DLIBXML_SAX1_ENABLED -DLIBXML_XPATH_ENABLED --enable=all --includes-file="$$builddir/cppcheck_includes.txt" --inline-suppr --library=gnu.cfg --library=posix.cfg src cppcheck_append.cc
+	cd "$$srcdir"; cppcheck -DSA_EXTENDED_NAME_SOURCE -D__USE_GNU -DIMMA_OI -DIMMA_OM -DASAPi_DEBUG=1 -DHAVE_CONFIG_H -DNCS_CPD=1 -DNCS_CPND=1 -DNCSL_ENV_INIT_HM=1 -DNCSL_ENV_INIT_TMR=1 -DNCS_MQD=1 -DNCS_MQND=1 -DRLIMIT_RTPRIO -DTIPC_SUB_CANCEL -DENABLE_AIS_PLM -DLIBXML_SAX1_ENABLED -DLIBXML_XPATH_ENABLED --enable=all --includes-file="$$builddir/cppcheck_includes.txt" --inline-suppr --library=gnu.cfg --library=posix.cfg src cppcheck_append.cc
 
 cpplint:
 	@test -d $(top_builddir)/bin || mkdir $(top_builddir)/bin
