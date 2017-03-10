@@ -1114,8 +1114,9 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 			 * su termination, so we need not instantiate the comp, just reset
 			 * the failed flag.
 			 */
+			TRACE("comp->su->si_list.n_nodes:%u",comp->su->si_list.n_nodes);
 			if (m_AVND_COMP_IS_FAILED(comp) && !comp->csi_list.n_nodes &&
-			    !m_AVND_SU_IS_ADMN_TERM(comp->su) &&
+			    !m_AVND_SU_IS_ADMN_TERM(comp->su) && (comp->su->si_list.n_nodes == 0) &&
 			    (cb->oper_state == SA_AMF_OPERATIONAL_ENABLED)) {
 				/* No need to restart component during shutdown, during surestart
 				   and during sufailover.It will be instantiated as part of repair.
@@ -1124,7 +1125,8 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 				if (!m_AVND_IS_SHUTTING_DOWN(cb) && !sufailover_in_progress(comp->su) &&
 						(!m_AVND_SU_IS_RESTART(comp->su)))
 					rc = avnd_comp_clc_fsm_trigger(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_INST);
-			} else if (m_AVND_COMP_IS_FAILED(comp) && !comp->csi_list.n_nodes) {
+			} else if (m_AVND_COMP_IS_FAILED(comp) && !comp->csi_list.n_nodes &&
+					(comp->su->si_list.n_nodes == 0)) {
 				m_AVND_COMP_FAILED_RESET(comp);	/*if we moved from restart -> term
 												due to admn operation */
 			}
