@@ -586,6 +586,7 @@ uint32_t cpd_sb_proc_ckpt_usrinfo(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	ckpt_node->num_sections = msg->info.usr_info_2.num_sections;
 	ckpt_node->ckpt_on_scxb1 = msg->info.usr_info_2.ckpt_on_scxb1;
 	ckpt_node->ckpt_on_scxb2 = msg->info.usr_info_2.ckpt_on_scxb2;
+	ckpt_node->node_users_cnt = msg->info.usr_info_2.node_users_cnt;
 
 	/* Free the old node_users */
 	CPD_NODE_USER_INFO *node_user = ckpt_node->node_users;
