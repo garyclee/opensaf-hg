@@ -350,11 +350,9 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 	/* Find and execute first step in state Initial. */
 	std::vector < SmfUpgradeStep * >::const_iterator iter;
         const std::vector < SmfUpgradeStep * >& procSteps = i_proc->getProcSteps();
-        unsigned int execStepNo = procSteps.size();
 
         for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
                 SmfStepResultT stepResult;
-                execStepNo--;
 
                 /* Try executing the step */
                 stepResult = (*iter)->execute();
@@ -374,21 +372,15 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                         return SMF_PROC_DONE;
                 }
                 case SMF_STEP_COMPLETED : {
-
-                        if (execStepNo > 0) {
-                                /* We don't want to be able to suspend between Last step and wrapup */
-                                TRACE ("Step %s completed, sending PROCEDURE_EVT_EXECUTE_STEP",
+                        TRACE ("Step %s completed, sending PROCEDURE_EVT_EXECUTE_STEP",
                                        (*iter)->getRdn().c_str());
         
-                                /* Send message to ourself to handle possible waiting suspend messages */
-                                PROCEDURE_EVT *evt = new PROCEDURE_EVT();
-                                evt->type = PROCEDURE_EVT_EXECUTE_STEP;
-                                i_proc->getProcThread()->send(evt);
-                                TRACE_LEAVE();
-                                return SMF_PROC_DONE;
-                        }
-                        /* Last step, continue with wrapup */
-                        continue;
+                        /* Send message to ourself to handle possible waiting suspend messages */
+                        PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+                        evt->type = PROCEDURE_EVT_EXECUTE_STEP;
+                        i_proc->getProcThread()->send(evt);
+                        TRACE_LEAVE();
+                        return SMF_PROC_DONE;
                 } 
                 case SMF_STEP_UNDONE : {
                         LOG_NO ("PROC: Step %s is undone",
@@ -833,12 +825,10 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 	/* Find (in reverse order) and rollback steps. */
         const std::vector < SmfUpgradeStep * >& procSteps = i_proc->getProcSteps();
 	std::vector < SmfUpgradeStep * >::const_reverse_iterator iter;
-        unsigned int execStepNo = procSteps.size();
 
         /* Rollback steps in reverse order */
 	for (iter = procSteps.rbegin(); iter != procSteps.rend(); iter++) {
                 SmfStepResultT stepResult;
-                execStepNo--;
 
                 /* Try rollback the step */
                 stepResult = (*iter)->rollback();
@@ -858,24 +848,16 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
                         return SMF_PROC_DONE;
                 }
                 case SMF_STEP_ROLLEDBACK : {
-
-                        if (execStepNo > 0) {
-                                /* We don't want to be able to suspend between rollback of first step and init */
-                                TRACE ("Step %s rolled back, sending PROCEDURE_EVT_ROLLBACK_STEP",
+                        TRACE ("Step %s rolled back, sending PROCEDURE_EVT_ROLLBACK_STEP",
                                        (*iter)->getRdn().c_str());
         
-                                /* Send message to ourself to handle possible waiting suspend messages */
-                                PROCEDURE_EVT *evt = new PROCEDURE_EVT();
-                                evt->type = PROCEDURE_EVT_ROLLBACK_STEP;
-                                i_proc->getProcThread()->send(evt);
+                        /* Send message to ourself to handle possible waiting suspend messages */
+                        PROCEDURE_EVT *evt = new PROCEDURE_EVT();
+                        evt->type = PROCEDURE_EVT_ROLLBACK_STEP;
+                        i_proc->getProcThread()->send(evt);
 
-                                TRACE_LEAVE();
-                                return SMF_PROC_DONE;
-                        }
-                        /* Last step, continue with wrapup */
-                        TRACE ("Step %s rolled back, continue with init rollback",
-                               (*iter)->getRdn().c_str());
-                        continue;
+                        TRACE_LEAVE();
+                        return SMF_PROC_DONE;
                 } 
                 case SMF_STEP_ROLLBACKUNDONE : {
                         changeState(i_proc, SmfProcStateRollbackFailed::instance());
