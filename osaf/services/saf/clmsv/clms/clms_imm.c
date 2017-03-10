@@ -20,6 +20,7 @@
 
 #include "clms.h"
 #include "osaf_extended_name.h"
+#include "osaf_time.h"
 
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
@@ -271,7 +272,7 @@ CLMS_CLUSTER_NODE *clms_node_new(SaNameT *name, const SaImmAttrValuesT_2 **attrs
 SaAisErrorT clms_node_create_config(void)
 {
 	SaAisErrorT rc = SA_AIS_ERR_INVALID_PARAM;
-	uint32_t rt;
+	uint32_t rt, num_nodes = 0;
 	SaImmHandleT imm_om_hdl;
 	SaImmSearchHandleT search_hdl;
 	SaImmSearchParametersT_2 searchParam;
@@ -290,36 +291,85 @@ SaAisErrorT clms_node_create_config(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	rc = immutil_saImmOmSearchInitialize_2(imm_om_hdl, NULL, SA_IMM_SUBTREE,
+	(void) immutil_saImmOmSearchInitialize_2(imm_om_hdl, NULL, SA_IMM_SUBTREE,
 					       SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 					       NULL, &search_hdl);
+	//TODO: Read saClmClusterNumNodes attribute of SaClmCluster and verify here. 
+	//Nodes read below >= saClmClusterNumNodes (dynamic addition may add more nodes).
+	for (;;) {
+		rc = immutil_saImmOmSearchNext_2(search_hdl, &dn, &attributes); 
+		TRACE("saImmOmSearchNext_2() returns '%s'", saf_error(rc));
+		if (rc == SA_AIS_ERR_NOT_EXIST) {
+			//No more nodes to read.
+			rc = SA_AIS_OK;
+			break;
+		} else if (rc == SA_AIS_OK) {
+			TRACE("dn:'%s'", dn.value);
+			if ((rt = clms_node_dn_chk(&dn)) != NCSCC_RC_SUCCESS) {
+				TRACE("Node DN name is incorrect");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done2;
+			}
+			if (clms_node_get_by_name(&dn) != NULL) {
+				TRACE("'%s' is already present in db.", dn.value);
+				continue;
+			}
+			if ((node = clms_node_new(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
+				goto done2;
+			num_nodes++;
+			clms_node_add_to_model(node);
+		} else if ((rc == SA_AIS_ERR_BAD_HANDLE) || (rc == SA_AIS_ERR_TIMEOUT)) {
+			(void)immutil_saImmOmSearchFinalize(search_hdl);
+			(void)immutil_saImmOmFinalize(imm_om_hdl);
 
-	if (rc != SA_AIS_OK) {
-		LOG_ER("No Object of  SaClmNode Class was found");
-		goto done1;
+			//Try 10 times in a gap of 100 millisecs.
+			uint16_t count = 0;			
+			rc = immutil_saImmOmInitialize(&imm_om_hdl, NULL, &immVersion);
+			while ((rc == SA_AIS_ERR_TIMEOUT) && (count < 10)) {
+				(void)immutil_saImmOmFinalize(imm_om_hdl);
+				count++;
+				osaf_nanosleep(&kHundredMilliseconds);
+				rc = immutil_saImmOmInitialize(&imm_om_hdl, NULL, &immVersion);
+			}
+			if (rc != SA_AIS_OK) {
+				LOG_ER("saImmOmInitialize failed with '%u'", rc);
+				goto done2;	
+			}
+
+			count = 0;	
+			rc = immutil_saImmOmSearchInitialize_2(imm_om_hdl, NULL, SA_IMM_SUBTREE,
+			       SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+			       NULL, &search_hdl);
+			while (((rc == SA_AIS_ERR_TIMEOUT) || (rc == SA_AIS_ERR_BAD_HANDLE))
+					&& (count < 10)) {
+				(void)immutil_saImmOmSearchFinalize(search_hdl);
+				(void)immutil_saImmOmFinalize(imm_om_hdl);
+
+				count++;
+				osaf_nanosleep(&kHundredMilliseconds);
+
+				//Last try to both.
+				(void) immutil_saImmOmInitialize(&imm_om_hdl, NULL, &immVersion);
+				rc = immutil_saImmOmSearchInitialize_2(imm_om_hdl, NULL, SA_IMM_SUBTREE,
+					SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+					NULL, &search_hdl);
+			}
+			if (rc != SA_AIS_OK) {
+				LOG_ER("saImmOmSearchInitialize_2 failed with '%u'", rc);
+				goto done2;	
+			}
+			//Got new handles, continue.
+			continue;
+		} else
+			//Calling function will report nid failire for any other error.
+			break;
 	}
-
-	while (immutil_saImmOmSearchNext_2(search_hdl, &dn, &attributes) == SA_AIS_OK) {
-		TRACE("immutil_saImmOmSearchNext_2 Success");
-		if ((rt = clms_node_dn_chk(&dn)) != NCSCC_RC_SUCCESS) {
-			TRACE("Node DN name is incorrect");
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done2;
-		}
-
-		if ((node = clms_node_new(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
-			goto done2;
-		clms_node_add_to_model(node);
-
-	}
+	TRACE("nodes count: '%u'", num_nodes);
+	TRACE("clms_cb->nodes_db size:'%u", ncs_patricia_tree_size(&clms_cb->nodes_db));
 	if ((ncs_patricia_tree_size(&clms_cb->nodes_db) != ncs_patricia_tree_size(&clms_cb->ee_lookup)) && (clms_cb->reg_with_plm == true))
 		LOG_ER("Incomplete Configuration: EE attribute is not specified for some CLM nodes");
-	rc = SA_AIS_OK;
  done2:
-
 	(void)immutil_saImmOmSearchFinalize(search_hdl);
-
- done1:
 	(void)immutil_saImmOmFinalize(imm_om_hdl);
 	TRACE_LEAVE();
 	return rc;
