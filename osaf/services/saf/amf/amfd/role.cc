@@ -130,8 +130,12 @@ void avd_role_change_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	    (role == SA_AMF_HA_ACTIVE) && (cb->avail_state_avd == SA_AMF_HA_STANDBY)) {
 		if (true == cb->swap_switch ) {
 			/* swap resulted Switch  standby -> Active */
-			amfd_switch_stdby_actv(cb);
-			status = NCSCC_RC_SUCCESS;
+			LOG_NO("Switching StandBy --> Active State");
+			status = amfd_switch_stdby_actv(cb);
+			if (status == NCSCC_RC_SUCCESS) {
+				LOG_NO("Controller switch over done");
+				saflog(LOG_NOTICE, amfSvcUsrName, "Controller switch over done at %x", cb->node_id_avd);
+			}
 			goto done;
 		}
 	}
@@ -810,6 +814,12 @@ try_again:
 			   failed and amf reinitializes imm interface and
 			   set applier in avd_imm_reinit_bg_thread. Imm may
 			   return ERR_EXIST or INVALID_PARAM. */
+			TRACE("ERR_EXIST or INVALID_PARAM");
+		} else if (rc == SA_AIS_ERR_TIMEOUT) {
+			/* Let it proceed as there may be a case of Immd not
+			   reachable i.e. node might have gone down during
+			   switchover. */
+			TRACE("SA_AIS_ERR_TIMEOUT");
 		} else
 			osafassert(0);
 	} else
@@ -1169,8 +1179,6 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 	
 	TRACE_ENTER();
 
-	LOG_NO("Switching StandBy --> Active State");
-
 	/*
 	 * Check whether Standby is in sync with Active. If yes then
 	 * proceed further. Else return failure.
@@ -1288,9 +1296,6 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 			avd_sidep_sg_take_action(sg);
 		}
 	}
-
-	LOG_NO("Controller switch over done");
-	saflog(LOG_NOTICE, amfSvcUsrName, "Controller switch over done at %x", cb->node_id_avd);
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
