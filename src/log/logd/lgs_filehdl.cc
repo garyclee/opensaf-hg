@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2013 The OpenSAF Foundation
+ * Copyright Ericsson AB 2013, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -704,8 +705,8 @@ done_exit:
  * @return int, number of cfgfiles or -1 if error
  */
 int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize) {
-  struct dirent **cfg_namelist;
-  struct dirent **log_namelist;
+  struct dirent **cfg_namelist = nullptr;
+  struct dirent **log_namelist = nullptr;
   int n, cfg_old_date = -1, cfg_old_time = -1, old_ind = -1, cfg_files = 0, i, failed = 0;
   int log_old_date = -1, log_old_time = -1 , log_files = 0;
   std::string path;
@@ -802,15 +803,19 @@ int get_number_of_cfg_files_hdl(void *indata, void *outdata, size_t max_outsize)
 
 done_cfg_free:
   /* Free scandir allocated memory */
-  for (i = 0; i < cfg_files; i++)
-    free(cfg_namelist[i]);
-  free(cfg_namelist);
+  if (cfg_namelist != nullptr) {
+    for (i = 0; i < cfg_files; i++)
+      free(cfg_namelist[i]);
+    free(cfg_namelist);
+  }
 
 done_log_free:
   /* Free scandir allocated memory */
-  for (i = 0; i < log_files; i++)
-    free(log_namelist[i]);
-  free(log_namelist);
+  if (log_namelist != nullptr) {
+    for (i = 0; i < log_files; i++)
+      free(log_namelist[i]);
+    free(log_namelist);
+  }
  
 done_exit:
   TRACE_LEAVE();
