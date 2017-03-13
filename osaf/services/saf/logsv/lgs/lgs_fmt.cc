@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1369,7 +1370,6 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
 		dest[fixedLogRecordSize - 1] = '\n';
 		i = fixedLogRecordSize;
 	} else if ((fixedLogRecordSize > 0) && (i >= fixedLogRecordSize)) {
-		dest[fixedLogRecordSize - 2] = (SaInt8T)'\"';
 		dest[fixedLogRecordSize - 1] = '\n';
 		i = fixedLogRecordSize;
 	}
@@ -1382,11 +1382,9 @@ int lgs_format_log_record(SaLogRecordT *logRecord,
 		/* There can be situations when the filesize is as small as the maxrecsize.
 		 * For eg:- By default for the application streams max file size is 1024 
 		 */
-			dest[logFileSize - 2] = (SaInt8T)'\"';
 			dest[logFileSize - 1] = '\n';
 			i = logFileSize;
 		} else {
-			dest[dest_size - 2] = (SaInt8T)'\"';
 			dest[dest_size - 1] = '\n';
 			i = dest_size;
 		}
