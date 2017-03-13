@@ -4118,6 +4118,287 @@ done:
 		       &v_logMaxLogrecsize, SA_IMM_ATTR_SAUINT32T);
 }
 
+/*
+ * Write a maximum log record to app stream with format token as @Cb
+ * Verify if Only line feed is replaced to the final character position in case truncation
+ *
+ * Steps:
+ *
+ * 1. Backup then change the logMaxLogrecsize value to maximum one.
+ * 2. Create application stream.
+ * 3. Create a log record with 65535 bytes (not count '\0').
+ * 4. Using saflogger tool, writing that buffer to the created app stream.
+ * 5. Get contents of log records in log file
+ * 6. Verify if Only line feed is replaced to the final character position in case truncation
+ * 7. Delete created app class and restore logMaxLogrecsize value
+ */
+
+void verMaxLogRecord_03(void)
+{
+	int rc;
+	char command[66000];
+	char logRecord[MAX_LOGRECSIZE + 1]; // More one for '\0'
+
+	/* Get current value of the attribute */
+	get_attr_value(&configurationObject, "logMaxLogrecsize",
+		       &v_logMaxLogrecsize);
+
+	/* Change the attribute value to maximum one */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%u"
+		" logConfig=1,safApp=safLogService 2> /dev/null", MAX_LOGRECSIZE);
+
+	rc = systemCall(command);
+	if (rc) {
+		rc_validate(rc, 0);
+		return;
+	}
+
+	/* Set saLogStreamFixedLogRecordSize = 0, fix log record = maxLogRecordSize */
+	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=maxrecsize3,safApp=safLogService"
+		" -a saLogStreamFileName=verMaxLogrecsize3 -a saLogStreamPathName=vermaxsize"
+		" -a saLogStreamFixedLogRecordSize=0 -a saLogStreamLogFileFormat=@Cb");
+
+	rc = systemCall(command);
+	if (rc) {
+		rc_validate(rc, 0);
+		goto done;
+	}
+
+	/* Prepare log record data */
+	memset(logRecord, 'A', MAX_LOGRECSIZE);
+	logRecord[MAX_LOGRECSIZE] = '\0';
+
+	sprintf(command, "saflogger -a safLgStrCfg=maxrecsize3,safApp=safLogService \"%s\"",
+		logRecord);
+	rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Fail to perform command. Report test failed. */
+		fprintf(stderr, "Failed to perform command = %s\n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto free_class;
+	}
+	/* Write log record succesfully. Then, compare output with original log record. */
+	FILE *fp = NULL;
+	char out_log_record[MAX_LOGRECSIZE + 1];
+
+	/* Get the contents of log record */
+	sprintf(command, "find %s/vermaxsize -type f -mmin -1 "
+		"| egrep \"%s_([0-9]{8}_[0-9]{6}\\.log$)\" "
+		"| xargs cat ",
+		log_root_path, "verMaxLogrecsize3");
+
+	fp = popen(command, "r");
+	if (fp == NULL) {
+		/* Fail to read size of log file. Report test failed. */
+		fprintf(stderr, "Failed to run command = %s\n", command);
+		test_validate(1, 0);
+		goto free_class;
+	}
+	/* Get output of the command - actually the file size in chars */
+	while (fgets(out_log_record, sizeof(out_log_record), fp) != NULL) {};
+	pclose(fp);
+
+	logRecord[MAX_LOGRECSIZE - 1] = '\n';
+	/* Compare the output in log file with original log record
+	 * that was replaced final character position by '\n' */
+	rc = strncmp(logRecord, out_log_record, MAX_LOGRECSIZE);
+	rc_validate(rc, 0);
+
+free_class:
+	/* Delete class created */
+	(void)strcpy(command, "immcfg -d safLgStrCfg=maxrecsize3,safApp=safLogService");
+	rc = systemCall(command);
+
+done:
+	/* Restore logMaxLogrecsize to previous value */
+	m_restoreData(configurationObject, "logMaxLogrecsize",
+		      &v_logMaxLogrecsize, SA_IMM_ATTR_SAUINT32T);
+}
+
+/*
+ * Write a maximum log record to app stream with format token as "@Cb"
+ * Verify if output log records is right with formart token "@Cb" incase truncation
+ *
+ * Steps:
+ *
+ * 1. Backup then change the logMaxLogrecsize value to maximum one.
+ * 2. Create application stream with format token include double quote
+ * 3. Create a log record with 65535 bytes (not count '\0').
+ * 4. Using saflogger tool, writing that buffer to the created app stream.
+ * 5. Get contents of log records in log file
+ * 6. Verify if double quote is in first postition and line feed is in final postition
+ *    in log records incase truncation
+ * 7. Delete created app class and restore logMaxLogrecsize value
+ */
+
+void verMaxLogRecord_04(void)
+{
+	int rc;
+	char command[66000];
+	char logRecord[MAX_LOGRECSIZE + 1]; // More one for '\0'
+
+	/* Get current value of the attribute */
+	get_attr_value(&configurationObject, "logMaxLogrecsize",
+		       &v_logMaxLogrecsize);
+
+	/* Change the attribute value to maximum one */
+	sprintf(command, "immcfg -a logMaxLogrecsize=%u"
+		" logConfig=1,safApp=safLogService 2> /dev/null", MAX_LOGRECSIZE);
+
+	rc = systemCall(command);
+	if (rc) {
+		rc_validate(rc, 0);
+		return;
+	}
+
+	/* Set saLogStreamFixedLogRecordSize = 0, fix log record = maxLogRecordSize */
+	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=maxrecsize4,safApp=safLogService"
+		" -a saLogStreamFileName=verMaxLogrecsize4 -a saLogStreamPathName=vermaxsize"
+		" -a saLogStreamFixedLogRecordSize=0 -a saLogStreamLogFileFormat=\\\"@Cb\\\" ");
+	rc = systemCall(command);
+	if (rc) {
+		rc_validate(rc, 0);
+		goto done;
+	}
+
+	/* Prepare log record data */
+	memset(logRecord, 'A', MAX_LOGRECSIZE);
+	logRecord[MAX_LOGRECSIZE] = '\0';
+
+	sprintf(command, "saflogger -a safLgStrCfg=maxrecsize4,safApp=safLogService \"%s\"",
+		logRecord);
+	rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Fail to perform command. Report test failed. */
+		fprintf(stderr, "Failed to perform command = %s\n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto free_class;
+	}
+	/* Write log record succesfully. Then, compare output with original log record. */
+	FILE *fp = NULL;
+	char out_log_record[MAX_LOGRECSIZE + 1];
+
+	/* Get the contents of log record */
+	sprintf(command, "find %s/vermaxsize -type f -mmin -1 "
+		"| egrep \"%s_([0-9]{8}_[0-9]{6}\\.log$)\" "
+		"| xargs cat ",
+		log_root_path, "verMaxLogrecsize4");
+
+	fp = popen(command, "r");
+	if (fp == NULL) {
+		/* Fail to read size of log file. Report test failed. */
+		fprintf(stderr, "Failed to run command = %s\n", command);
+		test_validate(1, 0);
+		goto free_class;
+	}
+	/* Get output of the command - actually the file size in chars */
+	while (fgets(out_log_record, sizeof(out_log_record), fp) != NULL) {};
+	pclose(fp);
+
+	logRecord[0] = '"';
+	logRecord[MAX_LOGRECSIZE - 1] = '\n';
+
+	/* Compare the output in log file with original log record
+	 * that was replaced first character by " and final character by '\n' */
+	rc = strncmp(logRecord, out_log_record, MAX_LOGRECSIZE);
+	rc_validate(rc, 0);
+
+free_class:
+	/* Delete class created */
+	(void)strcpy(command, "immcfg -d safLgStrCfg=maxrecsize4,safApp=safLogService");
+	rc = systemCall(command);
+
+done:
+	/* Restore logMaxLogrecsize to previous value */
+	m_restoreData(configurationObject, "logMaxLogrecsize",
+		      &v_logMaxLogrecsize, SA_IMM_ATTR_SAUINT32T);
+}
+
+
+/*
+ * Write a short log record to app stream with format token as "@Cb"
+ * Verify if output log records is right with formart token "@Cb" incase normal
+ *
+ * Steps:
+ *
+ * 1. Backup then change the logMaxLogrecsize value to maximum one.
+ * 2. Create application stream with format token include double quote
+ * 3. Create a log record with 65535 bytes (not count '\0').
+ * 4. Using saflogger tool, writing that buffer to the created app stream.
+ * 5. Get contents of log records in log file
+ * 6. Verify if two double quotes cover log records in log file
+ * 7. Delete created app class and restore logMaxLogrecsize value
+ */
+
+void verFormattoken(void)
+{
+	int rc;
+	char command[500];
+	const int record_size = 200;
+	char logRecord[record_size];
+	char out_log_record[record_size + 1];
+
+	/* Set saLogStreamFixedLogRecordSize = 0, fix log record = maxLogRecordSize */
+	sprintf(command, "immcfg -c SaLogStreamConfig safLgStrCfg=formatToken,safApp=safLogService"
+		" -a saLogStreamFileName=formatToken -a saLogStreamPathName=formatToken"
+		" -a saLogStreamFixedLogRecordSize=%d -a saLogStreamLogFileFormat=\\\"@Cb\\\" ",
+		record_size);
+	rc = systemCall(command);
+	if (rc) {
+		rc_validate(rc, 0);
+		return;
+	}
+
+	/* Prepare log record data */
+	memset(logRecord, 'A', 5);
+	logRecord[5] = '\0';
+
+	sprintf(command, "saflogger -a safLgStrCfg=formatToken,safApp=safLogService \"%s\"",
+		logRecord);
+	rc = system(command);
+	if (WEXITSTATUS(rc)) {
+		/* Fail to perform command. Report test failed. */
+		fprintf(stderr, "Failed to perform command = %s\n", command);
+		rc_validate(WEXITSTATUS(rc), 0);
+		goto free_class;
+	}
+	/* Write log record succesfully. Then, compare output with original log record. */
+	FILE *fp = NULL;
+
+	/* Get the contents of log record */
+	sprintf(command, "find %s/formatToken -type f -mmin -1 "
+		"| egrep \"%s_([0-9]{8}_[0-9]{6}\\.log$)\" "
+		"| xargs cat ",
+		log_root_path, "formatToken");
+
+	fp = popen(command, "r");
+	if (fp == NULL) {
+		/* Fail to read size of log file. Report test failed. */
+		fprintf(stderr, "Failed to run command = %s\n", command);
+		test_validate(1, 0);
+		goto free_class;
+	}
+	/* Get output of the command - actually the file size in chars */
+	while (fgets(out_log_record, sizeof(out_log_record), fp) != NULL) {};
+	pclose(fp);
+
+	memset(logRecord, ' ', record_size);
+	memset(logRecord, 'A', 7);
+	logRecord[0] = '"';
+	logRecord[6] = '"';
+	logRecord[record_size - 1] = '\n';
+
+	/* Check if output of log records cover by 2 double quote
+	 * and '\n' at final position */
+	rc = strncmp(logRecord, out_log_record, 200);
+	rc_validate(rc, 0);
+
+free_class:
+	/* Delete class created */
+	(void)strcpy(command, "immcfg -d safLgStrCfg=formatToken,safApp=safLogService");
+	rc = systemCall(command);
+}
+
 /**
  * Add test case for ticket #1399:
  * logsv gets stuck in while loop when setting maxFilesRotated=0
@@ -4862,5 +5143,9 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
 	test_case_add(6, verMiliToken, "Write 20 log records to System/Notification stream. MANUALLY verify millisecond increased continuously");
 	/* Add test case to test #1446 */
 	test_case_add(6, verStrLimit, "CCB Object Create: invalid Object if number of app streams has reached the limitation, ERR");
+	/* Add test case to test #1463 */
+	test_case_add(6, verMaxLogRecord_03, "CCB Object Create: Only line feed is replaced to the final character position in case truncation");
+	test_case_add(6, verMaxLogRecord_04, "CCB Object Create: Double quote is in first postition and line feed is in final postition");
+	test_case_add(6, verFormattoken, "CCB Object Create: Two double quotes cover output of log records in log file");
 
 }
