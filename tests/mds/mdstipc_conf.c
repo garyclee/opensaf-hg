@@ -1,6 +1,7 @@
 /*          OpenSAF
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -21,6 +22,7 @@
 #include "mdstipc.h"
 #include "osaf_poll.h"
 extern int fill_syncparameters(int);
+extern uint32_t mds_vdest_tbl_get_role(MDS_VDEST_ID vdest_id, V_DEST_RL *role);
 /****************** ADEST WRAPPERS ***********************/
 uint32_t adest_get_handle(void)
 {
@@ -273,6 +275,13 @@ uint32_t vdest_change_role(MDS_DEST vdest,
 
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
     {
+        /*Making sure vdest change role done*/
+        V_DEST_RL role = 0;
+        mds_vdest_tbl_get_role(vdest, &role);
+        while(role != new_role) {
+            sleep(1);
+            mds_vdest_tbl_get_role(vdest, &role);
+        }
       printf("\nVDEST_CHANGE ROLE to %d is SUCCESSFULL",new_role);
       return NCSCC_RC_SUCCESS;
     }
