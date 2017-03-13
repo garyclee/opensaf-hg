@@ -1,6 +1,7 @@
 /*          OpenSAF
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -8982,7 +8983,6 @@ void tet_direct_just_send_tp_14()
 {
   int FAIL=0;
   MDS_SVC_ID svcids[]={NCSMDS_SVC_ID_EXTERNAL_MIN};
-  char big_message[8000];
 
   /*start up*/
   if(tet_initialise_setup(false))
@@ -9010,7 +9010,9 @@ void tet_direct_just_send_tp_14()
     }
     printf("\nTest Case 14: Not able to send a message of size >(MDS_DIRECT_BUF_MAXSIZE) to 2000\n");
 
-    memset(big_message, 's', 8000);
+    char * big_message = (char*)malloc(MDS_DIRECT_BUF_MAXSIZE + 1);
+    memset(big_message, 's', MDS_DIRECT_BUF_MAXSIZE + 1);
+    *(big_message + MDS_DIRECT_BUF_MAXSIZE) = 0;
     if(mds_direct_send_message(gl_tet_adest.mds_pwe1_hdl,
                                NCSMDS_SVC_ID_EXTERNAL_MIN,
                                NCSMDS_SVC_ID_EXTERNAL_MIN,1,
@@ -9023,6 +9025,8 @@ void tet_direct_just_send_tp_14()
     }
     else
       printf("\nSuccess\n");
+
+    free(big_message);
 
     printf("\nCancel subscription\n");
     if(mds_service_cancel_subscription(gl_tet_adest.mds_pwe1_hdl,
