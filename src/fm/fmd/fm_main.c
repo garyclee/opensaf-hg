@@ -608,7 +608,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 		 * (old-Active) is still in the progress of shutdown (i.e., amfd/immd is still alive). 
 		 */
 		if ((fm_cb->role == PCS_RDA_ACTIVE) && (fm_cb->csi_assigned == false)) {
-			LOG_ER("Two active controllers observed in a cluster, newActive: %x and old-Active: %x", fm_cb->node_id, fm_cb->peer_node_id);
+			LOG_WA("Two active controllers observed in a cluster, newActive: %x and old-Active: %x", fm_cb->node_id, fm_cb->peer_node_id);
 			opensaf_reboot(0, NULL,
 			"Received svc up from peer node (old-active is not fully DOWN), hence rebooting the new Active");
 		}
