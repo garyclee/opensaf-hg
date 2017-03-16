@@ -48,6 +48,11 @@ static const char *ident;
 static const char *pathname;
 static int logmask;
 
+static pid_t gettid(void)
+{
+	return syscall(SYS_gettid);
+}
+
 /**
  * USR2 signal handler to enable/disable trace (toggle)
  * @param sig
@@ -99,8 +104,8 @@ void output_(const char *file, unsigned int line, int priority, int category, co
 	strftime(log_string, sizeof(log_string), "%b %e %k:%M:%S", tstamp_data);
 	i = snprintf(preamble, sizeof(preamble), "%s.%06ld %s ", log_string, tv.tv_usec, ident);
 
-	snprintf(&preamble[i], sizeof(preamble) - i, "[%d:%s:%04u] %s %s",
-		getpid(), file, line, prefix_name[priority + category], format);
+	snprintf(&preamble[i], sizeof(preamble) - i, "[%d:%d:%s:%04u] %s %s",
+		getpid(), gettid(), file, line, prefix_name[priority + category], format);
 	i = vsnprintf(log_string, sizeof(log_string), preamble, ap);
 
 	/* Check if the logtrace user had passed message length >= logtrace array limit of 1023.
