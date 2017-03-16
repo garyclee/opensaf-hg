@@ -709,6 +709,13 @@ static uint32_t proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
 
   TRACE_ENTER2("dest %" PRIx64, evt->fr_dest);
 
+  // Client should try again when role changes is in transition.
+  if (cb->is_quiesced_set) {
+    TRACE("Log service is in quiesced state");
+    ais_rc = SA_AIS_ERR_TRY_AGAIN;
+    goto snd_rsp;
+  }
+
   /* Validate the version */
   version = &(evt->info.msg.info.api_info.param.init.version);
   if (!is_log_version_valid(version)) {
@@ -762,12 +769,20 @@ static uint32_t proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   lgsv_ckpt_msg_v2_t ckpt_v2;
   void *ckpt_ptr;
   struct timespec closetime_tspec;
+  time_t closetime;
 
   TRACE_ENTER2("client_id %u", client_id);
 
+  // Client should try again when role changes is in transition.
+  if (cb->is_quiesced_set) {
+    TRACE("Log service is in quiesced state");
+    ais_rc = SA_AIS_ERR_TRY_AGAIN;
+    goto snd_rsp;
+  }
+
   /* Free all resources allocated by this client. */
   osaf_clock_gettime(CLOCK_REALTIME, &closetime_tspec);
-  time_t closetime = closetime_tspec.tv_sec;
+  closetime = closetime_tspec.tv_sec;
   if ((rc = lgs_client_delete(client_id, &closetime)) != 0) {
     TRACE("lgs_client_delete FAILED: %d", rc);
     ais_rc = SA_AIS_ERR_BAD_HANDLE;
@@ -1091,6 +1106,13 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   TRACE_ENTER2("stream '%s', client_id %u", name.c_str(),
                open_sync_param->client_id);
 
+  // Client should try again when role changes is in transition.
+  if (cb->is_quiesced_set) {
+    TRACE("Log service is in quiesced state");
+    ais_rv = SA_AIS_ERR_TRY_AGAIN;
+    goto snd_rsp;
+  }
+
   logStream = log_stream_get_by_name(name);
   if (logStream != NULL) {
     TRACE("existing stream - id %u", logStream->streamId);
@@ -1111,10 +1133,9 @@ static uint32_t proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   } else {
     /* Stream does not exist */
 
-    // Client should try again when role changes is in transition (queued).
     // This check is to avoid the client getting SA_AIS_BAD_OPERATION
     // as there is no IMM OI implementer set.
-    if (cb->immOiHandle == 0 || cb->is_quiesced_set == true) {
+    if (cb->immOiHandle == 0) {
       TRACE("IMM service unavailable, open stream failed");
       ais_rv = SA_AIS_ERR_TRY_AGAIN;
       goto snd_rsp;
@@ -1242,17 +1263,23 @@ static uint32_t proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   TRACE_ENTER2("client_id %u, stream ID %u", close_param->client_id,
                close_param->lstr_id);
 
+  // Client should try again when role changes is in transition.
+  if (cb->is_quiesced_set) {
+    TRACE("Log service is in quiesced state");
+    ais_rc = SA_AIS_ERR_TRY_AGAIN;
+    goto snd_rsp;
+  }
+
   if ((stream = log_stream_get_by_id(close_param->lstr_id)) == NULL) {
     TRACE("Bad stream ID");
     ais_rc = SA_AIS_ERR_BAD_HANDLE;
     goto snd_rsp;
   }
 
-  // Client should try again when role changes is in transition (queued).
   // This check is to avoid the client getting SA_AIS_BAD_OPERATION
   // as there is no IMM OI implementer set.
   if ((stream->streamType == STREAM_TYPE_APPLICATION) &&
-      (cb->immOiHandle == 0 || cb->is_quiesced_set == true)) {
+      (cb->immOiHandle == 0)) {
     TRACE("IMM service unavailable, close stream failed");
     ais_rc = SA_AIS_ERR_TRY_AGAIN;
     goto snd_rsp;
@@ -1335,6 +1362,13 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
 
   TRACE_ENTER2("client_id %u, stream ID %u, node_name = %s", param->client_id,
                param->lstr_id, node_name);
+
+  // Client should try again when role changes is in transition.
+  if (cb->is_quiesced_set) {
+    TRACE("Log service is in quiesced state");
+    error = SA_AIS_ERR_TRY_AGAIN;
+    goto done;
+  }
 
   if (lgs_client_get_by_id(param->client_id) == NULL) {
     TRACE("Bad client ID: %u", param->client_id);

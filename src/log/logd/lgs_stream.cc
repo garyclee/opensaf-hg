@@ -840,7 +840,7 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr) {
       }
 
       if (rc == -1) {
-        LOG_ER("Could not rename log file: %s", strerror(errno));
+        LOG_WA("Could not rename log file: %s", strerror(errno));
         goto done_files;
       }
 
@@ -854,7 +854,7 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr) {
                                timeString, LGS_LOG_FILE_CONFIG_EXT, emptyStr);
       }
       if (rc == -1) {
-        LOG_ER("Could not rename config file: %s", strerror(errno));
+        LOG_WA("Could not rename config file: %s", strerror(errno));
         goto done_files;
       }
     }
