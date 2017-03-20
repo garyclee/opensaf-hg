@@ -3092,7 +3092,7 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 
 	for(count=0;count<cmd_info.i_set_env_args->num_args;count++)
 		TRACE_1("CLC CLI command env variable name = '%s': value ='%s'",
-				cmd_info.i_set_env_args->env_arg->name,cmd_info.i_set_env_args->env_arg->value);
+				cmd_info.i_set_env_args->env_arg[count].name,cmd_info.i_set_env_args->env_arg[count].value);
 
 	/* finally execute the command */
 	rc = ncs_os_process_execute_timed(&cmd_info);
