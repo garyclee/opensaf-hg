@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2010 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -30,3 +31,6 @@ msg_demo_SOURCES = \
 
 msg_demo_LDADD = \
 	@SAF_AIS_MSG_LIBS@
+
+msg_demo_LDFLAGS = \
+	-pthread

@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# Copyright Ericsson AB 2017 - All Rights Reserved.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+
+if [[ $# -ne 2 ]]; then
+    echo "Usage: $0 sofile mapfile"
+    exit 1
+fi
+
+libname=$(basename "$1")
+if [[ $(echo "$libname" | cut -d. -f2) != "so" ]]; then
+    echo "$0: $1 is not a shared library"
+    exit 1
+fi
+
+if [[ $(basename "$2" | cut -d. -f2-) != "map" ]]; then
+    echo "$0: $2 is not a map file"
+    exit 1
+fi
+
+if ! [[ -r "$1" ]]; then
+    echo "$0: $1 does not exist"
+    exit 1
+fi
+
+if ! [[ -r "$2" ]]; then
+    echo "$0: $2 does not exist"
+    exit 1
+fi
+
+realname=$(readlink "$1")
+if [[ -z "$realname" ]]; then
+    echo "$0: $1 is not a symbolic link"
+    exit 1
+fi
+
+libbase=$(echo "$realname" | cut -d. -f1)
+version1=$(echo "$realname" | cut -d. -f3)
+version2=$(echo "$realname" | cut -d. -f4)
+
+if [[ "$version1" = "" ]] || [[ "$version2" = "" ]] || [[ "$version1" = "" ]]; then
+    echo "$0: $1 is not in the format libXXX.so.a.b.c"
+    exit 1
+fi
+
+tmpdir=$(mktemp -d -t create_empty_library.XXXXXXXXXX)
+destructor() {
+  rm -rf "$tmpdir"
+}
+trap destructor EXIT
+
+echo "typedef enum { SA_AIS_ERR_UNAVAILABLE = 31 } SaAisErrorT;" > "$tmpdir/lib.c"
+
+symbols=$(nm --dynamic --portability --defined-only "$1" | grep -v " A " | cut -d" " -f 1)
+for s in $symbols; do
+    echo "SaAisErrorT $s() { return SA_AIS_ERR_UNAVAILABLE; }" >> "$tmpdir/lib.c"
+done
+rm -f "$1"
+gcc -O2 -shared -fPIC "$tmpdir/lib.c" -Wl,-version-script="$2" -Wl,-soname="$libbase.so.$version1" -o "$1"
