@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2011 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -15,9 +16,10 @@
 #
 
 EXTRA_DIST += \
-	python/Makefile.mk \
 	python/MANIFEST.in \
+	python/Makefile.mk \
 	python/README \
+	python/samples/README \
 	python/setup.py
 
 if ENABLE_PYTHON

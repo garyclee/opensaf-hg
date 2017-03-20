@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -14,7 +15,11 @@
 # Author(s): Ericsson AB
 #
 
-EXTRA_DIST += src/ckpt/saf/libSaCkpt.map
+EXTRA_DIST += \
+	src/ckpt/README.HEADLESS \
+	src/ckpt/README.LONGDN \
+	src/ckpt/apitest/README \
+	src/ckpt/saf/libSaCkpt.map
 
 if ENABLE_AIS_CKPT
 

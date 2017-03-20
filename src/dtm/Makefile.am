@@ -15,6 +15,9 @@
 # Author(s): Ericsson AB
 #
 
+EXTRA_DIST += \
+	src/dtm/README
+
 noinst_HEADERS += \
 	src/dtm/dtmnd/dtm.h \
 	src/dtm/dtmnd/dtm_cb.h \

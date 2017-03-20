@@ -15,7 +15,11 @@
 # Author(s): Ericsson AB
 #
 
-EXTRA_DIST += src/smf/saf/libSaSmf.map
+EXTRA_DIST += \
+	src/smf/README \
+	src/smf/README.doxygen \
+	src/smf/README.schema \
+	src/smf/saf/libSaSmf.map
 
 if ENABLE_AIS_SMF
 

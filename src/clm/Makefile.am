@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -13,6 +14,10 @@
 #
 # Author(s): Ericsson AB
 #
+
+EXTRA_DIST += \
+	src/clm/README \
+	src/clm/saf/libSaClm.map
 
 osaf_lib_LTLIBRARIES += lib/libclm_common.la
 
@@ -85,7 +90,6 @@ noinst_HEADERS += \
 	src/clm/common/clmsv_msg.h
 
 osaf_execbin_PROGRAMS += bin/osafclmd bin/osafclmna
-EXTRA_DIST += src/clm/saf/libSaClm.map
 CORE_INCLUDES += -I$(top_srcdir)/src/clm/saf
 pkgconfig_DATA += src/clm/saf/opensaf-clm.pc
 

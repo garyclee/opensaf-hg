@@ -17,12 +17,14 @@
 #
 
 EXTRA_DIST += \
+	src/imm/README \
 	src/imm/README.2PBE \
 	src/imm/README.ACCESS_CONTROL \
 	src/imm/README.NO_DANGLING \
 	src/imm/README.RESOURCE_DISPLAY \
 	src/imm/README.SASTRINGT_API \
-	src/imm/README.SC_ABSENCE
+	src/imm/README.SC_ABSENCE \
+	src/imm/apitest/README
 
 osaf_lib_LTLIBRARIES += lib/libimm_common.la
 

@@ -15,7 +15,13 @@
 # Author(s): Ericsson AB
 #
 
-EXTRA_DIST += src/log/saf/libSaLog.map
+EXTRA_DIST += \
+	src/log/README \
+	src/log/README-HEADLESS \
+	src/log/README_LONGDN \
+	src/log/apitest/README \
+	src/log/saf/libSaLog.map \
+	src/log/tools/README
 
 lib_LTLIBRARIES += lib/libSaLog.la
 

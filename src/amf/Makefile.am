@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -13,6 +14,13 @@
 #
 # Author(s): Ericsson AB
 #
+
+EXTRA_DIST += \
+	src/amf/README \
+	src/amf/README_LONGDN \
+	src/amf/README_NODEGROUP \
+	src/amf/README_SC_ABSENCE \
+	src/amf/saf/libSaAmf.map
 
 osaf_lib_LTLIBRARIES += lib/libamf_common.la
 
@@ -155,7 +163,6 @@ noinst_HEADERS += \
 
 sbin_PROGRAMS += bin/amfpm
 osaf_execbin_PROGRAMS += bin/osafamfd bin/osafamfnd bin/osafamfwd
-EXTRA_DIST += src/amf/saf/libSaAmf.map
 CORE_INCLUDES += -I$(top_srcdir)/src/amf/saf
 TESTS += bin/testamfd
 pkgconfig_DATA += src/amf/saf/opensaf-amf.pc
