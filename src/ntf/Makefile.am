@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -14,7 +15,12 @@
 # Author(s): Ericsson AB
 #
 
-EXTRA_DIST += src/ntf/saf/libSaNtf.map
+EXTRA_DIST += \
+	src/ntf/README \
+	src/ntf/README_SC_ABSENCE \
+	src/ntf/apitest/README \
+	src/ntf/ntfimcnd/README \
+	src/ntf/saf/libSaNtf.map
 
 osaf_lib_LTLIBRARIES += lib/libntf_common.la lib/libntfclient.la
 

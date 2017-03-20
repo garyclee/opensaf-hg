@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2016 The OpenSAF Foundation
+# Copyright Ericsson AB 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -15,11 +16,13 @@
 #
 
 EXTRA_DIST += \
-	src/plm/plmcd/README \
-	src/plm/plmcd/test_lib.c \
+	src/plm/README \
+	src/plm/README.conf \
 	src/plm/config/plmsv_objects.xml.atca \
 	src/plm/config/plmsv_objects.xml.hp \
 	src/plm/config/plmsv_objects.xml.pc \
+	src/plm/plmcd/README \
+	src/plm/plmcd/test_lib.c \
 	src/plm/saf/libSaPlm.map
 
 if ENABLE_AIS_PLM
