@@ -128,7 +128,7 @@ pkgconfig_DATA += pkgconfig/opensaf.pc
 
 BUILT_SOURCES += src/osaf/configmake.h osafdir.conf
 
-EXTRA_DIST += samples
+EXTRA_DIST += samples scripts/create_empty_library
 
 dist_doc_DATA += \
 	$(top_srcdir)/00-README.conf \
@@ -322,6 +322,20 @@ if ENABLE_SYSTEMD
 		sed -i '/ControlGroup/d'  $(DESTDIR)$(systemddir)/opensafd.service; \
 	fi
 endif
+
+install-exec-hook:
+	@libs=""; \
+	for i in $(lib_LTLIBRARIES); do \
+		l=$$(basename "$$i" .la); \
+		test $$(echo "$$l" | cut -c1-5) = "libSa" && \
+			libs="$$libs $$l"; \
+	done; \
+	srcdir=$$(cd $(top_srcdir); pwd; cd - > /dev/null); \
+	for i in $$libs; do \
+		sofile=$(DESTDIR)$(libdir)/$$i.so; \
+		mapfile=$$(bash -c "ls -1 $$srcdir/src/*/saf/$$i.map"); \
+		bash $$srcdir/scripts/create_empty_library "$$sofile" "$$mapfile"; \
+	done
 
 uninstall-hook:
 	rm -f $(DESTDIR)$(pkgsysconfdir)/node_name
