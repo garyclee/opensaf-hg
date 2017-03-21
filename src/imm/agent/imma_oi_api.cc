@@ -2120,6 +2120,12 @@ static SaAisErrorT object_implementer_set_common(SaImmOiHandleT immOiHandle, SaC
 		goto bad_handle;
 	}
 
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
 		bool resurrected = imma_oi_resurrect(cb, cl_node, &locked, &rc);
@@ -2216,6 +2222,7 @@ static SaAisErrorT object_implementer_set_common(SaImmOiHandleT immOiHandle, SaC
 	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
+ clm_left:
  fevs_error:
  bad_handle:
 	if (locked)
@@ -2339,6 +2346,12 @@ static SaAisErrorT object_implementer_release_common(SaImmOiHandleT immOiHandle,
 		goto bad_handle;
 	}
 
+	if(cl_node->isImmA2x12 && cl_node->clmExposed){
+		TRACE_2("SA_AIS_ERR_UNAVAILABLE: imma CLM node left the cluster");
+		rc = SA_AIS_ERR_UNAVAILABLE;
+		goto clm_left;
+	}
+
 	if (cl_node->stale) {
 		TRACE_1("Handle %llx is stale", immOiHandle);
 		bool resurrected = imma_oi_resurrect(cb, cl_node, &locked, &rc);
@@ -2433,6 +2446,7 @@ static SaAisErrorT object_implementer_release_common(SaImmOiHandleT immOiHandle,
 	osafassert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 	rc = out_evt->info.imma.info.errRsp.error;
 
+ clm_left:
  fevs_error:
  bad_handle:
 	if (locked)
