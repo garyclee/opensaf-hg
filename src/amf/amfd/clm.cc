@@ -202,6 +202,7 @@ static void clm_node_exit_complete(SaClmNodeIdT nodeId)
         }
 
 	avd_node_failover(node);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 
 done:
 	TRACE_LEAVE();
@@ -304,6 +305,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 						   is needed.*/
 						node->clm_change_start_preceded = false; 
 						node->node_info.member = SA_FALSE;
+						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 					}
 					else
 					{
