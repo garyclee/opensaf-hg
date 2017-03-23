@@ -684,9 +684,24 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
                         io_rollbackCcb->addCcbData(rollbackData);
                 }
 	}
-
+	const SaStringT * errStrings = NULL;
 	/* Apply the CCB */
 	result = immutil_saImmOmCcbApply(immCcbHandle);
+	if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
+		result = saImmOmCcbGetErrorStrings(immCcbHandle, &errStrings);
+		if (errStrings){
+			TRACE("Received error string is %s", errStrings[0]);
+			char * type = NULL;
+			type = strstr(errStrings[0], "IMM: Resource abort: ");
+			if(type != NULL) {
+				TRACE("SA_AIS_ERR_FAILED_OPERATION is modified to SA_AIS_ERR_TRY_AGAIN because of "
+						"ccb resourse abort in saImmOmCcbApply" );
+				result = SA_AIS_ERR_TRY_AGAIN;
+				return result;
+			}
+		}
+	}
+
 	if (result != SA_AIS_OK) {
 		LOG_NO("saImmOmCcbApply failed rc=%s", saf_error(result));
 		return result;
