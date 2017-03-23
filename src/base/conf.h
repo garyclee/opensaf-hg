@@ -88,6 +88,11 @@ class Conf {
       const std::string& short_host_name);
   static std::string GetNodeName(const std::string& short_host_name);
   static std::string GetShortHostName();
+  static std::string ReadFile(const std::string& path_name,
+                           std::string::size_type max_length,
+                           const std::string& default_contents);
+  static void WriteFileAtomically(const std::string& path_name,
+                                  const std::string& contents);
   static pthread_once_t once_control_;
   static Conf* instance_;
   std::string fully_qualified_domain_name_;

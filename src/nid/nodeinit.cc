@@ -70,6 +70,7 @@
 #include <cerrno>
 #include <cstdio>
 
+#include "base/conf.h"
 #include "base/osaf_poll.h"
 #include "base/osaf_time.h"
 
@@ -1645,6 +1646,10 @@ int main(int argc, char *argv[])
 		LOG_ER("Failed to init logtrace, exiting");
 		exit(EXIT_FAILURE);
 	}
+
+        // Make sure /var/lib/opensaf/fully_qualified_host_name is
+        // created.
+        base::Conf::InitFullyQualifiedDomainName();
 
 	if (create_svc_monitor_thread() != NCSCC_RC_SUCCESS) {
 		LOG_ER("Failed to create service monitor thread, exiting");
