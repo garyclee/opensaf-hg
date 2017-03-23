@@ -659,7 +659,17 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		for (const auto& iter : sg->list_of_su) {
 			if (iter->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE &&
 				iter->list_of_susi == AVD_SU_SI_REL_NULL) {
-				s_su = iter;
+
+				/* Assign standby for MW SU on CLM enabled node. If not available
+				   then choose based on rank(list_of_su is based on rank).*/ 
+				if (s_su == nullptr)
+					s_su = iter;
+				if (iter->sg_of_su->sg_ncs_spec == true) {
+					if (iter->su_on_node->node_info.member == SA_FALSE)
+						continue;
+					else 
+						s_su = iter;
+				}
 				break;
 			}
 		}
