@@ -1040,8 +1040,7 @@ done:
  */
 void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 {
-	AVD_SU_SI_REL *sisu, *tmp_sisu;
-	uint32_t no_of_sisus_to_delete;
+	AVD_SU_SI_REL *sisu;
 	uint32_t i = 0;
 
 	TRACE_ENTER2("for SI:%s ", name.value);
@@ -1061,30 +1060,24 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 				TRACE("No New assignments are been done SI:%s", name.value);
 			}
 		} else {
-			no_of_sisus_to_delete = saAmfSINumCurrActiveAssignments -
-						mod_pref_assignments;
-
-			/* Get the sisu pointer from the  si->list_of_sisu list from which 
-			no of sisus need to be deleted based on SI ranked SU */
-			sisu = tmp_sisu = list_of_sisu;
-			for( i = 0; i < no_of_sisus_to_delete && nullptr != tmp_sisu; i++ ) {
-				tmp_sisu = tmp_sisu->si_next;
-			}
-			while( tmp_sisu && (tmp_sisu->si_next != nullptr) ) {
+			if (list_of_sisu == nullptr)
+			  return;
+			/*
+			   avd_susi_create() keeps sisus in list_of_sisu in order from highest
+			   ranked to lowest ranked.
+			   Keep mod_pref_assignments in list_of_sisu from beginning and delete others.
+			 */
+			sisu = list_of_sisu;
+			for( i = 0; ((i < mod_pref_assignments) && (sisu != nullptr)); i++ ) {
 				sisu = sisu->si_next;
-				tmp_sisu = tmp_sisu->si_next;
 			}
-
-			for( i = 0; i < no_of_sisus_to_delete && (nullptr != sisu); i++ ) {
-				/* Send quiesced request for the sisu that needs tobe deleted */
+			for( ; sisu != nullptr; sisu = sisu->si_next) {
 				if (avd_susi_mod_send(sisu, SA_AMF_HA_QUIESCED) == NCSCC_RC_SUCCESS) {
-					/* Add SU to su_opr_list */
                                 	avd_sg_su_oper_list_add(avd_cb, sisu->su, false);
 				}
-				sisu = sisu->si_next;
 			}
-			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN SG to Stable state */
-			m_AVD_SET_SG_FSM(avd_cb,  sg_of_si, AVD_SG_FSM_SG_REALIGN);
+			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN as assignment is sent.*/
+			sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
 	} 
 	if( sg_of_si->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL ) {
@@ -1094,31 +1087,29 @@ void AVD_SI::adjust_si_assignments(const uint32_t mod_pref_assignments)
 				LOG_ER("SI new assignmemts failed  SI:%s", name.value);
 			} 
 		} else {
-			no_of_sisus_to_delete = 0;
-			no_of_sisus_to_delete = saAmfSINumCurrStandbyAssignments -
-						mod_pref_assignments; 
-
-			/* Get the sisu pointer from the  si->list_of_sisu list from which 
-			no of sisus need to be deleted based on SI ranked SU */
-			sisu = tmp_sisu = list_of_sisu;
-			for(i = 0; i < no_of_sisus_to_delete && (nullptr != tmp_sisu); i++) {
-				tmp_sisu = tmp_sisu->si_next;
+			if (list_of_sisu == nullptr)
+				return;
+			/*
+			   avd_susi_create() keeps sisus in list_of_sisu in order from highest
+			   ranked to lowest ranked.
+			   Keep mod_pref_assignments + active in list_of_sisu from beginning and delete others.
+			 */
+			for (sisu = list_of_sisu; sisu != nullptr; sisu = sisu->si_next) {
+				if (sisu->state == SA_AMF_HA_ACTIVE)
+					continue;
+				if (i == mod_pref_assignments) 
+					break;
+				i++;
 			}
-			while( tmp_sisu && (tmp_sisu->si_next != nullptr) ) {
-				sisu = sisu->si_next;
-				tmp_sisu = tmp_sisu->si_next;
-			}
-
-			for( i = 0; i < no_of_sisus_to_delete && (nullptr != sisu); i++ ) {
-				/* Delete Standby SI assignment & move it to Realign state */
+			for(; sisu != nullptr; sisu = sisu->si_next) {
+				if (sisu->state == SA_AMF_HA_ACTIVE)
+					continue;
 				if (avd_susi_del_send(sisu) == NCSCC_RC_SUCCESS) {
-					/* Add SU to su_opr_list */
-                                	avd_sg_su_oper_list_add(avd_cb, sisu->su, false);
+					avd_sg_su_oper_list_add(avd_cb, sisu->su, false);
 				}
-				sisu = sisu->si_next;
 			}
-			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN */ 
-			m_AVD_SET_SG_FSM(avd_cb, sg_of_si, AVD_SG_FSM_SG_REALIGN);
+			/* Change the SG FSM to AVD_SG_FSM_SG_REALIGN as assignment is sent.*/
+			sg_of_si->set_fsm_state(AVD_SG_FSM_SG_REALIGN);
 		}
 	}
 	TRACE_LEAVE();	
