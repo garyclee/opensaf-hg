@@ -1528,7 +1528,6 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 	cl_node=NULL;
-	if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 	/* ccb_node still valid if rc == SA_AIS_OK. */
 	if(rc == SA_AIS_OK) {
 		osafassert(!(ccb_node->mExclusive));
@@ -1554,6 +1553,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	} 
 
 	imma_proc_decrement_pending_reply(cl_node, true);
+	if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 
 	if (cl_node->stale) {
 		if (isExposed(cb, cl_node)) {
@@ -1817,7 +1817,6 @@ static SaAisErrorT ccb_object_create_common(SaImmCcbHandleT ccbHandle,
 		}
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
-		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
 		if(rc == SA_AIS_OK) {
 			osafassert(!(ccb_node->mExclusive));
@@ -2412,7 +2411,6 @@ static SaAisErrorT ccb_object_modify_common(SaImmCcbHandleT ccbHandle,
 		}
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
-		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
 		if(rc == SA_AIS_OK) {
 			osafassert(!(ccb_node->mExclusive));
@@ -2895,7 +2893,6 @@ static SaAisErrorT ccb_object_delete_common(SaImmCcbHandleT ccbHandle, SaConstSt
 		}
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
-		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
 		if(rc == SA_AIS_OK) {
 			osafassert(!(ccb_node->mExclusive));
@@ -6521,7 +6518,6 @@ SaAisErrorT saImmOmCcbObjectRead(SaImmCcbHandleT ccbHandle, SaConstStringT objec
 		}
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 		cl_node = NULL;
-		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
 		/* ccb_node still valid if rc == SA_AIS_OK. */
 		if(rc == SA_AIS_OK) {
 			osafassert(!(ccb_node->mExclusive));
@@ -9191,7 +9187,6 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 
 			rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked, cl_node->syncr_timeout);
 			cl_node=NULL;
-			if(rc != SA_AIS_OK) {goto done;}
 			/* ccb_node still valid if rc == SA_AIS_OK. */
 			if(rc == SA_AIS_OK) {
 				osafassert(!(ccb_node->mExclusive));
@@ -9212,6 +9207,7 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 			/* Dont care if cl_node is stale here. This will be caught
 			   in the next attempt to use the related handle(s).
 			 */
+			if(rc != SA_AIS_OK) {goto done;}
 		}
 	}
  
