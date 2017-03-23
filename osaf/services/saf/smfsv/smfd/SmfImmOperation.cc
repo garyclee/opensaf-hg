@@ -433,6 +433,7 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 
 	SaNameT objectName;
         osaf_extended_name_lend(m_parentDn.c_str(), &objectName);
+	const SaStringT * errStrings = NULL;
 
         //Set IMM ownership.
         //When creating objects at top level the parent name is empty and the ownership shall not be set
@@ -469,6 +470,22 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 	//Create CCB
 	result = immutil_saImmOmCcbObjectCreate_2(m_ccbHandle, (SaImmClassNameT)className, 
 						  &objectName, (const SaImmAttrValuesT_2 **)m_immAttrValues);
+	if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
+		result = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
+		if (errStrings){
+			TRACE("Received error string is %s", errStrings[0]);
+			char * type = NULL;
+			type = strstr(errStrings[0], "IMM: Resource abort: ");
+			if(type != NULL) {
+				TRACE("SA_AIS_ERR_FAILED_OPERATION is modified to SA_AIS_ERR_TRY_AGAIN because of "
+						"ccb resourse abort in saImmOmCcbObjectCreate" );
+				result = SA_AIS_ERR_TRY_AGAIN;
+				TRACE_LEAVE();
+				return result;
+			}
+		}
+	}
+
 	if (result != SA_AIS_OK) {
 		if (result == SA_AIS_ERR_EXIST) {
 			TRACE("SmfImmCreateOperation::execute: object already exists");
@@ -693,7 +710,24 @@ SmfImmDeleteOperation::execute(SmfRollbackData* o_rollbackData)
                 }
         }
 
+	const SaStringT * errStrings = NULL;
 	result = immutil_saImmOmCcbObjectDelete(m_ccbHandle, &objectName);
+	if (result != SA_AIS_OK && result == SA_AIS_ERR_FAILED_OPERATION) {
+		result = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
+		if (errStrings){
+			TRACE("Received error string is %s", errStrings[0]);
+			char * type = NULL;
+			type = strstr(errStrings[0], "IMM: Resource abort: ");
+			if(type != NULL) {
+				TRACE("SA_AIS_ERR_FAILED_OPERATION is modified to SA_AIS_ERR_TRY_AGAIN because of "
+						"ccb resourse abort in saImmOmCcbObjectDelete" );
+				result = SA_AIS_ERR_TRY_AGAIN;
+				TRACE_LEAVE();
+				return result;
+			}
+		}
+	}
+
 	if (result != SA_AIS_OK) {
 		LOG_NO("SmfImmDeleteOperation::execute, immutil_saImmOmCcbObjectDelete failed rc=%s (child objects maybe exists)", saf_error(result));
                 TRACE_LEAVE();
@@ -1075,7 +1109,8 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 			char * type = NULL;
 			type = strstr(errStrings[0], "IMM: Resource abort: ");
 			if(type != NULL) {
-				TRACE("SA_AIS_ERR_FAILED_OPERATION is modified to SA_AIS_ERR_TRY_AGAIN because of ccb resourse abort" );
+				TRACE("SA_AIS_ERR_FAILED_OPERATION is modified to SA_AIS_ERR_TRY_AGAIN because of "
+						"ccb resourse abort in saImmOmCcbObjectModify" );
 				result = SA_AIS_ERR_TRY_AGAIN;
 				TRACE_LEAVE();
 				return result;
