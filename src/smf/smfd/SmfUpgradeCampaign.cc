@@ -1121,8 +1121,7 @@ SmfUpgradeCampaign::resetMaintenanceState()
 		if (rc != SA_AIS_OK && rc == SA_AIS_ERR_TRY_AGAIN) {
 			/*
 			 * TRY_AGAIN is returned only when ccb is aborted 
-			 *  with Resource abort in error string. Resource abort in
-			 *  error string is checked presently for modify operation.
+			 * with Resource abort in error string. 
 			 */
 			continue;
 		}
