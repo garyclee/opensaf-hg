@@ -71,6 +71,7 @@ struct RecordData {
   const char* hostname;
   const char* networkname;
   const char* appname;
+  const char* msgid;
   bool isRtStream;
   uint32_t recordId;
   uint16_t sev;

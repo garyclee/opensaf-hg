@@ -2378,6 +2378,11 @@ static SaAisErrorT stream_create_and_configure1(
     osaf_abort(0);
   }
 
+  // Generate & cache `MSGID` to `rfc5424MsgId` which later
+  // used in RFC5424 protocol
+  (*stream)->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
+      (*stream)->name, (*stream)->isRtStream);
+
 done:
   TRACE_LEAVE2("rc: %s", saf_error(rc));
   return rc;
@@ -2876,6 +2881,11 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
       stream->logFileFormat = strdup(log_file_format[stream->streamType]);
     }
   }
+
+  // Generate & cache `MSGID` to `rfc5424MsgId` which later
+  // used in RFC5424 protocol
+  stream->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
+      dn, stream->isRtStream);
 
 done:
   TRACE_LEAVE2("rc: %s", saf_error(rc));

@@ -386,10 +386,8 @@ bool WriteToDestination(const RecordData& data,
   // Origin is FQDN = <hostname>[.<networkname>]
   // hostname = where the log record comes from (not active node)
   const std::string origin = std::string {data.hostname} + networkname;
-  const std::string msgid = DestinationHandler::Instance().GenerateMsgId(
-      data.name, data.isRtStream);
 
-  info.msgid      = msgid.c_str();
+  info.msgid      = data.msgid;
   info.log_record = data.logrec;
   info.record_id  = data.recordId;
   info.stream_dn  = data.name;
