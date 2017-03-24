@@ -2043,6 +2043,11 @@ uint32_t ckpt_proc_open_stream(lgs_cb_t *cb, void *data) {
         stream->stb_dest_names = "";
         stream->dest_names.clear();
       }
+
+      // Generate & cache `MSGID` to `rfc5424MsgId` which later
+      // used in RFC5424 protocol
+      stream->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
+          stream->name, stream->isRtStream);
     }
   }
 

@@ -1401,6 +1401,7 @@ static uint32_t proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt) {
   data.networkname = lgs_get_networkname().c_str();
   data.appname = osaf_extended_name_borrow(
       param->logRecord->logHeader.genericHdr.logSvcUsrName);
+  data.msgid = stream->rfc5424MsgId.c_str();
   data.isRtStream = stream->isRtStream;
   data.recordId = stream->logRecordId;
   data.sev = param->logRecord->logHeader.genericHdr.logSeverity;

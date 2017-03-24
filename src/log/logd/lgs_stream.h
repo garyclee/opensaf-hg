@@ -52,6 +52,7 @@ typedef struct log_stream {
   SaTimeT creationTimeStamp;
   SaUint32T numOpeners;
   SaUint64T filtered;     /* discarded by server due to filtering */
+  std::string rfc5424MsgId;
   /* --- end correspond to IMM Class --- */
 
   uint32_t streamId;      /* The unique stream id for this stream */
