@@ -44,9 +44,12 @@ amfnd will not reboot the node and enters SC absence period (if
 scAbsenceAllowed is configured)
 
 * Escalation and Recovery during SC absence period:
-Restarts will work as normal, but failover or switchover will result in Node
-Failfast. The repair action will be initiated when a SC returns if 
-saAmfSGAutoRepair is enabled.
+Component and su restarts will work as normal. Any fail-over or switch-over at
+component, su, and node level will only cleanup faulty components. Recovery will
+be delayed until a SC returns: the fail-over or switch-over of SI assignments
+will be initiated if saAmfSGAutoRepair is enabled, the node will be reboot if 
+saAmfNodeAutoRepair, aAmfNodeFailfastOnTerminationFailure, or 
+saAmfNodeFailfastOnInstantiationFailure is enabled.
 
 * Amfnd detects return of SCs:
 NCSMDS_UP is the event that amfnd uses to detect the presence of an active amfd.
@@ -76,16 +79,20 @@ absence recovery. The new attributes are:
 
 Only 2N SG is currently supported for admin operation continuation.
 
+* Node reboot during SC absence period:
+The event of node reboot initiated by user during SC absence period 
+may lead to a loss of SI assignments. When a SC returns, AMF Director
+will detect improper SI assignments and recover HA states of assignments. 
+
 LIMITATIONS
 -----------
 
-* While both SCs are absent, any failover or switchover escalation will result 
-in node failfast. The events of node reboot, node power off, and node failfast
-will lead to a loss of SI assignments, which are not restored during the SC 
-absence period. The SI assignments may remain in improper states until a SC 
-comes back. Recovery of any lost SI assignments during SC absence period is 
-currently not supported.
-
+* Possible loss of RTA updates and SI assignment messages
+If both SCs go down abruptly (SCs are immediately powered-off for instance),
+AMFD could fail to update RTA to IMM, the SI assignment messages sent from
+AMFND could not reach to AMFD, or vice versa. In such cases, recovery could
+be impossible, applications may have inappropriate assignment states.
+  
 * SI dependency tolerance timer 
 After a SC comes back, if an unassigned sponsor SI is detected, all its 
 dependent SI(s) assignments are removed regardless of tolerance duration. The 
