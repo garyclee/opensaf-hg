@@ -161,16 +161,19 @@ static const char networkname[] = "networkA";
 static const uint16_t sev = 3;
 static const char appname[] = "lgs_dest_test";
 static const char dn[] = "safLgStrCfg=test";
+static const char msgid[] = "testC";
+
 void initData(RecordData* data) {
-  data->name = dn;
-  data->logrec = rec;
-  data->hostname = hostname;
+  data->name        = dn;
+  data->logrec      = rec;
+  data->hostname    = hostname;
   data->networkname = networkname;
-  data->appname = appname;
-  data->isRtStream = 0;
-  data->recordId = 1;
-  data->sev = 3;
-  data->time = base::ReadRealtimeClock();
+  data->appname     = appname;
+  data->msgid       = msgid;
+  data->isRtStream  = 0;
+  data->recordId    = 1;
+  data->sev         = 3;
+  data->time        = base::ReadRealtimeClock();
 }
 
 // No destination name & no destination configuration exist
@@ -253,8 +256,7 @@ TEST(WriteToDestination, HaveDestNameAndDestCfg) {
   // Origin is FQDN = <hostname>[.<networkname>]
   origin = std::string {data.hostname} + nkname;
 
-  info.msgid      = DestinationHandler::GenerateMsgId(
-                    data.name, data.isRtStream).c_str();
+  info.msgid      = data.msgid;
   info.log_record = data.logrec;
   info.record_id  = data.recordId;
   info.stream_dn  = data.name;
