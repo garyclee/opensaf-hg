@@ -182,7 +182,6 @@ bin_libbase_test_CPPFLAGS = \
 
 bin_libbase_test_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	-lcrypto \
 	src/base/lib_libopensaf_core_la-file_descriptor.lo \
 	src/base/lib_libopensaf_core_la-file_notify.lo \
 	src/base/lib_libopensaf_core_la-getenv.lo \

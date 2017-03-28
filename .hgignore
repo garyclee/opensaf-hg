@@ -67,6 +67,7 @@ syntax: regexp
 ^src/osaf/config\.h$
 ^src/osaf/config\.h\.in$
 ^src/osaf/configmake\.h$
+^src/osaf/ssl_libs\.cc$
 ^src/osaf/stamp-h1$
 ^src/plm/plmcd/plmcboot$
 ^src/plm/plmcd/plmcboot\.service$

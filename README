@@ -425,7 +425,6 @@ The following software is required to build OpenSAF:
 
     * libc6-dev (2.11 or later)
     * libxml2-dev (2.7 or later)
-    * libssl-dev (0.9.8 or later)
     * automake (1.11.1 or later)
     * m4
     * autoconf (2.64 or later)
@@ -952,7 +951,7 @@ minimum version requirements of the following system components:
 - GNU C Library (Glibc), version 2.11 or later
 - GNU Compiler Collection (GCC), version 4.8.1 or later
 - Libxml2, version 2.7 or later
-- Libopenssl, version 0.9.8 or later
+- Libopenssl, version 0.9.8 or later (optional)
 - Libsqlite3, version 3.6 or later (only needed when configuring with
   --enable-imm-pbe)
 - OpenHPI, version 2.17.0 or later (only needed when configuring with

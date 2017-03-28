@@ -82,6 +82,7 @@ static const TestVector test_vectors[] = {
 };
 
 TEST(BaseHash, TestVectors) {
+  base::InitializeHashFunction();
   for (size_t i = 0; i < sizeof(test_vectors) / sizeof(test_vectors[0]); ++i) {
     std::string key = std::string(test_vectors[i].key_data,
                                   test_vectors[i].key_size);
@@ -92,6 +93,7 @@ TEST(BaseHash, TestVectors) {
 }
 
 TEST(BaseHash, LongRandomString) {
+  base::InitializeHashFunction();
   std::string key;
   key.reserve(8000);
   std::mt19937_64 generator(4711);

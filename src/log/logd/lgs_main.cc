@@ -37,6 +37,7 @@
 #include "log/logd/lgs.h"
 #include "log/logd/lgs_file.h"
 #include "base/osaf_utility.h"
+#include "base/hash.h"
 #include "lgs_recov.h"
 #include "osaf/immutil/immutil.h"
 #include "lgs_clm.h"
@@ -274,6 +275,8 @@ static uint32_t log_initialize(void) {
   uint32_t rc = NCSCC_RC_FAILURE;
 
   TRACE_ENTER();
+
+  base::InitializeHashFunction();
 
   /**
    * Setup immutils profile once and for all.

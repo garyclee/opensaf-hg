@@ -15,15 +15,13 @@
  *
  */
 
-#define protected public
-#define private public
-
 #include "log/logd/lgs_dest.h"
 #include "log/logd/lgs_unixsock_dest.h"
 #include "log/logd/lgs_config.h"
 #include <string>
 #include <vector>
 #include "base/unix_server_socket.h"
+#include "base/hash.h"
 #include "gtest/gtest.h"
 
 //==============================================================================
@@ -76,12 +74,14 @@ bool isValidName(const std::string& name) {
 //==============================================================================
 // Verify it is OK to add one valid destination configuration
 TEST(CfgDestination, AddOneDestination) {
+  base::InitializeHashFunction();
   const std::vector<std::string> vdest {"test;UNIX_SOCKET;/tmp/sock.sock"};
   ASSERT_EQ(CfgDestination(vdest, ModifyType::kAdd), true);
 }
 
 // Verify it is Ok to add multiple destination configurations
 TEST(CfgDestination, AddMultipleDestination) {
+  base::InitializeHashFunction();
   const std::vector<std::string> vdest {
     "test;UNIX_SOCKET;/tmp/sock.sock",
     "test1;UNIX_SOCKET;/tmp/sock1.sock",
@@ -92,6 +92,7 @@ TEST(CfgDestination, AddMultipleDestination) {
 
 // Verify it is Ok to add NIL destination
 TEST(CfgDestination, AddEmptyDestination) {
+  base::InitializeHashFunction();
   const std::vector<std::string> vdest {
     "test;UNIX_SOCKET;/tmp/sock.sock",
     "test1;UNIX_SOCKET;/tmp/sock1.sock",
@@ -102,6 +103,7 @@ TEST(CfgDestination, AddEmptyDestination) {
 
 // Verify it is OK to delete one destination configuration
 TEST(CfgDestination, DelOneDestination) {
+  base::InitializeHashFunction();
   const std::vector<std::string> vdest {
     "test;UNIX_SOCKET;/tmp/sock.sock",
     "test1;UNIX_SOCKET;/tmp/sock1.sock",
@@ -115,6 +117,7 @@ TEST(CfgDestination, DelOneDestination) {
 
 // Verify it is OK to delete all destinations
 TEST(CfgDestination, DelAllDestinations) {
+  base::InitializeHashFunction();
   const std::vector<std::string> vdest {
     "test;UNIX_SOCKET;/tmp/sock.sock",
     "test1;UNIX_SOCKET;/tmp/sock1.sock",
@@ -129,6 +132,7 @@ TEST(CfgDestination, DelAllDestinations) {
 // Verify the request is drop if the delete request
 // come before adding a destination configuation.
 TEST(CfgDestination, DelDestButNoCfgSentYet) {
+  base::InitializeHashFunction();
   // Delete all destination configurations
   const std::vector<std::string> vdest {};
   CfgDestination(vdest, ModifyType::kDelete);
@@ -140,6 +144,7 @@ TEST(CfgDestination, DelDestButNoCfgSentYet) {
 
 // Verify the request is drop if deleting non-exist destination configuration.
 TEST(CfgDestination, DelNonExistDestination) {
+  base::InitializeHashFunction();
   const std::vector<std::string> vdest {
     "test;UNIX_SOCKET;/tmp/sock.sock",
     "test1;UNIX_SOCKET;/tmp/sock1.sock",
@@ -179,6 +184,7 @@ void initData(RecordData* data) {
 // No destination name & no destination configuration exist
 // Verify the sending log record request is drop.
 TEST(WriteToDestination, NoDestNameAndNonExistDest) {
+  base::InitializeHashFunction();
   RecordData data;
   // No destination configured at all.
   const std::vector<std::string> vdeldest5 {};
@@ -193,6 +199,7 @@ TEST(WriteToDestination, NoDestNameAndNonExistDest) {
 // Have destination name set, but no destination configuration exist.
 // Verify the sending record request is drop.
 TEST(WriteToDestination, HaveDestNameButNonExistDest) {
+  base::InitializeHashFunction();
   RecordData data;
   // No destination configured at all
   const std::vector<std::string> vdeldest6 {};
@@ -207,6 +214,7 @@ TEST(WriteToDestination, HaveDestNameButNonExistDest) {
 // Verify the sending record to destination is drop
 // if having NIL destination with such destination name.
 TEST(WriteToDestination, HaveDestNameButNilDest) {
+  base::InitializeHashFunction();
   RecordData data;
   // Have nil destination
   const std::vector<std::string> nildest {"test;UNIX_SOCKET;"};
@@ -233,6 +241,7 @@ void FormRfc5424Test(const DestinationHandler::RecordInfo& info,
 // Send a record @rec, then verify if receiving data
 // and sent data is matched.
 TEST(WriteToDestination, HaveDestNameAndDestCfg) {
+  base::InitializeHashFunction();
   char buf[1024] = {0};
   RecordData data;
   DestinationHandler::RecordInfo info{};
@@ -242,7 +251,7 @@ TEST(WriteToDestination, HaveDestNameAndDestCfg) {
 
   // Create the server listen to the local socket
   static base::UnixServerSocket server{"/tmp/test.sock"};
-  server.Open();
+  server.fd();
 
   const std::vector<std::string> dest {"test;UNIX_SOCKET;/tmp/test.sock"};
   CfgDestination(dest, ModifyType::kReplace);
@@ -283,6 +292,7 @@ TEST(WriteToDestination, HaveDestNameAndDestCfg) {
 
 // Verify the destination connection status is reflected correctly.
 TEST(GetDestinationStatus, AddOneDestination) {
+  base::InitializeHashFunction();
   const VectorString vstatus {"test,FAILED"};
   const std::vector<std::string> vdest {"test;UNIX_SOCKET;/tmp/sock.sock"};
   CfgDestination(vdest, ModifyType::kReplace);
@@ -292,6 +302,7 @@ TEST(GetDestinationStatus, AddOneDestination) {
 // Verify the destination connection status is reflected correctly
 // in case of adding multiple destinations
 TEST(GetDestinationStatus, AddMultipleDestination) {
+  base::InitializeHashFunction();
   const VectorString vstatus {
     "test,FAILED",
     "test1,FAILED",
@@ -310,6 +321,7 @@ TEST(GetDestinationStatus, AddMultipleDestination) {
 // Verify the destination connection status is reflected correctly
 // in case of adding multiple destinations including NILDEST type.
 TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest) {
+  base::InitializeHashFunction();
   // Expected destination status
   const VectorString vstatus {
     "test,FAILED",
@@ -325,6 +337,7 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest) {
 }
 
 TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest02) {
+  base::InitializeHashFunction();
   // Expected destination status
   const VectorString vstatus {
     "test,FAILED",
@@ -345,6 +358,7 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest02) {
 // in case of adding multiple destinations including NILDEST type.
 // and have destination receiver.
 TEST(GetDestinationStatus, AddMultipleDestinationWithDestReceiver) {
+  base::InitializeHashFunction();
   // Expected destination status
   const VectorString vstatus {
     "test,CONNECTED",
@@ -359,7 +373,7 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithDestReceiver) {
 
   // Create the server listen to the local socket
   static base::UnixServerSocket server{"/tmp/test.sock"};
-  server.Open();
+  server.fd();
   CfgDestination(vdest, ModifyType::kReplace);
 
   ASSERT_EQ(GetDestinationStatus(), vstatus);
@@ -370,6 +384,7 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithDestReceiver) {
 // multiple destinations including NILDEST type.
 // and have destination receiver.
 TEST(GetDestinationStatus, RemoveDestFromMultipleDestinationWithDestReceiver) {
+  base::InitializeHashFunction();
   // Expected destination status
   const VectorString vstatus {
     "test,CONNECTED",
@@ -383,7 +398,7 @@ TEST(GetDestinationStatus, RemoveDestFromMultipleDestinationWithDestReceiver) {
 
   // Create the server listen to the local socket
   static base::UnixServerSocket server{"/tmp/test.sock"};
-  server.Open();
+  server.fd();
 
   // Add destination configurations, then delete one.
   CfgDestination(vdest, ModifyType::kReplace);
