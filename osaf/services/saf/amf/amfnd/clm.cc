@@ -51,7 +51,7 @@ static void clm_node_left(SaClmNodeIdT node_id)
 
 	TRACE_ENTER2("%u", node_id);
 
-	if(node_id == avnd_cb->node_info.nodeId) {
+	if (node_id == avnd_cb->node_info.nodeId) {
 	/* if you received a node left indication from clm for self node
 	   terminate all the non_ncs components; ncs components :-TBD */
 	   
@@ -216,7 +216,9 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			if(false == avnd_cb->first_time_up) {
 				/* When node reboots, we will get an exit cbk, so ignore if avnd_cb->first_time_up
 				   is false. */
-				if(notifItem->clusterNode.nodeId == avnd_cb->node_info.nodeId) {
+				if ((notifItem->clusterNode.nodeId == avnd_cb->node_info.nodeId) &&
+						(avnd_cb->node_info.member == SA_TRUE)) {
+					//Act only once on CLM callback.
 					clm_node_left(notifItem->clusterNode.nodeId);	
 				}
 			}
