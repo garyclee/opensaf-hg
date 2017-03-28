@@ -141,7 +141,6 @@ bin_osaflogd_SOURCES = \
 	src/log/logd/lgs_unixsock_dest.cc
 
 bin_osaflogd_LDADD = \
-	-lcrypto \
 	lib/libosaf_common.la \
 	lib/libSaAmf.la \
 	lib/libSaImmOm.la \
@@ -232,6 +231,8 @@ bin_logtestfr_LDADD = \
 	lib/libSaImmOm.la \
 	lib/libopensaf_core.la
 
+endif
+
 bin_testlogd_CXXFLAGS =$(AM_CXXFLAGS)
 
 bin_testlogd_CPPFLAGS = \
@@ -240,8 +241,7 @@ bin_testlogd_CPPFLAGS = \
 	-I$(GTEST_DIR)/include
 
 bin_testlogd_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	-lcrypto
+	$(AM_LDFLAGS)
 
 
 bin_testlogd_SOURCES = \
@@ -255,5 +255,3 @@ bin_testlogd_LDADD = \
 	src/log/logd/bin_osaflogd-lgs_unixsock_dest.o \
 	src/log/logd/bin_osaflogd-lgs_dest.o \
 	src/log/logd/bin_osaflogd-lgs_nildest.o
-
-endif

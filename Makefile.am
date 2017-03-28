@@ -42,7 +42,8 @@ CLEANFILES = \
 	lib/$(PACKAGE_NAME)-$(host_cpu).conf \
 	osafdir.conf \
 	osafdir.conf-t \
-	src/osaf/configmake.h
+	src/osaf/configmake.h \
+	src/osaf/ssl_libs.cc
 
 CORE_INCLUDES = \
 	-I$(top_builddir)/src -I$(top_srcdir)/src
@@ -126,7 +127,7 @@ nodist_pkgsysconf_DATA += \
 
 pkgconfig_DATA += pkgconfig/opensaf.pc
 
-BUILT_SOURCES += src/osaf/configmake.h osafdir.conf
+BUILT_SOURCES += src/osaf/configmake.h osafdir.conf src/osaf/ssl_libs.cc
 
 EXTRA_DIST += samples scripts/create_empty_library
 
@@ -246,6 +247,16 @@ osafdir.conf: src/osaf/configmake.h
 	@sed -i -e 's|\/\* |\# |g' -e 's| \*\/||g' $@-t
 	@sed -i 1i"#!/bin/sh" $@-t
 	sed -e 's/\(.*\)/\L\1/' $@-t > $@
+
+src/osaf/ssl_libs.cc: Makefile
+	@rm -f $@-t $@
+	@{ echo "  \"$$(ldd $$(which openssl) | cut -d= -f1 | grep libcrypto.so | tr -d '\t ')\","; \
+	echo "  \"libcrypto.so\","; \
+	echo "  \"libcrypto.so.1.1.0\","; \
+	echo "  \"libcrypto.so.1.0.0\","; \
+	echo "  \"libcrypto.so.0.9.8\","; \
+	} | sort -Vr | uniq > $@-t
+	mv $@-t $@
 
 if ENABLE_RPM_TARGET
 
