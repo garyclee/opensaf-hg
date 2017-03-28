@@ -38,6 +38,7 @@ uint32_t immnd_clm_node_change(bool left){
 	if(left){
 		immnd_cb->isClmNodeJoined = false;
 		TRACE("isClmNodeJoined is set to false");
+		immnd_proc_unregister_local_implemeters(immnd_cb);
 	} else {
 		immnd_cb->isClmNodeJoined = true;
 		TRACE("isClmNodeJoined is set to true");
@@ -67,9 +68,9 @@ uint32_t immnd_clm_node_change(bool left){
 				TRACE("immnd_mds_msg_send success");
 			}
 		}
-			clientHdl = client_node->imm_app_hdl;
-			immnd_client_node_getnext(immnd_cb, clientHdl, &client_node);
-		}
+		clientHdl = client_node->imm_app_hdl;
+		immnd_client_node_getnext(immnd_cb, clientHdl, &client_node);
+	}
 	TRACE_LEAVE();
 	return rc;
 }

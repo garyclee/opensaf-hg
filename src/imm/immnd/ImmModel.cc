@@ -1091,6 +1091,30 @@ immModel_getOldCriticalCcbs(IMMND_CB *cb,
     }
 }
 
+void 
+immmModel_getLocalImplementers(IMMND_CB * cb, 
+    SaUint32T* arrSize, 
+    SaUint32T** implIdArr,
+    SaUint32T**  implConnArr)
+{
+    ConnVector cv;
+    ConnVector::iterator cvi;
+    IdVector idv;
+    IdVector::iterator idv_it;
+    unsigned int ix=0;
+
+    ImmModel::instance(&cb->immModel)->getLocalImplementers(cv, idv);
+    if(cv.size()){
+        *arrSize = cv.size();
+        *implIdArr = (SaUint32T *) malloc((*arrSize)* sizeof(SaUint32T));
+        *implConnArr = (SaUint32T *) malloc((*arrSize)* sizeof(SaUint32T));
+        for(cvi = cv.begin(), idv_it = idv.begin(); cvi!=cv.end(); ix++, cvi++, idv_it++){
+	    (*implIdArr)[ix] = (*idv_it);
+            (*implConnArr)[ix] = (*cvi);
+        }
+    }
+
+}
 unsigned int
 immModel_pbeOiExists(IMMND_CB *cb)
 {
@@ -3084,6 +3108,21 @@ ImmModel::getMaxSyncBatchSize()
     }
     TRACE_LEAVE();
     return mbSize;
+}
+
+void
+ImmModel::getLocalImplementers(ConnVector & cv, IdVector &idv)
+{
+    TRACE_ENTER();
+    ImplementerVector::iterator i;
+    for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {
+        ImplementerInfo* info = (*i);
+        if(info->mConn) {
+            cv.push_back(info->mConn);
+            idv.push_back(info->mId);
+        }
+    }
+    TRACE_LEAVE();
 }
 
 bool

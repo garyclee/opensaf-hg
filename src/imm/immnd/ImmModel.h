@@ -670,7 +670,11 @@ public:
    SaAisErrorT          verifyImmLimits(
                                          ObjectInfo* object,
                                          std::string objectName); 
-    
+
+   void 		getLocalImplementers( 
+                                              ConnVector & cv,
+                                              IdVector &idv);
+
 private:
     bool               checkSubLevel(
                                      const std::string& objectName, 

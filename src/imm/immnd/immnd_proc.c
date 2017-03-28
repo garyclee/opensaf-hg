@@ -369,6 +369,55 @@ void immnd_proc_imma_discard_stales(IMMND_CB *cb)
 	TRACE_LEAVE();
 }
 
+
+/****************************************************************************
+ * Name          : immnd_proc_unregister_local_implemeters
+ *
+ * Description   : Function to unregister local implementers 
+ *                 when node leaves CLM membership( CLM node lock).
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *
+ * Notes         : None.
+ *****************************************************************************/
+void immnd_proc_unregister_local_implemeters(IMMND_CB *cb)
+{
+	SaUint32T *implIdArr = NULL, * implConnArr = NULL;
+	SaUint32T arrSize = 0, ix=0;
+	SaImmOiHandleT implHandle;
+	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
+	IMMSV_EVT send_evt;
+	TRACE_ENTER();
+
+	immmModel_getLocalImplementers(cb, &arrSize, &implIdArr, &implConnArr);
+
+	for (ix = 0; ix < arrSize ; ix ++){
+		implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
+		immnd_client_node_get(cb, implHandle, &cl_node);
+		osafassert(cl_node);
+		if (cl_node->version.minorVersion >= 0x12 &&
+				cl_node->version.majorVersion == 0x2 &&
+				cl_node->version.releaseCode == 'A') {
+			osafassert(implIdArr[ix]);
+			TRACE_5("Discarding implementer id:%u for connection as node leaves "
+				"CLM membership: %u", implIdArr[ix], implConnArr[ix]);
+			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+			send_evt.type = IMMSV_EVT_TYPE_IMMD;
+			send_evt.info.immd.type = IMMD_EVT_ND2D_DISCARD_IMPL;
+			send_evt.info.immd.info.impl_set.r.impl_id = implIdArr[ix];
+			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt) 
+					!= NCSCC_RC_SUCCESS) {
+				LOG_WA("Discard implementer failed for implId:%u "
+						"node left CLM membership", implIdArr[ix]);
+				cl_node->mIsStale = true;
+			}
+			immModel_discardImplementer(cb, implIdArr[ix], false, NULL, NULL);
+		}
+	}
+	TRACE_LEAVE();
+}
+
+
 /**************************************************************************
  * Name     :  immnd_introduceMe
  *
