@@ -454,6 +454,10 @@ extern "C" {
 		...);
 
 	void immModel_setScAbsenceAllowed(IMMND_CB *cb);
+	
+	void immmModel_getLocalImplementers(IMMND_CB * cb, 
+		SaUint32T* arrSize, SaUint32T** implIdArr, 
+		SaUint32T**  implConnArr);
 
 #ifdef __cplusplus
 }
@@ -501,6 +505,7 @@ void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT *rsp, bool freeTop);
 
 /* File : ----  immnd_proc.c */
 uint32_t immnd_proc_server(uint32_t *timeout);
+void immnd_proc_unregister_local_implemeters(IMMND_CB *cb);
 /* End : ----  immnd_proc.c  */
 
 /* File : ----  immnd_clm.c */
