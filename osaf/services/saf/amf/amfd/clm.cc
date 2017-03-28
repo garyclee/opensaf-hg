@@ -200,6 +200,7 @@ static void clm_node_exit_complete(SaClmNodeIdT nodeId)
 
 	avd_node_failover(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+	node->clm_change_start_preceded = false;
 
 done:
 	TRACE_LEAVE();
@@ -215,7 +216,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 	AVD_AVND *node;
 
 	TRACE_ENTER2("'%llu' '%u' '%u'", invocation, step, error);
-
+	
 	if (error != SA_AIS_OK) {
 		LOG_ER("ClmTrackCallback received in error");
 		goto done;
@@ -229,10 +230,13 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 	** The CLM cluster can be larger than the AMF cluster thus it is not an
 	** error if the corresponding AMF node cannot be found.
 	*/
+	TRACE("numberOfMembers:'%u', numberOfItems:'%u'", numberOfMembers,
+			notificationBuffer->numberOfItems);
 	for (i = 0; i < notificationBuffer->numberOfItems; i++)
 	{
 		notifItem = &notificationBuffer->notification[i];
 		const std::string node_name(Amf::to_string(&notifItem->clusterNode.nodeName));
+		TRACE("i = %u, node:'%s', clusterChange:%u",i, node_name.c_str(), notifItem->clusterChange);
 		switch(step) {
 		case SA_CLM_CHANGE_VALIDATE:
 			if(notifItem->clusterChange == SA_CLM_NODE_LEFT) {
@@ -261,6 +265,10 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			}
 			if ( notifItem->clusterChange == SA_CLM_NODE_LEFT ||
 			     notifItem->clusterChange == SA_CLM_NODE_SHUTDOWN ) {
+				if (node->clm_change_start_preceded == true) {
+					TRACE_3("Already got callback for start of this change.");
+					continue;
+				}
 				/* invocation to be used by pending clm response */ 
 				node->clm_pend_inv = invocation;
 				clm_node_exit_start(node, notifItem->clusterChange);
@@ -295,25 +303,34 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					}
 					clm_node_exit_complete(notifItem->clusterNode.nodeId);
 				} else if (strncmp(osaf_extended_name_borrow(rootCauseEntity), "safNode=", 8) == 0) {
+					const std::string rootCause_clm_node(Amf::to_string(rootCauseEntity));
 					/* This callback is because of operation on CLM.*/
-					if(true == node->clm_change_start_preceded) {
+					if (true == node->clm_change_start_preceded) {
 						/* We have got a completed callback with start cbk step before, so 
 						   already locking applications might have been done. So, no action
-						   is needed.*/
-						node->clm_change_start_preceded = false; 
-						node->node_info.member = SA_FALSE;
-						m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
-					}
-					else
-					{
+						   is needed.
+						   Completed callback for a node going CLM admin operation may 
+						   come with completed callabck when some other CLM node leaves
+						   cluster membership becuase of OpenSAF stop or one more node is
+						   CLM locked and this second nodes exits first.
+						   Act only when callback comes for this admin op node.
+						 */
+						if (rootCause_clm_node.compare(node->saAmfNodeClmNode) == 0) {
+							node->clm_change_start_preceded = false;
+							node->node_info.member = SA_FALSE;
+							m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+						} else {
+							TRACE("'%s' not mapped to rootCauseEntity '%s'.",
+									node->name.c_str(), rootCause_clm_node.c_str());
+							continue;
+						}
+
+					} else {
 						/* We have encountered a completed callback without start step, there
 						   seems error condition, node would have gone down suddenly. */
 						clm_node_exit_complete(notifItem->clusterNode.nodeId);
 					}
-
-
-				}
-				else {
+				} else {
 					/* We shouldn't get into this situation.*/
 					LOG_ER("Wrong rootCauseEntity %s", osaf_extended_name_borrow(rootCauseEntity));
 					osafassert(0);
