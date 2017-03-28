@@ -8978,6 +8978,7 @@ static SaAisErrorT imma_finalizeCcb(SaImmCcbHandleT ccbHandle, bool keepCcbHandl
 		} else {
 			/* TRY_AGAIN or TIMEOUT => allow user to try finalize again. */
 			ccb_node->mExclusive = false;
+			goto done;
 		}
 		if(keepCcbHandleOpen) { /* saImmOmCcbAbort */
 			ccb_node->mApplied = true;
