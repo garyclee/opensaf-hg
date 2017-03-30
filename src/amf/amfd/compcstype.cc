@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -43,10 +44,8 @@ AVD_COMPCS_TYPE::AVD_COMPCS_TYPE(const std::string& dn) :
 
 void avd_compcstype_db_add(AVD_COMPCS_TYPE *cst)
 {
-	unsigned int rc;
-
 	if (compcstype_db->find(cst->name) == nullptr) {
-		rc = compcstype_db->insert(cst->name, cst); 
+		unsigned int rc = compcstype_db->insert(cst->name, cst); 
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -89,14 +88,13 @@ static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
 
 AVD_COMPCS_TYPE * avd_compcstype_find_match(const std::string& cstype_name, const AVD_COMP *comp)
 {
-	AVD_COMPCS_TYPE *cst = nullptr;
 	SaNameT dn;
 	const SaNameTWrapper cstype(cstype_name);
 
 	TRACE_ENTER();
 	avsv_create_association_class_dn(cstype, &comp->comp_info.name, "safSupportedCsType", &dn);
 	TRACE("'%s'", osaf_extended_name_borrow(&dn));
-	cst = compcstype_db->find(Amf::to_string(&dn));
+	AVD_COMPCS_TYPE *cst = compcstype_db->find(Amf::to_string(&dn));
 	osaf_extended_name_free(&dn);
 	TRACE_LEAVE();
 	return cst;

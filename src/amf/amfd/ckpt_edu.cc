@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -48,12 +49,11 @@
 *****************************************************************************/
 uint32_t avd_compile_ckpt_edp(AVD_CL_CB *cb)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR err = EDU_NORMAL;
 
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt, &err);
+	uint32_t rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt, &err);
 	if (rc != NCSCC_RC_SUCCESS)
 		goto error;
 

@@ -162,14 +162,13 @@ void AVD_SI::add_csi_db(AVD_CSI* csi)
 {
 	TRACE_ENTER2("%s", csi->name.c_str());
 
-	AVD_CSI *i_csi = nullptr;
 	AVD_CSI *prev_csi = nullptr;
 	bool found_pos =  false;
 
 	osafassert((csi != nullptr) && (csi->si != nullptr));
 	osafassert(csi->si == this);
 
-	i_csi = list_of_csi;
+	AVD_CSI *i_csi = list_of_csi;
 	while ((i_csi != nullptr) && (csi->rank <= i_csi->rank)) {
 		while ((i_csi != nullptr) && (csi->rank == i_csi->rank)) {
 			if (compare_sanamet(csi->name, i_csi->name) < 0) {
@@ -246,14 +245,10 @@ void AVD_SI::remove_rankedsu(const std::string& suname) {
 
 void AVD_SI::remove_csi(AVD_CSI* csi)
 {
-	AVD_CSI *i_csi = nullptr;
-	AVD_CSI *prev_csi = nullptr;
-	
 	osafassert(csi->si == this);
-
 	/* remove CSI from the SI */
-	prev_csi = nullptr;
-	i_csi = list_of_csi;
+	AVD_CSI *prev_csi = nullptr;
+	AVD_CSI *i_csi = list_of_csi;
 
 	// find 'csi'
 	while ((i_csi != nullptr) && (i_csi != csi)) {
@@ -322,11 +317,10 @@ AVD_SI *avd_si_new(const std::string& dn)
  */
 void AVD_SI::delete_csis()
 {
-	AVD_CSI *csi, *temp;
+	AVD_CSI *csi = list_of_csi; 
 
-	csi = list_of_csi; 
 	while (csi != nullptr) {
-		temp = csi;
+		AVD_CSI *temp = csi;
 		csi = csi->si_list_of_csi_next;
 		avd_csi_delete(temp);
 	}
@@ -382,10 +376,9 @@ void AVD_SI::delete_assignments(AVD_CL_CB *cb)
 void avd_si_db_add(AVD_SI *si)
 {
 	TRACE_ENTER2("%s", si->name.c_str());
-	unsigned int rc;
 
 	if (si_db->find(si->name) == nullptr) {
-		rc = si_db->insert(si->name, si);
+		 unsigned int rc = si_db->insert(si->name, si);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 	TRACE_LEAVE();
@@ -1481,7 +1474,7 @@ bool AVD_SI::is_sirank_valid(uint32_t newSiRank) const
 	std::list<AVD_SI*> depsi_list;
 	get_dependent_si_list(name, depsi_list);
 	for (std::list<AVD_SI*>::const_iterator it = depsi_list.begin();
-			it != depsi_list.end(); it++) {
+			it != depsi_list.end(); ++it) {
 		if (newSiRank > (*it)->saAmfSIRank) {
 			LOG_ER("Invalid saAmfSIRank, ('%s', rank: %u) is lower rank than "
 					"dependent si ('%s', rank: %u)", name.c_str(), newSiRank, 

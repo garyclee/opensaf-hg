@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -538,25 +539,22 @@ static void csiattr_change_send_msg(AVD_CSI *csi) {
 static void csiattr_modify_apply(CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
-	const SaImmAttrValuesT_2 *attribute;
 	AVD_CSI_ATTR *csiattr = nullptr, *i_attr, *tmp_csi_attr = nullptr;
 	std::string csi_attr_name;
-	std::string csi_dn;
 	int counter = 0;
 	unsigned int i = 0;
-	AVD_CSI *csi;
 
 	const std::string object_name(Amf::to_string(&opdata->objectName));
 
         /* extract the parent csi dn */
-	csi_dn = object_name.substr(object_name.find("safCsi="));
+	std::string csi_dn = object_name.substr(object_name.find("safCsi="));
 
-	csi = csi_db->find(csi_dn);
+	AVD_CSI *csi = csi_db->find(csi_dn);
 
 	csiattr_dn_to_csiattr_name(object_name, csi_attr_name);
 	/* create new name-value pairs for the modified csi attribute */
 	while ((attr_mod = opdata->param.modify.attrMods[counter++]) != nullptr) {
-		attribute = &attr_mod->modAttr;
+		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 		if (SA_IMM_ATTR_VALUES_ADD == attr_mod->modType) {
 			tmp_csi_attr = csi_name_value_pair_find_last_entry(csi, csi_attr_name);
 			if((nullptr != tmp_csi_attr)&&  (osaf_extended_name_length(&tmp_csi_attr->name_value.value) == 0)) {

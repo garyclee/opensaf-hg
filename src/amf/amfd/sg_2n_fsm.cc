@@ -2796,8 +2796,7 @@ uint32_t SG_2N::realign(AVD_CL_CB *cb, AVD_SG *sg) {
 }
 
 void SG_2N::node_fail_su_oper(AVD_SU *su) {
-	AVD_SU_SI_REL *a_susi, *s_susi, *s_susi_temp;
-	AVD_SU *o_su;
+	AVD_SU_SI_REL *s_susi, *s_susi_temp;
 	AVD_AVND *su_node_ptr = nullptr;
 	AVD_CL_CB *cb = avd_cb;
 
@@ -2806,7 +2805,7 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 
 	if (su_oper_list_front() == su) {
 		/* the SU is same as the SU in the list */
-		a_susi = avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
+		AVD_SU_SI_REL *a_susi = avd_sg_2n_act_susi(cb, su->sg_of_su, &s_susi);
 		/* If node fail happens while quiesced or qioescing role modification is in progress
 		 * there is possibility that all the susi wont be in quiesced or quiescing state
 		 * so when checking whether SU is in quiesced or quiescing assignment processing
@@ -2845,6 +2844,7 @@ void SG_2N::node_fail_su_oper(AVD_SU *su) {
 				avd_sg_su_oper_list_del(cb, su, false);
 				su->delete_all_susis();
 				su->sg_of_su->set_fsm_state(AVD_SG_FSM_STABLE);
+				AVD_SU *o_su;
 				if ((o_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 					/* add the SU to the operation list and change the SG FSM to SG realign. */
 					avd_sg_su_oper_list_add(cb, o_su, false);
@@ -3975,8 +3975,8 @@ void SG_2N::ng_admin(AVD_SU *su, AVD_AMF_NG *ng)
 		avd_sg_app_su_inst_func(avd_cb, su->sg_of_su);
 		return;
 	}
-	AVD_SU_SI_REL *s_susi = nullptr, *a_susi = nullptr;
-	a_susi = avd_sg_2n_act_susi(avd_cb, sg, &s_susi);
+	AVD_SU_SI_REL *s_susi = nullptr;
+	AVD_SU_SI_REL *a_susi = avd_sg_2n_act_susi(avd_cb, sg, &s_susi);
 
 	if ((sg->is_sg_assigned_only_in_ng(ng) == true) && (s_susi != nullptr)) {
 		AVD_AVND *actv_node = a_susi->su->su_on_node;

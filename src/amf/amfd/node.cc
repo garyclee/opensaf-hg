@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -46,12 +47,10 @@ bool NodeNameCompare::operator() (const AVD_AVND* lhs, const AVD_AVND* rhs) {
 
 uint32_t avd_node_add_nodeid(AVD_AVND *node)
 {
-	unsigned int rc;
-
 	if ((node_id_db->find(node->node_info.nodeId) == nullptr) &&
 			(node->node_info.nodeId != 0)) {
 		TRACE("added node %d", node->node_info.nodeId);
-		rc = node_id_db->insert(node->node_info.nodeId, node);
+		unsigned int rc = node_id_db->insert(node->node_info.nodeId, node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 
@@ -65,12 +64,11 @@ void avd_node_delete_nodeid(AVD_AVND *node)
 
 void avd_node_db_add(AVD_AVND *node)
 {
-	unsigned int rc;
 	TRACE_ENTER();
 
 	if (node_name_db->find(node->name) == nullptr) {
 		TRACE("add %s", node->name.c_str());
-		rc = node_name_db->insert(node->name, node);
+		unsigned int rc = node_name_db->insert(node->name, node);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 	TRACE_LEAVE();
@@ -197,7 +195,7 @@ void avd_node_delete(AVD_AVND *node)
 							delete compcstype;
 						}
 						else
-							it++;
+							++it;
 					}
 
 
@@ -578,9 +576,8 @@ static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata
 
 	/* This node shouldn't be part of any nodegroup. First this node has to be deleted from
 	   node group. */
-	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-			it != nodegroup_db->end(); it++) {
-		AVD_AMF_NG *ng = it->second;
+	for (const auto& value : *nodegroup_db) {
+		AVD_AMF_NG *ng = value.second;
 
 		if (node_in_nodegroup(Amf::to_string(&(opdata->objectName)), ng) == true) {
 			// if the node is being removed from nodegroup too, then it's OK
@@ -1551,9 +1548,8 @@ void node_reset_su_try_inst_counter(const AVD_AVND *node)
  */
 bool are_all_ngs_in_unlocked_state(const AVD_AVND *node)
 {
-        for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-                        it != nodegroup_db->end(); it++) {
-                AVD_AMF_NG *ng = it->second;
+	for (const auto& value : *nodegroup_db) {
+		AVD_AMF_NG *ng = value.second;
                 if ((node_in_nodegroup(node->name, ng) == true) &&
                                 (ng->saAmfNGAdminState != SA_AMF_ADMIN_UNLOCKED))
                         return false;
@@ -1567,9 +1563,8 @@ bool are_all_ngs_in_unlocked_state(const AVD_AVND *node)
  */
 bool any_ng_in_locked_in_state(const AVD_AVND *node)
 {
-	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-			it != nodegroup_db->end(); it++) {
-		AVD_AMF_NG *ng = it->second;
+	for (const auto& value : *nodegroup_db) {
+		AVD_AMF_NG *ng = value.second;
 		if ((node_in_nodegroup(node->name, ng) == true) &&
 				(ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
 			TRACE("Nodegroup '%s' is in locked-in", ng->name.c_str());

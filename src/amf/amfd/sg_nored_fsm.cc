@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -108,7 +109,6 @@ uint32_t SG_NORED::si_assign(AVD_CL_CB *cb, AVD_SI *si) {
 }
 
 uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
-	bool flag;
 	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
@@ -145,7 +145,7 @@ uint32_t SG_NORED::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			su_oper_list_add(su);
 			m_AVD_CLEAR_SG_ADMIN_SI(cb, (su->sg_of_su));
 		} else {	/* if (su->list_of_susi->si == su->sg_of_su->admin_si) */
-
+			bool flag;
 			m_AVD_CHK_OPLIST(su, flag);
 			if (flag == true) {
 				/* The SU is same as the SU in the list. If the HA state assignment

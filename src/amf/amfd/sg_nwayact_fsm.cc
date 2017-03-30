@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+* Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -88,9 +89,8 @@ AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		/* identify a in-service SU which is not assigned to this SI and can
 		 * take more assignments so that the SI can be assigned. 
 		 */
-		for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
-				it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
-			AVD_SUS_PER_SI_RANK *su_rank_rec = it->second;
+		for (const auto& value : *sirankedsu_db) {
+			AVD_SUS_PER_SI_RANK *su_rank_rec = value.second;
 			{
 				if (su_rank_rec->indx.si_name.compare(i_si->name) != 0)
 					continue;

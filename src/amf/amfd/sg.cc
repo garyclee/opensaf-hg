@@ -39,10 +39,8 @@ static void avd_verify_equal_ranked_su(AVD_SG *avd_sg);
 
 void avd_sg_db_add(AVD_SG *sg)
 {
-	unsigned int rc;
-
 	if (sg_db->find(sg->name) == nullptr) {
-		rc = sg_db->insert(sg->name,sg);
+		unsigned int rc = sg_db->insert(sg->name,sg);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -262,7 +260,6 @@ static int is_config_valid(const std::string& dn,
 
 static AVD_SG *sg_create(const std::string& sg_name, const SaImmAttrValuesT_2 **attributes)
 {
-	int rc = -1;
 	AVD_SG *sg;
 	AVD_AMF_SG_TYPE *sgt;
 	SaAisErrorT error;
@@ -388,13 +385,6 @@ static AVD_SG *sg_create(const std::string& sg_name, const SaImmAttrValuesT_2 **
 
 	/*  TODO use value in type instead? */
 	sg->sg_redundancy_model = sgt->saAmfSgtRedundancyModel;
-
-	rc = 0;
-
-	if (rc != 0) {
-		avd_sg_delete(sg);
-		sg = nullptr;
-	}
 
 	TRACE_LEAVE();
 	return sg;
@@ -637,7 +627,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(const CcbUtilOperationData_t *opdat
 				if (value_is_deleted == true)
 					continue;
 				uint32_t sg_autorepair = *((SaUint32T *)attribute->attrValues[0]);
-				if (sg_autorepair > true ) {
+				if (sg_autorepair > 1) {
 					report_ccb_validation_error(opdata,
 						"Invalid saAmfSGAutoRepair SG:'%s'", sg->name.c_str());
 					rc = SA_AIS_ERR_BAD_OPERATION;
@@ -926,7 +916,6 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				else
 					sg->saAmfSGAutoAdjust = static_cast<SaBoolT>(*((SaUint32T *)value));
 				TRACE("Modified saAmfSGAutoAdjust is '%u'", sg->saAmfSGAutoAdjust);
-			} else if (!strcmp(attribute->attrName, "saAmfSGAutoAdjust")) {
 			} else if (!strcmp(attribute->attrName, "saAmfSGNumPrefActiveSUs")) {
 				if (value_is_deleted)
 					sg->saAmfSGNumPrefActiveSUs = 1;
@@ -1142,11 +1131,10 @@ static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 uint32_t AVD_SG::term_su_list_in_reverse()
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVD_SU *su;
 
 	TRACE_ENTER2("sg: %s", this->name.c_str());
 	for (auto iter = list_of_su.rbegin(); iter != list_of_su.rend(); ++iter) {
-		su = *iter;
+		AVD_SU *su = *iter;
 		TRACE("terminate su:'%s'", su ? su->name.c_str() : nullptr);
 
 		if ((su->saAmfSUPreInstantiable == true) &&
@@ -2199,9 +2187,8 @@ done:
 bool avd_sg_validate_headless_cached_rta(AVD_CL_CB *cb) {
 	TRACE_ENTER();
 	bool valid = true;
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *i_sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *i_sg = value.second;
 		if (i_sg->sg_ncs_spec == true) {
 			continue;
 		}

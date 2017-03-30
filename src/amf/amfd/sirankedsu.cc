@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -42,13 +43,12 @@ static void avd_susi_namet_init(const std::string& object_name, std::string& su_
 
 static void avd_sirankedsu_db_add(AVD_SUS_PER_SI_RANK *sirankedsu)
 {
-	AVD_SI *avd_si = nullptr;
 	unsigned int rc = sirankedsu_db->insert(make_pair(sirankedsu->indx.si_name,
 		sirankedsu->indx.su_rank), sirankedsu);
 	osafassert(rc == NCSCC_RC_SUCCESS);
 
 	/* Find the si name. */
-	avd_si = avd_si_get(sirankedsu->indx.si_name);
+	AVD_SI *avd_si = avd_si_get(sirankedsu->indx.si_name);
 	avd_si->add_rankedsu(sirankedsu->su_name, sirankedsu->indx.su_rank);
 
 	/* Add sus_per_si_rank to si */
@@ -104,13 +104,12 @@ static AVD_SUS_PER_SI_RANK *avd_sirankedsu_create(AVD_CL_CB *cb, const AVD_SUS_P
 
 static AVD_SUS_PER_SI_RANK *avd_sirankedsu_find(AVD_CL_CB *cb, const AVD_SUS_PER_SI_RANK_INDX &indx)
 {
-	AVD_SUS_PER_SI_RANK *ranked_su_per_si = nullptr;
 	AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
 	rank_indx.si_name = indx.si_name;
 	rank_indx.su_rank = indx.su_rank;
 
-	ranked_su_per_si = sirankedsu_db->find(make_pair(rank_indx.si_name,
+	AVD_SUS_PER_SI_RANK *ranked_su_per_si = sirankedsu_db->find(make_pair(rank_indx.si_name,
 				rank_indx.su_rank));
 
 	return ranked_su_per_si;
@@ -160,7 +159,6 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
 		const SaImmAttrValuesT_2 **attributes)
 {
         uint32_t rank = 0;
-	AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank = nullptr;
 	std::string su_name;
 	std::string si_name;
 	AVD_SUS_PER_SI_RANK_INDX indx;
@@ -173,7 +171,7 @@ static AVD_SUS_PER_SI_RANK * avd_sirankedsu_ccb_apply_create_hdlr(SaNameT *dn,
 	indx.si_name = si_name;
 	indx.su_rank = rank;
 
-	avd_sus_per_si_rank = avd_sirankedsu_create(avd_cb, indx);
+	AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank = avd_sirankedsu_create(avd_cb, indx);
 	osafassert(avd_sus_per_si_rank);
 
 	avd_sus_per_si_rank->su_name = su_name;
@@ -232,7 +230,6 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 
 static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
-        AVD_SI *avd_si = nullptr;
 	std::string su_name;
 	std::string si_name;
         uint32_t rank = 0;
@@ -242,7 +239,7 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
         avd_susi_namet_init(dn, su_name, si_name);
 
         /* Find the si name. */
-        avd_si = avd_si_get(si_name);
+        AVD_SI *avd_si = avd_si_get(si_name);
 
         if (avd_si == nullptr) {
                 /* SI does not exist in current model, check CCB */
@@ -350,9 +347,8 @@ static int avd_sirankedsu_ccb_complete_delete_hdlr(CcbUtilOperationData_t *opdat
 	avd_susi_namet_init(Amf::to_string(opdata->param.delete_.objectName), su_name, si_name);
 
 	/* determine if the su is ranked per si */
-	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
-			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
-		su_rank_rec = it->second;
+	for (const auto& value : *sirankedsu_db) {
+		su_rank_rec = value.second;
 
 		if (su_rank_rec->indx.si_name.compare(si_name) == 0 &&
 			su_rank_rec->su_name.compare(su_name) == 0) {

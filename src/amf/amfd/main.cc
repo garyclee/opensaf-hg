@@ -254,8 +254,6 @@ static void standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* This function should generally never be called
 	 * log the event to the debug log at information level and return
 	 */
-	AVD_DND_MSG *n2d_msg;
-
 	LOG_IN("avd_standby_invalid_evh: %u", evt->rcv_evt);
 
 	if ((evt->rcv_evt >= AVD_EVT_NODE_UP_MSG) && (evt->rcv_evt <= AVD_EVT_VERIFY_ACK_NACK_MSG)) {
@@ -264,7 +262,7 @@ static void standby_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			return;
 		}
 
-		n2d_msg = evt->info.avnd_msg;
+		AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = nullptr;
 	}
@@ -287,8 +285,6 @@ static void qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* This function should generally never be called
 	 * log the event to the debug log at information level and return
 	 */
-	AVD_DND_MSG *n2d_msg;
-
 	LOG_IN("avd_qsd_invalid_evh: %u", evt->rcv_evt);
 
 	/* we need not send sync update to stanby */
@@ -300,7 +296,7 @@ static void qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			return;
 		}
 
-		n2d_msg = evt->info.avnd_msg;
+		AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = nullptr;
 	}
@@ -320,10 +316,7 @@ static void qsd_invalid_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 static void qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* Ignore this Event. Free this msg */
-	AVD_DND_MSG *n2d_msg;
-
 	LOG_IN("avd_qsd_ignore_evh: %u", evt->rcv_evt);
-
 	/* we need not send sync update to stanby */
 	cb->sync_required = false;
 
@@ -333,7 +326,7 @@ static void qsd_ignore_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			return;
 		}
 
-		n2d_msg = evt->info.avnd_msg;
+		AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = nullptr;
 	}
@@ -402,8 +395,6 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 
 	std::map<uint32_t, AVD_FAIL_OVER_NODE *>::const_iterator it = node_list_db->begin();
 	if (it == node_list_db->end()) {
-		AVD_EVT_QUEUE *queue_evt;
-
 		/* We have received the info from all the nodes. */
 		cb->avd_fover_state = false;
 
@@ -411,7 +402,7 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 		   and process them now */
 
 		while (!cb->evt_queue.empty()) {
-			queue_evt = cb->evt_queue.front();
+			AVD_EVT_QUEUE *queue_evt = cb->evt_queue.front();
 			cb->evt_queue.pop();
 			process_event(cb, queue_evt->evt);
 			delete queue_evt;
@@ -426,8 +417,8 @@ static void handle_event_in_failover_state(AVD_EVT *evt)
 				it != node_id_db->end();) {
 			AVD_AVND *node = it->second;
 			++it;
-			bool fover_done = false;
 			if (AVD_AVND_STATE_ABSENT == node->node_state) {
+				bool fover_done = false;
 				/* Check whether this node failover has been
 				   performed or not. */
 				for (const auto& i_su : node->list_of_ncs_su) {

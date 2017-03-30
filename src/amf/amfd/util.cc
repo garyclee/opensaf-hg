@@ -529,16 +529,15 @@ uint32_t avd_snd_su_reg_msg(AVD_CL_CB *cb, AVD_AVND *avnd, bool fail_over)
 	if (avnd->node_info.nodeId == cb->node_id_avd) {
 		// filter out external SUs from all SUs
 		std::vector<AVD_SU*> ext_su_vec;
-		for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-				it != su_db->end(); it++) {
-			su = it->second;
+		for (const auto& value : *su_db) {
+			su = value.second;
 			if (su->su_is_external == true)
 				ext_su_vec.push_back(su);
 		}
 
 		// And add them
 		for (std::vector<AVD_SU*>::iterator it = ext_su_vec.begin();
-				it != ext_su_vec.end(); it++) {
+				it != ext_su_vec.end(); ++it) {
 			su = *it;
 			reg_su_msg_init_su_info(su_msg, su);
 		}
@@ -1029,7 +1028,6 @@ uint32_t avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 static uint32_t avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectionGroupNotificationBufferT *mem_list)
 {
 	AVD_COMP_CSI_REL *curr = 0;
-	uint32_t i = 0;
 
 	TRACE_ENTER();
 
@@ -1038,7 +1036,7 @@ static uint32_t avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectio
 	if (csi->compcsi_cnt) {
 		/* alloc the memory for the notify buffer */
 		mem_list->notification = new SaAmfProtectionGroupNotificationT[csi->compcsi_cnt]();
-
+		uint32_t i = 0;
 		/* copy the contents */
 		for (curr = csi->list_compcsi; curr; curr = curr->csi_csicomp_next, i++) {
 			SaNameT comp_name;
@@ -1269,13 +1267,12 @@ uint32_t avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 uint32_t avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg)
 {
-	AVD_DND_MSG *d2n_msg = nullptr;
 	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER();
 
 	/* prepare the component validation message. */
-	d2n_msg = new AVSV_DND_MSG();
+	AVD_DND_MSG *d2n_msg = new AVSV_DND_MSG();
 
 	/* prepare the componenet validation response message */
 	d2n_msg->msg_type = AVSV_D2N_COMP_VALIDATION_RESP_MSG;
@@ -1388,9 +1385,8 @@ int amfd_file_dump(const char *filename)
 
 
 	fprintf(f, "nodes:\n");
-	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
-			it != node_id_db->end(); it++) {
-		AVD_AVND *node = it->second;
+	for (const auto& value : *node_id_db) {
+		AVD_AVND *node = value.second;
 		fprintf(f, "  dn: %s\n", node->name.c_str());
 		fprintf(f, "    saAmfNodeAdminState: %s\n",
 				avd_adm_state_name[node->saAmfNodeAdminState]);
@@ -1404,9 +1400,8 @@ int amfd_file_dump(const char *filename)
 	}
 
 	fprintf(f, "applications:\n");
-	for (std::map<std::string, AVD_APP*>::const_iterator it = app_db->begin();
-			it != app_db->end(); it++) {
-		const AVD_APP *app = it->second;
+	for (const auto& value : *app_db) {
+		const AVD_APP *app = value.second;
 		fprintf(f, "  dn: %s\n", app->name.c_str());
 		fprintf(f, "    saAmfApplicationAdminState: %s\n",
 				avd_adm_state_name[app->saAmfApplicationAdminState]);
@@ -1415,9 +1410,8 @@ int amfd_file_dump(const char *filename)
 	}
 
 	fprintf(f, "service_instances:\n");
-	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
-			it != si_db->end(); it++) {
-		si = it->second;
+	for (const auto& value : *si_db) {
+		si = value.second;
 		fprintf(f, "  dn: %s\n", si->name.c_str());
 		fprintf(f, "    saAmfSIProtectedbySG: %s\n",
 				si->saAmfSIProtectedbySG.c_str());
@@ -1442,9 +1436,8 @@ int amfd_file_dump(const char *filename)
 	}
 
 	fprintf(f, "component_service_instances:\n");
-	for (std::map<std::string, AVD_CSI*>::const_iterator it = csi_db->begin();
-			it != csi_db->end(); it++) {
-		csi = it->second;
+	for (const auto& value : *csi_db) {
+		csi = value.second;
 		fprintf(f, "  dn: %s\n", csi->name.c_str());
 		fprintf(f, "    rank: %u\n", csi->rank);
 		fprintf(f, "    depends:\n");
@@ -1461,9 +1454,8 @@ int amfd_file_dump(const char *filename)
 	}
 
 	fprintf(f, "service_groups:\n");
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		const AVD_SG *sg = it->second;
+	for (const auto& value : *sg_db) {
+		const AVD_SG *sg = value.second;
 		fprintf(f, "  dn: %s\n", sg->name.c_str());
 		fprintf(f, "    saAmfSGAdminState: %s\n",
 				avd_adm_state_name[sg->saAmfSGAdminState]);
@@ -1478,9 +1470,8 @@ int amfd_file_dump(const char *filename)
 	}
 
 	fprintf(f, "service_units:\n");
-	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-		const AVD_SU *su = it->second;
+	for (const auto& value : *su_db) {
+		const AVD_SU *su = value.second;
 		fprintf(f, "  dn: %s\n", su->name.c_str());
 		fprintf(f, "    saAmfSUPreInstantiable: %u\n", su->saAmfSUPreInstantiable);
 		fprintf(f, "    saAmfSUOperState: %s\n",
@@ -1506,9 +1497,8 @@ int amfd_file_dump(const char *filename)
 	}
 
 	fprintf(f, "components:\n");
-	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
-			it != comp_db->end(); it++) {
-		const AVD_COMP *comp  = it->second;
+	for (const auto& value : *comp_db) {
+		const AVD_COMP *comp  = value.second;
 		fprintf(f, "  dn: %s\n", osaf_extended_name_borrow(&comp->comp_info.name));
 		fprintf(f, "    saAmfCompOperState: %s\n",
 				avd_oper_state_name[comp->saAmfCompOperState]);
@@ -1522,9 +1512,8 @@ int amfd_file_dump(const char *filename)
 	}
 
         fprintf(f, "COMPCS_TYPE:\n");
-        for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
-                        it != compcstype_db->end(); it++) {
-                const AVD_COMPCS_TYPE *compcs_type  = it->second;
+	for (const auto& value : *compcstype_db) {
+		const AVD_COMPCS_TYPE *compcs_type  = value.second;
                 fprintf(f, "  dn: %s\n", compcs_type->name.c_str());
                 fprintf(f, "    saAmfCompNumMaxActiveCSIs: %u\n",
                                 compcs_type->saAmfCompNumMaxActiveCSIs);
@@ -1538,9 +1527,8 @@ int amfd_file_dump(const char *filename)
 
 
 	fprintf(f, "Node Groups:\n");
-	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-                        it != nodegroup_db->end(); it++) {
-		AVD_AMF_NG *ng = it->second;
+	for (const auto& value : *nodegroup_db) {
+		AVD_AMF_NG *ng = value.second;
 		fprintf(f, "  dn: %s\n", ng->name.c_str());
 		fprintf(f, "    saAmfNGAdminState: %s\n",avd_adm_state_name[ng->saAmfNGAdminState]);
 	}
@@ -1563,7 +1551,6 @@ int avd_admin_op_msg_snd(const std::string& dn, AVSV_AMF_CLASS_ID class_id,
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 	AVD_DND_MSG *d2n_msg;
-	unsigned int rc = NCSCC_RC_SUCCESS;
 
 	SaNameT temp_dn;
 	osaf_extended_name_alloc(dn.c_str(), &temp_dn);
@@ -1578,7 +1565,7 @@ int avd_admin_op_msg_snd(const std::string& dn, AVSV_AMF_CLASS_ID class_id,
 	d2n_msg->msg_info.d2n_admin_op_req_info.class_id = class_id;
 	d2n_msg->msg_info.d2n_admin_op_req_info.oper_id = opId;
 
-	rc = avd_d2n_msg_snd(cb, node, d2n_msg);
+	unsigned int rc = avd_d2n_msg_snd(cb, node, d2n_msg);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("%s: snd to %x failed", __FUNCTION__, node->node_info.nodeId);
 		d2n_msg_free(d2n_msg);
@@ -2009,16 +1996,13 @@ uint32_t avd_snd_compcsi_msg(AVD_COMP *comp, AVD_CSI *csi, AVD_COMP_CSI_REL *com
   AVSV_CSI_ATTRS *ptr_csiattr_msg = nullptr;
   AVSV_ATTR_NAME_VAL *i_ptr_msg = nullptr;
   AVD_CSI_ATTR *attr_ptr_db = nullptr;
-  AVD_AVND *avnd = nullptr;
 
   TRACE_ENTER2("'%s', '%s', act:%u",
     osaf_extended_name_borrow(&compcsi->comp->comp_info.name),
     csi->name.c_str(), act);
 
-  //Depending upon the message sub type retrieve node from eligible entity.
-  if (act == AVSV_COMPCSI_ATTR_CHANGE_AND_NO_ACK) {
-    avnd = comp->su->get_node_ptr();
-  }
+  AVD_AVND *avnd = comp->su->get_node_ptr();
+  
   if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
     (avnd->node_state == AVD_AVND_STATE_GO_DOWN)) {
     TRACE_LEAVE();
@@ -2075,7 +2059,6 @@ uint32_t avd_snd_compcsi_msg(AVD_COMP *comp, AVD_CSI *csi, AVD_COMP_CSI_REL *com
       d2n_msg_free(compcsi_msg);
       TRACE_LEAVE();
       return NCSCC_RC_FAILURE;
-      break;
     }
   }
 

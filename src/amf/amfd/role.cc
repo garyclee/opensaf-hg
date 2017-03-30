@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -695,9 +696,8 @@ static void reset_admin_op_params_after_impl_clear()
 {
 	TRACE_ENTER();
 	//For ng.
-	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-			it != nodegroup_db->end(); it++) {
-		AVD_AMF_NG *ng = it->second;
+	for (const auto& value : *nodegroup_db) {
+		AVD_AMF_NG *ng = value.second;
 		if (ng->admin_ng_pend_cbk.invocation != 0) {
 			ng->admin_ng_pend_cbk.invocation = 0;
 			ng->admin_ng_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
@@ -709,29 +709,25 @@ static void reset_admin_op_params_after_impl_clear()
 		}
 	}
 	//For Node.
-	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
-			it != node_id_db->end(); it++) {
-		AVD_AVND *node = it->second;
+	for (const auto& value : *node_id_db) {
+		AVD_AVND *node = value.second;
 		node->admin_node_pend_cbk.invocation = 0;
 		node->admin_node_pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 	}
 	//For SI.
-	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
-			it != si_db->end(); it++) {
-		AVD_SI *si = it->second;
+	for (const auto& value : *si_db) {
+		AVD_SI *si = value.second;
 		si->invocation = 0;
 	}
 	//For SG.
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *sg = value.second;
 		sg->adminOp_invocationId = 0;
 		sg->adminOp = static_cast<SaAmfAdminOperationIdT>(0);
 	}
 	//For SU.
-	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-		AVD_SU *su = it->second;
+	for (const auto& value : *su_db) {
+		AVD_SU *su = value.second;
 		su->pend_cbk.invocation = 0;
                 su->pend_cbk.admin_oper = static_cast<SaAmfAdminOperationIdT>(0);
 
@@ -862,8 +858,6 @@ try_again:
 
 void amfd_switch(AVD_CL_CB *cb)
 {
-	AVD_AVND *avnd = nullptr;  
-
 	TRACE_ENTER();
 
 	LOG_NO("Controller switch over initiated");
@@ -871,7 +865,7 @@ void amfd_switch(AVD_CL_CB *cb)
 
 	/* First check if there are any other SI's that are any other active */
 	/* get the avnd from node_id */
-	avnd = avd_node_find_nodeid(cb->node_id_avd);
+	AVD_AVND *avnd = avd_node_find_nodeid(cb->node_id_avd);
 
 	for (const auto& i_su : avnd->list_of_ncs_su) {
 		if ((i_su->list_of_susi != 0) &&
@@ -910,7 +904,6 @@ void amfd_switch(AVD_CL_CB *cb)
 
 uint32_t avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVD_EVT *evt;
 
 	evt = new AVD_EVT;
@@ -921,7 +914,7 @@ uint32_t avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role)
 	evt->info.avd_msg->msg_info.d2d_chg_role_req.cause = AVD_SWITCH_OVER;
 	evt->info.avd_msg->msg_info.d2d_chg_role_req.role =  role; 
 
-	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, static_cast<NCS_IPC_PRIORITY>(MDS_SEND_PRIORITY_HIGH));
+	uint32_t rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, static_cast<NCS_IPC_PRIORITY>(MDS_SEND_PRIORITY_HIGH));
 	osafassert(rc == NCSCC_RC_SUCCESS);
 	return rc;
 }
@@ -1130,9 +1123,8 @@ uint32_t amfd_switch_qsd_stdby(AVD_CL_CB *cb)
 	}
 
 	/* Walk through all the nodes and  free PG records. */
-	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
-			it != node_id_db->end(); it++) {
-		AVD_AVND *avnd = it->second;
+	for (const auto& value : *node_id_db) {
+		AVD_AVND *avnd = value.second;
 		avd_pg_node_csi_del_all(cb, avnd);
 	}
 
@@ -1281,9 +1273,8 @@ uint32_t amfd_switch_stdby_actv(AVD_CL_CB *cb)
 
 	avd_act_on_sis_in_tol_timer_state();
 	/* Screen through all the SG's in the sg database and update si's si_dep_state */
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *sg = value.second;
 		if (sg->sg_fsm_state == AVD_SG_FSM_STABLE) {
 			avd_sidep_update_si_dep_state_for_all_sis(sg);
 			avd_sidep_sg_take_action(sg);

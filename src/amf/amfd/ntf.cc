@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2010 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -897,11 +898,10 @@ SaAisErrorT avd_start_ntf_init_bg(void)
 
 AvdJobDequeueResultT NtfSend::exec(const AVD_CL_CB *cb) {
   AvdJobDequeueResultT res;
-  SaAisErrorT rc = SA_AIS_OK;
   TRACE_ENTER2("Ntf Type:%x, sent status:%u", myntf.notificationType,
     already_sent); 
 
-  rc = avd_try_send_notification(this);
+  SaAisErrorT rc = avd_try_send_notification(this);
   if (rc == SA_AIS_OK) {
     delete Fifo::dequeue();
     res = JOB_EXECUTED;

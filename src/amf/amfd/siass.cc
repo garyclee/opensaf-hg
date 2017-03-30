@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -448,9 +449,8 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	 */
 
 	/* determine if the su is ranked per si */
-	for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
-			it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
-		su_rank_rec = it->second;
+	for (const auto& value : *sirankedsu_db) {
+		su_rank_rec = value.second;
 		if (su_rank_rec->indx.si_name.compare(si->name) != 0)
 			continue;
 		curr_su = su_db->find(su_rank_rec->su_name);
@@ -469,9 +469,8 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 				continue;
 
 			/* determine the su_rank rec for this rec */
-			for (std::map<std::pair<std::string, uint32_t>, AVD_SUS_PER_SI_RANK*>::const_iterator
-					it = sirankedsu_db->begin(); it != sirankedsu_db->end(); it++) {
-				i_su_rank_rec = it->second;
+			for (const auto& value : *sirankedsu_db) {
+				i_su_rank_rec = value.second;
 				if (i_su_rank_rec->indx.si_name.compare(si->name) != 0)
 					continue;
 				curr_su = su_db->find(i_su_rank_rec->su_name);
@@ -1038,9 +1037,8 @@ bool avd_susi_quiesced_canbe_given(const AVD_SU_SI_REL *susi)
 		return quiesc_role;
 	} else {
 		/* Check if any of its dependents assigned to same SU for which quiesced role is not yet given */
-		for (std::map<std::pair<std::string,std::string>, AVD_SI_DEP*>::const_iterator it = sidep_db->begin();
-			it != sidep_db->end(); it++) {
-			const AVD_SI_DEP *sidep = it->second;
+		for (const auto& value : *sidep_db) {
+			const AVD_SI_DEP *sidep = value.second;
 			if (sidep->spons_si->name.compare(susi->si->name) != 0) 
 				continue;
 
@@ -1074,12 +1072,11 @@ SaAisErrorT avd_susi_recreate(AVSV_N2D_ND_SISU_STATE_MSG_INFO* info)
 	TRACE_ENTER2("msg_id: %u node_id: %u num_sisu: %u", info->msg_id,
 		info->node_id, info->num_sisu);
 	AVD_SU_SI_REL *susi = nullptr;
-	AVD_AVND *node = nullptr;
 
 	const AVSV_SISU_STATE_MSG *susi_state = nullptr;
 	const AVSV_SU_STATE_MSG *su_state = nullptr;
 
-	node = avd_node_find_nodeid(info->node_id);
+	AVD_AVND *node = avd_node_find_nodeid(info->node_id);
 	if (node == 0) {
           LOG_ER("Node %" PRIx32 " has left the cluster", info->node_id);
           return SA_AIS_ERR_NOT_EXIST;

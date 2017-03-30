@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -61,7 +62,6 @@ done:
 static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
-	int i;
 	const AVD_COMP_TYPE *comp_type;
 	std::string comp_type_name;
 	const std::string object_name(Amf::to_string(&opdata->objectName));
@@ -90,7 +90,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 		
 	std::set<AVD_AVND*>::iterator it;
 	for (it = node_set.begin(); it != node_set.end(); ++it) {
-		i = 0;
+		int i = 0;
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			AVSV_PARAM_INFO param;
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;

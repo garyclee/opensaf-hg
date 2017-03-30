@@ -1294,12 +1294,11 @@ free_msg:
 uint32_t avsv_send_data_req(AVD_CL_CB *cb)
 {
 	NCS_MBCSV_ARG mbcsv_arg = {};
-	NCS_UBAID *uba = nullptr;
 
 	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 
-	uba = &mbcsv_arg.info.send_data_req.i_uba;
+	NCS_UBAID *uba = &mbcsv_arg.info.send_data_req.i_uba;
 
 	memset(uba, '\0', sizeof(NCS_UBAID));
 

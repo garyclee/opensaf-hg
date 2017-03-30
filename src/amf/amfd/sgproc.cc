@@ -645,10 +645,9 @@ done:
 static void perform_cluster_reset_recovery() {
   TRACE_ENTER();
   uint32_t rc = NCSCC_RC_SUCCESS;
-  AVD_AVND *node = nullptr;
-  for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
-    it != node_id_db->end(); it++) {
-    node = it->second;
+  AVD_AVND *node;
+  for (const auto& value : *node_id_db) {
+	  node = value.second;
     //First reboot payloads.
     if ((node->node_info.nodeId == avd_cb->node_id_avd) ||
 		    (node->node_info.nodeId == avd_cb->node_id_avd_other))
@@ -660,7 +659,6 @@ static void perform_cluster_reset_recovery() {
   }
 
   //Send for standby.
-  node = nullptr;
   node = avd_node_find_nodeid(avd_cb->node_id_avd_other);
   if (node != nullptr) {
     rc = avd_send_reboot_msg_directly(node);
@@ -669,7 +667,6 @@ static void perform_cluster_reset_recovery() {
   }
 
   //Send for self.
-  node = nullptr;
   node = avd_node_find_nodeid(avd_cb->node_id_avd);
   osafassert(node != nullptr);
   rc = avd_send_reboot_msg_directly(node);
@@ -1497,9 +1494,8 @@ void avd_su_si_assign_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 					/* Since a NCS SU has been assigned trigger the node FSM. */
 					/* For (ncs_spec == SA_TRUE), su will not be external, so su
 						   will have node attached. */
-					for (AmfDb<uint32_t, AVD_AVND>::const_iterator it = node_id_db->begin();
-						it != node_id_db->end(); it++) {
-						AVD_AVND *node = (*it).second;
+					for (const auto& value : *node_id_db) {
+						AVD_AVND *node = value.second;
 
 						if (node->node_state == AVD_AVND_STATE_NCS_INIT && node->adest != 0) {
 							avd_nd_ncs_su_assigned(cb, node);
@@ -1792,8 +1788,7 @@ AVD_SU* su_to_instantiate(AVD_SG *sg)
  */
 AVD_SU* su_to_terminate(AVD_SG *sg)
 {
-	AmfDb<std::string, AVD_SU> *su_rank = nullptr;
-	su_rank = new  AmfDb<std::string, AVD_SU>;
+	AmfDb<std::string, AVD_SU> *su_rank = new  AmfDb<std::string, AVD_SU>;
 	for (const auto& i_su : sg->list_of_su) {
 		TRACE("In Seq %s, %u", i_su->name.c_str(), i_su->saAmfSURank);
 		su_rank->insert(i_su->name, i_su);
@@ -1868,7 +1863,6 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	uint32_t num_insvc_su = 0;
 	uint32_t num_asgd_su = 0;
-	uint32_t num_su = 0;
 	uint32_t num_try_insvc_su = 0;
 	AVD_AVND *su_node_ptr = nullptr;
 
@@ -1884,7 +1878,6 @@ uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 		TRACE("term_state: %u", i_su->term_state);
 
 		su_node_ptr = i_su->get_node_ptr();
-		num_su++;
 		/* Check if the SU is inservice */
 		if (i_su->saAmfSuReadinessState == SA_AMF_READINESS_IN_SERVICE) {
 			num_insvc_su++;

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -66,7 +67,6 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
 	int i = 0;
 	unsigned j;
 	std::string::size_type parent;
-	AVD_AMF_SG_TYPE *sg_type;
 	const SaImmAttrValuesT_2 *attr;
 
 	parent = dn.find(',');
@@ -82,15 +82,15 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
 	}
 
 	while ((attr = attributes[i++]) != nullptr)
-		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
+		if (!strcmp(attr->attrName, "saAmfApptSGTypes")) {
+			osafassert(attr->attrValuesNumber > 0);
 			break;
-
+		}
 	osafassert(attr);
-	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
-		sg_type = sgtype_db->find(Amf::to_string(name));
+		AVD_AMF_SG_TYPE *sg_type = sgtype_db->find(Amf::to_string(name));
 		if (sg_type == nullptr) {
 			if (opdata == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", osaf_extended_name_borrow(name));
@@ -113,7 +113,6 @@ static AVD_APP_TYPE *apptype_create(const std::string& dn, const SaImmAttrValues
 {
 	int i = 0;
 	unsigned int j;
-	int rc = -1;
 	AVD_APP_TYPE *app_type;
 	const SaImmAttrValuesT_2 *attr;
 
@@ -122,20 +121,16 @@ static AVD_APP_TYPE *apptype_create(const std::string& dn, const SaImmAttrValues
 	app_type = new AVD_APP_TYPE(dn);
 
 	while ((attr = attributes[i++]) != nullptr)
-		if (!strcmp(attr->attrName, "saAmfApptSGTypes"))
+		if (!strcmp(attr->attrName, "saAmfApptSGTypes")) {
+			osafassert(attr->attrValuesNumber > 0);
 			break;
+		}
 
 	osafassert(attr);
-	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		app_type->sgAmfApptSGTypes.push_back(Amf::to_string(static_cast<SaNameT*>(attr->attrValues[j])));
 	}
-
-	rc = 0;
-
-	if (rc != 0)
-		apptype_delete(&app_type);
 
 	TRACE_LEAVE();
 

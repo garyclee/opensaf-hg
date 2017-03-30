@@ -515,7 +515,7 @@ static AVD_AVND *map_su_to_node(AVD_SU *su)
 	/* Find a node in the group that doesn't have a SU in same SG mapped to it already */
 	for (node_iter = ng->saAmfNGNodeList.begin();
 		node_iter != ng->saAmfNGNodeList.end();
-		node_iter++) {
+		++node_iter) {
 
 		node = avd_node_get(*node_iter);
 		osafassert(node);
@@ -1344,8 +1344,7 @@ static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation
 					su->saAmfSUOperState, op_id);
 			goto done;
 		}
-		SaAisErrorT rc = SA_AIS_OK;
-		rc = su->check_su_stability();
+		SaAisErrorT rc = su->check_su_stability();
                 if (rc != SA_AIS_OK) {
                         report_admin_op_error(immoi_handle, invocation,
                                               SA_AIS_ERR_TRY_AGAIN, nullptr,
@@ -1943,10 +1942,8 @@ void su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 
 			//Create a tmp database of compcstype.
 			std::set<std::string> compcstype_list;
-			for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it =
-					compcstype_db->begin();
-					it != compcstype_db->end(); it++) {
-				AVD_COMPCS_TYPE *compcstype = it->second;
+			for (const auto& value : *compcstype_db) {
+				AVD_COMPCS_TYPE *compcstype = value.second;
 				compcstype_list.insert(compcstype->name);
 			}
 			TRACE("Standby Amfd, comp '%s' not deleted", osaf_extended_name_borrow(&comp->comp_info.name));

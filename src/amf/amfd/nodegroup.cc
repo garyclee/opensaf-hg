@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -70,11 +71,12 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
 	}
 
 	while ((attr = attributes[i++]) != nullptr)
-		if (!strcmp(attr->attrName, "saAmfNGNodeList"))
+		if (!strcmp(attr->attrName, "saAmfNGNodeList")) {
+			osafassert(attr->attrValuesNumber > 0);
 			break;
+		}
 
 	osafassert(attr);
-	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = static_cast<SaNameT *>(attr->attrValues[j]);
@@ -220,9 +222,8 @@ SaAisErrorT avd_ng_config_get(void)
 
 	/* Could be here as a consequence of a fail/switch-over. Delete the DB
 	** since it is anyway not synced and needs to be rebuilt. */
-	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-			it != nodegroup_db->end(); it++) {
-		AVD_AMF_NG *ng = it->second;
+	for (const auto& value : *nodegroup_db) {
+		AVD_AMF_NG *ng = value.second;
 		ng_delete(ng);
 	}
 
@@ -1403,9 +1404,8 @@ void avd_ng_restore_headless_states(AVD_CL_CB *cb, struct avd_su_si_rel_tag* sus
 		if (susi->state == SA_AMF_HA_QUIESCED || susi->state == SA_AMF_HA_QUIESCING ||
 				susi->fsm == AVD_SU_SI_STATE_UNASGN) {
 
-	    	for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-	    		it != nodegroup_db->end(); it++) {
-	    		AVD_AMF_NG *ng = it->second;
+			for (const auto& value : *nodegroup_db) {
+				AVD_AMF_NG *ng = value.second;
 	    		for (std::set<std::string>::const_iterator iter = ng->saAmfNGNodeList.begin();
 	    				iter != ng->saAmfNGNodeList.end(); ++iter) {
 	    			AVD_AVND *node = avd_node_get(*iter);
