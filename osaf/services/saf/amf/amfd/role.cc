@@ -276,7 +276,7 @@ uint32_t avd_active_role_initialization(AVD_CL_CB *cb, SaAmfHAStateT role)
         }
 
 	if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_imm_config_get FAILED");
+		LOG_ER("avd_imm_config_get FAILED, AMF will not start.");
 		goto done;
 	}
 
@@ -310,7 +310,7 @@ uint32_t avd_standby_role_initialization(AVD_CL_CB *cb)
         }
 
 	if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
-		LOG_ER("avd_imm_config_get FAILED");
+		LOG_ER("avd_imm_config_get FAILED, AMF will not start.");
 		goto done;
 	}
 
