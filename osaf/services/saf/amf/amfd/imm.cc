@@ -1642,7 +1642,7 @@ done:
 	if (rc == NCSCC_RC_SUCCESS)
 		TRACE("AMF Configuration successfully read from IMM");
 	else
-		LOG_ER("Failed to read configuration, AMF will not start");
+		LOG_WA("Failed to read configuration.");
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -1928,11 +1928,19 @@ static void *avd_imm_reinit_bg_thread(void *_cb)
 				osaf_mutex_unlock_ordie(&imm_reinit_mutex);
 				exit(EXIT_FAILURE);
 			}
-
+			/* Lets re-initialize Om interface also. */
+			(void) immutil_saImmOmFinalize(cb->immOmHandle);
+			if ((rc = immutil_saImmOmInitialize(&cb->immOmHandle, nullptr, &immVersion)) != SA_AIS_OK) {
+				LOG_ER("saImmOmInitialize failed %u", rc);
+				continue;
+			}
 			if (avd_imm_config_get() != NCSCC_RC_SUCCESS) {
-				LOG_ER("avd_imm_config_get FAILED");
-				osaf_mutex_unlock_ordie(&imm_reinit_mutex);
-				exit(EXIT_FAILURE);
+				/* This can come when Immnd is killed again during
+				   config read and reading the config returned BAD_HANDLE.
+				   In other return types also, it is good to retry.
+				   In normal situations, retry will help. */
+				LOG_WA("avd_imm_config_get FAILED");
+				continue;
 			}
 		}
 		break;
