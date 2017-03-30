@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -541,7 +542,7 @@ static uint32_t assign_si_to_su(const AVND_CB *cb, AVND_SU_SI_REC *si, AVND_SU *
 	if (!m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		TRACE("SU is NPI");
 
-		if ((single_csi == true) && (si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN)) {
+		if ((single_csi == 1) && (si->single_csi_add_rem_in_si == AVSV_SUSI_ACT_ASGN)) {
 			// we are adding a CSI to an unlocked SU
 
 			// first find the newly added unassigned CSI
@@ -956,10 +957,10 @@ static bool all_sis_atrank_removed(const AVND_SU_SI_REC *si)
  */
 static void su_finish_suRestart_escalation_or_admin_op(AVND_SU *su) 
 {
-	bool are_si_assigned;
 	TRACE_ENTER2("'%s'", su->name.c_str());
 	if ((su_all_comps_restartable(*su) == true) || ((is_any_non_restartable_comp_assigned(*su) == false) 
 				&& (!m_AVND_SU_IS_FAILED(su)))) {
+		bool are_si_assigned;
 		TRACE("All the components restartable or non restartable comps are not assigned.");
 		m_AVND_SU_ARE_ALL_SI_ASSIGNED(su, are_si_assigned);
 		if (true == are_si_assigned) {
@@ -1553,7 +1554,6 @@ static uint32_t npi_su_instantiating_to_instantiated(AVND_SU *su)
 static uint32_t pi_su_instantiating_to_instantiated(AVND_SU *su)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	bool is_en;
 	TRACE_ENTER();
 
 	/* A SU can be restarted because all components faulted with component 
@@ -1580,7 +1580,7 @@ static uint32_t pi_su_instantiating_to_instantiated(AVND_SU *su)
 		}
 		su->admin_op_Id = static_cast<SaAmfAdminOperationIdT>(0);
 	} else {
-
+		bool is_en;
 		/* determine the su oper state. if enabled, inform avd. */
 		m_AVND_SU_IS_ENABLED(su, is_en);
 		if (true == is_en) {
@@ -2711,13 +2711,13 @@ uint32_t avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP
 ******************************************************************************/
 uint32_t avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 {
-	bool is;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	const std::string compname = comp ? comp->name: "none";
 	TRACE_ENTER2("ComponentInstantiate event in the terminating state:'%s' : '%s'", 
 				 su->name.c_str(), compname.c_str());
 
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
+		bool is;
 		if (m_AVND_COMP_IS_FAILED(comp)) {
 			m_AVND_COMP_FAILED_RESET(comp);
 		}
@@ -3767,7 +3767,7 @@ uint32_t avnd_su_pres_terming_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 		osafassert(si);
 
 		csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&si->csi_list);
-		if (csi) {
+		if ((csi) && (csi->comp)) {
 			/* mark the csi state assigning */
 			m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_ASSIGNING);
 
@@ -3776,13 +3776,13 @@ uint32_t avnd_su_pres_terming_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *
 			rc = avnd_comp_clc_fsm_run(cb, csi->comp, AVND_COMP_CLC_PRES_FSM_EV_INST);
 			if (NCSCC_RC_SUCCESS != rc)
 				goto done;
+			if ((csi->comp->pres == SA_AMF_PRESENCE_INSTANTIATING) &&
+					(su->pres == SA_AMF_PRESENCE_TERMINATING))
+				avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
 		}
-		if ((csi->comp) && (csi->comp->pres == SA_AMF_PRESENCE_INSTANTIATING) &&
-				(su->pres == SA_AMF_PRESENCE_TERMINATING))
-			avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATING);
 	}
 
- done:
+done:
 	if (rc == NCSCC_RC_FAILURE)
 		avnd_su_pres_state_set(cb, su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
 	TRACE_LEAVE2("%u", rc);

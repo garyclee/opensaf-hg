@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -42,13 +43,12 @@
 ******************************************************************************/
 uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 {
-	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
 	NODE_ID node_id = 0;
 	uint32_t res = NCSCC_RC_SUCCESS;
 
 	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
+	AVND_NODEID_TO_MDSDEST_MAP *rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
 	if (rec != nullptr) {
 		LOG_ER("nodeid_mdsdest rec already exists, Rec Add Failed: MdsDest:%" PRId64 ", NodeId:%u",
 				    mds_dest, node_id);
@@ -89,13 +89,10 @@ uint32_t avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 ******************************************************************************/
 uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 {
-	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
-	NODE_ID node_id = 0;
 	uint32_t res = NCSCC_RC_SUCCESS;
+	NODE_ID node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
+	AVND_NODEID_TO_MDSDEST_MAP *rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
 
-	node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
-
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
 	if (rec == nullptr) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec del failed: MdsDest:%" PRId64 " NodeId:%u",
 				    mds_dest, node_id);
@@ -123,9 +120,7 @@ uint32_t avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 ******************************************************************************/
 MDS_DEST avnd_get_mds_dest_from_nodeid(AVND_CB *cb, NODE_ID node_id)
 {
-	AVND_NODEID_TO_MDSDEST_MAP *rec = nullptr;
-
-	rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
+	AVND_NODEID_TO_MDSDEST_MAP *rec = (AVND_NODEID_TO_MDSDEST_MAP *)cb->nodeid_mdsdest_db.find(node_id);
 	if (rec == nullptr) {
 		LOG_ER("nodeid_mdsdest rec doesn't exist, Rec get failed: NodeId:%u",node_id);
 		return 0;
@@ -266,8 +261,7 @@ uint32_t avnd_internode_comp_del(AVND_CB *cb, const std::string& name)
 	cb->internode_avail_comp_db.erase(comp->name);
 
 	/* free the memory */
-	if (comp)
-		avnd_comp_delete(comp);
+	avnd_comp_delete(comp);
 	return rc;
 
  err:

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -101,10 +102,8 @@ uint32_t avnd_mds_reg(AVND_CB *cb)
 	NCSMDS_INFO mds_info;
 	NCSADA_INFO ada_info;
 	MDS_SVC_ID svc_ids[2];
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
 	/* get the mds-hdl & avnd mds address */
-	rc = avnd_mds_param_get(cb);
+	uint32_t rc = avnd_mds_param_get(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_CR("MDS param get failed");
 		return NCSCC_RC_FAILURE;
@@ -872,14 +871,13 @@ done:
 uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	AVSV_NDA_AVA_MSG *ava;
-	uint32_t rc = NCSCC_RC_SUCCESS, i;
 	SaStringT value = nullptr;
 
 	ava = ((AVND_MSG *)enc_info->i_msg)->info.ava;
 	osafassert(ava);
 
 	/* encode top-level ava message structure into userbuf */
-	rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uint8_t *)ava, sizeof(AVSV_NDA_AVA_MSG));
+	uint32_t rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uint8_t *)ava, sizeof(AVSV_NDA_AVA_MSG));
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -910,7 +908,7 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 				}
 
 				if (cbk_info->param.csi_set.attrs.number) {
-					for(i=0; i<cbk_info->param.csi_set.attrs.number; i++) {
+					for(uint32_t i=0; i<cbk_info->param.csi_set.attrs.number; i++) {
 						rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
 							(uint8_t *)&cbk_info->param.csi_set.attrs.list[i].name,
 							sizeof(SaNameT));
@@ -975,7 +973,7 @@ uint32_t avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 									cbk_info->param.pg_track.buf.numberOfItems);
 					if (NCSCC_RC_SUCCESS != rc)
 						goto done;
-					for (i = 0; i < cbk_info->param.pg_track.buf.numberOfItems; i++) {
+					for (uint32_t i = 0; i < cbk_info->param.pg_track.buf.numberOfItems; i++) {
 						if (osaf_is_an_extended_name(&cbk_info->param.pg_track.buf.notification[i].member.compName)) {
 							osaf_encode_sanamet(enc_info->io_uba, &cbk_info->param.pg_track.buf.notification[i].member.compName);
 						}
@@ -1546,14 +1544,13 @@ done:
 uint32_t avnd_mds_param_get(AVND_CB *cb)
 {
 	NCSADA_INFO ada_info;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&ada_info, 0, sizeof(ada_info));
 
 	ada_info.req = NCSADA_GET_HDLS;
 
 	/* invoke ada request */
-	rc = ncsada_api(&ada_info);
+	uint32_t rc = ncsada_api(&ada_info);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -1584,8 +1581,6 @@ uint32_t avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	MDS_SEND_INFO *send_info = nullptr;
-	MDS_SENDTYPE_SNDRSP_INFO *send = nullptr;
 
 	TRACE_ENTER();
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -1596,8 +1591,8 @@ uint32_t avnd_avnd_mds_send(AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
 
 	mds_info.i_op = MDS_SEND;
 
-	send_info = &mds_info.info.svc_send;
-	send = &send_info->info.sndrsp;
+	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
+	MDS_SENDTYPE_SNDRSP_INFO *send = &send_info->info.sndrsp;
 
 	/* populate the send info */
 	send_info->i_msg = (NCSCONTEXT)i_msg;

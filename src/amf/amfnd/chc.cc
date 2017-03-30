@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -570,19 +571,22 @@ void avnd_comp_hc_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 {
 	TRACE_ENTER();
 	/* remove the association with hdl-mngr */
-	if (rec->opq_hdl)
-		ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, rec->opq_hdl);
+	if (rec) {
 
-	/* stop the healthcheck timer */
-	if (m_AVND_TMR_IS_ACTIVE(rec->tmr)) {
-		m_AVND_TMR_COMP_HC_STOP(cb, *rec);
+		if (rec->opq_hdl)
+			ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, rec->opq_hdl);
+
+		/* stop the healthcheck timer */
+		if (m_AVND_TMR_IS_ACTIVE(rec->tmr)) {
+			m_AVND_TMR_COMP_HC_STOP(cb, *rec);
+		}
+
+		/* unlink from the comp-hc list */
+		m_AVND_COMPDB_REC_HC_REM(*comp, *rec);
+		delete rec;
 	}
-
-	/* unlink from the comp-hc list */
-	m_AVND_COMPDB_REC_HC_REM(*comp, *rec);
 	TRACE_LEAVE();
 	/* free the record */
-	delete rec;
 }
 
 /****************************************************************************
@@ -599,9 +603,8 @@ void avnd_comp_hc_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 ******************************************************************************/
 void avnd_comp_hc_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 {
-	AVND_COMP_HC_REC *rec = 0;
 	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
-
+	AVND_COMP_HC_REC *rec;
 	/* scan & delete each healthcheck record */
 	while (0 != (rec = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list))) {
 		avnd_comp_hc_rec_del(cb, comp, rec);
@@ -839,7 +842,6 @@ void avnd_comp_hc_cmd_stop(AVND_CB *cb, AVND_COMP *comp)
 ******************************************************************************/
 uint32_t avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 {
-	AVND_COMP_CBK *cbk_rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
@@ -851,6 +853,7 @@ uint32_t avnd_comp_hc_rec_stop(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
 	 * healthchecks.
 	 */
 	if (m_AVND_COMP_HC_REC_IS_AMF_INITIATED(rec)) {
+		AVND_COMP_CBK *cbk_rec = 0;
 		m_AVND_COMPDB_CBQ_HC_CBK_GET(comp, rec->key, cbk_rec);
 		if (cbk_rec)
 			/* pop & delete this record */
@@ -1014,13 +1017,12 @@ void avnd_comp_hc_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl, MDS_D
 ******************************************************************************/
 uint32_t avnd_dblist_hc_rec_cmp(uint8_t *key1, uint8_t *key2)
 {
-	int i = 0;
 	AVND_COMP_HC_REC *rec1, *rec2;
 
 	rec1 = (AVND_COMP_HC_REC *)key1;
 	rec2 = (AVND_COMP_HC_REC *)key2;
 
-	i = avsv_dblist_sahckey_cmp((uint8_t *)&rec1->key, (uint8_t *)&rec2->key);
+	int i = avsv_dblist_sahckey_cmp((uint8_t *)&rec1->key, (uint8_t *)&rec2->key);
 
 	if (i == 0)
 		return avsv_dblist_uns64_cmp((uint8_t *)&rec1->req_hdl, (uint8_t *)&rec2->req_hdl);

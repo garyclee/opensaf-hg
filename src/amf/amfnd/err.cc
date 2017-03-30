@@ -311,14 +311,13 @@ uint32_t avnd_evt_ava_err_clear_evh(AVND_CB *cb, AVND_EVT *evt)
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
 static uint32_t avnd_err_rcvr_cluster_reset(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp) {
-  uint32_t rc = NCSCC_RC_SUCCESS;
   TRACE_ENTER();
 
   m_AVND_COMP_FAILED_SET(failed_comp);
   m_AVND_SU_FAILED_SET(failed_su);
 
   m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-  rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
+  uint32_t rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
   if (NCSCC_RC_SUCCESS != rc)
     goto done;
 
@@ -360,10 +359,14 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 {
 	uint32_t esc_rcvr = err_info->rec_rcvr.raw;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Comp:'%s' esc_rcvr:'%u'", comp->name.c_str(), esc_rcvr);
-	
 	const uint32_t previous_esc_rcvr = esc_rcvr;
+	TRACE_ENTER();
+	
+	if (!comp)
+		goto done;
 
+	TRACE("Comp:'%s' esc_rcvr:'%u'", comp->name.c_str(), esc_rcvr);
+	
 	/* If Amf was waiting for down event to come regarding term cbq, but
 	   error has occurred, so reset the variable (irrespective of Sa-Aware
 	   PI or Proxied PI)*/
@@ -407,7 +410,7 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	}
 
 	/* We need not entertain errors when comp is not in shape. */
-	if (comp && (m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(comp) ||
+	if ((m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(comp) ||
 		     m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(comp) ||
 		     m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(comp)))
 		goto done;
@@ -469,8 +472,6 @@ uint32_t avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 
 	/* execute the recovery */
 	rc = avnd_err_recover(cb, comp->su, comp, esc_rcvr);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
 
  done:
 	TRACE_LEAVE2("Return value:'%u'", rc);
@@ -664,13 +665,11 @@ uint32_t avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, uint32_t rc
 ******************************************************************************/
 static uint32_t avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
-
 	/* mark the comp failed */
 	m_AVND_COMP_FAILED_SET(comp);
 
-	rc = comp_restart_initiate(comp);
+	uint32_t rc = comp_restart_initiate(comp);
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -692,7 +691,6 @@ static uint32_t avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
 ******************************************************************************/
 uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* mark the su & comp failed */
@@ -703,7 +701,7 @@ uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_co
 	/* change the comp & su oper state to disabled */
 	m_AVND_SU_OPER_STATE_SET(su, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
+	uint32_t rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -798,17 +796,14 @@ uint32_t avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_co
  */
 uint32_t avnd_err_rcvr_comp_failover(AVND_CB *cb, AVND_COMP *failed_comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVND_SU *su;
-
 	TRACE_ENTER2("'%s'", failed_comp->name.c_str());
-	su = failed_comp->su;
+	AVND_SU *su = failed_comp->su;
 	/* mark the comp failed */
 	m_AVND_COMP_FAILED_SET(failed_comp);
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
+	uint32_t rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -935,7 +930,6 @@ done:
 ******************************************************************************/
 uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 	AVND_COMP *comp;
 	/* increase log level to info */
@@ -946,7 +940,7 @@ uint32_t avnd_err_rcvr_node_switchover(AVND_CB *cb, AVND_SU *failed_su, AVND_COM
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
+	uint32_t rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -1586,7 +1580,6 @@ uint32_t avnd_evt_tmr_node_err_esc_evh(AVND_CB *cb, AVND_EVT *evt)
 ******************************************************************************/
 uint32_t avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *failed_comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* mark the comp & su failed */
@@ -1595,7 +1588,7 @@ uint32_t avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP 
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
+	uint32_t rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 

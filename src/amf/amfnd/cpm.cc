@@ -102,13 +102,11 @@ uint32_t avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
 ******************************************************************************/
 uint32_t avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
-
 	/*update the key */
 	rec->comp_dll_node.key = (uint8_t *)&rec->pid;
 
 	/* add rec */
-	rc = ncs_db_link_list_add(&comp->pm_list, &rec->comp_dll_node);
+	uint32_t rc = ncs_db_link_list_add(&comp->pm_list, &rec->comp_dll_node);
 	if (NCSCC_RC_SUCCESS != rc)
 		return rc;
 
@@ -138,16 +136,16 @@ uint32_t avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *re
 ******************************************************************************/
 void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaUint64T pid = rec->pid;
 	TRACE_ENTER2("Comp '%s'", comp->name.c_str());
 
 	/* delete the PM_REC from pm_list */
-	rc = ncs_db_link_list_del(&comp->pm_list, (uint8_t *)&rec->pid);
+	uint32_t rc = ncs_db_link_list_del(&comp->pm_list, (uint8_t *)&rec->pid);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_NO("PM Rec doesn't exist in Comp '%s' of pid %llu", comp->name.c_str(), pid);
 	}
-	rec = nullptr;		/* rec is no more, dont use it */
+
+	rec = nullptr;        /* rec is no more, dont use it */
 
 	/* remove the corresponding element from mon_req list */
 	rc = avnd_mon_req_del(cb, pid);
@@ -328,7 +326,6 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
 {
 
 	AVND_COMP_PM_REC *rec = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	*sa_err = SA_AIS_OK;
 
 	rec = new AVND_COMP_PM_REC();
@@ -343,7 +340,7 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
 	rec->comp = comp;
 
 	/* add the rec to comp's PM_REC */
-	rc = avnd_comp_pm_rec_add(cb, comp, rec);
+	uint32_t rc = avnd_comp_pm_rec_add(cb, comp, rec);
 	if (NCSCC_RC_SUCCESS != rc) {
 		delete rec;
 		rec = 0;

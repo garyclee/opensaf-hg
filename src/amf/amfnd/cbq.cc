@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -438,8 +439,7 @@ uint32_t avnd_evt_ava_resp_evh(AVND_CB *cb, AVND_EVT *evt)
 
 		/* check, if the older assignment was overriden by new one, if so trash this resp */
 		if (!csi) {
-			AVND_COMP_CSI_REC *temp_csi = nullptr;
-			temp_csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
+			AVND_COMP_CSI_REC *temp_csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
 
 			if (cbk_rec->cbk_info->param.csi_set.ha != temp_csi->si->curr_state) {
 
@@ -731,7 +731,6 @@ uint32_t avnd_comp_cbq_send(AVND_CB *cb,
 uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, bool timer_start)
 {
 	AVND_MSG msg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_msg = nullptr;
 	AVSV_NDA_AVA_MSG *temp_ptr = nullptr;
 
@@ -745,7 +744,7 @@ uint32_t avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec
 	/* populate the msg */
 	msg.type = AVND_MSG_AVA;
 	msg.info.ava->type = AVSV_AVND_AMF_CBK_MSG;
-	rc = avsv_amf_cbk_copy(&msg.info.ava->info.cbk_info, rec->cbk_info);
+	uint32_t rc = avsv_amf_cbk_copy(&msg.info.ava->info.cbk_info, rec->cbk_info);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -1129,8 +1128,7 @@ void avnd_comp_unreg_cbk_process(AVND_CB *cb, AVND_COMP *comp)
 
 				/* check, if the older assignment was overriden by new one, if so trash this resp */
 				if (!csi) {
-					AVND_COMP_CSI_REC *temp_csi = nullptr;
-					temp_csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
+					AVND_COMP_CSI_REC *temp_csi = m_AVND_COMPDB_REC_CSI_GET_FIRST(*comp);
 
 					if (cbk->cbk_info->param.csi_set.ha != temp_csi->si->curr_state) {
 						avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, true);

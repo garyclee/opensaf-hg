@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.i
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -365,12 +366,11 @@ uint32_t avnd_evt_send(AVND_CB *cb, AVND_EVT *evt)
 \**************************************************************************/
 uint32_t avnd_evt_ha_state_change_evh(AVND_CB *cb, AVND_EVT *evt)
 {
-	AVND_HA_STATE_CHANGE_EVT *ha_state_event = nullptr;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER();
 
-	ha_state_event = &evt->info.ha_state_change;
+	AVND_HA_STATE_CHANGE_EVT *ha_state_event = &evt->info.ha_state_change;
 
 	if (nullptr == ha_state_event)
 		return rc;

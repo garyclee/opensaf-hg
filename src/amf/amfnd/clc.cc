@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -607,19 +608,17 @@ done:
 ******************************************************************************/
 static uint32_t comp_clc_resp_callback(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *info)
 {
-	AVND_CLC_EVT *clc_evt = nullptr;
-	AVND_EVT *evt = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	assert(info != nullptr);
-	clc_evt = (AVND_CLC_EVT *)info->i_usr_hdl;
+	AVND_CLC_EVT *clc_evt = (AVND_CLC_EVT *)info->i_usr_hdl;
 
 	/* fill the clc-evt param */
 	clc_evt->exec_stat = info->exec_stat;
 
 	/* create the event */
-	evt = avnd_evt_create(avnd_cb, AVND_EVT_CLC_RESP, 0, 0, 0, clc_evt, static_cast<AVND_COMP_FSM_EVT*>(0));
+	AVND_EVT *evt = avnd_evt_create(avnd_cb, AVND_EVT_CLC_RESP, 0, 0, 0, clc_evt, static_cast<AVND_COMP_FSM_EVT*>(0));
 	if (!evt) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -1353,12 +1352,12 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 
 	if ((SA_AMF_PRESENCE_INSTANTIATED == prv_st)
 	    && (SA_AMF_PRESENCE_ORPHANED == final_st)) {
-		AVND_COMP_CBK *rec = 0, *curr_rec = 0;
+		AVND_COMP_CBK *rec = 0;
 
 		rec = comp->cbk_list;
 		while (rec) {
 			/* manage the list ptr's */
-			curr_rec = rec;
+			AVND_COMP_CBK *curr_rec = rec;
 			rec = rec->next;
 
 			/* flush out the cbk related to health check */
@@ -1381,7 +1380,6 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 
 	if ((SA_AMF_PRESENCE_ORPHANED == prv_st)
 	    && (SA_AMF_PRESENCE_INSTANTIATED == final_st)) {
-		AVND_COMP_CBK *rec = 0, *curr_rec = 0;
 
 		if (comp->pend_evt == AVND_COMP_CLC_PRES_FSM_EV_TERM)
 			rc = avnd_comp_clc_fsm_trigger(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_TERM);
@@ -1392,10 +1390,10 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 		if ((comp->pend_evt != AVND_COMP_CLC_PRES_FSM_EV_TERM) &&
 		    (comp->pend_evt != AVND_COMP_CLC_PRES_FSM_EV_RESTART)) {
 			/* There are no pending events, lets proccess the callbacks */
-			rec = comp->cbk_list;
+			AVND_COMP_CBK *rec = comp->cbk_list;
 			while (rec) {
 				/* manage the list ptr's */
-				curr_rec = rec;
+				AVND_COMP_CBK *curr_rec = rec;
 				rec = rec->next;
 
 				/* mds dest & hdl might have changed */
@@ -1405,7 +1403,7 @@ uint32_t avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, SaAmfPresenceSt
 
 				/* send it */
 				rc = avnd_comp_cbq_rec_send(cb, comp, curr_rec, true);
-				if (NCSCC_RC_SUCCESS != rc && curr_rec) {
+				if (NCSCC_RC_SUCCESS != rc) {
 					avnd_comp_cbq_rec_pop_and_del(cb, comp, curr_rec, true);
 				}
 			}	/* while loop */
@@ -1705,11 +1703,10 @@ uint32_t avnd_comp_clc_xxxing_instfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 ******************************************************************************/
 uint32_t avnd_comp_clc_insting_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s': Terminate event in the Instantiating state", comp->name.c_str());
 
 	/* as the comp has not fully instantiated, it is cleaned up */
-	rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
+	uint32_t rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 	if (NCSCC_RC_SUCCESS == rc) {
 		/* reset the comp-reg & instantiate params */
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
@@ -1746,11 +1743,10 @@ uint32_t avnd_comp_clc_insting_term_hdler(AVND_CB *cb, AVND_COMP *comp)
 ******************************************************************************/
 uint32_t avnd_comp_clc_insting_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s': Cleanup event in the Instantiating state", comp->name.c_str());
 
 	/* cleanup the comp */
-	rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
+	uint32_t rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 	if (NCSCC_RC_SUCCESS == rc) {
 		/* reset the comp-reg & instantiate params */
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
@@ -1948,11 +1944,10 @@ uint32_t avnd_comp_clc_insting_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 ******************************************************************************/
 uint32_t avnd_comp_clc_insting_restart_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("'%s': Restart event in the Instantiating state", comp->name.c_str());
 
 	/* cleanup the comp */
-	rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
+	uint32_t rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 	if (NCSCC_RC_SUCCESS == rc) {
 		/* reset the comp-reg & instantiate params */
 		m_AVND_COMP_REG_PARAM_RESET(cb, comp);
@@ -2367,13 +2362,12 @@ uint32_t avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 		if ((!comp->su->is_ncs) && (comp->csi_list.n_nodes > 0) &&
 				(!m_AVND_SU_IS_PREINSTANTIABLE(comp->su))) {
-			AVND_COMP_CSI_REC *csi = nullptr;
 			/*
 			   Explantion written above for PI SU case is valid here also.
 			   However for a NPI comp in NPI SU, mark it REMOVED instead of 
 			   generating remove done indication. 
 			 */
-			csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
+			 AVND_COMP_CSI_REC *csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 			if (csi != nullptr)
 				m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(csi, AVND_COMP_CSI_ASSIGN_STATE_REMOVED);
 		}
@@ -3039,18 +3033,17 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 	if (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) && !m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 		AVND_COMP_CSI_REC *csi;
 		AVSV_ATTR_NAME_VAL *csiattr;
-		unsigned int i;
 
 		TRACE_1("Component is NPI, %u", comp->csi_list.n_nodes);
 
 		if (comp->csi_list.n_nodes == 1) {
+			unsigned int i;
 			csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
 
 			osafassert(csi);
 
 			/* allocate additional env_set memory for the CSI attributes */
-			NCS_OS_ENVIRON_SET_NODE* tmp = nullptr;
-			tmp = static_cast<NCS_OS_ENVIRON_SET_NODE*>(realloc(env_set, sizeof(NCS_OS_ENVIRON_SET_NODE) * (env_set_nmemb + 
+			NCS_OS_ENVIRON_SET_NODE *tmp = static_cast<NCS_OS_ENVIRON_SET_NODE*>(realloc(env_set, sizeof(NCS_OS_ENVIRON_SET_NODE) * (env_set_nmemb + 
 						csi->attrs.number)));
 			osafassert(tmp);
 			env_set = tmp;
@@ -3169,7 +3162,6 @@ uint32_t avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_C
 ******************************************************************************/
 uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Executing Component Failover: Instantiation failed SU: '%s' : Failed component: '%s'",
 								su->name.c_str(), failed_comp->name.c_str());
 
@@ -3178,7 +3170,7 @@ uint32_t avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_c
 
 	/* update comp oper state */
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
-	rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
+	uint32_t rc = avnd_comp_oper_state_avd_sync(cb, failed_comp);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 

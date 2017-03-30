@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -188,11 +189,11 @@ void avnd_msgid_assert(uint32_t rcv_msg_id)
  */
 void avnd_comp_cleanup_launch(AVND_COMP *comp)
 {
-	char str[128];
 	uint32_t rc;
 
 	rc = avnd_comp_clc_fsm_run(avnd_cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 	if (rc != NCSCC_RC_SUCCESS) {
+		char str[128];
 		LOG_ER("Failed to launch cleanup of '%s'", comp->name.c_str());
 		snprintf(str, sizeof(str), "Stopping OpenSAF failed due to '%s'", comp->name.c_str());
 		opensaf_reboot(avnd_cb->node_info.nodeId,

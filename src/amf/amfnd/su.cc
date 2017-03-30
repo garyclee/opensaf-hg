@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -1002,14 +1003,13 @@ done:
 uint32_t avnd_evt_avd_compcsi_evh(AVND_CB *cb, AVND_EVT *evt) {
   AVND_COMP_CSI_PARAMS_INFO *compcsi_info = &evt->info.avd->msg_info.d2n_compcsi_assign_msg_info;
   AVND_COMP_CSI_REC *csi_rec = nullptr;
-  AVND_COMP *comp = nullptr;
   //AVND_SU_SIQ_REC *siq = 0;
   uint32_t rc = NCSCC_RC_SUCCESS;
   const std::string comp_name = Amf::to_string(&compcsi_info->comp_name);
   const std::string csi_name = Amf::to_string(&compcsi_info->csi_name);
 
   TRACE_ENTER2("'%s', '%s', act:%u", comp_name.c_str(), csi_name.c_str(), compcsi_info->msg_act);
-  comp = avnd_compdb_rec_get(cb->compdb, comp_name);
+  AVND_COMP *comp = avnd_compdb_rec_get(cb->compdb, comp_name);
   if (!comp) {
     LOG_ER("compcsi_evh: '%s' not found, action:%u",
       comp_name.c_str(), compcsi_info->msg_act);

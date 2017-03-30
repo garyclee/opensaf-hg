@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -123,7 +124,6 @@ typedef struct amf_comp_type {
 
 static SaAisErrorT avnd_compglobalattrs_config_get(SaImmHandleT immOmHandle)
 {
-	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
 	std::string dn = "safRdn=compGlobalAttributes,safApp=safAmfService";
@@ -131,7 +131,7 @@ static SaAisErrorT avnd_compglobalattrs_config_get(SaImmHandleT immOmHandle)
 	TRACE_ENTER();
 
 	amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
-	rc = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes);
+	SaAisErrorT rc = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, nullptr, (SaImmAttrValuesT_2 ***)&attributes);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOmAccessorGet_2 FAILED %u", rc);
 		goto done;
@@ -482,8 +482,8 @@ uint32_t avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				uint32_t disable_restart;
 				osafassert(sizeof(uint32_t) == param->value_len);
 				disable_restart = ntohl(*(uint32_t *)(param->value));
-				osafassert(disable_restart <= true);
-				comp->is_restart_en = (disable_restart == true) ? false : true;
+				osafassert(disable_restart <= 1);
+				comp->is_restart_en = (disable_restart == 1) ? false : true;
 				LOG_NO("saAmfCompDisableRestart changed to %u for '%s'", 
 					   disable_restart, comp->name.c_str());
 				break;
@@ -715,7 +715,7 @@ uint32_t avnd_comptype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 		goto done;
 	}
 
-	rc = NCSCC_RC_SUCCESS;
+
 
 done:
 	rc = NCSCC_RC_SUCCESS;
@@ -729,13 +729,14 @@ static void avnd_comptype_delete(amf_comp_type_t *compt)
 {
 	int arg_counter;
 	char *argv;
-	TRACE_ENTER2("'%s'", compt->name.c_str());
+	TRACE_ENTER();
 
 	if (!compt) {
 		TRACE_LEAVE();
 		return;
 	}
-
+	
+	TRACE("'%s'", compt->name.c_str());
 	/* Free saAmfCtDefCmdEnv[i] before freeing saAmfCtDefCmdEnv */
 	if (compt->saAmfCtDefCmdEnv != nullptr) {
 		arg_counter = 0;
@@ -1375,12 +1376,11 @@ done1:
  */
 void avnd_comp_delete(AVND_COMP *comp)
 {
-	int env_counter;
 	SaStringT env;
 
         /* Free saAmfCompCmdEnv[i] before freeing saAmfCompCmdEnv */
         if (comp->saAmfCompCmdEnv != nullptr) {
-        	env_counter = 0;
+        	int env_counter = 0;
         	while ((env = comp->saAmfCompCmdEnv[env_counter++]) != nullptr)
         		delete [] env;
         	delete [] comp->saAmfCompCmdEnv;
