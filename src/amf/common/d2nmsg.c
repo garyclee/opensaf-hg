@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -227,10 +228,9 @@ static uint32_t cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_
 static void free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
-	uint16_t i;
 
 	if (info->mem_list.numberOfItems) {
-		for (i = 0; i< info->mem_list.numberOfItems; i++) {
+		for (uint16_t i = 0; i< info->mem_list.numberOfItems; i++) {
 			osaf_extended_name_free(&info->mem_list.notification[i].member.compName);
 		}
 		free(info->mem_list.notification);
@@ -269,7 +269,6 @@ static uint32_t cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
 		return NCSCC_RC_SUCCESS;
 
 	/* alloc the memory for the notify buffer */
-	d_info->mem_list.notification = 0;
 	d_info->mem_list.notification = (SaAmfProtectionGroupNotificationT *)
 	    malloc(sizeof(SaAmfProtectionGroupNotificationT) * s_info->mem_list.numberOfItems);
 	if (!d_info->mem_list.notification)
@@ -495,13 +494,12 @@ static uint32_t cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_
 
 static void free_d2n_compcsi_info(AVSV_DND_MSG *compcsi_msg)
 {
-	uint16_t i;
         AVSV_D2N_COMPCSI_ASSIGN_MSG_INFO *compcsi = &compcsi_msg->msg_info.d2n_compcsi_assign_msg_info;
 	osaf_extended_name_free(&compcsi->comp_name);
 	osaf_extended_name_free(&compcsi->csi_name);
 
         if (compcsi->info.attrs.list != NULL) {
-		for (i = 0; i < compcsi->info.attrs.number; i++) {
+		for (uint16_t i = 0; i < compcsi->info.attrs.number; i++) {
 			osaf_extended_name_free(&compcsi->info.attrs.list[i].name);
 			osaf_extended_name_free(&compcsi->info.attrs.list[i].value);
 			free(compcsi->info.attrs.list[i].string_ptr);

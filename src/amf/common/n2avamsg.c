@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -492,7 +493,6 @@ void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 
 	/* free the cbk-info ptr */
 	free(cbk_info);
-	cbk_info = NULL;
 
 	return;
 }

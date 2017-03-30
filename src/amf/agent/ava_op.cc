@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+* Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -117,7 +118,6 @@ uint32_t ava_avnd_msg_prc(AVA_CB *cb, AVSV_NDA_AVA_MSG *msg)
 ******************************************************************************/
 bool ava_B4_ver_used(AVA_CB *in_cb)
 {
-	AVA_CB *cb = 0;
 	bool rc = false;
 
 	if(in_cb) {
@@ -125,8 +125,7 @@ bool ava_B4_ver_used(AVA_CB *in_cb)
 			rc = true;
 	}
 	else {
-
-		cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl);
+		AVA_CB *cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl);
 
 		if(cb) {
 			if((cb->version.releaseCode == 'B') && (cb->version.majorVersion == 0x04))
@@ -219,7 +218,7 @@ void amf_copy_from_SaAmfCallbacksT_4_to_OsafAmfCallbacksT(OsafAmfCallbacksT *osa
   osaf_cbk->saAmfProxiedComponentInstantiateCallback = cbk->saAmfProxiedComponentInstantiateCallback;
   osaf_cbk->saAmfProxiedComponentCleanupCallback = cbk->saAmfProxiedComponentCleanupCallback; 
   osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
-  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
+  osaf_cbk->saAmfContainedComponentCleanupCallback = cbk->saAmfContainedComponentCleanupCallback;
 }
 
 /*
@@ -238,7 +237,6 @@ void amf_copy_from_SaAmfCallbacksT_o4_to_OsafAmfCallbacksT(OsafAmfCallbacksT *os
   osaf_cbk->saAmfProxiedComponentInstantiateCallback = cbk->saAmfProxiedComponentInstantiateCallback;
   osaf_cbk->saAmfProxiedComponentCleanupCallback = cbk->saAmfProxiedComponentCleanupCallback; 
   osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
-  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
-  osaf_cbk->saAmfContainedComponentInstantiateCallback = cbk->saAmfContainedComponentInstantiateCallback; 
-  osaf_cbk->osafCsiAttributeChangeCallback = cbk->osafCsiAttributeChangeCallback;
+  osaf_cbk->saAmfContainedComponentCleanupCallback = cbk->saAmfContainedComponentCleanupCallback; 
+  osaf_cbk->osafCsiAttributeChangeCallback = cbk->osafCsiAttributeChangeCallback; 
 }
