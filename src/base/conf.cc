@@ -99,7 +99,33 @@ void Conf::PthreadOnceInitRoutine() {
   if (instance_ == nullptr) osaf_abort(0);
 }
 
-std::string Conf::GetFullyQualifiedDomainName(
+std::string Conf::GetFullyQualifiedDomainName(const std::string&) {
+  char host_name[HOST_NAME_MAX + 1];
+  char domain_name[HOST_NAME_MAX + 1];
+  if (gethostname(host_name, sizeof(host_name)) == 0) {
+    host_name[sizeof(host_name) - 1] = '\0';
+  } else {
+    LOG_ER("gethostname() failed, errno=%d", errno);
+    host_name[0] = '\0';
+  }
+  if (getdomainname(domain_name, sizeof(domain_name)) == 0) {
+    domain_name[sizeof(domain_name) - 1] = '\0';
+    if (strcmp(domain_name, "(none)") == 0) domain_name[0] = '\0';
+  } else {
+    LOG_ER("getdomainname() failed, errno=%d", errno);
+    domain_name[0] = '\0';
+  }
+  std::string fqdn{host_name};
+  if (domain_name[0] != '\0') {
+    if (!fqdn.empty()) fqdn += ".";
+    fqdn += domain_name;
+  }
+  return fqdn;
+}
+
+// Currently not used - we need to introduce a background thread for querying
+// the DNS, which can potentially be very slow.
+std::string Conf::GetFullyQualifiedDomainNameUsingDns(
     const std::string& short_host_name) {
   char host[NI_MAXHOST];
   std::string fqdn{short_host_name};

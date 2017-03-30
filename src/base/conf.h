@@ -86,6 +86,8 @@ class Conf {
   static void PthreadOnceInitRoutine();
   static std::string GetFullyQualifiedDomainName(
       const std::string& short_host_name);
+  static std::string GetFullyQualifiedDomainNameUsingDns(
+      const std::string& short_host_name);
   static std::string GetNodeName(const std::string& short_host_name);
   static std::string GetShortHostName();
   static std::string ReadFile(const std::string& path_name,
