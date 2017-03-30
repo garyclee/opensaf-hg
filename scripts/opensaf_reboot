@@ -47,8 +47,8 @@ test $(id -u) -ne 0 && icmd=$(which sudo 2> /dev/null)
 
 opensaf_safe_reboot()
 {
-	logger -t "opensaf_reboot" "Rebooting local node using $icmd /sbin/reboot now"
-	$icmd /sbin/reboot now
+	logger -t "opensaf_reboot" "Rebooting local node using $icmd /sbin/shutdown -r now"
+	$icmd /sbin/shutdown -r now
 }
 
 ## Use stonith for remote fencing
