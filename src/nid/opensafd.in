@@ -228,7 +228,6 @@ start() {
 		touch "$lockfile_inprogress"
 		start_daemon $binary $args
 		RETVAL=$?
-		rm -f "$lockfile_inprogress"
 		if [ $RETVAL -eq 0 ]; then
 			logger -t $osafprog "OpenSAF($osafversion - $osafcshash) services successfully started"
 			touch $lockfile
@@ -239,11 +238,13 @@ start() {
 			if [ $REBOOT_ON_FAIL_TIMEOUT -ne 0 ]; then
 				logger -t $osafprog "Starting OpenSAF failed, rebooting..." 
 				sleep $REBOOT_ON_FAIL_TIMEOUT
+				rm -f "$lockfile_inprogress"
 				/sbin/reboot &
 			else
 				logger -t $osafprog "Starting OpenSAF failed"
 			fi
 		fi
+		rm -f "$lockfile_inprogress"
 	fi
 	return $RETVAL
 }
