@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2009 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -61,7 +62,6 @@ static AVD_SUTYPE *sutype_create(const std::string& dn, const SaImmAttrValuesT_2
 {
 	const SaImmAttrValuesT_2 *attr;
 	AVD_SUTYPE *sutype;
-	int rc = 0;
 	unsigned i = 0;
 	SaAisErrorT error;
 
@@ -78,30 +78,27 @@ static AVD_SUTYPE *sutype_create(const std::string& dn, const SaImmAttrValuesT_2
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutDefSUFailover"), attributes, 0, &sutype->saAmfSutDefSUFailover);
 	osafassert(error == SA_AIS_OK);
 
-	while ((attr = attributes[i++]) != nullptr)
-		if (!strcmp(attr->attrName, "saAmfSutProvidesSvcTypes"))
+	while ((attr = attributes[i++]) != nullptr) {
+		if (!strcmp(attr->attrName, "saAmfSutProvidesSvcTypes")) {
+			osafassert(attr->attrValuesNumber > 0);
+
+			sutype->number_svc_types = attr->attrValuesNumber;
+			osafassert(sutype->saAmfSutProvidesSvcTypes.empty() == true);
+
+			for (i = 0; i < sutype->number_svc_types; i++) {
+				SaNameT svc_type;
+				if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutProvidesSvcTypes"), attributes, i, &svc_type) != SA_AIS_OK) {
+					LOG_ER("Get saAmfSutProvidesSvcTypes FAILED for '%s'", dn.c_str());
+					osafassert(0);
+				}
+				sutype->saAmfSutProvidesSvcTypes.push_back(Amf::to_string(&svc_type));
+				TRACE("%s", sutype->saAmfSutProvidesSvcTypes.back().c_str());
+			}
 			break;
-
-	osafassert(attr);
-	osafassert(attr->attrValuesNumber > 0);
-
-	sutype->number_svc_types = attr->attrValuesNumber;
-	osafassert(sutype->saAmfSutProvidesSvcTypes.empty() == true);
-
-	for (i = 0; i < sutype->number_svc_types; i++) {
-		SaNameT svc_type;
-		if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSutProvidesSvcTypes"), attributes, i, &svc_type) != SA_AIS_OK) {
-			LOG_ER("Get saAmfSutProvidesSvcTypes FAILED for '%s'", dn.c_str());
-			osafassert(0);
 		}
-		sutype->saAmfSutProvidesSvcTypes.push_back(Amf::to_string(&svc_type));
-		TRACE("%s", sutype->saAmfSutProvidesSvcTypes.back().c_str());
 	}
 
-	rc = 0;
-
-	if (rc != 0)
-		sutype_delete(&sutype);
+	osafassert(attr);
 
 	TRACE_LEAVE();
 
@@ -131,7 +128,7 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
 	/* Make sure all Svc types exist */
 	for (i = 0; i < su_type->number_svc_types; i++) {
 		AVD_AMF_SVC_TYPE *svc_type =
-		    avd_svctype_find(avd_cb, su_type->saAmfSutProvidesSvcTypes[i], true);
+			avd_svctype_find(avd_cb, su_type->saAmfSutProvidesSvcTypes[i], true);
 		if (svc_type == nullptr) {
 			/* Svc type does not exist in current model, check CCB */
 			if ((opdata != nullptr) &&

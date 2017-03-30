@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -502,12 +503,10 @@ static uint32_t avd_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 ******************************************************************************/
 static uint32_t avd_mds_qsd_ack_evt(MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
 {
-	AVD_EVT *evt = AVD_EVT_NULL;
 	AVD_CL_CB *cb = avd_cb;
-
 	TRACE_ENTER();
 
-	evt = new AVD_EVT();
+	AVD_EVT *evt = new AVD_EVT();
 
 	evt->rcv_evt = AVD_EVT_MDS_QSD_ACK;
 

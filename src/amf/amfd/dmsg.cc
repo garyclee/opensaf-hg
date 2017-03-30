@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -58,12 +59,11 @@
 
 void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	NCS_UBAID *uba = nullptr;
 	uint8_t *data;
 	AVD_D2D_MSG *msg = 0;
 
 	msg = (AVD_D2D_MSG *)enc_info->i_msg;
-	uba = enc_info->io_uba;
+	NCS_UBAID *uba = enc_info->io_uba;
 
 	data = ncs_enc_reserve_space(uba, 3 * sizeof(uint32_t));
 	ncs_encode_32bit(&data, msg->msg_type);
@@ -233,5 +233,4 @@ uint32_t avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 void avsv_d2d_msg_free(AVD_D2D_MSG *d2d_msg)
 {
 	delete d2d_msg;
-	d2d_msg = nullptr;
 }

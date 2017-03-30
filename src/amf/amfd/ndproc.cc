@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -314,7 +315,6 @@ void avd_oper_req_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
-	AVD_EVT_QUEUE* state_info_evt;
 
 	TRACE_ENTER();
 	LOG_NO("Receive message with event type:%u, msg_type:%u, from node:%x, msg_id:%u",
@@ -324,7 +324,7 @@ void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			evt->info.avnd_msg->msg_info.n2d_nd_sisu_state_info.msg_id);
 
 	if (cb->node_sync_window_closed == false) {
-		state_info_evt = new AVD_EVT_QUEUE();
+		AVD_EVT_QUEUE *state_info_evt = new AVD_EVT_QUEUE();
 		state_info_evt->evt = new AVD_EVT{};
 		state_info_evt->evt->rcv_evt = evt->rcv_evt;
 		state_info_evt->evt->info.avnd_msg = n2d_msg;
@@ -358,7 +358,6 @@ void avd_nd_sisu_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
-	AVD_EVT_QUEUE* state_info_evt;
 
 	TRACE_ENTER();
 	LOG_NO("Receive message with event type:%u, msg_type:%u, from node:%x, msg_id:%u",
@@ -368,7 +367,7 @@ void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			evt->info.avnd_msg->msg_info.n2d_nd_csicomp_state_info.msg_id);
 
 	if (cb->node_sync_window_closed == false) {
-		state_info_evt = new AVD_EVT_QUEUE();
+		AVD_EVT_QUEUE *state_info_evt = new AVD_EVT_QUEUE();
 		state_info_evt->evt = new AVD_EVT{};
 		state_info_evt->evt->rcv_evt = evt->rcv_evt;
 		state_info_evt->evt->info.avnd_msg = n2d_msg;
@@ -731,9 +730,8 @@ bool cluster_su_instantiation_done(AVD_CL_CB *cb, AVD_SU *su)
 
 node_walk:
 
-	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
-			it != node_name_db->end(); it++) {
-		node = it->second;
+	for (const auto& value : *node_name_db) {
+		node = value.second;
 		TRACE("node name '%s', Oper'%u'", node->name.c_str(), node->saAmfNodeOperState);
 		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED)
 		{
@@ -1098,9 +1096,7 @@ void avd_comp_validation_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	uint32_t res = NCSCC_RC_SUCCESS;
 	AVD_AVND *node;
-	AVSV_N2D_COMP_VALIDATION_INFO *valid_info = nullptr;
-
-	valid_info = &n2d_msg->msg_info.n2d_comp_valid_info;
+	AVSV_N2D_COMP_VALIDATION_INFO *valid_info = &n2d_msg->msg_info.n2d_comp_valid_info;
 
 	TRACE_ENTER2("%s", osaf_extended_name_borrow(&valid_info->comp_name));
 

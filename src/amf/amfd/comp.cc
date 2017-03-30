@@ -46,11 +46,10 @@ AmfDb<std::string, AVD_COMP> *comp_db = nullptr;
 
 void avd_comp_db_add(AVD_COMP *comp)
 {
-	unsigned int rc;
 	const std::string comp_name(Amf::to_string(&comp->comp_info.name));
 
 	if (comp_db->find(comp_name) == nullptr) {
-		rc = comp_db->insert(comp_name, comp);
+		unsigned int rc = comp_db->insert(comp_name, comp);
 		osafassert(rc == NCSCC_RC_SUCCESS);
 	}
 }
@@ -943,9 +942,8 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			   ctcstype does not exist with any cstypes supported by this component via compcstype.
 			 */ 
 
-			for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
-					it != compcstype_db->end(); it++) {
-				AVD_COMPCS_TYPE *compcstype = it->second;
+			for (const auto& value : *compcstype_db) {
+				AVD_COMPCS_TYPE *compcstype = value.second;
 				if (compcstype->comp == comp) {
 					std::string cstype_name;
 					AVD_CTCS_TYPE *ctcstype = nullptr;
@@ -1267,7 +1265,6 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	int i = 0;
 	AVD_COMP *comp;
 	bool node_present = false;
-	AVD_AVND *su_node_ptr = nullptr;
 	AVD_COMP_TYPE *comp_type;
 	AVSV_PARAM_INFO param;
 	bool value_is_deleted;
@@ -1282,7 +1279,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	param.name = comp->comp_info.name;
 	comp_type = comptype_db->find(comp->saAmfCompType);
 
-	su_node_ptr = comp->su->get_node_ptr();
+	AVD_AVND *su_node_ptr = comp->su->get_node_ptr();
 
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||

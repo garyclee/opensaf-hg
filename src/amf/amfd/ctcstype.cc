@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -97,7 +98,6 @@ AVD_CTCS_TYPE::AVD_CTCS_TYPE(const std::string& dn) :
 static AVD_CTCS_TYPE *ctcstype_create(const std::string& dn, const SaImmAttrValuesT_2 **attributes)
 {
 	AVD_CTCS_TYPE *ctcstype;
-	int rc = -1;
 	SaAisErrorT error;
 
 	TRACE_ENTER2("'%s'", dn.c_str());
@@ -115,12 +115,6 @@ static AVD_CTCS_TYPE *ctcstype_create(const std::string& dn, const SaImmAttrValu
 	    SA_AIS_OK)
 		ctcstype->saAmfCtDefNumMaxStandbyCSIs = -1;	/* no limit */
 
-	rc = 0;
-
-	if (rc != 0) {
-		delete ctcstype;
-		ctcstype = nullptr;
-	}
 	TRACE_LEAVE();
 	return ctcstype;
 }
@@ -228,10 +222,9 @@ AVD_CTCS_TYPE *get_ctcstype(const std::string& comptype_name, const std::string&
 	SaNameT dn;
 	const SaNameTWrapper comptype(comptype_name);
 	const SaNameTWrapper cstype(cstype_name);
-	AVD_CTCS_TYPE *ctcs_type = nullptr;
 	avsv_create_association_class_dn(cstype, comptype,
 			"safSupportedCsType", &dn);
-	ctcs_type = ctcstype_db->find(Amf::to_string(&dn));
+	AVD_CTCS_TYPE *ctcs_type = ctcstype_db->find(Amf::to_string(&dn));
 	osaf_extended_name_free(&dn);
 	return ctcs_type;
 }

@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -359,9 +360,8 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 				   in saClmClusterTrack call so update the local database */
 				/* get the first node */
 				node = nullptr;
-				for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
-						it != node_name_db->end(); it++) {
-					node = it->second;
+				for (const auto& value : *node_name_db) {
+					node = value.second;
 					if (node->saAmfNodeClmNode.compare(node_name) == 0) {
 						break;
 					}
@@ -468,11 +468,10 @@ done:
 
 SaAisErrorT avd_clm_track_start(void)
 {
-        SaAisErrorT error = SA_AIS_OK;
 	SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY|SA_TRACK_VALIDATE_STEP|SA_TRACK_START_STEP; 
         
 	TRACE_ENTER();
-	error = saClmClusterTrack_4(avd_cb->clmHandle, trackFlags, nullptr);
+	SaAisErrorT error = saClmClusterTrack_4(avd_cb->clmHandle, trackFlags, nullptr);
 	if (error != SA_AIS_OK) {
 		if (error == SA_AIS_ERR_TRY_AGAIN || error == SA_AIS_ERR_TIMEOUT ||
 			error == SA_AIS_ERR_UNAVAILABLE) {
@@ -489,9 +488,8 @@ SaAisErrorT avd_clm_track_start(void)
 
 SaAisErrorT avd_clm_track_stop(void)
 {
-	SaAisErrorT error = SA_AIS_OK;
 	TRACE_ENTER();
-	error = saClmClusterTrackStop(avd_cb->clmHandle);
+	SaAisErrorT error = saClmClusterTrackStop(avd_cb->clmHandle);
 	if (error != SA_AIS_OK) {
 		if (error == SA_AIS_ERR_TRY_AGAIN || error == SA_AIS_ERR_TIMEOUT ||
 				error == SA_AIS_ERR_UNAVAILABLE) {

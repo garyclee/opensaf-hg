@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved.
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -112,18 +113,16 @@ void avd_process_state_info_queue(AVD_CL_CB *cb)
 	// Otherwise, amfd is coming from SC recovery from headless, SI alarm state
 	// should be re-evalutated and raise the alarm in case it's still unassigned.
 	if (queue_size == 0) {
-		for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
-				it != si_db->end(); it++) {
-			AVD_SI *si = it->second;
+		for (const auto& value : *si_db) {
+			AVD_SI *si = value.second;
 			if (si->alarm_sent == true) {
 				si->update_alarm_state(false, false);
 			}
 		}
 	}
 	else {
-		for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
-				it != si_db->end(); it++) {
-			AVD_SI *si = it->second;
+		for (const auto& value : *si_db) {
+			AVD_SI *si = value.second;
 			if (si->alarm_sent == false &&
 					si->saAmfSIAssignmentState == SA_AMF_ASSIGNMENT_UNASSIGNED) {
 				si->update_alarm_state(true);
@@ -173,9 +172,8 @@ uint32_t avd_count_sync_node_size(AVD_CL_CB *cb)
 	uint32_t count = 0;
 	TRACE_ENTER();
 
-	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
-			it != node_name_db->end(); it++) {
-		AVD_AVND *avnd = it->second;
+	for (const auto& value : *node_name_db) {
+		AVD_AVND *avnd = value.second;
 		osafassert(avnd);
 		for (const auto& su :avnd->list_of_ncs_su) {
 			if (su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) {
@@ -221,9 +219,8 @@ uint32_t avd_count_node_up(AVD_CL_CB *cb)
 
 	TRACE_ENTER();
 
-	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
-			it != node_name_db->end(); it++) {
-		node = it->second;
+for (const auto& value : *node_name_db) {
+		node = value.second;
 		if (node->node_up_msg_count > 0
 				&& node->node_info.nodeId != cb->node_id_avd
 				&& node->node_info.nodeId != cb->node_id_avd_other)
@@ -737,9 +734,8 @@ void avd_mds_avnd_down_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Find if node is there in the f-over node list.
 		 * If yes then remove entry
 		 */
-		for (std::map<uint32_t, AVD_FAIL_OVER_NODE *>::const_iterator it = node_list_db->begin();
-				it != node_list_db->end(); it++) {
-			AVD_FAIL_OVER_NODE *node_fovr = it->second;
+		for (const auto& value : *node_list_db) {
+			AVD_FAIL_OVER_NODE *node_fovr = value.second;
 			if (node_fovr->node_id == evt->info.node_id) {
 				node_list_db->erase(node_fovr->node_id);
 				delete node_fovr;
@@ -773,9 +769,8 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 	cb->avd_fover_state = true;
 
 	/* Walk through all the nodes and send verify message to them. */
-	for (std::map<uint32_t, AVD_AVND *>::const_iterator it = node_id_db->begin();
-			it != node_id_db->end(); it++) {
-		AVD_AVND *avnd = it->second;
+	for (const auto& value : *node_id_db) {
+		AVD_AVND *avnd = value.second;
 		node_id = avnd->node_info.nodeId;
 
 		/*
@@ -861,9 +856,8 @@ void avd_ack_nack_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Find if node is there in the f-over node list. If yes then remove entry
 	 * and process the message. Else just return.
 	 */
-	for (std::map<uint32_t, AVD_FAIL_OVER_NODE *>::const_iterator it = node_list_db->begin();
-			it != node_list_db->end(); it++) {
-		AVD_FAIL_OVER_NODE *node_fovr = it->second;
+	for (const auto& value : *node_list_db) {
+		AVD_FAIL_OVER_NODE *node_fovr = value.second;
 		if (node_fovr->node_id == evt->info.avnd_msg->msg_info.
 				n2d_ack_nack_info.node_id) {
 			node_found = true;

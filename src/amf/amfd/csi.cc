@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -623,7 +624,7 @@ static SaAisErrorT csi_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
                                 goto done;
 			}
                         uint32_t val = static_cast<uint32_t>(*(uint32_t*)attr_mod->modAttr.attrValues[0]);
-                        if ((val != true) && (val != false)) {
+                        if (val > 1) {
                                 report_ccb_validation_error(opdata,
                                       "Modification of osafAmfCSICommunicateCsiAttributeChange fails," 
 				      " Invalid Input %d",val);
@@ -918,11 +919,10 @@ static void csi_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 {               
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	AVD_CSI *csi = nullptr;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
  
-	csi = csi_db->find(Amf::to_string(&opdata->objectName));
+	AVD_CSI *csi = csi_db->find(Amf::to_string(&opdata->objectName));
 	assert(csi != nullptr);
 	AVD_SI *si = csi->si;
 	assert(si != nullptr);
@@ -1367,12 +1367,11 @@ void avd_compcsi_from_csi_and_susi_delete(AVD_SU_SI_REL *susi, AVD_COMP_CSI_REL 
 
 void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 {
-	AVD_CSI_ATTR *i_attr = nullptr;
 	AVD_CSI_ATTR *p_attr = nullptr;
 
 	TRACE_ENTER();
 	/* remove ATTR from CSI list */
-	i_attr = csi->list_attributes;
+	AVD_CSI_ATTR *i_attr = csi->list_attributes;
 
 	while ((i_attr != nullptr) && (i_attr != attr)) {
 		p_attr = i_attr;
@@ -1401,18 +1400,16 @@ void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
 
 void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr)
 {
-	int cnt = 0;
+	int cnt = 1;
 	AVD_CSI_ATTR *ptr;
 
 	TRACE_ENTER();
 	/* Count number of attributes (multivalue) */
 	ptr = csiattr;
-	while (ptr != nullptr) {
+	osafassert(ptr != nullptr);
+	while (ptr->attr_next != nullptr) {
 		cnt++;
-		if (ptr->attr_next != nullptr)
-			ptr = ptr->attr_next;
-		else
-			break;
+		ptr = ptr->attr_next;
 	}
 
 	ptr->attr_next = csi->list_attributes;
@@ -1488,10 +1485,8 @@ bool are_sponsor_csis_assigned_in_su(AVD_CSI *csi, AVD_SU *su)
  */
 SaAisErrorT avd_compcsi_recreate(AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO *info)
 {
-	AVD_SU_SI_REL *susi;
-	const AVD_SI *si;
-	AVD_CSI *csi;
 	AVD_COMP *comp;
+	AVD_CSI *csi;
 	const AVSV_CSICOMP_STATE_MSG *csicomp;
 	const AVSV_COMP_STATE_MSG *comp_state;
 
@@ -1507,10 +1502,10 @@ SaAisErrorT avd_compcsi_recreate(AVSV_N2D_ND_CSICOMP_STATE_MSG_INFO *info)
 		TRACE("Received CSICOMP state msg: csi %s, comp %s",
 			osaf_extended_name_borrow(&csicomp->safCSI), osaf_extended_name_borrow(&csicomp->safComp));
 
-		si = csi->si;
+		const AVD_SI *si = csi->si;
 		osafassert(si);
 
-		susi = avd_susi_find(avd_cb, comp->su->name, si->name);
+		AVD_SU_SI_REL *susi = avd_susi_find(avd_cb, comp->su->name, si->name);
 		if (susi == 0) {
 			LOG_ER("SU_SI_REL record for SU '%s' and SI '%s' was not found",
                          comp->su->name.c_str(), si->name.c_str());

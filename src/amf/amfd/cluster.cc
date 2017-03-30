@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -78,9 +79,8 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	// to waits for all veteran nodes becoming ENABLED
 	// This set_leds message will enables AMFND starting sending susi assignment
 	// message to AMFD
-	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
-			it != node_name_db->end(); it++) {
-		node = it->second;
+	for (const auto& value : *node_name_db) {
+		node = value.second;
 		if (node->node_state == AVD_AVND_STATE_PRESENT &&
 			node->node_info.nodeId != cb->node_id_avd &&
 			node->node_info.nodeId != cb->node_id_avd_other)
@@ -91,9 +91,8 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * system that are not NCS specific.
 	 */
 
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *i_sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *i_sg = value.second;
 		if ((i_sg->list_of_su.empty() == true) || (i_sg->sg_ncs_spec == true)) {
 			continue;
 		}
@@ -112,10 +111,8 @@ void avd_cluster_tmr_init_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (cb->scs_absence_max_duration > 0) {
 		TRACE("check if any SU is auto repair enabled");
 
-		for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-
-			su = it->second;
+		for (const auto& value : *su_db) {
+			su = value.second;
 
 			if (su->list_of_susi == nullptr &&
 				su->su_on_node != nullptr &&

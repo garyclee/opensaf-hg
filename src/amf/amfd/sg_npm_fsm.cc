@@ -1068,11 +1068,11 @@ uint32_t SG_NPM::su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 uint32_t SG_NPM::su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
 	AVD_SU_SI_REL *l_susi;
-	bool l_flag;
 	AVD_SU *o_su;
 
 	if ((l_susi = avd_su_susi_find(cb, su, su->sg_of_su->admin_si->name))
 	    == AVD_SU_SI_REL_NULL) {
+		bool l_flag;
 		/* SI doesn't have any assignment with the SU */
 		m_AVD_CHK_OPLIST(su, l_flag);
 		if (l_flag == true) {
@@ -1260,7 +1260,6 @@ uint32_t SG_NPM::su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 uint32_t SG_NPM::su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 {
-	bool l_flag = false;
 	AVD_AVND *su_node_ptr = nullptr;
 
 	if (su->sg_of_su->admin_si != AVD_SI_NULL) {
@@ -1290,7 +1289,7 @@ uint32_t SG_NPM::su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su->sg_of_su, AVSV_CKPT_AVD_SI_TRANS);
 			}
 		}
-
+		bool l_flag = false;
 		m_AVD_CHK_OPLIST(su, l_flag);
 		if (l_flag == true) {
 			/* If the fault happened while role failover is under progress,then for all the dependent SI's
@@ -1388,7 +1387,6 @@ uint32_t SG_NPM::su_fault_sg_relgn(AVD_CL_CB *cb, AVD_SU *su)
 }
 
 uint32_t SG_NPM::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
-	AVD_SU_SI_REL *a_susi;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -1454,6 +1452,7 @@ uint32_t SG_NPM::su_fault(AVD_CL_CB *cb, AVD_SU *su) {
 			 * SU and add it to the SU operlist. 
 			 */
 			if (su->list_of_susi->state == SA_AMF_HA_QUIESCING) {
+				AVD_SU_SI_REL *a_susi;
 				a_susi = avd_sg_npm_su_othr(cb, su);
 				if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
 					LOG_ER("%s:%u: %s (%zu)", __FILE__, __LINE__, su->name.c_str(), su->name.length());
@@ -1554,7 +1553,6 @@ uint32_t SG_NPM::susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 					   AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 	AVD_SU_SI_REL *i_susi, *o_susi;
-	bool flag, fover_progress = false;
 	AVD_AVND *su_node_ptr = nullptr;
 
 	TRACE_ENTER();
@@ -1563,7 +1561,7 @@ uint32_t SG_NPM::susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 		/* assign all */
 		if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED)) {
 			/* quiesced all */
-
+			bool flag;
 			if (su->sg_of_su->admin_si != AVD_SI_NULL) {
 				/* SI in admin pointer */
 				if ((su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH)
@@ -1702,6 +1700,7 @@ uint32_t SG_NPM::susi_sucss_sg_reln(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 
 		} /* if ((act == AVSV_SUSI_ACT_MOD) && (state == SA_AMF_HA_QUIESCED)) */
 		else if (act == AVSV_SUSI_ACT_DEL) {
+			bool fover_progress = false;
 			/* remove all */
 			if (su->list_of_susi->state == SA_AMF_HA_QUIESCED) {
 				o_susi = avd_sg_npm_su_othr(cb, su);
@@ -2222,15 +2221,12 @@ static void avd_sg_npm_screening_for_si_redistr(AVD_SG *avd_sg)
  */
 static void avd_sg_npm_si_transfer_for_redistr(AVD_SG *avd_sg)
 {
-        AVD_SU_SI_REL *susi = nullptr;
-
 	TRACE_ENTER2("SG name:%s SI name:%s", avd_sg->name.c_str(),avd_sg->si_tobe_redistributed->name.c_str());
-
 	/* checkpoint the SI transfer parameters with STANDBY*/
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, avd_sg, AVSV_CKPT_AVD_SI_TRANS);
 
         /* Find the su_si corresponding to max_assign_su & si_tobe_redistributed */
-        susi = avd_su_susi_find(avd_cb, avd_sg->max_assigned_su, avd_sg->si_tobe_redistributed->name);
+        AVD_SU_SI_REL *susi = avd_su_susi_find(avd_cb, avd_sg->max_assigned_su, avd_sg->si_tobe_redistributed->name);
         if( susi == AVD_SU_SI_REL_NULL ) {
                 /* No assignments for this SU corresponding to the SI to be swapped*/
                 LOG_ER("Failed to find the susi %s:%u: SU:%s SI:%s", __FILE__,__LINE__,
@@ -2457,7 +2453,6 @@ uint32_t SG_NPM::susi_success_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *
 	AVD_SU_SI_REL *i_susi;
 	AVD_SU_SI_REL *o_susi;
 	AVD_SU_SI_REL *tmp_susi;
-	bool susi_assgn_failed = false;
 	
 	AVD_AVND *su_node_ptr = nullptr;
 
@@ -2473,6 +2468,7 @@ uint32_t SG_NPM::susi_success_su_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *
 				/* SI Transfer flow, got response for max_assigned_su quiesced opr, if min_assigned_su
 				   is in in_service send Active assignment to it else revert back Active assignment to
 				   max_assigned_su */
+				bool susi_assgn_failed = false;
 				if (su->sg_of_su->min_assigned_su->saAmfSuReadinessState == 
 								SA_AMF_READINESS_IN_SERVICE) {
 					TRACE("Assigning active for SI:%s to SU:%s",
@@ -2828,7 +2824,6 @@ static uint32_t avd_sg_npm_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_
 
 uint32_t SG_NPM::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 		AVSV_SUSI_ACT act, SaAmfHAStateT state) {
-	AVD_SU_SI_REL *o_susi;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -2879,7 +2874,7 @@ uint32_t SG_NPM::susi_success(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
 				 * standby and send a D2N-INFO_SU_SI_ASSIGN with remove all for 
 				 * that SU and add it to the SU oper list.
 				 */
-				o_susi = avd_sg_npm_su_othr(cb, su);
+				AVD_SU_SI_REL *o_susi = avd_sg_npm_su_othr(cb, su);
 				if ((o_susi != AVD_SU_SI_REL_NULL) && (o_susi->fsm != AVD_SU_SI_STATE_UNASGN)) {
 					avd_sg_su_si_del_snd(cb, o_susi->su);
 					avd_sg_su_oper_list_add(cb, o_susi->su, false);
@@ -3783,7 +3778,7 @@ void SG_NPM::node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
 
 void SG_NPM::node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 {
-	AVD_SU_SI_REL *l_susi, *o_susi, *ot_susi;
+	AVD_SU_SI_REL *l_susi, *o_susi;
 	
 	osafassert(this == su->sg_of_su);
 
@@ -3804,7 +3799,7 @@ void SG_NPM::node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 		if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 			/* The SU is active SU, identify the inservice standby SU for this SU.
 			 */
-
+			AVD_SU_SI_REL *ot_susi;
 			ot_susi = avd_sg_npm_su_othr(cb, su);
 
 			if ((ot_susi != AVD_SU_SI_REL_NULL) &&
@@ -4061,8 +4056,6 @@ void SG_NPM::node_fail_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 }
 
 void SG_NPM::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
-	AVD_SU *o_su;
-	AVD_SU_SI_REL *o_susi;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -4106,6 +4099,7 @@ void SG_NPM::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 			 */
 
 			su->delete_all_susis();
+			AVD_SU *o_su;
 			if ((o_su = avd_sg_npm_su_chose_asgn(cb, su->sg_of_su)) != nullptr) {
 				/* add the SU to the operation list and change the SG FSM to SG realign. */
 				avd_sg_su_oper_list_add(cb, o_su, false);
@@ -4133,7 +4127,7 @@ void SG_NPM::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 	case AVD_SG_FSM_SG_ADMIN:
 		if (su->list_of_susi->state == SA_AMF_HA_QUIESCING) {
 			/* The SU is quiescing.  */
-			o_susi = avd_sg_npm_su_othr(cb, su);
+			AVD_SU_SI_REL *o_susi = avd_sg_npm_su_othr(cb, su);
 			if (o_susi != AVD_SU_SI_REL_NULL) {
 				/* if the other SU w.r.t to SIs of this SU is not unassigning, 
 				 * send a D2N-INFO_SU_SI_ASSIGN with a remove all for that SU if it
@@ -4186,7 +4180,6 @@ void SG_NPM::node_fail(AVD_CL_CB *cb, AVD_SU *su) {
 }
 
 uint32_t SG_NPM::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
-	uint32_t rc;
 
 	TRACE_ENTER2("%u", su->sg_of_su->sg_fsm_state);
 
@@ -4197,7 +4190,7 @@ uint32_t SG_NPM::su_admin_down(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd) {
 	switch (su->sg_of_su->sg_fsm_state) {
 	case AVD_SG_FSM_STABLE:
 		if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
-			rc = NCSCC_RC_FAILURE;
+			uint32_t rc = NCSCC_RC_FAILURE;
 
 			/* this is a active SU. */
 			if ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||

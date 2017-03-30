@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -83,7 +84,6 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
 	std::string::size_type pos;
 	SaUint32T value;
 	SaBoolT abool;
-	AVD_SUTYPE *sut;
 	const SaImmAttrValuesT_2 *attr;
 
 	if ((pos = dn.find(',')) == std::string::npos) {
@@ -107,15 +107,16 @@ static int is_config_valid(const std::string& dn, const SaImmAttrValuesT_2 **att
 	}
 
 	while ((attr = attributes[i++]) != nullptr)
-		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes"))
+		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes")) {
+			osafassert(attr->attrValuesNumber > 0);
 			break;
+		}
 
 	osafassert(attr);
-	osafassert(attr->attrValuesNumber > 0);
 
 	for (j = 0; j < attr->attrValuesNumber; j++) {
 		SaNameT *name = (SaNameT *)attr->attrValues[j];
-		sut = sutype_db->find(Amf::to_string(name));
+		AVD_SUTYPE *sut = sutype_db->find(Amf::to_string(name));
 		if (sut == nullptr) {
 			if (opdata == nullptr) {
 				report_ccb_validation_error(opdata, "'%s' does not exist in model", osaf_extended_name_borrow(name));
@@ -179,59 +180,60 @@ static AVD_AMF_SG_TYPE *sgtype_create(const std::string& dn, const SaImmAttrValu
 	error = immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtRedundancyModel"), attributes, 0, &sgt->saAmfSgtRedundancyModel);
 	osafassert(error == SA_AIS_OK);
 
-	while ((attr = attributes[i++]) != nullptr)
-		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes"))
+	while ((attr = attributes[i++]) != nullptr) {
+		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes")) {
+			osafassert(attr->attrValuesNumber > 0);
+
+			sgt->number_su_type = attr->attrValuesNumber;
+			for (j = 0; j < attr->attrValuesNumber; j++) {
+				sgt->saAmfSGtValidSuTypes.push_back(
+						Amf::to_string(reinterpret_cast<SaNameT*>(attr->attrValues[j]))
+						);
+			}
+
+			if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoRepair"), attributes, 0, &sgt->saAmfSgtDefAutoRepair) != SA_AIS_OK) {
+				sgt->saAmfSgtDefAutoRepair = SA_TRUE;
+				sgt->saAmfSgtDefAutoRepair_configured = false;
+			}
+			else
+				sgt->saAmfSgtDefAutoRepair_configured = true;
+
+			if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjust"), attributes, 0, &sgt->saAmfSgtDefAutoAdjust) != SA_AIS_OK) {
+				sgt->saAmfSgtDefAutoAdjust = SA_FALSE;
+			}
+
+			if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjustProb"), attributes, 0, &sgt->saAmfSgtDefAutoAdjustProb) != SA_AIS_OK) {
+				LOG_ER("Get saAmfSgtDefAutoAdjustProb FAILED for '%s'", dn.c_str());
+				goto done;
+			}
+
+			if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefCompRestartProb"), attributes, 0, &sgt->saAmfSgtDefCompRestartProb) != SA_AIS_OK) {
+				LOG_ER("Get saAmfSgtDefCompRestartProb FAILED for '%s'", dn.c_str());
+				goto done;
+			}
+
+			if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefCompRestartMax"), attributes, 0, &sgt->saAmfSgtDefCompRestartMax) != SA_AIS_OK) {
+				LOG_ER("Get saAmfSgtDefCompRestartMax FAILED for '%s'", dn.c_str());
+				goto done;
+			}
+
+			if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefSuRestartProb"), attributes, 0, &sgt->saAmfSgtDefSuRestartProb) != SA_AIS_OK) {
+				LOG_ER("Get saAmfSgtDefSuRestartProb FAILED for '%s'", dn.c_str());
+				goto done;
+			}
+
+			if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefSuRestartMax"), attributes, 0, &sgt->saAmfSgtDefSuRestartMax) != SA_AIS_OK) {
+				LOG_ER("Get saAmfSgtDefSuRestartMax FAILED for '%s'", dn.c_str());
+				goto done;
+			}
+
+			rc = 0; 
 			break;
-
+		}
+	}
 	osafassert(attr);
-	osafassert(attr->attrValuesNumber > 0);
 
-	sgt->number_su_type = attr->attrValuesNumber;
-	for (j = 0; j < attr->attrValuesNumber; j++) {
-		sgt->saAmfSGtValidSuTypes.push_back(
-			Amf::to_string(reinterpret_cast<SaNameT*>(attr->attrValues[j]))
-		);
-	}
-
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoRepair"), attributes, 0, &sgt->saAmfSgtDefAutoRepair) != SA_AIS_OK) {
-		sgt->saAmfSgtDefAutoRepair = SA_TRUE;
-		sgt->saAmfSgtDefAutoRepair_configured = false;
-	}
-	else
-		sgt->saAmfSgtDefAutoRepair_configured = true;
-
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjust"), attributes, 0, &sgt->saAmfSgtDefAutoAdjust) != SA_AIS_OK) {
-		sgt->saAmfSgtDefAutoAdjust = SA_FALSE;
-	}
-
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefAutoAdjustProb"), attributes, 0, &sgt->saAmfSgtDefAutoAdjustProb) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefAutoAdjustProb FAILED for '%s'", dn.c_str());
-		goto done;
-	}
-
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefCompRestartProb"), attributes, 0, &sgt->saAmfSgtDefCompRestartProb) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefCompRestartProb FAILED for '%s'", dn.c_str());
-		goto done;
-	}
-
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefCompRestartMax"), attributes, 0, &sgt->saAmfSgtDefCompRestartMax) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefCompRestartMax FAILED for '%s'", dn.c_str());
-		goto done;
-	}
-
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefSuRestartProb"), attributes, 0, &sgt->saAmfSgtDefSuRestartProb) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefSuRestartProb FAILED for '%s'", dn.c_str());
-		goto done;
-	}
-
-	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfSgtDefSuRestartMax"), attributes, 0, &sgt->saAmfSgtDefSuRestartMax) != SA_AIS_OK) {
-		LOG_ER("Get saAmfSgtDefSuRestartMax FAILED for '%s'", dn.c_str());
-		goto done;
-	}
-
-	rc = 0;
-
- done:
+done:
 	if (rc != 0) {
 		delete sgt;
 		sgt = nullptr;
@@ -249,7 +251,6 @@ static AVD_AMF_SG_TYPE *sgtype_create(const std::string& dn, const SaImmAttrValu
  */
 SaAisErrorT avd_sgtype_config_get(void)
 {
-	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	AVD_AMF_SG_TYPE *sgt;
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
@@ -263,7 +264,7 @@ SaAisErrorT avd_sgtype_config_get(void)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
+	SaAisErrorT error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, nullptr, SA_IMM_SUBTREE,
 						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 						  nullptr, &searchHandle);
 

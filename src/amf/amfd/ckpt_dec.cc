@@ -371,7 +371,6 @@ void decode_app(NCS_UBAID *ub, AVD_APP *app)
 \**************************************************************************/
 static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
 	AVD_APP app;
 	
 	TRACE_ENTER();
@@ -379,7 +378,7 @@ static uint32_t dec_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	osafassert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
 	decode_app(&dec->i_uba, &app);
 	
-	status = avd_ckpt_app(cb, &app, dec->i_action);
+	uint32_t status = avd_ckpt_app(cb, &app, dec->i_action);
 
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.app_updt++;
@@ -570,11 +569,9 @@ static uint32_t dec_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 static uint32_t dec_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
-
 	TRACE_ENTER2("i_action '%u'", dec->i_action);
 
-	status = avd_ckpt_sg_admin_si(cb, &dec->i_uba, dec->i_action);
+	uint32_t status = avd_ckpt_sg_admin_si(cb, &dec->i_uba, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
@@ -1104,10 +1101,10 @@ static uint32_t dec_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	if ((sg->sg_ncs_spec == false) && (sg->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL)) {
 		if (((sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
 			 (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED)) &&
-			 (sg->ng_using_saAmfSGAdminState == false)) { 
-			for (std::map<std::string, AVD_AMF_NG*>::const_iterator it = nodegroup_db->begin();
-					it != nodegroup_db->end(); it++) {
-				AVD_AMF_NG *ng = it->second;
+			 (sg->ng_using_saAmfSGAdminState == false)) {
+
+			for (const auto& value : *nodegroup_db) {
+				AVD_AMF_NG *ng = value.second;
 				if ((sg->is_sg_assigned_only_in_ng(ng) == true) &&
 						((ng->saAmfNGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
 						 (ng->saAmfNGAdminState == SA_AMF_ADMIN_LOCKED)) &&

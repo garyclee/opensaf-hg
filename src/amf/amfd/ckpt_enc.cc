@@ -1947,9 +1947,8 @@ static uint32_t enc_cs_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
-			it != node_name_db->end(); it++) {
-		AVD_AVND *avnd_node = it->second;
+	for (const auto& value : *node_name_db) {
+		AVD_AVND *avnd_node = value.second;
 		encode_node_config(&enc->io_uba, avnd_node, enc->i_peer_version);
 		(*num_of_obj)++;
 	}
@@ -1979,8 +1978,8 @@ static uint32_t enc_cs_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t
 	/* Walk through all application instances and encode. */
 	// If use std=c++11 in Makefile.common the following syntax can be used instead:
 	// for (auto it = app_db->begin()
-	for (std::map<std::string, AVD_APP*>::const_iterator it = app_db->begin(); it != app_db->end(); it++) {
-		AVD_APP *app = it->second;
+	for (const auto& value : *app_db) {
+		AVD_APP *app = value.second;
 		encode_app(&enc->io_uba, app);
 		(*num_of_obj)++;
 	}
@@ -2011,9 +2010,8 @@ static uint32_t enc_cs_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *sg = value.second;
 		encode_sg(&enc->io_uba, sg);
 		(*num_of_obj)++;
 	}
@@ -2040,9 +2038,8 @@ static uint32_t enc_cs_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 {
 	TRACE_ENTER();
 
-	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-		encode_su(&enc->io_uba, it->second, enc->i_peer_version);
+	for (const auto& value : *su_db) {
+		encode_su(&enc->io_uba, value.second, enc->i_peer_version);
 		(*num_of_obj)++;
 	}
 
@@ -2072,9 +2069,8 @@ static uint32_t enc_cs_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t 
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
-			it != si_db->end(); it++) {
-		const AVD_SI *si = it->second;
+	for (const auto& value : *si_db) {
+		const AVD_SI *si = value.second;
 		encode_si(cb, &enc->io_uba, si, enc->i_peer_version);
 
 		(*num_of_obj)++;
@@ -2107,9 +2103,8 @@ static uint32_t enc_cs_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uin
 	 * Walk through the entire SG list and send the SU operation list
 	 * for that SG and then move to next SG.
 	 */
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *sg = value.second;
 		status = enc_su_oper_list(cb, sg, enc);
 
 		if (status != NCSCC_RC_SUCCESS) {
@@ -2147,9 +2142,8 @@ static uint32_t enc_cs_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *sg = value.second;
 		if (nullptr == sg->admin_si) 
 			continue;
 
@@ -2172,9 +2166,8 @@ static uint32_t enc_cs_si_trans(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *
 {
 	TRACE_ENTER();
 
-	for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-			it != sg_db->end(); it++) {
-		AVD_SG *sg = it->second;
+	for (const auto& value : *sg_db) {
+		AVD_SG *sg = value.second;
 		if (sg->si_tobe_redistributed != nullptr) {
 			encode_si_trans(&enc->io_uba, sg, enc->i_peer_version);
 			(*num_of_obj)++;
@@ -2212,9 +2205,8 @@ static uint32_t enc_cs_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num
 	 * are sent.We will send the corresponding COMP_CSI relationship for that SU_SI
 	 * in the same update.
 	 */
-	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-		su = it->second;
+	for (const auto& value : *su_db) {
+		su = value.second;
 
 		for (rel = su->list_of_susi; rel != nullptr; rel = rel->su_next) {
 			copy = *rel;
@@ -2248,9 +2240,8 @@ static uint32_t enc_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 	/* 
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
-			it != comp_db->end(); it++) {
-		AVD_COMP *comp  = it->second;
+	for (const auto& value : *comp_db) {
+		AVD_COMP *comp  = value.second;
 
                 encode_comp(&enc->io_uba, comp);
 
@@ -2278,14 +2269,13 @@ static uint32_t enc_cs_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_
 \**************************************************************************/
 static uint32_t enc_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint32_t *num_of_obj)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
 	/* 
 	 * Encode and send async update counts for all the data structures.
 	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
+	uint32_t status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
 				    &enc->io_uba, EDP_OP_TYPE_ENC, &cb->async_updt_cnt, &ederror, enc->i_peer_version);
 
 	if (status != NCSCC_RC_SUCCESS)
@@ -2311,7 +2301,6 @@ static uint32_t enc_cs_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc, uint
 \**************************************************************************/
 uint32_t avd_enc_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
-	uint32_t status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
 	TRACE_ENTER();
 
@@ -2319,7 +2308,7 @@ uint32_t avd_enc_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	 * Encode and send latest async update counts. (In the same manner we sent
 	 * in the last message of the cold sync response.
 	 */
-	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
+	uint32_t status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_async_updt_cnt,
 				    &enc->io_uba, EDP_OP_TYPE_ENC, &cb->async_updt_cnt, &ederror, enc->i_peer_version);
 
 	if (status != NCSCC_RC_SUCCESS)
@@ -2466,9 +2455,8 @@ static uint32_t enc_cs_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc,
 	/*
 	 * Walk through the entire list and send the entire list data.
 	 */
-	for (std::map<std::string, AVD_COMPCS_TYPE*>::const_iterator it = compcstype_db->begin();
-			it != compcstype_db->end(); it++) {
-		AVD_COMPCS_TYPE *compcstype = it->second;
+	for (const auto& value : *compcstype_db) {
+		AVD_COMPCS_TYPE *compcstype = value.second;
 		encode_comp_cs_type_config(&enc->io_uba, compcstype, enc->i_peer_version);
 
 		(*num_of_obj)++;

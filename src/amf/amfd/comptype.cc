@@ -414,7 +414,6 @@ done1:
 static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
-	int i;
 	AVD_COMP_TYPE *comp_type;
 	SaNameT comp_type_name;
 
@@ -442,7 +441,7 @@ static void ccb_apply_modify_hdlr(const CcbUtilOperationData_t *opdata)
 		
 	std::set<AVD_AVND*>::iterator it;
 	for (it = node_set.begin(); it != node_set.end(); ++it) {
-		i = 0;
+		int i = 0;
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			AVSV_PARAM_INFO param;
 			memset(&param, 0, sizeof(param));

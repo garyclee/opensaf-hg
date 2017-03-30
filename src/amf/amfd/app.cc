@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -282,7 +283,6 @@ done:
 static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_APP *app;
-	int i = 0;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, osaf_extended_name_borrow(&opdata->objectName));
 
@@ -295,7 +295,7 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	case CCBUTIL_MODIFY: {
 		const SaImmAttrModificationT_2 *attr_mod;
 		app = app_db->find(Amf::to_string(&opdata->objectName));
-
+		int i = 0;
 		while ((attr_mod = opdata->param.modify.attrMods[i++]) != nullptr) {
 			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 

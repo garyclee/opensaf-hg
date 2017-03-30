@@ -1119,13 +1119,12 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 static void ccb_insert_ordered_list(AvdImmOiCcbApplyCallbackT ccb_apply_cb,
 		CcbUtilOperationData_t *opdata, AVSV_AMF_CLASS_ID type)
 {
-	AvdCcbApplyOrderedListT *temp = nullptr;
 	AvdCcbApplyOrderedListT *prev = nullptr;
 	AvdCcbApplyOrderedListT *next = nullptr;
 
 	/* allocate memory */
 
-	temp = new AvdCcbApplyOrderedListT;
+	AvdCcbApplyOrderedListT *temp = new AvdCcbApplyOrderedListT;
 
 	temp->ccb_apply_cb = ccb_apply_cb;
 	temp->opdata = opdata;
@@ -1340,7 +1339,6 @@ static const SaImmOiCallbacksT_2 avd_callbacks = {
  **************************************************************************/
 static SaAisErrorT hydra_config_get(void)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrValuesT_2 **attributes;
 	SaImmAccessorHandleT accessorHandle;
 	const std::string dn = "opensafImm=opensafImm,safApp=safImmService";
@@ -1351,7 +1349,7 @@ static SaAisErrorT hydra_config_get(void)
 	TRACE_ENTER();
 
 	immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
-	rc = immutil_saImmOmAccessorGet_o2(accessorHandle, dn.c_str(), attributeNames,
+	SaAisErrorT rc = immutil_saImmOmAccessorGet_o2(accessorHandle, dn.c_str(), attributeNames,
 				(SaImmAttrValuesT_2 ***)&attributes);
 
 	if (rc != SA_AIS_OK) {
@@ -1640,9 +1638,8 @@ unsigned int avd_imm_config_get(void)
 
 	// SGs needs to adjust configuration once all instances have been added
 	{
-		for (std::map<std::string, AVD_SG*>::const_iterator it = sg_db->begin();
-				it != sg_db->end(); it++) {
-			AVD_SG *sg = it->second;
+		for (const auto& value : *sg_db) {
+			AVD_SG *sg = value.second;
 			avd_sg_adjust_config(sg);
 		}
 	}
@@ -1767,9 +1764,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate_replace_sync(const std::string& dn, SaImmA
  */
 bool check_to_create_immjob_at_standby_amfd(const std::string& dn)
 {
-
-	AVSV_AMF_CLASS_ID class_type = AVSV_SA_AMF_CLASS_INVALID;
-	class_type = object_name_to_class_type(dn);
+	AVSV_AMF_CLASS_ID class_type = object_name_to_class_type(dn);
 	/*
 	 SI and CSI are config classes, so AMFD will not create any object for them
          in IMM. But for creation of runtime objects of classes SUSI and CSICOMP, parent
@@ -1887,9 +1882,8 @@ void avd_saImmOiRtObjectDelete(const std::string& dn)
 void avd_imm_update_runtime_attrs(void)
 {
 	/* Update SU Class runtime cached attributes. */
-	for (std::map<std::string, AVD_SU*>::const_iterator it = su_db->begin();
-			it != su_db->end(); it++) {
-		AVD_SU *su = it->second;
+	for (const auto& value : *su_db) {
+		AVD_SU *su = value.second;
 		avd_saImmOiRtObjectUpdate(su->name, "saAmfSUPreInstantiable",
 			SA_IMM_ATTR_SAUINT32T,  &su->saAmfSUPreInstantiable);
 
@@ -1912,9 +1906,8 @@ void avd_imm_update_runtime_attrs(void)
 	}
 
 	/* Update Component Class runtime cached attributes. */
-	for (std::map<std::string, AVD_COMP*>::const_iterator it = comp_db->begin();
-			it != comp_db->end(); it++) {
-		AVD_COMP *comp  = it->second;
+	for (const auto& value : *comp_db) {
+		AVD_COMP *comp  = value.second;
 		avd_saImmOiRtObjectUpdate(Amf::to_string(&comp->comp_info.name),
 			"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T,
 			&comp->saAmfCompReadinessState);
@@ -1930,17 +1923,15 @@ void avd_imm_update_runtime_attrs(void)
 	}
 
 	/* Update Node Class runtime cached attributes. */
-	for (std::map<std::string, AVD_AVND *>::const_iterator it = node_name_db->begin();
-			it != node_name_db->end(); it++) {
-		AVD_AVND *node = it->second;
+	for (const auto& value : *node_name_db) {
+		AVD_AVND *node = value.second;
 		avd_saImmOiRtObjectUpdate(node->name, "saAmfNodeOperState",
 				SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 	}
 
 	/* Update Node Class runtime cached attributes. */
-	for (std::map<std::string, AVD_SI*>::const_iterator it = si_db->begin();
-			it != si_db->end(); it++) {
-		AVD_SI *si = it->second;
+	for (const auto& value : *si_db) {
+		AVD_SI *si = value.second;
 		avd_saImmOiRtObjectUpdate(si->name, "saAmfSIAssignmentState",
 			SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 	}
@@ -2304,8 +2295,7 @@ done:
 //Imm Object atrribute update related member functions.
 bool ImmObjUpdate::su_get_attr_value() {	
   bool ret = true;
-  AVD_SU *su = nullptr;
-  su = su_db->find(dn);
+  AVD_SU *su = su_db->find(dn);
   if (su == nullptr) {
     TRACE_1("su not found");
     ret = false;
@@ -2359,13 +2349,10 @@ bool ImmObjUpdate::siass_get_attr_value() {
 bool ImmObjUpdate::csiass_get_attr_value() {
   std::string comp_name;
   std::string csi_name;
-  AVD_CSI *csi = nullptr;
-  AVD_COMP *comp = nullptr;
-  AVD_COMP_CSI_REL *compcsi = nullptr;
   //dn:safCSIComp=safComp=AmfDemo\,safSu=SU1\,safSg=AmfDemo\,safApp=AmfDemo1,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1
   avd_association_namet_init(dn, comp_name, csi_name, AVSV_SA_AMF_CSI);
-  csi =  csi_db->find(csi_name);
-  comp = comp_db->find(comp_name);
+  AVD_CSI *csi =  csi_db->find(csi_name);
+  AVD_COMP *comp = comp_db->find(comp_name);
   if ((csi == nullptr) || (comp == nullptr)) {
     TRACE_1("comp or csi not found");
     return false;
@@ -2375,6 +2362,8 @@ bool ImmObjUpdate::csiass_get_attr_value() {
     TRACE_1("susi not found");
     return false;
   }
+
+  AVD_COMP_CSI_REL *compcsi;
   for (compcsi = susi->list_of_csicomp; compcsi; compcsi = compcsi->susi_csicomp_next) {
     if ((compcsi->comp == comp) && (compcsi->csi == csi))
       break;
@@ -2392,8 +2381,7 @@ bool ImmObjUpdate::csiass_get_attr_value() {
   return true;
 }
 bool ImmObjUpdate::comp_get_attr_value() {
-  AVD_COMP *comp = nullptr;
-  comp = comp_db->find(dn);	
+  AVD_COMP *comp = comp_db->find(dn); 
   if (comp == nullptr) {
     TRACE_1("comp not found");
     return false;
@@ -2483,8 +2471,6 @@ bool ImmObjDelete::is_csiass_exist() {
   bool ret = true;
   std::string comp_name;
   std::string csi_name;
-  AVD_CSI *csi = nullptr;
-  AVD_COMP *comp = nullptr;
   AVD_COMP_CSI_REL *compcsi = nullptr; 
   AVD_SU_SI_REL *susi = nullptr;
   //dn:safCSIComp=safComp=AmfDemo\,safSu=SU1\,safSg=AmfDemo\,safApp=AmfDemo1,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo1
@@ -2492,8 +2478,8 @@ bool ImmObjDelete::is_csiass_exist() {
   avd_association_namet_init(dn, comp_name, csi_name, AVSV_SA_AMF_CSI);
   TRACE("csi:%s",csi_name.c_str());
   TRACE("comp:%s",comp_name.c_str());
-  csi =  csi_db->find(csi_name);
-  comp = comp_db->find(comp_name);	
+  AVD_CSI *csi =  csi_db->find(csi_name);
+  AVD_COMP *comp = comp_db->find(comp_name);	
   if ((csi == nullptr) || (comp == nullptr)) {
     TRACE_1("comp or csi not found");
     goto done;
