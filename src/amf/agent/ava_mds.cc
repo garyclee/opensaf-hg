@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -83,11 +84,10 @@ uint32_t ava_mds_reg(AVA_CB *cb)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SVC_ID svc_id;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	/* get the mds-hdl & ava mds address */
-	rc = ava_mds_param_get(cb);
+	uint32_t rc = ava_mds_param_get(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("Unable to get MDS handle");
 		return NCSCC_RC_FAILURE;
@@ -146,7 +146,6 @@ uint32_t ava_mds_reg(AVA_CB *cb)
 uint32_t ava_mds_unreg(AVA_CB *cb)
 {
 	NCSMDS_INFO mds_info;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	memset(&mds_info, 0, sizeof(NCSMDS_INFO));
@@ -155,7 +154,7 @@ uint32_t ava_mds_unreg(AVA_CB *cb)
 	mds_info.i_svc_id = NCSMDS_SVC_ID_AVA;
 	mds_info.i_op = MDS_UNINSTALL;
 
-	rc = ncsmds_api(&mds_info);
+	uint32_t rc = ncsmds_api(&mds_info);
 
 	TRACE_LEAVE2("retval = %u",rc);
 	return rc;
@@ -1017,7 +1016,6 @@ uint32_t ava_mds_msg_syn_send(AVA_CB *cb, NCSMDS_INFO *mds_info, AVSV_NDA_AVA_MS
 uint32_t ava_mds_param_get(AVA_CB *cb)
 {
 	NCSADA_INFO ada_info;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
 	memset(&ada_info, 0, sizeof(ada_info));
@@ -1025,7 +1023,7 @@ uint32_t ava_mds_param_get(AVA_CB *cb)
 	ada_info.req = NCSADA_GET_HDLS;
 
 	/* invoke ada request */
-	rc = ncsada_api(&ada_info);
+	uint32_t rc = ncsada_api(&ada_info);
 	if (NCSCC_RC_SUCCESS != rc) {
 		TRACE_2("MDS Get handle request failed");
 		goto done;
@@ -1100,11 +1098,10 @@ uint32_t ava_mds_dec(AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 uint32_t ava_mds_enc(AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	EDU_ERR ederror = static_cast<EDU_ERR>(0);
-	AVSV_NDA_AVA_MSG *msg = NULL;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();	
 
-	msg = (AVSV_NDA_AVA_MSG *)enc_info->i_msg;
+	AVSV_NDA_AVA_MSG *msg = (AVSV_NDA_AVA_MSG *)enc_info->i_msg;
 
 	switch (msg->type) {
 	case AVSV_AVA_API_MSG:

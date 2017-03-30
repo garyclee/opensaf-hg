@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -56,7 +57,6 @@ static bool ava_hdl_cbk_ipc_mbx_del(NCSCONTEXT arg, NCSCONTEXT msg);
 uint32_t ava_hdl_init(AVA_HDL_DB *hdl_db)
 {
 	NCS_PATRICIA_PARAMS param;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
@@ -64,7 +64,7 @@ uint32_t ava_hdl_init(AVA_HDL_DB *hdl_db)
 	/* init the hdl db tree */
 	param.key_size = sizeof(uint32_t);
 
-	rc = ncs_patricia_tree_init(&hdl_db->hdl_db_anchor, &param);
+	uint32_t rc = ncs_patricia_tree_init(&hdl_db->hdl_db_anchor, &param);
 	if (NCSCC_RC_SUCCESS == rc)
 		hdl_db->num = 0;
 	else
@@ -417,7 +417,6 @@ uint32_t ava_hdl_cbk_dispatch_one(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 {
 	AVA_PEND_RESP *list_resp = &(*hdl_rec)->pend_resp;
-	AVA_PEND_CBK_REC *rec = 0;
 	uint32_t hdl = (*hdl_rec)->hdl;
 	OsafAmfCallbacksT reg_cbk;
 	uint32_t rc = SA_AIS_OK;
@@ -428,7 +427,7 @@ uint32_t ava_hdl_cbk_dispatch_all(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 
 	/* pop all the records from the mailbox & process them */
 	do {
-		rec = (AVA_PEND_CBK_REC *)m_NCS_IPC_NON_BLK_RECEIVE(&(*hdl_rec)->callbk_mbx, NULL);
+		AVA_PEND_CBK_REC *rec = (AVA_PEND_CBK_REC *)m_NCS_IPC_NON_BLK_RECEIVE(&(*hdl_rec)->callbk_mbx, NULL);
 		if (!rec)
 			break;
 
@@ -589,7 +588,6 @@ uint32_t ava_hdl_cbk_dispatch_block(AVA_CB **cb, AVA_HDL_REC **hdl_rec)
 uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, OsafAmfCallbacksT *reg_cbk)
 {
 	uint32_t rc = SA_AIS_OK;
-	uint32_t i;
 	TRACE_ENTER2("CallbackType = %d",info->type);
 
 	/* invoke the corresponding callback */
@@ -678,7 +676,7 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, OsafAmfCallbacksT *reg_cbk
 
 			if(ava_B4_ver_used(0)) {
 				SaAmfProtectionGroupNotificationBufferT_4 buf ={0};
-				for (i = 0 ; i < pg_track->buf.numberOfItems ; i++) {
+				for (uint32_t i = 0 ; i < pg_track->buf.numberOfItems ; i++) {
 					if (!ava_sanamet_is_valid(&pg_track->buf.notification[i].member.compName)) {
 						rc = SA_AIS_ERR_NAME_TOO_LONG;
 						break;
@@ -716,7 +714,7 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, OsafAmfCallbacksT *reg_cbk
 			else /* B01 version is used */
 			{
 				SaAmfProtectionGroupNotificationBufferT buf;
-				for (i = 0 ; i < pg_track->buf.numberOfItems ; i++) {
+				for (uint32_t i = 0 ; i < pg_track->buf.numberOfItems ; i++) {
 					if (!ava_sanamet_is_valid(&pg_track->buf.notification[i].member.compName)) {
 						rc = SA_AIS_ERR_NAME_TOO_LONG;
 						break;
@@ -738,7 +736,7 @@ uint32_t ava_hdl_cbk_rec_prc(AVSV_AMF_CBK_INFO *info, OsafAmfCallbacksT *reg_cbk
 						/* allocate LongDn strings for notification if any
 						 * then client needs to free these LongDn string as well
 						 */
-						for (i=0 ; i < buf.numberOfItems; i++) {
+						for (uint32_t i=0 ; i < buf.numberOfItems; i++) {
 							osaf_extended_name_alloc(
 								osaf_extended_name_borrow(&pg_track->buf.notification[i].member.compName),
 								&buf.notification[i].member.compName);

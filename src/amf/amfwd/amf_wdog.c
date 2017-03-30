@@ -2,6 +2,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -104,7 +105,7 @@ static void amf_healthcheck_callback(SaInvocationT        inv,
 	osafassert(tstamp_data);
 
 	snprintf(latest_healthcheck_trace, sizeof(latest_healthcheck_trace),
-			 "Last received healthcheck cnt=%u at %s",
+			 "Last received healthcheck cnt=%d at %s",
 			 healthcheck_count, asctime(tstamp_data));
 
 	rc = saAmfResponse(amf_hdl, inv, SA_AIS_OK);

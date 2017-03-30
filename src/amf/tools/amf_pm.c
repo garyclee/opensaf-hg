@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2011 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -142,7 +143,6 @@ int main(int argc, char **argv)
 	SaUint64T processId = 0;
 	bool start = false;
 	bool stop = false;
-	int c;
 	struct option long_options[] = {
 		{"help", no_argument, 0, 'h'},
 		{"file", required_argument, 0, 'f'},
@@ -159,9 +159,8 @@ int main(int argc, char **argv)
 	SaAmfRecommendedRecoveryT recrec = SA_AMF_NO_RECOMMENDATION;
 	char name[2048];
 	int length;
-
 	while (1) {
-		c = getopt_long(argc, argv, "af:p:hor:", long_options, NULL);
+		int c = getopt_long(argc, argv, "af:p:hor:", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
