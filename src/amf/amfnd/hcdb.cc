@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -70,9 +71,7 @@ AVND_HCTYPE *avnd_hctypedb_rec_get(AVND_CB *cb, const std::string& comp_type_dn,
 static AVND_HC *hc_create(AVND_CB *cb, const std::string &dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
-	AVND_HC *hc = nullptr;
-  
-	hc = new AVND_HC();
+	AVND_HC *hc = new AVND_HC();
 
 	if (immutil_getAttr(const_cast<SaImmAttrNameT>("saAmfHealthcheckPeriod"), attributes, 0, &hc->period) != SA_AIS_OK) {
 		LOG_ER("Get saAmfHealthcheckPeriod FAILED for '%s'", dn.c_str());
@@ -101,7 +100,6 @@ static AVND_HC *hc_create(AVND_CB *cb, const std::string &dn, const SaImmAttrVal
 
 SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 {
-	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
 	SaNameT hc_name;
@@ -110,7 +108,7 @@ SaAisErrorT avnd_hc_config_get(AVND_COMP *comp)
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 15 };
 
-	error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
+	SaAisErrorT error = saImmOmInitialize_cond(&immOmHandle, nullptr, &immVersion);
 	if (error != SA_AIS_OK) {
 		LOG_CR("saImmOmInitialize failed: %u", error);
 		goto done;
@@ -185,7 +183,6 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, const std::string &dn, const SaIm
 
 SaAisErrorT avnd_hctype_config_get(SaImmHandleT immOmHandle, const std::string &comptype_dn)
 {
-	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
 	SaNameT hc_name;
@@ -198,7 +195,7 @@ SaAisErrorT avnd_hctype_config_get(SaImmHandleT immOmHandle, const std::string &
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = amf_saImmOmSearchInitialize_o2(immOmHandle, comptype_dn,
+	SaAisErrorT error = amf_saImmOmSearchInitialize_o2(immOmHandle, comptype_dn,
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
 		&searchParam, nullptr, searchHandle);
 
@@ -441,11 +438,8 @@ uint32_t avnd_hctype_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 		goto done;
 	}
 
-	rc = NCSCC_RC_SUCCESS;
-
 done:
 	rc = NCSCC_RC_SUCCESS;
-	
 	TRACE_LEAVE();
 	return rc;
 }

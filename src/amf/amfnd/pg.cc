@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -63,7 +64,7 @@ static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRAC
 static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info)
 {
 	AVND_PG_TRK *curr = 0, *prv = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS, i = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	if (true == info->is_csi_exist) {	/* => +ve resp */
@@ -72,7 +73,7 @@ static uint32_t avnd_pg_start_rsp_prc(AVND_CB *cb, AVND_PG *pg, AVSV_D2N_PG_TRAC
 
 		/* update the mem-list */
 		osafassert(!pg->mem_list.n_nodes);
-		for (i = 0; i < info->mem_list.numberOfItems; i++)
+		for (uint32_t i = 0; i < info->mem_list.numberOfItems; i++)
 			avnd_pgdb_mem_rec_add(cb, pg, &info->mem_list.notification[i]);
 
 		/* now send pending resp to all the appl */
@@ -298,14 +299,15 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 						      AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info)
 {
 	AVND_PG_TRK *curr = 0;
-	uint32_t rc = NCSCC_RC_SUCCESS, i = 0;
-	AVND_PG_MEM *pg_mem = 0, *mem_curr = 0, *mem_prv = 0;
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	AVND_PG_MEM  *mem_curr = 0, *mem_prv = 0;
 	SaAmfProtectionGroupNotificationT *mem_info;
 	TRACE_ENTER2("%u", info->is_csi_exist);
 
 	if (true == info->is_csi_exist) {	/* => +ve resp */
+		AVND_PG_MEM *pg_mem;
 		/* Walk through the list */
-		for (i = 0; i < info->mem_list.numberOfItems; i++) {
+		for (uint32_t i = 0; i < info->mem_list.numberOfItems; i++) {
 			mem_info = &info->mem_list.notification[i];
 			/* get the mem rec */
 			pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, mem_info->member.compName);
@@ -397,7 +399,6 @@ static uint32_t avnd_process_pg_track_start_rsp_on_fover(AVND_CB *cb, AVND_PG *p
 uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &evt->info.avd->msg_info.d2n_pg_track_act_rsp;
-	AVND_PG *pg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("Actn'%u'", info->actn);
@@ -413,7 +414,7 @@ uint32_t avnd_evt_avd_pg_track_act_rsp_evh(AVND_CB *cb, AVND_EVT *evt)
 			avnd_di_msg_ack_process(cb, info->msg_id_ack);
 
 			/* get the pg rec */
-			pg = cb->pgdb.find(Amf::to_string(&info->csi_name));
+			AVND_PG *pg = cb->pgdb.find(Amf::to_string(&info->csi_name));
 			TRACE("pg '%p', msg_on_fover '%u'", pg, info->msg_on_fover);
 			if (true == info->msg_on_fover) {
 				if (nullptr != pg) {
@@ -470,7 +471,6 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_D2N_PG_UPD_MSG_INFO *info = &evt->info.avd->msg_info.d2n_pg_upd;
 	AVND_PG *pg = 0;
 	AVND_PG_TRK *curr = 0;
-	AVND_PG_MEM *chg_mem = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER2("is_csi_del=%u", info->is_csi_del);
@@ -502,6 +502,7 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 		/* delete pg rec */
 		rc = avnd_pgdb_rec_del(cb, pg->csi_name);
 	} else {
+		AVND_PG_MEM *chg_mem = 0;
 		/* => this update is for csi updation */
 
 		/* update the pg mem-list */
@@ -563,7 +564,6 @@ uint32_t avnd_evt_avd_pg_upd_evh(AVND_CB *cb, AVND_EVT *evt)
 void avnd_pg_finalize(AVND_CB *cb, SaAmfHandleT hdl, MDS_DEST *dest)
 {
 	AVND_PG_TRK_KEY key;
-	AVND_PG *curr = 0;
 	AmfDb<std::string, AVND_PG>::iterator it, next_elem;
 	TRACE_ENTER();
 
@@ -579,8 +579,8 @@ void avnd_pg_finalize(AVND_CB *cb, SaAmfHandleT hdl, MDS_DEST *dest)
 		// This is to avoid the case the an pgdb element is deleted inside
 		// nested functions
 		next_elem = it;
-		next_elem++;
-		curr = it->second;
+		++next_elem;
+		AVND_PG *curr = it->second;
 		/* delete the matching track recs, if any */
 		avnd_pg_trk_rmv(cb, curr, &key);
 		/* if no other appl tracks this pg, stop tracking it */
@@ -697,11 +697,10 @@ uint32_t avnd_pg_track_start(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
 ******************************************************************************/
 uint32_t avnd_pg_track_stop(AVND_CB *cb, AVND_PG *pg)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("%s",  pg->csi_name.c_str());
 
 	/* send pg-stop req to avd */
-	rc = avnd_di_pg_act_send(cb, pg->csi_name, AVSV_PG_TRACK_ACT_STOP, false);
+	uint32_t rc = avnd_di_pg_act_send(cb, pg->csi_name, AVSV_PG_TRACK_ACT_STOP, false);
 	if (NCSCC_RC_SUCCESS != rc) {
 		TRACE("avnd_di_pg_act_send failed for = %s", pg->csi_name.c_str());
 	}
@@ -735,7 +734,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 	AVND_PG_MEM *curr_mem = 0;
 	AVSV_AMF_CBK_INFO *cbk_info = 0;
 	AVSV_AMF_PG_TRACK_PARAM *pg_param = 0;
-	uint32_t i = 0, rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint32_t number_of_items = 0;
 	TRACE_ENTER();
 
@@ -759,7 +758,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 		/* => this csi exists... invoke the cbk as per the track flags */
 		if ((m_AVND_PG_TRK_IS_CURRENT(trk) || m_AVND_PG_TRK_IS_CHANGES(trk))) {
 	 /*** include all the current members ***/
-
+			uint32_t i;
 			/* we need to include the comp which just got removed from group */
 			if (chg_mem && (chg_mem->info.change == SA_AMF_PROTECTION_GROUP_REMOVED)
 			    && m_AVND_PG_TRK_IS_CHANGES(trk))
@@ -767,7 +766,7 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 
 			/* allocate the buffer */
 			pg_param->buf.notification = static_cast<SaAmfProtectionGroupNotificationT*>(calloc(number_of_items,
-																								sizeof(SaAmfProtectionGroupNotificationT)));
+						sizeof(SaAmfProtectionGroupNotificationT)));
 
 			/* fill all the current members */
 			for (curr_mem = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_FIRST(&pg->mem_list), i = 0;
@@ -831,7 +830,6 @@ uint32_t avnd_pg_cbk_send(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *trk, AVND_PG_ME
 uint32_t avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *cbk_info)
 {
 	AVND_MSG msg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(AVND_MSG));
@@ -845,7 +843,7 @@ uint32_t avnd_pg_cbk_msg_send(AVND_CB *cb, AVND_PG_TRK *trk, AVSV_AMF_CBK_INFO *
 	msg.info.ava->info.cbk_info = cbk_info;
 
 	/* send the message to AvA */
-	rc = avnd_mds_send(cb, &msg, &trk->info.key.mds_dest,
+	uint32_t rc = avnd_mds_send(cb, &msg, &trk->info.key.mds_dest,
 			   ((m_AVND_PG_TRK_IS_CURRENT(trk)) && (true == trk->info.is_syn)) ? &trk->info.mds_ctxt : 0);
 	if (NCSCC_RC_SUCCESS == rc)
 		msg.info.ava = 0;

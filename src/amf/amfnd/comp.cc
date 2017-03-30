@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -2234,7 +2235,6 @@ void avnd_pxied_list_init(AVND_COMP *comp)
 ******************************************************************************/
 uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, bool avd_upd_needed)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_PXIED_REC *rec;
 	AVSV_PARAM_INFO param;
 	TRACE_ENTER2("'%s' : '%s'", comp->name.c_str(), pxy_comp->name.c_str());	
@@ -2247,7 +2247,7 @@ uint32_t avnd_comp_proxied_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp
 	rec->comp_dll_node.key = (uint8_t *)comp->name.c_str();
 
 	/* add rec to link list */
-	rc = ncs_db_link_list_add(&pxy_comp->pxied_list, &rec->comp_dll_node);
+	uint32_t rc = ncs_db_link_list_add(&pxy_comp->pxied_list, &rec->comp_dll_node);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
@@ -2558,7 +2558,7 @@ void avnd_comp_cmplete_all_assignment(AVND_CB *cb, AVND_COMP *comp)
 				/* if assignment was overriden by new one */
 				avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk, true);
 				continue;
-			} else if (csi && m_AVND_COMP_IS_ALL_CSI(comp)) {
+			} else if (m_AVND_COMP_IS_ALL_CSI(comp)) {
 				/* if both target all and target one operation are
 				 * pending, we need not respond for target one
 				 */
@@ -2959,7 +2959,6 @@ uint32_t avnd_comp_oper_state_avd_sync(AVND_CB *cb, AVND_COMP *comp)
 uint32_t avnd_comp_proxy_status_avd_sync(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVSV_PARAM_INFO param;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
@@ -2969,7 +2968,7 @@ uint32_t avnd_comp_proxy_status_avd_sync(AVND_CB *cb, AVND_COMP *comp)
 	param.act = AVSV_OBJ_OPR_MOD;
 	*((uint32_t *)param.value) = m_NCS_OS_HTONL((comp)->proxy_status);
 	param.value_len = sizeof(uint32_t);
-	rc = avnd_di_object_upd_send((cb), &param);
+	uint32_t rc = avnd_di_object_upd_send((cb), &param);
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;

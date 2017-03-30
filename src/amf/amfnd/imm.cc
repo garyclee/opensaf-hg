@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2016 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -35,13 +36,12 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX];
  * @return void*
  */
 void ImmReader::imm_reader_thread() {
-	uint32_t rc = SA_AIS_OK;
 	AVND_EVT *evt;
 	TRACE_ENTER();
 	NCS_SEL_OBJ mbx_fd;
 
 	/* create the mail box */
-	rc = m_NCS_IPC_CREATE(&ir_cb.mbx);
+	uint32_t rc = m_NCS_IPC_CREATE(&ir_cb.mbx);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_CR("AvND Mailbox creation failed");
 		exit(EXIT_FAILURE);
@@ -137,7 +137,7 @@ void ImmReader::ir_process_event(AVND_EVT *evt) {
 		TRACE("Imm Read:'%d'", evt_ir->info.ir_evt.status);
 
 		/* if failure, free the event */
-		if (NCSCC_RC_SUCCESS != res && evt_ir)
+		if (NCSCC_RC_SUCCESS != res)
 			avnd_evt_destroy(evt_ir);
 	}
 done:

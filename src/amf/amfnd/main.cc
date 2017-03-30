@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2010 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -362,11 +363,10 @@ AVND_CB *avnd_cb_create()
 ******************************************************************************/
 uint32_t avnd_mbx_create(AVND_CB *cb)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	/* create the mail box */
-	rc = m_NCS_IPC_CREATE(&cb->mbx);
+	uint32_t rc = m_NCS_IPC_CREATE(&cb->mbx);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_CR("AvND Mailbox creation failed");
 		goto err;
@@ -402,14 +402,13 @@ uint32_t avnd_mbx_create(AVND_CB *cb)
 ******************************************************************************/
 uint32_t avnd_ext_intf_create(AVND_CB *cb)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	EDU_ERR err = EDU_NORMAL;
 	TRACE_ENTER();
 
 	/* EDU initialisation */
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
 
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_dnd_msg, &err);
+	uint32_t rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_dnd_msg, &err);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("%u, EDU compilation failed",__LINE__);
@@ -504,9 +503,9 @@ static int open_amfd_fifo() {
   const std::string fifo_dir = PKGLOCALSTATEDIR;
   std::string fifo_file = fifo_dir + "/" + "osafamfd.fifo";
   int fifo_fd = -1;
-  int retry_cnt = 0;
 
   if (access(fifo_file.c_str(), F_OK ) != -1 ) {
+    int retry_cnt = 0;
     do {
       if (retry_cnt > 0) {
         osaf_nanosleep(&kHundredMilliseconds);
@@ -603,7 +602,7 @@ void avnd_main_process(void)
 			case SA_AIS_OK:
 				break;
 			case SA_AIS_ERR_BAD_HANDLE:
-				usleep(100000);
+				osaf_nanosleep(&kHundredMilliseconds);
 				LOG_NO("saClmDispatch BAD_HANDLE");
 				rc = avnd_start_clm_init_bg();
 				osafassert(rc == SA_AIS_OK);
@@ -713,7 +712,6 @@ static uint32_t avnd_evt_invalid_evh(AVND_CB *cb, AVND_EVT *evt)
  **************************************************************************/
 static void hydra_config_get(AVND_CB *cb)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	SaImmHandleT immOmHandle;
 	SaVersionT immVersion = { 'A', 2, 15 };
 	const SaImmAttrValuesT_2 **attributes;
@@ -730,7 +728,7 @@ static void hydra_config_get(AVND_CB *cb)
 
 	immutil_saImmOmInitialize(&immOmHandle, nullptr, &immVersion);
 	amf_saImmOmAccessorInitialize(immOmHandle, accessorHandle);
-	rc = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, attributeNames,
+	SaAisErrorT rc = amf_saImmOmAccessorGet_o2(immOmHandle, accessorHandle, dn, attributeNames,
 		(SaImmAttrValuesT_2 ***)&attributes);
 
 	if (rc != SA_AIS_OK) {

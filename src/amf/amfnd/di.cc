@@ -2,6 +2,7 @@
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  * (C) Copyright 2017 Ericsson AB - All Rights Reserved
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -996,7 +997,6 @@ void avnd_di_uns32_upd_send(int class_id, int attr_id, const std::string& dn, ui
 uint32_t avnd_di_pg_act_send(AVND_CB *cb, const std::string& csi_name, AVSV_PG_TRACK_ACT actn, bool fover)
 {
 	AVND_MSG msg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER2("Csi '%s'", csi_name.c_str());
 
 	memset(&msg, 0, sizeof(AVND_MSG));
@@ -1012,7 +1012,7 @@ uint32_t avnd_di_pg_act_send(AVND_CB *cb, const std::string& csi_name, AVSV_PG_T
 	msg.info.avd->msg_info.n2d_pg_trk_act.msg_on_fover = fover;
 
 	/* send the msg to AvD */
-	rc = avnd_di_msg_send(cb, &msg);
+	uint32_t rc = avnd_di_msg_send(cb, &msg);
 	if (NCSCC_RC_SUCCESS == rc)
 			msg.info.avd = 0;
 
@@ -1038,11 +1038,12 @@ uint32_t avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 {
 	AVND_DND_MSG_LIST *rec = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER2("Msg type '%u'", msg->info.avd->msg_type);
-
+	TRACE_ENTER();
 	/* nothing to send */
 	if (!msg)
 		goto done;
+
+	TRACE("Msg type '%u'", msg->info.avd->msg_type);
 
 	/* Verify Ack nack msgs are not buffered */
 	if (m_AVSV_N2D_MSG_IS_VER_ACK_NACK(msg->info.avd)) {
@@ -1349,15 +1350,17 @@ void avnd_diq_rec_send_buffered_msg(AVND_CB *cb)
 							pending_rec->msg.info.avd->msg_info.n2d_opr_state.msg_id == 0) {
 						found = true;
 						m_AVND_DIQ_REC_POP(cb, pending_rec);
-						pending_rec->msg.info.avd->msg_info.n2d_opr_state.msg_id = ++(cb->snd_msg_id);
+						if (pending_rec != nullptr) {
+							pending_rec->msg.info.avd->msg_info.n2d_opr_state.msg_id = ++(cb->snd_msg_id);
 
-						m_AVND_DIQ_REC_PUSH(cb, pending_rec);
-						LOG_NO("Found and resend buffered oper_state msg for SU:'%s', "
-								"su_oper_state:'%u', node_oper_state:'%u', recovery:'%u'",
-								osaf_extended_name_borrow(&pending_rec->msg.info.avd->msg_info.n2d_opr_state.su_name),
-								pending_rec->msg.info.avd->msg_info.n2d_opr_state.su_oper_state,
-								pending_rec->msg.info.avd->msg_info.n2d_opr_state.node_oper_state,
-								pending_rec->msg.info.avd->msg_info.n2d_opr_state.rec_rcvr.raw);
+							m_AVND_DIQ_REC_PUSH(cb, pending_rec);
+							LOG_NO("Found and resend buffered oper_state msg for SU:'%s', "
+									"su_oper_state:'%u', node_oper_state:'%u', recovery:'%u'",
+									osaf_extended_name_borrow(&pending_rec->msg.info.avd->msg_info.n2d_opr_state.su_name),
+									pending_rec->msg.info.avd->msg_info.n2d_opr_state.su_oper_state,
+									pending_rec->msg.info.avd->msg_info.n2d_opr_state.node_oper_state,
+									pending_rec->msg.info.avd->msg_info.n2d_opr_state.rec_rcvr.raw);
+						}
 					}
 				}
 			}
@@ -1388,13 +1391,12 @@ void avnd_diq_rec_send_buffered_msg(AVND_CB *cb)
 uint32_t avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 {
 	AVND_MSG msg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* copy the contents from the record */
-	rc = avnd_msg_copy(cb, &msg, &rec->msg);
+	uint32_t rc = avnd_msg_copy(cb, &msg, &rec->msg);
 
 	/* send the message to AvD */
 	if (NCSCC_RC_SUCCESS == rc)
@@ -1504,14 +1506,13 @@ uint32_t avnd_evt_tmr_avd_hb_duration_evh(AVND_CB *cb, AVND_EVT *evt)
 uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVSV_D2N_ROLE_CHANGE_INFO *info = nullptr;
 	V_DEST_RL mds_role;
 	SaAmfHAStateT prev_ha_state;
 
 	TRACE_ENTER();
 
 	/* Correct the counters first. */
-	info = &evt->info.avd->msg_info.d2n_role_change_info;
+	AVSV_D2N_ROLE_CHANGE_INFO * info = &evt->info.avd->msg_info.d2n_role_change_info;
 
 	TRACE("MsgId: %u,NodeId:%u, role rcvd:%u role present:%u",\
 			      info->msg_id, info->node_id, info->role, cb->avail_state_avnd);
@@ -1575,12 +1576,11 @@ uint32_t avnd_evt_avd_role_change_evh(AVND_CB *cb, AVND_EVT *evt)
 uint32_t avnd_di_resend_pg_start_track(AVND_CB *cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	AVND_PG *pg = 0;
 
 	TRACE_ENTER();
 
 	for (const auto& pg_rec : cb->pgdb) {
-		pg = pg_rec.second;
+		 AVND_PG *pg = pg_rec.second;
 		rc = avnd_di_pg_act_send(cb, pg->csi_name, AVSV_PG_TRACK_ACT_START, true);
 
 		if (NCSCC_RC_SUCCESS != rc)

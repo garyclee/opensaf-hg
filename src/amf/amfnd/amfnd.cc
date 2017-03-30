@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -55,14 +56,12 @@ uint32_t avnd_evt_avnd_avnd_evh(AVND_CB *cb, AVND_EVT *evt)
 
 	if (AVND_AVND_CBK_DEL == avnd_avnd_msg->type) {
 		/* This is a Callback Del message */
-		AVSV_ND2ND_CBK_DEL *del_cbk = nullptr;
-		AVND_COMP *o_comp = nullptr;
 		AVND_COMP_CBK *cbk_rec = nullptr;
 		std::string comp_name;
 
-		del_cbk = &avnd_avnd_msg->info.cbk_del;
+		AVSV_ND2ND_CBK_DEL *del_cbk = &avnd_avnd_msg->info.cbk_del;
 		comp_name = Amf::to_string(&del_cbk->comp_name);
-		o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
+		AVND_COMP *o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
 
 		if (nullptr == o_comp) {
 			LOG_ER("Comp not in Inter/Ext Comp DB: %s : opq_hdl= %u", comp_name.c_str(), del_cbk->opq_hdl);
@@ -188,7 +187,6 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 {
 	uint32_t res = NCSCC_RC_SUCCESS;
 	AVSV_ND2ND_AVND_MSG *avnd_msg = evt->info.avnd;
-	AVND_COMP *o_comp = nullptr;
 	AVSV_AMF_API_RESP_INFO *resp_info = &avnd_msg->info.msg->info.api_resp_info;
 	SaAmfHAStateT *ha_state = nullptr;
 	MDS_DEST reg_dest = 0;
@@ -196,7 +194,7 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 
 	TRACE_ENTER2("%s: Type =%u and rc = %u", comp_name.c_str(), resp_info->type, resp_info->rc);
 
-	o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
+	AVND_COMP *o_comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_name);
 	if (nullptr == o_comp) {
 		LOG_ER("Couldn't find comp in Inter/Ext Comp DB");
 		res = NCSCC_RC_FAILURE;
@@ -247,7 +245,13 @@ uint32_t avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			}
 			reg_dest = o_comp->reg_dest;
 			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, false, nullptr);
+			if (NCSCC_RC_SUCCESS != res) {
+				TRACE("%s: avnd_comp_proxied_del Failed: rc:%u",  __FUNCTION__, res);
+			}
 			res = avnd_internode_comp_del(cb, o_comp->name);
+			if (NCSCC_RC_SUCCESS != res) {
+				TRACE("%s: avnd_internode_comp_del Failed: rc:%u", __FUNCTION__, res);
+			}
 		}
 	}
 

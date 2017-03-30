@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -848,13 +849,12 @@ uint32_t avnd_su_si_csi_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
 ******************************************************************************/
 uint32_t avnd_su_si_csi_rec_del(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint16_t i;
 
 	TRACE_ENTER2("'%s' : '%s' : '%s'", su->name.c_str(), si_rec->name.c_str(), csi_rec->name.c_str());
 
 	/* remove from the comp-csi list */
-	rc = m_AVND_COMPDB_REC_CSI_REM(*(csi_rec->comp), *csi_rec);
+	uint32_t rc = m_AVND_COMPDB_REC_CSI_REM(*(csi_rec->comp), *csi_rec);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto err;
 

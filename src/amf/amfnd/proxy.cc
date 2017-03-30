@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -133,7 +134,7 @@ uint32_t avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 		/* send the message */
 		rc = avnd_diq_rec_send(cb, rec);
 
-		if ((NCSCC_RC_SUCCESS != rc) && rec) {
+		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_ER("avnd_diq_rec_send:failed:%s,Type:%u and Hdl%llx",
 					    comp_name.c_str(), api_info->type, reg->hdl);
 			/* pop & delete */
@@ -329,7 +330,6 @@ uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE ty
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_MSG msg;
-	AVSV_ND2ND_AVA_MSG *nd_nd_ava_msg = nullptr;
 	MDS_DEST i_to_dest = 0;
 	AVSV_AMF_API_INFO *info = (AVSV_AMF_API_INFO *)msg_info;
 
@@ -342,7 +342,7 @@ uint32_t avnd_avnd_msg_send(AVND_CB *cb, uint8_t *msg_info, AVSV_AMF_API_TYPE ty
 	msg.info.avnd = static_cast<AVSV_ND2ND_AVND_MSG*>(calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)));
 	msg.type = AVND_MSG_AVND;
 
-	nd_nd_ava_msg = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
+	AVSV_ND2ND_AVA_MSG *nd_nd_ava_msg = static_cast<AVSV_NDA_AVA_MSG*>(calloc(1, sizeof(AVSV_NDA_AVA_MSG)));
 
 	msg.info.avnd->type = AVND_AVND_AVA_MSG;
 	msg.info.avnd->info.msg = nd_nd_ava_msg;
@@ -643,7 +643,6 @@ uint32_t avnd_int_ext_comp_val(AVND_CB *cb, const std::string& comp_name, AVND_C
 ******************************************************************************/
 uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, const std::string &comp_name, uint32_t *opq_hdl, NODE_ID *node_id)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST i_to_dest = 0;
 	AVND_MSG msg;
 	SaNameT name;
@@ -664,7 +663,7 @@ uint32_t avnd_avnd_cbk_del_send(AVND_CB *cb, const std::string &comp_name, uint3
 
 	i_to_dest = avnd_get_mds_dest_from_nodeid(cb, *node_id);
 
-	rc = avnd_avnd_mds_send(cb, i_to_dest, &msg);
+	uint32_t rc = avnd_avnd_mds_send(cb, i_to_dest, &msg);
 
  	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("AvND Send Failure:%s:NodeID:%u,opq_hdl:%u,MdsDest:%" PRId64,

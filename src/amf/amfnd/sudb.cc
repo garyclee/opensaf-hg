@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright (C) 2017, Oracle and/or its affiliates. All rights reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -156,16 +157,15 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uint32_t *rc)
 ******************************************************************************/
 uint32_t avnd_sudb_rec_del(AVND_CB *cb, const std::string& name)
 {
-	AVND_SU *su = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	AVND_COMP *comp;
 
 	TRACE_ENTER2("%s", name.c_str());
 
 	/* get the su record */
-	su = avnd_sudb_rec_get(cb->sudb, name);
+	AVND_SU *su = avnd_sudb_rec_get(cb->sudb, name);
 	if (!su) {
-		LOG_NO("%s: %s not found", __FUNCTION__, su->name.c_str());
+		LOG_NO("%s: name: %s not found", __FUNCTION__, name.c_str());
 		rc = AVND_ERR_NO_SU;
 		goto done;
 	}
