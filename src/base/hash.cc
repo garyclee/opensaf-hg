@@ -54,7 +54,6 @@ class HashLibrary {
   using FinalFunction = int (unsigned char*, Context*);
 
   HashLibrary();
-  ~HashLibrary();
   static void* OpenLibrary();
   static void* GetSymbol(void* handle, int bits, const char* function,
                          void* fallback);
@@ -93,18 +92,6 @@ HashLibrary::HashLibrary() :
           GetSymbol(handle_, 512, "Final",
                     reinterpret_cast<void*>(FallbackFinalFunction)))} {
 }
-
-HashLibrary::~HashLibrary() {
-  if (handle_ != nullptr) {
-    dlclose(handle_);
-    handle_ = nullptr;
-  }
-  init_function_ = nullptr;
-  update_function_ = nullptr;
-  final_function_ = nullptr;
-  instance_ = nullptr;
-}
-
 
 void* HashLibrary::OpenLibrary() {
   void* handle = nullptr;
