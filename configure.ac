@@ -1,6 +1,7 @@
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2008 The OpenSAF Foundation
+# Copyright Ericsson AB 2008, 2017 - All Rights Reserved.
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -15,7 +16,7 @@
 #
 
 AC_PREREQ([2.64])
-AC_INIT([opensaf], [5.2.RC1], [opensaf-users@lists.sourceforge.net], [opensaf], [http://opensaf.sourceforge.net/])
+AC_INIT([opensaf], [5.2.RC2], [opensaf-users@lists.sourceforge.net], [opensaf], [http://opensaf.sourceforge.net/])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([opensaf.spec.in])
