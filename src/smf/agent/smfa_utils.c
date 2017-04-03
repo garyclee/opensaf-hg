@@ -333,13 +333,13 @@ SaAisErrorT smfa_dispatch_cbk_block(SMFA_CLIENT_INFO *client_info)
 uint32_t smfa_cbk_ok_resp_process(SaSmfHandleT smfHandle,SaInvocationT invocation)
 {
 	SMFA_CB *cb = &_smfa_cb;
-	SMFA_CBK_LIST *cbk_list = cb->cbk_list, *cbk_prev = NULL;
+	SMFA_CBK_LIST *cbk_list = cb->cbk_list;
 	SMFA_CBK_HDL_LIST *hdl_list = NULL, *hdl_prev;
 	uint32_t rc = NCSCC_RC_FAILURE;
 
 	TRACE_ENTER2("Handle: %llu, ind_id: %llu.",smfHandle,invocation);
 	/* Find the invocation node.*/
-	cbk_prev = cbk_list;
+	SMFA_CBK_LIST *cbk_prev = cbk_list;
 	while(cbk_list){
 		/* Inv node found.*/
 		if (invocation == cbk_list->inv_id){
@@ -406,14 +406,14 @@ done:
 uint32_t smfa_cbk_err_resp_process(SaInvocationT invocation,SaSmfHandleT hdl)
 {
 	SMFA_CB *cb = &_smfa_cb;
-	SMFA_CBK_LIST *cbk_list = cb->cbk_list, *cbk_prev = NULL;
+	SMFA_CBK_LIST *cbk_list = cb->cbk_list;
 	SMFA_CBK_HDL_LIST *hdl_list = NULL ;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	uint32_t is_delay_resp = 1;
 	
 	TRACE_ENTER2("Handle: %llu, ind_id: %llu.",hdl,invocation);
 	/* Find the invocation node.*/
-	cbk_prev = cbk_list;
+	SMFA_CBK_LIST *cbk_prev = cbk_list;
 	while(cbk_list){
 		/* Inv node found.*/
 		if (invocation == cbk_list->inv_id){
@@ -660,10 +660,9 @@ uint32_t smfa_cbk_list_cleanup(SaSmfHandleT hdl)
 	SMFA_CBK_LIST *cbk_list = cb->cbk_list, *prev_cbk = cb->cbk_list;
 	SMFA_CBK_HDL_LIST *hdl_list, *prev_hdl;
 	SMFSV_EVT resp_evt;
-	uint32_t is_cbk_del;
 
 	while (cbk_list){
-		is_cbk_del = 0;
+		uint32_t is_cbk_del = 0;
 		hdl_list = cbk_list->hdl_list;
 		prev_hdl = hdl_list;
 		while(hdl_list){

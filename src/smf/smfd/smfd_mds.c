@@ -153,13 +153,12 @@ static uint32_t mds_enc_flat(struct ncsmds_callback_info *info)
 
 static uint32_t mds_dec_flat(struct ncsmds_callback_info *info)
 {
-	uint32_t rc = NCSCC_RC_SUCCESS;
 	/* Retrieve info from the dec_flat */
 	MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
 	/* Modify the MDS_INFO to populate dec */
 	info->info.dec = dec;
 	/* Invoke the regular mds_dec routine */
-	rc = mds_dec(info);
+	uint32_t rc = mds_dec(info);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("mds_dec FAILED ");
 	}
@@ -181,7 +180,6 @@ static uint32_t mds_dec_flat(struct ncsmds_callback_info *info)
 static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 {
 	SMFSV_EVT *smfsv_evt = (SMFSV_EVT *) mds_info->info.receive.i_msg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	smfsv_evt->cb_hdl = (uint32_t) mds_info->i_yr_svc_hdl;
 	smfsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
@@ -191,7 +189,7 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 	smfsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
 
 	/* Send the event to our mailbox */
-	rc = m_NCS_IPC_SEND(&smfd_cb->mbx, smfsv_evt,
+	uint32_t rc = m_NCS_IPC_SEND(&smfd_cb->mbx, smfsv_evt,
 			    (NCS_IPC_PRIORITY)mds_info->info.receive.i_priority);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IPC send failed %d", rc);
@@ -371,7 +369,6 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info)
 static uint32_t mds_vdest_create(smfd_cb_t * cb)
 {
 	NCSVDA_INFO arg;
-	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	memset(&arg, 0, sizeof(arg));
 
@@ -384,7 +381,7 @@ static uint32_t mds_vdest_create(smfd_cb_t * cb)
 	arg.info.vdest_create.info.specified.i_vdest = cb->mds_dest;
 
 	/* Create VDEST */
-	rc = ncsvda_api(&arg);
+	uint32_t rc = ncsvda_api(&arg);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("mds_vdest_create: create vdest for SMFD FAILED\n");
 		return rc;

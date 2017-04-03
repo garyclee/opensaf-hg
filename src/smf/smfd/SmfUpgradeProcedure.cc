@@ -620,7 +620,6 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 	getCallbackList(i_rollingUpgrade);
 
 	const std::list < SmfParentType * >&actUnitTemplates = nodeTemplate->getActivationUnitTemplateList();
-	std::list < std::string > activationUnitList;
 
 	if (actUnitTemplates.size() == 0) {
 		/* No activation unit templates, use node list as activation/deactivation units */
@@ -631,7 +630,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 			int rdnStrSize = 32;
                         char rdnStr[rdnStrSize];
 			stepCntr++;
-                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04u", stepCntr);
+                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04d", stepCntr);
 
 			SmfUpgradeStep *newStep = new(std::nothrow) SmfUpgradeStep;
                         osafassert(newStep != NULL);
@@ -689,7 +688,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 			int rdnStrSize = 32;
                         char rdnStr[rdnStrSize];
 			stepCntr++;
-                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04u", stepCntr);
+                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04d", stepCntr);
 
                         SmfUpgradeStep *newStep = new(std::nothrow) SmfUpgradeStep;
                         osafassert(newStep != NULL);
@@ -743,7 +742,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade,
 			int rdnStrSize = 32;
                         char rdnStr[rdnStrSize];
 			stepCntr++;
-                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04u", stepCntr);
+                        snprintf(rdnStr, rdnStrSize, "safSmfStep=%04d", stepCntr);
 
 			SmfUpgradeStep *newStep = new(std::nothrow) SmfUpgradeStep;
                         osafassert(newStep != NULL);
@@ -808,54 +807,51 @@ void SmfUpgradeProcedure::getCallbackList(const SmfUpgradeMethod* i_upgradeMetho
 	TRACE_ENTER();
 
 	/* Get the list of callbacks from upgrade method and set pointer to Upgrade Procedure */
-	std::list <SmfCallback *>::const_iterator cbkiter;
 	const std::list <SmfCallback *>& cbklist = const_cast<SmfUpgradeMethod*>(i_upgradeMethod)->getCallbackList();
-	cbkiter = cbklist.begin();
-	while (cbkiter != cbklist.end()) {
-		(*cbkiter)->setProcedure(this);
-		TRACE_2("cbk atAction %d, onStep %d, label= %s", (*cbkiter)->getAtAction(), 
-			(*cbkiter)->getStepCount(), (*cbkiter)->getCallbackLabel().c_str());
-		switch((*cbkiter)->getAtAction()) {
+	for (const auto& cbkElem : cbklist) {	
+		(*cbkElem).setProcedure(this);
+		TRACE_2("cbk atAction %d, onStep %d, label= %s", (*cbkElem).getAtAction(), 
+			(*cbkElem).getStepCount(), (*cbkElem).getCallbackLabel().c_str());
+		switch((*cbkElem).getAtAction()) {
 			case SmfCallback::beforeLock:
 			{
-                                if (std::find(m_beforeLock.begin(), m_beforeLock.end(), (*cbkiter)) == m_beforeLock.end()){
-                                        m_beforeLock.push_back(*cbkiter);
+                                if (std::find(m_beforeLock.begin(), m_beforeLock.end(), (cbkElem)) == m_beforeLock.end()){
+                                        m_beforeLock.push_back(cbkElem);
                                 }
 				break;
 			}
 			case SmfCallback::beforeTermination:
 			{
-                                if (std::find(m_beforeTerm.begin(), m_beforeTerm.end(), (*cbkiter)) == m_beforeTerm.end()){
-                                        m_beforeTerm.push_back(*cbkiter);
+                                if (std::find(m_beforeTerm.begin(), m_beforeTerm.end(), (cbkElem)) == m_beforeTerm.end()){
+                                        m_beforeTerm.push_back(cbkElem);
                                 }
 				break;
 			}
 			case SmfCallback::afterImmModification:
 			{
-                                if (std::find(m_afterImmModify.begin(), m_afterImmModify.end(), (*cbkiter)) == m_afterImmModify.end()){
-                                        m_afterImmModify.push_back(*cbkiter);
+                                if (std::find(m_afterImmModify.begin(), m_afterImmModify.end(), (cbkElem)) == m_afterImmModify.end()){
+                                        m_afterImmModify.push_back(cbkElem);
                                 }
 				break;
 			}
 			case SmfCallback::afterInstantiation:
 			{
-                                if (std::find(m_afterInstantiate.begin(), m_afterInstantiate.end(), (*cbkiter)) == m_afterInstantiate.end()){
-                                        m_afterInstantiate.push_back(*cbkiter);
+                                if (std::find(m_afterInstantiate.begin(), m_afterInstantiate.end(), (cbkElem)) == m_afterInstantiate.end()){
+                                        m_afterInstantiate.push_back(cbkElem);
                                 }
 				break;
 			}
 			case SmfCallback::afterUnlock:
 			{
-                                if (std::find(m_afterUnlock.begin(), m_afterUnlock.end(), (*cbkiter)) == m_afterUnlock.end()){
-                                        m_afterUnlock.push_back(*cbkiter);
+                                if (std::find(m_afterUnlock.begin(), m_afterUnlock.end(), (cbkElem)) == m_afterUnlock.end()){
+                                        m_afterUnlock.push_back(cbkElem);
                                 }
 				break;
 			}
 			default:
-				TRACE_2 ("default case, atAction val = %d", (*cbkiter)->getAtAction());
+				TRACE_2 ("default case, atAction val = %d", (*cbkElem).getAtAction());
 				break;
 		}
-		cbkiter++;
 	}
 
 	TRACE_LEAVE();
@@ -911,43 +907,40 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 
 		std::list<std::string> nodeList;
 		std::list<std::string> entityList;
-		std::list<SmfEntity>::const_iterator e;
-		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
-			if (e->getParent().length() > 0 || e->getType().length() > 0) {
+		for (const auto& e : aunit->getActedOn()) {
+			if (e.getParent().length() > 0 || e.getType().length() > 0) {
 				std::list<std::string> actUnits;
-				if (!calcActivationUnitsFromTemplateSingleStep(*e, i_objects, actUnits, nodeList)) {
+				if (!calcActivationUnitsFromTemplateSingleStep(e, i_objects, actUnits, nodeList)) {
 					delete newStep;
 					TRACE_LEAVE();
 					return false;
 				}
-				std::list<std::string>::const_iterator a;
-				for (a = actUnits.begin(); a != actUnits.end(); a++) {
+				for (const auto& a : actUnits) {
 					unitNameAndState tmp;
-					tmp.name = *a;
+					tmp.name = a;
                                         tmp.initState = SA_AMF_ADMIN_UNLOCKED;
 					newStep->addActivationUnit(tmp);
 				}
 			} else {
-				if (e->getName().length() == 0) {
+				if (e.getName().length() == 0) {
 					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No DN given in single step actedOn");
 					delete newStep;
 					TRACE_LEAVE();
 					return false;
 				}
 				//This a single step acted on list without template
-				std::string node = getNodeForCompSu(e->getName(), i_objects);
+				std::string node = getNodeForCompSu(e.getName(), i_objects);
 				if (node.length() > 0) nodeList.push_back(node);
-				entityList.push_back(e->getName());
+				entityList.push_back(e.getName());
 			}
 		}
 
 		//Make unique to avoid multiple SU in case non restartable components was found and converted to SU's.
 		entityList.sort();
 		entityList.unique();
-		std::list<std::string>::iterator entity;
-		for (entity = entityList.begin(); entity != entityList.end(); entity++) {
+		for (auto& entity : entityList) {
 			unitNameAndState tmp;
-			tmp.name = *entity;
+			tmp.name = entity;
                         tmp.initState = SA_AMF_ADMIN_UNLOCKED;
 			newStep->addActivationUnit(tmp);
 		}
@@ -955,9 +948,8 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 
 		newStep->addSwAdd(aunit->getSwAdd());
 
-		std::list<SmfImmCreateOperation>::const_iterator o;
-		for (o = aunit->getAdded().begin(); o != aunit->getAdded().end(); o++) {
-			newStep->addImmOperation(new SmfImmCreateOperation(*o));
+		for (const auto& o : aunit->getAdded()) {
+			newStep->addImmOperation(new SmfImmCreateOperation(o));
 		}
 
 		/*
@@ -983,23 +975,22 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 			return false;
 		}
 
-		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
-			if (e->getParent().length() > 0 || e->getType().length() > 0) {
+		for (const auto& e : aunit->getActedOn()) {
+			if (e.getParent().length() > 0 || e.getType().length() > 0) {
 				std::list<std::string> deactUnits;
-				if (!calcActivationUnitsFromTemplateSingleStep(*e, i_objects, deactUnits, nodeList)) {
+				if (!calcActivationUnitsFromTemplateSingleStep(e, i_objects, deactUnits, nodeList)) {
 					delete newStep;
 					TRACE_LEAVE();
 					return false;
 				}
-				std::list<std::string>::const_iterator a;
-				for (a = deactUnits.begin(); a != deactUnits.end(); a++) {
+				for (const auto& a : deactUnits) {
 					unitNameAndState tmp;
-					tmp.name = *a;
+					tmp.name = a;
                                         tmp.initState = SA_AMF_ADMIN_UNLOCKED;
 					newStep->addDeactivationUnit(tmp);
 				}
 			} else {
-				if (e->getName().length() == 0){
+				if (e.getName().length() == 0){
 					LOG_NO("ActedOn contain no name");
 					delete newStep;
 					TRACE_LEAVE();
@@ -1008,8 +999,8 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 
 				std::string deactUnit;
 				std::string node;
-				if(getActDeactUnitsAndNodes(e->getName(), deactUnit, node, i_objects) == false) {
-					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: getActDeactUnitsAndNodes failes for DN=%s",e->getName().c_str());
+				if(getActDeactUnitsAndNodes(e.getName(), deactUnit, node, i_objects) == false) {
+					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: getActDeactUnitsAndNodes failes for DN=%s",e.getName().c_str());
 					delete newStep;
 					TRACE_LEAVE();
 					return false;
@@ -1026,37 +1017,35 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 		//Make unique to avoid multiple SU in case non restartable components was found and converted to SU's.
 		entityList.sort();
 		entityList.unique();
-		for (entity = entityList.begin(); entity != entityList.end(); entity++) {
+		for (const auto& entity : entityList) {
 			unitNameAndState tmp;
-			tmp.name = *entity;
+			tmp.name = entity;
                         tmp.initState = SA_AMF_ADMIN_UNLOCKED;
 			newStep->addDeactivationUnit(tmp);
 		}
 		entityList.clear();
 
 		newStep->addSwRemove(aunit->getSwRemove());
-
-		for (e = aunit->getRemoved().begin(); e != aunit->getRemoved().end(); e++) {
-			if (e->getParent().length() > 0 || e->getType().length() > 0) {
+		for (const auto& e : aunit->getRemoved()) {
+			if (e.getParent().length() > 0 || e.getType().length() > 0) {
 				LOG_NO("SmfUpgradeProcedure::calculateSingleStep: (forAddRemove/removed) byTemplate not implemented");
                                 delete newStep;
 				TRACE_LEAVE();
 				return false;
 			}
-			if (e->getName().length() == 0) {
+			if (e.getName().length() == 0) {
 				LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No bundle DN given in single step swRemove");
 				delete newStep;
 				TRACE_LEAVE();
 				return false;
 			}
 			SmfImmDeleteOperation* deleteop = new SmfImmDeleteOperation;
-			deleteop->setDn(e->getName());
+			deleteop->setDn(e.getName());
 			newStep->addImmOperation(deleteop);
 		}
 
-		std::list<std::string>::const_iterator n;
-		for (n = nodeList.begin(); n != nodeList.end(); n++) {
-			newStep->addSwNode(*n);
+		for (const auto& n : nodeList) {
+			newStep->addSwNode(n);
 		}
 
 		addProcStep(newStep);
@@ -1085,17 +1074,16 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 			return false;
 		}
 		std::list<std::string> nodeList;
-		std::list<SmfEntity>::const_iterator e;
 		std::list<std::string> actDeactUnits;
-		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
-			if (e->getParent().length() > 0 || e->getType().length() > 0) {
-				if (!calcActivationUnitsFromTemplateSingleStep(*e, i_objects,  actDeactUnits, nodeList)) {
+		for (const auto& e : aunit->getActedOn()) {
+			if (e.getParent().length() > 0 || e.getType().length() > 0) {
+				if (!calcActivationUnitsFromTemplateSingleStep(e, i_objects,  actDeactUnits, nodeList)) {
 					delete newStep;
 					TRACE_LEAVE();
 					return false;
 				}
 			} else {
-				if (e->getName().length() == 0){
+				if (e.getName().length() == 0){
 					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: No actedOn in single step forModify");
 					delete newStep;
 					TRACE_LEAVE();
@@ -1103,8 +1091,8 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 				}
 				std::string unit;
 				std::string node;
-				if(getActDeactUnitsAndNodes(e->getName(), unit, node, i_objects) == false) {
-					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: getActDeactUnitsAndNodes failes for DN=%s",e->getName().c_str());
+				if(getActDeactUnitsAndNodes(e.getName(), unit, node, i_objects) == false) {
+					LOG_NO("SmfUpgradeProcedure::calculateSingleStep: getActDeactUnitsAndNodes failes for DN=%s",e.getName().c_str());
 					delete newStep;
 					TRACE_LEAVE();
 					return false;
@@ -1124,18 +1112,16 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade,
 			actDeactUnits.unique();
 		}
 
-		std::list<std::string>::const_iterator a;
-		for (a = actDeactUnits.begin(); a != actDeactUnits.end(); a++) {
+		for (const auto& a : actDeactUnits) {
 			unitNameAndState tmp;
-			tmp.name = *a;
+			tmp.name = a;
                         tmp.initState = SA_AMF_ADMIN_UNLOCKED;
 			newStep->addDeactivationUnit(tmp);
 			newStep->addActivationUnit(tmp);
 		}
 
-		std::list<std::string>::const_iterator n;
-		for (n = nodeList.begin(); n != nodeList.end(); n++) {
-			newStep->addSwNode(*n);
+		for (const auto& n : nodeList) {
+			newStep->addSwNode(n);
 		}
 		newStep->addSwAdd(aunit->getSwAdd());
 		newStep->addSwRemove(aunit->getSwRemove());
@@ -1198,12 +1184,11 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 	std::list < unitNameAndState > tmpDU;
         SmfUpgradeCampaign * camp = SmfCampaignThread::instance()->campaign()->getUpgradeCampaign();
         const std::vector < SmfUpgradeProcedure * >& procedures = camp->getOriginalProcedures();
-        std::vector < SmfUpgradeProcedure * >::const_iterator proc_iter;
-        for (proc_iter = procedures.begin(); proc_iter != procedures.end(); proc_iter++) {
-                LOG_NO("Merging [%s] into a single step procedure", (*proc_iter)->getName().c_str());
+	for (const auto& proc_elem : procedures) {
+		LOG_NO("Merging [%s] into a single step procedure", (*proc_elem).getName().c_str());
                 //Calculate the steps of the campaign.xml procedures
                 LOG_NO("Calculate the procedure steps");
-                if( !(*proc_iter)->calculateSteps(objInstances) ) {
+                if( !(*proc_elem).calculateSteps(objInstances) ) {
                         LOG_NO("SmfProcStateExecuting::executeInit:Step calculation failes");
                         TRACE_LEAVE();
                         return false;
@@ -1211,44 +1196,43 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 
                 //Append the information in the new single step with info from the calculated steps above.
                 //For all steps in the procedure
-                std::vector < SmfUpgradeStep * >::const_iterator step_iter;
-                const std::vector < SmfUpgradeStep * >& steps = (*proc_iter)->getProcSteps();
-                for (step_iter = steps.begin(); step_iter != steps.end(); step_iter++) {
-                        LOG_NO("Step = %s", (*step_iter)->getDn().c_str());
+                const std::vector < SmfUpgradeStep * >& steps = (*proc_elem).getProcSteps();
+		for (const auto& step_elem : steps) {
+                        LOG_NO("Step = %s", (*step_elem).getDn().c_str());
                         LOG_NO("Copy activation/deactivation units");
 
-                        if ((*proc_iter)->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) { //SA_SMF_ROLLING
+                        if ((*proc_elem).getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) { //SA_SMF_ROLLING
                                 //Add the DU list, AU list will be created later as a copy of DU list.
 				tmpDU.insert(tmpDU.end(),
-					     (*step_iter)->getDeactivationUnitList().begin(),
-					     (*step_iter)->getDeactivationUnitList().end());
+					     (*step_elem).getDeactivationUnitList().begin(),
+					     (*step_elem).getDeactivationUnitList().end());
                                 //Merge (rolling) step bundle ref into the new single step
-                                mergeBundleRefRollingToSingleStep(newStep, (*step_iter));
+                                mergeBundleRefRollingToSingleStep(newStep, (step_elem));
                         } else { //SA_SMF_SINGLE_STEP
-                                if (dynamic_cast<const SmfForAddRemove*>((*proc_iter)->getUpgradeMethod()->getUpgradeScope()) != NULL) {
+                                if (dynamic_cast<const SmfForAddRemove*>((*proc_elem).getUpgradeMethod()->getUpgradeScope()) != NULL) {
                                         //The scope of the single step is forAddRemove
                                         //Add the AU/DU lists The lists must be added "as is" e.g. a SU unlock must be run
                                         //even if the hosting node is unlocked.
 
                                         //Copy AU/DU to local temp list
                                         forAddRemoveAU.insert(forAddRemoveAU.end(),
-                                                              (*step_iter)->getActivationUnitList().begin(),
-                                                              (*step_iter)->getActivationUnitList().end());
+                                                              (*step_elem).getActivationUnitList().begin(),
+                                                              (*step_elem).getActivationUnitList().end());
                                         forAddRemoveDU.insert(forAddRemoveDU.end(),
-                                                              (*step_iter)->getDeactivationUnitList().begin(),
-                                                              (*step_iter)->getDeactivationUnitList().end());
+                                                              (*step_elem).getDeactivationUnitList().begin(),
+                                                              (*step_elem).getDeactivationUnitList().end());
 
                                         //Merge (single for add remove) step bundle ref into the new single step
-                                        mergeBundleRefSingleStepToSingleStep(newStep, (*step_iter));
-                                } else if (dynamic_cast<const SmfForModify*>((*proc_iter)->getUpgradeMethod()->getUpgradeScope()) != NULL) {
+                                        mergeBundleRefSingleStepToSingleStep(newStep, (step_elem));
+                                } else if (dynamic_cast<const SmfForModify*>((*proc_elem).getUpgradeMethod()->getUpgradeScope()) != NULL) {
                                         //The scope of the single step is forModify
                                         //Add the DU list, AU list will be created later as a copy of DU list.
                                         //newStep->addDeactivationUnits((*step_iter)->getDeactivationUnitList());
 					tmpDU.insert(tmpDU.end(),
-						     (*step_iter)->getDeactivationUnitList().begin(),
-						     (*step_iter)->getDeactivationUnitList().end());
+						     (*step_elem).getDeactivationUnitList().begin(),
+						     (*step_elem).getDeactivationUnitList().end());
                                         //Merge (single for modify) step bundle ref into the new single step
-                                        mergeBundleRefSingleStepToSingleStep(newStep, (*step_iter));
+                                        mergeBundleRefSingleStepToSingleStep(newStep, (step_elem));
                                 } else {
                                         LOG_NO("SmfUpgradeProcedure::mergeStepIntoSingleStep: Procedure scope not found (forAddRemove/forModify)");
                                         delete newStep;
@@ -1258,51 +1242,45 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
                         }
 
                         LOG_NO("Add modifications");
-                        std::list < SmfImmOperation * >& qq = (*step_iter)->getModifications();
+                        std::list < SmfImmOperation * >& qq = (*step_elem).getModifications();
                         TRACE("old step modifications size() = %zu", qq.size());
 
-                        newStep->addModifications((*step_iter)->getModifications());
+                        newStep->addModifications((*step_elem).getModifications());
                         std::list < SmfImmOperation * >& rr = newStep->getModifications();
                         TRACE("newStep merged modifications size() = %zu", rr.size());
                 }
 
 		//The init actions
 		LOG_NO("Copy the procedure init actions");
-		i_proc->addInitActions((*proc_iter)->getInitActions());
-		std::vector <SmfUpgradeAction*>::const_iterator actioniter;
-		actioniter = i_proc->getInitActions().begin();
-		while (actioniter != i_proc->getInitActions().end()) {
+		i_proc->addInitActions((*proc_elem).getInitActions());
+		for (const auto& actionElem : i_proc->getInitActions()) {
 			const SmfCallbackAction* cbkAction =
-				dynamic_cast<const SmfCallbackAction*>(*actioniter);
+				dynamic_cast<const SmfCallbackAction*>(actionElem);
 			if (cbkAction != NULL) {
 				const_cast<SmfCallbackAction*>(cbkAction)->setCallbackProcedure(this);
 			}
 			//Renumber to action id aviod DN name collision in the merged procedure
-			(*actioniter)->changeId(initActionId);
+			(*actionElem).changeId(initActionId);
 			initActionId++;
 
-			actioniter++;
 		}
 
 		//The wrapup actions
 		LOG_NO("Copy the procedure wrapup actions");
-		i_proc->addWrapupActions((*proc_iter)->getWrapupActions());
-		actioniter = i_proc->getWrapupActions().begin();
-		while (actioniter != i_proc->getWrapupActions().end()) {
+		i_proc->addWrapupActions((*proc_elem).getWrapupActions());
+		for (const auto& actionElem : i_proc->getWrapupActions()) {
 			const SmfCallbackAction* cbkAction =
-				dynamic_cast<const SmfCallbackAction*>(*actioniter);
+				dynamic_cast<const SmfCallbackAction*>(actionElem);
 			if (cbkAction != NULL) {
 				const_cast<SmfCallbackAction*>(cbkAction)->setCallbackProcedure(this);
 			}
 			//Renumber to action id aviod DN name collision in the merged procedure
-			(*actioniter)->changeId(wrapupActionId);
+			(*actionElem).changeId(wrapupActionId);
 			wrapupActionId++;
-
-			actioniter++;
 		}
 
 		//The step callbacks
-		getCallbackList((*proc_iter)->getUpgradeMethod());
+		getCallbackList((*proc_elem).getUpgradeMethod());
         }
 
         //Remove DU duplicates
@@ -1324,14 +1302,14 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 			nodeLevelDU.push_back(*unit_iter);               //A node will never be optimized away, save it
 			unit_iter = tmpDU.erase(unit_iter);              //Remove the node and update iterator
 		} else {
-			unit_iter++;
+			++unit_iter;
 		}
 	}
 
 	//For all found nodes, look if some other DU (comp/SU) is within scope
 	//tmpDU contain all DU except the node level ones which was removed above and saved in nodeLevelDU list
 	std::list < unitNameAndState >::iterator node_iter;
-        for (node_iter = nodeLevelDU.begin(); node_iter != nodeLevelDU.end(); node_iter++) {
+        for (node_iter = nodeLevelDU.begin(); node_iter != nodeLevelDU.end(); ++node_iter) {
 		//For all comp/SU found in the scope of the node.
 		//Find out if any remaining DU is within it
 		nodeName_mm = objInstances.equal_range((*node_iter).name); //Get all components/SU within the node
@@ -1348,7 +1326,7 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 					       (*unit_iter).name.c_str(), (*node_iter).name.c_str());
 					unit_iter = tmpDU.erase(unit_iter); //Remove the node and update iterator
 				} else {
-					unit_iter++;
+					++unit_iter;
 				}
 			}
 		}
@@ -1362,21 +1340,20 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 			suLevelDU.push_back(*unit_iter);                 //A node will never be optimized away, save it
 			unit_iter = tmpDU.erase(unit_iter);              //Remove the SU and update iterator
 		} else {
-			unit_iter++;
+			++unit_iter;
 		}
 	}
 
 	//For all SU in the suLevelDU list, look if remaining DU in tmpDU is within scope of the SU
- 	std::list < unitNameAndState >::iterator su_iter;
-	for (su_iter = suLevelDU.begin(); su_iter != suLevelDU.end(); su_iter++) {
+	for (auto& su_elem : suLevelDU) {
 		for (unit_iter = tmpDU.begin(); unit_iter != tmpDU.end();) {
-			if ((*unit_iter).name.find((*su_iter).name) != std::string::npos) {
+			if ((*unit_iter).name.find((su_elem).name) != std::string::npos) {
 				//The component was in the scope of the SU
 				LOG_NO("[%s] is in scope of [%s], remove it from DU list",
-						       (*unit_iter).name.c_str(), (*su_iter).name.c_str());
+						       (*unit_iter).name.c_str(), (su_elem).name.c_str());
 				unit_iter = tmpDU.erase(unit_iter); //Remove the Component and update iterator
 			} else {
-				unit_iter++;
+				++unit_iter;
 			}
 		}
 	}
@@ -1388,7 +1365,7 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 
 	std::list < unitNameAndState >::iterator addRemoveUnit_iter, nodeLevel_iter;
 	for (addRemoveUnit_iter = forAddRemoveAU.begin(); addRemoveUnit_iter != forAddRemoveAU.end(); ) {
-		for (nodeLevel_iter = nodeLevelDU.begin(); nodeLevel_iter!= nodeLevelDU.end(); nodeLevel_iter++) {
+		for (nodeLevel_iter = nodeLevelDU.begin(); nodeLevel_iter!= nodeLevelDU.end(); ++nodeLevel_iter) {
 			if ((*addRemoveUnit_iter).name == (*nodeLevel_iter).name){
 				//if item is already presented in nodeLevelDU, erase it from the forAddRemove list
 				LOG_NO("[%s] is already presented in the merged DU list, remove it from forAddRemoveAU list",
@@ -1398,13 +1375,13 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 			}
 		}
 		if(nodeLevel_iter == nodeLevelDU.end()){
-			addRemoveUnit_iter++;
+			++addRemoveUnit_iter;
 		}
 	}
 
 
 	for (addRemoveUnit_iter = forAddRemoveDU.begin(); addRemoveUnit_iter != forAddRemoveDU.end(); ) {
-		for (nodeLevel_iter = nodeLevelDU.begin(); nodeLevel_iter != nodeLevelDU.end(); nodeLevel_iter++) {
+		for (nodeLevel_iter = nodeLevelDU.begin(); nodeLevel_iter != nodeLevelDU.end(); ++nodeLevel_iter) {
 			if ((*addRemoveUnit_iter).name == (*nodeLevel_iter).name){
 				//if item is already presented in nodeLevelDU, erase it from the forAddRemove list
 				LOG_NO("[%s] is already presented in the merged DU list, remove it from forAddRemoveDU list",
@@ -1414,7 +1391,7 @@ SmfUpgradeProcedure::mergeStepIntoSingleStep(SmfUpgradeProcedure * i_proc, SmfUp
 			}
 		}
 		if(nodeLevel_iter == nodeLevelDU.end()){
-			addRemoveUnit_iter++;
+			++addRemoveUnit_iter;
 		}
 	}
 
@@ -1447,8 +1424,6 @@ SmfUpgradeProcedure::mergeBundleRefSingleStepToSingleStep(SmfUpgradeStep * io_ne
                                                           SmfUpgradeStep * i_oldStep)
 {
         //Set the node from the step into bundle plmExecEnvList
-        std::list < SmfBundleRef >::iterator oldStepBundleIter;
-        std::list < SmfBundleRef >::iterator newStepBundleIter;
         //Add the old steps AMF node to the plmExecEnv of the bundle ref to make it
         //to install on the correct node/nodes.
 
@@ -1456,8 +1431,7 @@ SmfUpgradeProcedure::mergeBundleRefSingleStepToSingleStep(SmfUpgradeStep * io_ne
         //Read the bundles to add from the old step
         std::list < SmfBundleRef > & bundlesOldStep = i_oldStep->getSwAddList();
         LOG_NO("SwAddLists from old step contain [%zu] elements", bundlesOldStep.size());
-        for (oldStepBundleIter = bundlesOldStep.begin(); oldStepBundleIter != bundlesOldStep.end(); oldStepBundleIter++) {
-                std::list < SmfBundleRef >::iterator newStepBundleIter;
+	for (auto& oldStepBundleIter : bundlesOldStep) {
 
                 //Read the list of already saved bundles in the new step, if already exist only add the
                 //swNode's to the existing bundle
@@ -1465,59 +1439,56 @@ SmfUpgradeProcedure::mergeBundleRefSingleStepToSingleStep(SmfUpgradeStep * io_ne
                 bool bundle_exists = false;
 
                 //Check if bundle from the old step already exist in the new step
-                for (newStepBundleIter = bundleNewStep.begin(); newStepBundleIter != bundleNewStep.end(); newStepBundleIter++) {
+		for (auto& newStepBundleIter : bundleNewStep) {
                         TRACE("swAdd: (*newStepBundleIter).getBundleDn() = %s, (*oldStepBundleIter).getBundleDn() = %s",
-                               (*newStepBundleIter).getBundleDn().c_str(),
-                               (*oldStepBundleIter).getBundleDn().c_str());
-                        if ((*newStepBundleIter).getBundleDn() == (*oldStepBundleIter).getBundleDn()) {
+                               (newStepBundleIter).getBundleDn().c_str(),
+                               (oldStepBundleIter).getBundleDn().c_str());
+                        if ((newStepBundleIter).getBundleDn() == (oldStepBundleIter).getBundleDn()) {
                                 //Bundle already exist in the new single step
                                 //-If the bundle to add contain a plmExecEnv list, add that list of nodes to
                                 // the existing SmfBundleRef.
                                 //-If the bundle to add does not contain a plmExecEnv list, add the step nodes
                                 // to the existing SmfBundleRef.
-                                const std::list<SmfPlmExecEnv>& tmpPlmExecEnvList = (*oldStepBundleIter).getPlmExecEnvList();
+                                const std::list<SmfPlmExecEnv>& tmpPlmExecEnvList = (oldStepBundleIter).getPlmExecEnvList();
                                 if (tmpPlmExecEnvList.size() != 0) {
-                                        (*newStepBundleIter).addPlmExecEnvList(tmpPlmExecEnvList);
+                                        (newStepBundleIter).addPlmExecEnvList(tmpPlmExecEnvList);
                                 } else {
                                         const std::list<std::string> nodelist = i_oldStep->getSwNodeList();
-                                        std::list<std::string>::const_iterator str_iter;
-                                        for (str_iter = nodelist.begin(); str_iter != nodelist.end(); str_iter++) {
+					for (const auto& str_elem : nodelist) {
                                                 SmfPlmExecEnv plm;
-                                                plm.setAmfNode(const_cast<std::string &>((*str_iter)));
+                                                plm.setAmfNode(const_cast<std::string &>((str_elem)));
                                                 //Copy the new SmfPlmExecEnv into the bundle plvExecEnv list
-                                               (*newStepBundleIter).addPlmExecEnv(plm);
+                                               (newStepBundleIter).addPlmExecEnv(plm);
                                         }
                                 }
 
                                 bundle_exists = true;
-                                TRACE("Existing Bundle = %s", (*oldStepBundleIter).getBundleDn().c_str());
+                                TRACE("Existing Bundle = %s", (oldStepBundleIter).getBundleDn().c_str());
                         }
                 }
 
                 if (bundle_exists == false) {
                         //New bundle, add the AMF nodes and save in the single step
                         //If the new bundle does not contain a plmExecEnv list, add the step nodes to the plmExecEnv list
-                        if ((*oldStepBundleIter).getPlmExecEnvList().size() == 0) {
+                        if ((oldStepBundleIter).getPlmExecEnvList().size() == 0) {
                                 const std::list<std::string> nodelist = i_oldStep->getSwNodeList();
-                                std::list<std::string>::const_iterator str_iter;
-                                for (str_iter = nodelist.begin(); str_iter != nodelist.end(); str_iter++) {
+				for (const auto& str_elem : nodelist) {
                                         SmfPlmExecEnv plm;
-                                        plm.setAmfNode(const_cast<std::string &>((*str_iter)));
+                                        plm.setAmfNode(const_cast<std::string &>((str_elem)));
                                         //Copy the new SmfPlmExecEnv into the bundle plvExecEnv list
-                                        (*oldStepBundleIter).addPlmExecEnv(plm);
+                                        (oldStepBundleIter).addPlmExecEnv(plm);
                                 }
                         }
 
-                        LOG_NO("New Bundle = %s added", (*oldStepBundleIter).getBundleDn().c_str());
-                        io_newStep->addSwAdd((*oldStepBundleIter));
+                        LOG_NO("New Bundle = %s added", (oldStepBundleIter).getBundleDn().c_str());
+                        io_newStep->addSwAdd((oldStepBundleIter));
                 }
         }
 
         LOG_NO("Merge SwRemoveLists from the single step into a single step bundle list");
         //Read the bundles to remove from the old step swRemove list
         bundlesOldStep = i_oldStep->getSwRemoveList();
-        for (oldStepBundleIter = bundlesOldStep.begin(); oldStepBundleIter != bundlesOldStep.end(); oldStepBundleIter++) {
-                std::list < SmfBundleRef >::iterator newStepBundleIter;
+	for (auto& oldStepBundleElem : bundlesOldStep) {
 
                 //Read the list of already saved bundles, if already exist add the new
                 //swNode's to the existing bundle
@@ -1525,51 +1496,49 @@ SmfUpgradeProcedure::mergeBundleRefSingleStepToSingleStep(SmfUpgradeStep * io_ne
                 bool bundle_exists = false;
 
                 //Check if bundle from the old step already exist in the new step
-                for (newStepBundleIter = bundleNewStep.begin(); newStepBundleIter != bundleNewStep.end(); newStepBundleIter++) {
+		for (auto& newStepBundleElem : bundleNewStep) {
                         TRACE("swAdd: (*newStepBundleIter).getBundleDn() = %s, (*oldStepBundleIter).getBundleDn() = %s",
-                               (*newStepBundleIter).getBundleDn().c_str(),
-                               (*oldStepBundleIter).getBundleDn().c_str());
-                        if ((*newStepBundleIter).getBundleDn() == (*oldStepBundleIter).getBundleDn()) {
+                               (newStepBundleElem).getBundleDn().c_str(),
+                               (oldStepBundleElem).getBundleDn().c_str());
+                        if ((newStepBundleElem).getBundleDn() == (oldStepBundleElem).getBundleDn()) {
                                 //Bundle already exist in the new single step
                                 //-If the bundle to add contain a plmExecEnv list, add that list of nodes to
                                 // the existing SmfBundleRef.
                                 //-If the bundle to add does not contain a plmExecEnv list, add the step nodes
                                 // to the existing SmfBundleRef.
-                                const std::list<SmfPlmExecEnv>& tmpPlmExecEnvList = (*oldStepBundleIter).getPlmExecEnvList();
+                                const std::list<SmfPlmExecEnv>& tmpPlmExecEnvList = (oldStepBundleElem).getPlmExecEnvList();
                                 if (tmpPlmExecEnvList.size() != 0) {
-                                        (*newStepBundleIter).addPlmExecEnvList(tmpPlmExecEnvList);
+                                        (newStepBundleElem).addPlmExecEnvList(tmpPlmExecEnvList);
                                 } else {
                                         const std::list<std::string> nodelist = i_oldStep->getSwNodeList();
-                                        std::list<std::string>::const_iterator str_iter;
-                                        for (str_iter = nodelist.begin(); str_iter != nodelist.end(); str_iter++) {
+					for (auto& str_elem : nodelist) {
                                                 SmfPlmExecEnv plm;
-                                                plm.setAmfNode(const_cast<std::string &>((*str_iter)));
+                                                plm.setAmfNode(const_cast<std::string &>((str_elem)));
                                                 //Copy the new SmfPlmExecEnv into the bundle plvExecEnv list
-                                                (*newStepBundleIter).addPlmExecEnv(plm);
+                                                (newStepBundleElem).addPlmExecEnv(plm);
                                         }
                                 }
 
                                 bundle_exists = true;
-                                TRACE("Existing Bundle = %s", (*oldStepBundleIter).getBundleDn().c_str());
+                                TRACE("Existing Bundle = %s", (oldStepBundleElem).getBundleDn().c_str());
                         }
                 }
 
                 if (bundle_exists == false) {
                         //New bundle, add the AMF nodes and save in the single step
                         //If the new bundle does not contain a plmExecEnv list, add the step nodes to the plmExecEnv list
-                        if ((*oldStepBundleIter).getPlmExecEnvList().size() == 0) {
+                        if ((oldStepBundleElem).getPlmExecEnvList().size() == 0) {
                                 const std::list<std::string> nodelist = i_oldStep->getSwNodeList();
-                                std::list<std::string>::const_iterator str_iter;
-                                for (str_iter = nodelist.begin(); str_iter != nodelist.end(); str_iter++) {
+				for (const auto& str_elem : nodelist) {
                                         SmfPlmExecEnv plm;
-                                        plm.setAmfNode(const_cast<std::string &>((*str_iter)));
+                                        plm.setAmfNode(const_cast<std::string &>((str_elem)));
                                         //Copy the new SmfPlmExecEnv into the bundle plvExecEnv list
-                                        (*oldStepBundleIter).addPlmExecEnv(plm);
+                                        (oldStepBundleElem).addPlmExecEnv(plm);
                                 }
                         }
 
-                        LOG_NO("New Bundle = %s added", (*oldStepBundleIter).getBundleDn().c_str());
-                        io_newStep->addSwRemove((*oldStepBundleIter));
+                        LOG_NO("New Bundle = %s added", (oldStepBundleElem).getBundleDn().c_str());
+                        io_newStep->addSwRemove((oldStepBundleElem));
                 }
         }
 
@@ -1585,31 +1554,27 @@ SmfUpgradeProcedure::mergeBundleRefRollingToSingleStep(SmfUpgradeStep * io_newSt
 {
 	TRACE_ENTER();
         //Set the node from the step into bundle plmExecEnvList
-        std::list < SmfBundleRef >::iterator oldStepBundleIter;
-        std::list < SmfBundleRef >::iterator newStepBundleIter;
-
         //Add the old steps AMF node to the plmExecEnv of the bundle ref to make it
         //install on the right node/nodes.
 
         std::list < SmfBundleRef > & bundlesOldStep = i_oldStep->getSwAddList();
-        for (oldStepBundleIter = bundlesOldStep.begin(); oldStepBundleIter != bundlesOldStep.end(); oldStepBundleIter++) {
+	for (auto& oldStepBundleIter : bundlesOldStep) {
                 //Read the list of already saved bundles, if already exist only add the new
                 //swNode to the existing bundle
-                std::list < SmfBundleRef >::iterator newStepBundleIter;
                 std::list < SmfBundleRef > & bundlesNewStep = io_newStep->getSwAddList();
                 //Check if bundle already saved
                 bool bundle_exists = false;
-                for (newStepBundleIter = bundlesNewStep.begin(); newStepBundleIter != bundlesNewStep.end(); newStepBundleIter++) {
+		for (auto& newStepBundleIter : bundlesNewStep) {
                         TRACE("(*newStepBundleIter).getBundleDn() = %s, (*oldStepBundleIter).getBundleDn() = %s",
-			      (*newStepBundleIter).getBundleDn().c_str(),
-			      (*oldStepBundleIter).getBundleDn().c_str());
-                        if ((*newStepBundleIter).getBundleDn() == (*oldStepBundleIter).getBundleDn()) {
+			      (newStepBundleIter).getBundleDn().c_str(),
+			      (oldStepBundleIter).getBundleDn().c_str());
+                        if ((newStepBundleIter).getBundleDn() == (oldStepBundleIter).getBundleDn()) {
                                 //Bundle already saved in the single step, just add the AMF the node
                                 SmfPlmExecEnv plm;
                                 plm.setAmfNode(const_cast<std::string &>(i_oldStep->getSwNode()));
-                                (*newStepBundleIter).addPlmExecEnv(plm);
+                                (newStepBundleIter).addPlmExecEnv(plm);
                                 bundle_exists = true;
-                                TRACE("Existing Bundle = %s, AmfNode = %s", (*oldStepBundleIter).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
+                                TRACE("Existing Bundle = %s, AmfNode = %s", (oldStepBundleIter).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
                         }
                 }
 
@@ -1617,29 +1582,28 @@ SmfUpgradeProcedure::mergeBundleRefRollingToSingleStep(SmfUpgradeStep * io_newSt
                         //New bundle, add the AMF the node and save in the single step
                         SmfPlmExecEnv plm;
                         plm.setAmfNode(const_cast<std::string &>(i_oldStep->getSwNode()));
-                        (*oldStepBundleIter).addPlmExecEnv(plm);
-                        LOG_NO("New Bundle = %s added, AmfNode = %s", (*oldStepBundleIter).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
-                        io_newStep->addSwAdd((*oldStepBundleIter));
+                        (oldStepBundleIter).addPlmExecEnv(plm);
+                        LOG_NO("New Bundle = %s added, AmfNode = %s", (oldStepBundleIter).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
+                        io_newStep->addSwAdd((oldStepBundleIter));
                 }
         }
 
         LOG_NO("Merge SwRemoveLists from the rolling steps into a single step bundle list");
         bundlesOldStep = i_oldStep->getSwRemoveList();
-        for (oldStepBundleIter = bundlesOldStep.begin(); oldStepBundleIter != bundlesOldStep.end(); oldStepBundleIter++) {
+	for (auto& oldStepBundleElem : bundlesOldStep) {
                 //Read the list of already saved bundles, if already exist only add the new
                 //swNode to the existing bundle
-                std::list < SmfBundleRef >::iterator newStepBundleIter;
                 std::list < SmfBundleRef > & bundlesNewStep = io_newStep->getSwRemoveList();
                 //Check if bundle already saved
                 bool bundle_exists = false;
-                for (newStepBundleIter = bundlesNewStep.begin(); newStepBundleIter != bundlesNewStep.end(); newStepBundleIter++) {
-                        if ((*newStepBundleIter).getBundleDn() == (*oldStepBundleIter).getBundleDn()) {
+		for (auto& newStepBundleElem : bundlesNewStep) {
+                        if ((newStepBundleElem).getBundleDn() == (oldStepBundleElem).getBundleDn()) {
                                 //Bundle already saved in the single step, just add the AMF the node
                                 SmfPlmExecEnv plm;
                                 plm.setAmfNode(const_cast<std::string &>(i_oldStep->getSwNode()));
-                                (*newStepBundleIter).addPlmExecEnv(plm);
+                                (newStepBundleElem).addPlmExecEnv(plm);
                                 bundle_exists = true;
-                                TRACE("Existing Bundle = %s, AmfNode = %s", (*oldStepBundleIter).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
+                                TRACE("Existing Bundle = %s, AmfNode = %s", (oldStepBundleElem).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
                         } 
                 }
 
@@ -1647,9 +1611,9 @@ SmfUpgradeProcedure::mergeBundleRefRollingToSingleStep(SmfUpgradeStep * io_newSt
                         //New bundle, add the AMF the node and save in the single step
                         SmfPlmExecEnv plm;
                         plm.setAmfNode(const_cast<std::string &>(i_oldStep->getSwNode()));
-                        (*oldStepBundleIter).addPlmExecEnv(plm);
-                        LOG_NO("New Bundle = %s added, AmfNode = %s", (*oldStepBundleIter).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
-                        io_newStep->addSwRemove((*oldStepBundleIter));
+                        (oldStepBundleElem).addPlmExecEnv(plm);
+                        LOG_NO("New Bundle = %s added, AmfNode = %s", (oldStepBundleElem).getBundleDn().c_str()  ,plm.getAmfNode().c_str());
+                        io_newStep->addSwRemove((oldStepBundleElem));
                 }
         }
 	TRACE_LEAVE();
@@ -1918,7 +1882,7 @@ SmfUpgradeProcedure::addProcStep(SmfUpgradeStep * i_step)
 			m_procSteps.insert(iter, i_step);
 			return;
 		}
-		iter++;
+		++iter;
 	}
 
 	m_procSteps.push_back(i_step);
@@ -2000,8 +1964,6 @@ SmfUpgradeProcedure::addStepModificationsNode(SmfUpgradeStep * i_newStep, const 
         TRACE_ENTER();
 	SmfImmUtils immUtil;
 	SaImmAttrValuesT_2 **attributes;
-	std::list < std::string > objectList;
-	std::list < std::string >::const_iterator objit;
 	std::string auNodeName = "";
 	std::multimap<std::string, objectInst>::iterator iter;
 	std::pair<std::multimap<std::string, objectInst>::iterator, std::multimap<std::string, objectInst>::iterator> nodeName_mm;
@@ -2350,7 +2312,6 @@ SmfUpgradeProcedure::addStepModificationsComp(SmfUpgradeStep * i_newStep, const 
 {
         TRACE_ENTER();
 
-	std::list < std::string >::const_iterator strIter;
         std::list < unitNameAndState >::const_iterator auEntityIt;
         const std::list < unitNameAndState > &auEntityList = i_newStep->getActivationUnitList(); //Single step may have many activation units
 	std::string typeDn   = i_parentType->getTypeDn();
@@ -2493,15 +2454,12 @@ SmfUpgradeProcedure::createImmSteps()
 	TRACE_ENTER();
 	SaAisErrorT rc;
 
-	std::vector < SmfUpgradeStep * >::iterator iter;
-	iter = m_procSteps.begin();
-	while (iter != m_procSteps.end()) {
-		rc = createImmStep(*iter);
+	for (const auto& iter : m_procSteps) {
+		rc = createImmStep(iter);
                 if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
                         LOG_NO("SmfUpgradeProcedure::createImmSteps: creation of SaSmfStep object structure fails, rc=%s", saf_error(rc));
                         return false;
                 }
-		iter++;
 	}
 
 	TRACE_LEAVE();
@@ -2515,7 +2473,6 @@ SaAisErrorT
 SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 {
 	TRACE_ENTER();
-	SaAisErrorT rc = SA_AIS_OK;
         std::string dnDeactUnit = "safSmfDu=smfDeactivationUnit";
         std::string dnActUnit   = "safSmfAu=smfActivationUnit";
 	int strSize = 64;
@@ -2569,7 +2526,7 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 
 	// Accept rc = SA_AIS_ERR_EXIST. This could happend if the execution 
 	// is taken over by the other controller.
-        rc = icoSaSmfStep.execute(); //Create the object
+        SaAisErrorT rc = icoSaSmfStep.execute(); //Create the object
 	if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_EXIST)){
                 LOG_NO("SmfUpgradeProcedure::createImmStep: Creation of SaSmfStep object fails, rc=%s, [dn=%s]", 
 		       saf_error(rc), 
@@ -2603,7 +2560,7 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 		iterE = deactList.end();
 		while (iter != iterE) {
 			attrsaSmfDuActedOn.addValue((*iter).name);
-			iter++;
+			++iter;
 		}
 
 		icoSaSmfDeactivationUnit.addValue(attrsaSmfDuActedOn);
@@ -2702,7 +2659,7 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 				return rc;
 			}
 
-			bundleRefiter++;
+			++bundleRefiter;
 		}
 	}
 
@@ -2728,7 +2685,7 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 		iterE = actList.end();
 		while (iter != iterE) {
 			attrsaSmfAuActedOn.addValue((*iter).name);
-			iter++;
+			++iter;
 		}
 
 		icoSaSmfActivationUnit.addValue(attrsaSmfAuActedOn);
@@ -2826,7 +2783,7 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 				return rc;
 			}
 
-			bundleRefiter++;
+			++bundleRefiter;
 		}
 	}
 	TRACE_LEAVE();
@@ -3223,52 +3180,46 @@ SmfUpgradeProcedure::getImmStepsMergedSingleStep()
 		int wrapupActionId = 1;
 		SmfUpgradeCampaign * camp = SmfCampaignThread::instance()->campaign()->getUpgradeCampaign();
 		const std::vector < SmfUpgradeProcedure * >& procedures = camp->getOriginalProcedures();
-		std::vector < SmfUpgradeProcedure * >::const_iterator proc_iter;
-		for (proc_iter = procedures.begin(); proc_iter != procedures.end(); proc_iter++) {
+		for (const auto& proc_iter : procedures) {
 			LOG_NO("SmfUpgradeProcedure::getImmStepsMergedSingleStep: Fetch callbacks and wrapup actions from [%s]",
-			       (*proc_iter)->getName().c_str());
+			       (*proc_iter).getName().c_str());
 
 			//The procedure init actions
 			LOG_NO("Copy the procedure init actions");
-			addInitActions((*proc_iter)->getInitActions());
-			std::vector <SmfUpgradeAction*>::const_iterator actioniter;
-			actioniter = getInitActions().begin();
-			while (actioniter != getInitActions().end()) {
+			addInitActions((*proc_iter).getInitActions());
+			for (const auto& actioniter : getInitActions()) {
 				//For the callback actions, set new calback procedure pointer
 				const SmfCallbackAction* cbkAction =
-					dynamic_cast<const SmfCallbackAction*>(*actioniter);
+					dynamic_cast<const SmfCallbackAction*>(actioniter);
 				if (cbkAction != NULL) {
 					const_cast<SmfCallbackAction*>(cbkAction)->setCallbackProcedure(this);
 				}
 
 				//Renumber action id aviod DN name collision in the merged procedure rollback data
-				(*actioniter)->changeId(initActionId);
+				(*actioniter).changeId(initActionId);
 				initActionId++;
 
-				actioniter++;
 			}
 
 			//The procedure wrapup actions
 			LOG_NO("Copy the procedure wrapup actions");
-			addWrapupActions((*proc_iter)->getWrapupActions());
-			actioniter = getWrapupActions().begin();
-			while (actioniter != getWrapupActions().end()) {
+			addWrapupActions((*proc_iter).getWrapupActions());
+			for (const auto& actioniter : getWrapupActions()) {
+                                //For the callback actions, set new calback procedure 
 				//For the callback actions, set new calback procedure pointer
 				const SmfCallbackAction* cbkAction =
-					dynamic_cast<const SmfCallbackAction*>(*actioniter);
+					dynamic_cast<const SmfCallbackAction*>(actioniter);
 				if (cbkAction != NULL) {
 					const_cast<SmfCallbackAction*>(cbkAction)->setCallbackProcedure(this);
 				}
 
 				//Renumber action id aviod DN name collision in the merged procedure rollback data
-				(*actioniter)->changeId(wrapupActionId);
+				(actioniter)->changeId(wrapupActionId);
 				wrapupActionId++;
-
-				actioniter++;
 			}
 
 			//The procedure step callbacks
-			getCallbackList((*proc_iter)->getUpgradeMethod());
+			getCallbackList((*proc_iter).getUpgradeMethod());
 		}
         }
 
@@ -3285,7 +3236,6 @@ SmfUpgradeProcedure::readCampaignImmModel(SmfUpgradeStep *i_newStep)
         TRACE_ENTER();
 	std::list < std::string > auList;
 	std::list < std::string > duList;
-	std::list < std::string >::iterator stringit;
 	unsigned int ix;
 	SmfImmUtils immutil;
 	SaImmAttrValuesT_2 **attributes;
@@ -3501,9 +3451,9 @@ SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel(SmfUpgradeStep *i_newStep)
 	std::vector < SmfUpgradeProcedure * >::const_iterator proc_iter;
 	std::list < SmfBundleRef > bundlesOldProcSS;
 	std::list < SmfBundleRef *> bundlesOldProcRO;
-	for (proc_iter = procedures.begin(); proc_iter != procedures.end(); proc_iter++) {
-		if ((*proc_iter)->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) { //SA_SMF_ROLLING
-			const SmfByTemplate *byTemplate = (SmfByTemplate*)(*proc_iter)->getUpgradeMethod()->getUpgradeScope();
+	for (const auto& proc_elem : procedures) {
+		if ((*proc_elem).getUpgradeMethod()->getUpgradeMethod() == SA_SMF_ROLLING) { //SA_SMF_ROLLING
+			const SmfByTemplate *byTemplate = (SmfByTemplate*)(*proc_elem).getUpgradeMethod()->getUpgradeScope();
 			if (byTemplate != NULL) {
 				bundlesOldProcRO.insert(bundlesOldProcRO.end(),
 							byTemplate->getTargetNodeTemplate()->getSwInstallList().begin(),
@@ -3516,8 +3466,8 @@ SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel(SmfUpgradeStep *i_newStep)
 				LOG_NO("SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel: Procedure scope not found (byTemplate)");
 			}
 		} else { //SA_SMF_SINGLE_STEP
-			const SmfForAddRemove* addRemove = dynamic_cast<const SmfForAddRemove*>((*proc_iter)->getUpgradeMethod()->getUpgradeScope());
-			const SmfForModify* modify = dynamic_cast<const SmfForModify*>((*proc_iter)->getUpgradeMethod()->getUpgradeScope());
+			const SmfForAddRemove* addRemove = dynamic_cast<const SmfForAddRemove*>((*proc_elem).getUpgradeMethod()->getUpgradeScope());
+			const SmfForModify* modify = dynamic_cast<const SmfForModify*>((*proc_elem).getUpgradeMethod()->getUpgradeScope());
 			if (addRemove != NULL) {
 				bundlesOldProcSS.insert(bundlesOldProcSS.end(),
 							addRemove->getActivationUnit()->getSwAdd().begin(),
@@ -3566,11 +3516,11 @@ SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel(SmfUpgradeStep *i_newStep)
 				TRACE("Nr of SaSmfImageNodes found = %zu", imageNodesList.size());
 
 				//For all SaSmfImageNodes.(Bundles may be installed on different nodes)
-				for (stringIt = imageNodesList.begin(); stringIt != imageNodesList.end(); stringIt++) {
+				for (auto& stringElem : imageNodesList) {
 					//TRACE("std::string imageNodes = %s", (*stringIt).c_str());
-					if (immutil.getObject((*stringIt), &attributes) == false) {
+					if (immutil.getObject((stringElem), &attributes) == false) {
 						LOG_NO("SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel: IMM data for ImageNodes %s not found",
-						       (*stringIt).c_str());
+						       (stringElem).c_str());
 						TRACE_LEAVE();
 						return SA_AIS_ERR_NOT_EXIST;
 					}
@@ -3603,14 +3553,12 @@ SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel(SmfUpgradeStep *i_newStep)
 
 					//Search for pathnamePrefix search all the procedures in the parsed campaign
 					//It is assumed the pathnamePrefix is common on all nodes for a spcific bundle name.
-					std::list < SmfBundleRef >::iterator bundle_iter;        //For SS procedures
-					std::list < SmfBundleRef * >::iterator bundlePtr_iter;   //For RO procedures
 
 					bool pathNamePrefixFound = false;
 					//Look in rolling procedures
-					for(bundlePtr_iter = bundlesOldProcRO.begin(); bundlePtr_iter != bundlesOldProcRO.end(); bundlePtr_iter++) {
-			                        if((*bundlePtr_iter)->getBundleDn() == tmpBundleRef.getBundleDn()) {
-							tmpBundleRef.setPathNamePrefix((*bundlePtr_iter)->getPathNamePrefix());
+					for (auto& bundlePtr_elem : bundlesOldProcRO) {
+			                        if((*bundlePtr_elem).getBundleDn() == tmpBundleRef.getBundleDn()) {
+							tmpBundleRef.setPathNamePrefix((*bundlePtr_elem).getPathNamePrefix());
 							pathNamePrefixFound = true;
 							LOG_NO("SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel: pathnamePrefix [%s] for bundle [%s] found", 
 							       tmpBundleRef.getPathNamePrefix().c_str(), 
@@ -3621,9 +3569,9 @@ SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel(SmfUpgradeStep *i_newStep)
 
 					if (pathNamePrefixFound == false) {
 						//If not found also look in single step procedures
-						for(bundle_iter = bundlesOldProcSS.begin(); bundle_iter != bundlesOldProcSS.end(); bundle_iter++) {
-							if((*bundle_iter).getBundleDn() == tmpBundleRef.getBundleDn()) {
-								tmpBundleRef.setPathNamePrefix((*bundle_iter).getPathNamePrefix());
+						for (const auto& bundle_elem : bundlesOldProcSS) {
+							if((bundle_elem).getBundleDn() == tmpBundleRef.getBundleDn()) {
+								tmpBundleRef.setPathNamePrefix((bundle_elem).getPathNamePrefix());
 								pathNamePrefixFound = true;
 								LOG_NO("SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel: pathnamePrefix [%s] for bundle [%s] found", 
 								       tmpBundleRef.getPathNamePrefix().c_str(), 
@@ -3672,11 +3620,11 @@ SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel(SmfUpgradeStep *i_newStep)
 				TRACE("Nr of SaSmfImageNodes found = %zu", imageNodesList.size());
 
 				//For all SaSmfImageNodes.(Bundles may be installed on different nodes)
-				for (stringIt = imageNodesList.begin(); stringIt != imageNodesList.end(); stringIt++) {
+				for (auto& stringElem : imageNodesList) {
 					//TRACE("std::string imageNodes = %s", (*stringIt).c_str());
-					if (immutil.getObject((*stringIt), &attributes) == false) {
+					if (immutil.getObject((stringElem), &attributes) == false) {
 						LOG_NO("SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel: IMM data for ImageNodes %s not found",
-						       (*stringIt).c_str());
+						       (stringElem).c_str());
 						TRACE_LEAVE();
 						return SA_AIS_ERR_NOT_EXIST;
 					}
@@ -3710,23 +3658,21 @@ SmfUpgradeProcedure::bundleRefFromSsCampaignImmModel(SmfUpgradeStep *i_newStep)
 
 					//Search for pathnamePrefix search all the procedures in the parsed campaign
 					//It is assumed the pathnamePrefix is common on all nodes for a spcific bundle name.
-					std::list < SmfBundleRef >::iterator bundle_iter;        //For SS procedures
-					std::list < SmfBundleRef * >::iterator bundlePtr_iter;   //For RO procedures
 
 					bool pathNamePrefixFound = false;
 					//Look in rolling procedures
-					for(bundlePtr_iter = bundlesOldProcRO.begin(); bundlePtr_iter != bundlesOldProcRO.end(); bundlePtr_iter++) {
-			                        if((*bundlePtr_iter)->getBundleDn() == tmpBundleRef.getBundleDn()) {
-							tmpBundleRef.setPathNamePrefix((*bundlePtr_iter)->getPathNamePrefix());
+					for (auto& bundlePtr_elem : bundlesOldProcRO) {
+			                        if((*bundlePtr_elem).getBundleDn() == tmpBundleRef.getBundleDn()) {
+							tmpBundleRef.setPathNamePrefix((*bundlePtr_elem).getPathNamePrefix());
 							pathNamePrefixFound = true;
 		                                }
 					}
 
 					if (pathNamePrefixFound == false) {
 						//If not found also look in single step procedures
-						for(bundle_iter = bundlesOldProcSS.begin(); bundle_iter != bundlesOldProcSS.end(); bundle_iter++) {
-							if((*bundle_iter).getBundleDn() == tmpBundleRef.getBundleDn()) {
-								tmpBundleRef.setPathNamePrefix((*bundle_iter).getPathNamePrefix());
+						for (auto& bundle_elem : bundlesOldProcSS) {
+							if((bundle_elem).getBundleDn() == tmpBundleRef.getBundleDn()) {
+								tmpBundleRef.setPathNamePrefix((bundle_elem).getPathNamePrefix());
 								pathNamePrefixFound = true;
 							}
 						}
@@ -4381,8 +4327,8 @@ SmfSwapThread::main(void)
         }
 
         LOG_NO("Campaign thread terminated after SA_AMF_ADMIN_SI_SWAP");
-        return;
 	TRACE_LEAVE();
+        return;
 
 exit_error:
         if (SmfCampaignThread::instance() != NULL) {

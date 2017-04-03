@@ -440,14 +440,11 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 	TRACE_ENTER();
 	std::string s;
 	std::stringstream out;
-	std::vector < SmfUpgradeProcedure * >::iterator procIter;
 	std::list < std::string > bundleDnCamp;   //DNs of all bundles to be installed and removed found in campaign.xml
-	std::list < std::string >::iterator dnIter;
-        std::list < std::string > addToImmBundleDn;
-        std::list < SmfImmOperation * > immOper;
-        std::list < SmfImmOperation * >::iterator operIter;
+	std::list < std::string > addToImmBundleDn;
+	std::list < SmfImmOperation * > immOper;
 
-        bool bundleCheckErrorFound = false;
+	bool bundleCheckErrorFound = false;
 	SmfImmUtils immUtil;
 	SaImmAttrValuesT_2 **attributes;
 
@@ -493,13 +490,12 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 
 	LOG_NO("CAMP: Check bundles to install and remove.");
         //Find bundles in the campaign xml
-	procIter = i_camp->m_procedure.begin();
-	while (procIter != i_camp->m_procedure.end()) {
+	for (auto& procElem : i_camp->m_procedure) {
 		//Fetch the list of SW to add from each procedure
-		SaSmfUpgrMethodT upType = (*procIter)->getUpgradeMethod()->getUpgradeMethod();
+		SaSmfUpgrMethodT upType = (*procElem).getUpgradeMethod()->getUpgradeMethod();
 		if (upType == SA_SMF_ROLLING) {
 			TRACE("SA_SMF_ROLLING procedure detected");
-			const SmfByTemplate *byTemplate = (SmfByTemplate*)(*procIter)->getUpgradeMethod()->getUpgradeScope();
+			const SmfByTemplate *byTemplate = (SmfByTemplate*)(*procElem).getUpgradeMethod()->getUpgradeScope();
 			if (byTemplate == NULL) {
 				TRACE("No upgrade scope found");
 				error = "CAMP: Procedure upgrade scope not found";
@@ -507,24 +503,18 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 			}
 
 			std::list < SmfBundleRef * > b = byTemplate->getTargetNodeTemplate()->getSwInstallList();
-
-			std::list< SmfBundleRef* >::const_iterator bIter;
-			bIter = b.begin();
-			while (bIter != b.end()) {
-				bundleDnCamp.push_back((*bIter)->getBundleDn());
-				bIter++;
+			for (const auto& bElem : b) {
+				bundleDnCamp.push_back((*bElem).getBundleDn());
 			}
 
-                        b = byTemplate->getTargetNodeTemplate()->getSwRemoveList();
-			bIter = b.begin();
-			while (bIter != b.end()) {
-				bundleDnCamp.push_back((*bIter)->getBundleDn());
-				bIter++;
+			b = byTemplate->getTargetNodeTemplate()->getSwRemoveList();
+			for (const auto& bElem : b) {
+				bundleDnCamp.push_back((*bElem).getBundleDn());
 			}
 
 		} else if (upType == SA_SMF_SINGLE_STEP) {
 			TRACE("SA_SMF_SINGLE_STEP procedure detected");
-			const SmfUpgradeScope * scope = (*procIter)->getUpgradeMethod()->getUpgradeScope();
+			const SmfUpgradeScope * scope = (*procElem).getUpgradeMethod()->getUpgradeScope();
 
 			//Cast to valid upgradeScope
 			const SmfForModify* modify = dynamic_cast<const SmfForModify*>(scope);
@@ -533,34 +523,25 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 			if(modify != 0) { //Check if the upgradeScope is SmfForModify
 				TRACE("SA_SMF_SINGLE_STEP procedure with scope forModify detected");
 				std::list < SmfBundleRef > b = modify->getActivationUnit()->getSwAdd();
-				std::list< SmfBundleRef >::const_iterator bIter;
-				bIter = b.begin();
-				while (bIter != b.end()) {
-					bundleDnCamp.push_back((*bIter).getBundleDn());
-					bIter++;
+				for (const auto& bElem : b) {
+					bundleDnCamp.push_back((bElem).getBundleDn());
 				}
-                                b = modify->getActivationUnit()->getSwRemove();
-				bIter = b.begin();
-				while (bIter != b.end()) {
-					bundleDnCamp.push_back((*bIter).getBundleDn());
-					bIter++;
+				
+				b = modify->getActivationUnit()->getSwRemove();
+				for (const auto& bElem : b) {
+					bundleDnCamp.push_back((bElem).getBundleDn());
 				}
 
 			}else if(addRemove != 0) { //Check if the upgradeScope is SmfForAddRemove
 				TRACE("SA_SMF_SINGLE_STEP procedure with scope forAddRemove detected");
 				std::list < SmfBundleRef > b = addRemove->getActivationUnit()->getSwAdd();
-				std::list< SmfBundleRef >::const_iterator bIter;
-				bIter = b.begin();
-				while (bIter != b.end()) {
-					bundleDnCamp.push_back((*bIter).getBundleDn());
-					bIter++;
+				for (const auto& bElem : b) {
+					bundleDnCamp.push_back((bElem).getBundleDn());
 				}
 
-                                b = addRemove->getDeactivationUnit()->getSwRemove();
-				bIter = b.begin();
-				while (bIter != b.end()) {
-					bundleDnCamp.push_back((*bIter).getBundleDn());
-					bIter++;
+				b = addRemove->getDeactivationUnit()->getSwRemove();
+				for (const auto& bElem : b) {
+					bundleDnCamp.push_back((bElem).getBundleDn());
 				}
 
 			} else {
@@ -574,7 +555,6 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 			goto exit_error;
 		}
 
-		procIter++;
 	}
 
 	bundleDnCamp.sort();
@@ -584,66 +564,55 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 
         //Find the bundles which will be created in the <addToImm> portion of the campaign.xml
         TRACE("Find the bundles which will be created by the campaign.xml");
-        immOper = i_camp->m_campInit.getAddToImm();
-        operIter = immOper.begin();
-        while (operIter != immOper.end()) {
-                SmfImmCreateOperation* ico = dynamic_cast<SmfImmCreateOperation*>((*operIter));
-                if (ico != NULL) {
-                        if (ico->getClassName() == "SaSmfSwBundle") {                //This is sw bundle
-                                std::list <SmfImmAttribute> attr = ico->getValues(); //Get all instance attributes
-                                std::list <SmfImmAttribute>::iterator attrIter;
-                                attrIter = attr.begin();
-                                while (attrIter != attr.end()) {                     //Search for safSmfBundle attribute
-                                        if( (*attrIter).getName() == "safSmfBundle") {
-                                                std::string  val = (*attrIter).getValues().front(); //Only one value
-                                                if (ico->getParentDn().size() > 0) {
-                                                        val += "," + ico->getParentDn();
-                                                }
-                                                TRACE("SW Bundle %s will be created by campaign", val.c_str());
-                                                addToImmBundleDn.push_back(val);
-                                                break;
-                                        }
-                                        attrIter++;
-                                }
-                        }
-                }
-                operIter++;
-        }
+    immOper = i_camp->m_campInit.getAddToImm();
+	for (auto& operElem : immOper) {
+		SmfImmCreateOperation* ico = dynamic_cast<SmfImmCreateOperation*>((operElem));
+		if (ico != NULL) {
+			if (ico->getClassName() == "SaSmfSwBundle") {                //This is sw bundle
+				std::list <SmfImmAttribute> attr = ico->getValues(); //Get all instance attributes
+				for (auto& attrElem : attr) {                     //Search for safSmfBundle attribute
+					if( (attrElem).getName() == "safSmfBundle") {
+						std::string  val = (attrElem).getValues().front(); //Only one value
+						if (ico->getParentDn().size() > 0) {
+							val += "," + ico->getParentDn();
+						}
+						TRACE("SW Bundle %s will be created by campaign", val.c_str());
+						addToImmBundleDn.push_back(val);
+						break;
+					}
+				}
+			}
+		}
+	}
         addToImmBundleDn.sort();
         addToImmBundleDn.unique();
 
-        //Remove bundles to be created by campaign <addToImm> from the list of bundles
-        dnIter = addToImmBundleDn.begin();
-        while (dnIter != addToImmBundleDn.end()) {
-                TRACE("Remove addToImm bundle %s from list of bundles", (*dnIter).c_str());
-                bundleDnCamp.remove(*dnIter);
-                dnIter++;
-        }
+	//Remove bundles to be created by campaign <addToImm> from the list of bundles
+	for (auto& dnElem : addToImmBundleDn) {
+		TRACE("Remove addToImm bundle %s from list of bundles", (dnElem).c_str());
+		bundleDnCamp.remove(dnElem);
+	}
 
         //Call the configured bundleCheckCmd for all bundles listed in <swAdd> and <swRemove> portion of the campaign.xml.
         //Bundles which does not yet exist in IMM, but will be created by the campaign are not checked.
         LOG_NO("CAMP: Calling configured smfBundleCheckCmd for each bundle existing in IMM, to be installed or removed by the campaign");
-        dnIter = bundleDnCamp.begin();
-        while (dnIter != bundleDnCamp.end()) {
-                std::string cmd = smfd_cb->bundleCheckCmd;
-                cmd = cmd + " " + *dnIter;
-                int rc = smf_system(cmd);
-                if (rc != 0) {
-                        bundleCheckErrorFound = true;
-                        LOG_NO("CAMP: bundleCheckCmd fail [%s] [rc=%d]", cmd.c_str(), rc);
-                        dnIter++;
-                        continue;
-                }
-
-		if (immUtil.getObject((*dnIter), &attributes) == true) { //found
-			TRACE("SW Bundle [%s] found in IMM", (*dnIter).c_str());
-		} else {
-                        bundleCheckErrorFound = true;
-			LOG_NO("CAMP: SW bundle [%s] was not found in system or campaign", (*dnIter).c_str());
+	for (auto& dnElem : bundleDnCamp) {
+		std::string cmd = smfd_cb->bundleCheckCmd;
+		cmd = cmd + " " + dnElem;
+		int rc = smf_system(cmd);
+		if (rc != 0) {
+			bundleCheckErrorFound = true;
+			LOG_NO("CAMP: bundleCheckCmd fail [%s] [rc=%d]", cmd.c_str(), rc);
+			continue;
 		}
 
-                dnIter++;
-        }
+		if (immUtil.getObject((dnElem), &attributes) == true) { //found
+			TRACE("SW Bundle [%s] found in IMM", (dnElem).c_str());
+		} else {
+			bundleCheckErrorFound = true;
+			LOG_NO("CAMP: SW bundle [%s] was not found in system or campaign", (dnElem).c_str());
+		}
+	}
 
         if(bundleCheckErrorFound == true) {
                 LOG_NO("CAMP: Bundle check error");
@@ -670,14 +639,12 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 	}
 
 	// Check if parent/type has incorrect object DNs. This is an extra  prerequisite check not given in SMF specification
-	procIter = i_camp->m_procedure.begin();
-	while (procIter != i_camp->m_procedure.end()) {
-		SaSmfUpgrMethodT upType = (*procIter)->getUpgradeMethod()->getUpgradeMethod();
+	for (auto& procElem : (i_camp->m_procedure)) {
+		SaSmfUpgrMethodT upType = (*procElem).getUpgradeMethod()->getUpgradeMethod();
 		if (upType != SA_SMF_ROLLING) {
-			procIter++; /* go to the next procedure */
 			continue;
 		}
-		SmfRollingUpgrade *i_rollingUpgrade = (SmfRollingUpgrade *) (*procIter)->getUpgradeMethod();
+		SmfRollingUpgrade *i_rollingUpgrade = (SmfRollingUpgrade *) (*procElem).getUpgradeMethod();
 		const SmfByTemplate *byTemplate = (const SmfByTemplate *)i_rollingUpgrade->getUpgradeScope();
 		if (byTemplate == NULL) {
 			LOG_ER("SmfCampStateInitial::execute: no upgrade scope by template found");
@@ -688,37 +655,35 @@ SmfCampStateInitial::prerequsitescheck(SmfUpgradeCampaign * i_camp, std::string 
 		const SmfTargetNodeTemplate *nodeTemplate = byTemplate->getTargetNodeTemplate();
 		const std::list < SmfParentType * >&actUnitTemplates = nodeTemplate->getActivationUnitTemplateList();
 		if (actUnitTemplates.size() == 0) {
-			procIter++;
 			continue;
 		}
-		std::list < SmfParentType * >::const_iterator it;
-		for (it = actUnitTemplates.begin(); it != actUnitTemplates.end(); ++it) { 
-			if (((*it)->getParentDn().size() != 0) && 
-				(strncmp((*it)->getParentDn().c_str(), "safSg=", strlen("safSg=")) != 0)) {
-				LOG_ER("SmfCampStateInitial::execute: given DN in parent %s is not SG's DN", (*it)->getParentDn().c_str());
+		
+		for (const auto& elem : actUnitTemplates) {
+			if (((*elem).getParentDn().size() != 0) && 
+				(strncmp((*elem).getParentDn().c_str(), "safSg=", strlen("safSg=")) != 0)) {
+				LOG_ER("SmfCampStateInitial::execute: given DN in parent %s is not SG's DN", (*elem).getParentDn().c_str());
 				error = "CAMP: parent object DN is not SG DN";
 				goto exit_error;
 			}
 
-			if ((*it)->getTypeDn().size() == 0) 
+			if ((*elem).getTypeDn().size() == 0) 
 				continue; /* type is optional */
 
-			if (strncmp((*it)->getTypeDn().c_str(), "safVersion=", strlen("safVersion=")) != 0) {
-				LOG_ER("SmfCampStateInitial::execute: given DN in type %s is not versioned CompType/SUType DN", (*it)->getTypeDn().c_str());
+			if (strncmp((*elem).getTypeDn().c_str(), "safVersion=", strlen("safVersion=")) != 0) {
+				LOG_ER("SmfCampStateInitial::execute: given DN in type %s is not versioned CompType/SUType DN", (*elem).getTypeDn().c_str());
 				error = "CAMP: type object DN is not versioned type of CompType/SuType";
 				goto exit_error;
 			} else {
-				std::string temp = (*it)->getTypeDn().c_str();
+				std::string temp = (*elem).getTypeDn().c_str();
 				std::string parentDn = (temp).substr((temp).find(',') + 1, std::string::npos);
 				if ((strncmp(parentDn.c_str(), "safCompType=", strlen("safCompType=")) != 0) 
 					&& (strncmp(parentDn.c_str(), "safSuType=", strlen("safSuType=")) != 0)) {
-					LOG_ER("SmfCampStateInitial::execute: given DN in type %s is not CompType/SUType DN", (*it)->getTypeDn().c_str());
+					LOG_ER("SmfCampStateInitial::execute: given DN in type %s is not CompType/SUType DN", (*elem).getTypeDn().c_str());
 					error = "CAMP: type object DN is not CompType/SuType DN";
 					goto exit_error;
 				}
 			}
 		}
-		procIter++;
 	}
 
 
@@ -781,23 +746,19 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 
         std::vector<SmfUpgradeProcedure*> procedures = i_camp->getProcedures();
 
-        std::vector < SmfUpgradeProcedure * >::iterator iter;
 	bool execProcFound = false;
 
-	iter = procedures.begin();
 	i_camp->m_noOfExecutingProc = 0; //The no of answers which must be wait for, could be more than 1 if parallel procedures
-	while (iter != procedures.end()) {
-		if ((*iter)->getState() == SA_SMF_PROC_EXECUTING) {
+	for (auto& elem : procedures) {
+		if ((*elem).getState() == SA_SMF_PROC_EXECUTING) {
 			TRACE("SmfCampStateExecuting::execute, restarted procedure found, send PROCEDURE_EVT_EXECUTE_STEP event to thread");
-			SmfProcedureThread *procThread = (*iter)->getProcThread();
+			SmfProcedureThread *procThread = (*elem).getProcThread();
 			PROCEDURE_EVT *evt = new PROCEDURE_EVT();
 			evt->type = PROCEDURE_EVT_EXECUTE_STEP;
 			procThread->send(evt);
 			execProcFound = true;
 			i_camp->m_noOfExecutingProc++; 
 		}
-
-		iter++;
 	}
 
 	if (execProcFound == true) {
@@ -828,33 +789,30 @@ SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 	//Lowest number shall be executed first.
 
         std::vector<SmfUpgradeProcedure*> procedures = i_camp->getProcedures();
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
 	int execLevel = -1;
 
-	iter = procedures.begin();
-	while (iter != procedures.end()) {
+	for (auto& elem : procedures) {
 
 		TRACE("Start procedures, try procedure %s, state=%u, execLevel=%d",
-		      (*iter)->getProcName().c_str(), (*iter)->getState(), (*iter)->getExecLevel());
+		      (*elem).getProcName().c_str(), (*elem).getState(), (*elem).getExecLevel());
 
 		// If the state is initial and the execution level is new or the same as 
 		// the procedure just started.
-		if (((*iter)->getState() == SA_SMF_PROC_INITIAL)
-		    && ((execLevel == -1) || (execLevel == (*iter)->getExecLevel()))) {
-			if (execLevel == (*iter)->getExecLevel()) {
+		if (((*elem).getState() == SA_SMF_PROC_INITIAL)
+		    && ((execLevel == -1) || (execLevel == (*elem).getExecLevel()))) {
+			if (execLevel == (*elem).getExecLevel()) {
 				TRACE("A procedure already run at execLevel=%d, start parallel procedure", execLevel);
 			} else if (execLevel == -1) {
-				TRACE("Start first procedure on execLevel=%d", (*iter)->getExecLevel());
+				TRACE("Start first procedure on execLevel=%d", (*elem).getExecLevel());
 			}
 
-			SmfProcedureThread *procThread = (*iter)->getProcThread();
+			SmfProcedureThread *procThread = (*elem).getProcThread();
 			PROCEDURE_EVT *evt = new PROCEDURE_EVT();
 			evt->type = PROCEDURE_EVT_EXECUTE;
 			procThread->send(evt);
-			execLevel = (*iter)->getExecLevel();
+			execLevel = (*elem).getExecLevel();
 			i_camp->m_noOfExecutingProc++;
 		}
-		iter++;
 	}
 
 	if (execLevel != -1) {
@@ -948,13 +906,10 @@ SmfCampStateExecuting::asyncFailure(SmfUpgradeCampaign * i_camp)
 
 	/* Send suspend message to all procedures */
         std::vector<SmfUpgradeProcedure*> procedures = i_camp->getProcedures();
-
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
-
-	for (iter = procedures.begin(); iter != procedures.end(); ++iter) {
+	for (auto& elem : procedures) {
                 TRACE("SmfCampStateExecuting::Procedure %s, send suspend",
-                      (*iter)->getProcName().c_str());
-                SmfProcedureThread *procThread = (*iter)->getProcThread();
+                      (*elem).getProcName().c_str());
+                SmfProcedureThread *procThread = (*elem).getProcThread();
                 PROCEDURE_EVT *evt = new PROCEDURE_EVT();
                 evt->type = PROCEDURE_EVT_SUSPEND;
                 procThread->send(evt);
@@ -990,7 +945,6 @@ SmfCampStateExecuting::procResult(SmfUpgradeCampaign *  i_camp,
 		changeState(i_camp, SmfCampStateExecFailed::instance());
 		TRACE_LEAVE();
 		return SMF_CAMP_FAILED;
-                break;
         }
         case SMF_PROC_STEPUNDONE: {
                 LOG_NO("CAMP: Procedure %s returned STEPUNDONE", i_procedure->getProcName().c_str());
@@ -1013,7 +967,6 @@ SmfCampStateExecuting::procResult(SmfUpgradeCampaign *  i_camp,
 		changeState(i_camp, SmfCampStateErrorDetected::instance());
 		TRACE_LEAVE();
 		return SMF_CAMP_DONE;
-                break;
         }
         default: {
                 LOG_NO("SmfCampStateExecuting::procResult received unhandled response %d from procedure %s", 
@@ -1223,12 +1176,11 @@ SmfCampStateSuspendingExec::execute(SmfUpgradeCampaign * i_camp)
 
         std::vector<SmfUpgradeProcedure*> procedures = i_camp->getProcedures();
 
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
 	bool initialFound = false;
 
 	// Searching if any procedure is in initial status.
-	for (iter = procedures.begin(); iter != procedures.end(); iter++) {
-		if((*iter)->getState() == SA_SMF_PROC_INITIAL)	{
+	for (auto& elem : procedures) {	
+		if((*elem).getState() == SA_SMF_PROC_INITIAL)	{
 			TRACE("SmfCampStateSuspendingExec::execute SA_SMF_PROC_INITIAL found");
 			initialFound = true;
 			break;
@@ -1240,12 +1192,12 @@ SmfCampStateSuspendingExec::execute(SmfUpgradeCampaign * i_camp)
 		changeState(i_camp, SmfCampStateExecSuspended::instance());
 
 		// Searching for all procedures which has executing status.
-		for (iter = procedures.begin(); iter != procedures.end(); iter++) {
-			if((*iter)->getState() == SA_SMF_PROC_EXECUTING) {
+		for (auto& elem : procedures) {	
+			if((*elem).getState() == SA_SMF_PROC_EXECUTING) {
 				// The procedure did not change its status to ExecSuspended before cluster reboot.
 				// It can be done now, because no procedure is running at this point.
 				TRACE("SmfCampStateSuspendingExec::execute changing proc state to ExecSuspended");
-				(*iter)->changeState(SmfProcStateExecSuspended::instance());
+				(*elem).changeState(SmfProcStateExecSuspended::instance());
 			}
 		}
 	}
@@ -1870,7 +1822,7 @@ SmfCampRollingBack::rollback(SmfUpgradeCampaign * i_camp)
 	bool execProcFound = false;
 	
 	i_camp->m_noOfExecutingProc = 0; //The no of answers which must be wait for, could be more than 1 if parallel procedures
-	for (iter = procedures.rbegin(); iter != procedures.rend(); iter++) {
+	for (iter = procedures.rbegin(); iter != procedures.rend(); ++iter) {
 		if ((*iter)->getState() == SA_SMF_PROC_ROLLING_BACK) {
 			TRACE("SmfCampRollingBack::rollback, restarted procedure found, send PROCEDURE_EVT_ROLLBACK_STEP event to %s",
                               (*iter)->getProcName().c_str());
@@ -1949,7 +1901,7 @@ SmfCampRollingBack::rollbackProc(SmfUpgradeCampaign * i_camp)
 
         int execLevel = -1;
 	
-	for (iter = procedures.rbegin(); iter != procedures.rend(); iter++) {
+	for (iter = procedures.rbegin(); iter != procedures.rend(); ++iter) {
 
 		TRACE("Rollback procedures, try procedure %s, state=%u, execLevel=%d",
 		      (*iter)->getProcName().c_str(), (*iter)->getState(), (*iter)->getExecLevel());
@@ -2080,7 +2032,6 @@ SmfCampRollingBack::procResult(SmfUpgradeCampaign *  i_camp,
 		changeState(i_camp, SmfCampRollbackFailed::instance());
 		TRACE_LEAVE();
 		return SMF_CAMP_FAILED;
-                break;
         }
         default: {
                 LOG_ER("SmfCampRollingBack: Procedure %s returned unhandled response %d", 

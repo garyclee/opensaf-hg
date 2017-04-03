@@ -327,7 +327,6 @@ uint32_t smfd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
         {
             LOG_ER("Unknown SMFND evt type = %d", i_evt->info.smfd.type);
             goto err;
-            break;
         }
     }
 
@@ -377,7 +376,6 @@ uint32_t smfd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
         {
             LOG_ER("Unknown evt type = %d", o_evt->info.smfd.type);
             goto err;
-            break;
         }
     }
     return rc;
@@ -675,10 +673,7 @@ err:
 
 uint32_t smfnd_enc_cbk_req(SMF_CBK_EVT *i_evt, NCS_UBAID *o_ub)
 {
-    uint32_t      rc = NCSCC_RC_SUCCESS;
-
-    rc = smf_enc_cbk_req(i_evt, o_ub);
-    return rc;
+    return  smf_enc_cbk_req(i_evt, o_ub);
 }
 
 uint32_t smfnd_enc_cbk_rsp(SMF_RESP_EVT *i_evt, NCS_UBAID *o_ub)
@@ -828,10 +823,7 @@ err:
 
 uint32_t smfnd_dec_cbk_req(NCS_UBAID *i_ub, SMF_CBK_EVT *o_evt)
 {
-    uint32_t      rc = NCSCC_RC_SUCCESS;
-
-    rc = smf_dec_cbk_req(i_ub, o_evt);
-    return rc;
+    return smf_dec_cbk_req(i_ub, o_evt);
 }
 
 uint32_t smfnd_dec_cbk_rsp(NCS_UBAID *i_ub, SMF_RESP_EVT *o_evt)
@@ -948,7 +940,6 @@ uint32_t smfnd_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
         {
             LOG_ER("Unknown SMFND evt type = %d", i_evt->info.smfnd.type);
             goto err;
-            break;
         }
     }
 
@@ -1002,7 +993,6 @@ uint32_t smfnd_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
         {
             LOG_ER("Unknown evt type = %d", o_evt->info.smfnd.type);
             goto err;
-            break;
         }
     }
     return rc;
@@ -1037,19 +1027,14 @@ err:
 
 uint32_t smfa_dec_cbk_req(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
 {
-    uint32_t      rc = NCSCC_RC_SUCCESS;
     uint8_t      local_data[20];
     uint8_t      *p8;
-
     /* Decode SMFA event type */ 
-
     p8 =  ncs_dec_flatten_space(i_ub, local_data, 4);
     o_evt->info.smfa.event.cbk_req_rsp.evt_type = ncs_decode_32bit(&p8);
     ncs_dec_skip_space(i_ub, 4);
 
-
-    rc = smf_dec_cbk_req(i_ub, &o_evt->info.smfa.event.cbk_req_rsp.evt.cbk_evt);
-    return rc;
+    return smf_dec_cbk_req(i_ub, &o_evt->info.smfa.event.cbk_req_rsp.evt.cbk_evt);
 }
 
 /****************************************************************************\
@@ -1088,7 +1073,6 @@ uint32_t smfa_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
         {
             LOG_ER("Unknown evt type = %d", i_evt->info.smfa.type);
             goto err;
-            break; /* not required */
         }
     }
 
@@ -1132,7 +1116,6 @@ uint32_t smfa_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
         {
             LOG_ER("Unknown evt type = %d", o_evt->info.smfa.type);
             goto err;
-            break; /* not required */
         }
     }
     return rc;
@@ -1253,7 +1236,6 @@ uint32_t smfsv_evt_enc(SMFSV_EVT *i_evt, NCS_UBAID *o_ub)
         {
             LOG_ER("Unknown evt type = %d", i_evt->type);
             goto err;
-            break;
         }
     }
 
@@ -1306,7 +1288,6 @@ uint32_t smfsv_evt_dec(NCS_UBAID *i_ub, SMFSV_EVT *o_evt)
         {
             LOG_ER("Unknown evt type = %d", o_evt->type);
             goto err;
-            break;
         }
     }
 

@@ -1196,7 +1196,6 @@ SmfStepTypeNodeReboot::execute()
 	SaImmAttrValuesT_2 ** attributes;
 	const SaUint32T* scope;
 
-	std::list< SmfBundleRef >::const_iterator bundleIter;
 	const std::list < SmfBundleRef >& addList = m_step->getSwAddList();
 	bool installationRebootNeeded;
 	
@@ -1272,12 +1271,11 @@ SmfStepTypeNodeReboot::execute()
         /* in the online portion only.                                                 */
         
         /* Find out if any bundle to install which bundles requires restart to be installed */
-        bundleIter = addList.begin();
         installationRebootNeeded = false;
-        while (bundleIter != addList.end()) {
+	for (const auto& bundleElem : addList) {
                 /* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
-                if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-                        LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+                if (immutil.getObject((bundleElem).getBundleDn(), &attributes) == false) {
+                        LOG_ER("Could not find software bundle  %s", (bundleElem).getBundleDn().c_str());
                         TRACE_LEAVE();
                         return false;
                 }
@@ -1287,13 +1285,12 @@ SmfStepTypeNodeReboot::execute()
 
                 if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
                         TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-                              (*bundleIter).getBundleDn().c_str());
+                              (bundleElem).getBundleDn().c_str());
 
                         installationRebootNeeded = true;
                         break;
                 }
 
-                bundleIter++;
         }
 
         if(installationRebootNeeded == true) {
@@ -1307,12 +1304,11 @@ SmfStepTypeNodeReboot::execute()
         // Here the rebooted node is up and running
 
         /* Find out which bundles requires restart to be removed */
-        bundleIter = removeList.begin();
         removalRebootNeeded = false;
-        while (bundleIter != removeList.end()) {
-                /* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
-                if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-                        LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+	for (const auto& bundleElem : removeList) {        
+        /* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
+                if (immutil.getObject((bundleElem).getBundleDn(), &attributes) == false) {
+                        LOG_ER("Could not find software bundle  %s", (bundleElem).getBundleDn().c_str());
                         TRACE_LEAVE();
                         return false;
                 }
@@ -1322,13 +1318,11 @@ SmfStepTypeNodeReboot::execute()
 
                 if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
                         TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-                              (*bundleIter).getBundleDn().c_str());
+                              (bundleElem).getBundleDn().c_str());
                         
-                        restartBundles.push_back((*bundleIter));
+                        restartBundles.push_back((bundleElem));
                         removalRebootNeeded = true;
                 }
-
-                bundleIter++;
         }
 
         /* Online uninstallation of old software for bundles where */
@@ -1425,7 +1419,6 @@ SmfStepTypeNodeReboot::rollback()
 	SaImmAttrValuesT_2 ** attributes;
 	const SaUint32T* scope;
 
-	std::list< SmfBundleRef >::const_iterator bundleIter;
 	const std::list < SmfBundleRef >& addList = m_step->getSwAddList();
 
 	bool installationRebootNeeded;
@@ -1499,12 +1492,11 @@ SmfStepTypeNodeReboot::rollback()
 	}
 
         /* Find out if any old bundle we have reinstalled requires restart to be installed */
-        bundleIter = removeList.begin();
         installationRebootNeeded = false;
-        while (bundleIter != removeList.end()) {
-                /* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
-                if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-                        LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+	for (const auto& bundleElem : removeList) {       
+         /* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
+                if (immutil.getObject((bundleElem).getBundleDn(), &attributes) == false) {
+                        LOG_ER("Could not find software bundle  %s", (bundleElem).getBundleDn().c_str());
                         TRACE_LEAVE();
                         return false;
                 }
@@ -1514,13 +1506,11 @@ SmfStepTypeNodeReboot::rollback()
 
                 if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
                         TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-                              (*bundleIter).getBundleDn().c_str());
+                              (bundleElem).getBundleDn().c_str());
 
                         installationRebootNeeded = true;
                         break;
                 }
-
-                bundleIter++;
         }
 
         if(installationRebootNeeded == true) {
@@ -1534,12 +1524,12 @@ SmfStepTypeNodeReboot::rollback()
         // Here the rebooted node is up and running
 
         /* Find out which of the new bundles we have removed requires restart to be removed */
-        bundleIter = addList.begin();
         removalRebootNeeded = false;
-        while (bundleIter != addList.end()) {
+
+	for (const auto& bundleElem : addList) {
                 /* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
-                if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-                        LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+                if (immutil.getObject((bundleElem).getBundleDn(), &attributes) == false) {
+                        LOG_ER("Could not find software bundle  %s", (bundleElem).getBundleDn().c_str());
                         TRACE_LEAVE();
                         return false;
                 }
@@ -1549,13 +1539,11 @@ SmfStepTypeNodeReboot::rollback()
 
                 if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
                         TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-                              (*bundleIter).getBundleDn().c_str());
+                              (bundleElem).getBundleDn().c_str());
                         
-                        restartBundles.push_back((*bundleIter));
+                        restartBundles.push_back((bundleElem));
                         removalRebootNeeded = true;
                 }
-
-                bundleIter++;
         }
 
         /* Online uninstallation of new software for bundles where */
@@ -2046,12 +2034,11 @@ SmfStepTypeClusterReboot::execute()
 		/* in the online portion only.                                                 */
 
 		/* Find out if any bundle to install which bundles requires restart to be installed */
-		bundleIter = addList.begin();
 		installationRebootNeeded = false;
-		while (bundleIter != addList.end()) {
+		for (const auto& bundleElem : addList) {
 			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
-			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-				LOG_ER("SmfStepTypeClusterReboot::execute, sw bundle not found dn=[%s]", (*bundleIter).getBundleDn().c_str());
+			if (immutil.getObject((bundleElem).getBundleDn(), &attributes) == false) {
+				LOG_ER("SmfStepTypeClusterReboot::execute, sw bundle not found dn=[%s]", (bundleElem).getBundleDn().c_str());
 				TRACE_LEAVE();
 				return false;
 			}
@@ -2061,13 +2048,11 @@ SmfStepTypeClusterReboot::execute()
 
 			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
 				TRACE("SmfStepTypeClusterReboot::execute, SW bundle %s requires reboot to install", 
-				      (*bundleIter).getBundleDn().c_str());
+				      (bundleElem).getBundleDn().c_str());
 
 				installationRebootNeeded = true;
 				break;
 			}
-
-			bundleIter++;
 		}
 
 		if(installationRebootNeeded == true) {
@@ -2106,12 +2091,11 @@ SmfStepTypeClusterReboot::execute()
 	case SMF_INSTALLATION_REBOOT:
 
 		/* Find out which bundles requires restart to be removed */
-		bundleIter = removeList.begin();
 		removalRebootNeeded = false;
-		while (bundleIter != removeList.end()) {
+		for (const auto& bundleElem : removeList) {
 			/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
-			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-				LOG_ER("SmfStepTypeClusterReboot::execute, sw bundle not found dn=[%s]", (*bundleIter).getBundleDn().c_str());
+			if (immutil.getObject((bundleElem).getBundleDn(), &attributes) == false) {
+				LOG_ER("SmfStepTypeClusterReboot::execute, sw bundle not found dn=[%s]", (bundleElem).getBundleDn().c_str());
 				TRACE_LEAVE();
 				return false;
 			}
@@ -2121,13 +2105,11 @@ SmfStepTypeClusterReboot::execute()
 
 			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
 				TRACE("SmfStepTypeClusterReboot::execute, the SW bundle %s requires reboot to install", 
-				      (*bundleIter).getBundleDn().c_str());
+				      (bundleElem).getBundleDn().c_str());
 
-				restartBundles.push_back((*bundleIter));
+				restartBundles.push_back((bundleElem));
 				removalRebootNeeded = true;
 			}
-
-			bundleIter++;
 		}
 
 		/* Online uninstallation of old software for bundles where */

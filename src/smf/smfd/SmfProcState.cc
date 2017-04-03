@@ -142,7 +142,6 @@ SmfProcState::suspend(SmfUpgradeProcedure * i_proc)
 SmfProcResultT 
 SmfProcState::commit(SmfUpgradeProcedure * i_proc)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	SaNameT objectName;
         SmfImmUtils immUtil;
 
@@ -159,7 +158,7 @@ SmfProcState::commit(SmfUpgradeProcedure * i_proc)
 
 	osaf_extended_name_lend(i_proc->getDn().c_str(), &objectName);
 
-	rc = immutil_saImmOiRtObjectDelete(i_proc->getProcThread()->getImmHandle(),	//The OI handle
+	SaAisErrorT rc = immutil_saImmOiRtObjectDelete(i_proc->getProcThread()->getImmHandle(),	//The OI handle
 					   &objectName);
 
 	if (rc != SA_AIS_OK) {
@@ -367,14 +366,13 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 	TRACE("SmfProcStateExecuting::executeStep: Procedure=%s", i_proc->getProcName().c_str());
 
 	/* Find and execute first step in state Initial. */
-	std::vector < SmfUpgradeStep * >::const_iterator iter;
         const std::vector < SmfUpgradeStep * >& procSteps = i_proc->getProcSteps();
 
-        for (iter = procSteps.begin(); iter != procSteps.end(); iter++) {
+	for (const auto& elem : procSteps) {
                 SmfStepResultT stepResult;
 
                 /* Try executing the step */
-                stepResult = (*iter)->execute();
+                stepResult = (*elem).execute();
 
                 /* Check step result */
                 switch (stepResult) {
@@ -383,7 +381,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                 }
                 case SMF_STEP_SWITCHOVER : {
                         LOG_NO ("PROC: Step %s needs switchover, let other controller take over",
-                               (*iter)->getRdn().c_str());
+                               (*elem).getRdn().c_str());
 
                         i_proc->switchOver();
 
@@ -392,7 +390,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                 }
                 case SMF_STEP_COMPLETED : {
                         TRACE ("Step %s completed, sending PROCEDURE_EVT_EXECUTE_STEP",
-                                       (*iter)->getRdn().c_str());
+                                       (*elem).getRdn().c_str());
         
                         /* Send message to ourself to handle possible waiting suspend messages */
                         PROCEDURE_EVT *evt = new PROCEDURE_EVT();
@@ -403,7 +401,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                 } 
                 case SMF_STEP_UNDONE : {
                         LOG_NO ("PROC: Step %s is undone",
-                               (*iter)->getRdn().c_str());
+                               (*elem).getRdn().c_str());
 
                         changeState(i_proc, SmfProcStateStepUndone::instance());
                         TRACE_LEAVE();
@@ -413,7 +411,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                         changeState(i_proc, SmfProcStateExecFailed::instance());
 
                         LOG_NO("Step %s in procedure %s failed, step result %u",
-                              (*iter)->getRdn().c_str(), i_proc->getProcName().c_str(), stepResult);
+                              (*elem).getRdn().c_str(), i_proc->getProcName().c_str(), stepResult);
 
                         TRACE_LEAVE();
                         return SMF_PROC_FAILED;
@@ -427,10 +425,8 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 
 	if((smfd_cb->nodeBundleActCmd == NULL) || (strcmp(smfd_cb->nodeBundleActCmd,"") == 0)) {
 		//Run all online remove scripts for all bundles (which does not require restart) listed in the upgrade steps
-		iter = procSteps.begin();
 
-                while (iter != procSteps.end()) {
-
+		for (const auto& elem : procSteps) {
 			TRACE("SmfProcStateExecuting::executeStep: Execute OnlineRemove for the bundles to remove");
 			/* Online uninstallation of old software */
                         LOG_NO("PROC: Online uninstallation of old software");
@@ -443,12 +439,11 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 			SmfImmUtils immutil;
 			SaImmAttrValuesT_2 ** attributes;
 			std::list < SmfBundleRef > nonRestartBundles;
-			const std::list < SmfBundleRef > &removeList = (*iter)->getSwRemoveList();
-			std::list< SmfBundleRef >::const_iterator bundleIter = removeList.begin();
-			while (bundleIter != removeList.end()) {
+			const std::list < SmfBundleRef > &removeList = (*elem).getSwRemoveList();
+			for (const auto& bundleElem : removeList) {
 				/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle shall be included */
-				if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-					LOG_NO("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				if (immutil.getObject((bundleElem).getBundleDn(), &attributes) == false) {
+					LOG_NO("Could not find software bundle  %s", (bundleElem).getBundleDn().c_str());
                                         changeState(i_proc, SmfProcStateExecFailed::instance());
 					TRACE_LEAVE();
 					return SMF_PROC_FAILED;
@@ -459,16 +454,14 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 				/* Include only bundles not need reboot */
 				if ((scope == NULL) || (*scope != SA_SMF_CMD_SCOPE_PLM_EE)) {
 					TRACE("SmfProcStateExecuting::executeStep:Include the SW bundle %s to remove list", 
-					      (*bundleIter).getBundleDn().c_str());
+					      (bundleElem).getBundleDn().c_str());
 
-					nonRestartBundles.push_back((*bundleIter));
+					nonRestartBundles.push_back((bundleElem));
 				}
-
-				bundleIter++;
 			}
 
 			/* Run the online remove scripts for the bundles NOT restarted */
-			if ((*iter)->onlineRemoveBundlesUserList((*iter)->getSwNode(), nonRestartBundles) == false) {
+			if ((*elem).onlineRemoveBundlesUserList((*elem).getSwNode(), nonRestartBundles) == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
 				LOG_NO("SmfProcStateExecuting::executeStep:Failed to online remove bundles");
 				TRACE_LEAVE();
@@ -477,14 +470,12 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 
 			/* Delete SaAmfNodeSwBundle objects for ALL old bundles in the step*/
 			LOG_NO("PROC: Delete SaAmfNodeSwBundle objects");
-			if ((*iter)->deleteSaAmfNodeSwBundlesOld() == false) {
+			if ((*elem).deleteSaAmfNodeSwBundlesOld() == false) {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
 				LOG_NO("SmfProcStateExecuting::executeStep:Failed to delete old SaAmfNodeSwBundle objects");
 				TRACE_LEAVE();
 				return SMF_PROC_FAILED;
 			}
-		
-			iter++;
 		}
 	}
 
@@ -619,7 +610,7 @@ SmfProcStateExecutionCompleted::rollbackWrapup(SmfUpgradeProcedure * i_proc)
         const std::vector < SmfUpgradeAction * >& wrapupActions = i_proc->getWrapupActions();
 	std::vector < SmfUpgradeAction * >::const_reverse_iterator iter;
 
-	for (iter = wrapupActions.rbegin(); iter != wrapupActions.rend(); iter++) {
+	for (iter = wrapupActions.rbegin(); iter != wrapupActions.rend(); ++iter) {
 		if ((result = (*iter)->rollback(wrapupRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateRollbackFailed::instance());
 			LOG_NO("Rollback of wrapup action %d failed, rc=%s", (*iter)->getId(), saf_error(result));
@@ -846,7 +837,7 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 	std::vector < SmfUpgradeStep * >::const_reverse_iterator iter;
 
         /* Rollback steps in reverse order */
-	for (iter = procSteps.rbegin(); iter != procSteps.rend(); iter++) {
+	for (iter = procSteps.rbegin(); iter != procSteps.rend(); ++iter) {
                 SmfStepResultT stepResult;
 
                 /* Try rollback the step */
@@ -908,7 +899,7 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 	if((smfd_cb->nodeBundleActCmd == NULL) || (strcmp(smfd_cb->nodeBundleActCmd,"") == 0)) {
 		//Run all online remove scripts for all bundles (which does not require restart) listed in the upgrade steps
 
-                for (iter = procSteps.rbegin(); iter != procSteps.rend(); iter++) {
+		for (iter = procSteps.rbegin(); iter != procSteps.rend(); ++iter) {
 
 			TRACE("SmfProcStateRollingBack::rollbackStep: Rollback OnlineRemove for the new bundles");
 			/* Online uninstallation of new software */
@@ -923,11 +914,10 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 			SaImmAttrValuesT_2 ** attributes;
 			std::list < SmfBundleRef > nonRestartBundles;
 			const std::list < SmfBundleRef > &removeList = (*iter)->getSwAddList();
-			std::list< SmfBundleRef >::const_iterator bundleIter = removeList.begin();
-			while (bundleIter != removeList.end()) {
+			for (const auto& bundleIter : removeList) {
 				/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle shall be included */
-				if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-					LOG_NO("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+				if (immutil.getObject((bundleIter).getBundleDn(), &attributes) == false) {
+					LOG_NO("Could not find software bundle  %s", (bundleIter).getBundleDn().c_str());
                                         changeState(i_proc, SmfProcStateExecFailed::instance());
 					TRACE_LEAVE();
 					return SMF_PROC_FAILED;
@@ -938,12 +928,10 @@ SmfProcStateRollingBack::rollbackStep(SmfUpgradeProcedure * i_proc)
 				/* Include only bundles not need reboot */
 				if ((scope == NULL) || (*scope != SA_SMF_CMD_SCOPE_PLM_EE)) {
 					TRACE("SmfProcStateRollingBack::rollbackStep:Include the SW bundle %s to remove list", 
-					      (*bundleIter).getBundleDn().c_str());
+					      (bundleIter).getBundleDn().c_str());
 
-					nonRestartBundles.push_back((*bundleIter));
+					nonRestartBundles.push_back((bundleIter));
 				}
-
-				bundleIter++;
 			}
 
 			/* Run the online remove scripts for the bundles NOT restarted */
@@ -988,7 +976,7 @@ SmfProcStateRollingBack::rollbackInit(SmfUpgradeProcedure * i_proc)
         const std::vector < SmfUpgradeAction * >& initActions = i_proc->getInitActions();
         std::vector < SmfUpgradeAction * >::const_reverse_iterator iter;
 
-	for (iter = initActions.rbegin(); iter != initActions.rend(); iter++) {
+	for (iter = initActions.rbegin(); iter != initActions.rend(); ++iter) {
                 if ((result = (*iter)->rollback(initRollbackDn)) != SA_AIS_OK) {
 			changeState(i_proc, SmfProcStateRollbackFailed::instance());
                         LOG_NO("SmfProcStateExecuting::rollbackInit: rollback of init action %d failed, rc=%s", 

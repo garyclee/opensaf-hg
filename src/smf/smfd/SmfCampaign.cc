@@ -706,15 +706,12 @@ SmfCampaign::startProcedureThreads()
                 }
         } else {
                 const std::vector < SmfUpgradeProcedure * >& procedures = p_uc->getProcedures();
-                std::vector < SmfUpgradeProcedure * >::const_iterator iter;
-
                 //Set DN and start procedure threads
                 TRACE("SmfCampaign::startProcedureThreads, start procedure threads. No proc=[%zu]",
                       procedures.size());
-                iter = procedures.begin();
-                while (iter != procedures.end()) {
+		for (const auto& elem : procedures) {
                         //Set the DN of the procedure
-                        std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
+                        std::string dn = (*elem).getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
                         if (dn.length() > static_cast<size_t>(GetSmfMaxDnLength() - OSAF_STEP_ACT_LENGTH)) {
                                 std::string error = "Procedure dn too long " + dn;
                                 LOG_ER("Procedure dn too long (max %zu) %s",
@@ -725,13 +722,12 @@ SmfCampaign::startProcedureThreads()
                                 /* Don't change campaign state to allow reexecution */
                                 return SA_AIS_OK;
                         }
-                        (*iter)->setDn(dn);
+                        (*elem).setDn(dn);
 
-                        if (startProcedure(*iter) == false) {
+                        if (startProcedure(elem) == false) {
                                 delete p_uc;
                                 return SA_AIS_OK;
                         }
-                        iter++;
                 }
         }
         TRACE_LEAVE();
@@ -970,7 +966,6 @@ bool
 SmfCampaign::smfRestartIndicatorExists()
 {
 	TRACE_ENTER();
-	SaAisErrorT rc = SA_AIS_OK;
 	bool returnValue = false;
 	SaImmAttrValuesT_2 **attributes;
 	std::string objDn    = std::string(SMF_CAMP_RESTART_INDICATOR_RDN) + "," + std::string(SMF_SAF_APP_DN);
@@ -981,7 +976,7 @@ SmfCampaign::smfRestartIndicatorExists()
 
 	//Check if the object exist
 	unsigned int retries = 1;
-	rc = immUtil.getObjectAisRC(objDn, &attributes);
+	SaAisErrorT rc = immUtil.getObjectAisRC(objDn, &attributes);
 
 	while (rc != SA_AIS_OK && rc != SA_AIS_ERR_NOT_EXIST && retries < 30) {
 		sleep(1);
@@ -1040,14 +1035,11 @@ SmfCampaignList::~SmfCampaignList()
 SmfCampaign *
 SmfCampaignList::get(const SaNameT * dn)
 {
-	std::list < SmfCampaign * >::iterator it = m_campaignList.begin();
-
-	while (it != m_campaignList.end()) {
-		SmfCampaign *campaign = *it;
+	for (auto& elem : m_campaignList) {
+		SmfCampaign *campaign = elem;
 		if (strcmp(campaign->getDn().c_str(), osaf_extended_name_borrow(dn)) == 0) {
 			return campaign;
 		}
-		it++;
 	}
 
 	return NULL;
@@ -1079,7 +1071,7 @@ SmfCampaignList::del(const SaNameT * dn)
 			m_campaignList.erase(it);
 			return SA_AIS_OK;
 		}
-		it++;
+		++it;
 	}
 
 	return SA_AIS_ERR_NOT_EXIST;
@@ -1092,12 +1084,9 @@ void
 SmfCampaignList::cleanup(void)
 {
 	TRACE_ENTER();
-	std::list < SmfCampaign * >::iterator it = m_campaignList.begin();
-
-	while (it != m_campaignList.end()) {
-		SmfCampaign *campaign = *it;
+	for (auto& elem : m_campaignList) {
+		SmfCampaign *campaign = elem;
 		delete campaign;
-		it++;
 	}
 
        	m_campaignList.clear();

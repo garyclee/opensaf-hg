@@ -227,7 +227,7 @@ SmfCliCommandAction::rollback(const std::string& i_rollbackDn)
 	}
 
         /* Execute the undo command on nodes in reverse order */
-	for (it = m_plmExecEnvList.rbegin(); it != m_plmExecEnvList.rend(); it++) {
+	for (it = m_plmExecEnvList.rbegin(); it != m_plmExecEnvList.rend(); ++it) {
 		const std::string& n = it->getPrefered();
                 SmfndNodeDest nodeDest;
 		if (!getNodeDestination(n, &nodeDest, NULL, -1)) {
@@ -286,34 +286,28 @@ SmfAdminOperationAction::createAdmOperParams(std::list < SmfAdminOperationParame
 	SaImmAdminOperationParamsT_2 **params = new(std::nothrow) SaImmAdminOperationParamsT_2 *[i_parameters.size() + 1];
 	osafassert(params != 0);
 
-	std::list < SmfAdminOperationParameter >::iterator iter;
-	std::list < SmfAdminOperationParameter >::iterator iterE;
-	iter  = i_parameters.begin();
-	iterE = i_parameters.end();
 
 	int i = 0;		//Index to a SaImmAdminOperationParamsT_2 pointer in the params array
 
 	//For all parameters
-	while (iter != iterE) {
+	for (auto& elem : i_parameters) {
 		//Create structure for one parameter
 		SaImmAdminOperationParamsT_2 *par = new(std::nothrow)  SaImmAdminOperationParamsT_2();
 		osafassert(par != 0);
 
-		par->paramName   = (SaStringT)(*iter).m_name.c_str();
+		par->paramName   = (SaStringT)(elem).m_name.c_str();
 
-		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), par->paramType) == false) {
-			LOG_ER("Fails to convert string to IMM type for parameter [%s]", (*iter).m_name.c_str());
+		if (smf_stringToImmType((char *)(elem).m_type.c_str(), par->paramType) == false) {
+			LOG_ER("Fails to convert string to IMM type for parameter [%s]", (elem).m_name.c_str());
 			delete par;
 			delete [] params;
 			return false;
 		}
 
-                smf_stringToValue(par->paramType, &par->paramBuffer, (*iter).m_value.c_str());
+                smf_stringToValue(par->paramType, &par->paramBuffer, (elem).m_value.c_str());
 
 		//Add the pointer to the SaImmAdminOperationParamsT_2 structure to the parameter list
 		params[i++] = par;
-
-		iter++;
 	}
 
 	params[i] = NULL;	//Null terminate the list of parameter pointers
@@ -398,13 +392,9 @@ SmfAdminOperationAction::execute(SaImmOiHandleT i_oiHandle, const std::string* i
 
 	TRACE("execute admin op, do objectDN = %s, operationID = %d",m_doDn.c_str(), m_doOpId);
 
-	std::list < SmfAdminOperationParameter >::iterator iter = m_doParameters.begin();
-	std::list < SmfAdminOperationParameter >::iterator iterE = m_doParameters.end();
-
-	while (iter != iterE) {
+	for (auto& elem : m_doParameters) {
 		TRACE("parameter name = %s, type = %s, value = '%s'",
-                      (*iter).m_name.c_str(),(*iter).m_type.c_str(),(*iter).m_value.c_str());
-                iter++;
+                      (elem).m_name.c_str(),(elem).m_type.c_str(),(elem).m_value.c_str());
 	}
 
         SaImmAdminOperationParamsT_2 **params = 0;
@@ -445,14 +435,9 @@ SmfAdminOperationAction::rollback(const std::string& i_rollbackDn)
 	TRACE_ENTER();
 
 	TRACE("rollback admin op, undo objectDN = %s, operationID = %d",m_undoDn.c_str(), m_undoOpId);
-
-	std::list < SmfAdminOperationParameter >::iterator iter = m_undoParameters.begin();
-	std::list < SmfAdminOperationParameter >::iterator iterE = m_undoParameters.end();
-
-	while (iter != iterE) {
+	for (auto& elem : m_undoParameters) {
 		TRACE("parameter name = %s, type = %s, value = '%s'",
-                      (*iter).m_name.c_str(),(*iter).m_type.c_str(),(*iter).m_value.c_str());
-                iter++;
+                      (elem).m_name.c_str(),(elem).m_type.c_str(),(elem).m_value.c_str());
 	}
 
         SaImmAdminOperationParamsT_2 **params = 0;

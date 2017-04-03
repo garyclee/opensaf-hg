@@ -266,9 +266,8 @@ bool SmfExecControlObjHandler::readExecControlObject
     return true;
   }
 
-  const char* p_node_name;
   for (unsigned int i = 0; i < number_of_nodes; i++) {
-    p_node_name =immutil_getStringAttr(
+    const char *p_node_name =immutil_getStringAttr(
         (const SaImmAttrValuesT_2**) m_attributes,
         "nodesForSingleStep", i);
     if (p_node_name == NULL) {
