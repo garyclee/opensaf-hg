@@ -106,7 +106,6 @@ int smfnd_exec_asynch_cmd(char* i_cmd,
                           uint32_t i_timeout)
 {
 	NCS_OS_PROC_EXECUTE_TIMED_INFO cmd_info;
-        uint32_t rc = NCSCC_RC_SUCCESS;
         char* argv[4];
         int argc = 3;
 
@@ -126,7 +125,7 @@ int smfnd_exec_asynch_cmd(char* i_cmd,
         cmd_info.i_set_env_args = NULL;
 
 	/* start executing the command */
-	rc = ncs_os_process_execute_timed(&cmd_info);
+	uint32_t rc = ncs_os_process_execute_timed(&cmd_info);
 
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("Command start failed for %s", i_cmd);
@@ -211,7 +210,6 @@ static void proc_cmd_req_asynch(smfnd_cb_t * cb, SMFSV_EVT * evt)
 		cmd_result = SMFSV_CMD_EXEC_FAILED + 3; /* Send error response so smfd don't hang waiting */
 	}
         else {
-                int exec_result = -1;
                 SMFSV_EVT* response_info = malloc(sizeof (SMFSV_EVT));
 
                 TRACE("Executing asynch command: %s, timeout %u", 
@@ -223,7 +221,7 @@ static void proc_cmd_req_asynch(smfnd_cb_t * cb, SMFSV_EVT * evt)
                 response_info->fr_svc = evt->fr_svc;
                 response_info->fr_dest = evt->fr_dest;
 
-                exec_result = smfnd_exec_asynch_cmd(evt->info.smfnd.event.cmd_req_asynch.cmd, 
+                int exec_result = smfnd_exec_asynch_cmd(evt->info.smfnd.event.cmd_req_asynch.cmd, 
                                                     smfnd_cmd_asynch_resp, 
                                                     (void*)response_info, 
                                                     evt->info.smfnd.event.cmd_req_asynch.timeout);

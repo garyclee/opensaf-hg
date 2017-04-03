@@ -209,7 +209,6 @@ SaAisErrorT saSmfCallbackScopeRegister( SaSmfHandleT smfHandle,
 	SMFA_CLIENT_INFO *client_info;
 	SMFA_SCOPE_INFO *scope_info;
 	uint32_t no_of_filters = 0;
-	uint32_t size_of_label = 0;
 
 	TRACE_ENTER2("SMFA:Handle %llu, scopeId: %u",smfHandle,scopeId);
 	if (NULL == scopeOfInterest){
@@ -286,7 +285,7 @@ SaAisErrorT saSmfCallbackScopeRegister( SaSmfHandleT smfHandle,
 		scope_info->scope_of_interest.filters[no_of_filters].filterType = 
 		scopeOfInterest->filters[no_of_filters].filterType;
 		
-		size_of_label = scopeOfInterest->filters[no_of_filters].filter.labelSize;
+		uint32_t size_of_label = scopeOfInterest->filters[no_of_filters].filter.labelSize;
 
 		scope_info->scope_of_interest.filters[no_of_filters].filter.label = 
 		(SaUint8T *)calloc(1,size_of_label);

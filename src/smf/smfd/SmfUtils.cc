@@ -296,9 +296,7 @@ SmfImmUtils::getClassDescription(const std::string & i_className, SaImmAttrDefin
 bool 
 SmfImmUtils::classDescriptionMemoryFree(SaImmAttrDefinitionT_2 ** i_attributeDefs)
 {
-	SaAisErrorT rc = SA_AIS_OK;
-        rc = immutil_saImmOmClassDescriptionMemoryFree_2(m_omHandle, i_attributeDefs);
-
+	SaAisErrorT rc = immutil_saImmOmClassDescriptionMemoryFree_2(m_omHandle, i_attributeDefs);
 	if (rc != SA_AIS_OK) {
 		LOG_NO("saImmOmClassDescriptionMemoryFree_2 failed, rc=%s", saf_error(rc));
 		return false;
@@ -659,8 +657,9 @@ SmfImmUtils::doImmOperations(std::list < SmfImmOperation * >&i_immOperationList,
                         if (createOperation != NULL) {
                 		//The base type or versioned type may already exist, this shall not be considered an error
 				std::string className = createOperation->getClassName();
+				std::size_t found = className.find("SaAmf");
 				if((result == SA_AIS_ERR_EXIST) && 
-				   (className.find("SaAmf") == 0) &&                                       //Begins with "SaAmf"
+				   (found == 0) &&                                       //Begins with "SaAmf"
 				   (className.rfind("Type") + sizeof("Type") - 1 == className.size())) {   //Ends with "Type"
                 			TRACE("Base/versioned type (%s) already exists, continue",createOperation->getClassName().c_str());
                                         /* We should not rollback this non creation */
@@ -865,10 +864,8 @@ smf_stringsToValues(SaImmAttrValuesT_2 * i_attribute, std::list < std::string >&
 	//The value variable is increased at the end of the loop for each new value in a multivalue attribute
 	SaImmAttrValueT *value = i_attribute->attrValues;
 
-	std::list < std::string >::iterator iter;
-
-	for (iter = i_values.begin(); iter != i_values.end(); iter++) {
-                if (!smf_stringToValue(i_attribute->attrValueType, value,  (*iter).c_str())) {
+	for (auto& elem : i_values) {
+                if (!smf_stringToValue(i_attribute->attrValueType, value,  (elem).c_str())) {
                         LOG_NO("SmfUtils:smf_stringsToValues: Fails to convert a string to value");
                         return false;
                 }
@@ -1026,7 +1023,7 @@ std::string smf_valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
             exit(1);
     }
 
-    return ost.str().c_str();
+    return ost.str();
 }
 
 // ------------------------------------------------------------------------------

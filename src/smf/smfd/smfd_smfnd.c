@@ -69,10 +69,8 @@ static uint32_t smfnd_remote_cmd(const char *i_cmd, MDS_DEST i_smfnd_dest, uint3
  */
 bool smfnd_for_name(const char *i_nodeName, SmfndNodeDest* o_nodeDest)
 {
-	SmfndNodeT *smfnd = NULL;
-
         pthread_mutex_lock(&smfnd_list_lock);
-        smfnd = firstSmfnd;     
+        SmfndNodeT *smfnd = firstSmfnd;     
 	while (smfnd != NULL) {
 		if ((strcmp(osaf_extended_name_borrow(&smfnd->clmInfo.nodeName),i_nodeName) == 0) &&
                     (smfnd->nd_state == ndUp)) {
@@ -116,14 +114,13 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
 {
 	SaAisErrorT rc;
 	SaClmHandleT clmHandle;
-	SmfndNodeT *smfnd = NULL;
         bool newNode = false;
 
 	TRACE("SMFND UP for node id %x, version %u", i_node_id, i_rem_svc_pvt_ver);
 
 	/* Check if the node id does already exists */
         pthread_mutex_lock(&smfnd_list_lock);
-	smfnd = get_smfnd(i_node_id);
+	SmfndNodeT *smfnd = get_smfnd(i_node_id);
 
 	if (smfnd == NULL) {
                 TRACE("New node Id, create new SmfndNodeT structure");
@@ -202,13 +199,9 @@ uint32_t smfnd_up(SaClmNodeIdT i_node_id, MDS_DEST i_smfnd_dest, MDS_SVC_PVT_SUB
  */
 uint32_t smfnd_down(SaClmNodeIdT i_node_id)
 {
-	SmfndNodeT *smfnd = NULL;
-
 	TRACE("SMFND DOWN for node id %x", i_node_id);
-
         pthread_mutex_lock(&smfnd_list_lock);
-        smfnd = firstSmfnd;
-
+        SmfndNodeT *smfnd = firstSmfnd;
         /* Update the node info */
 	while (smfnd != NULL) {
   		if (smfnd->clmInfo.nodeId == i_node_id) {

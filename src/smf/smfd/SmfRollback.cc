@@ -61,7 +61,6 @@ smfCreateRollbackElement(const std::string & i_dn, SaImmOiHandleT i_oiHandle)
 {
 	TRACE("Create rollback element '%s'", i_dn.c_str());
 
-        SaAisErrorT result = SA_AIS_OK;
 	SmfImmRTCreateOperation icoRollbackCcb;
 
         std::string parentDn = i_dn.substr(i_dn.find(',') + 1, std::string::npos);
@@ -79,8 +78,7 @@ smfCreateRollbackElement(const std::string & i_dn, SaImmOiHandleT i_oiHandle)
         rdn.addValue(rdnStr);
         icoRollbackCcb.addValue(rdn);
 
-        result = icoRollbackCcb.execute(); // Create the object
-        return result;
+        return icoRollbackCcb.execute(); // Create the object
 }
 
 //================================================================================
@@ -195,10 +193,8 @@ SmfRollbackData::execute(SaImmOiHandleT i_oiHandle)
                 attrValueAttr.addValue("");
         }
         else {
-                std::list < std::string >::iterator iter;
-
-                for (iter = m_attrValues.begin(); iter != m_attrValues.end(); iter++) {
-                        attrValueAttr.addValue((*iter));
+		for (auto& elem : m_attrValues) {
+                        attrValueAttr.addValue((elem));
                 }
         }
 
@@ -268,7 +264,6 @@ SmfRollbackData::rollbackCreateOperation(const SaImmAttrValuesT_2 ** i_attribute
 {
         const SaNameT *dnAttr;
         const char *classAttr;
-        const char *attrValueString;
         SaAisErrorT result;
         SaUint32T   noOfAttrValues;
 
@@ -314,7 +309,7 @@ SmfRollbackData::rollbackCreateOperation(const SaImmAttrValuesT_2 ** i_attribute
         immOp->setClassName(classAttr);
 
         for (unsigned int index = 0; index < noOfAttrValues; index ++) {
-                attrValueString = immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
+                const char *attrValueString = immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
                 if (attrValueString == NULL) {
                         LOG_ER("Could not get smfRollbackAttrValue index %u, no of values %u", index, noOfAttrValues);
                         delete immOp;
@@ -381,7 +376,6 @@ SmfRollbackData::rollbackModifyOperation(const SaImmAttrValuesT_2 ** i_attribute
                                          std::list < SmfImmOperation * >& io_operationList)
 {
         const SaNameT *dnAttr;
-        const char *attrValueString;
         SaAisErrorT result;
         SaUint32T   noOfAttrValues;
 
@@ -421,7 +415,7 @@ SmfRollbackData::rollbackModifyOperation(const SaImmAttrValuesT_2 ** i_attribute
         immOp->setOp("SA_IMM_ATTR_VALUES_REPLACE");
 
         for (unsigned int index = 0; index < noOfAttrValues; index ++) {
-                attrValueString = immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
+                const char *attrValueString = immutil_getStringAttr(i_attributes, "smfRollbackAttrValue", index);
                 if (attrValueString == NULL) {
                         LOG_ER("Could not get smfRollbackAttrValue index %u, no of values %u", index, noOfAttrValues);
                         delete immOp;
@@ -465,13 +459,8 @@ SmfRollbackCcb::SmfRollbackCcb(const std::string& i_dn, SaImmOiHandleT i_oiHandl
 // ------------------------------------------------------------------------------
 SmfRollbackCcb::~SmfRollbackCcb()
 {
-	std::list < SmfRollbackData * >::iterator iter;
-
-	for (iter = m_rollbackData.begin();
-              iter != m_rollbackData.end();
-              iter++) {
-                delete((*iter));
-	}
+	for (const auto& elem : m_rollbackData) 
+		delete(elem);
 }
 
 //------------------------------------------------------------------------------
@@ -485,10 +474,8 @@ SmfRollbackCcb::execute()
            1) For each rollback data : call execute 
         */
 
-        std::list < SmfRollbackData * >::iterator dataIter;
-
-	for (dataIter = m_rollbackData.begin(); dataIter != m_rollbackData.end(); dataIter++) {
-                if ((result = (*dataIter)->execute(m_oiHandle)) != SA_AIS_OK) {
+	for (auto& dataElem  : m_rollbackData) {
+                if ((result = (*dataElem).execute(m_oiHandle)) != SA_AIS_OK) {
                         LOG_ER("SmfRollbackCcb::execute, fail to execute rollback data, rc=%s", saf_error(result));
                         break;
                 }
@@ -532,7 +519,7 @@ SmfRollbackCcb::rollback()
         std::list < std::string >::reverse_iterator iter;
 
         /* Loop through the rollback data list in reverse order */
-        for (iter = rollbackData.rbegin(); iter != rollbackData.rend(); iter++) {
+        for (iter = rollbackData.rbegin(); iter != rollbackData.rend(); ++iter) {
                 SmfRollbackData rollbackData(this);
                 if ((result = rollbackData.rollback((*iter), operationList)) != SA_AIS_OK) {
                         LOG_ER("SmfRollbackCcb::rollback, rollback of %s failed, rc=%s", (*iter).c_str(), saf_error(result));
@@ -551,10 +538,8 @@ SmfRollbackCcb::rollback()
         }
 
         /* Remove all operations */
-        std::list < SmfImmOperation* >::iterator opIter;
-
-        for (opIter = operationList.begin(); opIter != operationList.end(); opIter++) {
-                delete (*opIter);
+	for (auto& opElem : operationList) {
+                delete (opElem);
         }
 
 	return result;

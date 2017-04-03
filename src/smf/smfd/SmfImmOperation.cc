@@ -274,12 +274,10 @@ SmfImmCreateOperation::addAttrValue(const std::string & i_name,
         /* Check if attribute already exists (MULTI_VALUE) then add the 
            value to this attribute */
 
-	std::list < SmfImmAttribute >::iterator iter;
-
 	// For all attributes 
-	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
-                if ((*iter).m_name == i_name) {
-                        (*iter).addValue(i_value);
+	for (auto& elem : m_values) {
+                if ((elem).m_name == i_name) {
+                        (elem).addValue(i_value);
                         return;
                 }
 	}
@@ -355,7 +353,7 @@ SmfImmCreateOperation::createAttrValues(void)
 		//Add the pointer to the SaImmAttrValuesT_2 structure to the attributes list
 		attributeValues[i++] = attr;
 
-		iter++;
+		++iter;
 	}
 
 	attributeValues[i] = NULL;	//Null terminate the list of attribute pointers
@@ -420,13 +418,11 @@ SmfImmCreateOperation::execute(SmfRollbackData* o_rollbackData)
 	}
 	TRACE("ObjectCreate; parent=[%s], class=[%s]", m_parentDn.c_str(),m_className.c_str());
 #if 1
-	std::list<SmfImmAttribute>::iterator i;
-	for (i = m_values.begin(); i != m_values.end(); i++) {
-		TRACE("    %s %s:", i->m_type.c_str(), i->m_name.c_str());
-		if (i->m_values.size() > 0) {
-			std::list<std::string>::iterator s;
-			for (s = i->m_values.begin(); s != i->m_values.end(); s++) {
-				TRACE("       %s", s->c_str());
+	for (auto& i : m_values) {
+		TRACE("    %s %s:", i.m_type.c_str(), i.m_name.c_str());
+		if (i.m_values.size() > 0) {
+			for (const auto& s : i.m_values) {
+				TRACE("       %s", s.c_str());
 			}
 		}
 	}
@@ -574,17 +570,15 @@ SmfImmCreateOperation::prepareRollback(SmfRollbackData* o_rollbackData)
         }
 
         // Find the value of the RDN
-	std::list < SmfImmAttribute >::iterator iter;
         std::string rdnAttrValue;
-
-	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
-		if (rdnAttrName == (*iter).m_name) {
-			if ((*iter).m_values.size() != 1){
+	for (auto& elem : m_values) {
+		if (rdnAttrName == (elem).m_name) {
+			if ((elem).m_values.size() != 1){
 				LOG_NO("SmfImmCreateOperation::prepareRollback, attribute %s contain %zu values, must contain exactly one value",
-				       rdnAttrName.c_str(), (*iter).m_values.size());
+				       rdnAttrName.c_str(), (elem).m_values.size());
 				return SA_AIS_ERR_FAILED_OPERATION;
 			}
-                        rdnAttrValue = (*iter).m_values.front();
+                        rdnAttrValue = (elem).m_values.front();
                         break;
                 }
 	}
@@ -990,7 +984,7 @@ SmfImmModifyOperation::createAttrMods(void)
                 //Add the pointer to the SaImmAttrModificationT_2 structure to the modifications list
                 attributeModifications[i++] = mod;
 
-		iter++;
+		++iter;
 	}
 
 	attributeModifications[i] = NULL;	//Null terminate the list of modification pointers
@@ -1019,13 +1013,10 @@ SmfImmModifyOperation::addAttrValue(const std::string & i_name,
 {
         /* Check if attribute already exists (MULTI_VALUE) then add the 
            value to this attribute */
-
-	std::list < SmfImmAttribute >::iterator iter;
-
 	// For all attributes 
-	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
-                if ((*iter).m_name == i_name) {
-                        (*iter).addValue(i_value);
+	for (auto& elem : m_values) {
+                if ((elem).m_name == i_name) {
+                        (elem).addValue(i_value);
                         return;
                 }
 	}
@@ -1107,8 +1098,7 @@ SmfImmModifyOperation::execute(SmfRollbackData* o_rollbackData)
 		result = saImmOmCcbGetErrorStrings(m_ccbHandle, &errStrings);
 		if (errStrings){
 			TRACE("Received error string is %s", errStrings[0]);
-			char * type = NULL;
-			type = strstr(errStrings[0], "IMM: Resource abort: ");
+			char *type = strstr(errStrings[0], "IMM: Resource abort: ");
 			if(type != NULL) {
 				TRACE("SA_AIS_ERR_FAILED_OPERATION is modified to SA_AIS_ERR_TRY_AGAIN because of "
 						"ccb resourse abort in saImmOmCcbObjectModify" );
@@ -1185,8 +1175,6 @@ SmfImmModifyOperation::prepareRollback(SmfRollbackData* o_rollbackData)
 {
         SmfImmUtils               immUtil;
         SaImmAttrValuesT_2 **     attributes;
-        SaImmAttrValuesT_2 *      attr;
-        int                       i;
 
         if (immUtil.getObject(m_dn, &attributes) == false) {
                 LOG_NO("Could not find object %s", m_dn.c_str());
@@ -1196,15 +1184,14 @@ SmfImmModifyOperation::prepareRollback(SmfRollbackData* o_rollbackData)
         o_rollbackData->setType("MODIFY");
         o_rollbackData->setDn(m_dn);
 
-	std::list < SmfImmAttribute >::iterator iter;
-
        /* For each modified attribute in the object 
           store the current value in rollback data for future use at rollback */
 
-	for (iter = m_values.begin(); iter != m_values.end(); iter++) {
-                i = 0;
+	for (auto& elem : m_values) {
+                int i = 0;
+		SaImmAttrValuesT_2 *      attr;
                 while ((attr = attributes[i++]) != NULL) {
-                        if (!strcmp((*iter).m_name.c_str(), attr->attrName)) {        
+                        if (!strcmp((elem).m_name.c_str(), attr->attrName)) {        
                                 if (attr->attrValuesNumber == 0) {
                                         o_rollbackData->addAttrValue(attr->attrName, 
                                                                      smf_immTypeToString(attr->attrValueType), 
@@ -1292,23 +1279,16 @@ SmfImmRTCreateOperation::createAttrValues(void)
 	//Create space for attributes
 	SaImmAttrValuesT_2 **attributeValues = (SaImmAttrValuesT_2 **) new(std::nothrow) SaImmAttrValuesT_2 *[m_values.size() + 1];
 	osafassert(attributeValues != 0);
-
-	std::list < SmfImmAttribute >::iterator iter;
-	std::list < SmfImmAttribute >::iterator iterE;
-
 	int i = 0;		//Index to a SaImmAttrValuesT pointer in the attributeValues array
 
-	iter = m_values.begin();
-	iterE = m_values.end();
-
 	//For all attribures to create
-	while (iter != iterE) {
+	for (auto& elem : m_values) {
 		//Create structure for one attribute
 		SaImmAttrValuesT_2 *attr = new(std::nothrow) SaImmAttrValuesT_2();
 		osafassert(attr != 0);
 
-		attr->attrName = (char *)(*iter).m_name.c_str();
-		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), attr->attrValueType) == false) {
+		attr->attrName = (char *)(elem).m_name.c_str();
+		if (smf_stringToImmType((char *)(elem).m_type.c_str(), attr->attrValueType) == false) {
 			LOG_NO("SmfImmRTCreateOperation::createAttrValues, fail to convert attr [%s] type to valid IMM type", attr->attrName);
 			delete attr;
 			for (int k = 0; i > k; k++) {
@@ -1321,9 +1301,9 @@ SmfImmRTCreateOperation::createAttrValues(void)
 
 		TRACE("c=[%s], p=[%s], attr=[%s]", m_className.c_str(), m_parentDn.c_str(), attr->attrName);
 
-		attr->attrValuesNumber = (*iter).m_values.size();
+		attr->attrValuesNumber = (elem).m_values.size();
 
-		if (smf_stringsToValues(attr, (*iter).m_values) == false) {	//Convert the string to a SA Forum type
+		if (smf_stringsToValues(attr, (elem).m_values) == false) {	//Convert the string to a SA Forum type
 			LOG_NO("SmfImmRTCreateOperation::createAttrValues, fail to convert attr [%s] value string to attr value", attr->attrName);
 			free(attr->attrValues);
 			delete attr;
@@ -1336,7 +1316,6 @@ SmfImmRTCreateOperation::createAttrValues(void)
 		}
 		//Add the pointer to the SaImmAttrValuesT_2 structure to the attributes list
 		attributeValues[i++] = attr;
-		iter++;
 	}
 
 	attributeValues[i] = NULL;	//Null terminate the list of attribute pointers
@@ -1483,55 +1462,51 @@ SmfImmRTUpdateOperation::createAttrMods(void)
 
 	SaImmAttrModificationT_2 **attributeModifications =
 	    (SaImmAttrModificationT_2 **) new SaImmAttrModificationT_2 *[m_values.size() + 1];
-
 	int i = 0;		//Index to a SaImmAttrModificationT_2 pointer in the attributeModificationss array
 
-	std::list < SmfImmAttribute >::iterator iter;
-	std::list < SmfImmAttribute >::iterator iterE;
-
-	iter = m_values.begin();
-	iterE = m_values.end();
-	while (iter != iterE) {
+	for (auto& elem : m_values) {
 		SaImmAttrModificationT_2 *mod = new(std::nothrow) SaImmAttrModificationT_2();
 		osafassert(mod != 0);
 		mod->modType = smf_stringToImmAttrModType((char *)m_op.c_str());	//Convert an store the modification type from string to SA Forum type
 		if (mod->modType == 0) {
 			delete [] attributeModifications;
 			delete mod;
-			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail convert string to IMM attr mod type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail convert string to IMM attr mod type [%s:%s]",
+					m_dn.c_str(), (elem).m_name.c_str());
 			TRACE_LEAVE();
 			return false;
 		}
-		mod->modAttr.attrName = (char *)(*iter).m_name.c_str();
-		if (smf_stringToImmType((char *)(*iter).m_type.c_str(), mod->modAttr.attrValueType) == false) {
+		mod->modAttr.attrName = (char *)(elem).m_name.c_str();
+		if (smf_stringToImmType((char *)(elem).m_type.c_str(), mod->modAttr.attrValueType) == false) {
 			delete [] attributeModifications;
 			delete mod;
-			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail to convert string to IMM attr type [%s:%s]",  m_dn.c_str(), (*iter).m_name.c_str());
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail to convert string to IMM attr type [%s:%s]",
+					m_dn.c_str(), (elem).m_name.c_str());
 			TRACE_LEAVE();
 			return false;
 		}
-		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
+		TRACE("Modifying %s:%s = %s", m_dn.c_str(), (elem).m_name.c_str(), (elem).m_values.front().c_str());
 
-		if ((*iter).m_values.size() <= 0) { //Must have at least one value
-			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, No values %s:%s (size=%zu)", m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.size());
+		if ((elem).m_values.size() <= 0) { //Must have at least one value
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, No values %s:%s (size=%zu)",
+					m_dn.c_str(), (elem).m_name.c_str(), (elem).m_values.size());
 			delete [] attributeModifications;
 			delete mod;
 			TRACE_LEAVE();
 			return false;
 		}
-		mod->modAttr.attrValuesNumber = (*iter).m_values.size();
+		mod->modAttr.attrValuesNumber = (elem).m_values.size();
 
-		if (smf_stringsToValues(&mod->modAttr, (*iter).m_values) == false) { //Convert the string to a SA Forum type
+		if (smf_stringsToValues(&mod->modAttr, (elem).m_values) == false) { //Convert the string to a SA Forum type
 			delete [] attributeModifications;
 			delete mod;
-			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail to conv string to value [%s:%s = %s]",  m_dn.c_str(), (*iter).m_name.c_str(), (*iter).m_values.front().c_str());
+			LOG_NO("SmfImmRTUpdateOperation::createAttrMods, fail to conv string to value [%s:%s = %s]",
+					m_dn.c_str(), (elem).m_name.c_str(), (elem).m_values.front().c_str());
 			TRACE_LEAVE();
 			return false;
 		}
 		//Add the pointer to the SaImmAttrModificationT_2 structure to the modifications list
 		attributeModifications[i++] = mod;
-
-		iter++;
 	}
 
 	attributeModifications[i] = NULL;	//Null terminate the list of modification pointers

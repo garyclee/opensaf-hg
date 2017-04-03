@@ -28,6 +28,7 @@
 #include "base/ncssysf_ipc.h"
 #include "base/ncssysf_tsk.h"
 #include "base/logtrace.h"
+#include "base/osaf_time.c"
 #include "rde/agent/rda_papi.h"
 #include "base/osaf_extended_name.h"
 
@@ -265,7 +266,7 @@ int SmfCampaignThread::init(void)
 	}
 
 	/* Attach mailbox to this thread */
-	if ((rc = m_NCS_IPC_ATTACH(&m_mbx) != NCSCC_RC_SUCCESS)) {
+	if (((rc = m_NCS_IPC_ATTACH(&m_mbx)) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
 		return -1;
@@ -280,7 +281,7 @@ int SmfCampaignThread::init(void)
 	}
 
 	/* Attach mailbox to this thread */
-	if ((rc = m_NCS_IPC_ATTACH(&m_cbkMbx) != NCSCC_RC_SUCCESS)) {
+	if (((rc = m_NCS_IPC_ATTACH(&m_cbkMbx)) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
 		m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
@@ -321,7 +322,7 @@ int SmfCampaignThread::initNtf(void)
 		if (rc != SA_AIS_ERR_TRY_AGAIN) {
 			break;
 		}
-		usleep(200000);
+		osaf_nanosleep(&kHundredMilliseconds);
 		numOfTries--;
 	}
 
@@ -621,11 +622,9 @@ SmfCampaignThread::createImmHandle(SmfCampaign *i_campaign)
 SaAisErrorT 
 SmfCampaignThread::deleteImmHandle()
 {
-	SaAisErrorT rc = SA_AIS_OK;
-
 	TRACE_ENTER();
 
-	rc = immutil_saImmOiImplementerClear(m_campOiHandle);
+	SaAisErrorT rc = immutil_saImmOiImplementerClear(m_campOiHandle);
 	while (rc == SA_AIS_ERR_TRY_AGAIN) {
 		sleep(1);
 		rc = immutil_saImmOiImplementerClear(m_campOiHandle);	

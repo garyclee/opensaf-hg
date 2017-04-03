@@ -66,54 +66,26 @@ SmfCampaignInit::SmfCampaignInit():
 // ------------------------------------------------------------------------------
 SmfCampaignInit::~SmfCampaignInit()
 {
-	std::list < SmfImmOperation * >::iterator addIter;
-	std::list < SmfImmOperation * >::iterator addIterE;
-
-	addIter = SmfCampaignInit::m_addToImm.begin();
-	addIterE = SmfCampaignInit::m_addToImm.end();
-
-	while (addIter != addIterE) {
-		delete((*addIter));
-		addIter++;
+	for (auto& addIElem : m_addToImm) {
+		delete((addIElem));
 	}
 
-	std::list < SmfUpgradeAction * >::iterator campInitIter;
-	std::list < SmfUpgradeAction * >::iterator campInitIterE;
-
-	campInitIter  = SmfCampaignInit::m_campInitAction.begin();
-	campInitIterE = SmfCampaignInit::m_campInitAction.end();
-
-	while (campInitIter != campInitIterE) {
-		delete((*campInitIter));
-		campInitIter++;
+	for (auto& campInitElem : m_campInitAction) {
+		delete((campInitElem));
 	}
 
-	std::list <SmfCallback *>::iterator cbkIter;
-	std::list <SmfCallback *>::iterator cbkIterE;
-
-	cbkIter = SmfCampaignInit::m_callbackAtInit.begin();
-	cbkIterE = SmfCampaignInit::m_callbackAtInit.end();
-
-	while (cbkIter != cbkIterE) {
-		delete((*cbkIter));
-		cbkIter++;
+	for (auto& cbkElem : m_callbackAtInit) {
+		delete((cbkElem));
 	}
 
-	cbkIter = SmfCampaignInit::m_callbackAtBackup.begin();
-	cbkIterE = SmfCampaignInit::m_callbackAtBackup.end();
-
-	while (cbkIter != cbkIterE) {
-		delete((*cbkIter));
-		cbkIter++;
+	for (auto& cbkElem : m_callbackAtBackup) {
+		delete((cbkElem));
 	}
 
-	cbkIter = SmfCampaignInit::m_callbackAtRollback.begin();
-	cbkIterE = SmfCampaignInit::m_callbackAtRollback.end();
 
-	while (cbkIter != cbkIterE) {
-		delete((*cbkIter));
-		cbkIter++;
-	}
+	for (auto& cbkElem : m_callbackAtRollback) {
+		delete((cbkElem));
+        }
 }
 
 //------------------------------------------------------------------------------
@@ -225,17 +197,14 @@ SmfCampaignInit::execute()
                 return false;
         }
 
-	std::list < SmfUpgradeAction * >::iterator upActiter;
-	upActiter = m_campInitAction.begin();
-	while (upActiter != m_campInitAction.end()) {
-		SaAisErrorT rc = (*upActiter)->execute(SmfCampaignThread::instance()->getImmHandle(),
+	for (auto& upActElem : m_campInitAction) {
+		SaAisErrorT rc = (*upActElem).execute(SmfCampaignThread::instance()->getImmHandle(),
 				&initRollbackDn);
 		if (rc != SA_AIS_OK) {
-			LOG_ER("SmfCampaignInit init action %d failed, rc=%s", (*upActiter)->getId(), saf_error(rc));
+			LOG_ER("SmfCampaignInit init action %d failed, rc=%s", (*upActElem).getId(), saf_error(rc));
 			TRACE_LEAVE();
 			return false;
 		}
-		upActiter++;
 	}
 
 	LOG_NO("CAMP: Campaign init completed");
@@ -252,15 +221,12 @@ SaAisErrorT
 SmfCampaignInit::executeCallbackAtInit()
 {
 	std::string dn; //Dummy DN, needs only to be set for callback in a step.
-	std::list < SmfCallback * >:: iterator cbkiter;
-	cbkiter = m_callbackAtInit.begin();
-	while (cbkiter != m_callbackAtInit.end()) {
-		SaAisErrorT rc = (*cbkiter)->execute(dn);
+	for (auto& cbkElem : m_callbackAtInit) {
+		SaAisErrorT rc = (*cbkElem).execute(dn);
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_NO("SmfCampaignInit callback at init %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
+			LOG_NO("SmfCampaignInit callback at init %s failed, rc=%s", (*cbkElem).getCallbackLabel().c_str(), saf_error(rc));
 			return rc;
 		}
-		cbkiter++;
 	}
 
 	return SA_AIS_OK;
@@ -272,16 +238,14 @@ SmfCampaignInit::executeCallbackAtInit()
 SaAisErrorT
 SmfCampaignInit::executeCallbackAtBackup()
 {
-	std::list < SmfCallback * >:: iterator cbkiter;
 	std::string dn;
-	cbkiter = m_callbackAtBackup.begin();
-	while (cbkiter != m_callbackAtBackup.end()) {
-		SaAisErrorT rc = (*cbkiter)->execute(dn);
+
+	for (auto& cbkElem : m_callbackAtBackup) {
+		SaAisErrorT rc = (*cbkElem).execute(dn);
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_ER("SmfCampaignInit callbackAtBackup %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
+			LOG_ER("SmfCampaignInit callbackAtBackup %s failed, rc=%s", (*cbkElem).getCallbackLabel().c_str(), saf_error(rc));
 			return rc;
 		}
-		cbkiter++;
 	}
 	return SA_AIS_OK;
 }
@@ -302,7 +266,7 @@ SmfCampaignInit::rollback()
 	std::list < SmfUpgradeAction * >::reverse_iterator upActiter;
 
         /* For each action (in reverse order) call rollback */
-	for (upActiter = m_campInitAction.rbegin(); upActiter != m_campInitAction.rend(); upActiter++) {
+	for (upActiter = m_campInitAction.rbegin(); upActiter != m_campInitAction.rend(); ++upActiter) {
 		rc = (*upActiter)->rollback(initRollbackDn);
 		if (rc != SA_AIS_OK) {
 			LOG_ER("SmfCampaignInit rollback of init action %d failed, rc=%s", (*upActiter)->getId(), saf_error(rc));
@@ -345,17 +309,14 @@ SmfCampaignInit::executeCallbackAtRollback()
 	////////////////////////
 
 	TRACE_ENTER();
-	std::list < SmfCallback * >:: iterator cbkiter;
-	cbkiter = m_callbackAtRollback.begin();
-	while (cbkiter != m_callbackAtRollback.end()) {
-		SaAisErrorT rc = (*cbkiter)->rollback(dn);
+	for (auto& cbkElem : m_callbackAtRollback) {
+		SaAisErrorT rc = (*cbkElem).rollback(dn);
 		LOG_NO("SmfCampaignInit callbackAtRollback, rc=%s", saf_error(rc));
 		if (rc == SA_AIS_ERR_FAILED_OPERATION) {
-			LOG_ER("SmfCampaignInit callbackAtRollback %s failed, rc=%s", (*cbkiter)->getCallbackLabel().c_str(), saf_error(rc));
+			LOG_ER("SmfCampaignInit callbackAtRollback %s failed, rc=%s", (*cbkElem).getCallbackLabel().c_str(), saf_error(rc));
 			TRACE_LEAVE();
 			return false;
 		}
-		cbkiter++;
 	}
 	TRACE_LEAVE();
 	return true;

@@ -449,7 +449,8 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                                                                 //Check if CLM node
                                                                 for(unsigned int ix = 0; ix <= attribute->attrValuesNumber-1; ix++) {
                                                                         std::string clmNodeDn = *((char **)attribute->attrValues[ix]);
-                                                                        if (clmNodeDn.find("safNode=") != 0) {
+									std::size_t found = clmNodeDn.find("safNode");
+                                                                        if (found != 0) {
                                                                                 LOG_NO("Attribute smfClusterControllers, invalid DN [%s]. Must point to an instance of class SaClmNode",
                                                                                        clmNodeDn.c_str());
                                                                                 rc = SA_AIS_ERR_BAD_OPERATION;
@@ -483,7 +484,8 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
                                                                         //Check if CLM node
                                                                         for(unsigned int ix = 0; ix <= attribute->attrValuesNumber-1; ix++) {
                                                                                 std::string clmNodeDn = *((char **)attribute->attrValues[ix]);
-                                                                                if (clmNodeDn.find("safNode=") != 0) {
+										std::size_t found = clmNodeDn.find("safNode");
+                                                                                if (found != 0) {
                                                                                         LOG_NO("Attribute smfClusterControllers, invalid DN [%s]. Must point to an instance of class SaClmNode",
                                                                                                clmNodeDn.c_str());
                                                                                         rc = SA_AIS_ERR_BAD_OPERATION;
@@ -775,10 +777,9 @@ uint32_t updateImmAttr(const char *dn, SaImmAttrNameT attributeName, SaImmValueT
  */
 uint32_t campaign_oi_activate(smfd_cb_t * cb)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
 
-	rc = immutil_saImmOiImplementerSet(cb->campaignOiHandle, implementerName);
+	SaAisErrorT rc = immutil_saImmOiImplementerSet(cb->campaignOiHandle, implementerName);
 	if (rc != SA_AIS_OK) {
 		TRACE("immutil_saImmOiImplementerSet fail, rc = %d inplementer name=%s", rc, (char*)implementerName);
 		return NCSCC_RC_FAILURE;
@@ -831,7 +832,6 @@ uint32_t campaign_oi_activate(smfd_cb_t * cb)
  */
 uint32_t campaign_oi_deactivate(smfd_cb_t * cb)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
 
 	/* We should terminate all threads (if exists) */
@@ -851,7 +851,7 @@ uint32_t campaign_oi_deactivate(smfd_cb_t * cb)
         */
 
         /* Finalize the OI handle. This will also clear the implementer (saImmOiImplementerClear)*/
-	rc = immutil_saImmOiFinalize(cb->campaignOiHandle);
+	SaAisErrorT rc = immutil_saImmOiFinalize(cb->campaignOiHandle);
 	if (rc != SA_AIS_OK) {
 		LOG_NO("immutil_saImmOmFinalize fail, rc = %d, continue", rc);
 	} else {
@@ -1153,11 +1153,10 @@ uint32_t read_config_and_set_control_block(smfd_cb_t * cb)
  */
 void* smfd_coi_reinit_thread(void * _cb)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
 	smfd_cb_t * cb = (smfd_cb_t *)_cb;
 
-	rc = immutil_saImmOiInitialize_2(&cb->campaignOiHandle, &callbacks, &immVersion);
+	SaAisErrorT rc = immutil_saImmOiInitialize_2(&cb->campaignOiHandle, &callbacks, &immVersion);
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize_2 failed %u", rc);
 		exit(EXIT_FAILURE);

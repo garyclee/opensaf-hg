@@ -270,7 +270,7 @@ static uint32_t initialize_smfd(void)
 	}
 
 	/* Attach mailbox to this thread */
-	if ((rc = m_NCS_IPC_ATTACH(&smfd_cb->mbx) != NCSCC_RC_SUCCESS)) {
+	if (((rc = m_NCS_IPC_ATTACH(&smfd_cb->mbx)) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
 		goto done;
 	}

@@ -285,7 +285,7 @@ SmfProcedureThread::init(void)
 	}
 
 	/* Attach mailbox to this thread */
-	if ((rc = m_NCS_IPC_ATTACH(&m_mbx) != NCSCC_RC_SUCCESS)) {
+	if (((rc = m_NCS_IPC_ATTACH(&m_mbx)) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("SmfProcedureThread::init, m_NCS_IPC_ATTACH FAILED %d", rc);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
 		return -1;
@@ -300,7 +300,7 @@ SmfProcedureThread::init(void)
 	}
 
 	/* Attach mailbox to this thread */
-	if ((rc = m_NCS_IPC_ATTACH(&m_cbk_mbx) != NCSCC_RC_SUCCESS)) {
+	if (((rc = m_NCS_IPC_ATTACH(&m_cbk_mbx)) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("SmfProcedureThread::init, m_NCS_IPC_ATTACH FAILED %d", rc);
 		m_NCS_IPC_DETACH(&m_mbx, NULL, NULL);
 		m_NCS_IPC_RELEASE(&m_mbx, NULL);
@@ -472,7 +472,6 @@ SmfProcedureThread::getImmProcedure(SmfUpgradeProcedure * procedure)
 SaAisErrorT 
 SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	SaNameT parentName;
 	SmfCampaign *campaign = SmfCampaignThread::instance()->campaign();
 
@@ -590,7 +589,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
         osaf_extended_name_lend(campaign->getDn().c_str(), &parentName);
 
-	rc = immutil_saImmOiRtObjectCreate_2(getImmHandle(), (char*)"SaSmfProcedure", &parentName, attrValues);
+	SaAisErrorT rc = immutil_saImmOiRtObjectCreate_2(getImmHandle(), (char*)"SaSmfProcedure", &parentName, attrValues);
 
 	if (rc != SA_AIS_OK) {
 		TRACE("saImmOiRtObjectCreate_2 returned %u for %s, parent %s", rc, procedure->getProcName().c_str(),
@@ -611,10 +610,9 @@ int
 SmfProcedureThread::updateImmAttr(const char *dn, SaImmAttrNameT attributeName, SaImmValueTypeT attrValueType,
 				      void *value)
 {
-	SaAisErrorT rc = SA_AIS_OK;
-
 	TRACE_ENTER();
-	rc = immutil_update_one_rattr(getImmHandle(), dn, attributeName, attrValueType, value);
+
+	SaAisErrorT rc = immutil_update_one_rattr(getImmHandle(), dn, attributeName, attrValueType, value);
 
 	if (rc != SA_AIS_OK) {
 		LOG_ER("SmfProcedureThread::updateImmAttr, update attr fail, rc=%s, dn=[%s], attr=[%s]", saf_error(rc), dn, attributeName);

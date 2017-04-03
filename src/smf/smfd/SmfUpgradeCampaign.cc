@@ -321,15 +321,11 @@ SmfUpgradeCampaign::setCampState(SaSmfCmpgStateT i_state)
 bool 
 SmfUpgradeCampaign::addUpgradeProcedure(SmfUpgradeProcedure * i_procedure)
 {
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
- 
-        iter = this->m_procedure.begin();
-        while (iter != this->m_procedure.end()) {
-                if (!strcmp((*iter)->getProcName().c_str(), i_procedure->getProcName().c_str())){
+	for (auto& elem : m_procedure) {
+                if (!strcmp((elem)->getProcName().c_str(), i_procedure->getProcName().c_str())){
                         LOG_NO("CAMP: Procedure %s is already present, invalid upgrade campaign", i_procedure->getProcName().c_str());
                         return false;
                 }
-                iter++;
         }
 	m_procedure.push_back(i_procedure);
 	return true;
@@ -351,12 +347,10 @@ void SmfUpgradeCampaign::sortProceduresInExecLevelOrder()
 {
 	TRACE_ENTER();
 
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
 	std::list < int >levels;
-
 	//Find out used procedure execution levels, just one entry for each level
-	for (iter = m_procedure.begin();iter != m_procedure.end(); iter++) {
-		levels.push_back((*iter)->getExecLevel());
+	for (auto& elem : m_procedure) {
+		levels.push_back((*elem).getExecLevel());
 	}
 
 	//Sort the execution levels and remove duplicates
@@ -366,13 +360,10 @@ void SmfUpgradeCampaign::sortProceduresInExecLevelOrder()
 	//Create a sorted procedure vector
 	std::vector < SmfUpgradeProcedure * >sortedProc;
 
-	std::list < int >::iterator levelIter;
-	for (levelIter = levels.begin(); levelIter != levels.end(); levelIter++) {
-		iter = m_procedure.begin();
-		while (iter != m_procedure.end()) {
-			if ((*levelIter) == (*iter)->getExecLevel())
-				sortedProc.push_back(*iter);
-			iter++;
+	for (auto& levelElem : levels) {
+		for (auto& elem : m_procedure) {
+			if ((levelElem) == (*elem).getExecLevel())
+				sortedProc.push_back(elem);
 		}
 	}
 
@@ -483,7 +474,6 @@ SaAisErrorT
 SmfUpgradeCampaign::createCampRestartInfo()
 {
 	TRACE_ENTER();
-	SaAisErrorT rc = SA_AIS_OK;
 
 	SmfImmRTCreateOperation icoCampRestartInfo;
 
@@ -503,7 +493,7 @@ SmfUpgradeCampaign::createCampRestartInfo()
         attrsmfCampRestartCnt.addValue("0");
         icoCampRestartInfo.addValue(attrsmfCampRestartCnt);
 
-        rc = icoCampRestartInfo.execute(); //Create the object
+        SaAisErrorT rc = icoCampRestartInfo.execute(); //Create the object
 	if (rc != SA_AIS_OK){
                 LOG_NO("Fail to create smfRestartInfo object, rc=%s, dn=[%s]", 
 		       saf_error(rc), 
@@ -1230,7 +1220,6 @@ SaAisErrorT
 SmfUpgradeCampaign::createSmfRestartIndicator()
 {
 	TRACE_ENTER();
-	SaAisErrorT rc = SA_AIS_OK;
 	SaImmAttrValuesT_2 **attributes;
 	std::string parentDn = SMF_SAF_APP_DN;
 	std::string rdn      = SMF_CAMP_RESTART_INDICATOR_RDN;
@@ -1238,7 +1227,7 @@ SmfUpgradeCampaign::createSmfRestartIndicator()
 	SmfImmUtils immUtil;
 
 	//Check if the object exist
-	rc = immUtil.getObjectAisRC(objDn, &attributes);
+	SaAisErrorT rc = immUtil.getObjectAisRC(objDn, &attributes);
 	if (rc == SA_AIS_ERR_NOT_EXIST) {  //If not exist, create the object
 
 		SmfImmRTCreateOperation icoCampaignRestartInd;
@@ -1272,7 +1261,6 @@ SaAisErrorT
 SmfUpgradeCampaign::checkSmfRestartIndicator()
 {
 	TRACE_ENTER();
-	SaAisErrorT rc = SA_AIS_OK;
 	SaImmAttrValuesT_2 **attributes;
 	std::string objDn    = std::string(SMF_CAMP_RESTART_INDICATOR_RDN) + "," + std::string(SMF_SAF_APP_DN);
 	SmfImmUtils immUtil;
@@ -1283,7 +1271,7 @@ SmfUpgradeCampaign::checkSmfRestartIndicator()
 
 	//Check if the object exist
 	unsigned int retries = 1;
-	rc = immUtil.getObjectAisRC(objDn, &attributes);
+	SaAisErrorT rc = immUtil.getObjectAisRC(objDn, &attributes);
 
 	while (rc != SA_AIS_OK && rc != SA_AIS_ERR_NOT_EXIST && retries < 30) {
 		sleep(1);

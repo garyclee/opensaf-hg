@@ -75,10 +75,9 @@
 //------------------------------------------------------------------------------
 SaAisErrorT SmfCallback::execute(std::string & step_dn)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
 	/* compose an event and send it to all SMF-NDs */
-	rc = send_callback_msg(SA_SMF_UPGRADE, step_dn);
+	SaAisErrorT rc = send_callback_msg(SA_SMF_UPGRADE, step_dn);
 	TRACE_LEAVE2("rc = %s", saf_error(rc));
 	return rc;
 }
@@ -87,10 +86,9 @@ SaAisErrorT SmfCallback::execute(std::string & step_dn)
 //------------------------------------------------------------------------------
 SaAisErrorT SmfCallback::rollback(std::string & step_dn)
 {
-	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
 	/* compose an event and send it to all SMF-NDs */
-	rc = send_callback_msg(SA_SMF_ROLLBACK, step_dn);
+	SaAisErrorT rc = send_callback_msg(SA_SMF_ROLLBACK, step_dn);
 	TRACE_LEAVE2("rc = %s", saf_error(rc));
 	return rc;
 }

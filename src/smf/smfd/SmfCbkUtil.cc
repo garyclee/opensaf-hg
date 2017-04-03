@@ -291,7 +291,7 @@ int SmfCbkUtilThread::init(void)
 	}
 
 	/* Attach mailbox to this thread */
-	if ((rc = m_NCS_IPC_ATTACH(&m_mbx) != NCSCC_RC_SUCCESS)) {
+	if (((rc = m_NCS_IPC_ATTACH(&m_mbx)) != NCSCC_RC_SUCCESS)) {
 		LOG_ER("m_NCS_IPC_ATTACH failed %d", rc);
 		return -1;
 	}
