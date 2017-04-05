@@ -417,7 +417,7 @@ void avd_node_up_evh(AVD_CL_CB *cb, AVD_EVT *evt)
 			LOG_WA("Sending node reboot order to node:%s, due to first node_up_msg after node sync window",
 				osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_node_up.node_name));
 			avnd->reboot = true;
-		} else if (cb->init_state == AVD_APP_STATE) {
+		} else if (cb->init_state == AVD_APP_STATE && avnd->node_state == AVD_AVND_STATE_ABSENT) {
 			LOG_WA("Sending node reboot order to node:%s, due to late node_up_msg after cluster startup timeout",
 				osaf_extended_name_borrow(&n2d_msg->msg_info.n2d_node_up.node_name));
 			avnd->reboot = true;
