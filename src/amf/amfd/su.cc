@@ -1423,9 +1423,10 @@ static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
 				}
 				rc = avd_saImmOiRtObjectUpdate_multival_sync(obj_name, attributeName,
 						SA_IMM_ATTR_SANAMET, temp, assigned_si);
+				j = 0;
 				for (AVD_SU_SI_REL *susi = su->list_of_susi; susi != nullptr; susi = susi->su_next) {
-					j = 0;
 					osaf_extended_name_free(siName + j);
+					j = j + 1;
 				}
 				delete [] siName;
 				delete [] attrValues;
