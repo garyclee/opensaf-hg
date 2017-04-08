@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -170,7 +171,7 @@ uint32_t cpnd_ckpt_replica_create_res(CPND_CB *cb, NCS_OS_POSIX_SHM_REQ_INFO *op
 	open_req->info.open.i_map_flags = MAP_SHARED;
 	open_req->info.open.o_addr = NULL;
 	open_req->info.open.i_flags = O_RDWR;
-	open_req->ensures_space = cb->shm_alloc_guaranteed;
+	open_req->ensures_space = cb->shm_alloc_guaranteed == 1;
 	rc = ncs_os_posix_shm(open_req);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpnd shm open request failed %s",buf);
@@ -359,7 +360,7 @@ void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB 
 	cpnd_open_req->info.open.i_size = sizeof(CPND_SHM_VERSION) +
 	    sizeof(CLIENT_HDR) + (MAX_CLIENTS * sizeof(CLIENT_INFO)) + sizeof(CKPT_HDR) +
 	    (MAX_CKPTS * sizeof(CKPT_INFO));
-	cpnd_open_req->ensures_space = cb->shm_alloc_guaranteed; 
+	cpnd_open_req->ensures_space = cb->shm_alloc_guaranteed == 1;
 	cpnd_open_req->info.open.i_offset = 0;
 	cpnd_open_req->info.open.i_name = buffer;
 	cpnd_open_req->info.open.i_map_flags = MAP_SHARED;
@@ -1164,7 +1165,7 @@ uint32_t cpnd_restart_client_node_del(CPND_CB *cb, CPND_CKPT_CLIENT_NODE *cl_nod
 	}
 	clinfo_write.info.write.i_offset = cl_node->offset * sizeof(CLIENT_INFO);
 	clinfo_write.info.write.i_write_size = sizeof(CLIENT_INFO);
-	clinfo_write.ensures_space = cb->shm_alloc_guaranteed;
+	clinfo_write.ensures_space = cb->shm_alloc_guaranteed != 0;
 	rc = ncs_os_posix_shm(&clinfo_write);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("cpnd ckpt info write failed"); 
@@ -1577,7 +1578,7 @@ static uint32_t cpnd_shm_extended_open(CPND_CB *cb, uint32_t flag)
 
 	cpnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	cpnd_open_req.info.open.i_size = MAX_CKPTS * sizeof(CKPT_EXTENDED_INFO);
-	cpnd_open_req.ensures_space = cb->shm_alloc_guaranteed;
+	cpnd_open_req.ensures_space = cb->shm_alloc_guaranteed == 1;
 	cpnd_open_req.info.open.i_offset = 0;
 	cpnd_open_req.info.open.i_name = buffer;
 	cpnd_open_req.info.open.i_map_flags = MAP_SHARED;
