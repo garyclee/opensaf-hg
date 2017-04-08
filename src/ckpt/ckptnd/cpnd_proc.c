@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -478,7 +479,7 @@ uint32_t cpnd_ckpt_replica_create(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	cp_node->replica_info.open.info.open.i_size =
 	    sizeof(CPSV_CKPT_HDR) + cp_node->create_attrib.maxSections * (sizeof(CPSV_SECT_HDR) +
 									  cp_node->create_attrib.maxSectionSize);
-	cp_node->replica_info.open.ensures_space = cb->shm_alloc_guaranteed;
+	cp_node->replica_info.open.ensures_space = cb->shm_alloc_guaranteed == 1;
 
 	cp_node->replica_info.open.info.open.i_offset = 0;
 	cp_node->replica_info.open.info.open.i_name = buf;
@@ -671,7 +672,7 @@ uint32_t cpnd_ckpt_sec_write(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPND_CKPT_SEC
 	write_req.info.write.i_offset = offset;
 
 	write_req.info.write.i_write_size = size;
-	write_req.ensures_space = cb->shm_alloc_guaranteed;
+	write_req.ensures_space = cb->shm_alloc_guaranteed != 0;
 	if (ncs_os_posix_shm(&write_req) == NCSCC_RC_FAILURE) {
 		LOG_ER("shm write failed for cpnd_ckpt_sec_write");
 		return NCSCC_RC_FAILURE;
@@ -1836,7 +1837,7 @@ uint32_t cpnd_ckpt_hdr_update(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 	write_req.info.write.i_from_buff = (CPSV_CKPT_HDR *)&ckpt_hdr;
 	write_req.info.write.i_offset = 0;
 	write_req.info.write.i_write_size = sizeof(CPSV_CKPT_HDR);
-	write_req.ensures_space = cb->shm_alloc_guaranteed;
+	write_req.ensures_space = cb->shm_alloc_guaranteed != 0;
 	rc = ncs_os_posix_shm(&write_req);
 
 	return rc;
@@ -1879,7 +1880,7 @@ uint32_t cpnd_sec_hdr_update(CPND_CB *cb, CPND_CKPT_SECTION_INFO *sec_info, CPND
 	write_req.info.write.i_offset =
 	    sec_info->lcl_sec_id * (sizeof(CPSV_SECT_HDR) + cp_node->create_attrib.maxSectionSize);
 	write_req.info.write.i_write_size = sizeof(CPSV_SECT_HDR);
-	write_req.ensures_space = cb->shm_alloc_guaranteed;
+	write_req.ensures_space = cb->shm_alloc_guaranteed != 0;
 	rc = ncs_os_posix_shm(&write_req);
 
 	return rc;

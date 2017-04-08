@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -322,7 +323,7 @@ typedef struct cpnd_cb_tag {
 	NCS_QUEUE cpnd_cpd_deferred_reqs_list;	/* Queue for storing CPD timeout requests  */
 
 	bool scAbsenceAllowed;
-	bool shm_alloc_guaranteed;
+	int shm_alloc_guaranteed;
 
 	NCS_SEL_OBJ clm_updated_sel_obj; /* The CLM select object updated event */
 

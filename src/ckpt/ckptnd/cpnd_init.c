@@ -1,6 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
+ * Copyright Ericsson AB 2017 - All Rights Reserved.
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -223,7 +224,7 @@ static uint32_t cpnd_lib_init(CPND_CREATE_INFO *info)
 	if ((ptr = getenv("OSAF_CKPT_SHM_ALLOC_GUARANTEE")) != NULL) {
 		cb->shm_alloc_guaranteed = atoi(ptr);
 	} else {
-		cb->shm_alloc_guaranteed = false;
+		cb->shm_alloc_guaranteed = 2;
 	}
 
 	/* create a mail box */
