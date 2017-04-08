@@ -907,12 +907,10 @@ int SmfCampaignThread::handleEvents(void)
 			break;
 		}
 
-                /* Process the Mail box events */
-		if (fds[0].revents & POLLIN) {
-			/* dispatch MBX events */
-			processEvt();
-		}
-
+    /*
+     * Handle NTF events first because processEvt may delete and terminate the
+     * campaign thread.
+     */
 		if (fds[1].revents & POLLIN) {
 			// dispatch NTF events
 			rc = saNtfDispatch(m_ntfHandle, SA_DISPATCH_ALL);
@@ -920,6 +918,12 @@ int SmfCampaignThread::handleEvents(void)
 			if (rc != SA_AIS_OK) {
 				LOG_ER("saNtfDispatch FAILED - %s", saf_error(rc));
 			}
+		}
+
+                /* Process the Mail box events */
+		if (fds[0].revents & POLLIN) {
+			/* dispatch MBX events */
+			processEvt();
 		}
 
 		m_campaign->updateElapsedTime();
