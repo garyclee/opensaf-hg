@@ -1,4 +1,4 @@
-This directory contains the 5.1 release of `OpenSAF'.
+This directory contains the 5.1.1 release of `OpenSAF'.
 
 `OpenSAF' is an open source project designed to implement a complete highly
 available operating environment based on Service Availability Forum (SA Forum)
@@ -771,7 +771,7 @@ See file `00-README.uml' for more information about User Mode Linux and
 Upgrading OpenSAF
 =================
 
-Before installing or upgrading to OpenSAF 5.1, make sure your system meets the
+Before installing or upgrading to OpenSAF 5.1.1, make sure your system meets the
 minimum version requirements of the following system components:
 
 - Linux kernel, version 2.6.37 or later. Recommended version is Linux 3.18 or
