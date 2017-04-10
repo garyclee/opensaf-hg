@@ -17,7 +17,7 @@
 #ifndef DTM_DTMND_DTM_SOCKET_H_
 #define DTM_DTMND_DTM_SOCKET_H_
 
-#define SOCKET_ERROR()  -1
+#define SOCKET_ERROR() -1
 #define SDDR_IN_USE (errno == EADDRINUSE)
 #define IS_CONNECTED(a) 0
 #define SOCKET_RESET(a) ((a == EPIPE) || (a == ECONNRESET))

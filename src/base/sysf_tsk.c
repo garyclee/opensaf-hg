@@ -30,7 +30,7 @@
   ncs_task_create....create a task
   ncs_task_release...release a task
   ncs_task_detach...changes the task created in the joinable state to
-                     detachable state
+		     detachable state
   ncs_task_start.....add a task to the "ready" list
   ncs_task_stop......remove a task from the "ready" list
   ncs_task_sleep.....suspend a task for "n" milliseconds
@@ -44,9 +44,9 @@
 
 #include "base/ncssysf_tsk.h"
 
-uint32_t
-ncs_task_create(NCS_OS_CB entry_pt,
-		void *arg, const char *name, unsigned int priority, int policy, unsigned int stack_size_in_bytes, void **task_handle)
+uint32_t ncs_task_create(NCS_OS_CB entry_pt, void *arg, const char *name,
+			 unsigned int priority, int policy,
+			 unsigned int stack_size_in_bytes, void **task_handle)
 {
 	NCS_OS_TASK task;
 	memset(&task, 0, sizeof(task));

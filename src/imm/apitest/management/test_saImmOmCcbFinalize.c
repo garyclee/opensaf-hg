@@ -19,51 +19,52 @@
 
 void saImmOmCcbFinalize_01(void)
 {
-    const SaImmAdminOwnerNameT adminOwnerName =
-        (SaImmAdminOwnerNameT) __FUNCTION__;
-    SaImmAdminOwnerHandleT ownerHandle;
-    SaImmCcbHandleT ccbHandle;
-    const SaNameT *objectNames[] = {&rootObj, NULL};
+	const SaImmAdminOwnerNameT adminOwnerName =
+	    (SaImmAdminOwnerNameT) __FUNCTION__;
+	SaImmAdminOwnerHandleT ownerHandle;
+	SaImmCcbHandleT ccbHandle;
+	const SaNameT *objectNames[] = {&rootObj, NULL};
 
-    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
-        SA_AIS_OK);
-    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName,
-        SA_TRUE, &ownerHandle), SA_AIS_OK);
-    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), 
-        SA_AIS_OK);
-    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
-    test_validate(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
-    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
-    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+	safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
+		  SA_AIS_OK);
+	safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName,
+					      SA_TRUE, &ownerHandle),
+		  SA_AIS_OK);
+	safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE),
+		  SA_AIS_OK);
+	safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+	test_validate(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+	safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
 void saImmOmCcbFinalize_02(void)
 {
-    const SaImmAdminOwnerNameT adminOwnerName =
-        (SaImmAdminOwnerNameT) __FUNCTION__;
-    SaImmAdminOwnerHandleT ownerHandle;
-    SaImmCcbHandleT ccbHandle;
-    const SaNameT *objectNames[] = {&rootObj, NULL};
+	const SaImmAdminOwnerNameT adminOwnerName =
+	    (SaImmAdminOwnerNameT) __FUNCTION__;
+	SaImmAdminOwnerHandleT ownerHandle;
+	SaImmCcbHandleT ccbHandle;
+	const SaNameT *objectNames[] = {&rootObj, NULL};
 
-    safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
-        SA_AIS_OK);
-    safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName,
-        SA_TRUE, &ownerHandle), SA_AIS_OK);
-    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), 
-        SA_AIS_OK);
-    safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
+	safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
+		  SA_AIS_OK);
+	safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName,
+					      SA_TRUE, &ownerHandle),
+		  SA_AIS_OK);
+	safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE),
+		  SA_AIS_OK);
+	safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
 
-    /* invalid handle */
-    if ((rc = saImmOmCcbFinalize(-1)) != SA_AIS_ERR_BAD_HANDLE)
-        goto done;
+	/* invalid handle */
+	if ((rc = saImmOmCcbFinalize(-1)) != SA_AIS_ERR_BAD_HANDLE)
+		goto done;
 
-    /* already finalized handle */
-    safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
-    rc = saImmOmCcbFinalize(ccbHandle);
+	/* already finalized handle */
+	safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
+	rc = saImmOmCcbFinalize(ccbHandle);
 
 done:
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
-    safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
-    safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
+	safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
-

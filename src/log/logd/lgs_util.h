@@ -52,17 +52,17 @@
  */
 
 extern char *lgs_get_time(time_t *time_in);
-extern int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream);
+extern int lgs_create_config_file_h(const std::string &root_path,
+                                    log_stream_t *stream);
 extern void lgs_evt_destroy(lgsv_lgs_evt_t *evt);
 extern SaTimeT lgs_get_SaTime();
-extern int lgs_file_rename_h(
-    const std::string &root_path,
-    const std::string &rel_path,
-    const std::string &old_name,
-    const std::string &time_stamp,
-    const std::string &suffix,
-    std::string &new_name);
-//extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb); /* Not used, no code */
+extern int lgs_file_rename_h(const std::string &root_path,
+                             const std::string &rel_path,
+                             const std::string &old_name,
+                             const std::string &time_stamp,
+                             const std::string &suffix, std::string &new_name);
+// extern uint32_t lgs_create_known_streams(lgs_cb_t *lgs_cb); /* Not used, no
+// code */
 extern void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr);
 extern bool lgs_relative_path_check_ts(const std::string &path);
 extern int lgs_make_reldir_h(const std::string &path);
@@ -82,7 +82,7 @@ bool lgs_is_valid_pathlength(const std::string &path,
 int lgs_init_timer(time_t timeout_s);
 void lgs_close_timer(int ufd);
 
-bool lgs_is_extended_name_valid(const SaNameT* name);
+bool lgs_is_extended_name_valid(const SaNameT *name);
 void lgs_send_severity_filter_to_clients(uint32_t stream_id,
                                          SaLogSeverityFlagsT serverity);
 
@@ -90,9 +90,9 @@ namespace logutil {
 // Parse string format "a;b;c" to vector of string {a, b, c}
 // In generic, this function could be used to split a string
 // separated by delimiter to a vector of strings.
-std::vector<std::string> Parser(const std::string&, const std::string&);
+std::vector<std::string> Parser(const std::string &, const std::string &);
 // Check if @name contain special characters in.
-bool isValidName(const std::string& name);
+bool isValidName(const std::string &name);
 };  // namespace logutil
 
 #endif  // LOG_LOGD_LGS_UTIL_H_

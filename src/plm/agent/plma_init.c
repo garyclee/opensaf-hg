@@ -15,13 +15,27 @@
  *
  */
 
-/*************************************************************************//** 
- * @file	plma_init.c
- * @brief	This file contains the initialization and destroy routines for 
- *		PLMA library.
- *
- * @author	Emerson Network Power
-*****************************************************************************/
+/*************************************************************************/ /**
+									     * @file
+									     *plma_init.c
+									     * @brief
+									     *This
+									     *file
+									     *contains
+									     *the
+									     *initialization
+									     *and
+									     *destroy
+									     *routines
+									     *for
+									     *		PLMA
+									     *library.
+									     *
+									     * @author
+									     *Emerson
+									     *Network
+									     *Power
+									     *****************************************************************************/
 
 #include "base/ncssysf_def.h"
 
@@ -30,7 +44,7 @@
 #include "base/osaf_utility.h"
 
 static PLMA_CB _plma_cb;
-PLMA_CB   *plma_ctrlblk;
+PLMA_CB *plma_ctrlblk;
 
 uint32_t plma_use_count = 0;
 void plma_sync_with_plms(void);
@@ -38,21 +52,31 @@ void plma_sync_with_plms(void);
 /* mutex for synchronising agent startup and shutdown */
 static pthread_mutex_t s_agent_startup_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-/***********************************************************************//**
-* @brief	This routine is used to initialize the client tree.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *is
+									   *used
+									   *to
+									   *initialize
+									   *the
+									   *client
+									   *tree.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t plma_client_tree_init()
 {
 	NCS_PATRICIA_PARAMS param;
 	PLMA_CB *cb = plma_ctrlblk;
 	TRACE_ENTER();
-	
+
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(SaPlmHandleT);
-	if (ncs_patricia_tree_init(&cb->client_info, &param) 
-						!= NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_init(&cb->client_info, &param) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA: CLIENT TREE INIT FAILED");
 		return NCSCC_RC_FAILURE;
 	}
@@ -61,22 +85,31 @@ uint32_t plma_client_tree_init()
 	return NCSCC_RC_SUCCESS;
 }
 
-
-/***********************************************************************//**
-* @brief	This routine is used to initialize the group tree.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.	
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *is
+									   *used
+									   *to
+									   *initialize
+									   *the
+									   *group
+									   *tree.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t plma_group_tree_init()
 {
 	NCS_PATRICIA_PARAMS param;
 	PLMA_CB *cb = plma_ctrlblk;
 	TRACE_ENTER();
-	
+
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 	param.key_size = sizeof(SaPlmEntityGroupHandleT);
-	if (ncs_patricia_tree_init(&cb->entity_group_info, &param) 
-						!= NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_init(&cb->entity_group_info, &param) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA: GROUP TREE INIT FAILED");
 		return NCSCC_RC_FAILURE;
 	}
@@ -85,11 +118,21 @@ uint32_t plma_group_tree_init()
 	return NCSCC_RC_SUCCESS;
 }
 
-/***********************************************************************//**
-* @brief	This routine is used to destroy the client tree.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *is
+									   *used
+									   *to
+									   *destroy
+									   *the
+									   *client
+									   *tree.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t plma_client_tree_destroy()
 {
 	/** cleanup the client tree */
@@ -97,43 +140,51 @@ uint32_t plma_client_tree_destroy()
 	PLMA_CB *cb = plma_ctrlblk;
 	SaPlmHandleT *temp_ptr = 0;
 	SaPlmHandleT temp_hdl = 0;
-	uint32_t    rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
-
-	TRACE_ENTER();	
+	TRACE_ENTER();
 	/** scan the entire handle db & delete each record */
-	while ((client_node = (PLMA_CLIENT_INFO *)
-		ncs_patricia_tree_getnext(&cb->client_info, (uint8_t *)temp_ptr)))
-	{		
+	while ((client_node = (PLMA_CLIENT_INFO *)ncs_patricia_tree_getnext(
+		    &cb->client_info, (uint8_t *)temp_ptr))) {
 		/** delete the client info */
 		temp_hdl = client_node->plm_handle;
 		temp_ptr = &temp_hdl;
 
 		/** Destroy the IPC attached to this client */
-		plma_callback_ipc_destroy(client_node); 
+		plma_callback_ipc_destroy(client_node);
 
-		 if (client_node != NULL){
+		if (client_node != NULL) {
 			/** Remove the Node from the client tree */
-			if (ncs_patricia_tree_del(&cb->client_info, 
-				&client_node->pat_node) != NCSCC_RC_SUCCESS){
+			if (ncs_patricia_tree_del(&cb->client_info,
+						  &client_node->pat_node) !=
+			    NCSCC_RC_SUCCESS) {
 				LOG_ER("PLMA: CLIENT NODE DELETE FAILED");
-		                rc = NCSCC_RC_FAILURE;
-	        	}
+				rc = NCSCC_RC_FAILURE;
+			}
 			clean_client_info_node(client_node);
 			free(client_node);
-		 }
-							
-			
+		}
 	}
 	TRACE_LEAVE();
 	return rc;
 }
 
-/***********************************************************************//**
-* @brief	This routine is used to destroy the group info tree.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *is
+									   *used
+									   *to
+									   *destroy
+									   *the
+									   *group
+									   *info
+									   *tree.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t plma_group_tree_destroy()
 {
 	/* cleanup the client tree */
@@ -141,64 +192,91 @@ uint32_t plma_group_tree_destroy()
 	PLMA_ENTITY_GROUP_INFO *grp_info_node;
 	SaPlmEntityGroupHandleT *temp_ptr = 0;
 	SaPlmEntityGroupHandleT temp_hdl = 0;
-	uint32_t    rc = NCSCC_RC_SUCCESS;
+	uint32_t rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER();	
+	TRACE_ENTER();
 	/* scan the entire handle db & delete each record */
-	while ((grp_info_node = (PLMA_ENTITY_GROUP_INFO *)
-		ncs_patricia_tree_getnext(&cb->entity_group_info, (uint8_t *)temp_ptr)))
-	{		
+	while ((grp_info_node =
+		    (PLMA_ENTITY_GROUP_INFO *)ncs_patricia_tree_getnext(
+			&cb->entity_group_info, (uint8_t *)temp_ptr))) {
 		/* delete the client info */
 		temp_hdl = grp_info_node->entity_group_handle;
 		temp_ptr = &temp_hdl;
 
-		 if (grp_info_node != NULL){
+		if (grp_info_node != NULL) {
 			/* Remove the Node from the client tree */
-			if (ncs_patricia_tree_del(&cb->entity_group_info, &grp_info_node->pat_node) != NCSCC_RC_SUCCESS){
+			if (ncs_patricia_tree_del(&cb->entity_group_info,
+						  &grp_info_node->pat_node) !=
+			    NCSCC_RC_SUCCESS) {
 				LOG_ER("PLMA: GROUP_INFO NODE DELETE FAILED");
-		                rc = NCSCC_RC_FAILURE;
-	        	}
+				rc = NCSCC_RC_FAILURE;
+			}
 			clean_group_info_node(grp_info_node);
 			free(grp_info_node);
-		 }
-							
-			
+		}
 	}
 	TRACE_LEAVE();
 	return rc;
 }
 
-/***********************************************************************//**
-* @brief	This routine creates and initializes the PLMA Control block.
-*
-* @param[in]	create_info - A pointer to the structure that has creation 
-*			      parameters, if any, are provided to libraries 
-*			      in a command-line arguments style.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *creates
+									   *and
+									   *initializes
+									   *the
+									   *PLMA
+									   *Control
+									   *block.
+									   *
+									   * @param[in]
+									   *create_info
+									   *- A
+									   *pointer
+									   *to
+									   *the
+									   *structure
+									   *that
+									   *has
+									   *creation
+									   *			      parameters,
+									   *if
+									   *any,
+									   *are
+									   *provided
+									   *to
+									   *libraries
+									   *			      in
+									   *a
+									   *command-line
+									   *arguments
+									   *style.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t plma_create(NCS_LIB_CREATE *create_info)
 {
-	
+
 	PLMA_CB *plma_cb;
-	uint32_t    rc = NCSCC_RC_SUCCESS;
-	if(!plma_ctrlblk){
+	uint32_t rc = NCSCC_RC_SUCCESS;
+	if (!plma_ctrlblk) {
 		plma_ctrlblk = &_plma_cb;
 	}
 
 	plma_cb = plma_ctrlblk;
-	
+
 	TRACE_ENTER();
 	/** validate create info */
-	if (create_info == NULL){
+	if (create_info == NULL) {
 		LOG_ER("PLMA : INVALID create_info RECEIVED");
-		rc =  NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
 		goto end;
 	}
-	
-	
-	memset(plma_cb, 0, sizeof(PLMA_CB));
 
+	memset(plma_cb, 0, sizeof(PLMA_CB));
 
 	/** Initialize the PLMA_CB lock */
 	if (m_NCS_LOCK_INIT(&plma_cb->cb_lock) != NCSCC_RC_SUCCESS) {
@@ -206,21 +284,21 @@ uint32_t plma_create(NCS_LIB_CREATE *create_info)
 		rc = NCSCC_RC_FAILURE;
 		goto lock_fail;
 	}
-	
+
 	/** initialize the client tree */
 	if (plma_client_tree_init() != NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA: CLIENT TREE INIT FAILED");
 		rc = NCSCC_RC_FAILURE;
 		goto cl_tree_init_fail;
 	}
-	
+
 	/** initialize the group tree */
 	if (plma_group_tree_init() != NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA: GROUP INFO TREE INIT FAILED");
 		rc = NCSCC_RC_FAILURE;
 		goto gr_tree_init_fail;
 	}
-	
+
 	/** register with MDS */
 	if (plma_mds_register() != NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA: MDS REGISTER FAILED");
@@ -235,12 +313,10 @@ uint32_t plma_create(NCS_LIB_CREATE *create_info)
 		goto edu_init_fail;
 	}
 
-	
 	plma_sync_with_plms();
-	
+
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-	
 
 edu_init_fail:
 	plma_mds_unregister();
@@ -252,33 +328,46 @@ cl_tree_init_fail:
 	/** destroy the lock */
 	m_NCS_LOCK_DESTROY(&plma_cb->cb_lock);
 lock_fail:
-	/** make reference to plma_cb obsolete */ 
+	/** make reference to plma_cb obsolete */
 	plma_ctrlblk = NULL;
 end:
 	TRACE_LEAVE();
 	return rc;
-	
-
 }
 
-/***********************************************************************//**
-* @brief	This routine destroys the PLMA Control block.
-*
-* @param[in]	destroy_info - A pointer to the NCS_LIB_DESTROY structure.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *destroys
+									   *the
+									   *PLMA
+									   *Control
+									   *block.
+									   *
+									   * @param[in]
+									   *destroy_info
+									   *- A
+									   *pointer
+									   *to
+									   *the
+									   *NCS_LIB_DESTROY
+									   *structure.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t plma_destroy(NCS_LIB_DESTROY *destroy_info)
 {
 	PLMA_CB *plma_cb = plma_ctrlblk;
-	
+
 	TRACE_ENTER();
 
 	/* MDS unregister. */
 	plma_mds_unregister();
 
 	/** flush the EDU handle */
-	m_NCS_EDU_HDL_FLUSH(&plma_cb->edu_hdl);	
+	m_NCS_EDU_HDL_FLUSH(&plma_cb->edu_hdl);
 
 	/** destroy the client tree */
 	plma_client_tree_destroy();
@@ -286,24 +375,46 @@ uint32_t plma_destroy(NCS_LIB_DESTROY *destroy_info)
 	/** destroy the lock */
 	m_NCS_LOCK_DESTROY(&plma_cb->cb_lock);
 
-	/** make reference to plma_cb obsolete */ 
+	/** make reference to plma_cb obsolete */
 	plma_ctrlblk = NULL;
 
-
 	TRACE_LEAVE();
-	
+
 	return NCSCC_RC_SUCCESS;
 }
 
-	
-/***********************************************************************//**
-* @brief	This routine is exported to the external entities & is used
-*		to create & destroy the PLMA library.
-*
-* @param[in]	req_info - ptr to the request info
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *is
+									   *exported
+									   *to
+									   *the
+									   *external
+									   *entities
+									   *& is
+									   *used
+									   *		to
+									   *create
+									   *&
+									   *destroy
+									   *the
+									   *PLMA
+									   *library.
+									   *
+									   * @param[in]
+									   *req_info
+									   *-
+									   *ptr
+									   *to
+									   *the
+									   *request
+									   *info
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t plma_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -312,13 +423,13 @@ uint32_t plma_lib_req(NCS_LIB_REQ_INFO *req_info)
 	case NCS_LIB_REQ_CREATE:
 		rc = plma_create(&req_info->info.create);
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("PLMA : LIB CREATE FAILED");	
+			LOG_ER("PLMA : LIB CREATE FAILED");
 		}
 		break;
 	case NCS_LIB_REQ_DESTROY:
 		rc = plma_destroy(&req_info->info.destroy);
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("PLMA : LIB DESTROY FAILED");	
+			LOG_ER("PLMA : LIB DESTROY FAILED");
 		}
 		break;
 	default:
@@ -328,17 +439,43 @@ uint32_t plma_lib_req(NCS_LIB_REQ_INFO *req_info)
 	return rc;
 }
 
-/***********************************************************************//**
-* @brief	This routine creates a PLMSv agent infrastructure to interface
-*		with PLMSv service. Once the infrastructure is created from
-*		then on use_count is incremented for every startup request.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *creates
+									   *a
+									   *PLMSv
+									   *agent
+									   *infrastructure
+									   *to
+									   *interface
+									   *		with
+									   *PLMSv
+									   *service.
+									   *Once
+									   *the
+									   *infrastructure
+									   *is
+									   *created
+									   *from
+									   *		then
+									   *on
+									   *use_count
+									   *is
+									   *incremented
+									   *for
+									   *every
+									   *startup
+									   *request.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t ncs_plma_startup()
 {
 	NCS_LIB_REQ_INFO lib_create;
-		
+
 	TRACE_ENTER();
 	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 	if (plma_use_count > 0) {
@@ -353,7 +490,7 @@ uint32_t ncs_plma_startup()
 	if (plma_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}else{
+	} else {
 		/** Initialize the library for the first time */
 		printf("\nPLMSV:PLMA:ON");
 		plma_use_count = 1;
@@ -364,21 +501,43 @@ uint32_t ncs_plma_startup()
 	return NCSCC_RC_SUCCESS;
 }
 
-/***********************************************************************//**
-* @brief	This routine destroys the  PLMSv agent infrastructure created 
-*		to nterface with PLMSv service. If the registered users are >1,
-*		it just decrements the use_count.
-*
-* @return	NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-***************************************************************************/
+/***********************************************************************/ /**
+									   * @brief
+									   *This
+									   *routine
+									   *destroys
+									   *the
+									   *PLMSv
+									   *agent
+									   *infrastructure
+									   *created
+									   *		to
+									   *nterface
+									   *with
+									   *PLMSv
+									   *service.
+									   *If
+									   *the
+									   *registered
+									   *users
+									   *are
+									   *>1,
+									   *		it
+									   *just
+									   *decrements
+									   *the
+									   *use_count.
+									   *
+									   * @return
+									   *NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+									   ***************************************************************************/
 uint32_t ncs_plma_shutdown()
 {
 	NCS_LIB_REQ_INFO lib_destroy;
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
-	
-	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 
+	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 
 	if (plma_use_count > 1) {
 		/** Still users exists, so just decrement the use_count */

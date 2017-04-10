@@ -23,20 +23,20 @@
 ..............................................................................
 
   DESCRIPTION:
-  
+
   API decleration for MQD library..
-    
+
 ******************************************************************************/
 #ifndef MSG_MSGD_MQD_API_H_
 #define MSG_MSGD_MQD_API_H_
 
-#define MQD_COMP_NAME      "MQD"
-#define MQD_TASK_PRIORITY  5
+#define MQD_COMP_NAME "MQD"
+#define MQD_TASK_PRIORITY 5
 #define MQD_TASK_STACKSIZE NCS_STACKSIZE_HUGE
-#define MQSV_MQD_REV       1	/* MQD Release 1.00 */
+#define MQSV_MQD_REV 1 /* MQD Release 1.00 */
 
 /*****************************EVT HANDLER ***********************************/
-typedef uint32_t (*MQD_EVT_HANDLER) (struct mqsv_evt *, struct mqd_cb *);
+typedef uint32_t (*MQD_EVT_HANDLER)(struct mqsv_evt *, struct mqd_cb *);
 /****************************************************************************/
 
 uint32_t mqd_track_add(NCS_QUEUE *, MDS_DEST *, MDS_SVC_ID);

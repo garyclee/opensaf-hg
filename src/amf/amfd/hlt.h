@@ -22,9 +22,9 @@
 
   DESCRIPTION:
 
-  This module is the include file for handling Availability Directors 
+  This module is the include file for handling Availability Directors
   health check structure.
-  
+
 ******************************************************************************
 */
 

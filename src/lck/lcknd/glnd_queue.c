@@ -26,7 +26,7 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
+
 
 ******************************************************************************
 */
@@ -36,14 +36,14 @@
 
 /****************************************************************************
   Name          : glnd_evt_backup_queue_add
-  
+
   Description   : This routine is used to queue the backup events
- 
+
   Arguments     : glnd-cb - pointer to the control block
-                  glnd_evt - pointer to the glnd_evt
-                   
+		  glnd_evt - pointer to the glnd_evt
+
   Return Values : none
- 
+
   Notes         : None
 ******************************************************************************/
 void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, GLSV_GLND_EVT *glnd_evt)
@@ -70,31 +70,35 @@ void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, GLSV_GLND_EVT *glnd_evt)
 
 /****************************************************************************
   Name          : glnd_evt_backup_queue_delete_lock_req
-  
-  Description   : This routine is used to delete the node from the queue 
- 
+
+  Description   : This routine is used to delete the node from the queue
+
   Arguments     : glnd_cb - pointer to the control block
-                   
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 uint32_t glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
-					    SaLckHandleT hldId, SaLckResourceIdT resId, SaLckLockModeT type)
+					       SaLckHandleT hldId,
+					       SaLckResourceIdT resId,
+					       SaLckLockModeT type)
 {
 	GLSV_GLND_EVT *prev, *evt = glnd_cb->evt_bckup_q;
 
 	for (prev = NULL; evt != NULL; evt = evt->next) {
 		if (evt->type == GLSV_GLND_EVT_LCK_REQ &&
 		    evt->info.node_lck_info.lock_type == type &&
-		    evt->info.node_lck_info.client_handle_id == hldId && evt->info.node_lck_info.resource_id == resId) {
+		    evt->info.node_lck_info.client_handle_id == hldId &&
+		    evt->info.node_lck_info.resource_id == resId) {
 			/* delete the evt */
 			if (prev) {
 				prev->next = evt->next;
 			} else {
 				glnd_cb->evt_bckup_q = evt->next;
 			}
-			/* Delete the shared memory section corresponding to this backup event */
+			/* Delete the shared memory section corresponding to
+			 * this backup event */
 			glnd_evt_shm_section_invalidate(glnd_cb, evt);
 			glnd_evt_destroy(evt);
 			return NCSCC_RC_SUCCESS;
@@ -107,24 +111,27 @@ uint32_t glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
 
 /****************************************************************************
   Name          : glnd_evt_backup_queue_delete_unlock_req
-  
-  Description   : This routine is used to delete the node from the queue 
- 
+
+  Description   : This routine is used to delete the node from the queue
+
   Arguments     : glnd_cb - pointer to the control block
-                   
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 void glnd_evt_backup_queue_delete_unlock_req(GLND_CB *glnd_cb,
-					     SaLckLockIdT lockid, SaLckHandleT hldId, SaLckResourceIdT resId)
+					     SaLckLockIdT lockid,
+					     SaLckHandleT hldId,
+					     SaLckResourceIdT resId)
 {
 	GLSV_GLND_EVT *prev, *evt = glnd_cb->evt_bckup_q;
 
 	for (prev = NULL; evt != NULL; evt = evt->next) {
 		if (evt->type == GLSV_GLND_EVT_UNLCK_REQ &&
 		    evt->info.node_lck_info.lockid == lockid &&
-		    evt->info.node_lck_info.client_handle_id == hldId && evt->info.node_lck_info.resource_id == resId) {
+		    evt->info.node_lck_info.client_handle_id == hldId &&
+		    evt->info.node_lck_info.resource_id == resId) {
 			/* delete the evt */
 			if (prev) {
 				prev->next = evt->next;
@@ -141,14 +148,14 @@ void glnd_evt_backup_queue_delete_unlock_req(GLND_CB *glnd_cb,
 
 /****************************************************************************
   Name          : glnd_evt_backup_queue_destroy
-  
+
   Description   : This routine is used to destroy the  backup events queue
- 
+
   Arguments     : glnd-cb - pointer to the control block
-                  
-                   
+
+
   Return Values : none
- 
+
   Notes         : None
 ******************************************************************************/
 void glnd_evt_backup_queue_destroy(GLND_CB *glnd_cb)
@@ -166,14 +173,14 @@ void glnd_evt_backup_queue_destroy(GLND_CB *glnd_cb)
 
 /****************************************************************************
   Name          : glnd_re_send_evt_backup_queue
-  
+
   Description   : This routine is used to re-send the  backup events queue
- 
+
   Arguments     : glnd-cb - pointer to the control block
-                  
-                   
+
+
   Return Values : none
- 
+
   Notes         : None
 ******************************************************************************/
 void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb)
@@ -188,14 +195,21 @@ void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb)
 		case GLSV_GLND_EVT_LCK_PURGE:
 		case GLSV_GLND_EVT_LCK_REQ_CANCEL:
 			if (evt->type != GLSV_GLND_EVT_LCK_PURGE)
-				res_info = glnd_resource_node_find(glnd_cb, evt->info.node_lck_info.resource_id);
+				res_info = glnd_resource_node_find(
+				    glnd_cb,
+				    evt->info.node_lck_info.resource_id);
 			else
-				res_info = glnd_resource_node_find(glnd_cb, evt->info.rsc_info.resource_id);
+				res_info = glnd_resource_node_find(
+				    glnd_cb, evt->info.rsc_info.resource_id);
 			if (res_info) {
-				if (res_info->status != GLND_RESOURCE_ELECTION_IN_PROGESS) {
-					glnd_mds_msg_send_glnd(glnd_cb, evt, res_info->master_mds_dest);
+				if (res_info->status !=
+				    GLND_RESOURCE_ELECTION_IN_PROGESS) {
+					glnd_mds_msg_send_glnd(
+					    glnd_cb, evt,
+					    res_info->master_mds_dest);
 					if (evt == glnd_cb->evt_bckup_q)
-						glnd_cb->evt_bckup_q = evt->next;
+						glnd_cb->evt_bckup_q =
+						    evt->next;
 					glnd_evt_destroy(evt);
 					if (prev)
 						prev->next = next;
@@ -206,7 +220,6 @@ void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb)
 				glnd_evt_destroy(evt);
 				if (prev)
 					prev->next = next;
-
 			}
 			break;
 		default:

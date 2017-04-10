@@ -52,9 +52,7 @@ class Role;
  **
  */
 
-enum RDE_RDA_SOCK_LIMITS {
-  RDE_RDA_SOCK_BUFFER_SIZE = 3200
-};
+enum RDE_RDA_SOCK_LIMITS { RDE_RDA_SOCK_BUFFER_SIZE = 3200 };
 
 /*****************************************************************************\
 *                                                                             *
@@ -82,10 +80,10 @@ using rde_rda_sock_addr = sockaddr_un;
 
 struct RDE_RDA_CB {
   struct sockaddr_un sock_address;
-  int fd; /* File descriptor */
+  int fd;    /* File descriptor */
   int flags; /* Flags specified for open */
   int client_count;
-  Role* role;
+  Role *role;
   RDE_RDA_CLIENT clients[MAX_RDA_CLIENTS];
 };
 

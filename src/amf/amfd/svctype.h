@@ -20,17 +20,18 @@
 
 class AVD_SVC_TYPE {
  public:
-  explicit AVD_SVC_TYPE(const std::string& dn);
-  std::string name {};
-  char **saAmfSvcDefActiveWeight {};
-  char **saAmfSvcDefStandbyWeight {};
-  std::vector<AVD_SI*> list_of_si {};
-  private:
-   AVD_SVC_TYPE();
-   // disallow copy and assign
-   AVD_SVC_TYPE(const AVD_SVC_TYPE&);
-  void operator=(const AVD_SVC_TYPE&);
- };
+  explicit AVD_SVC_TYPE(const std::string &dn);
+  std::string name{};
+  char **saAmfSvcDefActiveWeight{};
+  char **saAmfSvcDefStandbyWeight{};
+  std::vector<AVD_SI *> list_of_si{};
+
+ private:
+  AVD_SVC_TYPE();
+  // disallow copy and assign
+  AVD_SVC_TYPE(const AVD_SVC_TYPE &);
+  void operator=(const AVD_SVC_TYPE &);
+};
 
 SaAisErrorT avd_svctype_config_get(void);
 void avd_svctype_add_si(AVD_SI *si);

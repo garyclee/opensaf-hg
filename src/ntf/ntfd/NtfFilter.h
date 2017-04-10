@@ -28,33 +28,36 @@
 #include "ntf/saf/saNtf.h"
 #include "ntf/ntfd/NtfNotification.h"
 
-class NtfFilter
-{
+class NtfFilter {
  public:
   NtfFilter(SaNtfNotificationTypeT filterType);
   virtual ~NtfFilter();
-  virtual bool checkFilter(NtfSmartPtr& notif) = 0;
+  virtual bool checkFilter(NtfSmartPtr &notif) = 0;
   SaNtfNotificationTypeT type();
-  bool checkHeader(SaNtfNotificationFilterHeaderT *h, NtfSmartPtr& notif);
-  bool checkEventType(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h);
-  bool checkNtfClassId(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h);
-  bool checkNotificationObject(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h);
-  bool checkNotifyingObject(SaNtfNotificationFilterHeaderT *fh, const SaNtfNotificationHeaderT *h);
-  bool checkSourceIndicator(SaUint16T numSi, SaNtfSourceIndicatorT *sis, SaNtfSourceIndicatorT *s);
+  bool checkHeader(SaNtfNotificationFilterHeaderT *h, NtfSmartPtr &notif);
+  bool checkEventType(SaNtfNotificationFilterHeaderT *fh,
+                      const SaNtfNotificationHeaderT *h);
+  bool checkNtfClassId(SaNtfNotificationFilterHeaderT *fh,
+                       const SaNtfNotificationHeaderT *h);
+  bool checkNotificationObject(SaNtfNotificationFilterHeaderT *fh,
+                               const SaNtfNotificationHeaderT *h);
+  bool checkNotifyingObject(SaNtfNotificationFilterHeaderT *fh,
+                            const SaNtfNotificationHeaderT *h);
+  bool checkSourceIndicator(SaUint16T numSi, SaNtfSourceIndicatorT *sis,
+                            SaNtfSourceIndicatorT *s);
   bool cmpSaNameT(SaNameT *n, SaNameT *n2);
-  bool cmpSaNtfValueT(SaNtfValueTypeT t, SaNtfValueT *v, SaNtfValueTypeT t2, SaNtfValueT *v2);
+  bool cmpSaNtfValueT(SaNtfValueTypeT t, SaNtfValueT *v, SaNtfValueTypeT t2,
+                      SaNtfValueT *v2);
 
  private:
-
   SaNtfNotificationTypeT filterType_;
 };
 
-class NtfAlarmFilter:public NtfFilter
-{
+class NtfAlarmFilter : public NtfFilter {
  public:
   NtfAlarmFilter(SaNtfAlarmNotificationFilterT *f);
   ~NtfAlarmFilter();
-  bool checkFilter(NtfSmartPtr& notif);
+  bool checkFilter(NtfSmartPtr &notif);
   bool checkTrend(SaNtfAlarmNotificationT *a);
   bool checkPerceivedSeverity(SaNtfAlarmNotificationT *a);
   bool checkprobableCause(SaNtfAlarmNotificationT *a);
@@ -63,12 +66,11 @@ class NtfAlarmFilter:public NtfFilter
   SaNtfAlarmNotificationFilterT *filter_;
 };
 
-class NtfSecurityAlarmFilter: public NtfFilter
-{
+class NtfSecurityAlarmFilter : public NtfFilter {
  public:
   NtfSecurityAlarmFilter(SaNtfSecurityAlarmNotificationFilterT *f);
   ~NtfSecurityAlarmFilter();
-  bool checkFilter(NtfSmartPtr& notif);
+  bool checkFilter(NtfSmartPtr &notif);
   bool checkProbableCause(SaNtfSecurityAlarmNotificationT *s);
   bool checkSeverity(SaNtfSecurityAlarmNotificationT *s);
   bool checkSecurityAlarmDetector(SaNtfSecurityAlarmNotificationT *s);
@@ -79,45 +81,37 @@ class NtfSecurityAlarmFilter: public NtfFilter
   SaNtfSecurityAlarmNotificationFilterT *filter_;
 };
 
-class NtfObjectCreateDeleteFilter: public NtfFilter
-{
+class NtfObjectCreateDeleteFilter : public NtfFilter {
  public:
   NtfObjectCreateDeleteFilter(SaNtfObjectCreateDeleteNotificationFilterT *f);
   ~NtfObjectCreateDeleteFilter();
-  bool checkFilter(NtfSmartPtr& notif);
+  bool checkFilter(NtfSmartPtr &notif);
 
  private:
   SaNtfObjectCreateDeleteNotificationFilterT *filter_;
 };
 
-class NtfStateChangeFilter: public NtfFilter
-{
+class NtfStateChangeFilter : public NtfFilter {
  public:
   NtfStateChangeFilter(SaNtfStateChangeNotificationFilterT *f);
   ~NtfStateChangeFilter();
-  bool checkFilter(NtfSmartPtr& notif);
-  bool checkStateId(SaUint16T ns, SaNtfStateChangeT * sc);
+  bool checkFilter(NtfSmartPtr &notif);
+  bool checkStateId(SaUint16T ns, SaNtfStateChangeT *sc);
 
  private:
   SaNtfStateChangeNotificationFilterT *filter_;
 };
 
-class NtfAttributeChangeFilter: public NtfFilter
-{
+class NtfAttributeChangeFilter : public NtfFilter {
  public:
   NtfAttributeChangeFilter(SaNtfAttributeChangeNotificationFilterT *f);
   ~NtfAttributeChangeFilter();
-  bool checkFilter(NtfSmartPtr& notif);
+  bool checkFilter(NtfSmartPtr &notif);
 
  private:
   SaNtfAttributeChangeNotificationFilterT *filter_;
 };
 
-typedef std::map<SaNtfNotificationTypeT,NtfFilter*> FilterMap;
-
+typedef std::map<SaNtfNotificationTypeT, NtfFilter *> FilterMap;
 
 #endif  // NTF_NTFD_NTFFILTER_H_
-
-
-
-

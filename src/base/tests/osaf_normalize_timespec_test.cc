@@ -26,55 +26,55 @@ TEST(OsafNormalizeTimespec, Zero) {
 }
 
 TEST(OsafNormalizeTimespec, AlreadyNormalized) {
-  const timespec already_normalized = { 123456789, 987654321 };
+  const timespec already_normalized = {123456789, 987654321};
   timespec result;
   osaf_normalize_timespec(&already_normalized, &result);
   EXPECT_EQ(osaf_timespec_compare(&result, &already_normalized), 0);
 }
 
 TEST(OsafNormalizeTimespec, NanoseconsdGreaterThanOneBillion) {
-  const timespec not_normalized = { 123456789, 1987654321 };
-  const timespec normalized = { 123456790, 987654321 };
+  const timespec not_normalized = {123456789, 1987654321};
+  const timespec normalized = {123456790, 987654321};
   timespec result;
   osaf_normalize_timespec(&not_normalized, &result);
   EXPECT_EQ(osaf_timespec_compare(&result, &normalized), 0);
 }
 
 TEST(OsafNormalizeTimespec, NanoseconsdLessThanZero) {
-  const timespec not_normalized = { 123456789, -100 };
-  const timespec normalized = { 123456788, 1000000000 - 100 };
+  const timespec not_normalized = {123456789, -100};
+  const timespec normalized = {123456788, 1000000000 - 100};
   timespec result;
   osaf_normalize_timespec(&not_normalized, &result);
   EXPECT_EQ(osaf_timespec_compare(&result, &normalized), 0);
 }
 
 TEST(OsafNormalizeTimespec, NanoseconsGreaterThan2Billions) {
-  const timespec not_normalized = { 123456789, 2101234567 };
-  const timespec normalized = { 123456789 + 2, 101234567 };
+  const timespec not_normalized = {123456789, 2101234567};
+  const timespec normalized = {123456789 + 2, 101234567};
   timespec result;
   osaf_normalize_timespec(&not_normalized, &result);
   EXPECT_EQ(osaf_timespec_compare(&result, &normalized), 0);
 }
 
 TEST(OsafNormalizeTimespec, NanoseconsLessThanMinus2Billions) {
-  const timespec not_normalized = { 123456789, -2000000567 };
-  const timespec normalized = { 123456789 - 2 - 1, 1000000000 - 567 };
+  const timespec not_normalized = {123456789, -2000000567};
+  const timespec normalized = {123456789 - 2 - 1, 1000000000 - 567};
   timespec result;
   osaf_normalize_timespec(&not_normalized, &result);
   EXPECT_EQ(osaf_timespec_compare(&result, &normalized), 0);
 }
 
 TEST(OsafNormalizeTimespec, BothParametersAtSameAddress) {
-  const timespec not_normalized = { 123456789, -2000000567 };
-  const timespec normalized = { 123456789 - 2 - 1, 1000000000 - 567 };
+  const timespec not_normalized = {123456789, -2000000567};
+  const timespec normalized = {123456789 - 2 - 1, 1000000000 - 567};
   timespec result = not_normalized;
   osaf_normalize_timespec(&result, &result);
   EXPECT_EQ(osaf_timespec_compare(&result, &normalized), 0);
 }
 
 TEST(OsafNormalizeTimespec, NegativeSecondsAndNanoseconds) {
-  const timespec not_normalized = { -123, -1 };
-  const timespec normalized = { -124, 999999999 };
+  const timespec not_normalized = {-123, -1};
+  const timespec normalized = {-124, 999999999};
   timespec result;
   osaf_normalize_timespec(&not_normalized, &result);
   EXPECT_EQ(osaf_timespec_compare(&result, &normalized), 0);

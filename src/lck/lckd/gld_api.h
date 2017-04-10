@@ -22,8 +22,7 @@
 #include "amf/saf/saAmf.h"
 
 uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info);
-uint32_t initialize_for_assignment(GLSV_GLD_CB *cb,
-                                   SaAmfHAStateT ha_state);
+uint32_t initialize_for_assignment(GLSV_GLD_CB *cb, SaAmfHAStateT ha_state);
 uint32_t gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info);
 void gld_process_mbx(SYSF_MBX *mbx);
 

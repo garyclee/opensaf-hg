@@ -18,10 +18,11 @@
 #include "base/tests/mock_osafassert.h"
 #include <cstdlib>
 
-void __osafassert_fail(const char *file, int line, const char* func, const char *assertion) {
-  (void) file;
-  (void) line;
-  (void) func;
-  (void) assertion;
+void __osafassert_fail(const char *file, int line, const char *func,
+                       const char *assertion) {
+  (void)file;
+  (void)line;
+  (void)func;
+  (void)assertion;
   abort();
 }

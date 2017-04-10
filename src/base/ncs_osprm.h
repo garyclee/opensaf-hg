@@ -32,7 +32,7 @@
 #include "base/logtrace.h"
 #include "base/ncsgl_defs.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -57,8 +57,8 @@ extern "C" {
  ** VR_CB_V  = "Void Returning CallBack Function using Void arg"
  **
  ** ********************************************************************** **/
-typedef void (*NCS_OS_CB) (void *);
-typedef void (*VR_CBF_V) (void);
+typedef void (*NCS_OS_CB)(void *);
+typedef void (*VR_CBF_V)(void);
 
 /****************************************************************************
  ****************************************************************************
@@ -128,7 +128,8 @@ typedef struct ncs_os_task_tag {
  *  NCS_OS_TASK_START   (mandatory) Start a NCS_OS_TASK task.
  *  NCS_OS_TASK_STOP    (mandatory) Stop a NCS_OS_TASK task.
  *  NCS_OS_TASK_SLEEP   (mandatory) Sleep/delay a NCS_OS_TASK task.
- *  NCS_OS_TASK_CURRENT_HANDLE (mandatory) Return handle of current NCS_OS_TASK task.
+ *  NCS_OS_TASK_CURRENT_HANDLE (mandatory) Return handle of current NCS_OS_TASK
+ *task.
  ***************************************************************************/
 typedef enum {
   NCS_OS_TASK_CREATE = 1,
@@ -231,9 +232,10 @@ typedef enum {
  *
  ***************************************************************************/
 
-typedef void *(*NCS_POOL_MALLOC)(uint32_t nbytes, uint8_t pool_id, uint8_t priority);
+typedef void *(*NCS_POOL_MALLOC)(uint32_t nbytes, uint8_t pool_id,
+                                 uint8_t priority);
 
-typedef void (*NCS_POOL_MFREE) (void *data, uint8_t pool_id);
+typedef void (*NCS_POOL_MFREE)(void *data, uint8_t pool_id);
 
 /****************************************************************************
  * User Defined Pool Memory Allocate Primitive definition
@@ -295,8 +297,7 @@ void ncs_os_udef_free(void *ptr, uint8_t pool);
  *
  ***************************************************************************/
 
-
-#define m_NCS_OS_TASK(pncs_os_task,req) ncs_os_task (pncs_os_task,req)
+#define m_NCS_OS_TASK(pncs_os_task, req) ncs_os_task(pncs_os_task, req)
 unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
 
 /****************************************************************************
@@ -311,7 +312,12 @@ unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
  * Macro return codes
  *  void
  ***************************************************************************/
-#define m_NCS_OS_TASK_PRELUDE   {setbuf(stdin,NULL);setbuf(stdout,NULL);setbuf(stderr,NULL);}
+#define m_NCS_OS_TASK_PRELUDE \
+  {                           \
+    setbuf(stdin, NULL);      \
+    setbuf(stdout, NULL);     \
+    setbuf(stderr, NULL);     \
+  }
 
 /****************************************************************************
  * LOCK Primitive definition
@@ -328,7 +334,8 @@ unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
  *   NCSCC_RC_FAILURE - interface call failed.
  *
  ***************************************************************************/
-#define m_NCS_OS_LOCK(pncs_os_lock,req,type) ncs_os_lock(pncs_os_lock,req,type)
+#define m_NCS_OS_LOCK(pncs_os_lock, req, type) \
+  ncs_os_lock(pncs_os_lock, req, type)
 unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
 
 // TODO: remove when changed other services
@@ -352,13 +359,13 @@ unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
 
 typedef enum {
   NCS_OS_MQ_REQ_MIN,
-  NCS_OS_MQ_REQ_CREATE,   /* Strictly create */
-  NCS_OS_MQ_REQ_OPEN,     /* Strictly open i.e. do not create */
+  NCS_OS_MQ_REQ_CREATE, /* Strictly create */
+  NCS_OS_MQ_REQ_OPEN,   /* Strictly open i.e. do not create */
   NCS_OS_MQ_REQ_DESTROY,
   NCS_OS_MQ_REQ_MSG_SEND,
   NCS_OS_MQ_REQ_MSG_SEND_ASYNC,
-  NCS_OS_MQ_REQ_MSG_RECV, /* Blocking recv call */
-  NCS_OS_MQ_REQ_MSG_RECV_ASYNC,   /* NonBlocking recv call */
+  NCS_OS_MQ_REQ_MSG_RECV,       /* Blocking recv call */
+  NCS_OS_MQ_REQ_MSG_RECV_ASYNC, /* NonBlocking recv call */
   NCS_OS_MQ_REQ_RESIZE,
   NCS_OS_MQ_REQ_MAX
 } NCS_OS_MQ_REQ_TYPE;
@@ -390,7 +397,7 @@ typedef struct ncs_mq_req_msg_send_info {
   NCS_OS_MQ_HDL i_hdl;
   NCS_OS_MQ_MSG *i_msg;
   uint32_t i_len;
-  uint32_t i_mtype;       /* Can be used for priority */
+  uint32_t i_mtype; /* Can be used for priority */
 } NCS_OS_MQ_REQ_MSG_SEND_INFO;
 
 /*-----------------------------------*/
@@ -398,15 +405,15 @@ typedef struct ncs_mq_req_msg_recv_info {
   NCS_OS_MQ_HDL i_hdl;
   NCS_OS_MQ_MSG *i_msg;
   uint32_t i_max_recv;
-  int32_t i_mtype;        /* the first message on the queue with the
-                             lowest type less than or equal to the
-                             absolute value of i_mtype will be read */
+  int32_t i_mtype; /* the first message on the queue with the
+                      lowest type less than or equal to the
+                      absolute value of i_mtype will be read */
 } NCS_OS_MQ_REQ_MSG_RECV_INFO;
 
 /*-----------------------------------*/
 typedef struct ncs_mq_req_resize_info {
   NCS_OS_MQ_HDL i_hdl;
-  uint32_t i_newqsize;    /* new queue size */
+  uint32_t i_newqsize; /* new queue size */
 } NCS_OS_MQ_REQ_RESIZE_INFO;
 
 /*-----------------------------------*/
@@ -443,18 +450,17 @@ uint32_t ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
 
 typedef enum {
   NCS_OS_POSIX_MQ_REQ_MIN = 1,
-  NCS_OS_POSIX_MQ_REQ_OPEN,       /* Strictly open i.e. do not create */
+  NCS_OS_POSIX_MQ_REQ_OPEN, /* Strictly open i.e. do not create */
   NCS_OS_POSIX_MQ_REQ_CLOSE,
   NCS_OS_POSIX_MQ_REQ_UNLINK,
   NCS_OS_POSIX_MQ_REQ_MSG_SEND,
   NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC,
-  NCS_OS_POSIX_MQ_REQ_MSG_RECV,   /* Blocking recv call */
-  NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC,     /* NonBlocking recv call */
-  NCS_OS_POSIX_MQ_REQ_GET_ATTR,   /* Get attributes */
+  NCS_OS_POSIX_MQ_REQ_MSG_RECV,       /* Blocking recv call */
+  NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC, /* NonBlocking recv call */
+  NCS_OS_POSIX_MQ_REQ_GET_ATTR,       /* Get attributes */
   NCS_OS_POSIX_MQ_REQ_RESIZE,
   NCS_OS_POSIX_MQ_REQ_MAX
 } NCS_OS_POSIX_MQ_REQ_TYPE;
-
 
 typedef struct ncs_os_posix_mq_attr {
   uint32_t mq_flags;
@@ -497,7 +503,7 @@ typedef struct ncs_posix_mq_req_msg_send_info {
   uint32_t datalen;
   uint32_t dataprio;
   NCS_OS_MQ_MSG *i_msg;
-  uint32_t i_mtype;       /* Can be used for priority */
+  uint32_t i_mtype; /* Can be used for priority */
 } NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO;
 
 /*-----------------------------------*/
@@ -507,15 +513,15 @@ typedef struct ncs_posix_mq_req_msg_recv_info {
   uint32_t dataprio;
   NCS_OS_POSIX_TIMESPEC timeout;
   NCS_OS_MQ_MSG *i_msg;
-  int32_t i_mtype;        /* the first message on the queue with the
-                             lowest type less than or equal to the
-                             absolute value of i_mtype will be read */
+  int32_t i_mtype; /* the first message on the queue with the
+                      lowest type less than or equal to the
+                      absolute value of i_mtype will be read */
 } NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO;
 
 /*-----------------------------------*/
 typedef struct ncs_posix_mq_req_resize_info {
   NCS_OS_POSIX_MQD mqd;
-  uint32_t i_newqsize;    /* new queue size */
+  uint32_t i_newqsize; /* new queue size */
 } NCS_OS_POSIX_MQ_REQ_RESIZE_INFO;
 
 /*-----------------------------------*/
@@ -552,9 +558,9 @@ uint32_t ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 typedef enum {
 
   NCS_OS_POSIX_SHM_REQ_MIN = 1,
-  NCS_OS_POSIX_SHM_REQ_OPEN,      /* opens and mmaps */
-  NCS_OS_POSIX_SHM_REQ_CLOSE,     /* close is munmap */
-  NCS_OS_POSIX_SHM_REQ_UNLINK,    /* unlink is shm_unlink */
+  NCS_OS_POSIX_SHM_REQ_OPEN,   /* opens and mmaps */
+  NCS_OS_POSIX_SHM_REQ_CLOSE,  /* close is munmap */
+  NCS_OS_POSIX_SHM_REQ_UNLINK, /* unlink is shm_unlink */
   NCS_OS_POSIX_SHM_REQ_READ,
   NCS_OS_POSIX_SHM_REQ_WRITE,
   NCS_OS_POSIX_SHM_REQ_MAX
@@ -629,8 +635,7 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req);
                         NCS_SEL_OBJ, without effecting user code)
 
 \****************************************************************************/
-#define m_GET_FD_FROM_SEL_OBJ(sel_obj)          \
-  (sel_obj.rmv_obj)
+#define m_GET_FD_FROM_SEL_OBJ(sel_obj) (sel_obj.rmv_obj)
 
 /****************************************************************************\
 
@@ -653,7 +658,7 @@ uint32_t ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req);
 
 \****************************************************************************/
 uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj);
-#define     m_NCS_SEL_OBJ_CREATE(o_sel_obj) ncs_sel_obj_create(o_sel_obj)
+#define m_NCS_SEL_OBJ_CREATE(o_sel_obj) ncs_sel_obj_create(o_sel_obj)
 
 /****************************************************************************\
 
@@ -673,7 +678,7 @@ uint32_t ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj);
 
 \****************************************************************************/
 uint32_t ncs_sel_obj_destroy(NCS_SEL_OBJ *i_sel_obj);
-#define     m_NCS_SEL_OBJ_DESTROY(i_sel_obj) ncs_sel_obj_destroy(i_sel_obj)
+#define m_NCS_SEL_OBJ_DESTROY(i_sel_obj) ncs_sel_obj_destroy(i_sel_obj)
 
 /****************************************************************************\
 
@@ -695,7 +700,8 @@ uint32_t ncs_sel_obj_destroy(NCS_SEL_OBJ *i_sel_obj);
 \****************************************************************************/
 
 uint32_t ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_sel_obj);
-#define     m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(i_sel_obj) ncs_sel_obj_rmv_operation_shut(i_sel_obj)
+#define m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(i_sel_obj) \
+  ncs_sel_obj_rmv_operation_shut(i_sel_obj)
 
 /****************************************************************************\
 
@@ -716,7 +722,8 @@ uint32_t ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_sel_obj);
 
 \****************************************************************************/
 uint32_t ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_sel_obj);
-#define     m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(i_sel_obj) ncs_sel_obj_raise_operation_shut(i_sel_obj)
+#define m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(i_sel_obj) \
+  ncs_sel_obj_raise_operation_shut(i_sel_obj)
 
 /****************************************************************************\
    ncs_sel_obj_ind:     Queues exactly 1 indication on a selection-object. It
@@ -735,7 +742,7 @@ uint32_t ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_sel_obj);
 
 \****************************************************************************/
 uint32_t ncs_sel_obj_ind(NCS_SEL_OBJ *i_sel_obj);
-#define     m_NCS_SEL_OBJ_IND(i_sel_obj)  ncs_sel_obj_ind(i_sel_obj)
+#define m_NCS_SEL_OBJ_IND(i_sel_obj) ncs_sel_obj_ind(i_sel_obj)
 
 /****************************************************************************\
    ncs_sel_obj_rmv_ind: Removes 1 or more indications queued on
@@ -774,11 +781,11 @@ uint32_t ncs_sel_obj_ind(NCS_SEL_OBJ *i_sel_obj);
                         the return value.
 
 \***************************************************************************/
-int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_rmv_only_one_flag);
+int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag,
+                        bool i_rmv_only_one_flag);
 
-#define     m_NCS_SEL_OBJ_RMV_IND(sel_obj, noblock_flag, rmv_only_one_flag) \
-  ncs_sel_obj_rmv_ind(sel_obj, noblock_flag,  rmv_only_one_flag)
-
+#define m_NCS_SEL_OBJ_RMV_IND(sel_obj, noblock_flag, rmv_only_one_flag) \
+  ncs_sel_obj_rmv_ind(sel_obj, noblock_flag, rmv_only_one_flag)
 
 /****************************************************************************\
  * E N D      :  S E L E C T I O N - O B J E C T    P R I M I T I V E S     *
@@ -797,8 +804,7 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_
  **                             the ASCII string is limited to 32 octets.   **
  **                                                                         **
  ****************************************************************************/
-#define m_NCS_OS_GET_TIME_STAMP(timestamp) timestamp=time((time_t*)0)
-
+#define m_NCS_OS_GET_TIME_STAMP(timestamp) timestamp = time((time_t *)0)
 
 /****************************************************************************
  **                                                                        **
@@ -810,10 +816,10 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_
  **                                                                        **
  ***************************************************************************/
 
-#define m_NCS_OS_NTOHL(x)            ntohl(x)
-#define m_NCS_OS_HTONL(x)            htonl(x)
-#define m_NCS_OS_NTOHS(s)            ntohs(s)
-#define m_NCS_OS_HTONS(s)            htons(s)
+#define m_NCS_OS_NTOHL(x) ntohl(x)
+#define m_NCS_OS_HTONL(x) htonl(x)
+#define m_NCS_OS_NTOHS(s) ntohs(s)
+#define m_NCS_OS_HTONS(s) htons(s)
 
 /*********************************************************\
    m_NCS_OS_HTONLL_P :  Encodes a  64-bit integer into a
@@ -837,15 +843,16 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_
 
 \*********************************************************/
 #ifndef m_NCS_OS_HTONLL_P
-#define m_NCS_OS_HTONLL_P(p8, in_long_long) {           \
-    ((uint8_t*)p8)[0] = (uint8_t)(in_long_long>>56);    \
-    ((uint8_t*)p8)[1] = (uint8_t)(in_long_long>>48);    \
-    ((uint8_t*)p8)[2] = (uint8_t)(in_long_long>>40);    \
-    ((uint8_t*)p8)[3] = (uint8_t)(in_long_long>>32);    \
-    ((uint8_t*)p8)[4] = (uint8_t)(in_long_long>>24);    \
-    ((uint8_t*)p8)[5] = (uint8_t)(in_long_long>>16);    \
-    ((uint8_t*)p8)[6] = (uint8_t)(in_long_long>> 8);    \
-    ((uint8_t*)p8)[7] = (uint8_t)(in_long_long    );    \
+#define m_NCS_OS_HTONLL_P(p8, in_long_long)             \
+  {                                                     \
+    ((uint8_t *)p8)[0] = (uint8_t)(in_long_long >> 56); \
+    ((uint8_t *)p8)[1] = (uint8_t)(in_long_long >> 48); \
+    ((uint8_t *)p8)[2] = (uint8_t)(in_long_long >> 40); \
+    ((uint8_t *)p8)[3] = (uint8_t)(in_long_long >> 32); \
+    ((uint8_t *)p8)[4] = (uint8_t)(in_long_long >> 24); \
+    ((uint8_t *)p8)[5] = (uint8_t)(in_long_long >> 16); \
+    ((uint8_t *)p8)[6] = (uint8_t)(in_long_long >> 8);  \
+    ((uint8_t *)p8)[7] = (uint8_t)(in_long_long);       \
   }
 #endif
 
@@ -870,77 +877,86 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_
                         flag.
 \*********************************************************/
 #ifndef m_NCS_OS_NTOHLL_P
-#define m_NCS_OS_NTOHLL_P(p8) (                 \
-((uint64_t)((uint8_t*)(p8))[0] <<56) |          \
-((uint64_t)((uint8_t*)(p8))[1] <<48) |          \
-((uint64_t)((uint8_t*)(p8))[2] <<40) |          \
-((uint64_t)((uint8_t*)(p8))[3] <<32) |          \
-((uint64_t)((uint8_t*)(p8))[4] <<24) |          \
-((uint64_t)((uint8_t*)(p8))[5] <<16) |          \
-((uint64_t)((uint8_t*)(p8))[6] <<8 ) |          \
-((uint64_t)((uint8_t*)(p8))[7]     )            \
-)
+#define m_NCS_OS_NTOHLL_P(p8)               \
+  (((uint64_t)((uint8_t *)(p8))[0] << 56) | \
+   ((uint64_t)((uint8_t *)(p8))[1] << 48) | \
+   ((uint64_t)((uint8_t *)(p8))[2] << 40) | \
+   ((uint64_t)((uint8_t *)(p8))[3] << 32) | \
+   ((uint64_t)((uint8_t *)(p8))[4] << 24) | \
+   ((uint64_t)((uint8_t *)(p8))[5] << 16) | \
+   ((uint64_t)((uint8_t *)(p8))[6] << 8) | ((uint64_t)((uint8_t *)(p8))[7]))
 #endif
 
-#if (NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT == 0)   /* no CPU alignment requirement */
+#if (NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT == 0) /* no CPU alignment requirement \
+                                               */
 
 #ifndef m_NCS_OS_NTOHL_P
-#define m_NCS_OS_NTOHL_P(p8)         ntohl(*(uint32_t*)p8)
+#define m_NCS_OS_NTOHL_P(p8) ntohl(*(uint32_t *)p8)
 #endif
 
 #ifndef m_NCS_OS_HTONL_P
-#define m_NCS_OS_HTONL_P(p8,v32)     (*(uint32_t*)p8 = htonl(v32))
+#define m_NCS_OS_HTONL_P(p8, v32) (*(uint32_t *)p8 = htonl(v32))
 #endif
 
 #ifndef m_NCS_OS_NTOHS_P
-#define m_NCS_OS_NTOHS_P(p8)         ntohs(*(uns16*)p8)
+#define m_NCS_OS_NTOHS_P(p8) ntohs(*(uns16 *)p8)
 #endif
 
 #ifndef m_NCS_OS_HTONS_P
-#define m_NCS_OS_HTONS_P(p8,v16)     (*(uns16*)p8 = htons(v16))
+#define m_NCS_OS_HTONS_P(p8, v16) (*(uns16 *)p8 = htons(v16))
 #endif
-#else                           /* CPU requires alignment access */
+#else /* CPU requires alignment access */
 
 #ifndef m_NCS_OS_NTOHL_P
-#define m_NCS_OS_NTOHL_P(p8) (uint32_t)((*(uint8_t*)p8<<24)|(*(uint8_t*)(p8+1)<<16)| \
-                                        (*(uint8_t*)(p8+2)<<8)|(*(uint8_t*)(p8+3)))
+#define m_NCS_OS_NTOHL_P(p8)                                         \
+  (uint32_t)((*(uint8_t *)p8 << 24) | (*(uint8_t *)(p8 + 1) << 16) | \
+             (*(uint8_t *)(p8 + 2) << 8) | (*(uint8_t *)(p8 + 3)))
 #endif
 
 #ifndef m_NCS_OS_NTOHS_P
-#define m_NCS_OS_NTOHS_P(p8) (uint16_t)((*(uint8_t*)p8<<8)|*((uint8_t*)(p8+1)))
+#define m_NCS_OS_NTOHS_P(p8) \
+  (uint16_t)((*(uint8_t *)p8 << 8) | *((uint8_t *)(p8 + 1)))
 #endif
 
 #ifndef m_NCS_OS_HTONL_P
-#define m_NCS_OS_HTONL_P(p8,v32) {              \
-    *p8     = (uint8_t)(v32>>24);               \
-    *(p8+1) = (uint8_t)(v32>>16);               \
-    *(p8+2) = (uint8_t)(v32>>8);                \
-    *(p8+3) = (uint8_t)v32; }
+#define m_NCS_OS_HTONL_P(p8, v32)     \
+  {                                   \
+    *p8 = (uint8_t)(v32 >> 24);       \
+    *(p8 + 1) = (uint8_t)(v32 >> 16); \
+    *(p8 + 2) = (uint8_t)(v32 >> 8);  \
+    *(p8 + 3) = (uint8_t)v32;         \
+  }
 #endif
 
 #ifndef m_NCS_OS_HTONS_P
-#define m_NCS_OS_HTONS_P(p8,v16) {              \
-    *p8     = (uint8_t)(v16>>8);                \
-    *(p8+1) = (uint8_t)v16; }
+#define m_NCS_OS_HTONS_P(p8, v16) \
+  {                               \
+    *p8 = (uint8_t)(v16 >> 8);    \
+    *(p8 + 1) = (uint8_t)v16;     \
+  }
 #endif
-#endif   /* CPU alignment */
+#endif /* CPU alignment */
 
 /*
  * Macro primitives to encode 2byte and 4byte values from host order into
  * a "uns32"-string in network order.
  */
 #ifndef m_NCS_OS_HTONS_UNS32_P
-#define m_NCS_OS_HTONS_UNS32_P(p32, v16)        \
-  {*p32        = (v16 >> 8);                    \
-*(p32 + 1)  =  (v16 & 0x00FF); }
+#define m_NCS_OS_HTONS_UNS32_P(p32, v16) \
+  {                                      \
+    *p32 = (v16 >> 8);                   \
+    *(p32 + 1) = (v16 & 0x00FF);         \
+  }
 #endif
 
 #ifndef m_NCS_OS_HTONL_UNS32_P
-#define m_NCS_OS_HTONL_UNS32_P(p32, v32)        \
-  {*p32       = (v32 >>24) & 0x000000ff;        \
-*(p32 + 1)  = (v32 >>16) & 0x000000ff;          \
-*(p32 + 2)  = (v32 >>8) & 0x000000ff;           \
-*(p32 + 3)  =  v32 & 0x000000ff;}
+#define m_NCS_OS_HTONL_UNS32_P(p32, v32)   \
+  {                                        \
+    *p32 = (v32 >> 24) & 0x000000ff;       \
+    *(p32 + 1) = (v32 >> 16) & 0x000000ff; \
+    *(p32 + 2) = (v32 >> 8) & 0x000000ff;  \
+    *(p32 + 3) = v32 & 0x000000ff;         \
+  }
 #endif
 
 /****************************************************************************
@@ -951,7 +967,7 @@ int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ *i_sel_obj, bool i_no_blocking_flag, bool i_
  ***************************************************************************/
 
 typedef uint64_t NCS_EXEC_HDL;
-typedef void* NCS_EXEC_USR_HDL;
+typedef void *NCS_EXEC_USR_HDL;
 
 /* This Structure assists in passing the environment arguments needed to be
    set in the newly created process. */
@@ -959,7 +975,7 @@ typedef void* NCS_EXEC_USR_HDL;
 typedef struct ncs_os_environ_set_node_tag {
   char *name;
   char *value;
-  int overwrite;  /* zero the value is not overwritten else overwritten */
+  int overwrite; /* zero the value is not overwritten else overwritten */
 } NCS_OS_ENVIRON_SET_NODE;
 
 typedef struct ncs_os_environ_args_tag {
@@ -1006,7 +1022,7 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_CB_INFO {
 } NCS_OS_PROC_EXECUTE_TIMED_CB_INFO;
 
 /* CALLBACK function prototype */
-typedef uint32_t (*NCS_OS_PROC_EXECUTE_CB) (NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
+typedef uint32_t (*NCS_OS_PROC_EXECUTE_CB)(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
 
 /* REQUEST structure definition */
 typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO {
@@ -1019,13 +1035,12 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO {
   NCS_EXEC_USR_HDL i_usr_hdl;
   NCS_OS_PROC_EXECUTE_CB i_cb;
   /* OUTPUTS */
-  NCS_EXEC_HDL o_exec_hdl;        /*  */
+  NCS_EXEC_HDL o_exec_hdl; /*  */
 } NCS_OS_PROC_EXECUTE_TIMED_INFO;
 
 uint32_t ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
-
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

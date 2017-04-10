@@ -53,84 +53,85 @@ class SmfCallback;
 ///
 class SmfCampaignWrapup {
  public:
+  ///
+  /// Purpose: Constructor.
+  /// @param   None
+  /// @return  None
+  ///
+  SmfCampaignWrapup();
 
-///
-/// Purpose: Constructor.
-/// @param   None
-/// @return  None
-///
-	SmfCampaignWrapup();
+  ///
+  /// Purpose: Destructor.
+  /// @param   None
+  /// @return  None
+  ///
+  ~SmfCampaignWrapup();
 
-///
-/// Purpose: Destructor.
-/// @param   None
-/// @return  None
-///
-	~SmfCampaignWrapup();
+  ///
+  /// Purpose: Add operations from the campaign xml removeFromImm section.
+  /// @param   i_operation A pointer to a SmfImmOperation.
+  /// @return  None.
+  ///
+  void addRemoveFromImm(SmfImmOperation* i_operation);
 
-///
-/// Purpose: Add operations from the campaign xml removeFromImm section.
-/// @param   i_operation A pointer to a SmfImmOperation.
-/// @return  None.
-///
-	void addRemoveFromImm(SmfImmOperation * i_operation);
+  ///
+  /// Purpose: Add a callback to be issued at commit (from callbackAtCommit
+  /// section).
+  /// @param   i_option A pointer to a SmfCallbackOptions.
+  /// @return  None.
+  ///
+  void addCallbackAtCommit(SmfCallback* i_cbk);
 
-///
-/// Purpose: Add a callback to be issued at commit (from callbackAtCommit section).
-/// @param   i_option A pointer to a SmfCallbackOptions.
-/// @return  None.
-///
-	void addCallbackAtCommit(SmfCallback* i_cbk);
+  ///
+  /// Purpose: Add an action to be executed at campaign commit (campCommitAction
+  /// in campaign xml)..
+  /// @param   i_action A pointer to a SmfUpgradeAction.
+  /// @return  None.
+  ///
+  void addCampCompleteAction(SmfUpgradeAction* i_action);
 
+  ///
+  /// Purpose: Add an action to be executed at campaign wrapup (campWrapupAction
+  /// in campaign xml)..
+  /// @param   i_action A pointer to a SmfUpgradeAction.
+  /// @return  None.
+  ///
+  void addCampWrapupAction(SmfUpgradeAction* i_action);
 
-///
-/// Purpose: Add an action to be executed at campaign commit (campCommitAction in campaign xml)..
-/// @param   i_action A pointer to a SmfUpgradeAction.
-/// @return  None.
-///
-	void addCampCompleteAction(SmfUpgradeAction * i_action);
+  ///
+  /// Purpose: Execute campaing wrapup actions.
+  /// @param   None.
+  /// @return  True if sucessful otherwise false.
+  ///
+  bool executeCampWrapup();
 
-///
-/// Purpose: Add an action to be executed at campaign wrapup (campWrapupAction in campaign xml)..
-/// @param   i_action A pointer to a SmfUpgradeAction.
-/// @return  None.
-///
-	void addCampWrapupAction(SmfUpgradeAction * i_action);
+  ///
+  /// Purpose: Rollback campaing wrapup actions.
+  /// @param   None.
+  /// @return  True if sucessful otherwise false.
+  ///
+  bool rollbackCampWrapup();
 
-///
-/// Purpose: Execute campaing wrapup actions.
-/// @param   None.
-/// @return  True if sucessful otherwise false.
-///
-	bool executeCampWrapup();
+  ///
+  /// Purpose: Execute wrapup complete actions.
+  /// @param   None.
+  /// @return  True if sucessful otherwise false.
+  ///
+  bool executeCampComplete();
 
-///
-/// Purpose: Rollback campaing wrapup actions.
-/// @param   None.
-/// @return  True if sucessful otherwise false.
-///
-	bool rollbackCampWrapup();
-
-///
-/// Purpose: Execute wrapup complete actions.
-/// @param   None.
-/// @return  True if sucessful otherwise false.
-///
-	bool executeCampComplete();
-
-///
-/// Purpose: Rollback campaign complete actions.
-/// @param   None.
-/// @return  True if sucessful otherwise false.
-///
-	bool rollbackCampComplete();
+  ///
+  /// Purpose: Rollback campaign complete actions.
+  /// @param   None.
+  /// @return  True if sucessful otherwise false.
+  ///
+  bool rollbackCampComplete();
 
  private:
-	 std::list < SmfImmOperation * >m_removeFromImm;
-	 std::list < SmfUpgradeAction * >m_campCompleteAction;
-	 std::list < SmfUpgradeAction * >m_campWrapupAction;
+  std::list<SmfImmOperation*> m_removeFromImm;
+  std::list<SmfUpgradeAction*> m_campCompleteAction;
+  std::list<SmfUpgradeAction*> m_campWrapupAction;
 
-	 std::list < SmfCallback* >m_callbackAtCommit;
+  std::list<SmfCallback*> m_callbackAtCommit;
 };
 
 #endif  // SMF_SMFD_SMFCAMPAIGNWRAPUP_H_

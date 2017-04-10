@@ -62,13 +62,11 @@ typedef enum clmsv_cbk_type {
 /* Structures to hold messages exchanged between CLMA && CLMS */
 /* CLMA Initialize Request */
 typedef struct {
-  SaVersionT version;     /* Not needed.TBRemoved */
+  SaVersionT version; /* Not needed.TBRemoved */
 } clmsv_init_param_t;
 
 /* CLMA Finalize Request */
-typedef struct {
-  SaUint32T client_id;
-} clmsv_finalize_param_t;
+typedef struct { SaUint32T client_id; } clmsv_finalize_param_t;
 
 /* CLMA Track Start Request */
 typedef struct {
@@ -78,9 +76,7 @@ typedef struct {
 } clmsv_track_start_param_t;
 
 /* CLMA Track Stop Request */
-typedef struct {
-  SaUint32T client_id;
-} clmsv_track_stop_param_t;
+typedef struct { SaUint32T client_id; } clmsv_track_stop_param_t;
 
 /* CLMA Node Get Request */
 typedef struct {
@@ -134,8 +130,8 @@ typedef struct clma_cbk_info {
 /* clm track info */
 typedef struct clmsv_track_info_t {
   SaClmClusterNotificationBufferT_4 *notify_info; /* Node Info */
-  /*   SaUint32T  view_num; */    /* Current view number */
-  SaUint16T num;          /* no of items */
+  /*   SaUint32T  view_num; */                    /* Current view number */
+  SaUint16T num;                                  /* no of items */
 } CLMSV_TRACK_INFO;
 
 typedef struct {
@@ -173,22 +169,22 @@ typedef struct clmsv_is_member_info_t {
   SaBoolT is_member;
   SaBoolT is_configured;
   SaUint32T client_id;
-}CLMSV_IS_MEMBER_INFO;
+} CLMSV_IS_MEMBER_INFO;
 
-typedef struct clmsv_reboot_info_t {
-  SaClmNodeIdT node_id;
-} CLMSV_REBOOT_INFO;
+typedef struct clmsv_reboot_info_t { SaClmNodeIdT node_id; } CLMSV_REBOOT_INFO;
 
-/* Top Level CLMSv MDS message structure for use between CLMS-> CLMA && CLMA -> CLMS */
+/* Top Level CLMSv MDS message structure for use between CLMS-> CLMA && CLMA ->
+ * CLMS */
 typedef struct clmsv_msg_t {
-  struct clmsv_msg_t *next;       /* Mailbox processing */
-  CLMSV_MSG_TYPE evt_type;        /* Message type */
+  struct clmsv_msg_t *next; /* Mailbox processing */
+  CLMSV_MSG_TYPE evt_type;  /* Message type */
   union {
-    CLMSV_API_INFO api_info;        /* Messages Between CLA to CLMS */
-    CLMSV_CBK_INFO cbk_info;        /* Callback Messages from CLMS to CLA */
-    CLMSV_API_RESP_INFO api_resp_info;      /* Response Messages from CLMS to CLA */
-    CLMSV_IS_MEMBER_INFO is_member_info;    /*Is node member or not Message from CLMS to CLA*/
-    CLMSV_REBOOT_INFO reboot_info;	/* Reboot request from CLMS to CLMNA */
+    CLMSV_API_INFO api_info;           /* Messages Between CLA to CLMS */
+    CLMSV_CBK_INFO cbk_info;           /* Callback Messages from CLMS to CLA */
+    CLMSV_API_RESP_INFO api_resp_info; /* Response Messages from CLMS to CLA */
+    CLMSV_IS_MEMBER_INFO
+        is_member_info; /*Is node member or not Message from CLMS to CLA*/
+    CLMSV_REBOOT_INFO reboot_info; /* Reboot request from CLMS to CLMNA */
   } info;
 } CLMSV_MSG;
 

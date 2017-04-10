@@ -38,64 +38,58 @@ SaAisErrorT rc;
 
 int mds_startup(void)
 {
-  if(ncs_agents_shutdown()!=NCSCC_RC_SUCCESS)
-  {
-    printf("\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n");
-    return 1;
-  }
-  sleep(5);
-  if(ncs_agents_startup()!=NCSCC_RC_SUCCESS)
-  {
-    printf("\n ----- NCS AGENTS START UP FAILED ------- \n");
-    return 1;
-  }
+	if (ncs_agents_shutdown() != NCSCC_RC_SUCCESS) {
+		printf("\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n");
+		return 1;
+	}
+	sleep(5);
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		printf("\n ----- NCS AGENTS START UP FAILED ------- \n");
+		return 1;
+	}
 
-  return 0;
+	return 0;
 }
 
 int mds_shutdown(void)
 {
-  if(ncs_agents_shutdown()!=NCSCC_RC_SUCCESS)
-  {
-    printf("\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n");
-    return 1;
-  }
+	if (ncs_agents_shutdown() != NCSCC_RC_SUCCESS) {
+		printf("\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n");
+		return 1;
+	}
 
- return 0;
+	return 0;
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
-  int suite = ALL_SUITES, tcase = ALL_TESTS;
+	int suite = ALL_SUITES, tcase = ALL_TESTS;
 
-  srandom(getpid());
+	srandom(getpid());
 
-  if (argc > 1)
-  {
-    suite = atoi(argv[1]);
-  }
+	if (argc > 1) {
+		suite = atoi(argv[1]);
+	}
 
-  if (argc > 2)
-  {
-    tcase = atoi(argv[2]);
-  }
+	if (argc > 2) {
+		tcase = atoi(argv[2]);
+	}
 
-  if (suite == 0)
-  {
-    test_list();
-    return 0;
-  }
-	
-  if (suite == 999) {
-    return 0;
-  }
+	if (suite == 0) {
+		test_list();
+		return 0;
+	}
 
-  if (mds_startup() != 0) {
-    printf("Fail to start mds agents\n");
-    return 1;
-  }
+	if (suite == 999) {
+		return 0;
+	}
 
-  int rc = test_run(suite, tcase);
-  mds_shutdown();
-  return rc;
+	if (mds_startup() != 0) {
+		printf("Fail to start mds agents\n");
+		return 1;
+	}
+
+	int rc = test_run(suite, tcase);
+	mds_shutdown();
+	return rc;
 }

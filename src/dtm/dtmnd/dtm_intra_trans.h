@@ -17,12 +17,16 @@
 #ifndef DTM_DTMND_DTM_INTRA_TRANS_H_
 #define DTM_DTMND_DTM_INTRA_TRANS_H_
 
-uint32_t dtm_intranode_process_data_msg(uint8_t *buffer, uint32_t dst_pid, uint16_t len);
-uint32_t dtm_process_rcv_internode_data_msg(uint8_t *buffer, uint32_t dst_pid, uint16_t len);
+uint32_t dtm_intranode_process_data_msg(uint8_t *buffer, uint32_t dst_pid,
+                                        uint16_t len);
+uint32_t dtm_process_rcv_internode_data_msg(uint8_t *buffer, uint32_t dst_pid,
+                                            uint16_t len);
 
-uint32_t dtm_intranode_send_msg(uint16_t len, uint8_t *buffer, DTM_INTRANODE_PID_INFO * pid_node);
+uint32_t dtm_intranode_send_msg(uint16_t len, uint8_t *buffer,
+                                DTM_INTRANODE_PID_INFO *pid_node);
 
-uint32_t dtm_intranode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid, uint16_t len);
+uint32_t dtm_intranode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid,
+                                            uint16_t len);
 
 uint32_t dtm_intranode_process_pollout(int fd);
 

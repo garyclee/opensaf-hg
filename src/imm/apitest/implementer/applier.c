@@ -16,7 +16,8 @@
  */
 
 /*
- * This file contains a command line utility to test IMM multiple appliers feature.
+ * This file contains a command line utility to test IMM multiple appliers
+ * feature.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -65,24 +66,28 @@ static void usage(const char *progname)
 	printf("\t-h, --help\n");
 	printf("\t\tthis help\n");
 	printf("\t-a, --applier <OI-name> <class-name>\n");
-	printf("\t\tRegister OI for class. Prefix OI-name with '@' for applier OI\n");
+	printf(
+	    "\t\tRegister OI for class. Prefix OI-name with '@' for applier OI\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\t%s -a \n", progname);
 	printf("\timmadm -a test SaAmfNode SaAmfSU\n");
 }
 
-static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
-						  SaImmOiCcbIdT ccbId,
-						  const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
+static SaAisErrorT
+saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
+			       const SaNameT *objectName,
+			       const SaImmAttrModificationT_2 **attrMods)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	printf("Modify callback on %s - object:%s ccbId:%llu\n", implName, osaf_extended_name_borrow(objectName), ccbId);
+	printf("Modify callback on %s - object:%s ccbId:%llu\n", implName,
+	       osaf_extended_name_borrow(objectName), ccbId);
 
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			fprintf(stderr, "Failed to get CCB objectfor %llu\n", ccbId);
+			fprintf(stderr, "Failed to get CCB objectfor %llu\n",
+				ccbId);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
@@ -91,60 +96,70 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 	/* "memorize the modification request" */
 	ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods);
 
-	/*rc = SA_AIS_ERR_BAD_OPERATION;*/
+/*rc = SA_AIS_ERR_BAD_OPERATION;*/
 
- done:
+done:
 	return rc;
 }
 
-static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
-	const SaImmClassNameT className, const SaNameT *parentName, const SaImmAttrValuesT_2 **attr)
+static SaAisErrorT
+saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
+			       const SaImmClassNameT className,
+			       const SaNameT *parentName,
+			       const SaImmAttrValuesT_2 **attr)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	printf("Create callback on %s - parent:%s ccbId:%llu\n", implName, osaf_extended_name_borrow(parentName), ccbId);
+	printf("Create callback on %s - parent:%s ccbId:%llu\n", implName,
+	       osaf_extended_name_borrow(parentName), ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			fprintf(stderr, "Failed to get CCB object for %llu\n", ccbId);
+			fprintf(stderr, "Failed to get CCB object for %llu\n",
+				ccbId);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
 	}
 
-	ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
- done:
+	ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName,
+				      attr);
+done:
 	return rc;
 }
 
-static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
-	const SaNameT *objectName)
+static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
+						  SaImmOiCcbIdT ccbId,
+						  const SaNameT *objectName)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
-	printf("Delete callback on %s - object:%s ccbId:%llu\n", implName, osaf_extended_name_borrow(objectName), ccbId);
+	printf("Delete callback on %s - object:%s ccbId:%llu\n", implName,
+	       osaf_extended_name_borrow(objectName), ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-			fprintf(stderr, "Failed to get CCB object for %llu\n", ccbId);
+			fprintf(stderr, "Failed to get CCB object for %llu\n",
+				ccbId);
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done;
 		}
 	}
 	ccbutil_ccbAddDeleteOperation(ccbUtilCcbData, objectName);
- done:
+done:
 	return rc;
 }
 
-
-static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
+static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle,
+					       SaImmOiCcbIdT ccbId)
 {
 	printf("Completed callback on %s - ccbId:%llu\n", implName, ccbId);
 	return SA_AIS_OK;
 }
 
-static void saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
+static void saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle,
+				    SaImmOiCcbIdT ccbId)
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
@@ -157,8 +172,8 @@ static void saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 		fprintf(stderr, "Failed to get CCB object for %llu\n", ccbId);
 }
 
-
-static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
+static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
+				    SaImmOiCcbIdT ccbId)
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
@@ -170,30 +185,36 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 	}
 
 	ccbutil_deleteCcbData(ccbUtilCcbData);
- done:
+done:
 	return;
 }
 
-static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT handle,
-    const SaNameT *objectName,
-    const SaImmAttrNameT *attributeNames)
+static SaAisErrorT
+saImmOiRtAttrUpdateCallback(SaImmOiHandleT handle, const SaNameT *objectName,
+			    const SaImmAttrNameT *attributeNames)
 {
-    assert(objectName != NULL);
-    assert(attributeNames != NULL);
+	assert(objectName != NULL);
+	assert(attributeNames != NULL);
 
-    //    return saImmOiRtObjectUpdate_2(handle, objectName, (const SaImmAttrModificationT_2**) attrMods);
-    return SA_AIS_OK;
+	//    return saImmOiRtObjectUpdate_2(handle, objectName, (const
+	//    SaImmAttrModificationT_2**) attrMods);
+	return SA_AIS_OK;
 }
 
-static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
-	const SaNameT *objectName, SaImmAdminOperationIdT operationId, 
-	const SaImmAdminOperationParamsT_2 **params)
+static void saImmOiAdminOperationCallback(
+    SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+    const SaNameT *objectName, SaImmAdminOperationIdT operationId,
+    const SaImmAdminOperationParamsT_2 **params)
 {
-	printf("AdminOperationCallback received by impl %s on object %s operation:%llu invocation:%llu\n", 
-		implName, (char *) osaf_extended_name_borrow(objectName), operationId, invocation);
-	SaAisErrorT err = saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
-	if(err != SA_AIS_OK) {
-		fprintf(stderr, "Reply on admin operation failed, err:%u\n", err);
+	printf(
+	    "AdminOperationCallback received by impl %s on object %s operation:%llu invocation:%llu\n",
+	    implName, (char *)osaf_extended_name_borrow(objectName),
+	    operationId, invocation);
+	SaAisErrorT err =
+	    saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+	if (err != SA_AIS_OK) {
+		fprintf(stderr, "Reply on admin operation failed, err:%u\n",
+			err);
 	}
 }
 
@@ -201,30 +222,28 @@ int main(int argc, char *argv[])
 {
 	int c;
 	struct option long_options[] = {
-		{"parameter", required_argument, 0, 'p'},
-		{"operation-id", required_argument, 0, 'o'},
-		{"help", no_argument, 0, 'h'},
-                {"timeout", required_argument, 0, 't'},
-		{"applier", required_argument, 0, 'a'},
-		{0, 0, 0, 0}
-	};
+	    {"parameter", required_argument, 0, 'p'},
+	    {"operation-id", required_argument, 0, 'o'},
+	    {"help", no_argument, 0, 'h'},
+	    {"timeout", required_argument, 0, 't'},
+	    {"applier", required_argument, 0, 'a'},
+	    {0, 0, 0, 0}};
 	SaAisErrorT error;
 	SaNameT objectName;
 	const SaImmAdminOperationParamsT_2 **params;
 	const SaImmOiCallbacksT_2 callbacks = {
-		.saImmOiAdminOperationCallback = saImmOiAdminOperationCallback,
-		.saImmOiCcbAbortCallback = saImmOiCcbAbortCallback,
-		.saImmOiCcbApplyCallback = saImmOiCcbApplyCallback,
-		.saImmOiCcbCompletedCallback = saImmOiCcbCompletedCallback,
-		.saImmOiCcbObjectCreateCallback = saImmOiCcbObjectCreateCallback,
-		.saImmOiCcbObjectDeleteCallback = saImmOiCcbObjectDeleteCallback,
-		.saImmOiCcbObjectModifyCallback = saImmOiCcbObjectModifyCallback,
-		.saImmOiRtAttrUpdateCallback = saImmOiRtAttrUpdateCallback
-	};
+	    .saImmOiAdminOperationCallback = saImmOiAdminOperationCallback,
+	    .saImmOiCcbAbortCallback = saImmOiCcbAbortCallback,
+	    .saImmOiCcbApplyCallback = saImmOiCcbApplyCallback,
+	    .saImmOiCcbCompletedCallback = saImmOiCcbCompletedCallback,
+	    .saImmOiCcbObjectCreateCallback = saImmOiCcbObjectCreateCallback,
+	    .saImmOiCcbObjectDeleteCallback = saImmOiCcbObjectDeleteCallback,
+	    .saImmOiCcbObjectModifyCallback = saImmOiCcbObjectModifyCallback,
+	    .saImmOiRtAttrUpdateCallback = saImmOiRtAttrUpdateCallback};
 	struct pollfd fds[1];
 	SaImmOiHandleT immOiHandle = 0LL;
 	SaSelectionObjectT immOiSelectionObject = 0;
-	SaVersionT immVersion = { 'A', 2, 11 };
+	SaVersionT immVersion = {'A', 2, 11};
 
 	params = realloc(NULL, sizeof(SaImmAdminOperationParamsT_2 *));
 	params[0] = NULL;
@@ -232,7 +251,8 @@ int main(int argc, char *argv[])
 	while (1) {
 		c = getopt_long(argc, argv, "p:o:t:a:h", long_options, NULL);
 
-		if (c == -1)	/* have all command-line options have been parsed? */
+		if (c ==
+		    -1) /* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
@@ -243,12 +263,15 @@ int main(int argc, char *argv[])
 		case 'a':
 			implName = strdup(optarg);
 			if ((errno == EINVAL) || (errno == ERANGE)) {
-				fprintf(stderr, "Illegal applier implementer name\n");
+				fprintf(stderr,
+					"Illegal applier implementer name\n");
 				exit(EXIT_FAILURE);
 			}
 			break;
 		default:
-			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+			fprintf(stderr,
+				"Try '%s --help' for more information\n",
+				argv[0]);
 			exit(EXIT_FAILURE);
 			break;
 		}
@@ -263,48 +286,71 @@ int main(int argc, char *argv[])
 	printf("Implementer: %s\n", implName);
 	error = saImmOiInitialize_2(&immOiHandle, &callbacks, &immVersion);
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOiInitialize FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "error - saImmOiInitialize FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
-	printf("ImmVersion: %c %u %u\n", immVersion.releaseCode, immVersion.majorVersion, immVersion.minorVersion);
+	printf("ImmVersion: %c %u %u\n", immVersion.releaseCode,
+	       immVersion.majorVersion, immVersion.minorVersion);
 
 	error = saImmOiImplementerSet(immOiHandle, implName);
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOiImplementerSet FAILED: %s\n", saf_error(error));
+		fprintf(stderr, "error - saImmOiImplementerSet FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
-	/* Remaining arguments should be class names for which implementer is set. */
+	/* Remaining arguments should be class names for which implementer is
+	 * set. */
 	while (optind < argc) {
 		osaf_extended_name_alloc(argv[optind], &objectName);
-//		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-//		objectName.length = strlen((char *)objectName.value);
+		//		strncpy((char *)objectName.value, argv[optind],
+		//SA_MAX_NAME_LENGTH);		objectName.length = strlen((char
+		//*)objectName.value);
 
 		printf("Class: %s\n", osaf_extended_name_borrow(&objectName));
 
-		if(!strcmp((const char *) osaf_extended_name_borrow(&objectName), "OpensafImmRtTest")) {
-			/* Special test case for RTO's. 
-			   Class OpensafImmRtTest foundd at samples/immsv/immsv_test_classes_rtobj.xml
+		if (!strcmp(
+			(const char *)osaf_extended_name_borrow(&objectName),
+			"OpensafImmRtTest")) {
+			/* Special test case for RTO's.
+			   Class OpensafImmRtTest foundd at
+			   samples/immsv/immsv_test_classes_rtobj.xml
 			*/
-			SaStringT str1="testRdn=ZZZ";
+			SaStringT str1 = "testRdn=ZZZ";
 			SaImmAttrValueT strValues[] = {&str1};
-			SaImmAttrValuesT_2 v1 = { "testRdn",  SA_IMM_ATTR_SASTRINGT, 1, (void**)strValues };
-			const SaImmAttrValuesT_2* attrValues[] = {&v1, NULL};
+			SaImmAttrValuesT_2 v1 = {"testRdn",
+						 SA_IMM_ATTR_SASTRINGT, 1,
+						 (void **)strValues};
+			const SaImmAttrValuesT_2 *attrValues[] = {&v1, NULL};
 
-			error = saImmOiRtObjectCreate_2(immOiHandle, (SaImmClassNameT) osaf_extended_name_borrow(&objectName), NULL, attrValues);
+			error = saImmOiRtObjectCreate_2(
+			    immOiHandle,
+			    (SaImmClassNameT)osaf_extended_name_borrow(
+				&objectName),
+			    NULL, attrValues);
 			if (error != SA_AIS_OK && error != SA_AIS_ERR_EXIST) {
-				fprintf(stderr, "error - saImmOiClassImplementerSet FAILED: %s\n", saf_error(error));
+				fprintf(
+				    stderr,
+				    "error - saImmOiClassImplementerSet FAILED: %s\n",
+				    saf_error(error));
 				exit(EXIT_FAILURE);
 			}
-			if(error == SA_AIS_OK) {
+			if (error == SA_AIS_OK) {
 				printf("Runtime object: %s created\n", str1);
 			} else {
 				printf("Runtime object: %s exists\n", str1);
 			}
 		} else {
-			error = saImmOiClassImplementerSet(immOiHandle, (SaImmClassNameT) osaf_extended_name_borrow(&objectName));
+			error = saImmOiClassImplementerSet(
+			    immOiHandle,
+			    (SaImmClassNameT)osaf_extended_name_borrow(
+				&objectName));
 			if (error != SA_AIS_OK) {
-				fprintf(stderr, "error - saImmOiClassImplementerSet FAILED: %s\n", saf_error(error));
+				fprintf(
+				    stderr,
+				    "error - saImmOiClassImplementerSet FAILED: %s\n",
+				    saf_error(error));
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -314,7 +360,9 @@ int main(int argc, char *argv[])
 
 	error = saImmOiSelectionObjectGet(immOiHandle, &immOiSelectionObject);
 	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOiSelectionObjectGet FAILED: %s\n", saf_error(error));
+		fprintf(stderr,
+			"error - saImmOiSelectionObjectGet FAILED: %s\n",
+			saf_error(error));
 		exit(EXIT_FAILURE);
 	}
 
@@ -322,7 +370,7 @@ int main(int argc, char *argv[])
 	fds[0].events = POLLIN;
 
 	/* go into dispatch loop */
-        while(1) {
+	while (1) {
 		int ret = poll(fds, 1, -1);
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -335,7 +383,8 @@ int main(int argc, char *argv[])
 			error = saImmOiDispatch(immOiHandle, SA_DISPATCH_ALL);
 
 			if (error != SA_AIS_OK) {
-				fprintf(stderr, "saImmOiDispatch returned %s\n", saf_error(error));
+				fprintf(stderr, "saImmOiDispatch returned %s\n",
+					saf_error(error));
 				exit(EXIT_FAILURE);
 				break;
 			}

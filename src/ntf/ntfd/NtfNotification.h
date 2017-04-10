@@ -32,16 +32,13 @@
 
 #define NACK_THRESHOLD 4
 
-typedef struct
-{
+typedef struct {
   unsigned int clientId;
   SaNtfSubscriptionIdT subscriptionId;
 } UniqueSubscriptionId;
 
-class NtfNotification{
-
+class NtfNotification {
  public:
-
   NtfNotification(SaNtfIdentifierT notificationId,
                   SaNtfNotificationTypeT notificationType,
                   ntfsv_send_not_req_t* sendNotInfo);
@@ -49,8 +46,10 @@ class NtfNotification{
   virtual ~NtfNotification();
   SaNtfNotificationTypeT getNotificationType() const;
   SaNtfIdentifierT getNotificationId() const;
-  void storeMatchingSubscription(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
-  void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
+  void storeMatchingSubscription(unsigned int clientId,
+                                 SaNtfSubscriptionIdT subscriptionId);
+  void notificationSentConfirmed(unsigned int clientId,
+                                 SaNtfSubscriptionIdT subscriptionId);
   void notificationLoggedConfirmed();
   bool loggedOk() const;
   bool isSubscriptionListEmpty() const;
@@ -58,12 +57,12 @@ class NtfNotification{
   void removeSubscription(unsigned int clientId,
                           SaNtfSubscriptionIdT subscriptionId);
   ntfsv_send_not_req_t* getNotInfo();
-  void syncRequest(NCS_UBAID *uba);
+  void syncRequest(NCS_UBAID* uba);
   void resetSubscriptionIdList();
   SaAisErrorT getNextSubscription(UniqueSubscriptionId& subId);
   void printInfo();
   SaNtfNotificationHeaderT* header();
-  ntfsv_send_not_req_t *sendNotInfo_;
+  ntfsv_send_not_req_t* sendNotInfo_;
   bool loggFromCallback_;
 
  private:
@@ -82,4 +81,3 @@ class NtfNotification{
 typedef std::tr1::shared_ptr<NtfNotification> NtfSmartPtr;
 
 #endif  // NTF_NTFD_NTFNOTIFICATION_H_
-

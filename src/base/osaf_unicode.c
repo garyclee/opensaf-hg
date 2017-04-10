@@ -26,12 +26,15 @@
  * It extracts @a n bytes from @a u, adds this to the already extracted value
  * @a c, and checks that the final result is not less than @a m.
  */
-static uint32_t extract_utf8(const uint8_t** u, uint32_t c, int n, uint32_t m)
+static uint32_t extract_utf8(const uint8_t **u, uint32_t c, int n, uint32_t m)
 {
-	if (n == 0) return c >= m ? c : 0xFFFFFFFF;
+	if (n == 0)
+		return c >= m ? c : 0xFFFFFFFF;
 	uint32_t c2 = *(*u)++;
-	if (c2 < 0x80) return 0xFFFFFFFF;
-	if (c2 < 0xC0) return extract_utf8(u, (c << 6) | (c2 & 0x3F), n - 1, m);
+	if (c2 < 0x80)
+		return 0xFFFFFFFF;
+	if (c2 < 0xC0)
+		return extract_utf8(u, (c << 6) | (c2 & 0x3F), n - 1, m);
 	return 0xFFFFFFFF;
 }
 
@@ -50,46 +53,53 @@ static uint32_t extract_utf8(const uint8_t** u, uint32_t c, int n, uint32_t m)
  * exceed the maximum allowed value 0x10FFFF. Hence, this function returns an
  * integer that is either 0xFFFFFFFF or within the range [0, 0x1FFFFF].
  */
-static uint32_t next_char_from_utf8(const uint8_t** io_utf8)
+static uint32_t next_char_from_utf8(const uint8_t **io_utf8)
 {
 	uint32_t c = *(*io_utf8)++;
-	if (c < 0x80) return c;
-	if (c < 0xC0) return 0xFFFFFFFF;
-	if (c < 0xE0) return extract_utf8(io_utf8, c & 0x1F, 1, 0x80);
-	if (c < 0xF0) return extract_utf8(io_utf8, c & 0x0F, 2, 0x800);
-	if (c < 0xF8) return extract_utf8(io_utf8, c & 0x07, 3, 0x10000);
+	if (c < 0x80)
+		return c;
+	if (c < 0xC0)
+		return 0xFFFFFFFF;
+	if (c < 0xE0)
+		return extract_utf8(io_utf8, c & 0x1F, 1, 0x80);
+	if (c < 0xF0)
+		return extract_utf8(io_utf8, c & 0x0F, 2, 0x800);
+	if (c < 0xF8)
+		return extract_utf8(io_utf8, c & 0x07, 3, 0x10000);
 	return 0xFFFFFFFF;
 }
 
-bool osaf_is_valid_utf8(const char* i_string)
+bool osaf_is_valid_utf8(const char *i_string)
 {
-	const uint8_t* u = (const uint8_t*) i_string;
+	const uint8_t *u = (const uint8_t *)i_string;
 	uint32_t c;
 	while ((c = next_char_from_utf8(&u)) != 0) {
-		if (c > 0x10FFFF) return false;
+		if (c > 0x10FFFF)
+			return false;
 	}
 	return true;
 }
 
-bool osaf_is_graph_utf8(const char* i_string)
+bool osaf_is_graph_utf8(const char *i_string)
 {
-	const uint8_t* u = (const uint8_t*) i_string;
+	const uint8_t *u = (const uint8_t *)i_string;
 	uint32_t c;
 	while ((c = next_char_from_utf8(&u)) != 0) {
-		if (c > 0x10FFFF || !iswgraph(c)) return false;
+		if (c > 0x10FFFF || !iswgraph(c))
+			return false;
 	}
 	return true;
 }
 
-bool osaf_is_valid_xml_utf8(const char* i_string)
+bool osaf_is_valid_xml_utf8(const char *i_string)
 {
-	const uint8_t* u = (const uint8_t*) i_string;
+	const uint8_t *u = (const uint8_t *)i_string;
 	uint32_t c;
 	while ((c = next_char_from_utf8(&u)) != 0) {
 		if (!(c == 0x9 || c == 0xA || c == 0xD ||
-			(c >= 0x20 && c <= 0xD7FF) ||
-			(c >= 0xE000 && c <= 0xFFFD) ||
-			(c >= 0x10000 && c <= 0x10FFFF))) {
+		      (c >= 0x20 && c <= 0xD7FF) ||
+		      (c >= 0xE000 && c <= 0xFFFD) ||
+		      (c >= 0x10000 && c <= 0x10FFFF))) {
 			return false;
 		}
 	}

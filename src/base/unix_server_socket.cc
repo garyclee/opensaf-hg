@@ -23,9 +23,8 @@
 
 namespace base {
 
-UnixServerSocket::UnixServerSocket(const std::string& path) :
-    UnixSocket{path} {
-}
+UnixServerSocket::UnixServerSocket(const std::string& path)
+    : UnixSocket{path} {}
 
 UnixServerSocket::~UnixServerSocket() {
   if (get_fd() >= 0) UnixServerSocket::CloseHook();
@@ -44,8 +43,6 @@ bool UnixServerSocket::OpenHook(int sock) {
   return bind(sock, addr(), addrlen()) == 0;
 }
 
-void UnixServerSocket::CloseHook() {
-  unlink(path());
-}
+void UnixServerSocket::CloseHook() { unlink(path()); }
 
 }  // namespace base

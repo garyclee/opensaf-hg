@@ -27,14 +27,11 @@
 //==============================================================================
 // Dummy functions
 //==============================================================================
-int lgs_cfg_update(const lgs_config_chg_t *config_data) {
-  return 0;
-}
+int lgs_cfg_update(const lgs_config_chg_t* config_data) { return 0; }
 
 void lgs_cfgupd_mutival_replace(const std::string& attribute_name,
                                 const std::vector<std::string>& value_list,
-                                lgs_config_chg_t *config_data) {
-}
+                                lgs_config_chg_t* config_data) {}
 
 //==============================================================================
 // logutil namespace
@@ -59,11 +56,11 @@ std::vector<std::string> Parser(const std::string& str,
 bool isValidName(const std::string& name) {
   // Valid name if @name not contain any characters outside
   // of below strings.
-  const std::string validChar = "abcdefghijklmnopqrstuvwxyz"
-                                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                "01234567890_-";
-  if (name.find_first_not_of(validChar) != std::string::npos)
-    return false;
+  const std::string validChar =
+      "abcdefghijklmnopqrstuvwxyz"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "01234567890_-";
+  if (name.find_first_not_of(validChar) != std::string::npos) return false;
 
   return true;
 }
@@ -75,54 +72,46 @@ bool isValidName(const std::string& name) {
 // Verify it is OK to add one valid destination configuration
 TEST(CfgDestination, AddOneDestination) {
   base::InitializeHashFunction();
-  const std::vector<std::string> vdest {"test;UNIX_SOCKET;/tmp/sock.sock"};
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock"};
   ASSERT_EQ(CfgDestination(vdest, ModifyType::kAdd), true);
 }
 
 // Verify it is Ok to add multiple destination configurations
 TEST(CfgDestination, AddMultipleDestination) {
   base::InitializeHashFunction();
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;/tmp/sock1.sock",
-    "test2;UNIX_SOCKET;/tmp/sock2.sock"
-  };
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;/tmp/sock1.sock",
+                                       "test2;UNIX_SOCKET;/tmp/sock2.sock"};
   ASSERT_EQ(CfgDestination(vdest, ModifyType::kAdd), true);
 }
 
 // Verify it is Ok to add NIL destination
 TEST(CfgDestination, AddEmptyDestination) {
   base::InitializeHashFunction();
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;/tmp/sock1.sock",
-    "test2;UNIX_SOCKET;"
-  };
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;/tmp/sock1.sock",
+                                       "test2;UNIX_SOCKET;"};
   ASSERT_EQ(CfgDestination(vdest, ModifyType::kAdd), true);
 }
 
 // Verify it is OK to delete one destination configuration
 TEST(CfgDestination, DelOneDestination) {
   base::InitializeHashFunction();
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;/tmp/sock1.sock",
-    "test2;UNIX_SOCKET;"
-   };
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;/tmp/sock1.sock",
+                                       "test2;UNIX_SOCKET;"};
   CfgDestination(vdest, ModifyType::kAdd);
   // Delete destination
-  const std::vector<std::string> vdeldest {"test1;UNIX_SOCKET;/tmp/sock1.sock"};
+  const std::vector<std::string> vdeldest{"test1;UNIX_SOCKET;/tmp/sock1.sock"};
   ASSERT_EQ(CfgDestination(vdeldest, ModifyType::kDelete), true);
 }
 
 // Verify it is OK to delete all destinations
 TEST(CfgDestination, DelAllDestinations) {
   base::InitializeHashFunction();
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;/tmp/sock1.sock",
-    "test2;UNIX_SOCKET;"
-  };
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;/tmp/sock1.sock",
+                                       "test2;UNIX_SOCKET;"};
   CfgDestination(vdest, ModifyType::kAdd);
   // Delete all destination configurations
   const std::vector<std::string> vdeldest0{};
@@ -134,26 +123,20 @@ TEST(CfgDestination, DelAllDestinations) {
 TEST(CfgDestination, DelDestButNoCfgSentYet) {
   base::InitializeHashFunction();
   // Delete all destination configurations
-  const std::vector<std::string> vdest {};
+  const std::vector<std::string> vdest{};
   CfgDestination(vdest, ModifyType::kDelete);
-  const std::vector<std::string> vdeldest3 {
-    "test1;UNIX_SOCKET;/tmp/sock1.sock"
-  };
+  const std::vector<std::string> vdeldest3{"test1;UNIX_SOCKET;/tmp/sock1.sock"};
   ASSERT_EQ(CfgDestination(vdeldest3, ModifyType::kDelete), false);
 }
 
 // Verify the request is drop if deleting non-exist destination configuration.
 TEST(CfgDestination, DelNonExistDestination) {
   base::InitializeHashFunction();
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;/tmp/sock1.sock",
-    "test2;UNIX_SOCKET;"
-  };
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;/tmp/sock1.sock",
+                                       "test2;UNIX_SOCKET;"};
   CfgDestination(vdest, ModifyType::kAdd);
-  const std::vector<std::string> vdeldest4 {
-    "test3;UNIX_SOCKET;/tmp/sock3.sock"
-  };
+  const std::vector<std::string> vdeldest4{"test3;UNIX_SOCKET;/tmp/sock3.sock"};
   ASSERT_EQ(CfgDestination(vdeldest4, ModifyType::kDelete), false);
 }
 
@@ -169,16 +152,16 @@ static const char dn[] = "safLgStrCfg=test";
 static const char msgid[] = "testC";
 
 void initData(RecordData* data) {
-  data->name        = dn;
-  data->logrec      = rec;
-  data->hostname    = hostname;
+  data->name = dn;
+  data->logrec = rec;
+  data->hostname = hostname;
   data->networkname = networkname;
-  data->appname     = appname;
-  data->msgid       = msgid;
-  data->isRtStream  = 0;
-  data->recordId    = 1;
-  data->sev         = 3;
-  data->time        = base::ReadRealtimeClock();
+  data->appname = appname;
+  data->msgid = msgid;
+  data->isRtStream = 0;
+  data->recordId = 1;
+  data->sev = 3;
+  data->time = base::ReadRealtimeClock();
 }
 
 // No destination name & no destination configuration exist
@@ -187,7 +170,7 @@ TEST(WriteToDestination, NoDestNameAndNonExistDest) {
   base::InitializeHashFunction();
   RecordData data;
   // No destination configured at all.
-  const std::vector<std::string> vdeldest5 {};
+  const std::vector<std::string> vdeldest5{};
   CfgDestination(vdeldest5, ModifyType::kDelete);
   // Write the log record to sk
   initData(&data);
@@ -202,7 +185,7 @@ TEST(WriteToDestination, HaveDestNameButNonExistDest) {
   base::InitializeHashFunction();
   RecordData data;
   // No destination configured at all
-  const std::vector<std::string> vdeldest6 {};
+  const std::vector<std::string> vdeldest6{};
   CfgDestination(vdeldest6, ModifyType::kDelete);
   // Write the log record to sk
   initData(&data);
@@ -217,7 +200,7 @@ TEST(WriteToDestination, HaveDestNameButNilDest) {
   base::InitializeHashFunction();
   RecordData data;
   // Have nil destination
-  const std::vector<std::string> nildest {"test;UNIX_SOCKET;"};
+  const std::vector<std::string> nildest{"test;UNIX_SOCKET;"};
   CfgDestination(nildest, ModifyType::kReplace);
   // Write the log record to sk
   initData(&data);
@@ -229,7 +212,7 @@ TEST(WriteToDestination, HaveDestNameButNilDest) {
 // Sending log record to destination and verify
 // if the end receives data correctly as sent data.
 //
-static const uint64_t kMaxSize = 65*1024 + 1024;
+static const uint64_t kMaxSize = 65 * 1024 + 1024;
 
 // The function is used to form the rfc5424 syslog msg
 // by passing @DestinationHandler::RecordInfo.
@@ -253,26 +236,27 @@ TEST(WriteToDestination, HaveDestNameAndDestCfg) {
   static base::UnixServerSocket server{"/tmp/test.sock"};
   server.fd();
 
-  const std::vector<std::string> dest {"test;UNIX_SOCKET;/tmp/test.sock"};
+  const std::vector<std::string> dest{"test;UNIX_SOCKET;/tmp/test.sock"};
   CfgDestination(dest, ModifyType::kReplace);
 
   // Write the log record to sk
   initData(&data);
 
-  nkname = (std::string{data.networkname}.length() > 0) ?
-          ("." + std::string {data.networkname}) : "";
+  nkname = (std::string{data.networkname}.length() > 0)
+               ? ("." + std::string{data.networkname})
+               : "";
 
   // Origin is FQDN = <hostname>[.<networkname>]
-  origin = std::string {data.hostname} + nkname;
+  origin = std::string{data.hostname} + nkname;
 
-  info.msgid      = data.msgid;
+  info.msgid = data.msgid;
   info.log_record = data.logrec;
-  info.record_id  = data.recordId;
-  info.stream_dn  = data.name;
-  info.app_name   = data.appname;
-  info.severity   = data.sev;
-  info.time       = data.time;
-  info.origin     = origin.c_str();
+  info.record_id = data.recordId;
+  info.stream_dn = data.name;
+  info.app_name = data.appname;
+  info.severity = data.sev;
+  info.time = data.time;
+  info.origin = origin.c_str();
 
   WriteToDestination(data, {"test"});
 
@@ -293,8 +277,8 @@ TEST(WriteToDestination, HaveDestNameAndDestCfg) {
 // Verify the destination connection status is reflected correctly.
 TEST(GetDestinationStatus, AddOneDestination) {
   base::InitializeHashFunction();
-  const VectorString vstatus {"test,FAILED"};
-  const std::vector<std::string> vdest {"test;UNIX_SOCKET;/tmp/sock.sock"};
+  const VectorString vstatus{"test,FAILED"};
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock"};
   CfgDestination(vdest, ModifyType::kReplace);
   ASSERT_EQ(GetDestinationStatus(), vstatus);
 }
@@ -303,16 +287,10 @@ TEST(GetDestinationStatus, AddOneDestination) {
 // in case of adding multiple destinations
 TEST(GetDestinationStatus, AddMultipleDestination) {
   base::InitializeHashFunction();
-  const VectorString vstatus {
-    "test,FAILED",
-    "test1,FAILED",
-    "test2,FAILED"
-  };
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;/tmp/sock1.sock",
-    "test2;UNIX_SOCKET;/tmp/sock2.sock"
-  };
+  const VectorString vstatus{"test,FAILED", "test1,FAILED", "test2,FAILED"};
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;/tmp/sock1.sock",
+                                       "test2;UNIX_SOCKET;/tmp/sock2.sock"};
 
   CfgDestination(vdest, ModifyType::kReplace);
   ASSERT_EQ(GetDestinationStatus(), vstatus);
@@ -323,15 +301,10 @@ TEST(GetDestinationStatus, AddMultipleDestination) {
 TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest) {
   base::InitializeHashFunction();
   // Expected destination status
-  const VectorString vstatus {
-    "test,FAILED",
-    "test1,FAILED",
-    "test2,NOT_CONNECTED"
-  };
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;",
-    "test2;NILDEST;"};
+  const VectorString vstatus{"test,FAILED", "test1,FAILED",
+                             "test2,NOT_CONNECTED"};
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;", "test2;NILDEST;"};
   CfgDestination(vdest, ModifyType::kReplace);
   ASSERT_EQ(GetDestinationStatus(), vstatus);
 }
@@ -339,17 +312,11 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest) {
 TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest02) {
   base::InitializeHashFunction();
   // Expected destination status
-  const VectorString vstatus {
-    "test,FAILED",
-    "test1,FAILED",
-    "test2,NOT_CONNECTED",
-    "test3,NOT_CONNECTED"
-  };
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/sock.sock",
-    "test1;UNIX_SOCKET;",
-    "test2;NILDEST;",
-    "test3;NILDEST;/tmp/sock.sock"};
+  const VectorString vstatus{"test,FAILED", "test1,FAILED",
+                             "test2,NOT_CONNECTED", "test3,NOT_CONNECTED"};
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/sock.sock",
+                                       "test1;UNIX_SOCKET;", "test2;NILDEST;",
+                                       "test3;NILDEST;/tmp/sock.sock"};
   CfgDestination(vdest, ModifyType::kReplace);
   ASSERT_EQ(GetDestinationStatus(), vstatus);
 }
@@ -360,16 +327,10 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithNilDest02) {
 TEST(GetDestinationStatus, AddMultipleDestinationWithDestReceiver) {
   base::InitializeHashFunction();
   // Expected destination status
-  const VectorString vstatus {
-    "test,CONNECTED",
-    "test1,FAILED",
-    "test2,NOT_CONNECTED"
-  };
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/test.sock",
-    "test1;UNIX_SOCKET;",
-    "test2;NILDEST;"
-  };
+  const VectorString vstatus{"test,CONNECTED", "test1,FAILED",
+                             "test2,NOT_CONNECTED"};
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/test.sock",
+                                       "test1;UNIX_SOCKET;", "test2;NILDEST;"};
 
   // Create the server listen to the local socket
   static base::UnixServerSocket server{"/tmp/test.sock"};
@@ -386,15 +347,9 @@ TEST(GetDestinationStatus, AddMultipleDestinationWithDestReceiver) {
 TEST(GetDestinationStatus, RemoveDestFromMultipleDestinationWithDestReceiver) {
   base::InitializeHashFunction();
   // Expected destination status
-  const VectorString vstatus {
-    "test,CONNECTED",
-    "test2,NOT_CONNECTED"
-  };
-  const std::vector<std::string> vdest {
-    "test;UNIX_SOCKET;/tmp/test.sock",
-    "test1;UNIX_SOCKET;",
-    "test2;NILDEST;"
-  };
+  const VectorString vstatus{"test,CONNECTED", "test2,NOT_CONNECTED"};
+  const std::vector<std::string> vdest{"test;UNIX_SOCKET;/tmp/test.sock",
+                                       "test1;UNIX_SOCKET;", "test2;NILDEST;"};
 
   // Create the server listen to the local socket
   static base::UnixServerSocket server{"/tmp/test.sock"};

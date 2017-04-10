@@ -42,16 +42,19 @@
 /* IMMSV Common Macros */
 
 /*** Macro used to get the AMF version used ****/
-#define m_IMMSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
+#define m_IMMSV_GET_AMF_VER(amf_ver) \
+  amf_ver.releaseCode = 'B';         \
+  amf_ver.majorVersion = 0x01;       \
+  amf_ver.minorVersion = 0x01;
 
+#define m_IMMSV_CONVERT_SATIME_TEN_MILLI_SEC(t) (t) / (10000000) /* 10^7 */
 
-#define m_IMMSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
-
-static inline int osaf_timer_is_expired_sec(const struct timespec* end, const struct timespec* start,
-                                             uint32_t timeout) {
-    struct timespec expiry = *start;
-    expiry.tv_sec += timeout;
-    return osaf_timespec_compare(end, &expiry) == - 1 ? 0 : 1;
+static inline int osaf_timer_is_expired_sec(const struct timespec* end,
+                                            const struct timespec* start,
+                                            uint32_t timeout) {
+  struct timespec expiry = *start;
+  expiry.tv_sec += timeout;
+  return osaf_timespec_compare(end, &expiry) == -1 ? 0 : 1;
 }
 
 #endif  // IMM_COMMON_IMMSV_H_

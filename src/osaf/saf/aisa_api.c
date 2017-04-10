@@ -45,8 +45,8 @@
 #include "base/osaf_extended_name.h"
 #include "base/logtrace.h"
 
-static void ais_name_lend(SaConstStringT value, SaNameT* name);
-static SaConstStringT ais_name_borrow(const SaNameT* name);
+static void ais_name_lend(SaConstStringT value, SaNameT *name);
+static SaConstStringT ais_name_borrow(const SaNameT *name);
 
 /****************************************************************************
   Name		:  saAisNameLend
@@ -73,8 +73,8 @@ static SaConstStringT ais_name_borrow(const SaNameT* name);
 
   Notes		:
 ******************************************************************************/
-void saAisNameLend(SaConstStringT value, SaNameT* name)
-	__attribute__ ((weak, alias ("ais_name_lend")));
+void saAisNameLend(SaConstStringT value, SaNameT *name)
+    __attribute__((weak, alias("ais_name_lend")));
 
 /****************************************************************************
   Name		:  saAisNameBorrow
@@ -99,17 +99,17 @@ void saAisNameLend(SaConstStringT value, SaNameT* name)
 
   Notes		:
 ******************************************************************************/
-SaConstStringT saAisNameBorrow(const SaNameT* name)
-	__attribute__ ((weak, alias ("ais_name_borrow")));
+SaConstStringT saAisNameBorrow(const SaNameT *name)
+    __attribute__((weak, alias("ais_name_borrow")));
 
 // cppcheck-suppress unusedFunction
-void ais_name_lend(SaConstStringT value, SaNameT* name)
+void ais_name_lend(SaConstStringT value, SaNameT *name)
 {
 	osaf_extended_name_lend(value, name);
 }
 
 // cppcheck-suppress unusedFunction
-SaConstStringT ais_name_borrow(const SaNameT* name)
+SaConstStringT ais_name_borrow(const SaNameT *name)
 {
 	SaConstStringT value = osaf_extended_name_borrow(name);
 	size_t length = name->_opaque[0];
@@ -130,8 +130,9 @@ SaConstStringT ais_name_borrow(const SaNameT* name)
 		 * we could be passed an SaNameT that was set using legacy code.
 		 */
 		bool valid = length < SA_MAX_UNEXTENDED_NAME_LENGTH &&
-			value[length] == '\0';
-		if (!valid) value = NULL;
+			     value[length] == '\0';
+		if (!valid)
+			value = NULL;
 	}
 	return value;
 }

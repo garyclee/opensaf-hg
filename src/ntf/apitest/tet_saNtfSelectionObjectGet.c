@@ -20,42 +20,53 @@
 
 void saNtfSelectionObjectGet_01(void)
 {
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion) , SA_AIS_OK);
-    rc = saNtfSelectionObjectGet(ntfHandle, &selectionObject);
-    test_validate(rc, SA_AIS_OK);
-    safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	rc = saNtfSelectionObjectGet(ntfHandle, &selectionObject);
+	test_validate(rc, SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 }
 
 void saNtfSelectionObjectGet_02(void)
 {
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion) , SA_AIS_OK);
-    rc = saNtfSelectionObjectGet(0, &selectionObject);
-    safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	rc = saNtfSelectionObjectGet(0, &selectionObject);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saNtfSelectionObjectGet_03(void)
 {
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion) , SA_AIS_OK);
-    rc = saNtfSelectionObjectGet(-1, &selectionObject);
-    safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	rc = saNtfSelectionObjectGet(-1, &selectionObject);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saNtfSelectionObjectGet_04(void)
 {
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion) , SA_AIS_OK);
-    rc = saNtfSelectionObjectGet(ntfHandle, NULL);
-    safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
-    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	rc = saNtfSelectionObjectGet(ntfHandle, NULL);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
-__attribute__ ((constructor)) static void saNtfSelectionObjectGet_constructor(void)
+__attribute__((constructor)) static void
+saNtfSelectionObjectGet_constructor(void)
 {
-    test_suite_add(3, "Life cycle, selectObject, API 3");
-    test_case_add(3, saNtfSelectionObjectGet_01, "saNtfSelectionObjectGet SA_AIS_OK");
-    test_case_add(3, saNtfSelectionObjectGet_02, "saNtfSelectionObjectGet NULL handle SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(3, saNtfSelectionObjectGet_03, "saNtfSelectionObjectGet invalid handle SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(3, saNtfSelectionObjectGet_03, "saNtfSelectionObjectGet NULL selectionObject SA_AIS_ERR_INVALID_PARAM");
+	test_suite_add(3, "Life cycle, selectObject, API 3");
+	test_case_add(3, saNtfSelectionObjectGet_01,
+		      "saNtfSelectionObjectGet SA_AIS_OK");
+	test_case_add(
+	    3, saNtfSelectionObjectGet_02,
+	    "saNtfSelectionObjectGet NULL handle SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    3, saNtfSelectionObjectGet_03,
+	    "saNtfSelectionObjectGet invalid handle SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    3, saNtfSelectionObjectGet_03,
+	    "saNtfSelectionObjectGet NULL selectionObject SA_AIS_ERR_INVALID_PARAM");
 }
-

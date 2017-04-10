@@ -36,59 +36,59 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX];
  * @return void*
  */
 void ImmReader::imm_reader_thread() {
-	AVND_EVT *evt;
-	TRACE_ENTER();
-	NCS_SEL_OBJ mbx_fd;
+  AVND_EVT *evt;
+  TRACE_ENTER();
+  NCS_SEL_OBJ mbx_fd;
 
-	/* create the mail box */
-	uint32_t rc = m_NCS_IPC_CREATE(&ir_cb.mbx);
-	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_CR("AvND Mailbox creation failed");
-		exit(EXIT_FAILURE);
-	}
-	TRACE("Ir mailbox creation success");
+  /* create the mail box */
+  uint32_t rc = m_NCS_IPC_CREATE(&ir_cb.mbx);
+  if (NCSCC_RC_SUCCESS != rc) {
+    LOG_CR("AvND Mailbox creation failed");
+    exit(EXIT_FAILURE);
+  }
+  TRACE("Ir mailbox creation success");
 
-	/* attach the mail box */
-	rc = m_NCS_IPC_ATTACH(&ir_cb.mbx);
-	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_CR("Ir mailbox attach failed");
-		exit(EXIT_FAILURE);
-	}
+  /* attach the mail box */
+  rc = m_NCS_IPC_ATTACH(&ir_cb.mbx);
+  if (NCSCC_RC_SUCCESS != rc) {
+    LOG_CR("Ir mailbox attach failed");
+    exit(EXIT_FAILURE);
+  }
 
-	mbx_fd = ncs_ipc_get_sel_obj(&ir_cb.mbx);
-	fds[FD_MBX].fd = mbx_fd.rmv_obj;
-	fds[FD_MBX].events = POLLIN;
+  mbx_fd = ncs_ipc_get_sel_obj(&ir_cb.mbx);
+  fds[FD_MBX].fd = mbx_fd.rmv_obj;
+  fds[FD_MBX].events = POLLIN;
 
-	while (1) {
-		if (poll(fds, irfds, -1) == (-1)) {
-			if (errno == EINTR) {
-				continue;
-			}
+  while (1) {
+    if (poll(fds, irfds, -1) == (-1)) {
+      if (errno == EINTR) {
+        continue;
+      }
 
-			LOG_ER("poll Fail - %s", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
+      LOG_ER("poll Fail - %s", strerror(errno));
+      exit(EXIT_FAILURE);
+    }
 
-		if (fds[FD_MBX].revents & POLLIN) {
-			while (nullptr != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(&ir_cb.mbx)))
-				ir_process_event(evt);
-		}
-	}
-	TRACE_LEAVE();
+    if (fds[FD_MBX].revents & POLLIN) {
+      while (nullptr != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(&ir_cb.mbx)))
+        ir_process_event(evt);
+    }
+  }
+  TRACE_LEAVE();
 }
 
 /**
  * Start a imm reader thread.
  * @param Nothing.
- * @return Nothing. 
+ * @return Nothing.
  */
 void ImmReader::imm_reader_thread_create() {
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	std::thread t {imm_reader_thread};
-	t.detach();
+  std::thread t{imm_reader_thread};
+  t.detach();
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }
 
 /**
@@ -100,49 +100,51 @@ void ImmReader::imm_reader_thread_create() {
  * @return Nothing.
  */
 void ImmReader::ir_process_event(AVND_EVT *evt) {
-	uint32_t res = NCSCC_RC_SUCCESS;
-	AVND_SU *su = 0;
-	TRACE_ENTER2("Evt type:%u", evt->type);
+  uint32_t res = NCSCC_RC_SUCCESS;
+  AVND_SU *su = 0;
+  TRACE_ENTER2("Evt type:%u", evt->type);
 
-	/* get the su */
-	su = avnd_sudb_rec_get(avnd_cb->sudb, Amf::to_string(&evt->info.ir_evt.su_name));
-	if (!su) {
-		TRACE("SU'%s', not found in DB", osaf_extended_name_borrow(&evt->info.ir_evt.su_name));
-		goto done;
-	}
+  /* get the su */
+  su = avnd_sudb_rec_get(avnd_cb->sudb,
+                         Amf::to_string(&evt->info.ir_evt.su_name));
+  if (!su) {
+    TRACE("SU'%s', not found in DB",
+          osaf_extended_name_borrow(&evt->info.ir_evt.su_name));
+    goto done;
+  }
 
-	if(false == su->is_ncs) {
-		res = avnd_comp_config_get_su(su);
-	} else {
-		res = NCSCC_RC_FAILURE;
-	}
+  if (false == su->is_ncs) {
+    res = avnd_comp_config_get_su(su);
+  } else {
+    res = NCSCC_RC_FAILURE;
+  }
 
-	{
-		AVND_EVT *evt_ir = 0;
-		SaNameT copy_name;
-		TRACE("Sending to main thread.");
-		osaf_extended_name_alloc(su->name.c_str(), &copy_name);
-		evt_ir = avnd_evt_create(avnd_cb, AVND_EVT_IR, 0, nullptr, &copy_name, 0, 0);
-		osaf_extended_name_free(&copy_name);
-		if (res == NCSCC_RC_SUCCESS)
-			evt_ir->info.ir_evt.status = true;
-		else
-			evt_ir->info.ir_evt.status = false;
+  {
+    AVND_EVT *evt_ir = 0;
+    SaNameT copy_name;
+    TRACE("Sending to main thread.");
+    osaf_extended_name_alloc(su->name.c_str(), &copy_name);
+    evt_ir =
+        avnd_evt_create(avnd_cb, AVND_EVT_IR, 0, nullptr, &copy_name, 0, 0);
+    osaf_extended_name_free(&copy_name);
+    if (res == NCSCC_RC_SUCCESS)
+      evt_ir->info.ir_evt.status = true;
+    else
+      evt_ir->info.ir_evt.status = false;
 
-		res = m_NCS_IPC_SEND(&avnd_cb->mbx, evt_ir, evt_ir->priority);
+    res = m_NCS_IPC_SEND(&avnd_cb->mbx, evt_ir, evt_ir->priority);
 
-		if (NCSCC_RC_SUCCESS != res)
-			LOG_CR("AvND send event to main thread mailbox failed, type = %u", evt_ir->type);
+    if (NCSCC_RC_SUCCESS != res)
+      LOG_CR("AvND send event to main thread mailbox failed, type = %u",
+             evt_ir->type);
 
-		TRACE("Imm Read:'%d'", evt_ir->info.ir_evt.status);
+    TRACE("Imm Read:'%d'", evt_ir->info.ir_evt.status);
 
-		/* if failure, free the event */
-		if (NCSCC_RC_SUCCESS != res)
-			avnd_evt_destroy(evt_ir);
-	}
+    /* if failure, free the event */
+    if (NCSCC_RC_SUCCESS != res) avnd_evt_destroy(evt_ir);
+  }
 done:
-	if (evt)
-		avnd_evt_destroy(evt);
+  if (evt) avnd_evt_destroy(evt);
 
-	TRACE_LEAVE2("res '%u'", res);
+  TRACE_LEAVE2("res '%u'", res);
 }

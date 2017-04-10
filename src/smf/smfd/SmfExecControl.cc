@@ -29,15 +29,15 @@
 
 namespace execctrl {
 
-static std::vector<SmfUpgradeStep*> getStepsMatchingBalancedGroup(SmfUpgradeProcedure* procedure,
-                                                                  SmfUpgradeCampaign* ucamp);
+static std::vector<SmfUpgradeStep*> getStepsMatchingBalancedGroup(
+    SmfUpgradeProcedure* procedure, SmfUpgradeCampaign* ucamp);
 
 static SmfUpgradeStep* mergeStep(SmfUpgradeProcedure* procedure,
                                  const std::vector<SmfUpgradeStep*>& steps);
 
-static bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeStep *newStep,
-                                           const std::list<unitNameAndState>& deact);
-
+static bool removeDuplicateActivationUnits(
+    SmfUpgradeProcedure* i_newproc, SmfUpgradeStep* newStep,
+    const std::list<unitNameAndState>& deact);
 
 static bool isNodeInGroup(const std::string& node,
                           const std::vector<std::string>& group) {
@@ -77,11 +77,11 @@ bool createBalancedProcs() {
   int procnum = 0;
   for (itr = nodesforss.begin(); iend < nodesforss.end(); itr += chunk) {
     iend = itr + chunk;
-    SmfUpgradeProcedure *ssproc = new(std::nothrow) SmfUpgradeProcedure;
+    SmfUpgradeProcedure* ssproc = new (std::nothrow) SmfUpgradeProcedure;
     if (iend >= nodesforss.end()) {
       iend = nodesforss.end();
     }
-    ssproc->setUpgradeMethod(new(std::nothrow) SmfSinglestepUpgrade);
+    ssproc->setUpgradeMethod(new (std::nothrow) SmfSinglestepUpgrade);
     ssproc->setProcName("safSmfProc=SmfBalancedProc" + std::to_string(procnum));
     ssproc->setExecLevel(std::to_string(procExecLvl));
     ssproc->setIsMergedProcedure(true);  // For cleanup purposes
@@ -92,7 +92,7 @@ bool createBalancedProcs() {
     procnum++;
   }
   for (auto proc : balancedprocs) {
-      ucamp->addUpgradeProcedure(proc);
+    ucamp->addUpgradeProcedure(proc);
   }
   TRACE_LEAVE();
   return true;
@@ -104,13 +104,12 @@ bool createStepForBalancedProc(SmfUpgradeProcedure* procedure) {
   SmfUpgradeCampaign* ucamp = camp->getUpgradeCampaign();
 
   auto steps = getStepsMatchingBalancedGroup(procedure, ucamp);
-  std::list <unitNameAndState> deact;
+  std::list<unitNameAndState> deact;
   for (auto step : steps) {
     SmfUpgradeProcedure* oproc = step->getProcedure();
     // copy callbacks to the new procedure
     procedure->getCallbackList(oproc->getUpgradeMethod());
-    deact.insert(deact.end(),
-                 step->getDeactivationUnitList().begin(),
+    deact.insert(deact.end(), step->getDeactivationUnitList().begin(),
                  step->getDeactivationUnitList().end());
   }
   if (!steps.empty()) {
@@ -122,7 +121,8 @@ bool createStepForBalancedProc(SmfUpgradeProcedure* procedure) {
   if (procedure == (*--allprocs.end())) {
     // This is the last balanced procedure configure the wrapup actions.
     for (auto wac : procedure->getWrapupActions()) {
-      const SmfCallbackAction* cba = dynamic_cast<const SmfCallbackAction*>(wac);
+      const SmfCallbackAction* cba =
+          dynamic_cast<const SmfCallbackAction*>(wac);
       if (cba != nullptr) {
         const_cast<SmfCallbackAction*>(cba)->setCallbackProcedure(procedure);
       }
@@ -195,11 +195,11 @@ std::vector<SmfUpgradeStep*> getStepsMatchingBalancedGroup(
 }
 
 SmfUpgradeStep* mergeStep(SmfUpgradeProcedure* procedure,
-    const std::vector<SmfUpgradeStep*>& steps) {
+                          const std::vector<SmfUpgradeStep*>& steps) {
   // Create a merged step based on the upgrade step passed in. The in/out
   // parameter procedure must be a balanced procedure.
   TRACE_ENTER();
-  SmfUpgradeStep* newstep = new(std::nothrow)SmfUpgradeStep;
+  SmfUpgradeStep* newstep = new (std::nothrow) SmfUpgradeStep;
   osafassert(newstep != nullptr);
   newstep->setRdn("safSmfStep=0001");
   newstep->setDn(newstep->getRdn() + "," + procedure->getDn());
@@ -217,13 +217,14 @@ SmfUpgradeStep* mergeStep(SmfUpgradeProcedure* procedure,
   return newstep;
 }
 
-bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeStep *newStep,
+bool removeDuplicateActivationUnits(SmfUpgradeProcedure* i_newproc,
+                                    SmfUpgradeStep* newStep,
                                     const std::list<unitNameAndState>& deact) {
   // Remove any (de)activation unit duplicates and add them to the step.
   // Activation and deactivation units are the same because rolling and
   // formodify is symetric.
   TRACE_ENTER();
-  std::list < unitNameAndState > tmpDU;
+  std::list<unitNameAndState> tmpDU;
   tmpDU.insert(tmpDU.begin(), deact.begin(), deact.end());
   std::multimap<std::string, objectInst> objInstances;
   if (i_newproc->getImmComponentInfo(objInstances) == false) {
@@ -237,11 +238,12 @@ bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeS
 
   // Reduce the DU list, check if smaller scope is within bigger scope.
   std::pair<std::multimap<std::string, objectInst>::iterator,
-            std::multimap<std::string, objectInst>::iterator> nodeName_mm;
+            std::multimap<std::string, objectInst>::iterator>
+      nodeName_mm;
   std::multimap<std::string, objectInst>::iterator iter;
 
-  std::list < unitNameAndState > nodeLevelDU;
-  std::list < unitNameAndState >::iterator unit_iter;
+  std::list<unitNameAndState> nodeLevelDU;
+  std::list<unitNameAndState>::iterator unit_iter;
   // Find DU on node level and save them in a separate list
   for (unit_iter = tmpDU.begin(); unit_iter != tmpDU.end();) {
     if ((*unit_iter).name.find("safAmfNode=") == 0) {  // DU is a node node
@@ -257,24 +259,24 @@ bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeS
   // For all found nodes, look if some other DU (comp/SU) is within scope
   // tmpDU contain all DU except the node level ones which was removed above
   // and saved in nodeLevelDU list
-  std::list < unitNameAndState >::iterator itr;
+  std::list<unitNameAndState>::iterator itr;
   for (itr = nodeLevelDU.begin(); itr != nodeLevelDU.end(); ++itr) {
     // For all comp/SU found in the scope of the node.  Find out if any
     // remaining DU is within it.
     // Get all components/SU within the node
     nodeName_mm = objInstances.equal_range((*itr).name);
-    for (iter = nodeName_mm.first;  iter != nodeName_mm.second;  ++iter) {
+    for (iter = nodeName_mm.first; iter != nodeName_mm.second; ++iter) {
       // For all comp/SU found in the scope of the node.
       // Find out if any remaining DU is within it
       for (unit_iter = tmpDU.begin(); unit_iter != tmpDU.end();) {
         if ((*unit_iter).name == (*iter).second.suDN) {  // Check SU
           TRACE("[%s] is in scope of [%s], remove it from DU list",
-                 (*unit_iter).name.c_str(), (*itr).name.c_str());
+                (*unit_iter).name.c_str(), (*itr).name.c_str());
           // Remove the node and update iterator
           unit_iter = tmpDU.erase(unit_iter);
         } else if ((*unit_iter).name == (*iter).second.compDN) {  // Check comp
           TRACE("[%s] is in scope of [%s], remove it from DU list",
-                 (*unit_iter).name.c_str(), (*itr).name.c_str());
+                (*unit_iter).name.c_str(), (*itr).name.c_str());
           // Remove the node and update iterator
           unit_iter = tmpDU.erase(unit_iter);
         } else {
@@ -286,7 +288,7 @@ bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeS
 
   // tmpDU contain all DU which was not in the scope of an included node Find
   // DU on SU level and save them in a separate list. Remove SU from tmpDU list
-  std::list < unitNameAndState > suLevelDU;
+  std::list<unitNameAndState> suLevelDU;
   for (unit_iter = tmpDU.begin(); unit_iter != tmpDU.end();) {
     if ((*unit_iter).name.find("safSu=") == 0) {  // DU is a SU
       // A node will never be optimized away, save it
@@ -299,7 +301,7 @@ bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeS
 
   // For all SU in the suLevelDU list, look if remaining DU in tmpDU is within
   // scope of the SU
-  std::list < unitNameAndState >::iterator su_iter;
+  std::list<unitNameAndState>::iterator su_iter;
   for (su_iter = suLevelDU.begin(); su_iter != suLevelDU.end(); ++su_iter) {
     for (unit_iter = tmpDU.begin(); unit_iter != tmpDU.end();) {
       if ((*unit_iter).name.find((*su_iter).name) != std::string::npos) {
@@ -315,8 +317,8 @@ bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeS
   }
 
   newStep->addDeactivationUnits(nodeLevelDU);  // Add the node level DU
-  newStep->addDeactivationUnits(suLevelDU);  // Add the SU level DU
-  newStep->addDeactivationUnits(tmpDU);  // Add the comp level DU
+  newStep->addDeactivationUnits(suLevelDU);    // Add the SU level DU
+  newStep->addDeactivationUnits(tmpDU);        // Add the comp level DU
 
   // Rolling and forModify are symetric, add the node level DU
   newStep->addActivationUnits(nodeLevelDU);
@@ -329,4 +331,4 @@ bool removeDuplicateActivationUnits(SmfUpgradeProcedure * i_newproc, SmfUpgradeS
   return true;
 }
 
-} // namespace execctrl
+}  // namespace execctrl

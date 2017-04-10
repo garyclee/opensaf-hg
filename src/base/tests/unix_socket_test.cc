@@ -28,15 +28,11 @@
 
 class UnixSocketTest : public ::testing::Test {
  protected:
-  UnixSocketTest() {
-  }
+  UnixSocketTest() {}
 
-  virtual ~UnixSocketTest() {
-  }
+  virtual ~UnixSocketTest() {}
 
-  std::string SocketName() {
-    return tmpdir_ + "/sock";
-  }
+  std::string SocketName() { return tmpdir_ + "/sock"; }
 
   bool SocketExists() {
     struct stat buf;
@@ -76,11 +72,13 @@ TEST_F(UnixSocketTest, OpenShallUnlinkExistingSocket) {
   ASSERT_FALSE(SocketExists());
   int sock = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
   ASSERT_GE(sock, 0);
-  struct sockaddr_un addr{AF_UNIX, {}};
+  struct sockaddr_un addr {
+    AF_UNIX, {}
+  };
   memcpy(addr.sun_path, SocketName().c_str(), SocketName().size() + 1);
-  ASSERT_EQ(bind(sock,
-                 reinterpret_cast<const struct sockaddr*>(&addr),
-                 sizeof(addr)), 0);
+  ASSERT_EQ(
+      bind(sock, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr)),
+      0);
   ASSERT_EQ(close(sock), 0);
   EXPECT_TRUE(SocketExists());
   base::UnixServerSocket* server = new base::UnixServerSocket(SocketName());

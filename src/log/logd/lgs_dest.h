@@ -77,15 +77,17 @@ struct RecordData {
   uint16_t sev;
   timespec time;
 
-  RecordData() : name{nullptr}, logrec{nullptr}
-      , hostname{nullptr}
-      , networkname{nullptr}
-      , appname{nullptr}
-      , isRtStream{false}
-      , recordId{0}
-      , sev{0} {
-        time = base::ReadRealtimeClock();
-      }
+  RecordData()
+      : name{nullptr},
+        logrec{nullptr},
+        hostname{nullptr},
+        networkname{nullptr},
+        appname{nullptr},
+        isRtStream{false},
+        recordId{0},
+        sev{0} {
+    time = base::ReadRealtimeClock();
+  }
 };
 
 //>
@@ -98,8 +100,7 @@ struct RecordData {
 // This function is blocking. The caller will be blocked until
 // the request is done.
 //<
-bool WriteToDestination(const RecordData& data,
-                        const VectorString& destnames);
+bool WriteToDestination(const RecordData& data, const VectorString& destnames);
 
 //>
 // @GetDestinationStatus - Get all destination status
@@ -177,14 +178,15 @@ class DestinationHandler {
     struct timespec time;
 
     // Set default value
-    RecordInfo() : stream_dn{nullptr}
-        , msgid{nullptr}
-        , origin{nullptr}
-        , log_record{nullptr}
-        , app_name{nullptr}
-        , severity{0}
-        , record_id{0} {
-          time = base::ReadRealtimeClock();
+    RecordInfo()
+        : stream_dn{nullptr},
+          msgid{nullptr},
+          origin{nullptr},
+          log_record{nullptr},
+          app_name{nullptr},
+          severity{0},
+          record_id{0} {
+      time = base::ReadRealtimeClock();
     }
   };
 

@@ -40,13 +40,13 @@ typedef enum {
 } NCSMDS_ADMOP_TYPE;
 
 typedef struct mds_admop_vdest_create_info {
-  MDS_DEST i_vdest;       /* Default role = STANDBY */
-  NCS_VDEST_TYPE i_policy;        /* The routing policy for this group of vdests. */
+  MDS_DEST i_vdest;        /* Default role = STANDBY */
+  NCS_VDEST_TYPE i_policy; /* The routing policy for this group of vdests. */
   MDS_HDL o_mds_vdest_hdl;
 } MDS_ADMOP_VDEST_CREATE_INFO;
 
 typedef struct mds_admop_vdest_config_info {
-  MDS_DEST i_vdest;       /* Default role = STANDBY */
+  MDS_DEST i_vdest; /* Default role = STANDBY */
   V_DEST_RL i_new_role;
 } MDS_ADMOP_VDEST_CONFIG_INFO;
 
@@ -68,7 +68,7 @@ typedef struct mds_admop_pwe_create_info {
 
   /* i_pwe_id: A virtual or absolute MDS handle, obtained respectively
      during a VDEST_CREATE or CORE_CREATE. */
-  PW_ENV_ID i_pwe_id;     /* Environment id for services */
+  PW_ENV_ID i_pwe_id; /* Environment id for services */
 
   /* o_mds_pwe_hdl: An "MDS-handle" meant for all normal-MDS-services. These
      normal-MDS-services are a member of a PWE identified by "i_pwe_id"
@@ -77,14 +77,14 @@ typedef struct mds_admop_pwe_create_info {
 } MDS_ADMOP_PWE_CREATE_INFO;
 
 typedef struct mds_admop_pwe_destroy_info {
-  MDS_HDL i_mds_pwe_hdl;  /* Handle returned by PWE creation. */
+  MDS_HDL i_mds_pwe_hdl; /* Handle returned by PWE creation. */
 } MDS_ADMOP_PWE_DESTROY_INFO;
 
 typedef struct mds_admop_pwe_query_info {
-  MDS_HDL i_local_dest_hdl;       /* Handle to the local VDEST (or NULL for ADEST) */
-  PW_ENV_ID i_pwe_id;     /* ID of the PWE for which handle is reqd. */
+  MDS_HDL i_local_dest_hdl; /* Handle to the local VDEST (or NULL for ADEST) */
+  PW_ENV_ID i_pwe_id;       /* ID of the PWE for which handle is reqd. */
 
-  MDS_HDL o_mds_pwe_hdl;  /* Handle to the PWE. */
+  MDS_HDL o_mds_pwe_hdl; /* Handle to the PWE. */
 } MDS_ADMOP_PWE_QUERY_INFO;
 
 typedef struct ncsmds_admop_info {
@@ -100,7 +100,7 @@ typedef struct ncsmds_admop_info {
   } info;
 } NCSMDS_ADMOP_INFO;
 
-typedef uint32_t (*NCSMDS_ADM_API) (NCSMDS_ADMOP_INFO *mds_adm);
+typedef uint32_t (*NCSMDS_ADM_API)(NCSMDS_ADMOP_INFO *mds_adm);
 uint32_t ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm);
 
 uint32_t mds_adm_get_adest_hdl(void);

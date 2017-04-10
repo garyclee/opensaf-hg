@@ -26,7 +26,7 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
+
 
 ******************************************************************************
 */
@@ -39,22 +39,31 @@ static uint32_t gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
 static uint32_t gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
 static uint32_t gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
 static uint32_t gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
-static uint32_t glsv_enc_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_INFO *evt);
+static uint32_t gla_mds_svc_evt(GLA_CB *cb,
+				MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t glsv_enc_client_info_evt(NCS_UBAID *uba,
+					 GLSV_EVT_RESTART_CLIENT_INFO *evt);
 static uint32_t glsv_enc_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
-static uint32_t glsv_enc_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *evt);
-static uint32_t glsv_enc_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt);
+static uint32_t glsv_enc_rsc_unlock_evt(NCS_UBAID *uba,
+					GLSV_EVT_RSC_UNLOCK_INFO *evt);
+static uint32_t glsv_enc_rsc_lock_evt(NCS_UBAID *uba,
+				      GLSV_EVT_RSC_LOCK_INFO *evt);
 static uint32_t glsv_enc_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
 static uint32_t glsv_enc_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
-static uint32_t glsv_enc_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt);
-static uint32_t glsv_enc_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt);
-static uint32_t glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *evt);
-static uint32_t glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt);
-static uint32_t glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *evt);
+static uint32_t glsv_enc_finalize_evt(NCS_UBAID *uba,
+				      GLSV_EVT_FINALIZE_INFO *evt);
+static uint32_t glsv_enc_initialize_evt(NCS_UBAID *uba,
+					GLSV_EVT_CLIENT_INFO *evt);
+static uint32_t glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba,
+					     GLSV_EVT_AGENT_INFO *evt);
+static uint32_t glsv_gla_dec_callbk_evt(NCS_UBAID *uba,
+					GLSV_GLA_CALLBACK_INFO *evt);
+static uint32_t glsv_gla_dec_api_resp_evt(NCS_UBAID *uba,
+					  GLSV_GLA_API_RESP_INFO *evt);
 
 uint32_t gla_mds_get_handle(GLA_CB *cb);
 
-MSG_FRMT_VER gla_glnd_msg_fmt_table[GLA_WRT_GLND_SUBPART_VER_RANGE] = { 1 };
+MSG_FRMT_VER gla_glnd_msg_fmt_table[GLA_WRT_GLND_SUBPART_VER_RANGE] = {1};
 
 /****************************************************************************
  * Name          : gla_mds_get_handle
@@ -83,20 +92,20 @@ uint32_t gla_mds_get_handle(GLA_CB *cb)
 		goto end;
 	}
 	cb->gla_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
   Name          : gla_mds_register
- 
+
   Description   : This routine registers the GLA Service with MDS.
- 
+
   Arguments     : gla_cb - ptr to the GLA control block
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 
@@ -113,16 +122,20 @@ uint32_t gla_mds_register(GLA_CB *cb)
 	/* memset the svc_info */
 	memset(&svc_info, 0, sizeof(NCSMDS_INFO));
 
-	/* STEP 2 : Install on ADEST with MDS with service ID NCSMDS_SVC_ID_GLA. */
+	/* STEP 2 : Install on ADEST with MDS with service ID NCSMDS_SVC_ID_GLA.
+	 */
 	svc_info.i_mds_hdl = cb->gla_mds_hdl;
 	svc_info.i_svc_id = NCSMDS_SVC_ID_GLA;
 	svc_info.i_op = MDS_INSTALL;
 
 	svc_info.info.svc_install.i_yr_svc_hdl = cb->agent_handle_id;
-	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_INTRANODE;	/* node specific */
-	svc_info.info.svc_install.i_svc_cb = gla_mds_callback;	/* callback */
-	svc_info.info.svc_install.i_mds_q_ownership = false;	/* GLA owns the mds queue */
-	svc_info.info.svc_install.i_mds_svc_pvt_ver = GLA_PVT_SUBPART_VERSION;	/* Private Subpart Version of GLA */
+	svc_info.info.svc_install.i_install_scope =
+	    NCSMDS_SCOPE_INTRANODE; /* node specific */
+	svc_info.info.svc_install.i_svc_cb = gla_mds_callback; /* callback */
+	svc_info.info.svc_install.i_mds_q_ownership =
+	    false; /* GLA owns the mds queue */
+	svc_info.info.svc_install.i_mds_svc_pvt_ver =
+	    GLA_PVT_SUBPART_VERSION; /* Private Subpart Version of GLA */
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
 		rc = NCSCC_RC_FAILURE;
@@ -146,7 +159,7 @@ uint32_t gla_mds_register(GLA_CB *cb)
 		goto end;
 	}
 
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -166,8 +179,8 @@ void gla_mds_unregister(GLA_CB *cb)
 {
 	NCSMDS_INFO arg;
 	TRACE_ENTER();
-	
-	/* Un-install your service into MDS. 
+
+	/* Un-install your service into MDS.
 	   No need to cancel the services that are subscribed */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
 
@@ -185,13 +198,13 @@ void gla_mds_unregister(GLA_CB *cb)
 
 /****************************************************************************
   Name          : gla_mds_callback
- 
+
   Description   : This callback routine will be called by MDS on event arrival
- 
+
   Arguments     : info - pointer to the mds callback info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t gla_mds_callback(struct ncsmds_callback_info *info)
@@ -203,7 +216,8 @@ uint32_t gla_mds_callback(struct ncsmds_callback_info *info)
 	if (info == NULL)
 		goto end;
 
-	gla_cb = (GLA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLA, (uint32_t)info->i_yr_svc_hdl);
+	gla_cb = (GLA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLA,
+					  (uint32_t)info->i_yr_svc_hdl);
 	if (!gla_cb) {
 		TRACE_2("GLA cb retrieval failed");
 		goto end;
@@ -242,22 +256,22 @@ uint32_t gla_mds_callback(struct ncsmds_callback_info *info)
 		TRACE_2("GLA mds callback call failure");
 	}
 	ncshm_give_hdl((uint32_t)info->i_yr_svc_hdl);
- 
- end:
+
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
   Name          : gla_mds_enc_flat
- 
+
   Description   : This function encodes an events sent from GLA.
- 
+
   Arguments     : cb    : GLA control Block.
-                  info  : Info for encoding
-  
+		  info  : Info for encoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t gla_mds_enc_flat(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
@@ -268,12 +282,14 @@ static uint32_t gla_mds_enc_flat(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	uint32_t rc = NCSCC_RC_FAILURE;
 	TRACE_ENTER();
 
-	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
+	/* Get the Msg Format version from the SERVICE_ID &
+	 * RMT_SVC_PVT_SUBPART_VERSION */
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_GLND) {
-		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
-							    GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
-							    GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
-							    gla_glnd_msg_fmt_table);
+		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    info->i_rem_svc_pvt_ver,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
+		    gla_glnd_msg_fmt_table);
 	}
 
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_GLND && info->o_msg_fmt_ver) {
@@ -286,7 +302,7 @@ static uint32_t gla_mds_enc_flat(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 		/* Drop The Message */
 		TRACE_2("GLA message format version invalid");
 	}
-	
+
 	TRACE_LEAVE();
 	return rc;
 }
@@ -297,7 +313,7 @@ static uint32_t gla_mds_enc_flat(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
   Description   : This function encodes an events sent from GLA.
 
   Arguments     : cb    : GLA control Block.
-                  info  : Info for encoding
+		  info  : Info for encoding
 
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
@@ -316,18 +332,20 @@ static uint32_t gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 		goto end;
 	}
 
-	/* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
+	/* Get the Msg Format version from the SERVICE_ID &
+	 * RMT_SVC_PVT_SUBPART_VERSION */
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_GLND) {
-		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
-							    GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
-							    GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
-							    gla_glnd_msg_fmt_table);
+		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    info->i_rem_svc_pvt_ver,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
+		    gla_glnd_msg_fmt_table);
 	}
 
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_GLND && info->o_msg_fmt_ver) {
 		/* as all the event structures are flat */
 		evt = (GLSV_GLND_EVT *)info->i_msg;
-    /** encode the type of message **/
+		/** encode the type of message **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE_2("GLA mds enc flat failure");
@@ -337,11 +355,13 @@ static uint32_t gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 		ncs_enc_claim_space(uba, 4);
 		switch (evt->type) {
 		case GLSV_GLND_EVT_REG_AGENT:
-			glsv_enc_reg_unreg_agent_evt(uba, &evt->info.agent_info);
+			glsv_enc_reg_unreg_agent_evt(uba,
+						     &evt->info.agent_info);
 			break;
 
 		case GLSV_GLND_EVT_UNREG_AGENT:
-			glsv_enc_reg_unreg_agent_evt(uba, &evt->info.agent_info);
+			glsv_enc_reg_unreg_agent_evt(uba,
+						     &evt->info.agent_info);
 			break;
 
 		case GLSV_GLND_EVT_INITIALIZE:
@@ -365,7 +385,8 @@ static uint32_t gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 			break;
 
 		case GLSV_GLND_EVT_RSC_UNLOCK:
-			glsv_enc_rsc_unlock_evt(uba, &evt->info.rsc_unlock_info);
+			glsv_enc_rsc_unlock_evt(uba,
+						&evt->info.rsc_unlock_info);
 			break;
 
 		case GLSV_GLND_EVT_RSC_PURGE:
@@ -373,7 +394,8 @@ static uint32_t gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 			break;
 
 		case GLSV_GLND_EVT_CLIENT_INFO:
-			glsv_enc_client_info_evt(uba, &evt->info.restart_client_info);
+			glsv_enc_client_info_evt(
+			    uba, &evt->info.restart_client_info);
 			break;
 
 		default:
@@ -386,21 +408,21 @@ static uint32_t gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
 		TRACE_2("GLA message format version invalid");
 		goto end;
 	}
- end:	
-	TRACE_LEAVE();	
+end:
+	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
   Name          : gla_mds_dec_flat
- 
+
   Description   : This function decodes an events sent to GLA.
- 
+
   Arguments     : cb    : GLA control Block.
-                  info  : Info for decoding
-  
+		  info  : Info for decoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
@@ -413,10 +435,11 @@ static uint32_t gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	TRACE_ENTER();
 
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND) {
-		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
-							     GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
-							     GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
-							     gla_glnd_msg_fmt_table);
+		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(
+		    info->i_msg_fmt_ver,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
+		    gla_glnd_msg_fmt_table);
 	}
 
 	if (is_valid_msg_fmt && (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND)) {
@@ -426,7 +449,8 @@ static uint32_t gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 			goto end;
 		}
 		info->o_msg = evt;
-		uba->ub = ncs_decode_n_octets(uba->ub, (uint8_t *)evt, sizeof(GLSV_GLA_EVT));
+		uba->ub = ncs_decode_n_octets(uba->ub, (uint8_t *)evt,
+					      sizeof(GLSV_GLA_EVT));
 		rc = NCSCC_RC_SUCCESS;
 		goto end;
 	} else {
@@ -436,21 +460,21 @@ static uint32_t gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		TRACE_2("GLA mds dec flat failure");
 		goto end;
 	}
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
   Name          : gla_mds_dect
- 
+
   Description   : This function decodes an events sent to GLA.
- 
+
   Arguments     : cb    : GLA control Block.
-                  info  : Info for decoding
-  
+		  info  : Info for decoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
@@ -462,12 +486,13 @@ static uint32_t gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 	uint8_t *p8, local_data[20];
 	uint32_t rc = NCSCC_RC_FAILURE;
 	TRACE_ENTER();
-	
+
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND) {
-		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(info->i_msg_fmt_ver,
-							     GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
-							     GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
-							     gla_glnd_msg_fmt_table);
+		is_valid_msg_fmt = m_NCS_MSG_FORMAT_IS_VALID(
+		    info->i_msg_fmt_ver,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT,
+		    GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT,
+		    gla_glnd_msg_fmt_table);
 	}
 
 	if (is_valid_msg_fmt && (info->i_fr_svc_id == NCSMDS_SVC_ID_GLND)) {
@@ -491,7 +516,8 @@ static uint32_t gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 			break;
 
 		case GLSV_GLA_API_RESP_EVT:
-			glsv_gla_dec_api_resp_evt(uba, &evt->info.gla_resp_info);
+			glsv_gla_dec_api_resp_evt(uba,
+						  &evt->info.gla_resp_info);
 			break;
 
 		default:
@@ -501,13 +527,13 @@ static uint32_t gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
 		goto end;
 	} else {
 		if (!is_valid_msg_fmt) {
-			 TRACE_2("GLA message format version invalid");
+			TRACE_2("GLA message format version invalid");
 		}
 		TRACE_2("GLA mds enc flat failure");
 		goto end;
 	}
- end:
-	TRACE_LEAVE();	
+end:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -528,7 +554,7 @@ static uint32_t gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	GLSV_GLA_EVT *evt = (GLSV_GLA_EVT *)rcv_info->i_msg;
 	GLSV_GLA_CALLBACK_INFO *gla_callbk_info;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	TRACE_ENTER();	
+	TRACE_ENTER();
 
 	if (evt == NULL)
 		goto end;
@@ -536,72 +562,82 @@ static uint32_t gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	if (evt->type == GLSV_GLA_CALLBK_EVT) {
 		/*allocate the memory */
 		gla_callbk_info = m_MMGR_ALLOC_GLA_CALLBACK_INFO;
-		memcpy(gla_callbk_info, &evt->info.gla_clbk_info, sizeof(GLSV_GLA_CALLBACK_INFO));
+		memcpy(gla_callbk_info, &evt->info.gla_clbk_info,
+		       sizeof(GLSV_GLA_CALLBACK_INFO));
 		/* Stop & Destroy the timer */
 		switch (gla_callbk_info->callback_type) {
-		case GLSV_LOCK_RES_OPEN_CBK:
-			{
-				GLA_RESOURCE_ID_INFO *res_id_node = NULL;
-				res_id_node =
-				    (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_GLA,
-									   gla_callbk_info->resourceId);
-				if (res_id_node) {
-					gla_stop_tmr(&res_id_node->res_async_tmr);
-					ncshm_give_hdl(gla_callbk_info->resourceId);
-				}
+		case GLSV_LOCK_RES_OPEN_CBK: {
+			GLA_RESOURCE_ID_INFO *res_id_node = NULL;
+			res_id_node = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
+			    NCS_SERVICE_ID_GLA, gla_callbk_info->resourceId);
+			if (res_id_node) {
+				gla_stop_tmr(&res_id_node->res_async_tmr);
+				ncshm_give_hdl(gla_callbk_info->resourceId);
 			}
-			break;
-		case GLSV_LOCK_GRANT_CBK:
-			{
-				GLSV_LOCK_GRANT_PARAM *param = &gla_callbk_info->params.lck_grant;
-				GLA_LOCK_ID_INFO *lock_id_node = NULL;
-				lock_id_node =
-				    (GLA_LOCK_ID_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_GLA, param->lcl_lockId);
+		} break;
+		case GLSV_LOCK_GRANT_CBK: {
+			GLSV_LOCK_GRANT_PARAM *param =
+			    &gla_callbk_info->params.lck_grant;
+			GLA_LOCK_ID_INFO *lock_id_node = NULL;
+			lock_id_node = (GLA_LOCK_ID_INFO *)ncshm_take_hdl(
+			    NCS_SERVICE_ID_GLA, param->lcl_lockId);
 
-				if (lock_id_node) {
-					gla_stop_tmr(&lock_id_node->lock_async_tmr);
-					ncshm_give_hdl(param->lcl_lockId);
-				}
+			if (lock_id_node) {
+				gla_stop_tmr(&lock_id_node->lock_async_tmr);
+				ncshm_give_hdl(param->lcl_lockId);
 			}
-			break;
-		case GLSV_LOCK_UNLOCK_CBK:
-			{
-				GLSV_LOCK_UNLOCK_PARAM *param = &gla_callbk_info->params.unlock;
-				GLA_LOCK_ID_INFO *lock_id_node = NULL;
-				lock_id_node = (GLA_LOCK_ID_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_GLA, param->lockId);
+		} break;
+		case GLSV_LOCK_UNLOCK_CBK: {
+			GLSV_LOCK_UNLOCK_PARAM *param =
+			    &gla_callbk_info->params.unlock;
+			GLA_LOCK_ID_INFO *lock_id_node = NULL;
+			lock_id_node = (GLA_LOCK_ID_INFO *)ncshm_take_hdl(
+			    NCS_SERVICE_ID_GLA, param->lockId);
 
-				if (lock_id_node) {
-					gla_stop_tmr(&lock_id_node->unlock_async_tmr);
-					ncshm_give_hdl(param->lockId);
-				}
+			if (lock_id_node) {
+				gla_stop_tmr(&lock_id_node->unlock_async_tmr);
+				ncshm_give_hdl(param->lockId);
 			}
-			break;
+		} break;
 		case GLSV_LOCK_WAITER_CBK:
 			break;
 		}
 
 		/* Put it in place it in the Queue */
-		rc = glsv_gla_callback_queue_write(cb, evt->handle, gla_callbk_info);
+		rc = glsv_gla_callback_queue_write(cb, evt->handle,
+						   gla_callbk_info);
 
 		if (gla_callbk_info->callback_type == GLSV_LOCK_RES_OPEN_CBK) {
-			GLSV_LOCK_RES_OPEN_PARAM *param = &gla_callbk_info->params.res_open;
+			GLSV_LOCK_RES_OPEN_PARAM *param =
+			    &gla_callbk_info->params.res_open;
 			GLA_CLIENT_INFO *client_info;
 			GLA_RESOURCE_ID_INFO *res_id_node;
 
 			/* get the client_info */
-			client_info = gla_client_tree_find_and_add(cb, evt->handle, false);
+			client_info = gla_client_tree_find_and_add(
+			    cb, evt->handle, false);
 			if (client_info) {
-				if (client_info->lckCallbk.saLckResourceOpenCallback) {
+				if (client_info->lckCallbk
+					.saLckResourceOpenCallback) {
 					if (param->error == SA_AIS_OK) {
-						/* add the resource id to the local tree */
-						if ((res_id_node =
-						     (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(NCS_SERVICE_ID_GLA,
-											    gla_callbk_info->
-											    resourceId))) {
-							res_id_node->gbl_res_id = param->resourceId;
-							res_id_node->lock_handle_id = client_info->lock_handle_id;
-							ncshm_give_hdl(gla_callbk_info->resourceId);
-
+						/* add the resource id to the
+						 * local tree */
+						if ((res_id_node = (GLA_RESOURCE_ID_INFO
+									*)
+							 ncshm_take_hdl(
+							     NCS_SERVICE_ID_GLA,
+							     gla_callbk_info
+								 ->resourceId))) {
+							res_id_node
+							    ->gbl_res_id =
+							    param->resourceId;
+							res_id_node
+							    ->lock_handle_id =
+							    client_info
+								->lock_handle_id;
+							ncshm_give_hdl(
+							    gla_callbk_info
+								->resourceId);
 						}
 					}
 				}
@@ -617,7 +653,7 @@ static uint32_t gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 			m_MMGR_FREE_GLA_EVT(evt);
 		goto end;
 	}
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -625,10 +661,10 @@ static uint32_t gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 /****************************************************************************
  * Name          : gla_mds_svc_evt
  *
- * Description   : GLA is informed when MDS events occurr that he has 
+ * Description   : GLA is informed when MDS events occurr that he has
  *                 subscribed to
  *
- * Arguments     : 
+ * Arguments     :
  *   cb          : GLA control Block.
  *   enc_info    : Svc evt info.
  *
@@ -637,9 +673,10 @@ static uint32_t gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t gla_mds_svc_evt(GLA_CB *cb,
+				MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-	
+
 	switch (svc_evt->i_change) {
 	case NCSMDS_DOWN:
 		if (svc_evt->i_svc_id == NCSMDS_SVC_ID_GLND) {
@@ -660,18 +697,19 @@ static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 			cb->glnd_mds_dest = svc_evt->i_dest;
 			if (cb->glnd_svc_up == false) {
 				cb->glnd_svc_up = true;
-				/* send the resigteration information to the GLND */
+				/* send the resigteration information to the
+				 * GLND */
 				TRACE_1("GLA recieved glnd service up");
-				if (gla_agent_register(cb) != NCSCC_RC_SUCCESS) {
+				if (gla_agent_register(cb) !=
+				    NCSCC_RC_SUCCESS) {
 					TRACE_2("GLA agent register failure");
 				}
 
 				if (cb->glnd_crashed) {
-					if (gla_client_info_send(cb) == NCSCC_RC_SUCCESS) {
+					if (gla_client_info_send(cb) ==
+					    NCSCC_RC_SUCCESS) {
 						/*TBD LOG */
-
 					}
-
 				}
 			}
 			m_NCS_LOCK(&cb->glnd_sync_lock, NCS_LOCK_WRITE);
@@ -685,7 +723,6 @@ static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 
 		default:
 			break;
-
 		}
 
 	default:
@@ -696,21 +733,22 @@ static uint32_t gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt
 
 /****************************************************************************
   Name          : gla_mds_msg_sync_send
- 
+
   Description   : This routine sends the GLA message to GLND.
- 
+
   Arguments     : cb  - ptr to the GLA CB
-                  i_evt - ptr to the GLA message
-                  o_evt - ptr to the GLA message returned
-                  timeout - timeout value in 10 ms 
- 
+		  i_evt - ptr to the GLA message
+		  o_evt - ptr to the GLA message returned
+		  timeout - timeout value in 10 ms
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t gla_mds_msg_sync_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **o_evt, SaTimeT timeout)
+uint32_t gla_mds_msg_sync_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt,
+			       GLSV_GLA_EVT **o_evt, SaTimeT timeout)
 {
-	
+
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	TRACE_ENTER();
@@ -730,29 +768,30 @@ uint32_t gla_mds_msg_sync_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **
 	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SNDRSP;
 
 	/* fill the send rsp strcuture */
-	mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;	/* timeto wait in 10ms */
+	mds_info.info.svc_send.info.sndrsp.i_time_to_wait =
+	    timeout; /* timeto wait in 10ms */
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = cb->glnd_mds_dest;
 
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (rc == NCSCC_RC_SUCCESS)
 		*o_evt = mds_info.info.svc_send.info.sndrsp.o_rsp;
-	
- end:
+
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
   Name          : gla_mds_msg_async_send
- 
+
   Description   : This routine sends the GLA message to GLND.
- 
+
   Arguments     : cb  - ptr to the GLA CB
-                  i_evt - ptr to the GLA message
-                  
+		  i_evt - ptr to the GLA message
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t gla_mds_msg_async_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt)
@@ -777,24 +816,23 @@ uint32_t gla_mds_msg_async_send(GLA_CB *cb, GLSV_GLND_EVT *i_evt)
 
 	/* fill the send rsp strcuture */
 	mds_info.info.svc_send.info.snd.i_to_dest = cb->glnd_mds_dest;
-		
+
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
-
 }
 
 /****************************************************************************
   Name          : gla_agent_register
- 
+
   Description   : This routine sends the GLA registeration message to GLND.
- 
+
   Arguments     : cb  - ptr to the GLA CB
-                  
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t gla_agent_register(GLA_CB *cb)
@@ -802,7 +840,7 @@ uint32_t gla_agent_register(GLA_CB *cb)
 	GLSV_GLND_EVT evt;
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	TRACE_ENTER();	
+	TRACE_ENTER();
 
 	if (cb->glnd_svc_up == false)
 		goto end;
@@ -825,23 +863,23 @@ uint32_t gla_agent_register(GLA_CB *cb)
 
 	/* fill the send rsp strcuture */
 	mds_info.info.svc_send.info.snd.i_to_dest = cb->glnd_mds_dest;
-	
+
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
   Name          : gla_agent_unregister
- 
+
   Description   : This routine sends the GLA unregisteration message to GLND.
- 
+
   Arguments     : cb  - ptr to the GLA CB
-                  
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t gla_agent_unregister(GLA_CB *cb)
@@ -876,13 +914,13 @@ uint32_t gla_agent_unregister(GLA_CB *cb)
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
-  Name          : glsv_enc_reg_unreg_agent_evt 
+  Name          : glsv_enc_reg_unreg_agent_evt
 
   Description   : This routine encodes reg/unreg evt.
 
@@ -892,7 +930,8 @@ uint32_t gla_agent_unregister(GLA_CB *cb)
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO *evt)
+static uint32_t glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba,
+					     GLSV_EVT_AGENT_INFO *evt)
 {
 	uint8_t *p8, size;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -912,7 +951,7 @@ static uint32_t glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
 
- end:	
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -928,7 +967,8 @@ static uint32_t glsv_enc_reg_unreg_agent_evt(NCS_UBAID *uba, GLSV_EVT_AGENT_INFO
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_enc_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *evt)
+static uint32_t glsv_enc_initialize_evt(NCS_UBAID *uba,
+					GLSV_EVT_CLIENT_INFO *evt)
 {
 	uint8_t *p8, size;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -950,8 +990,8 @@ static uint32_t glsv_enc_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *ev
 
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
- 
- end:
+
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -967,7 +1007,8 @@ static uint32_t glsv_enc_initialize_evt(NCS_UBAID *uba, GLSV_EVT_CLIENT_INFO *ev
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_enc_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
+static uint32_t glsv_enc_finalize_evt(NCS_UBAID *uba,
+				      GLSV_EVT_FINALIZE_INFO *evt)
 {
 	uint8_t *p8, size;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -985,13 +1026,13 @@ static uint32_t glsv_enc_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *ev
 
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
-  Name          :glsv_enc_rsc_open_evt 
+  Name          :glsv_enc_rsc_open_evt
 
   Description   : This routine encodes open evt.
 
@@ -1027,9 +1068,10 @@ static uint32_t glsv_enc_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 	ncs_encode_16bit(&p8, evt->resource_name.length);
 	ncs_enc_claim_space(uba, size);
 
-	ncs_encode_n_octets_in_uba(uba, evt->resource_name.value, (uint32_t)evt->resource_name.length);
+	ncs_encode_n_octets_in_uba(uba, evt->resource_name.value,
+				   (uint32_t)evt->resource_name.length);
 	rc = NCSCC_RC_SUCCESS;
- end:	
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1071,13 +1113,13 @@ static uint32_t glsv_enc_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
-  Name          :glsv_enc_rsc_lock_evt 
+  Name          :glsv_enc_rsc_lock_evt
 
   Description   : This routine encodes lock evt.
 
@@ -1087,7 +1129,8 @@ static uint32_t glsv_enc_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_enc_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt)
+static uint32_t glsv_enc_rsc_lock_evt(NCS_UBAID *uba,
+				      GLSV_EVT_RSC_LOCK_INFO *evt)
 {
 	uint8_t *p8, size;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -1116,7 +1159,7 @@ static uint32_t glsv_enc_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *ev
 
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1132,7 +1175,8 @@ static uint32_t glsv_enc_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *ev
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_enc_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO *evt)
+static uint32_t glsv_enc_rsc_unlock_evt(NCS_UBAID *uba,
+					GLSV_EVT_RSC_UNLOCK_INFO *evt)
 {
 	uint8_t *p8, size;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -1158,13 +1202,13 @@ static uint32_t glsv_enc_rsc_unlock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_UNLOCK_INFO
 
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
-  Name          : glsv_enc_rsc_purge_evt 
+  Name          : glsv_enc_rsc_purge_evt
 
   Description   : This routine encodes purge evt.
 
@@ -1197,13 +1241,13 @@ static uint32_t glsv_enc_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
 
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
 
 /****************************************************************************
-  Name          : glsv_enc_client_info_evt 
+  Name          : glsv_enc_client_info_evt
 
   Description   : This routine encodes client evt.
 
@@ -1213,7 +1257,8 @@ static uint32_t glsv_enc_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_enc_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT_INFO *evt)
+static uint32_t glsv_enc_client_info_evt(NCS_UBAID *uba,
+					 GLSV_EVT_RESTART_CLIENT_INFO *evt)
 {
 	uint8_t *p8, size;
 	uint32_t rc = NCSCC_RC_FAILURE;
@@ -1234,7 +1279,7 @@ static uint32_t glsv_enc_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT
 
 	ncs_enc_claim_space(uba, size);
 	rc = NCSCC_RC_SUCCESS;
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1250,11 +1295,12 @@ static uint32_t glsv_enc_client_info_evt(NCS_UBAID *uba, GLSV_EVT_RESTART_CLIENT
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *evt)
+static uint32_t glsv_gla_dec_callbk_evt(NCS_UBAID *uba,
+					GLSV_GLA_CALLBACK_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 	uint32_t rc = NCSCC_RC_FAILURE;
-	TRACE_ENTER();	
+	TRACE_ENTER();
 
 	size = (2 * 4);
 
@@ -1343,8 +1389,8 @@ static uint32_t glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *
 		goto end;
 	}
 	rc = NCSCC_RC_SUCCESS;
- 
- end:
+
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -1360,13 +1406,14 @@ static uint32_t glsv_gla_dec_callbk_evt(NCS_UBAID *uba, GLSV_GLA_CALLBACK_INFO *
 
   Notes         : None.
 ******************************************************************************/
-static uint32_t glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *evt)
+static uint32_t glsv_gla_dec_api_resp_evt(NCS_UBAID *uba,
+					  GLSV_GLA_API_RESP_INFO *evt)
 {
 	uint8_t *p8, local_data[20], size;
 	uint32_t rc = NCSCC_RC_FAILURE;
 	TRACE_ENTER();
 
- /** decode the type of message **/
+	/** decode the type of message **/
 	size = (2 * 4);
 	p8 = ncs_dec_flatten_space(uba, local_data, size);
 	if (!p8) {
@@ -1410,8 +1457,8 @@ static uint32_t glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO
 		break;
 	}
 	rc = NCSCC_RC_SUCCESS;
-	
- end:
+
+end:
 	TRACE_LEAVE();
 	return rc;
 }

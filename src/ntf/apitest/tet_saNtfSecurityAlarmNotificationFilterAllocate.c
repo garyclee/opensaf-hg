@@ -21,106 +21,78 @@
 
 void saNtfSecurityAlarmNotificationFilterAllocate_01(void)
 {
-    SaNtfHandleT ntfHandle;
-    SaNtfSecurityAlarmNotificationFilterT mySecurityAlarmFilter;
+	SaNtfHandleT ntfHandle;
+	SaNtfSecurityAlarmNotificationFilterT mySecurityAlarmFilter;
 
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
 
-    if((rc = saNtfSecurityAlarmNotificationFilterAllocate(
-        ntfHandle,
-        &mySecurityAlarmFilter,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0)) == SA_AIS_OK) {
-    	safassert(saNtfNotificationFilterFree(mySecurityAlarmFilter.notificationFilterHandle) , SA_AIS_OK);
-    }
+	if ((rc = saNtfSecurityAlarmNotificationFilterAllocate(
+		 ntfHandle, &mySecurityAlarmFilter, 0, 0, 0, 1, 0, 0, 0, 0,
+		 0)) == SA_AIS_OK) {
+		safassert(saNtfNotificationFilterFree(
+			      mySecurityAlarmFilter.notificationFilterHandle),
+			  SA_AIS_OK);
+	}
 
-    safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
-    test_validate(rc, SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_OK);
 }
 
 void saNtfSecurityAlarmNotificationFilterAllocate_02(void)
 {
-    SaNtfSecurityAlarmNotificationFilterT mySecurityAlarmFilter;
+	SaNtfSecurityAlarmNotificationFilterT mySecurityAlarmFilter;
 
-    rc = saNtfSecurityAlarmNotificationFilterAllocate(
-        0,
-        &mySecurityAlarmFilter,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0);
+	rc = saNtfSecurityAlarmNotificationFilterAllocate(
+	    0, &mySecurityAlarmFilter, 0, 0, 0, 1, 0, 0, 0, 0, 0);
 
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saNtfSecurityAlarmNotificationFilterAllocate_03(void)
 {
-    SaNtfHandleT ntfHandle;
-    SaNtfSecurityAlarmNotificationFilterT mySecurityAlarmFilter;
+	SaNtfHandleT ntfHandle;
+	SaNtfSecurityAlarmNotificationFilterT mySecurityAlarmFilter;
 
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
-    safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 
-    rc = saNtfSecurityAlarmNotificationFilterAllocate(
-        ntfHandle,
-        &mySecurityAlarmFilter,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0);
+	rc = saNtfSecurityAlarmNotificationFilterAllocate(
+	    ntfHandle, &mySecurityAlarmFilter, 0, 0, 0, 1, 0, 0, 0, 0, 0);
 
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saNtfSecurityAlarmNotificationFilterAllocate_04(void)
 {
-    SaNtfHandleT ntfHandle;
+	SaNtfHandleT ntfHandle;
 
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
 
-    rc = saNtfSecurityAlarmNotificationFilterAllocate(
-        ntfHandle,
-        NULL,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0);
+	rc = saNtfSecurityAlarmNotificationFilterAllocate(ntfHandle, NULL, 0, 0,
+							  0, 1, 0, 0, 0, 0, 0);
 
-    safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 
-    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+	test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
-__attribute__ ((constructor)) static void
+__attribute__((constructor)) static void
 saNtfSecurityAlarmNotificationFilterAllocate_constructor(void)
 {
-    test_suite_add(7, "Consumer operations - filter allocate");
-    test_case_add(7,saNtfSecurityAlarmNotificationFilterAllocate_01, "saNtfSecurityAlarmNotificationFilterAllocate - SA_AIS_OK");
-    test_case_add(7,saNtfSecurityAlarmNotificationFilterAllocate_02, "saNtfSecurityAlarmNotificationFilterAllocate - handle null SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(7,saNtfSecurityAlarmNotificationFilterAllocate_03, "saNtfSecurityAlarmNotificationFilterAllocate - handle returned SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(7,saNtfSecurityAlarmNotificationFilterAllocate_04, "saNtfSecurityAlarmNotificationFilterAllocate - SA_AIS_ERR_INVALID_PARAM");
+	test_suite_add(7, "Consumer operations - filter allocate");
+	test_case_add(
+	    7, saNtfSecurityAlarmNotificationFilterAllocate_01,
+	    "saNtfSecurityAlarmNotificationFilterAllocate - SA_AIS_OK");
+	test_case_add(
+	    7, saNtfSecurityAlarmNotificationFilterAllocate_02,
+	    "saNtfSecurityAlarmNotificationFilterAllocate - handle null SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    7, saNtfSecurityAlarmNotificationFilterAllocate_03,
+	    "saNtfSecurityAlarmNotificationFilterAllocate - handle returned SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    7, saNtfSecurityAlarmNotificationFilterAllocate_04,
+	    "saNtfSecurityAlarmNotificationFilterAllocate - SA_AIS_ERR_INVALID_PARAM");
 }
-
-

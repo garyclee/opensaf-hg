@@ -60,7 +60,6 @@
  */
 static int sysrq_trigger_fd = -1;
 
-
 /*****************************************************************************
 
   PROCEDURE NAME:    leap_env_init
@@ -68,7 +67,7 @@ static int sysrq_trigger_fd = -1;
   DESCRIPTION:
 
    Initialize LEAP services
-      
+
   ARGUMENTS:
 
   RETURNS:
@@ -99,24 +98,26 @@ uint32_t leap_env_init(void)
 		printf("\nleap_env_init: FAILED to initialize Timer Service\n");
 		return NCSCC_RC_FAILURE;
 	}
-#endif   /* #if (NCSL_ENV_INIT_TMR == 1) */
+#endif /* #if (NCSL_ENV_INIT_TMR == 1) */
 
 #if (NCSL_ENV_INIT_HM == 1)
 	/* initialize Handle Manager */
 	if (ncshm_init() != NCSCC_RC_SUCCESS) {
-		printf("\nleap_env_init: FAILED to initialize Handle Manager\n");
+		printf(
+		    "\nleap_env_init: FAILED to initialize Handle Manager\n");
 
 #if (NCSL_ENV_INIT_TMR == 1)
 		(void)sysfTmrDestroy();
 #endif
 		return NCSCC_RC_FAILURE;
 	}
-#endif   /* #if (NCSL_ENV_INIT_HM == 1) */
+#endif /* #if (NCSL_ENV_INIT_HM == 1) */
 
 	/* Initialize script execution control block */
 	if (NCSCC_RC_SUCCESS != init_exec_mod_cb()) {
 		/* Log error */
-		printf("\nleap_env_init: FAILED to initialize Execute Module CB \n");
+		printf(
+		    "\nleap_env_init: FAILED to initialize Execute Module CB \n");
 
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
@@ -132,7 +133,7 @@ uint32_t leap_env_init(void)
   DESCRIPTION:
 
    Destroy LEAP services
-      
+
   ARGUMENTS:
 
   RETURNS:
@@ -174,7 +175,8 @@ uint32_t leap_env_destroy()
 
 void opensaf_reboot_prepare(void)
 {
-	if (sysrq_trigger_fd != -1) return;
+	if (sysrq_trigger_fd != -1)
+		return;
 	int fd;
 	do {
 		fd = open("/proc/sysrq-trigger", O_WRONLY);
@@ -203,7 +205,7 @@ void opensaf_reboot_prepare(void)
  */
 static void opensaf_reboot_fallback(int sig_no)
 {
-	(void) sig_no;
+	(void)sig_no;
 	int fd = sysrq_trigger_fd;
 	if (fd == -1) {
 		do {
@@ -221,15 +223,15 @@ static void opensaf_reboot_fallback(int sig_no)
 }
 
 /**
- * 
+ *
  * @param reason
  */
-void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason)
+void opensaf_reboot(unsigned node_id, const char *ee_name, const char *reason)
 {
-	char* env_var = getenv("OPENSAF_REBOOT_TIMEOUT");
+	char *env_var = getenv("OPENSAF_REBOOT_TIMEOUT");
 	unsigned long supervision_time = 0;
 	if (env_var != NULL) {
-		char* endptr;
+		char *endptr;
 		errno = 0;
 		supervision_time = strtoul(env_var, &endptr, 0);
 		if (errno != 0 || *env_var == '\0' || *endptr != '\0') {
@@ -238,8 +240,8 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason)
 	}
 
 	unsigned own_node_id = ncs_get_node_id();
-	bool use_fallback = supervision_time > 0 && (node_id == 0 || node_id ==
-		own_node_id);
+	bool use_fallback =
+	    supervision_time > 0 && (node_id == 0 || node_id == own_node_id);
 	if (use_fallback) {
 		if (signal(SIGALRM, opensaf_reboot_fallback) == SIG_ERR) {
 			opensaf_reboot_fallback(0);
@@ -248,23 +250,24 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason)
 	}
 
 	syslog(LOG_CRIT,
-		"Rebooting OpenSAF NodeId = %u EE Name = %s, Reason: %s, "
-		"OwnNodeId = %u, SupervisionTime = %lu",
-		node_id, ee_name == NULL ? "No EE Mapped" : ee_name, reason,
-		own_node_id, supervision_time);
+	       "Rebooting OpenSAF NodeId = %u EE Name = %s, Reason: %s, "
+	       "OwnNodeId = %u, SupervisionTime = %lu",
+	       node_id, ee_name == NULL ? "No EE Mapped" : ee_name, reason,
+	       own_node_id, supervision_time);
 
 	char str[256];
 	snprintf(str, sizeof(str), PKGLIBDIR "/opensaf_reboot %u %s", node_id,
-		ee_name == NULL ? "" : ee_name);
+		 ee_name == NULL ? "" : ee_name);
 	int reboot_result = system(str);
 	if (reboot_result != EXIT_SUCCESS) {
-        	syslog(LOG_CRIT, "node reboot failure: exit code %d",
-			reboot_result);
+		syslog(LOG_CRIT, "node reboot failure: exit code %d",
+		       reboot_result);
 	}
 
 	if (use_fallback) {
 		/* Wait for the alarm signal we set up earlier. */
-		for (;;) pause();
+		for (;;)
+			pause();
 	}
 }
 
@@ -275,9 +278,10 @@ void opensaf_reboot(unsigned node_id, const char* ee_name, const char* reason)
  * @param __func
  * @param __assertion
  */
-void __osafassert_fail(const char *__file, int __line, const char* __func, const char *__assertion)
+void __osafassert_fail(const char *__file, int __line, const char *__func,
+		       const char *__assertion)
 {
-	syslog(LOG_ERR, "%s:%d: %s: Assertion '%s' failed.", __file, __line, __func, __assertion);
+	syslog(LOG_ERR, "%s:%d: %s: Assertion '%s' failed.", __file, __line,
+	       __func, __assertion);
 	abort();
 }
-

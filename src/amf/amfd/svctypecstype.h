@@ -18,23 +18,24 @@
 
 class AVD_SVC_TYPE_CS_TYPE {
  public:
-  explicit AVD_SVC_TYPE_CS_TYPE(const std::string& dn);
+  explicit AVD_SVC_TYPE_CS_TYPE(const std::string &dn);
 
-  std::string name {};
-  SaUint32T saAmfSvctMaxNumCSIs {};
+  std::string name{};
+  SaUint32T saAmfSvctMaxNumCSIs{};
 
-  SaUint32T curr_num_csis {};
+  SaUint32T curr_num_csis{};
 
-  struct avd_amf_svc_type_tag *cs_type_on_svc_type {};
-  struct avd_svc_type_cs_type_tag *cs_type_list_svc_type_next {};
+  struct avd_amf_svc_type_tag *cs_type_on_svc_type{};
+  struct avd_svc_type_cs_type_tag *cs_type_list_svc_type_next{};
+
  private:
   AVD_SVC_TYPE_CS_TYPE();
   // disallow copy and assign
-  AVD_SVC_TYPE_CS_TYPE(const AVD_SVC_TYPE_CS_TYPE&);
-  void operator=(const AVD_SVC_TYPE_CS_TYPE&);
+  AVD_SVC_TYPE_CS_TYPE(const AVD_SVC_TYPE_CS_TYPE &);
+  void operator=(const AVD_SVC_TYPE_CS_TYPE &);
 };
 
-SaAisErrorT avd_svctypecstypes_config_get(const std::string& svctype_name);
+SaAisErrorT avd_svctypecstypes_config_get(const std::string &svctype_name);
 void avd_svctypecstypes_constructor(void);
 
 extern AmfDb<std::string, AVD_SVC_TYPE_CS_TYPE> *svctypecstypes_db;

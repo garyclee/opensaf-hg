@@ -46,25 +46,31 @@ typedef struct ntfs_cb {
   SaVersionT ntf_version; /* The version currently supported           */
   SaNameT comp_name;      /* Components's name NTFS                     */
   SaAmfHandleT amf_hdl;   /* AMF handle, obtained thru AMF init        */
-  SaInvocationT amf_invocation_id;        /* AMF InvocationID - needed to handle Quiesed state */
+  SaInvocationT
+      amf_invocation_id; /* AMF InvocationID - needed to handle Quiesed state */
   bool is_quisced_set;
-  SaSelectionObjectT amfSelectionObject;  /* Selection Object to wait for amf events */
-  SaSelectionObjectT logSelectionObject;  /* Selection Object to wait for log events */
-  SaSelectionObjectT clmSelectionObject;  /* Selection Object to wait for clms events */
-  SaAmfHAStateT ha_state; /* present AMF HA state of the component     */
-  uint32_t async_upd_cnt; /* Async Update Count for Warmsync */
-  CHECKPOINT_STATE ckpt_state;    /* State if cold synched */
-  NCS_MBCSV_HDL mbcsv_hdl;        /* Handle obtained during mbcsv init */
-  SaSelectionObjectT mbcsv_sel_obj;       /* Selection object to wait for MBCSv events */
-  NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;      /* MBCSv handle obtained during checkpoint open */
-  EDU_HDL edu_hdl;        /* Handle from EDU for encode/decode operations */
+  SaSelectionObjectT
+      amfSelectionObject; /* Selection Object to wait for amf events */
+  SaSelectionObjectT
+      logSelectionObject; /* Selection Object to wait for log events */
+  SaSelectionObjectT
+      clmSelectionObject;      /* Selection Object to wait for clms events */
+  SaAmfHAStateT ha_state;      /* present AMF HA state of the component     */
+  uint32_t async_upd_cnt;      /* Async Update Count for Warmsync */
+  CHECKPOINT_STATE ckpt_state; /* State if cold synched */
+  NCS_MBCSV_HDL mbcsv_hdl;     /* Handle obtained during mbcsv init */
+  SaSelectionObjectT
+      mbcsv_sel_obj; /* Selection object to wait for MBCSv events */
+  NCS_MBCSV_CKPT_HDL
+      mbcsv_ckpt_hdl; /* MBCSv handle obtained during checkpoint open */
+  EDU_HDL edu_hdl;    /* Handle from EDU for encode/decode operations */
   bool fully_initialized;
-  unsigned int cache_size; /* size of the reader cache */
-  bool nid_started;       /**< true if started by NID */
-  SaClmHandleT clm_hdl;   /* CLM handle, obtained through CLM init        */
+  unsigned int cache_size;  /* size of the reader cache */
+  bool nid_started;         /**< true if started by NID */
+  SaClmHandleT clm_hdl;     /* CLM handle, obtained through CLM init        */
   NCS_SEL_OBJ usr2_sel_obj; /* Selection object for CLM initialization.*/
   uint16_t peer_mbcsv_version; /*Remeber peer NTFS MBCSV version.*/
-  bool clm_initialized; //For CLM init status;
+  bool clm_initialized;        // For CLM init status;
 } ntfs_cb_t;
 
 extern uint32_t ntfs_cb_init(ntfs_cb_t *);

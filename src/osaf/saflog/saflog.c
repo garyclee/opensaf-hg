@@ -32,21 +32,27 @@ void saflog_init(void)
 	SaAisErrorT error;
 
 	if (!initialized) {
-		SaVersionT logVersion = { 'A', 2, 3 };
+		SaVersionT logVersion = {'A', 2, 3};
 		SaNameT stream_name;
 		saAisNameLend(SA_LOG_STREAM_SYSTEM, &stream_name);
 
 		error = saLogInitialize(&logHandle, NULL, &logVersion);
 		if (error != SA_AIS_OK) {
-			syslog(LOG_INFO, "saflogInit: saLogInitialize FAILED: %u", error);
+			syslog(LOG_INFO,
+			       "saflogInit: saLogInitialize FAILED: %u", error);
 			return;
 		}
 
-		error = saLogStreamOpen_2(logHandle, &stream_name, NULL, 0, SA_TIME_ONE_SECOND, &logStreamHandle);
+		error = saLogStreamOpen_2(logHandle, &stream_name, NULL, 0,
+					  SA_TIME_ONE_SECOND, &logStreamHandle);
 		if (error != SA_AIS_OK) {
-			syslog(LOG_INFO, "saflogInit: saLogStreamOpen_2 FAILED: %u", error);
+			syslog(LOG_INFO,
+			       "saflogInit: saLogStreamOpen_2 FAILED: %u",
+			       error);
 			if (saLogFinalize(logHandle) != SA_AIS_OK)
-				syslog(LOG_INFO, "saflogInit: saLogFinalize FAILED: %u", error);
+				syslog(LOG_INFO,
+				       "saflogInit: saLogFinalize FAILED: %u",
+				       error);
 			return;
 		}
 		initialized = 1;
@@ -68,12 +74,14 @@ void saflog(int priority, const SaNameT *logSvcUsrName, const char *format, ...)
 	va_end(ap);
 
 	if (logBuffer.logBufSize > SA_LOG_MAX_RECORD_SIZE) {
-		syslog(LOG_INFO, "saflog write FAILED: log record size > %u max limit", SA_LOG_MAX_RECORD_SIZE);
+		syslog(LOG_INFO,
+		       "saflog write FAILED: log record size > %u max limit",
+		       SA_LOG_MAX_RECORD_SIZE);
 		return;
 	}
 
 	if (!initialized) {
-		SaVersionT logVersion = { 'A', 2, 3 };
+		SaVersionT logVersion = {'A', 2, 3};
 		SaNameT stream_name;
 		saAisNameLend(SA_LOG_STREAM_SYSTEM, &stream_name);
 
@@ -83,11 +91,13 @@ void saflog(int priority, const SaNameT *logSvcUsrName, const char *format, ...)
 			goto done;
 		}
 
-		error = saLogStreamOpen_2(logHandle, &stream_name, NULL, 0, SA_TIME_ONE_SECOND, &logStreamHandle);
+		error = saLogStreamOpen_2(logHandle, &stream_name, NULL, 0,
+					  SA_TIME_ONE_SECOND, &logStreamHandle);
 		if (error != SA_AIS_OK) {
 			syslog(LOG_INFO, "saLogStreamOpen_2 FAILED: %u", error);
 			if (saLogFinalize(logHandle) != SA_AIS_OK)
-				syslog(LOG_INFO, "saLogFinalize FAILED: %u", error);
+				syslog(LOG_INFO, "saLogFinalize FAILED: %u",
+				       error);
 			goto done;
 		}
 		initialized = 1;
@@ -104,8 +114,8 @@ void saflog(int priority, const SaNameT *logSvcUsrName, const char *format, ...)
 	error = saLogWriteLogAsync(logStreamHandle, 0, 0, &logRecord);
 
 done:
-	/* fallback to syslog at ANY error, syslog prio same as saflog severity */
+	/* fallback to syslog at ANY error, syslog prio same as saflog severity
+	 */
 	if (error != SA_AIS_OK)
 		syslog(priority, "%s", str);
 }
-

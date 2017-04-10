@@ -18,7 +18,7 @@
 #include "osaf/configmake.h"
 #include <stdlib.h>
 
-#include "rde/agent/rda_papi.h"  /* for RDE interfacing */
+#include "rde/agent/rda_papi.h" /* for RDE interfacing */
 
 /****************************************************************************
  * Name          : main                                                     *
@@ -41,17 +41,13 @@ int main(int argc, char **argv)
 	if (NCSCC_RC_SUCCESS == ret_val) {
 		if (SA_AMF_HA_ACTIVE == ha_state) {
 			printf("ACTIVE\n");
-		}
-		else if (SA_AMF_HA_STANDBY == ha_state) {
+		} else if (SA_AMF_HA_STANDBY == ha_state) {
 			printf("STANDBY\n");
-		}
-		else if (SA_AMF_HA_QUIESCED == ha_state) {
+		} else if (SA_AMF_HA_QUIESCED == ha_state) {
 			printf("QUIESCED\n");
-		}
-		else if (SA_AMF_HA_QUIESCING == ha_state) {
+		} else if (SA_AMF_HA_QUIESCING == ha_state) {
 			printf("QUIESCING\n");
-		}
-		else {
+		} else {
 			printf("UNKNOWN\n");
 			return EXIT_FAILURE;
 		}

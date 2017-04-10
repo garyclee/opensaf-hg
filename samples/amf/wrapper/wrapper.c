@@ -60,13 +60,11 @@ static const char *health_script;
 static const char *pidfile;
 
 /* Logical HA State names for nicer logging */
-static const char *ha_state_name[] =
-{
-	"None",
-	"Active",    /* SA_AMF_HA_ACTIVE       */
-	"Standby",   /* SA_AMF_HA_STANDBY      */
-	"Quiesced",  /* SA_AMF_HA_QUIESCED     */
-	"Quiescing"  /* SA_AMF_HA_QUIESCING    */
+static const char *ha_state_name[] = {
+    "None", "Active", /* SA_AMF_HA_ACTIVE       */
+    "Standby",	/* SA_AMF_HA_STANDBY      */
+    "Quiesced",       /* SA_AMF_HA_QUIESCED     */
+    "Quiescing"       /* SA_AMF_HA_QUIESCING    */
 };
 
 static pid_t pid;
@@ -76,8 +74,8 @@ static int exec_command(const char *command)
 	static unsigned long long cnt;
 	int status;
 
-	// cnt added to avoid the "repeated message reduction" syslog functionality
-	// that can make it harder to debug a system.
+	// cnt added to avoid the "repeated message reduction" syslog
+	// functionality that can make it harder to debug a system.
 	syslog(LOG_INFO, "(%llu) Executing '%s'", cnt++, command);
 
 	status = system(command);
@@ -95,34 +93,35 @@ static int exec_command(const char *command)
 
 static pid_t getpidfromfile(const char *pidfile, bool waitforfile)
 {
-        FILE *f;
-        pid_t pid;
+	FILE *f;
+	pid_t pid;
 
-        assert(pidfile);
+	assert(pidfile);
 
 retry:
-        f = fopen(pidfile, "r");
-        if (f == NULL) {
-                if ((errno == ENOENT) && waitforfile) {
-                        sleep(1);
-                        goto retry;
-                }
+	f = fopen(pidfile, "r");
+	if (f == NULL) {
+		if ((errno == ENOENT) && waitforfile) {
+			sleep(1);
+			goto retry;
+		}
 
-                syslog(LOG_ERR, "could not open file %s - %s", pidfile, strerror(errno));
-                exit(1);
-        }
+		syslog(LOG_ERR, "could not open file %s - %s", pidfile,
+		       strerror(errno));
+		exit(1);
+	}
 
-        if (fscanf(f, "%d", &pid) == 0) {
-                syslog(LOG_ERR, "could not read PID from file %s", pidfile);
-                exit(1);
-        }
+	if (fscanf(f, "%d", &pid) == 0) {
+		syslog(LOG_ERR, "could not read PID from file %s", pidfile);
+		exit(1);
+	}
 
-        if (fclose(f) != 0) {
-                syslog(LOG_ERR, "could not close file");
-                exit(1);
-        }
+	if (fclose(f) != 0) {
+		syslog(LOG_ERR, "could not close file");
+		exit(1);
+	}
 
-        return pid;
+	return pid;
 }
 
 static SaAisErrorT service_start(void)
@@ -133,24 +132,34 @@ static SaAisErrorT service_start(void)
 	status = exec_command(start_script);
 
 	if (status == 0) {
-		rc = saAmfHealthcheckStart(my_amf_hdl, &my_comp_name, &my_healthcheck_key,
-			SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+		rc = saAmfHealthcheckStart(
+		    my_amf_hdl, &my_comp_name, &my_healthcheck_key,
+		    SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "service_start: saAmfHealthcheckStart FAILED (%u)", rc);
+			syslog(
+			    LOG_ERR,
+			    "service_start: saAmfHealthcheckStart FAILED (%u)",
+			    rc);
 			return SA_AIS_ERR_FAILED_OPERATION;
 		}
 
 		if (pidfile) {
-			SaAmfRecommendedRecoveryT recrec = SA_AMF_NO_RECOMMENDATION;
+			SaAmfRecommendedRecoveryT recrec =
+			    SA_AMF_NO_RECOMMENDATION;
 			SaInt32T descendentsTreeDepth = 0;
-			SaAmfPmErrorsT pmErr = SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT;
+			SaAmfPmErrorsT pmErr =
+			    SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT;
 
 			pid = getpidfromfile(pidfile, true);
 
 			syslog(LOG_INFO, "Starting supervision of PID %u", pid);
-			rc = saAmfPmStart(my_amf_hdl, &my_comp_name, pid, descendentsTreeDepth, pmErr, recrec);
+			rc = saAmfPmStart(my_amf_hdl, &my_comp_name, pid,
+					  descendentsTreeDepth, pmErr, recrec);
 			if (SA_AIS_OK != rc) {
-				syslog(LOG_ERR, "service_start: saAmfPmStart FAILED (%u)", rc);
+				syslog(
+				    LOG_ERR,
+				    "service_start: saAmfPmStart FAILED (%u)",
+				    rc);
 				return SA_AIS_ERR_FAILED_OPERATION;
 			}
 		}
@@ -168,15 +177,18 @@ static SaAisErrorT service_stop(void)
 	int status;
 
 	if (pidfile) {
-		SaAmfPmErrorsT pmErr = SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT;
+		SaAmfPmErrorsT pmErr =
+		    SA_AMF_PM_ZERO_EXIT | SA_AMF_PM_NON_ZERO_EXIT;
 
-		rc = saAmfPmStop(my_amf_hdl, &my_comp_name, SA_AMF_PM_PROC, pid, pmErr);
+		rc = saAmfPmStop(my_amf_hdl, &my_comp_name, SA_AMF_PM_PROC, pid,
+				 pmErr);
 		if ((SA_AIS_OK != rc) && (SA_AIS_ERR_NOT_EXIST != rc)) {
 			syslog(LOG_ERR, "saAmfPmStop FAILED (%u)", rc);
 		}
 	}
 
-	rc = saAmfHealthcheckStop(my_amf_hdl, &my_comp_name, &my_healthcheck_key);
+	rc = saAmfHealthcheckStop(my_amf_hdl, &my_comp_name,
+				  &my_healthcheck_key);
 	if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_NOT_EXIST)) {
 		syslog(LOG_ERR, "saAmfHealthcheckStop FAILED (%u)", rc);
 	}
@@ -188,10 +200,9 @@ static SaAisErrorT service_stop(void)
 		return SA_AIS_ERR_FAILED_OPERATION;
 }
 
-static void csi_set_callback(SaInvocationT invocation,
-							 const SaNameT *comp_name,
-							 SaAmfHAStateT ha_state,
-							 SaAmfCSIDescriptorT csi_desc)
+static void csi_set_callback(SaInvocationT invocation, const SaNameT *comp_name,
+			     SaAmfHAStateT ha_state,
+			     SaAmfCSIDescriptorT csi_desc)
 {
 	SaAisErrorT rc, status = SA_AIS_OK;
 	SaAmfCSIAttributeT *attr;
@@ -199,18 +210,22 @@ static void csi_set_callback(SaInvocationT invocation,
 
 	if (csi_desc.csiFlags == SA_AMF_CSI_ADD_ONE) {
 
-		syslog(LOG_DEBUG, "CSI Set - add '%s' HAState %s", 
-			saAisNameBorrow(&csi_desc.csiName), ha_state_name[ha_state]);
+		syslog(LOG_DEBUG, "CSI Set - add '%s' HAState %s",
+		       saAisNameBorrow(&csi_desc.csiName),
+		       ha_state_name[ha_state]);
 
 		for (i = 0; i < csi_desc.csiAttr.number; i++) {
 			attr = &csi_desc.csiAttr.attr[i];
-			syslog(LOG_DEBUG, "   name: %s, value: %s", attr->attrName, attr->attrValue);
-			setenv((char*)attr->attrName, (char*)attr->attrValue, 1);
+			syslog(LOG_DEBUG, "   name: %s, value: %s",
+			       attr->attrName, attr->attrValue);
+			setenv((char *)attr->attrName, (char *)attr->attrValue,
+			       1);
 		}
 
 	} else {
 		assert(csi_desc.csiFlags == SA_AMF_CSI_TARGET_ALL);
-		syslog(LOG_DEBUG, "CSI Set - HAState %s", ha_state_name[ha_state]);
+		syslog(LOG_DEBUG, "CSI Set - HAState %s",
+		       ha_state_name[ha_state]);
 	}
 
 	switch (ha_state) {
@@ -242,16 +257,18 @@ static void csi_set_callback(SaInvocationT invocation,
 		status = service_stop();
 		rc = saAmfCSIQuiescingComplete(my_amf_hdl, invocation, status);
 		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "CSI Set: saAmfCSIQuiescingComplete FAILED (%u)", rc);
+			syslog(LOG_ERR,
+			       "CSI Set: saAmfCSIQuiescingComplete FAILED (%u)",
+			       rc);
 			exit(1);
 		}
 	}
 }
 
 static void csi_remove_callback(SaInvocationT invocation,
-								const SaNameT *comp_name,
-								const SaNameT *csi_name,
-								SaAmfCSIFlagsT csi_flags)
+				const SaNameT *comp_name,
+				const SaNameT *csi_name,
+				SaAmfCSIFlagsT csi_flags)
 {
 	SaAisErrorT rc, status = SA_AIS_OK;
 
@@ -267,14 +284,14 @@ static void csi_remove_callback(SaInvocationT invocation,
 
 	rc = saAmfResponse(my_amf_hdl, invocation, status);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "CSI remove callback: saAmfResponse FAILED (%u)", rc);
+		syslog(LOG_ERR,
+		       "CSI remove callback: saAmfResponse FAILED (%u)", rc);
 		exit(1);
 	}
 }
 
-static void healthcheck_callback(SaInvocationT inv,
-								 const SaNameT *comp_name,
-								 SaAmfHealthcheckKeyT *health_check_key)
+static void healthcheck_callback(SaInvocationT inv, const SaNameT *comp_name,
+				 SaAmfHealthcheckKeyT *health_check_key)
 {
 	int status;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -282,10 +299,14 @@ static void healthcheck_callback(SaInvocationT inv,
 	status = exec_command(health_script);
 	if (status != 0) {
 		rc = saAmfComponentErrorReport(my_amf_hdl, &my_comp_name, 0,
-			SA_AMF_NO_RECOMMENDATION, SA_NTF_IDENTIFIER_UNUSED);
+					       SA_AMF_NO_RECOMMENDATION,
+					       SA_NTF_IDENTIFIER_UNUSED);
 
 		if (rc != SA_AIS_OK) {
-			syslog(LOG_ERR, "HC callback: saAmfComponentErrorReport FAILED (%u)", rc);
+			syslog(
+			    LOG_ERR,
+			    "HC callback: saAmfComponentErrorReport FAILED (%u)",
+			    rc);
 			exit(1);
 		}
 
@@ -317,7 +338,7 @@ static void create_pid_file(void)
 	}
 
 	fp = fopen(path, "w");
-	if (fp == NULL)	{
+	if (fp == NULL) {
 		syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -329,8 +350,9 @@ static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 {
 	SaAisErrorT rc;
 	SaAmfCallbacksT amf_callbacks = {0};
-	SaVersionT api_ver =
-		{.releaseCode = 'B', api_ver.majorVersion = 0x01, api_ver.minorVersion = 0x01};
+	SaVersionT api_ver = {.releaseCode = 'B',
+			      api_ver.majorVersion = 0x01,
+			      api_ver.minorVersion = 0x01};
 
 	amf_callbacks.saAmfCSISetCallback = csi_set_callback;
 	amf_callbacks.saAmfCSIRemoveCallback = csi_remove_callback;
@@ -360,7 +382,7 @@ static SaAisErrorT amf_initialize(SaSelectionObjectT *amf_sel_obj)
 		syslog(LOG_ERR, "saAmfComponentRegister FAILED (%u)", rc);
 		goto done;
 	}
-	
+
 done:
 	return rc;
 }
@@ -389,7 +411,7 @@ int main(int argc, char **argv)
 
 	// TBD: Configure logmask from args/vars
 	logmask = LOG_UPTO(LOG_INFO);
-//	setlogmask(logmask);
+	//	setlogmask(logmask);
 
 	start_script = getenv("STARTSCRIPT");
 	if (start_script == NULL) {
@@ -412,13 +434,12 @@ int main(int argc, char **argv)
 	pidfile = getenv("PIDFILE");
 
 	// Enable long DN
-	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
 		syslog(LOG_ERR, "failed to set SA_ENABLE_EXTENDED_NAMES");
 	}
 
 	if (amf_initialize(&amf_sel_obj) != SA_AIS_OK)
 		goto done;
-
 
 	fds[0].fd = amf_sel_obj;
 	fds[0].events = POLLIN;
@@ -432,7 +453,8 @@ int main(int argc, char **argv)
 			if (errno == EINTR)
 				continue;
 			else {
-				syslog(LOG_ERR, "poll FAILED - %s", strerror(errno));
+				syslog(LOG_ERR, "poll FAILED - %s",
+				       strerror(errno));
 				goto done;
 			}
 		}
@@ -449,4 +471,3 @@ int main(int argc, char **argv)
 done:
 	return EXIT_FAILURE;
 }
-

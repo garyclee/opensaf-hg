@@ -41,12 +41,7 @@
 #include "mds/mds_papi.h"
 #include "election_starter_wrapper.h"
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_MBX,
-	NUM_FD
-};
+enum { FD_TERM = 0, FD_AMF, FD_MBX, NUM_FD };
 
 static struct pollfd fds[NUM_FD];
 static nfds_t nfds = NUM_FD;
@@ -54,33 +49,31 @@ static NCS_SEL_OBJ usr1_sel_obj;
 
 /*TBD : Add nodeaddress as well for future use*/
 
-
-#define CLMNA_MDS_SUB_PART_VERSION   1
+#define CLMNA_MDS_SUB_PART_VERSION 1
 #define CLMNA_SCALE_OUT_RETRY_TIME 100
 #define CLMNA_JOIN_RETRY_TIME 3000
-#define CLMNA_SVC_PVT_SUBPART_VERSION  1
+#define CLMNA_SVC_PVT_SUBPART_VERSION 1
 #define CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT 1
 #define CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT 1
-#define CLMNA_WRT_CLMS_SUBPART_VER_RANGE             \
-        (CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT - \
-         CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT + 1)
-
+#define CLMNA_WRT_CLMS_SUBPART_VER_RANGE                                       \
+	(CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT -                           \
+	 CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 
 static CLMNA_CB _clmna_cb;
 CLMNA_CB *clmna_cb = &_clmna_cb;
 
 /*msg format version for CLMNA subpart version 1 */
 static MDS_CLIENT_MSG_FORMAT_VER
- CLMNA_WRT_CLMS_MSG_FMT_ARRAY[CLMNA_WRT_CLMS_SUBPART_VER_RANGE] = { 1 };
-
+    CLMNA_WRT_CLMS_MSG_FMT_ARRAY[CLMNA_WRT_CLMS_SUBPART_VER_RANGE] = {1};
 
 static uint32_t clmna_mds_enc(struct ncsmds_callback_info *info);
 static uint32_t clmna_mds_callback(struct ncsmds_callback_info *info);
 static void clmna_process_dummyup_msg(void);
-static void clmna_handle_join_response(SaAisErrorT error, const SaNameT* node_name);
+static void clmna_handle_join_response(SaAisErrorT error,
+				       const SaNameT *node_name);
 static void start_scale_out_retry_tmr(int64_t timeout);
 static void stop_scale_out_retry_tmr(void);
-static uint32_t clmna_mds_msg_send(CLMSV_MSG * i_msg);
+static uint32_t clmna_mds_msg_send(CLMSV_MSG *i_msg);
 
 static uint32_t clmna_mds_cpy(struct ncsmds_callback_info *info)
 {
@@ -96,16 +89,18 @@ static uint32_t clmna_mds_dec(struct ncsmds_callback_info *info)
 	uint32_t total_bytes = 0;
 	TRACE_ENTER();
 
-	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
-					   CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT,
-					   CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT, CLMNA_WRT_CLMS_MSG_FMT_ARRAY)) {
+	if (0 ==
+	    m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+				      CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT,
+				      CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT,
+				      CLMNA_WRT_CLMS_MSG_FMT_ARRAY)) {
 		TRACE("Invalid message format!!!\n");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
-	/** Allocate a new msg in both sync/async cases 
-     	**/
+	/** Allocate a new msg in both sync/async cases
+	 **/
 	if (NULL == (msg = calloc(1, sizeof(CLMSV_MSG)))) {
 		TRACE("calloc failed\n");
 		return NCSCC_RC_FAILURE;
@@ -119,38 +114,39 @@ static uint32_t clmna_mds_dec(struct ncsmds_callback_info *info)
 	total_bytes += 4;
 
 	switch (msg->evt_type) {
-	case CLMSV_CLMS_TO_CLMNA_REBOOT_MSG:
-		{
-			p8 = ncs_dec_flatten_space(uba, local_data, 4);
-			msg->info.reboot_info.node_id = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 4);
-			total_bytes += 4;
-			// Reboot will be performed by CLMS for this node.
-			if (clmna_cb->node_info.node_id != msg->info.reboot_info.node_id) {
-				osaf_safe_reboot();
-			}
-			break;
-		}
-	case CLMSV_CLMS_TO_CLMA_API_RESP_MSG:
-		{
-			p8 = ncs_dec_flatten_space(uba, local_data, 8);
-			msg->info.api_resp_info.type = ncs_decode_32bit(&p8);
-			msg->info.api_resp_info.rc = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 8);
-			total_bytes += 8;
-			TRACE_2("CLMSV_CLMA_API_RESP_MSG for Node_Up rc = %d", (int)msg->info.api_resp_info.rc);
-
-			switch (msg->info.api_resp_info.type) {
-			case CLMSV_CLUSTER_JOIN_RESP:
-				total_bytes += clmsv_decodeSaNameT(uba, &(msg->info.api_resp_info.param.node_name));
-				break;
-			default:
-				TRACE_2("Unknown API RSP type %d", msg->info.api_resp_info.type);
-				free(msg);
-				return NCSCC_RC_FAILURE;
-			}
+	case CLMSV_CLMS_TO_CLMNA_REBOOT_MSG: {
+		p8 = ncs_dec_flatten_space(uba, local_data, 4);
+		msg->info.reboot_info.node_id = ncs_decode_32bit(&p8);
+		ncs_dec_skip_space(uba, 4);
+		total_bytes += 4;
+		// Reboot will be performed by CLMS for this node.
+		if (clmna_cb->node_info.node_id !=
+		    msg->info.reboot_info.node_id) {
+			osaf_safe_reboot();
 		}
 		break;
+	}
+	case CLMSV_CLMS_TO_CLMA_API_RESP_MSG: {
+		p8 = ncs_dec_flatten_space(uba, local_data, 8);
+		msg->info.api_resp_info.type = ncs_decode_32bit(&p8);
+		msg->info.api_resp_info.rc = ncs_decode_32bit(&p8);
+		ncs_dec_skip_space(uba, 8);
+		total_bytes += 8;
+		TRACE_2("CLMSV_CLMA_API_RESP_MSG for Node_Up rc = %d",
+			(int)msg->info.api_resp_info.rc);
+
+		switch (msg->info.api_resp_info.type) {
+		case CLMSV_CLUSTER_JOIN_RESP:
+			total_bytes += clmsv_decodeSaNameT(
+			    uba, &(msg->info.api_resp_info.param.node_name));
+			break;
+		default:
+			TRACE_2("Unknown API RSP type %d",
+				msg->info.api_resp_info.type);
+			free(msg);
+			return NCSCC_RC_FAILURE;
+		}
+	} break;
 	default:
 		TRACE("Unknown MSG type %d", msg->evt_type);
 		free(msg);
@@ -178,8 +174,8 @@ static uint32_t clmna_mds_dec_flat(struct ncsmds_callback_info *info)
 
 static uint32_t clmna_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 {
-	CLMSV_MSG* msg = (CLMSV_MSG*) mds_cb_info->info.receive.i_msg;
-	CLMNA_EVT* evt = calloc(1, sizeof(CLMNA_EVT));
+	CLMSV_MSG *msg = (CLMSV_MSG *)mds_cb_info->info.receive.i_msg;
+	CLMNA_EVT *evt = calloc(1, sizeof(CLMNA_EVT));
 	evt->type = CLMNA_EVT_JOIN_RESPONSE;
 	evt->join_response.rc = msg->info.api_resp_info.rc;
 	evt->join_response.node_name = msg->info.api_resp_info.param.node_name;
@@ -192,7 +188,8 @@ static uint32_t clmna_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 }
 
 static void clmna_handle_mds_change_evt(bool caused_by_timer_expiry,
-	NCSMDS_CHG change, NODE_ID node_id, MDS_SVC_ID svc_id)
+					NCSMDS_CHG change, NODE_ID node_id,
+					MDS_SVC_ID svc_id)
 {
 	if ((change == NCSMDS_NEW_ACTIVE || change == NCSMDS_UP) &&
 	    svc_id == NCSMDS_SVC_ID_CLMS && clmna_cb->server_synced == false) {
@@ -203,36 +200,40 @@ static void clmna_handle_mds_change_evt(bool caused_by_timer_expiry,
 	    (change == NCSMDS_UP || change == NCSMDS_DOWN) &&
 	    (svc_id == NCSMDS_SVC_ID_CLMNA || svc_id == NCSMDS_SVC_ID_RDE)) {
 		if (change == NCSMDS_UP) {
-			ElectionStarterUpEvent(clmna_cb->election_starter,
-					       node_id,
-					       svc_id == NCSMDS_SVC_ID_CLMNA ?
-					       ElectionStarterServiceNode :
-					       ElectionStarterServiceController);
+			ElectionStarterUpEvent(
+			    clmna_cb->election_starter, node_id,
+			    svc_id == NCSMDS_SVC_ID_CLMNA
+				? ElectionStarterServiceNode
+				: ElectionStarterServiceController);
 		} else {
-			ElectionStarterDownEvent(clmna_cb->election_starter,
-						 node_id,
-						 svc_id == NCSMDS_SVC_ID_CLMNA ?
-						 ElectionStarterServiceNode :
-						 ElectionStarterServiceController);
+			ElectionStarterDownEvent(
+			    clmna_cb->election_starter, node_id,
+			    svc_id == NCSMDS_SVC_ID_CLMNA
+				? ElectionStarterServiceNode
+				: ElectionStarterServiceController);
 		}
 	}
 }
 
-static void clmna_handle_join_response(SaAisErrorT error, const SaNameT* node_name)
+static void clmna_handle_join_response(SaAisErrorT error,
+				       const SaNameT *node_name)
 {
 	if (error == SA_AIS_ERR_NOT_EXIST) {
-		LOG_ER("%s is not a configured node",
-		       node_name->value);
+		LOG_ER("%s is not a configured node", node_name->value);
 	} else if (error == SA_AIS_ERR_EXIST) {
-		LOG_ER("%s is already up. Specify a unique name in" PKGSYSCONFDIR "/node_name",
-		       node_name->value);
+		LOG_ER(
+		    "%s is already up. Specify a unique name in" PKGSYSCONFDIR
+		    "/node_name",
+		    node_name->value);
 	} else if (error == SA_AIS_ERR_TRY_AGAIN) {
 		if (clmna_cb->try_again_received) {
 			LOG_IN("Re-trying to scale out %s", node_name->value);
 		} else {
-			// Avoid spamming the log with more than one message at NOTICE priority.
+			// Avoid spamming the log with more than one message at
+			// NOTICE priority.
 			clmna_cb->try_again_received = true;
-			LOG_NO("%s has been queued for scale-out", node_name->value);
+			LOG_NO("%s has been queued for scale-out",
+			       node_name->value);
 		}
 		stop_scale_out_retry_tmr();
 		start_scale_out_retry_tmr(CLMNA_SCALE_OUT_RETRY_TIME);
@@ -241,14 +242,17 @@ static void clmna_handle_join_response(SaAisErrorT error, const SaNameT* node_na
 		if (clmna_cb->server_synced == false) {
 			NODE_INFO self_node = clmna_cb->node_info;
 			clmna_cb->server_synced = true;
-			LOG_NO("%s Joined cluster, nodeid=%x", node_name->value, self_node.node_id);
+			LOG_NO("%s Joined cluster, nodeid=%x", node_name->value,
+			       self_node.node_id);
 			if (clmna_cb->nid_started &&
-			    nid_notify("CLMNA", NCSCC_RC_SUCCESS, NULL) != NCSCC_RC_SUCCESS) {
+			    nid_notify("CLMNA", NCSCC_RC_SUCCESS, NULL) !=
+				NCSCC_RC_SUCCESS) {
 				LOG_ER("nid notify failed");
 			}
 		}
 	} else {
-		LOG_ER("Received unexpected join response error code %d", (int) error);
+		LOG_ER("Received unexpected join response error code %d",
+		       (int)error);
 	}
 }
 
@@ -262,8 +266,10 @@ static uint32_t clmna_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 	case NCSMDS_UP:
 		switch (mds_cb_info->info.svc_evt.i_svc_id) {
 		case NCSMDS_SVC_ID_CLMS:
-			clmna_cb->clms_mds_dest = mds_cb_info->info.svc_evt.i_dest;
-			TRACE("subpart version: %u", mds_cb_info->info.svc_evt.i_rem_svc_pvt_ver);
+			clmna_cb->clms_mds_dest =
+			    mds_cb_info->info.svc_evt.i_dest;
+			TRACE("subpart version: %u",
+			      mds_cb_info->info.svc_evt.i_rem_svc_pvt_ver);
 			TRACE("svc_id %d", mds_cb_info->info.svc_evt.i_svc_id);
 			break;
 		default:
@@ -320,10 +326,11 @@ static uint32_t clmna_mds_enc(struct ncsmds_callback_info *info)
 
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
-	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
-						CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT,
-						CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT,
-						CLMNA_WRT_CLMS_MSG_FMT_ARRAY);
+	msg_fmt_version =
+	    m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
+				  CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT,
+				  CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT,
+				  CLMNA_WRT_CLMS_MSG_FMT_ARRAY);
 	if (0 == msg_fmt_version) {
 		LOG_ER("Wrong msg_fmt_version!!");
 		TRACE_LEAVE();
@@ -332,7 +339,7 @@ static uint32_t clmna_mds_enc(struct ncsmds_callback_info *info)
 
 	info->info.enc.o_msg_fmt_ver = msg_fmt_version;
 
-	msg = (CLMSV_MSG *) info->info.enc.i_msg;
+	msg = (CLMSV_MSG *)info->info.enc.i_msg;
 	uba = info->info.enc.io_uba;
 
 	TRACE_2("msgtype: %d", msg->evt_type);
@@ -375,10 +382,13 @@ static uint32_t clmna_mds_enc(struct ncsmds_callback_info *info)
 				return NCSCC_RC_FAILURE;
 			}
 
-			ncs_encode_32bit(&p8, msg->info.api_info.param.nodeup_info.node_id);
+			ncs_encode_32bit(
+			    &p8, msg->info.api_info.param.nodeup_info.node_id);
 			ncs_enc_claim_space(uba, 4);
 			total_bytes += 4;
-			total_bytes += clmsv_encodeSaNameT(uba, &(msg->info.api_info.param.nodeup_info.node_name));
+			total_bytes += clmsv_encodeSaNameT(
+			    uba,
+			    &(msg->info.api_info.param.nodeup_info.node_name));
 		}
 	}
 
@@ -391,17 +401,16 @@ static uint32_t clmna_mds_callback(struct ncsmds_callback_info *info)
 	uint32_t rc;
 
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
-		clmna_mds_cpy,	/* MDS_CALLBACK_COPY      0 */
-		clmna_mds_enc,	/* MDS_CALLBACK_ENC       1 */
-		clmna_mds_dec,	/* MDS_CALLBACK_DEC       2 */
-		clmna_mds_enc_flat,	/* MDS_CALLBACK_ENC_FLAT  3 */
-		clmna_mds_dec_flat,	/* MDS_CALLBACK_DEC_FLAT  4 */
-		clmna_mds_rcv,	/* MDS_CALLBACK_RECEIVE   5 */
-		clmna_mds_svc_evt
-	};
+	    clmna_mds_cpy,      /* MDS_CALLBACK_COPY      0 */
+	    clmna_mds_enc,      /* MDS_CALLBACK_ENC       1 */
+	    clmna_mds_dec,      /* MDS_CALLBACK_DEC       2 */
+	    clmna_mds_enc_flat, /* MDS_CALLBACK_ENC_FLAT  3 */
+	    clmna_mds_dec_flat, /* MDS_CALLBACK_DEC_FLAT  4 */
+	    clmna_mds_rcv,      /* MDS_CALLBACK_RECEIVE   5 */
+	    clmna_mds_svc_evt};
 
 	if (info->i_op <= MDS_CALLBACK_SVC_EVENT) {
-		rc = (*cb_set[info->i_op]) (info);
+		rc = (*cb_set[info->i_op])(info);
 		if (rc != NCSCC_RC_SUCCESS)
 			LOG_ER("MDS_CALLBACK_SVC_EVENT not in range");
 
@@ -416,8 +425,8 @@ static uint32_t clmna_mds_init(void)
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	MDS_SVC_ID svc[] = { NCSMDS_SVC_ID_CLMS, NCSMDS_SVC_ID_CLMNA,
-		NCSMDS_SVC_ID_RDE };
+	MDS_SVC_ID svc[] = {NCSMDS_SVC_ID_CLMS, NCSMDS_SVC_ID_CLMNA,
+			    NCSMDS_SVC_ID_RDE};
 
 	TRACE_ENTER();
 
@@ -441,10 +450,13 @@ static uint32_t clmna_mds_init(void)
 	mds_info.i_op = MDS_INSTALL;
 
 	mds_info.info.svc_install.i_yr_svc_hdl = 0;
-	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* PWE scope */
-	mds_info.info.svc_install.i_svc_cb = clmna_mds_callback;	/* callback */
-	mds_info.info.svc_install.i_mds_q_ownership = false;	/* CLMNA doesn't own the mds queue */
-	mds_info.info.svc_install.i_mds_svc_pvt_ver = CLMNA_SVC_PVT_SUBPART_VERSION;
+	mds_info.info.svc_install.i_install_scope =
+	    NCSMDS_SCOPE_NONE;					 /* PWE scope */
+	mds_info.info.svc_install.i_svc_cb = clmna_mds_callback; /* callback */
+	mds_info.info.svc_install.i_mds_q_ownership =
+	    false; /* CLMNA doesn't own the mds queue */
+	mds_info.info.svc_install.i_mds_svc_pvt_ver =
+	    CLMNA_SVC_PVT_SUBPART_VERSION;
 
 	if ((rc = ncsmds_api(&mds_info)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("mds api call failed");
@@ -480,11 +492,12 @@ static int get_node_info(NODE_INFO *node)
 
 	fp = fopen(PKGSYSCONFDIR "/node_name", "r");
 	if (fp == NULL) {
-		LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "node_name", strerror(errno));
+		LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "node_name",
+		       strerror(errno));
 		return -1;
 	}
 
-	if(EOF == fscanf(fp, "%s", node->node_name.value)){
+	if (EOF == fscanf(fp, "%s", node->node_name.value)) {
 		fclose(fp);
 		LOG_ER("Could not get node name - %s", strerror(errno));
 		return -1;
@@ -495,11 +508,12 @@ static int get_node_info(NODE_INFO *node)
 
 	fp = fopen(PKGLOCALSTATEDIR "/node_id", "r");
 	if (fp == NULL) {
-		LOG_ER("Could not open file %s - %s", PKGLOCALSTATEDIR "node_id", strerror(errno));
+		LOG_ER("Could not open file %s - %s",
+		       PKGLOCALSTATEDIR "node_id", strerror(errno));
 		return -1;
 	}
 
-	if(EOF == fscanf(fp, "%x", &node->node_id)){
+	if (EOF == fscanf(fp, "%x", &node->node_id)) {
 		fclose(fp);
 		LOG_ER("Could not get node id - %s", strerror(errno));
 		return -1;
@@ -510,7 +524,7 @@ static int get_node_info(NODE_INFO *node)
 	return 0;
 }
 
-static uint32_t clmna_mds_msg_send(CLMSV_MSG * i_msg)
+static uint32_t clmna_mds_msg_send(CLMSV_MSG *i_msg)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -540,7 +554,7 @@ static uint32_t clmna_mds_msg_send(CLMSV_MSG * i_msg)
 static void scale_out_tmr_exp(void *arg)
 {
 	TRACE_ENTER();
-	(void) arg;
+	(void)arg;
 	if (clmna_cb->is_scale_out_retry_tmr_running == true) {
 		CLMNA_EVT *evt = calloc(1, sizeof(CLMNA_EVT));
 		if (evt != NULL) {
@@ -550,16 +564,17 @@ static void scale_out_tmr_exp(void *arg)
 			evt->change.node_id = 0;
 			evt->change.svc_id = NCSMDS_SVC_ID_CLMS;
 			if (m_NCS_IPC_SEND(&clmna_cb->mbx, evt,
-				NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS)
+					   NCS_IPC_PRIORITY_VERY_HIGH) !=
+			    NCSCC_RC_SUCCESS)
 				LOG_ER("IPC send to mailbox failed: %s",
-					__FUNCTION__);
+				       __FUNCTION__);
 		} else {
 			LOG_ER("Could not allocate IPC event: %s",
-				__FUNCTION__);
+			       __FUNCTION__);
 		}
 	} else {
 		LOG_ER("Unexpected scale out timer expiration: %s",
-			__FUNCTION__);
+		       __FUNCTION__);
 	}
 	clmna_cb->is_scale_out_retry_tmr_running = false;
 	TRACE_LEAVE();
@@ -570,13 +585,14 @@ static void start_scale_out_retry_tmr(int64_t timeout)
 	TRACE_ENTER();
 	if (clmna_cb->scale_out_retry_tmr == NULL) {
 		m_NCS_TMR_CREATE(clmna_cb->scale_out_retry_tmr,
-			CLMNA_SCALE_OUT_RETRY_TIME, scale_out_tmr_exp, NULL);
+				 CLMNA_SCALE_OUT_RETRY_TIME, scale_out_tmr_exp,
+				 NULL);
 	}
 
 	if (clmna_cb->scale_out_retry_tmr != NULL &&
-		clmna_cb->is_scale_out_retry_tmr_running == false) {
-		m_NCS_TMR_START(clmna_cb->scale_out_retry_tmr,
-			timeout, scale_out_tmr_exp, NULL);
+	    clmna_cb->is_scale_out_retry_tmr_running == false) {
+		m_NCS_TMR_START(clmna_cb->scale_out_retry_tmr, timeout,
+				scale_out_tmr_exp, NULL);
 		if (clmna_cb->scale_out_retry_tmr != NULL) {
 			clmna_cb->is_scale_out_retry_tmr_running = true;
 		}
@@ -603,7 +619,8 @@ static void clmna_process_dummyup_msg(void)
 		msg.evt_type = CLMSV_CLMA_TO_CLMS_API_MSG;
 		msg.info.api_info.type = CLMSV_CLUSTER_JOIN_REQ;
 		msg.info.api_info.param.nodeup_info.node_id = self_node.node_id;
-		msg.info.api_info.param.nodeup_info.node_name = self_node.node_name;
+		msg.info.api_info.param.nodeup_info.node_name =
+		    self_node.node_name;
 		stop_scale_out_retry_tmr();
 		start_scale_out_retry_tmr(CLMNA_JOIN_RETRY_TIME);
 		uint32_t rc = clmna_mds_msg_send(&msg);
@@ -611,10 +628,13 @@ static void clmna_process_dummyup_msg(void)
 		case NCSCC_RC_SUCCESS:
 			break;
 		case NCSCC_RC_REQ_TIMOUT:
-			LOG_ER("Send timed out. Check status(network, process) of ACTIVE controller");
+			LOG_ER(
+			    "Send timed out. Check status(network, process) of ACTIVE controller");
 			break;
 		default:
-			LOG_ER("Send failed: %" PRIu32 " Check network connectivity", rc);
+			LOG_ER("Send failed: %" PRIu32
+			       " Check network connectivity",
+			       rc);
 			break;
 		}
 	}
@@ -625,17 +645,16 @@ void clmna_process_mbx(SYSF_MBX *mbx)
 	CLMNA_EVT *msg;
 	TRACE_ENTER();
 
-	msg = (CLMNA_EVT *) ncs_ipc_non_blk_recv(mbx);
+	msg = (CLMNA_EVT *)ncs_ipc_non_blk_recv(mbx);
 	if (msg == NULL) {
 		TRACE_LEAVE2("No mailbox message although fd is set!");
 		goto done;
 	}
 	switch (msg->type) {
 	case CLMNA_EVT_CHANGE_MSG:
-		clmna_handle_mds_change_evt(msg->change.caused_by_timer_expiry,
-			msg->change.change,
-			msg->change.node_id,
-			msg->change.svc_id);
+		clmna_handle_mds_change_evt(
+		    msg->change.caused_by_timer_expiry, msg->change.change,
+		    msg->change.node_id, msg->change.svc_id);
 		break;
 	case CLMNA_EVT_JOIN_RESPONSE:
 		clmna_handle_join_response(msg->join_response.rc,
@@ -646,8 +665,8 @@ void clmna_process_mbx(SYSF_MBX *mbx)
 		break;
 	}
 done:
-if (msg)
-	free(msg);
+	if (msg)
+		free(msg);
 	TRACE_LEAVE();
 }
 
@@ -655,7 +674,7 @@ if (msg)
  * USR1 signal is used when AMF wants to instantiate us as a
  * component. Wakes up the main thread to register with
  * AMF.
- * 
+ *
  * @param i_sig_num
  */
 static void sigusr1_handler(int sig)
@@ -712,7 +731,7 @@ int main(int argc, char *argv[])
 
 	/* Create a selection object */
 	if (clmna_cb->nid_started &&
-		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	    (rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
@@ -722,7 +741,7 @@ int main(int argc, char *argv[])
 	 ** The signal is sent from our script when AMF does instantiate.
 	 */
 	if (clmna_cb->nid_started &&
-		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	    signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		goto done;
 	}
@@ -732,13 +751,12 @@ int main(int argc, char *argv[])
 
 	/* If AMF started register immediately */
 	if (!clmna_cb->nid_started &&
-		(rc = clmna_amf_init(clmna_cb)) != NCSCC_RC_SUCCESS) {
+	    (rc = clmna_amf_init(clmna_cb)) != NCSCC_RC_SUCCESS) {
 		goto done;
 	}
 
-	clmna_cb->election_starter =
-		ElectionStarterConstructor(clmna_cb->nid_started,
-					   clmna_cb->node_info.node_id);
+	clmna_cb->election_starter = ElectionStarterConstructor(
+	    clmna_cb->nid_started, clmna_cb->node_info.node_id);
 
 	if (clmna_cb->nid_started &&
 	    nid_notify("CLMNA", rc, NULL) != NCSCC_RC_SUCCESS) {
@@ -747,14 +765,15 @@ int main(int argc, char *argv[])
 
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
-	fds[FD_AMF].fd = clmna_cb->nid_started ?
-		usr1_sel_obj.rmv_obj : clmna_cb->amf_sel_obj;
+	fds[FD_AMF].fd = clmna_cb->nid_started ? usr1_sel_obj.rmv_obj
+					       : clmna_cb->amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = clmna_cb->mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 
 	while (1) {
-		struct timespec timeout = ElectionStarterPoll(clmna_cb->election_starter);
+		struct timespec timeout =
+		    ElectionStarterPoll(clmna_cb->election_starter);
 		ret = osaf_ppoll(fds, nfds, &timeout, NULL);
 
 		if (ret == 0) {
@@ -767,8 +786,11 @@ int main(int argc, char *argv[])
 
 		if (fds[FD_AMF].revents & POLLIN) {
 			if (clmna_cb->amf_hdl != 0) {
-				if ((error = saAmfDispatch(clmna_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-					LOG_ER("saAmfDispatch failed: %u", error);
+				if ((error = saAmfDispatch(clmna_cb->amf_hdl,
+							   SA_DISPATCH_ALL)) !=
+				    SA_AIS_OK) {
+					LOG_ER("saAmfDispatch failed: %u",
+					       error);
 					break;
 				}
 			} else {
@@ -776,23 +798,24 @@ int main(int argc, char *argv[])
 				ncs_sel_obj_rmv_ind(&usr1_sel_obj, true, true);
 				ncs_sel_obj_destroy(&usr1_sel_obj);
 
-				if ((error = clmna_amf_init(clmna_cb)) != NCSCC_RC_SUCCESS) {
-					LOG_ER("AMF Initialization failed. %u", error);
+				if ((error = clmna_amf_init(clmna_cb)) !=
+				    NCSCC_RC_SUCCESS) {
+					LOG_ER("AMF Initialization failed. %u",
+					       error);
 					break;
 				}
 
 				TRACE("AMF Initialization success");
 				fds[FD_AMF].fd = clmna_cb->amf_sel_obj;
 			}
-
 		}
 
-		if (fds[FD_MBX].revents & POLLIN){
+		if (fds[FD_MBX].revents & POLLIN) {
 			clmna_process_mbx(&clmna_cb->mbx);
 		}
 
 	} /* End while (1) loop */
 
- done:
+done:
 	return 0;
 }

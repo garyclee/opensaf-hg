@@ -46,7 +46,7 @@ static const size_t CMD_SIZE = 2;
 /* States for the applier thread. Stopping and starting the applier is handled
  * differently dependent on the thread state
  */
-enum class th_state{
+enum class th_state {
   /* Thread not started */
   TH_NOT_CREATED = 0,
   /* Thread is started but has not yet entered the event handling poll loop */
@@ -62,31 +62,41 @@ enum class th_state{
   TH_TERMINATING
 };
 
-static std::atomic<th_state> th_state_info {th_state::TH_NOT_CREATED};
+static std::atomic<th_state> th_state_info{th_state::TH_NOT_CREATED};
 
 /**
  * These functions should be here so that also TRACEes can be made in the future
  * that prints the thread command and states as strings for better readability
  */
 // cppcheck-suppress unusedFunction
-const char *th_statestr(th_state state) {
+const char* th_statestr(th_state state) {
   switch (state) {
-    case th_state::TH_CREATING: return "CREATING";
-    case th_state::TH_IDLE: return "IDLE";
-    case th_state::TH_IS_APPLIER: return "IS APPLIER";
-    case th_state::TH_NOT_CREATED: return "NOT_CREATED";
-    case th_state::TH_TERMINATING: return "TERMINATING";
-    default: return "UNKNOWN STATE";
+    case th_state::TH_CREATING:
+      return "CREATING";
+    case th_state::TH_IDLE:
+      return "IDLE";
+    case th_state::TH_IS_APPLIER:
+      return "IS APPLIER";
+    case th_state::TH_NOT_CREATED:
+      return "NOT_CREATED";
+    case th_state::TH_TERMINATING:
+      return "TERMINATING";
+    default:
+      return "UNKNOWN STATE";
   }
 }
 
 // cppcheck-suppress unusedFunction
-const char *th_cmdstr(th_cmd cmd) {
+const char* th_cmdstr(th_cmd cmd) {
   switch (cmd) {
-    case th_cmd::AP_REMOVE: return "REMOVE";
-    case th_cmd::AP_START: return "START";
-    case th_cmd::AP_STOP: return "STOP";
-    default: return "UNKNOWN CMD";
+    case th_cmd::AP_REMOVE:
+      return "REMOVE";
+    case th_cmd::AP_START:
+      return "START";
+    case th_cmd::AP_STOP:
+      return "STOP";
+    default:
+      return "UNKNOWN CMD";
   }
 }
 
@@ -103,9 +113,9 @@ const char *th_cmdstr(th_cmd cmd) {
 //
 // cppcheck-suppress passedByValue
 static void ApplierThread(const std::string object_name,
-// cppcheck-suppress passedByValue
+                          // cppcheck-suppress passedByValue
                           const std::string attribute_name,
-                          SmfImmApplierHdl *ApplierHdl,
+                          SmfImmApplierHdl* ApplierHdl,
                           const int command_socket) {
   /* Event handling
    * Note:
@@ -115,8 +125,8 @@ static void ApplierThread(const std::string object_name,
    * vector and decrease and decrease nfds when IMM is finalized.
    */
   enum {
-    FDA_COM = 0,    /* Communication events */
-    FDA_IMM,        /* IMM events */
+    FDA_COM = 0, /* Communication events */
+    FDA_IMM,     /* IMM events */
     NUM_FDA
   };
 
@@ -129,12 +139,12 @@ static void ApplierThread(const std::string object_name,
   th_state_info = th_state::TH_CREATING;
 
   // Create the applier
-  ApplierSetupInfo setup_info {object_name, attribute_name};
+  ApplierSetupInfo setup_info{object_name, attribute_name};
   bool create_rc = ApplierHdl->Create(setup_info);
   if (create_rc == false) {
     LOG_WA("%s: Creation of long DN applier Fail", __FUNCTION__);
     th_state_info = th_state::TH_NOT_CREATED;
-    return;   // Terminate the thread
+    return;  // Terminate the thread
   }
 
   // Setup event handling
@@ -146,11 +156,11 @@ static void ApplierThread(const std::string object_name,
 
   th_state_info = th_state::TH_IDLE;
 
-  TRACE("%s: Applier is created, th_state_info = %s",
-        __FUNCTION__, th_statestr(th_state_info));
+  TRACE("%s: Applier is created, th_state_info = %s", __FUNCTION__,
+        th_statestr(th_state_info));
 
   while (1) {
-    (void) osaf_poll(fds, nfds, -1);
+    (void)osaf_poll(fds, nfds, -1);
 
     // Handle IMM callback
     if (fds[FDA_IMM].revents & POLLIN) {
@@ -229,9 +239,8 @@ static void ApplierThread(const std::string object_name,
 // SmLongDnApplier class
 // ===================
 SmfLongDnApplier::SmfLongDnApplier(const std::string& object_name,
-                                   const std::string& attribute_name) :
-    object_name_{object_name},
-    attribute_name_{attribute_name} {
+                                   const std::string& attribute_name)
+    : object_name_{object_name}, attribute_name_{attribute_name} {
   TRACE_ENTER();
   applierHdl_ = new SmfImmApplierHdl();
   TRACE_LEAVE();
@@ -252,8 +261,7 @@ void SmfLongDnApplier::Start() {
     TRACE("%s: Sending START to thread", __FUNCTION__);
     SendCommandToThread(th_cmd::AP_START);
   } else {
-    LOG_WA("%s: Trying to start an applier that is not created",
-           __FUNCTION__);
+    LOG_WA("%s: Trying to start an applier that is not created", __FUNCTION__);
     // Try to recover by creating and start again. We may end up in this
     // situation if creation or IMM bad handle recovery was canceled by a
     // stop request
@@ -263,8 +271,10 @@ void SmfLongDnApplier::Start() {
       TRACE("%s: Re-sending START to thread", __FUNCTION__);
       SendCommandToThread(th_cmd::AP_START);
     } else {
-      LOG_ER("%s: Cannot create and start "
-             "the long dn monitoring applier", __FUNCTION__);
+      LOG_ER(
+          "%s: Cannot create and start "
+          "the long dn monitoring applier",
+          __FUNCTION__);
     }
   }
   TRACE_LEAVE();
@@ -285,20 +295,17 @@ void SmfLongDnApplier::Stop() {
     // on another node.
     base::Timer applier_stop_timer(1000);  // ms
     while (applier_stop_timer.is_timeout() == false) {
-      if (th_state_info != th_state::TH_IS_APPLIER)
-        break;  // Is stopped
+      if (th_state_info != th_state::TH_IS_APPLIER) break;  // Is stopped
       base::Sleep(base::kTenMilliseconds);
     }
     if (th_state_info == th_state::TH_IS_APPLIER) {
       // Timeout: This should never happen
-      LOG_ER("%s: Applier cold not be stopped within 1 sec",
-             __FUNCTION__);
+      LOG_ER("%s: Applier cold not be stopped within 1 sec", __FUNCTION__);
     }
     TRACE("%s: STOP done. Thread state is %s", __FUNCTION__,
           th_statestr(th_state_info));
   } else {
-    LOG_WA("%s: Trying to stop an applier that is not running",
-           __FUNCTION__);
+    LOG_WA("%s: Trying to stop an applier that is not running", __FUNCTION__);
   }
   TRACE_LEAVE();
 }
@@ -323,8 +330,8 @@ void SmfLongDnApplier::Create() {
     socket_fd_command_ = sock_fd[1];
 
     // Start the thread
-    std::thread t1 {ApplierThread, object_name_, attribute_name_,
-                   applierHdl_, socket_fd_thread_};
+    std::thread t1{ApplierThread, object_name_, attribute_name_, applierHdl_,
+                   socket_fd_thread_};
     t1.detach();
     TRACE("%s: Thread is started", __FUNCTION__);
 
@@ -337,12 +344,10 @@ void SmfLongDnApplier::Create() {
       base::Sleep(base::kTenMilliseconds);
     }
     if (th_state_info == th_state::TH_NOT_CREATED) {
-      LOG_WA("%s: Applier thread has not started within 100 ms",
-             __FUNCTION__);
+      LOG_WA("%s: Applier thread has not started within 100 ms", __FUNCTION__);
     }
   } else {
-    LOG_WA("%s: Trying to create an already created applier",
-           __FUNCTION__);
+    LOG_WA("%s: Trying to create an already created applier", __FUNCTION__);
   }
   TRACE_LEAVE();
 }
@@ -357,8 +362,7 @@ void SmfLongDnApplier::Remove() {
   TRACE_ENTER();
   // First check if there is any applier to terminate
   if (th_state_info == th_state::TH_NOT_CREATED) {
-    LOG_NO("%s: Trying to remove an applier that is not created",
-           __FUNCTION__);
+    LOG_NO("%s: Trying to remove an applier that is not created", __FUNCTION__);
     return;
   }
 
@@ -369,7 +373,7 @@ void SmfLongDnApplier::Remove() {
   TRACE("%s: REMOVE command sent. Waiting for termination of thread",
         __FUNCTION__);
   // Wait for thread to terminate. For synchronizing
-  base::Timer terminate_timeout(10000);   // ms
+  base::Timer terminate_timeout(10000);  // ms
   while (terminate_timeout.is_timeout() == false) {
     if (th_state_info == th_state::TH_NOT_CREATED)
       break;  // Thread has terminated
@@ -403,7 +407,7 @@ void SmfLongDnApplier::CloseSockets() {
 }
 
 void SmfLongDnApplier::SendCommandToThread(th_cmd command) {
-  const char *cmd_str = nullptr;
+  const char* cmd_str = nullptr;
   int rc = 0;
 
   TRACE_ENTER2("Command %s", th_cmdstr(command));
@@ -425,8 +429,7 @@ void SmfLongDnApplier::SendCommandToThread(th_cmd command) {
 
   while (1) {
     rc = write(socket_fd_command_, cmd_str, CMD_SIZE);
-    if ((rc == -1) && (errno == EINTR))
-      /* Try again */
+    if ((rc == -1) && (errno == EINTR)) /* Try again */
       continue;
     else
       break;
@@ -439,4 +442,3 @@ void SmfLongDnApplier::SendCommandToThread(th_cmd command) {
 
   TRACE_LEAVE();
 }
-

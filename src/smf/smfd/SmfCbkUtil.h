@@ -28,21 +28,19 @@
 
 /* SmfCbkUtilThread event enums */
 typedef enum {
-	SMFCBKUTIL_EVT_TERMINATE = 1,
-	SMFCBKUTIL_EVT_MAX
+  SMFCBKUTIL_EVT_TERMINATE = 1,
+  SMFCBKUTIL_EVT_MAX
 } SMFCBKUTIL_EVT_TYPE;
 
 /* SmfCbkUtilThread event definitions */
-typedef struct {
-	uint32_t dummy;
-} SmfCbkUtilThread_evt_terminate;
+typedef struct { uint32_t dummy; } SmfCbkUtilThread_evt_terminate;
 
 typedef struct {
-	void *next;		/* needed by mailbox send/receive */
-	SMFCBKUTIL_EVT_TYPE type;	/* evt type */
-	union {
-		SmfCbkUtilThread_evt_terminate terminate;
-	} event;
+  void *next;               /* needed by mailbox send/receive */
+  SMFCBKUTIL_EVT_TYPE type; /* evt type */
+  union {
+    SmfCbkUtilThread_evt_terminate terminate;
+  } event;
 } SMFCBKUTIL_EVT;
 
 ///
@@ -51,49 +49,49 @@ typedef struct {
 
 class SmfCbkUtilThread {
  public:
-	static SmfCbkUtilThread *instance(void);
+  static SmfCbkUtilThread *instance(void);
 
-///
-/// Purpose: Starts the SmfCbkUtilThread
-/// @param   -
-/// @return  An interger returning 0 on success.
-///
-	static int start();
+  ///
+  /// Purpose: Starts the SmfCbkUtilThread
+  /// @param   -
+  /// @return  An interger returning 0 on success.
+  ///
+  static int start();
 
-///
-/// Purpose: Terminate the SmfCbkUtilThread
-/// @param   None.
-/// @return  None.
-///
-	static void terminate(void);
+  ///
+  /// Purpose: Terminate the SmfCbkUtilThread
+  /// @param   None.
+  /// @return  None.
+  ///
+  static void terminate(void);
 
-///
-/// Purpose: Send an event to the SmfCbkUtilThread
-/// @param   evt A pointer to a SmfCbkUtilThread event.
-/// @return  An interger returning 0 on success.
-///
-	int send(SMFCBKUTIL_EVT * evt);
+  ///
+  /// Purpose: Send an event to the SmfCbkUtilThread
+  /// @param   evt A pointer to a SmfCbkUtilThread event.
+  /// @return  An interger returning 0 on success.
+  ///
+  int send(SMFCBKUTIL_EVT *evt);
 
  private:
-	 SmfCbkUtilThread();
-	~SmfCbkUtilThread();
+  SmfCbkUtilThread();
+  ~SmfCbkUtilThread();
 
-	int startThread(void);
-	int stop(void);
-	void mainThread(void);
-	int init(void);
-	int initSmfCbkApi(void);
-	int finalizeSmfCbkApi(void);
-	int handleEvents(void);
-	void processEvt(void);
+  int startThread(void);
+  int stop(void);
+  void mainThread(void);
+  int init(void);
+  int initSmfCbkApi(void);
+  int finalizeSmfCbkApi(void);
+  int handleEvents(void);
+  void processEvt(void);
 
-	static void* main(NCSCONTEXT info);
-	static SmfCbkUtilThread *s_instance;
+  static void *main(NCSCONTEXT info);
+  static SmfCbkUtilThread *s_instance;
 
-	SYSF_MBX m_mbx;		/* mailbox */
-	bool m_running;
-	sem_t* m_semaphore;
-	SaSmfHandleT m_smfHandle;
+  SYSF_MBX m_mbx; /* mailbox */
+  bool m_running;
+  sem_t *m_semaphore;
+  SaSmfHandleT m_smfHandle;
 };
 
 #endif  // SMF_SMFD_SMFCBKUTIL_H_

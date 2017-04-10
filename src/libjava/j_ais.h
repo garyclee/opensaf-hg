@@ -96,7 +96,8 @@ extern jboolean JNU_CallbackResponse_initIDs_OK(JNIEnv *jniEnv);
   JNIEnv* jniEnv,
   jbyte trackFlags );
 */
-/* this method will throw appropriate Exception based on errorcode recevied when Lifecycle methods are invoked */
+/* this method will throw appropriate Exception based on errorcode recevied when
+ * Lifecycle methods are invoked */
 extern void JNU_Exception_Throw(JNIEnv *jniEnv, SaAisErrorT _saStatus);
 
 #endif  // LIBJAVA_J_AIS_H_

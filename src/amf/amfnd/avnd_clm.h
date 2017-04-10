@@ -22,9 +22,9 @@
 
   DESCRIPTION:
 
-  This module is the include file for handling Availability Node Directors 
+  This module is the include file for handling Availability Node Directors
   CLM structures
-  
+
 ******************************************************************************
 */
 

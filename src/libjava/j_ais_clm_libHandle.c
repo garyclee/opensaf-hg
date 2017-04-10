@@ -33,7 +33,7 @@
 #include "j_utils.h"
 #include "j_ais.h"
 #include "j_ais_clm.h"
-#include "jni_ais_clm.h"	// not really needed, but good for syntax checking!
+#include "jni_ais_clm.h" // not really needed, but good for syntax checking!
 #include "base/osaf_poll.h"
 
 /**************************************************************************
@@ -106,7 +106,8 @@ void JNU_Exception_Throw(JNIEnv *jniEnv, SaAisErrorT _saStatus)
 		break;
 	case SA_AIS_ERR_BAD_HANDLE:
 
-		/* TODO library handle invalid (e.g finalized): this check could be done at Java level! */
+		/* TODO library handle invalid (e.g finalized): this check could
+		 * be done at Java level! */
 		JNU_throwNewByName(jniEnv,
 				   "org/saforum/ais/AisBadHandleException",
 				   AIS_ERR_BAD_HANDLE_MSG);
@@ -119,8 +120,7 @@ void JNU_Exception_Throw(JNIEnv *jniEnv, SaAisErrorT _saStatus)
 				   AIS_ERR_INVALID_PARAM_MSG);
 		break;
 	case SA_AIS_ERR_INIT:
-		JNU_throwNewByName(jniEnv,
-				   "org/saforum/ais/AisInitException",
+		JNU_throwNewByName(jniEnv, "org/saforum/ais/AisInitException",
 				   AIS_ERR_INIT_MSG);
 		break;
 	case SA_AIS_ERR_NO_SPACE:
@@ -155,7 +155,6 @@ void JNU_Exception_Throw(JNIEnv *jniEnv, SaAisErrorT _saStatus)
 				   AIS_ERR_LIBRARY_MSG);
 		break;
 	}
-
 }
 
 //********************************
@@ -185,17 +184,16 @@ jboolean JNU_ClmHandle_initIDs_OK(JNIEnv *jniEnv)
 	  (*jniEnv)->FindClass( jniEnv,
 	  "org/opensaf/ais/clm/ClmHandleImpl" )
 	  ); */
-	ClassClmHandle = JNU_GetGlobalClassRef(jniEnv,
-					       "org/opensaf/ais/clm/ClmHandleImpl");
+	ClassClmHandle =
+	    JNU_GetGlobalClassRef(jniEnv, "org/opensaf/ais/clm/ClmHandleImpl");
 	if (ClassClmHandle == NULL) {
 
 		_TRACE2("NATIVE ERROR: ClassClmHandle is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 	// get IDs
 	return JNU_ClmHandle_initIDs_FromClass_OK(jniEnv, ClassClmHandle);
-
 }
 
 /**************************************************************************
@@ -217,101 +215,90 @@ static jboolean JNU_ClmHandle_initIDs_FromClass_OK(JNIEnv *jniEnv,
 
 	// get method IDs
 
-	MID_s_getClusterChange = (*jniEnv)->GetStaticMethodID(jniEnv,
-							      classClmHandle,
-							      "s_getClusterChange",
-							      "(I)Lorg/saforum/ais/clm/ClusterNotification$ClusterChange;");
+	MID_s_getClusterChange = (*jniEnv)->GetStaticMethodID(
+	    jniEnv, classClmHandle, "s_getClusterChange",
+	    "(I)Lorg/saforum/ais/clm/ClusterNotification$ClusterChange;");
 	if (MID_s_getClusterChange == NULL) {
 
 		_TRACE2("NATIVE ERROR: MID_s_getClusterChange is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	MID_s_invokeGetClusterNodeCallback =
-		(*jniEnv)->GetStaticMethodID(jniEnv, classClmHandle,
-					     "s_invokeGetClusterNodeCallback",
-					     "(JLorg/saforum/ais/clm/ClusterNode;I)V");
+	MID_s_invokeGetClusterNodeCallback = (*jniEnv)->GetStaticMethodID(
+	    jniEnv, classClmHandle, "s_invokeGetClusterNodeCallback",
+	    "(JLorg/saforum/ais/clm/ClusterNode;I)V");
 	if (MID_s_invokeGetClusterNodeCallback == NULL) {
 
-		_TRACE2
-			("NATIVE ERROR: MID_s_invokeGetClusterNodeCallback is NULL\n");
+		_TRACE2(
+		    "NATIVE ERROR: MID_s_invokeGetClusterNodeCallback is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
-	MID_s_invokeTrackClusterCallback_4 =
-		(*jniEnv)->GetStaticMethodID(jniEnv, classClmHandle,
-					     "s_invokeTrackClusterCallback",
-					     "(Lorg/saforum/ais/clm/ClusterNotificationBuffer;IJLjava/lang/String;Lorg/saforum/ais/CorrelationIds;IJI)V");
+	MID_s_invokeTrackClusterCallback_4 = (*jniEnv)->GetStaticMethodID(
+	    jniEnv, classClmHandle, "s_invokeTrackClusterCallback",
+	    "(Lorg/saforum/ais/clm/ClusterNotificationBuffer;IJLjava/lang/String;Lorg/saforum/ais/CorrelationIds;IJI)V");
 
 	if (MID_s_invokeTrackClusterCallback_4 == NULL) {
 
-		_TRACE2
-			("NATIVE ERROR: MID_s_invokeTrackClusterCallback is NULL\n");
+		_TRACE2(
+		    "NATIVE ERROR: MID_s_invokeTrackClusterCallback is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	MID_s_invokeTrackClusterCallback = (*jniEnv)->GetStaticMethodID(jniEnv,
-									classClmHandle,
-									"s_invokeTrackClusterCallback",
-									"(Lorg/saforum/ais/clm/ClusterNotificationBuffer;II)V");
+	MID_s_invokeTrackClusterCallback = (*jniEnv)->GetStaticMethodID(
+	    jniEnv, classClmHandle, "s_invokeTrackClusterCallback",
+	    "(Lorg/saforum/ais/clm/ClusterNotificationBuffer;II)V");
 	// get field IDs
-	FID_getClusterNodeCallback = (*jniEnv)->GetFieldID(jniEnv,
-							   classClmHandle,
-							   "getClusterNodeCallback",
-							   "Lorg/saforum/ais/clm/GetClusterNodeCallback;");
+	FID_getClusterNodeCallback = (*jniEnv)->GetFieldID(
+	    jniEnv, classClmHandle, "getClusterNodeCallback",
+	    "Lorg/saforum/ais/clm/GetClusterNodeCallback;");
 	if (FID_getClusterNodeCallback == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_getClusterNodeCallback is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
-	FID_trackClusterCallback = (*jniEnv)->GetFieldID(jniEnv,
-							 classClmHandle,
-							 "trackClusterCallback",
-							 "Lorg/saforum/ais/clm/TrackClusterCallback;");
+	FID_trackClusterCallback = (*jniEnv)->GetFieldID(
+	    jniEnv, classClmHandle, "trackClusterCallback",
+	    "Lorg/saforum/ais/clm/TrackClusterCallback;");
 	if (FID_trackClusterCallback == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_trackClusterCallback is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
-	FID_saClmHandle = (*jniEnv)->GetFieldID(jniEnv,
-						classClmHandle,
-						"saClmHandle", "J");
+	FID_saClmHandle =
+	    (*jniEnv)->GetFieldID(jniEnv, classClmHandle, "saClmHandle", "J");
 	if (FID_saClmHandle == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_saClmHandle is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	FID_saVersion = (*jniEnv)->GetFieldID(jniEnv,
-					      classClmHandle,
-					      "version",
+	FID_saVersion = (*jniEnv)->GetFieldID(jniEnv, classClmHandle, "version",
 					      "Lorg/saforum/ais/Version;");
 
 	if (FID_saVersion == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_saVersion is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
-
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	FID_selectionObject = (*jniEnv)->GetFieldID(jniEnv,
-						    classClmHandle,
+	FID_selectionObject = (*jniEnv)->GetFieldID(jniEnv, classClmHandle,
 						    "selectionObject", "J");
 	if (FID_selectionObject == NULL) {
 
 		_TRACE2("NATIVE ERROR: FID_selectionObject is NULL\n");
 
-		return JNI_FALSE;	// EXIT POINT! Exception pending...
+		return JNI_FALSE; // EXIT POINT! Exception pending...
 	}
 
-	_TRACE2
-		("NATIVE: JNU_ClmHandle_initIDs_FromClass_OK(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: JNU_ClmHandle_initIDs_FromClass_OK(...) returning normally\n");
 
 	return JNI_TRUE;
 }
@@ -324,10 +311,8 @@ static jboolean JNU_ClmHandle_initIDs_FromClass_OK(JNIEnv *jniEnv,
  *  Signature: (Lorg/saforum/ais/Version;)V
  *************************************************************************/
 JNIEXPORT void JNICALL
-Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(JNIEnv *jniEnv,
-							     jobject
-							     thisClmHandle,
-							     jobject sVersion)
+Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(
+    JNIEnv *jniEnv, jobject thisClmHandle, jobject sVersion)
 {
 	// VARIABLES
 	// ais
@@ -349,178 +334,161 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(JNIEnv *jniEnv,
 	assert(thisClmHandle != NULL);
 
 	// TODO assert for sVersion
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(...)\n");
 
 	// create callback struct
 	//  get cluster node cb
-	_getClusterNodeCallback = (*jniEnv)->GetObjectField(jniEnv,
-							    thisClmHandle,
-							    FID_getClusterNodeCallback);
+	_getClusterNodeCallback = (*jniEnv)->GetObjectField(
+	    jniEnv, thisClmHandle, FID_getClusterNodeCallback);
 
-	_trackClusterCallback = (*jniEnv)->GetObjectField(jniEnv,
-							  thisClmHandle,
-							  FID_trackClusterCallback);
+	_trackClusterCallback = (*jniEnv)->GetObjectField(
+	    jniEnv, thisClmHandle, FID_trackClusterCallback);
 
 	if (sVersion == NULL) {
 		JNU_throwNewByName(jniEnv,
 				   "org/saforum/ais/AisInvalidParamException",
 				   AIS_ERR_INVALID_PARAM_MSG);
-		return;		// EXIT POINT!
+		return; // EXIT POINT!
 	}
 	// release code
-	_releaseCode = (*jniEnv)->GetCharField(jniEnv,
-					       sVersion, FID_releaseCode);
+	_releaseCode =
+	    (*jniEnv)->GetCharField(jniEnv, sVersion, FID_releaseCode);
 	_saVersion.releaseCode = (SaUint8T)_releaseCode;
 	// major version
-	_majorVersion = (*jniEnv)->GetShortField(jniEnv,
-						 sVersion, FID_majorVersion);
+	_majorVersion =
+	    (*jniEnv)->GetShortField(jniEnv, sVersion, FID_majorVersion);
 	_saVersion.majorVersion = (SaUint8T)_majorVersion;
 	// minor version
-	_minorVersion = (*jniEnv)->GetShortField(jniEnv,
-						 sVersion, FID_minorVersion);
+	_minorVersion =
+	    (*jniEnv)->GetShortField(jniEnv, sVersion, FID_minorVersion);
 	_saVersion.minorVersion = (SaUint8T)_minorVersion;
 
 	if (_majorVersion == 1 && _minorVersion == 1) {
 		if (_getClusterNodeCallback != NULL) {
-			_TRACE2
-				("NATIVE: SaClmClusterNodeGetCallback assigned as callback!\n");
+			_TRACE2(
+			    "NATIVE: SaClmClusterNodeGetCallback assigned as callback!\n");
 
 			_saClmCallbacks.saClmClusterNodeGetCallback =
-				SaClmClusterNodeGetCallback;
+			    SaClmClusterNodeGetCallback;
 		} else {
-			_TRACE2
-				("NATIVE: NO SaClmClusterNodeGetCallback assigned!\n");
+			_TRACE2(
+			    "NATIVE: NO SaClmClusterNodeGetCallback assigned!\n");
 
 			_saClmCallbacks.saClmClusterNodeGetCallback = NULL;
 		}
 
 		if (_trackClusterCallback != NULL) {
-			_TRACE2
-				("NATIVE: SaClmClusterTrackCallback assigned as callback!\n");
+			_TRACE2(
+			    "NATIVE: SaClmClusterTrackCallback assigned as callback!\n");
 
 			_saClmCallbacks.saClmClusterTrackCallback =
-				SaClmClusterTrackCallback;
+			    SaClmClusterTrackCallback;
 		} else {
-			_TRACE2
-				("NATIVE: NO SaClmClusterTrackCallback assigned!\n");
+			_TRACE2(
+			    "NATIVE: NO SaClmClusterTrackCallback assigned!\n");
 
 			_saClmCallbacks.saClmClusterTrackCallback = NULL;
 		}
 		// call saClmInitialize
-		_saStatus = saClmInitialize(&_saClmHandle,
-					    &_saClmCallbacks, &_saVersion);
+		_saStatus = saClmInitialize(&_saClmHandle, &_saClmCallbacks,
+					    &_saVersion);
 
-		_TRACE2
-			("NATIVE: saClmInitialize(...) has returned with %d...\n",
-			 _saStatus);
+		_TRACE2(
+		    "NATIVE: saClmInitialize(...) has returned with %d...\n",
+		    _saStatus);
 	} else {
 		if (_getClusterNodeCallback != NULL) {
 
-			_TRACE2
-				("NATIVE: SaClmClusterNodeGetCallback assigned as callback!\n");
+			_TRACE2(
+			    "NATIVE: SaClmClusterNodeGetCallback assigned as callback!\n");
 
 			_saClmCallbacks_4.saClmClusterNodeGetCallback =
-				SaClmClusterNodeGetCallback_4;
+			    SaClmClusterNodeGetCallback_4;
 
 		} else {
-			_TRACE2
-				("NATIVE: NO SaClmClusterNodeGetCallback assigned!\n");
+			_TRACE2(
+			    "NATIVE: NO SaClmClusterNodeGetCallback assigned!\n");
 
 			_saClmCallbacks_4.saClmClusterNodeGetCallback = NULL;
-
 		}
 
 		if (_trackClusterCallback != NULL) {
 
-			_TRACE2
-				("NATIVE: SaClmClusterTrackCallback assigned as callback!\n");
+			_TRACE2(
+			    "NATIVE: SaClmClusterTrackCallback assigned as callback!\n");
 
 			_saClmCallbacks_4.saClmClusterTrackCallback =
-				SaClmClusterTrackCallback_4;
+			    SaClmClusterTrackCallback_4;
 
 		} else {
-			_TRACE2
-				("NATIVE: NO SaClmClusterTrackCallback assigned!\n");
+			_TRACE2(
+			    "NATIVE: NO SaClmClusterTrackCallback assigned!\n");
 
 			_saClmCallbacks_4.saClmClusterTrackCallback = NULL;
-
 		}
 		// call saClmInitialize
-		_saStatus = saClmInitialize_4(&_saClmHandle,
-					      &_saClmCallbacks_4, &_saVersion);
+		_saStatus = saClmInitialize_4(&_saClmHandle, &_saClmCallbacks_4,
+					      &_saVersion);
 
-		_TRACE2
-			("NATIVE: saClmInitialize_4(...) has returned with %d...\n",
-			 _saStatus);
+		_TRACE2(
+		    "NATIVE: saClmInitialize_4(...) has returned with %d...\n",
+		    _saStatus);
 	}
 
 	/* set version param:
 	   see page 19 of the Cluster Membership Service spec B.01.01! */
-	//releaseCode
+	// releaseCode
 	if (_saVersion.releaseCode != _releaseCode) {
-		(*jniEnv)->SetCharField(jniEnv,
-					sVersion,
-					FID_releaseCode,
+		(*jniEnv)->SetCharField(jniEnv, sVersion, FID_releaseCode,
 					(jchar)_saVersion.releaseCode);
 	}
-	//majorVersion
+	// majorVersion
 	if (_saVersion.majorVersion != _majorVersion) {
-		(*jniEnv)->SetShortField(jniEnv,
-					 sVersion,
-					 FID_majorVersion,
+		(*jniEnv)->SetShortField(jniEnv, sVersion, FID_majorVersion,
 					 (jshort)_saVersion.majorVersion);
 	}
 	// minor version
 	if (_saVersion.minorVersion != _minorVersion) {
-		(*jniEnv)->SetShortField(jniEnv,
-					 sVersion,
-					 FID_minorVersion,
+		(*jniEnv)->SetShortField(jniEnv, sVersion, FID_minorVersion,
 					 (jshort)_saVersion.minorVersion);
 	}
 	// error handling
 	if (_saStatus != SA_AIS_OK) {
 		JNU_Exception_Throw(jniEnv, _saStatus);
-		return;		/* EXIT POINT! */
+		return; /* EXIT POINT! */
 	}
 	// set library handle
 
 	_TRACE2("NATIVE: Retreived clmHandle is: %lu \n",
 		(unsigned long)_saClmHandle);
 
-	(*jniEnv)->SetLongField(jniEnv,
-				thisClmHandle,
-				FID_saClmHandle, (jlong)_saClmHandle);
+	(*jniEnv)->SetLongField(jniEnv, thisClmHandle, FID_saClmHandle,
+				(jlong)_saClmHandle);
 
 	// set Version
-	_version = (*jniEnv)->NewObject(jniEnv,
-					ClassVersion,
-					CID_Version_constructor,
-					(char)_saVersion.releaseCode,
-					(jshort)_saVersion.majorVersion,
-					(jshort)_saVersion.minorVersion);
+	_version = (*jniEnv)->NewObject(
+	    jniEnv, ClassVersion, CID_Version_constructor,
+	    (char)_saVersion.releaseCode, (jshort)_saVersion.majorVersion,
+	    (jshort)_saVersion.minorVersion);
 
-	(*jniEnv)->SetObjectField(jniEnv,
-				  thisClmHandle, FID_saVersion, _version);
+	(*jniEnv)->SetObjectField(jniEnv, thisClmHandle, FID_saVersion,
+				  _version);
 	// normal exit
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(...) returning normally\n");
-
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmInitialize(...) returning normally\n");
 }
 
 /**************************************************************************
- * FUNCTION:  Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet
- * TYPE:      native method
- *  Class:     ais_clm_ClmHandle
- *  Method:    invokeSaClmSelectionObjectGet
- *  Signature: ()V
+ * FUNCTION:
+ *Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet TYPE:
+ *native method Class:     ais_clm_ClmHandle Method:
+ *invokeSaClmSelectionObjectGet Signature: ()V
  *************************************************************************/
 JNIEXPORT void JNICALL
-Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(JNIEnv
-								     *jniEnv,
-								     jobject
-								     thisClmHandle)
+Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(
+    JNIEnv *jniEnv, jobject thisClmHandle)
 {
 	// VARIABLES
 	// ais
@@ -532,25 +500,24 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(JNIEnv
 	// BODY
 
 	assert(thisClmHandle != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(...)\n");
 
 	// get library handle
-	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     thisClmHandle,
-							     FID_saClmHandle);
+	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, thisClmHandle, FID_saClmHandle);
 	_TRACE2("NATIVE: SaClmHandleT %lu", (unsigned long)_saClmHandle);
 	// call saClmSelectionObjectGet
 	_saStatus = saClmSelectionObjectGet(_saClmHandle, &_saSelectionObject);
 
-	_TRACE2
-		("NATIVE: saClmSelectionObjectGet(...) has returned with %d...\n",
-		 _saStatus);
+	_TRACE2(
+	    "NATIVE: saClmSelectionObjectGet(...) has returned with %d...\n",
+	    _saStatus);
 
 	// error handling
 	if (_saStatus != SA_AIS_OK) {
 		JNU_Exception_Throw(jniEnv, _saStatus);
-		return;		/* EXIT POINT! */
+		return; /* EXIT POINT! */
 	}
 
 	// set selection object
@@ -559,14 +526,12 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(JNIEnv
 		(unsigned long)_saSelectionObject);
 	U_printSaSelectionObjectInfo("NATIVE: more info:", _saSelectionObject);
 
-	(*jniEnv)->SetLongField(jniEnv,
-				thisClmHandle,
-				FID_selectionObject, (jlong)_saSelectionObject);
+	(*jniEnv)->SetLongField(jniEnv, thisClmHandle, FID_selectionObject,
+				(jlong)_saSelectionObject);
 	// normal exit
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(...) returning normally\n");
-
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(...) returning normally\n");
 }
 
 /**************************************************************************
@@ -577,12 +542,9 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmSelectionObjectGet(JNIEnv
  *  Signature: (JLorg/saforum/ais/CallbackResponse;)V
  *************************************************************************/
 JNIEXPORT void JNICALL
-Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(JNIEnv *jniEnv,
-							   jobject
-							   thisClmHandle,
-							   jlong invocation,
-							   jobject
-							   callbackResponse)
+Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(
+    JNIEnv *jniEnv, jobject thisClmHandle, jlong invocation,
+    jobject callbackResponse)
 {
 
 	SaClmHandleT _saClmHandle;
@@ -592,12 +554,11 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(JNIEnv *jniEnv,
 
 	assert(thisClmHandle != NULL);
 
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(...)\n");
 
-	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     thisClmHandle,
-							     FID_saClmHandle);
+	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, thisClmHandle, FID_saClmHandle);
 
 	value = (*jniEnv)->GetIntField(jniEnv, callbackResponse, FID_CR_value);
 
@@ -614,8 +575,8 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(JNIEnv *jniEnv,
 
 	/* call saClmResponse_4 */
 
-	_saStatus = saClmResponse_4(_saClmHandle,
-				    (SaInvocationT)invocation, _response);
+	_saStatus =
+	    saClmResponse_4(_saClmHandle, (SaInvocationT)invocation, _response);
 
 	_TRACE2(" NATIVE: saClmResponse_4 has returned with %d\n", _saStatus);
 
@@ -624,8 +585,8 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(JNIEnv *jniEnv,
 		return;
 	}
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(...) returning normally\n");
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(...) returning normally\n");
 }
 
 /**************************************************************************
@@ -636,10 +597,8 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmResponse(JNIEnv *jniEnv,
  *  Signature: (I)V
  *************************************************************************/
 JNIEXPORT void JNICALL
-Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch(JNIEnv *jniEnv,
-							   jobject
-							   thisClmHandle,
-							   jint dispatchFlags)
+Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch(
+    JNIEnv *jniEnv, jobject thisClmHandle, jint dispatchFlags)
 {
 	// VARIABLES
 	SaClmHandleT _saClmHandle;
@@ -648,21 +607,20 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch(JNIEnv *jniEnv,
 	// BODY
 
 	assert(thisClmHandle != NULL);
-	assert((dispatchFlags == SA_DISPATCH_ONE)
-	       || (dispatchFlags == SA_DISPATCH_ALL)
-	       || (dispatchFlags == SA_DISPATCH_BLOCKING));
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch(...)\n");
+	assert((dispatchFlags == SA_DISPATCH_ONE) ||
+	       (dispatchFlags == SA_DISPATCH_ALL) ||
+	       (dispatchFlags == SA_DISPATCH_BLOCKING));
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch(...)\n");
 
 	// get library handle
-	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     thisClmHandle,
-							     FID_saClmHandle);
+	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, thisClmHandle, FID_saClmHandle);
 	_TRACE2(" NATIVE: saClmHandle %lu ", (unsigned long)_saClmHandle);
 
 	// call saClmDispatch
-	_saStatus = saClmDispatch(_saClmHandle,
-				  (SaDispatchFlagsT)dispatchFlags);
+	_saStatus =
+	    saClmDispatch(_saClmHandle, (SaDispatchFlagsT)dispatchFlags);
 
 	_TRACE2("NATIVE: saClmDispatch(...) has returned with %d...\n",
 		_saStatus);
@@ -674,23 +632,20 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch(JNIEnv *jniEnv,
 	}
 	// normal exit
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch() returning normally\n");
-
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatch() returning normally\n");
 }
 
 /**************************************************************************
- * FUNCTION:  Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady
+ * FUNCTION: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady
  * TYPE:      native method
  *  Class:     ais_clm_ClmHandle
  *  Method:    invokeSaClmDispatchWhenReady
  *  Signature: ()V
  *************************************************************************/
 JNIEXPORT void JNICALL
-Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(JNIEnv
-								    *jniEnv,
-								    jobject
-								    thisClmHandle)
+Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(
+    JNIEnv *jniEnv, jobject thisClmHandle)
 {
 	// VARIABLES
 	// ais
@@ -704,18 +659,16 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(JNIEnv
 	// BODY
 
 	assert(thisClmHandle != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(...)\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(...)\n");
 
 	// get library handle
-	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     thisClmHandle,
-							     FID_saClmHandle);
+	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, thisClmHandle, FID_saClmHandle);
 	_TRACE2("NATIVE: saClmHandle %d\n", _saClmHandle);
 	// get selection object
-	_saSelectionObject = (SaSelectionObjectT)(*jniEnv)->GetLongField(jniEnv,
-									 thisClmHandle,
-									 FID_selectionObject);
+	_saSelectionObject = (SaSelectionObjectT)(*jniEnv)->GetLongField(
+	    jniEnv, thisClmHandle, FID_selectionObject);
 
 	_TRACE2(" NATIVE: _saSelectionObject %d\n", _saSelectionObject);
 
@@ -735,7 +688,7 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(JNIEnv
 		JNU_throwNewByName(jniEnv,
 				   "org/saforum/ais/AisLibraryException",
 				   AIS_ERR_LIBRARY_MSG);
-		return;		// EXIT POINT!!!
+		return; // EXIT POINT!!!
 	}
 	// call saClmDispatch
 	_saStatus = saClmDispatch(_saClmHandle, SA_DISPATCH_ONE);
@@ -750,9 +703,8 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(JNIEnv
 	}
 	// normal exit
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady() returning normally\n");
-
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady() returning normally\n");
 }
 
 /**************************************************************************
@@ -762,9 +714,8 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_invokeSaClmDispatchWhenReady(JNIEnv
  *  Method:    finalizeClmHandle
  *  Signature: ()V
  *************************************************************************/
-JNIEXPORT void JNICALL
-Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle(JNIEnv *jniEnv,
-							 jobject thisClmHandle)
+JNIEXPORT void JNICALL Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle(
+    JNIEnv *jniEnv, jobject thisClmHandle)
 {
 	// VARIABLES
 	SaClmHandleT _saClmHandle;
@@ -773,13 +724,12 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle(JNIEnv *jniEnv,
 	// BODY
 
 	assert(thisClmHandle != NULL);
-	_TRACE2
-		("NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle()\n");
+	_TRACE2(
+	    "NATIVE: Executing Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle()\n");
 
 	// get library handle
-	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(jniEnv,
-							     thisClmHandle,
-							     FID_saClmHandle);
+	_saClmHandle = (SaClmHandleT)(*jniEnv)->GetLongField(
+	    jniEnv, thisClmHandle, FID_saClmHandle);
 
 	// call saClmFinalize
 	_saStatus = saClmFinalize(_saClmHandle);
@@ -794,6 +744,6 @@ Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle(JNIEnv *jniEnv,
 	}
 	// normal exit
 
-	_TRACE2
-		("NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle() returning normally\n");
+	_TRACE2(
+	    "NATIVE: Java_org_opensaf_ais_clm_ClmHandleImpl_finalizeClmHandle() returning normally\n");
 }

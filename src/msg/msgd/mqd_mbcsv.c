@@ -22,20 +22,23 @@
 
 ............................................................................................
   DESCRIPTION: This file contains the following routines :
- mqd_a2s_async_update...............active to standby async message update 
- mqd_a2s_async_reg_info.............fills the register message contents into async message
- mqd_a2s_async_dereg_info...........fills the deregister message contents into async message
- mqd_a2s_async_track_info...........fills the track info message contents into async message
- mqd_a2s_async_userevent_info.......fills the user event message contents into async message
- mqd_mbcsv_register................ innitializes mbcsv session and opens checkpoint and does selection object
+ mqd_a2s_async_update...............active to standby async message update
+ mqd_a2s_async_reg_info.............fills the register message contents into
+async message mqd_a2s_async_dereg_info...........fills the deregister message
+contents into async message mqd_a2s_async_track_info...........fills the track
+info message contents into async message
+ mqd_a2s_async_userevent_info.......fills the user event message contents into
+async message mqd_mbcsv_register................ innitializes mbcsv session and
+opens checkpoint and does selection object
  mqd_mbcsv_init....................initializes the mbcsv instance
  mqd_mbcsv_open....................Opens a checkpoint with mbcsv
  mqd_mbcsv_finalize................to close the mbcsv service instance
  mqd_mbcsv_selobj_get..............to do the selection object on mbcsv session
- mqd_mbcsv_chg_role................to set the role of mbcsv instance depending on hastate
- mqd_mbcsv_async_update............to process the async update from active mqd to standby mqd
- mqd_mbcsv_callback................call back function to process mbcsv callbacks
-  
+ mqd_mbcsv_chg_role................to set the role of mbcsv instance depending
+on hastate mqd_mbcsv_async_update............to process the async update from
+active mqd to standby mqd mqd_mbcsv_callback................call back function
+to process mbcsv callbacks
+
 *******************************************************************************************/
 #include "msg/msgd/mqd.h"
 
@@ -51,24 +54,34 @@ static uint32_t mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
 static uint32_t mqd_mbcsv_init(MQD_CB *pMqd);
 static uint32_t mqd_mbcsv_selobj_get(MQD_CB *pMqd);
 static uint32_t mqd_mbcsv_async_update(MQD_CB *pMqd, MQD_A2S_MSG *pasync_msg);
-static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg);
-static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg);
+static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd,
+					     NCS_MBCSV_CB_ARG *arg);
+static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd,
+					     NCS_MBCSV_CB_ARG *arg);
 static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-static uint32_t mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg);
-static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg);
-static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg);
-static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD_A2S_QUEUE_INFO *mbcsv_info);
-static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg);
-static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_INFO q_data_msg);
+static uint32_t mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd,
+						   NCS_MBCSV_CB_ARG *arg);
+static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd,
+						   NCS_MBCSV_CB_ARG *arg);
+static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd,
+					       NCS_MBCSV_CB_ARG *arg);
+static uint32_t
+mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info,
+				     MQD_A2S_QUEUE_INFO *mbcsv_info);
+static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd,
+					       NCS_MBCSV_CB_ARG *arg);
+static uint32_t
+mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_INFO q_data_msg);
 static uint32_t mqd_db_del_all_records(MQD_CB *pMqd);
 
-extern  MQDLIB_INFO gl_mqdinfo;
+extern MQDLIB_INFO gl_mqdinfo;
 
-/****************************************************************************************** 
+/******************************************************************************************
  *  Name             : mqd_a2s_async_update
  *
- *  Description      : Function to do the active to standby mqd async message update
+ *  Description      : Function to do the active to standby mqd async message
+ *update
  *
  *  Parameters       : MQD_CB * pMqd         -- MQD Control Block
  *                     MQD_A2S_MSG_TYPE type --Active to Standby message type
@@ -107,18 +120,18 @@ void mqd_a2s_async_update(MQD_CB *pMqd, MQD_A2S_MSG_TYPE type, void *pmesg)
 		LOG_ER("Bad Active to Standby Message Type");
 	}
 
-/* Send the aync_msg to the standby MQD using the MBCSv_SEND function */
+	/* Send the aync_msg to the standby MQD using the MBCSv_SEND function */
 
 	mqd_mbcsv_async_update(pMqd, &async_msg);
 }
 
-/******************************************************************************************* 
+/*******************************************************************************************
  *  Name             : mqd_a2s_async_reg_info
  *
  *  Description      : Function to fill the register info to the async message
  *
- *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to standby MQD
- *                     void *pmesg            -- resister message
+ *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to
+ *standby MQD void *pmesg            -- resister message
  *
  *  Return values    : None
  *
@@ -128,17 +141,18 @@ void mqd_a2s_async_update(MQD_CB *pMqd, MQD_A2S_MSG_TYPE type, void *pmesg)
 static void mqd_a2s_async_reg_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 {
 	/* Fill the async_msg.info.reg from the register message *mesg */
-	memcpy(&pasync_msg->info.reg, (ASAPi_REG_INFO *)pmesg, sizeof(ASAPi_REG_INFO));
+	memcpy(&pasync_msg->info.reg, (ASAPi_REG_INFO *)pmesg,
+	       sizeof(ASAPi_REG_INFO));
 	return;
 }
 
-/******************************************************************************************* 
+/*******************************************************************************************
  *  Name             : mqd_a2s_async_dereg_info
  *
  *  Description      : Function to fill the deregister info to the async message
  *
- *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to standby MQD
- *                     void *pmesg            -- deresister message
+ *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to
+ *standby MQD void *pmesg            -- deresister message
  *
  *  Return values    : None
  *
@@ -148,18 +162,18 @@ static void mqd_a2s_async_reg_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 static void mqd_a2s_async_dereg_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 {
 	/* Fill the async_msg.info.dereg from the deregister message *mesg */
-	memcpy(&pasync_msg->info.dereg, (ASAPi_DEREG_INFO *)pmesg, sizeof(ASAPi_DEREG_INFO));
+	memcpy(&pasync_msg->info.dereg, (ASAPi_DEREG_INFO *)pmesg,
+	       sizeof(ASAPi_DEREG_INFO));
 	return;
-
 }
 
-/******************************************************************************************* 
+/*******************************************************************************************
  *  Name             : mqd_a2s_async_track_info
  *
  *  Description      : Function to fill the track info to the async message
  *
- *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to standby MQD
- *                     void *pmesg            -- track message
+ *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to
+ *standby MQD void *pmesg            -- track message
  *
  *  Return values    : None
  *
@@ -170,18 +184,18 @@ static void mqd_a2s_async_track_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 {
 	/* Fill the async_msg.info.track from the track message *mesg */
 	/*pasync_msg->track=(MQD_A2S_TRACK_INFO) (*pmesg);     */
-	memcpy(&pasync_msg->info.track, (MQD_A2S_TRACK_INFO *)pmesg, sizeof(MQD_A2S_TRACK_INFO));
+	memcpy(&pasync_msg->info.track, (MQD_A2S_TRACK_INFO *)pmesg,
+	       sizeof(MQD_A2S_TRACK_INFO));
 	return;
-
 }
 
-/******************************************************************************************* 
+/*******************************************************************************************
  *  Name             : mqd_a2s_async_userevent_info
  *
  *  Description      : Function to fill the user event info to the async message
  *
- *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to standby MQD
- *                     void *pmesg            -- user event message
+ *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to
+ *standby MQD void *pmesg            -- user event message
  *
  *  Return values    : None
  *
@@ -191,17 +205,19 @@ static void mqd_a2s_async_track_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 static void mqd_a2s_async_userevent_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 {
 	/* Fill the async_msg.info.user_evt from the user event message *mesg */
-	memcpy(&pasync_msg->info.user_evt, (MQD_A2S_USER_EVENT_INFO *)pmesg, sizeof(MQD_A2S_USER_EVENT_INFO));
+	memcpy(&pasync_msg->info.user_evt, (MQD_A2S_USER_EVENT_INFO *)pmesg,
+	       sizeof(MQD_A2S_USER_EVENT_INFO));
 	return;
 }
 
-/******************************************************************************************* 
+/*******************************************************************************************
  *  Name             : mqd_a2s_async_mqnd_stat_info
  *
- *  Description      : Function to fill the MQND Status event info to the async message
+ *  Description      : Function to fill the MQND Status event info to the async
+ *message
  *
- *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to standby MQD
- *                     void *pmesg            -- MQD_ND_STAT_IFNO event message
+ *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to
+ *standby MQD void *pmesg            -- MQD_ND_STAT_IFNO event message
  *
  *  Return values    : None
  *
@@ -211,17 +227,19 @@ static void mqd_a2s_async_userevent_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 static void mqd_a2s_async_mqnd_stat_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 {
 	/* Fill the async_msg.info.user_evt from the user event message *mesg */
-	memcpy(&pasync_msg->info.nd_stat_evt, (MQD_A2S_ND_STAT_INFO *)pmesg, sizeof(MQD_A2S_ND_STAT_INFO));
+	memcpy(&pasync_msg->info.nd_stat_evt, (MQD_A2S_ND_STAT_INFO *)pmesg,
+	       sizeof(MQD_A2S_ND_STAT_INFO));
 	return;
 }
 
-/******************************************************************************************* 
+/*******************************************************************************************
  *  Name             : mqd_a2s_mqnd_timer_exp_info
  *
- *  Description      : Function to fill the MQND Timer expiry info to the async message
+ *  Description      : Function to fill the MQND Timer expiry info to the async
+ *message
  *
- *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to standby MQD
- *                     void *pmesg            -- MQND Timer expiry message
+ *  Parameters       : MQD_A2S_MSG *pasyn_msg -- MQD_A2S_MSG async message to
+ *standby MQD void *pmesg            -- MQND Timer expiry message
  *
  *  Return values    : None
  *
@@ -231,22 +249,24 @@ static void mqd_a2s_async_mqnd_stat_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 static void mqd_a2s_mqnd_timer_exp_info(MQD_A2S_MSG *pasync_msg, void *pmesg)
 {
 	/* Fill the async_msg.info.user_evt from the user event message *mesg */
-	memcpy(&pasync_msg->info.nd_tmr_exp_evt, (MQD_A2S_ND_TIMER_EXP_INFO *)pmesg, sizeof(MQD_A2S_ND_TIMER_EXP_INFO));
+	memcpy(&pasync_msg->info.nd_tmr_exp_evt,
+	       (MQD_A2S_ND_TIMER_EXP_INFO *)pmesg,
+	       sizeof(MQD_A2S_ND_TIMER_EXP_INFO));
 	return;
 }
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_register
- *
- * Description            : Function to initialze the mbcsv instance and
- *                          open a session and select 
- *
- * Parameters             : MQD_CB : pMqd pointer
- *
- * Return Values          :
- *
- * Notes                  : None
+* Name                   : mqd_mbcsv_register
+*
+* Description            : Function to initialze the mbcsv instance and
+*                          open a session and select
+*
+* Parameters             : MQD_CB : pMqd pointer
+*
+* Return Values          :
+*
+* Notes                  : None
 ********************************************************************************
 *****************/
 uint32_t mqd_mbcsv_register(MQD_CB *pMqd)
@@ -269,15 +289,15 @@ uint32_t mqd_mbcsv_register(MQD_CB *pMqd)
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_init
- *
- * Description            : Function to initialze the mbcsv instance.
- *
- * Parameters             : MQD_CB : pMqd pointer
- *
- * Return Values          :
- *
- * Notes                  : None
+* Name                   : mqd_mbcsv_init
+*
+* Description            : Function to initialze the mbcsv instance.
+*
+* Parameters             : MQD_CB : pMqd pointer
+*
+* Return Values          :
+*
+* Notes                  : None
 ********************************************************************************
 *****************/
 static uint32_t mqd_mbcsv_init(MQD_CB *pMqd)
@@ -306,15 +326,15 @@ static uint32_t mqd_mbcsv_init(MQD_CB *pMqd)
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_open
- *
- * Description            : To open a chekpoint session 
- *
- * Parameters             : pMqd: MQD_CB pointer
- *
- * Return Values          :
- *
- * Notes                  : None
+* Name                   : mqd_mbcsv_open
+*
+* Description            : To open a chekpoint session
+*
+* Parameters             : pMqd: MQD_CB pointer
+*
+* Return Values          :
+*
+* Notes                  : None
 ********************************************************************************
 *****************/
 static uint32_t mqd_mbcsv_open(MQD_CB *pMqd)
@@ -345,14 +365,14 @@ static uint32_t mqd_mbcsv_open(MQD_CB *pMqd)
 *****************
  * Name                   : mqd_mbcsv_finalize
  *
- * Description            : To close the servise instance of MBCSV 
+ * Description            : To close the servise instance of MBCSV
  *
  * Parameters             : pMqd: MQD_CB pointer
  *
  * Return Values          :
  *
- * Notes                  : Closes the association, represented by i_mbc_hdl, between th
-e invoking process and MBCSV
+ * Notes                  : Closes the association, represented by i_mbc_hdl,
+between th e invoking process and MBCSV
 ********************************************************************************
 *****************/
 uint32_t mqd_mbcsv_finalize(MQD_CB *pMqd)
@@ -376,16 +396,16 @@ uint32_t mqd_mbcsv_finalize(MQD_CB *pMqd)
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_selobj_get
- *
- * Description            : 
- *
- * Parameters             : pMqd: MQD_CB pointer
- *
- * Return Values          :
- *
- * Notes                  : 
- *******************************************************************************
+* Name                   : mqd_mbcsv_selobj_get
+*
+* Description            :
+*
+* Parameters             : pMqd: MQD_CB pointer
+*
+* Return Values          :
+*
+* Notes                  :
+*******************************************************************************
 *****************/
 
 static uint32_t mqd_mbcsv_selobj_get(MQD_CB *pMqd)
@@ -408,17 +428,17 @@ static uint32_t mqd_mbcsv_selobj_get(MQD_CB *pMqd)
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_chg_role
- *
- * Description            : Set the role of MBCSV instance depending on
- *                          hastate of the client
- *
- * Parameters             : pMqd: MQD_CB pointer
- *
- * Return Values          :
- *
- * Notes                  : 
- *******************************************************************************
+* Name                   : mqd_mbcsv_chg_role
+*
+* Description            : Set the role of MBCSV instance depending on
+*                          hastate of the client
+*
+* Parameters             : pMqd: MQD_CB pointer
+*
+* Return Values          :
+*
+* Notes                  :
+*******************************************************************************
 *****************/
 uint32_t mqd_mbcsv_chgrole(MQD_CB *pMqd)
 {
@@ -431,8 +451,10 @@ uint32_t mqd_mbcsv_chgrole(MQD_CB *pMqd)
 	arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
 	arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
 	arg.info.chg_role.i_ckpt_hdl = pMqd->o_ckpt_hdl;
-	arg.info.chg_role.i_ha_state = pMqd->ha_state;	/*  ha_state is assigned
-							   at the time of amf_init where csi_set_callback will assign the state */
+	arg.info.chg_role.i_ha_state =
+	    pMqd->ha_state; /*  ha_state is assigned
+			       at the time of amf_init where csi_set_callback
+			       will assign the state */
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
 		LOG_ER("MBCSV ChangeRole Failed");
@@ -446,17 +468,17 @@ uint32_t mqd_mbcsv_chgrole(MQD_CB *pMqd)
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_async_update
- *
- * Description            : To process the async update from active mqd 
- *                          to standby.
- *
- * Parameters             : pMqd: MQD_CB pointer
- *                          pasync_msg: Active to standby message pointer
- * Return Values          :
- *
- * Notes                  : 
- *******************************************************************************
+* Name                   : mqd_mbcsv_async_update
+*
+* Description            : To process the async update from active mqd
+*                          to standby.
+*
+* Parameters             : pMqd: MQD_CB pointer
+*                          pasync_msg: Active to standby message pointer
+* Return Values          :
+*
+* Notes                  :
+*******************************************************************************
 *****************/
 static uint32_t mqd_mbcsv_async_update(MQD_CB *pMqd, MQD_A2S_MSG *pasync_msg)
 {
@@ -476,7 +498,8 @@ static uint32_t mqd_mbcsv_async_update(MQD_CB *pMqd, MQD_A2S_MSG *pasync_msg)
 	arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_UPDATE;
 
 	if (ncs_mbcsv_svc(&arg) != SA_AIS_OK) {
-		LOG_ER("MBCSV AsyncUpdate Failure for type %d", pasync_msg->type);
+		LOG_ER("MBCSV AsyncUpdate Failure for type %d",
+		       pasync_msg->type);
 		rc = NCSCC_RC_FAILURE;
 	}
 	TRACE_1("MBCSV AsyncUpdate Success for type %d", pasync_msg->type);
@@ -485,23 +508,23 @@ static uint32_t mqd_mbcsv_async_update(MQD_CB *pMqd, MQD_A2S_MSG *pasync_msg)
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_callback
- *
- * Description            : Call back function to process the callbacks for 
- *                          encode,decode,notify,peerinfo,errorind.
- *
- * Parameters             : arg: NCS_MBCSV_CB_ARG pointer
- *
- * Return Values          :
- *
- * Notes                  : None
+* Name                   : mqd_mbcsv_callback
+*
+* Description            : Call back function to process the callbacks for
+*                          encode,decode,notify,peerinfo,errorind.
+*
+* Parameters             : arg: NCS_MBCSV_CB_ARG pointer
+*
+* Return Values          :
+*
+* Notes                  : None
 ********************************************************************************
 *****************/
 static uint32_t mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
-	
+
 	if (arg == NULL) {
 		LOG_ER("MBCSv Callback NULL arg received");
 		return NCSCC_RC_FAILURE;
@@ -532,7 +555,6 @@ static uint32_t mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 		break;
 	default:
 		break;
-
 	}
 
 	TRACE_1("MBCSv Callback Success");
@@ -542,19 +564,20 @@ static uint32_t mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_ckpt_encode_async_update
- *
- * Description            : Encode the Sync Updates
- *                          
- *
- * Parameters             : arg: NCS_MBCSV_CB_ARG pointer
- *                          pMqd: Control Block pointer 
- * Return Values          :
- *
- * otes                  : None
+* Name                   : mqd_ckpt_encode_async_update
+*
+* Description            : Encode the Sync Updates
+*
+*
+* Parameters             : arg: NCS_MBCSV_CB_ARG pointer
+*                          pMqd: Control Block pointer
+* Return Values          :
+*
+* otes                  : None
 ********************************************************************************
 *****************/
-static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd,
+					     NCS_MBCSV_CB_ARG *arg)
 {
 	MQD_A2S_MSG *mqd_msg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -564,8 +587,10 @@ static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 	/*  Increment the async update count  */
 	pMqd->mqd_sync_updt_count++;
 
-	mqd_msg = (MQD_A2S_MSG *)NCS_INT64_TO_PTR_CAST(arg->info.encode.io_reo_hdl);
-	rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqd_a2s_msg, &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, mqd_msg,
+	mqd_msg =
+	    (MQD_A2S_MSG *)NCS_INT64_TO_PTR_CAST(arg->info.encode.io_reo_hdl);
+	rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqd_a2s_msg,
+			    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, mqd_msg,
 			    &ederror);
 	if (rc != NCSCC_RC_SUCCESS) {
 		switch (mqd_msg->type) {
@@ -599,7 +624,6 @@ static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 		default:
 			break;
 		}
-
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -607,20 +631,21 @@ static uint32_t mqd_ckpt_encode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_ckpt_decode_async_update
- *
- * Description            : Decode the Sync Updates
- *
- *
- * Parameters             : arg: NCS_MBCSV_CB_ARG pointer
- *                          pMqd: Control Block pointer
- * Return Values          :
- *
- * otes                  : None
+* Name                   : mqd_ckpt_decode_async_update
+*
+* Description            : Decode the Sync Updates
+*
+*
+* Parameters             : arg: NCS_MBCSV_CB_ARG pointer
+*                          pMqd: Control Block pointer
+* Return Values          :
+*
+* otes                  : None
 ********************************************************************************
 *****************/
 
-static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd,
+					     NCS_MBCSV_CB_ARG *arg)
 {
 	MQD_A2S_MSG *mqd_msg = 0;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -639,7 +664,8 @@ static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 
 	memset(mqd_msg, 0, sizeof(MQD_A2S_MSG));
 
-	rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqd_a2s_msg, &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &mqd_msg,
+	rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqd_a2s_msg,
+			    &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &mqd_msg,
 			    &ederror);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("MBCSV Reg Decode EDU Error");
@@ -653,44 +679,48 @@ static uint32_t mqd_ckpt_decode_async_update(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
 			TRACE_2("ASAPi_REG_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_DEREG:
-			TRACE_2("ASAPi_DEREG_INFO processing at Standby failed");
+			TRACE_2(
+			    "ASAPi_DEREG_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_TRACK:
-			TRACE_2("ASAPi_TRACK_INFO processing at Standby failed");
+			TRACE_2(
+			    "ASAPi_TRACK_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_USEREVT:
-			TRACE_2("ASAPi_USEREVT_INFO processing at Standby failed");
+			TRACE_2(
+			    "ASAPi_USEREVT_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_MQND_STATEVT:
-			TRACE_2("ASAPi_NDSTATINFO_INFO processing at Standby failed");
+			TRACE_2(
+			    "ASAPi_NDSTATINFO_INFO processing at Standby failed");
 			goto end;
 		case MQD_A2S_MSG_TYPE_MQND_TIMER_EXPEVT:
-			TRACE_2("ASAPi_NDTMREXP_INFO processing at Standby failed");
+			TRACE_2(
+			    "ASAPi_NDTMREXP_INFO processing at Standby failed");
 			goto end;
 		default:
 			goto end;
 		}
 	}
 
- end:
+end:
 	m_MMGR_FREE_MQD_A2S_MSG(mqd_msg);
 	TRACE_LEAVE();
 	return rc;
-
 }
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_ckpt_encode_cbk_handler
- *
- * Description            : Encode Call back function to process the 
- *                          the encode data to be sent to the peer.
- *
- * Parameters             : arg: NCS_MBCSV_CB_ARG pointer
- *
- * Return Values          :
- *
- * otes                  : None
+* Name                   : mqd_mbcsv_ckpt_encode_cbk_handler
+*
+* Description            : Encode Call back function to process the
+*                          the encode data to be sent to the peer.
+*
+* Parameters             : arg: NCS_MBCSV_CB_ARG pointer
+*
+* Return Values          :
+*
+* otes                  : None
 ********************************************************************************
 *****************/
 static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
@@ -704,14 +734,16 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		return NCSCC_RC_SUCCESS;
 	}
 	/* Get MQD control block handle */
-	if (NULL == (pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl))) {
+	if (NULL ==
+	    (pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl))) {
 		LOG_ER("%s:%u: CB Handle Take Failed", __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
 		return rc;
 	}
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.encode.i_peer_version,
-					      MQSV_MQD_MBCSV_VERSION, MQSV_MQD_MBCSV_VERSION_MIN);
+					      MQSV_MQD_MBCSV_VERSION,
+					      MQSV_MQD_MBCSV_VERSION_MIN);
 
 	if (!msg_fmt_version) {
 		/* Drop The Message */
@@ -742,14 +774,17 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 			if (pMqd->qdb_up) {
 				rc = mqd_ckpt_encode_cold_sync_data(pMqd, arg);
 				if (rc != NCSCC_RC_SUCCESS) {
-#if (NCS_MQA_DEBUG==1)
-					TRACE_2("Active: Encode call back of Cold Sync Response Failed");
+#if (NCS_MQA_DEBUG == 1)
+					TRACE_2(
+					    "Active: Encode call back of Cold Sync Response Failed");
 #endif
 				} else {
-					TRACE_1("Active: Encode call back of Cold Sync Response Success");
+					TRACE_1(
+					    "Active: Encode call back of Cold Sync Response Success");
 				}
 			} else {
-				arg->info.decode.i_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
+				arg->info.decode.i_msg_type =
+				    NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
 				rc = NCSCC_RC_SUCCESS;
 			}
 		}
@@ -764,9 +799,11 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		/* Encode Warm Sync response */
 		rc = mqd_ckpt_encode_warm_sync_response(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE_2("Active: Encode call back of Warm Sync Response Failed");
+			TRACE_2(
+			    "Active: Encode call back of Warm Sync Response Failed");
 		} else {
-			TRACE_1("Active: Encode call back of Warm Sync Response Success");
+			TRACE_1(
+			    "Active: Encode call back of Warm Sync Response Success");
 		}
 		break;
 
@@ -777,32 +814,35 @@ static uint32_t mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_RESP:
 		rc = mqd_ckpt_encode_cold_sync_data(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			TRACE_2("Active: Encode call back of Data Response Failed");
+			TRACE_2(
+			    "Active: Encode call back of Data Response Failed");
 		else
-			TRACE_1("Active: Encode call back of Data Response Success");
+			TRACE_1(
+			    "Active: Encode call back of Data Response Success");
 		break;
 
 	default:
-		LOG_ER("Invalid NCS_MBCSV_MSG encode type %d", arg->info.encode.io_msg_type);
+		LOG_ER("Invalid NCS_MBCSV_MSG encode type %d",
+		       arg->info.encode.io_msg_type);
 		rc = NCSCC_RC_FAILURE;
 	}
-	ncshm_give_hdl(gl_mqdinfo.inst_hdl);	/* TBD  */
+	ncshm_give_hdl(gl_mqdinfo.inst_hdl); /* TBD  */
 	TRACE_LEAVE();
 	return rc;
-}	/* end of mqd_mbcsv_ckpt_encode_cbk_handler */
+} /* end of mqd_mbcsv_ckpt_encode_cbk_handler */
 
 /*******************************************************************************
 *****************
- * Name                   : mqd_mbcsv_ckpt_decode_cbk_handler
- *
- * Description            : Decode Call back function to process the 
- *                          the decode data.
- *
- * Parameters             : arg: NCS_MBCSV_CB_ARG pointer
- *
- * Return Values          :
- *
- * Notes                  : None
+* Name                   : mqd_mbcsv_ckpt_decode_cbk_handler
+*
+* Description            : Decode Call back function to process the
+*                          the decode data.
+*
+* Parameters             : arg: NCS_MBCSV_CB_ARG pointer
+*
+* Return Values          :
+*
+* Notes                  : None
 ********************************************************************************
 *****************/
 static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
@@ -816,13 +856,15 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		return NCSCC_RC_SUCCESS;
 	}
 	/* Get MQD control block handle */
-	if (NULL == (pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl))) {
+	if (NULL ==
+	    (pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl))) {
 		LOG_ER("%s:%u: CB Handle Take Failed", __FILE__, __LINE__);
 		return NCSCC_RC_FAILURE;
 	}
 
 	msg_fmt_version = m_NCS_MBCSV_FMT_GET(arg->info.decode.i_peer_version,
-					      MQSV_MQD_MBCSV_VERSION, MQSV_MQD_MBCSV_VERSION_MIN);
+					      MQSV_MQD_MBCSV_VERSION,
+					      MQSV_MQD_MBCSV_VERSION_MIN);
 
 	if (!msg_fmt_version) {
 		/* Drop The Message */
@@ -851,10 +893,13 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		/* decode Cold Sync Response */
 		rc = mqd_ckpt_decode_cold_sync_resp(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			TRACE_2("Standby: Decode call back of Cold Sync Response Failed");
+			TRACE_2(
+			    "Standby: Decode call back of Cold Sync Response Failed");
 		else
-			TRACE_1("Standby: Decode call back of Cold Sync Response Success");
-		if (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) {
+			TRACE_1(
+			    "Standby: Decode call back of Cold Sync Response Success");
+		if (arg->info.decode.i_msg_type ==
+		    NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) {
 			rc = NCSCC_RC_SUCCESS;
 			break;
 		}
@@ -871,9 +916,11 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 		/* Encode Warm Sync response */
 		rc = mqd_ckpt_decode_warm_sync_response(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			TRACE_2("Standby: Decode call back of Warm Sync Response Failed");
+			TRACE_2(
+			    "Standby: Decode call back of Warm Sync Response Failed");
 		else
-			TRACE_1("Standby: Decode call back of Warm Sync Response Success");
+			TRACE_1(
+			    "Standby: Decode call back of Warm Sync Response Success");
 		break;
 
 	case NCS_MBCSV_MSG_DATA_REQ:
@@ -884,19 +931,22 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
 		rc = mqd_ckpt_decode_cold_sync_resp(pMqd, arg);
 		if (rc != NCSCC_RC_SUCCESS)
-			TRACE_2("Standby: Decode call back of Data Response Failed");
+			TRACE_2(
+			    "Standby: Decode call back of Data Response Failed");
 		else
-			TRACE_1("Standby: Decode call back of Data Response Success");
+			TRACE_1(
+			    "Standby: Decode call back of Data Response Success");
 		break;
 
 	default:
-		TRACE_2("Invalid NCS_MBCSV_MSG decode type %d", arg->info.decode.i_msg_type);
+		TRACE_2("Invalid NCS_MBCSV_MSG decode type %d",
+			arg->info.decode.i_msg_type);
 		rc = NCSCC_RC_FAILURE;
 	}
-	ncshm_give_hdl(gl_mqdinfo.inst_hdl);	/* TBD  */
+	ncshm_give_hdl(gl_mqdinfo.inst_hdl); /* TBD  */
 	TRACE_LEAVE();
 	return rc;
-}	/* end of mqd_mbcsv_ckpt_decode_cbk_handler */
+} /* end of mqd_mbcsv_ckpt_decode_cbk_handler */
 
 /****************************************************************************
  * Name          : mqd_ckpt_encode_warm_sync_response
@@ -911,13 +961,15 @@ static uint32_t mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd,
+						   NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	uint8_t *wsync_ptr = 0;
 
 	/* Reserve space to send the async update counter */
-	wsync_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+	wsync_ptr =
+	    ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 
 	if (wsync_ptr == NULL) {
 		/*TBD */
@@ -932,7 +984,7 @@ static uint32_t mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_AR
 
 	return rc;
 
-}	/* function mqd_ckpt_encode_warm_sync_response() ends here. */
+} /* function mqd_ckpt_encode_warm_sync_response() ends here. */
 
 /****************************************************************************
  * Name          : mqd_ckpt_decode_warm_sync_response
@@ -947,12 +999,14 @@ static uint32_t mqd_ckpt_encode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_AR
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd,
+						   NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t num_of_async_upd = 0, rc = NCSCC_RC_SUCCESS;
 	uint8_t data[16], *ptr;
 	NCS_MBCSV_ARG ncs_arg;
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(int32_t));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data,
+				    sizeof(int32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(int32_t));
 
@@ -968,21 +1022,22 @@ static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_AR
 		ncs_arg.info.send_data_req.i_ckpt_hdl = pMqd->o_ckpt_hdl;
 		rc = ncs_mbcsv_svc(&ncs_arg);
 		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER("MBCSV Data Request Send Failed with error %d", rc);
+			LOG_ER("MBCSV Data Request Send Failed with error %d",
+			       rc);
 			return rc;
 		}
 	}
 	return rc;
-}	/* function mqd_ckpt_decode_warm_sync_response() ends here. */
+} /* function mqd_ckpt_decode_warm_sync_response() ends here. */
 
 /****************************************************************************
  * Name          : mqd_ckpt_encode_cold_sync_data
  *
- * Description   : This function encodes data resp message. Each 
+ * Description   : This function encodes data resp message. Each
  *                 queue record, includes queue info to Standby MQD. It
  *                 sends FIXED no. of record at each time, if no. of records to
  *                 to be sent is more than FIXED no., else the no. of records
- *                 left.   
+ *                 left.
  *
  * Arguments     : pMqd - Control block
  *                 arg - Pointer to the structure containing information
@@ -991,11 +1046,13 @@ static uint32_t mqd_ckpt_decode_warm_sync_response(MQD_CB *pMqd, NCS_MBCSV_CB_AR
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
- |------------------|---------------|-----------|------|-----------|-----------| |No. of Ckpts      | ckpt record 1 |ckpt rec 2 |..... |ckpt rec n | async upd |
+ |------------------|---------------|-----------|------|-----------|-----------|
+ |No. of Ckpts      | ckpt record 1 |ckpt rec 2 |..... |ckpt rec n | async upd |
  |that will be sent |               |           |      |           | cnt ( 0 ) |
  |------------------|---------------------------|------|-----------|-----------|
  *****************************************************************************/
-static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd,
+					       NCS_MBCSV_CB_ARG *arg)
 {
 	MQD_OBJ_NODE *queue_record = 0;
 	MQD_OBJ_INFO queue_obj_info;
@@ -1021,8 +1078,10 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	memset(&queue_name, 0, sizeof(SaNameT));
 	memset(&queue_index_name, 0, sizeof(SaNameT));
 
-	/*First reserve space to store the number of checkpoints that will be sent */
-	header = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+	/*First reserve space to store the number of checkpoints that will be
+	 * sent */
+	header =
+	    ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (header == NULL) {
 		LOG_ER("Encode Reserve Space for Async Count Failed");
 		rc = NCSCC_RC_FAILURE;
@@ -1032,18 +1091,22 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	queue_index_name = pMqd->record_qindex_name;
 	m_NCS_LOCK(q_rec_lock, NCS_LOCK_WRITE);
-	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
+	q_node =
+	    ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 	queue_record = (MQD_OBJ_NODE *)q_node;
 
 	while (queue_record != NULL) {
 		queue_obj_info = queue_record->oinfo;
 		queue_index_name = queue_record->oinfo.name;
 
-		/* Copy the Node info from Patrecia node to the ColdSync Structure */
-		rc = mqd_copy_data_to_cold_sync_structure(&queue_obj_info, &cold_sync_data.info.qinfo);
+		/* Copy the Node info from Patrecia node to the ColdSync
+		 * Structure */
+		rc = mqd_copy_data_to_cold_sync_structure(
+		    &queue_obj_info, &cold_sync_data.info.qinfo);
 		if (rc != NCSCC_RC_SUCCESS) {
 			/* TBD to free the memory already allocated */
-			TRACE_4("Failed to copy Node info to ColdSync Structure");
+			TRACE_4(
+			    "Failed to copy Node info to ColdSync Structure");
 			m_NCS_UNLOCK(q_rec_lock, NCS_LOCK_WRITE);
 			return rc;
 		}
@@ -1051,7 +1114,8 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 		num_of_ckpts++;
 
 		rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqd_a2s_queue_info,
-				    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &cold_sync_data.info.qinfo, &ederror);
+				    &arg->info.encode.io_uba, EDP_OP_TYPE_ENC,
+				    &cold_sync_data.info.qinfo, &ederror);
 
 		if (rc != NCSCC_RC_SUCCESS) {
 			/* TBD to free the memory already allocated */
@@ -1060,27 +1124,31 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 			return rc;
 		}
 		if (cold_sync_data.info.qinfo.ilist_info) {
-			m_MMGR_FREE_MQD_DEFAULT_VAL(cold_sync_data.info.qinfo.ilist_info);
+			m_MMGR_FREE_MQD_DEFAULT_VAL(
+			    cold_sync_data.info.qinfo.ilist_info);
 			cold_sync_data.info.qinfo.ilist_info = NULL;
 		}
 		if (cold_sync_data.info.qinfo.track_info) {
-			m_MMGR_FREE_MQD_DEFAULT_VAL(cold_sync_data.info.qinfo.track_info);
+			m_MMGR_FREE_MQD_DEFAULT_VAL(
+			    cold_sync_data.info.qinfo.track_info);
 			cold_sync_data.info.qinfo.track_info = NULL;
 		}
 
 		if (num_of_ckpts == MAX_NO_MQD_MSGS_A2S) {
-			/* Just check whether, it is a last message or not. It will help
-			   in deciding last message */
-			q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
+			/* Just check whether, it is a last message or not. It
+			   will help in deciding last message */
+			q_node = ncs_patricia_tree_getnext(
+			    &pMqd->qdb, (uint8_t *)&queue_index_name);
 			if (q_node == NULL)
 				last_message = true;
 			break;
 		}
 
-		q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
+		q_node = ncs_patricia_tree_getnext(
+		    &pMqd->qdb, (uint8_t *)&queue_index_name);
 		queue_record = (MQD_OBJ_NODE *)q_node;
 
-	}			/* while */
+	} /* while */
 
 	m_NCS_UNLOCK(q_rec_lock, NCS_LOCK_WRITE);
 
@@ -1088,9 +1156,10 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 
 	ncs_encode_32bit(&header, num_of_ckpts);
 
-	/* This will have the count of async updates that have been sent, 
+	/* This will have the count of async updates that have been sent,
 	   this will be 0 initially */
-	sync_cnt_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
+	sync_cnt_ptr =
+	    ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	if (sync_cnt_ptr == NULL) {
 		LOG_ER("Encode Reserve Space for Async Count Failed");
 		rc = NCSCC_RC_FAILURE;
@@ -1101,16 +1170,21 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uint32_t));
 	ncs_encode_32bit(&sync_cnt_ptr, pMqd->mqd_sync_updt_count);
 
-	q_node = ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
+	q_node =
+	    ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&queue_index_name);
 	if (q_node == NULL) {
 		last_message = true;
 	}
 
 	if ((num_of_ckpts < MAX_NO_MQD_MSGS_A2S) || (last_message == true)) {
-		if (arg->info.encode.io_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP)
-			arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
-		else if (arg->info.encode.io_msg_type == NCS_MBCSV_MSG_DATA_RESP)
-			arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
+		if (arg->info.encode.io_msg_type ==
+		    NCS_MBCSV_MSG_COLD_SYNC_RESP)
+			arg->info.encode.io_msg_type =
+			    NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
+		else if (arg->info.encode.io_msg_type ==
+			 NCS_MBCSV_MSG_DATA_RESP)
+			arg->info.encode.io_msg_type =
+			    NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
 
 		/* Now reset the ifindex counter for the next warm sync. */
 		memset(&pMqd->record_qindex_name, 0, sizeof(SaNameT));
@@ -1119,12 +1193,12 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	TRACE_LEAVE();
 	return rc;
 
-}	/* function mqd_ckpt_encode_cold_sync_data() ends here. */
+} /* function mqd_ckpt_encode_cold_sync_data() ends here. */
 
 /****************************************************************************
  * Name          : mqd_copy_data_to_cold_sync_structure
  *
- * Description   : This function copies the data from the patretia tree node to  
+ * Description   : This function copies the data from the patretia tree node to
  *                the  mbcsv message.
  *
  * Arguments     : obj_info - MQD database object info
@@ -1136,7 +1210,9 @@ static uint32_t mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD_A2S_QUEUE_INFO *mbcsv_info)
+static uint32_t
+mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info,
+				     MQD_A2S_QUEUE_INFO *mbcsv_info)
 {
 	uint32_t index;
 	NCS_Q_ITR itr;
@@ -1147,39 +1223,46 @@ static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD
 	memset(mbcsv_info, 0, sizeof(MQD_A2S_QUEUE_INFO));
 	mbcsv_info->name = obj_info->name;
 	mbcsv_info->type = obj_info->type;
-	mbcsv_info->info.q = obj_info->info.q;	/* Assigning the union here */
+	mbcsv_info->info.q = obj_info->info.q; /* Assigning the union here */
 	mbcsv_info->ilist_cnt = obj_info->ilist.count;
 	if (mbcsv_info->ilist_cnt) {
-		mbcsv_info->ilist_info = m_MMGR_ALLOC_MQD_DEFAULT_VAL(mbcsv_info->ilist_cnt * sizeof(SaNameT));
+		mbcsv_info->ilist_info = m_MMGR_ALLOC_MQD_DEFAULT_VAL(
+		    mbcsv_info->ilist_cnt * sizeof(SaNameT));
 		if (!mbcsv_info->ilist_info) {
-			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
-			return SA_AIS_ERR_NO_MEMORY;
-		}
-		
-		memset(mbcsv_info->ilist_info, 0, mbcsv_info->ilist_cnt * sizeof(SaNameT));
-	}
-	mbcsv_info->track_cnt = obj_info->tlist.count;
-	if (mbcsv_info->track_cnt) {
-		mbcsv_info->track_info =
-		    m_MMGR_ALLOC_MQD_DEFAULT_VAL(mbcsv_info->track_cnt * sizeof(MQD_A2S_TRACK_INFO));
-		if (!mbcsv_info->track_info) {
-			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
+			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory",
+			       __FILE__, __LINE__);
 			return SA_AIS_ERR_NO_MEMORY;
 		}
 
-		memset(mbcsv_info->track_info, 0, mbcsv_info->track_cnt * sizeof(MQD_A2S_TRACK_INFO));
+		memset(mbcsv_info->ilist_info, 0,
+		       mbcsv_info->ilist_cnt * sizeof(SaNameT));
+	}
+	mbcsv_info->track_cnt = obj_info->tlist.count;
+	if (mbcsv_info->track_cnt) {
+		mbcsv_info->track_info = m_MMGR_ALLOC_MQD_DEFAULT_VAL(
+		    mbcsv_info->track_cnt * sizeof(MQD_A2S_TRACK_INFO));
+		if (!mbcsv_info->track_info) {
+			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory",
+			       __FILE__, __LINE__);
+			return SA_AIS_ERR_NO_MEMORY;
+		}
+
+		memset(mbcsv_info->track_info, 0,
+		       mbcsv_info->track_cnt * sizeof(MQD_A2S_TRACK_INFO));
 	}
 	itr.state = 0;
 
 	for (index = 0; index < mbcsv_info->ilist_cnt; index++) {
 
-		pOelm = (MQD_OBJECT_ELEM *)ncs_walk_items(&obj_info->ilist, &itr);
+		pOelm =
+		    (MQD_OBJECT_ELEM *)ncs_walk_items(&obj_info->ilist, &itr);
 		mbcsv_info->ilist_info[index] = pOelm->pObject->name;
 	}
 	itr.state = 0;
 	for (index = 0; index < mbcsv_info->track_cnt; index++) {
 
-		pTrkObj = (MQD_TRACK_OBJ *)ncs_walk_items(&obj_info->tlist, &itr);
+		pTrkObj =
+		    (MQD_TRACK_OBJ *)ncs_walk_items(&obj_info->tlist, &itr);
 		mbcsv_info->track_info[index].dest = pTrkObj->dest;
 		mbcsv_info->track_info[index].to_svc = pTrkObj->to_svc;
 	}
@@ -1190,9 +1273,9 @@ static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD
 /****************************************************************************
  * Name          : mqd_ckpt_decode_cold_sync_resp
  *
- * Description   : This function decodes the data resp message or cold sync 
-                   response sent by Active MQD to the standby MQD.
- *                 It sends FIXED no. of record at each time, if no. of records 
+ * Description   : This function decodes the data resp message or cold sync
+		   response sent by Active MQD to the standby MQD.
+ *                 It sends FIXED no. of record at each time, if no. of records
  *                 to be sent is more than FIXED no., else the no. of records
  *                 left.
  *
@@ -1203,12 +1286,13 @@ static uint32_t mqd_copy_data_to_cold_sync_structure(MQD_OBJ_INFO *obj_info, MQD
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * Notes         : None.
- |------------------|---------------|-----------|------|-----------|-----------| 
+ |------------------|---------------|-----------|------|-----------|-----------|
  |No. of Ckpts      | ckpt record 1 |ckpt rec 2 |..... |ckpt rec n | async upd |
  |that will be sent |               |           |      |           | cnt ( 0 ) |
  |------------------|---------------------------|------|-----------|-----------|
  *****************************************************************************/
-static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
+static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd,
+					       NCS_MBCSV_CB_ARG *arg)
 {
 	uint32_t num_of_ckpts, data[sizeof(uint32_t)];
 	uint32_t count = 0, rc = NCSCC_RC_SUCCESS, num_of_async_upd;
@@ -1217,7 +1301,7 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	MQD_A2S_QUEUE_INFO *mbcsv_info = 0;
 	TRACE_ENTER();
 
-	if (arg->info.decode.i_uba.ub == NULL) {	/* There is no data */
+	if (arg->info.decode.i_uba.ub == NULL) { /* There is no data */
 		return NCSCC_RC_SUCCESS;
 	}
 	mbcsv_info = m_MMGR_ALLOC_MQD_DEFAULT_VAL(sizeof(MQD_A2S_QUEUE_INFO));
@@ -1230,7 +1314,8 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	memset(mbcsv_info, 0, sizeof(MQD_A2S_QUEUE_INFO));
 
 	/* 1. Decode the 1st uint8_t region ,  we will get the num of ckpts */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uint8_t *)data, sizeof(uint32_t));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uint8_t *)data,
+				    sizeof(uint32_t));
 	num_of_ckpts = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
@@ -1238,7 +1323,8 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 
 	while (count < num_of_ckpts) {
 		rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqd_a2s_queue_info,
-				    &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &mbcsv_info, &ederror);
+				    &arg->info.decode.i_uba, EDP_OP_TYPE_DEC,
+				    &mbcsv_info, &ederror);
 
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("m_NCS_EDU_EXEC failed");
@@ -1249,7 +1335,8 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 
 		rc = mqd_a2s_make_record_from_coldsync(pMqd, *mbcsv_info);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE_2("mqd_a2s_make_record_from_coldsync function failed");
+			TRACE_2(
+			    "mqd_a2s_make_record_from_coldsync function failed");
 			m_MMGR_FREE_MQD_DEFAULT_VAL(mbcsv_info);
 			return rc;
 		}
@@ -1264,20 +1351,22 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
 	m_MMGR_FREE_MQD_DEFAULT_VAL(mbcsv_info);
 
 	/* Get the async update count */
-	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uint8_t *)data, sizeof(uint32_t));
+	ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, (uint8_t *)data,
+				    sizeof(uint32_t));
 	num_of_async_upd = ncs_decode_32bit(&ptr);
 	ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uint32_t));
 
 	pMqd->mqd_sync_updt_count = num_of_async_upd;
 
-	if ((arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) ||
+	if ((arg->info.decode.i_msg_type ==
+	     NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) ||
 	    (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_DATA_RESP_COMPLETE)) {
 		pMqd->cold_or_warm_sync_on = false;
 	}
 
 	TRACE_LEAVE();
 	return rc;
-}	/*mqd_ckpt_decode_cold_sync_resp()  */
+} /*mqd_ckpt_decode_cold_sync_resp()  */
 
 /****************************************************************************
  * Name          : mqd_a2s_make_record_from_coldsync
@@ -1293,7 +1382,8 @@ static uint32_t mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *a
  * Notes         : None.
  *****************************************************************************/
 
-static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_INFO q_data_msg)
+static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd,
+						  MQD_A2S_QUEUE_INFO q_data_msg)
 {
 
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -1309,7 +1399,8 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 	memset(&record_qindex_name, 0, sizeof(SaNameT));
 	record_qindex_name = q_data_msg.name;
 	/* m_HTON_SANAMET_LEN(record_qindex_name.length);a */
-	q_obj_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uint8_t *)&record_qindex_name);
+	q_obj_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(
+	    &pMqd->qdb, (uint8_t *)&record_qindex_name);
 	if (!q_obj_node) {
 		rc = mqd_db_node_create(pMqd, &q_obj_node);
 		if (rc != NCSCC_RC_SUCCESS) {
@@ -1327,7 +1418,8 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 	for (index = 0; index < q_data_msg.ilist_cnt; index++) {
 		record_qindex_name = q_data_msg.ilist_info[index];
 		/* m_HTON_SANAMET_LEN(record_qindex_name.length); */
-		q_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (uint8_t *)&record_qindex_name);
+		q_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(
+		    &pMqd->qdb, (uint8_t *)&record_qindex_name);
 		if (!q_node) {
 			rc = mqd_db_node_create(pMqd, &q_node);
 			if (rc != NCSCC_RC_SUCCESS) {
@@ -1338,18 +1430,21 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 			q_node->oinfo.name = q_data_msg.ilist_info[index];
 			rc = mqd_db_node_add(pMqd, q_node);
 			if (rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("Addition of Object node into the Tree failed");
+				LOG_ER(
+				    "Addition of Object node into the Tree failed");
 				return NCSCC_RC_FAILURE;
 			}
 		}
 
 		/* Search if the qnode is already present in the ilist */
-		pOelm = ncs_find_item(&q_obj_node->oinfo.ilist, &record_qindex_name, mqd_obj_cmp);
+		pOelm = ncs_find_item(&q_obj_node->oinfo.ilist,
+				      &record_qindex_name, mqd_obj_cmp);
 		if (pOelm == NULL) {
 			/*Create the Queue Element */
 			pOelm = m_MMGR_ALLOC_MQD_OBJECT_ELEM;
 			if (!pOelm) {
-				LOG_CR("ERR_MEMORY: Failed To Allocate Memory for Queue Element");
+				LOG_CR(
+				    "ERR_MEMORY: Failed To Allocate Memory for Queue Element");
 				rc = NCSCC_RC_FAILURE;
 				return SA_AIS_ERR_NO_MEMORY;
 			}
@@ -1359,13 +1454,14 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 		}
 		q_node = 0;
 		pOelm = 0;
-	}			/* End of for. ilist is updated */
+	} /* End of for. ilist is updated */
 
 	/* Filling the track info to the queue database */
 	for (index = 0; index < q_data_msg.track_cnt; index++) {
 		q_track_obj = m_MMGR_ALLOC_MQD_TRACK_OBJ;
 		if (q_track_obj == NULL) {
-			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory", __FILE__, __LINE__);
+			LOG_CR("%s:%u: ERR_MEMORY: Failed To Allocate Memory",
+			       __FILE__, __LINE__);
 			rc = NCSCC_RC_FAILURE;
 			return NCSCC_RC_FAILURE;
 		}
@@ -1386,8 +1482,8 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 /****************************************************************************
  * Name          : mqd_db_del_all_records
  *
- * Description   : This function deletes the records form the database when warmsync
- *                happens and the data mismatch occurs.
+ * Description   : This function deletes the records form the database when
+ *warmsync happens and the data mismatch occurs.
  *
  * Arguments     : MQD_CB *pMqd- Control block pointer
  *
@@ -1399,7 +1495,7 @@ static uint32_t mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_IN
 static uint32_t mqd_db_del_all_records(MQD_CB *pMqd)
 {
 	if (!pMqd->qdb_up) {
-		LOG_ER("Queue Database is down"); 
+		LOG_ER("Queue Database is down");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1411,7 +1507,7 @@ static uint32_t mqd_db_del_all_records(MQD_CB *pMqd)
 /****************************************************************************
  * Name          : mqd_queue_db_clean_up
  *
- * Description   : This function deletes the records form the database. 
+ * Description   : This function deletes the records form the database.
  *
  * Arguments     : MQD_CB *pMqd- Control block pointer
  *
@@ -1429,23 +1525,25 @@ static void mqd_queue_db_clean_up(MQD_CB *pMqd)
 
 	memset(&record_qindex_name, 0, sizeof(SaNameT));
 
-	qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&record_qindex_name);
-	nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)&prev_node_id);
+	qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(
+	    &pMqd->qdb, (uint8_t *)&record_qindex_name);
+	nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(
+	    &pMqd->node_db, (uint8_t *)&prev_node_id);
 
 	while (qnode) {
 		record_qindex_name = qnode->oinfo.name;
 		mqd_db_node_del(pMqd, qnode);
 
-		qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (uint8_t *)&record_qindex_name);
-
+		qnode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(
+		    &pMqd->qdb, (uint8_t *)&record_qindex_name);
 	}
 	while (nd_node) {
 		prev_node_id = nd_node->info.nodeid;
 
 		mqd_red_db_node_del(pMqd, nd_node);
 
-		nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(&pMqd->node_db, (uint8_t *)&prev_node_id);
-
+		nd_node = (MQD_ND_DB_NODE *)ncs_patricia_tree_getnext(
+		    &pMqd->node_db, (uint8_t *)&prev_node_id);
 	}
 	return;
 }

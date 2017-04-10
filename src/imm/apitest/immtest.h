@@ -15,7 +15,6 @@
  *
  */
 
-
 #ifndef IMM_APITEST_IMMTEST_H_
 #define IMM_APITEST_IMMTEST_H_
 
@@ -62,24 +61,18 @@ SaAisErrorT nodangling_class_create(SaImmHandleT immHandle);
 SaAisErrorT nodangling_class_delete(SaImmHandleT immHandle);
 
 SaAisErrorT object_create(SaImmHandleT immHandle,
-		SaImmAdminOwnerHandleT ownerHandle,
-        const SaImmClassNameT className,
-        const SaNameT *rdnObj,
-        const SaNameT *parentName,
-        const SaImmAttrValuesT_2 *value);
+                          SaImmAdminOwnerHandleT ownerHandle,
+                          const SaImmClassNameT className,
+                          const SaNameT *rdnObj, const SaNameT *parentName,
+                          const SaImmAttrValuesT_2 *value);
 SaAisErrorT object_delete(SaImmAdminOwnerHandleT ownerHandle,
-        const SaNameT *dnObj,
-        int strict);
-SaAisErrorT object_create_2(SaImmHandleT immHandle,
-        SaImmCcbHandleT ccbHandle,
-        const SaImmClassNameT className,
-        const SaNameT *rdnObj,
-        const SaNameT *parentName,
-        const SaImmAttrValuesT_2 *value);
-SaAisErrorT object_delete_2(SaImmCcbHandleT ccbHandle,
-        const SaNameT *dnObj,
-        int strict);
-
+                          const SaNameT *dnObj, int strict);
+SaAisErrorT object_create_2(SaImmHandleT immHandle, SaImmCcbHandleT ccbHandle,
+                            const SaImmClassNameT className,
+                            const SaNameT *rdnObj, const SaNameT *parentName,
+                            const SaImmAttrValuesT_2 *value);
+SaAisErrorT object_delete_2(SaImmCcbHandleT ccbHandle, const SaNameT *dnObj,
+                            int strict);
 
 /* Setup and cleanup functions */
 extern void (*test_setup)(void);

@@ -34,15 +34,14 @@ namespace base {
 pthread_once_t Conf::once_control_ = PTHREAD_ONCE_INIT;
 Conf* Conf::instance_ = nullptr;
 
-Conf::Conf() :
-    fully_qualified_domain_name_{},
-    node_name_{},
-    short_host_name_{},
-    fully_qualified_domain_name_initialized_{false},
-    node_name_initialized_{false},
-    short_host_name_initialized_{false},
-    mutex_{} {
-}
+Conf::Conf()
+    : fully_qualified_domain_name_{},
+      node_name_{},
+      short_host_name_{},
+      fully_qualified_domain_name_initialized_{false},
+      node_name_initialized_{false},
+      short_host_name_initialized_{false},
+      mutex_{} {}
 
 Conf::~Conf() {
   Lock lock(instance_->mutex_);
@@ -55,14 +54,13 @@ void Conf::InitFullyQualifiedDomainName() {
   Conf* i = GetOrCreateInstance();
   Lock lock(i->mutex_);
   if (i->fully_qualified_domain_name_initialized_ == false) {
-    i->fully_qualified_domain_name_ =
-        ReadFile(PKGLOCALSTATEDIR "/fully_qualified_domain_name",
-                 NI_MAXHOST - 1, "");
+    i->fully_qualified_domain_name_ = ReadFile(
+        PKGLOCALSTATEDIR "/fully_qualified_domain_name", NI_MAXHOST - 1, "");
     if (i->fully_qualified_domain_name_.empty()) {
       i->fully_qualified_domain_name_ =
           GetFullyQualifiedDomainName(i->short_host_name_);
       WriteFileAtomically(PKGLOCALSTATEDIR "/fully_qualified_domain_name",
-                i->fully_qualified_domain_name_);
+                          i->fully_qualified_domain_name_);
     }
     i->fully_qualified_domain_name_initialized_ = true;
   }
@@ -136,21 +134,20 @@ std::string Conf::GetFullyQualifiedDomainNameUsingDns(
       sockaddr_in6* addr_ipv6 = reinterpret_cast<sockaddr_in6*>(addr);
       if (addr != nullptr &&
           (addr->sa_family == AF_INET || addr->sa_family == AF_INET6) &&
-          (i->ifa_flags & IFF_LOOPBACK) == 0 &&
-          (i->ifa_flags & IFF_UP) != 0 &&
+          (i->ifa_flags & IFF_LOOPBACK) == 0 && (i->ifa_flags & IFF_UP) != 0 &&
           (addr->sa_family != AF_INET6 ||
            (!IN6_IS_ADDR_LOOPBACK(&addr_ipv6->sin6_addr) &&
             !IN6_IS_ADDR_LINKLOCAL(&addr_ipv6->sin6_addr) &&
             !IN6_IS_ADDR_MC_LINKLOCAL(&addr_ipv6->sin6_addr)))) {
-        int rc = getnameinfo(addr, addr->sa_family == AF_INET6 ?
-                             sizeof(sockaddr_in6) : sizeof(sockaddr_in),
+        int rc = getnameinfo(addr,
+                             addr->sa_family == AF_INET6 ? sizeof(sockaddr_in6)
+                                                         : sizeof(sockaddr_in),
                              host, sizeof(host), nullptr, 0, 0);
         if (rc == 0) {
           TRACE("getnameinfo() successful, hostname='%s'", host);
           std::string::size_type size = short_host_name.size();
-          if (size == 0 ||
-              (strncmp(short_host_name.c_str(), host, size) == 0 &&
-               host[size] == '.')) {
+          if (size == 0 || (strncmp(short_host_name.c_str(), host, size) == 0 &&
+                            host[size] == '.')) {
             fqdn = host;
             if (strchr(host, '.') != nullptr) break;
           }

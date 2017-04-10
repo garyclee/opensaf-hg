@@ -50,106 +50,105 @@ class SmfCallback;
 ///
 class SmfCampaignInit {
  public:
+  ///
+  /// Purpose: Constructor.
+  /// @param   None
+  /// @return  None
+  ///
+  SmfCampaignInit();
 
-///
-/// Purpose: Constructor.
-/// @param   None
-/// @return  None
-///
-	SmfCampaignInit();
+  ///
+  /// Purpose: Destructor.
+  /// @param   None
+  /// @return  None
+  ///
+  ~SmfCampaignInit();
 
-///
-/// Purpose: Destructor.
-/// @param   None
-/// @return  None
-///
-	~SmfCampaignInit();
+  ///
+  /// Purpose: Add operations from the campaign xml addToImm section.
+  /// @param   i_operation A pointer to a SmfImmOperation.
+  /// @return  None.
+  ///
+  void addAddToImm(SmfImmOperation* i_operation);
 
-///
-/// Purpose: Add operations from the campaign xml addToImm section.
-/// @param   i_operation A pointer to a SmfImmOperation.
-/// @return  None.
-///
-	void addAddToImm(SmfImmOperation * i_operation);
+  ///
+  /// Purpose: Get operations from the campaign xml addToImm section.
+  /// @param   None
+  /// @return  A list of SmfImmOperation*
+  ///
+  const std::list<SmfImmOperation*>& getAddToImm();
 
-///
-/// Purpose: Get operations from the campaign xml addToImm section.
-/// @param   None
-/// @return  A list of SmfImmOperation*
-///
-	const std::list < SmfImmOperation * >& getAddToImm();
+  ///
+  /// Purpose: Add a callback to be issued at init.
+  /// @param   i_operation A pointer to a SmfCallback.
+  /// @return  None.
+  ///
+  void addCallbackAtInit(SmfCallback* i_cbk);
 
-///
-/// Purpose: Add a callback to be issued at init.
-/// @param   i_operation A pointer to a SmfCallback.
-/// @return  None.
-///
-	void addCallbackAtInit(SmfCallback* i_cbk);
+  ///
+  /// Purpose: Add a callback to be issued at backup.
+  /// @param   i_operation A pointer to a SmfCallback.
+  /// @return  None.
+  ///
+  void addCallbackAtBackup(SmfCallback* i_cbk);
 
-///
-/// Purpose: Add a callback to be issued at backup.
-/// @param   i_operation A pointer to a SmfCallback.
-/// @return  None.
-///
-	void addCallbackAtBackup(SmfCallback* i_cbk);
+  ///
+  /// Purpose: Add a callback to be issued at rollback.
+  /// @param   i_operation A pointer to a SmfCallback.
+  /// @return  None.
+  ///
+  void addCallbackAtRollback(SmfCallback* i_cbk);
 
-///
-/// Purpose: Add a callback to be issued at rollback.
-/// @param   i_operation A pointer to a SmfCallback.
-/// @return  None.
-///
-	void addCallbackAtRollback(SmfCallback* i_cbk);
+  ///
+  /// Purpose: Add an action to be performed. Actions read from campaign
+  /// campInitAction (adminOp/IMM CCB/CLI).
+  /// @param   i_action A pointer to a SmfUpgradeAction.
+  /// @return  None.
+  ///
+  void addCampInitAction(SmfUpgradeAction* i_action);
 
-///
-/// Purpose: Add an action to be performed. Actions read from campaign campInitAction (adminOp/IMM CCB/CLI). 
-/// @param   i_action A pointer to a SmfUpgradeAction.
-/// @return  None.
-///
-	void addCampInitAction(SmfUpgradeAction * i_action);
+  ///
+  /// Purpose: Execute the operation.
+  /// @param   None.
+  /// @return  None.
+  ///
+  bool execute();
 
-///
-/// Purpose: Execute the operation.
-/// @param   None.
-/// @return  None.
-///
-	bool execute();
+  ///
+  /// Purpose: Execute callback at campaign init.
+  /// @param   None.
+  /// @return  SaAisErrorT SA_AIS_OK if ok, otherwise failure.
+  ///
+  SaAisErrorT executeCallbackAtInit();
 
-///
-/// Purpose: Execute callback at campaign init.
-/// @param   None.
-/// @return  SaAisErrorT SA_AIS_OK if ok, otherwise failure.
-///
-	SaAisErrorT executeCallbackAtInit();
+  ///
+  /// Purpose: Execute specified backup callbacks.
+  /// @param   None.
+  /// @return  SaAisErrorT SA_AIS_OK if ok, otherwise failure.
+  ///
+  SaAisErrorT executeCallbackAtBackup();
 
-///
-/// Purpose: Execute specified backup callbacks.
-/// @param   None.
-/// @return  SaAisErrorT SA_AIS_OK if ok, otherwise failure.
-///
-	SaAisErrorT executeCallbackAtBackup();
+  ///
+  /// Purpose: Perform rollback actions.
+  /// @param   None.
+  /// @return  None.
+  ///
+  bool rollback();
 
-///
-/// Purpose: Perform rollback actions.
-/// @param   None.
-/// @return  None.
-///
-	bool rollback();
-
-///
-/// Purpose: Execute callback at rollback.
-/// @param   None.
-/// @return  None.
-///
-	bool executeCallbackAtRollback();
+  ///
+  /// Purpose: Execute callback at rollback.
+  /// @param   None.
+  /// @return  None.
+  ///
+  bool executeCallbackAtRollback();
 
  private:
+  std::list<SmfImmOperation*> m_addToImm;
+  std::list<SmfUpgradeAction*> m_campInitAction;
 
-	 std::list < SmfImmOperation * >m_addToImm;
-	 std::list < SmfUpgradeAction * >m_campInitAction;
-
-	 std::list < SmfCallback * >m_callbackAtInit;
-	 std::list < SmfCallback * >m_callbackAtBackup;
-	 std::list < SmfCallback * >m_callbackAtRollback;
+  std::list<SmfCallback*> m_callbackAtInit;
+  std::list<SmfCallback*> m_callbackAtBackup;
+  std::list<SmfCallback*> m_callbackAtRollback;
 };
 
 #endif  // SMF_SMFD_SMFCAMPAIGNINIT_H_

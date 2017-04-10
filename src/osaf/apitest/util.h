@@ -15,15 +15,15 @@
  *
  */
 
-
 #ifndef OSAF_APITEST_UTIL_H_
 #define OSAF_APITEST_UTIL_H_
 
 #include "osaf/saf/saAis.h"
 
 extern SaTimeT getSaTimeT(void);
-extern const char *get_saf_error(SaAisErrorT rc);
-extern void safassert_impl(const char* file, unsigned int line, SaAisErrorT actual, SaAisErrorT expected);
+extern const char* get_saf_error(SaAisErrorT rc);
+extern void safassert_impl(const char* file, unsigned int line,
+                           SaAisErrorT actual, SaAisErrorT expected);
 
 /**
  * Pre and post condition checking. Will print information and
@@ -31,6 +31,7 @@ extern void safassert_impl(const char* file, unsigned int line, SaAisErrorT actu
  * @param actual
  * @param expected
  */
-#define safassert(actual, expected) safassert_impl(__FILE__, __LINE__, actual, expected)
+#define safassert(actual, expected) \
+  safassert_impl(__FILE__, __LINE__, actual, expected)
 
 #endif  // OSAF_APITEST_UTIL_H_

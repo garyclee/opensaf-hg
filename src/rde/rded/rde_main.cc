@@ -40,31 +40,27 @@
 
 #define RDA_MAX_CLIENTS 32
 
-enum {
-  FD_TERM = 0,
-  FD_AMF = 1,
-  FD_MBX,
-  FD_RDA_SERVER,
-  FD_CLIENT_START
-};
+enum { FD_TERM = 0, FD_AMF = 1, FD_MBX, FD_RDA_SERVER, FD_CLIENT_START };
 
 static void SendPeerInfoReq(MDS_DEST mds_dest);
 static void SendPeerInfoResp(MDS_DEST mds_dest);
-static void CheckForSplitBrain(const rde_msg* msg);
+static void CheckForSplitBrain(const rde_msg *msg);
 
-const char *rde_msg_name[] = { "-", "RDE_MSG_PEER_UP(1)",
-    "RDE_MSG_PEER_DOWN(2)", "RDE_MSG_PEER_INFO_REQ(3)",
-    "RDE_MSG_PEER_INFO_RESP(4)", };
+const char *rde_msg_name[] = {
+    "-",
+    "RDE_MSG_PEER_UP(1)",
+    "RDE_MSG_PEER_DOWN(2)",
+    "RDE_MSG_PEER_INFO_REQ(3)",
+    "RDE_MSG_PEER_INFO_RESP(4)",
+};
 
 static RDE_CONTROL_BLOCK _rde_cb;
 static RDE_CONTROL_BLOCK *rde_cb = &_rde_cb;
 static NCS_SEL_OBJ usr1_sel_obj;
 static NODE_ID own_node_id;
-static Role* role;
+static Role *role;
 
-RDE_CONTROL_BLOCK *rde_get_control_block() {
-  return rde_cb;
-}
+RDE_CONTROL_BLOCK *rde_get_control_block() { return rde_cb; }
 
 /**
  * USR1 signal is used when AMF wants instantiate us as a
@@ -74,7 +70,7 @@ RDE_CONTROL_BLOCK *rde_get_control_block() {
  * @param i_sig_num
  */
 static void sigusr1_handler(int sig) {
-  (void) sig;
+  (void)sig;
   signal(SIGUSR1, SIG_IGN);
   ncs_sel_obj_ind(&usr1_sel_obj);
 }
@@ -84,8 +80,7 @@ static int fd_to_client_ixd(int fd) {
   RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
 
   for (i = 0; i < rde_rda_cb->client_count; i++)
-    if (fd == rde_rda_cb->clients[i].fd)
-      break;
+    if (fd == rde_rda_cb->clients[i].fd) break;
 
   assert(i < MAX_RDA_CLIENTS);
 
@@ -97,7 +92,7 @@ static void handle_mbx_event() {
 
   TRACE_ENTER();
 
-  msg = reinterpret_cast<rde_msg*>(ncs_ipc_non_blk_recv(&rde_cb->mbx));
+  msg = reinterpret_cast<rde_msg *>(ncs_ipc_non_blk_recv(&rde_cb->mbx));
   TRACE("Received %s from node 0x%x with state %s. My state is %s",
         rde_msg_name[msg->type], msg->fr_node_id,
         Role::to_string(msg->info.peer_info.ha_role),
@@ -129,8 +124,7 @@ static void handle_mbx_event() {
       LOG_NO("Peer down on node 0x%x", msg->fr_node_id);
       break;
     default:
-      LOG_ER("%s: discarding unknown message type %u", __FUNCTION__,
-             msg->type);
+      LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
       break;
   }
 
@@ -139,7 +133,7 @@ static void handle_mbx_event() {
   TRACE_LEAVE();
 }
 
-static void CheckForSplitBrain(const rde_msg* msg) {
+static void CheckForSplitBrain(const rde_msg *msg) {
   PCS_RDA_ROLE own_role = role->role();
   PCS_RDA_ROLE other_role = msg->info.peer_info.ha_role;
   if (own_role == PCS_RDA_ACTIVE && other_role == PCS_RDA_ACTIVE) {
@@ -188,8 +182,8 @@ static int initialize_rde() {
   rde_rda_cb->role = role;
   rde_cb->rde_amf_cb.role = role;
 
-  if (rde_cb->rde_amf_cb.nid_started
-      && (rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+  if (rde_cb->rde_amf_cb.nid_started &&
+      (rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
     LOG_ER("ncs_sel_obj_create FAILED");
     goto init_failed;
   }
@@ -204,15 +198,16 @@ static int initialize_rde() {
     goto init_failed;
   }
 
-  if (rde_cb->rde_amf_cb.nid_started
-      && signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+  if (rde_cb->rde_amf_cb.nid_started &&
+      signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
     LOG_ER("signal USR1 FAILED: %s", strerror(errno));
     goto init_failed;
   }
 
   rc = NCSCC_RC_SUCCESS;
 
-  init_failed: return rc;
+init_failed:
+  return rc;
 }
 
 int main(int argc, char *argv[]) {
@@ -227,14 +222,13 @@ int main(int argc, char *argv[]) {
 
   daemonize(argc, argv);
 
-  if (initialize_rde() != NCSCC_RC_SUCCESS)
-    goto init_failed;
+  if (initialize_rde() != NCSCC_RC_SUCCESS) goto init_failed;
 
   mbx_sel_obj = ncs_ipc_get_sel_obj(&rde_cb->mbx);
 
   /* If AMF started register immediately */
-  if (!rde_cb->rde_amf_cb.nid_started
-      && rde_amf_init(&rde_cb->rde_amf_cb) != NCSCC_RC_SUCCESS) {
+  if (!rde_cb->rde_amf_cb.nid_started &&
+      rde_amf_init(&rde_cb->rde_amf_cb) != NCSCC_RC_SUCCESS) {
     goto init_failed;
   }
 
@@ -244,9 +238,8 @@ int main(int argc, char *argv[]) {
   fds[FD_TERM].events = POLLIN;
 
   /* USR1/AMF fd */
-  fds[FD_AMF].fd =
-      rde_cb->rde_amf_cb.nid_started ?
-          usr1_sel_obj.rmv_obj : rde_cb->rde_amf_cb.amf_fd;
+  fds[FD_AMF].fd = rde_cb->rde_amf_cb.nid_started ? usr1_sel_obj.rmv_obj
+                                                  : rde_cb->rde_amf_cb.amf_fd;
   fds[FD_AMF].events = POLLIN;
 
   /* Mailbox */
@@ -273,14 +266,13 @@ int main(int argc, char *argv[]) {
     ret = osaf_poll(fds, fds_to_poll, 0);
     if (ret == 0) {
       timespec ts;
-      timespec* timeout = role->Poll(&ts);
+      timespec *timeout = role->Poll(&ts);
       fds_to_poll = role->role() != PCS_RDA_UNDEFINED ? nfds : FD_CLIENT_START;
       ret = osaf_ppoll(fds, fds_to_poll, timeout, nullptr);
     }
 
     if (ret == -1) {
-      if (errno == EINTR)
-        continue;
+      if (errno == EINTR) continue;
 
       LOG_ER("poll failed - %s", strerror(errno));
       break;
@@ -303,15 +295,13 @@ int main(int argc, char *argv[]) {
         TRACE("SIGUSR1 event rec");
         ncs_sel_obj_destroy(&usr1_sel_obj);
 
-        if (rde_amf_init(&rde_cb->rde_amf_cb) != NCSCC_RC_SUCCESS)
-          goto done;
+        if (rde_amf_init(&rde_cb->rde_amf_cb) != NCSCC_RC_SUCCESS) goto done;
 
         fds[FD_AMF].fd = rde_cb->rde_amf_cb.amf_fd;
       }
     }
 
-    if (fds[FD_MBX].revents & POLLIN)
-      handle_mbx_event();
+    if (fds[FD_MBX].revents & POLLIN) handle_mbx_event();
 
     if (fds[FD_RDA_SERVER].revents & POLLIN) {
       int newsockfd;
@@ -337,7 +327,7 @@ int main(int argc, char *argv[]) {
     }
 
     for (nfds_t i = FD_CLIENT_START;
-        role->role() != PCS_RDA_UNDEFINED && i < fds_to_poll; i++) {
+         role->role() != PCS_RDA_UNDEFINED && i < fds_to_poll; i++) {
       if (fds[i].revents & POLLIN) {
         int client_disconnected = 0;
         TRACE("received msg on fd %u", fds[i].fd);
@@ -357,12 +347,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  init_failed: if (rde_cb->rde_amf_cb.nid_started
-      && nid_notify("RDE", NCSCC_RC_FAILURE, nullptr) != NCSCC_RC_SUCCESS) {
+init_failed:
+  if (rde_cb->rde_amf_cb.nid_started &&
+      nid_notify("RDE", NCSCC_RC_FAILURE, nullptr) != NCSCC_RC_SUCCESS) {
     LOG_ER("nid_notify failed");
   }
 
-  done: syslog(LOG_ERR, "Exiting...");
+done:
+  syslog(LOG_ERR, "Exiting...");
   exit(1);
 }
-

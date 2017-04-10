@@ -18,7 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-  MODULE NAME: NCS_ENC.C  
+  MODULE NAME: NCS_ENC.C
 
   REVISION HISTORY:
 
@@ -26,7 +26,7 @@
   -------- -------  ------------  --------------------------------------------
   10-15-97 1.00A    H&J (DS)      Original
 
-  $Id: 
+  $Id:
 
   $Log:
 
@@ -69,7 +69,8 @@ USRBUF *ncs_encode_n_octets(USRBUF *u, uint8_t *os, unsigned int count)
 
 	do {
 		uint8_t *p;
-		if ((p = m_MMGR_RESERVE_AT_END(&u, count, uint8_t *)) != (uint8_t *)0) {
+		if ((p = m_MMGR_RESERVE_AT_END(&u, count, uint8_t *)) !=
+		    (uint8_t *)0) {
 			/*
 			 * Build the octet string...Remember a NULL pointer
 			 * indicates an all-zero octet-string...
@@ -77,7 +78,8 @@ USRBUF *ncs_encode_n_octets(USRBUF *u, uint8_t *os, unsigned int count)
 			if (os == (uint8_t *)0)
 				memset((char *)p, '\0', (size_t)count);
 			else
-				memcpy((char *)p, (char *)(os + offset), (size_t)count);
+				memcpy((char *)p, (char *)(os + offset),
+				       (size_t)count);
 		} else {
 			break;
 		}
@@ -144,8 +146,9 @@ USRBUF *ncs_encode_float(USRBUF *u, float obj_val)
 {
 	float *pfloat;
 
-	if ((pfloat = m_MMGR_RESERVE_AT_END(&u, (uint32_t)sizeof(obj_val), float *)) != (float *)0)
-		 m_NCS_ENCODE_FLOAT(obj_val, pfloat);
+	if ((pfloat = m_MMGR_RESERVE_AT_END(&u, (uint32_t)sizeof(obj_val),
+					    float *)) != (float *)0)
+		m_NCS_ENCODE_FLOAT(obj_val, pfloat);
 
 	return u;
 }
@@ -168,7 +171,8 @@ USRBUF *ncs_prepend_uns16(USRBUF *pbuf, uint16_t val16)
 {
 	uint8_t *p16;
 
-	p16 = m_MMGR_RESERVE_AT_START(&pbuf, (uint32_t)sizeof(uint16_t), uint8_t *);
+	p16 = m_MMGR_RESERVE_AT_START(&pbuf, (uint32_t)sizeof(uint16_t),
+				      uint8_t *);
 	if (p16 == NULL) {
 		m_LEAP_DBG_SINK_VOID;
 		return BNULL;
@@ -183,7 +187,8 @@ USRBUF *ncs_prepend_uns32(USRBUF *pbuf, uint32_t val32)
 {
 	uint8_t *p32;
 
-	p32 = m_MMGR_RESERVE_AT_START(&pbuf, (uint32_t)sizeof(uint32_t), uint8_t *);
+	p32 = m_MMGR_RESERVE_AT_START(&pbuf, (uint32_t)sizeof(uint32_t),
+				      uint8_t *);
 	if (p32 == NULL) {
 		m_LEAP_DBG_SINK_VOID;
 		return BNULL;
@@ -300,9 +305,9 @@ uint32_t ncs_encode_octets(uint8_t **stream, uint8_t *val, uint32_t count)
 
 static uint8_t *encode_reserve_space(NCS_UBAID *ub, int32_t count)
 {
-    uint8_t *p8 = ncs_enc_reserve_space(ub, count);
-    osafassert(p8);
-    return p8;
+	uint8_t *p8 = ncs_enc_reserve_space(ub, count);
+	osafassert(p8);
+	return p8;
 }
 
 static uint8_t *decode_flatten_space(NCS_UBAID *uba, uint8_t *os, int32_t count)
@@ -376,7 +381,8 @@ void osaf_decode_uint64(NCS_UBAID *ub, uint64_t *to)
 	ncs_dec_skip_space(ub, 8);
 }
 
-void osaf_encode_sanamet_helper(NCS_UBAID *ub, SaConstStringT name, const size_t len)
+void osaf_encode_sanamet_helper(NCS_UBAID *ub, SaConstStringT name,
+				const size_t len)
 {
 	if (len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
 		// encode a fixed 256 char string, to ensure
@@ -387,8 +393,9 @@ void osaf_encode_sanamet_helper(NCS_UBAID *ub, SaConstStringT name, const size_t
 			osaf_encode_uint8(ub, name[i]);
 		}
 
-		// need to encode SA_MAX_UNEXTENDED_NAME_LENGTH characters to remain
-		// compatible with legacy osaf_decode_sanamet() [without long DN support]
+		// need to encode SA_MAX_UNEXTENDED_NAME_LENGTH characters to
+		// remain compatible with legacy osaf_decode_sanamet() [without
+		// long DN support]
 		for (size_t i = len; i < SA_MAX_UNEXTENDED_NAME_LENGTH; i++) {
 			osaf_encode_uint8(ub, 0);
 		}
@@ -416,20 +423,22 @@ void osaf_decode_sanamet(NCS_UBAID *ub, SaNameT *name)
 	// get the length of the SaNameT
 	osaf_decode_uint16(ub, &len);
 	osafassert(len < 65535);
-	
+
 	if (len < SA_MAX_UNEXTENDED_NAME_LENGTH) {
 		// string is encoded as a fixed 256 char array
-		str = (SaStringT)malloc(SA_MAX_UNEXTENDED_NAME_LENGTH * sizeof(char));
+		str = (SaStringT)malloc(SA_MAX_UNEXTENDED_NAME_LENGTH *
+					sizeof(char));
 		osafassert(str != NULL);
 
-		uint8_t *p8 = decode_flatten_space(ub, (uint8_t*)str, SA_MAX_UNEXTENDED_NAME_LENGTH);
+		uint8_t *p8 = decode_flatten_space(
+		    ub, (uint8_t *)str, SA_MAX_UNEXTENDED_NAME_LENGTH);
 		memcpy(str, p8, SA_MAX_UNEXTENDED_NAME_LENGTH * sizeof(char));
-		ncs_dec_skip_space(ub, SA_MAX_UNEXTENDED_NAME_LENGTH);	
+		ncs_dec_skip_space(ub, SA_MAX_UNEXTENDED_NAME_LENGTH);
 	} else {
 		str = (SaStringT)malloc((len + 1) * sizeof(char));
 		osafassert(str != NULL);
 
-		uint8_t *p8 = decode_flatten_space(ub, (uint8_t*)str, len);
+		uint8_t *p8 = decode_flatten_space(ub, (uint8_t *)str, len);
 		memcpy(str, p8, len * sizeof(char));
 		ncs_dec_skip_space(ub, len);
 
@@ -447,7 +456,7 @@ void osaf_encode_saclmnodeaddresst(NCS_UBAID *ub, const SaClmNodeAddressT *addr)
 	SaUint8T i;
 	osaf_encode_uint32(ub, addr->family);
 	osaf_encode_uint16(ub, addr->length);
-	for ( i = 0; i < SA_CLM_MAX_ADDRESS_LENGTH; ++i) {
+	for (i = 0; i < SA_CLM_MAX_ADDRESS_LENGTH; ++i) {
 		osaf_encode_uint8(ub, addr->value[i]);
 	}
 }
@@ -457,7 +466,7 @@ void osaf_decode_saclmnodeaddresst(NCS_UBAID *ub, SaClmNodeAddressT *addr)
 	SaUint8T i;
 	osaf_decode_uint32(ub, &addr->family);
 	osaf_decode_uint16(ub, &addr->length);
-	for ( i = 0; i < SA_CLM_MAX_ADDRESS_LENGTH; ++i) {
+	for (i = 0; i < SA_CLM_MAX_ADDRESS_LENGTH; ++i) {
 		osaf_decode_uint8(ub, &addr->value[i]);
 	}
 }
@@ -473,7 +482,7 @@ void osaf_encode_saconststring(NCS_UBAID *ub, SaConstStringT str)
 	size_t len = strlen(str);
 
 	TRACE_ENTER2("%s (%zu)", str, len);
-	
+
 	// len is encoded in 16 bits, max length is 2^16
 	// this is done to remain compatible with ncs_edp_string
 	osafassert(len < 65535);
@@ -484,7 +493,7 @@ void osaf_encode_saconststring(NCS_UBAID *ub, SaConstStringT str)
 	osafassert(p8);
 	memcpy(p8, str, len * sizeof(char));
 	ncs_enc_claim_space(ub, len);
-	
+
 	TRACE_LEAVE();
 }
 
@@ -495,7 +504,7 @@ void osaf_encode_satimet(NCS_UBAID *ub, SaTimeT time)
 
 void osaf_decode_satimet(NCS_UBAID *ub, SaTimeT *time)
 {
-	osaf_decode_uint64(ub, (uint64_t*)time);
+	osaf_decode_uint64(ub, (uint64_t *)time);
 }
 
 void osaf_encode_bool(NCS_UBAID *ub, bool value)
@@ -511,4 +520,3 @@ void osaf_decode_bool(NCS_UBAID *ub, bool *to)
 	osaf_decode_uint32(ub, &value);
 	*to = (bool)value;
 }
-

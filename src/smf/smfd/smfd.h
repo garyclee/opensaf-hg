@@ -72,34 +72,31 @@ extern "C" {
  *   DATA DECLARATIONS
  * ========================================================================
  */
-	extern smfd_cb_t *smfd_cb;
-	extern const SaNameT *smfApplDN;
-	extern uint32_t initialize_for_assignment(smfd_cb_t *cb,
-		SaAmfHAStateT ha_state);
-	extern SaAisErrorT smfd_amf_init(smfd_cb_t *cb);
-	extern uint32_t smfd_mds_init(smfd_cb_t *);
-	extern uint32_t smfd_mds_finalize(smfd_cb_t *);
-	extern uint32_t smfd_mds_change_role(smfd_cb_t *);
-	extern uint32_t smfd_mds_msg_send(smfd_cb_t * cb,
-				       SMFSV_EVT * evt,
-				       MDS_DEST * dest,
-				       MDS_SYNC_SND_CTXT * mds_ctxt,
-				       MDS_SEND_PRIORITY_TYPE prio);
+extern smfd_cb_t *smfd_cb;
+extern const SaNameT *smfApplDN;
+extern uint32_t initialize_for_assignment(smfd_cb_t *cb,
+                                          SaAmfHAStateT ha_state);
+extern SaAisErrorT smfd_amf_init(smfd_cb_t *cb);
+extern uint32_t smfd_mds_init(smfd_cb_t *);
+extern uint32_t smfd_mds_finalize(smfd_cb_t *);
+extern uint32_t smfd_mds_change_role(smfd_cb_t *);
+extern uint32_t smfd_mds_msg_send(smfd_cb_t *cb, SMFSV_EVT *evt, MDS_DEST *dest,
+                                  MDS_SYNC_SND_CTXT *mds_ctxt,
+                                  MDS_SEND_PRIORITY_TYPE prio);
 
-	uint32_t campaign_oi_activate(smfd_cb_t * cb);
-	uint32_t campaign_oi_deactivate(smfd_cb_t * cb);
-	uint32_t campaign_oi_init(smfd_cb_t * cb);
-	uint32_t read_config_and_set_control_block(smfd_cb_t * cb);
-	extern  void smfd_coi_reinit_bg(smfd_cb_t *cb); 
-	uint32_t updateImmAttr(const char *dn,
-			    SaImmAttrNameT attributeName,
-			    SaImmValueTypeT attrValueType, void *value);
+uint32_t campaign_oi_activate(smfd_cb_t *cb);
+uint32_t campaign_oi_deactivate(smfd_cb_t *cb);
+uint32_t campaign_oi_init(smfd_cb_t *cb);
+uint32_t read_config_and_set_control_block(smfd_cb_t *cb);
+extern void smfd_coi_reinit_bg(smfd_cb_t *cb);
+uint32_t updateImmAttr(const char *dn, SaImmAttrNameT attributeName,
+                       SaImmValueTypeT attrValueType, void *value);
 
-	void smfd_cb_lock();
-	void smfd_cb_unlock();
-	void smfd_imm_lock();
-	void smfd_imm_unlock();
-	int smfd_imm_trylock();
+void smfd_cb_lock();
+void smfd_cb_unlock();
+void smfd_imm_lock();
+void smfd_imm_unlock();
+int smfd_imm_trylock();
 
 #ifdef __cplusplus
 }

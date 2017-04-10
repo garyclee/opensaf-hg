@@ -19,7 +19,7 @@
   DESCRIPTION:
 
   This module is the include file for Sa Amf cluster object management.
-  
+
 ****************************************************************************/
 #ifndef AMF_AMFD_CLUSTER_H_
 #define AMF_AMFD_CLUSTER_H_
@@ -28,10 +28,10 @@
 #include "amf/amfd/node.h"
 
 typedef struct avd_cluster_tag {
-	std::string saAmfCluster;
-	std::string saAmfClusterClmCluster;
-	SaTimeT saAmfClusterStartupTimeout;
-	SaAmfAdminStateT saAmfClusterAdminState;
+  std::string saAmfCluster;
+  std::string saAmfClusterClmCluster;
+  SaTimeT saAmfClusterStartupTimeout;
+  SaAmfAdminStateT saAmfClusterAdminState;
 } AVD_CLUSTER;
 
 extern AVD_CLUSTER *avd_cluster;

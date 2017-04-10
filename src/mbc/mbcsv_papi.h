@@ -21,7 +21,7 @@
 #ifndef MBC_MBCSV_PAPI_H_
 #define MBC_MBCSV_PAPI_H_
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -41,7 +41,8 @@ typedef uint64_t MBCSV_REO_HDL;
 
 /***************************************************************************
 
-    M e s s a g e   B a s e d   C h e c k p o i n t i n g   S e r v i c e (MBCSv)
+    M e s s a g e   B a s e d   C h e c k p o i n t i n g   S e r v i c e
+(MBCSv)
 
     This header file is broken down into these major subsections:
 
@@ -66,28 +67,33 @@ typedef uint64_t MBCSV_REO_HDL;
 
 ***************************************************************************/
 
-typedef enum ncs_mbcsv_msg_type {       /* encode/decode message types */
-  /* Messages carrying checkpoint data */
-  NCS_MBCSV_MSG_ASYNC_UPDATE = 1,
-  NCS_MBCSV_MSG_COLD_SYNC_REQ,
-  NCS_MBCSV_MSG_COLD_SYNC_RESP,
-  NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE,
-  NCS_MBCSV_MSG_WARM_SYNC_REQ,
-  NCS_MBCSV_MSG_WARM_SYNC_RESP,
-  NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE,
-  NCS_MBCSV_MSG_DATA_REQ,
-  NCS_MBCSV_MSG_DATA_RESP,
-  NCS_MBCSV_MSG_DATA_RESP_COMPLETE,
+typedef enum ncs_mbcsv_msg_type { /* encode/decode message types */
+                                  /* Messages carrying checkpoint data */
+                                  NCS_MBCSV_MSG_ASYNC_UPDATE = 1,
+                                  NCS_MBCSV_MSG_COLD_SYNC_REQ,
+                                  NCS_MBCSV_MSG_COLD_SYNC_RESP,
+                                  NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE,
+                                  NCS_MBCSV_MSG_WARM_SYNC_REQ,
+                                  NCS_MBCSV_MSG_WARM_SYNC_RESP,
+                                  NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE,
+                                  NCS_MBCSV_MSG_DATA_REQ,
+                                  NCS_MBCSV_MSG_DATA_RESP,
+                                  NCS_MBCSV_MSG_DATA_RESP_COMPLETE,
 
 } NCS_MBCSV_MSG_TYPE;
 
-typedef enum ncs_mbcsv_act_type {       /* basic checkpoint operations        */
-  NCS_MBCSV_ACT_DONT_CARE,    /* not interesting in this context    */
-  NCS_MBCSV_ACT_ADD,      /* checkpoint data is new             */
-  NCS_MBCSV_ACT_RMV,      /* checkpoint data to remove          */
-  NCS_MBCSV_ACT_UPDATE,   /* update existing checkpoint         */
-  NCS_MBCSV_ACT_NO_PEER,  /* update if STDBY peer doesn't exist */
-  NCS_MBCSV_ACT_MAX
+typedef enum ncs_mbcsv_act_type { /* basic checkpoint operations        */
+                                  NCS_MBCSV_ACT_DONT_CARE, /* not interesting in
+                                                              this context    */
+                                  NCS_MBCSV_ACT_ADD,       /* checkpoint data is new
+                                                            */
+                                  NCS_MBCSV_ACT_RMV,       /* checkpoint data to
+                                                              remove          */
+                                  NCS_MBCSV_ACT_UPDATE,    /* update existing
+                                                              checkpoint         */
+                                  NCS_MBCSV_ACT_NO_PEER,   /* update if STDBY peer
+                                                              doesn't exist */
+                                  NCS_MBCSV_ACT_MAX
 } NCS_MBCSV_ACT_TYPE;
 
 /***************************************************************************
@@ -97,9 +103,9 @@ typedef enum ncs_mbcsv_act_type {       /* basic checkpoint operations        */
 typedef struct ncs_mbcsv_cb_enc {
   NCS_MBCSV_MSG_TYPE io_msg_type; /* reinvoke during sync. till xxx_COMPLETE */
   NCS_MBCSV_ACT_TYPE io_action;   /* action: ADD,RMV,UPDATE              */
-  uint32_t io_reo_type;   /* client's (private) object type      */
+  uint32_t io_reo_type;           /* client's (private) object type      */
   MBCSV_REO_HDL io_reo_hdl;       /* client's (private) object hdl       */
-  NCS_UBAID io_uba;       /* Encoded data added to this          */
+  NCS_UBAID io_uba;               /* Encoded data added to this          */
   uint64_t io_req_context;        /* decoded request info */
   uint16_t i_peer_version;        /* version info of peer as per SAF */
 
@@ -110,12 +116,12 @@ typedef struct ncs_mbcsv_cb_enc {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_cb_dec {
-  NCS_MBCSV_MSG_TYPE i_msg_type;  /* type of message to decode           */
-  NCS_MBCSV_ACT_TYPE i_action;    /* checkpoint action: ADD,RMV,UPDATE   */
-  uint32_t i_reo_type;    /* Value passed during encode operation */
-  NCS_UBAID i_uba;        /* data to decode                      */
-  uint64_t o_req_context; /* Keep decoded request information. */
-  uint16_t i_peer_version;        /* version info of peer as per SAF */
+  NCS_MBCSV_MSG_TYPE i_msg_type; /* type of message to decode           */
+  NCS_MBCSV_ACT_TYPE i_action;   /* checkpoint action: ADD,RMV,UPDATE   */
+  uint32_t i_reo_type;           /* Value passed during encode operation */
+  NCS_UBAID i_uba;               /* data to decode                      */
+  uint64_t o_req_context;        /* Keep decoded request information. */
+  uint16_t i_peer_version;       /* version info of peer as per SAF */
 
 } NCS_MBCSV_CB_DEC;
 
@@ -124,9 +130,9 @@ typedef struct ncs_mbcsv_cb_dec {
           An MBCSv client sees this as soon as a new peer is discovered.
 ***************************************************************************/
 
-typedef struct ncs_mbcsv_peer { /* ncsre_enc::op == NCSRE_PEER_INFO  */
-  NCS_MBCSV_CLIENT_SVCID i_service;       /* The clients NCS_SERVICE_ID */
-  uint16_t i_peer_version;        /* version info as per SAF */
+typedef struct ncs_mbcsv_peer {     /* ncsre_enc::op == NCSRE_PEER_INFO  */
+  NCS_MBCSV_CLIENT_SVCID i_service; /* The clients NCS_SERVICE_ID */
+  uint16_t i_peer_version;          /* version info as per SAF */
 
 } NCS_MBCSV_CB_PEER;
 
@@ -135,9 +141,9 @@ typedef struct ncs_mbcsv_peer { /* ncsre_enc::op == NCSRE_PEER_INFO  */
  * the message is now delivered to me.
  ***************************************************************************/
 typedef struct ncs_mbcsv_cb_notify {
-  NCS_UBAID i_uba;        /* encoded message from my peer */
-  uint16_t i_peer_version;        /* version info as per SAF */
-  NCSCONTEXT i_msg;       /* Notif context to for notif message */
+  NCS_UBAID i_uba;         /* encoded message from my peer */
+  uint16_t i_peer_version; /* version info as per SAF */
+  NCSCONTEXT i_msg;        /* Notif context to for notif message */
 
 } NCS_MBCSV_CB_NOTIFY;
 
@@ -145,22 +151,28 @@ typedef struct ncs_mbcsv_cb_notify {
  * MBCSv tells a application when it sees problems.
  ***************************************************************************/
 typedef enum ncs_mbcsv_err_codes {
-  /* Different error codes to be send with the error indication should be added here */
-  NCS_MBCSV_COLD_SYNC_TMR_EXP,    /* Cold Sync timer expired without getting response */
-  NCS_MBCSV_WARM_SYNC_TMR_EXP,    /* Warm Sync timer expired without getting response */
-  NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP,       /* Data Response complete timer expired */
-  NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP,       /* Cold Sync complete timer expired */
-  NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP,       /* Warm Sync complete timer expired */
-  NCS_MBCSV_DATA_RESP_TERMINATED, /* Data responce is terminated. Release context */
-  NCS_MBCSV_COLD_SYNC_RESP_TERMINATED,    /* Cold Sync terminated. Release context */
-  NCS_MBCSV_WARM_SYNC_RESP_TERMINATED     /* Warm Sync terminated. Release context */
+  /* Different error codes to be send with the error indication should be added
+     here */
+  NCS_MBCSV_COLD_SYNC_TMR_EXP,      /* Cold Sync timer expired without getting
+                                       response */
+  NCS_MBCSV_WARM_SYNC_TMR_EXP,      /* Warm Sync timer expired without getting
+                                       response */
+  NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP, /* Data Response complete timer expired */
+  NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP, /* Cold Sync complete timer expired */
+  NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP, /* Warm Sync complete timer expired */
+  NCS_MBCSV_DATA_RESP_TERMINATED,   /* Data responce is terminated. Release
+                                       context */
+  NCS_MBCSV_COLD_SYNC_RESP_TERMINATED, /* Cold Sync terminated. Release context
+                                        */
+  NCS_MBCSV_WARM_SYNC_RESP_TERMINATED  /* Warm Sync terminated. Release context
+                                        */
 } NCS_MBCSV_ERR_CODES;
 
 typedef struct ncs_mbcsv_cb_err_ind {
-  NCS_MBCSV_ERR_CODES i_code;     /* notification code ID              */
-  bool i_err;     /* if true then ERROR else its INFO  */
-  NCSCONTEXT i_arg;       /* value type mapped to code id      */
-  uint16_t i_peer_version;        /* version info as per SAF        */
+  NCS_MBCSV_ERR_CODES i_code; /* notification code ID              */
+  bool i_err;                 /* if true then ERROR else its INFO  */
+  NCSCONTEXT i_arg;           /* value type mapped to code id      */
+  uint16_t i_peer_version;    /* version info as per SAF        */
 
 } NCS_MBCSV_CB_ERR_IND;
 
@@ -178,34 +190,34 @@ typedef struct ncs_mbcsv_cb_err_ind {
 
 typedef enum ncs_mbcsv_cbop {
 
-  NCS_MBCSV_CBOP_ENC,     /* ACTIVE sends/encodes state data     */
-  NCS_MBCSV_CBOP_DEC,     /* STANDBY rcvs/decodes state data     */
-  NCS_MBCSV_CBOP_PEER,    /* PEER versioning info arrives        */
-  NCS_MBCSV_CBOP_NOTIFY,  /* NOTIFY msg arrives from peer        */
-  NCS_MBCSV_CBOP_ERR_IND, /* Error indication to applicatio      */
-  NCS_MBCSV_CBOP_ENC_NOTIFY,      /* NOTIFY msg arrives from peer        */
+  NCS_MBCSV_CBOP_ENC,        /* ACTIVE sends/encodes state data     */
+  NCS_MBCSV_CBOP_DEC,        /* STANDBY rcvs/decodes state data     */
+  NCS_MBCSV_CBOP_PEER,       /* PEER versioning info arrives        */
+  NCS_MBCSV_CBOP_NOTIFY,     /* NOTIFY msg arrives from peer        */
+  NCS_MBCSV_CBOP_ERR_IND,    /* Error indication to applicatio      */
+  NCS_MBCSV_CBOP_ENC_NOTIFY, /* NOTIFY msg arrives from peer        */
 
 } NCS_MBCSV_CBOP;
 
 /* 2) the arg-set that is delivered at the single entry callback           */
 
 typedef struct ncs_mbcsv_cb_arg {
-  NCS_MBCSV_CBOP i_op;    /* ENC, DEC, LAYERM or PEER           */
-  NCS_MBCSV_CLIENT_HDL i_client_hdl;      /* Client handle supplied with Open */
-  NCS_MBCSV_CKPT_HDL i_ckpt_hdl;  /* Checkpoint handle to identify checkpoint */
+  NCS_MBCSV_CBOP i_op;               /* ENC, DEC, LAYERM or PEER           */
+  NCS_MBCSV_CLIENT_HDL i_client_hdl; /* Client handle supplied with Open */
+  NCS_MBCSV_CKPT_HDL i_ckpt_hdl; /* Checkpoint handle to identify checkpoint */
   union {
-    NCS_MBCSV_CB_ENC encode;        /* Callback requests encode           */
-    NCS_MBCSV_CB_DEC decode;        /* Callback requests decode           */
-    NCS_MBCSV_CB_PEER peer; /* callback explains peer's version   */
-    NCS_MBCSV_CB_NOTIFY notify;     /* callback msg has arrived from peer */
-    NCS_MBCSV_CB_ERR_IND error;     /* callback shows MBCSv internal errors */
+    NCS_MBCSV_CB_ENC encode;    /* Callback requests encode           */
+    NCS_MBCSV_CB_DEC decode;    /* Callback requests decode           */
+    NCS_MBCSV_CB_PEER peer;     /* callback explains peer's version   */
+    NCS_MBCSV_CB_NOTIFY notify; /* callback msg has arrived from peer */
+    NCS_MBCSV_CB_ERR_IND error; /* callback shows MBCSv internal errors */
   } info;
 
 } NCS_MBCSV_CB_ARG;
 
 /* 3) the func prototype of callback; client provides & of a function      */
 
-typedef uint32_t (*NCS_MBCSV_CB) (NCS_MBCSV_CB_ARG *arg);
+typedef uint32_t (*NCS_MBCSV_CB)(NCS_MBCSV_CB_ARG *arg);
 
 /***************************************************************************
 
@@ -222,10 +234,10 @@ typedef uint32_t (*NCS_MBCSV_CB) (NCS_MBCSV_CB_ARG *arg);
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_initialize {
-  NCS_MBCSV_CB i_mbcsv_cb;        /* client gives callback funcs        */
-  uint16_t i_version;     /* client version info as per SAF     */
-  NCS_MBCSV_CLIENT_SVCID i_service;       /* service id of client               */
-  NCS_MBCSV_HDL o_mbcsv_hdl;      /* MBCSv returns handle for calls       */
+  NCS_MBCSV_CB i_mbcsv_cb;          /* client gives callback funcs        */
+  uint16_t i_version;               /* client version info as per SAF     */
+  NCS_MBCSV_CLIENT_SVCID i_service; /* service id of client               */
+  NCS_MBCSV_HDL o_mbcsv_hdl;        /* MBCSv returns handle for calls       */
 
 } NCS_MBCSV_INITIALIZE;
 
@@ -234,7 +246,7 @@ typedef struct ncs_mbcsv_initialize {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_sel_obj_get {
-  SaSelectionObjectT o_select_obj;        /* OS Handle                        */
+  SaSelectionObjectT o_select_obj; /* OS Handle                        */
 
 } NCS_MBCSV_SEL_OBJ_GET;
 
@@ -243,7 +255,7 @@ typedef struct ncs_mbcsv_sel_obj_get {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_dispatch {
-  SaDispatchFlagsT i_disp_flags;  /* one of ONE, ALL or BLOCKING       */
+  SaDispatchFlagsT i_disp_flags; /* one of ONE, ALL or BLOCKING       */
 
 } NCS_MBCSV_DISPATCH;
 
@@ -252,7 +264,7 @@ typedef struct ncs_mbcsv_dispatch {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_finalize {
-  uint16_t i_dummy;       /* noop; dummy keeps struct viable    */
+  uint16_t i_dummy; /* noop; dummy keeps struct viable    */
 
 } NCS_MBCSV_FINALIZE;
 
@@ -275,9 +287,9 @@ typedef struct ncs_mbcsv_finalize {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_open {
-  uint32_t i_pwe_hdl;     /* MBCSv assumes MDS; PWE/Global/etc    */
-  NCS_MBCSV_CLIENT_HDL i_client_hdl;      /* MBCSv passes back in callbacks       */
-  NCS_MBCSV_CKPT_HDL o_ckpt_hdl;  /* MBCSv binding value for this open    */
+  uint32_t i_pwe_hdl;                /* MBCSv assumes MDS; PWE/Global/etc    */
+  NCS_MBCSV_CLIENT_HDL i_client_hdl; /* MBCSv passes back in callbacks       */
+  NCS_MBCSV_CKPT_HDL o_ckpt_hdl;     /* MBCSv binding value for this open    */
 
 } NCS_MBCSV_OPEN;
 
@@ -287,7 +299,7 @@ typedef struct ncs_mbcsv_open {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_close {
-  NCS_MBCSV_CKPT_HDL i_ckpt_hdl;  /* MBCSv hdl established at OPEN time   */
+  NCS_MBCSV_CKPT_HDL i_ckpt_hdl; /* MBCSv hdl established at OPEN time   */
 
 } NCS_MBCSV_CLOSE;
 /***************************************************************************
@@ -297,7 +309,7 @@ typedef struct ncs_mbcsv_close {
 
 typedef struct ncs_mbcsv_chg_role {
   NCS_MBCSV_CKPT_HDL i_ckpt_hdl;
-  SaAmfHAStateT i_ha_state;       /* Active/Standby/Quisced/Stopping    */
+  SaAmfHAStateT i_ha_state; /* Active/Standby/Quisced/Stopping    */
 
 } NCS_MBCSV_CHG_ROLE;
 
@@ -322,9 +334,9 @@ typedef struct ncs_mbcsv_chg_role {
 ***************************************************************************/
 
 typedef enum ncs_mbcsv_snd_type {
-  NCS_MBCSV_SND_SYNC,     /* hold invoker thread till ACK back from STANDBY */
-  NCS_MBCSV_SND_USR_ASYNC,        /* hold invoker thread till MSG goes to Transport */
-  NCS_MBCSV_SND_MBC_ASYNC /* MBCSv work queue gets send REQ; process later   */
+  NCS_MBCSV_SND_SYNC,      /* hold invoker thread till ACK back from STANDBY */
+  NCS_MBCSV_SND_USR_ASYNC, /* hold invoker thread till MSG goes to Transport */
+  NCS_MBCSV_SND_MBC_ASYNC  /* MBCSv work queue gets send REQ; process later   */
 } NCS_MBCSV_SND_TYPE;
 
 /***************************************************************************
@@ -335,17 +347,17 @@ typedef enum ncs_mbcsv_snd_type {
 typedef struct ncs_mbcsv_send_ckpt {
   NCS_MBCSV_CKPT_HDL i_ckpt_hdl;  /* Send message to my peer            */
   NCS_MBCSV_SND_TYPE i_send_type; /* SYNC or flavor of ASYNC            */
-  uint32_t i_reo_type;    /* pvt REO type; pass to ENCODE       */
+  uint32_t i_reo_type;            /* pvt REO type; pass to ENCODE       */
   MBCSV_REO_HDL i_reo_hdl;        /* pvt REO ptr/hdl; pass to ENCODE    */
   NCS_MBCSV_ACT_TYPE i_action;    /* ckpt action: ADD,RMV,UPDATE        */
-  bool io_no_peer;        /* Appl wants to know about peer existance */
+  bool io_no_peer;                /* Appl wants to know about peer existance */
 
 } NCS_MBCSV_SEND_CKPT;
 
 typedef enum ncs_mbcsv_ntfy_msg_dest {
-  NCS_MBCSV_ACTIVE,       /* Send message to ACTIVE peer */
-  NCS_MBCSV_STANDBY,      /* Send message to all STANDBY peers */
-  NCS_MBCSV_ALL_PEERS     /* Send this message to all peers */
+  NCS_MBCSV_ACTIVE,   /* Send message to ACTIVE peer */
+  NCS_MBCSV_STANDBY,  /* Send message to all STANDBY peers */
+  NCS_MBCSV_ALL_PEERS /* Send this message to all peers */
 } NCS_MBCSV_NTFY_MSG_DEST;
 
 /***************************************************************************
@@ -354,20 +366,21 @@ typedef enum ncs_mbcsv_ntfy_msg_dest {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_send_notify {
-  NCS_MBCSV_CKPT_HDL i_ckpt_hdl;  /* Send message to my peer */
+  NCS_MBCSV_CKPT_HDL i_ckpt_hdl; /* Send message to my peer */
   NCS_MBCSV_NTFY_MSG_DEST i_msg_dest;
-  NCSCONTEXT i_msg;       /* Notif context to get in notif enc cbk */
+  NCSCONTEXT i_msg; /* Notif context to get in notif enc cbk */
 
 } NCS_MBCSV_SEND_NOTIFY;
 
 /***************************************************************************
  * Data Request is a free-form, stateless message that standby can send to its
- * Active peer at any time after OPEN time, assuming the Active peer is 'attached'.
+ * Active peer at any time after OPEN time, assuming the Active peer is
+ *'attached'.
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_send_data_req {
-  NCS_MBCSV_CKPT_HDL i_ckpt_hdl;  /* Send message to my peer            */
-  NCS_UBAID i_uba;        /* encoded message for my peer        */
+  NCS_MBCSV_CKPT_HDL i_ckpt_hdl; /* Send message to my peer            */
+  NCS_UBAID i_uba;               /* encoded message for my peer        */
 
 } NCS_MBCSV_SEND_DATA_REQ;
 
@@ -386,29 +399,29 @@ typedef struct ncs_mbcsv_send_data_req {
  * Callback function prototype provided by usr at subscribe time
  ***************************************************************************/
 
-struct ncs_mbcsv_fevt;  /* NCS_MBCSV_FEVT def later in file:compiler is happy     */
+struct ncs_mbcsv_fevt; /* NCS_MBCSV_FEVT def later in file:compiler is happy */
 
-typedef void (*NCS_MBCSV_SUB_CB) (struct ncs_mbcsv_fevt * fevt_data);
+typedef void (*NCS_MBCSV_SUB_CB)(struct ncs_mbcsv_fevt *fevt_data);
 
 /***************************************************************************
  *  NCS_MBCSV_DIR specifies if we are interested in a message sent or rvcd
  ***************************************************************************/
 
 typedef enum ncs_mbcsv_dir {
-  NCS_MBCSV_DIR_SENT,     /* msg sent by watched (the 'other' client)    */
-  NCS_MBCSV_DIR_RCVD      /* msg rcvd by watched (the 'other' client)    */
+  NCS_MBCSV_DIR_SENT, /* msg sent by watched (the 'other' client)    */
+  NCS_MBCSV_DIR_RCVD  /* msg rcvd by watched (the 'other' client)    */
 } NCS_MBCSV_DIR;
 
 /***************************************************************************
  * NCS_MBCSV_FLTR is an arg to subscription APIs to qualify event to watch for
  ***************************************************************************/
 
-typedef struct ncs_mbcsv_fltr { /* Subscription Service Filter Values */
-  NCS_MBCSV_SUB_CB i_cb_func;     /* callback func when event occurs    */
-  NCSCONTEXT i_my_ctxt;   /* optional callback assist value     */
-  NCS_MBCSV_CKPT_HDL i_its_ckpt_hdl;      /* ckpt_hdl of watched msg stream  */
-  NCS_MBCSV_DIR i_dir;    /* watch for msg going this direction */
-  NCS_MBCSV_MSG_TYPE i_msg_id;    /* watch for msg of this type         */
+typedef struct ncs_mbcsv_fltr {      /* Subscription Service Filter Values */
+  NCS_MBCSV_SUB_CB i_cb_func;        /* callback func when event occurs    */
+  NCSCONTEXT i_my_ctxt;              /* optional callback assist value     */
+  NCS_MBCSV_CKPT_HDL i_its_ckpt_hdl; /* ckpt_hdl of watched msg stream  */
+  NCS_MBCSV_DIR i_dir;               /* watch for msg going this direction */
+  NCS_MBCSV_MSG_TYPE i_msg_id;       /* watch for msg of this type         */
 
 } NCS_MBCSV_FLTR;
 
@@ -421,12 +434,12 @@ typedef enum ncs_mbcsv_evt_status {
   NCS_MBCSV_STATUS_CKPT_CLOSED
 } NCS_MBCSV_EVT_STATUS;
 
-typedef struct ncs_mbcsv_fevt { /* Subscription Service Filter Event Values     */
-  NCS_MBCSV_EVT_STATUS i_status;  /* SUCCESS:msg seen, FAILURE: tmr exp */
-  NCSCONTEXT i_my_ctxt;   /* optional cb assist value arrives   */
-  NCS_MBCSV_CKPT_HDL i_its_ckpt_hdl;      /* ckpt_hdl of watched stream     */
-  NCS_MBCSV_DIR i_dir;    /* direction of 'found' message       */
-  NCS_MBCSV_MSG_TYPE i_msg_id;    /* watch for msg of this type         */
+typedef struct ncs_mbcsv_fevt {  /* Subscription Service Filter Event Values  */
+  NCS_MBCSV_EVT_STATUS i_status; /* SUCCESS:msg seen, FAILURE: tmr exp */
+  NCSCONTEXT i_my_ctxt;          /* optional cb assist value arrives   */
+  NCS_MBCSV_CKPT_HDL i_its_ckpt_hdl; /* ckpt_hdl of watched stream     */
+  NCS_MBCSV_DIR i_dir;               /* direction of 'found' message       */
+  NCS_MBCSV_MSG_TYPE i_msg_id;       /* watch for msg of this type         */
 
 } NCS_MBCSV_FEVT;
 
@@ -451,10 +464,11 @@ typedef struct ncs_mbcsv_fevt { /* Subscription Service Filter Event Values     
 /* R- : Read only; can do get operations on this object                    */
 /* -W : Write only; can do set operations on this object                   */
 
-typedef enum {          /*     V a l u e   E x p r e s s i o n       */
-  /*-------------------------------------------*/
-  NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF, /* RW ENABLE|DISABLE warm sync msg SMM review */
-  NCS_MBCSV_OBJ_TMR_WSYNC,        /* RW 10msec Send warm sync @ expiry         */
+typedef enum { /*     V a l u e   E x p r e s s i o n       */
+               /*-------------------------------------------*/
+               NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF, /* RW ENABLE|DISABLE warm sync
+                                                  msg SMM review */
+               NCS_MBCSV_OBJ_TMR_WSYNC, /* RW 10msec Send warm sync @ expiry */
 
 } NCS_MBCSV_OBJ;
 
@@ -463,9 +477,9 @@ typedef enum {          /*     V a l u e   E x p r e s s i o n       */
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_obj_set {
-  NCS_MBCSV_CKPT_HDL i_ckpt_hdl;  /* the client instance changing      */
-  NCS_MBCSV_OBJ i_obj;    /* the OBJ ID whose value is to SET  */
-  uint32_t i_val; /* the value the OBJ is to be SET to */
+  NCS_MBCSV_CKPT_HDL i_ckpt_hdl; /* the client instance changing      */
+  NCS_MBCSV_OBJ i_obj;           /* the OBJ ID whose value is to SET  */
+  uint32_t i_val;                /* the value the OBJ is to be SET to */
 
 } NCS_MBCSV_OBJ_SET;
 
@@ -474,9 +488,9 @@ typedef struct ncs_mbcsv_obj_set {
  ***************************************************************************/
 
 typedef struct ncs_mbcsv_obj_get {
-  NCS_MBCSV_CKPT_HDL i_ckpt_hdl;  /* Fetched value is from this client */
-  NCS_MBCSV_OBJ i_obj;    /* the OBJID of value to fetch       */
-  uint32_t o_val; /* the value fetched goes here       */
+  NCS_MBCSV_CKPT_HDL i_ckpt_hdl; /* Fetched value is from this client */
+  NCS_MBCSV_OBJ i_obj;           /* the OBJID of value to fetch       */
+  uint32_t o_val;                /* the value fetched goes here       */
 
 } NCS_MBCSV_OBJ_GET;
 
@@ -506,37 +520,36 @@ typedef enum ncs_mbcsv_op {
 
   /* Message based checkpoint library life cycle OP codes                  */
 
-  NCS_MBCSV_OP_INITIALIZE,        /* put an MBCSv instance in start state   */
-  NCS_MBCSV_OP_SEL_OBJ_GET,       /* Get SELECT obj to coordinate Dispatch */
-  NCS_MBCSV_OP_DISPATCH,  /* Service any pending Callbacks        */
-  NCS_MBCSV_OP_FINALIZE,  /* Recover MBCSv instance resources       */
+  NCS_MBCSV_OP_INITIALIZE,  /* put an MBCSv instance in start state   */
+  NCS_MBCSV_OP_SEL_OBJ_GET, /* Get SELECT obj to coordinate Dispatch */
+  NCS_MBCSV_OP_DISPATCH,    /* Service any pending Callbacks        */
+  NCS_MBCSV_OP_FINALIZE,    /* Recover MBCSv instance resources       */
 
   /* engage and/or disengage checkpointing, change HA role OP codes        */
 
-  NCS_MBCSV_OP_OPEN,      /* initiate contact with peer entity    */
-  NCS_MBCSV_OP_CLOSE,     /* dis-engage from peer entity relation */
-  NCS_MBCSV_OP_CHG_ROLE,  /* change client's HA state-machine     */
+  NCS_MBCSV_OP_OPEN,     /* initiate contact with peer entity    */
+  NCS_MBCSV_OP_CLOSE,    /* dis-engage from peer entity relation */
+  NCS_MBCSV_OP_CHG_ROLE, /* change client's HA state-machine     */
 
   /* Checkpoint and stateless messages to peer OP codes                    */
 
-  NCS_MBCSV_OP_SEND_CKPT, /* Send a Checkpoint to my peer entity  */
-  NCS_MBCSV_OP_SEND_NOTIFY,       /* Send a freeform msg to my peer entity */
-  NCS_MBCSV_OP_SEND_DATA_REQ,     /* Send a Data request Message to Active peer */
+  NCS_MBCSV_OP_SEND_CKPT,     /* Send a Checkpoint to my peer entity  */
+  NCS_MBCSV_OP_SEND_NOTIFY,   /* Send a freeform msg to my peer entity */
+  NCS_MBCSV_OP_SEND_DATA_REQ, /* Send a Data request Message to Active peer */
 
   /* configuration SET and GET operations only after init OP codes         */
 
-  NCS_MBCSV_OP_OBJ_GET,   /* GET val scoped to client            */
-  NCS_MBCSV_OP_OBJ_SET    /* SET val scoped to client|collection */
+  NCS_MBCSV_OP_OBJ_GET, /* GET val scoped to client            */
+  NCS_MBCSV_OP_OBJ_SET  /* SET val scoped to client|collection */
 } NCS_MBCSV_OP;
 
 /* 2) The MBCSv service arguments filled in by invoking client               */
 
 typedef struct ncs_mbcsv_arg {
-  NCS_MBCSV_OP i_op;      /* which sub-structure is populated?   */
-  NCS_MBCSV_HDL i_mbcsv_hdl;      /* operate on this MBCSv instance        */
+  NCS_MBCSV_OP i_op;         /* which sub-structure is populated?   */
+  NCS_MBCSV_HDL i_mbcsv_hdl; /* operate on this MBCSv instance        */
 
   union {
-
     /* Message based checkpoint library life cycle functions               */
 
     NCS_MBCSV_INITIALIZE initialize;
@@ -567,12 +580,12 @@ typedef struct ncs_mbcsv_arg {
 
 /* 3) function entry point and prototype for MBCSv service                   */
 
-/*typedef uint32_t (*NCS_MBCSV) (NCS_MBCSV_ARG* arg);  function prototype           */
-uint32_t ncs_mbcsv_svc(NCS_MBCSV_ARG *arg);     /* MBCSv function instance        */
+/*typedef uint32_t (*NCS_MBCSV) (NCS_MBCSV_ARG* arg);  function prototype */
+uint32_t ncs_mbcsv_svc(NCS_MBCSV_ARG *arg); /* MBCSv function instance        */
 
 uint32_t mbcsv_prt_inv(void);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

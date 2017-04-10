@@ -18,6 +18,6 @@
 #include "base/tests/mock_syslog.h"
 
 void syslog(int priority, const char *format, ...) {
-  (void) priority;
-  (void) format;
+  (void)priority;
+  (void)format;
 }

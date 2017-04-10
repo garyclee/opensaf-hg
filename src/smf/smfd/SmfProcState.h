@@ -51,30 +51,28 @@ class SmfSwapThread;
 ///
 class SmfProcState {
  public:
+  virtual ~SmfProcState(){};
 
-	virtual ~ SmfProcState() {
-	};
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT execute(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT execute(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT executeStep(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT executeStep(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT rollbackStep(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT rollbackStep(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT rollback(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT rollback(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT suspend(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT suspend(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT commit(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT commit(SmfUpgradeProcedure * i_proc);
+  virtual SaSmfProcStateT getState() const = 0;
 
-	virtual SaSmfProcStateT getState() const = 0;
+  friend class SmfSwapThread;
 
-	friend class SmfSwapThread;
  protected:
-
-	void changeState(SmfUpgradeProcedure * i_proc, SmfProcState * i_state);
+  void changeState(SmfUpgradeProcedure *i_proc, SmfProcState *i_state);
 };
 
 //================================================================================
@@ -83,21 +81,18 @@ class SmfProcState {
 ///
 /// Purpose: The initial state of the upgrade procedure.
 ///
-class SmfProcStateInitial:public SmfProcState {
+class SmfProcStateInitial : public SmfProcState {
  public:
+  static SmfProcState *instance(void);
 
-	static SmfProcState *instance(void);
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT execute(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT executeInit(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT execute(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT executeInit(SmfUpgradeProcedure * i_proc);
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_INITIAL;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_INITIAL; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -106,26 +101,23 @@ class SmfProcStateInitial:public SmfProcState {
 ///
 /// Purpose: The executing state of the upgrade procedure.
 ///
-class SmfProcStateExecuting:public SmfProcState {
+class SmfProcStateExecuting : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT execute(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT execute(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT executeStep(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT executeStep(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT executeWrapup(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT executeWrapup(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT suspend(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT suspend(SmfUpgradeProcedure * i_proc);
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_EXECUTING;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_EXECUTING; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -134,21 +126,18 @@ class SmfProcStateExecuting:public SmfProcState {
 ///
 /// Purpose: The execution completed state of the upgrade procedure.
 ///
-class SmfProcStateExecutionCompleted:public SmfProcState {
+class SmfProcStateExecutionCompleted : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT rollback(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT rollbackWrapup(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT rollback(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT rollbackWrapup(SmfUpgradeProcedure * i_proc);
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_COMPLETED;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_COMPLETED; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -157,22 +146,19 @@ class SmfProcStateExecutionCompleted:public SmfProcState {
 ///
 /// Purpose: The execution suspended state of the upgrade procedure.
 ///
-class SmfProcStateExecSuspended:public SmfProcState {
+class SmfProcStateExecSuspended : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT execute(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT executeStep(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT rollback(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT execute(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT executeStep(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT rollback(SmfUpgradeProcedure * i_proc);
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_SUSPENDED;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_SUSPENDED; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -181,18 +167,15 @@ class SmfProcStateExecSuspended:public SmfProcState {
 ///
 /// Purpose: The execution failed state of the upgrade procedure.
 ///
-class SmfProcStateExecFailed:public SmfProcState {
+class SmfProcStateExecFailed : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_FAILED;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_FAILED; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -201,22 +184,19 @@ class SmfProcStateExecFailed:public SmfProcState {
 ///
 /// Purpose: The step undone state of the upgrade procedure.
 ///
-class SmfProcStateStepUndone:public SmfProcState {
+class SmfProcStateStepUndone : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT execute(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT execute(SmfUpgradeProcedure * i_proc);
+  virtual SmfProcResultT rollback(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT rollback(SmfUpgradeProcedure * i_proc);
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_STEP_UNDONE;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_STEP_UNDONE; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -225,23 +205,20 @@ class SmfProcStateStepUndone:public SmfProcState {
 ///
 /// Purpose: The rolling back state of the upgrade procedure.
 ///
-class SmfProcStateRollingBack:public SmfProcState {
+class SmfProcStateRollingBack : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT rollback(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT rollbackStep(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT rollbackInit(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT suspend(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT rollback(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT rollbackStep(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT rollbackInit(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT suspend(SmfUpgradeProcedure * i_proc);
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_ROLLING_BACK;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_ROLLING_BACK; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -250,21 +227,20 @@ class SmfProcStateRollingBack:public SmfProcState {
 ///
 /// Purpose: The rollback suspended state of the upgrade procedure.
 ///
-class SmfProcStateRollbackSuspended:public SmfProcState {
+class SmfProcStateRollbackSuspended : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfProcResultT rollbackStep(SmfUpgradeProcedure *i_proc);
+  virtual SmfProcResultT rollback(SmfUpgradeProcedure *i_proc);
 
-	virtual SmfProcResultT rollbackStep(SmfUpgradeProcedure * i_proc);
-	virtual SmfProcResultT rollback(SmfUpgradeProcedure * i_proc);
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_ROLLBACK_SUSPENDED;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const {
+    return SA_SMF_PROC_ROLLBACK_SUSPENDED;
+  }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -273,18 +249,15 @@ class SmfProcStateRollbackSuspended:public SmfProcState {
 ///
 /// Purpose: The rolled back state of the upgrade procedure.
 ///
-class SmfProcStateRolledBack:public SmfProcState {
+class SmfProcStateRolledBack : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
-
-        virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_ROLLED_BACK;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const { return SA_SMF_PROC_ROLLED_BACK; }
+ private:
+  static SmfProcState *s_instance;
 };
 
 //================================================================================
@@ -293,18 +266,17 @@ class SmfProcStateRolledBack:public SmfProcState {
 ///
 /// Purpose: The rollback failed state of the upgrade procedure.
 ///
-class SmfProcStateRollbackFailed:public SmfProcState {
+class SmfProcStateRollbackFailed : public SmfProcState {
  public:
+  static SmfProcState *instance();
 
-	static SmfProcState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
-
-	virtual SaSmfProcStateT getState() const {
-		return SA_SMF_PROC_ROLLBACK_FAILED;
- } private:
-
-	static SmfProcState *s_instance;
+  virtual SaSmfProcStateT getState() const {
+    return SA_SMF_PROC_ROLLBACK_FAILED;
+  }
+ private:
+  static SmfProcState *s_instance;
 };
 
 #endif  // SMF_SMFD_SMFPROCSTATE_H_

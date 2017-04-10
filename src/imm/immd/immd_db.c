@@ -18,7 +18,7 @@
 /*****************************************************************************
 
   DESCRIPTION:
-  
+
   This file contains the IMMD Database access Routines
 *****************************************************************************/
 
@@ -37,7 +37,8 @@ uint32_t immd_immnd_info_tree_init(IMMD_CB *cb)
 	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
 	param.key_size = sizeof(NODE_ID);
-	if (ncs_patricia_tree_init(&cb->immnd_tree, &param) != NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_init(&cb->immnd_tree, &param) !=
+	    NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
 	cb->is_immnd_tree_up = true;
@@ -48,11 +49,12 @@ uint32_t immd_immnd_info_tree_init(IMMD_CB *cb)
   Name          : immd_immnd_info_node_get
   Description   : This routine finds the IMMND Info node.
   Arguments     : immnd_tree - IMMND Tree.
-                  dest - MDS_DEST
+		  dest - MDS_DEST
   Return Values : immnd_info_node - IMMND Node
-                  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+		  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
-uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node)
+uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
+				  IMMD_IMMND_INFO_NODE **immnd_info_node)
 {
 	NODE_ID key;
 
@@ -60,8 +62,8 @@ uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
 	/* Fill the Key */
 	key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
-	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-	    ncs_patricia_tree_get(immnd_tree, (uint8_t *)&key);
+	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_get(
+	    immnd_tree, (uint8_t *)&key);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -70,12 +72,13 @@ uint32_t immd_immnd_info_node_get(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
   Name          : immd_immnd_info_node_getnext
   Description   : This routine finds the IMMND Info node.
   Arguments     : immnd_tree - IMMND Tree.
-                  dest - MDS_DEST
+		  dest - MDS_DEST
   Return Values : immnd_info_node - IMMND Node
-                  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+		  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function
 *****************************************************************************/
-void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node)
+void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
+				  IMMD_IMMND_INFO_NODE **immnd_info_node)
 {
 	NODE_ID key;
 	memset(&key, 0, sizeof(NODE_ID));
@@ -84,21 +87,22 @@ void immd_immnd_info_node_getnext(NCS_PATRICIA_TREE *immnd_tree, MDS_DEST *dest,
 	if (dest) {
 		key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
-		*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(immnd_tree, (uint8_t *)&key);
+		*immnd_info_node =
+		    (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
+			immnd_tree, (uint8_t *)&key);
 	} else
-		*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(immnd_tree, (uint8_t *)NULL);
+		*immnd_info_node =
+		    (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
+			immnd_tree, (uint8_t *)NULL);
 
 	return;
-
 }
 
 /****************************************************************************
   Name          : immd_immnd_info_node_add
   Description   : This routine adds the new node to immnd_tree.
   Arguments     : immnd_tree - IMMND Tree.
-                  immnd_node -  IMMND Node.
+		  immnd_node -  IMMND Node.
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function
 *****************************************************************************/
@@ -125,11 +129,13 @@ uint32_t immd_immnd_info_node_add(NCS_PATRICIA_TREE *immnd_tree, IMMD_IMMND_INFO
   Name          : immd_immnd_info_node_find_add
   Description   : This routine adds the new node to immnd_tree.
   Arguments     : immnd_tree - IMMND Tree.
-                  immnd_info_node -  IMMND Node.
+		  immnd_info_node -  IMMND Node.
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 *****************************************************************************/
 uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
-				    MDS_DEST *dest, IMMD_IMMND_INFO_NODE **immnd_info_node, bool *add_flag)
+				       MDS_DEST *dest,
+				       IMMD_IMMND_INFO_NODE **immnd_info_node,
+				       bool *add_flag)
 {
 	NODE_ID key;
 
@@ -137,8 +143,8 @@ uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 	/* Fill the Key */
 	key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
 
-	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-	    ncs_patricia_tree_get(immnd_tree, (uint8_t *)&key);
+	*immnd_info_node = (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_get(
+	    immnd_tree, (uint8_t *)&key);
 	if ((*immnd_info_node == NULL) && (*add_flag == true)) {
 		*immnd_info_node = calloc(1, sizeof(IMMD_IMMND_INFO_NODE));
 		if (*immnd_info_node == NULL) {
@@ -147,10 +153,14 @@ uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
 		}
 
 		(*immnd_info_node)->immnd_dest = *dest;
-		(*immnd_info_node)->immnd_key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
-		(*immnd_info_node)->patnode.key_info = (uint8_t *)&((*immnd_info_node)->immnd_key);
+		(*immnd_info_node)->immnd_key =
+		    m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
+		(*immnd_info_node)->patnode.key_info =
+		    (uint8_t *)&((*immnd_info_node)->immnd_key);
 
-		if (ncs_patricia_tree_add(immnd_tree, &(*immnd_info_node)->patnode) != NCSCC_RC_SUCCESS) {
+		if (ncs_patricia_tree_add(immnd_tree,
+					  &(*immnd_info_node)->patnode) !=
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("ncs_patricia_tree_add FAILED");
 			free(*immnd_info_node);
 			*immnd_info_node = NULL;
@@ -166,15 +176,17 @@ uint32_t immd_immnd_info_node_find_add(NCS_PATRICIA_TREE *immnd_tree,
   Name          : immd_immnd_info_node_delete
   Description   : This routine deletes the immnd_info node from tree
   Arguments     : IMMD_CB *cb - IMMD Control Block.
-                : IMMD_IMMND_INFO_NODE *immnd_info - IMMND Info Node.
+		: IMMD_IMMND_INFO_NODE *immnd_info - IMMND Info Node.
   Return Values : None
 *****************************************************************************/
-uint32_t immd_immnd_info_node_delete(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info_node)
+uint32_t immd_immnd_info_node_delete(IMMD_CB *cb,
+				     IMMD_IMMND_INFO_NODE *immnd_info_node)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	/* Remove the Node from the client tree */
-	if (ncs_patricia_tree_del(&cb->immnd_tree, &immnd_info_node->patnode) != NCSCC_RC_SUCCESS) {
+	if (ncs_patricia_tree_del(&cb->immnd_tree, &immnd_info_node->patnode) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_WA("IMMD - IMMND INFO NODE DELETE FROM PAT TREE FAILED");
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -201,15 +213,16 @@ void immd_immnd_info_tree_cleanup(IMMD_CB *cb)
 	memset(&key, 0, sizeof(NODE_ID));
 
 	/* Get the First Node */
-	immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-	    ncs_patricia_tree_getnext(&cb->immnd_tree, (uint8_t *)&key);
+	immnd_info_node = (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
+	    &cb->immnd_tree, (uint8_t *)&key);
 	while (immnd_info_node) {
 		key = m_NCS_NODE_ID_FROM_MDS_DEST(immnd_info_node->immnd_dest);
 
 		immd_immnd_info_node_delete(cb, immnd_info_node);
 
-		immnd_info_node = (IMMD_IMMND_INFO_NODE *)
-		    ncs_patricia_tree_getnext(&cb->immnd_tree, (uint8_t *)&key);
+		immnd_info_node =
+		    (IMMD_IMMND_INFO_NODE *)ncs_patricia_tree_getnext(
+			&cb->immnd_tree, (uint8_t *)&key);
 	}
 
 	return;
@@ -238,13 +251,13 @@ void immd_immnd_info_tree_destroy(IMMD_CB *cb)
 /****************************************************************************
  * Name          : immd_cb_db_init
  *
- * Description   : This is the function which initializes all the data 
+ * Description   : This is the function which initializes all the data
  *                 structures and locks used belongs to IMMD.
  *
  * Arguments     : cb  - IMMD control block pointer.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
-*****************************************************************************/
+ *****************************************************************************/
 uint32_t immd_cb_db_init(IMMD_CB *cb)
 {
 	uint32_t rc = immd_immnd_info_tree_init(cb);
@@ -255,7 +268,7 @@ uint32_t immd_cb_db_init(IMMD_CB *cb)
 
 	cb->mRim = SA_IMM_INIT_FROM_FILE;
 	cb->m2PbeCanLoad = !cb->mIs2Pbe;
-	if((cb->ha_state == SA_AMF_HA_ACTIVE) && !cb->mScAbsenceAllowed) {
+	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && !cb->mScAbsenceAllowed) {
 		cb->is_loading = true;
 	}
 
@@ -321,7 +334,7 @@ void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 	new_msg->fevsMsg.client_hdl = fevs_msg->client_hdl;
 	new_msg->fevsMsg.msg.size = fevs_msg->msg.size;
 	new_msg->fevsMsg.msg.buf = fevs_msg->msg.buf;
-	fevs_msg->msg.buf = NULL;	/* steal the message */
+	fevs_msg->msg.buf = NULL; /* steal the message */
 	fevs_msg->msg.size = 0;
 
 	IMMD_SAVED_FEVS_MSG *prior = cb->saved_msgs;
@@ -332,13 +345,15 @@ void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 			prior = prior->next;
 		}
 		++nrof_msgs;
-		TRACE_5("%u'th message added. Message no %llu", nrof_msgs, new_msg->fevsMsg.sender_count);
+		TRACE_5("%u'th message added. Message no %llu", nrof_msgs,
+			new_msg->fevsMsg.sender_count);
 		prior->next = new_msg;
 		if (nrof_msgs > IMMD_MBCSV_MAX_MSG_CNT) {
 			/* Discard oldest message */
 			prior = cb->saved_msgs;
 			cb->saved_msgs = cb->saved_msgs->next;
-			TRACE_5("Message no %llu discarded", prior->fevsMsg.sender_count);
+			TRACE_5("Message no %llu discarded",
+				prior->fevsMsg.sender_count);
 			free(prior->fevsMsg.msg.buf);
 			prior->fevsMsg.msg.buf = NULL;
 			prior->fevsMsg.msg.size = 0;
@@ -372,13 +387,13 @@ IMMSV_FEVS *immd_db_get_fevs(IMMD_CB *cb, const uint16_t back_count)
 		old_msg = old_msg->next;
 	}
 
-	if(old_msgs[0]) {
-		if(old_msgs[0]->re_sent) {
-			LOG_NO("Skipping re-send of fevs message %llu since it has "
-				"recently been resent.",
-				old_msgs[0]->fevsMsg.sender_count);
+	if (old_msgs[0]) {
+		if (old_msgs[0]->re_sent) {
+			LOG_NO(
+			    "Skipping re-send of fevs message %llu since it has "
+			    "recently been resent.",
+			    old_msgs[0]->fevsMsg.sender_count);
 			return NULL;
-
 		}
 		old_msgs[0]->re_sent = true;
 		return &(old_msgs[0]->fevsMsg);
@@ -406,5 +421,5 @@ void immd_db_purge_fevs(IMMD_CB *cb)
 
 uint32_t immd_immnd_info_node_cardinality(NCS_PATRICIA_TREE *immnd_tree)
 {
-	return 	ncs_patricia_tree_size(immnd_tree);
+	return ncs_patricia_tree_size(immnd_tree);
 }

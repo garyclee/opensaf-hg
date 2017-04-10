@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -44,7 +44,8 @@ extern "C" {
  *
  * The return value will always be in the range [0, i_nfds].
  */
-extern unsigned osaf_poll(struct pollfd* io_fds, nfds_t i_nfds, int64_t i_timeout);
+extern unsigned osaf_poll(struct pollfd* io_fds, nfds_t i_nfds,
+                          int64_t i_timeout);
 
 /**
  * @brief Wait for events on file descriptors
@@ -61,7 +62,8 @@ extern unsigned osaf_poll(struct pollfd* io_fds, nfds_t i_nfds, int64_t i_timeou
  * The return value will always be in the range [0, i_nfds].
  */
 extern unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
-                           const struct timespec* i_timeout_ts, const sigset_t* i_sigmask);
+                           const struct timespec* i_timeout_ts,
+                           const sigset_t* i_sigmask);
 
 /**
  * @brief Wait for events on a file descriptor
@@ -89,9 +91,9 @@ extern unsigned osaf_ppoll(struct pollfd* io_fds, nfds_t i_nfds,
  *
  * The return value from this function will always be in the range [-1, 1].
  */
-extern int osaf_poll_one_fd(int i_fd, int64_t  i_timeout);
+extern int osaf_poll_one_fd(int i_fd, int64_t i_timeout);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

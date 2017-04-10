@@ -35,7 +35,7 @@ uint32_t clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 		/* this should not happen */
 		osafassert(0);
 	}
-	if(length >= SA_MAX_NAME_LENGTH) {
+	if (length >= SA_MAX_NAME_LENGTH) {
 		value = (char *)malloc(length + 1);
 	}
 	ncs_dec_skip_space(uba, 2);
@@ -48,7 +48,8 @@ uint32_t clmsv_decodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 	return total_bytes;
 }
 
-uint32_t clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress)
+uint32_t clmsv_decodeNodeAddressT(NCS_UBAID *uba,
+				  SaClmNodeAddressT *nodeAddress)
 {
 	uint8_t local_data[5];
 	uint8_t *p8 = NULL;
@@ -62,13 +63,15 @@ uint32_t clmsv_decodeNodeAddressT(NCS_UBAID *uba, SaClmNodeAddressT *nodeAddress
 	p8 = ncs_dec_flatten_space(uba, local_data, 2);
 	nodeAddress->length = ncs_decode_16bit(&p8);
 	if (nodeAddress->length > SA_MAX_NAME_LENGTH) {
-		LOG_ER("nodeAddress->length length too long: %hd", nodeAddress->length);
+		LOG_ER("nodeAddress->length length too long: %hd",
+		       nodeAddress->length);
 		/* this should not happen */
 		osafassert(0);
 	}
 	ncs_dec_skip_space(uba, 2);
 	total_bytes += 2;
-	ncs_decode_n_octets_from_uba(uba, nodeAddress->value, (uint32_t)nodeAddress->length);
+	ncs_decode_n_octets_from_uba(uba, nodeAddress->value,
+				     (uint32_t)nodeAddress->length);
 	total_bytes += nodeAddress->length;
 	return total_bytes;
 }
@@ -85,7 +88,8 @@ uint32_t clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 		TRACE("p8 NULL!!!");
 		return 0;
 	}
-	if (!osaf_is_extended_names_enabled() && name->length >= SA_MAX_NAME_LENGTH) {
+	if (!osaf_is_extended_names_enabled() &&
+	    name->length >= SA_MAX_NAME_LENGTH) {
 		LOG_ER("SaNameT length too long %hd", name->length);
 		osafassert(0);
 	}
@@ -93,7 +97,8 @@ uint32_t clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 	ncs_encode_16bit(&p8, length);
 	ncs_enc_claim_space(uba, 2);
 	total_bytes += 2;
-	ncs_encode_n_octets_in_uba(uba, (uint8_t *)osaf_extended_name_borrow(name), length);
+	ncs_encode_n_octets_in_uba(
+	    uba, (uint8_t *)osaf_extended_name_borrow(name), length);
 	total_bytes += (uint32_t)length;
 	TRACE_LEAVE();
 	return total_bytes;

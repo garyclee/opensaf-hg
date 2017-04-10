@@ -26,19 +26,14 @@
   glnd_se_lib_destroy...... library used to destroy GLND.
   ncsglnd_lib_req ......... SE API to init or create PWE.
   glnd_main_process ....... main process which is given as thread input.
-  glnd_process_mbx ........ Process Mail box.  
+  glnd_process_mbx ........ Process Mail box.
 
 ******************************************************************************/
 
 #include "lck/lcknd/glnd.h"
 #include "base/osaf_poll.h"
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_MBX,
-	NUM_FD
-};
+enum { FD_TERM = 0, FD_AMF, FD_MBX, NUM_FD };
 
 void glnd_main_process(SYSF_MBX *mbx);
 
@@ -69,7 +64,8 @@ uint32_t glnd_se_lib_create(uint8_t pool_id)
 	}
 	rc = NCSCC_RC_SUCCESS;
 end:
-	TRACE_LEAVE2("%s return value %u", (rc == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE", rc);
+	TRACE_LEAVE2("%s return value %u",
+		     (rc == NCSCC_RC_SUCCESS) ? "SUCCESS" : "FAILURE", rc);
 	return rc;
 }
 
@@ -78,7 +74,7 @@ end:
  *
  * Description   : This is the function which destroy the GLND libarary.
  *
- * Arguments     : 
+ * Arguments     :
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
@@ -99,21 +95,22 @@ uint32_t glnd_se_lib_destroy()
 
 	if ((rc = glnd_cb_destroy(glnd_cb)) != NCSCC_RC_SUCCESS) {
 		TRACE_2("GLND cb destroy failed");
-		rc= NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
 	}
 end:
-	TRACE_LEAVE2("%s return value %u", (rc == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE", rc);
+	TRACE_LEAVE2("%s return value %u",
+		     (rc == NCSCC_RC_SUCCESS) ? "SUCCESS" : "FAILURE", rc);
 	return rc;
 }
 
 /****************************************************************************
  * Name          : glnd_lib_req
  *
- * Description   : This is the NCS SE API which is used to init/destroy or 
+ * Description   : This is the NCS SE API which is used to init/destroy or
  *                 Create/destroy PWE's. This will be called by SBOM.
  *
- * Arguments     : req_info  - This is the pointer to the input information 
- *                             which SBOM gives.  
+ * Arguments     : req_info  - This is the pointer to the input information
+ *                             which SBOM gives.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
@@ -123,31 +120,33 @@ uint32_t glnd_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
 	uint32_t res = NCSCC_RC_FAILURE;
 	TRACE_ENTER();
-	
+
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
-		if( (res = glnd_se_lib_create(NCS_HM_POOL_ID_COMMON))!= NCSCC_RC_SUCCESS )
-			TRACE_2("GLND se lib create failed");	
+		if ((res = glnd_se_lib_create(NCS_HM_POOL_ID_COMMON)) !=
+		    NCSCC_RC_SUCCESS)
+			TRACE_2("GLND se lib create failed");
 		break;
 	case NCS_LIB_REQ_DESTROY:
-		if( (res = glnd_se_lib_destroy()) != NCSCC_RC_SUCCESS )
+		if ((res = glnd_se_lib_destroy()) != NCSCC_RC_SUCCESS)
 			TRACE_2("GLND se lib destroy failed");
 		break;
 	default:
 		break;
 	}
-	TRACE_LEAVE2("%s return value %u", (res == NCSCC_RC_SUCCESS)?"SUCCESS":"FAILURE", res);
+	TRACE_LEAVE2("%s return value %u",
+		     (res == NCSCC_RC_SUCCESS) ? "SUCCESS" : "FAILURE", res);
 	return (res);
 }
 
 /****************************************************************************
  * Name          : glnd_process_mbx
  *
- * Description   : This is the function which process the IPC mail box of 
+ * Description   : This is the function which process the IPC mail box of
  *                 GLND.
  *
- * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -159,11 +158,13 @@ void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx)
 	TRACE_ENTER();
 
 	while ((evt = (GLSV_GLND_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt))) {
-		if ((evt->type >= GLSV_GLND_EVT_BASE) && (evt->type < GLSV_GLND_EVT_MAX)) {
+		if ((evt->type >= GLSV_GLND_EVT_BASE) &&
+		    (evt->type < GLSV_GLND_EVT_MAX)) {
 			/* process mail box */
 			glnd_process_evt((NCSCONTEXT)cb, evt);
 		} else {
-			TRACE_1("Unknown glnd evt rcvd: event_type %d", evt->type);
+			TRACE_1("Unknown glnd evt rcvd: event_type %d",
+				evt->type);
 			m_MMGR_FREE_GLND_EVT(evt);
 		}
 	}
@@ -174,11 +175,11 @@ void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx)
 /****************************************************************************
  * Name          : glnd_main_process
  *
- * Description   : This is the function which is given as a input to the 
+ * Description   : This is the function which is given as a input to the
  *                 GLND task.
  *
- * Arguments     : mbx  - This is the mail box pointer on which GLND is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which GLND is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -188,8 +189,8 @@ void glnd_main_process(SYSF_MBX *mbx)
 {
 	NCS_SEL_OBJ mbx_fd = m_NCS_IPC_GET_SEL_OBJ(mbx);
 	GLND_CB *glnd_cb = NULL;
-	TRACE_ENTER();	
-	
+	TRACE_ENTER();
+
 	SaAmfHandleT amf_hdl;
 
 	SaSelectionObjectT amf_sel_obj;
@@ -232,9 +233,9 @@ void glnd_main_process(SYSF_MBX *mbx)
 		}
 
 		if (((sel[FD_AMF].revents | sel[FD_MBX].revents) &
-			(POLLERR | POLLHUP | POLLNVAL)) != 0) {
+		     (POLLERR | POLLHUP | POLLNVAL)) != 0) {
 			LOG_ER("GLND poll() failure: %hd %hd",
-				sel[FD_AMF].revents, sel[FD_MBX].revents);
+			       sel[FD_AMF].revents, sel[FD_MBX].revents);
 			TRACE_LEAVE();
 			return;
 		}
@@ -252,7 +253,7 @@ void glnd_main_process(SYSF_MBX *mbx)
 			if (glnd_cb) {
 				/* now got the IPC mail box event */
 				glnd_process_mbx(glnd_cb, mbx);
-				m_GLND_GIVEUP_GLND_CB;	/* giveup the handle */
+				m_GLND_GIVEUP_GLND_CB; /* giveup the handle */
 			} else
 				break;
 		}

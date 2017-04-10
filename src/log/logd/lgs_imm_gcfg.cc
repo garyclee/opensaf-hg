@@ -54,7 +54,8 @@
  * The applier shall be started on the ACTIVE server only.
  * Start the applier when log server is started and when changing HA state
  * to ACTIVE.
- * Stop the applier when leaving ACTIVE state (quiesced and standby state handler)
+ * Stop the applier when leaving ACTIVE state (quiesced and standby state
+ * handler)
  *
  * NOTES:
  * 1. Immutil cannot be used. The immutil wrapper profile is global
@@ -64,31 +65,28 @@
 
 /* Information given when starting thread
  */
-typedef struct thread_info {
-  int socket;
-} lgs_thread_info_t;
+typedef struct thread_info { int socket; } lgs_thread_info_t;
 
 /**
  * 'Private' global variables used for:
  */
-static const SaImmClassNameT gcfg_class = const_cast<SaImmClassNameT>("OpensafConfig");
-static const SaImmOiImplementerNameT applier_name = const_cast<SaImmOiImplementerNameT>("@safLogService_appl");
+static const SaImmClassNameT gcfg_class =
+    const_cast<SaImmClassNameT>("OpensafConfig");
+static const SaImmOiImplementerNameT applier_name =
+    const_cast<SaImmOiImplementerNameT>("@safLogService_appl");
 /* IMM handling */
-static SaVersionT immVersion = { 'A', 2, 11 };
+static SaVersionT immVersion = {'A', 2, 11};
 
 /* Network name handling */
 static char *network_name = NULL; /* Save pointer to current name */
 static pthread_mutex_t lgs_gcfg_applier_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Inter thread communication (socket pair) */
-static const char* CMD_STOP = "s";
-static const char* CMD_START = "a";
+static const char *CMD_STOP = "s";
+static const char *CMD_START = "a";
 static const size_t CMD_LEN = 2;
 
-typedef enum {
-  AP_START,
-  AP_STOP
-} th_cmd_t;
+typedef enum { AP_START, AP_STOP } th_cmd_t;
 
 static int to_thread_fd = 0; /* Socket for communication with thread */
 
@@ -126,7 +124,7 @@ static th_state_t th_state = TH_NOT_STARTED;
  */
 
 static int start_applier_thread(lgs_thread_info_t *start_info);
-static void save_network_name(char* new_name);
+static void save_network_name(char *new_name);
 static void applier_finalize(SaImmOiHandleT imm_appl_hdl);
 static void *applier_thread(void *info_in);
 static int read_network_name();
@@ -159,8 +157,7 @@ static void send_command(th_cmd_t command) {
 
   while (1) {
     rc = write(to_thread_fd, cmd_ptr, CMD_LEN);
-    if ((rc == -1) && ((errno == EINTR) || (errno == EAGAIN)))
-      /* Try again */
+    if ((rc == -1) && ((errno == EINTR) || (errno == EAGAIN))) /* Try again */
       continue;
     else
       break;
@@ -246,7 +243,7 @@ void lgs_start_gcfg_applier() {
       thread_input.socket = sock_fd[1];
 
       /* Start the thread */
-      (void) start_applier_thread(&thread_input);
+      (void)start_applier_thread(&thread_input);
       break;
 
     case TH_IDLE:
@@ -259,7 +256,7 @@ void lgs_start_gcfg_applier() {
       TRACE("TH_STARTING");
     case TH_IS_APPLIER:
       TRACE("TH_IS_APPLIER");
-      /* There is nothing to start we are already applier */
+    /* There is nothing to start we are already applier */
     default:
       TRACE("%s: Called in wrong state %d", __FUNCTION__, th_state);
       break;
@@ -294,7 +291,7 @@ void lgs_stop_gcfg_applier() {
       TRACE("TH_NOT_STARTED");
     case TH_IDLE:
       TRACE("TH_IDLE");
-      /* Nothing to stop there is no active applier */
+    /* Nothing to stop there is no active applier */
     default:
       TRACE("%s: Called in wrong state %d", __FUNCTION__, th_state);
   }
@@ -330,7 +327,8 @@ std::string lgs_get_networkname() {
 
   osaf_mutex_unlock_ordie(&lgs_gcfg_applier_mutex);
 
-  TRACE_LEAVE2("name_str \"%s\"", networkName.empty()? "<empty>": networkName.c_str());
+  TRACE_LEAVE2("name_str \"%s\"",
+               networkName.empty() ? "<empty>" : networkName.c_str());
 
   return networkName;
 }
@@ -349,13 +347,14 @@ std::string lgs_get_networkname() {
  * Save ccb info if OpensafConfig object is modified
  *
  */
-static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
-                                           SaImmOiCcbIdT ccbId, const SaNameT *objectName,
-                                           const SaImmAttrModificationT_2 **attrMods) {
+static SaAisErrorT ccbObjectModifyCallback(
+    SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId, const SaNameT *objectName,
+    const SaImmAttrModificationT_2 **attrMods) {
   SaAisErrorT rc = SA_AIS_OK;
   struct CcbUtilCcbData *ccbUtilCcbData;
 
-  TRACE_ENTER2("CCB ID %llu, '%s'", ccbId, osaf_extended_name_borrow(objectName));
+  TRACE_ENTER2("CCB ID %llu, '%s'", ccbId,
+               osaf_extended_name_borrow(objectName));
 
   if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
     if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -444,8 +443,7 @@ static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
     if (strcmp(attribute->attrName, "opensafNetworkName") == 0) {
       /* Get the value for opensafNetworkName */
       void *value = NULL;
-      if (attribute->attrValuesNumber != 0)
-        value = attribute->attrValues[0];
+      if (attribute->attrValuesNumber != 0) value = attribute->attrValues[0];
 
       if (value == NULL) {
         TRACE("Value is NULL");
@@ -469,8 +467,7 @@ static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
   }
 
 done:
-  if (ccbUtilCcbData != NULL)
-    ccbutil_deleteCcbData(ccbUtilCcbData);
+  if (ccbUtilCcbData != NULL) ccbutil_deleteCcbData(ccbUtilCcbData);
 
   TRACE_LEAVE();
 }
@@ -480,8 +477,10 @@ done:
  *
  */
 static SaAisErrorT ccbCreateCallback(SaImmOiHandleT immOiHandle,
-                                     SaImmOiCcbIdT ccbId, const SaImmClassNameT className,
-                                     const SaNameT *parentName, const SaImmAttrValuesT_2 **attr) {
+                                     SaImmOiCcbIdT ccbId,
+                                     const SaImmClassNameT className,
+                                     const SaNameT *parentName,
+                                     const SaImmAttrValuesT_2 **attr) {
   TRACE_ENTER();
   TRACE_LEAVE();
   return SA_AIS_OK;
@@ -492,7 +491,8 @@ static SaAisErrorT ccbCreateCallback(SaImmOiHandleT immOiHandle,
  *
  */
 static SaAisErrorT ccbDeleteCallback(SaImmOiHandleT immOiHandle,
-                                     SaImmOiCcbIdT ccbId, const SaNameT *objectName) {
+                                     SaImmOiCcbIdT ccbId,
+                                     const SaNameT *objectName) {
   TRACE_ENTER();
   TRACE_LEAVE();
   return SA_AIS_OK;
@@ -505,16 +505,14 @@ static SaAisErrorT ccbDeleteCallback(SaImmOiHandleT immOiHandle,
  * Abort for removing saved ccb in case of an abortion of ccb
  */
 static const SaImmOiCallbacksT_2 callbacks = {
-  .saImmOiAdminOperationCallback = NULL,
-  .saImmOiCcbAbortCallback = ccbAbortCallback,
-  .saImmOiCcbApplyCallback = ccbApplyCallback,
-  .saImmOiCcbCompletedCallback = NULL,
-  .saImmOiCcbObjectCreateCallback = ccbCreateCallback,
-  .saImmOiCcbObjectDeleteCallback = ccbDeleteCallback,
-  .saImmOiCcbObjectModifyCallback = ccbObjectModifyCallback,
-  .saImmOiRtAttrUpdateCallback = NULL
-};
-
+    .saImmOiAdminOperationCallback = NULL,
+    .saImmOiCcbAbortCallback = ccbAbortCallback,
+    .saImmOiCcbApplyCallback = ccbApplyCallback,
+    .saImmOiCcbCompletedCallback = NULL,
+    .saImmOiCcbObjectCreateCallback = ccbCreateCallback,
+    .saImmOiCcbObjectDeleteCallback = ccbDeleteCallback,
+    .saImmOiCcbObjectModifyCallback = ccbObjectModifyCallback,
+    .saImmOiRtAttrUpdateCallback = NULL};
 
 /***************************************
  * Internal utility function definitions
@@ -528,21 +526,19 @@ static const SaImmOiCallbacksT_2 callbacks = {
  *
  * @param new_name[in]
  */
-static void save_network_name(char* new_name) {
-
+static void save_network_name(char *new_name) {
   TRACE_ENTER();
-  
+
   osaf_mutex_lock_ordie(&lgs_gcfg_applier_mutex);
 
   /* Delete old name */
-  if (network_name != NULL)
-    free(network_name);
+  if (network_name != NULL) free(network_name);
 
   /* Save new name */
   if (new_name == NULL) {
     network_name = NULL;
   } else {
-     uint32_t name_len = strlen(new_name) + 1;
+    uint32_t name_len = strlen(new_name) + 1;
     network_name = static_cast<char *>(calloc(1, name_len));
     if (network_name == NULL) {
       LOG_ER("%s: calloc Fail", __FUNCTION__);
@@ -580,15 +576,13 @@ static int read_network_name() {
   /* Setup search initialize parameters */
   SaImmSearchHandleT searchHandle;
   SaImmSearchParametersT_2 searchParam;
-  searchParam.searchOneAttr.attrName = const_cast<SaImmAttrNameT>(
-      "opensafNetworkName");
+  searchParam.searchOneAttr.attrName =
+      const_cast<SaImmAttrNameT>("opensafNetworkName");
   searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
   searchParam.searchOneAttr.attrValue = NULL;
 
   SaImmAttrNameT attributeNames[2] = {
-    const_cast<SaImmAttrNameT>("opensafNetworkName"),
-    NULL
-  };
+      const_cast<SaImmAttrNameT>("opensafNetworkName"), NULL};
 
   TRACE_ENTER();
 
@@ -609,14 +603,9 @@ static int read_network_name() {
    * get its value
    */
   ais_rc = immutil_saImmOmSearchInitialize_2(
-      om_handle,
-      NULL,
-      SA_IMM_SUBTREE,
-      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR,
-      &searchParam,
-      attributeNames,
-      &searchHandle
-                                             );
+      om_handle, NULL, SA_IMM_SUBTREE,
+      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
+      attributeNames, &searchHandle);
   if (ais_rc != SA_AIS_OK) {
     TRACE("immutil_saImmOmSearchInitialize_2 FAIL %s", saf_error(ais_rc));
     rc = -1;
@@ -841,7 +830,6 @@ static void applier_finalize(SaImmOiHandleT imm_appl_hdl) {
   TRACE_LEAVE();
 }
 
-
 /*******************************
  * 'Private' variables used for:
  */
@@ -929,8 +917,8 @@ static void *applier_thread(void *info_in) {
    * vector and decrease and decrease nfds when IMM is finalized.
    */
   enum {
-    FDA_COM = 0,    /* Communication events */
-    FDA_IMM         /* IMM events */
+    FDA_COM = 0, /* Communication events */
+    FDA_IMM      /* IMM events */
   };
 
   static struct pollfd fds[2];
@@ -983,12 +971,13 @@ static void *applier_thread(void *info_in) {
     }
 
     /*** Event handling loop ***/
-    while(1) {
-      (void) osaf_poll(fds, nfds, -1);
+    while (1) {
+      (void)osaf_poll(fds, nfds, -1);
 
       if (fds[FDA_IMM].revents & POLLIN) {
         TRACE("%s: IMM event", __FUNCTION__);
-        if (saImmOiDispatch(imm_appl_hdl, SA_DISPATCH_ALL) == SA_AIS_ERR_BAD_HANDLE) {
+        if (saImmOiDispatch(imm_appl_hdl, SA_DISPATCH_ALL) ==
+            SA_AIS_ERR_BAD_HANDLE) {
           /* Handle is lost. We must initialize again */
           th_state_set(TH_STARTING);
           break;
@@ -999,14 +988,14 @@ static void *applier_thread(void *info_in) {
         TRACE("%s: COM event", __FUNCTION__);
         /* Handle start and stop requests */
         char cmd_str[256] = {0};
-		int rc = 0;
+        int rc = 0;
         while (1) {
           rc = read(com_fd, cmd_str, 256);
-          if ((rc == -1) && ((errno == EINTR) ||
-                             (errno == EAGAIN))) {
+          if ((rc == -1) && ((errno == EINTR) || (errno == EAGAIN))) {
             /* Try again */
             continue;
-          } else break;
+          } else
+            break;
         }
 
         if (rc == -1) {
@@ -1036,7 +1025,7 @@ static void *applier_thread(void *info_in) {
         }
       }
     } /* END Event handling loop */
-  } /* END Restart loop */
+  }   /* END Restart loop */
 
   return NULL;
 }

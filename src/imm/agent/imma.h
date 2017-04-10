@@ -41,17 +41,19 @@ extern const char *imma_sockname;
 unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id);
 unsigned int imma_startup(NCSMDS_SVC_ID sv_id);
 void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p,
-				 const SaImmValueTypeT attrValueType, const SaImmAttrValueT attrValue);
-SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_EDU_ATTR_VAL *attrValue);
-void imma_freeAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueType);
-void imma_freeAttrValue3(SaImmAttrValueT attrValue, const SaImmValueTypeT attrValueType);
+                        const SaImmValueTypeT attrValueType,
+                        const SaImmAttrValueT attrValue);
+SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType,
+                                    IMMSV_EDU_ATTR_VAL *attrValue);
+void imma_freeAttrValue(IMMSV_EDU_ATTR_VAL *p,
+                        const SaImmValueTypeT attrValueType);
+void imma_freeAttrValue3(SaImmAttrValueT attrValue,
+                         const SaImmValueTypeT attrValueType);
 void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr);
-SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
-                       IMMSV_EVT *i_evt,
-				       IMMSV_EVT **o_evt,
-				       SaTimeT timeout, SaImmHandleT immHandle, bool *locked, bool checkWritable);
+SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb, IMMSV_EVT *i_evt, IMMSV_EVT **o_evt,
+                              SaTimeT timeout, SaImmHandleT immHandle,
+                              bool *locked, bool checkWritable);
 SaAisErrorT imma_proc_check_stale(IMMA_CB *cb, SaImmHandleT immHandle,
-    SaAisErrorT defaultEr);
-
+                                  SaAisErrorT defaultEr);
 
 #endif  // IMM_AGENT_IMMA_H_

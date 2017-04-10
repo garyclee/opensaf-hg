@@ -54,7 +54,7 @@ IMMND_CB *immnd_cb = &_immnd_cb;
  * USR1 signal is used when AMF wants instantiate us as a
  * component. Wake up the main thread so it can register with
  * AMF.
- * 
+ *
  * @param i_sig_num
  */
 static void sigusr1_handler(int sig)
@@ -71,7 +71,7 @@ static void sigusr1_handler(int sig)
 /****************************************************************************
  * Name          : immnd_cb_db_init
  *
- * Description   : This is the function which initializes all the data 
+ * Description   : This is the function which initializes all the data
  *                 structures and locks used belongs to IMMND.
  *
  * Arguments     : cb  - IMMND control block pointer.
@@ -98,7 +98,7 @@ static uint32_t immnd_cb_db_init(IMMND_CB *cb)
  *                 This function creates an IPC mail Box and spawns IMMND
  *                 thread.
  *                 This function initializes the CB, MDS, IMMD connection
- *                 and Registers with AMF with respect to the component Type 
+ *                 and Registers with AMF with respect to the component Type
  *                 (IMMND).
  *
  *
@@ -132,7 +132,8 @@ static uint32_t immnd_initialize(char *progname)
 		goto done;
 	}
 
-	/* unset so that forked processes (e.g. loader) does not create MDS server */
+	/* unset so that forked processes (e.g. loader) does not create MDS
+	 * server */
 	unsetenv("MDS_SOCK_SERVER_CREATE");
 
 	/* Initialize immnd control block */
@@ -148,49 +149,54 @@ static uint32_t immnd_initialize(char *progname)
 	immnd_cb->mFile = getenv("IMMSV_LOAD_FILE");
 	immnd_cb->clm_hdl = 0;
 	immnd_cb->clmSelectionObject = -1;
-	/* isClmNodeJoined will be intially set to true, untill CLMS service is up.
-	   from there isClmNodeJoined will be controlled by CLM membership join/left.
+	/* isClmNodeJoined will be intially set to true, untill CLMS service is
+	   up. from there isClmNodeJoined will be controlled by CLM membership
+	   join/left.
 	*/
 	immnd_cb->isClmNodeJoined = true;
 	if ((envVar = getenv("IMMSV_NUM_NODES"))) {
 		int numNodes = atoi(envVar);
-		if(numNodes > 255) {
+		if (numNodes > 255) {
 			LOG_WA("IMMSV_NUM_NODES set to %u, must be "
-				"less than 256. Setting to 255", numNodes);
+			       "less than 256. Setting to 255",
+			       numNodes);
 			numNodes = 255;
 		}
-		immnd_cb->mExpectedNodes = (uint8_t) numNodes;
+		immnd_cb->mExpectedNodes = (uint8_t)numNodes;
 	}
 	if ((envVar = getenv("IMMSV_MAX_WAIT"))) {
 		int waitSecs = atoi(envVar);
-		if(waitSecs > 255) {
+		if (waitSecs > 255) {
 			LOG_WA("IMMSV_MAX_WAIT set to %u, must be "
-				"less than 256. Setting to 255", waitSecs);
+			       "less than 256. Setting to 255",
+			       waitSecs);
 			waitSecs = 255;
 		}
 		immnd_cb->mWaitSecs = waitSecs;
 	}
 
 	if ((immnd_cb->mPbeFile = getenv("IMMSV_PBE_FILE")) != NULL) {
-		LOG_NO("Persistent Back-End capability configured, Pbe file:%s (suffix may get added)",
-			immnd_cb->mPbeFile);
+		LOG_NO(
+		    "Persistent Back-End capability configured, Pbe file:%s (suffix may get added)",
+		    immnd_cb->mPbeFile);
 	}
-	
+
 	FILE *fp;
 	char node_type[20];
 	fp = fopen(PKGSYSCONFDIR "/node_type", "r");
 	if (fp == NULL) {
-		LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "/node_type", strerror(errno));
+		LOG_ER("Could not open file %s - %s",
+		       PKGSYSCONFDIR "/node_type", strerror(errno));
 		goto done;
 	}
-	if(EOF == fscanf(fp, "%15s", node_type)) {
-                LOG_ER("Could not read node type - %s", strerror(errno));
-                fclose(fp);
-                goto done;
-        }
-	if (strcmp(node_type,"controller")==0){
+	if (EOF == fscanf(fp, "%15s", node_type)) {
+		LOG_ER("Could not read node type - %s", strerror(errno));
+		fclose(fp);
+		goto done;
+	}
+	if (strcmp(node_type, "controller") == 0) {
 		immnd_cb->isNodeTypeController = true;
-	} else if (strcmp(node_type,"payload")==0){
+	} else if (strcmp(node_type, "payload") == 0) {
 		immnd_cb->isNodeTypeController = false;
 	} else {
 		LOG_ER("Wrong node type is specified for the node");
@@ -213,8 +219,8 @@ static uint32_t immnd_initialize(char *progname)
 		goto done;
 	}
 
-	TRACE_2("Dir:%s File:%s ExpectedNodes:%u WaitSecs:%u",
-		immnd_cb->mDir, immnd_cb->mFile, immnd_cb->mExpectedNodes, immnd_cb->mWaitSecs);
+	TRACE_2("Dir:%s File:%s ExpectedNodes:%u WaitSecs:%u", immnd_cb->mDir,
+		immnd_cb->mFile, immnd_cb->mExpectedNodes, immnd_cb->mWaitSecs);
 
 	if ((rc = immnd_cb_db_init(immnd_cb)) == NCSCC_RC_FAILURE) {
 		TRACE("immnd_cb_db_init Failed");
@@ -232,9 +238,10 @@ static uint32_t immnd_initialize(char *progname)
 		LOG_ER("m_NCS_IPC_ATTACH FAILED");
 		goto done;
 	}
-	
+
 	/* Create a selection object for clm intialization*/
-	if ((rc = ncs_sel_obj_create(&immnd_cb->clm_init_sel_obj)) != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_sel_obj_create(&immnd_cb->clm_init_sel_obj)) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed for clm intialization");
 		goto done;
 	}
@@ -245,12 +252,14 @@ static uint32_t immnd_initialize(char *progname)
 	}
 
 	/* Create a selection object */
-	if ((rc = ncs_sel_obj_create(&immnd_cb->usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_sel_obj_create(&immnd_cb->usr1_sel_obj)) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
 
-	if (immnd_cb->nid_started && signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	if (immnd_cb->nid_started &&
+	    signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -265,9 +274,10 @@ static uint32_t immnd_initialize(char *progname)
 	rc = NCSCC_RC_SUCCESS;
 	syslog(LOG_INFO, "Initialization Success");
 
- done:
+done:
 	if (immnd_cb->nid_started && (rc == NCSCC_RC_FAILURE)) {
-		if (nid_notify("IMMND", NCSCC_RC_FAILURE, NULL) != NCSCC_RC_SUCCESS)
+		if (nid_notify("IMMND", NCSCC_RC_FAILURE, NULL) !=
+		    NCSCC_RC_SUCCESS)
 			LOG_ER("nid_notify failed");
 	}
 
@@ -279,25 +289,26 @@ static uint32_t immnd_initialize(char *progname)
  * The main routine for the immnd daemon.
  * @param argc
  * @param argv
- * 
+ *
  * @return int
  */
 int main(int argc, char *argv[])
 {
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error;
-	uint32_t timeout = 100;	/* ABT For server maintenance.
+	uint32_t timeout = 100; /* ABT For server maintenance.
 				   Using a period of 0.1s during startup. */
-	int eventCount = 0;	/* Used to regulate progress of background 
+	int eventCount = 0;     /* Used to regulate progress of background
 				   server task when we are very bussy. */
 	int maxEvt = 100;
 	struct timespec start_time;
 	struct pollfd fds[5];
-	int term_fd, nfds=4;;
+	int term_fd, nfds = 4;
+	;
 
 	daemonize(argc, argv);
 
-	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
 		LOG_ER("failed to set SA_ENABLE_EXTENDED_NAMES");
 		goto done;
 	}
@@ -319,18 +330,19 @@ int main(int argc, char *argv[])
 	if (immnd_cb->nid_started)
 		fds[FD_AMF].fd = immnd_cb->usr1_sel_obj.rmv_obj;
 	else
-		fds[FD_AMF].fd = (int) immnd_cb->amf_sel_obj;
+		fds[FD_AMF].fd = (int)immnd_cb->amf_sel_obj;
 
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_CLM_INIT].fd = immnd_cb->clm_init_sel_obj.rmv_obj;
-        fds[FD_CLM_INIT].events = POLLIN;
+	fds[FD_CLM_INIT].events = POLLIN;
 
 	while (1) {
-		/* Watch out for performance bug. Possibly change from event-count
-		   to recalculated timer. */
-		/* ABT 13/07 2009 actually using both event-count and recalculated timer now. */
+		/* Watch out for performance bug. Possibly change from
+		   event-count to recalculated timer. */
+		/* ABT 13/07 2009 actually using both event-count and
+		 * recalculated timer now. */
 
 		/* calculate new elapsed time */
 		struct timespec now;
@@ -341,11 +353,13 @@ int main(int argc, char *argv[])
 		fds[FD_CLM].fd = immnd_cb->clmSelectionObject;
 		fds[FD_CLM].events = POLLIN;
 
-
 		maxEvt = (timeout == 100) ? 50 : 100;
 
 		/* Wait for events */
-		int ret = poll(fds, nfds, (passed_time_ms < timeout) ? (timeout - passed_time_ms) : 0);
+		int ret =
+		    poll(fds, nfds,
+			 (passed_time_ms < timeout) ? (timeout - passed_time_ms)
+						    : 0);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -364,76 +378,105 @@ int main(int argc, char *argv[])
 
 			if (fds[FD_AMF].revents & POLLIN) {
 				if (immnd_cb->amf_hdl != 0) {
-					error = saAmfDispatch(immnd_cb->amf_hdl, SA_DISPATCH_ALL);
+					error = saAmfDispatch(immnd_cb->amf_hdl,
+							      SA_DISPATCH_ALL);
 					if (error != SA_AIS_OK) {
-						LOG_ER("saAmfDispatch failed: %u", error);
+						LOG_ER(
+						    "saAmfDispatch failed: %u",
+						    error);
 						break;
 					}
 				} else {
 					TRACE("SIGUSR1 event rec");
-					ncs_sel_obj_rmv_ind(&immnd_cb->usr1_sel_obj, true, true);
-					ncs_sel_obj_destroy(&immnd_cb->usr1_sel_obj);
+					ncs_sel_obj_rmv_ind(
+					    &immnd_cb->usr1_sel_obj, true,
+					    true);
+					ncs_sel_obj_destroy(
+					    &immnd_cb->usr1_sel_obj);
 
-					if (immnd_amf_init(immnd_cb) != NCSCC_RC_SUCCESS)
+					if (immnd_amf_init(immnd_cb) !=
+					    NCSCC_RC_SUCCESS)
 						break;
 
-					TRACE("AMF Initialization SUCCESS......");
-					fds[FD_AMF].fd = (int) immnd_cb->amf_sel_obj;
+					TRACE(
+					    "AMF Initialization SUCCESS......");
+					fds[FD_AMF].fd =
+					    (int)immnd_cb->amf_sel_obj;
 				}
 			}
 
 			if (fds[FD_MBX].revents & POLLIN) {
 				uint8_t wasCoord = immnd_cb->mIsCoord;
 				immnd_process_evt();
-				if ((!wasCoord && immnd_cb->mIsCoord) || immnd_cb->mForceClean) {
-					TRACE("Just became Coord or special imm admop => Force a server job!");
-					/* This is particularly urgent in a failover situation. */
+				if ((!wasCoord && immnd_cb->mIsCoord) ||
+				    immnd_cb->mForceClean) {
+					TRACE(
+					    "Just became Coord or special imm admop => Force a server job!");
+					/* This is particularly urgent in a
+					 * failover situation. */
 					eventCount = maxEvt;
-					if(immnd_cb->mForceClean) {
-						LOG_IN("ABT immnd-main caught mForceClean");
+					if (immnd_cb->mForceClean) {
+						LOG_IN(
+						    "ABT immnd-main caught mForceClean");
 					}
 				}
 			}
 
-			if (fds[FD_CLM_INIT].revents & POLLIN ) {
+			if (fds[FD_CLM_INIT].revents & POLLIN) {
 				osafassert(!immnd_cb->clm_hdl);
 				TRACE("Initalize CLM ");
-				ncs_sel_obj_rmv_ind(&immnd_cb->clm_init_sel_obj, true, true);
+				ncs_sel_obj_rmv_ind(&immnd_cb->clm_init_sel_obj,
+						    true, true);
 				immnd_init_with_clm();
-				nfds=5;
+				nfds = 5;
 			}
 
 			if (fds[FD_CLM].revents & POLLIN) {
-				if ((error = saClmDispatch(immnd_cb->clm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-					if(error == SA_AIS_ERR_BAD_HANDLE){
-						LOG_WA("saClmDispatch failed: %u", error);
-						LOG_NO("Re-initializing with CLMS");
-						saClmFinalize(immnd_cb->clm_hdl);
-						immnd_clm_node_cleanup(immnd_cb);
-						immnd_cb->clmSelectionObject = -1;
+				if ((error = saClmDispatch(immnd_cb->clm_hdl,
+							   SA_DISPATCH_ALL)) !=
+				    SA_AIS_OK) {
+					if (error == SA_AIS_ERR_BAD_HANDLE) {
+						LOG_WA(
+						    "saClmDispatch failed: %u",
+						    error);
+						LOG_NO(
+						    "Re-initializing with CLMS");
+						saClmFinalize(
+						    immnd_cb->clm_hdl);
+						immnd_clm_node_cleanup(
+						    immnd_cb);
+						immnd_cb->clmSelectionObject =
+						    -1;
 						immnd_init_with_clm();
 					} else {
-						LOG_ER("saClmDispatch failed: %u", error);
+						LOG_ER(
+						    "saClmDispatch failed: %u",
+						    error);
 						break;
 					}
 				}
 			}
 
 			if (eventCount >= maxEvt) {
-				/* Make some progress on background task, 
+				/* Make some progress on background task,
 				   even when we are very busy. */
-				TRACE_2("FORCE a proc_server job after %u events", eventCount);
+				TRACE_2(
+				    "FORCE a proc_server job after %u events",
+				    eventCount);
 				uint32_t rc = immnd_proc_server(&timeout);
 				if (rc != NCSCC_RC_SUCCESS) {
-					LOG_ER("IMMND - Periodic server job failed");
+					LOG_ER(
+					    "IMMND - Periodic server job failed");
 					break;
 				}
 				eventCount = 0;
-				osaf_clock_gettime(CLOCK_MONOTONIC, &start_time);
+				osaf_clock_gettime(CLOCK_MONOTONIC,
+						   &start_time);
 			}
 		} else {
 			/* Timeout */
-			/*TRACE_2("PERIODIC proc_server eventcout: %u", eventCount); */
+			/*TRACE_2("PERIODIC proc_server eventcout: %u",
+			 * eventCount); */
 			uint32_t rc = immnd_proc_server(&timeout);
 			if (rc != NCSCC_RC_SUCCESS) {
 				LOG_ER("IMMND - Periodic server job failed");
@@ -444,7 +487,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
- done:
+done:
 	LOG_ER("Failed, exiting...");
 	TRACE_LEAVE();
 	return -1;

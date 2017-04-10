@@ -22,12 +22,9 @@
 
 class LogWriterTest : public ::testing::Test {
  protected:
-  LogWriterTest() :
-      tmpdir_{} {
-  }
+  LogWriterTest() : tmpdir_{} {}
 
-  virtual ~LogWriterTest() {
-  }
+  virtual ~LogWriterTest() {}
 
   virtual void SetUp() {
     char tmpdir[] = "/tmp/log_writer_test_XXXXXX";

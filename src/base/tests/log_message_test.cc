@@ -23,14 +23,16 @@
 #include "base/buffer.h"
 #include "base/log_message.h"
 
-static const struct timespec time_stamp_1 = { 1475749599, 497243812 };
-static const struct timespec time_stamp_2 = { 1458469599, 97240812 };
+static const struct timespec time_stamp_1 = {1475749599, 497243812};
+static const struct timespec time_stamp_2 = {1458469599, 97240812};
 
-static const char hello_world_text_1[] = "<133>1 2016-10-06T12:26:39.497243"
+static const char hello_world_text_1[] =
+    "<133>1 2016-10-06T12:26:39.497243"
     "+02:00 PL-42 log_message_test 24744 4711 "
     "[elem1 param1=\"value1\" param2=\"value2\"][elem2] hello, world!";
 
-static const char hello_world_text_2[] = "<191>1 2016-03-20T11:26:39.09724"
+static const char hello_world_text_2[] =
+    "<191>1 2016-03-20T11:26:39.09724"
     "+01:00 dark_star - _ 12345678901234567890123456789012 "
     "[- -=\"\" a_b_c=\"d=e\\]f\"][_]  test ";
 
@@ -41,26 +43,21 @@ TEST(LogMessageTest, WriteHelloWorld1) {
   tzset();
   base::Buffer<256> buf{};
   base::LogMessage::Write(
-      base::LogMessage::Facility::kLocal0,
-      base::LogMessage::Severity::kNotice,
-      time_stamp_1,
-      base::LogMessage::HostName{"PL-42"},
+      base::LogMessage::Facility::kLocal0, base::LogMessage::Severity::kNotice,
+      time_stamp_1, base::LogMessage::HostName{"PL-42"},
       base::LogMessage::AppName{"log_message_test"},
-      base::LogMessage::ProcId{"24744"},
-      base::LogMessage::MsgId{"4711"},
+      base::LogMessage::ProcId{"24744"}, base::LogMessage::MsgId{"4711"},
       {{base::LogMessage::SdName{"elem1"},
-          {base::LogMessage::Parameter{base::LogMessage::SdName{"param1"},
-                  "value1"},
-                base::LogMessage::Parameter{base::LogMessage::SdName{"param2"},
-                      "value2"}}},
-        {base::LogMessage::SdName{"elem2"},
-          {}}},
-      "hello, world!",
-      &buf);
+        {base::LogMessage::Parameter{base::LogMessage::SdName{"param1"},
+                                     "value1"},
+         base::LogMessage::Parameter{base::LogMessage::SdName{"param2"},
+                                     "value2"}}},
+       {base::LogMessage::SdName{"elem2"}, {}}},
+      "hello, world!", &buf);
   EXPECT_EQ(buf.size(), sizeof(hello_world_text_1) - 1);
-  EXPECT_EQ(memcmp(buf.data(),
-                   hello_world_text_1,
-                   sizeof(hello_world_text_1) - 1), 0);
+  EXPECT_EQ(
+      memcmp(buf.data(), hello_world_text_1, sizeof(hello_world_text_1) - 1),
+      0);
 }
 
 TEST(LogMessageTest, WriteHelloWorld2) {
@@ -68,26 +65,20 @@ TEST(LogMessageTest, WriteHelloWorld2) {
   tzset();
   base::Buffer<256> buf{};
   base::LogMessage::Write(
-      base::LogMessage::Facility::kLocal7,
-      base::LogMessage::Severity::kDebug,
-      time_stamp_2,
-      base::LogMessage::HostName{"dark star"},
-      base::LogMessage::AppName{""},
-      base::LogMessage::ProcId{"_"},
+      base::LogMessage::Facility::kLocal7, base::LogMessage::Severity::kDebug,
+      time_stamp_2, base::LogMessage::HostName{"dark star"},
+      base::LogMessage::AppName{""}, base::LogMessage::ProcId{"_"},
       base::LogMessage::MsgId{"123456789012345678901234567890123"},
       {{base::LogMessage::SdName{""},
-          {base::LogMessage::Parameter{base::LogMessage::SdName{""},
-                  ""},
-                base::LogMessage::Parameter{base::LogMessage::SdName{"a=b]c"},
-                      "d=e]f"}}},
-        {base::LogMessage::SdName{"_"},
-          {}}},
-      " test ",
-      &buf);
+        {base::LogMessage::Parameter{base::LogMessage::SdName{""}, ""},
+         base::LogMessage::Parameter{base::LogMessage::SdName{"a=b]c"},
+                                     "d=e]f"}}},
+       {base::LogMessage::SdName{"_"}, {}}},
+      " test ", &buf);
   EXPECT_EQ(buf.size(), sizeof(hello_world_text_2) - 1);
-  EXPECT_EQ(memcmp(buf.data(),
-                   hello_world_text_2,
-                   sizeof(hello_world_text_2) - 1), 0);
+  EXPECT_EQ(
+      memcmp(buf.data(), hello_world_text_2, sizeof(hello_world_text_2) - 1),
+      0);
 }
 
 TEST(LogMessageTest, WriteNullMessage) {
@@ -95,21 +86,13 @@ TEST(LogMessageTest, WriteNullMessage) {
   tzset();
   base::Buffer<256> buf{};
   base::LogMessage::Write(
-      base::LogMessage::Facility::kKern,
-      base::LogMessage::Severity::kEmerg,
-      base::LogMessage::kNullTime,
-      base::LogMessage::HostName{""},
-      base::LogMessage::AppName{""},
-      base::LogMessage::ProcId{""},
-      base::LogMessage::MsgId{""},
-      {},
-      "",
-      &buf);
+      base::LogMessage::Facility::kKern, base::LogMessage::Severity::kEmerg,
+      base::LogMessage::kNullTime, base::LogMessage::HostName{""},
+      base::LogMessage::AppName{""}, base::LogMessage::ProcId{""},
+      base::LogMessage::MsgId{""}, {}, "", &buf);
 
   EXPECT_EQ(buf.size(), sizeof(null_text) - 1);
-  EXPECT_EQ(memcmp(buf.data(),
-                   null_text,
-                   sizeof(null_text) - 1), 0);
+  EXPECT_EQ(memcmp(buf.data(), null_text, sizeof(null_text) - 1), 0);
 }
 
 #if __WORDSIZE >= 64

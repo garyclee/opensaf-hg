@@ -34,7 +34,7 @@
 
 #include "mds/mds_papi.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -42,10 +42,10 @@ extern "C" {
          Range of unnamed VDEST values reserved for
          services external NCS implementation.
 \***********************************************************************/
-#define NCSVDA_EXTERNAL_UNNAMED_MIN          1001
-#define NCSVDA_EXTERNAL_UNNAMED_MAX          2000
+#define NCSVDA_EXTERNAL_UNNAMED_MIN 1001
+#define NCSVDA_EXTERNAL_UNNAMED_MAX 2000
 
-#define NCSVDA_UNNAMED_MAX                   NCSMDS_MAX_VDEST
+#define NCSVDA_UNNAMED_MAX NCSMDS_MAX_VDEST
 
 /* Macro to be used to create an unnamed VDEST using the external
    unnamed min and max
@@ -58,7 +58,7 @@ extern "C" {
    m_NCSVDA_SET_VDEST(abc, some_external_unnamed_value);
 */
 
-#define m_NCSVDA_SET_VDEST(mds_dest, external_unnamed_value)            \
+#define m_NCSVDA_SET_VDEST(mds_dest, external_unnamed_value) \
   m_NCS_SET_VDEST_ID_IN_MDS_DEST(mds_dest, external_unnamed_value)
 
 /***********************************************************************\
@@ -71,19 +71,20 @@ typedef enum {
 
 typedef struct ncsvda_vdest_create_info {
   /*
-           This is for obtaining an MDS virtual address against an arbitrary string.
+           This is for obtaining an MDS virtual address against an arbitrary
+     string.
 
            When any arbitrary string is provided, VDA will contact a VDS and try
            to obtain a MDS virtual destination(VDEST) address and an MDS virtual
-           destination anchor.  On receiving such a VDEST address, it will create
-           that VDEST on the local MDS core, create a PWE 1 on it and return the
-           handle to that PWE.
+           destination anchor.  On receiving such a VDEST address, it will
+     create that VDEST on the local MDS core, create a PWE 1 on it and return
+     the handle to that PWE.
 
-           When the first time a string is used to get a virtual-address, a unique
-           unused VDEST would be generated. It will be assigned a VDEST anchor
-           value equal to 1. While this VDEST is in use, further VDEST_CREATE calls
-           with the same string would return the same VDEST but a different anchor
-           value. The "persistent" option will determine whether and till when
+           When the first time a string is used to get a virtual-address, a
+     unique unused VDEST would be generated. It will be assigned a VDEST anchor
+           value equal to 1. While this VDEST is in use, further VDEST_CREATE
+     calls with the same string would return the same VDEST but a different
+     anchor value. The "persistent" option will determine whether and till when
            a VDEST remains associated to a string.
 
            If the "persistent" option is true, then a string is permanently
@@ -101,17 +102,17 @@ typedef struct ncsvda_vdest_create_info {
            instances of a VDEST. Each VDEST instance is associated with
            an anchor value, making <VDEST, anchor> a unique address in the
            system. The load-sharing will be done among those VDEST instances
-           which are running in an ACTIVE role. The load-share will only load-share
-           requests originated locally; MDS will not attempt an exact load-share
-           on a global basis.
+           which are running in an ACTIVE role. The load-share will only
+     load-share requests originated locally; MDS will not attempt an exact
+     load-share on a global basis.
 
            NOTE:
            1) The "persistent" option should uniformly be either a true or
            a false across multiple VDEST_CREATE calls for the same string-name.
 
-           2) The VDEST_CREATE is a blocking call. The VDA uses the invoker's task
-           context to contact the VDS and returns only upon getting a response from
-           VDS.
+           2) The VDEST_CREATE is a blocking call. The VDA uses the invoker's
+     task context to contact the VDS and returns only upon getting a response
+     from VDS.
   */
   bool i_persistent;
   NCS_VDEST_TYPE i_policy;
@@ -119,18 +120,18 @@ typedef struct ncsvda_vdest_create_info {
   NCSVDA_VDEST_CREATE_TYPE i_create_type;
   union {
     struct {
-      MDS_DEST i_vdest;       /* Caller specified VDEST             */
-    } specified;    /* if create_type = NCSVDA_VDEST_CREATE_SPECIFIC   */
+      MDS_DEST i_vdest; /* Caller specified VDEST             */
+    } specified;        /* if create_type = NCSVDA_VDEST_CREATE_SPECIFIC   */
 
     struct {
       SaNameT i_name;
-      MDS_DEST o_vdest;       /* VDA allocated VDEST                */
-    } named;        /* if create_type = NCSVDA_VDEST_CREATE_NAMED    */
+      MDS_DEST o_vdest; /* VDA allocated VDEST                */
+    } named;            /* if create_type = NCSVDA_VDEST_CREATE_NAMED    */
 
   } info;
 
-  MDS_HDL o_mds_pwe1_hdl; /* Handle to PWE 1 on vdest            */
-  MDS_HDL o_mds_vdest_hdl;        /* Handle to vdest for global services */
+  MDS_HDL o_mds_pwe1_hdl;  /* Handle to PWE 1 on vdest            */
+  MDS_HDL o_mds_vdest_hdl; /* Handle to vdest for global services */
 
 } NCSVDA_VDEST_CREATE_INFO;
 
@@ -154,8 +155,9 @@ typedef struct ncsvda_vdest_chg_role_info {
    VDEST's persistency is NOT changed.
 */
 typedef struct ncsvda_vdest_destroy_info {
-  NCSVDA_VDEST_CREATE_TYPE i_create_type; /* The way that this VDEST was created */
-  SaNameT i_name; /* Required iff i_create_type == NCSVDA_VDEST_NAMED */
+  NCSVDA_VDEST_CREATE_TYPE
+      i_create_type; /* The way that this VDEST was created */
+  SaNameT i_name;    /* Required iff i_create_type == NCSVDA_VDEST_NAMED */
   MDS_DEST i_vdest;
   bool i_make_vdest_non_persistent;
 } NCSVDA_VDEST_DESTROY_INFO;
@@ -179,7 +181,6 @@ typedef struct ncsvda_pwe_create_info {
    destroyed by MDS.
 */
 typedef struct ncsvda_pwe_destroy_info {
-
   /* i_mds_pwe_hdl: Handle to PWE obtained through a NCSVDA_PWE_CREATE
      request. */
   MDS_HDL i_mds_pwe_hdl;
@@ -197,7 +198,6 @@ typedef enum {
 } NCSVDA_REQ_TYPE;
 
 typedef struct ncsvda_info {
-
   NCSVDA_REQ_TYPE req;
 
   /* o_result: This will indicate the result of this operation
@@ -215,7 +215,7 @@ typedef struct ncsvda_info {
   } info;
 } NCSVDA_INFO;
 
-typedef uint32_t (*NCSVDA_API) (NCSVDA_INFO *vda_info);
+typedef uint32_t (*NCSVDA_API)(NCSVDA_INFO *vda_info);
 uint32_t ncsvda_api(NCSVDA_INFO *vda_info);
 
 /*************************************************************************
@@ -244,14 +244,13 @@ typedef struct ncsada_get_hdls_info {
   /* Absolute destination of this core */
   MDS_DEST o_adest;
 
-  MDS_HDL o_mds_pwe1_hdl; /* Handle to PWE 1 on adest            */
-  MDS_HDL o_mds_adest_hdl;        /* Handle to adest for global services */
+  MDS_HDL o_mds_pwe1_hdl;  /* Handle to PWE 1 on adest            */
+  MDS_HDL o_mds_adest_hdl; /* Handle to adest for global services */
 
 } NCSADA_GET_HDLS_INFO;
 
 /* ncsada_pwe_create_info :    Creates a PWE on an ADEST */
 typedef struct ncsada_pwe_create_info {
-
   /* i_mds_dest_hdl: A absolute MDS-destination handle, obtainable
      through the NCSADA_GET_HDLS_INFO call. */
   MDS_HDL i_mds_adest_hdl;
@@ -270,7 +269,6 @@ typedef struct ncsada_pwe_create_info {
    destroyed by MDS.
 */
 typedef struct ncsada_pwe_destroy_info {
-
   /* i_mds_pwe_hdl: Handle to PWE obtained through a NCSADA_PWE_CREATE
      request. */
   MDS_HDL i_mds_pwe_hdl;
@@ -278,7 +276,6 @@ typedef struct ncsada_pwe_destroy_info {
 } NCSADA_PWE_DESTROY_INFO;
 
 typedef struct ncsada_info {
-
   NCSADA_REQ_TYPE req;
   union {
     NCSADA_GET_HDLS_INFO adest_get_hdls;
@@ -287,10 +284,10 @@ typedef struct ncsada_info {
   } info;
 } NCSADA_INFO;
 
-typedef uint32_t (*NCSADA_API) (NCSADA_INFO *ada_info);
+typedef uint32_t (*NCSADA_API)(NCSADA_INFO *ada_info);
 uint32_t ncsada_api(NCSADA_INFO *ada_info);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

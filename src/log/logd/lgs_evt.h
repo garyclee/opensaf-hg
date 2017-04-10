@@ -41,21 +41,19 @@ typedef struct lgsv_lgs_mds_info {
   MDS_DEST mds_dest_id;
 } lgsv_lgs_mds_info_t;
 
-typedef struct {
-  PCS_RDA_ROLE io_role;
-} lgsv_rda_info_t;
+typedef struct { PCS_RDA_ROLE io_role; } lgsv_rda_info_t;
 
 typedef struct lgsv_lgs_evt {
   struct lgsv_lgs_evt *next;
   struct timespec entered_at;
   uint32_t cb_hdl;
-  MDS_SYNC_SND_CTXT mds_ctxt;     /* Relevant when this event has to be responded to
-                                   * in a synchronous fashion.
-                                   */
+  MDS_SYNC_SND_CTXT mds_ctxt; /* Relevant when this event has to be responded to
+                               * in a synchronous fashion.
+                               */
   MDS_DEST fr_dest;
   NODE_ID fr_node_id;
   char node_name[_POSIX_HOST_NAME_MAX];
-  MDS_SEND_PRIORITY_TYPE rcvd_prio;       /* Priority of the recvd evt */
+  MDS_SEND_PRIORITY_TYPE rcvd_prio; /* Priority of the recvd evt */
   LGSV_LGS_EVT_TYPE evt_type;
   union {
     lgsv_msg_t msg;
@@ -65,26 +63,31 @@ typedef struct lgsv_lgs_evt {
 } lgsv_lgs_evt_t;
 
 /* Client DB */
-extern void *client_db;       /* used for C++ STL map */
+extern void *client_db; /* used for C++ STL map */
 typedef std::map<NODE_ID, log_client_t *> ClientMap;
 
 /* These are the function prototypes for event handling */
-typedef uint32_t (*LGSV_LGS_LGA_API_MSG_HANDLER) (lgs_cb_t *, lgsv_lgs_evt_t *evt);
-typedef uint32_t (*LGSV_LGS_EVT_HANDLER) (lgsv_lgs_evt_t *evt);
+typedef uint32_t (*LGSV_LGS_LGA_API_MSG_HANDLER)(lgs_cb_t *,
+                                                 lgsv_lgs_evt_t *evt);
+typedef uint32_t (*LGSV_LGS_EVT_HANDLER)(lgsv_lgs_evt_t *evt);
 
 extern int lgs_client_stream_add(uint32_t client_id, uint32_t stream_id);
 extern int lgs_client_stream_rmv(uint32_t client_id, uint32_t stream_id);
-extern log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id, lgs_stream_list_t *stream_list);
+extern log_client_t *lgs_client_new(MDS_DEST mds_dest, uint32_t client_id,
+                                    lgs_stream_list_t *stream_list);
 extern log_client_t *lgs_client_get_by_id(uint32_t client_id);
 extern int lgs_client_add_stream(log_client_t *client, uint32_t stream_id);
 extern int lgs_client_delete(uint32_t client_id, time_t *closetime_ptr);
-extern int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest,  time_t *closetime_ptr);
+extern int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest,
+                                         time_t *closetime_ptr);
 extern bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest);
 extern uint32_t lgs_remove_lga_down_rec(lgs_cb_t *cb, MDS_DEST mds_dest);
-extern void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisErrorT error, MDS_DEST mds_dest);
+extern void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation,
+                                   SaAisErrorT error, MDS_DEST mds_dest);
 extern void lgs_free_write_log(const lgsv_write_log_async_req_t *param);
 
-SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param, log_stream_t **o_stream);
+SaAisErrorT create_new_app_stream(lgsv_stream_open_req_t *open_sync_param,
+                                  log_stream_t **o_stream);
 
 uint32_t lgs_client_map_init();
 #endif  // LOG_LOGD_LGS_EVT_H_

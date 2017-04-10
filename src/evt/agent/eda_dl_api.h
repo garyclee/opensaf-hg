@@ -20,6 +20,6 @@
 #ifndef EVT_AGENT_EDA_DL_API_H_
 #define EVT_AGENT_EDA_DL_API_H_
 
-uint32_t ncs_eda_lib_req (NCS_LIB_REQ_INFO *);
+uint32_t ncs_eda_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif  // EVT_AGENT_EDA_DL_API_H_

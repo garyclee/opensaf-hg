@@ -19,7 +19,7 @@
   DESCRIPTION:
 
   This module is the include file for Sa Amf Application object management.
-  
+
 ****************************************************************************/
 #ifndef AMF_AMFD_APP_H_
 #define AMF_AMFD_APP_H_
@@ -33,29 +33,28 @@
 #include "amf/common/amf_db_template.h"
 
 class AVD_APP {
+ public:
+  std::string name;
+  std::string saAmfAppType;
+  SaAmfAdminStateT saAmfApplicationAdminState;
+  SaUint32T saAmfApplicationCurrNumSGs;
+  AVD_SG *list_of_sg;
+  AVD_SI *list_of_si;
+  AVD_APP *app_type_list_app_next;
+  AVD_APP_TYPE *app_type;
 
-public:
-	std::string name;
-	std::string saAmfAppType;
-	SaAmfAdminStateT saAmfApplicationAdminState;
-	SaUint32T saAmfApplicationCurrNumSGs;
-	AVD_SG *list_of_sg;
-	AVD_SI *list_of_si;
-	AVD_APP *app_type_list_app_next;
-	AVD_APP_TYPE *app_type;
-	
-	AVD_APP();
-	explicit AVD_APP(const std::string& dn);
-	~AVD_APP();
-	
-	void add_si(AVD_SI *si);
-	void remove_si(AVD_SI *si);
-	void add_sg(AVD_SG *sg);
-	void remove_sg(AVD_SG *sg);
+  AVD_APP();
+  explicit AVD_APP(const std::string &dn);
+  ~AVD_APP();
 
-private:
-	AVD_APP(const AVD_APP&);
-	AVD_APP& operator=(const AVD_APP&);
+  void add_si(AVD_SI *si);
+  void remove_si(AVD_SI *si);
+  void add_sg(AVD_SG *sg);
+  void remove_sg(AVD_SG *sg);
+
+ private:
+  AVD_APP(const AVD_APP &);
+  AVD_APP &operator=(const AVD_APP &);
 };
 
 extern AmfDb<std::string, AVD_APP> *app_db;

@@ -24,14 +24,14 @@
 
   TRACE GUIDE:
   Policy is to not use logging/syslog from library code.
-  Only the trace part of logtrace is used from library. 
+  Only the trace part of logtrace is used from library.
 
   It is possible to turn on trace for the IMMA library used
-  by an application process. This is done by the application 
+  by an application process. This is done by the application
   defining the environment variable: IMMA_TRACE_PATHNAME.
   The trace will end up in the file defined by that variable.
- 
-  TRACE   debug traces                 - aproximates DEBUG  
+
+  TRACE   debug traces                 - aproximates DEBUG
   TRACE_1 normal but important events  - aproximates INFO.
   TRACE_2 user errors with return code - aproximates NOTICE.
   TRACE_3 unusual or strange events    - aproximates WARNING
@@ -115,7 +115,7 @@
 
 \**************************************************************************/
 
-typedef uint32_t (*LIB_REQ) (NCS_LIB_REQ_INFO *);
+typedef uint32_t (*LIB_REQ)(NCS_LIB_REQ_INFO *);
 
 typedef struct ncs_agent_data {
 	uint32_t use_count;
@@ -248,7 +248,7 @@ unsigned int ncs_leap_startup(void)
 	osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 
 	/* start initializing all the required agents */
-	gl_ncs_main_pub_cb.lib_hdl = dlopen(NULL, RTLD_LAZY|RTLD_GLOBAL);
+	gl_ncs_main_pub_cb.lib_hdl = dlopen(NULL, RTLD_LAZY | RTLD_GLOBAL);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -368,7 +368,7 @@ unsigned int ncs_mbca_startup(void)
 	lib_create.info.create.argv = NULL;
 
 	if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-		return NCSCC_RC_SUCCESS;	/* No agents to load */
+		return NCSCC_RC_SUCCESS; /* No agents to load */
 
 	osaf_mutex_lock_ordie(&s_agent_startup_mutex);
 
@@ -381,7 +381,8 @@ unsigned int ncs_mbca_startup(void)
 		if (gl_ncs_main_pub_cb.mbca.lib_req == NULL) {
 			TRACE_4("\nMBCSV:MBCA:OFF");
 		} else {
-			if ((*gl_ncs_main_pub_cb.mbca.lib_req) (&lib_create) != NCSCC_RC_SUCCESS) {
+			if ((*gl_ncs_main_pub_cb.mbca.lib_req)(&lib_create) !=
+			    NCSCC_RC_SUCCESS) {
 				osaf_mutex_unlock_ordie(&s_agent_startup_mutex);
 				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 			} else {
@@ -416,10 +417,11 @@ unsigned int ncs_mbca_shutdown(void)
 
 	memset(&lib_destroy, 0, sizeof(lib_destroy));
 	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-	lib_destroy.info.destroy.dummy = 0;;
+	lib_destroy.info.destroy.dummy = 0;
+	;
 
 	if (gl_ncs_main_pub_cb.mbca.lib_req != NULL)
-		rc = (*gl_ncs_main_pub_cb.mbca.lib_req) (&lib_destroy);
+		rc = (*gl_ncs_main_pub_cb.mbca.lib_req)(&lib_destroy);
 
 	gl_ncs_main_pub_cb.mbca.use_count = 0;
 	gl_ncs_main_pub_cb.mbca.lib_req = NULL;
@@ -553,10 +555,11 @@ uint32_t file_get_word(FILE **fp, char *o_chword)
 {
 	int temp_char;
 	unsigned int temp_ctr = 0;
- try_again:
+try_again:
 	temp_ctr = 0;
 	temp_char = getc(*fp);
-	while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != ' ') && (temp_char != '\0')) {
+	while ((temp_char != EOF) && (temp_char != '\n') &&
+	       (temp_char != ' ') && (temp_char != '\0')) {
 		o_chword[temp_ctr] = (char)temp_char;
 		temp_char = getc(*fp);
 		temp_ctr++;
@@ -577,10 +580,11 @@ uint32_t file_get_string(FILE **fp, char *o_chword)
 {
 	int temp_char;
 	unsigned int temp_ctr = 0;
- try_again:
+try_again:
 	temp_ctr = 0;
 	temp_char = getc(*fp);
-	while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != '\0')) {
+	while ((temp_char != EOF) && (temp_char != '\n') &&
+	       (temp_char != '\0')) {
 		o_chword[temp_ctr] = (char)temp_char;
 		temp_char = getc(*fp);
 		temp_ctr++;
@@ -609,7 +613,9 @@ uint32_t mainget_node_id(uint32_t *node_id)
 	{
 		char *tmp = getenv("NCS_SIM_NODE_ID");
 		if (tmp != NULL) {
-			TRACE("\nNCS: Reading node_id(%s) from environment var.\n", tmp);
+			TRACE(
+			    "\nNCS: Reading node_id(%s) from environment var.\n",
+			    tmp);
 			*node_id = atoi(tmp);
 			return NCSCC_RC_SUCCESS;
 		}
@@ -639,7 +645,8 @@ uint32_t mainget_node_id(uint32_t *node_id)
 		do {
 			file_get_word(&fp, get_word);
 
-			if (sscanf((const char *)&get_word, "%x", node_id) != 1) {
+			if (sscanf((const char *)&get_word, "%x", node_id) !=
+			    1) {
 				res = NCSCC_RC_FAILURE;
 				break;
 			}
@@ -650,7 +657,6 @@ uint32_t mainget_node_id(uint32_t *node_id)
 
 	return (res);
 }
-
 
 static uint32_t ncs_set_config_root(void)
 {
@@ -670,7 +676,8 @@ static uint32_t ncs_set_config_root(void)
 		}
 		sprintf(ncs_config_root, "%s", tmp);
 
-		TRACE("\nNCS: Using %s as config directory root\n", ncs_config_root);
+		TRACE("\nNCS: Using %s as config directory root\n",
+		      ncs_config_root);
 	} else {
 		sprintf(ncs_config_root, "/%s", NCS_DEF_CONFIG_FILEPATH);
 	}
@@ -714,22 +721,25 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 
 	orig_argc = gl_pargc;
 	for (tmp_ctr = 0; tmp_ctr < NCS_MAX_INPUT_ARG_DEF; tmp_ctr++) {
-		gl_pargv[(gl_pargc) + tmp_ctr] = (char *)malloc(NCS_MAX_STR_INPUT);
+		gl_pargv[(gl_pargc) + tmp_ctr] =
+		    (char *)malloc(NCS_MAX_STR_INPUT);
 		memset(gl_pargv[(gl_pargc) + tmp_ctr], 0, NCS_MAX_STR_INPUT);
 	}
 	gl_pargc += tmp_ctr;
 
 	/* Check argv[argc-1] through argv[1] */
 	for (; argc > 1; argc--) {
-		char* p_field = strstr(&argv[argc - 1], "NODE_ID=");
+		char *p_field = strstr(&argv[argc - 1], "NODE_ID=");
 		if (p_field != NULL) {
-			if (sscanf(p_field + strlen("NODE_ID="), "%d", &params.node_id) == 1)
+			if (sscanf(p_field + strlen("NODE_ID="), "%d",
+				   &params.node_id) == 1)
 				sys_params->node_id = params.node_id;
 			continue;
 		} else
 			p_field = strstr(&argv[argc - 1], "PCON_ID=");
 		if (p_field != NULL) {
-			if (sscanf(p_field + strlen("PCON_ID="), "%d", &params.pcon_id) == 1)
+			if (sscanf(p_field + strlen("PCON_ID="), "%d",
+				   &params.pcon_id) == 1)
 				sys_params->pcon_id = params.pcon_id;
 			continue;
 		} else {
@@ -749,12 +759,15 @@ void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 	gl_ncs_main_pub_cb.my_nodeid = sys_params->node_id;
 
 	sys_params->shelf_id = GetChassisIdFromNodeId(sys_params->node_id);
-	sys_params->slot_subslot_id = GetSlotSubslotIdFromNodeId(sys_params->node_id);
+	sys_params->slot_subslot_id =
+	    GetSlotSubslotIdFromNodeId(sys_params->node_id);
 
 	sprintf(gl_pargv[orig_argc + 0], "NONE");
-	sprintf(gl_pargv[orig_argc + 1], "CLUSTER_ID=%d", sys_params->cluster_id);
+	sprintf(gl_pargv[orig_argc + 1], "CLUSTER_ID=%d",
+		sys_params->cluster_id);
 	sprintf(gl_pargv[orig_argc + 2], "SHELF_ID=%d", sys_params->shelf_id);
-	sprintf(gl_pargv[orig_argc + 3], "SLOT_ID=%d", sys_params->slot_subslot_id);
+	sprintf(gl_pargv[orig_argc + 3], "SLOT_ID=%d",
+		sys_params->slot_subslot_id);
 	sprintf(gl_pargv[orig_argc + 4], "NODE_ID=%d", sys_params->node_id);
 	sprintf(gl_pargv[orig_argc + 5], "PCON_ID=%d", sys_params->pcon_id);
 
@@ -766,7 +779,7 @@ uint32_t ncs_update_sys_param_args(void)
 	NCS_SYS_PARAMS sys_params;
 
 	/* Get the system specific parameters */
-	if(ncs_util_get_sys_params(&sys_params)!=NCSCC_RC_SUCCESS){
+	if (ncs_util_get_sys_params(&sys_params) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -775,7 +788,6 @@ uint32_t ncs_update_sys_param_args(void)
 
 	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -786,7 +798,7 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 {
 	/* Check   argv[argc-1] through argv[1] */
 	for (; argc > 1; argc--) {
-		char* tmp = strstr(argv[argc - 1], arg_prefix);
+		char *tmp = strstr(argv[argc - 1], arg_prefix);
 		if (tmp != NULL)
 			return tmp;
 	}

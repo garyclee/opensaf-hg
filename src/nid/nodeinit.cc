@@ -18,34 +18,34 @@
  */
 
 /************************************************************************
-*                                                                       *
-*       Module Name:    nodeinit (Node Initialization Daemon)           *
-*                                                                       *
-*       Purpose:        opensafd reads following info from              *
-*                       PKGSYSCONFDIR/nodeinit.conf file:               *
-*                       * Application file name,with absolute path name.*
-*                       * Application Name.                             *
-*                       * Application Type.                             *
-*                       * [OPTIONAL]: Cleanup application               *
-*                       * Time-out for successful application initializ *
-*                         ation.                                        *
-*                       * [OPTIONAL]: Recovery action (respawn "N"      *
-*                         times, Restart "X" times if respawn fails     *
-*                         "N" times).                                   *
-*                       * [OPTIONAL]: Input parameters for application. *
-*                       * [OPTIONAL]: Input parameters for cleanup app. *
-*                                                                       *
-*            Spawns the services in the sequence listed in              *
-*            this file,uses time-out against each service               *
-*            spawned and spawn the next service only once               *
-*            opensafd receives a successful initialization              *
-*            notification from spawned servrice.                        *
-*                                                                       *
-*            opensafd invokes cleanup followed by recovery              *
-*            if it receives initialize action error from                *
-*            spawned service or time-out before it receives             *
-*            any notification.                                          *
-************************************************************************/
+ *                                                                       *
+ *       Module Name:    nodeinit (Node Initialization Daemon)           *
+ *                                                                       *
+ *       Purpose:        opensafd reads following info from              *
+ *                       PKGSYSCONFDIR/nodeinit.conf file:               *
+ *                       * Application file name,with absolute path name.*
+ *                       * Application Name.                             *
+ *                       * Application Type.                             *
+ *                       * [OPTIONAL]: Cleanup application               *
+ *                       * Time-out for successful application initializ *
+ *                         ation.                                        *
+ *                       * [OPTIONAL]: Recovery action (respawn "N"      *
+ *                         times, Restart "X" times if respawn fails     *
+ *                         "N" times).                                   *
+ *                       * [OPTIONAL]: Input parameters for application. *
+ *                       * [OPTIONAL]: Input parameters for cleanup app. *
+ *                                                                       *
+ *            Spawns the services in the sequence listed in              *
+ *            this file,uses time-out against each service               *
+ *            spawned and spawn the next service only once               *
+ *            opensafd receives a successful initialization              *
+ *            notification from spawned servrice.                        *
+ *                                                                       *
+ *            opensafd invokes cleanup followed by recovery              *
+ *            if it receives initialize action error from                *
+ *            spawned service or time-out before it receives             *
+ *            any notification.                                          *
+ ************************************************************************/
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -78,12 +78,12 @@
 #include "base/file_notify.h"
 
 #define SETSIG(sa, sig, fun, flags) \
-	do { \
-		sa.sa_handler = fun; \
-		sa.sa_flags = flags; \
-		sigemptyset(&sa.sa_mask); \
-		sigaction(sig,&sa,NULL); \
-	} while(0)
+  do {                              \
+    sa.sa_handler = fun;            \
+    sa.sa_flags = flags;            \
+    sigemptyset(&sa.sa_mask);       \
+    sigaction(sig, &sa, NULL);      \
+  } while (0)
 
 #define NIDLOG PKGLOGDIR "/nid.log"
 
@@ -97,7 +97,7 @@ int32_t nid_current_prio;
 int32_t nis_fifofd = -1;
 
 /* List to store the info of application to be spawned */
-NID_CHILD_LIST spawn_list = { NULL, NULL, 0 };
+NID_CHILD_LIST spawn_list = {NULL, NULL, 0};
 
 /* Used to depict if we are ACTIVE/STDBY */
 uint32_t role = 0;
@@ -105,9 +105,12 @@ char rolebuff[20];
 char svc_name[NID_MAXSNAME];
 
 static uint32_t spawn_wait(NID_SPAWN_INFO *servicie, char *strbuff);
-int32_t fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
-static int32_t fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
-static int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff);
+int32_t fork_process(NID_SPAWN_INFO *service, char *app, char *args[],
+                     char *strbuff);
+static int32_t fork_script(NID_SPAWN_INFO *service, char *app, char *args[],
+                           char *strbuff);
+static int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[],
+                           char *strbuff);
 static void collect_param(char *, char *, char *args[]);
 static char *gettoken(char **, uint32_t);
 static void add2spawnlist(NID_SPAWN_INFO *);
@@ -122,7 +125,7 @@ static void nid_sleep(uint32_t);
 
 /* Functions used for service monitoring */
 static uint32_t create_svc_monitor_thread(void);
-static void* svc_monitor_thread(void *fd);
+static void *svc_monitor_thread(void *fd);
 static int handle_data_request(struct pollfd *fds, const std::string &nid_name);
 static void handle_svc_exit(int fd);
 static std::string get_svc_name(int fd);
@@ -141,18 +144,12 @@ struct SAFServices {
   };
 
   std::vector<SvcMap> svc_map = {
-    {"AMFD", "osafamfd.fifo", -1},
-    {"TRANSPORT", "osaftransportd.fifo", -1},
-    {"CLMNA", "osafclmna.fifo", -1},
-    {"RDED", "osafrded.fifo", -1},
-    {"HLFM", "osaffmd.fifo", -1},
-    {"IMMD", "osafimmd.fifo", -1},
-    {"IMMND", "osafimmnd.fifo", -1},
-    {"LOGD", "osaflogd.fifo", -1},
-    {"NTFD", "osafntfd.fifo", -1},
-    {"PLMD", "osafplmd.fifo", -1},
-    {"CLMD", "osafclmd.fifo", -1}
-  };
+      {"AMFD", "osafamfd.fifo", -1},   {"TRANSPORT", "osaftransportd.fifo", -1},
+      {"CLMNA", "osafclmna.fifo", -1}, {"RDED", "osafrded.fifo", -1},
+      {"HLFM", "osaffmd.fifo", -1},    {"IMMD", "osafimmd.fifo", -1},
+      {"IMMND", "osafimmnd.fifo", -1}, {"LOGD", "osaflogd.fifo", -1},
+      {"NTFD", "osafntfd.fifo", -1},   {"PLMD", "osafplmd.fifo", -1},
+      {"CLMD", "osafclmd.fifo", -1}};
 };
 
 static SAFServices *services_ = nullptr;
@@ -161,13 +158,14 @@ const int kMaxNumOfFds = 40;
 const int kTenSecondsInMilliseconds = 10000;
 
 /* List of recovery strategies */
-NID_FUNC recovery_funcs[] = { spawn_wait  };
-NID_FORK_FUNC fork_funcs[] = { fork_process, fork_script, fork_daemon };
+NID_FUNC recovery_funcs[] = {spawn_wait};
+NID_FORK_FUNC fork_funcs[] = {fork_process, fork_script, fork_daemon};
 
 const char *nid_recerr[NID_MAXREC][4] = {
-	{"Trying To RESPAWN", "Could Not RESPAWN", "Succeeded To RESPAWN", "FAILED TO RESPAWN"},
-	{"Trying To RESET", "Faild to RESET", "suceeded To RESET", "FAILED AFTER RESTART"}
-};
+    {"Trying To RESPAWN", "Could Not RESPAWN", "Succeeded To RESPAWN",
+     "FAILED TO RESPAWN"},
+    {"Trying To RESET", "Faild to RESET", "suceeded To RESET",
+     "FAILED AFTER RESTART"}};
 
 /****************************************************************************
  * Name          : nid_sleep                                                *
@@ -177,16 +175,15 @@ const char *nid_recerr[NID_MAXREC][4] = {
  * Arguments     : time_in _msec- time to sleep for milli secs              *
  *                                                                          *
  ***************************************************************************/
-void nid_sleep(uint32_t time_in_msec)
-{
-	struct timespec ts;
+void nid_sleep(uint32_t time_in_msec) {
+  struct timespec ts;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	osaf_millis_to_timespec(time_in_msec, &ts);
-	osaf_nanosleep(&ts);
+  osaf_millis_to_timespec(time_in_msec, &ts);
+  osaf_nanosleep(&ts);
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -200,33 +197,31 @@ void nid_sleep(uint32_t time_in_msec)
  * Return Values : token string seperated by "tok" or NULL if nothing       *
  *                                                                          *
  ****************************************************************************/
-char *gettoken(char **str, uint32_t tok)
-{
-	char *p, *q;
+char *gettoken(char **str, uint32_t tok) {
+  char *p, *q;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	if ((str == NULL) || (*str == 0) || (**str == '\n') || (**str == '\0'))
-		return (NULL);
+  if ((str == NULL) || (*str == 0) || (**str == '\n') || (**str == '\0'))
+    return (NULL);
 
-	p = q = *str;
-	if (**str == ':') {
-		*p++ = 0;
-		*str = p;
-		return (NULL);
-	}
+  p = q = *str;
+  if (**str == ':') {
+    *p++ = 0;
+    *str = p;
+    return (NULL);
+  }
 
-	while ((*p != static_cast<int>(tok)) && (*p != '\n') && *p)
-		p++;
+  while ((*p != static_cast<int>(tok)) && (*p != '\n') && *p) p++;
 
-	if ((*p == static_cast<int>(tok)) || (*p == '\n')) {
-		*p++ = 0;
-		*str = p;
-	}
+  if ((*p == static_cast<int>(tok)) || (*p == '\n')) {
+    *p++ = 0;
+    *str = p;
+  }
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 
-	return q;
+  return q;
 }
 
 /****************************************************************************
@@ -239,23 +234,22 @@ char *gettoken(char **str, uint32_t tok)
  *                             spawn_list                                   *
  *                                                                          *
  ***************************************************************************/
-void add2spawnlist(NID_SPAWN_INFO *childinfo)
-{
-	TRACE_ENTER();
+void add2spawnlist(NID_SPAWN_INFO *childinfo) {
+  TRACE_ENTER();
 
-	if (spawn_list.head == NULL) {
-		spawn_list.head = spawn_list.tail = childinfo;
-		childinfo->next = NULL;
-		spawn_list.count++;
-		return;
-	}
+  if (spawn_list.head == NULL) {
+    spawn_list.head = spawn_list.tail = childinfo;
+    childinfo->next = NULL;
+    spawn_list.count++;
+    return;
+  }
 
-	spawn_list.tail->next = childinfo;
-	spawn_list.tail = childinfo;
-	childinfo->next = NULL;
-	spawn_list.count++;
+  spawn_list.tail->next = childinfo;
+  spawn_list.tail = childinfo;
+  childinfo->next = NULL;
+  spawn_list.count++;
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -268,25 +262,23 @@ void add2spawnlist(NID_SPAWN_INFO *childinfo)
  * Return Values : Application type code/APPERR                             *
  *                                                                          *
  ***************************************************************************/
-NID_APP_TYPE get_apptype(char *p)
-{
-	NID_APP_TYPE type = NID_APPERR;
+NID_APP_TYPE get_apptype(char *p) {
+  NID_APP_TYPE type = NID_APPERR;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	if (p == NULL)
-		return type;
+  if (p == NULL) return type;
 
-	if (*p == 'E')
-		type = NID_EXEC;
-	else if (*p == 'S')
-		type = NID_SCRIPT;
-	else if (*p == 'D')
-		type = NID_DAEMON;
+  if (*p == 'E')
+    type = NID_EXEC;
+  else if (*p == 'S')
+    type = NID_SCRIPT;
+  else if (*p == 'D')
+    type = NID_DAEMON;
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 
-	return type;
+  return type;
 }
 
 /****************************************************************************
@@ -303,255 +295,275 @@ NID_APP_TYPE get_apptype(char *p)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE                        *
  *                                                                          *
  ***************************************************************************/
-uint32_t get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
-{
-	char *p, *q;
-	NID_PLATCONF_PARS parse_state = NID_PLATCONF_SFILE;
+uint32_t get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf) {
+  char *p, *q;
+  NID_PLATCONF_PARS parse_state = NID_PLATCONF_SFILE;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	p = srcstr;
-	while (parse_state != NID_PLATCONF_END) {
+  p = srcstr;
+  while (parse_state != NID_PLATCONF_END) {
+    switch (parse_state) {
+      case NID_PLATCONF_SFILE:
+        if (p[0] == ':') {
+          sprintf(sbuf,
+                  ": Missing application file name in file:" NID_PLAT_CONF);
+          break;
+        }
+        q = gettoken(&p, ':');
+        if (strlen(q) > NID_MAXSFILE) {
+          sprintf(
+              sbuf,
+              ": App file name length exceeded max:%d in file" NID_PLAT_CONF,
+              NID_MAXSFILE);
+          break;
+        }
+        strcpy(spawninfo->s_name, q);
+        if (spawninfo->s_name[0] != '/') {
+          sprintf(sbuf, ": Not an absolute path: %s", spawninfo->s_name);
+          break;
+        }
+        if ((p == NULL) || (*p == '\0')) {
+          sprintf(sbuf, ": Missing app name in file:" NID_PLAT_CONF);
+          break;
+        }
+        parse_state = NID_PLATCONF_SNAME;
+        continue;
 
-		switch (parse_state) {
-		case NID_PLATCONF_SFILE:
-			if (p[0] == ':') {
-				sprintf(sbuf, ": Missing application file name in file:" NID_PLAT_CONF);
-				break;
-			}
-			q = gettoken(&p, ':');
-			if (strlen(q) > NID_MAXSFILE) {
-				sprintf(sbuf, ": App file name length exceeded max:%d in file"
-					NID_PLAT_CONF, NID_MAXSFILE);
-				break;
-			}
-			strcpy(spawninfo->s_name, q);
-			if (spawninfo->s_name[0] != '/') {
-				sprintf(sbuf, ": Not an absolute path: %s", spawninfo->s_name);
-				break;
-			}
-			if ((p == NULL) || (*p == '\0')) {
-				sprintf(sbuf, ": Missing app name in file:" NID_PLAT_CONF);
-				break;
-			}
-			parse_state = NID_PLATCONF_SNAME;
-			continue;
+      case NID_PLATCONF_SNAME:
+        if ((p[0] == ':') || (p[0] == '\n')) {
+          sprintf(sbuf, ": Missing app name in file:" NID_PLAT_CONF);
+          break;
+        }
+        q = gettoken(&p, ':');
 
-		case NID_PLATCONF_SNAME:
-			if ((p[0] == ':') || (p[0] == '\n')) {
-				sprintf(sbuf, ": Missing app name in file:" NID_PLAT_CONF);
-				break;
-			}
-			q = gettoken(&p, ':');
+        if ((q == NULL) || (*q == '\0')) {
+          sprintf(sbuf, ": Null/Empty string  not a valid service Name");
+          break;
+        }
+        if (strlen(q) > NID_MAX_SVC_NAME_LEN) {
+          sprintf(sbuf, ": App name length exceeded max:%d in file",
+                  NID_MAX_SVC_NAME_LEN);
+          break;
+        }
 
-			if ((q == NULL) || (*q == '\0')) {
-				sprintf(sbuf, ": Null/Empty string  not a valid service Name");
-				break;
-			}
-			if (strlen(q) > NID_MAX_SVC_NAME_LEN) {
-				sprintf(sbuf, ": App name length exceeded max:%d in file", NID_MAX_SVC_NAME_LEN);
-				break;
-			}
+        strcpy(spawninfo->serv_name, q);
+        if ((p == NULL) || (*p == '\0')) {
+          sprintf(sbuf, ": Missing file type in file:" NID_PLAT_CONF);
+          break;
+        }
+        parse_state = NID_PLATCONF_APPTYPE;
+        continue;
 
-			strcpy(spawninfo->serv_name, q);
-			if ((p == NULL) || (*p == '\0')) {
-				sprintf(sbuf, ": Missing file type in file:" NID_PLAT_CONF);
-				break;
-			}
-			parse_state = NID_PLATCONF_APPTYPE;
-			continue;
+      case NID_PLATCONF_APPTYPE:
+        if ((p[0] == ':') || (p[0] == '\n')) {
+          sprintf(sbuf, ": Missing file type in file:" NID_PLAT_CONF);
+          break;
+        }
+        q = gettoken(&p, ':');
+        if (strlen(q) > NID_MAXAPPTYPE_LEN) {
+          sprintf(sbuf,
+                  ": File type length exceeded max:%d in file" NID_PLAT_CONF,
+                  NID_MAXAPPTYPE_LEN);
+          break;
+        }
+        spawninfo->app_type = get_apptype(q);
+        if (spawninfo->app_type < 0) {
+          sprintf(sbuf, ": Not an identified file type,\"%s\"", q);
+          break;
+        }
+        if ((p == NULL) || (*p == '\0')) {
+          if ((spawninfo->app_type == NID_SCRIPT))
+            sprintf(sbuf, ": Missing cleanup script in file:" NID_PLAT_CONF);
+          else if ((spawninfo->app_type == NID_EXEC) ||
+                   (spawninfo->app_type == NID_DAEMON))
+            sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
+          break;
+        }
 
-		case NID_PLATCONF_APPTYPE:
-			if ((p[0] == ':') || (p[0] == '\n')) {
-				sprintf(sbuf, ": Missing file type in file:" NID_PLAT_CONF);
-				break;
-			}
-			q = gettoken(&p, ':');
-			if (strlen(q) > NID_MAXAPPTYPE_LEN) {
-				sprintf(sbuf, ": File type length exceeded max:%d in file"
-					NID_PLAT_CONF, NID_MAXAPPTYPE_LEN);
-				break;
-			}
-			spawninfo->app_type = get_apptype(q);
-			if (spawninfo->app_type < 0) {
-				sprintf(sbuf, ": Not an identified file type,\"%s\"", q);
-				break;
-			}
-			if ((p == NULL) || (*p == '\0')) {
-				if ((spawninfo->app_type == NID_SCRIPT))
-					sprintf(sbuf, ": Missing cleanup script in file:" NID_PLAT_CONF);
-				else if ((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMON))
-					sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
-				break;
-			}
+        parse_state = NID_PLATCONF_CLEANUP;
+        continue;
 
-			parse_state = NID_PLATCONF_CLEANUP;
-			continue;
+      case NID_PLATCONF_CLEANUP:
+        if ((p[0] == ':') || (p[0] == '\n')) {
+          if ((spawninfo->app_type == NID_SCRIPT)) {
+            sprintf(sbuf, ": Missing cleanup script in file:" NID_PLAT_CONF);
+            break;
+          } else if ((spawninfo->app_type == NID_EXEC) ||
+                     (spawninfo->app_type == NID_DAEMON)) {
+            spawninfo->cleanup_file[0] = '\0';
+            gettoken(&p, ':');
+            if ((p == NULL) || (*p == '\0')) {
+              sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
+              break;
+            }
+            parse_state = NID_PLATCONF_TOUT;
+            continue;
+          }
+        }
+        q = gettoken(&p, ':');
+        if (strlen(q) > NID_MAXSFILE) {
+          sprintf(
+              sbuf,
+              ": Cleanup app file name length exceeded max:%d in file" NID_PLAT_CONF,
+              NID_MAXSFILE);
+          break;
+        }
 
-		case NID_PLATCONF_CLEANUP:
-			if ((p[0] == ':') || (p[0] == '\n')) {
-				if ((spawninfo->app_type == NID_SCRIPT)) {
-					sprintf(sbuf, ": Missing cleanup script in file:" NID_PLAT_CONF);
-					break;
-				} else if ((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMON)) {
-					spawninfo->cleanup_file[0] = '\0';
-					gettoken(&p, ':');
-					if ((p == NULL) || (*p == '\0')) {
-						sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
-						break;
-					}
-					parse_state = NID_PLATCONF_TOUT;
-					continue;
-				}
-			}
-			q = gettoken(&p, ':');
-			if (strlen(q) > NID_MAXSFILE) {
-				sprintf(sbuf, ": Cleanup app file name length exceeded max:%d in file"
-					NID_PLAT_CONF, NID_MAXSFILE);
-				break;
-			}
+        strcpy(spawninfo->cleanup_file, q);
+        if (spawninfo->cleanup_file[0] != '/') {
+          sprintf(sbuf, ": Not an absolute path: %s", spawninfo->cleanup_file);
+          break;
+        }
+        if ((p == NULL) || (*p == '\0')) {
+          sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
+          break;
+        }
+        parse_state = NID_PLATCONF_TOUT;
+        continue;
 
-			strcpy(spawninfo->cleanup_file, q);
-			if (spawninfo->cleanup_file[0] != '/') {
-				sprintf(sbuf, ": Not an absolute path: %s", spawninfo->cleanup_file);
-				break;
-			}
-			if ((p == NULL) || (*p == '\0')) {
-				sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
-				break;
-			}
-			parse_state = NID_PLATCONF_TOUT;
-			continue;
+      case NID_PLATCONF_TOUT:
+        if ((p[0] == ':') || (p[0] == '\n')) {
+          sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
+          break;
+        }
+        q = gettoken(&p, ':');
+        if (strlen(q) > NID_MAX_TIMEOUT_LEN) {
+          sprintf(
+              sbuf,
+              ": Timeout field length exceeded max:%d in file" NID_PLAT_CONF,
+              NID_MAX_TIMEOUT_LEN);
+          break;
+        }
+        spawninfo->time_out = atoll(q);
 
-		case NID_PLATCONF_TOUT:
-			if ((p[0] == ':') || (p[0] == '\n')) {
-				sprintf(sbuf, ": Missing timeout value in file:" NID_PLAT_CONF);
-				break;
-			}
-			q = gettoken(&p, ':');
-			if (strlen(q) > NID_MAX_TIMEOUT_LEN) {
-				sprintf(sbuf, ": Timeout field length exceeded max:%d in file"
-					NID_PLAT_CONF, NID_MAX_TIMEOUT_LEN);
-				break;
-			}
-			spawninfo->time_out = atoll(q);
+        parse_state = NID_PLATCONF_PRIO;
+        continue;
 
-			parse_state = NID_PLATCONF_PRIO;
-			continue;
+      case NID_PLATCONF_PRIO:
+        q = gettoken(&p, ':');
+        if (q == NULL) {
+          spawninfo->priority = 0;
+          parse_state = NID_PLATCONF_RSP;
+          continue;
+        } else {
+          if (strlen(q) > NID_MAX_PRIO_LEN) {
+            sprintf(
+                sbuf,
+                ": Priority field length exceeded max:%d in file" NID_PLAT_CONF,
+                NID_MAX_PRIO_LEN);
+            break;
+          }
+          spawninfo->priority = atoi(q);
+          parse_state = NID_PLATCONF_RSP;
+          continue;
+        }
 
-		case NID_PLATCONF_PRIO:
-			q = gettoken(&p, ':');
-			if (q == NULL) {
-				spawninfo->priority = 0;
-				parse_state = NID_PLATCONF_RSP;
-				continue;
-			} else {
-				if (strlen(q) > NID_MAX_PRIO_LEN) {
-					sprintf(sbuf, ": Priority field length exceeded max:%d in file"
-						NID_PLAT_CONF, NID_MAX_PRIO_LEN);
-					break;
-				}
-				spawninfo->priority = atoi(q);
-				parse_state = NID_PLATCONF_RSP;
-				continue;
-			}
+      case NID_PLATCONF_RSP:
+        q = gettoken(&p, ':');
+        if (q == NULL) {
+          spawninfo->recovery_matrix[NID_RESPAWN].retry_count = 0;
+          spawninfo->recovery_matrix[NID_RESPAWN].action =
+              recovery_funcs[NID_RESPAWN];
+          parse_state = NID_PLATCONF_RST;
+          continue;
+        } else {
+          if (strlen(q) > NID_MAX_RESP_LEN) {
+            sprintf(
+                sbuf,
+                ": Respawn field length exceeded max:%d in file" NID_PLAT_CONF,
+                NID_MAX_RESP_LEN);
+            break;
+          }
+          if ((*q < '0') || (*q > '9')) {
+            sprintf(sbuf, ": Not a digit");
+            break;
+          }
+          spawninfo->recovery_matrix[NID_RESPAWN].retry_count = atoi(q);
+          spawninfo->recovery_matrix[NID_RESPAWN].action =
+              recovery_funcs[NID_RESPAWN];
+          parse_state = NID_PLATCONF_RST;
+          continue;
+        }
 
-		case NID_PLATCONF_RSP:
-			q = gettoken(&p, ':');
-			if (q == NULL) {
-				spawninfo->recovery_matrix[NID_RESPAWN].retry_count = 0;
-				spawninfo->recovery_matrix[NID_RESPAWN].action = recovery_funcs[NID_RESPAWN];
-				parse_state = NID_PLATCONF_RST;
-				continue;
-			} else {
-				if (strlen(q) > NID_MAX_RESP_LEN) {
-					sprintf(sbuf, ": Respawn field length exceeded max:%d in file"
-						NID_PLAT_CONF, NID_MAX_RESP_LEN);
-					break;
-				}
-				if ((*q < '0') || (*q > '9')) {
-					sprintf(sbuf, ": Not a digit");
-					break;
-				}
-				spawninfo->recovery_matrix[NID_RESPAWN].retry_count = atoi(q);
-				spawninfo->recovery_matrix[NID_RESPAWN].action = recovery_funcs[NID_RESPAWN];
-				parse_state = NID_PLATCONF_RST;
-				continue;
-			}
+      case NID_PLATCONF_RST:
+        q = gettoken(&p, ':');
+        if (q == NULL) {
+          spawninfo->recovery_matrix[NID_RESET].retry_count = 0;
+          parse_state = NID_PLATCONF_SPARM;
+          continue;
+        } else {
+          if (strlen(q) > NID_MAX_REST_LEN) {
+            sprintf(
+                sbuf,
+                ": Restart field length exceeded max:%d in file" NID_PLAT_CONF,
+                NID_MAX_REST_LEN);
+            break;
+          }
+          if ((*q < '0') || (*q > '1')) {
+            sprintf(sbuf, ": Not a valid digit");
+            break;
+          }
+          spawninfo->recovery_matrix[NID_RESET].retry_count = atoi(q);
+          parse_state = NID_PLATCONF_SPARM;
+          continue;
+        }
 
-		case NID_PLATCONF_RST:
-			q = gettoken(&p, ':');
-			if (q == NULL) {
-				spawninfo->recovery_matrix[NID_RESET].retry_count = 0;
-				parse_state = NID_PLATCONF_SPARM;
-				continue;
-			} else {
-				if (strlen(q) > NID_MAX_REST_LEN) {
-					sprintf(sbuf, ": Restart field length exceeded max:%d in file"
-						NID_PLAT_CONF, NID_MAX_REST_LEN);
-					break;
-				}
-				if ((*q < '0') || (*q > '1')) {
-					sprintf(sbuf, ": Not a valid digit");
-					break;
-				}
-				spawninfo->recovery_matrix[NID_RESET].retry_count = atoi(q);
-				parse_state = NID_PLATCONF_SPARM;
-				continue;
-			}
+      case NID_PLATCONF_SPARM:
+        q = gettoken(&p, ':');
+        if (q == NULL) {
+          strcpy(spawninfo->s_parameters, " ");
+          spawninfo->serv_args[1] = NULL;
+          spawninfo->serv_args[0] = spawninfo->s_name;
+          parse_state = NID_PLATCONF_CLNPARM;
+          continue;
+        } else {
+          if (strlen(q) > NID_MAXPARMS) {
+            sprintf(sbuf,
+                    ": App param length exceeded max:%d in file" NID_PLAT_CONF,
+                    NID_MAXPARMS);
+            break;
+          }
 
-		case NID_PLATCONF_SPARM:
-			q = gettoken(&p, ':');
-			if (q == NULL) {
-				strcpy(spawninfo->s_parameters, " ");
-				spawninfo->serv_args[1] = NULL;
-				spawninfo->serv_args[0] = spawninfo->s_name;
-				parse_state = NID_PLATCONF_CLNPARM;
-				continue;
-			} else {
-				if (strlen(q) > NID_MAXPARMS) {
-					sprintf(sbuf, ": App param length exceeded max:%d in file"
-						NID_PLAT_CONF, NID_MAXPARMS);
-					break;
-				}
+          strncpy(spawninfo->s_parameters, q, NID_MAXPARMS);
+          collect_param(spawninfo->s_parameters, spawninfo->s_name,
+                        spawninfo->serv_args);
+          parse_state = NID_PLATCONF_CLNPARM;
+          continue;
+        }
 
-				strncpy(spawninfo->s_parameters, q, NID_MAXPARMS);
-				collect_param(spawninfo->s_parameters, spawninfo->s_name, spawninfo->serv_args);
-				parse_state = NID_PLATCONF_CLNPARM;
-				continue;
-			}
+      case NID_PLATCONF_CLNPARM:
+        q = gettoken(&p, ':');
+        if (q == NULL) {
+          strcpy(spawninfo->cleanup_parms, " ");
+          spawninfo->clnup_args[1] = NULL;
+          spawninfo->clnup_args[0] = spawninfo->cleanup_file;
+          parse_state = NID_PLATCONF_END;
+          continue;
+        } else {
+          if (strlen(q) > NID_MAXPARMS) {
+            sprintf(sbuf,
+                    ": App param length exceeded max:%d in file" NID_PLAT_CONF,
+                    NID_MAXPARMS);
+            break;
+          }
+          strncpy(spawninfo->cleanup_parms, q, NID_MAXPARMS);
+          collect_param(spawninfo->cleanup_parms, spawninfo->cleanup_file,
+                        spawninfo->clnup_args);
+          parse_state = NID_PLATCONF_END;
+          continue;
+        }
 
-		case NID_PLATCONF_CLNPARM:
-			q = gettoken(&p, ':');
-			if (q == NULL) {
-				strcpy(spawninfo->cleanup_parms, " ");
-				spawninfo->clnup_args[1] = NULL;
-				spawninfo->clnup_args[0] = spawninfo->cleanup_file;
-				parse_state = NID_PLATCONF_END;
-				continue;
-			} else {
-				if (strlen(q) > NID_MAXPARMS) {
-					sprintf(sbuf, ": App param length exceeded max:%d in file"
-						NID_PLAT_CONF, NID_MAXPARMS);
-					break;
-				}
-				strncpy(spawninfo->cleanup_parms, q, NID_MAXPARMS);
-				collect_param(spawninfo->cleanup_parms, spawninfo->cleanup_file, spawninfo->clnup_args);
-				parse_state = NID_PLATCONF_END;
-				continue;
-			}
+      case NID_PLATCONF_END:
+        break;
+    }
 
-		case NID_PLATCONF_END:
-			break;
-		}
+    if (parse_state != NID_PLATCONF_END) return NCSCC_RC_FAILURE;
+  }
 
-		if (parse_state != NID_PLATCONF_END)
-			return NCSCC_RC_FAILURE;
-	}
+  TRACE_LEAVE();
 
-	TRACE_LEAVE();
-
-	return NCSCC_RC_SUCCESS;
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -566,87 +578,87 @@ uint32_t get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE                        *
  *                                                                          *
  ***************************************************************************/
-uint32_t parse_nodeinit_conf(char *strbuf)
-{
-	NID_SPAWN_INFO *childinfo;
-	char buff[256], sbuf[200], *ch, *ch1, tmp[30], nidconf[256];
-	uint32_t lineno = 0, retry = 0;
-	struct nid_resetinfo info = { {""}, static_cast<uint32_t>(-1) };
-	FILE *file, *ntfile;
+uint32_t parse_nodeinit_conf(char *strbuf) {
+  NID_SPAWN_INFO *childinfo;
+  char buff[256], sbuf[200], *ch, *ch1, tmp[30], nidconf[256];
+  uint32_t lineno = 0, retry = 0;
+  struct nid_resetinfo info = {{""}, static_cast<uint32_t>(-1)};
+  FILE *file, *ntfile;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	/* open node_type file from PKGSYSCONFDIR directory */
-	if ((ntfile = fopen(PKGSYSCONFDIR "/node_type", "r")) == NULL) {
-		LOG_ER("Could not open file %s %s", PKGSYSCONFDIR "/node_type", strerror(errno));
-		return NCSCC_RC_FAILURE;
-	}
+  /* open node_type file from PKGSYSCONFDIR directory */
+  if ((ntfile = fopen(PKGSYSCONFDIR "/node_type", "r")) == NULL) {
+    LOG_ER("Could not open file %s %s", PKGSYSCONFDIR "/node_type",
+           strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
 
-	/* read value of node_type file from PKGSYSCONFDIR directory */
-	if (fscanf(ntfile, "%s", tmp) > 0) {
-		/* Form complete name of nodeinit.conf.<controller or payload>. */
-		snprintf(nidconf, sizeof(nidconf), NID_PLAT_CONF ".%s", tmp);
-	}
+  /* read value of node_type file from PKGSYSCONFDIR directory */
+  if (fscanf(ntfile, "%s", tmp) > 0) {
+    /* Form complete name of nodeinit.conf.<controller or payload>. */
+    snprintf(nidconf, sizeof(nidconf), NID_PLAT_CONF ".%s", tmp);
+  }
 
-	(void)fclose(ntfile);
+  (void)fclose(ntfile);
 
-	if ((file = fopen(nidconf, "r")) == NULL) {
-		sprintf(strbuf, "%s. file open error '%s'\n", nidconf, strerror(errno));
-		return NCSCC_RC_FAILURE;
-	}
+  if ((file = fopen(nidconf, "r")) == NULL) {
+    sprintf(strbuf, "%s. file open error '%s'\n", nidconf, strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
 
-	while (fgets(buff, sizeof(buff), file)) {
-		lineno++;
+  while (fgets(buff, sizeof(buff), file)) {
+    lineno++;
 
-		/* Skip Comments and tab spaces in the beginning */
-		ch = buff;
+    /* Skip Comments and tab spaces in the beginning */
+    ch = buff;
 
-		while (*ch == ' ' || *ch == '\t')
-			ch++;
+    while (*ch == ' ' || *ch == '\t') ch++;
 
-		if (*ch == '#' || *ch == '\n')
-			continue;
+    if (*ch == '#' || *ch == '\n') continue;
 
-		/* In case if we have # somewhere in this line lets truncate the string from there */
-		if ((ch1 = strchr(ch, '#')) != NULL) {
-			*ch1++ = '\n';
-			*ch1 = '\0';
-		}
+    /* In case if we have # somewhere in this line lets truncate the string from
+     * there */
+    if ((ch1 = strchr(ch, '#')) != NULL) {
+      *ch1++ = '\n';
+      *ch1 = '\0';
+    }
 
-		/* Allocate mem for new child info */
-		while ((childinfo = reinterpret_cast<NID_SPAWN_INFO*>(malloc(sizeof(NID_SPAWN_INFO)))) == nullptr) {
-			if (retry++ == 5) {
-				sprintf(strbuf, "FAILURE: Out of memory\n");
-				return NCSCC_RC_FAILURE;
-			}
-			nid_sleep(1000);
-		}
+    /* Allocate mem for new child info */
+    while ((childinfo = reinterpret_cast<NID_SPAWN_INFO *>(
+                malloc(sizeof(NID_SPAWN_INFO)))) == nullptr) {
+      if (retry++ == 5) {
+        sprintf(strbuf, "FAILURE: Out of memory\n");
+        return NCSCC_RC_FAILURE;
+      }
+      nid_sleep(1000);
+    }
 
-		/* Clear the new child info struct */
-		memset(childinfo, 0, sizeof(NID_SPAWN_INFO));
+    /* Clear the new child info struct */
+    memset(childinfo, 0, sizeof(NID_SPAWN_INFO));
 
-		/* Parse each entry in the nodeinit.conf file */
-		if (get_spawn_info(ch, childinfo, sbuf) != NCSCC_RC_SUCCESS) {
-			sprintf(strbuf, "%s, At: %d\n", sbuf, lineno);
-			return NCSCC_RC_FAILURE;
-		}
+    /* Parse each entry in the nodeinit.conf file */
+    if (get_spawn_info(ch, childinfo, sbuf) != NCSCC_RC_SUCCESS) {
+      sprintf(strbuf, "%s, At: %d\n", sbuf, lineno);
+      return NCSCC_RC_FAILURE;
+    }
 
-		if (strcmp(childinfo->serv_name, info.faild_serv_name) == 0)
-			childinfo->recovery_matrix[NID_RESET].retry_count = info.count;
+    if (strcmp(childinfo->serv_name, info.faild_serv_name) == 0)
+      childinfo->recovery_matrix[NID_RESET].retry_count = info.count;
 
-		/* Add the new child info to spawn_list */
-		add2spawnlist(childinfo);
-	}
+    /* Add the new child info to spawn_list */
+    add2spawnlist(childinfo);
+  }
 
-	if (fclose(file) != 0) {
-		sprintf(strbuf, "Failed to close " NID_PLAT_CONF "file close error '%s'\n",
-				strerror(errno));
-		return NCSCC_RC_FAILURE;
-	}
+  if (fclose(file) != 0) {
+    sprintf(strbuf, "Failed to close " NID_PLAT_CONF "file close error '%s'\n",
+            strerror(errno));
+    return NCSCC_RC_FAILURE;
+  }
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 
-	return NCSCC_RC_SUCCESS;
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -661,105 +673,103 @@ uint32_t parse_nodeinit_conf(char *strbuf)
  * Return Values : Process ID of the daemon forked.                         *
  *                                                                          *
  ***************************************************************************/
-int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
-{
-	int32_t pid = -1;
-	int tmp_pid = -1;
-	int32_t prio_stat = -1;
-	sigset_t nmask, omask;
-	struct sigaction sa;
-	int i = 0, filedes[2];
-	int32_t n;
+int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[],
+                    char *strbuff) {
+  int32_t pid = -1;
+  int tmp_pid = -1;
+  int32_t prio_stat = -1;
+  sigset_t nmask, omask;
+  struct sigaction sa;
+  int i = 0, filedes[2];
+  int32_t n;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	/* Block sigchild while forking */
-	sigemptyset(&nmask);
-	sigaddset(&nmask, SIGCHLD);
-	sigprocmask(SIG_BLOCK, &nmask, &omask);
+  /* Block sigchild while forking */
+  sigemptyset(&nmask);
+  sigaddset(&nmask, SIGCHLD);
+  sigprocmask(SIG_BLOCK, &nmask, &omask);
 
-	if(-1 == pipe(filedes))
-		LOG_ER("Problem creating pipe: %s", strerror(errno));
-	else
-		fcntl(filedes[0], F_SETFL, fcntl(filedes[0], F_GETFL) | O_NONBLOCK);
+  if (-1 == pipe(filedes))
+    LOG_ER("Problem creating pipe: %s", strerror(errno));
+  else
+    fcntl(filedes[0], F_SETFL, fcntl(filedes[0], F_GETFL) | O_NONBLOCK);
 
-	if ((pid = fork()) == 0) {
-		if (nis_fifofd > 0)
-			close(nis_fifofd);
+  if ((pid = fork()) == 0) {
+    if (nis_fifofd > 0) close(nis_fifofd);
 
-		if ((tmp_pid = fork()) > 0) {
-			exit(0);
-		}
+    if ((tmp_pid = fork()) > 0) {
+      exit(0);
+    }
 
-		/* We dont need reader open here */
-		close(filedes[0]);
+    /* We dont need reader open here */
+    close(filedes[0]);
 
-		SETSIG(sa, SIGPIPE, SIG_IGN, 0);
+    SETSIG(sa, SIGPIPE, SIG_IGN, 0);
 
-		tmp_pid = getpid();
-		while (write(filedes[1], &tmp_pid, sizeof(int)) < 0) {
-			if (errno == EINTR)
-				continue;
-			else if (errno == EPIPE) {
-				LOG_ER("Reader not available to return my PID");
-			} else {
-				LOG_ER("Problem writing to pipe, err=%s", strerror(errno));
-			}
-			exit(2);
-		}
+    tmp_pid = getpid();
+    while (write(filedes[1], &tmp_pid, sizeof(int)) < 0) {
+      if (errno == EINTR)
+        continue;
+      else if (errno == EPIPE) {
+        LOG_ER("Reader not available to return my PID");
+      } else {
+        LOG_ER("Problem writing to pipe, err=%s", strerror(errno));
+      }
+      exit(2);
+    }
 
-		setsid();
-		if(! freopen("/dev/null", "r", stdin))
-			LOG_ER("freopen stdin: %s", strerror(errno));
+    setsid();
+    if (!freopen("/dev/null", "r", stdin))
+      LOG_ER("freopen stdin: %s", strerror(errno));
 
-		if(! freopen(NIDLOG, "a", stdout))
-			LOG_ER("freopen stdout: %s", strerror(errno));
+    if (!freopen(NIDLOG, "a", stdout))
+      LOG_ER("freopen stdout: %s", strerror(errno));
 
-		if(! freopen(NIDLOG, "a", stderr))
-			LOG_ER("freopen stderr: %s", strerror(errno));
+    if (!freopen(NIDLOG, "a", stderr))
+      LOG_ER("freopen stderr: %s", strerror(errno));
 
-		prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
-		if (prio_stat < 0)
-			LOG_ER("Failed setting priority for %s", service->serv_name);
+    prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
+    if (prio_stat < 0)
+      LOG_ER("Failed setting priority for %s", service->serv_name);
 
-		umask(022);
+    umask(022);
 
-		/* Reset all the signals */
-		for (i = 1; i < NSIG; i++)
-			SETSIG(sa, i, SIG_DFL, SA_RESTART);
+    /* Reset all the signals */
+    for (i = 1; i < NSIG; i++) SETSIG(sa, i, SIG_DFL, SA_RESTART);
 
-		execvp(app, args);
+    execvp(app, args);
 
-		/* Hope we never come here, incase if we are here, Lets rest in peace */
-		LOG_ER("Failed to exec while creating daemon, err=%s", strerror(errno));
-		exit(2);
-	}
+    /* Hope we never come here, incase if we are here, Lets rest in peace */
+    LOG_ER("Failed to exec while creating daemon, err=%s", strerror(errno));
+    exit(2);
+  }
 
-	/* We dont need writer open here */
-	close(filedes[1]);
+  /* We dont need writer open here */
+  close(filedes[1]);
 
-	/* Lets not block indefinitely for reading pid */
-	while ((n = osaf_poll_one_fd(filedes[0], 5 * kMillisPerSec)) <= 0) {
-		if (n == 0) {
-			LOG_ER("Writer couldn't return PID");
-			close(filedes[0]);
-			return tmp_pid;
-		}
-		break;
-	}
+  /* Lets not block indefinitely for reading pid */
+  while ((n = osaf_poll_one_fd(filedes[0], 5 * kMillisPerSec)) <= 0) {
+    if (n == 0) {
+      LOG_ER("Writer couldn't return PID");
+      close(filedes[0]);
+      return tmp_pid;
+    }
+    break;
+  }
 
-	while (read(filedes[0], &tmp_pid, sizeof(int)) < 0)
-		if (errno == EINTR)
-			continue;
-		else
-			break;
+  while (read(filedes[0], &tmp_pid, sizeof(int)) < 0)
+    if (errno == EINTR)
+      continue;
+    else
+      break;
 
-	close(filedes[0]);
-	sigprocmask(SIG_SETMASK, &omask, NULL);
+  close(filedes[0]);
+  sigprocmask(SIG_SETMASK, &omask, NULL);
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 
-	return tmp_pid;
+  return tmp_pid;
 }
 
 /****************************************************************************
@@ -774,62 +784,58 @@ int32_t fork_daemon(NID_SPAWN_INFO *service, char *app, char *args[], char *strb
  * Return Values : Process ID of the script forked.(not usedful).           *
  *                                                                          *
  ***************************************************************************/
-int32_t fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
-{
-	int32_t pid = -1;
-	int i = 0;
-	int32_t prio_stat = -1;
-	sigset_t nmask, omask;
-	struct sigaction sa;
+int32_t fork_script(NID_SPAWN_INFO *service, char *app, char *args[],
+                    char *strbuff) {
+  int32_t pid = -1;
+  int i = 0;
+  int32_t prio_stat = -1;
+  sigset_t nmask, omask;
+  struct sigaction sa;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	/* Block sigchild while forking */
-	sigemptyset(&nmask);
-	sigaddset(&nmask, SIGCHLD);
-	sigprocmask(SIG_BLOCK, &nmask, &omask);
+  /* Block sigchild while forking */
+  sigemptyset(&nmask);
+  sigaddset(&nmask, SIGCHLD);
+  sigprocmask(SIG_BLOCK, &nmask, &omask);
 
-	if ((pid = fork()) == 0) {
-		if (nid_is_ipcopen() == NCSCC_RC_SUCCESS)
-			nid_close_ipc();
+  if ((pid = fork()) == 0) {
+    if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
 
-		if (nis_fifofd > 0)
-			close(nis_fifofd);
+    if (nis_fifofd > 0) close(nis_fifofd);
 
-		sigprocmask(SIG_SETMASK, &omask, NULL);
-		setsid();
-		if(! freopen("/dev/null", "r", stdin))
-			LOG_ER("freopen stdin: %s", strerror(errno));
+    sigprocmask(SIG_SETMASK, &omask, NULL);
+    setsid();
+    if (!freopen("/dev/null", "r", stdin))
+      LOG_ER("freopen stdin: %s", strerror(errno));
 
-		if(! freopen(NIDLOG, "a", stdout))
-			LOG_ER("freopen stdout: %s", strerror(errno));
+    if (!freopen(NIDLOG, "a", stdout))
+      LOG_ER("freopen stdout: %s", strerror(errno));
 
-		if(! freopen(NIDLOG, "a", stderr))
-			LOG_ER("freopen stderr: %s", strerror(errno));
+    if (!freopen(NIDLOG, "a", stderr))
+      LOG_ER("freopen stderr: %s", strerror(errno));
 
+    prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
+    if (prio_stat < 0)
+      LOG_ER("Failed to set priority for %s", service->serv_name);
 
-		prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
-		if (prio_stat < 0)
-			LOG_ER("Failed to set priority for %s", service->serv_name);
+    /* Reset all the signals */
+    for (i = 1; i < NSIG; i++) SETSIG(sa, i, SIG_DFL, SA_RESTART);
 
-		/* Reset all the signals */
-		for (i = 1; i < NSIG; i++)
-			SETSIG(sa, i, SIG_DFL, SA_RESTART);
+    SETSIG(sa, SIGPIPE, SIG_IGN, 0);
 
-		SETSIG(sa, SIGPIPE, SIG_IGN, 0);
+    execvp(app, args);
 
-		execvp(app, args);
+    /* Hope we never come here, incase if we are here, Lets rest in peace */
+    LOG_ER("Failed to exec while forking script, err=%s", strerror(errno));
+    exit(2);
+  }
 
-		/* Hope we never come here, incase if we are here, Lets rest in peace */
-		LOG_ER("Failed to exec while forking script, err=%s", strerror(errno));
-		exit(2);
-	}
+  sigprocmask(SIG_SETMASK, &omask, NULL);
 
-	sigprocmask(SIG_SETMASK, &omask, NULL);
+  TRACE_LEAVE();
 
-	TRACE_LEAVE();
-
-	return pid;
+  return pid;
 }
 
 /****************************************************************************
@@ -844,59 +850,56 @@ int32_t fork_script(NID_SPAWN_INFO *service, char *app, char *args[], char *strb
  * Return Values : Process ID of the process forked.                        *
  *                                                                          *
  ***************************************************************************/
-int32_t fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *strbuff)
-{				/* DEL */
-	int32_t pid = -1;
-	int i;
-	int32_t prio_stat = -1;
-	sigset_t nmask, omask;
-	struct sigaction sa;
+int32_t fork_process(NID_SPAWN_INFO *service, char *app, char *args[],
+                     char *strbuff) { /* DEL */
+  int32_t pid = -1;
+  int i;
+  int32_t prio_stat = -1;
+  sigset_t nmask, omask;
+  struct sigaction sa;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	/* Block sigchild while forking. */
-	sigemptyset(&nmask);
-	sigaddset(&nmask, SIGCHLD);
-	sigprocmask(SIG_BLOCK, &nmask, &omask);
+  /* Block sigchild while forking. */
+  sigemptyset(&nmask);
+  sigaddset(&nmask, SIGCHLD);
+  sigprocmask(SIG_BLOCK, &nmask, &omask);
 
-	if ((pid = fork()) == 0) {
-		if (nid_is_ipcopen() == NCSCC_RC_SUCCESS)
-			nid_close_ipc();
+  if ((pid = fork()) == 0) {
+    if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
 
-		if (nis_fifofd > 0)
-			close(nis_fifofd);
+    if (nis_fifofd > 0) close(nis_fifofd);
 
-		sigprocmask(SIG_SETMASK, &omask, NULL);
-		if(! freopen("/dev/null", "r", stdin))
-			LOG_ER("freopen stdin: %s", strerror(errno));
+    sigprocmask(SIG_SETMASK, &omask, NULL);
+    if (!freopen("/dev/null", "r", stdin))
+      LOG_ER("freopen stdin: %s", strerror(errno));
 
-		if(! freopen(NIDLOG, "a", stdout))
-			LOG_ER("freopen stdout: %s", strerror(errno));
+    if (!freopen(NIDLOG, "a", stdout))
+      LOG_ER("freopen stdout: %s", strerror(errno));
 
-		if(! freopen(NIDLOG, "a", stderr))
-			LOG_ER("freopen stderr: %s", strerror(errno));
+    if (!freopen(NIDLOG, "a", stderr))
+      LOG_ER("freopen stderr: %s", strerror(errno));
 
-		if (service) {
-			prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
-			if (prio_stat < 0)
-				LOG_ER("Failed to set priority for %s", service->serv_name);
-		}
+    if (service) {
+      prio_stat = setpriority(PRIO_PROCESS, 0, service->priority);
+      if (prio_stat < 0)
+        LOG_ER("Failed to set priority for %s", service->serv_name);
+    }
 
-		/* Reset all the signals */
-		for (i = 1; i < NSIG; i++)
-			SETSIG(sa, i, SIG_DFL, SA_RESTART);
+    /* Reset all the signals */
+    for (i = 1; i < NSIG; i++) SETSIG(sa, i, SIG_DFL, SA_RESTART);
 
-		execvp(app, args);
+    execvp(app, args);
 
-		/* Hope we never come here, incase if we are here, Lets rest in peace */
-		LOG_ER("Failed to exec, err=%s", strerror(errno));
-		exit(2);
-	}
-	sigprocmask(SIG_SETMASK, &omask, NULL);
+    /* Hope we never come here, incase if we are here, Lets rest in peace */
+    LOG_ER("Failed to exec, err=%s", strerror(errno));
+    exit(2);
+  }
+  sigprocmask(SIG_SETMASK, &omask, NULL);
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 
-	return pid;
+  return pid;
 }
 
 /****************************************************************************
@@ -913,42 +916,38 @@ int32_t fork_process(NID_SPAWN_INFO *service, char *app, char *args[], char *str
  * Return Values : None.                                                    *
  *                                                                          *
  ***************************************************************************/
-void collect_param(char *params, char *s_name, char *args[])
-{
-	uint32_t f;
-	char *ptr;
+void collect_param(char *params, char *s_name, char *args[]) {
+  uint32_t f;
+  char *ptr;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	ptr = params;
-	for (f = 1; f < NID_MAXARGS; f++) {
-		/* Skip white space */
-		while (*ptr == ' ' || *ptr == '\t')
-			ptr++;
-		args[f] = ptr;
+  ptr = params;
+  for (f = 1; f < NID_MAXARGS; f++) {
+    /* Skip white space */
+    while (*ptr == ' ' || *ptr == '\t') ptr++;
+    args[f] = ptr;
 
-		/* May be trailing space.. */
-		if (*ptr == 0)
-			break;
+    /* May be trailing space.. */
+    if (*ptr == 0) break;
 
-		/* Skip this `word' */
-		while (*ptr && *ptr != ' ' && *ptr != '\t' && *ptr != '#')
-			ptr++;
+    /* Skip this `word' */
+    while (*ptr && *ptr != ' ' && *ptr != '\t' && *ptr != '#') ptr++;
 
-		/* If end-of-line, break */
-		if (*ptr == '#' || *ptr == 0) {
-			f++;
-			*ptr = 0;
-			break;
-		}
-		/* End word with \0 and continue */
-		*ptr++ = 0;
-	}
+    /* If end-of-line, break */
+    if (*ptr == '#' || *ptr == 0) {
+      f++;
+      *ptr = 0;
+      break;
+    }
+    /* End word with \0 and continue */
+    *ptr++ = 0;
+  }
 
-	args[f] = NULL;
-	args[0] = s_name;
+  args[f] = NULL;
+  args[0] = s_name;
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -965,151 +964,156 @@ void collect_param(char *params, char *s_name, char *args[])
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE/NCSCC_RC_REQ_TIMOUT.   *
  *                                                                          *
  ***************************************************************************/
-uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
-{
-	int32_t pid = -1, retry = 5;
-	int32_t i = 0, n = 0;
-	NID_FIFO_MSG reqmsg;
-	char *magicno, *serv, *stat, *p;
-	char buff1[100], magic_str[15];
-	FILE *file;
+uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff) {
+  int32_t pid = -1, retry = 5;
+  int32_t i = 0, n = 0;
+  NID_FIFO_MSG reqmsg;
+  char *magicno, *serv, *stat, *p;
+  char buff1[100], magic_str[15];
+  FILE *file;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	/* Clean previous messages in strbuff */
-	strbuff[0] = '\0';
+  /* Clean previous messages in strbuff */
+  strbuff[0] = '\0';
 
-	/******************************************************
-	*    Check if the service file exists only for the    *
-	*    first time per service, as we may fail opening   *
-	*    when we are here during recovery. because the    *
-	*    process killed during cleanup might be still     *
-	*    holding this file and we are trying to open here *
-	*    for read and write which usually will not be     *
-	*    allowed by OS reporting "file bussy" error.      *
-	*    And Testing this opening for the first           *
-	*    Time would serve following purposes:             *
-	*    1. If the executable exists.                     *
-	******************************************************/
-	if (service->pid == 0) {
-		if ((file = fopen(service->s_name, "r")) == NULL) {
-			if (errno != ETXTBSY) {
-				LOG_ER("Error while loading configuration, file=%s, serv=%s, error '%s'",
-					NID_PLAT_CONF, service->serv_name, strerror(errno));
-				exit(EXIT_FAILURE);
-			}
-		} else {
-			(void) fclose(file);
-		}
-	}
+  /******************************************************
+   *    Check if the service file exists only for the    *
+   *    first time per service, as we may fail opening   *
+   *    when we are here during recovery. because the    *
+   *    process killed during cleanup might be still     *
+   *    holding this file and we are trying to open here *
+   *    for read and write which usually will not be     *
+   *    allowed by OS reporting "file bussy" error.      *
+   *    And Testing this opening for the first           *
+   *    Time would serve following purposes:             *
+   *    1. If the executable exists.                     *
+   ******************************************************/
+  if (service->pid == 0) {
+    if ((file = fopen(service->s_name, "r")) == NULL) {
+      if (errno != ETXTBSY) {
+        LOG_ER(
+            "Error while loading configuration, file=%s, serv=%s, error '%s'",
+            NID_PLAT_CONF, service->serv_name, strerror(errno));
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      (void)fclose(file);
+    }
+  }
 
-	/* By now fifo should be open, try once in case, if its not */
-	if (nid_is_ipcopen() != NCSCC_RC_SUCCESS) {
-		if (nid_create_ipc(strbuff) != NCSCC_RC_SUCCESS)
-			return NCSCC_RC_FAILURE;
-		if (nid_open_ipc(&select_fd, strbuff) != NCSCC_RC_SUCCESS)
-			return NCSCC_RC_FAILURE;
-	}
+  /* By now fifo should be open, try once in case, if its not */
+  if (nid_is_ipcopen() != NCSCC_RC_SUCCESS) {
+    if (nid_create_ipc(strbuff) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
+    if (nid_open_ipc(&select_fd, strbuff) != NCSCC_RC_SUCCESS)
+      return NCSCC_RC_FAILURE;
+  }
 
-	/* Fork based on the application type, executable, script or daemon */
-	while (retry) {
-		pid = (fork_funcs[service->app_type])
-			(service, service->s_name, service->serv_args, strbuff);
+  /* Fork based on the application type, executable, script or daemon */
+  while (retry) {
+    pid = (fork_funcs[service->app_type])(service, service->s_name,
+                                          service->serv_args, strbuff);
 
-		if (pid <= 0) {
-			LOG_ER("Error forking %s, err=%s, pid=%d, retrying", service->s_name, strerror(errno), pid);
-			retry--;
-			nid_sleep(1000);
-			continue;
-		} else {
-			break;
-		}
-	}
+    if (pid <= 0) {
+      LOG_ER("Error forking %s, err=%s, pid=%d, retrying", service->s_name,
+             strerror(errno), pid);
+      retry--;
+      nid_sleep(1000);
+      continue;
+    } else {
+      break;
+    }
+  }
 
-	if (retry == 0) {
-		LOG_ER("Unable to bring up %s, err=:%s", service->s_name, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+  if (retry == 0) {
+    LOG_ER("Unable to bring up %s, err=:%s", service->s_name, strerror(errno));
+    exit(EXIT_FAILURE);
+  }
 
-	service->pid = pid;
+  service->pid = pid;
 
-	/* IF Everything is fine till now, wait till service notifies its initializtion status */
-	/* service->time_out is in centi sec */
-	while ((n = osaf_poll_one_fd(select_fd, service->time_out * 10)) <= 0) {
-		if (n == 0) {
-			LOG_ER("Timed-out for response from %s", service->serv_name);
-			return NCSCC_RC_REQ_TIMOUT;
-		}
-		break;
-	}
+  /* IF Everything is fine till now, wait till service notifies its
+   * initializtion status */
+  /* service->time_out is in centi sec */
+  while ((n = osaf_poll_one_fd(select_fd, service->time_out * 10)) <= 0) {
+    if (n == 0) {
+      LOG_ER("Timed-out for response from %s", service->serv_name);
+      return NCSCC_RC_REQ_TIMOUT;
+    }
+    break;
+  }
 
-	waitpid(pid, nullptr, WNOHANG);
+  waitpid(pid, nullptr, WNOHANG);
 
-	/* Read the message from FIFO and fill in structure. */
-	while ((n = read(select_fd, buff1, sizeof(buff1))) <= 0) {
-		if (errno == EINTR) {
-			continue;
-		} else {
-			sprintf(strbuff, "Failed \nError reading NID FIFO: %d", errno);
-			return NCSCC_RC_FAILURE;
-		}
-	}
+  /* Read the message from FIFO and fill in structure. */
+  while ((n = read(select_fd, buff1, sizeof(buff1))) <= 0) {
+    if (errno == EINTR) {
+      continue;
+    } else {
+      sprintf(strbuff, "Failed \nError reading NID FIFO: %d", errno);
+      return NCSCC_RC_FAILURE;
+    }
+  }
 
-	buff1[n] = '\0';
-	p = buff1;
-	if ((magicno = gettoken(&p, ':')) == NULL) {
-		LOG_ER("Failed missing magicno");
-		return NCSCC_RC_FAILURE;
-	}
-	if ((serv = gettoken(&p, ':')) == NULL) {
-		LOG_ER("Failed missing service name");
-		return NCSCC_RC_FAILURE;
-	}
-	if ((stat = p) == NULL) {
-		LOG_ER("Failed missing status code");
-		return NCSCC_RC_FAILURE;
-	}
+  buff1[n] = '\0';
+  p = buff1;
+  if ((magicno = gettoken(&p, ':')) == NULL) {
+    LOG_ER("Failed missing magicno");
+    return NCSCC_RC_FAILURE;
+  }
+  if ((serv = gettoken(&p, ':')) == NULL) {
+    LOG_ER("Failed missing service name");
+    return NCSCC_RC_FAILURE;
+  }
+  if ((stat = p) == NULL) {
+    LOG_ER("Failed missing status code");
+    return NCSCC_RC_FAILURE;
+  }
 
-	sprintf(magic_str, "%x", NID_MAGIC);
-	for (i = 0; magicno[i] != '\0'; i++)
-		magicno[i] = (char)tolower(magicno[i]);
+  sprintf(magic_str, "%x", NID_MAGIC);
+  for (i = 0; magicno[i] != '\0'; i++) magicno[i] = (char)tolower(magicno[i]);
 
-	if (strcmp(magic_str, magicno) == 0)
-		reqmsg.nid_magic_no = NID_MAGIC;
-	else
-		reqmsg.nid_magic_no = -1;
+  if (strcmp(magic_str, magicno) == 0)
+    reqmsg.nid_magic_no = NID_MAGIC;
+  else
+    reqmsg.nid_magic_no = -1;
 
-	if (strcmp(serv, service->serv_name) != 0) {
-		sprintf(strbuff, "Failed \nReceived invalid service name received :"
-			" %s sent service->serv_name : %s", serv, service->serv_name);
-		return NCSCC_RC_FAILURE;
-	} else {
-		strcpy(reqmsg.nid_serv_name, serv);
-	}
+  if (strcmp(serv, service->serv_name) != 0) {
+    sprintf(strbuff,
+            "Failed \nReceived invalid service name received :"
+            " %s sent service->serv_name : %s",
+            serv, service->serv_name);
+    return NCSCC_RC_FAILURE;
+  } else {
+    strcpy(reqmsg.nid_serv_name, serv);
+  }
 
-	reqmsg.nid_stat_code = atoi(stat);
-	if (reqmsg.nid_magic_no != NID_MAGIC) {
-		sprintf(strbuff, "Failed \nReceived invalid message: %x", reqmsg.nid_magic_no);
-		return NCSCC_RC_FAILURE;
-	}
+  reqmsg.nid_stat_code = atoi(stat);
+  if (reqmsg.nid_magic_no != NID_MAGIC) {
+    sprintf(strbuff, "Failed \nReceived invalid message: %x",
+            reqmsg.nid_magic_no);
+    return NCSCC_RC_FAILURE;
+  }
 
-	/* LOOKS LIKE CORRECT RESPONSE LETS PROCESS */
-	if (strcmp(reqmsg.nid_serv_name, service->serv_name) != 0) {
-		sprintf(strbuff, "Failed \nService name  mismatch! Srvc spawned: %s, Srvc code received:%s",
-			service->serv_name, reqmsg.nid_serv_name);
-		return NCSCC_RC_FAILURE;
-	} else if (reqmsg.nid_stat_code == NCSCC_RC_SUCCESS) {
-		return NCSCC_RC_SUCCESS;
-	}
+  /* LOOKS LIKE CORRECT RESPONSE LETS PROCESS */
+  if (strcmp(reqmsg.nid_serv_name, service->serv_name) != 0) {
+    sprintf(
+        strbuff,
+        "Failed \nService name  mismatch! Srvc spawned: %s, Srvc code received:%s",
+        service->serv_name, reqmsg.nid_serv_name);
+    return NCSCC_RC_FAILURE;
+  } else if (reqmsg.nid_stat_code == NCSCC_RC_SUCCESS) {
+    return NCSCC_RC_SUCCESS;
+  }
 
-	if ((reqmsg.nid_stat_code > NCSCC_RC_SUCCESS)) {
-		sprintf(strbuff, "Failed \n DESC:%s", service->serv_name);
-		return NCSCC_RC_FAILURE;
-	}
+  if ((reqmsg.nid_stat_code > NCSCC_RC_SUCCESS)) {
+    sprintf(strbuff, "Failed \n DESC:%s", service->serv_name);
+    return NCSCC_RC_FAILURE;
+  }
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 
-	return NCSCC_RC_SUCCESS;
+  return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1123,23 +1127,21 @@ uint32_t spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
  *                 1 - process running.                                     *
  *                                                                          *
  ***************************************************************************/
-uint32_t check_process(NID_SPAWN_INFO *service)
-{
-	struct stat sb;
-	char buf[32];
+uint32_t check_process(NID_SPAWN_INFO *service) {
+  struct stat sb;
+  char buf[32];
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	sprintf(buf, "/proc/%d", service->pid);
-	if (stat(buf, &sb) != 0) {
-		TRACE_LEAVE();
-		return 0;
-	} else {
-		TRACE_LEAVE();
-		return 1;
-	}
+  sprintf(buf, "/proc/%d", service->pid);
+  if (stat(buf, &sb) != 0) {
+    TRACE_LEAVE();
+    return 0;
+  } else {
+    TRACE_LEAVE();
+    return 1;
+  }
 }
-
 
 /****************************************************************************
  * Name          : get_pid_from_file                                        *
@@ -1152,41 +1154,40 @@ uint32_t check_process(NID_SPAWN_INFO *service)
  *                 -1 - error, see syslog                                   *
  *                                                                          *
  ***************************************************************************/
-static pid_t get_pid_from_file(const char* service_name)
-{
-	char pid_file[NAME_MAX];
+static pid_t get_pid_from_file(const char *service_name) {
+  char pid_file[NAME_MAX];
 
-	char prog_name[40];
-	char *service, *tmp;
-	FILE *f;
-	pid_t pid;
+  char prog_name[40];
+  char *service, *tmp;
+  FILE *f;
+  pid_t pid;
 
-	service = (char*) malloc(strlen(service_name) +1);
-	strcpy(service, service_name);
-	tmp = service;
-	for ( ; *tmp; ++tmp) *tmp = tolower(*tmp);
+  service = (char *)malloc(strlen(service_name) + 1);
+  strcpy(service, service_name);
+  tmp = service;
+  for (; *tmp; ++tmp) *tmp = tolower(*tmp);
 
-	snprintf(prog_name, sizeof(prog_name), "osaf%s", service);
-	free(service);
+  snprintf(prog_name, sizeof(prog_name), "osaf%s", service);
+  free(service);
 
-	snprintf(pid_file, sizeof(pid_file), PKGPIDDIR "/%s.pid", prog_name);
+  snprintf(pid_file, sizeof(pid_file), PKGPIDDIR "/%s.pid", prog_name);
 
-	if ((f = fopen(pid_file, "r")) == NULL) {
-		LOG_WA("Failed to open %s", pid_file);
-		return -1;
-	}
+  if ((f = fopen(pid_file, "r")) == NULL) {
+    LOG_WA("Failed to open %s", pid_file);
+    return -1;
+  }
 
-	if (fscanf(f, "%d", &pid) == 0) {
-		LOG_WA("Could not read PID from file %s", pid_file);
-		return -1;
-	}
+  if (fscanf(f, "%d", &pid) == 0) {
+    LOG_WA("Could not read PID from file %s", pid_file);
+    return -1;
+  }
 
-	if (fclose(f) != 0) {
-		LOG_WA("Could not close file");
-		return -1;
-	}
+  if (fclose(f) != 0) {
+    LOG_WA("Could not close file");
+    return -1;
+  }
 
-	return pid;
+  return pid;
 }
 
 /****************************************************************************
@@ -1203,69 +1204,70 @@ static pid_t get_pid_from_file(const char* service_name)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-void cleanup(NID_SPAWN_INFO *service, int reason)
-{
-	char strbuff[256];
+void cleanup(NID_SPAWN_INFO *service, int reason) {
+  char strbuff[256];
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	/* Dont Allow anyone to write to this pipe till we start recovery action */
-	nid_close_ipc();
-	select_fd = -1;
+  /* Dont Allow anyone to write to this pipe till we start recovery action */
+  nid_close_ipc();
+  select_fd = -1;
 
-	pid_t w_pid;
-	pid_t pid;
-	int status;
-	uint32_t no_of_retries = 0;
-	const uint32_t MAX_NO_RETRIES = 5;
+  pid_t w_pid;
+  pid_t pid;
+  int status;
+  uint32_t no_of_retries = 0;
+  const uint32_t MAX_NO_RETRIES = 5;
 
-	// get pid of current service_name instead of the parent pid
-	if (reason == NCSCC_RC_REQ_TIMOUT) {
-		pid = get_pid_from_file(service->serv_name);
-		if (pid > 0) {
-			if (check_process(service)) {
-				// send abort signal to process to generate a core dump
-				LOG_ER("Sending SIGABRT to %s, pid=%d, (origin parent pid=%d)", service->serv_name, pid, service->pid);
-				if (kill(pid, SIGABRT) >= 0) {
-					// wait a short period for process to exit
-					do {
-						w_pid = waitpid(service->pid, &status, WNOHANG);
-						if (w_pid < 0) {
-							if (errno == EINTR)
-								continue;
-							else
-								break;
-						} else if (w_pid > 0) {
-							if (WIFEXITED(status) || WIFSIGNALED(status)) {
-								break;
-							}
-						}
-						sleep(1);
-					} while (++no_of_retries < MAX_NO_RETRIES);
-				}
-			}
-		}
-	}
-	// if sending abort signal did not succeed, fallback to sigkill
-	if (check_process(service)) {
-		LOG_ER("Sending SIGKILL to %s, pid=%d", service->serv_name, service->pid);
-		kill(service->pid, SIGKILL);
-	}
+  // get pid of current service_name instead of the parent pid
+  if (reason == NCSCC_RC_REQ_TIMOUT) {
+    pid = get_pid_from_file(service->serv_name);
+    if (pid > 0) {
+      if (check_process(service)) {
+        // send abort signal to process to generate a core dump
+        LOG_ER("Sending SIGABRT to %s, pid=%d, (origin parent pid=%d)",
+               service->serv_name, pid, service->pid);
+        if (kill(pid, SIGABRT) >= 0) {
+          // wait a short period for process to exit
+          do {
+            w_pid = waitpid(service->pid, &status, WNOHANG);
+            if (w_pid < 0) {
+              if (errno == EINTR)
+                continue;
+              else
+                break;
+            } else if (w_pid > 0) {
+              if (WIFEXITED(status) || WIFSIGNALED(status)) {
+                break;
+              }
+            }
+            sleep(1);
+          } while (++no_of_retries < MAX_NO_RETRIES);
+        }
+      }
+    }
+  }
+  // if sending abort signal did not succeed, fallback to sigkill
+  if (check_process(service)) {
+    LOG_ER("Sending SIGKILL to %s, pid=%d", service->serv_name, service->pid);
+    kill(service->pid, SIGKILL);
+  }
 
-	if (service->cleanup_file[0] != '\0') {
-		(fork_funcs[service->app_type]) (service, service->cleanup_file, service->clnup_args, strbuff);
-		nid_sleep(15000);
-	}
+  if (service->cleanup_file[0] != '\0') {
+    (fork_funcs[service->app_type])(service, service->cleanup_file,
+                                    service->clnup_args, strbuff);
+    nid_sleep(15000);
+  }
 
-	/*******************************************************
-	*    YEPPP!!!! we need to slowdown before spawning,    *
-	*    cleanup task may take time before its done with   *
-	*    cleaning. Spawning before cleanup may really lead *
-	*    to CCHHHHAAAAOOOOOSSSSS!!!!!!!!                   *
-	*******************************************************/
-	nid_sleep(100);
+  /*******************************************************
+   *    YEPPP!!!! we need to slowdown before spawning,    *
+   *    cleanup task may take time before its done with   *
+   *    cleaning. Spawning before cleanup may really lead *
+   *    to CCHHHHAAAAOOOOOSSSSS!!!!!!!!                   *
+   *******************************************************/
+  nid_sleep(100);
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -1283,46 +1285,43 @@ void cleanup(NID_SPAWN_INFO *service, int reason)
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff, int reason)
-{
-	uint32_t count = 0;
-	NID_RECOVERY_OPT opt = NID_RESPAWN;
+uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff, int reason) {
+  uint32_t count = 0;
+  NID_RECOVERY_OPT opt = NID_RESPAWN;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	while (opt != NID_RESET) {
-		count = service->recovery_matrix[opt].retry_count;
-		while (service->recovery_matrix[opt].retry_count > 0) {
-			LOG_ER("%s %s attempt #%d", nid_recerr[opt][0],
-			      service->s_name, (count - service->recovery_matrix[opt].retry_count) + 1);
+  while (opt != NID_RESET) {
+    count = service->recovery_matrix[opt].retry_count;
+    while (service->recovery_matrix[opt].retry_count > 0) {
+      LOG_ER("%s %s attempt #%d", nid_recerr[opt][0], service->s_name,
+             (count - service->recovery_matrix[opt].retry_count) + 1);
 
-           		/* Just clean the stuff we created during prev retry */
-			if (service->pid != 0)
-				cleanup(service, reason);
+      /* Just clean the stuff we created during prev retry */
+      if (service->pid != 0) cleanup(service, reason);
 
-           		/* Done with cleanup so goahead with recovery */
-			if ((service->recovery_matrix[opt].action) (service, strbuff) != NCSCC_RC_SUCCESS) {
-				service->recovery_matrix[opt].retry_count--;
-				LOG_ER("%s %s", nid_recerr[opt][1], service->serv_name);
-				LOG_ER("%s", strbuff);
-				continue;
-			} else {
-				return NCSCC_RC_SUCCESS;
-			}
+      /* Done with cleanup so goahead with recovery */
+      if ((service->recovery_matrix[opt].action)(service, strbuff) !=
+          NCSCC_RC_SUCCESS) {
+        service->recovery_matrix[opt].retry_count--;
+        LOG_ER("%s %s", nid_recerr[opt][1], service->serv_name);
+        LOG_ER("%s", strbuff);
+        continue;
+      } else {
+        return NCSCC_RC_SUCCESS;
+      }
+    }
 
-		}
+    if (service->recovery_matrix[opt].retry_count == 0) {
+      if (count != 0) LOG_ER("%s", nid_recerr[opt][3]);
+      opt = static_cast<NID_RECOVERY_OPT>(static_cast<int>(opt) + 1);
+      continue;
+    }
+  }
 
-		if (service->recovery_matrix[opt].retry_count == 0) {
-			if (count != 0)
-				LOG_ER("%s", nid_recerr[opt][3]);
-			opt = static_cast<NID_RECOVERY_OPT>(static_cast<int>(opt) + 1);
-			continue;
-		}
-	}
+  TRACE_LEAVE();
 
-	TRACE_LEAVE();
-
-	return NCSCC_RC_FAILURE;
+  return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -1338,51 +1337,49 @@ uint32_t recovery_action(NID_SPAWN_INFO *service, char *strbuff, int reason)
  *                                                                          *
  ***************************************************************************/
 uint32_t spawn_services(char *strbuf) {
-	NID_SPAWN_INFO *service;
-	NID_CHILD_LIST sp_list = spawn_list;
-	char sbuff[100];
-	uint32_t rc = NCSCC_RC_FAILURE;
+  NID_SPAWN_INFO *service;
+  NID_CHILD_LIST sp_list = spawn_list;
+  char sbuff[100];
+  uint32_t rc = NCSCC_RC_FAILURE;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	if (sp_list.head == NULL) {
-		sprintf(strbuf, "No services to spawn\n");
-		return NCSCC_RC_FAILURE;
-	}
+  if (sp_list.head == NULL) {
+    sprintf(strbuf, "No services to spawn\n");
+    return NCSCC_RC_FAILURE;
+  }
 
-	/* Create nid fifo */
-	if (nid_create_ipc(strbuf) != NCSCC_RC_SUCCESS)
-		return NCSCC_RC_FAILURE;
+  /* Create nid fifo */
+  if (nid_create_ipc(strbuf) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
 
-	/* Try to open FIFO */
-	if (nid_open_ipc(&select_fd, strbuf) != NCSCC_RC_SUCCESS)
-		return NCSCC_RC_FAILURE;
+  /* Try to open FIFO */
+  if (nid_open_ipc(&select_fd, strbuf) != NCSCC_RC_SUCCESS)
+    return NCSCC_RC_FAILURE;
 
-	while (sp_list.head != NULL) {
-		service = sp_list.head;
-		rc = spawn_wait(service, sbuff);
+  while (sp_list.head != NULL) {
+    service = sp_list.head;
+    rc = spawn_wait(service, sbuff);
 
-		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER("%s", sbuff);
-			LOG_ER("Going for recovery");
-			if (recovery_action(service, sbuff, rc) != NCSCC_RC_SUCCESS) {
-				exit(EXIT_FAILURE);
-			}
-		}
+    if (rc != NCSCC_RC_SUCCESS) {
+      LOG_ER("%s", sbuff);
+      LOG_ER("Going for recovery");
+      if (recovery_action(service, sbuff, rc) != NCSCC_RC_SUCCESS) {
+        exit(EXIT_FAILURE);
+      }
+    }
 
-		if (strlen(sbuff) > 0)
-			LOG_NO("%s", sbuff);
+    if (strlen(sbuff) > 0) LOG_NO("%s", sbuff);
 
-		if (start_monitor_svc(service->serv_name) != NCSCC_RC_SUCCESS) {
-			exit(EXIT_FAILURE);
-		}
+    if (start_monitor_svc(service->serv_name) != NCSCC_RC_SUCCESS) {
+      exit(EXIT_FAILURE);
+    }
 
-		sp_list.head = sp_list.head->next;
-	}
+    sp_list.head = sp_list.head->next;
+  }
 
-	TRACE_LEAVE();
-	
-	return NCSCC_RC_SUCCESS;
+  TRACE_LEAVE();
+
+  return NCSCC_RC_SUCCESS;
 }
 
 int start_monitor_svc(const char *svc) {
@@ -1399,8 +1396,8 @@ int start_monitor_svc(const char *svc) {
       if (errno == EINTR) {
         continue;
       } else {
-        LOG_ER("Failed to start sevice %s, error: %s",
-               svc_name, strerror(errno));
+        LOG_ER("Failed to start sevice %s, error: %s", svc_name,
+               strerror(errno));
         rc = NCSCC_RC_FAILURE;
         break;
       }
@@ -1422,11 +1419,11 @@ int handle_data_request(struct pollfd *fds, const std::string &nid_name) {
   for (auto &svc : services_->svc_map) {
     if (nid_name == svc.nid_name) {
       std::string fifo_file = services_->fifo_dir + "/" + svc.fifo_file;
-      notify_rc = file_notify.WaitForFileCreation(fifo_file,
-                                                  kTenSecondsInMilliseconds);
+      notify_rc =
+          file_notify.WaitForFileCreation(fifo_file, kTenSecondsInMilliseconds);
       if (notify_rc != base::FileNotify::FileNotifyErrors::kOK) {
-        LOG_ER("fifo file %s does not exist, notify rc: %d",
-               fifo_file.c_str(), static_cast<int>(notify_rc));
+        LOG_ER("fifo file %s does not exist, notify rc: %d", fifo_file.c_str(),
+               static_cast<int>(notify_rc));
         rc = NCSCC_RC_FAILURE;
         break;
       }
@@ -1467,7 +1464,7 @@ int handle_data_request(struct pollfd *fds, const std::string &nid_name) {
 std::string get_svc_name(int fd) {
   std::string svc_name;
 
-  for (auto const& svc : services_->svc_map) {
+  for (auto const &svc : services_->svc_map) {
     if (fd == svc.fifo_fd) {
       svc_name = svc.nid_name;
       break;
@@ -1498,14 +1495,12 @@ void handle_svc_exit(int fd) {
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-void* svc_monitor_thread(void *fd) {
+void *svc_monitor_thread(void *fd) {
   char nid_name[NID_MAXSNAME];
-  int svc_mon_thr_fd = *(reinterpret_cast<int*>(fd));
-  enum {
-    FD_SVC_MON_THR = 0
-  };
+  int svc_mon_thr_fd = *(reinterpret_cast<int *>(fd));
+  enum { FD_SVC_MON_THR = 0 };
 
-  struct pollfd *fds {nullptr};
+  struct pollfd *fds{nullptr};
 
   services_ = new SAFServices;
   osafassert(services_ != nullptr);
@@ -1517,14 +1512,13 @@ void* svc_monitor_thread(void *fd) {
   fds[FD_SVC_MON_THR].fd = svc_mon_thr_fd;
   fds[FD_SVC_MON_THR].events = POLLIN;
   next_svc_fds_slot++;
-  
+
   while (true) {
     unsigned rc = osaf_poll(fds, next_svc_fds_slot, -1);
     if (rc > 0) {
       // check if any monitored service has exit
       for (int i = next_svc_fds_slot - 1; i > 0; --i) {
-        if ((fds[i].revents & POLLIN) ||
-            (fds[i].revents & POLLHUP) ||
+        if ((fds[i].revents & POLLIN) || (fds[i].revents & POLLHUP) ||
             (fds[i].revents & POLLERR)) {
           handle_svc_exit(fds[i].fd);
         }
@@ -1598,7 +1592,7 @@ uint32_t create_svc_monitor_thread(void) {
   }
 
   if (pthread_create(&thread, &attr, svc_monitor_thread,
-  reinterpret_cast<void*>(&svc_mon_thr_fd)) != 0) {
+                     reinterpret_cast<void *>(&svc_mon_thr_fd)) != 0) {
     LOG_ER("pthread_create FAILED: %s", strerror(errno));
     return NCSCC_RC_FAILURE;
   }
@@ -1625,48 +1619,48 @@ uint32_t create_svc_monitor_thread(void) {
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
  *                                                                          *
  ***************************************************************************/
-int main(int argc, char *argv[])
-{
-	char sbuf[256];
-	char tracefile[NAME_MAX];
+int main(int argc, char *argv[]) {
+  char sbuf[256];
+  char tracefile[NAME_MAX];
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
 #ifdef RLIMIT_RTPRIO
-	struct rlimit mylimit;
-	mylimit.rlim_max = mylimit.rlim_cur = sched_get_priority_max(SCHED_RR);
-	if (setrlimit(RLIMIT_RTPRIO, &mylimit) == -1)
-		syslog(LOG_WARNING, "Could not set RTPRIO - %s", strerror(errno));
+  struct rlimit mylimit;
+  mylimit.rlim_max = mylimit.rlim_cur = sched_get_priority_max(SCHED_RR);
+  if (setrlimit(RLIMIT_RTPRIO, &mylimit) == -1)
+    syslog(LOG_WARNING, "Could not set RTPRIO - %s", strerror(errno));
 #endif
 
-	openlog(basename(argv[0]), LOG_PID, LOG_LOCAL0);
-	snprintf(tracefile, sizeof(tracefile), PKGLOGDIR "/%s.log", basename(argv[0]));
+  openlog(basename(argv[0]), LOG_PID, LOG_LOCAL0);
+  snprintf(tracefile, sizeof(tracefile), PKGLOGDIR "/%s.log",
+           basename(argv[0]));
 
-	if (logtrace_init(basename(argv[0]), tracefile, 0) != 0) {
-		LOG_ER("Failed to init logtrace, exiting");
-		exit(EXIT_FAILURE);
-	}
+  if (logtrace_init(basename(argv[0]), tracefile, 0) != 0) {
+    LOG_ER("Failed to init logtrace, exiting");
+    exit(EXIT_FAILURE);
+  }
 
-        // Make sure /var/lib/opensaf/fully_qualified_host_name is
-        // created.
-        base::Conf::InitFullyQualifiedDomainName();
+  // Make sure /var/lib/opensaf/fully_qualified_host_name is
+  // created.
+  base::Conf::InitFullyQualifiedDomainName();
 
-	if (create_svc_monitor_thread() != NCSCC_RC_SUCCESS) {
-		LOG_ER("Failed to create service monitor thread, exiting");
-		exit(EXIT_FAILURE);
-	}
+  if (create_svc_monitor_thread() != NCSCC_RC_SUCCESS) {
+    LOG_ER("Failed to create service monitor thread, exiting");
+    exit(EXIT_FAILURE);
+  }
 
-	if (parse_nodeinit_conf(sbuf) != NCSCC_RC_SUCCESS) {
-		LOG_ER("Failed to parse file %s. Exiting", sbuf);
-		exit(EXIT_FAILURE);
-	}
+  if (parse_nodeinit_conf(sbuf) != NCSCC_RC_SUCCESS) {
+    LOG_ER("Failed to parse file %s. Exiting", sbuf);
+    exit(EXIT_FAILURE);
+  }
 
-	if (spawn_services(sbuf) != NCSCC_RC_SUCCESS) {
-		LOG_ER("Failed while spawning service, %s, exiting", sbuf);
-		exit(EXIT_FAILURE);
-	}
+  if (spawn_services(sbuf) != NCSCC_RC_SUCCESS) {
+    LOG_ER("Failed while spawning service, %s, exiting", sbuf);
+    exit(EXIT_FAILURE);
+  }
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 
-	return 0;
+  return 0;
 }

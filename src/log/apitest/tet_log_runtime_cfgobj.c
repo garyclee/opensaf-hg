@@ -22,7 +22,7 @@
 #include "base/saf_error.h"
 #include "osaf/immutil/immutil.h"
 
-static SaVersionT immVersion = { 'A', 2, 11 };
+static SaVersionT immVersion = {'A', 2, 11};
 
 /**
  * Log configuration config obj <=> runtime obj
@@ -44,14 +44,14 @@ void log_rt_cf_obj_compare(void)
 	int tst_res = 0; /* Test result: 0 = PASS */
 
 	/* NOTE: immutil will osaf_assert if error */
-	(void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-	(void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
+	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	/* Count attributes in configuration object
 	 */
 	saAisNameLend(LOGTST_IMM_LOG_CONFIGURATION, &object_name);
-	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, NULL,
-			&attributes);
+	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
+					      NULL, &attributes);
 	if (ais_rc != SA_AIS_OK) {
 		tst_res = 1; /* FAIL */
 		fprintf(stderr, "Could not read config attributes %s\n",
@@ -60,14 +60,15 @@ void log_rt_cf_obj_compare(void)
 	}
 
 	c_cnt = 0;
-	while (attributes[c_cnt++] != NULL); /* Count the attributes */
+	while (attributes[c_cnt++] != NULL)
+		; /* Count the attributes */
 
 	/* Count attributes in runtime object
 	 */
 	saAisNameLend(LOGTST_IMM_LOG_RUNTIME, &object_name);
 
-	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, NULL,
-			&attributes);
+	ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
+					      NULL, &attributes);
 	if (ais_rc != SA_AIS_OK) {
 		tst_res = 1; /* FAIL */
 		fprintf(stderr, "Could not read runtime attributes %s\n",
@@ -76,7 +77,8 @@ void log_rt_cf_obj_compare(void)
 	}
 
 	r_cnt = 0;
-	while (attributes[r_cnt++] != NULL); /* Count the attributes */
+	while (attributes[r_cnt++] != NULL)
+		; /* Count the attributes */
 
 	/* Compare number of attributes. Test pass if the runtime object has
 	 * 1 more attribute than the configuration object
@@ -84,22 +86,24 @@ void log_rt_cf_obj_compare(void)
 	r_cnt--;
 	if (c_cnt != r_cnt) {
 		tst_res = 1;
-		fprintf(stderr, "Found %d configuration attributes and"
-		" %d runtime attributes\n", c_cnt, r_cnt);
+		fprintf(stderr,
+			"Found %d configuration attributes and"
+			" %d runtime attributes\n",
+			c_cnt, r_cnt);
 	}
 
-	done:
+done:
 
-	(void) immutil_saImmOmAccessorFinalize(accessorHandle);
-	(void) immutil_saImmOmFinalize(omHandle);
+	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
+	(void)immutil_saImmOmFinalize(omHandle);
 
 	rc_validate(tst_res, 0);
 }
 
-
 /* Load tests */
-__attribute__ ((constructor)) static void saOiOperations_constructor(void)
+__attribute__((constructor)) static void saOiOperations_constructor(void)
 {
 	test_suite_add(8, "Log configuration runtime object tests");
-	test_case_add(8, log_rt_cf_obj_compare, "Log configuration config obj <=> runtime obj");
+	test_case_add(8, log_rt_cf_obj_compare,
+		      "Log configuration config obj <=> runtime obj");
 }

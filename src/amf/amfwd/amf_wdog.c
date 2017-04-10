@@ -64,7 +64,8 @@ static char latest_healthcheck_trace[100];
 static const char *term_state_file = PKGPIDDIR "/osafamfwd_termstate";
 
 static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
-	SaAmfHAStateT ha_state, SaAmfCSIDescriptorT csi_desc)
+				 SaAmfHAStateT ha_state,
+				 SaAmfCSIDescriptorT csi_desc)
 {
 	SaAisErrorT rc;
 
@@ -76,7 +77,8 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 }
 
 static void amf_csi_remove_callback(SaInvocationT inv, const SaNameT *comp_name,
-	const SaNameT  *csi_name, SaAmfCSIFlagsT csi_flags)
+				    const SaNameT *csi_name,
+				    SaAmfCSIFlagsT csi_flags)
 {
 	SaAisErrorT rc;
 
@@ -87,9 +89,9 @@ static void amf_csi_remove_callback(SaInvocationT inv, const SaNameT *comp_name,
 	}
 }
 
-static void amf_healthcheck_callback(SaInvocationT        inv,
-				   const SaNameT        *comp_name,
-				   SaAmfHealthcheckKeyT *health_check_key)
+static void amf_healthcheck_callback(SaInvocationT inv,
+				     const SaNameT *comp_name,
+				     SaAmfHealthcheckKeyT *health_check_key)
 {
 	SaAisErrorT rc;
 	time_t local_time;
@@ -105,8 +107,8 @@ static void amf_healthcheck_callback(SaInvocationT        inv,
 	osafassert(tstamp_data);
 
 	snprintf(latest_healthcheck_trace, sizeof(latest_healthcheck_trace),
-			 "Last received healthcheck cnt=%d at %s",
-			 healthcheck_count, asctime(tstamp_data));
+		 "Last received healthcheck cnt=%d at %s", healthcheck_count,
+		 asctime(tstamp_data));
 
 	rc = saAmfResponse(amf_hdl, inv, SA_AIS_OK);
 	if (SA_AIS_OK != rc) {
@@ -115,21 +117,22 @@ static void amf_healthcheck_callback(SaInvocationT        inv,
 	}
 }
 
-static void amf_comp_terminate_callback(SaInvocationT inv, const SaNameT *comp_name)
+static void amf_comp_terminate_callback(SaInvocationT inv,
+					const SaNameT *comp_name)
 {
 	SaAisErrorT rc;
 	int fd;
 
 	fd = open(term_state_file, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-	
-	if (fd >=0)
+
+	if (fd >= 0)
 		(void)close(fd);
 	else
-		LOG_NO("cannot create termstate file %s: %s",
-					term_state_file, strerror(errno));
+		LOG_NO("cannot create termstate file %s: %s", term_state_file,
+		       strerror(errno));
 
 	rc = saAmfResponse(amf_hdl, inv, SA_AIS_OK);
-	if ( SA_AIS_OK != rc ) {
+	if (SA_AIS_OK != rc) {
 		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
 		exit(1);
 	}
@@ -141,36 +144,40 @@ static void amf_down_cb(void)
 {
 	const char *env_value = getenv("AMFWDOG_TIMEOUT_MS");
 
-	if(env_value && !strtol(env_value, NULL, 0)) /* AMF watchdog disabled */
-		syslog(LOG_ERR, "AMF is down. AMF watchdog is disabled, no action");
+	if (env_value &&
+	    !strtol(env_value, NULL, 0)) /* AMF watchdog disabled */
+		syslog(LOG_ERR,
+		       "AMF is down. AMF watchdog is disabled, no action");
 	else { /* AMF watchdog enabled */
-		opensaf_reboot(0, NULL,	"AMF unexpectedly crashed");
+		opensaf_reboot(0, NULL, "AMF unexpectedly crashed");
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	SaAmfCallbacksT    amf_callbacks = {0};
-	SaVersionT         ver = {.releaseCode = 'B', .majorVersion = 0x01, .minorVersion = 0x01};
-	SaAisErrorT        rc;
+	SaAmfCallbacksT amf_callbacks = {0};
+	SaVersionT ver = {
+	    .releaseCode = 'B', .majorVersion = 0x01, .minorVersion = 0x01};
+	SaAisErrorT rc;
 	SaSelectionObjectT amf_sel_obj;
 	struct pollfd fds[2];
-	int poll_timeout = 60000; 	/* Default timeout is 60s */
+	int poll_timeout = 60000; /* Default timeout is 60s */
 	const char *env_value = getenv("AMFWDOG_TIMEOUT_MS");
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
 	int term_fd;
-	
+
 	opensaf_reboot_prepare();
 	daemonize(argc, argv);
-	
+
 	ava_install_amf_down_cb(amf_down_cb);
 
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;
 	amf_callbacks.saAmfCSIRemoveCallback = amf_csi_remove_callback;
 	amf_callbacks.saAmfHealthcheckCallback = amf_healthcheck_callback;
-	amf_callbacks.saAmfComponentTerminateCallback = amf_comp_terminate_callback;
+	amf_callbacks.saAmfComponentTerminateCallback =
+	    amf_comp_terminate_callback;
 
 	rc = saAmfInitialize(&amf_hdl, &amf_callbacks, &ver);
 	if (SA_AIS_OK != rc) {
@@ -213,16 +220,18 @@ int main(int argc, char *argv[])
 	hc_key.keyLen = strlen((char *)hc_key.key);
 
 	rc = saAmfHealthcheckStart(amf_hdl, &comp_name, &hc_key,
-		SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+				   SA_AMF_HEALTHCHECK_AMF_INVOKED,
+				   SA_AMF_COMPONENT_RESTART);
 	if (SA_AIS_OK != rc) {
 		syslog(LOG_ERR, "saAmfHealthcheckStart FAILED - %u", rc);
 		goto done;
 	}
 
-	if(env_value) {
-		poll_timeout = strtol(env_value, NULL, 0);	/* Timeout value from env variable */
-		if(poll_timeout <= 0)
-			poll_timeout = -1;		/* turn off timeout in poll */
+	if (env_value) {
+		poll_timeout = strtol(env_value, NULL,
+				      0); /* Timeout value from env variable */
+		if (poll_timeout <= 0)
+			poll_timeout = -1; /* turn off timeout in poll */
 	}
 
 	while (1) {
@@ -232,32 +241,47 @@ int main(int argc, char *argv[])
 			if (errno == EINTR)
 				continue;
 			else {
-				syslog(LOG_ERR, "poll FAILED - %s", strerror(errno));
+				syslog(LOG_ERR, "poll FAILED - %s",
+				       strerror(errno));
 				goto done;
 			}
-		}
-		else if (res == 0) { /* Timeout */
+		} else if (res == 0) { /* Timeout */
 			int status;
 
-			/* 
+			/*
 			** Timeout receiving AMF healthcheck requests.
-			** Generate core dump for AMF and reboot the node. We generate
-			** a core dump since we should never get here. AMF cannot just
-			** stop sending health check request without it beeing an internal
-			** error. We want to catch that asap and fix it.
+			** Generate core dump for AMF and reboot the node. We
+			*generate * a core dump since we should never get here.
+			*AMF cannot just * stop sending health check request
+			*without it beeing an internal * error. We want to catch
+			*that asap and fix it.
 			*/
-			syslog(LOG_ERR, "TIMEOUT receiving AMF health check request, generating core for amfnd");
+			syslog(
+			    LOG_ERR,
+			    "TIMEOUT receiving AMF health check request, generating core for amfnd");
 
-			if (getuid() == 0 || geteuid() == 0) { /* running as a root user */
-				if ((status = system("killall -ABRT osafamfnd")) == -1)
-					syslog(LOG_ERR, "system(killall -ABRT osafamfnd) FAILED %x", status);
-			} else { /* running as the non-root user, default as the 'opensaf' user */
-				if ((status = system("sudo killall -ABRT osafamfnd")) == -1)
-					syslog(LOG_ERR, "system(sudo killall -ABRT osafamfnd) FAILED %x", status);
+			if (getuid() == 0 ||
+			    geteuid() == 0) { /* running as a root user */
+				if ((status = system(
+					 "killall -ABRT osafamfnd")) == -1)
+					syslog(
+					    LOG_ERR,
+					    "system(killall -ABRT osafamfnd) FAILED %x",
+					    status);
+			} else { /* running as the non-root user, default as the
+				    'opensaf' user */
+				if ((status = system(
+					 "sudo killall -ABRT osafamfnd")) == -1)
+					syslog(
+					    LOG_ERR,
+					    "system(sudo killall -ABRT osafamfnd) FAILED %x",
+					    status);
 			}
 
-			syslog(LOG_ERR, "%s", latest_healthcheck_trace); 
-			opensaf_reboot(0, NULL,	"AMFND unresponsive, AMFWDOG initiated system reboot");
+			syslog(LOG_ERR, "%s", latest_healthcheck_trace);
+			opensaf_reboot(
+			    0, NULL,
+			    "AMFND unresponsive, AMFWDOG initiated system reboot");
 		}
 
 		if (fds[0].revents & POLLIN) {

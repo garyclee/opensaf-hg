@@ -19,30 +19,29 @@
 #include <poll.h>
 #include "logtest.h"
 
-#define MAX_DATA	256
-#define MAX_CLIENTS	2
+#define MAX_DATA 256
+#define MAX_CLIENTS 2
 static SaLogSeverityFlagsT log_severity[8];
 static SaLogStreamHandleT log_streamHandle[8];
 static int cb_index;
 
-static void logFilterSetCallbackT(SaLogStreamHandleT logStreamHandle, SaLogSeverityFlagsT logSeverity)
+static void logFilterSetCallbackT(SaLogStreamHandleT logStreamHandle,
+				  SaLogSeverityFlagsT logSeverity)
 {
 	log_streamHandle[cb_index] = logStreamHandle;
 	log_severity[cb_index] = logSeverity;
 	cb_index++;
 }
 
-static SaLogFileCreateAttributesT_2 appStreamLogFileCreateAttributes =
-{
-	.logFilePathName = DEFAULT_APP_FILE_PATH_NAME,
-	.logFileName = DEFAULT_APP_FILE_NAME,
-	.maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE,
-	.maxLogRecordSize = DEFAULT_APP_LOG_REC_SIZE,
-	.haProperty = SA_TRUE,
-	.logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE,
-	.maxFilesRotated = DEFAULT_MAX_FILE_ROTATED,
-	.logFileFmt = DEFAULT_FORMAT_EXPRESSION
-};
+static SaLogFileCreateAttributesT_2 appStreamLogFileCreateAttributes = {
+    .logFilePathName = DEFAULT_APP_FILE_PATH_NAME,
+    .logFileName = DEFAULT_APP_FILE_NAME,
+    .maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE,
+    .maxLogRecordSize = DEFAULT_APP_LOG_REC_SIZE,
+    .haProperty = SA_TRUE,
+    .logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE,
+    .maxFilesRotated = DEFAULT_MAX_FILE_ROTATED,
+    .logFileFmt = DEFAULT_FORMAT_EXPRESSION};
 
 void saLogFilterSetCallbackT_01(void)
 {
@@ -75,15 +74,16 @@ void saLogFilterSetCallbackT_01(void)
 	get_attr_value(&systemStreamName, "saLogStreamSeverityFilter",
 		       &v_saLogStreamSeverityFilter);
 
-	sprintf(command, "immcfg %s -a saLogStreamSeverityFilter=%u 2> /dev/null",
-	        SA_LOG_STREAM_SYSTEM, serverity_filter);
+	sprintf(command,
+		"immcfg %s -a saLogStreamSeverityFilter=%u 2> /dev/null",
+		SA_LOG_STREAM_SYSTEM, serverity_filter);
 	ret = systemCall(command);
 	if (ret != 0) {
 		test_validate(ret, 0);
 		goto done;
 	}
 
-	fds[0].fd = (int) selectionObject;
+	fds[0].fd = (int)selectionObject;
 	fds[0].events = POLLIN;
 	ret = poll(fds, 1, 1000);
 	if (ret != 1) {
@@ -99,7 +99,8 @@ void saLogFilterSetCallbackT_01(void)
 		goto done;
 	}
 
-	if (log_streamHandle[0] == logStreamHandle && log_severity[0] == serverity_filter) {
+	if (log_streamHandle[0] == logStreamHandle &&
+	    log_severity[0] == serverity_filter) {
 		test_validate(SA_AIS_OK, SA_AIS_OK);
 	} else {
 		test_validate(0, SA_AIS_OK);
@@ -109,7 +110,8 @@ done:
 	logCallbacks.saLogFilterSetCallback = NULL;
 	logFinalize();
 	/* Restore saLogStreamSeverityFilter attribute */
-	sprintf(command, "immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
+	sprintf(command,
+		"immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
 		SA_LOG_STREAM_SYSTEM, v_saLogStreamSeverityFilter);
 	systemCall(command);
 }
@@ -134,22 +136,25 @@ void saLogFilterSetCallbackT_02(void)
 		goto done;
 	}
 
-	rc = logAppStreamOpen(&app1StreamName, &appStreamLogFileCreateAttributes);
+	rc = logAppStreamOpen(&app1StreamName,
+			      &appStreamLogFileCreateAttributes);
 	if (rc != SA_AIS_OK) {
 		test_validate(rc, SA_AIS_OK);
 		goto done;
 	}
 
 	cb_index = 0;
-	sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:%u %s 2> /dev/null",
-	        serverity_filter, SA_LOG_STREAM_APPLICATION1);
+	sprintf(
+	    command,
+	    "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:%u %s 2> /dev/null",
+	    serverity_filter, SA_LOG_STREAM_APPLICATION1);
 	ret = systemCall(command);
 	if (ret != 0) {
 		test_validate(ret, 0);
 		goto done;
 	}
 
-	fds[0].fd = (int) selectionObject;
+	fds[0].fd = (int)selectionObject;
 	fds[0].events = POLLIN;
 	ret = poll(fds, 1, 1000);
 	if (ret != 1) {
@@ -165,7 +170,8 @@ void saLogFilterSetCallbackT_02(void)
 		goto done;
 	}
 
-	if (log_streamHandle[0] == logStreamHandle && log_severity[0] == serverity_filter) {
+	if (log_streamHandle[0] == logStreamHandle &&
+	    log_severity[0] == serverity_filter) {
 		test_validate(SA_AIS_OK, SA_AIS_OK);
 	} else {
 		test_validate(0, SA_AIS_OK);
@@ -201,15 +207,19 @@ void saLogFilterSetCallbackT_03(void)
 	rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
 			       SA_TIME_ONE_SECOND, &logStreamHandle[0]);
 	if (rc != SA_AIS_OK) {
-		fprintf(stderr, " saLogStreamOpen_2 for system stream failed: %d \n", (int)rc);
+		fprintf(stderr,
+			" saLogStreamOpen_2 for system stream failed: %d \n",
+			(int)rc);
 		test_validate(rc, SA_AIS_OK);
 		goto done;
 	}
 
-	rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
-			       SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle[1]);
+	rc = saLogStreamOpen_2(
+	    logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
+	    SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle[1]);
 	if (rc != SA_AIS_OK) {
-		fprintf(stderr, " saLogStreamOpen_2 app stream failed: %d \n", (int)rc);
+		fprintf(stderr, " saLogStreamOpen_2 app stream failed: %d \n",
+			(int)rc);
 		test_validate(rc, SA_AIS_OK);
 		goto done;
 	}
@@ -219,23 +229,26 @@ void saLogFilterSetCallbackT_03(void)
 	get_attr_value(&systemStreamName, "saLogStreamSeverityFilter",
 		       &v_saLogStreamSeverityFilter);
 	/* Changing severity filter for system and app1 stream */
-	sprintf(command, "immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
-	        SA_LOG_STREAM_SYSTEM, serverity_filter[0]);
+	sprintf(command,
+		"immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
+		SA_LOG_STREAM_SYSTEM, serverity_filter[0]);
 	ret = systemCall(command);
 	if (ret != 0) {
 		test_validate(ret, 0);
 		goto done;
 	}
 	sleep(1);
-	sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:%d %s 2> /dev/null",
-	        serverity_filter[1], SA_LOG_STREAM_APPLICATION1);
+	sprintf(
+	    command,
+	    "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:%d %s 2> /dev/null",
+	    serverity_filter[1], SA_LOG_STREAM_APPLICATION1);
 	ret = systemCall(command);
 	if (ret != 0) {
 		test_validate(ret, 0);
 		goto done;
 	}
 
-	fds[0].fd = (int) selectionObject;
+	fds[0].fd = (int)selectionObject;
 	fds[0].events = POLLIN;
 	ret = poll(fds, 1, 1000);
 	if (ret != 1) {
@@ -258,12 +271,15 @@ void saLogFilterSetCallbackT_03(void)
 	}
 
 	for (int i = 0; i < 2; i++) {
-		if ((log_streamHandle[i] != logStreamHandle[i]) || (log_severity[i] != serverity_filter[i])) {
-	            printf("log streamHandle: %llu,  expected %llu \n", log_streamHandle[i], logStreamHandle[i]);
-	            printf("log severity filter: %d,  expected %d \n", log_severity[i], serverity_filter[i]);
-	            test_validate(0, SA_AIS_OK);
-	            goto done;
-	        }
+		if ((log_streamHandle[i] != logStreamHandle[i]) ||
+		    (log_severity[i] != serverity_filter[i])) {
+			printf("log streamHandle: %llu,  expected %llu \n",
+			       log_streamHandle[i], logStreamHandle[i]);
+			printf("log severity filter: %d,  expected %d \n",
+			       log_severity[i], serverity_filter[i]);
+			test_validate(0, SA_AIS_OK);
+			goto done;
+		}
 	}
 
 	test_validate(SA_AIS_OK, SA_AIS_OK);
@@ -272,11 +288,11 @@ done:
 	logCallbacks.saLogFilterSetCallback = NULL;
 	logFinalize();
 	/* Restore saLogStreamSeverityFilter attribute */
-	sprintf(command, "immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
+	sprintf(command,
+		"immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
 		SA_LOG_STREAM_SYSTEM, v_saLogStreamSeverityFilter);
 	systemCall(command);
 }
-
 
 void saLogFilterSetCallbackT_04(void)
 {
@@ -304,7 +320,7 @@ void saLogFilterSetCallbackT_04(void)
 			goto done;
 		}
 
-		fds[i].fd = (int) selectionObject[i];
+		fds[i].fd = (int)selectionObject[i];
 		fds[i].events = POLLIN;
 
 		rc = saLogStreamOpen_2(logHandle[i], &systemStreamName, NULL, 0,
@@ -323,8 +339,9 @@ void saLogFilterSetCallbackT_04(void)
 	get_attr_value(&systemStreamName, "saLogStreamSeverityFilter",
 		       &v_saLogStreamSeverityFilter);
 	/* Changing severity filter for system and app1 stream */
-	sprintf(command, "immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
-	        SA_LOG_STREAM_SYSTEM, serverity_filter[0]);
+	sprintf(command,
+		"immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
+		SA_LOG_STREAM_SYSTEM, serverity_filter[0]);
 	ret = systemCall(command);
 	if (ret != 0) {
 		test_validate(ret, 0);
@@ -339,14 +356,16 @@ void saLogFilterSetCallbackT_04(void)
 	}
 
 	if (fds[1].revents & POLLIN) {
-		fprintf(stderr, " ERROR, get callback while handle closed stream\n");
+		fprintf(stderr,
+			" ERROR, get callback while handle closed stream\n");
 		test_validate(0, SA_AIS_OK);
 	}
 
 	if (fds[0].revents & POLLIN) {
 		rc = saLogDispatch(logHandle[0], SA_DISPATCH_ALL);
 		if (rc != SA_AIS_OK) {
-			fprintf(stderr, " saLogDispatch failed: %d \n", (int)rc);
+			fprintf(stderr, " saLogDispatch failed: %d \n",
+				(int)rc);
 			test_validate(rc, SA_AIS_OK);
 			goto done;
 		}
@@ -357,7 +376,8 @@ void saLogFilterSetCallbackT_04(void)
 			goto done;
 		}
 
-		if (log_streamHandle[0] == logStreamHandle[0] && log_severity[0] == serverity_filter[0]) {
+		if (log_streamHandle[0] == logStreamHandle[0] &&
+		    log_severity[0] == serverity_filter[0]) {
 			test_validate(SA_AIS_OK, SA_AIS_OK);
 		} else {
 			test_validate(0, SA_AIS_OK);
@@ -371,7 +391,8 @@ done:
 	logCallbacks.saLogFilterSetCallback = NULL;
 	logFinalize();
 	/* Restore saLogStreamSeverityFilter attribute */
-	sprintf(command, "immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
+	sprintf(command,
+		"immcfg %s -a saLogStreamSeverityFilter=%d 2> /dev/null",
 		SA_LOG_STREAM_SYSTEM, v_saLogStreamSeverityFilter);
 	systemCall(command);
 }
@@ -384,7 +405,7 @@ void saLogFilterSetCallbackT_05(void)
 	char command[MAX_DATA];
 	const unsigned int serverity_filter = 7;
 
-	SaVersionT old_version = { 'A', 0x02, 0x02 };
+	SaVersionT old_version = {'A', 0x02, 0x02};
 	logCallbacks.saLogFilterSetCallback = logFilterSetCallbackT;
 	rc = saLogInitialize(&logHandle, &logCallbacks, &old_version);
 	if (rc != SA_AIS_OK) {
@@ -398,22 +419,25 @@ void saLogFilterSetCallbackT_05(void)
 		goto done;
 	}
 
-	rc = logAppStreamOpen(&app1StreamName, &appStreamLogFileCreateAttributes);
+	rc = logAppStreamOpen(&app1StreamName,
+			      &appStreamLogFileCreateAttributes);
 	if (rc != SA_AIS_OK) {
 		test_validate(rc, SA_AIS_OK);
 		goto done;
 	}
 
 	cb_index = 0;
-	sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:%u %s 2> /dev/null",
-	        serverity_filter, SA_LOG_STREAM_APPLICATION1);
+	sprintf(
+	    command,
+	    "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:%u %s 2> /dev/null",
+	    serverity_filter, SA_LOG_STREAM_APPLICATION1);
 	ret = systemCall(command);
 	if (ret != 0) {
 		rc_validate(ret, 0);
 		goto done;
 	}
 
-	fds[0].fd = (int) selectionObject;
+	fds[0].fd = (int)selectionObject;
 	fds[0].events = POLLIN;
 	ret = poll(fds, 1, 1000);
 	if (ret == 1) {
@@ -421,7 +445,8 @@ void saLogFilterSetCallbackT_05(void)
 		rc_validate(ret, 0);
 		goto done;
 	} else {
-		rc_validate(0, 0);;
+		rc_validate(0, 0);
+		;
 	}
 
 done:
@@ -429,12 +454,21 @@ done:
 	logFinalize();
 }
 
-__attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
+__attribute__((constructor)) static void saLibraryLifeCycle_constructor(void)
 {
-    test_suite_add(17, "Log Severity filter Callback");
-    test_case_add(17, saLogFilterSetCallbackT_01, "saLogFilterSetCallbackT, severity filter is changed for cfg stream");
-    test_case_add(17, saLogFilterSetCallbackT_02, "saLogFilterSetCallbackT, severity filter is changed for runtime stream");
-    test_case_add(17, saLogFilterSetCallbackT_03, "saLogFilterSetCallbackT, severity filter is changed for runtime & cfg streams");
-    test_case_add(17, saLogFilterSetCallbackT_04, "saLogFilterSetCallbackT, after closing stream");
-    test_case_add(17, saLogFilterSetCallbackT_05, "saLogFilterSetCallbackT, if client initialize with version < A.02.03, ER");
+	test_suite_add(17, "Log Severity filter Callback");
+	test_case_add(
+	    17, saLogFilterSetCallbackT_01,
+	    "saLogFilterSetCallbackT, severity filter is changed for cfg stream");
+	test_case_add(
+	    17, saLogFilterSetCallbackT_02,
+	    "saLogFilterSetCallbackT, severity filter is changed for runtime stream");
+	test_case_add(
+	    17, saLogFilterSetCallbackT_03,
+	    "saLogFilterSetCallbackT, severity filter is changed for runtime & cfg streams");
+	test_case_add(17, saLogFilterSetCallbackT_04,
+		      "saLogFilterSetCallbackT, after closing stream");
+	test_case_add(
+	    17, saLogFilterSetCallbackT_05,
+	    "saLogFilterSetCallbackT, if client initialize with version < A.02.03, ER");
 }

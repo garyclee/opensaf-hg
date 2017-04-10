@@ -25,6 +25,7 @@
 
 class ElectionStarter {
   DELETE_COPY_AND_MOVE_OPERATORS(ElectionStarter);
+
  public:
   enum ServiceType {
     /**

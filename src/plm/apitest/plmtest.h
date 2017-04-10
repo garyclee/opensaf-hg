@@ -36,24 +36,20 @@ extern SaAisErrorT rc;
 extern SaSelectionObjectT selectionObject;
 
 /* Management globals */
-extern  SaPlmHandleT plmHandle;
+extern SaPlmHandleT plmHandle;
 extern SaPlmCallbacksT plmCallbacks;
 extern SaPlmEntityGroupHandleT entityGroupHandle;
 
-extern const SaNameT f120_slot_1_dn,f120_slot_16_dn,amc_slot_1_dn,amc_slot_16_dn,f120_slot_1_eedn,f120_nonexistent,f120_slot_16_eedn,amc_slot_1_eedn,amc_slot_16_eedn;
+extern const SaNameT f120_slot_1_dn, f120_slot_16_dn, amc_slot_1_dn,
+    amc_slot_16_dn, f120_slot_1_eedn, f120_nonexistent, f120_slot_16_eedn,
+    amc_slot_1_eedn, amc_slot_16_eedn;
 extern int entityNamesNumber;
 
-
-
-extern void TrackCallbackT (
-	    SaPlmEntityGroupHandleT entityGroupHandle,
-	    SaUint64T trackCookie,
-	    SaInvocationT invocation,
-	    SaPlmTrackCauseT cause,
-	    const SaNameT *rootCauseEntity,
-	    SaNtfIdentifierT rootCorrelationId,
-	    const SaPlmReadinessTrackedEntitiesT *trackedEntities,
-	    SaPlmChangeStepT step,
-	    SaAisErrorT error);
+extern void TrackCallbackT(
+    SaPlmEntityGroupHandleT entityGroupHandle, SaUint64T trackCookie,
+    SaInvocationT invocation, SaPlmTrackCauseT cause,
+    const SaNameT *rootCauseEntity, SaNtfIdentifierT rootCorrelationId,
+    const SaPlmReadinessTrackedEntitiesT *trackedEntities,
+    SaPlmChangeStepT step, SaAisErrorT error);
 
 #endif  // PLM_APITEST_PLMTEST_H_

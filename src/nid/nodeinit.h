@@ -38,17 +38,17 @@
 /****************************************************************
  *      MAX limits used for fields in nodeinit.conf entries      *
  ****************************************************************/
-#define NID_MAXSFILE                 100
-#define NID_MAX_SVC_NAME_LEN         15
-#define NID_MAXAPPTYPE_LEN           1
-#define NID_MAXPARMS                 50
-#define NID_MAXARGS                  30
-#define NID_MAX_TIMEOUT_LEN          7
-#define NID_MAX_PRIO_LEN             4
-#define NID_MAX_RESP_LEN             1
-#define NID_MAX_REST_LEN             1
+#define NID_MAXSFILE 100
+#define NID_MAX_SVC_NAME_LEN 15
+#define NID_MAXAPPTYPE_LEN 1
+#define NID_MAXPARMS 50
+#define NID_MAXARGS 30
+#define NID_MAX_TIMEOUT_LEN 7
+#define NID_MAX_PRIO_LEN 4
+#define NID_MAX_RESP_LEN 1
+#define NID_MAX_REST_LEN 1
 
-#define NID_PLAT_CONF   PKGSYSCONFDIR "/nodeinit.conf"
+#define NID_PLAT_CONF PKGSYSCONFDIR "/nodeinit.conf"
 
 /*******************************************************************
  *       States Used While Parsing nodeinit.conf                    *
@@ -98,8 +98,9 @@ typedef enum nid_recovery_opt {
 
 typedef struct nid_spawn_info NID_SPAWN_INFO;
 
-typedef uint32_t (*NID_FUNC) (NID_SPAWN_INFO *, char *);
-typedef int32_t (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *);
+typedef uint32_t (*NID_FUNC)(NID_SPAWN_INFO *, char *);
+typedef int32_t (*NID_FORK_FUNC)(NID_SPAWN_INFO *, char *, char *args[],
+                                 char *);
 
 /******************************************************************
  *       Structures Used by opensafd to store the parsed info     *
@@ -107,30 +108,32 @@ typedef int32_t (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *
  *       spawning                                                 *
  *****************************************************************/
 typedef struct nid_recovery_list {
-  uint32_t retry_count;   /* Retry count against each action */
-  NID_FUNC action;        /* Recovery action to be taken */
+  uint32_t retry_count; /* Retry count against each action */
+  NID_FUNC action;      /* Recovery action to be taken */
 } NID_RECOVERY_LIST;
 
 struct nid_spawn_info {
   uint32_t pid;
-  char serv_name[NID_MAXSNAME];   /* Service name to be spawned */
+  char serv_name[NID_MAXSNAME]; /* Service name to be spawned */
   NID_APP_TYPE app_type;
-  char s_name[NID_MAXSFILE];      /* Service name to be spawned */
-  char cleanup_file[NID_MAXSFILE];        /* Cleanup for the service spawned */
-  int64_t time_out;              /* Timeout for spawned service */
-  int32_t priority;               /* Process priority& */
-  NID_RECOVERY_LIST recovery_matrix[NID_MAXREC];  /* recovery action list */
-  char s_parameters[NID_MAXPARMS];        /* Parameters for spawned service */
-  char *serv_args[NID_MAXARGS];   /* pointers to '\0' seperated arguments in s_parameters */
-  char cleanup_parms[NID_MAXPARMS];       /* Parameters for cleaning appl */
-  char *clnup_args[NID_MAXARGS];  /* pointers to \0 sperated arguments in cleanup_parms */
+  char s_name[NID_MAXSFILE];       /* Service name to be spawned */
+  char cleanup_file[NID_MAXSFILE]; /* Cleanup for the service spawned */
+  int64_t time_out;                /* Timeout for spawned service */
+  int32_t priority;                /* Process priority& */
+  NID_RECOVERY_LIST recovery_matrix[NID_MAXREC]; /* recovery action list */
+  char s_parameters[NID_MAXPARMS];  /* Parameters for spawned service */
+  char *serv_args[NID_MAXARGS];     /* pointers to '\0' seperated arguments in
+                                       s_parameters */
+  char cleanup_parms[NID_MAXPARMS]; /* Parameters for cleaning appl */
+  char *clnup_args[NID_MAXARGS];    /* pointers to \0 sperated arguments in
+                                       cleanup_parms */
   struct nid_spawn_info *next;
 };
 
 typedef struct nid_child_list {
-  NID_SPAWN_INFO *head;   /* Head of the spawn list */
-  NID_SPAWN_INFO *tail;   /* Tail of the spawn list */
-  uint32_t count;         /* Total nodes in the list */
+  NID_SPAWN_INFO *head; /* Head of the spawn list */
+  NID_SPAWN_INFO *tail; /* Tail of the spawn list */
+  uint32_t count;       /* Total nodes in the list */
 } NID_CHILD_LIST;
 
 /*********************************************************************
@@ -139,7 +142,7 @@ typedef struct nid_child_list {
  *       the sequence and number of NID_SVC_CODES Defined in nid_api.h*
  *********************************************************************/
 
-#define NID_NOTIFY_ENABLE   1
-#define NID_NOTIFY_DISABLE  0
+#define NID_NOTIFY_ENABLE 1
+#define NID_NOTIFY_DISABLE 0
 
 #endif  // NID_NODEINIT_H_

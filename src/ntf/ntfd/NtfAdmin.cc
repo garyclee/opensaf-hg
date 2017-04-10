@@ -31,7 +31,7 @@
 #include "base/logtrace.h"
 #include "ntf/common/ntfsv_mem.h"
 
-NtfAdmin* NtfAdmin::theNtfAdmin = NULL;
+NtfAdmin *NtfAdmin::theNtfAdmin = NULL;
 
 /**
  * This is the constructor. The cluster-wide unique counter for
@@ -44,8 +44,7 @@ NtfAdmin::NtfAdmin() {
   clientIdCounter = 0;
 }
 
-NtfAdmin::~NtfAdmin() {
-}
+NtfAdmin::~NtfAdmin() {}
 
 /**
  * A new client object is created and a reference to the
@@ -60,16 +59,14 @@ NtfAdmin::~NtfAdmin() {
  * @param mdsDest
  * @param mdsCtxt
  */
-void NtfAdmin::clientAdded(unsigned int clientId,
-                           MDS_DEST mdsDest,
+void NtfAdmin::clientAdded(unsigned int clientId, MDS_DEST mdsDest,
                            MDS_SYNC_SND_CTXT *mdsCtxt, SaVersionT *version) {
   SaAisErrorT rc = SA_AIS_OK;
 
   if (clientId == 0) /* clientId == 0, means this is a new client */
   {
     clientIdCounter++;
-    if (clientIdCounter == 0)
-      clientIdCounter++;
+    if (clientIdCounter == 0) clientIdCounter++;
     clientId = clientIdCounter;
   }
 
@@ -77,13 +74,15 @@ void NtfAdmin::clientAdded(unsigned int clientId,
     // it can only occur during synchronization when we were restarted and
     // we do not know how many clients we had before
     clientIdCounter = clientId;
-    TRACE_6("NtfAdmin::clientAdded clientIdCounter synchronized,"
-            " new value is %u", clientIdCounter);
+    TRACE_6(
+        "NtfAdmin::clientAdded clientIdCounter synchronized,"
+        " new value is %u",
+        clientIdCounter);
   }
 
-  /*  The client object is deleted in NtfAdmin::clientRemoved if a client is removed */
-  NtfClient* client = new NtfClient(clientId,
-                                    mdsDest);
+  /*  The client object is deleted in NtfAdmin::clientRemoved if a client is
+   * removed */
+  NtfClient *client = new NtfClient(clientId, mdsDest);
   client->set_client_version(version);
   // check if client already exists
   ClientMap::iterator pos;
@@ -94,21 +93,14 @@ void NtfAdmin::clientAdded(unsigned int clientId,
             client->getClientId());
     delete client;
     rc = SA_AIS_ERR_EXIST;
-  }
-  else
-  {
+  } else {
     // store new client in clientMap
     clientMap[client->getClientId()] = client;
     TRACE_1("NtfAdmin::clientAdded client %u added, clientMap size is %u",
             client->getClientId(), (unsigned int)clientMap.size());
-
   }
   if (NULL != mdsCtxt) {
-    client_added_res_lib(rc,
-                         clientId,
-                         mdsDest,
-                         mdsCtxt,
-                         version);
+    client_added_res_lib(rc, clientId, mdsDest, mdsCtxt, version);
   }
 }
 
@@ -119,24 +111,23 @@ void NtfAdmin::clientAdded(unsigned int clientId,
  * @param ntfsv_subscribe_req_t contains subscribtions and
  *                              filter information
  */
-void NtfAdmin::subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt) {
+void NtfAdmin::subscriptionAdded(ntfsv_subscribe_req_t s,
+                                 MDS_SYNC_SND_CTXT *mdsCtxt) {
   // create subscription
   // deleted in different methods depending on if object exists or not:
   // NtfAdmin::subscriptionAdded
   // NtfClient::subscriptionAdded
   // NtfClient::subscriptionRemoved
   // NtfClient::~NtfClient()
-  NtfSubscription* subscription = new NtfSubscription(&s);
+  NtfSubscription *subscription = new NtfSubscription(&s);
   // find client
   ClientMap::iterator pos;
   pos = clientMap.find(s.client_id);
   if (pos != clientMap.end()) {
     // client found
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->subscriptionAdded(subscription, mdsCtxt);
-  }
-  else
-  {
+  } else {
     LOG_ER("NtfAdmin::subscriptionAdded client %u not found", s.client_id);
     delete subscription;
   }
@@ -153,15 +144,12 @@ void NtfAdmin::updateNotIdCounter(SaNtfIdentifierT notificationId) {
   if (notificationId == 0) {
     // it is a new notification, assign a new notificationId to it
     notificationIdCounter++;
-  }
-  else
-  {
+  } else {
     /* update or coldsync */
     TRACE_2("old notification received, id is %llu", notificationId);
     if (notificationIdCounter < notificationId && !activeController()) {
       TRACE_2("update notificationIdCounter %llu -> %llu",
-              notificationIdCounter,
-              notificationId);
+              notificationIdCounter, notificationId);
       notificationIdCounter = notificationId;
     }
   }
@@ -182,7 +170,7 @@ void NtfAdmin::updateNotIdCounter(SaNtfIdentifierT notificationId) {
  */
 void NtfAdmin::processNotification(unsigned int clientId,
                                    SaNtfNotificationTypeT notificationType,
-                                   ntfsv_send_not_req_t* sendNotInfo,
+                                   ntfsv_send_not_req_t *sendNotInfo,
                                    MDS_SYNC_SND_CTXT *mdsCtxt,
                                    SaNtfIdentifierT notificationId) {
   TRACE_ENTER();
@@ -190,14 +178,12 @@ void NtfAdmin::processNotification(unsigned int clientId,
   // NtfAdmin::notificationSentConfirmed
   // NtfAdmin::clientRemoved
   // NtfAdmin::subscriptionRemoved
-  NtfSmartPtr notification(new NtfNotification(notificationId,
-                                               notificationType,
-                                               sendNotInfo));
+  NtfSmartPtr notification(
+      new NtfNotification(notificationId, notificationType, sendNotInfo));
   // store notification in a map for tracking purposes
   notificationMap[notificationId] = notification;
   TRACE_2("notification %llu with type %d added, notificationMap size is %u",
-          notificationId,
-          notificationType,
+          notificationId, notificationType,
           (unsigned int)notificationMap.size());
 
   // log the notification. Callback from SAF log will confirm later.
@@ -208,22 +194,24 @@ void NtfAdmin::processNotification(unsigned int clientId,
 
   ClientMap::iterator pos;
   for (pos = clientMap.begin(); pos != clientMap.end(); pos++) {
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->notificationReceived(clientId, notification, mdsCtxt);
   }
 
   /* remove notification if sent to all subscribers and logged */
-  if (notification->isSubscriptionListEmpty() &&
-      notification->loggedOk()) {
+  if (notification->isSubscriptionListEmpty() && notification->loggedOk()) {
     NotificationMap::iterator posNot;
     posNot = notificationMap.find(notificationId);
     if (posNot != notificationMap.end()) {
-      TRACE_2("NtfAdmin::notificationReceived no subscription found"
-              " for notification %llu", notificationId);
+      TRACE_2(
+          "NtfAdmin::notificationReceived no subscription found"
+          " for notification %llu",
+          notificationId);
       notificationMap.erase(notificationMap.find(notificationId));
-      TRACE_2("NtfAdmin::notificationReceived notification %llu removed,"
-              " notificationMap size is %u",
-              notificationId, (unsigned int)notificationMap.size());
+      TRACE_2(
+          "NtfAdmin::notificationReceived notification %llu removed,"
+          " notificationMap size is %u",
+          notificationId, (unsigned int)notificationMap.size());
     }
   }
   TRACE_LEAVE();
@@ -244,17 +232,14 @@ void NtfAdmin::processNotification(unsigned int clientId,
  */
 void NtfAdmin::notificationReceived(unsigned int clientId,
                                     SaNtfNotificationTypeT notificationType,
-                                    ntfsv_send_not_req_t* sendNotInfo,
+                                    ntfsv_send_not_req_t *sendNotInfo,
                                     MDS_SYNC_SND_CTXT *mdsCtxt) {
   TRACE_ENTER();
   SaNtfNotificationHeaderT *header;
   ntfsv_get_ntf_header(sendNotInfo, &header);
   updateNotIdCounter(*header->notificationId);
   TRACE_2("New notification received, id: %llu", notificationIdCounter);
-  processNotification(clientId,
-                      notificationType,
-                      sendNotInfo,
-                      mdsCtxt,
+  processNotification(clientId, notificationType, sendNotInfo, mdsCtxt,
                       notificationIdCounter);
   TRACE_LEAVE();
 }
@@ -271,9 +256,9 @@ void NtfAdmin::notificationReceived(unsigned int clientId,
  * @param sendNotInfo Pointer to the struct that holds
  *                    information about the notification.
  */
-void NtfAdmin::notificationReceivedUpdate(unsigned int clientId,
-                                          SaNtfNotificationTypeT notificationType,
-                                          ntfsv_send_not_req_t* sendNotInfo) {
+void NtfAdmin::notificationReceivedUpdate(
+    unsigned int clientId, SaNtfNotificationTypeT notificationType,
+    ntfsv_send_not_req_t *sendNotInfo) {
   TRACE_ENTER();
   SaNtfNotificationHeaderT *header;
   ntfsv_get_ntf_header(sendNotInfo, &header);
@@ -284,19 +269,15 @@ void NtfAdmin::notificationReceivedUpdate(unsigned int clientId,
   posNot = notificationMap.find(notificationId);
   if (posNot != notificationMap.end()) {
     // we have got the notification
-    TRACE_2("notification %u received"
-            " again, skipped", (unsigned int)notificationId);
+    TRACE_2(
+        "notification %u received"
+        " again, skipped",
+        (unsigned int)notificationId);
     ntfsv_dealloc_notification(sendNotInfo);
     delete sendNotInfo;
-  }
-  else
-  {
-    TRACE_2("notification %u",
-            (unsigned int)notificationId);
-    processNotification(clientId,
-                        notificationType,
-                        sendNotInfo,
-                        NULL,
+  } else {
+    TRACE_2("notification %u", (unsigned int)notificationId);
+    processNotification(clientId, notificationType, sendNotInfo, NULL,
                         notificationId);
   }
   TRACE_LEAVE();
@@ -313,9 +294,9 @@ void NtfAdmin::notificationReceivedUpdate(unsigned int clientId,
  *                 Pointer to the struct that holds information about the
  *                 notification.
  */
-void NtfAdmin::notificationReceivedColdSync(unsigned int clientId,
-                                            SaNtfNotificationTypeT notificationType,
-                                            ntfsv_send_not_req_t* sendNotInfo) {
+void NtfAdmin::notificationReceivedColdSync(
+    unsigned int clientId, SaNtfNotificationTypeT notificationType,
+    ntfsv_send_not_req_t *sendNotInfo) {
   TRACE_ENTER();
   SaNtfNotificationHeaderT *header;
   ntfsv_get_ntf_header(sendNotInfo, &header);
@@ -326,28 +307,29 @@ void NtfAdmin::notificationReceivedColdSync(unsigned int clientId,
   posNot = notificationMap.find(notificationId);
   if (posNot != notificationMap.end()) {
     // we have got the notification
-    TRACE_2("notification %u received"
-            " again, skipped", (unsigned int)notificationId);
+    TRACE_2(
+        "notification %u received"
+        " again, skipped",
+        (unsigned int)notificationId);
     ntfsv_dealloc_notification(sendNotInfo);
     delete sendNotInfo;
-  }
-  else
-  {
-    TRACE_2("notification %u received for"
-            " the first time", (unsigned int)notificationId);
+  } else {
+    TRACE_2(
+        "notification %u received for"
+        " the first time",
+        (unsigned int)notificationId);
     // The notification can be deleted in these methods also:
     // NtfAdmin::notificationSentConfirmed
     // NtfAdmin::clientRemoved
     // NtfAdmin::subscriptionRemoved
-    NtfSmartPtr notification(new NtfNotification(notificationId,
-                                                 notificationType,
-                                                 sendNotInfo));
+    NtfSmartPtr notification(
+        new NtfNotification(notificationId, notificationType, sendNotInfo));
     // store notification in a map for tracking purposes
     notificationMap[notificationId] = notification;
-    TRACE_2("notification %llu with type %d"
-            " added, notificationMap size is %u",
-            notificationId, notificationType,
-            (unsigned int)notificationMap.size());
+    TRACE_2(
+        "notification %llu with type %d"
+        " added, notificationMap size is %u",
+        notificationId, notificationType, (unsigned int)notificationMap.size());
   }
   TRACE_LEAVE();
 }
@@ -369,31 +351,28 @@ void NtfAdmin::notificationReceivedColdSync(unsigned int clientId,
  *                 Cluster-wide unique id of the notification that was
  *                 delivered.
  */
-void NtfAdmin::notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
-                                         SaNtfIdentifierT notificationId, int discarded) {
-
+void NtfAdmin::notificationSentConfirmed(unsigned int clientId,
+                                         SaNtfSubscriptionIdT subscriptionId,
+                                         SaNtfIdentifierT notificationId,
+                                         int discarded) {
   // find notification
   NotificationMap::iterator pos;
   pos = notificationMap.find(notificationId);
   if (pos != notificationMap.end()) {
     // we have got the notification
     NtfSmartPtr notification = pos->second;
-    notification->notificationSentConfirmed(clientId,
-                                            subscriptionId);
+    notification->notificationSentConfirmed(clientId, subscriptionId);
     if (activeController()) {
       /* no delete if active */
       sendNotConfirmUpdate(clientId, subscriptionId, notificationId, discarded);
-    }
-    else
-    {
+    } else {
       deleteConfirmedNotification(notification, pos);
     }
-  }
-  else
-  {
-    LOG_WA("NtfAdmin::notificationSentConfirmed"
-           " notification %llu not found",
-           notificationId);
+  } else {
+    LOG_WA(
+        "NtfAdmin::notificationSentConfirmed"
+        " notification %llu not found",
+        notificationId);
   }
 }
 
@@ -419,13 +398,12 @@ void NtfAdmin::notificationLoggedConfirmed(SaNtfIdentifierT notificationId) {
       }
     }
     deleteConfirmedNotification(notification, pos);
-  }
-  else
-  {
+  } else {
     /* TODO: This could happend for not logged notification */
-    TRACE_2("NtfAdmin::notificationLoggedConfirmed"
-            " notification %llu not found",
-            notificationId);
+    TRACE_2(
+        "NtfAdmin::notificationLoggedConfirmed"
+        " notification %llu not found",
+        notificationId);
   }
   TRACE_LEAVE();
 }
@@ -444,13 +422,11 @@ void NtfAdmin::clientRemoved(unsigned int clientId) {
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
     // client found
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     delete client;
     // remove client from client map
     clientMap.erase(pos);
-  }
-  else
-  {
+  } else {
     TRACE_2("NtfAdmin::clientRemoved client %u not found", clientId);
     return;
   }
@@ -465,7 +441,6 @@ void NtfAdmin::clientRemoved(unsigned int clientId) {
   }
 }
 
-
 /**
  * Find the clientIds corresponding to the mds_dest. Call method
  * to remove clients belonging to that mds_dest.
@@ -479,7 +454,7 @@ void NtfAdmin::clientRemoveMDS(MDS_DEST mds_dest) {
   do {
     found = false;
     for (pos = clientMap.begin(); pos != clientMap.end(); pos++) {
-      NtfClient* client = pos->second;
+      NtfClient *client = pos->second;
       if (client->getMdsDest() == mds_dest) {
         clientRemoved(client->getClientId());
         found = true;
@@ -513,11 +488,9 @@ void NtfAdmin::subscriptionRemoved(unsigned int clientId,
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
     // client found
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->subscriptionRemoved(subscriptionId, mdsCtxt);
-  }
-  else
-  {
+  } else {
     LOG_WA("NtfAdmin::subscriptionRemoved client %u not found", clientId);
   }
 
@@ -526,34 +499,32 @@ void NtfAdmin::subscriptionRemoved(unsigned int clientId,
   NotificationMap::iterator posN = notificationMap.begin();
   while (posN != notificationMap.end()) {
     NtfSmartPtr notification = posN->second;
-    notification->removeSubscription(clientId,
-                                     subscriptionId);
+    notification->removeSubscription(clientId, subscriptionId);
     deleteConfirmedNotification(notification, posN++);
   }
 }
 
-void NtfAdmin::discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId) {
+void NtfAdmin::discardedAdd(unsigned int clientId,
+                            SaNtfSubscriptionIdT subscriptionId,
+                            SaNtfIdentifierT notificationId) {
   ClientMap::iterator pos;
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->discardedAdd(subscriptionId, notificationId);
-  }
-  else
-  {
+  } else {
     LOG_WA("client %u not found", clientId);
   }
 }
 
-void NtfAdmin::discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId) {
+void NtfAdmin::discardedClear(unsigned int clientId,
+                              SaNtfSubscriptionIdT subscriptionId) {
   ClientMap::iterator pos;
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->discardedClear(subscriptionId);
-  }
-  else
-  {
+  } else {
     LOG_ER("client %u not found", clientId);
   }
 }
@@ -565,20 +536,17 @@ void NtfAdmin::discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscr
  */
 void NtfAdmin::syncRequest(NCS_UBAID *uba) {
   TRACE_ENTER();
-  sendNoOfClients(clientMap.size(),uba);
+  sendNoOfClients(clientMap.size(), uba);
   // send syncRequest to all clients
   ClientMap::iterator pos;
   for (pos = clientMap.begin(); pos != clientMap.end(); pos++) {
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     TRACE_1("NtfAdmin::syncRequest sending info about client %u",
             client->getClientId());
-    int retval = sendNewClient(client->getClientId(),
-                               client->getMdsDest(),
-                               client->getSafVersion(),
-                               uba);
+    int retval = sendNewClient(client->getClientId(), client->getMdsDest(),
+                               client->getSafVersion(), uba);
     if (retval != 1) {
-      LOG_ER("sendNewClient: %u failed",
-             client->getClientId());
+      LOG_ER("sendNewClient: %u failed", client->getClientId());
     }
   }
   for (pos = clientMap.begin(); pos != clientMap.end(); pos++) {
@@ -586,28 +554,32 @@ void NtfAdmin::syncRequest(NCS_UBAID *uba) {
   }
 
   // send information about global variables like notificationIdCounter
-  TRACE_6("NtfAdmin::syncRequest sending info global variables:"
-          " notificationIdCounter %llu", notificationIdCounter);
+  TRACE_6(
+      "NtfAdmin::syncRequest sending info global variables:"
+      " notificationIdCounter %llu",
+      notificationIdCounter);
   struct NtfGlobals ntfGlobals;
   memset(&ntfGlobals, 0, sizeof(struct NtfGlobals));
   ntfGlobals.notificationId = notificationIdCounter;
   ntfGlobals.clientIdCounter = clientIdCounter;
   int retval = sendSyncGlobals(&ntfGlobals, uba);
   if (retval != 1) {
-    LOG_ER("NtfAdmin::syncRequest sendSyncGlobals"
-           " request was not sent, "
-           "error code is %d", retval);
+    LOG_ER(
+        "NtfAdmin::syncRequest sendSyncGlobals"
+        " request was not sent, "
+        "error code is %d",
+        retval);
   }
 
   // send notifications
-  TRACE_2("sendNoOfNotifications mapsize=%u", (unsigned int)notificationMap.size());
-  sendNoOfNotifications(notificationMap.size(),uba);
+  TRACE_2("sendNoOfNotifications mapsize=%u",
+          (unsigned int)notificationMap.size());
+  sendNoOfNotifications(notificationMap.size(), uba);
   NotificationMap::iterator posNot;
-  for (posNot = notificationMap.begin();
-       posNot != notificationMap.end();
+  for (posNot = notificationMap.begin(); posNot != notificationMap.end();
        posNot++) {
     NtfSmartPtr notification = posNot->second;
-    notification->syncRequest( uba);
+    notification->syncRequest(uba);
   }
   TRACE_LEAVE();
 }
@@ -617,8 +589,7 @@ void NtfAdmin::syncRequest(NCS_UBAID *uba) {
  *
  * @param ntfGlobals Structure for global variables.
  */
-void NtfAdmin::syncGlobals(const struct NtfGlobals& ntfGlobals) {
-
+void NtfAdmin::syncGlobals(const struct NtfGlobals &ntfGlobals) {
   TRACE_6("NtfAdmin::syncGlobals setting notificationIdCounter to %llu",
           ntfGlobals.notificationId);
   notificationIdCounter = ntfGlobals.notificationId;
@@ -628,8 +599,7 @@ void NtfAdmin::syncGlobals(const struct NtfGlobals& ntfGlobals) {
 void NtfAdmin::deleteConfirmedNotification(NtfSmartPtr notification,
                                            NotificationMap::iterator pos) {
   TRACE_ENTER();
-  if (notification->isSubscriptionListEmpty() &&
-      notification->loggedOk()) {
+  if (notification->isSubscriptionListEmpty() && notification->loggedOk()) {
     // notification sent to all nodes in the cluster, it can be deleted
     notificationMap.erase(pos);
     TRACE_2("Notification %llu removed, notificationMap size is %u",
@@ -646,8 +616,7 @@ void NtfAdmin::deleteConfirmedNotification(NtfSmartPtr notification,
 void NtfAdmin::checkNotificationList() {
   TRACE_ENTER();
   NotificationMap::iterator posNot;
-  for (posNot = notificationMap.begin();
-       posNot != notificationMap.end();) {
+  for (posNot = notificationMap.begin(); posNot != notificationMap.end();) {
     NtfSmartPtr notification = posNot->second;
     NotificationMap::iterator deleteNot = posNot++;
 
@@ -661,12 +630,11 @@ void NtfAdmin::checkNotificationList() {
       notification->resetSubscriptionIdList();
       UniqueSubscriptionId uSubId;
       while (notification->getNextSubscription(uSubId) == SA_AIS_OK) {
-        NtfClient* client = getClient(uSubId.clientId);
+        NtfClient *client = getClient(uSubId.clientId);
         if (NULL != client) {
-          client->sendNotConfirmedNotification(notification, uSubId.subscriptionId);
-        }
-        else
-        {
+          client->sendNotConfirmedNotification(notification,
+                                               uSubId.subscriptionId);
+        } else {
           TRACE_2("Client: %u not exist", uSubId.clientId);
         }
       }
@@ -679,19 +647,18 @@ void NtfAdmin::checkNotificationList() {
 /**
  * Check if a certain client exists.
  *
- * @param clientId Node-wide unique id of the client whose existence is to be checked.
+ * @param clientId Node-wide unique id of the client whose existence is to be
+ * checked.
  *
  * @return true if the client exists
  *         false if the client does not exist
  */
-NtfClient* NtfAdmin::getClient(unsigned int clientId) {
+NtfClient *NtfAdmin::getClient(unsigned int clientId) {
   ClientMap::iterator pos;
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
     return pos->second;
-  }
-  else
-  {
+  } else {
     return NULL;
   }
 }
@@ -713,14 +680,11 @@ void NtfAdmin::newReader(unsigned int clientId,
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
     // we have got the client
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->newReader(searchCriteria, f_rec, mdsCtxt);
-  }
-  else
-  {
+  } else {
     // client object does not exist
-    LOG_WA("NtfAdmin::newReader  client not found %u",
-           clientId);
+    LOG_WA("NtfAdmin::newReader  client not found %u", clientId);
   }
   TRACE_LEAVE();
 }
@@ -732,8 +696,7 @@ void NtfAdmin::newReader(unsigned int clientId,
  * @param readerId unique readerId for this client
  * @param mdsCtxt
  */
-void NtfAdmin::readNext(unsigned int clientId,
-                        unsigned int readerId,
+void NtfAdmin::readNext(unsigned int clientId, unsigned int readerId,
                         SaNtfSearchDirectionT searchDirection,
                         MDS_SYNC_SND_CTXT *mdsCtxt) {
   TRACE_ENTER();
@@ -742,15 +705,11 @@ void NtfAdmin::readNext(unsigned int clientId,
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
     // we have got the client
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->readNext(readerId, searchDirection, mdsCtxt);
-  }
-  else
-  {
+  } else {
     // client object does not exist
-    LOG_WA(
-        "NtfAdmin::readNext  client not found %u",
-        clientId);
+    LOG_WA("NtfAdmin::readNext  client not found %u", clientId);
   }
   TRACE_LEAVE();
 }
@@ -762,22 +721,18 @@ void NtfAdmin::readNext(unsigned int clientId,
  * @param readerId unique readerId for this client
  * @param mdsCtxt
  */
-void NtfAdmin::deleteReader(unsigned int clientId,
-                            unsigned int readerId,
+void NtfAdmin::deleteReader(unsigned int clientId, unsigned int readerId,
                             MDS_SYNC_SND_CTXT *mdsCtxt) {
   TRACE_ENTER();
   ClientMap::iterator pos;
   pos = clientMap.find(clientId);
   if (pos != clientMap.end()) {
     // we have got the client
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->deleteReader(readerId, mdsCtxt);
-  }
-  else
-  {
+  } else {
     // client object does not exist
-    LOG_WA("NtfAdmin::deleteReader  client not found %u",
-           clientId);
+    LOG_WA("NtfAdmin::deleteReader  client not found %u", clientId);
   }
   TRACE_LEAVE();
 }
@@ -796,9 +751,7 @@ NtfSmartPtr NtfAdmin::getNotificationById(SaNtfIdentifierT id) {
 
   TRACE_ENTER();
 
-
-  for (posNot = notificationMap.begin();
-       posNot != notificationMap.end();
+  for (posNot = notificationMap.begin(); posNot != notificationMap.end();
        posNot++) {
     NtfSmartPtr notification = posNot->second;
 
@@ -813,7 +766,7 @@ NtfSmartPtr NtfAdmin::getNotificationById(SaNtfIdentifierT id) {
   }
 
   TRACE_LEAVE();
-  return(posNot->second);
+  return (posNot->second);
 }
 
 /**
@@ -829,13 +782,12 @@ void NtfAdmin::printInfo() {
 
   ClientMap::iterator pos;
   for (pos = clientMap.begin(); pos != clientMap.end(); pos++) {
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client->printInfo();
   }
 
   NotificationMap::iterator posNot;
-  for (posNot = notificationMap.begin();
-       posNot != notificationMap.end();
+  for (posNot = notificationMap.begin(); posNot != notificationMap.end();
        posNot++) {
     NtfSmartPtr notification = posNot->second;
     notification->printInfo();
@@ -855,9 +807,7 @@ void NtfAdmin::storeMatchingSubscription(SaNtfIdentifierT notificationId,
   NtfSmartPtr notification = getNotificationById(notificationId);
   if (NULL != notification.get()) {
     notification->storeMatchingSubscription(clientId, subscriptionId);
-  }
-  else
-  {
+  } else {
     TRACE_2("Notification: %llu does not exist", notificationId);
   }
 }
@@ -866,8 +816,7 @@ void NtfAdmin::storeMatchingSubscription(SaNtfIdentifierT notificationId,
  *
  * @param node_id
  */
-void NtfAdmin::AddMemberNode(NODE_ID node_id)
-{
+void NtfAdmin::AddMemberNode(NODE_ID node_id) {
   NODE_ID *node = new NODE_ID;
   *node = node_id;
   member_node_list.push_back(node);
@@ -879,13 +828,11 @@ void NtfAdmin::AddMemberNode(NODE_ID node_id)
  * @param node_id
  * @return pointer to the node.
  */
-NODE_ID* NtfAdmin::FindMemberNode(NODE_ID node_id)
-{
-  std::list<NODE_ID*>::iterator it;
+NODE_ID *NtfAdmin::FindMemberNode(NODE_ID node_id) {
+  std::list<NODE_ID *>::iterator it;
   for (it = member_node_list.begin(); it != member_node_list.end(); ++it) {
     NODE_ID *node = *it;
-    if (*node == node_id)
-      return node;
+    if (*node == node_id) return node;
   }
   return nullptr;
 }
@@ -895,14 +842,13 @@ NODE_ID* NtfAdmin::FindMemberNode(NODE_ID node_id)
  *
  * @param node_id
  */
-void NtfAdmin::RemoveMemberNode(NODE_ID node_id)
-{
-  std::list<NODE_ID*>::iterator it;
+void NtfAdmin::RemoveMemberNode(NODE_ID node_id) {
+  std::list<NODE_ID *>::iterator it;
   for (it = member_node_list.begin(); it != member_node_list.end(); ++it) {
     NODE_ID *node = *it;
     if (*node == node_id) {
       member_node_list.erase(it);
-      TRACE_2("Deleted:%x",*node);
+      TRACE_2("Deleted:%x", *node);
       delete node;
       return;
     }
@@ -914,18 +860,16 @@ void NtfAdmin::RemoveMemberNode(NODE_ID node_id)
  *
  * @return member node counts.
  */
-uint32_t NtfAdmin::MemberNodeListSize() {
-  return member_node_list.size();
-}
+uint32_t NtfAdmin::MemberNodeListSize() { return member_node_list.size(); }
 
 /**
  * @brief Print node_ids of member nodes.
  */
 void NtfAdmin::PrintMemberNodes() {
-  std::list<NODE_ID*>::iterator it;
+  std::list<NODE_ID *>::iterator it;
   for (it = member_node_list.begin(); it != member_node_list.end(); ++it) {
     NODE_ID *node = *it;
-    TRACE_1("NODE_ID:%x",*node);
+    TRACE_1("NODE_ID:%x", *node);
   }
 }
 
@@ -936,7 +880,8 @@ void NtfAdmin::PrintMemberNodes() {
  * @param  NCS node_id.
  * @return NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
-uint32_t NtfAdmin::send_cluster_membership_msg_to_clients(SaClmClusterChangesT cluster_change, NODE_ID node_id) {
+uint32_t NtfAdmin::send_cluster_membership_msg_to_clients(
+    SaClmClusterChangesT cluster_change, NODE_ID node_id) {
   uint32_t rc = NCSCC_RC_SUCCESS;
   unsigned int client_id;
   MDS_DEST mds_dest;
@@ -945,11 +890,11 @@ uint32_t NtfAdmin::send_cluster_membership_msg_to_clients(SaClmClusterChangesT c
   TRACE_3("node_id: %x, change:%u", node_id, cluster_change);
   ClientMap::iterator pos;
   for (pos = clientMap.begin(); pos != clientMap.end(); pos++) {
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     client_id = client->getClientId();
     mds_dest = client->getMdsDest();
     NODE_ID tmp_node_id = m_NTFS_GET_NODE_ID_FROM_ADEST(mds_dest);
-    //Do not send to A11 client.
+    // Do not send to A11 client.
     if ((tmp_node_id == node_id) && (client->IsA11Client() == false))
       rc = send_clm_node_status_lib(cluster_change, client_id, mds_dest);
   }
@@ -962,20 +907,19 @@ uint32_t NtfAdmin::send_cluster_membership_msg_to_clients(SaClmClusterChangesT c
  * @param  clientId MDS_DEST
  * @return true/false.
  */
-bool NtfAdmin::is_stale_client(unsigned int client_id)
-{
-  //Find client.
+bool NtfAdmin::is_stale_client(unsigned int client_id) {
+  // Find client.
   ClientMap::iterator pos;
   pos = clientMap.find(client_id);
   if (pos != clientMap.end()) {
     MDS_DEST mds_dest;
     // Client found
-    NtfClient* client = pos->second;
+    NtfClient *client = pos->second;
     mds_dest = client->getMdsDest();
     return (!is_client_clm_member(m_NTFS_GET_NODE_ID_FROM_ADEST(mds_dest),
                                   client->getSafVersion()));
   } else
-    //Client not found.
+    // Client not found.
     return false;
 }
 
@@ -991,8 +935,7 @@ void initAdmin() {
   }
 }
 
-void clientAdded(unsigned int clientId,
-                 MDS_DEST mdsDest,
+void clientAdded(unsigned int clientId, MDS_DEST mdsDest,
                  MDS_SYNC_SND_CTXT *mdsCtxt, SaVersionT *version) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
   NtfAdmin::theNtfAdmin->clientAdded(clientId, mdsDest, mdsCtxt, version);
@@ -1005,36 +948,34 @@ void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt) {
 
 void notificationReceived(unsigned int clientId,
                           SaNtfNotificationTypeT notificationType,
-                          ntfsv_send_not_req_t* sendNotInfo,
+                          ntfsv_send_not_req_t *sendNotInfo,
                           MDS_SYNC_SND_CTXT *mdsCtxt) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  NtfAdmin::theNtfAdmin->notificationReceived(clientId,
-                                              notificationType,
-                                              sendNotInfo,
-                                              mdsCtxt);
+  NtfAdmin::theNtfAdmin->notificationReceived(clientId, notificationType,
+                                              sendNotInfo, mdsCtxt);
 }
 void notificationReceivedUpdate(unsigned int clientId,
                                 SaNtfNotificationTypeT notificationType,
-                                ntfsv_send_not_req_t* sendNotInfo) {
+                                ntfsv_send_not_req_t *sendNotInfo) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  NtfAdmin::theNtfAdmin->notificationReceivedUpdate(clientId,
-                                                    notificationType,
+  NtfAdmin::theNtfAdmin->notificationReceivedUpdate(clientId, notificationType,
                                                     sendNotInfo);
 }
 
 void notificationReceivedColdSync(unsigned int clientId,
                                   SaNtfNotificationTypeT notificationType,
-                                  ntfsv_send_not_req_t* sendNotInfo) {
+                                  ntfsv_send_not_req_t *sendNotInfo) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  NtfAdmin::theNtfAdmin->notificationReceivedColdSync(clientId,
-                                                      notificationType,
-                                                      sendNotInfo);
+  NtfAdmin::theNtfAdmin->notificationReceivedColdSync(
+      clientId, notificationType, sendNotInfo);
 }
 
-void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
+void notificationSentConfirmed(unsigned int clientId,
+                               SaNtfSubscriptionIdT subscriptionId,
                                SaNtfIdentifierT notificationId, int discarded) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  NtfAdmin::theNtfAdmin->notificationSentConfirmed(clientId, subscriptionId, notificationId, discarded);
+  NtfAdmin::theNtfAdmin->notificationSentConfirmed(clientId, subscriptionId,
+                                                   notificationId, discarded);
 }
 
 void notificationLoggedConfirmed(SaNtfIdentifierT notificationId) {
@@ -1043,28 +984,22 @@ void notificationLoggedConfirmed(SaNtfIdentifierT notificationId) {
 }
 
 void clientRemoved(unsigned int clientId) {
-
   osafassert(NtfAdmin::theNtfAdmin != NULL);
   NtfAdmin::theNtfAdmin->clientRemoved(clientId);
 }
 void clientRemoveMDS(MDS_DEST mds_dest) {
-
   osafassert(NtfAdmin::theNtfAdmin != NULL);
   NtfAdmin::theNtfAdmin->clientRemoveMDS(mds_dest);
 }
 
-void subscriptionRemoved(
-    unsigned int clientId,
-    SaNtfSubscriptionIdT subscriptionId,
-    MDS_SYNC_SND_CTXT *mdsCtxt) {
+void subscriptionRemoved(unsigned int clientId,
+                         SaNtfSubscriptionIdT subscriptionId,
+                         MDS_SYNC_SND_CTXT *mdsCtxt) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  NtfAdmin::theNtfAdmin->subscriptionRemoved(
-      clientId,
-      subscriptionId,
-      mdsCtxt);
+  NtfAdmin::theNtfAdmin->subscriptionRemoved(clientId, subscriptionId, mdsCtxt);
 }
 
-void syncRequest( NCS_UBAID *uba) {
+void syncRequest(NCS_UBAID *uba) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
   NtfAdmin::theNtfAdmin->syncRequest(uba);
 }
@@ -1074,35 +1009,27 @@ void syncGlobals(const struct NtfGlobals *ntfGlobals) {
   NtfAdmin::theNtfAdmin->syncGlobals(*ntfGlobals);
 }
 
-void newReader(unsigned int clientId,
-               SaNtfSearchCriteriaT searchCriteria,
-               ntfsv_filter_ptrs_t *f_rec,
-               MDS_SYNC_SND_CTXT *mdsCtxt) {
+void newReader(unsigned int clientId, SaNtfSearchCriteriaT searchCriteria,
+               ntfsv_filter_ptrs_t *f_rec, MDS_SYNC_SND_CTXT *mdsCtxt) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
   NtfAdmin::theNtfAdmin->newReader(clientId, searchCriteria, f_rec, mdsCtxt);
 }
 
-void readNext(unsigned int clientId,
-              unsigned int readerId,
+void readNext(unsigned int clientId, unsigned int readerId,
               SaNtfSearchDirectionT searchDirection,
               MDS_SYNC_SND_CTXT *mdsCtxt) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  return NtfAdmin::theNtfAdmin->readNext(clientId,
-                                         readerId,
-                                         searchDirection,
+  return NtfAdmin::theNtfAdmin->readNext(clientId, readerId, searchDirection,
                                          mdsCtxt);
 }
 
-void deleteReader(unsigned int clientId,
-                  unsigned int readerId,
+void deleteReader(unsigned int clientId, unsigned int readerId,
                   MDS_SYNC_SND_CTXT *mdsCtxt) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  return NtfAdmin::theNtfAdmin->deleteReader(clientId,
-                                             readerId,
-                                             mdsCtxt);
+  return NtfAdmin::theNtfAdmin->deleteReader(clientId, readerId, mdsCtxt);
 }
 
-void printAdminInfo () {
+void printAdminInfo() {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
   NtfAdmin::theNtfAdmin->printInfo();
 }
@@ -1111,8 +1038,7 @@ void storeMatchingSubscription(SaNtfIdentifierT notificationId,
                                unsigned int clientId,
                                SaNtfSubscriptionIdT subscriptionId) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  NtfAdmin::theNtfAdmin->storeMatchingSubscription(notificationId,
-                                                   clientId,
+  NtfAdmin::theNtfAdmin->storeMatchingSubscription(notificationId, clientId,
                                                    subscriptionId);
 }
 
@@ -1121,17 +1047,21 @@ void checkNotificationList() {
   return NtfAdmin::theNtfAdmin->checkNotificationList();
 }
 
-void discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId) {
+void discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
+                  SaNtfIdentifierT notificationId) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
-  return NtfAdmin::theNtfAdmin->discardedAdd(clientId, subscriptionId, notificationId);
+  return NtfAdmin::theNtfAdmin->discardedAdd(clientId, subscriptionId,
+                                             notificationId);
 }
 
-void discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId) {
+void discardedClear(unsigned int clientId,
+                    SaNtfSubscriptionIdT subscriptionId) {
   osafassert(NtfAdmin::theNtfAdmin != NULL);
   return NtfAdmin::theNtfAdmin->discardedClear(clientId, subscriptionId);
 }
 
-/************************C Wrappers related to CLM Integration **************************/
+/************************C Wrappers related to CLM Integration
+ * **************************/
 void add_member_node(NODE_ID node_id) {
   NtfAdmin::theNtfAdmin->AddMemberNode(node_id);
   return;
@@ -1159,9 +1089,10 @@ bool is_stale_client(unsigned int clientId) {
   return (NtfAdmin::theNtfAdmin->is_stale_client(clientId));
 }
 
-uint32_t send_clm_node_status_change(SaClmClusterChangesT cluster_change, NODE_ID node_id) {
-  return (NtfAdmin::theNtfAdmin->send_cluster_membership_msg_to_clients(cluster_change, node_id));
-
+uint32_t send_clm_node_status_change(SaClmClusterChangesT cluster_change,
+                                     NODE_ID node_id) {
+  return (NtfAdmin::theNtfAdmin->send_cluster_membership_msg_to_clients(
+      cluster_change, node_id));
 }
 
 /**
@@ -1174,21 +1105,20 @@ uint32_t send_clm_node_status_change(SaClmClusterChangesT cluster_change, NODE_I
 bool is_client_clm_member(NODE_ID node_id, SaVersionT *ver) {
   NODE_ID *node = NULL;
 
-  //Before CLM init all clients are clm member.
-  if (is_clm_init() == false)
-    return true;
-  //CLM integration is supported from A.01.02. So old clients A.01.01 are always clm member.
+  // Before CLM init all clients are clm member.
+  if (is_clm_init() == false) return true;
+  // CLM integration is supported from A.01.02. So old clients A.01.01 are
+  // always clm member.
   if ((ver->releaseCode == NTF_RELEASE_CODE_0) &&
       (ver->majorVersion == NTF_MAJOR_VERSION_0) &&
       (ver->minorVersion == NTF_MINOR_VERSION_0))
     return true;
   /*
-    It means CLM initialization is successful and this is atleast a A.01.02 client.
-    So check CLM membership status of client's node.
+    It means CLM initialization is successful and this is atleast a A.01.02
+    client. So check CLM membership status of client's node.
   */
   if ((node = NtfAdmin::theNtfAdmin->FindMemberNode(node_id)) == NULL)
     return false;
   else
     return true;
 }
-

@@ -17,32 +17,29 @@
 
 #ifndef AMF_AMFND_IMM_H_
 #define AMF_AMFND_IMM_H_
-#include<poll.h>
+#include <poll.h>
 
-typedef struct {
-	SYSF_MBX mbx;
-}ir_cb_t;
+typedef struct { SYSF_MBX mbx; } ir_cb_t;
 extern ir_cb_t ir_cb;
 
 class ImmReader {
-	public:
-		static void imm_reader_thread();
-		static void imm_reader_thread_create();
-		static void ir_process_event(AVND_EVT *evt);
-	private:
+ public:
+  static void imm_reader_thread();
+  static void imm_reader_thread_create();
+  static void ir_process_event(AVND_EVT *evt);
 
-		enum {
-			FD_MBX = 0
-		};
+ private:
+  enum { FD_MBX = 0 };
 
-		static struct pollfd fds[FD_MBX + 1];
-		static const nfds_t irfds {FD_MBX + 1};
+  static struct pollfd fds[FD_MBX + 1];
+  static const nfds_t irfds{FD_MBX + 1};
 
-		// disallow copy and assign
-		ImmReader(const ImmReader&);
-		void operator=(const ImmReader&);
+  // disallow copy and assign
+  ImmReader(const ImmReader &);
+  void operator=(const ImmReader &);
 };
 
-extern uint32_t avnd_evt_ir_evh(struct avnd_cb_tag *cb, struct avnd_evt_tag *evt);
+extern uint32_t avnd_evt_ir_evh(struct avnd_cb_tag *cb,
+                                struct avnd_evt_tag *evt);
 
 #endif  // AMF_AMFND_IMM_H_

@@ -18,7 +18,6 @@
 #ifndef LOG_APITEST_LOGUTIL_H_
 #define LOG_APITEST_LOGUTIL_H_
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,10 +33,10 @@ extern struct LogProfile logProfile;
  * Controls the behavior of the wrapper LOG API functions.
  */
 struct LogProfile {
-	/* Number of tries before we give up. */
-	unsigned int nTries;
-	/* Interval in milli-seconds between tries. */
-	unsigned int retryInterval;
+  /* Number of tries before we give up. */
+  unsigned int nTries;
+  /* Interval in milli-seconds between tries. */
+  unsigned int retryInterval;
 };
 
 /* Same as system() but returns WEXITSTATUS if not -1 */
@@ -51,8 +50,9 @@ void cond_check(void);
 SaAisErrorT logInitialize(void);
 SaAisErrorT logFinalize(void);
 SaAisErrorT logStreamOpen(const SaNameT *logStreamName);
-SaAisErrorT logAppStreamOpen(const SaNameT *logStreamName,
-			     const SaLogFileCreateAttributesT_2 *logFileCreateAttributes);
+SaAisErrorT logAppStreamOpen(
+    const SaNameT *logStreamName,
+    const SaLogFileCreateAttributesT_2 *logFileCreateAttributes);
 SaAisErrorT logStreamClose(void);
 SaAisErrorT logWriteAsync(const SaLogRecordT *logRecord);
 

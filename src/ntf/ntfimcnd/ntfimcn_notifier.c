@@ -39,16 +39,15 @@
 #include "ntfimcn_main.h"
 
 /* Release code, major version, minor version */
-SaVersionT ntf_version = { 'A', 0x01, 0x01 };
+SaVersionT ntf_version = {'A', 0x01, 0x01};
 const unsigned int sleep_delay_ms = 500;
-const unsigned int max_waiting_time_ms = 7 * 1000;	/* 7 secs */
-const unsigned int max_init_waiting_time_ms = 60 * 1000;	/* 60 secs */
+const unsigned int max_waiting_time_ms = 7 * 1000;       /* 7 secs */
+const unsigned int max_init_waiting_time_ms = 60 * 1000; /* 60 secs */
 
 /*
  * Global variables
  */
 extern ntfimcn_cb_t ntfimcn_cb; /* See ntfimcn_main.c */
-
 
 /**
  * Initialize notification handling
@@ -68,9 +67,9 @@ int ntfimcn_ntf_init(ntfimcn_cb_t *cb)
 		int msecs_waited = 0;
 		cb->ntf_handle = 0;
 		rc = saNtfInitialize(&cb->ntf_handle, NULL, &ntf_version);
-		while ((rc == SA_AIS_ERR_TRY_AGAIN ||
-			rc == SA_AIS_ERR_TIMEOUT) &&
-		       msecs_waited < max_init_waiting_time_ms) {
+		while (
+		    (rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_TIMEOUT) &&
+		    msecs_waited < max_init_waiting_time_ms) {
 			if (rc == SA_AIS_ERR_TIMEOUT) {
 				LOG_WA("%s saNtfInitialize( returned %s",
 				       __FUNCTION__, saf_error(rc));
@@ -79,9 +78,9 @@ int ntfimcn_ntf_init(ntfimcn_cb_t *cb)
 			msecs_waited += sleep_delay_ms;
 			if (rc == SA_AIS_ERR_TIMEOUT && cb->ntf_handle != 0) {
 				while (saNtfFinalize(cb->ntf_handle) ==
-				       SA_AIS_ERR_TRY_AGAIN &&
+					   SA_AIS_ERR_TRY_AGAIN &&
 				       msecs_waited <
-				       max_init_waiting_time_ms) {
+					   max_init_waiting_time_ms) {
 					usleep(sleep_delay_ms * 1000);
 					msecs_waited += sleep_delay_ms;
 				}
@@ -122,15 +121,16 @@ static int send_notification(SaNtfNotificationHandleT notificationHandle)
 	 * Send the notification
 	 */
 	msecs_waited = 0;
-	rc = saNtfNotificationSend( notificationHandle);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms)) {
+	rc = saNtfNotificationSend(notificationHandle);
+	while ((rc == SA_AIS_ERR_TRY_AGAIN) &&
+	       (msecs_waited < max_waiting_time_ms)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
-		rc = saNtfNotificationSend( notificationHandle);
+		rc = saNtfNotificationSend(notificationHandle);
 	}
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s: saNtfNotificationSend failed %s",__FUNCTION__,
-					saf_error(rc));
+		LOG_ER("%s: saNtfNotificationSend failed %s", __FUNCTION__,
+		       saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
@@ -139,15 +139,16 @@ static int send_notification(SaNtfNotificationHandleT notificationHandle)
 	 * Free the allocated notification
 	 */
 	msecs_waited = 0;
-	rc = saNtfNotificationFree( notificationHandle);
-	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms)) {
+	rc = saNtfNotificationFree(notificationHandle);
+	while ((rc == SA_AIS_ERR_TRY_AGAIN) &&
+	       (msecs_waited < max_waiting_time_ms)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
-		rc = saNtfNotificationFree( notificationHandle);
+		rc = saNtfNotificationFree(notificationHandle);
 	}
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s: saNtfNotificationFree failed %s",__FUNCTION__,
-					saf_error(rc));
+		LOG_ER("%s: saNtfNotificationFree failed %s", __FUNCTION__,
+		       saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
@@ -170,11 +171,9 @@ done:
  *
  * @return (-1) on error
  */
- static int fill_additional_info(
-		SaNtfNotificationHandleT notificationHandle,
-		SaNtfAdditionalInfoT *additionalInfo,
-		SaStringT info_value,
-		SaUint64T add_index)
+static int fill_additional_info(SaNtfNotificationHandleT notificationHandle,
+				SaNtfAdditionalInfoT *additionalInfo,
+				SaStringT info_value, SaUint64T add_index)
 {
 	int internal_rc = 0;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -187,14 +186,12 @@ done:
 	name_len = strlen(info_value);
 	if (name_len > kOsafMaxDnLength)
 		name_len = kOsafMaxDnLength;
-	rc = saNtfPtrValAllocate(
-			notificationHandle,
-			name_len + 1,
-			(void **)&name_ptr,
-			&additionalInfo[add_index].infoValue);
+	rc = saNtfPtrValAllocate(notificationHandle, name_len + 1,
+				 (void **)&name_ptr,
+				 &additionalInfo[add_index].infoValue);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s: saNtfPtrValAllocate failed %s",__FUNCTION__,
-				saf_error(rc));
+		LOG_ER("%s: saNtfPtrValAllocate failed %s", __FUNCTION__,
+		       saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
@@ -218,13 +215,12 @@ done:
  * @param value_in[in]
  * @param value_in_size[in]
  * @param *value_out[out]
- * 
+ *
  * @return (-1) on error
  */
-static int fill_value_array( SaNtfNotificationHandleT notificationHandle,
-		SaUint8T *value_in,
-		SaSizeT value_in_size,
-		SaNtfValueT *value_out)
+static int fill_value_array(SaNtfNotificationHandleT notificationHandle,
+			    SaUint8T *value_in, SaSizeT value_in_size,
+			    SaNtfValueT *value_out)
 {
 	int internal_rc = 0;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -232,14 +228,11 @@ static int fill_value_array( SaNtfNotificationHandleT notificationHandle,
 
 	TRACE_ENTER();
 
-	rc = saNtfPtrValAllocate(
-			notificationHandle,
-			value_in_size,
-			(void **)&dest_ptr,
-			value_out);
+	rc = saNtfPtrValAllocate(notificationHandle, value_in_size,
+				 (void **)&dest_ptr, value_out);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s: saNtfPtrValAllocate failed %s",__FUNCTION__,
-				saf_error(rc));
+		LOG_ER("%s: saNtfPtrValAllocate failed %s", __FUNCTION__,
+		       saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
@@ -258,11 +251,9 @@ done:
  * Parameters:
  *
  * attributeValue_in
- *		A pointer to an IMM value or in case of a multi-value a pointer to an
- *		array of values.
- * attributeValue_out
- *		A pointer to the member in the allocted notification struct that shall
- *		be filled in with the value
+ *		A pointer to an IMM value or in case of a multi-value a pointer to
+ *an array of values. attributeValue_out A pointer to the member in the allocted
+ *notification struct that shall be filled in with the value
  *
  * Multi-value:
  * Type SA_NTF_VALUE_ARRAY must be used. The parameter attributeSize must
@@ -280,15 +271,14 @@ done:
  *
  * @return (-1) on error
  */
-static int fill_attribute_value(
-		SaNtfNotificationHandleT notificationHandle,
-		SaImmValueTypeT attrValueType_in,
-		SaImmAttrValueT *attrValues_in,
-		SaUint32T attrValues_index_in,
-		SaNtfElementIdT attr_id_in,
-		SaNtfElementIdT *attributeId_out,
-		SaNtfValueTypeT *attributeType_out,
-		SaNtfValueT *value_out)
+static int fill_attribute_value(SaNtfNotificationHandleT notificationHandle,
+				SaImmValueTypeT attrValueType_in,
+				SaImmAttrValueT *attrValues_in,
+				SaUint32T attrValues_index_in,
+				SaNtfElementIdT attr_id_in,
+				SaNtfElementIdT *attributeId_out,
+				SaNtfValueTypeT *attributeType_out,
+				SaNtfValueT *value_out)
 {
 	int internal_rc = 0;
 	SaSizeT str_len = 0;
@@ -301,45 +291,51 @@ static int fill_attribute_value(
 	 * For possible types see SaImmValueTypeT */
 	switch (attrValueType_in) {
 	case SA_IMM_ATTR_SAINT32T:
-		value_out->int32Val = *((SaInt32T *)attrValues_in[attrValues_index_in]);
+		value_out->int32Val =
+		    *((SaInt32T *)attrValues_in[attrValues_index_in]);
 		*attributeType_out = SA_NTF_VALUE_INT32;
 		*attributeId_out = attr_id_in;
 		break;
 	case SA_IMM_ATTR_SAUINT32T:
-		value_out->uint32Val = *((SaUint32T *)attrValues_in[attrValues_index_in]);
+		value_out->uint32Val =
+		    *((SaUint32T *)attrValues_in[attrValues_index_in]);
 		*attributeType_out = SA_NTF_VALUE_UINT32;
 		*attributeId_out = attr_id_in;
 		break;
-	case SA_IMM_ATTR_SATIMET:	/* SaTimeT (SaInt64T) */
+	case SA_IMM_ATTR_SATIMET: /* SaTimeT (SaInt64T) */
 	case SA_IMM_ATTR_SAINT64T:
-		value_out->int64Val = *((SaInt64T *)attrValues_in[attrValues_index_in]);
+		value_out->int64Val =
+		    *((SaInt64T *)attrValues_in[attrValues_index_in]);
 		*attributeType_out = SA_NTF_VALUE_INT64;
 		*attributeId_out = attr_id_in;
 		break;
 	case SA_IMM_ATTR_SAUINT64T:
-		value_out->uint64Val = *((SaUint64T *)attrValues_in[attrValues_index_in]);
+		value_out->uint64Val =
+		    *((SaUint64T *)attrValues_in[attrValues_index_in]);
 		*attributeType_out = SA_NTF_VALUE_UINT64;
 		*attributeId_out = attr_id_in;
 		break;
 	case SA_IMM_ATTR_SAFLOATT:
-		value_out->floatVal = *((SaFloatT *)attrValues_in[attrValues_index_in]);
+		value_out->floatVal =
+		    *((SaFloatT *)attrValues_in[attrValues_index_in]);
 		*attributeType_out = SA_NTF_VALUE_FLOAT;
 		*attributeId_out = attr_id_in;
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
-		value_out->doubleVal = *((SaDoubleT *)attrValues_in[attrValues_index_in]);
+		value_out->doubleVal =
+		    *((SaDoubleT *)attrValues_in[attrValues_index_in]);
 		*attributeType_out = SA_NTF_VALUE_DOUBLE;
 		*attributeId_out = attr_id_in;
 		break;
 
-	case SA_IMM_ATTR_SANAMET:	/* SaNameT */
+	case SA_IMM_ATTR_SANAMET: /* SaNameT */
 		name_value = *(SaNameT *)attrValues_in[attrValues_index_in];
-		internal_rc = fill_value_array(notificationHandle,
-				(SaUint8T*)osaf_extended_name_borrow(&name_value),
-				strlen(osaf_extended_name_borrow(&name_value)),
-				value_out);
+		internal_rc = fill_value_array(
+		    notificationHandle,
+		    (SaUint8T *)osaf_extended_name_borrow(&name_value),
+		    strlen(osaf_extended_name_borrow(&name_value)), value_out);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_value_array failed",__FUNCTION__);
+			LOG_ER("%s: fill_value_array failed", __FUNCTION__);
 			goto done;
 		}
 		*attributeType_out = SA_NTF_VALUE_LDAP_NAME;
@@ -347,28 +343,29 @@ static int fill_attribute_value(
 		break;
 
 	case SA_IMM_ATTR_SASTRINGT:
-		str_len = strlen(*(SaStringT *)attrValues_in[attrValues_index_in])+1;
+		str_len =
+		    strlen(*(SaStringT *)attrValues_in[attrValues_index_in]) +
+		    1;
 
-		internal_rc = fill_value_array(notificationHandle,
-				*(SaUint8T **)attrValues_in[attrValues_index_in],
-				str_len,
-				value_out);
+		internal_rc = fill_value_array(
+		    notificationHandle,
+		    *(SaUint8T **)attrValues_in[attrValues_index_in], str_len,
+		    value_out);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_value_array failed",__FUNCTION__);
+			LOG_ER("%s: fill_value_array failed", __FUNCTION__);
 			goto done;
 		}
 		*attributeType_out = SA_NTF_VALUE_STRING;
 		*attributeId_out = attr_id_in;
 		break;
 
-	case SA_IMM_ATTR_SAANYT:	/* SaAnyT, SA_NTF_VALUE_BINARY */
+	case SA_IMM_ATTR_SAANYT: /* SaAnyT, SA_NTF_VALUE_BINARY */
 		any_value = *(SaAnyT *)attrValues_in[attrValues_index_in];
 		internal_rc = fill_value_array(notificationHandle,
-				(SaUint8T*)any_value.bufferAddr,
-				any_value.bufferSize,
-				value_out);
+					       (SaUint8T *)any_value.bufferAddr,
+					       any_value.bufferSize, value_out);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_value_array failed",__FUNCTION__);
+			LOG_ER("%s: fill_value_array failed", __FUNCTION__);
 			goto done;
 		}
 		*attributeType_out = SA_NTF_VALUE_BINARY;
@@ -376,7 +373,8 @@ static int fill_attribute_value(
 		break;
 
 	default:
-		LOG_ER("%s Invalid attributeType %d",__FUNCTION__,attrValueType_in);
+		LOG_ER("%s Invalid attributeType %d", __FUNCTION__,
+		       attrValueType_in);
 		internal_rc = (-1);
 		break;
 	}
@@ -397,33 +395,32 @@ done:
  * @param *dist_name[in]
  */
 static void fill_notification_header_common_part(
-		SaImmOiCcbIdT CcbId,
-		SaNtfNotificationHeaderT *notificationHeader,
-		SaNtfEventTypeT NtfEventType,
-		SaUint16T numAdditionalInfo,
-		SaNameT *dist_name)
+    SaImmOiCcbIdT CcbId, SaNtfNotificationHeaderT *notificationHeader,
+    SaNtfEventTypeT NtfEventType, SaUint16T numAdditionalInfo,
+    SaNameT *dist_name)
 {
 	SaNameT *sa_name_ptr;
 
 	TRACE_ENTER();
-	
+
 	/* Event type e.g. SA_NTF_OBJECT_CREATION */
 	*notificationHeader->eventType = NtfEventType;
 
 	/* Notification Object. DN of handled object */
 	sa_name_ptr = notificationHeader->notificationObject;
-	ntfs_sanamet_alloc(osaf_extended_name_borrow(dist_name)
-						, osaf_extended_name_length(dist_name) + 1
-						, sa_name_ptr);
+	ntfs_sanamet_alloc(osaf_extended_name_borrow(dist_name),
+			   osaf_extended_name_length(dist_name) + 1,
+			   sa_name_ptr);
 	/* Notifying Object. A constant string */
 	sa_name_ptr = notificationHeader->notifyingObject;
-	ntfs_sanamet_alloc(NTFIMCN_NOTIFYING_OBJECT, sizeof(NTFIMCN_NOTIFYING_OBJECT)
-						, sa_name_ptr);
+	ntfs_sanamet_alloc(NTFIMCN_NOTIFYING_OBJECT,
+			   sizeof(NTFIMCN_NOTIFYING_OBJECT), sa_name_ptr);
 
 	/* Notification Class Identifier. Constant identifier
 	 * except for minor Id that's dependent on event type
 	 */
-	notificationHeader->notificationClassId->vendorId = SA_NTF_VENDOR_ID_OSAF;
+	notificationHeader->notificationClassId->vendorId =
+	    SA_NTF_VENDOR_ID_OSAF;
 	notificationHeader->notificationClassId->majorId = SA_SVC_IMMS;
 	notificationHeader->notificationClassId->minorId = 0;
 
@@ -433,8 +430,8 @@ static void fill_notification_header_common_part(
 	/* Correlated Notifications. None */
 	notificationHeader->numCorrelatedNotifications = 0;
 
-	/* Number of additional info fields and . Dependent on number of attributes in
-	 * object that has a value.
+	/* Number of additional info fields and . Dependent on number of
+	 * attributes in object that has a value.
 	 */
 	notificationHeader->numAdditionalInfo = numAdditionalInfo;
 
@@ -459,17 +456,15 @@ static void fill_notification_header_common_part(
  * @param SaNtfObjectCreateNotification[out]
  * @param rdn_attr_name[in]
  * @param ccbLast[in]
- * 
+ *
  * @return (-1) on error
  */
 static int fill_attribute_info_create(
-			SaImmOiCcbIdT CcbId,
-			const SaImmAttrValuesT_2 **imm_attribute_values,
-			SaNtfObjectCreateDeleteNotificationT *SaNtfObjectCreateNotification,
-			SaStringT rdn_attr_name,
-			SaBoolT ccbLast)
+    SaImmOiCcbIdT CcbId, const SaImmAttrValuesT_2 **imm_attribute_values,
+    SaNtfObjectCreateDeleteNotificationT *SaNtfObjectCreateNotification,
+    SaStringT rdn_attr_name, SaBoolT ccbLast)
 {
-	int internal_rc=0;
+	int internal_rc = 0;
 	SaUint64T imm_index = 0;
 	SaUint64T add_index = 4;
 	SaUint64T var_index = 4;
@@ -489,100 +484,113 @@ static int fill_attribute_info_create(
 		add_index = 2;
 		var_index = 2;
 	}
-	
+
 	while (imm_attribute != NULL) {
 
 		if (strcmp(imm_attribute->attrName, rdn_attr_name) == 0) {
-			/* The RDN attribute shall not be included in the notification */
-		} else if ((strcmp(imm_attribute->attrName, NTFIMCN_ADMIN_OWNER_NAME) == 0) &&
-			(CcbId != 0)) {
+			/* The RDN attribute shall not be included in the
+			 * notification */
+		} else if ((strcmp(imm_attribute->attrName,
+				   NTFIMCN_ADMIN_OWNER_NAME) == 0) &&
+			   (CcbId != 0)) {
 			/* Id 0: SaImmAttrAdminOwnerName
 			 *       If CCB Id <> 0
 			 */
 			/* Fill in Id 0 */
 			internal_rc = fill_additional_info(
-					SaNtfObjectCreateNotification->notificationHandle,
-					SaNtfObjectCreateNotification->notificationHeader.additionalInfo,
-					imm_attribute->attrName,
-					0);
+			    SaNtfObjectCreateNotification->notificationHandle,
+			    SaNtfObjectCreateNotification->notificationHeader
+				.additionalInfo,
+			    imm_attribute->attrName, 0);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+				LOG_ER("%s: fill_additional_info failed",
+				       __FUNCTION__);
 				goto done;
 			}
 
 			/* Fill Corresponding Attribute Value */
-			ntf_attributes = &SaNtfObjectCreateNotification->objectAttributes[0];
+			ntf_attributes =
+			    &SaNtfObjectCreateNotification->objectAttributes[0];
 			internal_rc = fill_attribute_value(
-					SaNtfObjectCreateNotification->notificationHandle,
-					imm_attribute->attrValueType,
-					imm_attribute->attrValues,
-					0, /* Index of attrValues in */
-					0, /* Attribute Id */
-					&ntf_attributes->attributeId,
-					&ntf_attributes->attributeType,
-					&ntf_attributes->attributeValue);
+			    SaNtfObjectCreateNotification->notificationHandle,
+			    imm_attribute->attrValueType,
+			    imm_attribute->attrValues,
+			    0, /* Index of attrValues in */
+			    0, /* Attribute Id */
+			    &ntf_attributes->attributeId,
+			    &ntf_attributes->attributeType,
+			    &ntf_attributes->attributeValue);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+				LOG_ER("%s: fill_attribute_value failed",
+				       __FUNCTION__);
 				goto done;
 			}
-		} else if ((strcmp(imm_attribute->attrName, NTFIMCN_IMPLEMENTER_NAME) == 0) &&
-				(CcbId == 0)) {
+		} else if ((strcmp(imm_attribute->attrName,
+				   NTFIMCN_IMPLEMENTER_NAME) == 0) &&
+			   (CcbId == 0)) {
 			/* Id 0: SaImmAttrImplementerName
 			 *       if CCB Id = 0
 			 */
 			/* Fill in Id 0 */
 			internal_rc = fill_additional_info(
-					SaNtfObjectCreateNotification->notificationHandle,
-					SaNtfObjectCreateNotification->notificationHeader.additionalInfo,
-					imm_attribute->attrName,
-					0);
+			    SaNtfObjectCreateNotification->notificationHandle,
+			    SaNtfObjectCreateNotification->notificationHeader
+				.additionalInfo,
+			    imm_attribute->attrName, 0);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+				LOG_ER("%s: fill_additional_info failed",
+				       __FUNCTION__);
 				goto done;
 			}
 
 			/* Fill Corresponding Attribute Value */
-			ntf_attributes = &SaNtfObjectCreateNotification->objectAttributes[0];
+			ntf_attributes =
+			    &SaNtfObjectCreateNotification->objectAttributes[0];
 			internal_rc = fill_attribute_value(
-					SaNtfObjectCreateNotification->notificationHandle,
-					imm_attribute->attrValueType,
-					imm_attribute->attrValues,
-					0, /* Index of attrValues in */
-					0, /* Attribute Id */
-					&ntf_attributes->attributeId,
-					&ntf_attributes->attributeType,
-					&ntf_attributes->attributeValue);
+			    SaNtfObjectCreateNotification->notificationHandle,
+			    imm_attribute->attrValueType,
+			    imm_attribute->attrValues,
+			    0, /* Index of attrValues in */
+			    0, /* Attribute Id */
+			    &ntf_attributes->attributeId,
+			    &ntf_attributes->attributeType,
+			    &ntf_attributes->attributeValue);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+				LOG_ER("%s: fill_attribute_value failed",
+				       __FUNCTION__);
 				goto done;
 			}
-		} else if (strcmp(imm_attribute->attrName, NTFIMCN_CLASS_NAME) == 0) {
+		} else if (strcmp(imm_attribute->attrName,
+				  NTFIMCN_CLASS_NAME) == 0) {
 			/* Id 1: SaImmAttrClassName
 			 */
 			/* Fill in Id 1 */
 			internal_rc = fill_additional_info(
-					SaNtfObjectCreateNotification->notificationHandle,
-					SaNtfObjectCreateNotification->notificationHeader.additionalInfo,
-					imm_attribute->attrName,
-					1);
+			    SaNtfObjectCreateNotification->notificationHandle,
+			    SaNtfObjectCreateNotification->notificationHeader
+				.additionalInfo,
+			    imm_attribute->attrName, 1);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+				LOG_ER("%s: fill_additional_info failed",
+				       __FUNCTION__);
 				goto done;
 			}
 
 			/* Fill Corresponding Attribute Value */
-			ntf_attributes = &SaNtfObjectCreateNotification->objectAttributes[1];
+			ntf_attributes =
+			    &SaNtfObjectCreateNotification->objectAttributes[1];
 			internal_rc = fill_attribute_value(
-					SaNtfObjectCreateNotification->notificationHandle,
-					imm_attribute->attrValueType,
-					imm_attribute->attrValues,
-					0, /* Index of attrValues in */
-					1, /* Attribute Id */
-					&ntf_attributes->attributeId,
-					&ntf_attributes->attributeType,
-					&ntf_attributes->attributeValue);
+			    SaNtfObjectCreateNotification->notificationHandle,
+			    imm_attribute->attrValueType,
+			    imm_attribute->attrValues,
+			    0, /* Index of attrValues in */
+			    1, /* Attribute Id */
+			    &ntf_attributes->attributeId,
+			    &ntf_attributes->attributeType,
+			    &ntf_attributes->attributeValue);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+				LOG_ER("%s: fill_attribute_value failed",
+				       __FUNCTION__);
 				goto done;
 			}
 		} else {
@@ -590,12 +598,13 @@ static int fill_attribute_info_create(
 
 			/* Fill Additional Info */
 			internal_rc = fill_additional_info(
-					SaNtfObjectCreateNotification->notificationHandle,
-					SaNtfObjectCreateNotification->notificationHeader.additionalInfo,
-					imm_attribute->attrName,
-					add_index);
+			    SaNtfObjectCreateNotification->notificationHandle,
+			    SaNtfObjectCreateNotification->notificationHeader
+				.additionalInfo,
+			    imm_attribute->attrName, add_index);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+				LOG_ER("%s: fill_additional_info failed",
+				       __FUNCTION__);
 				goto done;
 			}
 
@@ -603,20 +612,26 @@ static int fill_attribute_info_create(
 			 * Can be a multi value or no value.
 			 */
 			SaUint32T vindex;
-			for (vindex=0; vindex<imm_attribute->attrValuesNumber; vindex++) {
+			for (vindex = 0;
+			     vindex < imm_attribute->attrValuesNumber;
+			     vindex++) {
 				ntf_attributes =
-					&SaNtfObjectCreateNotification->objectAttributes[var_index+vindex];
+				    &SaNtfObjectCreateNotification
+					 ->objectAttributes[var_index + vindex];
 				internal_rc = fill_attribute_value(
-						SaNtfObjectCreateNotification->notificationHandle,
-						imm_attribute->attrValueType,
-						imm_attribute->attrValues,
-						vindex, /* Index of attrValues in */
-						add_index, /* Attribute Id */
-						&ntf_attributes->attributeId,
-						&ntf_attributes->attributeType,
-						&ntf_attributes->attributeValue);
+				    SaNtfObjectCreateNotification
+					->notificationHandle,
+				    imm_attribute->attrValueType,
+				    imm_attribute->attrValues,
+				    vindex,    /* Index of attrValues in */
+				    add_index, /* Attribute Id */
+				    &ntf_attributes->attributeId,
+				    &ntf_attributes->attributeType,
+				    &ntf_attributes->attributeValue);
 				if (internal_rc != 0) {
-					LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+					LOG_ER(
+					    "%s: fill_attribute_value failed",
+					    __FUNCTION__);
 					goto done;
 				}
 			}
@@ -638,28 +653,28 @@ static int fill_attribute_info_create(
 		my_imm_attribute.attrValues[0] = (void *)&CcbId;
 
 		internal_rc = fill_additional_info(
-				SaNtfObjectCreateNotification->notificationHandle,
-				SaNtfObjectCreateNotification->notificationHeader.additionalInfo,
-				NTFIMCN_CCB_ID,
-				2);
+		    SaNtfObjectCreateNotification->notificationHandle,
+		    SaNtfObjectCreateNotification->notificationHeader
+			.additionalInfo,
+		    NTFIMCN_CCB_ID, 2);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+			LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 			goto done;
 		}
 
 		/* Fill Corresponding Attribute Value */
-				ntf_attributes = &SaNtfObjectCreateNotification->objectAttributes[2];
-				internal_rc = fill_attribute_value(
-						SaNtfObjectCreateNotification->notificationHandle,
-						my_imm_attribute.attrValueType,
-						my_imm_attribute.attrValues,
-						0, /* Index of attrValues in */
-						2, /* Attribute Id */
-						&ntf_attributes->attributeId,
-						&ntf_attributes->attributeType,
-						&ntf_attributes->attributeValue);
+		ntf_attributes =
+		    &SaNtfObjectCreateNotification->objectAttributes[2];
+		internal_rc = fill_attribute_value(
+		    SaNtfObjectCreateNotification->notificationHandle,
+		    my_imm_attribute.attrValueType, my_imm_attribute.attrValues,
+		    0, /* Index of attrValues in */
+		    2, /* Attribute Id */
+		    &ntf_attributes->attributeId,
+		    &ntf_attributes->attributeType,
+		    &ntf_attributes->attributeValue);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+			LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 			goto done;
 		}
 	}
@@ -674,28 +689,28 @@ static int fill_attribute_info_create(
 		my_imm_attribute.attrValues[0] = (void *)&ccbLast;
 
 		internal_rc = fill_additional_info(
-				SaNtfObjectCreateNotification->notificationHandle,
-				SaNtfObjectCreateNotification->notificationHeader.additionalInfo,
-				NTFIMCN_CCB_LAST,
-				3);
+		    SaNtfObjectCreateNotification->notificationHandle,
+		    SaNtfObjectCreateNotification->notificationHeader
+			.additionalInfo,
+		    NTFIMCN_CCB_LAST, 3);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+			LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 			goto done;
 		}
 
 		/* Fill Corresponding Attribute Value */
-				ntf_attributes = &SaNtfObjectCreateNotification->objectAttributes[3];
-				internal_rc = fill_attribute_value(
-						SaNtfObjectCreateNotification->notificationHandle,
-						my_imm_attribute.attrValueType,
-						my_imm_attribute.attrValues,
-						0, /* Index of attrValues in */
-						3, /* Attribute Id */
-						&ntf_attributes->attributeId,
-						&ntf_attributes->attributeType,
-						&ntf_attributes->attributeValue);
+		ntf_attributes =
+		    &SaNtfObjectCreateNotification->objectAttributes[3];
+		internal_rc = fill_attribute_value(
+		    SaNtfObjectCreateNotification->notificationHandle,
+		    my_imm_attribute.attrValueType, my_imm_attribute.attrValues,
+		    0, /* Index of attrValues in */
+		    3, /* Attribute Id */
+		    &ntf_attributes->attributeId,
+		    &ntf_attributes->attributeType,
+		    &ntf_attributes->attributeValue);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+			LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 			goto done;
 		}
 	}
@@ -727,11 +742,10 @@ done:
  * @return (-1) on error
  */
 static int fill_attribute_info_modify(
-			SaImmOiCcbIdT CcbId,
-			SaConstStringT invoke_name,
-			const SaImmAttrModificationT_2 **imm_attr_mods_in,
-			SaNtfAttributeChangeNotificationT *SaNtfAttributeChangeNotification,
-			SaBoolT ccbLast)
+    SaImmOiCcbIdT CcbId, SaConstStringT invoke_name,
+    const SaImmAttrModificationT_2 **imm_attr_mods_in,
+    SaNtfAttributeChangeNotificationT *SaNtfAttributeChangeNotification,
+    SaBoolT ccbLast)
 {
 	int internal_rc = 0;
 	SaUint64T imm_index = 0;
@@ -739,8 +753,8 @@ static int fill_attribute_info_modify(
 	SaUint64T var_index = 4;
 	const SaImmAttrModificationT_2 *imm_attr_mods;
 	SaImmAttrModificationT_2 my_imm_attr_mod;
-	SaNtfAttributeChangeT *changedAttributes=NULL;
-	SaImmAttrValueT SaImmAttrValue=NULL;
+	SaNtfAttributeChangeT *changedAttributes = NULL;
+	SaImmAttrValueT SaImmAttrValue = NULL;
 	SaConstStringT string_v[1];
 
 	TRACE_ENTER();
@@ -756,51 +770,63 @@ static int fill_attribute_info_modify(
 
 	while (imm_attr_mods != NULL) {
 
-		if (strcmp(imm_attr_mods->modAttr.attrName, NTFIMCN_CLASS_NAME) == 0) {
+		if (strcmp(imm_attr_mods->modAttr.attrName,
+			   NTFIMCN_CLASS_NAME) == 0) {
 			/* Id 1: SaImmAttrClassName
 			 */
 			/* Fill in Id 1 */
 			internal_rc = fill_additional_info(
-					SaNtfAttributeChangeNotification->notificationHandle,
-					SaNtfAttributeChangeNotification->notificationHeader.additionalInfo,
-					imm_attr_mods->modAttr.attrName,
-					1);
+			    SaNtfAttributeChangeNotification
+				->notificationHandle,
+			    SaNtfAttributeChangeNotification->notificationHeader
+				.additionalInfo,
+			    imm_attr_mods->modAttr.attrName, 1);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+				LOG_ER("%s: fill_additional_info failed",
+				       __FUNCTION__);
 				goto done;
 			}
 
 			/* Fill Corresponding Attribute Value */
-			changedAttributes = &SaNtfAttributeChangeNotification->changedAttributes[1];
+			changedAttributes = &SaNtfAttributeChangeNotification
+						 ->changedAttributes[1];
 			changedAttributes->oldAttributePresent = SA_FALSE;
 			internal_rc = fill_attribute_value(
-					SaNtfAttributeChangeNotification->notificationHandle,
-					imm_attr_mods->modAttr.attrValueType,
-					imm_attr_mods->modAttr.attrValues,
-					0, /* Index of attrValues in */
-					1, /* Attribute Id */
-					&changedAttributes->attributeId,
-					&changedAttributes->attributeType,
-					&changedAttributes->newAttributeValue);
+			    SaNtfAttributeChangeNotification
+				->notificationHandle,
+			    imm_attr_mods->modAttr.attrValueType,
+			    imm_attr_mods->modAttr.attrValues,
+			    0, /* Index of attrValues in */
+			    1, /* Attribute Id */
+			    &changedAttributes->attributeId,
+			    &changedAttributes->attributeType,
+			    &changedAttributes->newAttributeValue);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+				LOG_ER("%s: fill_attribute_value failed",
+				       __FUNCTION__);
 				goto done;
 			}
 
-		} else if (strcmp(imm_attr_mods->modAttr.attrName, NTFIMCN_IMPLEMENTER_NAME) == 0) {
-			/* Do not handle here since it is handled separately. See below*/
-		} else if (strcmp(imm_attr_mods->modAttr.attrName, NTFIMCN_ADMIN_OWNER_NAME) == 0) {
-			/* Do not handle here since it is handled separately. See below*/
+		} else if (strcmp(imm_attr_mods->modAttr.attrName,
+				  NTFIMCN_IMPLEMENTER_NAME) == 0) {
+			/* Do not handle here since it is handled separately.
+			 * See below*/
+		} else if (strcmp(imm_attr_mods->modAttr.attrName,
+				  NTFIMCN_ADMIN_OWNER_NAME) == 0) {
+			/* Do not handle here since it is handled separately.
+			 * See below*/
 		} else {
 			/* Other attributes */
 			/* Fill Additional Info */
 			internal_rc = fill_additional_info(
-					SaNtfAttributeChangeNotification->notificationHandle,
-					SaNtfAttributeChangeNotification->notificationHeader.additionalInfo,
-					imm_attr_mods->modAttr.attrName,
-					add_index);
+			    SaNtfAttributeChangeNotification
+				->notificationHandle,
+			    SaNtfAttributeChangeNotification->notificationHeader
+				.additionalInfo,
+			    imm_attr_mods->modAttr.attrName, add_index);
 			if (internal_rc != 0) {
-				LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+				LOG_ER("%s: fill_additional_info failed",
+				       __FUNCTION__);
 				goto done;
 			}
 
@@ -808,21 +834,29 @@ static int fill_attribute_info_modify(
 			 * Can be a multi value or no value.
 			 */
 			SaUint32T vindex = 0;
-			for (vindex=0; vindex<imm_attr_mods->modAttr.attrValuesNumber; vindex++) {
+			for (vindex = 0;
+			     vindex < imm_attr_mods->modAttr.attrValuesNumber;
+			     vindex++) {
 				changedAttributes =
-					&SaNtfAttributeChangeNotification->changedAttributes[var_index+vindex];
-				changedAttributes->oldAttributePresent = SA_FALSE;
+				    &SaNtfAttributeChangeNotification
+					 ->changedAttributes[var_index +
+							     vindex];
+				changedAttributes->oldAttributePresent =
+				    SA_FALSE;
 				internal_rc = fill_attribute_value(
-						SaNtfAttributeChangeNotification->notificationHandle,
-						imm_attr_mods->modAttr.attrValueType,
-						imm_attr_mods->modAttr.attrValues,
-						vindex, /* Index of attrValues in */
-						add_index, /* Attribute Id */
-						&changedAttributes->attributeId,
-						&changedAttributes->attributeType,
-						&changedAttributes->newAttributeValue);
+				    SaNtfAttributeChangeNotification
+					->notificationHandle,
+				    imm_attr_mods->modAttr.attrValueType,
+				    imm_attr_mods->modAttr.attrValues,
+				    vindex,    /* Index of attrValues in */
+				    add_index, /* Attribute Id */
+				    &changedAttributes->attributeId,
+				    &changedAttributes->attributeType,
+				    &changedAttributes->newAttributeValue);
 				if (internal_rc != 0) {
-					LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+					LOG_ER(
+					    "%s: fill_attribute_value failed",
+					    __FUNCTION__);
 					goto done;
 				}
 			}
@@ -835,8 +869,8 @@ static int fill_attribute_info_modify(
 	}
 
 	/* Id 0: AdminOwnerName or ImplementerName
-	 *       Must be filled in for all notifications but does not exist as an
-	 *       attribute if more than one modify in the same ccb. Therefore the
+	 *       Must be filled in for all notifications but does not exist as
+	 * an attribute if more than one modify in the same ccb. Therefore the
 	 *       name is saved using the userData pointer in the ccb header.
 	 */
 
@@ -853,29 +887,27 @@ static int fill_attribute_info_modify(
 	}
 
 	internal_rc = fill_additional_info(
-			SaNtfAttributeChangeNotification->notificationHandle,
-			SaNtfAttributeChangeNotification->notificationHeader.additionalInfo,
-			tmp_str,
-			0);
+	    SaNtfAttributeChangeNotification->notificationHandle,
+	    SaNtfAttributeChangeNotification->notificationHeader.additionalInfo,
+	    tmp_str, 0);
 	if (internal_rc != 0) {
-		LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+		LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 		goto done;
 	}
 
 	/* Fill Corresponding Attribute Value */
-	changedAttributes = &SaNtfAttributeChangeNotification->changedAttributes[0];
+	changedAttributes =
+	    &SaNtfAttributeChangeNotification->changedAttributes[0];
 	changedAttributes->oldAttributePresent = SA_FALSE;
 	internal_rc = fill_attribute_value(
-			SaNtfAttributeChangeNotification->notificationHandle,
-			my_imm_attr_mod.modAttr.attrValueType,
-			my_imm_attr_mod.modAttr.attrValues,
-			0, /* Index of attrValues in */
-			0, /* Attribute Id */
-			&changedAttributes->attributeId,
-			&changedAttributes->attributeType,
-			&changedAttributes->newAttributeValue);
+	    SaNtfAttributeChangeNotification->notificationHandle,
+	    my_imm_attr_mod.modAttr.attrValueType,
+	    my_imm_attr_mod.modAttr.attrValues, 0, /* Index of attrValues in */
+	    0,					   /* Attribute Id */
+	    &changedAttributes->attributeId, &changedAttributes->attributeType,
+	    &changedAttributes->newAttributeValue);
 	if (internal_rc != 0) {
-		LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+		LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 		goto done;
 	}
 
@@ -889,29 +921,30 @@ static int fill_attribute_info_modify(
 		my_imm_attr_mod.modAttr.attrValues[0] = (void *)&CcbId;
 
 		internal_rc = fill_additional_info(
-				SaNtfAttributeChangeNotification->notificationHandle,
-				SaNtfAttributeChangeNotification->notificationHeader.additionalInfo,
-				NTFIMCN_CCB_ID,
-				2);
+		    SaNtfAttributeChangeNotification->notificationHandle,
+		    SaNtfAttributeChangeNotification->notificationHeader
+			.additionalInfo,
+		    NTFIMCN_CCB_ID, 2);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+			LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 			goto done;
 		}
 
 		/* Fill Corresponding Attribute Value */
-		changedAttributes = &SaNtfAttributeChangeNotification->changedAttributes[2];
+		changedAttributes =
+		    &SaNtfAttributeChangeNotification->changedAttributes[2];
 		changedAttributes->oldAttributePresent = SA_FALSE;
 		internal_rc = fill_attribute_value(
-				SaNtfAttributeChangeNotification->notificationHandle,
-				my_imm_attr_mod.modAttr.attrValueType,
-				my_imm_attr_mod.modAttr.attrValues,
-				0, /* Index of attrValues in */
-				2, /* Attribute Id */
-				&changedAttributes->attributeId,
-				&changedAttributes->attributeType,
-				&changedAttributes->newAttributeValue);
+		    SaNtfAttributeChangeNotification->notificationHandle,
+		    my_imm_attr_mod.modAttr.attrValueType,
+		    my_imm_attr_mod.modAttr.attrValues,
+		    0, /* Index of attrValues in */
+		    2, /* Attribute Id */
+		    &changedAttributes->attributeId,
+		    &changedAttributes->attributeType,
+		    &changedAttributes->newAttributeValue);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+			LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 			goto done;
 		}
 	}
@@ -926,29 +959,30 @@ static int fill_attribute_info_modify(
 		my_imm_attr_mod.modAttr.attrValues[0] = (void *)&ccbLast;
 
 		internal_rc = fill_additional_info(
-				SaNtfAttributeChangeNotification->notificationHandle,
-				SaNtfAttributeChangeNotification->notificationHeader.additionalInfo,
-				NTFIMCN_CCB_LAST,
-				3);
+		    SaNtfAttributeChangeNotification->notificationHandle,
+		    SaNtfAttributeChangeNotification->notificationHeader
+			.additionalInfo,
+		    NTFIMCN_CCB_LAST, 3);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+			LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 			goto done;
 		}
 
 		/* Fill Corresponding Attribute Value */
-				changedAttributes = &SaNtfAttributeChangeNotification->changedAttributes[3];
-				changedAttributes->oldAttributePresent = SA_FALSE;
-				internal_rc = fill_attribute_value(
-						SaNtfAttributeChangeNotification->notificationHandle,
-						my_imm_attr_mod.modAttr.attrValueType,
-						my_imm_attr_mod.modAttr.attrValues,
-						0, /* Index of attrValues in */
-						3, /* Attribute Id */
-						&changedAttributes->attributeId,
-						&changedAttributes->attributeType,
-						&changedAttributes->newAttributeValue);
+		changedAttributes =
+		    &SaNtfAttributeChangeNotification->changedAttributes[3];
+		changedAttributes->oldAttributePresent = SA_FALSE;
+		internal_rc = fill_attribute_value(
+		    SaNtfAttributeChangeNotification->notificationHandle,
+		    my_imm_attr_mod.modAttr.attrValueType,
+		    my_imm_attr_mod.modAttr.attrValues,
+		    0, /* Index of attrValues in */
+		    3, /* Attribute Id */
+		    &changedAttributes->attributeId,
+		    &changedAttributes->attributeType,
+		    &changedAttributes->newAttributeValue);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+			LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 			goto done;
 		}
 	}
@@ -960,19 +994,19 @@ done:
 
 /**
  * See ntfimcn_fill_attribute_info_create
- * 
+ *
  * @param CcbId[in]
  * @param invoke_name[in]
  * @param SaNtfObjectNotification[out]
  * @param ccbLast[in]
  * @return (-1) on error
  */
-static int fill_attribute_info_delete(SaImmOiCcbIdT CcbId,
-			SaConstStringT invoke_name,
-			SaNtfObjectCreateDeleteNotificationT *SaNtfObjectNotification,
-			SaBoolT ccbLast)
+static int fill_attribute_info_delete(
+    SaImmOiCcbIdT CcbId, SaConstStringT invoke_name,
+    SaNtfObjectCreateDeleteNotificationT *SaNtfObjectNotification,
+    SaBoolT ccbLast)
 {
-	int internal_rc=0;
+	int internal_rc = 0;
 	SaImmAttrValuesT_2 my_imm_attribute;
 	SaNtfAttributeT *ntf_attributes;
 	/*SaImmAttrValueT my_imm_attr_value;*/
@@ -995,59 +1029,55 @@ static int fill_attribute_info_delete(SaImmOiCcbIdT CcbId,
 		 */
 		/* Fill in Id 0 */
 		internal_rc = fill_additional_info(
-				SaNtfObjectNotification->notificationHandle,
-				SaNtfObjectNotification->notificationHeader.additionalInfo,
-				NTFIMCN_ADMIN_OWNER_NAME,
-				0);
+		    SaNtfObjectNotification->notificationHandle,
+		    SaNtfObjectNotification->notificationHeader.additionalInfo,
+		    NTFIMCN_ADMIN_OWNER_NAME, 0);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+			LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 			goto done;
 		}
 
 		/* Fill Corresponding Attribute Value */
 		ntf_attributes = &SaNtfObjectNotification->objectAttributes[0];
 		internal_rc = fill_attribute_value(
-				SaNtfObjectNotification->notificationHandle,
-				my_imm_attribute.attrValueType,
-				my_imm_attribute.attrValues,
-				0, /* Index of attrValues in */
-				0, /* Attribute Id */
-				&ntf_attributes->attributeId,
-				&ntf_attributes->attributeType,
-				&ntf_attributes->attributeValue);
+		    SaNtfObjectNotification->notificationHandle,
+		    my_imm_attribute.attrValueType, my_imm_attribute.attrValues,
+		    0, /* Index of attrValues in */
+		    0, /* Attribute Id */
+		    &ntf_attributes->attributeId,
+		    &ntf_attributes->attributeType,
+		    &ntf_attributes->attributeValue);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+			LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 			goto done;
 		}
-		
+
 	} else {
 		/* Id 0: SaImmAttrImplementerName
 		 *       if CCB Id = 0
 		 */
 		/* Fill in Id 0 */
 		internal_rc = fill_additional_info(
-				SaNtfObjectNotification->notificationHandle,
-				SaNtfObjectNotification->notificationHeader.additionalInfo,
-				NTFIMCN_IMPLEMENTER_NAME,
-				0);
+		    SaNtfObjectNotification->notificationHandle,
+		    SaNtfObjectNotification->notificationHeader.additionalInfo,
+		    NTFIMCN_IMPLEMENTER_NAME, 0);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+			LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 			goto done;
 		}
 
 		/* Fill Corresponding Attribute Value */
 		ntf_attributes = &SaNtfObjectNotification->objectAttributes[0];
 		internal_rc = fill_attribute_value(
-				SaNtfObjectNotification->notificationHandle,
-				my_imm_attribute.attrValueType,
-				my_imm_attribute.attrValues,
-				0, /* Index of attrValues in */
-				0, /* Attribute Id */
-				&ntf_attributes->attributeId,
-				&ntf_attributes->attributeType,
-				&ntf_attributes->attributeValue);
+		    SaNtfObjectNotification->notificationHandle,
+		    my_imm_attribute.attrValueType, my_imm_attribute.attrValues,
+		    0, /* Index of attrValues in */
+		    0, /* Attribute Id */
+		    &ntf_attributes->attributeId,
+		    &ntf_attributes->attributeType,
+		    &ntf_attributes->attributeValue);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+			LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 			goto done;
 		}
 	}
@@ -1060,31 +1090,27 @@ static int fill_attribute_info_delete(SaImmOiCcbIdT CcbId,
 	my_imm_attribute.attrValues[0] = (void *)&CcbId;
 
 	internal_rc = fill_additional_info(
-			SaNtfObjectNotification->notificationHandle,
-			SaNtfObjectNotification->notificationHeader.additionalInfo,
-			NTFIMCN_CCB_ID,
-			1);
+	    SaNtfObjectNotification->notificationHandle,
+	    SaNtfObjectNotification->notificationHeader.additionalInfo,
+	    NTFIMCN_CCB_ID, 1);
 	if (internal_rc != 0) {
-		LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+		LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 		goto done;
 	}
 
 	/* Fill Corresponding Attribute Value */
 	ntf_attributes = &SaNtfObjectNotification->objectAttributes[1];
 	internal_rc = fill_attribute_value(
-			SaNtfObjectNotification->notificationHandle,
-			my_imm_attribute.attrValueType,
-			my_imm_attribute.attrValues,
-			0, /* Index of attrValues in */
-			1, /* Attribute Id */
-			&ntf_attributes->attributeId,
-			&ntf_attributes->attributeType,
-			&ntf_attributes->attributeValue);
+	    SaNtfObjectNotification->notificationHandle,
+	    my_imm_attribute.attrValueType, my_imm_attribute.attrValues,
+	    0, /* Index of attrValues in */
+	    1, /* Attribute Id */
+	    &ntf_attributes->attributeId, &ntf_attributes->attributeType,
+	    &ntf_attributes->attributeValue);
 	if (internal_rc != 0) {
-		LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+		LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 		goto done;
 	}
-
 
 	/* Id 2: ccbLast
 	 *       There is no such attribute so it has to be constructed
@@ -1096,28 +1122,26 @@ static int fill_attribute_info_delete(SaImmOiCcbIdT CcbId,
 		my_imm_attribute.attrValues[0] = (void *)&ccbLast;
 
 		internal_rc = fill_additional_info(
-				SaNtfObjectNotification->notificationHandle,
-				SaNtfObjectNotification->notificationHeader.additionalInfo,
-				NTFIMCN_CCB_LAST,
-				2);
+		    SaNtfObjectNotification->notificationHandle,
+		    SaNtfObjectNotification->notificationHeader.additionalInfo,
+		    NTFIMCN_CCB_LAST, 2);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_additional_info failed",__FUNCTION__);
+			LOG_ER("%s: fill_additional_info failed", __FUNCTION__);
 			goto done;
 		}
 
 		/* Fill Corresponding Attribute Value */
-				ntf_attributes = &SaNtfObjectNotification->objectAttributes[2];
-				internal_rc = fill_attribute_value(
-						SaNtfObjectNotification->notificationHandle,
-						my_imm_attribute.attrValueType,
-						my_imm_attribute.attrValues,
-						0, /* Index of attrValues in */
-						2, /* Attribute Id */
-						&ntf_attributes->attributeId,
-						&ntf_attributes->attributeType,
-						&ntf_attributes->attributeValue);
+		ntf_attributes = &SaNtfObjectNotification->objectAttributes[2];
+		internal_rc = fill_attribute_value(
+		    SaNtfObjectNotification->notificationHandle,
+		    my_imm_attribute.attrValueType, my_imm_attribute.attrValues,
+		    0, /* Index of attrValues in */
+		    2, /* Attribute Id */
+		    &ntf_attributes->attributeId,
+		    &ntf_attributes->attributeType,
+		    &ntf_attributes->attributeValue);
 		if (internal_rc != 0) {
-			LOG_ER("%s: fill_attribute_value failed",__FUNCTION__);
+			LOG_ER("%s: fill_attribute_value failed", __FUNCTION__);
 			goto done;
 		}
 	}
@@ -1138,8 +1162,8 @@ done:
  * @return (-1) if error
  */
 int ntfimcn_send_object_create_notification(
-		CcbUtilOperationData_t *CcbUtilOperationData, SaStringT rdn_attr_name,
-		SaBoolT ccbLast)
+    CcbUtilOperationData_t *CcbUtilOperationData, SaStringT rdn_attr_name,
+    SaBoolT ccbLast)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	int internal_rc = 0;
@@ -1158,7 +1182,6 @@ int ntfimcn_send_object_create_notification(
 
 	CcbId = CcbUtilOperationData->ccbId;
 
-
 	if (CcbId == 0) {
 		/* Ccb id  0 means that there is no ccb. saImmAttrCcbId shall be
 		 * omitted, ccbLast shall be omitted
@@ -1169,80 +1192,80 @@ int ntfimcn_send_object_create_notification(
 	/* Find out how many attributes we have to handle. Note that multivalues
 	 * are handled as a separate attribute for each value
 	 */
-	SaUint64T i=0;
-	const SaImmAttrValuesT_2 ** values;
+	SaUint64T i = 0;
+	const SaImmAttrValuesT_2 **values;
 	values = CcbUtilOperationData->param.create.attrValues;
-	for (i=0; values[i] != NULL; i++) {
+	for (i = 0; values[i] != NULL; i++) {
 		/* Count "class" attributes with a value only
 		 * Do not count the "rdn" attribute
 		 */
-		if (strcmp(values[i]->attrName,rdn_attr_name) == 0) {
+		if (strcmp(values[i]->attrName, rdn_attr_name) == 0) {
 			/* Do not count the "rdn" attribute */
 			continue;
 		}
 
-		if (strncmp(values[i]->attrName,NTFIMCN_IMM_ATTR,
-						sizeof(NTFIMCN_IMM_ATTR)-1) != 0) {
+		if (strncmp(values[i]->attrName, NTFIMCN_IMM_ATTR,
+			    sizeof(NTFIMCN_IMM_ATTR) - 1) != 0) {
 			num_attributes += values[i]->attrValuesNumber;
 			num_additional_info++;
 		}
 	}
 
 	/* Allocate memory for the notification structure.
-	 * NOTE:	The first two attributes and additional values are not part of
-	 *			the IMM attribute list but has to be allocated
-	 * NOTE:	SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
+	 * NOTE:	The first two attributes and additional values are not
+	 *part of the IMM attribute list but has to be allocated NOTE:
+	 *SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
 	 */
 	rc = saNtfObjectCreateDeleteNotificationAllocate(
-			ntfimcn_cb.ntf_handle,
-			&SaNtfObjectCreateNotification,
-			0, /* Number of correlated notifications */
-			0, /* Length additional text */
-			num_additional_info,	/* Number of additional info */
-			num_attributes,	/* Number of attributes */
-			SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
+	    ntfimcn_cb.ntf_handle, &SaNtfObjectCreateNotification,
+	    0,			 /* Number of correlated notifications */
+	    0,			 /* Length additional text */
+	    num_additional_info, /* Number of additional info */
+	    num_attributes,      /* Number of attributes */
+	    SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s saNtfObjectCreateDeleteNotificationAllocate fail: %s",
-				__FUNCTION__,saf_error(rc));
+		LOG_ER(
+		    "%s saNtfObjectCreateDeleteNotificationAllocate fail: %s",
+		    __FUNCTION__, saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
 
 	/* Fill in Additional info and corresponding Attribute list
 	 */
-	internal_rc = fill_attribute_info_create(CcbId,
-			CcbUtilOperationData->param.create.attrValues,
-			&SaNtfObjectCreateNotification,
-			rdn_attr_name,
-			ccbLast);
+	internal_rc = fill_attribute_info_create(
+	    CcbId, CcbUtilOperationData->param.create.attrValues,
+	    &SaNtfObjectCreateNotification, rdn_attr_name, ccbLast);
 	if (internal_rc != 0) {
-		LOG_ER("%s: ntfimcn_fill_attribute_info failed",__FUNCTION__);
+		LOG_ER("%s: ntfimcn_fill_attribute_info failed", __FUNCTION__);
 		goto error;
 	}
 
 	/* Fill in information in header. Note that information about number of
 	 * attributes must be calculated first.
 	 */
-	fill_notification_header_common_part(/*CcbUtilOperationData,*/ CcbId,
-		&SaNtfObjectCreateNotification.notificationHeader,
-		SA_NTF_OBJECT_CREATION,
-		num_additional_info,
-		&CcbUtilOperationData->objectName);
+	fill_notification_header_common_part(
+	    /*CcbUtilOperationData,*/ CcbId,
+	    &SaNtfObjectCreateNotification.notificationHeader,
+	    SA_NTF_OBJECT_CREATION, num_additional_info,
+	    &CcbUtilOperationData->objectName);
 
 	/* Fill in source indicator
 	 */
 	if (CcbId == 0) {
-		*SaNtfObjectCreateNotification.sourceIndicator = SA_NTF_OBJECT_OPERATION;
+		*SaNtfObjectCreateNotification.sourceIndicator =
+		    SA_NTF_OBJECT_OPERATION;
 	} else {
-		*SaNtfObjectCreateNotification.sourceIndicator = SA_NTF_MANAGEMENT_OPERATION;
+		*SaNtfObjectCreateNotification.sourceIndicator =
+		    SA_NTF_MANAGEMENT_OPERATION;
 	}
 
 	/* Send the notification */
-	internal_rc = send_notification(
-		SaNtfObjectCreateNotification.notificationHandle);
+	internal_rc =
+	    send_notification(SaNtfObjectCreateNotification.notificationHandle);
 	if (internal_rc != 0) {
-		LOG_ER("%s: ntfimcn_send_notification failed",__FUNCTION__);
+		LOG_ER("%s: ntfimcn_send_notification failed", __FUNCTION__);
 		goto error;
 	}
 
@@ -1251,9 +1274,11 @@ done:
 	return internal_rc;
 
 error:
-	rc = saNtfNotificationFree(SaNtfObjectCreateNotification.notificationHandle);
+	rc = saNtfNotificationFree(
+	    SaNtfObjectCreateNotification.notificationHandle);
 	if (rc != SA_AIS_OK) {
-		TRACE("%s saNtfNotificationFree fail: %s",__FUNCTION__,saf_error(rc));
+		TRACE("%s saNtfNotificationFree fail: %s", __FUNCTION__,
+		      saf_error(rc));
 	}
 
 	TRACE_LEAVE();
@@ -1271,9 +1296,8 @@ error:
  * @return (-1) if error
  */
 int ntfimcn_send_object_modify_notification(
-		CcbUtilOperationData_t *CcbUtilOperationData,
-		SaNameT *invoke_name,
-		SaBoolT ccbLast)
+    CcbUtilOperationData_t *CcbUtilOperationData, SaNameT *invoke_name,
+    SaBoolT ccbLast)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	int internal_rc = 0;
@@ -1288,8 +1312,7 @@ int ntfimcn_send_object_modify_notification(
 	 * Do not send a notification for this dummy.
 	 * The class name attribute is missing in a dummy.
 	 */
-	bool dummy_modify=true;
-
+	bool dummy_modify = true;
 
 	TRACE_ENTER();
 
@@ -1316,20 +1339,20 @@ int ntfimcn_send_object_modify_notification(
 #endif
 
 	/* Find out how many attributes we have to handle */
-	SaUint64T i=0;
-	const SaImmAttrModificationT_2 ** attrMods;
+	SaUint64T i = 0;
+	const SaImmAttrModificationT_2 **attrMods;
 	attrMods = CcbUtilOperationData->param.modify.attrMods;
-	for (i=0; attrMods[i] != NULL; i++) {
+	for (i = 0; attrMods[i] != NULL; i++) {
 		/* Count "class" attributes with a value only
 		 */
-		if ((strncmp(attrMods[i]->modAttr.attrName,NTFIMCN_IMM_ATTR,
-						sizeof(NTFIMCN_IMM_ATTR)-1) != 0)) {
+		if ((strncmp(attrMods[i]->modAttr.attrName, NTFIMCN_IMM_ATTR,
+			     sizeof(NTFIMCN_IMM_ATTR) - 1) != 0)) {
 			num_attributes += attrMods[i]->modAttr.attrValuesNumber;
 			num_additional_info++;
 		}
-		
-		if (strncmp(attrMods[i]->modAttr.attrName,NTFIMCN_CLASS_NAME,
-					sizeof(NTFIMCN_CLASS_NAME)-1) == 0) {
+
+		if (strncmp(attrMods[i]->modAttr.attrName, NTFIMCN_CLASS_NAME,
+			    sizeof(NTFIMCN_CLASS_NAME) - 1) == 0) {
 			dummy_modify = false;
 		}
 	}
@@ -1338,24 +1361,24 @@ int ntfimcn_send_object_modify_notification(
 		/* A "dummy" modification detected. Do not send notification */
 		goto done;
 	}
-	
+
 	/* Allocate memory for the notification structure.
-	 * NOTE:	The first two attributes and additional values are not part of
-	 *			the IMM attribute list but has to be allocated
-	 * NOTE:	SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
+	 * NOTE:	The first two attributes and additional values are not
+	 *part of the IMM attribute list but has to be allocated NOTE:
+	 *SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
 	 */
 	rc = saNtfAttributeChangeNotificationAllocate(
-			ntfimcn_cb.ntf_handle,
-			&SaNtfAttributeChangeNotification,
-			0, /* Number of correlated notifications */
-			0, /* Length additional text */
-			num_additional_info,	/* Number of additional info */
-			num_attributes,		/* Number of attributes */
-			SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
+	    ntfimcn_cb.ntf_handle, &SaNtfAttributeChangeNotification,
+	    0,			 /* Number of correlated notifications */
+	    0,			 /* Length additional text */
+	    num_additional_info, /* Number of additional info */
+	    num_attributes,      /* Number of attributes */
+	    SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s: saNtfObjectCreateDeleteNotificationAllocate fail: %s",
-				__FUNCTION__,saf_error(rc));
+		LOG_ER(
+		    "%s: saNtfObjectCreateDeleteNotificationAllocate fail: %s",
+		    __FUNCTION__, saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
@@ -1363,38 +1386,36 @@ int ntfimcn_send_object_modify_notification(
 	/* Fill in Additional info and corresponding Attribute list
 	 */
 	internal_rc = fill_attribute_info_modify(
-			CcbId,
-			invoke_name_str,
-			CcbUtilOperationData->param.modify.attrMods,
-			&SaNtfAttributeChangeNotification,
-			ccbLast);
+	    CcbId, invoke_name_str, CcbUtilOperationData->param.modify.attrMods,
+	    &SaNtfAttributeChangeNotification, ccbLast);
 	if (internal_rc != 0) {
-		LOG_ER("%s: ntfimcn_fill_attribute_info failed",__FUNCTION__);
+		LOG_ER("%s: ntfimcn_fill_attribute_info failed", __FUNCTION__);
 		goto error;
 	}
 
 	/* Fill in information in header. Note that information about number of
 	 * attributes must be calculated first.
 	 */
-	fill_notification_header_common_part(CcbId,
-		&SaNtfAttributeChangeNotification.notificationHeader,
-		SA_NTF_ATTRIBUTE_CHANGED,
-		num_additional_info,
-		&CcbUtilOperationData->objectName);
+	fill_notification_header_common_part(
+	    CcbId, &SaNtfAttributeChangeNotification.notificationHeader,
+	    SA_NTF_ATTRIBUTE_CHANGED, num_additional_info,
+	    &CcbUtilOperationData->objectName);
 
 	/* Fill in source indicator
 	 */
 	if (CcbId == 0) {
-		*SaNtfAttributeChangeNotification.sourceIndicator = SA_NTF_OBJECT_OPERATION;
+		*SaNtfAttributeChangeNotification.sourceIndicator =
+		    SA_NTF_OBJECT_OPERATION;
 	} else {
-		*SaNtfAttributeChangeNotification.sourceIndicator = SA_NTF_MANAGEMENT_OPERATION;
+		*SaNtfAttributeChangeNotification.sourceIndicator =
+		    SA_NTF_MANAGEMENT_OPERATION;
 	}
 
 	/* Send the notification */
 	internal_rc = send_notification(
-		SaNtfAttributeChangeNotification.notificationHandle);
+	    SaNtfAttributeChangeNotification.notificationHandle);
 	if (internal_rc != 0) {
-		LOG_ER("%s: ntfimcn_send_notification failed",__FUNCTION__);
+		LOG_ER("%s: ntfimcn_send_notification failed", __FUNCTION__);
 		goto done;
 	}
 
@@ -1403,10 +1424,10 @@ done:
 	return internal_rc;
 
 error:
-	rc = saNtfNotificationFree(SaNtfAttributeChangeNotification.notificationHandle);
+	rc = saNtfNotificationFree(
+	    SaNtfAttributeChangeNotification.notificationHandle);
 	if (rc != SA_AIS_OK) {
-		TRACE("saNtfNotificationFree fail: %s",
-				saf_error(rc));
+		TRACE("saNtfNotificationFree fail: %s", saf_error(rc));
 	}
 
 	TRACE_LEAVE();
@@ -1423,9 +1444,9 @@ error:
  *
  * @return (-1) if error
  */
-int ntfimcn_send_object_delete_notification(CcbUtilOperationData_t *CcbUtilOperationData,
-		const SaNameT *invoke_name,
-		SaBoolT ccbLast)
+int ntfimcn_send_object_delete_notification(
+    CcbUtilOperationData_t *CcbUtilOperationData, const SaNameT *invoke_name,
+    SaBoolT ccbLast)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	int internal_rc = 0;
@@ -1452,22 +1473,22 @@ int ntfimcn_send_object_delete_notification(CcbUtilOperationData_t *CcbUtilOpera
 	}
 
 	/* Allocate memory for the notification structure.
-	 * NOTE:	The first two attributes and additional values are not part of
-	 *			the IMM attribute list but has to be allocated
-	 * NOTE:	SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
+	 * NOTE:	The first two attributes and additional values are not
+	 *part of the IMM attribute list but has to be allocated NOTE:
+	 *SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
 	 */
 	rc = saNtfObjectCreateDeleteNotificationAllocate(
-			ntfimcn_cb.ntf_handle,
-			&SaNtfObjectDeleteNotification,
-			0, /* Number of correlated notifications */
-			0, /* Length additional text */
-			num_attributes,	/* Number of additional info */
-			num_attributes,	/* Number of attributes */
-			SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
+	    ntfimcn_cb.ntf_handle, &SaNtfObjectDeleteNotification,
+	    0,		    /* Number of correlated notifications */
+	    0,		    /* Length additional text */
+	    num_attributes, /* Number of additional info */
+	    num_attributes, /* Number of attributes */
+	    SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
 
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s: saNtfObjectCreateDeleteNotificationAllocate fail: %s",
-				__FUNCTION__,saf_error(rc));
+		LOG_ER(
+		    "%s: saNtfObjectCreateDeleteNotificationAllocate fail: %s",
+		    __FUNCTION__, saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
@@ -1476,48 +1497,52 @@ int ntfimcn_send_object_delete_notification(CcbUtilOperationData_t *CcbUtilOpera
 	 */
 	if (num_attributes > 0) {
 		invoke_name_str = osaf_extended_name_borrow(invoke_name);
-		internal_rc = fill_attribute_info_delete(CcbId,
-				invoke_name_str,
-				&SaNtfObjectDeleteNotification,
-				ccbLast);
+		internal_rc = fill_attribute_info_delete(
+		    CcbId, invoke_name_str, &SaNtfObjectDeleteNotification,
+		    ccbLast);
 		if (internal_rc != 0) {
-			LOG_ER("%s: ntfimcn_fill_attribute_info failed",__FUNCTION__);
+			LOG_ER("%s: ntfimcn_fill_attribute_info failed",
+			       __FUNCTION__);
 			goto error;
 		}
 	}
 
 	/* Fill in information in header.
 	 */
-	fill_notification_header_common_part(/*CcbUtilOperationData,*/ CcbId,
-		&SaNtfObjectDeleteNotification.notificationHeader,
-		SA_NTF_OBJECT_DELETION,
-		num_attributes,
-		&CcbUtilOperationData->objectName);
+	fill_notification_header_common_part(
+	    /*CcbUtilOperationData,*/ CcbId,
+	    &SaNtfObjectDeleteNotification.notificationHeader,
+	    SA_NTF_OBJECT_DELETION, num_attributes,
+	    &CcbUtilOperationData->objectName);
 
 	/* Fill in source indicator
 	 */
 	if (CcbId == 0) {
-		*SaNtfObjectDeleteNotification.sourceIndicator = SA_NTF_OBJECT_OPERATION;
+		*SaNtfObjectDeleteNotification.sourceIndicator =
+		    SA_NTF_OBJECT_OPERATION;
 	} else {
-		*SaNtfObjectDeleteNotification.sourceIndicator = SA_NTF_MANAGEMENT_OPERATION;
+		*SaNtfObjectDeleteNotification.sourceIndicator =
+		    SA_NTF_MANAGEMENT_OPERATION;
 	}
 
 	/* Send the notification */
-	internal_rc = send_notification(
-		SaNtfObjectDeleteNotification.notificationHandle);
+	internal_rc =
+	    send_notification(SaNtfObjectDeleteNotification.notificationHandle);
 	if (internal_rc != 0) {
-		LOG_ER("%s: ntfimcn_send_notification failed",__FUNCTION__);
+		LOG_ER("%s: ntfimcn_send_notification failed", __FUNCTION__);
 		goto error;
 	}
 
 done:
 	TRACE_LEAVE();
 	return internal_rc;
-	
+
 error:
-	rc = saNtfNotificationFree(SaNtfObjectDeleteNotification.notificationHandle);
+	rc = saNtfNotificationFree(
+	    SaNtfObjectDeleteNotification.notificationHandle);
 	if (rc != SA_AIS_OK) {
-		TRACE("%s saNtfNotificationFree fail: %s",__FUNCTION__,saf_error(rc));
+		TRACE("%s saNtfNotificationFree fail: %s", __FUNCTION__,
+		      saf_error(rc));
 	}
 
 	TRACE_LEAVE();
@@ -1538,8 +1563,7 @@ int ntfimcn_send_lost_cm_notification(void)
 	osaf_extended_name_lend("osafntfimcnd", &object_name);
 
 	SaNtfStateChangeNotificationT SaNtfStateChangeNotification;
-	const SaUint64T num_statechanges=0;
-
+	const SaUint64T num_statechanges = 0;
 
 	TRACE_ENTER();
 
@@ -1549,22 +1573,21 @@ int ntfimcn_send_lost_cm_notification(void)
 	}
 
 	/* Allocate memory for the notification structure.
-	 * NOTE:	The first two attributes and additional values are not part of
-	 *			the IMM attribute list but has to be allocated
-	 * NOTE:	SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
+	 * NOTE:	The first two attributes and additional values are not
+	 *part of the IMM attribute list but has to be allocated NOTE:
+	 *SA_AIS_ERR_TRY_AGAIN is not tested for. Is never returned.
 	 */
 	rc = saNtfStateChangeNotificationAllocate(
-			ntfimcn_cb.ntf_handle,
-			&SaNtfStateChangeNotification,
-			0, /* Number of correlated notifications */
-			0, /* Length additional text */
-			0, /* Number of additional info */
-			num_statechanges,	/* Number of state changes */
-			SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
+	    ntfimcn_cb.ntf_handle, &SaNtfStateChangeNotification,
+	    0,		      /* Number of correlated notifications */
+	    0,		      /* Length additional text */
+	    0,		      /* Number of additional info */
+	    num_statechanges, /* Number of state changes */
+	    SA_NTF_ALLOC_SYSTEM_LIMIT /* variableDataSize */);
 
 	if (rc != SA_AIS_OK) {
 		LOG_ER("%s saNtfStateChangeNotificationAllocate fail: %s",
-				__FUNCTION__,saf_error(rc));
+		       __FUNCTION__, saf_error(rc));
 		internal_rc = (-1);
 		goto done;
 	}
@@ -1572,21 +1595,21 @@ int ntfimcn_send_lost_cm_notification(void)
 	/* Fill in information in header.
 	 */
 	fill_notification_header_common_part(
-		0, /* CcbId */
-		&SaNtfStateChangeNotification.notificationHeader,
-		SA_NTF_OBJECT_STATE_CHANGE, /* NtfEventType */
-		0, /* numAdditionalInfo */
-		&object_name);
+	    0, /* CcbId */
+	    &SaNtfStateChangeNotification.notificationHeader,
+	    SA_NTF_OBJECT_STATE_CHANGE, /* NtfEventType */
+	    0,				/* numAdditionalInfo */
+	    &object_name);
 
 	/* Fill in source indicator
 	 */
 	*SaNtfStateChangeNotification.sourceIndicator = SA_NTF_OBJECT_OPERATION;
 
 	/* Send the notification */
-	internal_rc = send_notification(
-		SaNtfStateChangeNotification.notificationHandle);
+	internal_rc =
+	    send_notification(SaNtfStateChangeNotification.notificationHandle);
 	if (internal_rc != 0) {
-		LOG_ER("%s: ntfimcn_send_notification failed",__FUNCTION__);
+		LOG_ER("%s: ntfimcn_send_notification failed", __FUNCTION__);
 		goto error;
 	}
 
@@ -1595,9 +1618,11 @@ done:
 	return internal_rc;
 
 error:
-	rc = saNtfNotificationFree(SaNtfStateChangeNotification.notificationHandle);
+	rc = saNtfNotificationFree(
+	    SaNtfStateChangeNotification.notificationHandle);
 	if (rc != SA_AIS_OK) {
-		TRACE("%s saNtfNotificationFree fail: %s",__FUNCTION__,saf_error(rc));
+		TRACE("%s saNtfNotificationFree fail: %s", __FUNCTION__,
+		      saf_error(rc));
 	}
 
 	TRACE_LEAVE();

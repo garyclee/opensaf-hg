@@ -32,7 +32,8 @@ extern "C" {
  * @param format
  */
 extern void saflog(int priority, const SaNameT *logSvcUsrName,
-	const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+                   const char *format, ...)
+    __attribute__((format(printf, 3, 4)));
 
 extern void saflog_init(void);
 

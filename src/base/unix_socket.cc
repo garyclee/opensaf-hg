@@ -26,11 +26,8 @@
 
 namespace base {
 
-UnixSocket::UnixSocket(const std::string& path) :
-    fd_{-1},
-    addr_{AF_UNIX, {}},
-    last_failed_open_{},
-    saved_errno_{} {
+UnixSocket::UnixSocket(const std::string& path)
+    : fd_{-1}, addr_{AF_UNIX, {}}, last_failed_open_{}, saved_errno_{} {
   if (path.size() < sizeof(addr_.sun_path)) {
     memcpy(addr_.sun_path, path.c_str(), path.size() + 1);
   } else {
@@ -52,7 +49,7 @@ int UnixSocket::Open() {
           errno = e;
         }
         fd_ = sock;
-        if (sock >=0 && MakeFdNonblocking(sock) == false) Close();
+        if (sock >= 0 && MakeFdNonblocking(sock) == false) Close();
         if (fd_ < 0) {
           last_failed_open_ = current_time;
           saved_errno_ = errno;
@@ -84,11 +81,8 @@ void UnixSocket::Close() {
   }
 }
 
-bool UnixSocket::OpenHook(int) {
-  return true;
-}
+bool UnixSocket::OpenHook(int) { return true; }
 
-void UnixSocket::CloseHook() {
-}
+void UnixSocket::CloseHook() {}
 
 }  // namespace base

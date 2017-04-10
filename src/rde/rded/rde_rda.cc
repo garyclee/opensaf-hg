@@ -106,7 +106,7 @@ static uint32_t rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb) {
     }
   }
 
-  rc = bind(rde_rda_cb->fd, (struct sockaddr *) &rde_rda_cb->sock_address,
+  rc = bind(rde_rda_cb->fd, (struct sockaddr *)&rde_rda_cb->sock_address,
             sizeof(rde_rda_cb->sock_address));
   if (rc < 0) {
     LOG_ER("bind FAILED %s", strerror(errno));
@@ -216,8 +216,7 @@ static uint32_t rde_rda_read_msg(int fd, char *msg, int size) {
 
   msg_size = recv(fd, msg, size, 0);
   if (msg_size < 0) {
-    if (errno != EINTR && errno != EWOULDBLOCK)
-      /* Non-benign error */
+    if (errno != EINTR && errno != EWOULDBLOCK) /* Non-benign error */
       LOG_ER("recv FAILED %s", strerror(errno));
 
     return NCSCC_RC_FAILURE;
@@ -257,13 +256,13 @@ static uint32_t rde_rda_read_msg(int fd, char *msg, int size) {
 
  *****************************************************************************/
 static uint32_t rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index) {
-  char msg[64] = { 0 };
+  char msg[64] = {0};
   TRACE_ENTER();
 
   snprintf(msg, sizeof(msg), "%d %d", RDE_RDA_GET_ROLE_RES,
-          static_cast<int>(rde_rda_cb->role->role()));
-  if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg)
-      != NCSCC_RC_SUCCESS) {
+           static_cast<int>(rde_rda_cb->role->role()));
+  if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) !=
+      NCSCC_RC_SUCCESS) {
     return NCSCC_RC_FAILURE;
   }
 
@@ -291,18 +290,18 @@ static uint32_t rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index) {
  *****************************************************************************/
 static uint32_t rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index,
                                          int role) {
-  char msg[64] = { 0 };
+  char msg[64] = {0};
 
   TRACE_ENTER();
 
-  if (rde_rda_cb->role->SetRole(
-      static_cast<PCS_RDA_ROLE>(role)) != NCSCC_RC_SUCCESS)
+  if (rde_rda_cb->role->SetRole(static_cast<PCS_RDA_ROLE>(role)) !=
+      NCSCC_RC_SUCCESS)
     snprintf(msg, sizeof(msg), "%d", RDE_RDA_SET_ROLE_NACK);
   else
     snprintf(msg, sizeof(msg), "%d", RDE_RDA_SET_ROLE_ACK);
 
-  if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg)
-      != NCSCC_RC_SUCCESS) {
+  if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) !=
+      NCSCC_RC_SUCCESS) {
     return NCSCC_RC_FAILURE;
   }
 
@@ -328,7 +327,7 @@ static uint32_t rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index,
 
  *****************************************************************************/
 static uint32_t rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index) {
-  char msg[64] = { 0 };
+  char msg[64] = {0};
 
   TRACE_ENTER();
 
@@ -342,8 +341,8 @@ static uint32_t rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index) {
    */
   snprintf(msg, sizeof(msg), "%d", RDE_RDA_REG_CB_ACK);
 
-  if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg)
-      != NCSCC_RC_SUCCESS) {
+  if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) !=
+      NCSCC_RC_SUCCESS) {
     return NCSCC_RC_FAILURE;
   }
 
@@ -453,15 +452,15 @@ uint32_t rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb) {
 uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index,
                                     int *disconnect) {
   RDE_RDA_CMD_TYPE cmd_type;
-  char msg[256] = { 0 };
+  char msg[256] = {0};
   uint32_t rc = NCSCC_RC_SUCCESS;
   int value = 0;
   char *ptr;
 
   TRACE_ENTER2("%u", index);
 
-  if (rde_rda_read_msg(rde_rda_cb->clients[index].fd, msg, sizeof(msg))
-      != NCSCC_RC_SUCCESS) {
+  if (rde_rda_read_msg(rde_rda_cb->clients[index].fd, msg, sizeof(msg)) !=
+      NCSCC_RC_SUCCESS) {
     return NCSCC_RC_FAILURE;
   }
 
@@ -517,7 +516,7 @@ uint32_t rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index,
  *****************************************************************************/
 uint32_t rde_rda_send_role(int role) {
   int index;
-  char msg[64] = { 0 };
+  char msg[64] = {0};
   RDE_RDA_CB *rde_rda_cb = nullptr;
   RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
 
@@ -529,14 +528,13 @@ uint32_t rde_rda_send_role(int role) {
   snprintf(msg, sizeof(msg), "%d %d", RDE_RDA_HA_ROLE, role);
 
   for (index = 0; index < rde_rda_cb->client_count; index++) {
-    if (!rde_rda_cb->clients[index].is_async)
-      continue;
+    if (!rde_rda_cb->clients[index].is_async) continue;
 
     /*
      ** Write message
      */
-    if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg)
-        != NCSCC_RC_SUCCESS) {
+    if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) !=
+        NCSCC_RC_SUCCESS) {
       /* We have nothing to do here */
     }
   }

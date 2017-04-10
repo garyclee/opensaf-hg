@@ -25,17 +25,20 @@
 #define CPA_BASE_MAJOR_VERSION 0x01
 #define CPA_BASE_MINOR_VERSION 0x01
 
-#define m_CPA_VER_IS_VALID(ver) \
-   ((ver->releaseCode == CPA_RELEASE_CODE) && \
-     (ver->majorVersion == CPA_MAJOR_VERSION || ver->majorVersion == 0xff) && \
-     (ver->minorVersion == CPA_MINOR_VERSION || ver->minorVersion == 0xff) )
+#define m_CPA_VER_IS_VALID(ver)                                             \
+  ((ver->releaseCode == CPA_RELEASE_CODE) &&                                \
+   (ver->majorVersion == CPA_MAJOR_VERSION || ver->majorVersion == 0xff) && \
+   (ver->minorVersion == CPA_MINOR_VERSION || ver->minorVersion == 0xff))
 
-#define CPSV_WAIT_TIME  1400	/* MDS wait time in case of syncronous call */
+#define CPSV_WAIT_TIME 1400 /* MDS wait time in case of syncronous call */
 
-#define CPSV_MIN_DATA_SIZE  10000
-#define CPSV_AVG_DATA_SIZE  1000000
-#define CPA_WAIT_TIME(datasize) ((datasize<CPSV_MIN_DATA_SIZE)?1400:1600+((datasize/CPSV_AVG_DATA_SIZE)*400))
+#define CPSV_MIN_DATA_SIZE 10000
+#define CPSV_AVG_DATA_SIZE 1000000
+#define CPA_WAIT_TIME(datasize)    \
+  ((datasize < CPSV_MIN_DATA_SIZE) \
+       ? 1400                      \
+       : 1600 + ((datasize / CPSV_AVG_DATA_SIZE) * 400))
 
-#define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
+#define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t) (t) / (10000000) /* 10^7 */
 
 #endif  // CKPT_AGENT_CPA_DEF_H_

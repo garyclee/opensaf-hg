@@ -42,7 +42,8 @@
  */
 
 #define DTM_CONFIG_FILE PKGSYSCONFDIR "/dtmd.conf"
-/* pack_size + cluster_id + node_id + mcast_flag +  stream_port +  i_addr_family + ip_addr */
+/* pack_size + cluster_id + node_id + mcast_flag +  stream_port +  i_addr_family
+ * + ip_addr */
 #define DTM_BCAST_HDR_SIZE 58
 
 /* ========================================================================
@@ -72,7 +73,7 @@ uint8_t initial_discovery_phase = true;
  * @return NCSCC_RC_FAILURE
  *
  */
-static uint32_t dtm_init(DTM_INTERNODE_CB * dtms_cb)
+static uint32_t dtm_init(DTM_INTERNODE_CB *dtms_cb)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
@@ -92,13 +93,14 @@ static uint32_t dtm_init(DTM_INTERNODE_CB * dtms_cb)
 		goto done;
 	}
 
- done:
+done:
 
 	TRACE_LEAVE2("rc : %d", rc);
 	return rc;
 }
 
-static uint32_t dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf_ptr, int *pack_size)
+static uint32_t dtm_construct_bcast_hdr(DTM_INTERNODE_CB *dtms_cb,
+					uint8_t *buf_ptr, int *pack_size)
 {
 	TRACE_ENTER();
 
@@ -117,7 +119,6 @@ static uint32_t dtm_construct_bcast_hdr(DTM_INTERNODE_CB * dtms_cb, uint8_t *buf
 	TRACE_LEAVE();
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /**
@@ -133,16 +134,17 @@ static uint32_t dtm_destroy_node_discovery_task(void)
 	TRACE_ENTER();
 
 	if (m_NCS_TASK_STOP(gl_node_dis_task_hdl) != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: Stop of the Created Task-failed:gl_node_dis_task_hdl  \n");
+		LOG_ER(
+		    "DTM: Stop of the Created Task-failed:gl_node_dis_task_hdl  \n");
 	}
 
 	if (m_NCS_TASK_RELEASE(gl_node_dis_task_hdl) != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: Stop of the Created Task-failed:gl_node_dis_task_hdl \n");
+		LOG_ER(
+		    "DTM: Stop of the Created Task-failed:gl_node_dis_task_hdl \n");
 	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /**
@@ -158,16 +160,17 @@ static uint32_t dtm_destroy_service_discovery_task(void)
 	TRACE_ENTER();
 
 	if (m_NCS_TASK_STOP(gl_serv_dis_task_hdl) != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: Stop of the Created Task-failed:gl_serv_dis_task_hdl  \n");
+		LOG_ER(
+		    "DTM: Stop of the Created Task-failed:gl_serv_dis_task_hdl  \n");
 	}
 
 	if (m_NCS_TASK_RELEASE(gl_serv_dis_task_hdl) != NCSCC_RC_SUCCESS) {
-		LOG_ER("DTM: Stop of the Created Task-failed:gl_serv_dis_task_hdl \n");
+		LOG_ER(
+		    "DTM: Stop of the Created Task-failed:gl_serv_dis_task_hdl \n");
 	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /**
@@ -186,10 +189,11 @@ uint32_t dtm_node_discovery_task_create(void)
 	int policy = SCHED_RR; /*root defaults */
 	int max_prio = sched_get_priority_max(policy);
 	int min_prio = sched_get_priority_min(policy);
-	int prio_val = ((max_prio - min_prio) * 0.87); 
+	int prio_val = ((max_prio - min_prio) * 0.87);
 
 	rc = m_NCS_TASK_CREATE((NCS_OS_CB)node_discovery_process, NULL,
-			       (char *)"OSAF_NODE_DISCOVERY", prio_val, policy, m_NODE_DISCOVERY_STACKSIZE,
+			       (char *)"OSAF_NODE_DISCOVERY", prio_val, policy,
+			       m_NODE_DISCOVERY_STACKSIZE,
 			       &gl_node_dis_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("DTM: node_discovery thread CREATE failed");
@@ -201,7 +205,8 @@ uint32_t dtm_node_discovery_task_create(void)
 	/* now start the task */
 	rc = m_NCS_TASK_START(gl_node_dis_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("DTM: node_discovery thread START failed : gl_node_dis_task_hdl ");
+		LOG_ER(
+		    "DTM: node_discovery thread START failed : gl_node_dis_task_hdl ");
 		goto err;
 	}
 
@@ -209,7 +214,7 @@ uint32_t dtm_node_discovery_task_create(void)
 	TRACE_LEAVE2("rc : %d", rc);
 	return rc;
 
- err:
+err:
 	/* destroy the task */
 	if (gl_node_dis_task_hdl) {
 		/* release the task */
@@ -218,8 +223,9 @@ uint32_t dtm_node_discovery_task_create(void)
 		gl_node_dis_task_hdl = 0;
 	} else {
 
-		/* Detach this thread and allow it to have its own life. This thread is going to exit on its own 
-		   This macro is going to release the refecences to this thread in the LEAP */
+		/* Detach this thread and allow it to have its own life. This
+		   thread is going to exit on its own This macro is going to
+		   release the refecences to this thread in the LEAP */
 		m_NCS_TASK_DETACH(gl_node_dis_task_hdl);
 	}
 
@@ -263,7 +269,8 @@ int main(int argc, char *argv[])
 
 	if (rc != 0) {
 
-		LOG_ER("DTM:Error reading %s.  errno : %d", DTM_CONFIG_FILE, rc);
+		LOG_ER("DTM:Error reading %s.  errno : %d", DTM_CONFIG_FILE,
+		       rc);
 		goto done3;
 	}
 
@@ -274,27 +281,31 @@ int main(int argc, char *argv[])
 	if (dtms_cb->mcast_flag != true) {
 		rc = dtm_dgram_bcast_sender(dtms_cb);
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("DTM:Set up the initial bcast  sender socket   failed rc : %d ", rc);
+			LOG_ER(
+			    "DTM:Set up the initial bcast  sender socket   failed rc : %d ",
+			    rc);
 			goto done3;
 		}
 	} else {
 		/*
-		   0 
-		   restricted to the same host 
-		   1 
-		   restricted to the same subnet 
-		   32 
-		   restricted to the same site 
-		   64 
-		   restricted to the same region 
-		   128 
-		   restricted to the same continent 
-		   255 
-		   unrestricted 
+		   0
+		   restricted to the same host
+		   1
+		   restricted to the same subnet
+		   32
+		   restricted to the same site
+		   64
+		   restricted to the same region
+		   128
+		   restricted to the same continent
+		   255
+		   unrestricted
 		 */
-		rc = dtm_dgram_mcast_sender(dtms_cb, 64);	/*TODO */
+		rc = dtm_dgram_mcast_sender(dtms_cb, 64); /*TODO */
 		if (NCSCC_RC_SUCCESS != rc) {
-			LOG_ER("DTM:Set up the initial mcast sender socket  failed rc : %d ", rc);
+			LOG_ER(
+			    "DTM:Set up the initial mcast sender socket  failed rc : %d ",
+			    rc);
 			goto done3;
 		}
 	}
@@ -302,7 +313,8 @@ int main(int argc, char *argv[])
 	/*************************************************************/
 	/* construct  bcast or mcast hdr */
 	/*************************************************************/
-	rc = dtm_construct_bcast_hdr(dtms_cb, send_bcast_buffer, &bcast_buf_len);
+	rc =
+	    dtm_construct_bcast_hdr(dtms_cb, send_bcast_buffer, &bcast_buf_len);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_ER("DTM:construct  bcast or mcast hdr  failed rc : %d", rc);
 		goto done3;
@@ -322,7 +334,8 @@ int main(int argc, char *argv[])
 	/*************************************************************/
 	rc = dtm_service_discovery_init(dtms_cb);
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("DTM:service_discovery thread CREATE failed rc : %d ", rc);
+		LOG_ER("DTM:service_discovery thread CREATE failed rc : %d ",
+		       rc);
 		goto done1;
 	}
 
@@ -336,30 +349,37 @@ int main(int argc, char *argv[])
 	do {
 		/* Wait up to bcast_msg_freq seconds. */
 		/* Check if stdin has input. */
-		if (osaf_poll_one_fd(dtms_cb->dgram_sock_sndr, dtms_cb->bcast_msg_freq) < 0) {
+		if (osaf_poll_one_fd(dtms_cb->dgram_sock_sndr,
+				     dtms_cb->bcast_msg_freq) < 0) {
 			LOG_ER("DTM: poll failed");
 			goto done1;
-
 		}
 
-		/* Broadcast msg string in datagram to clients every 250  m seconds */
+		/* Broadcast msg string in datagram to clients every 250  m
+		 * seconds */
 		if (dtms_cb->mcast_flag == true) {
 
-			rc = dtm_dgram_sendto_mcast(dtms_cb, send_bcast_buffer, bcast_buf_len);
+			rc = dtm_dgram_sendto_mcast(dtms_cb, send_bcast_buffer,
+						    bcast_buf_len);
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("DTM: dtm_dgram_sendto_mcast Failed rc : %d \n", rc);
+				LOG_ER(
+				    "DTM: dtm_dgram_sendto_mcast Failed rc : %d \n",
+				    rc);
 			}
 
 		} else {
 
-			rc = dtm_dgram_sendto_bcast(dtms_cb, send_bcast_buffer, bcast_buf_len);
+			rc = dtm_dgram_sendto_bcast(dtms_cb, send_bcast_buffer,
+						    bcast_buf_len);
 			if (NCSCC_RC_SUCCESS != rc) {
-				LOG_ER("DTM: dtm_dgram_sendto_bcast Failed rc : %d \n", rc);
+				LOG_ER(
+				    "DTM: dtm_dgram_sendto_bcast Failed rc : %d \n",
+				    rc);
 			}
-
 		}
 
-		dis_elapsed_time_usec = dis_elapsed_time_usec + (dtms_cb->bcast_msg_freq * 1000);
+		dis_elapsed_time_usec =
+		    dis_elapsed_time_usec + (dtms_cb->bcast_msg_freq * 1000);
 
 	} while (dis_elapsed_time_usec <= dis_time_out_usec);
 	/*************************************************************/
@@ -370,23 +390,25 @@ int main(int argc, char *argv[])
 		m_NCS_TASK_SLEEP(0xfffffff0);
 		/* m_NCS_TASK_SLEEP(30000); */
 	}
- done1:
+done1:
 	LOG_ER("DTM : dtm_destroy_service_discovery_task exiting...");
 	/* Destroy node_discovery_task  task */
 	rc = dtm_destroy_service_discovery_task();
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("DTM: service_discover Task Destruction Failed rc : %d \n", rc);
+		LOG_ER(
+		    "DTM: service_discover Task Destruction Failed rc : %d \n",
+		    rc);
 	}
- done2:
+done2:
 	/* Destroy receiving task */
 	rc = dtm_destroy_node_discovery_task();
 	if (NCSCC_RC_SUCCESS != rc) {
-		LOG_ER("DTM: node_discovery Task Destruction Failed rc : %d \n", rc);
+		LOG_ER("DTM: node_discovery Task Destruction Failed rc : %d \n",
+		       rc);
 	}
 
- done3:
+done3:
 	TRACE_LEAVE();
 	(void)nid_notify("TRANSPORT", NCSCC_RC_FAILURE, NULL);
 	exit(1);
-
 }

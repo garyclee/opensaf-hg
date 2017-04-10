@@ -23,7 +23,7 @@
 #include "imm/saf/saImmOi.h"
 #include "imm/saf/saImmOm.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -31,29 +31,29 @@ extern "C" {
 
 #define SA_NTF_VENDOR_ID_OSAF 32993
 
-#define NTFIMCN_NOTIFYING_OBJECT        "safApp=OpenSaf"
-#define NTFIMCN_ADMIN_OWNER_NAME        "SaImmAttrAdminOwnerName"
-#define NTFIMCN_IMPLEMENTER_NAME        "SaImmAttrImplementerName"
-#define NTFIMCN_CLASS_NAME                      "SaImmAttrClassName"
-#define NTFIMCN_CCB_ID                          "SaImmOiCcbIdT"
-#define NTFIMCN_CCB_LAST                        "ccbLast"
-#define NTFIMCN_IMM_ATTR                        "SaImmAttr"
+#define NTFIMCN_NOTIFYING_OBJECT "safApp=OpenSaf"
+#define NTFIMCN_ADMIN_OWNER_NAME "SaImmAttrAdminOwnerName"
+#define NTFIMCN_IMPLEMENTER_NAME "SaImmAttrImplementerName"
+#define NTFIMCN_CLASS_NAME "SaImmAttrClassName"
+#define NTFIMCN_CCB_ID "SaImmOiCcbIdT"
+#define NTFIMCN_CCB_LAST "ccbLast"
+#define NTFIMCN_IMM_ATTR "SaImmAttr"
 
 typedef struct {
-  SaImmOiHandleT immOiHandle;                             /* Handle from IMM OI initialize */
-  SaImmHandleT immOmHandle;                               /* Handle from IMM OM initialize */
-  SaSelectionObjectT immSelectionObject;  /* Selection Object to wait for IMM events */
-  SaNtfHandleT ntf_handle;                                /* Handle from NTF initialize */
-  SaAmfHAStateT haState;                                  /* Current HA state */
-}ntfimcn_cb_t;
+  SaImmOiHandleT immOiHandle; /* Handle from IMM OI initialize */
+  SaImmHandleT immOmHandle;   /* Handle from IMM OM initialize */
+  SaSelectionObjectT
+      immSelectionObject;  /* Selection Object to wait for IMM events */
+  SaNtfHandleT ntf_handle; /* Handle from NTF initialize */
+  SaAmfHAStateT haState;   /* Current HA state */
+} ntfimcn_cb_t;
 
 #define NTFIMCN_PROC_NAME "osafntfimcnd"
 
 void imcn_exit(int status);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
 #endif  // NTF_NTFIMCND_NTFIMCN_MAIN_H_
-

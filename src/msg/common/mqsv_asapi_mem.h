@@ -20,8 +20,8 @@
 
 ..............................................................................
 
-  DESCRIPTION: ASAPi messages Allocation & Free macros 
- 
+  DESCRIPTION: ASAPi messages Allocation & Free macros
+
 ******************************************************************************
 */
 
@@ -38,61 +38,49 @@
                            Service Sub IDs for MQSv -ASAPi
 *******************************************************************************/
 typedef enum {
-	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL = 1,
-	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO,
-	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO,
-	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO,
+  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL = 1,
+  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO,
+  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO,
+  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO,
 
-	NCS_SERVICE_MQSV_ASAPi_SUB_ID_MAX	/* This should be the last id */
+  NCS_SERVICE_MQSV_ASAPi_SUB_ID_MAX /* This should be the last id */
 } NCS_SERVICE_MQSV_ASAPi_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-                        Memory Allocation and Release Macros 
+                        Memory Allocation and Release Macros
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-#define m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(mem_size, svc_id) m_NCS_MEM_ALLOC( \
-                                                mem_size, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                svc_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL)
+#define m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(mem_size, svc_id)       \
+  m_NCS_MEM_ALLOC(mem_size, NCS_MEM_REGION_PERSISTENT, svc_id, \
+                  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL)
 
-#define m_MMGR_FREE_ASAPi_DEFAULT_VAL(p, scv_id) m_NCS_MEM_FREE(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                scv_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL)
+#define m_MMGR_FREE_ASAPi_DEFAULT_VAL(p, scv_id)       \
+  m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, scv_id, \
+                 NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL)
 
-#define m_MMGR_ALLOC_ASAPi_CACHE_INFO(svc_id) m_NCS_MEM_ALLOC( \
-                                                sizeof(ASAPi_CACHE_INFO), \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                svc_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO)
+#define m_MMGR_ALLOC_ASAPi_CACHE_INFO(svc_id)                                  \
+  m_NCS_MEM_ALLOC(sizeof(ASAPi_CACHE_INFO), NCS_MEM_REGION_PERSISTENT, svc_id, \
+                  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO)
 
-#define m_MMGR_FREE_ASAPi_CACHE_INFO(p, scv_id) m_NCS_MEM_FREE(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                scv_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO)
+#define m_MMGR_FREE_ASAPi_CACHE_INFO(p, scv_id)        \
+  m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, scv_id, \
+                 NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO)
 
-#define m_MMGR_ALLOC_ASAPi_QUEUE_INFO(svc_id) m_NCS_MEM_ALLOC( \
-                                                sizeof(ASAPi_QUEUE_INFO), \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                svc_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO)
+#define m_MMGR_ALLOC_ASAPi_QUEUE_INFO(svc_id)                                  \
+  m_NCS_MEM_ALLOC(sizeof(ASAPi_QUEUE_INFO), NCS_MEM_REGION_PERSISTENT, svc_id, \
+                  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO)
 
-#define m_MMGR_FREE_ASAPi_QUEUE_INFO(p, scv_id) m_NCS_MEM_FREE(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                scv_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO)
+#define m_MMGR_FREE_ASAPi_QUEUE_INFO(p, scv_id)        \
+  m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, scv_id, \
+                 NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO)
 
-#define m_MMGR_ALLOC_ASAPi_MSG_INFO(svc_id) m_NCS_MEM_ALLOC( \
-                                                sizeof(ASAPi_MSG_INFO), \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                svc_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO)
+#define m_MMGR_ALLOC_ASAPi_MSG_INFO(svc_id)                                  \
+  m_NCS_MEM_ALLOC(sizeof(ASAPi_MSG_INFO), NCS_MEM_REGION_PERSISTENT, svc_id, \
+                  NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO)
 
-#define m_MMGR_FREE_ASAPi_MSG_INFO(p, scv_id) m_NCS_MEM_FREE(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                scv_id, \
-                                                NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO)
+#define m_MMGR_FREE_ASAPi_MSG_INFO(p, scv_id)          \
+  m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, scv_id, \
+                 NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO)
 
 #endif  // MSG_COMMON_MQSV_ASAPI_MEM_H_

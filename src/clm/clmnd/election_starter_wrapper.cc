@@ -24,17 +24,17 @@
 void ElectionStarterUpEvent(void* instance, uint32_t node_id,
                             enum ElectionStarterServiceType service) {
   static_cast<ElectionStarter*>(instance)->UpEvent(
-      node_id,
-      service == ElectionStarterServiceNode ?
-          ElectionStarter::Node : ElectionStarter::Controller);
+      node_id, service == ElectionStarterServiceNode
+                   ? ElectionStarter::Node
+                   : ElectionStarter::Controller);
 }
 
 void ElectionStarterDownEvent(void* instance, uint32_t node_id,
                               enum ElectionStarterServiceType service) {
   static_cast<ElectionStarter*>(instance)->DownEvent(
-      node_id,
-      service == ElectionStarterServiceNode ?
-          ElectionStarter::Node : ElectionStarter::Controller);
+      node_id, service == ElectionStarterServiceNode
+                   ? ElectionStarter::Node
+                   : ElectionStarter::Controller);
 }
 
 struct timespec ElectionStarterPoll(void* instance) {

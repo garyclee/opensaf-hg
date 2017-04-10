@@ -21,93 +21,76 @@
 
 void saNtfObjectCreateDeleteNotificationFilterAllocate_01(void)
 {
-    SaNtfHandleT ntfHandle;
-    SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
+	SaNtfHandleT ntfHandle;
+	SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
 
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
 
-    if((rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
-    		ntfHandle,
-    		&myObjCreDelFilter,
-    		0,
-    		0,
-    		0,
-    		1,
-    		0)) == SA_AIS_OK) {
-    	safassert(saNtfNotificationFilterFree(myObjCreDelFilter.notificationFilterHandle), SA_AIS_OK);
-    }
+	if ((rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
+		 ntfHandle, &myObjCreDelFilter, 0, 0, 0, 1, 0)) == SA_AIS_OK) {
+		safassert(saNtfNotificationFilterFree(
+			      myObjCreDelFilter.notificationFilterHandle),
+			  SA_AIS_OK);
+	}
 
-    safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
-    test_validate(rc, SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_OK);
 }
 
 void saNtfObjectCreateDeleteNotificationFilterAllocate_02(void)
 {
-    SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
+	SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
 
-     rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
-    		0,
-    		&myObjCreDelFilter,
-    		0,
-    		0,
-    		0,
-    		1,
-    		0);
+	rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
+	    0, &myObjCreDelFilter, 0, 0, 0, 1, 0);
 
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saNtfObjectCreateDeleteNotificationFilterAllocate_03(void)
 {
-    SaNtfHandleT ntfHandle;
-    SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
+	SaNtfHandleT ntfHandle;
+	SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
 
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
-    safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 
-    rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
-    		ntfHandle,
-    		&myObjCreDelFilter,
-    		0,
-    		0,
-    		0,
-    		1,
-    		0);
+	rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
+	    ntfHandle, &myObjCreDelFilter, 0, 0, 0, 1, 0);
 
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+	test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saNtfObjectCreateDeleteNotificationFilterAllocate_04(void)
 {
-    SaNtfHandleT ntfHandle;
+	SaNtfHandleT ntfHandle;
 
-    safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion),
+		  SA_AIS_OK);
 
-    rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
-    		ntfHandle,
-    		NULL,
-    		0,
-    		0,
-    		0,
-    		1,
-    		0);
+	rc = saNtfObjectCreateDeleteNotificationFilterAllocate(ntfHandle, NULL,
+							       0, 0, 0, 1, 0);
 
-    safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
-    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
-__attribute__ ((constructor)) static void
+__attribute__((constructor)) static void
 saNtfObjectCreateDeleteNotificationFilterAllocate_constructor(void)
 {
-    test_suite_add(7, "Consumer operations - filter allocate");
-    test_case_add(7,saNtfObjectCreateDeleteNotificationFilterAllocate_01,
-    		"saNtfObjectCreateDeleteNotificationFilterAllocate - SA_AIS_OK");
-    test_case_add(7,saNtfObjectCreateDeleteNotificationFilterAllocate_02,
-    		"saNtfObjectCreateDeleteNotificationFilterAllocate - handle null SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(7,saNtfObjectCreateDeleteNotificationFilterAllocate_03,
-    		"saNtfObjectCreateDeleteNotificationFilterAllocate - handle returned SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(7,saNtfObjectCreateDeleteNotificationFilterAllocate_04,
-    		"saNtfObjectCreateDeleteNotificationFilterAllocate - SA_AIS_ERR_INVALID_PARAM");
+	test_suite_add(7, "Consumer operations - filter allocate");
+	test_case_add(
+	    7, saNtfObjectCreateDeleteNotificationFilterAllocate_01,
+	    "saNtfObjectCreateDeleteNotificationFilterAllocate - SA_AIS_OK");
+	test_case_add(
+	    7, saNtfObjectCreateDeleteNotificationFilterAllocate_02,
+	    "saNtfObjectCreateDeleteNotificationFilterAllocate - handle null SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    7, saNtfObjectCreateDeleteNotificationFilterAllocate_03,
+	    "saNtfObjectCreateDeleteNotificationFilterAllocate - handle returned SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    7, saNtfObjectCreateDeleteNotificationFilterAllocate_04,
+	    "saNtfObjectCreateDeleteNotificationFilterAllocate - SA_AIS_ERR_INVALID_PARAM");
 }
-
-

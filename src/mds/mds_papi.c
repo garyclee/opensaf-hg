@@ -23,7 +23,7 @@
 ..............................................................................
 
   DESCRIPTION: This file contains all the service related version 2 apis
-               for MDS
+	       for MDS
 
 ******************************************************************************
 */
@@ -38,91 +38,61 @@
 #include "base/osaf_utility.h"
 
 /**************************************************************************
- * SVC_NAME  of Service : A well known name that a service 
+ * SVC_NAME  of Service : A well known name that a service
  ***************************************************************************/
-const char ncsmds_svc_names[NCSMDS_SVC_ID_NCSMAX][MAX_SVC_NAME_LEN] =
-{
-        "UNKNOWN",
-        "DTS",
-        "DTA",
-        "GLA",
-        "GLND",
-        "GLD",
-        "VDA",
-        "EDS",
-        "EDA",
-        "MQA",
-        "MQND",
-        "MQD",
-        "AVD",
-        "AVND",
-        "AVA",
-        "CLA",
-        "CPD",
-        "CPND",
-        "CPA",
-        "MBCSV",
-        "LGS",
-        "LGA",
-        "AVND_CNTLR",
-        "GFM",
-        "IMMD",
-        "IMMND",
-        "IMMA_OM",
-        "IMMA_OI",
-        "NTFS",
-        "NTFA",
-        "SMFD",
-        "SMFND",
-        "SMFA",
-        "RDE",
-        "CLMS",
-        "CLMA",
-        "CLMNA",
-        "PLMS",
-        "PLMS_HRB",
-        "PLMA",
+const char ncsmds_svc_names[NCSMDS_SVC_ID_NCSMAX][MAX_SVC_NAME_LEN] = {
+    "UNKNOWN", "DTS",	"DTA",  "GLA",      "GLND",  "GLD",     "VDA",
+    "EDS",     "EDA",	"MQA",  "MQND",     "MQD",   "AVD",     "AVND",
+    "AVA",     "CLA",	"CPD",  "CPND",     "CPA",   "MBCSV",   "LGS",
+    "LGA",     "AVND_CNTLR", "GFM",  "IMMD",     "IMMND", "IMMA_OM", "IMMA_OI",
+    "NTFS",    "NTFA",       "SMFD", "SMFND",    "SMFA",  "RDE",     "CLMS",
+    "CLMA",    "CLMNA",      "PLMS", "PLMS_HRB", "PLMA",
 };
 
 /**************************************************************************
- * INTERNAL SVC_NAME  of Service : A User defined internal name that a service 
+ * INTERNAL SVC_NAME  of Service : A User defined internal name that a service
  ***************************************************************************/
-const char ncsmds_internal_svc_names[NCSMDS_SVC_ID_INTMAX - NCSMDS_SVC_ID_INTERNAL_MIN][MAX_SVC_NAME_LEN] =
-{
-	"INTERNAL",
+const char
+    ncsmds_internal_svc_names[NCSMDS_SVC_ID_INTMAX - NCSMDS_SVC_ID_INTERNAL_MIN]
+			     [MAX_SVC_NAME_LEN] = {
+				 "INTERNAL",
 };
 
 /**************************************************************************
  * EXTERNAL SVC_NAME  of Service : A User defined external name that a service
  ***************************************************************************/
-const char ncsmds_external_svc_names[NCSMDS_SVC_ID_EXTMAX - NCSMDS_SVC_ID_EXTERNAL_MIN][MAX_SVC_NAME_LEN] =
-{
-	"EXTERNAL",
+const char
+    ncsmds_external_svc_names[NCSMDS_SVC_ID_EXTMAX - NCSMDS_SVC_ID_EXTERNAL_MIN]
+			     [MAX_SVC_NAME_LEN] = {
+				 "EXTERNAL",
 };
 
-const char *get_svc_names(int svc_id) {
+const char *get_svc_names(int svc_id)
+{
 
-	if ( svc_id < NCSMDS_SVC_ID_INTERNAL_MIN)
-	{
-		if (svc_id < NCSMDS_SVC_ID_NCSMAX) 
+	if (svc_id < NCSMDS_SVC_ID_INTERNAL_MIN) {
+		if (svc_id < NCSMDS_SVC_ID_NCSMAX)
 			return ncsmds_svc_names[svc_id];
 		else
 			return ncsmds_svc_names[0];
-	}
-	else if ((svc_id >= NCSMDS_SVC_ID_INTERNAL_MIN) && (svc_id < NCSMDS_SVC_ID_EXTERNAL_MIN)) {
-		if ( svc_id < NCSMDS_SVC_ID_INTMAX)	
-			return ncsmds_internal_svc_names[svc_id - NCSMDS_SVC_ID_INTERNAL_MIN]; 
+	} else if ((svc_id >= NCSMDS_SVC_ID_INTERNAL_MIN) &&
+		   (svc_id < NCSMDS_SVC_ID_EXTERNAL_MIN)) {
+		if (svc_id < NCSMDS_SVC_ID_INTMAX)
+			return ncsmds_internal_svc_names
+			    [svc_id - NCSMDS_SVC_ID_INTERNAL_MIN];
 		else
-			return	ncsmds_internal_svc_names[0];
-	} else if ((svc_id >= NCSMDS_SVC_ID_EXTERNAL_MIN) && (svc_id <=  NCSMDS_MAX_SVCS)) {
-		if ( svc_id < NCSMDS_SVC_ID_EXTMAX)
-			return ncsmds_external_svc_names[svc_id - NCSMDS_SVC_ID_EXTERNAL_MIN];
+			return ncsmds_internal_svc_names[0];
+	} else if ((svc_id >= NCSMDS_SVC_ID_EXTERNAL_MIN) &&
+		   (svc_id <= NCSMDS_MAX_SVCS)) {
+		if (svc_id < NCSMDS_SVC_ID_EXTMAX)
+			return ncsmds_external_svc_names
+			    [svc_id - NCSMDS_SVC_ID_EXTERNAL_MIN];
 		else
 			return ncsmds_external_svc_names[0];
 	}
- 
-	return ncsmds_svc_names[0]; 
-} 
+
+	return ncsmds_svc_names[0];
+}
 
 /****************************************************************************
  *
@@ -141,22 +111,26 @@ uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	if (svc_to_mds_info == NULL) {
-		m_MDS_LOG_ERR("PAPI: Input svc_to_mds_info = NULL in ncsmds_api()");
+		m_MDS_LOG_ERR(
+		    "PAPI: Input svc_to_mds_info = NULL in ncsmds_api()");
 		return NCSCC_RC_FAILURE;
 	}
 
 	osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 	if (gl_mds_mcm_cb == NULL) {
-		m_MDS_LOG_ERR("PAPI: ncsmds_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
+		m_MDS_LOG_ERR(
+		    "PAPI: ncsmds_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
 		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Vailidate pwe hdl */
-	if (svc_to_mds_info->i_op == MDS_SEND || svc_to_mds_info->i_op == MDS_DIRECT_SEND) {
+	if (svc_to_mds_info->i_op == MDS_SEND ||
+	    svc_to_mds_info->i_op == MDS_DIRECT_SEND) {
 		/* Don't validate pwe hdl */
 	} else {
-		status = mds_validate_pwe_hdl((MDS_PWE_HDL)svc_to_mds_info->i_mds_hdl);
+		status = mds_validate_pwe_hdl(
+		    (MDS_PWE_HDL)svc_to_mds_info->i_mds_hdl);
 		if (status == NCSCC_RC_FAILURE) {
 			m_MDS_LOG_ERR("PAPI: Invalid pwe hdl in ncsmds_api()");
 			osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
@@ -181,11 +155,11 @@ uint32_t ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 	case MDS_CANCEL:
 		status = mds_mcm_svc_unsubscribe(svc_to_mds_info);
 		break;
-/*
-    case MDS_SYS_SUBSCRIBE:
-        status = mds_sys_subscribe(svc_to_mds_info);
-        break;
-*/
+	/*
+	    case MDS_SYS_SUBSCRIBE:
+		status = mds_sys_subscribe(svc_to_mds_info);
+		break;
+	*/
 	case MDS_SEND:
 	case MDS_DIRECT_SEND:
 		status = mds_send(svc_to_mds_info);
@@ -238,12 +212,14 @@ uint32_t ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm)
 	uint32_t status = NCSCC_RC_SUCCESS;
 
 	if (mds_adm == NULL) {
-		m_MDS_LOG_ERR("PAPI: Invalid Input mds_adm = NULL in ncsmds_adm_api()");
+		m_MDS_LOG_ERR(
+		    "PAPI: Invalid Input mds_adm = NULL in ncsmds_adm_api()");
 		return NCSCC_RC_FAILURE;
 	}
 	osaf_mutex_lock_ordie(&gl_mds_library_mutex);
 	if (gl_mds_mcm_cb == NULL) {
-		m_MDS_LOG_ERR("PAPI: ncsmds_adm_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
+		m_MDS_LOG_ERR(
+		    "PAPI: ncsmds_adm_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
 		osaf_mutex_unlock_ordie(&gl_mds_library_mutex);
 		return NCSCC_RC_FAILURE;
 	}
@@ -278,7 +254,8 @@ uint32_t ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm)
 		break;
 
 	default:
-		m_MDS_LOG_ERR("PAPI: API Option Unsupported in ncsmds_adm_api()");
+		m_MDS_LOG_ERR(
+		    "PAPI: API Option Unsupported in ncsmds_adm_api()");
 		status = NCSCC_RC_FAILURE;
 		break;
 	}
@@ -314,7 +291,8 @@ MDS_DEST mds_fetch_qa()
  ****************************************************************************/
 MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest)
 {
-	return (MDS_VDEST_ID)(m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) == 0 ? mdsdest : 0);
+	return (MDS_VDEST_ID)(
+	    m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) == 0 ? mdsdest : 0);
 }
 
 /****************************************************************************
@@ -323,22 +301,21 @@ MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest)
  *
  * Purpose:
  *
- * Return Value:  MDS_DIRECT_BUFF 
+ * Return Value:  MDS_DIRECT_BUFF
  *
  ****************************************************************************/
-#define m_MMGR_ALLOC_DIRECT_BUFF(size)  m_NCS_MEM_ALLOC(size,\
-                                                  NCS_MEM_REGION_PERSISTENT,\
-                                                  NCS_SERVICE_ID_MDS,\
-                                                  MDS_DIRECT_BUFF_AL)
+#define m_MMGR_ALLOC_DIRECT_BUFF(size)                                         \
+	m_NCS_MEM_ALLOC(size, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_MDS,   \
+			MDS_DIRECT_BUFF_AL)
 
-#define m_MMGR_FREE_DIRECT_BUFF(p)  m_NCS_MEM_FREE(p,\
-                                                  NCS_MEM_REGION_PERSISTENT,\
-                                                  NCS_SERVICE_ID_MDS,\
-                                                  MDS_DIRECT_BUFF_AL)
+#define m_MMGR_FREE_DIRECT_BUFF(p)                                             \
+	m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_MDS,       \
+		       MDS_DIRECT_BUFF_AL)
 MDS_DIRECT_BUFF mds_alloc_direct_buff(uint16_t size)
 {
 	if (size > MDS_DIRECT_BUF_MAXSIZE) {
-		m_MDS_LOG_ERR("PAPI: Requested Memory allocation for direct buff > than the Max Direct buff \n");
+		m_MDS_LOG_ERR(
+		    "PAPI: Requested Memory allocation for direct buff > than the Max Direct buff \n");
 		return NULL;
 	} else
 		return (MDS_DIRECT_BUFF)(m_MMGR_ALLOC_DIRECT_BUFF(size));
@@ -357,8 +334,9 @@ void mds_free_direct_buff(MDS_DIRECT_BUFF buff)
 {
 	if (buff != NULL) {
 		m_MMGR_FREE_DIRECT_BUFF(buff);
-		buff = NULL;	/* Safer check */
+		buff = NULL; /* Safer check */
 	} else {
-		m_MDS_LOG_ERR("PAPI: Trying to free the direct buffer with pointer as NULL\n");
+		m_MDS_LOG_ERR(
+		    "PAPI: Trying to free the direct buffer with pointer as NULL\n");
 	}
 }

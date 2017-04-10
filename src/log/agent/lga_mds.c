@@ -22,22 +22,21 @@
 #include "lga_state.h"
 #include "base/osaf_extended_name.h"
 
-
 static MDS_CLIENT_MSG_FORMAT_VER
- LGA_WRT_LGS_MSG_FMT_ARRAY[LGA_WRT_LGS_SUBPART_VER_RANGE] = {
-	1			/*msg format version for LGA subpart version 1 */
+    LGA_WRT_LGS_MSG_FMT_ARRAY[LGA_WRT_LGS_SUBPART_VER_RANGE] = {
+	1 /*msg format version for LGA subpart version 1 */
 };
 
 /****************************************************************************
   Name          : lga_enc_initialize_msg
- 
+
   Description   : This routine encodes an initialize API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_enc_initialize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
@@ -49,7 +48,7 @@ static uint32_t lga_enc_initialize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	TRACE_ENTER();
 	osafassert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 3);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -67,14 +66,14 @@ static uint32_t lga_enc_initialize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 /****************************************************************************
   Name          : lga_enc_finalize_msg
- 
+
   Description   : This routine encodes a finalize API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_enc_finalize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
@@ -87,7 +86,7 @@ static uint32_t lga_enc_finalize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 	osafassert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -103,14 +102,14 @@ static uint32_t lga_enc_finalize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 /****************************************************************************
   Name          : lga_enc_lstr_open_sync_msg
- 
+
   Description   : This routine encodes a log stream open sync API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
@@ -118,12 +117,13 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	int len;
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	lgsv_stream_open_req_t *param = &msg->info.api_info.param.lstr_open_sync;
+	lgsv_stream_open_req_t *param =
+	    &msg->info.api_info.param.lstr_open_sync;
 
 	TRACE_ENTER();
 	osafassert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 6);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -139,7 +139,7 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 	/* Encode log stream name */
 	ncs_encode_n_octets_in_uba(uba, (uint8_t *)value, (uint32_t)length);
-	total_bytes += (uint32_t) length;
+	total_bytes += (uint32_t)length;
 
 	/* Encode logFileName if initiated */
 	p8 = ncs_enc_reserve_space(uba, 2);
@@ -152,20 +152,24 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	} else {
 		/**
 		 * Workaround to keep backward compatible [#1686]
-		 * The problem was that standby node (OpenSAF 5.0) failed to come up
-		 * when active node ran with older OpenSAF version (e.g OpenSAF 4.7).
+		 * The problem was that standby node (OpenSAF 5.0) failed to
+		 * come up when active node ran with older OpenSAF version (e.g
+		 * OpenSAF 4.7).
 		 *
-		 * In OpenSAF 4.7 or older, logFileName is declared as an static array of chars
-		 * and always passed to MDS layer for encoding. The length (len) is at least one.
-		 * Therefore, in log service side, there is an precondition check
-		 * in MDS decoding callback if the length of logFileName data is invalid (0).
+		 * In OpenSAF 4.7 or older, logFileName is declared as an static
+		 * array of chars and always passed to MDS layer for encoding.
+		 * The length (len) is at least one. Therefore, in log service
+		 * side, there is an precondition check in MDS decoding callback
+		 * if the length of logFileName data is invalid (0).
 		 *
-		 * In OpenSAF 5.0 or later, logFileName is declared as an dynamic one and then
-		 * there is posibility to be NULL when opening one of dedicated log streams.
-		 * Suppose we did not pass any data for encoding when logFileName is NULL,
-		 * when OpenSAF 5.0 log client communicates with OpenSAF 4.7 active log service,
-		 * it would get failed at saLogStreamOpen() because of log service unsuccesfully
-		 * deeode the message at MDS layer (len = 0).
+		 * In OpenSAF 5.0 or later, logFileName is declared as an
+		 * dynamic one and then there is posibility to be NULL when
+		 * opening one of dedicated log streams. Suppose we did not pass
+		 * any data for encoding when logFileName is NULL, when OpenSAF
+		 * 5.0 log client communicates with OpenSAF 4.7 active log
+		 * service, it would get failed at saLogStreamOpen() because of
+		 * log service unsuccesfully deeode the message at MDS layer
+		 * (len = 0).
 		 */
 		len = 1;
 	}
@@ -175,7 +179,8 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	total_bytes += 2;
 
 	if (param->logFileName != NULL) {
-		ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->logFileName, len);
+		ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->logFileName,
+					   len);
 		total_bytes += len;
 	} else {
 		/* Keep backward compatible */
@@ -201,7 +206,8 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	total_bytes += 2;
 
 	if (param->logFilePathName != NULL) {
-		ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->logFilePathName, len);
+		ncs_encode_n_octets_in_uba(
+		    uba, (uint8_t *)param->logFilePathName, len);
 		total_bytes += len;
 	} else {
 		/* Workaround to keep backward compatible */
@@ -229,7 +235,8 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	total_bytes += 24;
 
 	if (len > 0) {
-		ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->logFileFmt, len);
+		ncs_encode_n_octets_in_uba(uba, (uint8_t *)param->logFileFmt,
+					   len);
 		total_bytes += len;
 	}
 
@@ -244,21 +251,21 @@ static uint32_t lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	ncs_enc_claim_space(uba, 1);
 	total_bytes += 1;
 
- done:
+done:
 	TRACE_LEAVE();
 	return total_bytes;
 }
 
 /****************************************************************************
   Name          : lga_enc_lstr_close_msg
- 
+
   Description   : This routine encodes a log stream close API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_enc_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
@@ -269,7 +276,7 @@ static uint32_t lga_enc_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 	osafassert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -283,7 +290,8 @@ static uint32_t lga_enc_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	return total_bytes;
 }
 
-static uint32_t lga_enc_write_ntf_header(NCS_UBAID *uba, const SaLogNtfLogHeaderT *ntfLogH)
+static uint32_t lga_enc_write_ntf_header(NCS_UBAID *uba,
+					 const SaLogNtfLogHeaderT *ntfLogH)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -296,7 +304,8 @@ static uint32_t lga_enc_write_ntf_header(NCS_UBAID *uba, const SaLogNtfLogHeader
 	ncs_encode_64bit(&p8, ntfLogH->notificationId);
 	ncs_encode_32bit(&p8, (uint32_t)ntfLogH->eventType);
 
-	SaConstStringT value = osaf_extended_name_borrow(ntfLogH->notificationObject);
+	SaConstStringT value =
+	    osaf_extended_name_borrow(ntfLogH->notificationObject);
 	size_t length = strlen(value);
 
 	ncs_encode_16bit(&p8, length);
@@ -312,13 +321,15 @@ static uint32_t lga_enc_write_ntf_header(NCS_UBAID *uba, const SaLogNtfLogHeader
 		return 0;
 	}
 
-	SaConstStringT notifObj = osaf_extended_name_borrow(ntfLogH->notifyingObject);
+	SaConstStringT notifObj =
+	    osaf_extended_name_borrow(ntfLogH->notifyingObject);
 	size_t notifLength = strlen(notifObj);
 	ncs_encode_16bit(&p8, notifLength);
 	ncs_enc_claim_space(uba, 2);
 	total_bytes += 2;
 
-	ncs_encode_n_octets_in_uba(uba, (uint8_t *)notifObj, (uint32_t)notifLength);
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)notifObj,
+				   (uint32_t)notifLength);
 	total_bytes += (uint32_t)notifLength;
 
 	p8 = ncs_enc_reserve_space(uba, 16);
@@ -336,9 +347,10 @@ static uint32_t lga_enc_write_ntf_header(NCS_UBAID *uba, const SaLogNtfLogHeader
 	return total_bytes;
 }
 
-static uint32_t lga_enc_write_gen_header(NCS_UBAID *uba,
-					 const lgsv_write_log_async_req_t *param,
-					 const SaLogGenericLogHeaderT *genLogH)
+static uint32_t
+lga_enc_write_gen_header(NCS_UBAID *uba,
+			 const lgsv_write_log_async_req_t *param,
+			 const SaLogGenericLogHeaderT *genLogH)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
@@ -352,14 +364,16 @@ static uint32_t lga_enc_write_gen_header(NCS_UBAID *uba,
 	ncs_encode_16bit(&p8, 0);
 	ncs_encode_16bit(&p8, 0);
 
-	SaConstStringT usrName = osaf_extended_name_borrow(param->logSvcUsrName);
+	SaConstStringT usrName =
+	    osaf_extended_name_borrow(param->logSvcUsrName);
 	size_t nameLength = strlen(usrName) + 1;
 
 	ncs_encode_16bit(&p8, nameLength);
 	ncs_enc_claim_space(uba, 10);
 	total_bytes += 10;
 
-	ncs_encode_n_octets_in_uba(uba, (uint8_t *)usrName, (uint32_t)nameLength);
+	ncs_encode_n_octets_in_uba(uba, (uint8_t *)usrName,
+				   (uint32_t)nameLength);
 	total_bytes += (uint32_t)nameLength;
 
 	p8 = ncs_enc_reserve_space(uba, 2);
@@ -375,27 +389,28 @@ static uint32_t lga_enc_write_gen_header(NCS_UBAID *uba,
 
 /****************************************************************************
   Name          : lga_enc_write_log_async_msg
- 
+
   Description   : This routine encodes a write log async API msg
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_enc_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	lgsv_write_log_async_req_t *param = &msg->info.api_info.param.write_log_async;
+	lgsv_write_log_async_req_t *param =
+	    &msg->info.api_info.param.write_log_async;
 	const SaLogNtfLogHeaderT *ntfLogH;
 	const SaLogGenericLogHeaderT *genLogH;
 
 	osafassert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 20);
 	if (!p8) {
 		TRACE("Could not reserve space");
@@ -425,7 +440,8 @@ static uint32_t lga_enc_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		ntfLogH = &param->logRecord->logHeader.ntfHdr;
 
 		bytecount = lga_enc_write_ntf_header(uba, ntfLogH);
-		if (bytecount == 0) return 0;
+		if (bytecount == 0)
+			return 0;
 
 		total_bytes += bytecount;
 		break;
@@ -434,7 +450,8 @@ static uint32_t lga_enc_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		genLogH = &param->logRecord->logHeader.genericHdr;
 
 		bytecount = lga_enc_write_gen_header(uba, param, genLogH);
-		if (bytecount == 0) return 0;
+		if (bytecount == 0)
+			return 0;
 
 		total_bytes += bytecount;
 		break;
@@ -453,145 +470,171 @@ static uint32_t lga_enc_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 	if (param->logRecord->logBuffer == NULL) {
 		ncs_encode_32bit(&p8, (uint32_t)0);
 	} else {
-		ncs_encode_32bit(&p8, (uint32_t)param->logRecord->logBuffer->logBufSize);
+		ncs_encode_32bit(
+		    &p8, (uint32_t)param->logRecord->logBuffer->logBufSize);
 	}
 	ncs_enc_claim_space(uba, 4);
 	total_bytes += 4;
 
-	if ((param->logRecord->logBuffer != NULL) && (param->logRecord->logBuffer->logBuf != NULL)) {
-		ncs_encode_n_octets_in_uba(uba,
-					   param->logRecord->logBuffer->logBuf,
-					   (uint32_t)param->logRecord->logBuffer->logBufSize);
-		total_bytes += (uint32_t)param->logRecord->logBuffer->logBufSize;
+	if ((param->logRecord->logBuffer != NULL) &&
+	    (param->logRecord->logBuffer->logBuf != NULL)) {
+		ncs_encode_n_octets_in_uba(
+		    uba, param->logRecord->logBuffer->logBuf,
+		    (uint32_t)param->logRecord->logBuffer->logBufSize);
+		total_bytes +=
+		    (uint32_t)param->logRecord->logBuffer->logBufSize;
 	}
 	return total_bytes;
 }
 
 /****************************************************************************
   Name          : lga_lgs_msg_proc
- 
+
   Description   : This routine is used to process the ASYNC incoming
-                  LGS messages. 
- 
+		  LGS messages.
+
   Arguments     : pointer to struct ncsmds_callback_info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
-static uint32_t lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg, MDS_SEND_PRIORITY_TYPE prio)
+static uint32_t lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg,
+				 MDS_SEND_PRIORITY_TYPE prio)
 {
 	TRACE_ENTER();
 
 	switch (lgsv_msg->type) {
 	case LGSV_LGS_CBK_MSG:
 		switch (lgsv_msg->info.cbk_info.type) {
-		case LGSV_WRITE_LOG_CALLBACK_IND:
-			{
-				lga_client_hdl_rec_t *lga_hdl_rec;
+		case LGSV_WRITE_LOG_CALLBACK_IND: {
+			lga_client_hdl_rec_t *lga_hdl_rec;
 
-				TRACE_2("LGSV_LGS_WRITE_LOG_CBK: inv_id = %d, cbk_error %s",
-					(int)lgsv_msg->info.cbk_info.inv,
-					saf_error((int)lgsv_msg->info.cbk_info.write_cbk.error));
+			TRACE_2(
+			    "LGSV_LGS_WRITE_LOG_CBK: inv_id = %d, cbk_error %s",
+			    (int)lgsv_msg->info.cbk_info.inv,
+			    saf_error(
+				(int)lgsv_msg->info.cbk_info.write_cbk.error));
 
-			/** Create the chan hdl record here before 
-                         ** queing this message onto the priority queue
-                         ** so that the dispatch by the application to fetch
-                         ** the callback is instantaneous.
-                         **/
+			/** Create the chan hdl record here before
+			 ** queing this message onto the priority queue
+			 ** so that the dispatch by the application to fetch
+			 ** the callback is instantaneous.
+			 **/
 
 			/** Lookup the hdl rec by client_id  **/
-				if (NULL == (lga_hdl_rec =
-					     lga_find_hdl_rec_by_regid(cb, lgsv_msg->info.cbk_info.lgs_client_id))) {
-					TRACE("regid not found");
-					lga_msg_destroy(lgsv_msg);
-					TRACE_LEAVE();
-					return NCSCC_RC_FAILURE;
-				}
+			if (NULL ==
+			    (lga_hdl_rec = lga_find_hdl_rec_by_regid(
+				 cb, lgsv_msg->info.cbk_info.lgs_client_id))) {
+				TRACE("regid not found");
+				lga_msg_destroy(lgsv_msg);
+				TRACE_LEAVE();
+				return NCSCC_RC_FAILURE;
+			}
 
 			/** enqueue this message  **/
-				if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&lga_hdl_rec->mbx, lgsv_msg, prio)) {
-					TRACE("IPC SEND FAILED");
-					lga_msg_destroy(lgsv_msg);
-					TRACE_LEAVE();
-					return NCSCC_RC_FAILURE;
-				}
-			}
-			break;
-
-		case LGSV_CLM_NODE_STATUS_CALLBACK:
-			{
-				lga_client_hdl_rec_t *lga_hdl_rec;
-
-				TRACE_2("LGSV_CLM_NODE_STATUS_CALLBACK  clm_node_status:%d",
-						lgsv_msg->info.cbk_info.clm_node_status_cbk.clm_node_status);
-
-				/** Lookup the hdl rec by client_id  **/
-				if (NULL == (lga_hdl_rec =
-							lga_find_hdl_rec_by_regid(cb, lgsv_msg->info.cbk_info.lgs_client_id))) {
-					TRACE("regid not found");
-					lga_msg_destroy(lgsv_msg);
-					TRACE_LEAVE();
-					return NCSCC_RC_FAILURE;
-				}
-				cb->clm_node_state = lgsv_msg->info.cbk_info.clm_node_status_cbk.clm_node_status;
-				//A client becomes stale if Node loses CLM Membership.
-				if (cb->clm_node_state != SA_CLM_NODE_JOINED) {
-					/*If the node rejoins the cluster membership, processes executing on the node will be
-					  able to reinitialize new library handles and use the entire set of Log Service APIs that
-					  operate on these new handles; however, invocation of APIs that operate on handles
-					  acquired by any process before the node left the membership will continue to fail with
-					  SA_AIS_ERR_UNAVAILABLE (or with the special treatment described above for
-					  asynchronous calls) with the exception of saLogFinalize(), which is used to free the
-					  library handles and all resources associated with these handles. Hence, it is recommended
-					  for the processes to finalize the library handles as soon as the processes
-					  detect that the node left the membership.*/
-					 
-					/*Old LGA clients A.02.01 are always clm member */
-					if (!((lga_hdl_rec->version.releaseCode == LOG_RELEASE_CODE_0) &&
-							(lga_hdl_rec->version.majorVersion == LOG_MAJOR_VERSION_0) &&
-							(lga_hdl_rec->version.minorVersion == LOG_MINOR_VERSION_0))) {
-						lga_hdl_rec->is_stale_client = true;
-						TRACE("CLM_NODE callback is_stale_client: %d clm_node_state: %d",
-								lga_hdl_rec->is_stale_client, cb->clm_node_state);
-					}
-				}
+			if (NCSCC_RC_SUCCESS !=
+			    m_NCS_IPC_SEND(&lga_hdl_rec->mbx, lgsv_msg, prio)) {
+				TRACE("IPC SEND FAILED");
 				lga_msg_destroy(lgsv_msg);
+				TRACE_LEAVE();
+				return NCSCC_RC_FAILURE;
 			}
-			break;
+		} break;
 
-		case LGSV_SEVERITY_FILTER_CALLBACK:
-			{
-				lga_client_hdl_rec_t *lga_hdl_rec;
-				/** Lookup the hdl rec by client_id  **/
-				lga_hdl_rec = lga_find_hdl_rec_by_regid(cb, lgsv_msg->info.cbk_info.lgs_client_id);
-				if (lga_hdl_rec == NULL) {
-					TRACE("regid not found");
-					lga_msg_destroy(lgsv_msg);
-					TRACE_LEAVE();
-					return NCSCC_RC_FAILURE;
-				}
+		case LGSV_CLM_NODE_STATUS_CALLBACK: {
+			lga_client_hdl_rec_t *lga_hdl_rec;
 
-				/* Check if client did not set filter callback */
-				if(lga_hdl_rec->reg_cbk.saLogFilterSetCallback == NULL) {
-					lga_msg_destroy(lgsv_msg);
-					break;
-				}
+			TRACE_2(
+			    "LGSV_CLM_NODE_STATUS_CALLBACK  clm_node_status:%d",
+			    lgsv_msg->info.cbk_info.clm_node_status_cbk
+				.clm_node_status);
 
-				TRACE_2("LGSV_SEVERITY_FILTER_CALLBACK: client_id = %d, stream_id %d, severity=%d",
-					(int)lgsv_msg->info.cbk_info.lgs_client_id,
-					(int)lgsv_msg->info.cbk_info.lgs_stream_id,
-					(int)lgsv_msg->info.cbk_info.serverity_filter_cbk.log_severity);
+			/** Lookup the hdl rec by client_id  **/
+			if (NULL ==
+			    (lga_hdl_rec = lga_find_hdl_rec_by_regid(
+				 cb, lgsv_msg->info.cbk_info.lgs_client_id))) {
+				TRACE("regid not found");
+				lga_msg_destroy(lgsv_msg);
+				TRACE_LEAVE();
+				return NCSCC_RC_FAILURE;
+			}
+			cb->clm_node_state =
+			    lgsv_msg->info.cbk_info.clm_node_status_cbk
+				.clm_node_status;
+			// A client becomes stale if Node loses CLM Membership.
+			if (cb->clm_node_state != SA_CLM_NODE_JOINED) {
+				/*If the node rejoins the cluster membership,
+				  processes executing on the node will be able
+				  to reinitialize new library handles and use
+				  the entire set of Log Service APIs that
+				  operate on these new handles; however,
+				  invocation of APIs that operate on handles
+				  acquired by any process before the node left
+				  the membership will continue to fail with
+				  SA_AIS_ERR_UNAVAILABLE (or with the special
+				  treatment described above for asynchronous
+				  calls) with the exception of saLogFinalize(),
+				  which is used to free the library handles and
+				  all resources associated with these handles.
+				  Hence, it is recommended for the processes to
+				  finalize the library handles as soon as the
+				  processes detect that the node left the
+				  membership.*/
 
-				/** enqueue this message  **/
-				if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&lga_hdl_rec->mbx, lgsv_msg, prio)) {
-					TRACE("IPC SEND FAILED");
-					lga_msg_destroy(lgsv_msg);
-					TRACE_LEAVE();
-					return NCSCC_RC_FAILURE;
+				/*Old LGA clients A.02.01 are always clm member
+				 */
+				if (!((lga_hdl_rec->version.releaseCode ==
+				       LOG_RELEASE_CODE_0) &&
+				      (lga_hdl_rec->version.majorVersion ==
+				       LOG_MAJOR_VERSION_0) &&
+				      (lga_hdl_rec->version.minorVersion ==
+				       LOG_MINOR_VERSION_0))) {
+					lga_hdl_rec->is_stale_client = true;
+					TRACE(
+					    "CLM_NODE callback is_stale_client: %d clm_node_state: %d",
+					    lga_hdl_rec->is_stale_client,
+					    cb->clm_node_state);
 				}
 			}
-			break;
+			lga_msg_destroy(lgsv_msg);
+		} break;
+
+		case LGSV_SEVERITY_FILTER_CALLBACK: {
+			lga_client_hdl_rec_t *lga_hdl_rec;
+			/** Lookup the hdl rec by client_id  **/
+			lga_hdl_rec = lga_find_hdl_rec_by_regid(
+			    cb, lgsv_msg->info.cbk_info.lgs_client_id);
+			if (lga_hdl_rec == NULL) {
+				TRACE("regid not found");
+				lga_msg_destroy(lgsv_msg);
+				TRACE_LEAVE();
+				return NCSCC_RC_FAILURE;
+			}
+
+			/* Check if client did not set filter callback */
+			if (lga_hdl_rec->reg_cbk.saLogFilterSetCallback ==
+			    NULL) {
+				lga_msg_destroy(lgsv_msg);
+				break;
+			}
+
+			TRACE_2(
+			    "LGSV_SEVERITY_FILTER_CALLBACK: client_id = %d, stream_id %d, severity=%d",
+			    (int)lgsv_msg->info.cbk_info.lgs_client_id,
+			    (int)lgsv_msg->info.cbk_info.lgs_stream_id,
+			    (int)lgsv_msg->info.cbk_info.serverity_filter_cbk
+				.log_severity);
+
+			/** enqueue this message  **/
+			if (NCSCC_RC_SUCCESS !=
+			    m_NCS_IPC_SEND(&lga_hdl_rec->mbx, lgsv_msg, prio)) {
+				TRACE("IPC SEND FAILED");
+				lga_msg_destroy(lgsv_msg);
+				TRACE_LEAVE();
+				return NCSCC_RC_FAILURE;
+			}
+		} break;
 
 		default:
 			TRACE("unknown type %d", lgsv_msg->info.cbk_info.type);
@@ -602,7 +645,7 @@ static uint32_t lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg, MDS_SEND_PR
 		}
 		break;
 	default:
-	    /** Unexpected message **/
+		/** Unexpected message **/
 		TRACE_2("Unexpected message type: %d", lgsv_msg->type);
 		lga_msg_destroy(lgsv_msg);
 		TRACE_LEAVE();
@@ -615,15 +658,15 @@ static uint32_t lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg, MDS_SEND_PR
 
 /****************************************************************************
   Name          : lga_mds_svc_evt
- 
-  Description   : This is a callback routine that is invoked to inform LGA 
-                  of MDS events. LGA had subscribed to these events during
-                  through MDS subscription.
- 
+
+  Description   : This is a callback routine that is invoked to inform LGA
+		  of MDS events. LGA had subscribed to these events during
+		  through MDS subscription.
+
   Arguments     : pointer to struct ncsmds_callback_info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
@@ -633,7 +676,8 @@ static uint32_t lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 	switch (mds_cb_info->info.svc_evt.i_change) {
 	case NCSMDS_NO_ACTIVE:
 		TRACE("%s\t NCSMDS_NO_ACTIVE", __FUNCTION__);
-		/* This is a temporary server down e.g. during switch/fail over*/
+		/* This is a temporary server down e.g. during switch/fail
+		 * over*/
 		if (mds_cb_info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_LGS) {
 			osaf_mutex_lock_ordie(&lga_cb.cb_lock);
 			TRACE("NCSMDS_NO_ACTIVE");
@@ -645,9 +689,10 @@ static uint32_t lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 		break;
 	case NCSMDS_DOWN:
 		TRACE("%s\t NCSMDS_DOWN", __FUNCTION__);
-		/* This may be a loss of server where all client and stream information
-		 * is lost on server side. In this situation client info in agent is
-		 * no longer valid and clients must register again (initialize)
+		/* This may be a loss of server where all client and stream
+		 * information is lost on server side. In this situation client
+		 * info in agent is no longer valid and clients must register
+		 * again (initialize)
 		 */
 		if (mds_cb_info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_LGS) {
 			osaf_mutex_lock_ordie(&lga_cb.cb_lock);
@@ -664,9 +709,9 @@ static uint32_t lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 	case NCSMDS_UP:
 		switch (mds_cb_info->info.svc_evt.i_svc_id) {
 		case NCSMDS_SVC_ID_LGS:
-			TRACE("%s\t NCSMDS_UP" , __FUNCTION__);
-		    /** Store the MDS DEST of the LGS 
-                     **/
+			TRACE("%s\t NCSMDS_UP", __FUNCTION__);
+			/** Store the MDS DEST of the LGS
+			 **/
 			osaf_mutex_lock_ordie(&lga_cb.cb_lock);
 			lga_cb.lgs_mds_dest = mds_cb_info->info.svc_evt.i_dest;
 			lga_cb.lgs_state = LGS_UP;
@@ -693,14 +738,14 @@ static uint32_t lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 
 /****************************************************************************
   Name          : lga_mds_rcv
- 
+
   Description   : This is a callback routine that is invoked when LGA message
-                  is received from LGS.
- 
+		  is received from LGS.
+
   Arguments     : pointer to struct ncsmds_callback_info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 
@@ -712,7 +757,8 @@ static uint32_t lga_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 	osaf_mutex_lock_ordie(&lga_cb.cb_lock);
 
 	/* process the message */
-	rc = lga_lgs_msg_proc(&lga_cb, lgsv_msg, mds_cb_info->info.receive.i_priority);
+	rc = lga_lgs_msg_proc(&lga_cb, lgsv_msg,
+			      mds_cb_info->info.receive.i_priority);
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE_2("lga_lgs_msg_proc returned: %d", rc);
 	}
@@ -724,14 +770,14 @@ static uint32_t lga_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 
 /****************************************************************************
   Name          : lga_mds_enc
- 
+
   Description   : This is a callback routine that is invoked to encode LGS
-                  messages.
- 
+		  messages.
+
   Arguments     : pointer to struct ncsmds_callback_info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_mds_enc(struct ncsmds_callback_info *info)
@@ -744,9 +790,10 @@ static uint32_t lga_mds_enc(struct ncsmds_callback_info *info)
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
 
 	TRACE_ENTER();
-	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
-						LGA_WRT_LGS_SUBPART_VER_AT_MIN_MSG_FMT,
-						LGA_WRT_LGS_SUBPART_VER_AT_MAX_MSG_FMT, LGA_WRT_LGS_MSG_FMT_ARRAY);
+	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(
+	    info->info.enc.i_rem_svc_pvt_ver,
+	    LGA_WRT_LGS_SUBPART_VER_AT_MIN_MSG_FMT,
+	    LGA_WRT_LGS_SUBPART_VER_AT_MAX_MSG_FMT, LGA_WRT_LGS_MSG_FMT_ARRAY);
 	if (0 == msg_fmt_version) {
 		TRACE("Wrong msg_fmt_version!!\n");
 		TRACE_LEAVE();
@@ -763,7 +810,7 @@ static uint32_t lga_mds_enc(struct ncsmds_callback_info *info)
 		return NCSCC_RC_FAILURE;
 	}
 
-    /** encode the type of message **/
+	/** encode the type of message **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("NULL pointer");
@@ -776,11 +823,11 @@ static uint32_t lga_mds_enc(struct ncsmds_callback_info *info)
 
 	TRACE_2("msgtype: %d", msg->type);
 	if (LGSV_LGA_API_MSG == msg->type) {
-	/** encode the API msg subtype **/
+		/** encode the API msg subtype **/
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8) {
 			TRACE("encode API msg subtype FAILED");
-			TRACE_LEAVE();	/* fixme: ok to do return fail?? */
+			TRACE_LEAVE(); /* fixme: ok to do return fail?? */
 			return NCSCC_RC_FAILURE;
 		}
 		ncs_encode_32bit(&p8, msg->info.api_info.type);
@@ -821,14 +868,14 @@ static uint32_t lga_mds_enc(struct ncsmds_callback_info *info)
 
 /****************************************************************************
   Name          : lga_dec_initialize_rsp_msg
- 
+
   Description   : This routine decodes an initialize sync response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_dec_initialize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
@@ -850,21 +897,22 @@ static uint32_t lga_dec_initialize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 /****************************************************************************
   Name          : lga_dec_finalize_rsp_msg
- 
+
   Description   : This routine decodes an finalize sync response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_dec_finalize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	lgsv_finalize_rsp_t *param = &msg->info.api_resp_info.param.finalize_rsp;
+	lgsv_finalize_rsp_t *param =
+	    &msg->info.api_resp_info.param.finalize_rsp;
 	uint8_t local_data[100];
 
 	osafassert(uba != NULL);
@@ -879,21 +927,22 @@ static uint32_t lga_dec_finalize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 /****************************************************************************
   Name          : lga_dec_lstr_close_rsp_msg
- 
+
   Description   : This routine decodes a close response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_dec_lstr_close_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	lgsv_stream_close_rsp_t *param = &msg->info.api_resp_info.param.close_rsp;
+	lgsv_stream_close_rsp_t *param =
+	    &msg->info.api_resp_info.param.close_rsp;
 	uint8_t local_data[100];
 
 	osafassert(uba != NULL);
@@ -909,14 +958,14 @@ static uint32_t lga_dec_lstr_close_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 /****************************************************************************
   Name          : lga_dec_write_ckb_msg
- 
+
   Description   : This routine decodes an initialize sync response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_dec_write_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
@@ -952,7 +1001,8 @@ static uint32_t lga_dec_clm_node_status_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	logsv_lga_clm_status_cbk_t *param = &msg->info.cbk_info.clm_node_status_cbk;
+	logsv_lga_clm_status_cbk_t *param =
+	    &msg->info.cbk_info.clm_node_status_cbk;
 	uint8_t local_data[100];
 
 	osafassert(uba != NULL);
@@ -971,7 +1021,7 @@ Name          : lga_dec_serverity_cbk_msg
 Description   : This routine decodes message
 
 Arguments     : NCS_UBAID *uba,
-                LGSV_MSG *msg
+		LGSV_MSG *msg
 
 Return Values : uint32_t
 
@@ -997,21 +1047,22 @@ static uint32_t lga_dec_serverity_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 /****************************************************************************
   Name          : lga_dec_lstr_open_sync_rsp_msg
- 
+
   Description   : This routine decodes a log stream open sync response message
- 
+
   Arguments     : NCS_UBAID *msg,
-                  LGSV_MSG *msg
-                  
+		  LGSV_MSG *msg
+
   Return Values : uint32_t
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_dec_lstr_open_sync_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
 	uint8_t *p8;
 	uint32_t total_bytes = 0;
-	lgsv_stream_open_rsp_t *param = &msg->info.api_resp_info.param.lstr_open_rsp;
+	lgsv_stream_open_rsp_t *param =
+	    &msg->info.api_resp_info.param.lstr_open_rsp;
 	uint8_t local_data[100];
 
 	osafassert(uba != NULL);
@@ -1027,14 +1078,14 @@ static uint32_t lga_dec_lstr_open_sync_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
 /****************************************************************************
   Name          : lga_mds_dec
- 
+
   Description   : This is a callback routine that is invoked to decode LGS
-                  messages.
- 
+		  messages.
+
   Arguments     : pointer to struct ncsmds_callback_info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_mds_dec(struct ncsmds_callback_info *info)
@@ -1046,16 +1097,18 @@ static uint32_t lga_mds_dec(struct ncsmds_callback_info *info)
 	uint32_t total_bytes = 0;
 	TRACE_ENTER();
 
-	if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
-					   LGA_WRT_LGS_SUBPART_VER_AT_MIN_MSG_FMT,
-					   LGA_WRT_LGS_SUBPART_VER_AT_MAX_MSG_FMT, LGA_WRT_LGS_MSG_FMT_ARRAY)) {
+	if (0 ==
+	    m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+				      LGA_WRT_LGS_SUBPART_VER_AT_MIN_MSG_FMT,
+				      LGA_WRT_LGS_SUBPART_VER_AT_MAX_MSG_FMT,
+				      LGA_WRT_LGS_MSG_FMT_ARRAY)) {
 		TRACE("Invalid message format!!!\n");
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
 
-    /** Allocate a new msg in both sync/async cases 
-     **/
+	/** Allocate a new msg in both sync/async cases
+	 **/
 	if (NULL == (msg = calloc(1, sizeof(lgsv_msg_t)))) {
 		TRACE("calloc failed\n");
 		return NCSCC_RC_FAILURE;
@@ -1069,67 +1122,68 @@ static uint32_t lga_mds_dec(struct ncsmds_callback_info *info)
 	total_bytes += 4;
 
 	switch (msg->type) {
-	case LGSV_LGA_API_RESP_MSG:
-		{
-			p8 = ncs_dec_flatten_space(uba, local_data, 8);
-			msg->info.api_resp_info.type = ncs_decode_32bit(&p8);
-			msg->info.api_resp_info.rc = ncs_decode_32bit(&p8);
-			ncs_dec_skip_space(uba, 8);
-			total_bytes += 8;
-			TRACE_2("LGSV_LGA_API_RESP_MSG");
+	case LGSV_LGA_API_RESP_MSG: {
+		p8 = ncs_dec_flatten_space(uba, local_data, 8);
+		msg->info.api_resp_info.type = ncs_decode_32bit(&p8);
+		msg->info.api_resp_info.rc = ncs_decode_32bit(&p8);
+		ncs_dec_skip_space(uba, 8);
+		total_bytes += 8;
+		TRACE_2("LGSV_LGA_API_RESP_MSG");
 
-			switch (msg->info.api_resp_info.type) {
-			case LGSV_INITIALIZE_RSP:
-				total_bytes += lga_dec_initialize_rsp_msg(uba, msg);
-				break;
-			case LGSV_FINALIZE_RSP:
-				total_bytes += lga_dec_finalize_rsp_msg(uba, msg);
-				break;
-			case LGSV_STREAM_OPEN_RSP:
-				total_bytes += lga_dec_lstr_open_sync_rsp_msg(uba, msg);
-				break;
-			case LGSV_STREAM_CLOSE_RSP:
-				total_bytes += lga_dec_lstr_close_rsp_msg(uba, msg);
-				break;
-			default:
-				TRACE_2("Unknown API RSP type %d", msg->info.api_resp_info.type);
-				break;
-			}
+		switch (msg->info.api_resp_info.type) {
+		case LGSV_INITIALIZE_RSP:
+			total_bytes += lga_dec_initialize_rsp_msg(uba, msg);
+			break;
+		case LGSV_FINALIZE_RSP:
+			total_bytes += lga_dec_finalize_rsp_msg(uba, msg);
+			break;
+		case LGSV_STREAM_OPEN_RSP:
+			total_bytes += lga_dec_lstr_open_sync_rsp_msg(uba, msg);
+			break;
+		case LGSV_STREAM_CLOSE_RSP:
+			total_bytes += lga_dec_lstr_close_rsp_msg(uba, msg);
+			break;
+		default:
+			TRACE_2("Unknown API RSP type %d",
+				msg->info.api_resp_info.type);
+			break;
 		}
-		break;
-	case LGSV_LGS_CBK_MSG:
-		{
-			p8 = ncs_dec_flatten_space(uba, local_data, 16);
-			msg->info.cbk_info.type = ncs_decode_32bit(&p8);
-			msg->info.cbk_info.lgs_client_id = ncs_decode_32bit(&p8);
-			msg->info.cbk_info.inv = ncs_decode_64bit(&p8);
-			ncs_dec_skip_space(uba, 16);
-			total_bytes += 16;
-			TRACE_2("LGSV_LGS_CBK_MSG");
-			switch (msg->info.cbk_info.type) {
-			case LGSV_WRITE_LOG_CALLBACK_IND:
-				TRACE_2("decode writelog message, lgs_client_id=%d",
-					msg->info.cbk_info.lgs_client_id);
-				total_bytes += lga_dec_write_cbk_msg(uba, msg);
-				break;
-			case LGSV_CLM_NODE_STATUS_CALLBACK:
-				TRACE_2("decode clm node status message, lgs_client_id=%d",
-						msg->info.cbk_info.lgs_client_id);
-				total_bytes += lga_dec_clm_node_status_cbk_msg(uba, msg);
-				break;
-			case LGSV_SEVERITY_FILTER_CALLBACK:
-				total_bytes += lga_dec_serverity_cbk_msg(uba, msg);
-				TRACE_2("decode severity filter message, lgs_client_id=%d"
-						" lgs_stream_id=%d",
-						msg->info.cbk_info.lgs_client_id,
-						msg->info.cbk_info.lgs_stream_id);
-				break;
-			default:
-				TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
-				break;
-			}
+	} break;
+	case LGSV_LGS_CBK_MSG: {
+		p8 = ncs_dec_flatten_space(uba, local_data, 16);
+		msg->info.cbk_info.type = ncs_decode_32bit(&p8);
+		msg->info.cbk_info.lgs_client_id = ncs_decode_32bit(&p8);
+		msg->info.cbk_info.inv = ncs_decode_64bit(&p8);
+		ncs_dec_skip_space(uba, 16);
+		total_bytes += 16;
+		TRACE_2("LGSV_LGS_CBK_MSG");
+		switch (msg->info.cbk_info.type) {
+		case LGSV_WRITE_LOG_CALLBACK_IND:
+			TRACE_2("decode writelog message, lgs_client_id=%d",
+				msg->info.cbk_info.lgs_client_id);
+			total_bytes += lga_dec_write_cbk_msg(uba, msg);
+			break;
+		case LGSV_CLM_NODE_STATUS_CALLBACK:
+			TRACE_2(
+			    "decode clm node status message, lgs_client_id=%d",
+			    msg->info.cbk_info.lgs_client_id);
+			total_bytes +=
+			    lga_dec_clm_node_status_cbk_msg(uba, msg);
+			break;
+		case LGSV_SEVERITY_FILTER_CALLBACK:
+			total_bytes += lga_dec_serverity_cbk_msg(uba, msg);
+			TRACE_2(
+			    "decode severity filter message, lgs_client_id=%d"
+			    " lgs_stream_id=%d",
+			    msg->info.cbk_info.lgs_client_id,
+			    msg->info.cbk_info.lgs_stream_id);
+			break;
+		default:
+			TRACE_2("Unknown callback type = %d!",
+				msg->info.cbk_info.type);
+			break;
 		}
-		break;
+	} break;
 	default:
 		TRACE("Unknown MSG type %d", msg->type);
 		break;
@@ -1186,13 +1240,13 @@ static uint32_t lga_mds_dec_flat(struct ncsmds_callback_info *info)
 
 /****************************************************************************
   Name          : lga_mds_cpy
- 
+
   Description   : This function copies an events sent from LGS.
- 
+
   Arguments     :pointer to struct ncsmds_callback_info
-  
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t lga_mds_cpy(struct ncsmds_callback_info *info)
@@ -1218,17 +1272,17 @@ static uint32_t lga_mds_callback(struct ncsmds_callback_info *info)
 {
 
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
-		lga_mds_cpy,	/* MDS_CALLBACK_COPY      0 */
-		lga_mds_enc,	/* MDS_CALLBACK_ENC       1 */
-		lga_mds_dec,	/* MDS_CALLBACK_DEC       2 */
-		lga_mds_enc_flat,	/* MDS_CALLBACK_ENC_FLAT  3 */
-		lga_mds_dec_flat,	/* MDS_CALLBACK_DEC_FLAT  4 */
-		lga_mds_rcv,	/* MDS_CALLBACK_RECEIVE   5 */
-		lga_mds_svc_evt	/* MDS_CALLBACK_SVC_EVENT 6 */
+	    lga_mds_cpy,      /* MDS_CALLBACK_COPY      0 */
+	    lga_mds_enc,      /* MDS_CALLBACK_ENC       1 */
+	    lga_mds_dec,      /* MDS_CALLBACK_DEC       2 */
+	    lga_mds_enc_flat, /* MDS_CALLBACK_ENC_FLAT  3 */
+	    lga_mds_dec_flat, /* MDS_CALLBACK_DEC_FLAT  4 */
+	    lga_mds_rcv,      /* MDS_CALLBACK_RECEIVE   5 */
+	    lga_mds_svc_evt   /* MDS_CALLBACK_SVC_EVENT 6 */
 	};
 
 	if (info->i_op <= MDS_CALLBACK_SVC_EVENT) {
-		uint32_t rc = (*cb_set[info->i_op]) (info);
+		uint32_t rc = (*cb_set[info->i_op])(info);
 		if (rc != NCSCC_RC_SUCCESS)
 			TRACE("MDS_CALLBACK_SVC_EVENT not in range");
 
@@ -1239,13 +1293,13 @@ static uint32_t lga_mds_callback(struct ncsmds_callback_info *info)
 
 /****************************************************************************
   Name          : lga_mds_init
- 
+
   Description   : This routine registers the LGA Service with MDS.
- 
+
   Arguments     : cb - ptr to the LGA control block
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t lga_mds_init(lga_cb_t *cb)
@@ -1256,7 +1310,7 @@ uint32_t lga_mds_init(lga_cb_t *cb)
 	MDS_SVC_ID svc = NCSMDS_SVC_ID_LGS;
 
 	TRACE_ENTER();
-    /** Create the ADEST for LGA and get the pwe hdl**/
+	/** Create the ADEST for LGA and get the pwe hdl**/
 	memset(&ada_info, '\0', sizeof(ada_info));
 	ada_info.req = NCSADA_GET_HDLS;
 
@@ -1265,20 +1319,23 @@ uint32_t lga_mds_init(lga_cb_t *cb)
 		return NCSCC_RC_FAILURE;
 	}
 
-    /** Store the info obtained from MDS ADEST creation  **/
+	/** Store the info obtained from MDS ADEST creation  **/
 	cb->mds_hdl = ada_info.info.adest_get_hdls.o_mds_pwe1_hdl;
 
-    /** Now install into mds **/
+	/** Now install into mds **/
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;
 	mds_info.i_svc_id = NCSMDS_SVC_ID_LGA;
 	mds_info.i_op = MDS_INSTALL;
 
 	mds_info.info.svc_install.i_yr_svc_hdl = 0;
-	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* PWE scope */
-	mds_info.info.svc_install.i_svc_cb = lga_mds_callback;	/* callback */
-	mds_info.info.svc_install.i_mds_q_ownership = false;	/* LGA doesn't own the mds queue */
-	mds_info.info.svc_install.i_mds_svc_pvt_ver = LGA_SVC_PVT_SUBPART_VERSION;
+	mds_info.info.svc_install.i_install_scope =
+	    NCSMDS_SCOPE_NONE;				       /* PWE scope */
+	mds_info.info.svc_install.i_svc_cb = lga_mds_callback; /* callback */
+	mds_info.info.svc_install.i_mds_q_ownership =
+	    false; /* LGA doesn't own the mds queue */
+	mds_info.info.svc_install.i_mds_svc_pvt_ver =
+	    LGA_SVC_PVT_SUBPART_VERSION;
 
 	if ((rc = ncsmds_api(&mds_info)) != NCSCC_RC_SUCCESS) {
 		TRACE("mds api call failed");
@@ -1307,13 +1364,13 @@ uint32_t lga_mds_init(lga_cb_t *cb)
 
 /****************************************************************************
   Name          : lga_mds_finalize
- 
+
   Description   : This routine unregisters the LGA Service from MDS.
- 
+
   Arguments     : cb - ptr to the LGA control block
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 void lga_mds_finalize(lga_cb_t *cb)
@@ -1322,7 +1379,7 @@ void lga_mds_finalize(lga_cb_t *cb)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
-	/* Un-install your service into MDS. 
+	/* Un-install your service into MDS.
 	   No need to cancel the services that are subscribed */
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 
@@ -1340,20 +1397,22 @@ void lga_mds_finalize(lga_cb_t *cb)
 
 /****************************************************************************
   Name          : lga_mds_msg_sync_send
- 
-  Description   : This routine sends the LGA message to LGS. The send 
-                  operation is a synchronous call that 
-                  blocks until the response is received from LGS.
- 
+
+  Description   : This routine sends the LGA message to LGS. The send
+		  operation is a synchronous call that
+		  blocks until the response is received from LGS.
+
   Arguments     : cb  - ptr to the LGA CB
-                  i_msg - ptr to the LGSv message
-                  o_msg - double ptr to LGSv message response
- 
+		  i_msg - ptr to the LGSv message
+		  o_msg - double ptr to LGSv message response
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE/timeout
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_msg, SaTimeT timeout, uint32_t prio)
+uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg,
+			       lgsv_msg_t **o_msg, SaTimeT timeout,
+			       uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc = NCSCC_RC_SUCCESS;
@@ -1371,9 +1430,10 @@ uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_m
 	mds_info.info.svc_send.i_msg = (NCSCONTEXT)i_msg;
 	mds_info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_LGS;
 	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SNDRSP;
-	mds_info.info.svc_send.i_priority = prio;	/* fixme? */
+	mds_info.info.svc_send.i_priority = prio; /* fixme? */
 	/* fill the sub send rsp strcuture */
-	mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;	/* timeto wait in 10ms FIX!!! */
+	mds_info.info.svc_send.info.sndrsp.i_time_to_wait =
+	    timeout; /* timeto wait in 10ms FIX!!! */
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = cb->lgs_mds_dest;
 
 	/* send the message */
@@ -1391,17 +1451,18 @@ uint32_t lga_mds_msg_sync_send(lga_cb_t *cb, lgsv_msg_t *i_msg, lgsv_msg_t **o_m
 
 /****************************************************************************
   Name          : lga_mds_msg_async_send
- 
+
   Description   : This routine sends the LGA message to LGS.
- 
+
   Arguments     : cb  - ptr to the LGA CB
-                  i_msg - ptr to the LGSv message
- 
+		  i_msg - ptr to the LGSv message
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t lga_mds_msg_async_send(lga_cb_t *cb, struct lgsv_msg *i_msg, uint32_t prio)
+uint32_t lga_mds_msg_async_send(lga_cb_t *cb, struct lgsv_msg *i_msg,
+				uint32_t prio)
 {
 	NCSMDS_INFO mds_info;
 

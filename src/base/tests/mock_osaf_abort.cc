@@ -18,8 +18,7 @@
 #include "base/tests/mock_osaf_abort.h"
 #include <cstdlib>
 
-void osaf_abort(long i_cause)
-{
-  (void) i_cause;
+void osaf_abort(long i_cause) {
+  (void)i_cause;
   abort();
 }

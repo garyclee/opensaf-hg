@@ -19,6 +19,5 @@
 
 void saLogStreamOpenCallbackT_01(void)
 {
-    test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_ERR_NOT_SUPPORTED);
+	test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_ERR_NOT_SUPPORTED);
 }
-

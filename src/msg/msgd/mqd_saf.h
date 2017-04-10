@@ -23,20 +23,23 @@
 ..............................................................................
 
   DESCRIPTION:
-  
+
   API decleration for MQD SAF library..
-    
+
 ******************************************************************************/
 #ifndef MSG_MSGD_MQD_SAF_H_
 #define MSG_MSGD_MQD_SAF_H_
 
-void mqd_saf_hlth_chk_cb(SaInvocationT, const SaNameT *, SaAmfHealthcheckKeyT *);
-void mqd_saf_csi_set_cb(SaInvocationT invocation,
-				 const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
+void mqd_saf_hlth_chk_cb(SaInvocationT, const SaNameT *,
+                         SaAmfHealthcheckKeyT *);
+void mqd_saf_csi_set_cb(SaInvocationT invocation, const SaNameT *compName,
+                        SaAmfHAStateT haState,
+                        SaAmfCSIDescriptorT csiDescriptor);
 
-void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
+void mqd_amf_comp_terminate_callback(SaInvocationT invocation,
+                                     const SaNameT *compName);
 
-void mqd_amf_csi_rmv_callback(SaInvocationT invocation,
-				       const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags);
+void mqd_amf_csi_rmv_callback(SaInvocationT invocation, const SaNameT *compName,
+                              const SaNameT *csiName, SaAmfCSIFlagsT csiFlags);
 
 #endif  // MSG_MSGD_MQD_SAF_H_

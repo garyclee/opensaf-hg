@@ -16,20 +16,20 @@
  */
 
 /*****************************************************************************
-*                                                                            *
-*  MODULE NAME:  eds_debug.c                                                 *
-*                                                                            *
-*                                                                            *
-*  DESCRIPTION:                                                              *
-*  This module contains debugging routines used during the development and   *
-*  support of the NCS Event Distribution Service Server (EDS).               *
-*                                                                            *
-*****************************************************************************/
+ *                                                                            *
+ *  MODULE NAME:  eds_debug.c                                                 *
+ *                                                                            *
+ *                                                                            *
+ *  DESCRIPTION:                                                              *
+ *  This module contains debugging routines used during the development and   *
+ *  support of the NCS Event Distribution Service Server (EDS).               *
+ *                                                                            *
+ *****************************************************************************/
 #include "eds.h"
 #include "base/logtrace.h"
 
-#define BUFF_SIZE_80    80
-#define INT_WIDTH_8      8
+#define BUFF_SIZE_80 80
+#define INT_WIDTH_8 8
 
 /***************************************************************************
  *
@@ -49,11 +49,13 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 	if (patternArray->patterns == 0)
 		return;
 
-	pEventPattern = patternArray->patterns;	/* Point to first pattern */
+	pEventPattern = patternArray->patterns; /* Point to first pattern */
 	for (x = 0; x < (int32_t)patternArray->patternsNumber; x++) {
-		memcpy(buf, pEventPattern->pattern, (uint32_t)pEventPattern->patternSize);
+		memcpy(buf, pEventPattern->pattern,
+		       (uint32_t)pEventPattern->patternSize);
 		buf[pEventPattern->patternSize] = '\0';
-		TRACE("     pattern[%d] =    {%2u, \"%s\"}\n", x, (uint32_t)pEventPattern->patternSize, buf);
+		TRACE("     pattern[%d] =    {%2u, \"%s\"}\n", x,
+		      (uint32_t)pEventPattern->patternSize, buf);
 		pEventPattern++;
 	}
 	TRACE_LEAVE();
@@ -75,14 +77,15 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
  * Match? NO
  *
  ***************************************************************************/
-void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
+void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
+			     SaEvtEventFilterArrayT *filterArray)
 {
 	int32_t x;
 	int32_t match = 0;
 	uint8_t *p = NULL;
 	SaEvtEventFilterT *filter;
 	SaEvtEventPatternT *pattern;
-	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
+	SaEvtEventPatternT emptyPattern = {0, 0, NULL};
 	int8_t buf[256];
 	TRACE_ENTER();
 
@@ -106,25 +109,32 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 		switch (filter->filterType) {
 		case SA_EVT_PREFIX_FILTER:
 			TRACE("  SA_EVT_PREFIX_FILTER");
-			if (memcmp(filter->filter.pattern, pattern->pattern, (size_t)filter->filter.patternSize) == 0)
+			if (memcmp(filter->filter.pattern, pattern->pattern,
+				   (size_t)filter->filter.patternSize) == 0)
 				match = 1;
 			break;
 		case SA_EVT_SUFFIX_FILTER:
 			TRACE("  SA_EVT_SUFFIX_FILTER");
 			/* Pattern must be at least as long as filter */
 			if (pattern->patternSize < filter->filter.patternSize)
-				break;	/* No match */
+				break; /* No match */
 
 			/* Set p to offset into pattern */
-			p = pattern->pattern + ((int)pattern->patternSize - (int)filter->filter.patternSize);
-			if (memcmp(filter->filter.pattern, p, (size_t)filter->filter.patternSize) == 0)
+			p = pattern->pattern +
+			    ((int)pattern->patternSize -
+			     (int)filter->filter.patternSize);
+			if (memcmp(filter->filter.pattern, p,
+				   (size_t)filter->filter.patternSize) == 0)
 				match = 1;
 			break;
 		case SA_EVT_EXACT_FILTER:
 			TRACE("   SA_EVT_EXACT_FILTER");
 			if (filter->filter.patternSize == pattern->patternSize)
-				if (memcmp(filter->filter.pattern, pattern->pattern,
-					   (size_t)filter->filter.patternSize) == 0)
+				if (memcmp(
+					filter->filter.pattern,
+					pattern->pattern,
+					(size_t)filter->filter.patternSize) ==
+				    0)
 					match = 1;
 			break;
 		case SA_EVT_PASS_ALL_FILTER:
@@ -132,13 +142,16 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 			match = 1;
 			break;
 		default:
-			TRACE("ERROR: Unknown filterType(%d)\n", filter->filterType);
+			TRACE("ERROR: Unknown filterType(%d)\n",
+			      filter->filterType);
 		}
 
 		/* NULL terminate for printing */
-		memcpy(buf, filter->filter.pattern, (uint32_t)filter->filter.patternSize);
+		memcpy(buf, filter->filter.pattern,
+		       (uint32_t)filter->filter.patternSize);
 		buf[(uint32_t)filter->filter.patternSize] = '\0';
-		TRACE(", %14s, %3u}", buf, (uint32_t)filter->filter.patternSize);
+		TRACE(", %14s, %3u}", buf,
+		      (uint32_t)filter->filter.patternSize);
 		if (match)
 			TRACE(" [MATCH]\n");
 		else
@@ -150,7 +163,7 @@ void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFi
 		else
 			pattern = &emptyPattern;
 
-	}			/* End for */
+	} /* End for */
 
 	TRACE_LEAVE();
 }
@@ -181,36 +194,44 @@ void eds_dump_reglist()
 	TRACE("     regIDs         Subscription IDs\n");
 
 	/* Get the cb from the global handle */
-	if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+	if (NULL ==
+	    (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
 		TRACE_LEAVE();
 		return;
 	}
 
-	rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)0);
+	rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list,
+						      (uint8_t *)0);
 
-	while (rl) {		/* While there are registration entries... */
+	while (rl) { /* While there are registration entries... */
 		num_registrations++;
 		TRACE("%6u %-8s->", rl->reg_id, " ");
 		buff[0] = '\0';
 		bp = buff;
 
 		co = rl->chan_open_list;
-		while (co) {	/* While there are channelOpen entries... */
+		while (co) { /* While there are channelOpen entries... */
 			s = co->subsc_list_head;
-			while (s) {	/* While there are subscription entries... */
+			while (
+			    s) { /* While there are subscription entries... */
 				num_subscriptions++;
 				/* Loop, appending subscription IDs to string */
-				snprintf(bp, sizeof(buff) - 1, " %9u ", s->subsc_rec->subscript_id);
+				snprintf(bp, sizeof(buff) - 1, " %9u ",
+					 s->subsc_rec->subscript_id);
 				bp = buff + (strlen(buff));
 
 				/* Close to end of buffer? */
-				if ((bp - buff >= sizeof(buff) - 12) && ((s->next) || (co->next))) {	/* and something follows? */
-					/* Output this chunk and start a new one */
+				if ((bp - buff >= sizeof(buff) - 12) &&
+				    ((s->next) ||
+				     (co->next))) { /* and something follows? */
+					/* Output this chunk and start a new one
+					 */
 					TRACE("%s\n", buff);
 					bp = buff;
 
 					/* Space over the continuation line */
-					snprintf(bp, sizeof(buff) - 1, "%24s", " ");
+					snprintf(bp, sizeof(buff) - 1, "%24s",
+						 " ");
 					bp = buff + (strlen(buff));
 				}
 				s = s->next;
@@ -219,7 +240,8 @@ void eds_dump_reglist()
 		}
 		TRACE("%s\n", buff);
 
-		rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uint8_t *)&rl->reg_id_Net);
+		rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(
+		    &cb->eda_reg_list, (uint8_t *)&rl->reg_id_Net);
 	}
 	temp = 0;
 	down_rec = cb->eda_down_list_head;
@@ -228,8 +250,10 @@ void eds_dump_reglist()
 		down_rec = down_rec->next;
 	}
 
-	TRACE("\nTotal Registrations:%d   Total Subscriptions:%d\n", num_registrations, num_subscriptions);
-	TRACE("\nEDA DOWN recs : %d Async Update Count :%d \n", temp, cb->async_upd_cnt);
+	TRACE("\nTotal Registrations:%d   Total Subscriptions:%d\n",
+	      num_registrations, num_subscriptions);
+	TRACE("\nEDA DOWN recs : %d Async Update Count :%d \n", temp,
+	      cb->async_upd_cnt);
 
 	/* Give back the handle */
 	ncshm_give_hdl(gl_eds_hdl);
@@ -265,7 +289,8 @@ void eds_dump_worklist()
 	TRACE("   OpenID:regID            Subscription IDs\n");
 
 	/* Get the cb from the global handle. */
-	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS,
+						       gl_eds_hdl))) {
 		TRACE_LEAVE();
 		return;
 	}
@@ -273,21 +298,25 @@ void eds_dump_worklist()
 	/* Get the worklist */
 	wp = eds_cb->eds_work_list;
 
-	while (wp) {		/* While there are channel entries... */
+	while (wp) { /* While there are channel entries... */
 		num_events++;
-		if (wp->chan_attrib & CHANNEL_UNLINKED)	/* Flag if channel is UnLinked */
+		if (wp->chan_attrib &
+		    CHANNEL_UNLINKED) /* Flag if channel is UnLinked */
 			snprintf(buff, BUFF_SIZE_80 - 1, "u");
 		else
 			snprintf(buff, BUFF_SIZE_80 - 1, " ");
 		TRACE("\n%s%6u %s", buff, wp->chan_id, wp->cname);
 
 		TRACE("         ");
-		for (list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY; list_iter++) {
+		for (list_iter = SA_EVT_HIGHEST_PRIORITY;
+		     list_iter <= SA_EVT_LOWEST_PRIORITY; list_iter++) {
 			retd_evt_rec = wp->ret_evt_list_head[list_iter];
 
 			TRACE("    P:%u", list_iter);
 			while (retd_evt_rec) {
-				TRACE("  %d:%u", retd_evt_rec->retd_evt_chan_open_id, retd_evt_rec->event_id);
+				TRACE("  %d:%u",
+				      retd_evt_rec->retd_evt_chan_open_id,
+				      retd_evt_rec->event_id);
 				retd_evt_rec = retd_evt_rec->next;
 			}
 		}
@@ -295,25 +324,33 @@ void eds_dump_worklist()
 		TRACE("\n");
 		bp = buff;
 
-		co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)0);
-		while (co) {	/* While there are channelOpen entries... */
-			snprintf(bp, BUFF_SIZE_80 - 1, "%10d:%-6d", co->chan_open_id, co->reg_id);
+		co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(
+		    &wp->chan_open_rec, (uint8_t *)0);
+		while (co) { /* While there are channelOpen entries... */
+			snprintf(bp, BUFF_SIZE_80 - 1, "%10d:%-6d",
+				 co->chan_open_id, co->reg_id);
 			bp = buff + (strlen(buff));
 			s = co->subsc_rec_head;
-			while (s) {	/* While there are subscription entries... */
+			while (
+			    s) { /* While there are subscription entries... */
 				num_subscriptions++;
 				/* Loop, appending subscription IDs to string */
-				snprintf(bp, BUFF_SIZE_80 - 1, " %12u", s->subscript_id);
+				snprintf(bp, BUFF_SIZE_80 - 1, " %12u",
+					 s->subscript_id);
 				bp = buff + (strlen(buff));
 
 				/* Close to end of buffer? */
-				if ((bp - buff >= sizeof(buff) - (INT_WIDTH_8 * 2)) && (s->next)) {	/* and something follows? */
-					/* Output this chunk and start a new one */
+				if ((bp - buff >=
+				     sizeof(buff) - (INT_WIDTH_8 * 2)) &&
+				    (s->next)) { /* and something follows? */
+					/* Output this chunk and start a new one
+					 */
 					TRACE("%s\n", buff);
 					bp = buff;
 
 					/* Space over the continuation line */
-					snprintf(bp, BUFF_SIZE_80 - 1, "%25s", " ");
+					snprintf(bp, BUFF_SIZE_80 - 1, "%25s",
+						 " ");
 					bp = buff + (strlen(buff));
 				}
 				s = s->next;
@@ -321,21 +358,26 @@ void eds_dump_worklist()
 			TRACE("%s\n", buff);
 			bp = buff;
 
-			co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uint8_t *)&co->copen_id_Net);
+			co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(
+			    &wp->chan_open_rec, (uint8_t *)&co->copen_id_Net);
 		}
 		wp = wp->next;
 	}
 
-	TRACE("\nTotal Channel IDs:%d   Total Subscriptions:%d\n", num_events, num_subscriptions);
+	TRACE("\nTotal Channel IDs:%d   Total Subscriptions:%d\n", num_events,
+	      num_subscriptions);
 
-/* Code for CB DUMP */
+	/* Code for CB DUMP */
 	TRACE("\nEDS DATA BASE \n");
-	cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uint8_t *)NULL);
+	cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list,
+							(uint8_t *)NULL);
 
 	while (cn) {
 		if (cn->wp_rec)
-			TRACE("\nDB : %s                 Actual: %s", cn->chan_name.value, (cn->wp_rec)->cname);
-		cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uint8_t *)&cn->chan_name);
+			TRACE("\nDB : %s                 Actual: %s",
+			      cn->chan_name.value, (cn->wp_rec)->cname);
+		cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(
+		    &eds_cb->eds_cname_list, (uint8_t *)&cn->chan_name);
 	}
 
 	/* Give back the handle */

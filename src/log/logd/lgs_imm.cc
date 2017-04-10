@@ -66,34 +66,35 @@ pthread_mutex_t lgs_OI_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Used for checkpointing time when files are closed */
 static time_t chkp_file_close_time = 0;
 
-
 const unsigned int sleep_delay_ms = 500;
-const unsigned int max_waiting_time_60s = 60 * 1000;    /* 60 secs */
-const unsigned int max_waiting_time_10s = 10 * 1000;    /* 10 secs */
+const unsigned int max_waiting_time_60s = 60 * 1000; /* 60 secs */
+const unsigned int max_waiting_time_10s = 10 * 1000; /* 10 secs */
 
 /* Must be able to index this array using streamType */
 static const char *log_file_format[] = {
-  DEFAULT_ALM_NOT_FORMAT_EXP,
-  DEFAULT_ALM_NOT_FORMAT_EXP,
-  DEFAULT_APP_SYS_FORMAT_EXP,
-  DEFAULT_APP_SYS_FORMAT_EXP
-};
+    DEFAULT_ALM_NOT_FORMAT_EXP, DEFAULT_ALM_NOT_FORMAT_EXP,
+    DEFAULT_APP_SYS_FORMAT_EXP, DEFAULT_APP_SYS_FORMAT_EXP};
 
-static SaVersionT immVersion = { 'A', 2, 11 };
+static SaVersionT immVersion = {'A', 2, 11};
 
-static const SaImmOiImplementerNameT implementerName = const_cast<SaImmOiImplementerNameT>("safLogService");
-static const SaImmClassNameT logConfig_str = const_cast<SaImmClassNameT>("OpenSafLogConfig");
-static const SaImmClassNameT streamConfig_str = const_cast<SaImmClassNameT>("SaLogStreamConfig");
+static const SaImmOiImplementerNameT implementerName =
+    const_cast<SaImmOiImplementerNameT>("safLogService");
+static const SaImmClassNameT logConfig_str =
+    const_cast<SaImmClassNameT>("OpenSafLogConfig");
+static const SaImmClassNameT streamConfig_str =
+    const_cast<SaImmClassNameT>("SaLogStreamConfig");
 
 /* FUNCTIONS
  * ---------
  */
 
 static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
-                            const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+                            const char *format, ...)
+    __attribute__((format(printf, 3, 4)));
 
-static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
-                            const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+static void report_om_error(SaImmOiHandleT immOiHandle,
+                            SaInvocationT invocation, const char *format, ...)
+    __attribute__((format(printf, 3, 4)));
 
 /**
  * To be used in OI callbacks to report errors by setting an error string
@@ -110,38 +111,31 @@ static void report_oi_error(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
   va_list ap;
 
   va_start(ap, format);
-  (void) vsnprintf(err_str, 256, format, ap);
+  (void)vsnprintf(err_str, 256, format, ap);
   va_end(ap);
 
   TRACE("%s", err_str);
-  (void) saImmOiCcbSetErrorString(immOiHandle, ccbId,     err_str);
+  (void)saImmOiCcbSetErrorString(immOiHandle, ccbId, err_str);
 }
 
-static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
-                            const char *format, ...) {
+static void report_om_error(SaImmOiHandleT immOiHandle,
+                            SaInvocationT invocation, const char *format, ...) {
   char ao_err_string[256];
   SaStringT p_ao_err_string = ao_err_string;
   char admop_err[256];
   strcpy(admop_err, SA_IMM_PARAM_ADMOP_ERROR);
-  SaImmAdminOperationParamsT_2 ao_err_param = {
-    admop_err,
-    SA_IMM_ATTR_SASTRINGT,
-    &p_ao_err_string
-  };
-  const SaImmAdminOperationParamsT_2 *ao_err_params[2] = {
-    &ao_err_param,
-    NULL
-  };
+  SaImmAdminOperationParamsT_2 ao_err_param = {admop_err, SA_IMM_ATTR_SASTRINGT,
+                                               &p_ao_err_string};
+  const SaImmAdminOperationParamsT_2 *ao_err_params[2] = {&ao_err_param, NULL};
 
   va_list ap;
   va_start(ap, format);
-  (void) vsnprintf(ao_err_string, 256, format, ap);
+  (void)vsnprintf(ao_err_string, 256, format, ap);
   va_end(ap);
 
-  TRACE("%s",ao_err_string);
-  (void) saImmOiAdminOperationResult_o2(immOiHandle, invocation,
-                                        SA_AIS_ERR_INVALID_PARAM,
-                                        ao_err_params);
+  TRACE("%s", ao_err_string);
+  (void)saImmOiAdminOperationResult_o2(immOiHandle, invocation,
+                                       SA_AIS_ERR_INVALID_PARAM, ao_err_params);
 }
 
 /**
@@ -150,7 +144,7 @@ static void report_om_error(SaImmOiHandleT immOiHandle, SaInvocationT invocation
  * @param dn stream DN
  * @ret true if well-known stream, false otherwise
  */
-static bool is_well_know_stream(const char* dn) {
+static bool is_well_know_stream(const char *dn) {
   if (strcmp(dn, SA_LOG_STREAM_ALARM) == 0) return true;
   if (strcmp(dn, SA_LOG_STREAM_NOTIFICATION) == 0) return true;
   if (strcmp(dn, SA_LOG_STREAM_SYSTEM) == 0) return true;
@@ -164,7 +158,8 @@ static bool is_well_know_stream(const char* dn) {
  *
  * @return NCSCC_RC_... error code
  */
-static uint32_t ckpt_lgs_cfg(bool is_root_dir_changed, lgs_config_chg_t *v5_ckpt) {
+static uint32_t ckpt_lgs_cfg(bool is_root_dir_changed,
+                             lgs_config_chg_t *v5_ckpt) {
   void *ckpt = NULL;
   lgsv_ckpt_msg_v2_t ckpt_v2;
   lgsv_ckpt_msg_v3_t ckpt_v3;
@@ -175,7 +170,7 @@ static uint32_t ckpt_lgs_cfg(bool is_root_dir_changed, lgs_config_chg_t *v5_ckpt
 
   if (!lgs_is_peer_v2()) {
     /* Can be called only if we are OI. This is not the case if Standby */
-    TRACE("%s Called when check-pointing version 1",__FUNCTION__);
+    TRACE("%s Called when check-pointing version 1", __FUNCTION__);
     return NCSCC_RC_FAILURE;
   }
 
@@ -249,18 +244,24 @@ static uint32_t ckpt_stream_config(log_stream_t *stream) {
     ckpt_v3.header.data_len = 1;
 
     ckpt_v3.ckpt_rec.stream_cfg.name = const_cast<char *>(stream->name.c_str());
-    ckpt_v3.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
-    ckpt_v3.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.fileName =
+        const_cast<char *>(stream->fileName.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.pathName =
+        const_cast<char *>(stream->pathName.c_str());
     ckpt_v3.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
     ckpt_v3.ckpt_rec.stream_cfg.fixedLogRecordSize = stream->fixedLogRecordSize;
     ckpt_v3.ckpt_rec.stream_cfg.logFullAction = stream->logFullAction;
-    ckpt_v3.ckpt_rec.stream_cfg.logFullHaltThreshold = stream->logFullHaltThreshold;
+    ckpt_v3.ckpt_rec.stream_cfg.logFullHaltThreshold =
+        stream->logFullHaltThreshold;
     ckpt_v3.ckpt_rec.stream_cfg.maxFilesRotated = stream->maxFilesRotated;
     ckpt_v3.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
     ckpt_v3.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
-    ckpt_v3.ckpt_rec.stream_cfg.logFileCurrent = const_cast<char *>(stream->logFileCurrent.c_str());
-    ckpt_v3.ckpt_rec.stream_cfg.dest_names = const_cast<char *>(stream->stb_dest_names.c_str());
-    ckpt_v3.ckpt_rec.stream_cfg.c_file_close_time_stamp = stream->act_last_close_timestamp;
+    ckpt_v3.ckpt_rec.stream_cfg.logFileCurrent =
+        const_cast<char *>(stream->logFileCurrent.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.dest_names =
+        const_cast<char *>(stream->stb_dest_names.c_str());
+    ckpt_v3.ckpt_rec.stream_cfg.c_file_close_time_stamp =
+        stream->act_last_close_timestamp;
     ckpt_ptr = &ckpt_v3;
   } else if (lgs_is_peer_v2()) {
     memset(&ckpt_v2, 0, sizeof(ckpt_v2));
@@ -269,17 +270,22 @@ static uint32_t ckpt_stream_config(log_stream_t *stream) {
     ckpt_v2.header.data_len = 1;
 
     ckpt_v2.ckpt_rec.stream_cfg.name = const_cast<char *>(stream->name.c_str());
-    ckpt_v2.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
-    ckpt_v2.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
+    ckpt_v2.ckpt_rec.stream_cfg.fileName =
+        const_cast<char *>(stream->fileName.c_str());
+    ckpt_v2.ckpt_rec.stream_cfg.pathName =
+        const_cast<char *>(stream->pathName.c_str());
     ckpt_v2.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
     ckpt_v2.ckpt_rec.stream_cfg.fixedLogRecordSize = stream->fixedLogRecordSize;
     ckpt_v2.ckpt_rec.stream_cfg.logFullAction = stream->logFullAction;
-    ckpt_v2.ckpt_rec.stream_cfg.logFullHaltThreshold = stream->logFullHaltThreshold;
+    ckpt_v2.ckpt_rec.stream_cfg.logFullHaltThreshold =
+        stream->logFullHaltThreshold;
     ckpt_v2.ckpt_rec.stream_cfg.maxFilesRotated = stream->maxFilesRotated;
     ckpt_v2.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
     ckpt_v2.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
-    ckpt_v2.ckpt_rec.stream_cfg.logFileCurrent = const_cast<char *>(stream->logFileCurrent.c_str());
-    ckpt_v2.ckpt_rec.stream_cfg.c_file_close_time_stamp = stream->act_last_close_timestamp;
+    ckpt_v2.ckpt_rec.stream_cfg.logFileCurrent =
+        const_cast<char *>(stream->logFileCurrent.c_str());
+    ckpt_v2.ckpt_rec.stream_cfg.c_file_close_time_stamp =
+        stream->act_last_close_timestamp;
     ckpt_ptr = &ckpt_v2;
   } else {
     memset(&ckpt_v2, 0, sizeof(ckpt_v2));
@@ -288,16 +294,20 @@ static uint32_t ckpt_stream_config(log_stream_t *stream) {
     ckpt_v1.header.data_len = 1;
 
     ckpt_v1.ckpt_rec.stream_cfg.name = const_cast<char *>(stream->name.c_str());
-    ckpt_v1.ckpt_rec.stream_cfg.fileName = const_cast<char *>(stream->fileName.c_str());
-    ckpt_v1.ckpt_rec.stream_cfg.pathName = const_cast<char *>(stream->pathName.c_str());
+    ckpt_v1.ckpt_rec.stream_cfg.fileName =
+        const_cast<char *>(stream->fileName.c_str());
+    ckpt_v1.ckpt_rec.stream_cfg.pathName =
+        const_cast<char *>(stream->pathName.c_str());
     ckpt_v1.ckpt_rec.stream_cfg.maxLogFileSize = stream->maxLogFileSize;
     ckpt_v1.ckpt_rec.stream_cfg.fixedLogRecordSize = stream->fixedLogRecordSize;
     ckpt_v1.ckpt_rec.stream_cfg.logFullAction = stream->logFullAction;
-    ckpt_v1.ckpt_rec.stream_cfg.logFullHaltThreshold = stream->logFullHaltThreshold;
+    ckpt_v1.ckpt_rec.stream_cfg.logFullHaltThreshold =
+        stream->logFullHaltThreshold;
     ckpt_v1.ckpt_rec.stream_cfg.maxFilesRotated = stream->maxFilesRotated;
     ckpt_v1.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
     ckpt_v1.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
-    ckpt_v1.ckpt_rec.stream_cfg.logFileCurrent = const_cast<char *>(stream->logFileCurrent.c_str());
+    ckpt_v1.ckpt_rec.stream_cfg.logFileCurrent =
+        const_cast<char *>(stream->logFileCurrent.c_str());
     ckpt_ptr = &ckpt_v1;
   }
 
@@ -399,9 +409,10 @@ static uint32_t ckpt_stream_close(log_stream_t *stream, time_t closetime) {
  * @param opId
  * @param params
  */
-static void adminOperationCallback(SaImmOiHandleT immOiHandle,
-                                   SaInvocationT invocation, const SaNameT *objectName,
-                                   SaImmAdminOperationIdT opId, const SaImmAdminOperationParamsT_2 **params) {
+static void adminOperationCallback(
+    SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+    const SaNameT *objectName, SaImmAdminOperationIdT opId,
+    const SaImmAdminOperationParamsT_2 **params) {
   SaUint32T severityFilter;
   const SaImmAdminOperationParamsT_2 *param = params[0];
   log_stream_t *stream;
@@ -430,10 +441,11 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 
     /* Not allow perform adm op on configurable app streams */
     if (stream->isRtStream != SA_TRUE) {
-      ais_rc = immutil_saImmOiAdminOperationResult(immOiHandle,
-                                                   invocation, SA_AIS_ERR_NOT_SUPPORTED);
+      ais_rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation,
+                                                   SA_AIS_ERR_NOT_SUPPORTED);
       if (ais_rc != SA_AIS_OK) {
-        LOG_ER("immutil_saImmOiAdminOperationResult failed %s", saf_error(ais_rc));
+        LOG_ER("immutil_saImmOiAdminOperationResult failed %s",
+               saf_error(ais_rc));
         osaf_abort(0);
       }
 
@@ -461,39 +473,42 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
 
     severityFilter = *((SaUint32T *)param->paramBuffer);
 
-    if (severityFilter > 0x7f) {    /* not a level, a bitmap */
+    if (severityFilter > 0x7f) { /* not a level, a bitmap */
       report_om_error(immOiHandle, invocation,
                       "Admin op change filter: invalid severity");
       goto done;
     }
 
     if (severityFilter == stream->severityFilter) {
-      ais_rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_NO_OP);
+      ais_rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation,
+                                                   SA_AIS_ERR_NO_OP);
       if (ais_rc != SA_AIS_OK) {
-        LOG_ER("immutil_saImmOiAdminOperationResult failed %s", saf_error(ais_rc));
+        LOG_ER("immutil_saImmOiAdminOperationResult failed %s",
+               saf_error(ais_rc));
         osaf_abort(0);
       }
 
       goto done;
     }
 
-    TRACE("Changing severity for stream %s to %u", stream->name.c_str(), severityFilter);
+    TRACE("Changing severity for stream %s to %u", stream->name.c_str(),
+          severityFilter);
     stream->severityFilter = severityFilter;
 
     ais_rc = immutil_update_one_rattr(
-        immOiHandle,
-        objName,
+        immOiHandle, objName,
         const_cast<SaImmAttrNameT>("saLogStreamSeverityFilter"),
-        SA_IMM_ATTR_SAUINT32T,
-        &stream->severityFilter);
+        SA_IMM_ATTR_SAUINT32T, &stream->severityFilter);
     if (ais_rc != SA_AIS_OK) {
       LOG_ER("immutil_update_one_rattr failed %s", saf_error(ais_rc));
       osaf_abort(0);
     }
 
-    ais_rc = immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+    ais_rc =
+        immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
     if (ais_rc != SA_AIS_OK) {
-      LOG_ER("immutil_saImmOiAdminOperationResult failed %s", saf_error(ais_rc));
+      LOG_ER("immutil_saImmOiAdminOperationResult failed %s",
+             saf_error(ais_rc));
       osaf_abort(0);
     }
 
@@ -503,9 +518,10 @@ static void adminOperationCallback(SaImmOiHandleT immOiHandle,
     /* Checkpoint to standby LOG server */
     ckpt_stream_config(stream);
   } else {
-    report_om_error(immOiHandle, invocation,
-                    "Invalid operation ID, should be %d (one) for change filter",
-                    SA_LOG_ADMIN_CHANGE_FILTER);
+    report_om_error(
+        immOiHandle, invocation,
+        "Invalid operation ID, should be %d (one) for change filter",
+        SA_LOG_ADMIN_CHANGE_FILTER);
   }
 
 done:
@@ -513,7 +529,8 @@ done:
 }
 
 static SaAisErrorT ccbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
-                                           SaImmOiCcbIdT ccbId, const SaNameT *objectName) {
+                                           SaImmOiCcbIdT ccbId,
+                                           const SaNameT *objectName) {
   SaAisErrorT rc = SA_AIS_OK;
   struct CcbUtilCcbData *ccbUtilCcbData;
   SaConstStringT objName = osaf_extended_name_borrow(objectName);
@@ -522,8 +539,8 @@ static SaAisErrorT ccbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
 
   if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
     if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-      report_oi_error(immOiHandle, ccbId,
-                      "Failed to get CCB object for %llu", ccbId);
+      report_oi_error(immOiHandle, ccbId, "Failed to get CCB object for %llu",
+                      ccbId);
       rc = SA_AIS_ERR_NO_MEMORY;
       goto done;
     }
@@ -537,19 +554,21 @@ done:
 }
 
 static SaAisErrorT ccbObjectCreateCallback(SaImmOiHandleT immOiHandle,
-                                           SaImmOiCcbIdT ccbId, const SaImmClassNameT className,
-                                           const SaNameT *parentName, const SaImmAttrValuesT_2 **attr) {
+                                           SaImmOiCcbIdT ccbId,
+                                           const SaImmClassNameT className,
+                                           const SaNameT *parentName,
+                                           const SaImmAttrValuesT_2 **attr) {
   SaAisErrorT rc = SA_AIS_OK;
   struct CcbUtilCcbData *ccbUtilCcbData;
   SaConstStringT parName = osaf_extended_name_borrow(parentName);
 
-  TRACE_ENTER2("CCB ID %llu, class '%s', parent '%s'",
-               ccbId, className, parName);
+  TRACE_ENTER2("CCB ID %llu, class '%s', parent '%s'", ccbId, className,
+               parName);
 
   if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
     if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-      report_oi_error(immOiHandle, ccbId,
-                      "Failed to get CCB object for %llu", ccbId);
+      report_oi_error(immOiHandle, ccbId, "Failed to get CCB object for %llu",
+                      ccbId);
       rc = SA_AIS_ERR_NO_MEMORY;
       goto done;
     }
@@ -571,9 +590,9 @@ done:
  * @param attrMods
  * @return
  */
-static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
-                                           SaImmOiCcbIdT ccbId, const SaNameT *objectName,
-                                           const SaImmAttrModificationT_2 **attrMods) {
+static SaAisErrorT ccbObjectModifyCallback(
+    SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId, const SaNameT *objectName,
+    const SaImmAttrModificationT_2 **attrMods) {
   SaAisErrorT rc = SA_AIS_OK;
   struct CcbUtilCcbData *ccbUtilCcbData;
   SaConstStringT objName = osaf_extended_name_borrow(objectName);
@@ -582,8 +601,8 @@ static SaAisErrorT ccbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 
   if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
     if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-      report_oi_error(immOiHandle, ccbId,
-                      "Failed to get CCB object for %llu", ccbId);
+      report_oi_error(immOiHandle, ccbId, "Failed to get CCB object for %llu",
+                      ccbId);
       rc = SA_AIS_ERR_NO_MEMORY;
       goto done;
     }
@@ -603,14 +622,15 @@ done:
  * @param opdata
  * @return
  */
-static SaAisErrorT config_ccb_completed_create(SaImmOiHandleT immOiHandle,
-                                               const CcbUtilOperationData_t *opdata) {
+static SaAisErrorT config_ccb_completed_create(
+    SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
   SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
   TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
-  report_oi_error(immOiHandle, opdata->ccbId,
-                  "Creation of OpenSafLogConfig object is not allowed, ccbId = %llu",
-                  opdata->ccbId);
+  report_oi_error(
+      immOiHandle, opdata->ccbId,
+      "Creation of OpenSafLogConfig object is not allowed, ccbId = %llu",
+      opdata->ccbId);
   TRACE_LEAVE2("%u", rc);
   return rc;
 }
@@ -644,7 +664,8 @@ struct vattr_t {
  * @param err_str [out] char vector of 256 bytes to return a string.
  * @return error code
  */
-static SaAisErrorT validate_mailbox_limits(struct vattr_t vattr, char *err_str) {
+static SaAisErrorT validate_mailbox_limits(struct vattr_t vattr,
+                                           char *err_str) {
   SaUint32T value32_high = 0;
   SaUint32T value32_low = 0;
   SaAisErrorT ais_rc = SA_AIS_OK;
@@ -658,8 +679,8 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_t vattr, char *err_str) 
     if (vattr.logStreamSystemLowLimit_changed) {
       value32_low = vattr.logStreamSystemLowLimit;
     } else {
-      value32_low = *static_cast<const SaUint32T *>(lgs_cfg_get(
-          LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT));
+      value32_low = *static_cast<const SaUint32T *>(
+          lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_LOW_LIMIT));
     }
 
     rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
@@ -675,8 +696,8 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_t vattr, char *err_str) 
     if (vattr.logStreamSystemHighLimit_changed) {
       value32_high = vattr.logStreamSystemHighLimit;
     } else {
-      value32_high = *static_cast<const SaUint32T *>(lgs_cfg_get(
-          LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT));
+      value32_high = *static_cast<const SaUint32T *>(
+          lgs_cfg_get(LGS_IMM_LOG_STREAM_SYSTEM_HIGH_LIMIT));
     }
 
     rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
@@ -692,8 +713,8 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_t vattr, char *err_str) 
     if (vattr.logStreamAppLowLimit_changed) {
       value32_low = vattr.logStreamAppLowLimit;
     } else {
-      value32_low = *static_cast<const SaUint32T *>(lgs_cfg_get(
-          LGS_IMM_LOG_STREAM_APP_LOW_LIMIT));
+      value32_low = *static_cast<const SaUint32T *>(
+          lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_LOW_LIMIT));
     }
 
     rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
@@ -709,8 +730,8 @@ static SaAisErrorT validate_mailbox_limits(struct vattr_t vattr, char *err_str) 
     if (vattr.logStreamAppHighLimit_changed) {
       value32_high = vattr.logStreamAppHighLimit;
     } else {
-      value32_high = *static_cast<const SaUint32T *>(lgs_cfg_get(
-          LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT));
+      value32_high = *static_cast<const SaUint32T *>(
+          lgs_cfg_get(LGS_IMM_LOG_STREAM_APP_HIGH_LIMIT));
     }
 
     rc = lgs_cfg_verify_mbox_limit(value32_high, value32_low);
@@ -734,23 +755,23 @@ done:
  * @param opdata
  * @return
  */
-static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
-                                               const CcbUtilOperationData_t *opdata) {
+static SaAisErrorT config_ccb_completed_modify(
+    SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
   const SaImmAttrModificationT_2 *attrMod;
   SaAisErrorT ais_rc = SA_AIS_OK;
   int rc = 0;
   int i = 0;
 
-  struct vattr_t vattr= {
-    .validate_flag = false,
-    .logStreamSystemHighLimit = 0,
-    .logStreamSystemHighLimit_changed = false,
-    .logStreamSystemLowLimit = 0,
-    .logStreamSystemLowLimit_changed = false,
-    .logStreamAppHighLimit = 0,
-    .logStreamAppHighLimit_changed = false,
-    .logStreamAppLowLimit = 0,
-    .logStreamAppLowLimit_changed = false,
+  struct vattr_t vattr = {
+      .validate_flag = false,
+      .logStreamSystemHighLimit = 0,
+      .logStreamSystemHighLimit_changed = false,
+      .logStreamSystemLowLimit = 0,
+      .logStreamSystemLowLimit_changed = false,
+      .logStreamAppHighLimit = 0,
+      .logStreamAppHighLimit_changed = false,
+      .logStreamAppLowLimit = 0,
+      .logStreamAppLowLimit_changed = false,
   };
 
   char oi_err_str[256];
@@ -772,11 +793,13 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
      */
     if ((strcmp(attribute->attrName, LOG_DATA_GROUPNAME) != 0) &&
         (strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT) != 0) &&
-        (strcmp(attribute->attrName, LOG_RECORD_DESTINATION_CONFIGURATION) != 0) &&
+        (strcmp(attribute->attrName, LOG_RECORD_DESTINATION_CONFIGURATION) !=
+         0) &&
         (attribute->attrValuesNumber == 0)) {
-      report_oi_error(immOiHandle, opdata->ccbId,
-                      "deletion of value is not allowed for attribute %s stream %s",
-                      attribute->attrName, objName);
+      report_oi_error(
+          immOiHandle, opdata->ccbId,
+          "deletion of value is not allowed for attribute %s stream %s",
+          attribute->attrName, objName);
       ais_rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
     }
@@ -790,8 +813,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
         std::string pathName = *(static_cast<char **>(value));
         if (lgs_cfg_verify_root_dir(pathName) != 0) {
           report_oi_error(immOiHandle, opdata->ccbId,
-                          "pathName: %s is NOT accepted",
-                          pathName.c_str());
+                          "pathName: %s is NOT accepted", pathName.c_str());
           ais_rc = SA_AIS_ERR_BAD_OPERATION;
           goto done;
         }
@@ -815,7 +837,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
       if (attribute->attrValuesNumber == 0) {
         TRACE("Delete logStreamFileFormat");
       } else {
-        char *logFileFormat = *((char **) value);
+        char *logFileFormat = *((char **)value);
         rc = lgs_cfg_verify_log_file_format(logFileFormat);
         if (rc == -1) {
           report_oi_error(immOiHandle, opdata->ccbId,
@@ -829,8 +851,8 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
       SaUint32T maxLogRecordSize = *((SaUint32T *)value);
       rc = lgs_cfg_verify_max_logrecsize(maxLogRecordSize);
       if (rc == -1) {
-        report_oi_error(immOiHandle, opdata->ccbId,
-                        "%s value is NOT accepted", attribute->attrName);
+        report_oi_error(immOiHandle, opdata->ccbId, "%s value is NOT accepted",
+                        attribute->attrName);
         ais_rc = SA_AIS_ERR_INVALID_PARAM;
         goto done;
       }
@@ -838,41 +860,41 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
     } else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
       vattr.logStreamSystemHighLimit = *((SaUint32T *)value);
       vattr.logStreamSystemHighLimit_changed = true;
-      TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+      TRACE("%s %s = %d", __FUNCTION__, attribute->attrName,
             vattr.logStreamSystemHighLimit);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
       vattr.logStreamSystemLowLimit = *((SaUint32T *)value);
       vattr.logStreamSystemLowLimit_changed = true;
-      TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+      TRACE("%s %s = %d", __FUNCTION__, attribute->attrName,
             vattr.logStreamSystemHighLimit);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_APP_HIGH_LIMIT)) {
       vattr.logStreamAppHighLimit = *((SaUint32T *)value);
       vattr.logStreamAppHighLimit_changed = true;
-      TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+      TRACE("%s %s = %d", __FUNCTION__, attribute->attrName,
             vattr.logStreamSystemHighLimit);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_APP_LOW_LIMIT)) {
       vattr.logStreamAppLowLimit = *((SaUint32T *)value);
       vattr.logStreamAppLowLimit_changed = true;
-      TRACE("%s %s = %d",__FUNCTION__, attribute->attrName,
+      TRACE("%s %s = %d", __FUNCTION__, attribute->attrName,
             vattr.logStreamSystemHighLimit);
     } else if (!strcmp(attribute->attrName, LOG_MAX_APPLICATION_STREAMS)) {
-      report_oi_error(immOiHandle, opdata->ccbId,
-                      "%s cannot be changed", attribute->attrName);
+      report_oi_error(immOiHandle, opdata->ccbId, "%s cannot be changed",
+                      attribute->attrName);
       ais_rc = SA_AIS_ERR_FAILED_OPERATION;
       goto done;
     } else if (!strcmp(attribute->attrName, LOG_FILE_IO_TIMEOUT)) {
-      SaUint32T logFileIoTimeout = *((SaUint32T *) value);
+      SaUint32T logFileIoTimeout = *((SaUint32T *)value);
       rc = lgs_cfg_verify_file_io_timeout(logFileIoTimeout);
       if (rc == -1) {
-        report_oi_error(immOiHandle, opdata->ccbId,
-                        "%s value is NOT accepted", attribute->attrName);
+        report_oi_error(immOiHandle, opdata->ccbId, "%s value is NOT accepted",
+                        attribute->attrName);
         ais_rc = SA_AIS_ERR_INVALID_PARAM;
         goto done;
       }
       TRACE("logFileIoTimeout: %d value is accepted", logFileIoTimeout);
     } else if (!strcmp(attribute->attrName, LOG_FILE_SYS_CONFIG)) {
-      report_oi_error(immOiHandle, opdata->ccbId,
-                      "%s cannot be changed", attribute->attrName);
+      report_oi_error(immOiHandle, opdata->ccbId, "%s cannot be changed",
+                      attribute->attrName);
       ais_rc = SA_AIS_ERR_FAILED_OPERATION;
       goto done;
     } else if (!strcmp(attribute->attrName,
@@ -881,7 +903,7 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
       TRACE("logRecordDestinationConfiguration. Values number = %d",
             attribute->attrValuesNumber);
       std::vector<std::string> values_vector{};
-      for (uint32_t i=0; i < attribute->attrValuesNumber; i++) {
+      for (uint32_t i = 0; i < attribute->attrValuesNumber; i++) {
         value = attribute->attrValues[i];
         char *value_str = *(reinterpret_cast<char **>(value));
         values_vector.push_back(value_str);
@@ -889,14 +911,14 @@ static SaAisErrorT config_ccb_completed_modify(SaImmOiHandleT immOiHandle,
       rc = lgs_cfg_verify_log_record_destination_configuration(
           values_vector, attrMod->modType);
       if (rc == -1) {
-        report_oi_error(immOiHandle, opdata->ccbId,
-                        "%s value is NOT accepted", attribute->attrName);
+        report_oi_error(immOiHandle, opdata->ccbId, "%s value is NOT accepted",
+                        attribute->attrName);
         ais_rc = SA_AIS_ERR_INVALID_PARAM;
         goto done;
       }
     } else {
-      report_oi_error(immOiHandle, opdata->ccbId,
-                      "attribute %s not recognized", attribute->attrName);
+      report_oi_error(immOiHandle, opdata->ccbId, "attribute %s not recognized",
+                      attribute->attrName);
       ais_rc = SA_AIS_ERR_FAILED_OPERATION;
       goto done;
     }
@@ -922,8 +944,8 @@ done:
  * @param opdata
  * @return
  */
-static SaAisErrorT config_ccb_completed_delete(SaImmOiHandleT immOiHandle,
-                                               const CcbUtilOperationData_t *opdata) {
+static SaAisErrorT config_ccb_completed_delete(
+    SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
   SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
   TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
@@ -997,9 +1019,9 @@ static lgs_stream_defval_t *get_SaLogStreamConfig_default() {
       TRACE("immutil_saImmOmInitialize fail rc=%d", rc);
     }
     if (rc == SA_AIS_OK) {
-      rc = immutil_saImmOmClassDescriptionGet_2(om_handle,
-                                                const_cast<SaImmClassNameT>("SaLogStreamConfig"),
-                                                &cc, &attributes);
+      rc = immutil_saImmOmClassDescriptionGet_2(
+          om_handle, const_cast<SaImmClassNameT>("SaLogStreamConfig"), &cc,
+          &attributes);
     }
 
     if (rc == SA_AIS_OK) {
@@ -1008,15 +1030,14 @@ static lgs_stream_defval_t *get_SaLogStreamConfig_default() {
         if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
           TRACE("Got saLogStreamMaxLogFileSize");
           lgs_stream_defval.saLogStreamMaxLogFileSize =
-              *((SaUint64T *) attribute->attrDefaultValue);
-          TRACE("value = %lld",
-                lgs_stream_defval.saLogStreamMaxLogFileSize);
-        } else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
+              *((SaUint64T *)attribute->attrDefaultValue);
+          TRACE("value = %lld", lgs_stream_defval.saLogStreamMaxLogFileSize);
+        } else if (!strcmp(attribute->attrName,
+                           "saLogStreamFixedLogRecordSize")) {
           TRACE("Got saLogStreamFixedLogRecordSize");
           lgs_stream_defval.saLogStreamFixedLogRecordSize =
-              *((SaUint32T *) attribute->attrDefaultValue);
-          TRACE("value = %d",
-                lgs_stream_defval.saLogStreamFixedLogRecordSize);
+              *((SaUint32T *)attribute->attrDefaultValue);
+          TRACE("value = %d", lgs_stream_defval.saLogStreamFixedLogRecordSize);
         }
       }
 
@@ -1062,11 +1083,9 @@ static lgs_stream_defval_t *get_SaLogStreamConfig_default() {
  * @param operationType
  * @return true if exists
  */
-bool chk_filepath_stream_exist(
-    std::string &fileName,
-    std::string &pathName,
-    log_stream_t *stream,
-    enum CcbUtilOperationType operationType) {
+bool chk_filepath_stream_exist(std::string &fileName, std::string &pathName,
+                               log_stream_t *stream,
+                               enum CcbUtilOperationType operationType) {
   log_stream_t *i_stream = NULL;
   std::string i_fileName;
   std::string i_pathName;
@@ -1139,11 +1158,12 @@ bool chk_filepath_stream_exist(
  * Verify fixedLogRecordSize and maxLogFileSize.
  * Rules:
  * 1 - saLogStreamFixedLogRecordSize must be less than saLogStreamMaxLogFileSize
- * 2 - saLogStreamFixedLogRecordSize must be less than or equal to logMaxLogrecsize
- * 3 - saLogStreamFixedLogRecordSize can be 0. Means variable record size
- * 4 - saLogStreamMaxLogFileSize must be bigger than 0. No limit is not supported
- * 5 - saLogStreamMaxLogFileSize must be bigger than logMaxLogrecsize
- * 6 - saLogStreamMaxLogFileSize must be bigger than saLogStreamFixedLogRecordSize
+ * 2 - saLogStreamFixedLogRecordSize must be less than or equal to
+ * logMaxLogrecsize 3 - saLogStreamFixedLogRecordSize can be 0. Means variable
+ * record size 4 - saLogStreamMaxLogFileSize must be bigger than 0. No limit is
+ * not supported 5 - saLogStreamMaxLogFileSize must be bigger than
+ * logMaxLogrecsize 6 - saLogStreamMaxLogFileSize must be bigger than
+ * saLogStreamFixedLogRecordSize
  *
  * The ..._mod variable == true means that the corresponding attribute is
  * modified.
@@ -1157,14 +1177,11 @@ bool chk_filepath_stream_exist(
  * @param operationType[in]
  * @return false if error
  */
-static bool chk_max_filesize_recordsize_compatible(SaImmOiHandleT immOiHandle,
-                                                   SaUint64T streamMaxLogFileSize,
-                                                   bool streamMaxLogFileSize_mod,
-                                                   SaUint32T streamFixedLogRecordSize,
-                                                   bool streamFixedLogRecordSize_mod,
-                                                   log_stream_t *stream,
-                                                   enum CcbUtilOperationType operationType,
-                                                   SaImmOiCcbIdT ccbId) {
+static bool chk_max_filesize_recordsize_compatible(
+    SaImmOiHandleT immOiHandle, SaUint64T streamMaxLogFileSize,
+    bool streamMaxLogFileSize_mod, SaUint32T streamFixedLogRecordSize,
+    bool streamFixedLogRecordSize_mod, log_stream_t *stream,
+    enum CcbUtilOperationType operationType, SaImmOiCcbIdT ccbId) {
   SaUint64T i_streamMaxLogFileSize = 0;
   SaUint32T i_streamFixedLogRecordSize = 0;
   SaUint32T i_logMaxLogrecsize = 0;
@@ -1177,8 +1194,8 @@ static bool chk_max_filesize_recordsize_compatible(SaImmOiHandleT immOiHandle,
   /** Get all parameters **/
 
   /* Get logMaxLogrecsize from configuration parameters */
-  i_logMaxLogrecsize = *static_cast<const SaUint32T *>(lgs_cfg_get(
-      LGS_IMM_LOG_MAX_LOGRECSIZE));
+  i_logMaxLogrecsize =
+      *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_LOGRECSIZE));
   TRACE("i_logMaxLogrecsize = %d", i_logMaxLogrecsize);
   /* Get stream default settings */
   stream_default = get_SaLogStreamConfig_default();
@@ -1216,7 +1233,8 @@ static bool chk_max_filesize_recordsize_compatible(SaImmOiHandleT immOiHandle,
      */
     if (streamFixedLogRecordSize_mod == false) {
       /* streamFixedLogRecordSize is not given. Use default */
-      i_streamFixedLogRecordSize = stream_default->saLogStreamFixedLogRecordSize;
+      i_streamFixedLogRecordSize =
+          stream_default->saLogStreamFixedLogRecordSize;
       TRACE("Get default, streamFixedLogRecordSize = %d",
             i_streamFixedLogRecordSize);
     } else {
@@ -1226,8 +1244,7 @@ static bool chk_max_filesize_recordsize_compatible(SaImmOiHandleT immOiHandle,
     if (streamMaxLogFileSize_mod == false) {
       /* streamMaxLogFileSize is not given. Use default */
       i_streamMaxLogFileSize = stream_default->saLogStreamMaxLogFileSize;
-      TRACE("Get default, streamMaxLogFileSize = %lld",
-            i_streamMaxLogFileSize);
+      TRACE("Get default, streamMaxLogFileSize = %lld", i_streamMaxLogFileSize);
     } else {
       i_streamMaxLogFileSize = streamMaxLogFileSize;
     }
@@ -1237,23 +1254,20 @@ static bool chk_max_filesize_recordsize_compatible(SaImmOiHandleT immOiHandle,
     osafassert(0);
   }
 
-
   /*
    * Do verification
    */
   if (streamMaxLogFileSize_mod == true) {
     if (i_streamMaxLogFileSize <= i_logMaxLogrecsize) {
       /* streamMaxLogFileSize must be bigger than logMaxLogrecsize */
-      report_oi_error(immOiHandle, ccbId,
-                      "streamMaxLogFileSize out of range");
+      report_oi_error(immOiHandle, ccbId, "streamMaxLogFileSize out of range");
       TRACE("i_streamMaxLogFileSize (%lld) <= i_logMaxLogrecsize (%d)",
             i_streamMaxLogFileSize, i_logMaxLogrecsize);
       rc = false;
       goto done;
     } else if (i_streamMaxLogFileSize <= i_streamFixedLogRecordSize) {
       /* streamMaxLogFileSize must be bigger than streamFixedLogRecordSize */
-      report_oi_error(immOiHandle, ccbId,
-                      "streamMaxLogFileSize out of range");
+      report_oi_error(immOiHandle, ccbId, "streamMaxLogFileSize out of range");
       TRACE("i_streamMaxLogFileSize (%lld) <= i_streamFixedLogRecordSize (%d)",
             i_streamMaxLogFileSize, i_streamFixedLogRecordSize);
       rc = false;
@@ -1270,8 +1284,8 @@ static bool chk_max_filesize_recordsize_compatible(SaImmOiHandleT immOiHandle,
       /* streamFixedLogRecordSize must be larger than 150 */
       report_oi_error(immOiHandle, ccbId,
                       "streamFixedLogRecordSize out of range");
-      TRACE("i_streamFixedLogRecordSize (%d) < %d",
-            i_streamFixedLogRecordSize, SA_LOG_MIN_RECORD_SIZE);
+      TRACE("i_streamFixedLogRecordSize (%d) < %d", i_streamFixedLogRecordSize,
+            SA_LOG_MIN_RECORD_SIZE);
       rc = false;
     } else if (i_streamFixedLogRecordSize >= i_streamMaxLogFileSize) {
       /* streamFixedLogRecordSize must be less than streamMaxLogFileSize */
@@ -1295,10 +1309,10 @@ done:
   return rc;
 }
 
-static bool is_valid_dest_names(const std::vector<std::string>& names) {
+static bool is_valid_dest_names(const std::vector<std::string> &names) {
   // Stream has no destination name
   if (names.size() == 0) return true;
-  for (const auto& name : names) {
+  for (const auto &name : names) {
     // Empty destination name is invalid
     if (name.empty() == true || name.size() == 0) {
       TRACE("%s name is empty", __func__);
@@ -1328,8 +1342,8 @@ static bool is_valid_dest_names(const std::vector<std::string>& names) {
  *
  * @return SaAisErrorT
  */
-static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
-                                       const struct CcbUtilOperationData *opdata) {
+static SaAisErrorT check_attr_validity(
+    SaImmOiHandleT immOiHandle, const struct CcbUtilOperationData *opdata) {
   SaAisErrorT rc = SA_AIS_OK;
   void *value = NULL;
   int aindex = 0;
@@ -1367,13 +1381,12 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
    */
   if (opdata->operationType == CCBUTIL_MODIFY) {
     TRACE("Validate for MODIFY");
-    SaConstStringT objName = osaf_extended_name_borrow(
-        opdata->param.modify.objectName);
+    SaConstStringT objName =
+        osaf_extended_name_borrow(opdata->param.modify.objectName);
     stream = log_stream_get_by_name(objName);
     if (stream == NULL) {
       /* No stream to modify */
-      report_oi_error(immOiHandle, opdata->ccbId,
-                      "Stream does not exist");
+      report_oi_error(immOiHandle, opdata->ccbId, "Stream does not exist");
       TRACE("Stream does not exist");
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
@@ -1382,8 +1395,7 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
       if (opdata->param.modify.attrMods[aindex] != NULL) {
         attribute = &opdata->param.modify.attrMods[aindex]->modAttr;
         aindex++;
-        TRACE("First attribute \"%s\" fetched",
-              attribute->attrName);
+        TRACE("First attribute \"%s\" fetched", attribute->attrName);
       } else {
         TRACE("No attributes found");
       }
@@ -1392,10 +1404,10 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
        */
       i_pathName = stream->pathName;
       i_fileName = stream->fileName;
-      TRACE("From stream: pathName \"%s\", fileName \"%s\"",
-            i_pathName.c_str(), i_fileName.c_str());
+      TRACE("From stream: pathName \"%s\", fileName \"%s\"", i_pathName.c_str(),
+            i_fileName.c_str());
     }
-  } else if (opdata->operationType == CCBUTIL_CREATE){
+  } else if (opdata->operationType == CCBUTIL_CREATE) {
     TRACE("Validate for CREATE");
     /* Check if stream already exist after parameters are saved.
      * Parameter value for fileName is needed.
@@ -1410,7 +1422,7 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
     osafassert(0);
   }
 
-  while ((attribute != NULL) && (rc == SA_AIS_OK)){
+  while ((attribute != NULL) && (rc == SA_AIS_OK)) {
     /* Save all changed/given attribute values
      */
 
@@ -1422,9 +1434,9 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
         // do nothing
       } else {
         /* An attribute without a value is never valid if modify */
-        report_oi_error(immOiHandle, opdata->ccbId,
-                        "Attribute %s has no value",attribute->attrName);
-        TRACE("Modify: Attribute %s has no value",attribute->attrName);
+        report_oi_error(immOiHandle, opdata->ccbId, "Attribute %s has no value",
+                        attribute->attrName);
+        TRACE("Modify: Attribute %s has no value", attribute->attrName);
         rc = SA_AIS_ERR_BAD_OPERATION;
         goto done;
       }
@@ -1432,57 +1444,58 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
       /* If create all attributes will be present also the ones without
        * any value.
        */
-      TRACE("Create: Attribute %s has no value",attribute->attrName);
+      TRACE("Create: Attribute %s has no value", attribute->attrName);
       goto next;
     }
 
     /* Save attributes with a value */
     if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
       /* Save filename. Check later together with path name */
-      i_fileName = *((char **) value);
+      i_fileName = *((char **)value);
       i_fileName_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
     } else if (!strcmp(attribute->attrName, "saLogStreamPathName")) {
       /* Save path name. Check later together with filename */
-      i_pathName = *((char **) value);
+      i_pathName = *((char **)value);
       i_pathName_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
     } else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
       /* Save and compare with FixedLogRecordSize after all attributes
        * are read. Must be bigger than FixedLogRecordSize
        */
-      i_streamMaxLogFileSize = *((SaUint64T *) value);
+      i_streamMaxLogFileSize = *((SaUint64T *)value);
       i_streamMaxLogFileSize_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
     } else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
       /* Save and compare with MaxLogFileSize after all attributes
        * are read. Must be smaller than MaxLogFileSize
        */
-      i_streamFixedLogRecordSize = *((SaUint64T *) value);
+      i_streamFixedLogRecordSize = *((SaUint64T *)value);
       i_streamFixedLogRecordSize_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
     } else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-      i_logFullAction = *((SaUint32T *) value);
+      i_logFullAction = *((SaUint32T *)value);
       i_logFullAction_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
     } else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
-      i_logFileFormat = *((char **) value);
+      i_logFileFormat = *((char **)value);
       i_logFileFormat_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
-    } else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
-      i_logFullHaltThreshold = *((SaUint32T *) value);
+    } else if (!strcmp(attribute->attrName,
+                       "saLogStreamLogFullHaltThreshold")) {
+      i_logFullHaltThreshold = *((SaUint32T *)value);
       i_logFullHaltThreshold_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
     } else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
-      i_maxFilesRotated = *((SaUint32T *) value);
+      i_maxFilesRotated = *((SaUint32T *)value);
       i_maxFilesRotated_mod = true;
       TRACE("Saved attribute \"%s\"", attribute->attrName);
     } else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
-      i_severityFilter = *((SaUint32T *) value);
+      i_severityFilter = *((SaUint32T *)value);
       i_severityFilter_mod = true;
       TRACE("Saved attribute \"%s\" = %d", attribute->attrName,
             i_severityFilter);
-    } else if (!strcmp(attribute->attrName,"saLogRecordDestination")) {
+    } else if (!strcmp(attribute->attrName, "saLogRecordDestination")) {
       std::vector<std::string> vstring{};
       for (unsigned i = 0; i < attribute->attrValuesNumber; i++) {
         value = attribute->attrValues[i];
@@ -1499,9 +1512,8 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
       }
     }
 
-
-    /* Get next attribute or detect no more attributes */
- next:
+  /* Get next attribute or detect no more attributes */
+  next:
     if (opdata->operationType == CCBUTIL_CREATE) {
       attribute = opdata->param.create.attrValues[aindex];
     } else {
@@ -1546,8 +1558,8 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
       }
 
       if (lgs_relative_path_check_ts(i_pathName) == true) {
-        report_oi_error(immOiHandle, opdata->ccbId,
-                        "Path %s not valid", i_pathName.c_str());
+        report_oi_error(immOiHandle, opdata->ccbId, "Path %s not valid",
+                        i_pathName.c_str());
         rc = SA_AIS_ERR_BAD_OPERATION;
         TRACE("Path %s not valid", i_pathName.c_str());
         goto done;
@@ -1589,14 +1601,14 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
         goto done;
       }
 
-      if (chk_filepath_stream_exist(i_fileName, i_pathName,
-                                    stream, opdata->operationType)) {
+      if (chk_filepath_stream_exist(i_fileName, i_pathName, stream,
+                                    opdata->operationType)) {
         report_oi_error(immOiHandle, opdata->ccbId,
-                        "Path/file %s/%s already exist",
-                        i_pathName.c_str(), i_fileName.c_str());
+                        "Path/file %s/%s already exist", i_pathName.c_str(),
+                        i_fileName.c_str());
         rc = SA_AIS_ERR_BAD_OPERATION;
-        TRACE("Path/file %s/%s already exist",
-              i_pathName.c_str(), i_fileName.c_str());
+        TRACE("Path/file %s/%s already exist", i_pathName.c_str(),
+              i_fileName.c_str());
         goto done;
       }
     }
@@ -1605,16 +1617,13 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
      * See chk_max_filesize_recordsize_compatible() for rules
      */
     if (i_streamMaxLogFileSize_mod || i_streamFixedLogRecordSize_mod) {
-      TRACE("Check saLogStreamMaxLogFileSize,"
-            " saLogStreamFixedLogRecordSize");
-      if (chk_max_filesize_recordsize_compatible(immOiHandle,
-                                                 i_streamMaxLogFileSize,
-                                                 i_streamMaxLogFileSize_mod,
-                                                 i_streamFixedLogRecordSize,
-                                                 i_streamFixedLogRecordSize_mod,
-                                                 stream,
-                                                 opdata->operationType,
-                                                 opdata->ccbId) == false) {
+      TRACE(
+          "Check saLogStreamMaxLogFileSize,"
+          " saLogStreamFixedLogRecordSize");
+      if (chk_max_filesize_recordsize_compatible(
+              immOiHandle, i_streamMaxLogFileSize, i_streamMaxLogFileSize_mod,
+              i_streamFixedLogRecordSize, i_streamFixedLogRecordSize_mod,
+              stream, opdata->operationType, opdata->ccbId) == false) {
         /* report_oi_error is done within check function */
         rc = SA_AIS_ERR_BAD_OPERATION;
         TRACE("chk_max_filesize_recordsize_compatible Fail");
@@ -1642,8 +1651,9 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
       }
       if ((i_logFullAction == SA_LOG_FILE_FULL_ACTION_WRAP) ||
           (i_logFullAction == SA_LOG_FILE_FULL_ACTION_HALT)) {
-        report_oi_error(immOiHandle, opdata->ccbId,
-                        "logFullAction:Current Implementation doesn't support Wrap and halt");
+        report_oi_error(
+            immOiHandle, opdata->ccbId,
+            "logFullAction:Current Implementation doesn't support Wrap and halt");
         rc = SA_AIS_ERR_BAD_OPERATION;
         TRACE("logFullAction: Not supported");
         goto done;
@@ -1657,22 +1667,21 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
     if (i_logFileFormat_mod) {
       SaBoolT dummy;
       if (opdata->operationType == CCBUTIL_CREATE) {
-        if (!lgs_is_valid_format_expression(i_logFileFormat, STREAM_TYPE_APPLICATION, &dummy)) {
+        if (!lgs_is_valid_format_expression(i_logFileFormat,
+                                            STREAM_TYPE_APPLICATION, &dummy)) {
           report_oi_error(immOiHandle, opdata->ccbId,
                           "Invalid logFileFormat: %s", i_logFileFormat);
           rc = SA_AIS_ERR_BAD_OPERATION;
-          TRACE("Create: Invalid logFileFormat: %s",
-                i_logFileFormat);
+          TRACE("Create: Invalid logFileFormat: %s", i_logFileFormat);
           goto done;
         }
-      }
-      else {
-        if (!lgs_is_valid_format_expression(i_logFileFormat, stream->streamType, &dummy)) {
+      } else {
+        if (!lgs_is_valid_format_expression(i_logFileFormat, stream->streamType,
+                                            &dummy)) {
           report_oi_error(immOiHandle, opdata->ccbId,
                           "Invalid logFileFormat: %s", i_logFileFormat);
           rc = SA_AIS_ERR_BAD_OPERATION;
-          TRACE("Modify: Invalid logFileFormat: %s",
-                i_logFileFormat);
+          TRACE("Modify: Invalid logFileFormat: %s", i_logFileFormat);
           goto done;
         }
       }
@@ -1702,8 +1711,10 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
                         "maxFilesRotated out of range (min 1, max 127): %u",
                         i_maxFilesRotated);
         rc = SA_AIS_ERR_BAD_OPERATION;
-        TRACE("maxFilesRotated out of range "
-              "(min 1, max 127): %u", i_maxFilesRotated);
+        TRACE(
+            "maxFilesRotated out of range "
+            "(min 1, max 127): %u",
+            i_maxFilesRotated);
         goto done;
       }
     }
@@ -1714,8 +1725,8 @@ static SaAisErrorT check_attr_validity(SaImmOiHandleT immOiHandle,
     if (i_severityFilter_mod) {
       TRACE("Checking saLogStreamSeverityFilter");
       if (i_severityFilter > 0x7f) {
-        report_oi_error(immOiHandle, opdata->ccbId,
-                        "Invalid severity: %x", i_severityFilter);
+        report_oi_error(immOiHandle, opdata->ccbId, "Invalid severity: %x",
+                        i_severityFilter);
         rc = SA_AIS_ERR_BAD_OPERATION;
         TRACE("Invalid severity: %x", i_severityFilter);
         goto done;
@@ -1734,7 +1745,8 @@ done:
  * @param opdata
  * @return
  */
-static SaAisErrorT stream_ccb_completed_create(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
+static SaAisErrorT stream_ccb_completed_create(
+    SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
   SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
   TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
@@ -1753,7 +1765,8 @@ static SaAisErrorT stream_ccb_completed_create(SaImmOiHandleT immOiHandle, const
  * @param opdata
  * @return
  */
-static SaAisErrorT stream_ccb_completed_modify(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
+static SaAisErrorT stream_ccb_completed_modify(
+    SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
   SaAisErrorT rc;
 
   TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId,
@@ -1769,14 +1782,15 @@ static SaAisErrorT stream_ccb_completed_modify(SaImmOiHandleT immOiHandle, const
  * @param opdata
  * @return
  */
-static SaAisErrorT stream_ccb_completed_delete(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
+static SaAisErrorT stream_ccb_completed_delete(
+    SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
   SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
   TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId,
                osaf_extended_name_borrow(&opdata->objectName));
 
-  SaConstStringT name = osaf_extended_name_borrow(
-      opdata->param.delete_.objectName);
+  SaConstStringT name =
+      osaf_extended_name_borrow(opdata->param.delete_.objectName);
   log_stream_t *stream = log_stream_get_by_name(name);
 
   if (stream != NULL) {
@@ -1786,7 +1800,8 @@ static SaAisErrorT stream_ccb_completed_delete(SaImmOiHandleT immOiHandle, const
      */
     if (is_well_know_stream(name)) {
       report_oi_error(immOiHandle, opdata->ccbId,
-                      "Stream delete: well known stream '%s' cannot be deleted", name);
+                      "Stream delete: well known stream '%s' cannot be deleted",
+                      name);
       goto done;
     }
 
@@ -1807,7 +1822,8 @@ done:
   return rc;
 }
 
-static SaAisErrorT stream_ccb_completed(SaImmOiHandleT immOiHandle, const CcbUtilOperationData_t *opdata) {
+static SaAisErrorT stream_ccb_completed(SaImmOiHandleT immOiHandle,
+                                        const CcbUtilOperationData_t *opdata) {
   SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
   TRACE_ENTER2("CCB ID %llu", opdata->ccbId);
@@ -1838,7 +1854,8 @@ static SaAisErrorT stream_ccb_completed(SaImmOiHandleT immOiHandle, const CcbUti
  * @param ccbId
  * @return
  */
-static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
+static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle,
+                                        SaImmOiCcbIdT ccbId) {
   SaAisErrorT rc = SA_AIS_OK;
   SaAisErrorT cb_rc = SA_AIS_OK;
   struct CcbUtilCcbData *ccbUtilCcbData;
@@ -1854,7 +1871,7 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
   if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
     LOG_ER("%s: Failed to find CCB object for %llu", __FUNCTION__, ccbId);
     cb_rc = SA_AIS_ERR_BAD_OPERATION;
-    goto done; // or exit?
+    goto done;  // or exit?
   }
 
   /*
@@ -1862,7 +1879,8 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
   ** valid and that no errors will be generated when these changes
   ** are applied."
   */
-  for (opdata = ccbUtilCcbData->operationListHead; opdata; opdata = opdata->next) {
+  for (opdata = ccbUtilCcbData->operationListHead; opdata;
+       opdata = opdata->next) {
     switch (opdata->operationType) {
       case CCBUTIL_CREATE:
         if (!strcmp(opdata->param.create.className, "OpenSafLogConfig"))
@@ -1874,8 +1892,7 @@ static SaAisErrorT ccbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
         break;
       case CCBUTIL_DELETE:
       case CCBUTIL_MODIFY:
-        if (!strncmp(osaf_extended_name_borrow(
-                &opdata->objectName),
+        if (!strncmp(osaf_extended_name_borrow(&opdata->objectName),
                      "safLgStrCfg", 11)) {
           rc = stream_ccb_completed(immOiHandle, opdata);
         } else {
@@ -1894,7 +1911,7 @@ done:
    * TBD: Only use relevant return codes for Completed Callback
    */
   cb_rc = rc;
-  TRACE_LEAVE2("rc = %u",cb_rc);
+  TRACE_LEAVE2("rc = %u", cb_rc);
   return cb_rc;
 }
 /**
@@ -1916,10 +1933,9 @@ done:
  * @param old_logRootDirectory
  * @param cur_time_in
  */
-void logRootDirectory_filemove(
-    const std::string &new_logRootDirectory,
-    const std::string &old_logRootDirectory,
-    time_t *cur_time_in) {
+void logRootDirectory_filemove(const std::string &new_logRootDirectory,
+                               const std::string &old_logRootDirectory,
+                               time_t *cur_time_in) {
   TRACE_ENTER();
   log_stream_t *stream;
   std::string current_logfile;
@@ -1939,9 +1955,8 @@ void logRootDirectory_filemove(
 
     TRACE("current_logfile \"%s\"", current_logfile.c_str());
 
-    if (log_stream_config_change(!LGS_STREAM_CREATE_FILES,
-                                 old_logRootDirectory, stream, current_logfile,
-                                 cur_time_in) != 0) {
+    if (log_stream_config_change(!LGS_STREAM_CREATE_FILES, old_logRootDirectory,
+                                 stream, current_logfile, cur_time_in) != 0) {
       LOG_WA("Old log files could not be renamed and closed for stream: %s",
              stream->name.c_str());
     }
@@ -1965,8 +1980,8 @@ void logRootDirectory_filemove(
     char *current_time = lgs_get_time(cur_time_in);
     stream->logFileCurrent = stream->fileName + "_" + current_time;
 
-    if ((*stream->p_fd = log_file_open(new_logRootDirectory,
-                                       stream, stream->logFileCurrent, NULL)) == -1) {
+    if ((*stream->p_fd = log_file_open(new_logRootDirectory, stream,
+                                       stream->logFileCurrent, NULL)) == -1) {
       LOG_WA("New log file could not be created for stream: %s",
              stream->name.c_str());
     }
@@ -2013,24 +2028,20 @@ void logDataGroupname_fileown(const char *new_logDataGroupname) {
   TRACE_LEAVE();
 }
 
-
 /**
  * Change log root directory
  *
  * @param old_logRootDirectory[in]
  * @param new_logRootDirectory[in]
  */
-static void apply_conf_logRootDirectory(
-    const char *old_logRootDirectory,
-    const char *new_logRootDirectory) {
+static void apply_conf_logRootDirectory(const char *old_logRootDirectory,
+                                        const char *new_logRootDirectory) {
   struct timespec curtime_tspec;
   osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
   time_t cur_time = curtime_tspec.tv_sec;
 
-  logRootDirectory_filemove(
-      new_logRootDirectory,
-      old_logRootDirectory,
-      &cur_time);
+  logRootDirectory_filemove(new_logRootDirectory, old_logRootDirectory,
+                            &cur_time);
 }
 
 static void apply_conf_logDataGroupname(const char *logDataGroupname) {
@@ -2046,30 +2057,26 @@ static void apply_conf_logDataGroupname(const char *logDataGroupname) {
 }
 
 static void apply_config_destinations_change(
-    const std::vector<std::string>& vdestcfg,
-    SaImmAttrModificationTypeT type,
-    lgs_config_chg_t* config_data) {
+    const std::vector<std::string> &vdestcfg, SaImmAttrModificationTypeT type,
+    lgs_config_chg_t *config_data) {
   switch (type) {
     case SA_IMM_ATTR_VALUES_ADD:
       // Configure destinations
       CfgDestination(vdestcfg, ModifyType::kAdd);
-      lgs_cfgupd_multival_add(LOG_RECORD_DESTINATION_CONFIGURATION,
-                              vdestcfg,
+      lgs_cfgupd_multival_add(LOG_RECORD_DESTINATION_CONFIGURATION, vdestcfg,
                               config_data);
       break;
 
     case SA_IMM_ATTR_VALUES_DELETE:
       // Configure destinations
       CfgDestination(vdestcfg, ModifyType::kDelete);
-      lgs_cfgupd_multival_delete(LOG_RECORD_DESTINATION_CONFIGURATION,
-                                 vdestcfg,
+      lgs_cfgupd_multival_delete(LOG_RECORD_DESTINATION_CONFIGURATION, vdestcfg,
                                  config_data);
       break;
 
     case SA_IMM_ATTR_VALUES_REPLACE:
       CfgDestination(vdestcfg, ModifyType::kReplace);
-      lgs_cfgupd_mutival_replace(LOG_RECORD_DESTINATION_CONFIGURATION,
-                                 vdestcfg,
+      lgs_cfgupd_mutival_replace(LOG_RECORD_DESTINATION_CONFIGURATION, vdestcfg,
                                  config_data);
       break;
 
@@ -2121,11 +2128,10 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
      */
     if (!strcmp(attribute->attrName, LOG_ROOT_DIRECTORY)) {
       value_str = *((char **)value); /* New directory */
-      const char *old_dir = static_cast<const char *>(
-          lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+      const char *old_dir =
+          static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
       apply_conf_logRootDirectory(old_dir, value_str);
-      lgs_cfgupd_list_create(LOG_ROOT_DIRECTORY,
-                             value_str, &config_data);
+      lgs_cfgupd_list_create(LOG_ROOT_DIRECTORY, value_str, &config_data);
       root_dir_chg_flag = true;
     } else if (!strcmp(attribute->attrName, LOG_DATA_GROUPNAME)) {
       if (value == NULL) {
@@ -2134,8 +2140,7 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
         value_str = *((char **)value);
       }
       apply_conf_logDataGroupname(value_str);
-      lgs_cfgupd_list_create(LOG_DATA_GROUPNAME,
-                             value_str, &config_data);
+      lgs_cfgupd_list_create(LOG_DATA_GROUPNAME, value_str, &config_data);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_FILE_FORMAT)) {
       if (value == NULL) {
         /* Use built-in file format as default */
@@ -2147,55 +2152,50 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
        * This attribute value is used for default log file format of
        * app stream. Changing this value don't result in cfg/log file creation.
        */
-      lgs_cfgupd_list_create(LOG_STREAM_FILE_FORMAT,
-                             value_str, &config_data);
+      lgs_cfgupd_list_create(LOG_STREAM_FILE_FORMAT, value_str, &config_data);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_HIGH_LIMIT)) {
-      uint32_val = *(uint32_t *) value;
+      uint32_val = *(uint32_t *)value;
       snprintf(uint32_str, 20, "%u", uint32_val);
       mailbox_lim_upd = true;
-      lgs_cfgupd_list_create(LOG_STREAM_SYSTEM_HIGH_LIMIT,
-                             uint32_str, &config_data);
+      lgs_cfgupd_list_create(LOG_STREAM_SYSTEM_HIGH_LIMIT, uint32_str,
+                             &config_data);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_SYSTEM_LOW_LIMIT)) {
-      uint32_val = *(uint32_t *) value;
+      uint32_val = *(uint32_t *)value;
       snprintf(uint32_str, 20, "%u", uint32_val);
       mailbox_lim_upd = true;
-      lgs_cfgupd_list_create(LOG_STREAM_SYSTEM_LOW_LIMIT,
-                             uint32_str, &config_data);
+      lgs_cfgupd_list_create(LOG_STREAM_SYSTEM_LOW_LIMIT, uint32_str,
+                             &config_data);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_APP_HIGH_LIMIT)) {
-      uint32_val = *(uint32_t *) value;
+      uint32_val = *(uint32_t *)value;
       snprintf(uint32_str, 20, "%u", uint32_val);
       mailbox_lim_upd = true;
-      lgs_cfgupd_list_create(LOG_STREAM_APP_HIGH_LIMIT,
-                             uint32_str, &config_data);
+      lgs_cfgupd_list_create(LOG_STREAM_APP_HIGH_LIMIT, uint32_str,
+                             &config_data);
     } else if (!strcmp(attribute->attrName, LOG_STREAM_APP_LOW_LIMIT)) {
-      uint32_val = *(uint32_t *) value;
+      uint32_val = *(uint32_t *)value;
       snprintf(uint32_str, 20, "%u", uint32_val);
       mailbox_lim_upd = true;
-      lgs_cfgupd_list_create(LOG_STREAM_APP_LOW_LIMIT,
-                             uint32_str, &config_data);
+      lgs_cfgupd_list_create(LOG_STREAM_APP_LOW_LIMIT, uint32_str,
+                             &config_data);
     } else if (!strcmp(attribute->attrName, LOG_MAX_LOGRECSIZE)) {
-      uint32_val = *(SaUint32T *) value;
+      uint32_val = *(SaUint32T *)value;
       snprintf(uint32_str, 20, "%u", uint32_val);
-      lgs_cfgupd_list_create(LOG_MAX_LOGRECSIZE,
-                             uint32_str, &config_data);
+      lgs_cfgupd_list_create(LOG_MAX_LOGRECSIZE, uint32_str, &config_data);
     } else if (!strcmp(attribute->attrName, LOG_FILE_IO_TIMEOUT)) {
-      uint32_val = *(SaUint32T *) value;
+      uint32_val = *(SaUint32T *)value;
       snprintf(uint32_str, 20, "%u", uint32_val);
-      lgs_cfgupd_list_create(LOG_FILE_IO_TIMEOUT,
-                             uint32_str, &config_data);
-    }
-    else if (!strcmp(attribute->attrName,
+      lgs_cfgupd_list_create(LOG_FILE_IO_TIMEOUT, uint32_str, &config_data);
+    } else if (!strcmp(attribute->attrName,
                        LOG_RECORD_DESTINATION_CONFIGURATION)) {
       // Note: Multi value attribute
       TRACE("logRecordDestinationConfiguration");
       std::vector<std::string> values_vector;
-      for (uint32_t i=0; i < attribute->attrValuesNumber; i++) {
+      for (uint32_t i = 0; i < attribute->attrValuesNumber; i++) {
         value = attribute->attrValues[i];
         char *value_str = *(reinterpret_cast<char **>(value));
         values_vector.push_back(value_str);
       }
-      apply_config_destinations_change(values_vector,
-                                       attrMod->modType,
+      apply_config_destinations_change(values_vector, attrMod->modType,
                                        &config_data);
     }
 
@@ -2214,17 +2214,16 @@ static void config_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
    */
   if (mailbox_lim_upd == true) {
     TRACE("\tUpdating mailbox limits");
-    (void) lgs_configure_mailbox();
+    (void)lgs_configure_mailbox();
   }
 
   /* Check-point changes */
-  (void) ckpt_lgs_cfg(root_dir_chg_flag, &config_data);
+  (void)ckpt_lgs_cfg(root_dir_chg_flag, &config_data);
 
   lgs_trace_config();
 
   /* Cleanup and free cfg buffer */
-  if (config_data.ckpt_buffer_ptr != NULL)
-    free(config_data.ckpt_buffer_ptr);
+  if (config_data.ckpt_buffer_ptr != NULL) free(config_data.ckpt_buffer_ptr);
 
   TRACE_LEAVE();
 }
@@ -2257,8 +2256,7 @@ static void config_ccb_apply(const CcbUtilOperationData_t *opdata) {
  * @return SaAisErrorT
  */
 static SaAisErrorT stream_create_and_configure1(
-    const struct CcbUtilOperationData* ccb,
-    log_stream_t** stream) {
+    const struct CcbUtilOperationData *ccb, log_stream_t **stream) {
   SaAisErrorT rc = SA_AIS_OK;
   *stream = NULL;
   int i = 0;
@@ -2271,17 +2269,16 @@ static SaAisErrorT stream_create_and_configure1(
   while (ccb->param.create.attrValues[i] != NULL) {
     if (!strncmp(ccb->param.create.attrValues[i]->attrName, "safLgStrCfg",
                  sizeof("safLgStrCfg"))) {
-      SaConstStringT parentName = osaf_extended_name_borrow(
-          ccb->param.create.parentName);
+      SaConstStringT parentName =
+          osaf_extended_name_borrow(ccb->param.create.parentName);
       if (strlen(parentName) > 0) {
-        objectName =  std::string(
-            *(const SaStringT*)
-            ccb->param.create.attrValues[i]->attrValues[0])
-            + "," + parentName ;
+        objectName =
+            std::string(*(const SaStringT *)ccb->param.create.attrValues[i]
+                             ->attrValues[0]) +
+            "," + parentName;
       } else {
-        objectName =  std::string(
-            *(const SaStringT*)
-            ccb->param.create.attrValues[i]->attrValues[0]);
+        objectName = std::string(
+            *(const SaStringT *)ccb->param.create.attrValues[i]->attrValues[0]);
       }
 
       if ((*stream = log_stream_new(objectName, STREAM_NEW)) == NULL) {
@@ -2292,8 +2289,7 @@ static SaAisErrorT stream_create_and_configure1(
     i++;
   }
 
-  if (*stream == NULL)
-    goto done;
+  if (*stream == NULL) goto done;
 
   i = 0;
 
@@ -2304,43 +2300,55 @@ static SaAisErrorT stream_create_and_configure1(
     if (ccb->param.create.attrValues[i]->attrValuesNumber > 0) {
       SaImmAttrValueT value = ccb->param.create.attrValues[i]->attrValues[0];
 
-      if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamFileName")) {
+      if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                  "saLogStreamFileName")) {
         fileName = *(static_cast<char **>(value));
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamPathName")) {
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamPathName")) {
         pathName = *(static_cast<char **>(value));
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamMaxLogFileSize")) {
-        (*stream)->maxLogFileSize = *((SaUint64T *) value);
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamMaxLogFileSize")) {
+        (*stream)->maxLogFileSize = *((SaUint64T *)value);
         TRACE("maxLogFileSize: %llu", (*stream)->maxLogFileSize);
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamFixedLogRecordSize")) {
-        (*stream)->fixedLogRecordSize = *((SaUint32T *) value);
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamFixedLogRecordSize")) {
+        (*stream)->fixedLogRecordSize = *((SaUint32T *)value);
         TRACE("fixedLogRecordSize: %u", (*stream)->fixedLogRecordSize);
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamLogFullAction")) {
-        (*stream)->logFullAction = static_cast<SaLogFileFullActionT>(
-            *static_cast<SaUint32T *>(value));
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamLogFullAction")) {
+        (*stream)->logFullAction =
+            static_cast<SaLogFileFullActionT>(*static_cast<SaUint32T *>(value));
         TRACE("logFullAction: %u", (*stream)->logFullAction);
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamLogFullHaltThreshold")) {
-        (*stream)->logFullHaltThreshold = *((SaUint32T *) value);
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamLogFullHaltThreshold")) {
+        (*stream)->logFullHaltThreshold = *((SaUint32T *)value);
         TRACE("logFullHaltThreshold: %u", (*stream)->logFullHaltThreshold);
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamMaxFilesRotated")) {
-        (*stream)->maxFilesRotated = *((SaUint32T *) value);
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamMaxFilesRotated")) {
+        (*stream)->maxFilesRotated = *((SaUint32T *)value);
         TRACE("maxFilesRotated: %u", (*stream)->maxFilesRotated);
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamLogFileFormat")) {
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamLogFileFormat")) {
         SaBoolT dummy;
-        char *logFileFormat = *((char **) value);
-        if (!lgs_is_valid_format_expression(logFileFormat, (*stream)->streamType, &dummy)) {
-          LOG_WA("Invalid logFileFormat for stream %s, using default", (*stream)->name.c_str());
+        char *logFileFormat = *((char **)value);
+        if (!lgs_is_valid_format_expression(logFileFormat,
+                                            (*stream)->streamType, &dummy)) {
+          LOG_WA("Invalid logFileFormat for stream %s, using default",
+                 (*stream)->name.c_str());
           logFileFormat = const_cast<char *>(static_cast<const char *>(
               lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT)));
         }
         (*stream)->logFileFormat = strdup(logFileFormat);
         TRACE("logFileFormat: %s", (*stream)->logFileFormat);
-      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName, "saLogStreamSeverityFilter")) {
-        (*stream)->severityFilter = *((SaUint32T *) value);
+      } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
+                         "saLogStreamSeverityFilter")) {
+        (*stream)->severityFilter = *((SaUint32T *)value);
         TRACE("severityFilter: %u", (*stream)->severityFilter);
       } else if (!strcmp(ccb->param.create.attrValues[i]->attrName,
-                          "saLogRecordDestination")) {
+                         "saLogRecordDestination")) {
         std::vector<std::string> vstring{};
-        for (unsigned ii = 0; ii < ccb->param.create.attrValues[i]->attrValuesNumber; ii++) {
+        for (unsigned ii = 0;
+             ii < ccb->param.create.attrValues[i]->attrValuesNumber; ii++) {
           value = ccb->param.create.attrValues[i]->attrValues[ii];
           char *value_str = *(reinterpret_cast<char **>(value));
           vstring.push_back(value_str);
@@ -2349,30 +2357,34 @@ static SaAisErrorT stream_create_and_configure1(
       }
     }
     i++;
-  } // while
+  }  // while
 
   /* Check if filename & pathName is valid */
-  if (lgs_is_valid_filelength(fileName) && lgs_is_valid_pathlength(pathName, fileName)) {
+  if (lgs_is_valid_filelength(fileName) &&
+      lgs_is_valid_pathlength(pathName, fileName)) {
     (*stream)->fileName = fileName;
     (*stream)->pathName = pathName;
     TRACE("fileName: %s", fileName.c_str());
     TRACE("pathName: %s", pathName.c_str());
   } else {
-    TRACE("Problem with fileName (%s) or pathName (%s)", fileName.c_str(), pathName.c_str());
+    TRACE("Problem with fileName (%s) or pathName (%s)", fileName.c_str(),
+          pathName.c_str());
     rc = SA_AIS_ERR_NO_MEMORY;
     goto done;
   }
 
   if ((*stream)->logFileFormat == NULL) {
     /* If passing NULL to log file format, use default value */
-    const char* logFileFormat = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
+    const char *logFileFormat =
+        static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
     (*stream)->logFileFormat = strdup(logFileFormat);
   }
 
   /* Update creation timestamp */
-  rc = immutil_update_one_rattr(lgs_cb->immOiHandle, objectName.c_str(),
-                                const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"), SA_IMM_ATTR_SATIMET,
-                                &(*stream)->creationTimeStamp);
+  rc = immutil_update_one_rattr(
+      lgs_cb->immOiHandle, objectName.c_str(),
+      const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
+      SA_IMM_ATTR_SATIMET, &(*stream)->creationTimeStamp);
   if (rc != SA_AIS_OK) {
     LOG_ER("immutil_update_one_rattr failed %s", saf_error(rc));
     osaf_abort(0);
@@ -2406,8 +2418,7 @@ static void stream_ccb_apply_create(const CcbUtilOperationData_t *opdata) {
 }
 
 static void apply_destination_names_change(
-    log_stream_t* stream,
-    const std::vector<std::string>& destname,
+    log_stream_t *stream, const std::vector<std::string> &destname,
     SaImmAttrModificationTypeT type) {
   switch (type) {
     case SA_IMM_ATTR_VALUES_ADD:
@@ -2476,11 +2487,12 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
       stream->fixedLogRecordSize = fixedLogRecordSize;
       new_cfg_file_needed = true;
     } else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-      SaLogFileFullActionT logFullAction = static_cast<SaLogFileFullActionT>(
-          *static_cast<SaUint32T *>(value));
+      SaLogFileFullActionT logFullAction =
+          static_cast<SaLogFileFullActionT>(*static_cast<SaUint32T *>(value));
       stream->logFullAction = logFullAction;
       new_cfg_file_needed = true;
-    } else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
+    } else if (!strcmp(attribute->attrName,
+                       "saLogStreamLogFullHaltThreshold")) {
       SaUint32T logFullHaltThreshold = *((SaUint32T *)value);
       stream->logFullHaltThreshold = logFullHaltThreshold;
     } else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
@@ -2489,8 +2501,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
       new_cfg_file_needed = true;
     } else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
       char *logFileFormat = *((char **)value);
-      if (stream->logFileFormat != NULL)
-        free(stream->logFileFormat);
+      if (stream->logFileFormat != NULL) free(stream->logFileFormat);
       stream->logFileFormat = strdup(logFileFormat);
       new_cfg_file_needed = true;
     } else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
@@ -2499,7 +2510,7 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
 
       /* Send changed severity filter to clients */
       if (stream->streamType != STREAM_TYPE_ALARM &&
-                stream->streamType != STREAM_TYPE_NOTIFICATION)
+          stream->streamType != STREAM_TYPE_NOTIFICATION)
         lgs_send_severity_filter_to_clients(stream->streamId, severityFilter);
     } else if (!strcmp(attribute->attrName, "saLogRecordDestination")) {
       std::vector<std::string> vstring{};
@@ -2519,14 +2530,15 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
 
   osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
   time_t cur_time = curtime_tspec.tv_sec;
-  std::string root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  std::string root_path =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   /* Fix for ticket #1346 */
   if (stream_filename_modified) {
     int rc;
-    if ((rc = log_stream_config_change(!LGS_STREAM_CREATE_FILES,
-                                       root_path, stream, current_logfile_name, &cur_time))
-        != 0) {
+    if ((rc = log_stream_config_change(!LGS_STREAM_CREATE_FILES, root_path,
+                                       stream, current_logfile_name,
+                                       &cur_time)) != 0) {
       LOG_WA("log_stream_config_change failed: %d", rc);
     }
 
@@ -2540,16 +2552,15 @@ static void stream_ccb_apply_modify(const CcbUtilOperationData_t *opdata) {
     stream->logFileCurrent = stream->fileName + "_" + current_time;
 
     // Create the new log file based on updated configuration
-    if ((*stream->p_fd = log_file_open(root_path,
-                                       stream, stream->logFileCurrent, NULL)) == -1)
+    if ((*stream->p_fd = log_file_open(root_path, stream,
+                                       stream->logFileCurrent, NULL)) == -1)
       LOG_WA("New log file could not be created for stream: %s",
              stream->name.c_str());
   } else if (new_cfg_file_needed) {
     int rc;
-    if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES,
-                                       root_path, stream,
-                                       current_logfile_name, &cur_time))
-        != 0) {
+    if ((rc = log_stream_config_change(LGS_STREAM_CREATE_FILES, root_path,
+                                       stream, current_logfile_name,
+                                       &cur_time)) != 0) {
       LOG_WA("log_stream_config_change failed: %d", rc);
     }
   }
@@ -2615,10 +2626,11 @@ static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
 
   if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
     LOG_ER("%s: Failed to find CCB object for %llu", __FUNCTION__, ccbId);
-    goto done; // or exit?
+    goto done;  // or exit?
   }
 
-  for (opdata = ccbUtilCcbData->operationListHead; opdata; opdata = opdata->next) {
+  for (opdata = ccbUtilCcbData->operationListHead; opdata;
+       opdata = opdata->next) {
     switch (opdata->operationType) {
       case CCBUTIL_CREATE:
         if (!strcmp(opdata->param.create.className, "OpenSafLogConfig"))
@@ -2630,8 +2642,7 @@ static void ccbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
         break;
       case CCBUTIL_DELETE:
       case CCBUTIL_MODIFY:
-        if (!strncmp(osaf_extended_name_borrow(
-                &opdata->objectName),
+        if (!strncmp(osaf_extended_name_borrow(&opdata->objectName),
                      "safLgStrCfg", 11))
           stream_ccb_apply(opdata);
         else
@@ -2673,7 +2684,8 @@ static void ccbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
  * @return SaAisErrorT
  */
 static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
-                                        const SaNameT *objectName, const SaImmAttrNameT *attributeNames) {
+                                        const SaNameT *objectName,
+                                        const SaImmAttrNameT *attributeNames) {
   SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
   SaImmAttrNameT attributeName;
   int i = 0;
@@ -2702,24 +2714,20 @@ static SaAisErrorT rtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
       TRACE("Attribute %s", attributeName);
       rc = SA_AIS_OK;
       if (!strcmp(attributeName, "saLogStreamNumOpeners")) {
-        rc = immutil_update_one_rattr(immOiHandle,
-                                      objName,
-                                      attributeName, SA_IMM_ATTR_SAUINT32T,
+        rc = immutil_update_one_rattr(immOiHandle, objName, attributeName,
+                                      SA_IMM_ATTR_SAUINT32T,
                                       &stream->numOpeners);
       } else if (!strcmp(attributeName, "logStreamDiscardedCounter")) {
-        rc = immutil_update_one_rattr(immOiHandle,
-                                      objName,
-                                      attributeName, SA_IMM_ATTR_SAUINT64T,
-                                      &stream->filtered);
+        rc = immutil_update_one_rattr(immOiHandle, objName, attributeName,
+                                      SA_IMM_ATTR_SAUINT64T, &stream->filtered);
       } else {
-        LOG_ER("%s: unknown attribute %s",
-               __FUNCTION__, attributeName);
+        LOG_ER("%s: unknown attribute %s", __FUNCTION__, attributeName);
         goto done;
       }
 
       if (rc != SA_AIS_OK) {
-        LOG_ER("immutil_update_one_rattr (%s) failed %s",
-               attributeName, saf_error(rc));
+        LOG_ER("immutil_update_one_rattr (%s) failed %s", attributeName,
+               saf_error(rc));
         osaf_abort(0);
       }
     }
@@ -2742,9 +2750,9 @@ done:
  *
  * @return SaAisErrorT
  */
-static SaAisErrorT stream_create_and_configure(const std::string &dn,
-                                               log_stream_t **in_stream, int stream_id,
-                                               SaImmAccessorHandleT accessorHandle) {
+static SaAisErrorT stream_create_and_configure(
+    const std::string &dn, log_stream_t **in_stream, int stream_id,
+    SaImmAccessorHandleT accessorHandle) {
   SaAisErrorT rc = SA_AIS_OK;
   SaNameT objectName;
   SaImmAttrValuesT_2 *attribute;
@@ -2752,19 +2760,18 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
   int i = 0;
   log_stream_t *stream;
   char *attribute_names[] = {
-    const_cast<char *>("saLogStreamFileName"),
-    const_cast<char *>("saLogStreamPathName"),
-    const_cast<char *>("saLogStreamMaxLogFileSize"),
-    const_cast<char *>("saLogStreamFixedLogRecordSize"),
-    const_cast<char *>("saLogStreamLogFullAction"),
-    const_cast<char *>("saLogStreamLogFullHaltThreshold"),
-    const_cast<char *>("saLogStreamMaxFilesRotated"),
-    const_cast<char *>("saLogStreamLogFileFormat"),
-    const_cast<char *>("saLogRecordDestination"),
-    const_cast<char *>("saLogStreamSeverityFilter"),
-    const_cast<char *>("saLogStreamCreationTimestamp"),
-    NULL
-  };
+      const_cast<char *>("saLogStreamFileName"),
+      const_cast<char *>("saLogStreamPathName"),
+      const_cast<char *>("saLogStreamMaxLogFileSize"),
+      const_cast<char *>("saLogStreamFixedLogRecordSize"),
+      const_cast<char *>("saLogStreamLogFullAction"),
+      const_cast<char *>("saLogStreamLogFullHaltThreshold"),
+      const_cast<char *>("saLogStreamMaxFilesRotated"),
+      const_cast<char *>("saLogStreamLogFileFormat"),
+      const_cast<char *>("saLogRecordDestination"),
+      const_cast<char *>("saLogStreamSeverityFilter"),
+      const_cast<char *>("saLogStreamCreationTimestamp"),
+      NULL};
 
   TRACE_ENTER2("(%s)", dn.c_str());
 
@@ -2787,10 +2794,9 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
     stream->streamType = STREAM_TYPE_APPLICATION;
 
   /* Get all attributes of the object */
-  if ((rc = immutil_saImmOmAccessorGet_2(
-          accessorHandle,
-          &objectName,
-          attribute_names, &attributes)) != SA_AIS_OK) {
+  if ((rc = immutil_saImmOmAccessorGet_2(accessorHandle, &objectName,
+                                         attribute_names, &attributes)) !=
+      SA_AIS_OK) {
     LOG_ER("Configuration for %s not found: %s", dn.c_str(), saf_error(rc));
     rc = SA_AIS_ERR_NOT_EXIST;
     goto done;
@@ -2799,13 +2805,12 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
   while ((attribute = attributes[i++]) != NULL) {
     void *value;
 
-    if (attribute->attrValuesNumber == 0)
-      continue;
+    if (attribute->attrValuesNumber == 0) continue;
 
     value = attribute->attrValues[0];
 
     if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-      stream->fileName =  *(static_cast<char **>(value));
+      stream->fileName = *(static_cast<char **>(value));
       TRACE("fileName: %s", stream->fileName.c_str());
     } else if (!strcmp(attribute->attrName, "saLogStreamPathName")) {
       stream->pathName = *(static_cast<char **>(value));
@@ -2817,10 +2822,11 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
       stream->fixedLogRecordSize = *((SaUint32T *)value);
       TRACE("fixedLogRecordSize: %u", stream->fixedLogRecordSize);
     } else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-      stream->logFullAction = static_cast<SaLogFileFullActionT>(
-          *static_cast<SaUint32T *>(value));
+      stream->logFullAction =
+          static_cast<SaLogFileFullActionT>(*static_cast<SaUint32T *>(value));
       TRACE("logFullAction: %u", stream->logFullAction);
-    } else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
+    } else if (!strcmp(attribute->attrName,
+                       "saLogStreamLogFullHaltThreshold")) {
       stream->logFullHaltThreshold = *((SaUint32T *)value);
       TRACE("logFullHaltThreshold: %u", stream->logFullHaltThreshold);
     } else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
@@ -2829,11 +2835,13 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
     } else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
       SaBoolT dummy;
       char *logFileFormat = *((char **)value);
-      if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
-        LOG_WA("Invalid logFileFormat for stream %s, using default", stream->name.c_str());
+      if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType,
+                                          &dummy)) {
+        LOG_WA("Invalid logFileFormat for stream %s, using default",
+               stream->name.c_str());
 
         if (stream->streamType == STREAM_TYPE_APPLICATION) {
-          logFileFormat = const_cast<char *>(static_cast<const char*>(
+          logFileFormat = const_cast<char *>(static_cast<const char *>(
               lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT)));
         } else {
           strcpy(logFileFormat, log_file_format[stream->streamType]);
@@ -2867,14 +2875,14 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
   /* Check if the fileName and pathName are valid */
   if ((lgs_is_valid_filelength(stream->fileName) == false) ||
       (lgs_is_valid_pathlength(stream->pathName, stream->fileName) == false)) {
-    LOG_ER("Problem with fileName (%s)/pathName (%s)",
-           stream->fileName.c_str(), stream->pathName.c_str());
+    LOG_ER("Problem with fileName (%s)/pathName (%s)", stream->fileName.c_str(),
+           stream->pathName.c_str());
     osafassert(0);
   }
 
   if (stream->logFileFormat == NULL) {
     if (stream->streamType == STREAM_TYPE_APPLICATION) {
-      const char* logFileFormat = static_cast<const char *>(
+      const char *logFileFormat = static_cast<const char *>(
           lgs_cfg_get(LGS_IMM_LOG_STREAM_FILE_FORMAT));
       stream->logFileFormat = strdup(logFileFormat);
     } else {
@@ -2884,8 +2892,8 @@ static SaAisErrorT stream_create_and_configure(const std::string &dn,
 
   // Generate & cache `MSGID` to `rfc5424MsgId` which later
   // used in RFC5424 protocol
-  stream->rfc5424MsgId = DestinationHandler::Instance().GenerateMsgId(
-      dn, stream->isRtStream);
+  stream->rfc5424MsgId =
+      DestinationHandler::Instance().GenerateMsgId(dn, stream->isRtStream);
 
 done:
   TRACE_LEAVE2("rc: %s", saf_error(rc));
@@ -2893,15 +2901,14 @@ done:
 }
 
 static const SaImmOiCallbacksT_2 callbacks = {
-  .saImmOiAdminOperationCallback = adminOperationCallback,
-  .saImmOiCcbAbortCallback = ccbAbortCallback,
-  .saImmOiCcbApplyCallback = ccbApplyCallback,
-  .saImmOiCcbCompletedCallback = ccbCompletedCallback,
-  .saImmOiCcbObjectCreateCallback = ccbObjectCreateCallback,
-  .saImmOiCcbObjectDeleteCallback = ccbObjectDeleteCallback,
-  .saImmOiCcbObjectModifyCallback = ccbObjectModifyCallback,
-  .saImmOiRtAttrUpdateCallback = rtAttrUpdateCallback
-};
+    .saImmOiAdminOperationCallback = adminOperationCallback,
+    .saImmOiCcbAbortCallback = ccbAbortCallback,
+    .saImmOiCcbApplyCallback = ccbApplyCallback,
+    .saImmOiCcbCompletedCallback = ccbCompletedCallback,
+    .saImmOiCcbObjectCreateCallback = ccbObjectCreateCallback,
+    .saImmOiCcbObjectDeleteCallback = ccbObjectDeleteCallback,
+    .saImmOiCcbObjectModifyCallback = ccbObjectModifyCallback,
+    .saImmOiRtAttrUpdateCallback = rtAttrUpdateCallback};
 
 /**
  * Retrieve the LOG stream configuration from IMM using the
@@ -2919,7 +2926,7 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb) {
   log_stream_t *stream;
   SaImmHandleT omHandle;
   SaImmAccessorHandleT accessorHandle;
-  SaVersionT immVersion = { 'A', 2, 1 };
+  SaVersionT immVersion = {'A', 2, 1};
   SaImmSearchHandleT immSearchHandle;
   SaImmSearchParametersT_2 objectSearch;
   SaImmAttrValuesT_2 **attributes;
@@ -2948,29 +2955,36 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb) {
    * Should not base on the attribute name `safLgStrCfg`
    * as the user can create any class having that name
    */
-  objectSearch.searchOneAttr.attrName = const_cast<SaImmAttrNameT>("SaImmAttrClassName");
+  objectSearch.searchOneAttr.attrName =
+      const_cast<SaImmAttrNameT>("SaImmAttrClassName");
   objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
   objectSearch.searchOneAttr.attrValue = &className;
 
   /**
-   * Search from root as app stream DN name can be any - maybe not under the RDN `safApp=safLogService`
-   * Therefore, searching all class under `safApp=safLogService` might miss configurable app stream
-   * eg: app stream with DN `saLgStrCfg=test`
+   * Search from root as app stream DN name can be any - maybe not under the RDN
+   * `safApp=safLogService` Therefore, searching all class under
+   * `safApp=safLogService` might miss configurable app stream eg: app stream
+   * with DN `saLgStrCfg=test`
    */
-  if ((om_rc = immutil_saImmOmSearchInitialize_2(omHandle, NULL,
-                                                 SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
-                                                 &objectSearch, NULL, /* Get no attributes */
-                                                 &immSearchHandle)) == SA_AIS_OK) {
-    while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
+  if ((om_rc = immutil_saImmOmSearchInitialize_2(
+           omHandle, NULL, SA_IMM_SUBTREE,
+           SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &objectSearch,
+           NULL, /* Get no attributes */
+           &immSearchHandle)) == SA_AIS_OK) {
+    while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName,
+                                       &attributes) == SA_AIS_OK) {
       /**
-       * With headless mode enabled, when lgsv restarts, there could be other configurable app streams.
-       * It differs from legacy mode in which no app stream could be exist at startup.
+       * With headless mode enabled, when lgsv restarts, there could be other
+       * configurable app streams. It differs from legacy mode in which no app
+       * stream could be exist at startup.
        *
        * With well-known streams, stream ID is in reserved numbers [0-2].
        */
       SaConstStringT name = osaf_extended_name_borrow(&objectName);
-      streamId = is_well_know_stream(name)? wellknownStreamId++:appStreamId++;
-      ais_rc = stream_create_and_configure(name, &stream, streamId, accessorHandle);
+      streamId =
+          is_well_know_stream(name) ? wellknownStreamId++ : appStreamId++;
+      ais_rc =
+          stream_create_and_configure(name, &stream, streamId, accessorHandle);
       if (ais_rc != SA_AIS_OK) {
         LOG_WA("stream_create_and_configure failed %d", ais_rc);
         goto done;
@@ -2979,13 +2993,14 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb) {
   }
 
   /* 1.Become implementer
-   * 2.Update creation timestamp for all configure object, must be object implementer first
-   * 3.Open all streams
-   *     Config file and log file will be created. If this fails we give up
-   *     without returning any error. A new attempt to create the files will
-   *     be done when trying to write a log record to the stream.
+   * 2.Update creation timestamp for all configure object, must be object
+   * implementer first 3.Open all streams Config file and log file will be
+   * created. If this fails we give up without returning any error. A new
+   * attempt to create the files will be done when trying to write a log
+   * record to the stream.
    */
-  ais_rc = immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
+  ais_rc =
+      immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
   if (ais_rc != SA_AIS_OK) {
     LOG_ER("immutil_saImmOiClassImplementerSet failed %s", saf_error(ais_rc));
     osaf_abort(0);
@@ -3013,8 +3028,7 @@ SaAisErrorT lgs_imm_init_configStreams(lgs_cb_t *cb) {
     ais_rc = immutil_update_one_rattr(
         cb->immOiHandle, stream->name.c_str(),
         const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
-        SA_IMM_ATTR_SATIMET,
-        &stream->creationTimeStamp);
+        SA_IMM_ATTR_SATIMET, &stream->creationTimeStamp);
     if (ais_rc != SA_AIS_OK) {
       LOG_ER("immutil_update_one_rattr failed %s", saf_error(ais_rc));
       osaf_abort(0);
@@ -3058,7 +3072,8 @@ void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
 
   /* Initialize IMM OI service */
   rc = saImmOiInitialize_2(immOiHandle, &callbacks, &immVersion);
-  while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_60s)) {
+  while ((rc == SA_AIS_ERR_TRY_AGAIN) &&
+         (msecs_waited < max_waiting_time_60s)) {
     usleep(sleep_delay_ms * 1000);
     msecs_waited += sleep_delay_ms;
     rc = saImmOiInitialize_2(immOiHandle, &callbacks, &immVersion);
@@ -3070,7 +3085,8 @@ void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
   /* Get selection object for event handling */
   msecs_waited = 0;
   rc = saImmOiSelectionObjectGet(*immOiHandle, immSelectionObject);
-  while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_10s)) {
+  while ((rc == SA_AIS_ERR_TRY_AGAIN) &&
+         (msecs_waited < max_waiting_time_10s)) {
     usleep(sleep_delay_ms * 1000);
     msecs_waited += sleep_delay_ms;
     rc = saImmOiSelectionObjectGet(*immOiHandle, immSelectionObject);
@@ -3088,8 +3104,8 @@ void lgs_imm_init_OI_handle(SaImmOiHandleT *immOiHandle,
  * @param immOiHandle[in]
  * @return SaAisErrorT
  */
-static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT* immOiHandle,
-                                         SaSelectionObjectT* immSelectionObject) {
+static SaAisErrorT imm_impl_set_sequence(
+    SaImmOiHandleT *immOiHandle, SaSelectionObjectT *immSelectionObject) {
   SaAisErrorT rc = SA_AIS_OK;
   uint32_t msecs_waited = 0;
 
@@ -3111,8 +3127,7 @@ static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT* immOiHandle,
       rc = saImmOiImplementerSet(*immOiHandle, implementerName);
     }
     if (rc == SA_AIS_ERR_BAD_HANDLE || rc == SA_AIS_ERR_TIMEOUT) {
-      LOG_WA("saImmOiImplementerSet returned %s",
-             saf_error(rc));
+      LOG_WA("saImmOiImplementerSet returned %s", saf_error(rc));
       usleep(sleep_delay_ms * 1000);
       msecs_waited += sleep_delay_ms;
       saImmOiFinalize(*immOiHandle);
@@ -3130,17 +3145,17 @@ static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT* immOiHandle,
      * Become class implementer for the OpenSafLogConfig class if it exists
      * Become class implementer for the SaLogStreamConfig class
      */
-    if (true == *static_cast<const bool*>(lgs_cfg_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST))) {
+    if (true == *static_cast<const bool *>(
+                    lgs_cfg_get(LGS_IMM_LOG_OPENSAFLOGCONFIG_CLASS_EXIST))) {
       rc = saImmOiClassImplementerSet(*immOiHandle, logConfig_str);
-      while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
-             && (msecs_waited < max_waiting_time_60s)) {
+      while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) &&
+             (msecs_waited < max_waiting_time_60s)) {
         usleep(sleep_delay_ms * 1000);
         msecs_waited += sleep_delay_ms;
         rc = saImmOiClassImplementerSet(*immOiHandle, logConfig_str);
       }
       if (rc == SA_AIS_ERR_BAD_HANDLE || rc == SA_AIS_ERR_TIMEOUT) {
-        LOG_WA("saImmOiClassImplementerSet returned %s",
-               saf_error(rc));
+        LOG_WA("saImmOiClassImplementerSet returned %s", saf_error(rc));
         usleep(sleep_delay_ms * 1000);
         msecs_waited += sleep_delay_ms;
         saImmOiFinalize(*immOiHandle);
@@ -3150,21 +3165,21 @@ static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT* immOiHandle,
         continue;
       }
       if (rc != SA_AIS_OK) {
-        TRACE("saImmOiClassImplementerSet OpenSafLogConfig failed %s", saf_error(rc));
+        TRACE("saImmOiClassImplementerSet OpenSafLogConfig failed %s",
+              saf_error(rc));
         goto done;
       }
     }
 
     rc = saImmOiClassImplementerSet(*immOiHandle, streamConfig_str);
-    while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST))
-           && (msecs_waited < max_waiting_time_60s)) {
+    while (((rc == SA_AIS_ERR_TRY_AGAIN) || (rc == SA_AIS_ERR_EXIST)) &&
+           (msecs_waited < max_waiting_time_60s)) {
       usleep(sleep_delay_ms * 1000);
       msecs_waited += sleep_delay_ms;
       rc = saImmOiClassImplementerSet(*immOiHandle, streamConfig_str);
     }
     if (rc == SA_AIS_ERR_BAD_HANDLE || rc == SA_AIS_ERR_TIMEOUT) {
-      LOG_WA("saImmOiClassImplementerSet returned %s",
-             saf_error(rc));
+      LOG_WA("saImmOiClassImplementerSet returned %s", saf_error(rc));
       usleep(sleep_delay_ms * 1000);
       msecs_waited += sleep_delay_ms;
       saImmOiFinalize(*immOiHandle);
@@ -3174,7 +3189,8 @@ static SaAisErrorT imm_impl_set_sequence(SaImmOiHandleT* immOiHandle,
       continue;
     }
     if (rc != SA_AIS_OK) {
-      TRACE("saImmOiClassImplementerSet SaLogStreamConfig failed %s", saf_error(rc));
+      TRACE("saImmOiClassImplementerSet SaLogStreamConfig failed %s",
+            saf_error(rc));
       goto done;
     }
     break;
@@ -3191,8 +3207,8 @@ done:
  *
  * @param cb
  */
-void lgs_imm_impl_set(SaImmOiHandleT* immOiHandle,
-                      SaSelectionObjectT* immSelectionObject) {
+void lgs_imm_impl_set(SaImmOiHandleT *immOiHandle,
+                      SaSelectionObjectT *immSelectionObject) {
   SaAisErrorT rc = SA_AIS_OK;
 
   TRACE_ENTER();
@@ -3301,7 +3317,7 @@ void lgs_search_stream_objects() {
   SaAisErrorT ais_rc = SA_AIS_OK;
   SaImmHandleT immOmHandle;
   SaImmSearchHandleT immSearchHandle;
-  const char* class_name = "SaLogStream";
+  const char *class_name = "SaLogStream";
 
   TRACE_ENTER();
 
@@ -3324,12 +3340,8 @@ void lgs_search_stream_objects() {
   searchParam.searchOneAttr.attrValue = &class_name;
 
   ais_rc = immutil_saImmOmSearchInitialize_2(
-      immOmHandle,
-      NULL,
-      SA_IMM_SUBTREE,
-      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
-      &searchParam,
-      NULL,
+      immOmHandle, NULL, SA_IMM_SUBTREE,
+      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam, NULL,
       &immSearchHandle);
   if (ais_rc != SA_AIS_OK) {
     LOG_WA("%s saImmOmSearchInitialize FAIL %d", __FUNCTION__, ais_rc);
@@ -3341,7 +3353,8 @@ void lgs_search_stream_objects() {
   SaNameT object_name;
   SaImmAttrValuesT_2 **attributes;
 
-  ais_rc = immutil_saImmOmSearchNext_2(immSearchHandle, &object_name, &attributes);
+  ais_rc =
+      immutil_saImmOmSearchNext_2(immSearchHandle, &object_name, &attributes);
   if (ais_rc == SA_AIS_ERR_NOT_EXIST) {
     TRACE("\tNo objects found %s", saf_error(ais_rc));
   }
@@ -3357,8 +3370,8 @@ void lgs_search_stream_objects() {
     }
 
     /* Get next object */
-    ais_rc = immutil_saImmOmSearchNext_2(immSearchHandle,
-                                         &object_name, &attributes);
+    ais_rc =
+        immutil_saImmOmSearchNext_2(immSearchHandle, &object_name, &attributes);
   }
   if (ais_rc == SA_AIS_ERR_NOT_EXIST) {
     TRACE("\tAll objects found OK");
@@ -3402,8 +3415,8 @@ void lgs_delete_one_stream_object(const std::string &name_str) {
   if (ais_rc == SA_AIS_OK) {
     TRACE("%s Object \"%s\" deleted", __FUNCTION__, name_str.c_str());
   } else {
-    LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
-           __FUNCTION__, name_str.c_str(), ais_rc);
+    LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d", __FUNCTION__,
+           name_str.c_str(), ais_rc);
   }
 }
 
@@ -3430,7 +3443,7 @@ void lgs_cleanup_abandoned_streams() {
     char *name_str = log_rtobj_list_getname(pos);
 
     /* Append the close time to log file and configuration file */
-    (void) log_close_rtstream_files(name_str);
+    (void)log_close_rtstream_files(name_str);
 
     /* Delete the object if in object list. Note this is an Oi operation
      * Remove name from list
@@ -3443,8 +3456,8 @@ void lgs_cleanup_abandoned_streams() {
       if (ais_rc == SA_AIS_OK) {
         TRACE("\tObject \"%s\" deleted", name_str);
       } else {
-        LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
-               __FUNCTION__, name_str, ais_rc);
+        LOG_WA("%s saImmOiRtObjectDelete for \"%s\" FAILED %d", __FUNCTION__,
+               name_str, ais_rc);
       }
     } else {
       /* Should never happen! */
@@ -3475,18 +3488,17 @@ int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out,
   SaAisErrorT ais_rc = SA_AIS_OK;
   SaImmAccessorHandleT accessorHandle;
   char *attribute_names[] = {
-    const_cast<char *>("saLogStreamFileName"),
-    const_cast<char *>("saLogStreamPathName"),
-    const_cast<char *>("saLogStreamMaxLogFileSize"),
-    const_cast<char *>("saLogStreamFixedLogRecordSize"),
-    const_cast<char *>("saLogStreamHaProperty"),
-    const_cast<char *>("saLogStreamLogFullAction"),
-    const_cast<char *>("saLogStreamMaxFilesRotated"),
-    const_cast<char *>("saLogStreamLogFileFormat"),
-    const_cast<char *>("saLogStreamSeverityFilter"),
-    const_cast<char *>("saLogStreamCreationTimestamp"),
-    NULL
-  };
+      const_cast<char *>("saLogStreamFileName"),
+      const_cast<char *>("saLogStreamPathName"),
+      const_cast<char *>("saLogStreamMaxLogFileSize"),
+      const_cast<char *>("saLogStreamFixedLogRecordSize"),
+      const_cast<char *>("saLogStreamHaProperty"),
+      const_cast<char *>("saLogStreamLogFullAction"),
+      const_cast<char *>("saLogStreamMaxFilesRotated"),
+      const_cast<char *>("saLogStreamLogFileFormat"),
+      const_cast<char *>("saLogStreamSeverityFilter"),
+      const_cast<char *>("saLogStreamCreationTimestamp"),
+      NULL};
 
   TRACE_ENTER2("object_name_in \"%s\"", object_name_in.c_str());
 
@@ -3510,8 +3522,8 @@ int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out,
    */
   ais_rc = immutil_saImmOmAccessorInitialize(*immOmHandle, &accessorHandle);
   if (ais_rc != SA_AIS_OK) {
-    TRACE("%s\t saImmOmAccessorInitialize Fail '%s'",
-          __FUNCTION__, saf_error(ais_rc));
+    TRACE("%s\t saImmOmAccessorInitialize Fail '%s'", __FUNCTION__,
+          saf_error(ais_rc));
     rc = -1;
     goto done;
   }
@@ -3521,8 +3533,8 @@ int lgs_get_streamobj_attr(SaImmAttrValuesT_2 ***attrib_out,
   ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
                                         attribute_names, attrib_out);
   if (ais_rc != SA_AIS_OK) {
-    TRACE("%s\t saImmOmAccessorGet_2 Fail '%s'",
-          __FUNCTION__, saf_error(ais_rc));
+    TRACE("%s\t saImmOmAccessorGet_2 Fail '%s'", __FUNCTION__,
+          saf_error(ais_rc));
     rc = -1;
     goto done_fin_Om;
   } else {
@@ -3533,8 +3545,7 @@ done_fin_Om:
   /* Free resources if fail */
   ais_rc = immutil_saImmOmFinalize(*immOmHandle);
   if (ais_rc != SA_AIS_OK) {
-    TRACE("%s\t saImmOmFinalize Fail '%s'",
-          __FUNCTION__, saf_error(ais_rc));
+    TRACE("%s\t saImmOmFinalize Fail '%s'", __FUNCTION__, saf_error(ais_rc));
   }
 
 done:
@@ -3556,8 +3567,7 @@ int lgs_free_streamobj_attr(SaImmHandleT immOmHandle) {
 
   ais_rc = immutil_saImmOmFinalize(immOmHandle);
   if (ais_rc != SA_AIS_OK) {
-    TRACE("%s\t saImmOmFinalize Fail '%s'",
-          __FUNCTION__, saf_error(ais_rc));
+    TRACE("%s\t saImmOmFinalize Fail '%s'", __FUNCTION__, saf_error(ais_rc));
     rc = -1;
   }
 
@@ -3584,10 +3594,7 @@ SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val) {
   SaImmAttrValuesT_2 **attributes;
 
   TRACE_ENTER();
-  char *attribute_names[] = {
-    const_cast<char *>("scAbsenceAllowed"),
-    NULL
-  };
+  char *attribute_names[] = {const_cast<char *>("scAbsenceAllowed"), NULL};
   std::string object_name_str = "opensafImm=opensafImm,safApp=safImmService";
 
   SaNameT object_name;
@@ -3610,20 +3617,18 @@ SaUint32T *lgs_get_scAbsenceAllowed_attr(SaUint32T *attr_val) {
    */
   ais_rc = immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
   if (ais_rc != SA_AIS_OK) {
-    TRACE("%s\t saImmOmAccessorInitialize Fail '%s'",
-          __FUNCTION__, saf_error(ais_rc));
+    TRACE("%s\t saImmOmAccessorInitialize Fail '%s'", __FUNCTION__,
+          saf_error(ais_rc));
     goto done;
   }
-
 
   ais_rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
                                         attribute_names, &attributes);
   if (ais_rc != SA_AIS_OK) {
-    TRACE("%s\t saImmOmAccessorGet_2 Fail '%s'",
-          __FUNCTION__, saf_error(ais_rc));
+    TRACE("%s\t saImmOmAccessorGet_2 Fail '%s'", __FUNCTION__,
+          saf_error(ais_rc));
     goto done_fin_Om;
   }
-
 
   /* Handle the global scAbsenceAllowed_flag */
   attribute = attributes[0];
@@ -3641,8 +3646,7 @@ done_fin_Om:
   /* Free Om resources */
   ais_rc = immutil_saImmOmFinalize(immOmHandle);
   if (ais_rc != SA_AIS_OK) {
-    TRACE("%s\t saImmOmFinalize Fail '%s'",
-          __FUNCTION__, saf_error(ais_rc));
+    TRACE("%s\t saImmOmFinalize Fail '%s'", __FUNCTION__, saf_error(ais_rc));
   }
 
 done:

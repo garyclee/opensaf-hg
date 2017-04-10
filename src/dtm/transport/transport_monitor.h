@@ -51,32 +51,22 @@ class TransportMonitor {
 
   // Return true if OpenSAF has been configured to use the TIPC transport, and
   // false if the TCP transport has been configured.
-  bool use_tipc() const {
-    return use_tipc_;
-  }
+  bool use_tipc() const { return use_tipc_; }
 
  private:
-  const char* pkgpiddir() const {
-    return pkgpiddir_.c_str();
-  }
+  const char* pkgpiddir() const { return pkgpiddir_.c_str(); }
 
-  const char* proc_path() const {
-    return proc_path_.c_str();
-  }
+  const char* proc_path() const { return proc_path_.c_str(); }
 
-  const char* mds_log_file() const {
-    return mds_log_file_.c_str();
-  }
+  const char* mds_log_file() const { return mds_log_file_.c_str(); }
 
-  const char* old_mds_log_file() const {
-    return old_mds_log_file_.c_str();
-  }
+  const char* old_mds_log_file() const { return old_mds_log_file_.c_str(); }
 
   static bool IsDir(const std::string& path);
   static uint64_t FileSize(const std::string& path);
 
   int term_fd_;
-  const std::string fifo_file_ {PKGLOCALSTATEDIR "/osafdtmd.fifo"};
+  const std::string fifo_file_{PKGLOCALSTATEDIR "/osafdtmd.fifo"};
   const std::string pkgpiddir_;
   const std::string proc_path_;
   const std::string mds_log_file_;

@@ -18,8 +18,8 @@
 #include "smfd.h"
 #include "smf/smfd/smfd_smfnd.h"
 
-uint32_t mds_register(smfd_cb_t * cb);
-void mds_unregister(smfd_cb_t * cb);
+uint32_t mds_register(smfd_cb_t *cb);
+void mds_unregister(smfd_cb_t *cb);
 
 /****************************************************************************
  * Name          : mds_cpy
@@ -55,7 +55,7 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 	SMFSV_EVT *evt;
 	NCS_UBAID *uba;
 
-	evt = (SMFSV_EVT *) info->info.enc.i_msg;
+	evt = (SMFSV_EVT *)info->info.enc.i_msg;
 	uba = info->info.enc.io_uba;
 
 	if (uba == NULL) {
@@ -70,7 +70,7 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
 
 	return NCSCC_RC_SUCCESS;
 
- err:
+err:
 	return NCSCC_RC_FAILURE;
 }
 
@@ -79,7 +79,7 @@ static uint32_t mds_enc(struct ncsmds_callback_info *info)
  *
  * Description   : MDS decode
  *
- * Arguments     : pointer to ncsmds_callback_info 
+ * Arguments     : pointer to ncsmds_callback_info
  *
  * Return Values : NCSCC_RC_SUCCESS/Error Code.
  *
@@ -91,14 +91,14 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info)
 	SMFSV_EVT *evt;
 	NCS_UBAID *uba = info->info.dec.io_uba;
 
-    /** allocate an SMFSV_EVENT now **/
+	/** allocate an SMFSV_EVENT now **/
 	if (NULL == (evt = calloc(1, sizeof(SMFSV_EVT)))) {
 		LOG_WA("calloc FAILED");
 		goto err;
 	}
 
 	/* Assign the allocated event */
-	info->info.dec.o_msg = (uint8_t *) evt;
+	info->info.dec.o_msg = (uint8_t *)evt;
 
 	if (smfsv_evt_dec(uba, evt) != NCSCC_RC_SUCCESS) {
 		TRACE("decoding event %d failed", evt->type);
@@ -107,7 +107,7 @@ static uint32_t mds_dec(struct ncsmds_callback_info *info)
 
 	return NCSCC_RC_SUCCESS;
 
- err:
+err:
 	return NCSCC_RC_FAILURE;
 }
 
@@ -179,9 +179,9 @@ static uint32_t mds_dec_flat(struct ncsmds_callback_info *info)
 
 static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 {
-	SMFSV_EVT *smfsv_evt = (SMFSV_EVT *) mds_info->info.receive.i_msg;
+	SMFSV_EVT *smfsv_evt = (SMFSV_EVT *)mds_info->info.receive.i_msg;
 
-	smfsv_evt->cb_hdl = (uint32_t) mds_info->i_yr_svc_hdl;
+	smfsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 	smfsv_evt->fr_node_id = mds_info->info.receive.i_node_id;
 	smfsv_evt->fr_dest = mds_info->info.receive.i_fr_dest;
 	smfsv_evt->fr_svc = mds_info->info.receive.i_fr_svc_id;
@@ -189,8 +189,9 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 	smfsv_evt->mds_ctxt = mds_info->info.receive.i_msg_ctxt;
 
 	/* Send the event to our mailbox */
-	uint32_t rc = m_NCS_IPC_SEND(&smfd_cb->mbx, smfsv_evt,
-			    (NCS_IPC_PRIORITY)mds_info->info.receive.i_priority);
+	uint32_t rc =
+	    m_NCS_IPC_SEND(&smfd_cb->mbx, smfsv_evt,
+			   (NCS_IPC_PRIORITY)mds_info->info.receive.i_priority);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IPC send failed %d", rc);
 	}
@@ -211,20 +212,22 @@ static uint32_t mds_rcv(struct ncsmds_callback_info *mds_info)
 
 static uint32_t mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 {
-        SMFSV_EVT *smfsv_evt;
+	SMFSV_EVT *smfsv_evt;
 	if (smfd_cb->is_quiesced_set == true) {
-                /** allocate an SMFSV_EVT **/
-                if (NULL == (smfsv_evt = calloc(1, sizeof(SMFSV_EVT)))) {
-                        LOG_NO("calloc FAILED");
-                        goto err;
-                }
-                /** Initialize the Event **/
+		/** allocate an SMFSV_EVT **/
+		if (NULL == (smfsv_evt = calloc(1, sizeof(SMFSV_EVT)))) {
+			LOG_NO("calloc FAILED");
+			goto err;
+		}
+		/** Initialize the Event **/
 		smfsv_evt->type = SMFSV_EVT_TYPE_SMFD;
 		smfsv_evt->info.smfd.type = SMFD_EVT_QUIESCED_ACK;
 		smfsv_evt->cb_hdl = (uint32_t)mds_info->i_yr_svc_hdl;
 
-                /* Push the event and we are done */
-		if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&smfd_cb->mbx, smfsv_evt, NCS_IPC_PRIORITY_VERY_HIGH)) {
+		/* Push the event and we are done */
+		if (NCSCC_RC_FAILURE ==
+		    m_NCS_IPC_SEND(&smfd_cb->mbx, smfsv_evt,
+				   NCS_IPC_PRIORITY_VERY_HIGH)) {
 			TRACE("ipc send failed");
 			smfsv_evt_destroy(smfsv_evt);
 			goto err;
@@ -264,8 +267,8 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 
 	/* If this evt was sent from SMFND act on this */
 	if (info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_SMFND ||
-                info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_SMFD) {
-	/** allocate an SMFSV_EVENT **/
+	    info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_SMFD) {
+		/** allocate an SMFSV_EVENT **/
 		if (NULL == (evt = calloc(1, sizeof(SMFSV_EVT)))) {
 			LOG_ER("calloc FAILED");
 			rc = NCSCC_RC_FAILURE;
@@ -279,16 +282,19 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 		evt->info.smfd.event.mds_info.dest = svc_evt->i_dest;
 		evt->info.smfd.event.mds_info.svc_id = svc_evt->i_svc_id;
 		evt->info.smfd.event.mds_info.node_id = svc_evt->i_node_id;
-		evt->info.smfd.event.mds_info.rem_svc_pvt_ver = svc_evt->i_rem_svc_pvt_ver;
+		evt->info.smfd.event.mds_info.rem_svc_pvt_ver =
+		    svc_evt->i_rem_svc_pvt_ver;
 		evt->info.smfd.event.mds_info.role = svc_evt->i_role;
 
-               TRACE("%s SVC event %d for nodeid %x, svc version %u role %u",
-                       info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_SMFND ?
-                       "SMFND" : "SMFD", svc_evt->i_change, svc_evt->i_node_id,
-                       svc_evt->i_rem_svc_pvt_ver, svc_evt->i_role);
+		TRACE("%s SVC event %d for nodeid %x, svc version %u role %u",
+		      info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_SMFND
+			  ? "SMFND"
+			  : "SMFD",
+		      svc_evt->i_change, svc_evt->i_node_id,
+		      svc_evt->i_rem_svc_pvt_ver, svc_evt->i_role);
 
 		/* Put it in SMFD's Event Queue */
-		rc = m_NCS_IPC_SEND(&smfd_cb->mbx, (NCSCONTEXT) evt,
+		rc = m_NCS_IPC_SEND(&smfd_cb->mbx, (NCSCONTEXT)evt,
 				    NCS_IPC_PRIORITY_HIGH);
 		if (NCSCC_RC_SUCCESS != rc) {
 			free(evt);
@@ -297,7 +303,7 @@ static uint32_t mds_svc_event(struct ncsmds_callback_info *info)
 		}
 	}
 
- done:
+done:
 	return rc;
 }
 
@@ -335,19 +341,19 @@ static uint32_t mds_sys_event(struct ncsmds_callback_info *mds_info)
 static uint32_t mds_callback(struct ncsmds_callback_info *info)
 {
 	static NCSMDS_CALLBACK_API cb_set[MDS_CALLBACK_SVC_MAX] = {
-		mds_cpy,	/* MDS_CALLBACK_COPY      */
-		mds_enc,	/* MDS_CALLBACK_ENC       */
-		mds_dec,	/* MDS_CALLBACK_DEC       */
-		mds_enc_flat,	/* MDS_CALLBACK_ENC_FLAT  */
-		mds_dec_flat,	/* MDS_CALLBACK_DEC_FLAT  */
-		mds_rcv,	/* MDS_CALLBACK_RECEIVE   */
-		mds_svc_event,	/* MDS_CALLBACK_SVC_EVENT */
-		mds_sys_event,	/* MDS_CALLBACK_SYS_EVENT */
-		mds_quiesced_ack	/* MDS_CALLBACK_QUIESCED_ACK */
+	    mds_cpy,	 /* MDS_CALLBACK_COPY      */
+	    mds_enc,	 /* MDS_CALLBACK_ENC       */
+	    mds_dec,	 /* MDS_CALLBACK_DEC       */
+	    mds_enc_flat,    /* MDS_CALLBACK_ENC_FLAT  */
+	    mds_dec_flat,    /* MDS_CALLBACK_DEC_FLAT  */
+	    mds_rcv,	 /* MDS_CALLBACK_RECEIVE   */
+	    mds_svc_event,   /* MDS_CALLBACK_SVC_EVENT */
+	    mds_sys_event,   /* MDS_CALLBACK_SYS_EVENT */
+	    mds_quiesced_ack /* MDS_CALLBACK_QUIESCED_ACK */
 	};
 
 	if (info->i_op <= MDS_CALLBACK_QUIESCED_ACK) {
-		return (*cb_set[info->i_op]) (info);
+		return (*cb_set[info->i_op])(info);
 	}
 
 	LOG_ER("mds callback out of range %u", info->i_op);
@@ -360,13 +366,13 @@ static uint32_t mds_callback(struct ncsmds_callback_info *info)
  *
  * Description   : This function created the VDEST for SMFD
  *
- * Arguments     : 
+ * Arguments     :
  *
  * Return Values : NCSCC_RC_SUCCESS/Error Code.
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mds_vdest_create(smfd_cb_t * cb)
+static uint32_t mds_vdest_create(smfd_cb_t *cb)
 {
 	NCSVDA_INFO arg;
 
@@ -393,21 +399,21 @@ static uint32_t mds_vdest_create(smfd_cb_t * cb)
 
 /****************************************************************************
   Name          : mds_register
- 
+
   Description   : This routine registers the SMFD Service with MDS.
- 
+
   Arguments     : mqa_cb - ptr to the SMFD control block
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 
-uint32_t mds_register(smfd_cb_t * cb)
+uint32_t mds_register(smfd_cb_t *cb)
 {
 	NCSMDS_INFO svc_info;
-	MDS_SVC_ID smfnd_id[1] = { NCSMDS_SVC_ID_SMFND };
-	MDS_SVC_ID smfd_id[1] = { NCSMDS_SVC_ID_SMFD };
+	MDS_SVC_ID smfnd_id[1] = {NCSMDS_SVC_ID_SMFND};
+	MDS_SVC_ID smfd_id[1] = {NCSMDS_SVC_ID_SMFD};
 
 	/* memset the svc_info */
 	memset(&svc_info, 0, sizeof(NCSMDS_INFO));
@@ -418,8 +424,9 @@ uint32_t mds_register(smfd_cb_t * cb)
 	svc_info.i_op = MDS_INSTALL;
 
 	svc_info.info.svc_install.i_yr_svc_hdl = 0;
-	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/* node specific */
-	svc_info.info.svc_install.i_svc_cb = mds_callback;	/* callback */
+	svc_info.info.svc_install.i_install_scope =
+	    NCSMDS_SCOPE_NONE;				   /* node specific */
+	svc_info.info.svc_install.i_svc_cb = mds_callback; /* callback */
 	svc_info.info.svc_install.i_mds_q_ownership = false;
 	svc_info.info.svc_install.i_mds_svc_pvt_ver =
 	    SMFD_MDS_PVT_SUBPART_VERSION;
@@ -439,8 +446,8 @@ uint32_t mds_register(smfd_cb_t * cb)
 	svc_info.info.svc_subscribe.i_svc_ids = smfd_id;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
-		LOG_ER
-		    ("smfd_mds_register: MDS Subscribe for redundancy Failed");
+		LOG_ER(
+		    "smfd_mds_register: MDS Subscribe for redundancy Failed");
 		mds_unregister(cb);
 		return NCSCC_RC_FAILURE;
 	}
@@ -474,11 +481,11 @@ uint32_t mds_register(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-void mds_unregister(smfd_cb_t * cb)
+void mds_unregister(smfd_cb_t *cb)
 {
 	NCSMDS_INFO arg;
 
-	/* Uninstall our service from MDS. 
+	/* Uninstall our service from MDS.
 	   No need to cancel the services that are subscribed */
 
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
@@ -504,7 +511,7 @@ void mds_unregister(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t smfd_mds_init(smfd_cb_t * cb)
+uint32_t smfd_mds_init(smfd_cb_t *cb)
 {
 	uint32_t rc;
 
@@ -536,7 +543,7 @@ uint32_t smfd_mds_init(smfd_cb_t * cb)
 		goto done;
 	}
 
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -544,7 +551,7 @@ uint32_t smfd_mds_init(smfd_cb_t * cb)
 /****************************************************************************
  * Name          : smfd_mds_change_role
  *
- * Description   : This function informs mds of our vdest role change 
+ * Description   : This function informs mds of our vdest role change
  *
  * Arguments     : cb   : SMFD control Block pointer.
  *
@@ -552,7 +559,7 @@ uint32_t smfd_mds_init(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t smfd_mds_change_role(smfd_cb_t * cb)
+uint32_t smfd_mds_change_role(smfd_cb_t *cb)
 {
 	NCSVDA_INFO arg;
 
@@ -576,7 +583,7 @@ uint32_t smfd_mds_change_role(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t mds_vdest_destroy(smfd_cb_t * cb)
+static uint32_t mds_vdest_destroy(smfd_cb_t *cb)
 {
 	NCSVDA_INFO vda_info;
 	uint32_t rc;
@@ -604,7 +611,7 @@ static uint32_t mds_vdest_destroy(smfd_cb_t * cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t smfd_mds_finalize(smfd_cb_t * cb)
+uint32_t smfd_mds_finalize(smfd_cb_t *cb)
 {
 	uint32_t rc;
 

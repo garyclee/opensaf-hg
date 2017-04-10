@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-  MODULE NAME: FM 
+  MODULE NAME: FM
 
   DESCRIPTION: fm callback routines.
 
@@ -24,9 +24,9 @@
   fm_amf_take_hdl.............................. Get FM handle
   fm_amf_give_hdl.............................. Release FM handle
   fm_saf_CSI_set_callback.................... fm SAF HA state callback.
-  fm_saf_health_chk_callback................. fm SAF Health Check callback.  
-  fm_saf_CSI_rem_callback   ................. fm SAF CSI remove callback.  
-  fm_saf_comp_terminate_callback............. fm SAF Terminate comp callback.  
+  fm_saf_health_chk_callback................. fm SAF Health Check callback.
+  fm_saf_CSI_rem_callback   ................. fm SAF CSI remove callback.
+  fm_saf_comp_terminate_callback............. fm SAF Terminate comp callback.
   fm_amf_init................................ fm AMF initialization method.
   fm_amf_register............................ fm AMF registration method.
   fm_amf_healthcheck_start................... fm AMF health check start method
@@ -41,28 +41,27 @@ static uint32_t fm_amf_register(FM_AMF_CB *fm_amf_cb);
 static uint32_t fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb);
 static FM_AMF_CB *fm_amf_take_hdl(void);
 static void fm_amf_give_hdl(void);
-static char *ha_role_string[] = { "ACTIVE", "STANDBY", "QUIESCED",
-	"QUIESCING"
-};
-
+static char *ha_role_string[] = {"ACTIVE", "STANDBY", "QUIESCED", "QUIESCING"};
 
 void amfnd_down_callback(void)
 {
 	if (!fm_cb->control_tipc) {
-		/* OpenSAF is not controlling TIPC, Wait till OS terminates the process
-		 * Peer(STANDBY) FM will trigger failover only after it receives FM down on this node.
+		/* OpenSAF is not controlling TIPC, Wait till OS terminates the
+		 * process Peer(STANDBY) FM will trigger failover only after it
+		 * receives FM down on this node.
 		 */
-		LOG_AL("AMF Node Director is down, waiting for the OS to terminate this process");
-		while(1) {
+		LOG_AL(
+		    "AMF Node Director is down, waiting for the OS to terminate this process");
+		while (1) {
 			m_NCS_TASK_SLEEP(0xfffffff0);
 		}
 	} else {
-		/* OpenSAF is controlling TIPC, peer(STANDBY) FM will receive/act on NODE_DOWN */
+		/* OpenSAF is controlling TIPC, peer(STANDBY) FM will
+		 * receive/act on NODE_DOWN */
 		LOG_AL("AMF Node Director is down, terminate this process");
 		raise(SIGTERM);
 	}
 }
-
 
 /****************************************************************************
  * Name          : fm_amf_take_hdl
@@ -107,49 +106,50 @@ void fm_amf_give_hdl(void)
 /****************************************************************************
  * Name          : fm_saf_CSI_set_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when there is any change in the HA state.
  *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The 
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ * Arguments     : invocation     - This parameter designated a particular
+ *                                  invocation of this callback function. The
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 haState        - The new HA state to be assumeb by the 
- *                                  component service instance identified by 
- *                                  csiName. 
+ *                 haState        - The new HA state to be assumeb by the
+ *                                  component service instance identified by
+ *                                  csiName.
  *
  * Return Values : None.
  *
  * Notes         : None.
  *****************************************************************************/
-void fm_saf_CSI_set_callback(SaInvocationT invocation,
-			     const SaNameT *compName, SaAmfHAStateT new_haState,
+void fm_saf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
+			     SaAmfHAStateT new_haState,
 			     SaAmfCSIDescriptorT csiDescriptor)
 {
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
 	uint32_t rc;
-	TRACE_ENTER2("ha_state %d", (int) new_haState);
+	TRACE_ENTER2("ha_state %d", (int)new_haState);
 	syslog(LOG_INFO, "fm_saf_CSI_set_callback: Comp %s, state %s",
-		compName->value, ha_role_string[new_haState - 1]);
+	       compName->value, ha_role_string[new_haState - 1]);
 	fm_amf_cb = fm_amf_take_hdl();
 	if (fm_amf_cb != NULL) {
 		if (new_haState == SA_AMF_HA_ACTIVE &&
 		    fm_cb->activation_supervision_tmr.status ==
-		    FM_TMR_RUNNING) {
+			FM_TMR_RUNNING) {
 			fm_tmr_stop(&fm_cb->activation_supervision_tmr);
 			LOG_NO("Stopped activation supervision due to new AMF "
-			       "state %u", (unsigned) new_haState);
+			       "state %u",
+			       (unsigned)new_haState);
 		}
 		if ((rc = initialize_for_assignment(fm_cb, new_haState)) !=
-			NCSCC_RC_SUCCESS) {
+		    NCSCC_RC_SUCCESS) {
 			LOG_ER("initialize_for_assignment FAILED %u",
-				(unsigned) rc);
+			       (unsigned)rc);
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		} else {
 			fm_cb->amf_state = new_haState;
@@ -165,25 +165,27 @@ void fm_saf_CSI_set_callback(SaInvocationT invocation,
 /****************************************************************************
  * Name          : fm_saf_health_chk_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs to health for the component.
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 checkType      - The type of healthcheck to be executed. 
+ *                 checkType      - The type of healthcheck to be executed.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-void fm_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
+void fm_saf_health_chk_callback(SaInvocationT invocation,
+				const SaNameT *compName,
+				SaAmfHealthcheckKeyT *checkType)
 {
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
@@ -200,36 +202,37 @@ void fm_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compNam
 /****************************************************************************
  * Name          : fm_saf_CSI_rem_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs remove the CSI assignment.
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
  *                 csiName        - A pointer to the name of the new component
- *                                  service instance to be supported by the 
- *                                  component or of an alreadt supported 
- *                                  component service instance whose HA state 
+ *                                  service instance to be supported by the
+ *                                  component or of an alreadt supported
+ *                                  component service instance whose HA state
  *                                  is to be changed.
- *                 csiFlags       - A value of the choiceflag type which 
+ *                 csiFlags       - A value of the choiceflag type which
  *                                  indicates whether the HA state change must
- *                                  be applied to a new component service 
- *                                  instance or to all component service 
- *                                  instance currently supported by the 
+ *                                  be applied to a new component service
+ *                                  instance or to all component service
+ *                                  instance currently supported by the
  *                                  component.
  *
  * Return Values : None
  *
  * Notes         : This is not completed - TBD.
  *****************************************************************************/
-void fm_saf_CSI_rem_callback(SaInvocationT invocation,
-			     const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
+void fm_saf_CSI_rem_callback(SaInvocationT invocation, const SaNameT *compName,
+			     const SaNameT *csiName,
+			     const SaAmfCSIFlagsT csiFlags)
 {
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
@@ -250,29 +253,31 @@ void fm_saf_CSI_rem_callback(SaInvocationT invocation,
 /****************************************************************************
  * Name          : fm_saf_comp_terminate_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF needs to terminate the component.
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
  *
  * Return Values : None
  *
  * Notes         : This is not completed - TBD.
  *****************************************************************************/
-void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+void fm_saf_comp_terminate_callback(SaInvocationT invocation,
+				    const SaNameT *compName)
 {
 	FM_AMF_CB *fm_amf_cb;
 	SaAisErrorT error = SA_AIS_OK;
 	TRACE_ENTER();
-	syslog(LOG_INFO, "fm_saf_comp_terminate_callback: Comp %s", compName->value);
+	syslog(LOG_INFO, "fm_saf_comp_terminate_callback: Comp %s",
+	       compName->value);
 	fm_amf_cb = fm_amf_take_hdl();
 	if (fm_amf_cb != NULL) {
 		error = saAmfResponse(fm_amf_cb->amf_hdl, invocation, error);
@@ -286,7 +291,7 @@ void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *com
 /****************************************************************************
  * Name          : fm_amf_init
  *
- * Description   : FM initializes AMF for involking process and registers 
+ * Description   : FM initializes AMF for involking process and registers
  *                 the various callback functions.
  *
  * Arguments     : fm_amf_cb  - FM control block pointer.
@@ -305,51 +310,58 @@ uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb)
 	TRACE_ENTER();
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	if (fm_amf_cb->nid_started &&
-		amf_comp_name_get_set_from_file("FM_COMP_NAME_FILE", &sname) != NCSCC_RC_SUCCESS)
+	    amf_comp_name_get_set_from_file("FM_COMP_NAME_FILE", &sname) !=
+		NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
- 
+
 	amfCallbacks.saAmfHealthcheckCallback = fm_saf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = fm_saf_CSI_set_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = fm_saf_CSI_rem_callback;
-	amfCallbacks.saAmfComponentTerminateCallback = fm_saf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    fm_saf_comp_terminate_callback;
 
 	m_FM_GET_AMF_VER(amf_version);
 
-	amf_error = saAmfInitialize(&fm_amf_cb->amf_hdl, &amfCallbacks, &amf_version);
+	amf_error =
+	    saAmfInitialize(&fm_amf_cb->amf_hdl, &amfCallbacks, &amf_version);
 	if (amf_error != SA_AIS_OK) {
-		syslog(LOG_ERR, "FM_COND_AMF_INIT_FAILED: amf_rc %d", amf_error);
+		syslog(LOG_ERR, "FM_COND_AMF_INIT_FAILED: amf_rc %d",
+		       amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 	memset(&sname, 0, sizeof(sname));
 	amf_error = saAmfComponentNameGet(fm_amf_cb->amf_hdl, &sname);
 	if (amf_error != SA_AIS_OK) {
-		syslog(LOG_ERR, "FM_COND_AMF_GET_NAME_FAILED: amf_rc %d", amf_error);
+		syslog(LOG_ERR, "FM_COND_AMF_GET_NAME_FAILED: amf_rc %d",
+		       amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 	strcpy(fm_amf_cb->comp_name, (char *)sname.value);
 
-	/* 
-	 ** Get the AMF selection object 
+	/*
+	 ** Get the AMF selection object
 	 */
-	amf_error = saAmfSelectionObjectGet(fm_amf_cb->amf_hdl, &fm_amf_cb->amf_fd);
+	amf_error =
+	    saAmfSelectionObjectGet(fm_amf_cb->amf_hdl, &fm_amf_cb->amf_fd);
 	if (amf_error != SA_AIS_OK) {
-		syslog(LOG_ERR, "FM_COND_AMF_GET_OBJ_FAILED: amf_rc %d", amf_error);
+		syslog(LOG_ERR, "FM_COND_AMF_GET_OBJ_FAILED: amf_rc %d",
+		       amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* 
-	 ** Register FM with AMF 
+	/*
+	 ** Register FM with AMF
 	 */
 	rc = fm_amf_register(fm_amf_cb);
 	if (rc != NCSCC_RC_SUCCESS)
 		rc = NCSCC_RC_FAILURE;
 
-	/* 
-	 ** Start component healthcheck 
+	/*
+	 ** Start component healthcheck
 	 */
 	rc = fm_amf_healthcheck_start(fm_amf_cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		 return NCSCC_RC_FAILURE;
+		return NCSCC_RC_FAILURE;
 	}
 	ava_install_amf_down_cb(&amfnd_down_callback);
 	TRACE_LEAVE();
@@ -359,7 +371,7 @@ uint32_t fm_amf_init(FM_AMF_CB *fm_amf_cb)
 /****************************************************************************
  * Name          : fm_amf_register
  *
- * Description   : FM registers with AMF to tell AMF that it is ready 
+ * Description   : FM registers with AMF to tell AMF that it is ready
  *
  * Arguments     : fm_amf_cb  - FM control block pointer.
  *
@@ -372,15 +384,16 @@ static uint32_t fm_amf_register(FM_AMF_CB *fm_amf_cb)
 	SaAisErrorT amf_error;
 	uint32_t res = NCSCC_RC_SUCCESS;
 	SaNameT sname;
-	
+
 	TRACE_ENTER();
 	sname.length = strlen(fm_amf_cb->comp_name);
 	strcpy((char *)sname.value, fm_amf_cb->comp_name);
 
-	/* 
-	 * register FM component with AvSv 
+	/*
+	 * register FM component with AvSv
 	 */
-	amf_error = saAmfComponentRegister(fm_amf_cb->amf_hdl, &sname, (SaNameT *)NULL);
+	amf_error =
+	    saAmfComponentRegister(fm_amf_cb->amf_hdl, &sname, (SaNameT *)NULL);
 	if (amf_error != SA_AIS_OK) {
 		syslog(LOG_ERR, "FM_COND_AMF_REG_FAILED: amf_rc %d", amf_error);
 		return NCSCC_RC_FAILURE;
@@ -392,7 +405,7 @@ static uint32_t fm_amf_register(FM_AMF_CB *fm_amf_cb)
 /****************************************************************************
  * Name          : fm_amf_healthcheck_start
  *
- * Description   : FM informs AMF to stat healthcheck 
+ * Description   : FM informs AMF to stat healthcheck
  *
  * Arguments     : fm_amf_cb  - FM control block pointer.
  *
@@ -409,7 +422,7 @@ static uint32_t fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb)
 	char hlth_str[256];
 
 	/*
-	 ** Start the AMF health check 
+	 ** Start the AMF health check
 	 */
 	memset(&SaCompName, 0, sizeof(SaCompName));
 	strcpy((char *)SaCompName.value, fm_amf_cb->comp_name);
@@ -419,7 +432,7 @@ static uint32_t fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb)
 	phlth_ptr = getenv("FMS_HA_ENV_HEALTHCHECK_KEY");
 	if (phlth_ptr == NULL) {
 		/*
-		 ** default health check key 
+		 ** default health check key
 		 */
 		strcpy(hlth_str, "BAD10");
 	} else {
@@ -428,14 +441,16 @@ static uint32_t fm_amf_healthcheck_start(FM_AMF_CB *fm_amf_cb)
 	strcpy((char *)Healthy.key, hlth_str);
 	Healthy.keyLen = strlen((char *)Healthy.key);
 
-	amf_error = saAmfHealthcheckStart(fm_amf_cb->amf_hdl, &SaCompName, &Healthy,
-					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+	amf_error = saAmfHealthcheckStart(
+	    fm_amf_cb->amf_hdl, &SaCompName, &Healthy,
+	    SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (amf_error != SA_AIS_OK) {
-		syslog(LOG_ERR, "FM_COND_AMF_HEALTH_CHK_START_FAIL:"
-		       " Healthcheck key: %s amf_rc %d", Healthy.key, amf_error);
+		syslog(LOG_ERR,
+		       "FM_COND_AMF_HEALTH_CHK_START_FAIL:"
+		       " Healthcheck key: %s amf_rc %d",
+		       Healthy.key, amf_error);
 		return NCSCC_RC_FAILURE;
 	}
 
 	return (NCSCC_RC_SUCCESS);
 }
-

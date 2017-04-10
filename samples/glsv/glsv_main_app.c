@@ -14,7 +14,6 @@
  * Author(s): Emerson Network Power
  */
 
-
 #include <stdio.h>
 
 extern void glsv_test_sync_app_process(void *info);
@@ -22,14 +21,13 @@ extern void glsv_test_sync_app_process(void *info);
 int main(int argc, char *argv[])
 {
 
-   if (argc != 1)
-   {
-      printf("\nWrong Arguments USAGE: <lck_demo> \n");
-      return 1;
-   }
+	if (argc != 1) {
+		printf("\nWrong Arguments USAGE: <lck_demo> \n");
+		return 1;
+	}
 
-  /* start the application */ 
-  glsv_test_sync_app_process(NULL);
+	/* start the application */
+	glsv_test_sync_app_process(NULL);
 
-  return 0;    
+	return 0;
 }

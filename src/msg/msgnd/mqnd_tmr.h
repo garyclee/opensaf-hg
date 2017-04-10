@@ -18,21 +18,22 @@
 #ifndef MSG_MSGND_MQND_TMR_H_
 #define MSG_MSGND_MQND_TMR_H_
 #define MQND_MQA_EXPIRY_TIMER 10
-#define MQND_QTRANSFER_REQ_TIMER 999	/*  999 Ten milli seconds = 9.99 sec because timer at mqa is 10 sec */
+#define MQND_QTRANSFER_REQ_TIMER \
+  999 /*  999 Ten milli seconds = 9.99 sec because timer at mqa is 10 sec */
 typedef enum mqndq_tmr_type {
-	MQND_TMR_TYPE_RETENTION = 1,
-	MQND_TMR_TYPE_MQA_EXPIRY,
-	MQND_TMR_TYPE_NODE1_QTRANSFER,
-	MQND_TMR_TYPE_NODE2_QTRANSFER,
-	MQND_TMR_TYPE_MAX = MQND_TMR_TYPE_MQA_EXPIRY
+  MQND_TMR_TYPE_RETENTION = 1,
+  MQND_TMR_TYPE_MQA_EXPIRY,
+  MQND_TMR_TYPE_NODE1_QTRANSFER,
+  MQND_TMR_TYPE_NODE2_QTRANSFER,
+  MQND_TMR_TYPE_MAX = MQND_TMR_TYPE_MQA_EXPIRY
 } MQND_TMR_TYPE;
 
 typedef struct mqnd_tmr {
-	MQND_TMR_TYPE type;
-	tmr_t tmr_id;
-	SaMsgQueueHandleT qhdl;
-	uint32_t uarg;
-	bool is_active;
+  MQND_TMR_TYPE type;
+  tmr_t tmr_id;
+  SaMsgQueueHandleT qhdl;
+  uint32_t uarg;
+  bool is_active;
 } MQND_TMR;
 
 uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration);

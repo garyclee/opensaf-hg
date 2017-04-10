@@ -16,15 +16,15 @@
  */
 
 /************************************************************************
-*                                                                       *
-* Module Name: NIDFIFO                                                  *
-*                                                                       *
-* Purpose: Provides intarfaces for opening, closing,                    *
-* reading and writing using FIFO as IPC mechanism                       *
-* between nodeinitd and services spawned by it.                         *
-* This module is not expected to be a shared                            *
-* library.                                                              *
-************************************************************************/
+ *                                                                       *
+ * Module Name: NIDFIFO                                                  *
+ *                                                                       *
+ * Purpose: Provides intarfaces for opening, closing,                    *
+ * reading and writing using FIFO as IPC mechanism                       *
+ * between nodeinitd and services spawned by it.                         *
+ * This module is not expected to be a shared                            *
+ * library.                                                              *
+ ************************************************************************/
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -33,9 +33,9 @@
 #include "nid/agent/nid_api.h"
 
 /****************************************************************
-*       FIFO Used To communicate to nodeinitd                  *
-****************************************************************/
-#define NID_FIFO	PKGLOCALSTATEDIR "/nodeinit.fifo"
+ *       FIFO Used To communicate to nodeinitd                  *
+ ****************************************************************/
+#define NID_FIFO PKGLOCALSTATEDIR "/nodeinit.fifo"
 
 int32_t fifo_fd = -1;
 
@@ -44,7 +44,7 @@ int32_t fifo_fd = -1;
  *                                                                          *
  * Description   : Creates FIFO with predefined file name.                  *
  *                                                                          *
- * Arguments     : strbuf - To return a descriptive error message if any    * 
+ * Arguments     : strbuf - To return a descriptive error message if any    *
  *                                                                          *
  *                                                                          *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
@@ -62,7 +62,8 @@ uint32_t nid_create_ipc(char *strbuf)
 
 	/* Create nid fifo */
 	if (mkfifo(NID_FIFO, 0666) < 0) {
-		sprintf(strbuf, " FAILURE: Unable To Create FIFO Error:%s\n", strerror(errno));
+		sprintf(strbuf, " FAILURE: Unable To Create FIFO Error:%s\n",
+			strerror(errno));
 		umask(mask);
 		return NCSCC_RC_FAILURE;
 	}
@@ -88,7 +89,9 @@ uint32_t nid_open_ipc(int32_t *fd, char *strbuf)
 	/* Try to open FIFO if its not already open */
 	if (fifo_fd < 0) {
 		if ((fifo_fd = open(NID_FIFO, O_RDWR | O_NONBLOCK)) < 0) {
-			sprintf(strbuf, "NID FAILURE: Unable To Open FIFO Error:%s\n", strerror(errno));
+			sprintf(strbuf,
+				"NID FAILURE: Unable To Open FIFO Error:%s\n",
+				strerror(errno));
 			return NCSCC_RC_FAILURE;
 		}
 	}

@@ -40,7 +40,7 @@ static int __init_gld(void)
 		fprintf(stderr, "gld_lib_req FAILED\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-	
+
 	return (NCSCC_RC_SUCCESS);
 }
 
@@ -54,10 +54,11 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))== NULL) {
+	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD,
+						 gl_gld_hdl)) == NULL) {
 		LOG_ER("cb take hdl failed");
 		exit(EXIT_FAILURE);
-	} 
+	}
 	ncshm_give_hdl(gl_gld_hdl);
 
 	gld_main_process(&gld_cb->mbx);

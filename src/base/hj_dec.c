@@ -18,7 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-  MODULE NAME: NCS_DEC.C  
+  MODULE NAME: NCS_DEC.C
 
   REVISION HISTORY:
 
@@ -26,7 +26,7 @@
   -------- -------  ------------  --------------------------------------------
   10-15-97 1.00A    H&J (DS)      Original
 
-  $Id: 
+  $Id:
 
   $Log:
 
@@ -64,8 +64,8 @@ USRBUF *ncs_decode_n_octets(USRBUF *u, uint8_t *os, uint32_t count)
 
 	char *s;
 
-  /** Xtract "count" # of octets from the packet...
-   **/
+	/** Xtract "count" # of octets from the packet...
+	 **/
 	if ((s = m_MMGR_DATA_AT_START(u, count, (char *)os)) != (char *)os) {
 		if (s == 0) {
 			m_LEAP_DBG_SINK_VOID;
@@ -74,11 +74,10 @@ USRBUF *ncs_decode_n_octets(USRBUF *u, uint8_t *os, uint32_t count)
 		memcpy(os, s, (size_t)count);
 	}
 
-  /** Strip off "count" number of octets from the packet...
-   **/
+	/** Strip off "count" number of octets from the packet...
+	 **/
 	m_MMGR_REMOVE_FROM_START(&u, count);
-	return u;		/* Return the new head */
-
+	return u; /* Return the new head */
 }
 
 uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uint32_t count)
@@ -94,11 +93,10 @@ uint8_t *ncs_flatten_n_octets(USRBUF *u, uint8_t *os, uint32_t count)
 USRBUF *ncs_skip_n_octets(USRBUF *u, uint32_t count)
 {
 
-  /** Strip off "count" number of octets from the packet...
-   **/
+	/** Strip off "count" number of octets from the packet...
+	 **/
 	m_MMGR_REMOVE_FROM_START(&u, count);
-	return u;		/* Return the new head */
-
+	return u; /* Return the new head */
 }
 
 /*****************************************************************************
@@ -125,13 +123,12 @@ USRBUF *ncs_skip_n_octets(USRBUF *u, uint32_t count)
 uint32_t ncs_decode_short(uint8_t **stream)
 {
 
-	uint32_t val = 0;		/* Accumulator */
+	uint32_t val = 0; /* Accumulator */
 
-	val = (uint32_t)*(*stream)++ << 8;
-	val |= (uint32_t)*(*stream)++;
+	val = (uint32_t) * (*stream)++ << 8;
+	val |= (uint32_t) * (*stream)++;
 
 	return (val & 0x0000FFFF);
-
 }
 
 /*****************************************************************************
@@ -158,14 +155,13 @@ uint32_t ncs_decode_short(uint8_t **stream)
 uint32_t ncs_decode_24bit(uint8_t **stream)
 {
 
-	uint32_t val = 0;		/* Accumulator */
+	uint32_t val = 0; /* Accumulator */
 
-	val = (uint32_t)*(*stream)++ << 16;
-	val |= (uint32_t)*(*stream)++ << 8;
-	val |= (uint32_t)*(*stream)++;
+	val = (uint32_t) * (*stream)++ << 16;
+	val |= (uint32_t) * (*stream)++ << 8;
+	val |= (uint32_t) * (*stream)++;
 
 	return (val & 0x00FFFFFF);
-
 }
 
 /*****************************************************************************
@@ -192,15 +188,14 @@ uint32_t ncs_decode_24bit(uint8_t **stream)
 uint32_t ncs_decode_32bit(uint8_t **stream)
 {
 
-	uint32_t val = 0;		/* Accumulator */
+	uint32_t val = 0; /* Accumulator */
 
-	val = (uint32_t)*(*stream)++ << 24;
-	val |= (uint32_t)*(*stream)++ << 16;
-	val |= (uint32_t)*(*stream)++ << 8;
-	val |= (uint32_t)*(*stream)++;
+	val = (uint32_t) * (*stream)++ << 24;
+	val |= (uint32_t) * (*stream)++ << 16;
+	val |= (uint32_t) * (*stream)++ << 8;
+	val |= (uint32_t) * (*stream)++;
 
 	return val;
-
 }
 
 /*****************************************************************************
@@ -258,13 +253,12 @@ uint64_t ncs_decode_64bit(uint8_t **stream)
 uint16_t ncs_decode_16bit(uint8_t **stream)
 {
 
-	uint32_t val = 0;		/* Accumulator */
+	uint32_t val = 0; /* Accumulator */
 
-	val = (uint32_t)*(*stream)++ << 8;
-	val |= (uint32_t)*(*stream)++;
+	val = (uint32_t) * (*stream)++ << 8;
+	val |= (uint32_t) * (*stream)++;
 
 	return (uint16_t)(val & 0x0000FFFF);
-
 }
 
 /*****************************************************************************
@@ -291,12 +285,11 @@ uint16_t ncs_decode_16bit(uint8_t **stream)
 uint8_t ncs_decode_8bit(uint8_t **stream)
 {
 
-	uint32_t val = 0;		/* Accumulator */
+	uint32_t val = 0; /* Accumulator */
 
-	val = (uint32_t)*(*stream)++;
+	val = (uint32_t) * (*stream)++;
 
 	return (uint8_t)(val & 0x000000FF);
-
 }
 
 /*****************************************************************************
@@ -341,7 +334,8 @@ uint32_t ncs_decode_key(uint8_t **stream, NCS_KEY *key)
 		len = *(*stream)++;
 		m_KEY_CHK_LEN(key->val.oct.len);
 		strncpy((char *)key->val.str, (char *)(*stream), len);
-		*stream = *stream + len;	/* move pointer beyond what was consumed */
+		*stream =
+		    *stream + len; /* move pointer beyond what was consumed */
 		return (3 + len + 1);
 		break;
 
@@ -350,7 +344,8 @@ uint32_t ncs_decode_key(uint8_t **stream, NCS_KEY *key)
 		m_KEY_CHK_LEN(key->val.oct.len);
 		key->val.oct.len = len;
 		memcpy(key->val.oct.data, *stream, len);
-		*stream = *stream + len;	/* move pointer beyond what was consumed */
+		*stream =
+		    *stream + len; /* move pointer beyond what was consumed */
 		return (3 + len + 1);
 		break;
 	}
@@ -383,10 +378,10 @@ float ncs_decode_float(uint8_t **stream)
 	uint32_t val;
 	float ret_val = 0;
 
-	val = (uint32_t)*(*stream)++ << 24;
-	val |= (uint32_t)*(*stream)++ << 16;
-	val |= (uint32_t)*(*stream)++ << 8;
-	val |= (uint32_t)*(*stream)++;
+	val = (uint32_t) * (*stream)++ << 24;
+	val |= (uint32_t) * (*stream)++ << 16;
+	val |= (uint32_t) * (*stream)++ << 8;
+	val |= (uint32_t) * (*stream)++;
 	m_NCS_DECODE_FLOAT(val, &ret_val);
 	return ret_val;
 }

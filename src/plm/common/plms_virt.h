@@ -78,15 +78,13 @@ class PlmsVmmConfig {
 // class to represent Virtual Machine
 class PlmsVm {
  public:
-  explicit PlmsVm(const char *domain);
+  explicit PlmsVm(const char* domain);
 
   int instantiate(virDomainPtr);
   int restart(virDomainPtr);
   int isolate(virDomainPtr);
 
-  const std::string& getDomainName(void) const {
-    return domainName;
-  }
+  const std::string& getDomainName(void) const { return domainName; }
 
   void updateDomainName(const std::string& d) { domainName = d; }
 
@@ -97,7 +95,7 @@ class PlmsVm {
 // class to represent Virtual Machine Monitor (Hypervisor)
 class PlmsVmm {
  public:
-  explicit PlmsVmm(const char *session);
+  explicit PlmsVmm(const char* session);
   ~PlmsVmm(void);
 
   // VMM functions
@@ -105,7 +103,7 @@ class PlmsVmm {
   int isolate(void);
 
   // VM functions
-  void addVm(const SaNameT& vmEE, const char *domainName);
+  void addVm(const SaNameT& vmEE, const char* domainName);
   void removeVm(const SaNameT& vmEE);
   int instantiate(const SaNameT& vmEE);
   int restart(const SaNameT& vmEE);
@@ -118,10 +116,10 @@ class PlmsVmm {
   const std::string& getSession(void) const { return libVirtSession; }
 
  private:
-  typedef std::map<SaNameT /*SaPlmEE*/, PlmsVm *, ltSaNameT> VmMap;
+  typedef std::map<SaNameT /*SaPlmEE*/, PlmsVm*, ltSaNameT> VmMap;
 
   std::string libVirtSession;
-  VmMap       vmMap;
+  VmMap vmMap;
 
   virConnectPtr vPtr;
 
@@ -129,7 +127,7 @@ class PlmsVmm {
 
   virDomainPtr getDomainPtr(const PlmsVm&);
 
-  static void libVirtError(void *userData, virErrorPtr);
+  static void libVirtError(void* userData, virErrorPtr);
 };
 
 #endif  // PLM_COMMON_PLMS_VIRT_H_

@@ -38,7 +38,7 @@
 
 #include "mbcsv.h"
 
-#define NCS_MBCSV_MSG_SYNC_SEND_RSP     (NCSMBCSV_EVENT_NOTIFY + 1)
+#define NCS_MBCSV_MSG_SYNC_SEND_RSP (NCSMBCSV_EVENT_NOTIFY + 1)
 /***********************************************************************************
  *
  *                        MBCSV event information members
@@ -77,9 +77,9 @@ typedef struct mbcsv_client_msg {
   NCS_MBCSV_ACT_TYPE action;
   NCS_MBCSV_SND_TYPE snd_type;
   uint32_t reo_type;
-  uint32_t first_rsp;     /* Field indicate that this in first responce message
-                             sent in the sequences of responces. Meaningful only
-                             in the case of cold, warm and data resp */
+  uint32_t first_rsp; /* Field indicate that this in first responce message
+                         sent in the sequences of responces. Meaningful only
+                         in the case of cold, warm and data resp */
 } MBCSV_CLIENT_MSG;
 
 typedef struct mbcsv_chg_role_req {
@@ -96,31 +96,29 @@ typedef struct mbcsv_chg_role_req {
 
 /* PEER UP Message */
 typedef struct mbcsv_peer_up {
-  uint16_t peer_version;  /* Software version of the peer */
+  uint16_t peer_version; /* Software version of the peer */
 } MBCSV_PEER_UP;
 
 /* PEER DOWN Message */
-typedef struct mbcsv_peer_down {
-  uint8_t dummy;
-} MBCSV_PEER_DOWN;
+typedef struct mbcsv_peer_down { uint8_t dummy; } MBCSV_PEER_DOWN;
 
 /* PEER INFO Message */
 typedef struct mbcsv_peer_info {
-  uint16_t peer_version;  /* Software version of the peer */
+  uint16_t peer_version; /* Software version of the peer */
   uint32_t my_peer_inst_hdl;
-  uint8_t compatible;     /* Flag to tell whether peer is compatible */
+  uint8_t compatible; /* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO;
 
 /* PEER INFO RSP Message */
 typedef struct mbcsv_peer_info_rsp {
-  uint16_t peer_version;  /* Software version of the peer */
+  uint16_t peer_version; /* Software version of the peer */
   uint32_t my_peer_inst_hdl;
-  uint8_t compatible;     /* Flag to tell whether peer is compatible */
+  uint8_t compatible; /* Flag to tell whether peer is compatible */
 } MBCSV_PEER_INFO_RSP;
 
 /* PEER CHG ROLE Message */
 typedef struct mbcsv_peer_chg_role {
-  uint16_t peer_version;  /* Software version of the peer */
+  uint16_t peer_version; /* Software version of the peer */
 } MBCSV_PEER_CHG_ROLE;
 
 typedef enum {
@@ -139,7 +137,7 @@ typedef enum {
  ***********************************************************************************/
 typedef struct mbcsv_peer_disc_msg {
   PEER_EVT_TYPE msg_sub_type;
-  SaAmfHAStateT peer_role;        /* Will contain role info */
+  SaAmfHAStateT peer_role; /* Will contain role info */
 
   union {
     MBCSV_PEER_UP peer_up;
@@ -191,7 +189,7 @@ typedef struct mbcsv_evt {
   PEER_INST_KEY rcvr_peer_key;
   MDS_SYNC_SND_CTXT msg_ctxt;
   /* Message related info */
-  MBCSV_EVT_TYPE msg_type;        /*Peer discovery msg OR client info msg */
+  MBCSV_EVT_TYPE msg_type; /*Peer discovery msg OR client info msg */
 
   union {
     MBCSV_INTERNAL_MSG peer_msg;
@@ -206,9 +204,11 @@ typedef struct mbcsv_evt {
   MBCSv Mailbox manipulation macros
 
 ***********************************************************************************/
-#define m_MBCSV_RCV_MSG(mbx)            (struct mbcsv_evt *)m_NCS_IPC_NON_BLK_RECEIVE(mbx,NULL)
-#define m_MBCSV_SND_MSG(mbx, msg, pri)  m_NCS_IPC_SEND(mbx, msg, pri)
-#define m_MBCSV_BLK_RCV_MSG(mbx)        (struct mbcsv_evt *)m_NCS_IPC_RECEIVE(mbx,NULL)
+#define m_MBCSV_RCV_MSG(mbx) \
+  (struct mbcsv_evt *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, NULL)
+#define m_MBCSV_SND_MSG(mbx, msg, pri) m_NCS_IPC_SEND(mbx, msg, pri)
+#define m_MBCSV_BLK_RCV_MSG(mbx) \
+  (struct mbcsv_evt *)m_NCS_IPC_RECEIVE(mbx, NULL)
 
 #define m_MBCSV_SEND_CLIENT_MSG(peer, evt, act) \
   mbcsv_send_client_msg(peer, evt, act)

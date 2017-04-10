@@ -26,11 +26,7 @@
 #include "smf/smfd/SmfImmApplierHdl.h"
 
 // Commands that can be used with thread
-enum class th_cmd {
-  AP_START,
-  AP_STOP,
-  AP_REMOVE
-};
+enum class th_cmd { AP_START, AP_STOP, AP_REMOVE };
 
 /**
  * This class implements an IMM applier for monitoring long Dn setting
@@ -43,7 +39,7 @@ class SmfLongDnApplier {
  public:
   SmfLongDnApplier(const std::string& object_name,
                    const std::string& attribute_name);
-  
+
   ~SmfLongDnApplier(void);
 
   // Creates the applier thread
@@ -62,7 +58,7 @@ class SmfLongDnApplier {
   bool get_value(void) {
     std::string value_str = applierHdl_->get_value();
     if (value_str != "") {
-      return std::stoul(value_str, nullptr, 0) != 0? true: false;
+      return std::stoul(value_str, nullptr, 0) != 0 ? true : false;
     } else {
       return false;
     }
@@ -75,9 +71,9 @@ class SmfLongDnApplier {
 
   std::string object_name_;
   std::string attribute_name_;
-  SmfImmApplierHdl *applierHdl_;
-  int socket_fd_thread_ = 0;    // Socket for thread to read commands
-  int socket_fd_command_ = 0;   // Socket for commands to thread
+  SmfImmApplierHdl* applierHdl_;
+  int socket_fd_thread_ = 0;   // Socket for thread to read commands
+  int socket_fd_command_ = 0;  // Socket for commands to thread
 
   DELETE_COPY_AND_MOVE_OPERATORS(SmfLongDnApplier);
 };

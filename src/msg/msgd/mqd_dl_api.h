@@ -40,8 +40,8 @@
 #include "base/ncs_lib.h"
 
 typedef struct mqdlib_info {
-	NCSCONTEXT task_hdl;	/* MQD Task Handle */
-	uint32_t inst_hdl;		/* MQD Instance Handle */
+  NCSCONTEXT task_hdl; /* MQD Task Handle */
+  uint32_t inst_hdl;   /* MQD Instance Handle */
 } MQDLIB_INFO;
 
 uint32_t mqd_lib_req(NCS_LIB_REQ_INFO *);

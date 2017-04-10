@@ -40,13 +40,17 @@ extern int disc_test_cntr;
  *               Client-wide unique id of the subscription.
  * @param filter Pointer to the filter object.
  */
-NtfSubscription::NtfSubscription(ntfsv_subscribe_req_t* s):subscriptionId_(s->subscriptionId),s_info_(*s) {
-  TRACE_2("Subscription %u created for client_id %u", subscriptionId_, s->client_id);
+NtfSubscription::NtfSubscription(ntfsv_subscribe_req_t* s)
+    : subscriptionId_(s->subscriptionId), s_info_(*s) {
+  TRACE_2("Subscription %u created for client_id %u", subscriptionId_,
+          s->client_id);
   if (s->f_rec.alarm_filter) {
     NtfFilter* filter = new NtfAlarmFilter(s->f_rec.alarm_filter);
     filterMap[filter->type()] = filter;
-    TRACE_2("Filter type %#x p=%p, added to subscription %u, filterMap size is %u",
-            filter->type(), filter, subscriptionId_, (unsigned int)filterMap.size());
+    TRACE_2(
+        "Filter type %#x p=%p, added to subscription %u, filterMap size is %u",
+        filter->type(), filter, subscriptionId_,
+        (unsigned int)filterMap.size());
   }
   if (s->f_rec.sec_al_filter) {
     NtfFilter* filter = new NtfSecurityAlarmFilter(s->f_rec.sec_al_filter);
@@ -55,7 +59,8 @@ NtfSubscription::NtfSubscription(ntfsv_subscribe_req_t* s):subscriptionId_(s->su
             filter->type(), subscriptionId_, (unsigned int)filterMap.size());
   }
   if (s->f_rec.obj_cr_del_filter) {
-    NtfFilter* filter = new NtfObjectCreateDeleteFilter(s->f_rec.obj_cr_del_filter);
+    NtfFilter* filter =
+        new NtfObjectCreateDeleteFilter(s->f_rec.obj_cr_del_filter);
     filterMap[filter->type()] = filter;
     TRACE_2("Filter type %#x added to subscription %u, filterMap size is %u",
             filter->type(), subscriptionId_, (unsigned int)filterMap.size());
@@ -74,7 +79,7 @@ NtfSubscription::NtfSubscription(ntfsv_subscribe_req_t* s):subscriptionId_(s->su
   }
   TRACE_2("Num discarded: %u", s_info_.d_info.numberDiscarded);
   if (s_info_.d_info.numberDiscarded) {
-    for (unsigned int i=0; i < s_info_.d_info.numberDiscarded; i++) {
+    for (unsigned int i = 0; i < s_info_.d_info.numberDiscarded; i++) {
       discardedAdd(s_info_.d_info.discardedNotificationIdentifiers[i]);
     }
     s_info_.d_info.numberDiscarded = 0;
@@ -107,9 +112,8 @@ NtfSubscription::~NtfSubscription() {
  *
  * @return Id of the subscription.
  */
-SaNtfSubscriptionIdT NtfSubscription::getSubscriptionId() const
-{
-  return(subscriptionId_);
+SaNtfSubscriptionIdT NtfSubscription::getSubscriptionId() const {
+  return (subscriptionId_);
 }
 /**
  * This method is called to get the subscriptin info struct of
@@ -118,11 +122,12 @@ SaNtfSubscriptionIdT NtfSubscription::getSubscriptionId() const
  * @return pointer to the subscription info struct.
  */
 ntfsv_subscribe_req_t* NtfSubscription::getSubscriptionInfo() {
-  return(&s_info_);
+  return (&s_info_);
 }
 
 /**
- * This method is called to check if the subscription matches the received notification.
+ * This method is called to check if the subscription matches the received
+ * notification.
  *
  * The appropriate filter that matches the type of the received
  * notification is checked.
@@ -142,7 +147,7 @@ bool NtfSubscription::checkSubscription(NtfSmartPtr& notification) {
     osafassert(filter);
     rv = filter->checkFilter(notification);
   }
-  return(rv);
+  return (rv);
 }
 
 /**
@@ -166,17 +171,18 @@ void NtfSubscription::discardedClear() {
   TRACE_LEAVE();
 }
 
-void NtfSubscription::syncRequest(NCS_UBAID *uba) {
+void NtfSubscription::syncRequest(NCS_UBAID* uba) {
   s_info_.d_info.notificationType = SA_NTF_TYPE_ALARM; /* not used */
   s_info_.d_info.numberDiscarded = discardedNotificationIdList.size();
   if (s_info_.d_info.numberDiscarded) {
-    s_info_.d_info.discardedNotificationIdentifiers = (SaNtfIdentifierT*) malloc(sizeof(SaNtfIdentifierT) * s_info_.d_info.numberDiscarded);
+    s_info_.d_info.discardedNotificationIdentifiers = (SaNtfIdentifierT*)malloc(
+        sizeof(SaNtfIdentifierT) * s_info_.d_info.numberDiscarded);
     if (!s_info_.d_info.discardedNotificationIdentifiers) {
       LOG_WA("malloc failed");
       osafassert(0);
     }
     DiscardedNotificationIdList::iterator pos;
-    int i=0;
+    int i = 0;
     pos = discardedNotificationIdList.begin();
     while (pos != discardedNotificationIdList.end()) {
       s_info_.d_info.discardedNotificationIdentifiers[i] = *pos;
@@ -184,7 +190,7 @@ void NtfSubscription::syncRequest(NCS_UBAID *uba) {
       pos++;
     }
   }
-  if (0 == sendNewSubscription(&s_info_, uba)){
+  if (0 == sendNewSubscription(&s_info_, uba)) {
     LOG_ER("syncRequest send subscription failed");
     osafassert(0);
   }
@@ -207,7 +213,8 @@ void NtfSubscription::syncRequest(NCS_UBAID *uba) {
  * @param notification
  *               Pointer to the notification object.
  */
-void NtfSubscription::sendNotification(NtfSmartPtr& notification, NtfClient *client) {
+void NtfSubscription::sendNotification(NtfSmartPtr& notification,
+                                       NtfClient* client) {
   TRACE_ENTER();
   // store the matching subscriptionId in the notification
   notification->getNotInfo()->subscriptionId = getSubscriptionId();
@@ -220,29 +227,31 @@ void NtfSubscription::sendNotification(NtfSmartPtr& notification, NtfClient *cli
     // send notification
     TRACE_3("send_notification_lib called, client %u, notification %llu",
             client->getClientId(), notification->getNotificationId());
-    if (send_notification_lib(notification->getNotInfo(), client->getClientId(), client->getMdsDest())
-        != NCSCC_RC_SUCCESS) {
+    if (send_notification_lib(notification->getNotInfo(), client->getClientId(),
+                              client->getMdsDest()) != NCSCC_RC_SUCCESS) {
       // send failed, put notification id in discard list
       discardedAdd(notification->getNotificationId());
     }
-  }
-  else
-  {
+  } else {
     // there are already discarded notifications in the queue, send them first
     ntfsv_discarded_info_t d_info;
-    d_info.notificationType = (SaNtfNotificationTypeT)notification->getNotificationType();
+    d_info.notificationType =
+        (SaNtfNotificationTypeT)notification->getNotificationType();
     d_info.numberDiscarded = discardedNotificationIdList.size();
-    d_info.discardedNotificationIdentifiers = (SaNtfIdentifierT*) malloc(sizeof(SaNtfIdentifierT) * d_info.numberDiscarded);
+    d_info.discardedNotificationIdentifiers = (SaNtfIdentifierT*)malloc(
+        sizeof(SaNtfIdentifierT) * d_info.numberDiscarded);
     if (!d_info.discardedNotificationIdentifiers) {
       LOG_ER("malloc failed");
       discardedAdd(notification->getNotificationId());
-      /* The notification can be confirmed since it is put into discarded list.*/
-      notificationSentConfirmed(client->getClientId(), getSubscriptionId(), notification->getNotificationId(), 1);
+      /* The notification can be confirmed since it is put into discarded
+       * list.*/
+      notificationSentConfirmed(client->getClientId(), getSubscriptionId(),
+                                notification->getNotificationId(), 1);
       TRACE_LEAVE();
       return;
     }
     DiscardedNotificationIdList::iterator pos;
-    int i=0;
+    int i = 0;
     pos = discardedNotificationIdList.begin();
     while (pos != discardedNotificationIdList.end()) {
       d_info.discardedNotificationIdentifiers[i] = *pos;
@@ -251,22 +260,26 @@ void NtfSubscription::sendNotification(NtfSmartPtr& notification, NtfClient *cli
     }
     // first try to send discarded notifications
     TRACE_3("send_discard notifications called, [%u]", d_info.numberDiscarded);
-    if (send_discard_notification_lib(&d_info, client->getClientId(), getSubscriptionId(), client->getMdsDest())
-        == NCSCC_RC_SUCCESS) {
+    if (send_discard_notification_lib(
+            &d_info, client->getClientId(), getSubscriptionId(),
+            client->getMdsDest()) == NCSCC_RC_SUCCESS) {
       // sending discarded notifications was successful, empty list
       discardedNotificationIdList.clear();
       TRACE_3("send_discard_notification_lib succeeded, dl size is %u",
               (unsigned int)discardedNotificationIdList.size());
 
       // try to send the new notification
-      if (send_notification_lib(notification->getNotInfo(), client->getClientId(), client->getMdsDest())
-          != NCSCC_RC_SUCCESS) {
+      if (send_notification_lib(notification->getNotInfo(),
+                                client->getClientId(),
+                                client->getMdsDest()) != NCSCC_RC_SUCCESS) {
         discardedAdd(notification->getNotificationId());
       }
     } else {
       discardedAdd(notification->getNotificationId());
-      /* The notification can be confirmed since it is put into discarded list.*/
-      notificationSentConfirmed(client->getClientId(), getSubscriptionId(), notification->getNotificationId(), 1);
+      /* The notification can be confirmed since it is put into discarded
+       * list.*/
+      notificationSentConfirmed(client->getClientId(), getSubscriptionId(),
+                                notification->getNotificationId(), 1);
     }
     free(d_info.discardedNotificationIdentifiers);
   }
@@ -283,4 +296,3 @@ void NtfSubscription::printInfo() {
 unsigned int NtfSubscription::discardedListSize() {
   return discardedNotificationIdList.size();
 }
-

@@ -45,8 +45,10 @@
 #define LGS_CREATE_CLOSE_TIME_LEN 16
 #define START_YEAR 1900
 
-// The length of '_yyyymmdd_hhmmss_yyyymmdd_hhmmss.log' including null-termination char
-#define LOG_TAIL_MAX (std::string("_yyyymmdd_hhmmss_yyyymmdd_hhmmss.log").size())
+// The length of '_yyyymmdd_hhmmss_yyyymmdd_hhmmss.log' including
+// null-termination char
+#define LOG_TAIL_MAX \
+  (std::string("_yyyymmdd_hhmmss_yyyymmdd_hhmmss.log").size())
 
 /**
  * Create config file according to spec.
@@ -55,7 +57,8 @@
  *
  * @return -1 on error
  */
-int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream) {
+int lgs_create_config_file_h(const std::string &root_path,
+                             log_stream_t *stream) {
   lgsf_apipar_t apipar;
   lgsf_retcode_t api_rc;
   void *params_in = NULL;
@@ -90,8 +93,8 @@ int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream)
   }
 
   if (lgs_make_reldir_h(stream->pathName) != 0) {
-    LOG_WA("Create directory '%s/%s' failed",
-           root_path.c_str(), stream->pathName.c_str());
+    LOG_WA("Create directory '%s/%s' failed", root_path.c_str(),
+           stream->pathName.c_str());
     rc = -1;
     goto done;
   }
@@ -112,7 +115,7 @@ int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream)
 
   /* Allocate memory for parameters */
   params_in_size = sizeof(ccfh_t) + (strlen(stream->logFileFormat) + 1) +
-      (pathname.size() + 1);
+                   (pathname.size() + 1);
   params_in = malloc(params_in_size);
 
   /* Set pointers to allocated memory */
@@ -126,12 +129,13 @@ int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream)
   header_in_p->version.releaseCode = lgs_cb->log_version.releaseCode;
   header_in_p->version.majorVersion = lgs_cb->log_version.majorVersion;
   header_in_p->version.minorVersion = lgs_cb->log_version.minorVersion;
-  header_in_p->logFileFormat_size = strlen(stream->logFileFormat)+1;
+  header_in_p->logFileFormat_size = strlen(stream->logFileFormat) + 1;
   header_in_p->maxLogFileSize = stream->maxLogFileSize;
   header_in_p->fixedLogRecordSize = stream->fixedLogRecordSize;
   header_in_p->maxFilesRotated = stream->maxFilesRotated;
 
-  n = snprintf(logFileFormat_p, logFileFormat_size, "%s", stream->logFileFormat);
+  n = snprintf(logFileFormat_p, logFileFormat_size, "%s",
+               stream->logFileFormat);
   if (n >= logFileFormat_size) {
     rc = -1;
     LOG_WA("Log file format string too long");
@@ -154,7 +158,7 @@ int lgs_create_config_file_h(const std::string &root_path, log_stream_t *stream)
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
@@ -196,7 +200,8 @@ char *lgs_get_time(time_t *time_in) {
   osafassert(timeStampData);
 
   stringSize = 5 * sizeof(char);
-  snprintf(srcString, (size_t)stringSize, "%d", (timeStampData->tm_year + START_YEAR));
+  snprintf(srcString, (size_t)stringSize, "%d",
+           (timeStampData->tm_year + START_YEAR));
 
   strncpy(timeStampString, srcString, stringSize);
 
@@ -229,7 +234,8 @@ SaTimeT lgs_get_SaTime() {
   struct timespec curtime_tspec;
 
   osaf_clock_gettime(CLOCK_REALTIME, &curtime_tspec);
-  logTime = ((unsigned)curtime_tspec.tv_sec * 1000000000ULL) + (unsigned)curtime_tspec.tv_nsec;
+  logTime = ((unsigned)curtime_tspec.tv_sec * 1000000000ULL) +
+            (unsigned)curtime_tspec.tv_nsec;
   return logTime;
 }
 
@@ -248,13 +254,10 @@ SaTimeT lgs_get_SaTime() {
  *
  * @return -1 if error
  */
-int lgs_file_rename_h(
-    const std::string &root_path,
-    const std::string &rel_path,
-    const std::string &old_name,
-    const std::string &time_stamp,
-    const std::string &suffix,
-    std::string &new_name) {
+int lgs_file_rename_h(const std::string &root_path, const std::string &rel_path,
+                      const std::string &old_name,
+                      const std::string &time_stamp, const std::string &suffix,
+                      std::string &new_name) {
   int rc;
   std::string oldpath;
   std::string newpath;
@@ -324,7 +327,7 @@ int lgs_file_rename_h(
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
@@ -339,7 +342,8 @@ done:
 
 void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr) {
   LOG_ER("Exiting with message: %s", msg);
-  (void)saAmfComponentErrorReport(lgs_cb->amf_hdl, &lgs_cb->comp_name, 0, rec_rcvr, SA_NTF_IDENTIFIER_UNUSED);
+  (void)saAmfComponentErrorReport(lgs_cb->amf_hdl, &lgs_cb->comp_name, 0,
+                                  rec_rcvr, SA_NTF_IDENTIFIER_UNUSED);
   exit(EXIT_FAILURE);
 }
 
@@ -350,16 +354,15 @@ void lgs_exit(const char *msg, SaAmfRecommendedRecoveryT rec_rcvr) {
  *  Searches the ClientMap an reg_id entry whos MDS_DEST equals
  *  that passed DEST and returns true if itz found.
  *
- * This routine is typically used to find the validity of the lga down rec from standby
- * LGA_DOWN_LIST as  LGA client has gone away.
+ * This routine is typically used to find the validity of the lga down rec from
+ *standby LGA_DOWN_LIST as  LGA client has gone away.
  *
  ****************************************************************************/
 bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest) {
   log_client_t *rp = NULL;
   /* Loop through Client DB */
-  ClientMap *clientMap(reinterpret_cast<ClientMap *>
-                         (client_db));
-  for (const auto& value : *clientMap) {
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
+  for (const auto &value : *clientMap) {
     rp = value.second;
     if (m_NCS_MDS_DEST_EQUAL(&rp->mds_dest, &mds_dest)) {
       return true;
@@ -377,7 +380,8 @@ bool lgs_lga_entry_valid(lgs_cb_t *cb, MDS_DEST mds_dest) {
  * @param error
  * @param mds_dest
  */
-void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation, SaAisErrorT error, MDS_DEST mds_dest) {
+void lgs_send_write_log_ack(uint32_t client_id, SaInvocationT invocation,
+                            SaAisErrorT error, MDS_DEST mds_dest) {
   uint32_t rc;
   NCSMDS_INFO mds_info = {0};
   lgsv_msg_t msg;
@@ -479,8 +483,8 @@ int lgs_make_reldir_h(const std::string &path) {
 
   TRACE_ENTER();
 
-  const std::string logsv_root_dir = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  const std::string logsv_root_dir =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   TRACE("logsv_root_dir \"%s\"", logsv_root_dir.c_str());
   TRACE("path \"%s\"", path.c_str());
@@ -500,14 +504,14 @@ int lgs_make_reldir_h(const std::string &path) {
   apipar.data_out = NULL;
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
   }
 
 done:
-  TRACE_LEAVE2("rc = %d",rc);
+  TRACE_LEAVE2("rc = %d", rc);
   return rc;
 }
 
@@ -523,9 +527,9 @@ int lgs_check_path_exists_h(const char *path_to_check) {
   void *params_in_p;
   int rc = 0;
 
-  TRACE_ENTER2("path \"%s\"",path_to_check);
+  TRACE_ENTER2("path \"%s\"", path_to_check);
   /* Allocate memory for parameter */
-  size_t params_in_size = strlen(path_to_check)+1;
+  size_t params_in_size = strlen(path_to_check) + 1;
   params_in_p = malloc(params_in_size);
 
   /* Fill in path */
@@ -540,14 +544,14 @@ int lgs_check_path_exists_h(const char *path_to_check) {
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
   }
 
   free(params_in_p);
-  TRACE_LEAVE2("rc = %d",rc);
+  TRACE_LEAVE2("rc = %d", rc);
   return rc;
 }
 
@@ -559,14 +563,15 @@ int lgs_check_path_exists_h(const char *path_to_check) {
 gid_t lgs_get_data_gid(char *groupname) {
   osafassert(groupname != NULL);
 
-  if (strcmp(groupname, "") == 0){
+  if (strcmp(groupname, "") == 0) {
     return -1;
   } else {
     struct group *gr = getgrnam(groupname);
-    if (gr){
+    if (gr) {
       return gr->gr_gid;
     } else {
-      LOG_ER("Could not get group struct for %s, %s", groupname, strerror(errno));
+      LOG_ER("Could not get group struct for %s, %s", groupname,
+             strerror(errno));
       return -1;
     }
   }
@@ -589,7 +594,8 @@ int lgs_own_log_files_h(log_stream_t *stream, const char *groupname) {
   TRACE_ENTER2("stream %s", stream->name.c_str());
 
   /* Set in parameter dir_path */
-  const std::string logsv_root_dir = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  const std::string logsv_root_dir =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   /* Set in parameter file_name */
   data_in->file_name = const_cast<char *>(stream->fileName.c_str());
@@ -618,7 +624,7 @@ int lgs_own_log_files_h(log_stream_t *stream, const char *groupname) {
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
@@ -626,7 +632,7 @@ int lgs_own_log_files_h(log_stream_t *stream, const char *groupname) {
 
 done:
   free(data_in);
-  TRACE_LEAVE2("rc = %d",rc);
+  TRACE_LEAVE2("rc = %d", rc);
   return rc;
 }
 
@@ -663,9 +669,7 @@ int lgs_init_timer(time_t timeout_s) {
  *
  * @param ufd[in]
  */
-void lgs_close_timer(int ufd) {
-  osaf_timerfd_close(ufd);
-}
+void lgs_close_timer(int ufd) { osaf_timerfd_close(ufd); }
 
 /**
  * Validate if string contains special characters or not
@@ -726,7 +730,6 @@ bool lgs_has_special_char(const std::string &str) {
   return false;
 }
 
-
 /**
  * Get the maximum length of filename
  *
@@ -738,8 +741,8 @@ static size_t lgs_pathconf() {
   static bool invoked = false;
   static std::string old_path;
 
-  std::string dir_path = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  std::string dir_path =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   /* To avoid invoking pathconf() unncessarily */
   if ((invoked == true) && (dir_path == old_path)) {
@@ -771,9 +774,7 @@ static size_t lgs_pathconf() {
  * @param: none
  * @return: the maximum length of <filename>
  */
-size_t lgs_max_nlength() {
-  return (lgs_pathconf() - LOG_TAIL_MAX);
-}
+size_t lgs_max_nlength() { return (lgs_pathconf() - LOG_TAIL_MAX); }
 
 /**
  * Check if file length is valid.
@@ -811,8 +812,8 @@ bool lgs_is_valid_pathlength(const std::string &path,
   size_t filelen = fileName.size();
 
   if (rootPath.empty() == true) {
-    rootpath = static_cast<const char *>(
-        lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+    rootpath =
+        static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
   } else {
     rootpath = rootPath;
   }
@@ -824,7 +825,7 @@ bool lgs_is_valid_pathlength(const std::string &path,
 /**
  * Check if the name is valid or not.
  */
-bool lgs_is_extended_name_valid(const SaNameT* name) {
+bool lgs_is_extended_name_valid(const SaNameT *name) {
   if (name == NULL) return false;
   if (osaf_is_extended_name_valid(name) == false) return false;
 
@@ -841,8 +842,8 @@ namespace logutil {
 
 // Split a string @str with delimiter @delimiter
 // and return an vector of strings.
-std::vector<std::string> Parser(const std::string& str,
-                                const std::string& delimiter) {
+std::vector<std::string> Parser(const std::string &str,
+                                const std::string &delimiter) {
   std::vector<std::string> temp;
   std::string s{str};
   size_t pos = 0;
@@ -854,14 +855,14 @@ std::vector<std::string> Parser(const std::string& str,
   return temp;
 }
 
-bool isValidName(const std::string& name) {
+bool isValidName(const std::string &name) {
   // Valid name if @name not contain any characters outside
   // of below strings.
-  const std::string validChar = "abcdefghijklmnopqrstuvwxyz"
-                                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                "01234567890_-";
-  if (name.find_first_not_of(validChar) != std::string::npos)
-    return false;
+  const std::string validChar =
+      "abcdefghijklmnopqrstuvwxyz"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "01234567890_-";
+  if (name.find_first_not_of(validChar) != std::string::npos) return false;
 
   return true;
 }
@@ -892,7 +893,8 @@ static bool is_filter_supported(SaVersionT client_ver) {
  * @param mds_dest
  */
 static void lgs_send_filter_msg(uint32_t client_id, uint32_t stream_id,
-                           SaLogSeverityFlagsT severity_filter, MDS_DEST mds_dest) {
+                                SaLogSeverityFlagsT severity_filter,
+                                MDS_DEST mds_dest) {
   uint32_t rc;
   NCSMDS_INFO mds_info = {0};
   lgsv_msg_t msg;
@@ -919,7 +921,8 @@ static void lgs_send_filter_msg(uint32_t client_id, uint32_t stream_id,
 
   rc = ncsmds_api(&mds_info);
   if (rc != NCSCC_RC_SUCCESS)
-    LOG_NO("Failed (%u) to send of severity filter callback to: %" PRIx64, rc, mds_dest);
+    LOG_NO("Failed (%u) to send of severity filter callback to: %" PRIx64, rc,
+           mds_dest);
 
   TRACE_LEAVE();
 }
@@ -931,7 +934,7 @@ static void lgs_send_filter_msg(uint32_t client_id, uint32_t stream_id,
  * @param severityFilter
  */
 void lgs_send_severity_filter_to_clients(uint32_t stream_id,
-                                  SaLogSeverityFlagsT severity_filter) {
+                                         SaLogSeverityFlagsT severity_filter) {
   log_client_t *rp = NULL;
   lgs_stream_list_t *stream;
 
@@ -939,9 +942,8 @@ void lgs_send_severity_filter_to_clients(uint32_t stream_id,
   TRACE_3("stream_id: %u, severity filter:%u", stream_id, severity_filter);
 
   /* Loop through Client DB */
-  ClientMap *clientMap(reinterpret_cast<ClientMap *>
-                         (client_db));
-  for (const auto& value : *clientMap) {
+  ClientMap *clientMap(reinterpret_cast<ClientMap *>(client_db));
+  for (const auto &value : *clientMap) {
     rp = value.second;
     /* Do not send to all client. Send to clients that need filter
         callback and associate with this stream */
@@ -949,7 +951,8 @@ void lgs_send_severity_filter_to_clients(uint32_t stream_id,
     if (is_filter_supported(rp->client_ver)) {
       while (stream != NULL) {
         if (stream->stream_id == stream_id) {
-          lgs_send_filter_msg(rp->client_id, stream_id, severity_filter, rp->mds_dest);
+          lgs_send_filter_msg(rp->client_id, stream_id, severity_filter,
+                              rp->mds_dest);
           break;
         }
         stream = stream->next;

@@ -19,12 +19,12 @@
 #include "gtest/gtest.h"
 
 namespace {
-const timespec kOneDotOneSeconds = { 1, 100000000 };
-const timespec kZeroDotTwoSeconds = { 0, 200000000 };
-const timespec kZeroDotNineSeconds = { 0, 900000000 };
-const timespec number1 = { 1576315623, 358743382 };
-const timespec number2 = { 279394477, 639614599 };
-const timespec difference = { 1296921145, 719128783 };
+const timespec kOneDotOneSeconds = {1, 100000000};
+const timespec kZeroDotTwoSeconds = {0, 200000000};
+const timespec kZeroDotNineSeconds = {0, 900000000};
+const timespec number1 = {1576315623, 358743382};
+const timespec number2 = {279394477, 639614599};
+const timespec difference = {1296921145, 719128783};
 }
 
 TEST(BaseTimeSubtract, ZeroMinusZero) {

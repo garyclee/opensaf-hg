@@ -31,18 +31,17 @@ namespace {
 
 uint64_t GetEnvUnsigned(const char* environment_variable,
                         uint64_t default_value, uint64_t max_value);
-int64_t GetEnvSigned(const char* environment_variable,
-                     int64_t default_value, int64_t max_value,
-                     int64_t min_value);
+int64_t GetEnvSigned(const char* environment_variable, int64_t default_value,
+                     int64_t max_value, int64_t min_value);
 char* RemoveLeadingWhitespace(char* str);
 
-} // namespace
+}  // namespace
 
 namespace base {
 
-template<>
+template <>
 const char* GetEnv<const char*>(const char* environment_variable,
-    const char* default_value) {
+                                const char* default_value) {
   const char* str = getenv(environment_variable);
   if (str == nullptr) {
     TRACE("%s is not set; using default value '%s'", environment_variable,
@@ -54,52 +53,52 @@ const char* GetEnv<const char*>(const char* environment_variable,
   return str;
 }
 
-template<>
+template <>
 std::string GetEnv<std::string>(const char* environment_variable,
-    std::string default_value) {
+                                std::string default_value) {
   return GetEnv(environment_variable, default_value.c_str());
 }
 
-template<>
+template <>
 uint64_t GetEnv<uint64_t>(const char* environment_variable,
                           uint64_t default_value) {
   return GetEnvUnsigned(environment_variable, default_value, UINT64_MAX);
 }
 
-template<>
+template <>
 uint32_t GetEnv<uint32_t>(const char* environment_variable,
                           uint32_t default_value) {
   return GetEnvUnsigned(environment_variable, default_value, UINT32_MAX);
 }
 
-template<>
+template <>
 uint16_t GetEnv<uint16_t>(const char* environment_variable,
                           uint16_t default_value) {
   return GetEnvUnsigned(environment_variable, default_value, UINT16_MAX);
 }
 
-template<>
+template <>
 int64_t GetEnv<int64_t>(const char* environment_variable,
                         int64_t default_value) {
   return GetEnvSigned(environment_variable, default_value, INT64_MAX,
-                       INT64_MIN);
+                      INT64_MIN);
 }
 
-template<>
+template <>
 int32_t GetEnv<int32_t>(const char* environment_variable,
                         int32_t default_value) {
   return GetEnvSigned(environment_variable, default_value, INT32_MAX,
-                       INT32_MIN);
+                      INT32_MIN);
 }
 
-template<>
+template <>
 int16_t GetEnv<int16_t>(const char* environment_variable,
                         int16_t default_value) {
   return GetEnvSigned(environment_variable, default_value, INT16_MAX,
-                       INT16_MIN);
+                      INT16_MIN);
 }
 
-} // namespace base
+}  // namespace base
 
 namespace {
 
@@ -122,7 +121,6 @@ uint64_t GetEnvUnsigned(const char* environment_variable,
   } else {
     TRACE("%s is %s; using default value %" PRIu64, environment_variable,
           str == nullptr ? "not set" : "empty", default_value);
-
   }
   return retval;
 }
@@ -157,4 +155,4 @@ char* RemoveLeadingWhitespace(char* str) {
   return str;
 }
 
-} // namespace
+}  // namespace

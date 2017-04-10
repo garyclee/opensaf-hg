@@ -19,36 +19,37 @@
   DESCRIPTION:
 
   This file contains EDS timer interface routines.
- 
+
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
+
 *******************************************************************************/
 #include "gla.h"
 
 /*****************************************************************************
   PROCEDURE NAME : gla_start_tmr
 
-  DESCRIPTION    : Starts the GLA timer. If the timer is already active, it 
-                   is restarted (ie. stopped & started without reallocating the 
-                   tmr block).
+  DESCRIPTION    : Starts the GLA timer. If the timer is already active, it
+		   is restarted (ie. stopped & started without reallocating the
+		   tmr block).
 
   ARGUMENTS      : cb     - ptr to the GLA control block
-                   tmr    - ptr to the GLA timer block
-                   type   - timer type
-                   period - timer period
-                   uarg   - opaque handle that is returned on timer expiry
+		   tmr    - ptr to the GLA timer block
+		   type   - timer type
+		   period - timer period
+		   uarg   - opaque handle that is returned on timer expiry
 
   RETURNS        : NCSCC_RC_SUCCESS - Success
-                   NCSCC_RC_FAILURE  - Failure
+		   NCSCC_RC_FAILURE  - Failure
 
   NOTES         : None
 *****************************************************************************/
 uint32_t gla_start_tmr(GLA_TMR *tmr)
 {
-	SaTimeT  period = (m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(GLSV_GLA_TMR_DEFAULT_TIMEOUT));
-		
+	SaTimeT period =
+	    (m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(GLSV_GLA_TMR_DEFAULT_TIMEOUT));
+
 	if (tmr->tmr_id == TMR_T_NULL) {
 		m_NCS_TMR_CREATE(tmr->tmr_id, period, gla_tmr_exp, (void *)tmr);
 	}
@@ -74,14 +75,14 @@ uint32_t gla_start_tmr(GLA_TMR *tmr)
   DESCRIPTION    : Stops the GLA timer.
 
   ARGUMENTS      : tmr    - ptr to the GLA timer block
-               
+
   RETURNS        : void
 
   NOTES          : None
 *****************************************************************************/
 void gla_stop_tmr(GLA_TMR *tmr)
 {
-	
+
 	/* Stop the timer if it is active... */
 	if (tmr->is_active == true) {
 		m_NCS_TMR_STOP(tmr->tmr_id);
@@ -93,7 +94,7 @@ void gla_stop_tmr(GLA_TMR *tmr)
 		m_NCS_TMR_DESTROY(tmr->tmr_id);
 		tmr->tmr_id = TMR_T_NULL;
 	}
-	
+
 	return;
 }
 
@@ -101,7 +102,7 @@ void gla_stop_tmr(GLA_TMR *tmr)
   PROCEDURE NAME : gla_tmr_exp
 
   DESCRIPTION    : GLA timer expiry callback routine.It sends corresponding
-                   timer events to GLA.
+		   timer events to GLA.
 
   ARGUMENTS      : uarg - ptr to the GLA timer block
 
@@ -133,25 +134,30 @@ void gla_tmr_exp(void *uarg)
 		gla_clbk_info = m_MMGR_ALLOC_GLA_CALLBACK_INFO;
 		if (!gla_clbk_info) {
 			return;
-
 		}
 		memset(gla_clbk_info, 0, sizeof(GLSV_GLA_CALLBACK_INFO));
 		switch (tmr->clbk_info.callback_type) {
 		case GLSV_LOCK_RES_OPEN_CBK:
 			gla_clbk_info->callback_type = GLSV_LOCK_RES_OPEN_CBK;
 			gla_clbk_info->resourceId = tmr->clbk_info.resourceId;
-			gla_clbk_info->params.res_open.error = SA_AIS_ERR_TIMEOUT;
-			gla_clbk_info->params.res_open.invocation = tmr->clbk_info.invocation;
+			gla_clbk_info->params.res_open.error =
+			    SA_AIS_ERR_TIMEOUT;
+			gla_clbk_info->params.res_open.invocation =
+			    tmr->clbk_info.invocation;
 
 			break;
 
 		case GLSV_LOCK_GRANT_CBK:
 			gla_clbk_info->callback_type = GLSV_LOCK_GRANT_CBK;
 			gla_clbk_info->resourceId = tmr->clbk_info.resourceId;
-			gla_clbk_info->params.lck_grant.error = SA_AIS_ERR_TIMEOUT;
-			gla_clbk_info->params.lck_grant.lcl_lockId = tmr->clbk_info.lcl_lockId;
-			gla_clbk_info->params.lck_grant.resourceId = tmr->clbk_info.resourceId;
-			gla_clbk_info->params.lck_grant.invocation = tmr->clbk_info.invocation;
+			gla_clbk_info->params.lck_grant.error =
+			    SA_AIS_ERR_TIMEOUT;
+			gla_clbk_info->params.lck_grant.lcl_lockId =
+			    tmr->clbk_info.lcl_lockId;
+			gla_clbk_info->params.lck_grant.resourceId =
+			    tmr->clbk_info.resourceId;
+			gla_clbk_info->params.lck_grant.invocation =
+			    tmr->clbk_info.invocation;
 
 			break;
 
@@ -159,16 +165,19 @@ void gla_tmr_exp(void *uarg)
 			gla_clbk_info->callback_type = GLSV_LOCK_UNLOCK_CBK;
 			gla_clbk_info->resourceId = tmr->clbk_info.resourceId;
 			gla_clbk_info->params.unlock.error = SA_AIS_ERR_TIMEOUT;
-			gla_clbk_info->params.unlock.lockId = tmr->clbk_info.lcl_lockId;
-			gla_clbk_info->params.unlock.resourceId = tmr->clbk_info.resourceId;
-			gla_clbk_info->params.unlock.invocation = tmr->clbk_info.invocation;
+			gla_clbk_info->params.unlock.lockId =
+			    tmr->clbk_info.lcl_lockId;
+			gla_clbk_info->params.unlock.resourceId =
+			    tmr->clbk_info.resourceId;
+			gla_clbk_info->params.unlock.invocation =
+			    tmr->clbk_info.invocation;
 			break;
 		case GLSV_LOCK_WAITER_CBK:
 			break;
 		}
 		/* Put it in place it in the Queue */
-		glsv_gla_callback_queue_write(gla_cb, tmr->client_hdl, gla_clbk_info);
-
+		glsv_gla_callback_queue_write(gla_cb, tmr->client_hdl,
+					      gla_clbk_info);
 	}
 
 	/* return GLA_CB */

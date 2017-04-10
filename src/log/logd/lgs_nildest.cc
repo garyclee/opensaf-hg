@@ -23,7 +23,6 @@
 
 static const char kDelimeter[] = ";";
 
-
 //==============================================================================
 // NilDestType class
 //==============================================================================
@@ -32,8 +31,7 @@ const char NilDestType::name_[] = "NILDEST";
 
 NilDestType::NilDestType() {}
 
-NilDestType::~NilDestType() {
-}
+NilDestType::~NilDestType() {}
 
 const VectorString NilDestType::GetAllDestStatus() {
   VectorString output{};
@@ -51,16 +49,14 @@ bool NilDestType::FindName(const std::string& name) const {
           destnames_.end());
 }
 
-ErrCode NilDestType::HandleRecordMsg(
-    const DestinationHandler::RecordMsg& msg) {
+ErrCode NilDestType::HandleRecordMsg(const DestinationHandler::RecordMsg& msg) {
   ErrCode ret = ErrCode::kOk;
   TRACE("Destination name(%s) is NILDEST. Drop msg!", msg.name);
   ret = ErrCode::kDrop;
   return ret;
 }
 
-ErrCode NilDestType::HandleCfgMsg(
-    const DestinationHandler::CfgDestMsg& msg) {
+ErrCode NilDestType::HandleCfgMsg(const DestinationHandler::CfgDestMsg& msg) {
   TRACE_ENTER();
   ErrCode ret = ErrCode::kOk;
   const std::string name{msg.name};
@@ -76,16 +72,13 @@ ErrCode NilDestType::HandleDelCfgMsg(
   ErrCode ret = ErrCode::kOk;
   TRACE("%s remove NILDEST destination name (%s)", __func__, msg.name);
   const std::string name{msg.name};
-  destnames_.erase(std::remove(destnames_.begin(),
-                               destnames_.end(),
-                               name)
-                   , destnames_.end());
+  destnames_.erase(std::remove(destnames_.begin(), destnames_.end(), name),
+                   destnames_.end());
   TRACE_LEAVE();
   return ret;
 }
 
-ErrCode NilDestType::ProcessMsg(
-    const DestinationHandler::HandleMsg& msg) {
+ErrCode NilDestType::ProcessMsg(const DestinationHandler::HandleMsg& msg) {
   TRACE_ENTER();
   ErrCode ret = ErrCode::kOk;
   static bool cfgsent = false;

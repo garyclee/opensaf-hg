@@ -42,14 +42,12 @@
  * structure which holds the create information.
  *****************************************************************************/
 typedef struct mqsv_create_info {
-	uint8_t pool_id;		/* Handle manager Pool ID */
+  uint8_t pool_id; /* Handle manager Pool ID */
 } MQSV_CREATE_INFO;
 
 /*****************************************************************************
  * structure which holds the destroy information.
  *****************************************************************************/
-typedef struct mqsv_destroy_info {
-	MDS_VDEST_ID i_vcard_id;
-} MQSV_DESTROY_INFO;
+typedef struct mqsv_destroy_info { MDS_VDEST_ID i_vcard_id; } MQSV_DESTROY_INFO;
 
 #endif  // MSG_COMMON_MQSV_INIT_H_

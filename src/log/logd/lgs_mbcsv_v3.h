@@ -49,8 +49,10 @@ typedef struct {
 uint32_t ckpt_proc_lgs_cfg_v3(lgs_cb_t *cb, void *data);
 uint32_t edp_ed_lgs_cfg_rec_v3(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                                NCSCONTEXT ptr, uint32_t *ptr_data_len,
-                               EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-uint32_t edp_ed_ckpt_msg_v3(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                            NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+                               EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+                               EDU_ERR *o_err);
+uint32_t edp_ed_ckpt_msg_v3(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+                            uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+                            EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif  // LOG_LOGD_LGS_MBCSV_V3_H_

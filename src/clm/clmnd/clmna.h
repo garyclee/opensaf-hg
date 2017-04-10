@@ -21,7 +21,7 @@
 #include "clm/clmnd/cb.h"
 extern CLMNA_CB *clmna_cb;
 
-SaAisErrorT clmna_amf_init(CLMNA_CB * cb);
+SaAisErrorT clmna_amf_init(CLMNA_CB *cb);
 void clmna_process_mbx(SYSF_MBX *mbx);
 
 #endif  // CLM_CLMND_CLMNA_H_

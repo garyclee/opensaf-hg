@@ -29,24 +29,23 @@
 
 // Note: Info about public methods can be found in .h file
 
-SmfExecControlObjHandler::SmfExecControlObjHandler() :
-  m_smfProtectExecControlDuringInit(0),
-  m_smfProtectExecControlDuringInit_valid(false),
-  m_procExecMode(0),
-  m_procExecMode_valid(false),
-  m_numberOfSingleSteps(0),
-  m_numberOfSingleSteps_valid(false),
-  m_nodesForSingleStep_valid(false),
-  m_attributes(0),
-  m_exec_ctrl_name_ad(0),
-  m_procExecMode_ad(0),
-  m_numberOfSingleSteps_ad(0),
-  m_nodesForSingleStep_ad(0),
-  m_omHandle(0),
-  m_ownerHandle(0),
-  m_ccbHandle(0)
-{
-  p_immutil_object = new SmfImmUtils; // Deleted by uninstall and in destructor
+SmfExecControlObjHandler::SmfExecControlObjHandler()
+    : m_smfProtectExecControlDuringInit(0),
+      m_smfProtectExecControlDuringInit_valid(false),
+      m_procExecMode(0),
+      m_procExecMode_valid(false),
+      m_numberOfSingleSteps(0),
+      m_numberOfSingleSteps_valid(false),
+      m_nodesForSingleStep_valid(false),
+      m_attributes(0),
+      m_exec_ctrl_name_ad(0),
+      m_procExecMode_ad(0),
+      m_numberOfSingleSteps_ad(0),
+      m_nodesForSingleStep_ad(0),
+      m_omHandle(0),
+      m_ownerHandle(0),
+      m_ccbHandle(0) {
+  p_immutil_object = new SmfImmUtils;  // Deleted by uninstall and in destructor
 }
 
 SmfExecControlObjHandler::~SmfExecControlObjHandler() {
@@ -79,8 +78,8 @@ bool SmfExecControlObjHandler::install() {
 
   // Read the original exec control object and save attribute values in member
   // variables and handle valid flags.
-  // 
-  const char* exec_ctrl_name = c_openSafSmfExecControl;
+  //
+  const char *exec_ctrl_name = c_openSafSmfExecControl;
   if (readExecControlObject(exec_ctrl_name) == false) {
     LOG_NO("%s: readExecControlObject Fail", __FUNCTION__);
     return false;
@@ -109,10 +108,10 @@ void SmfExecControlObjHandler::uninstall() {
 
 SaUint32T SmfExecControlObjHandler::procExecMode(bool *errinfo) {
   TRACE_ENTER();
-  bool i_errinfo = true; //No error
+  bool i_errinfo = true;  // No error
 
   if (m_procExecMode_valid == false) {
-    TRACE("%s has no valid value, try to read the IMM copy",__FUNCTION__);
+    TRACE("%s has no valid value, try to read the IMM copy", __FUNCTION__);
     i_errinfo = getValuesFromImmCopy();
   }
 
@@ -126,10 +125,10 @@ SaUint32T SmfExecControlObjHandler::procExecMode(bool *errinfo) {
 
 SaUint32T SmfExecControlObjHandler::numberOfSingleSteps(bool *errinfo) {
   TRACE_ENTER();
-  bool i_errinfo = true; //No error
+  bool i_errinfo = true;  // No error
 
   if (m_numberOfSingleSteps_valid == false) {
-    TRACE("%s has no valid value, try to read the IMM copy",__FUNCTION__);
+    TRACE("%s has no valid value, try to read the IMM copy", __FUNCTION__);
     i_errinfo = getValuesFromImmCopy();
   }
 
@@ -141,13 +140,13 @@ SaUint32T SmfExecControlObjHandler::numberOfSingleSteps(bool *errinfo) {
   return m_numberOfSingleSteps;
 }
 
-std::vector <std::string> SmfExecControlObjHandler::nodesForSingleStep
-  (bool *errinfo) {
+std::vector<std::string> SmfExecControlObjHandler::nodesForSingleStep(
+    bool *errinfo) {
   TRACE_ENTER();
-  bool i_errinfo = true; //No error
+  bool i_errinfo = true;  // No error
 
   if (m_nodesForSingleStep_valid == false) {
-    TRACE("%s has no valid value, try to read the IMM copy",__FUNCTION__);
+    TRACE("%s has no valid value, try to read the IMM copy", __FUNCTION__);
     i_errinfo = getValuesFromImmCopy();
   }
 
@@ -160,7 +159,7 @@ std::vector <std::string> SmfExecControlObjHandler::nodesForSingleStep
 }
 
 bool SmfExecControlObjHandler::smfProtectExecControlDuringInit(
-  bool *errinfo=NULL) {
+    bool *errinfo = NULL) {
   TRACE_ENTER();
   bool i_errinfo = true;
 
@@ -179,10 +178,9 @@ bool SmfExecControlObjHandler::smfProtectExecControlDuringInit(
   }
 }
 
-
 /**
  * Read all values from the exec control object copy if one exist
- * 
+ *
  * @return
  */
 bool SmfExecControlObjHandler::getValuesFromImmCopy() {
@@ -214,20 +212,19 @@ bool SmfExecControlObjHandler::getValuesFromImmCopy() {
 /**
  * Read the exec control object and save its values into member variables
  * The attribute descriptors are saved so that a copy can be made
- * 
+ *
  * @return false on Fail
  */
-bool SmfExecControlObjHandler::readExecControlObject
-  (const char* exec_ctrl_name) {
+bool SmfExecControlObjHandler::readExecControlObject(
+    const char *exec_ctrl_name) {
   TRACE_ENTER();
 
-  TRACE("%s: Name of exec control object '%s'",
-        __FUNCTION__, exec_ctrl_name);
+  TRACE("%s: Name of exec control object '%s'", __FUNCTION__, exec_ctrl_name);
 
   // Get all attributes of the exec control object
   if (p_immutil_object->getObject(exec_ctrl_name, &m_attributes) == false) {
-    TRACE("%s: Failed to get object from attribute %s",
-           __FUNCTION__, OPENSAF_SMF_EXEC_CONTROL);
+    TRACE("%s: Failed to get object from attribute %s", __FUNCTION__,
+          OPENSAF_SMF_EXEC_CONTROL);
     return false;
   }
 
@@ -237,17 +234,17 @@ bool SmfExecControlObjHandler::readExecControlObject
 
   saveAttributeDescriptors();
 
-  const SaUint32T* p_procExecMode = immutil_getUint32Attr(
-    (const SaImmAttrValuesT_2 **) m_attributes, "procExecMode", 0);
+  const SaUint32T *p_procExecMode = immutil_getUint32Attr(
+      (const SaImmAttrValuesT_2 **)m_attributes, "procExecMode", 0);
   if (p_procExecMode == 0) {
     LOG_NO("%s: Could not read procExecMode", __FUNCTION__);
   } else {
     m_procExecMode = *p_procExecMode;
     m_procExecMode_valid = true;
   }
-  
-  const SaUint32T* p_numberOfSingleSteps = immutil_getUint32Attr(
-    (const SaImmAttrValuesT_2 **) m_attributes, "numberOfSingleSteps", 0);
+
+  const SaUint32T *p_numberOfSingleSteps = immutil_getUint32Attr(
+      (const SaImmAttrValuesT_2 **)m_attributes, "numberOfSingleSteps", 0);
   if (p_numberOfSingleSteps == 0) {
     LOG_NO("%s: Could not read numberOfSingleSteps", __FUNCTION__);
   } else {
@@ -258,18 +255,17 @@ bool SmfExecControlObjHandler::readExecControlObject
   // Fill in node name vector
   SaAisErrorT ais_rc;
   SaUint32T number_of_nodes;
-  ais_rc = immutil_getAttrValuesNumber(const_cast<char*> ("nodesForSingleStep"),
-                                   (const SaImmAttrValuesT_2 **) m_attributes,
-                                   &number_of_nodes);
+  ais_rc = immutil_getAttrValuesNumber(
+      const_cast<char *>("nodesForSingleStep"),
+      (const SaImmAttrValuesT_2 **)m_attributes, &number_of_nodes);
   if (ais_rc != SA_AIS_OK) {
     LOG_NO("%s: No nodesForSingleStep found", __FUNCTION__);
     return true;
   }
 
   for (unsigned int i = 0; i < number_of_nodes; i++) {
-    const char *p_node_name =immutil_getStringAttr(
-        (const SaImmAttrValuesT_2**) m_attributes,
-        "nodesForSingleStep", i);
+    const char *p_node_name = immutil_getStringAttr(
+        (const SaImmAttrValuesT_2 **)m_attributes, "nodesForSingleStep", i);
     if (p_node_name == NULL) {
       break;
     }
@@ -288,24 +284,25 @@ bool SmfExecControlObjHandler::readExecControlObject
  */
 bool SmfExecControlObjHandler::readOpenSafSmfConfig() {
   // Get the name of the exec control object
-  if (p_immutil_object->getObject(SMF_CONFIG_OBJECT_DN, &m_attributes) == false) {
-    LOG_WA("%s: Could not get SMF config object from IMM %s",
-           __FUNCTION__, SMF_CONFIG_OBJECT_DN);
+  if (p_immutil_object->getObject(SMF_CONFIG_OBJECT_DN, &m_attributes) ==
+      false) {
+    LOG_WA("%s: Could not get SMF config object from IMM %s", __FUNCTION__,
+           SMF_CONFIG_OBJECT_DN);
     return "";
   }
 
-  const char* exec_ctrl_name = immutil_getStringAttr(
-    (const SaImmAttrValuesT_2 **) m_attributes, OPENSAF_SMF_EXEC_CONTROL, 0);
+  const char *exec_ctrl_name = immutil_getStringAttr(
+      (const SaImmAttrValuesT_2 **)m_attributes, OPENSAF_SMF_EXEC_CONTROL, 0);
   if (exec_ctrl_name == NULL || strcmp(exec_ctrl_name, "") == 0) {
-    LOG_WA("%s: Could not get %s attrs from SmfConfig",
-           __FUNCTION__, OPENSAF_SMF_EXEC_CONTROL);
+    LOG_WA("%s: Could not get %s attrs from SmfConfig", __FUNCTION__,
+           OPENSAF_SMF_EXEC_CONTROL);
     return "";
   }
   c_openSafSmfExecControl = exec_ctrl_name;
 
-  const SaUint32T* p_protect_flag = immutil_getUint32Attr(
-    (const SaImmAttrValuesT_2 **) m_attributes,
-    "smfProtectExecControlDuringInit", 0);
+  const SaUint32T *p_protect_flag =
+      immutil_getUint32Attr((const SaImmAttrValuesT_2 **)m_attributes,
+                            "smfProtectExecControlDuringInit", 0);
   if (p_protect_flag == NULL) {
     LOG_ER("could not read smfProtectExecControlDuringInit");
     return false;
@@ -324,8 +321,7 @@ void SmfExecControlObjHandler::removeExecControlObjectCopy() {
 
   TRACE_ENTER();
   SaNameT node_name;
-  osaf_extended_name_lend(c_openSafSmfExecControl_copy,
-          &node_name);
+  osaf_extended_name_lend(c_openSafSmfExecControl_copy, &node_name);
 
   TRACE("Deleting object '%s'", c_openSafSmfExecControl_copy);
 
@@ -339,22 +335,20 @@ void SmfExecControlObjHandler::removeExecControlObjectCopy() {
   ais_rc = immutil_saImmOmAdminOwnerSet(m_ownerHandle, names, SA_IMM_ONE);
 
   if (ais_rc != SA_AIS_OK) {
-    LOG_NO("%s - saImmOmAdminOwnerSet FAILED: %s",
-           __FUNCTION__, saf_error(ais_rc));
+    LOG_NO("%s - saImmOmAdminOwnerSet FAILED: %s", __FUNCTION__,
+           saf_error(ais_rc));
   }
 
-  ais_rc = immutil_saImmOmCcbObjectDelete(m_ccbHandle,
-          &node_name);
+  ais_rc = immutil_saImmOmCcbObjectDelete(m_ccbHandle, &node_name);
   if (ais_rc != SA_AIS_OK) {
-          LOG_NO("%s: saImmOmCcbObjectDelete '%s' Fail %s",
-           __FUNCTION__, c_openSafSmfExecControl_copy,
-           saf_error(ais_rc));
+    LOG_NO("%s: saImmOmCcbObjectDelete '%s' Fail %s", __FUNCTION__,
+           c_openSafSmfExecControl_copy, saf_error(ais_rc));
   } else {
-          ais_rc = saImmOmCcbApply(m_ccbHandle);
-          if (ais_rc != SA_AIS_OK) {
-          LOG_NO("%s: saImmOmCcbApply() Fail '%s'",
-                  __FUNCTION__, saf_error(ais_rc));
-          }
+    ais_rc = saImmOmCcbApply(m_ccbHandle);
+    if (ais_rc != SA_AIS_OK) {
+      LOG_NO("%s: saImmOmCcbApply() Fail '%s'", __FUNCTION__,
+             saf_error(ais_rc));
+    }
   }
 
   finalizeImmOmHandles();
@@ -389,43 +383,35 @@ bool SmfExecControlObjHandler::copyExecControlObject() {
   //
   SaImmAttrValuesT_2 smfExecControl_copy_ad;
   smfExecControl_copy_ad.attrName =
-      const_cast<SaImmAttrNameT> ("openSafSmfExecControl");
+      const_cast<SaImmAttrNameT>("openSafSmfExecControl");
   smfExecControl_copy_ad.attrValueType = SA_IMM_ATTR_SASTRINGT;
-  char *object_name = const_cast<char *> (c_openSafSmfExecControl_copy);
+  char *object_name = const_cast<char *>(c_openSafSmfExecControl_copy);
   smfExecControl_copy_ad.attrValuesNumber = 1;
   SaImmAttrValueT object_names[] = {&object_name};
   smfExecControl_copy_ad.attrValues = object_names;
-
 
   // ------------------------------------
   // NULL terminated array of pointers to the list of attributes.
   // In this case only one attribute, saAmfNGNodeListAttr
   const SaImmAttrValuesT_2 *attrValues[] = {
-    &smfExecControl_copy_ad,
-    m_procExecMode_ad,
-    m_numberOfSingleSteps_ad,
-    m_nodesForSingleStep_ad,
-    NULL
-  };
+      &smfExecControl_copy_ad, m_procExecMode_ad, m_numberOfSingleSteps_ad,
+      m_nodesForSingleStep_ad, NULL};
 
   // ---------------------------------------
   // Create the node group. Top level object
-  SaImmClassNameT className = const_cast<SaImmClassNameT> (c_class_name);
-  ais_rc = immutil_saImmOmCcbObjectCreate_2(
-              m_ccbHandle,
-              className,
-              NULL,
-              attrValues);
+  SaImmClassNameT className = const_cast<SaImmClassNameT>(c_class_name);
+  ais_rc = immutil_saImmOmCcbObjectCreate_2(m_ccbHandle, className, NULL,
+                                            attrValues);
 
   if (ais_rc != SA_AIS_OK) {
-    LOG_NO("%s: saImmOmCcbObjectCreate_2() '%s' Fail %s",
-           __FUNCTION__, object_name, saf_error(ais_rc));
+    LOG_NO("%s: saImmOmCcbObjectCreate_2() '%s' Fail %s", __FUNCTION__,
+           object_name, saf_error(ais_rc));
     rc = false;
   } else {
     ais_rc = saImmOmCcbApply(m_ccbHandle);
     if (ais_rc != SA_AIS_OK) {
-      LOG_NO("%s: saImmOmCcbApply() Fail '%s'",
-             __FUNCTION__, saf_error(ais_rc));
+      LOG_NO("%s: saImmOmCcbApply() Fail '%s'", __FUNCTION__,
+             saf_error(ais_rc));
       rc = false;
     }
   }
@@ -458,7 +444,7 @@ void SmfExecControlObjHandler::saveAttributeDescriptors() {
  * Get all needed IMM handles and store them in member variables
  * NOTE: This is a copy of a method in the SmfAdminOperation class.
  *       This should be fixed
- * 
+ *
  * @return false on Fail
  */
 bool SmfExecControlObjHandler::createImmOmHandles() {
@@ -472,15 +458,12 @@ bool SmfExecControlObjHandler::createImmOmHandles() {
 
   // OM handle
   while (timeout_try_cnt > 0) {
-    ais_rc = immutil_saImmOmInitialize(&m_omHandle, NULL,
-                                       &m_immVersion);
-    if (ais_rc != SA_AIS_ERR_TIMEOUT)
-      break;
+    ais_rc = immutil_saImmOmInitialize(&m_omHandle, NULL, &m_immVersion);
+    if (ais_rc != SA_AIS_ERR_TIMEOUT) break;
     timeout_try_cnt--;
   }
   if (ais_rc != SA_AIS_OK) {
-    LOG_NO("%s: saImmOmInitialize Fail %s", __FUNCTION__,
-           saf_error(ais_rc));
+    LOG_NO("%s: saImmOmInitialize Fail %s", __FUNCTION__, saf_error(ais_rc));
     rc = false;
   }
 
@@ -488,17 +471,15 @@ bool SmfExecControlObjHandler::createImmOmHandles() {
   if (rc == true) {
     timeout_try_cnt = 6;
     while (timeout_try_cnt > 0) {
-      ais_rc = immutil_saImmOmAdminOwnerInitialize(m_omHandle,
-                                                   const_cast<char*>
-                                                   ("SmfExecControlObjHandlerOwner"),
-                                                   SA_TRUE, &m_ownerHandle);
-      if (ais_rc != SA_AIS_ERR_TIMEOUT)
-        break;
+      ais_rc = immutil_saImmOmAdminOwnerInitialize(
+          m_omHandle, const_cast<char *>("SmfExecControlObjHandlerOwner"),
+          SA_TRUE, &m_ownerHandle);
+      if (ais_rc != SA_AIS_ERR_TIMEOUT) break;
       timeout_try_cnt--;
     }
     if (ais_rc != SA_AIS_OK) {
-      LOG_NO("%s: saImmOmAdminOwnerInitialize Fail %s",
-             __FUNCTION__, saf_error(ais_rc));
+      LOG_NO("%s: saImmOmAdminOwnerInitialize Fail %s", __FUNCTION__,
+             saf_error(ais_rc));
       rc = false;
     }
   }
@@ -507,15 +488,13 @@ bool SmfExecControlObjHandler::createImmOmHandles() {
   if (rc == true) {
     timeout_try_cnt = 6;
     while (timeout_try_cnt > 0) {
-      ais_rc = immutil_saImmOmCcbInitialize(m_ownerHandle,
-                                            0, &m_ccbHandle);
-      if (ais_rc != SA_AIS_ERR_TIMEOUT)
-        break;
+      ais_rc = immutil_saImmOmCcbInitialize(m_ownerHandle, 0, &m_ccbHandle);
+      if (ais_rc != SA_AIS_ERR_TIMEOUT) break;
       timeout_try_cnt--;
     }
     if (ais_rc != SA_AIS_OK) {
-      LOG_NO("%s: saImmOmCcbInitialize Fail %s",
-             __FUNCTION__, saf_error(ais_rc));
+      LOG_NO("%s: saImmOmCcbInitialize Fail %s", __FUNCTION__,
+             saf_error(ais_rc));
       rc = false;
     }
   }
@@ -528,8 +507,8 @@ void SmfExecControlObjHandler::finalizeImmOmHandles() {
   if (m_omHandle != 0) {
     SaAisErrorT ais_rc = immutil_saImmOmFinalize(m_omHandle);
     if (ais_rc != SA_AIS_OK) {
-      LOG_NO("%s: immutil_saImmOmFinalize Fail %s",
-             __FUNCTION__, saf_error(ais_rc));
+      LOG_NO("%s: immutil_saImmOmFinalize Fail %s", __FUNCTION__,
+             saf_error(ais_rc));
     }
   }
 

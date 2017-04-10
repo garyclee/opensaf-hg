@@ -28,16 +28,16 @@
  * Get AMF component name from file. File name found in
  * environment variable. Set standard environment variable with
  * value.
- * 
+ *
  * @param env_name - name of environment variable with file name
  * @param dn [out]
- * 
+ *
  * @return unsigned int
  */
 unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn)
 {
 	unsigned int rc = NCSCC_RC_FAILURE;
-	char comp_name[257] = { 0 };
+	char comp_name[257] = {0};
 	FILE *fp;
 	char *comp_name_file;
 
@@ -47,13 +47,15 @@ unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn)
 	}
 
 	if ((fp = fopen(comp_name_file, "r")) == NULL) {
-		LOG_ER("fopen '%s' failed - %s", comp_name_file, strerror(errno));
+		LOG_ER("fopen '%s' failed - %s", comp_name_file,
+		       strerror(errno));
 		goto done;
 	}
 
 	if (fscanf(fp, "%256s", comp_name) != 1) {
 		(void)fclose(fp);
-		LOG_ER("Unable to retrieve component name from file '%s'", comp_name_file);
+		LOG_ER("Unable to retrieve component name from file '%s'",
+		       comp_name_file);
 		goto done;
 	}
 
@@ -73,7 +75,7 @@ unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn)
 		strcpy((char *)dn->value, comp_name);
 	} else {
 		LOG_ER("Comp name too long %u", dn->length);
-		/* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
+		/* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this
 		   case. On the other hand, it should be long enough for all
 		   reasonable comp names */
 		dn->length = 0;
@@ -82,6 +84,6 @@ unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn)
 
 	rc = NCSCC_RC_SUCCESS;
 
- done:
+done:
 	return rc;
 }

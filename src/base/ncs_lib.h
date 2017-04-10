@@ -39,7 +39,7 @@
 #include "base/ncs_osprm.h"
 #include "base/ncs_saf.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -66,8 +66,9 @@ typedef struct ncs_lib_instantiate {
   /* Environment to which the instance belongs */
   uint32_t i_env_id;
 
-  /* Additionaly parameters (if any) passed to an SPRR lookup+creation request */
-  SaAmfCSIAttributeListT i_inst_attrs;    /* Attributes of the instance-name */
+  /* Additionaly parameters (if any) passed to an SPRR lookup+creation request
+   */
+  SaAmfCSIAttributeListT i_inst_attrs; /* Attributes of the instance-name */
 
   /* Handle to the instance */
   uint32_t o_inst_hdl;
@@ -105,9 +106,9 @@ typedef struct ncs_lib_req_info {
   } info;
 } NCS_LIB_REQ_INFO;
 
-typedef uint32_t (*NCS_LIB_REQUEST) (NCS_LIB_REQ_INFO *req_info);
+typedef uint32_t (*NCS_LIB_REQUEST)(NCS_LIB_REQ_INFO *req_info);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

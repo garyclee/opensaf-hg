@@ -45,13 +45,15 @@ static uint32_t stream_array_size = 3;
 /* Current number of streams */
 static uint32_t numb_of_streams;
 
-static const uint32_t kInvalidId = static_cast<uint32_t> (-1);
+static const uint32_t kInvalidId = static_cast<uint32_t>(-1);
 
 static int lgs_stream_array_insert(log_stream_t *stream, uint32_t id);
 static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id);
 static int lgs_stream_array_remove(int id);
-static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file);
-static int get_number_of_cfg_files_h(log_stream_t *logStream, char *oldest_file);
+static int get_number_of_log_files_h(log_stream_t *logStream,
+                                     char *oldest_file);
+static int get_number_of_cfg_files_h(log_stream_t *logStream,
+                                     char *oldest_file);
 
 /**
  * Open/create a file for append in non blocking mode.
@@ -84,7 +86,7 @@ static int fileopen_h(const std::string &filepath, int *errno_save) {
   data_in.filepath = const_cast<char *>(filePath.c_str());
   strcpy(data_in.groupname, groupname);
 
-  TRACE("%s - filepath \"%s\"",__FUNCTION__, filepath.c_str());
+  TRACE("%s - filepath \"%s\"", __FUNCTION__, filepath.c_str());
 
   /* Fill in API structure */
   apipar.req_code_in = LGSF_FILEOPEN;
@@ -95,7 +97,7 @@ static int fileopen_h(const std::string &filepath, int *errno_save) {
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     fd = -1;
   } else {
     fd = apipar.hdl_ret_code_out;
@@ -174,16 +176,16 @@ static int fileclose_h(int fd, int *errno_save) {
   api_rc = log_file_api(&apipar);
   if (api_rc == LGSF_BUSY) {
     /* The fd is not invalidated. Save to close later */
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     lgs_fd_list_add(fd);
     rc = -1;
     *errno_save = EBUSY;
   } else if (api_rc == LGSF_TIMEOUT) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
     *errno_save = ETIMEDOUT;
   } else if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
     *errno_save = errno;
   } else {
@@ -191,7 +193,7 @@ static int fileclose_h(int fd, int *errno_save) {
     *errno_save = 0;
   }
 
-  TRACE_LEAVE2("rc = %d",rc);
+  TRACE_LEAVE2("rc = %d", rc);
   return rc;
 }
 
@@ -226,7 +228,7 @@ static int file_unlink_h(const std::string &filepath) {
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
@@ -250,11 +252,11 @@ static int delete_config_file(log_stream_t *stream) {
   TRACE_ENTER();
 
   /* create absolute path for config file */
-  std::string logsv_root_dir = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  std::string logsv_root_dir =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
-  pathname = logsv_root_dir + "/" + stream->pathName +
-      "/" + stream->fileName + ".cfg";
+  pathname =
+      logsv_root_dir + "/" + stream->pathName + "/" + stream->fileName + ".cfg";
 
   rc = file_unlink_h(pathname);
 
@@ -278,17 +280,20 @@ static int rotate_if_needed(log_stream_t *stream) {
   TRACE_ENTER();
 
   /* Rotate out log files from previous lifes */
-  if ((log_file_cnt = get_number_of_log_files_h(stream, oldest_log_file)) == -1) {
+  if ((log_file_cnt = get_number_of_log_files_h(stream, oldest_log_file)) ==
+      -1) {
     rc = -1;
     goto done;
   }
 
   /* Rotate out cfg files from previous lifes */
-  if (!((cfg_file_cnt = get_number_of_cfg_files_h(stream, oldest_cfg_file)) == -1)) {
-      oldest_cfg = true;
+  if (!((cfg_file_cnt = get_number_of_cfg_files_h(stream, oldest_cfg_file)) ==
+        -1)) {
+    oldest_cfg = true;
   }
-  
-  TRACE("delete oldest_cfg_file: %s oldest_log_file %s", oldest_cfg_file, oldest_log_file);
+
+  TRACE("delete oldest_cfg_file: %s oldest_log_file %s", oldest_cfg_file,
+        oldest_log_file);
 
   /*
   ** Remove until we have one less than allowed, we are just about to
@@ -303,17 +308,20 @@ static int rotate_if_needed(log_stream_t *stream) {
     if (oldest_cfg == true) {
       oldest_cfg = false;
       if ((rc = file_unlink_h(oldest_cfg_file)) == -1) {
-        LOG_NO("Could not cfg  delete: %s - %s", oldest_cfg_file, strerror(errno));
+        LOG_NO("Could not cfg  delete: %s - %s", oldest_cfg_file,
+               strerror(errno));
         goto done;
       }
     }
 
-    if ((log_file_cnt = get_number_of_log_files_h(stream, oldest_log_file)) == -1) {
+    if ((log_file_cnt = get_number_of_log_files_h(stream, oldest_log_file)) ==
+        -1) {
       rc = -1;
       goto done;
     }
 
-    if (!((cfg_file_cnt = get_number_of_cfg_files_h(stream, oldest_cfg_file)) == -1)) {
+    if (!((cfg_file_cnt = get_number_of_cfg_files_h(stream, oldest_cfg_file)) ==
+          -1)) {
       oldest_cfg = true;
     }
   }
@@ -330,8 +338,8 @@ done:
  */
 void log_initiate_stream_files(log_stream_t *stream) {
   int errno_save;
-  const std::string log_root_path = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  const std::string log_root_path =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   TRACE_ENTER();
 
@@ -351,23 +359,22 @@ void log_initiate_stream_files(log_stream_t *stream) {
 
   /* Remove files from a previous life if needed */
   if (rotate_if_needed(stream) == -1) {
-    TRACE("%s - rotate_if_needed() FAIL",__FUNCTION__);
+    TRACE("%s - rotate_if_needed() FAIL", __FUNCTION__);
     goto done;
   }
 
-  if (lgs_make_reldir_h(stream->pathName) != 0){
-    TRACE("%s - lgs_make_dir_h() FAIL",__FUNCTION__);
+  if (lgs_make_reldir_h(stream->pathName) != 0) {
+    TRACE("%s - lgs_make_dir_h() FAIL", __FUNCTION__);
     goto done;
   }
 
   if (lgs_create_config_file_h(log_root_path, stream) != 0) {
-    TRACE("%s - lgs_create_config_file_h() FAIL",__FUNCTION__);
+    TRACE("%s - lgs_create_config_file_h() FAIL", __FUNCTION__);
     goto done;
   }
 
-  if ((*stream->p_fd = log_file_open(log_root_path, stream,
-                                     stream->logFileCurrent,
-                                     &errno_save)) == -1) {
+  if ((*stream->p_fd = log_file_open(
+           log_root_path, stream, stream->logFileCurrent, &errno_save)) == -1) {
     TRACE("%s - Could not open '%s' - %s", __FUNCTION__,
           stream->logFileCurrent.c_str(), strerror(errno_save));
     goto done;
@@ -411,11 +418,9 @@ void log_stream_print(log_stream_t *stream) {
  * @param stream[in]
  */
 void log_free_stream_resources(log_stream_t *stream) {
-  if (stream->streamId != 0)
-    lgs_stream_array_remove(stream->streamId);
+  if (stream->streamId != 0) lgs_stream_array_remove(stream->streamId);
 
-  if (stream->logFileFormat != NULL)
-    free(stream->logFileFormat);
+  if (stream->logFileFormat != NULL) free(stream->logFileFormat);
 
   delete stream;
 }
@@ -444,17 +449,15 @@ void log_stream_delete(log_stream_t **s) {
       rv = saImmOiRtObjectDelete(lgs_cb->immOiHandle, &objectName);
       if (rv != SA_AIS_OK) {
         /* no retry; avoid blocking LOG service #1886 */
-        LOG_WA("saImmOiRtObjectDelete returned %u for %s",
-               rv, stream->name.c_str());
+        LOG_WA("saImmOiRtObjectDelete returned %u for %s", rv,
+               stream->name.c_str());
       }
     }
   }
 
-  if (stream->streamId != 0)
-    lgs_stream_array_remove(stream->streamId);
+  if (stream->streamId != 0) lgs_stream_array_remove(stream->streamId);
 
-  if (stream->logFileFormat != NULL)
-    free(stream->logFileFormat);
+  if (stream->logFileFormat != NULL) free(stream->logFileFormat);
 
   delete stream;
   *s = NULL;
@@ -478,18 +481,12 @@ static void init_log_stream_fd(log_stream_t *stream) {
 }
 
 int lgs_populate_log_stream(
-    const std::string &filename,
-    const std::string &pathname,
-    SaUint64T maxLogFileSize,
-    SaUint32T fixedLogRecordSize,
-    SaLogFileFullActionT logFullAction,
-    SaUint32T maxFilesRotated,
-    const char *logFileFormat,
-    logStreamTypeT streamType,
-    SaBoolT twelveHourModeFlag,
-    uint32_t logRecordId,
-    log_stream_t *const o_stream
-                            ) {
+    const std::string &filename, const std::string &pathname,
+    SaUint64T maxLogFileSize, SaUint32T fixedLogRecordSize,
+    SaLogFileFullActionT logFullAction, SaUint32T maxFilesRotated,
+    const char *logFileFormat, logStreamTypeT streamType,
+    SaBoolT twelveHourModeFlag, uint32_t logRecordId,
+    log_stream_t *const o_stream) {
   int rc = 0;
 
   o_stream->fileName = filename;
@@ -500,7 +497,7 @@ int lgs_populate_log_stream(
   o_stream->logFullAction = logFullAction;
   o_stream->maxFilesRotated = maxFilesRotated;
   o_stream->creationTimeStamp = lgs_get_SaTime();
-  o_stream->severityFilter = 0x7f;        /* by default all levels are allowed */
+  o_stream->severityFilter = 0x7f; /* by default all levels are allowed */
   o_stream->streamType = streamType;
   o_stream->twelveHourModeFlag = twelveHourModeFlag;
   o_stream->logRecordId = logRecordId;
@@ -534,120 +531,108 @@ SaAisErrorT lgs_create_rt_appstream(log_stream_t *const stream) {
 
     if (parent_name != NULL) {
       rdnstr = strtok(dndup, ",");
-      parent_name++;  /* FIX, vulnerable for malformed DNs */
+      parent_name++; /* FIX, vulnerable for malformed DNs */
       parentName = &parent;
       osaf_extended_name_lend(parent_name, &parent);
     } else
       rdnstr = const_cast<char *>(stream->name.c_str());
 
-    void *arr1[] = { &rdnstr };
+    void *arr1[] = {&rdnstr};
     const SaImmAttrValuesT_2 attr_safLgStr = {
-      .attrName = const_cast<SaImmAttrNameT>("safLgStr"),
-      .attrValueType = SA_IMM_ATTR_SASTRINGT,
-      .attrValuesNumber = 1,
-      .attrValues = arr1
-    };
+        .attrName = const_cast<SaImmAttrNameT>("safLgStr"),
+        .attrValueType = SA_IMM_ATTR_SASTRINGT,
+        .attrValuesNumber = 1,
+        .attrValues = arr1};
     char *str2 = const_cast<char *>(stream->fileName.c_str());
-    void *arr2[] = { &str2 };
+    void *arr2[] = {&str2};
     const SaImmAttrValuesT_2 attr_safLogStreamFileName = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamFileName"),
-      .attrValueType = SA_IMM_ATTR_SASTRINGT,
-      .attrValuesNumber = 1,
-      .attrValues = arr2
-    };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamFileName"),
+        .attrValueType = SA_IMM_ATTR_SASTRINGT,
+        .attrValuesNumber = 1,
+        .attrValues = arr2};
     char *str3 = const_cast<char *>(stream->pathName.c_str());
-    void *arr3[] = { &str3 };
+    void *arr3[] = {&str3};
     const SaImmAttrValuesT_2 attr_safLogStreamPathName = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamPathName"),
-      .attrValueType = SA_IMM_ATTR_SASTRINGT,
-      .attrValuesNumber = 1,
-      .attrValues = arr3
-    };
-    void *arr4[] = { &stream->maxLogFileSize };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamPathName"),
+        .attrValueType = SA_IMM_ATTR_SASTRINGT,
+        .attrValuesNumber = 1,
+        .attrValues = arr3};
+    void *arr4[] = {&stream->maxLogFileSize};
     const SaImmAttrValuesT_2 attr_saLogStreamMaxLogFileSize = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamMaxLogFileSize"),
-      .attrValueType = SA_IMM_ATTR_SAUINT64T,
-      .attrValuesNumber = 1,
-      .attrValues = arr4
-    };
-    void *arr5[] = { &stream->fixedLogRecordSize };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamMaxLogFileSize"),
+        .attrValueType = SA_IMM_ATTR_SAUINT64T,
+        .attrValuesNumber = 1,
+        .attrValues = arr4};
+    void *arr5[] = {&stream->fixedLogRecordSize};
     const SaImmAttrValuesT_2 attr_saLogStreamFixedLogRecordSize = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamFixedLogRecordSize"),
-      .attrValueType = SA_IMM_ATTR_SAUINT32T,
-      .attrValuesNumber = 1,
-      .attrValues = arr5
-    };
-    void *arr6[] = { &stream->haProperty };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamFixedLogRecordSize"),
+        .attrValueType = SA_IMM_ATTR_SAUINT32T,
+        .attrValuesNumber = 1,
+        .attrValues = arr5};
+    void *arr6[] = {&stream->haProperty};
     const SaImmAttrValuesT_2 attr_saLogStreamHaProperty = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamHaProperty"),
-      .attrValueType = SA_IMM_ATTR_SAUINT32T,
-      .attrValuesNumber = 1,
-      .attrValues = arr6
-    };
-    void *arr7[] = { &stream->logFullAction };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamHaProperty"),
+        .attrValueType = SA_IMM_ATTR_SAUINT32T,
+        .attrValuesNumber = 1,
+        .attrValues = arr6};
+    void *arr7[] = {&stream->logFullAction};
     const SaImmAttrValuesT_2 attr_saLogStreamLogFullAction = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamLogFullAction"),
-      .attrValueType = SA_IMM_ATTR_SAUINT32T,
-      .attrValuesNumber = 1,
-      .attrValues = arr7
-    };
-    void *arr8[] = { &stream->maxFilesRotated };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamLogFullAction"),
+        .attrValueType = SA_IMM_ATTR_SAUINT32T,
+        .attrValuesNumber = 1,
+        .attrValues = arr7};
+    void *arr8[] = {&stream->maxFilesRotated};
     const SaImmAttrValuesT_2 attr_saLogStreamMaxFilesRotated = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamMaxFilesRotated"),
-      .attrValueType = SA_IMM_ATTR_SAUINT32T,
-      .attrValuesNumber = 1,
-      .attrValues = arr8
-    };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamMaxFilesRotated"),
+        .attrValueType = SA_IMM_ATTR_SAUINT32T,
+        .attrValuesNumber = 1,
+        .attrValues = arr8};
     char *str9 = stream->logFileFormat;
-    void *arr9[] = { &str9 };
+    void *arr9[] = {&str9};
     const SaImmAttrValuesT_2 attr_saLogStreamLogFileFormat = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamLogFileFormat"),
-      .attrValueType = SA_IMM_ATTR_SASTRINGT,
-      .attrValuesNumber = 1,
-      .attrValues = arr9
-    };
-    void *arr10[] = { &stream->severityFilter };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamLogFileFormat"),
+        .attrValueType = SA_IMM_ATTR_SASTRINGT,
+        .attrValuesNumber = 1,
+        .attrValues = arr9};
+    void *arr10[] = {&stream->severityFilter};
     const SaImmAttrValuesT_2 attr_saLogStreamSeverityFilter = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamSeverityFilter"),
-      .attrValueType = SA_IMM_ATTR_SAUINT32T,
-      .attrValuesNumber = 1,
-      .attrValues = arr10
-    };
-    void *arr11[] = { &stream->creationTimeStamp };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamSeverityFilter"),
+        .attrValueType = SA_IMM_ATTR_SAUINT32T,
+        .attrValuesNumber = 1,
+        .attrValues = arr10};
+    void *arr11[] = {&stream->creationTimeStamp};
     const SaImmAttrValuesT_2 attr_saLogStreamCreationTimestamp = {
-      .attrName = const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
-      .attrValueType = SA_IMM_ATTR_SATIMET,
-      .attrValuesNumber = 1,
-      .attrValues = arr11
-    };
+        .attrName = const_cast<SaImmAttrNameT>("saLogStreamCreationTimestamp"),
+        .attrValueType = SA_IMM_ATTR_SATIMET,
+        .attrValuesNumber = 1,
+        .attrValues = arr11};
     const SaImmAttrValuesT_2 *attrValues[] = {
-      &attr_safLgStr,
-      &attr_safLogStreamFileName,
-      &attr_safLogStreamPathName,
-      &attr_saLogStreamMaxLogFileSize,
-      &attr_saLogStreamFixedLogRecordSize,
-      &attr_saLogStreamHaProperty,
-      &attr_saLogStreamLogFullAction,
-      &attr_saLogStreamMaxFilesRotated,
-      &attr_saLogStreamLogFileFormat,
-      &attr_saLogStreamSeverityFilter,
-      &attr_saLogStreamCreationTimestamp,
-      NULL
-    };
+        &attr_safLgStr,
+        &attr_safLogStreamFileName,
+        &attr_safLogStreamPathName,
+        &attr_saLogStreamMaxLogFileSize,
+        &attr_saLogStreamFixedLogRecordSize,
+        &attr_saLogStreamHaProperty,
+        &attr_saLogStreamLogFullAction,
+        &attr_saLogStreamMaxFilesRotated,
+        &attr_saLogStreamLogFileFormat,
+        &attr_saLogStreamSeverityFilter,
+        &attr_saLogStreamCreationTimestamp,
+        NULL};
 
     {
       /**
        * Have to have retry for Rt creation.
        * Rt update could consider removing retry to avoid blocking
        */
-      rc = immutil_saImmOiRtObjectCreate_2(lgs_cb->immOiHandle,
-                                           const_cast<SaImmClassNameT>("SaLogStream"),
-                                           parentName, attrValues);
+      rc = immutil_saImmOiRtObjectCreate_2(
+          lgs_cb->immOiHandle, const_cast<SaImmClassNameT>("SaLogStream"),
+          parentName, attrValues);
       free(dndup);
 
       if (rc != SA_AIS_OK) {
-        LOG_WA("saImmOiRtObjectCreate_2 returned %u for %s, parent %s",
-               rc, stream->name.c_str(), parent_name);
+        LOG_WA("saImmOiRtObjectCreate_2 returned %u for %s, parent %s", rc,
+               stream->name.c_str(), parent_name);
       }
     }
   }
@@ -676,7 +661,7 @@ log_stream_t *log_stream_new(const std::string &name, int stream_id) {
   stream->name = name;
   stream->streamId = stream_id;
   stream->creationTimeStamp = lgs_get_SaTime();
-  stream->severityFilter = 0x7f;  /* by default all levels are allowed */
+  stream->severityFilter = 0x7f; /* by default all levels are allowed */
   stream->isRtStream = SA_FALSE;
   stream->dest_names.clear();
 
@@ -715,11 +700,8 @@ done:
  *
  * @return int - the file descriptor or -1 on errors
  */
-int log_file_open(
-    const std::string &root_path,
-    log_stream_t *stream,
-    const std::string &filename,
-    int *errno_save) {
+int log_file_open(const std::string &root_path, log_stream_t *stream,
+                  const std::string &filename, int *errno_save) {
   int fd;
   std::string pathname;
   int errno_ret;
@@ -763,7 +745,7 @@ void log_stream_open_fileinit(log_stream_t *stream) {
     /* Create and save current log file name */
     stream->logFileCurrent = stream->fileName + "_" + lgs_get_time(NULL);
     log_initiate_stream_files(stream);
-  } else if(*stream->p_fd == -1) {
+  } else if (*stream->p_fd == -1) {
     /* Open cfg/log file due to previous failure or after si-swap */
     log_initiate_stream_files(stream);
   }
@@ -783,8 +765,8 @@ void log_stream_open_fileinit(log_stream_t *stream) {
  * the name of the closed log file.
  *
  * @param stream[in]
- * @param close_time[in/out] Time in sec since Epoch (osaf_clock_gettime()). If the value of
- *                           this pointer is 0 time is fetched using osaf_clock_gettime() and
+ * @param close_time[in/out] Time in sec since Epoch (osaf_clock_gettime()). If
+ * the value of this pointer is 0 time is fetched using osaf_clock_gettime() and
  *                           the value is updated (out) with this time.
  *                           If the value contains a time (other than 0) this
  *                           time is used
@@ -801,8 +783,8 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr) {
   const unsigned int sleep_delay_ms = 500;
   SaUint32T trace_num_openers;
   struct timespec closetime_tspec;
-  const std::string root_path = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  const std::string root_path =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   osafassert(stream != NULL);
   TRACE_ENTER2("%s", stream->name.c_str());
@@ -848,15 +830,13 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr) {
       }
 
       /* Rename stream log file */
-      rc = lgs_file_rename_h(root_path, stream->pathName,
-                             file_to_rename, timeString,
-                             LGS_LOG_FILE_EXT, emptyStr);
+      rc = lgs_file_rename_h(root_path, stream->pathName, file_to_rename,
+                             timeString, LGS_LOG_FILE_EXT, emptyStr);
       while ((rc == -1) && (msecs_waited < max_waiting_time)) {
         usleep(sleep_delay_ms * 1000);
         msecs_waited += sleep_delay_ms;
-        rc = lgs_file_rename_h(root_path, stream->pathName,
-                               file_to_rename, timeString,
-                               LGS_LOG_FILE_EXT, emptyStr);
+        rc = lgs_file_rename_h(root_path, stream->pathName, file_to_rename,
+                               timeString, LGS_LOG_FILE_EXT, emptyStr);
       }
 
       if (rc == -1) {
@@ -865,15 +845,13 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr) {
       }
 
       /* Rename stream config file */
-      rc = lgs_file_rename_h(root_path, stream->pathName,
-                             stream->fileName, timeString,
-                             LGS_LOG_FILE_CONFIG_EXT, emptyStr);
+      rc = lgs_file_rename_h(root_path, stream->pathName, stream->fileName,
+                             timeString, LGS_LOG_FILE_CONFIG_EXT, emptyStr);
       while ((rc == -1) && (msecs_waited < max_waiting_time)) {
         usleep(sleep_delay_ms * 1000);
         msecs_waited += sleep_delay_ms;
-        rc = lgs_file_rename_h(root_path, stream->pathName,
-                               stream->fileName, timeString,
-                               LGS_LOG_FILE_CONFIG_EXT, emptyStr);
+        rc = lgs_file_rename_h(root_path, stream->pathName, stream->fileName,
+                               timeString, LGS_LOG_FILE_CONFIG_EXT, emptyStr);
       }
       if (rc == -1) {
         LOG_ER("Could not rename config file: %s", strerror(errno));
@@ -881,7 +859,7 @@ void log_stream_close(log_stream_t **s, time_t *close_time_ptr) {
       }
     }
 
- done_files:
+  done_files:
     log_stream_delete(s);
     TRACE("\tApplication stream deleted");
     stream = NULL;
@@ -923,7 +901,8 @@ int log_stream_file_close(log_stream_t *stream) {
  *
  * @return -1 if error else number of log files
  */
-static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file) {
+static int get_number_of_log_files_h(log_stream_t *logStream,
+                                     char *oldest_file) {
   lgsf_apipar_t apipar;
   lgsf_retcode_t api_rc;
   gnolfh_in_t parameters_in;
@@ -932,16 +911,16 @@ static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
 
   TRACE_ENTER();
 
-  std::string logsv_root_dir = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  std::string logsv_root_dir =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   parameters_in.file_name = const_cast<char *>(logStream->fileName.c_str());
   parameters_in.logsv_root_dir = const_cast<char *>(logsv_root_dir.c_str());
   parameters_in.pathName = const_cast<char *>(logStream->pathName.c_str());
 
   path_len = strlen(parameters_in.file_name) +
-      strlen(parameters_in.logsv_root_dir) +
-      strlen(parameters_in.pathName);
+             strlen(parameters_in.logsv_root_dir) +
+             strlen(parameters_in.pathName);
   if (path_len > PATH_MAX) {
     LOG_WA("Path to log files > PATH_MAX");
     rc = -1;
@@ -957,7 +936,7 @@ static int get_number_of_log_files_h(log_stream_t *logStream, char *oldest_file)
 
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
@@ -974,31 +953,32 @@ done:
  *
  * @return -1 if error else number of log files
  */
-static int get_number_of_cfg_files_h(log_stream_t *logStream, char *oldest_file) {
+static int get_number_of_cfg_files_h(log_stream_t *logStream,
+                                     char *oldest_file) {
   lgsf_apipar_t apipar;
   lgsf_retcode_t api_rc;
   gnolfh_in_t parameters_in;
   size_t path_len;
   int rc = 0;
- 
+
   TRACE_ENTER();
- 
-  std::string logsv_root_dir = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
- 
+
+  std::string logsv_root_dir =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+
   parameters_in.file_name = const_cast<char *>(logStream->fileName.c_str());
   parameters_in.logsv_root_dir = const_cast<char *>(logsv_root_dir.c_str());
   parameters_in.pathName = const_cast<char *>(logStream->pathName.c_str());
- 
+
   path_len = strlen(parameters_in.file_name) +
-      strlen(parameters_in.logsv_root_dir) +
-      strlen(parameters_in.pathName);
+             strlen(parameters_in.logsv_root_dir) +
+             strlen(parameters_in.pathName);
   if (path_len > PATH_MAX) {
     LOG_WA("Path to cfg files > PATH_MAX");
     rc = -1;
     goto done;
   }
- 
+
   /* Fill in API structure */
   apipar.req_code_in = LGSF_GET_NUM_CFGFILES;
   apipar.data_in_size = sizeof(gnolfh_in_t);
@@ -1007,12 +987,12 @@ static int get_number_of_cfg_files_h(log_stream_t *logStream, char *oldest_file)
   apipar.data_out = oldest_file;
   api_rc = log_file_api(&apipar);
   if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
   }
- 
+
 done:
   TRACE_LEAVE();
   return rc;
@@ -1033,7 +1013,8 @@ static int log_rotation_stb(log_stream_t *stream, size_t count) {
   char *current_time_str;
   std::string new_current_log_filename;
   bool do_rotate = false;
-  std::string root_path = static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  std::string root_path =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
 
   TRACE_ENTER();
 
@@ -1089,14 +1070,10 @@ static int log_rotation_stb(log_stream_t *stream, size_t count) {
 
     std::string emptyStr = "";
     /* Rename file to give it the "close timestamp" */
-    rc = lgs_file_rename_h(root_path,
-                           stream->pathName,
-                           stream->stb_logFileCurrent,
-                           current_time_str,
-                           LGS_LOG_FILE_EXT,
-                           emptyStr);
-    if (rc == -1)
-      goto done;
+    rc = lgs_file_rename_h(root_path, stream->pathName,
+                           stream->stb_logFileCurrent, current_time_str,
+                           LGS_LOG_FILE_EXT, emptyStr);
+    if (rc == -1) goto done;
 
     /* Remove oldest file if needed */
     if (rotate_if_needed(stream) == -1) {
@@ -1105,9 +1082,9 @@ static int log_rotation_stb(log_stream_t *stream, size_t count) {
 
     /* Save new name for current log file and open it */
     stream->stb_logFileCurrent = new_current_log_filename;
-    if ((*stream->p_fd = log_file_open(root_path, stream,
-                                       stream->stb_logFileCurrent,
-                                       &errno_save)) == -1) {
+    if ((*stream->p_fd = log_file_open(
+             root_path, stream, stream->stb_logFileCurrent, &errno_save)) ==
+        -1) {
       LOG_IN("Could not open '%s' - %s", stream->stb_logFileCurrent.c_str(),
              strerror(errno_save));
       rc = -1;
@@ -1134,8 +1111,8 @@ static int log_rotation_act(log_stream_t *stream, size_t count) {
   int errno_save;
   int errno_ret;
   struct timespec closetime_tspec;
-  std::string root_path = static_cast<const char *>(
-      lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
+  std::string root_path =
+      static_cast<const char *>(lgs_cfg_get(LGS_IMM_LOG_ROOT_DIRECTORY));
   std::string emptyStr = "";
 
   /* If file size > max file size:
@@ -1159,14 +1136,9 @@ static int log_rotation_act(log_stream_t *stream, size_t count) {
     }
 
     /* Rename file to give it the "close timestamp" */
-    rc = lgs_file_rename_h(root_path,
-                           stream->pathName,
-                           stream->logFileCurrent,
-                           current_time,
-                           LGS_LOG_FILE_EXT,
-                           emptyStr);
-    if (rc == -1)
-      goto done;
+    rc = lgs_file_rename_h(root_path, stream->pathName, stream->logFileCurrent,
+                           current_time, LGS_LOG_FILE_EXT, emptyStr);
+    if (rc == -1) goto done;
 
     /* Save time when logFileCurrent was closed */
     stream->act_last_close_timestamp = closetime;
@@ -1182,12 +1154,11 @@ static int log_rotation_act(log_stream_t *stream, size_t count) {
       TRACE("Old file removal failed");
     }
 
-    /* Create a new file name that includes "open time stamp" and open the file */
+    /* Create a new file name that includes "open time stamp" and open the file
+     */
     stream->logFileCurrent = stream->fileName + "_" + current_time;
-    if ((*stream->p_fd = log_file_open(root_path,
-                                       stream,
-                                       stream->logFileCurrent,
-                                       &errno_save)) == -1) {
+    if ((*stream->p_fd = log_file_open(
+             root_path, stream, stream->logFileCurrent, &errno_save)) == -1) {
       LOG_IN("Could not open '%s' - %s", stream->logFileCurrent.c_str(),
              strerror(errno_save));
       rc = -1;
@@ -1219,7 +1190,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count) {
   wlrh_t params_in;
   size_t params_in_size;
   lgsf_retcode_t api_rc;
-  int write_errno=0;
+  int write_errno = 0;
 
   osafassert(stream != NULL && buf != NULL);
   TRACE_ENTER2("%s", stream->name.c_str());
@@ -1246,7 +1217,7 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count) {
     }
   }
 
-  TRACE("%s - *stream->p_fd = %d",__FUNCTION__,*stream->p_fd);
+  TRACE("%s - *stream->p_fd = %d", __FUNCTION__, *stream->p_fd);
 
   /* Get size of write log record header */
   params_in_size = sizeof(wlrh_t);
@@ -1273,10 +1244,10 @@ int log_stream_write_h(log_stream_t *stream, const char *buf, size_t count) {
 
   api_rc = log_file_api(&apipar);
   if (api_rc == LGSF_TIMEOUT) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -2;
   } else if (api_rc != LGSF_SUCESS) {
-    TRACE("%s - API error %s",__FUNCTION__,lgsf_retcode_str(api_rc));
+    TRACE("%s - API error %s", __FUNCTION__, lgsf_retcode_str(api_rc));
     rc = -1;
   } else {
     rc = apipar.hdl_ret_code_out;
@@ -1337,8 +1308,7 @@ done:
 log_stream_t *log_stream_get_by_id(uint32_t id) {
   log_stream_t *stream = NULL;
 
-  if (id < stream_array_size)
-    stream = stream_array[id];
+  if (id < stream_array_size) stream = stream_array[id];
 
   return stream;
 }
@@ -1406,8 +1376,7 @@ static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id) {
 
   osafassert(id != NULL);
 
-  if (numb_of_streams >= stream_array_size)
-    goto exit;
+  if (numb_of_streams >= stream_array_size) goto exit;
 
   for (i = 0; i < stream_array_size; i++) {
     if (stream_array[i] == NULL) {
@@ -1461,11 +1430,13 @@ uint32_t log_stream_init() {
   SaUint32T value;
 
   /* Get configuration of how many application streams we should allow. */
-  value = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS));
+  value = *static_cast<const SaUint32T *>(
+      lgs_cfg_get(LGS_IMM_LOG_MAX_APPLICATION_STREAMS));
   stream_array_size += value;
 
   TRACE("Max %u application log streams", stream_array_size - 3);
-  stream_array = static_cast<log_stream_t **>(calloc(1, sizeof(log_stream_t *) * stream_array_size));
+  stream_array = static_cast<log_stream_t **>(
+      calloc(1, sizeof(log_stream_t *) * stream_array_size));
   if (stream_array == NULL) {
     LOG_WA("calloc FAILED");
     return NCSCC_RC_FAILURE;
@@ -1489,8 +1460,7 @@ uint32_t log_stream_init() {
  *
  * @return -1 on error
  */
-int log_stream_config_change(bool create_files_f,
-                             const std::string &root_path,
+int log_stream_config_change(bool create_files_f, const std::string &root_path,
                              log_stream_t *stream,
                              const std::string &current_logfile_name,
                              time_t *cur_time_in) {
@@ -1504,8 +1474,9 @@ int log_stream_config_change(bool create_files_f,
   /* Peer sync needed due to change in logFileCurrent */
 
   if (*stream->p_fd == -1) {
-    /* lgs has not yet recieved any stream operation request after this swtchover/failover.
-     *  stream shall be opened on-request after a switchover, failover
+    /* lgs has not yet recieved any stream operation request after this
+     * swtchover/failover. stream shall be opened on-request after a switchover,
+     * failover
      */
     TRACE("log file of the stream: %s does not exist", stream->name.c_str());
   } else {
@@ -1520,14 +1491,16 @@ int log_stream_config_change(bool create_files_f,
     rc = lgs_file_rename_h(root_path, stream->pathName, current_logfile_name,
                            current_time, LGS_LOG_FILE_EXT, emptyStr);
     if (rc == -1) {
-      LOG_WA("log file (%s) is renamed  FAILED: %d", current_logfile_name.c_str(), rc);
+      LOG_WA("log file (%s) is renamed  FAILED: %d",
+             current_logfile_name.c_str(), rc);
       ret = -1;
     }
 
     rc = lgs_file_rename_h(root_path, stream->pathName, stream->fileName,
                            current_time, LGS_LOG_FILE_CONFIG_EXT, emptyStr);
     if (rc == -1) {
-      LOG_WA("cfg file (%s) is renamed  FAILED: %d", stream->fileName.c_str(), rc);
+      LOG_WA("cfg file (%s) is renamed  FAILED: %d", stream->fileName.c_str(),
+             rc);
       ret = -1;
     }
   }
@@ -1535,17 +1508,16 @@ int log_stream_config_change(bool create_files_f,
   /* Creating the new config file */
   if (create_files_f == LGS_STREAM_CREATE_FILES) {
     if ((rc = lgs_create_config_file_h(root_path, stream)) != 0) {
-      LOG_WA("lgs_create_config_file_h (%s) failed: %d", stream->fileName.c_str(), rc);
+      LOG_WA("lgs_create_config_file_h (%s) failed: %d",
+             stream->fileName.c_str(), rc);
       ret = -1;
     }
 
-    stream->logFileCurrent = stream->fileName + "_" +  current_time;
+    stream->logFileCurrent = stream->fileName + "_" + current_time;
 
     /* Create the new log file based on updated configuration */
-    *stream->p_fd = log_file_open(root_path,
-                                  stream,
-                                  stream->logFileCurrent,
-                                  NULL);
+    *stream->p_fd =
+        log_file_open(root_path, stream, stream->logFileCurrent, NULL);
     if (*stream->p_fd == -1) {
       LOG_WA("New log file could not be created for stream: %s",
              stream->name.c_str());
@@ -1564,13 +1536,13 @@ int log_stream_config_change(bool create_files_f,
  */
 bool check_max_stream() {
   TRACE("  Current number of streams: %u", numb_of_streams);
-  return (numb_of_streams < stream_array_size ? false:true);
+  return (numb_of_streams < stream_array_size ? false : true);
 }
 
 void log_stream_add_dest_name(log_stream_t *stream,
-                              const std::vector<std::string>& names) {
+                              const std::vector<std::string> &names) {
   osafassert(stream != nullptr);
-  for (const auto& it : names) {
+  for (const auto &it : names) {
     stream->dest_names.push_back(it);
   }
 
@@ -1579,7 +1551,7 @@ void log_stream_add_dest_name(log_stream_t *stream,
 }
 
 void log_stream_replace_dest_name(log_stream_t *stream,
-                                  const std::vector<std::string>& names) {
+                                  const std::vector<std::string> &names) {
   osafassert(stream != nullptr);
   stream->dest_names = names;
   // Prepare stb_dest_names for checkingpoint to standby
@@ -1587,14 +1559,14 @@ void log_stream_replace_dest_name(log_stream_t *stream,
 }
 
 void log_stream_delete_dest_name(log_stream_t *stream,
-                                 const std::vector<std::string>& names) {
+                                 const std::vector<std::string> &names) {
   osafassert(stream != nullptr);
   if (names.size() != 0) {
-    for (const auto& it : names) {
+    for (const auto &it : names) {
       // Remove deleted destination from internal database
-      stream->dest_names.erase(std::remove(stream->dest_names.begin(),
-                                           stream->dest_names.end(), it),
-                               stream->dest_names.end());
+      stream->dest_names.erase(
+          std::remove(stream->dest_names.begin(), stream->dest_names.end(), it),
+          stream->dest_names.end());
     }
   } else {
     // Delete all destination names
@@ -1605,13 +1577,13 @@ void log_stream_delete_dest_name(log_stream_t *stream,
   log_stream_form_dest_names(stream);
 }
 
-void log_stream_form_dest_names(log_stream_t* stream) {
+void log_stream_form_dest_names(log_stream_t *stream) {
   osafassert(stream != nullptr);
   std::string output{""};
   bool addSemicolon = false;
   // Form stb_dest_names before checking point to standby
   // under format "name1;name2;etc".
-  for (const auto& it : stream->dest_names) {
+  for (const auto &it : stream->dest_names) {
     output += it + ";";
     addSemicolon = true;
   }

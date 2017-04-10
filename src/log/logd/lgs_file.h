@@ -24,12 +24,12 @@
 #include "osaf/saf/saAis.h"
 
 typedef enum {
-  LGSF_SUCESS,    /* Operation done successfully */
-  LGSF_BUSY,              /* A request is ongoing. File system may be unavailable */
-  LGSF_TIMEOUT,   /* No answer received within timeout time */
-  LGSF_FAIL,              /* Other fail */
-  LGSF_NORETC             /* For internal use */
-}lgsf_retcode_t;
+  LGSF_SUCESS,  /* Operation done successfully */
+  LGSF_BUSY,    /* A request is ongoing. File system may be unavailable */
+  LGSF_TIMEOUT, /* No answer received within timeout time */
+  LGSF_FAIL,    /* Other fail */
+  LGSF_NORETC   /* For internal use */
+} lgsf_retcode_t;
 
 typedef enum {
   LGSF_FILEOPEN,
@@ -46,17 +46,17 @@ typedef enum {
   LGSF_GET_FILE_PAR,
   LGSF_GET_NUM_CFGFILES,
   LGSF_NOREQ
-}lgsf_treq_t;
+} lgsf_treq_t;
 
 /* Indata structure used with log_file_api() */
 typedef struct {
-  lgsf_treq_t req_code_in;/* Invokes the correct handler */
-  int hdl_ret_code_out;   /* Return code from handler */
-  size_t data_in_size;    /* Size of in-data buffer */
-  void *data_in;  /* Buffer containing in data for the handler */
-  size_t data_out_size;   /* Size of out-data buffer */
-  void *data_out; /* Buffer containing out data from the handler */
-}lgsf_apipar_t;
+  lgsf_treq_t req_code_in; /* Invokes the correct handler */
+  int hdl_ret_code_out;    /* Return code from handler */
+  size_t data_in_size;     /* Size of in-data buffer */
+  void *data_in;           /* Buffer containing in data for the handler */
+  size_t data_out_size;    /* Size of out-data buffer */
+  void *data_out;          /* Buffer containing out data from the handler */
+} lgsf_apipar_t;
 
 char *lgsf_retcode_str(lgsf_retcode_t rc);
 uint32_t lgs_file_init();

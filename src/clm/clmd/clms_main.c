@@ -40,17 +40,15 @@
  * ========================================================================
  */
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_MBCSV,
-	FD_MBX,
+enum { FD_TERM = 0,
+       FD_AMF,
+       FD_MBCSV,
+       FD_MBX,
 #ifdef ENABLE_AIS_PLM
-	FD_PLM,
+       FD_PLM,
 #endif
-	FD_IMM, /* Must be the last in the fds array */
-	NUM_FD
-};
+       FD_IMM, /* Must be the last in the fds array */
+       NUM_FD };
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -81,7 +79,8 @@ static NCS_SEL_OBJ usr1_sel_obj;
  * @param cb_info
  * @param error_code
  */
-static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info,
+		   PCSRDA_RETURN_CODE error_code)
 {
 	uint32_t rc;
 	CLMSV_CLMS_EVT *evt = NULL;
@@ -97,11 +96,12 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
 	evt->type = CLMSV_CLMS_RDA_EVT;
 	evt->info.rda_info.io_role = cb_info->info.io_role;
 
-	rc = ncs_ipc_send(&clms_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	rc = ncs_ipc_send(&clms_cb->mbx, (NCS_IPC_MSG *)evt,
+			  MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS)
 		LOG_ER("IPC send failed %d", rc);
 
- done:
+done:
 	TRACE_LEAVE();
 }
 
@@ -109,7 +109,7 @@ static void rda_cb(uint32_t cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE
  * USR1 signal is used when AMF wants to instantiate us as a
  * component. Wakes up the main thread to register with
  * AMF.
- * 
+ *
  * @param i_sig_num
  */
 static void sigusr1_handler(int sig)
@@ -120,13 +120,13 @@ static void sigusr1_handler(int sig)
 }
 
 /**
-* Get the Self node info
-*/
+ * Get the Self node info
+ */
 static uint32_t clms_self_node_info(void)
 {
 	uint32_t rc = NCSCC_RC_FAILURE;
 	FILE *fp;
-	SaNameT node_name_dn = { 0 };
+	SaNameT node_name_dn = {0};
 	CLMS_CLUSTER_NODE *node = NULL;
 	char node_name[256];
 	const char *node_name_file = PKGSYSCONFDIR "/node_name";
@@ -140,11 +140,12 @@ static uint32_t clms_self_node_info(void)
 
 	fp = fopen(node_name_file, "r");
 	if (fp == NULL) {
-		LOG_ER("Could not open file %s - %s", node_name_file, strerror(errno));
+		LOG_ER("Could not open file %s - %s", node_name_file,
+		       strerror(errno));
 		goto done;
 	}
 
-	if(EOF == fscanf(fp, "%s", node_name)) {
+	if (EOF == fscanf(fp, "%s", node_name)) {
 		LOG_ER("Could not read node name - %s", strerror(errno));
 		fclose(fp);
 		goto done;
@@ -153,15 +154,17 @@ static uint32_t clms_self_node_info(void)
 	fclose(fp);
 
 	/* Generate a CLM node DN with the help of cluster DN */
-	node_name_dn.length = snprintf((char *)node_name_dn.value, sizeof(node_name_dn.value),
-				       "safNode=%s,%s", node_name, osaf_cluster->name.value);
+	node_name_dn.length =
+	    snprintf((char *)node_name_dn.value, sizeof(node_name_dn.value),
+		     "safNode=%s,%s", node_name, osaf_cluster->name.value);
 
 	TRACE("%s", node_name_dn.value);
 
 	node = clms_node_get_by_name(&node_name_dn);
 
 	if (node == NULL) {
-		LOG_ER("%s not found in the database. Please verify %s", node_name_dn.value, node_name_file);
+		LOG_ER("%s not found in the database. Please verify %s",
+		       node_name_dn.value, node_name_file);
 		goto done;
 	}
 
@@ -175,12 +178,15 @@ static uint32_t clms_self_node_info(void)
 		++(osaf_cluster->num_nodes);
 		node->boot_time = clms_get_BootTime();
 #ifdef ENABLE_AIS_PLM
-		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;	/*TBD : changed when plm scripts are added to rc scripts */
+		node->ee_red_state =
+		    SA_PLM_READINESS_IN_SERVICE; /*TBD : changed when plm
+						    scripts are added to rc
+						    scripts */
 #endif
 		osaf_cluster->init_time = clms_get_SaTime();
 	}
 	rc = NCSCC_RC_SUCCESS;
- done:
+done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -193,7 +199,7 @@ static uint32_t clms_self_node_info(void)
  *
  * @return  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  */
-uint32_t clms_cb_init(CLMS_CB * clms_cb)
+uint32_t clms_cb_init(CLMS_CB *clms_cb)
 {
 	NCS_PATRICIA_PARAMS client_param;
 	NCS_PATRICIA_PARAMS id_param;
@@ -224,7 +230,8 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	clms_cb->curr_invid = 1;
 	clms_cb->immOiHandle = 0;
 	clms_cb->is_impl_set = false;
-	clms_cb->rtu_pending = false; /* Flag to control try-again of rt-updates */
+	clms_cb->rtu_pending =
+	    false; /* Flag to control try-again of rt-updates */
 
 	if (pthread_mutex_init(&clms_cb->scale_out_data_mutex, NULL) != 0) {
 		return NCSCC_RC_FAILURE;
@@ -242,7 +249,8 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	if (enable_scale_out != NULL && strcmp(enable_scale_out, "0") != 0) {
 		LOG_IN("Scale out enabled");
 		clms_cb->scale_out_script = strdup(SCALE_OUT_SCRIPT);
-		if (clms_cb->scale_out_script == NULL) return NCSCC_RC_FAILURE;
+		if (clms_cb->scale_out_script == NULL)
+			return NCSCC_RC_FAILURE;
 	} else {
 		LOG_IN("Scale out not enabled");
 	}
@@ -259,23 +267,28 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 	clms_cb->plm_sel_obj = -1;
 
 	/* Initialize patricia tree for reg list */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->client_db, &client_param))
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&clms_cb->client_db, &client_param))
 		return NCSCC_RC_FAILURE;
 
 	/* Initialize nodes_db patricia tree */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->nodes_db, &nodename_param))
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&clms_cb->nodes_db, &nodename_param))
 		return NCSCC_RC_FAILURE;
 
 	/* Initialize ee_lookup patricia tree */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->ee_lookup, &eename_param))
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&clms_cb->ee_lookup, &eename_param))
 		return NCSCC_RC_FAILURE;
 
 	/* Initialize id_lookup patricia tree */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->id_lookup, &id_param))
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&clms_cb->id_lookup, &id_param))
 		return NCSCC_RC_FAILURE;
 
 	/* Initialize ip_lookup patricia tree */
-	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&clms_cb->iplist, &ip_param))
+	if (NCSCC_RC_SUCCESS !=
+	    ncs_patricia_tree_init(&clms_cb->iplist, &ip_param))
 		return NCSCC_RC_FAILURE;
 
 	TRACE_LEAVE();
@@ -284,7 +297,7 @@ uint32_t clms_cb_init(CLMS_CB * clms_cb)
 
 /**
  * Initialize clm
- * 
+ *
  * @return uns32
  */
 static uint32_t clms_init(void)
@@ -333,7 +346,7 @@ static uint32_t clms_init(void)
 
 	/* Create a selection object */
 	if (clms_cb->nid_started &&
-		(rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+	    (rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create failed");
 		goto done;
 	}
@@ -343,28 +356,28 @@ static uint32_t clms_init(void)
 	 ** The signal is sent from our script when AMF does instantiate.
 	 */
 	if (clms_cb->nid_started &&
-		signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+	    signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
 		goto done;
 	}
 
 	if (!clms_cb->nid_started &&
-		clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS) {
+	    clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS) {
 		LOG_ER("AMF Initialization failed");
 		goto done;
 	}
 
 	if ((rc = initialize_for_assignment(clms_cb, clms_cb->ha_state)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
- 		goto done;
- 	}
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
+		goto done;
+	}
 
 	rc = NCSCC_RC_SUCCESS;
 
- done:
+done:
 	if (clms_cb->nid_started &&
-		nid_notify("CLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
+	    nid_notify("CLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
 	}
@@ -375,9 +388,10 @@ static uint32_t clms_init(void)
 
 uint32_t initialize_for_assignment(CLMS_CB *cb, SaAmfHAStateT ha_state)
 {
-	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	TRACE_ENTER2("ha_state = %d", (int)ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
-	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) goto done;
+	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED)
+		goto done;
 	cb->ha_state = ha_state;
 	if ((rc = clms_mds_init(cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_mds_init FAILED %d", rc);
@@ -431,7 +445,7 @@ done:
  * The main routine for the clms daemon.
  * @param argc
  * @param argv
- * 
+ *
  * @return int
  */
 int main(int argc, char *argv[])
@@ -445,7 +459,7 @@ int main(int argc, char *argv[])
 
 	daemonize(argc, argv);
 
-	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
 		LOG_ER("Failed to set SA_ENABLE_EXTENDED_NAMES");
 		goto done;
 	}
@@ -461,8 +475,8 @@ int main(int argc, char *argv[])
 	/* Set up all file descriptors to listen to */
 	fds[FD_TERM].fd = term_fd;
 	fds[FD_TERM].events = POLLIN;
-	fds[FD_AMF].fd = clms_cb->nid_started ?
-		usr1_sel_obj.rmv_obj : clms_cb->amf_sel_obj;
+	fds[FD_AMF].fd =
+	    clms_cb->nid_started ? usr1_sel_obj.rmv_obj : clms_cb->amf_sel_obj;
 	fds[FD_AMF].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
@@ -475,13 +489,15 @@ int main(int argc, char *argv[])
 #endif
 
 		if (clms_cb->rtu_pending == true) {
-			TRACE("There is an IMM task to be tried again. setting poll time out to 500");
+			TRACE(
+			    "There is an IMM task to be tried again. setting poll time out to 500");
 			timeout = 500;
 		} else {
 			timeout = -1;
 		}
 
-		if ((clms_cb->immOiHandle != 0) && (clms_cb->is_impl_set == true)) {
+		if ((clms_cb->immOiHandle != 0) &&
+		    (clms_cb->is_impl_set == true)) {
 			fds[FD_IMM].fd = clms_cb->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
 			nfds = NUM_FD;
@@ -504,15 +520,18 @@ int main(int argc, char *argv[])
 			clms_retry_pending_rtupdates();
 			continue;
 		}
- 
+
 		if (fds[FD_TERM].revents & POLLIN) {
 			daemon_exit();
 		}
 
 		if (fds[FD_AMF].revents & POLLIN) {
 			if (clms_cb->amf_hdl != 0) {
-				if ((error = saAmfDispatch(clms_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-					LOG_ER("saAmfDispatch failed: %u", error);
+				if ((error = saAmfDispatch(clms_cb->amf_hdl,
+							   SA_DISPATCH_ALL)) !=
+				    SA_AIS_OK) {
+					LOG_ER("saAmfDispatch failed: %u",
+					       error);
 					break;
 				}
 			} else {
@@ -520,7 +539,8 @@ int main(int argc, char *argv[])
 				ncs_sel_obj_rmv_ind(&usr1_sel_obj, true, true);
 				ncs_sel_obj_destroy(&usr1_sel_obj);
 
-				if (clms_amf_init(clms_cb) != NCSCC_RC_SUCCESS) {
+				if (clms_amf_init(clms_cb) !=
+				    NCSCC_RC_SUCCESS) {
 					LOG_ER("AMF Initialization failed");
 					break;
 				}
@@ -528,11 +548,11 @@ int main(int argc, char *argv[])
 				TRACE("AMF Initialization SUCCESS......");
 				fds[FD_AMF].fd = clms_cb->amf_sel_obj;
 			}
-
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
-			if ((rc = clms_mbcsv_dispatch(clms_cb->mbcsv_hdl)) != NCSCC_RC_SUCCESS) {
+			if ((rc = clms_mbcsv_dispatch(clms_cb->mbcsv_hdl)) !=
+			    NCSCC_RC_SUCCESS) {
 				LOG_ER("MBCSv Dispatch Failed");
 				break;
 			}
@@ -542,11 +562,15 @@ int main(int argc, char *argv[])
 			clms_process_mbx(&clms_cb->mbx);
 		}
 #ifdef ENABLE_AIS_PLM
-		/*Incase the Immnd restart is not supported fully,have to reint imm - TO Be Done */
-		if (clms_cb->reg_with_plm == SA_TRUE){
+		/*Incase the Immnd restart is not supported fully,have to reint
+		 * imm - TO Be Done */
+		if (clms_cb->reg_with_plm == SA_TRUE) {
 			if (fds[FD_PLM].revents & POLLIN) {
-				if ((error = saPlmDispatch(clms_cb->plm_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
-					LOG_ER("saPlmDispatch FAILED: %u", error);
+				if ((error = saPlmDispatch(clms_cb->plm_hdl,
+							   SA_DISPATCH_ALL)) !=
+				    SA_AIS_OK) {
+					LOG_ER("saPlmDispatch FAILED: %u",
+					       error);
 					break;
 				}
 			}
@@ -554,32 +578,40 @@ int main(int argc, char *argv[])
 #endif
 
 		if (clms_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
-			if ((error = saImmOiDispatch(clms_cb->immOiHandle, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+			if ((error = saImmOiDispatch(clms_cb->immOiHandle,
+						     SA_DISPATCH_ALL)) !=
+			    SA_AIS_OK) {
 				if (error == SA_AIS_ERR_BAD_HANDLE) {
-					TRACE("main :saImmOiDispatch returned BAD_HANDLE");
+					TRACE(
+					    "main :saImmOiDispatch returned BAD_HANDLE");
 
-					/* 
-					 * Invalidate the IMM OI handle, this info is used in other
-					 * locations. E.g. giving TRY_AGAIN responses to a create and
-					 * close app stream requests. That is needed since the IMM OI
-					 * is used in context of these functions.
-					 * 
-					 * Also closing the handle. Finalize is ok with a bad handle
-					 * that is bad because it is stale and this actually clears
-					 * the handle from internal agent structures.  In any case
-					 * we ignore the return value from Finalize here.
+					/*
+					 * Invalidate the IMM OI handle, this
+					 * info is used in other locations. E.g.
+					 * giving TRY_AGAIN responses to a
+					 * create and close app stream requests.
+					 * That is needed since the IMM OI is
+					 * used in context of these functions.
+					 *
+					 * Also closing the handle. Finalize is
+					 * ok with a bad handle that is bad
+					 * because it is stale and this actually
+					 * clears the handle from internal agent
+					 * structures.  In any case we ignore
+					 * the return value from Finalize here.
 					 */
 					saImmOiFinalize(clms_cb->immOiHandle);
 					clms_cb->immOiHandle = 0;
 					clms_cb->imm_sel_obj = -1;
 					clms_cb->is_impl_set = false;
 
-					/* Initiate IMM reinitializtion in the background */
+					/* Initiate IMM reinitializtion in the
+					 * background */
 					clm_imm_reinit_bg(clms_cb);
 
-
 				} else if (error != SA_AIS_OK) {
-					LOG_ER("saImmOiDispatch FAILED: %u", error);
+					LOG_ER("saImmOiDispatch FAILED: %u",
+					       error);
 					break;
 				}
 			}
@@ -589,15 +621,15 @@ int main(int argc, char *argv[])
 			clms_retry_pending_rtupdates();
 	} /* End while (1) */
 
- done:
+done:
 	LOG_ER("Failed, exiting...");
 	TRACE_LEAVE();
 	exit(1);
 }
 
 /**
-* This dumps the CLMS CB
-*/
+ * This dumps the CLMS CB
+ */
 void clms_cb_dump(void)
 {
 	CLMS_CLUSTER_NODE *node = NULL;
@@ -605,7 +637,8 @@ void clms_cb_dump(void)
 	uint32_t client_id = 0;
 	SaNameT nodename;
 
-	TRACE("\n***************************************************************************************");
+	TRACE(
+	    "\n***************************************************************************************");
 
 	TRACE("My DB Snapshot \n");
 	TRACE("Number of member nodes = %d\n", osaf_cluster->num_nodes);
@@ -617,7 +650,8 @@ void clms_cb_dump(void)
 
 	while ((node = clms_node_getnext_by_name(&nodename)) != NULL) {
 		memcpy(&nodename, &node->node_name, sizeof(SaNameT));
-		TRACE("Dump Runtime data of the node: %s", node->node_name.value);
+		TRACE("Dump Runtime data of the node: %s",
+		      node->node_name.value);
 		TRACE("Membership status %d", node->member);
 		TRACE("Node Id %u", node->node_id);
 		TRACE("Init_view %llu", node->init_view);
@@ -638,5 +672,6 @@ void clms_cb_dump(void)
 		TRACE("MDS Dest %" PRIx64, client->mds_dest);
 		TRACE("Track flags %d", client->track_flags);
 	}
-	TRACE("\n***********************************************************************************");
+	TRACE(
+	    "\n***********************************************************************************");
 }

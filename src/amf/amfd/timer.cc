@@ -20,7 +20,7 @@
 
 ..............................................................................
 
-  DESCRIPTION:This module does the initialisation of TIMER interface and 
+  DESCRIPTION:This module does the initialisation of TIMER interface and
   provides functionality for adding, deleting and expiry of timers.
   The expiry routine packages the timer expiry information as local
   event information and posts it to the main loop for processing.
@@ -33,7 +33,7 @@
   avd_stop_tmr - Stops the AvD timer.
   avd_tmr_exp - AvD timer expiry callback routine.
 
-  
+
 ******************************************************************************
 */
 
@@ -45,56 +45,56 @@
 /*****************************************************************************
   PROCEDURE NAME : avd_start_tmr
 
-  DESCRIPTION    : Starts the AvD timer. If the timer is already active, it 
-               is restarted (ie. stopped & started without reallocating the 
+  DESCRIPTION    : Starts the AvD timer. If the timer is already active, it
+               is restarted (ie. stopped & started without reallocating the
                tmr block).
 
-  ARGUMENTS      : 
+  ARGUMENTS      :
                tmr    - ptr to the AvD timer block
                period - timer period in nano seconds
 
   RETURNS        : NCSCC_RC_SUCCESS - Success
                    NCSCC_RC_FAILURE - Failure
 
-  NOTES         : The timer related info needs to be filled in the 
+  NOTES         : The timer related info needs to be filled in the
   timer block before calling this routine.
 *****************************************************************************/
-uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
-{
-	SaTimeT tmr_period;
+uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period) {
+  SaTimeT tmr_period;
 
-	TRACE_ENTER2("%u", tmr->type);
+  TRACE_ENTER2("%u", tmr->type);
 
-	tmr_period = (period / AVSV_NANOSEC_TO_LEAPTM);
+  tmr_period = (period / AVSV_NANOSEC_TO_LEAPTM);
 
-	if (AVD_TMR_MAX <= tmr->type) {
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
-		TRACE_LEAVE();
-		return NCSCC_RC_FAILURE;
-	}
+  if (AVD_TMR_MAX <= tmr->type) {
+    LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
+    TRACE_LEAVE();
+    return NCSCC_RC_FAILURE;
+  }
 
-	if (tmr->tmr_id == TMR_T_NULL) {
-		//m_NCS_TMR_CREATE(tmr->tmr_id, tmr_period, avd_tmr_exp, (void *)tmr);
-                tmr->tmr_id = ncs_tmr_alloc(const_cast<char*>(__FILE__), __LINE__);
-	}
+  if (tmr->tmr_id == TMR_T_NULL) {
+    // m_NCS_TMR_CREATE(tmr->tmr_id, tmr_period, avd_tmr_exp, (void *)tmr);
+    tmr->tmr_id = ncs_tmr_alloc(const_cast<char *>(__FILE__), __LINE__);
+  }
 
-	if (tmr->is_active == true) {
-		tmr->is_active = false;
-		m_NCS_TMR_STOP(tmr->tmr_id);
-	}
+  if (tmr->is_active == true) {
+    tmr->is_active = false;
+    m_NCS_TMR_STOP(tmr->tmr_id);
+  }
 
-	//m_NCS_TMR_START(tmr->tmr_id, tmr_period, avd_tmr_exp, (void *)tmr);
-        tmr->tmr_id = ncs_tmr_start(tmr->tmr_id, tmr_period, avd_tmr_exp, tmr, const_cast<char*>(__FILE__), __LINE__);
-	
-	tmr->is_active = true;
+  // m_NCS_TMR_START(tmr->tmr_id, tmr_period, avd_tmr_exp, (void *)tmr);
+  tmr->tmr_id = ncs_tmr_start(tmr->tmr_id, tmr_period, avd_tmr_exp, tmr,
+                              const_cast<char *>(__FILE__), __LINE__);
 
-	if (TMR_T_NULL == tmr->tmr_id) {
-		TRACE_LEAVE();
-		return NCSCC_RC_FAILURE;
-	}
+  tmr->is_active = true;
 
-	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
+  if (TMR_T_NULL == tmr->tmr_id) {
+    TRACE_LEAVE();
+    return NCSCC_RC_FAILURE;
+  }
+
+  TRACE_LEAVE();
+  return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -102,35 +102,34 @@ uint32_t avd_start_tmr(AVD_CL_CB *cb, AVD_TMR *tmr, SaTimeT period)
 
   DESCRIPTION    : Stops the AvD timer.
 
-  ARGUMENTS      : 
+  ARGUMENTS      :
                    tmr    - ptr to the AvD timer block
   RETURNS        : void
 
   NOTES         : None
 *****************************************************************************/
-void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
-{
-	TRACE_ENTER2("%u", tmr->type);
+void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr) {
+  TRACE_ENTER2("%u", tmr->type);
 
-	/* If timer type is invalid just return */
-	if (AVD_TMR_MAX <= tmr->type) {
-		LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
-		TRACE_LEAVE();
-		return;
-	}
+  /* If timer type is invalid just return */
+  if (AVD_TMR_MAX <= tmr->type) {
+    LOG_EM("%s:%u: %u", __FILE__, __LINE__, tmr->type);
+    TRACE_LEAVE();
+    return;
+  }
 
-	/* Stop the timer if it is active... */
-	if (tmr->is_active == true) {
-		tmr->is_active = false;
-		m_NCS_TMR_STOP(tmr->tmr_id);
-	}
+  /* Stop the timer if it is active... */
+  if (tmr->is_active == true) {
+    tmr->is_active = false;
+    m_NCS_TMR_STOP(tmr->tmr_id);
+  }
 
-	/* Destroy the timer if it exists.. */
-	if (tmr->tmr_id != TMR_T_NULL) {
-		m_NCS_TMR_DESTROY(tmr->tmr_id);
-		tmr->tmr_id = TMR_T_NULL;
-	}
-	TRACE_LEAVE();
+  /* Destroy the timer if it exists.. */
+  if (tmr->tmr_id != TMR_T_NULL) {
+    m_NCS_TMR_DESTROY(tmr->tmr_id);
+    tmr->tmr_id = TMR_T_NULL;
+  }
+  TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -145,32 +144,33 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 
   NOTES         : None
 *****************************************************************************/
-void avd_tmr_exp(void *uarg)
-{
-	AVD_CL_CB *cb = avd_cb;
-	AVD_TMR *tmr = (AVD_TMR *)uarg;
-	AVD_EVT *evt = AVD_EVT_NULL;
+void avd_tmr_exp(void *uarg) {
+  AVD_CL_CB *cb = avd_cb;
+  AVD_TMR *tmr = (AVD_TMR *)uarg;
+  AVD_EVT *evt = AVD_EVT_NULL;
 
-	TRACE_ENTER();
+  TRACE_ENTER();
 
-	/* 
-	 * Check if this timer was stopped after "avd_tmr_exp" was called 
-	 * but before entering this code.
-	 */
-	if (true == tmr->is_active) {
-		tmr->is_active = false;
+  /*
+   * Check if this timer was stopped after "avd_tmr_exp" was called
+   * but before entering this code.
+   */
+  if (true == tmr->is_active) {
+    tmr->is_active = false;
 
-		/* create & send the timer event */
-		evt = new AVD_EVT();
+    /* create & send the timer event */
+    evt = new AVD_EVT();
 
-		evt->info.tmr = *tmr;
-		evt->rcv_evt = static_cast<AVD_EVT_TYPE>((tmr->type - AVD_TMR_CL_INIT) + AVD_EVT_TMR_CL_INIT);
+    evt->info.tmr = *tmr;
+    evt->rcv_evt = static_cast<AVD_EVT_TYPE>((tmr->type - AVD_TMR_CL_INIT) +
+                                             AVD_EVT_TMR_CL_INIT);
 
-		if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) != NCSCC_RC_SUCCESS) {
-			LOG_ER("avd_tmp_exp: ipc send failed");
-			delete evt;
-		}
-	}
+    if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH) !=
+        NCSCC_RC_SUCCESS) {
+      LOG_ER("avd_tmp_exp: ipc send failed");
+      delete evt;
+    }
+  }
 
-	TRACE_LEAVE();
+  TRACE_LEAVE();
 }

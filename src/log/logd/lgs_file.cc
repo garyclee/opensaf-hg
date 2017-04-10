@@ -37,30 +37,29 @@
 #include "base/osaf_time.h"
 #include "lgs_config.h"
 
-pthread_mutex_t lgs_ftcom_mutex;        /* For locking communication */
-static pthread_cond_t request_cv;       /* File thread waiting for request */
-static pthread_cond_t answer_cv;        /* API waiting for answer (timed) */
+pthread_mutex_t lgs_ftcom_mutex;  /* For locking communication */
+static pthread_cond_t request_cv; /* File thread waiting for request */
+static pthread_cond_t answer_cv;  /* API waiting for answer (timed) */
 
 struct file_communicate {
   bool request_f; /* True if pending request */
   bool answer_f;  /* True if pending answer */
   bool timeout_f; /* True if API has got a timeout. Thread shall not answer */
-  lgsf_treq_t request_code;       /* Request code from API */
-  int return_code;        /* Return code from handlers */
-  void *indata_ptr;       /* In-parameters for handlers */
+  lgsf_treq_t request_code; /* Request code from API */
+  int return_code;          /* Return code from handlers */
+  void *indata_ptr;         /* In-parameters for handlers */
   size_t outdata_size;
-  void *outdata_ptr;      /* Out data from handlers */
+  void *outdata_ptr; /* Out data from handlers */
 
-  file_communicate() :
-    request_f(false),
-    answer_f(false),
-    timeout_f(false),
-    request_code(LGSF_NOREQ),
-    return_code(LGSF_NORETC),
-    indata_ptr(NULL),
-    outdata_size(0),
-    outdata_ptr(NULL) {
-  }
+  file_communicate()
+      : request_f(false),
+        answer_f(false),
+        timeout_f(false),
+        request_code(LGSF_NOREQ),
+        return_code(LGSF_NORETC),
+        indata_ptr(NULL),
+        outdata_size(0),
+        outdata_ptr(NULL) {}
 };
 
 /* Used for synchronizing and transfer of data ownership between main thread
@@ -82,11 +81,12 @@ static int start_file_thread();
  * @param timeout_time[out]
  * @param timeout_ms[in] in ms
  */
-static void get_timeout_time(struct timespec *timeout_time, uint32_t timeout_ms) {
+static void get_timeout_time(struct timespec *timeout_time,
+                             uint32_t timeout_ms) {
   struct timespec start_time, add_time;
 
   osaf_clock_gettime(CLOCK_REALTIME, &start_time);
-  osaf_millis_to_timespec((uint64_t) timeout_ms, &add_time);
+  osaf_millis_to_timespec((uint64_t)timeout_ms, &add_time);
   osaf_timespec_add(&start_time, &add_time, timeout_time);
 }
 
@@ -109,16 +109,17 @@ static void *file_hndl_thread(void *noparam) {
   int hndl_rc = 0;
   int dummy;
 
-  TRACE("%s - is started",__FUNCTION__);
+  TRACE("%s - is started", __FUNCTION__);
   /* Configure cancellation so that thread can be canceled at any time */
   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &dummy);
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &dummy);
 
   osaf_mutex_lock_ordie(&lgs_ftcom_mutex); /* LOCK */
-  while(1) {
+  while (1) {
     /* Wait for request */
     if (lgs_com_data.request_f == false) {
-      rc = pthread_cond_wait(&request_cv, &lgs_ftcom_mutex); /* -> UNLOCK -> LOCK */
+      rc = pthread_cond_wait(&request_cv,
+                             &lgs_ftcom_mutex); /* -> UNLOCK -> LOCK */
       if (rc != 0) osaf_abort(rc);
     } else {
       /* Handle the request.
@@ -134,56 +135,66 @@ static void *file_hndl_thread(void *noparam) {
        */
 
       /* Invoke requested handler function */
-      switch (lgs_com_data.request_code)      {
+      switch (lgs_com_data.request_code) {
         case LGSF_FILEOPEN:
-          hndl_rc = fileopen_hdl(lgs_com_data.indata_ptr,
-                                 lgs_com_data.outdata_ptr, lgs_com_data.outdata_size,
-                                 &lgs_com_data.timeout_f);
+          hndl_rc =
+              fileopen_hdl(lgs_com_data.indata_ptr, lgs_com_data.outdata_ptr,
+                           lgs_com_data.outdata_size, &lgs_com_data.timeout_f);
           break;
         case LGSF_FILECLOSE:
-          hndl_rc = fileclose_hdl(lgs_com_data.indata_ptr,
-                                  lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+          hndl_rc =
+              fileclose_hdl(lgs_com_data.indata_ptr, lgs_com_data.outdata_ptr,
+                            lgs_com_data.outdata_size);
           break;
         case LGSF_DELETE_FILE:
-          hndl_rc = delete_file_hdl(lgs_com_data.indata_ptr,
-                                    lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+          hndl_rc =
+              delete_file_hdl(lgs_com_data.indata_ptr, lgs_com_data.outdata_ptr,
+                              lgs_com_data.outdata_size);
           break;
         case LGSF_GET_NUM_LOGFILES:
           hndl_rc = get_number_of_log_files_hdl(lgs_com_data.indata_ptr,
-                                                lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+                                                lgs_com_data.outdata_ptr,
+                                                lgs_com_data.outdata_size);
           break;
         case LGSF_GET_NUM_CFGFILES:
           hndl_rc = get_number_of_cfg_files_hdl(lgs_com_data.indata_ptr,
-                                                lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+                                                lgs_com_data.outdata_ptr,
+                                                lgs_com_data.outdata_size);
           break;
         case LGSF_MAKELOGDIR:
           hndl_rc = make_log_dir_hdl(lgs_com_data.indata_ptr,
-                                     lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+                                     lgs_com_data.outdata_ptr,
+                                     lgs_com_data.outdata_size);
           break;
         case LGSF_WRITELOGREC:
-          hndl_rc = write_log_record_hdl(lgs_com_data.indata_ptr,
-                                         lgs_com_data.outdata_ptr, lgs_com_data.outdata_size,
-                                         &lgs_com_data.timeout_f);
+          hndl_rc = write_log_record_hdl(
+              lgs_com_data.indata_ptr, lgs_com_data.outdata_ptr,
+              lgs_com_data.outdata_size, &lgs_com_data.timeout_f);
           break;
         case LGSF_CREATECFGFILE:
           hndl_rc = create_config_file_hdl(lgs_com_data.indata_ptr,
-                                           lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+                                           lgs_com_data.outdata_ptr,
+                                           lgs_com_data.outdata_size);
           break;
         case LGSF_RENAME_FILE:
-          hndl_rc = rename_file_hdl(lgs_com_data.indata_ptr,
-                                    lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+          hndl_rc =
+              rename_file_hdl(lgs_com_data.indata_ptr, lgs_com_data.outdata_ptr,
+                              lgs_com_data.outdata_size);
           break;
         case LGSF_CHECKPATH:
           hndl_rc = check_path_exists_hdl(lgs_com_data.indata_ptr,
-                                          lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+                                          lgs_com_data.outdata_ptr,
+                                          lgs_com_data.outdata_size);
           break;
         case LGSF_CHECKDIR:
           hndl_rc = path_is_writeable_dir_hdl(lgs_com_data.indata_ptr,
-                                              lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+                                              lgs_com_data.outdata_ptr,
+                                              lgs_com_data.outdata_size);
           break;
         case LGSF_OWN_LOGFILES:
           hndl_rc = own_log_files_by_group_hdl(lgs_com_data.indata_ptr,
-                                               lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+                                               lgs_com_data.outdata_ptr,
+                                               lgs_com_data.outdata_size);
           break;
         case LGSF_GET_FILE_PAR:
           hndl_rc = lgs_get_file_params_hdl(lgs_com_data.indata_ptr,
@@ -220,37 +231,38 @@ static void *file_hndl_thread(void *noparam) {
  */
 static int start_file_thread() {
   int rc = 0;
-  int tbd_inpar=1;
+  int tbd_inpar = 1;
 
   TRACE_ENTER();
 
   /* Init thread handling */
   rc = pthread_mutex_init(&lgs_ftcom_mutex, NULL);
   if (rc != 0) {
-    LOG_ER("pthread_mutex_init fail %s",strerror(errno));
+    LOG_ER("pthread_mutex_init fail %s", strerror(errno));
     goto done;
   }
-  rc = pthread_cond_init (&request_cv,NULL);
+  rc = pthread_cond_init(&request_cv, NULL);
   if (rc != 0) {
-    LOG_ER("pthread_cond_init fail %s",strerror(errno));
+    LOG_ER("pthread_cond_init fail %s", strerror(errno));
     goto done;
   }
-  rc = pthread_cond_init (&answer_cv,NULL);
+  rc = pthread_cond_init(&answer_cv, NULL);
   if (rc != 0) {
-    LOG_ER("pthread_cond_init fail %s",strerror(errno));
+    LOG_ER("pthread_cond_init fail %s", strerror(errno));
     goto done;
   }
 
   /* Create thread.
    */
-  rc = pthread_create(&file_thread_id, NULL, file_hndl_thread, (void *) &tbd_inpar);
+  rc = pthread_create(&file_thread_id, NULL, file_hndl_thread,
+                      (void *)&tbd_inpar);
   if (rc != 0) {
-    LOG_ER("pthread_create fail %s",strerror(errno));
+    LOG_ER("pthread_create fail %s", strerror(errno));
     goto done;
   }
 
 done:
-  TRACE_LEAVE2("rc=%d",rc);
+  TRACE_LEAVE2("rc=%d", rc);
   return rc;
 }
 
@@ -266,7 +278,7 @@ uint32_t lgs_file_init() {
     rc = NCSCC_RC_FAILURE;
   }
 
-  TRACE_LEAVE2("rc=%d",rc);
+  TRACE_LEAVE2("rc=%d", rc);
   return rc;
 }
 
@@ -361,7 +373,7 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in) {
    */
   if (lgs_com_data.request_f == true) {
     api_rc = LGSF_BUSY;
-    TRACE("%s - LGSF_BUSY",__FUNCTION__);
+    TRACE("%s - LGSF_BUSY", __FUNCTION__);
     goto api_exit;
   }
 
@@ -369,11 +381,11 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in) {
    * The original request is overridden. Always return busy
    */
   if ((fd = lgs_fd_list_get()) != -1) {
-    TRACE("Closing files in fd list. fd = %d, replaced req code = %d",
-          fd, apipar_in->req_code_in);
+    TRACE("Closing files in fd list. fd = %d, replaced req code = %d", fd,
+          apipar_in->req_code_in);
     apipar_in->req_code_in = LGSF_FILECLOSE;
     apipar_in->data_in_size = sizeof(int);
-    apipar_in->data_in = (void*) &fd;
+    apipar_in->data_in = (void *)&fd;
     apipar_in->data_out_size = 0;
     apipar_in->data_out = NULL;
     busy_close_flag = true;
@@ -398,7 +410,8 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in) {
       api_rc = LGSF_FAIL;
       goto api_exit;
     }
-    memcpy(lgs_com_data.indata_ptr, apipar_in->data_in, apipar_in->data_in_size);
+    memcpy(lgs_com_data.indata_ptr, apipar_in->data_in,
+           apipar_in->data_in_size);
   } else {
     lgs_com_data.indata_ptr = NULL;
   }
@@ -410,13 +423,13 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in) {
       api_rc = LGSF_FAIL;
       goto api_exit;
     }
-    *(char *) lgs_com_data.outdata_ptr = '\0';
+    *(char *)lgs_com_data.outdata_ptr = '\0';
   } else {
     lgs_com_data.outdata_ptr = NULL;
   }
   lgs_com_data.outdata_size = apipar_in->data_out_size;
 
-  lgs_com_data.request_f = true;  /* We have a pending request */
+  lgs_com_data.request_f = true; /* We have a pending request */
   lgs_com_data.timeout_f = false;
 
   /* Wake up the thread */
@@ -424,19 +437,20 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in) {
   if (rc != 0) osaf_abort(rc);
 
   /* Wait for an answer */
-  max_waittime_ms = *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILE_IO_TIMEOUT));
+  max_waittime_ms =
+      *static_cast<const SaUint32T *>(lgs_cfg_get(LGS_IMM_FILE_IO_TIMEOUT));
   get_timeout_time(&timeout_time, max_waittime_ms);
 
   while (lgs_com_data.answer_f == false) {
-    rc = pthread_cond_timedwait(
-        &answer_cv, &lgs_ftcom_mutex, &timeout_time); /* -> UNLOCK -> LOCK */
+    rc = pthread_cond_timedwait(&answer_cv, &lgs_ftcom_mutex,
+                                &timeout_time); /* -> UNLOCK -> LOCK */
     if ((rc == ETIMEDOUT) && (lgs_com_data.answer_f == false)) {
       TRACE("Timed out before answer");
       api_rc = LGSF_TIMEOUT;
       lgs_com_data.timeout_f = true; /* Inform thread about timeout */
       goto api_timeout;
     } else if ((rc != 0) && (rc != ETIMEDOUT)) {
-      LOG_ER("pthread wait Failed - %s",strerror(rc));
+      LOG_ER("pthread wait Failed - %s", strerror(rc));
       osaf_abort(rc);
     }
   }
@@ -448,7 +462,8 @@ lgsf_retcode_t log_file_api(lgsf_apipar_t *apipar_in) {
    * the returned data.
    */
   apipar_in->hdl_ret_code_out = lgs_com_data.return_code;
-  memcpy(apipar_in->data_out, lgs_com_data.outdata_ptr, lgs_com_data.outdata_size);
+  memcpy(apipar_in->data_out, lgs_com_data.outdata_ptr,
+         lgs_com_data.outdata_size);
 
 api_timeout:
   /* Prepare to take a new answer */
@@ -483,7 +498,7 @@ char *lgsf_retcode_str(lgsf_retcode_t rc) {
     case LGSF_FAIL:
       return const_cast<char *>("LGSF_FAIL");
     default:
-      sprintf(errstr,"Unknown lgsf_retcode %d",rc);
+      sprintf(errstr, "Unknown lgsf_retcode %d", rc);
       return errstr;
   }
 }

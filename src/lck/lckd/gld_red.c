@@ -18,22 +18,23 @@
 /*****************************************************************************
   FILE NAME: gld_red.c
 
-  DESCRIPTION: This file contains routines to fill and send the A2S messages 
+  DESCRIPTION: This file contains routines to fill and send the A2S messages
 
 ******************************************************************************/
 #include "lck/lckd/gld.h"
 
 /*****************************************************************************
- * Name            : glsv_gld_a2s_ckpt_resource 
+ * Name            : glsv_gld_a2s_ckpt_resource
 
- * Description     : This routine fills async update message for resource open 
+ * Description     : This routine fills async update message for resource open
  *                    event
  *
  * Return Values   :
  *
  * None            : None
 ****************************************************************************/
-void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckResourceIdT rsc_id, MDS_DEST mdest_id,
+void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name,
+				SaLckResourceIdT rsc_id, MDS_DEST mdest_id,
 				SaTimeT creation_time)
 {
 	GLSV_GLD_A2S_CKPT_EVT a2s_evt;
@@ -46,8 +47,10 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckRes
 
 		a2s_evt.evt_type = GLSV_GLD_EVT_RSC_OPEN;
 		a2s_evt.info.rsc_open_info.rsc_id = rsc_id;
-		memcpy(&a2s_evt.info.rsc_open_info.rsc_name, rsc_name, sizeof(SaNameT));
-		memcpy(&a2s_evt.info.rsc_open_info.mdest_id, &mdest_id, sizeof(MDS_DEST));
+		memcpy(&a2s_evt.info.rsc_open_info.rsc_name, rsc_name,
+		       sizeof(SaNameT));
+		memcpy(&a2s_evt.info.rsc_open_info.mdest_id, &mdest_id,
+		       sizeof(MDS_DEST));
 		a2s_evt.info.rsc_open_info.rsc_creation_time = creation_time;
 
 		/* send msg to MBCSv */
@@ -57,20 +60,20 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB *gld_cb, SaNameT *rsc_name, SaLckRes
 		else
 			TRACE_1("GLD a2s rsc open async success");
 	}
-
 }
 
 /*****************************************************************************
- * Name            : glsv_gld_a2s_ckpt_node_details 
+ * Name            : glsv_gld_a2s_ckpt_node_details
 
- * Description     : This routine fills async update message for node details 
+ * Description     : This routine fills async update message for node details
  *                    event
  *
  * Return Values   :
  *
  * None            : None
 ****************************************************************************/
-void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uint32_t evt_type)
+void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id,
+				    uint32_t evt_type)
 {
 	GLSV_GLD_A2S_CKPT_EVT a2s_evt;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -79,7 +82,8 @@ void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uint
 
 	if (gld_cb != NULL) {
 		a2s_evt.evt_type = evt_type;
-		memcpy(&a2s_evt.info.glnd_mds_info.mdest_id, &mdest_id, sizeof(MDS_DEST));
+		memcpy(&a2s_evt.info.glnd_mds_info.mdest_id, &mdest_id,
+		       sizeof(MDS_DEST));
 		/* send msg to MBCSv */
 		rc = glsv_gld_mbcsv_async_update(gld_cb, &a2s_evt);
 		if (rc != SA_AIS_OK)
@@ -90,16 +94,19 @@ void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB *gld_cb, MDS_DEST mdest_id, uint
 }
 
 /*****************************************************************************
- * Name            : glsv_gld_a2s_ckpt_rsc_detail 
+ * Name            : glsv_gld_a2s_ckpt_rsc_detail
  *
- * Description     : This routine fills async update message for resource detail *                   s event for resource close and set_orphan operations 
+ * Description     : This routine fills async update message for resource detail
+ **                   s event for resource close and set_orphan operations
  *
  * Return Values   :
  *
  * None            : None
-****************************************************************************/
-void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB *gld_cb, GLSV_GLD_EVT_TYPE evt_type,
-				   GLSV_RSC_DETAILS rsc_details, MDS_DEST mdest_id, uint32_t lcl_ref_cnt)
+ ****************************************************************************/
+void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB *gld_cb,
+				   GLSV_GLD_EVT_TYPE evt_type,
+				   GLSV_RSC_DETAILS rsc_details,
+				   MDS_DEST mdest_id, uint32_t lcl_ref_cnt)
 {
 	GLSV_GLD_A2S_CKPT_EVT a2s_evt;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -117,7 +124,8 @@ void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB *gld_cb, GLSV_GLD_EVT_TYPE evt_ty
 		a2s_evt.info.rsc_details.orphan = rsc_details.orphan;
 		a2s_evt.info.rsc_details.lck_mode = rsc_details.lck_mode;
 		a2s_evt.info.rsc_details.lcl_ref_cnt = lcl_ref_cnt;
-		memcpy(&a2s_evt.info.rsc_details.mdest_id, &mdest_id, sizeof(MDS_DEST));
+		memcpy(&a2s_evt.info.rsc_details.mdest_id, &mdest_id,
+		       sizeof(MDS_DEST));
 
 		/* send msg to MBCSv */
 		rc = glsv_gld_mbcsv_async_update(gld_cb, &a2s_evt);

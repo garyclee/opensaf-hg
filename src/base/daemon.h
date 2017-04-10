@@ -25,7 +25,7 @@
 #ifndef BASE_DAEMON_H_
 #define BASE_DAEMON_H_
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 

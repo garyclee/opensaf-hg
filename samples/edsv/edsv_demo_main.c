@@ -17,46 +17,45 @@
 /*****************************************************************************
   DESCRIPTION:
 
-  This file contains the main() of EDSv toolkit application. It initializes 
+  This file contains the main() of EDSv toolkit application. It initializes
   the basic infrastructure services & then triggers EDSv toolkit application.
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
+
 
 ******************************************************************************
 */
 
 #include "edsv_demo_app.h"
 
-int main(int argc, char*argv[])
+int main(int argc, char *argv[])
 {
 
-   if (argc != 1)
-   {
-      printf("\n INCORRECT ARGUMENTS:\n USAGE: <evt_demo>\n");
-      return 1;
-   }
+	if (argc != 1) {
+		printf("\n INCORRECT ARGUMENTS:\n USAGE: <evt_demo>\n");
+		return 1;
+	}
 
-   printf("\n\n ############################################## \n");
-   printf(" #                                            # \n");
-   printf(" #   You are about to witness EDSv Demo !!!   # \n");
-   printf(" #   To start the demo, press <Enter> key     # \n");
-   printf(" #                                            # \n");
-   printf(" ############################################## \n");
+	printf("\n\n ############################################## \n");
+	printf(" #                                            # \n");
+	printf(" #   You are about to witness EDSv Demo !!!   # \n");
+	printf(" #   To start the demo, press <Enter> key     # \n");
+	printf(" #                                            # \n");
+	printf(" ############################################## \n");
 
-   /* Wait for the start trigger from the user */
-   if ( 'q' == getchar() )
-      return 0;
- 
-   /* Start the AvSv toolkit application */ 
-   ncs_edsv_run();
+	/* Wait for the start trigger from the user */
+	if ('q' == getchar())
+		return 0;
 
-   printf("\n ### EDSv Demo over, To quit, press 'q' and <Enter> ### \n");
+	/* Start the AvSv toolkit application */
+	ncs_edsv_run();
 
-   /* Check if it's time to exit */
-   while ( 'q' != getchar() );
-   
-   return 0;    
+	printf("\n ### EDSv Demo over, To quit, press 'q' and <Enter> ### \n");
+
+	/* Check if it's time to exit */
+	while ('q' != getchar())
+		;
+
+	return 0;
 }
-

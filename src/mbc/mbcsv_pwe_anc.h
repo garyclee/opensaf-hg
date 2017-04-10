@@ -25,7 +25,8 @@
 
    DESCRIPTION:
 
-   This module contains the MBCSv MBX list structure and the corresponding functions.
+   This module contains the MBCSv MBX list structure and the corresponding
+functions.
 
 *******************************************************************************/
 
@@ -42,7 +43,7 @@
  * for brodcasting the message to all the peers.
  */
 typedef struct {
-  uint32_t pwe_hdl;               /* Handle supplied by application with OPEN call */
+  uint32_t pwe_hdl; /* Handle supplied by application with OPEN call */
   MBCSV_ANCHOR anchor;
 } MBCSV_PEER_KEY;
 
@@ -53,7 +54,8 @@ uint32_t mbcsv_destroy_peer_list(void);
 uint32_t mbcsv_add_new_pwe_anc(uint32_t pwe_hdl, MBCSV_ANCHOR anchor);
 uint32_t mbcsv_rmv_pwe_anc_entry(uint32_t pwe_hdl, MBCSV_ANCHOR anchor);
 uint32_t mbcsv_get_next_anchor_for_pwe(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor);
-uint32_t mbcsv_send_brodcast_msg(uint32_t pwe_hdl, MBCSV_EVT *msg, CKPT_INST *ckpt);
+uint32_t mbcsv_send_brodcast_msg(uint32_t pwe_hdl, MBCSV_EVT *msg,
+                                 CKPT_INST *ckpt);
 uint32_t mbcsv_rmv_ancs_for_pwe(uint32_t pwe_hdl);
 uint32_t mbcsv_initialize_peer_list(void);
 

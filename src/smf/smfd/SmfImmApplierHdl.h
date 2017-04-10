@@ -49,14 +49,10 @@
 struct ApplierSetupInfo {
   std::string object_name;
   std::string attribute_name;
-  //SaImmOiCcbApplyCallbackT ApplyCallbackFunction;
+  // SaImmOiCcbApplyCallbackT ApplyCallbackFunction;
 };
 
-enum class ExecuteImmCallbackReply {
-  kOk = 0,
-  kGetNewSelctionObject,
-  kError
-};
+enum class ExecuteImmCallbackReply { kOk = 0, kGetNewSelctionObject, kError };
 
 class SmfImmApplierHdl {
  public:
@@ -102,7 +98,7 @@ class SmfImmApplierHdl {
   ExecuteImmCallbackReply ExecuteImmCallback(void);
 
  private:
-  const SaVersionT kImmVersion = { 'A', 2, 11 };
+  const SaVersionT kImmVersion = {'A', 2, 11};
   static std::atomic<unsigned int> instance_number_;
   bool isCreated_;
   std::string applier_name_;

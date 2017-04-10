@@ -27,7 +27,7 @@
  * Name          : mqd_timer_expiry
  *
  * Description   : This function which is registered with the OS tmr function,
- *                 which will post a message to the corresponding mailbox 
+ *                 which will post a message to the corresponding mailbox
  *                 depending on the component type.
  *
  *****************************************************************************/
@@ -51,11 +51,12 @@ void mqd_timer_expiry(NCSCONTEXT uarg)
 		}
 
 		/* post a message to the corresponding component */
-		if ((cb = (MQD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQD, mqd_hdl))
-		    != NULL) {
+		if ((cb = (MQD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQD,
+						   mqd_hdl)) != NULL) {
 			evt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQD);
 			if (evt == NULL) {
-				LOG_CR("%s:%u: Failed To Allocate Memory", __FILE__, __LINE__);
+				LOG_CR("%s:%u: Failed To Allocate Memory",
+				       __FILE__, __LINE__);
 				return;
 			}
 			memset(evt, 0, sizeof(MQSV_EVT));
@@ -84,11 +85,13 @@ uint32_t mqd_tmr_start(MQD_TMR *tmr, SaTimeT duration)
 {
 	TRACE_1("The timer started with the duration as %lld", duration);
 	if (tmr->tmr_id == TMR_T_NULL) {
-		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqd_timer_expiry,
+				 (void *)tmr);
 	}
 
 	if (tmr->is_active == false) {
-		m_NCS_TMR_START(tmr->tmr_id, duration, mqd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, mqd_timer_expiry,
+				(void *)tmr);
 		tmr->is_active = true;
 	}
 

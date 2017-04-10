@@ -43,29 +43,28 @@ static pthread_mutex_t s_agent_startup_mutex = PTHREAD_MUTEX_INITIALIZER;
 /*
  * Enable tracing early - GCC constructor
  */
-__attribute__ ((constructor))
-static void logtrace_init_constructor(void)
+__attribute__((constructor)) static void logtrace_init_constructor(void)
 {
-        char *value;
-        /* Initialize trace system first of all so we can see what is going. */
-        if ((value = getenv("EDA_TRACE_PATH_FILENAME")) != NULL) {
-                if (logtrace_init("eda", value, CATEGORY_ALL) != 0) {
-                        /* error, we cannot do anything */
-                        return;
-                }
-        }
+	char *value;
+	/* Initialize trace system first of all so we can see what is going. */
+	if ((value = getenv("EDA_TRACE_PATH_FILENAME")) != NULL) {
+		if (logtrace_init("eda", value, CATEGORY_ALL) != 0) {
+			/* error, we cannot do anything */
+			return;
+		}
+	}
 }
 
 /****************************************************************************
   Name          : ncs_eda_lib_req
- 
+
   Description   : This routine is exported to the external entities & is used
-                  to create & destroy the EDA library.
- 
+		  to create & destroy the EDA library.
+
   Arguments     : req_info - ptr to the request info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 uint32_t ncs_eda_lib_req(NCS_LIB_REQ_INFO *req_info)
@@ -92,13 +91,13 @@ uint32_t ncs_eda_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 /****************************************************************************
   Name          : eda_create
- 
+
   Description   : This routine creates & initializes the EDA control block.
- 
+
   Arguments     : create_info - ptr to the create info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None
 ******************************************************************************/
 uint32_t eda_create(NCS_LIB_CREATE *create_info)
@@ -125,7 +124,8 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 	cb->pool_id = NCS_HM_POOL_ID_COMMON;
 
 	/* create the association with hdl-mngr */
-	if (0 == (cb->cb_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_EDA, (NCSCONTEXT)cb))) {
+	if (0 == (cb->cb_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_EDA,
+						(NCSCONTEXT)cb))) {
 		TRACE_4("create handle failed");
 		rc = NCSCC_RC_FAILURE;
 		goto error;
@@ -152,10 +152,11 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 
 	eda_sync_with_eds(cb);
 	cb->node_status = SA_CLM_NODE_JOINED;
-	TRACE_LEAVE2("Default local node membership status: %u", cb->node_status);
+	TRACE_LEAVE2("Default local node membership status: %u",
+		     cb->node_status);
 	return rc;
 
- error:
+error:
 	if (cb) {
 		/* remove the association with hdl-mngr */
 		if (cb->cb_hdl)
@@ -176,13 +177,13 @@ uint32_t eda_create(NCS_LIB_CREATE *create_info)
 
 /****************************************************************************
   Name          : eda_destroy
- 
+
   Description   : This routine destroys the EDA control block.
- 
+
   Arguments     : destroy_info - ptr to the destroy info
- 
+
   Return Values : None
- 
+
   Notes         : None
 ******************************************************************************/
 void eda_destroy(NCS_LIB_DESTROY *destroy_info)
@@ -225,8 +226,8 @@ void eda_destroy(NCS_LIB_DESTROY *destroy_info)
   Name          :  ncs_eda_startup
 
   Description   :  This routine creates a EDSv agent infrastructure to interface
-                   with EDSv service. Once the infrastructure is created from
-                   then on use_count is incremented for every startup request.
+		   with EDSv service. Once the infrastructure is created from
+		   then on use_count is incremented for every startup request.
 
   Arguments     :  - NIL-
 
@@ -248,7 +249,7 @@ unsigned int ncs_eda_startup(void)
 		return NCSCC_RC_SUCCESS;
 	}
 
-   /*** Init EDA ***/
+	/*** Init EDA ***/
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	if (ncs_eda_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
@@ -265,11 +266,11 @@ unsigned int ncs_eda_startup(void)
 }
 
 /****************************************************************************
-  Name          :  ncs_eda_shutdown 
+  Name          :  ncs_eda_shutdown
 
-  Description   :  This routine destroys the EDSv agent infrastructure created 
-                   to interface EDSv service. If the registered users are > 1, 
-                   it just decrements the use_count.   
+  Description   :  This routine destroys the EDSv agent infrastructure created
+		   to interface EDSv service. If the registered users are > 1,
+		   it just decrements the use_count.
 
   Arguments     :  - NIL -
 

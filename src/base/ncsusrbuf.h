@@ -44,11 +44,11 @@
 
 #include "base/ncsgl_defs.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#define PAYLOAD_BUF_SIZE 8000   /* default size of packet_data bufrs */
+#define PAYLOAD_BUF_SIZE 8000 /* default size of packet_data bufrs */
 
 /*****************************************************************************
 
@@ -59,18 +59,18 @@ extern "C" {
 
 *****************************************************************************/
 
-#if (NCSMDS_OSE_UD == 1)        /* Context of OSE's Signal memory pool */
+#if (NCSMDS_OSE_UD == 1) /* Context of OSE's Signal memory pool */
 
 typedef struct lh_ose { /* OSE Extended Userdata info             */
-  SIGSELECT sig_no;       /* Signal number              (OSE based) */
-  uint32_t key;   /* distinguishing attribute               */
-  uint8_t pool_id;        /* id must align across environments      */
-  uint16_t ttl;   /* total bytes in this USRDATA            */
+  SIGSELECT sig_no;     /* Signal number              (OSE based) */
+  uint32_t key;         /* distinguishing attribute               */
+  uint8_t pool_id;      /* id must align across environments      */
+  uint16_t ttl;         /* total bytes in this USRDATA            */
   uint16_t cur;
   uint32_t used_octets;
   uint32_t d_start;
 
-} LH_OSE;               /* Link Handler for OSE */
+} LH_OSE; /* Link Handler for OSE */
 #endif
 
 /****************************************************************************
@@ -83,17 +83,16 @@ typedef struct lh_ose { /* OSE Extended Userdata info             */
 #if (NCSMDS_OSE_UD == 1)
 
 typedef struct usrdata_extent {
-
 #if (NCSMDS_OSE_UD == 1)
 
-  LH_OSE ose;     /* OSE specific data traveling with the packet */
-#endif   /* NCSMDS_OSE_UD == 1) */
+  LH_OSE ose; /* OSE specific data traveling with the packet */
+#endif        /* NCSMDS_OSE_UD == 1) */
 
-} USRDATA_EXTENT;       /* userdata extensions within USRDATA */
+} USRDATA_EXTENT; /* userdata extensions within USRDATA */
 #else
 
 typedef void *USRDATA_EXTENT;
-#endif   /* (NCSMDS_OSE_UD == 1) */
+#endif /* (NCSMDS_OSE_UD == 1) */
 
 /****************************************************************************
  *  typedef USRDATA
@@ -105,9 +104,9 @@ typedef void *USRDATA_EXTENT;
  */
 
 typedef struct usrdata {
-  USRDATA_EXTENT ue;      /* UserData Extensions                  */
-  uint32_t RefCnt;        /* # of USRBUFs pointing to this block. */
-  char Data[PAYLOAD_BUF_SIZE];    /* payload area ie. The Data  . */
+  USRDATA_EXTENT ue;           /* UserData Extensions                  */
+  uint32_t RefCnt;             /* # of USRBUFs pointing to this block. */
+  char Data[PAYLOAD_BUF_SIZE]; /* payload area ie. The Data  . */
 
 } USRDATA;
 
@@ -195,11 +194,11 @@ typedef struct usrbuf {
    **/
   USRBUF_EXTENT usrbuf_extent;
 
-  USRDATA *payload;       /* pointer to TOP of USRDATA structure. */
+  USRDATA *payload; /* pointer to TOP of USRDATA structure. */
 
 } USRBUF;
 
-#define BNULL    (USRBUF *)0    /* a null usrbuf pointer */
+#define BNULL (USRBUF *)0 /* a null usrbuf pointer */
 
 /****************************************************************************
 
@@ -223,13 +222,13 @@ typedef struct usrbuf {
 
 *****************************************************************************/
 
-#define UB_MAX_POOLS   5        /* Max Pools for this reference implementation */
+#define UB_MAX_POOLS 5 /* Max Pools for this reference implementation */
 
-#define NCSUB_LEAP_POOL 0       /* Default mem from m_NCS_MEM_ALLOC in OS Svcs  */
-#define NCSUB_HEAP_POOL 1       /* Mapped to m_NCS_OS_MEMALLOC in OS Prims      */
-#define NCSUB_UDEF_POOL 2       /* User Defined m_OS_UBMEM_ALLOC in OS Defs     */
-#define NCSUB_MDS_POOL  3       /* Pool for MDS messages                        */
-#define NCSUB_DMY2_POOL 4       /* paradigm extended, but this is a dummy       */
+#define NCSUB_LEAP_POOL 0 /* Default mem from m_NCS_MEM_ALLOC in OS Svcs  */
+#define NCSUB_HEAP_POOL 1 /* Mapped to m_NCS_OS_MEMALLOC in OS Prims      */
+#define NCSUB_UDEF_POOL 2 /* User Defined m_OS_UBMEM_ALLOC in OS Defs     */
+#define NCSUB_MDS_POOL 3  /* Pool for MDS messages                        */
+#define NCSUB_DMY2_POOL 4 /* paradigm extended, but this is a dummy       */
 
 /****************************************************************************
 
@@ -255,11 +254,11 @@ typedef struct usrbuf {
 
 ***************************************************************************/
 
-#define NCSMEM_HI_PRI     3
-#define NCSMEM_MED_PRI    2
-#define NCSMEM_LOW_PRI    1
+#define NCSMEM_HI_PRI 3
+#define NCSMEM_MED_PRI 2
+#define NCSMEM_LOW_PRI 1
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

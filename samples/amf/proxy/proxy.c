@@ -47,7 +47,8 @@
 /* AMF Handle for the proxy */
 static SaAmfHandleT proxy_amf_hdl;
 
-/* AMF Handle for all proxied, allows use of different callbacks for proxy/proxied */
+/* AMF Handle for all proxied, allows use of different callbacks for
+ * proxy/proxied */
 static SaAmfHandleT proxied_amf_hdl;
 
 /* Proxy healthcheck key */
@@ -57,13 +58,11 @@ static SaAmfHealthcheckKeyT proxy_healthcheck_key = {"default", 7};
 static SaNameT proxy_comp_name;
 
 /* Logical HA State names for nicer logging */
-static const char *ha_state_name[] =
-{
-	"None",
-	"Active",    /* SA_AMF_HA_ACTIVE       */
-	"Standby",   /* SA_AMF_HA_STANDBY      */
-	"Quiesced",  /* SA_AMF_HA_QUIESCED     */
-	"Quiescing"  /* SA_AMF_HA_QUIESCING    */
+static const char *ha_state_name[] = {
+    "None", "Active", /* SA_AMF_HA_ACTIVE       */
+    "Standby",	/* SA_AMF_HA_STANDBY      */
+    "Quiesced",       /* SA_AMF_HA_QUIESCED     */
+    "Quiescing"       /* SA_AMF_HA_QUIESCING    */
 };
 
 /**
@@ -73,31 +72,33 @@ static const char *ha_state_name[] =
  * @return
  */
 static int register_proxied_comps(SaAmfHandleT amf_hdl,
-								  const SaNameT *proxy_name)
+				  const SaNameT *proxy_name)
 {
-    SaAisErrorT rc;
-   	const char *name = getenv("PROXIED_X_DN");
-   	SaNameT comp_name;
+	SaAisErrorT rc;
+	const char *name = getenv("PROXIED_X_DN");
+	SaNameT comp_name;
 
 	saAisNameLend(name, &comp_name);
-   	syslog(LOG_INFO, "registering proxied 'X' with DN '%s'", saAisNameBorrow(&comp_name));
+	syslog(LOG_INFO, "registering proxied 'X' with DN '%s'",
+	       saAisNameBorrow(&comp_name));
 
-   	rc = saAmfComponentRegister(amf_hdl, &comp_name, proxy_name);
-   	if (rc != SA_AIS_OK) {
-   		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
-        return -1;
-   	}
+	rc = saAmfComponentRegister(amf_hdl, &comp_name, proxy_name);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
+		return -1;
+	}
 
-   	name = getenv("PROXIED_Y_DN");
+	name = getenv("PROXIED_Y_DN");
 	saAisNameLend(name, &comp_name);
-   	syslog(LOG_INFO, "registering proxied 'Y' with DN '%s'", saAisNameBorrow(&comp_name));
-   	rc = saAmfComponentRegister(amf_hdl, &comp_name, proxy_name);
-   	if (rc != SA_AIS_OK) {
-   		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
-        return -1;
-   	}
+	syslog(LOG_INFO, "registering proxied 'Y' with DN '%s'",
+	       saAisNameBorrow(&comp_name));
+	rc = saAmfComponentRegister(amf_hdl, &comp_name, proxy_name);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
+		return -1;
+	}
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -107,31 +108,33 @@ static int register_proxied_comps(SaAmfHandleT amf_hdl,
  * @return
  */
 static int unregister_proxied_comps(SaAmfHandleT amf_hdl,
-									const SaNameT *proxy_name)
+				    const SaNameT *proxy_name)
 {
-    SaAisErrorT rc;
-   	const char *name = getenv("PROXIED_X_DN");
-   	SaNameT comp_name;
+	SaAisErrorT rc;
+	const char *name = getenv("PROXIED_X_DN");
+	SaNameT comp_name;
 
 	saAisNameLend(name, &comp_name);
-   	syslog(LOG_INFO, "unregistering: 'X' with DN '%s'", saAisNameBorrow(&comp_name));
+	syslog(LOG_INFO, "unregistering: 'X' with DN '%s'",
+	       saAisNameBorrow(&comp_name));
 
-   	rc = saAmfComponentUnregister(amf_hdl, &comp_name, proxy_name);
-   	if (rc != SA_AIS_OK) {
-   		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
-        return -1;
-   	}
+	rc = saAmfComponentUnregister(amf_hdl, &comp_name, proxy_name);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
+		return -1;
+	}
 
-   	name = getenv("PROXIED_Y_DN");
+	name = getenv("PROXIED_Y_DN");
 	saAisNameLend(name, &comp_name);
-   	syslog(LOG_INFO, "unregistering: 'Y' with DN '%s'", saAisNameBorrow(&comp_name));
-   	rc = saAmfComponentUnregister(amf_hdl, &comp_name, proxy_name);
-   	if (rc != SA_AIS_OK) {
-   		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
-        return -1;
-   	}
+	syslog(LOG_INFO, "unregistering: 'Y' with DN '%s'",
+	       saAisNameBorrow(&comp_name));
+	rc = saAmfComponentUnregister(amf_hdl, &comp_name, proxy_name);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfComponentRegister proxied FAILED %u", rc);
+		return -1;
+	}
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -141,13 +144,14 @@ static int unregister_proxied_comps(SaAmfHandleT amf_hdl,
  */
 static int instantiate_proxied_comp(const SaNameT *proxied_name)
 {
-	syslog(LOG_INFO, "%s '%s'", __FUNCTION__, saAisNameBorrow(proxied_name));
+	syslog(LOG_INFO, "%s '%s'", __FUNCTION__,
+	       saAisNameBorrow(proxied_name));
 
-    /*
-     * instantiate/start the proxied component here!
-     */
+	/*
+	 * instantiate/start the proxied component here!
+	 */
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -157,13 +161,14 @@ static int instantiate_proxied_comp(const SaNameT *proxied_name)
  */
 static int terminate_proxied_comp(const SaNameT *proxied_name)
 {
-	syslog(LOG_INFO, "%s '%s'", __FUNCTION__, saAisNameBorrow(proxied_name));
+	syslog(LOG_INFO, "%s '%s'", __FUNCTION__,
+	       saAisNameBorrow(proxied_name));
 
-    /*
-     * terminate/stop the proxied component here!
-     */
+	/*
+	 * terminate/stop the proxied component here!
+	 */
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -173,29 +178,34 @@ static int terminate_proxied_comp(const SaNameT *proxied_name)
  * @return
  */
 static int start_hc_for_proxied_comp(SaAmfHandleT amf_hdl,
-									 const SaNameT *proxied_name)
+				     const SaNameT *proxied_name)
 {
-    SaAisErrorT rc;
-    SaAmfHealthcheckKeyT key1 = {"shallow", 7};
+	SaAisErrorT rc;
+	SaAmfHealthcheckKeyT key1 = {"shallow", 7};
 
-	syslog(LOG_INFO, "%s '%s'", __FUNCTION__, saAisNameBorrow(proxied_name));
+	syslog(LOG_INFO, "%s '%s'", __FUNCTION__,
+	       saAisNameBorrow(proxied_name));
 
-    rc = saAmfHealthcheckStart(amf_hdl, proxied_name, &key1,
-    		SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
-    if (rc != SA_AIS_OK) {
-    	syslog(LOG_ERR, "saAmfHealthcheckStart proxied FAILED - %u", rc);
-    	return -1;
-    }
+	rc = saAmfHealthcheckStart(amf_hdl, proxied_name, &key1,
+				   SA_AMF_HEALTHCHECK_AMF_INVOKED,
+				   SA_AMF_COMPONENT_RESTART);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfHealthcheckStart proxied FAILED - %u",
+		       rc);
+		return -1;
+	}
 
-    SaAmfHealthcheckKeyT key2 = {"deep", 4};
-    rc = saAmfHealthcheckStart(amf_hdl, proxied_name, &key2,
-    		SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
-    if (rc != SA_AIS_OK) {
-    	syslog(LOG_ERR, "saAmfHealthcheckStart proxied FAILED - %u", rc);
-    	return -1;
-    }
+	SaAmfHealthcheckKeyT key2 = {"deep", 4};
+	rc = saAmfHealthcheckStart(amf_hdl, proxied_name, &key2,
+				   SA_AMF_HEALTHCHECK_AMF_INVOKED,
+				   SA_AMF_COMPONENT_RESTART);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfHealthcheckStart proxied FAILED - %u",
+		       rc);
+		return -1;
+	}
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -205,27 +215,28 @@ static int start_hc_for_proxied_comp(SaAmfHandleT amf_hdl,
  * @return
  */
 static int stop_hc_for_proxied_comp(SaAmfHandleT amf_hdl,
-									const SaNameT *proxied_name)
+				    const SaNameT *proxied_name)
 {
-    SaAisErrorT rc;
-    SaAmfHealthcheckKeyT key1 = {"shallow", 7};
+	SaAisErrorT rc;
+	SaAmfHealthcheckKeyT key1 = {"shallow", 7};
 
-	syslog(LOG_INFO, "%s '%s'", __FUNCTION__, saAisNameBorrow(proxied_name));
+	syslog(LOG_INFO, "%s '%s'", __FUNCTION__,
+	       saAisNameBorrow(proxied_name));
 
-    rc = saAmfHealthcheckStop(amf_hdl, proxied_name, &key1);
-    if (rc != SA_AIS_OK) {
-    	syslog(LOG_ERR, "saAmfHealthcheckStop proxied FAILED - %u", rc);
-    	return -1;
-    }
+	rc = saAmfHealthcheckStop(amf_hdl, proxied_name, &key1);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfHealthcheckStop proxied FAILED - %u", rc);
+		return -1;
+	}
 
-    SaAmfHealthcheckKeyT key2 = {"deep", 4};
-    rc = saAmfHealthcheckStop(amf_hdl, proxied_name, &key2);
-    if (rc != SA_AIS_OK) {
-    	syslog(LOG_ERR, "saAmfHealthcheckStop proxied FAILED - %u", rc);
-    	return -1;
-    }
+	SaAmfHealthcheckKeyT key2 = {"deep", 4};
+	rc = saAmfHealthcheckStop(amf_hdl, proxied_name, &key2);
+	if (rc != SA_AIS_OK) {
+		syslog(LOG_ERR, "saAmfHealthcheckStop proxied FAILED - %u", rc);
+		return -1;
+	}
 
-    return 0;
+	return 0;
 }
 
 /**
@@ -236,35 +247,38 @@ static int stop_hc_for_proxied_comp(SaAmfHandleT amf_hdl,
  * @param csi_desc
  */
 static void proxy_csi_set_callback(SaInvocationT invocation,
-						   	       const SaNameT *comp_name,
-						   	       SaAmfHAStateT ha_state,
-						   	       SaAmfCSIDescriptorT csi_desc)
+				   const SaNameT *comp_name,
+				   SaAmfHAStateT ha_state,
+				   SaAmfCSIDescriptorT csi_desc)
 {
 	SaAisErrorT rc, error;
 	SaAmfCSIAttributeT *attr;
 	int i, status = 0;
 
 	if (csi_desc.csiFlags == SA_AMF_CSI_ADD_ONE) {
-		syslog(LOG_INFO, "%s: '%s' ADD '%s' HAState %s",
-			__FUNCTION__,
-			saAisNameBorrow(comp_name), saAisNameBorrow(&csi_desc.csiName), ha_state_name[ha_state]);
+		syslog(LOG_INFO, "%s: '%s' ADD '%s' HAState %s", __FUNCTION__,
+		       saAisNameBorrow(comp_name),
+		       saAisNameBorrow(&csi_desc.csiName),
+		       ha_state_name[ha_state]);
 
 		/* For debug log the CSI attributes, they could
 		** define the workload characteristics */
 		for (i = 0; i < csi_desc.csiAttr.number; i++) {
 			attr = &csi_desc.csiAttr.attr[i];
 			syslog(LOG_DEBUG, "\tname: %s, value: %s",
-				attr->attrName, attr->attrValue);
+			       attr->attrName, attr->attrValue);
 		}
 
 	} else if (csi_desc.csiFlags == SA_AMF_CSI_TARGET_ALL) {
-		syslog(LOG_INFO, "%s: '%s' CHANGE HAState to %s for all assigned CSIs",
-			__FUNCTION__,
-			saAisNameBorrow(comp_name), ha_state_name[ha_state]);
+		syslog(LOG_INFO,
+		       "%s: '%s' CHANGE HAState to %s for all assigned CSIs",
+		       __FUNCTION__, saAisNameBorrow(comp_name),
+		       ha_state_name[ha_state]);
 	} else {
 		syslog(LOG_INFO, "%s: '%s' CHANGE HAState to %s for '%s'",
-			__FUNCTION__,
-			saAisNameBorrow(comp_name), ha_state_name[ha_state], saAisNameBorrow(&csi_desc.csiName));
+		       __FUNCTION__, saAisNameBorrow(comp_name),
+		       ha_state_name[ha_state],
+		       saAisNameBorrow(&csi_desc.csiName));
 	}
 
 	switch (ha_state) {
@@ -303,9 +317,9 @@ static void proxy_csi_set_callback(SaInvocationT invocation,
  * @param csi_flags
  */
 static void proxy_csi_remove_callback(SaInvocationT invocation,
-									  const SaNameT *comp_name,
-									  const SaNameT *csi_name,
-									  SaAmfCSIFlagsT csi_flags)
+				      const SaNameT *comp_name,
+				      const SaNameT *csi_name,
+				      SaAmfCSIFlagsT csi_flags)
 {
 	syslog(LOG_INFO, "%s: '%s'", __FUNCTION__, saAisNameBorrow(comp_name));
 
@@ -318,24 +332,25 @@ static void proxy_csi_remove_callback(SaInvocationT invocation,
 
 /**
  * Checks health of proxy component
- * 
+ *
  * @param inv
  * @param comp_name
  * @param health_check_key
  */
 static void proxy_healthcheck_callback(SaInvocationT inv,
-									   const SaNameT *comp_name,
-									   SaAmfHealthcheckKeyT *key)
+				       const SaNameT *comp_name,
+				       SaAmfHealthcheckKeyT *key)
 {
 	SaAisErrorT rc;
 
-	syslog(LOG_DEBUG, "%s: '%s', key '%s'", __FUNCTION__, saAisNameBorrow(comp_name),
-		key->key);
+	syslog(LOG_DEBUG, "%s: '%s', key '%s'", __FUNCTION__,
+	       saAisNameBorrow(comp_name), key->key);
 
 	rc = saAmfResponse(proxy_amf_hdl, inv, SA_AIS_OK);
 
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "%s: saAmfResponse FAILED - %u", __FUNCTION__, rc);
+		syslog(LOG_ERR, "%s: saAmfResponse FAILED - %u", __FUNCTION__,
+		       rc);
 		exit(1);
 	}
 }
@@ -347,13 +362,15 @@ static void proxy_healthcheck_callback(SaInvocationT inv,
  * @param comp_name
  */
 static void proxy_terminate_callback(SaInvocationT inv,
-					  				 const SaNameT *comp_name)
+				     const SaNameT *comp_name)
 {
-	syslog(LOG_INFO, "componentTerminateCallback: '%s'", saAisNameBorrow(comp_name));
+	syslog(LOG_INFO, "componentTerminateCallback: '%s'",
+	       saAisNameBorrow(comp_name));
 
 	SaAisErrorT rc = saAmfResponse(proxy_amf_hdl, inv, SA_AIS_OK);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "%s saAmfResponse FAILED - %u", __FUNCTION__, rc);
+		syslog(LOG_ERR, "%s saAmfResponse FAILED - %u", __FUNCTION__,
+		       rc);
 		exit(1);
 	}
 
@@ -369,35 +386,38 @@ static void proxy_terminate_callback(SaInvocationT inv,
  * @param csi_desc
  */
 static void proxied_csi_set_callback(SaInvocationT invocation,
-					   	   	       const SaNameT *comp_name,
-						   	       SaAmfHAStateT ha_state,
-						   	       SaAmfCSIDescriptorT csi_desc)
+				     const SaNameT *comp_name,
+				     SaAmfHAStateT ha_state,
+				     SaAmfCSIDescriptorT csi_desc)
 {
 	SaAisErrorT rc, error;
 	SaAmfCSIAttributeT *attr;
 	int i, status = 0;
 
 	if (csi_desc.csiFlags == SA_AMF_CSI_ADD_ONE) {
-		syslog(LOG_INFO, "%s: '%s' ADD '%s' HAState %s",
-			__FUNCTION__,
-			saAisNameBorrow(comp_name), saAisNameBorrow(&csi_desc.csiName), ha_state_name[ha_state]);
+		syslog(LOG_INFO, "%s: '%s' ADD '%s' HAState %s", __FUNCTION__,
+		       saAisNameBorrow(comp_name),
+		       saAisNameBorrow(&csi_desc.csiName),
+		       ha_state_name[ha_state]);
 
 		/* For debug log the CSI attributes, they could
 		** define the workload characteristics */
 		for (i = 0; i < csi_desc.csiAttr.number; i++) {
 			attr = &csi_desc.csiAttr.attr[i];
 			syslog(LOG_DEBUG, "\tname: %s, value: %s",
-				attr->attrName, attr->attrValue);
+			       attr->attrName, attr->attrValue);
 		}
 
 	} else if (csi_desc.csiFlags == SA_AMF_CSI_TARGET_ALL) {
-		syslog(LOG_INFO, "%s: '%s' CHANGE HAState to %s for all assigned CSIs",
-			__FUNCTION__,
-			saAisNameBorrow(comp_name), ha_state_name[ha_state]);
+		syslog(LOG_INFO,
+		       "%s: '%s' CHANGE HAState to %s for all assigned CSIs",
+		       __FUNCTION__, saAisNameBorrow(comp_name),
+		       ha_state_name[ha_state]);
 	} else {
 		syslog(LOG_INFO, "%s: '%s' CHANGE HAState to %s for '%s'",
-			__FUNCTION__,
-			saAisNameBorrow(comp_name), ha_state_name[ha_state], saAisNameBorrow(&csi_desc.csiName));
+		       __FUNCTION__, saAisNameBorrow(comp_name),
+		       ha_state_name[ha_state],
+		       saAisNameBorrow(&csi_desc.csiName));
 	}
 
 	switch (ha_state) {
@@ -438,9 +458,9 @@ static void proxied_csi_set_callback(SaInvocationT invocation,
  * @param csi_flags
  */
 static void proxied_csi_remove_callback(SaInvocationT invocation,
-									  const SaNameT *comp_name,
-									  const SaNameT *csi_name,
-									  SaAmfCSIFlagsT csi_flags)
+					const SaNameT *comp_name,
+					const SaNameT *csi_name,
+					SaAmfCSIFlagsT csi_flags)
 {
 	syslog(LOG_INFO, "%s: '%s'", __FUNCTION__, saAisNameBorrow(comp_name));
 
@@ -462,13 +482,13 @@ static void proxied_csi_remove_callback(SaInvocationT invocation,
  * @param health_check_key
  */
 static void proxied_healthcheck_callback(SaInvocationT inv,
-									   const SaNameT *comp_name,
-									   SaAmfHealthcheckKeyT *key)
+					 const SaNameT *comp_name,
+					 SaAmfHealthcheckKeyT *key)
 {
 	SaAisErrorT rc;
 
-	syslog(LOG_DEBUG, "%s: '%s', key '%s'", __FUNCTION__, saAisNameBorrow(comp_name),
-		key->key);
+	syslog(LOG_DEBUG, "%s: '%s', key '%s'", __FUNCTION__,
+	       saAisNameBorrow(comp_name), key->key);
 
 	/*
 	 * check health of proxied component and report found errors using
@@ -486,17 +506,16 @@ static void proxied_healthcheck_callback(SaInvocationT inv,
 	}
 }
 
-static void proxied_component_instantiate_callback(
-		SaInvocationT invocation,
-		const SaNameT *proxiedCompName)
+static void
+proxied_component_instantiate_callback(SaInvocationT invocation,
+				       const SaNameT *proxiedCompName)
 {
 	// proxied comp is non pre instantiable, should not get here
 	syslog(LOG_ERR, "proxied_component_instantiate_callback - npi comp");
 }
 
-static void proxied_component_cleanup_callback(
-    SaInvocationT invocation,
-    const SaNameT *proxiedCompName)
+static void proxied_component_cleanup_callback(SaInvocationT invocation,
+					       const SaNameT *proxiedCompName)
 {
 	// proxied comp is non pre instantiable, should not get here
 	syslog(LOG_ERR, "proxied_component_cleanup_callback - npi comp");
@@ -504,12 +523,12 @@ static void proxied_component_cleanup_callback(
 
 /**
  * Terminates proxied component
- * 
+ *
  * @param inv
  * @param comp_name
  */
 static void proxied_terminate_callback(SaInvocationT inv,
-					  				 const SaNameT *comp_name)
+				       const SaNameT *comp_name)
 {
 	syslog(LOG_INFO, "%s: '%s'", __FUNCTION__, saAisNameBorrow(comp_name));
 
@@ -522,7 +541,7 @@ static void proxied_terminate_callback(SaInvocationT inv,
 
 /**
  * Creates PID file
- * 
+ *
  * @param directory
  * @param filename_prefix
  */
@@ -534,7 +553,7 @@ static void create_pid_file(const char *directory, const char *filename_prefix)
 	snprintf(path, sizeof(path), "%s/%s.pid", directory, filename_prefix);
 
 	fp = fopen(path, "w");
-	if (fp == NULL)	{
+	if (fp == NULL) {
 		syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -556,20 +575,22 @@ static void sigterm_handler(int sig)
 /**
  * Initializes proxy with AMF
  * @param amf_sel_obj [out]
- * 
+ *
  * @return SaAisErrorT
  */
 static SaAisErrorT proxy_amf_initialize(SaSelectionObjectT *amf_sel_obj)
 {
 	SaAisErrorT rc;
 	SaAmfCallbacksT amf_callbacks = {0};
-	SaVersionT api_ver =
-		{.releaseCode = 'B', api_ver.majorVersion = 0x01, api_ver.minorVersion = 0x01};
+	SaVersionT api_ver = {.releaseCode = 'B',
+			      api_ver.majorVersion = 0x01,
+			      api_ver.minorVersion = 0x01};
 
 	amf_callbacks.saAmfCSISetCallback = proxy_csi_set_callback;
 	amf_callbacks.saAmfCSIRemoveCallback = proxy_csi_remove_callback;
 	amf_callbacks.saAmfHealthcheckCallback = proxy_healthcheck_callback;
-	amf_callbacks.saAmfComponentTerminateCallback = proxy_terminate_callback;
+	amf_callbacks.saAmfComponentTerminateCallback =
+	    proxy_terminate_callback;
 
 	rc = saAmfInitialize(&proxy_amf_hdl, &amf_callbacks, &api_ver);
 	if (rc != SA_AIS_OK) {
@@ -595,8 +616,9 @@ static SaAisErrorT proxy_amf_initialize(SaSelectionObjectT *amf_sel_obj)
 		goto done;
 	}
 
-	rc = saAmfHealthcheckStart(proxy_amf_hdl, &proxy_comp_name, &proxy_healthcheck_key,
-		SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+	rc = saAmfHealthcheckStart(
+	    proxy_amf_hdl, &proxy_comp_name, &proxy_healthcheck_key,
+	    SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
 	if (rc != SA_AIS_OK) {
 		syslog(LOG_ERR, "saAmfHealthcheckStart proxy FAILED - %u", rc);
 		goto done;
@@ -614,17 +636,19 @@ static SaAisErrorT proxied_amf_initialize(SaSelectionObjectT *amf_sel_obj)
 {
 	SaAisErrorT rc;
 	SaAmfCallbacksT amf_callbacks = {0};
-	SaVersionT api_ver =
-		{.releaseCode = 'B', api_ver.majorVersion = 0x01, api_ver.minorVersion = 0x01};
+	SaVersionT api_ver = {.releaseCode = 'B',
+			      api_ver.majorVersion = 0x01,
+			      api_ver.minorVersion = 0x01};
 
 	amf_callbacks.saAmfCSISetCallback = proxied_csi_set_callback;
 	amf_callbacks.saAmfCSIRemoveCallback = proxied_csi_remove_callback;
 	amf_callbacks.saAmfHealthcheckCallback = proxied_healthcheck_callback;
-	amf_callbacks.saAmfComponentTerminateCallback = proxied_terminate_callback;
+	amf_callbacks.saAmfComponentTerminateCallback =
+	    proxied_terminate_callback;
 	amf_callbacks.saAmfProxiedComponentInstantiateCallback =
-		proxied_component_instantiate_callback;
+	    proxied_component_instantiate_callback;
 	amf_callbacks.saAmfProxiedComponentCleanupCallback =
-		proxied_component_cleanup_callback;
+	    proxied_component_cleanup_callback;
 
 	rc = saAmfInitialize(&proxied_amf_hdl, &amf_callbacks, &api_ver);
 	if (rc != SA_AIS_OK) {
@@ -634,7 +658,8 @@ static SaAisErrorT proxied_amf_initialize(SaSelectionObjectT *amf_sel_obj)
 
 	rc = saAmfSelectionObjectGet(proxied_amf_hdl, amf_sel_obj);
 	if (rc != SA_AIS_OK) {
-		syslog(LOG_ERR, "saAmfSelectionObjectGet proxied FAILED %u", rc);
+		syslog(LOG_ERR, "saAmfSelectionObjectGet proxied FAILED %u",
+		       rc);
 		goto done;
 	}
 
@@ -642,14 +667,16 @@ done:
 	return rc;
 }
 
-static int getMD5Code(const char *str, char *md5_sum) {
+static int getMD5Code(const char *str, char *md5_sum)
+{
 	char cmd[2048];
 	FILE *pipe;
 	int i, ch;
 
 	sprintf(cmd, "echo %s | md5sum | awk '{print $1}' 2>/dev/null", str);
 	pipe = popen(cmd, "r");
-	if (pipe == NULL) return 0;
+	if (pipe == NULL)
+		return 0;
 
 	for (i = 0; i < MD5_LEN && isxdigit(ch = fgetc(pipe)); i++) {
 		*md5_sum++ = ch;
@@ -669,7 +696,8 @@ int main(int argc, char **argv)
 	char *env_comp_name;
 	char md5[MD5_LEN + 1];
 
-	/* Environment variable "SA_AMF_COMPONENT_NAME" exist when started by AMF */
+	/* Environment variable "SA_AMF_COMPONENT_NAME" exist when started by
+	 * AMF */
 	if ((env_comp_name = getenv("SA_AMF_COMPONENT_NAME")) == NULL) {
 		fprintf(stderr, "not started by AMF exiting...\n");
 		exit(EXIT_FAILURE);
@@ -684,7 +712,8 @@ int main(int argc, char **argv)
 		goto done;
 	}
 
-	/* Install a TERM handler just to log and visualize when cleanup is called */
+	/* Install a TERM handler just to log and visualize when cleanup is
+	 * called */
 	if ((signal(SIGTERM, sigterm_handler)) == SIG_ERR) {
 		syslog(LOG_ERR, "signal TERM failed: %s", strerror(errno));
 		goto done;
@@ -694,17 +723,19 @@ int main(int argc, char **argv)
 	** Use AMF component name as file name so multiple instances of this
 	** component can be managed by the same script.
 	*/
-	//create_pid_file("/tmp", env_comp_name);
-	// This is a temporary solution to overcome the limit of linux in filename length (255)
-	//create_pid_file("/tmp", env_comp_name);
+	// create_pid_file("/tmp", env_comp_name);
+	// This is a temporary solution to overcome the limit of linux in
+	// filename length (255)
+	// create_pid_file("/tmp", env_comp_name);
 	if (!getMD5Code(env_comp_name, md5)) {
-		syslog(LOG_ERR, "failed to get the hash code of comp: %s", env_comp_name);
+		syslog(LOG_ERR, "failed to get the hash code of comp: %s",
+		       env_comp_name);
 		goto done;
 	}
 	create_pid_file("/tmp", md5);
 
 	// Enable long DN
-	if(setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
+	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1)) {
 		syslog(LOG_ERR, "failed to set SA_ENABLE_EXTENDED_NAMES");
 	}
 
@@ -735,7 +766,8 @@ int main(int argc, char **argv)
 			if (errno == EINTR)
 				continue;
 			else {
-				syslog(LOG_ERR, "poll FAILED - %s", strerror(errno));
+				syslog(LOG_ERR, "poll FAILED - %s",
+				       strerror(errno));
 				goto done;
 			}
 		}

@@ -34,12 +34,14 @@
   sysf_ditto_pkt....................Duplicate a USRBUF chain
   sysf_get_chain_len................Calculate the data length of a bufr-chain
   sysf_reserve_at_end...............Append data space to a bufr-chain.
-  sysf_remove_from_end..............Remove bytes (freeing buffers if nec.) from end of bufr-chain
-  sysf_reserve_at_start.............Prepend data space to a bufr-chain.
-  sysf_remove_from_start............Remove bytes (freeing buffers if nec.) from start of bufr-chain
-  sysf_data_at_end..................Calculate pointer to contiguous data at end of buffer chain
-  sysf_data_at_start................Calculate pointer to contiguous data at start of buffer chain
-  sysf_calc_usrbuf_cksum_1s_comp....Calculates the checksum value of a USRBUF and stores it in a given variable
+  sysf_remove_from_end..............Remove bytes (freeing buffers if nec.) from
+end of bufr-chain sysf_reserve_at_start.............Prepend data space to a
+bufr-chain. sysf_remove_from_start............Remove bytes (freeing buffers if
+nec.) from start of bufr-chain sysf_data_at_end..................Calculate
+pointer to contiguous data at end of buffer chain
+  sysf_data_at_start................Calculate pointer to contiguous data at
+start of buffer chain sysf_calc_usrbuf_cksum_1s_comp....Calculates the checksum
+value of a USRBUF and stores it in a given variable
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 
@@ -52,7 +54,6 @@
 #include "base/usrbuf.h"
 #include "base/ncsusrbuf.h"
 
-
 /*************************************************************************************/
 
 /*
@@ -61,10 +62,10 @@
  * PRIORITY: urgency of need for requested memory;
  * POOL_ID : where the memory is to come from. Pools will probably
  *           reflect different needs by different Messaging services.
- * 
+ *
  * IMPLEMENTATION
  *
- * This NetPlane implementation does not do anything meaningful with 
+ * This NetPlane implementation does not do anything meaningful with
  * the priority. The pool_id is used to dispatch to different memory
  * sources. Note however that most NetPlane subsystems do not care and
  * default to pool_id == 0, which maps to heap (a la sysfpool.c).
@@ -78,12 +79,12 @@
  *   la sysfpool.c).
  * - Once a USRBUF is created, all subsequent chained USRBUFs (that is,
  *   USRDATAs) will come from the same pool_id.
- * - Once a USRBUF is created of any priority, all subsequent 
+ * - Once a USRBUF is created of any priority, all subsequent
  *   chained USRBUFs will be allocated at HIGH priority. That is,
  *   once a USRBUF transaction is started, the system is committed
  *   to following through by providing all subsequent needed system
  *   resources.
- * 
+ *
  * LEAP documentation has an Application note that reviews issues
  * associated with such a target system strategy. This implementation
  * is slightly different than that depicted in that application note.
@@ -103,13 +104,14 @@
 
 void *sysf_leap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 {
-	(void) pool_id; (void) pri;
+	(void)pool_id;
+	(void)pri;
 	return malloc(b);
 }
 
 void sysf_leap_free(void *data, uint8_t pool_id)
 {
-	(void) pool_id;
+	(void)pool_id;
 	free(data);
 }
 
@@ -121,13 +123,14 @@ void sysf_leap_free(void *data, uint8_t pool_id)
 
 void *sysf_heap_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 {
-	(void) pool_id; (void) pri;
+	(void)pool_id;
+	(void)pri;
 	return malloc(b);
 }
 
 void sysf_heap_free(void *data, uint8_t pool_id)
 {
-	(void) pool_id;
+	(void)pool_id;
 	free(data);
 }
 
@@ -143,72 +146,73 @@ void *sysf_stub_alloc(uint32_t b, uint8_t pool_id, uint8_t pri)
 	return NULL;
 }
 
-void sysf_stub_free(void *data, uint8_t pool_id)
-{
-	m_LEAP_DBG_SINK_VOID;
-}
+void sysf_stub_free(void *data, uint8_t pool_id) { m_LEAP_DBG_SINK_VOID; }
 
 /***************************************************************************
- * GLOBAL gl_ub_pool_mgr set to default for pool 0 for backward 
+ * GLOBAL gl_ub_pool_mgr set to default for pool 0 for backward
  *        compatability, since NetPlane init sequences do not invoke
  *        NCS_MMGR_OSS_LM_OP_INIT.
  ***************************************************************************/
 
 UB_POOL_MGR gl_ub_pool_mgr = {
-/*--------+---------------+----------------+----------------*/
-/*   busy |  pool_id      |   alloc func   |   free func    */
-/*--------+---------------+----------------+----------------*/
+    /*--------+---------------+----------------+----------------*/
+    /*   busy |  pool_id      |   alloc func   |   free func    */
+    /*--------+---------------+----------------+----------------*/
+    {
+	/* Pool-id 0 */
 	{
-	 /* Pool-id 0 */
-	 {true, NCSUB_LEAP_POOL, sysf_leap_alloc, sysf_leap_free, 0, 0,
-	  },
-	 /* Pool-id 1 */
-	 {true, NCSUB_HEAP_POOL, sysf_heap_alloc, sysf_heap_free, 0, 0,
-	  },
-	 /* Pool-id 2 */
-	 {true, NCSUB_UDEF_POOL, ncs_os_udef_alloc, ncs_os_udef_free, 0, 0,
-	  },
-	 /* Pool-id 3 : FOR MDS : PM-23/Jan/2005
-	    Header break up for fragmented MDS messages - 
+	    true, NCSUB_LEAP_POOL, sysf_leap_alloc, sysf_leap_free, 0, 0,
+	},
+	/* Pool-id 1 */
+	{
+	    true, NCSUB_HEAP_POOL, sysf_heap_alloc, sysf_heap_free, 0, 0,
+	},
+	/* Pool-id 2 */
+	{
+	    true, NCSUB_UDEF_POOL, ncs_os_udef_alloc, ncs_os_udef_free, 0, 0,
+	},
+/* Pool-id 3 : FOR MDS : PM-23/Jan/2005
+   Header break up for fragmented MDS messages -
 
-	    +--------------------+
-	    | ETH-HEADER = 14    |
-	    +--------------------+
-	    | FRAME-LEN  = 2     |   => Since ETHERNET FRAME has min 64 byte len
-	    +--------------------+
-	    | LOOP-BACK  = 4     |   => To find and discard looped back messages
-	    +--------------------+
-	    | RCP-SIGN   = 4     |   => RCP packet signature to eliminate alien packets
-	    +--------------------+
-	    | MDS-PROT   = 1     |
-	    +--------------------+
-	    | MDS-TYPE   = 1     |
-	    +--------------------+
-	    | FINAL-ADEST= 8     |
-	    +--------------------+
-	    | FROM-ADEST = 8     |
-	    +--------------------+
-	    | FRAG-NUM   = 4     |
-	    +--------------------+
-	    | MORE-FLAG  = 1     |
-	    +--------------------+
+   +--------------------+
+   | ETH-HEADER = 14    |
+   +--------------------+
+   | FRAME-LEN  = 2     |   => Since ETHERNET FRAME has min 64 byte len
+   +--------------------+
+   | LOOP-BACK  = 4     |   => To find and discard looped back messages
+   +--------------------+
+   | RCP-SIGN   = 4     |   => RCP packet signature to eliminate alien packets
+   +--------------------+
+   | MDS-PROT   = 1     |
+   +--------------------+
+   | MDS-TYPE   = 1     |
+   +--------------------+
+   | FINAL-ADEST= 8     |
+   +--------------------+
+   | FROM-ADEST = 8     |
+   +--------------------+
+   | FRAG-NUM   = 4     |
+   +--------------------+
+   | MORE-FLAG  = 1     |
+   +--------------------+
 
-	    So using a value of 50
+   So using a value of 50
 
-	    Trailer break up - RCP Header = 8 bytes (I think)
+   Trailer break up - RCP Header = 8 bytes (I think)
 
-	    So using a value of 25
-	  */
+   So using a value of 25
+ */
 #define MDS_UB_HDR_MAX 50
 #define MDS_UB_TRLR_MAX 25
 
-	 {true, NCSUB_MDS_POOL, sysf_leap_alloc, sysf_leap_free, MDS_UB_HDR_MAX, MDS_UB_TRLR_MAX,
+	{
+	    true, NCSUB_MDS_POOL, sysf_leap_alloc, sysf_leap_free,
+	    MDS_UB_HDR_MAX, MDS_UB_TRLR_MAX,
 
-	  },
-	 /* Pool-id 4 */
-	 {false, 0, sysf_stub_alloc, sysf_stub_free, 0, 0},
-	 }
-};
+	},
+	/* Pool-id 4 */
+	{false, 0, sysf_stub_alloc, sysf_stub_free, 0, 0},
+    }};
 
 /***************************************************************************
  *
@@ -254,7 +258,7 @@ static uint32_t mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
  * uint32_t mmgr_ub_svc_delete
  *
  * Description:
- *   Free up all USRBUF Pool Manager resources, being the lock in this 
+ *   Free up all USRBUF Pool Manager resources, being the lock in this
  *   implementation.
  *
  * Returns:
@@ -395,11 +399,12 @@ uint32_t ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg)
 
 NCSUB_POOL *ncsmmgr_ub_getpool(uint8_t pool_id)
 {
-	NCSUB_POOL *answer = NULL;	/* init to default 'bad' answer */
+	NCSUB_POOL *answer = NULL; /* init to default 'bad' answer */
 	m_PMGR_LK_INIT;
 
 	m_PMGR_LK(&gl_ub_pool_mgr.lock);
-	if ((pool_id < UB_MAX_POOLS) && (gl_ub_pool_mgr.pools[pool_id].busy == true))
+	if ((pool_id < UB_MAX_POOLS) &&
+	    (gl_ub_pool_mgr.pools[pool_id].busy == true))
 		answer = &gl_ub_pool_mgr.pools[pool_id];
 	else
 		m_LEAP_DBG_SINK_VOID;
@@ -411,16 +416,19 @@ NCSUB_POOL *ncsmmgr_ub_getpool(uint8_t pool_id)
 /***********************************************************************/
 
 /***************************************************************************
- *  sysf_alloc_pkt  
+ *  sysf_alloc_pkt
  ****************************************************************************/
-USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, unsigned int line, char *file)
+USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num,
+		       unsigned int line, char *file)
 {
 
 	USRBUF *ub;
 	USRDATA *ud;
 	m_PMGR_LK_INIT;
 
-	ub = (USRBUF *)m_NCS_MEM_ALLOC(sizeof(USRBUF), NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2);
+	ub = (USRBUF *)m_NCS_MEM_ALLOC(sizeof(USRBUF),
+				       NCS_MEM_REGION_IO_DATA_HDR,
+				       NCS_SERVICE_ID_OS_SVCS, 2);
 
 	if (ub != (USRBUF *)0) {
 		m_PMGR_LK(&gl_ub_pool_mgr.lock);
@@ -430,10 +438,12 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 			m_LEAP_DBG_SINK_VOID;
 			return NULL;
 		}
-		ud = (USRDATA *)gl_ub_pool_mgr.pools[pool_id].mem_alloc(sizeof(USRDATA), pool_id, priority);
+		ud = (USRDATA *)gl_ub_pool_mgr.pools[pool_id].mem_alloc(
+		    sizeof(USRDATA), pool_id, priority);
 
 		if (ud == (USRDATA *)NULL) {
-			m_NCS_MEM_FREE(ub, NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2);
+			m_NCS_MEM_FREE(ub, NCS_MEM_REGION_IO_DATA_HDR,
+				       NCS_SERVICE_ID_OS_SVCS, 2);
 			ub = (USRBUF *)0;
 			m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
 		} else {
@@ -452,7 +462,6 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 		}
 	}
 	return ub;
-
 }
 
 /***************************************************************************
@@ -466,13 +475,13 @@ void sysf_free_pkt(USRBUF *ub)
 	if (ub != 0) {
 		uint8_t pool_id = ub->pool_ops->pool_id;
 		USRDATA *ud = ub->payload;
-		m_NCS_MEM_FREE(ub, NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2);
+		m_NCS_MEM_FREE(ub, NCS_MEM_REGION_IO_DATA_HDR,
+			       NCS_SERVICE_ID_OS_SVCS, 2);
 		if (--(ud->RefCnt) == 0) {
 			m_PMGR_LK(&gl_ub_pool_mgr.lock);
 
 			gl_ub_pool_mgr.pools[pool_id].mem_free(ud, pool_id);
 			m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
-
 		}
 	}
 }
@@ -494,12 +503,13 @@ USRBUF *sysf_ditto_pkt(USRBUF *dup_me)
 	ubp = &ub_head;
 
 	/* March thru the USRBUF chain, duplicating the USRBUFs and
-	 * pointing to the same data area. 
+	 * pointing to the same data area.
 	 */
 
 	while (dup_me != BNULL) {
-		*ubp = (ub = (USRBUF *)m_NCS_MEM_ALLOC(sizeof(USRBUF),
-						       NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2));
+		*ubp = (ub = (USRBUF *)m_NCS_MEM_ALLOC(
+			    sizeof(USRBUF), NCS_MEM_REGION_IO_DATA_HDR,
+			    NCS_SERVICE_ID_OS_SVCS, 2));
 
 		if (ub == BNULL) {
 			m_MMGR_FREE_BUFR_LIST(ub_head);
@@ -507,8 +517,8 @@ USRBUF *sysf_ditto_pkt(USRBUF *dup_me)
 			break;
 		}
 
-		*ub = *dup_me;	/* copy buffer header... */
-		ub->next = BNULL;	/* ...except link pointers. */
+		*ub = *dup_me;    /* copy buffer header... */
+		ub->next = BNULL; /* ...except link pointers. */
 		ub->link = BNULL;
 
 		/* When using newer usrbuf macros, we can share data. */
@@ -516,14 +526,14 @@ USRBUF *sysf_ditto_pkt(USRBUF *dup_me)
 		   we'd know if we need to copy...
 		 */
 
-		ub->payload->RefCnt++;	/* one more usrbuf referencing the data */
+		ub->payload
+		    ->RefCnt++; /* one more usrbuf referencing the data */
 
 		ubp = &ub->link;
-		dup_me = dup_me->link;	/* on to next USRBUF... */
+		dup_me = dup_me->link; /* on to next USRBUF... */
 	}
 
 	return (ub_head);
-
 }
 
 /***************************************************************************
@@ -544,34 +554,37 @@ USRBUF *sysf_copy_pkt(USRBUF *dup_me)
 	ubp = &ub_head;
 
 	/* March thru the USRBUF chain, duplicating the USRBUFs and
-	 * the data area. 
+	 * the data area.
 	 */
 
 	while (dup_me != BNULL) {
 		/* NOTE: We know the pool_id; The priority is fixed to 0. A real
-		 * implementation that cares would alter the priority to suit its
-		 * system policies.
+		 * implementation that cares would alter the priority to suit
+		 * its system policies.
 		 */
 
-		*ubp = (ub = (USRBUF *)m_MMGR_ALLOC_POOLBUFR(dup_me->pool_ops->pool_id, NCSMEM_HI_PRI));
+		*ubp = (ub = (USRBUF *)m_MMGR_ALLOC_POOLBUFR(
+			    dup_me->pool_ops->pool_id, NCSMEM_HI_PRI));
 
 		if (ub == BNULL) {
 			m_MMGR_FREE_BUFR_LIST(ub_head);
 			ub_head = BNULL;
 			break;
 		}
-		payload = ub->payload;	/* preserve payload through next statement */
-		*ub = *dup_me;	/* copy buffer header... */
-		ub->next = BNULL;	/* ...except link pointers. */
+		payload =
+		    ub->payload;  /* preserve payload through next statement */
+		*ub = *dup_me;    /* copy buffer header... */
+		ub->next = BNULL; /* ...except link pointers. */
 		ub->link = BNULL;
 		/* restore preserved payload ptr. and copy data into it */
 		ub->payload = payload;
 
-		memcpy(ub->payload->Data, dup_me->payload->Data, PAYLOAD_BUF_SIZE);
+		memcpy(ub->payload->Data, dup_me->payload->Data,
+		       PAYLOAD_BUF_SIZE);
 
 		/* setup link pointers */
 		ubp = &ub->link;
-		dup_me = dup_me->link;	/* on to next USRBUF... */
+		dup_me = dup_me->link; /* on to next USRBUF... */
 	}
 
 	return (ub_head);
@@ -595,14 +608,15 @@ uint32_t sysf_get_chain_len(const USRBUF *my_len)
 /***************************************************************************
  * Procedure: sysf_calc_usrbuf_cksum_1s_comp()
  *
- * Does in-place checksumming of packet. 
+ * Does in-place checksumming of packet.
  * Inputs:  USRBUF*:  ptr to the entire packet
  *          Len    :  packet length
  *          Cksum* :  where to put the checksum, if successful.
  *
  * Returns: void
  ***************************************************************************/
-void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16_t *const pCksum)
+void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen,
+				    uint16_t *const pCksum)
 {
 	uint32_t Cksum32 = 0;
 	int bufLen = 0;
@@ -620,22 +634,40 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 		uint32_t l;
 	} l_util;
 
-#define ADDCARRY(x) ((x)>65535?(x)-=65535:(x))
-#define REDUCE   {l_util.l = Cksum32; Cksum32 = l_util.s[0] + l_util.s[1]; ADDCARRY(Cksum32);}
+#define ADDCARRY(x) ((x) > 65535 ? (x) -= 65535 : (x))
+#define REDUCE                                                                 \
+	{                                                                      \
+		l_util.l = Cksum32;                                            \
+		Cksum32 = l_util.s[0] + l_util.s[1];                           \
+		ADDCARRY(Cksum32);                                             \
+	}
 
-#if (USE_LITTLE_ENDIAN==1)
-#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16) (*pDest16 = (uint16_t)((!flag)?m_NCS_OS_NTOHS_P((uint8_t*)(val)):(*val)))
-#define m_ROTATE_BYTES(num) ((num & 0x0000ff00)>>8)|((num & 0x000000ff)<<8)
+#if (USE_LITTLE_ENDIAN == 1)
+#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16)                     \
+	(*pDest16 = (uint16_t)((!flag) ? m_NCS_OS_NTOHS_P((uint8_t *)(val))    \
+				       : (*val)))
+#define m_ROTATE_BYTES(num)                                                    \
+	((num & 0x0000ff00) >> 8) | ((num & 0x000000ff) << 8)
 #else
-#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16) ({if(flag){m_NCS_OS_HTONS_P((uint8_t*)pDest16, (uint16_t)(*val));}else{((*pDest16) = (*val));}})
-#define m_ROTATE_BYTES(num)  (num)
+#define m_ODD_BYTE_BOUNDARY_CONVERTION(flag, val, pDest16)                     \
+	({                                                                     \
+		if (flag) {                                                    \
+			m_NCS_OS_HTONS_P((uint8_t *)pDest16,                   \
+					 (uint16_t)(*val));                    \
+		} else {                                                       \
+			((*pDest16) = (*val));                                 \
+		}                                                              \
+	})
+#define m_ROTATE_BYTES(num) (num)
 #endif
 
 	s_util.s = (uint16_t)0;
 
-	/* Do computation of check sum on cumulative of each link in the usrbuf chain */
+	/* Do computation of check sum on cumulative of each link in the usrbuf
+	 * chain */
 	for (; pUBuf && PktLen; pUBuf = pUBuf->link) {
-		/* Is there no data in this link, just continue to the next one */
+		/* Is there no data in this link, just continue to the next one
+		 */
 		if (pUBuf->count == 0)
 			continue;
 
@@ -647,12 +679,14 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 		/* Last loop did we have data stradling more than one usrbuf? */
 		if (bufLen == -1) {
 			/* The first byte of this buffer is a continuation of
-			 * word spanning between this buffer and the last 
-			 * NOTE: s_util.c[0] holds the first portion from the last buffer
+			 * word spanning between this buffer and the last
+			 * NOTE: s_util.c[0] holds the first portion from the
+			 * last buffer
 			 */
 			s_util.c[1] = *(uint8_t *)p_operand;
 
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary,
+						       &s_util.s, &work_var);
 			Cksum32 += (uint32_t)work_var;
 			p_operand = (uint16_t *)((uint8_t *)p_operand + 1);
 			bufLen = pUBuf->count - 1;
@@ -668,9 +702,9 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 		/* Update the packet processed length */
 		PktLen -= bufLen;
 
-		/* FORCE AN EVEN BYTE BOUNDARY : Done for machines 
-		 * that can only access memory on an even addresses 
-		 * boundary 
+		/* FORCE AN EVEN BYTE BOUNDARY : Done for machines
+		 * that can only access memory on an even addresses
+		 * boundary
 		 */
 		if ((1 & (long)(p_operand)) && (bufLen > 0)) {
 			REDUCE;
@@ -683,37 +717,53 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 
 		/* Unroll the loop to make the overhead less */
 		while ((bufLen -= 32) >= 0) {
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[0], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[0], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[1], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[1], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[2], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[2], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[3], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[3], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[4], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[4], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[5], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[5], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[6], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[6], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[7], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[7], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[8], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[8], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[9], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[9], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[10], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[10], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[11], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[11], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[12], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[12], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[13], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[13], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[14], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[14], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[15], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[15], &work_var);
 			Cksum32 += (uint32_t)work_var;
 
 			p_operand += 16;
@@ -721,13 +771,17 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 		bufLen += 32;
 
 		while ((bufLen -= 8) >= 0) {
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[0], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[0], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[1], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[1], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[2], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[2], &work_var);
 			Cksum32 += (uint32_t)work_var;
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[3], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[3], &work_var);
 			Cksum32 += (uint32_t)work_var;
 			p_operand += 4;
 		}
@@ -738,7 +792,8 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 
 		REDUCE;
 		while ((bufLen -= 2) >= 0) {
-			m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &p_operand[0], &work_var);
+			m_ODD_BYTE_BOUNDARY_CONVERTION(
+			    is_odd_boundary, &p_operand[0], &work_var);
 			Cksum32 += (uint32_t)work_var;
 			p_operand += 1;
 		}
@@ -749,7 +804,8 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 			byte_swapped = false;
 			if (bufLen == -1) {
 				s_util.c[1] = *(uint8_t *)p_operand;
-				m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
+				m_ODD_BYTE_BOUNDARY_CONVERTION(
+				    is_odd_boundary, &s_util.s, &work_var);
 				Cksum32 += (uint32_t)work_var;
 				bufLen = 0;
 			} else
@@ -763,7 +819,8 @@ void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uint16
 
 	if (bufLen == -1) {
 		s_util.c[1] = 0;
-		m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s, &work_var);
+		m_ODD_BYTE_BOUNDARY_CONVERTION(is_odd_boundary, &s_util.s,
+					       &work_var);
 		Cksum32 += (uint32_t)work_var;
 	}
 
@@ -796,8 +853,9 @@ char *sysf_reserve_at_end(USRBUF **ppb, unsigned int i_size)
  *  sysf_reserve_at_end_amap
  ****************************************************************************/
 
-char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
-			       bool total /* Whether total allocation is strictly required */ )
+char *sysf_reserve_at_end_amap(
+    USRBUF **ppb, unsigned int *io_size,
+    bool total /* Whether total allocation is strictly required */)
 {
 	USRBUF *ub;
 	char *pContiguousData;
@@ -808,25 +866,28 @@ char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
 	ub = *ppb;
 
 	while (ub->link != (USRBUF *)0) {
-		ub = ub->link;	/* advance to the last one, if nec. */
-		*ppb = ub;	/* tell the caller... */
+		ub = ub->link; /* advance to the last one, if nec. */
+		*ppb = ub;     /* tell the caller... */
 	}
 	ub_trlr_rsrv = gl_ub_pool_mgr.pools[ub->pool_ops->pool_id].trlr_reserve;
 
 	/* Determine the minimum bytes that need to be reserved in the least */
 	min_rsrv = (int32_t)(total ? *io_size : 1);
-	space_left = sizeof(ub->payload->Data) - (ub_trlr_rsrv + ub->start + ub->count);
+	space_left =
+	    sizeof(ub->payload->Data) - (ub_trlr_rsrv + ub->start + ub->count);
 
 	/* Partial reservation is ok */
 	if ((ub->payload->RefCnt > 1) || (space_left < min_rsrv)) {
 		/* Need to get one more! */
 
-		ub = (*ppb = (ub->link = m_MMGR_ALLOC_POOLBUFR(ub->pool_ops->pool_id, NCSMEM_HI_PRI)));
+		ub = (*ppb = (ub->link = m_MMGR_ALLOC_POOLBUFR(
+				  ub->pool_ops->pool_id, NCSMEM_HI_PRI)));
 
 		if (ub == (USRBUF *)0) {
 			return NULL;
 		}
-		space_left = sizeof(ub->payload->Data) - (ub_trlr_rsrv + ub->start + ub->count);
+		space_left = sizeof(ub->payload->Data) -
+			     (ub_trlr_rsrv + ub->start + ub->count);
 	}
 
 	if (space_left < (int32_t)*io_size) {
@@ -840,7 +901,7 @@ char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
 
 	/* We now know that there's some room in 'ub'. */
 	pContiguousData = ub->payload->Data + ub->start + ub->count;
-	ub->count += *io_size;	/* Reserve the room in the data buffer. */
+	ub->count += *io_size; /* Reserve the room in the data buffer. */
 
 	return pContiguousData;
 }
@@ -857,7 +918,7 @@ void sysf_remove_from_end(USRBUF *pb, unsigned int size)
 		while ((size > 0) && (sysf_get_chain_len(pb))) {
 
 			/* Find the last one in the chain. */
-			USRBUF** pub = (USRBUF**) NULL;
+			USRBUF **pub = (USRBUF **)NULL;
 			ub = pb;
 
 			while (ub->link != (USRBUF *)0) {
@@ -866,16 +927,17 @@ void sysf_remove_from_end(USRBUF *pb, unsigned int size)
 
 			unsigned buflen = ub->count;
 			if (buflen > size) {
-				/* We can do the unappand without freeing any buffers. */
+				/* We can do the unappand without freeing any
+				 * buffers. */
 				ub->count -= size;
 				break;
 			}
 			size -= buflen;
 			ub->count = 0;
 
-			if (pub != (USRBUF **)0) {	/* Was there a previous? */
-				*pub = (USRBUF *)0;	/* de-link this one... */
-				sysf_free_pkt(ub);	/* And free it. */
+			if (pub != (USRBUF **)0) {  /* Was there a previous? */
+				*pub = (USRBUF *)0; /* de-link this one... */
+				sysf_free_pkt(ub);  /* And free it. */
 			}
 		}
 	}
@@ -894,40 +956,40 @@ char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size)
 
 	if ((ub->payload->RefCnt > 1) || (ub->start < size)) {
 		/* We must prepend a USRBUF to the one passed. */
-		ub = m_MMGR_ALLOC_POOLBUFR(ub->pool_ops->pool_id, NCSMEM_HI_PRI);
+		ub =
+		    m_MMGR_ALLOC_POOLBUFR(ub->pool_ops->pool_id, NCSMEM_HI_PRI);
 
 		if (ub == (USRBUF *)0) {
 			/* FAIL!!! */
 			return (char *)NULL;
 		}
-		ub->link = *ppb;	/* link dis to dat. */
+		ub->link = *ppb; /* link dis to dat. */
 
 		/* Adjust the next pointer just in case */
 		ub->next = (*ppb)->next;
 		(*ppb)->next = BNULL;
 
-		*ppb = ub;	/* inform caller of new head */
+		*ppb = ub; /* inform caller of new head */
 
 		/* -----------
-		   In buffers allocated from MDS-POOL, ub->start may not be zero. Hence, 
-		   the following line would be incorrect
-		   ub->start += PAYLOAD_BUF_SIZE. 
+		   In buffers allocated from MDS-POOL, ub->start may not be
+		   zero. Hence, the following line would be incorrect ub->start
+		   += PAYLOAD_BUF_SIZE.
 		   -----------
 		   Hence, it is now changed to
-		   ub->start = PAYLOAD_BUF_SIZE. 
+		   ub->start = PAYLOAD_BUF_SIZE.
 		   -----------
-		   However, it CANNOT be changed to because, for backward compatibility
-		   purposes, we should be able to support sysf_reserve_at_start(...,
-		   PAYLOAD_BUF_SIZE) 
-		   ub->start = 
-		   (PAYLOAD_BUF_SIZE - 
+		   However, it CANNOT be changed to because, for backward
+		   compatibility purposes, we should be able to support
+		   sysf_reserve_at_start(..., PAYLOAD_BUF_SIZE) ub->start =
+		   (PAYLOAD_BUF_SIZE -
 		   gl_ub_pool_mgr.pools[ub->pool_ops->pool_id].trlr_reserve)
 		   -----------
 		 */
 		ub->start = PAYLOAD_BUF_SIZE;
 	}
 
-	ub->count += size;	/* do the actual prepend. */
+	ub->count += size; /* do the actual prepend. */
 	ub->start -= size;
 	return (m_MMGR_DATA(ub, char *));
 }
@@ -947,17 +1009,17 @@ void sysf_remove_from_start(USRBUF **ppb, unsigned int size)
 			/* This is, like, simple. */
 			ub->count = buflen - size;
 			ub->start += size;
-			break;	/* out of 'while' */
+			break; /* out of 'while' */
 		}
 
-		size -= buflen;	/* any more to unprepend? */
-		*ppb = ub->link;	/* on to the next. */
+		size -= buflen;  /* any more to unprepend? */
+		*ppb = ub->link; /* on to the next. */
 
 		/* Adjust the next pointer just in case */
 		if (*ppb != BNULL)
 			(*ppb)->next = ub->next;
 
-		ub->link = (USRBUF *)0;	/* not really necessary */
+		ub->link = (USRBUF *)0; /* not really necessary */
 		sysf_free_pkt(ub);
 	}
 }
@@ -971,7 +1033,8 @@ char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare)
 	const USRBUF *pb_work, *pbs;
 	register unsigned int num_in_buff;
 
-	/* First, find the last buffer and see if the data is already contiguous. */
+	/* First, find the last buffer and see if the data is already
+	 * contiguous. */
 	pb_work = pb;
 	while (pb_work->link != (USRBUF *)0)
 		pb_work = pb_work->link;
@@ -980,37 +1043,52 @@ char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare)
 	num_in_buff = pb_work->count;
 	if (num_in_buff >= size) {
 		/* request is already contiguous. */
-		return (m_MMGR_DATA(pb_work, char *)+num_in_buff - size);
+		return (m_MMGR_DATA(pb_work, char *) + num_in_buff - size);
 	}
 
-	/* We will need to make the data contiguous, because it spans USRBUFs. 
-	 * We copy it into the contiguous area provided by the nice caller. 
+	/* We will need to make the data contiguous, because it spans USRBUFs.
+	 * We copy it into the contiguous area provided by the nice caller.
 	 */
 
 	while (true) {
-		/* copy what data is in this working usrbuf ... then step backwards in chain */
-		memcpy(spare + size - num_in_buff, m_MMGR_DATA(pb_work, char *), num_in_buff);
+		/* copy what data is in this working usrbuf ... then step
+		 * backwards in chain */
+		memcpy(spare + size - num_in_buff, m_MMGR_DATA(pb_work, char *),
+		       num_in_buff);
 
-		size -= num_in_buff;	/* adjust amt of data still to find & copy */
+		size -=
+		    num_in_buff; /* adjust amt of data still to find & copy */
 
 		/* Now find the USRBUF pointing to 'pb_work' */
-		if (pb_work == pb)	/* if we are already at the head usrbuf ... */
-			return NULL;	/* ... then, not enuf data in entire chain to satisfy... ??? */
+		if (pb_work ==
+		    pb) /* if we are already at the head usrbuf ... */
+			return NULL; /* ... then, not enuf data in entire chain
+					to satisfy... ??? */
 
-		pbs = pb;	/* pt to head usrbuf */
-		while (pbs->link != pb_work)	/* find the usrbuf prior to working usrbuf */
+		pbs = pb; /* pt to head usrbuf */
+		while (pbs->link !=
+		       pb_work) /* find the usrbuf prior to working usrbuf */
 			pbs = pbs->link;
-		pb_work = pbs;	/* make this prior usrbuf the working usrbuf */
+		pb_work = pbs; /* make this prior usrbuf the working usrbuf */
 
 		num_in_buff = pb_work->count;
 
-		if (num_in_buff >= size) {	/* is there enuf data in this usrbuf ? */	/* yes, copy it and leave; otherwise go loop again */
-			memcpy(spare, m_MMGR_DATA(pb_work, char *) + num_in_buff - size, size);
-			break;	/* from 'while' */
+		if (num_in_buff >= size) {
+			/* is there enuf data in this usrbuf ? */ /* yes, copy
+								     it and
+								     leave;
+								     otherwise
+								     go loop
+								     again */
+			memcpy(spare,
+			       m_MMGR_DATA(pb_work, char *) + num_in_buff -
+				   size,
+			       size);
+			break; /* from 'while' */
 		}
 	}
 
-	return spare;		/* pointer to user-supplied contiguous area. */
+	return spare; /* pointer to user-supplied contiguous area. */
 }
 
 /***************************************************************************
@@ -1022,7 +1100,8 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
 	register unsigned int num_in_buff;
 	char *spare_work;
 
-	while ((num_in_buff = pb->count) == 0)	/* skip over null-length buffers */
+	while ((num_in_buff = pb->count) ==
+	       0) /* skip over null-length buffers */
 		pb = pb->link;
 
 	if (num_in_buff >= size) {
@@ -1042,17 +1121,18 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
 
 		pb = pb->link;
 		if (pb == (USRBUF *)0)
-			return NULL;	/* not enuf in whole chain so return error */
+			return NULL; /* not enuf in whole chain so return error
+				      */
 
 		num_in_buff = pb->count;
 
 		if (num_in_buff >= size) {
 			memcpy(spare_work, m_MMGR_DATA(pb, char *), size);
-			break;	/* from 'while' */
+			break; /* from 'while' */
 		}
 	}
 
-	return spare;		/* pointer to user-supplied contiguous area. */
+	return spare; /* pointer to user-supplied contiguous area. */
 }
 
 /*************************************************************************
@@ -1063,14 +1143,15 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
 **  within the USRBUF chain headed by "pb".  If copy_flag is true, data
 **  is always copied to the "copy_buf" area.  If the copy_flag is false,
 **  data is only copied if the data spans more than a single USRBUF
-**  ( that is, data is non-contiguous ).  The "size" comes in as the 
+**  ( that is, data is non-contiguous ).  The "size" comes in as the
 **  number of octets of interest.  If the length of the data packet is
-**  not at least "offset" plus "size" then a NULL pointer is returned; 
+**  not at least "offset" plus "size" then a NULL pointer is returned;
 **  although a partial copy may have been done.
-**  
+**
 ************************************************************************/
 
-char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *copy_buf, unsigned int copy_flag)
+char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size,
+		       char *copy_buf, unsigned int copy_flag)
 {
 	register unsigned int num_in_buf;
 	register unsigned int cpcnt;
@@ -1078,7 +1159,8 @@ char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char 
 
 	if (pb->count >= (offset + size)) {
 		if (copy_flag == true) {
-			memcpy(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);
+			memcpy(copy_buf,
+			       m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);
 			return copy_buf;
 		} else
 			return m_MMGR_DATA_AT_OFFSET(pb, offset, char *);
@@ -1101,14 +1183,15 @@ char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char 
 			return m_MMGR_DATA_AT_OFFSET(pb, offset, char *);
 		} else {
 			/* copy data to caller supplied buffer */
-			memcpy(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);
+			memcpy(copy_buf,
+			       m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);
 			return copy_buf;
 		}
 	}
 
-	/* 
+	/*
 	 ** If we get here we must be spanning multiple USRBUFs.
-	 ** Copy data from first USRBUF to caller supplied buffer. 
+	 ** Copy data from first USRBUF to caller supplied buffer.
 	 */
 	cpcnt = num_in_buf - offset;
 	memcpy(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), cpcnt);
@@ -1145,16 +1228,17 @@ char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char 
 **  sysf_reserve_in_mid  (INTERNAL USE ONLY)
 **
 ** Returns a pointer to the beginning of a reserved contiguous
-** area in the middle of a USRBUF chain.  Area will begin at 
+** area in the middle of a USRBUF chain.  Area will begin at
 ** 'offset' bytes from the start of 'pb's payload.  Area will be
 ** 'size' bytes in length.  Returns zero if unable to allocate
 ** necessary space.
 ** This code has explicit knowledge of the USRBUF and payload
-** data structures.  Furthermore, this code requires that the 
+** data structures.  Furthermore, this code requires that the
 ** 'start' field of newly allocated USRBUFs be set to zero.
 **
 ************************************************************************/
-static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset, unsigned int size)
+static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset,
+				 unsigned int size)
 {
 	unsigned int i;
 	unsigned int pload_size;
@@ -1183,7 +1267,8 @@ static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset, unsigned int s
 
 	/* If payload has other users, need to allocate own copy */
 	if (pb->payload->RefCnt > 1) {
-		ud = (USRDATA *)pb->pool_ops->mem_alloc(sizeof(USRDATA), pb->pool_ops->pool_id, NCSMEM_HI_PRI);
+		ud = (USRDATA *)pb->pool_ops->mem_alloc(
+		    sizeof(USRDATA), pb->pool_ops->pool_id, NCSMEM_HI_PRI);
 
 		if (ud == (USRDATA *)NULL)
 			return (char *)0;
@@ -1197,7 +1282,7 @@ static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset, unsigned int s
 	pload_size = sizeof(pb->payload->Data);
 	post_data_len = pb->count - offset;
 
-	/* 
+	/*
 	 ** Check if it is possible to create space in the current
 	 ** USRBUF by moving part of the payload down in the buffer.
 	 ** We can't do that if all of the data won't fit.
@@ -1209,34 +1294,40 @@ static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset, unsigned int s
 		 ** USRBUF 'size' bytes down.
 		 */
 		if ((post_data_len + size) <= pload_size) {
-			/* 
+			/*
 			 ** Allocate a new USRBUF and put the latter part
 			 ** of the current payload into it.
 			 */
-			new_ub = m_MMGR_ALLOC_POOLBUFR(pb->pool_ops->pool_id, NCSMEM_HI_PRI);
+			new_ub = m_MMGR_ALLOC_POOLBUFR(pb->pool_ops->pool_id,
+						       NCSMEM_HI_PRI);
 			if ((new_ub == (USRBUF *)0) || (new_ub->start != 0))
 				return (char *)0;
 			memcpy(m_MMGR_DATA(new_ub, char *) + size,
-			       m_MMGR_DATA_AT_OFFSET(pb, offset, char *), post_data_len);
+			       m_MMGR_DATA_AT_OFFSET(pb, offset, char *),
+			       post_data_len);
 			new_ub->link = pb->link;
 			new_ub->count = size + post_data_len;
 			pb->link = new_ub;
 			pb->count = offset;
 		} else {
-			/* 
-			 ** Need two new USRBUFs because one is not large 
+			/*
+			 ** Need two new USRBUFs because one is not large
 			 ** enough for all of our data. The new data will go in
 			 ** the one and the latter part of the current payload
 			 ** payload in the second.
 			 */
-			new_ub = m_MMGR_ALLOC_POOLBUFR(pb->pool_ops->pool_id, NCSMEM_HI_PRI);
+			new_ub = m_MMGR_ALLOC_POOLBUFR(pb->pool_ops->pool_id,
+						       NCSMEM_HI_PRI);
 			if ((new_ub == (USRBUF *)0) || (new_ub->start != 0))
 				return (char *)0;
-			new_ub2 = m_MMGR_ALLOC_POOLBUFR(pb->pool_ops->pool_id, NCSMEM_HI_PRI);
+			new_ub2 = m_MMGR_ALLOC_POOLBUFR(pb->pool_ops->pool_id,
+							NCSMEM_HI_PRI);
 			if ((new_ub2 == (USRBUF *)0) || (new_ub2->start != 0))
 				return (char *)0;
 
-			memcpy(m_MMGR_DATA(new_ub2, char *), m_MMGR_DATA_AT_OFFSET(pb, offset, char *), post_data_len);
+			memcpy(m_MMGR_DATA(new_ub2, char *),
+			       m_MMGR_DATA_AT_OFFSET(pb, offset, char *),
+			       post_data_len);
 
 			/* update links and sizes */
 			new_ub2->link = pb->link;
@@ -1249,8 +1340,8 @@ static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset, unsigned int s
 		/* reserved space is at front of new USRBUF */
 		return m_MMGR_DATA(new_ub, char *);
 	} else {
-		/* 
-		 ** There is enough space to copy down data in 
+		/*
+		 ** There is enough space to copy down data in
 		 ** the current USRBUF.
 		 */
 		dest = m_MMGR_DATA_AT_OFFSET(pb, offset + size, char *);
@@ -1274,7 +1365,8 @@ static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset, unsigned int s
 ** the 'ins_data' buffer.
 **
 ************************************************************************/
-char *sysf_insert_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *ins_data)
+char *sysf_insert_in_mid(USRBUF *pb, unsigned int offset, unsigned int size,
+			 char *ins_data)
 {
 	char *insert_spot;
 
@@ -1290,14 +1382,15 @@ char *sysf_insert_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, cha
 **
 **  sysf_write_in_mid
 **
-** Returns a pointer to the data to be copied.  Copy area 
+** Returns a pointer to the data to be copied.  Copy area
 ** begins at 'offset' bytes from the start of the 'pb' payload
 ** and continues for 'size' bytes.  Copies 'size' bytes of data
 ** from the 'cdata' buffer to the copy area.  Returns (char *)0
 ** if data can not be copied into the payload area.
 **
 ************************************************************************/
-char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *cdata)
+char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size,
+			char *cdata)
 {
 	USRDATA *ud;
 	unsigned int num_in_buf;
@@ -1319,7 +1412,8 @@ char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char
 
 	/* If payload has other users, need to allocate own copy */
 	if (pb->payload->RefCnt > 1) {
-		ud = (USRDATA *)pb->pool_ops->mem_alloc(sizeof(USRDATA), pb->pool_ops->pool_id, NCSMEM_HI_PRI);
+		ud = (USRDATA *)pb->pool_ops->mem_alloc(
+		    sizeof(USRDATA), pb->pool_ops->pool_id, NCSMEM_HI_PRI);
 
 		if (ud == (USRDATA *)NULL)
 			return (char *)0;
@@ -1418,7 +1512,8 @@ USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *ubq, USRBUF *pbuf)
 {
 	USRBUF *searcher;
 
-	for (searcher = ubq->head; searcher != BNULL; searcher = m_MMGR_NEXT(searcher)) {
+	for (searcher = ubq->head; searcher != BNULL;
+	     searcher = m_MMGR_NEXT(searcher)) {
 		if (searcher == pbuf)
 			return pbuf;
 	}
@@ -1428,11 +1523,11 @@ USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *ubq, USRBUF *pbuf)
 
 /*************************************************************************
 **
-**  sysf_append_data 
-** This macro appends the data from buffer 2 to the end of 
+**  sysf_append_data
+** This macro appends the data from buffer 2 to the end of
 ** the data in buffer 1.  This may be accomplished by chaining
 ** buffer 2 onto buffer 1.  This is used to extend a frame.
-** After this macro is called, buffer 2 is no longer valid and 
+** After this macro is called, buffer 2 is no longer valid and
 ** should not be accessed.  Macro has no return value.
 **
 ************************************************************************/
@@ -1440,33 +1535,33 @@ USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *ubq, USRBUF *pbuf)
 void sysf_append_data(USRBUF *p1, USRBUF *p2)
 {
 	while (p1->link != (USRBUF *)0) {
-		p1 = p1->link;	/* advance to the last one, if nec. */
+		p1 = p1->link; /* advance to the last one, if nec. */
 	}
 	p1->link = p2;
 }
 
 /*************************************************************************
 **
-**  sysf_frag_bufr 
+**  sysf_frag_bufr
 **
-** The routine fragments the existing payload of the USRBUF (chain) 
-** pointed to by the contents of the USRBUF **ppb.  Each fragment 
-** is of size frag_size, except for the last one, which might 
-** be the same or smaller. It returns the number of fragments  
+** The routine fragments the existing payload of the USRBUF (chain)
+** pointed to by the contents of the USRBUF **ppb.  Each fragment
+** is of size frag_size, except for the last one, which might
+** be the same or smaller. It returns the number of fragments
 ** created. A zero value indicates a failure.
 **
-** Note: If the frame passed in happens to be in a queue 
+** Note: If the frame passed in happens to be in a queue
 ** (its next pointer is not NULL), this macro will only
-** fragment the first frame.   
+** fragment the first frame.
 **
-** The user of this routine is responsible for freeing all created 
+** The user of this routine is responsible for freeing all created
 ** fragments so far in case of errors.
 **
 ************************************************************************/
-#define APS_NONE     0
+#define APS_NONE 0
 #define NCS_SPLIT_IT 1
 #define NCS_LEAVE_IT 2
-#define NCS_ADD_ONE  3
+#define NCS_ADD_ONE 3
 unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 {
 	USRBUF *pcur, *psaved, *psaved_next = NULL;
@@ -1481,15 +1576,15 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 		return (ubq->count);
 
 	total_len = sysf_get_chain_len(ppb);
-	ubq->count = 1;		/* start out with 1 fragment */
+	ubq->count = 1; /* start out with 1 fragment */
 	pcur = ubq->head = ubq->tail = ppb;
 
 	if (total_len <= frag_size)
-		return (ubq->count);	/* no fragmentation needed */
+		return (ubq->count); /* no fragmentation needed */
 
-   /** Just in case a queue of usrbuf has been passed in.
-    ** We only fragment the first frame. 
-    **/
+	/** Just in case a queue of usrbuf has been passed in.
+	 ** We only fragment the first frame.
+	 **/
 	if (pcur->next != BNULL) {
 		psaved_next = pcur->next;
 		pcur->next = BNULL;
@@ -1497,7 +1592,7 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 
 	/* Loop through the buf chain */
 	while (pcur != BNULL) {
-		bufsize = pcur->count;	/* size of the usrbuf */
+		bufsize = pcur->count; /* size of the usrbuf */
 
 		if (needsize != 0) {
 			/* Have more than enough to complete a fragment */
@@ -1506,7 +1601,8 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 				bufsize -= needsize;
 				needsize = 0;
 
-				/* Whatever left over belongs to the next fragment(s) */
+				/* Whatever left over belongs to the next
+				 * fragment(s) */
 				if (bufsize <= frag_size) {
 					action = NCS_ADD_ONE;
 				} else if (bufsize > frag_size) {
@@ -1515,13 +1611,15 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 
 			}
 			/* end if bufsize > needsize */
-			else if (bufsize < needsize) {	/* don't have enough to complete a fragment */
-				needsize -= bufsize;	/* how much more is needed ? */
+			else if (bufsize < needsize) { /* don't have enough to
+							  complete a fragment */
+				needsize -=
+				    bufsize; /* how much more is needed ? */
 				pcur = pcur->link;
 				action = APS_NONE;
 			}
 
-			else {	/* have enough to complete a fragment */
+			else { /* have enough to complete a fragment */
 
 				needsize = 0;
 				action = APS_NONE;
@@ -1540,21 +1638,24 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 			}
 		}
 		/* end if (needsize) */
-		else if (bufsize == frag_size) {	/* this usrbuf itself is a fragment */
+		else if (bufsize ==
+			 frag_size) { /* this usrbuf itself is a fragment */
 			action = NCS_LEAVE_IT;
 		}
 
-		/* This usrbuf must be chained to another usrbuf 
+		/* This usrbuf must be chained to another usrbuf
 		   to create a fragment of size frag_size */
 		else if (bufsize < frag_size) {
-			needsize = frag_size - bufsize;	/* need this much from the next usrbuf */
+			needsize =
+			    frag_size -
+			    bufsize; /* need this much from the next usrbuf */
 			pfirst = ubq->tail = pcur;
 			/* go to the next usrbuf in the chain */
 			pcur = pcur->link;
 			action = APS_NONE;
 		}
 
-		else {		/* This usrbuf must be splitted up */
+		else { /* This usrbuf must be splitted up */
 
 			pcur->count = frag_size;
 			bufsize -= frag_size;
@@ -1564,9 +1665,10 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 		switch (action) {
 		case NCS_LEAVE_IT:
 			pcur->next = pcur->link;
-			pcur->link = NULL;	/* complete fragment */
+			pcur->link = NULL; /* complete fragment */
 			ubq->tail = pcur;
-			pcur = pcur->next;	/* go to the next usrbuf in the chain */
+			pcur =
+			    pcur->next; /* go to the next usrbuf in the chain */
 			if (pcur != NULL)
 				ubq->count++;
 
@@ -1581,8 +1683,9 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 			fragmenting = 1;
 
 			while (fragmenting != 0) {
-				pnew = (USRBUF *)m_NCS_MEM_ALLOC(sizeof(USRBUF),
-								 NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2);
+				pnew = (USRBUF *)m_NCS_MEM_ALLOC(
+				    sizeof(USRBUF), NCS_MEM_REGION_IO_DATA_HDR,
+				    NCS_SERVICE_ID_OS_SVCS, 2);
 				if (pnew == (USRBUF *)0) {
 					if (psaved_next != NULL)
 						ubq->tail->next = psaved_next;
@@ -1596,9 +1699,13 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 				} else
 					pcur->next = pnew;
 				ubq->count++;
-				pnew->pool_ops = pcur->pool_ops;	/* inherit pool stuff */
-				pnew->payload = pcur->payload;	/* point to the same payload */
-				pnew->payload->RefCnt++;	/* Increment the refcount */
+				pnew->pool_ops =
+				    pcur->pool_ops; /* inherit pool stuff */
+				pnew->payload = pcur->payload; /* point to the
+								  same payload
+								*/
+				pnew->payload
+				    ->RefCnt++; /* Increment the refcount */
 
 				/* Can be splitted up again */
 				if (bufsize > frag_size) {
@@ -1606,7 +1713,8 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 					bufsize -= frag_size;
 				}
 
-				/* This is the last fragment created for this userbuf */
+				/* This is the last fragment created for this
+				   userbuf */
 				else {
 					pnew->count = bufsize;
 					fragmenting = 0;
@@ -1615,19 +1723,21 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 				pnew->pool_ops = pcur->pool_ops;
 				pnew->start = pcur->start + pcur->count;
 				pcur = ubq->tail = pnew;
-			}	/* end while */
+			} /* end while */
 
-			/* There are more usrbufs in the chain, calculate needsize */
+			/* There are more usrbufs in the chain, calculate
+			 * needsize */
 			if (psaved->link != NULL) {
 				needsize = frag_size - pcur->count;
 
-				/* Determine if this is a complete fragment or not */
+				/* Determine if this is a complete fragment or
+				 * not */
 				if (needsize > 0) {
 					ubq->tail = pfirst = pnew;
 					pcur->link = psaved->link;
 					psaved->link = NULL;
 					pcur = pcur->link;
-				} else {	/* the next usrbuf is a new fragment */
+				} else { /* the next usrbuf is a new fragment */
 
 					ubq->tail = pcur->next = psaved->link;
 					psaved->link = NULL;
@@ -1643,10 +1753,11 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 			}
 			break;
 
-			/* This is the case where bufsize <= frag_size */
+		/* This is the case where bufsize <= frag_size */
 		case NCS_ADD_ONE:
-			pnew = (USRBUF *)m_NCS_MEM_ALLOC(sizeof(USRBUF),
-							 NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2);
+			pnew = (USRBUF *)m_NCS_MEM_ALLOC(
+			    sizeof(USRBUF), NCS_MEM_REGION_IO_DATA_HDR,
+			    NCS_SERVICE_ID_OS_SVCS, 2);
 
 			if (pnew == (USRBUF *)0) {
 				if (psaved_next != NULL)
@@ -1661,23 +1772,27 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 			}
 
 			ubq->count++;
-			pnew->pool_ops = pcur->pool_ops;	/* inherit pool stuff */
-			pnew->payload = pcur->payload;	/* point to the same payload */
-			pnew->payload->RefCnt++;	/* Increment the refcount */
+			pnew->pool_ops =
+			    pcur->pool_ops; /* inherit pool stuff */
+			pnew->payload =
+			    pcur->payload;       /* point to the same payload */
+			pnew->payload->RefCnt++; /* Increment the refcount */
 			pnew->count = bufsize;
 			pnew->start = pcur->start + pcur->count;
 
-			/* There are more usrbufs in the chain, calculate needsize */
+			/* There are more usrbufs in the chain, calculate
+			 * needsize */
 			if (pcur->link != NULL) {
 				needsize = frag_size - bufsize;
 
-				/* Determine if this is a complete fragment or not */
+				/* Determine if this is a complete fragment or
+				 * not */
 				if (needsize > 0) {
 					ubq->tail = pfirst = pnew;
 					pnew->link = pcur->link;
 					pcur->link = NULL;
 					pcur = pnew->link;
-				} else {	/* the next usrbuf is a new fragment */
+				} else { /* the next usrbuf is a new fragment */
 
 					ubq->tail = pnew->next = pcur->link;
 					pcur->link = NULL;
@@ -1696,8 +1811,8 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 
 		default:
 			break;
-		}		/* end switch */
-	}			/* end while */
+		} /* end switch */
+	}	 /* end while */
 
 	if (psaved_next != NULL)
 		ubq->tail->next = psaved_next;
@@ -1735,14 +1850,16 @@ USRBUF *sysf_copy_to_usrbuf(uint8_t *packet, unsigned int length)
 	src = packet;
 
 	/* Move the pdu into a buffer chain ... */
-	if ((first_uu_pdu = (uu_pdu = m_MMGR_ALLOC_BUFR(sizeof(USRBUF)))) == BNULL) {
+	if ((first_uu_pdu = (uu_pdu = m_MMGR_ALLOC_BUFR(sizeof(USRBUF)))) ==
+	    BNULL) {
 		m_MMGR_FREE_BUFR_LIST(uu_pdu);
 		return BNULL;
 	}
 
 	do {
 		len = length > PAYLOAD_BUF_SIZE ? PAYLOAD_BUF_SIZE : length;
-		if ((dst = m_MMGR_RESERVE_AT_END(&uu_pdu, len, uint8_t *)) == 0) {
+		if ((dst = m_MMGR_RESERVE_AT_END(&uu_pdu, len, uint8_t *)) ==
+		    0) {
 			m_MMGR_FREE_BUFR_LIST(first_uu_pdu);
 			return BNULL;
 		}
@@ -1750,8 +1867,7 @@ USRBUF *sysf_copy_to_usrbuf(uint8_t *packet, unsigned int length)
 		src += len;
 		length -= len;
 
-	}
-	while (length > 0);
+	} while (length > 0);
 
 	return first_uu_pdu;
 }
@@ -1777,7 +1893,8 @@ USRBUF *sysf_copy_to_usrbuf(uint8_t *packet, unsigned int length)
 
 *****************************************************************************/
 
-uint32_t sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uint32_t buff_len)
+uint32_t sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer,
+			       uint32_t buff_len)
 {
 	if (NULL == m_MMGR_COPY_MID_DATA(packet, 0, buff_len, buffer))
 		return 0;
@@ -1805,13 +1922,13 @@ uint32_t sysf_copy_from_usrbuf(USRBUF *packet, uint8_t *buffer, uint32_t buff_le
 *****************************************************************************/
 void sysf_usrbuf_hexdump(USRBUF *buf, char *fname)
 {
-	uint32_t len;		/* length of payload */
-	uint32_t loop;		/* how many times to loop */
-	uint32_t left;		/* leftover data after loops */
-	uint32_t offset;		/* offset for MID_DATA macro */
-	char space[200];	/* general purpose stack buffer */
-	uint8_t *data;		/* ptr to contiguous MID_DATA data */
-	uint32_t i;		/* an interator counter */
+	uint32_t len;    /* length of payload */
+	uint32_t loop;   /* how many times to loop */
+	uint32_t left;   /* leftover data after loops */
+	uint32_t offset; /* offset for MID_DATA macro */
+	char space[200]; /* general purpose stack buffer */
+	uint8_t *data;   /* ptr to contiguous MID_DATA data */
+	uint32_t i;      /* an interator counter */
 
 	if (buf == NULL)
 		return;
@@ -1849,20 +1966,20 @@ void sysf_usrbuf_hexdump(USRBUF *buf, char *fname)
 
    data:      data to convert to hex output.
    size:      length of data to be converted for 1 line of output.
-              convention generally puts this at 16 bytes of data.
+	      convention generally puts this at 16 bytes of data.
    fname:     string name of file to put data into. If NULL, output
-              is directed to CONSOLE.
+	      is directed to CONSOLE.
 
   RETURNS:
    status     SUCCESS - all went well.
-              FAILURE - something went wrong.
+	      FAILURE - something went wrong.
 
   NOTES:
 *****************************************************************************/
 
 uint32_t sysf_str_hexdump(uint8_t *data, uint32_t size, char *fname)
 {
-	char store[300] = { 0 };
+	char store[300] = {0};
 	char *curr = &store[0];
 	char cstr[40];
 	uint32_t i;
@@ -1879,7 +1996,7 @@ uint32_t sysf_str_hexdump(uint8_t *data, uint32_t size, char *fname)
 		curr = &store[strlen(store)];
 	}
 
-	strncpy(cstr, (char *)data, size - 1);	/* now as text string */
+	strncpy(cstr, (char *)data, size - 1); /* now as text string */
 	cstr[size - 1] = 0;
 
 	sprintf(curr, "        %s", cstr);
@@ -1900,11 +2017,11 @@ uint32_t sysf_str_hexdump(uint8_t *data, uint32_t size, char *fname)
 
    str:       NULL terminated string to output
    fname:     string name of file to put data into. If NULL, output
-              is directed to CONSOLE.
+	      is directed to CONSOLE.
 
   RETURNS:
    status     SUCCESS - all went well.
-              FAILURE - something went wrong.
+	      FAILURE - something went wrong.
 
   NOTES:
 *****************************************************************************/
@@ -1924,17 +2041,19 @@ uint32_t sysf_pick_output(char *str, char *fname)
 	return NCSCC_RC_SUCCESS;
 }
 
-#if (USE_MY_MALLOC==1)
+#if (USE_MY_MALLOC == 1)
 uint32_t gl_my_malloc_curr_size = 0;
 extern void *my_malloc(size_t nbytes)
 {
 	if ((gl_my_malloc_curr_size += nbytes) > MY_MALLOC_SIZE) {
 		gl_my_malloc_curr_size -= nbytes;
-		printf("my_malloc FAILED: current=%d, requested=%d, allowed=%d\n", gl_my_malloc_curr_size, nbytes,
-		       MY_MALLOC_SIZE);
+		printf(
+		    "my_malloc FAILED: current=%d, requested=%d, allowed=%d\n",
+		    gl_my_malloc_curr_size, nbytes, MY_MALLOC_SIZE);
 		return NULL;
 	}
-	printf("current=%d, requested=%d, allowed=%d\n", gl_my_malloc_curr_size, nbytes, MY_MALLOC_SIZE);
+	printf("current=%d, requested=%d, allowed=%d\n", gl_my_malloc_curr_size,
+	       nbytes, MY_MALLOC_SIZE);
 	return malloc(nbytes);
 }
 
@@ -1946,13 +2065,13 @@ extern void my_free(void *mem_p)
 
 #endif
 
-    /****************************************************************************
-    *
-    * Function Name: ncs_fname
-    *
-    * Purpose:       isolate just the file name out of a file path string.
-    *
-  ****************************************************************************/
+/****************************************************************************
+ *
+ * Function Name: ncs_fname
+ *
+ * Purpose:       isolate just the file name out of a file path string.
+ *
+ ****************************************************************************/
 char *ncs_fname(char *fpath)
 {
 	char *str;
@@ -1964,14 +2083,14 @@ char *ncs_fname(char *fpath)
 	/* What we do to get pretty output SM */
 
 	len = strlen(fpath);
-	str = fpath + (len - 3);	/* '.c' assumed */
+	str = fpath + (len - 3); /* '.c' assumed */
 
-	while ((*str >= 'A' && *str <= 'Z') ||
-	       (*str >= 'a' && *str <= 'z') || (*str >= '0' && *str <= '9') || (*str == '_')) {
+	while ((*str >= 'A' && *str <= 'Z') || (*str >= 'a' && *str <= 'z') ||
+	       (*str >= '0' && *str <= '9') || (*str == '_')) {
 		str--;
-		if (str < fpath)	/* in case preceeding memory has (coincidental) chars */
+		if (str < fpath) /* in case preceeding memory has (coincidental)
+				    chars */
 			break;
 	}
 	return ++str;
 }
-

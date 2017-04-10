@@ -31,37 +31,41 @@
   mbcsv_mds_evt        - subscription event entry point
   mbcsv_mds_enc        - MDS encode routine.
   mbcsv_mds_dec        - MDS decode routine.
-  mbcsv_mds_cpy        - MDS copy routine.  
+  mbcsv_mds_cpy        - MDS copy routine.
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 
 #include "mbcsv.h"
 
 MDS_CLIENT_MSG_FORMAT_VER
- MBCSV_wrt_PEER_msg_fmt_array[MBCSV_WRT_PEER_SUBPART_VER_RANGE] = {
-	1 /* msg format version for subpart version */
+MBCSV_wrt_PEER_msg_fmt_array[MBCSV_WRT_PEER_SUBPART_VER_RANGE] = {
+    1 /* msg format version for subpart version */
 };
 
 /****************************************************************************
   PROCEDURE     : mbcsv_mds_reg
- 
-  Description   : This routine registers the MBCSV Service with MDS with the 
-                  pwe handle passed by MBCSv client.
- 
+
+  Description   : This routine registers the MBCSV Service with MDS with the
+		  pwe handle passed by MBCSv client.
+
   Arguments     : pwe_hdl - Handle passed by MBCSv client in OPEN API.
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest)
+uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor,
+		       MDS_DEST *vdest)
 {
 	NCSMDS_INFO svc_to_mds_info;
 	MDS_SVC_ID svc_ids_array[1];
-	TRACE_ENTER2("pwe_hdl:%u, svc_hdl: %u, anchor:%" PRIu64, pwe_hdl, svc_hdl, *anchor);
+	TRACE_ENTER2("pwe_hdl:%u, svc_hdl: %u, anchor:%" PRIu64, pwe_hdl,
+		     svc_hdl, *anchor);
 
 	if (NCSCC_RC_SUCCESS != mbcsv_query_mds(pwe_hdl, anchor, vdest)) {
-		TRACE_LEAVE2("Invalid handle passed. pwe_hdl: %u, anchor:%" PRIu64, pwe_hdl, *anchor);
+		TRACE_LEAVE2(
+		    "Invalid handle passed. pwe_hdl: %u, anchor:%" PRIu64,
+		    pwe_hdl, *anchor);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -74,7 +78,8 @@ uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor,
 	svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_to_mds_info.info.svc_install.i_svc_cb = mbcsv_mds_callback;
 	svc_to_mds_info.info.svc_install.i_mds_q_ownership = false;
-	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = MBCSV_MDS_SUB_PART_VERSION;
+	svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver =
+	    MBCSV_MDS_SUB_PART_VERSION;
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
 		TRACE_LEAVE2("MDS install failed. pwe_hdl = %u", pwe_hdl);
@@ -93,7 +98,9 @@ uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor,
 
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
 		mbcsv_mds_unreg(pwe_hdl);
-		TRACE_LEAVE2("MDS subscribe failed. pwe_hdl:%u, anchor:%" PRIu64, pwe_hdl, *anchor);
+		TRACE_LEAVE2(
+		    "MDS subscribe failed. pwe_hdl:%u, anchor:%" PRIu64,
+		    pwe_hdl, *anchor);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -103,18 +110,19 @@ uint32_t mbcsv_mds_reg(uint32_t pwe_hdl, uint32_t svc_hdl, MBCSV_ANCHOR *anchor,
 
 /****************************************************************************
   PROCEDURE     : mbcsv_query_mds
-  
+
   Description   : This routine sends MDS query for getting anchor and VDEST;.
- 
+
   Arguments     : pwe_hdl - Handle passed by MBCSv client in OPEN API.
-                  anchor  - anchor value returned by MDS.
-                  vdest   - VDEST value returned by MDS.
- 
+		  anchor  - anchor value returned by MDS.
+		  vdest   - VDEST value returned by MDS.
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t mbcsv_query_mds(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest)
+uint32_t mbcsv_query_mds(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor,
+			 MDS_DEST *vdest)
 {
 	NCSMDS_INFO mds_info;
 	memset(&mds_info, 0, sizeof(mds_info));
@@ -128,12 +136,14 @@ uint32_t mbcsv_query_mds(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest
 		return NCSCC_RC_FAILURE;
 	}
 
-	if ((mds_info.info.query_pwe.o_pwe_id == 0) || (mds_info.info.query_pwe.o_absolute)) {
+	if ((mds_info.info.query_pwe.o_pwe_id == 0) ||
+	    (mds_info.info.query_pwe.o_absolute)) {
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	} else {
 		*anchor = mds_info.info.query_pwe.info.virt_info.o_anc;
-		memcpy(vdest, &mds_info.info.query_pwe.info.virt_info.o_vdest, sizeof(MDS_DEST));
+		memcpy(vdest, &mds_info.info.query_pwe.info.virt_info.o_vdest,
+		       sizeof(MDS_DEST));
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -141,14 +151,15 @@ uint32_t mbcsv_query_mds(uint32_t pwe_hdl, MBCSV_ANCHOR *anchor, MDS_DEST *vdest
 
 /****************************************************************************
   PROCEDURE     : mbcsv_mds_unreg
- 
+
   Description   : This routine unregisters the MBCSV Service from MDS on the
-                  MBCSVs Vaddress 
- 
-  Arguments     :  pwe_hdl - Handle with whic chackpoint instance registered with MBCSv.
- 
+		  MBCSVs Vaddress
+
+  Arguments     :  pwe_hdl - Handle with whic chackpoint instance registered
+with MBCSv.
+
   Return Values : NONE
- 
+
   Notes         : None.
 ******************************************************************************/
 void mbcsv_mds_unreg(uint32_t pwe_hdl)
@@ -170,16 +181,17 @@ void mbcsv_mds_unreg(uint32_t pwe_hdl)
 
 /****************************************************************************
   PROCEDURE     : mbcsv_mds_send_msg
- 
+
   Description   : This routine is use for sending the message to the MBCSv peer.
- 
+
   Arguments     : cb - ptr to the MBCSVcontrol block
- 
+
   Return Values : NONE
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t mbcsv_mds_send_msg(uint32_t send_type, MBCSV_EVT *msg, CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
+uint32_t mbcsv_mds_send_msg(uint32_t send_type, MBCSV_EVT *msg, CKPT_INST *ckpt,
+			    MBCSV_ANCHOR anchor)
 {
 	NCSMDS_INFO mds_info;
 	TRACE_ENTER2("sending to vdest:%" PRIx64, ckpt->my_vdest);
@@ -196,40 +208,33 @@ uint32_t mbcsv_mds_send_msg(uint32_t send_type, MBCSV_EVT *msg, CKPT_INST *ckpt,
 	mds_info.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
 
 	switch (send_type) {
-	case MDS_SENDTYPE_RED:
-		{
-			TRACE("send type MDS_SENDTYPE_RED");
-			mds_info.info.svc_send.info.red.i_to_anc = anchor;
-			mds_info.info.svc_send.info.red.i_to_vdest = ckpt->my_vdest;
-		}
-		break;
+	case MDS_SENDTYPE_RED: {
+		TRACE("send type MDS_SENDTYPE_RED");
+		mds_info.info.svc_send.info.red.i_to_anc = anchor;
+		mds_info.info.svc_send.info.red.i_to_vdest = ckpt->my_vdest;
+	} break;
 
-	case MDS_SENDTYPE_REDRSP:
-		{
-			TRACE("send type MDS_SENDTYPE_REDRSP:");
-			mds_info.info.svc_send.info.redrsp.i_time_to_wait = MBCSV_SYNC_TIMEOUT;
-			mds_info.info.svc_send.info.redrsp.i_to_anc = anchor;
-			mds_info.info.svc_send.info.redrsp.i_to_vdest = ckpt->my_vdest;
-		}
-		break;
+	case MDS_SENDTYPE_REDRSP: {
+		TRACE("send type MDS_SENDTYPE_REDRSP:");
+		mds_info.info.svc_send.info.redrsp.i_time_to_wait =
+		    MBCSV_SYNC_TIMEOUT;
+		mds_info.info.svc_send.info.redrsp.i_to_anc = anchor;
+		mds_info.info.svc_send.info.redrsp.i_to_vdest = ckpt->my_vdest;
+	} break;
 
-	case MDS_SENDTYPE_RRSP:
-		{
-			TRACE("send type MDS_SENDTYPE_RRSP:");
-			mds_info.info.svc_send.info.rrsp.i_msg_ctxt = msg->msg_ctxt;
-			mds_info.info.svc_send.info.rrsp.i_to_anc = anchor;
-			mds_info.info.svc_send.info.rrsp.i_to_dest = ckpt->my_vdest;
-		}
-		break;
+	case MDS_SENDTYPE_RRSP: {
+		TRACE("send type MDS_SENDTYPE_RRSP:");
+		mds_info.info.svc_send.info.rrsp.i_msg_ctxt = msg->msg_ctxt;
+		mds_info.info.svc_send.info.rrsp.i_to_anc = anchor;
+		mds_info.info.svc_send.info.rrsp.i_to_dest = ckpt->my_vdest;
+	} break;
 
-	case MDS_SENDTYPE_RBCAST:
-		{
-			TRACE("send type MDS_SENDTYPE_RBCAST");
-			m_NCS_MBCSV_MDS_BCAST_SEND(ckpt->pwe_hdl, msg, ckpt);
-			TRACE_LEAVE2("success");
-			return NCSCC_RC_SUCCESS;
-		}
-		break;
+	case MDS_SENDTYPE_RBCAST: {
+		TRACE("send type MDS_SENDTYPE_RBCAST");
+		m_NCS_MBCSV_MDS_BCAST_SEND(ckpt->pwe_hdl, msg, ckpt);
+		TRACE_LEAVE2("success");
+		return NCSCC_RC_SUCCESS;
+	} break;
 
 	default:
 		TRACE_LEAVE2("send type not supported by MBCSV");
@@ -237,9 +242,12 @@ uint32_t mbcsv_mds_send_msg(uint32_t send_type, MBCSV_EVT *msg, CKPT_INST *ckpt,
 	}
 
 	if (ncsmds_api(&mds_info) == NCSCC_RC_SUCCESS) {
-		/* If message is send resp  then free the message received in response  */
-		if ((MDS_SENDTYPE_REDRSP == send_type) && (NULL != mds_info.info.svc_send.info.redrsp.o_rsp)) {
-			m_MMGR_FREE_MBCSV_EVT(mds_info.info.svc_send.info.redrsp.o_rsp);
+		/* If message is send resp  then free the message received in
+		 * response  */
+		if ((MDS_SENDTYPE_REDRSP == send_type) &&
+		    (NULL != mds_info.info.svc_send.info.redrsp.o_rsp)) {
+			m_MMGR_FREE_MBCSV_EVT(
+			    mds_info.info.svc_send.info.redrsp.o_rsp);
 		}
 		TRACE_LEAVE2("success");
 		return NCSCC_RC_SUCCESS;
@@ -267,40 +275,47 @@ uint32_t mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
 
 	switch (cbinfo->i_op) {
 	case MDS_CALLBACK_COPY:
-		status = mbcsv_mds_cpy(cbinfo->i_yr_svc_hdl, cbinfo->info.cpy.i_msg,
-				       cbinfo->info.cpy.i_to_svc_id, &cbinfo->info.cpy.o_cpy,
-				       cbinfo->info.cpy.i_last,
-				       cbinfo->info.cpy.i_rem_svc_pvt_ver, &cbinfo->info.cpy.o_msg_fmt_ver);
+		status = mbcsv_mds_cpy(
+		    cbinfo->i_yr_svc_hdl, cbinfo->info.cpy.i_msg,
+		    cbinfo->info.cpy.i_to_svc_id, &cbinfo->info.cpy.o_cpy,
+		    cbinfo->info.cpy.i_last, cbinfo->info.cpy.i_rem_svc_pvt_ver,
+		    &cbinfo->info.cpy.o_msg_fmt_ver);
 		break;
 
 	case MDS_CALLBACK_ENC:
 		/* Treating both encode types as same */
-		status = mbcsv_mds_enc(cbinfo->i_yr_svc_hdl, cbinfo->info.enc.i_msg,
-				       cbinfo->info.enc.i_to_svc_id,
-				       cbinfo->info.enc.io_uba,
-				       cbinfo->info.enc.i_rem_svc_pvt_ver, &cbinfo->info.enc.o_msg_fmt_ver);
+		status = mbcsv_mds_enc(
+		    cbinfo->i_yr_svc_hdl, cbinfo->info.enc.i_msg,
+		    cbinfo->info.enc.i_to_svc_id, cbinfo->info.enc.io_uba,
+		    cbinfo->info.enc.i_rem_svc_pvt_ver,
+		    &cbinfo->info.enc.o_msg_fmt_ver);
 		break;
 
 	case MDS_CALLBACK_ENC_FLAT:
 		/* Treating both encode types as same */
-		status = mbcsv_mds_enc(cbinfo->i_yr_svc_hdl, cbinfo->info.enc_flat.i_msg,
+		status = mbcsv_mds_enc(cbinfo->i_yr_svc_hdl,
+				       cbinfo->info.enc_flat.i_msg,
 				       cbinfo->info.enc_flat.i_to_svc_id,
 				       cbinfo->info.enc_flat.io_uba,
-				       cbinfo->info.enc_flat.i_rem_svc_pvt_ver, &cbinfo->info.enc_flat.o_msg_fmt_ver);
+				       cbinfo->info.enc_flat.i_rem_svc_pvt_ver,
+				       &cbinfo->info.enc_flat.o_msg_fmt_ver);
 		break;
 
 	case MDS_CALLBACK_DEC:
 		/* Treating both decode types as same */
-		status = mbcsv_mds_dec(cbinfo->i_yr_svc_hdl, &cbinfo->info.dec.o_msg,
-				       cbinfo->info.dec.i_fr_svc_id,
-				       cbinfo->info.dec.io_uba, cbinfo->info.dec.i_msg_fmt_ver);
+		status = mbcsv_mds_dec(
+		    cbinfo->i_yr_svc_hdl, &cbinfo->info.dec.o_msg,
+		    cbinfo->info.dec.i_fr_svc_id, cbinfo->info.dec.io_uba,
+		    cbinfo->info.dec.i_msg_fmt_ver);
 		break;
 
 	case MDS_CALLBACK_DEC_FLAT:
 		/* Treating both decode types as same */
-		status = mbcsv_mds_dec(cbinfo->i_yr_svc_hdl, &cbinfo->info.dec_flat.o_msg,
+		status = mbcsv_mds_dec(cbinfo->i_yr_svc_hdl,
+				       &cbinfo->info.dec_flat.o_msg,
 				       cbinfo->info.dec_flat.i_fr_svc_id,
-				       cbinfo->info.dec_flat.io_uba, cbinfo->info.dec_flat.i_msg_fmt_ver);
+				       cbinfo->info.dec_flat.io_uba,
+				       cbinfo->info.dec_flat.i_msg_fmt_ver);
 		break;
 
 	case MDS_CALLBACK_RECEIVE:
@@ -308,10 +323,11 @@ uint32_t mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
 		break;
 
 	case MDS_CALLBACK_SVC_EVENT:
-		status = mbcsv_mds_evt(cbinfo->info.svc_evt, cbinfo->i_yr_svc_hdl);
+		status =
+		    mbcsv_mds_evt(cbinfo->info.svc_evt, cbinfo->i_yr_svc_hdl);
 		break;
 
-		/* Fix for  MBCSv doesn't handle MDS Quiesced Ack callback */
+	/* Fix for  MBCSv doesn't handle MDS Quiesced Ack callback */
 	case MDS_CALLBACK_DIRECT_RECEIVE:
 	case MDS_CALLBACK_QUIESCED_ACK:
 		status = NCSCC_RC_SUCCESS;
@@ -329,7 +345,7 @@ uint32_t mbcsv_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
 /****************************************************************************
  * Function Name: mbcsv_mds_rcv
  *
- * Description   : MBCSV receive callback function. On receiving message from 
+ * Description   : MBCSV receive callback function. On receiving message from
  *                 peer, MBCSv will post this message to the MBCSv mailbox for
  *                 further processing.
  *
@@ -357,10 +373,11 @@ uint32_t mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
 	/* Is used during sync send only but will be copied always. */
 	msg->msg_ctxt = cbinfo->info.receive.i_msg_ctxt;
 
-	if (0 != (mbx = mbcsv_get_mbx(msg->rcvr_peer_key.pwe_hdl, msg->rcvr_peer_key.svc_id))) {
-		/* 
-		 * We found out the mailbox to which we can post a message. Now construct
-		 * and send this message to the mailbox.
+	if (0 != (mbx = mbcsv_get_mbx(msg->rcvr_peer_key.pwe_hdl,
+				      msg->rcvr_peer_key.svc_id))) {
+		/*
+		 * We found out the mailbox to which we can post a message. Now
+		 * construct and send this message to the mailbox.
 		 */
 		msg->msg_type = MBCSV_EVT_INTERNAL;
 
@@ -374,17 +391,15 @@ uint32_t mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
 			TRACE_LEAVE2("ipc send failed");
 			return NCSCC_RC_FAILURE;
 		}
-
 	}
 
 	return NCSCC_RC_SUCCESS;
-
 }
 
 /****************************************************************************
  * Function Name: mbcsv_mds_evt
  *
- * Description  : MBCSV is informed when MDS events occurr that he has 
+ * Description  : MBCSV is informed when MDS events occurr that he has
  *                subscribed to. First MBCSv will post this evet to all the
  *                the services which are currently registered on this VDEST.
  *                Later on this event will get processed in the dispatch.
@@ -395,7 +410,8 @@ uint32_t mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO *cbinfo)
  *
  * Notes         : None.
  *****************************************************************************/
-uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl)
+uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
+		       MDS_CLIENT_HDL yr_svc_hdl)
 {
 	MBCSV_EVT *evt;
 	SYSF_MBX mbx;
@@ -403,21 +419,24 @@ uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_s
 	MDS_DEST vdest;
 	MBCSV_ANCHOR anchor;
 
-	if ((svc_info.i_change != NCSMDS_RED_UP) && (svc_info.i_change != NCSMDS_RED_DOWN)) {
+	if ((svc_info.i_change != NCSMDS_RED_UP) &&
+	    (svc_info.i_change != NCSMDS_RED_DOWN)) {
 		return NCSCC_RC_SUCCESS;
 	}
 	/*
-	 * First find out whether MBCSv is registered on this VDEST 
+	 * First find out whether MBCSv is registered on this VDEST
 	 * If no then return success.
 	 */
-	if (NCSCC_RC_SUCCESS != mbcsv_query_mds((uint32_t)svc_info.svc_pwe_hdl, &anchor, &vdest)) {
+	if (NCSCC_RC_SUCCESS !=
+	    mbcsv_query_mds((uint32_t)svc_info.svc_pwe_hdl, &anchor, &vdest)) {
 		TRACE_LEAVE2("mbcsv is not registered on this vdest");
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* If VDEST not equal, then discard message.(message from other VDESTs) */
+	/* If VDEST not equal, then discard message.(message from other VDESTs)
+	 */
 	if (0 != memcmp(&vdest, &svc_info.i_dest, sizeof(MDS_DEST))) {
-		TRACE_LEAVE2("Msg is not from same vdest, discarding");	
+		TRACE_LEAVE2("Msg is not from same vdest, discarding");
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -428,16 +447,21 @@ uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_s
 	}
 
 	if (svc_info.i_change == NCSMDS_RED_UP) {
-		TRACE_1("RED_UP event. pwe_hdl:%u, anchor:%" PRIu64, svc_info.svc_pwe_hdl, svc_info.i_anc);
+		TRACE_1("RED_UP event. pwe_hdl:%u, anchor:%" PRIu64,
+			svc_info.svc_pwe_hdl, svc_info.i_anc);
 
-		mbcsv_add_new_pwe_anc((uint32_t)svc_info.svc_pwe_hdl, svc_info.i_anc);
+		mbcsv_add_new_pwe_anc((uint32_t)svc_info.svc_pwe_hdl,
+				      svc_info.i_anc);
 	} else {
-		TRACE_1("RED_DOWN event. pwe_hdl: %u, anchor:%" PRIu64, svc_info.svc_pwe_hdl, svc_info.i_anc);
+		TRACE_1("RED_DOWN event. pwe_hdl: %u, anchor:%" PRIu64,
+			svc_info.svc_pwe_hdl, svc_info.i_anc);
 
-		mbcsv_rmv_pwe_anc_entry((uint32_t)svc_info.svc_pwe_hdl, svc_info.i_anc);
+		mbcsv_rmv_pwe_anc_entry((uint32_t)svc_info.svc_pwe_hdl,
+					svc_info.i_anc);
 	}
 
-	while (0 != (mbx = mbcsv_get_next_entry_for_pwe((uint32_t)svc_info.svc_pwe_hdl, &svc_id))) {
+	while (0 != (mbx = mbcsv_get_next_entry_for_pwe(
+			 (uint32_t)svc_info.svc_pwe_hdl, &svc_id))) {
 		if (NULL == (evt = m_MMGR_ALLOC_MBCSV_EVT)) {
 			TRACE_LEAVE2("malloc failed");
 			return NCSCC_RC_FAILURE;
@@ -453,7 +477,8 @@ uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_s
 
 		evt->info.mds_sub_evt.evt_type = svc_info.i_change;
 
-		if (NCSCC_RC_SUCCESS != m_MBCSV_SND_MSG(&mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)) {
+		if (NCSCC_RC_SUCCESS !=
+		    m_MBCSV_SND_MSG(&mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)) {
 			m_MMGR_FREE_MBCSV_EVT(evt);
 			TRACE_LEAVE2("ipc send failed");
 			return NCSCC_RC_FAILURE;
@@ -466,7 +491,7 @@ uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_s
 /****************************************************************************
  * Function Name: mbcsv_mds_enc
  *
- * Description  : Encode message to tbe sent to the MBCSv peer. We are just 
+ * Description  : Encode message to tbe sent to the MBCSv peer. We are just
  *                the internal messages which we exchange between the peers.
  *
  * Arguments     : NCSMDS_CALLBACK_INFO *info: call back info.
@@ -476,8 +501,9 @@ uint32_t mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_s
  * Notes         : None.
  *****************************************************************************/
 uint32_t mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
-		    SS_SVC_ID to_svc, NCS_UBAID *uba,
-		    MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
+		       SS_SVC_ID to_svc, NCS_UBAID *uba,
+		       MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver,
+		       MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
 {
 	uint8_t *data;
 	MBCSV_EVT *mm;
@@ -489,13 +515,15 @@ uint32_t mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 	}
 
 	/* Set the current message format version */
-	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(rem_svc_pvt_ver,
-						MBCSV_WRT_PEER_SUBPART_VER_MIN,
-						MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array);
+	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(
+	    rem_svc_pvt_ver, MBCSV_WRT_PEER_SUBPART_VER_MIN,
+	    MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array);
 	if (0 == msg_fmt_version) {
 		char str[200];
-		snprintf(str, sizeof(str), "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped", rem_svc_pvt_ver,
-			to_svc);
+		snprintf(
+		    str, sizeof(str),
+		    "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped",
+		    rem_svc_pvt_ver, to_svc);
 		TRACE_LEAVE2("%s", str);
 		return NCSCC_RC_FAILURE;
 	}
@@ -520,140 +548,156 @@ uint32_t mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 	ncs_enc_claim_space(uba, MBCSV_MSG_TYPE_SIZE);
 
 	switch (mm->info.peer_msg.type) {
-	case MBCSV_EVT_INTERNAL_PEER_DISC:
-		{
-			data = ncs_enc_reserve_space(uba, MBCSV_MSG_SUB_TYPE);
+	case MBCSV_EVT_INTERNAL_PEER_DISC: {
+		data = ncs_enc_reserve_space(uba, MBCSV_MSG_SUB_TYPE);
+		if (data == NULL) {
+			TRACE_LEAVE2("allocating uba failed");
+			return NCSCC_RC_FAILURE;
+		}
+
+		ncs_encode_8bit(&data,
+				mm->info.peer_msg.info.peer_disc.msg_sub_type);
+		ncs_enc_claim_space(uba, MBCSV_MSG_SUB_TYPE);
+
+		switch (mm->info.peer_msg.info.peer_disc.msg_sub_type) {
+		case MBCSV_PEER_UP_MSG: {
+			data =
+			    ncs_enc_reserve_space(uba, MBCSV_PEER_UP_MSG_SIZE);
+			if (data == NULL) {
+				TRACE_LEAVE2("allocating uba failed");
+				return NCSCC_RC_FAILURE;
+			}
+			ncs_encode_32bit(
+			    &data, mm->info.peer_msg.info.peer_disc.peer_role);
+			ncs_enc_claim_space(uba, MBCSV_PEER_UP_MSG_SIZE);
+
+			mbcsv_encode_version(uba,
+					     mm->info.peer_msg.info.peer_disc
+						 .info.peer_up.peer_version);
+
+			break;
+		}
+
+		case MBCSV_PEER_DOWN_MSG: {
+			data = ncs_enc_reserve_space(uba,
+						     MBCSV_PEER_DOWN_MSG_SIZE);
 			if (data == NULL) {
 				TRACE_LEAVE2("allocating uba failed");
 				return NCSCC_RC_FAILURE;
 			}
 
-			ncs_encode_8bit(&data, mm->info.peer_msg.info.peer_disc.msg_sub_type);
-			ncs_enc_claim_space(uba, MBCSV_MSG_SUB_TYPE);
-
-			switch (mm->info.peer_msg.info.peer_disc.msg_sub_type) {
-			case MBCSV_PEER_UP_MSG:
-				{
-					data = ncs_enc_reserve_space(uba, MBCSV_PEER_UP_MSG_SIZE);
-					if (data == NULL) {
-						TRACE_LEAVE2("allocating uba failed");
-						return NCSCC_RC_FAILURE;
-					}
-					ncs_encode_32bit(&data, mm->info.peer_msg.info.peer_disc.peer_role);
-					ncs_enc_claim_space(uba, MBCSV_PEER_UP_MSG_SIZE);
-
-					mbcsv_encode_version(uba,
-							     mm->info.peer_msg.info.peer_disc.info.peer_up.
-							     peer_version);
-
-					break;
-				}
-
-			case MBCSV_PEER_DOWN_MSG:
-				{
-					data = ncs_enc_reserve_space(uba, MBCSV_PEER_DOWN_MSG_SIZE);
-					if (data == NULL) {
-						TRACE_LEAVE2("allocating uba failed");
-						return NCSCC_RC_FAILURE;
-					}
-
-					ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
-					ncs_encode_32bit(&data, mm->info.peer_msg.info.peer_disc.peer_role);
-					ncs_enc_claim_space(uba, MBCSV_PEER_DOWN_MSG_SIZE);
-
-					break;
-				}
-
-			case MBCSV_PEER_INFO_MSG:
-				{
-					data = ncs_enc_reserve_space(uba, MBCSV_PEER_INFO_MSG_SIZE);
-					if (data == NULL) {
-						TRACE_LEAVE2("allocating uba failed");
-						return NCSCC_RC_FAILURE;
-					}
-					ncs_encode_32bit(&data,
-							 mm->info.peer_msg.info.peer_disc.info.peer_info.
-							 my_peer_inst_hdl);
-					ncs_encode_32bit(&data, mm->info.peer_msg.info.peer_disc.peer_role);
-					ncs_encode_8bit(&data,
-							mm->info.peer_msg.info.peer_disc.info.peer_info.compatible);
-					ncs_enc_claim_space(uba, MBCSV_PEER_INFO_MSG_SIZE);
-
-					mbcsv_encode_version(uba,
-							     mm->info.peer_msg.info.peer_disc.info.peer_up.
-							     peer_version);
-
-					break;
-				}
-
-			case MBCSV_PEER_INFO_RSP_MSG:
-				{
-					data = ncs_enc_reserve_space(uba, MBCSV_PEER_INFO_RSP_MSG_SIZE);
-					if (data == NULL) {
-						TRACE_LEAVE2("allocating uba failed");
-						return NCSCC_RC_FAILURE;
-					}
-
-					ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
-					ncs_encode_32bit(&data,
-							 mm->info.peer_msg.info.peer_disc.info.peer_info_rsp.
-							 my_peer_inst_hdl);
-					ncs_encode_32bit(&data, mm->info.peer_msg.info.peer_disc.peer_role);
-					ncs_encode_8bit(&data,
-							mm->info.peer_msg.info.peer_disc.info.peer_info_rsp.compatible);
-					ncs_enc_claim_space(uba, MBCSV_PEER_INFO_RSP_MSG_SIZE);
-
-					mbcsv_encode_version(uba,
-							     mm->info.peer_msg.info.peer_disc.info.peer_info_rsp.
-							     peer_version);
-
-					break;
-				}
-
-			case MBCSV_PEER_CHG_ROLE_MSG:
-				{
-					data = ncs_enc_reserve_space(uba, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
-					if (data == NULL) {
-						TRACE_LEAVE2("allocating uba failed");
-						return NCSCC_RC_FAILURE;
-					}
-
-					ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
-					ncs_encode_32bit(&data, mm->info.peer_msg.info.peer_disc.peer_role);
-					ncs_enc_claim_space(uba, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
-
-					break;
-				}
-
-			default:
-				TRACE_LEAVE2("Invalid message type");
-				return NCSCC_RC_FAILURE;
-			}
+			ncs_encode_32bit(
+			    &data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
+			ncs_encode_32bit(
+			    &data, mm->info.peer_msg.info.peer_disc.peer_role);
+			ncs_enc_claim_space(uba, MBCSV_PEER_DOWN_MSG_SIZE);
 
 			break;
 		}
-	case MBCSV_EVT_INTERNAL_CLIENT:
-		{
-			data = ncs_enc_reserve_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
+
+		case MBCSV_PEER_INFO_MSG: {
+			data = ncs_enc_reserve_space(uba,
+						     MBCSV_PEER_INFO_MSG_SIZE);
+			if (data == NULL) {
+				TRACE_LEAVE2("allocating uba failed");
+				return NCSCC_RC_FAILURE;
+			}
+			ncs_encode_32bit(&data,
+					 mm->info.peer_msg.info.peer_disc.info
+					     .peer_info.my_peer_inst_hdl);
+			ncs_encode_32bit(
+			    &data, mm->info.peer_msg.info.peer_disc.peer_role);
+			ncs_encode_8bit(&data, mm->info.peer_msg.info.peer_disc
+						   .info.peer_info.compatible);
+			ncs_enc_claim_space(uba, MBCSV_PEER_INFO_MSG_SIZE);
+
+			mbcsv_encode_version(uba,
+					     mm->info.peer_msg.info.peer_disc
+						 .info.peer_up.peer_version);
+
+			break;
+		}
+
+		case MBCSV_PEER_INFO_RSP_MSG: {
+			data = ncs_enc_reserve_space(
+			    uba, MBCSV_PEER_INFO_RSP_MSG_SIZE);
 			if (data == NULL) {
 				TRACE_LEAVE2("allocating uba failed");
 				return NCSCC_RC_FAILURE;
 			}
 
-			ncs_encode_8bit(&data, mm->info.peer_msg.info.client_msg.type.evt_type);
-			ncs_encode_8bit(&data, mm->info.peer_msg.info.client_msg.action);
-			ncs_encode_32bit(&data, mm->info.peer_msg.info.client_msg.reo_type);
-			ncs_encode_32bit(&data, mm->info.peer_msg.info.client_msg.first_rsp);
-			ncs_encode_8bit(&data, mm->info.peer_msg.info.client_msg.snd_type);
-			ncs_encode_32bit(&data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
-			ncs_enc_claim_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
+			ncs_encode_32bit(
+			    &data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
+			ncs_encode_32bit(&data,
+					 mm->info.peer_msg.info.peer_disc.info
+					     .peer_info_rsp.my_peer_inst_hdl);
+			ncs_encode_32bit(
+			    &data, mm->info.peer_msg.info.peer_disc.peer_role);
+			ncs_encode_8bit(&data,
+					mm->info.peer_msg.info.peer_disc.info
+					    .peer_info_rsp.compatible);
+			ncs_enc_claim_space(uba, MBCSV_PEER_INFO_RSP_MSG_SIZE);
 
-			/* Append user buffer */
-			if (mm->info.peer_msg.info.client_msg.type.evt_type != NCS_MBCSV_MSG_SYNC_SEND_RSP)
-				ncs_enc_append_usrbuf(uba, mm->info.peer_msg.info.client_msg.uba.start);
+			mbcsv_encode_version(
+			    uba, mm->info.peer_msg.info.peer_disc.info
+				     .peer_info_rsp.peer_version);
 
 			break;
 		}
+
+		case MBCSV_PEER_CHG_ROLE_MSG: {
+			data = ncs_enc_reserve_space(
+			    uba, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
+			if (data == NULL) {
+				TRACE_LEAVE2("allocating uba failed");
+				return NCSCC_RC_FAILURE;
+			}
+
+			ncs_encode_32bit(
+			    &data, (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
+			ncs_encode_32bit(
+			    &data, mm->info.peer_msg.info.peer_disc.peer_role);
+			ncs_enc_claim_space(uba, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
+
+			break;
+		}
+
+		default:
+			TRACE_LEAVE2("Invalid message type");
+			return NCSCC_RC_FAILURE;
+		}
+
+		break;
+	}
+	case MBCSV_EVT_INTERNAL_CLIENT: {
+		data = ncs_enc_reserve_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
+		if (data == NULL) {
+			TRACE_LEAVE2("allocating uba failed");
+			return NCSCC_RC_FAILURE;
+		}
+
+		ncs_encode_8bit(
+		    &data, mm->info.peer_msg.info.client_msg.type.evt_type);
+		ncs_encode_8bit(&data,
+				mm->info.peer_msg.info.client_msg.action);
+		ncs_encode_32bit(&data,
+				 mm->info.peer_msg.info.client_msg.reo_type);
+		ncs_encode_32bit(&data,
+				 mm->info.peer_msg.info.client_msg.first_rsp);
+		ncs_encode_8bit(&data,
+				mm->info.peer_msg.info.client_msg.snd_type);
+		ncs_encode_32bit(&data,
+				 (uint32_t)mm->rcvr_peer_key.peer_inst_hdl);
+		ncs_enc_claim_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
+
+		/* Append user buffer */
+		if (mm->info.peer_msg.info.client_msg.type.evt_type !=
+		    NCS_MBCSV_MSG_SYNC_SEND_RSP)
+			ncs_enc_append_usrbuf(
+			    uba, mm->info.peer_msg.info.client_msg.uba.start);
+
+		break;
+	}
 	default:
 		TRACE_LEAVE2("Incorrect message type");
 		return NCSCC_RC_FAILURE;
@@ -674,7 +718,8 @@ uint32_t mbcsv_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  * Notes         : None.
  *****************************************************************************/
 uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
-		    SS_SVC_ID to_svc, NCS_UBAID *uba, MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
+		       SS_SVC_ID to_svc, NCS_UBAID *uba,
+		       MDS_CLIENT_MSG_FORMAT_VER msg_fmat_ver)
 {
 	uint8_t *data;
 	MBCSV_EVT *mm;
@@ -682,10 +727,13 @@ uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 
 	if (0 == m_NCS_MSG_FORMAT_IS_VALID(msg_fmat_ver,
 					   MBCSV_WRT_PEER_SUBPART_VER_MIN,
-					   MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array)) {
+					   MBCSV_WRT_PEER_SUBPART_VER_MAX,
+					   MBCSV_wrt_PEER_msg_fmt_array)) {
 		char str[200];
-		snprintf(str, sizeof(str), "Msg format version:%d not supported, message from svc-id:%d dropped", msg_fmat_ver,
-			to_svc);
+		snprintf(
+		    str, sizeof(str),
+		    "Msg format version:%d not supported, message from svc-id:%d dropped",
+		    msg_fmat_ver, to_svc);
 		TRACE_LEAVE2("%s", str);
 		return NCSCC_RC_FAILURE;
 	}
@@ -723,145 +771,160 @@ uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
 	ncs_dec_skip_space(uba, MBCSV_MSG_TYPE_SIZE);
 
 	switch (mm->info.peer_msg.type) {
-	case MBCSV_EVT_INTERNAL_PEER_DISC:
-		{
-			data = ncs_dec_flatten_space(uba, data_buff, MBCSV_MSG_SUB_TYPE);
+	case MBCSV_EVT_INTERNAL_PEER_DISC: {
+		data =
+		    ncs_dec_flatten_space(uba, data_buff, MBCSV_MSG_SUB_TYPE);
+		if (data == NULL) {
+			m_MMGR_FREE_MBCSV_EVT(mm);
+			TRACE_LEAVE2("decode failed");
+			return NCSCC_RC_FAILURE;
+		}
+
+		mm->info.peer_msg.info.peer_disc.msg_sub_type =
+		    ncs_decode_8bit(&data);
+		ncs_dec_skip_space(uba, MBCSV_MSG_SUB_TYPE);
+
+		switch (mm->info.peer_msg.info.peer_disc.msg_sub_type) {
+		case MBCSV_PEER_UP_MSG: {
+			data = ncs_dec_flatten_space(uba, data_buff,
+						     MBCSV_PEER_UP_MSG_SIZE);
+			if (data == NULL) {
+				m_MMGR_FREE_MBCSV_EVT(mm);
+				TRACE_LEAVE2("decode failed");
+				return NCSCC_RC_FAILURE;
+			}
+			mm->info.peer_msg.info.peer_disc.peer_role =
+			    ncs_decode_32bit(&data);
+			ncs_dec_skip_space(uba, MBCSV_PEER_UP_MSG_SIZE);
+
+			mbcsv_decode_version(uba,
+					     &mm->info.peer_msg.info.peer_disc
+						  .info.peer_up.peer_version);
+
+			break;
+		}
+
+		case MBCSV_PEER_DOWN_MSG: {
+			data = ncs_dec_flatten_space(uba, data_buff,
+						     MBCSV_PEER_DOWN_MSG_SIZE);
 			if (data == NULL) {
 				m_MMGR_FREE_MBCSV_EVT(mm);
 				TRACE_LEAVE2("decode failed");
 				return NCSCC_RC_FAILURE;
 			}
 
-			mm->info.peer_msg.info.peer_disc.msg_sub_type = ncs_decode_8bit(&data);
-			ncs_dec_skip_space(uba, MBCSV_MSG_SUB_TYPE);
-
-			switch (mm->info.peer_msg.info.peer_disc.msg_sub_type) {
-			case MBCSV_PEER_UP_MSG:
-				{
-					data = ncs_dec_flatten_space(uba, data_buff, MBCSV_PEER_UP_MSG_SIZE);
-					if (data == NULL) {
-						m_MMGR_FREE_MBCSV_EVT(mm);
-						TRACE_LEAVE2("decode failed");
-						return NCSCC_RC_FAILURE;
-					}
-					mm->info.peer_msg.info.peer_disc.peer_role = ncs_decode_32bit(&data);
-					ncs_dec_skip_space(uba, MBCSV_PEER_UP_MSG_SIZE);
-
-					mbcsv_decode_version(uba,
-							     &mm->info.peer_msg.info.peer_disc.info.peer_up.
-							     peer_version);
-
-					break;
-				}
-
-			case MBCSV_PEER_DOWN_MSG:
-				{
-					data = ncs_dec_flatten_space(uba, data_buff, MBCSV_PEER_DOWN_MSG_SIZE);
-					if (data == NULL) {
-						m_MMGR_FREE_MBCSV_EVT(mm);
-						TRACE_LEAVE2("decode failed");
-						return NCSCC_RC_FAILURE;
-					}
-
-					mm->rcvr_peer_key.peer_inst_hdl = ncs_decode_32bit(&data);
-					mm->info.peer_msg.info.peer_disc.peer_role = ncs_decode_32bit(&data);
-					ncs_dec_skip_space(uba, MBCSV_PEER_DOWN_MSG_SIZE);
-
-					break;
-				}
-
-			case MBCSV_PEER_INFO_MSG:
-				{
-					data = ncs_dec_flatten_space(uba, data_buff, MBCSV_PEER_INFO_MSG_SIZE);
-					if (data == NULL) {
-						m_MMGR_FREE_MBCSV_EVT(mm);
-						TRACE_LEAVE2("decode failed");
-						return NCSCC_RC_FAILURE;
-					}
-					mm->info.peer_msg.info.peer_disc.info.peer_info.my_peer_inst_hdl =
-					    ncs_decode_32bit(&data);
-					mm->info.peer_msg.info.peer_disc.peer_role = ncs_decode_32bit(&data);
-					mm->info.peer_msg.info.peer_disc.info.peer_info.compatible =
-					    ncs_decode_8bit(&data);
-					ncs_dec_skip_space(uba, MBCSV_PEER_INFO_MSG_SIZE);
-
-					mbcsv_decode_version(uba,
-							     &mm->info.peer_msg.info.peer_disc.info.peer_up.
-							     peer_version);
-
-					break;
-				}
-
-			case MBCSV_PEER_INFO_RSP_MSG:
-				{
-					data = ncs_dec_flatten_space(uba, data_buff, MBCSV_PEER_INFO_RSP_MSG_SIZE);
-					if (data == NULL) {
-						m_MMGR_FREE_MBCSV_EVT(mm);
-						TRACE_LEAVE2("decode failed");
-						return NCSCC_RC_FAILURE;
-					}
-
-					mm->rcvr_peer_key.peer_inst_hdl = ncs_decode_32bit(&data);
-					mm->info.peer_msg.info.peer_disc.info.peer_info_rsp.my_peer_inst_hdl =
-					    ncs_decode_32bit(&data);
-					mm->info.peer_msg.info.peer_disc.peer_role = ncs_decode_32bit(&data);
-					mm->info.peer_msg.info.peer_disc.info.peer_info_rsp.compatible =
-					    ncs_decode_8bit(&data);
-					ncs_dec_skip_space(uba, MBCSV_PEER_INFO_RSP_MSG_SIZE);
-
-					mbcsv_decode_version(uba,
-							     &mm->info.peer_msg.info.peer_disc.info.peer_info_rsp.
-							     peer_version);
-
-					break;
-				}
-
-			case MBCSV_PEER_CHG_ROLE_MSG:
-				{
-					data = ncs_dec_flatten_space(uba, data_buff, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
-					if (data == NULL) {
-						m_MMGR_FREE_MBCSV_EVT(mm);
-						TRACE_LEAVE2("decode failed");
-						return NCSCC_RC_FAILURE;
-					}
-
-					mm->rcvr_peer_key.peer_inst_hdl = ncs_decode_32bit(&data);
-					mm->info.peer_msg.info.peer_disc.peer_role = ncs_decode_32bit(&data);
-					ncs_dec_skip_space(uba, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
-
-					break;
-				}
-
-			default:
-				m_MMGR_FREE_MBCSV_EVT(mm);
-				TRACE_LEAVE2("incorrect peer sub message type");
-				return NCSCC_RC_FAILURE;
-			}
+			mm->rcvr_peer_key.peer_inst_hdl =
+			    ncs_decode_32bit(&data);
+			mm->info.peer_msg.info.peer_disc.peer_role =
+			    ncs_decode_32bit(&data);
+			ncs_dec_skip_space(uba, MBCSV_PEER_DOWN_MSG_SIZE);
 
 			break;
 		}
-	case MBCSV_EVT_INTERNAL_CLIENT:
-		{
-			data = ncs_dec_flatten_space(uba, data_buff, MBCSV_INT_CLIENT_MSG_SIZE);
+
+		case MBCSV_PEER_INFO_MSG: {
+			data = ncs_dec_flatten_space(uba, data_buff,
+						     MBCSV_PEER_INFO_MSG_SIZE);
+			if (data == NULL) {
+				m_MMGR_FREE_MBCSV_EVT(mm);
+				TRACE_LEAVE2("decode failed");
+				return NCSCC_RC_FAILURE;
+			}
+			mm->info.peer_msg.info.peer_disc.info.peer_info
+			    .my_peer_inst_hdl = ncs_decode_32bit(&data);
+			mm->info.peer_msg.info.peer_disc.peer_role =
+			    ncs_decode_32bit(&data);
+			mm->info.peer_msg.info.peer_disc.info.peer_info
+			    .compatible = ncs_decode_8bit(&data);
+			ncs_dec_skip_space(uba, MBCSV_PEER_INFO_MSG_SIZE);
+
+			mbcsv_decode_version(uba,
+					     &mm->info.peer_msg.info.peer_disc
+						  .info.peer_up.peer_version);
+
+			break;
+		}
+
+		case MBCSV_PEER_INFO_RSP_MSG: {
+			data = ncs_dec_flatten_space(
+			    uba, data_buff, MBCSV_PEER_INFO_RSP_MSG_SIZE);
 			if (data == NULL) {
 				m_MMGR_FREE_MBCSV_EVT(mm);
 				TRACE_LEAVE2("decode failed");
 				return NCSCC_RC_FAILURE;
 			}
 
-			mm->info.peer_msg.info.client_msg.type.evt_type = ncs_decode_8bit(&data);
-			mm->info.peer_msg.info.client_msg.action = ncs_decode_8bit(&data);
-			mm->info.peer_msg.info.client_msg.reo_type = ncs_decode_32bit(&data);
-			mm->info.peer_msg.info.client_msg.first_rsp = ncs_decode_32bit(&data);
-			mm->info.peer_msg.info.client_msg.snd_type = ncs_decode_8bit(&data);
-			mm->rcvr_peer_key.peer_inst_hdl = ncs_decode_32bit(&data);
-			ncs_dec_skip_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
+			mm->rcvr_peer_key.peer_inst_hdl =
+			    ncs_decode_32bit(&data);
+			mm->info.peer_msg.info.peer_disc.info.peer_info_rsp
+			    .my_peer_inst_hdl = ncs_decode_32bit(&data);
+			mm->info.peer_msg.info.peer_disc.peer_role =
+			    ncs_decode_32bit(&data);
+			mm->info.peer_msg.info.peer_disc.info.peer_info_rsp
+			    .compatible = ncs_decode_8bit(&data);
+			ncs_dec_skip_space(uba, MBCSV_PEER_INFO_RSP_MSG_SIZE);
 
-			/* Copy user buffer */
-			memcpy(&mm->info.peer_msg.info.client_msg.uba, uba, sizeof(NCS_UBAID));
+			mbcsv_decode_version(
+			    uba, &mm->info.peer_msg.info.peer_disc.info
+				      .peer_info_rsp.peer_version);
 
 			break;
 		}
+
+		case MBCSV_PEER_CHG_ROLE_MSG: {
+			data = ncs_dec_flatten_space(
+			    uba, data_buff, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
+			if (data == NULL) {
+				m_MMGR_FREE_MBCSV_EVT(mm);
+				TRACE_LEAVE2("decode failed");
+				return NCSCC_RC_FAILURE;
+			}
+
+			mm->rcvr_peer_key.peer_inst_hdl =
+			    ncs_decode_32bit(&data);
+			mm->info.peer_msg.info.peer_disc.peer_role =
+			    ncs_decode_32bit(&data);
+			ncs_dec_skip_space(uba, MBCSV_PEER_CHG_ROLE_MSG_SIZE);
+
+			break;
+		}
+
+		default:
+			m_MMGR_FREE_MBCSV_EVT(mm);
+			TRACE_LEAVE2("incorrect peer sub message type");
+			return NCSCC_RC_FAILURE;
+		}
+
+		break;
+	}
+	case MBCSV_EVT_INTERNAL_CLIENT: {
+		data = ncs_dec_flatten_space(uba, data_buff,
+					     MBCSV_INT_CLIENT_MSG_SIZE);
+		if (data == NULL) {
+			m_MMGR_FREE_MBCSV_EVT(mm);
+			TRACE_LEAVE2("decode failed");
+			return NCSCC_RC_FAILURE;
+		}
+
+		mm->info.peer_msg.info.client_msg.type.evt_type =
+		    ncs_decode_8bit(&data);
+		mm->info.peer_msg.info.client_msg.action =
+		    ncs_decode_8bit(&data);
+		mm->info.peer_msg.info.client_msg.reo_type =
+		    ncs_decode_32bit(&data);
+		mm->info.peer_msg.info.client_msg.first_rsp =
+		    ncs_decode_32bit(&data);
+		mm->info.peer_msg.info.client_msg.snd_type =
+		    ncs_decode_8bit(&data);
+		mm->rcvr_peer_key.peer_inst_hdl = ncs_decode_32bit(&data);
+		ncs_dec_skip_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
+
+		/* Copy user buffer */
+		memcpy(&mm->info.peer_msg.info.client_msg.uba, uba,
+		       sizeof(NCS_UBAID));
+
+		break;
+	}
 	default:
 		m_MMGR_FREE_MBCSV_EVT(mm);
 		TRACE_LEAVE2("incorrect message type");
@@ -879,13 +942,14 @@ uint32_t mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
  * Arguments     : NCSMDS_CALLBACK_INFO *info: call back info.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- 
+
  * Notes         : None.
  *****************************************************************************/
 
 uint32_t mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
-		    SS_SVC_ID to_svc, NCSCONTEXT *cpy,
-		    bool last, MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver, MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
+		       SS_SVC_ID to_svc, NCSCONTEXT *cpy, bool last,
+		       MDS_SVC_PVT_SUB_PART_VER rem_svc_pvt_ver,
+		       MDS_CLIENT_MSG_FORMAT_VER *msg_fmt_ver)
 {
 	MBCSV_EVT *mm;
 	MDS_CLIENT_MSG_FORMAT_VER msg_fmt_version;
@@ -897,13 +961,15 @@ uint32_t mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 	}
 
 	/* Set the current message format version */
-	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(rem_svc_pvt_ver,
-						MBCSV_WRT_PEER_SUBPART_VER_MIN,
-						MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array);
+	msg_fmt_version = m_NCS_ENC_MSG_FMT_GET(
+	    rem_svc_pvt_ver, MBCSV_WRT_PEER_SUBPART_VER_MIN,
+	    MBCSV_WRT_PEER_SUBPART_VER_MAX, MBCSV_wrt_PEER_msg_fmt_array);
 	if (0 == msg_fmt_version) {
 		char str[200];
-		snprintf(str, sizeof(str), "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped", rem_svc_pvt_ver,
-			to_svc);
+		snprintf(
+		    str, sizeof(str),
+		    "Peer MDS Subpart version:%d not supported, message to svc-id:%d dropped",
+		    rem_svc_pvt_ver, to_svc);
 		TRACE_LEAVE2("%s", str);
 		return NCSCC_RC_FAILURE;
 	}
@@ -968,7 +1034,8 @@ uint32_t mbcsv_encode_version(NCS_UBAID *uba, uint16_t version)
 /****************************************************************************
  * Function Name: mbcsv_decode_version
  *
- * Description  : Decode version information from the message received from peer.
+ * Description  : Decode version information from the message received from
+ *peer.
  *
  * Arguments     : uba  - User Buffer.
  *                 version - Software version.

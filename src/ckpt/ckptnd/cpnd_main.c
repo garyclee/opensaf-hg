@@ -38,8 +38,8 @@ static int __init_cpnd(void)
 			rlim.rlim_cur = CPND_MAX_REPLICAS + 500;
 			if (setrlimit(RLIMIT_NOFILE, &rlim) != 0) {
 				LOG_ER("setrlimit(RLIMIT_NOFILE, %d) failed, "
-				       "errno = %d", CPND_MAX_REPLICAS + 500,
-				       errno);
+				       "errno = %d",
+				       CPND_MAX_REPLICAS + 500, errno);
 			}
 		}
 	} else {
@@ -48,7 +48,8 @@ static int __init_cpnd(void)
 
 	/* Enable extended SaNameT */
 	if (setenv("SA_ENABLE_EXTENDED_NAMES", "1", 1) != 0) {
-		LOG_ER("Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
+		LOG_ER(
+		    "Failed to set environment variable: SA_ENABLE_EXTENDED_NAMES");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
 	}
 
 	cb_hdl = m_CPND_GET_CB_HDL;
-	 /* Get the CB from the handle */
+	/* Get the CB from the handle */
 	cpnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, cb_hdl);
 
 	if (!cpnd_cb) {

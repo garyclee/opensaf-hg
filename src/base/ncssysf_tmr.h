@@ -35,7 +35,7 @@
 
 #include "base/ncsgl_defs.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -47,20 +47,19 @@ extern "C" {
 
 /*  10 milli-second timer tick  */
 
-#define SYSF_TMR_TICKS 100      /* seconds <-->ticks    */
-#define SYSF_TMR_SCALE 10       /* milli-seconds <--> ticks */
+#define SYSF_TMR_TICKS 100 /* seconds <-->ticks    */
+#define SYSF_TMR_SCALE 10  /* milli-seconds <--> ticks */
 
 typedef void *tmr_t;
 
-#define TMR_T_NULL  ((tmr_t*)0)
+#define TMR_T_NULL ((tmr_t *)0)
 
-typedef void (*TMR_CALLBACK) (void *);
+typedef void (*TMR_CALLBACK)(void *);
 
 extern uint32_t gl_tmr_milliseconds;
 
-
 #ifndef NCS_TMR_STACKSIZE
-#define NCS_TMR_STACKSIZE     NCS_STACKSIZE_HUGE
+#define NCS_TMR_STACKSIZE NCS_STACKSIZE_HUGE
 #endif
 
 /** Target system timer support functions...
@@ -72,16 +71,17 @@ extern uint32_t gl_tmr_milliseconds;
   @
   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-#define m_NCS_TMR_CREATE(tid,prd,cb,arg)   (tid=ncs_tmr_alloc(__FILE__,__LINE__))
-#define m_NCS_TMR_START(tid,prd,cb,arg)                 \
-  (tid=ncs_tmr_start(tid,prd,cb,arg,__FILE__,__LINE__))
+#define m_NCS_TMR_CREATE(tid, prd, cb, arg) \
+  (tid = ncs_tmr_alloc(__FILE__, __LINE__))
+#define m_NCS_TMR_START(tid, prd, cb, arg) \
+  (tid = ncs_tmr_start(tid, prd, cb, arg, __FILE__, __LINE__))
 
-#define m_NCS_TMR_STOP(tid)                      ncs_tmr_stop(tid)
-#define m_NCS_TMR_STOP_V2(tid,tmr_arg)            ncs_tmr_stop_v2(tid,tmr_arg)
-#define m_NCS_TMR_DESTROY(tid)                   ncs_tmr_free(tid)
-#define m_NCS_TMR_MSEC_REMAINING(tid, p_tleft)   ncs_tmr_remaining(tid, p_tleft)
+#define m_NCS_TMR_STOP(tid) ncs_tmr_stop(tid)
+#define m_NCS_TMR_STOP_V2(tid, tmr_arg) ncs_tmr_stop_v2(tid, tmr_arg)
+#define m_NCS_TMR_DESTROY(tid) ncs_tmr_free(tid)
+#define m_NCS_TMR_MSEC_REMAINING(tid, p_tleft) ncs_tmr_remaining(tid, p_tleft)
 
-#define m_NCS_TMR_MILLISECONDS  gl_tmr_milliseconds
+#define m_NCS_TMR_MILLISECONDS gl_tmr_milliseconds
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @
@@ -96,17 +96,19 @@ void ncs_tmr_stop(tmr_t);
 void ncs_tmr_free(tmr_t);
 int64_t ncs_tmr_remaining(tmr_t, int64_t *);
 
-/* Keep old names for Create  and Destroy, as many places call these functions */
+/* Keep old names for Create  and Destroy, as many places call these functions
+ */
 
 bool sysfTmrCreate(void);
 bool sysfTmrDestroy(void);
 
-/* For now, I/O is done internally.. Later we can export data and do I/O outside */
+/* For now, I/O is done internally.. Later we can export data and do I/O outside
+ */
 
 uint32_t ncs_tmr_whatsout(void);
 uint32_t ncs_tmr_getstats(void);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

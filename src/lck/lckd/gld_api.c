@@ -21,7 +21,7 @@
   DESCRIPTION: Contain functions to create and destroy the GLD
 
   FUNCTIONS INCLUDED in this module:
-  
+
 ******************************************************************************/
 
 #include "lck/lckd/gld.h"
@@ -34,14 +34,7 @@ uint32_t gl_gld_hdl;
 
 void gld_main_process(SYSF_MBX *mbx);
 
-enum {
-	FD_TERM = 0,
-	FD_AMF,
-	FD_MBCSV,
-	FD_MBX,
-	FD_IMM,
-	NUM_FD
-};
+enum { FD_TERM = 0, FD_AMF, FD_MBCSV, FD_MBX, FD_IMM, NUM_FD };
 
 static struct pollfd fds[NUM_FD];
 static nfds_t nfds = NUM_FD;
@@ -51,10 +44,10 @@ static nfds_t nfds = NUM_FD;
  *
  * Description   : This is the NCS SE API which is used to init/destroy GLD
  *                 module
- *                 
  *
- * Arguments     : req_info  - This is the pointer to the input information 
- *                             which SBOM gives.  
+ *
+ * Arguments     : req_info  - This is the pointer to the input information
+ *                             which SBOM gives.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
@@ -67,7 +60,8 @@ uint32_t gld_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
-		/* need to fetch the information from the "NCS_LIB_REQ_INFO" struct - TBD */
+		/* need to fetch the information from the "NCS_LIB_REQ_INFO"
+		 * struct - TBD */
 		res = gld_se_lib_init(req_info);
 		if (res == NCSCC_RC_SUCCESS)
 			TRACE_1("GLD api create success");
@@ -76,7 +70,8 @@ uint32_t gld_lib_req(NCS_LIB_REQ_INFO *req_info)
 		break;
 
 	case NCS_LIB_REQ_DESTROY:
-		/* need to fetch the information from the "NCS_LIB_REQ_INFO" struct - TBD */
+		/* need to fetch the information from the "NCS_LIB_REQ_INFO"
+		 * struct - TBD */
 		res = gld_se_lib_destroy(req_info);
 		if (res == NCSCC_RC_SUCCESS)
 			TRACE_1("GLD api destroy success");
@@ -96,9 +91,9 @@ uint32_t gld_lib_req(NCS_LIB_REQ_INFO *req_info)
  * Name          : gld_se_lib_init
  *
  * Description   : Invoked to Initialize the GLD
- *                 
  *
- * Arguments     : 
+ *
+ * Arguments     :
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
  * Notes         : None.
@@ -122,7 +117,8 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	memset(gld_cb, 0, sizeof(GLSV_GLD_CB));
 
 	/* TBD- Pool id is to be set */
-	gl_gld_hdl = gld_cb->my_hdl = ncshm_create_hdl(gld_cb->hm_poolid, NCS_SERVICE_ID_GLD, (NCSCONTEXT)gld_cb);
+	gl_gld_hdl = gld_cb->my_hdl = ncshm_create_hdl(
+	    gld_cb->hm_poolid, NCS_SERVICE_ID_GLD, (NCSCONTEXT)gld_cb);
 	if (0 == gld_cb->my_hdl) {
 		LOG_ER("Handle create failed");
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
@@ -134,7 +130,7 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	if (gld_cb_init(gld_cb) != NCSCC_RC_SUCCESS) {
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		res = NCSCC_RC_FAILURE;
-		TRACE_2("GLD cb init failed");	
+		TRACE_2("GLD cb init failed");
 		goto end;
 	}
 
@@ -161,7 +157,8 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	m_NCS_EDU_HDL_INIT(&gld_cb->edu_hdl);
 
 	/* register GLD component with AvSv */
-	amf_error = saAmfComponentRegister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
+	amf_error = saAmfComponentRegister(gld_cb->amf_hdl, &gld_cb->comp_name,
+					   (SaNameT *)NULL);
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("AMF Registration Failed");
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
@@ -169,28 +166,32 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		res = NCSCC_RC_FAILURE;
-		goto end;	
+		goto end;
 	} else
 		TRACE_1("AMF Registration Success");
 
-   /** start the AMF health check **/
+	/** start the AMF health check **/
 	memset(&Healthy, 0, sizeof(Healthy));
 	health_key = (int8_t *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
 		if (strlen("A1B2") < sizeof(Healthy.key))
-			strncpy((char *)Healthy.key, "A1B2", sizeof(Healthy.key));
+			strncpy((char *)Healthy.key, "A1B2",
+				sizeof(Healthy.key));
 		TRACE_1("GLD health key default set");
 	} else {
 		if (strlen((char *)health_key) < sizeof(Healthy.key))
-			strncpy((char *)Healthy.key, (char *)health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
+			strncpy((char *)Healthy.key, (char *)health_key,
+				SA_AMF_HEALTHCHECK_KEY_MAX - 1);
 	}
 	Healthy.keyLen = strlen((char *)Healthy.key);
 
-	amf_error = saAmfHealthcheckStart(gld_cb->amf_hdl, &gld_cb->comp_name, &Healthy,
-					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+	amf_error = saAmfHealthcheckStart(
+	    gld_cb->amf_hdl, &gld_cb->comp_name, &Healthy,
+	    SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 	if (amf_error != SA_AIS_OK) {
 		LOG_ER("AMF Health Check start failed");
-		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
+		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name,
+					 (SaNameT *)NULL);
 		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
 		saAmfFinalize(gld_cb->amf_hdl);
@@ -199,19 +200,19 @@ uint32_t gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		TRACE_1("AMF Health Check started");
 
 	if ((res = initialize_for_assignment(gld_cb, gld_cb->ha_state)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) res);
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)res);
 		exit(EXIT_FAILURE);
 	}
 
- end:
+end:
 	TRACE_LEAVE();
 	return (res);
 }
 
 uint32_t initialize_for_assignment(GLSV_GLD_CB *cb, SaAmfHAStateT ha_state)
 {
-	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	TRACE_ENTER2("ha_state = %d", (int)ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT amf_error;
 	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
@@ -242,7 +243,7 @@ uint32_t initialize_for_assignment(GLSV_GLD_CB *cb, SaAmfHAStateT ha_state)
 	if (amf_error != SA_AIS_OK) {
 		glsv_gld_mbcsv_unregister(cb);
 		gld_mds_shut(cb);
-		LOG_ER("Imm Init Failed %u\n", (unsigned) amf_error);
+		LOG_ER("Imm Init Failed %u\n", (unsigned)amf_error);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -257,9 +258,9 @@ done:
  * Name          : gld_se_lib_destroy
  *
  * Description   : Invoked to destroy the GLD
- *                 
  *
- * Arguments     : 
+ *
+ * Arguments     :
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
  * Notes         : None.
@@ -270,8 +271,8 @@ uint32_t gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
-	    == NULL) {
+	if ((gld_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_GLD,
+						 gl_gld_hdl)) == NULL) {
 		LOG_ER("Handle take failed");
 		rc = NCSCC_RC_FAILURE;
 		goto end;
@@ -279,7 +280,8 @@ uint32_t gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 		/* Disconnect from MDS */
 		gld_mds_shut(gld_cb);
 
-		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
+		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name,
+					 (SaNameT *)NULL);
 		saAmfFinalize(gld_cb->amf_hdl);
 
 		ncshm_give_hdl(gl_gld_hdl);
@@ -289,7 +291,7 @@ uint32_t gld_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 		gld_cb_destroy(gld_cb);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 	}
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -316,17 +318,17 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 
 	/* Intialize all the patrica trees */
 	params.key_size = sizeof(uint32_t);
-	if ((ncs_patricia_tree_init(&gld_cb->glnd_details, &params))
-	    != NCSCC_RC_SUCCESS) {
+	if ((ncs_patricia_tree_init(&gld_cb->glnd_details, &params)) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree init failed");
-		rc =  NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
 		goto end;
 	}
 	gld_cb->glnd_details_tree_up = true;
 
 	params.key_size = sizeof(uint32_t);
-	if ((ncs_patricia_tree_init(&gld_cb->rsc_info_id, &params))
-	    != NCSCC_RC_SUCCESS) {
+	if ((ncs_patricia_tree_init(&gld_cb->rsc_info_id, &params)) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree init failed");
 		rc = NCSCC_RC_FAILURE;
 		goto end;
@@ -334,8 +336,8 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 	gld_cb->rsc_info_id_tree_up = true;
 
 	params.key_size = sizeof(SaNameT);
-	if ((ncs_patricia_tree_init(&gld_cb->rsc_map_info, &params))
-	    != NCSCC_RC_SUCCESS) {
+	if ((ncs_patricia_tree_init(&gld_cb->rsc_map_info, &params)) !=
+	    NCSCC_RC_SUCCESS) {
 		LOG_ER("Patricia tree init failed");
 		rc = NCSCC_RC_FAILURE;
 		goto end;
@@ -348,7 +350,7 @@ uint32_t gld_cb_init(GLSV_GLD_CB *gld_cb)
 	gld_cb->mbcsv_sel_obj = -1;
 	gld_cb->imm_sel_obj = -1;
 	gld_cb->fully_initialized = false;
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -375,20 +377,28 @@ uint32_t gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 	TRACE_ENTER();
 
 	/* destroy the patricia trees */
-	while ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, (uint8_t *)0))) {
+	while (
+	    (node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(
+		 &gld_cb->glnd_details, (uint8_t *)0))) {
 		while ((glnd_rsc =
-			(GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uint8_t *)0))) {
-			if (ncs_patricia_tree_del(&node_details->rsc_info_tree, (NCS_PATRICIA_NODE *)glnd_rsc) !=
+			    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(
+				&node_details->rsc_info_tree, (uint8_t *)0))) {
+			if (ncs_patricia_tree_del(
+				&node_details->rsc_info_tree,
+				(NCS_PATRICIA_NODE *)glnd_rsc) !=
 			    NCSCC_RC_SUCCESS) {
 				LOG_ER("Patricia tree del failed");
-				rc =  NCSCC_RC_FAILURE;
+				rc = NCSCC_RC_FAILURE;
 				goto end;
 			}
 			m_MMGR_FREE_GLSV_GLD_GLND_RSC_REF(glnd_rsc);
 		}
 		ncs_patricia_tree_destroy(&node_details->rsc_info_tree);
-		if (ncs_patricia_tree_del(&gld_cb->glnd_details, (NCS_PATRICIA_NODE *)node_details) != NCSCC_RC_SUCCESS) {
-			LOG_ER("Patricia tree del failed: node_id %u", node_details->node_id);
+		if (ncs_patricia_tree_del(&gld_cb->glnd_details,
+					  (NCS_PATRICIA_NODE *)node_details) !=
+		    NCSCC_RC_SUCCESS) {
+			LOG_ER("Patricia tree del failed: node_id %u",
+			       node_details->node_id);
 			rc = NCSCC_RC_FAILURE;
 			goto end;
 		}
@@ -396,7 +406,8 @@ uint32_t gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 		m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
 	}
 
-	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uint8_t *)0))) {
+	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(
+		    &gld_cb->rsc_info_id, (uint8_t *)0))) {
 		/* Free the node list */
 		while (rsc_info->node_list != NULL) {
 			node_list = rsc_info->node_list;
@@ -406,7 +417,7 @@ uint32_t gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 
 		gld_free_rsc_info(gld_cb, rsc_info);
 	}
- end:
+end:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -414,7 +425,7 @@ uint32_t gld_cb_destroy(GLSV_GLD_CB *gld_cb)
 /****************************************************************************
  * Name          : gld_clear_mbx
  *
- * Description   : This is the function which deletes all the messages from 
+ * Description   : This is the function which deletes all the messages from
  *                 the mail box.
  *
  * Arguments     : arg     - argument to be passed.
@@ -440,11 +451,11 @@ bool gld_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 /****************************************************************************
  * Name          : gld_process_mbx
  *
- * Description   : This is the function which process the IPC mail box of 
- *                 GLD 
+ * Description   : This is the function which process the IPC mail box of
+ *                 GLD
  *
- * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which IfD/IfND is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -454,8 +465,10 @@ void gld_process_mbx(SYSF_MBX *mbx)
 {
 	GLSV_GLD_EVT *evt = GLSV_GLD_EVT_NULL;
 
-	while (GLSV_GLD_EVT_NULL != (evt = (GLSV_GLD_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt))) {
-		if ((evt->evt_type >= GLSV_GLD_EVT_BASE) && (evt->evt_type < GLSV_GLD_EVT_MAX)) {
+	while (GLSV_GLD_EVT_NULL !=
+	       (evt = (GLSV_GLD_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt))) {
+		if ((evt->evt_type >= GLSV_GLD_EVT_BASE) &&
+		    (evt->evt_type < GLSV_GLD_EVT_MAX)) {
 			/* This event belongs to GLD */
 			gld_process_evt(evt);
 		} else {
@@ -469,14 +482,14 @@ void gld_process_mbx(SYSF_MBX *mbx)
 /****************************************************************************
  * Name          : gld_main_process
  *
- * Description   : This is the function which is given as a input to the 
+ * Description   : This is the function which is given as a input to the
  *                 GLD task.
  *                 This function will be select of both the FD's (AMF FD and
  *                 Mail Box FD), depending on which FD has been selected, it
  *                 will call the corresponding routines.
  *
- * Arguments     : mbx  - This is the mail box pointer on which GLD is 
- *                        going to block.  
+ * Arguments     : mbx  - This is the mail box pointer on which GLD is
+ *                        going to block.
  *
  * Return Values : None.
  *
@@ -493,8 +506,8 @@ void gld_main_process(SYSF_MBX *mbx)
 
 	TRACE_ENTER();
 
-	if ((gld_cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
-	    == NULL) {
+	if ((gld_cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD,
+						    gl_gld_hdl)) == NULL) {
 		LOG_ER("Handle take failed");
 		goto end;
 	}
@@ -522,7 +535,8 @@ void gld_main_process(SYSF_MBX *mbx)
 	while (1) {
 		fds[FD_MBCSV].fd = gld_cb->mbcsv_sel_obj;
 		fds[FD_MBCSV].events = POLLIN;
-		if ((gld_cb->immOiHandle != 0) && (gld_cb->is_impl_set == true)){
+		if ((gld_cb->immOiHandle != 0) &&
+		    (gld_cb->is_impl_set == true)) {
 			fds[FD_IMM].fd = gld_cb->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
 			nfds = NUM_FD;
@@ -547,9 +561,11 @@ void gld_main_process(SYSF_MBX *mbx)
 		if (fds[FD_AMF].revents & POLLIN) {
 			if (gld_cb->amf_hdl != 0) {
 				/* dispatch all the AMF pending function */
-				error = saAmfDispatch(gld_cb->amf_hdl, SA_DISPATCH_ALL);
+				error = saAmfDispatch(gld_cb->amf_hdl,
+						      SA_DISPATCH_ALL);
 				if (error != SA_AIS_OK) {
-					TRACE_2("AMF Selection object get error");
+					TRACE_2(
+					    "AMF Selection object get error");
 				}
 			} else
 				TRACE_2("gld_cb->amf_hdl == 0");
@@ -571,25 +587,30 @@ void gld_main_process(SYSF_MBX *mbx)
 		/* process the IMM messages */
 		if (gld_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 			/* dispatch all the IMM pending function */
-			error = saImmOiDispatch(gld_cb->immOiHandle, SA_DISPATCH_ONE);
+			error = saImmOiDispatch(gld_cb->immOiHandle,
+						SA_DISPATCH_ONE);
 
 			/*
-			 ** BAD_HANDLE is interpreted as an IMM service restart. Try 
-			 ** reinitialize the IMM OI API in a background thread and let 
-			 ** this thread do business as usual especially handling write 
-			 ** requests.
+			 ** BAD_HANDLE is interpreted as an IMM service restart.
+			 *Try * reinitialize the IMM OI API in a background
+			 *thread and let * this thread do business as usual
+			 *especially handling write * requests.
 			 **
-			 ** All other errors are treated as non-recoverable (fatal) and will
-			 ** cause an exit of the process.
+			 ** All other errors are treated as non-recoverable
+			 *(fatal) and will * cause an exit of the process.
 			 */
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				TRACE_2("saImmOiDispatch returned BAD_HANDLE %u", error);
+				TRACE_2(
+				    "saImmOiDispatch returned BAD_HANDLE %u",
+				    error);
 
-				/* 
-				 ** Invalidate the IMM OI handle, this info is used in other
-				 ** locations. E.g. giving TRY_AGAIN responses to a create and
-				 ** close resource requests. That is needed since the IMM OI
-				 ** is used in context of these functions.
+				/*
+				 ** Invalidate the IMM OI handle, this info is
+				 *used in other * locations. E.g. giving
+				 *TRY_AGAIN responses to a create and * close
+				 *resource requests. That is needed since the
+				 *IMM OI * is used in context of these
+				 *functions.
 				 */
 				saImmOiFinalize(gld_cb->immOiHandle);
 				gld_cb->immOiHandle = 0;
@@ -601,9 +622,8 @@ void gld_main_process(SYSF_MBX *mbx)
 				break;
 			}
 		}
-
 	}
- end:
+end:
 	TRACE_LEAVE();
 	return;
 }
@@ -642,27 +662,32 @@ void gld_dump_cb()
 	TRACE("AMF HA state : %d ", gld_cb->ha_state);
 	/* print the Node details */
 	TRACE("GLND info :");
-	while ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details,
-										  (uint8_t *)&node_id))) {
+	while (
+	    (node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(
+		 &gld_cb->glnd_details, (uint8_t *)&node_id))) {
 		node_id = node_details->node_id;
 		TRACE("Node Id - :%d ", node_details->node_id);
 	}
 
 	/* print the Resource details */
-	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(&gld_cb->rsc_info_id, (uint8_t *)&rsc_id))) {
+	while ((rsc_info = (GLSV_GLD_RSC_INFO *)ncs_patricia_tree_getnext(
+		    &gld_cb->rsc_info_id, (uint8_t *)&rsc_id))) {
 		GLSV_NODE_LIST *list;
 		rsc_id = rsc_info->rsc_id;
-		TRACE("Resource Id - : %d  Resource Name - %.10s ", (uint32_t)rsc_info->rsc_id, rsc_info->lck_name.value);
-		TRACE("Can Orphan - %d Mode - %d ", rsc_info->can_orphan, (uint32_t)rsc_info->orphan_lck_mode);
+		TRACE("Resource Id - : %d  Resource Name - %.10s ",
+		      (uint32_t)rsc_info->rsc_id, rsc_info->lck_name.value);
+		TRACE("Can Orphan - %d Mode - %d ", rsc_info->can_orphan,
+		      (uint32_t)rsc_info->orphan_lck_mode);
 		list = rsc_info->node_list;
 		TRACE("List of Nodes :");
 		while (list != NULL) {
-			TRACE("from mds_dest: %d", m_NCS_NODE_ID_FROM_MDS_DEST(list->dest_id));
+			TRACE("from mds_dest: %d",
+			      m_NCS_NODE_ID_FROM_MDS_DEST(list->dest_id));
 			list = list->next;
 		}
 	}
 	ncshm_give_hdl(gl_gld_hdl);
 	TRACE("************************************************** ");
- end:	
+end:
 	TRACE_LEAVE();
 }

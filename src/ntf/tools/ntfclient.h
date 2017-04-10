@@ -35,13 +35,10 @@
 /* TODO: decide max values ??*/
 #define MAX_NUMBER_OF_STATE_CHANGES 1000
 #define MAX_NUMBER_OF_CHANGED_ATTRIBUTES 1000
-#define MAX_NUMBER_OF_OBJECT_ATTRIBUTES  1000
-#define MAX_NUMBER_OF_ADDITIONAL_INFO  1
+#define MAX_NUMBER_OF_OBJECT_ATTRIBUTES 1000
+#define MAX_NUMBER_OF_ADDITIONAL_INFO 1
 
-typedef enum {
-  MY_APP_OPER_STATE = 1,
-  MY_APP_USAGE_STATE = 2
-} saNtfStateIdT;
+typedef enum { MY_APP_OPER_STATE = 1, MY_APP_USAGE_STATE = 2 } saNtfStateIdT;
 
 typedef enum {
   SA_NTF_DISABLED,
@@ -112,8 +109,7 @@ typedef struct {
 
   /* Attribute Change Specific */
   SaNtfSourceIndicatorT attributeChangeSourceIndicator;
-  SaNtfAttributeChangeT changedAttributes[
-      MAX_NUMBER_OF_CHANGED_ATTRIBUTES];
+  SaNtfAttributeChangeT changedAttributes[MAX_NUMBER_OF_CHANGED_ATTRIBUTES];
 
   /* Security Alarm Specific */
   SaNtfProbableCauseT securityAlarmProbableCause;
@@ -125,7 +121,8 @@ typedef struct {
   SaInt32T timeout;
   SaInt32T burstTimeout;
   unsigned int repeateSends;
-  saNotificationAdditionalInfoParamsT additionalInfo[MAX_NUMBER_OF_ADDITIONAL_INFO];
+  saNotificationAdditionalInfoParamsT
+      additionalInfo[MAX_NUMBER_OF_ADDITIONAL_INFO];
 } saNotificationParamsT;
 
 typedef SaUint16T saNotificationFlagsT;
@@ -143,13 +140,11 @@ bool validate_nType_eType(SaNtfNotificationTypeT nType, SaNtfEventTypeT eType);
 void set_nType_for_eType(SaNtfNotificationTypeT *nType, SaNtfEventTypeT *eType);
 
 /* wrapper of NTF API to handle TRY_AGAIN */
-SaAisErrorT ntftool_saNtfInitialize(
-    SaNtfHandleT *ntfHandle,
-    const SaNtfCallbacksT *ntfCallbacks,
-    SaVersionT *version);
-SaAisErrorT ntftool_saNtfDispatch(
-    SaNtfHandleT ntfHandle,
-    SaDispatchFlagsT dispatchFlags);
+SaAisErrorT ntftool_saNtfInitialize(SaNtfHandleT *ntfHandle,
+                                    const SaNtfCallbacksT *ntfCallbacks,
+                                    SaVersionT *version);
+SaAisErrorT ntftool_saNtfDispatch(SaNtfHandleT ntfHandle,
+                                  SaDispatchFlagsT dispatchFlags);
 SaAisErrorT ntftool_saNtfNotificationSend(
     SaNtfNotificationHandleT notificationHandle);
 SaAisErrorT ntftool_saNtfNotificationSubscribe(
@@ -162,9 +157,8 @@ SaAisErrorT ntftool_saNtfNotificationReadInitialize(
     const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
     SaNtfReadHandleT *readHandle);
 SaAisErrorT ntftool_saNtfNotificationReadNext(
-    SaNtfReadHandleT readHandle,
-    SaNtfSearchDirectionT searchDirection, SaNtfNotificationsT *notification);
-SaAisErrorT ntftool_saNtfNotificationReadFinalize(
-    SaNtfReadHandleT readhandle);
+    SaNtfReadHandleT readHandle, SaNtfSearchDirectionT searchDirection,
+    SaNtfNotificationsT *notification);
+SaAisErrorT ntftool_saNtfNotificationReadFinalize(SaNtfReadHandleT readhandle);
 
 #endif  // NTF_TOOLS_NTFCLIENT_H_

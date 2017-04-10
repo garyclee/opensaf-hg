@@ -18,7 +18,7 @@
   DESCRIPTION:
 
   This file contains extern declarations for AvSv toolkit application.
-  
+
 ******************************************************************************
 */
 
@@ -26,7 +26,7 @@
 #define EDSV_DEMO_APP_H
 
 /* Common header files */
-#include<stdio.h>
+#include <stdio.h>
 #include <poll.h>
 #include <string.h>
 #include <errno.h>
@@ -37,19 +37,16 @@
 #include <saAis.h>
 #include <saEvt.h>
 
-#define NCS_SERVICE_ID_EDSVTM  (UD_SERVICE_ID_END + 2)
+#define NCS_SERVICE_ID_EDSVTM (UD_SERVICE_ID_END + 2)
 
-typedef enum
-{
-   NCS_SERVICE_EDSVTM_SUB_ID_SNMPTM_EVT_DATA = 1,
-   NCS_SERVICE_EDSVTM_SUB_ID_EVT_PAT_ARRAY,
-   NCS_SERVICE_EDSVTM_SUB_ID_EVT_PATTERNS,
-   NCS_SERVICE_SNMPTM_SUB_ID_MAX
+typedef enum {
+  NCS_SERVICE_EDSVTM_SUB_ID_SNMPTM_EVT_DATA = 1,
+  NCS_SERVICE_EDSVTM_SUB_ID_EVT_PAT_ARRAY,
+  NCS_SERVICE_EDSVTM_SUB_ID_EVT_PATTERNS,
+  NCS_SERVICE_SNMPTM_SUB_ID_MAX
 } NCS_SERVICE_EDSVTM_SUB_ID;
-
 
 /* Top level routine to run EDSv demo */
 extern unsigned int ncs_edsv_run(void);
 
 #endif /* !EDSV_DEMO_APP_H */
-

@@ -25,7 +25,7 @@
 
 /***************************************************************************
  * Name        : immd_process_sb_fevs
- 
+
  * Description : This is used to replicate a fevs message at Standby.
 
  * Arguments   : fevs_msg - The IMMSV_FEVS message.
@@ -39,11 +39,11 @@ uint32_t immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 	TRACE_5("Message count: %llu", fevs_msg->sender_count);
 	TRACE_5("size:%u", fevs_msg->msg.size);
 	if (cb->fevsSendCount + 1 != fevs_msg->sender_count) {
-		if(cb->fevsSendCount) {
-			/* After the fix for #280 standby starts getting 
+		if (cb->fevsSendCount) {
+			/* After the fix for #280 standby starts getting
 			   fevs *after* loading */
-			LOG_WA("Message count:%llu + 1 != %llu", 
-				cb->fevsSendCount, fevs_msg->sender_count);
+			LOG_WA("Message count:%llu + 1 != %llu",
+			       cb->fevsSendCount, fevs_msg->sender_count);
 		}
 		cb->fevsSendCount = fevs_msg->sender_count;
 	} else {
@@ -61,11 +61,11 @@ uint32_t immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
 
 /***************************************************************************
  * Name        : immd_sb_process_sb_count
- 
+
  * Description : This is used to replicate counters at Standby.
 
  * Arguments   : counter - The Counter value.
-                 evt_type- The type of counter/event.
+		 evt_type- The type of counter/event.
 
  * Return Values : Success / Error
 
@@ -77,7 +77,8 @@ uint32_t immd_process_sb_count(IMMD_CB *cb, uint32_t count, uint32_t evt_type)
 	switch (evt_type) {
 	case IMMD_A2S_MSG_ADMINIT:
 		if (cb->admo_id_count + 1 != count) {
-			LOG_WA("ADMO-id: %u +1 != %u", cb->admo_id_count, count);
+			LOG_WA("ADMO-id: %u +1 != %u", cb->admo_id_count,
+			       count);
 		}
 		cb->admo_id_count = count;
 		TRACE_5("cb->admo_id_count:%u", cb->admo_id_count);
@@ -101,7 +102,8 @@ uint32_t immd_process_sb_count(IMMD_CB *cb, uint32_t count, uint32_t evt_type)
 
 	case IMMD_A2S_MSG_CCBINIT:
 		if (cb->ccb_id_count + 1 != count) {
-			LOG_WA("CCB-id: %u + 1 != %u", cb->ccb_id_count + 1, count);
+			LOG_WA("CCB-id: %u + 1 != %u", cb->ccb_id_count + 1,
+			       count);
 		}
 		cb->ccb_id_count = count;
 		TRACE_5("cb->ccb_id_count:%u", cb->ccb_id_count);
@@ -121,7 +123,7 @@ uint32_t immd_process_sb_count(IMMD_CB *cb, uint32_t count, uint32_t evt_type)
 
 /***************************************************************************
  * Name        : immd_sb_process_node_accept
- 
+
  * Description : This is used to replicate IMMND node-info at Standby.
 
 **********************************************************************/
@@ -130,22 +132,27 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MDS_DEST key;
 	IMMD_IMMND_INFO_NODE *immnd_info_node;
-	bool checkImmd2Pbe=false;
+	bool checkImmd2Pbe = false;
 	TRACE_ENTER();
 
-	TRACE_5("NodeId: %x epoch:%u canBeCoord:%u isCoord:%u syncStart:%u, rulingEpoch:%u pbe:%u",
-		ctrl->nodeId, ctrl->nodeEpoch, ctrl->canBeCoord, ctrl->isCoord, ctrl->syncStarted, 
-		ctrl->rulingEpoch, ctrl->pbeEnabled);
+	TRACE_5(
+	    "NodeId: %x epoch:%u canBeCoord:%u isCoord:%u syncStart:%u, rulingEpoch:%u pbe:%u",
+	    ctrl->nodeId, ctrl->nodeEpoch, ctrl->canBeCoord, ctrl->isCoord,
+	    ctrl->syncStarted, ctrl->rulingEpoch, ctrl->pbeEnabled);
 
-	if((ctrl->canBeCoord > 1) && (ctrl->canBeCoord < 4) && !(immd_cb->mIs2Pbe)) {
-		LOG_ER("Active IMMD has 2PBE enabled, yet this standby is not enabled for 2PBE - exiting");
+	if ((ctrl->canBeCoord > 1) && (ctrl->canBeCoord < 4) &&
+	    !(immd_cb->mIs2Pbe)) {
+		LOG_ER(
+		    "Active IMMD has 2PBE enabled, yet this standby is not enabled for 2PBE - exiting");
 		exit(1);
-	} else if((cb->immnd_coord == 0) && immd_cb->mIs2Pbe && (ctrl->canBeCoord == 1)) {
-		/* If 2Pbe is enabled, then ctrl->canBeCoord must be 2 or 3 for first 
-		   node accpet message for each SC. Subsequent may have ctgrl->canBeCoord
-		   set to just 1. First message check done below using checkImmd2Pbe.
+	} else if ((cb->immnd_coord == 0) && immd_cb->mIs2Pbe &&
+		   (ctrl->canBeCoord == 1)) {
+		/* If 2Pbe is enabled, then ctrl->canBeCoord must be 2 or 3 for
+		   first node accpet message for each SC. Subsequent may have
+		   ctgrl->canBeCoord set to just 1. First message check done
+		   below using checkImmd2Pbe.
 		*/
-		checkImmd2Pbe=true;
+		checkImmd2Pbe = true;
 	}
 
 	if (cb->mRulingEpoch < ctrl->rulingEpoch) {
@@ -153,7 +160,9 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 		LOG_NO("SBY: Ruling epoch noted as:%u", cb->mRulingEpoch);
 	}
 
-	if(ctrl->pbeEnabled == 2) {ctrl->pbeEnabled = 0;} 
+	if (ctrl->pbeEnabled == 2) {
+		ctrl->pbeEnabled = 0;
+	}
 
 	osafassert(cb->is_immnd_tree_up);
 	memset(&key, 0, sizeof(MDS_DEST));
@@ -161,50 +170,62 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 	while (immnd_info_node) {
 		key = immnd_info_node->immnd_dest;
 		if (immnd_info_node->immnd_key == ctrl->nodeId) {
-			break;	/*Out of while */
+			break; /*Out of while */
 		}
-		immd_immnd_info_node_getnext(&cb->immnd_tree, &key, &immnd_info_node);
+		immd_immnd_info_node_getnext(&cb->immnd_tree, &key,
+					     &immnd_info_node);
 	}
 
 	if (immnd_info_node) {
 		if (immnd_info_node->epoch < ctrl->nodeEpoch) {
 			LOG_NO("SBY: New Epoch for IMMND process at node %x "
-				"old epoch: %u  new epoch:%u", ctrl->nodeId,
-				immnd_info_node->epoch, ctrl->nodeEpoch);
-			
+			       "old epoch: %u  new epoch:%u",
+			       ctrl->nodeId, immnd_info_node->epoch,
+			       ctrl->nodeEpoch);
 
 			immnd_info_node->epoch = ctrl->nodeEpoch;
 		}
-		if (!(immnd_info_node->isOnController) && ctrl->canBeCoord && (ctrl->canBeCoord < 4)) {
+		if (!(immnd_info_node->isOnController) && ctrl->canBeCoord &&
+		    (ctrl->canBeCoord < 4)) {
 			immnd_info_node->isOnController = true;
-			TRACE_5("Corrected isOnController status for immnd node info");
+			TRACE_5(
+			    "Corrected isOnController status for immnd node info");
 
-
-			if(checkImmd2Pbe) {
-				LOG_ER("Active IMMD does not have 2PBE enabled, yet this standby "
-					"is enabled for 2PBE - exiting %u %u %u",
-					cb->immnd_coord, immd_cb->mIs2Pbe, ctrl->canBeCoord);
+			if (checkImmd2Pbe) {
+				LOG_ER(
+				    "Active IMMD does not have 2PBE enabled, yet this standby "
+				    "is enabled for 2PBE - exiting %u %u %u",
+				    cb->immnd_coord, immd_cb->mIs2Pbe,
+				    ctrl->canBeCoord);
 				exit(1);
 			}
 		}
 
 		immnd_info_node->isCoord = ctrl->isCoord;
 
-		if(ctrl->isCoord) {
+		if (ctrl->isCoord) {
 			SaImmRepositoryInitModeT oldRim = cb->mRim;
 			cb->immnd_coord = immnd_info_node->immnd_key;
-			cb->payload_coord_dest = (immnd_info_node->isOnController) ? 0LL : immnd_info_node->immnd_dest;
+			cb->payload_coord_dest =
+			    (immnd_info_node->isOnController)
+				? 0LL
+				: immnd_info_node->immnd_dest;
 			cb->m2PbeCanLoad = true;
 			LOG_NO("IMMND coord at %x", immnd_info_node->immnd_key);
 			immnd_info_node->syncStarted = ctrl->syncStarted;
-			cb->mRim = (ctrl->pbeEnabled==4)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
-			if(cb->mRim != oldRim) {
-				LOG_NO("SBY: SaImmRepositoryInitModeT changed and noted as '%s'",
-					(cb->mRim == SA_IMM_KEEP_REPOSITORY)?
-					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+			cb->mRim = (ctrl->pbeEnabled == 4)
+				       ? SA_IMM_KEEP_REPOSITORY
+				       : SA_IMM_INIT_FROM_FILE;
+			if (cb->mRim != oldRim) {
+				LOG_NO(
+				    "SBY: SaImmRepositoryInitModeT changed and noted as '%s'",
+				    (cb->mRim == SA_IMM_KEEP_REPOSITORY)
+					? "SA_IMM_KEEP_REPOSITORY"
+					: "SA_IMM_INIT_FROM_FILE");
 			} else {
-				TRACE("SBY: SaImmRepositoryInitModeT stable as %u ctrl->pbeEnabled:%u", 
-					oldRim, ctrl->pbeEnabled);
+				TRACE(
+				    "SBY: SaImmRepositoryInitModeT stable as %u ctrl->pbeEnabled:%u",
+				    oldRim, ctrl->pbeEnabled);
 			}
 		}
 
@@ -216,15 +237,18 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 			}
 		}
 
-		if(!(ctrl->canBeCoord) || (ctrl->canBeCoord== 4)) { /* payload node */
-			/* Remove the node-id from the list of detached payloads. */
-			IMMD_IMMND_DETACHED_NODE *detached_node = cb->detached_nodes;
+		if (!(ctrl->canBeCoord) ||
+		    (ctrl->canBeCoord == 4)) { /* payload node */
+			/* Remove the node-id from the list of detached
+			 * payloads. */
+			IMMD_IMMND_DETACHED_NODE *detached_node =
+			    cb->detached_nodes;
 			IMMD_IMMND_DETACHED_NODE **prev = &(cb->detached_nodes);
-			while(detached_node) {
-				if(detached_node->node_id == ctrl->nodeId) {
+			while (detached_node) {
+				if (detached_node->node_id == ctrl->nodeId) {
 					*prev = detached_node->next;
 					detached_node->next = NULL;
-					break;/* out of while */
+					break; /* out of while */
 				}
 
 				/* next iteration */
@@ -232,66 +256,73 @@ uint32_t immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL *ctrl)
 				detached_node = detached_node->next;
 			}
 
-			if(detached_node) {
+			if (detached_node) {
 				free(detached_node);
-				LOG_IN("SBY: Received node-accept from active IMMD for "
-					"payload node %x, discarding pending removal record.",
-					ctrl->nodeId);
+				LOG_IN(
+				    "SBY: Received node-accept from active IMMD for "
+				    "payload node %x, discarding pending removal record.",
+				    ctrl->nodeId);
 			}
 		}
 	} else {
-		LOG_IN("Standby IMMD could not find node with nodeId:%x", ctrl->nodeId);
+		LOG_IN("Standby IMMD could not find node with nodeId:%x",
+		       ctrl->nodeId);
 	}
 
-	if(ctrl->pbeEnabled >= 3) { /* Extended intro. */
-		TRACE("Standby receiving FS params: %s %s %s", 
-			ctrl->dir.buf, ctrl->xmlFile.buf, ctrl->pbeFile.buf);
+	if (ctrl->pbeEnabled >= 3) { /* Extended intro. */
+		TRACE("Standby receiving FS params: %s %s %s", ctrl->dir.buf,
+		      ctrl->xmlFile.buf, ctrl->pbeFile.buf);
 
-		if(ctrl->dir.size && cb->mDir==NULL && (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
+		if (ctrl->dir.size && cb->mDir == NULL &&
+		    (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
 			TRACE("cb->mDir set to %s in standby", ctrl->dir.buf);
 			cb->mDir = ctrl->dir.buf; /*steal*/
-		} else if(ctrl->dir.size && cb->mDir) {
+		} else if (ctrl->dir.size && cb->mDir) {
 			/* Should not get here since fs params sent only once.*/
-			if(strcmp(cb->mDir, ctrl->dir.buf)) {
-				LOG_WA("SBY: Discrepancy on IMM directory: %s != %s",
-					cb->mDir, ctrl->dir.buf);
+			if (strcmp(cb->mDir, ctrl->dir.buf)) {
+				LOG_WA(
+				    "SBY: Discrepancy on IMM directory: %s != %s",
+				    cb->mDir, ctrl->dir.buf);
 			}
 			free(ctrl->dir.buf);
 		}
-		ctrl->dir.buf=NULL;
-		ctrl->dir.size=0;
+		ctrl->dir.buf = NULL;
+		ctrl->dir.size = 0;
 
-
-		if(ctrl->xmlFile.size && cb->mFile==NULL && (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
-			TRACE("cb->mFile set to %s in standby",ctrl->xmlFile.buf );
+		if (ctrl->xmlFile.size && cb->mFile == NULL &&
+		    (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
+			TRACE("cb->mFile set to %s in standby",
+			      ctrl->xmlFile.buf);
 			cb->mFile = ctrl->xmlFile.buf; /*steal*/
-		} else if(ctrl->xmlFile.size && cb->mFile) {
+		} else if (ctrl->xmlFile.size && cb->mFile) {
 			/* Should not get here since fs params sent only once.*/
-			if(strcmp(cb->mFile, ctrl->xmlFile.buf)) {
-				LOG_WA("SBY: Discrepancy on IMM XML file: %s != %s",
-					cb->mFile, ctrl->xmlFile.buf);
+			if (strcmp(cb->mFile, ctrl->xmlFile.buf)) {
+				LOG_WA(
+				    "SBY: Discrepancy on IMM XML file: %s != %s",
+				    cb->mFile, ctrl->xmlFile.buf);
 			}
 			free(ctrl->xmlFile.buf);
 		}
-		ctrl->xmlFile.buf=NULL;
-		ctrl->xmlFile.size=0;
+		ctrl->xmlFile.buf = NULL;
+		ctrl->xmlFile.size = 0;
 
-
-		if(ctrl->pbeFile.size && cb->mPbeFile==NULL && (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
-			TRACE("cb->mPbeFile set to %s in standby", ctrl->pbeFile.buf);
+		if (ctrl->pbeFile.size && cb->mPbeFile == NULL &&
+		    (ctrl->canBeCoord && (ctrl->canBeCoord < 4))) {
+			TRACE("cb->mPbeFile set to %s in standby",
+			      ctrl->pbeFile.buf);
 			cb->mPbeFile = ctrl->pbeFile.buf; /*steal*/
-		} else if(ctrl->pbeFile.size && cb->mPbeFile) {
+		} else if (ctrl->pbeFile.size && cb->mPbeFile) {
 			/* Should not get here since fs params sent only once.*/
-			if(strcmp(cb->mPbeFile, ctrl->pbeFile.buf)) {
-				LOG_WA("SBY: Discrepancy on IMM PBE file: %s != %s",
-					cb->mPbeFile, ctrl->pbeFile.buf);
+			if (strcmp(cb->mPbeFile, ctrl->pbeFile.buf)) {
+				LOG_WA(
+				    "SBY: Discrepancy on IMM PBE file: %s != %s",
+				    cb->mPbeFile, ctrl->pbeFile.buf);
 			}
 			free(ctrl->pbeFile.buf);
 		}
-		ctrl->pbeFile.buf=NULL;
-		ctrl->pbeFile.size=0;
+		ctrl->pbeFile.buf = NULL;
+		ctrl->pbeFile.size = 0;
 	}
-
 
 	TRACE_LEAVE();
 	immd_cb_dump();

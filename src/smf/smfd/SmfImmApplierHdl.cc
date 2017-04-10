@@ -47,7 +47,7 @@ static bool attribute_value_is_valid_ = false;
 
 // Used to abort ongoing handler activity in case of Stop command
 // For example ongoing TRY_AGAIN handling in IMM APIs must be terminated
-static std::atomic<bool> is_cancel {false};
+static std::atomic<bool> is_cancel{false};
 
 // Mutex protecting attribute value
 // TODO(elunlen): Replace std::mutex with base::mutex when base::mutex is
@@ -63,22 +63,22 @@ std::mutex attribute_value_lock;
  * Note: Is not a method in SmfImmApplierHdl class since used by both
  * C functions and in SmfImmApplierHdl class
  */
-static void SetAttributeValue(const std::string& value) {
+static void SetAttributeValue(const std::string &value) {
   attribute_value_lock.lock();
   attribute_value_ = value;
   attribute_value_lock.unlock();
 }
 
 /**
- * Read the value of the object and attribute 
+ * Read the value of the object and attribute
  * Note1: This function uses an SMF specific IMM wrapper
  * Note2: This may be replaced with a generic IMM wrapper when one has
  * been implemented.
  * Note3: This function can only read one attribute of type SaUint32T
  *
  */
-static std::string GetAttributeValueFromImm(const std::string& i_object_name,
-                                        const std::string& i_attribute_name) {
+static std::string GetAttributeValueFromImm(
+    const std::string &i_object_name, const std::string &i_attribute_name) {
   SaImmAttrValuesT_2 **attributes;
   SmfImmUtils ImmCfg;
 
@@ -89,13 +89,12 @@ static std::string GetAttributeValueFromImm(const std::string& i_object_name,
   }
 
   if (ImmCfg.getObject(i_object_name, &attributes) == false) {
-    LOG_WA("%s: Could not read IMM config object from IMM %s",
-           __FUNCTION__, IMM_CONFIG_OBJECT_DN);
+    LOG_WA("%s: Could not read IMM config object from IMM %s", __FUNCTION__,
+           IMM_CONFIG_OBJECT_DN);
   }
 
   const SaUint32T *attribute_value = immutil_getUint32Attr(
-                            (const SaImmAttrValuesT_2 **) attributes,
-                            i_attribute_name.c_str(), 0);
+      (const SaImmAttrValuesT_2 **)attributes, i_attribute_name.c_str(), 0);
 
   std::string long_dn_setting_as_string = "";
   if (attribute_value != nullptr) {
@@ -119,8 +118,8 @@ static std::string GetAttributeValueFromImm(const std::string& i_object_name,
  */
 
 static bool InitializeImmOi(SaImmOiHandleT *o_immOiHandle,
-                         const SaImmOiCallbacksT_2 *i_immOiCallbacks,
-                         const SaVersionT *i_version) {
+                            const SaImmOiCallbacksT_2 *i_immOiCallbacks,
+                            const SaVersionT *i_version) {
   // It may take up to one minute to initialize if IMM is synchronizing
   base::Timer adminOpTimer(60000);
   SaAisErrorT ais_rc = SA_AIS_OK;
@@ -206,8 +205,8 @@ static bool GetImmOiSelectionObject(SaImmOiHandleT i_immOiHandle,
     }
   }
   if (adminOpTimer.is_timeout() == true && ais_rc != SA_AIS_OK) {
-    LOG_WA("%s: saImmOiSelectionObjectGet() timeout Fail '%s'",
-           __FUNCTION__, saf_error(ais_rc));
+    LOG_WA("%s: saImmOiSelectionObjectGet() timeout Fail '%s'", __FUNCTION__,
+           saf_error(ais_rc));
   }
 
   TRACE_LEAVE();
@@ -215,7 +214,7 @@ static bool GetImmOiSelectionObject(SaImmOiHandleT i_immOiHandle,
 }
 
 static bool ImmOiSet(SaImmOiHandleT i_immOiHandle,
-                     const std::string& i_implementerName) {
+                     const std::string &i_implementerName) {
   base::Timer adminOpTimer(20000);
   SaAisErrorT ais_rc = SA_AIS_OK;
   bool rc = true;
@@ -238,8 +237,8 @@ static bool ImmOiSet(SaImmOiHandleT i_immOiHandle,
     }
   }
   if (adminOpTimer.is_timeout() == true && ais_rc != SA_AIS_OK) {
-    LOG_WA("%s: saImmOiImplementerSet() timeout Fail '%s'",
-           __FUNCTION__, saf_error(ais_rc));
+    LOG_WA("%s: saImmOiImplementerSet() timeout Fail '%s'", __FUNCTION__,
+           saf_error(ais_rc));
   }
 
   TRACE_LEAVE();
@@ -277,7 +276,7 @@ static bool ImmOiClear(SaImmOiHandleT i_immOiHandle) {
  * Become applier for the given object. This starts the applier
  */
 static bool SetImmOiForObject(SaImmOiHandleT i_immOiHandle,
-                              const std::string& i_objectName,
+                              const std::string &i_objectName,
                               SaImmScopeT i_scope) {
   base::Timer adminOpTimer(20000);
   SaAisErrorT ais_rc = SA_AIS_OK;
@@ -311,8 +310,8 @@ static bool SetImmOiForObject(SaImmOiHandleT i_immOiHandle,
  * Release the applier for the given object. This stops the applier
  */
 static bool ReleaseImmOiForObject(SaImmOiHandleT i_immOiHandle,
-                              const std::string& i_objectName,
-                              SaImmScopeT i_scope) {
+                                  const std::string &i_objectName,
+                                  SaImmScopeT i_scope) {
   base::Timer adminOpTimer(20000);
   SaAisErrorT ais_rc = SA_AIS_OK;
   bool rc = true;
@@ -320,8 +319,8 @@ static bool ReleaseImmOiForObject(SaImmOiHandleT i_immOiHandle,
   osaf_extended_name_lend(i_objectName.c_str(), &object_name);
 
   while (adminOpTimer.is_timeout() == false) {
-    ais_rc = saImmOiObjectImplementerRelease(i_immOiHandle, &object_name,
-                                             i_scope);
+    ais_rc =
+        saImmOiObjectImplementerRelease(i_immOiHandle, &object_name, i_scope);
     if (ais_rc == SA_AIS_ERR_TRY_AGAIN) {
       base::Sleep(base::kFiveHundredMilliseconds);
     } else if (ais_rc != SA_AIS_OK) {
@@ -380,10 +379,9 @@ static SaAisErrorT DispatchOiCallback(SaImmOiHandleT i_immOiHandle,
  * Save ccb info if OpensafConfig object is modified
  *
  */
-static SaAisErrorT CcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
-                                    SaImmOiCcbIdT ccbId,
-                                    const SaNameT *objectName,
-                                    const SaImmAttrModificationT_2 **attrMods) {
+static SaAisErrorT CcbObjectModifyCallback(
+    SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId, const SaNameT *objectName,
+    const SaImmAttrModificationT_2 **attrMods) {
   SaAisErrorT rc = SA_AIS_OK;
   struct CcbUtilCcbData *ccbUtilCcbData;
 
@@ -438,8 +436,8 @@ static void CcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
 
   objName = osaf_extended_name_borrow(&opdata->objectName);
   if (object_name_.compare(objName) != 0) {
-    TRACE("%s: Object \"%s\" not an OpensafConfig object",
-          __FUNCTION__, objName);
+    TRACE("%s: Object \"%s\" not an OpensafConfig object", __FUNCTION__,
+          objName);
     goto done;
   }
 
@@ -461,7 +459,7 @@ static void CcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
     }
 
     // Attribute found
-    value = static_cast<SaUint32T*> (attribute.attrValues[0]);
+    value = static_cast<SaUint32T *>(attribute.attrValues[0]);
     break;
   }
 
@@ -475,8 +473,7 @@ static void CcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId) {
   }
 
 done:
-  if (ccbUtilCcbData != nullptr)
-    ccbutil_deleteCcbData(ccbUtilCcbData);
+  if (ccbUtilCcbData != nullptr) ccbutil_deleteCcbData(ccbUtilCcbData);
 
   TRACE_LEAVE();
 }
@@ -531,26 +528,23 @@ static SaAisErrorT CcbDeleteCallback(SaImmOiHandleT immOiHandle,
  * Abort for removing saved ccb in case of an abortion of ccb
  */
 static const SaImmOiCallbacksT_2 callbacks = {
-  .saImmOiAdminOperationCallback = nullptr,
-  .saImmOiCcbAbortCallback = CcbAbortCallback,
-  .saImmOiCcbApplyCallback = CcbApplyCallback,
-  .saImmOiCcbCompletedCallback = nullptr,
-  .saImmOiCcbObjectCreateCallback = CcbCreateCallback,
-  .saImmOiCcbObjectDeleteCallback = CcbDeleteCallback,
-  .saImmOiCcbObjectModifyCallback = CcbObjectModifyCallback,
-  .saImmOiRtAttrUpdateCallback = nullptr
-};
+    .saImmOiAdminOperationCallback = nullptr,
+    .saImmOiCcbAbortCallback = CcbAbortCallback,
+    .saImmOiCcbApplyCallback = CcbApplyCallback,
+    .saImmOiCcbCompletedCallback = nullptr,
+    .saImmOiCcbObjectCreateCallback = CcbCreateCallback,
+    .saImmOiCcbObjectDeleteCallback = CcbDeleteCallback,
+    .saImmOiCcbObjectModifyCallback = CcbObjectModifyCallback,
+    .saImmOiRtAttrUpdateCallback = nullptr};
 
 // =====================================
 // SmfImmApplierHdl Class implementation
 // =====================================
 // Make next_instance_number_ thread safe
 std::atomic<unsigned int> SmfImmApplierHdl::instance_number_{1};
-SmfImmApplierHdl::SmfImmApplierHdl() :
-    isCreated_ {false},
-    imm_appl_hdl_ {0},
-    imm_appl_selobj_ {0} {
-  applier_name_ = "@safSmf_applier"+std::to_string(instance_number_++);
+SmfImmApplierHdl::SmfImmApplierHdl()
+    : isCreated_{false}, imm_appl_hdl_{0}, imm_appl_selobj_{0} {
+  applier_name_ = "@safSmf_applier" + std::to_string(instance_number_++);
 }
 
 SmfImmApplierHdl::~SmfImmApplierHdl() {
@@ -572,7 +566,7 @@ void SmfImmApplierHdl::Remove() {
   }
 }
 
-bool SmfImmApplierHdl::Create(const ApplierSetupInfo& setup_info) {
+bool SmfImmApplierHdl::Create(const ApplierSetupInfo &setup_info) {
   bool do_continue = true;
   TRACE_ENTER();
 
@@ -587,13 +581,13 @@ bool SmfImmApplierHdl::Create(const ApplierSetupInfo& setup_info) {
     // Initialize
     do_continue = InitializeImmOi(&imm_appl_hdl_, &callbacks, &kImmVersion);
     TRACE("%s: InitializeImmOi() = %s", __FUNCTION__,
-          do_continue? "true": "false");
+          do_continue ? "true" : "false");
 
     // Get selection object
     if (do_continue) {
       do_continue = GetImmOiSelectionObject(imm_appl_hdl_, &imm_appl_selobj_);
       TRACE("%s: GetImmOiSelectionObject() = %s", __FUNCTION__,
-            do_continue? "true": "false");
+            do_continue ? "true" : "false");
     }
   }
 
@@ -620,9 +614,9 @@ bool SmfImmApplierHdl::Start() {
       break;
     } else {
       // Create a new name and try again
-      applier_name_ = "@safSmf_applier"+std::to_string(instance_number_++);
-      LOG_NO("%s: A new applier name is created '%s'",
-          __FUNCTION__, applier_name_.c_str());
+      applier_name_ = "@safSmf_applier" + std::to_string(instance_number_++);
+      LOG_NO("%s: A new applier name is created '%s'", __FUNCTION__,
+             applier_name_.c_str());
     }
   }
 
@@ -630,22 +624,24 @@ bool SmfImmApplierHdl::Start() {
   if (do_continue) {
     do_continue = SetImmOiForObject(imm_appl_hdl_, object_name_, SA_IMM_ONE);
     TRACE("%s: SetImmOiForObject() = %s", __FUNCTION__,
-          do_continue? "true": "false");
+          do_continue ? "true" : "false");
 
     if (do_continue) {
       if (attribute_value_is_valid_ == false) {
         // Get the current value from IMM
         value = GetAttributeValueFromImm(object_name_, attribute_name_);
-        TRACE("%s: GetAttributeValueFromImm() = '%s'",
-              __FUNCTION__, value.c_str());
+        TRACE("%s: GetAttributeValueFromImm() = '%s'", __FUNCTION__,
+              value.c_str());
       }
       if (value != "") {
         attribute_value_is_valid_ = true;
       }
       SetAttributeValue(value);
-      TRACE("%s: SetAttributeValue(%s), "
-            "attribute_value_is_valid_ = %s", __FUNCTION__, value.c_str(),
-            attribute_value_is_valid_? "true": "false");
+      TRACE(
+          "%s: SetAttributeValue(%s), "
+          "attribute_value_is_valid_ = %s",
+          __FUNCTION__, value.c_str(),
+          attribute_value_is_valid_ ? "true" : "false");
     }
   }
 
@@ -677,13 +673,11 @@ bool SmfImmApplierHdl::Stop() {
       LOG_NO("%s: ImmOiClear Fail", __FUNCTION__);
     }
   }
-  TRACE_LEAVE2("rc = %s", rc? "true": "false");
+  TRACE_LEAVE2("rc = %s", rc ? "true" : "false");
   return rc;
 }
 
-void SmfImmApplierHdl::CancelCreate() {
-  is_cancel = true;
-}
+void SmfImmApplierHdl::CancelCreate() { is_cancel = true; }
 
 std::string SmfImmApplierHdl::get_value() {
   attribute_value_lock.lock();

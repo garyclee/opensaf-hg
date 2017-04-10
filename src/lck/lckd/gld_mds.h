@@ -27,13 +27,14 @@
 /* GLD - GLND */
 #define GLD_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT 1
 #define GLD_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT 1
-#define GLD_WRT_GLND_SUBPART_VER_RANGE \
-            (GLD_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT - \
-        GLD_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT + 1)
+#define GLD_WRT_GLND_SUBPART_VER_RANGE       \
+  (GLD_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT - \
+   GLD_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 /********************************************************************/
 
 uint32_t gld_mds_callback(NCSMDS_CALLBACK_INFO *info);
-uint32_t gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info);
+uint32_t gld_mds_svc_evt(GLSV_GLD_CB *cb,
+                         MDS_CALLBACK_SVC_EVENT_INFO *rcv_info);
 uint32_t gld_mds_rcv(GLSV_GLD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
 uint32_t gld_mds_cpy(GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info);
 uint32_t gld_mds_vdest_create(GLSV_GLD_CB *cb);

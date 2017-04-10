@@ -26,19 +26,18 @@
 #include "osaf/configmake.h"
 
 LogWriter::LogWriter()
-    : mds_log_file_{base::GetEnv<std::string>("pkglogdir", PKGLOGDIR)
-          + "/mds.log"},
+    : mds_log_file_{base::GetEnv<std::string>("pkglogdir", PKGLOGDIR) +
+                    "/mds.log"},
       old_mds_log_file_{mds_log_file_ + ".1"},
       fd_{-1},
       current_file_size_{0},
       current_buffer_size_{0},
-      buffer_{new char[kBufferSize]} {
-}
+      buffer_{new char[kBufferSize]} {}
 
 LogWriter::~LogWriter() {
   Flush();
   Close();
-  delete [] buffer_;
+  delete[] buffer_;
 }
 
 void LogWriter::Open() {

@@ -39,7 +39,7 @@
 #include "base/ncs_osprm.h"
 #include "base/ncsgl_defs.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -50,7 +50,7 @@ typedef uint32_t SYSF_MBX;
 /** Prototype for "leave on queue" callback functions.  See description of
  ** m_NCS_IPC_FLUSH below for more information.
  **/
-typedef bool (*NCS_IPC_CB) (void *arg, void *msg);
+typedef bool (*NCS_IPC_CB)(void *arg, void *msg);
 
 /** Enumerated values for IPC message priorities.
  **/
@@ -68,9 +68,7 @@ typedef enum ncs_ipc_priority {
  ** Note: this queue element exists to force the requirement that the first
  ** field of the object to be queued must be "next" (void *).
  **/
-typedef struct ncs_ipc_msg {
-  struct ncs_ipc_msg *next;
-} NCS_IPC_MSG;
+typedef struct ncs_ipc_msg { struct ncs_ipc_msg *next; } NCS_IPC_MSG;
 
 /****************************************************************************
  * m_NCS_IPC_CREATE
@@ -88,7 +86,7 @@ typedef struct ncs_ipc_msg {
  * NCSCC_RC_SUCCESS  if IPC mailbox created and initialized successfully.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_IPC_CREATE(p_mbx)               ncs_ipc_create(p_mbx)
+#define m_NCS_IPC_CREATE(p_mbx) ncs_ipc_create(p_mbx)
 
 /****************************************************************************
  * m_NCS_IPC_RELEASE
@@ -109,8 +107,7 @@ typedef struct ncs_ipc_msg {
  * NCSCC_RC_SUCCESS  if IPC mailbox use successfully ceased.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_IPC_RELEASE(p_mbx, callback)      \
-  ncs_ipc_release(p_mbx, callback)
+#define m_NCS_IPC_RELEASE(p_mbx, callback) ncs_ipc_release(p_mbx, callback)
 
 /****************************************************************************
  * m_NCS_IPC_ATTACH
@@ -127,7 +124,7 @@ typedef struct ncs_ipc_msg {
  * NCSCC_RC_SUCCESS  if IPC mailbox successfully attached.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_IPC_ATTACH(p_mbx)    ncs_ipc_attach(p_mbx)
+#define m_NCS_IPC_ATTACH(p_mbx) ncs_ipc_attach(p_mbx)
 
 /****************************************************************************
  * m_NCS_IPC_ATTACH_EXT
@@ -146,7 +143,8 @@ typedef struct ncs_ipc_msg {
  * NCSCC_RC_SUCCESS  if IPC mailbox successfully attached.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_IPC_ATTACH_EXT(p_mbx,task_name)    ncs_ipc_attach_ext(p_mbx,task_name)
+#define m_NCS_IPC_ATTACH_EXT(p_mbx, task_name) \
+  ncs_ipc_attach_ext(p_mbx, task_name)
 
 /****************************************************************************
  * m_NCS_IPC_DETACH
@@ -172,7 +170,7 @@ typedef struct ncs_ipc_msg {
  * NCSCC_RC_SUCCESS  if IPC mailbox successfully detached.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_IPC_DETACH(p_mbx, callback, context)      \
+#define m_NCS_IPC_DETACH(p_mbx, callback, context) \
   ncs_ipc_detach(p_mbx, callback, context)
 
 /****************************************************************************
@@ -197,7 +195,7 @@ typedef struct ncs_ipc_msg {
  * void pointer to the message at the head of the IPC mailbox.
  * NULL if the IPC mailbox has been released.
  */
-#define m_NCS_IPC_RECEIVE(p_mbx, messagebuf)  ncs_ipc_recv(p_mbx)
+#define m_NCS_IPC_RECEIVE(p_mbx, messagebuf) ncs_ipc_recv(p_mbx)
 
 /****************************************************************************
  * m_NCS_IPC_NON_BLK_RECEIVE
@@ -220,11 +218,11 @@ typedef struct ncs_ipc_msg {
  * void pointer to the message at the head of the IPC mailbox.
  * NULL if there is no messages in IPC mailbox.
  */
-#define m_NCS_IPC_NON_BLK_RECEIVE(p_mbx, messagebuf)  ncs_ipc_non_blk_recv(p_mbx)
-#if 0                           /* The following macro don't seem to be getting used anywhere:PM */
-#define m_NCS_IPC_NON_BLK_SEND(p_mbx, msg, prio)        \
+#define m_NCS_IPC_NON_BLK_RECEIVE(p_mbx, messagebuf) ncs_ipc_non_blk_recv(p_mbx)
+#if 0 /* The following macro don't seem to be getting used anywhere:PM */
+#define m_NCS_IPC_NON_BLK_SEND(p_mbx, msg, prio) \
   ncs_ipc_non_blk_send(p_mbx, (NCS_IPC_MSG *)msg, prio)
-#define m_NCS_IPC_NON_BLK_MAX_MSG_PROC  (10)
+#define m_NCS_IPC_NON_BLK_MAX_MSG_PROC (10)
 #endif
 
 /****************************************************************************
@@ -256,7 +254,7 @@ typedef struct ncs_ipc_msg {
  *
  *
  */
-#define m_NCS_IPC_GET_SEL_OBJ(p_mbx)  (ncs_ipc_get_sel_obj(p_mbx))
+#define m_NCS_IPC_GET_SEL_OBJ(p_mbx) (ncs_ipc_get_sel_obj(p_mbx))
 
 /****************************************************************************
  * m_NCS_IPC_SEND
@@ -285,7 +283,7 @@ typedef struct ncs_ipc_msg {
  * NCSCC_RC_SUCCESS  if message is successfully posted to the IPC mailbox.
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
-#define m_NCS_IPC_SEND(p_mbx, msg, prio)        \
+#define m_NCS_IPC_SEND(p_mbx, msg, prio) \
   ncs_ipc_send(p_mbx, (NCS_IPC_MSG *)msg, prio)
 
 /* H&J base code directly ref's this macro, but has been obsoleted, so leave
@@ -296,11 +294,11 @@ typedef struct ncs_ipc_msg {
 /*******************************************************************************
  * m_NCS_IPC_CONFIG_MAX_MSGS
  *
- *"This macro is invoked in order to set a limit on the maximum number of messages that
- * can be queued at a certain priority level in a LEAP mailbox. Unless such a threshold
- * is set, there is no limit on number of messages that can be queued. See description
- * of m_NCS_IPC_SEND() for the behaviour when number of message in the queue reaches the
- * threshold limit."
+ *"This macro is invoked in order to set a limit on the maximum number of
+ *messages that can be queued at a certain priority level in a LEAP mailbox.
+ *Unless such a threshold is set, there is no limit on number of messages that
+ *can be queued. See description of m_NCS_IPC_SEND() for the behaviour when
+ *number of message in the queue reaches the threshold limit."
  *
  * ARGUMENTS:
  *
@@ -321,7 +319,8 @@ typedef struct ncs_ipc_msg {
  *
  *******************************************************************************/
 
-#define m_NCS_IPC_CONFIG_MAX_MSGS(p_mbx,prio,max_limit)  ncs_ipc_config_max_msgs(p_mbx, prio, max_limit)
+#define m_NCS_IPC_CONFIG_MAX_MSGS(p_mbx, prio, max_limit) \
+  ncs_ipc_config_max_msgs(p_mbx, prio, max_limit)
 
 /*******************************************************************************
  * m_NCS_IPC_CONFIG_USR_COUNTERS
@@ -330,12 +329,12 @@ typedef struct ncs_ipc_msg {
  *  the number of messages lying in LEAP mailbox queues.  The LEAP mailbox
  *  operations will internally update this 32-bit counter whenever messages
  *  are enqueued or dequeued from the LEAP mailbox. This API should be invoked
- *  only after a LEAP mailbox has been created. Invocation of this API is, however,
- *  optional. It is possible to configure one counter per priority queue of a LEAP
- *  mailbox. The LEAP user should never modify this variable contents on his own.
- *  Furthermore, the user should note that while this variable is being accessed
- *  by user code, it may be undergoing updation in another thread-context due to
- *  mailbox send-receive operations
+ *  only after a LEAP mailbox has been created. Invocation of this API is,
+ *however, optional. It is possible to configure one counter per priority queue
+ *of a LEAP mailbox. The LEAP user should never modify this variable contents
+ *on his own. Furthermore, the user should note that while this variable is
+ *being accessed by user code, it may be undergoing updation in another
+ *thread-context due to mailbox send-receive operations
  *
  * ARGUMENTS:
  *
@@ -352,14 +351,15 @@ typedef struct ncs_ipc_msg {
  *
  *******************************************************************************/
 
-#define m_NCS_IPC_CONFIG_USR_COUNTERS(i_p_mbx,i_prio,i_usr_counter)  ncs_ipc_config_usr_counters(i_p_mbx,i_prio,i_usr_counter)
+#define m_NCS_IPC_CONFIG_USR_COUNTERS(i_p_mbx, i_prio, i_usr_counter) \
+  ncs_ipc_config_usr_counters(i_p_mbx, i_prio, i_usr_counter)
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   FUNCTION PROTOTYPES
 
   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-    uint32_t ncs_ipc_create(SYSF_MBX *mbx);
+uint32_t ncs_ipc_create(SYSF_MBX *mbx);
 uint32_t ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB cb);
 NCS_SEL_OBJ ncs_ipc_get_sel_obj(SYSF_MBX *mbx);
 uint32_t ncs_ipc_attach(SYSF_MBX *mbx);
@@ -368,11 +368,13 @@ uint32_t ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB cb, void *cb_arg);
 NCS_IPC_MSG *ncs_ipc_recv(SYSF_MBX *mbx);
 uint32_t ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
 NCS_IPC_MSG *ncs_ipc_non_blk_recv(SYSF_MBX *mbx);
-uint32_t ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
-uint32_t ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uint32_t max_limit);
+uint32_t ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg,
+                              NCS_IPC_PRIORITY prio);
+uint32_t ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio,
+                                 uint32_t max_limit);
 uint32_t ncs_ipc_config_usr_counters(SYSF_MBX *i_mbx, NCS_IPC_PRIORITY i_prio,
                                      uint32_t *i_usr_counter);
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

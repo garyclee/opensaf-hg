@@ -18,15 +18,16 @@
 #ifndef NID_AGENT_NID_START_UTIL_H_
 #define NID_AGENT_NID_START_UTIL_H_
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "osaf/saf/saAis.h"
 
-extern unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn);
+extern unsigned int amf_comp_name_get_set_from_file(const char *env_name,
+                                                    SaNameT *dn);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

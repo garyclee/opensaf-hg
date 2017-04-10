@@ -24,7 +24,10 @@
 /*
  * Macro used to get the AMF version used
  */
-#define m_FM_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x00;
+#define m_FM_GET_AMF_VER(amf_ver) \
+  amf_ver.releaseCode = 'B';      \
+  amf_ver.majorVersion = 0x01;    \
+  amf_ver.minorVersion = 0x00;
 
 #define FM_HA_COMP_NAMED_PIPE PKGLOCALSTATEDIR "/fmd_comp_name"
 
@@ -32,24 +35,29 @@
  * FM AMF control information
  */
 typedef struct fm_amf_cb {
-	char comp_name[256];
-	SaAmfHandleT amf_hdl;	/* AMF handle */
-	SaSelectionObjectT amf_fd;	/* AMF selection fd */
-	bool is_amf_up;	/* For amf_fd and pipe_fd */
-	bool nid_started;	/**< true if started by NID */
+  char comp_name[256];
+  SaAmfHandleT amf_hdl;      /* AMF handle */
+  SaSelectionObjectT amf_fd; /* AMF selection fd */
+  bool is_amf_up;            /* For amf_fd and pipe_fd */
+  bool nid_started;          /**< true if started by NID */
 } FM_AMF_CB;
 
 FM_AMF_CB *fm_amf_get_cb(void);
 
-void fm_saf_CSI_set_callback(SaInvocationT invocation,
-			     const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
+void fm_saf_CSI_set_callback(SaInvocationT invocation, const SaNameT *compName,
+                             SaAmfHAStateT haState,
+                             SaAmfCSIDescriptorT csiDescriptor);
 
-void fm_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType);
+void fm_saf_health_chk_callback(SaInvocationT invocation,
+                                const SaNameT *compName,
+                                SaAmfHealthcheckKeyT *checkType);
 
-void fm_saf_CSI_rem_callback(SaInvocationT invocation,
-			     const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
+void fm_saf_CSI_rem_callback(SaInvocationT invocation, const SaNameT *compName,
+                             const SaNameT *csiName,
+                             const SaAmfCSIFlagsT csiFlags);
 
-void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
+void fm_saf_comp_terminate_callback(SaInvocationT invocation,
+                                    const SaNameT *compName);
 
 uint32_t fm_amf_open(FM_AMF_CB *fm_amf_cb);
 uint32_t fm_amf_close(FM_AMF_CB *fm_amf_cb);

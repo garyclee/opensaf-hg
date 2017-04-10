@@ -36,15 +36,15 @@
  */
 
 typedef enum {
-	SMF_STEP_NULL = 1,     /* Nothing done */
-	SMF_STEP_CONTINUE = 2, /* Continue step in new state */
-	SMF_STEP_SWITCHOVER = 3,
-	SMF_STEP_COMPLETED = 4,
-	SMF_STEP_FAILED = 5,
-	SMF_STEP_UNDONE = 6,
-	SMF_STEP_ROLLEDBACK = 7,
-	SMF_STEP_ROLLBACKFAILED = 8,
-	SMF_STEP_ROLLBACKUNDONE = 9
+  SMF_STEP_NULL = 1,     /* Nothing done */
+  SMF_STEP_CONTINUE = 2, /* Continue step in new state */
+  SMF_STEP_SWITCHOVER = 3,
+  SMF_STEP_COMPLETED = 4,
+  SMF_STEP_FAILED = 5,
+  SMF_STEP_UNDONE = 6,
+  SMF_STEP_ROLLEDBACK = 7,
+  SMF_STEP_ROLLBACKFAILED = 8,
+  SMF_STEP_ROLLBACKUNDONE = 9
 } SmfStepResultT;
 
 /* ========================================================================
@@ -61,20 +61,18 @@ class SmfUpgradeStep;
 /// Purpose: Base class for all procedure steps.
 ///
 class SmfStepState {
-public:
+ public:
+  virtual ~SmfStepState(){};
 
-        virtual ~ SmfStepState() {};
+  virtual std::string getClassName() const;
 
-        virtual std::string getClassName() const;
+  virtual SmfStepResultT execute(SmfUpgradeStep *i_step);
+  virtual SmfStepResultT rollback(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT execute(SmfUpgradeStep * i_step);
-	virtual SmfStepResultT rollback(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const = 0;
 
-	virtual SaSmfStepStateT getState() const = 0;
-
-protected:
-
-	void changeState(SmfUpgradeStep * i_step, SmfStepState * i_state);
+ protected:
+  void changeState(SmfUpgradeStep *i_step, SmfStepState *i_state);
 };
 
 //================================================================================
@@ -84,19 +82,17 @@ protected:
 /// Purpose: Initial state for the procedure step..
 ///
 class SmfStepStateInitial : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance(void);
 
-	static SmfStepState *instance(void);
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfStepResultT execute(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT execute(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_INITIAL; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_INITIAL; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -106,19 +102,17 @@ private:
 /// Purpose: Executing state for the procedure step..
 ///
 class SmfStepStateExecuting : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfStepResultT execute(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT execute(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_EXECUTING; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_EXECUTING; } 
-private:
-
-        static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -128,19 +122,17 @@ private:
 /// Purpose: Execution completed state for the procedure step..
 ///
 class SmfStepStateCompleted : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfStepResultT rollback(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT rollback(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_COMPLETED; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_COMPLETED; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -150,17 +142,15 @@ private:
 /// Purpose: Execution failed state for the procedure step..
 ///
 class SmfStepStateFailed : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_FAILED; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_FAILED; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -170,19 +160,17 @@ private:
 /// Purpose: Execution undoing state for the procedure step..
 ///
 class SmfStepStateUndoing : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfStepResultT execute(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT execute(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_UNDOING; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_UNDOING; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -192,19 +180,17 @@ private:
 /// Purpose: Execution undone state for the procedure step..
 ///
 class SmfStepStateUndone : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfStepResultT execute(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT execute(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_UNDONE; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_UNDONE; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -214,19 +200,17 @@ private:
 /// Purpose: Execution rolling back state for the procedure step..
 ///
 class SmfStepStateRollingBack : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfStepResultT rollback(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT rollback(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_ROLLING_BACK; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_ROLLING_BACK; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -236,17 +220,15 @@ private:
 /// Purpose: Execution rolled back state for the procedure step..
 ///
 class SmfStepStateRolledBack : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SaSmfStepStateT getState() const { return SA_SMF_STEP_ROLLED_BACK; }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_ROLLED_BACK; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -256,19 +238,19 @@ private:
 /// Purpose: Execution undoing rollback state for the procedure step..
 ///
 class SmfStepStateUndoingRollback : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SmfStepResultT rollback(SmfUpgradeStep *i_step);
 
-	virtual SmfStepResultT rollback(SmfUpgradeStep * i_step);
+  virtual SaSmfStepStateT getState() const {
+    return SA_SMF_STEP_UNDOING_ROLLBACK;
+  }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_UNDOING_ROLLBACK; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -278,17 +260,17 @@ private:
 /// Purpose: Execution rollback undone state for the procedure step..
 ///
 class SmfStepStateRollbackUndone : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SaSmfStepStateT getState() const {
+    return SA_SMF_STEP_ROLLBACK_UNDONE;
+  }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_ROLLBACK_UNDONE; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 //================================================================================
@@ -298,17 +280,17 @@ private:
 /// Purpose: Execution rollback failed state for the procedure step..
 ///
 class SmfStepStateRollbackFailed : public SmfStepState {
-public:
+ public:
+  static SmfStepState *instance();
 
-	static SmfStepState *instance();
+  virtual std::string getClassName() const;
 
-	virtual std::string getClassName() const;
+  virtual SaSmfStepStateT getState() const {
+    return SA_SMF_STEP_ROLLBACK_FAILED;
+  }
 
-	virtual SaSmfStepStateT getState() const 
-                { return SA_SMF_STEP_ROLLBACK_FAILED; } 
-private:
-
-	static SmfStepState *s_instance;
+ private:
+  static SmfStepState *s_instance;
 };
 
 #endif  // SMF_SMFD_SMFSTEPSTATE_H_

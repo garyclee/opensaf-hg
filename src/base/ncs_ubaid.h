@@ -45,7 +45,7 @@
 #include "base/ncs_osprm.h"
 #include "base/ncsusrbuf.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -63,12 +63,12 @@ extern "C" {
 typedef struct ncs_ubaid {
   /* ENC functions           DEC functions                 */
   /*=======================+===============================*/
-  USRBUF *start;  /* first usrbuf to fill    Not used                      */
-  USRBUF *ub;     /* current usrbuf to fill  current usrbuf to consume     */
-  uint8_t *bufp;  /* inject info here        Not Used                      */
-  int32_t res;    /* space reserved          Not Used                      */
-  int32_t ttl;    /* total space claimed     total space consumed          */
-  int32_t max;    /* max we can encode       max we can decode             */
+  USRBUF *start; /* first usrbuf to fill    Not used                      */
+  USRBUF *ub;    /* current usrbuf to fill  current usrbuf to consume     */
+  uint8_t *bufp; /* inject info here        Not Used                      */
+  int32_t res;   /* space reserved          Not Used                      */
+  int32_t ttl;   /* total space claimed     total space consumed          */
+  int32_t max;   /* max we can encode       max we can decode             */
 } NCS_UBAID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -85,8 +85,10 @@ void ncs_enc_prime_space(NCS_UBAID *uba, USRBUF *ub);
 uint8_t *ncs_enc_reserve_space(NCS_UBAID *uba, int32_t res);
 void ncs_enc_claim_space(NCS_UBAID *uba, int32_t used);
 void ncs_enc_append_usrbuf(NCS_UBAID *uba, USRBUF *ub);
-uint32_t ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count);
-uint32_t ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uint8_t *os, unsigned int count);
+uint32_t ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uint8_t *os,
+                                    unsigned int count);
+uint32_t ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uint8_t *os,
+                                      unsigned int count);
 
 /* Decode assist (member) functions */
 
@@ -141,7 +143,8 @@ uint32_t mds_st_decode_mds_dest(uint8_t **stream, MDS_DEST *odest);
 
 \***************************************************************/
 USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer);
-USRBUF *ncs_decode_pointer(USRBUF *i_ub, uint64_t *o_recvd_ptr, uint8_t *o_ptr_size_in_bytes);
+USRBUF *ncs_decode_pointer(USRBUF *i_ub, uint64_t *o_recvd_ptr,
+                           uint8_t *o_ptr_size_in_bytes);
 
 /***************************************************************\
       ncs_uba_encode_pointer: Encodes a pointer  into a UBA.
@@ -157,7 +160,7 @@ uint32_t ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer);
 uint32_t ncs_uba_decode_pointer(NCS_UBAID *uba, uint64_t *o_recvd_ptr,
                                 uint8_t *o_ptr_size_in_bytes);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

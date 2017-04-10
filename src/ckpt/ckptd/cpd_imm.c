@@ -23,7 +23,8 @@
 
 extern const SaImmOiImplementerNameT implementer_name;
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
-#define CPSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safCheckPointService"
+#define CPSV_IMM_IMPLEMENTER_NAME                                              \
+	(SaImmOiImplementerNameT) "safCheckPointService"
 const SaImmOiImplementerNameT implementer_name = CPSV_IMM_IMPLEMENTER_NAME;
 
 /* IMMSv Defs */
@@ -31,51 +32,55 @@ const SaImmOiImplementerNameT implementer_name = CPSV_IMM_IMPLEMENTER_NAME;
 #define CPSV_IMM_MAJOR_VERSION 0x02
 #define CPSV_IMM_MINOR_VERSION 0x01
 
-static SaVersionT imm_version = {
-	CPSV_IMM_RELEASE_CODE,
-	CPSV_IMM_MAJOR_VERSION,
-	CPSV_IMM_MINOR_VERSION
-};
+static SaVersionT imm_version = {CPSV_IMM_RELEASE_CODE, CPSV_IMM_MAJOR_VERSION,
+				 CPSV_IMM_MINOR_VERSION};
 
-static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
-						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames);
+static SaAisErrorT
+cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
+				const SaNameT *objectName,
+				const SaImmAttrNameT *attributeNames);
 static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
-static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb);
-static void extract_node_name_from_replica_name(const char *replica_name, const char *ckpt_name, char **node_name);
+static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node,
+				       CPD_CB *cb);
+static void extract_node_name_from_replica_name(const char *replica_name,
+						const char *ckpt_name,
+						char **node_name);
 
-SaImmOiCallbacksT_2 oi_cbks = {
-	.saImmOiAdminOperationCallback = NULL,
-	.saImmOiCcbAbortCallback = NULL,
-	.saImmOiCcbApplyCallback = NULL,
-	.saImmOiCcbCompletedCallback = NULL,
-	.saImmOiCcbObjectCreateCallback = NULL,
-	.saImmOiCcbObjectDeleteCallback = NULL,
-	.saImmOiCcbObjectModifyCallback = NULL,
-	.saImmOiRtAttrUpdateCallback = cpd_saImmOiRtAttrUpdateCallback
-};
+SaImmOiCallbacksT_2 oi_cbks = {.saImmOiAdminOperationCallback = NULL,
+			       .saImmOiCcbAbortCallback = NULL,
+			       .saImmOiCcbApplyCallback = NULL,
+			       .saImmOiCcbCompletedCallback = NULL,
+			       .saImmOiCcbObjectCreateCallback = NULL,
+			       .saImmOiCcbObjectDeleteCallback = NULL,
+			       .saImmOiCcbObjectModifyCallback = NULL,
+			       .saImmOiRtAttrUpdateCallback =
+				   cpd_saImmOiRtAttrUpdateCallback};
 
 /****************************************************************************
  * Name          : cpd_saImmOiRtAttrUpdateCallback
  *
- * Description   : This callback function is invoked when a OM requests for object 
- *                 information .
+ * Description   : This callback function is invoked when a OM requests for
+ *object information .
  *
  * Arguments     : immOiHandle      - IMM handle
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
-						   const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+static SaAisErrorT
+cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
+				const SaNameT *objectName,
+				const SaImmAttrNameT *attributeNames)
 {
-	
+
 	int i = 0, attr_count = 0;
 	CPD_CB *cb = NULL;
 	CPD_CKPT_MAP_INFO *map_info = NULL;
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	SaTimeT ckpt_ret_duration;
-	SaUint32T num_users, num_readers, num_writers, num_replicas, num_sections, num_corrupt_sections;
+	SaUint32T num_users, num_readers, num_writers, num_replicas,
+	    num_sections, num_corrupt_sections;
 	SaUint32T replicaIsActive = true;
 	SaUint64T ckpt_size, ckpt_used_size;
 	SaImmAttrNameT attributeName;
@@ -83,20 +88,21 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	const SaImmAttrModificationT_2 *attrMods[10];
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 	CPD_REP_KEY_INFO key_info;
-	char *replica_dn = NULL, *ckpt_name = NULL, *node_name = NULL; 
+	char *replica_dn = NULL, *ckpt_name = NULL, *node_name = NULL;
 	SaConstStringT object_name;
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 
-	SaImmAttrValueT ckptSizeUpdateValue[] = { &ckpt_size };
-	SaImmAttrValueT ckptUsedSizeUpdateValue[] = { &ckpt_used_size };
-	SaImmAttrValueT ckptRetDurationUpdateValue[] = { &ckpt_ret_duration };
-	SaImmAttrValueT ckptNumOpenersUpdateValue[] = { &num_users };
-	SaImmAttrValueT ckptNumReadersUpdateValue[] = { &num_readers };
-	SaImmAttrValueT ckptNumWritersUpdateValue[] = { &num_writers };
-	SaImmAttrValueT ckptNumReplicasUpdateValue[] = { &num_replicas };
-	SaImmAttrValueT ckptNumSectionsUpdateValue[] = { &num_sections };
-	SaImmAttrValueT ckptNumCorruptSectionsUpdateValue[] = { &num_corrupt_sections };
-	SaImmAttrValueT ckptReplicaIsActiveUpdateValue[] = { &replicaIsActive };
+	SaImmAttrValueT ckptSizeUpdateValue[] = {&ckpt_size};
+	SaImmAttrValueT ckptUsedSizeUpdateValue[] = {&ckpt_used_size};
+	SaImmAttrValueT ckptRetDurationUpdateValue[] = {&ckpt_ret_duration};
+	SaImmAttrValueT ckptNumOpenersUpdateValue[] = {&num_users};
+	SaImmAttrValueT ckptNumReadersUpdateValue[] = {&num_readers};
+	SaImmAttrValueT ckptNumWritersUpdateValue[] = {&num_writers};
+	SaImmAttrValueT ckptNumReplicasUpdateValue[] = {&num_replicas};
+	SaImmAttrValueT ckptNumSectionsUpdateValue[] = {&num_sections};
+	SaImmAttrValueT ckptNumCorruptSectionsUpdateValue[] = {
+	    &num_corrupt_sections};
+	SaImmAttrValueT ckptReplicaIsActiveUpdateValue[] = {&replicaIsActive};
 
 	TRACE_ENTER();
 
@@ -113,17 +119,21 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		/* Extract ckpt_name */
 		char *p_char = strchr(object_name, ',');
 		if (p_char) {
-			p_char++;	/* escaping first ',' of the associated class DN name */
+			p_char++; /* escaping first ',' of the associated class
+				     DN name */
 			p_char = strchr(p_char, ',');
 			if (p_char) {
 				p_char++;
-				ckpt_name = malloc(strlen(p_char) + 1); /*1 extra byte for \0 char*/
+				ckpt_name =
+				    malloc(strlen(p_char) +
+					   1); /*1 extra byte for \0 char*/
 				strcpy(ckpt_name, p_char);
 			}
 		}
 
 		/* Extract node_name */
-		extract_node_name_from_replica_name(object_name, ckpt_name, &node_name);
+		extract_node_name_from_replica_name(object_name, ckpt_name,
+						    &node_name);
 	} else {
 		ckpt_name = strdup(object_name);
 	}
@@ -135,180 +145,385 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 
 	if (map_info) {
 
-		cpd_ckpt_node_get(&cb->ckpt_tree, &map_info->ckpt_id, &ckpt_node);
+		cpd_ckpt_node_get(&cb->ckpt_tree, &map_info->ckpt_id,
+				  &ckpt_node);
 
 		if (ckpt_node) {
 			key_info.ckpt_name = ckpt_node->ckpt_name;
 			key_info.node_name = node_name;
-			cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
-	                
-             		if (rep_info) {
+			cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info,
+					    &rep_info);
+
+			if (rep_info) {
 				/* escapes rdn's  ',' with '\'   */
-				cpd_create_association_class_dn(rep_info->rep_key.node_name, 
-								rep_info->rep_key.ckpt_name, "safReplica",
-								&replica_dn);
+				cpd_create_association_class_dn(
+				    rep_info->rep_key.node_name,
+				    rep_info->rep_key.ckpt_name, "safReplica",
+				    &replica_dn);
 
 				TRACE("replica_dn: %s", replica_dn);
-				if (strcmp(object_name, replica_dn) == 0){
+				if (strcmp(object_name, replica_dn) == 0) {
 
-					/* Walk through the attribute Name list */
-					while ((attributeName = attributeNames[i]) != NULL) {
-						if (strcmp(attributeName, "saCkptReplicaIsActive") == 0) {
-							/* replicaIsActive  DESCRIPTION " Indicates if the node 
-							   contains an active replica of the checkpoint designated 
-							   by 'saCkptCheckpointNameLoc'.  Applicable only for collocated 
-							   checkpoints created with either asynchronous or asynchronousweak 
-							   update option. The concept of an active replica doesn't apply 
-							   if the checkpoint is either non-collocated or collocated but 
-							   created with a synchronous update option and hence the other 
-							   INTEGER values have been provided to bring out those specific traits." */
+					/* Walk through the attribute Name list
+					 */
+					while ((attributeName =
+						    attributeNames[i]) !=
+					       NULL) {
+						if (strcmp(
+							attributeName,
+							"saCkptReplicaIsActive") ==
+						    0) {
+							/* replicaIsActive
+							   DESCRIPTION "
+							   Indicates if the node
+							   contains an active
+							   replica of the
+							   checkpoint designated
+							   by
+							   'saCkptCheckpointNameLoc'.
+							   Applicable only for
+							   collocated
+							   checkpoints created
+							   with either
+							   asynchronous or
+							   asynchronousweak
+							   update option. The
+							   concept of an active
+							   replica doesn't apply
+							   if the checkpoint is
+							   either non-collocated
+							   or collocated but
+							   created with a
+							   synchronous update
+							   option and hence the
+							   other INTEGER values
+							   have been provided to
+							   bring out those
+							   specific traits." */
 
-							if (rep_info->rep_type == REP_NOTACTIVE)
-								replicaIsActive = false;
-							attr_output[0].modType = SA_IMM_ATTR_VALUES_REPLACE;
-							attr_output[0].modAttr.attrName = attributeName;
-							attr_output[0].modAttr.attrValuesNumber = 1;
-							attr_output[0].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-							attr_output[0].modAttr.attrValues =
+							if (rep_info
+								->rep_type ==
+							    REP_NOTACTIVE)
+								replicaIsActive =
+								    false;
+							attr_output[0].modType =
+							    SA_IMM_ATTR_VALUES_REPLACE;
+							attr_output[0]
+							    .modAttr.attrName =
+							    attributeName;
+							attr_output[0]
+							    .modAttr
+							    .attrValuesNumber =
+							    1;
+							attr_output[0]
+							    .modAttr
+							    .attrValueType =
+							    SA_IMM_ATTR_SAUINT32T;
+							attr_output[0]
+							    .modAttr
+							    .attrValues =
 							    ckptReplicaIsActiveUpdateValue;
-							attrMods[0] = &attr_output[0];
+							attrMods[0] =
+							    &attr_output[0];
 							attrMods[1] = NULL;
-							rc = saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
+							rc =
+							    saImmOiRtObjectUpdate_2(
+								cb->immOiHandle,
+								objectName,
+								attrMods);
 							if (rc != SA_AIS_OK) {
-								LOG_ER("saImmOiRtObjectUpdate failed for replica object: %u", rc);
+								LOG_ER(
+								    "saImmOiRtObjectUpdate failed for replica object: %u",
+								    rc);
 							}
-
 						}
 						i++;
 					}
 					goto done;
 				}
-
 			}
 
-			if (strcmp(object_name, ckpt_node->ckpt_name) == 0){
+			if (strcmp(object_name, ckpt_node->ckpt_name) == 0) {
 				/* Walk through the attribute Name list */
-				while ((attributeName = attributeNames[i]) != NULL) {
-					if (strcmp(attributeName, "saCkptCheckpointSize") == 0) {
-						ckpt_size = ckpt_node->attributes.checkpointSize;
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT64T;
-						attr_output[attr_count].modAttr.attrValues = ckptSizeUpdateValue;
-						attrMods[attr_count] = &attr_output[attr_count];
+				while ((attributeName = attributeNames[i]) !=
+				       NULL) {
+					if (strcmp(attributeName,
+						   "saCkptCheckpointSize") ==
+					    0) {
+						ckpt_size =
+						    ckpt_node->attributes
+							.checkpointSize;
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT64T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptSizeUpdateValue;
+						attrMods[attr_count] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointUsedSize") == 0) {
-						if (cpd_fetch_used_size(ckpt_node, cb) == NCSCC_RC_FAILURE) {
-							LOG_ER("cpd_fetch_used_size failed");
-							rc = SA_AIS_ERR_FAILED_OPERATION;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointUsedSize") ==
+					    0) {
+						if (cpd_fetch_used_size(
+							ckpt_node, cb) ==
+						    NCSCC_RC_FAILURE) {
+							LOG_ER(
+							    "cpd_fetch_used_size failed");
+							rc =
+							    SA_AIS_ERR_FAILED_OPERATION;
 							goto done;
 						}
 
-						ckpt_used_size = ckpt_node->ckpt_used_size;
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT64T;
-						attr_output[attr_count].modAttr.attrValues = ckptUsedSizeUpdateValue;
-						attrMods[attr_count] = &attr_output[attr_count];
+						ckpt_used_size =
+						    ckpt_node->ckpt_used_size;
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT64T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptUsedSizeUpdateValue;
+						attrMods[attr_count] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointRetDuration") == 0) {
-						ckpt_ret_duration = ckpt_node->ret_time;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointRetDuration") ==
+					    0) {
+						ckpt_ret_duration =
+						    ckpt_node->ret_time;
 
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SATIMET;
-						attr_output[attr_count].modAttr.attrValues = ckptRetDurationUpdateValue;
-						attrMods[i] = &attr_output[attr_count];
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SATIMET;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptRetDurationUpdateValue;
+						attrMods[i] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointNumOpeners") == 0) {
-						num_users = ckpt_node->num_users;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointNumOpeners") ==
+					    0) {
+						num_users =
+						    ckpt_node->num_users;
 
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attr_count].modAttr.attrValues = ckptNumOpenersUpdateValue;
-						attrMods[i] = &attr_output[attr_count];
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptNumOpenersUpdateValue;
+						attrMods[i] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointNumReaders") == 0) {
-						num_readers = ckpt_node->num_readers;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointNumReaders") ==
+					    0) {
+						num_readers =
+						    ckpt_node->num_readers;
 
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attr_count].modAttr.attrValues = ckptNumReadersUpdateValue;
-						attrMods[i] = &attr_output[attr_count];
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptNumReadersUpdateValue;
+						attrMods[i] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointNumWriters") == 0) {
-						num_writers = ckpt_node->num_writers;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointNumWriters") ==
+					    0) {
+						num_writers =
+						    ckpt_node->num_writers;
 
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attr_count].modAttr.attrValues = ckptNumWritersUpdateValue;
-						attrMods[i] = &attr_output[attr_count];
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptNumWritersUpdateValue;
+						attrMods[i] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointNumReplicas") == 0) {
-						num_replicas = ckpt_node->dest_cnt;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointNumReplicas") ==
+					    0) {
+						num_replicas =
+						    ckpt_node->dest_cnt;
 
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attr_count].modAttr.attrValues = ckptNumReplicasUpdateValue;
-						attrMods[i] = &attr_output[attr_count];
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptNumReplicasUpdateValue;
+						attrMods[i] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointNumSections") == 0) {
-						if (ckpt_node->attributes.maxSections == 1) {
-							num_sections = ckpt_node->num_sections;
-				        	}
-						else 
-						{
-							if (cpd_fetch_num_sections(ckpt_node, cb) == NCSCC_RC_FAILURE) {
-								 LOG_ER("cpd_fetch_num_sections failed");
-								rc = SA_AIS_ERR_FAILED_OPERATION;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointNumSections") ==
+					    0) {
+						if (ckpt_node->attributes
+							.maxSections == 1) {
+							num_sections =
+							    ckpt_node
+								->num_sections;
+						} else {
+							if (cpd_fetch_num_sections(
+								ckpt_node,
+								cb) ==
+							    NCSCC_RC_FAILURE) {
+								LOG_ER(
+								    "cpd_fetch_num_sections failed");
+								rc =
+								    SA_AIS_ERR_FAILED_OPERATION;
 								goto done;
 							}
-							num_sections = ckpt_node->num_sections;
+							num_sections =
+							    ckpt_node
+								->num_sections;
 						}
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attr_count].modAttr.attrValues = ckptNumSectionsUpdateValue;
-						attrMods[i] = &attr_output[attr_count];
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
+						    ckptNumSectionsUpdateValue;
+						attrMods[i] =
+						    &attr_output[attr_count];
 						++attr_count;
-					} else if (strcmp(attributeName, "saCkptCheckpointNumCorruptSections") == 0) {
-						num_corrupt_sections = ckpt_node->num_corrupt_sections;
+					} else if (
+					    strcmp(
+						attributeName,
+						"saCkptCheckpointNumCorruptSections") ==
+					    0) {
+						num_corrupt_sections =
+						    ckpt_node
+							->num_corrupt_sections;
 
-						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
-						attr_output[attr_count].modAttr.attrName = attributeName;
-						attr_output[attr_count].modAttr.attrValuesNumber = 1;
-						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-						attr_output[attr_count].modAttr.attrValues =
+						attr_output[attr_count]
+						    .modType =
+						    SA_IMM_ATTR_VALUES_REPLACE;
+						attr_output[attr_count]
+						    .modAttr.attrName =
+						    attributeName;
+						attr_output[attr_count]
+						    .modAttr.attrValuesNumber =
+						    1;
+						attr_output[attr_count]
+						    .modAttr.attrValueType =
+						    SA_IMM_ATTR_SAUINT32T;
+						attr_output[attr_count]
+						    .modAttr.attrValues =
 						    ckptNumCorruptSectionsUpdateValue;
-						attrMods[i] = &attr_output[attr_count];
+						attrMods[i] =
+						    &attr_output[attr_count];
 						++attr_count;
 					}
 
 					i++;
-				}	/* End while attributesNames() */
+				} /* End while attributesNames() */
 
 				attrMods[attr_count] = NULL;
-				rc = saImmOiRtObjectUpdate_2(cb->immOiHandle, objectName, attrMods);
+				rc = saImmOiRtObjectUpdate_2(
+				    cb->immOiHandle, objectName, attrMods);
 				if (rc != SA_AIS_OK) {
-					 LOG_ER("saImmOiRtObjectUpdate failed for ckpt object: %u", rc);
+					LOG_ER(
+					    "saImmOiRtObjectUpdate failed for ckpt object: %u",
+					    rc);
 				}
 				goto done;
-			}	/* End if  m_CMP_HORDER_SANAMET */
-		}		/* end of if (ckpt_node != NULL) */
+			} /* End if  m_CMP_HORDER_SANAMET */
+		}	 /* end of if (ckpt_node != NULL) */
 	}
-	
+
 done:
 	if (ckpt_name != NULL)
 		free(ckpt_name);
@@ -327,30 +542,33 @@ done:
 /****************************************************************************
  * Name          : create_runtime_replica_object
  *
- * Description   : This function is invoked to create a replica runtime object 
+ * Description   : This function is invoked to create a replica runtime object
  *
  * Arguments     : rname            - DN of resource
- *                 ckpt_reploc_node - Checkpoint reploc node 
+ *                 ckpt_reploc_node - Checkpoint reploc node
  *                 immOiHandle      - IMM handle
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaImmOiHandleT immOiHandle)
+SaAisErrorT
+create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node,
+			      SaImmOiHandleT immOiHandle)
 {
 	SaImmAttrValueT dn[1];
 	SaImmAttrValuesT_2 replica_dn;
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrValuesT_2 *attrValues[2];
-	char* replica_name = NULL;
+	char *replica_name = NULL;
 	SaNameT replica_rdn;
 	SaNameT ckpt_name;
 	memset(&ckpt_name, 0, sizeof(SaNameT));
 
 	TRACE_ENTER();
 	/* escapes rdn's  ',' with '\'   */
-	cpd_create_association_class_dn(ckpt_reploc_node->rep_key.node_name, NULL, "safReplica", &replica_name);
+	cpd_create_association_class_dn(ckpt_reploc_node->rep_key.node_name,
+					NULL, "safReplica", &replica_name);
 
 	osaf_extended_name_lend(replica_name, &replica_rdn);
 
@@ -363,46 +581,55 @@ SaAisErrorT create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node
 	attrValues[0] = &replica_dn;
 	attrValues[1] = NULL;
 
-	osaf_extended_name_lend(ckpt_reploc_node->rep_key.ckpt_name, &ckpt_name);
+	osaf_extended_name_lend(ckpt_reploc_node->rep_key.ckpt_name,
+				&ckpt_name);
 
-	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptReplica", &ckpt_name, attrValues);
+	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptReplica",
+					     &ckpt_name, attrValues);
 	if (rc != SA_AIS_OK)
-		LOG_ER("create_runtime_replica_object - saImmOiRtObjectCreate_2 failed with error = %u", rc);
+		LOG_ER(
+		    "create_runtime_replica_object - saImmOiRtObjectCreate_2 failed with error = %u",
+		    rc);
 
 	free(replica_name);
-	TRACE_LEAVE2("Ret val %d",rc);
+	TRACE_LEAVE2("Ret val %d", rc);
 	return rc;
 }
 
 /****************************************************************************
  * Name          : delete_runtime_replica_object
  *
- * Description   : This function is invoked to delete a replica runtime object 
+ * Description   : This function is invoked to delete a replica runtime object
  *
- * Arguments     : ckpt_reploc_node - Checkpoint reploc node 
+ * Arguments     : ckpt_reploc_node - Checkpoint reploc node
  *                 immOiHandle      - IMM handle
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT delete_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaImmOiHandleT immOiHandle)
+SaAisErrorT
+delete_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node,
+			      SaImmOiHandleT immOiHandle)
 {
 	SaNameT replica_name;
-	char* replica_dn = NULL;
+	char *replica_dn = NULL;
 	SaAisErrorT rc;
 
 	TRACE_ENTER();
 
 	cpd_create_association_class_dn(ckpt_reploc_node->rep_key.node_name,
-					ckpt_reploc_node->rep_key.ckpt_name, "safReplica", &replica_dn);
+					ckpt_reploc_node->rep_key.ckpt_name,
+					"safReplica", &replica_dn);
 
 	osaf_extended_name_lend(replica_dn, &replica_name);
-	rc = immutil_saImmOiRtObjectDelete(immOiHandle, &replica_name); 
+	rc = immutil_saImmOiRtObjectDelete(immOiHandle, &replica_name);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Deleting run time object %s Failed - rc = %d",replica_dn, rc);
+		LOG_ER("Deleting run time object %s Failed - rc = %d",
+		       replica_dn, rc);
 	} else {
-		TRACE("Deleting run time object %s Success - rc = %d",replica_dn, rc);
+		TRACE("Deleting run time object %s Success - rc = %d",
+		      replica_dn, rc);
 	}
 
 	free(replica_dn);
@@ -413,17 +640,19 @@ SaAisErrorT delete_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node
 /****************************************************************************
  * Name          : create_runtime_ckpt_object
  *
- * Description   : This function is invoked to create a checkpoint runtime object 
+ * Description   : This function is invoked to create a checkpoint runtime
+ *object
  *
  * Arguments     : rname            - DN of resource
- *                 ckpt_node        - Checkpoint Node 
+ *                 ckpt_node        - Checkpoint Node
  *                 immOiHandle      - IMM handle
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHandleT immOiHandle)
+SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node,
+				       SaImmOiHandleT immOiHandle)
 {
 	SaNameT parentName;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -494,40 +723,47 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 	attrValues[5] = &ckpt_max_section_id_size;
 	attrValues[6] = NULL;
 
-	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptCheckpoint", &parentName, attrValues);
+	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaCkptCheckpoint",
+					     &parentName, attrValues);
 	if (rc != SA_AIS_OK)
-		LOG_ER("create_runtime_ckpt_object - saImmOiRtObjectCreate_2 failed with error = %u", rc);
+		LOG_ER(
+		    "create_runtime_ckpt_object - saImmOiRtObjectCreate_2 failed with error = %u",
+		    rc);
 
 	free(dndup);
-	TRACE_LEAVE2("Ret val %d",rc);
+	TRACE_LEAVE2("Ret val %d", rc);
 	return rc;
 
-}	/* End create_runtime_object() */
+} /* End create_runtime_object() */
 
 /****************************************************************************
  * Name          : delete_runtime_ckpt_object
  *
- * Description   : This function is invoked to delete a checkpoint runtime object 
+ * Description   : This function is invoked to delete a checkpoint runtime
+ *object
  *
- * Arguments     : ckpt_node        - Checkpoint Node 
+ * Arguments     : ckpt_node        - Checkpoint Node
  *                 immOiHandle      - IMM handle
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT delete_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHandleT immOiHandle)
+SaAisErrorT delete_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node,
+				       SaImmOiHandleT immOiHandle)
 {
 	SaNameT ckpt_name;
 	SaAisErrorT rc;
 
 	osaf_extended_name_lend(ckpt_node->ckpt_name, &ckpt_name);
 
-	rc =  immutil_saImmOiRtObjectDelete(immOiHandle, &ckpt_name);
+	rc = immutil_saImmOiRtObjectDelete(immOiHandle, &ckpt_name);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("Deleting run time object %s failed - rc = %d", ckpt_node->ckpt_name, rc);
+		LOG_ER("Deleting run time object %s failed - rc = %d",
+		       ckpt_node->ckpt_name, rc);
 	} else {
-		TRACE("Deleting run time object %s success - rc = %d", ckpt_node->ckpt_name, rc);
+		TRACE("Deleting run time object %s success - rc = %d",
+		      ckpt_node->ckpt_name, rc);
 	}
 	return rc;
 }
@@ -535,22 +771,24 @@ SaAisErrorT delete_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 /****************************************************************************
  * Name          : cpd_imm_init
  *
- * Description   : Initialize the OI and get selection object  
+ * Description   : Initialize the OI and get selection object
  *
- * Arguments     : cb            
+ * Arguments     : cb
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT cpd_imm_init(SaImmOiHandleT* immOiHandle, SaSelectionObjectT* imm_sel_obj)
+SaAisErrorT cpd_imm_init(SaImmOiHandleT *immOiHandle,
+			 SaSelectionObjectT *imm_sel_obj)
 {
 	SaAisErrorT rc;
 	immutilWrapperProfile.errorsAreFatal = 0;
 
 	rc = immutil_saImmOiInitialize_2(immOiHandle, &oi_cbks, &imm_version);
 	if (rc == SA_AIS_OK) {
-		rc = immutil_saImmOiSelectionObjectGet(*immOiHandle, imm_sel_obj);
+		rc = immutil_saImmOiSelectionObjectGet(*immOiHandle,
+						       imm_sel_obj);
 	}
 	return rc;
 }
@@ -558,15 +796,16 @@ SaAisErrorT cpd_imm_init(SaImmOiHandleT* immOiHandle, SaSelectionObjectT* imm_se
 /****************************************************************************
  * Name          : _cpd_imm_declare_implementer
  *
- * Description   : Become a OI implementer  
+ * Description   : Become a OI implementer
  *
- * Arguments     : cb            
+ * Arguments     : cb
  *
- * Return Values : None 
+ * Return Values : None
  *
  * Notes         : None.
  *****************************************************************************/
-void cpd_imm_declare_implementer(SaImmOiHandleT* immOiHandle, SaSelectionObjectT* imm_sel_obj)
+void cpd_imm_declare_implementer(SaImmOiHandleT *immOiHandle,
+				 SaSelectionObjectT *imm_sel_obj)
 {
 	SaAisErrorT error = SA_AIS_OK;
 
@@ -581,26 +820,33 @@ void cpd_imm_declare_implementer(SaImmOiHandleT* immOiHandle, SaSelectionObjectT
 		}
 
 		error = saImmOiImplementerSet(*immOiHandle, implementer_name);
-		while (error == SA_AIS_ERR_TRY_AGAIN && msecs_waited < max_waiting_time_ms) {
+		while (error == SA_AIS_ERR_TRY_AGAIN &&
+		       msecs_waited < max_waiting_time_ms) {
 			usleep(sleep_delay_ms * 1000);
 			msecs_waited += sleep_delay_ms;
-			error = saImmOiImplementerSet(*immOiHandle, implementer_name);
+			error = saImmOiImplementerSet(*immOiHandle,
+						      implementer_name);
 		}
-		if (error == SA_AIS_ERR_TIMEOUT || error == SA_AIS_ERR_BAD_HANDLE) {
-			LOG_WA("saImmOiImplementerSet returned %u", (unsigned) error);
+		if (error == SA_AIS_ERR_TIMEOUT ||
+		    error == SA_AIS_ERR_BAD_HANDLE) {
+			LOG_WA("saImmOiImplementerSet returned %u",
+			       (unsigned)error);
 			usleep(sleep_delay_ms * 1000);
 			msecs_waited += sleep_delay_ms;
 			saImmOiFinalize(*immOiHandle);
 			*immOiHandle = 0;
 			*imm_sel_obj = -1;
-			if ((error = cpd_imm_init(immOiHandle, imm_sel_obj)) != SA_AIS_OK) {
-				LOG_ER("cpd_imm_init FAILED, rc = %u", (unsigned) error);
+			if ((error = cpd_imm_init(immOiHandle, imm_sel_obj)) !=
+			    SA_AIS_OK) {
+				LOG_ER("cpd_imm_init FAILED, rc = %u",
+				       (unsigned)error);
 				exit(EXIT_FAILURE);
 			}
 			continue;
 		}
 		if (error != SA_AIS_OK) {
-			LOG_ER("saImmOiImplementerSet FAILED, rc = %u", (unsigned) error);
+			LOG_ER("saImmOiImplementerSet FAILED, rc = %u",
+			       (unsigned)error);
 			exit(EXIT_FAILURE);
 		}
 		break;
@@ -611,18 +857,19 @@ void cpd_imm_declare_implementer(SaImmOiHandleT* immOiHandle, SaSelectionObjectT
 /****************************************************************************
  * Name          : cpd_create_association_class_dn
  *
- * Description   : This function is invoked to create a 
- *                 dn = rdn_tag + '=' + child_dn + parent_dn 
+ * Description   : This function is invoked to create a
+ *                 dn = rdn_tag + '=' + child_dn + parent_dn
  *                 User must free() the dn after using
  *
- * Arguments     : 
+ * Arguments     :
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-void cpd_create_association_class_dn(const char *child_dn, const char *parent_dn,
-				     const char *rdn_tag, char **dn)
+void cpd_create_association_class_dn(const char *child_dn,
+				     const char *parent_dn, const char *rdn_tag,
+				     char **dn)
 {
 	int i;
 	size_t child_dn_length = 0;
@@ -639,7 +886,8 @@ void cpd_create_association_class_dn(const char *child_dn, const char *parent_dn
 	if (rdn_tag != NULL)
 		rdn_tag_length = strlen(rdn_tag);
 
-	class_dn_length = child_dn_length + parent_dn_length + rdn_tag_length + 10;
+	class_dn_length =
+	    child_dn_length + parent_dn_length + rdn_tag_length + 10;
 
 	char *class_dn = malloc(class_dn_length);
 	memset(class_dn, 0, class_dn_length);
@@ -651,7 +899,7 @@ void cpd_create_association_class_dn(const char *child_dn, const char *parent_dn
 	/* copy child DN and escape commas */
 	for (i = 0; i < child_dn_length; i++) {
 		if (child_dn[i] == ',')
-			*p++ = 0x5c;	/* backslash */
+			*p++ = 0x5c; /* backslash */
 
 		*p++ = child_dn[i];
 	}
@@ -679,16 +927,20 @@ static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 	if (ckpt_node->active_dest == 0) {
 		ckpt_node->ckpt_used_size = 0;
 	} else {
-		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, ckpt_node->active_dest, &send_evt, &out_evt,
-					   CPSV_WAIT_TIME);
+		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND,
+					   ckpt_node->active_dest, &send_evt,
+					   &out_evt, CPSV_WAIT_TIME);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE_4("cpd mds send fail for active dest: %"PRIu64,ckpt_node->active_dest);
+			TRACE_4("cpd mds send fail for active dest: %" PRIu64,
+				ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 
 		if (out_evt == NULL) {
-			TRACE_4("cpd mds send fail for active dest :%"PRIu64"with out_evt NULL",ckpt_node->active_dest);
+			TRACE_4("cpd mds send fail for active dest :%" PRIu64
+				"with out_evt NULL",
+				ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -697,16 +949,18 @@ static uint32_t cpd_fetch_used_size(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		ckpt_node->ckpt_used_size = out_evt->info.cpd.info.ckpt_mem_used.ckpt_used_size;
+		ckpt_node->ckpt_used_size =
+		    out_evt->info.cpd.info.ckpt_mem_used.ckpt_used_size;
 		m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPD);
 	}
 
- done:
-	TRACE_LEAVE2("Ret val %d",rc);
+done:
+	TRACE_LEAVE2("Ret val %d", rc);
 	return rc;
 }
 
-static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb)
+static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node,
+				       CPD_CB *cb)
 {
 	CPSV_EVT send_evt;
 	CPSV_EVT *out_evt = NULL;
@@ -720,36 +974,48 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
 
 	if (ckpt_node->active_dest == 0) {
 		ckpt_node->num_sections = 0;
-		TRACE_4("cpd cpnd node does not exist for active dest :%"PRIu64,ckpt_node->active_dest);
+		TRACE_4(
+		    "cpd cpnd node does not exist for active dest :%" PRIu64,
+		    ckpt_node->active_dest);
 	} else {
-		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, ckpt_node->active_dest, &send_evt, &out_evt,
-					   CPSV_WAIT_TIME);
+		rc = cpd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND,
+					   ckpt_node->active_dest, &send_evt,
+					   &out_evt, CPSV_WAIT_TIME);
 		if (rc != NCSCC_RC_SUCCESS) {
 
-			TRACE_4("cpd mds send fail in fetch num sections for active dest :%"PRIu64,ckpt_node->active_dest);
+			TRACE_4(
+			    "cpd mds send fail in fetch num sections for active dest :%" PRIu64,
+			    ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 
 		if (out_evt == NULL) {
-			TRACE_4("cpd mds send fail with out_evt as NULL for active dest :%"PRIu64,ckpt_node->active_dest);
+			TRACE_4(
+			    "cpd mds send fail with out_evt as NULL for active dest :%" PRIu64,
+			    ckpt_node->active_dest);
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		} else {
-			if (out_evt->info.cpd.info.ckpt_created_sections.error == SA_AIS_ERR_NOT_EXIST) {
-	
-				TRACE_4("cpd cpnd node doest not exist for active dest:%"PRIu64,ckpt_node->active_dest);
+			if (out_evt->info.cpd.info.ckpt_created_sections
+				.error == SA_AIS_ERR_NOT_EXIST) {
+
+				TRACE_4(
+				    "cpd cpnd node doest not exist for active dest:%" PRIu64,
+				    ckpt_node->active_dest);
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
 
-			ckpt_node->num_sections = out_evt->info.cpd.info.ckpt_created_sections.ckpt_num_sections;
+			ckpt_node->num_sections =
+			    out_evt->info.cpd.info.ckpt_created_sections
+				.ckpt_num_sections;
 			m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPD);
 		}
 	}
 
- done:
-	TRACE_LEAVE2("Ret val %d",rc);
+done:
+	TRACE_LEAVE2("Ret val %d", rc);
 	return rc;
 }
 
@@ -759,26 +1025,30 @@ static uint32_t cpd_fetch_num_sections(CPD_CKPT_INFO_NODE *ckpt_node, CPD_CB *cb
  * Description   : This function extract node_name without '/' from replica
  *                 name. The user must free() the node_name after using
  *
- * Arguments     : 
+ * Arguments     :
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-static void extract_node_name_from_replica_name(const char *replica_name, const char *ckpt_name, char **node_name)
+static void extract_node_name_from_replica_name(const char *replica_name,
+						const char *ckpt_name,
+						char **node_name)
 {
 	char *dest = NULL;
 	SaUint32T i = 0, k = 0;
-	
+
 	if (replica_name == NULL || ckpt_name == NULL)
 		return;
 
-	/* Remove slash '/' , the ',' right before the ckpt_name and ckpt_name */ 
-	int node_name_length = strlen(replica_name) - strlen(ckpt_name) - strlen("safReplica=") - 1;
+	/* Remove slash '/' , the ',' right before the ckpt_name and ckpt_name
+	 */
+	int node_name_length = strlen(replica_name) - strlen(ckpt_name) -
+			       strlen("safReplica=") - 1;
 	dest = malloc(node_name_length);
 	memset(dest, 0, node_name_length);
 
-	const char* src = replica_name + strlen("safReplica=");
+	const char *src = replica_name + strlen("safReplica=");
 
 	for (i = 0; i < node_name_length; i++) {
 		if (src[i] != '\\') {
@@ -793,12 +1063,12 @@ static void extract_node_name_from_replica_name(const char *replica_name, const 
 }
 
 /**
- * Initialize the OI interface and get a selection object. 
+ * Initialize the OI interface and get a selection object.
  * @param cb
- * 
+ *
  * @return SaAisErrorT
  */
-static void  *cpd_imm_reinit_thread(void * _cb)
+static void *cpd_imm_reinit_thread(void *_cb)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	CPD_CB *cb = (CPD_CB *)_cb;
@@ -813,24 +1083,20 @@ static void  *cpd_imm_reinit_thread(void * _cb)
 			cpd_imm_declare_implementer(&immOiHandle, &imm_sel_obj);
 		cb->imm_sel_obj = imm_sel_obj;
 		cb->immOiHandle = immOiHandle;
-	}
-	else
-	{
+	} else {
 
 		LOG_ER("cpd_imm_init FAILED: %s", strerror(error));
 		exit(EXIT_FAILURE);
-
 	}
 	TRACE_LEAVE();
 	return NULL;
 }
 
-
 /**
  * Become object and class implementer, non-blocking.
  * @param cb
  */
-void cpd_imm_reinit_bg(CPD_CB * cb)
+void cpd_imm_reinit_bg(CPD_CB *cb)
 {
 	pthread_t thread;
 	pthread_attr_t attr;
@@ -859,99 +1125,105 @@ void cpd_imm_reinit_bg(CPD_CB * cb)
  */
 SaAisErrorT cpd_clean_checkpoint_objects(CPD_CB *cb)
 {
-       SaAisErrorT rc = SA_AIS_OK;
-       SaImmHandleT immOmHandle;
-       SaImmSearchHandleT immSearchHandle;
+	SaAisErrorT rc = SA_AIS_OK;
+	SaImmHandleT immOmHandle;
+	SaImmSearchHandleT immSearchHandle;
 
-       TRACE_ENTER();
+	TRACE_ENTER();
 
-       /* Save immutil settings and reconfigure */
-       struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
-       tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
-       tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
-       tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+	/* Save immutil settings and reconfigure */
+	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
+	tmp_immutilWrapperProfile.errorsAreFatal =
+	    immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
+	tmp_immutilWrapperProfile.retryInterval =
+	    immutilWrapperProfile.retryInterval;
 
-       immutilWrapperProfile.errorsAreFatal = 0;
-       immutilWrapperProfile.nTries = 500;
-       immutilWrapperProfile.retryInterval = 1000;
+	immutilWrapperProfile.errorsAreFatal = 0;
+	immutilWrapperProfile.nTries = 500;
+	immutilWrapperProfile.retryInterval = 1000;
 
-       /* Intialize Om API
-        */
-       rc = immutil_saImmOmInitialize(&immOmHandle, NULL, &imm_version);
-       if (rc != SA_AIS_OK) {
-               LOG_ER("%s saImmOmInitialize FAIL %d", __FUNCTION__, rc);
-               goto done;
-       }
+	/* Intialize Om API
+	 */
+	rc = immutil_saImmOmInitialize(&immOmHandle, NULL, &imm_version);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("%s saImmOmInitialize FAIL %d", __FUNCTION__, rc);
+		goto done;
+	}
 
-       cpd_imm_declare_implementer(&cb->immOiHandle, &cb->imm_sel_obj);
+	cpd_imm_declare_implementer(&cb->immOiHandle, &cb->imm_sel_obj);
 
-       /* Initialize search for application checkpoint runtime objects
-        * Search for all objects of class 'SaCkptCheckpoint'
-        * Search criteria:
-        * Attribute SaImmAttrClassName == SaCkptCheckpoint
-        */
-       SaImmSearchParametersT_2 searchParam;
-       const char* class_name = "SaCkptCheckpoint";
-       searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-       searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-       searchParam.searchOneAttr.attrValue = &class_name;
-       SaNameT root_name;
-       osaf_extended_name_lend("\0", &root_name);
+	/* Initialize search for application checkpoint runtime objects
+	 * Search for all objects of class 'SaCkptCheckpoint'
+	 * Search criteria:
+	 * Attribute SaImmAttrClassName == SaCkptCheckpoint
+	 */
+	SaImmSearchParametersT_2 searchParam;
+	const char *class_name = "SaCkptCheckpoint";
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &class_name;
+	SaNameT root_name;
+	osaf_extended_name_lend("\0", &root_name);
 
-       rc = immutil_saImmOmSearchInitialize_2(
-                       immOmHandle,
-                       &root_name,
-                       SA_IMM_SUBTREE,
-                       SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR,
-                       &searchParam,
-                       NULL,
-                       &immSearchHandle);
-       if (rc != SA_AIS_OK) {
-               LOG_ER("%s saImmOmSearchInitialize FAIL %d", __FUNCTION__, rc);
-               goto done;
-       }
+	rc = immutil_saImmOmSearchInitialize_2(
+	    immOmHandle, &root_name, SA_IMM_SUBTREE,
+	    SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam,
+	    NULL, &immSearchHandle);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("%s saImmOmSearchInitialize FAIL %d", __FUNCTION__, rc);
+		goto done;
+	}
 
-       /* Iterate the search until all objects found
-        * When an object is found it is deleted
-        */
-       SaNameT object_name;
-       SaImmAttrValuesT_2 **attributes;
+	/* Iterate the search until all objects found
+	 * When an object is found it is deleted
+	 */
+	SaNameT object_name;
+	SaImmAttrValuesT_2 **attributes;
 
-       while ((rc = immutil_saImmOmSearchNext_2(immSearchHandle, &object_name, &attributes)) == SA_AIS_OK) {
-               /* Delete the runtime object and its children. */
-               rc = immutil_saImmOiRtObjectDelete(cb->immOiHandle, &object_name);
-               if (rc == SA_AIS_OK) {
-		       TRACE("saImmOiRtObjectDelete \"%s\" deleted Successfully", (char *) osaf_extended_name_borrow(&object_name));
-	       } else {
-		       LOG_ER("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
-				       __FUNCTION__, (char *) osaf_extended_name_borrow(&object_name), rc);
-	       }
-       }
+	while ((rc = immutil_saImmOmSearchNext_2(immSearchHandle, &object_name,
+						 &attributes)) == SA_AIS_OK) {
+		/* Delete the runtime object and its children. */
+		rc = immutil_saImmOiRtObjectDelete(cb->immOiHandle,
+						   &object_name);
+		if (rc == SA_AIS_OK) {
+			TRACE(
+			    "saImmOiRtObjectDelete \"%s\" deleted Successfully",
+			    (char *)osaf_extended_name_borrow(&object_name));
+		} else {
+			LOG_ER("%s saImmOiRtObjectDelete for \"%s\" FAILED %d",
+			       __FUNCTION__,
+			       (char *)osaf_extended_name_borrow(&object_name),
+			       rc);
+		}
+	}
 
-       if (rc != SA_AIS_ERR_NOT_EXIST) {
-               LOG_ER("%s saImmOmSearchNext FAILED %d", __FUNCTION__, rc);
-       }
+	if (rc != SA_AIS_ERR_NOT_EXIST) {
+		LOG_ER("%s saImmOmSearchNext FAILED %d", __FUNCTION__, rc);
+	}
 
 done:
-       rc = immutil_saImmOiImplementerClear(cb->immOiHandle);
-       if (rc != SA_AIS_OK) {
-               LOG_ER("saImmOiImplementerClear FAIL %d", rc);
-       }
+	rc = immutil_saImmOiImplementerClear(cb->immOiHandle);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiImplementerClear FAIL %d", rc);
+	}
 
-       /* Finalize the Om API
-        */
-       rc = immutil_saImmOmFinalize(immOmHandle);
-       if (rc != SA_AIS_OK) {
-               LOG_ER("saImmOmFinalize FAIL %d", rc);
-       }
+	/* Finalize the Om API
+	 */
+	rc = immutil_saImmOmFinalize(immOmHandle);
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOmFinalize FAIL %d", rc);
+	}
 
-       /* Restore immutil settings */
-       immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
-       immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
-       immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+	/* Restore immutil settings */
+	immutilWrapperProfile.errorsAreFatal =
+	    tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
+	immutilWrapperProfile.retryInterval =
+	    tmp_immutilWrapperProfile.retryInterval;
 
-       TRACE_LEAVE();
-       return rc;
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************************
@@ -960,7 +1232,7 @@ done:
  * Description   : This function gets scAbsenceAllowed attribute
  *
  * Arguments     : -
- * 
+ *
  * Return Values : scAbsenceAllowed attribute (0 = not allowed)
  *****************************************************************************************/
 SaUint32T cpd_get_scAbsenceAllowed_attr()
@@ -974,10 +1246,7 @@ SaUint32T cpd_get_scAbsenceAllowed_attr()
 
 	TRACE_ENTER();
 
-	char *attribute_names[] = {
-		"scAbsenceAllowed",
-		NULL
-	};
+	char *attribute_names[] = {"scAbsenceAllowed", NULL};
 	char object_name_str[] = "opensafImm=opensafImm,safApp=safImmService";
 
 	SaNameT object_name;
@@ -985,9 +1254,11 @@ SaUint32T cpd_get_scAbsenceAllowed_attr()
 
 	/* Save immutil settings and reconfigure */
 	struct ImmutilWrapperProfile tmp_immutilWrapperProfile;
-	tmp_immutilWrapperProfile.errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	tmp_immutilWrapperProfile.errorsAreFatal =
+	    immutilWrapperProfile.errorsAreFatal;
 	tmp_immutilWrapperProfile.nTries = immutilWrapperProfile.nTries;
-	tmp_immutilWrapperProfile.retryInterval = immutilWrapperProfile.retryInterval;
+	tmp_immutilWrapperProfile.retryInterval =
+	    immutilWrapperProfile.retryInterval;
 
 	immutilWrapperProfile.errorsAreFatal = 0;
 	immutilWrapperProfile.nTries = 500;
@@ -1003,14 +1274,16 @@ SaUint32T cpd_get_scAbsenceAllowed_attr()
 	/* Initialize accessor for reading attributes */
 	rc = immutil_saImmOmAccessorInitialize(immOmHandle, &accessorHandle);
 	if (rc != SA_AIS_OK) {
-		LOG_ER("%s saImmOmAccessorInitialize Fail %s", __FUNCTION__, saf_error(rc));
+		LOG_ER("%s saImmOmAccessorInitialize Fail %s", __FUNCTION__,
+		       saf_error(rc));
 		goto done;
 	}
 
-
-	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name, attribute_names, &attributes);
+	rc = immutil_saImmOmAccessorGet_2(accessorHandle, &object_name,
+					  attribute_names, &attributes);
 	if (rc != SA_AIS_OK) {
-		TRACE("%s saImmOmAccessorGet_2 Fail '%s'", __FUNCTION__, saf_error(rc));
+		TRACE("%s saImmOmAccessorGet_2 Fail '%s'", __FUNCTION__,
+		      saf_error(rc));
 		goto done_fin_Om;
 	}
 
@@ -1018,25 +1291,29 @@ SaUint32T cpd_get_scAbsenceAllowed_attr()
 
 	/* Handle the global scAbsenceAllowed_flag */
 	attribute = attributes[0];
-	TRACE("%s attrName \"%s\"",__FUNCTION__,attribute?attribute->attrName:"");
+	TRACE("%s attrName \"%s\"", __FUNCTION__,
+	      attribute ? attribute->attrName : "");
 	if ((attribute != NULL) && (attribute->attrValuesNumber != 0)) {
 		/* scAbsenceAllowed has value. Get the value */
 		value = attribute->attrValues[0];
-		rc_attr_val = *((SaUint32T *) value);
+		rc_attr_val = *((SaUint32T *)value);
 	}
 
-	done_fin_Om:
+done_fin_Om:
 	/* Free Om resources */
 	rc = immutil_saImmOmFinalize(immOmHandle);
 	if (rc != SA_AIS_OK) {
-		TRACE("%s saImmOmFinalize Fail '%s'", __FUNCTION__, saf_error(rc));
+		TRACE("%s saImmOmFinalize Fail '%s'", __FUNCTION__,
+		      saf_error(rc));
 	}
 
-	done:
+done:
 	/* Restore immutil settings */
-	immutilWrapperProfile.errorsAreFatal = tmp_immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal =
+	    tmp_immutilWrapperProfile.errorsAreFatal;
 	immutilWrapperProfile.nTries = tmp_immutilWrapperProfile.nTries;
-	immutilWrapperProfile.retryInterval = tmp_immutilWrapperProfile.retryInterval;
+	immutilWrapperProfile.retryInterval =
+	    tmp_immutilWrapperProfile.retryInterval;
 
 	TRACE_LEAVE();
 	return rc_attr_val;

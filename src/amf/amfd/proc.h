@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This module is the  include file for Availability Directors processing module.
-  
+
 ******************************************************************************
 */
 
@@ -37,20 +37,24 @@
 #include "amf/amfd/evt.h"
 #include "amf/amfd/susi.h"
 
-typedef void (*AVD_EVT_HDLR) (AVD_CL_CB *, AVD_EVT *);
+typedef void (*AVD_EVT_HDLR)(AVD_CL_CB *, AVD_EVT *);
 
 void avd_su_oper_state_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void avd_su_si_assign_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 uint32_t avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
-				  SaAmfHAStateT role, bool ckpt, AVD_SU_SI_REL **ret_ptr);
+                            SaAmfHAStateT role, bool ckpt,
+                            AVD_SU_SI_REL **ret_ptr);
 void su_try_repair(const AVD_SU *su);
 void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd);
 uint32_t avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg);
-uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt, bool wrt_to_imm = true);
-uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt, bool wrt_to_imm = true);
+uint32_t avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, bool ckpt,
+                                 bool wrt_to_imm = true);
+uint32_t avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, bool ckpt,
+                                 bool wrt_to_imm = true);
 uint32_t avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg);
 uint32_t avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state);
-uint32_t avd_sg_susi_mod_snd_honouring_si_dependency(AVD_SU *su, SaAmfHAStateT state);
+uint32_t avd_sg_susi_mod_snd_honouring_si_dependency(AVD_SU *su,
+                                                     SaAmfHAStateT state);
 uint32_t avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su);
 
 /* The following are for N-Way redundancy model */
@@ -82,7 +86,7 @@ void avd_nd_compcsi_state_info_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);
 void avd_avnd_mds_info_evh(AVD_CL_CB *cb, AVD_EVT *evt);
 uint32_t avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id);
 AVD_AVND *avd_msg_sanity_chk(AVD_EVT *evt, SaClmNodeIdT node_id,
-	AVSV_DND_MSG_TYPE msg_typ, uint32_t msg_id);
+                             AVSV_DND_MSG_TYPE msg_typ, uint32_t msg_id);
 void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd);
 void avd_rcv_hb_d_evh(AVD_CL_CB *cb, struct AVD_EVT *evt);

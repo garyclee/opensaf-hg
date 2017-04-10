@@ -26,14 +26,14 @@
 #ifndef IMM_COMMON_IMMSV_API_H_
 #define IMM_COMMON_IMMSV_API_H_
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-/* The OpensafImm IMM class and opensafImm singleton IMM object is used by 
+/* The OpensafImm IMM class and opensafImm singleton IMM object is used by
    the opensaf IMM implementation. It is not part of the IMM standard. */
 
-#define OPENSAF_IMM_CLASS_NAME   "OpensafImm"
+#define OPENSAF_IMM_CLASS_NAME "OpensafImm"
 #define OPENSAF_IMM_ATTR_CLASSES "opensafImmClassNames"
 #define OPENSAF_IMM_ATTR_EPOCH "opensafImmEpoch"
 #define OPENSAF_IMM_ATTR_RDN "opensafImm"
@@ -42,22 +42,24 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_DN "opensafImm=opensafImm,safApp=safImmService"
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
-#define OPENSAF_IMM_PBE_RT_CLASS_NAME   "OsafImmPbeRt"
+#define OPENSAF_IMM_PBE_RT_CLASS_NAME "OsafImmPbeRt"
 #define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
 #define OPENSAF_IMM_2PBE_APPL_NAME "@OpenSafImmPBE"
 #define OPENSAF_IMM_PBE_RT_IMPL_NAME_A "OsafImmPbeRt_A"
 #define OPENSAF_IMM_PBE_RT_IMPL_NAME_B "OsafImmPbeRt_B"
 #define OPENSAF_IMM_ATTR_PBE_RT_RDN "osafImmPbeRt"
-#define OPENSAF_IMM_PBE_RT_OBJECT_DN_A "osafImmPbeRt=A,opensafImm=opensafImm,safApp=safImmService"
-#define OPENSAF_IMM_PBE_RT_OBJECT_DN_B "osafImmPbeRt=B,opensafImm=opensafImm,safApp=safImmService"
+#define OPENSAF_IMM_PBE_RT_OBJECT_DN_A \
+  "osafImmPbeRt=A,opensafImm=opensafImm,safApp=safImmService"
+#define OPENSAF_IMM_PBE_RT_OBJECT_DN_B \
+  "osafImmPbeRt=B,opensafImm=opensafImm,safApp=safImmService"
 #define OPENSAF_IMM_ATTR_PBE_RT_EPOCH "epoch"
 #define OPENSAF_IMM_ATTR_PBE_RT_CCB "lastCcbApply"
 #define OPENSAF_IMM_ATTR_PBE_RT_TIME "lastApplyTime"
 
 #define OPENSAF_IMM_SYNC_BATCH_SIZE "opensafImmSyncBatchSize"
 /* Adjust to 90% of MDS_DIRECT_BUF_MAXSIZE  */
-#define IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE ((MDS_DIRECT_BUF_MAXSIZE / 100) * 90) 
-#define IMMSV_MAX_OBJS_IN_SYNCBATCH (IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE / 10) 
+#define IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE ((MDS_DIRECT_BUF_MAXSIZE / 100) * 90)
+#define IMMSV_MAX_OBJS_IN_SYNCBATCH (IMMSV_DEFAULT_MAX_SYNC_BATCH_SIZE / 10)
 
 #define OPENSAF_IMM_LONG_DNS_ALLOWED "longDnsAllowed"
 #define OPENSAF_IMM_ACCESS_CONTROL_MODE "accessControlMode"
@@ -69,9 +71,9 @@ extern "C" {
 #define OPENSAF_IMM_MAX_CCBS "maxCcbs"
 
 typedef enum {
-	ACCESS_CONTROL_DISABLED = 0,
-	ACCESS_CONTROL_PERMISSIVE = 1,
-	ACCESS_CONTROL_ENFORCING = 2
+  ACCESS_CONTROL_DISABLED = 0,
+  ACCESS_CONTROL_PERMISSIVE = 1,
+  ACCESS_CONTROL_ENFORCING = 2
 } OsafImmAccessControlModeT;
 
 /*Max # of outstanding fevs messages towards director.*/
@@ -114,17 +116,15 @@ typedef enum {
    modify on an object that has SA_IMM_ATTR_NOTIFY set on one of
    its attributes and special applier is involved. This means that
    the admin-owner for the ccb has already been communicated to
-   the special applier. 
+   the special applier.
  */
 #define OPENSAF_IMM_CCB_ADMO_PROVIDED 0x80000000
 
-
-/* Used to encode fake OI reply on admin-op, when the OI has not 
+/* Used to encode fake OI reply on admin-op, when the OI has not
    registered any admin-op callback. Converted to SA_AIS_ERR_BAD_OPERATION
-   return code on the OM invoking side. 
+   return code on the OM invoking side.
 */
-#define IMMSV_IMPOSSIBLE_ERROR 0xffff0000 
-
+#define IMMSV_IMPOSSIBLE_ERROR 0xffff0000
 
 /* Admin operation IDs */
 /* Internal PBE operation ids. */
@@ -136,8 +136,8 @@ typedef enum {
 #define OPENSAF_IMM_BAD_OP_BOUNCE 0x60000000
 
 /* Public operation ids on OpenSafImmPBE */
-#define OPENSAF_IMM_NOST_FLAG_ON     0x00000001
-#define OPENSAF_IMM_NOST_FLAG_OFF    0x00000002
+#define OPENSAF_IMM_NOST_FLAG_ON 0x00000001
+#define OPENSAF_IMM_NOST_FLAG_OFF 0x00000002
 
 /* Flag values for nostdflags. */
 #define OPENSAF_IMM_FLAG_SCHCH_ALLOW 0x00000001
@@ -153,12 +153,12 @@ typedef enum {
 #define OPENSAF_IMM_SERVICE_NAME "safImmService"
 
 typedef enum {
-    SA_IMM_ADMIN_EXPORT = 1,  /* Defined in A.02.01 declared in  A.03.01 */
-    SA_IMM_ADMIN_INIT_FROM_FILE = 100, /* Non standard, force PBE disable. */
-    SA_IMM_ADMIN_ABORT_CCBS = 202 /* Non standard, abort non critical CCBs. */
+  SA_IMM_ADMIN_EXPORT = 1, /* Defined in A.02.01 declared in  A.03.01 */
+  SA_IMM_ADMIN_INIT_FROM_FILE = 100, /* Non standard, force PBE disable. */
+  SA_IMM_ADMIN_ABORT_CCBS = 202 /* Non standard, abort non critical CCBs. */
 } SaImmMngtAdminOperationT;
 
-/* 
+/*
  * Special flags only to be used by the imm-dumper, the imm-loader or
  * new API functions.
  *
@@ -178,34 +178,32 @@ typedef enum {
  * with SA_IMM_SEARCH_GET_ALL_ATTR flag.
  *
  * The use of these flags in search options is NON STANDARD.
- * It is only allowed for imm internal use. 
+ * It is only allowed for imm internal use.
  * We are messing with the a part of the value space for search options.
  * This may not be possible in future implementations.
  *
  * The defines should really not use the SA_IMM prefix as they are non
  * standard. But I choose use the same prefix as the corrsponding defines
- * in the standard, as a reminder of where I am tresspassing. 
+ * in the standard, as a reminder of where I am tresspassing.
  * This includefile is not part of the public API anyway.
-*/
-#define SA_IMM_SEARCH_PERSISTENT_ATTRS         0x0010
-#define SA_IMM_SEARCH_SYNC_CACHED_ATTRS        0x0020
-#define SA_IMM_SEARCH_NO_RDN                   0x0001000000000000ull
+ */
+#define SA_IMM_SEARCH_PERSISTENT_ATTRS 0x0010
+#define SA_IMM_SEARCH_SYNC_CACHED_ATTRS 0x0020
+#define SA_IMM_SEARCH_NO_RDN 0x0001000000000000ull
 
 /* These functions are private and nonstandard parts of the IMM client
    (agent) API. They are used by the process that drives the immnd sync.
    The immsv_sync function is NOT reentrant. It must be used by only
    one thread.
 */
-	SaAisErrorT
-	 immsv_sync(SaImmHandleT immHandle,
-		    const SaImmClassNameT className, const SaNameT *objectName,
-		    const SaImmAttrValuesT_2 **atributes, void** batch,
-		    int* remainingSpace, int objsInBatch);
+SaAisErrorT immsv_sync(SaImmHandleT immHandle, const SaImmClassNameT className,
+                       const SaNameT* objectName,
+                       const SaImmAttrValuesT_2** atributes, void** batch,
+                       int* remainingSpace, int objsInBatch);
 
-	SaAisErrorT
-	 immsv_finalize_sync(SaImmHandleT immHandle);
+SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

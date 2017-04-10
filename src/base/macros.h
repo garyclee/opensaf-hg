@@ -18,16 +18,16 @@
 #ifndef BASE_MACROS_H_
 #define BASE_MACROS_H_
 
-#define USE_DEFAULT_COPY_AND_MOVE_OPERATORS(className)  \
-  className(className&&) = default;                     \
-  className(const className&) = default;                \
-  className& operator=(className&&) = default;          \
+#define USE_DEFAULT_COPY_AND_MOVE_OPERATORS(className) \
+  className(className&&) = default;                    \
+  className(const className&) = default;               \
+  className& operator=(className&&) = default;         \
   className& operator=(const className&) = default
 
-#define DELETE_COPY_AND_MOVE_OPERATORS(className)       \
-  className(className&&) = delete;                      \
-  className(const className&) = delete;                 \
-  className& operator=(className&&) = delete;           \
+#define DELETE_COPY_AND_MOVE_OPERATORS(className) \
+  className(className&&) = delete;                \
+  className(const className&) = delete;           \
+  className& operator=(className&&) = delete;     \
   className& operator=(const className&) = delete
 
 #endif  // BASE_MACROS_H_

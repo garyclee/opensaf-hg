@@ -22,7 +22,7 @@
 #include "osaf/config.h"
 #endif
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -39,9 +39,8 @@ int stop_ntfimcn(void);
 #define stop_ntfimcn() 0
 #endif /* HAVE_NTFIMCN */
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
 #endif  // NTF_NTFD_NTFS_IMCNUTIL_H_
-

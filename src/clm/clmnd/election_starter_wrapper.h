@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -38,7 +38,7 @@ void ElectionStarterDownEvent(void* instance, uint32_t node_id,
 struct timespec ElectionStarterPoll(void* instance);
 void* ElectionStarterConstructor(bool is_nid_started, uint32_t own_node_id);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

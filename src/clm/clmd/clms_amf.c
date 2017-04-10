@@ -30,13 +30,14 @@
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the CLMS control block. 
+ *                 cb         - A pointer to the CLMS control block.
  *
  * Return Values : None
  *
- * Notes         : None 
+ * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_active_state_handler(CLMS_CB * cb, SaInvocationT invocation)
+static SaAisErrorT amf_active_state_handler(CLMS_CB *cb,
+					    SaInvocationT invocation)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 
@@ -55,13 +56,14 @@ static SaAisErrorT amf_active_state_handler(CLMS_CB * cb, SaInvocationT invocati
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the CLMS control block. 
+ *                 cb         - A pointer to the CLMS control block.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_standby_state_handler(CLMS_CB * cb, SaInvocationT invocation)
+static SaAisErrorT amf_standby_state_handler(CLMS_CB *cb,
+					     SaInvocationT invocation)
 {
 	TRACE_ENTER2("HA STANDBY request");
 
@@ -78,13 +80,14 @@ static SaAisErrorT amf_standby_state_handler(CLMS_CB * cb, SaInvocationT invocat
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the CLMS control block. 
+ *                 cb         - A pointer to the CLMS control block.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_quiescing_state_handler(CLMS_CB * cb, SaInvocationT invocation)
+static SaAisErrorT amf_quiescing_state_handler(CLMS_CB *cb,
+					       SaInvocationT invocation)
 {
 	TRACE_ENTER2("HA QUIESCING request");
 
@@ -103,30 +106,31 @@ static SaAisErrorT amf_quiescing_state_handler(CLMS_CB * cb, SaInvocationT invoc
  *                 assignment from AMF.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 cb         - A pointer to the CLMS control block. 
+ *                 cb         - A pointer to the CLMS control block.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_quiesced_state_handler(CLMS_CB * cb, SaInvocationT invocation)
+static SaAisErrorT amf_quiesced_state_handler(CLMS_CB *cb,
+					      SaInvocationT invocation)
 {
 	TRACE_ENTER2("HA AMF QUIESCED STATE request");
 	SaUint32T nodeid = 0;
 	CLMS_CLUSTER_NODE *node = NULL;
-
 
 	/*Stop timer if the switchover happens in middle of admin op */
 	while (NULL != (node = clms_node_getnext_by_id(nodeid))) {
 		nodeid = node->node_id;
 		if (node->lock_timerid)
 			timer_delete(node->lock_timerid);
-		/*Crosscheck if the admin op and stat_change also needs to be cleared */
+		/*Crosscheck if the admin op and stat_change also needs to be
+		 * cleared */
 	}
 
 	/*
-	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
-	 ** MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
+	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with
+	 *type * MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
 	 ** cb->ha_state now.
 	 */
 
@@ -142,20 +146,21 @@ static SaAisErrorT amf_quiesced_state_handler(CLMS_CB * cb, SaInvocationT invoca
 /****************************************************************************
  * Name          : clms_amf_health_chk_callback
  *
- * Description   : This is the callback function which will be called 
+ * Description   : This is the callback function which will be called
  *                 when the AMF framework health checskfor the component.
  *
  * Arguments     : invocation - Designates a particular invocation.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 checkType      - The type of healthcheck to be executed. 
+ *                 checkType      - The type of healthcheck to be executed.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-static void clms_amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName,
+static void clms_amf_health_chk_callback(SaInvocationT invocation,
+					 const SaNameT *compName,
 					 SaAmfHealthcheckKeyT *checkType)
 {
 	saAmfResponse(clms_cb->amf_hdl, invocation, SA_AIS_OK);
@@ -164,23 +169,23 @@ static void clms_amf_health_chk_callback(SaInvocationT invocation, const SaNameT
 /****************************************************************************
  * Name          : clms_amf_csi_set_callback
  *
- * Description   : AMF callback function called 
+ * Description   : AMF callback function called
  *                 when there is any change in the HA state.
  *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The 
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ * Arguments     : invocation     - This parameter designated a particular
+ *                                  invocation of this callback function. The
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness state the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness state the Availability
  *                                  Management Framework is setting.
- *                 haState        - The new HA state to be assumed by the 
- *                                  component service instance identified by 
+ *                 haState        - The new HA state to be assumed by the
+ *                                  component service instance identified by
  *                                  csiName.
- *                 csiDescriptor - This will indicate whether or not the 
- *                                  component service instance for 
+ *                 csiDescriptor - This will indicate whether or not the
+ *                                  component service instance for
  *                                  ativeCompName went through quiescing.
  *
  * Return Values : None.
@@ -188,8 +193,9 @@ static void clms_amf_health_chk_callback(SaInvocationT invocation, const SaNameT
  * Notes         : None.
  *****************************************************************************/
 static void clms_amf_csi_set_callback(SaInvocationT invocation,
-	const SaNameT *compName, SaAmfHAStateT new_haState,
-	SaAmfCSIDescriptorT csiDescriptor)
+				      const SaNameT *compName,
+				      SaAmfHAStateT new_haState,
+				      SaAmfCSIDescriptorT csiDescriptor)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	SaAmfHAStateT prev_haState;
@@ -204,8 +210,8 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 	prev_haState = clms_cb->ha_state;
 
 	if ((rc = initialize_for_assignment(clms_cb, new_haState)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		error = SA_AIS_ERR_FAILED_OPERATION;
 		goto response;
 	}
@@ -236,41 +242,44 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 		goto response;
 
 	if (new_haState == SA_AMF_HA_QUIESCED) {
-		/* AMF response will be done later when MDS quiesced ack has been received */
+		/* AMF response will be done later when MDS quiesced ack has
+		 * been received */
 		goto done;
 	}
 
 	/* Update control block */
 	clms_cb->ha_state = new_haState;
 
-	if (new_haState == SA_AMF_HA_ACTIVE || new_haState == SA_AMF_HA_STANDBY) {
+	if (new_haState == SA_AMF_HA_ACTIVE ||
+	    new_haState == SA_AMF_HA_STANDBY) {
 		clms_cb->ckpt_state = COLD_SYNC_IDLE;
 	}
 
 	/* Handle active to active role change. */
-	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
+	if ((prev_haState == SA_AMF_HA_ACTIVE) &&
+	    (new_haState == SA_AMF_HA_ACTIVE))
 		role_change = false;
 
 	/* Handle Stby to Stby role change. */
-	if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
+	if ((prev_haState == SA_AMF_HA_STANDBY) &&
+	    (new_haState == SA_AMF_HA_STANDBY))
 		role_change = false;
 
 	if (role_change == true) {
 		/* i.e Set up the infrastructure first.
 		 * i.e. Declare yourself as ACTIVE first.
 		 */
-		if ((rc = clms_mds_change_role(clms_cb)) !=
-			NCSCC_RC_SUCCESS) {
+		if ((rc = clms_mds_change_role(clms_cb)) != NCSCC_RC_SUCCESS) {
 			LOG_ER("clms_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		}
 
 		/* Inform MBCSV of HA state change */
-		if (NCSCC_RC_SUCCESS != (error = clms_mbcsv_change_HA_state(
-			clms_cb, new_haState)))
+		if (NCSCC_RC_SUCCESS !=
+		    (error = clms_mbcsv_change_HA_state(clms_cb, new_haState)))
 			error = SA_AIS_ERR_FAILED_OPERATION;
 
-		if(clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		if (clms_cb->ha_state == SA_AMF_HA_ACTIVE) {
 			clms_imm_impl_set(clms_cb);
 			proc_downs_during_rolechange();
 
@@ -278,39 +287,41 @@ static void clms_amf_csi_set_callback(SaInvocationT invocation,
 			clms_switchon_all_pending_rtupdates();
 		}
 
-		/* Clear up any pending rtu updates, the active will take care of it */
+		/* Clear up any pending rtu updates, the active will take care
+		 * of it */
 		if (clms_cb->ha_state == SA_AMF_HA_STANDBY)
 			clms_switchoff_all_pending_rtupdates();
 	}
 
- response:
+response:
 	saAmfResponse(clms_cb->amf_hdl, invocation, error);
- done:
+done:
 	TRACE_LEAVE();
 }
 
 /****************************************************************************
  * Name          : clms_amf_comp_terminate_callback
  *
- * Description   : This is the callback function which will be called 
+ * Description   : This is the callback function which will be called
  *                 when the AMF framework needs to terminate CLMS. This does
  *                 all required to destroy CLMS(except to unregister from AMF)
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness state the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness state the Availability
  *                                  Management Framework is setting.
  *
  * Return Values : None
  *
  * Notes         : None
  *****************************************************************************/
-static void clms_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+static void clms_amf_comp_terminate_callback(SaInvocationT invocation,
+					     const SaNameT *compName)
 {
 	TRACE_ENTER();
 
@@ -332,7 +343,7 @@ static void clms_amf_comp_terminate_callback(SaInvocationT invocation, const SaN
  * Name          : clms_amf_csi_rmv_callback
  *
  * Description   : This callback routine is invoked by AMF during a
- *                 CSI set removal operation. 
+ *                 CSI set removal operation.
  *
  * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
@@ -345,10 +356,12 @@ static void clms_amf_comp_terminate_callback(SaInvocationT invocation, const SaN
  *                                  Management Framework is setting.
  *                 csiName        - A const pointer to csiName
  *                 csiFlags       - csi Flags
- * Return Values : None 
+ * Return Values : None
  *****************************************************************************/
 static void clms_amf_csi_rmv_callback(SaInvocationT invocation,
-				      const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
+				      const SaNameT *compName,
+				      const SaNameT *csiName,
+				      const SaAmfCSIFlagsT csiFlags)
 {
 	TRACE_ENTER();
 
@@ -358,17 +371,17 @@ static void clms_amf_csi_rmv_callback(SaInvocationT invocation,
 }
 
 /*****************************************************************************\
- *  Name:          clms_healthcheck_start                           * 
+ *  Name:          clms_healthcheck_start                           *
  *                                                                            *
  *  Description:   To start the health check                                  *
  *                                                                            *
- *  Arguments:     NCSSA_CB* - Control Block                                  * 
- *                                                                            * 
+ *  Arguments:     NCSSA_CB* - Control Block                                  *
+ *                                                                            *
  *  Returns:       SA_AIS_OK    - everything is OK                            *
  *                 SA_AIS_ERR_* -  failure                                    *
- *  NOTE:                                                                     * 
+ *  NOTE:                                                                     *
 \******************************************************************************/
-static SaAisErrorT clms_amf_healthcheck_start(CLMS_CB * clms_cb)
+static SaAisErrorT clms_amf_healthcheck_start(CLMS_CB *clms_cb)
 {
 	SaAisErrorT error;
 	SaAmfHealthcheckKeyT healthy;
@@ -376,7 +389,7 @@ static SaAisErrorT clms_amf_healthcheck_start(CLMS_CB * clms_cb)
 
 	TRACE_ENTER();
 
-    /** start the AMF health check **/
+	/** start the AMF health check **/
 	memset(&healthy, 0, sizeof(healthy));
 	health_key = getenv("CLMSV_ENV_HEALTHCHECK_KEY");
 
@@ -388,8 +401,9 @@ static SaAisErrorT clms_amf_healthcheck_start(CLMS_CB * clms_cb)
 
 	healthy.keyLen = strlen((char *)healthy.key);
 
-	error = saAmfHealthcheckStart(clms_cb->amf_hdl, &clms_cb->comp_name, &healthy,
-				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+	error = saAmfHealthcheckStart(clms_cb->amf_hdl, &clms_cb->comp_name,
+				      &healthy, SA_AMF_HEALTHCHECK_AMF_INVOKED,
+				      SA_AMF_COMPONENT_FAILOVER);
 
 	if (error != SA_AIS_OK)
 		LOG_ER("saAmfHealthcheckStart FAILED: %u", error);
@@ -401,15 +415,15 @@ static SaAisErrorT clms_amf_healthcheck_start(CLMS_CB * clms_cb)
 /**************************************************************************
  Function: clms_amf_init
 
- Purpose:  Function which registers CLMS with AMF.  
+ Purpose:  Function which registers CLMS with AMF.
 
- Input:    None 
+ Input:    None
 
  Returns:  SA_AIS_OK    - everything is OK
-           SA_AIS_ERR_* -  failure
+	   SA_AIS_ERR_* -  failure
 
 **************************************************************************/
-SaAisErrorT clms_amf_init(CLMS_CB * cb)
+SaAisErrorT clms_amf_init(CLMS_CB *cb)
 {
 	SaAmfCallbacksT amfCallbacks;
 	SaVersionT amf_version;
@@ -418,14 +432,16 @@ SaAisErrorT clms_amf_init(CLMS_CB * cb)
 	TRACE_ENTER();
 
 	if (cb->nid_started &&
-		amf_comp_name_get_set_from_file("CLMD_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
+	    amf_comp_name_get_set_from_file("CLMD_COMP_NAME_FILE",
+					    &cb->comp_name) != NCSCC_RC_SUCCESS)
 		goto done;
 
 	/* Initialize AMF callbacks */
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	amfCallbacks.saAmfHealthcheckCallback = clms_amf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = clms_amf_csi_set_callback;
-	amfCallbacks.saAmfComponentTerminateCallback = clms_amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    clms_amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = clms_amf_csi_rmv_callback;
 
 	amf_version.releaseCode = 'B';
@@ -454,19 +470,20 @@ SaAisErrorT clms_amf_init(CLMS_CB * cb)
 	}
 
 	/* Register component with AMF */
-	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, (SaNameT *)NULL);
+	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name,
+				       (SaNameT *)NULL);
 	if (error != SA_AIS_OK) {
-		LOG_ER("saAmfComponentRegister() FAILED: %u",error);
+		LOG_ER("saAmfComponentRegister() FAILED: %u", error);
 		goto done;
 	}
 
 	/* Start AMF healthchecks */
-	if ((error = clms_amf_healthcheck_start(cb)) != SA_AIS_OK){
-		LOG_ER("clms_amf_healthcheck_start() FAILED: %u",error);
+	if ((error = clms_amf_healthcheck_start(cb)) != SA_AIS_OK) {
+		LOG_ER("clms_amf_healthcheck_start() FAILED: %u", error);
 		goto done;
 	}
 
- done:
+done:
 	TRACE_LEAVE();
 	return error;
 }

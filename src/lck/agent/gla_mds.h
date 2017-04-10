@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   GLA - GLND communication related definitions.
-  
+
 ******************************************************************************
 */
 
@@ -36,7 +36,8 @@ uint32_t gla_mds_register(struct gla_cb_tag *cb);
 
 void gla_mds_unregister(struct gla_cb_tag *cb);
 
-uint32_t gla_mds_msg_sync_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **o_evt, SaTimeT timeout);
+uint32_t gla_mds_msg_sync_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt,
+                               GLSV_GLA_EVT **o_evt, SaTimeT timeout);
 
 uint32_t gla_mds_msg_async_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt);
 
@@ -52,9 +53,9 @@ uint32_t gla_agent_unregister(GLA_CB *cb);
 /* GLA - GLND */
 #define GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT 1
 #define GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT 1
-#define GLA_WRT_GLND_SUBPART_VER_RANGE \
-            (GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT - \
-        GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT + 1)
+#define GLA_WRT_GLND_SUBPART_VER_RANGE       \
+  (GLA_WRT_GLND_SUBPART_VER_AT_MAX_MSG_FMT - \
+   GLA_WRT_GLND_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 
 /********************************************************************************/
 

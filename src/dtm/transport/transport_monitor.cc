@@ -31,21 +31,18 @@ TransportMonitor::TransportMonitor(int term_fd)
     : term_fd_{term_fd},
       pkgpiddir_{base::GetEnv<std::string>("pkgpiddir", PKGPIDDIR)},
       proc_path_{"/proc/"},
-      use_tipc_{base::GetEnv<std::string>("MDS_TRANSPORT", "TCP") == "TIPC"} {
-}
+      use_tipc_{base::GetEnv<std::string>("MDS_TRANSPORT", "TCP") == "TIPC"} {}
 
-TransportMonitor::~TransportMonitor() {
-}
+TransportMonitor::~TransportMonitor() {}
 
 pid_t TransportMonitor::WaitForDaemon(const std::string& daemon_name,
                                       int64_t seconds_to_wait) {
-  std::vector<int> user_fds {term_fd_};
+  std::vector<int> user_fds{term_fd_};
   std::string pidfile = pkgpiddir_ + "/" + daemon_name + ".pid";
   pid_t pid = pid_t{-1};
   base::FileNotify file_notify;
-  base::FileNotify::FileNotifyErrors rc =
-      file_notify.WaitForFileCreation(pidfile, user_fds,
-                                      seconds_to_wait * kMillisPerSec);
+  base::FileNotify::FileNotifyErrors rc = file_notify.WaitForFileCreation(
+      pidfile, user_fds, seconds_to_wait * kMillisPerSec);
 
   if (rc == base::FileNotify::FileNotifyErrors::kOK) {
     if (!(std::ifstream{pidfile} >> pid).fail()) {
@@ -70,12 +67,12 @@ bool TransportMonitor::IsDir(const std::string& path) {
 void TransportMonitor::SuperviseDaemon(pid_t pid_to_watch) {
   if (pid_to_watch == pid_t{0}) return;
   int fifo_fd{-1};
-  std::vector<int> user_fds {term_fd_};
+  std::vector<int> user_fds{term_fd_};
   base::FileNotify file_notify;
   std::string pid_path{proc_path_ + std::to_string(pid_to_watch)};
 
   do {
-    fifo_fd = open(fifo_file_.c_str(), O_WRONLY|O_NONBLOCK);
+    fifo_fd = open(fifo_file_.c_str(), O_WRONLY | O_NONBLOCK);
   } while (fifo_fd == -1 && errno == EINTR);
 
   if (fifo_fd == -1) {

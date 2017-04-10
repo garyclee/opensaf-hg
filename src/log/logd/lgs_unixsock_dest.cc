@@ -46,11 +46,11 @@ static const char kDelimeter[] = ";";
 // UnixSocketHandler class
 //==============================================================================
 UnixSocketHandler::UnixSocketHandler(const char* socket_name)
-    : sock_path_{socket_name}
-    , sock_{socket_name}
-    , status_{DestinationStatus::kFailed} {
-      // Open the unix socket & and flush the destination status to @status_
-      Open();
+    : sock_path_{socket_name},
+      sock_{socket_name},
+      status_{DestinationStatus::kFailed} {
+  // Open the unix socket & and flush the destination status to @status_
+  Open();
 };
 
 void UnixSocketHandler::FlushStatus() {
@@ -66,28 +66,19 @@ DestinationStatus UnixSocketHandler::GetSockStatus() {
   return status_;
 }
 
-void UnixSocketHandler::Open() {
-  FlushStatus();
-}
+void UnixSocketHandler::Open() { FlushStatus(); }
 
-void UnixSocketHandler::FormRfc5424(
-    const DestinationHandler::RecordInfo& msg,
-    RfcBuffer* buf) {
+void UnixSocketHandler::FormRfc5424(const DestinationHandler::RecordInfo& msg,
+                                    RfcBuffer* buf) {
   base::LogMessage::Severity sev{Sev(msg.severity)};
   base::LogMessage::HostName hostname{msg.origin};
   base::LogMessage::ProcId procid{""};
   base::LogMessage::AppName appname{msg.app_name};
 
-  base::LogMessage::Write(base::LogMessage::Facility::kLocal0,
-                          sev,
-                          msg.time,
-                          hostname,
-                          appname,
-                          procid,
-                          base::LogMessage::MsgId{msg.msgid},
-                          {},
-                          std::string{msg.log_record},
-                          buf);
+  base::LogMessage::Write(base::LogMessage::Facility::kLocal0, sev, msg.time,
+                          hostname, appname, procid,
+                          base::LogMessage::MsgId{msg.msgid}, {},
+                          std::string{msg.log_record}, buf);
 }
 
 ErrCode UnixSocketHandler::Send(const DestinationHandler::RecordInfo& msg) {
@@ -170,10 +161,13 @@ UnixSocketType::~UnixSocketType() {
 const std::string UnixSocketType::DestStatusToStr(DestinationStatus status) {
   switch (status) {
     // Destination configured and is being connected to destination
-    case DestinationStatus::kActive: return "CONNECTED";
-      // Destination configured and is being disconnected to destination
-    case DestinationStatus::kFailed: return "FAILED";
-    default: return "UNKNOWN";
+    case DestinationStatus::kActive:
+      return "CONNECTED";
+    // Destination configured and is being disconnected to destination
+    case DestinationStatus::kFailed:
+      return "FAILED";
+    default:
+      return "UNKNOWN";
   }
 }
 
@@ -197,8 +191,9 @@ const VectorString UnixSocketType::GetAllDestStatus() {
 }
 
 bool UnixSocketType::FindName(const std::string& name) const {
-  return ((name_sockethdlr_map_.find(name) == name_sockethdlr_map_.end()) ?
-          (false) : (true));
+  return ((name_sockethdlr_map_.find(name) == name_sockethdlr_map_.end())
+              ? (false)
+              : (true));
 }
 
 UnixSocketHandler* UnixSocketType::GetDestHandle(const std::string& name) {
@@ -209,8 +204,8 @@ UnixSocketHandler* UnixSocketType::GetDestHandle(const std::string& name) {
 const char* UnixSocketType::GetCfgValue(const std::string& name) {
   if (FindName(name) == false) return nullptr;
   UnixSocketHandler* sk = name_sockethdlr_map_[name];
-  return (sk == nullptr) ? (nullptr) :
-      (name_sockethdlr_map_[name]->sock_path_.c_str());
+  return (sk == nullptr) ? (nullptr)
+                         : (name_sockethdlr_map_[name]->sock_path_.c_str());
 }
 
 ErrCode UnixSocketType::HandleRecordMsg(
@@ -280,8 +275,7 @@ ErrCode UnixSocketType::HandleDelCfgMsg(
   return ret;
 }
 
-ErrCode UnixSocketType::ProcessMsg(
-    const DestinationHandler::HandleMsg& msg) {
+ErrCode UnixSocketType::ProcessMsg(const DestinationHandler::HandleMsg& msg) {
   TRACE_ENTER();
   ErrCode ret = ErrCode::kOk;
   static bool cfgsent = false;

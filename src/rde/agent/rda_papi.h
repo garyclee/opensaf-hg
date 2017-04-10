@@ -37,7 +37,7 @@
 #include "base/ncsgl_defs.h"
 #include "amf/saf/saAmf.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -82,10 +82,7 @@ typedef enum {
   PCS_RDA_QUIESCING
 } PCS_RDA_ROLE;
 
-typedef enum {
-  PCS_RDA_ROLE_CHG_IND,
-  PCS_RDA_CB_TYPE_MAX
-} PCS_RDA_CB_TYPE;
+typedef enum { PCS_RDA_ROLE_CHG_IND, PCS_RDA_CB_TYPE_MAX } PCS_RDA_CB_TYPE;
 
 typedef struct {
   PCS_RDA_CB_TYPE cb_type;
@@ -124,17 +121,17 @@ PCSRDA_RETURN_CODE pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
 extern uint32_t rda_get_role(SaAmfHAStateT *ha_state);
 
 /**
-* Install callback that will be called when role/state of the controller
-* change
-* @param cb_handle passed to callback function
-* @param rda_cb_ptr callback function
-*
-* @return uint32_t NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-*/
+ * Install callback that will be called when role/state of the controller
+ * change
+ * @param cb_handle passed to callback function
+ * @param rda_cb_ptr callback function
+ *
+ * @return uint32_t NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ */
 extern uint32_t rda_register_callback(uint32_t cb_handle,
                                       PCS_RDA_CB_PTR rda_cb_ptr);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

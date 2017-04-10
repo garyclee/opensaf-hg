@@ -24,71 +24,74 @@ static const char *term_state_file = PKGPIDDIR "/osafimmnd_termstate";
 /****************************************************************************
  * Name          : immnd_saf_health_chk_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs to health for the component.
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Availability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Availability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
- *                 checkType      - The type of healthcheck to be executed. 
+ *                 checkType      - The type of healthcheck to be executed.
  *
  * Return Values : None
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
 static void immnd_saf_health_chk_callback(SaInvocationT invocation,
-					  const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
+					  const SaNameT *compName,
+					  SaAmfHealthcheckKeyT *checkType)
 {
 	TRACE_ENTER();
 
-	if (saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK) != SA_AIS_OK)
+	if (saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK) !=
+	    SA_AIS_OK)
 		LOG_ER("Amf Response Failed");
 }
 
 /****************************************************************************
  * Name          : immnd_amf_comp_terminate_callback
  *
- * Description   : This function SAF callback function which will be called 
+ * Description   : This function SAF callback function which will be called
  *                 when the AMF framework needs to terminate GLSV. This does
  *                 all required to destroy GLSV(except to unregister from AMF)
  *
- * Arguments     : invocation     - This parameter designated a particular 
+ * Arguments     : invocation     - This parameter designated a particular
  *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
+ *                                  invoke process return invocation when it
+ *                                  responds to the Avilability Management
+ *                                  FrameWork using the saAmfResponse()
  *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
+ *                 compName       - A pointer to the name of the component
+ *                                  whose readiness stae the Availability
  *                                  Management Framework is setting.
  *
  * Return Values : None
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-static void immnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
+static void immnd_amf_comp_terminate_callback(SaInvocationT invocation,
+					      const SaNameT *compName)
 {
 	TRACE_ENTER();
 	int fd;
-	
+
 	if (immnd_cb->pbePid > 0)
 		kill(immnd_cb->pbePid, SIGTERM);
 	if (immnd_cb->syncPid > 0)
 		kill(immnd_cb->syncPid, SIGTERM);
 
 	fd = open(term_state_file, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-	
-	if (fd >=0)
+
+	if (fd >= 0)
 		(void)close(fd);
 	else
-		LOG_NO("cannot create termstate file %s: %s",
-					term_state_file, strerror(errno));
+		LOG_NO("cannot create termstate file %s: %s", term_state_file,
+		       strerror(errno));
 
 	LOG_NO("Received AMF component terminate callback, exiting");
 	saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK);
@@ -103,10 +106,12 @@ static void immnd_amf_comp_terminate_callback(SaInvocationT invocation, const Sa
  * Description   : TBD
  *
  *
- * Return Values : None 
+ * Return Values : None
  *****************************************************************************/
 static void immnd_amf_csi_rmv_callback(SaInvocationT invocation,
-				       const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
+				       const SaNameT *compName,
+				       const SaNameT *csiName,
+				       SaAmfCSIFlagsT csiFlags)
 {
 	TRACE_ENTER();
 	saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK);
@@ -116,30 +121,31 @@ static void immnd_amf_csi_rmv_callback(SaInvocationT invocation,
 
 /****************************************************************************\
  PROCEDURE NAME : immnd_saf_csi_set_cb
- 
- DESCRIPTION    : This function SAF callback function which will be called 
-                  when there is any change in the HA state.
- 
- ARGUMENTS      : invocation     - This parameter designated a particular 
-                                  invocation of this callback function. The 
-                                  invoke process return invocation when it 
-                                  responds to the Avilability Management 
-                                  FrameWork using the saAmfResponse() 
-                                  function.
-                 compName       - A pointer to the name of the component 
-                                  whose readiness stae the Availability 
-                                  Management Framework is setting.
-                 haState        - The new HA state to be assumeb by the 
-                                  component service instance identified by 
-                                  csiName.
+
+ DESCRIPTION    : This function SAF callback function which will be called
+		  when there is any change in the HA state.
+
+ ARGUMENTS      : invocation     - This parameter designated a particular
+				  invocation of this callback function. The
+				  invoke process return invocation when it
+				  responds to the Avilability Management
+				  FrameWork using the saAmfResponse()
+				  function.
+		 compName       - A pointer to the name of the component
+				  whose readiness stae the Availability
+				  Management Framework is setting.
+		 haState        - The new HA state to be assumeb by the
+				  component service instance identified by
+				  csiName.
 \****************************************************************************/
 static void immnd_saf_csi_set_cb(SaInvocationT invocation,
-				 const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
+				 const SaNameT *compName, SaAmfHAStateT haState,
+				 SaAmfCSIDescriptorT csiDescriptor)
 {
 	SaAisErrorT saErr = SA_AIS_OK;
 
 	TRACE_ENTER();
-	immnd_cb->ha_state = haState;	/* Set the HA State */
+	immnd_cb->ha_state = haState; /* Set the HA State */
 	/*TODO: this ha_state is never accessed by any other part of immnd.
 	   Perhaps it should be? Perhaps we should wait in responding until
 	   we have synced? Perhaps we should check this state as being active
@@ -157,10 +163,10 @@ static void immnd_saf_csi_set_cb(SaInvocationT invocation,
  * Error handling: exits process at failure
  * @param __cb control block pointer
  */
-static void* amf_init_start(void *__cb)
+static void *amf_init_start(void *__cb)
 {
 	SaAisErrorT error;
-	IMMND_CB *cb = (IMMND_CB *) __cb;
+	IMMND_CB *cb = (IMMND_CB *)__cb;
 	const char *health_key;
 	SaAmfHealthcheckKeyT healthy;
 
@@ -178,19 +184,22 @@ static void* amf_init_start(void *__cb)
 
 	if (health_key == NULL) {
 		strncpy((char *)healthy.key, "A1B2", sizeof(healthy.key));
-		healthy.keyLen = (SaUint16T) strlen((char *)healthy.key);
+		healthy.keyLen = (SaUint16T)strlen((char *)healthy.key);
 	} else {
-		healthy.keyLen = (SaUint16T) strlen((char *)health_key);
+		healthy.keyLen = (SaUint16T)strlen((char *)health_key);
 		if (healthy.keyLen < sizeof(healthy.key)) {
-			strncpy((char *)healthy.key, health_key, sizeof(healthy.key));
+			strncpy((char *)healthy.key, health_key,
+				sizeof(healthy.key));
 		} else {
-			LOG_ER("Health check key too long:%u, exiting", healthy.keyLen);
+			LOG_ER("Health check key too long:%u, exiting",
+			       healthy.keyLen);
 			exit(1);
 		}
 	}
 
 	error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
-				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+				      SA_AMF_HEALTHCHECK_AMF_INVOKED,
+				      SA_AMF_COMPONENT_RESTART);
 	if (error != SA_AIS_OK) {
 		LOG_ER("saAmfHealthcheckStart failed: %u, exiting", error);
 		exit(1);
@@ -209,10 +218,8 @@ static void* amf_init_start(void *__cb)
  * Arguments     : immnd_cb - control block pointer.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *                 At SUCCESS the following control block members are initialized:
- *                    amf_hdl
- *                    comp_name
- *                    amf_sel_obj
+ *                 At SUCCESS the following control block members are
+ *initialized: amf_hdl comp_name amf_sel_obj
  *
  * Notes         : None.
  *****************************************************************************/
@@ -228,14 +235,15 @@ uint32_t immnd_amf_init(IMMND_CB *cb)
 	TRACE_ENTER();
 
 	if (cb->nid_started &&
-		(amf_comp_name_get_set_from_file("IMMND_COMP_NAME_FILE",
-			&cb->comp_name) != NCSCC_RC_SUCCESS))
+	    (amf_comp_name_get_set_from_file(
+		 "IMMND_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS))
 		goto done;
 
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 	amfCallbacks.saAmfHealthcheckCallback = immnd_saf_health_chk_callback;
 	amfCallbacks.saAmfCSISetCallback = immnd_saf_csi_set_cb;
-	amfCallbacks.saAmfComponentTerminateCallback = immnd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfComponentTerminateCallback =
+	    immnd_amf_comp_terminate_callback;
 	amfCallbacks.saAmfCSIRemoveCallback = immnd_amf_csi_rmv_callback;
 
 	m_IMMSV_GET_AMF_VER(version);
@@ -276,7 +284,7 @@ uint32_t immnd_amf_init(IMMND_CB *cb)
 
 	res = NCSCC_RC_SUCCESS;
 
- done:
+done:
 	TRACE_LEAVE2("%u, %s", res, osaf_extended_name_borrow(&cb->comp_name));
 	return (res);
 }

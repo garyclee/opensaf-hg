@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-void smfd_process_mbx(SYSF_MBX * mbx);
+void smfd_process_mbx(SYSF_MBX* mbx);
 
 #ifdef __cplusplus
 }

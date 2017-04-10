@@ -25,7 +25,7 @@
 TEST(OsafNanosleep, SleepTenMilliseconds) {
   time_t start_sec = 1234;
   long start_nsec = 5678;
-  monotonic_clock = { start_sec, start_nsec };
+  monotonic_clock = {start_sec, start_nsec};
   mock_clock_gettime.execution_time = kZeroSeconds;
   mock_clock_gettime.return_value = 0;
   current_nanosleep_index = 0;
@@ -64,7 +64,8 @@ TEST(OsafNanosleepDeathTest, FailWithEFAULT) {
   mock_clock_nanosleep[0].return_value = EFAULT;
 
   timespec sleep_duration = kOneSecond;
-  ASSERT_EXIT(osaf_nanosleep(&sleep_duration), ::testing::KilledBySignal(SIGABRT), "");
+  ASSERT_EXIT(osaf_nanosleep(&sleep_duration),
+              ::testing::KilledBySignal(SIGABRT), "");
 }
 
 TEST(OsafNanosleepDeathTest, FailWithEINVAL) {
@@ -74,5 +75,6 @@ TEST(OsafNanosleepDeathTest, FailWithEINVAL) {
   mock_clock_nanosleep[0].return_value = EINVAL;
 
   timespec sleep_duration = kOneSecond;
-  ASSERT_EXIT(osaf_nanosleep(&sleep_duration), ::testing::KilledBySignal(SIGABRT), "");
+  ASSERT_EXIT(osaf_nanosleep(&sleep_duration),
+              ::testing::KilledBySignal(SIGABRT), "");
 }

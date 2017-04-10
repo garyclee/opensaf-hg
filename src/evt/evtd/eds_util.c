@@ -16,32 +16,33 @@
  */
 
 /*****************************************************************************
-*                                                                            *
-*  MODULE NAME:  eds_util.c                                                  *
-*                                                                            *
-*                                                                            *
-*  DESCRIPTION:                                                              *
-*  This module contains utility routines used in the                         *
-*  NCS Event Distribution Service Server (EDS).                              *
-*                                                                            *
-*****************************************************************************/
+ *                                                                            *
+ *  MODULE NAME:  eds_util.c                                                  *
+ *                                                                            *
+ *                                                                            *
+ *  DESCRIPTION:                                                              *
+ *  This module contains utility routines used in the                         *
+ *  NCS Event Distribution Service Server (EDS).                              *
+ *                                                                            *
+ *****************************************************************************/
 #include "eds.h"
 
 /***************************************************************************
  *
  * eds_pattern_match() - Compare a patternArray with a filterArray
- * 
+ *
  * Returns true   If all pattern/filter compares succeed.
  *         false  On the first miss-match.
  *
  ***************************************************************************/
-bool eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
+bool eds_pattern_match(SaEvtEventPatternArrayT *patternArray,
+		       SaEvtEventFilterArrayT *filterArray)
 {
 	uint32_t x;
 	uint8_t *p = NULL;
 	SaEvtEventFilterT *filter;
 	SaEvtEventPatternT *pattern;
-	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
+	SaEvtEventPatternT emptyPattern = {0, 0, NULL};
 
 	if ((patternArray == NULL) || (filterArray == NULL))
 		return (false);
@@ -55,38 +56,53 @@ bool eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterAr
 	for (x = 1; x <= filterArray->filtersNumber; x++) {
 		switch (filter->filterType) {
 		case SA_EVT_PREFIX_FILTER:
-			/* if either filter or pattern alone is empty, then no match */
-			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
+			/* if either filter or pattern alone is empty, then no
+			 * match */
+			if ((pattern->patternSize == 0) &&
+			    (filter->filter.patternSize != 0))
 				return (false);
-			if (memcmp(filter->filter.pattern, pattern->pattern, (size_t)filter->filter.patternSize) != 0)
-				return (false);	/* No match */
+			if (memcmp(filter->filter.pattern, pattern->pattern,
+				   (size_t)filter->filter.patternSize) != 0)
+				return (false); /* No match */
 			break;
 
 		case SA_EVT_SUFFIX_FILTER:
-			/* if either filter or pattern alone is empty, then no match */
-			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
+			/* if either filter or pattern alone is empty, then no
+			 * match */
+			if ((pattern->patternSize == 0) &&
+			    (filter->filter.patternSize != 0))
 				return (false);
 
-			/* Pattern must be at least as long as filter for a match */
+			/* Pattern must be at least as long as filter for a
+			 * match */
 			if (pattern->patternSize < filter->filter.patternSize)
 				return (false);
 
-			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
+			if ((pattern->patternSize == 0) &&
+			    (filter->filter.patternSize != 0))
 				return (false);
 
 			/* Set p to offset into pattern */
-			p = pattern->pattern + ((int)pattern->patternSize - (int)filter->filter.patternSize);
-			if (memcmp(filter->filter.pattern, p, (size_t)filter->filter.patternSize) != 0)
+			p = pattern->pattern +
+			    ((int)pattern->patternSize -
+			     (int)filter->filter.patternSize);
+			if (memcmp(filter->filter.pattern, p,
+				   (size_t)filter->filter.patternSize) != 0)
 				return (false);
 			break;
 
 		case SA_EVT_EXACT_FILTER:
 			if ((pattern == NULL) && (filter != NULL))
-				return (false);	/* Fix. More filters than patterns case */
+				return (false); /* Fix. More filters than
+						   patterns case */
 
-			if (filter->filter.patternSize == pattern->patternSize) {
-				if (memcmp(filter->filter.pattern, pattern->pattern,
-					   (size_t)filter->filter.patternSize) != 0)
+			if (filter->filter.patternSize ==
+			    pattern->patternSize) {
+				if (memcmp(
+					filter->filter.pattern,
+					pattern->pattern,
+					(size_t)filter->filter.patternSize) !=
+				    0)
 					return (false);
 			} else
 				return false;
@@ -101,11 +117,12 @@ bool eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterAr
 
 		/*
 		 * Increment to next filter and pattern.
-		 * If more filters than patterns, set pattern to the empty pattern.
-		 * The remaining filters MUST match the empty pattern.
+		 * If more filters than patterns, set pattern to the empty
+		 * pattern. The remaining filters MUST match the empty pattern.
 		 *
-		 * If more patterns than filters, simply exit the loop assuming a match
-		 * for the remaining patterns (assume filter = SA_EVT_PASS_ALL_FILTER).
+		 * If more patterns than filters, simply exit the loop assuming
+		 * a match for the remaining patterns (assume filter =
+		 * SA_EVT_PASS_ALL_FILTER).
 		 */
 		filter++;
 
@@ -114,7 +131,7 @@ bool eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterAr
 		else
 			pattern = &emptyPattern;
 
-	}			/* End for */
+	} /* End for */
 
 	return (true);
 }
@@ -122,7 +139,7 @@ bool eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterAr
 /***************************************************************************
  *
  * eds_calc_filter_size() - Calculate the size in bytes of a filterArray.
- * 
+ *
  * Calculates the size in bytes of a filterArray by adding up the sizes
  * of the structures, then adding in the size of each individual pattern.
  *
@@ -137,7 +154,9 @@ uint32_t eds_calc_filter_size(SaEvtEventFilterArrayT *filterArray)
 		return (0);
 
 	/* First compute how much space is needed to hold the structures */
-	size = sizeof(SaEvtEventFilterArrayT) + ((uint32_t)filterArray->filtersNumber * sizeof(SaEvtEventFilterT));
+	size =
+	    sizeof(SaEvtEventFilterArrayT) +
+	    ((uint32_t)filterArray->filtersNumber * sizeof(SaEvtEventFilterT));
 
 	/*
 	 * Now add in the individual pattern data sizes.

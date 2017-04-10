@@ -27,12 +27,10 @@
 #define EXIT_IF_FALSE(expr) ntfsvtools_exitIfFalse(__FILE__, __LINE__, expr)
 
 int verbose;
-void ntfsv_tools_exitIfFalse(
-    const char *file,
-    unsigned int line, int expression);
+void ntfsv_tools_exitIfFalse(const char *file, unsigned int line,
+                             int expression);
 char *error_output(SaAisErrorT result);
-void saNtfNotificationCallback(
-    SaNtfSubscriptionIdT subscriptionId,
-    const SaNtfNotificationsT *notification);
+void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId,
+                               const SaNtfNotificationsT *notification);
 
 #endif  // NTF_TOOLS_NTFCONSUMER_H_

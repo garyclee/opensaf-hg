@@ -23,36 +23,37 @@
   DESCRIPTION:
 
   This file contains EDS timer interface routines.
- 
+
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
 
-  
+
 *******************************************************************************/
 #include "eds.h"
 
 /*****************************************************************************
   PROCEDURE NAME : eds_start_tmr
 
-  DESCRIPTION    : Starts the EDS timer. If the timer is already active, it 
-                   is restarted (ie. stopped & started without reallocating the 
-                   tmr block).
+  DESCRIPTION    : Starts the EDS timer. If the timer is already active, it
+		   is restarted (ie. stopped & started without reallocating the
+		   tmr block).
 
   ARGUMENTS      : cb     - ptr to the EDS control block
-                   tmr    - ptr to the EDS timer block
-                   type   - timer type
-                   period - timer period
-                   uarg   - opaque handle that is returned on timer expiry
+		   tmr    - ptr to the EDS timer block
+		   type   - timer type
+		   period - timer period
+		   uarg   - opaque handle that is returned on timer expiry
 
   RETURNS        : NCSCC_RC_SUCCESS - Success
-                   NCSCC_RC_FAILURE  - Failure
+		   NCSCC_RC_FAILURE  - Failure
 
   NOTES         : None
 *****************************************************************************/
-uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uint32_t uarg)
+uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type,
+		       SaTimeT period, uint32_t uarg)
 {
-	SaTimeT  tmr_period = (period / EDSV_NANOSEC_TO_LEAPTM);
+	SaTimeT tmr_period = (period / EDSV_NANOSEC_TO_LEAPTM);
 
 	if (EDS_TMR_MAX <= tmr->type) {
 		LOG_WA("Unsupported timer type");
@@ -62,7 +63,8 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
 
 	if (tmr->tmr_id == TMR_T_NULL) {
 		tmr->type = type;
-		m_NCS_TMR_CREATE(tmr->tmr_id, tmr_period, eds_tmr_exp, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, tmr_period, eds_tmr_exp,
+				 (void *)tmr);
 	}
 
 	if (tmr->is_active == true) {
@@ -77,7 +79,8 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
 	tmr->is_active = true;
 
 	if (TMR_T_NULL == tmr->tmr_id) {
-		LOG_NO("Timer start failed: type: %u, Id: %p, period: %lld", type, tmr->tmr_id, tmr_period);
+		LOG_NO("Timer start failed: type: %u, Id: %p, period: %lld",
+		       type, tmr->tmr_id, tmr_period);
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
@@ -92,7 +95,7 @@ uint32_t eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT peri
   DESCRIPTION    : Stops the EDS timer.
 
   ARGUMENTS      : tmr    - ptr to the EDS timer block
-               
+
   RETURNS        : void
 
   NOTES          : None
@@ -128,7 +131,7 @@ void eds_stop_tmr(EDS_TMR *tmr)
 /*****************************************************************************
   PROCEDURE NAME : eds_tmr_evt_map
   DESCRIPTION    : Maps a timer type to the corresponding EDS evt type.
-  ARGUMENTS      : tmr_type - timer type  
+  ARGUMENTS      : tmr_type - timer type
   RETURNS        : EDS event type
   NOTES          : None
 *****************************************************************************/
@@ -146,7 +149,7 @@ static EDSV_EDS_EVT_TYPE eds_tmr_evt_map(EDS_TMR_TYPE tmr_type)
   PROCEDURE NAME : eds_tmr_exp
 
   DESCRIPTION    : EDS timer expiry callback routine.It sends corresponding
-                   timer events to EDS.
+		   timer events to EDS.
 
   ARGUMENTS      : uarg - ptr to the EDS timer block
 
@@ -164,7 +167,8 @@ void eds_tmr_exp(void *uarg)
 	temp_tmr_hdl = tmr->cb_hdl;
 
 	/* retrieve EDS CB */
-	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, tmr->cb_hdl))) {
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS,
+						       tmr->cb_hdl))) {
 		LOG_ER("Global take handle failed");
 		return;
 	}
@@ -188,13 +192,13 @@ void eds_tmr_exp(void *uarg)
 
 			evt->cb_hdl = tmr->cb_hdl;
 
-			if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&eds_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH)) {
+			if (NCSCC_RC_FAILURE ==
+			    m_NCS_IPC_SEND(&eds_cb->mbx, evt,
+					   NCS_IPC_PRIORITY_HIGH)) {
 				LOG_ER("IPC send failed for timer event");
 				eds_evt_destroy(evt);
 			}
-
 		}
-
 	}
 
 	/* return EDS CB */

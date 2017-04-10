@@ -28,7 +28,7 @@
 
   FUNCTIONS INCLUDED in this module:
 
-  
+
 ******************************************************************************
 */
 #include "msg/common/mqsv.h"
@@ -36,44 +36,60 @@
 #include "msg/msgd/mqd.h"
 
 static uint32_t mqsv_edp_mqd_asapi_reg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					    NCSCONTEXT ptr,
+					    uint32_t *ptr_data_len,
+					    EDU_BUF_ENV *buf_env,
+					    EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_asapi_dereg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					      NCSCONTEXT ptr,
+					      uint32_t *ptr_data_len,
+					      EDU_BUF_ENV *buf_env,
+					      EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_asapi_que_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					     NCSCONTEXT ptr,
+					     uint32_t *ptr_data_len,
+					     EDU_BUF_ENV *buf_env,
+					     EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_asapi_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					      NCSCONTEXT ptr,
+					      uint32_t *ptr_data_len,
+					      EDU_BUF_ENV *buf_env,
+					      EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_a2s_user_evt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					    NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					       NCSCONTEXT ptr,
+					       uint32_t *ptr_data_len,
+					       EDU_BUF_ENV *buf_env,
+					       EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_a2s_nd_stat_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					      NCSCONTEXT ptr,
+					      uint32_t *ptr_data_len,
+					      EDU_BUF_ENV *buf_env,
+					      EDP_OP_TYPE op, EDU_ERR *o_err);
 
-static uint32_t mqsv_edp_mqd_a2s_nd_timer_exp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uint32_t *ptr_data_len,
-						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+static uint32_t mqsv_edp_mqd_a2s_nd_timer_exp_info(
+    EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len,
+    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+					EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_queue_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				      NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
+					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+					 EDU_ERR *o_err);
 
 static uint32_t mqsv_edp_mqd_qgroup_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+					  NCSCONTEXT ptr,
+					  uint32_t *ptr_data_len,
+					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+					  EDU_ERR *o_err);
 
 static int mqd_a2s_msg_test_type_fnc(NCSCONTEXT arg);
 static int mqd_a2s_que_info_test_type_func(NCSCONTEXT arg);
@@ -83,23 +99,22 @@ static int mqd_a2s_que_info_test_type_func(NCSCONTEXT arg);
   PROCEDURE NAME:   mqd_a2s_msg_test_type_fnc
 
   DESCRIPTION:      Test function, that gets invoked from the EDP
-                    function "mqsv_edp_mqd_a2s_msg".
+		    function "mqsv_edp_mqd_a2s_msg".
 
   RETURNS:          uns32, denoting the offset of the next-instruction
-                    to be executed(relative to the EDU_TEST instruction
-                    defined in the EDP "mqsv_edp_mqd_a2s_msg").
+		    to be executed(relative to the EDU_TEST instruction
+		    defined in the EDP "mqsv_edp_mqd_a2s_msg").
 
 *****************************************************************************/
 static int mqd_a2s_msg_test_type_fnc(NCSCONTEXT arg)
 {
-	enum {
-		LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_REG = 1,
-		LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_DEREG,
-		LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_TRACK,
-		LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_QINFO,
-		LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_USEREVT,
-		LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_ND_STATEVT,
-		LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_ND_TIMER_EXPEVT,
+	enum { LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_REG = 1,
+	       LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_DEREG,
+	       LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_TRACK,
+	       LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_QINFO,
+	       LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_USEREVT,
+	       LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_ND_STATEVT,
+	       LCL_TEST_JUMP_OFFSET_MQSV_MQD_A2S_MSG_ND_TIMER_EXPEVT,
 	};
 	MQD_A2S_MSG_TYPE type;
 
@@ -138,41 +153,40 @@ static int mqd_a2s_msg_test_type_fnc(NCSCONTEXT arg)
   PROCEDURE NAME:   mqsv_edp_mqd_a2s_msg
 
   DESCRIPTION:      EDU program handler for "MQD_A2S_MSG" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_A2S_MSG" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "MQD_A2S_MSG" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uint32_t mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-			   NCSCONTEXT ptr, uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+uint32_t mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+			      uint32_t *ptr_data_len, EDU_BUF_ENV *buf_env,
+			      EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_A2S_MSG *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_a2s_msg_rules[] = {
-		{EDU_START, mqsv_edp_mqd_a2s_msg, 0, 0, 0,
-		 sizeof(MQD_A2S_MSG), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_MSG *)0)->type, 0, NULL},
-		{EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_MSG *)0)->type, 0,
-		 mqd_a2s_msg_test_type_fnc},
-		{EDU_EXEC, mqsv_edp_mqd_asapi_reg_info, 0, 0, EDU_EXIT,
-		 (long)&((MQD_A2S_MSG *)0)->info.reg, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_asapi_dereg_info, 0, 0, EDU_EXIT,
-		 (long)&((MQD_A2S_MSG *)0)->info.dereg, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_track_info, 0, 0, EDU_EXIT,
-		 (long)&((MQD_A2S_MSG *)0)->info.track, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_a2s_queue_info, 0, 0, EDU_EXIT,
-		 (long)&((MQD_A2S_MSG *)0)->info.qinfo, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_a2s_user_evt_info, 0, 0, EDU_EXIT,
-		 (long)&((MQD_A2S_MSG *)0)->info.user_evt, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_a2s_nd_stat_info, 0, 0, EDU_EXIT,
-		 (long)&((MQD_A2S_MSG *)0)->info.nd_stat_evt, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_a2s_nd_timer_exp_info, 0, 0, EDU_EXIT,
-		 (long)&((MQD_A2S_MSG *)0)->info.nd_tmr_exp_evt, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_a2s_msg, 0, 0, 0, sizeof(MQD_A2S_MSG), 0,
+	     NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((MQD_A2S_MSG *)0)->type,
+	     0, NULL},
+	    {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((MQD_A2S_MSG *)0)->type,
+	     0, mqd_a2s_msg_test_type_fnc},
+	    {EDU_EXEC, mqsv_edp_mqd_asapi_reg_info, 0, 0, EDU_EXIT,
+	     (long)&((MQD_A2S_MSG *)0)->info.reg, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_asapi_dereg_info, 0, 0, EDU_EXIT,
+	     (long)&((MQD_A2S_MSG *)0)->info.dereg, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_track_info, 0, 0, EDU_EXIT,
+	     (long)&((MQD_A2S_MSG *)0)->info.track, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_a2s_queue_info, 0, 0, EDU_EXIT,
+	     (long)&((MQD_A2S_MSG *)0)->info.qinfo, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_a2s_user_evt_info, 0, 0, EDU_EXIT,
+	     (long)&((MQD_A2S_MSG *)0)->info.user_evt, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_a2s_nd_stat_info, 0, 0, EDU_EXIT,
+	     (long)&((MQD_A2S_MSG *)0)->info.nd_stat_evt, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_a2s_nd_timer_exp_info, 0, 0, EDU_EXIT,
+	     (long)&((MQD_A2S_MSG *)0)->info.nd_tmr_exp_evt, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_A2S_MSG *)ptr;
@@ -190,8 +204,8 @@ uint32_t mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_a2s_msg_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_a2s_msg_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -200,31 +214,32 @@ uint32_t mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_asapi_reg_info
 
   DESCRIPTION:      EDU program handler for "ASAPi_REG_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "ASAPi_REG_INFO" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "ASAPi_REG_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_asapi_reg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					    NCSCONTEXT ptr,
+					    uint32_t *ptr_data_len,
+					    EDU_BUF_ENV *buf_env,
+					    EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_REG_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_asapi_reg_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_asapi_reg_info, 0, 0, 0,
-		 sizeof(ASAPi_REG_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((ASAPi_REG_INFO *)0)->objtype, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_asapi_que_param, 0, 0, 0,
-		 (long)&((ASAPi_REG_INFO *)0)->queue, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((ASAPi_REG_INFO *)0)->group, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((ASAPi_REG_INFO *)0)->policy, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_asapi_reg_info, 0, 0, 0,
+	     sizeof(ASAPi_REG_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ASAPi_REG_INFO *)0)->objtype, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_asapi_que_param, 0, 0, 0,
+	     (long)&((ASAPi_REG_INFO *)0)->queue, 0, NULL},
+	    {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+	     (long)&((ASAPi_REG_INFO *)0)->group, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ASAPi_REG_INFO *)0)->policy, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (ASAPi_REG_INFO *)ptr;
@@ -242,8 +257,9 @@ static uint32_t mqsv_edp_mqd_asapi_reg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_asapi_reg_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc =
+	    m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_asapi_reg_info_rules,
+				struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -252,41 +268,43 @@ static uint32_t mqsv_edp_mqd_asapi_reg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_asapi_que_param
 
   DESCRIPTION:      EDU program handler for "ASAPi_QUEUE_PARAM" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "ASAPi_QUEUE_PARAM" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "ASAPi_QUEUE_PARAM" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_asapi_que_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					  NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					     NCSCONTEXT ptr,
+					     uint32_t *ptr_data_len,
+					     EDU_BUF_ENV *buf_env,
+					     EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_QUEUE_PARAM *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_asapi_queue_param_rules[] = {
-		{EDU_START, mqsv_edp_mqd_asapi_que_param, 0, 0, 0,
-		 sizeof(ASAPi_QUEUE_PARAM), 0, NULL},
-		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->addr, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->retentionTime, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->name, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->status, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->owner, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->is_mqnd_down, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->creationFlags, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns64, EDQ_ARRAY, 0, 0,
-		 (long)&((ASAPi_QUEUE_PARAM *)0)->size, SA_MSG_MESSAGE_LOWEST_PRIORITY + 1, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_asapi_que_param, 0, 0, 0,
+	     sizeof(ASAPi_QUEUE_PARAM), 0, NULL},
+	    {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->addr, 0, NULL},
+	    {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->retentionTime, 0, NULL},
+	    {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->name, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->status, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->hdl, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->owner, 0, NULL},
+	    {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->is_mqnd_down, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->creationFlags, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns64, EDQ_ARRAY, 0, 0,
+	     (long)&((ASAPi_QUEUE_PARAM *)0)->size,
+	     SA_MSG_MESSAGE_LOWEST_PRIORITY + 1, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (ASAPi_QUEUE_PARAM *)ptr;
@@ -304,8 +322,9 @@ static uint32_t mqsv_edp_mqd_asapi_que_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_asapi_queue_param_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn,
+				 mqsv_edp_mqd_asapi_queue_param_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -314,29 +333,30 @@ static uint32_t mqsv_edp_mqd_asapi_que_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_asapi_dereg_info
 
   DESCRIPTION:      EDU program handler for "ASAPi_DEREG_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "ASAPi_DEREG_INFO" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "ASAPi_DEREG_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_asapi_dereg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					      NCSCONTEXT ptr,
+					      uint32_t *ptr_data_len,
+					      EDU_BUF_ENV *buf_env,
+					      EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_DEREG_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_asapi_dereg_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_asapi_dereg_info, 0, 0, 0,
-		 sizeof(ASAPi_DEREG_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((ASAPi_DEREG_INFO *)0)->objtype, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((ASAPi_DEREG_INFO *)0)->group, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((ASAPi_DEREG_INFO *)0)->queue, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_asapi_dereg_info, 0, 0, 0,
+	     sizeof(ASAPi_DEREG_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((ASAPi_DEREG_INFO *)0)->objtype, 0, NULL},
+	    {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+	     (long)&((ASAPi_DEREG_INFO *)0)->group, 0, NULL},
+	    {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+	     (long)&((ASAPi_DEREG_INFO *)0)->queue, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (ASAPi_DEREG_INFO *)ptr;
@@ -354,8 +374,9 @@ static uint32_t mqsv_edp_mqd_asapi_dereg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_asapi_dereg_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn,
+				 mqsv_edp_mqd_asapi_dereg_info_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -364,27 +385,28 @@ static uint32_t mqsv_edp_mqd_asapi_dereg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_asapi_track_info
 
   DESCRIPTION:      EDU program handler for "ASAPi_TRACK_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "ASAPi_TRACK_INFO" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "ASAPi_TRACK_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_asapi_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					      NCSCONTEXT ptr,
+					      uint32_t *ptr_data_len,
+					      EDU_BUF_ENV *buf_env,
+					      EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	ASAPi_TRACK_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_asapi_track_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_asapi_track_info, 0, 0, 0,
-		 sizeof(ASAPi_TRACK_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((ASAPi_TRACK_INFO *)0)->object, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
-		 (long)&((ASAPi_TRACK_INFO *)0)->val, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_asapi_track_info, 0, 0, 0,
+	     sizeof(ASAPi_TRACK_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+	     (long)&((ASAPi_TRACK_INFO *)0)->object, 0, NULL},
+	    {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
+	     (long)&((ASAPi_TRACK_INFO *)0)->val, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (ASAPi_TRACK_INFO *)ptr;
@@ -402,8 +424,9 @@ static uint32_t mqsv_edp_mqd_asapi_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_asapi_track_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn,
+				 mqsv_edp_mqd_asapi_track_info_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -412,25 +435,26 @@ static uint32_t mqsv_edp_mqd_asapi_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_a2s_user_evt_info
 
   DESCRIPTION:      EDU program handler for "MQD_A2S_USER_EVENT_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_A2S_USER_EVENT_INFO" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "MQD_A2S_USER_EVENT_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_a2s_user_evt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					    NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					       NCSCONTEXT ptr,
+					       uint32_t *ptr_data_len,
+					       EDU_BUF_ENV *buf_env,
+					       EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_A2S_USER_EVENT_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_a2s_user_evt_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_a2s_user_evt_info, 0, 0, 0,
-		 sizeof(MQD_A2S_USER_EVENT_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-		 (long)&((MQD_A2S_USER_EVENT_INFO *)0)->dest, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_a2s_user_evt_info, 0, 0, 0,
+	     sizeof(MQD_A2S_USER_EVENT_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
+	     (long)&((MQD_A2S_USER_EVENT_INFO *)0)->dest, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_A2S_USER_EVENT_INFO *)ptr;
@@ -448,8 +472,9 @@ static uint32_t mqsv_edp_mqd_a2s_user_evt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_a2s_user_evt_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn,
+				 mqsv_edp_mqd_a2s_user_evt_info_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -458,29 +483,30 @@ static uint32_t mqsv_edp_mqd_a2s_user_evt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_a2s_nd_stat_info
 
   DESCRIPTION:      EDU program handler for "MQD_A2S_ND_STAT_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_A2S_ND_STAT_INFO" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "MQD_A2S_ND_STAT_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_a2s_nd_stat_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					   NCSCONTEXT ptr, uint32_t *ptr_data_len,
-					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					      NCSCONTEXT ptr,
+					      uint32_t *ptr_data_len,
+					      EDU_BUF_ENV *buf_env,
+					      EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_A2S_ND_STAT_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_a2s_nd_stat_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_a2s_nd_stat_info, 0, 0, 0,
-		 sizeof(MQD_A2S_ND_STAT_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_ND_STAT_INFO *)0)->nodeid, 0, NULL},
-		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
-		 (long)&((MQD_A2S_ND_STAT_INFO *)0)->is_restarting, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-		 (long)&((MQD_A2S_ND_STAT_INFO *)0)->downtime, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_a2s_nd_stat_info, 0, 0, 0,
+	     sizeof(MQD_A2S_ND_STAT_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_A2S_ND_STAT_INFO *)0)->nodeid, 0, NULL},
+	    {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
+	     (long)&((MQD_A2S_ND_STAT_INFO *)0)->is_restarting, 0, NULL},
+	    {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
+	     (long)&((MQD_A2S_ND_STAT_INFO *)0)->downtime, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_A2S_ND_STAT_INFO *)ptr;
@@ -498,8 +524,9 @@ static uint32_t mqsv_edp_mqd_a2s_nd_stat_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_a2s_nd_stat_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn,
+				 mqsv_edp_mqd_a2s_nd_stat_info_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -507,26 +534,25 @@ static uint32_t mqsv_edp_mqd_a2s_nd_stat_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
   PROCEDURE NAME:   mqsv_edp_mqd_a2s_nd_timer_exp_info
 
-  DESCRIPTION:      EDU program handler for "MQD_A2S_ND_TIMER_EXP_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_A2S_ND_TIMER_EXP_INFO" data.
+  DESCRIPTION:      EDU program handler for "MQD_A2S_ND_TIMER_EXP_INFO" data.
+This function is invoked by EDU for performing encode/decode operation on
+"MQD_A2S_ND_TIMER_EXP_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-static uint32_t mqsv_edp_mqd_a2s_nd_timer_exp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uint32_t *ptr_data_len,
-						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+static uint32_t mqsv_edp_mqd_a2s_nd_timer_exp_info(
+    EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr, uint32_t *ptr_data_len,
+    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_A2S_ND_TIMER_EXP_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_a2s_nd_timer_exp_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_a2s_nd_timer_exp_info, 0, 0, 0,
-		 sizeof(MQD_A2S_ND_TIMER_EXP_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_ND_TIMER_EXP_INFO *)0)->nodeid, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_a2s_nd_timer_exp_info, 0, 0, 0,
+	     sizeof(MQD_A2S_ND_TIMER_EXP_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_A2S_ND_TIMER_EXP_INFO *)0)->nodeid, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_A2S_ND_TIMER_EXP_INFO *)ptr;
@@ -544,8 +570,9 @@ static uint32_t mqsv_edp_mqd_a2s_nd_timer_exp_info(EDU_HDL *hdl, EDU_TKN *edu_tk
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_a2s_nd_timer_exp_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn,
+				 mqsv_edp_mqd_a2s_nd_timer_exp_info_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -554,44 +581,48 @@ static uint32_t mqsv_edp_mqd_a2s_nd_timer_exp_info(EDU_HDL *hdl, EDU_TKN *edu_tk
   PROCEDURE NAME:   mqsv_edp_mqd_a2s_queue_info
 
   DESCRIPTION:      EDU program handler for "MQD_A2S_QUEUE_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_A2S_QUEUE_INFO" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "MQD_A2S_QUEUE_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 uint32_t mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				  NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
+				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+				     EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_A2S_QUEUE_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_a2s_queue_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_a2s_queue_info, 0, 0, 0,
-		 sizeof(MQD_A2S_QUEUE_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->name, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->type, 0, NULL},
-		{EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->type, 0,
-		 mqd_a2s_que_info_test_type_func},
-		{EDU_EXEC, mqsv_edp_mqd_queue_param, 0, 0, 6,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->info.q, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_qgroup_param, 0, 0, 6,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->info.qgrp, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->ilist_cnt, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_old, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->ilist_info, (long)&((MQD_A2S_QUEUE_INFO *)0)->ilist_cnt, NULL},
-		{EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */ , NULL, 0, 0 /* Sub-ID */ , 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->track_cnt, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_track_info, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-		 (long)&((MQD_A2S_QUEUE_INFO *)0)->track_info, (long)&((MQD_A2S_QUEUE_INFO *)0)->track_cnt, NULL},
-		{EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */ , NULL, 0, 0 /* Sub-ID */ , 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_a2s_queue_info, 0, 0, 0,
+	     sizeof(MQD_A2S_QUEUE_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->name, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->type, 0, NULL},
+	    {EDU_TEST, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->type, 0,
+	     mqd_a2s_que_info_test_type_func},
+	    {EDU_EXEC, mqsv_edp_mqd_queue_param, 0, 0, 6,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->info.q, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_qgroup_param, 0, 0, 6,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->info.qgrp, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->ilist_cnt, 0, NULL},
+	    {EDU_EXEC, ncs_edp_sanamet_old, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->ilist_info,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->ilist_cnt, NULL},
+	    {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0,
+	     0 /* Sub-ID */, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->track_cnt, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_track_info, EDQ_VAR_LEN_DATA, ncs_edp_uns32,
+	     0, (long)&((MQD_A2S_QUEUE_INFO *)0)->track_info,
+	     (long)&((MQD_A2S_QUEUE_INFO *)0)->track_cnt, NULL},
+	    {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0,
+	     0 /* Sub-ID */, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_A2S_QUEUE_INFO *)ptr;
@@ -609,8 +640,9 @@ uint32_t mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_a2s_queue_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc =
+	    m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_a2s_queue_info_rules,
+				struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -619,41 +651,42 @@ uint32_t mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_queue_param
 
   DESCRIPTION:      EDU program handler for "MQD_QUEUE_PARAM" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_QUEUE_PARAM" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "MQD_QUEUE_PARAM" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_queue_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				      NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					 NCSCONTEXT ptr, uint32_t *ptr_data_len,
+					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+					 EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_QUEUE_PARAM *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_queue_param_rules[] = {
-		{EDU_START, mqsv_edp_mqd_queue_param, 0, 0, 0,
-		 sizeof(MQD_QUEUE_PARAM), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->send_state, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->retentionTime, 0, NULL},
-		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->dest, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->owner, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->hdl, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->adv, 0, NULL},
-		{EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->is_mqnd_down, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->creationFlags, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns64, EDQ_ARRAY, 0, 0,
-		 (long)&((MQD_QUEUE_PARAM *)0)->size, SA_MSG_MESSAGE_LOWEST_PRIORITY + 1, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_queue_param, 0, 0, 0,
+	     sizeof(MQD_QUEUE_PARAM), 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->send_state, 0, NULL},
+	    {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->retentionTime, 0, NULL},
+	    {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->dest, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->owner, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->hdl, 0, NULL},
+	    {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->adv, 0, NULL},
+	    {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->is_mqnd_down, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->creationFlags, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns64, EDQ_ARRAY, 0, 0,
+	     (long)&((MQD_QUEUE_PARAM *)0)->size,
+	     SA_MSG_MESSAGE_LOWEST_PRIORITY + 1, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_QUEUE_PARAM *)ptr;
@@ -671,8 +704,8 @@ static uint32_t mqsv_edp_mqd_queue_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_queue_param_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_queue_param_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -681,25 +714,26 @@ static uint32_t mqsv_edp_mqd_queue_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqsv_edp_mqd_qgroup_param
 
   DESCRIPTION:      EDU program handler for "MQD_QGROUP_PARAM" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_QGROUP_PARAM" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "MQD_QGROUP_PARAM" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_qgroup_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				       NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					  NCSCONTEXT ptr,
+					  uint32_t *ptr_data_len,
+					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+					  EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_QGROUP_PARAM *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_qgroup_param_rules[] = {
-		{EDU_START, mqsv_edp_mqd_qgroup_param, 0, 0, 0,
-		 sizeof(MQD_QGROUP_PARAM), 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_QGROUP_PARAM *)0)->policy, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_qgroup_param, 0, 0, 0,
+	     sizeof(MQD_QGROUP_PARAM), 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_QGROUP_PARAM *)0)->policy, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_QGROUP_PARAM *)ptr;
@@ -717,8 +751,8 @@ static uint32_t mqsv_edp_mqd_qgroup_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_qgroup_param_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_qgroup_param_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }
 
@@ -727,19 +761,17 @@ static uint32_t mqsv_edp_mqd_qgroup_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   PROCEDURE NAME:   mqd_a2s_que_info_test_type_func
 
   DESCRIPTION:      Test function, that gets invoked from the EDP
-                    function "mqsv_edp_mqd_a2s_queue_info".
+		    function "mqsv_edp_mqd_a2s_queue_info".
 
   RETURNS:          uns32, denoting the offset of the next-instruction
-                    to be executed(relative to the EDU_TEST instruction
-                    defined in the EDP "mqsv_edp_mqd_a2s_queue_info").
+		    to be executed(relative to the EDU_TEST instruction
+		    defined in the EDP "mqsv_edp_mqd_a2s_queue_info").
 
 *****************************************************************************/
 static int mqd_a2s_que_info_test_type_func(NCSCONTEXT arg)
 {
-	enum {
-		LCL_TEST_JUMP_OFFSET_MQSV_OBJ_QUEUE = 1,
-		LCL_TEST_JUMP_OFFSET_MQSV_OBJ_QGROUP
-	};
+	enum { LCL_TEST_JUMP_OFFSET_MQSV_OBJ_QUEUE = 1,
+	       LCL_TEST_JUMP_OFFSET_MQSV_OBJ_QGROUP };
 	MQSV_OBJ_TYPE type;
 
 	if (arg == NULL) {
@@ -767,29 +799,29 @@ static int mqd_a2s_que_info_test_type_func(NCSCONTEXT arg)
   PROCEDURE NAME:   mqsv_edp_mqd_track_info
 
   DESCRIPTION:      EDU program handler for "MQD_A2S_TRACK_INFO" data. This
-                    function is invoked by EDU for performing encode/decode
-                    operation on "MQD_A2S_TRACK_INFO" data.
+		    function is invoked by EDU for performing encode/decode
+		    operation on "MQD_A2S_TRACK_INFO" data.
 
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
 static uint32_t mqsv_edp_mqd_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uint32_t *ptr_data_len,
-				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
+					NCSCONTEXT ptr, uint32_t *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+					EDU_ERR *o_err)
 {
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	MQD_A2S_TRACK_INFO *struct_ptr = NULL, **d_ptr = NULL;
 	EDU_INST_SET mqsv_edp_mqd_track_info_rules[] = {
-		{EDU_START, mqsv_edp_mqd_track_info, 0, 0, 0,
-		 sizeof(MQD_A2S_TRACK_INFO), 0, NULL},
-		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-		 (long)&((MQD_A2S_TRACK_INFO *)0)->dest, 0, NULL},
-		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-		 (long)&((MQD_A2S_TRACK_INFO *)0)->to_svc, 0, NULL},
-		{EDU_EXEC, mqsv_edp_mqd_asapi_track_info, 0, 0, 0,
-		 (long)&((MQD_A2S_TRACK_INFO *)0)->track, 0, NULL},
-		{EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-	};
+	    {EDU_START, mqsv_edp_mqd_track_info, 0, 0, 0,
+	     sizeof(MQD_A2S_TRACK_INFO), 0, NULL},
+	    {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
+	     (long)&((MQD_A2S_TRACK_INFO *)0)->dest, 0, NULL},
+	    {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+	     (long)&((MQD_A2S_TRACK_INFO *)0)->to_svc, 0, NULL},
+	    {EDU_EXEC, mqsv_edp_mqd_asapi_track_info, 0, 0, 0,
+	     (long)&((MQD_A2S_TRACK_INFO *)0)->track, 0, NULL},
+	    {EDU_END, 0, 0, 0, 0, 0, 0, NULL}};
 
 	if (op == EDP_OP_TYPE_ENC) {
 		struct_ptr = (MQD_A2S_TRACK_INFO *)ptr;
@@ -807,7 +839,7 @@ static uint32_t mqsv_edp_mqd_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else {
 		struct_ptr = ptr;
 	}
-	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_track_info_rules, struct_ptr,
-				 ptr_data_len, buf_env, op, o_err);
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, mqsv_edp_mqd_track_info_rules,
+				 struct_ptr, ptr_data_len, buf_env, op, o_err);
 	return rc;
 }

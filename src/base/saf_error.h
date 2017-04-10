@@ -20,13 +20,13 @@
 
 #include "osaf/saf/saAis.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 extern const char *saf_error(SaAisErrorT error);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 #endif  // BASE_SAF_ERROR_H_

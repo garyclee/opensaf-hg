@@ -30,7 +30,7 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg);
  * Name          : mqnd_cleanup_timer_expiry
  *
  * Description   : This function which is registered with the OS tmr function,
- *                 which will post a message to the corresponding mailbox 
+ *                 which will post a message to the corresponding mailbox
  *                 depending on the component type.
  *
  *****************************************************************************/
@@ -56,8 +56,8 @@ static void mqnd_timer_expiry(NCSCONTEXT uarg)
 		}
 
 		/* post a message to the corresponding component */
-		if ((cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, mqnd_hdl))
-		    != NULL) {
+		if ((cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND,
+						    mqnd_hdl)) != NULL) {
 			if (cb->mqa_timer.type == MQND_TMR_TYPE_MQA_EXPIRY) {
 				LOG_ER("The MQA timer expired");
 			}
@@ -93,11 +93,13 @@ uint32_t mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration)
 {
 	TRACE_1("Timer Started");
 	if (tmr->tmr_id == TMR_T_NULL) {
-		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, duration, mqnd_timer_expiry,
+				 (void *)tmr);
 	}
 
 	if (tmr->is_active == false) {
-		m_NCS_TMR_START(tmr->tmr_id, duration, mqnd_timer_expiry, (void *)tmr);
+		m_NCS_TMR_START(tmr->tmr_id, duration, mqnd_timer_expiry,
+				(void *)tmr);
 		tmr->is_active = true;
 	}
 

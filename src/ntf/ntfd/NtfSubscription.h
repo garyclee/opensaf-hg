@@ -28,8 +28,7 @@
 
 class NtfClient;
 
-class NtfSubscription{
-
+class NtfSubscription {
  public:
   NtfSubscription(ntfsv_subscribe_req_t* s);
   virtual ~NtfSubscription();
@@ -38,18 +37,18 @@ class NtfSubscription{
   SaNtfSubscriptionIdT getSubscriptionId() const;
   ntfsv_subscribe_req_t* getSubscriptionInfo();
   void printInfo();
-  void sendNotification(NtfSmartPtr& notification, NtfClient *client);
+  void sendNotification(NtfSmartPtr& notification, NtfClient* client);
   void discardedAdd(SaNtfIdentifierT n_id);
   void discardedClear();
   unsigned int discardedListSize();
-  void syncRequest(NCS_UBAID *uba);
+  void syncRequest(NCS_UBAID* uba);
+
  private:
   FilterMap filterMap;
   SaNtfSubscriptionIdT subscriptionId_;
   ntfsv_subscribe_req_t s_info_;
   typedef std::list<SaNtfIdentifierT> DiscardedNotificationIdList;
   DiscardedNotificationIdList discardedNotificationIdList;
-
 };
 
 #endif  // NTF_NTFD_NTFSUBSCRIPTION_H_

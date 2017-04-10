@@ -35,4 +35,3 @@ void saLogStreamClose_01(void)
 done:
 	logFinalize();
 }
-

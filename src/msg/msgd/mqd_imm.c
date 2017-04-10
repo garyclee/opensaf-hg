@@ -1,7 +1,7 @@
 /*      -*- OpenSAF  -*-
  *
  * (C) Copyright 2008 The OpenSAF Foundation
- *      
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
@@ -20,41 +20,37 @@
 extern struct ImmutilWrapperProfile immutilWrapperProfile;
 #define QUEUE_MEMS 100
 
-SaImmOiCallbacksT_2 oi_cbks = {
-	.saImmOiAdminOperationCallback = NULL,
-	.saImmOiCcbAbortCallback = NULL,
-	.saImmOiCcbApplyCallback = NULL,
-	.saImmOiCcbCompletedCallback = NULL,
-	.saImmOiCcbObjectCreateCallback = NULL,
-	.saImmOiCcbObjectDeleteCallback = NULL,
-	.saImmOiCcbObjectModifyCallback = NULL,
-	.saImmOiRtAttrUpdateCallback = NULL
-};
+SaImmOiCallbacksT_2 oi_cbks = {.saImmOiAdminOperationCallback = NULL,
+			       .saImmOiCcbAbortCallback = NULL,
+			       .saImmOiCcbApplyCallback = NULL,
+			       .saImmOiCcbCompletedCallback = NULL,
+			       .saImmOiCcbObjectCreateCallback = NULL,
+			       .saImmOiCcbObjectDeleteCallback = NULL,
+			       .saImmOiCcbObjectModifyCallback = NULL,
+			       .saImmOiRtAttrUpdateCallback = NULL};
 
 /* IMMSv Defs */
 #define MQD_IMM_RELEASE_CODE 'A'
 #define MQD_IMM_MAJOR_VERSION 0x02
 #define MQD_IMM_MINOR_VERSION 0x01
 
-static SaVersionT imm_version = {
-	MQD_IMM_RELEASE_CODE,
-	MQD_IMM_MAJOR_VERSION,
-	MQD_IMM_MINOR_VERSION
-};
+static SaVersionT imm_version = {MQD_IMM_RELEASE_CODE, MQD_IMM_MAJOR_VERSION,
+				 MQD_IMM_MINOR_VERSION};
 
 /****************************************************************************
- * Name          : mqd_create_runtime_MqGrpObj 
+ * Name          : mqd_create_runtime_MqGrpObj
  *
- * Description   : This function is invoked to create a runtime MqGrpObj object  
+ * Description   : This function is invoked to create a runtime MqGrpObj object
  *
- * Arguments     : MQD_OBJ_NODE *pNode        - MQD Object Node  
+ * Arguments     : MQD_OBJ_NODE *pNode        - MQD Object Node
  *                 immOiHandle                - IMM handle
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
-SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immOiHandle)
+SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode,
+					SaImmOiHandleT immOiHandle)
 {
 	SaNameT names, parent, *parentName = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -62,7 +58,8 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 	char *parent_name = strchr((char *)pNode->oinfo.name.value, ',');
 	char *rdnstr;
 	SaImmAttrValueT arr1[1], arr2[1], arr3[1], arr4[1];
-	SaImmAttrValuesT_2 attr_mqGrp, attr_mqGrpPol, attr_mqGrpNumQs, attr_mqGrpMemName;
+	SaImmAttrValuesT_2 attr_mqGrp, attr_mqGrpPol, attr_mqGrpNumQs,
+	    attr_mqGrpMemName;
 	const SaImmAttrValuesT_2 *attrValues[5];
 	SaUint32T numMem = pNode->oinfo.ilist.count;
 	TRACE_ENTER2("Queue name %p", pNode->oinfo.name.value);
@@ -71,7 +68,8 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 		rdnstr = strtok(dndup, ",");
 		parent_name++;
 		parentName = &parent;
-		strncpy((char *)parent.value, parent_name, SA_MAX_NAME_LENGTH-1);
+		strncpy((char *)parent.value, parent_name,
+			SA_MAX_NAME_LENGTH - 1);
 		parent.length = strlen((char *)parent.value);
 	} else {
 		rdnstr = (char *)pNode->oinfo.name.value;
@@ -80,7 +78,7 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 	if (rdnstr)
 		arr1[0] = &rdnstr;
 	else {
-		LOG_ER("ERR_FAILED_OPERATION: Queue name is NULL"); 
+		LOG_ER("ERR_FAILED_OPERATION: Queue name is NULL");
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
@@ -116,7 +114,8 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 	attrValues[3] = &attr_mqGrpMemName;
 	attrValues[4] = NULL;
 
-	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaMsgQueueGroup", parentName, attrValues);
+	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaMsgQueueGroup",
+					     parentName, attrValues);
 	if (rc != SA_AIS_OK)
 		LOG_ER("immutil_saImmOiRtObjectCreate_2 Failed: %u", rc);
 
@@ -128,15 +127,15 @@ SaAisErrorT mqd_create_runtime_MqGrpObj(MQD_OBJ_NODE *pNode, SaImmOiHandleT immO
 }
 
 /****************************************************************************
- * Name          : mqd_runtime_update_grpmembers_attr 
- *              
- * Description   : This function is called to Update the runtime object   
- *              
- * Arguments     : MQD_CB *pMqd               - MQD Control Block pointer 
- *		   MQD_OBJ_NODE *pObjNode     - MQD Object Node  
+ * Name          : mqd_runtime_update_grpmembers_attr
  *
- * Return Values : SaAisErrorT 
- *      
+ * Description   : This function is called to Update the runtime object
+ *
+ * Arguments     : MQD_CB *pMqd               - MQD Control Block pointer
+ *		   MQD_OBJ_NODE *pObjNode     - MQD Object Node
+ *
+ * Return Values : SaAisErrorT
+ *
  * Notes         : None.
  *****************************************************************************/
 void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
@@ -154,7 +153,8 @@ void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
 
 	while (Queue != NCS_QELEM_NULL) {
 		MQD_OBJECT_ELEM *ptr = (MQD_OBJECT_ELEM *)Queue;
-		memcpy(&name[i].value, ptr->pObject->name.value, ptr->pObject->name.length);
+		memcpy(&name[i].value, ptr->pObject->name.value,
+		       ptr->pObject->name.length);
 		name[i].length = ptr->pObject->name.length;
 		attr1[i] = &name[i];
 		Queue = Queue->next;
@@ -169,20 +169,21 @@ void mqd_runtime_update_grpmembers_attr(MQD_CB *pMqd, MQD_OBJ_NODE *pObjNode)
 	attrMods[attrCnt] = &attr_output[attrCnt];
 	++attrCnt;
 	attrMods[attrCnt] = NULL;
-	error = saImmOiRtObjectUpdate_2(pMqd->immOiHandle, &pObjNode->oinfo.name, attrMods);
+	error = saImmOiRtObjectUpdate_2(pMqd->immOiHandle,
+					&pObjNode->oinfo.name, attrMods);
 
 	if (error != SA_AIS_OK)
 		LOG_ER("saImmOiRtObjectUpdate_2 Failed: %u", error);
 }
 
 /****************************************************************************
- * Name          : mqd_imm_initialize 
+ * Name          : mqd_imm_initialize
  *
- * Description   : Initialize the OI and get selection object  
+ * Description   : Initialize the OI and get selection object
  *
- * Arguments     : MQD_CB *cb - MQD Control block pointer           
+ * Arguments     : MQD_CB *cb - MQD Control block pointer
  *
- * Return Values : SaAisErrorT 
+ * Return Values : SaAisErrorT
  *
  * Notes         : None.
  *****************************************************************************/
@@ -191,11 +192,13 @@ SaAisErrorT mqd_imm_initialize(MQD_CB *cb)
 {
 	SaAisErrorT rc;
 	immutilWrapperProfile.errorsAreFatal = 0;
-	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks, &imm_version);
+	rc = immutil_saImmOiInitialize_2(&cb->immOiHandle, &oi_cbks,
+					 &imm_version);
 	if (rc == SA_AIS_OK) {
-		immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj);
+		immutil_saImmOiSelectionObjectGet(cb->immOiHandle,
+						  &cb->imm_sel_obj);
 	}
-	if(rc != SA_AIS_OK)
+	if (rc != SA_AIS_OK)
 		LOG_ER("saImmOiInitialize failed with error %d", rc);
 	return rc;
 }

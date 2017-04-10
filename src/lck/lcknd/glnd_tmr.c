@@ -23,12 +23,12 @@
   DESCRIPTION:
 
   This file contains GLND timer interface routines.
- 
+
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
 
-  
+
 ******************************************************************************
 */
 
@@ -37,24 +37,25 @@
 /*****************************************************************************
   PROCEDURE NAME : glnd_start_tmr
 
-  DESCRIPTION    : Starts the GLND timer. If the timer is already active, it 
-                   is restarted (ie. stopped & started without reallocating the 
-                   tmr block).
+  DESCRIPTION    : Starts the GLND timer. If the timer is already active, it
+		   is restarted (ie. stopped & started without reallocating the
+		   tmr block).
 
   ARGUMENTS      : cb     - ptr to the GLND control block
-                  tmr    - ptr to the GLND timer block
-                  type    - timer type
-                  period - timer period
-                  uarg   - opaque handle that is returned on timer expiry
+		  tmr    - ptr to the GLND timer block
+		  type    - timer type
+		  period - timer period
+		  uarg   - opaque handle that is returned on timer expiry
 
   RETURNS        : NCSCC_RC_SUCCESS - Success
-               NCSCC_RC_FAILURE  - Failure
+	       NCSCC_RC_FAILURE  - Failure
 
   NOTES         : None
 *****************************************************************************/
-uint32_t glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT period, uint32_t uarg)
+uint32_t glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type,
+			SaTimeT period, uint32_t uarg)
 {
-	SaTimeT  my_period = (m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
+	SaTimeT my_period = (m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
 
 	if (GLND_TMR_MAX <= type) {
 		LOG_ER("GLND timer start failure: type %d ", type);
@@ -63,7 +64,8 @@ uint32_t glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT 
 
 	if (tmr->tmr_id == TMR_T_NULL) {
 		tmr->type = type;
-		m_NCS_TMR_CREATE(tmr->tmr_id, my_period, glnd_tmr_exp, (void *)tmr);
+		m_NCS_TMR_CREATE(tmr->tmr_id, my_period, glnd_tmr_exp,
+				 (void *)tmr);
 	}
 
 	if (tmr->is_active == true) {
@@ -92,7 +94,7 @@ uint32_t glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT 
   DESCRIPTION    : Stops the GLND timer.
 
   ARGUMENTS      : tmr    - ptr to the GLND timer block
-               
+
   RETURNS        : void
 
   NOTES         : None
@@ -128,7 +130,7 @@ void glnd_stop_tmr(GLND_TMR *tmr)
 /*****************************************************************************
   PROCEDURE NAME : glnd_tmr_evt_map
   DESCRIPTION    : Maps a timer type to the corresponding GLND evt type.
-  ARGUMENTS      : tmr_type - timer type  
+  ARGUMENTS      : tmr_type - timer type
   RETURNS        : GLND event type
   NOTES         : None
 *****************************************************************************/
@@ -154,7 +156,7 @@ static GLSV_GLND_EVT_TYPE glnd_tmr_evt_map(GLND_TMR_TYPE tmr_type)
   PROCEDURE NAME : glnd_tmr_exp
 
   DESCRIPTION    : GLND timer expiry callback routine.It sends corresponding
-                  timer events to GLND.
+		  timer events to GLND.
 
   ARGUMENTS      : uarg - ptr to the GLND timer block
 
@@ -187,12 +189,15 @@ void glnd_tmr_exp(void *uarg)
 			evt->info.tmr.opq_hdl = tmr->opq_hdl;
 
 			evt->glnd_hdl = tmr->cb_hdl;
-			rc = glnd_evt_local_send(cb, evt, NCS_IPC_PRIORITY_HIGH);
+			rc =
+			    glnd_evt_local_send(cb, evt, NCS_IPC_PRIORITY_HIGH);
 			if (rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("GLND mds send failure: from mds_dest %u , evt_type %d",
-						     m_NCS_NODE_ID_FROM_MDS_DEST(cb->glnd_mdest_id), evt->type);
+				LOG_ER(
+				    "GLND mds send failure: from mds_dest %u , evt_type %d",
+				    m_NCS_NODE_ID_FROM_MDS_DEST(
+					cb->glnd_mdest_id),
+				    evt->type);
 			}
-
 		}
 	}
 
@@ -200,5 +205,4 @@ void glnd_tmr_exp(void *uarg)
 	ncshm_give_hdl(tmr->cb_hdl);
 
 	return;
-
 }

@@ -18,7 +18,7 @@
 /*****************************************************************************
 
   DESCRIPTION: SuTypeCompType class definition
-  
+
 ******************************************************************************
 */
 
@@ -29,14 +29,15 @@
 #include "amf/amfd/sutype.h"
 
 typedef struct {
-	std::string name;
-	SaUint32T saAmfSutMaxNumComponents;
-	SaUint32T saAmfSutMinNumComponents;
-	SaUint32T curr_num_components;
+  std::string name;
+  SaUint32T saAmfSutMaxNumComponents;
+  SaUint32T saAmfSutMinNumComponents;
+  SaUint32T curr_num_components;
 } AVD_SUTCOMP_TYPE;
 extern AmfDb<std::string, AVD_SUTCOMP_TYPE> *sutcomptype_db;
 
-SaAisErrorT avd_sutcomptype_config_get(const std::string& sutype_name, AVD_SUTYPE *sut);
+SaAisErrorT avd_sutcomptype_config_get(const std::string &sutype_name,
+                                       AVD_SUTYPE *sut);
 void avd_sutcomptype_constructor(void);
 
 #endif  // AMF_AMFD_SUTCOMPTYPE_H_

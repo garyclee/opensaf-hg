@@ -29,10 +29,8 @@ using namespace std::chrono;
 class SysfTmrTest : public ::testing::Test {
  public:
  protected:
-
-  SysfTmrTest() :
-      distribution_(1 * 60 * 60 * 100, 2 * 60 * 60 * 100 - 1),
-      timers_{} {
+  SysfTmrTest()
+      : distribution_(1 * 60 * 60 * 100, 2 * 60 * 60 * 100 - 1), timers_{} {
     // Setup work can be done here for each test.
   }
 
@@ -62,7 +60,7 @@ class SysfTmrTest : public ::testing::Test {
   static std::atomic<bool> finished;
   static std::atomic<bool> first_time_through;
   void createIntervalTimers(int64_t timeout_in_ms, int no_of_counters);
-  static void TimerCallback(void* arg);
+  static void TimerCallback(void *arg);
   static void IntervalTimerCallback(void *arg);
   std::mt19937 generator_;
   std::uniform_int_distribution<uint32_t> distribution_;
@@ -70,13 +68,13 @@ class SysfTmrTest : public ::testing::Test {
   static bool expired_;
 };
 
-int SysfTmrTest::counter {0};
-steady_clock::time_point SysfTmrTest::last_time {};
-steady_clock::duration SysfTmrTest::times[max_counter] {};
-std::atomic<bool> SysfTmrTest::finished {false};
-std::atomic<bool> SysfTmrTest::first_time_through {true};
+int SysfTmrTest::counter{0};
+steady_clock::time_point SysfTmrTest::last_time{};
+steady_clock::duration SysfTmrTest::times[max_counter]{};
+std::atomic<bool> SysfTmrTest::finished{false};
+std::atomic<bool> SysfTmrTest::first_time_through{true};
 
-bool SysfTmrTest::expired_ {false};
+bool SysfTmrTest::expired_{false};
 
 //
 void SysfTmrTest::IntervalTimerCallback(void *) {
@@ -99,23 +97,23 @@ void SysfTmrTest::IntervalTimerCallback(void *) {
   last_time = elapsed;
 }
 
-void SysfTmrTest::TimerCallback(void*) {
-  expired_ = true;
-}
+void SysfTmrTest::TimerCallback(void *) { expired_ = true; }
 
 //
-void SysfTmrTest::createIntervalTimers(int64_t timeout_in_ms, int no_of_counters) {
+void SysfTmrTest::createIntervalTimers(int64_t timeout_in_ms,
+                                       int no_of_counters) {
   for (int i = 1; i <= no_of_counters; i++) {
-    tmr_t tmr_id = ncs_tmr_alloc((char*) __FILE__, __LINE__);
+    tmr_t tmr_id = ncs_tmr_alloc((char *)__FILE__, __LINE__);
     ASSERT_NE(tmr_id, nullptr);
-    ncs_tmr_start(tmr_id, (timeout_in_ms * i) / 10, IntervalTimerCallback, 0, (char*) __FILE__, __LINE__);
+    ncs_tmr_start(tmr_id, (timeout_in_ms * i) / 10, IntervalTimerCallback, 0,
+                  (char *)__FILE__, __LINE__);
   }
 }
 
-// Tests sysf_tmr as an interval timer and measure "jitter". Timeout values are written
-// to stdout and can be read by e.g. gnuplot
+// Tests sysf_tmr as an interval timer and measure "jitter". Timeout values are
+// written to stdout and can be read by e.g. gnuplot
 TEST_F(SysfTmrTest, TestIntervalTimer) {
-  createIntervalTimers(100, max_counter+2);
+  createIntervalTimers(100, max_counter + 2);
 
   while (!finished) {
     std::this_thread::yield();
@@ -126,10 +124,11 @@ TEST_F(SysfTmrTest, TestIntervalTimer) {
 TEST_F(SysfTmrTest, CreateOneMillionTimers) {
   expired_ = false;
   for (uint32_t i = 0; i != 1000000; ++i) {
-    tmr_t tmr1 = ncs_tmr_alloc((char*)__FILE__, __LINE__);
+    tmr_t tmr1 = ncs_tmr_alloc((char *)__FILE__, __LINE__);
     ASSERT_NE(tmr1, TMR_T_NULL);
     int64_t timeout = distribution_(generator_);
-    tmr_t tmr2 = ncs_tmr_start(tmr1, timeout, TimerCallback, nullptr, (char*) __FILE__, __LINE__);
+    tmr_t tmr2 = ncs_tmr_start(tmr1, timeout, TimerCallback, nullptr,
+                               (char *)__FILE__, __LINE__);
     ASSERT_NE(tmr2, TMR_T_NULL);
     timers_[i] = tmr2;
   }
@@ -146,4 +145,3 @@ TEST_F(SysfTmrTest, CreateOneMillionTimers) {
   }
   EXPECT_EQ(expired_, false);
 }
-

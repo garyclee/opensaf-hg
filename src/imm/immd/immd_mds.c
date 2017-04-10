@@ -22,7 +22,7 @@
   This file contains routines used by IMMD library for MDS interaction.
 
   FUNCTIONS INCLUDED in this module:
-  
+
 
 *****************************************************************************/
 
@@ -32,17 +32,19 @@
 uint32_t immd_mds_callback(struct ncsmds_callback_info *info);
 static uint32_t immd_mds_enc(IMMD_CB *cb, MDS_CALLBACK_ENC_INFO *info);
 static uint32_t immd_mds_dec(IMMD_CB *cb, MDS_CALLBACK_DEC_INFO *info);
-static uint32_t immd_mds_enc_flat(IMMD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info);
-static uint32_t immd_mds_dec_flat(IMMD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
+static uint32_t immd_mds_enc_flat(IMMD_CB *cb,
+				  MDS_CALLBACK_ENC_FLAT_INFO *info);
+static uint32_t immd_mds_dec_flat(IMMD_CB *cb,
+				  MDS_CALLBACK_DEC_FLAT_INFO *info);
 static uint32_t immd_mds_rcv(IMMD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
-static uint32_t immd_mds_svc_evt(IMMD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
+static uint32_t immd_mds_svc_evt(IMMD_CB *cb,
+				 MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
 static uint32_t immd_mds_quiesced_ack_process(IMMD_CB *cb);
 
 /* Message Format Verion Tables at IMMD */
 
-MDS_CLIENT_MSG_FORMAT_VER immd_immnd_msg_fmt_table[IMMD_WRT_IMMND_SUBPART_VER_RANGE] = {
-	1
-};
+MDS_CLIENT_MSG_FORMAT_VER
+    immd_immnd_msg_fmt_table[IMMD_WRT_IMMND_SUBPART_VER_RANGE] = {1};
 
 /****************************************************************************\
  PROCEDURE NAME : immd_mds_vdest_create
@@ -81,20 +83,20 @@ uint32_t immd_mds_vdest_create(IMMD_CB *cb)
 
 /****************************************************************************
   Name          : immd_mds_register
- 
+
   Description   : This routine registers the IMMD Service with MDS.
- 
+
   Arguments     : mqa_cb - ptr to the IMMD control block
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ****************************************************************************/
 uint32_t immd_mds_register(IMMD_CB *cb, SaAmfHAStateT ha_state)
 {
 	NCSMDS_INFO svc_info;
-	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_IMMND };
-	MDS_SVC_ID immd_id[1] = { NCSMDS_SVC_ID_IMMD };
+	MDS_SVC_ID svc_id[1] = {NCSMDS_SVC_ID_IMMND};
+	MDS_SVC_ID immd_id[1] = {NCSMDS_SVC_ID_IMMD};
 
 	/* Create the virtual Destination for  IMMD */
 	uint32_t rc = immd_mds_vdest_create(cb);
@@ -127,10 +129,12 @@ uint32_t immd_mds_register(IMMD_CB *cb, SaAmfHAStateT ha_state)
 	svc_info.i_op = MDS_INSTALL;
 
 	svc_info.info.svc_install.i_yr_svc_hdl = 0;
-	svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;	/*node specific */
-	svc_info.info.svc_install.i_svc_cb = immd_mds_callback;	/* callback */
+	svc_info.info.svc_install.i_install_scope =
+	    NCSMDS_SCOPE_NONE; /*node specific */
+	svc_info.info.svc_install.i_svc_cb = immd_mds_callback; /* callback */
 	svc_info.info.svc_install.i_mds_q_ownership = false;
-	svc_info.info.svc_install.i_mds_svc_pvt_ver = IMMD_MDS_PVT_SUBPART_VERSION;
+	svc_info.info.svc_install.i_mds_svc_pvt_ver =
+	    IMMD_MDS_PVT_SUBPART_VERSION;
 
 	if (ncsmds_api(&svc_info) == NCSCC_RC_FAILURE) {
 		LOG_ER("IMMD - MDS Install Failed");
@@ -170,7 +174,8 @@ uint32_t immd_mds_register(IMMD_CB *cb, SaAmfHAStateT ha_state)
 	/* Get the node id of local IMMD */
 	cb->node_id = m_NCS_GET_NODE_ID;
 
-	cb->immd_self_id = immd_get_slot_and_subslot_id_from_node_id(cb->node_id);
+	cb->immd_self_id =
+	    immd_get_slot_and_subslot_id_from_node_id(cb->node_id);
 	TRACE_5("NodeId:%x SelfId:%x", cb->node_id, cb->immd_self_id);
 	return NCSCC_RC_SUCCESS;
 }
@@ -178,7 +183,7 @@ uint32_t immd_mds_register(IMMD_CB *cb, SaAmfHAStateT ha_state)
 /****************************************************************************
  * Name          : immd_mds_change_role
  *
- * Description   : This function informs mds of our vdest role change 
+ * Description   : This function informs mds of our vdest role change
  *
  * Arguments     : cb   : IMMD control Block pointer.
  *
@@ -218,7 +223,7 @@ void immd_mds_unregister(IMMD_CB *cb)
 
 	TRACE_ENTER();
 
-	/* Un-install your service into MDS. 
+	/* Un-install your service into MDS.
 	   No need to cancel the services that are subscribed */
 	memset(&arg, 0, sizeof(NCSMDS_INFO));
 
@@ -230,10 +235,10 @@ void immd_mds_unregister(IMMD_CB *cb)
 		LOG_ER("IMMD - MDS Unregister Failed rc:%u", rc);
 		goto done;
 	}
-#if 0				/*ABT This was tentatively added in IMMsv by me.
-				   But seeing as the CPSv does not have it and that is apparently
-				   not a bug, then IMMSv should also not have it. But why then
-				   does LOGSv have it ??! */
+#if 0 /*ABT This was tentatively added in IMMsv by me.                         \
+	 But seeing as the CPSv does not have it and that is apparently        \
+	 not a bug, then IMMSv should also not have it. But why then           \
+	 does LOGSv have it ??! */
 
 	/* Destroy the virtual Destination of IMMD */
 	memset(&vda_info, 0, sizeof(NCSVDA_INFO));
@@ -245,20 +250,20 @@ void immd_mds_unregister(IMMD_CB *cb)
 	}
 #endif
 
- done:
+done:
 	TRACE_LEAVE();
 	return;
 }
 
 /****************************************************************************
   Name          : immd_mds_callback
- 
+
   Description   : This callback routine will be called by MDS on event arrival
- 
+
   Arguments     : info - pointer to the mds callback info
- 
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 *****************************************************************************/
 uint32_t immd_mds_callback(struct ncsmds_callback_info *info)
@@ -279,14 +284,16 @@ uint32_t immd_mds_callback(struct ncsmds_callback_info *info)
 		rc = immd_mds_dec(cb, &info->info.dec);
 		break;
 	case MDS_CALLBACK_ENC_FLAT:
-		if (1) {	/*Set to zero for righorous testing of byteorder enc/dec. */
+		if (1) { /*Set to zero for righorous testing of byteorder
+			    enc/dec. */
 			rc = immd_mds_enc_flat(cb, &info->info.enc_flat);
 		} else {
 			rc = immd_mds_enc(cb, &info->info.enc_flat);
 		}
 		break;
 	case MDS_CALLBACK_DEC_FLAT:
-		if (1) {	/*Set to zero for righorous testing of byteorder enc/dec. */
+		if (1) { /*Set to zero for righorous testing of byteorder
+			    enc/dec. */
 			rc = immd_mds_dec_flat(cb, &info->info.dec_flat);
 		} else {
 			rc = immd_mds_dec(cb, &info->info.dec_flat);
@@ -316,37 +323,35 @@ uint32_t immd_mds_callback(struct ncsmds_callback_info *info)
 
 /****************************************************************************
   Name          : immd_mds_enc
- 
+
   Description   : This function encodes an events sent from IMMD.
- 
+
   Arguments     : cb    : IMMD control Block.
-                  info  : Info for encoding
-  
+		  info  : Info for encoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t immd_mds_enc(IMMD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	/* Get the Msg Format version from the SERVICE_ID & 
+	/* Get the Msg Format version from the SERVICE_ID &
 	   RMT_SVC_PVT_SUBPART_VERSION */
 	if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMND) {
-		enc_info->o_msg_fmt_ver =
-		    m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
-					  IMMD_WRT_IMMND_SUBPART_VER_MIN,
-					  IMMD_WRT_IMMND_SUBPART_VER_MAX, immd_immnd_msg_fmt_table);
+		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    enc_info->i_rem_svc_pvt_ver, IMMD_WRT_IMMND_SUBPART_VER_MIN,
+		    IMMD_WRT_IMMND_SUBPART_VER_MAX, immd_immnd_msg_fmt_table);
 	} else if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OM) {
 		LOG_WA("IMMD can not communicate directly with IMMA OM");
 	} else if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OI) {
 		LOG_WA("IMMD can not communicate directly with IMMA OI");
 	}
 
-	if (1 /*enc_info->o_msg_fmt_ver */ ) {	/*Does not work. */
+	if (1 /*enc_info->o_msg_fmt_ver */) { /*Does not work. */
 
 		IMMSV_EVT *evt = (IMMSV_EVT *)enc_info->i_msg;
 
-		return immsv_evt_enc( /*&cb->edu_hdl, */ evt, enc_info->io_uba);
-
+		return immsv_evt_enc(/*&cb->edu_hdl, */ evt, enc_info->io_uba);
 	}
 
 	/* Drop The Message,Format Version Invalid */
@@ -356,14 +361,14 @@ static uint32_t immd_mds_enc(IMMD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
 /****************************************************************************
   Name          : immd_mds_dec
- 
+
   Description   : This function decodes an events sent to IMMD.
- 
+
   Arguments     : cb    : IMMD control Block.
-                  info  : Info for decoding
-  
+		  info  : Info for decoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t immd_mds_dec(IMMD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
@@ -377,7 +382,7 @@ static uint32_t immd_mds_dec(IMMD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
 	dec_info->o_msg = (NCSCONTEXT)evt;
 
-	rc = immsv_evt_dec( /*&cb->edu_hdl, */ dec_info->io_uba, evt);
+	rc = immsv_evt_dec(/*&cb->edu_hdl, */ dec_info->io_uba, evt);
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IMMD - MDS Decode Failed");
 		free(dec_info->o_msg);
@@ -388,14 +393,14 @@ static uint32_t immd_mds_dec(IMMD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 
 /****************************************************************************
   Name          : immd_mds_enc_flat
- 
+
   Description   : This function encodes an events sent from IMMD.
- 
+
   Arguments     : cb    : IMMD control Block.
-                  enc_info  : Info for encoding
-  
+		  enc_info  : Info for encoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 *****************************************************************************/
 static uint32_t immd_mds_enc_flat(IMMD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
@@ -404,26 +409,25 @@ static uint32_t immd_mds_enc_flat(IMMD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	NCS_UBAID *uba = info->io_uba;
 
-	/* Get the Msg Format version from the SERVICE_ID & 
+	/* Get the Msg Format version from the SERVICE_ID &
 	   RMT_SVC_PVT_SUBPART_VERSION */
 
 	if (info->i_to_svc_id == NCSMDS_SVC_ID_IMMND) {
-		info->o_msg_fmt_ver =
-		    m_NCS_ENC_MSG_FMT_GET(info->i_rem_svc_pvt_ver,
-					  IMMD_WRT_IMMND_SUBPART_VER_MIN,
-					  IMMD_WRT_IMMND_SUBPART_VER_MAX, immd_immnd_msg_fmt_table);
+		info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(
+		    info->i_rem_svc_pvt_ver, IMMD_WRT_IMMND_SUBPART_VER_MIN,
+		    IMMD_WRT_IMMND_SUBPART_VER_MAX, immd_immnd_msg_fmt_table);
 	} else if (info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OM) {
 		LOG_WA("IMMD can not communicate directly with IMMA OM");
 	} else if (info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OI) {
 		LOG_WA("IMMD can not communicate directly with IMMA OI");
 	}
 
-	if (1 /*info->o_msg_fmt_ver */ ) {	/* Does not work */
+	if (1 /*info->o_msg_fmt_ver */) { /* Does not work */
 
 		/* as all the event structures are flat */
 		evt = (IMMSV_EVT *)info->i_msg;
 
-		rc = immsv_evt_enc_flat( /*&cb->edu_hdl, */ evt, uba);
+		rc = immsv_evt_enc_flat(/*&cb->edu_hdl, */ evt, uba);
 		if (rc == NCSCC_RC_FAILURE) {
 			LOG_ER("IMMD - MDS ENCODE FLAT FAILED");
 		}
@@ -431,20 +435,21 @@ static uint32_t immd_mds_enc_flat(IMMD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 	}
 
 	LOG_ER("INVALID MSG FORMAT VERSION IN ENC FLAT, "
-	       "VER %u SVC_ID  %u", info->i_rem_svc_pvt_ver, info->i_to_svc_id);
-	return NCSCC_RC_FAILURE;	/* Drop The Message */
+	       "VER %u SVC_ID  %u",
+	       info->i_rem_svc_pvt_ver, info->i_to_svc_id);
+	return NCSCC_RC_FAILURE; /* Drop The Message */
 }
 
 /****************************************************************************
   Name          : immd_mds_dec_flat
- 
+
   Description   : This function decodes an events sent to IMMD.
- 
+
   Arguments     : cb    : IMMD control Block.
-                  dec_info  : Info for decoding
-  
+		  dec_info  : Info for decoding
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 static uint32_t immd_mds_dec_flat(IMMD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
@@ -459,7 +464,7 @@ static uint32_t immd_mds_dec_flat(IMMD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		return NCSCC_RC_FAILURE;
 	}
 	info->o_msg = evt;
-	rc = immsv_evt_dec_flat( /*&cb->edu_hdl, */ uba, evt);
+	rc = immsv_evt_dec_flat(/*&cb->edu_hdl, */ uba, evt);
 	if (rc == NCSCC_RC_FAILURE) {
 		LOG_ER("IMMD - MDS DECODE FLAT FAILED");
 		free(evt);
@@ -494,19 +499,21 @@ static uint32_t immd_mds_rcv(IMMD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		pEvt->sinfo.stype = MDS_SENDTYPE_RSP;
 	}
 
-	/* Set priority of intro messages from veteran payloads to PRIORITY_HIGH.
-	 * IMMD will process them before the intro messages from other IMMNDs. */
+	/* Set priority of intro messages from veteran payloads to
+	 * PRIORITY_HIGH. IMMD will process them before the intro messages from
+	 * other IMMNDs. */
 	if (cb->mScAbsenceAllowed &&
-			pEvt->info.immd.type == IMMD_EVT_ND2D_INTRO &&
-			pEvt->info.immd.info.ctrl_msg.refresh == 2) {
+	    pEvt->info.immd.type == IMMD_EVT_ND2D_INTRO &&
+	    pEvt->info.immd.info.ctrl_msg.refresh == 2) {
 
 		prio = NCS_IPC_PRIORITY_HIGH;
 
-		m_NCS_LOCK(&immd_cb->veteran_sync_lock,NCS_LOCK_WRITE);
-		if (cb->veteran_sync_sel.raise_obj != -1) { /* Check if the sel_obj is not destroyed */
+		m_NCS_LOCK(&immd_cb->veteran_sync_lock, NCS_LOCK_WRITE);
+		if (cb->veteran_sync_sel.raise_obj !=
+		    -1) { /* Check if the sel_obj is not destroyed */
 			m_NCS_SEL_OBJ_IND(&cb->veteran_sync_sel);
 		}
-		m_NCS_UNLOCK(&immd_cb->veteran_sync_lock,NCS_LOCK_WRITE);
+		m_NCS_UNLOCK(&immd_cb->veteran_sync_lock, NCS_LOCK_WRITE);
 	}
 
 	/* Put it in IMMD's Event Queue */
@@ -521,10 +528,10 @@ static uint32_t immd_mds_rcv(IMMD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 /****************************************************************************
  * Name          : immd_mds_svc_evt
  *
- * Description   : IMMD is informed when MDS events occur that he has 
+ * Description   : IMMD is informed when MDS events occur that he has
  *                 subscribed to
  *
- * Arguments     : 
+ * Arguments     :
  *   cb          : IMMD control Block.
  *   enc_info    : Svc evt info.
  *
@@ -532,10 +539,11 @@ static uint32_t immd_mds_rcv(IMMD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
  *
  * Notes         : None.
  *****************************************************************************/
-static uint32_t immd_mds_svc_evt(IMMD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
+static uint32_t immd_mds_svc_evt(IMMD_CB *cb,
+				 MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
 	LOG_NO("MDS event from svc_id %u (change:%d, dest:%" PRIu64 ")",
-			svc_evt->i_svc_id, svc_evt->i_change, svc_evt->i_dest);
+	       svc_evt->i_svc_id, svc_evt->i_change, svc_evt->i_dest);
 
 	IMMSV_EVT *evt = calloc(1, sizeof(IMMSV_EVT));
 
@@ -554,7 +562,8 @@ static uint32_t immd_mds_svc_evt(IMMD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 	evt->info.immd.info.mds_info.node_id = svc_evt->i_node_id;
 
 	/* Put it in IMMD's Event Queue */
-	uint32_t rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_VERY_HIGH);
+	uint32_t rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)evt,
+				     NCS_IPC_PRIORITY_VERY_HIGH);
 	if (NCSCC_RC_SUCCESS != rc) {
 		LOG_WA("IMMD - IPC SEND FAILED");
 		free(evt);
@@ -566,12 +575,12 @@ static uint32_t immd_mds_svc_evt(IMMD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_e
 /******************************************************************************
  * Name   : immd_mds_quiesced_ack_process
  *
- * Description   : This callback is received when immd goes from active to 
+ * Description   : This callback is received when immd goes from active to
  *                 quiesced, we change the mds role in csi set callback and
  *                 from mds we get the quiesced_ack callback , post an event
  *                 to your immd thread to process the events in mail box
  *
-*****************************************************************************/
+ *****************************************************************************/
 uint32_t immd_mds_quiesced_ack_process(IMMD_CB *cb)
 {
 	IMMSV_EVT *evt = NULL;
@@ -579,7 +588,7 @@ uint32_t immd_mds_quiesced_ack_process(IMMD_CB *cb)
 	TRACE_ENTER();
 
 	if (cb->is_quiesced_set) {
-		cb->ha_state = SA_AMF_HA_QUIESCED;	/* Set the HA State */
+		cb->ha_state = SA_AMF_HA_QUIESCED; /* Set the HA State */
 		LOG_IN("HA STATE CHANGED TO QUIESCED");
 		evt = calloc(1, sizeof(IMMSV_EVT));
 		if (!evt) {
@@ -594,7 +603,7 @@ uint32_t immd_mds_quiesced_ack_process(IMMD_CB *cb)
 		rc = m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL);
 		if (NCSCC_RC_SUCCESS != rc) {
 			LOG_WA("IMMD - IPC SEND FAILED");
-			free(evt);	/*ABT leaks ?? */
+			free(evt); /*ABT leaks ?? */
 			return rc;
 		}
 	} else {
@@ -609,9 +618,9 @@ uint32_t immd_mds_quiesced_ack_process(IMMD_CB *cb)
  *
  * Description   : Send the Response to Sync Requests
  *
- * Arguments     : 
+ * Arguments     :
  *
- * Return Values : 
+ * Return Values :
  *
  * Notes         :
  *****************************************************************************/
@@ -645,20 +654,21 @@ uint32_t immd_mds_send_rsp(IMMD_CB *cb, IMMSV_SEND_INFO *s_info, IMMSV_EVT *evt)
 
 /****************************************************************************
   Name          : immd_mds_msg_sync_send
- 
+
   Description   : This routine sends the Sync requests from IMMD
- 
+
   Arguments     : cb  - ptr to the IMMD CB
-                  i_evt - ptr to the IMMSV message
-                  o_evt - ptr to the IMMSV message returned
-                  timeout - timeout value in 10 ms 
- 
+		  i_evt - ptr to the IMMSV message
+		  o_evt - ptr to the IMMSV message returned
+		  timeout - timeout value in 10 ms
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
 uint32_t immd_mds_msg_sync_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
-			     IMMSV_EVT *i_evt, IMMSV_EVT **o_evt, SaTimeT timeout)
+				IMMSV_EVT *i_evt, IMMSV_EVT **o_evt,
+				SaTimeT timeout)
 {
 
 	NCSMDS_INFO mds_info;
@@ -679,7 +689,8 @@ uint32_t immd_mds_msg_sync_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SNDRSP;
 
 	/* fill the send rsp strcuture */
-	mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;	/* timeto wait in 10ms */
+	mds_info.info.svc_send.info.sndrsp.i_time_to_wait =
+	    timeout; /* timeto wait in 10ms */
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = to_dest;
 
 	/* send the message */
@@ -695,19 +706,20 @@ uint32_t immd_mds_msg_sync_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
 
 /****************************************************************************
   Name          : immd_mds_msg_send
- 
+
   Description   : This routine sends the Events from IMMD
- 
+
   Arguments     : cb  - ptr to the IMMD CB
-                  i_evt - ptr to the IMMSV message
-                  o_evt - ptr to the IMMSV message returned
-                  timeout - timeout value in 10 ms 
- 
+		  i_evt - ptr to the IMMSV message
+		  o_evt - ptr to the IMMSV message returned
+		  timeout - timeout value in 10 ms
+
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
+
   Notes         : None.
 ******************************************************************************/
-uint32_t immd_mds_msg_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, IMMSV_EVT *evt)
+uint32_t immd_mds_msg_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest,
+			   IMMSV_EVT *evt)
 {
 	NCSMDS_INFO mds_info;
 	uint32_t rc;
@@ -742,12 +754,12 @@ uint32_t immd_mds_msg_send(IMMD_CB *cb, uint32_t to_svc, MDS_DEST to_dest, IMMSV
 /****************************************************************************
  * Name          : immd_mds_bcast_send
  *
- * Description   : This is the function which is used to send the message 
+ * Description   : This is the function which is used to send the message
  *                 using MDS broadcast.
  *
- * Arguments     : mds_hdl  - MDS handle  
+ * Arguments     : mds_hdl  - MDS handle
  *                 from_svc - From Serivce ID.
- *                 evt      - Event to be sent. 
+ *                 evt      - Event to be sent.
  *                 to_svc   - To Service ID.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE

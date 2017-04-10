@@ -18,12 +18,12 @@
 #include "base/osaf_time.h"
 #include "gtest/gtest.h"
 
-static const timespec kOneDotOneSeconds = { 1, 100000000 };
-static const timespec kZeroDotTwoSeconds = { 0, 200000000 };
-static const timespec kZeroDotNineSeconds = { 0, 900000000 };
-static const timespec number1 = { 1576315623, 358743382 };
-static const timespec number2 = { 279394477, 639614599 };
-static const timespec difference = { 1296921145, 719128783 };
+static const timespec kOneDotOneSeconds = {1, 100000000};
+static const timespec kZeroDotTwoSeconds = {0, 200000000};
+static const timespec kZeroDotNineSeconds = {0, 900000000};
+static const timespec number1 = {1576315623, 358743382};
+static const timespec number2 = {279394477, 639614599};
+static const timespec difference = {1296921145, 719128783};
 
 TEST(OsafTimespecSubtract, ZeroMinusZero) {
   timespec result;

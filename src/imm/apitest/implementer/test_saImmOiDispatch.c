@@ -19,29 +19,38 @@
 
 void saImmOiDispatch_01(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    test_validate(saImmOiDispatch(immOiHandle, SA_DISPATCH_ALL), SA_AIS_OK);
-    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	test_validate(saImmOiDispatch(immOiHandle, SA_DISPATCH_ALL), SA_AIS_OK);
+	safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
 
 void saImmOiDispatch_02(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    test_validate(saImmOiDispatch(immOiHandle, SA_DISPATCH_ONE), SA_AIS_OK);
-    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	test_validate(saImmOiDispatch(immOiHandle, SA_DISPATCH_ONE), SA_AIS_OK);
+	safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
 
 void saImmOiDispatch_03(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    test_validate(saImmOiDispatch(-1, SA_DISPATCH_ONE), SA_AIS_ERR_BAD_HANDLE);
-    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	test_validate(saImmOiDispatch(-1, SA_DISPATCH_ONE),
+		      SA_AIS_ERR_BAD_HANDLE);
+	safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
 
 void saImmOiDispatch_04(void)
 {
-    safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
-    test_validate(saImmOiDispatch(immOiHandle, -1), SA_AIS_ERR_INVALID_PARAM);
-    safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+	safassert(
+	    saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion),
+	    SA_AIS_OK);
+	test_validate(saImmOiDispatch(immOiHandle, -1),
+		      SA_AIS_ERR_INVALID_PARAM);
+	safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
 }
-

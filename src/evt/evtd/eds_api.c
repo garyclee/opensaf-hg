@@ -17,14 +17,14 @@
 
 /*****************************************************************************
 ..............................................................................
-  
-    
+
+
 ..............................................................................
-      
+
 DESCRIPTION:
-        
+
 This include file contains SE api instrumentation for EDS
-          
+
 *******************************************************************************/
 #include "osaf/configmake.h"
 #include <stdlib.h>
@@ -37,9 +37,9 @@ uint32_t gl_eds_hdl = 0;
  * Name          : eds_se_lib_init
  *
  * Description   : Invoked to Initialize the EDS
- *                 
  *
- * Arguments     : 
+ *
+ * Arguments     :
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
  * Notes         : None.
@@ -50,7 +50,6 @@ static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	TRACE_ENTER();
 
-
 	/* Allocate and initialize the control block */
 	if (NULL == (eds_cb = m_MMGR_ALLOC_EDS_CB)) {
 		LOG_CR("malloc failed for control block");
@@ -60,7 +59,8 @@ static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	memset(eds_cb, '\0', sizeof(EDS_CB));
 
 	/* Obtain the hdl for EDS_CB from hdl-mgr */
-	gl_eds_hdl = eds_cb->my_hdl = ncshm_create_hdl(1, NCS_SERVICE_ID_EDS, (NCSCONTEXT)eds_cb);
+	gl_eds_hdl = eds_cb->my_hdl =
+	    ncshm_create_hdl(1, NCS_SERVICE_ID_EDS, (NCSCONTEXT)eds_cb);
 
 	if (0 == eds_cb->my_hdl) {
 		LOG_ER("Handle create failed for global eds handle");
@@ -86,7 +86,6 @@ static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		TRACE_LEAVE();
 		return rc;
 	}
-
 
 	m_NCS_EDU_HDL_INIT(&eds_cb->edu_hdl);
 
@@ -114,7 +113,7 @@ static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	}
 
 	/* Initialize and Register with CLM */
-	 if (eds_clm_init(eds_cb) != SA_AIS_OK) {
+	if (eds_clm_init(eds_cb) != SA_AIS_OK) {
 		LOG_ER("CLM Init failed");
 		/* Release EDU handle */
 		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
@@ -128,8 +127,8 @@ static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	}
 
 	if ((rc = initialize_for_assignment(eds_cb, eds_cb->ha_state)) !=
-		NCSCC_RC_SUCCESS) {
-		LOG_ER("initialize_for_assignment FAILED %u", (unsigned) rc);
+	    NCSCC_RC_SUCCESS) {
+		LOG_ER("initialize_for_assignment FAILED %u", (unsigned)rc);
 		exit(EXIT_FAILURE);
 	}
 
@@ -140,7 +139,7 @@ static uint32_t eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 uint32_t initialize_for_assignment(EDS_CB *cb, SaAmfHAStateT ha_state)
 {
-	TRACE_ENTER2("ha_state = %d", (int) ha_state);
+	TRACE_ENTER2("ha_state = %d", (int)ha_state);
 	uint32_t rc = NCSCC_RC_SUCCESS;
 	if (cb->fully_initialized || ha_state == SA_AMF_HA_QUIESCED) {
 		goto done;
@@ -167,7 +166,7 @@ done:
 /****************************************************************************
  * Name          : eds_clear_mbx
  *
- * Description   : This is the function which deletes all the messages from 
+ * Description   : This is the function which deletes all the messages from
  *                 the mail box.
  *
  * Arguments     : arg     - argument to be passed.
@@ -183,7 +182,7 @@ static bool eds_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 	EDSV_EDS_EVT *pnext;
 	pnext = pEvt;
 	while (pnext) {
-		pnext = ( /* (EDSV_EDS_EVT *)& */ (pEvt->next));
+		pnext = (/* (EDSV_EDS_EVT *)& */ (pEvt->next));
 		eds_evt_destroy(pEvt);
 		pEvt = pnext;
 	}
@@ -194,32 +193,34 @@ static bool eds_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  * Name          : eds_se_lib_destroy
  *
  * Description   : Invoked to destroy the EDS
- *                 
  *
- * Arguments     : 
+ *
+ * Arguments     :
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
  * Notes         : None.
  *****************************************************************************/
 static uint32_t eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 {
-    /** Code to destroy the EDS **/
+	/** Code to destroy the EDS **/
 	EDS_CB *eds_cb;
 	m_INIT_CRITICAL;
 	TRACE_ENTER();
 
-	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS,
+							 gl_eds_hdl))) {
 		LOG_ER("Handle take failed for global handle");
 		TRACE_LEAVE();
 		return (NCSCC_RC_FAILURE);
 	} else {
 		m_START_CRITICAL;
-      /** Lock EDA_CB
-       **/
+		/** Lock EDA_CB
+		 **/
 		m_NCS_LOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
 		/* deregister from AMF */
-		saAmfComponentUnregister(eds_cb->amf_hdl, &eds_cb->comp_name, NULL);
+		saAmfComponentUnregister(eds_cb->amf_hdl, &eds_cb->comp_name,
+					 NULL);
 
 		/* End association from the AMF lib */
 		saAmfFinalize(eds_cb->amf_hdl);
@@ -246,8 +247,8 @@ static uint32_t eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 		/* Release the IPC */
 		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);
 
-      /** UnLock EDA_CB
-       **/
+		/** UnLock EDA_CB
+		 **/
 		m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 		m_NCS_LOCK_DESTROY(&eds_cb->cb_lock);
 		m_MMGR_FREE_EDS_CB(eds_cb);
@@ -266,10 +267,10 @@ static uint32_t eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
  *
  * Description   : This is the NCS SE API which is used to init/destroy EDS
  *                 module
- *                 
  *
- * Arguments     : req_info  - This is the pointer to the input information 
- *                             which SBOM gives.  
+ *
+ * Arguments     : req_info  - This is the pointer to the input information
+ *                             which SBOM gives.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..
  *
@@ -293,4 +294,3 @@ uint32_t ncs_edsv_eds_lib_req(NCS_LIB_REQ_INFO *req_info)
 	TRACE_LEAVE();
 	return (rc);
 }
-

@@ -23,7 +23,7 @@
   DESCRIPTION:
 
   This file contains macros for memory operations.
-  
+
 ******************************************************************************
 */
 
@@ -31,15 +31,9 @@
 #define AMF_AMFD_DEF_H_
 
 /* The value to toggle a SI.*/
-typedef enum {
-	AVSV_SI_TOGGLE_STABLE,
-	AVSV_SI_TOGGLE_SWITCH
-} SaToggleState;
+typedef enum { AVSV_SI_TOGGLE_STABLE, AVSV_SI_TOGGLE_SWITCH } SaToggleState;
 
 /* The value to re adjust a SG.*/
-typedef enum {
-	AVSV_SG_STABLE,
-	AVSV_SG_ADJUST
-} SaAdjustState;
+typedef enum { AVSV_SG_STABLE, AVSV_SG_ADJUST } SaAdjustState;
 
 #endif  // AMF_AMFD_DEF_H_

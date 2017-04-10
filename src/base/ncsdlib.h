@@ -67,25 +67,25 @@ typedef struct ncs_db_link_list_node {
  *                              (<0)   2, if key2 is greater than key1
  *****************************************************************************/
 
-typedef uint32_t (*NCS_DB_LINK_LIST_CMP) (uint8_t *key1, uint8_t *key2);
+typedef uint32_t (*NCS_DB_LINK_LIST_CMP)(uint8_t *key1, uint8_t *key2);
 
 /*****************************************************************************
  * Typedef for freeing the data which has been stored in the doubly linked
  * list library.
  *****************************************************************************/
-typedef uint32_t (*NCS_DB_LINK_LIST_FREE) (NCS_DB_LINK_LIST_NODE *free_node);
+typedef uint32_t (*NCS_DB_LINK_LIST_FREE)(NCS_DB_LINK_LIST_NODE *free_node);
 
 /*****************************************************************************
  * Structure used to store all the important information about the doubly link
  * list nodes.
  *****************************************************************************/
 typedef struct ncs_db_link_list {
-  NCS_DB_LINK_LIST_ORDER order;   /* how to arrange the database     */
-  NCS_DB_LINK_LIST_NODE *start_ptr;       /* start pointer of the db linklist */
-  NCS_DB_LINK_LIST_NODE *end_ptr; /* End pointer of the db linklist  */
-  NCS_DB_LINK_LIST_CMP cmp_cookie;        /* func ptr to compare the key     */
-  NCS_DB_LINK_LIST_FREE free_cookie;      /* func ptr to free the node       */
-  uint32_t n_nodes;               /* number of nodes present in list */
+  NCS_DB_LINK_LIST_ORDER order;      /* how to arrange the database     */
+  NCS_DB_LINK_LIST_NODE *start_ptr;  /* start pointer of the db linklist */
+  NCS_DB_LINK_LIST_NODE *end_ptr;    /* End pointer of the db linklist  */
+  NCS_DB_LINK_LIST_CMP cmp_cookie;   /* func ptr to compare the key     */
+  NCS_DB_LINK_LIST_FREE free_cookie; /* func ptr to free the node       */
+  uint32_t n_nodes;                  /* number of nodes present in list */
 } NCS_DB_LINK_LIST;
 
 /*****************************************************************************
@@ -93,31 +93,33 @@ typedef struct ncs_db_link_list {
  * NOTE:
  *     Expect user to allocate memory for node_ptr, before calling this API.
  *****************************************************************************/
-uint32_t ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr);
+uint32_t ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr,
+                              NCS_DB_LINK_LIST_NODE *node_ptr);
 
 /*****************************************************************************
  * This is the API used to find the node in the doubly linked list.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uint8_t *key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr,
+                                             uint8_t *key);
 
 /*****************************************************************************
  * This is the API used to find the next node for the given key
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uint8_t *prev_key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr,
+                                                  uint8_t *prev_key);
 
 /*****************************************************************************
  * This is the API used to find the prev node for the given key
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uint8_t *pres_key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr,
+                                                  uint8_t *pres_key);
 
 /*****************************************************************************
  * This is the API used to delete the node for the given key. This API will use
- * the free callback which the user has registerd while initializing with the doubly
- * link list library.
- * NOTE:
- *     This API will fail, if you fail to register the free callback function.
- * If you just want to remove the node from the list then call the API
- * "ncs_db_link_list_remove()".
+ * the free callback which the user has registerd while initializing with the
+ *doubly link list library. NOTE: This API will fail, if you fail to register
+ *the free callback function. If you just want to remove the node from the
+ *list then call the API "ncs_db_link_list_remove()".
  *****************************************************************************/
 uint32_t ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uint8_t *key);
 
@@ -127,7 +129,8 @@ uint32_t ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uint8_t *key);
  * NOTE:
        It is the users responsibility to free the node pointer.
 *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uint8_t *key);
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr,
+                                               uint8_t *key);
 
 /*****************************************************************************
  * This is the API used to just delink the node from the doubly linked list
@@ -135,12 +138,14 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uint8
  * NOTE:
        It is the users responsibility to free the node pointer.
 *****************************************************************************/
-uint32_t ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node);
+uint32_t ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr,
+                                 NCS_DB_LINK_LIST_NODE *node);
 
 /*****************************************************************************
  * This is the API used to enqueue the given node to the top of the list.
  *****************************************************************************/
-uint32_t ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr);
+uint32_t ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr,
+                                 NCS_DB_LINK_LIST_NODE *node_ptr);
 
 /*****************************************************************************
  * This is the API used to dequeue the node from the bottom of the list.
@@ -150,7 +155,8 @@ NCS_DB_LINK_LIST_NODE *ncs_db_link_list_dequeue(NCS_DB_LINK_LIST *list_ptr);
 /*****************************************************************************
  * This is the API used to push the given node to the top of the list.
  *****************************************************************************/
-uint32_t ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr);
+uint32_t ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr,
+                               NCS_DB_LINK_LIST_NODE *node_ptr);
 
 /*****************************************************************************
  * This is the API used to pop the given node from the top of the list.

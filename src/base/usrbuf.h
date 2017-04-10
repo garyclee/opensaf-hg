@@ -71,19 +71,13 @@ typedef struct ub_pool_mgr {
  * NCSMMGR_UB_INIT Put USRBUF pool management svcs in start state
  ***************************************************************************/
 
-typedef struct ncsmmgr_ub_init {
-  void *i_meaningless;
-
-} NCSMMGR_UB_INIT;
+typedef struct ncsmmgr_ub_init { void *i_meaningless; } NCSMMGR_UB_INIT;
 
 /***************************************************************************
  * NCSMMGR_UB_DELETE  Disengage all USRBUF pools and recover resources
  ***************************************************************************/
 
-typedef struct ncsmmgr_ub_delete {
-  void *i_meaningless;
-
-} NCSMMGR_UB_DELETE;
+typedef struct ncsmmgr_ub_delete { void *i_meaningless; } NCSMMGR_UB_DELETE;
 
 /***************************************************************************
  * NCSMMGR_UB_REGISTER register pool properties in USRBUF service area.
@@ -151,8 +145,8 @@ typedef struct ncsmmgr_ub_lm_arg {
 uint32_t ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg);
 NCSUB_POOL *ncsmmgr_ub_getpool(uint8_t pool_id);
 
-#define m_NCSMMGR_UB_LM(a)           ncsmmgr_ub_lm(a)
-#define m_NCSMMGR_UB_GETPOOL(id)     ncsmmgr_ub_getpool(id)
+#define m_NCSMMGR_UB_LM(a) ncsmmgr_ub_lm(a)
+#define m_NCSMMGR_UB_GETPOOL(id) ncsmmgr_ub_getpool(id)
 
 /************************************************************************
 
@@ -175,27 +169,27 @@ NCSUB_POOL *ncsmmgr_ub_getpool(uint8_t pool_id);
 #define NCSPMGR_USE_LOCK_TYPE PMGR_NO_LOCKS
 #endif
 
-#if (NCSPMGR_USE_LOCK_TYPE == PMGR_NO_LOCKS)    /* NO Locks */
+#if (NCSPMGR_USE_LOCK_TYPE == PMGR_NO_LOCKS) /* NO Locks */
 
 #define m_PMGR_LK_CREATE(lk)
 #define m_PMGR_LK_INIT
 #define m_PMGR_LK(lk)
 #define m_PMGR_UNLK(lk)
 #define m_PMGR_LK_DLT(lk)
-#elif (NCSPMGR_USE_LOCK_TYPE == PMGR_TASK_LOCKS)        /* Task Locks */
+#elif (NCSPMGR_USE_LOCK_TYPE == PMGR_TASK_LOCKS) /* Task Locks */
 
 #define m_PMGR_LK_CREATE(lk)
-#define m_PMGR_LK_INIT            m_INIT_CRITICAL
-#define m_PMGR_LK(lk)             m_START_CRITICAL
-#define m_PMGR_UNLK(lk)           m_END_CRITICAL
+#define m_PMGR_LK_INIT m_INIT_CRITICAL
+#define m_PMGR_LK(lk) m_START_CRITICAL
+#define m_PMGR_UNLK(lk) m_END_CRITICAL
 #define m_PMGR_LK_DLT(lk)
 #elif (NCSPMGR_USE_LOCK_TYPE == PMGR_OBJ_LOCKS) /* Object Locks */
 
-#define m_PMGR_LK_CREATE(lk)      m_NCS_LOCK_INIT_V2(lk,0,0)
+#define m_PMGR_LK_CREATE(lk) m_NCS_LOCK_INIT_V2(lk, 0, 0)
 #define m_PMGR_LK_INIT
-#define m_PMGR_LK(lk)             m_NCS_LOCK_V2(lk,   NCS_LOCK_WRITE,0, 0)
-#define m_PMGR_UNLK(lk)           m_NCS_UNLOCK_V2(lk, NCS_LOCK_WRITE, 0, 0)
-#define m_PMGR_LK_DLT(lk)         m_NCS_LOCK_DESTROY_V2(lk, 0, 0)
+#define m_PMGR_LK(lk) m_NCS_LOCK_V2(lk, NCS_LOCK_WRITE, 0, 0)
+#define m_PMGR_UNLK(lk) m_NCS_UNLOCK_V2(lk, NCS_LOCK_WRITE, 0, 0)
+#define m_PMGR_LK_DLT(lk) m_NCS_LOCK_DESTROY_V2(lk, 0, 0)
 #endif
 
 #endif  // BASE_USRBUF_H_

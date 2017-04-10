@@ -62,16 +62,12 @@
  * Defines the type of the function called when a fatal error occurs.
  */
 typedef void (*ImmutilErrorFnT)(char const *fmt, ...)
-    __attribute__ ((format(printf, 1, 2)));
+    __attribute__((format(printf, 1, 2)));
 
 /**
  * Defines the command operation types.
  */
-enum CcbUtilOperationType {
-  CCBUTIL_CREATE,
-  CCBUTIL_DELETE,
-  CCBUTIL_MODIFY
-};
+enum CcbUtilOperationType { CCBUTIL_CREATE, CCBUTIL_DELETE, CCBUTIL_MODIFY };
 
 /**
  * This structure holds a stored command operation. The stored data is the same
@@ -171,10 +167,10 @@ EXTERN_C void ccbutil_ccbAddDeleteOperation(struct CcbUtilCcbData *ccb,
  */
 EXTERN_C int ccbutil_ccbAddModifyOperation(
     CcbUtilCcbData_t *ccb, const SaNameT *objectName,
-    const SaImmAttrModificationT_2 ** attrMods);
+    const SaImmAttrModificationT_2 **attrMods);
 
 EXTERN_C CcbUtilOperationData_t *ccbutil_getNextCcbOp(
-    SaImmOiCcbIdT id, CcbUtilOperationData_t * opData);
+    SaImmOiCcbIdT id, CcbUtilOperationData_t *opData);
 
 /**
  * Find a CCB operation using DN
@@ -252,7 +248,7 @@ EXTERN_C char const *immutil_getDnItem(SaNameT const *dn, unsigned int index);
  * @param index The value index (always 0 for single-value attributes)
  * @return The value or NULL if not found
  */
-EXTERN_C const SaNameT *immutil_getNameAttr(const SaImmAttrValuesT_2 ** attr,
+EXTERN_C const SaNameT *immutil_getNameAttr(const SaImmAttrValuesT_2 **attr,
                                             char const *name,
                                             unsigned int index);
 
@@ -276,8 +272,9 @@ EXTERN_C char const *immutil_getStringAttr(const SaImmAttrValuesT_2 **attr,
  * @param index The value index (always 0 for single-value attributes)
  * @return A pointer to the value or NULL if not found
  */
-EXTERN_C const SaUint32T *immutil_getUint32Attr(
-    const SaImmAttrValuesT_2 ** attr, char const *name, unsigned int index);
+EXTERN_C const SaUint32T *immutil_getUint32Attr(const SaImmAttrValuesT_2 **attr,
+                                                char const *name,
+                                                unsigned int index);
 
 /**
  * Return how many values a named attribute has
@@ -299,8 +296,8 @@ EXTERN_C SaAisErrorT immutil_getAttrValuesNumber(
  * @param index The value index (always 0 for single-value attributes)
  * @return A pointer to the value or NULL if not found
  */
-EXTERN_C const SaTimeT* immutil_getTimeAttr(const SaImmAttrValuesT_2 **attr,
-                                            char const* name,
+EXTERN_C const SaTimeT *immutil_getTimeAttr(const SaImmAttrValuesT_2 **attr,
+                                            char const *name,
                                             unsigned int index);
 
 /**
@@ -425,8 +422,8 @@ EXTERN_C SaAisErrorT immutil_saImmOiInitialize_2(
     const SaVersionT *version);
 
 EXTERN_C SaAisErrorT immutil_saImmOiInitialize_o3(
-    SaImmOiHandleT * immOiHandle, const SaImmOiCallbacksT_o3 *immOiCallbacks,
-    const SaVersionT * version);
+    SaImmOiHandleT *immOiHandle, const SaImmOiCallbacksT_o3 *immOiCallbacks,
+    const SaVersionT *version);
 
 EXTERN_C SaAisErrorT immutil_saImmOiSelectionObjectGet(
     SaImmOiHandleT immOiHandle, SaSelectionObjectT *selectionObject);
@@ -438,26 +435,22 @@ EXTERN_C SaAisErrorT immutil_saImmOiClassImplementerRelease(
     SaImmOiHandleT immOiHandle, const char *className);
 
 EXTERN_C SaAisErrorT immutil_saImmOiObjectImplementerSet(
-    SaImmOiHandleT immOiHandle, const SaNameT *objectName,
-    SaImmScopeT scope);
+    SaImmOiHandleT immOiHandle, const SaNameT *objectName, SaImmScopeT scope);
 
 EXTERN_C SaAisErrorT immutil_saImmOiObjectImplementerSet_o3(
-    SaImmOiHandleT immOiHandle, const char* objectName,
-    SaImmScopeT scope);
+    SaImmOiHandleT immOiHandle, const char *objectName, SaImmScopeT scope);
 
 EXTERN_C SaAisErrorT immutil_saImmOiObjectImplementerRelease(
-    SaImmOiHandleT immOiHandle, const SaNameT *objectName,
-    SaImmScopeT scope);
+    SaImmOiHandleT immOiHandle, const SaNameT *objectName, SaImmScopeT scope);
 
 EXTERN_C SaAisErrorT immutil_saImmOiObjectImplementerRelease_o3(
-    SaImmOiHandleT immOiHandle, const char* objectName,
-    SaImmScopeT scope);
+    SaImmOiHandleT immOiHandle, const char *objectName, SaImmScopeT scope);
 
 EXTERN_C SaAisErrorT immutil_saImmOiImplementerSet(
     SaImmOiHandleT immOiHandle, const SaImmOiImplementerNameT implementerName);
 
-EXTERN_C SaAisErrorT immutil_saImmOiImplementerClear(
-    SaImmOiHandleT immOiHandle);
+EXTERN_C SaAisErrorT
+immutil_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
 
 EXTERN_C SaAisErrorT immutil_saImmOiRtObjectCreate_2(
     SaImmOiHandleT immOiHandle, const SaImmClassNameT className,
@@ -469,7 +462,7 @@ EXTERN_C SaAisErrorT immutil_saImmOiRtObjectCreate_o2(
 
 EXTERN_C SaAisErrorT immutil_saImmOiRtObjectCreate_o3(
     SaImmOiHandleT immOiHandle, const SaImmClassNameT className,
-    const char* objectName, const SaImmAttrValuesT_2 **attrValues);
+    const char *objectName, const SaImmAttrValuesT_2 **attrValues);
 
 EXTERN_C SaAisErrorT immutil_saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle,
                                                    const SaNameT *objectName);
@@ -478,7 +471,7 @@ EXTERN_C SaAisErrorT immutil_saImmOiRtObjectDelete_o2(
     SaImmOiHandleT immOiHandle, const char *objectName);
 
 EXTERN_C SaAisErrorT immutil_saImmOiRtObjectDelete_o3(
-    SaImmOiHandleT immOiHandle, const char* objectName);
+    SaImmOiHandleT immOiHandle, const char *objectName);
 
 EXTERN_C SaAisErrorT immutil_saImmOiRtObjectUpdate_2(
     SaImmOiHandleT immOiHandle, const SaNameT *objectName,
@@ -489,7 +482,7 @@ EXTERN_C SaAisErrorT immutil_saImmOiRtObjectUpdate_o2(
     const SaImmAttrModificationT_2 **attrMods);
 
 EXTERN_C SaAisErrorT immutil_saImmOiRtObjectUpdate_o3(
-    SaImmOiHandleT immOiHandle, const char* objectName,
+    SaImmOiHandleT immOiHandle, const char *objectName,
     const SaImmAttrModificationT_2 **attrMods);
 
 EXTERN_C SaAisErrorT immutil_saImmOiAdminOperationResult(
@@ -528,50 +521,46 @@ EXTERN_C SaAisErrorT immutil_saImmOmAccessorGet_o2(
     const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes);
 
 EXTERN_C SaAisErrorT immutil_saImmOmAccessorGet_o3(
-    SaImmAccessorHandleT accessorHandle, const char* objectName,
+    SaImmAccessorHandleT accessorHandle, const char *objectName,
     const SaImmAttrNameT *attributeNames, SaImmAttrValuesT_2 ***attributes);
 
 EXTERN_C SaAisErrorT immutil_saImmOmAccessorGetConfigAttrs(
     SaImmAccessorHandleT accessorHandle, const SaNameT *objectName,
     SaImmAttrValuesT_2 ***attributes);
 
-EXTERN_C SaAisErrorT immutil_saImmOmAccessorFinalize(
-    SaImmAccessorHandleT accessorHandle);
+EXTERN_C SaAisErrorT
+immutil_saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle);
 
 EXTERN_C SaAisErrorT immutil_saImmOmClassCreate_2(
     SaImmCcbHandleT immCcbHandle, const SaImmClassNameT className,
     const SaImmClassCategoryT classCategory,
-    const SaImmAttrDefinitionT_2** attrDefinitions);
+    const SaImmAttrDefinitionT_2 **attrDefinitions);
 
 EXTERN_C SaAisErrorT immutil_saImmOmClassDelete(
     SaImmCcbHandleT immCcbHandle, const SaImmClassNameT className);
 
 /**
- * Wrapper for saImmOmSearchInitialize_2/_o2/_o3 The SA_AIS_ERR_NOT_EXIST error code
- * is not considered an error and is always returned even if "errorsAreFatal" is
- * set.
+ * Wrapper for saImmOmSearchInitialize_2/_o2/_o3 The SA_AIS_ERR_NOT_EXIST error
+ * code is not considered an error and is always returned even if
+ * "errorsAreFatal" is set.
  */
-EXTERN_C SaAisErrorT
-immutil_saImmOmSearchInitialize_2(SaImmHandleT immHandle,
-                                  const SaNameT *rootName, SaImmScopeT scope,
-                                  SaImmSearchOptionsT searchOptions,
-                                  const SaImmSearchParametersT_2 *searchParam,
-                                  const SaImmAttrNameT *attributeNames,
-                                  SaImmSearchHandleT *searchHandle);
+EXTERN_C SaAisErrorT immutil_saImmOmSearchInitialize_2(
+    SaImmHandleT immHandle, const SaNameT *rootName, SaImmScopeT scope,
+    SaImmSearchOptionsT searchOptions,
+    const SaImmSearchParametersT_2 *searchParam,
+    const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle);
 
-EXTERN_C SaAisErrorT
-immutil_saImmOmSearchInitialize_o2(SaImmHandleT immHandle, const char *rootName,
-                                   SaImmScopeT scope,
-                                   SaImmSearchOptionsT searchOptions,
-                                   const SaImmSearchParametersT_2 *searchParam,
-                                   const SaImmAttrNameT *attributeNames,
-                                   SaImmSearchHandleT *searchHandle);
+EXTERN_C SaAisErrorT immutil_saImmOmSearchInitialize_o2(
+    SaImmHandleT immHandle, const char *rootName, SaImmScopeT scope,
+    SaImmSearchOptionsT searchOptions,
+    const SaImmSearchParametersT_2 *searchParam,
+    const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle);
 
-EXTERN_C SaAisErrorT
-immutil_saImmOmSearchInitialize_o3(SaImmHandleT immHandle, const char* rootName,
-                                   SaImmScopeT scope, SaImmSearchOptionsT searchOptions,
-                                   const SaImmSearchParametersT_2 *searchParam, const SaImmAttrNameT *attributeNames,
-                                   SaImmSearchHandleT *searchHandle);
+EXTERN_C SaAisErrorT immutil_saImmOmSearchInitialize_o3(
+    SaImmHandleT immHandle, const char *rootName, SaImmScopeT scope,
+    SaImmSearchOptionsT searchOptions,
+    const SaImmSearchParametersT_2 *searchParam,
+    const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle);
 
 /**
  * Wrapper for saImmOmSearchFinalize
@@ -580,36 +569,36 @@ EXTERN_C SaAisErrorT
 immutil_saImmOmSearchFinalize(SaImmSearchHandleT searchHandle);
 
 /**
- * Wrapper for saImmOmSearchNext_2/o2/_o3 The SA_AIS_ERR_NOT_EXIST error code is not
- * considered an error and is always returned even if "errorsAreFatal" is set.
+ * Wrapper for saImmOmSearchNext_2/o2/_o3 The SA_AIS_ERR_NOT_EXIST error code is
+ * not considered an error and is always returned even if "errorsAreFatal" is
+ * set.
  */
-EXTERN_C SaAisErrorT
-immutil_saImmOmSearchNext_2(SaImmSearchHandleT searchHandle,
-                            SaNameT *objectName,
-                            SaImmAttrValuesT_2 ***attributes);
+EXTERN_C SaAisErrorT immutil_saImmOmSearchNext_2(
+    SaImmSearchHandleT searchHandle, SaNameT *objectName,
+    SaImmAttrValuesT_2 ***attributes);
 
 EXTERN_C SaAisErrorT
 immutil_saImmOmSearchNext_o2(SaImmSearchHandleT searchHandle, char **objectName,
                              SaImmAttrValuesT_2 ***attributes);
 
 EXTERN_C SaAisErrorT
-immutil_saImmOmSearchNext_o3(SaImmSearchHandleT searchHandle, char** objectName,
+immutil_saImmOmSearchNext_o3(SaImmSearchHandleT searchHandle, char **objectName,
                              SaImmAttrValuesT_2 ***attributes);
 
 /**
  * Wrapper for saImmOmAdminOwnerClear/_o2/_o3
  */
-EXTERN_C SaAisErrorT
-immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle,
-                               const SaNameT **objectNames, SaImmScopeT scope);
+EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle,
+                                                    const SaNameT **objectNames,
+                                                    SaImmScopeT scope);
 
-EXTERN_C SaAisErrorT
-immutil_saImmOmAdminOwnerClear_o2(SaImmHandleT immHandle,
-                                  const char **objectNames, SaImmScopeT scope);
+EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerClear_o2(SaImmHandleT immHandle,
+                                                       const char **objectNames,
+                                                       SaImmScopeT scope);
 
-EXTERN_C SaAisErrorT
-immutil_saImmOmAdminOwnerClear_o3(SaImmHandleT immHandle,
-                                  const char** objectNames, SaImmScopeT scope);
+EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerClear_o3(SaImmHandleT immHandle,
+                                                       const char **objectNames,
+                                                       SaImmScopeT scope);
 
 /**
  * Wrapper for saImmOiFinalize
@@ -626,8 +615,8 @@ EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerInitialize(
 /**
  * Wrapper for saImmOmAdminOwnerFinalize
  */
-EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerFinalize(
-    SaImmAdminOwnerHandleT ownerHandle);
+EXTERN_C SaAisErrorT
+immutil_saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT ownerHandle);
 
 /**
  * Wrapper for saImmOmCcbInitialize
@@ -659,29 +648,29 @@ EXTERN_C SaAisErrorT immutil_saImmOmCcbValidate(SaImmCcbHandleT immCcbHandle);
 /**
  * Wrapper for saImmOmAdminOwnerSet/_o2/_o3
  */
-EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerSet(
-    SaImmAdminOwnerHandleT ownerHandle, const SaNameT** name,
-    SaImmScopeT scope);
+EXTERN_C SaAisErrorT
+immutil_saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT ownerHandle,
+                             const SaNameT **name, SaImmScopeT scope);
 
 EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerSet_o2(
-    SaImmAdminOwnerHandleT ownerHandle, const char ** name, SaImmScopeT scope);
+    SaImmAdminOwnerHandleT ownerHandle, const char **name, SaImmScopeT scope);
 
-EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerSet_o3(
-    SaImmAdminOwnerHandleT adminOwnerHandle, const char** objectNames,
-    SaImmScopeT scope);
+EXTERN_C SaAisErrorT
+immutil_saImmOmAdminOwnerSet_o3(SaImmAdminOwnerHandleT adminOwnerHandle,
+                                const char **objectNames, SaImmScopeT scope);
 
 /**
  * Wrapper for saImmOmAdminOwnerRelease/_o2/_o3
  */
-EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerRelease(
-    SaImmAdminOwnerHandleT ownerHandle, const SaNameT** name,
-    SaImmScopeT scope);
+EXTERN_C SaAisErrorT
+immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
+                                 const SaNameT **name, SaImmScopeT scope);
 
 EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerRelease_o2(
-    SaImmAdminOwnerHandleT ownerHandle, const char ** name, SaImmScopeT scope);
+    SaImmAdminOwnerHandleT ownerHandle, const char **name, SaImmScopeT scope);
 
 EXTERN_C SaAisErrorT immutil_saImmOmAdminOwnerRelease_o3(
-    SaImmAdminOwnerHandleT adminOwnerHandle, const char** objectNames,
+    SaImmAdminOwnerHandleT adminOwnerHandle, const char **objectNames,
     SaImmScopeT scope);
 
 /**
@@ -714,10 +703,11 @@ EXTERN_C SaAisErrorT immutil_saImmOmAdminOperationInvoke_2(
     SaAisErrorT *operationReturnValue, SaTimeT timeout);
 
 EXTERN_C SaAisErrorT immutil_saImmOmAdminOperationInvoke_o3(
-    SaImmAdminOwnerHandleT ownerHandle, const char* objectName,
+    SaImmAdminOwnerHandleT ownerHandle, const char *objectName,
     SaImmContinuationIdT continuationId, SaImmAdminOperationIdT operationId,
-    const SaImmAdminOperationParamsT_2 **params, SaAisErrorT *operationReturnValue,
-    SaTimeT timeout, SaImmAdminOperationParamsT_2 ***returnParams);
+    const SaImmAdminOperationParamsT_2 **params,
+    SaAisErrorT *operationReturnValue, SaTimeT timeout,
+    SaImmAdminOperationParamsT_2 ***returnParams);
 
 /**
  * Wrapper for saImmOmAdminOperationInvokeAsync_2/_o3
@@ -725,41 +715,43 @@ EXTERN_C SaAisErrorT immutil_saImmOmAdminOperationInvoke_o3(
 EXTERN_C SaAisErrorT immutil_saImmOmAdminOperationInvokeAsync_2(
     SaImmAdminOwnerHandleT ownerHandle, SaInvocationT userInvocation,
     const SaNameT *objectName, SaImmContinuationIdT continuationId,
-    SaImmAdminOperationIdT operationId, const SaImmAdminOperationParamsT_2 **params);
+    SaImmAdminOperationIdT operationId,
+    const SaImmAdminOperationParamsT_2 **params);
 
 EXTERN_C SaAisErrorT immutil_saImmOmAdminOperationInvokeAsync_o3(
     SaImmAdminOwnerHandleT ownerHandle, SaInvocationT userInvocation,
-    const char* objectName, SaImmContinuationIdT continuationId,
-    SaImmAdminOperationIdT operationId, const SaImmAdminOperationParamsT_2 **params);
+    const char *objectName, SaImmContinuationIdT continuationId,
+    SaImmAdminOperationIdT operationId,
+    const SaImmAdminOperationParamsT_2 **params);
 
 /**
  * Wrapper for saImmOmCcbObjectCreate_2/_o2/_o3
  */
 EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectCreate_2(
     SaImmCcbHandleT immCcbHandle, const SaImmClassNameT className,
-    const SaNameT *parent, const SaImmAttrValuesT_2** attrValues);
+    const SaNameT *parent, const SaImmAttrValuesT_2 **attrValues);
 
 EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectCreate_o2(
     SaImmCcbHandleT immCcbHandle, const SaImmClassNameT className,
-    const char *parent, const SaImmAttrValuesT_2** attrValues);
+    const char *parent, const SaImmAttrValuesT_2 **attrValues);
 
 EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectCreate_o3(
-    SaImmCcbHandleT ccbHandle, const char* className,
-    const char* const objectName, const SaImmAttrValuesT_2 **attrValues);
+    SaImmCcbHandleT ccbHandle, const char *className,
+    const char *const objectName, const SaImmAttrValuesT_2 **attrValues);
 
 /**
  * Wrapper for saImmOmCcbObjectModify_2/_o2/_o3
  */
 EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectModify_2(
     SaImmCcbHandleT immCcbHandle, const SaNameT *objectName,
-    const SaImmAttrModificationT_2** attrMods);
+    const SaImmAttrModificationT_2 **attrMods);
 
 EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectModify_o2(
     SaImmCcbHandleT immCcbHandle, const char *objectName,
-    const SaImmAttrModificationT_2** attrMods);
+    const SaImmAttrModificationT_2 **attrMods);
 
 EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectModify_o3(
-    SaImmCcbHandleT ccbHandle, const char* objectName,
+    SaImmCcbHandleT ccbHandle, const char *objectName,
     const SaImmAttrModificationT_2 **attrMods);
 
 /**
@@ -772,7 +764,7 @@ EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectDelete_o2(
     SaImmCcbHandleT immCcbHandle, const char *objectName);
 
 EXTERN_C SaAisErrorT immutil_saImmOmCcbObjectDelete_o3(
-    SaImmCcbHandleT ccbHandle, const char* objectName);
+    SaImmCcbHandleT ccbHandle, const char *objectName);
 
 /**
  * Wrapper for saImmOmCcbObjectRead

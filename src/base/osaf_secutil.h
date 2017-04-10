@@ -29,7 +29,7 @@
 
 /* Support for building with LSB compiler */
 #ifndef SO_PEERCRED
-#define SO_PEERCRED     17
+#define SO_PEERCRED 17
 struct ucred {
   pid_t pid;
   uid_t uid;
@@ -37,7 +37,7 @@ struct ucred {
 };
 #endif
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -56,8 +56,8 @@ extern "C" {
  * @return on success length of received message, on failure negated errno,
  *                      on timeout 0.
  */
-int osaf_auth_server_connect(const char *path,
-                             const void *req_buf, size_t req_size, void *resp_buf, size_t resp_size,
+int osaf_auth_server_connect(const char *path, const void *req_buf,
+                             size_t req_size, void *resp_buf, size_t resp_size,
                              int64_t timeout);
 
 /**
@@ -90,14 +90,16 @@ bool osaf_user_is_member_of_group(uid_t uid, const char *groupname);
 
 /**
  * Get list of groups that a user belong to
- * There already is a function in LSB for this purpose (getgrouplist) but it is not standard.
+ * There already is a function in LSB for this purpose (getgrouplist) but it is
+ * not standard.
  *
- * This function provides the same interface as getgrouplist(3) in glibc. Refer to the man
- * page for the interface description.
+ * This function provides the same interface as getgrouplist(3) in glibc. Refer
+ * to the man page for the interface description.
  */
-int osaf_getgrouplist(const char* user, gid_t group, gid_t* groups, int* ngroups);
+int osaf_getgrouplist(const char *user, gid_t group, gid_t *groups,
+                      int *ngroups);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

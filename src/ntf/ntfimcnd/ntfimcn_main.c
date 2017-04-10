@@ -38,11 +38,7 @@
 
 #define NTFIMCN_DEFAULT_LOG "osafntfimcn"
 
-enum {
-	FD_IMM = 0,
-	SIZE_FDS
-} NTFIMCN_FDS;
-
+enum { FD_IMM = 0, SIZE_FDS } NTFIMCN_FDS;
 
 /*
  * Global parameters
@@ -51,7 +47,7 @@ ntfimcn_cb_t ntfimcn_cb;
 
 static struct pollfd fds[SIZE_FDS];
 static nfds_t nfds = SIZE_FDS;
-static unsigned int category_mask=0;
+static unsigned int category_mask = 0;
 
 void imcn_exit(int status)
 {
@@ -88,7 +84,7 @@ static void sigusr2_handler(int sig)
  */
 static void sigterm_handler(int sig)
 {
-	(void) sig;
+	(void)sig;
 	signal(SIGTERM, SIG_IGN);
 	_Exit(EXIT_SUCCESS);
 }
@@ -96,10 +92,10 @@ static void sigterm_handler(int sig)
 /*
  * Exit if anything fails. This will cause ntfs to restart ntfimcn
  */
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	const char* logPath;
-	const char* trace_label = "osafntfimcnd";
+	const char *logPath;
+	const char *trace_label = "osafntfimcnd";
 	SaAisErrorT ais_error = SA_AIS_OK;
 
 	// To make sure the SIGTERM is not lost during init phase
@@ -118,8 +114,7 @@ int main(int argc, char** argv)
 		logPath = PKGLOGDIR "/" NTFIMCN_DEFAULT_LOG;
 	}
 
-	if (logtrace_init(trace_label, logPath, category_mask) == -1)
-	{
+	if (logtrace_init(trace_label, logPath, category_mask) == -1) {
 		syslog(LOG_ERR, "osafntfimcnd logtrace_init FAILED");
 		/* We allow to execute anyway. */
 	}
@@ -127,7 +122,7 @@ int main(int argc, char** argv)
 	/*
 	 * Initiate HA state
 	 */
-	if (strcmp(argv[1],"active") == 0) {
+	if (strcmp(argv[1], "active") == 0) {
 		ntfimcn_cb.haState = SA_AMF_HA_ACTIVE;
 	} else {
 		ntfimcn_cb.haState = SA_AMF_HA_STANDBY;
@@ -177,9 +172,11 @@ int main(int argc, char** argv)
 		}
 
 		if (fds[FD_IMM].revents & POLLIN) {
-			ais_error = saImmOiDispatch(ntfimcn_cb.immOiHandle, SA_DISPATCH_ALL);
+			ais_error = saImmOiDispatch(ntfimcn_cb.immOiHandle,
+						    SA_DISPATCH_ALL);
 			if (ais_error != SA_AIS_OK) {
-				LOG_NO("saImmOiDispatch() Fail %s",saf_error(ais_error));
+				LOG_NO("saImmOiDispatch() Fail %s",
+				       saf_error(ais_error));
 				imcn_exit(EXIT_FAILURE);
 			}
 		}
@@ -187,4 +184,3 @@ int main(int argc, char** argv)
 
 	return 0; /* Dummy */
 }
-

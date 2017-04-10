@@ -54,31 +54,23 @@ typedef enum ntfsv_discarded_rec_type {
 
 /* Registrationlist checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-  uint32_t client_id;     /* Registration Id at Active */
-  MDS_DEST mds_dest;      /* Handy when an NTFA instance goes away */
-  SaVersionT version;     /* SAF version of the client.*/
+  uint32_t client_id; /* Registration Id at Active */
+  MDS_DEST mds_dest;  /* Handy when an NTFA instance goes away */
+  SaVersionT version; /* SAF version of the client.*/
 } ntfs_ckpt_reg_msg_t;
 
 /* finalize checkpoint record, used in cold/async checkpoint updates */
 typedef struct {
-  uint32_t client_id;     /* Registration Id at Active */
+  uint32_t client_id; /* Registration Id at Active */
 } ntfsv_ckpt_finalize_msg_t;
 
-typedef struct {
-  ntfsv_send_not_req_t *arg;
-} ntfs_ckpt_notification_t;
+typedef struct { ntfsv_send_not_req_t *arg; } ntfs_ckpt_notification_t;
 
-typedef struct {
-  ntfsv_subscribe_req_t arg;
-} ntfs_ckpt_subscribe_t;
+typedef struct { ntfsv_subscribe_req_t arg; } ntfs_ckpt_subscribe_t;
 
-typedef struct {
-  ntfsv_unsubscribe_req_t arg;
-} ntfs_ckpt_unsubscribe_t;
+typedef struct { ntfsv_unsubscribe_req_t arg; } ntfs_ckpt_unsubscribe_t;
 
-typedef struct {
-  SaNtfIdentifierT notificationId;
-} ntfs_ckpt_not_log_confirm_t;
+typedef struct { SaNtfIdentifierT notificationId; } ntfs_ckpt_not_log_confirm_t;
 
 typedef struct {
   uint32_t clientId;
@@ -91,9 +83,10 @@ typedef struct {
  * Used during cold and async updates.
  */
 typedef struct {
-  ntfsv_ckpt_msg_type_t ckpt_rec_type;    /* Type of ntfs data carried in this checkpoint */
-  uint32_t num_ckpt_records;      /* =1 for async updates,>=1 for cold sync */
-  uint32_t data_len;              /* Total length of encoded checkpoint data of this type */
+  ntfsv_ckpt_msg_type_t
+      ckpt_rec_type;         /* Type of ntfs data carried in this checkpoint */
+  uint32_t num_ckpt_records; /* =1 for async updates,>=1 for cold sync */
+  uint32_t data_len; /* Total length of encoded checkpoint data of this type */
 } ntfsv_ckpt_header_t;
 
 typedef struct {
@@ -110,13 +103,15 @@ typedef struct {
   } ckpt_rec;
 } ntfsv_ckpt_msg_t;
 
-typedef uint32_t (*NTFS_CKPT_HDLR) (ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+typedef uint32_t (*NTFS_CKPT_HDLR)(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
 uint32_t ntfs_mbcsv_init(ntfs_cb_t *ntfs_cb, SaAmfHAStateT ha_state);
 uint32_t ntfs_mbcsv_change_HA_state(ntfs_cb_t *cb, SaAmfHAStateT ha_state);
 uint32_t ntfs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
-uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec, uint32_t action);
+uint32_t ntfs_send_async_update(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *ckpt_rec,
+                                uint32_t action);
 void update_standby(ntfsv_ckpt_msg_t *ckpt, uint32_t action);
-uint32_t enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type, uint32_t num_rec, uint32_t len);
+uint32_t enc_ckpt_reserv_header(NCS_UBAID *uba, ntfsv_ckpt_msg_type_t type,
+                                uint32_t num_rec, uint32_t len);
 uint32_t enc_mbcsv_client_msg(NCS_UBAID *uba, ntfs_ckpt_reg_msg_t *param);
 
 #endif  // NTF_NTFD_NTFS_MBCSV_H_

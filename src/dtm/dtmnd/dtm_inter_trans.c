@@ -22,12 +22,14 @@
 
 uint32_t dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len);
 
-uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_id);
+uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len,
+				       NODE_ID node_id);
 
 uint32_t dtm_internode_process_pollout(int fd);
 uint32_t dtm_prepare_data_msg(uint8_t *buffer, uint16_t len);
-static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB * node);
-static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uint16_t len);
+static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB *node);
+static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB *node, uint8_t *buffer,
+					     uint16_t len);
 
 /**
  * Function to process rcv data message internode
@@ -38,7 +40,8 @@ static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_internode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid, uint16_t len)
+uint32_t dtm_internode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid,
+					    uint16_t len)
 {
 	/* Post the event to the mailbox of the intra_thread */
 	DTM_RCV_MSG_ELEM *dtm_msg_elem = NULL;
@@ -51,7 +54,8 @@ uint32_t dtm_internode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid, u
 	dtm_msg_elem->info.data.len = len;
 	dtm_msg_elem->info.data.dst_pid = dst_pid;
 	dtm_msg_elem->info.data.buffer = buffer;
-	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem, dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtm_intranode_cb->mbx, dtm_msg_elem,
+			    dtm_msg_elem->pri)) != NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(dtm_msg_elem);
 		TRACE("DTM : Intranode IPC_SEND : DATA MSG: FAILED");
@@ -73,7 +77,8 @@ uint32_t dtm_internode_process_rcv_data_msg(uint8_t *buffer, uint32_t dst_pid, u
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len, NODE_ID node_id)
+uint32_t dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len,
+				  NODE_ID node_id)
 {
 	/* Post the event to the mailbox of the inter_thread */
 	DTM_SND_MSG_ELEM *msg_elem = NULL;
@@ -86,7 +91,8 @@ uint32_t dtm_add_to_msg_dist_list(uint8_t *buffer, uint16_t len, NODE_ID node_id
 	msg_elem->info.data.buffer = buffer;
 	msg_elem->info.data.dst_nodeid = node_id;
 	msg_elem->info.data.buff_len = len;
-	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) != NCSCC_RC_SUCCESS) {
+	if ((m_NCS_IPC_SEND(&dtms_gl_cb->mbx, msg_elem, msg_elem->pri)) !=
+	    NCSCC_RC_SUCCESS) {
 		/* Message Queuing failed */
 		free(msg_elem);
 		TRACE("DTM : Internode IPC_SEND : MSG EVENT : FAILED");
@@ -140,14 +146,15 @@ uint32_t dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len)
 	while (NULL != (node = dtm_node_getnext_by_id(node_id))) {
 		node_id = node->node_id;
 		/* send only to fully connected peers */
-		if ((node_id != dtms_gl_cb->node_id) &&	node->comm_status) {
+		if ((node_id != dtms_gl_cb->node_id) && node->comm_status) {
 			uint8_t *buf_send = NULL;
 			if (NULL == (buf_send = calloc(1, len))) {
-				TRACE("DTM :calloc failed for snd_msg_to_all_nodes");
+				TRACE(
+				    "DTM :calloc failed for snd_msg_to_all_nodes");
 				free(buffer);
 				return NCSCC_RC_FAILURE;
 			}
-			memcpy(buf_send, buffer, len);	
+			memcpy(buf_send, buffer, len);
 			dtm_internode_snd_msg_common(node, buf_send, len);
 		}
 	}
@@ -165,9 +172,11 @@ uint32_t dtm_internode_snd_msg_to_all_nodes(uint8_t *buffer, uint16_t len)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer, uint16_t len)
+static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB *node, uint8_t *buffer,
+					     uint16_t len)
 {
-	DTM_INTERNODE_UNSENT_MSGS *add_ptr = NULL, *hdr = node->msgs_hdr, *tail = node->msgs_tail;
+	DTM_INTERNODE_UNSENT_MSGS *add_ptr = NULL, *hdr = node->msgs_hdr,
+				  *tail = node->msgs_tail;
 	TRACE_ENTER();
 	if (NULL == hdr) {
 		/* Send the message */
@@ -178,10 +187,15 @@ static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer
 			free(buffer);
 			return NCSCC_RC_SUCCESS;
 		} else {
-			TRACE("DTM: nsend failed, total_len : %d, send_len : %d", len, send_len);
+			TRACE(
+			    "DTM: nsend failed, total_len : %d, send_len : %d",
+			    len, send_len);
 			/* Queue the message */
-			if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTERNODE_UNSENT_MSGS)))) {
-				TRACE("DTM :Calloc failed DTM_INTERNODE_UNSENT_MSGS");
+			if (NULL ==
+			    (add_ptr = calloc(
+				 1, sizeof(DTM_INTERNODE_UNSENT_MSGS)))) {
+				TRACE(
+				    "DTM :Calloc failed DTM_INTERNODE_UNSENT_MSGS");
 				return NCSCC_RC_FAILURE;
 			}
 			add_ptr->next = NULL;
@@ -189,12 +203,14 @@ static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer
 			add_ptr->len = len;
 			node->msgs_hdr = add_ptr;
 			node->msgs_tail = add_ptr;
-			dtm_internode_set_poll_fdlist(node->comm_socket, POLLOUT);
+			dtm_internode_set_poll_fdlist(node->comm_socket,
+						      POLLOUT);
 			return NCSCC_RC_SUCCESS;
 		}
 	} else {
 		/* Queue the message */
-		if (NULL == (add_ptr = calloc(1, sizeof(DTM_INTERNODE_UNSENT_MSGS)))) {
+		if (NULL ==
+		    (add_ptr = calloc(1, sizeof(DTM_INTERNODE_UNSENT_MSGS)))) {
 			TRACE("DTM :Calloc failed DTM_INTERNODE_UNSENT_MSGS");
 			return NCSCC_RC_FAILURE;
 		} else {
@@ -203,7 +219,8 @@ static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer
 			add_ptr->len = len;
 			tail->next = add_ptr;
 			node->msgs_tail = add_ptr;
-			dtm_internode_set_poll_fdlist(node->comm_socket, POLLOUT);
+			dtm_internode_set_poll_fdlist(node->comm_socket,
+						      POLLOUT);
 			return NCSCC_RC_SUCCESS;
 		}
 	}
@@ -220,7 +237,8 @@ static uint32_t dtm_internode_snd_msg_common(DTM_NODE_DB * node, uint8_t *buffer
  * @return NCSCC_RC_FAILURE
  *
  */
-uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID node_id)
+uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len,
+				       NODE_ID node_id)
 {
 	DTM_NODE_DB *node = NULL;
 
@@ -228,7 +246,8 @@ uint32_t dtm_internode_snd_msg_to_node(uint8_t *buffer, uint16_t len, NODE_ID no
 	node = dtm_node_get_by_id(node_id);
 
 	if (NULL != node) {
-		if (NCSCC_RC_SUCCESS != dtm_internode_snd_msg_common(node, buffer, len)) {
+		if (NCSCC_RC_SUCCESS !=
+		    dtm_internode_snd_msg_common(node, buffer, len)) {
 			free(buffer);
 			TRACE_LEAVE();
 			return NCSCC_RC_FAILURE;
@@ -259,14 +278,16 @@ uint32_t dtm_internode_process_pollout(int fd)
 	TRACE_ENTER();
 	node = dtm_node_get_by_comm_socket((uint32_t)fd);
 	if (NULL == node) {
-		LOG_ER("DTM :No node matching the fd for pollout, delete this fd from fd list ");
+		LOG_ER(
+		    "DTM :No node matching the fd for pollout, delete this fd from fd list ");
 		osafassert(0);
 		return NCSCC_RC_FAILURE;
 	} else {
 		/* Get the unsent messages from the list and send them */
 		DTM_INTERNODE_UNSENT_MSGS *hdr = node->msgs_hdr;
 		if (NULL == hdr) {
-			/* No messages to be sent, reset the POLLOUT event on this fd */
+			/* No messages to be sent, reset the POLLOUT event on
+			 * this fd */
 			dtm_internode_reset_poll_fdlist(node->comm_socket);
 		} else {
 			dtm_internode_snd_unsent_msg(node);
@@ -278,7 +299,6 @@ uint32_t dtm_internode_process_pollout(int fd)
 
 #define DTM_INTERNODE_SND_MAX_COUNT 15
 
-
 /**
  * Function to process unsent message
  *
@@ -288,9 +308,10 @@ uint32_t dtm_internode_process_pollout(int fd)
  * @return NCSCC_RC_FAILURE
  *
  */
-static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB * node)
+static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB *node)
 {
-	DTM_INTERNODE_UNSENT_MSGS *hdr = node->msgs_hdr, *unsent_msg = node->msgs_hdr;
+	DTM_INTERNODE_UNSENT_MSGS *hdr = node->msgs_hdr,
+				  *unsent_msg = node->msgs_hdr;
 	int snd_count = 0;
 	TRACE_ENTER();
 	if (NULL == unsent_msg) {
@@ -300,13 +321,16 @@ static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB * node)
 	while (NULL != unsent_msg) {
 		/* Send the message */
 		int send_len = 0;
-		send_len = send(node->comm_socket, unsent_msg->buffer, unsent_msg->len, MSG_NOSIGNAL);
+		send_len = send(node->comm_socket, unsent_msg->buffer,
+				unsent_msg->len, MSG_NOSIGNAL);
 
 		if (send_len == unsent_msg->len) {
 			free(unsent_msg->buffer);
 			unsent_msg->buffer = NULL;
 			snd_count++;
-			TRACE("DTM: send success, total_len : %d, send_len : %d", unsent_msg->len, send_len);
+			TRACE(
+			    "DTM: send success, total_len : %d, send_len : %d",
+			    unsent_msg->len, send_len);
 			if (DTM_INTERNODE_SND_MAX_COUNT == snd_count) {
 				break;
 			}
@@ -316,8 +340,10 @@ static uint32_t dtm_internode_snd_unsent_msg(DTM_NODE_DB * node)
 	}
 
 	if (snd_count > 0) {
-		DTM_INTERNODE_UNSENT_MSGS *mov_ptr = node->msgs_hdr, *del_ptr = NULL;
-		/* Messages send from unsent messages list, now delete their entries */
+		DTM_INTERNODE_UNSENT_MSGS *mov_ptr = node->msgs_hdr,
+					  *del_ptr = NULL;
+		/* Messages send from unsent messages list, now delete their
+		 * entries */
 		while (NULL != hdr) {
 			if (NULL == hdr->buffer) {
 				del_ptr = hdr;

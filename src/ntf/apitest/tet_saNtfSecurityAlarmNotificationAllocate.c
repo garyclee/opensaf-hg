@@ -20,34 +20,38 @@
 #include "tet_ntf.h"
 #include "tet_ntf_common.h"
 
-void saNtfSecurityAlarmNotificationAllocate_01(void) {
-	SaNtfSecurityAlarmNotificationT  myNotification;
+void saNtfSecurityAlarmNotificationAllocate_01(void)
+{
+	SaNtfSecurityAlarmNotificationT myNotification;
 	saNotificationAllocationParamsT myNotificationAllocationParams;
-	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationFilterAllocationParamsT
+	    myNotificationFilterAllocationParams;
 	saNotificationParamsT myNotificationParams;
 
 	fillInDefaultValues(&myNotificationAllocationParams,
-			&myNotificationFilterAllocationParams, &myNotificationParams);
+			    &myNotificationFilterAllocationParams,
+			    &myNotificationParams);
 
-	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion),
+		  SA_AIS_OK);
 
 	rc = saNtfSecurityAlarmNotificationAllocate(
-					ntfHandle, /* handle to Notification Service instance */
-					&myNotification,
-					/* number of correlated notifications */
-					myNotificationAllocationParams.numCorrelatedNotifications,
-					/* length of additional text */
-					myNotificationAllocationParams.lengthAdditionalText,
-					/* number of additional info items*/
-					myNotificationAllocationParams.numAdditionalInfo,
-					/* use default allocation size */
-					myNotificationAllocationParams.variableDataSize);
+	    ntfHandle, /* handle to Notification Service instance */
+	    &myNotification,
+	    /* number of correlated notifications */
+	    myNotificationAllocationParams.numCorrelatedNotifications,
+	    /* length of additional text */
+	    myNotificationAllocationParams.lengthAdditionalText,
+	    /* number of additional info items*/
+	    myNotificationAllocationParams.numAdditionalInfo,
+	    /* use default allocation size */
+	    myNotificationAllocationParams.variableDataSize);
 
-        free(myNotificationParams.additionalText);
-	safassert(saNtfNotificationFree(myNotification.notificationHandle), SA_AIS_OK);
+	free(myNotificationParams.additionalText);
+	safassert(saNtfNotificationFree(myNotification.notificationHandle),
+		  SA_AIS_OK);
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	test_validate(rc, SA_AIS_OK);
-
 }
 
 /**
@@ -56,91 +60,98 @@ void saNtfSecurityAlarmNotificationAllocate_01(void) {
  * Strategy: Set the handle to zero or invalid number
  *           Create a handle and then destroy it.
  */
-void saNtfSecurityAlarmNotificationAllocate_02(void) {
+void saNtfSecurityAlarmNotificationAllocate_02(void)
+{
 	int errors = 0;
-	SaNtfSecurityAlarmNotificationT  myNotification;
+	SaNtfSecurityAlarmNotificationT myNotification;
 	saNotificationAllocationParamsT myNotificationAllocationParams;
-	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationFilterAllocationParamsT
+	    myNotificationFilterAllocationParams;
 	saNotificationParamsT myNotificationParams;
 
 	fillInDefaultValues(&myNotificationAllocationParams,
-			&myNotificationFilterAllocationParams, &myNotificationParams);
-
+			    &myNotificationFilterAllocationParams,
+			    &myNotificationParams);
 
 	rc = saNtfSecurityAlarmNotificationAllocate(
-					0, /* handle to Notification Service instance */
-					&myNotification,
-					/* number of correlated notifications */
-					myNotificationAllocationParams.numCorrelatedNotifications,
-					/* length of additional text */
-					myNotificationAllocationParams.lengthAdditionalText,
-					/* number of additional info items*/
-					myNotificationAllocationParams.numAdditionalInfo,
-					/* use default allocation size */
-					myNotificationAllocationParams.variableDataSize);
-	if(rc != SA_AIS_ERR_BAD_HANDLE) {
+	    0, /* handle to Notification Service instance */
+	    &myNotification,
+	    /* number of correlated notifications */
+	    myNotificationAllocationParams.numCorrelatedNotifications,
+	    /* length of additional text */
+	    myNotificationAllocationParams.lengthAdditionalText,
+	    /* number of additional info items*/
+	    myNotificationAllocationParams.numAdditionalInfo,
+	    /* use default allocation size */
+	    myNotificationAllocationParams.variableDataSize);
+	if (rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
 	}
-        free(myNotificationParams.additionalText);
-	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion), SA_AIS_OK);
+	free(myNotificationParams.additionalText);
+	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion),
+		  SA_AIS_OK);
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	rc = saNtfSecurityAlarmNotificationAllocate(
-					ntfHandle, /* handle to Notification Service instance */
-					&myNotification,
-					/* number of correlated notifications */
-					myNotificationAllocationParams.numCorrelatedNotifications,
-					/* length of additional text */
-					myNotificationAllocationParams.lengthAdditionalText,
-					/* number of additional info items*/
-					myNotificationAllocationParams.numAdditionalInfo,
-					/* use default allocation size */
-					myNotificationAllocationParams.variableDataSize);
-	if(rc != SA_AIS_ERR_BAD_HANDLE) {
+	    ntfHandle, /* handle to Notification Service instance */
+	    &myNotification,
+	    /* number of correlated notifications */
+	    myNotificationAllocationParams.numCorrelatedNotifications,
+	    /* length of additional text */
+	    myNotificationAllocationParams.lengthAdditionalText,
+	    /* number of additional info items*/
+	    myNotificationAllocationParams.numAdditionalInfo,
+	    /* use default allocation size */
+	    myNotificationAllocationParams.variableDataSize);
+	if (rc != SA_AIS_ERR_BAD_HANDLE) {
 		errors++;
 	}
 
-	rc = (errors == 0)? SA_AIS_OK:  SA_AIS_ERR_BAD_HANDLE;
+	rc = (errors == 0) ? SA_AIS_OK : SA_AIS_ERR_BAD_HANDLE;
 
 	test_validate(rc, SA_AIS_OK);
-
 }
 
-void saNtfSecurityAlarmNotificationAllocate_03(void) {
+void saNtfSecurityAlarmNotificationAllocate_03(void)
+{
 	saNotificationAllocationParamsT myNotificationAllocationParams;
-	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationFilterAllocationParamsT
+	    myNotificationFilterAllocationParams;
 	saNotificationParamsT myNotificationParams;
 
 	fillInDefaultValues(&myNotificationAllocationParams,
-			&myNotificationFilterAllocationParams, &myNotificationParams);
+			    &myNotificationFilterAllocationParams,
+			    &myNotificationParams);
 
-	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion), SA_AIS_OK);
+	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion),
+		  SA_AIS_OK);
 
 	rc = saNtfSecurityAlarmNotificationAllocate(
-					ntfHandle, /* handle to Notification Service instance */
-					NULL,
-					/* number of correlated notifications */
-					myNotificationAllocationParams.numCorrelatedNotifications,
-					/* length of additional text */
-					myNotificationAllocationParams.lengthAdditionalText,
-					/* number of additional info items*/
-					myNotificationAllocationParams.numAdditionalInfo,
-					/* use default allocation size */
-					myNotificationAllocationParams.variableDataSize);
+	    ntfHandle, /* handle to Notification Service instance */
+	    NULL,
+	    /* number of correlated notifications */
+	    myNotificationAllocationParams.numCorrelatedNotifications,
+	    /* length of additional text */
+	    myNotificationAllocationParams.lengthAdditionalText,
+	    /* number of additional info items*/
+	    myNotificationAllocationParams.numAdditionalInfo,
+	    /* use default allocation size */
+	    myNotificationAllocationParams.variableDataSize);
 
-        free(myNotificationParams.additionalText);
+	free(myNotificationParams.additionalText);
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 	test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
-
 }
 
-
-__attribute__ ((constructor)) static void saNtfSecurityAlarmNotificationAllocate_constructor(void) {
+__attribute__((constructor)) static void
+saNtfSecurityAlarmNotificationAllocate_constructor(void)
+{
 	test_suite_add(6, "Producer API 2 allocate");
 	test_case_add(6, saNtfSecurityAlarmNotificationAllocate_01,
-			"saNtfSecurityAlarmNotificationAllocate SA_AIS_OK");
-	test_case_add(6, saNtfSecurityAlarmNotificationAllocate_02,
-				"saNtfSecurityAlarmNotificationAllocate SA_AIS_ERR_BAD_HANDLE");
-	test_case_add(6, saNtfSecurityAlarmNotificationAllocate_03,
-				"saNtfSecurityAlarmNotificationAllocate SA_AIS_ERR_INVALID_PARAM");
+		      "saNtfSecurityAlarmNotificationAllocate SA_AIS_OK");
+	test_case_add(
+	    6, saNtfSecurityAlarmNotificationAllocate_02,
+	    "saNtfSecurityAlarmNotificationAllocate SA_AIS_ERR_BAD_HANDLE");
+	test_case_add(
+	    6, saNtfSecurityAlarmNotificationAllocate_03,
+	    "saNtfSecurityAlarmNotificationAllocate SA_AIS_ERR_INVALID_PARAM");
 }
-

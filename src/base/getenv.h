@@ -32,9 +32,9 @@ namespace base {
  * or octal, respectively. The parsed value is always logged using the OpenSAF
  * logtrace functionality, and parse errors are logged to syslog.
  */
-template<typename T>
+template <typename T>
 T GetEnv(const char* environment_variable, T default_value);
 
-} // namespace base
+}  // namespace base
 
 #endif  // BASE_GETENV_H_
